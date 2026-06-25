@@ -3,7 +3,11 @@
  * Snapshot + diff — dane w TenderPipelineItem.changeMonitor (sync KV).
  */
 import type { TenderBzpDocument, TenderPipelineItem } from "@/lib/tenders-bzp";
-import { fetchTenderDocuments, isActionableTender } from "@/lib/tenders-bzp";
+import { isActionableTender } from "@/lib/tenders-bzp";
+import {
+  canRunDocumentDiscovery,
+  runTenderDocumentDiscovery,
+} from "@/lib/tender-document-discovery";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { isQaDocumentFilename, processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 
@@ -341,15 +345,16 @@ export async function rescanPipelineDocumentChanges(
 
   for (const item of candidates) {
     try {
-      const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
+      if (!canRunDocumentDiscovery(item)) continue;
+      const { docs, patch, ran } = await runTenderDocumentDiscovery(item, { force: true });
+      if (!ran) continue;
       const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
       const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
       const totalNew = newEvents.length + newQaEvents.length;
       if (totalNew > 0 || docs.length !== (item.bzpDocuments?.length ?? 0)) {
         updates.set(item.id, {
           ...item,
-          bzpDocuments: docs,
-          documentsFetchedAt: new Date().toISOString(),
+          ...patch,
           changeMonitor,
           qaMonitor,
         });

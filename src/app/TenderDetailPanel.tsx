@@ -6,12 +6,15 @@ import {
 import { toast } from "sonner";
 import {
   type TenderPipelineItem,
-  fetchTenderDocuments,
   uploadTenderFile,
   computePipelineFunnel,
   patchOurEstimatePln,
   patchSubmittedBidPln,
 } from "@/lib/tenders-bzp";
+import {
+  canRunDocumentDiscovery,
+  runTenderDocumentDiscovery,
+} from "@/lib/tender-document-discovery";
 import {
   recordSubmittedBidCalibration,
   syncCalibrationAwardFromItem,
@@ -286,15 +289,22 @@ export function TenderDetailPanel({
       toast.error("Brak tenderId — odśwież z BZP");
       return;
     }
+    if (!canRunDocumentDiscovery(item)) {
+      toast.error("Brak numeru ogłoszenia ani treści ogłoszenia — poczekaj na załadowanie lub odśwież z BZP");
+      return;
+    }
     setLoadingDocs(true);
     try {
-      const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
+      const { docs, patch, ran } = await runTenderDocumentDiscovery(item, { force: true });
+      if (!ran) {
+        toast.error("Nie udało się uruchomić pobierania załączników");
+        return;
+      }
       const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
       const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
       const totalNew = newEvents.length + newQaEvents.length;
       onUpdate({
-        bzpDocuments: docs,
-        documentsFetchedAt: new Date().toISOString(),
+        ...patch,
         changeMonitor,
         qaMonitor,
       });
@@ -308,7 +318,7 @@ export function TenderDetailPanel({
     } finally {
       setLoadingDocs(false);
     }
-  }, [item.tenderId, onUpdate]);
+  }, [item, onUpdate]);
 
   const runAnalysis = useCallback(async (docIndex?: number) => {
     setAnalyzing(true);

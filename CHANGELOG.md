@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.62** · **Strategia UX.2T guidance layout**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.62** · **Discovery dokumentów variant B (lokalnie 2.62.63)**
+
+## 2.62.63 — Discovery dokumentów (variant B root-cause)
+
+- **fix:** bramka discovery bez noticeNumber/noticeHtml; documentsFetchedAt tylko po autorytatywnym fetch; noticeHtml do Edge; retry bootstrap po anchor
+- **test:** `test-tender-documents-bootstrap-retry.mjs` · regresja `test-smartpzp-mvp.mjs`
 
 ## 2.62.62 — Strategia UX.2T (układ decyzyjny)
 

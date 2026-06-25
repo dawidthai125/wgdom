@@ -3544,10 +3544,12 @@ app.get("/make-server-0afb8820/tenders-bzp-documents", async (c) => {
   try {
     const tenderId = (c.req.query("tenderId") || "").trim();
     const noticeNumber = (c.req.query("noticeNumber") || "").trim();
+    const noticeHtml = (c.req.query("noticeHtml") || "").trim();
     if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
     const { documents, source, mpClientAuthRequired, offPlatformHost } = await discoverTenderDocuments(
       tenderId,
       noticeNumber || undefined,
+      noticeHtml || undefined,
     );
     return c.json({
       ok: true,

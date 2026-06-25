@@ -1,15 +1,25 @@
 /**
- * P1 Mini-Stability Pack A — bootstrap retry guard (T1–T4).
+ * SSOT — bramka discovery dokumentów (variant B) + testy bootstrap retry.
  */
 
 import {
   attemptTenderDocumentsBootstrap,
+  canRunDocumentDiscovery,
+  isDocumentDiscoverySettled,
   isTenderDocumentsBootstrapCompleted,
   resetTenderDocumentsBootstrapForTests,
 } from "../src/app/hooks/useTenderDocumentsBootstrap.ts";
+import {
+  buildDocumentDiscoveryFetchInput,
+  canRunDocumentDiscovery as canRunDiscoveryLib,
+  isDocumentDiscoverySettled as isSettledLib,
+  resolveDocumentDiscoveryAnchor,
+  runTenderDocumentDiscovery,
+} from "../src/lib/tender-document-discovery.ts";
 
 const ITEM_ID = "bootstrap-retry-test-id";
 const TENDER_ID = "bzp-tender-uuid";
+const LONG_HTML = "<html><body>" + "x".repeat(120) + "</body></html>";
 
 function baseItem(overrides = {}) {
   return {
@@ -46,7 +56,38 @@ function ok(label, cond) {
   }
 }
 
-console.log("=== BOOTSTRAP RETRY GUARD (P1 Pack A) ===\n");
+console.log("=== BOOTSTRAP RETRY GUARD (P1 Pack A + variant B) ===\n");
+
+// T0 — SSOT gate unit
+{
+  const noAnchor = baseItem({ noticeNumber: "", bzpNumber: "", noticeHtml: "" });
+  ok("T0 canRun false bez anchor", !canRunDiscoveryLib(noAnchor));
+  ok("T0 buildInput null bez anchor", buildDocumentDiscoveryFetchInput(noAnchor) === null);
+
+  const withNumber = baseItem();
+  ok("T0 canRun true z noticeNumber", canRunDiscoveryLib(withNumber));
+  const input = buildDocumentDiscoveryFetchInput(withNumber);
+  ok("T0 input ma tenderId", input?.tenderId === TENDER_ID);
+  ok("T0 input ma noticeNumber", input?.noticeNumber === "2026/BZP 00012345");
+
+  const withHtml = baseItem({ noticeNumber: "", bzpNumber: "", noticeHtml: LONG_HTML });
+  ok("T0 canRun true z noticeHtml", canRunDiscoveryLib(withHtml));
+  ok("T0 input przekazuje noticeHtml", Boolean(buildDocumentDiscoveryFetchInput(withHtml)?.noticeHtml));
+
+  const premature = baseItem({
+    documentsFetchedAt: "2026-06-25T10:00:00.000Z",
+    noticeHtmlFetchedAt: "2026-06-25T11:00:00.000Z",
+    bzpDocuments: [],
+  });
+  ok("T0 retry gdy noticeHtml po documentsFetchedAt", !isSettledLib(premature));
+
+  const authoritativeEmpty = baseItem({
+    documentsFetchedAt: "2026-06-25T11:00:00.000Z",
+    noticeHtmlFetchedAt: "2026-06-25T10:00:00.000Z",
+    bzpDocuments: [],
+  });
+  ok("T0 settled przy autorytatywnym pustym", isSettledLib(authoritativeEmpty));
+}
 
 resetTenderDocumentsBootstrapForTests();
 
@@ -62,8 +103,9 @@ resetTenderDocumentsBootstrapForTests();
         tenderState: "Open",
         htmlBody: "<html><body>SWZ</body></html>",
       }),
-      fetchTenderDocuments: async () => {
+      fetchTenderDocuments: async (input) => {
         fetchCalls += 1;
+        ok("T1 fetch dostaje noticeNumber", Boolean(input.noticeNumber));
         return [mockDoc];
       },
       discoverExternalTenderDocs: async () => ({ builtAt: new Date().toISOString(), files: [] }),
@@ -84,6 +126,7 @@ resetTenderDocumentsBootstrapForTests();
   ok("T1 second attempt short-circuit", r2.ok === true);
   ok("T1 fetchTenderDocuments once", fetchCalls === 1);
   ok("T1 patch has bzpDocuments", patches.some((p) => p.bzpDocuments?.length === 1));
+  ok("T1 patch has documentsFetchedAt", patches.some((p) => p.documentsFetchedAt));
 }
 
 resetTenderDocumentsBootstrapForTests();
@@ -204,6 +247,101 @@ resetTenderDocumentsBootstrapForTests();
   ok("T4 kosztorys retry completed", isTenderDocumentsBootstrapCompleted(ITEM_ID));
   ok("T4 dossier shell built", patches.some((p) => p.tenderDossier?.brief != null));
   ok("T4 bzpDocuments for lazy dossier", patches.some((p) => (p.bzpDocuments?.length ?? 0) > 0));
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T5 — brak anchor: nie wołaj fetch, nie ustawiaj documentsFetchedAt
+{
+  let fetchCalls = 0;
+  const patches = [];
+  const r = await attemptTenderDocumentsBootstrap({
+    item: baseItem({
+      noticeNumber: "",
+      bzpNumber: "",
+      noticeHtml: "",
+    }),
+    onUpdate: (p) => patches.push(p),
+    deps: {
+      fetchTenderDocuments: async () => {
+        fetchCalls += 1;
+        return [mockDoc];
+      },
+    },
+  });
+  ok("T5 bootstrap ok bez anchor", r.ok === true);
+  ok("T5 fetch nie wywołany", fetchCalls === 0);
+  ok("T5 brak documentsFetchedAt", !patches.some((p) => p.documentsFetchedAt));
+  ok("T5 bootstrap nie completed (czeka na anchor)", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T6 — anchor pojawia się później → discovery + documentsFetchedAt
+{
+  let fetchCalls = 0;
+  const patches = [];
+  const deps = {
+    fetchTenderDocuments: async (input) => {
+      fetchCalls += 1;
+      ok("T6 fetch z noticeNumber", input.noticeNumber === "2026/BZP 00099999");
+      return [mockDoc];
+    },
+    discoverExternalTenderDocs: async () => ({ builtAt: new Date().toISOString(), files: [] }),
+  };
+
+  await attemptTenderDocumentsBootstrap({
+    item: baseItem({
+      noticeNumber: "",
+      bzpNumber: "",
+      noticeHtml: "",
+    }),
+    onUpdate: () => {},
+    deps,
+  });
+  ok("T6 pierwsza próba bez fetch", fetchCalls === 0);
+
+  await attemptTenderDocumentsBootstrap({
+    item: baseItem({
+      noticeNumber: "2026/BZP 00099999",
+      bzpNumber: "2026/BZP 00099999",
+      noticeHtml: LONG_HTML,
+    }),
+    onUpdate: (p) => patches.push(p),
+    deps,
+  });
+  ok("T6 druga próba woła fetch", fetchCalls === 1);
+  ok("T6 documentsFetchedAt ustawione", patches.some((p) => p.documentsFetchedAt));
+  ok("T6 bootstrap completed", isTenderDocumentsBootstrapCompleted(ITEM_ID));
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T7 — runTenderDocumentDiscovery przekazuje noticeHtml do fetch
+{
+  let capturedHtml = "";
+  const item = baseItem({ noticeNumber: "", bzpNumber: "", noticeHtml: LONG_HTML });
+  const result = await runTenderDocumentDiscovery(item, {
+    force: true,
+    fetchDocuments: async (input) => {
+      capturedHtml = input.noticeHtml ?? "";
+      return [mockDoc];
+    },
+  });
+  ok("T7 discovery ran", result.ran === true);
+  ok("T7 noticeHtml w fetch input", capturedHtml.length >= 100);
+  ok("T7 authoritative patch", Boolean(result.patch.documentsFetchedAt));
+}
+
+// T8 — nieautorytatywny skip nie ustawia documentsFetchedAt
+{
+  const item = baseItem({
+    documentsFetchedAt: "2026-06-25T10:00:00.000Z",
+    bzpDocuments: [],
+  });
+  const result = await runTenderDocumentDiscovery(item);
+  ok("T8 skip bez force gdy settled", result.ran === false);
+  ok("T8 pusty patch", Object.keys(result.patch).length === 0);
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

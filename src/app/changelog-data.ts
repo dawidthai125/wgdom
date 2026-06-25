@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.63",
+    label: "Discovery dokumentów — fix przedwczesnego skanu",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi → Dokumenty: discovery nie startuje bez numeru ogłoszenia lub treści HTML; documentsFetchedAt tylko po autorytatywnym skanie; retry po pojawieniu się anchor (SmartPZP, Logintrade, ezamawiajacy itd.)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.62",
     label: "Strategia — układ decyzyjny (UX.2T)",
     items: [

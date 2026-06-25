@@ -15,6 +15,12 @@ import { analyzeSwzFromNoticeHtmlOnly } from "@/lib/tender-dossier-pipeline";
 import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
 import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
 import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
+import {
+  canRunDocumentDiscovery,
+  documentDiscoveryBootstrapKey,
+  isDocumentDiscoverySettled,
+  runTenderDocumentDiscovery,
+} from "@/lib/tender-document-discovery";
 
 /** Ukończony bootstrap — nie powtarzaj (sukces). */
 const bootstrapCompletedIds = new Set<string>();
@@ -36,6 +42,11 @@ const defaultDeps: TenderDocumentsBootstrapDeps = {
   fetchTenderDocuments,
   discoverExternalTenderDocs,
 };
+
+function shouldMarkBootstrapCompleted(item: TenderPipelineItem): boolean {
+  if (!item.tenderId?.trim()) return true;
+  return isDocumentDiscoverySettled(item);
+}
 
 /**
  * Jedna próba bootstrap dokumentów.
@@ -72,13 +83,18 @@ export async function attemptTenderDocumentsBootstrap(opts: {
         html = det.htmlBody;
       }
     }
-    if (item.tenderId && !docs.length) {
-      docs = await deps.fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
-      if (!isCancelled()) {
-        patch.bzpDocuments = docs;
-        patch.documentsFetchedAt = new Date().toISOString();
+
+    const mergedForDiscovery: TenderPipelineItem = { ...item, ...patch };
+    if (mergedForDiscovery.tenderId && !(mergedForDiscovery.bzpDocuments?.length)) {
+      const discovery = await runTenderDocumentDiscovery(mergedForDiscovery, {
+        fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+      });
+      if (!isCancelled() && discovery.ran) {
+        Object.assign(patch, discovery.patch);
+        docs = discovery.docs;
       }
     }
+
     if (!isCancelled() && patch.bzpDocuments) {
       const merged = { ...item, ...patch };
       const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
@@ -143,7 +159,10 @@ export async function attemptTenderDocumentsBootstrap(opts: {
     }
 
     if (!isCancelled()) {
-      bootstrapCompletedIds.add(item.id);
+      const merged = { ...item, ...patch };
+      if (shouldMarkBootstrapCompleted(merged)) {
+        bootstrapCompletedIds.add(item.id);
+      }
     }
     return { ok: true };
   } catch {
@@ -164,6 +183,7 @@ export function useTenderDocumentsBootstrap(opts: {
   const [autoRunning, setAutoRunning] = useState(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+  const bootstrapKey = documentDiscoveryBootstrapKey(item);
 
   useEffect(() => {
     if (!enabled) return;
@@ -180,8 +200,12 @@ export function useTenderDocumentsBootstrap(opts: {
     });
 
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- once per item id when enabled
-  }, [enabled, item.id]);
+  }, [
+    enabled,
+    bootstrapKey,
+    item.documentsFetchedAt,
+    item.bzpDocuments?.length,
+  ]);
 
   return { autoRunning };
 }
@@ -191,3 +215,6 @@ export function resetTenderDocumentsBootstrapForTests(): void {
   bootstrapCompletedIds.clear();
   bootstrapInflightIds.clear();
 }
+
+/** Test-only — eksport SSOT gate. */
+export { canRunDocumentDiscovery, isDocumentDiscoverySettled };

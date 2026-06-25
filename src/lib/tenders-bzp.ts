@@ -778,14 +778,25 @@ export async function fetchTenderNoticeDetails(noticeNumber: string): Promise<Te
   return data.details;
 }
 
+export interface FetchTenderDocumentsInput {
+  tenderId: string;
+  noticeNumber?: string;
+  /** Gdy klient ma HTML lokalnie — Edge użyje zamiast ponownego fetch BZP. */
+  noticeHtml?: string;
+}
+
 export async function fetchTenderDocuments(
-  tenderId: string,
+  input: FetchTenderDocumentsInput | string,
   noticeNumber?: string,
 ): Promise<TenderBzpDocument[]> {
-  const data = await tenderApiGet("/tenders-bzp-documents", {
-    tenderId,
-    ...(noticeNumber ? { noticeNumber } : {}),
-  }) as {
+  const resolved: FetchTenderDocumentsInput =
+    typeof input === "string"
+      ? { tenderId: input, noticeNumber: noticeNumber?.trim() || undefined }
+      : input;
+  const params: Record<string, string> = { tenderId: resolved.tenderId };
+  if (resolved.noticeNumber?.trim()) params.noticeNumber = resolved.noticeNumber.trim();
+  if (resolved.noticeHtml?.trim()) params.noticeHtml = resolved.noticeHtml.trim();
+  const data = await tenderApiGet("/tenders-bzp-documents", params) as {
     documents: TenderBzpDocument[];
   };
   return (data.documents || []).map((doc) => ({
