@@ -208,6 +208,37 @@ npx vite-node scripts/test-p5-owner-view.mjs
 
 ---
 
+## 6g. Przetargi — Kosztorys Process UX P0 — **2.62.64 CLOSED**
+
+**Status:** **P0 CLOSED** · prod **`4056223`** · **prezentacja only**
+
+Zakładka **Przetargi → Kosztorys V4** — jeden pasek statusu z 8 fazami biznesowymi zamiast stałego „Analiza kosztorysu…”.
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) | **★★ SSOT P0** |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.15a | Architektura techniczna |
+
+### Kluczowe pliki
+
+```text
+src/lib/tender-kosztorys-process-phase.ts   deriveKosztorysProcessPhase() SSOT
+src/app/KosztorysProcessStatusBar.tsx       jeden komponent UI
+src/app/TenderKosztorysWorkspace.tsx        konsument fazy
+src/app/TenderDetailPage.tsx                processSession z hooków
+src/app/hooks/useTenderDossierHeavyLazy.ts  retry + parseErrorMessage
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
+```
+
+**Nie ruszać bez briefu:** parsery · `buildTenderDossierHeavy` · Edge · `isKosztorysAwaitingHeavyParse` w innych widokach (backlog P1).
+
+---
+
 ## 6f. Przetargi — TP190 Parser v3 + Batch Rebuild — **CLOSED**
 
 **Status:** **TP190 stream CLOSED** (TP190A→TP190C-3C) · `CURRENT_PARSER_VERSION = 3` · prod stale **0**

@@ -10,7 +10,8 @@ Komunikuj się z użytkownikiem po **polsku**.
 ## Zanim zaczniesz pracę w tym repo
 
 1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.55**).
+2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.64**).
+2y. [`docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED)
 2s. [`docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) ← ★★ WM Druk ZI §4/§5 · TP203 · P4
 2t. [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) ← ★★ WM Schematy visual V2 (CLOSED)
 2u. [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) ← ★ AUDIT WM→Hub (audyt CLOSED · P1 OPEN)
@@ -25,6 +26,7 @@ Komunikuj się z użytkownikiem po **polsku**.
 11. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
 12. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 10.1 Przydziały robót · § 11 sync · § **12.1.16 P0/P1 merge kosztorysu** · § **12.1.8 WM Druk** · § **12.1.10 EM** · § 15.1 widoki.
 13. **Tematycznie (gdy dotyczy zadania):**
+ - **Kosztorys UX P0 (2.62.64)** → [`docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a
  - **WM Schematy jednokreskowe (CLOSED 2.62.51)** → [`docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
  - **P0/P1 merge jakościowy kosztorysu (TP113/TP182)** → [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md)
  - **Lista Płac · Przydziały robót** → [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md)

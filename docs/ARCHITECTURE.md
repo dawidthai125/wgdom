@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.55** · AUDIT-HUB-WM-001 · § 15.5 · prod **2.62.55**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.64** · Kosztorys UX P0 · § 12.1.15a · prod **2.62.64**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1411,6 +1411,40 @@ TenderKosztorysWorkspace
 **Testy:** `test-v41-kosztorys-workspace.mjs` (T12–T13) · `test-construction-scope-analysis.mjs` · `test-construction-business-fit.mjs` · regresja `test-tender-cost-discovery.mjs`
 
 **Nie zmieniaj bez polecenia:** `tender-cost-discovery.ts`, `tender-document-resolver.ts`, `tenders-bzp-doc-parse.ts`, `tender-dossier-pipeline.ts`, parser ATH, Edge.
+
+### 12.1.15a Kosztorys V4 — fazy procesu UX (P0, v2.62.64)
+
+**Status:** **CLOSED** · commit **`4056223`** · **prezentacja only** (bez zmian parserów / pipeline / Edge)  
+**Handoff:** [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md)
+
+Jeden SSOT fazy procesu na zakładce Kosztorys V4 — zamiast stałego „Analiza kosztorysu…”.
+
+```text
+TenderDetailPage
+  ├── useTenderDocumentsBootstrap → autoRunning
+  └── useTenderDossierHeavyLazy   → dossierBuilding, dossierParseFailed, retry
+        ↓
+TenderKosztorysWorkspace
+  └── deriveKosztorysProcessPhase(item, session)  ← tender-kosztorys-process-phase.ts
+        ↓
+KosztorysProcessStatusBar                         ← badge + hint + retry
+```
+
+| Faza (`id`) | Etykieta |
+|-------------|----------|
+| `waiting_data` | Oczekiwanie na dane |
+| `downloading_docs` | Pobieranie dokumentów |
+| `preparing_docs` | Przygotowanie dokumentów |
+| `parsing_kosztorys` | Analiza kosztorysu |
+| `ready` | Kosztorys gotowy |
+| `not_found` | Nie znaleziono kosztorysu |
+| `failed` | Analiza została przerwana |
+
+**Legacy:** `isKosztorysAwaitingHeavyParse()` w `tender-analysis-status-ux.ts` nadal używane w Owner View / Wycena — **nie** usuwać bez P1 migracji.
+
+**Test:** `test-tender-kosztorys-process-phase.mjs` (11)
+
+**Nie zmieniaj bez polecenia:** logika w `deriveKosztorysProcessPhase` rozproszona po komponentach · zmiana `buildTenderDossierHeavy` pod UX.
 
 ### 12.1.16 P0/P1 — Kosztorys Merge Quality Protection (TP113 / TP182, v2.62.1 infra)
 

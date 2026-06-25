@@ -12,8 +12,8 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.62.10** (prod) · commit **`1992340`** · **PDF WM Recovery CLOSED** · **TP200 PLANNED** · PAYROLL-ASSIGNMENTS-P1 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
-- **Prod (`main` / `origin/main`, app):** **`1992340`** (2.62.10) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.64** (prod) · commit **`4056223`** · **Kosztorys UX P0 CLOSED** · Discovery B **2.62.63** · WM Schematy V2 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
+- **Prod (`main` / `origin/main`, app):** **`4056223`** (2.62.64) · https://www.wgdom.fun
 - **★★ Handoff PDF WM Recovery (CLOSED):** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](../../docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) — TP196–TP198C · `pdf-przedmiar-heuristic.ts` · TP182 123 poz.
 - **★★ Handoff TP200 (PLANNED):** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](../../docs/SESSION-HANDOFF-TP200-PLANNED.md) — parserVersion + kosztorys fidelity
 - **Git tag backup pre-TP200:** **`wgdom-backup-2026-06-19-v2.62.10`**

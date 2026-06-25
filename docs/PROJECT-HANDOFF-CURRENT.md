@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.55** · WM Schematy hotfixy · **AUDIT-HUB-WM-001**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-25 (**prod 2.62.64** · Kosztorys UX P0 · Discovery variant B)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,6 +9,8 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
+1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)
 1s. docs/SESSION-HANDOFF-2026-06-24.md    ← sesja Audit Hub · TP200C · P0 cloud-sync
 1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4 toast (2.62.46–48)
 1w. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md      ← ★★ WM Schematy jednokreskowe MVP (CLOSED · 2.62.49)
@@ -43,6 +45,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
+| **Discovery dokumentów variant B** | **2.62.63** (`e2d899a`) | **CLOSED** · bramka anchor · retry bootstrap | [`SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md`](SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md) · `tender-document-discovery.ts` |
 | **AUDIT-HUB-WM-001** | 2026-06-24 | **AUDIT CLOSED** · WM Pomiary/Schematy **nie** w Audit Hub · P1 implementacja OPEN | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md) |
 | **WM Schematy jednokreskowe MVP + V2 fidelity** | **2.62.51** (`78f11cd`) | **CLOSED** · tab Schematy · KV sync · PDF · renderer **v5** · audyt V2C B+ | [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) · ARCHITECTURE § 12.1.21 |
 | **P4 WM upload toast** | **2.62.48** (`5cef155`) | **CLOSED** · brak „Dodano 0 plików” | [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) §4 |
@@ -131,7 +135,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.55       ← WM Schematy right edge PDF hotfix
+Version (prod):             2.62.64       ← Kosztorys V4 fazy procesu UX (P0)
+Kosztorys UX P0:            4056223       deriveKosztorysProcessPhase · KosztorysProcessStatusBar
+Discovery variant B:        e2d899a       v2.62.63 — canRunDocumentDiscovery SSOT
 WM Schematy hotfixy:        2.62.53–55    detached RAP crash · header spaces · columnRightInset
 WM Pomiary UX Upgrade:      2.62.52       detached RAP · katalog edit/delete · Registry Guard
 WM Schematy visual V2:      78f11cd       v2.62.51 — bus-layout-v2 · renderer v5
