@@ -1,32 +1,33 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.75** · **PRODUCTION VERIFIED** (`c31e1bd`)
+**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.76** · **PRODUCTION VERIFIED** (`36718cc`)
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.75** |
-| **Commit prod** | **`c31e1bd`** |
-| **Release 2.62.75** | **COMPLETE** |
-| **Poprzedni release** | 2.62.74 (`b4fde0c`) · Etap 1 Audit Hub WM |
+| **Wersja prod** | **2.62.76** |
+| **Commit prod** | **`36718cc`** |
+| **Release 2.62.76** | **COMPLETE** |
+| **Poprzedni release** | 2.62.75 (`c31e1bd`) · Etap 2 Audit Hub WM |
 | **Workflow Cleanup P0** | **RELEASED** (2.62.72) |
 | **Recovery Pack v2.62.72** | **COMPLETED** · OFFSITE READY |
 
 ---
 
-## P1 Audit Hub WM — **EPIC OPEN** (Etap 1–2 RELEASED)
+## P1 Audit Hub WM — **EPIC OPEN** (Etap 1–3 RELEASED)
 
 | Etap | Wersja | Commit | Status |
 |------|--------|--------|--------|
 | **1** — infra KV + adapter | 2.62.74 | `b4fde0c` | **RELEASED** |
 | **2** — hooki Pomiary/Katalog | 2.62.75 | `c31e1bd` | **RELEASED** |
-| **3** — hooki Schematy | — | — | **NOT STARTED** |
+| **3** — hooki Schematy | 2.62.76 | `36718cc` | **RELEASED** |
 | **4** — UX Audit Hub + docs | — | — | **NOT STARTED** |
 
 **SSOT:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md)  
-**Smoke D1:** `scripts/smoke-wm-druk-audit-etap2-d1.mjs` — 10/10 PASS  
-**Smoke akcje:** `scripts/smoke-wm-druk-audit-etap2-actions.mjs` — 7/7 PASS
+**Smoke Etap 2 D1:** `scripts/smoke-wm-druk-audit-etap2-d1.mjs` — 10/10 PASS  
+**Smoke Etap 2 akcje:** `scripts/smoke-wm-druk-audit-etap2-actions.mjs` — 7/7 PASS  
+**Smoke Etap 3 S1:** `scripts/smoke-wm-druk-audit-etap3-s1.mjs` — 11/11 PASS
 
 ---
 
@@ -69,16 +70,22 @@ Powyższe P0.1–P0.4 należą do epica **P0 Payroll Cloud Recovery (OPEN)** —
 
 | EPIC | Status | Następny krok |
 |------|--------|----------------|
-| **P1 Audit Hub WM** | **OPEN** (Etap 1–2 **RELEASED**) | **Etap 3** (Schematy) — tylko na polecenie |
+| **P1 Audit Hub WM** | **OPEN** (Etap 1–3 **RELEASED**) | **Etap 4** (UX Audit Hub + docs) — tylko na polecenie |
 | P0 Payroll Cloud Recovery | **EPIC OPEN** (Etap 1 done) | P0.1–P0.4 backlog — **bez implementacji** bez polecenia |
 
-**SSOT:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · Etap 1–2 RELEASED · Etap 3–4 NOT STARTED
+**SSOT:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · Etap 1–3 RELEASED · Etap 4 NOT STARTED
 
 **Inne (na polecenie):** Workflow Cleanup P1
 
 ---
 
 ## Historia sesji (2026-06-26)
+
+### P1 Audit Hub WM Etap 3 — release 2.62.76 **COMPLETE**
+
+- Commit `36718cc` → push `main` · prod VERIFIED (`version.json` 2.62.76)
+- Hooki: `schematic_created` / `measurement_imported` / `schematic_duplicated` / `schematic_deleted` / `pdf_exported`
+- Smoke S1 (11/11) + unit T11 (24/24) PASS
 
 ### P1 Audit Hub WM Etap 2 — release 2.62.75 **COMPLETE**
 
@@ -120,8 +127,9 @@ Cleanup P0 + grouped docs migration — **RELEASED**
 
 ## Szybki start agenta
 
-1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.75**
-2. WM audit smoke: `npx vite-node scripts/smoke-wm-druk-audit-etap2-d1.mjs`
-2. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs` · `node scripts/smoke-prod-bundle-2.62.73.mjs`
-3. Payroll unit: `test-payroll-work-entry-merge-fidelity.mjs` · `test-payroll-guard-push-fail-loud-p0.mjs`
-4. `npm run build`
+1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.76**
+2. WM audit smoke Etap 3: `npx vite-node scripts/smoke-wm-druk-audit-etap3-s1.mjs`
+3. WM audit smoke Etap 2: `npx vite-node scripts/smoke-wm-druk-audit-etap2-d1.mjs`
+4. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs` · `node scripts/smoke-prod-bundle-2.62.73.mjs`
+5. Payroll unit: `test-payroll-work-entry-merge-fidelity.mjs` · `test-payroll-guard-push-fail-loud-p0.mjs`
+6. `npm run build`
