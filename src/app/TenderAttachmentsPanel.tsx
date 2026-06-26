@@ -154,8 +154,12 @@ function ArchiveInnerList({
 import {
   TENDER_ATTACHMENTS_SECTION_ID,
   normalizeTenderDocumentTitle,
-  prioritizeTenderDocuments,
 } from "@/lib/tender-workspace-ux";
+import {
+  defaultTenderDocumentGroupExpanded,
+  groupTenderAttachmentRows,
+  type TenderDocumentBusinessGroupId,
+} from "@/lib/tender-grouped-documents";
 
 export function TenderAttachmentsPanel({
   item,
@@ -181,7 +185,9 @@ export function TenderAttachmentsPanel({
   sectionId?: string;
 }) {
   const [preview, setPreview] = useState<InspectorFileItem | null>(null);
-  const [showRestDocs, setShowRestDocs] = useState(false);
+  const [groupExpandedOverrides, setGroupExpandedOverrides] = useState<
+    Partial<Record<TenderDocumentBusinessGroupId, boolean>>
+  >({});
 
   const docs = item.bzpDocuments ?? [];
   const externalFiles = externalDiscovery?.files ?? [];
@@ -235,14 +241,28 @@ export function TenderAttachmentsPanel({
     return rows;
   }, [sortedDocs, externalFiles, item.uploadedFile]);
 
-  const { top: topAttachments, rest: restAttachments } = useMemo(
-    () => prioritizeTenderDocuments(attachmentRows, (row) => ({
+  const documentGroups = useMemo(
+    () => groupTenderAttachmentRows(attachmentRows, (row) => ({
       filename: row.name,
       isSwzHint: row.kind === "bzp" ? row.doc.isSwzHint : row.kind === "external" ? row.file.isSwzHint : false,
       sortIndex: row.sortIndex,
     })),
     [attachmentRows],
   );
+
+  const isGroupExpanded = (groupId: TenderDocumentBusinessGroupId, count: number) => {
+    if (groupExpandedOverrides[groupId] !== undefined) {
+      return groupExpandedOverrides[groupId]!;
+    }
+    return defaultTenderDocumentGroupExpanded(count);
+  };
+
+  const toggleGroup = (groupId: TenderDocumentBusinessGroupId, count: number) => {
+    setGroupExpandedOverrides((prev) => ({
+      ...prev,
+      [groupId]: !isGroupExpanded(groupId, count),
+    }));
+  };
 
   const showEmptyPlatformState = !loadingDocs
     && docs.length === 0
@@ -321,55 +341,51 @@ export function TenderAttachmentsPanel({
           />
         )}
 
-        {restAttachments.length > 0 && (
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-0.5">
-            Najważniejsze dokumenty
-          </p>
-        )}
-
-        <ul className="space-y-1.5">
-          {topAttachments.map((row) => (
-            <AttachmentDocRow
-              key={attachmentRowKey(row)}
-              row={row}
-              item={item}
-              docs={docs}
-              analyzing={analyzing}
-              onAnalyze={onAnalyze}
-              onPreview={setPreview}
-            />
-          ))}
-        </ul>
-
-        {restAttachments.length > 0 && (
-          <div className="space-y-1.5">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setShowRestDocs((v) => !v); }}
-              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground font-medium"
-            >
-              <ChevronDown size={12} className={`transition-transform ${showRestDocs ? "rotate-180" : ""}`} />
-              {showRestDocs
-                ? "Ukryj pozostałe dokumenty"
-                : `Pokaż pozostałe dokumenty (${restAttachments.length})`}
-            </button>
-            {showRestDocs && (
-              <ul className="space-y-1.5">
-                {restAttachments.map((row) => (
-                  <AttachmentDocRow
-                    key={attachmentRowKey(row)}
-                    row={row}
-                    item={item}
-                    docs={docs}
-                    analyzing={analyzing}
-                    onAnalyze={onAnalyze}
-                    onPreview={setPreview}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+        <div className="space-y-1.5">
+        {documentGroups.map((group) => {
+          const expanded = isGroupExpanded(group.id, group.items.length);
+          return (
+            <div key={group.id} className="rounded-lg border border-border/60 overflow-hidden">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggleGroup(group.id, group.items.length); }}
+                className="w-full flex flex-wrap items-center gap-2 px-2.5 py-1.5 bg-secondary/30 hover:bg-secondary/45 text-left transition-colors"
+                aria-expanded={expanded}
+              >
+                <ChevronDown
+                  size={12}
+                  className={`shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`}
+                />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground/90">
+                  {group.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-normal normal-case">
+                  ({group.items.length})
+                </span>
+              </button>
+              {expanded && (
+                group.items.length > 0 ? (
+                  <ul className="space-y-1.5 p-2 pt-1.5">
+                    {group.items.map((row) => (
+                      <AttachmentDocRow
+                        key={attachmentRowKey(row)}
+                        row={row}
+                        item={item}
+                        docs={docs}
+                        analyzing={analyzing}
+                        onAnalyze={onAnalyze}
+                        onPreview={setPreview}
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground px-2.5 py-1.5">Brak dokumentów</p>
+                )
+              )}
+            </div>
+          );
+        })}
+        </div>
 
         {noticeLinks.length > 0 && (
           <div className="pt-1 space-y-1">
