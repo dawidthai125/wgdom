@@ -6,6 +6,7 @@ import type { DeliveryPackagePublication } from "@/lib/delivery-package-publicat
 import type { InspectorStatsEvent } from "@/lib/inspector-stats";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { SecurityAuditEntry } from "@/lib/security-audit-log";
+import type { WmDrukAuditEntry } from "@/lib/wm-druk-audit";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 
@@ -14,9 +15,11 @@ export type AuditFeedSource =
   | "inspector_login"
   | "job_activity"
   | "wm_print"
+  | "wm_druk"
   | "delivery_package"
   | "security_log";
 
+/** Źródła widoczne w filtrze UI Audit Hub (wm_druk → Etap 4 UX). */
 export const AUDIT_FEED_SOURCES: AuditFeedSource[] = [
   "operational_notes",
   "inspector_login",
@@ -30,7 +33,8 @@ export const AUDIT_FEED_SOURCE_LABEL_PL: Record<AuditFeedSource, string> = {
   operational_notes: "Notatki operacyjne",
   inspector_login: "Inspektor · logowania",
   job_activity: "Roboty",
-  wm_print: "WM Druk",
+  wm_print: "WM Druk · Odbiory",
+  wm_druk: "WM Druk · Pomiary i Schematy",
   delivery_package: "Pakiety odbiorowe",
   security_log: "Security log",
 };
@@ -69,6 +73,7 @@ export interface AuditHubInput {
   inspectorLoginEvents: InspectorStatsEvent[];
   jobs: AuditHubJob[];
   wmPrintHistory: WmPrintHistoryEntry[];
+  wmDrukAuditLog?: WmDrukAuditEntry[];
   deliveryPackagePublications: DeliveryPackagePublication[];
   securityAuditLog: SecurityAuditEntry[];
 }

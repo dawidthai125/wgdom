@@ -90,6 +90,7 @@ export function AuditHubView({
   session,
   operationalNotesAuditLog,
   securityAuditLog,
+  wmDrukAuditLog,
   jobs,
   wmPrintHistory,
   deliveryPackagePublications,
@@ -98,6 +99,7 @@ export function AuditHubView({
   session: AdminSession | null | undefined;
   operationalNotesAuditLog: AuditHubInput["operationalNotesAuditLog"];
   securityAuditLog: AuditHubInput["securityAuditLog"];
+  wmDrukAuditLog: AuditHubInput["wmDrukAuditLog"];
   jobs: AuditHubInput["jobs"];
   wmPrintHistory: AuditHubInput["wmPrintHistory"];
   deliveryPackagePublications: AuditHubInput["deliveryPackagePublications"];
@@ -136,10 +138,11 @@ export function AuditHubView({
       inspectorLoginEvents: inspectorEvents,
       jobs,
       wmPrintHistory,
+      wmDrukAuditLog,
       deliveryPackagePublications,
       securityAuditLog,
     }),
-    [operationalNotesAuditLog, inspectorEvents, jobs, wmPrintHistory, deliveryPackagePublications, securityAuditLog],
+    [operationalNotesAuditLog, inspectorEvents, jobs, wmPrintHistory, wmDrukAuditLog, deliveryPackagePublications, securityAuditLog],
   );
 
   const model = useMemo(

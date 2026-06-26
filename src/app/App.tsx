@@ -56,6 +56,7 @@ import {
   pushOperationalNotesToCloud,
   pullOperationalNotesAuxFromCloud,
   pullSecurityAuditLogFromCloud,
+  pullWmDrukAuditLogFromCloud,
   getDeletedOperationalNoteIds,
   addDeletedOperationalNoteId,
   mergeDeletedOperationalNoteIds,
@@ -75,6 +76,10 @@ import {
   type RecordSecurityAuditInput,
   type SecurityAuditEntry,
 } from "@/lib/security-audit-log";
+import {
+  WM_DRUK_AUDIT_LOG_KEY,
+  type WmDrukAuditEntry,
+} from "@/lib/wm-druk-audit";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -198,6 +203,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
   const [securityAuditLog, setSecurityAuditLog] = useLocalStorage<SecurityAuditEntry[]>(
     SECURITY_AUDIT_LOG_KEY,
+    [],
+  );
+  const [wmDrukAuditLog, setWmDrukAuditLog] = useLocalStorage<WmDrukAuditEntry[]>(
+    WM_DRUK_AUDIT_LOG_KEY,
     [],
   );
   const [wmPrintTemplates, setWmPrintTemplates] = useLocalStorage<WmPrintTemplate[]>("kw-wm-print-templates", []);
@@ -650,12 +659,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         const securityLog = await pullSecurityAuditLogFromCloud();
         setSecurityAuditLog(securityLog);
       } catch { /* offline */ }
+      try {
+        const wmDrukLog = await pullWmDrukAuditLogFromCloud();
+        setWmDrukAuditLog(wmDrukLog);
+      } catch { /* offline */ }
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, setSecurityAuditLog]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, setSecurityAuditLog, setWmDrukAuditLog]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -1927,6 +1940,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           operationalNotesAuditLog={operationalNotesAuditLog}
           setOperationalNotesAuditLog={setOperationalNotesAuditLog}
           securityAuditLog={securityAuditLog}
+          wmDrukAuditLog={wmDrukAuditLog}
           commitOperationalNotes={commitOperationalNotes}
           wmPrintTemplates={wmPrintTemplates}
           setWmPrintTemplates={setWmPrintTemplates}

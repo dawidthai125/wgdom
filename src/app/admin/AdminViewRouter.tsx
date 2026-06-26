@@ -17,6 +17,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { SecurityAuditEntry } from "@/lib/security-audit-log";
+import type { WmDrukAuditEntry } from "@/lib/wm-druk-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -121,6 +122,7 @@ export type AdminViewRouterProps = {
     v: OperationalNoteAuditEntry[] | ((prev: OperationalNoteAuditEntry[]) => OperationalNoteAuditEntry[]),
   ) => void;
   securityAuditLog: SecurityAuditEntry[];
+  wmDrukAuditLog: WmDrukAuditEntry[];
   commitOperationalNotes: (
     nextNotes?: OperationalNote[],
     nextAudit?: OperationalNoteAuditEntry[],
@@ -349,6 +351,7 @@ export function AdminViewRouter({
   operationalNotesAuditLog,
   setOperationalNotesAuditLog,
   securityAuditLog,
+  wmDrukAuditLog,
   commitOperationalNotes,
   wmPrintTemplates,
   setWmPrintTemplates,
@@ -695,6 +698,7 @@ export function AdminViewRouter({
               session={adminSession}
               operationalNotesAuditLog={operationalNotesAuditLog}
               securityAuditLog={securityAuditLog}
+              wmDrukAuditLog={wmDrukAuditLog}
               jobs={jobs}
               wmPrintHistory={wmPrintHistory}
               deliveryPackagePublications={deliveryPackagePublications}

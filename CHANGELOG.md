@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.72** · **Workflow Cleanup P0**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.73** · **P1 Audit Hub WM Etap 1**
+
+## 2.62.74 — Audit Hub WM infrastruktura (Etap 1)
+
+- **improve:** `kw-wm-druk-audit-log` AUX + `recordWmDrukAudit` + adapter `wm_druk` w Audit Hub feed (bez hooków UI Pomiary/Schematy — Etap 2–3)
+- **test:** `test-wm-druk-audit.mjs` · rozszerzone `test-audit-hub-adapters.mjs` · `test-audit-hub-view-model.mjs`
 
 ## 2.62.73 — P0 Payroll Cloud Recovery (etap 1)
 

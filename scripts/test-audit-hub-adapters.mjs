@@ -8,6 +8,7 @@ import {
   adaptJobActivityLog,
   adaptOperationalNotesAudit,
   adaptSecurityAuditLog,
+  adaptWmDrukAudit,
   adaptWmPrintHistory,
   buildAuditFeed,
   countAuditFeedBySource,
@@ -24,6 +25,7 @@ import {
 import { auditFeedItemId } from "../src/lib/audit-hub/types.ts";
 import { buildOperationalNoteAuditEntry } from "../src/lib/operational-notes-audit.ts";
 import { buildSecurityAuditEntry, normalizeSecurityAuditLog } from "../src/lib/security-audit-log.ts";
+import { buildWmDrukAuditEntry } from "../src/lib/wm-druk-audit.ts";
 
 let passed = 0;
 let failed = 0;
@@ -455,6 +457,54 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
   const b = { ...a, id: "job_activity:b", nativeId: "b", summary: "B" };
   const sorted = sortAuditFeed([b, a]);
   assert(sorted[0].id === "job_activity:a", "sortAuditFeed tie-breaker id ASC przy tym samym at");
+}
+
+// T20 — adapter wm_druk
+{
+  const entry = buildWmDrukAuditEntry({
+    actor: "Dawid",
+    actorUserId: "dawid",
+    module: "katalog",
+    action: "docx_exported",
+    summary: "DOCX RAP-45",
+    rapNumber: "45",
+    jobId: "job-a",
+    at: "2026-06-26T14:00:00.000Z",
+  });
+  const [item] = adaptWmDrukAudit([entry]);
+  assert(item.id === auditFeedItemId("wm_druk", entry.id), "T20 wm_druk id");
+  assert(item.source === "wm_druk", "T20 source wm_druk");
+  assert(item.actionLabel === "Eksport DOCX", "T20 actionLabel");
+  assert(item.deepLink.kind === "wm_print" && item.deepLink.tab === "katalog", "T20 deepLink katalog");
+  assert(item.actor === "Dawid", "T20 actor");
+}
+
+// T21 — buildAuditFeed 7. źródło (wm_druk)
+{
+  const wmDruk = buildWmDrukAuditEntry({
+    actor: "Dawid",
+    module: "schematics",
+    action: "pdf_exported",
+    summary: "PDF schematu",
+    schematicId: "sch-1",
+    at: "2026-06-26T15:00:00.000Z",
+  });
+  const feed = buildAuditFeed({
+    operationalNotesAuditLog: [noteAudit],
+    inspectorLoginEvents: [inspectorLogin],
+    jobs: [jobA],
+    wmPrintHistory: [wmEntry],
+    wmDrukAuditLog: [wmDruk],
+    deliveryPackagePublications: [deliveryPub],
+    securityAuditLog: [],
+  });
+  assert(feed.length === 6, "T21 buildAuditFeed — 6 wpisów z wm_druk w mix");
+  const counts = countAuditFeedBySource(feed);
+  assert(counts.wm_druk === 1, "T21 counts wm_druk");
+  const filtered = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, source: "wm_druk" });
+  assert(filtered.length === 1 && filtered[0].deepLink.tab === "schematy", "T21 filter source wm_druk");
+  const opts = collectAuditHubFilterOptions(feed);
+  assert(opts.sources.length === 6, "T21 filter UI — nadal 6 źródeł (wm_druk Etap 4 UX)");
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);

@@ -17,6 +17,12 @@ import {
   wmPrintHistoryOutputTypeLabel,
 } from "@/lib/wm-print/history";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
+import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
+import {
+  WM_DRUK_AUDIT_ACTION_LABEL_PL,
+  type WmDrukAuditEntry,
+  type WmDrukAuditModule,
+} from "@/lib/wm-druk-audit";
 import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import {
   auditFeedItemId,
@@ -155,6 +161,35 @@ export function adaptJobActivityLog(jobs: AuditHubJob[]): AuditFeedItem[] {
   return out;
 }
 
+function wmDrukModuleToTab(module: WmDrukAuditModule): WmPrintTab {
+  if (module === "schematics") return "schematy";
+  if (module === "katalog") return "katalog";
+  return "pomiary";
+}
+
+export function adaptWmDrukAudit(entries: WmDrukAuditEntry[]): AuditFeedItem[] {
+  const source: AuditFeedSource = "wm_druk";
+  return entries.map((entry) => {
+    const actionLabel = WM_DRUK_AUDIT_ACTION_LABEL_PL[entry.action] ?? entry.action;
+    const tab = wmDrukModuleToTab(entry.module);
+    return {
+      id: auditFeedItemId(source, entry.id),
+      at: feedAt(entry.at),
+      source,
+      action: entry.action,
+      actionLabel,
+      actor: feedActor(entry.actor),
+      actorUserId: entry.actorUserId,
+      summary: entry.summary,
+      detail: entry.detail,
+      jobId: entry.jobId,
+      jobLabel: entry.rapNumber ? `RAP ${entry.rapNumber}` : undefined,
+      nativeId: entry.id,
+      deepLink: { kind: "wm_print", tab, jobId: entry.jobId },
+    };
+  });
+}
+
 export function adaptWmPrintHistory(history: WmPrintHistoryEntry[]): AuditFeedItem[] {
   const source: AuditFeedSource = "wm_print";
   return normalizeWmPrintHistory(history).map((entry) => ({
@@ -244,6 +279,7 @@ export function buildAuditFeed(input: AuditHubInput): AuditFeedItem[] {
     ...adaptInspectorLoginEvents(input.inspectorLoginEvents),
     ...adaptJobActivityLog(input.jobs),
     ...adaptWmPrintHistory(input.wmPrintHistory),
+    ...adaptWmDrukAudit(input.wmDrukAuditLog ?? []),
     ...adaptDeliveryPackagePublications(input.deliveryPackagePublications, input.jobs),
     ...adaptSecurityAuditLog(input.securityAuditLog),
   ];
@@ -256,6 +292,7 @@ export function countAuditFeedBySource(items: AuditFeedItem[]): Record<AuditFeed
     inspector_login: 0,
     job_activity: 0,
     wm_print: 0,
+    wm_druk: 0,
     delivery_package: 0,
     security_log: 0,
   };

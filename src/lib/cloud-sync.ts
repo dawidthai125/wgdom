@@ -92,6 +92,11 @@ import {
   normalizeSecurityAuditLog,
   SECURITY_AUDIT_LOG_KEY,
 } from "@/lib/security-audit-log";
+import {
+  mergeWmDrukAuditLog,
+  normalizeWmDrukAuditLog,
+  WM_DRUK_AUDIT_LOG_KEY,
+} from "@/lib/wm-druk-audit";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -322,6 +327,7 @@ export const OPERATIONAL_NOTES_DELETED_IDS_KEY = "kw-operational-notes-deleted-i
 
 export { OPERATIONAL_NOTES_KEY, OPERATIONAL_NOTES_READ_STATE_KEY, OPERATIONAL_NOTES_AUDIT_LOG_KEY };
 export { SECURITY_AUDIT_LOG_KEY };
+export { WM_DRUK_AUDIT_LOG_KEY };
 
 /** Pełny zestaw KV notatek operacyjnych w backupie UI / email (v2.58.1). */
 export const OPERATIONAL_NOTES_BACKUP_KEYS = [
@@ -2227,6 +2233,34 @@ export async function pullSecurityAuditLogFromCloud(): Promise<
   }
 }
 
+export async function pullWmDrukAuditLogFromCloud(): Promise<
+  ReturnType<typeof normalizeWmDrukAuditLog>
+> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    try {
+      const raw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
+      return normalizeWmDrukAuditLog(raw ? JSON.parse(raw) : []);
+    } catch {
+      return [];
+    }
+  }
+  try {
+    const localRaw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
+    const local = normalizeWmDrukAuditLog(localRaw ? JSON.parse(localRaw) : []);
+    const [cloud] = await fetchKeysFromCloud([WM_DRUK_AUDIT_LOG_KEY]);
+    const merged = mergeWmDrukAuditLog(local, cloud);
+    localStorage.setItem(WM_DRUK_AUDIT_LOG_KEY, JSON.stringify(merged));
+    return merged;
+  } catch {
+    try {
+      const raw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
+      return normalizeWmDrukAuditLog(raw ? JSON.parse(raw) : []);
+    } catch {
+      return [];
+    }
+  }
+}
+
 export async function computeMergedDataBundle(
   values: unknown[],
 ): Promise<{ merged: unknown[]; cloudReachable: boolean }> {
@@ -2541,7 +2575,7 @@ export async function persistKey(
   }
   const shouldSync =
     options?.cloud !== false &&
-    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY || key === APP_SETTINGS_KEY || key === TENDERS_DELETED_IDS_KEY || key === SECURITY_AUDIT_LOG_KEY);
+    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY || key === APP_SETTINGS_KEY || key === TENDERS_DELETED_IDS_KEY || key === SECURITY_AUDIT_LOG_KEY || key === WM_DRUK_AUDIT_LOG_KEY);
   if (shouldSync) {
     await pushKeyToCloud(key, value);
   }

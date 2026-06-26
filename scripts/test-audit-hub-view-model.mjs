@@ -4,6 +4,7 @@
  */
 import { buildOperationalNoteAuditEntry } from "../src/lib/operational-notes-audit.ts";
 import { buildSecurityAuditEntry, normalizeSecurityAuditLog } from "../src/lib/security-audit-log.ts";
+import { buildWmDrukAuditEntry } from "../src/lib/wm-druk-audit.ts";
 import { buildAuditHubViewModel } from "../src/lib/audit-hub/view-model.ts";
 import { EMPTY_AUDIT_HUB_FILTERS } from "../src/lib/audit-hub/filters.ts";
 import {
@@ -452,6 +453,26 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
   assert(importItem?.severity === "warn", "import success — severity warn in feed");
   const deleteItem = model.feed.find((i) => i.action === "directory_delete");
   assert(deleteItem?.actionLabel === "Usunięcie pracownika z katalogu", "directory delete — actionLabel PL");
+}
+
+// wm_druk feed (P1 Etap 1 infra)
+{
+  const wmDruk = buildWmDrukAuditEntry({
+    actor: "Dawid",
+    module: "measurements",
+    action: "rap_created",
+    summary: "RAP-45 Kleczkowska",
+    rapNumber: "45",
+    at: "2026-06-26T16:00:00.000Z",
+  });
+  const withWmDruk = { ...hubInput, wmDrukAuditLog: [wmDruk] };
+  const model = buildAuditHubViewModel(withWmDruk, EMPTY_AUDIT_HUB_FILTERS, 1);
+  assert(model.kpi.bySource.wm_druk === 1, "wm_druk KPI");
+  assert(model.kpi.total === 7, "wm_druk — total feed 7");
+  const wmOnly = buildAuditHubViewModel(withWmDruk, { ...EMPTY_AUDIT_HUB_FILTERS, source: "wm_druk" }, 1);
+  assert(wmOnly.filtered.length === 1 && wmOnly.filtered[0].action === "rap_created", "wm_druk source filter");
+  const nav = resolveAuditHubNavigation(wmOnly.filtered[0].deepLink);
+  assert(nav?.view === "wmprint" && nav.tab === "pomiary", "wm_druk deepLink pomiary");
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);

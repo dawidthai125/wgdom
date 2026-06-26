@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-26",
+    version: "2.62.74",
+    label: "Audit Hub WM — infrastruktura audytu (Etap 1)",
+    items: [
+      {
+        type: "improve",
+        text: "Audit Hub — przygotowanie strumienia audytu WM Druk (Pomiary i Schematy): sync chmura + adapter feed; widoczne logi w kolejnych wydaniach",
+      },
+    ],
+  },
+  {
+    date: "2026-06-26",
     version: "2.62.73",
     label: "P0 Payroll Cloud Recovery (etap 1)",
     items: [
