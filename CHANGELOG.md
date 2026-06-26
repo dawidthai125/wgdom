@@ -2,9 +2,11 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.72** · **Workflow Cleanup P0**
 
-## 2.62.72 — Workflow Cleanup P0
+## 2.62.72 — Workflow Cleanup P0 + Recovery Pack
 
 - **refactor:** Przetarg → usunięto zduplikowaną sekcję „Następny krok” z V2; sticky „Główna akcja” = jedyne CTA · `intelligenceCtx` przekazywany z Huba (bez recompute) · usunięto legacy `prioritizeTenderDocuments` (TOP 5)
+- **fix:** dokończenie migracji grouped docs — `tender-grouped-documents.ts` + `TenderAttachmentsPanel` (`6cd8ebe`) — odblokowuje `npm run build` i G7 Validation
+- **recovery:** Recovery Pack v2.62.72 **COMPLETED** · OFFSITE READY · `WGDOM-RP-2.62.72-20260626` · tag `wgdom-recovery-pack-2.62.72`
 - **test:** `test-tender-workflow-hub.mjs` · `test-tender-workflow-primary-action.mjs` · `test-tender-workspace-ux.mjs`
 
 ## 2.62.71 — Document Summary Header (zakładka Dokumenty)

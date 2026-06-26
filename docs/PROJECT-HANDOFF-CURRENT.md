@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-25 (**prod 2.62.72** · Workflow Architecture finalized · Workflow Cleanup P0)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-26 (**prod 2.62.72** · Recovery Pack OFFSITE READY · commit `6cd8ebe`)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
@@ -47,7 +47,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`16b7fd7`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
+| **Recovery Pack off-site** | **2.62.72** (`6cd8ebe`) | **COMPLETED** · PRODUCTION READY · OFFSITE READY · G7 PASS | § 3h poniżej · pack `WGDOM-RP-2.62.72-20260626` |
+| **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`6cd8ebe`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 · grouped docs G7 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
 | **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
 | **Discovery dokumentów variant B** | **2.62.63** (`e2d899a`) | **CLOSED** · bramka anchor · retry bootstrap | [`SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md`](SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md) · `tender-document-discovery.ts` |
 | **AUDIT-HUB-WM-001** | 2026-06-24 | **AUDIT CLOSED** · WM Pomiary/Schematy **nie** w Audit Hub · P1 implementacja OPEN | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md) |
@@ -138,7 +139,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.72       ← Workflow Cleanup P0 · commit 16b7fd7
+Version (prod):             2.62.72       ← Workflow Cleanup P0 + grouped docs G7 · commit 6cd8ebe
+Recovery Pack off-site:     WGDOM-RP-2.62.72-20260626 · G7 PASS · OFFSITE READY (2026-06-26)
 Workflow Architecture SSOT: WORKFLOW-ARCHITECTURE-v2.63.md (finalized 2.62.72)
 Kosztorys UX P0:            4056223       deriveKosztorysProcessPhase · KosztorysProcessStatusBar
 Discovery variant B:        e2d899a       v2.62.63 — canRunDocumentDiscovery SSOT
@@ -264,8 +266,34 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.42", "commit": "d799033" }
+# oczekiwane: { "version": "2.62.72", "commit": "6cd8ebe" } (lub krótszy hash po deploy)
 ```
+
+---
+
+## 2a. Recovery Pack v2.62.72 — **COMPLETED** · OFFSITE READY
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **COMPLETED** · **PRODUCTION READY** · **OFFSITE READY** |
+| **recoveryPackId** | `WGDOM-RP-2.62.72-20260626` |
+| **packId** | `WGDOM-RECOVERY-PACK-2.62.72` |
+| **Wersja** | **2.62.72** |
+| **Baseline commit** | **`6cd8ebe`** (`fix(workflow): complete grouped docs migration in AttachmentsPanel`) |
+| **Utworzono** | **2026-06-26** |
+| **G7 Validation** | **PASS** — `git_archive_restore` · `npm install` · `npm run build` · workflow smoke ×2 |
+| **CHECKSUMS** | 6 hashy (`archives/*.zip`) — zsynchronizowane |
+| **Pack root (poza repo)** | `../WGDOM-RECOVERY-PACK/WGDOM-RECOVERY-PACK-2.62.72/` |
+| **Git tag** | `wgdom-recovery-pack-2.62.72` @ `6cd8ebe` |
+| **Orchestrator** | `scripts/run-recovery-pack-2.62.72.mjs` (bez zmian architektury) |
+
+**Off-site minimum:** `archives/manifest-only.zip` + `archives/docs.zip` · pełny pack — szyfrowany B2/Drive.
+
+**Raport walidacji:** `validation/recovery-validation-report.json` w pack root · `verdict: PASS` · `expectedCommit: 6cd8ebe`.
+
+**Ostrzeżenia nieblokujące (informacyjne):** kv-keys-diff (1 klucz SSOT poza dump) · storage parity gaps (historyczne progress photos).
+
+**Nie zmieniaj bez polecenia:** struktura faz orchestratora · `backup-lib.mjs` recovery API · nazewnictwo archiwów pack.
 
 ---
 
@@ -721,6 +749,8 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
+| **Recovery Pack** | Off-site backup v2.62.72 (KV + storage + repo + docs) | **COMPLETED** (2026-06-26) · OFFSITE READY |
+| **P1 Audit Hub WM** | WM Pomiary/Schematy → Audit Hub (`AUDIT-HUB-WM-001`) | **OPEN** — **rekomendowany następny epic** |
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
@@ -838,5 +868,17 @@ Moduł Przetargi: PRODUCTION READY
 P3.0–P3.6 CLOSED · P1 WM CLOSED · P2-H stream CLOSED (H.7 OPEN)
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Inspector 2.1 CLOSED
 Open backlog (na polecenie): P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · P2 Audit Center
+Ready for new GPT / new Cursor agent
+```
+
+**Werdykt closeout (2026-06-26 — Recovery Pack v2.62.72):**
+
+```text
+BASELINE v2.62.72 · COMMIT 6cd8ebe · Workflow Cleanup P0 + grouped docs G7 fix
+Recovery Pack WGDOM-RP-2.62.72-20260626 · COMPLETED · PRODUCTION READY · OFFSITE READY
+G7 Validation PASS · CHECKSUMS zsynchronizowane · tag wgdom-recovery-pack-2.62.72
+Workflow EPIC A/B/C CLOSED · Workflow Architecture FINALIZED (WORKFLOW-ARCHITECTURE-v2.63.md)
+Rekomendowany następny epic: P1 Audit Hub WM (AUDIT-HUB-WM-001)
+Open backlog (na polecenie): P1 Audit Hub WM · Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6
 Ready for new GPT / new Cursor agent
 ```

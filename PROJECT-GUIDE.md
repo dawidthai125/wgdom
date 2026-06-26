@@ -59,7 +59,7 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 | **Workflow Architecture (2.62.72)** | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Prod HEAD:** **`16b7fd7`** · **UI:** **2.62.72** · Workflow Cleanup P0
+**Prod HEAD:** **`6cd8ebe`** · **UI:** **2.62.72** · Workflow Cleanup P0 + Recovery Pack OFFSITE READY
 
 ---
 
