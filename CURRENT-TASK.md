@@ -1,33 +1,38 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.76** · **PRODUCTION VERIFIED** (`36718cc`)
+**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.77** · **PRODUCTION VERIFIED** (`21d4a1b`)
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.76** |
-| **Commit prod** | **`36718cc`** |
-| **Release 2.62.76** | **COMPLETE** |
-| **Poprzedni release** | 2.62.75 (`c31e1bd`) · Etap 2 Audit Hub WM |
+| **Wersja prod** | **2.62.77** |
+| **Commit prod** | **`21d4a1b`** |
+| **Release 2.62.77** | **COMPLETE** |
+| **Poprzedni release** | 2.62.76 (`36718cc`) · Etap 3 Audit Hub WM |
 | **Workflow Cleanup P0** | **RELEASED** (2.62.72) |
 | **Recovery Pack v2.62.72** | **COMPLETED** · OFFSITE READY |
 
 ---
 
-## P1 Audit Hub WM — **EPIC OPEN** (Etap 1–3 RELEASED)
+## P1 Audit Hub WM — **EPIC CLOSED** (Etap 1–4 RELEASED)
 
 | Etap | Wersja | Commit | Status |
 |------|--------|--------|--------|
 | **1** — infra KV + adapter | 2.62.74 | `b4fde0c` | **RELEASED** |
 | **2** — hooki Pomiary/Katalog | 2.62.75 | `c31e1bd` | **RELEASED** |
 | **3** — hooki Schematy | 2.62.76 | `36718cc` | **RELEASED** |
-| **4** — UX Audit Hub + docs | — | — | **NOT STARTED** |
+| **4** — UX Audit Hub + docs | 2.62.77 | `21d4a1b` | **RELEASED** |
 
-**SSOT:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md)  
+**SSOT techniczny:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 15.6  
+**Epic closeout:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
+**Handoff historyczny audytu:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) (**SUPERSEDED**)
+
 **Smoke Etap 2 D1:** `scripts/smoke-wm-druk-audit-etap2-d1.mjs` — 10/10 PASS  
 **Smoke Etap 2 akcje:** `scripts/smoke-wm-druk-audit-etap2-actions.mjs` — 7/7 PASS  
 **Smoke Etap 3 S1:** `scripts/smoke-wm-druk-audit-etap3-s1.mjs` — 11/11 PASS
+
+**Backlog P1.1 (na polecenie):** `schematic_edited` przy zamknięciu sesji edycji (anti-flood).
 
 ---
 
@@ -62,24 +67,25 @@
 
 **Etap 2** (slice push + edge hardening) — **NOT STARTED** · tylko na polecenie.
 
-Powyższe P0.1–P0.4 należą do epica **P0 Payroll Cloud Recovery (OPEN)** — nie mylić z P1 Audit Hub WM.
-
 ---
 
 ## Następny aktywny EPIC (SSOT)
 
 | EPIC | Status | Następny krok |
 |------|--------|----------------|
-| **P1 Audit Hub WM** | **OPEN** (Etap 1–3 **RELEASED**) | **Etap 4** (UX Audit Hub + docs) — tylko na polecenie |
 | P0 Payroll Cloud Recovery | **EPIC OPEN** (Etap 1 done) | P0.1–P0.4 backlog — **bez implementacji** bez polecenia |
 
-**SSOT:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · Etap 1–3 RELEASED · Etap 4 NOT STARTED
-
-**Inne (na polecenie):** Workflow Cleanup P1
+**Inne (na polecenie):** Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6 · P1.1 `schematic_edited`
 
 ---
 
 ## Historia sesji (2026-06-26)
+
+### P1 Audit Hub WM Etap 4 — release 2.62.77 **COMPLETE** · **EPIC CLOSED**
+
+- Commit `21d4a1b` → push `main` · prod VERIFIED (`version.json` 2.62.77)
+- UX: filtr `wm_druk` · chip teal · deep link labels · Help · ARCHITECTURE § 15.6
+- Testy: adapters 77/77 · view-model 49/49 · regresja wm-druk 24/24 PASS
 
 ### P1 Audit Hub WM Etap 3 — release 2.62.76 **COMPLETE**
 
@@ -127,9 +133,9 @@ Cleanup P0 + grouped docs migration — **RELEASED**
 
 ## Szybki start agenta
 
-1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.76**
+1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.77**
 2. WM audit smoke Etap 3: `npx vite-node scripts/smoke-wm-druk-audit-etap3-s1.mjs`
 3. WM audit smoke Etap 2: `npx vite-node scripts/smoke-wm-druk-audit-etap2-d1.mjs`
-4. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs` · `node scripts/smoke-prod-bundle-2.62.73.mjs`
-5. Payroll unit: `test-payroll-work-entry-merge-fidelity.mjs` · `test-payroll-guard-push-fail-loud-p0.mjs`
+4. Audit Hub adapters: `npx vite-node scripts/test-audit-hub-adapters.mjs`
+5. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs` · `node scripts/smoke-prod-bundle-2.62.73.mjs`
 6. `npm run build`

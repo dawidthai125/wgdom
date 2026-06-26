@@ -236,12 +236,12 @@ Z [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) §8:
 | 1 — infra KV + adapter | 2.62.74 | `b4fde0c` | **RELEASED** |
 | 2 — hooki Pomiary/Katalog | 2.62.75 | `c31e1bd` | **RELEASED** |
 | 3 — hooki Schematy | 2.62.76 | `36718cc` | **RELEASED** |
-| 4 — UX Audit Hub + docs | 2.62.77 | *(pending release)* | **IMPLEMENT** |
+| 4 — UX Audit Hub + docs | 2.62.77 | `21d4a1b` | **RELEASED** |
 
-**Epic P1 Audit Hub WM:** **OPEN** do zakończenia release Etap 4 + housekeeping (patrz `audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`).
+**Epic P1 Audit Hub WM:** **CLOSED** — [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)
 
 **Backlog P1.1 (na polecenie):** `schematic_edited` przy zamknięciu sesji edycji (anti-flood).
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-26 · audyt historyczny SUPERSEDED · SSOT: ARCHITECTURE § 15.6*
+*Ostatnia aktualizacja: 2026-06-26 · audyt historyczny SUPERSEDED · P1 EPIC CLOSED · SSOT: ARCHITECTURE § 15.6*

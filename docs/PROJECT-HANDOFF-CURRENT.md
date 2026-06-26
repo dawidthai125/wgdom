@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-26 (**prod 2.62.76** · P1 Audit Hub WM Etap 3 · commit `36718cc`)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-26 (**prod 2.62.77** · P1 Audit Hub WM **EPIC CLOSED** · commit `21d4a1b`)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
@@ -19,7 +19,7 @@
 1w. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md      ← ★★ WM Schematy jednokreskowe MVP (CLOSED · 2.62.49)
 1x. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md ← ★★ WM Schematy visual fidelity V2 (CLOSED · 2.62.51)
 1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
-1w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← ★ AUDIT WM→Hub (audyt CLOSED · P1 OPEN)
+1w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED · P1 **CLOSED** · SSOT: ARCHITECTURE § 15.6
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -52,7 +52,7 @@
 | **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`6cd8ebe`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 · grouped docs G7 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
 | **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
 | **Discovery dokumentów variant B** | **2.62.63** (`e2d899a`) | **CLOSED** · bramka anchor · retry bootstrap | [`SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md`](SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md) · `tender-document-discovery.ts` |
-| **AUDIT-HUB-WM-001** | **2.62.74–76** (`b4fde0c`+`c31e1bd`+`36718cc`) | **Etap 1–3 RELEASED** · infra + Pomiary/Katalog + Schematy · **Etap 4 NOT STARTED** | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) |
+| **AUDIT-HUB-WM-001** | **2.62.74–77** (`b4fde0c`→`21d4a1b`) | **CLOSED** · 4 etapy · 7 źródeł Hub · 10 akcji WM Druk | [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 15.6 |
 | **WM Schematy jednokreskowe MVP + V2 fidelity** | **2.62.51** (`78f11cd`) | **CLOSED** · tab Schematy · KV sync · PDF · renderer **v5** · audyt V2C B+ | [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) · ARCHITECTURE § 12.1.21 |
 | **P4 WM upload toast** | **2.62.48** (`5cef155`) | **CLOSED** · brak „Dodano 0 plików” | [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) §4 |
 | **TP203 Address Parser M1** | **2.62.47** (`08178cc`) | **CLOSED** · `parseJobAddressParts` | j.w. §3 · `test-wm-print-address-parser-tp203.mjs` |
@@ -140,10 +140,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.76       ← P1 Audit Hub WM Etap 3 · commit 36718cc · PRODUCTION VERIFIED
+Version (prod):             2.62.77       ← P1 Audit Hub WM EPIC CLOSED · commit 21d4a1b · PRODUCTION VERIFIED
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)
+P1 Audit Hub WM Etap 4:     21d4a1b       v2.62.77 — filtr wm_druk · chip · deep link labels · Help
 Recovery Pack off-site:     WGDOM-RP-2.62.72-20260626 · G7 PASS · OFFSITE READY (2026-06-26)
 Workflow Architecture SSOT: WORKFLOW-ARCHITECTURE-v2.63.md (finalized 2.62.72)
 Kosztorys UX P0:            4056223       deriveKosztorysProcessPhase · KosztorysProcessStatusBar
@@ -151,7 +152,7 @@ Discovery variant B:        e2d899a       v2.62.63 — canRunDocumentDiscovery S
 WM Schematy hotfixy:        2.62.53–55    detached RAP crash · header spaces · columnRightInset
 WM Pomiary UX Upgrade:      2.62.52       detached RAP · katalog edit/delete · Registry Guard
 WM Schematy visual V2:      78f11cd       v2.62.51 — bus-layout-v2 · renderer v5
-AUDIT-HUB-WM-001:           36718cc       v2.62.76 Etap 3 RELEASED — hooki Schematy · Etap 4 NOT STARTED
+AUDIT-HUB-WM-001:           21d4a1b       v2.62.77 EPIC CLOSED — 7 źródeł · wm_druk UI visibility
 WM Schematy visual V1A/B:   c149116       v2.62.50 — backbone · RCD tee · renderer v4
 WM Schematy MVP UI:         (2.62.49)     tab Schematy · kw-electrical-schematics
 P4 WM upload toast:         5cef155       v2.62.48 — resolveWmPrintTemplateUploadToast
@@ -754,7 +755,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
 | **Recovery Pack** | Off-site backup v2.62.72 (KV + storage + repo + docs) | **COMPLETED** (2026-06-26) · OFFSITE READY |
-| **P1 Audit Hub WM** | WM Pomiary/Schematy → Audit Hub (`AUDIT-HUB-WM-001`) | **OPEN** · **Etap 1 = RELEASED** · **Etap 2 = RELEASED** · **Etap 3 = RELEASED** · **Etap 4 = NOT STARTED** |
+| **P1 Audit Hub WM** | WM Pomiary/Schematy → Audit Hub (`AUDIT-HUB-WM-001`) | **CLOSED** (v2.62.74–77) · epic report: `audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md` |
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
@@ -875,12 +876,22 @@ Open backlog (na polecenie): P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 
 Ready for new GPT / new Cursor agent
 ```
 
+**Werdykt closeout (2026-06-26 — P1 Audit Hub WM EPIC · v2.62.77):**
+
+```text
+BASELINE v2.62.77 · COMMIT 21d4a1b · PRODUCTION VERIFIED
+P1 Audit Hub WM — EPIC CLOSED (Etap 1–4 RELEASED)
+Etap 4 (21d4a1b · 2.62.77) — wm_druk UI visibility · 7 źródeł Audit Hub
+Epic report: audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md
+Backlog P1.1: schematic_edited (na polecenie)
+Ready for new GPT / new Cursor agent
+```
+
 **Werdykt closeout (2026-06-26 — P1 Audit Hub WM Etap 3 · v2.62.76):**
 
 ```text
 BASELINE v2.62.76 · COMMIT 36718cc · PRODUCTION VERIFIED
 P1 Audit Hub WM — Etap 1 RELEASED (b4fde0c · 2.62.74) · Etap 2 RELEASED (c31e1bd · 2.62.75) · Etap 3 RELEASED (36718cc · 2.62.76)
-Etap 4 (UX Audit Hub + docs) NOT STARTED
 Release 2.62.76 = COMPLETE
 ```
 
@@ -900,7 +911,7 @@ BASELINE v2.62.72 · COMMIT 6cd8ebe · Workflow Cleanup P0 + grouped docs G7 fix
 Recovery Pack WGDOM-RP-2.62.72-20260626 · COMPLETED · PRODUCTION READY · OFFSITE READY
 G7 Validation PASS · CHECKSUMS zsynchronizowane · tag wgdom-recovery-pack-2.62.72
 Workflow EPIC A/B/C CLOSED · Workflow Architecture FINALIZED (WORKFLOW-ARCHITECTURE-v2.63.md)
-Rekomendowany następny krok P1 Audit Hub WM: Etap 4 (UX Audit Hub + docs) — tylko na polecenie
-Open backlog (na polecenie): P1 Audit Hub WM Etap 4 · Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6
+P1 Audit Hub WM: EPIC CLOSED (2.62.77)
+Open backlog (na polecenie): P1.1 schematic_edited · Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6
 Ready for new GPT / new Cursor agent
 ```
