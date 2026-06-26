@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.62.64** (prod) · commit **`4056223`** · **Kosztorys UX P0 CLOSED** · Discovery B **2.62.63** · WM Schematy V2 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
-- **Prod (`main` / `origin/main`, app):** **`4056223`** (2.62.64) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.72** (prod) · commit **`16b7fd7`** · **Workflow Architecture SSOT** · **Workflow Cleanup P0** · WM Schematy V2 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
+- **Prod (`main` / `origin/main`, app):** **`16b7fd7`** (2.62.72) · https://www.wgdom.fun
+- **★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu):** [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md) — Hub · Process Strip · Sticky CTA · zakładki V4
 - **★★ Handoff PDF WM Recovery (CLOSED):** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](../../docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) — TP196–TP198C · `pdf-przedmiar-heuristic.ts` · TP182 123 poz.
 - **★★ Handoff TP200 (PLANNED):** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](../../docs/SESSION-HANDOFF-TP200-PLANNED.md) — parserVersion + kosztorys fidelity
 - **Git tag backup pre-TP200:** **`wgdom-backup-2026-06-19-v2.62.10`**
@@ -25,7 +26,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **★★ Handoff Notatki operacyjne (COMPLETE):** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) — P0→P2C+HF · KV · ACL · testy · backlog P3
 - **★★ Handoff P3 (Wycena · BZP · filtry):** [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](../../docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) — baza cen · benchmarki · P3.6 · P1 WM
 - **★★ Handoff P2-H (COMPLETE H.1–H.6):** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — Marketplanet · ZIP · 7Z · dossier
-- **★★ Handoff UX.1 (COMPLETE):** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
+- **★★ Handoff UX.1 (historyczne):** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — **superseded** przez [`WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md)
 - **★★ Handoff P2-F (COMPLETE):** [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](../../docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) — kwalifikacja ofertowa F.0–F.5
 - **★★ Handoff Pulpit V3 (COMPLETE):** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](../../docs/SESSION-HANDOFF-DASHBOARD-V3.md)
 - **★ P1 CLOSED:** Dashboard V3 · Przetargi 3.0 · Command Center REMOVED (v2.51.0) · CC archiwum: [`docs/archive/command-center/`](../../docs/archive/command-center/)
@@ -65,7 +66,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Handoff Performance 1.x CLOSED:** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)
 - **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § UX.1B · § 12.1.3 · § 11.6 ARCH-001
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md) (Workflow) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.9a · § 11.6 ARCH-001
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 

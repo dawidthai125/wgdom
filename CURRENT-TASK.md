@@ -28,6 +28,15 @@
 
 - **Workflow Cleanup P1** — V2 key docs vs positions file, Analysis Status Strip na Przetargu
 - **Grouped Documents** — lokalnie (poza 2.62.72 jeśli nie w release)
+- **GuideView FAQ** — TOP 5 → grouped docs + Document Summary Header (po release Grouped Documents)
+
+---
+
+## Dokumentacja agentów (zsynchronizowano)
+
+- **SSOT Workflow:** `docs/WORKFLOW-ARCHITECTURE-v2.63.md` (nowy)
+- **Linki:** `AGENTS.md`, `ARCHITECTURE.md` § 12.1.9a, `PROJECT-HANDOFF-CURRENT.md`, `AGENT-ONBOARDING.md` § 6h, `PROJECT-GUIDE.md`, `wgdom-stan-projektu.mdc`
+- **UX.1 handoff:** banner superseded (bez usuwania treści historycznej)
 
 ---
 

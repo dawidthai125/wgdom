@@ -20,7 +20,8 @@
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
 | — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla agentów AI |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.31) |
+| — | **[`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md)** — ★★ SSOT Workflow (Hub, CTA, zakładki V4) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.72) |
 | — | **[`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)** — ★★ P0 Vercel deploy unblock |
 | — | **[`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — POST ZI · WM Druk COMPLETE |
 | — | **[`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ZI Tauron 2026 prod |
@@ -36,6 +37,13 @@
 
 ---
 
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja (przetargi / Workflow):
+
+1. [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md) — **SSOT Workflow**
+2. [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)
+3. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+4. [`CURRENT-TASK.md`](CURRENT-TASK.md)
+
 ## Handoff sesji 2026-06-22 (Production Unblock + TP202A)
 
 Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
@@ -48,10 +56,10 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 | Temat | Dokument |
 |-------|----------|
 | **Prod v2.62.31 — deploy unblock** | `SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md` |
-| **TP202A Analyze/Dossier** | `CHANGELOG.md` 2.62.31 |
+| **Workflow Architecture (2.62.72)** | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Prod HEAD:** **`d79f7c1`** · **UI:** **2.62.31** · **Vercel BUILD PASS**
+**Prod HEAD:** **`16b7fd7`** · **UI:** **2.62.72** · Workflow Cleanup P0
 
 ---
 

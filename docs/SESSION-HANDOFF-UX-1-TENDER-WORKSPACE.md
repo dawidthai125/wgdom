@@ -1,9 +1,11 @@
 # SESSION HANDOFF — UX.1 Tender Workspace (UX.1A + UX.1B + ARCH-001)
 
-> **Status:** **COMPLETE** · prod **v2.53.4** · commit **`3b5da74`**  
+> **⚠️ SUPERSEDED:** Obecna architektura Workflow (V4: Hub, Process Strip, Sticky CTA, zakładki Przetarg/Decyzja) — **SSOT:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md). Poniższa treść zachowana jako dokumentacja historyczna UX.1 (2.53.x).
+
+> **Status:** **COMPLETE (historyczne)** · prod **v2.53.4** · commit **`3b5da74`**  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Data closeout:** 2026-06-13  
-> **Architektura techniczna:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § UX.1A/1B · § 11.6 ARCH-001
+> **Architektura techniczna (aktualna):** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · skrót w [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.9a
 
 ---
 

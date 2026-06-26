@@ -1,6 +1,7 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-25 (**prod 2.62.64** · Kosztorys UX P0 · Discovery variant B)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-25 (**prod 2.62.72** · Workflow Architecture finalized · Workflow Cleanup P0)  
+> **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,6 +10,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
 1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)
 1s. docs/SESSION-HANDOFF-2026-06-24.md    ← sesja Audit Hub · TP200C · P0 cloud-sync
@@ -45,6 +47,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`16b7fd7`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
 | **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
 | **Discovery dokumentów variant B** | **2.62.63** (`e2d899a`) | **CLOSED** · bramka anchor · retry bootstrap | [`SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md`](SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md) · `tender-document-discovery.ts` |
 | **AUDIT-HUB-WM-001** | 2026-06-24 | **AUDIT CLOSED** · WM Pomiary/Schematy **nie** w Audit Hub · P1 implementacja OPEN | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md) |
@@ -135,7 +138,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.64       ← Kosztorys V4 fazy procesu UX (P0)
+Version (prod):             2.62.72       ← Workflow Cleanup P0 · commit 16b7fd7
+Workflow Architecture SSOT: WORKFLOW-ARCHITECTURE-v2.63.md (finalized 2.62.72)
 Kosztorys UX P0:            4056223       deriveKosztorysProcessPhase · KosztorysProcessStatusBar
 Discovery variant B:        e2d899a       v2.62.63 — canRunDocumentDiscovery SSOT
 WM Schematy hotfixy:        2.62.53–55    detached RAP crash · header spaces · columnRightInset

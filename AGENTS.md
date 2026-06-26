@@ -9,9 +9,10 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.72)
 2s. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4
 2t. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md  ← ★★ WM Schematy visual fidelity V2 (CLOSED · 2.62.51)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.64)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.72)
 3y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 3z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (2.62.63)
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED)
@@ -39,7 +40,7 @@
 
 ### WAŻNE
 
-- **Nie zgaduj architektury** — sprawdź `PROJECT-GUIDE.md` i `docs/ARCHITECTURE.md`.
+- **Nie zgaduj architektury** — sprawdź `PROJECT-GUIDE.md`, `docs/WORKFLOW-ARCHITECTURE-v2.63.md` (Workflow) i `docs/ARCHITECTURE.md`.
 - **Nie zmieniaj syncu / merge** bez przeczytania ARCHITECTURE § 11.
 - **Przed większą zmianą** przeczytaj **Known Issues** w `PROJECT-GUIDE.md`.
 - **Na końcu sesji** zaktualizuj `CURRENT-TASK.md` + `docs/PROJECT-HANDOFF-CURRENT.md` (baseline prod, commity, decyzje).
@@ -57,6 +58,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — start dla agenta AI (widoki, sync, WM Druk) |
+| **docs/WORKFLOW-ARCHITECTURE-v2.63.md** | **★★ SSOT Workflow** — Hub, Process Strip, CTA, zakładki V4 (obowiązkowe przy Przetargu) |
 | **docs/MASTER-HANDOFF-POST-ZI-2026.md** | **★★ POST ZI-2026** — skrót stanu prod · WM Druk COMPLETE |
 | **docs/ZI-2026-HANDOFF.md** | **★★★ ZI Tauron 2026 prod SSOT** — PRODUCTION STABLE |
 | **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — COMPLETE · ZI 2026 STABLE |
@@ -75,7 +77,7 @@
 | **docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md** | **★★ P0/P1 Merge Quality** — ATH/PDF vs formularz · `tender-dossier-merge.ts` · TP113/TP182 CLOSED (`4574182`+`50d7501`) |
 | **docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md** | **★★ P1 Owner View** — modal, Summary, Executive, Work Scope Inference (2.59.52) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
-| **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
+| **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **UX.1 historyczne** (2.53.x) — **superseded** przez `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md** | **★★ Pomiary Elektryczne EM-P1R** — DOCX SSOT Word · rejestr RAP · katalog |
 | **docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md** | **★★ Lista Płac · Przydziały robót P1** (2.59.49) — edycja `workEntries[]` z LP |
 | **docs/PROJECT-HANDOFF-CURRENT.md** | **★ SSOT baseline prod** — wersja, commity, releasy po 20.5Z, decyzje |

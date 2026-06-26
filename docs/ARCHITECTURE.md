@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.66** · Kosztorys UX P2 · § 12.1.15b · prod **2.62.66**)
-> **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.72** · Workflow Cleanup P0 · prod **2.62.72**)
+> **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -39,6 +39,7 @@ AGENTS.md
   → MASTER-HANDOFF-POST-ZI-2026.md   (WM Druk COMPLETE)
   → ZI-2026-HANDOFF.md               (generator ZI prod)
   → CURRENT-TASK.md
+  → WORKFLOW-ARCHITECTURE-v2.63.md   (★ SSOT Workflow — obowiązkowe przy zmianach Przetargu)
   → ARCHITECTURE.md § 11 (sync) · § 12.1.8 (WM Druk) · § 15.1 (widoki)
   → WORKFLOW-RELEASE-DEPLOY.md
 ```
@@ -1674,25 +1675,12 @@ TenderOwnerView → resolveAthPreviewItem() → InspectorFileItem.previewContext
 
 **Nie zmieniaj bez briefu:** `tender-dossier-pipeline.ts`, `pdf-przedmiar-heuristic.ts`, `ath-parser.ts`, FIX-A/B/C cache.
 
-### 12.1.13 V3.1 — Tender Intelligence Dashboard (Sprint 1, v2.60.0)
+### 12.1.13 V3.1 — Tender Intelligence (lib · v2.60.0)
 
-**Status:** **SPRINT 1 COMPLETE** (lib Faza A + UI Faza B/C)  
+**Status:** **SPRINT 1 COMPLETE** (lib) · **prezentacja UI od 2.62.68** — patrz Workflow SSOT poniżej  
 **Plan SSOT:** [`docs/V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md`](V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md)
 
-Ekran **Intelligence** (zakładka `overview`) — reorganizacja Owner View bez backendu/KV.
-
-```text
-TenderDetailPanel
-  scoringContext = tendersCtx.snapshot.scoringContext   // SSOT — bez jobs:[] fallback
-  intelligenceCtx = buildTenderIntelligenceContext(...)
-  → TenderOwnerView (renderer only — intelligenceCtx)
-       ├── Sekcja 1 Werdykt      (overlay)
-       ├── Sekcja 2 O czym       (narrative + ExecutiveSummaryCard)
-       ├── Sekcja 3 Ekonomia     (finance, bez CTA)
-       ├── Sekcja 4 Blokery      (allBlocks + riskRows + monitoring)
-       ├── Główna akcja — Sticky Primary CTA (`TenderWorkflowPrimaryAction`, nextAction — 1 CTA)
-       └── Sekcja 7 Szczegóły    (prepStatus, positions, monitoring strip, …)
-```
+Agregat `buildTenderIntelligenceContext()` w `TenderDetailPanel` — `scoringContext` z Providera (bez fallback `jobs:[]`). **Layout UI V4** (Hub / Decyzja / jedno CTA): [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md). Historyczny monolit `TenderOwnerView` nie jest głównym ekranem V4.
 
 | Moduł lib | Rola |
 |-----------|------|
@@ -1701,11 +1689,11 @@ TenderDetailPanel
 | `tender-intelligence-next-action.ts` | `resolveOwnerNextAction()` P0–P12 |
 | `tender-intelligence-narrative.ts` | Jedno zdanie o przetargu |
 
-**Decision Overlay vs Strategia:** Intelligence pokazuje `displayLabel` po overlay; Strategia/Action Center — surowy `DECISION_LABEL_PL` (bez zmian w `tenders-strategy-decision.ts`).
+**Decision Overlay vs Strategia:** Intelligence pokazuje `displayLabel` po overlay; Strategia — surowy `DECISION_LABEL_PL`.
 
-**Testy:** `test-v31-tender-intelligence.mjs` (T01–T16) · regresja `test-p5-owner-view.mjs` · `test-p5-owner-language.mjs`.
+**Testy:** `test-v31-tender-intelligence.mjs` · `test-tender-workflow-hub.mjs` · regresja `test-p5-owner-view.mjs`.
 
-**Nie zmieniaj bez briefu:** ATH, dossier pipeline, P2-F panels, `TenderBidProposalPanel`, scoring engines.
+**Nie zmieniaj bez briefu:** ATH, dossier pipeline, scoring engines.
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.62.49)
 
@@ -1866,7 +1854,23 @@ Inspektor **nie** dostaje WM Druk. Admin generuje ZIP w `WmPrintView`, weryfikuj
 
 ---
 
-### 12.1.9 UX.1 — Tender Workspace (v2.53.x)
+### 12.1.9a Workflow UI — architektura V4 (prod 2.62.64–2.62.72)
+
+> **Workflow SSOT znajduje się w [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md)** — pełny opis Hub, Process Strip, Sticky Primary CTA, Document Summary Header, Grouped Documents, zakładki V4, rejestr SSOT lib i zasady anti-duplikacji. Poniższa § 12.1.9 to kontekst historyczny UX.1.
+
+| Filar | Wersja | Skrót |
+|-------|--------|-------|
+| Kosztorys V4 fazy procesu | 2.62.64–66 | § 12.1.15a/b |
+| Workflow Hub (EPIC A) | 2.62.68 | Przetarg ≠ Decyzja |
+| Process Strip + Sticky CTA (B/C) | 2.62.69 | jedno CTA |
+| Document Summary Header | 2.62.71 | nagłówek zakładki Dokumenty |
+| Workflow Cleanup P0 | 2.62.72 | brak duplikatu „Następny krok” w V2 |
+
+**Testy regresji:** `test-tender-workflow-hub.mjs` · `test-tender-workflow-primary-action.mjs` · `test-tender-workflow-process-strip.mjs` · `test-tender-documents-summary-header.mjs`
+
+---
+
+### 12.1.9 UX.1 — Tender Workspace (v2.53.x · historyczne)
 
 **UX.1A — Tender Workspace Cleanup (MIN, v2.53.1):**
 
@@ -1914,17 +1918,9 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 
 **ARCH-001:** shell i workspace komponenty = czysty UI (bez importu `cloud-sync`).
 
-**Handoff SSOT:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
+**Handoff historyczny:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — **superseded** przez [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md).
 
-**UX.1C — Tender Documents (v2.53.5 → EPIC P2 grouped, v2.62.71+):**
-
-Workspace **Dokumenty** — warstwa UI (`TenderAttachmentsPanel`), bez zmian pipeline SWZ/ATH/dossier/sync.
-
-- `normalizeTenderDocumentTitle()` — czytelne nazwy (PL znaki, `_` → spacja)
-- `classifyTenderDocumentDisplayTier()` — tier dokumentu (SSOT klasyfikacji)
-- `groupTenderAttachmentRows()` w `tender-grouped-documents.ts` — 7 grup biznesowych (zastąpiło legacy TOP 5 + „Pokaż pozostałe”)
-
-**SSOT:** `tender-workspace-ux.ts` + `tender-grouped-documents.ts` · test: `test-tender-workspace-ux.mjs` § UX.1C · `test-tender-grouped-documents.mjs`
+**UX.1C — Tender Documents:** tier dokumentów + grouped list + Summary Header — szczegóły w [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) § 4.4–4.5. Lib: `tender-workspace-ux.ts` · `tender-documents-tab-summary.ts` · `tender-grouped-documents.ts` (grouped — osobny release po 2.62.72).
 
 **UX.1D — Formal Details Compression (v2.53.6):**
 

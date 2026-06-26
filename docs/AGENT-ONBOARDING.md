@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.51** · https://www.wgdom.fun · **WM Schematy CLOSED** · **ZI §4/§5 STABLE** · Audit Hub MVP-1B · TP200B PLANNED
+> **Prod:** **2.62.72** · https://www.wgdom.fun · **Workflow Architecture SSOT** · **WM Schematy CLOSED** · **ZI §4/§5 STABLE**
 
 ---
 
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
+1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu · prod 2.62.72)
 1s. docs/SESSION-HANDOFF-2026-06-24.md ← sesja Audit Hub · TP200C
 1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md ← ★★ WM Druk ZI §4/§5 · TP203 · P4 (2.62.46–48)
 1u. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md     ← ★★ WM Schematy MVP (CLOSED · 2.62.49)
@@ -236,6 +237,32 @@ npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
 ```
 
 **Nie ruszać bez briefu:** parsery · `buildTenderDossierHeavy` · Edge · `isKosztorysAwaitingHeavyParse` w innych widokach (backlog P1).
+
+---
+
+## 6h. Przetargi — Workflow Architecture V4 — **2.62.72 FINALIZED**
+
+**Status:** **FINALIZED** · prod **`16b7fd7`** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0
+
+| Dokument | Rola |
+|----------|------|
+| [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) | **★★ GŁÓWNY SSOT Workflow** — zakładki V4, filary UI, rejestr lib, anti-duplikacja |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.9a | Skrót + link do SSOT |
+| [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) | Historyczne UX.1 (2.53.x) — **superseded** |
+
+### Zasady (twardy)
+
+- Jedno `buildTenderIntelligenceContext()` w `TenderDetailPanel`
+- Jedno CTA — `TenderWorkflowPrimaryAction` (bez „Następny krok” w V2)
+- Przetarg = workflow · Decyzja = werdykt GO/HOLD/ODPUŚĆ
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-tender-workflow-hub.mjs
+npx vite-node scripts/test-tender-workflow-primary-action.mjs
+npx vite-node scripts/test-tender-workspace-v2-ux.mjs
+```
 
 ---
 
