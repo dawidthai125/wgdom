@@ -13,7 +13,6 @@ import {
   mapBzpToPipelineItem,
   isTenderOpenForOffers,
   isActionableTender,
-  isTenderImportant,
   daysUntilTenderDeadline,
   pruneExpiredUntouched,
   sortTendersByUrgency,
@@ -39,16 +38,16 @@ import { exportTendersPipelineCsv, getDeletedTenderIds } from "@/lib/tenders-syn
 import { rescanPipelineDocumentChanges, applyBzpMergeChangeMonitor } from "@/lib/tender-change-monitor";
 import {
   computeActionChips,
-  matchesQuickFilter,
   autoFetchAwardResults,
   type TenderQuickFilter,
 } from "@/lib/tenders-actions";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   countStrategicClientFilters,
-  matchesStrategicClientFilter,
   STRATEGIC_CLIENT_FILTERS,
   type StrategicClientFilterId,
 } from "@/lib/tenders-strategic-client-filters";
+import { filterTendersListPipelineItems } from "@/lib/tenders-list-ux";
 
 export type TenderPipelineLocalFilter =
   | "actionable"
@@ -303,29 +302,14 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
   const actionChips = useMemo(() => computeActionChips(items), [items, profileVersion]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const list = items.filter((i) => {
-      if (statusFilter !== "all" && i.status !== statusFilter) return false;
-      const open = isTenderOpenForOffers(i.submittingOffersDate);
-      if (localFilter === "actionable" && !isActionableTender(i)) return false;
-      if (localFilter === "active" && !open) return false;
-      if (localFilter === "archive" && open) return false;
-      if (localFilter === "wroclaw" && !i.isWroclaw) return false;
-      if (localFilter === "high" && !isTenderImportant(i)) return false;
-      if (localFilter === "priority" && !i.priorityBuyerId) return false;
-      if (quickFilter === "overload") {
-        const preparing = items.filter((x) => x.status === "preparing" || x.status === "interested").length;
-        if (preparing < loadCompanyProfileLocal().maxConcurrentProjects) return false;
-        if (!["preparing", "interested"].includes(i.status)) return false;
-      } else if (quickFilter && !matchesQuickFilter(i, quickFilter)) return false;
-      if (strategicClientFilter && !matchesStrategicClientFilter(i, strategicClientFilter)) return false;
-      if (!q) return true;
-      return (
-        i.title.toLowerCase().includes(q)
-        || i.organizationName.toLowerCase().includes(q)
-        || i.organizationCity.toLowerCase().includes(q)
-        || i.bzpNumber.toLowerCase().includes(q)
-      );
+    const list = filterTendersListPipelineItems(items, {
+      search,
+      localFilter,
+      statusFilter,
+      quickFilter,
+      strategicClientFilter,
+    }, {
+      maxConcurrentProjects: loadCompanyProfileLocal().maxConcurrentProjects,
     });
     return sortTendersByUrgency(list);
   }, [items, search, localFilter, statusFilter, quickFilter, strategicClientFilter, profileVersion]);

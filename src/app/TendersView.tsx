@@ -38,19 +38,16 @@ import {
   applyQueuePreset,
   buildTendersListAiInsight,
   buildTendersListFilterPrefs,
+  buildTendersListVisibleSections,
   computeMyQueueCounts,
   createFavoriteFromState,
   detectActiveClientBarId,
   detectListQuickBarId,
-  isTenderMine,
-  isTenderNeedsReactionToday,
   loadTendersListFavorites,
   loadTendersListFilterPrefs,
-  matchesQueueFilter,
   resolveTendersListBannerQueueAction,
   saveTendersListFavorites,
   saveTendersListFilterPrefs,
-  sortTendersForListDisplay,
   type TendersListClientBarId,
   type TendersListKpiId,
   type TendersListQueueId,
@@ -321,29 +318,29 @@ export function TendersView({
     pipeline.setLocalFilter("actionable");
   }, [pipeline]);
 
-  const todayItems = useMemo(
-    () => sortTendersForListDisplay(
-      pipeline.items.filter((i) => {
-        if (!isTenderNeedsReactionToday(i)) return false;
-        if (mineOnly && !isTenderMine(i, ownerDecisions.store)) return false;
-        return true;
-      }),
-    ),
-    [pipeline.items, mineOnly, ownerDecisions.store],
-  );
+  const listFilterState = useMemo(() => ({
+    search: pipeline.search,
+    localFilter: pipeline.localFilter,
+    statusFilter: pipeline.statusFilter,
+    quickFilter: pipeline.quickFilter,
+    strategicClientFilter: pipeline.strategicClientFilter,
+  }), [
+    pipeline.search,
+    pipeline.localFilter,
+    pipeline.statusFilter,
+    pipeline.quickFilter,
+    pipeline.strategicClientFilter,
+  ]);
 
-  const displayList = useMemo(() => {
-    let list = pipeline.filtered;
-    if (mineOnly) {
-      list = list.filter((i) => isTenderMine(i, ownerDecisions.store));
-    }
-    if (queueFilter) {
-      list = list.filter((i) => matchesQueueFilter(i, queueFilter, ownerDecisions.store));
-    }
-    const todayIds = new Set(todayItems.map((i) => i.id));
-    list = list.filter((i) => !todayIds.has(i.id));
-    return sortTendersForListDisplay(list);
-  }, [pipeline.filtered, mineOnly, ownerDecisions.store, todayItems, queueFilter]);
+  const { todayItems, displayList } = useMemo(
+    () => buildTendersListVisibleSections(
+      pipeline.items,
+      listFilterState,
+      ownerDecisions.store,
+      { mineOnly, queueFilter },
+    ),
+    [pipeline.items, listFilterState, ownerDecisions.store, mineOnly, queueFilter],
+  );
 
   /** ETAP 8.0A / 2.1C — Classic mount; pomiń gdy sesyjny cache świeży (PRO już załadował). */
   useEffect(() => {

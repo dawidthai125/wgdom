@@ -1,47 +1,40 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.69** · Workflow EPIC B/C CLOSED
+**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.70** · Client Bar P0 hotfix
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.69** — Process Strip + Sticky Primary CTA |
-| **Poprzedni release** | 2.62.68 — Workflow Hub EPIC A |
-| **Workflow EPIC B** | **CLOSED** · Process Strip (5 etapów, nawigacja V4) |
-| **Workflow EPIC C** | **CLOSED** · Sticky Primary CTA pod paskiem |
-| **Workflow Hub EPIC A** | **CLOSED** · Przetarg = hub · Decyzja = GO/HOLD/ODPUŚĆ |
-| **ZI §4/§5** | **STABLE** |
+| **Wersja prod** | **2.62.70** — Client Bar list filter hotfix |
+| **Poprzedni release** | 2.62.69 — Process Strip + Sticky Primary CTA |
+| **Workflow EPIC B/C** | **CLOSED** (2.62.69) |
+| **Lista UX V4** | **HOTFIX** — filtrowanie Client Bar spójne w „Dzisiaj” + „Lista” |
 
 ---
 
 ## Zamknięte w tej sesji (2026-06-25)
 
-### Workflow Process Strip + Sticky CTA (2.62.69)
+### Client Bar list filter hotfix (2.62.70) — P0
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | EPIC B — pasek procesu · EPIC C — sticky główna akcja (prezentacja only) |
-| **Bez zmian** | parsery · pipeline · logika wyceny · backend |
-
-### Workflow Hub EPIC A (2.62.68)
-
-Reorganizacja Przetarg / Decyzja — commit `849f382`.
+| **Problem** | Chip Client Bar aktywny, ale lista pokazywała przetargi innych klientów (sekcja „Dzisiaj” z `pipeline.items`) |
+| **Naprawa** | SSOT `filterTendersListPipelineItems()` + `buildTendersListVisibleSections()` |
+| **Zakres** | tylko logika filtrowania — bez zmian UI |
 
 ---
 
 ## Następne (tylko na polecenie)
 
-- **UX cleanup** — usunięcie duplikatu „Następny krok” z `TenderWorkspaceV2Panel` po weryfikacji sticky CTA w prod
-- **Regression Alignment** — testy owner/workspace (lokalnie, poza tym release)
+- **UX cleanup** — usunięcie duplikatu „Następny krok” z `TenderWorkspaceV2Panel`
+- **Regression Alignment** — testy owner/workspace (lokalnie, poza hotfixem)
 
 ---
 
 ## Szybki start agenta
 
-```bash
-npx vite-node scripts/test-tender-workflow-process-strip.mjs
-npx vite-node scripts/test-tender-workflow-primary-action.mjs
-npx vite-node scripts/test-tender-workflow-hub.mjs
-npm run build
-```
+1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.70**
+2. Testy listy: `npx vite-node scripts/test-tenders-list-ux.mjs`
+3. `npm run build`
+4. Verify: `curl https://www.wgdom.fun/version.json`

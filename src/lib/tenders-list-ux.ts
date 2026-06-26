@@ -7,13 +7,17 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   daysUntilTenderDeadline,
   isActionableTender,
+  isTenderImportant,
   isTenderOpenForOffers,
   parseTenderDeadline,
   type TenderPipelineStatus,
 } from "@/lib/tenders-bzp";
 import type { TenderQuickFilter } from "@/lib/tenders-actions";
 import { matchesQuickFilter } from "@/lib/tenders-actions";
-import type { StrategicClientFilterId } from "@/lib/tenders-strategic-client-filters";
+import {
+  matchesStrategicClientFilter,
+  type StrategicClientFilterId,
+} from "@/lib/tenders-strategic-client-filters";
 import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import type { TenderDecision } from "@/lib/tenders-strategy-decision";
 
@@ -525,6 +529,93 @@ export function detectActiveClientBarId(
   strategicClientFilter: StrategicClientFilterId | null,
 ): TendersListClientBarId {
   return strategicClientFilter ?? "all";
+}
+
+export type TendersListPipelineFilterState = {
+  search: string;
+  localFilter: TenderPipelineLocalFilter;
+  statusFilter: TenderPipelineStatus | "all";
+  quickFilter: TenderQuickFilter | null;
+  strategicClientFilter: StrategicClientFilterId | null;
+};
+
+export type TendersListPipelineFilterOptions = {
+  /** Wymagane przy `quickFilter === "overload"` (profil firmy). */
+  maxConcurrentProjects?: number;
+};
+
+/** SSOT — ten sam zestaw reguł co `useTendersPipeline.filtered` (bez sortowania). */
+export function filterTendersListPipelineItems(
+  items: TenderPipelineItem[],
+  state: TendersListPipelineFilterState,
+  options: TendersListPipelineFilterOptions = {},
+): TenderPipelineItem[] {
+  const q = state.search.trim().toLowerCase();
+  return items.filter((i) => {
+    if (state.statusFilter !== "all" && i.status !== state.statusFilter) return false;
+    const open = isTenderOpenForOffers(i.submittingOffersDate);
+    if (state.localFilter === "actionable" && !isActionableTender(i)) return false;
+    if (state.localFilter === "active" && !open) return false;
+    if (state.localFilter === "archive" && open) return false;
+    if (state.localFilter === "wroclaw" && !i.isWroclaw) return false;
+    if (state.localFilter === "high" && !isTenderImportant(i)) return false;
+    if (state.localFilter === "priority" && !i.priorityBuyerId) return false;
+    if (state.quickFilter === "overload") {
+      const max = options.maxConcurrentProjects;
+      if (max === undefined) return false;
+      const preparing = items.filter((x) => x.status === "preparing" || x.status === "interested").length;
+      if (preparing < max) return false;
+      if (!["preparing", "interested"].includes(i.status)) return false;
+    } else if (state.quickFilter && !matchesQuickFilter(i, state.quickFilter)) return false;
+    if (state.strategicClientFilter && !matchesStrategicClientFilter(i, state.strategicClientFilter)) {
+      return false;
+    }
+    if (!q) return true;
+    return (
+      i.title.toLowerCase().includes(q)
+      || i.organizationName.toLowerCase().includes(q)
+      || i.organizationCity.toLowerCase().includes(q)
+      || i.bzpNumber.toLowerCase().includes(q)
+    );
+  });
+}
+
+export type TendersListVisibleSectionsOptions = {
+  mineOnly?: boolean;
+  queueFilter?: TendersListQueueId | null;
+};
+
+/** SSOT — sekcje „Dzisiaj” + „Lista” z pełnym zestawem filtrów (w tym Client Bar). */
+export function buildTendersListVisibleSections(
+  items: TenderPipelineItem[],
+  filterState: TendersListPipelineFilterState,
+  ownerStore: OwnerDecisionsStore,
+  options: TendersListVisibleSectionsOptions = {},
+): { todayItems: TenderPipelineItem[]; displayList: TenderPipelineItem[] } {
+  const mineOnly = options.mineOnly ?? false;
+  const queueFilter = options.queueFilter ?? null;
+  const filtered = filterTendersListPipelineItems(items, filterState);
+
+  const todayItems = sortTendersForListDisplay(
+    filtered.filter((i) => {
+      if (!isTenderNeedsReactionToday(i)) return false;
+      if (mineOnly && !isTenderMine(i, ownerStore)) return false;
+      if (queueFilter && !matchesQueueFilter(i, queueFilter, ownerStore)) return false;
+      return true;
+    }),
+  );
+
+  const todayIds = new Set(todayItems.map((i) => i.id));
+  let displayList = filtered;
+  if (mineOnly) {
+    displayList = displayList.filter((i) => isTenderMine(i, ownerStore));
+  }
+  if (queueFilter) {
+    displayList = displayList.filter((i) => matchesQueueFilter(i, queueFilter, ownerStore));
+  }
+  displayList = sortTendersForListDisplay(displayList.filter((i) => !todayIds.has(i.id)));
+
+  return { todayItems, displayList };
 }
 
 export function applyListClientBarPreset(

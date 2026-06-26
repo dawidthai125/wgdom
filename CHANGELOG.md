@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.69** · **Workflow Process Strip + Sticky CTA**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.70** · **Client Bar list filter hotfix**
+
+## 2.62.70 — Client Bar list filter hotfix (P0)
+
+- **fix:** Przetargi → Lista — Client Bar (WM/ZZK/Gminy/Wszystko) filtruje spójnie sekcje „Dzisiaj” i „Lista” (`filterTendersListPipelineItems` + `buildTendersListVisibleSections`)
+- **test:** `test-tenders-list-ux.mjs` — regresja WM/ZZK/Gminy/Wszystko
 
 ## 2.62.69 — Workflow Process Strip + Sticky Primary CTA (EPIC B/C)
 

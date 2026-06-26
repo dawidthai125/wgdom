@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.70",
+    label: "Client Bar list filter hotfix",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi → Lista: Client Bar (WM, ZZK, Gminy, Wszystko) stosuje filtr klienta we wszystkich sekcjach widocznej listy — także „Dzisiaj”",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.69",
     label: "Workflow Process Strip + Sticky CTA",
     items: [

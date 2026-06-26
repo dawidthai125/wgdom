@@ -26,6 +26,8 @@ const {
   applyListClientBarPreset,
   detectActiveClientBarId,
   resolveTendersListBannerQueueAction,
+  buildTendersListVisibleSections,
+  filterTendersListPipelineItems,
 } = await import("../src/lib/tenders-list-ux.ts");
 
 const base = {
@@ -81,7 +83,7 @@ assert.equal(isTenderNeedsDecision(needsDecision, emptyStore), true);
 const todayDeadline = {
   ...base,
   id: "td",
-  submittingOffersDate: new Date(new Date().setHours(23, 0, 0, 0)).toISOString(),
+  submittingOffersDate: new Date(new Date().setHours(12, 0, 0, 0)).toISOString(),
 };
 assert.equal(isDeadlineToday(todayDeadline), true);
 
@@ -133,4 +135,61 @@ assert.equal(applyListClientBarPreset("gminy").strategicClientFilter, "gminy");
 assert.equal(resolveTendersListBannerQueueAction(counts), "needs_decision");
 assert.equal(resolveTendersListBannerQueueAction({ ...counts, needs_decision: 0 }), null);
 
-console.log("test-tenders-list-ux.mjs — PASS (V2/V3/V4 lista UX)");
+const openDate = new Date(Date.now() + 3 * 86400000).toISOString();
+const clientBarFixtures = [
+  {
+    ...base,
+    id: "wm-t",
+    organizationName: "Wrocławskie Mieszkania Sp. z o.o.",
+    priorityBuyerId: "wm",
+    status: "new",
+    submittingOffersDate: openDate,
+  },
+  {
+    ...base,
+    id: "zzk-t",
+    organizationName: "Zarząd Zasobu Komunalnego we Wrocławiu",
+    priorityBuyerId: "zik",
+    status: "new",
+    submittingOffersDate: openDate,
+  },
+  {
+    ...base,
+    id: "gm-t",
+    organizationName: "Gmina Wrocław",
+    priorityBuyerId: "gmina",
+    status: "new",
+    submittingOffersDate: openDate,
+  },
+];
+
+function visibleIdsForClientBar(clientId) {
+  const preset = applyListClientBarPreset(clientId);
+  const { todayItems, displayList } = buildTendersListVisibleSections(
+    clientBarFixtures,
+    {
+      search: "",
+      localFilter: preset.localFilter,
+      statusFilter: preset.statusFilter ?? "all",
+      quickFilter: preset.quickFilter,
+      strategicClientFilter: preset.strategicClientFilter,
+    },
+    emptyStore,
+  );
+  return [...todayItems, ...displayList].map((i) => i.id);
+}
+
+assert.deepEqual(visibleIdsForClientBar("wm"), ["wm-t"]);
+assert.deepEqual(visibleIdsForClientBar("zzk"), ["zzk-t"]);
+assert.deepEqual(visibleIdsForClientBar("gminy"), ["gm-t"]);
+assert.deepEqual(visibleIdsForClientBar("all").sort(), ["gm-t", "wm-t", "zzk-t"]);
+
+const wmOnly = filterTendersListPipelineItems(clientBarFixtures, {
+  search: "",
+  ...applyListClientBarPreset("wm"),
+  statusFilter: "all",
+});
+assert.equal(wmOnly.length, 1);
+assert.equal(wmOnly[0].id, "wm-t");
+
+console.log("test-tenders-list-ux.mjs — PASS (V2/V3/V4 lista UX + Client Bar P0)");
