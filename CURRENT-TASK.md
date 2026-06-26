@@ -1,40 +1,39 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.71** · Document Summary Header (Dokumenty)
+**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.72** · Workflow Cleanup P0
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.71** — Document Summary Header (zakładka Dokumenty) |
-| **Poprzedni release** | 2.62.70 — Client Bar list filter hotfix |
-| **Workflow EPIC B/C** | **CLOSED** (2.62.69) |
-| **Document Summary Header** | **RELEASED** (2.62.71) |
+| **Wersja prod** | **2.62.72** — Workflow Cleanup P0 |
+| **Poprzedni release** | 2.62.71 — Document Summary Header |
+| **Workflow EPIC A/B/C** | **CLOSED** |
+| **Workflow Cleanup P0** | **RELEASED** (2.62.72) |
 
 ---
 
 ## Zamknięte w tej sesji (2026-06-25)
 
-### Document Summary Header (2.62.71)
+### Workflow Cleanup P0 (2.62.72)
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | `TenderDocumentsSummaryHeader` nad `TenderAttachmentsPanel` — bez zmian listy plików |
-| **SSOT** | `tenderDossier`, `swzAnalysis`, `resolvedCostStatus`, `classifyTenderDocumentDisplayTier`, `classifyDocumentRole`, `buildTenderAnalysisStatusRows` |
-| **Klasyfikacja** | STANDARD FEATURE RELEASE — prezentacja UX, brak zmian parserów/pipeline/discovery/backendu |
+| **Zakres** | Usunięto duplikat „Następny krok” z V2 · sticky CTA = jedyne CTA · `intelligenceCtx` z Huba · usunięto `prioritizeTenderDocuments` |
+| **Klasyfikacja** | STANDARD REFACTOR RELEASE — prezentacja only |
 
 ---
 
 ## Następne (tylko na polecenie)
 
-- **Grouped Documents** — audyt wykonany; implementacja grupowania poza scope 2.62.71
-- **UX cleanup** — usunięcie duplikatu „Następny krok” z `TenderWorkspaceV2Panel`
+- **Workflow Cleanup P1** — V2 key docs vs positions file, Analysis Status Strip na Przetargu
+- **Grouped Documents** — lokalnie (poza 2.62.72 jeśli nie w release)
 
 ---
 
 ## Szybki start agenta
 
-1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.71**
-2. Testy: `npx vite-node scripts/test-tender-documents-summary-header.mjs`
+1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.72**
+2. Testy: `test-tender-workflow-hub.mjs` · `test-tender-workflow-primary-action.mjs` · `test-tender-workspace-ux.mjs`
 3. `npm run build`
 4. Verify: `curl https://www.wgdom.fun/version.json`

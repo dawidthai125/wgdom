@@ -1690,7 +1690,7 @@ TenderDetailPanel
        ├── Sekcja 2 O czym       (narrative + ExecutiveSummaryCard)
        ├── Sekcja 3 Ekonomia     (finance, bez CTA)
        ├── Sekcja 4 Blokery      (allBlocks + riskRows + monitoring)
-       ├── Sekcja 6 Następny krok (nextAction — 1 CTA)
+       ├── Główna akcja — Sticky Primary CTA (`TenderWorkflowPrimaryAction`, nextAction — 1 CTA)
        └── Sekcja 7 Szczegóły    (prepStatus, positions, monitoring strip, …)
 ```
 
@@ -1916,15 +1916,15 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
 
-**UX.1C — Tender Documents Prioritization (v2.53.5):**
+**UX.1C — Tender Documents (v2.53.5 → EPIC P2 grouped, v2.62.71+):**
 
-Workspace **Dokumenty** — tylko warstwa UI (`TenderAttachmentsPanel`), bez zmian pipeline SWZ/ATH/dossier/sync.
+Workspace **Dokumenty** — warstwa UI (`TenderAttachmentsPanel`), bez zmian pipeline SWZ/ATH/dossier/sync.
 
 - `normalizeTenderDocumentTitle()` — czytelne nazwy (PL znaki, `_` → spacja)
-- `prioritizeTenderDocuments()` — TOP 5 wg tierów: SWZ → ATH/przedmiar → formularz → STWIOR → OPZ → …
-- Pozostałe dokumenty domyślnie zwinięte — przycisk „Pokaż pozostałe dokumenty (X)”
+- `classifyTenderDocumentDisplayTier()` — tier dokumentu (SSOT klasyfikacji)
+- `groupTenderAttachmentRows()` w `tender-grouped-documents.ts` — 7 grup biznesowych (zastąpiło legacy TOP 5 + „Pokaż pozostałe”)
 
-**SSOT:** `tender-workspace-ux.ts` · test: `scripts/test-tender-workspace-ux.mjs` § UX.1C
+**SSOT:** `tender-workspace-ux.ts` + `tender-grouped-documents.ts` · test: `test-tender-workspace-ux.mjs` § UX.1C · `test-tender-grouped-documents.mjs`
 
 **UX.1D — Formal Details Compression (v2.53.6):**
 

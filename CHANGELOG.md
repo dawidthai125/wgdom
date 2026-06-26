@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.71** · **Document Summary Header (Dokumenty)**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.72** · **Workflow Cleanup P0**
+
+## 2.62.72 — Workflow Cleanup P0
+
+- **refactor:** Przetarg → usunięto zduplikowaną sekcję „Następny krok” z V2; sticky „Główna akcja” = jedyne CTA · `intelligenceCtx` przekazywany z Huba (bez recompute) · usunięto legacy `prioritizeTenderDocuments` (TOP 5)
+- **test:** `test-tender-workflow-hub.mjs` · `test-tender-workflow-primary-action.mjs` · `test-tender-workspace-ux.mjs`
 
 ## 2.62.71 — Document Summary Header (zakładka Dokumenty)
 

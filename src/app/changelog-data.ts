@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.72",
+    label: "Workflow Cleanup P0",
+    items: [
+      {
+        type: "improve",
+        text: "Przetarg → Workflow Hub: usunięto zduplikowaną sekcję „Następny krok” — sticky „Główna akcja” jest jedynym miejscem rekomendowanej akcji; intelligenceCtx z Huba bez ponownego budowania",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.71",
     label: "Document Summary Header (Dokumenty)",
     items: [

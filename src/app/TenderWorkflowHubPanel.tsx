@@ -1,5 +1,5 @@
 /**
- * EPIC A — Workflow Hub (zakładka Przetarg): postęp, następny krok, blokery, status, operator.
+ * EPIC A — Workflow Hub (zakładka Przetarg): postęp, blokery, status, operator.
  */
 
 import type { ReactNode } from "react";
@@ -87,6 +87,7 @@ export function TenderWorkflowHubPanel({
       <TenderWorkspaceV2Panel
         item={item}
         swz={swz}
+        intelligenceCtx={intelligenceCtx}
         onNavigateTab={onNavigateTab}
       />
 

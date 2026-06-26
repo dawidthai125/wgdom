@@ -22,9 +22,7 @@ import {
   resolveDefaultTenderWorkspace,
   isTenderWorkspaceTabId,
   normalizeTenderDocumentTitle,
-  prioritizeTenderDocuments,
   classifyTenderDocumentDisplayTier,
-  TENDER_DOC_TOP_LIMIT,
   buildTenderFormalDetailsSummary,
   hasTenderFormalDetailsSection,
 } from "../src/lib/tender-workspace-ux.ts";
@@ -70,7 +68,7 @@ assert(TENDER_FORMAL_DETAILS_SECTION_ID === "tender-formal-details-section", "fo
 console.log("\n2. UX.1B — 5 workspace tabs (Anti-CC)");
 assert(TENDER_WORKSPACE_TAB_ORDER.length === 5, "exactly 5 workspace tabs");
 assert(TENDER_WORKSPACE_TAB_ORDER[0] === "overview", "first tab overview");
-assert(TENDER_WORKSPACE_TAB_LABELS.overview === "Decyzja", "overview tab Decyzja");
+assert(TENDER_WORKSPACE_TAB_LABELS.overview === "Intelligence", "legacy overview tab Intelligence (internal id overview)");
 assert(TENDER_WORKSPACE_TAB_LABELS.documents === "Dokumenty", "documents label PL");
 assert(TENDER_WORKSPACE_TAB_LABELS.qualification === "Kwalifikacja", "P5-005B qualification module tab");
 assert(TENDER_WORKSPACE_TAB_LABELS.valuation === "Wycena", "P5-005B valuation module tab");
@@ -123,11 +121,11 @@ const tabBarSrc = readSrc("src/app/TenderWorkspaceTabBar.tsx");
 
 assert(detailSrc.includes("TenderSummaryBar"), "shell: TenderSummaryBar");
 assert(detailSrc.includes("TenderWorkspaceTabBar"), "shell: workspace tab bar");
-assert(detailSrc.includes('activeWorkspace === "overview"'), "lazy: overview");
-assert(detailSrc.includes('activeWorkspace === "documents"'), "lazy: documents");
-assert(detailSrc.includes('activeWorkspace === "qualification"'), "lazy: qualification");
-assert(detailSrc.includes('activeWorkspace === "valuation"'), "lazy: valuation");
-assert(detailSrc.includes('activeWorkspace === "offer"'), "lazy: offer");
+assert(detailSrc.includes('effectiveWorkspace === "overview"'), "lazy: overview (Decyzja embed)");
+assert(detailSrc.includes('effectiveWorkspace === "documents"'), "lazy: documents");
+assert(detailSrc.includes('effectiveWorkspace === "qualification"'), "lazy: qualification");
+assert(detailSrc.includes('effectiveWorkspace === "valuation"'), "lazy: valuation");
+assert(detailSrc.includes('effectiveWorkspace === "offer"'), "lazy: offer");
 assert(detailSrc.includes("TenderDocumentsWorkspace"), "documents workspace component");
 assert(detailSrc.includes("TenderQualificationWorkspace"), "qualification workspace component");
 assert(detailSrc.includes("onNavigateWorkspace={navigateWorkspace}"), "tile → workspace nav");
@@ -162,74 +160,25 @@ assert(
   "normalize: zalacznik nr",
 );
 
-console.log("\n11. UX.1C — document prioritization (T1–T4)");
-function mockDoc(filename, index, isSwzHint = false) {
-  return { filename, index, isSwzHint };
-}
-
-const threeDocs = [
-  mockDoc("info.pdf", 1),
-  mockDoc("formularz_ofertowy.docx", 2),
-  mockDoc("inne.pdf", 3),
-];
-const t1 = prioritizeTenderDocuments(threeDocs, (d) => ({
-  filename: d.filename,
-  isSwzHint: d.isSwzHint,
-  sortIndex: d.index,
-}));
-assert(t1.top.length === 3 && t1.rest.length === 0, "T1: 3 docs → all visible, no rest");
-
-const twelveDocs = Array.from({ length: 12 }, (_, i) =>
-  mockDoc(`plik_${i + 1}.pdf`, i + 1),
-);
-twelveDocs[0] = mockDoc("Specyfikacja_Warunkow_Zamowienia.pdf", 0, true);
-twelveDocs[1] = mockDoc("kosztorys.ath", 1);
-const t2 = prioritizeTenderDocuments(twelveDocs, (d) => ({
-  filename: d.filename,
-  isSwzHint: d.isSwzHint,
-  sortIndex: d.index,
-}));
-assert(t2.top.length === TENDER_DOC_TOP_LIMIT, "T2: 12 docs → top 5");
-assert(t2.rest.length === 7, "T2: 12 docs → rest 7");
-
-const swzPool = [
-  mockDoc("a.pdf", 1),
-  mockDoc("b.pdf", 2),
-  mockDoc("c.pdf", 3),
-  mockDoc("d.pdf", 4),
-  mockDoc("e.pdf", 5),
-  mockDoc("Specyfikacja_SWZ.pdf", 6, true),
-];
-const t3 = prioritizeTenderDocuments(swzPool, (d) => ({
-  filename: d.filename,
-  isSwzHint: d.isSwzHint,
-  sortIndex: d.index,
-}));
-assert(t3.top.some((d) => d.isSwzHint), "T3: SWZ always in TOP");
-
-const athPool = [
-  mockDoc("a.pdf", 1),
-  mockDoc("b.pdf", 2),
-  mockDoc("c.pdf", 3),
-  mockDoc("d.pdf", 4),
-  mockDoc("e.pdf", 5),
-  mockDoc("przedmiar_robot.ath", 6),
-];
-const t4 = prioritizeTenderDocuments(athPool, (d) => ({
-  filename: d.filename,
-  isSwzHint: d.isSwzHint,
-  sortIndex: d.index,
-}));
+console.log("\n11. UX.1C — document tier classification");
 assert(
-  t4.top.some((d) => classifyTenderDocumentDisplayTier(d.filename) === "ath_przedmiar"),
-  "T4: ATH always in TOP",
+  classifyTenderDocumentDisplayTier("Specyfikacja_SWZ.pdf", { isSwzHint: true }) === "swz",
+  "tier: SWZ hint",
+);
+assert(
+  classifyTenderDocumentDisplayTier("przedmiar_robot.ath") === "ath_przedmiar",
+  "tier: ATH",
+);
+assert(
+  classifyTenderDocumentDisplayTier("formularz_ofertowy.docx") === "formularz_ofertowy",
+  "tier: formularz",
 );
 
-console.log("\n12. UX.1C — collapse UI + dossier (T5–T6)");
+console.log("\n12. UX.1C / EPIC P2 — grouped documents UI (T5–T6)");
 const attachPanelSrc = readSrc("src/app/TenderAttachmentsPanel.tsx");
-assert(attachPanelSrc.includes("Najważniejsze dokumenty"), "T5: top section label");
-assert(attachPanelSrc.includes("Pokaż pozostałe dokumenty"), "T5: expand rest label");
-assert(attachPanelSrc.includes("Ukryj pozostałe dokumenty"), "T5: collapse rest label");
+assert(attachPanelSrc.includes("groupTenderAttachmentRows"), "T5: grouped document rows");
+assert(!attachPanelSrc.includes("prioritizeTenderDocuments"), "T5: no legacy TOP5 prioritize");
+assert(!attachPanelSrc.includes("Pokaż pozostałe dokumenty"), "T5: no legacy collapse rest");
 assert(attachPanelSrc.includes("normalizeTenderDocumentTitle"), "UX.1C: friendly titles in panel");
 assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderDossierPanel"), "T6: dossier panel intact");
 

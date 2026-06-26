@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  ArrowRight,
   Check,
   Circle,
   FileArchive,
@@ -10,29 +9,20 @@ import {
 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
-import { checkTenderParticipation } from "@/lib/tender-participation-check";
-import { extractParticipationRequirements } from "@/lib/tender-participation-requirements";
-import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
-import { loadCompanyQualificationProfileLocal } from "@/lib/company-qualification-profile";
+import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import {
   buildWorkspaceV2AutoChecklist,
   buildWorkspaceV2Checklist,
   buildWorkspaceV2Insights,
-  buildWorkspaceV2NextActionButtonLabel,
-  buildWorkspaceV2NextActionLabel,
   buildWorkspaceV2Timeline,
   buildWorkspaceV2TimelineAutomation,
   computeWorkspaceV2AutoProgress,
-  legacyWorkspaceTabToV4Navigate,
   loadWorkspaceV2ChecklistPersist,
   resolveWorkspaceV2KeyDocuments,
   saveWorkspaceV2ChecklistPersist,
   workspaceV2AutoStatusGlyph,
-  workspaceV2PrefersKosztorysTab,
   type WorkspaceV2AutoStatus,
   type WorkspaceV2InsightTone,
   type WorkspaceV2PillarStatus,
@@ -96,46 +86,20 @@ function docIcon(slot: string) {
 export function TenderWorkspaceV2Panel({
   item,
   swz,
+  intelligenceCtx: _intelligenceCtx,
   onNavigateTab,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
+  /** SSOT z TenderWorkflowHubPanel — główna akcja wyłącznie w Sticky Primary CTA. */
+  intelligenceCtx: TenderIntelligenceContext;
   onNavigateTab: (
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
 }) {
-  const { snapshot, ownerDecisions } = useTendersContext();
   const [checklistPersist, setChecklistPersist] = useState(
     () => loadWorkspaceV2ChecklistPersist(item.id),
-  );
-
-  const participationResult = useMemo(() => {
-    const combinedText = [item.title, item.noticeHtml ?? ""].join("\n");
-    const requirements = swz?.participationRequirements?.length
-      ? swz.participationRequirements
-      : extractParticipationRequirements(combinedText);
-    const experienceRequirements = swz?.experienceRequirements?.length
-      ? swz.experienceRequirements
-      : extractExperienceRequirements(combinedText);
-    if (requirements.length === 0 && experienceRequirements.length === 0) return null;
-    return checkTenderParticipation(
-      requirements,
-      loadCompanyQualificationProfileLocal(),
-      experienceRequirements,
-    );
-  }, [item.title, item.noticeHtml, swz?.participationRequirements, swz?.experienceRequirements]);
-
-  const intelligence = useMemo(
-    () => buildTenderIntelligenceContext({
-      item,
-      scoringContext: snapshot.scoringContext,
-      ownerDecision: ownerDecisions.store.byId[item.id] ?? null,
-      participationResult,
-      swz,
-      fit: item.tenderFit,
-    }),
-    [item, snapshot.scoringContext, ownerDecisions.store, participationResult, swz],
   );
 
   const autoChecklist = useMemo(() => buildWorkspaceV2AutoChecklist(item, swz), [item, swz]);
@@ -157,31 +121,6 @@ export function TenderWorkspaceV2Panel({
     [item, swz, checklistPersist],
   );
 
-  const nextLabel = buildWorkspaceV2NextActionLabel(intelligence.nextAction);
-  const nextButtonLabel = buildWorkspaceV2NextActionButtonLabel(intelligence.nextAction);
-  const preferKosztorys = workspaceV2PrefersKosztorysTab(intelligence.nextAction);
-
-  const handleNextAction = () => {
-    const action = intelligence.nextAction;
-    if (action.ownerDecision) {
-      ownerDecisions.setOwnerDecision(intelligence.scoringBundle, action.ownerDecision);
-      return;
-    }
-    if (action.tab) {
-      const v4 = legacyWorkspaceTabToV4Navigate(action.tab, preferKosztorys);
-      const decyzjaWorkspace = action.tab === "qualification"
-        ? "qualification"
-        : action.tab === "offer"
-          ? "offer"
-          : undefined;
-      onNavigateTab(v4, decyzjaWorkspace ? { decyzjaWorkspace } : undefined);
-      return;
-    }
-    if (action.expandDetails) {
-      onNavigateTab("decyzja");
-    }
-  };
-
   const toggleSignature = () => {
     const next = saveWorkspaceV2ChecklistPersist(item.id, {
       signature: !checklistPersist.signature,
@@ -191,7 +130,6 @@ export function TenderWorkspaceV2Panel({
 
   return (
     <div className="space-y-4" data-tender-workspace-v2>
-      {/* Sekcja 1 — Status realizacji */}
       <SectionShell title="Status realizacji">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -236,33 +174,6 @@ export function TenderWorkspaceV2Panel({
         </div>
       </SectionShell>
 
-      {/* Sekcja 2 — Następny krok */}
-      <div className="rounded-xl border-2 border-primary/25 bg-primary/5 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-start gap-2 min-w-0">
-          <Sparkles size={16} className="shrink-0 text-primary mt-0.5" />
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Następny krok
-            </p>
-            <p className="text-sm font-semibold text-foreground mt-0.5">{nextLabel}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-              {intelligence.nextAction.description}
-            </p>
-          </div>
-        </div>
-        {!intelligence.nextAction.informationalOnly && (
-          <button
-            type="button"
-            onClick={handleNextAction}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shrink-0"
-          >
-            {nextButtonLabel}
-            <ArrowRight size={14} />
-          </button>
-        )}
-      </div>
-
-      {/* Sekcja 3 — Timeline */}
       <SectionShell title="Oś czasu">
         <div className="space-y-3">
           <p className="text-xs font-semibold text-foreground">{timelineAutomation.daysRemainingLabel}</p>
@@ -307,7 +218,6 @@ export function TenderWorkspaceV2Panel({
         </div>
       </SectionShell>
 
-      {/* Sekcja 4 — Najważniejsze dokumenty */}
       <SectionShell title="Najważniejsze dokumenty">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           {keyDocs.map((doc) => {
@@ -338,7 +248,6 @@ export function TenderWorkspaceV2Panel({
         </div>
       </SectionShell>
 
-      {/* Sekcja 5 — Checklista (auto + operacyjna) */}
       <SectionShell title="Checklista ofertowa">
         <ul className="space-y-2">
           {autoChecklist.map((row) => (

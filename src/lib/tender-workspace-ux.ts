@@ -196,10 +196,7 @@ export function workspaceTabIndex(tab: TenderWorkspaceTabId): number {
   return TENDER_WORKSPACE_TAB_ORDER.indexOf(tab);
 }
 
-/** UX.1C — max pozycji w sekcji „Najważniejsze dokumenty”. */
-export const TENDER_DOC_TOP_LIMIT = 5;
-
-/** UX.1C — tier priorytetu wyświetlania (niższa liczba = wyżej). */
+/** UX.1C / EPIC P2 — tier klasyfikacji dokumentów (grouped list + V2 key docs). */
 export type TenderDocumentDisplayTier =
   | "swz"
   | "ath_przedmiar"
@@ -210,18 +207,6 @@ export type TenderDocumentDisplayTier =
   | "wzor_umowy"
   | "zalacznik_formalny"
   | "pozostale";
-
-const TENDER_DOC_TIER_PRIORITY: Record<TenderDocumentDisplayTier, number> = {
-  swz: 1,
-  ath_przedmiar: 2,
-  formularz_ofertowy: 3,
-  stwior: 4,
-  opz: 5,
-  kosztorys: 6,
-  wzor_umowy: 7,
-  zalacznik_formalny: 8,
-  pozostale: 9,
-};
 
 const PL_DOC_TITLE_TOKEN_FIXES: ReadonlyArray<[RegExp, string]> = [
   [/Zamowienia/gi, "Zamówienia"],
@@ -286,35 +271,6 @@ export function classifyTenderDocumentDisplayTier(
     return "zalacznik_formalny";
   }
   return "pozostale";
-}
-
-export function tenderDocumentDisplayTierPriority(
-  filename: string,
-  opts?: { isSwzHint?: boolean },
-): number {
-  return TENDER_DOC_TIER_PRIORITY[classifyTenderDocumentDisplayTier(filename, opts)];
-}
-
-/** UX.1C — podział listy dokumentów: TOP N + reszta (collapsed w UI). */
-export function prioritizeTenderDocuments<T>(
-  items: T[],
-  getMeta: (item: T) => { filename: string; isSwzHint?: boolean; sortIndex?: number },
-  maxTop: number = TENDER_DOC_TOP_LIMIT,
-): { top: T[]; rest: T[] } {
-  if (items.length <= maxTop) {
-    return { top: items, rest: [] };
-  }
-
-  const sorted = [...items].sort((a, b) => {
-    const ma = getMeta(a);
-    const mb = getMeta(b);
-    const pa = tenderDocumentDisplayTierPriority(ma.filename, { isSwzHint: ma.isSwzHint });
-    const pb = tenderDocumentDisplayTierPriority(mb.filename, { isSwzHint: mb.isSwzHint });
-    if (pa !== pb) return pa - pb;
-    return (ma.sortIndex ?? 0) - (mb.sortIndex ?? 0);
-  });
-
-  return { top: sorted.slice(0, maxTop), rest: sorted.slice(maxTop) };
 }
 
 /** UX.1D — linia skrótu sekcji „Szczegóły formalne”. */
