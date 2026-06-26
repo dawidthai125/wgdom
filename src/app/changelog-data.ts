@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-26",
+    version: "2.62.75",
+    label: "Audit Hub WM — hooki audytu Pomiary/Katalog (Etap 2)",
+    items: [
+      {
+        type: "improve",
+        text: "Audit Hub — logowanie tworzenia, edycji, usuwania RAP oraz eksportów DOCX/ZIP w WM Druk (Pomiary i Katalog)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-26",
     version: "2.62.74",
     label: "Audit Hub WM — infrastruktura audytu (Etap 1)",
     items: [

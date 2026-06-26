@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Download, Loader2, Package, Pencil, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
 import type { AdminSession } from "@/lib/admin-auth";
+import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 import { RapRegistryPanel } from "@/app/RapRegistryPanel";
 import {
   buildMeasurementCatalogRows,
@@ -62,6 +63,7 @@ export function MeasurementCatalogPanel({
   onCommitMeasurements,
   onOpenJob,
   onOpenJobInJobs,
+  onRecordWmDrukAudit,
 }: {
   jobs: Job[];
   measurements: ElectricalMeasurement[];
@@ -78,6 +80,7 @@ export function MeasurementCatalogPanel({
   onOpenJob?: (jobId: string) => void;
   /** Roboty → szczegóły roboty (deep-link). */
   onOpenJobInJobs?: (jobId: string) => void;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
 }) {
   const [subView, setSubView] = useState<"katalog" | "rejestr">("katalog");
 
@@ -115,6 +118,7 @@ export function MeasurementCatalogPanel({
         onOpenJob={onOpenJob}
         openJobDetails={openJobDetails}
         hasJobDeepLink={Boolean(onOpenJobInJobs || onOpenJob)}
+        onRecordWmDrukAudit={onRecordWmDrukAudit}
       />
     </div>
   );
@@ -171,6 +175,7 @@ function MeasurementCatalogMain({
   onOpenJob,
   openJobDetails,
   hasJobDeepLink,
+  onRecordWmDrukAudit,
 }: {
   jobs: Job[];
   measurements: ElectricalMeasurement[];
@@ -186,7 +191,9 @@ function MeasurementCatalogMain({
   onOpenJob?: (jobId: string) => void;
   openJobDetails: (jobId: string) => void;
   hasJobDeepLink: boolean;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
 }) {
+  const catalogEditDirtyRef = useRef(false);
   const allRows = useMemo(
     () => buildMeasurementCatalogRows(measurements, registry, jobs),
     [measurements, registry, jobs],
@@ -260,6 +267,7 @@ function MeasurementCatalogMain({
   const applyDelete = (ids: string[], confirmMessage: string) => {
     if (ids.length === 0) return;
     if (!window.confirm(confirmMessage)) return;
+    const deletedMeasurements = measurements.filter((m) => ids.includes(m.id));
     const result = deleteElectricalMeasurementsFromBundle(measurements, registry, ids);
     if (result.deletedIds.length === 0) return;
     onChangeMeasurements(result.measurements);
@@ -275,6 +283,17 @@ function MeasurementCatalogMain({
     }
     if (editingMeasurementId && result.deletedIds.includes(editingMeasurementId)) {
       setEditingMeasurementId(null);
+      catalogEditDirtyRef.current = false;
+    }
+    for (const m of deletedMeasurements) {
+      onRecordWmDrukAudit?.({
+        module: "katalog",
+        action: "rap_deleted",
+        summary: `Usunięto RAP ${m.reportNumber}`,
+        rapNumber: m.reportNumber,
+        jobId: m.jobId,
+        measurementId: m.id,
+      });
     }
     toast.success(
       result.deletedIds.length === 1
@@ -301,6 +320,15 @@ function MeasurementCatalogMain({
     setDownloadingKind(kind);
     try {
       await downloadEmDocxDocument(kind, { measurement: selectedRow.measurement, job: selectedExportJob });
+      onRecordWmDrukAudit?.({
+        module: "katalog",
+        action: "docx_exported",
+        summary: `Eksport DOCX RAP ${selectedRow.rapNumber}`,
+        detail: emDocxDocumentKindLabel(kind),
+        rapNumber: selectedRow.rapNumber,
+        jobId: selectedRow.measurement.jobId,
+        measurementId: selectedRow.measurement.id,
+      });
       toast.success(`Pobrano: ${catalogDocxFileName(selectedRow.rapNumber, kind)}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd generowania DOCX");
@@ -315,6 +343,14 @@ function MeasurementCatalogMain({
     const res = await downloadCatalogSingleZip(selectedRow, selectedExportJob);
     setBusy(false);
     if (res.ok) {
+      onRecordWmDrukAudit?.({
+        module: "katalog",
+        action: "zip_exported",
+        summary: `Eksport ZIP RAP ${selectedRow.rapNumber}`,
+        rapNumber: selectedRow.rapNumber,
+        jobId: selectedRow.measurement?.jobId,
+        measurementId: selectedRow.measurement?.id,
+      });
       toast.success(`Pobrano ${catalogSingleZipDownloadName(selectedRow.rapNumber, selectedRow.address)}`);
     } else toast.error(res.error);
   };
@@ -327,16 +363,35 @@ function MeasurementCatalogMain({
     setBusy(true);
     const res = await downloadCatalogMultiZip(checkedRows, jobs);
     setBusy(false);
-    if (res.ok) toast.success(`Pobrano archiwum (${checkedRows.length} raportów)`);
-    else toast.error(res.error);
+    if (res.ok) {
+      onRecordWmDrukAudit?.({
+        module: "katalog",
+        action: "zip_exported",
+        summary: `Eksport ZIP (${checkedRows.length} raportów)`,
+        detail: checkedRows.map((r) => r.rapNumber).join(", "),
+      });
+      toast.success(`Pobrano archiwum (${checkedRows.length} raportów)`);
+    } else toast.error(res.error);
   };
 
   const startEdit = (measurementId: string) => {
+    catalogEditDirtyRef.current = false;
     setSelectedRapId(measurementId);
     setEditingMeasurementId(measurementId);
   };
 
   const stopEdit = () => {
+    if (catalogEditDirtyRef.current && editingMeasurement) {
+      onRecordWmDrukAudit?.({
+        module: "katalog",
+        action: "rap_edited",
+        summary: `Edycja RAP ${editingMeasurement.reportNumber}`,
+        rapNumber: editingMeasurement.reportNumber,
+        jobId: editingMeasurement.jobId,
+        measurementId: editingMeasurement.id,
+      });
+    }
+    catalogEditDirtyRef.current = false;
     setEditingMeasurementId(null);
   };
 
@@ -347,6 +402,7 @@ function MeasurementCatalogMain({
     onChangeMeasurements(nextMeasurements);
     onChangeRegistry(nextRegistry);
     onCommitMeasurements(nextMeasurements, nextRegistry);
+    catalogEditDirtyRef.current = true;
     toast.success("Zapisano zmiany raportu");
   };
 

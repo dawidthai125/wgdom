@@ -17,7 +17,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { SecurityAuditEntry } from "@/lib/security-audit-log";
-import type { WmDrukAuditEntry } from "@/lib/wm-druk-audit";
+import type { WmDrukAuditEntry, OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -123,6 +123,7 @@ export type AdminViewRouterProps = {
   ) => void;
   securityAuditLog: SecurityAuditEntry[];
   wmDrukAuditLog: WmDrukAuditEntry[];
+  onRecordWmDrukAudit: OnRecordWmDrukAuditFn;
   commitOperationalNotes: (
     nextNotes?: OperationalNote[],
     nextAudit?: OperationalNoteAuditEntry[],
@@ -352,6 +353,7 @@ export function AdminViewRouter({
   setOperationalNotesAuditLog,
   securityAuditLog,
   wmDrukAuditLog,
+  onRecordWmDrukAudit,
   commitOperationalNotes,
   wmPrintTemplates,
   setWmPrintTemplates,
@@ -616,6 +618,7 @@ export function AdminViewRouter({
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}
               onOpenJobInJobs={(jobId) => onOpenJobInJobs(jobId, "summary")}
+              onRecordWmDrukAudit={onRecordWmDrukAudit}
             />
           </Suspense>
         </ViewErrorBoundary>

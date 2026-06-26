@@ -33,6 +33,7 @@ import { MeasurementCatalogPanel } from "@/app/MeasurementCatalogPanel";
 import { WmPrintSchematicsPanel } from "@/app/WmPrintSchematicsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
+import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
 import { computeWmPrintConfigurationStatus } from "@/lib/wm-print/configuration-status";
 import {
@@ -171,6 +172,7 @@ export function WmPrintView({
   initialJobId,
   onInitialNavigationConsumed,
   onOpenJobInJobs,
+  onRecordWmDrukAudit,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
@@ -214,6 +216,7 @@ export function WmPrintView({
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
   onOpenJobInJobs?: (jobId: string) => void;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
 }) {
   const [tab, setTab] = useState<WmPrintTab>("odbiory");
   const [filter, setFilter] = useState<WmPrintJobFilter>("all");
@@ -520,6 +523,14 @@ export function WmPrintView({
       setPomiarySide("jobs");
       setTab("pomiary");
       toast.success(`Utworzono raport ${entry.rapNumber}`);
+      onRecordWmDrukAudit?.({
+        module: "measurements",
+        action: "rap_created",
+        summary: `Utworzono RAP ${entry.rapNumber}`,
+        rapNumber: entry.rapNumber,
+        jobId: payload.jobId,
+        measurementId: created.id,
+      });
       return;
     }
 
@@ -542,6 +553,14 @@ export function WmPrintView({
       setPomiarySide("detached");
       setTab("pomiary");
       toast.success(`Utworzono samodzielny raport ${entry.rapNumber}`);
+      onRecordWmDrukAudit?.({
+        module: "measurements",
+        action: "rap_created",
+        summary: `Utworzono RAP ${entry.rapNumber}`,
+        detail: "samodzielny",
+        rapNumber: entry.rapNumber,
+        measurementId: created.id,
+      });
       return;
     }
 
@@ -563,6 +582,15 @@ export function WmPrintView({
     }
     setTab("pomiary");
     toast.success(`Utworzono raport testowy ${created.reportNumber}`);
+    onRecordWmDrukAudit?.({
+      module: "measurements",
+      action: "rap_created",
+      summary: `Utworzono RAP ${created.reportNumber}`,
+      detail: "raport testowy",
+      rapNumber: created.reportNumber,
+      jobId: payload.jobId,
+      measurementId: created.id,
+    });
   };
 
   const handleGenerateZip = async (job: Job) => {
@@ -1140,6 +1168,7 @@ export function WmPrintView({
                     onCommit={(nextMeasurements, nextRegistry) =>
                       onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
                     }
+                    onRecordWmDrukAudit={onRecordWmDrukAudit}
                   />
                 )}
               </div>
@@ -1167,6 +1196,7 @@ export function WmPrintView({
             onChangeMeasurements={onChangeElectricalMeasurements}
             onChangeRegistry={onChangeElectricalMeasurementRegistry}
             onCommitMeasurements={onCommitElectricalMeasurements}
+            onRecordWmDrukAudit={onRecordWmDrukAudit}
             onOpenJob={(jobId) => {
               const detached = electricalMeasurements.find(
                 (m) => m.id === jobId && isDetachedMeasurement(m),

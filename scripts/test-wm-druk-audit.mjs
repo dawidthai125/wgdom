@@ -115,5 +115,47 @@ console.log("WM Druk audit — test-wm-druk-audit\n");
   assert(WM_DRUK_AUDIT_LOG_KEY === "kw-wm-druk-audit-log", "T09 KV key");
 }
 
+// T10 — Etap 2 akcje Pomiary/Katalog (build entry, bez actor — fallback w record)
+{
+  const deleted = buildWmDrukAuditEntry({
+    module: "katalog",
+    action: "rap_deleted",
+    summary: "Usunięto RAP 12",
+    rapNumber: "12",
+    measurementId: "m-del",
+  });
+  assert(deleted.action === "rap_deleted" && deleted.module === "katalog", "T10 rap_deleted katalog");
+
+  const docx = buildWmDrukAuditEntry({
+    actor: "Paweł",
+    module: "measurements",
+    action: "docx_exported",
+    summary: "Eksport DOCX RAP 45",
+    detail: "Protokół",
+    rapNumber: "45",
+    jobId: "job-1",
+    measurementId: "m-1",
+  });
+  assert(docx.action === "docx_exported" && docx.detail === "Protokół", "T10 docx_exported");
+
+  const zip = buildWmDrukAuditEntry({
+    actor: "Dawid",
+    module: "katalog",
+    action: "zip_exported",
+    summary: "Eksport ZIP (3 raportów)",
+    detail: "10, 11, 12",
+  });
+  assert(zip.action === "zip_exported", "T10 zip_exported multi");
+
+  const edited = buildWmDrukAuditEntry({
+    actor: "Dawid",
+    module: "katalog",
+    action: "rap_edited",
+    summary: "Edycja RAP 7",
+    rapNumber: "7",
+  });
+  assert(edited.action === "rap_edited", "T10 rap_edited");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -78,6 +78,9 @@ import {
 } from "@/lib/security-audit-log";
 import {
   WM_DRUK_AUDIT_LOG_KEY,
+  normalizeWmDrukAuditLog,
+  recordWmDrukAudit,
+  type RecordWmDrukAuditInput,
   type WmDrukAuditEntry,
 } from "@/lib/wm-druk-audit";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
@@ -542,6 +545,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       })
       .catch(() => {});
   }, [adminSession, setSecurityAuditLog]);
+
+  const onRecordWmDrukAudit = useCallback((input: RecordWmDrukAuditInput) => {
+    void recordWmDrukAudit({
+      ...input,
+      actor: input.actor ?? adminSession?.displayName ?? "Administrator",
+      actorUserId: input.actorUserId ?? adminSession?.id,
+    })
+      .then(() => {
+        try {
+          const raw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
+          if (raw) setWmDrukAuditLog(normalizeWmDrukAuditLog(JSON.parse(raw)));
+        } catch { /* ignore */ }
+      })
+      .catch(() => {});
+  }, [adminSession, setWmDrukAuditLog]);
 
   const auditRestoreBackup = useCallback((
     phase: "started" | "completed" | "failed",
@@ -1941,6 +1959,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setOperationalNotesAuditLog={setOperationalNotesAuditLog}
           securityAuditLog={securityAuditLog}
           wmDrukAuditLog={wmDrukAuditLog}
+          onRecordWmDrukAudit={onRecordWmDrukAudit}
           commitOperationalNotes={commitOperationalNotes}
           wmPrintTemplates={wmPrintTemplates}
           setWmPrintTemplates={setWmPrintTemplates}

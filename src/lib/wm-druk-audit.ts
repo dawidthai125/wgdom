@@ -52,8 +52,11 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
 const VALID_MODULES = new Set<string>(["measurements", "schematics", "katalog"]);
 const VALID_ACTIONS = new Set<string>(Object.keys(WM_DRUK_AUDIT_ACTION_LABEL_PL));
 
+/** Callback z warstwy App — zapis + odświeżenie stanu React (bez React w tej bibliotece). */
+export type OnRecordWmDrukAuditFn = (input: RecordWmDrukAuditInput) => void;
+
 export type RecordWmDrukAuditInput = {
-  actor: string;
+  actor?: string;
   actorUserId?: string;
   module: WmDrukAuditModule;
   action: WmDrukAuditAction;
@@ -162,7 +165,10 @@ function readWmDrukAuditLogLocal(): WmDrukAuditEntry[] {
 
 /** Append + merge z chmurą + push pojedynczego klucza AUX (bez pełnego runCloudSync). */
 export async function recordWmDrukAudit(input: RecordWmDrukAuditInput): Promise<WmDrukAuditEntry> {
-  const entry = buildWmDrukAuditEntry(input);
+  const entry = buildWmDrukAuditEntry({
+    ...input,
+    actor: input.actor ?? "Administrator",
+  });
   const withEntry = appendWmDrukAuditLog(readWmDrukAuditLogLocal(), entry);
   let merged = withEntry;
   try {

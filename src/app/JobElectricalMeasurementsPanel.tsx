@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, FileDown, Gauge, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
+import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
 import {
@@ -82,6 +83,7 @@ export function JobElectricalMeasurementsPanel({
   onChangeMeasurements,
   onChangeRegistry,
   onCommit,
+  onRecordWmDrukAudit,
   variant = "default",
 }: {
   /** Powiązany raport — wymagany gdy brak focusedMeasurementId. */
@@ -98,6 +100,7 @@ export function JobElectricalMeasurementsPanel({
     nextMeasurements: ElectricalMeasurement[],
     nextRegistry: ElectricalMeasurementRegistryState,
   ) => void;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
   /** EM-CATALOG-002 — edycja z katalogu: bez tworzenia nowych raportów. */
   variant?: "default" | "catalog-edit";
 }) {
@@ -210,6 +213,15 @@ export function JobElectricalMeasurementsPanel({
     onCommit(nextAll, registry);
     setSelectedId(created.id);
     setDetailsExpanded(true);
+    onRecordWmDrukAudit?.({
+      module: "measurements",
+      action: "rap_created",
+      summary: `Utworzono RAP ${created.reportNumber}`,
+      detail: "raport testowy",
+      rapNumber: created.reportNumber,
+      jobId: job.id,
+      measurementId: created.id,
+    });
   };
 
   const handleCreateReport = () => {
@@ -222,6 +234,14 @@ export function JobElectricalMeasurementsPanel({
     onCommit(nextAll, nextRegistry);
     setSelectedId(created.id);
     setDetailsExpanded(true);
+    onRecordWmDrukAudit?.({
+      module: "measurements",
+      action: "rap_created",
+      summary: `Utworzono RAP ${entry.rapNumber}`,
+      rapNumber: entry.rapNumber,
+      jobId: job.id,
+      measurementId: created.id,
+    });
   };
 
   const handleRecreateReport = () => {
@@ -232,6 +252,9 @@ export function JobElectricalMeasurementsPanel({
   const handleDeleteReport = () => {
     if (!selected) return;
     if (!window.confirm(`Usunąć raport ${selected.reportNumber}?`)) return;
+    const deletedRap = selected.reportNumber;
+    const deletedId = selected.id;
+    const deletedJobId = selected.jobId;
     const result = deleteElectricalMeasurementsFromBundle(measurements, registry, [selected.id]);
     onChangeMeasurements(result.measurements);
     onChangeRegistry(result.registry);
@@ -242,6 +265,14 @@ export function JobElectricalMeasurementsPanel({
         ? (result.measurements.filter((m) => m.jobId === fallbackJobId)[0]?.id ?? null)
         : (result.measurements.find((m) => m.id === focusedMeasurementId)?.id ?? null),
     );
+    onRecordWmDrukAudit?.({
+      module: "measurements",
+      action: "rap_deleted",
+      summary: `Usunięto RAP ${deletedRap}`,
+      rapNumber: deletedRap,
+      jobId: deletedJobId,
+      measurementId: deletedId,
+    });
   };
 
   const metaFieldsEditable = selected ? isMeasurementMetaFieldsEditable(selected) : false;
@@ -263,6 +294,15 @@ export function JobElectricalMeasurementsPanel({
     setGeneratingKind(kind);
     try {
       await downloadEmDocxDocument(kind, { measurement: selected, job: exportJob });
+      onRecordWmDrukAudit?.({
+        module: "measurements",
+        action: "docx_exported",
+        summary: `Eksport DOCX RAP ${selected.reportNumber}`,
+        detail: emDocxDocumentKindLabel(kind),
+        rapNumber: selected.reportNumber,
+        jobId: selected.jobId,
+        measurementId: selected.id,
+      });
     } catch (e) {
       setGenerateError(e instanceof Error ? e.message : "Nie udało się wygenerować DOCX");
     } finally {

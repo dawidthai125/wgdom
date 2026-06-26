@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.73** · **P1 Audit Hub WM Etap 1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.74** · **P1 Audit Hub WM Etap 1 RELEASED**
+
+## 2.62.75 — Audit Hub WM hooki Pomiary/Katalog (Etap 2)
+
+- **improve:** WM Druk — audyt `rap_created` / `rap_edited` / `rap_deleted` / `docx_exported` / `zip_exported` (callback z App, bez React w lib)
+- **test:** rozszerzone `test-wm-druk-audit.mjs` (akcje Pomiary)
 
 ## 2.62.74 — Audit Hub WM infrastruktura (Etap 1)
 
