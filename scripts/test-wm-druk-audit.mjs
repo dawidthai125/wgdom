@@ -157,5 +157,75 @@ console.log("WM Druk audit — test-wm-druk-audit\n");
   assert(edited.action === "rap_edited", "T10 rap_edited");
 }
 
+// T11 — Etap 3 akcje Schematy
+{
+  const created = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "schematic_created",
+    summary: "Utworzono: Mieszkanie 3F",
+    schematicId: "sch-1",
+    jobId: "job-1",
+  });
+  assert(created.module === "schematics" && created.action === "schematic_created", "T11 schematic_created");
+
+  const importedFull = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "measurement_imported",
+    summary: "Import z RAP 45",
+    schematicId: "sch-2",
+    measurementId: "meas-1",
+    jobId: "job-2",
+    rapNumber: "45",
+  });
+  assert(
+    importedFull.jobId === "job-2" && importedFull.rapNumber === "45" && importedFull.measurementId === "meas-1",
+    "T11 measurement_imported z jobId i rapNumber",
+  );
+
+  const importedSparse = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "measurement_imported",
+    summary: "Import z pomiaru",
+    schematicId: "sch-3",
+    measurementId: "meas-2",
+  });
+  assert(
+    importedSparse.jobId === undefined && importedSparse.rapNumber === undefined,
+    "T11 measurement_imported bez jobId/rapNumber",
+  );
+
+  const duplicated = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "schematic_duplicated",
+    summary: "Duplikacja: ul. Test 1",
+    schematicId: "sch-4",
+    detail: "sch-1",
+  });
+  assert(duplicated.action === "schematic_duplicated", "T11 schematic_duplicated");
+
+  const deleted = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "schematic_deleted",
+    summary: "Usunięto: ul. Test 1",
+    schematicId: "sch-1",
+  });
+  assert(deleted.action === "schematic_deleted", "T11 schematic_deleted");
+
+  const pdf = buildWmDrukAuditEntry({
+    module: "schematics",
+    action: "pdf_exported",
+    summary: "Eksport PDF: schemat-test.pdf",
+    schematicId: "sch-1",
+    detail: "ul. Test 1",
+  });
+  assert(pdf.action === "pdf_exported" && WM_DRUK_AUDIT_ACTION_LABEL_PL.pdf_exported.length > 0, "T11 pdf_exported");
+
+  const normalizedSparse = normalizeWmDrukAuditLog([
+    { ...importedSparse, id: "wm-sparse", at: "2026-06-26T12:00:00.000Z", actor: "Dawid" },
+  ]);
+  const [sparse] = normalizedSparse;
+  assert(sparse?.jobId === undefined && sparse?.rapNumber === undefined, "T11 normalize — brak pustych jobId/rapNumber");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

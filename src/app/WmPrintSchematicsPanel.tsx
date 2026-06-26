@@ -31,6 +31,7 @@ import {
 } from "@/lib/electrical-schematics/schematic-ui-labels";
 import { buildSchematicFromTemplate } from "@/lib/electrical-schematics/start-templates";
 import type { SchematicStartTemplateId, SchematicStatus, SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
 type StatusFilter = "all" | SchematicStatus;
 
@@ -59,12 +60,14 @@ export function WmPrintSchematicsPanel({
   schematics,
   onChangeSchematics,
   onCommitSchematics,
+  onRecordWmDrukAudit,
 }: {
   jobs: Job[];
   measurements: ElectricalMeasurement[];
   schematics: SingleLineDiagram[];
   onChangeSchematics: (next: SingleLineDiagram[]) => void;
   onCommitSchematics: (next?: SingleLineDiagram[]) => void;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -119,6 +122,13 @@ export function WmPrintSchematicsPanel({
     persist(next);
     setSelectedId(diagram.id);
     setShowCreateMenu(false);
+    onRecordWmDrukAudit?.({
+      module: "schematics",
+      action: "schematic_created",
+      summary: `Utworzono: ${schematicStartTemplateLabel(templateId)}`,
+      schematicId: diagram.id,
+      jobId: diagram.jobId,
+    });
     toast.success(`Utworzono: ${schematicStartTemplateLabel(templateId)}`);
   };
 
@@ -138,6 +148,17 @@ export function WmPrintSchematicsPanel({
     persist(next);
     setSelectedId(diagram.id);
     setShowImportPicker(false);
+    onRecordWmDrukAudit?.({
+      module: "schematics",
+      action: "measurement_imported",
+      summary: measurement.reportNumber
+        ? `Import z RAP ${measurement.reportNumber}`
+        : "Import z pomiaru",
+      schematicId: diagram.id,
+      measurementId: measurement.id,
+      ...(measurement.jobId ? { jobId: measurement.jobId } : {}),
+      ...(measurement.reportNumber ? { rapNumber: measurement.reportNumber } : {}),
+    });
     toast.success(`Zaimportowano z ${measurement.reportNumber}`);
   };
 
@@ -150,15 +171,33 @@ export function WmPrintSchematicsPanel({
     const { schematics: next } = upsertSchematic(schematics, copy);
     persist(next);
     setSelectedId(copy.id);
+    onRecordWmDrukAudit?.({
+      module: "schematics",
+      action: "schematic_duplicated",
+      summary: `Duplikacja: ${copy.address.trim() || copy.title}`,
+      schematicId: copy.id,
+      detail: selected.id,
+      jobId: copy.jobId,
+    });
     toast.success("Zduplikowano schemat");
   };
 
   const handleDelete = () => {
     if (!selected) return;
     if (!window.confirm(`Usunąć schemat „${selected.address || selected.title}”?`)) return;
-    const { schematics: next } = removeSchematic(schematics, selected.id);
+    const deletedId = selected.id;
+    const deletedJobId = selected.jobId;
+    const deletedLabel = selected.address.trim() || selected.title;
+    const { schematics: next } = removeSchematic(schematics, deletedId);
     persist(next);
     setSelectedId(null);
+    onRecordWmDrukAudit?.({
+      module: "schematics",
+      action: "schematic_deleted",
+      summary: `Usunięto: ${deletedLabel}`,
+      schematicId: deletedId,
+      jobId: deletedJobId,
+    });
     toast.success("Usunięto schemat");
   };
 
@@ -183,6 +222,14 @@ export function WmPrintSchematicsPanel({
     try {
       const { bytes, fileName } = await generateSchematicPdf(selected);
       saveAs(new Blob([bytes], { type: "application/pdf" }), fileName);
+      onRecordWmDrukAudit?.({
+        module: "schematics",
+        action: "pdf_exported",
+        summary: `Eksport PDF: ${fileName}`,
+        detail: selected.address.trim() || selected.title,
+        schematicId: selected.id,
+        jobId: selected.jobId,
+      });
       toast.success(`Pobrano ${fileName}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd eksportu PDF");

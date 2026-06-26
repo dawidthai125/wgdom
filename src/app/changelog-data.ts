@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-26",
+    version: "2.62.76",
+    label: "Audit Hub WM — hooki audytu Schematy (Etap 3)",
+    items: [
+      {
+        type: "improve",
+        text: "Audit Hub — logowanie tworzenia, importu z RAP, duplikacji, usuwania i eksportu PDF schematów w WM Druk (zakładka Schematy)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-26",
     version: "2.62.75",
     label: "Audit Hub WM — hooki audytu Pomiary/Katalog (Etap 2)",
     items: [

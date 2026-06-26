@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.74** · **P1 Audit Hub WM Etap 1 RELEASED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.75** · **P1 Audit Hub WM Etap 2 RELEASED**
+
+## 2.62.76 — Audit Hub WM hooki Schematy (Etap 3)
+
+- **improve:** WM Druk Schematy — audyt `schematic_created` / `measurement_imported` / `schematic_duplicated` / `schematic_deleted` / `pdf_exported`
+- **test:** `test-wm-druk-audit.mjs` T11 · `smoke-wm-druk-audit-etap3-s1.mjs`
 
 ## 2.62.75 — Audit Hub WM hooki Pomiary/Katalog (Etap 2)
 

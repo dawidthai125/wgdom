@@ -1183,6 +1183,7 @@ export function WmPrintView({
             schematics={electricalSchematics}
             onChangeSchematics={onChangeElectricalSchematics}
             onCommitSchematics={onCommitElectricalSchematics}
+            onRecordWmDrukAudit={onRecordWmDrukAudit}
           />
         )}
 
