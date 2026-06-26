@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, ClipboardList, FileText, Sparkles } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
+import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader";
+import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import {
@@ -20,6 +22,9 @@ export function TenderDocumentsWorkspace({
   athPreviewEnabled,
   loadingDocs,
   analyzing,
+  autoRunning,
+  dossierBuilding,
+  dossierSaving,
   externalDiscovering,
   showHtml,
   onToggleHtml,
@@ -37,6 +42,9 @@ export function TenderDocumentsWorkspace({
   athPreviewEnabled?: boolean;
   loadingDocs?: boolean;
   analyzing?: boolean;
+  autoRunning?: boolean;
+  dossierBuilding?: boolean;
+  dossierSaving?: boolean;
   externalDiscovering?: boolean;
   showHtml: boolean;
   onToggleHtml: () => void;
@@ -58,6 +66,23 @@ export function TenderDocumentsWorkspace({
         ? "DOCX"
         : null;
 
+  const documentsSummary = useMemo(
+    () => buildTenderDocumentsTabSummary({
+      item,
+      swz,
+      autoRunning,
+      dossierBuilding,
+      dossierSaving,
+      kosztorysSession: {
+        autoRunning,
+        dossierBuilding,
+        dossierSaving,
+        lazyEnabled: true,
+      },
+    }),
+    [item, swz, autoRunning, dossierBuilding, dossierSaving],
+  );
+
   const formalSummary = buildTenderFormalDetailsSummary(item, swz, item.tenderDossier);
   const showFormalSection = hasTenderFormalDetailsSection(
     item,
@@ -72,6 +97,8 @@ export function TenderDocumentsWorkspace({
         <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
         {platformSourceLabel}
       </p>
+
+      <TenderDocumentsSummaryHeader summary={documentsSummary} />
 
       <TenderAttachmentsPanel
         item={item}

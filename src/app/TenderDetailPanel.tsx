@@ -770,6 +770,9 @@ export function TenderDetailPanel({
           athPreviewEnabled={athPreviewEnabled}
           loadingDocs={loadingDocs || autoRunning || dossierBuilding}
           analyzing={analyzing}
+          autoRunning={autoRunning}
+          dossierBuilding={dossierBuilding}
+          dossierSaving={dossierSaving}
           externalDiscovering={externalDiscovering}
           showHtml={showHtml}
           onToggleHtml={() => setShowHtml((v) => !v)}

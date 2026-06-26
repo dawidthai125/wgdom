@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.71",
+    label: "Document Summary Header (Dokumenty)",
+    items: [
+      {
+        type: "new",
+        text: "Przetarg → Dokumenty: nagłówek podsumowania dokumentów (SWZ, Przedmiar/ATH, Kosztorys, Umowa, Formularz, gotowość procesu, ostatnia analiza) nad listą plików — agregacja istniejącego SSOT",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.70",
     label: "Client Bar list filter hotfix",
     items: [

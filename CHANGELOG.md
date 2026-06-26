@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.70** · **Client Bar list filter hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.71** · **Document Summary Header (Dokumenty)**
+
+## 2.62.71 — Document Summary Header (zakładka Dokumenty)
+
+- **new:** Przetarg → Dokumenty — nagłówek podsumowania (SWZ, Przedmiar/ATH, Kosztorys, Umowa, Formularz, gotowość procesu, ostatnia analiza) nad listą plików — wyłącznie istniejące SSOT
+- **test:** `test-tender-documents-summary-header.mjs`
 
 ## 2.62.70 — Client Bar list filter hotfix (P0)
 
