@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.75** · **P1 Audit Hub WM Etap 2 RELEASED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.76** · **P1 Audit Hub WM Etap 3 RELEASED**
+
+## 2.62.77 — Audit Hub WM widoczność wm_druk (Etap 4)
+
+- **improve:** filtr źródła wm_druk · chip teal · deep link labels Pomiary/Schematy/Katalog · Help + ARCHITECTURE
+- **test:** `test-audit-hub-adapters.mjs` T21/T22 · `test-audit-hub-view-model.mjs`
 
 ## 2.62.76 — Audit Hub WM hooki Schematy (Etap 3)
 

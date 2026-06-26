@@ -1,5 +1,10 @@
 # SESSION HANDOFF — AUDIT-HUB-WM-001
 
+> **⚠️ SUPERSEDED (historyczny audyt 2026-06-24):** Implementacja P1 **Etap 1–3 RELEASED** · **Etap 4 UX** w 2.62.77.  
+> **SSOT techniczny:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.6** · **SSOT baseline:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)  
+> **Epic close (szkic):** [`../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
+> Poniższa treść zachowana jako dokumentacja RCA i planu pierwotnego audytu.
+
 > **ID:** AUDIT-HUB-WM-001 · **WM Druk → Audit Hub Integration**  
 > **Data audytu:** 2026-06-24 · **Tryb:** AUDIT ONLY (bez implementacji)  
 > **Werdykt:** **WM Druk nie jest zintegrowany z Audit Hub** w zakresie Pomiarów i Schematów  
@@ -220,8 +225,23 @@ Z [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) §8:
 | Security log | `src/lib/security-audit-log.ts` |
 | Pomiary EM | `docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md` |
 | Schematy | `docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md` |
-| Architektura | `docs/ARCHITECTURE.md` § 15.2, § 15.5 |
+| Architektura | `docs/ARCHITECTURE.md` § 15.2, § 15.5, § **15.6** |
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-24 · AUDIT CLOSED · implementacja P1 na polecenie*
+## 10. Status P1 po implementacji (2026-06-26)
+
+| Etap | Wersja | Commit | Status |
+|------|--------|--------|--------|
+| 1 — infra KV + adapter | 2.62.74 | `b4fde0c` | **RELEASED** |
+| 2 — hooki Pomiary/Katalog | 2.62.75 | `c31e1bd` | **RELEASED** |
+| 3 — hooki Schematy | 2.62.76 | `36718cc` | **RELEASED** |
+| 4 — UX Audit Hub + docs | 2.62.77 | *(pending release)* | **IMPLEMENT** |
+
+**Epic P1 Audit Hub WM:** **OPEN** do zakończenia release Etap 4 + housekeeping (patrz `audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`).
+
+**Backlog P1.1 (na polecenie):** `schematic_edited` przy zamknięciu sesji edycji (anti-flood).
+
+---
+
+*Ostatnia aktualizacja: 2026-06-26 · audyt historyczny SUPERSEDED · SSOT: ARCHITECTURE § 15.6*

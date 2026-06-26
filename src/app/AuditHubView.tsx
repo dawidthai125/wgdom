@@ -47,6 +47,8 @@ function sourceChipClass(source: AuditFeedItem["source"]): string {
       return "bg-sky-500/10 text-sky-700 dark:text-sky-300";
     case "wm_print":
       return "bg-amber-500/10 text-amber-700 dark:text-amber-300";
+    case "wm_druk":
+      return "bg-teal-500/10 text-teal-700 dark:text-teal-300";
     case "delivery_package":
       return "bg-rose-500/10 text-rose-700 dark:text-rose-300";
     case "security_log":
@@ -180,7 +182,7 @@ export function AuditHubView({
               Audit Hub
             </h1>
             <p className="text-xs text-muted-foreground mt-1 max-w-xl">
-              Agregacja logów z 6 źródeł — w tym Security log (AUTH, uprawnienia, usuwanie robot). Read-only.
+              Agregacja logów z 7 źródeł — w tym WM Druk Pomiary/Schematy oraz Security log. Read-only.
             </p>
           </div>
           <button

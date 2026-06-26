@@ -22,6 +22,7 @@ import {
   filterAuditFeed,
   paginateAuditFeed,
 } from "../src/lib/audit-hub/filters.ts";
+import { auditHubDeepLinkLabel } from "../src/lib/audit-hub/deeplink.ts";
 import { auditFeedItemId } from "../src/lib/audit-hub/types.ts";
 import { buildOperationalNoteAuditEntry } from "../src/lib/operational-notes-audit.ts";
 import { buildSecurityAuditEntry, normalizeSecurityAuditLog } from "../src/lib/security-audit-log.ts";
@@ -343,9 +344,10 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
   assert(counts.wm_print === 1, "counts wm_print");
   assert(counts.delivery_package === 1, "counts delivery_package");
   assert(counts.security_log === 0, "counts security_log");
+  assert(counts.wm_druk === 0, "counts wm_druk");
   const opts = collectAuditHubFilterOptions(feed);
   assert(opts.actors.length >= 3, "collectAuditHubFilterOptions — actors");
-  assert(opts.sources.length === 6, "collectAuditHubFilterOptions — 6 sources");
+  assert(opts.sources.length === 7, "collectAuditHubFilterOptions — 7 sources");
 }
 
 // T16 — adapter security_log
@@ -504,7 +506,32 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
   const filtered = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, source: "wm_druk" });
   assert(filtered.length === 1 && filtered[0].deepLink.tab === "schematy", "T21 filter source wm_druk");
   const opts = collectAuditHubFilterOptions(feed);
-  assert(opts.sources.length === 6, "T21 filter UI — nadal 6 źródeł (wm_druk Etap 4 UX)");
+  assert(opts.sources.length === 7, "T21 filter UI — 7 źródeł (wm_druk Etap 4)");
+  assert(opts.sources.includes("wm_druk"), "T21 filter UI — wm_druk w dropdown");
+}
+
+// T22 — auditHubDeepLinkLabel wm_print tabs (Etap 4)
+{
+  assert(
+    auditHubDeepLinkLabel({ kind: "wm_print", tab: "pomiary" }) === "WM Druk · Pomiary",
+    "T22 label pomiary",
+  );
+  assert(
+    auditHubDeepLinkLabel({ kind: "wm_print", tab: "schematy" }) === "WM Druk · Schematy",
+    "T22 label schematy",
+  );
+  assert(
+    auditHubDeepLinkLabel({ kind: "wm_print", tab: "katalog" }) === "WM Druk · Katalog Pomiarów",
+    "T22 label katalog",
+  );
+  assert(
+    auditHubDeepLinkLabel({ kind: "wm_print", tab: "historia" }) === "WM Druk · Historia",
+    "T22 label historia",
+  );
+  assert(
+    auditHubDeepLinkLabel({ kind: "wm_print", tab: "odbiory" }) === "WM Druk · Odbiory",
+    "T22 label odbiory",
+  );
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.72** · Workflow Cleanup P0 · prod **2.62.72**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-26 (**v2.62.77** · P1 Audit Hub WM Etap 4 · prod **2.62.76**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2288,7 +2288,7 @@ WGDOM1/
 |---------|----------------|
 | Widok | `AuditHubView.tsx` — lazy w `AdminViewRouter` |
 | ACL | `canAccessAuditHub()` — `adminIsSuperAdmin` · menu + guard w `App.tsx` |
-| Agregacja | `buildAuditFeed()` — 6 adapterów w `src/lib/audit-hub/adapters.ts` |
+| Agregacja | `buildAuditFeed()` — **7** adapterów w `src/lib/audit-hub/adapters.ts` |
 | Normalizacja P0 | `feedAt()` / `feedActor()` — **każdy adapter** zwraca `at` i `actor` jako `string` (nigdy `undefined`) |
 | Filtry / strony | `filterAuditFeed`, `paginateAuditFeed` (50) — `filters.ts` · sort aktorów: `(label ?? "")` |
 | Sort feedu | `sortAuditFeed` — `(at ?? "").localeCompare` |
@@ -2303,6 +2303,7 @@ WGDOM1/
 | Inspektor logowania | `kw-inspector-stats` | 300 | `adaptInspectorLoginEvents` (fetch async w UI) |
 | Roboty activity | `job.activityLog[]` | 200 / robota | `adaptJobActivityLog` |
 | WM Druk historia | `kw-wm-print-history` | 1000 | `adaptWmPrintHistory` (+ `normalizeWmPrintHistory`) |
+| WM Druk audyt Pomiary/Schematy | `kw-wm-druk-audit-log` | 3000 | `adaptWmDrukAudit` |
 | Pakiety odbiorowe | `kw-delivery-package-publications` | 500 | `adaptDeliveryPackagePublications` |
 | Security log | `kw-security-audit-log` | 5000 | `adaptSecurityAuditLog` |
 
@@ -2344,24 +2345,48 @@ WGDOM1/
 
 **Wykluczone:** sync push/pull, conflict detection, payroll guard, auto-sync logging.
 
-### 15.5 AUDIT-HUB-WM-001 — luka integracji WM Druk (audyt 2026-06-24)
+### 15.5 AUDIT-HUB-WM-001 — integracja WM Druk Pomiary/Schematy (P1)
 
-**Status audytu:** **CLOSED** · **implementacja P1:** **OPEN** (tylko na polecenie)
+**Status audytu pierwotnego:** **CLOSED** (2026-06-24) · **implementacja P1:** **Etap 1–3 RELEASED** · **Etap 4 UX** (2.62.77)
 
-**Werdykt:** WM Druk **nie jest zintegrowany** z Audit Hub w zakresie **Pomiarów** i **Schematów**.
+**Werdykt (prod po Etap 3):** WM Druk **Pomiary i Schematy** logują do `kw-wm-druk-audit-log` → źródło Audit Hub **`wm_druk`**.
 
 | Zakres WM Druk | Logowanie | Źródło Audit Hub |
 |----------------|-----------|------------------|
 | Odbiory — PDF/DOCX/ZIP szablonów | `recordHistory()` → `kw-wm-print-history` | `wm_print` |
 | Publikacja pakietu inspektora | `kw-delivery-package-publications` + history | `delivery_package` + `wm_print` |
-| Pomiary — CRUD RAP, DOCX, ZIP katalog | **brak** | — |
-| Schematy — CRUD, PDF, import z pomiaru | **brak** | — |
+| Pomiary — CRUD RAP, DOCX, ZIP katalog | `recordWmDrukAudit()` | **`wm_druk`** |
+| Schematy — create/import/duplicate/delete/PDF | `recordWmDrukAudit()` | **`wm_druk`** |
 
-**Przyczyna:** brak hooków `record*` w `electrical-measurements/*`, `electrical-schematics/*` i panelach UI. Filtry Audit Hub **nie ukrywają** tych akcji — wpisy nie powstają.
+**Świadomie wykluczone (P1.1 backlog):** `schematic_edited` (anti-flood przy auto-save edytora).
+
+**Handoff historyczny audytu:** [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) (**SUPERSEDED**).
+
+---
+
+### 15.6 P1 Audit Hub WM — etapy release (Etap 1–4)
+
+**Status:** **Etap 1–3 RELEASED** · **Etap 4** (UI widoczność `wm_druk`) w **2.62.77**
+
+| Etap | Wersja | Zakres |
+|------|--------|--------|
+| 1 | 2.62.74 | KV `kw-wm-druk-audit-log` · sync AUX · `adaptWmDrukAudit` · feed bez filtra UI |
+| 2 | 2.62.75 | Hooki Pomiary/Katalog: `rap_*`, `docx_exported`, `zip_exported` |
+| 3 | 2.62.76 | Hooki Schematy: `schematic_*`, `measurement_imported`, `pdf_exported` |
+| 4 | 2.62.77 | `AUDIT_FEED_SOURCES` + chip teal · `auditHubDeepLinkLabel` per tab · Help · docs |
+
+| Element | Plik |
+|---------|------|
+| Lib audytu | `src/lib/wm-druk-audit.ts` |
+| Adapter | `adaptWmDrukAudit()` — deep link `{ kind: "wm_print", tab }` z `module` |
+| Filtr UI | `AUDIT_FEED_SOURCES` zawiera `wm_druk` |
+| Etykiety deep link | `deeplink.ts` — `WM_PRINT_TABS` SSOT |
 
 **Nie rozszerzać** `kw-wm-print-history` o RAP/schematy — schema wymaga `jobId`; detached RAP nie pasuje.
 
-**Plan P1 (rekomendacja):** append-only `kw-wm-druk-audit-log` + adapter (wzorzec `operational-notes-audit.ts`). Szczegóły: [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · raport: [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md).
+**Testy:** `test-wm-druk-audit.mjs` · `test-audit-hub-adapters.mjs` · `test-audit-hub-view-model.mjs` · smoke Etap 2–3.
+
+**Nie zmieniaj bez polecenia:** merge `kw-electrical-measurements` / schematy LWW · `schematic_edited` hook · schematicId w deep link.
 
 ---
 
@@ -2382,7 +2407,8 @@ WGDOM1/
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
 | `payroll-job-assignments.ts` | **P1 v2.59.49** — edycja `workEntries` z Listy Płac, badge spójności, mutacje jobs |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
-| `audit-hub/*` | **MVP-0 + MVP-1 + MVP-1B CLOSED** — agregacja logów Audit Hub (6 źródeł) · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` |
+| `audit-hub/*` | **MVP-0 + MVP-1 + MVP-1B CLOSED** · **P1 WM Etap 1–4** — agregacja **7** źródeł Audit Hub · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` · § 15.6 |
+| `wm-druk-audit.ts` | **P1 Etap 1–3** — append-only audyt WM Pomiary/Schematy · KV `kw-wm-druk-audit-log` |
 | `security-audit-log.ts` | **MVP-1 + MVP-1B** — append-only security audit KV `kw-security-audit-log` (AUTH, PERMISSIONS, DATA, RECOVERY) |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |

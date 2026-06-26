@@ -282,17 +282,18 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       id:"audithub",
       icon:Shield,
       title:"Audit Hub",
-      subtitle:"Historia działań — tylko Super Admin (2.62.36)",
+      subtitle:"Historia działań — tylko Super Admin · 7 źródeł",
       content:(
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">
-            <strong>Audit Hub</strong> to read-only podgląd istniejących logów w jednym miejscu — bez nowego zapisu w chmurze. Nie zastępuje pełnego Security Log (logowanie admina, sync, payroll — planowane później).
+            <strong>Audit Hub</strong> to read-only podgląd istniejących logów w jednym miejscu — bez nowego zapisu z poziomu tego widoku. Łączy m.in. Security log (logowania admina, uprawnienia, import/restore danych).
           </p>
           <div className="space-y-3">
             {[
-              {q:"Co to jest Audit Hub?", a:"Menu „Audit Hub” (ikona tarczy) łączy pięć źródeł: audyt notatek operacyjnych, logowania/wejścia inspektora, activity log robotów, historię generowania WM Druk oraz publikacje pakietów odbiorowych. Wpisy sortowane od najnowszych. Filtry: źródło, osoba, wyszukiwanie. Paginacja 50 na stronę."},
+              {q:"Co to jest Audit Hub?", a:"Menu „Audit Hub” (ikona tarczy) łączy siedem źródeł: audyt notatek operacyjnych, logowania inspektora, activity log robotów, historię generowania WM Druk Odbiory (wm_print), audyt WM Druk Pomiary i Schematy (wm_druk — RAP, schematy, eksporty), publikacje pakietów odbiorowych oraz Security log. Wpisy sortowane od najnowszych. Filtry: źródło, osoba, wyszukiwanie. Paginacja 50 na stronę."},
               {q:"Kto ma dostęp?", a:"Wyłącznie Super Administrator (konto Dawid). Administrator i moderator nie widzą pozycji w menu ani widoku — próba wejścia przekierowuje na Pulpit."},
-              {q:"Jak działają deep linki?", a:"Kliknij wiersz w tabeli → szczegóły → przycisk „Przejdź”. Notatki operacyjne → moduł Notatki + panel Audyt. Inspektor · logowania → widok Inspektor. Roboty → karta roboty (właściwa zakładka: zdjęcia, dokumenty, …). WM Druk → zakładka Historia. Pakiety odbiorowe → WM Druk → Odbiory. Powrót: strzałka Wstecz do Audit Hub."},
+              {q:"WM Druk — dwa źródła w Audit Hub", a:"„WM Druk · Odbiory” (wm_print) — generowanie PDF/DOCX/ZIP szablonów odbiorów i wpisy w Historii. „WM Druk · Pomiary i Schematy” (wm_druk) — tworzenie/edycja/usuwanie RAP, eksporty DOCX/ZIP z katalogu, operacje na schematach jednokreskowych. Oba strumienie są oddzielne w filtrze źródła."},
+              {q:"Jak działają deep linki?", a:"Kliknij wiersz w tabeli → szczegóły → przycisk „Przejdź”. Notatki operacyjne → moduł Notatki + panel Audyt. Inspektor · logowania → widok Inspektor. Roboty → karta roboty (właściwa zakładka). WM Druk Odbiory / Historia / Pomiary / Schematy / Katalog — odpowiednia zakładka modułu WM Druk. Pakiety odbiorowe → WM Druk → Odbiory. Powrót: strzałka Wstecz do Audit Hub."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

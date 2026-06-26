@@ -19,12 +19,13 @@ export type AuditFeedSource =
   | "delivery_package"
   | "security_log";
 
-/** Źródła widoczne w filtrze UI Audit Hub (wm_druk → Etap 4 UX). */
+/** Źródła widoczne w filtrze UI Audit Hub. */
 export const AUDIT_FEED_SOURCES: AuditFeedSource[] = [
   "operational_notes",
   "inspector_login",
   "job_activity",
   "wm_print",
+  "wm_druk",
   "delivery_package",
   "security_log",
 ];

@@ -2,7 +2,7 @@
 
 import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
-import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
+import { WM_PRINT_TABS, type WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import type { View } from "@/app/admin/admin-nav";
 
 export type AuditHubNavigation =
@@ -10,6 +10,11 @@ export type AuditHubNavigation =
   | { view: "inspector" }
   | { view: "jobs"; jobId: string; section: JobDetailSection }
   | { view: "wmprint"; tab: WmPrintTab; jobId?: string };
+
+function wmPrintTabLabelPl(tab: WmPrintTab): string {
+  const row = WM_PRINT_TABS.find((t) => t.key === tab);
+  return row ? `WM Druk · ${row.label}` : "WM Druk";
+}
 
 export function resolveAuditHubNavigation(deepLink: AuditFeedDeepLink): AuditHubNavigation | null {
   switch (deepLink.kind) {
@@ -43,7 +48,7 @@ export function auditHubDeepLinkLabel(deepLink: AuditFeedDeepLink): string | nul
     case "jobs":
       return "Robota";
     case "wmprint":
-      return nav.tab === "historia" ? "WM Druk · Historia" : "WM Druk · Odbiory";
+      return wmPrintTabLabelPl(nav.tab);
     default:
       return "Przejdź";
   }

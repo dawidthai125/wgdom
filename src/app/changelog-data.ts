@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-26",
+    version: "2.62.77",
+    label: "Audit Hub WM — widoczność wm_druk w UI (Etap 4)",
+    items: [
+      {
+        type: "improve",
+        text: "Audit Hub — filtr źródła „WM Druk · Pomiary i Schematy”, chip teal oraz poprawne etykiety deep link do zakładek Pomiary / Schematy / Katalog",
+      },
+    ],
+  },
+  {
+    date: "2026-06-26",
     version: "2.62.76",
     label: "Audit Hub WM — hooki audytu Schematy (Etap 3)",
     items: [

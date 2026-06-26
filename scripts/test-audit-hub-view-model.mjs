@@ -471,8 +471,13 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
   assert(model.kpi.total === 7, "wm_druk — total feed 7");
   const wmOnly = buildAuditHubViewModel(withWmDruk, { ...EMPTY_AUDIT_HUB_FILTERS, source: "wm_druk" }, 1);
   assert(wmOnly.filtered.length === 1 && wmOnly.filtered[0].action === "rap_created", "wm_druk source filter");
+  assert(wmOnly.filterOptions.sources.includes("wm_druk"), "wm_druk w filterOptions UI");
   const nav = resolveAuditHubNavigation(wmOnly.filtered[0].deepLink);
   assert(nav?.view === "wmprint" && nav.tab === "pomiary", "wm_druk deepLink pomiary");
+  assert(
+    auditHubDeepLinkLabel(wmOnly.filtered[0].deepLink) === "WM Druk · Pomiary",
+    "wm_druk deepLink label pomiary",
+  );
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);
