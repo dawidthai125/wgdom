@@ -693,6 +693,14 @@ export function TenderDetailPanel({
               onNavigateTab={(tab, opts) => onEmbedV4TabNavigate?.(tab, opts)}
               onNavigateLegacy={navigateWorkspace}
               onOpenPreview={(previewItem) => setDocPreview(previewItem)}
+              ownerFinanceProposal={ownerFinanceProposal}
+              ownerDecision={ownerDecision}
+              participationResult={participationResult}
+              kosztorysSession={kosztorysProcessSession}
+              autoRunning={autoRunning}
+              dossierBuilding={dossierBuilding}
+              dossierSaving={dossierSaving}
+              analyzing={analyzing}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}

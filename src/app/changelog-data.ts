@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.69",
+    label: "Workflow Process Strip + Sticky CTA",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Workflow Hub: pasek procesu oferty (5 etapów, klik → zakładka V4) oraz sticky „Główna akcja” — jedna rekomendowana akcja z istniejącego SSOT",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.68",
     label: "Workflow Hub EPIC A",
     items: [

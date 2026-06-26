@@ -2,6 +2,10 @@ import { useMemo, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import type { ParticipationCheckResult } from "@/lib/tender-participation-check";
+import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
+import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import {
   buildParticipationDisplayGroups,
@@ -51,6 +55,14 @@ export function TenderPrzetargWorkspace({
   onNavigateLegacy,
   onOpenPreview,
   operatorSection,
+  ownerFinanceProposal,
+  ownerDecision,
+  participationResult,
+  kosztorysSession,
+  autoRunning,
+  dossierBuilding,
+  dossierSaving,
+  analyzing,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -62,6 +74,14 @@ export function TenderPrzetargWorkspace({
   onNavigateLegacy: (tab: TenderWorkspaceTabId) => void;
   onOpenPreview: (previewItem: InspectorFileItem) => void;
   operatorSection?: ReactNode;
+  ownerFinanceProposal?: TenderBidProposal | null;
+  ownerDecision?: OwnerTenderDecisionRecord | null;
+  participationResult?: ParticipationCheckResult | null;
+  kosztorysSession?: KosztorysProcessSession;
+  autoRunning?: boolean;
+  dossierBuilding?: boolean;
+  dossierSaving?: boolean;
+  analyzing?: boolean;
 }) {
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
@@ -79,6 +99,14 @@ export function TenderPrzetargWorkspace({
         onNavigateLegacy={onNavigateLegacy}
         onOpenPreview={onOpenPreview}
         operatorSection={operatorSection}
+        ownerFinanceProposal={ownerFinanceProposal}
+        ownerDecision={ownerDecision}
+        participationResult={participationResult}
+        kosztorysSession={kosztorysSession}
+        autoRunning={autoRunning}
+        dossierBuilding={dossierBuilding}
+        dossierSaving={dossierSaving}
+        analyzing={analyzing}
       />
 
       <BlockShell title="Podstawowe dane">

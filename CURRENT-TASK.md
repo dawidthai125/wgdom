@@ -1,47 +1,47 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.68** · Workflow Hub EPIC A CLOSED
+**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.69** · Workflow EPIC B/C CLOSED
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.68** — Workflow Hub EPIC A |
-| **Poprzedni release** | 2.62.67 — Przetargi Lista UX V4 |
+| **Wersja prod** | **2.62.69** — Process Strip + Sticky Primary CTA |
+| **Poprzedni release** | 2.62.68 — Workflow Hub EPIC A |
+| **Workflow EPIC B** | **CLOSED** · Process Strip (5 etapów, nawigacja V4) |
+| **Workflow EPIC C** | **CLOSED** · Sticky Primary CTA pod paskiem |
 | **Workflow Hub EPIC A** | **CLOSED** · Przetarg = hub · Decyzja = GO/HOLD/ODPUŚĆ |
-| **Tender List UX V4** | **CLOSED** · commit `6a494c0` |
-| **Kosztorys UX P2** | **CLOSED** · `deriveKosztorysProcessHealth` |
 | **ZI §4/§5** | **STABLE** |
 
 ---
 
 ## Zamknięte w tej sesji (2026-06-25)
 
-### Workflow Hub EPIC A (2.62.68)
+### Workflow Process Strip + Sticky CTA (2.62.69)
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | Reorganizacja odpowiedzialności zakładek Przetarg / Decyzja (UX only) |
-| **Bez zmian** | parsery · pipeline · logika wyceny · sync |
+| **Zakres** | EPIC B — pasek procesu · EPIC C — sticky główna akcja (prezentacja only) |
+| **Bez zmian** | parsery · pipeline · logika wyceny · backend |
 
-### Tender List UX V4 (2.62.67)
+### Workflow Hub EPIC A (2.62.68)
 
-Commit `6a494c0` — uproszczony widok listy przetargów.
+Reorganizacja Przetarg / Decyzja — commit `849f382`.
 
 ---
 
 ## Następne (tylko na polecenie)
 
-- **Workflow EPIC B** — Sticky Process + Sticky CTA (po audycie workflow)
-- **Kosztorys UX P3** — pełny progress techniczny z trace w UI
-- TP200B · Audit Hub MVP-1C
+- **UX cleanup** — usunięcie duplikatu „Następny krok” z `TenderWorkspaceV2Panel` po weryfikacji sticky CTA w prod
+- **Regression Alignment** — testy owner/workspace (lokalnie, poza tym release)
+
+---
 
 ## Szybki start agenta
 
-```text
-docs/ARCHITECTURE.md
-docs/PROJECT-HANDOFF-CURRENT.md
-CURRENT-TASK.md
+```bash
+npx vite-node scripts/test-tender-workflow-process-strip.mjs
+npx vite-node scripts/test-tender-workflow-primary-action.mjs
+npx vite-node scripts/test-tender-workflow-hub.mjs
+npm run build
 ```
-
-**Hasło użytkownika:** „kontynuuj WGDOM”

@@ -5,8 +5,14 @@
 import type { ReactNode } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import type { ParticipationCheckResult } from "@/lib/tender-participation-check";
+import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
+import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { TenderWorkspaceV2Panel } from "@/app/TenderWorkspaceV2Panel";
+import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
+import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import {
   WorkflowHubBlockersSection,
   WorkflowHubPositionsFileDisplay,
@@ -26,6 +32,14 @@ export function TenderWorkflowHubPanel({
   onNavigateLegacy,
   onOpenPreview,
   operatorSection,
+  ownerFinanceProposal,
+  ownerDecision,
+  participationResult,
+  kosztorysSession,
+  autoRunning,
+  dossierBuilding,
+  dossierSaving,
+  analyzing,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -37,9 +51,39 @@ export function TenderWorkflowHubPanel({
   onNavigateLegacy: (tab: TenderWorkspaceTabId) => void;
   onOpenPreview: (previewItem: InspectorFileItem) => void;
   operatorSection?: ReactNode;
+  ownerFinanceProposal?: TenderBidProposal | null;
+  ownerDecision?: OwnerTenderDecisionRecord | null;
+  participationResult?: ParticipationCheckResult | null;
+  kosztorysSession?: KosztorysProcessSession;
+  autoRunning?: boolean;
+  dossierBuilding?: boolean;
+  dossierSaving?: boolean;
+  analyzing?: boolean;
 }) {
   return (
     <div className="space-y-4" data-tender-workflow-hub>
+      <TenderWorkflowProcessStrip
+        item={item}
+        swz={swz}
+        intelligenceCtx={intelligenceCtx}
+        onNavigateTab={onNavigateTab}
+      />
+
+      <TenderWorkflowPrimaryAction
+        item={item}
+        swz={swz}
+        intelligenceCtx={intelligenceCtx}
+        ownerFinanceProposal={ownerFinanceProposal}
+        ownerDecision={ownerDecision}
+        participationResult={participationResult}
+        kosztorysSession={kosztorysSession}
+        autoRunning={autoRunning}
+        dossierBuilding={dossierBuilding}
+        dossierSaving={dossierSaving}
+        analyzing={analyzing}
+        onNavigateTab={onNavigateTab}
+      />
+
       <TenderWorkspaceV2Panel
         item={item}
         swz={swz}

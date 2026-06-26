@@ -39,6 +39,8 @@ const przetarg = readSrc("src/app/TenderPrzetargWorkspace.tsx");
 const operator = readSrc("src/app/TenderWorkflowOperatorSection.tsx");
 assert(hubPanel.includes("data-tender-workflow-hub"), "hub panel marker");
 assert(hubPanel.includes("TenderWorkspaceV2Panel"), "hub: progress + next action V2");
+assert(hubPanel.includes("TenderWorkflowProcessStrip"), "hub: EPIC B process strip");
+assert(hubPanel.includes("TenderWorkflowPrimaryAction"), "hub: EPIC C primary CTA");
 assert(hubSections.includes("WorkflowHubBlockersSection"), "hub: blockers section");
 assert(hubSections.includes("WorkflowHubPrepStatusDisplay"), "hub: prep status");
 assert(hubSections.includes("WorkflowHubPositionsFileDisplay"), "hub: positions file");

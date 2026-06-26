@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.68** · **Workflow Hub EPIC A**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.69** · **Workflow Process Strip + Sticky CTA**
+
+## 2.62.69 — Workflow Process Strip + Sticky Primary CTA (EPIC B/C)
+
+- **improve:** Przetarg → pasek procesu (Dokumenty · Analiza · Kosztorys · Wycena · Oferta) z nawigacją V4 · sticky „Główna akcja” pod paskiem (jedna rekomendacja z SSOT)
+- **test:** `test-tender-workflow-process-strip.mjs` · `test-tender-workflow-primary-action.mjs` · regresja `test-tender-workflow-hub.mjs`
 
 ## 2.62.68 — Workflow Hub (EPIC A)
 
