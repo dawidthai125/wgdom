@@ -1,6 +1,6 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.72** · Recovery Pack OFFSITE READY
+**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.72** · **Etap 1 P0 Payroll — commit lokalny 2.62.73 (nie push)**
 
 ## STATUS
 
@@ -8,10 +8,27 @@
 |------|---------|
 | **Wersja prod** | **2.62.72** — Workflow Cleanup P0 + Grouped Documents G7 fix |
 | **Commit prod** | **`6cd8ebe`** |
+| **Wersja lokalna (Etap 1)** | **2.62.73** — P0 Payroll Cloud Recovery (mutex + merge + guard) |
+| **Walidacja Etap 1** | **PASS** (73 asercje auto) · raport: `audit/P0-PAYROLL-CLOUD-RECOVERY-ETAP1-VALIDATION.md` |
 | **Poprzedni release** | 2.62.71 — Document Summary Header |
 | **Workflow EPIC A/B/C** | **CLOSED** |
 | **Workflow Cleanup P0** | **RELEASED** (2.62.72) |
 | **Recovery Pack v2.62.72** | **COMPLETED** · PRODUCTION READY · OFFSITE READY |
+
+---
+
+## P0 Payroll Cloud Recovery — backlog (po code review, **nie** w Etapie 1)
+
+| ID | Priorytet | Zadanie | Uwagi |
+|----|-----------|---------|-------|
+| **P0.1** | P0 | Synchronizacja `pullFromCloudAndMerge` z `runCloudSync` | Mutex tylko na pełnym sync; pull na focus/resume może nadpisać UI w trakcie zapisu |
+| **P0.2** | P0 | Rozszerzenie `touchJobAt` na wszystkie ścieżki | `JobsView` (dodaj wpis, kopiuj), `fixJobsForConsistencyAlert` — bez bump `updatedAt` merge wraca do „bogatszego” |
+| **P0.3** | P0 | Globalny fail-loud dla `pushKeysToCloudSafe` | Worker/inspektor: `.catch(() => {})` chowa błąd guarda; brak czerwonej chmury |
+| **P0.4** | P0 | Eliminacja wybranych przypadków pull→apply→push | RCA-1: `runCloudSync` nadal merge przed push; Etap 2+ architektura |
+| **P1** | P1 | Payroll Slice Push | Push tylko `kw-week-employees` + powiązane zamiast pełnego `DATA_KEYS` |
+| **P1** | P1 | Edge `batch-set` hardening | try/catch, mniejsze payloady, mniej HTTP 500 |
+
+**Etap 2 (planowany):** P1 slice + edge — **nie rozpoczęty** (na polecenie).
 
 ---
 

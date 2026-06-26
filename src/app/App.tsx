@@ -65,6 +65,7 @@ import {
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
+  isPayrollGuardBlockedError,
 } from "@/lib/cloud-sync";
 import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
 import {
@@ -270,6 +271,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const payrollRosterPushRef = useRef(false);
   const autoSyncMountSettledRef = useRef(false);
   const deleteJobsInFlightRef = useRef(false);
+  const syncInFlightRef = useRef(false);
+  const pendingCloudSyncRef = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
@@ -660,11 +663,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!tabVisibleRef.current) return;
     if (pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
+    if (syncInFlightRef.current) {
+      pendingCloudSyncRef.current = true;
+      return;
+    }
     if (!isSupabaseConfigured()) {
       setSyncStatus("offline");
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
       return;
     }
+    syncInFlightRef.current = true;
     pendingAutoSyncRef.current = false;
     if (suppressWakeTimerRef.current) {
       clearTimeout(suppressWakeTimerRef.current);
@@ -701,7 +709,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       setSyncStatus("error");
       setSyncError(msg);
-      toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
+      if (isPayrollGuardBlockedError(e)) {
+        toast.error("Zapis listy płac zablokowany", { description: msg, id: "admin-cloud-sync-payroll-guard" });
+      } else {
+        toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
+      }
+    } finally {
+      syncInFlightRef.current = false;
+      if (pendingCloudSyncRef.current) {
+        pendingCloudSyncRef.current = false;
+        void runCloudSync(opts);
+      }
     }
   }, [adminDataBundle, applyAdminDataBundle, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog]);
 

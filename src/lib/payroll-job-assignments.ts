@@ -64,6 +64,10 @@ export interface PayrollDayAssignmentFooter {
 
 const TOLERANCE = 0.01;
 
+function touchJobAt(job: Job): Job {
+  return { ...job, updatedAt: new Date().toISOString() };
+}
+
 export function jobsForPayrollAssignmentDropdown(jobs: Job[]): Job[] {
   return jobs
     .filter((j) => inferJobPhase(j) !== "completed")
@@ -235,7 +239,7 @@ export function copyEmployeeAssignmentsFromPreviousDay(
       rate,
       notes: "",
     };
-    return { ...job, workEntries: [...job.workEntries, newEntry] };
+    return touchJobAt({ ...job, workEntries: [...job.workEntries, newEntry] });
   });
 }
 
@@ -247,12 +251,12 @@ export function updateWorkEntryHoursInJobs(
 ): Job[] {
   return jobs.map((job) => {
     if (job.id !== jobId) return job;
-    return {
+    return touchJobAt({
       ...job,
       workEntries: job.workEntries.map((we) =>
         we.id === entryId ? { ...we, hours: Math.max(0, hours) } : we,
       ),
-    };
+    });
   });
 }
 
@@ -261,7 +265,7 @@ export function removeWorkEntryFromJobs(jobs: Job[], jobId: string, entryId: str
     if (job.id !== jobId) return job;
     if (!job.workEntries.some((we) => we.id === entryId)) return job;
     const stripped = { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
-    return appendWorkEntryTombstone(stripped, entryId);
+    return appendWorkEntryTombstone(touchJobAt(stripped), entryId);
   });
 }
 
@@ -281,7 +285,7 @@ export function removeWorkEntriesMatchingFromJobs(
     for (const we of toRemove) {
       next = appendWorkEntryTombstone(next, we.id);
     }
-    return next;
+    return touchJobAt(next);
   });
 }
 
@@ -298,13 +302,13 @@ export function moveWorkEntryToJob(
     const entry = job.workEntries.find((we) => we.id === entryId);
     if (!entry) return job;
     moved = { ...entry, hours };
-    const stripped = { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
-    return appendWorkEntryTombstone(stripped, entryId);
+    const next = { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
+    return appendWorkEntryTombstone(touchJobAt(next), entryId);
   });
   if (!moved) return jobs;
   return stripped.map((job) => {
     if (job.id !== toJobId) return job;
-    return { ...job, workEntries: [...job.workEntries, { ...moved!, id: crypto.randomUUID() }] };
+    return touchJobAt({ ...job, workEntries: [...job.workEntries, { ...moved!, id: crypto.randomUUID() }] });
   });
 }
 
@@ -326,7 +330,7 @@ export function addWorkEntryForEmployee(
     notes: "",
   };
   return jobs.map((job) =>
-    job.id === jobId ? { ...job, workEntries: [...job.workEntries, entry] } : job,
+    job.id === jobId ? touchJobAt({ ...job, workEntries: [...job.workEntries, entry] }) : job,
   );
 }
 

@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-26",
+    version: "2.62.73",
+    label: "P0 Payroll Cloud Recovery (etap 1)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac / sync chmury: mutex runCloudSync (koniec równoległych zapisów), merge przydziałów robót po job.updatedAt zamiast „bogatszych” godzin, Payroll Guard nie udaje sukcesu — czerwona chmura + komunikat",
+      },
+    ],
+  },
+  {
     date: "2026-06-25",
     version: "2.62.72",
     label: "Workflow Cleanup P0",

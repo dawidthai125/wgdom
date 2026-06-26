@@ -6,6 +6,7 @@ import { mergeJobsById, mergeWorkEntriesById } from "../src/lib/cloud-sync.ts";
 import {
   removeWorkEntryFromJobs,
   removeWorkEntriesMatchingFromJobs,
+  updateWorkEntryHoursInJobs,
 } from "../src/lib/payroll-job-assignments.ts";
 import { fixJobsForConsistencyAlert } from "../src/app/app-domain.ts";
 
@@ -83,8 +84,8 @@ console.log("\nT3 different entries — union");
   assert("T3 has B", merged.some((e) => e.id === "we-b"));
 }
 
-// T4 — duplicate id → richer wins (hours > 0, longer notes)
-console.log("\nT4 duplicate id — richer wins");
+// T4 — duplicate id bez parent updatedAt → bogatszy wygrywa
+console.log("\nT4 duplicate id — richer wins (no parent ts)");
 {
   const sparse = { ...entryA, hours: 0, notes: "" };
   const rich = { ...entryA, hours: 8, notes: "Prace na kuchni i łazience" };
@@ -92,6 +93,35 @@ console.log("\nT4 duplicate id — richer wins");
   assert("T4 single", merged.length === 1);
   assert("T4 hours", merged[0].hours === 8);
   assert("T4 notes", merged[0].notes.includes("kuchni"));
+}
+
+// T10 — P0: nowszy job.updatedAt (lokal) wygrywa nad bogatszą chmurą
+console.log("\nT10 newer local job — lower hours beat richer cloud");
+{
+  const local = [{
+    ...baseJob,
+    updatedAt: "2026-06-23T10:00:00.000Z",
+    workEntries: [{ ...entryA, hours: 4 }],
+  }];
+  const cloud = [{
+    ...baseJob,
+    updatedAt: "2026-06-22T10:00:00.000Z",
+    workEntries: [{ ...entryA, hours: 8, notes: "stara chmura" }],
+  }];
+  const [merged] = mergeJobsById(local, cloud);
+  const row = (merged.workEntries || []).find((e) => e.id === "we-a");
+  assert("T10 single", (merged.workEntries || []).length === 1);
+  assert("T10 local hours", row?.hours === 4);
+}
+
+// T10b — touchJobAt on hours edit
+console.log("\nT10b updateWorkEntryHoursInJobs bumps job.updatedAt");
+{
+  const oldAt = "2026-06-20T08:00:00.000Z";
+  const job = { ...baseJob, updatedAt: oldAt, workEntries: [entryA] };
+  const [next] = updateWorkEntryHoursInJobs([job], "job-1", "we-a", 3);
+  assert("T10b hours", next.workEntries[0].hours === 3);
+  assert("T10b updatedAt newer", String(next.updatedAt || "") > oldAt);
 }
 
 // T5 — real case: cloud wins job timestamp but local-only new entry survives

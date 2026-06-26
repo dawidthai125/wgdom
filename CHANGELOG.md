@@ -2,6 +2,11 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.72** · **Workflow Cleanup P0**
 
+## 2.62.73 — P0 Payroll Cloud Recovery (etap 1)
+
+- **fix:** Lista Płac sync — mutex `runCloudSync`, merge `workEntries` po `job.updatedAt`, Payroll Guard fail-loud (error + toast, bez silent success)
+- **test:** `test-payroll-work-entry-merge-fidelity.mjs` · `test-payroll-settled-merge-fix-a.mjs` · `smoke-test-payroll-rollover-sync-20.1c1.mjs` · `test-payroll-guard-push-fail-loud-p0.mjs`
+
 ## 2.62.72 — Workflow Cleanup P0 + Recovery Pack
 
 - **refactor:** Przetarg → usunięto zduplikowaną sekcję „Następny krok” z V2; sticky „Główna akcja” = jedyne CTA · `intelligenceCtx` przekazywany z Huba (bez recompute) · usunięto legacy `prioritizeTenderDocuments` (TOP 5)

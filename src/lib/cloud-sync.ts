@@ -257,15 +257,36 @@ function workEntryRichness(e: WorkEntryMergeLike | undefined): number {
   return s;
 }
 
-/** Union job.workEntries po id — bogatszy wpis wygrywa; tombstone usuwa wpis z union. */
+function pickWorkEntryOnConflict(
+  fromA: WorkEntryMergeLike,
+  fromB: WorkEntryMergeLike,
+  aParentAt: number,
+  bParentAt: number,
+): WorkEntryMergeLike {
+  if (aParentAt > 0 || bParentAt > 0) {
+    if (aParentAt > bParentAt) return fromA;
+    if (bParentAt > aParentAt) return fromB;
+  }
+  const pr = workEntryRichness(fromA);
+  const cr = workEntryRichness(fromB);
+  if (cr > pr) return fromB;
+  if (pr > cr) return fromA;
+  return fromB;
+}
+
+/** Union job.workEntries po id — nowszy job.updatedAt wygrywa; remis → bogatszy wpis; tombstone usuwa wpis. */
 export function mergeWorkEntriesById(
   a: unknown[] | undefined,
   b: unknown[] | undefined,
   tombstones: WorkEntryTombstone[] = [],
+  aParentUpdatedAt?: string,
+  bParentUpdatedAt?: string,
 ): unknown[] {
   const deletedIds = new Set(tombstones.map((t) => t.id).filter(Boolean));
+  const aParentAt = parseRecordTs(aParentUpdatedAt);
+  const bParentAt = parseRecordTs(bParentUpdatedAt);
   const map = new Map<string, WorkEntryMergeLike>();
-  const ingest = (list: unknown[] | undefined) => {
+  const ingest = (list: unknown[] | undefined, fromB: boolean) => {
     for (const raw of list || []) {
       if (!raw || typeof raw !== "object") continue;
       const e = raw as WorkEntryMergeLike;
@@ -276,13 +297,14 @@ export function mergeWorkEntriesById(
         map.set(id, e);
         continue;
       }
-      const pr = workEntryRichness(prev);
-      const cr = workEntryRichness(e);
-      if (cr >= pr) map.set(id, e);
+      const chosen = fromB
+        ? pickWorkEntryOnConflict(prev, e, aParentAt, bParentAt)
+        : pickWorkEntryOnConflict(e, prev, aParentAt, bParentAt);
+      map.set(id, chosen);
     }
   };
-  ingest(a);
-  ingest(b);
+  ingest(a, false);
+  ingest(b, true);
   return [...map.values()].sort((x, y) => {
     const dc = String(x.date ?? "").localeCompare(String(y.date ?? ""));
     if (dc) return dc;
@@ -641,7 +663,13 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       deletedJobAttachmentTombstones: mergedAttachmentTombstones.length ? mergedAttachmentTombstones : undefined,
       deletedWorkEntryTombstones: mergedWorkEntryTombstones.length ? mergedWorkEntryTombstones : undefined,
       activityLog: mergedLogs,
-      workEntries: mergeWorkEntriesById(prev.workEntries, j.workEntries, mergedWorkEntryTombstones),
+      workEntries: mergeWorkEntriesById(
+        prev.workEntries,
+        j.workEntries,
+        mergedWorkEntryTombstones,
+        String(prev.updatedAt ?? ""),
+        String(j.updatedAt ?? ""),
+      ),
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
       inspectorPhotos: jTs !== prevTs
         ? (jTs >= prevTs ? (j.inspectorPhotos || []) : (prev.inspectorPhotos || []))
@@ -983,6 +1011,14 @@ function isIntentionalPayrollWeekClear(keys: string[], values: unknown[], outgoi
     });
   }
   return archive.some((w) => archiveWeekHasPayroll(w));
+}
+
+/** Komunikat błędu gdy Payroll Guard odrzuci push listy płac (P0 fail-loud). */
+export const PAYROLL_GUARD_BLOCKED_MESSAGE =
+  "Zapis listy płac do chmury został zablokowany (ochrona przed utratą danych). Sprawdź godziny na liście płac i spróbuj ponownie lub odśwież stronę (Ctrl+F5).";
+
+export function isPayrollGuardBlockedError(err: unknown): boolean {
+  return err instanceof Error && err.message === PAYROLL_GUARD_BLOCKED_MESSAGE;
 }
 
 export type PushKeysToCloudOptions = {
@@ -1905,6 +1941,9 @@ export async function pushKeysToCloud(
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
   const guarded = await applyPayrollGuardBeforePush(keys, values, options);
+  if (guarded.blocked) {
+    throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
+  }
   if (guarded.keys.length === 0) {
     return;
   }
