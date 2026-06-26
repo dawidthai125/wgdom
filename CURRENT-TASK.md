@@ -49,8 +49,10 @@
 
 ## Dokumentacja agentów (zsynchronizowano)
 
+- **★ START:** `docs/AGENT-CONTINUITY-GUIDE.md` — kontekst, struktura, mapa funkcji
 - **SSOT Workflow:** `docs/WORKFLOW-ARCHITECTURE-v2.63.md`
 - **SSOT Recovery Pack:** `docs/PROJECT-HANDOFF-CURRENT.md` § 2a
+- **Mapa systemu:** `docs/AGENT-ONBOARDING.md`
 - **Linki:** `AGENTS.md`, `ARCHITECTURE.md` § 12.1.9a, `PROJECT-GUIDE.md`
 
 ---

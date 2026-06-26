@@ -1,14 +1,15 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.72** · https://www.wgdom.fun · **Workflow Architecture SSOT** · **WM Schematy CLOSED** · **ZI §4/§5 STABLE**
+> **Prod:** **2.62.72** · commit **`6cd8ebe`** · https://www.wgdom.fun · **Recovery Pack OFFSITE READY** · **Workflow Architecture FINALIZED**
 
 ---
 
 ## 1. Kolejność czytania (obowiązkowa)
 
 ```text
-1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
+1. docs/AGENT-CONTINUITY-GUIDE.md     ← ★★ kontekst sesji + mapa struktury (2026-06-26)
+2. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu · prod 2.62.72)
 1s. docs/SESSION-HANDOFF-2026-06-24.md ← sesja Audit Hub · TP200C
 1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md ← ★★ WM Druk ZI §4/§5 · TP203 · P4 (2.62.46–48)
@@ -242,7 +243,7 @@ npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
 
 ## 6h. Przetargi — Workflow Architecture V4 — **2.62.72 FINALIZED**
 
-**Status:** **FINALIZED** · prod **`16b7fd7`** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0
+**Status:** **FINALIZED** · prod **`6cd8ebe`** · Hub · Process Strip · Sticky CTA · Summary Header · grouped docs
 
 | Dokument | Rola |
 |----------|------|
@@ -587,12 +588,13 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 ## 9. Backlog otwarty (na polecenie użytkownika)
 
-- **TP200A** — `parserVersion` + rescan legacy dossier
+- **★ P1 Audit Hub WM** — integracja Pomiary/Schematy → Audit Hub (`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`)
+- **Workflow Cleanup P1** — V2 key docs, Analysis Status Strip
 - **TP200B** — kosztorys fidelity (`rows` cap, `pickBetterKosztorys` w parse loop)
-- **smartpzp.pl** adapter (discover stub)
-- P3-FIX-C-UX-001 — komunikat lazy dossier na Owner View
+- **TP200A** — `parserVersion` + rescan legacy dossier
 - P2-H.7 Edge magic bytes 7z
 - Notatki operacyjne P3 Export
+- P2-G.3D/E · P2-F.6
 - **Command Center — porzucony, nie wraca**
 
 ---
@@ -626,4 +628,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-24 · prod **2.62.51** · WM Schematy V2 CLOSED · Audit Hub MVP-1B*
+*Ostatnia aktualizacja: 2026-06-26 · prod **2.62.72** · commit **6cd8ebe** · Recovery Pack OFFSITE READY*

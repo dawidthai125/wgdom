@@ -8,7 +8,8 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
+2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowego agenta)
+2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.72)
 2s. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4
 2t. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md  ← ★★ WM Schematy visual fidelity V2 (CLOSED · 2.62.51)
@@ -57,7 +58,8 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
-| **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — start dla agenta AI (widoki, sync, WM Druk) |
+| **docs/AGENT-CONTINUITY-GUIDE.md** | **★★ Kontekst sesji** — co zrobiliśmy, co robimy, struktura app, mapa Przetargów |
+| **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — widoki, sync, smoke, workflow agenta |
 | **docs/WORKFLOW-ARCHITECTURE-v2.63.md** | **★★ SSOT Workflow** — Hub, Process Strip, CTA, zakładki V4 (obowiązkowe przy Przetargu) |
 | **docs/MASTER-HANDOFF-POST-ZI-2026.md** | **★★ POST ZI-2026** — skrót stanu prod · WM Druk COMPLETE |
 | **docs/ZI-2026-HANDOFF.md** | **★★★ ZI Tauron 2026 prod SSOT** — PRODUCTION STABLE |

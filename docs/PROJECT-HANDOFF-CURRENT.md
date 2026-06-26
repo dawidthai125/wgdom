@@ -10,6 +10,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla agentów
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
 1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)
@@ -47,7 +48,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Recovery Pack off-site** | **2.62.72** (`6cd8ebe`) | **COMPLETED** · PRODUCTION READY · OFFSITE READY · G7 PASS | § 3h poniżej · pack `WGDOM-RP-2.62.72-20260626` |
+| **Recovery Pack off-site** | **2.62.72** (`6cd8ebe`) | **COMPLETED** · PRODUCTION READY · OFFSITE READY · G7 PASS | § 2a poniżej · pack `WGDOM-RP-2.62.72-20260626` |
 | **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`6cd8ebe`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 · grouped docs G7 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
 | **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
 | **Discovery dokumentów variant B** | **2.62.63** (`e2d899a`) | **CLOSED** · bramka anchor · retry bootstrap | [`SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md`](SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md) · `tender-document-discovery.ts` |
