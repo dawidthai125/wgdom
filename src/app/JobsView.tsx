@@ -672,6 +672,8 @@ export function JobsView({
   }, [selectedJobId]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+  /** Mobile (<sm): pełnoekranowy drill-in lista→detal — jak Notatki operacyjne / Payroll. */
+  const mobileJobDetailOpen = Boolean(selectedJobId);
   const productionDirectory = useMemo(
     () => filterProductionActiveDirectory(directory),
     [directory],
@@ -1451,7 +1453,10 @@ export function JobsView({
       ) : (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       {/* 2.1B STREFA A — toolbar pełna szerokość (KPI, szukaj, filtry) */}
-      <div ref={jobsListHeaderRef} className="shrink-0 w-full border-b border-border bg-card">
+      <div
+        ref={jobsListHeaderRef}
+        className={`shrink-0 w-full border-b border-border bg-card ${mobileJobDetailOpen ? "hidden sm:block" : ""}`}
+      >
         <JobListPanelHeader
           returnNav={returnNav ? { label: returnNav.label, onBack: () => { setSelectedJobId(null); returnNav.onBack(); } } : undefined}
           onAddJob={addJob}
@@ -1486,11 +1491,11 @@ export function JobsView({
         />
       </div>
 
-      {/* STREFA B — lista (~35%) | szczegóły (~65%) */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* STREFA B — lista (~35%) | szczegóły (~65%); mobile drill-in: detal absolute inset-0 */}
+      <div className={`flex flex-1 min-h-0 overflow-hidden ${mobileJobDetailOpen ? "relative" : ""}`}>
       <div
         className={`flex flex-col min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
-          selectedJob ? "hidden sm:flex sm:flex-[7]" : "flex flex-1 sm:flex-[7]"
+          mobileJobDetailOpen ? "hidden sm:flex sm:flex-[7]" : "flex flex-1 sm:flex-[7]"
         }`}
       >
         <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -1520,11 +1525,22 @@ export function JobsView({
 
       {/* Szczegóły roboty */}
       {selectedJob ? (
-        <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
+        <div
+          className={`flex flex-col min-w-0 min-h-0 overflow-hidden bg-background ${
+            mobileJobDetailOpen
+              ? "absolute inset-0 z-40 flex flex-1 sm:relative sm:inset-auto sm:z-auto sm:flex-[13]"
+              : "flex flex-[13]"
+          }`}
+        >
           <div ref={jobDetailHeaderRef} className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
             <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
-              <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronRight size={14} className="rotate-180"/>Powrót do listy
+              <button
+                type="button"
+                onClick={() => setSelectedJobId(null)}
+                className="sm:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-target -ml-2 px-2 min-h-[44px] rounded-lg"
+              >
+                <ArrowLeft size={16} />
+                Lista
               </button>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-1">

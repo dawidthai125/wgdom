@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-27",
+    version: "2.62.79",
+    label: "Mobile — Roboty drill-in (MV-2)",
+    items: [
+      {
+        type: "fix",
+        text: "Mobile — Roboty: otwarcie roboty przełącza na pełnoekranowy widok szczegółów (lista i pasek KPI ukryte); przycisk Lista + gest Wstecz; bez podziału ekranu lista/detale",
+      },
+    ],
+  },
+  {
+    date: "2026-06-27",
     version: "2.62.78",
     label: "Mobile UX — scroll, drill-in, touch, klawiatura",
     items: [

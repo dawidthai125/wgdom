@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.78** · **P1 Audit Hub WM EPIC CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.79** · **P1 Audit Hub WM EPIC CLOSED**
+
+## 2.62.79 — Mobile Roboty drill-in (MV-2)
+
+- **fix:** pełnoekranowy detal na mobile · ukrycie listy + KPI · Lista + native back
 
 ## 2.62.78 — Mobile UX pack (scroll, drill-in, touch, klawiatura)
 
