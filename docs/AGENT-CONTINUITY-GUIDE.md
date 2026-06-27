@@ -1,7 +1,7 @@
 # W&G DOM — przewodnik ciągłości dla agentów AI
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.62.72** · commit **`6cd8ebe`** · https://www.wgdom.fun  
+> **Prod:** **2.62.77** · runtime **`21d4a1b`** · housekeeping **`56c4e2f`** · https://www.wgdom.fun  
 > **Data:** 2026-06-26
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
@@ -26,20 +26,34 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ## 2. Co zrobiliśmy (stan na 2026-06-26)
 
-### Ostatnio zamknięte
+### Epici zamknięte (nie rozpoczynaj bez nowego AUDIT + polecenia)
 
 | Epic | Wersja / commit | Status |
 |------|-----------------|--------|
-| **Recovery Pack off-site** | 2.62.72 · `6cd8ebe` | **COMPLETED** · OFFSITE READY · G7 PASS · `WGDOM-RP-2.62.72-20260626` |
-| **Workflow Architecture V4** | 2.62.64–72 · `6cd8ebe` | **FINALIZED** — Hub, Process Strip, Sticky CTA, Summary Header |
-| **Workflow Cleanup P0** | 2.62.72 | **RELEASED** — jedno CTA, bez duplikatu „Następny krok” |
-| **Grouped Documents G7 fix** | `6cd8ebe` | `tender-grouped-documents.ts` + migracja `TenderAttachmentsPanel` |
-| **Workflow EPIC A/B/C** | 2.62.68–69 | **CLOSED** — Hub · Process Strip · Sticky Primary Action |
-| **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** — 8 faz biznesowych |
-| **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — 6 źródeł, security log |
-| **WM Schematy + ZI 2026** | 2.59–2.62 | **CLOSED / STABLE** |
+| **P1 Audit Hub WM** | 2.62.74–77 · `b4fde0c`→`21d4a1b` | **CLOSED** — 7 źródeł Hub · `wm_druk` · 10 akcji WM |
+| **Recovery Pack off-site** | 2.62.72 · `6cd8ebe` | **CLOSED** · OFFSITE READY · `WGDOM-RP-2.62.72-20260626` |
+| **Workflow Architecture V4** | 2.62.64–72 | **CLOSED** — Hub, Process Strip, Sticky CTA |
+| **Workflow Cleanup P0** | 2.62.72 | **CLOSED** |
+| **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** |
+| **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
+| **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
 
-Szczegóły commitów i testów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2a (Recovery Pack).
+**Epic closeout P1 Audit Hub WM:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
+**SSOT techniczny wm_druk:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.6**
+
+### P1 Audit Hub WM — skrót (4 etapy)
+
+| Etap | Wersja | Commit | Zakres |
+|------|--------|--------|--------|
+| 1 infra | 2.62.74 | `b4fde0c` | `kw-wm-druk-audit-log` · adapter `adaptWmDrukAudit` |
+| 2 Pomiary | 2.62.75 | `c31e1bd` | `rap_*` · `docx_exported` · `zip_exported` |
+| 3 Schematy | 2.62.76 | `36718cc` | `schematic_*` · `measurement_imported` · `pdf_exported` |
+| 4 UX Hub | 2.62.77 | `21d4a1b` | filtr `wm_druk` · chip · deep link labels · Help |
+
+**Rozdzielenie źródeł:** `wm_print` = Odbiory/historia generacji · `wm_druk` = Pomiary/Schematy/Katalog.  
+**Wykluczone świadomie:** `schematic_edited` (anti-flood) — backlog P1.1.
+
+Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ### Recovery Pack (dla agentów — tylko odczyt)
 
@@ -56,14 +70,17 @@ Szczegóły commitów i testów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 
 
 ## 3. Co robimy teraz / następne
 
-| Priorytet | Epic | SSOT |
-|-----------|------|------|
-| **★ Rekomendowany** | **P1 Audit Hub WM** — Pomiary/Schematy → Audit Hub | `SESSION-HANDOFF-AUDIT-HUB-WM-001.md` |
-| Na polecenie | Workflow Cleanup P1 | `WORKFLOW-ARCHITECTURE-v2.63.md` |
-| Na polecenie | TP200B kosztorys fidelity | `SESSION-HANDOFF-TP200-PLANNED.md` |
-| Backlog | P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 | `PROJECT-HANDOFF-CURRENT.md` § 11 |
+**Zasada:** **nie rozpoczynaj nowych prac automatycznie.** Kolejny EPIC dopiero po świeżym **AUDIT** + wyraźnym poleceniu użytkownika.
 
-**Deploy:** po push `main` → Vercel auto-build. Verify: `curl https://www.wgdom.fun/version.json` → `{ "version": "2.62.72", "commit": "6cd8ebe" }`.
+| Priorytet | Epic / temat | Status | SSOT |
+|-----------|--------------|--------|------|
+| **Otwarty epic** | **P0 Payroll Cloud Recovery** — Etap 1 done | **OPEN** (P0.1–P0.4) | `CURRENT-TASK.md` |
+| Na polecenie | Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
+| Na polecenie | TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
+| Backlog P1.1 | `schematic_edited` (sesja edycji schematu) | OPEN | epic report § 9 |
+| Backlog | P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 | OPEN | `PROJECT-HANDOFF-CURRENT.md` § 11 |
+
+**Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → oczekiwane `version` = `CHANGELOG[0].version`.
 
 ---
 
@@ -187,7 +204,8 @@ npm run build
 | **Pomiary Elektryczne** | tab w WM Druk | `SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md` |
 | **Schematy** | tab w WM Druk | `SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md` |
 | **Notatki operacyjne** | `OperationalNotesView.tsx` | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
-| **Audit Hub** | `AuditHubView.tsx` | `SESSION-HANDOFF-AUDIT-HUB.md` — **WM jeszcze nie w Hub** |
+| **Audit Hub** | `AuditHubView.tsx` | **7 źródeł** — MVP-1B + **P1 wm_druk** · § 15.2, § 15.6 |
+| **WM Druk audit** | `WmPrintView.tsx` + lib | `wm-druk-audit.ts` · `kw-wm-druk-audit-log` · `recordWmDrukAudit` |
 | **Lista Płac** | `PayrollView.tsx` | `SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md` |
 | **Roboty** | `JobsView.tsx` | `job-*.ts`, inspektor w `InspectorPanel.tsx` |
 
@@ -217,19 +235,27 @@ WGDOM1/
 
 ---
 
-## 8. Workflow agenta (skrót)
+## 8. Workflow agenta (obowiązujący)
 
 ```text
-AUDIT → PLAN → IMPLEMENT → BUILD → SMOKE → CHANGELOG
-→ (ARCHITECTURE jeśli architektura) → CURRENT-TASK + PROJECT-HANDOFF-CURRENT
-→ COMMIT → PUSH → VERIFY (version.json)
+AUDIT → PLAN → IMPLEMENT → TESTY → BUILD → COMMIT → PUSH
+→ VERIFY DEPLOY → HOUSEKEEPING → EPIC CLOSE
 ```
+
+| Etap | Co robić |
+|------|----------|
+| **AUDIT** | Świeży przegląd SSOT + `git status` przed każdym nowym EPIC-em |
+| **PLAN** | Zakres IN/OUT — nie rozszerzać bez polecenia |
+| **IMPLEMENT** | Minimalny diff · chmura dla trwałych danych |
+| **TESTY / BUILD** | Smoke relevant + `npm run build` |
+| **VERIFY** | Jedno `version.json` — bez pollingu |
+| **HOUSEKEEPING** | `CURRENT-TASK.md` + `PROJECT-HANDOFF-CURRENT.md` |
+| **EPIC CLOSE** | Raport w `audit/` + Lessons Learned |
 
 | Typ zmiany | Bump wersji? |
 |------------|--------------|
 | Feature / fix UI | Tak — `changelog-data.ts` + `CHANGELOG.md` |
 | Docs only | Nie (chyba że user prosi o release) |
-| Recovery Pack | Osobny proces — nie mieszać commitów |
 
 Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
@@ -246,4 +272,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-26 · prod 2.62.72 · commit 6cd8ebe · Recovery Pack OFFSITE READY*
+*Ostatnia aktualizacja: 2026-06-26 · prod 2.62.77 · runtime 21d4a1b · P1 Audit Hub WM EPIC CLOSED*

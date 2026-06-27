@@ -1,6 +1,6 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.76** · **P1 Audit Hub WM Etap 3 RELEASED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.77** · **P1 Audit Hub WM EPIC CLOSED**
 
 ## 2.62.77 — Audit Hub WM widoczność wm_druk (Etap 4)
 

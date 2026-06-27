@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.62.72** (prod) · commit **`16b7fd7`** · **Workflow Architecture SSOT** · **Workflow Cleanup P0** · WM Schematy V2 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
-- **Prod (`main` / `origin/main`, app):** **`16b7fd7`** (2.62.72) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.77** (prod) · runtime **`21d4a1b`** · housekeeping **`56c4e2f`**
+- **Prod (`main` / `origin/main`, app):** **2.62.77** · https://www.wgdom.fun
+- **★★ P1 Audit Hub WM:** **EPIC CLOSED** (2.62.74–77) · [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 15.6
 - **★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu):** [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md) — Hub · Process Strip · Sticky CTA · zakładki V4
 - **★★ Handoff PDF WM Recovery (CLOSED):** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](../../docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) — TP196–TP198C · `pdf-przedmiar-heuristic.ts` · TP182 123 poz.
 - **★★ Handoff TP200 (PLANNED):** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](../../docs/SESSION-HANDOFF-TP200-PLANNED.md) — parserVersion + kosztorys fidelity
@@ -159,6 +160,25 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Kluczowe pliki:** `src/lib/electrical-measurements/*`, `public/em-measurements/*.template.docx`, `templatize-em-p1r-from-ssot.mjs`
  
  **Nie** używać `build-em-docx-templates.mjs` · **Nie** zmieniać layout szablonów 1:1 bez audytu.
+ 
+ ---
+ 
+ ## P1 Audit Hub WM — **EPIC CLOSED** (prod `21d4a1b`, v2.62.77, 2026-06-26)
+ 
+ **Status:** **CLOSED** · 7 źródeł Audit Hub · `wm_druk` · 10 akcji WM Druk · bez `schematic_edited`
+ 
+ | Etap | Wersja | Commit | Skrót |
+ |---|-----|-----|----|
+ | 1 infra | 2.62.74 | `b4fde0c` | `kw-wm-druk-audit-log` · adapter |
+ | 2 Pomiary | 2.62.75 | `c31e1bd` | `rap_*` · DOCX · ZIP |
+ | 3 Schematy | 2.62.76 | `36718cc` | `schematic_*` · import · PDF |
+ | 4 UX Hub | 2.62.77 | `21d4a1b` | filtr wm_druk · chip · deep link |
+ 
+ **Epic closeout:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · **ARCHITECTURE § 15.6**
+ 
+ **Kluczowe pliki:** `wm-druk-audit.ts`, `audit-hub/adapters.ts`, `AuditHubView.tsx`, `WmPrintView.tsx`
+ 
+ **Nie** rozszerzać bez świeżego AUDIT · backlog P1.1: `schematic_edited` tylko na polecenie
  
  ---
  

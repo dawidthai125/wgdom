@@ -1,36 +1,23 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.72** · commit **`6cd8ebe`** · https://www.wgdom.fun · **Recovery Pack OFFSITE READY** · **Workflow Architecture FINALIZED**
+> **Prod:** **2.62.77** · runtime **`21d4a1b`** · https://www.wgdom.fun · **P1 Audit Hub WM CLOSED**
 
 ---
 
 ## 1. Kolejność czytania (obowiązkowa)
 
 ```text
-1. docs/AGENT-CONTINUITY-GUIDE.md     ← ★★ kontekst sesji + mapa struktury (2026-06-26)
+1. docs/AGENT-CONTINUITY-GUIDE.md     ← ★★ kontekst sesji + mapa struktury
 2. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
-1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu · prod 2.62.72)
-1s. docs/SESSION-HANDOFF-2026-06-24.md ← sesja Audit Hub · TP200C
-1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md ← ★★ WM Druk ZI §4/§5 · TP203 · P4 (2.62.46–48)
-1u. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md     ← ★★ WM Schematy MVP (CLOSED · 2.62.49)
-1v. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md ← ★★ WM Schematy visual V2 (CLOSED · 2.62.51)
-2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
-2v. docs/SESSION-HANDOFF-AUDIT-HUB.md ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
-2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
-2a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
-2b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED
-2c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
-2c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ merge jakościowy kosztorysu
-2d. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
-3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
-4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
-5. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
-6. CURRENT-TASK.md                    ← status sesji / backlog
-7. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★ Przydziały robót z Listy Płac (P1)
-8. docs/ARCHITECTURE.md               ← pełna architektura (living document)
-8. AGENTS.md                          ← workflow, zakazy, lista handoffów
-9. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
+3. CURRENT-TASK.md                    ← status sesji / backlog bieżący
+4. docs/PROJECT-HANDOFF-CURRENT.md    ← ★★ baseline prod, epici, commity
+5. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu)
+6. docs/ARCHITECTURE.md               ← pełna architektura (§ 15.2 Audit Hub · § 15.6 wm_druk)
+7. AGENTS.md                          ← workflow, zakazy, lista handoffów
+8. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
+9. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md ← P1 Audit Hub WM CLOSED (jeśli dotyczy WM audit)
+… handoffy tematyczne — patrz AGENTS.md § 1 oraz AGENT-CONTINUITY-GUIDE § 6
 ```
 
 **Hasło użytkownika „kontynuuj WGDOM”:** dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
@@ -90,7 +77,7 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `schedule` | Grafik | `App.tsx` |
 | `jobs` | Roboty | `JobsView.tsx` |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` |
-| `audit` | Audit Hub | `AuditHubView.tsx` | **Super Admin only** · MVP-0 CLOSED · § 15.2 |
+| `audit` | Audit Hub | `AuditHubView.tsx` | **Super Admin only** · **7 źródeł** (w tym `wm_druk`) · § 15.2, § 15.6 |
 | `tenders` | Przetargi | `TendersModule.tsx` (5 zakładek) |
 | `wmprint` | Odbiory WM Druk + **Pomiary** + **Schematy** | `WmPrintView.tsx` |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` |
@@ -404,43 +391,57 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 
 ---
 
-## 6d. Audit Hub (MVP-0 + MVP-1 + MVP-1B CLOSED)
+## 6d. Audit Hub (MVP-0→1B + P1 WM **CLOSED**)
 
-**Status:** **MVP-1B CLOSED** · v**2.62.41** · Security Log **2.62.39** · P0 localeCompare **2.62.37**
+**Status:** **7 źródeł** · MVP-1B **CLOSED** (2.62.41) · **P1 Audit Hub WM CLOSED** (2.62.74–77)
 
 | Dokument | Rola |
 |----------|------|
-| [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | **★★ SSOT modułu** — 6 źródeł, security log, recovery events, backlog MVP-1C |
-| [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) | **AUDIT CLOSED** — WM Pomiary/Schematy **nie** w Hub · P1 `kw-wm-druk-audit-log` |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** · § **15.5** | Sekcja techniczna + luka WM |
+| [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | SSOT modułu Hub — security log, recovery events, backlog MVP-1C export |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** · § **15.5** · § **15.6** | Adaptery, feed, **wm_druk** P1 |
+| [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) | **★ EPIC CLOSE** — metryki, lessons learned |
+| [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) | Audyt historyczny (**SUPERSEDED**) |
+
+### 7 źródeł feedu (`AUDIT_FEED_SOURCES`)
+
+| `source` | Etykieta UI | SSOT danych |
+|----------|-------------|-------------|
+| `operational_notes` | Notatki operacyjne | `kw-operational-notes-audit-log` |
+| `inspector_login` | Inspektor — logowania | `kw-inspector-login-events` |
+| `job_activity` | Aktywność na robotach | `job.activityLog[]` |
+| `wm_print` | WM Druk — Odbiory | `kw-wm-print-history` |
+| **`wm_druk`** | **WM Druk — Pomiary i Schematy** | **`kw-wm-druk-audit-log`** |
+| `delivery_package` | Pakiety odbiorowe | publikacje odbiorów |
+| `security_log` | Security log | `kw-security-audit-log` |
 
 ### Kluczowe pliki
 
 ```text
-src/lib/audit-hub/types.ts       AuditFeedItem, AuditHubInput, deep link types
-src/lib/audit-hub/adapters.ts    6 adapterów + buildAuditFeed + feedAt/feedActor
-src/lib/security-audit-log.ts    kw-security-audit-log (AUX, MVP-1)
-src/lib/audit-hub/filters.ts     filtry, paginacja 50, collectAuditHubFilterOptions
+src/lib/audit-hub/types.ts       AUDIT_FEED_SOURCES (7) · AuditHubInput
+src/lib/audit-hub/adapters.ts    adaptWmDrukAudit + 6 innych · buildAuditFeed
+src/lib/wm-druk-audit.ts         recordWmDrukAudit · normalize · merge · cap 3000
+src/lib/audit-hub/deeplink.ts    auditHubDeepLinkLabel · WM_PRINT_TABS labels
+src/lib/audit-hub/filters.ts     filtry, paginacja 50
 src/lib/audit-hub/view-model.ts  buildAuditHubViewModel
 src/lib/audit-hub/acl.ts         canAccessAuditHub — Super Admin
-src/lib/audit-hub/deeplink.ts    resolveAuditHubNavigation
-src/app/AuditHubView.tsx         UI panelu
-src/app/App.tsx                  handleAuditHubDeepLink
+src/app/AuditHubView.tsx         UI — chip wm_druk (teal) · filtr 7 źródeł
+src/app/WmPrintView.tsx          hooki recordWmDrukAudit (Pomiary/Katalog/Schematy)
 ```
 
 ### Smoke
 
 ```bash
-npx vite-node scripts/test-security-audit-log.mjs
+npx vite-node scripts/test-wm-druk-audit.mjs
 npx vite-node scripts/test-audit-hub-adapters.mjs
 npx vite-node scripts/test-audit-hub-view-model.mjs
+npx vite-node scripts/smoke-wm-druk-audit-etap2-d1.mjs
+npx vite-node scripts/smoke-wm-druk-audit-etap3-s1.mjs
+npx vite-node scripts/test-security-audit-log.mjs
 ```
 
-**Pułapka cloud-sync (2.62.42):** commit `2b8980c` usunął import `mergeDeliveryPackagePublications` — patrz [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4.
+**Nie ruszać bez briefu:** nowe źródła bez AUDIT · zmiana merge `cloud-sync` domen EM/schematów · `schematic_edited` bez anti-flood design
 
-**Nie ruszać bez briefu:** nowy KV · zmiana nagłówka `cloud-sync.ts` bez grep merge imports · ACL inne niż Super Admin
-
-**Luka WM (AUDIT-HUB-WM-001):** Pomiary i Schematy **nie** logują do Audit Hub — tylko Odbiory (`kw-wm-print-history`). Implementacja P1 → handoff WM-001.
+**Backlog P1.1:** `schematic_edited` przy zamknięciu sesji edycji schematu — tylko na polecenie.
 
 ---
 
@@ -573,9 +574,8 @@ npx vite-node scripts/test-wm-schematics-ui-3b.mjs
 ## 8. Workflow zmiany (agent)
 
 ```text
-AUDIT → PLAN → IMPLEMENT → BUILD → SMOKE → CHANGELOG → HelpView (jeśli UI)
-→ ARCHITECTURE.md (jeśli architektura) → CURRENT-TASK + PROJECT-HANDOFF-CURRENT
-→ COMMIT → PUSH → VERIFY DEPLOY FAST (curl version.json) → RAPORT
+AUDIT → PLAN → IMPLEMENT → TESTY → BUILD → COMMIT → PUSH
+→ VERIFY DEPLOY → HOUSEKEEPING → EPIC CLOSE
 ```
 
 **Release frontend:** tylko `git push origin main` — **nie** `vercel deploy`.
@@ -588,14 +588,15 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 ## 9. Backlog otwarty (na polecenie użytkownika)
 
-- **★ P1 Audit Hub WM** — integracja Pomiary/Schematy → Audit Hub (`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`)
-- **Workflow Cleanup P1** — V2 key docs, Analysis Status Strip
-- **TP200B** — kosztorys fidelity (`rows` cap, `pickBetterKosztorys` w parse loop)
-- **TP200A** — `parserVersion` + rescan legacy dossier
-- P2-H.7 Edge magic bytes 7z
-- Notatki operacyjne P3 Export
-- P2-G.3D/E · P2-F.6
-- **Command Center — porzucony, nie wraca**
+**Nie rozpoczynaj automatycznie** — każdy nowy EPIC wymaga świeżego AUDIT.
+
+| Temat | Status | SSOT |
+|-------|--------|------|
+| **P0 Payroll Cloud Recovery** (P0.1–P0.4) | **EPIC OPEN** | `CURRENT-TASK.md` |
+| P1.1 `schematic_edited` (anti-flood) | backlog | epic close report § 9 |
+| Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
+| TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
+| P2-H.7 · P3 Export notatki · P2-G.3D/E · P2-F.6 | backlog | `PROJECT-HANDOFF-CURRENT.md` § 11 |
 
 ---
 
@@ -628,4 +629,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-26 · prod **2.62.72** · commit **6cd8ebe** · Recovery Pack OFFSITE READY*
+*Ostatnia aktualizacja: 2026-06-26 · prod **2.62.77** · runtime **21d4a1b** · P1 Audit Hub WM EPIC CLOSED*

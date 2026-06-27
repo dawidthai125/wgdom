@@ -1,6 +1,6 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.77** · **PRODUCTION VERIFIED** (`21d4a1b`)
+**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.77** · **PRODUCTION VERIFIED** (`21d4a1b` runtime · housekeeping `56c4e2f`)
 
 ## STATUS
 
