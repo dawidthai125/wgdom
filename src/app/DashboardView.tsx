@@ -641,7 +641,7 @@ export function DashboardView({
                     Wszystkie roboty →
                   </button>
                 </div>
-                <div className="space-y-2.5 max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain pr-0.5">
+                <div className="space-y-2.5 pr-0.5">
                   {jobsMissingDocsSorted.map((job) => {
                     const missing = jobMissingRequiredDocs(job);
                     const done = REQUIRED_DOCS.length - missing.length;

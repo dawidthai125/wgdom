@@ -121,6 +121,7 @@ import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
 import { openTendersAtStrategyTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
@@ -286,6 +287,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const syncInFlightRef = useRef(false);
   const pendingCloudSyncRef = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  useModalScrollLock(showSaveConfirm);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
   const [fullDataBackupStatus, setFullDataBackupStatus] = useState<{ dailyBackupDate: string | null; hasPrev: boolean } | null>(null);
@@ -2170,7 +2172,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         </SmsModalErrorBoundary>
       )}
       {showSaveConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={()=>setShowSaveConfirm(false)}>
+        <div className="fixed inset-0 z-50 modal-overlay flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={()=>setShowSaveConfirm(false)}>
           <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4 modal-sheet" onClick={(e)=>e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-yellow-500/15 flex items-center justify-center shrink-0">

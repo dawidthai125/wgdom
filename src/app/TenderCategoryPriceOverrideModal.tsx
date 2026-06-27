@@ -10,6 +10,7 @@ import {
   loadTenderPriceOverridesStoreLocal,
   saveTenderPriceOverridesStore,
 } from "@/lib/tender-price-overrides";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import {
   getCategoryRate,
   type WgdomCostCatalog,
@@ -40,6 +41,8 @@ export function TenderCategoryPriceOverrideModal({
   const [materialInput, setMaterialInput] = useState("");
   const [laborInput, setLaborInput] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useModalScrollLock(open);
 
   const globalRates = useMemo(() => {
     if (!category) return { material: null as number | null, labor: null as number | null };
@@ -144,9 +147,9 @@ export function TenderCategoryPriceOverrideModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] modal-overlay flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-xl border border-border bg-background shadow-xl p-4 space-y-3"
+        className="w-full max-w-md rounded-t-2xl md:rounded-xl border border-border bg-background shadow-xl p-4 space-y-3 modal-sheet max-h-[92dvh] overflow-y-auto overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-2">

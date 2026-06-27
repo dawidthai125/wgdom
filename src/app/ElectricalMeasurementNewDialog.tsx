@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Gauge, X } from "lucide-react";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 
@@ -28,6 +29,8 @@ export function ElectricalMeasurementNewDialog({
   const [manualAddress, setManualAddress] = useState("");
   const [manualFlatNumber, setManualFlatNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useModalScrollLock(open);
 
   const sortedJobs = useMemo(
     () => [...jobs].sort((a, b) => jobDisplayTitle(a).localeCompare(jobDisplayTitle(b), "pl")),
@@ -62,8 +65,8 @@ export function ElectricalMeasurementNewDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal>
-      <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-xl">
+    <div className="fixed inset-0 z-50 modal-overlay flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50" role="dialog" aria-modal>
+      <div className="w-full max-w-md rounded-t-2xl md:rounded-xl border border-border bg-card shadow-xl modal-sheet max-h-[92dvh] flex flex-col">
         <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Gauge size={16} className="text-primary" />

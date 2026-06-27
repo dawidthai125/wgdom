@@ -7,6 +7,7 @@ import "./styles/index.css";
 import { registerServiceWorker } from "./lib/pwa-install";
 import { initNativeShell, isNativeApp } from "./lib/capacitor-native";
 import { initMobileKeyboard } from "./lib/mobile-keyboard";
+import { initModalScrollLock } from "./lib/modal-scroll-lock";
 import { initAppViewport } from "./lib/app-viewport";
 import { initDeepLinks } from "./lib/deep-link";
 import { AppUpdateBanner } from "./app/AppUpdateBanner";
@@ -14,6 +15,7 @@ import { AppUpdateBanner } from "./app/AppUpdateBanner";
 registerServiceWorker();
 void initNativeShell();
 initMobileKeyboard();
+initModalScrollLock();
 initAppViewport();
 initDeepLinks();
 

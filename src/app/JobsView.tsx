@@ -11,6 +11,7 @@ import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
@@ -260,6 +261,7 @@ export function JobEmailModal({
   onManageContacts: () => void;
   onSent?: (to: string) => void;
 }) {
+  useModalScrollLock(true);
   const allKeys = useMemo(() => collectJobEmailSelectableKeys(job), [job]);
   const [selected, setSelected] = useState<Set<EmailSelectKey>>(() => new Set(allKeys));
   const [contactId, setContactId] = useState("");
@@ -341,8 +343,8 @@ export function JobEmailModal({
 
   if (allKeys.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-        <div className="bg-card rounded-2xl border border-border w-full max-w-md shadow-2xl p-6 space-y-4">
+      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+        <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-md shadow-2xl p-6 space-y-4 modal-sheet">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">Wyślij email z roboty</p>
@@ -660,6 +662,14 @@ export function JobsView({
     }
     onInitialJobConsumed?.();
   }, [initialJobId, initialJobSection, jobs, onInitialJobConsumed]);
+
+  useEffect(() => {
+    if (!selectedJobId) return;
+    return registerNativeBackHandler(() => {
+      setSelectedJobId(null);
+      return true;
+    });
+  }, [selectedJobId]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
   const productionDirectory = useMemo(

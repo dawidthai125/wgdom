@@ -742,7 +742,7 @@ export function TenderDetailPanel({
       )}
 
       {effectiveWorkspace === "overview" && (
-        <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <div className="space-y-3">
           {intelligenceCtx ? (
             <TenderDecisionView intelligenceCtx={intelligenceCtx} />
           ) : (

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import {
   Plus,
   Search,
@@ -149,6 +150,20 @@ export function OperationalNotesView({
   }, [selected, readState, adminAccounts]);
 
   const selectedAcked = selected && session ? isOperationalNoteAcked(selected, session.id, readState) : false;
+
+  const mobileDetailOpen = Boolean(selectedId || formMode);
+
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    return registerNativeBackHandler(() => {
+      if (formMode) {
+        setFormMode(null);
+        return true;
+      }
+      setSelectedId(null);
+      return true;
+    });
+  }, [mobileDetailOpen, formMode]);
 
   useEffect(() => {
     if (!initialNoteId) return;
@@ -370,7 +385,7 @@ export function OperationalNotesView({
         </div>
       )}
     <div className="flex flex-col md:flex-row flex-1 min-h-0 gap-0 md:gap-4 p-3 sm:p-4 md:p-5">
-      <div className="md:w-80 lg:w-96 shrink-0 flex flex-col min-h-0 border border-border rounded-xl bg-card overflow-hidden">
+      <div className={`md:w-80 lg:w-96 shrink-0 flex flex-col min-h-0 border border-border rounded-xl bg-card overflow-hidden ${mobileDetailOpen ? "hidden md:flex" : "flex flex-1 md:flex-none"}`}>
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold flex items-center gap-1.5 min-w-0">
@@ -470,12 +485,20 @@ export function OperationalNotesView({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 min-w-0 border border-border rounded-xl bg-card overflow-hidden flex flex-col mt-3 md:mt-0">
+      <div className={`flex-1 min-h-0 min-w-0 border border-border rounded-xl bg-card overflow-hidden flex flex-col mt-3 md:mt-0 ${mobileDetailOpen ? "flex" : "hidden md:flex"}`}>
         {formMode ? (
-          <div className="p-4 space-y-3 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">{formMode === "create" ? "Nowa notatka" : "Edycja notatki"}</h3>
-              <button type="button" onClick={() => setFormMode(null)} className="p-1 rounded hover:bg-secondary">
+          <div className="p-4 space-y-3 overflow-y-auto overscroll-contain flex-1 min-h-0">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setFormMode(null)}
+                className="md:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] -ml-1"
+              >
+                <ArrowLeft size={16} />
+                Lista
+              </button>
+              <h3 className="text-sm font-semibold flex-1">{formMode === "create" ? "Nowa notatka" : "Edycja notatki"}</h3>
+              <button type="button" onClick={() => setFormMode(null)} className="hidden md:flex p-1 rounded hover:bg-secondary touch-target">
                 <X size={16} />
               </button>
             </div>
@@ -535,6 +558,14 @@ export function OperationalNotesView({
         ) : selected ? (
           <div className="flex flex-col min-h-0 flex-1">
             <div className="p-4 border-b border-border space-y-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="md:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] -ml-1"
+              >
+                <ArrowLeft size={16} />
+                Lista
+              </button>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold">{selected.title}</h2>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Search,
   Plus,
   Trash2,
@@ -22,6 +23,7 @@ import {
   Network,
 } from "lucide-react";
 import { toast } from "sonner";
+import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
@@ -299,6 +301,18 @@ export function WmPrintView({
     onInitialNavigationConsumed?.();
   }, [initialTab, initialJobId, onInitialNavigationConsumed]);
 
+  const mobilePomiaryDetailOpen =
+    tab === "pomiary" && Boolean(selectedJobId || focusedDetachedMeasurementId);
+
+  useEffect(() => {
+    if (!mobilePomiaryDetailOpen) return;
+    return registerNativeBackHandler(() => {
+      setSelectedJobId(null);
+      setFocusedDetachedMeasurementId(null);
+      return true;
+    });
+  }, [mobilePomiaryDetailOpen]);
+
   const genOpts = (): WmPrintGenerateOptions => ({
     dateMode,
     customDate: dateMode === "custom" ? new Date(customDate + "T12:00:00") : undefined,
@@ -405,7 +419,7 @@ export function WmPrintView({
               Brak samodzielnych pomiarów. Użyj „Nowy pomiar” → Samodzielny pomiar.
             </p>
           ) : (
-            <div className="divide-y divide-border max-h-48 overflow-y-auto">
+            <div className="divide-y divide-border md:max-h-48 md:overflow-y-auto">
               {detachedMeasurements.map((m) => {
                 const active = pomiarySide === "detached" && focusedDetachedMeasurementId === m.id;
                 return (
@@ -1149,27 +1163,42 @@ export function WmPrintView({
               </button>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 min-h-0">
-              {renderJobListColumn(true)}
-              <div className="min-w-0">
+              <div className={mobilePomiaryDetailOpen ? "hidden lg:block" : "block"}>
+                {renderJobListColumn(true)}
+              </div>
+              <div className={`min-w-0 ${mobilePomiaryDetailOpen ? "block" : "hidden lg:block"}`}>
                 {!selectedJob && !focusedDetachedMeasurementId ? (
-                  <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4">
+                  <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4 hidden lg:block">
                     Wybierz robotę lub samodzielny pomiar z listy — albo użyj „Nowy pomiar”.
                   </p>
                 ) : (
-                  <JobElectricalMeasurementsPanel
-                    job={pomiarySide === "jobs" ? selectedJob : null}
-                    focusedMeasurementId={focusedDetachedMeasurementId}
-                    measurements={electricalMeasurements}
-                    registry={electricalMeasurementRegistry}
-                    measurementSettings={electricalMeasurementSettings}
-                    adminSession={adminSession}
-                    onChangeMeasurements={onChangeElectricalMeasurements}
-                    onChangeRegistry={onChangeElectricalMeasurementRegistry}
-                    onCommit={(nextMeasurements, nextRegistry) =>
-                      onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
-                    }
-                    onRecordWmDrukAudit={onRecordWmDrukAudit}
-                  />
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedJobId(null);
+                        setFocusedDetachedMeasurementId(null);
+                      }}
+                      className="lg:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] -ml-1"
+                    >
+                      <ArrowLeft size={16} />
+                      Lista
+                    </button>
+                    <JobElectricalMeasurementsPanel
+                      job={pomiarySide === "jobs" ? selectedJob : null}
+                      focusedMeasurementId={focusedDetachedMeasurementId}
+                      measurements={electricalMeasurements}
+                      registry={electricalMeasurementRegistry}
+                      measurementSettings={electricalMeasurementSettings}
+                      adminSession={adminSession}
+                      onChangeMeasurements={onChangeElectricalMeasurements}
+                      onChangeRegistry={onChangeElectricalMeasurementRegistry}
+                      onCommit={(nextMeasurements, nextRegistry) =>
+                        onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
+                      }
+                      onRecordWmDrukAudit={onRecordWmDrukAudit}
+                    />
+                  </div>
                 )}
               </div>
             </div>

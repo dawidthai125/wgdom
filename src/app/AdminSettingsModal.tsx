@@ -23,6 +23,7 @@ import {
   resetAllTendersSection,
 } from "@/lib/tenders-admin";
 import { listLocalJobsSnapshots } from "@/lib/jobs-safety";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 
 export interface AdminBackupTools {
   exportBackup: () => void;
@@ -52,6 +53,7 @@ export function AdminSettingsModal({
   backupTools: AdminBackupTools;
   adminSession: AdminSession | null | undefined;
 }) {
+  useModalScrollLock(true);
   const auditActor: SecurityAuditActor | undefined = adminSession
     ? { userId: adminSession.id, displayName: adminSession.displayName }
     : undefined;
@@ -210,8 +212,8 @@ export function AdminSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <div className="fixed inset-0 z-[60] modal-overlay flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col modal-sheet">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <Settings size={16} className="text-primary"/>
@@ -221,7 +223,7 @@ export function AdminSettingsModal({
             <X size={16}/>
           </button>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4" data-keyboard-aware>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Tylko Super Administrator. Hasła i role synchronizowane w chmurze — obowiązują na telefonie i komputerze.
           </p>

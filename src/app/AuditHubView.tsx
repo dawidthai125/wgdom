@@ -22,6 +22,8 @@ import {
   type AuditFeedItem,
   type AuditHubInput,
 } from "@/lib/audit-hub/types";
+import { useIsMobile } from "@/app/components/ui/use-mobile";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { syncInspectorStatsFromCloud } from "@/lib/inspector-stats";
 import {
   Sheet,
@@ -108,12 +110,15 @@ export function AuditHubView({
   onDeepLink: (deepLink: AuditFeedDeepLink) => void;
 }) {
   const allowed = canAccessAuditHub(session);
+  const isMobile = useIsMobile();
   const [filters, setFilters] = useState<AuditHubFilters>(EMPTY_AUDIT_HUB_FILTERS);
   const [page, setPage] = useState(1);
   const [inspectorEvents, setInspectorEvents] = useState<AuditHubInput["inspectorLoginEvents"]>([]);
   const [inspectorLoading, setInspectorLoading] = useState(true);
   const [inspectorError, setInspectorError] = useState(false);
   const [detailItem, setDetailItem] = useState<AuditFeedItem | null>(null);
+
+  useModalScrollLock(detailItem != null);
 
   const refreshInspectorStats = useCallback(async () => {
     setInspectorLoading(true);
@@ -375,7 +380,7 @@ export function AuditHubView({
       </div>
 
       <Sheet open={detailItem != null} onOpenChange={(open) => !open && setDetailItem(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "max-h-[92dvh] rounded-t-2xl" : "w-full sm:max-w-md"}>
           <SheetHeader>
             <SheetTitle>Szczegóły wpisu</SheetTitle>
             <SheetDescription>Metadane z istniejącego źródła logów.</SheetDescription>

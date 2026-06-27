@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.77** · **P1 Audit Hub WM EPIC CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.78** · **P1 Audit Hub WM EPIC CLOSED**
+
+## 2.62.78 — Mobile UX pack (scroll, drill-in, touch, klawiatura)
+
+- **fix:** Przetarg sticky header/tabs · Notatki + Schematy drill-in · Audit sheets bottom · Payroll touch 44px · Settings keyboard
+- **improve:** native back Roboty/Przetarg/Notatki/Schematy · tender tabs 44px · SVG preview bez nested scroll
 
 ## 2.62.77 — Audit Hub WM widoczność wm_druk (Etap 4)
 

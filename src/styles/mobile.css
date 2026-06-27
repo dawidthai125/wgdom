@@ -119,4 +119,13 @@
   .keyboard-open [data-keyboard-aware] {
     padding-bottom: max(1rem, env(safe-area-inset-bottom), var(--keyboard-inset, 0px));
   }
+
+  html.modal-scroll-locked,
+  html.modal-scroll-locked body {
+    overscroll-behavior: none;
+  }
+
+  html.modal-scroll-locked .admin-app-shell {
+    overscroll-behavior: none;
+  }
 }

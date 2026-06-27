@@ -19,6 +19,8 @@ import {
   paginateOperationalNotesAuditLog,
   type OperationalNotesAuditFilters,
 } from "@/lib/operational-notes-audit-filters";
+import { useIsMobile } from "@/app/components/ui/use-mobile";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import type { AdminSession } from "@/lib/admin-auth";
 
 function fmtAuditDate(iso: string): string {
@@ -45,6 +47,9 @@ export function OperationalNotesAuditPanel({
   const [page, setPage] = useState(1);
 
   const allowed = canAccessOperationalNotesAudit(session);
+  const isMobile = useIsMobile();
+
+  useModalScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +84,14 @@ export function OperationalNotesAuditPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 gap-0 flex flex-col">
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={
+          isMobile
+            ? "max-h-[92dvh] rounded-t-2xl p-0 gap-0 flex flex-col"
+            : "w-full sm:max-w-2xl lg:max-w-3xl p-0 gap-0 flex flex-col"
+        }
+      >
         <SheetHeader className="border-b border-border shrink-0">
           <SheetTitle>Audit notatek operacyjnych</SheetTitle>
           <SheetDescription>

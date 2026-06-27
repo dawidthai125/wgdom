@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-27",
+    version: "2.62.78",
+    label: "Mobile UX — scroll, drill-in, touch, klawiatura",
+    items: [
+      {
+        type: "fix",
+        text: "Mobile — Przetarg (sticky nagłówek + zakładki), Notatki operacyjne i Schematy WM (drill-in lista→detal, przycisk Wstecz), Audit Hub i audyt notatek (sheet od dołu), Lista Płac (touch 44px), Ustawienia admina (klawiatura iOS)",
+      },
+      {
+        type: "improve",
+        text: "Mobile — native back w Robotach, Przetargu, Notatkach i Schematach; zakładki przetargu min. 44px; podgląd SVG schematu bez zagnieżdżonego scrolla",
+      },
+    ],
+  },
+  {
     date: "2026-06-26",
     version: "2.62.77",
     label: "Audit Hub WM — widoczność wm_druk w UI (Etap 4)",

@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   Copy,
   Download,
   Loader2,
@@ -7,6 +8,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
@@ -90,6 +92,15 @@ export function WmPrintSchematicsPanel({
   }, [sorted, search, statusFilter]);
 
   const selected = selectedId ? getSchematicById(schematics, selectedId) ?? null : null;
+  const mobileDetailOpen = Boolean(selectedId);
+
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    return registerNativeBackHandler(() => {
+      setSelectedId(null);
+      return true;
+    });
+  }, [mobileDetailOpen]);
 
   const previewSvg = useMemo(() => {
     if (!selected) return null;
@@ -245,7 +256,7 @@ export function WmPrintSchematicsPanel({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] gap-4 min-h-0">
-      <div className="space-y-3 min-h-0 flex flex-col">
+      <div className={`space-y-3 min-h-0 flex flex-col ${mobileDetailOpen ? "hidden xl:flex" : "flex"}`}>
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[160px]">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -274,7 +285,7 @@ export function WmPrintSchematicsPanel({
               setShowCreateMenu((v) => !v);
               setShowImportPicker(false);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-sm font-medium"
           >
             <Plus size={14} />
             Utwórz
@@ -285,7 +296,7 @@ export function WmPrintSchematicsPanel({
               setShowImportPicker((v) => !v);
               setShowCreateMenu(false);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-border bg-card text-sm font-medium"
           >
             Z pomiaru
           </button>
@@ -366,17 +377,27 @@ export function WmPrintSchematicsPanel({
         <p className="text-xs text-muted-foreground">{filtered.length} / {schematics.length} schematów · sync chmura</p>
       </div>
 
-      <div className="min-w-0 space-y-4">
+      <div className={`min-w-0 space-y-4 ${mobileDetailOpen ? "block" : "hidden xl:block"}`}>
         {!selected ? (
-          <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4 hidden xl:block">
             Wybierz schemat z listy lub utwórz nowy (szablon lub import z pomiaru RAP).
           </p>
         ) : (
           <>
             <div className="flex flex-wrap gap-2 items-center justify-between">
-              <h2 className="text-sm font-semibold truncate">
-                {selected.address.trim() || selected.title}
-              </h2>
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(null)}
+                  className="xl:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] shrink-0 -ml-1"
+                >
+                  <ArrowLeft size={16} />
+                  Lista
+                </button>
+                <h2 className="text-sm font-semibold truncate">
+                  {selected.address.trim() || selected.title}
+                </h2>
+              </div>
               <div className="flex flex-wrap gap-1">
                 <button
                   type="button"
@@ -416,7 +437,7 @@ export function WmPrintSchematicsPanel({
                 <h3 className="text-sm font-semibold">Podgląd SVG</h3>
                 {previewSvg && previewSvg.startsWith("<svg") ? (
                   <div
-                    className="w-full overflow-auto rounded-lg border border-border bg-white min-h-[280px] max-h-[70vh]"
+                    className="w-full rounded-lg border border-border bg-white min-h-[280px] md:overflow-auto md:max-h-[70vh] touch-pan-x touch-pan-y"
                     dangerouslySetInnerHTML={{ __html: previewSvg }}
                   />
                 ) : (

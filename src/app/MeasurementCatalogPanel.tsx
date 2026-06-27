@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from "react";
-import { Download, Loader2, Package, Pencil, Search, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Download, Loader2, Package, Pencil, Search, Trash2, X } from "lucide-react";
+import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
@@ -231,6 +232,8 @@ function MeasurementCatalogMain({
 
   const selectedDetached = selectedRow?.measurement ? isDetachedMeasurement(selectedRow.measurement) : false;
 
+  const mobileDetailOpen = Boolean(selectedRapId || editingMeasurementId);
+
   const selectedExportJob = useMemo(() => {
     if (!selectedRow?.measurement) return null;
     return resolveMeasurementExportJob(selectedRow.measurement, jobs);
@@ -395,6 +398,21 @@ function MeasurementCatalogMain({
     setEditingMeasurementId(null);
   };
 
+  useEffect(() => {
+    if (!mobileDetailOpen) return;
+    return registerNativeBackHandler(() => {
+      if (editingMeasurementId) {
+        stopEdit();
+        return true;
+      }
+      if (selectedRapId) {
+        setSelectedRapId(null);
+        return true;
+      }
+      return false;
+    });
+  }, [mobileDetailOpen, editingMeasurementId, selectedRapId, editingMeasurement]);
+
   const handleEditorCommit = (
     nextMeasurements: ElectricalMeasurement[],
     nextRegistry: ElectricalMeasurementRegistryState,
@@ -408,7 +426,7 @@ function MeasurementCatalogMain({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4 min-h-0">
-      <div className="space-y-3 min-w-0">
+      <div className={`space-y-3 min-w-0 ${mobileDetailOpen ? "hidden xl:block" : "block"}`}>
         <div className="flex flex-wrap gap-2 items-end">
           <div>
             <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Rok</label>
@@ -638,9 +656,20 @@ function MeasurementCatalogMain({
         <p className="text-xs text-muted-foreground">{filteredRows.length} raport(ów) · źródło: kw-electrical-measurements + registry</p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 space-y-4 min-w-0 xl:sticky xl:top-0 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className={`rounded-xl border border-border bg-card p-4 space-y-4 min-w-0 ${mobileDetailOpen ? "block" : "hidden xl:block"}`}>
         {editingMeasurement ? (
           <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (editingMeasurementId) stopEdit();
+                else setSelectedRapId(null);
+              }}
+              className="xl:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] -ml-1"
+            >
+              <ArrowLeft size={16} />
+              Lista
+            </button>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-semibold text-base font-mono">{(editingMeasurement.reportNumber ?? "").trim() || "Bez numeru"}</h2>
@@ -649,7 +678,7 @@ function MeasurementCatalogMain({
               <button
                 type="button"
                 onClick={stopEdit}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-border hover:bg-secondary shrink-0"
+                className="hidden xl:inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-border hover:bg-secondary shrink-0"
               >
                 <X size={12} />
                 Zamknij
@@ -669,9 +698,17 @@ function MeasurementCatalogMain({
             />
           </div>
         ) : !selectedRow ? (
-          <p className="text-sm text-muted-foreground">Kliknij raport na liście, aby zobaczyć szczegóły i pobierać dokumenty.</p>
+          <p className="text-sm text-muted-foreground hidden xl:block">Kliknij raport na liście, aby zobaczyć szczegóły i pobierać dokumenty.</p>
         ) : (
           <>
+            <button
+              type="button"
+              onClick={() => setSelectedRapId(null)}
+              className="xl:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] -ml-1"
+            >
+              <ArrowLeft size={16} />
+              Lista
+            </button>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h2 className="font-semibold text-base font-mono">{selectedRow.rapNumber}</h2>
