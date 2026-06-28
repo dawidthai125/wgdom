@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.79** · **P1 Audit Hub WM EPIC CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.80** · **Work Catalog P1 FOUNDATION CLOSED**
+
+## 2.62.80 — Biblioteka Robót v3.0 fundament P1 (infra)
+
+- **improve:** `src/lib/work-catalog/` P1.1–P1.12 · seed 116 robót · migracja · adapter · stores · cloud-sync KV · golden 1419 · FREEZE v1.0 — **bez UI** (P2)
+- **test:** `test-work-catalog-golden.mjs` · `test-work-catalog-public-api.mjs` · pełny zestaw P1.1–P1.11
 
 ## 2.62.79 — Mobile Roboty drill-in (MV-2)
 

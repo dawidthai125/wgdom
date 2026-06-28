@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-27 (**prod 2.62.79** · Mobile Recovery **EPIC CLOSED** · commit `4397eac`)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-28 (**prod 2.62.80** · Work Catalog P1 **FOUNDATION CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
@@ -48,6 +48,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Biblioteka Robót v3.0 — P1 Foundation** | **2.62.80** | **CLOSED** · lib + KV + golden · **bez UI** · P2 OPEN | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md) · [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md) · ARCHITECTURE § 12.1.22 |
 | **Mobile Recovery** | **2.62.78–2.62.79** (`78582db`→`4397eac`) | **CLOSED** · prod smoke 7 PASS / 1 BLOCKED · outstanding bugs **NONE** | § 2b poniżej · `CURRENT-TASK.md` |
 | **Recovery Pack off-site** | **2.62.72** (`6cd8ebe`) | **COMPLETED** · PRODUCTION READY · OFFSITE READY · G7 PASS | § 2a poniżej · pack `WGDOM-RP-2.62.72-20260626` |
 | **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`6cd8ebe`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 · grouped docs G7 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
@@ -141,9 +142,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.79       ← Mobile Recovery EPIC CLOSED · commit 4397eac · PRODUCTION VERIFIED
-Mobile Recovery 2.62.78:    78582db       Mobile UX pack — scroll · drill-in · touch · keyboard
-Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2)
+Version (prod):             2.62.80       ← Work Catalog P1 FOUNDATION CLOSED · infra lib · bez UI
+Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
+Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-26 (**v2.62.77** · P1 Audit Hub WM **EPIC CLOSED** · prod **2.62.77** · runtime `21d4a1b`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-28 (**v2.62.80** · Work Catalog P1 **FOUNDATION CLOSED**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1643,6 +1643,32 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Backlog znany (nie blokuje MVP):** przycisk UI „Odłącz od pomiaru” (`detachSchematicFromMeasurement` w domenie — smoke 1c PASS)
 
 **Nie zmieniaj bez polecenia:** merge LWW schematów, import bez `valueSet` EM, layouty R1/R6, auto-sync EM↔schemat, `kw-electrical-measurements`.
+
+---
+
+### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 (v2.62.80)
+
+**Status:** **P1 FOUNDATION CLOSED** (P1.1–P1.12) · **bez UI** · **P2 OPEN**  
+**FREEZE:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
+**Raport:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
+
+Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*` (legacy nadal SSOT UI prod).
+
+| Klucz KV | Model | Merge |
+|----------|-------|-------|
+| `kw-wgdom-work-catalog` | `WorkCatalogStore` v3 | `mergeWorkCatalogStore` (LWW `updatedAt`) |
+| `kw-wgdom-work-bundles` | `WorkBundleStore` v3 | `mergeWorkBundleStore` (LWW) |
+| `kw-wgdom-cost-catalog` | `WgdomCostCatalogStore` v1 | **legacy** — bez zmian w P1 |
+
+**Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks.
+
+**Seed:** `docs/work-catalog/SEED-MANIFEST-v1.0.yaml` — 116 robót · 16 branż (`TradeId`).
+
+**Integracja cloud (P1.11):** `DATA_KEYS` + `BOOTSTRAP_DEFERRED_KEYS` w `cloud-sync.ts`; hooki `work-catalog-sync.ts`. **Nie podpięte:** `CloudLoader` / `App.tsx` (P2).
+
+**Testy:** `test-work-catalog-golden.mjs` (1419) · pełny zestaw P1.1–P1.12.
+
+**Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, bez briefu cutover P2.
 
 ---
 

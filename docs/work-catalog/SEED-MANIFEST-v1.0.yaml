@@ -1,0 +1,700 @@
+manifestVersion: "1.0"
+locale: pl-PL
+description: WGDOM Work Catalog Seed Manifest v1.0 — struktura Biblioteki Robót (bez cen)
+works:
+  - id: malowanie-scian-m2
+    tradeId: MALOWANIE
+    name: "Malowanie ścian"
+    unit: m2
+    keywords: [malowanie, scian, farba, sciana]
+    active: true
+  - id: malowanie-sufitow-m2
+    tradeId: MALOWANIE
+    name: "Malowanie sufitów"
+    unit: m2
+    keywords: [malowanie, sufit, farba]
+    active: true
+  - id: gruntowanie-podloza-m2
+    tradeId: MALOWANIE
+    name: "Gruntowanie podłoża"
+    unit: m2
+    keywords: [grunt, gruntowanie, podloze]
+    active: true
+  - id: malowanie-dwukrotne-m2
+    tradeId: MALOWANIE
+    name: "Malowanie dwukrotne"
+    unit: m2
+    keywords: [malowanie, dwukrotne, farba]
+    active: true
+  - id: malowanie-lateksowe-m2
+    tradeId: MALOWANIE
+    name: "Malowanie lateksowe"
+    unit: m2
+    keywords: [malowanie, lateks, farba]
+    active: true
+  - id: malowanie-akrylowe-m2
+    tradeId: MALOWANIE
+    name: "Malowanie akrylowe"
+    unit: m2
+    keywords: [malowanie, akryl, farba]
+    active: true
+  - id: malowanie-elewacji-m2
+    tradeId: MALOWANIE
+    name: "Malowanie elewacji"
+    unit: m2
+    keywords: [malowanie, elewacja, fasada]
+    active: true
+  - id: malowanie-parapetow-mb
+    tradeId: MALOWANIE
+    name: "Malowanie parapetów wewnętrznych"
+    unit: mb
+    keywords: [malowanie, parapet]
+    active: true
+  - id: malowanie-drzwi-szt
+    tradeId: MALOWANIE
+    name: "Malowanie drzwi wewnętrznych"
+    unit: szt
+    keywords: [malowanie, drzwi]
+    active: true
+  - id: malowanie-listew-mb
+    tradeId: MALOWANIE
+    name: "Malowanie listew przypodłogowych"
+    unit: mb
+    keywords: [malowanie, listwa, cokol]
+    active: true
+  - id: szpachlowanie-szlifowanie-m2
+    tradeId: MALOWANIE
+    name: "Szpachlowanie i szlifowanie przed malowaniem"
+    unit: m2
+    keywords: [szpachlowanie, szlifowanie, malowanie]
+    active: true
+  - id: usuwanie-tapety-m2
+    tradeId: MALOWANIE
+    name: "Usuwanie tapety"
+    unit: m2
+    keywords: [tapeta, skuwanie, usuwanie]
+    active: true
+  - id: malowanie-po-gladzi-m2
+    tradeId: MALOWANIE
+    name: "Malowanie na nowo po gładzi"
+    unit: m2
+    keywords: [malowanie, gladz, farba]
+    active: true
+  - id: scianka-dzialowa-gk-m2
+    tradeId: SCIANY_GK
+    name: "Ścianka działowa GK"
+    unit: m2
+    keywords: [gk, scianka, dzialowa, karton]
+    active: true
+  - id: plyta-gk-sciana-m2
+    tradeId: SCIANY_GK
+    name: "Płyta GK na ścianie"
+    unit: m2
+    keywords: [gk, plyta, sciana]
+    active: true
+  - id: sufit-podwieszany-gk-m2
+    tradeId: SCIANY_GK
+    name: "Sufit podwieszany GK"
+    unit: m2
+    keywords: [gk, sufit, podwieszany]
+    active: true
+  - id: gladz-gipsowa-scian-m2
+    tradeId: SCIANY_GK
+    name: "Gładź gipsowa ścian"
+    unit: m2
+    keywords: [gladz, gips, sciana, tynk]
+    active: true
+  - id: gladz-gipsowa-sufit-m2
+    tradeId: SCIANY_GK
+    name: "Gładź gipsowa sufitów"
+    unit: m2
+    keywords: [gladz, gips, sufit]
+    active: true
+  - id: tynk-maszynowy-m2
+    tradeId: SCIANY_GK
+    name: "Tynk maszynowy"
+    unit: m2
+    keywords: [tynk, maszynowy, sciana]
+    active: true
+  - id: szpachlowanie-ubytkow-m2
+    tradeId: SCIANY_GK
+    name: "Szpachlowanie ubytków"
+    unit: m2
+    keywords: [szpachlowanie, ubytek, naprawa]
+    active: true
+  - id: narozniki-alu-mb
+    tradeId: SCIANY_GK
+    name: "Narożniki aluminiowe siatkowe"
+    unit: mb
+    keywords: [naroznik, siatka, gk]
+    active: true
+  - id: otwor-drzwiowy-gk-szt
+    tradeId: SCIANY_GK
+    name: "Otwór drzwiowy w ścianie GK"
+    unit: szt
+    keywords: [otwor, drzwi, gk]
+    active: true
+  - id: wzmocnienie-pod-zabudowe-m2
+    tradeId: SCIANY_GK
+    name: "Wzmocnienie pod zabudowę"
+    unit: m2
+    keywords: [wzmocnienie, gk, zabudowa]
+    active: true
+  - id: punkt-gniazda-szt
+    tradeId: ELEKTRYKA
+    name: "Punkt gniazda wtyczkowego"
+    unit: szt
+    keywords: [gniazdo, elektryka, punkt, instalacja]
+    active: true
+  - id: punkt-oswietleniowy-szt
+    tradeId: ELEKTRYKA
+    name: "Punkt oświetleniowy"
+    unit: szt
+    keywords: [oswietlenie, punkt, lampa]
+    active: true
+  - id: wlacznik-szt
+    tradeId: ELEKTRYKA
+    name: "Włącznik światła"
+    unit: szt
+    keywords: [wlacznik, swiatlo, elektryka]
+    active: true
+  - id: puszka-podtynkowa-szt
+    tradeId: ELEKTRYKA
+    name: "Puszka podtynkowa"
+    unit: szt
+    keywords: [puszka, podtynkowa, elektryka]
+    active: true
+  - id: bruzdowanie-mb
+    tradeId: ELEKTRYKA
+    name: "Brużdowanie pod przewód"
+    unit: mb
+    keywords: [bruzda, bruzdownie, przewod]
+    active: true
+  - id: przewod-w-bruzdzie-mb
+    tradeId: ELEKTRYKA
+    name: "Przewód w bruzdzie"
+    unit: mb
+    keywords: [przewod, kabel, bruzda]
+    active: true
+  - id: rozdzielnica-szt
+    tradeId: ELEKTRYKA
+    name: "Rozdzielnica mieszkaniowa"
+    unit: szt
+    keywords: [rozdzielnica, elektryka, tablica]
+    active: true
+  - id: oprawa-sufitowa-szt
+    tradeId: ELEKTRYKA
+    name: "Montaż oprawy sufitowej"
+    unit: szt
+    keywords: [oprawa, sufit, lampa]
+    active: true
+  - id: oprawa-scienna-szt
+    tradeId: ELEKTRYKA
+    name: "Montaż oprawy ściennej"
+    unit: szt
+    keywords: [oprawa, sciana, lampa]
+    active: true
+  - id: pomiar-instalacji-kpl
+    tradeId: ELEKTRYKA
+    name: "Pomiar instalacji — przygotowanie odbioru"
+    unit: kpl
+    keywords: [pomiar, odbior, elektryka]
+    active: true
+  - id: wymiana-gniazda-szt
+    tradeId: ELEKTRYKA
+    name: "Wymiana gniazda lub włącznika"
+    unit: szt
+    keywords: [wymiana, gniazdo, wlacznik]
+    active: true
+  - id: domofon-szt
+    tradeId: ELEKTRYKA
+    name: "Instalacja domofonu lub dzwonka"
+    unit: szt
+    keywords: [domofon, dzwonek, elektryka]
+    active: true
+  - id: punkt-czerpalny-szt
+    tradeId: HYDRAULIKA
+    name: "Punkt czerpalny (woda)"
+    unit: szt
+    keywords: [woda, punkt, hydraulika, instalacja]
+    active: true
+  - id: punkt-kanalizacyjny-szt
+    tradeId: HYDRAULIKA
+    name: "Punkt kanalizacyjny"
+    unit: szt
+    keywords: [kanalizacja, odplyw, hydraulika]
+    active: true
+  - id: montaz-umywalki-szt
+    tradeId: HYDRAULIKA
+    name: "Montaż umywalki"
+    unit: szt
+    keywords: [umywalka, montaz, hydraulika]
+    active: true
+  - id: montaz-wc-szt
+    tradeId: HYDRAULIKA
+    name: "Montaż WC"
+    unit: szt
+    keywords: [wc, toaleta, montaz, hydraulika]
+    active: true
+  - id: montaz-brodzika-szt
+    tradeId: HYDRAULIKA
+    name: "Montaż brodzika lub wanny"
+    unit: szt
+    keywords: [brodzik, wanna, montaz]
+    active: true
+  - id: bateria-umywalkowa-szt
+    tradeId: HYDRAULIKA
+    name: "Montaż baterii umywalkowej"
+    unit: szt
+    keywords: [bateria, umywalka, hydraulika]
+    active: true
+  - id: bateria-prysznicowa-szt
+    tradeId: HYDRAULIKA
+    name: "Montaż baterii prysznicowej"
+    unit: szt
+    keywords: [bateria, prysznic, hydraulika]
+    active: true
+  - id: odplyw-liniowy-szt
+    tradeId: HYDRAULIKA
+    name: "Instalacja odpływu liniowego"
+    unit: szt
+    keywords: [odplyw, liniowy, hydraulika]
+    active: true
+  - id: podlaczenie-pralki-szt
+    tradeId: HYDRAULIKA
+    name: "Podłączenie pralki lub zmywarki"
+    unit: szt
+    keywords: [pralka, zmywarka, podlaczenie]
+    active: true
+  - id: proba-szczelnosci-kpl
+    tradeId: HYDRAULIKA
+    name: "Próba szczelności instalacji"
+    unit: kpl
+    keywords: [proba, szczelnosc, hydraulika]
+    active: true
+  - id: odpowietrzenie-hydraulika-kpl
+    tradeId: HYDRAULIKA
+    name: "Odpowietrzenie instalacji wodnej"
+    unit: kpl
+    keywords: [odpowietrzenie, woda, hydraulika]
+    active: true
+  - id: demontaz-posadzki-m2
+    tradeId: PODLOGI
+    name: "Demontaż posadzki"
+    unit: m2
+    keywords: [demontaz, posadzka, podloga]
+    active: true
+  - id: wyrownanie-podlogi-m2
+    tradeId: PODLOGI
+    name: "Wyrównanie podłoża samopoziomujące"
+    unit: m2
+    keywords: [samopoziom, wyrownanie, podloga]
+    active: true
+  - id: plytki-podlogowe-m2
+    tradeId: PODLOGI
+    name: "Układanie płytek podłogowych"
+    unit: m2
+    keywords: [plytka, podloga, gres]
+    active: true
+  - id: gres-podlogowy-m2
+    tradeId: PODLOGI
+    name: "Układanie gresu"
+    unit: m2
+    keywords: [gres, podloga, plytka]
+    active: true
+  - id: panel-laminowany-m2
+    tradeId: PODLOGI
+    name: "Układanie paneli laminowanych"
+    unit: m2
+    keywords: [panel, laminat, podloga]
+    active: true
+  - id: panel-winylowy-m2
+    tradeId: PODLOGI
+    name: "Układanie paneli winylowych (LVT)"
+    unit: m2
+    keywords: [winyl, lvt, podloga]
+    active: true
+  - id: parkiet-m2
+    tradeId: PODLOGI
+    name: "Układanie parkietu"
+    unit: m2
+    keywords: [parkiet, podloga, drewno]
+    active: true
+  - id: listwy-przypodlogowe-mb
+    tradeId: PODLOGI
+    name: "Montaż listew przypodłogowych"
+    unit: mb
+    keywords: [listwa, cokol, podloga]
+    active: true
+  - id: czyszczenie-fug-m2
+    tradeId: PODLOGI
+    name: "Czyszczenie i zabezpieczenie fug"
+    unit: m2
+    keywords: [fuga, czyszczenie, plytka]
+    active: true
+  - id: izolacja-przeciwwilgociowa-m2
+    tradeId: PODLOGI
+    name: "Izolacja przeciwwilgociowa pod płytki"
+    unit: m2
+    keywords: [izolacja, hydro, podloga]
+    active: true
+  - id: hydroizolacja-lazienka-m2
+    tradeId: LAZIENKA
+    name: "Hydroizolacja pod płytki (łazienka)"
+    unit: m2
+    keywords: [hydroizolacja, lazienka, plytka]
+    active: true
+  - id: plytki-scienne-lazienka-m2
+    tradeId: LAZIENKA
+    name: "Układanie płytek ściennych — łazienka"
+    unit: m2
+    keywords: [plytka, sciana, lazienka]
+    active: true
+  - id: plytki-podlogowe-lazienka-m2
+    tradeId: LAZIENKA
+    name: "Układanie płytek podłogowych — łazienka"
+    unit: m2
+    keywords: [plytka, podloga, lazienka]
+    active: true
+  - id: kabina-prysznicowa-szt
+    tradeId: LAZIENKA
+    name: "Montaż kabiny prysznicowej"
+    unit: szt
+    keywords: [kabina, prysznic, lazienka]
+    active: true
+  - id: lustro-lazienkowe-szt
+    tradeId: LAZIENKA
+    name: "Montaż lustra lub szafki łazienkowej"
+    unit: szt
+    keywords: [lustro, szafka, lazienka]
+    active: true
+  - id: silikonowanie-lazienka-mb
+    tradeId: LAZIENKA
+    name: "Silikonowanie narożników — łazienka"
+    unit: mb
+    keywords: [silikon, lazienka, uszczelnienie]
+    active: true
+  - id: grzejnik-lazienkowy-szt
+    tradeId: LAZIENKA
+    name: "Montaż grzejnika łazienkowego"
+    unit: szt
+    keywords: [grzejnik, lazienka, co]
+    active: true
+  - id: remont-lazienki-kpl
+    tradeId: LAZIENKA
+    name: "Kompleksowy remont łazienki (pozycja orientacyjna)"
+    unit: kpl
+    keywords: [lazienka, remont, kompleks]
+    active: true
+  - id: demontaz-drzwi-szt
+    tradeId: DRZWI
+    name: "Demontaż drzwi"
+    unit: szt
+    keywords: [demontaz, drzwi]
+    active: true
+  - id: oscieznica-szt
+    tradeId: DRZWI
+    name: "Montaż ościeżnicy"
+    unit: szt
+    keywords: [oscieznica, drzwi, montaz]
+    active: true
+  - id: skrzydlo-drzwiowe-szt
+    tradeId: DRZWI
+    name: "Montaż skrzydła drzwiowego"
+    unit: szt
+    keywords: [skrzydlo, drzwi, montaz]
+    active: true
+  - id: regulacja-drzwi-szt
+    tradeId: DRZWI
+    name: "Regulacja drzwi"
+    unit: szt
+    keywords: [regulacja, drzwi]
+    active: true
+  - id: zamek-klamka-szt
+    tradeId: DRZWI
+    name: "Wymiana zamka lub klamki"
+    unit: szt
+    keywords: [zamek, klamka, drzwi]
+    active: true
+  - id: poszerzenie-otworu-drzwi-szt
+    tradeId: DRZWI
+    name: "Poszerzenie otworu drzwiowego"
+    unit: szt
+    keywords: [otwor, drzwi, poszerzenie]
+    active: true
+  - id: drzwi-przesuwne-szt
+    tradeId: DRZWI
+    name: "Montaż drzwi przesuwnych"
+    unit: szt
+    keywords: [drzwi, przesuwne, montaz]
+    active: true
+  - id: demontaz-okna-szt
+    tradeId: OKNA
+    name: "Demontaż okna"
+    unit: szt
+    keywords: [demontaz, okno]
+    active: true
+  - id: montaz-okna-pvc-szt
+    tradeId: OKNA
+    name: "Montaż okna PVC"
+    unit: szt
+    keywords: [okno, pvc, montaz]
+    active: true
+  - id: parapet-wewnetrzny-mb
+    tradeId: OKNA
+    name: "Montaż parapetu wewnętrznego"
+    unit: mb
+    keywords: [parapet, wewnetrzny, okno]
+    active: true
+  - id: parapet-zewnetrzny-mb
+    tradeId: OKNA
+    name: "Montaż parapetu zewnętrznego"
+    unit: mb
+    keywords: [parapet, zewnetrzny, okno]
+    active: true
+  - id: uszczelnienie-okna-szt
+    tradeId: OKNA
+    name: "Uszczelnienie okna"
+    unit: szt
+    keywords: [uszczelnienie, okno]
+    active: true
+  - id: regulacja-okna-szt
+    tradeId: OKNA
+    name: "Regulacja okna"
+    unit: szt
+    keywords: [regulacja, okno]
+    active: true
+  - id: rolety-zewnetrzne-szt
+    tradeId: OKNA
+    name: "Montaż rolet zewnętrznych"
+    unit: szt
+    keywords: [roleta, zewnetrzna, okno]
+    active: true
+  - id: grzejnik-plytowy-szt
+    tradeId: OGRZEWANIE
+    name: "Montaż grzejnika płytowego"
+    unit: szt
+    keywords: [grzejnik, co, montaz]
+    active: true
+  - id: podlaczenie-grzejnika-szt
+    tradeId: OGRZEWANIE
+    name: "Podłączenie grzejnika"
+    unit: szt
+    keywords: [grzejnik, podlaczenie, co]
+    active: true
+  - id: zawor-termostatyczny-szt
+    tradeId: OGRZEWANIE
+    name: "Montaż zaworu termostatycznego"
+    unit: szt
+    keywords: [zawor, termostat, co]
+    active: true
+  - id: proba-szczelnosci-co-kpl
+    tradeId: OGRZEWANIE
+    name: "Próba szczelności instalacji CO"
+    unit: kpl
+    keywords: [proba, szczelnosc, co]
+    active: true
+  - id: odpowietrzenie-co-kpl
+    tradeId: OGRZEWANIE
+    name: "Odpowietrzenie instalacji CO"
+    unit: kpl
+    keywords: [odpowietrzenie, co]
+    active: true
+  - id: podlaczenie-kotla-kpl
+    tradeId: OGRZEWANIE
+    name: "Montaż kotła lub przyłącze (orientacyjnie)"
+    unit: kpl
+    keywords: [kociol, co, montaz]
+    active: true
+  - id: instalacja-gazowa-punkt-szt
+    tradeId: OGRZEWANIE
+    name: "Instalacja gazowa punktowa"
+    unit: szt
+    keywords: [gaz, instalacja, punkt]
+    active: true
+  - id: anemostat-szt
+    tradeId: WENTYLACJA
+    name: "Montaż anemostatu"
+    unit: szt
+    keywords: [anemostat, wentylacja]
+    active: true
+  - id: wentylator-lazienkowy-szt
+    tradeId: WENTYLACJA
+    name: "Montaż wentylatora łazienkowego"
+    unit: szt
+    keywords: [wentylator, lazienka, wentylacja]
+    active: true
+  - id: kanal-wentylacyjny-mb
+    tradeId: WENTYLACJA
+    name: "Kanał wentylacyjny flex"
+    unit: mb
+    keywords: [kanal, wentylacja, flex]
+    active: true
+  - id: rekuperator-kpl
+    tradeId: WENTYLACJA
+    name: "Montaż rekuperatora (podstawowy zakres)"
+    unit: kpl
+    keywords: [rekuperator, wentylacja, montaz]
+    active: true
+  - id: kuchnia-modulowa-kpl
+    tradeId: MONTAZ
+    name: "Montaż kuchni modułowej (składowe)"
+    unit: kpl
+    keywords: [kuchnia, modulowa, montaz]
+    active: true
+  - id: zabudowa-agd-szt
+    tradeId: MONTAZ
+    name: "Montaż zabudowy AGD"
+    unit: szt
+    keywords: [agd, zabudowa, montaz]
+    active: true
+  - id: meble-na-wymiar-kpl
+    tradeId: MONTAZ
+    name: "Montaż mebli na wymiar (podstawowy)"
+    unit: kpl
+    keywords: [meble, zabudowa, montaz]
+    active: true
+  - id: karnisz-rolety-mb
+    tradeId: MONTAZ
+    name: "Montaż karnisza lub rolet wewnętrznych"
+    unit: mb
+    keywords: [karnisz, roleta, montaz]
+    active: true
+  - id: malowanie-biura-m2
+    tradeId: BIURA
+    name: "Malowanie biura"
+    unit: m2
+    keywords: [malowanie, biuro, lokal]
+    active: true
+  - id: sufit-gk-biuro-m2
+    tradeId: BIURA
+    name: "Sufit GK — biuro"
+    unit: m2
+    keywords: [gk, sufit, biuro]
+    active: true
+  - id: podloga-biurowa-m2
+    tradeId: BIURA
+    name: "Podłoga techniczna lub wykładzina biurowa"
+    unit: m2
+    keywords: [podloga, biuro, wykladzina]
+    active: true
+  - id: gniazda-biurowe-szt
+    tradeId: BIURA
+    name: "Instalacja punktów sieci / gniazd biurowych"
+    unit: szt
+    keywords: [gniazdo, siec, biuro]
+    active: true
+  - id: sciany-dzialowe-biuro-m2
+    tradeId: BIURA
+    name: "Demontaż i montaż ścian działowych mobilnych"
+    unit: m2
+    keywords: [scianka, dzialowa, biuro]
+    active: true
+  - id: rozbiorka-sciany-m2
+    tradeId: ROZBIORKI
+    name: "Rozbiórka ściany"
+    unit: m2
+    keywords: [rozbior, sciana, demontaz]
+    active: true
+  - id: rozbiorka-posadzki-m2
+    tradeId: ROZBIORKI
+    name: "Rozbiórka posadzki"
+    unit: m2
+    keywords: [rozbior, posadzka, demontaz]
+    active: true
+  - id: demontaz-instalacji-kpl
+    tradeId: ROZBIORKI
+    name: "Demontaż instalacji"
+    unit: kpl
+    keywords: [demontaz, instalacja, rozbior]
+    active: true
+  - id: demontaz-stolarki-szt
+    tradeId: ROZBIORKI
+    name: "Demontaż stolarki"
+    unit: szt
+    keywords: [demontaz, stolarka, okno, drzwi]
+    active: true
+  - id: wykucie-bruzdy-mb
+    tradeId: ROZBIORKI
+    name: "Wykucie bruzd"
+    unit: mb
+    keywords: [bruzda, wykucie, rozbior]
+    active: true
+  - id: wywoz-gruzu-pozycja-m3
+    tradeId: ROZBIORKI
+    name: "Wywóz gruzu (pozycja orientacyjna)"
+    unit: m3
+    keywords: [gruz, wywoz, rozbior]
+    active: true
+  - id: wywoz-gruzu-kontener-kpl
+    tradeId: TRANSPORT
+    name: "Wywóz gruzu — kontener"
+    unit: kpl
+    keywords: [gruz, kontener, transport, wywoz]
+    active: true
+  - id: wywoz-odpadow-m3
+    tradeId: TRANSPORT
+    name: "Wywóz odpadów budowlanych"
+    unit: m3
+    keywords: [odpady, wywoz, transport]
+    active: true
+  - id: transport-materialow-kpl
+    tradeId: TRANSPORT
+    name: "Transport materiałów na kondygnację"
+    unit: kpl
+    keywords: [transport, material, wyniesienie]
+    active: true
+  - id: utylizacja-odpadow-kpl
+    tradeId: TRANSPORT
+    name: "Utylizacja odpadów"
+    unit: kpl
+    keywords: [utylizacja, odpady, transport]
+    active: true
+  - id: zabezpieczenie-mieszkania-kpl
+    tradeId: PRZYGOTOWANIE
+    name: "Zabezpieczenie mieszkania folią"
+    unit: kpl
+    keywords: [zabezpieczenie, folia, przygotowanie]
+    active: true
+  - id: sprzatanie-po-remoncie-m2
+    tradeId: PRZYGOTOWANIE
+    name: "Sprzątanie po remoncie"
+    unit: m2
+    keywords: [sprzatanie, porzadek, remont]
+    active: true
+  - id: przygotowanie-stanowiska-kpl
+    tradeId: PRZYGOTOWANIE
+    name: "Przygotowanie stanowiska robót"
+    unit: kpl
+    keywords: [przygotowanie, stanowisko, organizacja]
+    active: true
+  - id: przebicie-otworu-szt
+    tradeId: PRZYGOTOWANIE
+    name: "Przebicie otworu w ścianie"
+    unit: szt
+    keywords: [przebicie, otwor, sciana]
+    active: true
+  - id: zamurowanie-otworu-szt
+    tradeId: PRZYGOTOWANIE
+    name: "Zamurowanie otworu"
+    unit: szt
+    keywords: [zamurowanie, otwor, sciana]
+    active: true
+  - id: prace-porzadkowe-rbh
+    tradeId: PRZYGOTOWANIE
+    name: "Prace porządkowe bieżące"
+    unit: rbh
+    keywords: [porzadek, sprzatanie, prace]
+    active: true
+  - id: robota-niestandardowa-szt
+    tradeId: POZOSTALE
+    name: "Robota niestandardowa (własna)"
+    unit: szt
+    keywords: [niestandardowa, wlasna, robota]
+    active: true
+  - id: pozycja-niesklasyfikowana-szt
+    tradeId: POZOSTALE
+    name: "Pozycja niesklasyfikowana (fallback)"
+    unit: szt
+    keywords: [niesklasyfikowana, fallback, pozostale]
+    active: true

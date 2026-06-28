@@ -97,6 +97,18 @@ import {
   normalizeWmDrukAuditLog,
   WM_DRUK_AUDIT_LOG_KEY,
 } from "@/lib/wm-druk-audit";
+import {
+  WORK_BUNDLE_STORAGE_KEY,
+  defaultWorkBundleStore,
+  mergeWorkBundleStore,
+  normalizeWorkBundleStore,
+} from "@/lib/work-catalog/work-bundle-store";
+import {
+  WORK_CATALOG_STORAGE_KEY,
+  defaultWorkCatalogStoreForPersist,
+  mergeWorkCatalogStore,
+  normalizeWorkCatalogStore,
+} from "@/lib/work-catalog/work-catalog-store";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -128,6 +140,8 @@ export const DATA_KEYS = [
   "kw-tender-calibration",
   "kw-tender-price-overrides",
   "kw-wgdom-cost-catalog-history",
+  "kw-wgdom-work-catalog",
+  "kw-wgdom-work-bundles",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -153,6 +167,8 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tender-calibration",
   "kw-tender-price-overrides",
   "kw-wgdom-cost-catalog-history",
+  "kw-wgdom-work-catalog",
+  "kw-wgdom-work-bundles",
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
@@ -1708,6 +1724,10 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDER_PRICE_OVERRIDES_KEY, local, cloud);
     case "kw-wgdom-cost-catalog-history":
       return mergeTenderDataKey(WGDOM_COST_CATALOG_HISTORY_KEY, local, cloud);
+    case "kw-wgdom-work-catalog":
+      return mergeWorkCatalogStore(local, cloud);
+    case "kw-wgdom-work-bundles":
+      return mergeWorkBundleStore(local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
@@ -1910,6 +1930,8 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === "kw-weekFrom" || key === "kw-weekTo") return "";
   if (key === TENDERS_COMPANY_PROFILE_KEY) return {};
   if (key === WGDOM_COST_CATALOG_KEY) return defaultWgdomCostCatalogStore();
+  if (key === WORK_CATALOG_STORAGE_KEY) return defaultWorkCatalogStoreForPersist();
+  if (key === WORK_BUNDLE_STORAGE_KEY) return defaultWorkBundleStore();
   if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) return defaultUserClassificationDictionaryStore();
   if (key === TENDERS_CUSTOM_KEYWORDS_KEY) {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
@@ -1934,6 +1956,8 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {
     return mergeElectricalMeasurementRegistry(coerced, coerced);
   }
+  if (key === WORK_CATALOG_STORAGE_KEY) return normalizeWorkCatalogStore(coerced);
+  if (key === WORK_BUNDLE_STORAGE_KEY) return normalizeWorkBundleStore(coerced);
   return coerced;
 }
 

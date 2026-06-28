@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-28",
+    version: "2.62.80",
+    label: "Biblioteka Robót v3.0 — fundament P1 (infra)",
+    items: [
+      {
+        type: "improve",
+        text: "Biblioteka Robót i Cennik v3.0 — zamknięcie fundamentu P1.1–P1.12: moduł lib work-catalog, migracja legacy, adapter silnika, persist + cloud KV (kw-wgdom-work-catalog, kw-wgdom-work-bundles), golden tests — bez zmian UI (P2)",
+      },
+    ],
+  },
+  {
     date: "2026-06-27",
     version: "2.62.79",
     label: "Mobile — Roboty drill-in (MV-2)",

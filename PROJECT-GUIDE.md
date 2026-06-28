@@ -22,7 +22,8 @@
 | — | **[`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)** — ★★ kontekst sesji + mapa struktury (2026-06-26) |
 | — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla agentów |
 | — | **[`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md)** — ★★ SSOT Workflow (Hub, CTA, zakładki V4) |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.79) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.80) |
+| — | **[`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md)** — ★★ Biblioteka Robót v3.0 P1 FREEZE |
 | — | **[`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)** — ★★ P1 Audit Hub WM EPIC CLOSED |
 | — | **[`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)** — ★★ P0 Vercel deploy unblock |
 | — | **[`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — POST ZI · WM Druk COMPLETE |
@@ -62,7 +63,17 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 | **Workflow Architecture** | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Prod:** **2.62.79** · commit **`4397eac`** · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
+**Prod:** **2.62.80** · Work Catalog P1 **FOUNDATION CLOSED** · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
+
+### Biblioteka Robót v3.0 (P1 Foundation)
+
+| Element | Wartość |
+|---------|---------|
+| Moduł | `src/lib/work-catalog/` — import `@/lib/work-catalog` |
+| KV | `kw-wgdom-work-catalog`, `kw-wgdom-work-bundles` (legacy `kw-wgdom-cost-catalog` nadal UI) |
+| FREEZE | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md) |
+| Test golden | `npx vite-node scripts/test-work-catalog-golden.mjs` |
+| P2 | UI + cutover — **nie rozpoczęte** |
 
 ---
 
