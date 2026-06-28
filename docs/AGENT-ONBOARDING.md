@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.77** · runtime **`21d4a1b`** · https://www.wgdom.fun · **P1 Audit Hub WM CLOSED**
+> **Prod:** **2.62.79** · commit **`4397eac`** · https://www.wgdom.fun · **Mobile Recovery CLOSED** · P1 Audit Hub WM CLOSED
 
 ---
 
@@ -86,6 +86,21 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `guide` | Zmiany / Instrukcja | `GuideView.tsx` |
 
 Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
+
+### Mobile drill-in (<640px · breakpoint `sm`)
+
+**Epic closeout:** [`SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md) · **prod 2.62.79** · **CLOSED**
+
+| Widok | Plik | Wzorzec |
+|-------|------|---------|
+| **Roboty detal (MV-2)** | `JobsView.tsx` | STREFA A `hidden sm:block` · detal `absolute inset-0 z-40` · **Lista** |
+| Notatki | `OperationalNotesView.tsx` | `mobileDetailOpen` · `hidden md:flex` |
+| Lista płac | `PayrollView.tsx` | `absolute inset-0 z-50 sm:relative` |
+| Schematy WM | `WmPrintSchematicsPanel.tsx` | drill-in overlay |
+
+**Native back:** `registerNativeBackHandler` w `native-app-bridge.ts` — **Capacitor Android**; Safari browser back **nie** zamyka drill-in Roboty (enhancement backlog).
+
+**Nie zmieniaj** wzorca MV-2 bez briefu · smoke SMOKE-03 tender **BLOCKED** ≠ bug prod.
 
 ---
 

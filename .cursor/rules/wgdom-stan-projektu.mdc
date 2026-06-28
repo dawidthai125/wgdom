@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.62.77** (prod) · runtime **`21d4a1b`** · housekeeping **`56c4e2f`**
-- **Prod (`main` / `origin/main`, app):** **2.62.77** · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.79** (prod) · commit **`4397eac`**
+- **Prod (`main` / `origin/main`, app):** **2.62.79** · https://www.wgdom.fun
+- **★★ Mobile Recovery:** **EPIC CLOSED** (2.62.78–79) · [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
 - **★★ P1 Audit Hub WM:** **EPIC CLOSED** (2.62.74–77) · [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 15.6
 - **★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu):** [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md) — Hub · Process Strip · Sticky CTA · zakładki V4
 - **★★ Handoff PDF WM Recovery (CLOSED):** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](../../docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) — TP196–TP198C · `pdf-przedmiar-heuristic.ts` · TP182 123 poz.
@@ -179,6 +180,23 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Kluczowe pliki:** `wm-druk-audit.ts`, `audit-hub/adapters.ts`, `AuditHubView.tsx`, `WmPrintView.tsx`
  
  **Nie** rozszerzać bez świeżego AUDIT · backlog P1.1: `schematic_edited` tylko na polecenie
+ 
+ ---
+ 
+ ## Mobile Recovery — **EPIC CLOSED** (prod `4397eac`, v2.62.79, 2026-06-27)
+ 
+ **Status:** **CLOSED** · prod smoke 7 PASS / 1 BLOCKED · outstanding bugs **NONE**
+ 
+ | Wersja | Commit | Skrót |
+ |---|-----|-----|
+ | 2.62.78 | `78582db` | Mobile UX pack — scroll · drill-in · touch · modals |
+ | 2.62.79 | `4397eac` | Roboty MV-2 — pełnoekranowy drill-in · **Lista** |
+ 
+ **Epic closeout:** [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
+ 
+ **Kluczowe pliki:** `JobsView.tsx` · `mobile.css` · wzorce: `OperationalNotesView.tsx`, `PayrollView.tsx`
+ 
+ **Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · następny EPIC: **P0 Payroll Cloud Recovery**
  
  ---
  

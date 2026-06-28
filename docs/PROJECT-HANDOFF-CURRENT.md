@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-26 (**prod 2.62.77** · P1 Audit Hub WM **EPIC CLOSED** · commit `21d4a1b`)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-27 (**prod 2.62.79** · Mobile Recovery **EPIC CLOSED** · commit `4397eac`)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
@@ -48,6 +48,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Mobile Recovery** | **2.62.78–2.62.79** (`78582db`→`4397eac`) | **CLOSED** · prod smoke 7 PASS / 1 BLOCKED · outstanding bugs **NONE** | § 2b poniżej · `CURRENT-TASK.md` |
 | **Recovery Pack off-site** | **2.62.72** (`6cd8ebe`) | **COMPLETED** · PRODUCTION READY · OFFSITE READY · G7 PASS | § 2a poniżej · pack `WGDOM-RP-2.62.72-20260626` |
 | **Workflow Architecture (V4 Hub)** | **2.62.64–2.62.72** (`6cd8ebe`) | **FINALIZED** · Hub · Process Strip · Sticky CTA · Summary Header · Cleanup P0 · grouped docs G7 | [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) |
 | **Kosztorys Process UX P0** | **2.62.64** (`4056223`) | **CLOSED** · `deriveKosztorysProcessPhase` · 8 faz biznesowych · retry parse | [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a |
@@ -111,7 +112,7 @@
 Dashboard
 Roboty
 Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
-Audit Hub                   ← MVP-1B CLOSED v2.62.41 · **WM Druk audit P1 Etap 1–3 RELEASED** (2.62.74–76) · **Etap 4 NOT STARTED**
+Audit Hub                   ← MVP-1B CLOSED v2.62.41 · **WM Druk audit P1 Etap 1–4 RELEASED** (2.62.74–77) · **EPIC CLOSED**
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 WM Druk (+ Pomiary Elektryczne, **Schematy**, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44 · Schematy v2.62.49
@@ -140,7 +141,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.77       ← P1 Audit Hub WM EPIC CLOSED · commit 21d4a1b · PRODUCTION VERIFIED
+Version (prod):             2.62.79       ← Mobile Recovery EPIC CLOSED · commit 4397eac · PRODUCTION VERIFIED
+Mobile Recovery 2.62.78:    78582db       Mobile UX pack — scroll · drill-in · touch · keyboard
+Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2)
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)
@@ -153,6 +156,7 @@ WM Schematy hotfixy:        2.62.53–55    detached RAP crash · header spaces 
 WM Pomiary UX Upgrade:      2.62.52       detached RAP · katalog edit/delete · Registry Guard
 WM Schematy visual V2:      78f11cd       v2.62.51 — bus-layout-v2 · renderer v5
 AUDIT-HUB-WM-001:           21d4a1b       v2.62.77 EPIC CLOSED — 7 źródeł · wm_druk UI visibility
+Mobile Recovery EPIC:       4397eac       v2.62.79 CLOSED — prod smoke PASS (7/1 BLOCKED)
 WM Schematy visual V1A/B:   c149116       v2.62.50 — backbone · RCD tee · renderer v4
 WM Schematy MVP UI:         (2.62.49)     tab Schematy · kw-electrical-schematics
 P4 WM upload toast:         5cef155       v2.62.48 — resolveWmPrintTemplateUploadToast
@@ -271,8 +275,44 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.72", "commit": "6cd8ebe" } (lub krótszy hash po deploy)
+# oczekiwane: { "version": "2.62.79", "commit": "4397eac" }
 ```
+
+---
+
+## 2b. Mobile Recovery EPIC — **CLOSED** (v2.62.78–2.62.79)
+
+| Pole | Wartość |
+|------|---------|
+| **Version** | **2.62.79** |
+| **Commit** | **`4397eac`** |
+| **Status** | **Production** · **EPIC CLOSED** |
+| **Mobile Recovery** | **Completed** (2.62.78 UX pack + 2.62.79 Jobs drill-in MV-2) |
+| **Verify deploy** | **PASS** |
+| **Production smoke** | **PASS** (7 PASS / 1 BLOCKED) |
+| **Outstanding production bugs** | **NONE** |
+
+**Known blocked test:**
+
+| Test | Status | Reason |
+|------|--------|--------|
+| **SMOKE-03** Tender Details | **BLOCKED** | No production tender available during automated validation |
+
+**Follow-up:** Manual verification when next production tender is available.
+
+**Releases w epic:**
+
+| Wersja | Commit | Zakres |
+|--------|--------|--------|
+| **2.62.78** | `78582db` | Mobile UX pack — scroll · drill-in (Notatki/Schematy/Przetarg) · touch 44px · keyboard/modals |
+| **2.62.79** | `4397eac` | Roboty — pełnoekranowy drill-in · ukrycie KPI/listy · przycisk **Lista** |
+
+**Future backlog (enhancements — nie production defects):**
+
+- Inspector mobile improvements
+- WM Measurements UX improvements
+- WM Catalog drill-in improvements
+- Browser history integration for Jobs drill-in (optional — obecnie **Lista** + Capacitor Android back)
 
 ---
 
@@ -754,6 +794,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
+| **Mobile Recovery** | Mobile UX pack + Jobs drill-in (2.62.78–79) | **CLOSED** (2026-06-27) · smoke 7 PASS / 1 BLOCKED |
 | **Recovery Pack** | Off-site backup v2.62.72 (KV + storage + repo + docs) | **COMPLETED** (2026-06-26) · OFFSITE READY |
 | **P1 Audit Hub WM** | WM Pomiary/Schematy → Audit Hub (`AUDIT-HUB-WM-001`) | **CLOSED** (v2.62.74–77) · epic report: `audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md` |
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
@@ -768,6 +809,8 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
 | P2-F.6+ | investorName w profilu · auto-pakiet referencji | opcjonalnie, na polecenie |
 | P3.7+ | Dalsze usprawnienia listy Przetargów | **OTWARTY** (bez polecenia) |
+| **Mobile (future)** | Inspector mobile UX · WM Pomiary UX · WM Katalog drill-in · Jobs browser history (optional) | **BACKLOG** — enhancements, nie production bugs |
+| **Mobile Certification** | Field validation Pass 1–4 (ios-safari → android-pwa) | **OTWARTY** — osobny program od Mobile Recovery |
 
 ---
 
@@ -873,6 +916,17 @@ Moduł Przetargi: PRODUCTION READY
 P3.0–P3.6 CLOSED · P1 WM CLOSED · P2-H stream CLOSED (H.7 OPEN)
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Inspector 2.1 CLOSED
 Open backlog (na polecenie): P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · P2 Audit Center
+Ready for new GPT / new Cursor agent
+```
+
+**Werdykt closeout (2026-06-27 — Mobile Recovery EPIC · v2.62.79):**
+
+```text
+BASELINE v2.62.79 · COMMIT 4397eac · PRODUCTION VERIFIED
+Mobile Recovery EPIC — CLOSED (2.62.78 UX pack + 2.62.79 Jobs MV-2)
+Production smoke: PASS (7 PASS / 1 BLOCKED — SMOKE-03 tender data)
+Outstanding production bugs: NONE
+Next active epic: P0 Payroll Cloud Recovery (P0.1–P0.4 OPEN)
 Ready for new GPT / new Cursor agent
 ```
 

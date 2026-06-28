@@ -1,8 +1,8 @@
 # W&G DOM — przewodnik ciągłości dla agentów AI
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.62.77** · runtime **`21d4a1b`** · housekeeping **`56c4e2f`** · https://www.wgdom.fun  
-> **Data:** 2026-06-26
+> **Prod:** **2.62.79** · commit **`4397eac`** · https://www.wgdom.fun  
+> **Data:** 2026-06-27
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -24,12 +24,13 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-06-26)
+## 2. Co zrobiliśmy (stan na 2026-06-27)
 
 ### Epici zamknięte (nie rozpoczynaj bez nowego AUDIT + polecenia)
 
 | Epic | Wersja / commit | Status |
 |------|-----------------|--------|
+| **Mobile Recovery** | 2.62.78–79 · `78582db`→`4397eac` | **CLOSED** · smoke 7 PASS / 1 BLOCKED · bugs **NONE** |
 | **P1 Audit Hub WM** | 2.62.74–77 · `b4fde0c`→`21d4a1b` | **CLOSED** — 7 źródeł Hub · `wm_druk` · 10 akcji WM |
 | **Recovery Pack off-site** | 2.62.72 · `6cd8ebe` | **CLOSED** · OFFSITE READY · `WGDOM-RP-2.62.72-20260626` |
 | **Workflow Architecture V4** | 2.62.64–72 | **CLOSED** — Hub, Process Strip, Sticky CTA |
@@ -38,6 +39,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
 | **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
 
+**Epic closeout Mobile Recovery:** [`SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)  
 **Epic closeout P1 Audit Hub WM:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
 **SSOT techniczny wm_druk:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.6**
 
@@ -78,7 +80,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | Na polecenie | Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | Na polecenie | TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
 | Backlog P1.1 | `schematic_edited` (sesja edycji schematu) | OPEN | epic report § 9 |
-| Backlog | P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 | OPEN | `PROJECT-HANDOFF-CURRENT.md` § 11 |
+| Backlog | P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · Mobile Certification Pass 1 | OPEN | `PROJECT-HANDOFF-CURRENT.md` § 11 |
+| Backlog mobile (future) | Inspector UX · WM Pomiary/Katalog · Jobs browser history | enhancements only | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` § 6 |
 
 **Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → oczekiwane `version` = `CHANGELOG[0].version`.
 

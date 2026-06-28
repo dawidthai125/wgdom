@@ -10,10 +10,11 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowego agenta)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.77)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.77)
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.79)
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED · 7 źródeł)
 3w. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md  ← ★★ P1 Audit Hub WM EPIC CLOSED
+3w2. docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md  ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
 3w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED
 3u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 deploy unblock (CLOSED)
 3a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (CLOSED)
@@ -68,6 +69,7 @@
 | **docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md** | **★★ Kosztorys UX P0 CLOSED** (2.62.64) — `deriveKosztorysProcessPhase` · 8 faz · retry |
 | **docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md** | **Discovery dokumentów CLOSED** (2.62.63) — `tender-document-discovery.ts` |
 | **audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md** | **★★ P1 Audit Hub WM EPIC CLOSED** — metryki, timeline, lessons learned |
+| **docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md** | **★★ Mobile Recovery EPIC CLOSED** — 2.62.78–79 · MV-2 Jobs drill-in · smoke |
 | **docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md** | Audyt historyczny **SUPERSEDED** — SSOT techniczny: **ARCHITECTURE § 15.6** |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
 | **docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md** | **★★ P0 Production Unblock** — Vercel BUILD FAILED → 2.62.31 VERIFIED (`d79f7c1` CLOSED) |
@@ -167,8 +169,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.77**) |
-| Prod `main` (app) | **v2.62.77** (`21d4a1b` runtime) · P1 Audit Hub WM **EPIC CLOSED** · housekeeping `56c4e2f` |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.79**) |
+| Prod `main` (app) | **v2.62.79** (`4397eac`) · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED** |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
@@ -455,6 +457,20 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 **Nie zmieniaj bez polecenia:** merge `cloud-sync` EM/schematów · anti-flood `schematic_edited` bez briefu P1.1 · nowe źródła Audit Hub bez AUDIT.
 
 **Backlog P1.1:** `schematic_edited` przy zamknięciu sesji edycji — tylko na polecenie.
+
+---
+
+## 3l2b. Mobile Recovery — UX pack + Jobs drill-in (**CLOSED**, prod `4397eac`, v2.62.79)
+
+- **Epic closeout:** [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
+- **Releasy:** 2.62.78 (`78582db`) scroll/drill-in/touch/modals · 2.62.79 (`4397eac`) Roboty MV-2 pełnoekranowy detal
+- **Kluczowe pliki:** `JobsView.tsx` (`mobileJobDetailOpen`) · `mobile.css` · `modal-scroll-lock.ts` · wzorce: `OperationalNotesView.tsx`, `PayrollView.tsx`, `WmPrintSchematicsPanel.tsx`
+- **Native back:** `native-app-bridge.ts` — Capacitor only; Safari `history.back` ≠ drill-in close
+- **Smoke prod:** 7 PASS / 1 BLOCKED (SMOKE-03 tender seed — nie regresja)
+
+**Nie zmieniaj bez polecenia:** wzorzec MV-2 drill-in Roboty · nie traktuj SMOKE-03 BLOCKED jako bug prod · Mobile Certification = osobny program.
+
+**Backlog:** Inspector mobile · WM Pomiary/Katalog UX · Jobs `history.pushState` — enhancements only.
 
 ---
 

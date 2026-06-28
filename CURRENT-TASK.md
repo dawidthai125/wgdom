@@ -1,16 +1,57 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-26 · **prod 2.62.77** · **PRODUCTION VERIFIED** (`21d4a1b` runtime · housekeeping `56c4e2f`)
+**Ostatnia aktualizacja:** 2026-06-27 · **prod 2.62.79** · Mobile Recovery **EPIC CLOSED**
+
+---
+
+## Mobile Recovery EPIC — **CLOSED** (v2.62.78–2.62.79)
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **COMPLETED** · **EPIC CLOSED** |
+| **Prod** | **2.62.79** · commit **`4397eac`** |
+| **Verify deploy** | **PASS** |
+| **Production smoke** | **PASS** (7 PASS / 1 BLOCKED) |
+| **Outstanding production bugs** | **NONE** |
+| **Releases** | **2.62.78** (`78582db`) Mobile UX pack · **2.62.79** (`4397eac`) Jobs full-screen drill-in (MV-2) |
+
+**Known blocked test (not a defect):**
+
+| Test | Status | Reason |
+|------|--------|--------|
+| **SMOKE-03** Tender Details | **BLOCKED** | Brak przetargu produkcyjnego w runie Playwright — nie regresja |
+
+**Follow-up:** ręczna weryfikacja workspace przetargu przy następnym przetargu produkcyjnym.
+
+**Zakres zamknięty:** scroll/drill-in/touch (2.62.78) · Roboty pełnoekranowy drill-in (2.62.79).
+
+---
+
+## Mobile Certification — FIELD VALIDATION (osobny tor, nie Mobile Recovery)
+
+| Pole | Wartość |
+|------|---------|
+| **Dokumentacja** | **FROZEN** — spec + tracker structure |
+| **Execution phase** | **PASS 1 — iPhone Safari** (`ios-safari`) — **nie rozpoczęty** |
+| **SSOT spec** | [`audit/MOBILE-UX-FIELD-VALIDATION-REPORT.md`](audit/MOBILE-UX-FIELD-VALIDATION-REPORT.md) |
+| **Execution tracker** | [`audit/MOBILE-CERTIFICATION-FIELD-VALIDATION-EXECUTION.md`](audit/MOBILE-CERTIFICATION-FIELD-VALIDATION-EXECUTION.md) |
+| **Progress** | **0 / 4** passes · **0 / 9** MV (all P0) |
+| **Werdykt §16** | Tylko po Completion gate = MET |
+
+**Uwaga:** Mobile Certification ≠ Mobile Recovery EPIC. Recovery **CLOSED**; certyfikacja terenowa pozostaje w backlogu jako osobny program.
+
+---
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.77** |
-| **Commit prod** | **`21d4a1b`** |
-| **Release 2.62.77** | **COMPLETE** |
-| **Poprzedni release** | 2.62.76 (`36718cc`) · Etap 3 Audit Hub WM |
-| **Workflow Cleanup P0** | **RELEASED** (2.62.72) |
+| **Wersja prod** | **2.62.79** |
+| **Commit prod** | **`4397eac`** |
+| **Release 2.62.79** | **COMPLETE** · PRODUCTION VERIFIED |
+| **Release 2.62.78** | **COMPLETE** · Mobile UX pack |
+| **Poprzedni release** | 2.62.77 (`21d4a1b`) · P1 Audit Hub WM Etap 4 |
+| **Mobile Recovery EPIC** | **CLOSED** |
 | **Recovery Pack v2.62.72** | **COMPLETED** · OFFSITE READY |
 
 ---
@@ -25,12 +66,7 @@
 | **4** — UX Audit Hub + docs | 2.62.77 | `21d4a1b` | **RELEASED** |
 
 **SSOT techniczny:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 15.6  
-**Epic closeout:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
-**Handoff historyczny audytu:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) (**SUPERSEDED**)
-
-**Smoke Etap 2 D1:** `scripts/smoke-wm-druk-audit-etap2-d1.mjs` — 10/10 PASS  
-**Smoke Etap 2 akcje:** `scripts/smoke-wm-druk-audit-etap2-actions.mjs` — 7/7 PASS  
-**Smoke Etap 3 S1:** `scripts/smoke-wm-druk-audit-etap3-s1.mjs` — 11/11 PASS
+**Epic closeout:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)
 
 **Backlog P1.1 (na polecenie):** `schematic_edited` przy zamknięciu sesji edycji (anti-flood).
 
@@ -49,8 +85,7 @@
 | **B** | Payroll Guard fail-loud | `9121a84` |
 
 **Release:** SUCCESS · verify `version.json` 2.62.73 · smoke M1/M4 PASS  
-**Raport walidacji:** `audit/P0-PAYROLL-CLOUD-RECOVERY-ETAP1-VALIDATION.md`  
-**Post-release:** residue probe PASS (M4 przywrócony; M1 godziny 5h = zgodne z logiem 18.06)
+**Raport walidacji:** `audit/P0-PAYROLL-CLOUD-RECOVERY-ETAP1-VALIDATION.md`
 
 ---
 
@@ -73,9 +108,33 @@
 
 | EPIC | Status | Następny krok |
 |------|--------|----------------|
-| P0 Payroll Cloud Recovery | **EPIC OPEN** (Etap 1 done) | P0.1–P0.4 backlog — **bez implementacji** bez polecenia |
+| **P0 Payroll Cloud Recovery** | **EPIC OPEN** (Etap 1 done) | P0.1–P0.4 backlog — **bez implementacji** bez polecenia |
 
-**Inne (na polecenie):** Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6 · P1.1 `schematic_edited`
+**Inne (na polecenie):** Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6 · P1.1 `schematic_edited` · Mobile Certification Pass 1
+
+---
+
+## Backlog mobile (future — nie production bugs)
+
+| Temat | Typ | Uwagi |
+|-------|-----|-------|
+| **Inspector mobile improvements** | Enhancement | UX inspektora na telefonie — backlog produktowy |
+| **WM Measurements UX improvements** | Enhancement | Pomiary WM Druk — dalsze usprawnienia drill-in/flow |
+| **WM Catalog drill-in improvements** | Enhancement | Katalog Pomiarów — spójność z Schematy/Notatki |
+| **Browser history integration (Jobs)** | Optional enhancement | `history.pushState` + Safari back dla drill-in Roboty — obecnie **Lista** + Capacitor Android back |
+| **SMOKE-03 Tender workspace** | Manual follow-up | Weryfikacja przy następnym przetargu produkcyjnym (BLOCKED w auto smoke) |
+| **E2E label „Lista” vs „Powrót do listy”** | CI maintenance | Aktualizacja Playwright — nie defect prod |
+
+---
+
+## Historia sesji (2026-06-27)
+
+### Mobile Recovery EPIC — **CLOSED** · release 2.62.79 **COMPLETE**
+
+- Commits `78582db` (2.62.78) + `4397eac` (2.62.79) → push `main` · prod VERIFIED (`version.json` 2.62.79)
+- Production smoke: **7 PASS / 1 BLOCKED** (SMOKE-03 — brak danych testowych przetargu)
+- MV-2: pełnoekranowy drill-in Roboty · ukrycie KPI/listy · przycisk **Lista**
+- **Outstanding production bugs: NONE**
 
 ---
 
@@ -84,29 +143,6 @@
 ### P1 Audit Hub WM Etap 4 — release 2.62.77 **COMPLETE** · **EPIC CLOSED**
 
 - Commit `21d4a1b` → push `main` · prod VERIFIED (`version.json` 2.62.77)
-- UX: filtr `wm_druk` · chip teal · deep link labels · Help · ARCHITECTURE § 15.6
-- Testy: adapters 77/77 · view-model 49/49 · regresja wm-druk 24/24 PASS
-
-### P1 Audit Hub WM Etap 3 — release 2.62.76 **COMPLETE**
-
-- Commit `36718cc` → push `main` · prod VERIFIED (`version.json` 2.62.76)
-- Hooki: `schematic_created` / `measurement_imported` / `schematic_duplicated` / `schematic_deleted` / `pdf_exported`
-- Smoke S1 (11/11) + unit T11 (24/24) PASS
-
-### P1 Audit Hub WM Etap 2 — release 2.62.75 **COMPLETE**
-
-- Commit `c31e1bd` → push `main` · prod VERIFIED (`version.json` 2.62.75)
-- Hooki: `rap_created` / `rap_deleted` / `rap_edited` / `docx_exported` / `zip_exported`
-- Smoke D1 (10/10) + akcje (7/7) PASS
-
-### P1 Audit Hub WM Etap 1 — release 2.62.74
-
-- Commit `b4fde0c` · infra `kw-wm-druk-audit-log` + adapter
-
-### P0 Payroll Etap 1 — release 2.62.73
-
-- Push `9121a84` → prod VERIFIED
-- Housekeeping: smoke scripts `5667bd5` · docs `978d400` (bez zmian runtime)
 
 ### Recovery Pack v2.62.72 — EPIC CLOSE
 
@@ -114,11 +150,6 @@
 |------|---------|
 | **recoveryPackId** | `WGDOM-RP-2.62.72-20260626` |
 | **Baseline commit** | **`6cd8ebe`** |
-| **Git tag** | `wgdom-recovery-pack-2.62.72` |
-
-### Workflow Cleanup P0 + G7 fix (2.62.72)
-
-Cleanup P0 + grouped docs migration — **RELEASED**
 
 ---
 
@@ -133,9 +164,9 @@ Cleanup P0 + grouped docs migration — **RELEASED**
 
 ## Szybki start agenta
 
-1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.77**
-2. WM audit smoke Etap 3: `npx vite-node scripts/smoke-wm-druk-audit-etap3-s1.mjs`
-3. WM audit smoke Etap 2: `npx vite-node scripts/smoke-wm-druk-audit-etap2-d1.mjs`
-4. Audit Hub adapters: `npx vite-node scripts/test-audit-hub-adapters.mjs`
-5. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs` · `node scripts/smoke-prod-bundle-2.62.73.mjs`
+1. `CHANGELOG.md` + `changelog-data.ts` — wersja **2.62.79**
+2. Verify prod: `curl -s https://www.wgdom.fun/version.json` → **2.62.79** / **4397eac**
+3. Mobile smoke (prod): Playwright iPhone 14 @ wgdom.fun · `npm run test:mobile` (shell)
+4. WM audit smoke: `npx vite-node scripts/smoke-wm-druk-audit-etap3-s1.mjs`
+5. Payroll smoke: `node scripts/smoke-prod-payroll-etap1-m1-m4.mjs`
 6. `npm run build`
