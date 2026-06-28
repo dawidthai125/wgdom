@@ -665,6 +665,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
+    if (payrollRosterPushRef.current) return;
+    if (Date.now() < suppressAutoSyncUntilRef.current) return;
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
     try {

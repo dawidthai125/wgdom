@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-28",
+    version: "2.62.81",
+    label: "Lista Płac — P0 fix znikającego składu po „Odśwież skład”",
+    items: [
+      {
+        type: "fix",
+        text: "„Odśwież skład” — opóźniony merge chmury nie kasuje świeżego składu (pull respektuje suppress + anti-leak czyta localStorage)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-payroll-refresh-team-race-p0.mjs T1–T3",
+      },
+    ],
+  },
+  {
+    date: "2026-06-28",
     version: "2.62.80",
     label: "Biblioteka Robót v3.0 — fundament P1 (infra)",
     items: [

@@ -2368,11 +2368,17 @@ export async function computeMergedDataBundle(
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
+  // Anti-leak: pusty skład nowego tygodnia po rolloverze — nie przenoś osób z chmury.
+  // Używamy valuesForMerge (React + localStorage), nie samego snapshotu React — unikamy race po „Odśwież skład”.
+  const payrollSourceForAntiLeak =
+    empIdx >= 0 ? normalizeArrayValue(valuesForMerge[empIdx]) : [];
+  const archiveSourceForAntiLeak =
+    archIdx >= 0 ? normalizeArrayValue(valuesForMerge[archIdx]) : [];
   if (
     empIdx >= 0 &&
     archIdx >= 0 &&
-    normalizeArrayValue(values[empIdx]).length === 0 &&
-    normalizeArrayValue(values[archIdx]).some(
+    payrollSourceForAntiLeak.length === 0 &&
+    archiveSourceForAntiLeak.some(
       (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
     ) &&
     weekEmployeesListRichness(merged[empIdx]) > 0

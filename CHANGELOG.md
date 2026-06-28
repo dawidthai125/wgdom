@@ -2,6 +2,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.80** · **Work Catalog P1 FOUNDATION CLOSED**
 
+## 2.62.81 — Lista Płac P0: skład po „Odśwież skład” nie znika po sync
+
+- **fix:** `pullFromCloudAndMerge` — suppress + payrollRosterPush guard jak auto-sync
+- **fix:** `computeMergedDataBundle` anti-leak — `valuesForMerge` zamiast stale React snapshot
+- **test:** `test-payroll-refresh-team-race-p0.mjs` T1–T3
+
 ## 2.62.80 — Biblioteka Robót v3.0 fundament P1 (infra)
 
 - **improve:** `src/lib/work-catalog/` P1.1–P1.12 · seed 116 robót · migracja · adapter · stores · cloud-sync KV · golden 1419 · FREEZE v1.0 — **bez UI** (P2)
