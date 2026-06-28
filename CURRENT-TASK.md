@@ -9,7 +9,7 @@
 | Pole | Wartość |
 |------|---------|
 | **Status** | **P1 COMPLETE** · **FOUNDATION READY** · **P2 nie rozpoczęte** |
-| **Wersja** | **2.62.80** |
+| **Wersja** | **2.62.80** · commit **`fe540b0`** · **PRODUCTION VERIFIED** |
 | **Zakres** | `src/lib/work-catalog/` P1.1–P1.12 · cloud KV · golden · **bez UI** |
 | **FREEZE** | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md) |
 | **Raport** | [`audit/P1-FOUNDATION-RELEASE-REPORT.md`](audit/P1-FOUNDATION-RELEASE-REPORT.md) |

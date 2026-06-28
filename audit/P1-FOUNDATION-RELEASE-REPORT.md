@@ -48,8 +48,8 @@ Jeden spójny bundle work-catalog P1 · build PASS · golden PASS · &lt;15 plik
 | Pole | Wartość |
 |------|---------|
 | Commit message | `feat(work-catalog): complete foundation P1` |
-| Commit | *(po push)* |
-| Branch | `main` |
+| Commit | **`fe540b0`** |
+| Branch | `main` · pushed |
 
 ---
 
@@ -66,8 +66,8 @@ Jeden spójny bundle work-catalog P1 · build PASS · golden PASS · &lt;15 plik
 
 | Check | Wynik |
 |-------|-------|
-| `version.json` | *(po verify deploy)* |
-| Prod bundle smoke | *(po verify deploy)* |
+| `version.json` | **2.62.80** · commit `fe540b0` — **PRODUCTION VERIFIED** |
+| Prod smoke (index 200 + version) | **PASS** |
 
 ---
 

@@ -142,7 +142,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.80       ← Work Catalog P1 FOUNDATION CLOSED · infra lib · bez UI
+Version (prod):             2.62.80       ← Work Catalog P1 FOUNDATION CLOSED · commit fe540b0 · PRODUCTION VERIFIED
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
