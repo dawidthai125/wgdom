@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.97",
+    label: "NG-02.1B — Pipeline Lifecycle Stabilization",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — auto discovery ponawia skan przy pustym settled (0 załączników); koniec rozjazdu pipeline vs „Odśwież BZP”",
+      },
+      {
+        type: "fix",
+        text: "Heavy Parse — naprawa deadlock inflight po przełączeniu zakładek; retry heavy nie resetuje discovery",
+      },
+      {
+        type: "improve",
+        text: "SSOT runTenderFullDocumentDiscovery — jedna ścieżka: bootstrap · Odśwież BZP · Szukaj u zamawiającego · rescan monitora",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.96",
     label: "NG-02.1A — Unified Attachment Gate",
     items: [

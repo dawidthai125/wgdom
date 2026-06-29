@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.97 — NG-02.1B Pipeline Lifecycle Stabilization
+
+- **fix:** auto discovery ponawia skan przy settled-empty (0 załączników) — zgodność z „Odśwież BZP”
+- **fix:** heavy parse inflight deadlock po abort effect; retry heavy bez resetu discovery
+- **improve:** `runTenderFullDocumentDiscovery` SSOT — bootstrap · manual · change-monitor rescan
+
 ## 2.62.96 — NG-02.1A Unified Attachment Gate
 
 - **fix:** Heavy Parse startuje przy external-only (SmartPZP/BIP) — koniec fałszywego e5 bez workera

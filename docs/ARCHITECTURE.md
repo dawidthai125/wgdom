@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02.1A Unified Attachment Gate** · v2.62.96)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02.1B Pipeline Lifecycle Stabilization** · v2.62.97)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1789,6 +1789,28 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Nie zmienia:** parsery · merge · Trust Layer · Cloud Sync · Pricing · Workflow UI.
 
 **Test:** `npx vite-node scripts/test-unified-attachment-gate.mjs` · regresja pipeline + bootstrap + SmartPZP.
+
+---
+
+### 12.1.25 NG-02.1B — Pipeline Lifecycle Stabilization (v2.62.97)
+
+**Status:** **CLOSED** — jeden SSOT discovery orchestrator; heavy inflight lifecycle; discovery vs pipeline bootstrap phase.
+
+| Element | Plik | Rola |
+|---------|------|------|
+| **SSOT discovery** | `tender-full-document-discovery.ts` | `runTenderFullDocumentDiscovery` — bootstrap · manual · rescan |
+| **Policy** | `resolveDiscoveryForcePolicy` · `shouldRetryEmptyDiscovery` | auto ponawia settled-empty (0 załączników) |
+| **Retry scopes** | `tender-pipeline-retry.ts` | `heavy` \| `discovery` \| `full` |
+| **DEV telemetry** | `tender-pipeline-discovery-snapshot.ts` | ring buffer snapshotów discovery (DEV only) |
+| **Bootstrap** | `useTenderDocumentsBootstrap.ts` | `discoveryCompletedIds` ≠ `pipelineBootstrapCompletedIds` |
+| **Heavy** | `useTenderDossierHeavyLazy.ts` | cleanup inflight w abort; zwężone deps |
+| **UI** | `TenderDetailPanel.tsx` | cienkie handlery → orchestrator + toasty |
+
+**Modes:** `auto` (pipeline) · `manual` (Odśwież BZP / Szukaj u zamawiającego) · `rescan` (change-monitor).
+
+**Nie zmienia:** parsery · merge · Unified Attachment Gate · Trust · Pricing · Cloud Sync.
+
+**Test:** `test-tender-full-document-discovery.mjs` · `test-tender-dossier-heavy-lifecycle.mjs` · regresja NG-02 + bootstrap + gate.
 
 ---
 

@@ -6,8 +6,8 @@ import type { TenderBzpDocument, TenderPipelineItem } from "@/lib/tenders-bzp";
 import { isActionableTender } from "@/lib/tenders-bzp";
 import {
   canRunDocumentDiscovery,
-  runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
+import { runTenderFullDocumentDiscovery } from "@/lib/tender-pipeline/tender-full-document-discovery";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { isQaDocumentFilename, processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 
@@ -346,21 +346,22 @@ export async function rescanPipelineDocumentChanges(
   for (const item of candidates) {
     try {
       if (!canRunDocumentDiscovery(item)) continue;
-      const { docs, patch, ran } = await runTenderDocumentDiscovery(item, { force: true });
-      if (!ran) continue;
-      const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
-      const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
-      const totalNew = newEvents.length + newQaEvents.length;
+      const result = await runTenderFullDocumentDiscovery(item, {
+        mode: "rescan",
+        includeExternal: false,
+        prefetchNotice: false,
+      });
+      if (!result.meta.bzpRan) continue;
+      const docs = result.mergedItem.bzpDocuments ?? [];
+      const totalNew = result.meta.changeEventCount + result.meta.qaEventCount;
       if (totalNew > 0 || docs.length !== (item.bzpDocuments?.length ?? 0)) {
         updates.set(item.id, {
           ...item,
-          ...patch,
-          changeMonitor,
-          qaMonitor,
+          ...result.patch,
         });
         newEventCount += totalNew;
-      } else {
-        updates.set(item.id, { ...item, changeMonitor, qaMonitor });
+      } else if (result.patch.changeMonitor) {
+        updates.set(item.id, { ...item, ...result.patch });
       }
     } catch {
       /* best-effort */

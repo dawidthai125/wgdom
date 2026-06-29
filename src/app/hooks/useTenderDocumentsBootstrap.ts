@@ -1,5 +1,5 @@
 /**
- * Auto-bootstrap notice HTML + bzpDocuments + light SWZ + dossier shell.
+ * Auto-bootstrap notice HTML + discovery (SSOT orchestrator) + light SWZ + dossier shell.
  * SSOT mount: TenderDetailPage (NG-02 useTenderPipelineRuntime).
  */
 
@@ -13,28 +13,40 @@ import {
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle } from "@/lib/tenders-bzp-brief";
 import { analyzeSwzFromNoticeHtmlOnly, tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
-import { buildExternalDiscoveryResult } from "@/lib/tender-external-discovery-apply";
-import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
-import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import {
   canRunDocumentDiscovery,
   documentDiscoveryBootstrapKey,
   isDocumentDiscoverySettled,
-  runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
+import { runTenderFullDocumentDiscovery, isExternalDiscoverySettled } from "@/lib/tender-pipeline/tender-full-document-discovery";
 
-/** Ukończony bootstrap — nie powtarzaj (sukces). */
-const bootstrapCompletedIds = new Set<string>();
+/** Discovery phase ukończona — nie powtarzaj orchestratora. */
+const discoveryCompletedIds = new Set<string>();
+/** Pełny bootstrap (heavy lub brak załączników) — nie powtarzaj hook effect. */
+const pipelineBootstrapCompletedIds = new Set<string>();
 /** Trwająca próba — blokuj równoległe duplikaty. */
 const bootstrapInflightIds = new Set<string>();
 
+export function isTenderDiscoveryCompleted(itemId: string): boolean {
+  return discoveryCompletedIds.has(itemId);
+}
+
 export function isTenderDocumentsBootstrapCompleted(itemId: string): boolean {
-  return bootstrapCompletedIds.has(itemId);
+  return pipelineBootstrapCompletedIds.has(itemId);
+}
+
+export function resetDiscoveryPhaseForItem(itemId: string): void {
+  discoveryCompletedIds.delete(itemId);
+}
+
+export function resetPipelineBootstrapForItem(itemId: string): void {
+  pipelineBootstrapCompletedIds.delete(itemId);
 }
 
 export function resetTenderDocumentsBootstrapForItem(itemId: string): void {
-  bootstrapCompletedIds.delete(itemId);
+  discoveryCompletedIds.delete(itemId);
+  pipelineBootstrapCompletedIds.delete(itemId);
   bootstrapInflightIds.delete(itemId);
 }
 
@@ -50,9 +62,18 @@ const defaultDeps: TenderDocumentsBootstrapDeps = {
   discoverExternalTenderDocs,
 };
 
-function shouldMarkBootstrapCompleted(item: TenderPipelineItem): boolean {
+function shouldMarkDiscoveryCompleted(item: TenderPipelineItem): boolean {
   if (!item.tenderId?.trim()) return true;
   if (!isDocumentDiscoverySettled(item)) return false;
+  const gate = deriveUnifiedAttachmentGate(item);
+  if (gate.totalAttachmentCount > 0) return true;
+  if (!canRunDocumentDiscovery(item)) return true;
+  return isExternalDiscoverySettled(item);
+}
+
+function shouldMarkPipelineBootstrapCompleted(item: TenderPipelineItem): boolean {
+  if (!item.tenderId?.trim()) return true;
+  if (!shouldMarkDiscoveryCompleted(item)) return false;
   const gate = deriveUnifiedAttachmentGate(item);
   if (!gate.canStartHeavyParse && gate.totalAttachmentCount === 0) return true;
   return tenderDossierHeavyParseDone(item.tenderDossier);
@@ -60,8 +81,14 @@ function shouldMarkBootstrapCompleted(item: TenderPipelineItem): boolean {
 
 /**
  * Jedna próba bootstrap dokumentów.
- * Guard completed ustawiany dopiero po sukcesie; przy błędzie sieci — retry możliwy (remount / tab).
+ * Discovery przez runTenderFullDocumentDiscovery (SSOT).
  */
+export function tryMarkPipelineBootstrapCompleted(item: TenderPipelineItem): void {
+  if (shouldMarkPipelineBootstrapCompleted(item)) {
+    pipelineBootstrapCompletedIds.add(item.id);
+  }
+}
+
 export async function attemptTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
@@ -78,7 +105,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   } = opts;
   const deps = { ...defaultDeps, ...depsOverride };
 
-  if (bootstrapCompletedIds.has(item.id)) {
+  if (pipelineBootstrapCompletedIds.has(item.id)) {
     return { ok: true };
   }
   if (bootstrapInflightIds.has(item.id)) {
@@ -89,83 +116,31 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   try {
     const patch: Partial<TenderPipelineItem> = {};
     let html = item.noticeHtml ?? null;
-    let docs = item.bzpDocuments ?? [];
 
-    if (item.noticeNumber && !html) {
-      const det = await deps.fetchTenderNoticeDetails(item.noticeNumber);
-      if (!isCancelled()) {
-        patch.tenderState = det.tenderState;
-        patch.noticeHtml = det.htmlBody;
-        patch.noticeHtmlFetchedAt = new Date().toISOString();
-        html = det.htmlBody;
-      }
-    }
-
-    const mergedForDiscovery: TenderPipelineItem = { ...item, ...patch };
-    if (mergedForDiscovery.tenderId && !(mergedForDiscovery.bzpDocuments?.length)) {
-      const discovery = await runTenderDocumentDiscovery(mergedForDiscovery, {
-        fetchDocuments: (input) => deps.fetchTenderDocuments(input),
-      });
-      if (!isCancelled() && discovery.ran) {
-        Object.assign(patch, discovery.patch);
-        docs = discovery.docs;
-      }
-    }
-
-    if (!isCancelled() && patch.bzpDocuments) {
-      const merged = { ...item, ...patch };
-      const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
-        merged,
-        { documents: patch.bzpDocuments as typeof docs },
-      );
-      const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(
-        merged,
-        { documents: patch.bzpDocuments as typeof docs },
-      );
-      patch.changeMonitor = changeMonitor;
-      patch.qaMonitor = qaMonitor;
-      const totalNew = newEvents.length + newQaEvents.length;
-      if (totalNew > 0) {
-        toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
-      }
-    }
-    if (
-      !isCancelled()
-      && item.tenderId
-      && docs.length === 0
-      && !item.externalDocDiscovery?.builtAt
-      && (html ?? item.noticeHtml)
-    ) {
+    if (!discoveryCompletedIds.has(item.id)) {
+      onExternalRunning?.(true);
       try {
-        onExternalRunning?.(true);
-        const discovery = await deps.discoverExternalTenderDocs({
-          tenderId: item.tenderId,
-          noticeHtml: html ?? item.noticeHtml,
-          organizationName: item.organizationName,
-          priorityBuyerId: item.priorityBuyerId,
-          title: item.title,
-          bzpNumber: item.bzpNumber,
+        const discovery = await runTenderFullDocumentDiscovery(item, {
+          mode: "auto",
+          prefetchNotice: true,
+          includeExternal: true,
+          isCancelled,
+          deps,
         });
         if (!isCancelled()) {
-          if (discovery.files.length > 0) {
-            const mergedBase = { ...item, ...patch };
-            const { patch: extPatch, newEventCount } = await buildExternalDiscoveryResult(
-              mergedBase,
-              discovery,
-            );
-            Object.assign(patch, extPatch);
-            if (newEventCount > 0) {
-              toast.warning(`Wykryto ${newEventCount} zmian${newEventCount === 1 ? "ę" : "y"} w dokumentacji`);
-            }
-          } else {
-            patch.externalDocDiscovery = discovery;
+          Object.assign(patch, discovery.patch);
+          html = patch.noticeHtml ?? item.noticeHtml ?? null;
+          const totalNew = discovery.meta.changeEventCount + discovery.meta.qaEventCount
+            + discovery.meta.externalNewEventCount;
+          if (totalNew > 0) {
+            toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
           }
         }
-      } catch { /* auto external discover best-effort */ }
-      finally {
+      } finally {
         if (!isCancelled()) onExternalRunning?.(false);
       }
     }
+
     let swz = item.swzAnalysis ?? null;
     if (!swz && !isCancelled() && html) {
       const lightSwz = analyzeSwzFromNoticeHtmlOnly(html, item.ourEstimatePln ?? null);
@@ -193,13 +168,17 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 
     if (!isCancelled()) {
       const merged = { ...item, ...patch };
-      if (shouldMarkBootstrapCompleted(merged)) {
-        bootstrapCompletedIds.add(item.id);
+      if (shouldMarkDiscoveryCompleted(merged)) {
+        discoveryCompletedIds.add(item.id);
+      }
+      if (shouldMarkPipelineBootstrapCompleted(merged)) {
+        pipelineBootstrapCompletedIds.add(item.id);
       }
     }
     return { ok: true };
   } catch {
-    bootstrapCompletedIds.delete(item.id);
+    discoveryCompletedIds.delete(item.id);
+    pipelineBootstrapCompletedIds.delete(item.id);
     return { ok: false };
   } finally {
     bootstrapInflightIds.delete(item.id);
@@ -209,9 +188,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 export function useTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
-  /** false = nie uruchamiaj. Domyślnie true (NG-02). */
   enabled?: boolean;
-  /** Inkrementuj aby wymusić retry (NG-02-F). */
   retryNonce?: number;
   onExternalRunning?: (running: boolean) => void;
 }): { autoRunning: boolean } {
@@ -229,7 +206,7 @@ export function useTenderDocumentsBootstrap(opts: {
 
   useEffect(() => {
     if (!enabled) return;
-    if (bootstrapCompletedIds.has(item.id)) return;
+    if (pipelineBootstrapCompletedIds.has(item.id)) return;
 
     let cancelled = false;
     setAutoRunning(true);
@@ -245,22 +222,18 @@ export function useTenderDocumentsBootstrap(opts: {
     return () => { cancelled = true; };
   }, [
     enabled,
+    item.id,
     bootstrapKey,
-    item.documentsFetchedAt,
-    item.bzpDocuments?.length,
-    item.tenderDossier?.parserVersion,
-    item.tenderDossier?.scanSummary?.parsedAt,
     retryNonce,
   ]);
 
   return { autoRunning };
 }
 
-/** Test-only reset — nie używać w prod UI. */
 export function resetTenderDocumentsBootstrapForTests(): void {
-  bootstrapCompletedIds.clear();
+  discoveryCompletedIds.clear();
+  pipelineBootstrapCompletedIds.clear();
   bootstrapInflightIds.clear();
 }
 
-/** Test-only — eksport SSOT gate. */
 export { canRunDocumentDiscovery, isDocumentDiscoverySettled };

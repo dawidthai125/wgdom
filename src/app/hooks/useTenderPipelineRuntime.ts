@@ -20,8 +20,9 @@ import {
   recordPipelineTimelineEvent,
   resetPipelineTimelineForTests,
 } from "@/lib/tender-pipeline/tender-pipeline-timeline";
+import { retryTenderPipelinePhase } from "@/lib/tender-pipeline/tender-pipeline-retry";
 import {
-  resetTenderDocumentsBootstrapForItem,
+  tryMarkPipelineBootstrapCompleted,
   resetTenderDocumentsBootstrapForTests,
   useTenderDocumentsBootstrap,
 } from "@/app/hooks/useTenderDocumentsBootstrap";
@@ -48,7 +49,6 @@ export function useTenderPipelineRuntime(opts: {
   } = opts;
 
   const [externalRunning, setExternalRunning] = useState(false);
-  const [bootstrapRetryNonce, setBootstrapRetryNonce] = useState(0);
   const [timeline, setTimeline] = useState<PipelineTimelineEntry[]>(() =>
     readPipelineTimeline(item.id),
   );
@@ -75,7 +75,6 @@ export function useTenderPipelineRuntime(opts: {
     item,
     onUpdate,
     enabled,
-    retryNonce: bootstrapRetryNonce,
     onExternalRunning: setExternalRunning,
   });
 
@@ -94,6 +93,17 @@ export function useTenderPipelineRuntime(opts: {
   });
 
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
+
+  useEffect(() => {
+    if (heavyDone) tryMarkPipelineBootstrapCompleted(item);
+  }, [
+    item.id,
+    heavyDone,
+    item.tenderDossier?.parserVersion,
+    item.tenderDossier?.scanSummary?.parsedAt,
+    item.bzpDocuments,
+    item.externalDocDiscovery?.builtAt,
+  ]);
   const pipelineQueued = attachmentGate.canStartHeavyParse
     && !heavyDone
     && !dossierBuilding
@@ -166,8 +176,7 @@ export function useTenderPipelineRuntime(opts: {
   }, [item.id, pipelineState, attachmentGate.fingerprint, attachmentGate.gateStatus, attachmentGate.gateReason]);
 
   const retryDossierParse = useCallback(() => {
-    resetTenderDocumentsBootstrapForItem(item.id);
-    setBootstrapRetryNonce((n) => n + 1);
+    retryTenderPipelinePhase(item.id, "heavy");
     retryHeavyOnly();
   }, [item.id, retryHeavyOnly]);
 

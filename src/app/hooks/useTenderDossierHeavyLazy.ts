@@ -16,6 +16,10 @@ import {
 
 const dossierInflightIds = new Set<string>();
 
+export function clearDossierInflightForItem(itemId: string): void {
+  dossierInflightIds.delete(itemId);
+}
+
 const DOSSIER_PARSE_TELEMETRY_KEY = "wgdom-dossier-parse-telemetry";
 const DOSSIER_PARSE_TELEMETRY_MAX = 50;
 
@@ -26,7 +30,7 @@ export interface DossierParseTelemetryEntry {
   message: string;
 }
 
-/** Telemetria błędów lazy parse — dev console + ring buffer LS (bez PII poza id). */
+/** Telemetria błędów lazy parse — dev console + ring buffer LS (bez PII). */
 export function logDossierParseErrorTelemetry(entry: Omit<DossierParseTelemetryEntry, "at">): void {
   if (typeof window === "undefined") return;
   const row: DossierParseTelemetryEntry = { ...entry, at: new Date().toISOString() };
@@ -68,6 +72,7 @@ export function useTenderDossierHeavyLazy(opts: {
   retryNonce: number;
 } {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
+  const itemId = item.id;
   const [dossierBuilding, setDossierBuilding] = useState(false);
   const [dossierSaving, setDossierSaving] = useState(false);
   const [dossierParseFailed, setDossierParseFailed] = useState(false);
@@ -78,13 +83,13 @@ export function useTenderDossierHeavyLazy(opts: {
   onUpdateRef.current = onUpdate;
 
   const retryDossierParse = useCallback(() => {
-    dossierInflightIds.delete(item.id);
+    clearDossierInflightForItem(itemId);
     pendingSaveRef.current = false;
     setDossierSaving(false);
     setDossierParseFailed(false);
     setParseErrorMessage(null);
     setRetryNonce((n) => n + 1);
-  }, [item.id]);
+  }, [itemId]);
 
   useEffect(() => {
     if (!pendingSaveRef.current) return;
@@ -128,21 +133,28 @@ export function useTenderDossierHeavyLazy(opts: {
     }
     const gate = deriveUnifiedAttachmentGate(item);
     if (!gate.canStartHeavyParse) return;
-    if (dossierInflightIds.has(item.id)) return;
+    if (dossierInflightIds.has(itemId)) return;
+
+    const snapshot = item;
+    const snapshotDocs = heavyParseDocuments;
+    const snapshotNoticeHtml = item.noticeHtml;
+    const snapshotSwz = item.swzAnalysis ?? null;
+    const snapshotDossier = item.tenderDossier ?? null;
+    const snapshotEstimate = item.ourEstimatePln;
 
     let cancelled = false;
-    dossierInflightIds.add(item.id);
+    dossierInflightIds.add(itemId);
     setDossierParseFailed(false);
     setParseErrorMessage(null);
     (async () => {
       setDossierBuilding(true);
       try {
         const built = await buildTenderDossierHeavy({
-          item,
-          docs: heavyParseDocuments,
-          noticeHtml: item.noticeHtml,
-          existingSwz: item.swzAnalysis ?? null,
-          existingDossier: item.tenderDossier ?? null,
+          item: snapshot,
+          docs: snapshotDocs,
+          noticeHtml: snapshotNoticeHtml,
+          existingSwz: snapshotSwz,
+          existingDossier: snapshotDossier,
           athPreviewEnabled,
         });
         if (cancelled) return;
@@ -150,7 +162,7 @@ export function useTenderDossierHeavyLazy(opts: {
           tenderDossier: built.tenderDossier,
         };
         if (built.swzAnalysis) patch.swzAnalysis = built.swzAnalysis;
-        if (built.ourEstimatePln != null && item.ourEstimatePln == null) {
+        if (built.ourEstimatePln != null && snapshotEstimate == null) {
           patch.ourEstimatePln = built.ourEstimatePln;
         }
         pendingSaveRef.current = true;
@@ -162,28 +174,32 @@ export function useTenderDossierHeavyLazy(opts: {
         setDossierParseFailed(true);
         setParseErrorMessage(message);
         logDossierParseErrorTelemetry({
-          tenderId: item.tenderId,
-          itemId: item.id,
+          tenderId: snapshot.tenderId,
+          itemId: snapshot.id,
           message,
         });
       } finally {
-        dossierInflightIds.delete(item.id);
+        dossierInflightIds.delete(itemId);
         if (!cancelled) setDossierBuilding(false);
+        if (cancelled) {
+          pendingSaveRef.current = false;
+          setDossierSaving(false);
+        }
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      dossierInflightIds.delete(itemId);
+    };
   }, [
     enabled,
-    item,
+    itemId,
     gateFingerprint,
     heavyParseDocuments,
     item.tenderDossier?.builtAt,
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.kosztorys?.ok,
     item.tenderDossier?.scanSummary?.parsedAt,
-    item.swzAnalysis,
-    item.ourEstimatePln,
-    item.noticeHtml,
     athPreviewEnabled,
     retryNonce,
   ]);
@@ -201,4 +217,14 @@ export function useTenderDossierHeavyLazy(opts: {
 /** Test-only reset — nie używać w prod UI. */
 export function resetDossierHeavyLazyForTests(): void {
   dossierInflightIds.clear();
+}
+
+/** Test-only — stan inflight workera. */
+export function isDossierInflightForItem(itemId: string): boolean {
+  return dossierInflightIds.has(itemId);
+}
+
+/** Test-only — symulacja zajętego inflight (abort lifecycle). */
+export function markDossierInflightForTest(itemId: string): void {
+  dossierInflightIds.add(itemId);
 }

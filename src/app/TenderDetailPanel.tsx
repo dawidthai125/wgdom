@@ -10,8 +10,8 @@ import {
 } from "@/lib/tenders-bzp";
 import {
   canRunDocumentDiscovery,
-  runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
+import { runTenderFullDocumentDiscovery } from "@/lib/tender-pipeline/tender-full-document-discovery";
 import {
   recordSubmittedBidCalibration,
   syncCalibrationAwardFromItem,
@@ -27,10 +27,8 @@ import {
 } from "@/lib/tender-dossier-pipeline";
 import { existingKosztorysForRebuildPick, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
 import type { TenderPipelineRuntime } from "@/lib/tender-pipeline/tender-pipeline-types";
-import { buildExternalDiscoveryResult } from "@/lib/tender-external-discovery-apply";
 import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
-import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
 import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
@@ -73,8 +71,6 @@ import {
   logPlatformDocumentTelemetry,
   resolveTenderPlatformDocumentStatus,
 } from "@/lib/tender-platform-awareness";
-import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
-import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
@@ -165,40 +161,34 @@ export function TenderDetailPanel({
     [item, loadingDocs, autoRunning],
   );
 
-  const applyExternalDiscovery = useCallback(async (discovery: TenderExternalDocDiscovery) => {
-    const { patch, newEventCount } = await buildExternalDiscoveryResult(item, discovery);
-    onUpdate(patch);
-    if (newEventCount > 0) {
-      toast.warning(`Wykryto ${newEventCount} zmian${newEventCount === 1 ? "ę" : "y"} w dokumentacji`);
-    }
-  }, [item, onUpdate]);
-
   const runExternalDiscovery = useCallback(async () => {
     if (!item.tenderId) return;
     setExternalDiscovering(true);
     try {
-      const discovery = await discoverExternalTenderDocs({
-        tenderId: item.tenderId,
-        noticeHtml: item.noticeHtml,
-        organizationName: item.organizationName,
-        priorityBuyerId: item.priorityBuyerId,
-        title: item.title,
-        bzpNumber: item.bzpNumber,
+      const result = await runTenderFullDocumentDiscovery(item, {
+        mode: "manual",
+        includeExternal: true,
+        skipBzp: true,
+        prefetchNotice: false,
       });
-      await applyExternalDiscovery(discovery);
-      if (discovery.files.length > 0) {
-        toast.success(`Pobrano ${discovery.files.length} plik(ów) u zamawiającego`);
-      } else if (discovery.pageLinks.length > 0) {
+      onUpdate(result.patch);
+      const fileCount = result.meta.externalFileCount;
+      if (fileCount > 0) {
+        toast.success(`Pobrano ${fileCount} plik(ów) u zamawiającego`);
+      } else if (result.patch.externalDocDiscovery?.pageLinks?.length) {
         toast.message("Są linki z ogłoszenia — otwórz ręcznie");
       } else {
         toast.message("Brak dokumentów powiązanych z tym postępowaniem");
+      }
+      if (result.meta.externalNewEventCount > 0) {
+        toast.warning(`Wykryto ${result.meta.externalNewEventCount} zmian${result.meta.externalNewEventCount === 1 ? "ę" : "y"} w dokumentacji`);
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd wyszukiwania dokumentów");
     } finally {
       setExternalDiscovering(false);
     }
-  }, [item, applyExternalDiscovery]);
+  }, [item, onUpdate]);
 
   const pipelineWinRate = computePipelineFunnel(allItems).winRate;
 
@@ -250,23 +240,22 @@ export function TenderDetailPanel({
     }
     setLoadingDocs(true);
     try {
-      const { docs, patch, ran } = await runTenderDocumentDiscovery(item, { force: true });
-      if (!ran) {
+      const result = await runTenderFullDocumentDiscovery(item, {
+        mode: "manual",
+        includeExternal: false,
+        prefetchNotice: false,
+      });
+      if (!result.meta.bzpRan) {
         toast.error("Nie udało się uruchomić pobierania załączników");
         return;
       }
-      const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
-      const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
-      const totalNew = newEvents.length + newQaEvents.length;
-      onUpdate({
-        ...patch,
-        changeMonitor,
-        qaMonitor,
-      });
+      const totalNew = result.meta.changeEventCount + result.meta.qaEventCount;
+      onUpdate(result.patch);
       if (totalNew > 0) {
         toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
       } else {
-        toast.success(docs.length ? `Znaleziono ${docs.length} załączników` : "Brak załączników");
+        const docCount = result.meta.bzpDocCount;
+        toast.success(docCount ? `Znaleziono ${docCount} załączników` : "Brak załączników");
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd pobierania załączników");
