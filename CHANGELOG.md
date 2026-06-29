@@ -2,6 +2,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.82 — Przetargi TP200B (kosztorys fidelity · parser v4)
+
+- **fix:** `CURRENT_PARSER_VERSION` 4 — lazy rescan dossier v3 ze skróconymi snapshotami
+- **fix:** parse loop `discoveryWinnerSource` w `shouldReplaceBestKosztorys`
+- **test:** `test-tp200b-snapshot-fidelity.mjs` T7–T8 · `test-tender-dossier-parser-version.mjs` v3 stale
+
 ## P0 docs — Cloud Sync Incident CLOSED (2026-06-29, bez bump wersji UI)
 
 - **resolved:** P0 sync `Failed to fetch` / `exceed_egress_quota` (402) — **Supabase Pro** upgrade

@@ -79,6 +79,14 @@ console.log("\nT2 outdated parserVersion 1");
   assert(!tenderDossierHeavyParseDone(d), "heavy parse required");
 }
 
+/** T2b — parserVersion 3 (pre-TP200B) → stale po bump v4 */
+console.log("\nT2b parserVersion 3 stale after TP200B v4");
+{
+  const d = dossier(kosztorys("SĘPA.ATH", 302), { parserVersion: 3 });
+  assert(isDossierParserStale(d), "stale v3");
+  assert(!tenderDossierHeavyParseDone(d), "heavy parse required for v3");
+}
+
 /** T3 — parserVersion zgodny → dossier valid */
 console.log("\nT3 current parserVersion");
 {

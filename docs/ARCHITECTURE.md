@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**P0 cloud sync egress audit** · bez bump wersji UI)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**TP200B CLOSED** · parser v4 · v2.62.82)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1556,16 +1556,16 @@ tender-document-resolver.ts
 
 ### 12.1.18 TP200 — Parser Version + Kosztorys Fidelity
 
-**Status:** **TP200A CLOSED** (v2.62.11) · **TP190B/C v3 CLOSED** (2.62.23–2.62.27) · **TP200B PLANNED**  
+**Status:** **TP200 EPIC CLOSED** — TP200A (v2.62.11) · TP190B/C v3 (2.62.23–2.62.27) · **TP200B (2.62.82, parser v4)**  
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) · [`docs/SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)
 
 | ID | Problem | Pliki | Status |
 |----|---------|-------|--------|
 | **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts` | **CLOSED 2.62.11** |
 | **TP190B/C** | Bump `CURRENT_PARSER_VERSION=3`; anti-downgrade; stale rebuild; batch tooling | `tender-dossier-merge.ts`, `tp190c-batch-rebuild.ts` | **CLOSED 2.62.27** |
-| **TP200B** | `rows.slice(0, 40)` vs pełny `rowCount`; parse loop używa `shouldReplaceBestKosztorys` zamiast `pickBetterKosztorys` | `tenders-bzp-brief.ts`, `tender-document-resolver.ts` | PLANNED |
+| **TP200B** | Priced rows cap 500; parse loop `discoveryWinnerSource`; parser v4 lazy rescan truncated snapshots | `tenders-bzp-brief.ts`, `tender-document-resolver.ts`, `tender-dossier-parser-version.ts` | **CLOSED 2.62.82** |
 
-**TP200A mechanizm:** `CURRENT_PARSER_VERSION` (`3` od TP190B) na `tenderDossier.parserVersion` · `isDossierParserStale()` → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy lazy parse · `existingKosztorysForRebuildPick` przy forced rebuild (TP190C-1).
+**TP200A/TP200B mechanizm:** `CURRENT_PARSER_VERSION` (`4` od TP200B) na `tenderDossier.parserVersion` · `isDossierParserStale()` → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy lazy parse · `existingKosztorysForRebuildPick` przy forced rebuild (TP190C-1). **`SNAPSHOT_PRICED_ROWS_CAP=500`** w `athPreviewToSnapshot` · SSOT liczby pozycji: `kosztorysEffectiveRowCount` (`rowCount` przed `rows.length`).
 
 **Test:** `test-tender-dossier-parser-version.mjs` · `test-tp190b-dossier-stability.mjs` · `test-tp190c-stale-rebuild-protection.mjs` · `test-tp190c-batch-rebuild.mjs`.
 
@@ -1592,7 +1592,7 @@ scripts/tp190c-batch-rebuild.mjs
 | `scripts/tp190c-batch-rebuild.mjs` | CLI prod: dry-run / `--write` |
 | `scripts/test-tp190c-batch-rebuild.mjs` | T1–T6 (19 PASS) |
 
-**Kandydat stale:** `tenderDossier.kosztorys.ok === true` AND `parserVersion !== 3`.  
+**Kandydat stale:** `tenderDossier.kosztorys.ok === true` AND `parserVersion !== CURRENT_PARSER_VERSION` (obecnie **4**).  
 **Prod TP190C-3C (2026-06-22):** batch `--write` · **9/9** migrated (6 upgraded, 3 unchanged) · failed **0** · stale **0** (pre-flight 2026-06-23).
 
 **Nie zmieniaj bez polecenia:** domyślny dry-run · izolacja błędów per tender · nie commitować `audit/tp190c3b-*.json`.

@@ -1,18 +1,18 @@
 # SESSION HANDOFF — TP200
 
-> **Status:** **TP200A CLOSED** (2.62.11) · **TP190B/C v3 CLOSED** (2.62.23–2.62.27) · **TP200B PLANNED**  
-> **Baseline prod:** **v2.62.27** · **`df2524f`**  
+> **Status:** **TP200 EPIC CLOSED** — TP200A (2.62.11) · TP190B/C (2.62.27) · **TP200B (2.62.82)**  
+> **Baseline prod:** **v2.62.82** · **`CURRENT_PARSER_VERSION = 4`**  
 > **Powiązane:** [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) · audyt **TP199**
 
 ---
 
-## 1. Problem biznesowy
+## 1. Problem biznesowy (rozwiązany)
 
-Parser PDF odzyskuje pozycje (TP182: ~142 po TP201C-B), ale użytkownik nadal traci wartość przez:
+Parser PDF odzyskuje pozycje (TP182: ~142 po TP201C-B). TP200B domknął utratę wartości przez:
 
-1. ~~**Legacy cache dossier**~~ — **TP200A + TP190B/C CLOSED** (`CURRENT_PARSER_VERSION=3`, lazy rescan, batch tooling)
-2. **ATH snapshot fidelity** — `rowCount=302`, ale `rows.slice(0,40)` w `athPreviewToSnapshot`; wycena `ath_priced` liczy z max 40 wierszy
-3. **Parse loop vs merge SSOT** — `shouldReplaceBestKosztorys` porównuje `rows.length`, nie `effectiveRowCount` / `pickBetterKosztorys`
+1. ~~**Legacy cache dossier**~~ — **TP200A + TP190B/C CLOSED** (`parserVersion`, lazy rescan, batch tooling)
+2. ~~**ATH snapshot fidelity**~~ — **TP200B CLOSED** — `SNAPSHOT_PRICED_ROWS_CAP=500`; `rowCount` = pełny parser output
+3. ~~**Parse loop vs merge SSOT**~~ — **TP200B CLOSED** — `shouldReplaceBestKosztorys` + `pickBetterKosztorys` + `discoveryWinnerSource`
 
 ---
 
@@ -22,7 +22,7 @@ Parser PDF odzyskuje pozycje (TP182: ~142 po TP201C-B), ale użytkownik nadal tr
 |----|-----|----------------|--------|
 | **TP200A** | `parserVersion` + auto-invalidacja / rescan starych dossier | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts` | **CLOSED 2.62.11** |
 | **TP190B/C** | Bump v3, anti-downgrade, stale rebuild, batch tooling | `tender-dossier-merge.ts`, `tp190c-batch-rebuild.ts` | **CLOSED 2.62.27** |
-| **TP200B** | Kosztorys fidelity: `pickBetterKosztorys` w parse loop; rozszerzenie `rows`/catalog | `tender-document-resolver.ts`, `tenders-bzp-brief.ts` | **PLANNED** |
+| **TP200B** | Kosztorys fidelity + parser v4 + parse loop discovery tie-break | `tenders-bzp-brief.ts`, `tender-document-resolver.ts`, `tender-dossier-parser-version.ts` | **CLOSED 2.62.82** |
 
 ---
 
@@ -30,10 +30,9 @@ Parser PDF odzyskuje pozycje (TP182: ~142 po TP201C-B), ale użytkownik nadal tr
 
 | Priorytet | Temat |
 |-----------|--------|
-| **P0** | **TP190C-3C** — batch `--write` 9 stale dossier prod KV |
-| P1 | **TP200B** — ATH rows fidelity + parse loop pickBetter |
 | P1 | smartpzp.pl adapter (discover = stub `[]`) |
 | P1 | PDF pricing bridge — `estimatePln` z catalog quantities |
+| P1 | **PRICE-BRIDGE** — Tender read via `resolveCatalogForEngine` (osobny epic) |
 | P2 | P2-H.7 Edge 7z magic bytes |
 | P3 | PDF OCR dla skanów (`uxCase 3`) |
 
@@ -61,4 +60,4 @@ npm run build
 
 ## 6. Werdykt
 
-**TP200A + TP190: CLOSED.** **Następny epic techniczny: TP200B.** **Następny krok operacyjny: TP190C-3C batch write prod.**
+**TP200 EPIC CLOSED** (TP200A + TP190 stream + **TP200B 2.62.82**). Następny epic Tender: smartpzp / PDF pricing bridge / PRICE-BRIDGE.

@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-29",
+    version: "2.62.82",
+    label: "Przetargi — TP200B kosztorys fidelity (parser v4)",
+    items: [
+      {
+        type: "fix",
+        text: "CURRENT_PARSER_VERSION 4 — lazy rescan dossier v3 ze skróconymi snapshotami (legacy cap 40)",
+      },
+      {
+        type: "fix",
+        text: "Parse loop — discoveryWinnerSource w shouldReplaceBestKosztorys (remis tier + rowCount)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tp200b-snapshot-fidelity.mjs T7–T8 · parser-version v3 stale",
+      },
+    ],
+  },
+  {
     date: "2026-06-28",
     version: "2.62.81",
     label: "Lista Płac — P0 fix znikającego składu po „Odśwież skład”",

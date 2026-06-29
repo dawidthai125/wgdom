@@ -1,6 +1,20 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.81** · **P0 Cloud Sync Incident CLOSED**
+**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.82** (deploy po push) · **TP200B CLOSED**
+
+---
+
+## TP200B — Kosztorys fidelity · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** · parser **v4** · `SNAPSHOT_PRICED_ROWS_CAP=500` |
+| **Wersja** | **2.62.82** |
+| **Zakres** | parse loop discovery tie-break · lazy rescan v3 truncated snapshots |
+| **SSOT** | [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](docs/SESSION-HANDOFF-TP200-PLANNED.md) · ARCHITECTURE §12.1.18 |
+| **Testy** | `test-tp200b-snapshot-fidelity.mjs` · `test-tender-dossier-parser-version.mjs` |
+
+**Następny epic Tender:** smartpzp / PDF pricing bridge / **PRICE-BRIDGE** (osobno).
 
 ---
 

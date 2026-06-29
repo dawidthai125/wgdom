@@ -11,6 +11,10 @@ import {
   mergeTenderDossierByQuality,
   kosztorysEffectiveRowCount,
 } from "../src/lib/tender-dossier-merge.ts";
+import {
+  CURRENT_PARSER_VERSION,
+  isDossierParserStale,
+} from "../src/lib/tender-dossier-parser-version.ts";
 import { mergeTenderPipelineForCloud } from "../src/lib/tenders-sync.ts";
 import { computeTenderBidProposal } from "../src/lib/tenders-bid-calculator.ts";
 
@@ -122,6 +126,41 @@ console.log("\nT5 TP182 PDF target — 123 poz. w snapshot");
   snap.pdfPrzedmiarCase = 1;
   assert(snap.rowCount === 123, "rowCount 123");
   assert(snap.rows.length === 123, "rows.length 123");
+}
+
+console.log("\nT7 discovery tie-break — remis rowCount → discovery winner");
+{
+  const discoverySource = "SEPA-SZARZYŃSKIEGO 65a_P_Scalony.ATH";
+  const other = snapshotFromCount(148, "Przedmiar - Krzywoustego 106_8.pdf");
+  const winner = snapshotFromCount(148, "SEPA-SZARZYŃSKIEGO 65a_P_Scalony.ATH");
+  const picked = pickBetterKosztorys(other, winner, { discoveryWinnerSource: discoverySource });
+  assert(picked?.sourceFilename === winner.sourceFilename, "discovery winner on remis");
+}
+
+console.log("\nT8 parser v3 truncated snapshot → stale (lazy rescan)");
+{
+  assert(CURRENT_PARSER_VERSION === 4, "CURRENT_PARSER_VERSION is 4");
+  const truncated = snapshotFromCount(40, "legacy.ATH");
+  truncated.rowCount = 302;
+  const staleDossier = {
+    brief: {
+      fields: [],
+      scopeDescription: null,
+      location: null,
+      procedureType: null,
+      offerDeadline: null,
+      offerOpening: null,
+      contractPeriod: null,
+      paymentTerms: null,
+      contactInfo: null,
+      additionalNotes: [],
+      builtAt: "2026-06-19T12:00:00.000Z",
+    },
+    kosztorys: truncated,
+    parserVersion: 3,
+    builtAt: "2026-06-19T12:00:00.000Z",
+  };
+  assert(isDossierParserStale(staleDossier), "v3 dossier stale after v4 bump");
 }
 
 console.log("\nT6 sync LS ↔ Cloud — brak utraty fidelity");

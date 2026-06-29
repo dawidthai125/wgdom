@@ -305,7 +305,10 @@ function shouldReplaceBestKosztorys(
 ): boolean {
   if (!existing?.ok) return true;
   if (shouldProtectPdfPrzedmiarWinner(existing, candFilename, discovery)) return false;
-  const picked = pickBetterKosztorys(existing, incoming);
+  const pickOpts = discovery?.found
+    ? { discoveryWinnerSource: discovery.source }
+    : undefined;
+  const picked = pickBetterKosztorys(existing, incoming, pickOpts);
   if (picked === incoming) return true;
   if (picked === existing) return false;
   if (opts?.allowTotalValueFill && !existing.totalValue && incoming.totalValue) return true;
