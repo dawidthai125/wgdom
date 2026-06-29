@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.90",
+    label: "WC-P2.1-HF1 — Biblioteka Robót embedded scroll",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi → Biblioteka robót: jeden scroll na zakładce (jak Baza cen) — dostęp do wszystkich wierszy i edycji",
+      },
+      {
+        type: "improve",
+        text: "WorkCatalogView layout standalone/embedded; pasek edycji wielu sticky (nie fixed)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.89",
     label: "PB-WRITE-B — Baza cen read-only + CTA Biblioteka Robót",
     items: [

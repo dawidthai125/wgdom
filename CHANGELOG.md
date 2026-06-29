@@ -2,6 +2,11 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.90 — WC-P2.1-HF1 Biblioteka embedded scroll
+
+- **fix:** Przetargi → Biblioteka robót — jeden scroll na zakładce; dostęp do wszystkich wierszy
+- **improve:** `WorkCatalogView` layout standalone/embedded; bulk bar sticky
+
 ## 2.62.89 — PB-WRITE-B Baza cen read-only
 
 - **improve:** Stawki kategorii (robocizna, materiały) — tylko odczyt w Przetargi → Baza cen

@@ -107,12 +107,23 @@ assert("TendersModule workcatalog tab", tendersModule.includes('"workcatalog"'))
 assert("TendersWorkCatalogTab import", tendersModule.includes("TendersWorkCatalogTab"));
 
 const workCatalogTab = readSrc("src/app/tenders/tabs/TendersWorkCatalogTab.tsx");
-assert("embedded WorkCatalogView", workCatalogTab.includes("embedded"));
+assert("layout embedded WorkCatalogView", workCatalogTab.includes('layout="embedded"'));
+assert("tab is scroll owner", workCatalogTab.includes("overflow-y-auto") && workCatalogTab.includes("overscroll-contain"));
 
 const workCatalogView = readSrc("src/app/work-catalog/WorkCatalogView.tsx");
-assert("embedded prop", workCatalogView.includes("embedded"));
-assert("single scroll container", (workCatalogView.match(/overflow-y-auto/g) ?? []).length === 1);
-assert("embedded no duplicate h1", workCatalogView.includes("embedded ? ("));
+assert("layout prop type", workCatalogView.includes("WorkCatalogLayout"));
+assert(
+  "standalone keeps inner scroll",
+  workCatalogView.includes("min-h-0 flex-1 overflow-y-auto"),
+);
+assert(
+  "embedded single flow root",
+  workCatalogView.includes('isEmbedded\n          ? "min-w-0"'),
+);
+assert("embedded no duplicate h1", workCatalogView.includes("isEmbedded ? ("));
+
+const bulkBar = readSrc("src/app/work-catalog/WorkCatalogBulkEditBar.tsx");
+assert("bulk bar sticky not fixed", bulkBar.includes("sticky bottom-0") && !bulkBar.includes("fixed"));
 
 const appTsx = readSrc("src/app/App.tsx");
 assert("legacy useLayoutEffect redirect", appTsx.includes("useLayoutEffect") && appTsx.includes("openTendersAtWorkCatalogTab"));

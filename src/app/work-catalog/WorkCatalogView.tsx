@@ -22,13 +22,25 @@ import {
 import { computeLibraryCompleteness } from "@/app/work-catalog/work-catalog-completeness";
 import { WorkCatalogCompletenessPanel } from "@/app/work-catalog/WorkCatalogCompletenessPanel";
 
+export type WorkCatalogLayout = "standalone" | "embedded";
+
 const ACTIVE_FILTER_OPTIONS: { id: WorkCatalogActiveFilter; label: string }[] = [
   { id: "all", label: "Wszystkie" },
   { id: "active", label: "Aktywne" },
   { id: "inactive", label: "Nieaktywne" },
 ];
 
-export function WorkCatalogView({ embedded = false }: { embedded?: boolean }) {
+/** Clearance below last row when bulk bar is sticky (embedded single-scroll). */
+const EMBEDDED_LIST_PAD_BULK =
+  "pb-[calc(11rem+env(safe-area-inset-bottom))] max-md:pb-[calc(11rem+3.5rem+env(safe-area-inset-bottom))]";
+
+type WorkCatalogViewProps = {
+  layout?: WorkCatalogLayout;
+};
+
+export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps) {
+  const isEmbedded = layout === "embedded";
+
   const {
     works,
     totalCount,
@@ -132,25 +144,39 @@ export function WorkCatalogView({ embedded = false }: { embedded?: boolean }) {
     setSelectedIds(new Set());
   }, [previewRows, updateBulkCompanyPrices]);
 
+  const headerPad = isEmbedded
+    ? "px-3 py-3 sm:px-4 md:px-4"
+    : "shrink-0 border-b border-border px-3 py-3 sm:px-4 md:px-6";
+
+  const listPad = isEmbedded
+    ? "px-3 py-3 sm:px-4 md:px-4"
+    : "min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 md:px-6";
+
+  const listBottomPad = isEmbedded
+    ? bulkEditMode
+      ? EMBEDDED_LIST_PAD_BULK
+      : "pb-4 max-md:pb-[calc(1rem+env(safe-area-inset-bottom))]"
+    : bulkEditMode
+      ? "pb-36"
+      : "pb-4";
+
   return (
     <div
-      className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
-        embedded ? "" : "bg-background"
-      }`}
+      className={
+        isEmbedded
+          ? "min-w-0"
+          : "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
+      }
     >
-      <header
-        className={`shrink-0 px-3 py-3 sm:px-4 ${
-          embedded ? "md:px-4" : "border-b border-border md:px-6"
-        }`}
-      >
+      <header className={headerPad}>
         <div className="flex items-start gap-3">
-          {!embedded && (
+          {!isEmbedded && (
             <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-700 dark:text-violet-300">
               <Library size={20} aria-hidden />
             </div>
           )}
           <div className="min-w-0 flex-1">
-            {embedded ? (
+            {isEmbedded ? (
               <p className="text-xs text-muted-foreground sm:text-sm">
                 Katalog v3 · region {regionLabel} · cena firmy · aktywność
                 {bulkEditMode ? " · edycja wielu" : ""}
@@ -279,12 +305,7 @@ export function WorkCatalogView({ embedded = false }: { embedded?: boolean }) {
         )}
       </header>
 
-      <div
-        className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 ${
-          embedded ? "md:px-4 overscroll-contain" : "md:px-6"
-        }`}
-        style={embedded ? { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" } : undefined}
-      >
+      <div className={listPad}>
         {totalCount === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-10 text-center">
             <p className="text-sm font-medium text-foreground">Brak robót w katalogu v3</p>
@@ -302,10 +323,7 @@ export function WorkCatalogView({ embedded = false }: { embedded?: boolean }) {
             </p>
           </div>
         ) : (
-          <ul
-            className={`flex flex-col gap-2 ${bulkEditMode ? "pb-36" : "pb-4"}`}
-            aria-label="Lista robót"
-          >
+          <ul className={`flex flex-col gap-2 ${listBottomPad}`} aria-label="Lista robót">
             {filteredWorks.map((work) => (
               <WorkCatalogWorkRow
                 key={work.id}

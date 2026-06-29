@@ -65,7 +65,7 @@ export function WorkCatalogBulkEditBar({ selectedCount, onPreview, onCancel }: P
   };
 
   return (
-    <div className="shrink-0 border-t border-border bg-card px-3 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] sm:px-4 md:px-6">
+    <div className="sticky bottom-0 z-10 shrink-0 border-t border-border bg-card px-3 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] sm:px-4 md:px-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-foreground" aria-live="polite">
           Zaznaczono: <span className="text-primary">{selectedCount}</span>
