@@ -1753,6 +1753,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       audit: "Audit Hub",
       guide: "Instrukcja",
       tenders: "Przetargi",
+      workcatalog: "Biblioteka Robót",
     };
     if (view !== "jobs") {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
@@ -1780,6 +1781,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       jobs: "Roboty",
       operationalnotes: "Notatki operacyjne",
       audit: "Audit Hub",
+      workcatalog: "Biblioteka Robót",
     };
     if ((dest === "jobs" || dest === "inspector") && view !== dest) {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });

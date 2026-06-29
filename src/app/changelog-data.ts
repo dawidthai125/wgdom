@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.85",
+    label: "Biblioteka Robót — P2 MVP UI (lista · ceny · bulk · rynek · kompletność)",
+    items: [
+      {
+        type: "new",
+        text: "Menu Biblioteka Robót — widok admin workcatalog: lista z filtrami, edycja ceny firmy, aktywność, edycja wielu cen",
+      },
+      {
+        type: "new",
+        text: "Porównanie firma vs rynek (read-only) i panel kompletności katalogu per branża",
+      },
+      {
+        type: "improve",
+        text: "useWorkCatalog — odświeżenie store po WGDOM_DEFERRED_BOOTSTRAP_EVENT (PB-3 migracja bez pustego stanu)",
+      },
+      {
+        type: "improve",
+        text: "Instrukcja HelpView + pusty stan — PB-3 bootstrap i sync chmury już dostępne",
+      },
+      {
+        type: "improve",
+        text: "Regresja — smoke/persist P2.1–P2.6 (96 asercji)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.84",
     label: "Biblioteka Robót — PB-3 bootstrap legacy → work",
     items: [

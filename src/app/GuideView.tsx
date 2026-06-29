@@ -28,6 +28,7 @@ import {
   BarChart3,
   LayoutDashboard,
   Calendar,
+  Library,
   Wallet,
   Printer,
   Clock,
@@ -295,6 +296,43 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Kto ma dostęp?", a:"Wyłącznie Super Administrator (konto Dawid). Administrator i moderator nie widzą pozycji w menu ani widoku — próba wejścia przekierowuje na Pulpit."},
               {q:"WM Druk — dwa źródła w Audit Hub", a:"„WM Druk · Odbiory” (wm_print) — generowanie PDF/DOCX/ZIP szablonów odbiorów i wpisy w Historii. „WM Druk · Pomiary i Schematy” (wm_druk) — tworzenie/edycja/usuwanie RAP, eksporty DOCX/ZIP z katalogu, operacje na schematach jednokreskowych. Oba strumienie są oddzielne w filtrze źródła."},
               {q:"Jak działają deep linki?", a:"Kliknij wiersz w tabeli → szczegóły → przycisk „Przejdź”. Notatki operacyjne → moduł Notatki + panel Audyt. Inspektor · logowania → widok Inspektor. Roboty → karta roboty (właściwa zakładka). WM Druk Odbiory / Historia / Pomiary / Schematy / Katalog — odpowiednia zakładka modułu WM Druk. Pakiety odbiorowe → WM Druk → Odbiory. Powrót: strzałka Wstecz do Audit Hub."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"workcatalog",
+      icon:Library,
+      title:"Biblioteka Robót",
+      subtitle:"Katalog robót firmy v3 — lista, ceny i kompletność",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">
+            Menu <strong>Biblioteka Robót</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
+            Lista z filtrami, edycja <strong>ceny firmy</strong>, aktywność, edycja wielu cen, podgląd rynku i kompletność katalogu.
+            Nie zastępuje jeszcze zakładki Przetargi → Baza cen (legacy) — obie bazy mogą współistnieć do czasu PB-WRITE.
+          </p>
+          <div className="space-y-3">
+            {[
+              {q:"Skąd biorą się dane?", a:"Po pierwszym logowaniu admina aplikacja synchronizuje kw-wgdom-work-catalog z chmurą i uruchamia PB-3: jednorazową migrację z Bazy cen (legacy), gdy katalog work jest pusty. Widok czyta lokalny store przez loadWorkCatalogStoreLocal i odświeża się automatycznie po zakończeniu deferred bootstrap. Gdy lista jest pusta tuż po starcie — poczekaj chwilę lub odśwież stronę."},
+              {q:"Wyszukiwarka", a:"Pole na górze ekranu (Search First) — szuka po nazwie robota, słowach kluczowych i branży. Wyczyść krzyżykiem po prawej."},
+              {q:"Filtry", a:"Chipy Wszystkie / Aktywne / Nieaktywne oraz lista rozwijana Branża (16 branż TradeId). Licznik pod wyszukiwarką pokazuje ile robót pasuje do filtrów."},
+              {q:"Cena firmy (P2.2)", a:"Na karcie roboty pole Cena firmy — wpisz kwotę ≥ 0 z max. 2 miejscami po przecinku. Zapis po Enter lub wyjściu z pola (blur). Jednostka obok pola (np. zł / m²). Dane zapisują się w kw-wgdom-work-catalog (przeglądarka + chmura gdy sync działa)."},
+              {q:"Aktywność (P2.3)", a:"Checkbox Aktywna / Nieaktywna na karcie — jednym tapnięciem. Lista domyślnie pokazuje tylko aktywne roboty; chip „Nieaktywne” lub „Wszystkie” filtruje jak w P2.1. Zmiana zapisuje updatedAt i trafia do chmury (P1.11)."},
+              {q:"Edytuj wiele cen (P2.4)", a:"Przycisk Edytuj wiele w nagłówku — zaznacz roboty checkboxem, wybierz akcję (+%, −%, +zł, −zł lub ustaw cenę), wpisz wartość i kliknij Podgląd zmian. Zobaczysz starą i nową cenę każdej roboty, potem Potwierdź. Bez historii zmian i bez wpływu na Przetargi."},
+              {q:"Firma vs rynek (P2.5)", a:"Pod polem ceny firmy widać podsumowanie: Twoja cena, cena rynkowa (gdy jest w katalogu) i status 🟢 ok. ±10% · 🟡 odbiega 11–25% · 🔴 >25%. Gdy brak ceny rynkowej — wyświetlamy „—”. Tylko podgląd — bez aktualizacji rynku i bez KNR/materiałów."},
+              {q:"Kompletność (P2.6)", a:"Pod nagłówkiem widać Uzupełniono: X% — liczymy roboty z ceną firmy większą niż 0. Panel Branże pokazuje ile z ilu pozycji ma cenę w każdej branży (np. 8 / 11). 🟢 = 100% · 🟡 = 50–99% · 🔴 = poniżej 50%. Kliknij branżę, żeby przefiltrować listę; kliknij ponownie, żeby wrócić do wszystkich branż."},
+              {q:"Czego tu nie ma?", a:"Bez historii zmian, aktualizacji rynku z CSV, pakietów robót, AI i pełnego cutoveru Przetargów. Jedna robota = jeden wiersz listy."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

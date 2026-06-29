@@ -14,6 +14,7 @@ import {
   ScrollText,
   Printer,
   Shield,
+  Library,
 } from "lucide-react";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
@@ -33,6 +34,7 @@ import type { EmailContact } from "@/lib/email-contacts";
 import { countUnsettledRecoverableCharges } from "@/lib/recoverable-charges";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { countActiveJobsForNavBadge } from "@/lib/job-list-ops";
+import { countActiveWorks, listWorksForRegion, loadWorkCatalogStoreLocal } from "@/lib/work-catalog";
 
 export type View =
   | "dashboard"
@@ -49,6 +51,7 @@ export type View =
   | "recoverablecharges"
   | "guide"
   | "tenders"
+  | "workcatalog"
   | "audit";
 
 export type AdminNavItem = {
@@ -73,6 +76,7 @@ export type BuildAdminNavItemsInput = {
   operationalNotes?: OperationalNote[];
   operationalNotesReadState?: OperationalNoteReadReceipt[];
   adminSession?: AdminSession | null;
+  workCatalogActiveCount?: number;
 };
 
 export function isNavItemActive(navKey: View, currentView: View): boolean {
@@ -92,7 +96,20 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     operationalNotes = [],
     operationalNotesReadState = [],
     adminSession,
+    workCatalogActiveCount,
   } = input;
+
+  const workCatalogBadge =
+    workCatalogActiveCount != null && workCatalogActiveCount > 0
+      ? workCatalogActiveCount
+      : (() => {
+          try {
+            const n = countActiveWorks(listWorksForRegion(loadWorkCatalogStoreLocal()));
+            return n > 0 ? n : undefined;
+          } catch {
+            return undefined;
+          }
+        })();
 
   return [
     {
@@ -154,6 +171,13 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
           },
         ]
       : []),
+    {
+      key: "workcatalog",
+      label: "Biblioteka Robót",
+      hint: "Katalog robót firmy v3 — cena, rynek, aktywność, edycja wielu cen.",
+      icon: Library,
+      badge: workCatalogBadge,
+    },
     {
       key: "operationalnotes",
       label: "Notatki operacyjne",

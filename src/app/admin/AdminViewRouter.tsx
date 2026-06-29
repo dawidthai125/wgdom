@@ -48,6 +48,9 @@ const WmPrintView = lazy(() =>
 const AuditHubView = lazy(() =>
   import("@/app/AuditHubView").then((m) => ({ default: m.AuditHubView })),
 );
+const WorkCatalogView = lazy(() =>
+  import("@/app/work-catalog/WorkCatalogView").then((m) => ({ default: m.WorkCatalogView })),
+);
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
 );
@@ -707,6 +710,13 @@ export function AdminViewRouter({
               deliveryPackagePublications={deliveryPackagePublications}
               onDeepLink={onAuditHubDeepLink}
             />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "workcatalog" && (
+        <ViewErrorBoundary label="Biblioteka Robót">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie biblioteki robót…" />}>
+            <WorkCatalogView />
           </Suspense>
         </ViewErrorBoundary>
       )}

@@ -2,6 +2,13 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.85 — Biblioteka Robót P2 MVP UI
+
+- **new:** Menu Biblioteka Robót — lista, ceny firmy, aktywność, bulk, rynek read-only, kompletność
+- **improve:** `useWorkCatalog` reload po `WGDOM_DEFERRED_BOOTSTRAP_EVENT` (PB-3)
+- **improve:** HelpView + pusty stan — copy PB-3 bootstrap
+- **test:** smoke/persist P2.1–P2.6 (96)
+
 ## 2.62.84 — Biblioteka Robót PB-3 bootstrap (legacy → work)
 
 - **new:** `WorkCatalogBootstrapDecision` — jednorazowa migracja po deferred bootstrap

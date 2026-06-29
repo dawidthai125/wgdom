@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PB-3 BOOTSTRAP** · v2.62.84)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**WC-P2 UI RELEASE** · v2.62.85)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1699,9 +1699,9 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 ---
 
-### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2.1–P2.6 UI (v2.62.87)
+### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2 MVP UI (v2.62.85)
 
-**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP FROZEN** (v2.62.82–87) · cutover/CloudLoader **OPEN**  
+**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP UI PRODUCTION** (v2.62.85) · PB-3 bootstrap **PROD** (v2.62.84) · cutover Przetargi / PB-WRITE **OPEN**  
 **FREEZE P1:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
 **FREEZE P2:** [`docs/work-catalog/P2-FREEZE-v1.0.md`](work-catalog/P2-FREEZE-v1.0.md) · [`P2-MVP-FINAL-SUMMARY.md`](work-catalog/P2-MVP-FINAL-SUMMARY.md)  
 **Raport P1:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
@@ -1714,37 +1714,32 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 | `kw-wgdom-work-bundles` | `WorkBundleStore` v3 | `mergeWorkBundleStore` (LWW) |
 | `kw-wgdom-cost-catalog` | `WgdomCostCatalogStore` v1 | **legacy** — bez zmian w P1 |
 
-**Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks.
+**Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks. **P3 market engine — poza prod (backlog).**
 
-**UI P2.1 (v2.62.82):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · `loadWorkCatalogStoreLocal` (bez cutover legacy). Menu: **Biblioteka Robót**.
+**UI P2 MVP (v2.62.85, jeden release):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · menu **Biblioteka Robót**.
 
-**UI P2.2 (v2.62.83):** `WorkCatalogCompanyPriceField` — edycja `companyPricePln` · `work-catalog-price.ts` · `saveWorkCatalogStore`.
+| Sprint | Zakres |
+|--------|--------|
+| P2.1 | Lista, filtry search/branża/aktywność · `work-catalog-list.ts` |
+| P2.2 | `WorkCatalogCompanyPriceField` · `companyPricePln` · `saveWorkCatalogStore` |
+| P2.3 | `WorkCatalogActiveToggle` · domyślny filtr `active: "active"` |
+| P2.4 | Bulk **Edytuj wiele** · `work-catalog-bulk-price.ts` |
+| P2.5 | `WorkCatalogMarketComparison` — firma vs `marketAvgPln` · 🟢≤10% · 🟡11–25% · 🔴>25% |
+| P2.6 | `WorkCatalogCompletenessPanel` — Uzupełniono X% · panel Branże |
 
-**UI P2.3 (v2.62.84):** `WorkCatalogActiveToggle` — checkbox Aktywna/Nieaktywna · `work-catalog-active.ts` · domyślny filtr listy `active: "active"`.
+**Hook reload:** `useWorkCatalog` nasłuchuje `WGDOM_DEFERRED_BOOTSTRAP_EVENT` — po PB-3 migracji lista odświeża się bez remount widoku.
 
-**UI P2.4 (v2.62.85):** tryb **Edytuj wiele** — bulk ceny · `work-catalog-bulk-price.ts`.
+**PB-3 (§ 12.1.18b):** `maybeExecuteWorkCatalogBootstrap()` w deferred merge — legacy → work przy pierwszym logowaniu admina.
 
-**UI P2.5 (v2.62.86):** `WorkCatalogMarketComparison` — firma vs `marketAvgPln` (alias produktowy marketPricePln) · progi 🟢≤10% · 🟡11–25% · 🔴>25% · read-only.
-
-**UI P2.6 (v2.62.87):** `WorkCatalogCompletenessPanel` · `work-catalog-completeness.ts` — **Uzupełniono: X%** · panel Branże · klik → filtr `tradeId`.
-
-**Lib P3.1 (v2.62.88):** schema **v4** · `market-average-engine.ts` — fallback regionalny · średnia ważona.
-
-**Lib P3.1A (v2.62.89):** `market-source-adapters/*` — `MarketSourceAdapter` dla 4 origins.
-
-**Lib P3.1B (v2.62.90):** `market-work-mapping.ts` — `findMapping` · `registerMapping` · `validateMappings` · `listMappings` · `resolveMappingBatch` (Matched/Unmatched/Rejected) · `buildMarketWorkMappingIndexForOrigin`.
-
-**Lib P3.2A (v2.62.91):** `market-csv-parser.ts` · `market-csv-preview.ts` — `previewMarketCsvImport` / `previewMarketCsvRows` (tryb **PREVIEW**, bez zapisu `marketQuotes`) · raport Matched / Low confidence / Unmatched / Rejected.
-
-**UI P3.2B (v2.62.92):** `WorkCatalogCsvImportPreviewPanel.tsx` · `work-catalog-csv-import-preview.ts` — upload CSV → Analiza → tabela raportu · filtr regionu (domyślnie Wrocław) · Ignored · **bez** przycisku Importuj / persist / cloud.
+**Backlog P3 (nie w prod):** market engine · CSV preview · `marketQuotes` persist.
 
 **Seed:** `docs/work-catalog/SEED-MANIFEST-v1.0.yaml` — 116 robót · 16 branż (`TradeId`).
 
-**Integracja cloud (P1.11):** `DATA_KEYS` + hooki `work-catalog-sync.ts`. **Nie podpięte:** `CloudLoader` bootstrap katalogu v3.
+**Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` · zapis po każdej edycji UI.
 
-**Testy:** `test-work-catalog-golden.mjs` (1419) · smoke/persist P2.1–P2.6 · P3.1 engine · P3.1A adapters · P3.1B mapping · P3.2A csv preview · `smoke-test-work-catalog-csv-preview-ui-p3.2b.mjs`
+**Testy:** `test-work-catalog-golden.mjs` (1419) · smoke/persist P2.1–P2.6 (96) · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
 
-**Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, lib P1 FREEZE.
+**Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, lib P1 FREEZE, P2 FREEZE bez hotfix briefu.
 
 ---
 
