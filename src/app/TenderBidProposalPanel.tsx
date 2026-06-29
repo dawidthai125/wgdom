@@ -20,10 +20,7 @@ import {
 } from "@/lib/tender-bid-ux";
 import { TENDER_OWNER_VALUATION_COPY } from "@/lib/tender-owner-language-pl";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
-import {
-  loadWgdomCostCatalogStore,
-  WGDOM_COST_REGION_LABELS,
-} from "@/lib/wgdom-cost-catalog-store";
+import { WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog-store";
 import {
   assignUserCategoryFromAthLine,
   loadWgdomUserClassificationDictionaryStore,
@@ -39,7 +36,7 @@ import {
 import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
+import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { buildLaborBenchmarkAlerts } from "@/lib/labor-benchmark";
@@ -104,9 +101,10 @@ export function TenderBidProposalPanel({
   useEffect(() => {
     let cancelled = false;
     loadWgdomUserClassificationDictionaryStoreLocal();
-    void Promise.all([loadWgdomCostCatalogStore(), loadWgdomUserClassificationDictionaryStore()]).then(([catalog]) => {
+    void loadWgdomUserClassificationDictionaryStore().then(() => {
       if (!cancelled) {
-        setCatalogRegionLabel(WGDOM_COST_REGION_LABELS[catalog.activeRegion]);
+        const { activeRegion } = resolveActiveCatalogForTender();
+        setCatalogRegionLabel(WGDOM_COST_REGION_LABELS[activeRegion]);
       }
     });
     return () => { cancelled = true; };
@@ -114,17 +112,23 @@ export function TenderBidProposalPanel({
 
   const tendersCtx = useTendersContextOptional();
 
+  const tenderCatalogResolution = useMemo(() => {
+    const profile = loadCompanyProfileLocal();
+    return resolveActiveCatalogForTender({
+      referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
+    });
+  }, [dictRevision]);
+
   const catalogLinePricing = useMemo(() => {
     if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;
     const profile = loadCompanyProfileLocal();
-    const catalog = getActiveCatalog(loadWgdomCostCatalogStoreLocal());
     return buildCatalogLinePricingView(
       catalogQuantities,
-      catalog,
+      tenderCatalogResolution.catalog,
       profile.costModel,
       priceOverrides,
     );
-  }, [proposal?.pricingMode, catalogQuantities, dictRevision, priceOverrides]);
+  }, [proposal?.pricingMode, catalogQuantities, priceOverrides, tenderCatalogResolution.catalog]);
 
   const materialHistoryImpact = useMemo(() => {
     if (!catalogLinePricing?.categorySummary.length) return null;
@@ -457,7 +461,7 @@ export function TenderBidProposalPanel({
                 <TenderCatalogLinePricingSection
                   view={catalogLinePricing}
                   tenderId={tenderId}
-                  catalog={getActiveCatalog(loadWgdomCostCatalogStoreLocal())}
+                  catalog={tenderCatalogResolution.catalog}
                   costModel={loadCompanyProfileLocal().costModel}
                   onOverridesChanged={onPriceOverridesChanged}
                   onOpenPriceBase={tendersCtx ? openPriceBase : undefined}

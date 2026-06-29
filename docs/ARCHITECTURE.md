@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**TP200B CLOSED** · parser v4 · v2.62.82)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PRICE-BRIDGE PB-1/PB-2** · v2.62.83)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1568,6 +1568,23 @@ tender-document-resolver.ts
 **TP200A/TP200B mechanizm:** `CURRENT_PARSER_VERSION` (`4` od TP200B) na `tenderDossier.parserVersion` · `isDossierParserStale()` → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy lazy parse · `existingKosztorysForRebuildPick` przy forced rebuild (TP190C-1). **`SNAPSHOT_PRICED_ROWS_CAP=500`** w `athPreviewToSnapshot` · SSOT liczby pozycji: `kosztorysEffectiveRowCount` (`rowCount` przed `rows.length`).
 
 **Test:** `test-tender-dossier-parser-version.mjs` · `test-tp190b-dossier-stability.mjs` · `test-tp190c-stale-rebuild-protection.mjs` · `test-tp190c-batch-rebuild.mjs`.
+
+### 12.1.18a PRICE-BRIDGE — Tender Active Catalog Resolver (PB-1/PB-2)
+
+**Status:** **PB-1/PB-2 CLOSED** (v2.62.83) · **PB-WRITE / SSOT-CUTOVER** — backlog  
+**Plik SSOT:** `src/lib/tender-active-catalog.ts` — `resolveActiveCatalogForTender()`
+
+| Element | Opis |
+|---------|------|
+| **Public API** | Jedyny entry point wyceny katalogowej dla modułu Przetargów |
+| **Polityka** | Work-first gdy `pricedActiveWorkCount > 0` (`isCompanyPricePresent`); inaczej legacy |
+| **Adapter** | Wewnętrznie wyłącznie `resolveCatalogForEngine()` — bez nowego silnika |
+| **`isFallback`** | `true` gdy efektywny katalog z legacy (Baza cen) — dla UI i przyszłego cutover |
+| **Wire PB-2** | `TenderDetailPanel` · `TenderBidProposalPanel` → `catalog` w `computeTenderBidProposal` / line pricing |
+
+**Poza zakresem PB-2:** `TenderPriceBasePanel` (WRITE legacy) · `tender-detail-v4-display.ts` · `tenders-bid-calculator` default path.
+
+**Test:** `test-tender-price-bridge.mjs` · golden gate: `test-work-catalog-golden.mjs` · `test-work-catalog-compat.mjs`.
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
 

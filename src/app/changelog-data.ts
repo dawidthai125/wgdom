@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.83",
+    label: "Przetargi — PRICE-BRIDGE PB-1/PB-2 (wspólny resolver katalogu)",
+    items: [
+      {
+        type: "new",
+        text: "resolveActiveCatalogForTender() — work-first / legacy-fallback · isFallback dla UI i cutover",
+      },
+      {
+        type: "improve",
+        text: "Wycena przetargu — TenderDetailPanel + TenderBidProposalPanel używają wspólnego resolvera (bez duplikacji)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-price-bridge.mjs T1–T6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.82",
     label: "Przetargi — TP200B kosztorys fidelity (parser v4)",
     items: [

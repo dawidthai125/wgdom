@@ -2,6 +2,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.83 — Przetargi PRICE-BRIDGE PB-1/PB-2 (wspólny resolver katalogu)
+
+- **new:** `resolveActiveCatalogForTender()` — work-first / legacy-fallback · `isFallback`
+- **improve:** `TenderDetailPanel` + `TenderBidProposalPanel` — shared resolver (bez duplikacji legacy load)
+- **test:** `test-tender-price-bridge.mjs` T1–T6
+
 ## 2.62.82 — Przetargi TP200B (kosztorys fidelity · parser v4)
 
 - **fix:** `CURRENT_PARSER_VERSION` 4 — lazy rescan dossier v3 ze skróconymi snapshotami

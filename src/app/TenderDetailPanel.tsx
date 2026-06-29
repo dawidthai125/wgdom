@@ -80,6 +80,7 @@ import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
 import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
+import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
 import {
   getTenderPriceOverrides,
@@ -481,6 +482,9 @@ export function TenderDetailPanel({
 
   const computeBidProposalNow = useCallback(() => {
     const profile = loadCompanyProfileLocal();
+    const { catalog } = resolveActiveCatalogForTender({
+      referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
+    });
     return computeTenderBidProposal({
       kosztorys: item.tenderDossier?.kosztorys,
       swz,
@@ -488,6 +492,7 @@ export function TenderDetailPanel({
       costModel: profile.costModel,
       minProjectDays: profile.minProjectDays,
       maxConcurrentProjects: profile.maxConcurrentProjects,
+      catalog,
       priceOverrides: tenderPriceOverrides.overrides,
     });
   }, [
