@@ -9,6 +9,8 @@ export interface AppSettings {
   athPreviewEnabled: boolean;
   /** Zakładka Przetargi w menu dla Administratora i Moderatora (Super Admin zawsze widzi). */
   tendersTabForStaffEnabled: boolean;
+  /** Biblioteka Robót w Przetargach dla roli Administrator (Super Admin zawsze; moderator/inspektor — nie). */
+  workCatalogForAdminEnabled: boolean;
   /** Skan BZP — ile dni wstecz. */
   bzpScanDays: number;
   /** Skan BZP — strony ogólne PL02. */
@@ -23,6 +25,7 @@ export function defaultAppSettings(): AppSettings {
   return {
     athPreviewEnabled: true,
     tendersTabForStaffEnabled: false,
+    workCatalogForAdminEnabled: false,
     bzpScanDays: 90,
     bzpScanPages: 4,
     bzpScanOrgPages: 5,
@@ -56,6 +59,16 @@ export function mergeTendersTabForStaffEnabled(
   return local.tendersTabForStaffEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie wyłączone dla administratorów. */
+export function mergeWorkCatalogForAdminEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.workCatalogForAdminEnabled === true) return true;
+  if (remote?.workCatalogForAdminEnabled === false) return false;
+  return local.workCatalogForAdminEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -65,6 +78,7 @@ export function loadAppSettingsLocal(): AppSettings {
     return {
       athPreviewEnabled: parsed.athPreviewEnabled !== false,
       tendersTabForStaffEnabled: parsed.tendersTabForStaffEnabled === true,
+      workCatalogForAdminEnabled: parsed.workCatalogForAdminEnabled === true,
       bzpScanDays: numSetting(parsed.bzpScanDays, d.bzpScanDays, 7, 365),
       bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
       bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
@@ -107,6 +121,7 @@ export function mergeAppSettings(
   return {
     athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
     tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
+    workCatalogForAdminEnabled: mergeWorkCatalogForAdminEnabled(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),
     bzpScanOrgPages: numSetting(remote?.bzpScanOrgPages, local.bzpScanOrgPages, 1, 20),

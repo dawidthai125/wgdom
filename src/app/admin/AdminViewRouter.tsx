@@ -48,9 +48,6 @@ const WmPrintView = lazy(() =>
 const AuditHubView = lazy(() =>
   import("@/app/AuditHubView").then((m) => ({ default: m.AuditHubView })),
 );
-const WorkCatalogView = lazy(() =>
-  import("@/app/work-catalog/WorkCatalogView").then((m) => ({ default: m.WorkCatalogView })),
-);
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
 );
@@ -62,6 +59,7 @@ function TendersProviderScope({
   weekFrom,
   weekTo,
   savedWeeks,
+  canViewWorkCatalog,
   children,
 }: {
   jobs: Job[];
@@ -70,6 +68,7 @@ function TendersProviderScope({
   weekFrom: string;
   weekTo: string;
   savedWeeks: WeekSnapshot[];
+  canViewWorkCatalog?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -81,6 +80,7 @@ function TendersProviderScope({
       weekFrom={weekFrom}
       weekTo={weekTo}
       savedWeeks={savedWeeks}
+      canViewWorkCatalog={canViewWorkCatalog}
     >
       {children}
     </TendersProvider>
@@ -100,6 +100,7 @@ export type AdminViewRouterProps = {
   view: View;
   payrollDetailOpen: boolean;
   canViewTendersNav: boolean;
+  canViewWorkCatalog: boolean;
   embedded: AdminEmbeddedViews;
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -271,6 +272,7 @@ export function AdminViewRouter({
   view,
   payrollDetailOpen,
   canViewTendersNav,
+  canViewWorkCatalog,
   embedded,
   jobs,
   directory,
@@ -454,7 +456,7 @@ export function AdminViewRouter({
       {view === "dashboard" && (
         <ViewErrorBoundary label="Pulpit">
           {canViewTendersNav ? (
-            <TendersProviderScope {...ccProviderInput}>{dashboardView}</TendersProviderScope>
+            <TendersProviderScope {...ccProviderInput} canViewWorkCatalog={canViewWorkCatalog}>{dashboardView}</TendersProviderScope>
           ) : (
             dashboardView
           )}
@@ -713,13 +715,6 @@ export function AdminViewRouter({
           </Suspense>
         </ViewErrorBoundary>
       )}
-      {view === "workcatalog" && (
-        <ViewErrorBoundary label="Biblioteka Robót">
-          <Suspense fallback={<ViewLoadFallback label="Ładowanie biblioteki robót…" />}>
-            <WorkCatalogView />
-          </Suspense>
-        </ViewErrorBoundary>
-      )}
       {view === "guide" && (
         <ViewErrorBoundary label="Instrukcja">
           <Suspense fallback={<ViewLoadFallback label="Ładowanie instrukcji…" />}>
@@ -729,10 +724,11 @@ export function AdminViewRouter({
       )}
       {view === "tenders" && canViewTendersNav && (
         <ViewErrorBoundary label="Przetargi">
-          <TendersProviderScope {...ccProviderInput}>
+          <TendersProviderScope {...ccProviderInput} canViewWorkCatalog={canViewWorkCatalog}>
             <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
               <TendersModule
                 showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
+                canViewWorkCatalog={canViewWorkCatalog}
                 athPreviewEnabled={appSettings.athPreviewEnabled}
                 initialExpandedId={pendingTenderId}
                 jobs={jobs}

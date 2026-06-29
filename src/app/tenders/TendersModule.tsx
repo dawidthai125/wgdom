@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Scale,
   Tags,
+  Library,
 } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -25,6 +26,7 @@ import { TendersStrategyTab } from "@/app/tenders/tabs/TendersStrategyTab";
 import { TendersMapTab } from "@/app/tenders/tabs/TendersMapTab";
 import { TendersProfileTab } from "@/app/tenders/tabs/TendersProfileTab";
 import { TendersPriceBaseTab } from "@/app/tenders/tabs/TendersPriceBaseTab";
+import { TendersWorkCatalogTab } from "@/app/tenders/tabs/TendersWorkCatalogTab";
 import { TendersSettingsTab } from "@/app/tenders/tabs/TendersSettingsTab";
 import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
 import {
@@ -39,12 +41,16 @@ const TAB_CONFIG: { id: TendersTabId; icon: typeof List }[] = [
   { id: "strategy", icon: LayoutGrid },
   { id: "map", icon: MapPin },
   { id: "profile", icon: Building2 },
+  { id: "workcatalog", icon: Library },
   { id: "pricebase", icon: Tags },
   { id: "settings", icon: Settings2 },
 ];
 
-function TendersTabBar() {
+function TendersTabBar({ canViewWorkCatalog }: { canViewWorkCatalog: boolean }) {
   const { activeTab, setActiveTab } = useTendersContext();
+  const tabs = TAB_CONFIG.filter(
+    (tab) => tab.id !== "workcatalog" || canViewWorkCatalog,
+  );
 
   return (
     <div className="shrink-0 px-4 sm:px-6 py-2 border-b border-border bg-secondary/30 overflow-x-auto">
@@ -53,7 +59,7 @@ function TendersTabBar() {
         role="tablist"
         aria-label="Zakładki modułu Przetargi"
       >
-        {TAB_CONFIG.map(({ id, icon: Icon }) => (
+        {tabs.map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -110,6 +116,7 @@ function TendersModuleHeader({ showTestBadge }: { showTestBadge?: boolean }) {
 
 export function TendersModule({
   showTestBadge = false,
+  canViewWorkCatalog = false,
   onCreateJobFromTender,
   onOpenJob,
   setJobs,
@@ -125,6 +132,7 @@ export function TendersModule({
   savedWeeks: _savedWeeks,
 }: {
   showTestBadge?: boolean;
+  canViewWorkCatalog?: boolean;
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   setJobs?: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
@@ -174,7 +182,7 @@ export function TendersModule({
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <TendersModuleHeader showTestBadge={showTestBadge} />
-      <TendersTabBar />
+      <TendersTabBar canViewWorkCatalog={canViewWorkCatalog} />
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {activeTab === "list" && (
           TENDERS_V4_ROUTING
@@ -216,6 +224,7 @@ export function TendersModule({
         )}
         {activeTab === "map" && <TendersMapTab />}
         {activeTab === "profile" && <TendersProfileTab />}
+        {activeTab === "workcatalog" && canViewWorkCatalog && <TendersWorkCatalogTab />}
         {activeTab === "pricebase" && <TendersPriceBaseTab />}
         {activeTab === "settings" && <TendersSettingsTab />}
       </div>

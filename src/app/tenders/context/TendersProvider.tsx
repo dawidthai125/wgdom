@@ -15,28 +15,20 @@ import type { TendersProviderInput } from "@/app/tenders/context/tenders-strateg
 import { useTendersStrategySnapshot } from "@/app/tenders/context/useTendersStrategySnapshot";
 import type { TendersTabId } from "@/lib/tenders-module-labels";
 import { TENDERS_TAB_STORAGE_KEY } from "@/lib/tenders-module-nav";
+import {
+  isTendersTabId,
+  sanitizeTendersActiveTab,
+  saveTendersActiveTab,
+} from "@/lib/tenders-module-nav";
 
-function loadActiveTab(): TendersTabId {
+function loadActiveTab(canViewWorkCatalog: boolean): TendersTabId {
   try {
     const raw = localStorage.getItem(TENDERS_TAB_STORAGE_KEY);
-    if (
-      raw === "list"
-      || raw === "strategy"
-      || raw === "map"
-      || raw === "profile"
-      || raw === "pricebase"
-      || raw === "settings"
-    ) {
-      return raw;
+    if (isTendersTabId(raw)) {
+      return sanitizeTendersActiveTab(raw, canViewWorkCatalog);
     }
   } catch { /* ignore */ }
   return "list";
-}
-
-function saveActiveTab(tab: TendersTabId): void {
-  try {
-    localStorage.setItem(TENDERS_TAB_STORAGE_KEY, tab);
-  } catch { /* ignore */ }
 }
 
 export function TendersProvider({
@@ -48,9 +40,11 @@ export function TendersProvider({
   weekFrom,
   weekTo,
   savedWeeks,
+  canViewWorkCatalog = false,
 }: TendersProviderInput & {
   enabled: boolean;
   children: ReactNode;
+  canViewWorkCatalog?: boolean;
 }) {
   const input = useMemo(
     (): TendersProviderInput => ({
@@ -65,7 +59,7 @@ export function TendersProvider({
   );
 
   const [profileVersion, setProfileVersion] = useState(0);
-  const [activeTab, setActiveTabState] = useState<TendersTabId>(loadActiveTab);
+  const [activeTab, setActiveTabState] = useState<TendersTabId>(() => loadActiveTab(canViewWorkCatalog));
   const [listExpandedId, setListExpandedId] = useState<string | null>(null);
 
   const bumpProfileVersion = useCallback(() => {
@@ -85,19 +79,27 @@ export function TendersProvider({
   const snapshot = useTendersStrategySnapshot(input, profileVersion, ownerDecisions);
 
   const setActiveTab = useCallback((tab: TendersTabId) => {
-    setActiveTabState(tab);
-    saveActiveTab(tab);
-  }, []);
+    const next = sanitizeTendersActiveTab(tab, canViewWorkCatalog);
+    setActiveTabState(next);
+    saveTendersActiveTab(next);
+  }, [canViewWorkCatalog]);
+
+  useEffect(() => {
+    if (activeTab === "workcatalog" && !canViewWorkCatalog) {
+      setActiveTabState("list");
+      saveTendersActiveTab("list");
+    }
+  }, [activeTab, canViewWorkCatalog]);
 
   const openTenderInList = useCallback((tenderId: string) => {
     setListExpandedId(tenderId);
     setActiveTabState("list");
-    saveActiveTab("list");
+    saveTendersActiveTab("list");
   }, []);
 
   const openTendersStrategy = useCallback(() => {
     setActiveTabState("strategy");
-    saveActiveTab("strategy");
+    saveTendersActiveTab("strategy");
   }, []);
 
   const value = useMemo(

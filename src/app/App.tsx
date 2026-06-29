@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import { AdminSidebar } from "@/app/admin/AdminSidebar";
 import { AdminTopbar } from "@/app/admin/AdminTopbar";
 import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
@@ -86,7 +86,7 @@ import {
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
-import { adminCanViewTendersTab } from "@/lib/admin-auth";
+import { adminCanViewTendersTab, adminCanViewWorkCatalog } from "@/lib/admin-auth";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -119,7 +119,7 @@ import {
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
-import { openTendersAtStrategyTab } from "@/lib/tenders-module-nav";
+import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { Toaster, toast } from "sonner";
@@ -1678,6 +1678,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     ? adminCanViewTendersTab(adminSession.role, appSettings)
     : false;
 
+  const canViewWorkCatalog = adminSession
+    ? adminCanViewWorkCatalog(adminSession.role, appSettings)
+    : false;
+
   const navItems = useMemo(
     () =>
       buildAdminNavItems({
@@ -1858,6 +1862,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   }, []);
 
+  useLayoutEffect(() => {
+    if (view !== "workcatalog") return;
+    if (canViewTendersNav) {
+      if (canViewWorkCatalog) openTendersAtWorkCatalogTab();
+      setView("tenders");
+    } else {
+      setView("dashboard");
+    }
+  }, [view, canViewTendersNav, canViewWorkCatalog]);
+
   useEffect(() => {
     if (view === "tenders" && !canViewTendersNav) setView("dashboard");
   }, [view, canViewTendersNav]);
@@ -1937,6 +1951,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           view={view}
           payrollDetailOpen={payrollDetailOpen}
           canViewTendersNav={canViewTendersNav}
+          canViewWorkCatalog={canViewWorkCatalog}
           embedded={{
             DashboardView,
             ScheduleView,

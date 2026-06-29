@@ -318,9 +318,10 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       content:(
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">
-            Menu <strong>Biblioteka Robót</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
+            <strong>Przetargi → zakładka Biblioteka robót</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
             Lista z filtrami, edycja <strong>ceny firmy</strong>, aktywność, edycja wielu cen, podgląd rynku i kompletność katalogu.
-            Nie zastępuje jeszcze zakładki Przetargi → Baza cen (legacy) — obie bazy mogą współistnieć do czasu PB-WRITE.
+            Dostęp: Super Administrator zawsze; Administrator — gdy włączona flaga w ustawieniach aplikacji.
+            Nie zastępuje zakładki Baza cen (legacy) — obie bazy współistnieją do czasu PB-WRITE.
           </p>
           <div className="space-y-3">
             {[

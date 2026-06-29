@@ -2,6 +2,14 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.87 — Biblioteka Robót WC-P2.1 nawigacja + ACL
+
+- **improve:** Biblioteka robót → zakładka Przetargi (bez sidebar)
+- **improve:** ACL `adminCanViewWorkCatalog` + `workCatalogForAdminEnabled` w AppSettings
+- **fix:** legacy `view=workcatalog` → Przetargi → Biblioteka robót
+- **improve:** `WorkCatalogView` embedded — single scroll
+- **test:** `test-work-catalog-nav-p2.1.mjs`
+
 ## 2.62.86 — Przetargi PB-2b V4 KPI parity
 
 - **fix:** KPI V4 / Kosztorys PRO — `resolveActiveCatalogForTender` (nie seed `defaultWgdomCostCatalog`)

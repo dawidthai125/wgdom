@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.87",
+    label: "Biblioteka Robót — WC-P2.1 nawigacja w Przetargach + ACL",
+    items: [
+      {
+        type: "improve",
+        text: "Biblioteka robót — zakładka w module Przetargi (usunięto osobny wpis w menu bocznym)",
+      },
+      {
+        type: "improve",
+        text: "Uprawnienia: Super Admin zawsze; Administrator — workCatalogForAdminEnabled; moderator/inspektor — ukryte",
+      },
+      {
+        type: "fix",
+        text: "Legacy view=workcatalog → Przetargi → Biblioteka robót (bez flicker)",
+      },
+      {
+        type: "improve",
+        text: "WorkCatalogView embedded — jeden scroll w zakładce Przetargi",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.86",
     label: "Przetargi — PB-2b V4 KPI parity (wspólny resolver katalogu)",
     items: [

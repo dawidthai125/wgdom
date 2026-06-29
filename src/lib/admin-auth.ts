@@ -858,6 +858,16 @@ export function adminCanViewTendersTab(
   return role === "admin" || role === "moderator";
 }
 
+/** Biblioteka Robót (Przetargi → zakładka) — Super Admin zawsze; admin gdy flaga w AppSettings. */
+export function adminCanViewWorkCatalog(
+  role: AdminRole,
+  settings: { workCatalogForAdminEnabled?: boolean },
+): boolean {
+  if (role === "super_admin") return true;
+  if (role !== "admin") return false;
+  return settings.workCatalogForAdminEnabled === true;
+}
+
 
 
 export function adminRoleLabel(role: AdminRole): string {
