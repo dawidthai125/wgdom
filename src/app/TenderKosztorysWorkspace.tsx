@@ -8,9 +8,9 @@ import {
 } from "@/lib/tender-detail-v4-display";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { findTrustDimension } from "@/lib/tender-trust-layer";
-import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
+import { TrustInlineHint } from "@/app/tenders/trust/TrustInlineHint";
 import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
-import { trustLevelToIcon } from "@/lib/tender-trust-ui";
+import { pickKosztorysInlineHintView, trustLevelToIcon } from "@/lib/tender-trust-ui";
 import {
   deriveKosztorysProcessPhase,
   isKosztorysProcessInProgress,
@@ -176,6 +176,7 @@ export function TenderKosztorysWorkspace({
   const canOpenFullPreview = athPreviewEnabled && athPreviewItem != null;
   const canDownloadAth = canOpenFullPreview;
   const kosztorysTrust = findTrustDimension(trustAssessment, "kosztorys");
+  const kosztorysInlineHintView = pickKosztorysInlineHintView(trustAssessment);
   const kosztorysTrustReasons = kosztorysTrust?.reasons.filter(
     (r) => r.code === "kosztorys_ath_cap_ui" || r.code === "kosztorys_row_cap",
   ) ?? [];
@@ -222,11 +223,12 @@ export function TenderKosztorysWorkspace({
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
 
-      <TrustBanner
-        assessment={trustAssessment}
-        focus={["kosztorys", "parse"]}
-        compact
-      />
+      {kosztorysInlineHintView && (
+        <TrustInlineHint
+          message={kosztorysInlineHintView.message}
+          level={kosztorysInlineHintView.level}
+        />
+      )}
 
       {pro.hasCatalog && (
         <section

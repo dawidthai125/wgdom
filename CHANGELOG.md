@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.94 — NG-01-UX-HF-001 Trust UI Surface Policy
+
+- **improve:** Hub — banner trust tylko przy problemie; chipy z `getTrustChipLimit` + `+N`; usunięty Prep Status duplicate
+- **improve:** Process Strip — jedna ikona (trust > workflow)
+- **improve:** Kosztorys inline hint; Dokumenty TrustBadge w SummaryHeader; Wycena jeden komunikat
+
 ## 2.62.93 — NG-01.2 Tender Trust Layer UI
 
 - **new:** Banner i chipy „Jakość danych” na Przetargu, Dokumentach, Kosztorysie, Wycenie (`tender-trust-layer` + `tenders/trust/*`)

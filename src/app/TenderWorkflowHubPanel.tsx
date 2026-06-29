@@ -16,7 +16,6 @@ import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import {
   WorkflowHubBlockersSection,
   WorkflowHubPositionsFileDisplay,
-  WorkflowHubPrepStatusDisplay,
 } from "@/app/TenderWorkflowHubSections";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
@@ -25,8 +24,8 @@ import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 import { TENDER_INTELLIGENCE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
-import { TrustChip } from "@/app/tenders/trust/TrustChip";
-import { getTrustDimensionsForSurface, trustDimensionToV4Tab } from "@/lib/tender-trust-ui";
+import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
+import { shouldRenderHubTrustBanner } from "@/lib/tender-trust-ui";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -68,17 +67,16 @@ export function TenderWorkflowHubPanel({
 }) {
   return (
     <div className="space-y-4" data-tender-workflow-hub>
-      <TrustBanner assessment={trustAssessment} variant="overall" />
+      {shouldRenderHubTrustBanner(trustAssessment) && (
+        <TrustBanner assessment={trustAssessment} variant="overall" />
+      )}
 
-      <div className="flex flex-wrap gap-1.5" data-tender-trust-hub-chips>
-        {getTrustDimensionsForSurface(trustAssessment, "hub").map((dim) => (
-          <TrustChip
-            key={dim.id}
-            dimension={dim}
-            onClick={() => onNavigateTab(trustDimensionToV4Tab(dim.id))}
-          />
-        ))}
-      </div>
+      <TrustChipRow
+        assessment={trustAssessment}
+        surfaceId="hub"
+        onNavigateTab={(tab) => onNavigateTab(tab)}
+        dataAttr="hub"
+      />
 
       <TenderWorkflowProcessStrip
         item={item}
@@ -109,8 +107,6 @@ export function TenderWorkflowHubPanel({
         intelligenceCtx={intelligenceCtx}
         onNavigateTab={onNavigateTab}
       />
-
-      <WorkflowHubPrepStatusDisplay status={intelligenceCtx.prepStatus} />
 
       <WorkflowHubBlockersSection ctx={intelligenceCtx} />
 

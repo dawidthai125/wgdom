@@ -45,8 +45,10 @@ assert(!v2Panel.includes("Następny krok"), "V2: no duplicate next-action sectio
 assert(!v2Panel.includes("buildTenderIntelligenceContext"), "V2: no duplicate intelligence build");
 assert(hubPanel.includes("TenderWorkflowProcessStrip"), "hub: EPIC B process strip");
 assert(hubPanel.includes("TenderWorkflowPrimaryAction"), "hub: EPIC C primary CTA");
+assert(hubPanel.includes("TrustChipRow"), "hub: trust chip row (HF-001)");
+assert(!hubPanel.includes("WorkflowHubPrepStatusDisplay"), "hub: no prep status duplicate (HF-001)");
+assert(hubPanel.includes("shouldRenderHubTrustBanner"), "hub: conditional trust banner (HF-001)");
 assert(hubSections.includes("WorkflowHubBlockersSection"), "hub: blockers section");
-assert(hubSections.includes("WorkflowHubPrepStatusDisplay"), "hub: prep status");
 assert(hubSections.includes("WorkflowHubPositionsFileDisplay"), "hub: positions file");
 assert(operator.includes("TenderBidPrepPanel"), "hub: operator bid prep");
 assert(operator.includes("TenderAnalysisStatusStrip"), "hub: analysis strip");

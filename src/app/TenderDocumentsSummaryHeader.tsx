@@ -5,6 +5,8 @@ import {
   type DocumentsTabSummaryTone,
   type TenderDocumentsTabSummary,
 } from "@/lib/tender-documents-tab-summary";
+import type { DocumentsTrustBadgeView } from "@/lib/tender-trust-ui";
+import { TrustBadge } from "@/app/tenders/trust/TrustBadge";
 
 function toneClass(tone: DocumentsTabSummaryTone): string {
   switch (tone) {
@@ -33,7 +35,13 @@ function SummarySlotRow({ slot }: { slot: DocumentsTabSummarySlot }) {
   );
 }
 
-export function TenderDocumentsSummaryHeader({ summary }: { summary: TenderDocumentsTabSummary }) {
+export function TenderDocumentsSummaryHeader({
+  summary,
+  trustBadge,
+}: {
+  summary: TenderDocumentsTabSummary;
+  trustBadge?: DocumentsTrustBadgeView | null;
+}) {
   const documentSlots = [
     summary.swz,
     summary.przedmiarAth,
@@ -49,9 +57,18 @@ export function TenderDocumentsSummaryHeader({ summary }: { summary: TenderDocum
       data-tenders-documents-summary-header
     >
       <div className="px-4 py-2.5 border-b border-primary/10 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
-          Podsumowanie dokumentów
-        </p>
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+            Podsumowanie dokumentów
+          </p>
+          {trustBadge && (
+            <TrustBadge
+              level={trustBadge.level}
+              labelPl={trustBadge.labelPl}
+              title={trustBadge.title}
+            />
+          )}
+        </div>
         <p className="text-[10px] text-muted-foreground">
           Ostatnia analiza:{" "}
           <span className="font-medium text-foreground">{summary.lastAnalysisLabel}</span>

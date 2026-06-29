@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.94",
+    label: "NG-01-UX-HF-001 — Trust UI Surface Policy",
+    items: [
+      {
+        type: "improve",
+        text: "Przetarg — mniej powtórzeń statusów: banner trust tylko przy problemie, chipy z limitem i +N, bez duplikatu Prep Status",
+      },
+      {
+        type: "improve",
+        text: "Pasek procesu — jedna ikona na etap (trust ma priorytet nad postępem workflow)",
+      },
+      {
+        type: "improve",
+        text: "Kosztorys / Dokumenty / Wycena — jedna dominująca powierzchnia statusowa na zakładkę (badge, inline hint, pojedynczy komunikat)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.93",
     label: "NG-01.2 — Tender Trust Layer UI",
     items: [

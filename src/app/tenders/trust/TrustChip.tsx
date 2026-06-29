@@ -29,7 +29,7 @@ export function TrustChip({
 
   const className = `inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${
     trustToneClass(tone)
-  } ${onClick ? "hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-[44px] sm:min-h-0" : ""}`;
+  } ${onClick ? "hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-[44px] sm:min-h-0 sm:py-1.5" : "py-1"}`;
 
   if (onClick) {
     return (

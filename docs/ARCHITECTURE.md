@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-01.2 Tender Trust Layer UI** · v2.62.93)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-01-UX-HF-001 Surface Policy** · v2.62.94)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1713,28 +1713,34 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 **Visual gate:** Benedyktyńska 22/13 · audyt V2C PDF **93.4%** tuszu vs ref. **92.5%** · **B+** · epic fidelity **CLOSED** (2.62.51)
 
-### 12.1.22 NG-01 — Tender Trust Layer (v2.62.93)
+### 12.1.22 NG-01 — Tender Trust Layer (v2.62.93 → HF-001 v2.62.94)
 
-**Status:** **NG-01.1 lib CLOSED** · **NG-01.2 UI CLOSED** — SSOT oceny wiarygodności danych przetargowych (bez nowego KV, bez zmian parserów/merge).
+**Status:** **NG-01.1 lib CLOSED** · **NG-01.2 UI CLOSED** · **NG-01-UX-HF-001 Surface Policy CLOSED** (v2.62.94) — SSOT oceny wiarygodności danych przetargowych (bez nowego KV, bez zmian parserów/merge).
+
+#### UX PRINCIPLES (Trust — prezentacja)
+
+| Zasada | Opis |
+|--------|------|
+| **Surface Policy** | Jedna zakładka = **jedna dominująca** powierzchnia statusowa. Limity chipów i mount komponentów przez `tender-trust-ui.ts` (`getTrustChipLimit`, `pickDimensionsForSurfaceDisplay`, …). |
+| **Information Priority** | Przy konflikcie sygnałów: **trust > workflow strip** (jedna ikona na etapie Process Strip). Komunikat blokady wyceny: **kalkulator warning > trust reason > fallback**. |
+| **Silence When OK** | Gdy `overall === trusted` (lub focus dimensions trusted): **brak** bannera Hub, **brak** chipów, **brak** badge dokumentów — użytkownik nie dostaje szumu przy pełnej jakości danych. |
 
 | Warstwa | Plik | Rola |
 |---------|------|------|
 | **SSOT logika** | `src/lib/tender-trust-layer.ts` | `buildTenderTrustAssessment()` — 6 wymiarów, `overall`, `trustVersion` |
-| **SSOT prezentacja** | `src/lib/tender-trust-ui.ts` | `trustLevelToIcon`, `getTrustDimensionsForSurface`, mapowanie strip overlay |
+| **SSOT prezentacja** | `src/lib/tender-trust-ui.ts` | Surface Policy, `getTrustChipLimit(surface, viewport)`, strip presentation |
 | **Hook UI** | `src/app/hooks/useTenderTrustAssessment.ts` | Jedno `useMemo` → assessment per ekran przetargu |
-| **Komponenty** | `src/app/tenders/trust/` | `TrustBanner`, `TrustChip`, `TrustReasonList` — pure, bez I/O |
+| **Komponenty** | `src/app/tenders/trust/` | `TrustBanner`, `TrustChip`, `TrustChipRow`, `TrustBadge`, `TrustInlineHint`, `TrustReasonList` — pure, bez I/O |
 
 **Wymiary:** `documents` · `parse` · `kosztorys` · `pricing` · `metadata` · `sync` · poziomy: `trusted` | `partial` | `blocked` | `unknown`.
 
-**Integracja UI:** Hub Przetarg · Process Strip (overlay trust, logika strip bez zmian) · Dokumenty · Kosztorys · Wycena · chips w `TenderDetailPanel`.
+**Integracja UI (HF-001):** Hub — warunkowy banner + `TrustChipRow`; Process Strip — `buildProcessStripStagePresentation`; Kosztorys — `KosztorysProcessStatusBar` + `TrustInlineHint`; Dokumenty — `TrustBadge` w SummaryHeader; Wycena — `pickPricingBlockedMessage` / `TrustReasonList` w details.
 
-**Test:** `npx vite-node scripts/test-tender-trust-layer.mjs`
+**Test:** `npx vite-node scripts/test-tender-trust-layer.mjs` · `scripts/test-tender-trust-ui-surface.mjs`
 
-**Nie mieszać z:** `tender-intelligence-overlay` (pewność GO/HOLD) · `KosztorysProcessStatusBar` (faza operacyjna).
+**Nie mieszać z:** `tender-intelligence-overlay` (pewność GO/HOLD) · duplikatem Prep Status na Hubie (usunięty w HF-001).
 
-**Backlog znany (nie blokuje MVP):** przycisk UI „Odłącz od pomiaru” (`detachSchematicFromMeasurement` w domenie — smoke 1c PASS)
-
-**Nie zmieniaj bez polecenia:** merge LWW schematów, import bez `valueSet` EM, layouty R1/R6, auto-sync EM↔schemat, `kw-electrical-measurements`.
+**Nie zmieniaj bez polecenia:** `buildTenderTrustAssessment()` reguły · `buildWorkflowProcessStripStages()` · parsery / merge / sync.
 
 ---
 

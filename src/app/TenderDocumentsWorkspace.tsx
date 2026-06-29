@@ -8,7 +8,7 @@ import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader
 import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
-import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
+import { pickDocumentsTrustBadge } from "@/lib/tender-trust-ui";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import {
   TENDER_ATTACHMENTS_SECTION_ID,
@@ -88,6 +88,7 @@ export function TenderDocumentsWorkspace({
   );
 
   const formalSummary = buildTenderFormalDetailsSummary(item, swz, item.tenderDossier);
+  const documentsTrustBadge = pickDocumentsTrustBadge(trustAssessment);
   const showFormalSection = hasTenderFormalDetailsSection(
     item,
     swz,
@@ -102,13 +103,7 @@ export function TenderDocumentsWorkspace({
         {platformSourceLabel}
       </p>
 
-      <TrustBanner
-        assessment={trustAssessment}
-        focus={["documents", "parse", "sync"]}
-        compact
-      />
-
-      <TenderDocumentsSummaryHeader summary={documentsSummary} />
+      <TenderDocumentsSummaryHeader summary={documentsSummary} trustBadge={documentsTrustBadge} />
 
       <TenderAttachmentsPanel
         item={item}

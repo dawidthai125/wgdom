@@ -90,6 +90,9 @@ assert(hubPanel.includes("TenderWorkflowProcessStrip"), "hub panel embeds proces
 assert(strip.includes("data-tender-workflow-process-strip"), "strip marker");
 assert(strip.includes("buildWorkflowProcessStripStages"), "strip uses SSOT builder");
 assert(strip.includes("workflowProcessStripStageToV4Navigate"), "strip navigates via SSOT");
+assert(strip.includes("buildProcessStripStagePresentation"), "strip single-icon presentation (HF-001)");
+assert(strip.includes("data-tender-trust-strip-icon"), "strip icon kind attr");
+assert(strip.includes('presentation.iconKind === "trust"'), "strip: trust icon branch");
 assert(strip.includes("data-workflow-process-stage"), "per-stage data attr");
 
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);

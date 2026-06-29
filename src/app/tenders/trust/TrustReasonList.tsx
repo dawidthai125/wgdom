@@ -17,12 +17,13 @@ export function TrustReasonList({
   defaultExpanded = false,
   maxVisible = 5,
   levelIcon,
+  compact = false,
 }: {
   reasons: TenderTrustReason[];
   defaultExpanded?: boolean;
   maxVisible?: number;
-  /** Ikona poziomu trust (SSOT: trustLevelToIcon). */
   levelIcon?: string;
+  compact?: boolean;
 }) {
   if (reasons.length === 0) return null;
 
@@ -35,7 +36,9 @@ export function TrustReasonList({
       open={defaultExpanded}
       data-tender-trust-reasons
     >
-      <summary className="cursor-pointer list-none flex items-center gap-1.5 text-muted-foreground hover:text-foreground min-h-[44px] sm:min-h-0">
+      <summary className={`cursor-pointer list-none flex items-center gap-1.5 text-muted-foreground hover:text-foreground ${
+        compact ? "min-h-[44px] sm:min-h-0" : ""
+      }`}>
         {levelIcon != null && (
           <span className="font-bold shrink-0" aria-hidden>{levelIcon}</span>
         )}

@@ -17,22 +17,10 @@ import {
   type WorkflowProcessStripStageStatus,
 } from "@/lib/tender-workflow-process-strip";
 import {
-  trustLevelToIcon,
+  buildProcessStripStagePresentation,
+  pickStripStageTrustMessage,
   trustStageOverlayLevel,
-  trustToneClass,
-  trustLevelToTone,
 } from "@/lib/tender-trust-ui";
-
-function stageStatusClass(status: WorkflowProcessStripStageStatus): string {
-  switch (status) {
-    case "done":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300";
-    case "partial":
-      return "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300";
-    default:
-      return "border-border bg-secondary/40 text-muted-foreground";
-  }
-}
 
 function StageIcon({ status }: { status: WorkflowProcessStripStageStatus }) {
   if (status === "done") return <Check size={12} className="shrink-0" aria-hidden />;
@@ -42,15 +30,19 @@ function StageIcon({ status }: { status: WorkflowProcessStripStageStatus }) {
 function ProcessStripStageButton({
   stage,
   onNavigate,
-  trustOverlayLevel,
+  trustAssessment,
 }: {
   stage: WorkflowProcessStripStage;
   onNavigate: (
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
-  trustOverlayLevel?: ReturnType<typeof trustStageOverlayLevel>;
+  trustAssessment: TenderTrustAssessment;
 }) {
+  const trustLevel = trustStageOverlayLevel(trustAssessment, stage.id);
+  const trustMessage = pickStripStageTrustMessage(trustAssessment, stage.id);
+  const presentation = buildProcessStripStagePresentation(stage, trustLevel, trustMessage);
+
   const handleClick = () => {
     const target = workflowProcessStripStageToV4Navigate(stage.id);
     onNavigate(target.tab, target.decyzjaWorkspace ? { decyzjaWorkspace: target.decyzjaWorkspace } : undefined);
@@ -60,23 +52,17 @@ function ProcessStripStageButton({
     <button
       type="button"
       onClick={handleClick}
-      title={
-        trustOverlayLevel && trustOverlayLevel !== "trusted"
-          ? `${stage.label}: trust ${trustLevelToIcon(trustOverlayLevel)}`
-          : stage.hint ? `${stage.label}: ${stage.hint}` : stage.label
-      }
-      className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${stageStatusClass(stage.status)} ${
-        trustOverlayLevel && trustOverlayLevel !== "trusted"
-          ? `ring-1 ring-inset ${trustToneClass(trustLevelToTone(trustOverlayLevel))}`
-          : ""
-      }`}
+      title={presentation.title}
+      className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${presentation.buttonClassName}`}
       data-workflow-process-stage={stage.id}
-      data-tender-trust-overlay={trustOverlayLevel ?? undefined}
+      data-tender-trust-overlay={trustLevel ?? undefined}
+      data-tender-trust-strip-icon={presentation.iconKind}
     >
-      {trustOverlayLevel && trustOverlayLevel !== "trusted" && (
-        <span className="shrink-0 font-bold" aria-hidden>{trustLevelToIcon(trustOverlayLevel)}</span>
+      {presentation.iconKind === "trust" && presentation.trustIcon ? (
+        <span className="shrink-0 font-bold" aria-hidden>{presentation.trustIcon}</span>
+      ) : (
+        <StageIcon status={presentation.workflowStatus} />
       )}
-      <StageIcon status={stage.status} />
       <span className="whitespace-nowrap">{stage.label}</span>
     </button>
   );
@@ -119,7 +105,7 @@ export function TenderWorkflowProcessStrip({
             <ProcessStripStageButton
               stage={stage}
               onNavigate={onNavigateTab}
-              trustOverlayLevel={trustStageOverlayLevel(trustAssessment, stage.id)}
+              trustAssessment={trustAssessment}
             />
             {index < stages.length - 1 && (
               <ChevronRight size={12} className="text-muted-foreground/50 shrink-0" aria-hidden />

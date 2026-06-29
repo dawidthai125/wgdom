@@ -3,7 +3,6 @@ import {
   collectFocusReasons,
   pickPrimaryTrustMessage,
   shouldShowTrustBanner,
-  trustLevelShortLabelPl,
   trustLevelToIcon,
   trustLevelToTone,
   trustToneClass,
@@ -32,25 +31,11 @@ export function TrustBanner({
     }, "trusted") ?? assessment.overall
   );
 
-  if (hideWhenTrusted && !shouldShowTrustBanner(assessment, variant === "overall" ? undefined : focus)) {
-    if (variant === "overall" && level === "trusted") {
-      return (
-        <div
-          className={`flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 ${
-            compact ? "py-1.5" : "py-2"
-          }`}
-          data-tender-trust-banner
-          data-tender-trust-level="trusted"
-        >
-          <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300" aria-hidden>
-            {trustLevelToIcon("trusted")}
-          </span>
-          <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
-            Jakość danych: {trustLevelShortLabelPl("trusted")}
-          </p>
-        </div>
-      );
-    }
+  const showBanner = variant === "overall"
+    ? shouldShowTrustBanner(assessment)
+    : shouldShowTrustBanner(assessment, focus);
+
+  if (hideWhenTrusted && !showBanner) {
     return null;
   }
 
@@ -85,8 +70,13 @@ export function TrustBanner({
           <p className={`text-muted-foreground leading-snug ${compact ? "text-[10px]" : "text-[11px]"}`}>
             {message}
           </p>
-          {!compact && reasons.length > 0 && (
-            <TrustReasonList reasons={reasons} levelIcon={icon} />
+          {reasons.length > 0 && (
+            <TrustReasonList
+              reasons={reasons}
+              levelIcon={icon}
+              defaultExpanded={!compact}
+              compact={compact}
+            />
           )}
         </div>
       </div>

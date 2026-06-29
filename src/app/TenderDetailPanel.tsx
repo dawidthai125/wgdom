@@ -32,8 +32,7 @@ import { existingKosztorysForRebuildPick, stampDossierParserVersion } from "@/li
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
 import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
-import { TrustChip } from "@/app/tenders/trust/TrustChip";
-import { getTrustDimensionsForSurface, trustLevelShortLabelPl } from "@/lib/tender-trust-ui";
+import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
@@ -689,17 +688,8 @@ export function TenderDetailPanel({
             ownerViewCompact={effectiveWorkspace === "overview"}
           />
 
-          <div className="flex flex-wrap gap-1" data-tender-trust-detail-chips>
-            <TrustChip
-              level={trustAssessment.overall}
-              labelPl={`Jakość danych · ${trustLevelShortLabelPl(trustAssessment.overall)}`}
-            />
-            {getTrustDimensionsForSurface(trustAssessment, "detail")
-              .filter((d) => d.level !== "trusted")
-              .slice(0, 3)
-              .map((dim) => (
-                <TrustChip key={dim.id} dimension={dim} />
-              ))}
+          <div data-tender-trust-detail-chips>
+            <TrustChipRow assessment={trustAssessment} surfaceId="detail" />
           </div>
 
           <TenderWorkspaceTabBar

@@ -37,9 +37,8 @@ import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { findTrustDimension } from "@/lib/tender-trust-layer";
-import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
 import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
-import { trustLevelToIcon } from "@/lib/tender-trust-ui";
+import { pickPricingBlockedMessage, trustLevelToIcon } from "@/lib/tender-trust-ui";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
@@ -235,21 +234,12 @@ export function TenderBidProposalPanel({
   })();
 
   if (!proposal?.ok) {
-    const pricingDim = findTrustDimension(trustAssessment, "pricing");
-    const msg = proposal?.warnings?.[0]
-      ?? pricingDim?.reasons.find((r) => r.severity === "error" || r.severity === "warn")?.messagePl
-      ?? pricingDim?.reasons[0]?.messagePl
-      ?? "Kalkulator oferty — wczytaj i sparsuj kosztorys.";
+    const msg = pickPricingBlockedMessage(trustAssessment, proposal?.warnings?.[0] ?? null);
     return (
       <div
         id={TENDER_BID_PROPOSAL_PANEL_ID}
         className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-2"
       >
-        <TrustBanner
-          assessment={trustAssessment}
-          focus={["pricing", "kosztorys"]}
-          compact
-        />
         <p className="text-xs font-semibold text-violet-800 dark:text-violet-300 flex items-center gap-1.5">
           <Calculator size={13} />
           Wycena
@@ -293,13 +283,11 @@ export function TenderBidProposalPanel({
     >
       {showPricingTrust && pricingDim.reasons.length > 0 && (
         <div className="px-3 pt-3 border-b border-violet-500/10">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-            Jakość danych wejściowych
-          </p>
           <TrustReasonList
             reasons={pricingDim.reasons}
             levelIcon={trustLevelToIcon(pricingDim.level)}
-            defaultExpanded
+            defaultExpanded={false}
+            compact
           />
         </div>
       )}
