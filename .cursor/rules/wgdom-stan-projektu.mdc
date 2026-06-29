@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.62.79** (prod) · commit **`4397eac`**
-- **Prod (`main` / `origin/main`, app):** **2.62.79** · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.92** (prod) · commit **`5f212b4`**
+- **Prod (`main` / `origin/main`, app):** **2.62.92** · https://www.wgdom.fun
+- **★★ SUPER ADMIN ACL (Instrukcja + Zmiany):** **CLOSED** (2.62.92) · [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](../../docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1
 - **★★ Mobile Recovery:** **EPIC CLOSED** (2.62.78–79) · [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
 - **★★ P1 Audit Hub WM:** **EPIC CLOSED** (2.62.74–77) · [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 15.6
 - **★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu):** [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../../docs/WORKFLOW-ARCHITECTURE-v2.63.md) — Hub · Process Strip · Sticky CTA · zakładki V4
@@ -196,9 +197,27 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  
  **Kluczowe pliki:** `JobsView.tsx` · `mobile.css` · wzorce: `OperationalNotesView.tsx`, `PayrollView.tsx`
  
- **Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · następny EPIC: **P0 Payroll Cloud Recovery**
- 
- ---
+**Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · następny EPIC: **P0 Payroll Cloud Recovery**
+
+---
+
+## SUPER ADMIN ACL — Instrukcja + Zmiany (**CLOSED**, prod `5f212b4`, v2.62.92, 2026-06-29)
+
+**Status:** **CLOSED** · osobne menu `guide` / `changelog` · AppSettings ACL
+
+| Element | Skrót |
+|---|---|
+| Flagi | `instructionsForAdminEnabled`, `changesForAdminEnabled` (default `false`) |
+| Helpery | `adminCanViewInstructions`, `adminCanViewChanges` |
+| Ustawienia | ⚙ Super Admin only — `AdminSettingsModal.tsx` |
+
+**Handoff:** [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](../../docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · **ARCHITECTURE § 5.1**
+
+**Test:** `npx vite-node scripts/test-admin-guide-acl.mjs`
+
+**Nie** łączyć z powrotem w jedną pozycję menu · **Nie** dawać moderatorowi dostępu przez flagi
+
+---
  
  ## Lista Płac — Przydziały robót PAYROLL-ASSIGNMENTS-P1 (prod `94ad114`, v2.59.49, 2026-06-16)
  

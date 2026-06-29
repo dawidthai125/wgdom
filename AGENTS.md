@@ -11,13 +11,14 @@
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.79)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.92)
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED · 7 źródeł)
 3w. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md  ← ★★ P1 Audit Hub WM EPIC CLOSED
 3w2. docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md  ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
 3w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED
 3u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 deploy unblock (CLOSED)
-3u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync · exceed_egress_quota (AUDIT CLOSED · FIX OPEN)
+3u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync · exceed_egress_quota (INCIDENT CLOSED)
+3u4. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
 3u3. audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md  ← skrót audytu egress
 3a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (CLOSED)
 3a2. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -171,8 +172,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.79**) |
-| Prod `main` (app) | **v2.62.79** (`4397eac`) · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.92**) |
+| Prod `main` (app) | **v2.62.92** (`5f212b4`) · SUPER ADMIN ACL guide/changelog · Mobile Recovery **EPIC CLOSED** |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
@@ -473,6 +474,19 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 **Nie zmieniaj bez polecenia:** wzorzec MV-2 drill-in Roboty · nie traktuj SMOKE-03 BLOCKED jako bug prod · Mobile Certification = osobny program.
 
 **Backlog:** Inspector mobile · WM Pomiary/Katalog UX · Jobs `history.pushState` — enhancements only.
+
+---
+
+## 3l2c. SUPER ADMIN ACL — Instrukcja + Zmiany (**CLOSED**, prod `5f212b4`, v2.62.92)
+
+- **Handoff SSOT:** [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md)
+- **Architektura:** **ARCHITECTURE.md § 5.1** — AppSettings ACL · osobne `guide` / `changelog`
+- **Flagi:** `instructionsForAdminEnabled`, `changesForAdminEnabled` (default `false`, `kw-app-settings`)
+- **Helpery:** `adminCanViewInstructions`, `adminCanViewChanges` w `admin-auth.ts`
+- **Kluczowe pliki:** `app-settings.ts`, `admin-nav.ts`, `App.tsx`, `AdminViewRouter.tsx`, `GuideView.tsx`, `AdminSettingsModal.tsx`
+- **Test:** `test-admin-guide-acl.mjs`
+
+**Nie zmieniaj bez polecenia:** nie scalać menu · moderator bez dostępu · bez nowego KV.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PB-2b V4 KPI PARITY** · v2.62.86)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**SUPER ADMIN ACL Instrukcja/Zmiany** · v2.62.92)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -219,7 +219,24 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 
 **Role admina** (`src/lib/admin-auth.ts`): `super_admin` | `admin` | `moderator` | `inspector`  
 - `adminCanViewRates()` — moderator **nie widzi** stawek PLN/h.  
-- Super Admin (⚙): użytkownicy, hasła, restore backupów chmurowych.
+- Super Admin (⚙): użytkownicy, hasła, restore backupów chmurowych, **flagi AppSettings** (patrz § 5.1).
+
+### 5.1 AppSettings ACL — widoki opcjonalne (Super Admin)
+
+**SSOT handoff:** [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · **prod 2.62.92**
+
+Pola w `kw-app-settings` (`src/lib/app-settings.ts`). **Domyślnie `false`.** Tylko **Super Admin** edytuje w `AdminSettingsModal` (⚙).
+
+| Flaga | Helper | Widok / funkcja | Kto poza super_admin |
+|-------|--------|-----------------|----------------------|
+| `tendersTabForStaffEnabled` | `adminCanViewTendersTab` | menu `tenders` | admin + moderator |
+| `workCatalogForAdminEnabled` | `adminCanViewWorkCatalog` | Przetargi → zakładka Biblioteka robót | admin |
+| `instructionsForAdminEnabled` | `adminCanViewInstructions` | menu `guide` — Instrukcja | admin |
+| `changesForAdminEnabled` | `adminCanViewChanges` | menu `changelog` — Zmiany | admin |
+
+**Wzorzec implementacji:** helper w `admin-auth.ts` → `canView*` w `App.tsx` → `buildAdminNavItems({ canView*Nav })` → guard w `AdminViewRouter` + `useEffect` redirect na `dashboard` przy direct URL.
+
+**Test ACL guide/changelog:** `scripts/test-admin-guide-acl.mjs`
 
 **Widoczność etykiet ról w UI (20.5A.7)** — `src/lib/role-visibility.ts` → `visibleRoleLabelForViewer(viewerRole, subjectRole)`:
 
@@ -249,7 +266,8 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 | `inspector` | Monitoring inspektora (feed admin) | `InspectorAdminView` |
 | `photos` | Galeria zdjęć (admin) — zaakceptowane zdjęcia ekipy; ZIP całej roboty / kategorii | `JobPhotosGalleryView` w `App.tsx` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
-| `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
+| `guide` | Instrukcja obsługi (FAQ) | `GuideView` `mode="instructions"` | Super Admin zawsze; admin gdy `instructionsForAdminEnabled` |
+| `changelog` | Historia wersji (CHANGELOG UI) | `GuideView` `mode="changes"` | Super Admin zawsze; admin gdy `changesForAdminEnabled` |
 | `tenders` | **Przetargi 3.0** — `TendersModule` (Lista, Strategia, Mapa, Profil, Ustawienia) | Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
@@ -590,7 +608,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 |-------|-----------|
 | `kw-admin-passwords` | Hash hasła per userId |
 | `kw-admin-users-config` | Role, custom users, telefony |
-| `kw-app-settings` | Np. `athPreviewEnabled`, `tendersTabForStaffEnabled` |
+| `kw-app-settings` | `athPreviewEnabled`, `tendersTabForStaffEnabled`, `workCatalogForAdminEnabled`, `instructionsForAdminEnabled`, `changesForAdminEnabled`, `catalogWriteMode`, … |
 | `kw-inspector-stats` | Logowania / wizyty inspektorów |
 | `kw-tenders-pipeline` | Pipeline przetargów BZP (status, notatki) — Super Admin |
 
@@ -2369,7 +2387,8 @@ WGDOM1/
 | `inspector` | Inspektor | `InspectorAdminView.tsx` | Feed zmian terenowych |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
-| `guide` | Zmiany/Instrukcja | `GuideView.tsx` | Changelog + help |
+| `guide` | Instrukcja | `GuideView.tsx` | ACL § 5.1 · `mode="instructions"` |
+| `changelog` | Zmiany | `GuideView.tsx` | ACL § 5.1 · `mode="changes"` · wersja z `changelog-data.ts` |
 | `tenders` | Przetargi | `TendersModule.tsx` | Przetargi 3.0 — Lista, Strategia, Mapa, Profil, Ustawienia |
 | `wmprint` | Odbiory WM Druk | `WmPrintView.tsx` | ZIP odbiorowy, szablony, ustawienia · lazy chunk |
 

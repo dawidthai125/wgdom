@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-29 (**prod 2.62.81** · **P0 Cloud Sync Incident CLOSED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-29 (**prod 2.62.92** · **SUPER ADMIN ACL CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło sesji:** „kontynuuj WGDOM”  
@@ -22,6 +22,7 @@
 1w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED · P1 **CLOSED** · SSOT: ARCHITECTURE § 15.6
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync egress · exceed_egress_quota (**INCIDENT CLOSED** 2026-06-29)
+1u3. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
 1c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
@@ -49,6 +50,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **SUPER ADMIN ACL (Instrukcja + Zmiany)** | **2.62.92** (`5f212b4`) | **CLOSED** · osobne menu · AppSettings ACL | [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 |
 | **P0 Cloud Sync Incident** | **2.62.81** (prod) | **CLOSED** · Supabase Pro · prod smoke PASS 2026-06-29 | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md) §0 |
 | **Biblioteka Robót v3.0 — P1 Foundation** | **2.62.80** | **CLOSED** · lib + KV + golden · **bez UI** · P2 OPEN | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md) · [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md) · ARCHITECTURE § 12.1.22 |
 | **Mobile Recovery** | **2.62.78–2.62.79** (`78582db`→`4397eac`) | **CLOSED** · prod smoke 7 PASS / 1 BLOCKED · outstanding bugs **NONE** | § 2b poniżej · `CURRENT-TASK.md` |
@@ -156,6 +158,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.62.92       ← SUPER ADMIN ACL Instrukcja/Zmiany · commit 5f212b4
 Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937 · PRODUCTION VERIFIED
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0

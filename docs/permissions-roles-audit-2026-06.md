@@ -54,3 +54,17 @@ Propagacja: `App.tsx` → `canViewTendersNav` → `AdminViewRouter`, `buildAdmin
 ## Faza 8–9
 
 Brak zmian w `adminCanViewTendersTab` — regresji nie wykryto.
+
+---
+
+## Dodatek 2026-06-29 — Instrukcja + Zmiany (2.62.92)
+
+**SSOT:** [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md)
+
+| Rola | Instrukcja (`guide`) | Zmiany (`changelog`) |
+|------|----------------------|----------------------|
+| Super Admin | zawsze | zawsze |
+| Administrator | gdy `instructionsForAdminEnabled` | gdy `changesForAdminEnabled` |
+| Moderator / Inspektor | nigdy | nigdy |
+
+Helpery: `adminCanViewInstructions`, `adminCanViewChanges` · test: `scripts/test-admin-guide-acl.mjs`

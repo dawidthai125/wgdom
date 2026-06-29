@@ -83,9 +83,21 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` |
 | `inspector` | Inspektor (admin feed) | `InspectorAdminView.tsx` |
-| `guide` | Zmiany / Instrukcja | `GuideView.tsx` |
+| `guide` | Instrukcja | `GuideView.tsx` | ACL § ARCHITECTURE 5.1 · Super Admin; admin gdy flaga |
+| `changelog` | Zmiany | `GuideView.tsx` | ACL § ARCHITECTURE 5.1 · osobne menu od 2.62.92 |
 
 Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
+
+### AppSettings ACL (Instrukcja · Zmiany · 2.62.92)
+
+**Handoff:** [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md)
+
+| Flaga `kw-app-settings` | Helper | Menu |
+|-------------------------|--------|------|
+| `instructionsForAdminEnabled` | `adminCanViewInstructions` | `guide` |
+| `changesForAdminEnabled` | `adminCanViewChanges` | `changelog` |
+
+Bez uprawnień: brak pozycji menu + redirect `guide`/`changelog` → Pulpit. Test: `scripts/test-admin-guide-acl.mjs`.
 
 ### Mobile drill-in (<640px · breakpoint `sm`)
 

@@ -1,6 +1,18 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.82** (deploy po push) · **TP200B CLOSED**
+**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.92** (SUPER ADMIN ACL) · commit **`5f212b4`**
+
+---
+
+## SUPER ADMIN ACL — Instrukcja + Zmiany · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** |
+| **Wersja** | **2.62.92** · **`5f212b4`** |
+| **Zakres** | `instructionsForAdminEnabled` + `changesForAdminEnabled` · osobne menu `guide` / `changelog` |
+| **SSOT** | [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 |
+| **Test** | `npx vite-node scripts/test-admin-guide-acl.mjs` |
 
 ---
 
