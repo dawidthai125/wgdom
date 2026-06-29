@@ -19,10 +19,14 @@ import {
   WorkflowHubPrepStatusDisplay,
 } from "@/app/TenderWorkflowHubSections";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
+import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 import { TENDER_INTELLIGENCE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
+import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
+import { TrustChip } from "@/app/tenders/trust/TrustChip";
+import { getTrustDimensionsForSurface, trustDimensionToV4Tab } from "@/lib/tender-trust-ui";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -40,10 +44,12 @@ export function TenderWorkflowHubPanel({
   dossierBuilding,
   dossierSaving,
   analyzing,
+  trustAssessment,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
   intelligenceCtx: TenderIntelligenceContext;
+  trustAssessment: TenderTrustAssessment;
   onNavigateTab: (
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
@@ -62,10 +68,23 @@ export function TenderWorkflowHubPanel({
 }) {
   return (
     <div className="space-y-4" data-tender-workflow-hub>
+      <TrustBanner assessment={trustAssessment} variant="overall" />
+
+      <div className="flex flex-wrap gap-1.5" data-tender-trust-hub-chips>
+        {getTrustDimensionsForSurface(trustAssessment, "hub").map((dim) => (
+          <TrustChip
+            key={dim.id}
+            dimension={dim}
+            onClick={() => onNavigateTab(trustDimensionToV4Tab(dim.id))}
+          />
+        ))}
+      </div>
+
       <TenderWorkflowProcessStrip
         item={item}
         swz={swz}
         intelligenceCtx={intelligenceCtx}
+        trustAssessment={trustAssessment}
         onNavigateTab={onNavigateTab}
       />
 

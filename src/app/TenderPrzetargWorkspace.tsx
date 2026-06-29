@@ -17,6 +17,7 @@ import {
 } from "@/lib/tender-detail-v4-display";
 import { TenderWorkflowHubPanel } from "@/app/TenderWorkflowHubPanel";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
+import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
@@ -63,6 +64,7 @@ export function TenderPrzetargWorkspace({
   dossierBuilding,
   dossierSaving,
   analyzing,
+  trustAssessment,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -82,6 +84,7 @@ export function TenderPrzetargWorkspace({
   dossierBuilding?: boolean;
   dossierSaving?: boolean;
   analyzing?: boolean;
+  trustAssessment: TenderTrustAssessment;
 }) {
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
@@ -107,6 +110,7 @@ export function TenderPrzetargWorkspace({
         dossierBuilding={dossierBuilding}
         dossierSaving={dossierSaving}
         analyzing={analyzing}
+        trustAssessment={trustAssessment}
       />
 
       <BlockShell title="Podstawowe dane">

@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.93",
+    label: "NG-01.2 — Tender Trust Layer UI",
+    items: [
+      {
+        type: "new",
+        text: "Jakość danych przetargowych — banner i chipy trust na Przetargu, Dokumentach, Kosztorysie i Wycenie (SSOT buildTenderTrustAssessment)",
+      },
+      {
+        type: "improve",
+        text: "Pasek procesu oferty — ikony trust przy etapach (overlay; logika postępu bez zmian)",
+      },
+      {
+        type: "improve",
+        text: "Wycena — komunikaty o braku kosztorysu z warstwy trust zamiast osobnej logiki missingKosztorys",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.92",
     label: "SUPER ADMIN ACL — Instrukcja i Zmiany",
     items: [

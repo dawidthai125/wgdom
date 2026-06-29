@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**SUPER ADMIN ACL Instrukcja/Zmiany** · v2.62.92)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-01.2 Tender Trust Layer UI** · v2.62.93)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1712,6 +1712,25 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Smoke:** `test-schematic-presets-templates-1b.mjs` (77) · `test-schematic-merge-sync-1c.mjs` (29) · `test-schematic-import-from-measurement.mjs` (29) · `test-schematic-render-apartment-3f.mjs` (31) · `test-schematic-v1b-visual-smoke.mjs` (16) · `test-schematic-pdf-smoke.mjs` (22) · `test-schematic-cloud-sync-3a.mjs` (25) · `test-wm-schematics-ui-3b.mjs` (29)
 
 **Visual gate:** Benedyktyńska 22/13 · audyt V2C PDF **93.4%** tuszu vs ref. **92.5%** · **B+** · epic fidelity **CLOSED** (2.62.51)
+
+### 12.1.22 NG-01 — Tender Trust Layer (v2.62.93)
+
+**Status:** **NG-01.1 lib CLOSED** · **NG-01.2 UI CLOSED** — SSOT oceny wiarygodności danych przetargowych (bez nowego KV, bez zmian parserów/merge).
+
+| Warstwa | Plik | Rola |
+|---------|------|------|
+| **SSOT logika** | `src/lib/tender-trust-layer.ts` | `buildTenderTrustAssessment()` — 6 wymiarów, `overall`, `trustVersion` |
+| **SSOT prezentacja** | `src/lib/tender-trust-ui.ts` | `trustLevelToIcon`, `getTrustDimensionsForSurface`, mapowanie strip overlay |
+| **Hook UI** | `src/app/hooks/useTenderTrustAssessment.ts` | Jedno `useMemo` → assessment per ekran przetargu |
+| **Komponenty** | `src/app/tenders/trust/` | `TrustBanner`, `TrustChip`, `TrustReasonList` — pure, bez I/O |
+
+**Wymiary:** `documents` · `parse` · `kosztorys` · `pricing` · `metadata` · `sync` · poziomy: `trusted` | `partial` | `blocked` | `unknown`.
+
+**Integracja UI:** Hub Przetarg · Process Strip (overlay trust, logika strip bez zmian) · Dokumenty · Kosztorys · Wycena · chips w `TenderDetailPanel`.
+
+**Test:** `npx vite-node scripts/test-tender-trust-layer.mjs`
+
+**Nie mieszać z:** `tender-intelligence-overlay` (pewność GO/HOLD) · `KosztorysProcessStatusBar` (faza operacyjna).
 
 **Backlog znany (nie blokuje MVP):** przycisk UI „Odłącz od pomiaru” (`detachSchematicFromMeasurement` w domenie — smoke 1c PASS)
 

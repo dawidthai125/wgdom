@@ -7,6 +7,8 @@ import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader";
 import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
+import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
+import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import {
   TENDER_ATTACHMENTS_SECTION_ID,
@@ -35,6 +37,7 @@ export function TenderDocumentsWorkspace({
   onSearchExternal,
   onLearnKeywords,
   onOpenKosztorysPreview,
+  trustAssessment,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -55,6 +58,7 @@ export function TenderDocumentsWorkspace({
   onSearchExternal: () => void;
   onLearnKeywords: () => void;
   onOpenKosztorysPreview: (previewItem: InspectorFileItem) => void;
+  trustAssessment: TenderTrustAssessment;
 }) {
   const [showFullFormalDetails, setShowFullFormalDetails] = useState(false);
 
@@ -97,6 +101,12 @@ export function TenderDocumentsWorkspace({
         <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
         {platformSourceLabel}
       </p>
+
+      <TrustBanner
+        assessment={trustAssessment}
+        focus={["documents", "parse", "sync"]}
+        compact
+      />
 
       <TenderDocumentsSummaryHeader summary={documentsSummary} />
 

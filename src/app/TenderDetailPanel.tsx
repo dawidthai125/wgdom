@@ -31,6 +31,9 @@ import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
 import { existingKosztorysForRebuildPick, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
+import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
+import { TrustChip } from "@/app/tenders/trust/TrustChip";
+import { getTrustDimensionsForSurface, trustLevelShortLabelPl } from "@/lib/tender-trust-ui";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
@@ -162,6 +165,12 @@ export function TenderDetailPanel({
     }),
     [autoRunning, dossierBuilding, dossierSaving, wantsHeavyDossier],
   );
+  const trustAssessment = useTenderTrustAssessment({
+    item,
+    swz,
+    kosztorysSession: kosztorysProcessSession,
+    loadingDocs: loadingDocs || autoRunning,
+  });
   const tendersCtx = useTendersContextOptional();
 
   const platformDocStatus = useMemo(
@@ -680,6 +689,19 @@ export function TenderDetailPanel({
             ownerViewCompact={effectiveWorkspace === "overview"}
           />
 
+          <div className="flex flex-wrap gap-1" data-tender-trust-detail-chips>
+            <TrustChip
+              level={trustAssessment.overall}
+              labelPl={`Jakość danych · ${trustLevelShortLabelPl(trustAssessment.overall)}`}
+            />
+            {getTrustDimensionsForSurface(trustAssessment, "detail")
+              .filter((d) => d.level !== "trusted")
+              .slice(0, 3)
+              .map((dim) => (
+                <TrustChip key={dim.id} dimension={dim} />
+              ))}
+          </div>
+
           <TenderWorkspaceTabBar
             activeTab={effectiveWorkspace}
             onTabChange={navigateWorkspace}
@@ -706,6 +728,7 @@ export function TenderDetailPanel({
               dossierBuilding={dossierBuilding}
               dossierSaving={dossierSaving}
               analyzing={analyzing}
+              trustAssessment={trustAssessment}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}
@@ -788,6 +811,7 @@ export function TenderDetailPanel({
           onSearchExternal={() => void runExternalDiscovery()}
           onLearnKeywords={() => void handleLearnKeywords()}
           onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
+          trustAssessment={trustAssessment}
         />
       )}
 
@@ -815,7 +839,7 @@ export function TenderDetailPanel({
             ourEstimatePln={item.ourEstimatePln}
             teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
             onApplyRecommended={(pln) => onUpdate(patchOurEstimatePln(item, pln, "propozycja kalkulatora"))}
-            missingKosztorys={!item.tenderDossier?.kosztorys?.ok}
+            trustAssessment={trustAssessment}
             breakdownOpen={bidBreakdownOpen}
             highlight={bidPanelHighlight}
             catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}

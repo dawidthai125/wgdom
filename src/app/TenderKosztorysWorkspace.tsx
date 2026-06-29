@@ -3,10 +3,14 @@ import { Download, Eye, Loader2 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   buildKosztorysV4Display,
-  buildKosztorysAthVisibilityHint,
   catalogLineToKosztorysDisplayRow,
   type KosztorysV4CatalogDisplayRow,
 } from "@/lib/tender-detail-v4-display";
+import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
+import { findTrustDimension } from "@/lib/tender-trust-layer";
+import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
+import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
+import { trustLevelToIcon } from "@/lib/tender-trust-ui";
 import {
   deriveKosztorysProcessPhase,
   isKosztorysProcessInProgress,
@@ -135,12 +139,14 @@ export function TenderKosztorysWorkspace({
   processSession,
   retryNonce = 0,
   onRetryParse,
+  trustAssessment,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
   processSession?: KosztorysProcessSession;
   retryNonce?: number;
   onRetryParse?: () => void;
+  trustAssessment: TenderTrustAssessment;
 }) {
   const session = useMemo(
     () => ({ ...processSession, lazyEnabled: true }),
@@ -169,7 +175,10 @@ export function TenderKosztorysWorkspace({
   const athPreviewItem = useMemo(() => resolveAthPreviewItem(item), [item]);
   const canOpenFullPreview = athPreviewEnabled && athPreviewItem != null;
   const canDownloadAth = canOpenFullPreview;
-  const athVisibilityHint = useMemo(() => buildKosztorysAthVisibilityHint(item), [item]);
+  const kosztorysTrust = findTrustDimension(trustAssessment, "kosztorys");
+  const kosztorysTrustReasons = kosztorysTrust?.reasons.filter(
+    (r) => r.code === "kosztorys_ath_cap_ui" || r.code === "kosztorys_row_cap",
+  ) ?? [];
 
   const filteredCatalogLines = useMemo(() => {
     const base = display.catalogRows;
@@ -211,6 +220,12 @@ export function TenderKosztorysWorkspace({
         health={health}
         onRetry={onRetryParse}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
+      />
+
+      <TrustBanner
+        assessment={trustAssessment}
+        focus={["kosztorys", "parse"]}
+        compact
       />
 
       {pro.hasCatalog && (
@@ -370,10 +385,11 @@ export function TenderKosztorysWorkspace({
                 {display.source === "catalog" ? " · źródło: catalogQuantities" : ""}
                 {k?.totalValue ? ` · wartość wg pliku: ${k.totalValue} ${k.currency || "PLN"}` : ""}
               </p>
-              {athVisibilityHint && (
-                <p className="text-[10px] text-muted-foreground whitespace-pre-line">
-                  {athVisibilityHint}
-                </p>
+              {kosztorysTrustReasons.length > 0 && (
+                <TrustReasonList
+                  reasons={kosztorysTrustReasons}
+                  levelIcon={trustLevelToIcon(kosztorysTrust?.level ?? "partial")}
+                />
               )}
             </div>
           ) : categoryFilter !== "all" ? (

@@ -35,6 +35,11 @@ import {
 } from "@/lib/tender-cost-calibration";
 import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
+import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
+import { findTrustDimension } from "@/lib/tender-trust-layer";
+import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
+import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
+import { trustLevelToIcon } from "@/lib/tender-trust-ui";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
@@ -64,7 +69,7 @@ export function TenderBidProposalPanel({
   ourEstimatePln,
   teamHeadcount,
   onApplyRecommended,
-  missingKosztorys,
+  trustAssessment,
   breakdownOpen = false,
   highlight = false,
   catalogQuantities,
@@ -80,6 +85,8 @@ export function TenderBidProposalPanel({
   ourEstimatePln?: number | null;
   teamHeadcount?: number | null;
   onApplyRecommended?: (pln: number) => void;
+  trustAssessment: TenderTrustAssessment;
+  /** @deprecated NG-01.2 — użyj trustAssessment; ignorowane gdy podano assessment */
   missingKosztorys?: boolean;
   /** P3.1 — breakdown domyślnie zwinięty w sekcji Szczegóły */
   breakdownOpen?: boolean;
@@ -228,15 +235,21 @@ export function TenderBidProposalPanel({
   })();
 
   if (!proposal?.ok) {
+    const pricingDim = findTrustDimension(trustAssessment, "pricing");
     const msg = proposal?.warnings?.[0]
-      ?? (missingKosztorys
-        ? "Aby wyliczyć ofertę: pobierz kosztorys (ATH/XLSX/PDF) z załączników lub wgraj ręcznie."
-        : "Kalkulator oferty — wczytaj i sparsuj kosztorys.");
+      ?? pricingDim?.reasons.find((r) => r.severity === "error" || r.severity === "warn")?.messagePl
+      ?? pricingDim?.reasons[0]?.messagePl
+      ?? "Kalkulator oferty — wczytaj i sparsuj kosztorys.";
     return (
       <div
         id={TENDER_BID_PROPOSAL_PANEL_ID}
-        className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-1"
+        className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-2"
       >
+        <TrustBanner
+          assessment={trustAssessment}
+          focus={["pricing", "kosztorys"]}
+          compact
+        />
         <p className="text-xs font-semibold text-violet-800 dark:text-violet-300 flex items-center gap-1.5">
           <Calculator size={13} />
           Wycena
@@ -268,6 +281,9 @@ export function TenderBidProposalPanel({
     ? ((rec - referenceValuePln) / referenceValuePln) * 100
     : null;
 
+  const pricingDim = findTrustDimension(trustAssessment, "pricing");
+  const showPricingTrust = pricingDim != null && pricingDim.level === "partial";
+
   return (
     <div
       id={TENDER_BID_PROPOSAL_PANEL_ID}
@@ -275,6 +291,18 @@ export function TenderBidProposalPanel({
         highlight ? "ring-2 ring-violet-500/50 shadow-md" : ""
       }`}
     >
+      {showPricingTrust && pricingDim.reasons.length > 0 && (
+        <div className="px-3 pt-3 border-b border-violet-500/10">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Jakość danych wejściowych
+          </p>
+          <TrustReasonList
+            reasons={pricingDim.reasons}
+            levelIcon={trustLevelToIcon(pricingDim.level)}
+            defaultExpanded
+          />
+        </div>
+      )}
       <div className="px-3 py-3 border-b border-violet-500/15">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1 flex-wrap">
           <Calculator size={12} className="text-violet-600" />

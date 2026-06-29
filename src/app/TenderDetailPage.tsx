@@ -12,6 +12,8 @@ import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
+import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
+import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
@@ -126,6 +128,25 @@ export function TenderDetailPage({
     athPreviewEnabled,
   });
 
+  const kosztorysProcessSession = useMemo(
+    () => buildKosztorysProcessSession({
+      autoRunning,
+      dossierBuilding,
+      dossierSaving,
+      dossierParseFailed,
+      parseErrorMessage,
+      lazyEnabled: true,
+    }),
+    [autoRunning, dossierBuilding, dossierSaving, dossierParseFailed, parseErrorMessage],
+  );
+
+  const trustAssessment = useTenderTrustAssessment({
+    item: bootstrapItem,
+    swz,
+    kosztorysSession: kosztorysProcessSession,
+    loadingDocs: autoRunning,
+  });
+
   if (!item) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
@@ -195,16 +216,10 @@ export function TenderDetailPage({
             <TenderKosztorysWorkspace
               item={item}
               athPreviewEnabled={athPreviewEnabled}
-              processSession={{
-                autoRunning,
-                dossierBuilding,
-                dossierSaving,
-                dossierParseFailed,
-                parseErrorMessage,
-                lazyEnabled: true,
-              }}
+              processSession={kosztorysProcessSession}
               retryNonce={retryNonce}
               onRetryParse={retryDossierParse}
+              trustAssessment={trustAssessment}
             />
           )}
 

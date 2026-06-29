@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.93 — NG-01.2 Tender Trust Layer UI
+
+- **new:** Banner i chipy „Jakość danych” na Przetargu, Dokumentach, Kosztorysie, Wycenie (`tender-trust-layer` + `tenders/trust/*`)
+- **improve:** Process Strip — overlay ikon trust (✓ ! × …) bez zmiany logiki etapów
+- **improve:** Wycena — SSOT trust zamiast `missingKosztorys`
+
 ## 2026-06-29 — Code hygiene: AI authorship cleanup (bez bump UI)
 
 - **chore:** neutralizacja sformułowań „agent AI / GPT / Cursor agent” w docs, regułach Cursor, changelog historycznym
