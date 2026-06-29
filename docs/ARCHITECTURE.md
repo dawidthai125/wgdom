@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-28 (**v2.62.80** · Work Catalog P1 **FOUNDATION CLOSED**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**P0 cloud sync egress audit** · bez bump wersji UI)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -651,6 +651,27 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 
 Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs`
 
+### 11.4 Egress i pełny bundle (P0 audit 2026-06-29) · **OPEN**
+
+> **Incydent:** Supabase `exceed_egress_quota` → sync admina pada (`Failed to fetch` w przeglądarce, HTTP 402 na bramce).  
+> **SSOT:** [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md)
+
+| Mechanizm | Egress / transfer | Uwaga |
+|-----------|-------------------|--------|
+| `runCloudSync` | **3–4× `batch-get`** + **2× `batch-set`** na cykl | Pełny bundle **31 `DATA_KEYS` + tombstones** przy **każdej** zmianie (debounce 2 s) |
+| `pullFromCloudAndMerge` | **1× pełny `batch-get`** | Każdy **focus** / **visibility** widocznej karty admina |
+| `triggerWeeklyBackupEmail` | POST **wszystkich `DATA_KEYS`** | Niedziela, po zapisie tygodnia — duży **ingress** |
+| Inspektor `refreshFromCloud` | `batch-get` 11 kluczy co **120 s** | Równoległa sesja amplifikuje odczyt |
+| Przetargi `zip-entry-bytes` | Spiki do **128 MB** response | Pojedyncze operacje dossiera |
+
+**Szac. response jednego pełnego `batch-get`:** ~2–10 MB (zależnie od `kw-jobs`, `kw-archive`, `kw-tenders-pipeline`).
+
+**Pułapki dla agentów:**
+
+1. **Nie** zakładaj, że `Failed to fetch` = błąd kodu URL — sprawdź **402 quota** na bramce Supabase.
+2. **Nie** dodawaj kolejnych pełnych `batch-get` bez AUDIT egress.
+3. Refactor na delta-sync — **tylko na polecenie** po odblokowaniu billing + brief; **nie** ruszać Payroll Guard / P11 merge bez review.
+
 ### 11.5 Admin passwords (`kw-admin-passwords`, P15)
 
 - Klucz KV: mapa `userId → SHA-256("wgdom-admin-account-v1:" + login + ":" + password)`.
@@ -662,7 +683,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 **Nie mieszaj** z ogólnym `mergeDataKey` — admin passwords mają osobną logikę w `CloudLoader`, nie w `cloud-sync.ts`.
 
-### 11.5 CloudLoader CORE / DEFERRED bootstrap (Performance 1.3A+, prod `a6cdb4a`)
+### 11.6 CloudLoader CORE / DEFERRED bootstrap (Performance 1.3A+, prod `a6cdb4a`)
 
 **Cel:** szybsze `ready=true` — cięższe klucze przetargów i kontaktów pobierane **po** wejściu w UI (login / admin).
 
@@ -683,7 +704,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 ---
 
-### 11.6 ARCH-001 — Circular Dependency Prevention (2026-06-13)
+### 11.7 ARCH-001 — Circular Dependency Prevention (2026-06-13)
 
 **Status:** obowiązuje od v2.53.3 · wynik incydentu P0 v2.53.1 → hotfix v2.53.2
 
@@ -1646,29 +1667,52 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 ---
 
-### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 (v2.62.80)
+### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2.1–P2.6 UI (v2.62.87)
 
-**Status:** **P1 FOUNDATION CLOSED** (P1.1–P1.12) · **bez UI** · **P2 OPEN**  
-**FREEZE:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
-**Raport:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
+**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP FROZEN** (v2.62.82–87) · cutover/CloudLoader **OPEN**  
+**FREEZE P1:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
+**FREEZE P2:** [`docs/work-catalog/P2-FREEZE-v1.0.md`](work-catalog/P2-FREEZE-v1.0.md) · [`P2-MVP-FINAL-SUMMARY.md`](work-catalog/P2-MVP-FINAL-SUMMARY.md)  
+**Raport P1:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
 
-Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*` (legacy nadal SSOT UI prod).
+Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*` (legacy nadal SSOT **Przetargi → Baza cen**).
 
 | Klucz KV | Model | Merge |
 |----------|-------|-------|
-| `kw-wgdom-work-catalog` | `WorkCatalogStore` v3 | `mergeWorkCatalogStore` (LWW `updatedAt`) |
+| `kw-wgdom-work-catalog` | `WorkCatalogStore` **v4** (v3 normalize→v4) | `mergeWorkCatalogStore` (LWW `updatedAt`) |
 | `kw-wgdom-work-bundles` | `WorkBundleStore` v3 | `mergeWorkBundleStore` (LWW) |
 | `kw-wgdom-cost-catalog` | `WgdomCostCatalogStore` v1 | **legacy** — bez zmian w P1 |
 
 **Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks.
 
+**UI P2.1 (v2.62.82):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · `loadWorkCatalogStoreLocal` (bez cutover legacy). Menu: **Biblioteka Robót**.
+
+**UI P2.2 (v2.62.83):** `WorkCatalogCompanyPriceField` — edycja `companyPricePln` · `work-catalog-price.ts` · `saveWorkCatalogStore`.
+
+**UI P2.3 (v2.62.84):** `WorkCatalogActiveToggle` — checkbox Aktywna/Nieaktywna · `work-catalog-active.ts` · domyślny filtr listy `active: "active"`.
+
+**UI P2.4 (v2.62.85):** tryb **Edytuj wiele** — bulk ceny · `work-catalog-bulk-price.ts`.
+
+**UI P2.5 (v2.62.86):** `WorkCatalogMarketComparison` — firma vs `marketAvgPln` (alias produktowy marketPricePln) · progi 🟢≤10% · 🟡11–25% · 🔴>25% · read-only.
+
+**UI P2.6 (v2.62.87):** `WorkCatalogCompletenessPanel` · `work-catalog-completeness.ts` — **Uzupełniono: X%** · panel Branże · klik → filtr `tradeId`.
+
+**Lib P3.1 (v2.62.88):** schema **v4** · `market-average-engine.ts` — fallback regionalny · średnia ważona.
+
+**Lib P3.1A (v2.62.89):** `market-source-adapters/*` — `MarketSourceAdapter` dla 4 origins.
+
+**Lib P3.1B (v2.62.90):** `market-work-mapping.ts` — `findMapping` · `registerMapping` · `validateMappings` · `listMappings` · `resolveMappingBatch` (Matched/Unmatched/Rejected) · `buildMarketWorkMappingIndexForOrigin`.
+
+**Lib P3.2A (v2.62.91):** `market-csv-parser.ts` · `market-csv-preview.ts` — `previewMarketCsvImport` / `previewMarketCsvRows` (tryb **PREVIEW**, bez zapisu `marketQuotes`) · raport Matched / Low confidence / Unmatched / Rejected.
+
+**UI P3.2B (v2.62.92):** `WorkCatalogCsvImportPreviewPanel.tsx` · `work-catalog-csv-import-preview.ts` — upload CSV → Analiza → tabela raportu · filtr regionu (domyślnie Wrocław) · Ignored · **bez** przycisku Importuj / persist / cloud.
+
 **Seed:** `docs/work-catalog/SEED-MANIFEST-v1.0.yaml` — 116 robót · 16 branż (`TradeId`).
 
-**Integracja cloud (P1.11):** `DATA_KEYS` + `BOOTSTRAP_DEFERRED_KEYS` w `cloud-sync.ts`; hooki `work-catalog-sync.ts`. **Nie podpięte:** `CloudLoader` / `App.tsx` (P2).
+**Integracja cloud (P1.11):** `DATA_KEYS` + hooki `work-catalog-sync.ts`. **Nie podpięte:** `CloudLoader` bootstrap katalogu v3.
 
-**Testy:** `test-work-catalog-golden.mjs` (1419) · pełny zestaw P1.1–P1.12.
+**Testy:** `test-work-catalog-golden.mjs` (1419) · smoke/persist P2.1–P2.6 · P3.1 engine · P3.1A adapters · P3.1B mapping · P3.2A csv preview · `smoke-test-work-catalog-csv-preview-ui-p3.2b.mjs`
 
-**Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, bez briefu cutover P2.
+**Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, lib P1 FREEZE.
 
 ---
 

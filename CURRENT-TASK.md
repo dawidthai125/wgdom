@@ -1,6 +1,18 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-28 · **prod 2.62.80** · Work Catalog P1 **FOUNDATION CLOSED**
+**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.80** · **P0 Cloud Sync egress AUDIT CLOSED**
+
+---
+
+## P0 — Cloud Sync / Supabase egress · **AUDIT CLOSED** · **FIX OPEN**
+
+| Pole | Wartość |
+|------|---------|
+| **Objaw** | `Failed to fetch` przy sync / „Zapisz tydzień” |
+| **RCA** | `exceed_egress_quota` — projekt Supabase restricted (402) |
+| **SSOT** | [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
+| **Ops** | Billing Supabase — **wymagane przed jakimkolwiek fixem kodu** |
+| **Kod** | Delta-sync / throttle — **tylko na polecenie** |
 
 ---
 
@@ -39,6 +51,7 @@
 | **Mobile Recovery EPIC** | **CLOSED** |
 | **P1 Audit Hub WM** | **CLOSED** |
 | **P0 Payroll Cloud Recovery** | **EPIC OPEN** (Etap 2 not started) |
+| **P0 Cloud Sync egress** | **AUDIT CLOSED** · billing Supabase **OPEN** · refactor sync **OPEN** |
 
 ---
 
@@ -46,6 +59,8 @@
 
 | Temat | Status |
 |-------|--------|
+| **P0 Supabase billing** — odblokować `exceed_egress_quota` | **OPEN** — właściciel |
+| **P0 sync refactor** — delta-sync / focus throttle | **OPEN** — po billing + brief |
 | **Work Catalog P2** — UI Biblioteka Robót | **OPEN** — czeka na decyzję |
 | Mobile Certification PASS 1 | **nie rozpoczęty** |
 | P0 Payroll Etap 2 | **NOT STARTED** |

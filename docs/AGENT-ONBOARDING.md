@@ -117,6 +117,7 @@ Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
 | Payroll Guard | Blokuje push gdy lista płac „kurczy się” >50% |
 | Admin hasła | Osobny merge `mergeAdminPasswordOverrides` |
 | Bootstrap | `CloudLoader.tsx` — P11 payroll, P15 admin passwords |
+| **P0 egress (2026-06-29)** | `exceed_egress_quota` → sync pada (`Failed to fetch`); pełny `batch-get` w `runCloudSync` + focus — patrz [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
 
 **Incydenty:** `docs/INCIDENTS-2026-06.md`
 

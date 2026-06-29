@@ -2,11 +2,27 @@
 
 > **Dla agentów AI:** przeczytaj ten plik po `CURRENT-TASK.md`, jeśli pracujesz nad sync, payroll, adminami lub mediami.  
 > **Produkcja:** https://www.wgdom.fun · **Supabase KV:** `bdpygdvfgbggermvqtys`  
-> **Ostatnia aktualizacja:** 2026-06-04
+> **Ostatnia aktualizacja:** 2026-06-29
 
 ---
 
-## 1. Skrót — co się stało
+## 0. P0 — Supabase `exceed_egress_quota` (2026-06-29) · **OPEN**
+
+| Pole | Wartość |
+|------|---------|
+| **Objaw** | Toast „Nie udało się wysłać do chmury” + **`Failed to fetch`** (Lista Płac „Zapisz tydzień”, każdy auto-sync) |
+| **RCA runtime** | Projekt `bdpygdvfgbggermvqtys` **restricted** — HTTP **402** `exceed_egress_quota` na bramce Supabase (Edge `batch-set` **nie** wykonany) |
+| **Przeglądarka** | `net::ERR_FAILED` → brak `res.status` (nie mylić z Payroll Guard ani CORS) |
+| **Egress (model)** | Dominacja pełnego **`batch-get`** w `runCloudSync` + `pullFromCloudAndMerge` (focus); wzrost `kw-archive` |
+| **Fix ops** | **Supabase Dashboard** → billing / upgrade / usunięcie spend cap |
+| **Fix kod** | **OPEN** — delta-sync / throttle focus (tylko na polecenie po odblokowaniu) |
+| **SSOT audytu** | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md`](../audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md) |
+
+**Nie implementuj refactoru sync bez:** (1) odblokowania projektu, (2) wyraźnego briefu właściciela.
+
+---
+
+## 1. Skrót — co się stało (czerwiec 2026, wcześniejsze)
 
 | Faza | Problem | Fix | Gdzie |
 |------|---------|-----|-------|

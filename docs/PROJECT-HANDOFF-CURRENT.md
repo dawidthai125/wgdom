@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-28 (**prod 2.62.80** · Work Catalog P1 **FOUNDATION CLOSED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-29 (**prod 2.62.80** · **P0 cloud sync egress audit CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
@@ -21,6 +21,7 @@
 1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
 1w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED · P1 **CLOSED** · SSOT: ARCHITECTURE § 15.6
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
+1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync Failed to fetch · exceed_egress_quota (AUDIT CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
 1c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
@@ -140,6 +141,15 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ---
 
 ## 2. PRODUCTION BASELINE
+
+### 2a. P0 OPEN — Cloud sync / Supabase egress (2026-06-29)
+
+| Pole | Wartość |
+|------|---------|
+| **Sync chmury** | **NIEDOSTĘPNY** — `exceed_egress_quota` (HTTP 402) |
+| **UI** | `Failed to fetch` przy `runCloudSync` / „Zapisz tydzień” |
+| **Ops** | Odblokować billing projektu `bdpygdvfgbggermvqtys` |
+| **SSOT audytu** | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
 
 ```text
 Version (prod):             2.62.80       ← Work Catalog P1 FOUNDATION CLOSED · commit fe540b0 · PRODUCTION VERIFIED

@@ -1,6 +1,76 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.80** · **Work Catalog P1 FOUNDATION CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+
+## P0 docs — Cloud Sync egress audit (2026-06-29, bez bump wersji UI)
+
+- **audit:** P0 sync `Failed to fetch` → Supabase `exceed_egress_quota` (402)
+- **docs:** `SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md` · `audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md`
+- **ARCHITECTURE:** § 11.4 egress · `INCIDENTS-2026-06.md` §0
+
+## 2.62.92 — Biblioteka Robót P3.2B (CSV preview UI)
+
+- **new:** `WorkCatalogCsvImportPreviewPanel` — upload CSV · Analiza · raport (bez importu)
+- **new:** filtr regionu (domyślnie Wrocław) · kategoria Ignored/Pominięte
+- **test:** `smoke-test-work-catalog-csv-preview-ui-p3.2b.mjs`
+
+## 2.62.91 — Biblioteka Robót P3.2A (CSV preview lib)
+
+- **new:** `market-csv-parser.ts` + `market-csv-preview.ts` — PREVIEW only, no persist
+- **new:** `previewMarketCsvImport` → Matched / Low confidence / Unmatched / Rejected
+- **test:** `test-work-catalog-market-csv-preview-p3.2a.mjs`
+
+## 2.62.90 — Biblioteka Robót P3.1B (market work mapping)
+
+- **new:** `market-work-mapping.ts` — słownik externalId → workId per origin
+- **new:** `resolveMappingBatch` → Matched / Unmatched / Rejected
+- **test:** `test-work-catalog-market-work-mapping-p3.1b.mjs`
+
+## 2.62.89 — Biblioteka Robót P3.1A (market source adapters)
+
+- **new:** `MarketSourceAdapter` × 4 origins · `adaptMarketSourceRecord`
+- **test:** `test-work-catalog-market-source-adapters-p3.1a.mjs`
+
+## 2.62.88 — Biblioteka Robót P3.1 (market engine lib)
+
+- **new:** schema v4 · `MarketSourceSnapshot` · `MarketAverageEngine` (pure lib)
+- **improve:** regional fallback · weighted confidence · legacy `marketAvgPln` bridge
+- **test:** `test-work-catalog-market-average-engine-p3.1.mjs`
+
+## 2.62.87 — Biblioteka Robót P2.6 (kompletność)
+
+- **new:** nagłówek **Uzupełniono: X%** · panel **Branże** (priced / total)
+- **improve:** 🟢 100% · 🟡 50–99% · 🔴 <50% · klik branży filtruje listę
+- **test:** `smoke-test-work-catalog-completeness-p2.6.mjs`
+
+## 2.62.86 — Biblioteka Robót P2.5 (firma vs rynek)
+
+- **new:** blok Cena firmy → Cena rynkowa → Status na karcie roboty
+- **improve:** 🟢 ±10% · 🟡 11–25% · 🔴 >25% · brak `marketAvgPln` → —
+- **test:** `smoke-test-work-catalog-market-p2.5.mjs`
+
+## 2.62.85 — Biblioteka Robót P2.4 (grupowa edycja cen)
+
+- **new:** tryb **Edytuj wiele** — checkboxy, panel akcji, podgląd, potwierdzenie
+- **improve:** +% / −% / +zł / −zł / ustaw cenę · zapis bulk bez reload listy
+- **test:** `smoke-test-work-catalog-bulk-price-p2.4.mjs` · `test-work-catalog-bulk-price-persist-p2.4.mjs`
+
+## 2.62.84 — Biblioteka Robót P2.3 (aktywność robót)
+
+- **new:** checkbox **Aktywna / Nieaktywna** na karcie · zapis local + cloud P1.11
+- **improve:** domyślny filtr listy = tylko aktywne
+- **test:** `smoke-test-work-catalog-active-p2.3.mjs` · `test-work-catalog-active-persist-p2.3.mjs`
+
+## 2.62.83 — Biblioteka Robót P2.2 (edycja ceny firmy)
+
+- **new:** pole **Cena firmy** na karcie roboty · walidacja ≥0 · 2 miejsca po przecinku
+- **improve:** zapis `kw-wgdom-work-catalog` local + `persistKey` (P1.11)
+- **test:** `smoke-test-work-catalog-price-p2.2.mjs` · `test-work-catalog-price-persist-p2.2.mjs`
+
+## 2.62.82 — Biblioteka Robót P2.1 (pierwszy ekran)
+
+- **new:** menu **Biblioteka Robót** — lista v3, search, branża, aktywne/nieaktywne, licznik
+- **test:** `smoke-test-work-catalog-ui-p2.1.mjs`
 
 ## 2.62.81 — Lista Płac P0: skład po „Odśwież skład” nie znika po sync
 
