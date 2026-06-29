@@ -1827,6 +1827,9 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
       ).catch(() => {});
     }
 
+    const { maybeExecuteWorkCatalogBootstrap } = await import("@/lib/work-catalog-bootstrap");
+    await maybeExecuteWorkCatalogBootstrap();
+
     if (keys.includes(OPERATIONAL_NOTES_KEY)) {
       await pullOperationalNotesAuxFromCloud();
     }

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PRICE-BRIDGE PB-1/PB-2** · v2.62.83)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PB-3 BOOTSTRAP** · v2.62.84)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1585,6 +1585,21 @@ tender-document-resolver.ts
 **Poza zakresem PB-2:** `TenderPriceBasePanel` (WRITE legacy) · `tender-detail-v4-display.ts` · `tenders-bid-calculator` default path.
 
 **Test:** `test-tender-price-bridge.mjs` · golden gate: `test-work-catalog-golden.mjs` · `test-work-catalog-compat.mjs`.
+
+### 12.1.18b PB-3 — Work Catalog Bootstrap (legacy → work)
+
+**Status:** **PB-3 CLOSED** (v2.62.84) · **PB-WRITE / SSOT-CUTOVER** — backlog  
+**Plik SSOT:** `src/lib/work-catalog-bootstrap.ts`
+
+| Element | Opis |
+|---------|------|
+| **Kolejność** | Po `fetchAndMergeDeferredBootstrap` merge (legacy w LS) |
+| **Decyzja** | `WorkCatalogBootstrapDecision` — `action` + `reason` (SSOT logów) |
+| **Migrate** | `reason: legacy_present` → `migrateLegacyCostCatalogStoreToWorkCatalog` + `saveWorkCatalogStore` |
+| **Skip** | `already_migrated` · `priced_work_exists` · `legacy_empty` |
+| **Poza zakresem** | Brak zmian adaptera / silnika / Tender pricing / Single Writer |
+
+**Test:** `test-work-catalog-bootstrap-pb3.mjs` · regresja `test-work-catalog-migration.mjs` · `test-tender-price-bridge.mjs`.
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
 

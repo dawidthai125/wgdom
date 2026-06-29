@@ -2,6 +2,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.84 — Biblioteka Robót PB-3 bootstrap (legacy → work)
+
+- **new:** `WorkCatalogBootstrapDecision` — jednorazowa migracja po deferred bootstrap
+- **improve:** `decideWorkCatalogBootstrap()` — guardy SSOT + logi diagnostyczne
+- **test:** `test-work-catalog-bootstrap-pb3.mjs` B1–B8
+
 ## 2.62.83 — Przetargi PRICE-BRIDGE PB-1/PB-2 (wspólny resolver katalogu)
 
 - **new:** `resolveActiveCatalogForTender()` — work-first / legacy-fallback · `isFallback`

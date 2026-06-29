@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.84",
+    label: "Biblioteka Robót — PB-3 bootstrap legacy → work",
+    items: [
+      {
+        type: "new",
+        text: "WorkCatalogBootstrapDecision — jednorazowa migracja Bazy cen → kw-wgdom-work-catalog po deferred bootstrap",
+      },
+      {
+        type: "improve",
+        text: "decideWorkCatalogBootstrap() — SSOT guardów (legacy_present · already_migrated · priced_work_exists · legacy_empty)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-work-catalog-bootstrap-pb3.mjs B1–B8",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.83",
     label: "Przetargi — PRICE-BRIDGE PB-1/PB-2 (wspólny resolver katalogu)",
     items: [
