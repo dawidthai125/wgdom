@@ -14,6 +14,8 @@ export function derivePipelineState(opts: {
   dossierSaving: boolean;
   dossierParseFailed: boolean;
   pricingReady: boolean;
+  /** NG-02.1A — z deriveUnifiedAttachmentGate (jedyny SSOT startu heavy). */
+  canStartHeavyParse?: boolean;
 }): PipelineState {
   const {
     item,
@@ -23,6 +25,7 @@ export function derivePipelineState(opts: {
     dossierSaving,
     dossierParseFailed,
     pricingReady,
+    canStartHeavyParse = false,
   } = opts;
 
   if (dossierParseFailed) return PipelineState.Failed;
@@ -39,8 +42,7 @@ export function derivePipelineState(opts: {
     return loadingNotice ? PipelineState.Notice : PipelineState.Discovery;
   }
 
-  const docCount = item.bzpDocuments?.length ?? 0;
-  if (docCount > 0 && !heavyDone) return PipelineState.Heavy;
+  if (canStartHeavyParse && !heavyDone) return PipelineState.Heavy;
 
   return PipelineState.Idle;
 }

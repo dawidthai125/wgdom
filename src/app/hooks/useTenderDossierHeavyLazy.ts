@@ -2,12 +2,17 @@
  * TP200A — lazy heavy dossier build (Dokumenty / Wycena / Kosztorys V4).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   buildTenderDossierHeavy,
   tenderDossierHeavyParseDone,
 } from "@/lib/tender-dossier-pipeline";
+import {
+  buildHeavyParseDocumentFingerprint,
+  buildHeavyParseDocumentSet,
+  deriveUnifiedAttachmentGate,
+} from "@/lib/tender-pipeline/unified-attachment-gate";
 
 const dossierInflightIds = new Set<string>();
 
@@ -94,6 +99,24 @@ export function useTenderDossierHeavyLazy(opts: {
     item.tenderDossier?.scanSummary?.parsedAt,
   ]);
 
+  const gateFingerprint = useMemo(
+    () => buildHeavyParseDocumentFingerprint(item),
+    [
+      item.id,
+      item.tenderId,
+      item.bzpDocuments,
+      item.externalDocDiscovery?.files,
+      item.uploadedFile?.id,
+      item.uploadedFile?.filename,
+      item.tenderDossier?.parserVersion,
+    ],
+  );
+
+  const heavyParseDocuments = useMemo(
+    () => buildHeavyParseDocumentSet(item),
+    [gateFingerprint, item],
+  );
+
   useEffect(() => {
     if (!enabled) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
@@ -103,7 +126,8 @@ export function useTenderDossierHeavyLazy(opts: {
       setParseErrorMessage(null);
       return;
     }
-    if (!item.tenderId || !(item.bzpDocuments?.length)) return;
+    const gate = deriveUnifiedAttachmentGate(item);
+    if (!gate.canStartHeavyParse) return;
     if (dossierInflightIds.has(item.id)) return;
 
     let cancelled = false;
@@ -115,7 +139,7 @@ export function useTenderDossierHeavyLazy(opts: {
       try {
         const built = await buildTenderDossierHeavy({
           item,
-          docs: item.bzpDocuments ?? [],
+          docs: heavyParseDocuments,
           noticeHtml: item.noticeHtml,
           existingSwz: item.swzAnalysis ?? null,
           existingDossier: item.tenderDossier ?? null,
@@ -150,10 +174,9 @@ export function useTenderDossierHeavyLazy(opts: {
     return () => { cancelled = true; };
   }, [
     enabled,
-    item.id,
-    item.tenderId,
-    item.documentsFetchedAt,
-    item.bzpDocuments,
+    item,
+    gateFingerprint,
+    heavyParseDocuments,
     item.tenderDossier?.builtAt,
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.kosztorys?.ok,

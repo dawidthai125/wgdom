@@ -22,6 +22,7 @@ import {
   isDocumentDiscoverySettled,
   runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
+import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 
 /** Ukończony bootstrap — nie powtarzaj (sukces). */
 const bootstrapCompletedIds = new Set<string>();
@@ -52,8 +53,8 @@ const defaultDeps: TenderDocumentsBootstrapDeps = {
 function shouldMarkBootstrapCompleted(item: TenderPipelineItem): boolean {
   if (!item.tenderId?.trim()) return true;
   if (!isDocumentDiscoverySettled(item)) return false;
-  const docCount = item.bzpDocuments?.length ?? 0;
-  if (docCount === 0) return true;
+  const gate = deriveUnifiedAttachmentGate(item);
+  if (!gate.canStartHeavyParse && gate.totalAttachmentCount === 0) return true;
   return tenderDossierHeavyParseDone(item.tenderDossier);
 }
 

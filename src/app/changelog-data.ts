@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.96",
+    label: "NG-02.1A — Unified Attachment Gate",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — Heavy Parse startuje także przy samych plikach external (SmartPZP/BIP); koniec zawieszonej fazy e5 bez workera",
+      },
+      {
+        type: "improve",
+        text: "SSOT bramki załączników — deriveUnifiedAttachmentGate · buildHeavyParseDocumentSet (BZP + external, dedup URL)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.95",
     label: "NG-02 — Tender Automation Pipeline P0",
     items: [

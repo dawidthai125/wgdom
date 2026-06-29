@@ -8,6 +8,7 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { derivePipelineState } from "@/lib/tender-pipeline/derive-pipeline-state";
+import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 import {
   PipelineState,
   type PipelineTimelineEntry,
@@ -52,6 +53,23 @@ export function useTenderPipelineRuntime(opts: {
     readPipelineTimeline(item.id),
   );
   const prevStateRef = useRef<PipelineState | null>(null);
+  const prevGateFingerprintRef = useRef<string | null>(null);
+
+  const attachmentGate = useMemo(
+    () => deriveUnifiedAttachmentGate(item),
+    [
+      item.id,
+      item.tenderId,
+      item.bzpDocuments,
+      item.externalDocDiscovery?.files,
+      item.uploadedFile?.id,
+      item.uploadedFile?.filename,
+      item.tenderDossier?.builtAt,
+      item.tenderDossier?.parserVersion,
+      item.tenderDossier?.kosztorys?.ok,
+      item.tenderDossier?.scanSummary?.parsedAt,
+    ],
+  );
 
   const { autoRunning } = useTenderDocumentsBootstrap({
     item,
@@ -76,8 +94,7 @@ export function useTenderPipelineRuntime(opts: {
   });
 
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
-  const docCount = item.bzpDocuments?.length ?? 0;
-  const pipelineQueued = docCount > 0
+  const pipelineQueued = attachmentGate.canStartHeavyParse
     && !heavyDone
     && !dossierBuilding
     && !dossierSaving
@@ -132,14 +149,21 @@ export function useTenderPipelineRuntime(opts: {
     dossierSaving,
     dossierParseFailed,
     pricingReady,
+    canStartHeavyParse: attachmentGate.canStartHeavyParse,
   });
 
   useEffect(() => {
     if (!isPipelineTimelineEnabled()) return;
-    if (prevStateRef.current === pipelineState) return;
+    const stateChanged = prevStateRef.current !== pipelineState;
+    const gateChanged = prevGateFingerprintRef.current !== attachmentGate.fingerprint;
+    if (!stateChanged && !gateChanged) return;
     prevStateRef.current = pipelineState;
-    setTimeline(recordPipelineTimelineEvent(item.id, pipelineState));
-  }, [item.id, pipelineState]);
+    prevGateFingerprintRef.current = attachmentGate.fingerprint;
+    setTimeline(recordPipelineTimelineEvent(item.id, pipelineState, {
+      gateStatus: attachmentGate.gateStatus,
+      gateReason: attachmentGate.gateReason,
+    }));
+  }, [item.id, pipelineState, attachmentGate.fingerprint, attachmentGate.gateStatus, attachmentGate.gateReason]);
 
   const retryDossierParse = useCallback(() => {
     resetTenderDocumentsBootstrapForItem(item.id);
@@ -161,6 +185,9 @@ export function useTenderPipelineRuntime(opts: {
     bidProposal,
     trustAssessment,
     timeline,
+    attachmentGateFingerprint: attachmentGate.fingerprint,
+    attachmentGateStatus: attachmentGate.gateStatus,
+    attachmentGateReason: attachmentGate.gateReason,
   };
 }
 

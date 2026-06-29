@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02 Pipeline Automation P0** · v2.62.95)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02.1A Unified Attachment Gate** · v2.62.96)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1768,6 +1768,27 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **P1 slot (nie w P0):** `tender-pipeline-runner.ts` / `useTenderPipelineOrchestrator` — sekwencer zastąpi 3 hooki.
 
 **Test:** `npx vite-node scripts/test-tender-pipeline-automation-p0.mjs` · regresja `test-tender-documents-bootstrap-retry.mjs` · `test-tender-kosztorys-process-health.mjs`
+
+---
+
+### 12.1.24 NG-02.1A — Unified Attachment Gate (v2.62.96)
+
+**Status:** **CLOSED** — jedna bramka SSOT decyzji „czy Heavy Parse może wystartować” (runtime-only adapter, bez zmian parserów/merge/sync).
+
+| Element | Plik | Rola |
+|---------|------|------|
+| **SSOT gate** | `unified-attachment-gate.ts` | `AttachmentOrigin` · `deriveUnifiedAttachmentGate` · `buildHeavyParseDocumentSet` · `canStartHeavyParse` |
+| **Heavy** | `useTenderDossierHeavyLazy.ts` | Start tylko gdy `gate.canStartHeavyParse`; `docs` z `buildHeavyParseDocumentSet` |
+| **Runtime** | `useTenderPipelineRuntime.ts` | `pipelineQueued` + `derivePipelineState.canStartHeavyParse` z gate |
+| **Bootstrap** | `useTenderDocumentsBootstrap.ts` | `shouldMarkBootstrapCompleted` — external-only czeka na heavy |
+| **Faza e5** | `tender-kosztorys-process-phase.ts` | e5 z `gate.canStartHeavyParse` (nie surowe `bzpDocuments.length`) |
+| **Dev** | `TenderPipelineDevTimeline.tsx` | Gate Status + Gate Reason (DEV only) |
+
+**Mapowanie external → `TenderBzpDocument`:** indeksy od 10_000 · `platform` = `AttachmentOrigin.External` · dedup URL · max 6 plików (score desc).
+
+**Nie zmienia:** parsery · merge · Trust Layer · Cloud Sync · Pricing · Workflow UI.
+
+**Test:** `npx vite-node scripts/test-unified-attachment-gate.mjs` · regresja pipeline + bootstrap + SmartPZP.
 
 ---
 

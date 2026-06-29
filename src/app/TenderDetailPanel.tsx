@@ -152,6 +152,8 @@ export function TenderDetailPanel({
     bidProposal: runtimeBidProposal,
     timeline,
     pipelineState,
+    attachmentGateStatus,
+    attachmentGateReason,
   } = pipelineRuntime;
 
   const platformTelemetryRef = useRef<string | null>(null);
@@ -562,7 +564,12 @@ export function TenderDetailPanel({
   return (
     <div className={`space-y-3 ${embedV4ChromeHidden ? "" : "px-4 pb-4 pt-2 border-t border-border"}`}>
       {!embedV4ChromeHidden && (
-        <TenderPipelineDevTimeline timeline={timeline} pipelineState={pipelineState} />
+        <TenderPipelineDevTimeline
+          timeline={timeline}
+          pipelineState={pipelineState}
+          gateStatus={attachmentGateStatus}
+          gateReason={attachmentGateReason}
+        />
       )}
 
       {autoRunning && (

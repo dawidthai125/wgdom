@@ -184,6 +184,8 @@ export function TenderDetailPage({
           <TenderPipelineDevTimeline
             timeline={pipelineRuntime.timeline}
             pipelineState={pipelineRuntime.pipelineState}
+            gateStatus={pipelineRuntime.attachmentGateStatus}
+            gateReason={pipelineRuntime.attachmentGateReason}
           />
 
           {tab === "kosztorys" && (

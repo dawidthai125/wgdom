@@ -5,6 +5,7 @@
 
 import { PipelineState } from "../src/lib/tender-pipeline/tender-pipeline-types.ts";
 import { derivePipelineState } from "../src/lib/tender-pipeline/derive-pipeline-state.ts";
+import { deriveUnifiedAttachmentGate } from "../src/lib/tender-pipeline/unified-attachment-gate.ts";
 import {
   isKosztorysProcessHealthMonitored,
 } from "../src/lib/tender-kosztorys-process-health.ts";
@@ -94,6 +95,34 @@ ok("Heavy — dossierBuilding", derivePipelineState({
   dossierSaving: false,
   dossierParseFailed: false,
   pricingReady: false,
+  canStartHeavyParse: true,
+}) === PipelineState.Heavy);
+
+const externalOnlyItem = baseItem({
+  externalDocDiscovery: {
+    builtAt: new Date().toISOString(),
+    files: [{
+      id: "ext-1",
+      filename: "kosztorys.pdf",
+      publicUrl: "https://smartpzp.example/k.pdf",
+      storagePath: "x",
+      score: 90,
+      isSwzHint: false,
+    }],
+    pageLinks: [],
+  },
+});
+const externalGate = deriveUnifiedAttachmentGate(externalOnlyItem);
+ok("NG-02.1A gate external-only open", externalGate.canStartHeavyParse);
+
+ok("Heavy — queued external-only", derivePipelineState({
+  item: externalOnlyItem,
+  autoRunning: false,
+  dossierBuilding: false,
+  dossierSaving: false,
+  dossierParseFailed: false,
+  pricingReady: false,
+  canStartHeavyParse: externalGate.canStartHeavyParse,
 }) === PipelineState.Heavy);
 
 ok("Failed — parse error", derivePipelineState({
@@ -134,6 +163,11 @@ const queuedSession = buildKosztorysProcessSession({
   lazyEnabled: true,
 });
 ok("Health monitored — pipelineQueued", isKosztorysProcessHealthMonitored(queuedSession, e5Item));
+
+ok("Health monitored — external-only e5", isKosztorysProcessHealthMonitored(
+  buildKosztorysProcessSession({ lazyEnabled: true }),
+  externalOnlyItem,
+));
 
 const idleSession = buildKosztorysProcessSession({ lazyEnabled: true });
 ok("Health NOT monitored — idle bez docs", !isKosztorysProcessHealthMonitored(idleSession, baseItem()));

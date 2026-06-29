@@ -6,6 +6,7 @@ import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import { canRunDocumentDiscovery } from "@/lib/tender-document-discovery";
 import { getDossierTraceLog, type DossierTraceStep } from "@/lib/tender-dossier-trace";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
+import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 
 export type KosztorysProcessPhaseId =
   | "waiting_data"
@@ -284,8 +285,8 @@ export function deriveKosztorysTechnicalPhase(
 
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
   const kosztorysOk = Boolean(item.tenderDossier?.kosztorys?.ok);
-  const docCount = item.bzpDocuments?.length ?? 0;
   const attachmentCount = countTenderAttachments(item);
+  const gate = deriveUnifiedAttachmentGate(item);
   const canDiscover = canRunDocumentDiscovery(item);
   const hasArchives = hasArchiveAttachments(item.bzpDocuments);
 
@@ -314,19 +315,23 @@ export function deriveKosztorysTechnicalPhase(
 
   if (!item.tenderId?.trim()) return { technicalId: "e0" };
 
-  if (attachmentCount > 0 && docCount === 0) return { technicalId: "e4" };
+  if (attachmentCount > 0 && gate.heavyEligibleCount === 0 && !gate.canStartHeavyParse) {
+    return { technicalId: "e4" };
+  }
 
-  if (!canDiscover && docCount === 0 && !hasNoticeAnchor(item)) {
+  if (!canDiscover && gate.heavyEligibleCount === 0 && !gate.canStartHeavyParse && !hasNoticeAnchor(item)) {
     return { technicalId: "e1" };
   }
 
-  if (!canDiscover && docCount === 0) {
+  if (!canDiscover && gate.heavyEligibleCount === 0 && !gate.canStartHeavyParse) {
     return { technicalId: "e1" };
   }
 
-  if (docCount === 0) return { technicalId: "e1" };
+  if (!gate.canStartHeavyParse && gate.totalAttachmentCount === 0) {
+    return { technicalId: "e1" };
+  }
 
-  if (docCount > 0 && lazyEnabled) return { technicalId: "e5" };
+  if (gate.canStartHeavyParse && lazyEnabled) return { technicalId: "e5" };
 
   return { technicalId: "e0" };
 }

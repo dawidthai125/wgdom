@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.96 — NG-02.1A Unified Attachment Gate
+
+- **fix:** Heavy Parse startuje przy external-only (SmartPZP/BIP) — koniec fałszywego e5 bez workera
+- **improve:** `unified-attachment-gate.ts` — `AttachmentOrigin` · `buildHeavyParseDocumentSet` · dev timeline Gate Status/Reason
+
 ## 2.62.95 — NG-02 Tender Automation Pipeline P0
 
 - **new:** `useTenderPipelineRuntime` — bootstrap + heavy parse + pricing na każdej zakładce V4

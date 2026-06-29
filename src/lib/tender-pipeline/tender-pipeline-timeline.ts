@@ -11,16 +11,24 @@ export function isPipelineTimelineEnabled(): boolean {
   return typeof import.meta !== "undefined" && Boolean(import.meta.env?.DEV);
 }
 
+import type { UnifiedGateReason, UnifiedGateStatus } from "@/lib/tender-pipeline/unified-attachment-gate";
+
 export function recordPipelineTimelineEvent(
   itemId: string,
   state: PipelineState,
-  detail?: string,
+  meta?: {
+    detail?: string;
+    gateStatus?: UnifiedGateStatus;
+    gateReason?: UnifiedGateReason;
+  },
 ): PipelineTimelineEntry[] {
   if (!isPipelineTimelineEnabled()) return [];
   const row: PipelineTimelineEntry = {
     at: new Date().toISOString(),
     state,
-    detail,
+    detail: meta?.detail,
+    gateStatus: meta?.gateStatus,
+    gateReason: meta?.gateReason,
   };
   const prev = timelinesByItemId.get(itemId) ?? [];
   const next = [...prev, row];
