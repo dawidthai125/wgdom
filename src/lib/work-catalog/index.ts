@@ -143,6 +143,21 @@ export {
   type ResolveCatalogCompatOptions,
 } from "@/lib/work-catalog/work-catalog-compat";
 
+// ─── PB-WRITE-A — catalog write router ─────────────────────────────────────
+
+export {
+  appendCostCatalogHistoryRouted,
+  canWriteLegacyCatalog,
+  canWriteWorkCatalog,
+  resolveCatalogWriteMode,
+  saveLegacyCostCatalogRouted,
+  saveWorkCatalogRouted,
+  type CatalogWriteBlockReason,
+  type CatalogWriteMode,
+  type RoutedHistoryAppendResult,
+  type RoutedSaveResult,
+} from "@/lib/catalog-write-router";
+
 // ─── P1.11 — cloud-sync hooks ──────────────────────────────────────────────
 
 export {

@@ -9,16 +9,20 @@ import {
 } from "@/lib/tenders-bzp-company";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import {
+  appendCostCatalogHistoryRouted,
+  saveLegacyCostCatalogRouted,
+} from "@/lib/catalog-write-router";
+import {
   type WgdomCostCatalogStore,
   type WgdomCostRegion,
   listEditableCategories,
   loadWgdomCostCatalogStore,
   restoreDefaultWgdomCostCatalogStore,
-  saveWgdomCostCatalogStore,
   setActiveCatalogRegion,
   updateCategoryPrimaryRates,
   getActiveCatalog,
   WGDOM_COST_REGION_LABELS,
+  loadWgdomCostCatalogStoreLocal,
 } from "@/lib/wgdom-cost-catalog-store";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
@@ -31,14 +35,12 @@ import {
 import { LaborBenchmarkCell, LaborBenchmarkSourcePanel } from "@/app/LaborBenchmarkUi";
 import { LABOR_BENCHMARK_SOURCE_LABEL } from "@/lib/labor-benchmark-data";
 import {
-  appendCostCatalogHistoryIfRatesChanged,
   loadWgdomCostCatalogHistory,
   loadWgdomCostCatalogHistoryLocal,
   type WgdomCostCatalogHistoryStore,
 } from "@/lib/wgdom-cost-catalog-history";
 import { buildMaterialRateHistoryView } from "@/lib/material-history";
 import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
-import { loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
 function NumInput({
   label,
@@ -143,16 +145,23 @@ export function TenderPriceBasePanel({
     setSaving(true);
     try {
       const previousCatalog = loadWgdomCostCatalogStoreLocal();
-      await Promise.all([
-        saveCompanyProfile(profile),
-        saveWgdomCostCatalogStore(catalogStore),
-      ]);
-      const history = await appendCostCatalogHistoryIfRatesChanged(
+      await saveCompanyProfile(profile);
+      const catalogResult = await saveLegacyCostCatalogRouted(catalogStore);
+      if (!catalogResult.ok) {
+        throw catalogResult.error ?? new Error("catalog save failed");
+      }
+      if (!catalogResult.saved) {
+        throw new Error("catalog save blocked");
+      }
+      const historyResult = await appendCostCatalogHistoryRouted(
         previousCatalog,
         catalogStore,
         profile.costModel,
       );
-      setCatalogHistory(history);
+      if (!historyResult.ok) {
+        throw historyResult.error ?? new Error("history append failed");
+      }
+      setCatalogHistory(historyResult.history);
       onSaved?.();
       toast.success("Baza cen zapisana w chmurze");
     } catch {

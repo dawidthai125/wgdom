@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.88",
+    label: "PB-WRITE-A — Catalog Write Router (split domyślnie)",
+    items: [
+      {
+        type: "improve",
+        text: "catalog-write-router — jedyny entry point zapisu kw-wgdom-cost-catalog i kw-wgdom-work-catalog",
+      },
+      {
+        type: "improve",
+        text: "AppSettings catalogWriteMode: split · work_only · legacy_only (domyślnie split — bez zmiany prod)",
+      },
+      {
+        type: "improve",
+        text: "Baza cen, Biblioteka robót i PB-3 bootstrap — zapis przez router (bez mirror-write)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.87",
     label: "Biblioteka Robót — WC-P2.1 nawigacja w Przetargach + ACL",
     items: [

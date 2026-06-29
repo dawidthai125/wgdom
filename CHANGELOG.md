@@ -2,6 +2,13 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.88 — PB-WRITE-A Catalog Write Router
+
+- **improve:** `catalog-write-router.ts` — jedyny entry point zapisu legacy + work catalog
+- **improve:** `AppSettings.catalogWriteMode` — split · work_only · legacy_only (default split)
+- **improve:** Baza cen, Biblioteka, PB-3 bootstrap → routed save (bez mirror-write)
+- **test:** `test-pb-write-router.mjs`
+
 ## 2.62.87 — Biblioteka Robót WC-P2.1 nawigacja + ACL
 
 - **improve:** Biblioteka robót → zakładka Przetargi (bez sidebar)

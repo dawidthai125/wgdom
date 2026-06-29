@@ -14,7 +14,7 @@ import {
 } from "@/lib/work-catalog";
 import { countLegacyCatalogRates } from "@/lib/work-catalog/work-catalog-migrate";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
-import { saveWorkCatalogStore } from "@/lib/work-catalog/work-catalog-sync";
+import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 
 export type WorkCatalogBootstrapSkipReason =
   | "already_migrated"
@@ -89,7 +89,10 @@ export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBoo
     nowMs: Date.now(),
   });
 
-  await saveWorkCatalogStore(store, { updatedAtIso: migratedAtIso });
+  const saveResult = await saveWorkCatalogRouted(store, { updatedAtIso: migratedAtIso });
+  if (!saveResult.ok || !saveResult.saved) {
+    throw new Error("Work catalog bootstrap save blocked or failed");
+  }
   console.info("WORK CATALOG BOOTSTRAP EXECUTED", {
     reason: decision.reason,
     migratedFromLegacyAt: store.migratedFromLegacyAt,

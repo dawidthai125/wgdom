@@ -9,12 +9,12 @@ import {
   countActiveWorks,
   listWorksForRegion,
   loadWorkCatalogStoreLocal,
-  saveWorkCatalogStore,
   withFreshnessStatusAll,
   type CatalogWork,
   type TradeId,
   type WorkCatalogStore,
 } from "@/lib/work-catalog";
+import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 import { patchWorkActiveInStore } from "@/app/work-catalog/work-catalog-active";
 import { patchBulkCompanyPricesInStore } from "@/app/work-catalog/work-catalog-bulk-price";
 import { patchWorkCompanyPriceInStore } from "@/app/work-catalog/work-catalog-price";
@@ -83,7 +83,16 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       setStore(next);
 
       try {
-        await saveWorkCatalogStore(next, { updatedAtIso });
+        const result = await saveWorkCatalogRouted(next, { updatedAtIso });
+        if (!result.ok) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+        if (!result.saved) {
+          return { ok: false, message: "Zapis zablokowany przez tryb katalogu" };
+        }
         return { ok: true };
       } catch {
         return {
@@ -106,7 +115,13 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       if (next !== store) {
         setStore(next);
         try {
-          await saveWorkCatalogStore(next, { updatedAtIso });
+          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso });
+          if (!saveResult.ok || !saveResult.saved) {
+            return {
+              ok: false,
+              message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+            };
+          }
         } catch {
           return {
             ok: false,
@@ -135,7 +150,13 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       setStore(result.store);
 
       try {
-        await saveWorkCatalogStore(result.store, { updatedAtIso });
+        const saveResult = await saveWorkCatalogRouted(result.store, { updatedAtIso });
+        if (!saveResult.ok || !saveResult.saved) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
         return { ok: true, updatedIds: result.updatedIds };
       } catch {
         return {

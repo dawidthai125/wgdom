@@ -4,6 +4,29 @@ import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sy
 
 export { APP_SETTINGS_KEY };
 
+/** PB-WRITE-A — routing zapisu katalogu legacy vs work. Domyślnie split (bez zmiany prod). */
+export type CatalogWriteMode = "split" | "work_only" | "legacy_only";
+
+const CATALOG_WRITE_MODES: CatalogWriteMode[] = ["split", "work_only", "legacy_only"];
+
+export function normalizeCatalogWriteMode(value: unknown): CatalogWriteMode {
+  if (typeof value === "string" && (CATALOG_WRITE_MODES as string[]).includes(value)) {
+    return value as CatalogWriteMode;
+  }
+  return "split";
+}
+
+/** Chmura ma pierwszeństwo — nieznana wartość → split. */
+export function mergeCatalogWriteMode(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): CatalogWriteMode {
+  if (remote?.catalogWriteMode != null) {
+    return normalizeCatalogWriteMode(remote.catalogWriteMode);
+  }
+  return normalizeCatalogWriteMode(local.catalogWriteMode);
+}
+
 export interface AppSettings {
   /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie włączone. */
   athPreviewEnabled: boolean;
@@ -11,6 +34,8 @@ export interface AppSettings {
   tendersTabForStaffEnabled: boolean;
   /** Biblioteka Robót w Przetargach dla roli Administrator (Super Admin zawsze; moderator/inspektor — nie). */
   workCatalogForAdminEnabled: boolean;
+  /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
+  catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
   bzpScanDays: number;
   /** Skan BZP — strony ogólne PL02. */
@@ -26,6 +51,7 @@ export function defaultAppSettings(): AppSettings {
     athPreviewEnabled: true,
     tendersTabForStaffEnabled: false,
     workCatalogForAdminEnabled: false,
+    catalogWriteMode: "split",
     bzpScanDays: 90,
     bzpScanPages: 4,
     bzpScanOrgPages: 5,
@@ -79,6 +105,7 @@ export function loadAppSettingsLocal(): AppSettings {
       athPreviewEnabled: parsed.athPreviewEnabled !== false,
       tendersTabForStaffEnabled: parsed.tendersTabForStaffEnabled === true,
       workCatalogForAdminEnabled: parsed.workCatalogForAdminEnabled === true,
+      catalogWriteMode: normalizeCatalogWriteMode(parsed.catalogWriteMode),
       bzpScanDays: numSetting(parsed.bzpScanDays, d.bzpScanDays, 7, 365),
       bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
       bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
@@ -122,6 +149,7 @@ export function mergeAppSettings(
     athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
     tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
     workCatalogForAdminEnabled: mergeWorkCatalogForAdminEnabled(remote, local),
+    catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),
     bzpScanOrgPages: numSetting(remote?.bzpScanOrgPages, local.bzpScanOrgPages, 1, 20),
