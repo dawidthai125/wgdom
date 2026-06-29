@@ -49,6 +49,8 @@ export interface KosztorysProcessSession {
   parseErrorMessage?: string | null;
   /** Hook lazy włączony na bieżącej zakładce. */
   lazyEnabled?: boolean;
+  /** NG-02 — docs są, heavy parse jeszcze nie wystartował (faza e5). */
+  pipelineQueued?: boolean;
   /** E12 — proces trwa dłużej niż zwykle (P2; opcjonalny sygnał sesji). */
   parseStale?: boolean;
 }
@@ -375,6 +377,7 @@ export function buildKosztorysProcessSession(opts: {
   dossierParseFailed?: boolean;
   parseErrorMessage?: string | null;
   lazyEnabled?: boolean;
+  pipelineQueued?: boolean;
 }): KosztorysProcessSession {
   return { ...opts, lazyEnabled: opts.lazyEnabled ?? true };
 }

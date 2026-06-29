@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -10,10 +10,8 @@ import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
-import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
-import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
-import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
-import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
+import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
+import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
@@ -106,45 +104,16 @@ export function TenderDetailPage({
   );
 
   const bootstrapItem = item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem;
-  const kosztorysTabActive = Boolean(item) && tab === "kosztorys";
 
-  const { autoRunning } = useTenderDocumentsBootstrap({
+  const [pricingRevision, setPricingRevision] = useState(0);
+
+  const pipelineRuntime = useTenderPipelineRuntime({
     item: bootstrapItem,
     onUpdate: onUpdateItem,
-    enabled: kosztorysTabActive,
-  });
-
-  const {
-    dossierBuilding,
-    dossierSaving,
-    dossierParseFailed,
-    parseErrorMessage,
-    retryDossierParse,
-    retryNonce,
-  } = useTenderDossierHeavyLazy({
-    item: bootstrapItem,
-    enabled: kosztorysTabActive,
-    onUpdate: onUpdateItem,
-    athPreviewEnabled,
-  });
-
-  const kosztorysProcessSession = useMemo(
-    () => buildKosztorysProcessSession({
-      autoRunning,
-      dossierBuilding,
-      dossierSaving,
-      dossierParseFailed,
-      parseErrorMessage,
-      lazyEnabled: true,
-    }),
-    [autoRunning, dossierBuilding, dossierSaving, dossierParseFailed, parseErrorMessage],
-  );
-
-  const trustAssessment = useTenderTrustAssessment({
-    item: bootstrapItem,
     swz,
-    kosztorysSession: kosztorysProcessSession,
-    loadingDocs: autoRunning,
+    athPreviewEnabled,
+    enabled: Boolean(item),
+    priceOverridesRevision: pricingRevision,
   });
 
   if (!item) {
@@ -212,14 +181,19 @@ export function TenderDetailPage({
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
+          <TenderPipelineDevTimeline
+            timeline={pipelineRuntime.timeline}
+            pipelineState={pipelineRuntime.pipelineState}
+          />
+
           {tab === "kosztorys" && (
             <TenderKosztorysWorkspace
               item={item}
               athPreviewEnabled={athPreviewEnabled}
-              processSession={kosztorysProcessSession}
-              retryNonce={retryNonce}
-              onRetryParse={retryDossierParse}
-              trustAssessment={trustAssessment}
+              processSession={pipelineRuntime.kosztorysProcessSession}
+              retryNonce={pipelineRuntime.retryNonce}
+              onRetryParse={pipelineRuntime.retryDossierParse}
+              trustAssessment={pipelineRuntime.trustAssessment}
             />
           )}
 
@@ -231,6 +205,7 @@ export function TenderDetailPage({
             <TenderDetailPanel
               item={item}
               allItems={pipeline.items}
+              pipelineRuntime={pipelineRuntime}
               onUpdate={(patch) => pipeline.updateItem(item.id, patch)}
               onRemove={() => void pipeline.removeItem(item.id).then(() => navigate(TENDERS_LIST_PATH))}
               athPreviewEnabled={athPreviewEnabled}
@@ -243,6 +218,7 @@ export function TenderDetailPage({
               embedV4Workspace={legacyWorkspace}
               onEmbedV4Navigate={handleLegacyNavigate}
               onEmbedV4TabNavigate={handleTabChange}
+              onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
             />
           )}
         </div>

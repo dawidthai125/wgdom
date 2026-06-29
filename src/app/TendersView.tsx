@@ -13,7 +13,7 @@ import {
   jobDraftFromTender,
   labelTenderState,
 } from "@/lib/tenders-bzp";
-import { TenderDetailPanel } from "@/app/TenderDetailPanel";
+import { TenderDetailPanelHosted } from "@/app/TenderDetailPanel";
 import { TendersLegend } from "@/app/TendersLegend";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
@@ -509,7 +509,7 @@ export function TendersView({
         </button>
 
         {expanded && !onItemNavigate && (
-          <TenderDetailPanel
+          <TenderDetailPanelHosted
             item={item}
             allItems={pipeline.items}
             onUpdate={(patch) => pipeline.updateItem(item.id, patch)}

@@ -21,17 +21,13 @@ import {
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
-import { mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
 import {
   analyzeTenderWithDossier,
   dossierFromAnalysisResult,
 } from "@/lib/tender-dossier-pipeline";
-import { mergeExternalDiscoveryDossierPatch } from "@/lib/tender-dossier-external-discovery";
-import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
 import { existingKosztorysForRebuildPick, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
-import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
-import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
-import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
+import type { TenderPipelineRuntime } from "@/lib/tender-pipeline/tender-pipeline-types";
+import { buildExternalDiscoveryResult } from "@/lib/tender-external-discovery-apply";
 import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
@@ -56,8 +52,7 @@ import { checkTenderParticipation } from "@/lib/tender-participation-check";
 import { extractParticipationRequirements } from "@/lib/tender-participation-requirements";
 import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
-import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
-import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
+import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
 import { TenderQualificationWorkspace } from "@/app/TenderQualificationWorkspace";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
@@ -82,16 +77,13 @@ import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
 import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
-import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
-import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
-import {
-  getTenderPriceOverrides,
-  loadTenderPriceOverridesStoreLocal,
-} from "@/lib/tender-price-overrides";
+import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
+import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
 
 export function TenderDetailPanel({
   item,
   allItems,
+  pipelineRuntime,
   onUpdate,
   onCreateJob,
   onOpenJob,
@@ -102,9 +94,12 @@ export function TenderDetailPanel({
   embedV4Workspace,
   onEmbedV4Navigate,
   onEmbedV4TabNavigate,
+  onPriceOverridesChanged,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
+  /** NG-02 — SSOT runtime z TenderDetailPage (jedyny mount hooków). */
+  pipelineRuntime: TenderPipelineRuntime;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
   onCreateJob?: (item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
@@ -123,6 +118,8 @@ export function TenderDetailPanel({
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
+  /** NG-02 — odświeżenie wyceny po zmianie override (Page → runtime). */
+  onPriceOverridesChanged?: () => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -139,37 +136,26 @@ export function TenderDetailPanel({
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const [bidBreakdownOpen, setBidBreakdownOpen] = useState(false);
   const [bidPanelHighlight, setBidPanelHighlight] = useState(false);
-  const [priceOverridesRevision, setPriceOverridesRevision] = useState(0);
   const [activeWorkspace, setActiveWorkspace] = useState<TenderWorkspaceTabId>(
     () => resolveDefaultTenderWorkspace(item),
   );
   const workspaceForLogic = embedV4Workspace ?? activeWorkspace;
-  const { autoRunning } = useTenderDocumentsBootstrap({ item, onUpdate });
+  const swz = item.swzAnalysis;
+
+  const {
+    autoRunning,
+    dossierBuilding,
+    dossierSaving,
+    kosztorysProcessSession,
+    trustAssessment,
+    ownerFinanceProposal,
+    bidProposal: runtimeBidProposal,
+    timeline,
+    pipelineState,
+  } = pipelineRuntime;
+
   const platformTelemetryRef = useRef<string | null>(null);
-  const wantsHeavyDossier = workspaceForLogic === "documents"
-    || workspaceForLogic === "valuation"
-    || workspaceForLogic === TENDER_WORKFLOW_HUB_EMBED_WORKSPACE;
-  const { dossierBuilding, dossierSaving } = useTenderDossierHeavyLazy({
-    item,
-    enabled: wantsHeavyDossier,
-    onUpdate,
-    athPreviewEnabled,
-  });
-  const kosztorysProcessSession = useMemo(
-    () => buildKosztorysProcessSession({
-      autoRunning,
-      dossierBuilding,
-      dossierSaving,
-      lazyEnabled: wantsHeavyDossier,
-    }),
-    [autoRunning, dossierBuilding, dossierSaving, wantsHeavyDossier],
-  );
-  const trustAssessment = useTenderTrustAssessment({
-    item,
-    swz,
-    kosztorysSession: kosztorysProcessSession,
-    loadingDocs: loadingDocs || autoRunning,
-  });
+
   const tendersCtx = useTendersContextOptional();
 
   const platformDocStatus = useMemo(
@@ -178,72 +164,11 @@ export function TenderDetailPanel({
   );
 
   const applyExternalDiscovery = useCallback(async (discovery: TenderExternalDocDiscovery) => {
-    let swzMerged = item.swzAnalysis ?? null;
-    let kosztorysSnap = item.tenderDossier?.kosztorys ?? null;
-    let estimatePln = item.ourEstimatePln ?? null;
-    const brief = item.tenderDossier?.brief
-      ?? mergeBriefWithItemTitle(
-        item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
-        item.title,
-      );
-
-    const patch: Partial<TenderPipelineItem> = { externalDocDiscovery: discovery };
-
-    if (discovery.files.length > 0) {
-      const relevantFiles = discovery.files.filter(
-        (f) => f.isSwzHint || f.fromNotice || (f.matchedTender !== false && f.score >= 20),
-      );
-      const toParse = relevantFiles.length > 0 ? relevantFiles : discovery.files.slice(0, 2);
-      const extParsed = await parseExternalTenderDocuments(
-        toParse.map((f) => ({
-          filename: f.filename,
-          score: f.score,
-          publicUrl: f.publicUrl,
-        })),
-        { ourEstimatePln: estimatePln, existingSwz: swzMerged ?? undefined },
-      );
-      const existingK = existingKosztorysForRebuildPick(item.tenderDossier, item.tenderDossier?.kosztorys);
-      const freshK = extParsed.kosztorys?.ok ? extParsed.kosztorys : null;
-      if (existingK || freshK) {
-        kosztorysSnap = pickBetterKosztorys(existingK, freshK)
-          ?? freshK
-          ?? existingK
-          ?? kosztorysSnap;
-      }
-      if (extParsed.swzFromDoc) {
-        const missingValue = swzMerged?.estimatedValuePln == null;
-        const missingWadium = swzMerged?.wadiumPln == null;
-        if (missingValue || missingWadium || !swzMerged) {
-          swzMerged = mergeSwzAnalysis(swzMerged, extParsed.swzFromDoc);
-        }
-      }
-      if (extParsed.estimatePln != null && estimatePln == null) {
-        estimatePln = extParsed.estimatePln;
-      }
-    }
-
-    patch.tenderDossier = mergeExternalDiscoveryDossierPatch(item.tenderDossier, {
-      brief,
-      kosztorys: kosztorysSnap,
-      builtAt: new Date().toISOString(),
-    });
-    if (swzMerged) patch.swzAnalysis = swzMerged;
-    if (estimatePln != null && item.ourEstimatePln == null) patch.ourEstimatePln = estimatePln;
-    const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
-      { ...item, ...patch },
-      { externalDocDiscovery: discovery },
-    );
-    const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(
-      { ...item, ...patch },
-      { externalDocDiscovery: discovery },
-    );
-    patch.changeMonitor = changeMonitor;
-    patch.qaMonitor = qaMonitor;
-    const totalNew = newEvents.length + newQaEvents.length;
-    if (totalNew > 0) {
-      toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
-    }
+    const { patch, newEventCount } = await buildExternalDiscoveryResult(item, discovery);
     onUpdate(patch);
+    if (newEventCount > 0) {
+      toast.warning(`Wykryto ${newEventCount} zmian${newEventCount === 1 ? "ę" : "y"} w dokumentacji`);
+    }
   }, [item, onUpdate]);
 
   const runExternalDiscovery = useCallback(async () => {
@@ -478,48 +403,13 @@ export function TenderDetailPanel({
   }, [allItems]);
 
   const suggestions = suggestKeywordsFromPipeline(allItems);
-  const swz = item.swzAnalysis;
-
-  const tenderPriceOverrides = useMemo(() => {
-    void priceOverridesRevision;
-    const store = loadTenderPriceOverridesStoreLocal();
-    return getTenderPriceOverrides(store, item.id);
-  }, [item.id, priceOverridesRevision]);
 
   const valuationWorkspaceActive = workspaceForLogic === "valuation" || workspaceForLogic === "offer";
-
-  const computeBidProposalNow = useCallback(() => {
-    const profile = loadCompanyProfileLocal();
-    const { catalog } = resolveActiveCatalogForTender({
-      referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
-    });
-    return computeTenderBidProposal({
-      kosztorys: item.tenderDossier?.kosztorys,
-      swz,
-      fit: item.tenderFit,
-      costModel: profile.costModel,
-      minProjectDays: profile.minProjectDays,
-      maxConcurrentProjects: profile.maxConcurrentProjects,
-      catalog,
-      priceOverrides: tenderPriceOverrides.overrides,
-    });
-  }, [
-    item.tenderDossier?.kosztorys,
-    item.tenderFit,
-    swz,
-    tenderPriceOverrides.overrides,
-  ]);
-
-  const bidProposal = useMemo(() => {
-    if (!valuationWorkspaceActive) return null;
-    return computeBidProposalNow();
-  }, [valuationWorkspaceActive, computeBidProposalNow]);
-
-  const ownerFinanceProposal = useMemo(() => {
-    if (resolvedCostStatus(item) === "NOT_FOUND") return null;
-    if (isKosztorysAwaitingHeavyParse(item)) return null;
-    return computeBidProposalNow();
-  }, [item, computeBidProposalNow]);
+  const bidProposal = valuationWorkspaceActive ? runtimeBidProposal : null;
+  const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
+  const pricingDeferred = workspaceForLogic === "overview"
+    && !ownerFinanceProposal
+    && !heavyDone;
 
   const referenceValuePln = estimatedValuePlnFromItem(item, swz)
     ?? parsePlnFromKosztorysTotal(
@@ -533,7 +423,7 @@ export function TenderDetailPanel({
       await exportTenderBidPackagePdf({
         item,
         profile: loadCompanyProfileLocal(),
-        bidProposal: bidProposal ?? computeBidProposalNow(),
+        bidProposal: bidProposal ?? ownerFinanceProposal,
       });
       toast.success("Pobrano pakiet wyceny PDF");
     } catch (e) {
@@ -541,14 +431,14 @@ export function TenderDetailPanel({
     } finally {
       setExportingPdf(false);
     }
-  }, [item, bidProposal, computeBidProposalNow]);
+  }, [item, bidProposal, ownerFinanceProposal]);
 
   const bidPrepChecks = useMemo(
-    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal, {
-      pricingDeferred: workspaceForLogic === "overview",
+    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal ?? ownerFinanceProposal, {
+      pricingDeferred,
       kosztorysSession: kosztorysProcessSession,
     }),
-    [item, swz, item.tenderFit, bidProposal, workspaceForLogic, kosztorysProcessSession],
+    [item, swz, item.tenderFit, bidProposal, ownerFinanceProposal, pricingDeferred, kosztorysProcessSession],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
@@ -658,7 +548,7 @@ export function TenderDetailPanel({
       onUpdate({ ...patch, status: nextStatus });
       await recordSubmittedBidCalibration({
         item: { ...item, ...patch, status: nextStatus },
-        bidProposal: bidProposal ?? computeBidProposalNow(),
+        bidProposal: bidProposal ?? ownerFinanceProposal,
         submittedBidPln: pln,
       });
       toast.success("Zapisano ofertę złożoną — snapshot kalibracji w chmurze");
@@ -667,10 +557,14 @@ export function TenderDetailPanel({
     } finally {
       setSavingSubmittedBid(false);
     }
-  }, [item, bidProposal, computeBidProposalNow, submittedBidDraft, onUpdate]);
+  }, [item, bidProposal, ownerFinanceProposal, submittedBidDraft, onUpdate]);
 
   return (
     <div className={`space-y-3 ${embedV4ChromeHidden ? "" : "px-4 pb-4 pt-2 border-t border-border"}`}>
+      {!embedV4ChromeHidden && (
+        <TenderPipelineDevTimeline timeline={timeline} pipelineState={pipelineState} />
+      )}
+
       {autoRunning && (
         <p className="text-[10px] text-muted-foreground flex items-center gap-2">
           <Loader2 size={11} className="animate-spin" /> Ładowanie ogłoszenia i załączników…
@@ -836,7 +730,7 @@ export function TenderDetailPanel({
             showHistoricalCalibration={false}
             tenderId={item.id}
             priceOverrides={tenderPriceOverrides.overrides}
-            onPriceOverridesChanged={() => setPriceOverridesRevision((v) => v + 1)}
+            onPriceOverridesChanged={() => onPriceOverridesChanged?.()}
           />
           {(item.estimateHistory?.length ?? 0) > 0 && (
             <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px]">
@@ -886,5 +780,29 @@ export function TenderDetailPanel({
         />
       )}
     </div>
+  );
+}
+
+type TenderDetailPanelHostedProps = Omit<
+  React.ComponentProps<typeof TenderDetailPanel>,
+  "pipelineRuntime"
+>;
+
+/** Legacy accordion — mount runtime + Panel (NG-02-S6). */
+export function TenderDetailPanelHosted(props: TenderDetailPanelHostedProps) {
+  const [pricingRevision, setPricingRevision] = useState(0);
+  const pipelineRuntime = useTenderPipelineRuntime({
+    item: props.item,
+    onUpdate: props.onUpdate,
+    athPreviewEnabled: props.athPreviewEnabled,
+    priceOverridesRevision: pricingRevision,
+  });
+
+  return (
+    <TenderDetailPanel
+      {...props}
+      pipelineRuntime={pipelineRuntime}
+      onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
+    />
   );
 }

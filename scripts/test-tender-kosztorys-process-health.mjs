@@ -271,6 +271,7 @@ ok(
   "idle not monitored",
   deriveKosztorysProcessHealth(
     healthInput({
+      item: baseItem({ bzpDocuments: [] }),
       session: {
         lazyEnabled: true,
         dossierBuilding: false,

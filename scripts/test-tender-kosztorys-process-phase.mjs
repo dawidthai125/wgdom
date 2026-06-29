@@ -9,6 +9,7 @@ import {
   mapKosztorysTechnicalToBusiness,
   resolveKosztorysAwaitingParseDisplay,
 } from "../src/lib/tender-kosztorys-process-phase.ts";
+import { CURRENT_PARSER_VERSION } from "../src/lib/tender-dossier-parser-version.ts";
 
 const TENDER_ID = "bzp-uuid-test";
 
@@ -111,7 +112,7 @@ ok(
       bzpDocuments: [mockDoc],
       tenderDossier: {
         builtAt: "2026-06-25T10:00:00.000Z",
-        parserVersion: 3,
+        parserVersion: CURRENT_PARSER_VERSION,
         kosztorys: { ok: true, rows: [{ lp: "1" }] },
         scanSummary: { parsedAt: "2026-06-25T10:00:00.000Z" },
       },
@@ -127,7 +128,7 @@ ok(
       bzpDocuments: [mockDoc],
       tenderDossier: {
         builtAt: "2026-06-25T10:00:00.000Z",
-        parserVersion: 3,
+        parserVersion: CURRENT_PARSER_VERSION,
         kosztorys: { ok: false },
         scanSummary: { parsedAt: "2026-06-25T10:00:00.000Z" },
       },

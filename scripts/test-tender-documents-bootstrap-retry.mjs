@@ -122,8 +122,8 @@ resetTenderDocumentsBootstrapForTests();
     },
   });
   ok("T1 bootstrap success ok", r1.ok === true);
-  ok("T1 guard completed after success", isTenderDocumentsBootstrapCompleted(ITEM_ID));
-  ok("T1 second attempt short-circuit", r2.ok === true);
+  ok("T1 guard NOT completed bez heavy parse", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
+  ok("T1 second attempt ok (bez completed guard)", r2.ok === true);
   ok("T1 fetchTenderDocuments once", fetchCalls === 1);
   ok("T1 patch has bzpDocuments", patches.some((p) => p.bzpDocuments?.length === 1));
   ok("T1 patch has documentsFetchedAt", patches.some((p) => p.documentsFetchedAt));
@@ -162,7 +162,7 @@ resetTenderDocumentsBootstrapForTests();
     deps: failDeps,
   });
   ok("T2 retry succeeded", rRetry.ok === true);
-  ok("T2 guard set after retry success", isTenderDocumentsBootstrapCompleted(ITEM_ID));
+  ok("T2 guard NOT completed bez heavy parse", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
   ok("T2 fetch attempted twice", attempts === 2);
   ok("T2 retry patch has docs", patches.some((p) => p.bzpDocuments?.length === 1));
 }
@@ -244,7 +244,7 @@ resetTenderDocumentsBootstrapForTests();
     onUpdate: (p) => patches.push(p),
     deps,
   });
-  ok("T4 kosztorys retry completed", isTenderDocumentsBootstrapCompleted(ITEM_ID));
+  ok("T4 kosztorys retry NOT completed bez heavy", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
   ok("T4 dossier shell built", patches.some((p) => p.tenderDossier?.brief != null));
   ok("T4 bzpDocuments for lazy dossier", patches.some((p) => (p.bzpDocuments?.length ?? 0) > 0));
 }
@@ -312,7 +312,7 @@ resetTenderDocumentsBootstrapForTests();
   });
   ok("T6 druga próba woła fetch", fetchCalls === 1);
   ok("T6 documentsFetchedAt ustawione", patches.some((p) => p.documentsFetchedAt));
-  ok("T6 bootstrap completed", isTenderDocumentsBootstrapCompleted(ITEM_ID));
+  ok("T6 bootstrap NOT completed bez heavy parse", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
 }
 
 resetTenderDocumentsBootstrapForTests();

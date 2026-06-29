@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-01-UX-HF-001 Surface Policy** · v2.62.94)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02 Pipeline Automation P0** · v2.62.95)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1741,6 +1741,33 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Nie mieszać z:** `tender-intelligence-overlay` (pewność GO/HOLD) · duplikatem Prep Status na Hubie (usunięty w HF-001).
 
 **Nie zmieniaj bez polecenia:** `buildTenderTrustAssessment()` reguły · `buildWorkflowProcessStripStages()` · parsery / merge / sync.
+
+**Nie zmieniaj bez polecenia:** `buildTenderTrustAssessment()` reguły · `buildWorkflowProcessStripStages()` · parsery / merge / sync.
+
+---
+
+### 12.1.23 NG-02 — Tender Automation Pipeline P0 (v2.62.95)
+
+**Status:** **P0 CLOSED** — automatyczny pipeline po otwarciu przetargu (bez nowego KV, bez zmian parserów/merge/sync/Edge).
+
+| Element | Plik | Rola |
+|---------|------|------|
+| **Mount point** | `TenderDetailPage.tsx` | Jedyny owner hooków V4 |
+| **Facade** | `useTenderPipelineRuntime.ts` | Bootstrap + heavy lazy + pricing + trust + `PipelineState` |
+| **Bootstrap** | `useTenderDocumentsBootstrap.ts` | Notice → discovery → **auto external parse** → dossier shell |
+| **Heavy** | `useTenderDossierHeavyLazy.ts` | `buildTenderDossierHeavy` — zawsze gdy `tenderId` |
+| **Pricing** | `useTenderPricingAuto.ts` | `computeTenderBidProposal` po `tenderDossierHeavyParseDone` |
+| **External parse SSOT** | `tender-external-discovery-apply.ts` | Wspólne z manual „Szukaj u zamawiającego” |
+| **Stan** | `tender-pipeline-types.ts` | `PipelineState` enum · `TenderPipelineRuntime` |
+| **Dev** | `TenderPipelineDevTimeline.tsx` | Timeline tylko `import.meta.env.DEV` |
+| **Panel** | `TenderDetailPanel.tsx` | **Render only** — `pipelineRuntime` przez props |
+| **Legacy** | `TenderDetailPanelHosted` | Accordion `TendersView` gdy `TENDERS_V4_ROUTING=false` |
+
+**PipelineState:** `Idle` → `Notice` → `Discovery` → `External` → `Heavy` → `Pricing` → `Ready` | `Failed`
+
+**P1 slot (nie w P0):** `tender-pipeline-runner.ts` / `useTenderPipelineOrchestrator` — sekwencer zastąpi 3 hooki.
+
+**Test:** `npx vite-node scripts/test-tender-pipeline-automation-p0.mjs` · regresja `test-tender-documents-bootstrap-retry.mjs` · `test-tender-kosztorys-process-health.mjs`
 
 ---
 

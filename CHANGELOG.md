@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.95 — NG-02 Tender Automation Pipeline P0
+
+- **new:** `useTenderPipelineRuntime` — bootstrap + heavy parse + pricing na każdej zakładce V4
+- **improve:** auto external parse w bootstrap; health e5; `PipelineState` enum; dev timeline
+
 ## 2.62.94 — NG-01-UX-HF-001 Trust UI Surface Policy
 
 - **improve:** Hub — banner trust tylko przy problemie; chipy z `getTrustChipLimit` + `+N`; usunięty Prep Status duplicate

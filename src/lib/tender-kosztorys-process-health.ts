@@ -46,9 +46,18 @@ export interface KosztorysProcessHealthInput {
 }
 
 /** Proces w toku — monitorujemy health. */
-export function isKosztorysProcessHealthMonitored(session: KosztorysProcessSession): boolean {
+export function isKosztorysProcessHealthMonitored(
+  session: KosztorysProcessSession,
+  item?: TenderPipelineItem,
+): boolean {
   if (session.dossierParseFailed) return false;
-  return Boolean(session.autoRunning || session.dossierBuilding || session.dossierSaving);
+  if (session.autoRunning || session.dossierBuilding || session.dossierSaving) return true;
+  if (session.pipelineQueued) return true;
+  if (item) {
+    const { technicalId } = deriveKosztorysTechnicalPhase(item, session);
+    if (technicalId === "e5") return true;
+  }
+  return false;
 }
 
 /** Fingerprint aktywności — zmiana resetuje licznik bezczynności. */
@@ -157,7 +166,7 @@ export function deriveKosztorysProcessHealth(
     retryNonce = 0,
   } = input;
 
-  if (!isKosztorysProcessHealthMonitored(session)) {
+  if (!isKosztorysProcessHealthMonitored(session, item)) {
     return null;
   }
 

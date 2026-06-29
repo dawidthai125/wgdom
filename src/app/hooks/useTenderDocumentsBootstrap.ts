@@ -1,6 +1,6 @@
 /**
  * Auto-bootstrap notice HTML + bzpDocuments + light SWZ + dossier shell.
- * SSOT for TenderDetailPanel mount i bezpośredniego wejścia V4 /kosztorys.
+ * SSOT mount: TenderDetailPage (NG-02 useTenderPipelineRuntime).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -11,8 +11,9 @@ import {
   fetchTenderNoticeDetails,
 } from "@/lib/tenders-bzp";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle } from "@/lib/tenders-bzp-brief";
-import { analyzeSwzFromNoticeHtmlOnly } from "@/lib/tender-dossier-pipeline";
+import { analyzeSwzFromNoticeHtmlOnly, tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
+import { buildExternalDiscoveryResult } from "@/lib/tender-external-discovery-apply";
 import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
 import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import {
@@ -31,6 +32,11 @@ export function isTenderDocumentsBootstrapCompleted(itemId: string): boolean {
   return bootstrapCompletedIds.has(itemId);
 }
 
+export function resetTenderDocumentsBootstrapForItem(itemId: string): void {
+  bootstrapCompletedIds.delete(itemId);
+  bootstrapInflightIds.delete(itemId);
+}
+
 export type TenderDocumentsBootstrapDeps = {
   fetchTenderNoticeDetails: typeof fetchTenderNoticeDetails;
   fetchTenderDocuments: typeof fetchTenderDocuments;
@@ -45,7 +51,10 @@ const defaultDeps: TenderDocumentsBootstrapDeps = {
 
 function shouldMarkBootstrapCompleted(item: TenderPipelineItem): boolean {
   if (!item.tenderId?.trim()) return true;
-  return isDocumentDiscoverySettled(item);
+  if (!isDocumentDiscoverySettled(item)) return false;
+  const docCount = item.bzpDocuments?.length ?? 0;
+  if (docCount === 0) return true;
+  return tenderDossierHeavyParseDone(item.tenderDossier);
 }
 
 /**
@@ -57,8 +66,15 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
   isCancelled?: () => boolean;
   deps?: Partial<TenderDocumentsBootstrapDeps>;
+  onExternalRunning?: (running: boolean) => void;
 }): Promise<{ ok: boolean }> {
-  const { item, onUpdate, isCancelled = () => false, deps: depsOverride } = opts;
+  const {
+    item,
+    onUpdate,
+    isCancelled = () => false,
+    deps: depsOverride,
+    onExternalRunning,
+  } = opts;
   const deps = { ...defaultDeps, ...depsOverride };
 
   if (bootstrapCompletedIds.has(item.id)) {
@@ -120,6 +136,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
       && (html ?? item.noticeHtml)
     ) {
       try {
+        onExternalRunning?.(true);
         const discovery = await deps.discoverExternalTenderDocs({
           tenderId: item.tenderId,
           noticeHtml: html ?? item.noticeHtml,
@@ -129,9 +146,24 @@ export async function attemptTenderDocumentsBootstrap(opts: {
           bzpNumber: item.bzpNumber,
         });
         if (!isCancelled()) {
-          patch.externalDocDiscovery = discovery;
+          if (discovery.files.length > 0) {
+            const mergedBase = { ...item, ...patch };
+            const { patch: extPatch, newEventCount } = await buildExternalDiscoveryResult(
+              mergedBase,
+              discovery,
+            );
+            Object.assign(patch, extPatch);
+            if (newEventCount > 0) {
+              toast.warning(`Wykryto ${newEventCount} zmian${newEventCount === 1 ? "ę" : "y"} w dokumentacji`);
+            }
+          } else {
+            patch.externalDocDiscovery = discovery;
+          }
         }
       } catch { /* auto external discover best-effort */ }
+      finally {
+        if (!isCancelled()) onExternalRunning?.(false);
+      }
     }
     let swz = item.swzAnalysis ?? null;
     if (!swz && !isCancelled() && html) {
@@ -176,10 +208,19 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 export function useTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
-  /** false = nie uruchamiaj (np. V4 tab bez potrzeby docs). Domyślnie true. */
+  /** false = nie uruchamiaj. Domyślnie true (NG-02). */
   enabled?: boolean;
+  /** Inkrementuj aby wymusić retry (NG-02-F). */
+  retryNonce?: number;
+  onExternalRunning?: (running: boolean) => void;
 }): { autoRunning: boolean } {
-  const { item, onUpdate, enabled = true } = opts;
+  const {
+    item,
+    onUpdate,
+    enabled = true,
+    retryNonce = 0,
+    onExternalRunning,
+  } = opts;
   const [autoRunning, setAutoRunning] = useState(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
@@ -195,6 +236,7 @@ export function useTenderDocumentsBootstrap(opts: {
       item,
       onUpdate: (patch) => onUpdateRef.current(patch),
       isCancelled: () => cancelled,
+      onExternalRunning,
     }).finally(() => {
       if (!cancelled) setAutoRunning(false);
     });
@@ -205,6 +247,9 @@ export function useTenderDocumentsBootstrap(opts: {
     bootstrapKey,
     item.documentsFetchedAt,
     item.bzpDocuments?.length,
+    item.tenderDossier?.parserVersion,
+    item.tenderDossier?.scanSummary?.parsedAt,
+    retryNonce,
   ]);
 
   return { autoRunning };

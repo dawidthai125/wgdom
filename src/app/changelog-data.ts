@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.95",
+    label: "NG-02 — Tender Automation Pipeline P0",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi — automatyczny pipeline po otwarciu (dokumenty, kosztorys, wycena) na każdej zakładce V4; SSOT useTenderPipelineRuntime",
+      },
+      {
+        type: "improve",
+        text: "External discovery — auto-parse plików u zamawiającego w bootstrap (bez osobnego kliknięcia)",
+      },
+      {
+        type: "improve",
+        text: "Health kosztorysu — monitor fazy e5 (koniec „zawieszonej analizy”); retry po zmianie zakładek",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.94",
     label: "NG-01-UX-HF-001 — Trust UI Surface Policy",
     items: [

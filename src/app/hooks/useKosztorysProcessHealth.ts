@@ -38,7 +38,7 @@ export function useKosztorysProcessHealth(opts: {
   const monitoringStartedRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!enabled || !isKosztorysProcessHealthMonitored(session)) {
+    if (!enabled || !isKosztorysProcessHealthMonitored(session, item)) {
       fingerprintRef.current = null;
       monitoringStartedRef.current = null;
       setHealth(null);
