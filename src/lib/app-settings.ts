@@ -34,6 +34,10 @@ export interface AppSettings {
   tendersTabForStaffEnabled: boolean;
   /** Biblioteka Robót w Przetargach dla roli Administrator (Super Admin zawsze; moderator/inspektor — nie). */
   workCatalogForAdminEnabled: boolean;
+  /** Instrukcja obsługi w menu dla roli Administrator (Super Admin zawsze). */
+  instructionsForAdminEnabled: boolean;
+  /** Zakładka Zmiany (changelog) w menu dla roli Administrator (Super Admin zawsze). */
+  changesForAdminEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -51,6 +55,8 @@ export function defaultAppSettings(): AppSettings {
     athPreviewEnabled: true,
     tendersTabForStaffEnabled: false,
     workCatalogForAdminEnabled: false,
+    instructionsForAdminEnabled: false,
+    changesForAdminEnabled: false,
     catalogWriteMode: "split",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -95,6 +101,26 @@ export function mergeWorkCatalogForAdminEnabled(
   return local.workCatalogForAdminEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie wyłączone dla administratorów. */
+export function mergeInstructionsForAdminEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.instructionsForAdminEnabled === true) return true;
+  if (remote?.instructionsForAdminEnabled === false) return false;
+  return local.instructionsForAdminEnabled === true;
+}
+
+/** Chmura ma pierwszeństwo — domyślnie wyłączone dla administratorów. */
+export function mergeChangesForAdminEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.changesForAdminEnabled === true) return true;
+  if (remote?.changesForAdminEnabled === false) return false;
+  return local.changesForAdminEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -105,6 +131,8 @@ export function loadAppSettingsLocal(): AppSettings {
       athPreviewEnabled: parsed.athPreviewEnabled !== false,
       tendersTabForStaffEnabled: parsed.tendersTabForStaffEnabled === true,
       workCatalogForAdminEnabled: parsed.workCatalogForAdminEnabled === true,
+      instructionsForAdminEnabled: parsed.instructionsForAdminEnabled === true,
+      changesForAdminEnabled: parsed.changesForAdminEnabled === true,
       catalogWriteMode: normalizeCatalogWriteMode(parsed.catalogWriteMode),
       bzpScanDays: numSetting(parsed.bzpScanDays, d.bzpScanDays, 7, 365),
       bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
@@ -149,6 +177,8 @@ export function mergeAppSettings(
     athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
     tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
     workCatalogForAdminEnabled: mergeWorkCatalogForAdminEnabled(remote, local),
+    instructionsForAdminEnabled: mergeInstructionsForAdminEnabled(remote, local),
+    changesForAdminEnabled: mergeChangesForAdminEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

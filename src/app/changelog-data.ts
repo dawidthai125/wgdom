@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.92",
+    label: "SUPER ADMIN ACL — Instrukcja i Zmiany",
+    items: [
+      {
+        type: "improve",
+        text: "Instrukcja i Zmiany — osobne pozycje menu; domyślnie tylko Super Administrator",
+      },
+      {
+        type: "improve",
+        text: "⚙ Ustawienia: przełączniki „Instrukcja dla administratorów” i „Zmiany dla administratorów” (AppSettings, chmura)",
+      },
+      {
+        type: "fix",
+        text: "Bez uprawnień — ukryte menu i przekierowanie na Pulpit przy ręcznym wejściu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.91",
     label: "PB-WRITE-C — Reconcile legacy → Biblioteka Robót",
     items: [

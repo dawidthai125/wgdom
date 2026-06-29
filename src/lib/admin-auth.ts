@@ -868,6 +868,26 @@ export function adminCanViewWorkCatalog(
   return settings.workCatalogForAdminEnabled === true;
 }
 
+/** Instrukcja obsługi — Super Admin zawsze; admin gdy flaga w AppSettings. */
+export function adminCanViewInstructions(
+  role: AdminRole,
+  settings: { instructionsForAdminEnabled?: boolean },
+): boolean {
+  if (role === "super_admin") return true;
+  if (role !== "admin") return false;
+  return settings.instructionsForAdminEnabled === true;
+}
+
+/** Zakładka Zmiany (changelog) — Super Admin zawsze; admin gdy flaga w AppSettings. */
+export function adminCanViewChanges(
+  role: AdminRole,
+  settings: { changesForAdminEnabled?: boolean },
+): boolean {
+  if (role === "super_admin") return true;
+  if (role !== "admin") return false;
+  return settings.changesForAdminEnabled === true;
+}
+
 
 
 export function adminRoleLabel(role: AdminRole): string {

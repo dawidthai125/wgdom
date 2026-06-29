@@ -86,7 +86,7 @@ import {
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
-import { adminCanViewTendersTab, adminCanViewWorkCatalog } from "@/lib/admin-auth";
+import { adminCanViewTendersTab, adminCanViewWorkCatalog, adminCanViewInstructions, adminCanViewChanges } from "@/lib/admin-auth";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -1682,10 +1682,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     ? adminCanViewWorkCatalog(adminSession.role, appSettings)
     : false;
 
+  const canViewInstructions = adminSession
+    ? adminCanViewInstructions(adminSession.role, appSettings)
+    : false;
+
+  const canViewChanges = adminSession
+    ? adminCanViewChanges(adminSession.role, appSettings)
+    : false;
+
   const navItems = useMemo(
     () =>
       buildAdminNavItems({
         canViewTendersNav,
+        canViewInstructionsNav: canViewInstructions,
+        canViewChangesNav: canViewChanges,
         productionWeekEmployees,
         directory,
         contacts,
@@ -1699,6 +1709,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }),
     [
       canViewTendersNav,
+      canViewInstructions,
+      canViewChanges,
       productionWeekEmployees,
       directory,
       contacts,
@@ -1756,6 +1768,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       operationalnotes: "Notatki operacyjne",
       audit: "Audit Hub",
       guide: "Instrukcja",
+      changelog: "Zmiany",
       tenders: "Przetargi",
       workcatalog: "Biblioteka Robót",
     };
@@ -1877,6 +1890,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [view, canViewTendersNav]);
 
   useEffect(() => {
+    if (view === "guide" && !canViewInstructions) setView("dashboard");
+  }, [view, canViewInstructions]);
+
+  useEffect(() => {
+    if (view === "changelog" && !canViewChanges) setView("dashboard");
+  }, [view, canViewChanges]);
+
+  useEffect(() => {
     if (view === "audit" && !canAccessAuditHub(adminSession)) setView("dashboard");
   }, [view, adminSession]);
 
@@ -1952,6 +1973,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           payrollDetailOpen={payrollDetailOpen}
           canViewTendersNav={canViewTendersNav}
           canViewWorkCatalog={canViewWorkCatalog}
+          canViewInstructions={canViewInstructions}
+          canViewChanges={canViewChanges}
           embedded={{
             DashboardView,
             ScheduleView,

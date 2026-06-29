@@ -596,10 +596,11 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       subtitle:"Co nowego w aplikacji",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">W menu jest zakładka <strong>Zmiany/Instrukcja</strong>. W niej wybierz podzakładkę <strong>Zmiany</strong> — chronologiczna lista aktualizacji od najnowszej wersji w dół. Domyślnie widać 10 wpisów; na dole możesz przełączać strony albo ustawić 20 lub 50 wpisów na stronie.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">W menu są osobne pozycje <strong>Instrukcja</strong> i <strong>Zmiany</strong> (widoczne dla Super Administratora; Administrator — gdy włączone w ⚙ Ustawienia). Zakładka <strong>Zmiany</strong> to chronologiczna lista aktualizacji od najnowszej wersji w dół. Domyślnie widać 10 wpisów; na dole możesz przełączać strony albo ustawić 20 lub 50 wpisów na stronie.</p>
           <div className="space-y-3">
             {[
               {q:"Po co jest ta zakładka?", a:"Żebyś wiedział co się zmieniło po aktualizacji — nowe funkcje, poprawki i ulepszenia. Najnowsza wersja jest na górze z zieloną etykietą „Najnowsza”."},
+              {q:"Kto widzi Instrukcję i Zmiany?", a:"Super Administrator zawsze. Administrator — tylko gdy w ⚙ Ustawienia włączysz „Instrukcja dla administratorów” i/lub „Zmiany dla administratorów”. Moderator, inspektor i pracownik — nie mają dostępu."},
               {q:"Skąd wiem jaka jest moja wersja?", a:"W prawym górnym rogu strony Zmiany widać numer wersji (np. v1.6). Ten sam numer pojawia się przy każdym wpisie w historii."},
               {q:"Czy muszę coś robić po aktualizacji?", a:"Nie — wystarczy odświeżyć stronę. Dane wczytają się z chmury automatycznie. Przeczytaj tylko wpisy „Nowość”, jeśli chcesz skorzystać z nowych przycisków."},
             ].map((item,i)=>(
@@ -770,44 +771,43 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 const CHANGELOG_PAGE_SIZES = [10, 20, 50] as const;
 type ChangelogPageSize = (typeof CHANGELOG_PAGE_SIZES)[number];
 
-export function GuideView() {
-  const [tab, setTab] = useState<"help" | "changelog">("help");
+export type GuideViewMode = "instructions" | "changes";
+
+export function GuideView({ mode }: { mode: GuideViewMode }) {
   const guideHeaderRef = useRef<HTMLDivElement>(null);
   useWheelScrollForward(guideHeaderRef);
+  const isInstructions = mode === "instructions";
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <div ref={guideHeaderRef} className="shrink-0 px-4 sm:px-8 pt-6 pb-3 max-w-3xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-            <BookOpen size={18} className="text-primary"/>
+            {isInstructions ? (
+              <BookOpen size={18} className="text-primary"/>
+            ) : (
+              <ScrollText size={18} className="text-primary"/>
+            )}
           </div>
           <div>
-            <h1 className="text-lg font-bold">Zmiany / Instrukcja</h1>
-            <p className="text-xs text-muted-foreground">Pomoc krok po kroku i historia wersji aplikacji</p>
+            <h1 className="text-lg font-bold flex items-center gap-2 flex-wrap">
+              {isInstructions ? "Instrukcja obsługi" : "Zmiany"}
+              {!isInstructions && (
+                <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-semibold">
+                  v{CHANGELOG[0].version}
+                </span>
+              )}
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {isInstructions
+                ? "Pomoc krok po kroku — moduły, FAQ i skróty"
+                : "Historia wersji aplikacji — nowości, poprawki i ulepszenia"}
+            </p>
           </div>
-        </div>
-        <div className="flex gap-1 p-1 bg-secondary rounded-xl">
-          <button
-            type="button"
-            onClick={() => setTab("help")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "help" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Instrukcja
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("changelog")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${tab === "changelog" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <ScrollText size={14}/>
-            Zmiany
-            <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-semibold">v{CHANGELOG[0].version}</span>
-          </button>
         </div>
       </div>
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        {tab === "help" ? <HelpView embedded /> : <ChangelogView embedded />}
+        {isInstructions ? <HelpView embedded /> : <ChangelogView embedded />}
       </div>
     </div>
   );

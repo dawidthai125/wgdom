@@ -270,6 +270,44 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.instructionsForAdminEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, instructionsForAdminEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Instrukcja dla administratorów</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Super Administrator zawsze widzi Instrukcję w menu.
+                  Po włączeniu — Administrator ma dostęp do pomocy krok po kroku.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.changesForAdminEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, changesForAdminEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Zmiany dla administratorów</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Super Administrator zawsze widzi Zmiany w menu.
+                  Po włączeniu — Administrator ma dostęp do historii wersji aplikacji.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-sky-500/5 border border-sky-500/20 rounded-xl p-4 space-y-3">

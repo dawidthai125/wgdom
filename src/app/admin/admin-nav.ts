@@ -12,6 +12,7 @@ import {
   Scale,
   Wallet,
   ScrollText,
+  ScrollText,
   Printer,
   Shield,
 } from "lucide-react";
@@ -48,6 +49,7 @@ export type View =
   | "media"
   | "recoverablecharges"
   | "guide"
+  | "changelog"
   | "tenders"
   /** Legacy top-level route — redirect do Przetargi → Biblioteka robót (WC-P2.1). */
   | "workcatalog"
@@ -65,6 +67,8 @@ export const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "
 
 export type BuildAdminNavItemsInput = {
   canViewTendersNav: boolean;
+  canViewInstructionsNav: boolean;
+  canViewChangesNav: boolean;
   productionWeekEmployees: WeekEmployee[];
   directory: DirectoryEmployee[];
   contacts: EmailContact[];
@@ -85,6 +89,8 @@ export function isNavItemActive(navKey: View, currentView: View): boolean {
 export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem[] {
   const {
     canViewTendersNav,
+    canViewInstructionsNav,
+    canViewChangesNav,
     productionWeekEmployees,
     directory,
     savedWeeks,
@@ -207,12 +213,26 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
           },
         ]
       : []),
-    {
-      key: "guide",
-      label: "Zmiany/Instrukcja",
-      hint: "Historia wersji aplikacji i pomoc krok po kroku.",
-      icon: BookOpen,
-    },
+    ...(canViewInstructionsNav
+      ? [
+          {
+            key: "guide" as const,
+            label: "Instrukcja",
+            hint: "Pomoc krok po kroku — moduły, FAQ i skróty.",
+            icon: BookOpen,
+          },
+        ]
+      : []),
+    ...(canViewChangesNav
+      ? [
+          {
+            key: "changelog" as const,
+            label: "Zmiany",
+            hint: "Historia wersji aplikacji — nowości, poprawki i ulepszenia.",
+            icon: ScrollText,
+          },
+        ]
+      : []),
   ];
 }
 

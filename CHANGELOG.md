@@ -8,6 +8,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.92 — SUPER ADMIN ACL Instrukcja + Zmiany
+
+- **improve:** Osobne menu Instrukcja / Zmiany — Super Admin zawsze; Admin po flagach w ⚙
+- **improve:** `instructionsForAdminEnabled` + `changesForAdminEnabled` w AppSettings (chmura)
+- **fix:** Brak ACL → ukryte menu + redirect na Pulpit
+
 ## 2.62.91 — PB-WRITE-C Reconcile legacy → work
 
 - **improve:** `work-catalog-reconcile.ts` — idempotentny reconcile po PB-3

@@ -101,6 +101,8 @@ export type AdminViewRouterProps = {
   payrollDetailOpen: boolean;
   canViewTendersNav: boolean;
   canViewWorkCatalog: boolean;
+  canViewInstructions: boolean;
+  canViewChanges: boolean;
   embedded: AdminEmbeddedViews;
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -273,6 +275,8 @@ export function AdminViewRouter({
   payrollDetailOpen,
   canViewTendersNav,
   canViewWorkCatalog,
+  canViewInstructions,
+  canViewChanges,
   embedded,
   jobs,
   directory,
@@ -715,10 +719,17 @@ export function AdminViewRouter({
           </Suspense>
         </ViewErrorBoundary>
       )}
-      {view === "guide" && (
+      {view === "guide" && canViewInstructions && (
         <ViewErrorBoundary label="Instrukcja">
           <Suspense fallback={<ViewLoadFallback label="Ładowanie instrukcji…" />}>
-            <GuideView />
+            <GuideView mode="instructions" />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "changelog" && canViewChanges && (
+        <ViewErrorBoundary label="Zmiany">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie zmian…" />}>
+            <GuideView mode="changes" />
           </Suspense>
         </ViewErrorBoundary>
       )}
