@@ -2,6 +2,11 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.91 — PB-WRITE-C Reconcile legacy → work
+
+- **improve:** `work-catalog-reconcile.ts` — idempotentny reconcile po PB-3
+- **fix:** Skip gdy `work.updatedAt > legacy.updatedAt`; bez UI / bez cutover
+
 ## 2.62.90 — WC-P2.1-HF1 Biblioteka embedded scroll
 
 - **fix:** Przetargi → Biblioteka robót — jeden scroll na zakładce; dostęp do wszystkich wierszy

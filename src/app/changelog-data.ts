@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.91",
+    label: "PB-WRITE-C — Reconcile legacy → Biblioteka Robót",
+    items: [
+      {
+        type: "improve",
+        text: "PB-WRITE-C: reconcile legacy Bazy cen → Work Catalog po starcie (idempotentny, LWW po updatedAt)",
+      },
+      {
+        type: "fix",
+        text: "Nie nadpisuje robót z nowszym work.updatedAt; wynik PBWriteReconcileResult w logach",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.90",
     label: "WC-P2.1-HF1 — Biblioteka Robót embedded scroll",
     items: [

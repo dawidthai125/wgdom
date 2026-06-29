@@ -15,6 +15,7 @@ import {
 import { countLegacyCatalogRates } from "@/lib/work-catalog/work-catalog-migrate";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
+import { maybeExecuteWorkCatalogReconcile } from "@/lib/work-catalog-reconcile-bootstrap";
 
 export type WorkCatalogBootstrapSkipReason =
   | "already_migrated"
@@ -80,6 +81,7 @@ export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBoo
 
   if (decision.action === "skip") {
     console.info("WORK CATALOG BOOTSTRAP SKIPPED", { reason: decision.reason });
+    await maybeExecuteWorkCatalogReconcile();
     return { decision, migrated: false };
   }
 
@@ -99,6 +101,8 @@ export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBoo
     workCount: countAllWorks(store),
     pricedCount: countPricedActiveWorks(store),
   });
+
+  await maybeExecuteWorkCatalogReconcile();
 
   return { decision, migrated: true };
 }
