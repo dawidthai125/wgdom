@@ -3,7 +3,7 @@
 > **Status sesji:** **CLOSED** (hotfix prod **2.62.42** zweryfikowany)  
 > **Prod baseline:** **v2.62.48** · commit **`5cef155`** (dokumentacja zaktualizowana 2026-06-24)  
 > **WM Druk follow-up:** [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) — ZI §4/§5 · TP203 · P4  
-> **Hasło agenta:** „kontynuuj WGDOM”  
+> **Hasło sesji:** „kontynuuj WGDOM”  
 > **SSOT projektu:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)  
 > **Mapa systemu:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md)
 
@@ -54,7 +54,7 @@
 
 ---
 
-## 3. Architektura W&G DOM — skrót dla agentów AI
+## 3. Architektura W&G DOM — skrót dla programistów
 
 ### 3.1 Czym jest aplikacja
 
@@ -166,7 +166,7 @@ d799033 (2.62.42) — przywrócono import (1 linia)
 
 ---
 
-## 5. Workflow agenta (skrót)
+## 5. Workflow deweloperski (skrót)
 
 ```text
 AUDIT (read-only) → PLAN → IMPLEMENT → TESTY (vite-node) → BUILD
@@ -194,7 +194,7 @@ curl -s https://www.wgdom.fun/version.json   # oczekiwane: 2.62.42 / d799033
 
 ---
 
-## 7. Kolejność czytania dla nowego agenta
+## 7. Kolejność czytania dla nowej sesji
 
 ```text
 1. docs/SESSION-HANDOFF-2026-06-24.md     ← TEN PLIK (ostatnia sesja)

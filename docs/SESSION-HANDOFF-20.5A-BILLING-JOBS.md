@@ -1,4 +1,4 @@
-# Sprint 20.3A–20.5A.4 — Do rozliczenia + Roboty (handoff dla AI)
+# Sprint 20.3A–20.5A.4 — Do rozliczenia + Roboty (handoff deweloperski)
 
 > **Hasło:** „kontynuuj WGDOM” → [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`AGENTS.md`](../AGENTS.md)
 

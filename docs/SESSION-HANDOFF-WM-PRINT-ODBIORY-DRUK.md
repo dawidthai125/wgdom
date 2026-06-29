@@ -5,7 +5,7 @@
 > **Master handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · SSOT ZI: [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md)
 > **Prod validation:** [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
 > **Historyczne RCA LiveCycle:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 ---
 
@@ -186,7 +186,7 @@ Legacy LiveCycle slot **`26f02c78…`**: **TOMBSTONE** → `audit/archive/legacy
 
 **★★ SSOT historyczne:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 
-> **Uwaga dla agentów:** poniższe opisuje **stary** formularz LiveCycle i problem §3 @ y≈142. **Nie** stosować do prod po 2.59.22. Aktualny adres obiektu = **§4** pola 99/111/112 (Tauron 2026).
+> **Uwaga dla programistów:** poniższe opisuje **stary** formularz LiveCycle i problem §3 @ y≈142. **Nie** stosować do prod po 2.59.22. Aktualny adres obiektu = **§4** pola 99/111/112 (Tauron 2026).
 
 ### Problem biznesowy (historyczny — CLOSED)
 
@@ -401,4 +401,4 @@ Moduł wmprint UI          GO
 Reszta WGDOM              GO
 ```
 
-**Następny agent:** Czytaj [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) → walidacja [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md). **Nie** wracać do LiveCycle/ciphertext/AP bez nowego dowodu.
+**Następna sesja:** Czytaj [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) → walidacja [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md). **Nie** wracać do LiveCycle/ciphertext/AP bez nowego dowodu.

@@ -1,6 +1,6 @@
 # Workflow Architecture — SSOT v2.63
 
-> **Dla kogo:** programista, agent AI, reviewer — **jeden dokument** opisujący architekturę Workflow przetargu po serii release'ów **2.62.64–2.62.72**.  
+> **Dla kogo:** programista, reviewer — **jeden dokument** opisujący architekturę Workflow przetargu po serii release'ów **2.62.64–2.62.72**.  
 > **Produkcja (baseline dokumentu):** v2.62.72 · commit `16b7fd7` · https://www.wgdom.fun  
 > **Data:** 2026-06-25  
 > **Status:** **ACTIVE SSOT** — nadrzędny względem rozproszonych opisów w `ARCHITECTURE.md` § 12.1.9 / § 12.1.13 dla tematu Workflow.
@@ -518,4 +518,4 @@ npx vite-node scripts/test-tender-workspace-v2-ux.mjs
 npm run build
 ```
 
-**Pliki startowe agenta:** `AGENTS.md` → **ten dokument** → `ARCHITECTURE.md` § 12.1.9 → `CURRENT-TASK.md`
+**Pliki startowe:** `AGENTS.md` → **ten dokument** → `ARCHITECTURE.md` § 12.1.9 → `CURRENT-TASK.md`

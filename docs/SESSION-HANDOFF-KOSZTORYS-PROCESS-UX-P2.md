@@ -2,7 +2,7 @@
 
 > **Status:** **CLOSED** · **v2.62.66** · **2026-06-25**  
 > **Poprzedni:** P1 · [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P1.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P1.md)  
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 ---
 

@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Szybki kontekst dla nowego agenta
+## 1. Szybki kontekst dla nowej sesji
 
 | Wersja | Commit | Skrót |
 |--------|--------|-------|

@@ -109,7 +109,7 @@ curl -s https://www.wgdom.fun/version.json
 
 ---
 
-## 9. Zakazy dla agentów
+## 9. Zakazy dla programistów
 
 - **Nie** rozpoczynaj ponownie Mobile Recovery bez nowego AUDIT + polecenia.
 - **Nie** traktuj SMOKE-03 BLOCKED jako otwartego buga prod.

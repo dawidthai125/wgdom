@@ -1,4 +1,4 @@
-# W&G DOM — instrukcja dla agentów AI i programistów
+# W&G DOM — instrukcja dla programistów
 
 > **Zanim cokolwiek zmienisz — przeczytaj pliki poniżej w tej kolejności.**
 
@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowego agenta)
+2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
 3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.79)
@@ -57,10 +57,10 @@
 | **AGENTS.md** | Jak pracować nad projektem? (zasady, workflow, zakazy) |
 | **PROJECT-GUIDE.md** | Jak działa projekt? (architektura, API, pułapki) |
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
-| **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
+| **CHANGELOG.md** | Co zostało zrobione? (skrót dla programistów) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/AGENT-CONTINUITY-GUIDE.md** | **★★ Kontekst sesji** — co zrobiliśmy, co robimy, struktura app, mapa Przetargów |
-| **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — widoki, sync, smoke, workflow agenta |
+| **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — widoki, sync, smoke, workflow deweloperski |
 | **docs/WORKFLOW-ARCHITECTURE-v2.63.md** | **★★ SSOT Workflow** — Hub, Process Strip, CTA, zakładki V4 (obowiązkowe przy Przetargu) |
 | **docs/MASTER-HANDOFF-POST-ZI-2026.md** | **★★ POST ZI-2026** — skrót stanu prod · WM Druk COMPLETE |
 | **docs/ZI-2026-HANDOFF.md** | **★★★ ZI Tauron 2026 prod SSOT** — PRODUCTION STABLE |

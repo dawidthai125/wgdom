@@ -1,13 +1,13 @@
-# W&G DOM — handoff sesji 2026-06 (dla agentów AI)
+# W&G DOM — handoff sesji 2026-06 (dla programistów)
 
 > **Cel:** jeden plik z kontekstem audytów, stanem prod i rekomendacjami — bez czytania całej historii czatu.  
-> **Hasło w Cursorze:** „kontynuuj WGDOM” → też [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc) i [`CURRENT-TASK.md`](../CURRENT-TASK.md).
+> **Hasło sesji:** „kontynuuj WGDOM” → też [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc) i [`CURRENT-TASK.md`](../CURRENT-TASK.md).
 
 **Data handoff:** 2026-06-04 (zaktualizowano 2026-06-06)  
 **Prod app (`main`):** `35614f0` — Performance **2.4A** · tag `v2.45.38-perf-2.4a` · https://www.wgdom.fun  
 **Wersja UI:** **2.45.36** w [`changelog-data.ts`](../src/app/changelog-data.ts) (perf release bez bumpu UI)
 
-> **★ Performance 2.x (CLOSED):** [`SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md) — **nowy agent przy temacie wydajności zaczyna tam.**  
+> **★ Performance 2.x (CLOSED):** [`SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md) — **nowa sesja przy temacie wydajności zaczyna tam.**  
 > **Performance 1.x (CLOSED):** [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)  
 > **Incydent Roboty / RCA:** [`SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 

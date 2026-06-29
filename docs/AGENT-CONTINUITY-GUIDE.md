@@ -1,4 +1,4 @@
-# W&G DOM — przewodnik ciągłości dla agentów AI
+# W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** **2.62.79** · commit **`4397eac`** · https://www.wgdom.fun  
@@ -8,11 +8,11 @@
 
 ---
 
-## 1. Kolejność czytania (nowy agent)
+## 1. Kolejność czytania (nowa sesja)
 
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
-2. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow agenta
+2. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
 3. CURRENT-TASK.md                   ← ostatnia sesja / backlog bieżący
 4. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
 5. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy Przetargu
@@ -57,7 +57,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
-### Recovery Pack (dla agentów — tylko odczyt)
+### Recovery Pack (dla programistów — tylko odczyt)
 
 | Pole | Wartość |
 |------|---------|
@@ -238,7 +238,7 @@ WGDOM1/
 
 ---
 
-## 8. Workflow agenta (obowiązujący)
+## 8. Workflow deweloperski (obowiązujący)
 
 ```text
 AUDIT → PLAN → IMPLEMENT → TESTY → BUILD → COMMIT → PUSH

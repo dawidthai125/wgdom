@@ -1,6 +1,6 @@
 # W&G DOM — incydenty i stabilizacja (czerwiec 2026)
 
-> **Dla agentów AI:** przeczytaj ten plik po `CURRENT-TASK.md`, jeśli pracujesz nad sync, payroll, adminami lub mediami.  
+> **Dla programistów:** przeczytaj ten plik po `CURRENT-TASK.md`, jeśli pracujesz nad sync, payroll, adminami lub mediami.  
 > **Produkcja:** https://www.wgdom.fun · **Supabase KV:** `bdpygdvfgbggermvqtys`  
 > **Ostatnia aktualizacja:** 2026-06-29
 

@@ -1,7 +1,7 @@
 # SESSION HANDOFF — TP190 Parser v3 + Batch Rebuild
 
-> **Status:** **TP190A→TP190C-3B CLOSED** (prod **2.62.27** · `df2524f`) · **TP190C-3C batch write prod** — **OPEN** (na osobne polecenie)  
-> **Baseline prod:** **v2.62.27** · commit **`df2524f`**  
+> **Status:** **TP190 stream CLOSED** (TP190A→TP190C-3C) · prod **2.62.32** · `40eb274`  
+> **TP190C-3C batch write prod:** **CLOSED** · 2026-06-22 · **9/9** migrated · `parserVersion=3` · stale **0** · failed **0**  
 > **SSOT wersji parsera:** `CURRENT_PARSER_VERSION = 3` w `tender-dossier-parser-version.ts`  
 > **Powiązane:** [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) · [`SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md) · [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md)
 
@@ -15,7 +15,7 @@ Po rollout PDF WM Recovery (TP196–TP198C, prod 2.62.10) użytkownik nadal widz
 2. **Re-analyze / lazy dossier** mogło **zdegradować** dobry ATH/PDF do pustego XLS lub CASE 3 (0 rows).
 3. **Silny PDF recovery** (≥120 poz., CASE 1) przegrywał z ATH przy merge mimo wyższej jakości biznesowej.
 4. **Node vs Browser** — vite-node zwracał `noTextLayer` dla PDF z tekstem → fałszywy CASE 3 w audytach/skryptach.
-5. **9 stale dossier** na prod KV (`kosztorys.ok` + `parserVersion ≠ 3`) — wymaga batch migracji.
+5. ~~**9 stale dossier** na prod KV~~ — **CLOSED** (TP190C-3C, 2026-06-22): batch `--write` · 9/9 · stale=0.
 
 ---
 
@@ -33,12 +33,14 @@ Po rollout PDF WM Recovery (TP196–TP198C, prod 2.62.10) użytkownik nadal widz
 | **TP190C-2C** | — | lokalnie | Discovery tie-break przy remisie źródeł | `tender-dossier-merge.ts`, `tender-document-resolver.ts` |
 | **TP190C-3** | — | audyt | Operational rebuild audit — 9 stale, 0 downgrade, GO | `audit-tp190c3-operational-rebuild.mjs` |
 | **TP190C-3B** | **2.62.27** | **`df2524f`** | Batch rebuild tooling (dry-run / `--write`) | `tp190c-batch-rebuild.ts` |
+| **TP190C-3C** | **2026-06-22** | batch `--write` | Prod KV migracja 9 stale → v3 (6 upgraded, 3 unchanged, 0 failed) | `scripts/tp190c-batch-rebuild.mjs` |
+| **R1-FIX** | **2.62.32** | **`40eb274`** | Silny PDF vs ATH — `pdfRows > athRows × 1.05` | `tender-dossier-merge.ts` |
 
 **Równolegle (nie TP190):** Payroll sync stability 2.62.20–2.62.22 · TP201A KNR descriptions 2.62.19.
 
 ---
 
-## 3. Architektura — pipeline dossier (skrót dla agentów)
+## 3. Architektura — pipeline dossier (skrót dla programistów)
 
 ```text
 TenderPipelineItem (kw-tenders-pipeline)
@@ -113,19 +115,19 @@ npm run build
 
 ---
 
-## 6. Operacje — batch rebuild prod KV
+## 6. Operacje — batch rebuild prod KV (**TP190C-3C CLOSED**)
 
-**Audyt TP190C-3 (read-only):** 9 stale dossier · symulacja 0 downgrade · avg +34.7 rows.
+**Wykonano 2026-06-22:** `npx vite-node scripts/tp190c-batch-rebuild.mjs --write`  
+**Wynik:** processed **9** · upgraded **6** · unchanged **3** · failed **0** · prod stale **0** (pre-flight 2026-06-23).
+
+**Audyt TP190C-3 (read-only, przed write):** 9 stale dossier · symulacja 0 downgrade · avg +34.7 rows.
 
 ```bash
-# DRY RUN (domyślnie — bez zapisu)
+# Weryfikacja stanu (oczekiwane: stale candidates 0)
 npx vite-node scripts/tp190c-batch-rebuild.mjs
-
-# ZAPIS prod KV (tylko na świadome polecenie właściciela)
-npx vite-node scripts/tp190c-batch-rebuild.mjs --write
 ```
 
-Raport JSON: `audit/tp190c3b-batch-rebuild-report.json` (generowany przez skrypt; **nie commitować** do repo).
+Raport JSON (lokalny artefakt, nie commitować): `audit/tp190c3b-batch-rebuild-report.json`.
 
 **Wymaga:** `.env` z `VITE_SUPABASE_PROJECT_ID` + `VITE_SUPABASE_ANON_KEY`.
 
@@ -135,8 +137,6 @@ Raport JSON: `audit/tp190c3b-batch-rebuild-report.json` (generowany przez skrypt
 
 | Priorytet | ID | Cel | Status |
 |-----------|-----|-----|--------|
-| **P0** | **TP190C-3C** | Batch `--write` na prod KV (9 stale dossier) | **OPEN** — tooling gotowy |
-| P1 | **TP190C-2C** | Discovery tie-break — commit jeśli lokalne zmiany OK | lokalnie |
 | P1 | **TP200B** | Kosztorys fidelity — `rows` cap 40, parse loop `pickBetter` | PLANNED |
 | P2 | smartpzp.pl adapter | discover stub | częściowo (SmartPZP MVP 2.62.x) |
 | P3 | PDF OCR | skany CASE 3 bez tekstu | HOLD |
@@ -159,6 +159,6 @@ Raport JSON: `audit/tp190c3b-batch-rebuild-report.json` (generowany przez skrypt
 
 ## 9. Werdykt
 
-**TP190A→TP190C-3B: CLOSED** (prod 2.62.27).  
-**Następny krok operacyjny:** TP190C-3C batch write prod (na polecenie).  
+**TP190 stream: CLOSED** (TP190A → TP190C-3C + R1-FIX 2.62.32).  
+**Prod KV:** 9/9 dossier z `kosztorys.ok` na `parserVersion=3` · stale **0**.  
 **Następny epic techniczny:** TP200B kosztorys fidelity.

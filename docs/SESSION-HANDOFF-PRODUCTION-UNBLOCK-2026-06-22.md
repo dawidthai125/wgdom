@@ -66,7 +66,7 @@ d79f7c1  Fix production deployment blockers
 
 ---
 
-## 4. Build pipeline (Vite) — mapa dla agentów
+## 4. Build pipeline (Vite) — mapa dla programistów
 
 ```text
 npm run build
@@ -91,7 +91,7 @@ npm run build
 
 ---
 
-## 5. Checklist przed push (obowiązkowy dla agentów)
+## 5. Checklist przed push (obowiązkowy dla programistów)
 
 Po dodaniu **nowego pliku** w `src/`:
 
@@ -145,8 +145,7 @@ git ls-files src/lib/nowy-modul.ts            # MUSI zwrócić ścieżkę
 |------|--------|--------|
 | **Production deploy pipeline** | 2.62.31 (`d79f7c1`) | **CLOSED** — Vercel BUILD PASS |
 | **TP202A Analyze/Dossier** | 2.62.31 (`94d2e72`) | **CLOSED** — dotarł na prod po unblock |
-| **TP190 Parser v3 + batch** | 2.62.27 | **CLOSED** |
-| **TP190C-3C batch `--write`** | — | **OPEN** — tylko na polecenie |
+| **TP190 Parser v3 + batch (TP190C-3C)** | 2.62.27–2.62.32 | **CLOSED** · 9/9 migrated 2026-06-22 |
 | **TP200B kosztorys fidelity** | — | **PLANNED** |
 
 ---

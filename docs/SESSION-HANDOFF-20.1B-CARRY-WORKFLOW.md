@@ -14,7 +14,7 @@
 | **Production** | https://www.wgdom.fun |
 | **Vercel deploy** | **PASS** @ `74e65d9` |
 | **Edge deploy** | nie wymagany (tylko frontend) |
-| **Docs closure (ta sesja)** | **`d89dc9c`** — `docs: close sprint 20.1B session context for AI agents` |
+| **Docs closure (ta sesja)** | **`d89dc9c`** — `docs: close sprint 20.1B session context for developers` |
 
 ### Łańcuch commitów (payroll carry)
 
@@ -27,9 +27,9 @@
 
 ---
 
-## Sesja AI 2026-06-06 — pełny kontekst czatu
+## Sesja 2026-06-06 — pełny kontekst czatu
 
-> Dla agentów wznawiających pracę — co robiliśmy od audytu do deployu.
+> Dla programistów wznawiających pracę — co robiliśmy od audytu do deployu.
 
 ### Etap 1 — Visibility Audit (20.1A, tylko analiza)
 

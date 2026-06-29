@@ -212,7 +212,7 @@ Wszystkie 4 URL storage z `audit/tauron-audit-2026-06-15/p0-wm-druk-zi-legacy-cl
 
 ---
 
-## Podsumowanie dla agenta IMPLEMENT
+## Podsumowanie dla IMPLEMENT
 
 | Nie ruszać | Ruszyć (na polecenie) |
 |------------|------------------------|

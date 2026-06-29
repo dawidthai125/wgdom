@@ -1,7 +1,7 @@
 # W&G DOM — handoff: incydent Roboty (czarny ekran) + stan Roboty 2.x
 
 > **★ CZYTAJ TO NA START** przy nowym agencie po długiej sesji RCA (czerwiec 2026).  
-> Hasło Cursor: **„kontynuuj WGDOM”** → też [`CURRENT-TASK.md`](../CURRENT-TASK.md) i [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc).  
+> Hasło sesji: **„kontynuuj WGDOM”** → też [`CURRENT-TASK.md`](../CURRENT-TASK.md) i [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc).  
 > **Transkrypt czatu (pełna historia):** agent-transcripts `1c53356b-b3ca-40ed-96c3-08aec5edc683` — nie czytaj od zera; ten plik jest skrótem.
 
 **Ostatnia aktualizacja:** 2026-06-04 (po push `99e08c2`)
@@ -139,7 +139,7 @@ Dopuszczalne: diagnostyka read-only, guardy renderowania, minimalny fix UI.
 
 ---
 
-## 6. Następny agent — co robić
+## 6. Następna sesja — co robić
 
 ### Smoke po deploy `99e08c2` (Vercel)
 
@@ -153,7 +153,7 @@ Dopuszczalne: diagnostyka read-only, guardy renderowania, minimalny fix UI.
 3. Commit + changelog **2.45.34** dopiero na polecenie.
 4. `npm run build` + `npx vite-node scripts/test-job-list-ops-2.0-min.mjs`
 
-### Jeśli nowy agent — unikaj wiszenia
+### Jeśli nowa sesja — unikaj wiszenia
 
 - **Nie czytaj** całego `JobsView.tsx` (~2300 linii) — użyj [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.4.
 - **Nie** powtarzaj pełnego RCA KV — ten plik + `docs/INCIDENTS-2026-06.md` § Roboty.

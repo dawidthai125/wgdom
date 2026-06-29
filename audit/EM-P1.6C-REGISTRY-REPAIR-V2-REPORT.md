@@ -2,7 +2,8 @@
 
 **Data:** 2026-06-16  
 **Wersja:** 2.59.42  
-**Status:** PASS (build + smoke + regresja P16/P16B)
+**Status:** PASS (build + smoke + regresja P16/P16B)  
+**Commit:** `b79c949` · **Deploy:** RELEASE GO · PRODUCTION VERIFIED: DEPLOY PROPAGATING (version.json 2.59.41 → oczekiwana 2.59.42)
 
 ---
 

@@ -156,7 +156,7 @@ npx vite-node scripts/test-wm-print-p0-1a-docx-fix.mjs
 
 ---
 
-## Mapa wejścia dla agenta
+## Mapa wejścia dla programisty
 
 ```text
 1. docs/MASTER-HANDOFF-POST-ZI-2026.md     ← TEN PLIK (skrót post-ZI)

@@ -3,7 +3,7 @@
 > **⚠️ SUPERSEDED:** Obecna architektura Workflow (V4: Hub, Process Strip, Sticky CTA, zakładki Przetarg/Decyzja) — **SSOT:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md). Poniższa treść zachowana jako dokumentacja historyczna UX.1 (2.53.x).
 
 > **Status:** **COMPLETE (historyczne)** · prod **v2.53.4** · commit **`3b5da74`**  
-> **Hasło agenta:** „kontynuuj WGDOM”  
+> **Hasło sesji:** „kontynuuj WGDOM”  
 > **Data closeout:** 2026-06-13  
 > **Architektura techniczna (aktualna):** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · skrót w [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.9a
 
@@ -222,7 +222,7 @@ tenders-bzp → tenders-pipeline-session-cache → cloud-sync
 - `docs/ARCHITECTURE.md` § **11.6** — P0 ARCH RULE, wzorce, Lessons Learned
 - `scripts/audit-import-cycles.mjs` + `npm run audit:import-cycles`
 
-### 8.5 Zasady dla agentów (P0 ARCH RULE)
+### 8.5 Zasady dla programistów (P0 ARCH RULE)
 
 | Dozwolone | Zakazane |
 |-----------|----------|
@@ -282,7 +282,7 @@ npm run build
 
 ---
 
-## 12. Wznowienie pracy (agent)
+## 12. Wznowienie pracy
 
 ```text
 1. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← TEN PLIK

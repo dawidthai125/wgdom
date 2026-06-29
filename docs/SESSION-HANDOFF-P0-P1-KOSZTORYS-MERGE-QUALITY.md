@@ -1,6 +1,6 @@
 # SESSION HANDOFF — P0/P1 Kosztorys Merge Quality Protection
 
-> **★★ SSOT** dla agentów AI / Cursor — ochrona snapshotów kosztorysu (ATH / PDF przedmiar) przy synchronizacji pipeline przetargów.  
+> **★★ SSOT** dla programistów — ochrona snapshotów kosztorysu (ATH / PDF przedmiar) przy synchronizacji pipeline przetargów.  
 > **Status:** **CLOSED** (P0 + P1 wdrożone na `main`)  
 > **Incydenty zamknięte operacyjnie:** **TP113** (ATH 302 vs formularz 45) · **TP182** (PDF przedmiar vs formularz 55)
 
@@ -167,7 +167,7 @@ npx vite-node scripts/test-tender-bzp-merge-quality.mjs       # P1 — 12 testó
 
 ---
 
-## 11. Szybki start dla nowego agenta
+## 11. Szybki start dla nowego programisty
 
 ```text
 1. TEN PLIK

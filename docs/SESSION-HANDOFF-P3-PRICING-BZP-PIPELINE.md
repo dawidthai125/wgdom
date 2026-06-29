@@ -1,12 +1,12 @@
 # SESSION HANDOFF — P3 Wycena · BZP Pipeline · Filtry strategiczne
 
-> **★★ Handoff dla agentów AI** — seria P3 (wycena, baza cen, benchmarki), pipeline BZP, P3.6 filtry klientów, P1 WM false exclude.  
+> **★★ Handoff deweloperski** — seria P3 (wycena, baza cen, benchmarki), pipeline BZP, P3.6 filtry klientów, P1 WM false exclude.  
 > **Data closeout:** 2026-06-13 · **Baseline prod:** **v2.56.10** · commit **`7acbecf`**  
 > **Hasło:** „kontynuuj WGDOM” → czytaj też [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) + [`CURRENT-TASK.md`](../CURRENT-TASK.md)
 
 ---
 
-## 1. Wejście dla nowego agenta (kolejność)
+## 1. Wejście dla nowej sesji (kolejność)
 
 ```text
 1. AGENTS.md
@@ -187,7 +187,7 @@ flowchart LR
 
 ---
 
-## 9. Struktura plików — Przetargi (mapa dla agenta)
+## 9. Struktura plików — Przetargi (mapa dla programisty)
 
 ```text
 src/app/
@@ -290,5 +290,5 @@ P2-H stream CLOSED (H.1–H.6 + H.5A/B/C/D) · UX.1 CLOSED · P2-F CLOSED · P1 
 Klienci strategiczni aktywni: WM · ZZK · MOPS · TBS · Gminy · Uczelnie
 Priorytet: REALNE PRZETARGI (audyty operacyjne P1/P2/P3) zamiast nowych funkcji
 OPEN (na polecenie): P2-H.7 · P2-G.3D/E · P2-F.6 · benchmark materiałów HOLD · P2 Audit Center
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```

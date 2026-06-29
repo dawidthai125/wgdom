@@ -2,7 +2,7 @@
 
 > **SUPERSEDED** — Command Center removed in **v2.51.0**. Aktualna architektura: **Przetargi 3.0** → [`ARCHITECTURE.md`](../../ARCHITECTURE.md) § 12.1.3, [`PROJECT-HANDOFF-CURRENT.md`](../../PROJECT-HANDOFF-CURRENT.md).
 
-> **Dla agentów AI:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
+> **Dla programistów:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
 > **Prod:** `main` @ **`61cb33b`** (UI **2.50.43**) · https://www.wgdom.fun  
 > **Polonizacja CC:** [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) — **CLOSED**  
 > **Faza 8:** **zamknięta** (8.0–8.4). **ETAP 8.5** / **Faza 9** — nie rozpoczynaj bez polecenia.
@@ -122,7 +122,7 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 
 ---
 
-## ETAPy CC powiązane (kontekst dla AI)
+## ETAPy CC powiązane (kontekst techniczny)
 
 | ETAP | Temat | Gdzie szukać |
 |------|--------|--------------|

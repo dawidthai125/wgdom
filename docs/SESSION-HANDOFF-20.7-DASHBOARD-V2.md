@@ -138,7 +138,7 @@ PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy
 
 ---
 
-## 5. Co NIE zmieniać (reguły dla agentów)
+## 5. Co NIE zmieniać (reguły dla programistów)
 
 1. **Nie modyfikuj** `buildHeroToday()` rankingu / slice TOP 5 w lib bez nowego sprintu 2A.
 2. **Nie modyfikuj** `buildActionCenter()` — tylko warstwa display (`tender-center-action-center-display.ts`).
@@ -190,7 +190,7 @@ PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy
 
 ---
 
-## 9. Komendy szybkiego smoke (agent)
+## 9. Komendy szybkiego smoke
 
 ```bash
 npm run build

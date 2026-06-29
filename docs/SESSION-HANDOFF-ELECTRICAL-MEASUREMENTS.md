@@ -211,7 +211,7 @@ node scripts/templatize-em-p1r-from-ssot.mjs
 
 ---
 
-## 10. Następne kroki (typowe dla agenta)
+## 10. Następne kroki (typowe dla programisty)
 
 1. **Bug w DOCX/layout** → forensyka XML szablonu → `templatize-em-p1r-from-ssot.mjs` → smoke P1 + P1R  
 2. **Bug w danych/wartościach** → `measurement-value-engine.ts` + `preview.ts` parity  

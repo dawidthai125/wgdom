@@ -3,14 +3,14 @@
 > **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-29 (**prod 2.62.81** · **P0 Cloud Sync Incident CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
-> **Hasło agenta:** „kontynuuj WGDOM”  
+> **Hasło sesji:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
-**Wejście dla nowego GPT / Cursor:**
+**Wejście dla nowej sesji:**
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla agentów
+0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
 1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)
@@ -845,7 +845,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ---
 
-## 13. NASTĘPNY KROK (dla agenta)
+## 13. NASTĘPNY KROK (dla programisty)
 
 **Ostatni release (repo):** **v2.59.25 POST ZI-2026** — commit **`2b03c9d`** (P0.5B housekeeping).
 
@@ -887,7 +887,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
-| **★★ Onboarding agenta AI** | [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) |
+| **★★ Onboarding deweloperski** | [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) |
 | **★★ POST ZI-2026 (skrót)** | [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) |
 | **★★ ZI Tauron 2026 prod** | [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
 | **★ WM Druk (COMPLETE)** | `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
@@ -918,7 +918,7 @@ BASELINE v2.59.25 · WM DRUK COMPLETE · ZI TAURON 2026 PRODUCTION STABLE · POS
 COMMIT 65051a3 · RELEASE GO · PRODUCTION VERIFIED (FINAL-ZI-2026-PROD-VALIDATION)
 ZI LiveCycle 2021 CLOSED (tombstone 26f02c78…) · canonical ZI 2b22da48… / ZI.pdf
 Open backlog (na polecenie): P0.5 code cleanup · P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```
 
 **Werdykt closeout (2026-06-14 — Notatki):**
@@ -931,7 +931,7 @@ Moduł Przetargi: PRODUCTION READY
 P3.0–P3.6 CLOSED · P1 WM CLOSED · P2-H stream CLOSED (H.7 OPEN)
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Inspector 2.1 CLOSED
 Open backlog (na polecenie): P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · P2 Audit Center
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```
 
 **Werdykt closeout (2026-06-27 — Mobile Recovery EPIC · v2.62.79):**
@@ -942,7 +942,7 @@ Mobile Recovery EPIC — CLOSED (2.62.78 UX pack + 2.62.79 Jobs MV-2)
 Production smoke: PASS (7 PASS / 1 BLOCKED — SMOKE-03 tender data)
 Outstanding production bugs: NONE
 Next active epic: P0 Payroll Cloud Recovery (P0.1–P0.4 OPEN)
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```
 
 **Werdykt closeout (2026-06-26 — P1 Audit Hub WM EPIC · v2.62.77):**
@@ -953,7 +953,7 @@ P1 Audit Hub WM — EPIC CLOSED (Etap 1–4 RELEASED)
 Etap 4 (21d4a1b · 2.62.77) — wm_druk UI visibility · 7 źródeł Audit Hub
 Epic report: audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md
 Backlog P1.1: schematic_edited (na polecenie)
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```
 
 **Werdykt closeout (2026-06-26 — P1 Audit Hub WM Etap 3 · v2.62.76):**
@@ -982,5 +982,5 @@ G7 Validation PASS · CHECKSUMS zsynchronizowane · tag wgdom-recovery-pack-2.62
 Workflow EPIC A/B/C CLOSED · Workflow Architecture FINALIZED (WORKFLOW-ARCHITECTURE-v2.63.md)
 P1 Audit Hub WM: EPIC CLOSED (2.62.77)
 Open backlog (na polecenie): P1.1 schematic_edited · Workflow Cleanup P1 · P3 Export · P2-H.7 · P2-G.3D/E · P2-F.6
-Ready for new GPT / new Cursor agent
+Gotowe do wznowienia pracy
 ```

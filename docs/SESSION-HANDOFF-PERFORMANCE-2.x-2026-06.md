@@ -126,7 +126,7 @@ panel-jobs|payroll|tenders|inspector* — USUNIĘTE (2.2C)
 
 ---
 
-## 6. Pułapki dla AI
+## 6. Pułapki dla programistów
 
 1. **Seria Performance 2.x jest CLOSED** — nie rozpoczynaj nowych optymalizacji bez polecenia.
 2. **Nie przywracaj** reguł `panel-jobs|payroll|tenders|inspector*` ani `shared-inspector` w `manualChunks`.
@@ -136,7 +136,7 @@ panel-jobs|payroll|tenders|inspector* — USUNIĘTE (2.2C)
 
 ---
 
-## 7. Szybki start (nowy agent)
+## 7. Szybki start (nowa sesja)
 
 ```text
 1. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← TEN PLIK (seria CLOSED)

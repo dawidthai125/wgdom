@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Pre Next Feature Stream v2.50.64
 
-> **★ START DLA AGENTÓW AI** — przeczytaj ten plik **zaraz po** [`CURRENT-TASK.md`](../CURRENT-TASK.md), jeśli wznawiasz pracę po backupie / przed nowym streamem feature.  
+> **★ START DLA PROGRAMISTÓW** — przeczytaj ten plik **zaraz po** [`CURRENT-TASK.md`](../CURRENT-TASK.md), jeśli wznawiasz pracę po backupie / przed nowym streamem feature.  
 > **Data:** 2026-06-10 · **Hasło:** „kontynuuj WGDOM”
 
 ---
@@ -115,7 +115,7 @@ git checkout pre-next-feature-2.50.64
 
 ---
 
-## 5. Storage — mapa dla agentów
+## 5. Storage — mapa dla programistów
 
 | Bucket | Obiekty | Rozmiar | Używany przez |
 |--------|---------|---------|---------------|

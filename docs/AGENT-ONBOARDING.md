@@ -1,4 +1,4 @@
-# W&G DOM — onboarding agenta AI / programisty
+# W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
 > **Prod:** **2.62.79** · commit **`4397eac`** · https://www.wgdom.fun · **Mobile Recovery CLOSED** · P1 Audit Hub WM CLOSED

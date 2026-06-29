@@ -1,4 +1,4 @@
-# Sprint 20.3B+ FULL — Polonizacja COMMAND CENTER (handoff dla AI)
+# Sprint 20.3B+ FULL — Polonizacja COMMAND CENTER (handoff deweloperski)
 
 > **SUPERSEDED** — Command Center removed in **v2.51.0**. Etykiety PL strategii: `src/lib/tenders-strategy-ui-labels-pl.ts` · [`ARCHITECTURE.md`](../../ARCHITECTURE.md) § 12.1.3.
 
@@ -63,7 +63,7 @@ Reuse (bez duplikacji):
   CONTRACT_SCALE_LABEL_PL      ← tender-center-impact.ts
 ```
 
-**Zasada dla agentów:** nowe user-facing stringi w CC → najpierw mapa w `tenders-strategy-ui-labels-pl.ts`, potem import w komponencie/lib. **Nie** porównywać wyświetlanego tekstu z enumem `GO`/`HOLD`/`NO-GO`.
+**Zasada dla programistów:** nowe user-facing stringi w CC → najpierw mapa w `tenders-strategy-ui-labels-pl.ts`, potem import w komponencie/lib. **Nie** porównywać wyświetlanego tekstu z enumem `GO`/`HOLD`/`NO-GO`.
 
 ---
 

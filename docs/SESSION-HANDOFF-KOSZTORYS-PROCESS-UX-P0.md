@@ -1,7 +1,7 @@
 # SESSION HANDOFF — Kosztorys Process UX (P0 State Machine)
 
 > **Status:** **CLOSED** · **prod `4056223`** · **v2.62.64** · **2026-06-25**  
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 ---
 
@@ -119,7 +119,7 @@ npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
 
 ---
 
-## 8. Zakazy dla agentów
+## 8. Zakazy dla programistów
 
 - **Nie** zmieniać `tender-dossier-pipeline.ts`, `tender-document-resolver.ts`, parserów ATH/PDF, Edge.
 - **Nie** dodawać ifów fazy w komponentach — tylko `deriveKosztorysProcessPhase`.

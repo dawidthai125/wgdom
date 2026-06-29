@@ -2,7 +2,7 @@
 
 > **★ SSOT serii P2-F** — warunki udziału, profil wykonawcy, doświadczenie, referencje, wykaz robót.  
 > **Status:** **COMPLETE** (P2-F.0 → P2-F.5) · **Data closeout:** 2026-06-12  
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 **Czytaj TEN plik przy pracy nad:** Karta ofertowa przetargu, SWZ analiza, profil wykonawcy, wykaz robót, ATH quick access.
 
@@ -222,7 +222,7 @@ Sekcje testów: `p2f0`, `p2f1`, `p2f2`, `p2f3`, `p2f4`, `p2f5`.
 
 ---
 
-## 9. Wznowienie pracy (agent)
+## 9. Wznowienie pracy
 
 ```text
 1. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← TEN PLIK

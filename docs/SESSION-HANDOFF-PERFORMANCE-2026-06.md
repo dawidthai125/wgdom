@@ -1,7 +1,7 @@
 # W&G DOM — handoff Performance 1.x (2026-06-05)
 
-> **★ Nowy agent — START tutaj** jeśli temat to wydajność startu, CloudLoader, COMMAND CENTER AI, lub stan po release `v2.45.34-perf-1.3a`.  
-> Hasło w Cursorze: **„kontynuuj WGDOM”** → też [`CURRENT-TASK.md`](../CURRENT-TASK.md) i [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc).
+> **★ Nowa sesja — START tutaj** jeśli temat to wydajność startu, CloudLoader, COMMAND CENTER AI, lub stan po release `v2.45.34-perf-1.3a`.  
+> Hasło sesji: **„kontynuuj WGDOM”** → też [`CURRENT-TASK.md`](../CURRENT-TASK.md) i [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc).
 
 **Data handoff:** 2026-06-05  
 **Prod `main` (HEAD):** `a6cdb4a` — Performance 1.1C + 1.2A + 1.3A+  
@@ -146,7 +146,7 @@ a213a65  Roboty 2.1B MIN: restore UI layout and card refresh
 
 ---
 
-## 7. Zakazy dla agenta (chyba że user każe)
+## 7. Zakazy dla programisty (chyba że user każe)
 
 - **NIE** zmieniać `BOOTSTRAP_CORE_KEYS` / `BOOTSTRAP_DEFERRED_KEYS` bez audytu safety
 - **NIE** przywracać `tenderDashStats`
@@ -156,7 +156,7 @@ a213a65  Roboty 2.1B MIN: restore UI layout and card refresh
 
 ---
 
-## 8. Szybki start nowego agenta
+## 8. Szybki start nowej sesji
 
 ```text
 1. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← ten plik (performance CLOSED)

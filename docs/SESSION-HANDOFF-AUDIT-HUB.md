@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Co to jest (dla agenta — czytaj NAJPIERW)
+## 1. Co to jest (dla programisty — czytaj NAJPIERW)
 
 **Audit Hub** = read-only panel Super Admina agregujący logi z **6 źródeł** w jeden timeline. MVP-0: 5 istniejących KV/pól. **MVP-1:** dodatkowe źródło `kw-security-audit-log` (append-only, read-only w Hub).
 
@@ -227,7 +227,7 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 
 ---
 
-## 9. Szybkie zadania dla agenta (cheat sheet)
+## 9. Szybkie zadania dla programisty (cheat sheet)
 
 | Zadanie użytkownika | Gdzie szukać |
 |---------------------|--------------|

@@ -45,5 +45,5 @@
 | Kto | Akcja |
 |-----|-------|
 | Właściciel | Supabase billing / upgrade / spend cap |
-| Agent (na polecenie) | P1 delta-sync design + implement |
-| Agent | **Nie** zmieniać merge guardów bez briefu |
+| Wykonawca (na polecenie) | P1 delta-sync design + implement |
+| Wykonawca | **Nie** zmieniać merge guardów bez briefu |

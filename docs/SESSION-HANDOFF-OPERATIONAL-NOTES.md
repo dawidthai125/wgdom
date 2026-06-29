@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Co to jest (dla agenta)
+## 1. Co to jest (dla programisty)
 
 **Notatki operacyjne** = osobna domena wiedzy operacyjnej firmy (procedury, ustalenia, kontekst WM).
 

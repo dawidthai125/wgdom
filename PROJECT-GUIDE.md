@@ -20,7 +20,7 @@
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
 | — | **[`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)** — ★★ kontekst sesji + mapa struktury (2026-06-26) |
-| — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla agentów |
+| — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla programistów |
 | — | **[`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md)** — ★★ SSOT Workflow (Hub, CTA, zakładki V4) |
 | — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.80) |
 | — | **[`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md)** — ★★ Biblioteka Robót v3.0 P1 FREEZE |
@@ -191,8 +191,8 @@ Pełna lista pułapek → **ARCHITECTURE.md § 11.3, § 17**.
 
 | Plik | Rola |
 |------|------|
-| [`AGENTS.md`](AGENTS.md) | **Jak pracować** nad projektem (workflow agenta) |
-| [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) | **Mapa systemu** — start dla nowego agenta |
+| [`AGENTS.md`](AGENTS.md) | **Jak pracować** nad projektem (workflow deweloperski) |
+| [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) | **Mapa systemu** — start dla nowego programisty |
 | [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md) | **POST ZI-2026** — skrót stanu prod |
 | [`CHANGELOG.md`](CHANGELOG.md) | **Co zrobiono** — skrót ostatnich wersji |
 | [`CURRENT-TASK.md`](CURRENT-TASK.md) | **Gdzie skończyliśmy** — wznowienie sesji |

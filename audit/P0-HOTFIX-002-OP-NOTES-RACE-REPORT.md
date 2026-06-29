@@ -68,8 +68,8 @@ Scenariusz manualny (prod po deploy):
 
 | Pole | Wartość |
 |------|---------|
-| Commit | *(uzupełnione po push)* |
-| Push | `origin/main` |
+| Commit | `8cfd008` |
+| Push | `origin/main` — `5b7f1c9..8cfd008` |
 | VERIFY FAST | `curl -s https://www.wgdom.fun/version.json` → oczekiwane `"2.59.32"` |
 | RELEASE GO | build + smoke PASS + commit + push |
 | PRODUCTION VERIFIED | jedno sprawdzenie version.json (STALE = DEPLOY PROPAGATING) |

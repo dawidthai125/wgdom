@@ -113,7 +113,7 @@ npx vite-node scripts/test-wm-schematics-ui-3b.mjs               # 29 PASS
 
 ---
 
-## 7. Pułapki dla agenta
+## 7. Pułapki dla programisty
 
 | Pułapka | Mitigacja |
 |---------|-----------|

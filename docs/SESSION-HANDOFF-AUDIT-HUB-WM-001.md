@@ -16,7 +16,7 @@
 
 Użytkownik oczekuje **pełnej historii działań** w Audit Hub dla modułu WM Druk (zakładki Pomiary, Schematy, Katalog). Testy manualne (create/edit/delete RAP, create/edit schematu, eksport PDF) **nie generują widocznych wpisów**.
 
-Ten dokument jest **SSOT dla agentów AI** — co zbadano, jak działa integracja dziś, co brakuje i jak zaimplementować P1.
+Ten dokument jest **SSOT deweloperski** — co zbadano, jak działa integracja dziś, co brakuje i jak zaimplementować P1.
 
 ---
 
@@ -32,7 +32,7 @@ WM Druk nie jest zintegrowany z Audit Hub
 
 ---
 
-## 3. Jak działa Audit Hub (skrót dla agenta)
+## 3. Jak działa Audit Hub (skrót dla programisty)
 
 Audit Hub **nie ma własnego Event Store**. To read-only agregator 6 istniejących strumieni:
 

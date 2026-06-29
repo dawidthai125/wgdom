@@ -3,7 +3,7 @@
 > **Status:** **AUDIT COMPLETE** · **FIX OPEN** (wymaga decyzji właściciela: billing Supabase + ewentualny refactor sync)  
 > **Data audytu:** 2026-06-29  
 > **Projekt Supabase:** `bdpygdvfgbggermvqtys`  
-> **Dla agentów AI:** przeczytaj **ten plik** przed jakąkolwiek zmianą `cloud-sync.ts`, `App.tsx` (runCloudSync), `CloudLoader.tsx` lub syncu przetargów.
+> **Dla programistów:** przeczytaj **ten plik** przed jakąkolwiek zmianą `cloud-sync.ts`, `App.tsx` (runCloudSync), `CloudLoader.tsx` lub syncu przetargów.
 
 **Powiązane:** [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md) § P0 egress · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11.6 · raport skrótowy [`audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md`](../audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md)
 

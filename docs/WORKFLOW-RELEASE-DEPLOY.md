@@ -1,7 +1,7 @@
 # W&G DOM — oficjalny workflow release / deploy
 
-> **Źródło prawdy** dla agentów AI, programistów i raportów końcowych sesji.  
-> **Hasło agenta:** „kontynuuj WGDOM” · **Powiązane:** [`AGENTS.md`](../AGENTS.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13
+> **Źródło prawdy** dla programistów i raportów końcowych sesji.  
+> **Hasło sesji:** „kontynuuj WGDOM” · **Powiązane:** [`AGENTS.md`](../AGENTS.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13
 
 **Ostatnia aktualizacja:** 2026-06-22 · **VERIFY DEPLOY FAST** · **§ 6 Deploy blockers (P0)**
 
@@ -51,7 +51,7 @@ curl -s https://www.wgdom.fun/version.json
 
 ## 3. VERIFY DEPLOY FAST
 
-Po `git push origin main` agent wykonuje **dokładnie jedno** sprawdzenie prod i **kończy raport**. Bez oczekiwania na Vercel.
+Po `git push origin main` wykonawca wykonuje **dokładnie jedno** sprawdzenie prod i **kończy raport**. Bez oczekiwania na Vercel.
 
 ### 3.1 Algorytm (obowiązkowy)
 
@@ -61,7 +61,7 @@ curl -s https://www.wgdom.fun/version.json
 
 **Jednorazowo** — zaraz po push. Następnie:
 
-| Wynik `version.json` | **Deploy** | **PRODUCTION VERIFIED** | Dalsze działanie agenta |
+| Wynik `version.json` | **Deploy** | **PRODUCTION VERIFIED** | Dalsze działanie |
 |----------------------|------------|---------------------------|-------------------------|
 | Oczekiwana wersja (przy bumpie CHANGELOG) | **PASS** | **TAK** | Zakończ raport |
 | Poprzednia wersja (Vercel jeszcze nie zbudował) | **DEPLOY PROPAGATING** | **NIE** | Zakończ raport — status oczekiwany po propagacji Vercel |
@@ -81,7 +81,7 @@ curl -s https://www.wgdom.fun/version.json
 
 **RELEASE GO** nie wymaga czekania na nową wersję na prod. **PRODUCTION VERIFIED** wymaga zgodności `version.json` w **tym jednym** sprawdzeniu.
 
-### 3.3 Zakazane (w raportach i u agentów)
+### 3.3 Zakazane (w raportach i u programistów)
 
 - **Retry loops** na `version.json` (drugi/trzeci `curl` po push)
 - **`sleep`**, `wait 30s` / `wait 60s`, oczekiwanie na propagację w tej samej sesji
@@ -92,7 +92,7 @@ curl -s https://www.wgdom.fun/version.json
 - Oczekiwanie na status SUCCESS deploymentu jako warunek zakończenia raportu
 - Raportowanie „Vercel deployment ID” jako warunek GO (informacyjnie OK, nie blokuje werdyktu)
 
-> **Uwaga:** Polling `/version.json` co 5 min w aplikacji (`useAppVersionCheck`) to **UX w przeglądarce** — nie dotyczy verify agenta po push.
+> **Uwaga:** Polling `/version.json` co 5 min w aplikacji (`useAppVersionCheck`) to **UX w przeglądarce** — nie dotyczy verify po push.
 
 ---
 
@@ -246,7 +246,7 @@ Szczegóły: [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) § „Proces pracy”.
 |----------|------|
 | **Ten plik** | ★ Workflow release/deploy A/B/C + VERIFY |
 | [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) | ★ P0 deploy blockers — untracked imports, mkdir dist |
-| [`AGENTS.md`](../AGENTS.md) | Start agenta + kolejność CHANGELOG/ARCHITECTURE |
+| [`AGENTS.md`](../AGENTS.md) | Start sesji + kolejność CHANGELOG/ARCHITECTURE |
 | [`DEPLOY.md`](../DEPLOY.md) | Jednorazowa konfiguracja GitHub + Vercel |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13 | Vercel, PWA, version awareness |
 | [`guidelines/ROZWOJ.md`](../guidelines/ROZWOJ.md) | Skrót reguł rozwoju |

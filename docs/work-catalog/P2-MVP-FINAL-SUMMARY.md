@@ -44,7 +44,7 @@
 | Plik | Rola |
 |------|------|
 | `src/app/changelog-data.ts` | Wpisy 2.62.82–2.62.87 |
-| `CHANGELOG.md` | Skrót dla agentów |
+| `CHANGELOG.md` | Skrót dla programistów |
 | `src/app/GuideView.tsx` | FAQ Biblioteka Robót P2.1–P2.6 |
 | `docs/ARCHITECTURE.md` | § 12.1.22 |
 

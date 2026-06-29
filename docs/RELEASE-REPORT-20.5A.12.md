@@ -74,11 +74,11 @@ Deploy 2.50.58 był pierwszym realnym testem Version Awareness na produkcji.
 
 ---
 
-## Dokumentacja dla agentów AI
+## Dokumentacja deweloperska
 
 | Plik | Rola |
 |------|------|
-| [`SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](SESSION-HANDOFF-20.5A.12-FILES-HUB.md) | **★ Handoff sprintu** — pełny kontekst dla AI |
+| [`SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](SESSION-HANDOFF-20.5A.12-FILES-HUB.md) | **★ Handoff sprintu** — pełny kontekst deweloperski |
 | [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) | Baseline prod |
 | [`CURRENT-TASK.md`](../CURRENT-TASK.md) | Wznowienie sesji |
 | [`AGENTS.md`](../AGENTS.md) § 3g4 | Skrót Files Hub |

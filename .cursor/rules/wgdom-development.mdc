@@ -27,7 +27,7 @@ Przy każdej widocznej zmianie dla użytkownika:
 - Dodaj **nowy wpis na górze** tablicy `CHANGELOG` w `src/app/App.tsx` (nie edytuj starych wersji).
 - Format: `date`, `version` (patch +0.1), `label`, `items[]` z typem `new` | `fix` | `improve`.
 - Aktualna wersja w UI = `CHANGELOG[0].version`.
-- Dopisz skrót w **`CHANGELOG.md`** (dla agentów AI).
+- Dopisz skrót w **`CHANGELOG.md`** (dla programistów).
 
 ## 3. Instrukcja obsługi (HelpView)
 
@@ -42,7 +42,7 @@ Nowa opcja / przycisk / ekran → zaktualizuj `HelpView` w `App.tsx`:
 Przy każdej zmianie syncu, panelu, API, deployu, PWA lub nowym kluczu danych:
 
 - Zaktualizuj **`docs/ARCHITECTURE.md`** — odpowiednia sekcja + data „Ostatnia aktualizacja” na górze pliku.
-- To living document dla AI/programisty — **nie wymaga** czytania całego `App.tsx` od zera.
+- To living document dla programisty — **nie wymaga** czytania całego `App.tsx` od zera.
 
 Pełny opis systemu: **`docs/ARCHITECTURE.md`** (czytaj najpierw przy nowej sesji).
 
@@ -67,3 +67,180 @@ Skrót: `guidelines/ROZWOJ.md` · przewodnik: `PROJECT-GUIDE.md` · pełna archi
 - **A minor:** build → commit → push → verify FAST → report
 - **B functional UI:** build → relevant smoke → commit → push → verify FAST → report
 - **C major:** build → smoke → E2E → commit → push → verify FAST → report
+
+## 7. Standard raportowania IMPLEMENT (obowiązkowy)
+
+**Każdy raport po IMPLEMENT** kończy się poniższym blokiem — w tej kolejności. Uruchom polecenia **faktycznie** (nie zgaduj).
+
+```text
+========================================
+
+BUILD STATUS
+
+npm run build
+
+PASS / FAIL
+
+Jeżeli FAIL: podaj pierwszy rzeczywisty błąd.
+
+========================================
+
+TEST STATUS
+
+Lista uruchomionych testów.
+
+PASS / FAIL.
+
+========================================
+
+GIT READINESS
+
+git status
+
+Podaj osobno:
+
+Modified
+Untracked
+Staged
+Committed
+Ahead/Behind origin
+
+Jeżeli istnieją pliki Untracked — wypisz ich pełną listę.
+
+Nigdy nie pisz „implementacja gotowa”, jeżeli istnieją pliki untracked należące do implementacji.
+
+========================================
+
+RELEASE READINESS
+
+Czy wszystkie pliki implementacji są:
+
+✓ tracked
+✓ staged
+✓ build PASS
+✓ test PASS
+
+Jeżeli NIE — napisz: RELEASE NOT READY
+
+========================================
+
+VERSION
+
+Current changelog version
+HEAD commit
+origin/main commit
+
+========================================
+
+WERDYKT
+
+IMPLEMENTATION COMPLETE
+lub
+IMPLEMENTATION INCOMPLETE
+
+Nigdy nie używaj słowa „GOTOWE” jeżeli:
+- są untracked pliki implementacji
+- build FAIL
+- test FAIL
+- changelog nie zgadza się z kodem
+
+========================================
+
+COMMIT
+
+Nie wykonuj commit.
+Nie wykonuj push.
+Czekaj na wyraźne polecenie właściciela repo.
+
+========================================
+```
+
+**Zasady werdyktu:**
+- `IMPLEMENTATION COMPLETE` — tylko gdy build PASS, test PASS, pliki implementacji tracked+staged+committed (lub właściciel jawnie akceptuje stan przed commitem — wtedy `INCOMPLETE` + RELEASE NOT READY).
+- Untracked pliki z implementacji → zawsze `IMPLEMENTATION INCOMPLETE` + `RELEASE NOT READY`.
+- **Commit i push** — wyłącznie na wyraźne polecenie właściciela repo.
+
+## 8. Release Workflow v3 — wybór trybu (obowiązkowy na początku raportu release)
+
+**Na początku każdego raportu release** napisz:
+
+```text
+RELEASE MODE: FAST RELEASE
+```
+lub
+```text
+RELEASE MODE: FULL RELEASE
+```
+oraz **jedno zdanie powodu** wyboru.
+
+### FAST RELEASE — gdy **wszystkie** warunki:
+
+- `npm run build` PASS
+- relevant smoke/test PASS
+- **jeden** bundle (jeden spójny zakres release)
+- brak untracked plików implementacji
+- brak plików **Shared** (mieszane bundle w jednym pliku)
+- **&lt; 15** plików w bundle release
+- changelog zgodny z kodem (wersja + zakres)
+
+→ **Raport skrócony** + sekcje: BUILD / TEST / GIT / RELEASE / VERSION / PRODUCTION STATUS / WERDYKT + **HOTFIX CLASSIFICATION** (§ 8a).
+
+### FULL RELEASE — gdy **którykolwiek**:
+
+- ≥ 15 plików w bundle
+- więcej niż jeden bundle w working tree
+- untracked pliki implementacji
+- pliki Shared
+- build FAIL lub test FAIL
+- więcej niż jeden sprint w jednym release
+
+→ **Pełny Release Audit** przed werdyktem: podział bundle, klasyfikacja plików (A/B/Shared/Do not release), lista `git add` per bundle, zależności między bundle, `RELEASE GO` / `RELEASE NOT READY` + sekcje release + **HOTFIX CLASSIFICATION** (§ 8a).
+
+### Decyzja
+
+Wykonawca **sam** wybiera tryb po audycie working tree — nie pytaj użytkownika, chyba że zakres release jest niejednoznaczny.
+
+## 8a. Raport release — szablon końcowy (+ HOTFIX CLASSIFICATION)
+
+**Każdy raport release** (FAST i FULL) kończy się blokiem **HOTFIX CLASSIFICATION** — po WERDYKT / PRODUCTION STATUS.
+
+Szablon raportu release:
+
+```text
+RELEASE MODE: FAST RELEASE | FULL RELEASE
+(powód wyboru)
+
+BUILD STATUS — PASS / FAIL
+TEST STATUS — lista testów, PASS / FAIL
+GIT READINESS — Modified / Untracked / Staged / Committed / Ahead·Behind
+RELEASE READINESS — RELEASE GO | RELEASE NOT READY
+VERSION — changelog · HEAD · origin/main
+PRODUCTION STATUS — PRODUCTION VERIFIED | DEPLOY PROPAGATING (jedno version.json, bez retry)
+WERDYKT — RELEASE GO + PRODUCTION STATUS
+
+=====================================
+
+HOTFIX CLASSIFICATION
+
+Możliwe wartości (można zaznaczyć więcej niż jedną):
+
+UX
+BUGFIX
+PERFORMANCE
+SECURITY
+REFACTOR
+OTHER
+
+Przykład:
+
+BUGFIX
+UX
+
+=====================================
+```
+
+**Zasady klasyfikacji:**
+- Oznacz **wszystkie** pasujące kategorie (nie tylko jedną).
+- Hotfix nawigacji/etykiet/spójności UI → zwykle **BUGFIX** + **UX**.
+- Tylko kosmetyka bez błędu zachowania → **UX**.
+- Bez zmiany zachowania, tylko struktura kodu → **REFACTOR** (nie BUGFIX).

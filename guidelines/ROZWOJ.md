@@ -1,6 +1,6 @@
 # W&G DOM — jak rozwijać aplikację
 
-> **Pełna architektura (dla AI / programisty):** [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md)  
+> **Pełna architektura (dla programisty):** [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md)  
 > Przy każdej większej zmianie aktualizuj ten plik równolegle z CHANGELOG.
 
 ## Chmura

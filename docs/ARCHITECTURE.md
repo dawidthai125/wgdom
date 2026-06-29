@@ -1,9 +1,9 @@
 # W&G DOM — przewodnik architektury (living document)
 
-> **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
+> **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PB-2b V4 KPI PARITY** · v2.62.86)
-> **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
+> **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -24,13 +24,13 @@
 4. **Aktualizacja `docs/ARCHITECTURE.md`** (sekcja dotycząca zmiany + data na górze)
 5. Krótkie podsumowanie po polsku
 
-Reguła Cursor: `.cursor/rules/wgdom-development.mdc`
+Reguły projektu: `.cursor/rules/wgdom-development.mdc`
 
 ---
 
 ## 1. Szybki start (5 minut)
 
-### Onboarding agenta AI (pełna ścieżka)
+### Onboarding deweloperski (pełna ścieżka)
 
 ```text
 AGENTS.md
@@ -666,7 +666,7 @@ Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs`
 
 **Szac. response jednego pełnego `batch-get`:** ~2–10 MB (zależnie od `kw-jobs`, `kw-archive`, `kw-tenders-pipeline`).
 
-**Pułapki dla agentów:**
+**Pułapki dla programistów:**
 
 1. **Nie** zakładaj, że `Failed to fetch` = błąd kodu URL — sprawdź **402 quota** na bramce Supabase.
 2. **Nie** dodawaj kolejnych pełnych `batch-get` bez AUDIT egress.
@@ -2628,7 +2628,7 @@ WGDOM1/
 |--------|-------|
 | — (main, bez bump UI) | Payroll Guard, P11 bootstrap payroll, P15 admin passwords — commity `db1d05a`, `c9db032`, `92d574e` |
 | 2.45.12 | Mapa przetargów OSM + panel słownika kluczowych (podgląd wbudowanych haseł) |
-| 2.45.11 | Docs AI — AGENTS.md, ARCHITECTURE § 12.1 |
+| 2.45.11 | Docs — onboarding AGENTS.md, ARCHITECTURE § 12.1 |
 | 2.45.10 | Galeria admin — ZIP roboty wg kategorii (ulica, data) — `photo-download.ts` |
 | 2.45.9 | Mapa przetargów — tymczasowe SVG (zastąpione OSM w 2.45.12) |
 | 2.45.8 | Przetargi — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics |
@@ -2654,7 +2654,7 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 
 | Plik | Kiedy czytać |
 |------|--------------|
-| **[`AGENTS.md`](../AGENTS.md)** | **Zawsze na start** — workflow agenta (START HERE) |
+| **[`AGENTS.md`](../AGENTS.md)** | **Zawsze na start** — workflow deweloperski (START HERE) |
 | **[`PROJECT-GUIDE.md`](../PROJECT-GUIDE.md)** | Architektura skrót + Known Issues |
 | **`docs/ARCHITECTURE.md`** | Pełny obraz techniczny (ten plik) |
 | **`CHANGELOG.md`** | Skrót ostatnich wersji |
@@ -2662,12 +2662,12 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 | **`docs/INCIDENTS-2026-06.md`** | Incydenty sync/payroll/admin/media — czerwiec 2026 |
 | `guidelines/ROZWOJ.md` | Skrót reguł rozwoju |
 | `docs/MOBILE-NATIVE.md` | Capacitor, APK, App Store |
-| `.cursor/rules/wgdom-development.mdc` | Reguły dla agenta Cursor |
+| `.cursor/rules/wgdom-development.mdc` | Reguły rozwoju projektu |
 | `.cursor/rules/wgdom-stan-projektu.mdc` | Hasło „kontynuuj WGDOM” — skrót sesji |
 
 ---
 
-## Dla agentów AI i nowych programistów
+## Dla programistów
 
 **→ [`AGENTS.md`](AGENTS.md)** — punkt wejścia (czytaj przed kodem)  
 **→ [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura systemu

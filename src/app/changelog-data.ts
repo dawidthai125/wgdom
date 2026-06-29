@@ -4181,10 +4181,10 @@ export const CHANGELOG: ChangelogRelease[] = [
     ],
   },
   {
-    date:"2026-05-25", version:"2.45.13", label:"Docs AI — START HERE, PROJECT-GUIDE, CURRENT-TASK",
+    date:"2026-05-25", version:"2.45.13", label:"Docs — onboarding START HERE, PROJECT-GUIDE, CURRENT-TASK",
     items:[
-      {type:"new", text:"PROJECT-GUIDE.md, CHANGELOG.md, CURRENT-TASK.md — struktura dla agentów AI (wznowienie sesji)"},
-      {type:"improve", text:"AGENTS.md START HERE + Known Issues; reguły Cursor; ARCHITECTURE v2.45.12 (mapa OSM)"},
+      {type:"new", text:"PROJECT-GUIDE.md, CHANGELOG.md, CURRENT-TASK.md — struktura dla programistów (wznowienie sesji)"},
+      {type:"improve", text:"AGENTS.md START HERE + Known Issues; reguły projektu; ARCHITECTURE v2.45.12 (mapa OSM)"},
     ],
   },
   {
@@ -4195,10 +4195,10 @@ export const CHANGELOG: ChangelogRelease[] = [
     ],
   },
   {
-    date:"2026-05-25", version:"2.45.11", label:"Docs — ARCHITECTURE/AGENTS dla AI (v2.45.7–10)",
+    date:"2026-05-25", version:"2.45.11", label:"Docs — ARCHITECTURE/AGENTS dla programistów (v2.45.7–10)",
     items:[
       {type:"improve", text:"ARCHITECTURE.md § 12.1.1–12.1.2 — przetargi v2.45.7–10, galeria ZIP, mapa SVG, endpoint award-result"},
-      {type:"improve", text:"AGENTS.md, ROZWOJ.md, wgdom-stan-projektu — skrót dla przyszłych agentów AI"},
+      {type:"improve", text:"AGENTS.md, ROZWOJ.md, wgdom-stan-projektu — skrót dla programistów"},
     ],
   },
   {
@@ -4477,16 +4477,16 @@ export const CHANGELOG: ChangelogRelease[] = [
     ],
   },
   {
-    date:"2026-05-29", version:"2.35.17", label:"Wykrywalność dokumentacji dla AI",
+    date:"2026-05-29", version:"2.35.17", label:"Wykrywalność dokumentacji dla programistów",
     items:[
-      {type:"new", text:"AGENTS.md + README.md — punkt wejścia; Cursor alwaysApply: czytaj ARCHITECTURE.md na start sesji"},
+      {type:"new", text:"AGENTS.md + README.md — punkt wejścia; reguły projektu alwaysApply: czytaj ARCHITECTURE.md na start sesji"},
     ],
   },
   {
-    date:"2026-05-29", version:"2.35.16", label:"Dokumentacja architektury dla developerów / AI",
+    date:"2026-05-29", version:"2.35.16", label:"Dokumentacja architektury dla developerów",
     items:[
       {type:"new", text:"docs/ARCHITECTURE.md — pełny przewodnik: panele, sync, Supabase, Vercel, PWA, testy, pułapki"},
-      {type:"improve", text:"Reguły Cursor + ROZWOJ.md — obowiązek aktualizacji ARCHITECTURE.md przy zmianach (obok CHANGELOG)"},
+      {type:"improve", text:"Reguły projektu + ROZWOJ.md — obowiązek aktualizacji ARCHITECTURE.md przy zmianach (obok CHANGELOG)"},
     ],
   },
   {

@@ -1,7 +1,7 @@
 # SESSION HANDOFF — WM Druk · ZI §4/§5 · TP203 · P4 (2026-06-24)
 
 > **Status:** **CLOSED** (prod **2.62.48** · `5cef155`)  
-> **Hasło agenta:** „kontynuuj WGDOM”  
+> **Hasło sesji:** „kontynuuj WGDOM”  
 > **SSOT projektu:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)  
 > **Mapa systemu:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6
 
@@ -26,7 +26,7 @@
 
 ---
 
-## 2. ZI Tauron 2026 — §4 vs §5 (KRYTYCZNE dla agentów)
+## 2. ZI Tauron 2026 — §4 vs §5 (KRYTYCZNE dla programistów)
 
 FormMaker **zduplikował** wiersz „Ulica | Numer budynku | Numer lokalu” na **stronie 2** PDF.
 

@@ -4,7 +4,7 @@
 
 ---
 
-## START HERE — agent AI
+## START HERE — programista
 
 | Kolejność | Dokument |
 |-----------|----------|

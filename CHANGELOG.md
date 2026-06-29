@@ -1,4 +1,10 @@
-# W&G DOM — changelog (skrót dla agentów AI)
+# W&G DOM — changelog (skrót dla programistów)
+
+## 2026-06-29 — Code hygiene: AI authorship cleanup (bez bump UI)
+
+- **chore:** neutralizacja sformułowań „agent AI / GPT / Cursor agent” w docs, regułach Cursor, changelog historycznym
+- **chore:** `Hasło agenta` → `Hasło sesji`; `workflow agenta` → `workflow deweloperski`
+- **bez zmian:** kod źródłowy, logika, marka COMMAND CENTER AI
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
@@ -437,7 +443,7 @@
 - **improve:** dry-run domyślnie; `--write` zapisuje KV; obsługa błędów per tender
 - **improve:** zgodność TP190B + TP190C-1; przygotowanie migracji 9 stale dossier
 - **test:** `test-tp190c-batch-rebuild.mjs` T1–T6 (19 PASS)
-- **docs:** `SESSION-HANDOFF-TP190-PARSER-V3.md` + aktualizacja handoffów dla agentów AI
+- **docs:** `SESSION-HANDOFF-TP190-PARSER-V3.md` + aktualizacja handoffów deweloperskich
 
 ## 2.62.26 — TP190C-2E PDF Extract Parity + Observability
 
@@ -595,7 +601,7 @@
 - **improve:** Badge ✓ platformazakupowa.pl · CTA Otwórz postępowanie
 - **test:** `test-platformazakupowa-public-documents.mjs` (14 PASS)
 
-## 2.62.1 — docs: P0/P1 Kosztorys Merge Quality handoff (agent AI)
+## 2.62.1 — docs: P0/P1 Kosztorys Merge Quality handoff deweloperski
 
 - **docs:** `SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md` — SSOT dla TP113/TP182 merge path
 - **docs:** ARCHITECTURE § 12.1.16 · AGENT-ONBOARDING § 6e · AGENTS.md · CURRENT-TASK.md
@@ -709,7 +715,7 @@
 
 ## 2.59.44 — Docs: EM handoff + agent onboarding (no code change)
 
-- **docs:** `SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md` — SSOT modułu EM dla agentów AI
+- **docs:** `SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md` — SSOT modułu EM dla programistów
 - **docs:** PROJECT-HANDOFF-CURRENT, CURRENT-TASK, ARCHITECTURE §12.1.10, AGENT-ONBOARDING, AGENTS.md
 
 ## 2.59.44 — Pomiary Elektryczne EM-P1R-HOTFIX-001 (ADDRESS parity)
@@ -1804,7 +1810,7 @@
 
 * (`35614f0`) Usunięto chunk `shared-inspector` z `manualChunks` + martwe importy `App.tsx`
 * Startup JS: **1119 KB** (4 requesty); brak `shared-inspector` i `pdfjs` w preload
-* **Bez bumpu UI** — wpis tylko w tym pliku (dla agentów AI)
+* **Bez bumpu UI** — wpis tylko w tym pliku (dla programistów)
 
 ---
 
@@ -1813,7 +1819,7 @@
 * (`c922b44`) Lazy load parsera dokumentów przetargowych (`tenders-bzp-doc-parse`)
 * Parser stack (pdfjs, xlsx, doc-parse) poza cold startem; startup JS **1244 KB**
 * Synthetic runtime verification PASS
-* **Bez bumpu UI** — wpis tylko w tym pliku (dla agentów AI)
+* **Bez bumpu UI** — wpis tylko w tym pliku (dla programistów)
 
 ---
 
@@ -1862,7 +1868,7 @@
 
 ---
 
-## Dokumentacja (2026-06-04) — handoff dla agentów AI (bez bump UI)
+## Dokumentacja (2026-06-04) — handoff deweloperski (bez bump UI)
 
 - [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md) — indeks sesji, commity, zakazy
 - [`docs/jobs-2.0-product-audit.md`](docs/jobs-2.0-product-audit.md) — audyt Roboty 2.0
@@ -1978,17 +1984,17 @@ Szczegóły, procedury KV, UI media na gałęzi audit → [`docs/INCIDENTS-2026-
 - **improve** Nd od 20:00 — auto-archiwum + nowy tydzień (gdy wszyscy rozliczeni)
 - **fix** Alerty gdy tydzień zostaje w tyle po przejściu
 
-## 2.45.13 (2026-05-25) — Docs AI: START HERE
+## 2.45.13 (2026-05-25) — Docs: START HERE
 
-- **new** `PROJECT-GUIDE.md`, `CHANGELOG.md`, `CURRENT-TASK.md` — struktura dla agentów
-- **improve** AGENTS.md START HERE, Known Issues, reguły Cursor, ARCHITECTURE v2.45.12
+- **new** `PROJECT-GUIDE.md`, `CHANGELOG.md`, `CURRENT-TASK.md` — struktura dla programistów
+- **improve** AGENTS.md START HERE, Known Issues, reguły projektu, ARCHITECTURE v2.45.12
 
 ## 2.45.12 (2026-05-25) — Przetargi: mapa OSM i słownik
 
 - **fix** Mapa przetargów Wrocław — kafelki OpenStreetMap zamiast pustego SVG
 - **improve** Słownik słów kluczowych — podgląd wbudowanych haseł, licznik wbudowanych/własnych
 
-## 2.45.11 (2026-05-25) — Docs dla AI
+## 2.45.11 (2026-05-25) — Docs dla programistów
 
 - ARCHITECTURE.md § 12.1.1–12.1.2, AGENTS.md, ROZWOJ.md, wgdom-stan-projektu
 

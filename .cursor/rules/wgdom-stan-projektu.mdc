@@ -424,7 +424,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 - Mapa przetargów: kafelki **OpenStreetMap** (`TendersMapPanel`, `tenders-map-coords.ts`) — nie SVG, nie staticmap.de
 - Słownik: wbudowany ~280 haseł + panel własnych dopisków (`TenderKeywordsPanel`)
-- Docs AI: `PROJECT-GUIDE.md`, `CHANGELOG.md`, `CURRENT-TASK.md`
+- Docs: `PROJECT-GUIDE.md`, `CHANGELOG.md`, `CURRENT-TASK.md`
 
 ## Stabilność sync — czerwiec 2026 (prod `main` @ `92d574e`)
 

@@ -1,4 +1,4 @@
-# Sprint 20.5A.10 — Generic File Attachments (handoff dla AI)
+# Sprint 20.5A.10 — Generic File Attachments (handoff deweloperski)
 
 > **Hasło:** „kontynuuj WGDOM” → [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`AGENTS.md`](../AGENTS.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md)
 

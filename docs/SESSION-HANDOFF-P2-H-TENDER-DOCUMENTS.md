@@ -4,7 +4,7 @@
 > **★ Post-P2-H:** **P0 ZIP ATH Recovery** — [`SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) (**v2.61.4 CLOSED**) — duże ZIP WM >15 MB, zip-catalog, formal offer exclusion  
 > **Baseline prod (P2-H):** **v2.55.10** · **aktualny prod:** **v2.61.4**  
 > **Data:** 2026-06-13 (aktualizacja wskazówka P0: 2026-06-18)  
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 **Czytaj ten plik przy:** załącznikach przetargowych, ZIP/7Z, Marketplanet, dossier, kosztorys ATH, analizie SWZ, platformach off-BZP.
 
@@ -189,7 +189,7 @@ npx vite-node scripts/audit-p2h3-katy-candidates.mjs
 
 ---
 
-## 9. Wznowienie pracy (agent)
+## 9. Wznowienie pracy
 
 ```text
 1. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← TEN PLIK (dokumenty/dossier)

@@ -5,7 +5,7 @@
 > **Data:** 2026-06-11 · **Workflow:** B (build → smoke → commit → push → verify FAST)  
 > **Zastępuje:** serię Hero / Dashboard V2 (`SESSION-HANDOFF-20.7-DASHBOARD-V2.md` — **historyczny**, nie przywracać rankera)
 
-**Hasło agenta:** „kontynuuj WGDOM”
+**Hasło sesji:** „kontynuuj WGDOM”
 
 ---
 
@@ -107,7 +107,7 @@ Użytkownik musi móc **ręcznie policzyć** wynik. Zakazane na Pulpicie:
 
 ---
 
-## 5. Moduły aplikacji (skrót dla agentów)
+## 5. Moduły aplikacji (skrót dla programistów)
 
 Pełna architektura: [`ARCHITECTURE.md`](ARCHITECTURE.md) · platforma: [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)
 
@@ -129,7 +129,7 @@ Pełna architektura: [`ARCHITECTURE.md`](ARCHITECTURE.md) · platforma: [`PROJEC
 
 ---
 
-## 6. Proces pracy (workflow agenta)
+## 6. Proces pracy (workflow deweloperski)
 
 ```text
 AUDIT → RCA → PLAN → IMPLEMENT
@@ -187,7 +187,7 @@ AUDIT → RCA → PLAN → IMPLEMENT
 
 ---
 
-## 11. Wejście dla nowego agenta
+## 11. Wejście dla nowej sesji
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md     ← baseline prod (2.50.74)

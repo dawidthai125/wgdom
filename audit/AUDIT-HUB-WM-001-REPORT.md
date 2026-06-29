@@ -3,7 +3,7 @@
 **Moduł:** WM Druk → Audit Hub Integration  
 **Data:** 2026-06-24  
 **Tryb:** AUDIT ONLY · bez implementacji · bez commit kodu  
-**Handoff agentów:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](../docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md)
+**Handoff deweloperski:** [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](../docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md)
 
 ---
 

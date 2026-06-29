@@ -6,13 +6,13 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 
 ---
 
-## Dla programisty / agenta AI
+## Dla programistów
 
 **Zacznij tutaj (obowiązkowo):**
 
 | Dokument | Opis |
 |----------|------|
-| **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow agenta) |
+| **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow deweloperski) |
 | **[`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** | **★ Release/deploy A/B/C** + VERIFY (oficjalny) |
 | **[`PROJECT-GUIDE.md`](PROJECT-GUIDE.md)** | Jak działa projekt + Known Issues |
 | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy |

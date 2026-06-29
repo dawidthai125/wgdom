@@ -2,7 +2,7 @@
 
 > **Status:** **COMPLETE** · **Prod baseline:** v**2.50.62** · app **`381e4b0`** · Jobs Cleanup **`640e3a9`** · E2E **`8906485`**
 
-Handoff zbiorczy dla agentów AI: E2E happy path, PWA hardening, Jobs View cleanup, E2E Version Awareness. Seria **bez zmian sync/KV/Edge** (poza testami i build/infra).
+Handoff zbiorczy deweloperski: E2E happy path, PWA hardening, Jobs View cleanup, E2E Version Awareness. Seria **bez zmian sync/KV/Edge** (poza testami i build/infra).
 
 **★★ Oficjalny handoff końcowy:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)  
 **★ Baseline projektu:** [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · **★ Bieżący stan:** [`CURRENT-TASK.md`](../CURRENT-TASK.md)
@@ -142,7 +142,7 @@ PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:version
 
 ---
 
-## Dla agenta AI — co dalej
+## Dla programisty — co dalej
 
 - **Seria 20.5Z:** **COMPLETE** — audyt 20.5Z.3 GO · [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)
 - **Następny sprint:** kolejny feature stream — tylko na polecenie użytkownika

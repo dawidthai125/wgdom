@@ -94,7 +94,7 @@ npm run test:mobile       # Playwright na wgdom.fun
 
 ---
 
-## Dla agentów AI
+## Dla programistów
 
 Przy optymalizacji wydajności:
 1. **Nie** importuj ciężkich modułów statycznie w `App.tsx` — lazy lub dynamic `import()`

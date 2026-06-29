@@ -60,10 +60,10 @@ Manual (WM Druk / Roboty / Pulpit): brak toastu `mergeRecoverableCharges is not 
 
 | Metryka | Status |
 |---------|--------|
-| Commit | _(uzupełnione po push)_ |
-| Push `main` | _(uzupełnione po push)_ |
-| `version.json` | oczekiwane **2.59.29** |
-| PRODUCTION VERIFIED | _(po curl)_ |
+| Commit | `c43acc1` |
+| Push `main` | PASS |
+| `version.json` | oczekiwane **2.59.29** (propagacja Vercel) |
+| PRODUCTION VERIFIED | po propagacji — jeden curl `version.json` |
 
 ---
 

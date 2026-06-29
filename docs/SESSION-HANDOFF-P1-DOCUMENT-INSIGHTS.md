@@ -3,7 +3,7 @@
 > **Status:** **P1A–P1D CLOSED** · **PRODUCTION RELEASE**  
 > **Wersja:** **2.59.52** · commit **`ff20fec`**  
 > **Data:** 2026-06-17  
-> **Hasło agenta:** „kontynuuj WGDOM”
+> **Hasło sesji:** „kontynuuj WGDOM”
 
 **Czytaj ten plik przy:** podglądzie dokumentów przetargowych, Owner View, modal `JobFilePreviewModal`, Executive Summary, PDF przedmiar/kosztorys, ATH/NOR preview UX.
 

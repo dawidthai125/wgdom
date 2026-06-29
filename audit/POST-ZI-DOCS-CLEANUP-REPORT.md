@@ -95,7 +95,7 @@ GET https://www.wgdom.fun/version.json
 
 ---
 
-## Następny agent
+## Następna sesja
 
 1. Czytaj [`docs/ZI-2026-HANDOFF.md`](../docs/ZI-2026-HANDOFF.md) — **nie** traktuj §3 LiveCycle NO-GO jako stan prod.
 2. Walidacja: [`tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md).

@@ -2,7 +2,7 @@
 
 > **Oficjalny końcowy handoff** po zamknięciu serii 20.5Z · **Data:** 2026-06-10  
 > **★ Baseline prod po 20.5Z:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) (v2.50.70, Inspector 2.1, Dashboard V2)  
-> **Hasło agenta:** „kontynuuj WGDOM” · **Audyt zamknięcia:** 20.5Z.3 Platform Stabilization Audit — **GO**
+> **Hasło sesji:** „kontynuuj WGDOM” · **Audyt zamknięcia:** 20.5Z.3 Platform Stabilization Audit — **GO**
 
 **Źródła prawdy:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`AGENTS.md`](../AGENTS.md) · [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
 

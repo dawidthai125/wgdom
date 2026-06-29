@@ -12,9 +12,11 @@ Zamknięto workflow **Published Delivery Package** po stronie inspektora: w sekc
 
 | Werdykt | **PASS** |
 |---------|----------|
-| Build | PASS (po smoke) |
-| Smoke P1B | oczekiwane PASS |
-| Deploy | po push → verify `version.json` |
+| Build | **PASS** |
+| Smoke P1B | **26/26 PASS** |
+| Smoke P1A regresja | **17/17 PASS** |
+| Commit | **`e6d7e8e`** |
+| Deploy | verify `version.json` → **2.59.46** |
 
 ---
 
