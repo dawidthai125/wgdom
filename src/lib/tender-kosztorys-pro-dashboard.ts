@@ -6,7 +6,6 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 import {
   buildCatalogLinePricingView,
   type CatalogLinePricingRow,
@@ -30,6 +29,7 @@ import { computeBidMarginPct, formatBidMarginPct } from "@/lib/tender-bid-ux";
 import {
   buildKosztorysV4Stats,
   resolveEffectiveKosztorysV4CatalogLines,
+  resolveTenderPricingCatalogForDisplay,
 } from "@/lib/tender-detail-v4-display";
 import { buildPrzetargExecutiveBundle } from "@/lib/tender-detail-v4-display";
 import {
@@ -342,8 +342,9 @@ export function buildKosztorysProDashboard(item: TenderPipelineItem): KosztorysP
     loadTenderPriceOverridesStoreLocal(),
     item.id,
   ).overrides;
+  const { catalog: pricingCatalog, costModel } = resolveTenderPricingCatalogForDisplay();
   const pricingView = catalog.length
-    ? buildCatalogLinePricingView(catalog, undefined, defaultCostModelFromPayroll(), priceOverrides)
+    ? buildCatalogLinePricingView(catalog, pricingCatalog, costModel, priceOverrides)
     : null;
 
   const coveragePct = stats.athPositions > 0

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**WC-P2 UI RELEASE** · v2.62.85)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**PB-2b V4 KPI PARITY** · v2.62.86)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1569,9 +1569,9 @@ tender-document-resolver.ts
 
 **Test:** `test-tender-dossier-parser-version.mjs` · `test-tp190b-dossier-stability.mjs` · `test-tp190c-stale-rebuild-protection.mjs` · `test-tp190c-batch-rebuild.mjs`.
 
-### 12.1.18a PRICE-BRIDGE — Tender Active Catalog Resolver (PB-1/PB-2)
+### 12.1.18a PRICE-BRIDGE — Tender Active Catalog Resolver (PB-1/PB-2/PB-2b)
 
-**Status:** **PB-1/PB-2 CLOSED** (v2.62.83) · **PB-WRITE / SSOT-CUTOVER** — backlog  
+**Status:** **PB-1/PB-2 CLOSED** (v2.62.83) · **PB-2b V4 KPI parity CLOSED** (v2.62.86) · **PB-WRITE / SSOT-CUTOVER** — backlog  
 **Plik SSOT:** `src/lib/tender-active-catalog.ts` — `resolveActiveCatalogForTender()`
 
 | Element | Opis |
@@ -1579,12 +1579,14 @@ tender-document-resolver.ts
 | **Public API** | Jedyny entry point wyceny katalogowej dla modułu Przetargów |
 | **Polityka** | Work-first gdy `pricedActiveWorkCount > 0` (`isCompanyPricePresent`); inaczej legacy |
 | **Adapter** | Wewnętrznie wyłącznie `resolveCatalogForEngine()` — bez nowego silnika |
-| **`isFallback`** | `true` gdy efektywny katalog z legacy (Baza cen) — dla UI i przyszłego cutover |
-| **Wire PB-2** | `TenderDetailPanel` · `TenderBidProposalPanel` → `catalog` w `computeTenderBidProposal` / line pricing |
+| **`isFallback`** | `true` gdy efektywny katalog z legacy (Baza cen) — chip UI |
+| **Wire PB-2** | `TenderDetailPanel` · `TenderBidProposalPanel` → `computeTenderBidProposal` / line pricing |
+| **Wire PB-2b** | `tender-detail-v4-display.ts` (`buildKosztorysV4Stats`, KPI Wycena) · `tender-kosztorys-pro-dashboard.ts` · `computeTenderBidProposal` default |
+| **Helper PB-2b** | `resolveTenderPricingCatalogForDisplay()` — jeden read path dla V4/PRO |
 
-**Poza zakresem PB-2:** `TenderPriceBasePanel` (WRITE legacy) · `tender-detail-v4-display.ts` · `tenders-bid-calculator` default path.
+**Poza zakresem:** `TenderPriceBasePanel` (WRITE legacy) · zmiany adaptera/silnika · PB-WRITE.
 
-**Test:** `test-tender-price-bridge.mjs` · golden gate: `test-work-catalog-golden.mjs` · `test-work-catalog-compat.mjs`.
+**Test:** `test-tender-price-bridge.mjs` · `test-tender-pb-2b-v4-parity.mjs` · golden gate: `test-work-catalog-golden.mjs` · `test-work-catalog-compat.mjs`.
 
 ### 12.1.18b PB-3 — Work Catalog Bootstrap (legacy → work)
 

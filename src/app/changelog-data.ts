@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.86",
+    label: "Przetargi — PB-2b V4 KPI parity (wspólny resolver katalogu)",
+    items: [
+      {
+        type: "fix",
+        text: "KPI V4 / Kosztorys PRO — resolveActiveCatalogForTender zamiast defaultWgdomCostCatalog (seed)",
+      },
+      {
+        type: "improve",
+        text: "computeTenderBidProposal — domyślny katalog z resolvera (work-first / legacy-fallback)",
+      },
+      {
+        type: "improve",
+        text: "Chip źródła katalogu: Biblioteka Robót / Baza cen (fallback) — KPI Wycena + panel Wyceny",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-pb-2b-v4-parity.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.85",
     label: "Biblioteka Robót — P2 MVP UI (lista · ceny · bulk · rynek · kompletność)",
     items: [

@@ -276,9 +276,12 @@ export function TenderBidProposalPanel({
       }`}
     >
       <div className="px-3 py-3 border-b border-violet-500/15">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1 flex-wrap">
           <Calculator size={12} className="text-violet-600" />
           {TENDER_OWNER_VALUATION_COPY.panelTitle}
+          <span className="rounded-full border border-border/70 bg-background/60 px-2 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
+            {tenderCatalogResolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót"}
+          </span>
         </p>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-background/70 border border-border/60 px-2 py-2">
@@ -591,6 +594,10 @@ export function TenderBidProposalPanel({
                 <p>
                   <span className="text-muted-foreground">Region:</span>{" "}
                   <strong>{catalogRegionLabel}</strong>
+                  {" · "}
+                  <span className="text-muted-foreground">
+                    {tenderCatalogResolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót"}
+                  </span>
                 </p>
               </div>
               <div className="flex flex-wrap gap-1">

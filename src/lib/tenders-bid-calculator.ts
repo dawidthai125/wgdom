@@ -17,7 +17,7 @@ import {
   type TenderPriceOverrideEntry,
 } from "@/lib/tender-price-overrides";
 import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
-import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
+import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 
 export type TenderBidPricingMode = "ath_priced" | "catalog";
 
@@ -242,7 +242,9 @@ export function computeTenderBidProposal(opts: {
   priceOverrides?: TenderPriceOverrideEntry[] | null;
 }): TenderBidProposal {
   const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
-  const catalog = opts.catalog ?? getActiveCatalog(loadWgdomCostCatalogStoreLocal());
+  const catalog = opts.catalog ?? resolveActiveCatalogForTender({
+    referenceHourlyPln: costModel.avgGrossHourlyPln,
+  }).catalog;
   const assumptions: string[] = [];
   const warnings: string[] = [];
   const costStack: TenderBidCostLine[] = [];

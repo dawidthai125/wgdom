@@ -34,7 +34,30 @@ import {
 } from "@/lib/tender-price-overrides";
 import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
+import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
+import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
+import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
+
+/** PB-2b — jeden read path katalogu dla KPI V4 / Kosztorys PRO (work-first / legacy-fallback). */
+export function resolveTenderPricingCatalogForDisplay(): {
+  catalog: WgdomCostCatalog;
+  costModel: TenderCompanyCostModel;
+  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
+  isFallback: boolean;
+} {
+  const profile = loadCompanyProfileLocal();
+  const costModel = profile.costModel ?? defaultCostModelFromPayroll();
+  const resolution = resolveActiveCatalogForTender({
+    referenceHourlyPln: costModel.avgGrossHourlyPln,
+  });
+  return {
+    catalog: resolution.catalog,
+    costModel,
+    catalogSourceLabel: resolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót",
+    isFallback: resolution.isFallback,
+  };
+}
 
 export function formatTenderDeadlineDisplay(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -552,6 +575,7 @@ export interface KosztorysV4Stats {
   unpricedDisplay: string;
   valuationValueDisplay: string;
   valuationTotalPln: number | null;
+  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
 }
 
 export function buildKosztorysV4Stats(
@@ -567,6 +591,7 @@ export function buildKosztorysV4Stats(
   const catalog = resolveEffectiveKosztorysV4CatalogLines(item);
   const athPositions = catalog.length;
   const athRowCount = k?.rowCount ?? 0;
+  const { catalog: pricingCatalog, costModel, catalogSourceLabel } = resolveTenderPricingCatalogForDisplay();
 
   let pricedPositions = 0;
   let unpricedPositions = 0;
@@ -574,8 +599,8 @@ export function buildKosztorysV4Stats(
   if (catalog.length > 0) {
     const pricingView = buildCatalogLinePricingView(
       catalog,
-      undefined,
-      defaultCostModelFromPayroll(),
+      pricingCatalog,
+      costModel,
       priceOverrides,
     );
     if (pricingView) {
@@ -588,7 +613,13 @@ export function buildKosztorysV4Stats(
     }
   }
 
-  const valuationTotalPln = pricingTotalPln(item, priceOverrides, catalog.length > 0 ? catalog : null);
+  const valuationTotalPln = pricingTotalPln(
+    item,
+    priceOverrides,
+    catalog.length > 0 ? catalog : null,
+    pricingCatalog,
+    costModel,
+  );
   const costDisplay = resolvedCostStatusDisplay(item);
 
   return {
@@ -604,6 +635,7 @@ export function buildKosztorysV4Stats(
       ? fmtPln(valuationTotalPln)
       : (costDisplay.display || k?.totalValue || "—"),
     valuationTotalPln,
+    catalogSourceLabel,
   };
 }
 
@@ -611,9 +643,11 @@ function pricingTotalPln(
   item: TenderPipelineItem,
   priceOverrides: TenderPriceOverrideEntry[],
   catalog: import("@/lib/tenders-bzp-brief").TenderCatalogQuantityLine[] | null,
+  pricingCatalog: WgdomCostCatalog,
+  costModel: TenderCompanyCostModel,
 ): number | null {
   if (catalog?.length) {
-    const view = buildCatalogLinePricingView(catalog, undefined, defaultCostModelFromPayroll(), priceOverrides);
+    const view = buildCatalogLinePricingView(catalog, pricingCatalog, costModel, priceOverrides);
     if (view && view.classifiedDirectTotalPln > 0) return Math.round(view.classifiedDirectTotalPln);
   }
   const k = item.tenderDossier?.kosztorys;
@@ -628,6 +662,7 @@ export interface WycenaKpiDisplay {
   total: number;
   ratioDisplay: string;
   percentDisplay: string;
+  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
 }
 
 export function buildWycenaKpiDisplay(item: TenderPipelineItem): WycenaKpiDisplay {
@@ -635,7 +670,13 @@ export function buildWycenaKpiDisplay(item: TenderPipelineItem): WycenaKpiDispla
   const total = stats.athPositions;
   const priced = stats.pricedPositions;
   if (total <= 0) {
-    return { priced: 0, total: 0, ratioDisplay: "—", percentDisplay: "—" };
+    return {
+      priced: 0,
+      total: 0,
+      ratioDisplay: "—",
+      percentDisplay: "—",
+      catalogSourceLabel: stats.catalogSourceLabel,
+    };
   }
   const pct = Math.round((priced / total) * 100);
   return {
@@ -643,6 +684,7 @@ export function buildWycenaKpiDisplay(item: TenderPipelineItem): WycenaKpiDispla
     total,
     ratioDisplay: `${priced} / ${total}`,
     percentDisplay: `${pct}%`,
+    catalogSourceLabel: stats.catalogSourceLabel,
   };
 }
 
@@ -676,7 +718,10 @@ export function buildKpiBarProCells(
     {
       label: "Wycena",
       value: wycena.ratioDisplay,
-      subValue: wycena.percentDisplay !== "—" ? wycena.percentDisplay : undefined,
+      subValue:
+        wycena.percentDisplay !== "—"
+          ? `${wycena.percentDisplay} · ${wycena.catalogSourceLabel}`
+          : wycena.catalogSourceLabel,
     },
   ];
 }

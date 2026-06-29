@@ -2,6 +2,13 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.86 — Przetargi PB-2b V4 KPI parity
+
+- **fix:** KPI V4 / Kosztorys PRO — `resolveActiveCatalogForTender` (nie seed `defaultWgdomCostCatalog`)
+- **improve:** `computeTenderBidProposal` default catalog → resolver
+- **improve:** chip źródła Biblioteka Robót / Baza cen (fallback)
+- **test:** `test-tender-pb-2b-v4-parity.mjs`
+
 ## 2.62.85 — Biblioteka Robót P2 MVP UI
 
 - **new:** Menu Biblioteka Robót — lista, ceny firmy, aktywność, bulk, rynek read-only, kompletność
