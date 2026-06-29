@@ -2,6 +2,13 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## P0 docs — Cloud Sync Incident CLOSED (2026-06-29, bez bump wersji UI)
+
+- **resolved:** P0 sync `Failed to fetch` / `exceed_egress_quota` (402) — **Supabase Pro** upgrade
+- **verified:** prod smoke PASS — health 200 · batch-get/set 200 · Zapisz tydzień sync OK
+- **docs:** `INCIDENTS-2026-06.md` §0 RESOLVED · `PROJECT-HANDOFF-CURRENT.md` · `CURRENT-TASK.md`
+- **backlog:** delta-sync / focus throttle — OPEN (architektura P1, nie incydent)
+
 ## P0 docs — Cloud Sync egress audit (2026-06-29, bez bump wersji UI)
 
 - **audit:** P0 sync `Failed to fetch` → Supabase `exceed_egress_quota` (402)

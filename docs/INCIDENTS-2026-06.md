@@ -6,19 +6,23 @@
 
 ---
 
-## 0. P0 — Supabase `exceed_egress_quota` (2026-06-29) · **OPEN**
+## 0. P0 — Supabase `exceed_egress_quota` (2026-06-29) · **RESOLVED**
 
 | Pole | Wartość |
 |------|---------|
+| **Status** | **RESOLVED** · **CLOSED** (2026-06-29) |
 | **Objaw** | Toast „Nie udało się wysłać do chmury” + **`Failed to fetch`** (Lista Płac „Zapisz tydzień”, każdy auto-sync) |
 | **RCA runtime** | Projekt `bdpygdvfgbggermvqtys` **restricted** — HTTP **402** `exceed_egress_quota` na bramce Supabase (Edge `batch-set` **nie** wykonany) |
 | **Przeglądarka** | `net::ERR_FAILED` → brak `res.status` (nie mylić z Payroll Guard ani CORS) |
 | **Egress (model)** | Dominacja pełnego **`batch-get`** w `runCloudSync` + `pullFromCloudAndMerge` (focus); wzrost `kw-archive` |
-| **Fix ops** | **Supabase Dashboard** → billing / upgrade / usunięcie spend cap |
-| **Fix kod** | **OPEN** — delta-sync / throttle focus (tylko na polecenie po odblokowaniu) |
+| **Fix ops** | **Supabase Pro** włączony — upgrade billing / usunięcie spend cap |
+| **Weryfikacja prod** | **PASS** 2026-06-29 — `GET .../health` → 200 · `batch-get`/`batch-set` → 200 · brak 402 · „Zapisz tydzień” → sync OK |
+| **Fix kod** | **Nie wymagany do odblokowania** · backlog P1: delta-sync / throttle focus (tylko na polecenie) |
 | **SSOT audytu** | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md`](../audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md) |
 
-**Nie implementuj refactoru sync bez:** (1) odblokowania projektu, (2) wyraźnego briefu właściciela.
+**Timeline:** incydent wykryty 2026-06-29 (audyt P0-A/B/C) → Supabase Pro → prod smoke PASS tego samego dnia.
+
+**Nie implementuj refactoru sync bez wyraźnego briefu właściciela** (backlog architektury, nie incydent prod).
 
 ---
 

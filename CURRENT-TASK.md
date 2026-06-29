@@ -1,18 +1,20 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.80** · **P0 Cloud Sync egress AUDIT CLOSED**
+**Ostatnia aktualizacja:** 2026-06-29 · **prod 2.62.81** · **P0 Cloud Sync Incident CLOSED**
 
 ---
 
-## P0 — Cloud Sync / Supabase egress · **AUDIT CLOSED** · **FIX OPEN**
+## P0 — Cloud Sync Incident · **CLOSED**
 
 | Pole | Wartość |
 |------|---------|
-| **Objaw** | `Failed to fetch` przy sync / „Zapisz tydzień” |
-| **RCA** | `exceed_egress_quota` — projekt Supabase restricted (402) |
-| **SSOT** | [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
-| **Ops** | Billing Supabase — **wymagane przed jakimkolwiek fixem kodu** |
-| **Kod** | Delta-sync / throttle — **tylko na polecenie** |
+| **Status** | **CLOSED** · **RESOLVED** |
+| **Objaw (historyczny)** | `Failed to fetch` przy sync / „Zapisz tydzień” |
+| **RCA** | `exceed_egress_quota` — projekt Supabase restricted (HTTP 402) |
+| **Rozwiązanie** | **Supabase Pro** włączony — ops only, bez zmian kodu |
+| **Weryfikacja prod** | **PASS** 2026-06-29 — health/batch-get/batch-set 200 · Zapisz tydzień sync OK |
+| **SSOT** | [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md) §0 |
+| **Backlog (nie blokujący)** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie |
 
 ---
 
@@ -45,13 +47,13 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.80** (po release housekeeping) |
-| **Poprzedni prod** | 2.62.79 (`4397eac`) |
+| **Wersja prod** | **2.62.81** (`6364937`) |
+| **Poprzedni prod** | 2.62.80 (`fe540b0`) |
 | **Work Catalog P1** | **CLOSED** |
 | **Mobile Recovery EPIC** | **CLOSED** |
 | **P1 Audit Hub WM** | **CLOSED** |
+| **P0 Cloud Sync Incident** | **CLOSED** |
 | **P0 Payroll Cloud Recovery** | **EPIC OPEN** (Etap 2 not started) |
-| **P0 Cloud Sync egress** | **AUDIT CLOSED** · billing Supabase **OPEN** · refactor sync **OPEN** |
 
 ---
 
@@ -59,8 +61,7 @@
 
 | Temat | Status |
 |-------|--------|
-| **P0 Supabase billing** — odblokować `exceed_egress_quota` | **OPEN** — właściciel |
-| **P0 sync refactor** — delta-sync / focus throttle | **OPEN** — po billing + brief |
+| **P0 sync refactor** — delta-sync / focus throttle | **OPEN** — architektura długoterminowa, nie blokada prod |
 | **Work Catalog P2** — UI Biblioteka Robót | **OPEN** — czeka na decyzję |
 | Mobile Certification PASS 1 | **nie rozpoczęty** |
 | P0 Payroll Etap 2 | **NOT STARTED** |
