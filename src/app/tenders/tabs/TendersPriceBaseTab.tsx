@@ -15,7 +15,7 @@ export function TendersPriceBaseTab() {
         <h2 className="text-sm font-semibold">Baza cen</h2>
       </div>
       <p className="text-xs text-muted-foreground">
-        Własne stawki robocizny i materiałów — fundament wyceny przetargów WGDOM.
+        Podgląd stawek kategorii (tylko odczyt) oraz edycja parametrów firmy — ceny pozycji w Bibliotece robót.
       </p>
       <TenderPriceBasePanel onSaved={() => bumpProfileVersion()} />
     </div>

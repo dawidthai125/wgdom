@@ -2,6 +2,12 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
+## 2.62.89 — PB-WRITE-B Baza cen read-only
+
+- **improve:** Stawki kategorii (robocizna, materiały) — tylko odczyt w Przetargi → Baza cen
+- **improve:** CTA do Biblioteki Robót; parametry firmy nadal edytowalne
+- **improve:** Wyłączono zapis bazy cen / przywracanie domyślnego katalogu
+
 ## 2.62.88 — PB-WRITE-A Catalog Write Router
 
 - **improve:** `catalog-write-router.ts` — jedyny entry point zapisu legacy + work catalog

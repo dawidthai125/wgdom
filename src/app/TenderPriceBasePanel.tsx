@@ -1,6 +1,7 @@
-import { Loader2, RefreshCw, Save, Tags } from "lucide-react";
+import { Library, Loader2, Lock, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import {
   defaultCompanyProfile,
   loadCompanyProfile,
@@ -9,20 +10,13 @@ import {
 } from "@/lib/tenders-bzp-company";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import {
-  appendCostCatalogHistoryRouted,
-  saveLegacyCostCatalogRouted,
-} from "@/lib/catalog-write-router";
-import {
   type WgdomCostCatalogStore,
   type WgdomCostRegion,
   listEditableCategories,
   loadWgdomCostCatalogStore,
   restoreDefaultWgdomCostCatalogStore,
-  setActiveCatalogRegion,
-  updateCategoryPrimaryRates,
   getActiveCatalog,
   WGDOM_COST_REGION_LABELS,
-  loadWgdomCostCatalogStoreLocal,
 } from "@/lib/wgdom-cost-catalog-store";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
@@ -41,6 +35,10 @@ import {
 } from "@/lib/wgdom-cost-catalog-history";
 import { buildMaterialRateHistoryView } from "@/lib/material-history";
 import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
+import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
+
+const READ_ONLY_INPUT_CLASS =
+  "w-full max-w-[88px] rounded px-1.5 py-1 border border-border/50 font-mono bg-muted/40 text-muted-foreground cursor-not-allowed opacity-90";
 
 function NumInput({
   label,
@@ -85,6 +83,7 @@ export function TenderPriceBasePanel({
 }: {
   onSaved?: () => void;
 }) {
+  const tendersCtx = useTendersContextOptional();
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
   const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
   const [catalogHistory, setCatalogHistory] = useState<WgdomCostCatalogHistoryStore>(
@@ -141,40 +140,23 @@ export function TenderPriceBasePanel({
     return buildLaborBenchmarkAlerts(comparisons);
   }, [catalogRows, profile.costModel, catalogHistory, catalogStore.activeRegion]);
 
-  const save = useCallback(async () => {
+  const saveCompanyParams = useCallback(async () => {
     setSaving(true);
     try {
-      const previousCatalog = loadWgdomCostCatalogStoreLocal();
       await saveCompanyProfile(profile);
-      const catalogResult = await saveLegacyCostCatalogRouted(catalogStore);
-      if (!catalogResult.ok) {
-        throw catalogResult.error ?? new Error("catalog save failed");
-      }
-      if (!catalogResult.saved) {
-        throw new Error("catalog save blocked");
-      }
-      const historyResult = await appendCostCatalogHistoryRouted(
-        previousCatalog,
-        catalogStore,
-        profile.costModel,
-      );
-      if (!historyResult.ok) {
-        throw historyResult.error ?? new Error("history append failed");
-      }
-      setCatalogHistory(historyResult.history);
       onSaved?.();
-      toast.success("Baza cen zapisana w chmurze");
+      toast.success("Parametry firmy zapisane w chmurze");
     } catch {
-      toast.error("Nie udało się zapisać bazy cen");
+      toast.error("Nie udało się zapisać parametrów firmy");
     } finally {
       setSaving(false);
     }
-  }, [profile, catalogStore, onSaved]);
+  }, [profile, onSaved]);
 
-  const reloadCatalogDefaults = useCallback(() => {
-    setCatalogStore(restoreDefaultWgdomCostCatalogStore());
-    toast.message("Przywrócono domyślny katalog WGDOM — kliknij Zapisz");
-  }, []);
+  const goToWorkCatalog = useCallback(() => {
+    saveTendersActiveTab("workcatalog");
+    tendersCtx?.setActiveTab("workcatalog");
+  }, [tendersCtx]);
 
   if (loading) {
     return (
@@ -189,12 +171,29 @@ export function TenderPriceBasePanel({
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
         <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Tags size={14} className="text-primary" />
-          Baza cen — stawki Twojej firmy
+          Baza cen — podgląd stawek i parametry firmy
         </p>
         <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
-          Własne stawki robocizny i materiałów używane przy wycenie przetargów (katalog WGDOM + parametry firmy).
-          Kolumna Benchmark to orientacyjny zakres robocizny ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
+          Stawki kategorii są tylko do odczytu. Kolumna Benchmark to orientacyjny zakres robocizny
+          ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
         </p>
+      </div>
+
+      <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-3 py-2.5 space-y-2">
+        <p className="text-xs font-semibold text-foreground leading-snug">
+          Ceny robót są zarządzane w Bibliotece Robót.
+        </p>
+        <p className="text-[10px] text-muted-foreground leading-snug">
+          Parametry firmy (RBH, marża, narzuty) nadal edytujesz tutaj.
+        </p>
+        <button
+          type="button"
+          onClick={goToWorkCatalog}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-600 text-white text-xs font-medium hover:bg-sky-600/90 min-h-[40px]"
+        >
+          <Library size={14} />
+          Przejdź do Biblioteki Robót
+        </button>
       </div>
 
       <LaborBenchmarkSourcePanel
@@ -221,11 +220,15 @@ export function TenderPriceBasePanel({
       )}
 
       <label className="block text-[10px] text-muted-foreground max-w-xs">
-        Region aktywny
+        <span className="inline-flex items-center gap-1 font-medium text-muted-foreground">
+          <Lock size={11} aria-hidden />
+          Region aktywny (tylko odczyt)
+        </span>
         <select
           value={catalogStore.activeRegion}
-          onChange={(e) => setCatalogStore(setActiveCatalogRegion(catalogStore, e.target.value as WgdomCostRegion))}
-          className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+          disabled
+          aria-readonly="true"
+          className="mt-0.5 w-full bg-muted/40 text-muted-foreground rounded-lg px-2 py-1.5 text-xs border border-border/50 cursor-not-allowed"
         >
           {(Object.keys(WGDOM_COST_REGION_LABELS) as WgdomCostRegion[]).map((r) => (
             <option key={r} value={r}>{WGDOM_COST_REGION_LABELS[r]}</option>
@@ -233,16 +236,19 @@ export function TenderPriceBasePanel({
         </select>
       </label>
 
-      <section className="rounded-lg border border-border/70 bg-secondary/15 overflow-hidden">
-        <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/30">
-          <h3 className="text-[11px] font-semibold">Robocizna</h3>
+      <section className="rounded-lg border border-border/70 bg-secondary/10 overflow-hidden opacity-[0.98]">
+        <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/25">
+          <h3 className="text-[11px] font-semibold inline-flex items-center gap-1.5 text-muted-foreground">
+            <Lock size={12} aria-hidden />
+            Robocizna — tylko odczyt
+          </h3>
           <p className="text-[10px] text-muted-foreground mt-0.5">
             Norma rbh/j.m. × koszt rbh ({flHourly.toFixed(2)} zł/h z parametrami firmy) = stawka robocizny.
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[10px] min-w-[480px]">
-            <thead className="bg-secondary/60">
+            <thead className="bg-secondary/50">
               <tr>
                 <th className="text-left px-2 py-1.5 font-semibold">Kategoria</th>
                 <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
@@ -261,7 +267,7 @@ export function TenderPriceBasePanel({
                 });
                 return (
                   <tr key={`labor-${row.id}`} className="border-t border-border/40">
-                    <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
+                    <td className="px-2 py-1.5 font-medium text-muted-foreground">{row.labelPl}</td>
                     <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
                     <td className="px-2 py-1">
                       <input
@@ -269,19 +275,13 @@ export function TenderPriceBasePanel({
                         min={0}
                         step={0.01}
                         value={row.laborRbhPerUnit}
-                        onChange={(e) => {
-                          const v = Number(e.target.value) || 0;
-                          setCatalogStore(updateCategoryPrimaryRates(
-                            catalogStore,
-                            row.id,
-                            row.materialPlnPerUnit,
-                            v,
-                          ));
-                        }}
-                        className="w-full max-w-[88px] bg-secondary rounded px-1.5 py-1 border border-border font-mono"
+                        readOnly
+                        tabIndex={-1}
+                        aria-readonly="true"
+                        className={READ_ONLY_INPUT_CLASS}
                       />
                     </td>
-                    <td className="px-2 py-1.5 text-right font-mono font-medium tabular-nums">
+                    <td className="px-2 py-1.5 text-right font-mono font-medium tabular-nums text-muted-foreground">
                       {laborPln.toLocaleString("pl-PL")} zł
                     </td>
                     <td className="px-2 py-1.5 align-top">
@@ -298,16 +298,19 @@ export function TenderPriceBasePanel({
         </div>
       </section>
 
-      <section className="rounded-lg border border-border/70 bg-secondary/15 overflow-hidden">
-        <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/30">
-          <h3 className="text-[11px] font-semibold">Materiały</h3>
+      <section className="rounded-lg border border-border/70 bg-secondary/10 overflow-hidden opacity-[0.98]">
+        <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/25">
+          <h3 className="text-[11px] font-semibold inline-flex items-center gap-1.5 text-muted-foreground">
+            <Lock size={12} aria-hidden />
+            Materiały — tylko odczyt
+          </h3>
           <p className="text-[10px] text-muted-foreground mt-0.5">
             Stawka materiału na jednostkę miary (zł/j.m.) — historia i trend z własnej Bazy cen (90 dni).
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[10px] min-w-[520px]">
-            <thead className="bg-secondary/60">
+            <thead className="bg-secondary/50">
               <tr>
                 <th className="text-left px-2 py-1.5 font-semibold">Kategoria</th>
                 <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
@@ -327,7 +330,7 @@ export function TenderPriceBasePanel({
                 );
                 return (
                 <tr key={`mat-${row.id}`} className="border-t border-border/40">
-                  <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
+                  <td className="px-2 py-1.5 font-medium text-muted-foreground">{row.labelPl}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
                   <td className="px-2 py-1">
                     <input
@@ -335,16 +338,10 @@ export function TenderPriceBasePanel({
                       min={0}
                       step={1}
                       value={row.materialPlnPerUnit}
-                      onChange={(e) => {
-                        const v = Number(e.target.value) || 0;
-                        setCatalogStore(updateCategoryPrimaryRates(
-                          catalogStore,
-                          row.id,
-                          v,
-                          row.laborRbhPerUnit,
-                        ));
-                      }}
-                      className="w-full max-w-[88px] bg-secondary rounded px-1.5 py-1 border border-border font-mono"
+                      readOnly
+                      tabIndex={-1}
+                      aria-readonly="true"
+                      className={READ_ONLY_INPUT_CLASS}
                     />
                   </td>
                   <td className="px-2 py-1.5 align-top">
@@ -405,23 +402,24 @@ export function TenderPriceBasePanel({
         </div>
       </section>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         <button
           type="button"
           disabled={saving}
-          onClick={() => void save()}
+          onClick={() => void saveCompanyParams()}
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50 min-h-[40px]"
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          Zapisz bazę cen
+          Zapisz parametry firmy
         </button>
         <button
           type="button"
-          onClick={reloadCatalogDefaults}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80 min-h-[40px]"
+          disabled
+          title="Stawki kategorii edytujesz w Bibliotece Robót"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed opacity-60 min-h-[40px]"
         >
-          <RefreshCw size={14} />
-          Przywróć domyślny katalog
+          <Lock size={14} />
+          Zapisz bazę cen
         </button>
       </div>
     </div>

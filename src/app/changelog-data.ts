@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-29",
+    version: "2.62.89",
+    label: "PB-WRITE-B — Baza cen read-only + CTA Biblioteka Robót",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Baza cen: stawki kategorii (robocizna, materiały) tylko odczyt — edycja w Bibliotece Robót",
+      },
+      {
+        type: "improve",
+        text: "Baner + CTA „Przejdź do Biblioteki Robót”; parametry firmy (RBH, marża) nadal zapisywalne",
+      },
+      {
+        type: "improve",
+        text: "Ukryto „Przywróć domyślny katalog”; „Zapisz bazę cen” wyłączone — aktywny „Zapisz parametry firmy”",
+      },
+    ],
+  },
+  {
+    date: "2026-06-29",
     version: "2.62.88",
     label: "PB-WRITE-A — Catalog Write Router (split domyślnie)",
     items: [
