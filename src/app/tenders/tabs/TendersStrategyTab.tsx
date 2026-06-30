@@ -8,6 +8,7 @@ export function TendersStrategyTab({
   onNavigateToJobFromTender,
   onOpenJob,
   onCreateJobFromTender,
+  onOpenTender,
 }: {
   setJobs?: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
   tenderJobUploadedBy?: string;
@@ -17,10 +18,12 @@ export function TendersStrategyTab({
     draft: ReturnType<typeof jobDraftFromTender>,
     item: TenderPipelineItem,
   ) => string | void;
+  onOpenTender?: (tenderId: string) => void;
 }) {
   return (
     <TendersStrategyContent
       showHeader={false}
+      onOpenTender={onOpenTender}
       setJobs={setJobs}
       tenderJobUploadedBy={tenderJobUploadedBy}
       onNavigateToJobFromTender={onNavigateToJobFromTender}

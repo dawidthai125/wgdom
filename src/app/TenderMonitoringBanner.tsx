@@ -8,7 +8,7 @@ export function TenderMonitoringBanner({
   compact = false,
 }: {
   item: TenderPipelineItem;
-  onOpenStrategy?: () => void;
+  onOpenStrategy?: (tenderId: string) => void;
   /** NG-03.4 — jedna linia przy Action Bar. */
   compact?: boolean;
 }) {
@@ -36,7 +36,7 @@ export function TenderMonitoringBanner({
       {onOpenStrategy && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onOpenStrategy(); }}
+          onClick={(e) => { e.stopPropagation(); onOpenStrategy(item.id); }}
           className="text-[10px] font-medium text-amber-900 dark:text-amber-100 underline hover:no-underline shrink-0"
         >
           {compact ? "Strategia" : "Otwórz Strategię →"}

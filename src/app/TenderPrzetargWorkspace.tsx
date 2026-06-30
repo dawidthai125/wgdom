@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react";
-import { ExternalLink } from "lucide-react";
+import { Briefcase, ExternalLink } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -23,6 +23,9 @@ import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import { TENDER_INTELLIGENCE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
+import { buildTenderPortfolioPositionView } from "@/lib/tender-strategy-ux";
+import { TenderPortfolioPositionPanel } from "@/app/tenders/strategy/components/TenderPortfolioPositionPanel";
 
 const PARTICIPATION_PREVIEW_LINES = 3;
 
@@ -70,6 +73,7 @@ export function TenderPrzetargWorkspace({
   analyzing,
   trustAssessment,
   commandLayerActive = false,
+  onOpenStrategy,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -92,7 +96,21 @@ export function TenderPrzetargWorkspace({
   trustAssessment: TenderTrustAssessment;
   /** NG-03.2 — Command Layer w TenderDetailPage. */
   commandLayerActive?: boolean;
+  /** NG-03.6 — bridge Przetarg → Strategia z kontekstem tenderId. */
+  onOpenStrategy?: (tenderId: string) => void;
 }) {
+  const tendersCtx = useTendersContextOptional();
+  const portfolioPosition = useMemo(() => {
+    if (!tendersCtx?.snapshot.scoringContext) return null;
+    return buildTenderPortfolioPositionView({
+      item,
+      scoringContext: tendersCtx.snapshot.scoringContext,
+      scoredBundles: tendersCtx.snapshot.scoredForForecast,
+      ownerRecord: tendersCtx.ownerDecisions.store.byId[item.id],
+    });
+  }, [item, tendersCtx?.snapshot.scoringContext, tendersCtx?.snapshot.scoredForForecast, tendersCtx?.ownerDecisions.store.byId]);
+
+  const handleOpenStrategy = onOpenStrategy ?? tendersCtx?.openTendersStrategy;
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
   const participationGroups = useMemo(() => buildParticipationDisplayGroups(swz), [swz]);
@@ -119,6 +137,14 @@ export function TenderPrzetargWorkspace({
         trustAssessment={trustAssessment}
         commandLayerActive={commandLayerActive}
       />
+
+      {portfolioPosition && handleOpenStrategy && (
+        <TenderPortfolioPositionPanel
+          item={item}
+          position={portfolioPosition}
+          onOpenStrategy={handleOpenStrategy}
+        />
+      )}
 
       <details
         className="rounded-xl border border-border bg-card overflow-hidden group"
@@ -219,6 +245,24 @@ export function TenderPrzetargWorkspace({
           </ul>
         )}
       </BlockShell>
+
+      {handleOpenStrategy && (
+        <div className="rounded-lg border border-border/70 bg-secondary/20 px-3 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Briefcase size={14} className="text-primary shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Pełna analiza portfolio i monitoring zmian — moduł Strategia.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="text-[10px] font-medium text-primary hover:underline min-h-[44px] sm:min-h-0 px-1"
+            onClick={() => handleOpenStrategy(item.id)}
+          >
+            Otwórz w Strategii →
+          </button>
+        </div>
+      )}
         </div>
       </details>
 

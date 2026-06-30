@@ -14,7 +14,10 @@ export type TendersContextValue = {
   listExpandedId: string | null;
   setListExpandedId: (id: string | null) => void;
   openTenderInList: (tenderId: string) => void;
-  openTendersStrategy: () => void;
+  /** NG-03.6 — przejście do modułu Strategia z opcjonalnym kontekstem tenderId. */
+  openTendersStrategy: (tenderId?: string) => void;
+  strategyFocusTenderId: string | null;
+  clearStrategyFocus: () => void;
 };
 
 const TendersContext = createContext<TendersContextValue | null>(null);

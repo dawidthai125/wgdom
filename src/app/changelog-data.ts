@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.5",
+    label: "NG-03.6 — Strategy Bridge (Przetarg)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetarg → Pozycja w portfolio (score, decyzja, ranking) + link do modułu Strategia z kontekstem przetargu",
+      },
+      {
+        type: "improve",
+        text: "Strategia — karta kontekstu po przejściu z detalu; powrót do przetargu zachowuje tenderId",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.4",
     label: "NG-03.5 — Mobile Cards (Przetarg)",
     items: [

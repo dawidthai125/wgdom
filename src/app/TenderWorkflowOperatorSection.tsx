@@ -44,7 +44,7 @@ export function TenderWorkflowOperatorSection({
   analyzing?: boolean;
   exportingPdf?: boolean;
   uploading?: boolean;
-  onOpenStrategy?: () => void;
+  onOpenStrategy?: (tenderId: string) => void;
   onUpload: (file: File) => void;
   onCreateJob?: () => void;
   onOpenJob?: (jobId: string) => void;

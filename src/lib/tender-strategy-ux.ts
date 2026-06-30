@@ -9,7 +9,7 @@ import {
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import type { TenderScoringBundle, TenderDecision } from "@/lib/tenders-strategy-decision";
-import { DECISION_LABEL_PL, topDecisionReasons } from "@/lib/tenders-strategy-decision";
+import { DECISION_LABEL_PL, topDecisionReasons, scoreTender } from "@/lib/tenders-strategy-decision";
 import type { ActionCenterResult } from "@/lib/tenders-strategy-action-center";
 import type { OwnerStrategicAlert } from "@/lib/tenders-strategy-alerts";
 import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
@@ -23,6 +23,7 @@ import { primaryForecastScenario } from "@/lib/tenders-strategy-forecast-90d";
 import type { PortfolioDecisionCounts } from "@/lib/tenders-strategy-decision";
 import type { GrowthMode } from "@/lib/tenders-strategy-growth-mode";
 import { GROWTH_MODE_LABELS } from "@/lib/tenders-strategy-growth-mode";
+import type { StrategicScoreContext } from "@/lib/tenders-strategy-strategic-score";
 import { WHAT_IF_PRESET_LABELS } from "@/lib/tenders-strategy-what-if";
 import {
   collectAllChangeEvents,
@@ -129,6 +130,53 @@ export interface StrategyPortfolioSummary {
   go: number;
   hold: number;
   noGo: number;
+}
+
+/** NG-03.6 — pozycja jednego przetargu w portfolio (prezentacja, reuse scoreTender). */
+export interface TenderPortfolioPositionView {
+  systemDecision: TenderDecision;
+  systemDecisionLabel: string;
+  ownerDecision: TenderDecision | null;
+  ownerDecisionLabel: string | null;
+  score: number;
+  deadlineLabel: string;
+  portfolioRank: number | null;
+  totalRanked: number;
+  topReasons: string[];
+}
+
+export function buildTenderPortfolioPositionView(input: {
+  item: TenderPipelineItem;
+  scoringContext: StrategicScoreContext;
+  scoredBundles: TenderScoringBundle[];
+  ownerRecord: OwnerTenderDecisionRecord | null | undefined;
+  now?: Date;
+}): TenderPortfolioPositionView | null {
+  const { item, scoringContext, scoredBundles, ownerRecord, now } = input;
+  let bundle = scoredBundles.find((b) => b.item.id === item.id) ?? null;
+  if (!bundle) {
+    bundle = scoreTender(item, scoringContext.profile, scoringContext, now);
+  }
+  const lite = buildBestOpportunityLite(bundle, ownerRecord, now);
+  if (!lite) return null;
+
+  const rankIdx = scoredBundles.findIndex((b) => b.item.id === item.id);
+  const topReasons = topDecisionReasons(bundle)
+    .map(normalizeReasonLine)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return {
+    systemDecision: lite.systemDecision,
+    systemDecisionLabel: lite.systemDecisionLabel,
+    ownerDecision: lite.ownerDecision,
+    ownerDecisionLabel: lite.ownerDecisionLabel,
+    score: lite.score,
+    deadlineLabel: lite.deadlineLabel,
+    portfolioRank: rankIdx >= 0 ? rankIdx + 1 : null,
+    totalRanked: scoredBundles.length,
+    topReasons,
+  };
 }
 
 function isPendingDecisionBundle(

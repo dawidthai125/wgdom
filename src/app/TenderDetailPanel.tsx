@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import {
   type TenderPipelineItem,
@@ -44,6 +45,7 @@ import { TenderWorkflowOperatorSection } from "@/app/TenderWorkflowOperatorSecti
 import type { TenderWorkflowOperatorActionBarProps } from "@/app/TenderWorkflowOperatorActionBar";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
+import { TENDERS_LIST_PATH } from "@/lib/tender-detail-routes-v4";
 import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import { loadOwnerDecisions } from "@/lib/tenders-strategy-owner-decisions";
 import { loadCompanyQualificationProfileLocal } from "@/lib/company-qualification-profile";
@@ -162,6 +164,12 @@ export function TenderDetailPanel({
   const platformTelemetryRef = useRef<string | null>(null);
 
   const tendersCtx = useTendersContextOptional();
+  const navigate = useNavigate();
+
+  const handleOpenTendersStrategy = useCallback((tenderId: string) => {
+    tendersCtx?.openTendersStrategy(tenderId);
+    navigate(TENDERS_LIST_PATH);
+  }, [tendersCtx, navigate]);
 
   const platformDocStatus = useMemo(
     () => resolveTenderPlatformDocumentStatus(item, { loadingDocs: loadingDocs || autoRunning }),
@@ -649,6 +657,7 @@ export function TenderDetailPanel({
               analyzing={analyzing}
               trustAssessment={trustAssessment}
               commandLayerActive={embedV4CommandLayerActive}
+              onOpenStrategy={tendersCtx ? handleOpenTendersStrategy : undefined}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}
@@ -661,7 +670,7 @@ export function TenderDetailPanel({
                   analyzing={analyzing}
                   exportingPdf={exportingPdf}
                   uploading={uploading}
-                  onOpenStrategy={tendersCtx?.openTendersStrategy}
+                  onOpenStrategy={tendersCtx ? handleOpenTendersStrategy : undefined}
                   onUpload={(file) => void handleUpload(file)}
                   onCreateJob={onCreateJob
                     ? () => {

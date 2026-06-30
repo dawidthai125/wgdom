@@ -20,6 +20,7 @@ import { StrategyCollapsibleSection } from "@/app/tenders/strategy/components/St
 import { StrategyGuidanceSection } from "@/app/tenders/strategy/components/StrategyGuidanceSection";
 import { StrategyGuidanceWhy } from "@/app/tenders/strategy/components/StrategyGuidanceWhy";
 import { StrategyGuidanceRisks } from "@/app/tenders/strategy/components/StrategyGuidanceRisks";
+import { TenderStrategyFocusCard } from "@/app/tenders/strategy/components/TenderStrategyFocusCard";
 import { formatActionCenterItemTitle } from "@/lib/tenders-strategy-action-center-display";
 import {
   buildStrategyKpiCounts,
@@ -31,6 +32,7 @@ import {
   buildStrategyPortfolioSummary,
   buildStrategyWhyBullets,
   buildStrategyRiskBullets,
+  buildTenderPortfolioPositionView,
 } from "@/lib/tender-strategy-ux";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
@@ -55,7 +57,7 @@ export function TendersStrategyContent({
     item: TenderPipelineItem,
   ) => string | void;
 }) {
-  const { snapshot, ownerDecisions } = useTendersContext();
+  const { snapshot, ownerDecisions, strategyFocusTenderId, clearStrategyFocus } = useTendersContext();
   const tendersUi = useTendersContextOptional();
 
   const handleOpenTender = onOpenTender ?? tendersUi?.openTenderInList;
@@ -135,6 +137,21 @@ export function TendersStrategyContent({
   const whatIfSummary = buildStrategyWhatIfSummary();
   const portfolioSummary = buildStrategyPortfolioSummary(portfolioCounts);
 
+  const strategyFocusItem = useMemo(() => {
+    if (!strategyFocusTenderId) return null;
+    return pipeline.items.find((i) => i.id === strategyFocusTenderId) ?? null;
+  }, [strategyFocusTenderId, pipeline.items]);
+
+  const strategyFocusPosition = useMemo(() => {
+    if (!strategyFocusItem || !snapshot.scoringContext) return null;
+    return buildTenderPortfolioPositionView({
+      item: strategyFocusItem,
+      scoringContext: snapshot.scoringContext,
+      scoredBundles: scoredForForecast,
+      ownerRecord: ownerDecisions.store.byId[strategyFocusItem.id],
+    });
+  }, [strategyFocusItem, snapshot.scoringContext, scoredForForecast, ownerDecisions.store.byId]);
+
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
     applyGrowthMode(mode);
   };
@@ -179,6 +196,15 @@ export function TendersStrategyContent({
 
         {pipeline.autoAwardRunning && (
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
+        )}
+
+        {strategyFocusItem && strategyFocusPosition && handleOpenTender && (
+          <TenderStrategyFocusCard
+            item={strategyFocusItem}
+            position={strategyFocusPosition}
+            onOpenTender={() => handleOpenTender(strategyFocusItem.id)}
+            onDismiss={clearStrategyFocus}
+          />
         )}
 
         <div className="space-y-5" data-testid="strategy-guidance-zone">

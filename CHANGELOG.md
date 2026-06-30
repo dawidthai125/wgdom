@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.5 — NG-03.6 Strategy Bridge (Przetarg)
+
+- **improve:** Portfolio Position w workspace Przetarg — bridge do Strategii z kontekstem tenderId
+- **improve:** Strategia — focus card po przejściu z detalu; powrót do przetargu V4
+
 ## 2.63.4 — NG-03.5 Mobile Cards (Przetarg)
 
 - **improve:** Kosztorys / Ceny / Dokumenty — mobile card layout (bez poziomego scrollu ≤390 px); desktop tabele bez zmian

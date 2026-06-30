@@ -155,7 +155,7 @@ export function TendersModule({
   void _weekTo;
   void _savedWeeks;
 
-  const { activeTab, snapshot, openTenderInList } = useTendersContext();
+  const { activeTab, snapshot, openTenderInList, setActiveTab, clearStrategyFocus } = useTendersContext();
   const { pipeline } = snapshot;
   const location = useLocation();
   const navigate = useNavigate();
@@ -220,6 +220,15 @@ export function TendersModule({
             onNavigateToJobFromTender={onNavigateToJobFromTender}
             onOpenJob={onOpenJob}
             onCreateJobFromTender={onCreateJobFromTender}
+            onOpenTender={(tenderId) => {
+              clearStrategyFocus();
+              setActiveTab("list");
+              if (TENDERS_V4_ROUTING) {
+                navigate(buildTenderDetailPath(tenderId, "przetarg"));
+              } else {
+                openTenderInList(tenderId);
+              }
+            }}
           />
         )}
         {activeTab === "map" && <TendersMapTab />}

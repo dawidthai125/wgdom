@@ -61,6 +61,7 @@ export function TendersProvider({
   const [profileVersion, setProfileVersion] = useState(0);
   const [activeTab, setActiveTabState] = useState<TendersTabId>(() => loadActiveTab(canViewWorkCatalog));
   const [listExpandedId, setListExpandedId] = useState<string | null>(null);
+  const [strategyFocusTenderId, setStrategyFocusTenderId] = useState<string | null>(null);
 
   const bumpProfileVersion = useCallback(() => {
     setProfileVersion((v) => v + 1);
@@ -82,7 +83,14 @@ export function TendersProvider({
     const next = sanitizeTendersActiveTab(tab, canViewWorkCatalog);
     setActiveTabState(next);
     saveTendersActiveTab(next);
+    if (next !== "strategy") {
+      setStrategyFocusTenderId(null);
+    }
   }, [canViewWorkCatalog]);
+
+  const clearStrategyFocus = useCallback(() => {
+    setStrategyFocusTenderId(null);
+  }, []);
 
   useEffect(() => {
     if (activeTab === "workcatalog" && !canViewWorkCatalog) {
@@ -97,7 +105,8 @@ export function TendersProvider({
     saveTendersActiveTab("list");
   }, []);
 
-  const openTendersStrategy = useCallback(() => {
+  const openTendersStrategy = useCallback((tenderId?: string) => {
+    setStrategyFocusTenderId(tenderId ?? null);
     setActiveTabState("strategy");
     saveTendersActiveTab("strategy");
   }, []);
@@ -115,6 +124,8 @@ export function TendersProvider({
       setListExpandedId,
       openTenderInList,
       openTendersStrategy,
+      strategyFocusTenderId,
+      clearStrategyFocus,
     }),
     [
       snapshot,
@@ -126,6 +137,8 @@ export function TendersProvider({
       listExpandedId,
       openTenderInList,
       openTendersStrategy,
+      strategyFocusTenderId,
+      clearStrategyFocus,
     ],
   );
 
