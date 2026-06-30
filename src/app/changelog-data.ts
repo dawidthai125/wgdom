@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.8",
+    label: "P0 — Tender Detail tab SSOT",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi V4 — aktywny tab detalu (Przetarg/Dokumenty/…) ze SSOT URL; przełączanie zakładek znów aktualizuje workspace po klienckim navigate",
+      },
+      {
+        type: "fix",
+        text: "Deep link / detal V4 — synchronizacja modułowego activeTab=Lista z URL (brak „dwóch layoutów” przy zapisanym tabie Strategia)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.7",
     label: "NG-03.7 — Polish & EPIC CLOSE",
     items: [

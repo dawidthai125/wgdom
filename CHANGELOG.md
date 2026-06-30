@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.8 — P0 Tender Detail tab SSOT
+
+- **fix:** Tab detalu V4 ze SSOT URL (`parseTenderDetailPath`) — kliencki navigate aktualizuje workspace
+- **fix:** `activeTab=Lista` przy URL detalu V4 (sync Provider z deep linkiem)
+
 ## 2.63.7 — NG-03.7 Polish & EPIC CLOSE
 
 - **improve:** Touch ≥44 px · tablet 640–1023 immersive + mobile cards do lg · Action Bar sticky na tablecie

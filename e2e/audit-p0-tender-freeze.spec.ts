@@ -1,11 +1,27 @@
 /**
- * P0 — Command Layer height regression (Design Freeze §2.1).
+ * P0 — Command Layer height + V4 tab SSOT (Design Freeze §2.1).
  * PW_BASE_URL=http://127.0.0.1:4173 npx playwright test e2e/audit-p0-tender-freeze.spec.ts --config=playwright.audit.config.ts
  */
 import { test, expect } from "@playwright/test";
 import { applyE2eSeedInBrowser, buildE2eSeedArgs, E2E_TENDER_ID } from "./fixtures/e2e-seed";
 import { gotoLoginPick, loginAdmin } from "./helpers/auth";
 import { blockCloudSync } from "./helpers/jobs";
+
+async function assertPrzetargWorkspace(page: import("@playwright/test").Page) {
+  const detail = page.locator("[data-tender-detail-v4]");
+  await expect(detail).toHaveAttribute("data-tender-tab", "przetarg");
+  await expect(page.locator("[data-tender-command-layer]")).toHaveAttribute("data-tender-tab", "przetarg");
+  await expect(detail.locator("[data-tender-workflow-hub]").first()).toBeVisible();
+}
+
+async function assertDokumentyWorkspace(page: import("@playwright/test").Page) {
+  const detail = page.locator("[data-tender-detail-v4]");
+  await expect(detail).toHaveAttribute("data-tender-tab", "dokumenty");
+  await expect(page.locator("[data-tender-command-layer]")).toHaveAttribute("data-tender-tab", "dokumenty");
+  await expect(detail.locator("[data-tender-przetarg-command-slot]")).toHaveCount(0);
+  await expect(detail.locator("[data-tender-workflow-hub]")).toHaveCount(0);
+  await expect(detail.locator("#tender-attachments-section")).toBeVisible();
+}
 
 function measureLayout(page: import("@playwright/test").Page) {
   return page.evaluate(() => {
@@ -48,6 +64,19 @@ test.describe("P0 Command Layer height regression", () => {
 
     await page.locator('[data-tender-tab="dokumenty"]').click();
     await expect(page).toHaveURL(new RegExp(`/przetargi/${E2E_TENDER_ID}/dokumenty`));
+    await assertDokumentyWorkspace(page);
+  });
+
+  test("desktop — tab SSOT po klienckim navigate", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(`/przetargi/${E2E_TENDER_ID}/przetarg`, { waitUntil: "networkidle" });
+    await expect(page.locator("[data-tender-detail-v4]")).toBeVisible({ timeout: 30_000 });
+
+    await assertPrzetargWorkspace(page);
+
+    await page.locator('[data-tender-tab="dokumenty"]').click();
+    await expect(page).toHaveURL(new RegExp(`/przetargi/${E2E_TENDER_ID}/dokumenty`));
+    await assertDokumentyWorkspace(page);
   });
 
   test("desktop — command ≤280px, content >120px", async ({ page }) => {

@@ -33,6 +33,7 @@ import {
   buildTenderDetailPath,
   parseTenderDetailPath,
 } from "@/lib/tender-detail-routes-v4";
+import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
 import { TendersListPage } from "@/app/TendersListPage";
 import { TenderDetailPage } from "@/app/TenderDetailPage";
 
@@ -162,6 +163,14 @@ export function TendersModule({
   const v4Detail = TENDERS_V4_ROUTING ? parseTenderDetailPath(location.pathname) : null;
 
   useEffect(() => {
+    if (!TENDERS_V4_ROUTING || !v4Detail) return;
+    if (activeTab !== "list") {
+      setActiveTab("list");
+      saveTendersActiveTab("list");
+    }
+  }, [v4Detail, activeTab, setActiveTab]);
+
+  useEffect(() => {
     if (!TENDERS_V4_ROUTING) {
       if (initialExpandedId) openTenderInList(initialExpandedId);
       return;
@@ -194,7 +203,6 @@ export function TendersModule({
               ? (
                 <TenderDetailPage
                   tenderId={v4Detail.tenderId}
-                  tab={v4Detail.tab}
                   onCreateJobFromTender={onCreateJobFromTender}
                   onOpenJob={onOpenJob}
                   athPreviewEnabled={athPreviewEnabled}

@@ -23,9 +23,11 @@ import {
   buildTenderDetailPath,
   buildTenderDetailPathFromLegacyWorkspace,
   parseDecyzjaWorkspaceQuery,
+  parseTenderDetailPath,
   resolveRetiredV4TabRedirect,
   resolveV4EmbedLegacyWorkspace,
   TENDER_DETAIL_DECYZJA_WS_QUERY,
+  TENDER_DETAIL_V4_DEFAULT_TAB,
   TENDERS_LIST_PATH,
   type DecyzjaV4EmbedWorkspace,
   type TenderDetailV4TabId,
@@ -37,14 +39,15 @@ import {
 } from "@/lib/tender-workspace-ux";
 
 export function TenderDetailPage({
-  tenderId,
-  tab,
+  tenderId: tenderIdFallback,
+  tab: tabFallback,
   onCreateJobFromTender,
   onOpenJob,
   athPreviewEnabled = true,
 }: {
   tenderId: string;
-  tab: TenderDetailV4TabId;
+  /** Awaryjny fallback — SSOT: parseTenderDetailPath(location.pathname). */
+  tab?: TenderDetailV4TabId;
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
@@ -54,10 +57,26 @@ export function TenderDetailPage({
   const { snapshot, profileVersion } = useTendersContext();
   const { pipeline } = snapshot;
 
+  const parsedDetail = useMemo(
+    () => parseTenderDetailPath(location.pathname),
+    [location.pathname],
+  );
+  const tenderId = parsedDetail?.tenderId ?? tenderIdFallback;
+  const urlTab = parsedDetail?.tab ?? tabFallback ?? TENDER_DETAIL_V4_DEFAULT_TAB;
+
+  /** Optimistic tab — RR7 bez `<Routes>`: pathname w kontekście opóźniony vs `window.location`. */
+  const [pendingTab, setPendingTab] = useState<TenderDetailV4TabId | null>(null);
+
+  useEffect(() => {
+    setPendingTab(null);
+  }, [location.pathname]);
+
+  const activeTab = pendingTab ?? urlTab;
+
   const decyzjaWs = useMemo(() => {
-    if (tab !== "decyzja") return null;
+    if (activeTab !== "decyzja") return null;
     return new URLSearchParams(location.search).get(TENDER_DETAIL_DECYZJA_WS_QUERY);
-  }, [tab, location.search]);
+  }, [activeTab, location.search]);
 
   const decyzjaWorkspace = useMemo(
     () => parseDecyzjaWorkspaceQuery(decyzjaWs),
@@ -65,8 +84,8 @@ export function TenderDetailPage({
   );
 
   const retiredRedirect = useMemo(
-    () => resolveRetiredV4TabRedirect(tenderId, tab),
-    [tenderId, tab],
+    () => resolveRetiredV4TabRedirect(tenderId, activeTab),
+    [tenderId, activeTab],
   );
 
   useEffect(() => {
@@ -84,6 +103,7 @@ export function TenderDetailPage({
 
   const handleTabChange = useCallback(
     (next: TenderDetailV4TabId, opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace }) => {
+      setPendingTab(next);
       navigate(buildTenderDetailPath(tenderId, next, opts));
     },
     [navigate, tenderId],
@@ -101,15 +121,16 @@ export function TenderDetailPage({
 
   const handleDecyzjaWorkspaceChange = useCallback(
     (ws: DecyzjaV4EmbedWorkspace) => {
+      setPendingTab("decyzja");
       navigate(buildTenderDetailPath(tenderId, "decyzja", { decyzjaWorkspace: ws }));
     },
     [navigate, tenderId],
   );
 
-  const legacyWorkspace = tab === "przetarg"
+  const legacyWorkspace = activeTab === "przetarg"
     ? TENDER_WORKFLOW_HUB_EMBED_WORKSPACE
-    : resolveV4EmbedLegacyWorkspace(tab, decyzjaWs);
-  const compactKosztorysChrome = tab === "kosztorys";
+    : resolveV4EmbedLegacyWorkspace(activeTab, decyzjaWs);
+  const compactKosztorysChrome = activeTab === "kosztorys";
 
   useEffect(() => {
     return registerNativeBackHandler(() => {
@@ -128,7 +149,7 @@ export function TenderDetailPage({
   const [pricingRevision, setPricingRevision] = useState(0);
   const [operatorActionBar, setOperatorActionBar] = useState<TenderWorkflowOperatorActionBarProps | null>(null);
 
-  const przetargActionBarActive = tab === "przetarg" && operatorActionBar != null;
+  const przetargActionBarActive = activeTab === "przetarg" && operatorActionBar != null;
 
   const pipelineRuntime = useTenderPipelineRuntime({
     item: bootstrapItem,
@@ -146,7 +167,7 @@ export function TenderDetailPage({
   );
 
   const przetargCommandSlot = useMemo(() => {
-    if (tab !== "przetarg" || !przetargCommand.intelligenceCtx) return null;
+    if (activeTab !== "przetarg" || !przetargCommand.intelligenceCtx) return null;
     return (
       <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-przetarg-command-slot>
         <TenderStatusRibbon
@@ -174,7 +195,7 @@ export function TenderDetailPage({
       </div>
     );
   }, [
-    tab,
+    activeTab,
     bootstrapItem,
     swz,
     przetargCommand.intelligenceCtx,
@@ -209,18 +230,18 @@ export function TenderDetailPage({
       className="flex-1 min-h-0 flex flex-col overflow-hidden"
       data-tender-detail-v4
       data-tender-id={item.id}
-      data-tender-tab={tab}
-      data-tender-ws={tab === "decyzja" ? decyzjaWorkspace : undefined}
+      data-tender-tab={activeTab}
+      data-tender-ws={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
     >
       <TenderDetailCommandLayer
         item={item}
-        tab={tab}
+        tab={activeTab}
         swz={swz}
         compactKosztorysChrome={compactKosztorysChrome}
-        decyzjaWorkspace={tab === "decyzja" ? decyzjaWorkspace : undefined}
+        decyzjaWorkspace={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
         onBack={() => navigate(TENDERS_LIST_PATH)}
         onTabChange={handleTabChange}
-        onDecyzjaWorkspaceChange={tab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
+        onDecyzjaWorkspaceChange={activeTab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
         przetargCommandSlot={przetargCommandSlot}
       />
 
@@ -251,7 +272,7 @@ export function TenderDetailPage({
             gateReason={pipelineRuntime.attachmentGateReason}
           />
 
-          {tab === "kosztorys" && (
+          {activeTab === "kosztorys" && (
             <TenderKosztorysWorkspace
               item={item}
               athPreviewEnabled={athPreviewEnabled}
@@ -276,7 +297,7 @@ export function TenderDetailPage({
                 ? (t) => onCreateJobFromTender(jobDraftFromTender(t), t)
                 : undefined}
               embedV4ChromeHidden
-              embedV4CommandLayerActive={tab === "przetarg"}
+              embedV4CommandLayerActive={activeTab === "przetarg"}
               embedV4Workspace={legacyWorkspace}
               onEmbedV4Navigate={handleLegacyNavigate}
               onEmbedV4TabNavigate={handleTabChange}
