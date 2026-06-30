@@ -36,8 +36,8 @@ const bid = read("src/app/TenderBidProposalPanel.tsx");
 const dossier = read("src/app/TenderDossierPanel.tsx");
 
 console.log("1. Shared mobile card primitives");
-ok("TenderMobileTableCards sm:hidden", shared.includes("sm:hidden") && shared.includes("data-tender-mobile-cards"));
-ok("TenderDesktopTable hidden sm:block", shared.includes("hidden sm:block") && shared.includes("data-tender-desktop-table"));
+ok("TenderMobileTableCards lg:hidden", shared.includes("lg:hidden") && shared.includes("data-tender-mobile-cards"));
+ok("TenderDesktopTable hidden lg:block", shared.includes("hidden lg:block") && shared.includes("data-tender-desktop-table"));
 ok("TenderMobileRowCard fields grid", shared.includes("TenderMobileRowCard") && shared.includes("grid-cols-2"));
 
 console.log("\n2. Kosztorys workspace");

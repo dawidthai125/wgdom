@@ -226,7 +226,7 @@ export function TenderDetailPage({
 
       {przetargActionBarActive && (
         <div
-          className="hidden sm:block shrink-0 border-b border-border bg-card/95 backdrop-blur-sm px-4 sm:px-6 py-2"
+          className="hidden lg:block shrink-0 border-b border-border bg-card/95 backdrop-blur-sm px-4 sm:px-6 py-2"
           data-tender-operator-action-bar-slot="desktop"
         >
           <TenderWorkflowOperatorActionBar {...operatorActionBar} variant="desktop" />
@@ -235,7 +235,7 @@ export function TenderDetailPage({
 
       <div
         className={`flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
-          przetargActionBarActive ? "max-sm:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
+          przetargActionBarActive ? "max-lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
         }`}
         style={
           przetargActionBarActive
@@ -288,7 +288,7 @@ export function TenderDetailPage({
 
         {przetargActionBarActive && (
           <div
-            className="sm:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+            className="lg:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-shadow duration-150"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             data-tender-operator-action-bar-slot="mobile"
           >

@@ -30,7 +30,7 @@ export function TenderStatusRibbon({
 }) {
   return (
     <div
-      className="space-y-1.5 max-[390px]:space-y-1"
+      className="space-y-1.5 max-[390px]:space-y-1 md:max-lg:space-y-2"
       data-tender-status-ribbon
       data-tender-ribbon-density="compact"
     >

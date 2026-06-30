@@ -27,7 +27,7 @@ export function TenderDecyzjaSubTabBar({
             role="tab"
             aria-selected={isActive}
             data-decyzja-ws={ws}
-            className={`shrink-0 px-3 py-1.5 min-h-[40px] rounded-md text-[11px] font-medium transition-colors ${
+            className={`shrink-0 px-3 py-2 min-h-[44px] lg:min-h-[36px] lg:py-1.5 rounded-md text-[11px] font-medium transition-colors duration-150 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
               isActive
                 ? "bg-secondary text-foreground ring-1 ring-border"
                 : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"

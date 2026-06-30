@@ -36,20 +36,22 @@ export function TenderPortfolioPositionPanel({
 
   return (
     <section
-      className="rounded-xl border border-border bg-card overflow-hidden"
+      className="rounded-xl border border-border bg-card overflow-hidden transition-shadow duration-150"
       data-tender-portfolio-position
+      aria-labelledby="tender-portfolio-position-heading"
     >
       <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Briefcase size={14} className="text-primary shrink-0" />
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+          <Briefcase size={14} className="text-primary shrink-0" aria-hidden />
+          <h2 id="tender-portfolio-position-heading" className="text-[11px] font-bold uppercase tracking-wider text-foreground">
             Pozycja w portfolio
           </h2>
         </div>
         <button
           type="button"
           onClick={() => onOpenStrategy(item.id)}
-          className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline shrink-0 min-h-[44px] sm:min-h-0 px-1"
+          className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline shrink-0 min-h-[44px] lg:min-h-0 px-2 touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          aria-label="Otwórz ten przetarg w module Strategia"
         >
           Strategia
           <ArrowRight size={12} />

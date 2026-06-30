@@ -96,10 +96,10 @@ function ProcessStripStageButtonCompact({
       type="button"
       onClick={handleClick}
       title={presentation.title}
-      className={`inline-flex items-center gap-1 font-semibold rounded-md border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 ${
+      className={`inline-flex items-center gap-1 font-semibold rounded-md border transition-colors duration-150 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 touch-manipulation ${
         ribbon
-          ? "text-[9px] max-[390px]:text-[8px] px-1.5 max-[390px]:px-1 py-1 max-[390px]:py-0.5"
-          : "text-[10px] px-2.5 py-1.5 rounded-lg"
+          ? "text-[10px] md:max-lg:text-[10px] max-[390px]:text-[9px] px-2 py-1.5 min-h-[44px] lg:min-h-[32px] lg:px-1.5 lg:py-1 max-[390px]:px-1.5 max-[390px]:py-1"
+          : "text-[10px] px-2.5 py-1.5 min-h-[44px] lg:min-h-[32px] rounded-lg"
       } ${presentation.buttonClassName}`}
       data-workflow-process-stage={stage.id}
       data-tender-trust-overlay={trustLevel ?? undefined}

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.7",
+    label: "NG-03.7 — Polish & EPIC CLOSE",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi V4 — touch targets ≥44 px (taby, CTA, Action Bar, accordiony); tablet 640–1023 px: immersive detal, karty zamiast tabel, sticky Action Bar",
+      },
+      {
+        type: "improve",
+        text: "NG-03 EPIC CLOSE — HelpView (Command Layer · Action Bar · Portfolio · Mobile Cards); micro-copy i dostępność accordionów",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.6",
     label: "P0 — Command Layer height (Przetarg)",
     items: [

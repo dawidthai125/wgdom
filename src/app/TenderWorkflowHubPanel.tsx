@@ -109,11 +109,11 @@ export function TenderWorkflowHubPanel({
         data-tender-progress-accordion
         open={progressDefaultOpen}
       >
-        <summary className="px-4 py-2.5 cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60">
+        <summary className="px-4 py-2.5 min-h-[44px] cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60 transition-colors duration-150 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30">
           <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
             Szczegóły postępu
           </span>
-          <span className="text-[10px] text-muted-foreground">rozwiń</span>
+          <span className="text-[10px] text-muted-foreground" aria-hidden>rozwiń</span>
         </summary>
         <div className="px-4 py-3 space-y-4">
           {commandLayerActive && (

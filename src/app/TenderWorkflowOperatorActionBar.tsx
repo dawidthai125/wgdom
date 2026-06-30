@@ -85,8 +85,8 @@ export function TenderWorkflowOperatorActionBar({
   const compact = variant === "mobile";
 
   const btnBase = compact
-    ? "flex-1 min-w-[calc(50%-0.25rem)] inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-[11px] font-medium min-h-[44px]"
-    : "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px]";
+    ? "flex-1 min-w-[calc(50%-0.25rem)] inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-[11px] font-medium min-h-[44px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+    : "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
   return (
     <div

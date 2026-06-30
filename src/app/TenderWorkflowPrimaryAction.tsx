@@ -105,8 +105,8 @@ export function TenderWorkflowPrimaryAction({
     <div
       className={
         commandLayerChrome
-          ? "rounded-lg border-2 border-primary/25 bg-background/95 px-3 py-2 max-[390px]:py-1.5 shadow-sm"
-          : "sticky top-0 z-10 rounded-xl border-2 border-primary/25 bg-background/95 backdrop-blur-sm px-4 py-3 shadow-sm"
+          ? "rounded-lg border-2 border-primary/25 bg-background/95 px-3 py-2 shadow-sm transition-shadow duration-150"
+          : "sticky top-0 z-10 rounded-xl border-2 border-primary/25 bg-background/95 backdrop-blur-sm px-4 py-3 shadow-sm transition-shadow duration-150"
       }
       data-tender-workflow-primary-action
       data-tender-primary-action-chrome={commandLayerChrome ? "command-layer" : "content"}
@@ -165,8 +165,8 @@ export function TenderWorkflowPrimaryAction({
           disabled={view.disabled}
           className={
             commandLayerChrome
-              ? "inline-flex items-center gap-1 px-3 max-[390px]:px-2.5 py-2 max-[390px]:py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] max-[390px]:text-[10px] font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] max-[390px]:min-h-[40px]"
-              : "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+              ? "inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40"
+              : "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150"
           }
           data-workflow-primary-cta
         >

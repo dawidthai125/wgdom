@@ -57,20 +57,17 @@ export function TenderDetailCommandLayer({
     >
       <button
         type="button"
-        className={`inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline -ml-1 px-1 ${
-          przetargChrome
-            ? "min-h-[36px] max-[390px]:min-h-[32px] sm:min-h-[40px]"
-            : "min-h-[40px] sm:min-h-[44px]"
-        }`}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline -ml-1 px-2 min-h-[44px] lg:min-h-[36px] rounded-lg touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         onClick={onBack}
+        aria-label="Powrót do listy przetargów"
       >
         <ArrowLeft size={14} />
         Powrót do listy
       </button>
 
-      {!compactKosztorysChrome && !przetargChrome && (
+      {!compactKosztorysChrome && (
         <nav
-          className="hidden sm:flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground"
+          className={`${przetargChrome ? "hidden md:flex" : "hidden sm:flex"} flex-wrap items-center gap-1 text-[10px] text-muted-foreground`}
           aria-label="Breadcrumb"
         >
           <span>Przetargi</span>

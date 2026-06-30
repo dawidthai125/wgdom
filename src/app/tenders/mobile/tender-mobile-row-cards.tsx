@@ -9,7 +9,7 @@ export function TenderMobileTableCards({
   className?: string;
 }) {
   return (
-    <div className={`sm:hidden space-y-2 ${className}`} data-tender-mobile-cards>
+    <div className={`lg:hidden space-y-2 ${className}`} data-tender-mobile-cards>
       {children}
     </div>
   );
@@ -23,7 +23,7 @@ export function TenderDesktopTable({
   className?: string;
 }) {
   return (
-    <div className={`hidden sm:block ${className}`} data-tender-desktop-table>
+    <div className={`hidden lg:block ${className}`} data-tender-desktop-table>
       {children}
     </div>
   );

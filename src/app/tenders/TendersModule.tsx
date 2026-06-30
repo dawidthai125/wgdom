@@ -181,10 +181,10 @@ export function TendersModule({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className={v4Detail ? "max-md:hidden shrink-0" : "shrink-0"}>
+      <div className={v4Detail ? "max-lg:hidden shrink-0" : "shrink-0"}>
         <TendersModuleHeader showTestBadge={showTestBadge} />
       </div>
-      <div className={v4Detail ? "max-md:hidden shrink-0" : "shrink-0"}>
+      <div className={v4Detail ? "max-lg:hidden shrink-0" : "shrink-0"}>
         <TendersTabBar canViewWorkCatalog={canViewWorkCatalog} />
       </div>
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">

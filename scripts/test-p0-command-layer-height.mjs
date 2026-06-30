@@ -47,7 +47,7 @@ ok("ultra compact spacing", ribbon.includes("max-[390px]:space-y-1"));
 const strip = read("src/app/TenderWorkflowProcessStrip.tsx");
 ok("process strip ribbon variant", strip.includes('variant?: "default" | "ribbon"'));
 ok("ribbon nowrap horizontal scroll", strip.includes("flex-nowrap") && strip.includes("overflow-x-auto"));
-ok("ultra compact stage buttons", strip.includes("max-[390px]:text-[8px]"));
+ok("ultra compact stage buttons touch-safe", strip.includes("max-[390px]:text-[9px]") && strip.includes("min-h-[44px]"));
 
 console.log("\n3. Analysis Strip → Szczegóły postępu");
 const hub = read("src/app/TenderWorkflowHubPanel.tsx");
@@ -69,8 +69,8 @@ ok("e2e mobile 50vh limit", e2e.includes("0.5") && e2e.includes("viewportHeight"
 
 console.log("\n6. Mobile immersive detail (moduł chrome)");
 const module = read("src/app/tenders/TendersModule.tsx");
-ok("hide module header on mobile v4 detail", module.includes("v4Detail ? \"max-md:hidden shrink-0\""));
-ok("hide module tabs on mobile v4 detail", module.includes("TendersTabBar") && module.includes("max-md:hidden"));
+ok("hide module header on mobile v4 detail", module.includes('v4Detail ? "max-lg:hidden shrink-0"'));
+ok("hide module tabs on mobile v4 detail", module.includes("TendersTabBar") && module.includes("max-lg:hidden"));
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
 if (fail > 0) process.exit(1);

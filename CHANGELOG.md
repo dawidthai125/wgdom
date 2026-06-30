@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.7 — NG-03.7 Polish & EPIC CLOSE
+
+- **improve:** Touch ≥44 px · tablet 640–1023 immersive + mobile cards do lg · Action Bar sticky na tablecie
+- **improve:** HelpView NG-03 · epic close report · NG-03 **CLOSED**
+
 ## 2.63.6 — P0 Command Layer height (Przetarg)
 
 - **fix:** Command Layer ≤280 px (desktop) / ≤50vh (mobile) — Content Layer znów scrolluje; bez scrollu w chrome

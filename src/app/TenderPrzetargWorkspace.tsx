@@ -150,11 +150,11 @@ export function TenderPrzetargWorkspace({
         className="rounded-xl border border-border bg-card overflow-hidden group"
         data-tender-info-accordion
       >
-        <summary className="px-4 py-2.5 cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60">
+        <summary className="px-4 py-2.5 min-h-[44px] cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60 transition-colors duration-150 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30">
           <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
             Informacje o przetargu
           </span>
-          <span className="text-[10px] text-muted-foreground">rozwiń</span>
+          <span className="text-[10px] text-muted-foreground" aria-hidden>rozwiń</span>
         </summary>
         <div className="px-4 py-4 space-y-4">
           <TenderDetailKpiBar item={item} swz={swz} />
@@ -206,7 +206,7 @@ export function TenderPrzetargWorkspace({
             </div>
             <button
               type="button"
-              className="text-[10px] font-medium text-primary hover:underline"
+              className="text-[10px] font-medium text-primary hover:underline min-h-[44px] lg:min-h-0 px-1 touch-manipulation"
               onClick={() => onNavigateTab("decyzja", { decyzjaWorkspace: "qualification" })}
             >
               Pełna kwalifikacja → {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
@@ -271,11 +271,11 @@ export function TenderPrzetargWorkspace({
           className="rounded-xl border border-border bg-card overflow-hidden group"
           data-tender-operator-accordion
         >
-          <summary className="px-4 py-2.5 cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60">
+          <summary className="px-4 py-2.5 min-h-[44px] cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60 transition-colors duration-150 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
               Przygotowanie oferty
             </span>
-            <span className="text-[10px] text-muted-foreground">rozwiń</span>
+            <span className="text-[10px] text-muted-foreground" aria-hidden>rozwiń</span>
           </summary>
           <div className="px-4 py-4">
             {operatorSection}
@@ -287,7 +287,7 @@ export function TenderPrzetargWorkspace({
         Szczegóły decyzji biznesowej (GO / HOLD / ODPUŚĆ) — zakładka{" "}
         <button
           type="button"
-          className="text-primary font-medium hover:underline"
+          className="text-primary font-medium hover:underline min-h-[44px] lg:min-h-0 px-1 touch-manipulation"
           onClick={() => onNavigateTab("decyzja")}
         >
           {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
