@@ -138,7 +138,7 @@ export function useTenderPipelineRuntime(opts: {
     loadingDocs: autoRunning,
   });
 
-  const { ownerFinanceProposal, bidProposal } = useTenderPricingAuto({
+  const { ownerFinanceProposal, bidProposal, priceOverrides } = useTenderPricingAuto({
     item,
     swz: swz ?? item.swzAnalysis ?? null,
     priceOverridesRevision,
@@ -192,6 +192,7 @@ export function useTenderPipelineRuntime(opts: {
     kosztorysProcessSession,
     ownerFinanceProposal,
     bidProposal,
+    priceOverrides,
     trustAssessment,
     timeline,
     attachmentGateFingerprint: attachmentGate.fingerprint,

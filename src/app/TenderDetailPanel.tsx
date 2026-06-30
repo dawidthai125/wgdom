@@ -725,7 +725,7 @@ export function TenderDetailPanel({
             catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}
             showHistoricalCalibration={false}
             tenderId={item.id}
-            priceOverrides={tenderPriceOverrides.overrides}
+            priceOverrides={pipelineRuntime.priceOverrides}
             onPriceOverridesChanged={() => onPriceOverridesChanged?.()}
           />
           {(item.estimateHistory?.length ?? 0) > 0 && (

@@ -3,6 +3,7 @@
  */
 
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import type {
@@ -44,6 +45,8 @@ export interface TenderPipelineRuntime {
   kosztorysProcessSession: KosztorysProcessSession;
   ownerFinanceProposal: TenderBidProposal | null;
   bidProposal: TenderBidProposal | null;
+  /** NG-03 P0 — SSOT z useTenderPricingAuto (UI zakładki Ceny). */
+  priceOverrides: TenderPriceOverrideEntry[];
   trustAssessment: TenderTrustAssessment;
   /** Dev-only — pusta tablica w produkcji UI. */
   timeline: PipelineTimelineEntry[];

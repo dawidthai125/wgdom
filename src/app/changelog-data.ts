@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.62.99",
+    label: "NG-03 P0 — zakładka Ceny (priceOverrides runtime)",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi → Ceny — naprawa ReferenceError tenderPriceOverrides; override cen z SSOT useTenderPricingAuto przez pipelineRuntime",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.62.98",
     label: "NG-02.1C — Production Bootstrap Fix",
     items: [

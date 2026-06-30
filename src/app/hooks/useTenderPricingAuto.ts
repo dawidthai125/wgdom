@@ -14,6 +14,7 @@ import { resolvedCostStatus } from "@/lib/tender-data-ssot";
 import {
   getTenderPriceOverrides,
   loadTenderPriceOverridesStoreLocal,
+  type TenderPriceOverrideEntry,
 } from "@/lib/tender-price-overrides";
 
 export function useTenderPricingAuto(opts: {
@@ -24,21 +25,31 @@ export function useTenderPricingAuto(opts: {
 }): {
   ownerFinanceProposal: TenderBidProposal | null;
   bidProposal: TenderBidProposal | null;
+  /** NG-03 P0 — ten sam odczyt co kalkulacja wyceny (UI Ceny). */
+  priceOverrides: TenderPriceOverrideEntry[];
 } {
   const { item, swz, priceOverridesRevision = 0, enabled = true } = opts;
 
-  const proposal = useMemo(() => {
-    if (!enabled) return null;
-    if (!tenderDossierHeavyParseDone(item.tenderDossier)) return null;
-    if (resolvedCostStatus(item) === "NOT_FOUND") return null;
-
+  const { priceOverrides, proposal } = useMemo(() => {
     void priceOverridesRevision;
-    const profile = loadCompanyProfileLocal();
     const store = loadTenderPriceOverridesStoreLocal();
+    const overrides = getTenderPriceOverrides(store, item.id).overrides;
+
+    if (!enabled) {
+      return { priceOverrides: overrides, proposal: null };
+    }
+    if (!tenderDossierHeavyParseDone(item.tenderDossier)) {
+      return { priceOverrides: overrides, proposal: null };
+    }
+    if (resolvedCostStatus(item) === "NOT_FOUND") {
+      return { priceOverrides: overrides, proposal: null };
+    }
+
+    const profile = loadCompanyProfileLocal();
     const { catalog } = resolveActiveCatalogForTender({
       referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
     });
-    return computeTenderBidProposal({
+    const nextProposal = computeTenderBidProposal({
       kosztorys: item.tenderDossier?.kosztorys,
       swz: swz ?? item.swzAnalysis ?? null,
       fit: item.tenderFit,
@@ -46,11 +57,13 @@ export function useTenderPricingAuto(opts: {
       minProjectDays: profile.minProjectDays,
       maxConcurrentProjects: profile.maxConcurrentProjects,
       catalog,
-      priceOverrides: getTenderPriceOverrides(store, item.id).overrides,
+      priceOverrides: overrides,
     });
+    return { priceOverrides: overrides, proposal: nextProposal };
   }, [
     enabled,
     item,
+    item.id,
     item.tenderDossier,
     item.tenderDossier?.kosztorys,
     item.tenderDossier?.parserVersion,
@@ -64,5 +77,6 @@ export function useTenderPricingAuto(opts: {
   return {
     ownerFinanceProposal: proposal,
     bidProposal: proposal,
+    priceOverrides,
   };
 }

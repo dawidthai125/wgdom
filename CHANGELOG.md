@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.99 — NG-03 P0 Ceny priceOverrides runtime
+
+- **fix:** zakładka Ceny — `priceOverrides` z `useTenderPricingAuto` → `pipelineRuntime` (koniec ReferenceError)
+
 ## 2.62.98 — NG-02.1C Production Bootstrap Fix
 
 - **fix:** auto bootstrap discovery — brak fałszywego `discoveryCompleted` przy 0 dokumentów
