@@ -6,6 +6,7 @@ import {
   attemptTenderDocumentsBootstrap,
   canRunDocumentDiscovery,
   isDocumentDiscoverySettled,
+  isTenderDiscoveryCompleted,
   isTenderDocumentsBootstrapCompleted,
   resetTenderDocumentsBootstrapForTests,
 } from "../src/app/hooks/useTenderDocumentsBootstrap.ts";
@@ -342,6 +343,168 @@ resetTenderDocumentsBootstrapForTests();
   const result = await runTenderDocumentDiscovery(item);
   ok("T8 skip bez force gdy settled", result.ran === false);
   ok("T8 pusty patch", Object.keys(result.patch).length === 0);
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T9 — NG-02.1C: settled-empty KV + fetch docs → discovery complete, drugi attempt bez fetch
+{
+  const settledEmpty = baseItem({
+    documentsFetchedAt: "2026-06-25T11:00:00.000Z",
+    noticeHtmlFetchedAt: "2026-06-25T10:00:00.000Z",
+    bzpDocuments: [],
+    externalDocDiscovery: { builtAt: "2026-06-25T10:00:00.000Z", files: [], pageLinks: [] },
+  });
+  let fetchCalls = 0;
+  const deps = {
+    fetchTenderNoticeDetails: async () => ({
+      tenderState: "Open",
+      htmlBody: LONG_HTML,
+    }),
+    fetchTenderDocuments: async () => {
+      fetchCalls += 1;
+      return [mockDoc];
+    },
+    discoverExternalTenderDocs: async () => ({
+      builtAt: new Date().toISOString(),
+      files: [],
+      pageLinks: [],
+    }),
+  };
+
+  const r1 = await attemptTenderDocumentsBootstrap({
+    item: settledEmpty,
+    onUpdate: () => {},
+    deps,
+  });
+  ok("T9 first attempt ok", r1.ok === true);
+  ok("T9 discovery marked complete with docs", isTenderDiscoveryCompleted(ITEM_ID));
+  ok("T9 bootstrap NOT completed bez heavy", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
+
+  await attemptTenderDocumentsBootstrap({
+    item: { ...settledEmpty, bzpDocuments: [mockDoc] },
+    onUpdate: () => {},
+    deps,
+  });
+  ok("T9 fetch once (guard blocks duplicate)", fetchCalls === 1);
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T10 — NG-02.1C: settled-empty + fetch [] + external → nie oznaczaj discovery complete
+{
+  const settledEmpty = baseItem({
+    documentsFetchedAt: "2026-06-25T11:00:00.000Z",
+    noticeHtmlFetchedAt: "2026-06-25T10:00:00.000Z",
+    bzpDocuments: [],
+  });
+  const deps = {
+    fetchTenderNoticeDetails: async () => ({
+      tenderState: "Open",
+      htmlBody: LONG_HTML,
+    }),
+    fetchTenderDocuments: async () => [],
+    discoverExternalTenderDocs: async () => ({
+      builtAt: new Date().toISOString(),
+      files: [],
+      pageLinks: [],
+    }),
+  };
+
+  const r = await attemptTenderDocumentsBootstrap({
+    item: settledEmpty,
+    onUpdate: () => {},
+    deps,
+  });
+  ok("T10 attempt ok", r.ok === true);
+  ok("T10 discovery NOT complete at 0 attachments", !isTenderDiscoveryCompleted(ITEM_ID));
+  ok("T10 pipeline bootstrap NOT complete", !isTenderDocumentsBootstrapCompleted(ITEM_ID));
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T11 — NG-02.1C: po T10 settled-empty można ponowić orchestrator (sticky cleared)
+{
+  let fetchCalls = 0;
+  const settledEmpty = baseItem({
+    documentsFetchedAt: "2026-06-25T11:00:00.000Z",
+    noticeHtmlFetchedAt: "2026-06-25T10:00:00.000Z",
+    bzpDocuments: [],
+    externalDocDiscovery: { builtAt: "2026-06-25T10:00:00.000Z", files: [], pageLinks: [] },
+  });
+  const emptyDeps = {
+    fetchTenderNoticeDetails: async () => ({
+      tenderState: "Open",
+      htmlBody: LONG_HTML,
+    }),
+    fetchTenderDocuments: async () => {
+      fetchCalls += 1;
+      return [];
+    },
+    discoverExternalTenderDocs: async () => ({
+      builtAt: new Date().toISOString(),
+      files: [],
+      pageLinks: [],
+    }),
+  };
+
+  await attemptTenderDocumentsBootstrap({
+    item: settledEmpty,
+    onUpdate: () => {},
+    deps: emptyDeps,
+  });
+  ok("T11 first fetch (empty)", fetchCalls === 1);
+  ok("T11 not discovery complete after empty", !isTenderDiscoveryCompleted(ITEM_ID));
+
+  const docDeps = {
+    ...emptyDeps,
+    fetchTenderDocuments: async () => {
+      fetchCalls += 1;
+      return [mockDoc];
+    },
+  };
+  const patches = [];
+  await attemptTenderDocumentsBootstrap({
+    item: settledEmpty,
+    onUpdate: (p) => patches.push(p),
+    deps: docDeps,
+  });
+  ok("T11 second attempt fetches again", fetchCalls === 2);
+  ok("T11 retry patch has docs", patches.some((p) => (p.bzpDocuments?.length ?? 0) > 0));
+  ok("T11 discovery complete after docs", isTenderDiscoveryCompleted(ITEM_ID));
+}
+
+resetTenderDocumentsBootstrapForTests();
+
+// T12 — NG-02.1C: apply-on-success mimo isCancelled po BZP
+{
+  let cancelled = false;
+  const patches = [];
+  const deps = {
+    fetchTenderNoticeDetails: async () => ({
+      tenderState: "Open",
+      htmlBody: LONG_HTML,
+    }),
+    fetchTenderDocuments: async () => {
+      cancelled = true;
+      return [mockDoc];
+    },
+    discoverExternalTenderDocs: async () => ({
+      builtAt: new Date().toISOString(),
+      files: [],
+      pageLinks: [],
+    }),
+  };
+
+  const r = await attemptTenderDocumentsBootstrap({
+    item: baseItem(),
+    isCancelled: () => cancelled,
+    onUpdate: (p) => patches.push(p),
+    deps,
+  });
+  ok("T12 attempt ok", r.ok === true);
+  ok("T12 patch persisted despite cancel", patches.some((p) => (p.bzpDocuments?.length ?? 0) > 0));
+  ok("T12 discovery marked after authoritative patch", isTenderDiscoveryCompleted(ITEM_ID));
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

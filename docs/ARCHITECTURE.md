@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-29 (**NG-02.1B Pipeline Lifecycle Stabilization** · v2.62.97)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-30 (**NG-02.1C Production Bootstrap Fix** · v2.62.98)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1811,6 +1811,23 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Nie zmienia:** parsery · merge · Unified Attachment Gate · Trust · Pricing · Cloud Sync.
 
 **Test:** `test-tender-full-document-discovery.mjs` · `test-tender-dossier-heavy-lifecycle.mjs` · regresja NG-02 + bootstrap + gate.
+
+---
+
+### 12.1.26 NG-02.1C — Production Bootstrap Fix (v2.62.98)
+
+**Status:** **CLOSED** — naprawa auto bootstrap discovery na prod (sticky session guards + apply-on-success).
+
+| Element | Plik | Rola |
+|---------|------|------|
+| **Sticky guards** | `useTenderDocumentsBootstrap.ts` | `discoveryCompletedIds` tylko gdy `countTenderAttachments > 0` |
+| **Settled-empty reset** | `clearStickyBootstrapStateForSettledEmpty` | przy wejściu w przetarg: KV settled + 0 załączników → kasuj session Sets |
+| **Apply-on-success** | `attemptTenderDocumentsBootstrap` | orchestrator bez `isCancelled` z effect; persist authoritative BZP patch mimo cleanup |
+| **Pipeline complete** | `shouldMarkPipelineBootstrapCompleted` | brak „complete” przy 0 załącznikach (heavy done osobno) |
+
+**Nie zmienia:** `runTenderFullDocumentDiscovery` · Unified Attachment Gate · Trust · parsery · Pricing · Cloud Sync.
+
+**Test:** `test-tender-documents-bootstrap-retry.mjs` (T9–T12) · regresja `test-tender-full-document-discovery.mjs`.
 
 ---
 

@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-30",
+    version: "2.62.98",
+    label: "NG-02.1C — Production Bootstrap Fix",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — auto discovery: brak fałszywego ukończenia przy 0 dokumentów (discoveryCompleted tylko gdy są załączniki)",
+      },
+      {
+        type: "fix",
+        text: "Przetargi — reset sticky bootstrap przy settled-empty; ponowne wejście uruchamia discovery jak „Odśwież BZP”",
+      },
+      {
+        type: "fix",
+        text: "Przetargi — zapis dokumentów BZP po cleanup effect (apply-on-success); koniec utraty patch przy race bootstrapKey",
+      },
+    ],
+  },
+  {
     date: "2026-06-29",
     version: "2.62.97",
     label: "NG-02.1B — Pipeline Lifecycle Stabilization",

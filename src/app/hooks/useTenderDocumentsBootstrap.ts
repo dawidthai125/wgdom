@@ -13,13 +13,18 @@ import {
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle } from "@/lib/tenders-bzp-brief";
 import { analyzeSwzFromNoticeHtmlOnly, tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
+import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import {
   canRunDocumentDiscovery,
   documentDiscoveryBootstrapKey,
   isDocumentDiscoverySettled,
 } from "@/lib/tender-document-discovery";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
-import { runTenderFullDocumentDiscovery, isExternalDiscoverySettled } from "@/lib/tender-pipeline/tender-full-document-discovery";
+import {
+  runTenderFullDocumentDiscovery,
+  isExternalDiscoverySettled,
+  type TenderFullDiscoveryResult,
+} from "@/lib/tender-pipeline/tender-full-document-discovery";
 
 /** Discovery phase ukończona — nie powtarzaj orchestratora. */
 const discoveryCompletedIds = new Set<string>();
@@ -62,6 +67,21 @@ const defaultDeps: TenderDocumentsBootstrapDeps = {
   discoverExternalTenderDocs,
 };
 
+/** NG-02.1C — KV settled + 0 załączników: nie trzymaj sticky session guards. */
+function isSettledEmptyAttachments(item: TenderPipelineItem): boolean {
+  return isDocumentDiscoverySettled(item) && countTenderAttachments(item) === 0;
+}
+
+function clearStickyBootstrapStateForSettledEmpty(item: TenderPipelineItem): void {
+  if (!isSettledEmptyAttachments(item)) return;
+  discoveryCompletedIds.delete(item.id);
+  pipelineBootstrapCompletedIds.delete(item.id);
+}
+
+function hasAuthoritativeDiscoveryPatch(discovery: TenderFullDiscoveryResult): boolean {
+  return discovery.meta.bzpRan && discovery.meta.bzpDocCount > 0;
+}
+
 function shouldMarkDiscoveryCompleted(item: TenderPipelineItem): boolean {
   if (!item.tenderId?.trim()) return true;
   if (!isDocumentDiscoverySettled(item)) return false;
@@ -75,7 +95,7 @@ function shouldMarkPipelineBootstrapCompleted(item: TenderPipelineItem): boolean
   if (!item.tenderId?.trim()) return true;
   if (!shouldMarkDiscoveryCompleted(item)) return false;
   const gate = deriveUnifiedAttachmentGate(item);
-  if (!gate.canStartHeavyParse && gate.totalAttachmentCount === 0) return true;
+  if (gate.totalAttachmentCount === 0) return false;
   return tenderDossierHeavyParseDone(item.tenderDossier);
 }
 
@@ -105,6 +125,8 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   } = opts;
   const deps = { ...defaultDeps, ...depsOverride };
 
+  clearStickyBootstrapStateForSettledEmpty(item);
+
   if (pipelineBootstrapCompletedIds.has(item.id)) {
     return { ok: true };
   }
@@ -116,6 +138,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   try {
     const patch: Partial<TenderPipelineItem> = {};
     let html = item.noticeHtml ?? null;
+    let discoveryResult: TenderFullDiscoveryResult | null = null;
 
     if (!discoveryCompletedIds.has(item.id)) {
       onExternalRunning?.(true);
@@ -124,20 +147,25 @@ export async function attemptTenderDocumentsBootstrap(opts: {
           mode: "auto",
           prefetchNotice: true,
           includeExternal: true,
-          isCancelled,
+          // NG-02.1C: orchestrator kończy fetch; persist gate'ujemy w bootstrap (nie w SSOT).
+          isCancelled: () => false,
           deps,
         });
-        if (!isCancelled()) {
+        discoveryResult = discovery;
+        const applyDiscovery = !isCancelled() || hasAuthoritativeDiscoveryPatch(discovery);
+        if (applyDiscovery) {
           Object.assign(patch, discovery.patch);
           html = patch.noticeHtml ?? item.noticeHtml ?? null;
-          const totalNew = discovery.meta.changeEventCount + discovery.meta.qaEventCount
-            + discovery.meta.externalNewEventCount;
-          if (totalNew > 0) {
-            toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
+          if (!isCancelled()) {
+            const totalNew = discovery.meta.changeEventCount + discovery.meta.qaEventCount
+              + discovery.meta.externalNewEventCount;
+            if (totalNew > 0) {
+              toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
+            }
           }
         }
       } finally {
-        if (!isCancelled()) onExternalRunning?.(false);
+        onExternalRunning?.(false);
       }
     }
 
@@ -162,13 +190,23 @@ export async function attemptTenderDocumentsBootstrap(opts: {
       };
     }
 
-    if (Object.keys(patch).length > 0 && !isCancelled()) {
+    const mergedForCount = { ...item, ...patch };
+    const shouldPersist =
+      !isCancelled()
+      || (discoveryResult != null && hasAuthoritativeDiscoveryPatch(discoveryResult))
+      || countTenderAttachments(mergedForCount) > 0;
+
+    if (Object.keys(patch).length > 0 && shouldPersist) {
       onUpdate(patch);
     }
 
-    if (!isCancelled()) {
-      const merged = { ...item, ...patch };
-      if (shouldMarkDiscoveryCompleted(merged)) {
+    const canMarkComplete =
+      !isCancelled()
+      || (discoveryResult != null && hasAuthoritativeDiscoveryPatch(discoveryResult));
+
+    if (canMarkComplete) {
+      const merged = mergedForCount;
+      if (countTenderAttachments(merged) > 0 && shouldMarkDiscoveryCompleted(merged)) {
         discoveryCompletedIds.add(item.id);
       }
       if (shouldMarkPipelineBootstrapCompleted(merged)) {
@@ -206,6 +244,7 @@ export function useTenderDocumentsBootstrap(opts: {
 
   useEffect(() => {
     if (!enabled) return;
+    clearStickyBootstrapStateForSettledEmpty(item);
     if (pipelineBootstrapCompletedIds.has(item.id)) return;
 
     let cancelled = false;

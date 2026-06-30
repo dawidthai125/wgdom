@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.62.98 — NG-02.1C Production Bootstrap Fix
+
+- **fix:** auto bootstrap discovery — brak fałszywego `discoveryCompleted` przy 0 dokumentów
+- **fix:** reset sticky session state dla settled-empty (wejście w przetarg)
+- **fix:** persist authoritative BZP patch po cleanup effect (apply-on-success)
+
 ## 2.62.97 — NG-02.1B Pipeline Lifecycle Stabilization
 
 - **fix:** auto discovery ponawia skan przy settled-empty (0 załączników) — zgodność z „Odśwież BZP”
