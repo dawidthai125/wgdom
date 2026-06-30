@@ -61,7 +61,7 @@ export function TenderWorkflowOperatorSection({
 }) {
   return (
     <div className="space-y-3" data-tender-workflow-hub="operator">
-      <TenderMonitoringBanner item={item} onOpenStrategy={onOpenStrategy} />
+      <TenderMonitoringBanner item={item} onOpenStrategy={onOpenStrategy} compact={hideInlineActions} />
 
       {!hideAnalysisStrip && (
         <TenderAnalysisStatusStrip

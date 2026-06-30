@@ -21,7 +21,10 @@ import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-contex
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
+import { TENDER_INTELLIGENCE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
+
+const PARTICIPATION_PREVIEW_LINES = 3;
 
 function BlockShell({
   title,
@@ -105,7 +108,6 @@ export function TenderPrzetargWorkspace({
         onNavigateTab={onNavigateTab}
         onNavigateLegacy={onNavigateLegacy}
         onOpenPreview={onOpenPreview}
-        operatorSection={operatorSection}
         ownerFinanceProposal={ownerFinanceProposal}
         ownerDecision={ownerDecision}
         participationResult={participationResult}
@@ -158,17 +160,31 @@ export function TenderPrzetargWorkspace({
         {!hasParticipationDisplayData(swz) ? (
           <p className="text-sm text-muted-foreground">Nie wykryto wymagań</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {participationGroups.map((group) => (
-              <div key={group.label} className="space-y-1.5">
-                <p className="text-xs font-semibold text-foreground">{group.label}</p>
-                <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
-                  {group.items.slice(0, 6).map((line, i) => (
-                    <li key={`${group.label}-${i}`} className="break-words">{line}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="space-y-3">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {participationGroups.map((group) => (
+                <div key={group.label} className="space-y-1.5">
+                  <p className="text-xs font-semibold text-foreground">{group.label}</p>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                    {group.items.slice(0, PARTICIPATION_PREVIEW_LINES).map((line, i) => (
+                      <li key={`${group.label}-${i}`} className="break-words">{line}</li>
+                    ))}
+                    {group.items.length > PARTICIPATION_PREVIEW_LINES && (
+                      <li className="list-none pl-0 text-[10px] text-muted-foreground">
+                        +{group.items.length - PARTICIPATION_PREVIEW_LINES} więcej w kwalifikacji
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="text-[10px] font-medium text-primary hover:underline"
+              onClick={() => onNavigateTab("decyzja", { decyzjaWorkspace: "qualification" })}
+            >
+              Pełna kwalifikacja → {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
+            </button>
           </div>
         )}
       </BlockShell>
@@ -205,6 +221,35 @@ export function TenderPrzetargWorkspace({
       </BlockShell>
         </div>
       </details>
+
+      {operatorSection && (
+        <details
+          className="rounded-xl border border-border bg-card overflow-hidden group"
+          data-tender-operator-accordion
+        >
+          <summary className="px-4 py-2.5 cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+              Przygotowanie oferty
+            </span>
+            <span className="text-[10px] text-muted-foreground">rozwiń</span>
+          </summary>
+          <div className="px-4 py-4">
+            {operatorSection}
+          </div>
+        </details>
+      )}
+
+      <p className="text-[10px] text-muted-foreground px-1">
+        Szczegóły decyzji biznesowej (GO / HOLD / ODPUŚĆ) — zakładka{" "}
+        <button
+          type="button"
+          className="text-primary font-medium hover:underline"
+          onClick={() => onNavigateTab("decyzja")}
+        >
+          {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
+        </button>
+        .
+      </p>
     </div>
   );
 }

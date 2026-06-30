@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.3 — NG-03.4 Workspace Density (Przetarg)
+
+- **improve:** V2 hub density — pasek postępu + checklista skrócona; bez osi czasu / dokumentów w accordionie
+- **improve:** Accordion „Przygotowanie oferty”; warunki udziału skrót + link Kwalifikacja
+
 ## 2.63.2 — NG-03.3 Operator Action Bar
 
 - **improve:** Operator Action Bar — Upload · Analiza · e-Zamówienia · Eksport (desktop pod Command Layer, mobile sticky)

@@ -1,8 +1,3 @@
-/**
- * EPIC A — Workflow Hub (zakładka Przetarg): postęp, blokery, status, operator.
- */
-
-import type { ReactNode } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -10,7 +5,7 @@ import type { ParticipationCheckResult } from "@/lib/tender-participation-check"
 import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { TenderWorkspaceV2Panel } from "@/app/TenderWorkspaceV2Panel";
+import { TenderWorkspaceV2Panel, TenderWorkspaceV2ChecklistCompact } from "@/app/TenderWorkspaceV2Panel";
 import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import {
@@ -22,7 +17,6 @@ import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
-import { TENDER_INTELLIGENCE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
 import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { shouldRenderHubTrustBanner } from "@/lib/tender-trust-ui";
@@ -34,7 +28,6 @@ export function TenderWorkflowHubPanel({
   onNavigateTab,
   onNavigateLegacy,
   onOpenPreview,
-  operatorSection,
   ownerFinanceProposal,
   ownerDecision,
   participationResult,
@@ -56,7 +49,6 @@ export function TenderWorkflowHubPanel({
   ) => void;
   onNavigateLegacy: (tab: TenderWorkspaceTabId) => void;
   onOpenPreview: (previewItem: InspectorFileItem) => void;
-  operatorSection?: ReactNode;
   ownerFinanceProposal?: TenderBidProposal | null;
   ownerDecision?: OwnerTenderDecisionRecord | null;
   participationResult?: ParticipationCheckResult | null;
@@ -128,9 +120,14 @@ export function TenderWorkflowHubPanel({
             swz={swz}
             intelligenceCtx={intelligenceCtx}
             onNavigateTab={onNavigateTab}
+            hubDensity={commandLayerActive}
           />
 
           <WorkflowHubBlockersSection ctx={intelligenceCtx} />
+
+          {commandLayerActive && (
+            <TenderWorkspaceV2ChecklistCompact item={item} swz={swz} />
+          )}
 
           <WorkflowHubPositionsFileDisplay
             view={intelligenceCtx.positions}
@@ -140,20 +137,6 @@ export function TenderWorkflowHubPanel({
           />
         </div>
       </details>
-
-      {operatorSection}
-
-      <p className="text-[10px] text-muted-foreground px-1">
-        Szczegóły decyzji biznesowej (GO / HOLD / ODPUŚĆ) — zakładka{" "}
-        <button
-          type="button"
-          className="text-primary font-medium hover:underline"
-          onClick={() => onNavigateTab("decyzja")}
-        >
-          {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
-        </button>
-        .
-      </p>
     </div>
   );
 }

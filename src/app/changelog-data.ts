@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.3",
+    label: "NG-03.4 — Workspace Density (Przetarg)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → mniejsza gęstość — V2 skrócone w accordionie postępu (bez osi czasu i siatki dokumentów), checklista max 5 + rozwiń",
+      },
+      {
+        type: "improve",
+        text: "Przetargi → Przygotowanie oferty i warunki udziału zwinięte domyślnie; skrót kwalifikacji z linkiem do Decyzja",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.2",
     label: "NG-03.3 — Operator Action Bar",
     items: [

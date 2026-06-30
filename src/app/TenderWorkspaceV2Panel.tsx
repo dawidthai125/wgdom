@@ -88,6 +88,8 @@ export function TenderWorkspaceV2Panel({
   swz,
   intelligenceCtx: _intelligenceCtx,
   onNavigateTab,
+  /** NG-03.4 — tylko pasek postępu (bez osi czasu / dokumentów / pełnej checklisty). */
+  hubDensity = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -97,6 +99,7 @@ export function TenderWorkspaceV2Panel({
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
+  hubDensity?: boolean;
 }) {
   const [checklistPersist, setChecklistPersist] = useState(
     () => loadWorkspaceV2ChecklistPersist(item.id),
@@ -174,6 +177,8 @@ export function TenderWorkspaceV2Panel({
         </div>
       </SectionShell>
 
+      {!hubDensity && (
+        <>
       <SectionShell title="Oś czasu">
         <div className="space-y-3">
           <p className="text-xs font-semibold text-foreground">{timelineAutomation.daysRemainingLabel}</p>
@@ -285,6 +290,100 @@ export function TenderWorkspaceV2Panel({
           ))}
         </ul>
       </SectionShell>
+        </>
+      )}
     </div>
+  );
+}
+
+const HUB_CHECKLIST_PREVIEW = 5;
+
+/** NG-03.4 — skrócona checklista V2 w accordionie postępu (max 5 + rozwiń). */
+export function TenderWorkspaceV2ChecklistCompact({
+  item,
+  swz,
+}: {
+  item: TenderPipelineItem;
+  swz: TenderSwzAnalysis | null | undefined;
+}) {
+  const [checklistPersist, setChecklistPersist] = useState(
+    () => loadWorkspaceV2ChecklistPersist(item.id),
+  );
+  const autoChecklist = useMemo(() => buildWorkspaceV2AutoChecklist(item, swz), [item, swz]);
+  const operationalChecklist = useMemo(
+    () => buildWorkspaceV2Checklist(item, swz, checklistPersist).filter(
+      (r) => r.manual || r.id === "submitted",
+    ),
+    [item, swz, checklistPersist],
+  );
+
+  const toggleSignature = () => {
+    const next = saveWorkspaceV2ChecklistPersist(item.id, {
+      signature: !checklistPersist.signature,
+    });
+    setChecklistPersist(next);
+  };
+
+  if (autoChecklist.length === 0 && operationalChecklist.length === 0) return null;
+
+  const previewAuto = autoChecklist.slice(0, HUB_CHECKLIST_PREVIEW);
+  const restAuto = autoChecklist.slice(HUB_CHECKLIST_PREVIEW);
+
+  return (
+    <section
+      className="rounded-xl border border-border bg-card overflow-hidden"
+      data-tender-workspace-v2-checklist-compact
+    >
+      <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30">
+        <h2 className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+          Checklista ofertowa
+        </h2>
+      </div>
+      <div className="px-4 py-3">
+        <ul className="space-y-2">
+          {previewAuto.map((row) => (
+            <li key={row.id} className={`flex items-start gap-2 text-sm ${autoStatusRowClass(row.status)}`}>
+              <span className="shrink-0 w-4 text-center font-bold" aria-hidden>
+                {workspaceV2AutoStatusGlyph(row.status)}
+              </span>
+              <span className="min-w-0 font-medium">{row.label}</span>
+            </li>
+          ))}
+          {operationalChecklist.map((row) => (
+            <li key={row.id}>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={row.checked}
+                  disabled={!row.manual}
+                  onChange={row.manual ? toggleSignature : undefined}
+                  className="rounded border-border text-primary focus:ring-primary/30"
+                />
+                <span className={row.checked ? "text-foreground" : "text-muted-foreground"}>
+                  {row.label}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        {restAuto.length > 0 && (
+          <details className="mt-2 group">
+            <summary className="text-[10px] font-medium text-primary cursor-pointer list-none hover:underline">
+              Pokaż pozostałe ({restAuto.length})
+            </summary>
+            <ul className="space-y-2 mt-2 pt-2 border-t border-border/50">
+              {restAuto.map((row) => (
+                <li key={row.id} className={`flex items-start gap-2 text-sm ${autoStatusRowClass(row.status)}`}>
+                  <span className="shrink-0 w-4 text-center font-bold" aria-hidden>
+                    {workspaceV2AutoStatusGlyph(row.status)}
+                  </span>
+                  <span className="min-w-0 font-medium">{row.label}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
+    </section>
   );
 }
