@@ -8,6 +8,10 @@ import {
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
+import {
+  TenderWorkflowOperatorActionBar,
+  type TenderWorkflowOperatorActionBarProps,
+} from "@/app/TenderWorkflowOperatorActionBar";
 import { TenderStatusRibbon } from "@/app/TenderStatusRibbon";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
@@ -122,6 +126,9 @@ export function TenderDetailPage({
   const bootstrapItem = item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem;
 
   const [pricingRevision, setPricingRevision] = useState(0);
+  const [operatorActionBar, setOperatorActionBar] = useState<TenderWorkflowOperatorActionBarProps | null>(null);
+
+  const przetargActionBarActive = tab === "przetarg" && operatorActionBar != null;
 
   const pipelineRuntime = useTenderPipelineRuntime({
     item: bootstrapItem,
@@ -221,9 +228,24 @@ export function TenderDetailPage({
         przetargCommandSlot={przetargCommandSlot}
       />
 
+      {przetargActionBarActive && (
+        <div
+          className="hidden sm:block shrink-0 border-b border-border bg-card/95 backdrop-blur-sm px-4 sm:px-6 py-2"
+          data-tender-operator-action-bar-slot="desktop"
+        >
+          <TenderWorkflowOperatorActionBar {...operatorActionBar} variant="desktop" />
+        </div>
+      )}
+
       <div
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
-        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        className={`flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
+          przetargActionBarActive ? "max-sm:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
+        }`}
+        style={
+          przetargActionBarActive
+            ? undefined
+            : { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }
+        }
       >
         <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
           <TenderPipelineDevTimeline
@@ -263,9 +285,20 @@ export function TenderDetailPage({
               onEmbedV4Navigate={handleLegacyNavigate}
               onEmbedV4TabNavigate={handleTabChange}
               onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
+              onOperatorActionBarChange={setOperatorActionBar}
             />
           )}
         </div>
+
+        {przetargActionBarActive && (
+          <div
+            className="sm:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+            data-tender-operator-action-bar-slot="mobile"
+          >
+            <TenderWorkflowOperatorActionBar {...operatorActionBar} variant="mobile" />
+          </div>
+        )}
       </div>
     </div>
   );

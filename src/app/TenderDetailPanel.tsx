@@ -41,6 +41,7 @@ import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderDecisionView } from "@/app/TenderDecisionView";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderWorkflowOperatorSection } from "@/app/TenderWorkflowOperatorSection";
+import type { TenderWorkflowOperatorActionBarProps } from "@/app/TenderWorkflowOperatorActionBar";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
@@ -92,6 +93,7 @@ export function TenderDetailPanel({
   onEmbedV4Navigate,
   onEmbedV4TabNavigate,
   onPriceOverridesChanged,
+  onOperatorActionBarChange,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -119,6 +121,8 @@ export function TenderDetailPanel({
   ) => void;
   /** NG-02 — odświeżenie wyceny po zmianie override (Page → runtime). */
   onPriceOverridesChanged?: () => void;
+  /** NG-03.3 — Operator Action Bar w TenderDetailPage (niezależny od Command Layer). */
+  onOperatorActionBarChange?: (props: TenderWorkflowOperatorActionBarProps | null) => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -512,6 +516,38 @@ export function TenderDetailPanel({
 
   const effectiveWorkspace = workspaceForLogic;
 
+  useEffect(() => {
+    if (
+      !embedV4CommandLayerActive
+      || effectiveWorkspace !== TENDER_WORKFLOW_HUB_EMBED_WORKSPACE
+      || !onOperatorActionBarChange
+    ) {
+      onOperatorActionBarChange?.(null);
+      return;
+    }
+    onOperatorActionBarChange({
+      item,
+      uploading,
+      analyzing,
+      exportingPdf,
+      onUpload: (file) => void handleUpload(file),
+      onAnalyze: () => void runAnalysis(),
+      onExportPdf: () => void handleExportPdf(),
+    });
+    return () => onOperatorActionBarChange(null);
+  }, [
+    embedV4CommandLayerActive,
+    effectiveWorkspace,
+    onOperatorActionBarChange,
+    item,
+    uploading,
+    analyzing,
+    exportingPdf,
+    handleUpload,
+    runAnalysis,
+    handleExportPdf,
+  ]);
+
   const workspaceBadges = useMemo(() => {
     const badges: Partial<Record<TenderWorkspaceTabId, string>> = {};
     const mon = getTenderMonitoringCounts(item);
@@ -643,6 +679,8 @@ export function TenderDetailPanel({
                   onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
                   onNavigateWorkspace={navigateWorkspace}
                   hideAnalysisStrip={embedV4CommandLayerActive}
+                  hideInlineActions={embedV4CommandLayerActive}
+                  hideBidPrepHeaderActions={embedV4CommandLayerActive}
                 />
               )}
             />

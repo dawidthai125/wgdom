@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   Briefcase, ExternalLink, Loader2, Trash2, Upload,
 } from "lucide-react";
@@ -32,6 +31,8 @@ export function TenderWorkflowOperatorSection({
   onUpdateOurEstimate,
   onNavigateWorkspace,
   hideAnalysisStrip = false,
+  hideInlineActions = false,
+  hideBidPrepHeaderActions = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -54,6 +55,9 @@ export function TenderWorkflowOperatorSection({
   onNavigateWorkspace: (tab: TenderWorkspaceTabId) => void;
   /** NG-03.2 — Analysis Status w Status Ribbon. */
   hideAnalysisStrip?: boolean;
+  /** NG-03.3 — akcje w Operator Action Bar (nie duplikować w content). */
+  hideInlineActions?: boolean;
+  hideBidPrepHeaderActions?: boolean;
 }) {
   return (
     <div className="space-y-3" data-tender-workflow-hub="operator">
@@ -71,62 +75,96 @@ export function TenderWorkflowOperatorSection({
         />
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {item.ezamowieniaUrl && (
-          <a
-            href={item.ezamowieniaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink size={12} />
-            e-Zamówienia
-          </a>
-        )}
-        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
-          {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-          Wgraj SWZ
-          <input
-            type="file"
-            accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) onUpload(f);
-              e.target.value = "";
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </label>
-        {(item.status === "won" || item.status === "preparing") && onCreateJob && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (item.linkedJobId && onOpenJob) {
-                onOpenJob(item.linkedJobId);
-                return;
-              }
-              onCreateJob();
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
-          >
-            <Briefcase size={12} />
-            {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
-          </button>
-        )}
-        {onRemove && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
-          >
-            <Trash2 size={12} />
-            Usuń
-          </button>
-        )}
-      </div>
+      {!hideInlineActions && (
+        <div className="flex flex-wrap items-center gap-2" data-tender-operator-inline-actions>
+          {item.ezamowieniaUrl && (
+            <a
+              href={item.ezamowieniaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={12} />
+              e-Zamówienia
+            </a>
+          )}
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
+            {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+            Wgraj SWZ
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUpload(f);
+                e.target.value = "";
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </label>
+          {(item.status === "won" || item.status === "preparing") && onCreateJob && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (item.linkedJobId && onOpenJob) {
+                  onOpenJob(item.linkedJobId);
+                  return;
+                }
+                onCreateJob();
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
+            >
+              <Briefcase size={12} />
+              {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
+            </button>
+          )}
+          {onRemove && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onRemove(); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
+            >
+              <Trash2 size={12} />
+              Usuń
+            </button>
+          )}
+        </div>
+      )}
+
+      {hideInlineActions && (
+        <div className="flex flex-wrap items-center gap-2" data-tender-operator-secondary-actions>
+          {(item.status === "won" || item.status === "preparing") && onCreateJob && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (item.linkedJobId && onOpenJob) {
+                  onOpenJob(item.linkedJobId);
+                  return;
+                }
+                onCreateJob();
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
+            >
+              <Briefcase size={12} />
+              {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
+            </button>
+          )}
+          {onRemove && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onRemove(); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
+            >
+              <Trash2 size={12} />
+              Usuń
+            </button>
+          )}
+        </div>
+      )}
 
       <TenderBidPrepPanel
         item={item}
@@ -141,6 +179,7 @@ export function TenderWorkflowOperatorSection({
         onUpdateOurEstimate={onUpdateOurEstimate}
         onNavigateWorkspace={onNavigateWorkspace}
         collapseTiles
+        hideHeaderActions={hideBidPrepHeaderActions}
       />
     </div>
   );

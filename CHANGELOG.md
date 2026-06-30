@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.2 — NG-03.3 Operator Action Bar
+
+- **improve:** Operator Action Bar — Upload · Analiza · e-Zamówienia · Eksport (desktop pod Command Layer, mobile sticky)
+- **improve:** Dedup akcji w operator section / BidPrep gdy Action Bar aktywny
+
 ## 2.63.1 — NG-03.2 Tender Workspace Command Layer
 
 - **improve:** Command Layer — KPI Compact · Status Ribbon · CTA sticky na Przetarg

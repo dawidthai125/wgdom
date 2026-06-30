@@ -57,6 +57,7 @@ export function TenderBidPrepPanel({
   onNavigateWorkspace,
   overviewMode = false,
   collapseTiles = false,
+  hideHeaderActions = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -78,6 +79,8 @@ export function TenderBidPrepPanel({
   overviewMode?: boolean;
   /** P5-004 — zwinięta checklista kafelków (operator w Więcej). */
   collapseTiles?: boolean;
+  /** NG-03.3 — Analiza/Eksport w Operator Action Bar. */
+  hideHeaderActions?: boolean;
 }) {
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
@@ -139,26 +142,30 @@ export function TenderBidPrepPanel({
             {TENDER_OWNER_OPERATOR_COPY.bidPrepReadyLine(readyCount, checks.length)}
           </p>
         </div>
-        <button
-          type="button"
-          disabled={analyzing || !canAnalyze}
-          onClick={(e) => { e.stopPropagation(); onAnalyze(); }}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[10px] font-medium hover:bg-violet-700 disabled:opacity-50"
-          title={!canAnalyze ? "Brak numeru ogłoszenia i załączników" : TENDER_OWNER_HINT_COPY.analyzeDocumentsTitle}
-        >
-          {analyzing ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-          {analyzing ? TENDER_OWNER_OPERATOR_COPY.analyzingDocuments : TENDER_OWNER_OPERATOR_COPY.analyzeDocuments}
-        </button>
-        {onExportPdf && (
-          <button
-            type="button"
-            disabled={exportingPdf}
-            onClick={(e) => { e.stopPropagation(); onExportPdf(); }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary text-[10px] font-medium hover:bg-secondary/80 disabled:opacity-50"
-          >
-            {exportingPdf ? <Loader2 size={11} className="animate-spin" /> : <FileDown size={11} />}
-            {TENDER_OWNER_OPERATOR_COPY.exportSummaryPdf}
-          </button>
+        {!hideHeaderActions && (
+          <>
+            <button
+              type="button"
+              disabled={analyzing || !canAnalyze}
+              onClick={(e) => { e.stopPropagation(); onAnalyze(); }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[10px] font-medium hover:bg-violet-700 disabled:opacity-50"
+              title={!canAnalyze ? "Brak numeru ogłoszenia i załączników" : TENDER_OWNER_HINT_COPY.analyzeDocumentsTitle}
+            >
+              {analyzing ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+              {analyzing ? TENDER_OWNER_OPERATOR_COPY.analyzingDocuments : TENDER_OWNER_OPERATOR_COPY.analyzeDocuments}
+            </button>
+            {onExportPdf && (
+              <button
+                type="button"
+                disabled={exportingPdf}
+                onClick={(e) => { e.stopPropagation(); onExportPdf(); }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary text-[10px] font-medium hover:bg-secondary/80 disabled:opacity-50"
+              >
+                {exportingPdf ? <Loader2 size={11} className="animate-spin" /> : <FileDown size={11} />}
+                {TENDER_OWNER_OPERATOR_COPY.exportSummaryPdf}
+              </button>
+            )}
+          </>
         )}
       </div>
 

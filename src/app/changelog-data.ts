@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.2",
+    label: "NG-03.3 — Operator Action Bar",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Operator Action Bar — Upload, Analiza, e-Zamówienia i Eksport PDF w osobnym pasku (desktop pod Command Layer, mobile sticky na dole)",
+      },
+      {
+        type: "improve",
+        text: "Przetargi → bez duplikacji akcji w sekcji operatora i nagłówku karty ofertowej gdy Action Bar aktywny",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.1",
     label: "NG-03.2 — Tender Workspace Command Layer",
     items: [
