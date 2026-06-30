@@ -1816,7 +1816,8 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 ### 12.1.26 NG-02.1C — Production Bootstrap Fix (v2.62.98)
 
-**Status:** **CLOSED** — naprawa auto bootstrap discovery na prod (sticky session guards + apply-on-success).
+**Status:** **EPIC CLOSED** — naprawa auto bootstrap discovery na prod (sticky session guards + apply-on-success).  
+**Closeout:** [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md)
 
 | Element | Plik | Rola |
 |---------|------|------|

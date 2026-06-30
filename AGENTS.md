@@ -11,7 +11,9 @@
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.92)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.98)
+3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
+3w4. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED · 7 źródeł)
 3w. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md  ← ★★ P1 Audit Hub WM EPIC CLOSED
 3w2. docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md  ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
@@ -172,8 +174,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.92**) |
-| Prod `main` (app) | **v2.62.92** (`5f212b4`) · SUPER ADMIN ACL guide/changelog · Mobile Recovery **EPIC CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.98**) |
+| Prod `main` (app) | **v2.62.98** (`aeecdc0`) · **NG-02 EPIC CLOSED** · SUPER ADMIN ACL · Mobile Recovery **EPIC CLOSED** |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
@@ -487,6 +489,18 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Test:** `test-admin-guide-acl.mjs`
 
 **Nie zmieniaj bez polecenia:** nie scalać menu · moderator bez dostępu · bez nowego KV.
+
+---
+
+## 3l2d. NG-02 — Tender Automation Pipeline (**CLOSED**, prod `aeecdc0`, v2.62.98)
+
+- **Handoff SSOT:** [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](audit/NG-02-EPIC-CLOSE-REPORT.md)
+- **Architektura:** **ARCHITECTURE.md § 12.1.23–12.1.26** — `useTenderPipelineRuntime` · bootstrap · gate · orchestrator
+- **Seria:** 2.62.95 (P0) → 2.62.96 (1A gate) → 2.62.97 (1B lifecycle) → **2.62.98 (1C bootstrap fix)**
+- **Kluczowe pliki:** `useTenderDocumentsBootstrap.ts`, `tender-full-document-discovery.ts`, `unified-attachment-gate.ts`, `useTenderDossierHeavyLazy.ts`
+- **Test:** `test-tender-documents-bootstrap-retry.mjs` (T0–T12) · `test-tender-pipeline-automation-p0.mjs`
+
+**Nie** zmieniaj bootstrap guards (02.1C) bez audytu · **Nie** ruszaj orchestratora/gate/trust/parserów/sync bez briefu
 
 ---
 

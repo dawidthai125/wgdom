@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-29 (**prod 2.62.92** · **SUPER ADMIN ACL CLOSED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-30 (**prod 2.62.98** · **NG-02 EPIC CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło sesji:** „kontynuuj WGDOM”  
@@ -23,6 +23,8 @@
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync egress · exceed_egress_quota (**INCIDENT CLOSED** 2026-06-29)
 1u3. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
+1u5. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
+1u6. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout report
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
 1c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
@@ -50,6 +52,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG-02 Tender Automation Pipeline** | **2.62.95–98** (`aeecdc0`) | **CLOSED** · auto discovery → heavy → pricing · prod bootstrap fix 02.1C | [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 12.1.23–26 |
 | **SUPER ADMIN ACL (Instrukcja + Zmiany)** | **2.62.92** (`5f212b4`) | **CLOSED** · osobne menu · AppSettings ACL | [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 |
 | **P0 Cloud Sync Incident** | **2.62.81** (prod) | **CLOSED** · Supabase Pro · prod smoke PASS 2026-06-29 | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md) §0 |
 | **Biblioteka Robót v3.0 — P1 Foundation** | **2.62.80** | **CLOSED** · lib + KV + golden · **bez UI** · P2 OPEN | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md) · [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md) · ARCHITECTURE § 12.1.22 |
@@ -158,8 +161,12 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.62.92       ← SUPER ADMIN ACL Instrukcja/Zmiany · commit 5f212b4
-Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937 · PRODUCTION VERIFIED
+Version (prod):             2.62.98       ← NG-02.1C Production Bootstrap Fix · commit aeecdc0 · EPIC CLOSED
+NG-02 Pipeline 2.62.97:     301de0e       lifecycle orchestrator SSOT · 02.1B
+NG-02.1A Gate 2.62.96:      7536aa1       unified-attachment-gate · external-only heavy
+NG-02 P0 2.62.95:           (seria)       useTenderPipelineRuntime · PipelineState
+Version (prod):             2.62.92       ← SUPER ADMIN ACL · commit 5f212b4
+Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
@@ -295,6 +302,26 @@ E2E (origin/main):    8906485         20.5Z.2B
 curl -s https://www.wgdom.fun/version.json
 # oczekiwane: { "version": "2.62.79", "commit": "4397eac" }
 ```
+
+---
+
+## 2c. NG-02 Tender Automation Pipeline EPIC — **CLOSED** (v2.62.95–2.62.98)
+
+| Pole | Wartość |
+|------|---------|
+| **Version** | **2.62.98** |
+| **Commit** | **`aeecdc0`** |
+| **Status** | **Production** · **EPIC CLOSED** |
+| **Zakres** | Auto pipeline po otwarciu przetargu V4: discovery → external → heavy → pricing → trust |
+| **Verify deploy** | **PASS** |
+| **Automated smoke** | **177 PASS / 0 FAIL** |
+| **Outstanding production bugs** | **NONE** |
+
+**SSOT:** [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 12.1.23–26
+
+**Releases:** 2.62.95 P0 runtime · 2.62.96 unified gate · 2.62.97 orchestrator lifecycle · 2.62.98 bootstrap prod fix
+
+**Nie rozpoczynaj** refaktoru pipeline bez nowego epic + AUDIT.
 
 ---
 
