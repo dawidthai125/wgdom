@@ -31,6 +31,7 @@ export function TenderWorkflowOperatorSection({
   onExportPdf,
   onUpdateOurEstimate,
   onNavigateWorkspace,
+  hideAnalysisStrip = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -51,20 +52,24 @@ export function TenderWorkflowOperatorSection({
   onExportPdf?: () => void;
   onUpdateOurEstimate: (pln: number | null) => void;
   onNavigateWorkspace: (tab: TenderWorkspaceTabId) => void;
+  /** NG-03.2 — Analysis Status w Status Ribbon. */
+  hideAnalysisStrip?: boolean;
 }) {
   return (
     <div className="space-y-3" data-tender-workflow-hub="operator">
       <TenderMonitoringBanner item={item} onOpenStrategy={onOpenStrategy} />
 
-      <TenderAnalysisStatusStrip
-        item={item}
-        swz={swz}
-        bidProposal={bidProposal}
-        dossierBuilding={dossierBuilding}
-        dossierSaving={dossierSaving}
-        autoRunning={autoRunning}
-        kosztorysSession={kosztorysSession}
-      />
+      {!hideAnalysisStrip && (
+        <TenderAnalysisStatusStrip
+          item={item}
+          swz={swz}
+          bidProposal={bidProposal}
+          dossierBuilding={dossierBuilding}
+          dossierSaving={dossierSaving}
+          autoRunning={autoRunning}
+          kosztorysSession={kosztorysSession}
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         {item.ezamowieniaUrl && (

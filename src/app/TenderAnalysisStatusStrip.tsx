@@ -37,6 +37,7 @@ export function TenderAnalysisStatusStrip({
   autoRunning,
   kosztorysSession,
   ownerMoreContext = false,
+  ribbonCompact = false,
 }: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
@@ -47,6 +48,8 @@ export function TenderAnalysisStatusStrip({
   kosztorysSession?: import("@/lib/tender-kosztorys-process-phase").KosztorysProcessSession;
   /** P5-004 — w Więcej pomiń kroki duplikujące Owner View. */
   ownerMoreContext?: boolean;
+  /** NG-03.2 — inline w Status Ribbon (bez osobnego boxa). */
+  ribbonCompact?: boolean;
 }) {
   const rows = buildTenderAnalysisStatusRows({
     item,
@@ -60,6 +63,32 @@ export function TenderAnalysisStatusStrip({
   const visibleRows = ownerMoreContext
     ? rows.filter((r) => r.id === "notice" || r.id === "documents")
     : rows;
+
+  if (ribbonCompact) {
+    return (
+      <div
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5"
+        data-tender-analysis-status-ribbon
+      >
+        <span className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
+          {TENDER_OWNER_WORKSPACE_SECTION_COPY.analysisProgress}
+        </span>
+        {visibleRows.map((row) => {
+          const Icon = rowIcon(row, { dossierBuilding, autoRunning });
+          const spin = row.state === "pending" && Icon === Loader2;
+          return (
+            <span
+              key={row.id}
+              className={`inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-medium ${STATE_CLASS[row.state]}`}
+            >
+              <Icon size={10} className={spin ? "animate-spin shrink-0" : "shrink-0"} />
+              {row.label}
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">

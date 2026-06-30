@@ -694,6 +694,33 @@ export interface KpiBarProCell {
   subValue?: string;
 }
 
+/** NG-03.2 — 4 komórki KPI Compact w Command Layer (Design Freeze §3.4). */
+export const KPI_COMPACT_CELL_LABELS = [
+  "Termin",
+  "Wartość",
+  "Dokumenty",
+  "Wycena",
+] as const;
+
+export type KpiCompactCellLabel = (typeof KPI_COMPACT_CELL_LABELS)[number];
+
+export function buildKpiBarCompactCells(
+  item: TenderPipelineItem,
+  swz: TenderSwzAnalysis | null | undefined,
+): KpiBarProCell[] {
+  const all = buildKpiBarProCells(item, swz);
+  const pick = new Set<string>(KPI_COMPACT_CELL_LABELS);
+  return all.filter((c) => pick.has(c.label));
+}
+
+export function buildKpiBarExtendedCells(
+  item: TenderPipelineItem,
+  swz: TenderSwzAnalysis | null | undefined,
+): KpiBarProCell[] {
+  const compactLabels = new Set<string>(KPI_COMPACT_CELL_LABELS);
+  return buildKpiBarProCells(item, swz).filter((c) => !compactLabels.has(c.label));
+}
+
 export function buildKpiBarProCells(
   item: TenderPipelineItem,
   swz: TenderSwzAnalysis | null | undefined,

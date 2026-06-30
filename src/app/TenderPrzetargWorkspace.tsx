@@ -16,6 +16,7 @@ import {
   hasParticipationDisplayData,
 } from "@/lib/tender-detail-v4-display";
 import { TenderWorkflowHubPanel } from "@/app/TenderWorkflowHubPanel";
+import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
@@ -65,6 +66,7 @@ export function TenderPrzetargWorkspace({
   dossierSaving,
   analyzing,
   trustAssessment,
+  commandLayerActive = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -85,6 +87,8 @@ export function TenderPrzetargWorkspace({
   dossierSaving?: boolean;
   analyzing?: boolean;
   trustAssessment: TenderTrustAssessment;
+  /** NG-03.2 — Command Layer w TenderDetailPage. */
+  commandLayerActive?: boolean;
 }) {
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
@@ -111,7 +115,21 @@ export function TenderPrzetargWorkspace({
         dossierSaving={dossierSaving}
         analyzing={analyzing}
         trustAssessment={trustAssessment}
+        commandLayerActive={commandLayerActive}
       />
+
+      <details
+        className="rounded-xl border border-border bg-card overflow-hidden group"
+        data-tender-info-accordion
+      >
+        <summary className="px-4 py-2.5 cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+            Informacje o przetargu
+          </span>
+          <span className="text-[10px] text-muted-foreground">rozwiń</span>
+        </summary>
+        <div className="px-4 py-4 space-y-4">
+          <TenderDetailKpiBar item={item} swz={swz} />
 
       <BlockShell title="Podstawowe dane">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -185,6 +203,8 @@ export function TenderPrzetargWorkspace({
           </ul>
         )}
       </BlockShell>
+        </div>
+      </details>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { buildKpiBarProCells } from "@/lib/tender-detail-v4-display";
 
+/** Pełne KPI (8 komórek) — accordion / drawer (NG-03.2). */
 export function TenderDetailKpiBar({
   item,
   swz,
@@ -13,7 +14,7 @@ export function TenderDetailKpiBar({
   const cells = useMemo(() => buildKpiBarProCells(item, swz), [item, swz]);
 
   return (
-    <div className="rounded-xl border border-border bg-card/80 overflow-hidden">
+    <div className="rounded-xl border border-border bg-card/80 overflow-hidden" data-tender-kpi-full>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
         {cells.map((cell) => (
           <div key={cell.label} className="px-3 py-2.5 min-w-0">

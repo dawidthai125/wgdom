@@ -87,6 +87,7 @@ export function TenderDetailPanel({
   profileVersion = 0,
   onRemove,
   embedV4ChromeHidden = false,
+  embedV4CommandLayerActive = false,
   embedV4Workspace,
   onEmbedV4Navigate,
   onEmbedV4TabNavigate,
@@ -105,6 +106,8 @@ export function TenderDetailPanel({
   onRemove?: () => void;
   /** V4 — ukryj summary bar i legacy tab bar (shell w TenderDetailPage). */
   embedV4ChromeHidden?: boolean;
+  /** NG-03.2 — Command Layer na Przetarg (ribbon/CTA w TenderDetailPage). */
+  embedV4CommandLayerActive?: boolean;
   /** V4 — wymuszona zakładka workspace (legacy id lub workflow-hub). */
   embedV4Workspace?: TenderEmbedV4WorkspaceId;
   /** V4 — nawigacja z hub / legacy workspace → URL V4. */
@@ -609,6 +612,7 @@ export function TenderDetailPanel({
               dossierSaving={dossierSaving}
               analyzing={analyzing}
               trustAssessment={trustAssessment}
+              commandLayerActive={embedV4CommandLayerActive}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}
@@ -638,6 +642,7 @@ export function TenderDetailPanel({
                   onExportPdf={() => void handleExportPdf()}
                   onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
                   onNavigateWorkspace={navigateWorkspace}
+                  hideAnalysisStrip={embedV4CommandLayerActive}
                 />
               )}
             />

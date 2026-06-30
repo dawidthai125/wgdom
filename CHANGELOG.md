@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.1 — NG-03.2 Tender Workspace Command Layer
+
+- **improve:** Command Layer — KPI Compact · Status Ribbon · CTA sticky na Przetarg
+- **improve:** Progressive disclosure — V2 + informacje w accordion; pełne KPI w Informacje
+
 ## 2.63.0 — NG-03.1 Tender Workspace Navigation
 
 - **improve:** detal V4 — 5 tabów (usunięte placeholdery Strategia/Materiały); legacy URL → Przetarg

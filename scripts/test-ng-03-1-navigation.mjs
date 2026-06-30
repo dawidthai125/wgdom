@@ -85,11 +85,12 @@ ok(
 console.log("\n5. UI wiring");
 const tabBar = readFileSync(resolve(root, "src/app/TenderDetailTabBar.tsx"), "utf8");
 const subBar = readFileSync(resolve(root, "src/app/TenderDecyzjaSubTabBar.tsx"), "utf8");
+const cmd = readFileSync(resolve(root, "src/app/TenderDetailCommandLayer.tsx"), "utf8");
 const page = readFileSync(resolve(root, "src/app/TenderDetailPage.tsx"), "utf8");
 ok("TabBar uses ACTIVE_TAB_ORDER", tabBar.includes("TENDER_DETAIL_V4_ACTIVE_TAB_ORDER"));
 ok("TabBar no wkrótce", !tabBar.includes("wkrótce"));
 ok("SubTabBar marker", subBar.includes("data-tender-decyzja-subtabs"));
-ok("Page mounts SubTabBar", page.includes("TenderDecyzjaSubTabBar"));
+ok("CommandLayer mounts SubTabBar", cmd.includes("TenderDecyzjaSubTabBar"));
 ok("Page retired redirect", page.includes("resolveRetiredV4TabRedirect"));
 ok("Page no placeholder", !page.includes("TenderV4Placeholder"));
 

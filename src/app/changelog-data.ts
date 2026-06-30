@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.1",
+    label: "NG-03.2 — Tender Workspace Command Layer",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Command Layer — KPI Compact (4 komórki), Status Ribbon (Trust + Process Strip + postęp analizy) i Primary CTA w sticky chrome na zakładce Przetarg",
+      },
+      {
+        type: "improve",
+        text: "Przetargi → Hub — V2 postęp i informacje o przetargu domyślnie zwinięte (accordion); pełne KPI (8) w sekcji Informacje",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.0",
     label: "NG-03.1 — Tender Workspace Navigation",
     items: [

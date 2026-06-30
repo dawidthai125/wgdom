@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import {
@@ -7,9 +7,10 @@ import {
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
-import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
-import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
-import { TenderDecyzjaSubTabBar } from "@/app/TenderDecyzjaSubTabBar";
+import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
+import { TenderStatusRibbon } from "@/app/TenderStatusRibbon";
+import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
+import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
@@ -17,12 +18,10 @@ import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
   buildTenderDetailPathFromLegacyWorkspace,
-  DECYZJA_V4_SUB_TAB_LABELS,
   parseDecyzjaWorkspaceQuery,
   resolveRetiredV4TabRedirect,
   resolveV4EmbedLegacyWorkspace,
   TENDER_DETAIL_DECYZJA_WS_QUERY,
-  TENDER_DETAIL_V4_TAB_LABELS,
   TENDERS_LIST_PATH,
   type DecyzjaV4EmbedWorkspace,
   type TenderDetailV4TabId,
@@ -133,6 +132,55 @@ export function TenderDetailPage({
     priceOverridesRevision: pricingRevision,
   });
 
+  const przetargCommand = useTenderPrzetargCommandContext(
+    bootstrapItem,
+    swz,
+    pipelineRuntime,
+  );
+
+  const przetargCommandSlot = useMemo(() => {
+    if (tab !== "przetarg" || !przetargCommand.intelligenceCtx) return null;
+    return (
+      <div className="space-y-2 pt-0.5" data-tender-przetarg-command-slot>
+        <TenderStatusRibbon
+          item={bootstrapItem}
+          swz={swz}
+          intelligenceCtx={przetargCommand.intelligenceCtx}
+          trustAssessment={pipelineRuntime.trustAssessment}
+          bidProposal={pipelineRuntime.ownerFinanceProposal}
+          kosztorysSession={pipelineRuntime.kosztorysProcessSession}
+          autoRunning={pipelineRuntime.autoRunning}
+          dossierBuilding={pipelineRuntime.dossierBuilding}
+          dossierSaving={pipelineRuntime.dossierSaving}
+          onNavigateTab={handleTabChange}
+        />
+        <TenderWorkflowPrimaryAction
+          item={bootstrapItem}
+          swz={swz}
+          intelligenceCtx={przetargCommand.intelligenceCtx}
+          ownerFinanceProposal={pipelineRuntime.ownerFinanceProposal}
+          ownerDecision={przetargCommand.ownerDecision}
+          participationResult={przetargCommand.participationResult}
+          kosztorysSession={pipelineRuntime.kosztorysProcessSession}
+          autoRunning={pipelineRuntime.autoRunning}
+          dossierBuilding={pipelineRuntime.dossierBuilding}
+          dossierSaving={pipelineRuntime.dossierSaving}
+          analyzing={false}
+          onNavigateTab={handleTabChange}
+        />
+      </div>
+    );
+  }, [
+    tab,
+    bootstrapItem,
+    swz,
+    przetargCommand.intelligenceCtx,
+    przetargCommand.ownerDecision,
+    przetargCommand.participationResult,
+    pipelineRuntime,
+    handleTabChange,
+  ]);
+
   if (!item) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
@@ -161,55 +209,17 @@ export function TenderDetailPage({
       data-tender-tab={tab}
       data-tender-ws={tab === "decyzja" ? decyzjaWorkspace : undefined}
     >
-      <div
-        className={`shrink-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 ${compactKosztorysChrome ? "px-4 sm:px-6 py-2 space-y-2" : "px-4 sm:px-6 py-3 space-y-3"}`}
-      >
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline min-h-[44px] -ml-1 px-1"
-          onClick={() => navigate(TENDERS_LIST_PATH)}
-        >
-          <ArrowLeft size={14} />
-          Powrót do listy
-        </button>
-
-        {!compactKosztorysChrome && (
-          <nav className="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground" aria-label="Breadcrumb">
-            <span>Przetargi</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="truncate max-w-[12rem]">{item.bzpNumber || item.id.slice(0, 8)}</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="text-foreground font-medium">
-              {TENDER_DETAIL_V4_TAB_LABELS[tab]}
-              {tab === "decyzja" && (
-                <>
-                  {" · "}
-                  {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}
-                </>
-              )}
-            </span>
-          </nav>
-        )}
-
-        <h1
-          className={
-            compactKosztorysChrome
-              ? "text-sm font-semibold leading-snug text-foreground line-clamp-1"
-              : "text-base sm:text-lg font-semibold leading-snug text-foreground"
-          }
-        >
-          {item.title}
-        </h1>
-
-        {!compactKosztorysChrome && <TenderDetailKpiBar item={item} swz={swz} />}
-        <TenderDetailTabBar activeTab={tab} onTabChange={handleTabChange} />
-        {tab === "decyzja" && (
-          <TenderDecyzjaSubTabBar
-            activeWorkspace={decyzjaWorkspace}
-            onWorkspaceChange={handleDecyzjaWorkspaceChange}
-          />
-        )}
-      </div>
+      <TenderDetailCommandLayer
+        item={item}
+        tab={tab}
+        swz={swz}
+        compactKosztorysChrome={compactKosztorysChrome}
+        decyzjaWorkspace={tab === "decyzja" ? decyzjaWorkspace : undefined}
+        onBack={() => navigate(TENDERS_LIST_PATH)}
+        onTabChange={handleTabChange}
+        onDecyzjaWorkspaceChange={tab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
+        przetargCommandSlot={przetargCommandSlot}
+      />
 
       <div
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
@@ -248,6 +258,7 @@ export function TenderDetailPage({
                 ? (t) => onCreateJobFromTender(jobDraftFromTender(t), t)
                 : undefined}
               embedV4ChromeHidden
+              embedV4CommandLayerActive={tab === "przetarg"}
               embedV4Workspace={legacyWorkspace}
               onEmbedV4Navigate={handleLegacyNavigate}
               onEmbedV4TabNavigate={handleTabChange}
