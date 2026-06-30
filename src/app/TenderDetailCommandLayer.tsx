@@ -40,25 +40,35 @@ export function TenderDetailCommandLayer({
   przetargCommandSlot?: ReactNode;
 }) {
   const showKpiCompact = !compactKosztorysChrome;
+  const przetargChrome = tab === "przetarg";
 
   return (
     <div
       className={`shrink-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 ${
-        compactKosztorysChrome ? "px-4 sm:px-6 py-2 space-y-2" : "px-4 sm:px-6 py-2 sm:py-3 space-y-2 sm:space-y-2.5"
+        compactKosztorysChrome
+          ? "px-4 sm:px-6 py-2 space-y-2"
+          : przetargChrome
+            ? "px-4 sm:px-6 py-1.5 sm:py-2 space-y-1.5 max-[390px]:space-y-1"
+            : "px-4 sm:px-6 py-2 sm:py-3 space-y-2 sm:space-y-2.5"
       }`}
       data-tender-command-layer
       data-tender-tab={tab}
+      data-tender-command-przetarg={przetargChrome ? "true" : undefined}
     >
       <button
         type="button"
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline min-h-[40px] sm:min-h-[44px] -ml-1 px-1"
+        className={`inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline -ml-1 px-1 ${
+          przetargChrome
+            ? "min-h-[36px] max-[390px]:min-h-[32px] sm:min-h-[40px]"
+            : "min-h-[40px] sm:min-h-[44px]"
+        }`}
         onClick={onBack}
       >
         <ArrowLeft size={14} />
         Powrót do listy
       </button>
 
-      {!compactKosztorysChrome && (
+      {!compactKosztorysChrome && !przetargChrome && (
         <nav
           className="hidden sm:flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground"
           aria-label="Breadcrumb"
@@ -81,7 +91,7 @@ export function TenderDetailCommandLayer({
 
       <h1
         className={
-          compactKosztorysChrome
+          compactKosztorysChrome || przetargChrome
             ? "text-sm font-semibold leading-snug text-foreground line-clamp-1"
             : "text-sm sm:text-lg font-semibold leading-snug text-foreground line-clamp-2 sm:line-clamp-none"
         }
@@ -98,7 +108,9 @@ export function TenderDetailCommandLayer({
         />
       )}
 
-      {showKpiCompact && <TenderDetailKpiCompact item={item} swz={swz} />}
+      {showKpiCompact && !przetargChrome && (
+        <TenderDetailKpiCompact item={item} swz={swz} />
+      )}
 
       {tab === "przetarg" && przetargCommandSlot}
     </div>

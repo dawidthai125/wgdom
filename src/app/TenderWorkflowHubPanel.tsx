@@ -8,6 +8,7 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { TenderWorkspaceV2Panel, TenderWorkspaceV2ChecklistCompact } from "@/app/TenderWorkspaceV2Panel";
 import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
+import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
 import {
   WorkflowHubBlockersSection,
   WorkflowHubPositionsFileDisplay,
@@ -115,6 +116,18 @@ export function TenderWorkflowHubPanel({
           <span className="text-[10px] text-muted-foreground">rozwiń</span>
         </summary>
         <div className="px-4 py-3 space-y-4">
+          {commandLayerActive && (
+            <TenderAnalysisStatusStrip
+              item={item}
+              swz={swz}
+              bidProposal={ownerFinanceProposal}
+              dossierBuilding={dossierBuilding}
+              dossierSaving={dossierSaving}
+              autoRunning={autoRunning}
+              kosztorysSession={kosztorysSession}
+            />
+          )}
+
           <TenderWorkspaceV2Panel
             item={item}
             swz={swz}

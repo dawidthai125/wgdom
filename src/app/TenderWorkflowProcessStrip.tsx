@@ -68,12 +68,60 @@ function ProcessStripStageButton({
   );
 }
 
+function ProcessStripStageButtonCompact({
+  stage,
+  onNavigate,
+  trustAssessment,
+  ribbon,
+}: {
+  stage: WorkflowProcessStripStage;
+  onNavigate: (
+    tab: TenderDetailV4TabId,
+    opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
+  ) => void;
+  trustAssessment: TenderTrustAssessment;
+  ribbon: boolean;
+}) {
+  const trustLevel = trustStageOverlayLevel(trustAssessment, stage.id);
+  const trustMessage = pickStripStageTrustMessage(trustAssessment, stage.id);
+  const presentation = buildProcessStripStagePresentation(stage, trustLevel, trustMessage);
+
+  const handleClick = () => {
+    const target = workflowProcessStripStageToV4Navigate(stage.id);
+    onNavigate(target.tab, target.decyzjaWorkspace ? { decyzjaWorkspace: target.decyzjaWorkspace } : undefined);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title={presentation.title}
+      className={`inline-flex items-center gap-1 font-semibold rounded-md border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 ${
+        ribbon
+          ? "text-[9px] max-[390px]:text-[8px] px-1.5 max-[390px]:px-1 py-1 max-[390px]:py-0.5"
+          : "text-[10px] px-2.5 py-1.5 rounded-lg"
+      } ${presentation.buttonClassName}`}
+      data-workflow-process-stage={stage.id}
+      data-tender-trust-overlay={trustLevel ?? undefined}
+      data-tender-trust-strip-icon={presentation.iconKind}
+    >
+      {presentation.iconKind === "trust" && presentation.trustIcon ? (
+        <span className="shrink-0 font-bold" aria-hidden>{presentation.trustIcon}</span>
+      ) : (
+        <StageIcon status={presentation.workflowStatus} />
+      )}
+      <span className="whitespace-nowrap">{stage.label}</span>
+    </button>
+  );
+}
+
 export function TenderWorkflowProcessStrip({
   item,
   swz,
   intelligenceCtx,
   trustAssessment,
   onNavigateTab,
+  variant = "default",
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -83,6 +131,8 @@ export function TenderWorkflowProcessStrip({
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
+  /** NG-03 P0 — compact ribbon w Command Layer (bez wrap, scroll poziomy). */
+  variant?: "default" | "ribbon";
 }) {
   const stages = buildWorkflowProcessStripStages({
     item,
@@ -90,25 +140,57 @@ export function TenderWorkflowProcessStrip({
     prepStatus: intelligenceCtx.prepStatus,
   });
 
+  const ribbon = variant === "ribbon";
+
   return (
     <nav
-      className="rounded-xl border border-border bg-card px-3 py-2.5"
+      className={
+        ribbon
+          ? "rounded-lg border border-border/70 bg-card/80 px-2 py-1 max-[390px]:px-1.5 max-[390px]:py-0.5"
+          : "rounded-xl border border-border bg-card px-3 py-2.5"
+      }
       aria-label="Proces przygotowania oferty"
       data-tender-workflow-process-strip
+      data-tender-process-strip-variant={variant}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+      <p
+        className={
+          ribbon
+            ? "sr-only"
+            : "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2"
+        }
+      >
         Proces oferty
       </p>
-      <div className="flex flex-wrap items-center gap-1">
+      <div
+        className={
+          ribbon
+            ? "flex flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain scrollbar-thin -mx-0.5 px-0.5"
+            : "flex flex-wrap items-center gap-1"
+        }
+      >
         {stages.map((stage, index) => (
-          <div key={stage.id} className="inline-flex items-center gap-1">
-            <ProcessStripStageButton
-              stage={stage}
-              onNavigate={onNavigateTab}
-              trustAssessment={trustAssessment}
-            />
+          <div key={stage.id} className="inline-flex items-center gap-1 shrink-0">
+            {ribbon ? (
+              <ProcessStripStageButtonCompact
+                stage={stage}
+                onNavigate={onNavigateTab}
+                trustAssessment={trustAssessment}
+                ribbon
+              />
+            ) : (
+              <ProcessStripStageButton
+                stage={stage}
+                onNavigate={onNavigateTab}
+                trustAssessment={trustAssessment}
+              />
+            )}
             {index < stages.length - 1 && (
-              <ChevronRight size={12} className="text-muted-foreground/50 shrink-0" aria-hidden />
+              <ChevronRight
+                size={ribbon ? 10 : 12}
+                className={`text-muted-foreground/50 shrink-0 ${ribbon ? "max-[390px]:hidden" : ""}`}
+                aria-hidden
+              />
             )}
           </div>
         ))}

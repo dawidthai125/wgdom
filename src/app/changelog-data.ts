@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.6",
+    label: "P0 — Command Layer height (Przetarg)",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi → detal Przetarg: Command Layer mieści się w limicie Design Freeze (≤280 px desktop · ≤50vh mobile) — treść znów scrolluje",
+      },
+      {
+        type: "improve",
+        text: "Status Ribbon compact + ultra-compact (≤390 px); postęp analizy przeniesiony do accordionu Szczegóły postępu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.5",
     label: "NG-03.6 — Strategy Bridge (Przetarg)",
     items: [

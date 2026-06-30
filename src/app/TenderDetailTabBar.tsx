@@ -27,7 +27,7 @@ export function TenderDetailTabBar({
             role="tab"
             aria-selected={isActive}
             data-tender-tab={tab}
-            className={`shrink-0 px-3 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-colors ${
+            className={`shrink-0 px-3 py-2 min-h-[40px] max-[390px]:min-h-[36px] max-[390px]:px-2.5 max-[390px]:py-1.5 rounded-lg text-xs max-[390px]:text-[11px] font-medium transition-colors ${
               isActive
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground"

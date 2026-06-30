@@ -148,17 +148,12 @@ export function TenderDetailPage({
   const przetargCommandSlot = useMemo(() => {
     if (tab !== "przetarg" || !przetargCommand.intelligenceCtx) return null;
     return (
-      <div className="space-y-2 pt-0.5" data-tender-przetarg-command-slot>
+      <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-przetarg-command-slot>
         <TenderStatusRibbon
           item={bootstrapItem}
           swz={swz}
           intelligenceCtx={przetargCommand.intelligenceCtx}
           trustAssessment={pipelineRuntime.trustAssessment}
-          bidProposal={pipelineRuntime.ownerFinanceProposal}
-          kosztorysSession={pipelineRuntime.kosztorysProcessSession}
-          autoRunning={pipelineRuntime.autoRunning}
-          dossierBuilding={pipelineRuntime.dossierBuilding}
-          dossierSaving={pipelineRuntime.dossierSaving}
           onNavigateTab={handleTabChange}
         />
         <TenderWorkflowPrimaryAction
@@ -174,6 +169,7 @@ export function TenderDetailPage({
           dossierSaving={pipelineRuntime.dossierSaving}
           analyzing={false}
           onNavigateTab={handleTabChange}
+          commandLayerChrome
         />
       </div>
     );

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.6 — P0 Command Layer height (Przetarg)
+
+- **fix:** Command Layer ≤280 px (desktop) / ≤50vh (mobile) — Content Layer znów scrolluje; bez scrollu w chrome
+- **improve:** Compact / ultra-compact Ribbon (≤390 px); Analysis Strip w accordionie Szczegóły postępu
+
 ## 2.63.5 — NG-03.6 Strategy Bridge (Przetarg)
 
 - **improve:** Portfolio Position w workspace Przetarg — bridge do Strategii z kontekstem tenderId
