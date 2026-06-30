@@ -35,6 +35,11 @@ import {
 } from "@/lib/tender-cost-calibration";
 import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
+import {
+  TenderDesktopTable,
+  TenderMobileRowCard,
+  TenderMobileTableCards,
+} from "@/app/tenders/mobile/tender-mobile-row-cards";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { findTrustDimension } from "@/lib/tender-trust-layer";
 import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
@@ -634,6 +639,44 @@ export function TenderBidProposalPanel({
                   <summary className="cursor-pointer px-2.5 py-1.5 text-[10px] font-medium text-amber-800 dark:text-amber-200 hover:bg-amber-500/10">
                     Pozycje UNKNOWN ({classification.summary.unknownRows})
                   </summary>
+                  <TenderMobileTableCards className="p-2 max-h-48 overflow-y-auto border-t border-amber-500/15">
+                    {classification.unknownRows.map((row) => (
+                      <TenderMobileRowCard
+                        key={`unk-m-${row.lp}-${row.description}`}
+                        title={`${row.lp}. ${row.description}`}
+                        fields={[
+                          { label: "j.m.", value: row.unit },
+                          { label: "Ilość", value: row.quantity.toLocaleString("pl-PL") },
+                        ]}
+                        footer={(
+                          <div className="flex flex-wrap items-center gap-1 pt-1">
+                            <select
+                              value={assignCategoryByLp[row.lp] ?? ""}
+                              onChange={(e) => setAssignCategoryByLp((prev) => ({
+                                ...prev,
+                                [row.lp]: e.target.value as UserClassificationCategory,
+                              }))}
+                              className="flex-1 min-w-0 bg-secondary rounded px-2 py-1 border border-border text-[10px]"
+                            >
+                              <option value="">— wybierz kategorię —</option>
+                              {WGDOM_COST_CATEGORY_IDS.map((id) => (
+                                <option key={id} value={id}>{id}</option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              disabled={assignSavingLp === row.lp || !assignCategoryByLp[row.lp]}
+                              onClick={() => void handleAssignCategory(row)}
+                              className="shrink-0 px-2 py-1 rounded bg-violet-600 text-white text-[10px] font-medium hover:bg-violet-700 disabled:opacity-40"
+                            >
+                              {assignSavingLp === row.lp ? "…" : "Zapisz"}
+                            </button>
+                          </div>
+                        )}
+                      />
+                    ))}
+                  </TenderMobileTableCards>
+                  <TenderDesktopTable>
                   <div className="max-h-48 overflow-y-auto border-t border-amber-500/15">
                     <table className="w-full text-[10px]">
                       <thead className="bg-secondary/40 sticky top-0">
@@ -682,6 +725,7 @@ export function TenderBidProposalPanel({
                       </tbody>
                     </table>
                   </div>
+                  </TenderDesktopTable>
                 </details>
               )}
               {classification.tuningHints.length > 0 && (

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.4 — NG-03.5 Mobile Cards (Przetarg)
+
+- **improve:** Kosztorys / Ceny / Dokumenty — mobile card layout (bez poziomego scrollu ≤390 px); desktop tabele bez zmian
+- **improve:** UNKNOWN w Ceny — przypisanie kategorii w widoku kartowym na mobile
+
 ## 2.63.3 — NG-03.4 Workspace Density (Przetarg)
 
 - **improve:** V2 hub density — pasek postępu + checklista skrócona; bez osi czasu / dokumentów w accordionie

@@ -9,6 +9,11 @@ import { TenderCategoryPriceOverrideModal } from "@/app/TenderCategoryPriceOverr
 import { LaborBenchmarkStatusBadge } from "@/app/LaborBenchmarkUi";
 import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
 import {
+  TenderDesktopTable,
+  TenderMobileRowCard,
+  TenderMobileTableCards,
+} from "@/app/tenders/mobile/tender-mobile-row-cards";
+import {
   formatLaborBenchmarkDeviationShort,
   formatLaborBenchmarkImpactPln,
   laborBenchmarkImpactClass,
@@ -100,6 +105,42 @@ export function TenderCatalogLinePricingSection({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-2.5 py-1.5 bg-secondary/40 border-b border-border/40">
             Podsumowanie kategorii (bez UNKNOWN) — ranking wpływu benchmarku
           </p>
+          <TenderMobileTableCards className="p-2">
+            {view.categorySummary.map((row) => (
+              <TenderMobileRowCard
+                key={`mcat-${row.categoryId}`}
+                title={row.categoryLabel}
+                subtitle={(row.hasMaterialOverride || row.hasLaborOverride) ? "Override" : undefined}
+                fields={[
+                  { label: "Pozycje", value: row.positionCount },
+                  { label: "Koszt", value: fmtPln(row.totalCostPln) },
+                  {
+                    label: "Nasza rbh",
+                    value: row.laborBenchmark.status === "unavailable"
+                      ? "—"
+                      : `${row.avgLaborPlnPerUnit.toLocaleString("pl-PL")} zł/${unitSuffix(row.dominantUnit)}`,
+                  },
+                  {
+                    label: "Wpływ",
+                    value: row.laborImpact.unavailable || row.laborImpact.impactPln === 0
+                      ? "—"
+                      : formatLaborBenchmarkImpactPln(row.laborImpact.impactPln),
+                  },
+                ]}
+                footer={canEdit ? (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setEditCategory(row); }}
+                    className="text-[10px] text-primary font-medium hover:underline inline-flex items-center gap-0.5"
+                  >
+                    <Pencil size={9} />
+                    Edytuj cenę kategorii
+                  </button>
+                ) : undefined}
+              />
+            ))}
+          </TenderMobileTableCards>
+          <TenderDesktopTable>
           <div className="overflow-x-auto">
             <table className="w-full text-[10px] min-w-[520px]">
               <thead className="bg-secondary/30">
@@ -171,6 +212,7 @@ export function TenderCatalogLinePricingSection({
               </tbody>
             </table>
           </div>
+          </TenderDesktopTable>
           <p className="px-2.5 py-1 text-[9px] text-muted-foreground border-t border-border/30">
             Koszt direct (materiał + robocizna): {fmtPln(view.classifiedDirectTotalPln)}
             {" · "}{view.classifiedPositionCount} poz. sklasyfikowanych
@@ -184,6 +226,37 @@ export function TenderCatalogLinePricingSection({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-2.5 py-1.5 bg-secondary/40 border-b border-border/40">
             Materiały — historia firmy i wpływ (bez benchmarku rynku)
           </p>
+          <TenderMobileTableCards className="p-2">
+            {[...view.categorySummary]
+              .sort((a, b) => b.materialImpact.impactPln - a.materialImpact.impactPln)
+              .map((row) => (
+                <TenderMobileRowCard
+                  key={`mmat-${row.categoryId}`}
+                  title={row.categoryLabel}
+                  fields={[
+                    {
+                      label: "Materiał",
+                      value: row.avgMaterialPlnPerUnit > 0
+                        ? `${row.avgMaterialPlnPerUnit.toLocaleString("pl-PL")} zł/${unitSuffix(row.dominantUnit)}`
+                        : "—",
+                    },
+                    { label: "Źródło", value: row.materialSourceLabel },
+                    {
+                      label: "Wpływ mat.",
+                      value: row.materialImpact.unavailable || row.materialImpact.impactPln === 0
+                        ? "—"
+                        : formatMaterialImpactPln(row.materialImpact.impactPln),
+                    },
+                  ]}
+                  footer={row.materialHistory.trend ? (
+                    <p className="text-[9px] text-muted-foreground">
+                      {row.materialHistory.trend.icon} {row.materialHistory.trend.labelPl}
+                    </p>
+                  ) : undefined}
+                />
+              ))}
+          </TenderMobileTableCards>
+          <TenderDesktopTable>
           <div className="overflow-x-auto">
             <table className="w-full text-[10px] min-w-[560px]">
               <thead className="bg-secondary/30">
@@ -230,6 +303,7 @@ export function TenderCatalogLinePricingSection({
               </tbody>
             </table>
           </div>
+          </TenderDesktopTable>
           <p className="px-2.5 py-1 text-[9px] text-muted-foreground border-t border-border/30">
             Wpływ materiałów = (nasza stawka − historia firmy 90 dni) × ilość — read-only
           </p>
@@ -237,6 +311,36 @@ export function TenderCatalogLinePricingSection({
       )}
 
       <div className="rounded-lg border border-border/60 overflow-hidden">
+        <p className="sm:hidden text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-2.5 py-1.5 bg-secondary/40 border-b border-border/40">
+          Katalog linii kosztorysu
+        </p>
+        <TenderMobileTableCards className="p-2 max-h-80 overflow-y-auto">
+          {view.rows.map((row) => (
+            <TenderMobileRowCard
+              key={`mline-${row.lp}-${row.description}`}
+              title={`${row.lp}. ${row.description}`}
+              subtitle={row.isUnknown ? "UNKNOWN — brak ceny" : row.categoryLabel}
+              fields={[
+                { label: "Ilość", value: row.quantityDisplay },
+                { label: "j.m.", value: row.unit },
+                {
+                  label: "Materiał",
+                  value: row.isUnknown ? "—" : formatPerUnit(row.materialPlnPerUnit, row.unit),
+                },
+                {
+                  label: "Robocizna",
+                  value: row.isUnknown ? "—" : formatPerUnit(row.laborPlnPerUnit, row.unit),
+                },
+                {
+                  label: "Razem",
+                  value: row.isUnknown ? "—" : formatPerUnit(row.lineTotalPln, row.unit),
+                  fullWidth: true,
+                },
+              ]}
+            />
+          ))}
+        </TenderMobileTableCards>
+        <TenderDesktopTable>
         <div className="overflow-x-auto max-h-64 overflow-y-auto">
           <table className="w-full text-[10px] min-w-[820px]">
             <thead className="bg-secondary/50 sticky top-0 z-[1]">
@@ -312,6 +416,7 @@ export function TenderCatalogLinePricingSection({
             </tbody>
           </table>
         </div>
+        </TenderDesktopTable>
       </div>
 
       {canEdit && catalog && costModel && tenderId && (

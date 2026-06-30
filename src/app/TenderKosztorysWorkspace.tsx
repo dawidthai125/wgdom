@@ -32,6 +32,11 @@ import {
   type KosztorysProFilterId,
   type KosztorysProTopRow,
 } from "@/lib/tender-kosztorys-pro-dashboard";
+import {
+  TenderDesktopTable,
+  TenderMobileRowCard,
+  TenderMobileTableCards,
+} from "@/app/tenders/mobile/tender-mobile-row-cards";
 
 function KosztorysKpiCard({
   label,
@@ -68,62 +73,97 @@ function KosztorysKpiCard({
 function KosztorysCatalogTable({ rows }: { rows: KosztorysV4CatalogDisplayRow[] }) {
   if (!rows.length) return null;
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full text-xs">
-        <thead className="bg-secondary/60">
-          <tr>
-            <th className="text-left px-2 py-2 font-medium">Lp</th>
-            <th className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
-            <th className="text-left px-2 py-2 font-medium">j.m.</th>
-            <th className="text-right px-2 py-2 font-medium">Ilość</th>
-            <th className="text-left px-2 py-2 font-medium">Katalog</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={`${r.lp}-${i}`} className="border-t border-border/50 hover:bg-secondary/20">
-              <td className="px-2 py-1.5 font-mono">{r.lp}</td>
-              <td className="px-2 py-1.5">{r.description}</td>
-              <td className="px-2 py-1.5">{r.unit || "—"}</td>
-              <td className="px-2 py-1.5 text-right font-mono">{r.quantity || "—"}</td>
-              <td className="px-2 py-1.5 font-mono text-[10px]">{r.catalog || "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <TenderMobileTableCards>
+        {rows.map((r, i) => (
+          <TenderMobileRowCard
+            key={`m-${r.lp}-${i}`}
+            title={`${r.lp}. ${r.description}`}
+            fields={[
+              { label: "j.m.", value: r.unit || "—" },
+              { label: "Ilość", value: r.quantity || "—" },
+              { label: "Katalog", value: r.catalog || "—", fullWidth: true },
+            ]}
+          />
+        ))}
+      </TenderMobileTableCards>
+      <TenderDesktopTable>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-xs">
+            <thead className="bg-secondary/60">
+              <tr>
+                <th className="text-left px-2 py-2 font-medium">Lp</th>
+                <th className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
+                <th className="text-left px-2 py-2 font-medium">j.m.</th>
+                <th className="text-right px-2 py-2 font-medium">Ilość</th>
+                <th className="text-left px-2 py-2 font-medium">Katalog</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={`${r.lp}-${i}`} className="border-t border-border/50 hover:bg-secondary/20">
+                  <td className="px-2 py-1.5 font-mono">{r.lp}</td>
+                  <td className="px-2 py-1.5">{r.description}</td>
+                  <td className="px-2 py-1.5">{r.unit || "—"}</td>
+                  <td className="px-2 py-1.5 text-right font-mono">{r.quantity || "—"}</td>
+                  <td className="px-2 py-1.5 font-mono text-[10px]">{r.catalog || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </TenderDesktopTable>
+    </>
   );
 }
 
 function KosztorysTopCostTable({ rows }: { rows: KosztorysProTopRow[] }) {
   if (!rows.length) return null;
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full text-xs">
-        <thead className="bg-secondary/60">
-          <tr>
-            <th className="text-left px-2 py-2 font-medium">Lp</th>
-            <th className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
-            <th className="text-left px-2 py-2 font-medium">j.m.</th>
-            <th className="text-right px-2 py-2 font-medium">Ilość</th>
-            <th className="text-right px-2 py-2 font-medium">Cena</th>
-            <th className="text-right px-2 py-2 font-medium">Wartość</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={`top-${r.lp}-${i}`} className="border-t border-border/50 hover:bg-secondary/20">
-              <td className="px-2 py-1.5 font-mono">{r.lp}</td>
-              <td className="px-2 py-1.5">{r.description}</td>
-              <td className="px-2 py-1.5">{r.unit}</td>
-              <td className="px-2 py-1.5 text-right font-mono">{r.quantity}</td>
-              <td className="px-2 py-1.5 text-right font-mono">{r.unitPriceDisplay}</td>
-              <td className="px-2 py-1.5 text-right font-mono font-semibold">{r.valueDisplay}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <TenderMobileTableCards>
+        {rows.map((r, i) => (
+          <TenderMobileRowCard
+            key={`mtop-${r.lp}-${i}`}
+            title={`${r.lp}. ${r.description}`}
+            fields={[
+              { label: "j.m.", value: r.unit },
+              { label: "Ilość", value: r.quantity },
+              { label: "Cena", value: r.unitPriceDisplay },
+              { label: "Wartość", value: r.valueDisplay },
+            ]}
+          />
+        ))}
+      </TenderMobileTableCards>
+      <TenderDesktopTable>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-xs">
+            <thead className="bg-secondary/60">
+              <tr>
+                <th className="text-left px-2 py-2 font-medium">Lp</th>
+                <th className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
+                <th className="text-left px-2 py-2 font-medium">j.m.</th>
+                <th className="text-right px-2 py-2 font-medium">Ilość</th>
+                <th className="text-right px-2 py-2 font-medium">Cena</th>
+                <th className="text-right px-2 py-2 font-medium">Wartość</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={`top-${r.lp}-${i}`} className="border-t border-border/50 hover:bg-secondary/20">
+                  <td className="px-2 py-1.5 font-mono">{r.lp}</td>
+                  <td className="px-2 py-1.5">{r.description}</td>
+                  <td className="px-2 py-1.5">{r.unit}</td>
+                  <td className="px-2 py-1.5 text-right font-mono">{r.quantity}</td>
+                  <td className="px-2 py-1.5 text-right font-mono">{r.unitPriceDisplay}</td>
+                  <td className="px-2 py-1.5 text-right font-mono font-semibold">{r.valueDisplay}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </TenderDesktopTable>
+    </>
   );
 }
 

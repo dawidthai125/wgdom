@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.4",
+    label: "NG-03.5 — Mobile Cards (Przetarg)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Kosztorys, Ceny i Dokumenty na telefonie: tabele jako karty (bez poziomego scrollu ≤390 px); desktop bez zmian",
+      },
+      {
+        type: "improve",
+        text: "Przetargi → Ceny: pozycje UNKNOWN w widoku kartowym z przypisaniem kategorii na mobile",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.63.3",
     label: "NG-03.4 — Workspace Density (Przetarg)",
     items: [

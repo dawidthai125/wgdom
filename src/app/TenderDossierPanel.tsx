@@ -9,6 +9,11 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { resolveAthPreviewItem } from "@/lib/tender-ath-quick-access";
 import { resolveTenderValue, resolvedCostStatusDisplay, resolvedWadiumDisplay, kosztorysHasPricedValue } from "@/lib/tender-data-ssot";
 import { formatFormalRequirementsBullets, FORMAL_REQUIREMENTS_UNKNOWN_LABEL } from "@/lib/tender-formal-requirements";
+import {
+  TenderDesktopTable,
+  TenderMobileRowCard,
+  TenderMobileTableCards,
+} from "@/app/tenders/mobile/tender-mobile-row-cards";
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value?.trim()) return null;
@@ -25,6 +30,21 @@ function CostTable({ rows, caption }: { rows: { lp: string; description: string;
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{caption}</p>
+      <TenderMobileTableCards>
+        {rows.map((r, i) => (
+          <TenderMobileRowCard
+            key={`mcost-${r.lp}-${i}`}
+            title={`${r.lp}. ${r.description}`}
+            fields={[
+              { label: "j.m.", value: r.unit || "—" },
+              { label: "Ilość", value: r.quantity || "—" },
+              { label: "Cena", value: r.unitPrice || "—" },
+              { label: "Wartość", value: r.total || "—" },
+            ]}
+          />
+        ))}
+      </TenderMobileTableCards>
+      <TenderDesktopTable>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-[10px]">
           <thead className="bg-secondary/60">
@@ -51,6 +71,7 @@ function CostTable({ rows, caption }: { rows: { lp: string; description: string;
           </tbody>
         </table>
       </div>
+      </TenderDesktopTable>
     </div>
   );
 }
