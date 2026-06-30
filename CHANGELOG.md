@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.0 — NG-03.1 Tender Workspace Navigation
+
+- **improve:** detal V4 — 5 tabów (usunięte placeholdery Strategia/Materiały); legacy URL → Przetarg
+- **improve:** Decyzja — sub-taby Przegląd · Kwalifikacja · Oferta (`?ws=` bez zmian)
+
 ## 2.62.99 — NG-03 P0 Ceny priceOverrides runtime
 
 - **fix:** zakładka Ceny — `priceOverrides` z `useTenderPricingAuto` → `pipelineRuntime` (koniec ReferenceError)

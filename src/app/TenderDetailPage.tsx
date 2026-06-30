@@ -9,6 +9,7 @@ import {
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
+import { TenderDecyzjaSubTabBar } from "@/app/TenderDecyzjaSubTabBar";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
@@ -16,7 +17,9 @@ import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
   buildTenderDetailPathFromLegacyWorkspace,
-  isTenderDetailV4PlaceholderTab,
+  DECYZJA_V4_SUB_TAB_LABELS,
+  parseDecyzjaWorkspaceQuery,
+  resolveRetiredV4TabRedirect,
   resolveV4EmbedLegacyWorkspace,
   TENDER_DETAIL_DECYZJA_WS_QUERY,
   TENDER_DETAIL_V4_TAB_LABELS,
@@ -29,15 +32,6 @@ import {
   TENDER_WORKFLOW_HUB_EMBED_WORKSPACE,
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
-
-function TenderV4Placeholder({ tab }: { tab: TenderDetailV4TabId }) {
-  return (
-    <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-6 py-16 text-center space-y-2">
-      <p className="text-sm font-medium text-foreground">{TENDER_DETAIL_V4_TAB_LABELS[tab]}</p>
-      <p className="text-xs text-muted-foreground">Wkrótce</p>
-    </div>
-  );
-}
 
 export function TenderDetailPage({
   tenderId,
@@ -62,6 +56,22 @@ export function TenderDetailPage({
     return new URLSearchParams(location.search).get(TENDER_DETAIL_DECYZJA_WS_QUERY);
   }, [tab, location.search]);
 
+  const decyzjaWorkspace = useMemo(
+    () => parseDecyzjaWorkspaceQuery(decyzjaWs),
+    [decyzjaWs],
+  );
+
+  const retiredRedirect = useMemo(
+    () => resolveRetiredV4TabRedirect(tenderId, tab),
+    [tenderId, tab],
+  );
+
+  useEffect(() => {
+    if (retiredRedirect) {
+      navigate(retiredRedirect, { replace: true });
+    }
+  }, [retiredRedirect, navigate]);
+
   const item = useMemo(
     () => pipeline.items.find((t) => t.id === tenderId) ?? null,
     [pipeline.items, tenderId],
@@ -84,6 +94,13 @@ export function TenderDetailPage({
       navigate(buildTenderDetailPathFromLegacyWorkspace(tenderId, legacyTab, { preferKosztorys }));
     },
     [navigate, tenderId, item],
+  );
+
+  const handleDecyzjaWorkspaceChange = useCallback(
+    (ws: DecyzjaV4EmbedWorkspace) => {
+      navigate(buildTenderDetailPath(tenderId, "decyzja", { decyzjaWorkspace: ws }));
+    },
+    [navigate, tenderId],
   );
 
   const legacyWorkspace = tab === "przetarg"
@@ -132,13 +149,17 @@ export function TenderDetailPage({
     );
   }
 
+  if (retiredRedirect) {
+    return null;
+  }
+
   return (
     <div
       className="flex-1 min-h-0 flex flex-col overflow-hidden"
       data-tender-detail-v4
       data-tender-id={item.id}
       data-tender-tab={tab}
-      data-tender-ws={tab === "decyzja" ? (decyzjaWs ?? "overview") : undefined}
+      data-tender-ws={tab === "decyzja" ? decyzjaWorkspace : undefined}
     >
       <div
         className={`shrink-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 ${compactKosztorysChrome ? "px-4 sm:px-6 py-2 space-y-2" : "px-4 sm:px-6 py-3 space-y-3"}`}
@@ -158,7 +179,15 @@ export function TenderDetailPage({
             <ChevronRight size={12} className="shrink-0 opacity-60" />
             <span className="truncate max-w-[12rem]">{item.bzpNumber || item.id.slice(0, 8)}</span>
             <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="text-foreground font-medium">{TENDER_DETAIL_V4_TAB_LABELS[tab]}</span>
+            <span className="text-foreground font-medium">
+              {TENDER_DETAIL_V4_TAB_LABELS[tab]}
+              {tab === "decyzja" && (
+                <>
+                  {" · "}
+                  {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}
+                </>
+              )}
+            </span>
           </nav>
         )}
 
@@ -174,6 +203,12 @@ export function TenderDetailPage({
 
         {!compactKosztorysChrome && <TenderDetailKpiBar item={item} swz={swz} />}
         <TenderDetailTabBar activeTab={tab} onTabChange={handleTabChange} />
+        {tab === "decyzja" && (
+          <TenderDecyzjaSubTabBar
+            activeWorkspace={decyzjaWorkspace}
+            onWorkspaceChange={handleDecyzjaWorkspaceChange}
+          />
+        )}
       </div>
 
       <div
@@ -197,10 +232,6 @@ export function TenderDetailPage({
               onRetryParse={pipelineRuntime.retryDossierParse}
               trustAssessment={pipelineRuntime.trustAssessment}
             />
-          )}
-
-          {isTenderDetailV4PlaceholderTab(tab) && (
-            <TenderV4Placeholder tab={tab} />
           )}
 
           {legacyWorkspace && (

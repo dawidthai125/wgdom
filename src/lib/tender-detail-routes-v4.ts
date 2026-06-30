@@ -6,23 +6,34 @@ import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 
 export const TENDERS_LIST_PATH = "/przetargi";
 
-export const TENDER_DETAIL_V4_TAB_ORDER = [
+/** NG-03.1 — 5 aktywnych tabów w Tab Bar (SSOT UI). */
+export const TENDER_DETAIL_V4_ACTIVE_TAB_ORDER = [
   "przetarg",
   "dokumenty",
   "kosztorys",
   "ceny",
   "decyzja",
+] as const;
+
+export type TenderDetailV4ActiveTabId = (typeof TENDER_DETAIL_V4_ACTIVE_TAB_ORDER)[number];
+
+/** Wszystkie slugi URL (aktywne + wycofane — kompatybilność bookmarków). */
+export const TENDER_DETAIL_V4_TAB_ORDER = [
+  ...TENDER_DETAIL_V4_ACTIVE_TAB_ORDER,
   "strategia",
   "materialy",
 ] as const;
 
 export type TenderDetailV4TabId = (typeof TENDER_DETAIL_V4_TAB_ORDER)[number];
 
-/** MVP — zakładki z treścią „Wkrótce”. */
-export const TENDER_DETAIL_V4_PLACEHOLDER_TABS: ReadonlySet<TenderDetailV4TabId> = new Set([
+/** Wycofane z Tab Bar (NG-03.1) — URL nadal parsowany, redirect w TenderDetailPage. */
+export const TENDER_DETAIL_V4_RETIRED_TABS: ReadonlySet<TenderDetailV4TabId> = new Set([
   "materialy",
   "strategia",
 ]);
+
+/** @deprecated NG-03.1 — użyj TENDER_DETAIL_V4_RETIRED_TABS */
+export const TENDER_DETAIL_V4_PLACEHOLDER_TABS = TENDER_DETAIL_V4_RETIRED_TABS;
 
 export const TENDER_DETAIL_V4_TAB_LABELS: Record<TenderDetailV4TabId, string> = {
   przetarg: "Przetarg",
@@ -40,8 +51,26 @@ export function isTenderDetailV4TabId(value: string): value is TenderDetailV4Tab
   return (TENDER_DETAIL_V4_TAB_ORDER as readonly string[]).includes(value);
 }
 
+export function isTenderDetailV4ActiveTab(tab: TenderDetailV4TabId): tab is TenderDetailV4ActiveTabId {
+  return (TENDER_DETAIL_V4_ACTIVE_TAB_ORDER as readonly string[]).includes(tab);
+}
+
+export function isTenderDetailV4RetiredTab(tab: TenderDetailV4TabId): boolean {
+  return TENDER_DETAIL_V4_RETIRED_TABS.has(tab);
+}
+
+/** @deprecated NG-03.1 — użyj isTenderDetailV4RetiredTab */
 export function isTenderDetailV4PlaceholderTab(tab: TenderDetailV4TabId): boolean {
-  return TENDER_DETAIL_V4_PLACEHOLDER_TABS.has(tab);
+  return isTenderDetailV4RetiredTab(tab);
+}
+
+/** Legacy URL → aktywny tab (replace redirect, bez 404). */
+export function resolveRetiredV4TabRedirect(
+  tenderId: string,
+  tab: TenderDetailV4TabId,
+): string | null {
+  if (!isTenderDetailV4RetiredTab(tab)) return null;
+  return buildTenderDetailPath(tenderId, TENDER_DETAIL_V4_DEFAULT_TAB);
 }
 
 /** Query ?ws= na tabie decyzja — qualification | offer (overview = brak parametru). */
@@ -50,6 +79,15 @@ export const TENDER_DETAIL_DECYZJA_WS_QUERY = "ws";
 export const DECYZJA_V4_EMBED_WORKSPACES = ["overview", "qualification", "offer"] as const;
 
 export type DecyzjaV4EmbedWorkspace = (typeof DECYZJA_V4_EMBED_WORKSPACES)[number];
+
+/** NG-03.1 — etykiety sub-tabów Decyzja (UI). */
+export const DECYZJA_V4_SUB_TAB_LABELS: Record<DecyzjaV4EmbedWorkspace, string> = {
+  overview: "Przegląd",
+  qualification: "Kwalifikacja",
+  offer: "Oferta",
+};
+
+export const DECYZJA_V4_SUB_TAB_ORDER = DECYZJA_V4_EMBED_WORKSPACES;
 
 export function isDecyzjaV4EmbedWorkspace(value: string): value is DecyzjaV4EmbedWorkspace {
   return (DECYZJA_V4_EMBED_WORKSPACES as readonly string[]).includes(value);

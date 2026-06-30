@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-30",
+    version: "2.63.0",
+    label: "NG-03.1 — Tender Workspace Navigation",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → detal V4 — 5 aktywnych tabów (bez placeholderów Strategia/Materiały); stare URL /strategia i /materialy przekierowują na Przetarg",
+      },
+      {
+        type: "improve",
+        text: "Przetargi → Decyzja — widoczne sub-taby Przegląd · Kwalifikacja · Oferta (?ws= bez zmian)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-30",
     version: "2.62.99",
     label: "NG-03 P0 — zakładka Ceny (priceOverrides runtime)",
     items: [
