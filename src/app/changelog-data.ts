@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.16",
+    label: "Lista Płac — Przydziały robót sync guard P0",
+    items: [
+      {
+        type: "fix",
+        text: "Przydziały robót — pierwszy wybór roboty w dropdown nie cofa się po synchronizacji chmury (CloudSyncMutationGuard)",
+      },
+      {
+        type: "improve",
+        text: "Auto-sync — blokada pull/merge podczas edycji workEntries (token begin/end, recovery reset przy bootstrap)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.15",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY P0 (dodanie z Kadr)",
     items: [

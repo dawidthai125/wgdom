@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.16 — PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0
+
+- **fix:** Przydziały robót — dropdown nie cofa się po sync (CloudSyncMutationGuard, scope `kw-jobs`)
+- **improve:** Auto-sync defer + token begin/end; `reset()` guard po bootstrap CloudLoader
+
 ## 2.63.15 — PAYROLL-CLOUD-RECOVERY P0
 
 - **fix:** Lista płac — dodanie z Kadr nie znika po sync (merge UNION po `directoryId`)

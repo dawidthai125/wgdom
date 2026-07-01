@@ -120,6 +120,7 @@ import {
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
+import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
@@ -667,6 +668,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
     if (payrollRosterPushRef.current) return;
+    if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
@@ -700,6 +702,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
     if (payrollRosterPushRef.current) return;
+    if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
     if (syncInFlightRef.current) {
       pendingCloudSyncRef.current = true;
@@ -766,12 +769,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (remoteMergeInFlightRef.current) {
       return;
     }
-    if (Date.now() < suppressAutoSyncUntilRef.current) {
-      const delay = suppressAutoSyncUntilRef.current - Date.now();
+    const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
+    const appDelay = suppressAutoSyncUntilRef.current - Date.now();
+    const deferDelay = Math.max(guardDelay, appDelay);
+    if (deferDelay > 0) {
       suppressWakeTimerRef.current = setTimeout(() => {
         suppressWakeTimerRef.current = null;
         fireDeferredAutoSync();
-      }, delay);
+      }, deferDelay);
       return;
     }
     if (!pendingAutoSyncRef.current) {
@@ -813,6 +818,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (payrollRosterPushRef.current) {
       return;
     }
+    if (cloudSyncMutationGuard.isBlocked()) {
+      if (!autoSyncMountSettledRef.current) {
+        return;
+      }
+      pendingAutoSyncRef.current = true;
+      const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
+      const appDelay = suppressAutoSyncUntilRef.current - Date.now();
+      const delay = Math.max(guardDelay, appDelay, 0);
+      if (delay > 0) {
+        if (suppressWakeTimerRef.current) {
+          clearTimeout(suppressWakeTimerRef.current);
+        }
+        suppressWakeTimerRef.current = setTimeout(() => {
+          suppressWakeTimerRef.current = null;
+          fireDeferredAutoSync();
+        }, delay);
+      }
+      return;
+    }
 
     const suppressed = Date.now() < suppressAutoSyncUntilRef.current;
 
@@ -829,6 +853,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     syncTimerRef.current = setTimeout(() => {
       if (!tabVisibleRef.current) return;
       if (pullInFlightRef.current) return;
+      if (cloudSyncMutationGuard.isBlocked()) {
+        pendingAutoSyncRef.current = true;
+        const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
+        const appDelay = suppressAutoSyncUntilRef.current - Date.now();
+        const delay = Math.max(guardDelay, appDelay, 0);
+        if (delay > 0) {
+          if (suppressWakeTimerRef.current) clearTimeout(suppressWakeTimerRef.current);
+          suppressWakeTimerRef.current = setTimeout(() => {
+            suppressWakeTimerRef.current = null;
+            fireDeferredAutoSync();
+          }, delay);
+        }
+        return;
+      }
       if (Date.now() < suppressAutoSyncUntilRef.current) {
         pendingAutoSyncRef.current = true;
         scheduleWakeAtSuppressExpiry();

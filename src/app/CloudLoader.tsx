@@ -44,6 +44,7 @@ import {
 } from "@/lib/admin-auth";
 import { loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
 import { markCloudBootstrapSuccess } from "@/lib/cloud-bootstrap";
+import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -176,6 +177,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         markCloudBootstrapSuccess();
+        cloudSyncMutationGuard.reset();
         startDeferredPhase();
       })
       .catch(() => {

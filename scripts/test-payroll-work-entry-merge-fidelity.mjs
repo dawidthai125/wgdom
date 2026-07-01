@@ -2,11 +2,13 @@
  * Payroll P1 — workEntries union merge (mergeWorkEntriesById in mergeJobsById).
  * npx vite-node scripts/test-payroll-work-entry-merge-fidelity.mjs
  */
-import { mergeJobsById, mergeWorkEntriesById } from "../src/lib/cloud-sync.ts";
+import { mergeJobsById, mergeWorkEntriesById, mergeIncomingWithStored } from "../src/lib/cloud-sync.ts";
 import {
   removeWorkEntryFromJobs,
   removeWorkEntriesMatchingFromJobs,
   updateWorkEntryHoursInJobs,
+  moveWorkEntryToJob,
+  addWorkEntryForEmployee,
 } from "../src/lib/payroll-job-assignments.ts";
 import { fixJobsForConsistencyAlert } from "../src/app/app-domain.ts";
 
@@ -331,6 +333,77 @@ console.log("\nT9b removeWorkEntriesMatchingFromJobs — multi entry tombstones"
   const next = removeWorkEntriesMatchingFromJobs([job], (_j, we) => we.id === "we-a" || we.id === "we-b");
   assert("T9b all removed", (next[0].workEntries || []).length === 0);
   assert("T9b both tombstones", (next[0].deletedWorkEntryTombstones || []).length === 2);
+}
+
+const weekEmpForAssign = {
+  id: "we-emp-1",
+  directoryId: "dir-1",
+  name: "Jan Kowalski",
+  phone: "",
+  position: "Murarz",
+  rate: "50",
+  days: {
+    Pn: { active: false, from: "", to: "", zaliczka: "" },
+    Wt: { active: false, from: "", to: "", zaliczka: "" },
+    Sr: { active: false, from: "", to: "", zaliczka: "" },
+    Cz: { active: false, from: "", to: "", zaliczka: "" },
+    Pt: { active: false, from: "", to: "", zaliczka: "" },
+    So: { active: false, from: "", to: "", zaliczka: "" },
+  },
+  settled: false,
+};
+
+const jobA = {
+  ...baseJob,
+  id: "job-a",
+  updatedAt: "2026-06-22T10:00:00.000Z",
+  workEntries: [],
+};
+
+const jobB = {
+  ...baseJob,
+  id: "job-b",
+  address: "Inna 2",
+  updatedAt: "2026-06-22T10:00:00.000Z",
+  workEntries: [],
+};
+
+// T11 — moveWorkEntryToJob + stale cloud merge
+console.log("\nT11 moveWorkEntryToJob — stale cloud does not restore on source job");
+{
+  const withEntry = [{
+    ...jobA,
+    workEntries: [entryA],
+  }, { ...jobB }];
+  const afterMove = moveWorkEntryToJob(withEntry, "job-a", "we-a", "job-b", 8);
+  const staleCloud = [{
+    ...jobA,
+    updatedAt: "2026-06-22T09:00:00.000Z",
+    workEntries: [entryA],
+  }, { ...jobB }];
+  const merged = mergeJobsById(afterMove, staleCloud);
+  const jobAMerged = merged.find((j) => j.id === "job-a");
+  const jobBMerged = merged.find((j) => j.id === "job-b");
+  const onB = (jobBMerged?.workEntries || []).find((e) => e.directoryId === "dir-1");
+  assert("T11 entry on job B", onB != null && onB.hours === 8);
+  assert("T11 entry not on job A", !(jobAMerged?.workEntries || []).some((e) => e.id === "we-a"));
+  assert("T11 tombstone on A", (jobAMerged?.deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));
+}
+
+// T12 — debounce race: stale React + fresh LS → V2 wins
+console.log("\nT12 stale React V1 + LS V2 + stale cloud V0");
+{
+  const dateIso = "2026-06-23";
+  const v0Cloud = [{ ...jobA }, { ...jobB }];
+  const v1React = addWorkEntryForEmployee(v0Cloud, "job-a", weekEmpForAssign, dateIso, 4);
+  const v2Local = moveWorkEntryToJob(v1React, "job-a", v1React[0].workEntries[0].id, "job-b", 4);
+  const preparedJobs = mergeIncomingWithStored("kw-jobs", v2Local, v1React);
+  const merged = mergeJobsById(preparedJobs, v0Cloud);
+  const jobBMerged = merged.find((j) => j.id === "job-b");
+  const onB = (jobBMerged?.workEntries || []).find((e) => e.directoryId === "dir-1");
+  assert("T12 assignment on target job B", onB != null && onB.hours === 4);
+  const jobAMerged = merged.find((j) => j.id === "job-a");
+  assert("T12 no live entry on job A", (jobAMerged?.workEntries || []).length === 0);
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
