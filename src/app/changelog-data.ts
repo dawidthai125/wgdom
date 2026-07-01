@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-01",
+    version: "2.63.9",
+    label: "NG-04.1 — Kosztorys BOQ Explorer",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Kosztorys: BOQ Explorer — unified tabela ATH + WGDOM, search, filtry branżowe (ViewModel SSOT · Principle #001–#003)",
+      },
+      {
+        type: "improve",
+        text: "TOP 20 pozycji kosztowych — selectTopCostRows() SSOT; brak rebuild ViewModel przy search/filter (Lazy Rendering First)",
+      },
+    ],
+  },
+  {
     date: "2026-06-30",
     version: "2.63.8",
     label: "P0 — Tender Detail tab SSOT",

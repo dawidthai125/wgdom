@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.9 — NG-04.1 Kosztorys BOQ Explorer
+
+- **new:** BOQ Explorer — unified tabela ATH + WGDOM, search, filtry branżowe (ViewModel SSOT)
+- **improve:** TOP 20 via `selectTopCostRows()`; Lazy Rendering — brak rebuild ViewModel przy search/filter
+
 ## 2.63.8 — P0 Tender Detail tab SSOT
 
 - **fix:** Tab detalu V4 ze SSOT URL (`parseTenderDetailPath`) — kliencki navigate aktualizuje workspace

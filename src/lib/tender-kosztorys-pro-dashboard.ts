@@ -3,18 +3,14 @@
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   buildCatalogLinePricingView,
-  type CatalogLinePricingRow,
 } from "@/lib/tender-catalog-line-pricing";
 import {
   CONSTRUCTION_CATEGORY_LABELS,
   type ConstructionCategoryId,
-  foldConstructionText,
-  matchConstructionKeywordsInText,
 } from "@/lib/construction-keywords";
 import {
   buildConstructionScopeFromTenderDossier,
@@ -25,7 +21,13 @@ import {
   formatBusinessFitKpi,
   type BusinessFitResult,
 } from "@/lib/construction-business-fit";
-import { computeBidMarginPct, formatBidMarginPct } from "@/lib/tender-bid-ux";
+import { computeBidMarginPct } from "@/lib/tender-bid-ux";
+import {
+  buildKosztorysBoqExplorerView,
+  selectTopCostRows,
+  type KosztorysBoqExplorerView,
+  type KosztorysBoqRowViewModel,
+} from "@/lib/tender-kosztorys-boq-explorer";
 import {
   buildKosztorysV4Stats,
   resolveEffectiveKosztorysV4CatalogLines,
@@ -38,27 +40,13 @@ import {
 } from "@/lib/tender-price-overrides";
 import { buildLaborBenchmarkAlerts } from "@/lib/labor-benchmark";
 
-export type KosztorysProFilterId = "all" | ConstructionCategoryId;
-
-/** V4.2A — wykluczenia z filtra Elektryczne (false positives ATH). */
-const ELECTRICAL_FILTER_EXCLUDE =
-  /nietoperz|siedlisk|budek\s+l[eę]gow|trocinobeton|bruzd.{0,40}tynk|wyka[nń]czan.{0,20}tynk|sprz[aą]tanie\s+pomieszcze[nń]/i;
-
-/** V4.2A — mocny sygnał elektryki (nie samo „przewód” w kontekście ogólnobudowlanym). */
-const ELECTRICAL_FILTER_STRONG =
-  /rozdzielnic|ydy|ytksy|ytk\b|domofon|rg6|utp|licznik|swiatlowod|światłowod|instalacj.{0,12}elektryczn|o[sś]wietlen|gniazd|opraw|napi[eę]ci|niskiego\s+napi|okablow|energi.{0,6}elektryczn|przew[oó]d\s+ydy|wci[aą]ganie\s+przewodu/i;
-
-export const KOSZTORYS_PRO_FILTER_OPTIONS: {
-  id: KosztorysProFilterId;
-  label: string;
-}[] = [
-  { id: "all", label: "Wszystkie" },
-  { id: "wykończeniowe", label: "Wykończeniowe" },
-  { id: "sanitarne", label: "Sanitarne" },
-  { id: "elektryczne", label: "Elektryczne" },
-  { id: "dachowe", label: "Dachowe" },
-  { id: "drogowe", label: "Drogowe" },
-];
+export type { KosztorysProFilterId } from "@/lib/tender-kosztorys-pro-filters";
+export {
+  KOSZTORYS_PRO_FILTER_OPTIONS,
+  filterCatalogLinesByConstructionCategory,
+  kosztorysFilterEmptyMessage,
+  lineMatchesConstructionFilter,
+} from "@/lib/tender-kosztorys-pro-filters";
 
 export interface KosztorysProTopRow {
   lp: string;
@@ -98,96 +86,25 @@ export interface KosztorysProDashboard {
   hasCatalog: boolean;
 }
 
-function roundMoney(n: number): number {
-  return Math.round(n * 100) / 100;
+function boqRowToProTopRow(row: KosztorysBoqRowViewModel): KosztorysProTopRow {
+  const valuePln = row.wgdomLinePln ?? 0;
+  const unit = row.wgdomUnitPln;
+  return {
+    lp: row.lp,
+    description: row.description,
+    unit: row.unit || "—",
+    quantity: row.pricing?.quantityDisplay || row.quantity || "—",
+    unitPriceDisplay: unit != null && unit > 0 ? fmtPln(Math.round(unit)) : "—",
+    valuePln,
+    valueDisplay: fmtPln(Math.round(valuePln)),
+  };
 }
 
-function lineValuePln(row: CatalogLinePricingRow): number {
-  if (row.isUnknown) return 0;
-  const unit = (row.materialPlnPerUnit ?? 0) + (row.laborPlnPerUnit ?? 0);
-  if (unit <= 0 || row.quantity <= 0) return 0;
-  return roundMoney(row.quantity * unit);
-}
-
-function unitPriceDisplay(row: CatalogLinePricingRow): string {
-  const unit = (row.materialPlnPerUnit ?? 0) + (row.laborPlnPerUnit ?? 0);
-  if (unit <= 0) return "—";
-  return fmtPln(Math.round(unit));
-}
-
-function lineMatchesElectricalFilter(description: string): boolean {
-  const text = description ?? "";
-  if (!text.trim()) return false;
-  if (ELECTRICAL_FILTER_EXCLUDE.test(text)) return false;
-
-  const hits = matchConstructionKeywordsInText(text).filter((h) => h.categoryId === "elektryczne");
-  if (!hits.length) return false;
-
-  const folded = foldConstructionText(text);
-  if (ELECTRICAL_FILTER_STRONG.test(folded)) return true;
-
-  const strongDictionary = [
-    "instalacja elektryczna",
-    "instalacje elektryczne",
-    "rozdzielnica",
-    "rozdzielnia",
-    "okablowanie",
-    "tablica rozdzielcza",
-    "instalacja niskiego napięcia",
-  ];
-  return hits.some((h) =>
-    strongDictionary.some((kw) => foldConstructionText(h.keyword).includes(foldConstructionText(kw))),
-  );
-}
-
-export function lineMatchesConstructionFilter(
-  description: string,
-  filter: KosztorysProFilterId,
-): boolean {
-  if (filter === "all") return true;
-  if (filter === "elektryczne") return lineMatchesElectricalFilter(description);
-  const hits = matchConstructionKeywordsInText(description ?? "");
-  return hits.some((h) => h.categoryId === filter);
-}
-
-export function kosztorysFilterEmptyMessage(filter: KosztorysProFilterId): string {
-  if (filter === "sanitarne") return "Nie wykryto pozycji sanitarnych.";
-  if (filter === "elektryczne") return "Nie wykryto pozycji elektrycznych.";
-  if (filter === "wykończeniowe") return "Nie wykryto pozycji wykończeniowych.";
-  if (filter === "dachowe") return "Nie wykryto pozycji dachowych.";
-  if (filter === "drogowe") return "Nie wykryto pozycji drogowych.";
-  return "Brak pozycji dla wybranego filtra.";
-}
-
-export function filterCatalogLinesByConstructionCategory(
-  lines: TenderCatalogQuantityLine[],
-  filter: KosztorysProFilterId,
-): TenderCatalogQuantityLine[] {
-  if (filter === "all") return lines;
-  return lines.filter((line) => lineMatchesConstructionFilter(line.description ?? "", filter));
-}
-
-export function buildKosztorysProTopRows(
-  pricingRows: CatalogLinePricingRow[],
+export function buildKosztorysProTopRowsFromBoqView(
+  view: KosztorysBoqExplorerView,
   limit = 20,
 ): KosztorysProTopRow[] {
-  return [...pricingRows]
-    .map((row) => ({
-      row,
-      valuePln: lineValuePln(row),
-    }))
-    .filter((x) => x.valuePln > 0)
-    .sort((a, b) => b.valuePln - a.valuePln)
-    .slice(0, limit)
-    .map(({ row, valuePln }) => ({
-      lp: row.lp,
-      description: row.description,
-      unit: row.unit || "—",
-      quantity: row.quantityDisplay || String(row.quantity),
-      unitPriceDisplay: unitPriceDisplay(row),
-      valuePln,
-      valueDisplay: fmtPln(Math.round(valuePln)),
-    }));
+  return selectTopCostRows(view.rows, limit).map(boqRowToProTopRow);
 }
 
 function resolveAvgMargin(
@@ -335,7 +252,10 @@ export function buildKosztorysProAssessment(opts: {
   return { headline, paragraphs };
 }
 
-export function buildKosztorysProDashboard(item: TenderPipelineItem): KosztorysProDashboard {
+export function buildKosztorysProDashboard(
+  item: TenderPipelineItem,
+  boqView?: KosztorysBoqExplorerView,
+): KosztorysProDashboard {
   const stats = buildKosztorysV4Stats(item);
   const catalog = resolveEffectiveKosztorysV4CatalogLines(item);
   const priceOverrides = getTenderPriceOverrides(
@@ -346,6 +266,7 @@ export function buildKosztorysProDashboard(item: TenderPipelineItem): KosztorysP
   const pricingView = catalog.length
     ? buildCatalogLinePricingView(catalog, pricingCatalog, costModel, priceOverrides)
     : null;
+  const view = boqView ?? buildKosztorysBoqExplorerView({ item, priceOverrides });
 
   const coveragePct = stats.athPositions > 0
     ? Math.round((stats.pricedPositions / stats.athPositions) * 100)
@@ -370,7 +291,7 @@ export function buildKosztorysProDashboard(item: TenderPipelineItem): KosztorysP
 
   const statusLabel = resolveStatusLabel(coveragePct, stats.pricedPositions, stats.athReady);
   const marketHint = resolveMarketHint(pricingView);
-  const topRows = pricingView ? buildKosztorysProTopRows(pricingView.rows) : [];
+  const topRows = view.rows.length ? buildKosztorysProTopRowsFromBoqView(view) : [];
 
   const assessment = buildKosztorysProAssessment({
     scope,

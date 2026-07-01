@@ -238,7 +238,8 @@ console.log("\nT09 — Pełny podgląd ATH CTA");
 {
   const wsSrc = readFileSync(resolve(root, "src/app/TenderKosztorysWorkspace.tsx"), "utf8");
   assert(wsSrc.includes("buildKosztorysV4Display"), "workspace uses V4 display SSOT");
-  assert(wsSrc.includes("catalogRows"), "workspace uses catalogRows");
+  assert(wsSrc.includes("boqView"), "workspace uses boq ViewModel");
+  assert(wsSrc.includes("KosztorysBoqExplorerSection"), "workspace mounts BOQ explorer");
   assert(!wsSrc.includes("k?.rows ?? []"), "workspace no raw rows primary");
   assert(wsSrc.includes("Pełny podgląd ATH"), "T09 CTA label");
   assert(wsSrc.includes("JobFilePreviewModal"), "T09 reuses JobFilePreviewModal");
@@ -409,15 +410,61 @@ console.log("\nT14 — V4.2A UX polish");
 console.log("\nT13 — V4.2 workspace PRO markers");
 {
   const wsSrc = readFileSync(resolve(root, "src/app/TenderKosztorysWorkspace.tsx"), "utf8");
+  const sectionSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqExplorerSection.tsx"), "utf8");
   const pageSrc = readFileSync(resolve(root, "src/app/TenderDetailPage.tsx"), "utf8");
   assert(wsSrc.includes("KOSZTORYS PRO"), "T13 pro section");
   assert(wsSrc.includes("data-kosztorys-pro-hero"), "T13 hero above fold");
   assert(wsSrc.includes("Największe pozycje kosztowe"), "T13 top section");
   assert(wsSrc.includes("Ocena kosztorysu"), "T13 assessment");
   assert(wsSrc.includes("Pobierz ATH"), "T13 download ath");
-  assert(wsSrc.includes("data-kosztorys-category-filters"), "T13 filters");
-  assert(wsSrc.includes("kosztorysFilterEmptyMessage"), "T13 filter empty message");
+  assert(wsSrc.includes("buildKosztorysBoqExplorerView"), "T13 boq viewmodel");
+  assert(wsSrc.includes("KosztorysBoqExplorerSection"), "T13 boq section");
+  assert(sectionSrc.includes("data-kosztorys-boq-explorer"), "T13 boq explorer marker");
+  assert(sectionSrc.includes("data-kosztorys-boq-search"), "T13 boq search");
+  assert(sectionSrc.includes("data-kosztorys-category-filters"), "T13 filters in section");
   assert(pageSrc.includes("compactKosztorysChrome"), "T13 compact kosztorys chrome");
+}
+
+console.log("\nT10–T12 — NG-04.1 BOQ Explorer view");
+{
+  const { buildKosztorysBoqExplorerView } = await import("../src/lib/tender-kosztorys-boq-explorer.ts");
+  const athRows = [
+    { lp: "1", description: "Roboty ziemne — wykop", unit: "m3", quantity: "120", unitPrice: "45,00", total: "5400,00" },
+    { lp: "2", description: "Kanalizacja deszczowa KNR 2-02-01", unit: "mb", quantity: "85", unitPrice: "320,00", total: "27200,00" },
+  ];
+  const catalog = athRows.map((r) => ({ lp: r.lp, description: r.description, unit: r.unit, quantity: r.quantity }));
+  const kosztorys = {
+    ok: true,
+    sourceFilename: "przedmiar.ath",
+    totalValue: "32600,00",
+    currency: "PLN",
+    rowCount: 2,
+    rows: athRows,
+    catalogQuantities: catalog,
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  };
+  const item = baseItem(kosztorys);
+  const effective = resolveEffectiveKosztorysV4CatalogLines(item);
+  const view = buildKosztorysBoqExplorerView({ item });
+  assert(view.rows.length === effective.length, "T10 boq count matches effective catalog");
+  assert(view.rows[0].athUnitPrice === "45,00", "T10 ath column populated");
+
+  const formal = baseItem({
+    ok: true,
+    sourceFilename: "formularz_oferty.xlsx",
+    rowCount: 5,
+    rows: formalOfferRows(),
+    catalogQuantities: [],
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  });
+  const formalView = buildKosztorysBoqExplorerView({ item: formal });
+  assert(formalView.rows.length === 0, "T11 formal document zero boq rows");
 }
 
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
