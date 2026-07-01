@@ -99,6 +99,7 @@ import {
   filterProductionWeekEmployees,
   normalizeDirectoryTestFlags,
   weekEmployeeFromDir,
+  filterDirectoryForPayrollWeekAdd,
   fmtDate,
   getWeekRange,
   normalizeJobsList,
@@ -698,6 +699,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!tabVisibleRef.current) return;
     if (pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
+    if (payrollRosterPushRef.current) return;
+    if (Date.now() < suppressAutoSyncUntilRef.current) return;
     if (syncInFlightRef.current) {
       pendingCloudSyncRef.current = true;
       return;
@@ -1231,7 +1234,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const addFromDirectory = (ids: string[]) => {
     setWeekEmployees((prev) => {
-      const toAdd = directory.filter((d) => ids.includes(d.id) && isProductionDirectoryEmployee(d));
+      const toAdd = filterDirectoryForPayrollWeekAdd(directory, ids, prev);
       const newEmps = toAdd.map(weekEmployeeFromDir);
       const next = [...prev, ...newEmps];
       if (newEmps.length > 0) {

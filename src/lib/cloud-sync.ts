@@ -1209,20 +1209,11 @@ export function prepareDataBundleForCloudPush(values: unknown[]): unknown[] {
   return prepared;
 }
 
-function weekEmployeeIdSet(list: unknown[]): Set<string> {
-  const ids = new Set<string>();
-  for (const item of list) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (id) ids.add(id);
-  }
-  return ids;
-}
 
 /**
- * Scal listę płac tygodnia.
- * - Usunięcie na innym urządzeniu (chmura ⊂ lokalnie, mniej osób) → przyjmij skład z chmury.
- * - W przeciwnym razie skład decyduje lokalna karta; chmura tylko uzupełnia pola tych samych osób.
+ * Scal listę płac tygodnia — UNION po weekEmployeeMergeKey (directoryId / legacy name|id).
+ * Lokalne dodanie nie ginie, gdy rekordu jeszcze nie ma w starszym snapshotcie chmury (#009).
+ * Per klucz: oba → mergeWeekEmployeeRecord; tylko local → local; tylko cloud → cloud.
  */
 export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
   const localArr = Array.isArray(local) ? local : [];
@@ -1230,40 +1221,30 @@ export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[
   if (localArr.length === 0) {
     return collapseWeekEmployeesByIdentity(cloudArr);
   }
-  if (cloudArr.length > 0) {
-    const localIds = weekEmployeeIdSet(localArr);
-    const cloudIds = weekEmployeeIdSet(cloudArr);
-    const cloudSubsetOfLocal = [...cloudIds].every((id) => localIds.has(id));
-    const localOnlyCount = [...localIds].filter((id) => !cloudIds.has(id)).length;
-    if (cloudSubsetOfLocal && localOnlyCount > 0 && cloudArr.length < localArr.length) {
-      const localMap = new Map<string, unknown>();
-      for (const item of localArr) {
-        if (!item || typeof item !== "object") continue;
-        const id = String((item as { id?: string }).id || "");
-        if (id) localMap.set(id, item);
-      }
-      const adopted = cloudArr.map((item) => {
-        if (!item || typeof item !== "object") return item;
-        const id = String((item as { id?: string }).id || "");
-        const localItem = id ? localMap.get(id) : undefined;
-        return localItem ? mergeWeekEmployeeRecord(localItem, item) : item;
-      });
-      return collapseWeekEmployeesByIdentity(adopted);
+
+  const indexByMergeKey = (list: unknown[]): Map<string, unknown> => {
+    const map = new Map<string, unknown>();
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const key = weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string });
+      const prev = map.get(key);
+      map.set(key, prev ? mergeWeekEmployeeRecord(prev, item) : item);
     }
+    return map;
+  };
+
+  const localByKey = indexByMergeKey(localArr);
+  const cloudByKey = indexByMergeKey(cloudArr);
+  const allKeys = new Set([...localByKey.keys(), ...cloudByKey.keys()]);
+  const merged: unknown[] = [];
+  for (const key of allKeys) {
+    const l = localByKey.get(key);
+    const c = cloudByKey.get(key);
+    if (l && c) merged.push(mergeWeekEmployeeRecord(l, c));
+    else if (l) merged.push(l);
+    else if (c) merged.push(c);
   }
-  const map = new Map<string, unknown>();
-  for (const item of localArr) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (id) map.set(id, item);
-  }
-  for (const item of cloudArr) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (!id || !map.has(id)) continue;
-    map.set(id, mergeWeekEmployeeRecord(map.get(id)!, item));
-  }
-  return collapseWeekEmployeesByIdentity([...map.values()]);
+  return collapseWeekEmployeesByIdentity(merged);
 }
 
 /** Scal archiwum tygodni — lokalna lista decyduje o składzie; usunięte tygodnie nie wracają z chmury. */

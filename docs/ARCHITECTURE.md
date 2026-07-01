@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-30 (**P0 Tender Detail Tab SSOT** · v2.63.8)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-01 (**PAYROLL-CLOUD-RECOVERY P0** · v2.63.15)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -643,7 +643,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 ### 11.2 Zasady merge (skrót)
 
 - **Jobs:** per `id`, winner po `updatedAt` + merge pól (documents, photos, activity…)
-- **Week employees:** per `id`; `rateUpdatedAt`, `dataUpdatedAt`, `settledUpdatedAt` osobno
+- **Week employees:** **UNION po `weekEmployeeMergeKey`** (`directoryId` → `dir:{id}`; legacy: name/id) — lokalne dodanie z Kadr nie ginie przy starszym snapshotcie chmury (**PAYROLL-CLOUD-RECOVERY P0**, v2.63.15). Per klucz: `mergeWeekEmployeeRecord` dla pól (stawka, dni, settled). `addFromDirectory` — dedup po `directoryId`. `runCloudSync` — skip gdy `payrollRosterPushRef` lub suppress po `persistPayrollRoster`.
 - **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Directory:** lokalna lista decyduje o składzie; pola scalane per id
 - **Archive:** lokalna lista + merge `weekEmployees` wewnątrz tygodnia

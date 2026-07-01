@@ -67,6 +67,13 @@ function empIds(list) {
   return (Array.isArray(list) ? list : []).map((e) => e.id).sort();
 }
 
+function dirKeys(list) {
+  return (Array.isArray(list) ? list : [])
+    .map((e) => e.directoryId)
+    .filter(Boolean)
+    .sort();
+}
+
 const localFull = [makeEmp("e1", "Jan Kowalski"), makeEmp("e2", "Anna Nowak")];
 const cloudFull = [makeEmp("c1", "Cloud Worker")];
 
@@ -122,6 +129,33 @@ console.log("\nT5 hasArchivedWeek=true (no asymmetry shortcut)");
   const mergedFullLocal = mergeForWeek(localFull, [], archive);
   const expectedFullLocal = mergeWeekEmployees(localFull, []);
   assert("T5 local full uses mergeWeekEmployees", JSON.stringify(empIds(mergedFullLocal)) === JSON.stringify(empIds(expectedFullLocal)));
+}
+
+// T6 — local +1 directoryId vs pełny cloud → union (nie subset UUID)
+console.log("\nT6 local +1 directoryId vs full cloud");
+{
+  const localPlus = [
+    ...localFull,
+    makeEmp("e3", "Piotr Zielinski"),
+  ];
+  const merged = mergeWeekEmployees(localPlus, cloudFull);
+  assert("T6 length 4 (union local+cloud)", merged.length === 4);
+  assert("T6 has dir-e3", dirKeys(merged).includes("dir-e3"));
+  assert("T6 has cloud dir-c1", dirKeys(merged).includes("dir-c1"));
+}
+
+// T7 — concurrent device adds (union po directoryId)
+console.log("\nT7 two-device X + Y");
+{
+  const base = [makeEmp("b1", "Base One"), makeEmp("b2", "Base Two")];
+  const cloudStale = base.map((e) => ({ ...e }));
+  const localA = [...base, makeEmp("a-x", "Worker X")];
+  const localB = [...base, makeEmp("b-y", "Worker Y")];
+  const afterA = mergeWeekEmployees(localA, cloudStale);
+  const final = mergeWeekEmployees(localB, afterA);
+  assert("T7 count 4", final.length === 4);
+  assert("T7 dir-X", dirKeys(final).includes("dir-a-x"));
+  assert("T7 dir-Y", dirKeys(final).includes("dir-b-y"));
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

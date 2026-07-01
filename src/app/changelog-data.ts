@@ -12,6 +12,26 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.15",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY P0 (dodanie z Kadr)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — dodanie pracownika z Kadr nie znika po synchronizacji chmury (merge UNION po directoryId, nie UUID-subset)",
+      },
+      {
+        type: "fix",
+        text: "Dodaj z kartyoteki — brak duplikatu tej samej osoby w składzie tygodnia (dedup po directoryId)",
+      },
+      {
+        type: "improve",
+        text: "Auto-sync chmury — nie nadpisuje świeżo dodanego składu podczas push listy płac (payrollRosterPushRef + suppress)",
+      },
+    ],
+  },
+
+  {
+    date: "2026-07-01",
     version: "2.63.13",
     label: "INSPECTOR-JOB-ASSIGN-001 — przypisanie inspektora WM",
     items: [

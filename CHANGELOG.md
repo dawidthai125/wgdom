@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.15 — PAYROLL-CLOUD-RECOVERY P0
+
+- **fix:** Lista płac — dodanie z Kadr nie znika po sync (merge UNION po `directoryId`)
+- **fix:** Dedup `addFromDirectory` po `directoryId`
+- **improve:** `runCloudSync` respektuje `payrollRosterPushRef` + suppress po push składu
+
 ## 2.63.13 — INSPECTOR-JOB-ASSIGN-001
 
 - **new:** `assignedInspectorId` na Job — obowiązkowy wybór inspektora WM w Robotach

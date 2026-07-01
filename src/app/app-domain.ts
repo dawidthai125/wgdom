@@ -409,7 +409,34 @@ export function previousSaturdayIso(weekFrom: string): string {
 }
 
 export function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
-  return { id: crypto.randomUUID(), directoryId: dir.id, name: dir.name, phone: dir.phone, position: dir.position, rate: dir.defaultRate, days: defaultDays(), prevSaturday: defaultDay(), extraCosts: [], settled: false };
+  const directoryId = String(dir.id ?? "").trim();
+  if (!directoryId) {
+    throw new Error("weekEmployeeFromDir: directoryId is required for new WeekEmployee records");
+  }
+  return {
+    id: crypto.randomUUID(),
+    directoryId,
+    name: dir.name,
+    phone: dir.phone,
+    position: dir.position,
+    rate: dir.defaultRate,
+    days: defaultDays(),
+    prevSaturday: defaultDay(),
+    extraCosts: [],
+    settled: false,
+  };
+}
+
+/** SSOT filtr dodania z kartyoteki do składu tygodnia (#004 dedup po directoryId). */
+export function filterDirectoryForPayrollWeekAdd(
+  directory: DirectoryEmployee[],
+  ids: string[],
+  weekEmployees: WeekEmployee[],
+): DirectoryEmployee[] {
+  const assignedDirIds = new Set(weekEmployees.map((e) => e.directoryId).filter(Boolean));
+  return directory.filter(
+    (d) => ids.includes(d.id) && isProductionDirectoryEmployee(d) && !assignedDirIds.has(d.id),
+  );
 }
 
 export function parseTime(t: string) { const [h, m] = t.split(":").map(Number); return isNaN(h)||isNaN(m) ? 0 : h+m/60; }
