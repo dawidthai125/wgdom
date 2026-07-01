@@ -1,10 +1,10 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.11** (release NG-04.3)
+**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.12** · **NG-04 EPIC CLOSED**
 
 ---
 
-## NG-04 — Kosztorys Workspace PRO
+## NG-04 — Kosztorys Workspace PRO · **EPIC CLOSED**
 
 | Faza | Status |
 |------|--------|
@@ -12,11 +12,11 @@
 | **NG-04.1** BOQ Explorer | **CLOSED** · prod **2.63.9** |
 | **NG-04.2** Benchmark per Line | **CLOSED** · prod **2.63.10** |
 | **NG-04.3** ATH Fidelity | **CLOSED** · prod **2.63.11** |
-| **NG-04.4** Polish + EPIC CLOSE | **ACTIVE** |
+| **NG-04.4** Polish & EPIC CLOSE | **CLOSED** · prod **2.63.12** |
 
-**SSOT:** [`docs/NG-04-DESIGN-FREEZE.md`](docs/NG-04-DESIGN-FREEZE.md) · [`docs/NG-04.3-DESIGN-FREEZE.md`](docs/NG-04.3-DESIGN-FREEZE.md) (Principles **#001–#009**)
+**SSOT:** [`docs/NG-04-DESIGN-FREEZE.md`](docs/NG-04-DESIGN-FREEZE.md) · [`docs/NG-04-EPIC-CLOSE-REPORT.md`](docs/NG-04-EPIC-CLOSE-REPORT.md) · Principles **#001–#010**
 
-**NG-04.4 scope (next):** polish BOQ Explorer · EPIC close · opcjonalnie persist `code` / G-08 backlog.
+**Review:** [`docs/ARCHITECTURE-REVIEW-2026-TENDERS.md`](docs/ARCHITECTURE-REVIEW-2026-TENDERS.md)
 
 ---
 
@@ -28,13 +28,15 @@
 
 ---
 
-## NG-03 — Tender Workspace UX · **CLOSED** (seria 2.63.7)
+## NG-03 — Tender Workspace UX · **EPIC CLOSED** (2.63.7)
 
 ---
 
-## NG-02 — Tender Automation Pipeline · **EPIC CLOSED**
+## NG-02 — Tender Automation Pipeline · **EPIC CLOSED** (2.62.98)
 
-| Prod baseline | **2.62.98** · **`aeecdc0`** |
+---
+
+## NG-01 — Tender Trust Layer · **SHIPPED** (w ramach serii 2.63.x)
 
 ---
 
@@ -42,10 +44,9 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.11** (VERIFY po deploy) |
-| **NG-04.3** | **CLOSED** |
-| **NG-04.4** | **ACTIVE** |
-| **NG-02 Pipeline** | EPIC CLOSED |
+| **Wersja prod** | **2.63.12** |
+| **NG-04** | **EPIC CLOSED** |
+| **Aktywny epic Przetargi** | **brak** — na polecenie |
 | **P0 Payroll Etap 2** | NOT STARTED |
 
 ---
@@ -54,6 +55,7 @@
 
 | Temat | Status |
 |-------|--------|
-| **NG-04.4** Polish + EPIC close | **ACTIVE** |
 | **P0 Payroll Etap 2** | NOT STARTED |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
+| **G-08** persist `code` in snapshot | OPEN |
+| **G-02** R/M/S inline BOQ | OPEN |

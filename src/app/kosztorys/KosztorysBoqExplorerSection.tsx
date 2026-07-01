@@ -18,6 +18,7 @@ import {
   TenderMobileRowCard,
   TenderMobileTableCards,
 } from "@/app/tenders/mobile/tender-mobile-row-cards";
+import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { boqRowMobileFields, BoqRowDesktopCells } from "@/app/kosztorys/KosztorysBoqRowFields";
 import { BoqAthSourceStrip } from "@/app/kosztorys/BoqAthSourceStrip";
 import { buildBoqLaborBenchmarkCache } from "@/lib/tender-kosztorys-boq-benchmark";
@@ -75,150 +76,165 @@ export function KosztorysBoqExplorerSection({
 
   const filterLabel = KOSZTORYS_PRO_FILTER_OPTIONS.find((o) => o.id === categoryFilter)?.label;
   const searchActive = searchQuery.trim().length > 0;
+  const catalogEmpty = view.rows.length === 0;
+  const showRowsFallbackBanner = Boolean(rowsFallbackSource) && import.meta.env.DEV;
 
   return (
-    <section className="space-y-3" data-kosztorys-boq-explorer data-kosztorys-boq-row-count={filteredRows.length}>
-      {athDocumentMeta && (
-        <BoqAthSourceStrip
-          meta={athDocumentMeta}
-          onOpenAthPreview={onOpenAthPreview}
-          showExplainLink={Boolean(onOpenAthPreview)}
-        />
-      )}
-
-      <div className="sticky top-0 z-10 -mx-1 px-1 py-1 bg-background/95 backdrop-blur-sm space-y-2">
-        <div className="relative">
-          <Search
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowAllRows(false);
-            }}
-            placeholder="Szukaj pozycji (opis, LP, KNR)…"
-            aria-label="Szukaj pozycji kosztorysu"
-            className="w-full min-h-[44px] pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm"
-            data-kosztorys-boq-search
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-1.5" data-kosztorys-category-filters>
-          {KOSZTORYS_PRO_FILTER_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => onCategoryFilterChange(opt.id)}
-              className={`min-h-[44px] px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
-                categoryFilter === opt.id
-                  ? "border-primary bg-primary/15 text-primary"
-                  : "border-border bg-background hover:bg-secondary/40 text-muted-foreground"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {rowsFallbackSource && (
-        <p
-          className="text-xs text-amber-700 dark:text-amber-400"
-          data-kosztorys-source="rows_fallback"
-        >
-          Brak catalogQuantities — podgląd oparty o snapshot rows (debug).
-        </p>
-      )}
-
-      {sourceFilename && !athDocumentMeta && (
-        <p className="text-xs text-muted-foreground">{sourceFilename}</p>
-      )}
-
-      {filteredRows.length > 0 ? (
-        <div className="space-y-2">
+    <TooltipProvider delayDuration={0}>
+      <section
+        className="space-y-3"
+        data-kosztorys-boq-explorer
+        data-kosztorys-boq-row-count={filteredRows.length}
+      >
+        <div className="space-y-2" data-kosztorys-boq-header>
           <h3 className="text-sm font-semibold text-foreground">BOQ Explorer</h3>
-
-          <TenderMobileTableCards>
-            {visibleRows.map((row) => (
-              <TenderMobileRowCard
-                key={row.rowKey}
-                title={`${row.lp}. ${row.description}`}
-                fields={boqRowMobileFields(row, benchmarkCache, athPresentationCache)}
-              />
-            ))}
-          </TenderMobileTableCards>
-
-          <TenderDesktopTable>
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <table className="w-full text-xs">
-                <thead className="bg-secondary/60">
-                  <tr>
-                    <th className="text-left px-2 py-2 font-medium">Lp</th>
-                    <th className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
-                    <th className="text-left px-2 py-2 font-medium">j.m.</th>
-                    <th className="text-right px-2 py-2 font-medium">Ilość</th>
-                    <th className="text-left px-2 py-2 font-medium">KNR</th>
-                    <th className="text-right px-2 py-2 font-medium">Cena ATH</th>
-                    <th className="text-right px-2 py-2 font-medium">Wartość ATH</th>
-                    <th className="text-right px-2 py-2 font-medium">Cena WGDOM</th>
-                    <th className="text-right px-2 py-2 font-medium">Wartość WGDOM</th>
-                    <th className="text-right px-2 py-2 font-medium">Benchmark</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleRows.map((row) => (
-                    <tr
-                      key={row.rowKey}
-                      className="border-t border-border/50 hover:bg-secondary/20"
-                      data-kosztorys-boq-row={row.lp}
-                    >
-                      <BoqRowDesktopCells
-                        row={row}
-                        benchmarkCache={benchmarkCache}
-                        athCache={athPresentationCache}
-                      />
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TenderDesktopTable>
-
-          {filteredRows.length > PREVIEW_LIMIT && (
-            <button
-              type="button"
-              className="min-h-[44px] text-xs text-primary font-medium hover:underline"
-              onClick={() => setShowAllRows((v) => !v)}
-            >
-              {showAllRows
-                ? "Pokaż mniej pozycji"
-                : `Pokaż wszystkie (${filteredRows.length} pozycji)`}
-            </button>
-          )}
-
-          <p className="text-[10px] text-muted-foreground">
-            {filteredRows.length} pozycji
-            {searchActive ? ` · wyszukiwanie: „${searchQuery.trim()}”` : ""}
-            {categoryFilter !== "all" ? ` · filtr: ${filterLabel}` : ""}
-            {view.meta.catalogSourceLabel ? ` · ${view.meta.catalogSourceLabel}` : ""}
-            {totalValueLabel ?? ""}
-          </p>
-
-          {(trustReasons?.length ?? 0) > 0 && trustLevelIcon && (
-            <TrustReasonList reasons={trustReasons} levelIcon={trustLevelIcon} />
+          {athDocumentMeta && (
+            <BoqAthSourceStrip
+              meta={athDocumentMeta}
+              onOpenAthPreview={onOpenAthPreview}
+              showExplainLink={Boolean(onOpenAthPreview)}
+            />
           )}
         </div>
-      ) : searchActive ? (
-        <p className="text-sm text-muted-foreground">
-          Brak pozycji dla zapytania „{searchQuery.trim()}”.
-        </p>
-      ) : categoryFilter !== "all" ? (
-        <p className="text-sm text-muted-foreground">{kosztorysFilterEmptyMessage(categoryFilter)}</p>
-      ) : null}
-    </section>
+
+        <div className="sticky top-0 z-10 -mx-1 px-1 py-1 bg-background/95 backdrop-blur-sm space-y-2">
+          <div className="relative">
+            <Search
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowAllRows(false);
+              }}
+              placeholder="Szukaj pozycji (opis, LP, KNR)…"
+              aria-label="Szukaj pozycji kosztorysu"
+              className="w-full min-h-[44px] pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm"
+              data-kosztorys-boq-search
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-1.5" data-kosztorys-category-filters role="group" aria-label="Filtry branżowe pozycji">
+            {KOSZTORYS_PRO_FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => onCategoryFilterChange(opt.id)}
+                aria-pressed={categoryFilter === opt.id}
+                className={`min-h-[44px] px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                  categoryFilter === opt.id
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-background hover:bg-secondary/40 text-muted-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {showRowsFallbackBanner && (
+          <p
+            className="text-xs text-amber-700 dark:text-amber-400"
+            data-kosztorys-source="rows_fallback"
+          >
+            Brak catalogQuantities — podgląd oparty o snapshot rows (debug).
+          </p>
+        )}
+
+        {sourceFilename && !athDocumentMeta && (
+          <p className="text-xs text-muted-foreground">{sourceFilename}</p>
+        )}
+
+        {filteredRows.length > 0 ? (
+          <div className="space-y-2">
+            <TenderMobileTableCards>
+              {visibleRows.map((row) => (
+                <TenderMobileRowCard
+                  key={row.rowKey}
+                  title={`${row.lp}. ${row.description}`}
+                  fields={boqRowMobileFields(row, benchmarkCache, athPresentationCache)}
+                />
+              ))}
+            </TenderMobileTableCards>
+
+            <TenderDesktopTable>
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-xs">
+                  <caption className="sr-only">Tabela pozycji BOQ Explorer</caption>
+                  <thead className="bg-secondary/60">
+                    <tr>
+                      <th scope="col" className="text-left px-2 py-2 font-medium">Lp</th>
+                      <th scope="col" className="text-left px-2 py-2 font-medium min-w-[200px]">Opis</th>
+                      <th scope="col" className="text-left px-2 py-2 font-medium">j.m.</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Ilość</th>
+                      <th scope="col" className="text-left px-2 py-2 font-medium">KNR</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Cena ATH</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Wartość ATH</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Cena WGDOM</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Wartość WGDOM</th>
+                      <th scope="col" className="text-right px-2 py-2 font-medium">Benchmark rbh</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((row) => (
+                      <tr
+                        key={row.rowKey}
+                        className="border-t border-border/50 hover:bg-secondary/20"
+                        data-kosztorys-boq-row={row.lp}
+                      >
+                        <BoqRowDesktopCells
+                          row={row}
+                          benchmarkCache={benchmarkCache}
+                          athCache={athPresentationCache}
+                        />
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </TenderDesktopTable>
+
+            {filteredRows.length > PREVIEW_LIMIT && (
+              <button
+                type="button"
+                className="min-h-[44px] text-xs text-primary font-medium hover:underline"
+                onClick={() => setShowAllRows((v) => !v)}
+              >
+                {showAllRows
+                  ? "Pokaż mniej pozycji"
+                  : `Pokaż wszystkie (${filteredRows.length} pozycji)`}
+              </button>
+            )}
+
+            <p className="text-[10px] text-muted-foreground">
+              {filteredRows.length} pozycji
+              {searchActive ? ` · wyszukiwanie: „${searchQuery.trim()}”` : ""}
+              {categoryFilter !== "all" ? ` · filtr: ${filterLabel}` : ""}
+              {view.meta.catalogSourceLabel ? ` · ${view.meta.catalogSourceLabel}` : ""}
+              {totalValueLabel ?? ""}
+            </p>
+
+            {(trustReasons?.length ?? 0) > 0 && trustLevelIcon && (
+              <TrustReasonList reasons={trustReasons} levelIcon={trustLevelIcon} />
+            )}
+          </div>
+        ) : catalogEmpty ? (
+          <p className="text-sm text-muted-foreground" data-kosztorys-boq-empty-catalog>
+            Brak pozycji w katalogu.
+          </p>
+        ) : searchActive ? (
+          <p className="text-sm text-muted-foreground">
+            Brak pozycji dla zapytania „{searchQuery.trim()}”.
+          </p>
+        ) : categoryFilter !== "all" ? (
+          <p className="text-sm text-muted-foreground">{kosztorysFilterEmptyMessage(categoryFilter)}</p>
+        ) : null}
+      </section>
+    </TooltipProvider>
   );
 }

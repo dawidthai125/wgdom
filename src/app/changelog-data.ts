@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.12",
+    label: "NG-04.4 — Polish & EPIC Close",
+    items: [
+      {
+        type: "improve",
+        text: "BOQ Explorer — polish UX/a11y: hierarchia nagłówka, Benchmark rbh, tooltip ATH tylko przy braku ceny/dopasowania, empty states (#010 Polish Only)",
+      },
+      {
+        type: "improve",
+        text: "HelpView FAQ Kosztorys PRO — BOQ Explorer, benchmark rbh, wyjaśnienia ATH; EPIC NG-04 zamknięty",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.11",
     label: "NG-04.3 — ATH Fidelity",
     items: [

@@ -473,7 +473,7 @@ console.log("\nT16–T17 — NG-04.2 Benchmark per line markers");
   const fieldsSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqRowFields.tsx"), "utf8");
   const badgeSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqLaborBenchmarkBadge.tsx"), "utf8");
   assert(sectionSrc.includes("buildBoqLaborBenchmarkCache"), "T16 section builds benchmark cache");
-  assert(sectionSrc.includes("Benchmark"), "T16 benchmark column header");
+  assert(sectionSrc.includes("Benchmark rbh"), "T16 benchmark rbh column header");
   assert(fieldsSrc.includes("BoqLaborBenchmarkBadge"), "T17 row fields use badge adapter");
   assert(fieldsSrc.includes("Benchmark rbh"), "T17 mobile benchmark label");
   assert(badgeSrc.includes("LaborBenchmarkStatusBadge"), "T17 badge delegates to LaborBenchmarkStatusBadge");
@@ -492,6 +492,18 @@ console.log("\nT18–T20 — NG-04.3 ATH Fidelity markers");
   assert(!sectionSrc.includes("parseKosztorysBytes"), "T20 section no parser");
   assert(!tooltipSrc.includes("resolveBoqAthCellState"), "T19 tooltip adapter no resolve");
   assert(wsSrc.includes("onOpenAthPreview"), "T20 workspace wires ath preview CTA");
+}
+
+console.log("\nT21–T22 — NG-04.4 Polish & EPIC close markers");
+{
+  const sectionSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqExplorerSection.tsx"), "utf8");
+  const tooltipSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqAthTooltip.tsx"), "utf8");
+  const guideSrc = readFileSync(resolve(root, "src/app/GuideView.tsx"), "utf8");
+  assert(sectionSrc.includes("data-kosztorys-boq-header"), "T21 boq header block");
+  assert(sectionSrc.indexOf("data-kosztorys-boq-header") < sectionSrc.indexOf("data-kosztorys-boq-search"), "T21 header before search");
+  assert(sectionSrc.includes("TooltipProvider"), "T21 section TooltipProvider");
+  assert(tooltipSrc.includes('athCellState === "priced"'), "T22 priced tooltip suppress");
+  assert(guideSrc.includes("BOQ Explorer"), "T22 GuideView BOQ Explorer");
 }
 
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);

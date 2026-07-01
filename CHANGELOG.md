@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.12 — NG-04.4 Polish & EPIC Close
+
+- **improve:** BOQ Explorer polish — nagłówek, a11y (aria-pressed, caption), ATH tooltip suppress na priced, benchmark empty „—”
+- **improve:** HelpView FAQ · **EPIC NG-04 CLOSED**
+
 ## 2.63.11 — NG-04.3 ATH Fidelity
 
 - **new:** BOQ Explorer — deterministyczne tooltipy ATH per komórka (#008 Explain, Not Re-parse)

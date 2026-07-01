@@ -1,11 +1,9 @@
 # NG-04 — Kosztorys Workspace PRO · DESIGN FREEZE
 
-> **Status:** **DESIGN FREEZE** · SSOT implementacji NG-04  
-> **Data freeze:** 2026-07-01  
-> **Baseline prod:** **v2.63.8** · commit **`f482016`**  
-> **Audyt źródłowy:** [`audit/NG-04-KOSZTORYS-WORKSPACE-PRO-AUDIT.md`](../audit/NG-04-KOSZTORYS-WORKSPACE-PRO-AUDIT.md)  
-> **Workflow (niezmienny):** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md)  
-> **Pipeline (niezmienny):** NG-02 `useTenderPipelineRuntime` · parse heavy lazy · **bez zmian w tej fazie**
+> **Status:** **EPIC CLOSED** · prod **v2.63.12**  
+> **Data freeze:** 2026-07-01 · **closeout:** 2026-07-01  
+> **Baseline prod:** **v2.63.8** → **2.63.12** (04.1–04.4)  
+> **Closeout:** [`docs/NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md)
 
 ---
 
@@ -13,10 +11,9 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Faza** | NG-04.0 DESIGN FREEZE · **NG-04.1 PLAN READY** |
-| **Następna faza** | **NG-04.1 BOQ Explorer IMPLEMENT** — plan: [`NG-04.1-BOQ-EXPLORER-IMPLEMENTATION-PLAN.md`](NG-04.1-BOQ-EXPLORER-IMPLEMENTATION-PLAN.md) |
-| **Zakres freeze** | Prezentacja UI tab **Kosztorys** · unified BOQ · search · benchmark per linia |
-| **Poza freeze** | Parsery ATH/PDF · `athPreviewToSnapshot` shape · sync KV · NG-02 runtime · kalkulator oferty core |
+| **Faza** | NG-04.0–04.4 **CLOSED** |
+| **Epic** | **NG-04 Kosztorys Workspace PRO — EPIC CLOSED** |
+| **Wersje prod** | 2.63.9 → 2.63.12 |
 
 **Hasło sesji:** „kontynuuj WGDOM” + scope **NG-04**.
 
