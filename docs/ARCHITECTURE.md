@@ -649,6 +649,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 - **Jobs / workEntries:** `mergeWorkEntriesById` union + tombstone (bez zmian w P0 guard). **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** (v2.63.16): edycja przydziałów LP opakowana w `CloudSyncMutationGuard` scope `kw-jobs` — auto-sync defer podczas mutacji; recovery `reset()` po bootstrap.
 - **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Edge `batch-set` (B6, v2.63.23):** union listy `kw-week-employees` po **`weekEmployeeMergeKey`** (`directoryId` SSOT) — parity z klientem P0; expansion guard scala (nie `KeepPrevRoster` po UUID); SSOT `src/lib/payroll-week-employee-merge.ts`
+- **Restore banner (RB, v2.63.24):** `PayrollView` — CTA „Przywróć z archiwum” gdy `payrollMetrics` archiwum > live (`activeDays` lub `totalHours` + EPS); `shouldShowPayrollRestoreBanner` w `cloud-sync.ts`; richness **nie** wyzwala UI
 - **Directory:** lokalna lista decyduje o składzie; pola scalane per id
 - **Archive:** lokalna lista + merge `weekEmployees` wewnątrz tygodnia
 - **Employee leaves:** per `id`, winner po `updatedAt`; union z filtrem `kw-employee-leaves-deleted-ids` — usunięte wpisy **nie wracają** z chmury (Sprint 20.0A)

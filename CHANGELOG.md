@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.24 — Restore Banner False Positive (payrollMetrics)
+
+- **fix:** Baner „Przywróć z archiwum” — warunek `payrollMetrics` (activeDays / totalHours), nie `weekEmployeesListRichness`; mniej false positive przy zgodnych wypłatach
+- **improve:** Copy banera dopasowany do logiki (dni robocze i godziny w archiwum vs live)
+
 ## 2.63.23 — PAYROLL-CLOUD-RECOVERY Etap 2 B6 (Edge Parity)
 
 - **fix:** Edge `batch-set` / `restore-payroll-backup` — union `kw-week-employees` po `weekEmployeeMergeKey` (`directoryId`), jak klient P0; usunięto UUID expansion (`KeepPrevRoster`)

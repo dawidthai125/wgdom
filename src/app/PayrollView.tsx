@@ -50,7 +50,7 @@ import {
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { resolvePayrollDisplayEmployees } from "@/lib/payroll-display";
 import { contactsForPayroll, contactAllowsPayroll, type EmailContact } from "@/lib/email-contacts";
-import { API_BASE, API_HEADERS, weekEmployeesListRichness } from "@/lib/cloud-sync";
+import { API_BASE, API_HEADERS, shouldShowPayrollRestoreBanner } from "@/lib/cloud-sync";
 import { useAdminAccess } from "@/app/admin-access";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
@@ -711,13 +711,10 @@ export function PayrollView({
   },0);
 
   const alreadySaved = isSavedWeek;
-  const archiveRichness = archivedForWeek?.weekEmployees ? weekEmployeesListRichness(archivedForWeek.weekEmployees) : 0;
-  const currentRichness = weekEmployeesListRichness(weekEmployees);
   const showRestoreBanner = Boolean(
     !isClosedWeek &&
     onRestoreFromArchive &&
-    archivedForWeek?.weekEmployees?.length &&
-    archiveRichness > currentRichness + 1,
+    shouldShowPayrollRestoreBanner(weekEmployees, archivedForWeek?.weekEmployees),
   );
 
   // Directory employees not yet in this week
@@ -868,8 +865,8 @@ export function PayrollView({
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3">
                 <AlertTriangle size={15} className="text-amber-400 shrink-0 hidden sm:block"/>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-amber-400">W archiwum jest pełniejsza wersja tego tygodnia</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Brakuje godzin Sob.pr. lub dodatkowych wpisów? Przywróć z zapisanego archiwum.</p>
+                  <p className="text-sm font-medium text-amber-400">W archiwum jest więcej zapisanych godzin niż na bieżącej liście</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Zapisany tydzień ma więcej dni roboczych lub łącznie więcej godzin (w tym Sob.pr.). Przywróć skład i godziny z archiwum, jeśli coś zniknęło po syncu lub edycji.</p>
                 </div>
                 <button type="button" onClick={onRestoreFromArchive} className="shrink-0 px-4 py-2 rounded-lg bg-amber-500/20 text-amber-300 text-sm font-medium hover:bg-amber-500/30 transition-colors">
                   Przywróć z archiwum

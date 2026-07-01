@@ -972,6 +972,32 @@ export function payrollMetrics(list: unknown): PayrollMetricsSnapshot {
   return { activeDays, totalHours: +totalHours.toFixed(1) };
 }
 
+/** Tolerancja remisu godzin — baner „Przywróć z archiwum” (RB v2.63.24). */
+export const PAYROLL_RESTORE_BANNER_EPS_HOURS = 0.05;
+
+/** Archiwum ma więcej dni aktywnych lub godzin niż live (PRIMARY warunek banera RB). */
+export function archivePayrollRicherThanLive(
+  archivedWeekEmployees: unknown,
+  liveWeekEmployees: unknown,
+  epsHours = PAYROLL_RESTORE_BANNER_EPS_HOURS,
+): boolean {
+  const archiveM = payrollMetrics(archivedWeekEmployees);
+  const liveM = payrollMetrics(liveWeekEmployees);
+  return (
+    archiveM.activeDays > liveM.activeDays
+    || archiveM.totalHours > liveM.totalHours + epsHours
+  );
+}
+
+/** Czy pokazać baner przywrócenia z archiwum (bez gate closed week — PayrollView). */
+export function shouldShowPayrollRestoreBanner(
+  weekEmployees: unknown[],
+  archivedWeekEmployees?: unknown[] | null,
+): boolean {
+  if (!Array.isArray(archivedWeekEmployees) || archivedWeekEmployees.length === 0) return false;
+  return archivePayrollRicherThanLive(archivedWeekEmployees, weekEmployees);
+}
+
 /** Czy outgoing spada >50% vs chmura (dni aktywne lub godziny). */
 export function wouldBlockPayrollShrink(cloud: unknown, outgoing: unknown): boolean {
   const c = payrollMetrics(cloud);

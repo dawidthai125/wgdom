@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.24",
+    label: "Lista Płac — Restore Banner False Positive",
+    items: [
+      {
+        type: "fix",
+        text: "Baner „Przywróć z archiwum” — tylko gdy archiwum ma więcej dni roboczych lub godzin (payrollMetrics); bez fałszywych alarmów przy zgodnych sumach LP",
+      },
+      {
+        type: "improve",
+        text: "Opis banera dopasowany do rzeczywistej logiki porównania (godziny i dni w archiwum vs bieżąca lista)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.23",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B6 (Edge Parity)",
     items: [
