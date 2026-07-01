@@ -649,11 +649,24 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 | Temat | Status | SSOT |
 |-------|--------|------|
-| **P0 Payroll Cloud Recovery** (P0.1–P0.4) | **EPIC OPEN** | `CURRENT-TASK.md` |
+| **P0 Payroll Cloud Recovery** (P0.2–P0.4) | **EPIC OPEN** · następny epic biznesowy po stabilizacji | `CURRENT-TASK.md` · [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
+| **TEST-INFRA-001** — Payroll Test Harness | **READY FOR IMPLEMENTATION** · NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 |
 | P1.1 `schematic_edited` (anti-flood) | backlog | epic close report § 9 |
 | Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
 | P2-H.7 · P3 Export notatki · P2-G.3D/E · P2-F.6 | backlog | `PROJECT-HANDOFF-CURRENT.md` § 11 |
+
+### 9a. TEST-INFRA-001 — instrukcja dla agentów (skrót)
+
+| Zasada | Treść |
+|--------|--------|
+| **Kiedy czytać** | Przed implementacją Playwright seed dla Lista Płac / Przydziały |
+| **SSOT** | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) |
+| **Start kodu** | **Tylko na polecenie** — STABILIZATION WINDOW (M-08) |
+| **#014–#015** | Harness orchestruje — **zero** własnej logiki domenowej / merge |
+| **#018 prod** | Tylko sandbox joby — **TI-B2** `HARNESS_SANDBOX_JOB_IDS` przed prod smoke |
+| **#016–#019** | Manifest obowiązkowy na prod · cleanup z tombstone parity |
+| **Unit vs E2E** | Guard testowany przez `test-cloud-sync-mutation-guard.mjs` — harness ≠ regresja guarda |
 
 ---
 

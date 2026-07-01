@@ -47,6 +47,7 @@
 12s. docs/STABILIZATION-WINDOW-PLAN.md      ← plan okresu stabilizacji
 12w. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy
 12n. docs/NG-04-EPIC-CLOSE-REPORT.md         ← NG-04 epic close
+12t. docs/TEST-INFRA-001-DESIGN-FREEZE.md     ← ★ TEST-INFRA-001 Harness (DESIGN FREEZE APPROVED · READY FOR IMPLEMENTATION)
 12r. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi
 13. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
 14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § 12.1.21 Schematy · § Notatki
@@ -58,6 +59,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **TEST-INFRA-001** — Payroll Test Harness | 2026-07-01 | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** · kod NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 backlog |
 | **STABILIZATION WINDOW** | od 2026-07-01 | **ACTIVE** · brak nowych epiców | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
 | **NG-04 Kosztorys Workspace PRO** | **2.63.9–12** (`ab6637f`) | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 | [`NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md) · [`NG-04-DESIGN-FREEZE.md`](NG-04-DESIGN-FREEZE.md) |
 | **P0 Tender Detail Tab SSOT** | **2.63.8** (`f482016`) | **CLOSED** · URL SSOT + `pendingTab` · sync modułu `list` przy detalu | [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · ARCHITECTURE § 12.1.27 · WORKFLOW § 3.2 |

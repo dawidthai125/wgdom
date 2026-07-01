@@ -22,6 +22,8 @@ Komunikuj się z użytkownikiem po **polsku**.
 2v4. [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
 2v5. [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) ← ★★ NG-02 Pipeline (CLOSED · 2.62.98)
 2v7. [`docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
+2v8. [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) ← ★ TEST-INFRA Harness (APPROVED · READY · NOT STARTED) · Principles #014–#026
+2v9. [`docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) ← CloudSyncMutationGuard CLOSED · 2.63.16
 2v6. [`audit/NG-02-EPIC-CLOSE-REPORT.md`](audit/NG-02-EPIC-CLOSE-REPORT.md) ← ★★ NG-02 epic closeout
 3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
 4. **Przeczytaj [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)** — ★★ Pomiary Elektryczne EM-P1R.
@@ -47,6 +49,8 @@ Komunikuj się z użytkownikiem po **polsku**.
  - **Mobile Recovery (CLOSED 2.62.79)** → [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md) · `JobsView.tsx` drill-in MV-2
  - **Przetargi / pipeline:** ARCHITECTURE § 12.1.23–27 · `useTenderPipelineRuntime` · NG-02 **EPIC CLOSED** · tab SSOT § 12.1.27
  - **P0 Tab SSOT (2.63.8):** [`docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · `pendingTab` · nie przywracać `tab={v4Detail.tab}`
+ - **TEST-INFRA-001 Harness:** [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) · **nie implementować bez polecenia** · prod tylko sandbox joby (#018)
+ - **Payroll guard P0 (2.63.16):** [`docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) · `cloud-sync-mutation-guard.ts`
  - **UX.1 Tender Workspace** → [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
  - **P2-F Kwalifikacja ofertowa** → [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
 

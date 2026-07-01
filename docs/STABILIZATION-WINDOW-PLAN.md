@@ -55,6 +55,7 @@ Szczegóły Przetargi: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVI
 | M-03 | Mobile re-certification post-NG-03/04 | P1 |
 | M-04 | Monitoring egress Supabase | P1 |
 | M-05 | Payroll Etap 1 — regresja (Etap 2+ **poza** oknem) | P1 |
+| M-08 | TEST-INFRA-001 harness — implementacja **tylko na polecenie** (design APPROVED) | P2 |
 | M-06 | Deprecation map `TenderDetailPanelHosted` | P2 |
 | M-07 | WM POST-ZI housekeeping (docs/code archive) | P2 |
 

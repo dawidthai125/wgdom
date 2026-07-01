@@ -12,6 +12,7 @@
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
 2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
+2ti. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ TEST-INFRA Harness Lista Płac (APPROVED · READY · NOT STARTED)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.12)
 3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.12)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
@@ -36,6 +37,9 @@
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
 5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
 5b. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★★ Lista Płac · Przydziały robót P1
+5c. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ TEST-INFRA Harness Playwright (APPROVED · READY · kod NOT STARTED)
+5d. docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md  ← CloudSyncMutationGuard P0 (CLOSED · 2.63.16)
+5e. docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md  ← mergeWeekEmployees hotfix (CLOSED · 2.63.15)
 6. docs/ZI-2026-HANDOFF.md  ← ZI Tauron 2026 prod SSOT
 7. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
 8. CURRENT-TASK.md        ← status sesji
@@ -69,6 +73,7 @@
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? · **STABILIZATION WINDOW** · backlog |
 | **docs/STABILIZATION-WINDOW-PLAN.md** | **★★ Okres stabilizacji** po NG-04 — zasady, maintenance, kryteria zamknięcia |
 | **docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md** | **SSOT** raportu tygodniowego (wersja, commit, P0, zgłoszenia) |
+| **docs/TEST-INFRA-001-DESIGN-FREEZE.md** | **★ Harness Playwright Lista Płac** — DESIGN FREEZE APPROVED · Principles #014–#026 · **nie implementować bez polecenia** |
 | **docs/NG-04-EPIC-CLOSE-REPORT.md** | **★★ NG-04 BOQ PRO CLOSED** — Principles #001–#010 |
 | **docs/ARCHITECTURE-REVIEW-2026-TENDERS.md** | Review architektury Przetargi NG-01–04 (bez nowego epicu) |
 | **docs/AGENT-CONTINUITY-GUIDE.md** | **★★ Kontekst sesji** — co zrobiliśmy, co robimy, struktura app, mapa Przetargów |

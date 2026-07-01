@@ -198,7 +198,23 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  
  **Kluczowe pliki:** `JobsView.tsx` · `mobile.css` · wzorce: `OperationalNotesView.tsx`, `PayrollView.tsx`
  
-**Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · następny EPIC: **P0 Payroll Cloud Recovery**
+**Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · następny epic biznesowy: **P0 Payroll Cloud Recovery Etap 2+** · harness testowy: **TEST-INFRA-001** (design APPROVED, kod NOT STARTED)
+
+---
+
+## TEST-INFRA-001 — Payroll Test Harness (DESIGN FREEZE APPROVED · 2026-07-01)
+
+**Status:** **READY FOR IMPLEMENTATION** · kod **NOT STARTED** · STABILIZATION WINDOW — tylko na polecenie (M-08)
+
+| Element | Skrót |
+|---|---|
+| **SSOT** | [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](../../docs/TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
+| **Cel** | L0–L5 seed Playwright (Lista Płac → Przydziały) — nie zastępuje unit testów guarda |
+| **TI-B1 backlog** | Ekstrakcja `removeWeekEmployee()` do lib |
+| **TI-B2 gate prod** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run |
+| **Powiązane CLOSED** | `CloudSyncMutationGuard` **2.63.16** · PAYROLL-CLOUD-RECOVERY **2.63.15** |
+
+**Nie** implementuj harnessu automatycznie · **nie** używaj losowych jobów prod (#018) · **nie** duplikuj merge — SSOT import only (#015).
 
 ---
 

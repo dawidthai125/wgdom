@@ -2,7 +2,7 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** **2.63.12** · commit **`ab6637f`** · https://www.wgdom.fun  
-> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE**
+> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **TEST-INFRA-001 APPROVED**
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -17,12 +17,13 @@
 4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
 5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
 6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
-7. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
-8. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
-9. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
-10. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
-11. docs/ARCHITECTURE.md             ← pełna architektura techniczna
-12. AGENTS.md                        ← zasady pracy, zakazy
+7. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ Harness Playwright Lista Płac (APPROVED · READY · kod NOT STARTED)
+8. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
+9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
+10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
+11. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
+12. docs/ARCHITECTURE.md             ← pełna architektura techniczna
+13. AGENTS.md                        ← zasady pracy, zakazy
 ```
 
 Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
@@ -58,6 +59,8 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** |
 | **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
 | **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
+| **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | 2.63.16 · `31a687a` | **CLOSED** · `CloudSyncMutationGuard` · unit T11–T13 |
+| **PAYROLL-CLOUD-RECOVERY hotfix P0** | 2.63.15 | **CLOSED** · `mergeWeekEmployees` UNION |
 
 **Epic closeout NG-02 Pipeline:** [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md)  
 **Epic closeout Mobile Recovery:** [`SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)  
@@ -77,6 +80,25 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 **Wykluczone świadomie:** `schematic_edited` (anti-flood) — backlog P1.1.
 
 Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
+
+### TEST-INFRA-001 — Payroll Test Harness (design freeze · **nie implementować bez polecenia**)
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** |
+| **Kod** | **NOT STARTED** (okno stabilizacji · M-08) |
+| **SSOT** | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
+| **Cel** | L0–L5 seed danych Playwright (Lista Płac → Przydziały) — **nie** zastępuje testów unit guarda |
+
+**Dla agentów AI — zasady:**
+
+1. **Nie** implementuj harnessu automatycznie — tylko na wyraźne polecenie (STABILIZATION WINDOW).
+2. **Nie** duplikuj logiki domenowej — wyłącznie importy SSOT z listy §8 design freeze (#015).
+3. **Prod:** Principle **#018** — tylko sandbox joby (`HARNESS_SANDBOX_JOB_IDS` lub marker); **zakaz** losowych kontraktów użytkownika.
+4. **Prod smoke:** wymaga **TI-B2** (whitelist sandbox) + cleanup manifest (#016, #019).
+5. **Backlog techniczny:** TI-B1 `removeWeekEmployee()` → lib · TI-B2 `HARNESS_SANDBOX_JOB_IDS`.
+
+**Powiązane (prod CLOSED):** [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md)
 
 ### Recovery Pack (dla programistów — tylko odczyt)
 
@@ -99,9 +121,11 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 |-----------|-------|--------|------|
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
-| Na polecenie | P0 Payroll Etap 2+ | NOT STARTED | `CURRENT-TASK.md` |
+| Na polecenie | **P0 Payroll Cloud Recovery Etap 2+** (P0.2–P0.4) | NOT STARTED · **następny epic biznesowy** | `CURRENT-TASK.md` · `PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md` |
+| Na polecenie | **TEST-INFRA-001** implementacja harnessu | READY · NOT STARTED | `TEST-INFRA-001-DESIGN-FREEZE.md` · TI-B1/TI-B2 |
 | Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
-| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-03 | `STABILIZATION-WINDOW-PLAN.md` §3 |
+| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-05 | `STABILIZATION-WINDOW-PLAN.md` §3 |
+| Maintenance P2 | TEST-INFRA harness (M-08) | na polecenie | `TEST-INFRA-001-DESIGN-FREEZE.md` |
 | Backlog | P3 Export notatki · P2-H.7 · Work Catalog P2.7+ | OPEN | `PROJECT-HANDOFF-CURRENT.md` |
 
 **Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → `version` + `commit` (patrz `WORKFLOW-RELEASE-DEPLOY.md`).

@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.12** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.12+** · **NG-04 EPIC CLOSED** · **TEST-INFRA-001 DESIGN FREEZE APPROVED**
 
 ---
 
@@ -65,11 +65,30 @@
 
 ---
 
+## TEST-INFRA-001 — Universal Payroll Test Harness
+
+| Pole | Wartość |
+|------|---------|
+| **Design freeze** | **FINAL — APPROVED** (2026-07-01) |
+| **Status** | **READY FOR IMPLEMENTATION** |
+| **Implementacja** | **NOT STARTED** — okno stabilizacji; tylko na polecenie |
+| **SSOT** | [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
+
+### Backlog techniczny TEST-INFRA (przed prod smoke)
+
+| ID | Element | Status |
+|----|---------|--------|
+| **TI-B1** | Ekstrakcja `removeWeekEmployee()` do warstwy lib | OPEN |
+| **TI-B2** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run | OPEN · **P0 gate** |
+
+---
+
 ## Backlog (na polecenie)
 
 | Temat | Status |
 |-------|--------|
-| **P0 Payroll Etap 2** | NOT STARTED |
+| **P0 Payroll Etap 2** (Cloud Recovery P0.2–P0.4) | NOT STARTED |
+| **TEST-INFRA-001** implementacja harnessu | READY FOR IMPLEMENTATION · NOT STARTED |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |
