@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.21",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B4 (Bootstrap Merge SSOT)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — ujednolicony merge payroll bootstrap (F5) i runtime (pull/sync): finalizePayrollBundleMerge SSOT; P11 richness override także przy focus sync, nie tylko przy odświeżeniu strony",
+      },
+      {
+        type: "improve",
+        text: "Anti-leak po rolloverze pozostaje wyłącznie w ścieżce runtime (applyRuntimePayrollAntiLeak)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.20",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3.2 (payrollRosterPushRef cleanup)",
     items: [

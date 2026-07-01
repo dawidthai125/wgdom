@@ -1565,10 +1565,11 @@ export function sanitizeWeekEmployeesForTargetRange(
 }
 
 /**
- * CloudLoader bootstrap — ta sama sanityzacja co computeMergedDataBundle,
- * plus przy bogatszej chmurze (richness / activeDays) przyjmij payroll z KV.
+ * SSOT payroll merge po mergeAllDataKeys — bootstrap i runtime (B4).
+ * align + sanitize + week mismatch (20.1C.1) + P11 richness override (ten sam tydzień).
+ * Anti-leak — wyłącznie runtime: applyRuntimePayrollAntiLeak().
  */
-export function applyBootstrapPayrollMerge(
+export function finalizePayrollBundleMerge(
   merged: unknown[],
   localValues: unknown[],
   cloudValues: unknown[],
@@ -1613,6 +1614,39 @@ export function applyBootstrapPayrollMerge(
   }
 
   return out;
+}
+
+/** Runtime-only: pusty skład nowego tygodnia po rolloverze — nie przenoś osób z chmury. */
+export function applyRuntimePayrollAntiLeak(merged: unknown[], valuesForMerge: unknown[]): unknown[] {
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  if (empIdx < 0 || archIdx < 0) return merged;
+
+  const payrollSourceForAntiLeak = normalizeArrayValue(valuesForMerge[empIdx]);
+  const archiveSourceForAntiLeak = normalizeArrayValue(valuesForMerge[archIdx]);
+  if (
+    payrollSourceForAntiLeak.length === 0 &&
+    archiveSourceForAntiLeak.some(
+      (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
+    ) &&
+    weekEmployeesListRichness(merged[empIdx]) > 0
+  ) {
+    const next = [...merged];
+    next[empIdx] = [];
+    return next;
+  }
+  return merged;
+}
+
+/**
+ * CloudLoader bootstrap — finalizePayrollBundleMerge (SSOT B4).
+ */
+export function applyBootstrapPayrollMerge(
+  merged: unknown[],
+  localValues: unknown[],
+  cloudValues: unknown[],
+): unknown[] {
+  return finalizePayrollBundleMerge(merged, localValues, cloudValues);
 }
 
 function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown, cloudTo: unknown, localEmps: unknown, cloudEmps: unknown): { from: string; to: string } {
@@ -2354,28 +2388,8 @@ export async function computeMergedDataBundle(
     mergedChargesDeleted,
     mergedOpNotesDeleted,
   );
-  merged = alignWeekRangeInMerged(merged, valuesForMerge, cloudValues);
-  merged = sanitizeWeekEmployeesForTargetRange(merged, valuesForMerge, cloudValues);
-
-  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
-  const archIdx = DATA_KEYS.indexOf("kw-archive");
-  // Anti-leak: pusty skład nowego tygodnia po rolloverze — nie przenoś osób z chmury.
-  // Używamy valuesForMerge (React + localStorage), nie samego snapshotu React — unikamy race po „Odśwież skład”.
-  const payrollSourceForAntiLeak =
-    empIdx >= 0 ? normalizeArrayValue(valuesForMerge[empIdx]) : [];
-  const archiveSourceForAntiLeak =
-    archIdx >= 0 ? normalizeArrayValue(valuesForMerge[archIdx]) : [];
-  if (
-    empIdx >= 0 &&
-    archIdx >= 0 &&
-    payrollSourceForAntiLeak.length === 0 &&
-    archiveSourceForAntiLeak.some(
-      (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
-    ) &&
-    weekEmployeesListRichness(merged[empIdx]) > 0
-  ) {
-    merged[empIdx] = [];
-  }
+  merged = finalizePayrollBundleMerge(merged, valuesForMerge, cloudValues);
+  merged = applyRuntimePayrollAntiLeak(merged, valuesForMerge);
 
   return { merged, cloudReachable };
 }

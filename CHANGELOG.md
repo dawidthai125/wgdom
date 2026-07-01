@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.21 — PAYROLL-CLOUD-RECOVERY Etap 2 B4 (Bootstrap Merge SSOT)
+
+- **fix:** `finalizePayrollBundleMerge` — bootstrap (CloudLoader) i runtime (`computeMergedDataBundle`) ten sam SSOT; P11 richness override także przy pull/sync (local 0h vs bogata chmura)
+- **improve:** `applyRuntimePayrollAntiLeak` — anti-leak rollover wyłącznie runtime
+
 ## 2.63.20 — PAYROLL-CLOUD-RECOVERY Etap 2 B3.2 (payrollRosterPushRef cleanup)
 
 - **improve:** Usunięto `payrollRosterPushRef` — defer pull/auto-sync wyłącznie przez `CloudSyncMutationGuard` + `suppressAutoSyncUntilRef` (R1 push składu, R2 sync stawek, R3 rollover)
