@@ -11,7 +11,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Commit** | **`06f3c28`** |
+| **Commit** | **`ab6637f`** |
 | **Push** | `origin/main` |
 | **VERIFY** | `https://www.wgdom.fun/version.json` → **2.63.12** |
 | **NG-04.4** | **CLOSED** |

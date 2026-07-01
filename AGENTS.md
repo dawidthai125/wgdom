@@ -10,8 +10,12 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.8)
+2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
+2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.12)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.12)
+3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
+3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
 3w4. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout
 3w5. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
@@ -49,7 +53,7 @@
 - **Nie zmieniaj syncu / merge** bez przeczytania ARCHITECTURE § 11.
 - **Przed większą zmianą** przeczytaj **Known Issues** w `PROJECT-GUIDE.md`.
 - **Na końcu sesji** zaktualizuj `CURRENT-TASK.md` + `docs/PROJECT-HANDOFF-CURRENT.md` (baseline prod, commity, decyzje).
-- **Nie rozpoczynaj nowych EPIC-ów automatycznie** — świeży AUDIT + wyraźne polecenie użytkownika.
+- **Nie rozpoczynaj nowych EPIC-ów automatycznie** — **STABILIZATION WINDOW ACTIVE** ([`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md)); kolejny epic po Z-01–Z-07 + AUDIT + poleceniu.
 - Hasło użytkownika: **„kontynuuj WGDOM”** → czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`.
 
 ---
@@ -62,7 +66,11 @@
 | **PROJECT-GUIDE.md** | Jak działa projekt? (architektura, API, pułapki) |
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla programistów) |
-| **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **CURRENT-TASK.md** | Gdzie skończyliśmy? · **STABILIZATION WINDOW** · backlog |
+| **docs/STABILIZATION-WINDOW-PLAN.md** | **★★ Okres stabilizacji** po NG-04 — zasady, maintenance, kryteria zamknięcia |
+| **docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md** | **SSOT** raportu tygodniowego (wersja, commit, P0, zgłoszenia) |
+| **docs/NG-04-EPIC-CLOSE-REPORT.md** | **★★ NG-04 BOQ PRO CLOSED** — Principles #001–#010 |
+| **docs/ARCHITECTURE-REVIEW-2026-TENDERS.md** | Review architektury Przetargi NG-01–04 (bez nowego epicu) |
 | **docs/AGENT-CONTINUITY-GUIDE.md** | **★★ Kontekst sesji** — co zrobiliśmy, co robimy, struktura app, mapa Przetargów |
 | **docs/AGENT-ONBOARDING.md** | **★★ Mapa systemu** — widoki, sync, smoke, workflow deweloperski |
 | **docs/WORKFLOW-ARCHITECTURE-v2.63.md** | **★★ SSOT Workflow** — Hub, Process Strip, CTA, zakładki V4 (obowiązkowe przy Przetargu) |

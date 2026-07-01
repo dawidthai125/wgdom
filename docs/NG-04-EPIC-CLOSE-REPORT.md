@@ -3,7 +3,7 @@
 > **Epic:** NG-04 — Kosztorys Workspace PRO  
 > **Status:** **EPIC CLOSED** · prod **2.63.12**  
 > **Data closeout:** 2026-07-01  
-> **Commit 04.4:** **`06f3c28`**
+> **Commit 04.4:** **`ab6637f`**
 
 ---
 
@@ -20,7 +20,7 @@ Unified **BOQ Explorer** na tab Kosztorys — jeden ViewModel ATH + WGDOM, searc
 | NG-04.1 BOQ Explorer | 2.63.9 | `5112718` |
 | NG-04.2 Benchmark | 2.63.10 | `05d1473` |
 | NG-04.3 ATH Fidelity | 2.63.11 | `adccb4e` |
-| NG-04.4 Polish & Close | 2.63.12 | `06f3c28` |
+| NG-04.4 Polish & Close | 2.63.12 | `ab6637f` |
 
 ---
 

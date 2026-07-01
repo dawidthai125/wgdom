@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.79** · commit **`4397eac`** · https://www.wgdom.fun · **Mobile Recovery CLOSED** · P1 Audit Hub WM CLOSED
+> **Prod:** **2.63.12** · commit **`ab6637f`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -9,14 +9,15 @@
 
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← ★★ kontekst sesji + mapa struktury
-2. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
-3. CURRENT-TASK.md                    ← status sesji / backlog bieżący
-4. docs/PROJECT-HANDOFF-CURRENT.md    ← ★★ baseline prod, epici, commity
-5. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu)
-6. docs/ARCHITECTURE.md               ← pełna architektura (§ 15.2 Audit Hub · § 15.6 wm_druk)
-7. AGENTS.md                          ← workflow, zakazy, lista handoffów
-8. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
-9. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md ← P1 Audit Hub WM CLOSED (jeśli dotyczy WM audit)
+2. CURRENT-TASK.md                    ← status · STABILIZATION WINDOW
+3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 (brak nowych epiców)
+4. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
+5. docs/PROJECT-HANDOFF-CURRENT.md    ← ★★ baseline prod, epici, commity
+6. docs/NG-04-EPIC-CLOSE-REPORT.md    ← BOQ PRO · epic close
+7. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu)
+8. docs/ARCHITECTURE.md               ← pełna architektura (§ 15.2 Audit Hub · § 15.6 wm_druk)
+9. AGENTS.md                          ← workflow, zakazy, lista handoffów
+10. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
 … handoffy tematyczne — patrz AGENTS.md § 1 oraz AGENT-CONTINUITY-GUIDE § 6
 ```
 

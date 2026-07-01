@@ -40,12 +40,26 @@
 
 ---
 
+## STABILIZATION WINDOW · **ACTIVE**
+
+| Pole | Wartość |
+|------|---------|
+| **Start** | 2026-07-01 (po NG-04.4 · prod **2.63.12**) |
+| **Status** | **ACTIVE** — brak nowych epiców |
+| **Plan** | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
+| **Raport tygodniowy (SSOT)** | [`docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
+
+**Rytuał:** raz w tygodniu uzupełnij szablon metryk · werdykt `STABLE` / `WATCH` / `ACTION` · przy P0 → `INCIDENTS-2026-06.md` · zapis opcjonalnie w [`docs/stabilization-weekly/`](docs/stabilization-weekly/).
+
+---
+
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
 | **Wersja prod** | **2.63.12** |
 | **NG-04** | **EPIC CLOSED** |
+| **Stabilization Window** | **ACTIVE** |
 | **Aktywny epic Przetargi** | **brak** — na polecenie |
 | **P0 Payroll Etap 2** | NOT STARTED |
 

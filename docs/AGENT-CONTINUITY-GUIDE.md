@@ -1,8 +1,8 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.62.98** · commit **`aeecdc0`** · https://www.wgdom.fun  
-> **Data:** 2026-06-30
+> **Prod:** **2.63.12** · commit **`ab6637f`** · https://www.wgdom.fun  
+> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE**
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -12,24 +12,43 @@
 
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
-2. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
-3. CURRENT-TASK.md                   ← ostatnia sesja / backlog bieżący
-4. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
-5. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy Przetargu
-6. docs/ARCHITECTURE.md              ← pełna architektura techniczna
-7. AGENTS.md                         ← zasady pracy, zakazy
+2. CURRENT-TASK.md                   ← status · STABILIZATION WINDOW · backlog
+3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 — zasady, maintenance, Z-01–Z-07
+4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
+5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
+6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
+7. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
+8. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
+9. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
+10. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
+11. docs/ARCHITECTURE.md             ← pełna architektura techniczna
+12. AGENTS.md                        ← zasady pracy, zakazy
 ```
 
 Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-06-30)
+## 2. Co zrobiliśmy (stan na 2026-07-01)
+
+### STABILIZATION WINDOW — **ACTIVE** (po NG-04)
+
+| Pole | Wartość |
+|------|---------|
+| **Start** | 2026-07-01 · prod **2.63.12** |
+| **Zasada** | **Brak nowych epiców** — maintenance + drobne wydania docs/test |
+| **Plan** | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) |
+| **Raport tygodniowy** | [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
+
+**Dla agentów AI:** przed kodem sprawdź `CURRENT-TASK.md` § STABILIZATION WINDOW. Zmiany Przetargów wymagają respektu NG-04 Principles #001–#010 i zamrożonego NG-02 runtime. Incydent P0 → `INCIDENTS-2026-06.md` + wpis w raporcie tygodniowym.
 
 ### Epici zamknięte (nie rozpoczynaj bez nowego AUDIT + polecenia)
 
 | Epic | Wersja / commit | Status |
 |------|-----------------|--------|
+| **NG-04 Kosztorys Workspace PRO** | 2.63.9–12 · **`ab6637f`** | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 |
+| **NG-03 Tender Workspace UX** | 2.63.0–7 | **EPIC CLOSED** · Command/Content · 5 tabów |
+| **NG-01 Trust Layer** | w serii 2.63.x | **SHIPPED** · `tender-trust-layer.ts` |
 | **NG-02 Tender Automation Pipeline** | 2.62.95–98 · **`aeecdc0`** | **CLOSED** · auto discovery → heavy → pricing · 177 test PASS |
 | **Mobile Recovery** | 2.62.78–79 · `78582db`→`4397eac` | **CLOSED** · smoke 7 PASS / 1 BLOCKED · bugs **NONE** |
 | **P1 Audit Hub WM** | 2.62.74–77 · `b4fde0c`→`21d4a1b` | **CLOSED** — 7 źródeł Hub · `wm_druk` · 10 akcji WM |
@@ -74,18 +93,18 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne
 
-**Zasada:** **nie rozpoczynaj nowych prac automatycznie.** Kolejny EPIC dopiero po świeżym **AUDIT** + wyraźnym poleceniu użytkownika.
+**Zasada:** **STABILIZATION WINDOW ACTIVE** — nie rozpoczynaj epiców ani dużych feature. Kolejny duży EPIC dopiero po **Z-01–Z-07** ([`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) §5) + **AUDIT** + wyraźnym poleceniu.
 
-| Priorytet | Epic / temat | Status | SSOT |
-|-----------|--------------|--------|------|
-| **Otwarty epic** | **P0 Payroll Cloud Recovery** — Etap 1 done | **OPEN** (P0.1–P0.4) | `CURRENT-TASK.md` |
-| Na polecenie | Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
-| Na polecenie | TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
-| Backlog P1.1 | `schematic_edited` (sesja edycji schematu) | OPEN | epic report § 9 |
-| Backlog | P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · Mobile Certification Pass 1 | OPEN | `PROJECT-HANDOFF-CURRENT.md` § 11 |
-| Backlog mobile (future) | Inspector UX · WM Pomiary/Katalog · Jobs browser history | enhancements only | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` § 6 |
+| Priorytet | Temat | Status | SSOT |
+|-----------|-------|--------|------|
+| **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
+| **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
+| Na polecenie | P0 Payroll Etap 2+ | NOT STARTED | `CURRENT-TASK.md` |
+| Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
+| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-03 | `STABILIZATION-WINDOW-PLAN.md` §3 |
+| Backlog | P3 Export notatki · P2-H.7 · Work Catalog P2.7+ | OPEN | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → oczekiwane `version` = `CHANGELOG[0].version`.
+**Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → `version` + `commit` (patrz `WORKFLOW-RELEASE-DEPLOY.md`).
 
 ---
 
@@ -277,4 +296,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-26 · prod 2.62.77 · runtime 21d4a1b · P1 Audit Hub WM EPIC CLOSED*
+*Ostatnia aktualizacja: 2026-07-01 · prod 2.63.12 · NG-04 EPIC CLOSED · STABILIZATION WINDOW ACTIVE*
