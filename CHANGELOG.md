@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.25 — Audit Hub Freshness (AH-REG-1)
+
+- **fix:** Audit Hub — odświeżanie `security_log` w React po `recordSecurityAudit` (notify); pull AUX audytu w `runCloudSync` jak przy focus pull
+- **improve:** `refreshAuditHubAuxFromCloud` — wspólny pull `kw-security-audit-log` + `kw-wm-druk-audit-log` (bez duplikacji)
+
 ## 2.63.24 — Restore Banner False Positive (payrollMetrics)
 
 - **fix:** Baner „Przywróć z archiwum” — warunek `payrollMetrics` (activeDays / totalHours), nie `weekEmployeesListRichness`; mniej false positive przy zgodnych wypłatach

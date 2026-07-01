@@ -3,6 +3,7 @@
 import { fetchKeysFromCloud, pushKeysToCloud } from "@/lib/cloud-sync";
 
 export const SECURITY_AUDIT_LOG_KEY = "kw-security-audit-log";
+export const SECURITY_AUDIT_LOG_CHANGED_EVENT = "wg-security-audit-log-changed";
 export const SECURITY_AUDIT_CAP = 5000;
 
 export type SecurityAuditCategory = "AUTH" | "PERMISSIONS" | "DATA" | "RECOVERY" | "SYNC" | "SYSTEM";
@@ -160,6 +161,12 @@ export function buildSecurityAuditEntry(input: RecordSecurityAuditInput): Securi
   };
 }
 
+/** Powiadom UI (App / Audit Hub) o zapisie — ten sam tab nie dostaje storage event. */
+export function notifySecurityAuditLogChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(SECURITY_AUDIT_LOG_CHANGED_EVENT));
+}
+
 function readSecurityAuditLogLocal(): SecurityAuditEntry[] {
   try {
     const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
@@ -183,6 +190,7 @@ export async function recordSecurityAudit(input: RecordSecurityAuditInput): Prom
   }
   try {
     localStorage.setItem(SECURITY_AUDIT_LOG_KEY, JSON.stringify(merged));
+    notifySecurityAuditLogChanged();
   } catch {
     /* ignore quota */
   }

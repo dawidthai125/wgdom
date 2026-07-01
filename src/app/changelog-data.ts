@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.25",
+    label: "Audit Hub — świeżość feedu (AH-REG-1)",
+    items: [
+      {
+        type: "fix",
+        text: "Audit Hub — wpisy security log widoczne od razu po akcji (notify + listener); sync chmury odświeża AUX audytu",
+      },
+      {
+        type: "improve",
+        text: "refreshAuditHubAuxFromCloud — jeden pull security + wm-druk w runCloudSync i pullFromCloudAndMerge",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.24",
     label: "Lista Płac — Restore Banner False Positive",
     items: [

@@ -2604,6 +2604,8 @@ WGDOM1/
 
 **Testy:** `scripts/test-security-audit-log.mjs` + rozszerzone `test-audit-hub-*.mjs`.
 
+**AH-REG-1 (v2.63.25):** `notifySecurityAuditLogChanged` w `recordSecurityAudit` + listener w `App.tsx`; `refreshAuditHubAuxFromCloud` w `runCloudSync` i `pullFromCloudAndMerge` — bez nowych źródeł / akcji.
+
 ### 15.4 Audit Hub MVP-1B — Recovery Events (v2.62.41)
 
 **Status:** **CLOSED** — rozszerzenie `security_log` (bez nowego źródła Audit Hub).

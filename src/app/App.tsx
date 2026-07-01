@@ -71,6 +71,7 @@ import {
 import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
 import {
   SECURITY_AUDIT_LOG_KEY,
+  SECURITY_AUDIT_LOG_CHANGED_EVENT,
   normalizeSecurityAuditLog,
   recordSecurityAudit,
   type RecordSecurityAuditInput,
@@ -215,6 +216,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     WM_DRUK_AUDIT_LOG_KEY,
     [],
   );
+
+  useEffect(() => {
+    const refreshSecurityAuditLogFromLocal = () => {
+      try {
+        const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
+        setSecurityAuditLog(normalizeSecurityAuditLog(raw ? JSON.parse(raw) : []));
+      } catch { /* ignore */ }
+    };
+    window.addEventListener(SECURITY_AUDIT_LOG_CHANGED_EVENT, refreshSecurityAuditLogFromLocal);
+    return () => window.removeEventListener(SECURITY_AUDIT_LOG_CHANGED_EVENT, refreshSecurityAuditLogFromLocal);
+  }, [setSecurityAuditLog]);
+
   const [wmPrintTemplates, setWmPrintTemplates] = useLocalStorage<WmPrintTemplate[]>("kw-wm-print-templates", []);
   const [wmPrintJobDocs, setWmPrintJobDocs] = useLocalStorage<WmPrintJobDocument[]>("kw-wm-print-job-docs", []);
   const [wmPrintSettings, setWmPrintSettings] = useLocalStorage<WmPrintSettings>(
@@ -539,15 +552,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       ...input,
       actor: input.actor ?? adminSession?.displayName ?? "Administrator",
       actorUserId: input.actorUserId ?? adminSession?.id,
-    })
-      .then(() => {
-        try {
-          const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
-          if (raw) setSecurityAuditLog(normalizeSecurityAuditLog(JSON.parse(raw)));
-        } catch { /* ignore */ }
-      })
-      .catch(() => {});
-  }, [adminSession, setSecurityAuditLog]);
+    }).catch(() => {});
+  }, [adminSession]);
 
   const onRecordWmDrukAudit = useCallback((input: RecordWmDrukAuditInput) => {
     void recordWmDrukAudit({
@@ -663,6 +669,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   }, [clearPendingAutoSync, setJobs, logSecurityAudit]);
 
+  const refreshAuditHubAuxFromCloud = useCallback(async () => {
+    try {
+      const securityLog = await pullSecurityAuditLogFromCloud();
+      setSecurityAuditLog(securityLog);
+    } catch { /* offline */ }
+    try {
+      const wmDrukLog = await pullWmDrukAuditLogFromCloud();
+      setWmDrukAuditLog(wmDrukLog);
+    } catch { /* offline */ }
+  }, [setSecurityAuditLog, setWmDrukAuditLog]);
+
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
@@ -678,20 +695,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
-      try {
-        const securityLog = await pullSecurityAuditLogFromCloud();
-        setSecurityAuditLog(securityLog);
-      } catch { /* offline */ }
-      try {
-        const wmDrukLog = await pullWmDrukAuditLogFromCloud();
-        setWmDrukAuditLog(wmDrukLog);
-      } catch { /* offline */ }
+      await refreshAuditHubAuxFromCloud();
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, setSecurityAuditLog, setWmDrukAuditLog]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -740,6 +750,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         opReadState,
         opAuditLog,
       );
+      await refreshAuditHubAuxFromCloud();
       setSyncStatus("saved");
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
@@ -759,7 +770,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         void runCloudSync(opts);
       }
     }
-  }, [adminDataBundle, applyAdminDataBundle, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog]);
+  }, [adminDataBundle, applyAdminDataBundle, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog, refreshAuditHubAuxFromCloud]);
 
   const fireDeferredAutoSync = useCallback(() => {
     suppressWakeTimerRef.current = null;
