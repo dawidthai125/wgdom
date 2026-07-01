@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.19 — PAYROLL-CLOUD-RECOVERY Etap 2 B3.1 (Guard Rollover)
+
+- **fix:** Rollover LP (`autoArchiveAndAdvance` → `pushPayrollWeekAfterRollover`) — `withKwWeekEmployeesAsyncMutation` + `payrollRosterPushRef` / suppress
+
 ## 2.63.18 — PAYROLL-CLOUD-RECOVERY Etap 2 B3 (Guard Phase 2)
 
 - **improve:** Lista płac — push składu przez `CloudSyncMutationGuard` (`kw-week-employees`, `withKwWeekEmployeesAsyncMutation`)

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.19",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3.1 (Guard Rollover)",
+    items: [
+      {
+        type: "fix",
+        text: "Przejście tygodnia listy płac (rollover) — push do chmury chroniony CloudSyncMutationGuard (scope kw-week-employees); auto-sync nie nadpisuje pustego nowego tygodnia",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.18",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3 (Guard Phase 2)",
     items: [

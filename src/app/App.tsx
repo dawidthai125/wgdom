@@ -1622,12 +1622,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekTo(targetTo);
     setWeekEmployees([]);
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
-    void pushPayrollWeekAfterRollover({
-      weekFrom: targetFrom,
-      weekTo: targetTo,
-      weekEmployees: [],
-      archive: nextArchive,
-    }).catch(() => {});
+    payrollRosterPushRef.current = true;
+    void withKwWeekEmployeesAsyncMutation(() =>
+      pushPayrollWeekAfterRollover({
+        weekFrom: targetFrom,
+        weekTo: targetTo,
+        weekEmployees: [],
+        archive: nextArchive,
+      }),
+    )
+      .finally(() => { payrollRosterPushRef.current = false; })
+      .catch(() => {});
   }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
   const payrollRolloverCtx = useMemo(
