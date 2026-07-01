@@ -480,5 +480,19 @@ console.log("\nT16–T17 — NG-04.2 Benchmark per line markers");
   assert(!badgeSrc.includes("resolveBoqRowLaborBenchmark"), "T17 adapter no resolve");
 }
 
+console.log("\nT18–T20 — NG-04.3 ATH Fidelity markers");
+{
+  const sectionSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqExplorerSection.tsx"), "utf8");
+  const fieldsSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqRowFields.tsx"), "utf8");
+  const tooltipSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqAthTooltip.tsx"), "utf8");
+  const wsSrc = readFileSync(resolve(root, "src/app/TenderKosztorysWorkspace.tsx"), "utf8");
+  assert(sectionSrc.includes("buildBoqAthPresentationCache"), "T18 section builds ath cache");
+  assert(fieldsSrc.includes("BoqAthTooltip"), "T19 row fields use ath tooltip");
+  assert(sectionSrc.includes("BoqAthSourceStrip"), "T20 source strip mounted");
+  assert(!sectionSrc.includes("parseKosztorysBytes"), "T20 section no parser");
+  assert(!tooltipSrc.includes("resolveBoqAthCellState"), "T19 tooltip adapter no resolve");
+  assert(wsSrc.includes("onOpenAthPreview"), "T20 workspace wires ath preview CTA");
+}
+
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail > 0 ? 1 : 0);

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.11",
+    label: "NG-04.3 — ATH Fidelity",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Kosztorys BOQ Explorer: deterministyczne tooltipy ATH (priced / brak ceny / brak dopasowania) — Principles #008–#009",
+      },
+      {
+        type: "improve",
+        text: "Source chip (typ dokumentu, pewność, plik) + CTA do pełnego podglądu ATH — derived cache buildBoqAthPresentationCache, bez re-parse",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.10",
     label: "NG-04.2 — Benchmark per Line",
     items: [

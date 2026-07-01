@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.10**
+**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.11** (release NG-04.3)
 
 ---
 
@@ -11,12 +11,12 @@
 | **NG-04.0** DESIGN FREEZE | CLOSED |
 | **NG-04.1** BOQ Explorer | **CLOSED** · prod **2.63.9** |
 | **NG-04.2** Benchmark per Line | **CLOSED** · prod **2.63.10** |
-| **NG-04.3** ATH tooltip / FOUND_NO_VALUE | **ACTIVE** |
-| **NG-04.4** Polish + EPIC CLOSE | PLANNED |
+| **NG-04.3** ATH Fidelity | **CLOSED** · prod **2.63.11** |
+| **NG-04.4** Polish + EPIC CLOSE | **ACTIVE** |
 
-**SSOT:** [`docs/NG-04-DESIGN-FREEZE.md`](docs/NG-04-DESIGN-FREEZE.md) · [`docs/NG-04.2-DESIGN-FREEZE.md`](docs/NG-04.2-DESIGN-FREEZE.md) (Principles #001–#007)
+**SSOT:** [`docs/NG-04-DESIGN-FREEZE.md`](docs/NG-04-DESIGN-FREEZE.md) · [`docs/NG-04.3-DESIGN-FREEZE.md`](docs/NG-04.3-DESIGN-FREEZE.md) (Principles **#001–#009**)
 
-**NG-04.3 scope (next):** tooltip ATH FOUND_NO_VALUE · opcjonalnie `LaborBenchmarkCell` expanded — Principle #007 (derived metadata, bez rozszerzenia ViewModel).
+**NG-04.4 scope (next):** polish BOQ Explorer · EPIC close · opcjonalnie persist `code` / G-08 backlog.
 
 ---
 
@@ -42,9 +42,9 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.10** |
-| **NG-04.2** | **CLOSED** |
-| **NG-04.3** | **ACTIVE** |
+| **Wersja prod** | **2.63.11** (VERIFY po deploy) |
+| **NG-04.3** | **CLOSED** |
+| **NG-04.4** | **ACTIVE** |
 | **NG-02 Pipeline** | EPIC CLOSED |
 | **P0 Payroll Etap 2** | NOT STARTED |
 
@@ -54,6 +54,6 @@
 
 | Temat | Status |
 |-------|--------|
-| **NG-04.3** ATH insight BOQ | **ACTIVE** |
+| **NG-04.4** Polish + EPIC close | **ACTIVE** |
 | **P0 Payroll Etap 2** | NOT STARTED |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |

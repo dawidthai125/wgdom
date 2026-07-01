@@ -311,6 +311,7 @@ export function TenderKosztorysWorkspace({
 
       {pro.hasCatalog && (
         <KosztorysBoqExplorerSection
+          item={item}
           view={boqView}
           categoryFilter={categoryFilter}
           onCategoryFilterChange={setCategoryFilter}
@@ -319,6 +320,11 @@ export function TenderKosztorysWorkspace({
           rowsFallbackSource={display.source === "rows_fallback"}
           trustReasons={kosztorysTrustReasons}
           trustLevelIcon={trustLevelToIcon(kosztorysTrust?.level ?? "partial")}
+          onOpenAthPreview={
+            canOpenFullPreview && athPreviewItem
+              ? () => setDocPreview(athPreviewItem)
+              : undefined
+          }
         />
       )}
 

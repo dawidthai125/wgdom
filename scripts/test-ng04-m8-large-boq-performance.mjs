@@ -15,6 +15,8 @@ import {
   selectTopCostRows,
 } from "../src/lib/tender-kosztorys-boq-explorer.ts";
 import { buildBoqLaborBenchmarkCache } from "../src/lib/tender-kosztorys-boq-benchmark.ts";
+import { buildBoqAthPresentationCache } from "../src/lib/tender-kosztorys-boq-ath-presentation.ts";
+import { resolvedCostStatus } from "../src/lib/tender-data-ssot.ts";
 import { buildKosztorysProTopRowsFromBoqView } from "../src/lib/tender-kosztorys-pro-dashboard.ts";
 import { deriveKosztorysProcessPhase } from "../src/lib/tender-kosztorys-process-phase.ts";
 
@@ -283,6 +285,34 @@ console.log("\nM8.10 — Benchmark cache NG-04.2 (#005 · #006)");
   const badgeSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqLaborBenchmarkBadge.tsx"), "utf8");
   assert(badgeSrc.includes("cache.get"), "M8.10 badge cache lookup only");
   assert(!badgeSrc.includes("resolveBoqRowLaborBenchmark"), "M8.10 badge no resolve");
+}
+
+console.log("\nM8.11 — ATH presentation cache NG-04.3 (#005 · #008)");
+{
+  const item = largeItem(500);
+  const costStatus = resolvedCostStatus(item);
+  const t0 = performance.now();
+  const athCache500 = buildBoqAthPresentationCache(view500.rows, { costStatus });
+  const athCacheMs = performance.now() - t0;
+  console.log(`  · buildBoqAthPresentationCache(500) = ${athCacheMs.toFixed(1)}ms`);
+  assert(athCacheMs < 50, "M8.11 ath cache build < 50ms");
+
+  const athCacheRef = athCache500;
+  for (let i = 0; i < 50; i += 1) {
+    filterKosztorysBoqRows(view500.rows, { query: "instalacja" });
+  }
+  assert(athCacheRef === athCache500, "M8.11 ath cache ref stable after 50× filter");
+
+  const explorerSrc = readFileSync(resolve(root, "src/lib/tender-kosztorys-boq-explorer.ts"), "utf8");
+  assert(!explorerSrc.includes("tender-kosztorys-boq-ath-presentation"), "M8.11 explorer no ath-presentation");
+
+  const tooltipSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqAthTooltip.tsx"), "utf8");
+  assert(tooltipSrc.includes("cache.get"), "M8.11 tooltip cache lookup only");
+  assert(!tooltipSrc.includes("resolveBoqAthCellState"), "M8.11 tooltip no resolve");
+
+  const benchT0 = performance.now();
+  buildBoqLaborBenchmarkCache(view500.rows);
+  assert(performance.now() - benchT0 < 50, "M8.11 benchmark cache build still < 50ms");
 }
 
 const verdict = fail === 0 ? "PASS" : "FAIL";

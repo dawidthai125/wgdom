@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.11 — NG-04.3 ATH Fidelity
+
+- **new:** BOQ Explorer — deterministyczne tooltipy ATH per komórka (#008 Explain, Not Re-parse)
+- **improve:** Source strip (typ/confidence/plik) + CTA → `JobFilePreviewModal` (#009 Explain Before Expand)
+
 ## 2.63.10 — NG-04.2 Benchmark per Line
 
 - **new:** BOQ Explorer — kolumna Benchmark rbh per linia (`BoqLaborBenchmarkBadge`)

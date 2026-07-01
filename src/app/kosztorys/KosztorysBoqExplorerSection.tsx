@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { KosztorysBoqExplorerView } from "@/lib/tender-kosztorys-boq-explorer";
 import { filterKosztorysBoqRows } from "@/lib/tender-kosztorys-boq-explorer";
 import {
@@ -8,11 +9,17 @@ import {
   type KosztorysProFilterId,
 } from "@/lib/tender-kosztorys-pro-dashboard";
 import {
+  buildBoqAthDocumentMeta,
+  buildBoqAthPresentationCache,
+} from "@/lib/tender-kosztorys-boq-ath-presentation";
+import { resolvedCostStatus } from "@/lib/tender-data-ssot";
+import {
   TenderDesktopTable,
   TenderMobileRowCard,
   TenderMobileTableCards,
 } from "@/app/tenders/mobile/tender-mobile-row-cards";
 import { boqRowMobileFields, BoqRowDesktopCells } from "@/app/kosztorys/KosztorysBoqRowFields";
+import { BoqAthSourceStrip } from "@/app/kosztorys/BoqAthSourceStrip";
 import { buildBoqLaborBenchmarkCache } from "@/lib/tender-kosztorys-boq-benchmark";
 import type { TenderTrustReason } from "@/lib/tender-trust-layer";
 import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
@@ -20,6 +27,7 @@ import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
 const PREVIEW_LIMIT = 20;
 
 export function KosztorysBoqExplorerSection({
+  item,
   view,
   categoryFilter,
   onCategoryFilterChange,
@@ -28,7 +36,9 @@ export function KosztorysBoqExplorerSection({
   rowsFallbackSource,
   trustReasons,
   trustLevelIcon,
+  onOpenAthPreview,
 }: {
+  item: TenderPipelineItem;
   view: KosztorysBoqExplorerView;
   categoryFilter: KosztorysProFilterId;
   onCategoryFilterChange: (id: KosztorysProFilterId) => void;
@@ -37,14 +47,24 @@ export function KosztorysBoqExplorerSection({
   rowsFallbackSource?: boolean;
   trustReasons?: TenderTrustReason[];
   trustLevelIcon?: string;
+  onOpenAthPreview?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllRows, setShowAllRows] = useState(false);
+
+  const costStatus = useMemo(() => resolvedCostStatus(item), [item]);
 
   const benchmarkCache = useMemo(
     () => buildBoqLaborBenchmarkCache(view.rows),
     [view.rows],
   );
+
+  const athPresentationCache = useMemo(
+    () => buildBoqAthPresentationCache(view.rows, { costStatus }),
+    [view.rows, costStatus],
+  );
+
+  const athDocumentMeta = useMemo(() => buildBoqAthDocumentMeta(item), [item]);
 
   const filteredRows = useMemo(
     () => filterKosztorysBoqRows(view.rows, { query: searchQuery, categoryFilter }),
@@ -58,6 +78,14 @@ export function KosztorysBoqExplorerSection({
 
   return (
     <section className="space-y-3" data-kosztorys-boq-explorer data-kosztorys-boq-row-count={filteredRows.length}>
+      {athDocumentMeta && (
+        <BoqAthSourceStrip
+          meta={athDocumentMeta}
+          onOpenAthPreview={onOpenAthPreview}
+          showExplainLink={Boolean(onOpenAthPreview)}
+        />
+      )}
+
       <div className="sticky top-0 z-10 -mx-1 px-1 py-1 bg-background/95 backdrop-blur-sm space-y-2">
         <div className="relative">
           <Search
@@ -106,7 +134,7 @@ export function KosztorysBoqExplorerSection({
         </p>
       )}
 
-      {sourceFilename && (
+      {sourceFilename && !athDocumentMeta && (
         <p className="text-xs text-muted-foreground">{sourceFilename}</p>
       )}
 
@@ -119,7 +147,7 @@ export function KosztorysBoqExplorerSection({
               <TenderMobileRowCard
                 key={row.rowKey}
                 title={`${row.lp}. ${row.description}`}
-                fields={boqRowMobileFields(row, benchmarkCache)}
+                fields={boqRowMobileFields(row, benchmarkCache, athPresentationCache)}
               />
             ))}
           </TenderMobileTableCards>
@@ -148,7 +176,11 @@ export function KosztorysBoqExplorerSection({
                       className="border-t border-border/50 hover:bg-secondary/20"
                       data-kosztorys-boq-row={row.lp}
                     >
-                      <BoqRowDesktopCells row={row} benchmarkCache={benchmarkCache} />
+                      <BoqRowDesktopCells
+                        row={row}
+                        benchmarkCache={benchmarkCache}
+                        athCache={athPresentationCache}
+                      />
                     </tr>
                   ))}
                 </tbody>
