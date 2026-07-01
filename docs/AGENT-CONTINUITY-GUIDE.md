@@ -1,8 +1,8 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.63.12** · commit **`ab6637f`** · https://www.wgdom.fun  
-> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **TEST-INFRA-001 APPROVED**
+> **Prod:** **2.63.21** · commit **`b3d5664`** · https://www.wgdom.fun  
+> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **PAYROLL-CLOUD-RECOVERY B4 CLOSED**
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -59,6 +59,8 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** |
 | **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
 | **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 B4** | 2.63.21 · `b3d5664` | **CLOSED** · `finalizePayrollBundleMerge` SSOT |
+| **PAYROLL Guard Phase B3–B3.2** | 2.63.18–20 · `45eddaa`→`6afd9fd` | **SERIES CLOSED** · `CloudSyncMutationGuard` roster |
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | 2.63.16 · `31a687a` | **CLOSED** · `CloudSyncMutationGuard` · unit T11–T13 |
 | **PAYROLL-CLOUD-RECOVERY hotfix P0** | 2.63.15 | **CLOSED** · `mergeWeekEmployees` UNION |
 
@@ -121,7 +123,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 |-----------|-------|--------|------|
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
-| Na polecenie | **P0 Payroll Cloud Recovery Etap 2+** (P0.2–P0.4) | NOT STARTED · **następny epic biznesowy** | `CURRENT-TASK.md` · `PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md` |
+| Na polecenie | **PAYROLL-CLOUD-RECOVERY Etap 2** B5/B6 | B5 closed week UI · B6 Edge parity **OPEN** | `CURRENT-TASK.md` · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
 | Na polecenie | **TEST-INFRA-001** implementacja harnessu | READY · NOT STARTED | `TEST-INFRA-001-DESIGN-FREEZE.md` · TI-B1/TI-B2 |
 | Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
 | Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-05 | `STABILIZATION-WINDOW-PLAN.md` §3 |
@@ -184,6 +186,32 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 **Mobile:** bottom nav — Pulpit · Lista Płac · Grafik · Roboty; reszta w „Więcej”.
 
 **Nie czytaj** `App.tsx` od zera (~15k linii) — grep po nazwie widoku lub ARCHITECTURE § 15.
+
+### 4.4 Lista Płac — sync i merge (SSOT po B4)
+
+**Closeout:** [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · Guard Phase: [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md)
+
+```text
+PayrollView.tsx / App.tsx
+  persistPayrollRoster ──► withKwWeekEmployeesAsyncMutation (B3 guard)
+  syncWeekRatesFromDirectory ──► guard roster (R2)
+  autoArchiveAndAdvance ──► pushPayrollWeekAfterRollover + guard (R3)
+
+CloudLoader (F5 / pierwszy mount)
+  mergeAllDataKeys → applyBootstrapPayrollMerge → finalizePayrollBundleMerge
+
+pullFromCloudAndMerge / focus sync
+  computeMergedDataBundle → finalizePayrollBundleMerge → applyRuntimePayrollAntiLeak
+```
+
+| Warstwa | Plik | Klucz KV |
+|---------|------|----------|
+| UI Lista Płac | `PayrollView.tsx`, `WeekEmployeeDetail.tsx` | `kw-week-employees`, `kw-weekFrom`, `kw-weekTo` |
+| Merge SSOT | `cloud-sync.ts` — `finalizePayrollBundleMerge` | po `mergeAllDataKeys` |
+| Guard mutacji | `cloud-sync-mutation-guard.ts` | `kw-week-employees`, `kw-jobs` |
+| Przydziały robót | `PayrollJobAssignmentsPanel.tsx` | `job.workEntries[]` w `kw-jobs` |
+
+**Test parity B4:** `npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs`
 
 ---
 

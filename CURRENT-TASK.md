@@ -1,6 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.17** (`734cbfe`) · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.21** (`b3d5664`) · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+
+---
+
+## PAYROLL-CLOUD-RECOVERY — Guard Phase (B3–B3.2) · **SERIES CLOSED**
+
+| Bundle | Temat | Status | Prod |
+|--------|-------|--------|------|
+| **B3** | Guard Phase 2 — R1/R2 `kw-week-employees` | **CLOSED** | **2.63.18** (`45eddaa`) |
+| **B3.1** | `pushPayrollWeekAfterRollover` → guard roster (R3) | **CLOSED** | **2.63.19** (`91d02de`) |
+| **B3.2** | Usunięcie `payrollRosterPushRef` (cleanup) | **CLOSED** | **2.63.20** (`6afd9fd`) |
+
+**Closeout serii:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
+**SSOT B3:** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md)  
+**SSOT B3.1:** AUDIT + DESIGN FREEZE B3.1 (2026-07-01) · prod **2.63.19** (`91d02de`)
+
+**Łańcuch Guard Phase:** **2.63.18** R1/R2 · **2.63.19** R3 rollover · **2.63.20** ref cleanup · **PRODUCTION VERIFIED**
 
 ---
 
@@ -10,14 +26,19 @@
 |--------|-------|--------|------|
 | **B1** | Fail-loud `persistPayrollRoster` (P0.1d) | **CLOSED** | **2.63.17** (`734cbfe`) |
 | **B2** | JobsView `CloudSyncMutationGuard` (J1–J5) | **CLOSED** | **2.63.17** (`734cbfe`) |
-| **P0.1b** | RCA-2: closed week + archiwum UI | **OPEN** | — |
-| **P0.1c** | RCA-3: `applyBootstrapPayrollMerge` | **OPEN** | — |
-| **Guard Phase 2** | `payrollRosterPushRef` → guard `kw-week-employees` | **OPEN** | — |
-| **Edge Parity** | Edge merge `directoryId` vs UUID | **OPEN** | — |
+| **B3** | Guard Phase 2 — R1/R2 `kw-week-employees` | **CLOSED** | **2.63.18** (`45eddaa`) |
+| **B3.1** | `pushPayrollWeekAfterRollover` → guard roster | **CLOSED** | **2.63.19** (`91d02de`) |
+| **B3.2** | Usunięcie `payrollRosterPushRef` po pełnej migracji | **CLOSED** | **2.63.20** (`6afd9fd`) |
+| **B4** | RCA-3: `finalizePayrollBundleMerge` SSOT bootstrap/runtime | **CLOSED** | **2.63.21** (`b3d5664`) |
+| **B5** | RCA-2: closed week + archiwum UI | **OPEN** | — |
+| **B6** | Edge Parity — merge `directoryId` vs UUID | **OPEN** | — |
 
-**SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)
+**SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)  
+**SSOT Guard Phase closeout:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)
 
-**Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** fail-loud roster + JobsView guard
+**SSOT B4 closeout:** [`docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md)
+
+**Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** fail-loud roster + JobsView guard · **2.63.18–20** Guard Phase B3/B3.1/B3.2 **CLOSED** · **2.63.21** B4 bootstrap/runtime merge SSOT **CLOSED**
 
 ---
 
@@ -86,9 +107,10 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.17** (`734cbfe`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.21** (`b3d5664`) · **PRODUCTION VERIFIED** |
 | **NG-04** | **EPIC CLOSED** |
-| **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1+B2 CLOSED** · backlog P0.1b/c · Guard Phase 2 · Edge Parity **OPEN** |
+| **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
+| **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B4 CLOSED** · backlog B5 · B6 **OPEN** |
 | **Stabilization Window** | **ACTIVE** |
 | **Aktywny epic Przetargi** | **brak** — na polecenie |
 
@@ -116,10 +138,8 @@
 
 | Temat | Status |
 |-------|--------|
-| **P0.1b** — closed week UI (RCA-2) | **OPEN** |
-| **P0.1c** — bootstrap payroll merge (RCA-3) | **OPEN** |
-| **Guard Phase 2** — `payrollRosterPushRef` → guard | **OPEN** |
-| **Edge Parity** — Edge `kw-week-employees` merge | **OPEN** |
+| **B5** — closed week UI (RCA-2) | **OPEN** |
+| **B6** — Edge Parity `kw-week-employees` merge | **OPEN** |
 | **TEST-INFRA-001** implementacja harnessu | READY FOR IMPLEMENTATION · NOT STARTED |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |

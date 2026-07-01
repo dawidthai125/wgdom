@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-01 (**PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** · v2.63.16)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-01 (**PAYROLL-CLOUD-RECOVERY B4** · v2.63.21 · `finalizePayrollBundleMerge` SSOT)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -644,7 +644,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 ### 11.2 Zasady merge (skrót)
 
 - **Jobs:** per `id`, winner po `updatedAt` + merge pól (documents, photos, activity…)
-- **Week employees:** **UNION po `weekEmployeeMergeKey`** (`directoryId` → `dir:{id}`; legacy: name/id) — lokalne dodanie z Kadr nie ginie przy starszym snapshotcie chmury (**PAYROLL-CLOUD-RECOVERY P0**, v2.63.15). Per klucz: `mergeWeekEmployeeRecord` dla pól (stawka, dni, settled). `addFromDirectory` — dedup po `directoryId`. `runCloudSync` — skip gdy `payrollRosterPushRef` lub suppress po `persistPayrollRoster`.
+- **Week employees:** **UNION po `weekEmployeeMergeKey`** (`directoryId` → `dir:{id}`; legacy: name/id) — lokalne dodanie z Kadr nie ginie przy starszym snapshotcie chmury (**PAYROLL-CLOUD-RECOVERY P0**, v2.63.15). Per klucz: `mergeWeekEmployeeRecord` dla pól (stawka, dni, settled). `addFromDirectory` — dedup po `directoryId`. Auto-sync defer: **`CloudSyncMutationGuard`** scope `kw-week-employees` (B3, v2.63.18) + **`suppressAutoSyncUntilRef`** — legacy `payrollRosterPushRef` usunięty w B3.2 (v2.63.20).
 - **Jobs / workEntries:** `mergeWorkEntriesById` union + tombstone (bez zmian w P0 guard). **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** (v2.63.16): edycja przydziałów LP opakowana w `CloudSyncMutationGuard` scope `kw-jobs` — auto-sync defer podczas mutacji; recovery `reset()` po bootstrap.
 - **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Directory:** lokalna lista decyduje o składzie; pola scalane per id
@@ -668,10 +668,13 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 |-----------|------|------|
 | `wouldBlockPayrollShrink` | `cloud-sync.ts` | Blokuje push gdy `activeDays` lub `totalHours` spada >50% vs chmura |
 | `applyPayrollGuardBeforePush` | `cloud-sync.ts` | Wywoływany przed batch-set payroll |
-| `applyBootstrapPayrollMerge` | `CloudLoader.tsx` | Po fetch z chmury: jeśli chmura bogatsza niż lokal → preferuj chmurę (fix 0 h w UI) |
+| **`finalizePayrollBundleMerge`** | `cloud-sync.ts` | **SSOT B4 (v2.63.21)** — align + sanitize + week mismatch (20.1C.1) + P11 richness; bootstrap **i** runtime |
+| `applyBootstrapPayrollMerge` | `cloud-sync.ts` | CloudLoader bootstrap — wrapper → `finalizePayrollBundleMerge` |
+| `applyRuntimePayrollAntiLeak` | `cloud-sync.ts` | **Runtime only** — pusty skład po rolloverze; nie przenoś osób z KV |
 | `sanitizeWeekEmployeesForTargetRange` | `cloud-sync.ts` | Odrzuca rekordy spoza docelowego zakresu tygodnia |
+| `CloudSyncMutationGuard` | `cloud-sync-mutation-guard.ts` | Blokuje pull/push podczas mutacji `kw-week-employees` / `kw-jobs` (B3, v2.63.18) |
 
-Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs`
+Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs` · `npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs` (B4 parity 13)
 
 ### 11.4 Egress i pełny bundle (P0 audit 2026-06-29) · **OPEN**
 

@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.63.12** · commit **`ab6637f`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** **2.63.21** · commit **`b3d5664`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -128,8 +128,9 @@ Bez uprawnień: brak pozycji menu + redirect `guide`/`changelog` → Pulpit. Tes
 | Merge | Per-klucz w `mergeDataKey` — **nie zgaduj** semantyki |
 | **Import merge helperów** | Każda funkcja w `mergeDataKey` **musi** mieć `import` w nagłówku `cloud-sync.ts` — regresja **2.62.39→2.62.42** |
 | Payroll Guard | Blokuje push gdy lista płac „kurczy się” >50% |
+| **Payroll merge SSOT (B4)** | `finalizePayrollBundleMerge` — bootstrap (F5) **i** runtime (pull) identyczne; anti-leak tylko runtime |
 | Admin hasła | Osobny merge `mergeAdminPasswordOverrides` |
-| Bootstrap | `CloudLoader.tsx` — P11 payroll, P15 admin passwords |
+| Bootstrap | `CloudLoader.tsx` → `applyBootstrapPayrollMerge` → `finalizePayrollBundleMerge` · P15 admin passwords |
 | **P0 egress (2026-06-29)** | `exceed_egress_quota` → sync pada (`Failed to fetch`); pełny `batch-get` w `runCloudSync` + focus — patrz [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
 
 **Incydenty:** `docs/INCIDENTS-2026-06.md`
@@ -445,6 +446,37 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 ```
 
 **Nie ruszać bez briefu:** model godzin `emp.days` · wypłaty · grafik · nowy KV · duplikat algorytmu spójności
+
+---
+
+## 6c1. Lista Płac — PAYROLL-CLOUD-RECOVERY (Etap 2 · B1–B4 CLOSED)
+
+**Prod:** **2.63.21** (`b3d5664`) · **STABILIZATION WINDOW ACTIVE**
+
+| Dokument | Rola |
+|----------|------|
+| [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) | **★★ SSOT B4** — `finalizePayrollBundleMerge` bootstrap/runtime parity |
+| [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md) | Seria B3/B3.1/B3.2 — `CloudSyncMutationGuard` roster |
+| [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) | B1+B2 design freeze |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11.3 | Mechanizmy merge payroll w tabeli |
+
+### Łańcuch prod (skrót)
+
+```text
+2.63.15 UNION roster · 2.63.16 guard LP · 2.63.17 B1+B2
+→ 2.63.18–20 Guard Phase · 2.63.21 B4 merge SSOT
+Backlog OPEN: B5 closed week UI · B6 Edge parity
+```
+
+### Smoke / test
+
+```bash
+npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs
+npx vite-node scripts/test-p11-bootstrap-payroll.mjs
+npx vite-node scripts/test-payroll-roster-guard-phase2.mjs
+```
+
+**Nie ruszać bez briefu:** `mergeWeekEmployees` UNION · `CloudSyncMutationGuard` · `finalizePayrollBundleMerge` · Edge parity (B6 backlog).
 
 ---
 
