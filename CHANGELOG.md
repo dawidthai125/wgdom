@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.22 — PAYROLL-CLOUD-RECOVERY Etap 2 B5 (Closed Week UI)
+
+- **fix:** `displayEmployees` SSOT w `PayrollView` — closed + archiwum → snapshot; closed bez archiwum → `[]`; `selectedEmp` z display, nie z live KV
+- **improve:** Tydzień historyczny read-only w LP — ukryte mutacje rosteru/przydziałów; `WeekEmployeeDetail.readOnly`; `showRestoreBanner` tylko operacyjny
+
 ## 2.63.21 — PAYROLL-CLOUD-RECOVERY Etap 2 B4 (Bootstrap Merge SSOT)
 
 - **fix:** `finalizePayrollBundleMerge` — bootstrap (CloudLoader) i runtime (`computeMergedDataBundle`) ten sam SSOT; P11 richness override także przy pull/sync (local 0h vs bogata chmura)

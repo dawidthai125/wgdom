@@ -59,6 +59,7 @@ export function WeekEmployeeDetail({
   directory,
   savedWeeks,
   isClosedWeek = false,
+  readOnly = false,
   payrollRow,
   onDeferPayroll,
   onPatchDay,
@@ -73,6 +74,7 @@ export function WeekEmployeeDetail({
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
   isClosedWeek?: boolean;
+  readOnly?: boolean;
   payrollRow?: { emp: WeekEmployee } & PayrollCalcWithAdjustments;
   onDeferPayroll?: (emp: WeekEmployee) => void;
   onPatchDay: (key: DayKey, next: DayData) => void;
@@ -82,6 +84,7 @@ export function WeekEmployeeDetail({
   onClose: () => void;
 }) {
   const safeEmp = ensureWeekEmployeeDays(emp);
+  const locked = readOnly;
   const { canViewRates } = useAdminAccess();
   const biweekly = isBiweeklyPayrollEmployee(safeEmp, directory);
   const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(safeEmp, directory, weekFrom, weekTo, savedWeeks) : null;
@@ -131,7 +134,9 @@ export function WeekEmployeeDetail({
           <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
           <input type="number" min="0" step="0.50" value={safeEmp.rate}
             onChange={(e) => onPatchRate(e.target.value)}
-            className="w-24 bg-background rounded-lg px-2 py-2 text-base text-right border border-transparent focus:border-primary focus:outline-none"
+            disabled={locked}
+            readOnly={locked}
+            className="w-24 bg-background rounded-lg px-2 py-2 text-base text-right border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
             style={{fontFamily:"'JetBrains Mono', monospace"}}/>
           <span className="text-xs text-muted-foreground">PLN/h</span>
         </div>
@@ -149,7 +154,7 @@ export function WeekEmployeeDetail({
         )}
 
         {/* Days */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className={`bg-card rounded-xl border border-border overflow-hidden${locked ? " pointer-events-none opacity-70" : ""}`}>
           <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.95fr)] px-4 py-2 text-xs text-muted-foreground border-b border-border gap-2" style={{fontFamily:"'JetBrains Mono', monospace"}}>
             <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
           </div>
@@ -187,7 +192,7 @@ export function WeekEmployeeDetail({
               <p className="text-sm font-semibold">Koszty do zwrotu</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Chemia, paliwo, zakupy na budowę — dopłata do wypłaty</p>
             </div>
-            <button type="button" onClick={addExtraCost} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-medium text-foreground transition-colors">
+            <button type="button" onClick={addExtraCost} disabled={locked} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-medium text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none">
               <Plus size={13}/> Dodaj
             </button>
           </div>
@@ -205,7 +210,9 @@ export function WeekEmployeeDetail({
                       placeholder="Opis (np. chemia, paliwo)"
                       value={cost.description}
                       onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, description: e.target.value } : c))}
-                      className="flex-1 min-w-0 bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+                      disabled={locked}
+                      readOnly={locked}
+                      className="flex-1 min-w-0 bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
                     />
                     <input
                       type="number"
@@ -214,10 +221,13 @@ export function WeekEmployeeDetail({
                       placeholder="0"
                       value={cost.amount}
                       onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, amount: e.target.value } : c))}
-                      className="w-24 shrink-0 bg-secondary rounded-lg px-2 py-2 text-sm text-right border border-transparent focus:border-primary focus:outline-none"
+                      disabled={locked}
+                      readOnly={locked}
+                      className="w-24 shrink-0 bg-secondary rounded-lg px-2 py-2 text-sm text-right border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
                       style={{ fontFamily: "'JetBrains Mono', monospace" }}
                     />
                     <span className="text-xs text-muted-foreground pt-2.5 shrink-0">PLN</span>
+                    {!locked && (
                     <button
                       type="button"
                       onClick={() => updateExtraCosts(extraCosts.filter((c) => c.id !== cost.id))}
@@ -225,6 +235,7 @@ export function WeekEmployeeDetail({
                     >
                       <Trash2 size={14}/>
                     </button>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2 pl-0.5">
                     {st !== "approved" && (
@@ -246,7 +257,7 @@ export function WeekEmployeeDetail({
                     {st === "rejected" && cost.rejectReason && (
                       <span className="text-[10px] text-red-400/90 italic">Powód: {cost.rejectReason}</span>
                     )}
-                    {st === "pending" && (
+                    {st === "pending" && !locked && (
                       <>
                         <button type="button"
                           onClick={() => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, status: "approved" as const, rejectReason: undefined } : c))}

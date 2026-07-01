@@ -48,6 +48,7 @@ import {
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
+import { resolvePayrollDisplayEmployees } from "@/lib/payroll-display";
 import { contactsForPayroll, contactAllowsPayroll, type EmailContact } from "@/lib/email-contacts";
 import { API_BASE, API_HEADERS, weekEmployeesListRichness } from "@/lib/cloud-sync";
 import { useAdminAccess } from "@/app/admin-access";
@@ -565,13 +566,6 @@ export function PayrollView({
   );
 
   useEffect(() => {
-    if (initialEmpId && weekEmployees.some((e) => e.id === initialEmpId)) {
-      setSelectedEmpId(initialEmpId);
-      onInitialEmpConsumed?.();
-    }
-  }, [initialEmpId, weekEmployees, onInitialEmpConsumed]);
-
-  useEffect(() => {
     onDetailOpenChange?.(selectedEmpId != null);
   }, [selectedEmpId, onDetailOpenChange]);
 
@@ -608,14 +602,27 @@ export function PayrollView({
     [weekEmployees, weekFrom, weekTo, directory, employeeLeaves, savedWeeks],
   );
   const isClosedWeek = isPayrollWeekClosedForUi(weekFrom, weekTo, hasRolloverBlockers);
-  const payrollEmployees =
-    isClosedWeek && archivedForWeek?.weekEmployees?.length
-      ? archivedForWeek.weekEmployees
-      : weekEmployees;
+  const displayEmployees = useMemo(
+    () => resolvePayrollDisplayEmployees(isClosedWeek, weekEmployees, archivedForWeek?.weekEmployees),
+    [isClosedWeek, weekEmployees, archivedForWeek],
+  );
+
+  useEffect(() => {
+    if (initialEmpId && displayEmployees.some((e) => e.id === initialEmpId)) {
+      setSelectedEmpId(initialEmpId);
+      onInitialEmpConsumed?.();
+    }
+  }, [initialEmpId, displayEmployees, onInitialEmpConsumed]);
+
+  useEffect(() => {
+    if (isClosedWeek && payrollListMode === "assignments") {
+      switchPayrollListMode("summary");
+    }
+  }, [isClosedWeek, payrollListMode]);
 
   const rows = useMemo(
     () =>
-      payrollEmployees.map((emp) => ({
+      displayEmployees.map((emp) => ({
         emp,
         ...calcWeekEmployeeForPayroll(emp, {
           weekFrom,
@@ -626,13 +633,13 @@ export function PayrollView({
           savedWeeks,
         }),
       })),
-    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isClosedWeek, archivedForWeek, savedWeeks],
+    [displayEmployees, weekFrom, weekTo, employeeLeaves, isClosedWeek, archivedForWeek, savedWeeks],
   );
 
   const cashSplit = useMemo(
     () =>
       computePayrollCashSplit(
-        payrollEmployees,
+        displayEmployees,
         directory,
         weekFrom,
         weekTo,
@@ -650,12 +657,15 @@ export function PayrollView({
             hasRolloverBlockers,
           }),
       ),
-    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers],
+    [displayEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers],
   );
 
   const backlogCheck = useMemo(
-    () => biweeklyMissingPrevWeekArchive(weekEmployees, directory, weekFrom, weekTo, savedWeeks),
-    [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
+    () =>
+      isClosedWeek
+        ? { missing: false as const, biweeklyCount: 0, prevRange: { from: weekFrom, to: weekTo } }
+        : biweeklyMissingPrevWeekArchive(weekEmployees, directory, weekFrom, weekTo, savedWeeks),
+    [isClosedWeek, weekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
   const payrollCashContext = biweeklyCashContextLine(cashSplit, weekTo);
@@ -703,7 +713,12 @@ export function PayrollView({
   const alreadySaved = isSavedWeek;
   const archiveRichness = archivedForWeek?.weekEmployees ? weekEmployeesListRichness(archivedForWeek.weekEmployees) : 0;
   const currentRichness = weekEmployeesListRichness(weekEmployees);
-  const showRestoreBanner = Boolean(onRestoreFromArchive && archivedForWeek?.weekEmployees?.length && archiveRichness > currentRichness + 1);
+  const showRestoreBanner = Boolean(
+    !isClosedWeek &&
+    onRestoreFromArchive &&
+    archivedForWeek?.weekEmployees?.length &&
+    archiveRichness > currentRichness + 1,
+  );
 
   // Directory employees not yet in this week
   const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
@@ -734,7 +749,7 @@ export function PayrollView({
     d.position.toLowerCase().includes(pickerSearch.toLowerCase())
   );
 
-  const selectedEmp = weekEmployees.find((e)=>e.id===selectedEmpId)||null;
+  const selectedEmp = displayEmployees.find((e)=>e.id===selectedEmpId)||null;
   const selectedPayrollRow = selectedEmp ? rows.find((r) => r.emp.id === selectedEmp.id) : undefined;
 
   const handleDeferPayroll = useCallback(
@@ -814,7 +829,7 @@ export function PayrollView({
           <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 w-full max-w-none`}>
 
             {/* Saturday reminder */}
-            {isSaturday && !satDismissed && (
+            {isSaturday && !satDismissed && !isClosedWeek && (
               <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/25 rounded-xl px-4 py-3">
                 <Bell size={15} className="text-yellow-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
@@ -840,7 +855,11 @@ export function PayrollView({
                 <Archive size={15} className="text-violet-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-violet-300">Tydzień historyczny — podgląd ze snapshotu</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Przeniesienia wypłat i nowe urlopy nie zmieniają tego tygodnia.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {archivedForWeek?.weekEmployees?.length
+                      ? "Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Przeniesienia wypłat i nowe urlopy nie zmieniają tego tygodnia."
+                      : `Brak zapisanego archiwum dla tygodnia ${fmtDate(weekFrom)}–${fmtDate(weekTo)}. Zapisz tydzień przed rolloverem lub otwórz zakładkę Archiwum.`}
+                  </p>
                 </div>
               </div>
             )}
@@ -917,6 +936,8 @@ export function PayrollView({
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
+                {!isClosedWeek && (
+                <>
                 <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                   <UserPlus size={14}/>Dodaj pracownika
                 </button>
@@ -968,20 +989,22 @@ export function PayrollView({
                 <button onClick={onSaveWeek} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${alreadySaved?"bg-green-500/15 text-green-400 border border-green-500/20":"bg-secondary hover:bg-secondary/70 border border-border"}`}>
                   <Archive size={14}/>{alreadySaved?"Zapisany ✓":"Zapisz tydzień"}
                 </button>
+                </>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowPdfPreview(true)}
-                  disabled={weekEmployees.length === 0 || !canViewRates}
+                  disabled={displayEmployees.length === 0 || !canViewRates}
                   className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                  title={!canViewRates ? "Eksport z stawkami — tylko administrator" : weekEmployees.length === 0 ? "Dodaj pracowników do listy" : "Podgląd PDF w oknie aplikacji"}
+                  title={!canViewRates ? "Eksport z stawkami — tylko administrator" : displayEmployees.length === 0 ? "Brak danych do eksportu" : "Podgląd PDF w oknie aplikacji"}
                 >
                   <Eye size={14}/>Podgląd PDF
                 </button>
                 {canViewRates && (
                 <>
-                <button onClick={exportPDF} disabled={weekEmployees.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"><FileDown size={14}/>PDF</button>
-                <button onClick={exportWord} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>Word</button>
-                {weekEmployees.length > 0 && (
+                <button onClick={exportPDF} disabled={displayEmployees.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"><FileDown size={14}/>PDF</button>
+                <button onClick={exportWord} disabled={displayEmployees.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"><FileDown size={14}/>Word</button>
+                {displayEmployees.length > 0 && (
                   <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                     <Send size={14}/>Email
                   </button>
@@ -1021,6 +1044,7 @@ export function PayrollView({
                       <LayoutGrid size={12}/>
                       Szczegóły dni
                     </button>
+                    {!isClosedWeek && (
                     <button
                       type="button"
                       role="tab"
@@ -1031,18 +1055,30 @@ export function PayrollView({
                       <HardHat size={12}/>
                       Przydziały robót
                     </button>
+                    )}
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length} rozliczonych</span>
+                  {displayEmployees.length > 0 && (
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">{displayEmployees.filter(e=>e.settled).length}/{displayEmployees.length} rozliczonych</span>
+                  )}
                 </div>
               </div>
 
-              {weekEmployees.length === 0 ? (
+              {displayEmployees.length === 0 ? (
                 <div className="p-12 text-center space-y-3">
                   <Users size={36} className="mx-auto text-muted-foreground/20"/>
-                  <p className="text-sm text-muted-foreground">Brak pracowników w tym tygodniu.</p>
-                  <button onClick={()=>setShowPicker(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">
-                    <UserPlus size={14}/>Dodaj pracowników
-                  </button>
+                  {isClosedWeek ? (
+                    <>
+                      <p className="text-sm text-muted-foreground">Brak zapisanego archiwum dla tygodnia {fmtDate(weekFrom)}–{fmtDate(weekTo)}.</p>
+                      <p className="text-xs text-muted-foreground/80">Zapisz tydzień przed rolloverem lub otwórz zakładkę Archiwum, aby edytować historię.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">Brak pracowników w tym tygodniu.</p>
+                      <button onClick={()=>setShowPicker(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">
+                        <UserPlus size={14}/>Dodaj pracowników
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : payrollListMode === "summary" ? (
                 <>
@@ -1058,8 +1094,12 @@ export function PayrollView({
                         <th className="px-2 py-3 text-right w-20">Zaliczki</th>
                         <th className="px-2 py-3 text-right w-16">Koszty</th>
                         <th className="px-2 py-3 text-right w-24 whitespace-nowrap">Do wypłaty</th>
+                        {!isClosedWeek && (
+                        <>
                         <th className="sticky right-9 z-20 px-2 py-3 text-center whitespace-nowrap w-[7.75rem] bg-card shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]">Status</th>
                         <th className="sticky right-0 z-20 px-2 py-3 w-9 bg-card"/>
+                        </>
+                        )}
                       </tr></thead>
                       <tbody className="divide-y divide-border">
                         {rows.map((r,i)=>(
@@ -1113,6 +1153,8 @@ export function PayrollView({
                                 return <>{fmt(r.netPay)} <span className="text-[10px] font-normal text-primary/70">zł</span></>;
                               })()}
                             </td>
+                            {!isClosedWeek && (
+                            <>
                             <td className={`sticky right-9 z-10 px-2 py-3.5 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
                               <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-full text-[11px] font-medium whitespace-nowrap transition-all touch-manipulation ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
                                 {r.emp.settled?<><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</>:<><Circle size={11} className="shrink-0"/>Oczekuje</>}
@@ -1128,6 +1170,8 @@ export function PayrollView({
                                 <button onClick={()=>setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
                               )}
                             </td>
+                            </>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -1161,14 +1205,18 @@ export function PayrollView({
                           <td className="px-3 py-3 text-right font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalZaliczkaSum>0?`−${fmt(totalZaliczkaSum)}`:"—"}</td>
                           <td className="px-3 py-3 text-right font-bold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalExtraCostsSum>0?`+${fmt(totalExtraCostsSum)}`:"—"}</td>
                           <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                          {!isClosedWeek && (
+                          <>
                           <td className="sticky right-9 z-10 bg-secondary/30 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]"/>
                           <td className="sticky right-0 z-10 bg-secondary/30"/>
+                          </>
+                          )}
                         </tr>
                         {cashSplit.hasBiweeklyEmployees && canViewRates && (
                         <tr className="border-t border-primary/20 bg-primary/5">
                           <td colSpan={8} className="px-4 py-3 text-xs font-bold text-primary uppercase tracking-wider">Wypłata w sobotę · {fmtDate(weekTo).slice(0, 5)}</td>
                           <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
-                          <td colSpan={2} className="sticky right-0 z-10 bg-primary/5"/>
+                          {!isClosedWeek && <td colSpan={2} className="sticky right-0 z-10 bg-primary/5"/>}
                         </tr>
                         )}
                       </tfoot>
@@ -1184,6 +1232,8 @@ export function PayrollView({
                             <div className="min-w-0"><p className="text-sm font-medium truncate">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}</p></div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            {!isClosedWeek && (
+                            <>
                             <button onClick={() => onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap touch-manipulation ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
                               {r.emp.settled?<><CheckCircle2 size={11}/>Rozlicz.</>:<><Circle size={11}/>Oczek.</>}
                             </button>
@@ -1194,6 +1244,8 @@ export function PayrollView({
                               </div>
                             ) : (
                               <button type="button" onClick={() => setDeleteConfirm(r.emp.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded" aria-label="Usuń z tygodnia"><Trash2 size={14}/></button>
+                            )}
+                            </>
                             )}
                           </div>
                         </div>
@@ -1223,7 +1275,7 @@ export function PayrollView({
               ) : payrollListMode === "detailed" ? (
                 <>
                   <p className="px-5 py-2 text-[11px] text-muted-foreground border-b border-border/60 hidden sm:block">
-                    Godziny pracy wg dni — zmiany podstawowe, dodatkowe i zaliczki. Kliknij wiersz, aby edytować.
+                    Godziny pracy wg dni{isClosedWeek ? " — podgląd historyczny (tylko odczyt)" : " — zmiany podstawowe, dodatkowe i zaliczki. Kliknij wiersz, aby edytować."}
                   </p>
                   <div className="hidden sm:block overflow-x-auto overscroll-x-contain">
                     <table className="w-full min-w-[1180px] text-sm">
@@ -1244,8 +1296,12 @@ export function PayrollView({
                             </th>
                           )}
                           <th className="px-2 py-3 text-right w-14">Σ h</th>
+                          {!isClosedWeek && (
+                          <>
                           <th className="sticky right-9 z-20 px-2 py-3 text-center whitespace-nowrap w-[7.75rem] bg-card shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]">Status</th>
                           <th className="sticky right-0 z-20 px-2 py-3 w-9 bg-card"/>
+                          </>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
@@ -1278,6 +1334,8 @@ export function PayrollView({
                             <td className="px-2 py-3 text-right font-semibold align-top whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                               {r.weekHours > 0 ? fmtH(r.weekHours) : <span className="text-muted-foreground/40">—</span>}
                             </td>
+                            {!isClosedWeek && (
+                            <>
                             <td className={`sticky right-9 z-10 px-2 py-3 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
                               <button onClick={() => onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
                                 {r.emp.settled ? <><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</> : <><Circle size={11} className="shrink-0"/>Oczekuje</>}
@@ -1293,6 +1351,8 @@ export function PayrollView({
                                 <button onClick={() => setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
                               )}
                             </td>
+                            </>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -1325,9 +1385,11 @@ export function PayrollView({
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours > 0 ? fmtH(r.weekHours) : "—"}</span>
+                            {!isClosedWeek && (
                             <button onClick={(e) => { e.stopPropagation(); onToggleSettled(r.emp.id); }} className={`inline-flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full text-xs font-medium touch-manipulation ${r.emp.settled ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
                               {r.emp.settled ? "✓" : "○"}
                             </button>
+                            )}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -1388,7 +1450,7 @@ export function PayrollView({
       {/* Detail panel */}
       {selectedEmp && (
         <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-50 sm:z-auto">
-          {payrollListMode === "assignments" ? (
+          {payrollListMode === "assignments" && !isClosedWeek ? (
             <PayrollJobAssignmentsPanel
               emp={selectedEmp}
               jobs={jobs}
@@ -1406,12 +1468,13 @@ export function PayrollView({
               directory={directory}
               savedWeeks={savedWeeks}
               isClosedWeek={isClosedWeek}
+              readOnly={isClosedWeek}
               payrollRow={selectedPayrollRow}
               onDeferPayroll={handleDeferPayroll}
-              onPatchDay={(key, next) => onUpdateWeekEmployeeDay(selectedEmp.id, key, next)}
-              onPatchRate={(rate) => onUpdateWeekEmployeeRate(selectedEmp.id, rate)}
-              onPatchPrevSaturday={(next) => onUpdateWeekEmployeePrevSaturday(selectedEmp.id, next)}
-              onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
+              onPatchDay={isClosedWeek ? () => {} : (key, next) => onUpdateWeekEmployeeDay(selectedEmp.id, key, next)}
+              onPatchRate={isClosedWeek ? () => {} : (rate) => onUpdateWeekEmployeeRate(selectedEmp.id, rate)}
+              onPatchPrevSaturday={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeePrevSaturday(selectedEmp.id, next)}
+              onPatchExtraCosts={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
               onClose={()=>setSelectedEmpId(null)}
             />
           )}

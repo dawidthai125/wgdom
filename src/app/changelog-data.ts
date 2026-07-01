@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.22",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B5 (Closed Week UI)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — tydzień historyczny (closed): jedno źródło wyświetlania displayEmployees (snapshot lub pusty); panel szczegółów i eksport bez split-brain z live kw-week-employees",
+      },
+      {
+        type: "improve",
+        text: "Tydzień closed — tryb read-only w LP: brak mutacji rosteru, przydziałów i edycji dni/stawek; empty state gdy brak archiwum",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.21",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B4 (Bootstrap Merge SSOT)",
     items: [
