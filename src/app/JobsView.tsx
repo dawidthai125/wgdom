@@ -98,6 +98,7 @@ import { contactsForJobs, contactAllowsJobs, type EmailContact } from "@/lib/ema
 import { JobInspectorContactModal } from "@/app/JobInspectorContactModal";
 import { inspectorTemplateActivityText, type InspectorTemplateId } from "@/lib/inspector-message-templates";
 import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfterDelete } from "@/lib/cloud-sync";
+import { withKwJobsWorkEntryMutation } from "@/lib/cloud-sync-mutation-guard";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
   inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
@@ -784,7 +785,18 @@ export function JobsView({
   const docsCount = (job: Job) => DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
 
-  const updateJob = (updated: Job, activity?: { type: JobActivityType; text: string; actor?: string }) => {
+  const applyJobs = useCallback(
+    (updater: (prev: Job[]) => Job[]) => {
+      withKwJobsWorkEntryMutation(() => setJobs(updater));
+    },
+    [setJobs],
+  );
+
+  const updateJob = (
+    updated: Job,
+    activity?: { type: JobActivityType; text: string; actor?: string },
+    guardWorkEntries = false,
+  ) => {
     const validation = validateJobAssignedInspectorForSave(updated);
     if (!validation.ok) {
       toast.error(validation.message);
@@ -801,15 +813,19 @@ export function JobsView({
       next = normalizeJobWmFields(next);
     }
 
-    setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+    const write = (updater: (prev: Job[]) => Job[]) => {
+      if (guardWorkEntries) applyJobs(updater);
+      else setJobs(updater);
+    };
+    write((prev) => prev.map((j) => (j.id === next.id ? next : j)));
   };
 
   const handleRemoveWorkEntry = useCallback(
     (entryId: string) => {
       if (!selectedJob) return;
-      setJobs((prev) => removeWorkEntryFromJobs(prev, selectedJob.id, entryId));
+      applyJobs((prev) => removeWorkEntryFromJobs(prev, selectedJob.id, entryId));
     },
-    [selectedJob, setJobs],
+    [selectedJob, applyJobs],
   );
 
   const handleAddBillingNote = useCallback((chargeId: string, text: string, _files?: BillingNotePendingFiles) => {
@@ -1335,6 +1351,7 @@ export function JobsView({
     updateJob(
       {...selectedJob, workEntries:[...selectedJob.workEntries,entry]},
       { type: "work_entry", text: `${entry.employeeName} — ${fmtDate(entry.date)}, ${fmtH(entry.hours)}` },
+      true,
     );
     setShowAddEntry(false);
     setEntryDirId("");
@@ -1347,6 +1364,7 @@ export function JobsView({
     updateJob(
       { ...selectedJob, workEntries: [...selectedJob.workEntries, ...newEntries] },
       { type: "work_entry", text: label },
+      true,
     );
   };
 
@@ -1513,7 +1531,10 @@ export function JobsView({
           mobileJobDetailOpen ? "hidden sm:flex sm:flex-[7]" : "flex flex-1 sm:flex-[7]"
         }`}
       >
-        <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div
+          data-mobile-scroll-root="jobs-list"
+          className="mobile-view-scroll flex-1 overflow-y-auto overscroll-contain"
+        >
           {jobs.length===0&&(
             <div className="p-8 text-center space-y-2 text-muted-foreground">
               <MapPin size={32} className="mx-auto opacity-20"/>
@@ -1587,7 +1608,10 @@ export function JobsView({
               />
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div
+            data-mobile-scroll-root="jobs-detail"
+            className="mobile-view-scroll flex-1 overflow-y-auto overscroll-contain"
+          >
             <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 py-4 space-y-4 md:py-3 md:space-y-3">
 
             {detailSection === "summary" && (
@@ -2519,7 +2543,7 @@ export function JobsView({
                                     onChange={(e) => updateJob({
                                       ...selectedJob,
                                       workEntries: selectedJob.workEntries.map((we) => we.id === entry.id ? { ...we, notes: e.target.value } : we),
-                                    })}
+                                    }, undefined, true)}
                                     className="w-full mt-1 bg-transparent text-[11px] text-muted-foreground placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors py-0.5"
                                   />
                                 </td>

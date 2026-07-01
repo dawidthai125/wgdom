@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.17 — PAYROLL-CLOUD-RECOVERY Etap 2 (B1+B2)
+
+- **fix:** Lista płac — fail-loud push składu (`persistPayrollRoster` toast zamiast silent catch)
+- **fix:** Roboty → Pracownicy — `workEntries` przez `withKwJobsWorkEntryMutation` (J1–J5)
+
 ## 2.63.16 — PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0
 
 - **fix:** Przydziały robót — dropdown nie cofa się po sync (CloudSyncMutationGuard, scope `kw-jobs`)

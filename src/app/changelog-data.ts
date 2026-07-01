@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.17",
+    label: "Lista Płac + Roboty — PAYROLL-CLOUD-RECOVERY Etap 2",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — błąd zapisu składu do chmury (dodanie/usunięcie z Kadr) pokazuje toast zamiast cichego niepowodzenia",
+      },
+      {
+        type: "fix",
+        text: "Roboty → Pracownicy — edycja wpisów workEntries chroniona CloudSyncMutationGuard (ten sam wzorzec co Przydziały w LP)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.16",
     label: "Lista Płac — Przydziały robót sync guard P0",
     items: [

@@ -1253,7 +1253,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     payrollRosterPushRef.current = true;
     void pushWeekEmployeesToCloud(next, { skipPayrollGuard: true })
       .finally(() => { payrollRosterPushRef.current = false; })
-      .catch(() => {});
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        toast.error("Nie udało się zapisać składu do chmury", {
+          description: msg,
+          id: "payroll-roster-push",
+        });
+      });
   }, []);
 
   const refreshSavedActiveWeekSnapshot = useCallback((nextEmployees: WeekEmployee[]) => {
