@@ -1,6 +1,30 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-30 · **NG-02 EPIC CLOSED** · **prod 2.62.98** · **`aeecdc0`**
+**Ostatnia aktualizacja:** 2026-06-30 · **prod 2.63.8** · **`f482016`**
+
+---
+
+## P0 — Tender Detail Tab SSOT · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** |
+| **Prod** | **2.63.8** · commit **`f482016`** |
+| **Problem** | URL taba się zmieniał, UI zostawał na starym (`tab` prop z modułu) |
+| **Fix** | SSOT: `parseTenderDetailPath` + optimistic `pendingTab`; sync `activeTab=list` przy `v4Detail` |
+| **SSOT** | [`docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · ARCHITECTURE § 12.1.27 |
+| **Test** | `test-p0-tender-detail-ssot-tab.mjs` (12 PASS) · E2E tab SSOT PASS |
+
+**Backlog (poza P0):** E2E desktop Command Layer 299 px > 280 px — osobny ticket
+
+---
+
+## NG-03 — Tender Workspace UX · **2.63.7 CLOSED** (seria)
+
+| Pole | Wartość |
+|------|---------|
+| **Ostatni release serii** | **2.63.7** (`00d14d8`) · NG-03.7 polish |
+| **Design freeze** | [`docs/NG-03-DESIGN-FREEZE.md`](docs/NG-03-DESIGN-FREEZE.md) |
 
 ---
 
@@ -9,43 +33,11 @@
 | Pole | Wartość |
 |------|---------|
 | **Status** | **COMPLETED · EPIC CLOSED** |
-| **Prod** | **2.62.98** · commit **`aeecdc0`** |
-| **Seria** | NG-02 (2.62.95) → 02.1A (2.62.96) → 02.1B (2.62.97) → 02.1C (2.62.98) |
+| **Prod baseline serii** | **2.62.98** · commit **`aeecdc0`** |
 | **SSOT** | `useTenderPipelineRuntime` · ARCHITECTURE § 12.1.23–12.1.26 |
-| **Handoff** | [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](audit/NG-02-EPIC-CLOSE-REPORT.md) |
-| **Testy** | 177 PASS epic close audit · `test-tender-documents-bootstrap-retry.mjs` T0–T12 |
+| **Handoff** | [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) |
 
-**Outstanding production bugs:** **NONE**
-
-**Backlog P3 (nie blokuje):** retryNonce→bootstrap · inflight idempotent · unmount abort orchestrator
-
----
-
-## SUPER ADMIN ACL — Instrukcja + Zmiany · **CLOSED**
-
-| Pole | Wartość |
-|------|---------|
-| **Status** | **CLOSED** |
-| **Wersja** | **2.62.92** · **`5f212b4`** |
-| **SSOT** | [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 |
-
----
-
-## P0 — Cloud Sync Incident · **CLOSED**
-
-| Pole | Wartość |
-|------|---------|
-| **Status** | **CLOSED** · **RESOLVED** |
-| **SSOT** | [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) |
-
----
-
-## Mobile Recovery EPIC — **CLOSED** (v2.62.78–2.62.79)
-
-| Pole | Wartość |
-|------|---------|
-| **Status** | **EPIC CLOSED** · **`4397eac`** |
-| **Handoff** | [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md) |
+**Outstanding production bugs:** **NONE** (tab SSOT naprawiony w 2.63.8)
 
 ---
 
@@ -53,7 +45,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.98** (`aeecdc0`) |
+| **Wersja prod** | **2.63.8** (`f482016`) |
 | **NG-02 Pipeline** | **EPIC CLOSED** |
 | **Mobile Recovery** | **EPIC CLOSED** |
 | **P1 Audit Hub WM** | **CLOSED** |
@@ -67,6 +59,7 @@
 | Temat | Status |
 |-------|--------|
 | **P0 Payroll Etap 2** | **NOT STARTED** |
+| **Command Layer height** | E2E 299 px > 280 px — OPEN |
 | **Work Catalog P2** — UI Biblioteka Robót | **OPEN** |
 | **P0 sync refactor** — delta-sync / focus throttle | **OPEN** |
 | **NG-02 P3** — bootstrap retryNonce / inflight | **OPEN** — enhancement only |

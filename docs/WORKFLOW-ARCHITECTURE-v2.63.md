@@ -94,6 +94,20 @@ TendersModule
 
 **SSOT routingu:** `src/lib/tender-detail-routes-v4.ts` · `TENDER_WORKFLOW_HUB_EMBED_WORKSPACE` w `src/lib/tender-workspace-ux.ts`.
 
+### 3.2 Tab SSOT — URL, nie prop (P0 · v2.63.8)
+
+**Handoff:** [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md)
+
+| Reguła | Szczegół |
+|--------|----------|
+| Aktywny tab V4 | `parseTenderDetailPath(useLocation().pathname)` |
+| Optimistic UI | `pendingTab` w `TenderDetailPage` przy `navigate()` (RR7 bez `<Routes>`) |
+| Prop `tab` | **Opcjonalny fallback only** — nie przekazywać z `TendersModule` |
+| Moduł Przetargi | Przy `v4Detail`: `activeTab=list` + `saveTendersActiveTab("list")` |
+| Decyzja sub-tab | `location.search` (`?ws=qualification\|offer`) |
+
+**Zakaz regresji:** `tab={v4Detail.tab}` na `TenderDetailPage` — powoduje rozjazd URL vs UI.
+
 ---
 
 ## 4. Pięć filarów UI Workflow

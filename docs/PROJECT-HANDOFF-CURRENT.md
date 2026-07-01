@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-30 (**prod 2.62.98** · **NG-02 EPIC CLOSED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-30 (**prod 2.63.8** · **P0 Tender Detail Tab SSOT CLOSED**)  
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło sesji:** „kontynuuj WGDOM”  
@@ -24,6 +24,7 @@
 1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync egress · exceed_egress_quota (**INCIDENT CLOSED** 2026-06-29)
 1u3. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
 1u5. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
+1u7. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
 1u6. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout report
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -52,6 +53,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P0 Tender Detail Tab SSOT** | **2.63.8** (`f482016`) | **CLOSED** · URL SSOT + `pendingTab` · sync modułu `list` przy detalu | [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · ARCHITECTURE § 12.1.27 · WORKFLOW § 3.2 |
+| **NG-03 Tender Workspace UX** | **2.63.0–2.63.7** | **Seria CLOSED** · polish 2.63.7 · tab bug → hotfix 2.63.8 | [`NG-03-DESIGN-FREEZE.md`](NG-03-DESIGN-FREEZE.md) |
 | **NG-02 Tender Automation Pipeline** | **2.62.95–98** (`aeecdc0`) | **CLOSED** · auto discovery → heavy → pricing · prod bootstrap fix 02.1C | [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 12.1.23–26 |
 | **SUPER ADMIN ACL (Instrukcja + Zmiany)** | **2.62.92** (`5f212b4`) | **CLOSED** · osobne menu · AppSettings ACL | [`SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 |
 | **P0 Cloud Sync Incident** | **2.62.81** (prod) | **CLOSED** · Supabase Pro · prod smoke PASS 2026-06-29 | [`SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md) §0 |
@@ -161,6 +164,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.8        ← P0 Tender Detail Tab SSOT · commit f482016
+NG-03 UX seria:             2.63.7        ← NG-03.7 polish · commit 00d14d8
 Version (prod):             2.62.98       ← NG-02.1C Production Bootstrap Fix · commit aeecdc0 · EPIC CLOSED
 NG-02 Pipeline 2.62.97:     301de0e       lifecycle orchestrator SSOT · 02.1B
 NG-02.1A Gate 2.62.96:      7536aa1       unified-attachment-gate · external-only heavy

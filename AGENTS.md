@@ -11,9 +11,10 @@
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.62.79)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.98)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.8)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
 3w4. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout
+3w5. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED · 7 źródeł)
 3w. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md  ← ★★ P1 Audit Hub WM EPIC CLOSED
 3w2. docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md  ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
@@ -72,6 +73,7 @@
 | **docs/SESSION-HANDOFF-2026-06-24.md** | **★★ Ostatnia sesja** (2.62.38–42) — Audit Hub MVP-1/1B, TP200C, P0 cloud-sync, architektura skrót |
 | **docs/SESSION-HANDOFF-AUDIT-HUB.md** | **★★ Audit Hub MVP-0→1B CLOSED** — 6 źródeł, security log, recovery events, backlog MVP-1C |
 | **docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md** | **★★ Kosztorys UX P0 CLOSED** (2.62.64) — `deriveKosztorysProcessPhase` · 8 faz · retry |
+| **docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md** | **★★ P0 tab SSOT URL** (2.63.8) — `parseTenderDetailPath` · `pendingTab` · sync modułu |
 | **docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md** | **Discovery dokumentów CLOSED** (2.62.63) — `tender-document-discovery.ts` |
 | **audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md** | **★★ P1 Audit Hub WM EPIC CLOSED** — metryki, timeline, lessons learned |
 | **docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md** | **★★ Mobile Recovery EPIC CLOSED** — 2.62.78–79 · MV-2 Jobs drill-in · smoke |
@@ -174,8 +176,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.98**) |
-| Prod `main` (app) | **v2.62.98** (`aeecdc0`) · **NG-02 EPIC CLOSED** · SUPER ADMIN ACL · Mobile Recovery **EPIC CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.8**) |
+| Prod `main` (app) | **v2.63.8** (`f482016`) · P0 tab SSOT · NG-02 EPIC CLOSED · Mobile Recovery **EPIC CLOSED** |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

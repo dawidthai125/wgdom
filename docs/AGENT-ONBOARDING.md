@@ -256,6 +256,34 @@ npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
 
 ---
 
+## 6h1. Przetargi — P0 Tab SSOT URL — **2.63.8 CLOSED**
+
+**Status:** **CLOSED** · prod **`f482016`** · nawigacja V4 only
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) | **★★ SSOT hotfix** — RCA, pendingTab, pułapki |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.27 | Architektura techniczna |
+| [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) § 3.2 | Reguły tab SSOT w Workflow |
+
+### Kluczowe pliki
+
+```text
+src/lib/tender-detail-routes-v4.ts     parseTenderDetailPath / buildTenderDetailPath
+src/app/TenderDetailPage.tsx           activeTab = pendingTab ?? urlTab
+src/app/tenders/TendersModule.tsx      v4Detail → activeTab=list
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-p0-tender-detail-ssot-tab.mjs
+```
+
+**Zakaz regresji:** prop `tab={v4Detail.tab}` na `TenderDetailPage`.
+
+---
+
 ## 6h. Przetargi — Workflow Architecture V4 — **2.62.72 FINALIZED**
 
 **Status:** **FINALIZED** · prod **`6cd8ebe`** · Hub · Process Strip · Sticky CTA · Summary Header · grouped docs

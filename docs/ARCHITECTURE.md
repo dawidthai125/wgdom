@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-30 (**NG-02.1C Production Bootstrap Fix** · v2.62.98)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-30 (**P0 Tender Detail Tab SSOT** · v2.63.8)
 > **★ Onboarding deweloperski:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1829,6 +1829,40 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 **Nie zmienia:** `runTenderFullDocumentDiscovery` · Unified Attachment Gate · Trust · parsery · Pricing · Cloud Sync.
 
 **Test:** `test-tender-documents-bootstrap-retry.mjs` (T9–T12) · regresja `test-tender-full-document-discovery.mjs`.
+
+---
+
+### 12.1.27 P0 — Tender Detail V4 Tab SSOT (v2.63.8)
+
+**Status:** **CLOSED** · commit **`f482016`** · **nawigacja UI only** (bez NG-02 / parserów / sync)  
+**Handoff:** [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md)
+
+Aktywna zakładka detalu przetargu V4 (Przetarg / Dokumenty / Kosztorys / Ceny / Decyzja) musi pochodzić z **URL**, nie z props parenta.
+
+```text
+TendersModule (v4Detail z pathname)
+  ├── useEffect → activeTab="list" + saveTendersActiveTab("list")
+  └── TenderDetailPage (bez prop tab)
+        ├── parseTenderDetailPath(location.pathname) → urlTab
+        ├── pendingTab (optimistic, handleTabChange)
+        └── activeTab = pendingTab ?? urlTab ?? tabFallback
+              ├── data-tender-tab={activeTab}
+              ├── TenderDetailTabBar
+              └── workspace mount (kosztorys / embed panel)
+```
+
+| Element | Plik | Rola |
+|---------|------|------|
+| **SSOT URL** | `tender-detail-routes-v4.ts` | `parseTenderDetailPath`, `buildTenderDetailPath` |
+| **Shell** | `TenderDetailPage.tsx` | `activeTab`, `pendingTab`, decyzja z `location.search` |
+| **Moduł sync** | `TendersModule.tsx` | `v4Detail` → wymuszenie `list` w Provider |
+| **Decyzja sub-tab** | query `?ws=` | `parseDecyzjaWorkspaceQuery` — SSOT query, nie prop |
+
+**Pułapka RR7:** bez pełnego `<Routes>` dla V4, `useLocation().pathname` może opóźniać się vs `window.location` po `navigate()` — **`pendingTab` obowiązkowy** do czasu migracji routingu.
+
+**Nie zmienia:** `useTenderPipelineRuntime` · bootstrap · gate · parsery · Pricing · Trust · Cloud Sync.
+
+**Test:** `test-p0-tender-detail-ssot-tab.mjs` (12) · `e2e/audit-p0-tender-freeze.spec.ts` (tab SSOT).
 
 ---
 
