@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.20 — PAYROLL-CLOUD-RECOVERY Etap 2 B3.2 (payrollRosterPushRef cleanup)
+
+- **improve:** Usunięto `payrollRosterPushRef` — defer pull/auto-sync wyłącznie przez `CloudSyncMutationGuard` + `suppressAutoSyncUntilRef` (R1 push składu, R2 sync stawek, R3 rollover)
+
 ## 2.63.19 — PAYROLL-CLOUD-RECOVERY Etap 2 B3.1 (Guard Rollover)
 
 - **fix:** Rollover LP (`autoArchiveAndAdvance` → `pushPayrollWeekAfterRollover`) — `withKwWeekEmployeesAsyncMutation` + `payrollRosterPushRef` / suppress

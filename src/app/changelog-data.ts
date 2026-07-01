@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.20",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3.2 (payrollRosterPushRef cleanup)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — usunięto legacy payrollRosterPushRef; defer pull/auto-sync wyłącznie przez CloudSyncMutationGuard + suppress (push składu, sync stawek z kartoteki, rollover)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.19",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3.1 (Guard Rollover)",
     items: [

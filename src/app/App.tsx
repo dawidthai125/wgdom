@@ -283,7 +283,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pendingAutoSyncRef = useRef(false);
   const suppressWakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteMergeInFlightRef = useRef(false);
-  const payrollRosterPushRef = useRef(false);
   const autoSyncMountSettledRef = useRef(false);
   const deleteJobsInFlightRef = useRef(false);
   const syncInFlightRef = useRef(false);
@@ -667,7 +666,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
-    if (payrollRosterPushRef.current) return;
     if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
     pullInFlightRef.current = true;
@@ -701,7 +699,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!tabVisibleRef.current) return;
     if (pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
-    if (payrollRosterPushRef.current) return;
     if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
     if (syncInFlightRef.current) {
@@ -813,9 +810,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     if (remoteMergeInFlightRef.current) {
-      return;
-    }
-    if (payrollRosterPushRef.current) {
       return;
     }
     if (cloudSyncMutationGuard.isBlocked()) {
@@ -1250,11 +1244,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
-    payrollRosterPushRef.current = true;
     void withKwWeekEmployeesAsyncMutation(() =>
       pushWeekEmployeesToCloud(next, { skipPayrollGuard: true }),
     )
-      .finally(() => { payrollRosterPushRef.current = false; })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
         toast.error("Nie udało się zapisać składu do chmury", {
@@ -1431,7 +1423,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       void (async () => {
         suppressAutoSyncUntilRef.current = Date.now() + 6000;
-        payrollRosterPushRef.current = true;
         try {
           await withKwWeekEmployeesAsyncMutation(async () => {
             let archive = savedWeeks;
@@ -1455,7 +1446,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges]);
           });
         } catch { /* auto-sync ponowi */ }
-        finally { payrollRosterPushRef.current = false; }
       })();
       return next;
     });
@@ -1622,7 +1612,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekTo(targetTo);
     setWeekEmployees([]);
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
-    payrollRosterPushRef.current = true;
     void withKwWeekEmployeesAsyncMutation(() =>
       pushPayrollWeekAfterRollover({
         weekFrom: targetFrom,
@@ -1631,7 +1620,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         archive: nextArchive,
       }),
     )
-      .finally(() => { payrollRosterPushRef.current = false; })
       .catch(() => {});
   }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
