@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.23",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B6 (Edge Parity)",
+    items: [
+      {
+        type: "fix",
+        text: "Edge batch-set — union kw-week-employees po directoryId (weekEmployeeMergeKey); dodanie z Kadr/worker nie ginie przy expansion guard",
+      },
+      {
+        type: "improve",
+        text: "SSOT payroll-week-employee-merge.ts — wspólna semantyka merge listy klient + Edge; restore-payroll-backup ten sam union",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.22",
     label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B5 (Closed Week UI)",
     items: [

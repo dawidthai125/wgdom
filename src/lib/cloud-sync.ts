@@ -1,3 +1,4 @@
+import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 import {
   supabaseProjectId,
   supabaseAnonKey,
@@ -759,18 +760,7 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   return c.rate;
 }
 
-function normalizeWeekEmployeeMergeName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-/** Klucz scalania — po directoryId, inaczej dokładne imię (bez mylenia „Tomek od X” z „Tomekiem”). */
-export function weekEmployeeMergeKey(emp: { id?: string; directoryId?: string; name?: string }): string {
-  const dirId = String(emp.directoryId ?? "").trim();
-  if (dirId) return `dir:${dirId}`;
-  const n = normalizeWeekEmployeeMergeName(String(emp.name ?? ""));
-  if (n) return `name:${n}`;
-  return `id:${String(emp.id ?? "")}`;
-}
+export { weekEmployeeMergeKey, mergeWeekEmployeesList, hasWeekEmployeesRosterExpansion } from "./payroll-week-employee-merge.ts";
 
 export function weekEmployeesSamePerson(
   a: { id?: string; directoryId?: string; name?: string },
@@ -1216,35 +1206,7 @@ export function prepareDataBundleForCloudPush(values: unknown[]): unknown[] {
  * Per klucz: oba → mergeWeekEmployeeRecord; tylko local → local; tylko cloud → cloud.
  */
 export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
-  const localArr = Array.isArray(local) ? local : [];
-  const cloudArr = Array.isArray(cloud) ? cloud : [];
-  if (localArr.length === 0) {
-    return collapseWeekEmployeesByIdentity(cloudArr);
-  }
-
-  const indexByMergeKey = (list: unknown[]): Map<string, unknown> => {
-    const map = new Map<string, unknown>();
-    for (const item of list) {
-      if (!item || typeof item !== "object") continue;
-      const key = weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string });
-      const prev = map.get(key);
-      map.set(key, prev ? mergeWeekEmployeeRecord(prev, item) : item);
-    }
-    return map;
-  };
-
-  const localByKey = indexByMergeKey(localArr);
-  const cloudByKey = indexByMergeKey(cloudArr);
-  const allKeys = new Set([...localByKey.keys(), ...cloudByKey.keys()]);
-  const merged: unknown[] = [];
-  for (const key of allKeys) {
-    const l = localByKey.get(key);
-    const c = cloudByKey.get(key);
-    if (l && c) merged.push(mergeWeekEmployeeRecord(l, c));
-    else if (l) merged.push(l);
-    else if (c) merged.push(c);
-  }
-  return collapseWeekEmployeesByIdentity(merged);
+  return mergeWeekEmployeesList(local, cloud, mergeWeekEmployeeRecord);
 }
 
 /** Scal archiwum tygodni — lokalna lista decyduje o składzie; usunięte tygodnie nie wracają z chmury. */

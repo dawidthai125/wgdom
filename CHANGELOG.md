@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.23 — PAYROLL-CLOUD-RECOVERY Etap 2 B6 (Edge Parity)
+
+- **fix:** Edge `batch-set` / `restore-payroll-backup` — union `kw-week-employees` po `weekEmployeeMergeKey` (`directoryId`), jak klient P0; usunięto UUID expansion (`KeepPrevRoster`)
+- **improve:** SSOT `payroll-week-employee-merge.ts` — wspólny kernel listy dla klienta i Edge
+
 ## 2.63.22 — PAYROLL-CLOUD-RECOVERY Etap 2 B5 (Closed Week UI)
 
 - **fix:** `displayEmployees` SSOT w `PayrollView` — closed + archiwum → snapshot; closed bez archiwum → `[]`; `selectedEmp` z display, nie z live KV

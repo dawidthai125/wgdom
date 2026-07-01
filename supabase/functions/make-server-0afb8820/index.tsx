@@ -1,5 +1,9 @@
 /** W&G DOM Edge Function — v2.31.8 SMS wybór nadawcy z listy 4 nazw */
 import { Hono } from "npm:hono";
+import {
+  mergeWeekEmployeesList,
+  hasWeekEmployeesRosterExpansion,
+} from "../../../src/lib/payroll-week-employee-merge.ts";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
@@ -211,63 +215,8 @@ function weekEmployeesRichness(list: unknown[]): number {
   return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
 }
 
-function weekEmployeeIds(list: unknown[]): Set<string> {
-  const ids = new Set<string>();
-  for (const item of list) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (id) ids.add(id);
-  }
-  return ids;
-}
-
-function hasWeekEmployeesRosterExpansion(prev: unknown[], next: unknown[]): boolean {
-  const prevIds = weekEmployeeIds(prev);
-  for (const item of next) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (id && !prevIds.has(id)) return true;
-  }
-  return false;
-}
-
-/** Aktualizacja pól bez dodawania osób usuniętych na innym urządzeniu (stary telefon). */
-function mergeWeekEmployeesKeepPrevRoster(prev: unknown[], next: unknown[]): unknown[] {
-  const nextMap = new Map<string, unknown>();
-  for (const item of next) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (id) nextMap.set(id, item);
-  }
-  const result: unknown[] = [];
-  for (const item of prev) {
-    if (!item || typeof item !== "object") continue;
-    const id = String((item as { id?: string }).id || "");
-    if (!id) continue;
-    const incoming = nextMap.get(id);
-    result.push(incoming ? mergeWeekEmployeeRecordByTimestamps(item, incoming) : item);
-  }
-  return result;
-}
-
 function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
-  const map = new Map<string, unknown>();
-  const ingest = (list: unknown[]) => {
-    for (const item of list) {
-      if (!item || typeof item !== "object") continue;
-      const id = String((item as { id?: string }).id || "");
-      if (!id) continue;
-      const existing = map.get(id);
-      if (!existing) {
-        map.set(id, item);
-        continue;
-      }
-      map.set(id, mergeWeekEmployeeRecordByTimestamps(existing, item));
-    }
-  };
-  ingest(prev);
-  ingest(next);
-  return [...map.values()];
+  return mergeWeekEmployeesList(prev, next, mergeWeekEmployeeRecordByTimestamps);
 }
 
 function parseRecordTs(v: unknown): number {
@@ -679,9 +628,9 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
           hasWeekEmployeesRosterExpansion(prevNorm, nextNorm)
         ) {
           console.log(
-            `kw-week-employees: blocked stale roster expansion ${prevNorm.length} → ${nextNorm.length}, keeping server roster`,
+            `kw-week-employees: roster expansion ${prevNorm.length} → ${nextNorm.length}, merging by directoryId`,
           );
-          nextNorm = mergeWeekEmployeesKeepPrevRoster(prevNorm, nextNorm);
+          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
         }
       }
       safeValues[i] = nextNorm;
