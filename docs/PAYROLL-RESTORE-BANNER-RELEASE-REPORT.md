@@ -1,8 +1,8 @@
 # PAYROLL — Restore Banner False Positive (RB) · RELEASE REPORT
 
-> **Version:** **v2.63.24** · **Commit:** *(pending — local IMPLEMENT complete)*  
+> **Version:** **v2.63.24** · **Commit:** `727e6c4`  
 > **Baseline:** v2.63.23 (`d670892`)  
-> **Date:** 2026-07-01 · **Status:** **IMPLEMENT COMPLETE — pre-deploy**
+> **Date:** 2026-07-01 · **Status:** **PRODUCTION VERIFIED**
 
 ---
 
@@ -17,9 +17,10 @@ RB replaces the restore-banner trigger from structural `weekEmployeesListRichnes
 | Item | Value |
 |------|-------|
 | **Bundle** | RB — Restore Banner False Positive |
+| **Commit** | `727e6c4` — `fix(payroll): restore banner false positive v2.63.24` |
 | **Files (RB scope)** | 7 |
 | **Deploy** | **Vercel only** (no `supabase/functions/**` changes) |
-| **Production verify** | Pending push → `https://www.wgdom.fun/version.json` → `2.63.24` |
+| **Production verify** | `https://www.wgdom.fun/version.json` → `2.63.24` / `727e6c4` |
 
 ### Files changed (RB scope only)
 
@@ -107,17 +108,18 @@ B3 `CloudSyncMutationGuard` · B4 `finalizePayrollBundleMerge` · B5 closed week
 
 ### Frontend (Vercel)
 
-Push RB-scoped commit to `main` → Vercel auto-deploy.
+Push to `main` → Vercel auto-deploy from `main` — **SUCCESS**.
 
-**Post-deploy verify:**
+### Production verification (single check)
 
-```text
+```json
 GET https://www.wgdom.fun/version.json
-→ version: 2.63.24
-→ commit: <RB commit>
+{
+  "version": "2.63.24",
+  "commit": "727e6c4",
+  "timestamp": "2026-07-01T17:44:05.273Z"
+}
 ```
-
-**Manual smoke (optional):** Open operational week with saved archive where live and archive LP totals match but archive has stale `active:true` / notes — banner should **not** appear.
 
 ---
 
@@ -134,10 +136,26 @@ GET https://www.wgdom.fun/version.json
 |------|--------|
 | AUDIT | **COMPLETE** |
 | DESIGN FREEZE | **APPROVED** |
-| IMPLEMENT | **COMPLETE** (local) |
+| IMPLEMENT | **COMPLETE** |
 | Test gate | **PASS** (RB + B3/B5/B6 regressions + build) |
-| Vercel deploy | **PENDING** commit + push |
-| PRODUCTION | **PENDING** `version.json` verify |
+| Vercel deploy | **VERIFIED** |
+| PRODUCTION | **VERIFIED** (`version.json` = 2.63.24 / `727e6c4`) |
+
+---
+
+## Final status
+
+| Field | Value |
+|-------|-------|
+| **Release** | **COMPLETED** |
+| **Production** | **VERIFIED** |
+| **Version** | **2.63.24** |
+| **Commit** | **`727e6c4`** |
+| **Baseline** | v2.63.23 (`d670892`) |
+| **Deploy** | Vercel auto-deploy from `main` — SUCCESS |
+| **Edge** | Not deployed (frontend-only RB) |
+
+**Release completed.** Restore Banner False Positive (RB) is live in production at **v2.63.24** / **`727e6c4`**.
 
 ---
 
