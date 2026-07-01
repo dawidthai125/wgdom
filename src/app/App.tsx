@@ -120,7 +120,7 @@ import {
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
-import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
+import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation } from "@/lib/cloud-sync-mutation-guard";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
@@ -1251,7 +1251,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
     payrollRosterPushRef.current = true;
-    void pushWeekEmployeesToCloud(next, { skipPayrollGuard: true })
+    void withKwWeekEmployeesAsyncMutation(() =>
+      pushWeekEmployeesToCloud(next, { skipPayrollGuard: true }),
+    )
       .finally(() => { payrollRosterPushRef.current = false; })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
@@ -1428,27 +1430,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
       });
       void (async () => {
+        suppressAutoSyncUntilRef.current = Date.now() + 6000;
         payrollRosterPushRef.current = true;
         try {
-          let archive = savedWeeks;
-          const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-          if (
-            existing
-            && !isPayrollWeekClosedForUi(
-              weekFrom,
-              weekTo,
-              hasPayrollRolloverBlockers(next, weekFrom, weekTo, directory, {
-                employeeLeaves,
-                savedWeeks: archive,
-              }),
-            )
-          ) {
-            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
-            archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
-            try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
-            setSavedWeeks(archive);
-          }
-          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges]);
+          await withKwWeekEmployeesAsyncMutation(async () => {
+            let archive = savedWeeks;
+            const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+            if (
+              existing
+              && !isPayrollWeekClosedForUi(
+                weekFrom,
+                weekTo,
+                hasPayrollRolloverBlockers(next, weekFrom, weekTo, directory, {
+                  employeeLeaves,
+                  savedWeeks: archive,
+                }),
+              )
+            ) {
+              const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
+              archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
+              try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
+              setSavedWeeks(archive);
+            }
+            await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges]);
+          });
         } catch { /* auto-sync ponowi */ }
         finally { payrollRosterPushRef.current = false; }
       })();

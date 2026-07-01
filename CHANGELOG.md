@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.18 — PAYROLL-CLOUD-RECOVERY Etap 2 B3 (Guard Phase 2)
+
+- **improve:** Lista płac — push składu przez `CloudSyncMutationGuard` (`kw-week-employees`, `withKwWeekEmployeesAsyncMutation`)
+- **fix:** Sync stawek z kartoteki — guard roster + zachowany `payrollRosterPushRef` / suppress
+
 ## 2.63.17 — PAYROLL-CLOUD-RECOVERY Etap 2 (B1+B2)
 
 - **fix:** Lista płac — fail-loud push składu (`persistPayrollRoster` toast zamiast silent catch)

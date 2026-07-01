@@ -12,6 +12,8 @@ export interface BeginOptions {
 }
 
 const KW_JOBS_DEFAULT_SUPPRESS_MS = 4500;
+/** PAYROLL-CLOUD-RECOVERY B3 — parity z suppressAutoSyncUntilRef na ścieżce roster push. */
+export const KW_WEEK_EMPLOYEES_DEFAULT_SUPPRESS_MS = 6000;
 const DEFAULT_SUPPRESS_MS = 4500;
 
 let nextTokenSeq = 1;
@@ -21,7 +23,9 @@ const activeTokens = new Map<MutationToken, CloudSyncScope>();
 const endedTokens = new Set<MutationToken>();
 
 function defaultSuppressMs(scope: CloudSyncScope): number {
-  return scope === "kw-jobs" ? KW_JOBS_DEFAULT_SUPPRESS_MS : DEFAULT_SUPPRESS_MS;
+  if (scope === "kw-jobs") return KW_JOBS_DEFAULT_SUPPRESS_MS;
+  if (scope === "kw-week-employees") return KW_WEEK_EMPLOYEES_DEFAULT_SUPPRESS_MS;
+  return DEFAULT_SUPPRESS_MS;
 }
 
 function begin(scope: CloudSyncScope, opts?: BeginOptions): MutationToken {
@@ -78,6 +82,26 @@ export function withKwJobsWorkEntryMutation<T>(fn: () => T): T {
   const token = begin("kw-jobs");
   try {
     return fn();
+  } finally {
+    end(token);
+  }
+}
+
+/** Opakowuje mutację składu LP w scope kw-week-employees (B3 — cienki wrapper begin/end). */
+export function withKwWeekEmployeesMutation<T>(fn: () => T): T {
+  const token = begin("kw-week-employees");
+  try {
+    return fn();
+  } finally {
+    end(token);
+  }
+}
+
+/** Async push składu — begin/end w finally po zakończeniu Promise (R1/R2). */
+export async function withKwWeekEmployeesAsyncMutation(fn: () => Promise<void>): Promise<void> {
+  const token = begin("kw-week-employees");
+  try {
+    await fn();
   } finally {
     end(token);
   }

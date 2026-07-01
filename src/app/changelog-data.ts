@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.18",
+    label: "Lista Płac — PAYROLL-CLOUD-RECOVERY Etap 2 B3 (Guard Phase 2)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — push składu tygodnia przez CloudSyncMutationGuard (scope kw-week-employees); ten sam mechanizm co Przydziały w LP",
+      },
+      {
+        type: "fix",
+        text: "Sync stawek z kartoteki — auto-sync nie nadpisuje składu podczas zapisu do chmury (guard + zachowany payrollRosterPushRef)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.17",
     label: "Lista Płac + Roboty — PAYROLL-CLOUD-RECOVERY Etap 2",
     items: [
