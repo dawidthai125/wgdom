@@ -14,6 +14,7 @@ import {
   filterKosztorysBoqRows,
   selectTopCostRows,
 } from "../src/lib/tender-kosztorys-boq-explorer.ts";
+import { buildBoqLaborBenchmarkCache } from "../src/lib/tender-kosztorys-boq-benchmark.ts";
 import { buildKosztorysProTopRowsFromBoqView } from "../src/lib/tender-kosztorys-pro-dashboard.ts";
 import { deriveKosztorysProcessPhase } from "../src/lib/tender-kosztorys-process-phase.ts";
 
@@ -260,6 +261,28 @@ console.log("\nM8.9 — Static: no build in explorer section search path");
   assert(sectionSrc.includes("filterKosztorysBoqRows"), "M8.9 section uses filter only");
   assert(wsSrc.includes("useMemo(() => buildKosztorysBoqExplorerView"), "M8.9 workspace useMemo build");
   assert(!wsSrc.includes("filterKosztorysBoqRows"), "M8.9 workspace delegates filter to section");
+}
+
+console.log("\nM8.10 — Benchmark cache NG-04.2 (#005 · #006)");
+{
+  const t0 = performance.now();
+  const cache500 = buildBoqLaborBenchmarkCache(view500.rows);
+  const cacheMs = performance.now() - t0;
+  console.log(`  · buildBoqLaborBenchmarkCache(500) = ${cacheMs.toFixed(1)}ms`);
+  assert(cacheMs < 50, "M8.10 cache build < 50ms");
+
+  const cacheRef = cache500;
+  for (let i = 0; i < 50; i += 1) {
+    filterKosztorysBoqRows(view500.rows, { query: "instalacja" });
+  }
+  assert(cacheRef === cache500, "M8.10 cache ref stable after 50× filter");
+
+  const explorerSrc = readFileSync(resolve(root, "src/lib/tender-kosztorys-boq-explorer.ts"), "utf8");
+  assert(!explorerSrc.includes("labor-benchmark"), "M8.10 explorer no benchmark import");
+
+  const badgeSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqLaborBenchmarkBadge.tsx"), "utf8");
+  assert(badgeSrc.includes("cache.get"), "M8.10 badge cache lookup only");
+  assert(!badgeSrc.includes("resolveBoqRowLaborBenchmark"), "M8.10 badge no resolve");
 }
 
 const verdict = fail === 0 ? "PASS" : "FAIL";

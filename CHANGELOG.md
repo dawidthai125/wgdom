@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.10 — NG-04.2 Benchmark per Line
+
+- **new:** BOQ Explorer — kolumna Benchmark rbh per linia (`BoqLaborBenchmarkBadge`)
+- **improve:** Derived UI cache (#005–#007); Principles #004–#006 — prezentacja bez rozszerzenia ViewModel
+
 ## 2.63.9 — NG-04.1 Kosztorys BOQ Explorer
 
 - **new:** BOQ Explorer — unified tabela ATH + WGDOM, search, filtry branżowe (ViewModel SSOT)

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.10",
+    label: "NG-04.2 — Benchmark per Line",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Kosztorys BOQ Explorer: badge benchmarku robocizny per linia (below/ok/above) — reuse LaborBenchmarkStatusBadge",
+      },
+      {
+        type: "improve",
+        text: "Derived UI cache buildBoqLaborBenchmarkCache — brak rebuild przy search/filter; Principles #004–#007 (Presentation Metadata Only)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.9",
     label: "NG-04.1 — Kosztorys BOQ Explorer",
     items: [

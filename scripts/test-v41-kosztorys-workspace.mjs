@@ -467,5 +467,18 @@ console.log("\nT10–T12 — NG-04.1 BOQ Explorer view");
   assert(formalView.rows.length === 0, "T11 formal document zero boq rows");
 }
 
+console.log("\nT16–T17 — NG-04.2 Benchmark per line markers");
+{
+  const sectionSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqExplorerSection.tsx"), "utf8");
+  const fieldsSrc = readFileSync(resolve(root, "src/app/kosztorys/KosztorysBoqRowFields.tsx"), "utf8");
+  const badgeSrc = readFileSync(resolve(root, "src/app/kosztorys/BoqLaborBenchmarkBadge.tsx"), "utf8");
+  assert(sectionSrc.includes("buildBoqLaborBenchmarkCache"), "T16 section builds benchmark cache");
+  assert(sectionSrc.includes("Benchmark"), "T16 benchmark column header");
+  assert(fieldsSrc.includes("BoqLaborBenchmarkBadge"), "T17 row fields use badge adapter");
+  assert(fieldsSrc.includes("Benchmark rbh"), "T17 mobile benchmark label");
+  assert(badgeSrc.includes("LaborBenchmarkStatusBadge"), "T17 badge delegates to LaborBenchmarkStatusBadge");
+  assert(!badgeSrc.includes("resolveBoqRowLaborBenchmark"), "T17 adapter no resolve");
+}
+
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail > 0 ? 1 : 0);

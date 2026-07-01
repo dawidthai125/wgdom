@@ -13,6 +13,7 @@ import {
   TenderMobileTableCards,
 } from "@/app/tenders/mobile/tender-mobile-row-cards";
 import { boqRowMobileFields, BoqRowDesktopCells } from "@/app/kosztorys/KosztorysBoqRowFields";
+import { buildBoqLaborBenchmarkCache } from "@/lib/tender-kosztorys-boq-benchmark";
 import type { TenderTrustReason } from "@/lib/tender-trust-layer";
 import { TrustReasonList } from "@/app/tenders/trust/TrustReasonList";
 
@@ -39,6 +40,11 @@ export function KosztorysBoqExplorerSection({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllRows, setShowAllRows] = useState(false);
+
+  const benchmarkCache = useMemo(
+    () => buildBoqLaborBenchmarkCache(view.rows),
+    [view.rows],
+  );
 
   const filteredRows = useMemo(
     () => filterKosztorysBoqRows(view.rows, { query: searchQuery, categoryFilter }),
@@ -113,7 +119,7 @@ export function KosztorysBoqExplorerSection({
               <TenderMobileRowCard
                 key={row.rowKey}
                 title={`${row.lp}. ${row.description}`}
-                fields={boqRowMobileFields(row)}
+                fields={boqRowMobileFields(row, benchmarkCache)}
               />
             ))}
           </TenderMobileTableCards>
@@ -132,6 +138,7 @@ export function KosztorysBoqExplorerSection({
                     <th className="text-right px-2 py-2 font-medium">Wartość ATH</th>
                     <th className="text-right px-2 py-2 font-medium">Cena WGDOM</th>
                     <th className="text-right px-2 py-2 font-medium">Wartość WGDOM</th>
+                    <th className="text-right px-2 py-2 font-medium">Benchmark</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -141,7 +148,7 @@ export function KosztorysBoqExplorerSection({
                       className="border-t border-border/50 hover:bg-secondary/20"
                       data-kosztorys-boq-row={row.lp}
                     >
-                      <BoqRowDesktopCells row={row} />
+                      <BoqRowDesktopCells row={row} benchmarkCache={benchmarkCache} />
                     </tr>
                   ))}
                 </tbody>
