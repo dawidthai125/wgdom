@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-01 (**prod 2.63.21** · **PAYROLL-CLOUD-RECOVERY B4 CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-01 (**prod 2.63.25** · **AH-REG-1 CLOSED** · **PAYROLL Etap 2 B4–B6 CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -10,6 +10,7 @@
 **Wejście dla nowej sesji:**
 
 ```text
+0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
@@ -66,12 +67,16 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Audit Hub freshness AH-REG-1** | **2.63.25** (`d9ba13f`) | **CLOSED** · notify + `refreshAuditHubAuxFromCloud` | [`AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md`](AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md) · [`AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md`](AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md) |
+| **Payroll Restore Banner RB** | **2.63.24** (`727e6c4`) | **CLOSED** · `shouldShowPayrollRestoreBanner` / `payrollMetrics` | [`PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md`](PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md) |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 B6** | **2.63.23** (`d670892`) | **CLOSED** · Edge parity `payroll-week-employee-merge.ts` | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 B5** | **2.63.22** (`187afb8`) | **CLOSED** · closed week UI read-only | j.w. |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B4** | **2.63.21** (`b3d5664`) | **CLOSED** · `finalizePayrollBundleMerge` SSOT bootstrap/runtime | [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
 | **PAYROLL Guard Phase (B3–B3.2)** | **2.63.18–20** (`45eddaa`→`6afd9fd`) | **SERIES CLOSED** · R1/R2/R3 guard · ref cleanup B3.2 | [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B3.2** | **2.63.20** (`6afd9fd`) | **CLOSED** · usunięcie `payrollRosterPushRef` | j.w. § B3.2 |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B3.1** | **2.63.19** (`91d02de`) | **CLOSED** · Guard Rollover R3 · `autoArchiveAndAdvance` | AUDIT + DESIGN FREEZE B3.1 (2026-07-01) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B3** | **2.63.18** (`45eddaa`) | **CLOSED** · Guard Phase 2 R1/R2 · `withKwWeekEmployeesAsyncMutation` | [`PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md) |
-| **PAYROLL-CLOUD-RECOVERY Etap 2 (MIN)** | **2.63.17** (`734cbfe`) | **PARTIAL CLOSED** · **B1–B4 CLOSED** · B5 · B6 **OPEN** | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 (MIN)** | **2.63.17** (`734cbfe`) | **CLOSED** · **B1–B6 CLOSED** | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | **2.63.16** (`31a687a`) | **CLOSED** · `CloudSyncMutationGuard` Lista Płac Przydziały | [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) |
 | **PAYROLL-CLOUD-RECOVERY P0 roster** | **2.63.15** (`1a65341`) | **CLOSED** · UNION `directoryId` · dedup Kadr | [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
 | **TEST-INFRA-001** — Payroll Test Harness | 2026-07-01 | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** · kod NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 backlog |
@@ -188,7 +193,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.63.21       ← PAYROLL-CLOUD-RECOVERY Etap 2 B4 Bootstrap Merge SSOT · commit b3d5664 · PRODUCTION VERIFIED
+Version (prod):             2.63.25       ← Audit Hub freshness AH-REG-1 · commit d9ba13f · PRODUCTION VERIFIED
+Version (prod):             2.63.24       ← Payroll Restore Banner RB · commit 727e6c4
+Version (prod):             2.63.23       ← PAYROLL Etap 2 B6 Edge parity · commit d670892
+Version (prod):             2.63.22       ← PAYROLL Etap 2 B5 closed week UI · commit 187afb8
+Version (prod):             2.63.21       ← PAYROLL-CLOUD-RECOVERY Etap 2 B4 Bootstrap Merge SSOT · commit b3d5664
 Version (prod):             2.63.20       ← PAYROLL Guard Phase B3.2 cleanup · commit 6afd9fd
 Version (prod):             2.63.19       ← PAYROLL-CLOUD-RECOVERY Etap 2 B3.1 Guard Rollover · commit 91d02de
 Version (prod):             2.63.18       ← PAYROLL-CLOUD-RECOVERY Etap 2 B3 Guard Phase 2 · commit 45eddaa
@@ -984,14 +993,25 @@ Przy wznowieniu:
 
 ---
 
+**Werdykt closeout (2026-07-01 — Audit Hub freshness AH-REG-1 · v2.63.25):**
+
+```text
+BASELINE v2.63.25 · COMMIT d9ba13f · PRODUCTION VERIFIED
+AH-REG-1 CLOSED — notifySecurityAuditLogChanged + refreshAuditHubAuxFromCloud (security + wm-druk AUX)
+Closeout: docs/AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md · docs/AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md
+Łańcuch payroll: 2.63.15–21 B4 · 2.63.22 B5 · 2.63.23 B6 · 2.63.24 RB
+STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
+Gotowe do wznowienia pracy
+```
+
 **Werdykt closeout (2026-07-01 — PAYROLL-CLOUD-RECOVERY Etap 2 B4 · v2.63.21):**
 
 ```text
 BASELINE v2.63.21 · COMMIT b3d5664 · PRODUCTION VERIFIED
 PAYROLL-CLOUD-RECOVERY Etap 2 — B4 CLOSED (finalizePayrollBundleMerge SSOT bootstrap/runtime)
 Closeout: docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md
-Łańcuch: 2.63.15 roster UNION · 2.63.16 guard LP · 2.63.17 B1+B2 · 2.63.18–20 Guard Phase · 2.63.21 B4
-Backlog Etap 2 OPEN: B5 · B6 · TEST-INFRA-001
+Łańcuch: 2.63.15 roster UNION · 2.63.16 guard LP · 2.63.17 B1+B2 · 2.63.18–20 Guard Phase · 2.63.21 B4 · 2.63.22 B5 · 2.63.23 B6 · 2.63.24 RB · 2.63.25 AH-REG-1
+Backlog Etap 2: **CLOSED** · TEST-INFRA-001 OPEN
 STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
 Gotowe do wznowienia pracy
 ```

@@ -1,8 +1,8 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.63.21** · commit **`b3d5664`** · https://www.wgdom.fun  
-> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **PAYROLL-CLOUD-RECOVERY B4 CLOSED**
+> **Prod:** **2.63.25** · commit **`d9ba13f`** · https://www.wgdom.fun  
+> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **PAYROLL Etap 2 B4–B6 CLOSED** · **AH-REG-1 CLOSED**
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -12,6 +12,7 @@
 
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
+1m. docs/AGENT-APP-MAP.md            ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
 2. CURRENT-TASK.md                   ← status · STABILIZATION WINDOW · backlog
 3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 — zasady, maintenance, Z-01–Z-07
 4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
@@ -59,6 +60,10 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** |
 | **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
 | **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
+| **Audit Hub freshness AH-REG-1** | 2.63.25 · `d9ba13f` | **CLOSED** · notify + AUX pull on sync |
+| **Payroll Restore Banner RB** | 2.63.24 · `727e6c4` | **CLOSED** · `payrollMetrics` zamiast richness |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 B6** | 2.63.23 · `d670892` | **CLOSED** · Edge parity `mergeWeekEmployees` |
+| **PAYROLL-CLOUD-RECOVERY Etap 2 B5** | 2.63.22 · `187afb8` | **CLOSED** · closed week UI read-only |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B4** | 2.63.21 · `b3d5664` | **CLOSED** · `finalizePayrollBundleMerge` SSOT |
 | **PAYROLL Guard Phase B3–B3.2** | 2.63.18–20 · `45eddaa`→`6afd9fd` | **SERIES CLOSED** · `CloudSyncMutationGuard` roster |
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | 2.63.16 · `31a687a` | **CLOSED** · `CloudSyncMutationGuard` · unit T11–T13 |
@@ -123,7 +128,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 |-----------|-------|--------|------|
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
-| Na polecenie | **PAYROLL-CLOUD-RECOVERY Etap 2** B5/B6 | B5 closed week UI · B6 Edge parity **OPEN** | `CURRENT-TASK.md` · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
+| **CLOSED** | **PAYROLL Etap 2** B5/B6 · RB restore banner · AH-REG-1 | **2.63.22–25** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
 | Na polecenie | **TEST-INFRA-001** implementacja harnessu | READY · NOT STARTED | `TEST-INFRA-001-DESIGN-FREEZE.md` · TI-B1/TI-B2 |
 | Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
 | Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-05 | `STABILIZATION-WINDOW-PLAN.md` §3 |
@@ -166,7 +171,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ### 4.3 Mapa widoków admina
 
-**Pełna tabela:** ARCHITECTURE § 15.1 · **Router:** `AdminViewRouter.tsx` · **Menu:** `admin-nav.ts`
+**Pełna tabela:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 2 · ARCHITECTURE § 15.1 · **Router:** `AdminViewRouter.tsx` · **Menu:** `admin-nav.ts`
 
 | `view` | Etykieta | Komponent główny |
 |--------|----------|------------------|

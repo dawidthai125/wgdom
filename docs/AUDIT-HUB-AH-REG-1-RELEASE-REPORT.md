@@ -1,8 +1,8 @@
-# AUDIT HUB — Freshness Regression (AH-REG-1) · RELEASE REPORT
+# AUDIT HUB — Freshness Regression (AH-REG-1) · RELEASE REPORT (FINAL)
 
-> **Version:** **v2.63.25** · **Commit:** *(pending — local IMPLEMENT complete)*  
+> **Version:** **v2.63.25** · **Commit:** `d9ba13f`  
 > **Baseline:** v2.63.24 (`727e6c4`)  
-> **Date:** 2026-07-01 · **Status:** **IMPLEMENT COMPLETE — pre-deploy**
+> **Date:** 2026-07-01 · **Status:** **PRODUCTION VERIFIED**
 
 ---
 
@@ -17,9 +17,11 @@ AH-REG-1 fixes Audit Hub feed staleness without expanding capabilities: `notifyS
 | Item | Value |
 |------|-------|
 | **Bundle** | AH-REG-1 — Audit Hub Freshness |
+| **Commit** | `d9ba13f` — `fix(audit): Audit Hub freshness AH-REG-1 v2.63.25` |
 | **Files (scope)** | 7 |
-| **Deploy** | **Vercel only** |
+| **Deploy** | **Vercel only** — auto-deploy from `main` |
 | **Edge** | Not required |
+| **Production verify** | `https://www.wgdom.fun/version.json` → `2.63.25` / `d9ba13f` |
 
 ### Files changed
 
@@ -56,7 +58,7 @@ Used by: pullFromCloudAndMerge, runCloudSync (before setSyncStatus saved)
 
 ---
 
-## Test gate (local)
+## Test gate (pre-release, local)
 
 | Suite | Result |
 |-------|--------|
@@ -68,9 +70,29 @@ Used by: pullFromCloudAndMerge, runCloudSync (before setSyncStatus saved)
 
 ---
 
+## Production verification (single check)
+
+```json
+GET https://www.wgdom.fun/version.json
+{
+  "version": "2.63.25",
+  "commit": "d9ba13f",
+  "timestamp": "2026-07-01T17:58:31.300Z"
+}
+```
+
+---
+
 ## Preserved
 
 7 Audit Hub sources · `SecurityAuditAction` taxonomy · read-only Hub · AUX KV (not in `DATA_KEYS`) · no payroll/sync/edge audit logging.
+
+---
+
+## Rollback
+
+1. Revert Vercel to **v2.63.24** / `727e6c4`
+2. KV unchanged — audit data intact
 
 ---
 
@@ -79,9 +101,24 @@ Used by: pullFromCloudAndMerge, runCloudSync (before setSyncStatus saved)
 | Gate | Status |
 |------|--------|
 | DESIGN FREEZE | **APPROVED** |
-| IMPLEMENT | **COMPLETE** (local) |
+| IMPLEMENT | **COMPLETE** |
 | Test gate | **PASS** |
-| PRODUCTION | **PENDING** |
+| Vercel deploy | **VERIFIED** |
+| PRODUCTION | **VERIFIED** (`version.json` = 2.63.25 / `d9ba13f`) |
+
+---
+
+## Final status
+
+| Field | Value |
+|-------|-------|
+| **Release** | **COMPLETED** |
+| **Production** | **VERIFIED** |
+| **Version** | **2.63.25** |
+| **Commit** | **`d9ba13f`** |
+| **Baseline** | v2.63.24 (`727e6c4`) |
+
+**Release completed.** Audit Hub freshness (AH-REG-1) is live in production at **v2.63.25** / **`d9ba13f`**.
 
 ---
 

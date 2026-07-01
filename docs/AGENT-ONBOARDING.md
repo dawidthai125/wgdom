@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.63.21** · commit **`b3d5664`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** **2.63.25** · commit **`d9ba13f`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← ★★ kontekst sesji + mapa struktury
+1m. docs/AGENT-APP-MAP.md             ← ★★★ mapa widoków, modułów lib, KV, sync (START dla AI)
 2. CURRENT-TASK.md                    ← status · STABILIZATION WINDOW
 3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 (brak nowych epiców)
 4. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
@@ -23,7 +24,7 @@
 
 **Hasło użytkownika „kontynuuj WGDOM”:** dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
 
-**Nie czytaj od zera:** `src/app/App.tsx` (~15k linii) — użyj ARCHITECTURE § 15.1 (mapa widoków) i grep po nazwie widoku.
+**Nie czytaj od zera:** `src/app/App.tsx` (~15k linii) — użyj **`AGENT-APP-MAP.md`** (mapa widoków + moduły) lub ARCHITECTURE § 15.1 i grep po nazwie widoku.
 
 ---
 
@@ -69,7 +70,7 @@ Monolit **React + Vite + TypeScript** dla firmy remontowej W&G DOM (Wrocław):
 
 ## 4. Mapa widoków admina (skrót)
 
-Pełna tabela: **ARCHITECTURE.md § 15.1**.
+Pełna tabela: **[`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 2** · ARCHITECTURE.md § 15.1.
 
 | `view` (router) | Etykieta | Plik główny |
 |-----------------|----------|-------------|

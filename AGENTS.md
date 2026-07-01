@@ -9,12 +9,13 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
+2m. docs/AGENT-APP-MAP.md  ← ★★★ mapa widoków, modułów lib, KV, sync (START dla AI)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
 2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
 2ti. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ TEST-INFRA Harness Lista Płac (APPROVED · READY · NOT STARTED)
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.21)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.21)
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.25)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.25)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
 3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
