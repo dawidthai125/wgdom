@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-01 (**prod 2.63.12** · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-01 (**prod 2.63.17** · **PAYROLL-CLOUD-RECOVERY Etap 2 B1+B2 CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -48,7 +48,10 @@
 12w. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy
 12n. docs/NG-04-EPIC-CLOSE-REPORT.md         ← NG-04 epic close
 12t. docs/TEST-INFRA-001-DESIGN-FREEZE.md     ← ★ TEST-INFRA-001 Harness (DESIGN FREEZE APPROVED · READY FOR IMPLEMENTATION)
-12r. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi
+12p. docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md  ← ★ PAYROLL Etap 2 B1+B2 (CLOSED · 2.63.17)
+12q. docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md  ← ★ PAYROLL P0 roster UNION (CLOSED · 2.63.15)
+12r. docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md  ← ★ PAYROLL guard LP Przydziały (CLOSED · 2.63.16)
+12u. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi
 13. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
 14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § 12.1.21 Schematy · § Notatki
 ```
@@ -59,6 +62,9 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **PAYROLL-CLOUD-RECOVERY Etap 2 (MIN)** | **2.63.17** (`734cbfe`) | **PARTIAL CLOSED** · **B1+B2 CLOSED** · P0.1b/c · Guard Phase 2 · Edge Parity **OPEN** | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) |
+| **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | **2.63.16** (`31a687a`) | **CLOSED** · `CloudSyncMutationGuard` Lista Płac Przydziały | [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) |
+| **PAYROLL-CLOUD-RECOVERY P0 roster** | **2.63.15** (`1a65341`) | **CLOSED** · UNION `directoryId` · dedup Kadr | [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
 | **TEST-INFRA-001** — Payroll Test Harness | 2026-07-01 | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** · kod NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 backlog |
 | **STABILIZATION WINDOW** | od 2026-07-01 | **ACTIVE** · brak nowych epiców | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
 | **NG-04 Kosztorys Workspace PRO** | **2.63.9–12** (`ab6637f`) | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 | [`NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md) · [`NG-04-DESIGN-FREEZE.md`](NG-04-DESIGN-FREEZE.md) |
@@ -173,6 +179,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.17       ← PAYROLL-CLOUD-RECOVERY Etap 2 B1+B2 · commit 734cbfe · PRODUCTION VERIFIED
+Payroll guard LP 2.63.16:   31a687a       CloudSyncMutationGuard Przydziały robót
+Payroll roster P0 2.63.15:  1a65341       UNION directoryId · dedup Kadr
+Version (prod):             2.63.12       ← NG-04 EPIC CLOSED · commit ab6637f
 Version (prod):             2.63.8        ← P0 Tender Detail Tab SSOT · commit f482016
 NG-03 UX seria:             2.63.7        ← NG-03.7 polish · commit 00d14d8
 Version (prod):             2.62.98       ← NG-02.1C Production Bootstrap Fix · commit aeecdc0 · EPIC CLOSED
@@ -931,6 +941,8 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ PAYROLL Etap 2 B1+B2 (CLOSED)** | `PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md` |
+| **★ PAYROLL P0 roster / guard** | `PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md` · `PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md` |
 | **★★ Onboarding deweloperski** | [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) |
 | **★★ POST ZI-2026 (skrót)** | [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) |
 | **★★ ZI Tauron 2026 prod** | [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
@@ -954,6 +966,17 @@ Przy wznowieniu:
 | Legacy PROJECT-HANDOFF | `PROJECT-HANDOFF.md` (częściowo nieaktualny baseline — używaj CURRENT) |
 
 ---
+
+**Werdykt closeout (2026-07-01 — PAYROLL-CLOUD-RECOVERY Etap 2 MIN · v2.63.17):**
+
+```text
+BASELINE v2.63.17 · COMMIT 734cbfe · PRODUCTION VERIFIED
+PAYROLL-CLOUD-RECOVERY Etap 2 — B1+B2 CLOSED (fail-loud roster · JobsView guard J1–J5)
+Łańcuch: 2.63.15 roster UNION · 2.63.16 guard LP · 2.63.17 Etap 2 MIN
+Backlog OPEN: P0.1b (RCA-2 closed week UI) · P0.1c (RCA-3 bootstrap merge) · Guard Phase 2 · Edge Parity
+STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
+Gotowe do wznowienia pracy
+```
 
 **Werdykt closeout (2026-06-16 — ZI Tauron 2026 STABLE):**
 
@@ -985,7 +1008,7 @@ BASELINE v2.62.79 · COMMIT 4397eac · PRODUCTION VERIFIED
 Mobile Recovery EPIC — CLOSED (2.62.78 UX pack + 2.62.79 Jobs MV-2)
 Production smoke: PASS (7 PASS / 1 BLOCKED — SMOKE-03 tender data)
 Outstanding production bugs: NONE
-Next active epic: P0 Payroll Cloud Recovery (P0.1–P0.4 OPEN)
+Next active epic: PAYROLL-CLOUD-RECOVERY backlog (P0.1b · P0.1c · Guard Phase 2 · Edge Parity OPEN)
 Gotowe do wznowienia pracy
 ```
 

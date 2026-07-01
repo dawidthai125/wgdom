@@ -1,6 +1,35 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.12+** · **NG-04 EPIC CLOSED** · **TEST-INFRA-001 DESIGN FREEZE APPROVED**
+**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.17** (`734cbfe`) · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+
+---
+
+## PAYROLL-CLOUD-RECOVERY — Etap 2 (MIN) · **PARTIAL CLOSED**
+
+| Bundle | Temat | Status | Prod |
+|--------|-------|--------|------|
+| **B1** | Fail-loud `persistPayrollRoster` (P0.1d) | **CLOSED** | **2.63.17** (`734cbfe`) |
+| **B2** | JobsView `CloudSyncMutationGuard` (J1–J5) | **CLOSED** | **2.63.17** (`734cbfe`) |
+| **P0.1b** | RCA-2: closed week + archiwum UI | **OPEN** | — |
+| **P0.1c** | RCA-3: `applyBootstrapPayrollMerge` | **OPEN** | — |
+| **Guard Phase 2** | `payrollRosterPushRef` → guard `kw-week-employees` | **OPEN** | — |
+| **Edge Parity** | Edge merge `directoryId` vs UUID | **OPEN** | — |
+
+**SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)
+
+**Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** fail-loud roster + JobsView guard
+
+---
+
+## PAYROLL-CLOUD-RECOVERY — hotfixy P0 (wcześniejsze) · **CLOSED**
+
+| Release | Commit | Skrót |
+|---------|--------|-------|
+| **2.62.73** | — | Etap 1 — mutex sync · merge workEntries · guard fail-loud |
+| **2.63.15** | `1a65341` | P0 roster — UNION `directoryId` · dedup Kadr |
+| **2.63.16** | `31a687a` | P0 guard przydziałów — `CloudSyncMutationGuard` |
+
+**SSOT P0 roster:** [`docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) · **SSOT guard:** [`docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md)
 
 ---
 
@@ -57,11 +86,11 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.12** |
+| **Wersja prod** | **2.63.17** (`734cbfe`) · **PRODUCTION VERIFIED** |
 | **NG-04** | **EPIC CLOSED** |
+| **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1+B2 CLOSED** · backlog P0.1b/c · Guard Phase 2 · Edge Parity **OPEN** |
 | **Stabilization Window** | **ACTIVE** |
 | **Aktywny epic Przetargi** | **brak** — na polecenie |
-| **P0 Payroll Etap 2** | NOT STARTED |
 
 ---
 
@@ -87,7 +116,10 @@
 
 | Temat | Status |
 |-------|--------|
-| **P0 Payroll Etap 2** (Cloud Recovery P0.2–P0.4) | NOT STARTED |
+| **P0.1b** — closed week UI (RCA-2) | **OPEN** |
+| **P0.1c** — bootstrap payroll merge (RCA-3) | **OPEN** |
+| **Guard Phase 2** — `payrollRosterPushRef` → guard | **OPEN** |
+| **Edge Parity** — Edge `kw-week-employees` merge | **OPEN** |
 | **TEST-INFRA-001** implementacja harnessu | READY FOR IMPLEMENTATION · NOT STARTED |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
