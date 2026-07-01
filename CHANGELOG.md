@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.13 — INSPECTOR-JOB-ASSIGN-001
+
+- **new:** `assignedInspectorId` na Job — obowiązkowy wybór inspektora WM w Robotach
+- **improve:** Panel inspektora — filtr robót po przypisaniu; notatki operacyjne #011
+- **fix:** jobsAll/jobsVisible (#012) — persist pełnej tablicy kw-jobs
+
 ## 2.63.12 — NG-04.4 Polish & EPIC Close
 
 - **improve:** BOQ Explorer polish — nagłówek, a11y (aria-pressed, caption), ATH tooltip suppress na priced, benchmark empty „—”

@@ -15,6 +15,7 @@ import {
   mergeExecutionLeadDirectoryId,
   mergeExecutionAssigneeDirectoryIds,
 } from "@/lib/job-wm";
+import { mergeAssignedInspectorId } from "@/lib/inspector-job-assignment";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 import {
   mergeTenderDataKey,
@@ -625,6 +626,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     hiddenInspectorFeedIds?: string[];
     executionLeadDirectoryId?: string;
     executionAssigneeDirectoryIds?: string[];
+    assignedInspectorId?: string;
   };
   const map = new Map<string, J>();
   const mergePair = (prev: J, j: J): J => {
@@ -705,6 +707,11 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       executionAssigneeDirectoryIds: mergeExecutionAssigneeDirectoryIds(
         prev.executionAssigneeDirectoryIds,
         j.executionAssigneeDirectoryIds,
+      ),
+      assignedInspectorId: mergeAssignedInspectorId(
+        prev.assignedInspectorId,
+        j.assignedInspectorId,
+        jTs >= prevTs,
       ),
       handoverStage: mergeHandoverStage(
         prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,

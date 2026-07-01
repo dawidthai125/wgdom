@@ -53,6 +53,10 @@ import {
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import { mergeOperationalNotesAuditLog, normalizeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
 import {
+  filterJobsForInspector,
+  isJobVisibleToInspector,
+} from "@/lib/inspector-job-assignment";
+import {
   countUnreadOperationalNotes,
   mergeOperationalNotesReadState,
   normalizeOperationalNotesReadState,
@@ -292,7 +296,7 @@ export function InspectorPanel({
 }) {
   const inspectorId = session.id;
   const displayName = session.displayName;
-  const [jobs, setJobs] = useState<InspectorJob[]>([]);
+  const [jobsAll, setJobsAllAll] = useState<InspectorJob[]>([]);
   const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
   const [recoverableCharges, setRecoverableCharges] = useState<RecoverableCharge[]>([]);
   const [operationalNotes, setOperationalNotes] = useState<OperationalNote[]>([]);
@@ -326,8 +330,8 @@ export function InspectorPanel({
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const filesScrollRef = useRef<HTMLDivElement>(null);
-  const jobsRef = useRef(jobs);
-  jobsRef.current = jobs;
+  const jobsRef = useRef(jobsAll);
+  jobsRef.current = jobsAll;
   const flushingPhotoQueueRef = useRef(false);
   const lastAppliedJobsJsonRef = useRef<string | null>(null);
   const lastAppliedDirJsonRef = useRef<string | null>(null);
@@ -345,6 +349,16 @@ export function InspectorPanel({
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
   const [jobReturnNav, setJobReturnNav] = useState<{ tab: InspectorMainTab; label: string } | null>(null);
 
+  const jobsVisible = useMemo(
+    () => filterJobsForInspector(jobsAll, inspectorId),
+    [jobsAll, inspectorId],
+  );
+
+  const visibleJobIds = useMemo(
+    () => new Set(jobsVisible.map((j) => j.id)),
+    [jobsVisible],
+  );
+
   useEffect(() => {
     syncAppSettingsFromCloud()
       .then((s) => setAthPreviewEnabled(s.athPreviewEnabled))
@@ -358,7 +372,7 @@ export function InspectorPanel({
       if (cachedJobs.length > 0) {
         const json = JSON.stringify(cachedJobs);
         lastAppliedJobsJsonRef.current = json;
-        setJobs(cachedJobs);
+        setJobsAll(cachedJobs);
       }
     } catch { /* ignore */ }
     try {
@@ -421,7 +435,7 @@ export function InspectorPanel({
   );
 
   const persistJobs = useCallback((next: InspectorJob[]) => {
-    setJobs(next);
+    setJobsAll(next);
     try {
       localStorage.setItem("kw-jobs", JSON.stringify(next));
     } catch { /* ignore */ }
@@ -447,8 +461,8 @@ export function InspectorPanel({
   }, []);
 
   const operationalNotesUnread = useMemo(
-    () => countUnreadOperationalNotes(operationalNotes, operationalNotesReadState, session),
-    [operationalNotes, operationalNotesReadState, session],
+    () => countUnreadOperationalNotes(operationalNotes, operationalNotesReadState, session, { visibleJobIds }),
+    [operationalNotes, operationalNotesReadState, session, visibleJobIds],
   );
 
   const commitInspectorOperationalNotes = useCallback((
@@ -491,7 +505,7 @@ export function InspectorPanel({
 
   const updateJob = useCallback((updated: InspectorJob) => {
     const normalized = normalizeJob(updated);
-    setJobs((prev) => {
+    setJobsAll((prev) => {
       const next = prev.map((j) => (j.id === normalized.id ? normalized : j));
       persistJobs(next);
       return next;
@@ -509,8 +523,8 @@ export function InspectorPanel({
   }, []);
 
   const adminNotesPending = useMemo(
-    () => jobsWithAdminNotesNeedingInspector(jobs, getInspectorJobNotesSeenAt(inspectorId)),
-    [jobs, inspectorId, notesSeenTick],
+    () => jobsWithAdminNotesNeedingInspector(jobsVisible, getInspectorJobNotesSeenAt(inspectorId)),
+    [jobsVisible, inspectorId, notesSeenTick],
   );
 
   const markAdminNotesSeen = () => {
@@ -518,6 +532,11 @@ export function InspectorPanel({
   };
 
   const openJob = useCallback((jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab) => {
+    const job = jobsAll.find((j) => j.id === jobId);
+    if (!job || !isJobVisibleToInspector(job, inspectorId)) {
+      toast.error("Brak dostępu do tej roboty.");
+      return;
+    }
     const tab = fromTab ?? mainTab;
     setJobReturnNav({ tab, label: TAB_RETURN_LABELS[tab] });
     setSelectedId(jobId);
@@ -526,7 +545,7 @@ export function InspectorPanel({
     if (section) setJobSection(section);
     else setJobSection("wm");
     if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
-  }, [adminNotesPending, mainTab]);
+  }, [jobsAll, inspectorId, adminNotesPending, mainTab]);
 
   const closeJob = useCallback(() => {
     if (jobReturnNav) setMainTab(jobReturnNav.tab);
@@ -553,18 +572,18 @@ export function InspectorPanel({
   );
 
   const dashboardAlertCount = useMemo(() => {
-    const stats = computeInspectorDashboardStats(jobs, adminNotesPending.length);
+    const stats = computeInspectorDashboardStats(jobsVisible, adminNotesPending.length);
     const ids = new Set<string>();
     adminNotesPending.forEach((j) => ids.add(j.id));
     stats.fileAlerts.forEach((a) => ids.add(a.job.id));
     stats.docAlerts.forEach((a) => ids.add(a.job.id));
     stats.readyNoDate.forEach((a) => ids.add(a.job.id));
-    for (const j of jobs) {
+    for (const j of jobsVisible) {
       if (j.status !== "in_progress" || !j.plannedHandoverDate) continue;
       if (plannedHandoverStatus(j.plannedHandoverDate, inferHandoverStage(j)) === "overdue") ids.add(j.id);
     }
     return ids.size;
-  }, [jobs, adminNotesPending]);
+  }, [jobsVisible, adminNotesPending]);
 
   useEffect(() => {
     const prev = prevAdminNotesCountRef.current;
@@ -582,7 +601,7 @@ export function InspectorPanel({
   }, [adminNotesPending, openJob]);
 
   const markDocFromDashboard = useCallback((jobId: string, doc: DocType) => {
-    const job = jobs.find((j) => j.id === jobId);
+    const job = jobsAll.find((j) => j.id === jobId);
     if (!job) return;
     const next = !job.documents[doc];
     if (!next && isReportSyncedDocLocked(job, doc)) {
@@ -603,7 +622,7 @@ export function InspectorPanel({
     } else {
       toast.success(next ? `Zapisano · ${label}` : `Odznaczono · ${label}`);
     }
-  }, [jobs, updateJob, displayName]);
+  }, [jobsAll, updateJob, displayName]);
 
   const jobInspectorHistory = useCallback((job: InspectorJob, limit = 5): JobActivity[] => {
     return (job.activityLog || []).filter((ev) => isInspectorActivityType(ev.type)).slice(0, limit);
@@ -650,7 +669,7 @@ export function InspectorPanel({
       const nextJobsJson = JSON.stringify(normalized);
       if (lastAppliedJobsJsonRef.current !== nextJobsJson) {
         lastAppliedJobsJsonRef.current = nextJobsJson;
-        setJobs(normalized);
+        setJobsAll(normalized);
         try { localStorage.setItem("kw-jobs", nextJobsJson); } catch { /* ignore */ }
       }
       if (cloudDir && Array.isArray(cloudDir)) {
@@ -748,7 +767,7 @@ export function InspectorPanel({
       try { localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers)); } catch { /* ignore */ }
     } catch {
       try {
-        setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
+        setJobsAll(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
         setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
         setRecoverableCharges(normalizeRecoverableCharges(JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]")));
         setOperationalNotes(normalizeOperationalNotes(JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_KEY) || "[]")));
@@ -782,7 +801,7 @@ export function InspectorPanel({
           const json = JSON.stringify(parsed);
           if (lastAppliedJobsJsonRef.current !== json) {
             lastAppliedJobsJsonRef.current = json;
-            setJobs(parsed);
+            setJobsAll(parsed);
           }
         } catch { /* ignore */ }
       } else if (e.key === "kw-directory") {
@@ -841,7 +860,7 @@ export function InspectorPanel({
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = jobs.filter((j) => {
+    const list = jobsVisible.filter((j) => {
       if (filter === "active" && j.status !== "in_progress") return false;
       if (filter === "completed" && j.status !== "completed") return false;
       if (!q) return true;
@@ -853,25 +872,25 @@ export function InspectorPanel({
     });
     if (filter === "active") return sortJobsByInspectionPriority(list);
     return [...list].sort((a, b) => b.startDate.localeCompare(a.startDate));
-  }, [jobs, search, filter]);
+  }, [jobsVisible, search, filter]);
 
   const recoverableStatsByJobId = useMemo(() => {
     const map = new Map<string, RecoverableChargeJobStats>();
-    for (const job of jobs) {
+    for (const job of jobsVisible) {
       const stats = getRecoverableChargeJobStats(recoverableCharges, job.id);
       if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
         map.set(job.id, stats);
       }
     }
     return map;
-  }, [jobs, recoverableCharges]);
+  }, [jobsVisible, recoverableCharges]);
 
   const jobsById = useMemo(
-    () => new Map(jobs.map((j) => [j.id, { id: j.id, address: j.address, flatNumber: j.flatNumber, client: j.client }])),
-    [jobs],
+    () => new Map(jobsVisible.map((j) => [j.id, { id: j.id, address: j.address, flatNumber: j.flatNumber, client: j.client }])),
+    [jobsVisible],
   );
 
-  const selectedJob = jobs.find((j) => j.id === selectedId) || null;
+  const selectedJob = jobsVisible.find((j) => j.id === selectedId) || null;
 
   const deliveryPackageStatus = useMemo(
     () =>
@@ -1005,7 +1024,7 @@ export function InspectorPanel({
       const items = await listQueuedPhotos("inspector");
       for (const item of items) {
         const job = jobsRef.current.find((j) => j.id === item.jobId);
-        if (!job) {
+        if (!job || !isJobVisibleToInspector(job, inspectorId)) {
           await removeQueuedPhoto(item.id);
           continue;
         }
@@ -1034,7 +1053,7 @@ export function InspectorPanel({
     } finally {
       flushingPhotoQueueRef.current = false;
     }
-  }, [updateJob]);
+  }, [updateJob, inspectorId]);
 
   const uploadInspectorPhotoForJob = useCallback(async (
     jobId: string,
@@ -1043,7 +1062,7 @@ export function InspectorPanel({
     caption = "",
   ): Promise<boolean> => {
     const job = jobsRef.current.find((j) => j.id === jobId);
-    if (!job) return false;
+    if (!job || !isJobVisibleToInspector(job, inspectorId)) return false;
     const { entry, error } = await uploadInspectorPhoto(job.id, file, displayName, caption, label);
     if (!entry) {
       try {
@@ -1072,7 +1091,7 @@ export function InspectorPanel({
       ),
     );
     return true;
-  }, [displayName, updateJob]);
+  }, [displayName, updateJob, inspectorId]);
 
   const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
     if (!selectedJob) return false;
@@ -1347,7 +1366,7 @@ export function InspectorPanel({
                 </div>
               ) : (
                 <InspectorDashboard
-                  jobs={jobs}
+                  jobs={jobsVisible}
                   displayName={displayName}
                   adminNotesPending={adminNotesPending}
                   onOpenJob={openJob}
@@ -1361,14 +1380,14 @@ export function InspectorPanel({
       ) : !selectedJob && mainTab === "portfolio" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing} ready={portfolioPull.ready}/>
-          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
+          <WmPortfolioView jobs={jobsVisible} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
           {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "gallery" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing} ready={galleryPull.ready}/>
           <InspectorJobPhotosGalleryView
-            jobs={jobs}
+            jobs={jobsVisible}
             scrollRef={galleryScrollRef}
             onOpenJob={(id) => openJob(id, "photos", "gallery")}
           />
@@ -1378,7 +1397,7 @@ export function InspectorPanel({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing} ready={filesPull.ready}/>
           <JobFilesBrowser
-            jobs={jobs}
+            jobs={jobsVisible}
             athPreviewEnabled={athPreviewEnabled}
             scrollRef={filesScrollRef}
             onOpenJob={(id) => openJob(id, "files", "files")}
@@ -1916,7 +1935,7 @@ export function InspectorPanel({
 
       {!selectedJob && (
         <InspectorQuickPhotoFab
-          jobs={jobs}
+          jobs={jobsVisible}
           onUpload={handleQuickPhotoUpload}
           disabled={loading || syncing}
         />
@@ -1939,7 +1958,7 @@ export function InspectorPanel({
             <OperationalNotesView
               variant="inspector"
               notes={operationalNotes}
-              jobs={jobs}
+              jobs={jobsVisible}
               session={session}
               auditLog={operationalNotesAuditLog}
               readState={operationalNotesReadState}

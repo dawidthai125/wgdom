@@ -305,6 +305,8 @@ export interface Job {
   executionLeadDirectoryId?: string;
   /** ETAP 8.5 FULL — planowana ekipa (ids z kw-directory, bez auto workEntries). */
   executionAssigneeDirectoryIds?: string[];
+  /** INSPECTOR-JOB-ASSIGN-001 — przypisany inspektor WM (AdminSession.id). */
+  assignedInspectorId?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1298,6 +1300,7 @@ export function normalizeJob(job: Job): Job {
     jobFiles: job.jobFiles || [],
     executionLeadDirectoryId: job.executionLeadDirectoryId?.trim() || undefined,
     executionAssigneeDirectoryIds: sanitizeExecutionAssigneeIds(job.executionAssigneeDirectoryIds),
+    assignedInspectorId: job.assignedInspectorId?.trim() || undefined,
   })));
 }
 

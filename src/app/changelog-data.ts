@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.13",
+    label: "INSPECTOR-JOB-ASSIGN-001 — przypisanie inspektora WM",
+    items: [
+      {
+        type: "new",
+        text: "Roboty — obowiązkowe pole Inspektor WM przy tworzeniu i edycji roboty (assignedInspectorId)",
+      },
+      {
+        type: "improve",
+        text: "Panel inspektora — widzi tylko roboty przypisane do swojego konta; notatki operacyjne z linkedJobId tylko dla własnych robót",
+      },
+      {
+        type: "fix",
+        text: "Sync inspektora — pełna tablica kw-jobs w jobsAll; jobsVisible tylko do UI (#012)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.12",
     label: "NG-04.4 — Polish & EPIC Close",
     items: [

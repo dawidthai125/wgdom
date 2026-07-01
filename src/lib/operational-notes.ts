@@ -290,8 +290,31 @@ export function filterOperationalNotesForViewer(
 export function filterOperationalNotesForInspectorActive(
   notes: OperationalNote[],
   session: AdminSession | null | undefined,
+  options?: { visibleJobIds?: ReadonlySet<string> },
 ): OperationalNote[] {
-  return filterOperationalNotesForViewer(notes, session).filter((n) => n.status === "active");
+  return filterOperationalNotesForViewer(notes, session)
+    .filter((n) => n.status === "active")
+    .filter((n) => operationalNoteLinkedJobVisibleToInspector(n, options?.visibleJobIds));
+}
+
+/** #011 — linkedJobId musi należeć do jobsVisible (gdy podane). */
+export function operationalNoteLinkedJobVisibleToInspector(
+  note: OperationalNote,
+  visibleJobIds?: ReadonlySet<string>,
+): boolean {
+  if (!note.linkedJobId?.trim()) return true;
+  if (!visibleJobIds) return true;
+  return visibleJobIds.has(note.linkedJobId);
+}
+
+export function operationalNoteVisibleToInspector(
+  note: OperationalNote,
+  session: AdminSession | null | undefined,
+  visibleJobIds: ReadonlySet<string>,
+): boolean {
+  if (!canViewOperationalNote(note, session)) return false;
+  if (note.status !== "active") return false;
+  return operationalNoteLinkedJobVisibleToInspector(note, visibleJobIds);
 }
 
 function inspectorStaffMutationBlocked(session: AdminSession): boolean {

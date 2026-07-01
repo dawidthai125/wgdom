@@ -323,6 +323,8 @@ html, body, #root          overflow: hidden (mobile + md+)
 
 **Plik:** `src/app/InspectorPanel.tsx` (**lazy-loaded** od v2.35.15)
 
+**INSPECTOR-JOB-ASSIGN-001 (v2.63.13):** widoczność robót po `assignedInspectorId` (= `AdminSession.id`). Stan **`jobsAll`** (persist/sync LS + chmura) vs **`jobsVisible`** = `filterJobsForInspector(jobsAll, session.id)` — tylko UI (#012). Notatki operacyjne: ACL + `linkedJobId` ∈ visible (#011). Helper: `src/lib/inspector-job-assignment.ts`.
+
 | Zakładka | Opis |
 |----------|------|
 | `dashboard` | Pulpit WM — KPI, „Dzisiaj”, Action Center (max 3), tygodniowe statystyki |

@@ -1,6 +1,7 @@
 /** Stan przeczytania notatek operacyjnych — KV `kw-operational-notes-read-state` (P1 ACK). */
 
 import type { AdminAccount, AdminSession } from "@/lib/admin-auth";
+import { adminIsInspector } from "@/lib/admin-auth";
 import {
   appendOperationalNotesAuditLog,
   buildOperationalNoteAuditEntry,
@@ -10,6 +11,7 @@ import { buildOperationalNoteAckAuditDetail } from "@/lib/operational-notes-audi
 import {
   canViewOperationalNote,
   filterOperationalNotesForViewer,
+  operationalNoteVisibleToInspector,
   type OperationalNote,
 } from "@/lib/operational-notes";
 
@@ -205,11 +207,15 @@ export function countUnreadOperationalNotes(
   notes: OperationalNote[],
   readState: OperationalNoteReadReceipt[],
   session: AdminSession | null | undefined,
-  options?: { includeArchived?: boolean },
+  options?: { includeArchived?: boolean; visibleJobIds?: ReadonlySet<string> },
 ): number {
   if (!session) return 0;
   const includeArchived = options?.includeArchived === true;
-  return filterOperationalNotesForViewer(notes, session).filter((note) => {
+  const visibleJobIds = options?.visibleJobIds;
+  const baseNotes = adminIsInspector(session.role) && visibleJobIds
+    ? notes.filter((n) => operationalNoteVisibleToInspector(n, session, visibleJobIds))
+    : filterOperationalNotesForViewer(notes, session);
+  return baseNotes.filter((note) => {
     if (!includeArchived && note.status !== "active") return false;
     return !isOperationalNoteAcked(note, session.id, readState);
   }).length;

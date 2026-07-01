@@ -33,6 +33,7 @@ import {
   type OperationalNote,
   filterOperationalNotesForViewer,
   filterOperationalNotesForInspectorActive,
+  operationalNoteVisibleToInspector,
   resolveOperationalNoteJobLabel,
   canEditOperationalNote,
   canCommentOperationalNote,
@@ -117,11 +118,16 @@ export function OperationalNotesView({
 
   const showAuditUi = !isInspectorVariant && canAccessOperationalNotesAudit(session);
 
+  const visibleJobIds = useMemo(
+    () => (isInspectorVariant ? new Set(jobs.map((j) => j.id)) : undefined),
+    [isInspectorVariant, jobs],
+  );
+
   const visible = useMemo(
     () => (isInspectorVariant
-      ? filterOperationalNotesForInspectorActive(notes, session)
+      ? filterOperationalNotesForInspectorActive(notes, session, { visibleJobIds })
       : filterOperationalNotesForViewer(notes, session)),
-    [notes, session, isInspectorVariant],
+    [notes, session, isInspectorVariant, visibleJobIds],
   );
 
   const filtered = useMemo(() => {
@@ -168,12 +174,17 @@ export function OperationalNotesView({
   useEffect(() => {
     if (!initialNoteId) return;
     const note = notes.find((n) => n.id === initialNoteId);
+    if (!note) return;
+    if (isInspectorVariant && visibleJobIds && !operationalNoteVisibleToInspector(note, session, visibleJobIds)) {
+      onInitialNoteConsumed?.();
+      return;
+    }
     if (note) {
       setTab(note.status === "archived" ? "archived" : "active");
       setSelectedId(note.id);
       onInitialNoteConsumed?.();
     }
-  }, [initialNoteId, notes, onInitialNoteConsumed]);
+  }, [initialNoteId, notes, onInitialNoteConsumed, isInspectorVariant, visibleJobIds, session]);
 
   useEffect(() => {
     if (!initialAuditOpen || !showAuditUi) return;

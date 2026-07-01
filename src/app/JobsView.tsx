@@ -13,7 +13,11 @@ import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { useAdminAccess } from "@/app/admin-access";
-import { adminIsSuperAdmin } from "@/lib/admin-auth";
+import { adminIsSuperAdmin, listInspectorUsersForLogin } from "@/lib/admin-auth";
+import {
+  validateJobAssignedInspectorForSave,
+  isKnownInspectorUserId,
+} from "@/lib/inspector-job-assignment";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
@@ -672,12 +676,18 @@ export function JobsView({
   }, [selectedJobId]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+  const selectedJobInspectorIssue = useMemo(() => {
+    if (!selectedJob) return null;
+    const validation = validateJobAssignedInspectorForSave(selectedJob);
+    return validation.ok ? null : validation;
+  }, [selectedJob]);
   /** Mobile (<sm): pełnoekranowy drill-in lista→detal — jak Notatki operacyjne / Payroll. */
   const mobileJobDetailOpen = Boolean(selectedJobId);
   const productionDirectory = useMemo(
     () => filterProductionActiveDirectory(directory),
     [directory],
   );
+  const inspectorUsers = useMemo(() => listInspectorUsersForLogin(), []);
   const savedExecutionLeadName = useMemo(() => {
     if (!selectedJob?.executionLeadDirectoryId) return null;
     return directory.find((d) => d.id === selectedJob.executionLeadDirectoryId)?.name ?? null;
@@ -775,6 +785,11 @@ export function JobsView({
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
 
   const updateJob = (updated: Job, activity?: { type: JobActivityType; text: string; actor?: string }) => {
+    const validation = validateJobAssignedInspectorForSave(updated);
+    if (!validation.ok) {
+      toast.error(validation.message);
+      return;
+    }
     let next = syncJobDocuments(updated);
     next = activity
       ? appendJobActivity(next, activity.type, activity.text, activity.actor ?? createdByName ?? "Administrator")
@@ -1592,6 +1607,39 @@ export function JobsView({
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Klient / Zleceniodawca</label>
                       <input type="text" value={selectedJob.client} onChange={e=>updateJob({...selectedJob,client:e.target.value})} placeholder="np. Wrocławskie Mieszkania" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-muted-foreground block mb-1">Inspektor WM <span className="text-destructive">*</span></label>
+                      <select
+                        value={
+                          inspectorUsers.some((u) => u.id === selectedJob.assignedInspectorId)
+                            ? (selectedJob.assignedInspectorId ?? "")
+                            : ""
+                        }
+                        onChange={(e) => updateJob({
+                          ...selectedJob,
+                          assignedInspectorId: e.target.value || undefined,
+                          updatedAt: new Date().toISOString(),
+                        })}
+                        className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+                      >
+                        {!selectedJob.assignedInspectorId?.trim() || !isKnownInspectorUserId(selectedJob.assignedInspectorId) ? (
+                          <option value="">— wybierz inspektora —</option>
+                        ) : null}
+                        {inspectorUsers.map((u) => (
+                          <option key={u.id} value={u.id}>{u.displayName}</option>
+                        ))}
+                      </select>
+                      {selectedJobInspectorIssue?.reason === "orphan" && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          Przypisany inspektor nie istnieje w systemie — wybierz aktywnego inspektora, aby zapisać robotę.
+                        </p>
+                      )}
+                      {selectedJobInspectorIssue?.reason === "missing" && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          Pole obowiązkowe — wybierz inspektora WM przed dalszą edycją.
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <div className="flex-1">
