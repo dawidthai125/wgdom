@@ -1,68 +1,91 @@
 import { useCallback, useEffect, useState } from "react";
-import { APP_VERSION } from "@/lib/app-version";
+import { APP_COMMIT, APP_VERSION } from "@/lib/app-version";
 
 const POLL_MS = 5 * 60 * 1000;
 const DISMISS_KEY = "wg-update-banner-dismiss";
-/** Cross-tab signal: detected server version (20.5B.7D). */
-export const CROSS_TAB_SERVER_VERSION_KEY = "wg-update-server-version";
+/**
+ * Cross-tab signal: wykryty build serwera (Release Version + Build Identity).
+ * Detekcja opiera się o `commit` (build identity); `version` służy wyłącznie do prezentacji.
+ */
+export const CROSS_TAB_SERVER_BUILD_KEY = "wg-update-server-build";
 
-export async function fetchServerVersion(): Promise<string | null> {
+/** Build serwera z `version.json`: Release Version (display) + commit (detekcja). */
+export interface ServerBuild {
+  version: string;
+  commit: string;
+}
+
+function parseServerBuild(raw: unknown): ServerBuild | null {
+  if (raw == null || typeof raw !== "object") return null;
+  const data = raw as { version?: unknown; commit?: unknown };
+  if (typeof data.commit !== "string" || data.commit.length === 0) return null;
+  const version = typeof data.version === "string" && data.version.length > 0
+    ? data.version
+    : data.commit;
+  return { version, commit: data.commit };
+}
+
+export async function fetchServerBuild(): Promise<ServerBuild | null> {
   try {
     const res = await fetch(`/version.json?_=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) return null;
-    const data = (await res.json()) as { version?: unknown };
-    return typeof data.version === "string" ? data.version : null;
+    return parseServerBuild(await res.json());
   } catch {
     return null;
   }
 }
 
-export function isNewerVersionAvailable(
-  currentVersion: string,
-  serverVersion: string | null,
+/**
+ * Build Identity — banner po KAŻDYM deployu: inny commit = nowy build.
+ * Release Version celowo nie bierze udziału w detekcji.
+ */
+export function isNewBuildAvailable(
+  currentCommit: string,
+  serverCommit: string | null,
 ): boolean {
-  return serverVersion !== null && serverVersion !== currentVersion;
+  return serverCommit !== null && serverCommit !== currentCommit;
 }
 
-export function readCrossTabServerVersion(): string | null {
+export function readCrossTabServerBuild(): ServerBuild | null {
   try {
-    const v = localStorage.getItem(CROSS_TAB_SERVER_VERSION_KEY);
-    return typeof v === "string" && v.length > 0 ? v : null;
+    const raw = localStorage.getItem(CROSS_TAB_SERVER_BUILD_KEY);
+    if (!raw) return null;
+    return parseServerBuild(JSON.parse(raw));
   } catch {
     return null;
   }
 }
 
-export function clearCrossTabServerVersion(): void {
+export function clearCrossTabServerBuild(): void {
   try {
-    localStorage.removeItem(CROSS_TAB_SERVER_VERSION_KEY);
+    localStorage.removeItem(CROSS_TAB_SERVER_BUILD_KEY);
   } catch {
     /* ignore */
   }
 }
 
-/** Persist only when server reports a version newer than the bundle. */
-export function persistCrossTabServerVersion(
-  detectedVersion: string,
-  currentVersion: string,
+/** Persist only when server reports a build (commit) different from the bundle. */
+export function persistCrossTabServerBuild(
+  detected: ServerBuild,
+  currentCommit: string,
 ): void {
-  if (!isNewerVersionAvailable(currentVersion, detectedVersion)) {
-    clearCrossTabServerVersion();
+  if (!isNewBuildAvailable(currentCommit, detected.commit)) {
+    clearCrossTabServerBuild();
     return;
   }
   try {
-    localStorage.setItem(CROSS_TAB_SERVER_VERSION_KEY, detectedVersion);
+    localStorage.setItem(CROSS_TAB_SERVER_BUILD_KEY, JSON.stringify(detected));
   } catch {
     /* ignore */
   }
 }
 
 /** Seed hook state from localStorage; clears stale keys when bundle caught up. */
-export function resolveSeededServerVersion(currentVersion: string): string | null {
-  const stored = readCrossTabServerVersion();
+export function resolveSeededServerBuild(currentCommit: string): ServerBuild | null {
+  const stored = readCrossTabServerBuild();
   if (!stored) return null;
-  if (!isNewerVersionAvailable(currentVersion, stored)) {
-    clearCrossTabServerVersion();
+  if (!isNewBuildAvailable(currentCommit, stored.commit)) {
+    clearCrossTabServerBuild();
     return null;
   }
   return stored;
@@ -70,11 +93,12 @@ export function resolveSeededServerVersion(currentVersion: string): string | nul
 
 export function useAppVersionCheck() {
   const currentVersion = APP_VERSION;
+  const currentCommit = APP_COMMIT;
 
-  const [serverVersion, setServerVersion] = useState<string | null>(() =>
-    resolveSeededServerVersion(currentVersion),
+  const [serverBuild, setServerBuild] = useState<ServerBuild | null>(() =>
+    resolveSeededServerBuild(currentCommit),
   );
-  const [dismissedVersion, setDismissedVersion] = useState<string | null>(() => {
+  const [dismissedCommit, setDismissedCommit] = useState<string | null>(() => {
     try {
       return sessionStorage.getItem(DISMISS_KEY);
     } catch {
@@ -82,22 +106,22 @@ export function useAppVersionCheck() {
     }
   });
 
-  const applyDetectedVersion = useCallback(
-    (version: string) => {
-      setServerVersion(version);
-      if (isNewerVersionAvailable(currentVersion, version)) {
-        persistCrossTabServerVersion(version, currentVersion);
-      } else if (version === currentVersion) {
-        clearCrossTabServerVersion();
+  const applyDetectedBuild = useCallback(
+    (build: ServerBuild) => {
+      setServerBuild(build);
+      if (isNewBuildAvailable(currentCommit, build.commit)) {
+        persistCrossTabServerBuild(build, currentCommit);
+      } else {
+        clearCrossTabServerBuild();
       }
     },
-    [currentVersion],
+    [currentCommit],
   );
 
   const check = useCallback(async () => {
-    const next = await fetchServerVersion();
-    if (next) applyDetectedVersion(next);
-  }, [applyDetectedVersion]);
+    const next = await fetchServerBuild();
+    if (next) applyDetectedBuild(next);
+  }, [applyDetectedBuild]);
 
   useEffect(() => {
     void check();
@@ -117,35 +141,40 @@ export function useAppVersionCheck() {
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key !== CROSS_TAB_SERVER_VERSION_KEY) return;
+      if (e.key !== CROSS_TAB_SERVER_BUILD_KEY) return;
       if (e.newValue == null) {
         void check();
         return;
       }
-      if (isNewerVersionAvailable(currentVersion, e.newValue)) {
-        setServerVersion(e.newValue);
-        return;
+      let parsed: ServerBuild | null = null;
+      try {
+        parsed = parseServerBuild(JSON.parse(e.newValue));
+      } catch {
+        parsed = null;
       }
-      if (e.newValue === currentVersion) {
-        clearCrossTabServerVersion();
+      if (!parsed) return;
+      if (isNewBuildAvailable(currentCommit, parsed.commit)) {
+        setServerBuild(parsed);
+      } else {
+        clearCrossTabServerBuild();
       }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [currentVersion, check]);
+  }, [currentCommit, check]);
 
-  const updateDetected = isNewerVersionAvailable(currentVersion, serverVersion);
-  const updateAvailable = updateDetected && serverVersion !== dismissedVersion;
+  const updateDetected = isNewBuildAvailable(currentCommit, serverBuild?.commit ?? null);
+  const updateAvailable = updateDetected && serverBuild?.commit !== dismissedCommit;
 
   const dismiss = useCallback(() => {
-    if (!serverVersion) return;
+    if (!serverBuild) return;
     try {
-      sessionStorage.setItem(DISMISS_KEY, serverVersion);
+      sessionStorage.setItem(DISMISS_KEY, serverBuild.commit);
     } catch {
       /* ignore */
     }
-    setDismissedVersion(serverVersion);
-  }, [serverVersion]);
+    setDismissedCommit(serverBuild.commit);
+  }, [serverBuild]);
 
   const reload = useCallback(() => {
     window.location.reload();
@@ -154,7 +183,8 @@ export function useAppVersionCheck() {
   return {
     updateAvailable,
     currentVersion,
-    serverVersion,
+    // Release Version wyłącznie do prezentacji w bannerze (nigdy commit).
+    serverVersion: serverBuild?.version ?? null,
     dismiss,
     reload,
   };

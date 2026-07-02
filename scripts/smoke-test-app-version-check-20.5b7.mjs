@@ -1,17 +1,19 @@
 /**
- * Sprint 20.5B.7 — Version Awareness & Update Banner
+ * Sprint 20.5B.7 (+ Version Banner Refresh / Build Identity) — Version Awareness & Update Banner
  * Uruchom: npx vite-node scripts/smoke-test-app-version-check-20.5b7.mjs
+ *
+ * Kryterium detekcji: Build Identity (commit). Release Version = wyłącznie prezentacja.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readChangelogVersion } from "./read-changelog-version.mjs";
 import {
-  isNewerVersionAvailable,
-  CROSS_TAB_SERVER_VERSION_KEY,
-  resolveSeededServerVersion,
-  persistCrossTabServerVersion,
-  clearCrossTabServerVersion,
+  isNewBuildAvailable,
+  CROSS_TAB_SERVER_BUILD_KEY,
+  resolveSeededServerBuild,
+  persistCrossTabServerBuild,
+  clearCrossTabServerBuild,
 } from "../src/lib/app-version-check.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -32,39 +34,43 @@ function readSrc(rel) {
   return readFileSync(resolve(root, rel), "utf8");
 }
 
-log("=== Sprint 20.5B.7 / 20.5B.7D — Version Awareness & Update Banner ===\n");
+log("=== Version Awareness & Update Banner — Build Identity (commit) ===\n");
 
-assert("precheck changelog 2.50.62", readChangelogVersion() === "2.50.62");
+// precheck — Release Version pozostaje niezależnym numerem wydania (SSOT: changelog).
+assert("precheck changelog release version", /^\d+\.\d+\.\d+$/.test(readChangelogVersion()));
 
-// T1 — APP_VERSION
+// T1 — APP_VERSION (Release) + APP_COMMIT (Build Identity)
 assert(
-  "T1 APP_VERSION",
+  "T1 APP_VERSION + APP_COMMIT",
   readSrc("src/lib/app-version.ts").includes("APP_VERSION")
+    && readSrc("src/lib/app-version.ts").includes("APP_COMMIT")
     && readSrc("vite.config.ts").includes("__APP_VERSION__")
+    && readSrc("vite.config.ts").includes("__APP_COMMIT__")
     && readSrc("src/app/changelog-data.ts").includes("export const APP_VERSION"),
 );
 
-// T2 — version.json
+// T2 — version.json (version + commit)
 assert(
   "T2 version.json",
   readSrc("vite.config.ts").includes("dist/version.json")
-    && existsSync(resolve(root, "scripts/read-changelog-version.mjs")),
+    && existsSync(resolve(root, "scripts/read-changelog-version.mjs"))
+    && existsSync(resolve(root, "scripts/build-version-json.mjs")),
 );
 
-// T3 — hook fetch
+// T3 — hook fetch (build: version + commit)
 assert(
   "T3 hook fetch",
-  readSrc("src/lib/app-version-check.ts").includes("fetchServerVersion")
+  readSrc("src/lib/app-version-check.ts").includes("fetchServerBuild")
     && readSrc("src/lib/app-version-check.ts").includes("/version.json")
     && readSrc("src/lib/app-version-check.ts").includes("useAppVersionCheck"),
 );
 
-// T4 — detection
+// T4 — detekcja po commit (Build Identity), NIE po Release Version
 assert(
-  "T4 version diff",
-  isNewerVersionAvailable("2.50.55", "2.50.56")
-    && !isNewerVersionAvailable("2.50.56", "2.50.56")
-    && !isNewerVersionAvailable("2.50.56", null),
+  "T4 build-identity detection",
+  isNewBuildAvailable("abc1234", "def5678")
+    && !isNewBuildAvailable("abc1234", "abc1234")
+    && !isNewBuildAvailable("abc1234", null),
 );
 
 // T5 — banner
@@ -114,18 +120,18 @@ assert(
   readSrc("src/app/GuideView.tsx").includes("Dlaczego widzę komunikat o nowej wersji?"),
 );
 
-// T11 — cross-tab localStorage key (20.5B.7D)
+// T11 — cross-tab localStorage key (Build Identity)
 assert(
   "T11 cross-tab key",
-  CROSS_TAB_SERVER_VERSION_KEY === "wg-update-server-version"
-    && readSrc("src/lib/app-version-check.ts").includes(CROSS_TAB_SERVER_VERSION_KEY),
+  CROSS_TAB_SERVER_BUILD_KEY === "wg-update-server-build"
+    && readSrc("src/lib/app-version-check.ts").includes(CROSS_TAB_SERVER_BUILD_KEY),
 );
 
 // T12 — storage listener
 assert(
   "T12 storage listener",
   readSrc("src/lib/app-version-check.ts").includes('addEventListener("storage"')
-    && readSrc("src/lib/app-version-check.ts").includes("CROSS_TAB_SERVER_VERSION_KEY"),
+    && readSrc("src/lib/app-version-check.ts").includes("CROSS_TAB_SERVER_BUILD_KEY"),
 );
 
 // T13 — seed helpers (mock localStorage in Node)
@@ -139,27 +145,30 @@ if (typeof globalThis.localStorage === "undefined") {
 }
 
 {
-  let t13ok =
-    resolveSeededServerVersion("2.50.59") === null;
+  let t13ok = resolveSeededServerBuild("commitA") === null;
   try {
-    localStorage.setItem(CROSS_TAB_SERVER_VERSION_KEY, "2.50.60");
+    localStorage.setItem(
+      CROSS_TAB_SERVER_BUILD_KEY,
+      JSON.stringify({ version: "9.99.99", commit: "commitB" }),
+    );
     t13ok =
       t13ok
-      && resolveSeededServerVersion("2.50.59") === "2.50.60"
-      && resolveSeededServerVersion("2.50.60") === null;
+      && resolveSeededServerBuild("commitA")?.commit === "commitB"
+      && resolveSeededServerBuild("commitB") === null;
   } finally {
-    clearCrossTabServerVersion();
+    clearCrossTabServerBuild();
   }
   assert("T13 seed helpers", t13ok);
 }
 
-// T14 — persist only when newer
+// T14 — persist only when commit differs (nowy build)
 {
-  persistCrossTabServerVersion("2.50.60", "2.50.59");
-  const afterNewer = localStorage.getItem(CROSS_TAB_SERVER_VERSION_KEY) === "2.50.60";
-  persistCrossTabServerVersion("2.50.59", "2.50.59");
-  const afterCaughtUp = localStorage.getItem(CROSS_TAB_SERVER_VERSION_KEY) === null;
-  clearCrossTabServerVersion();
+  persistCrossTabServerBuild({ version: "9.99.99", commit: "commitB" }, "commitA");
+  const stored = localStorage.getItem(CROSS_TAB_SERVER_BUILD_KEY);
+  const afterNewer = stored != null && JSON.parse(stored).commit === "commitB";
+  persistCrossTabServerBuild({ version: "9.99.99", commit: "commitA" }, "commitA");
+  const afterCaughtUp = localStorage.getItem(CROSS_TAB_SERVER_BUILD_KEY) === null;
+  clearCrossTabServerBuild();
   assert("T14 persist helpers", afterNewer && afterCaughtUp);
 }
 

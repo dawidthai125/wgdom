@@ -7,11 +7,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readChangelogVersion } from "./read-changelog-version.mjs";
+import { readGitCommitShort } from "./build-version-json.mjs";
 import { renderServiceWorker, swCacheName } from "./generate-service-worker.mjs";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dir, "..");
 const version = readChangelogVersion();
+const buildId = readGitCommitShort();
 
 function read(rel) {
   return readFileSync(resolve(root, rel), "utf8");
@@ -29,10 +31,10 @@ assert("Z2 generate-service-worker.mjs", existsSync(resolve(root, "scripts/gener
 assert("Z3 vite serviceWorkerPlugin", read("vite.config.ts").includes("serviceWorkerPlugin"));
 assert("Z4 public/sw.js removed", !existsSync(resolve(root, "public/sw.js")));
 
-const cacheName = swCacheName(version);
-assert("Z5 cache name from APP_VERSION", cacheName === `wgdom-shell-${version}`, cacheName);
+const cacheName = swCacheName(buildId);
+assert("Z5 cache name from Build Identity (commit)", cacheName === `wgdom-shell-${buildId}`, cacheName);
 
-const rendered = renderServiceWorker(version);
+const rendered = renderServiceWorker(buildId);
 assert("Z6 rendered CACHE constant", rendered.includes(`const CACHE = "${cacheName}"`));
 assert("Z7 version.json network-only", rendered.includes('url.pathname === "/version.json"'));
 {
@@ -52,7 +54,14 @@ assert(
 
 assert("Z10 dist/sw.js exists", existsSync(resolve(root, "dist/sw.js")), "run npm run build first");
 const distSw = read("dist/sw.js");
-assert("Z11 dist CACHE matches version", distSw.includes(`const CACHE = "${cacheName}"`));
+// SSOT builda: commit z dist/version.json (Build Identity zapieczętowany przy buildzie).
+const distBuild = JSON.parse(read("dist/version.json"));
+const distCacheName = swCacheName(distBuild.commit);
+assert(
+  "Z11 dist CACHE matches Build Identity (commit)",
+  distSw.includes(`const CACHE = "${distCacheName}"`),
+  distCacheName,
+);
 assert("Z12 dist version.json network-only", distSw.includes('url.pathname === "/version.json"'));
 
 assert(

@@ -1,4 +1,4 @@
-/** Wygenerowany przy buildzie — CACHE z APP_VERSION (20.5Z.2A). Szablon: scripts/sw.template.js */
+/** Wygenerowany przy buildzie — CACHE = Build Identity (short git commit). Szablon: scripts/sw.template.js */
 const CACHE = "__SW_CACHE_NAME__";
 const PRECACHE = [
   "/",

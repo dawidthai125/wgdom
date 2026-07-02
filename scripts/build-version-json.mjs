@@ -2,7 +2,8 @@
 import { execSync } from "node:child_process";
 import { readChangelogVersion } from "./read-changelog-version.mjs";
 
-function readGitCommitShort() {
+/** Build Identity — short git commit HEAD. SSOT dla detekcji „nowy build". */
+export function readGitCommitShort() {
   try {
     return execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
   } catch {

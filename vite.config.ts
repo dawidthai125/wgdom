@@ -9,17 +9,18 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 import { readChangelogVersion } from './scripts/read-changelog-version.mjs'
-import { renderVersionJson } from './scripts/build-version-json.mjs'
+import { renderVersionJson, readGitCommitShort } from './scripts/build-version-json.mjs'
 import { renderServiceWorker, writeServiceWorker } from './scripts/generate-service-worker.mjs'
 
 
 
 function serviceWorkerPlugin() {
-  let version = '0.0.0'
+  // Build Identity — cache SW rotuje per commit (nie per Release Version).
+  let buildId = 'unknown'
   return {
     name: 'wgdom-service-worker',
     buildStart() {
-      version = readChangelogVersion()
+      buildId = readGitCommitShort()
     },
     configureServer(server: {
       middlewares: {
@@ -37,7 +38,7 @@ function serviceWorkerPlugin() {
         if (url === '/sw.js') {
           res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
           res.setHeader('Cache-Control', 'no-store')
-          res.end(renderServiceWorker(readChangelogVersion()))
+          res.end(renderServiceWorker(readGitCommitShort()))
           return
         }
         next()
@@ -46,7 +47,7 @@ function serviceWorkerPlugin() {
     closeBundle() {
       const outPath = path.resolve(__dirname, 'dist/sw.js')
       mkdirSync(path.dirname(outPath), { recursive: true })
-      writeServiceWorker(version, outPath)
+      writeServiceWorker(buildId, outPath)
     },
   }
 }
@@ -126,6 +127,7 @@ function versionJsonPlugin() {
 export default defineConfig(() => {
 
   const appVersion = readChangelogVersion()
+  const appCommit = readGitCommitShort()
 
   return {
 
@@ -143,6 +145,8 @@ export default defineConfig(() => {
     define: {
 
       __APP_VERSION__: JSON.stringify(appVersion),
+
+      __APP_COMMIT__: JSON.stringify(appCommit),
 
     },
 
