@@ -5,6 +5,7 @@
 import * as WorkCatalog from "../src/lib/work-catalog/index.ts";
 
 const REQUIRED_EXPORTS = [
+  // ── P1 (Foundation) — bez zmian ──────────────────────────────────────────
   "TRADE_IDS",
   "WORK_CATALOG_SCHEMA_VERSION",
   "WORK_BUNDLE_SCHEMA_VERSION",
@@ -23,6 +24,39 @@ const REQUIRED_EXPORTS = [
   "saveWorkCatalogStore",
   "WORK_CATALOG_STORAGE_KEY",
   "WORK_BUNDLE_STORAGE_KEY",
+  // ── P3.1-S1 — market regions (hierarchia fallback P3.0B) ──────────────────
+  "MARKET_REGION_CODES",
+  "MARKET_REGION_LABELS_PL",
+  "isMarketRegionCode",
+  "marketRegionLabelPl",
+  "marketRegionFallbackChain",
+  "DEFAULT_MARKET_START_REGION",
+  // ── P3.1-S1 — market sources (kontrakt marketQuotes) ──────────────────────
+  "MARKET_ORIGIN_IDS",
+  "MARKET_ORIGIN_LABELS_PL",
+  "MARKET_LEGACY_SEED_ORIGIN_ID",
+  "MARKET_QUOTE_ORIGIN_IDS",
+  "MARKET_COVERAGE_VALUES",
+  "MARKET_MIN_CONFIDENCE_DEFAULT",
+  "isMarketOriginId",
+  "isMarketQuoteOriginId",
+  "isMarketCoverage",
+  "roundMarketPricePln",
+  "normalizeMarketCoverage",
+  "normalizeMarketSourceSnapshot",
+  "normalizeWorkMarketQuotes",
+  // ── S2 (engine) — dopisać przy landing market-average-engine ──────────────
+  // "computeMarketAverage",
+  // "computeMarketAverageForWork",
+  // ── S3 (adapters + mapping) — dopisać przy landing ────────────────────────
+  // "adaptMarketSourceRecord",
+  // "getMarketSourceAdapter",
+  // "findMapping",
+  // "registerMapping",
+  // "resolveMappingBatch",
+  // ── S4 (csv) — dopisać przy landing market-csv-* ──────────────────────────
+  // "parseMarketCsv",
+  // "previewMarketCsvImport",
 ];
 
 let pass = 0;

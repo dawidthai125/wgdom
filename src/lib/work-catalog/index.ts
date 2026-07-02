@@ -188,3 +188,42 @@ export {
   type SaveWorkBundleStoreCloudOptions,
   type SaveWorkCatalogStoreCloudOptions,
 } from "@/lib/work-catalog/work-catalog-sync";
+
+// ─── P3.1-S1 — market regions (hierarchia fallback P3.0B) ──────────────────
+
+export {
+  DEFAULT_MARKET_START_REGION,
+  MARKET_REGION_CODES,
+  MARKET_REGION_HIERARCHY_DOLNOSLASK,
+  MARKET_REGION_HIERARCHY_POLSKA,
+  MARKET_REGION_HIERARCHY_POWIAT,
+  MARKET_REGION_HIERARCHY_WROCLAW,
+  MARKET_REGION_LABELS_PL,
+  isMarketRegionCode,
+  marketRegionFallbackChain,
+  marketRegionLabelPl,
+  type MarketRegionCode,
+} from "@/lib/work-catalog/market-regions";
+
+// ─── P3.1-S1 — market sources (kontrakt marketQuotes) ──────────────────────
+
+export {
+  MARKET_COVERAGE_VALUES,
+  MARKET_LEGACY_SEED_ORIGIN_ID,
+  MARKET_MIN_CONFIDENCE_DEFAULT,
+  MARKET_ORIGIN_IDS,
+  MARKET_ORIGIN_LABELS_PL,
+  MARKET_QUOTE_ORIGIN_IDS,
+  isMarketCoverage,
+  isMarketOriginId,
+  isMarketQuoteOriginId,
+  normalizeMarketCoverage,
+  normalizeMarketSourceSnapshot,
+  normalizeWorkMarketQuotes,
+  roundMarketPricePln,
+  type MarketCoverage,
+  type MarketOriginId,
+  type MarketQuoteOriginId,
+  type MarketSourceSnapshot,
+  type WorkMarketQuotes,
+} from "@/lib/work-catalog/market-sources";
