@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.26 — TEST-INFRA-001 MVP
+
+- **new:** Manifest SSOT `test-infra/test-manifest.json` + orchestrator `npm run test:infra`
+- **new:** Payroll Harness E2E preview — PAYROLL-GUARD-S1 (`npm run test:e2e:payroll-guard`)
+- **improve:** Release gates A/B/C → suite z manifestu; klasy lib/smoke/e2e/audit
+
 ## 2.63.25 — Audit Hub Freshness (AH-REG-1)
 
 - **fix:** Audit Hub — odświeżanie `security_log` w React po `recordSecurityAudit` (notify); pull AUX audytu w `runCloudSync` jak przy focus pull

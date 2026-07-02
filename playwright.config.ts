@@ -38,6 +38,12 @@ export default defineConfig({
       fullyParallel: false,
     },
     {
+      name: "e2e-payroll-guard",
+      use: { browserName: "chromium", viewport: { width: 1280, height: 900 } },
+      testMatch: /payroll-guard-s1\.spec\.ts/,
+      fullyParallel: false,
+    },
+    {
       name: "desktop-chrome",
       use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
       testMatch: /desktop-(smoke|layout)\.spec\.ts/,

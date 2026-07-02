@@ -1,0 +1,258 @@
+{
+  "manifestVersion": "1.0.0",
+  "epicId": "TEST-INFRA-001",
+  "principlesVersion": "001-026",
+  "suites": {
+    "gate-a-build": {
+      "description": "Tier A — npm run build (implicit, brak wpisów test)",
+      "testIds": []
+    },
+    "gate-b-relevant": {
+      "description": "Tier B — lib/smoke/audit warunkowe per scope release",
+      "testIds": [
+        "LIB-PAYROLL-P0-UNION",
+        "LIB-PAYROLL-GUARD",
+        "LIB-PAYROLL-GUARD-FAIL-LOUD",
+        "LIB-PAYROLL-GUARD-PHASE2",
+        "LIB-PAYROLL-B4-PARITY",
+        "LIB-PAYROLL-P11-BOOTSTRAP",
+        "LIB-PAYROLL-B5-CLOSED-WEEK",
+        "LIB-PAYROLL-B6-EDGE",
+        "LIB-PAYROLL-RB-BANNER",
+        "LIB-PAYROLL-ASSIGNMENTS-P1",
+        "SMOKE-PAYROLL-CARRY-20.1B",
+        "AUDIT-MOBILE-STATIC",
+        "AUDIT-IMPORT-CYCLES"
+      ]
+    },
+    "gate-c-e2e-preview": {
+      "description": "Tier C — E2E preview :4173 (happy + version + payroll harness S1)",
+      "testIds": ["E2E-HAPPY-PATH", "E2E-VERSION-AWARENESS", "E2E-PAYROLL-GUARD-S1"]
+    },
+    "lib-payroll-core": {
+      "description": "PAYROLL-CLOUD-RECOVERY B1–B6 + RB + P1 lib regression",
+      "testIds": [
+        "LIB-PAYROLL-P0-UNION",
+        "LIB-PAYROLL-GUARD",
+        "LIB-PAYROLL-GUARD-FAIL-LOUD",
+        "LIB-PAYROLL-GUARD-PHASE2",
+        "LIB-PAYROLL-B4-PARITY",
+        "LIB-PAYROLL-P11-BOOTSTRAP",
+        "LIB-PAYROLL-B5-CLOSED-WEEK",
+        "LIB-PAYROLL-B6-EDGE",
+        "LIB-PAYROLL-RB-BANNER",
+        "LIB-PAYROLL-ASSIGNMENTS-P1"
+      ]
+    },
+    "audit-forensic": {
+      "description": "Forensic only — nigdy auto w release gate",
+      "testIds": ["AUDIT-MOBILE-STATIC", "AUDIT-IMPORT-CYCLES"]
+    }
+  },
+  "releaseGates": {
+    "A": { "suites": ["gate-a-build"], "implicitBuild": true },
+    "B": { "suites": ["gate-b-relevant"], "implicitBuild": true, "scopeRequired": true },
+    "C": {
+      "suites": ["gate-b-relevant", "gate-c-e2e-preview"],
+      "implicitBuild": true,
+      "scopeRequired": false
+    }
+  },
+  "tests": [
+    {
+      "id": "LIB-PAYROLL-P0-UNION",
+      "class": "lib",
+      "path": "scripts/test-payroll-add-from-directory-merge-p0.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-GUARD",
+      "class": "lib",
+      "path": "scripts/test-cloud-sync-mutation-guard.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-GUARD-FAIL-LOUD",
+      "class": "lib",
+      "path": "scripts/test-payroll-guard-push-fail-loud-p0.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-GUARD-PHASE2",
+      "class": "lib",
+      "path": "scripts/test-payroll-roster-guard-phase2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-B4-PARITY",
+      "class": "lib",
+      "path": "scripts/test-payroll-bootstrap-runtime-parity-b4.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-P11-BOOTSTRAP",
+      "class": "lib",
+      "path": "scripts/test-p11-bootstrap-payroll.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-B5-CLOSED-WEEK",
+      "class": "lib",
+      "path": "scripts/test-payroll-closed-week-ui-rca2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-B6-EDGE",
+      "class": "lib",
+      "path": "scripts/test-payroll-edge-parity-b6.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-RB-BANNER",
+      "class": "lib",
+      "path": "scripts/test-payroll-restore-banner-false-positive.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-ASSIGNMENTS-P1",
+      "class": "lib",
+      "path": "scripts/test-payroll-assignments-p1.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-PAYROLL-CARRY-20.1B",
+      "class": "smoke",
+      "path": "scripts/smoke-test-payroll-carry-forward-20.1b.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "optional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "E2E-HAPPY-PATH",
+      "class": "e2e",
+      "path": "e2e/worker-admin-inspector-happy-path.spec.ts",
+      "runner": "playwright",
+      "environment": "preview",
+      "releaseTier": "C",
+      "mandatory": "always",
+      "condition": "gate:c",
+      "owner": "Platform",
+      "status": "active",
+      "playwrightProject": "e2e-happy-path"
+    },
+    {
+      "id": "E2E-VERSION-AWARENESS",
+      "class": "e2e",
+      "path": "e2e/version-awareness.spec.ts",
+      "runner": "playwright",
+      "environment": "preview",
+      "releaseTier": "C",
+      "mandatory": "always",
+      "condition": "gate:c",
+      "owner": "Platform",
+      "status": "active",
+      "playwrightProject": "e2e-version-awareness"
+    },
+    {
+      "id": "E2E-PAYROLL-GUARD-S1",
+      "class": "e2e",
+      "path": "e2e/payroll-guard-s1.spec.ts",
+      "runner": "playwright",
+      "environment": "preview",
+      "releaseTier": "C",
+      "mandatory": "always",
+      "condition": "gate:c",
+      "owner": "Payroll",
+      "status": "active",
+      "playwrightProject": "e2e-payroll-guard"
+    },
+    {
+      "id": "AUDIT-MOBILE-STATIC",
+      "class": "audit",
+      "path": "scripts/mobile-audit.mjs",
+      "runner": "node",
+      "environment": "node",
+      "releaseTier": "none",
+      "mandatory": "conditional",
+      "condition": "scope:platform",
+      "owner": "Platform",
+      "status": "forensic-only"
+    },
+    {
+      "id": "AUDIT-IMPORT-CYCLES",
+      "class": "audit",
+      "path": "scripts/audit-import-cycles.mjs",
+      "runner": "node",
+      "environment": "node",
+      "releaseTier": "none",
+      "mandatory": "optional",
+      "condition": "scope:platform",
+      "owner": "Platform",
+      "status": "forensic-only"
+    }
+  ]
+}

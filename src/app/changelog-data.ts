@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-01",
+    version: "2.63.26",
+    label: "TEST-INFRA-001 — manifest + orchestrator + Payroll Harness S1",
+    items: [
+      {
+        type: "new",
+        text: "Infrastruktura testowa TEST-INFRA-001 MVP — manifest SSOT (test-infra/test-manifest.json), orchestrator (npm run test:infra), klasy lib/smoke/e2e/audit",
+      },
+      {
+        type: "new",
+        text: "Payroll Harness E2E preview — PAYROLL-GUARD-S1 (Lista Płac → Przydziały robót) w gate C",
+      },
+      {
+        type: "improve",
+        text: "Release gates A/B/C mapowane na suite z manifestu — zero hardcoded list w orchestratorze",
+      },
+    ],
+  },
+  {
+    date: "2026-07-01",
     version: "2.63.25",
     label: "Audit Hub — świeżość feedu (AH-REG-1)",
     items: [
