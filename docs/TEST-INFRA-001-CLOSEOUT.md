@@ -29,7 +29,7 @@
 
 - `test-infra/test-manifest.json` — SSOT indeksu testów (Principles #001–#013)
 - `scripts/test-infra-orchestrator.mjs` — dispatch suite/gate, kolejność lib→smoke→e2e→audit
-- `#008` failKind · `#009` exit tylko przy `mandatory: always` · `#010` auto preview przed E2E
+- `#008` failKind · `#009` exit ≠ 0 gdy `always` **oraz** wybrany (scope-selected) `conditional` blokują release (`optional` nigdy) · `#010` auto preview przed E2E
 - Audit uruchamiany **wyłącznie** z `--include-audit`
 - Prod E2E blokada bez `--allow-prod` (#018)
 
