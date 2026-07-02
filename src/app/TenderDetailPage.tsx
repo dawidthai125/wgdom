@@ -255,7 +255,8 @@ export function TenderDetailPage({
       )}
 
       <div
-        className={`flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
+        data-mobile-scroll-root="tender-detail"
+        className={`mobile-view-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
           przetargActionBarActive ? "max-lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
         }`}
         style={

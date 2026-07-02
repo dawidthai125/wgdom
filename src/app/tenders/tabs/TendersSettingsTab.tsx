@@ -13,7 +13,8 @@ export function TendersSettingsTab() {
 
   return (
     <div
-      className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4"
+      data-mobile-scroll-root="tenders-settings"
+      className="mobile-view-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4"
       style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
       <div className="flex items-center gap-2">

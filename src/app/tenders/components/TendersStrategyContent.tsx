@@ -167,7 +167,8 @@ export function TendersStrategyContent({
 
   return (
     <div
-      className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+      data-mobile-scroll-root="tenders-overview"
+      className="mobile-view-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain"
       style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       data-testid="tenders-strategy-content"
     >
