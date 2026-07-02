@@ -217,6 +217,48 @@ Po każdym przejściu: **G1 + G2 + G3** na **liście Przetargów**.
 
 ---
 
+### 4.7 NG-03 — Tender Detail Workspace + zakładki
+
+**Zakres:** M-03 Mobile Re-Certification (C1–C7). Reuse kontroli **G1 + G2 + G3** (bez zmian).  
+**Ścieżka:** Lista Przetargów → **tap wiersz** → detal (C1) → przejście po zakładkach.
+
+| ID | Krok | Kontrola | PASS | FAIL |
+|----|------|----------|:----:|:----:|
+| S4.7-1 | Otwórz detal przetargu (tap wiersz z listy) | wejście C1 | ☐ | ☐ |
+| S4.7-2 | Scroll workspace detalu (góra ↔ dół) | G1 + G3 | ☐ | ☐ |
+| S4.7-3 | Zakładka **Overview** (C2) — scroll do końca i powrót | G1 + G3 | ☐ | ☐ |
+| S4.7-4 | Zakładka **Map** (C3) — scroll strony wokół mapy (patrz nota Map) | G1 | ☐ | ☐ |
+| S4.7-5 | Zakładka **Profile** (C4) — scroll formularza | G1 + G3 | ☐ | ☐ |
+| S4.7-6 | Zakładka **Price Base** (C5) — scroll listy cen | G1 + G3 | ☐ | ☐ |
+| S4.7-7 | Zakładka **Work Catalog** (C6) — scroll; ostatni element nad bottom nav | G1 + G3 | ☐ | ☐ |
+| S4.7-8 | Zakładka **Settings** (C7) — scroll do końca | G1 + G3 | ☐ | ☐ |
+| S4.7-9 | Po każdej zakładce: **G2** (brak `modal-scroll-locked` bez modala) | G2 | ☐ | ☐ |
+
+**Nota Map (C3):** kontener zakładki Map ma `touch-action: pan-y` (SSOT `.mobile-view-scroll`); panel mapy OSM obsługuje własny gest pan/zoom w swoim elemencie. **Sprawdź:** gest **na mapie** przesuwa mapę, gest **poza mapą / na treści wokół** scrolluje stronę. Konflikt = mapa blokuje scroll strony lub odwrotnie. Nota **diagnostyczna** — nie tworzy osobnego werdyktu (wchodzi do G1 w S4.7-4).
+
+**Wynik §4.7:** ☐ PASS (wszystkie kroki) · ☐ FAIL
+
+### 4.8 BOQ — Kosztorys BOQ Explorer (C8)
+
+**Zakres:** double-scroll detection + overflow-x + sticky header. Reuse **G1 + G2 + G3**.  
+**Warunek:** przetarg z pozycjami kosztorysu (BOQ ≥ ~50 wierszy, docelowo do 500).
+
+| ID | Krok | Kontrola | PASS | FAIL |
+|----|------|----------|:----:|:----:|
+| S4.8-1 | Wejdź w zakładkę Kosztorys → BOQ Explorer (C8) w detalu (C1) | wejście | ☐ | ☐ |
+| S4.8-2 | Scroll **pionowy** długiej listy BOQ — przewija **kontener detalu (C1)** | G1 + double-scroll | ☐ | ☐ |
+| S4.8-3 | **Double-scroll detection:** jeden pionowy pasek (C1); brak zagnieżdżonego pionowego scrolla | brak nested | ☐ | ☐ |
+| S4.8-4 | **overflow-x:** szeroka tabela BOQ przewija się **poziomo** wewnątrz wrappera (nie rozpycha strony) | poziomy scroll | ☐ | ☐ |
+| S4.8-5 | **Sticky header** filtrów BOQ pozostaje w obrębie scrolla C1 (nie „ucieka") | wizualnie | ☐ | ☐ |
+| S4.8-6 | **G2** po wyjściu z BOQ / zmianie zakładki | G2 | ☐ | ☐ |
+| S4.8-7 | **G3** — ostatni wiersz BOQ / stopka nad bottom nav | G3 | ☐ | ☐ |
+
+**FAIL §4.8 (double-scroll):** dwa niezależne pionowe paski (wewnętrzny box BOQ + C1), **lub** „uwięziony" gest (scroll pionowy nie przechodzi do C1), **lub** pozioma tabela rozpycha całą stronę zamiast scrollować lokalnie.
+
+**Wynik §4.8:** ☐ PASS · ☐ FAIL
+
+---
+
 ## 5. Kryteria PASS / FAIL
 
 ### FIELD GATE RESULT
@@ -304,4 +346,6 @@ Uwagi Architekta: …
 | Skrócenie Etapu 2 bez audytu | **ZABRONIONE** |
 | Pominięcie GATE przed release mobile | **ZABRONIONE** (wyjątek: decyzja Architekta na piśmie) |
 
-**Ostatnia aktualizacja dokumentu:** 2026-07-01 · **MOBILE-P0-S1 DESIGN FREEZE TEST PROCEDURE**
+**Addendum M-03.1 (2026-07-02):** dodano Etap 2 §4.7 (NG-03 C1–C7) + §4.8 (BOQ C8) + nota Map — reuse G1/G2/G3, bez zmian GATE-1…4 i maszyny PASS/FAIL (DESIGN FREEZE M-03.1).
+
+**Ostatnia aktualizacja dokumentu:** 2026-07-02 · **M-03.1 CERTIFICATION COVERAGE ADDENDUM** (baza: MOBILE-P0-S1 DESIGN FREEZE TEST PROCEDURE)
