@@ -26,7 +26,6 @@ import {
   E2E_PAYROLL_JOB_B_ID,
   E2E_PAYROLL_WE_ID,
   HARNESS_MARKER,
-  HARNESS_SANDBOX_JOB_IDS,
   type PayrollAssignmentSeedResult,
   type SeedPayrollAssignmentOptions,
 } from "../../../fixtures/payroll-harness-seed";
@@ -96,8 +95,14 @@ export function buildPayrollHarnessSeed(
   const jobA = buildHarnessSyntheticJob(E2E_PAYROLL_JOB_A_ID, "Harness Ulica Alfa", "1");
   const jobB = buildHarnessSyntheticJob(E2E_PAYROLL_JOB_B_ID, "Harness Ulica Beta", "2");
 
-  if (target === "prod" && HARNESS_SANDBOX_JOB_IDS.length < 2) {
-    throw new HarnessPreconditionError("NO_SANDBOX_JOBS", "Prod requires HARNESS_SANDBOX_JOB_IDS #018");
+  // TI-B2.1 — inwariant bezpieczeństwa seeda (Node-side, fail-loud).
+  // Strategia Preview First: seed dozwolony WYŁĄCZNIE dla target=preview.
+  // Każdy inny target (localhost/prod/nieznany) blokuje generację seeda.
+  if (target !== "preview") {
+    throw new HarnessPreconditionError(
+      "UNSAFE_TARGET",
+      `Payroll harness seed dozwolony wyłącznie dla target=preview (otrzymano: ${target}) #TI-B2.1`,
+    );
   }
 
   const manifest = createEmptyManifest(runId, target, "PAYROLL-GUARD-S1");

@@ -5,7 +5,6 @@ import { runHarnessCleanupViaSsot } from "./ssot-bridge.mjs";
 
 export interface CleanupOptions {
   target: PayrollHarnessTarget;
-  pushCloud?: boolean;
 }
 
 export interface CleanupReport {
