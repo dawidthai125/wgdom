@@ -68,7 +68,7 @@ TEST-INFRA-001 porządkuje **jak** uruchamiać i klasyfikować istniejące testy
 | CI gate pełnego pakietu lib Payroll + NG-02 | Wymaga stabilizacji manifestu i czasu CI |
 | E2E Przetargi workspace w default CI | SMOKE-03 class · preview seed tender |
 | E2E Audit Hub / BOQ UI | Brak krytycznej regresji bez nowych testów biznesowych |
-| Prod harness L5 live sync (nightly) | Wymaga sandbox jobów (#018) i ops gate |
+| ~~Prod harness L5 live sync (nightly)~~ **SUPERSEDED (TI-B2.1)** | Ścieżka prod-run harness ODRZUCONA — seed fail-loud dla `target != preview` (Preview First). Pozostaje poza jakimkolwiek MVP. |
 | Coverage / mutation / Vitest | Zmiana stacku — poza freeze |
 | Edge Function suite poza payroll merge | Osobny obszar backend |
 | Capacitor / native | Brak infrastruktury |
@@ -318,7 +318,7 @@ Wymaga Principles **#014–#026** (Aneks A).
 | **O-SMOKE-STAB-NG01-04** | Agregat stabilizacji R-02 | Okres STABILIZATION — gdy plik istnieje |
 | **O-LIB-WM-EM** | Pełne pakiety WM Druk / EM | Release WM-only |
 | **O-FORENSIC-AUDIT** | Wszystkie `scripts/audit-*` | RCA incydentu — ręcznie |
-| **O-PROD-HARNESS-L5** | Payroll harness live sync prod | Nightly / post-config sandbox #018 |
+| ~~**O-PROD-HARNESS-L5**~~ **SUPERSEDED (TI-B2.1)** | ~~Payroll harness live sync prod~~ | Ścieżka prod-run ODRZUCONA — seed dozwolony wyłącznie `target=preview` (fail-loud `UNSAFE_TARGET`). |
 | **O-BUNDLE-SMOKE** | `smoke-prod-bundle-<version>.mjs` | Po deploy · weryfikacja artefaktu |
 | **O-PERF-NG04** | `test-ng04-m8-large-boq-performance.mjs` | Release BOQ performance |
 
@@ -447,8 +447,8 @@ Epic TEST-INFRA-001 uznaje się za **COMPLETE** wyłącznie gdy spełnione są *
 | **#014** | Harness Never Owns Domain |
 | **#015** | SSOT Import Only — zamrożona lista symboli |
 | **#016** | Manifest Mandatory on Prod |
-| **#017** | Merge-Only on Prod |
-| **#018** | Prod Job Sandbox — whitelist / marker / synthetic preview-only |
+| **#017** | ~~Merge-Only on Prod~~ **SUPERSEDED (TI-B2.1)** — merge-not-replace obowiązuje uniwersalnie w seedzie (nie „na prod"); prod-run zablokowany (Preview First). |
+| **#018** | ~~Prod Job Sandbox — whitelist / marker / synthetic preview-only~~ **SUPERSEDED (TI-B2.1)** — strategia sandbox ODRZUCONA; `HARNESS_SANDBOX_JOB_IDS` = mechanizm historyczny/compat (nierozwijany). Seed: Synthetic + Merge, wyłącznie `target=preview`. |
 | **#019** | Tombstone Parity on Cleanup |
 | **#020** | CI Isolation — preview `blockCloudSync` |
 | **#021** | Harness Versioning — `HARNESS_VERSION` semver |
@@ -460,23 +460,27 @@ Epic TEST-INFRA-001 uznaje się za **COMPLETE** wyłącznie gdy spełnione są *
 
 ### A.3 API (zamrożone nazwy)
 
-- `seedPayrollAssignmentScenario(page, opts)`
+- ~~`seedPayrollAssignmentScenario(page, opts)`~~ **SUPERSEDED (TI-B2.1)** — usunięte (martwa ścieżka replace + `jobStrategy`). Seed budowany przez `buildPayrollHarnessSeed(opts)` + merge-aware `applyPayrollHarnessPatchInBrowser`.
 - `waitForPayrollAssignmentReady(page, result, opts?)`
 - `cleanupPayrollScenario(page, manifest, opts)`
 - `HarnessRunManifest` — pełna struktura v1.1 (runId, harnessVersion, workEntryTombstoneIds, priorSnapshots, cloudPushKeys, …)
 
-### A.4 Macierz środowisk harness
+### A.4 Macierz środowisk harness — **SUPERSEDED (TI-B2.1)**
 
-| Capability | localhost | preview | prod |
+> **TI-B2.1 (Preview First):** seed dozwolony **wyłącznie** dla `target=preview`. Kolumny `localhost`/`prod` = fail-loud `UNSAFE_TARGET`; dodatkowy inwariant przeglądarkowy (allowlist loopback) → fail-loud `HARNESS_UNSAFE_ENV` poza `127.0.0.1/localhost/::1`. Poniższa macierz zachowana historycznie.
+
+| Capability | ~~localhost~~ | preview | ~~prod~~ |
 |------------|-----------|---------|------|
-| `blockCloudSync` | zalecane | **wymagane CI** | zakaz (sync-guard L5) |
-| Synthetic jobs | TAK | TAK | **NIE** |
-| Sandbox jobs #018 | TAK | TAK | **TAK — jedyne** |
-| Manifest + cleanup | zalecane | **wymagane** | **wymagane** |
+| `blockCloudSync` | ~~zalecane~~ | **wymagane CI** + własny inwariant seeda | ~~zakaz (sync-guard L5)~~ |
+| Synthetic jobs | ~~TAK~~ | **TAK — jedyne (Synthetic + Merge)** | ~~NIE~~ |
+| ~~Sandbox jobs #018~~ | ~~TAK~~ | **N/D — sandbox strategy odrzucona** | ~~TAK — jedyne~~ |
+| Manifest + cleanup | ~~zalecane~~ | **wymagane** | ~~wymagane~~ |
 
-### A.5 Gate operacyjny prod
+### A.5 Gate operacyjny prod — **SUPERSEDED (TI-B2.1)**
 
-Przed pierwszym uruchomieniem harness na prod: **≥2 joby** spełniające #018 (`HARNESS_SANDBOX_JOB_IDS` lub marker). Brak → `HarnessPreconditionError NO_SANDBOX_JOBS` (fail loud).
+> ~~Przed pierwszym uruchomieniem harness na prod: **≥2 joby** spełniające #018 (`HARNESS_SANDBOX_JOB_IDS` lub marker). Brak → `HarnessPreconditionError NO_SANDBOX_JOBS` (fail loud).~~
+>
+> **TI-B2.1:** prod-run harness ODRZUCONY. Precondition `NO_SANDBOX_JOBS` USUNIĘTY z kodu i zastąpiony `UNSAFE_TARGET` — `buildPayrollHarnessSeed` rzuca `HarnessPreconditionError("UNSAFE_TARGET")` dla każdego `target != preview`. `HARNESS_SANDBOX_JOB_IDS` pozostaje jako stała historyczna/compat, nieużywana przez seed.
 
 ### A.6 Zamrożona lista importów SSOT
 
@@ -492,6 +496,7 @@ Harness **może** importować wyłącznie symbole z: `app-domain.ts`, `payroll-j
 | v1.0–v1.1 | 2026-07-01 | Harness FINAL — #014–#026, manifest harness, #018 |
 | **v2.0** | **2026-07-01** | **DESIGN FREEZE infrastruktury** — manifest testów, orchestrator, release gates, klasy, lifecycle, DoD; Aneks A = harness v1.1 |
 | **v2.1** | **2026-07-02** | **MB-1 Test-Gate Integrity** — korekta #009: wybrany (scope-matched) `mandatory: conditional` jest blokujący (wcześniej blokował wyłącznie `always`); `optional` nadal nieblokujący. SSOT: `isBlockingFailure()`. |
+| **v2.2** | **2026-07-02** | **TI-B2.1 Payroll Harness Production Safety** — sync docs z implementacją (`2efe8b5`). Strategia harness: **Synthetic + Merge, Preview First**. #017/#018 oraz L5 (A.4/A.5, „Prod harness L5 live sync", `O-PROD-HARNESS-L5`) → **SUPERSEDED**. Sandbox strategy ODRZUCONA; `HARNESS_SANDBOX_JOB_IDS` = historyczny/compat. `NO_SANDBOX_JOBS` USUNIĘTY → `UNSAFE_TARGET` (seed wyłącznie `target=preview`, fail-loud). Własny inwariant seeda: merge-not-replace (nigdy full replace) + allowlist loopback (`HARNESS_UNSAFE_ENV`), niezależny od `blockCloudSync`. Usunięte martwe API `seedPayrollAssignmentScenario` + opcje `jobStrategy`/`mergeOnly`/`pushCloud`. |
 
 ---
 

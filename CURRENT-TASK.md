@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-02 · **prod 2.63.27** (TI-B4 release) · **TEST-INFRA-001 CLOSED** · **TI-B4 CLOSED** · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-02 · **prod 2.63.27** (TI-B4 release · runtime bez zmian) · **main HEAD `2efe8b5`** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** (test-infra/docs, bez bumpu) · **TEST-FIX-001 DONE (SUPERSEDED BY MB-1)** · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -29,9 +29,14 @@
 | ID | Element | Status |
 |----|---------|--------|
 | **TI-B1** | Ekstrakcja `removeWeekEmployee()` do warstwy lib | OPEN |
-| **TI-B2** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run | OPEN · **P0 gate** |
+| **TI-B2** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` (SSOT env, config-only) | **CLOSED** · prod **2.63.27** (`803c0bc`) |
+| **TI-B2.1** | Payroll Harness Production Safety — Synthetic + Merge, Preview First (sandbox strategy **odrzucona**) | **CLOSED** · `2efe8b5` · test-harness only ([`TI-B2-CLOSEOUT.md`](docs/TI-B2-CLOSEOUT.md) §6) |
 | **TI-B3** | CI GitHub Actions — gate B/C z orchestratora | OPEN |
 | **TI-B4** | Smoke agregat NG-01–04 | **CLOSED** · prod **2.63.27** |
+| **MB-1** | Test-Gate Integrity — `isBlockingFailure()` (wybrany conditional blokuje) | **CLOSED** · `460031f` |
+| **MB-1.1** | Docs SSOT Sync — DESIGN FREEZE v2.0 + #009 | **CLOSED** · `8b5c63c` |
+| **MB-2** | Docs SSOT Sync — synchronizacja docs po MB-1/MB-1.1/TI-B2.1 | **CLOSED** (ten bundle) |
+| **TEST-FIX-001** | Naprawa bramki testów (release gate) | **DONE — SUPERSEDED BY MB-1** (`460031f`) |
 
 ---
 
@@ -194,6 +199,7 @@
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
+| **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |
 | **Stabilization Window** | **ACTIVE** |
 | **NG-05 MPI** | **DESIGN COMPLETE** · **IMPLEMENT BLOCKED** |
 | **Aktywny epic Przetargi** | **brak** — na polecenie |
@@ -204,7 +210,7 @@
 
 | Temat | Status |
 |-------|--------|
-| **TEST-INFRA post-MVP** (TI-B1–B3) | OPEN · na polecenie |
+| **TEST-INFRA post-MVP** (TI-B1 · TI-B3) | OPEN · na polecenie · (TI-B2 `803c0bc` · **TI-B2.1 `2efe8b5`** CLOSED) |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |

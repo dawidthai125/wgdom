@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-02 (**prod 2.63.27** · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED** · **Z-04 PASS** · **STABILIZATION WINDOW ACTIVE**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-02 (**prod 2.63.27** runtime bez zmian · **main HEAD `2efe8b5`** · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** test-infra/docs · **TEST-FIX-001 DONE** · **Z-04 PASS** · **STABILIZATION WINDOW ACTIVE**)  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -84,7 +84,8 @@
 | **PAYROLL-CLOUD-RECOVERY Etap 2 (MIN)** | **2.63.17** (`734cbfe`) | **CLOSED** · **B1–B6 CLOSED** | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | **2.63.16** (`31a687a`) | **CLOSED** · `CloudSyncMutationGuard` Lista Płac Przydziały | [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) |
 | **PAYROLL-CLOUD-RECOVERY P0 roster** | **2.63.15** (`1a65341`) | **CLOSED** · UNION `directoryId` · dedup Kadr | [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
-| **TEST-INFRA-001** — Payroll Test Harness | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 preview | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · TI-B1/TI-B2/TI-B3 backlog OPEN · **TI-B4 CLOSED** |
+| **TEST-INFRA-001** — Payroll Test Harness | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 preview | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · TI-B1/TI-B3 backlog OPEN · **TI-B2 CLOSED** (`803c0bc`) · **TI-B2.1 CLOSED** (`2efe8b5`, [`TI-B2-CLOSEOUT.md`](TI-B2-CLOSEOUT.md) §6) · **TI-B4 CLOSED** |
+| **Test-Gate Integrity + Docs Sync** (MB-1 · MB-1.1 · MB-2 · TI-B2.1) | runtime **2.63.27** (bez bumpu) · main `2efe8b5` | **CLOSED** · test-infra/docs only · MB-1 `isBlockingFailure` · MB-1.1 DESIGN FREEZE v2.0/#009 · TI-B2.1 harness Preview First + merge-not-replace · MB-2 docs SSOT sync · **TEST-FIX-001 DONE (SUPERSEDED BY MB-1)** | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) (v2.2) · [`TI-B2-CLOSEOUT.md`](TI-B2-CLOSEOUT.md) §6 |
 | **STABILIZATION WINDOW** | od 2026-07-01 | **ACTIVE** · brak nowych epiców | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
 | **NG-04 Kosztorys Workspace PRO** | **2.63.9–12** (`ab6637f`) | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 | [`NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md) · [`NG-04-DESIGN-FREEZE.md`](NG-04-DESIGN-FREEZE.md) |
 | **P0 Tender Detail Tab SSOT** | **2.63.8** (`f482016`) | **CLOSED** · URL SSOT + `pendingTab` · sync modułu `list` przy detalu | [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · ARCHITECTURE § 12.1.27 · WORKFLOW § 3.2 |
@@ -1000,6 +1001,18 @@ Przy wznowieniu:
 
 ---
 
+**Werdykt closeout (2026-07-02 — MB-2 Docs SSOT Sync · runtime 2.63.27):**
+
+```text
+RUNTIME v2.63.27 (bez zmian) · MAIN HEAD 2efe8b5 · test-infra/docs only
+MB-1 CLOSED (460031f) — isBlockingFailure: wybrany conditional blokuje release
+MB-1.1 CLOSED (8b5c63c) — DESIGN FREEZE v2.0 + #009 gate semantics
+TI-B2.1 CLOSED (2efe8b5) — harness Synthetic + Merge, Preview First (sandbox odrzucona)
+MB-2 CLOSED — docs SSOT sync (DESIGN-FREEZE v2.2 #017/#018/L5 SUPERSEDED · TI-B2-CLOSEOUT §6 · CURRENT-TASK · handoff)
+TEST-FIX-001 DONE — SUPERSEDED BY MB-1
+STABILIZATION WINDOW ACTIVE — zero wpływu na runtime/CI
+```
+
 **Werdykt closeout (2026-07-02 — TI-B4 · v2.63.27):**
 
 ```text
@@ -1015,7 +1028,7 @@ STABILIZATION WINDOW ACTIVE — M-02 CLOSED
 BASELINE v2.63.26 · COMMIT 3d6dd90 · PRODUCTION VERIFIED
 TEST-INFRA-001 CLOSED — manifest SSOT + orchestrator + Payroll Harness PAYROLL-GUARD-S1
 Closeout: docs/TEST-INFRA-001-CLOSEOUT.md · docs/TEST-INFRA-LIFECYCLE.md
-Backlog post-MVP: TI-B1 removeWeekEmployee lib · TI-B2 HARNESS_SANDBOX_JOB_IDS · CI lib suite
+Backlog post-MVP: TI-B1 removeWeekEmployee lib · TI-B3 CI lib suite (TI-B2 CLOSED 803c0bc · TI-B2.1 CLOSED 2efe8b5)
 STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
 Gotowe do wznowienia pracy
 ```
