@@ -4,6 +4,11 @@
  */
 
 import type { WgdomCostCategoryId, WgdomCostRegion, WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import {
+  MARKET_LEGACY_SEED_ORIGIN_ID,
+  normalizeWorkMarketQuotes,
+  type WorkMarketQuotes,
+} from "@/lib/work-catalog/market-sources";
 import { isTradeId, TRADE_IDS, type TradeId } from "@/lib/work-catalog/trades";
 import { defaultWorkCatalogStore } from "@/lib/work-catalog/work-catalog-migrate";
 import {
@@ -67,6 +72,40 @@ function normalizeCostSplit(raw: unknown): WorkCostSplit | undefined {
   };
 }
 
+/**
+ * v3→v4 — normalizacja `marketQuotes` z syntezą legacy_seed (P3.0 migracja).
+ * Priorytet: istniejące `marketQuotes` (normalizowane). Fallback: `marketAvgPln>0`
+ * → `marketQuotes[legacy_seed][polska]` (confidence 0.5, coverage indicative).
+ */
+function deriveMarketQuotes(
+  rawQuotes: unknown,
+  marketAvgPln: number | undefined,
+  updatedAt: string,
+): WorkMarketQuotes | undefined {
+  const normalized = normalizeWorkMarketQuotes(rawQuotes, updatedAt);
+  if (normalized) return normalized;
+
+  if (marketAvgPln != null && Number.isFinite(marketAvgPln) && marketAvgPln > 0) {
+    return normalizeWorkMarketQuotes(
+      {
+        [MARKET_LEGACY_SEED_ORIGIN_ID]: {
+          polska: {
+            price: marketAvgPln,
+            regionCode: "polska",
+            coverage: "indicative",
+            updatedAt,
+            confidence: 0.5,
+            origin: MARKET_LEGACY_SEED_ORIGIN_ID,
+          },
+        },
+      },
+      updatedAt,
+    );
+  }
+
+  return undefined;
+}
+
 function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogWork | null {
   if (!raw || typeof raw !== "object") return null;
   const work = raw as Partial<CatalogWork>;
@@ -77,6 +116,11 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
 
   const companyPricePln = Number(work.companyPricePln);
   const usageCount = Number(work.usageCount);
+  const workUpdatedAt =
+    typeof work.updatedAt === "string" && work.updatedAt.trim() ? work.updatedAt : fallbackUpdatedAt;
+  const marketAvgPln = Number.isFinite(Number(work.marketAvgPln))
+    ? Number(work.marketAvgPln)
+    : undefined;
 
   return {
     id: work.id.trim(),
@@ -84,15 +128,14 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
     namePl: work.namePl.trim(),
     unit: work.unit,
     companyPricePln: Number.isFinite(companyPricePln) ? Math.max(0, companyPricePln) : 0,
-    marketAvgPln: Number.isFinite(Number(work.marketAvgPln)) ? Number(work.marketAvgPln) : undefined,
+    marketAvgPln,
     marketMinPln: Number.isFinite(Number(work.marketMinPln)) ? Number(work.marketMinPln) : undefined,
     marketMaxPln: Number.isFinite(Number(work.marketMaxPln)) ? Number(work.marketMaxPln) : undefined,
     suggestedPricePln: Number.isFinite(Number(work.suggestedPricePln))
       ? Number(work.suggestedPricePln)
       : undefined,
-    updatedAt: typeof work.updatedAt === "string" && work.updatedAt.trim()
-      ? work.updatedAt
-      : fallbackUpdatedAt,
+    marketQuotes: deriveMarketQuotes(work.marketQuotes, marketAvgPln, workUpdatedAt),
+    updatedAt: workUpdatedAt,
     freshnessStatus: isValidFreshness(work.freshnessStatus) ? work.freshnessStatus : "missing",
     descriptionPl:
       typeof work.descriptionPl === "string" && work.descriptionPl.trim()

@@ -80,9 +80,10 @@ function deepEqual(a, b) {
 }
 
 const defaultStore = defaultWorkCatalogStoreForPersist();
-assertEq(normalizeWorkCatalogStore(null).schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "null → schema v3");
+assertEq(normalizeWorkCatalogStore(null).schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "null → schema v4");
 assertEq(normalizeWorkCatalogStore(undefined).activeRegion, "wroclaw", "undefined → default region");
-assertEq(normalizeWorkCatalogStore({ schemaVersion: 99 }).schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "force schema v3");
+assertEq(normalizeWorkCatalogStore({ schemaVersion: 3 }).schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "v3 input → v4");
+assertEq(normalizeWorkCatalogStore({ schemaVersion: 99 }).schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "force schema v4");
 
 const invalidWorkStore = {
   ...migratedStore,

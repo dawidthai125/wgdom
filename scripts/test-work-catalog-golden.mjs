@@ -78,7 +78,7 @@ import {
 
 /** Zamrożone wartości prod — zmiana wymaga świadomej aktualizacji golden. */
 const GOLDEN = Object.freeze({
-  WORK_CATALOG_SCHEMA_VERSION: 3,
+  WORK_CATALOG_SCHEMA_VERSION: 4,
   WORK_BUNDLE_SCHEMA_VERSION: 3,
   TRADE_IDS_COUNT: 16,
   MANIFEST_WORK_COUNT: 116,
@@ -91,7 +91,7 @@ const GOLDEN = Object.freeze({
   FRESHNESS_STALE_DAYS: 90,
   FIRST_MANIFEST_WORK_ID: "malowanie-scian-m2",
   LEGACY_CATEGORY_MAP_SIZE: 15,
-  PERSIST_STORE_FINGERPRINT: "10fe398353bd31fb",
+  PERSIST_STORE_FINGERPRINT: "e16964f6474b7c01",
 });
 
 const MIGRATED_AT = "2026-06-28T12:00:00.000Z";
@@ -236,7 +236,7 @@ function assertCatalogsNear(original, adapted, msgPrefix) {
 
 // ─── GOLDEN: typy (P1.1) ───────────────────────────────────────────────────
 
-assertEq(WORK_CATALOG_SCHEMA_VERSION, GOLDEN.WORK_CATALOG_SCHEMA_VERSION, "GOLDEN types catalog schema v3");
+assertEq(WORK_CATALOG_SCHEMA_VERSION, GOLDEN.WORK_CATALOG_SCHEMA_VERSION, "GOLDEN types catalog schema v4");
 assertEq(WORK_BUNDLE_SCHEMA_VERSION, GOLDEN.WORK_BUNDLE_SCHEMA_VERSION, "GOLDEN types bundle schema v3");
 assertEq(TRADE_IDS.length, GOLDEN.TRADE_IDS_COUNT, "GOLDEN types trade count");
 assert(TRADE_IDS.every((id) => typeof TRADE_LABELS_PL[id] === "string" && TRADE_LABELS_PL[id].length > 0), "GOLDEN types trade labels");
@@ -298,7 +298,7 @@ const { store: workStore, result: migrationResult } = migrateLegacyCostCatalogSt
 
 assert(deepEqual(legacyStore, legacySnapshot), "GOLDEN migration does not mutate legacy input");
 assertEq(migrationResult.worksMigrated, GOLDEN.WORKS_MIGRATED, "GOLDEN migration worksMigrated");
-assertEq(workStore.schemaVersion, GOLDEN.WORK_CATALOG_SCHEMA_VERSION, "GOLDEN migration output schema v3");
+assertEq(workStore.schemaVersion, GOLDEN.WORK_CATALOG_SCHEMA_VERSION, "GOLDEN migration output schema v4");
 assertEq(workStore.catalogs.wroclaw.works.length, GOLDEN.REGION_WORK_COUNT, "GOLDEN migration wroclaw work count");
 assertEq(workStore.catalogs.dolnyslask.works.length, GOLDEN.REGION_WORK_COUNT, "GOLDEN migration dolnyslask work count");
 assertEq(workStore.seedManifestVersion, GOLDEN.MANIFEST_VERSION, "GOLDEN migration seedManifestVersion");

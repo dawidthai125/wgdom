@@ -88,7 +88,7 @@ const first = migrateLegacyCostCatalogStoreToWorkCatalog(legacyDefault, migrateO
 const second = migrateLegacyCostCatalogStoreToWorkCatalog(first.store, migrateOptions);
 const third = migrateLegacyCostCatalogStoreToWorkCatalog(legacyDefault, migrateOptions);
 
-assertEq(first.store.schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "schemaVersion === 3");
+assertEq(first.store.schemaVersion, WORK_CATALOG_SCHEMA_VERSION, "schemaVersion === 4");
 assert(isWorkCatalogStoreV3(first.store), "output is WorkCatalogStore v3");
 assert(isLegacyCostCatalogStore(legacyDefault), "input legacy schema 1");
 assert(deepEqual(legacyDefault, legacySnapshot), "legacy input not mutated");
@@ -160,7 +160,7 @@ const emptyLegacy = {
   },
 };
 const emptyOut = migrateLegacyCostCatalogStoreToWorkCatalog(emptyLegacy, migrateOptions);
-assert(isWorkCatalogStoreV3(emptyOut.store), "empty legacy → valid v3 store");
+assert(isWorkCatalogStoreV3(emptyOut.store), "empty legacy → valid v4 store");
 assertEq(emptyOut.store.catalogs.wroclaw.works.length, 0, "empty legacy → no works");
 
 const badCategoryLegacy = JSON.parse(JSON.stringify(legacyDefault));

@@ -9,8 +9,9 @@ import type {
   WgdomCostUnit,
 } from "@/lib/wgdom-cost-catalog";
 import type { TradeId } from "@/lib/work-catalog/trades";
+import type { WorkMarketQuotes } from "@/lib/work-catalog/market-sources";
 
-export const WORK_CATALOG_SCHEMA_VERSION = 3 as const;
+export const WORK_CATALOG_SCHEMA_VERSION = 4 as const;
 export const WORK_BUNDLE_SCHEMA_VERSION = 3 as const;
 
 export type WorkCatalogSchemaVersion = typeof WORK_CATALOG_SCHEMA_VERSION;
@@ -35,10 +36,16 @@ export interface CatalogWork {
   namePl: string;
   unit: WgdomCostUnit;
   companyPricePln: number;
+  /**
+   * @deprecated v4 — read-only most legacy. Nowy kontrakt: `marketQuotes`.
+   * Zachowane dla rollback/fallback; migracja v3→v4 tworzy `marketQuotes[legacy_seed]`.
+   */
   marketAvgPln?: number;
   marketMinPln?: number;
   marketMaxPln?: number;
   suggestedPricePln?: number;
+  /** P3.1 — wiele źródeł ceny rynkowej (origin→region→snapshot). SSOT rynku od v4. */
+  marketQuotes?: WorkMarketQuotes;
   updatedAt: string;
   freshnessStatus: WorkFreshnessStatus;
   descriptionPl?: string;

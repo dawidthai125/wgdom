@@ -32,7 +32,7 @@ function assertEq(actual, expected, msg) {
   pass += 1;
 }
 
-assertEq(WORK_CATALOG_SCHEMA_VERSION, 3, "WORK_CATALOG_SCHEMA_VERSION");
+assertEq(WORK_CATALOG_SCHEMA_VERSION, 4, "WORK_CATALOG_SCHEMA_VERSION");
 assertEq(WORK_BUNDLE_SCHEMA_VERSION, 3, "WORK_BUNDLE_SCHEMA_VERSION");
 assertEq(TRADE_IDS.length, 16, "TRADE_IDS count");
 assert(TRADE_IDS.every((id) => typeof TRADE_LABELS_PL[id] === "string" && TRADE_LABELS_PL[id].length > 0), "every trade has PL label");
@@ -64,7 +64,7 @@ assert(sampleWork.costSplit.materialRatio + sampleWork.costSplit.laborRatio === 
 
 /** @type {import("../src/lib/work-catalog/types.ts").WorkCatalogStore} */
 const sampleStore = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   activeRegion: "wroclaw",
   catalogs: {
     wroclaw: {
@@ -81,7 +81,7 @@ const sampleStore = {
   updatedAt: "2026-06-28T12:00:00.000Z",
 };
 
-assertEq(sampleStore.schemaVersion, 3, "WorkCatalogStore schemaVersion");
+assertEq(sampleStore.schemaVersion, 4, "WorkCatalogStore schemaVersion");
 assertEq(sampleStore.catalogs.wroclaw.works.length, 1, "region slice works");
 
 /** @type {import("../src/lib/work-catalog/types.ts").WorkBundle} */
