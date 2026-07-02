@@ -20,6 +20,8 @@
         "LIB-PAYROLL-B6-EDGE",
         "LIB-PAYROLL-RB-BANNER",
         "LIB-PAYROLL-ASSIGNMENTS-P1",
+        "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
+        "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
         "SMOKE-PAYROLL-CARRY-20.1B",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -182,6 +184,30 @@
       "mandatory": "conditional",
       "condition": "scope:payroll",
       "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-market-source-adapters-p3.1a.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-market-work-mapping-p3.1b.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
       "status": "active"
     },
     {

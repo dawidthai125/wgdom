@@ -227,3 +227,67 @@ export {
   type MarketSourceSnapshot,
   type WorkMarketQuotes,
 } from "@/lib/work-catalog/market-sources";
+
+// ─── P3.1-S3 — market source adapters (kontrakt adaptera, pure) ─────────────
+
+export {
+  asAdapterRecord,
+  buildSnapshotFromParts,
+  mapMarketRegionLabelToCode,
+  marketAdapterValidationOk,
+  parseAdapterConfidence,
+  parseAdapterPrice,
+  parseAdapterUpdatedAt,
+  resolveWorkIdFromIndex,
+  type AdaptMarketRecordResult,
+  type MarketSourceAdapter,
+  type MarketSourceAdapterMapWorkResult,
+  type MarketSourceAdapterNormalizeOptions,
+  type MarketSourceAdapterValidateResult,
+  type MarketWorkMappingIndex,
+} from "@/lib/work-catalog/market-source-adapter";
+
+// ─── P3.1-S3 — rejestr adapterów źródeł rynku ──────────────────────────────
+
+export {
+  MARKET_SOURCE_ADAPTERS,
+  adaptMarketSourceRecord,
+  getMarketSourceAdapter,
+  interbudMarketSourceAdapter,
+  isKnownMarketSourceAdapter,
+  kbPlMarketSourceAdapter,
+  sekocenbudMarketSourceAdapter,
+  wgdomMarketSourceAdapter,
+  type InterbudMarketRawRecord,
+  type KbPlMarketRawRecord,
+  type SekocenbudMarketRawRecord,
+  type WgdomMarketRawRecord,
+} from "@/lib/work-catalog/market-source-adapters/index";
+
+// ─── P3.1-S3 — słownik mapowania źródeł rynku → roboty WGDOM (pure) ─────────
+
+export {
+  buildMarketWorkMappingIndex,
+  buildMarketWorkMappingIndexForOrigin,
+  createEmptyMarketWorkMappingStore,
+  findMapping,
+  listMappings,
+  normalizeMarketWorkMapping,
+  registerMapping,
+  resolveMappingBatch,
+  validateMappings,
+  type ListMappingsFilter,
+  type MarketWorkMapping,
+  type MarketWorkMappingBatchItem,
+  type MarketWorkMappingFindResult,
+  type MarketWorkMappingMatched,
+  type MarketWorkMappingMatchedVia,
+  type MarketWorkMappingRejected,
+  type MarketWorkMappingReport,
+  type MarketWorkMappingStore,
+  type MarketWorkMappingUnmatched,
+  type MarketWorkMappingValidateResult,
+  type MarketWorkMappingValidationIssue,
+  type RegisterMappingOptions,
+  type RegisterMappingResult,
+} from "@/lib/work-catalog/market-work-mapping";
