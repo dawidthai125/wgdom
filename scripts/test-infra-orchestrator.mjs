@@ -260,7 +260,10 @@ function runTestEntry(test, opts) {
 
 function isBlockingFailure(test, status) {
   if (status === 0) return false;
-  return test.mandatory === "always";
+  // SSOT release-gate semantics (DESIGN FREEZE #009):
+  // always → zawsze blokujący; conditional → blokujący gdy wybrany przez scope
+  // (test dotarł do wykonania, więc jest wybrany); optional → nigdy nie blokuje.
+  return test.mandatory !== "optional";
 }
 
 function printReport(results, suiteLabel) {
@@ -287,7 +290,7 @@ function printReport(results, suiteLabel) {
 
   console.log("\n----------------------------------------");
   console.log(`TOTAL: ${pass} PASS / ${fail} FAIL / ${results.length}`);
-  console.log(`BLOCKING (mandatory=always): ${blockingFail}`);
+  console.log(`BLOCKING (always + wybrany conditional): ${blockingFail}`);
   console.log("========================================\n");
   return blockingFail === 0;
 }
