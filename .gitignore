@@ -69,3 +69,13 @@ scripts/find-map-sources.mjs
 scripts/locate-generated-symbols.mjs
 scripts/resolve-stack-sourcemap.mjs
 scripts/prove-phone-undefined-runtime.mjs
+
+# REPO-HYGIENE-1 — artefakty audytów / tmp / smoke outputs (nie w repo)
+# Uwaga: NIE obejmuje scripts/audit-*, scripts/test-*, scripts/smoke-prod-bundle-*
+audit/
+audit-pilot-docs-ssot*.txt
+test-out*.txt
+.cursor-audit-status.txt
+scripts/_tmp-*
+scripts/experiment-*
+scripts/probe-*
