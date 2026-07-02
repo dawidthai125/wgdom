@@ -10,7 +10,20 @@ export const E2E_PAYROLL_JOB_A_ID = "e2e-payroll-job-a";
 export const E2E_PAYROLL_JOB_B_ID = "e2e-payroll-job-b";
 export const E2E_PAYROLL_ADMIN_PASS = "e2e-payroll-admin-pass";
 
-export const HARNESS_SANDBOX_JOB_IDS: string[] = [];
+/**
+ * Prod sandbox job IDs (#018) — dedykowane, bezpieczne joby prod (whitelist).
+ * SSOT dla preconditionu NO_SANDBOX_JOBS (seed-ssot.ts). Fail-loud gdy pusta.
+ *
+ * NIE commitować realnych ID prod do repo. Uzupełnienie operacyjne przez zmienną
+ * środowiskową HARNESS_SANDBOX_JOB_IDS (lista rozdzielona przecinkami) w czasie
+ * uruchomienia. Pusty default utrzymuje blokadę prod harness do konfiguracji ops.
+ */
+const rawSandboxJobIds =
+  typeof process !== "undefined" ? (process.env.HARNESS_SANDBOX_JOB_IDS ?? "") : "";
+export const HARNESS_SANDBOX_JOB_IDS: string[] = rawSandboxJobIds
+  .split(",")
+  .map((id) => id.trim())
+  .filter((id) => id.length > 0);
 
 export type PayrollHarnessTarget = "localhost" | "preview" | "prod";
 export type PayrollAssignmentSeedMode = "empty" | "withEntryOnJobA";
