@@ -23,7 +23,7 @@ function onFocusIn(e: FocusEvent) {
   }
   if (t.type === "checkbox" || t.type === "radio" || t.type === "range") return;
   window.setTimeout(() => {
-    t.scrollIntoView({ block: "center", behavior: "smooth" });
+    t.scrollIntoView({ block: "center", behavior: "auto" });
   }, 320);
 }
 

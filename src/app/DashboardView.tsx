@@ -405,7 +405,10 @@ export function DashboardView({
   };
 
   return (
-    <div className="flex-1 min-w-0 overflow-y-auto overscroll-contain">
+    <div
+      data-mobile-scroll-root="dashboard"
+      className="mobile-view-scroll flex-1 min-w-0 overflow-y-auto overscroll-contain"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
 
         {/* Nagłówek */}
