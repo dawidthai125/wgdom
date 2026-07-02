@@ -1,4 +1,8 @@
-name: E2E happy path
+# LEGACY (TI-B3) — zastąpiony przez .github/workflows/test-infra-gates.yml (Gate C via orchestrator).
+# NIE usuwać. Retire dopiero po pozytywnej weryfikacji nowego workflow (test-infra-gates.yml).
+# Ten workflow pomija semantykę bramek release (MB-1/#009) i nie obejmuje E2E-PAYROLL-GUARD-S1.
+
+name: E2E happy path [LEGACY — superseded by test-infra-gates.yml]
 
 on:
   workflow_dispatch:

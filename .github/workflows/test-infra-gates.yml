@@ -1,0 +1,106 @@
+# TI-B3 — CI Gate Integration (TEST-INFRA-001)
+# SSOT: test-infra/test-manifest.json · orchestrator: scripts/test-infra-orchestrator.mjs
+# Wyłącznie CI. Zero runtime / zero manifest logic / zero orchestrator logic.
+# Pipeline: manifest-validate -> gate-b (matrix payroll/tenders) -> gate-c
+# Bramki uruchamiane WYŁĄCZNIE przez orchestrator (npm run test:infra). Brak surowych testów.
+
+name: TEST-INFRA Gates (TI-B3)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "e2e/**"
+      - "test-infra/**"
+      - "playwright.config.ts"
+      - "vite.config.ts"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/test-infra-gates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "e2e/**"
+      - "test-infra/**"
+      - "playwright.config.ts"
+      - "vite.config.ts"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/test-infra-gates.yml"
+
+concurrency:
+  group: test-infra-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifest-validate:
+    name: Manifest validate (fail-loud)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Validate manifest (SSOT)
+        run: npm run test:infra:validate
+
+  gate-b:
+    name: Gate B (lib + smoke)
+    runs-on: ubuntu-latest
+    needs: manifest-validate
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [payroll, tenders]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Gate B — scope ${{ matrix.scope }} (orchestrator)
+        run: npm run test:infra -- --gate B --scope ${{ matrix.scope }}
+
+  gate-c:
+    name: Gate C (E2E preview)
+    runs-on: ubuntu-latest
+    needs: gate-b
+    timeout-minutes: 30
+    env:
+      PW_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+      - name: Gate C — scope all (orchestrator manages preview)
+        run: npm run test:infra -- --gate C --scope all
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+      - name: Upload E2E report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report/
+          retention-days: 7
