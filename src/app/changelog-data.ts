@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-02",
+    version: "2.63.27",
+    label: "TI-B4 — smoke agregat Przetargi NG-01–NG-04",
+    items: [
+      {
+        type: "new",
+        text: "Smoke agregat Przetargi — test-tenders-stabilization-smoke.mjs (12 child lib NG-01–04, fail-fast)",
+      },
+      {
+        type: "new",
+        text: "Manifest test-infra 1.1.0 — SMOKE-TENDERS-NG01-04 · suite smoke-stabilization-ng01-04 · scope:tenders",
+      },
+      {
+        type: "improve",
+        text: "Release gate B Przetargów — npm run test:infra -- --gate B --scope tenders (Z-04)",
+      },
+    ],
+  },
+  {
     date: "2026-07-01",
     version: "2.63.26",
     label: "TEST-INFRA-001 — manifest + orchestrator + Payroll Harness S1",

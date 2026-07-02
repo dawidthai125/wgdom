@@ -2,6 +2,7 @@
 
 > **Status:** **SSOT** · plan operacyjny (bez nowych epiców)  
 > **Data rozpoczęcia:** 2026-07-01 (prod **2.63.12** · NG-04 EPIC CLOSED)  
+> **Aktualny prod (monitoring):** **2.63.26** (`3d6dd90`) · 2026-07-02  
 > **Raport tygodniowy:** [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)  
 > **Bez zmian:** workflow release ([`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)) · kod aplikacji — tylko na polecenie
 
@@ -50,12 +51,12 @@ Szczegóły Przetargi: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVI
 
 | ID | Obszar | Priorytet |
 |----|--------|-----------|
-| M-01 | Docs SSOT (`ARCHITECTURE.md`, `PROJECT-HANDOFF-CURRENT.md`) | P1 |
-| M-02 | Smoke agregat Przetargi NG-01–04 | P1 |
+| M-01 | Docs SSOT (`ARCHITECTURE.md`, `PROJECT-HANDOFF-CURRENT.md`, `AGENTS.md`, `AGENT-ONBOARDING.md`) | P1 · **częściowo CLOSED** 2026-07-02 (4 pliki → 2.63.26) |
+| M-02 | Smoke agregat Przetargi NG-01–04 | P1 · **CLOSED** · TI-B4 · `test-tenders-stabilization-smoke.mjs` |
 | M-03 | Mobile re-certification post-NG-03/04 | P1 |
 | M-04 | Monitoring egress Supabase | P1 |
-| M-05 | Payroll Etap 1 — regresja (Etap 2+ **poza** oknem) | P1 |
-| M-08 | TEST-INFRA-001 harness — implementacja **tylko na polecenie** (design APPROVED) | P2 |
+| M-05 | Payroll Etap 1 — regresja (Etap 2 **CLOSED** 2.63.15–24 w oknie) | P1 |
+| M-08 | TEST-INFRA-001 harness MVP | **CLOSED** · prod **2.63.26** (`3d6dd90`) · TI-B1–B3 backlog · **TI-B4 CLOSED** (manifest 1.1.0) |
 | M-06 | Deprecation map `TenderDetailPanelHosted` | P2 |
 | M-07 | WM POST-ZI housekeeping (docs/code archive) | P2 |
 
@@ -66,7 +67,7 @@ Szczegóły Przetargi: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVI
 | ID | Wydanie | Typ |
 |----|---------|-----|
 | R-01 | Docs hygiene pass | docs |
-| R-02 | `test-tenders-stabilization-smoke.mjs` (orchestrator) | test |
+| R-02 | `test-tenders-stabilization-smoke.mjs` (orchestrator) | test · **DONE** TI-B4 |
 | R-03 | NG-03 freeze banner | docs |
 | R-04 | Ten szablon + plan stabilizacji | docs ✅ |
 | R-05 | Hotfix copy / mobile touch | kod — tylko po incydencie |

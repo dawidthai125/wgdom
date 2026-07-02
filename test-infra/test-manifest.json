@@ -1,7 +1,7 @@
 {
-  "manifestVersion": "1.0.0",
+  "manifestVersion": "1.1.0",
   "epicId": "TEST-INFRA-001",
-  "principlesVersion": "001-026",
+  "principlesVersion": "001-032",
   "suites": {
     "gate-a-build": {
       "description": "Tier A — npm run build (implicit, brak wpisów test)",
@@ -21,6 +21,7 @@
         "LIB-PAYROLL-RB-BANNER",
         "LIB-PAYROLL-ASSIGNMENTS-P1",
         "SMOKE-PAYROLL-CARRY-20.1B",
+        "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
         "AUDIT-IMPORT-CYCLES"
       ]
@@ -47,6 +48,10 @@
     "audit-forensic": {
       "description": "Forensic only — nigdy auto w release gate",
       "testIds": ["AUDIT-MOBILE-STATIC", "AUDIT-IMPORT-CYCLES"]
+    },
+    "smoke-stabilization-ng01-04": {
+      "description": "TI-B4 — smoke agregat NG-01–NG-04 (R-02 · Z-04)",
+      "testIds": ["SMOKE-TENDERS-NG01-04"]
     }
   },
   "releaseGates": {
@@ -189,6 +194,18 @@
       "mandatory": "optional",
       "condition": "scope:payroll",
       "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-TENDERS-NG01-04",
+      "class": "smoke",
+      "path": "scripts/test-tenders-stabilization-smoke.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
       "status": "active"
     },
     {

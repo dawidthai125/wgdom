@@ -1,6 +1,61 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-01 · **prod 2.63.21** (`b3d5664`) · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-02 · **prod 2.63.27** (TI-B4 release) · **TEST-INFRA-001 CLOSED** · **TI-B4 CLOSED** · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+
+---
+
+## TI-B4 — Smoke agregat Przetargi · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Prod** | **2.63.27** |
+| **Skrót** | Thin wrapper 12 child · manifest 1.1.0 · `scope:tenders` · Gate B |
+| **SSOT** | [`docs/TI-B4-CLOSEOUT.md`](docs/TI-B4-CLOSEOUT.md) · [`docs/TEST-INFRA-LIFECYCLE.md`](docs/TEST-INFRA-LIFECYCLE.md) |
+
+**Z-04:** **PASS** (smoke agregat Przetargi)
+
+---
+
+## TEST-INFRA-001 — Infrastruktura testowa · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Prod** | **2.63.26** (`3d6dd90`) |
+| **Skrót** | Manifest SSOT + orchestrator `npm run test:infra` + Payroll Harness PAYROLL-GUARD-S1 |
+| **SSOT** | [`docs/TEST-INFRA-001-CLOSEOUT.md`](docs/TEST-INFRA-001-CLOSEOUT.md) · [`docs/TEST-INFRA-LIFECYCLE.md`](docs/TEST-INFRA-LIFECYCLE.md) · [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) |
+
+### Backlog post-MVP (OPEN · na polecenie)
+
+| ID | Element | Status |
+|----|---------|--------|
+| **TI-B1** | Ekstrakcja `removeWeekEmployee()` do warstwy lib | OPEN |
+| **TI-B2** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run | OPEN · **P0 gate** |
+| **TI-B3** | CI GitHub Actions — gate B/C z orchestratora | OPEN |
+| **TI-B4** | Smoke agregat NG-01–04 | **CLOSED** · prod **2.63.27** |
+
+---
+
+## NG-05 — Market Pricing Intelligence (MPI) · **PROJECT DESIGN COMPLETE**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **PROJECT DESIGN COMPLETE** · **IMPLEMENT BLOCKED** |
+| **Closeout** | [`docs/NG-05-PROJECT-CLOSEOUT.md`](docs/NG-05-PROJECT-CLOSEOUT.md) · **2026-07-01** |
+| **SSOT produktu** | DESIGN FREEZE v2 (FROZEN) |
+| **Product Readiness** | **READY** |
+| **Implementation Readiness** | **NOT READY** |
+| **Następna faza** | **MPI-0** Data Foundation — na polecenie |
+
+**Dokumenty (sesja 2026-07-01):** BUSINESS REQUIREMENTS · DESIGN FREEZE v2 · ARCHITECTURE SPEC · DECISION MODEL · AD-01 · AD-02 · AD-03 · IMPLEMENTATION ROADMAP · MPI-0 IMPLEMENTATION PREPARATION · FINAL READINESS REPORT · **PROJECT CLOSEOUT**
+
+**Waiting (przed IMPLEMENT MPI-0 / pierwszym commitem):**
+
+- **AD-01** — decyzje prawne (R1 KB.pl · R2 redistribution SaaS · R3 Plan B · R4 format Sekocenbud Q2 2026)
+- **STABILIZATION** — decyzja AD-10 (Z-01–Z-07 CLOSED **lub** explicit override właściciela)
+- **Owner IMPLEMENT command** — jawne polecenie startu MPI-0
+- **PRE-COMMIT GO** — GC/GP z MPI-0 IMPLEMENTATION PREPARATION §1
+
+**Zakaz:** implementacja · kod · rozszerzenie DESIGN FREEZE — do odblokowania bramek powyżej.
 
 ---
 
@@ -20,7 +75,7 @@
 
 ---
 
-## PAYROLL-CLOUD-RECOVERY — Etap 2 (MIN) · **PARTIAL CLOSED**
+## PAYROLL-CLOUD-RECOVERY — Etap 2 · **CLOSED**
 
 | Bundle | Temat | Status | Prod |
 |--------|-------|--------|------|
@@ -30,15 +85,25 @@
 | **B3.1** | `pushPayrollWeekAfterRollover` → guard roster | **CLOSED** | **2.63.19** (`91d02de`) |
 | **B3.2** | Usunięcie `payrollRosterPushRef` po pełnej migracji | **CLOSED** | **2.63.20** (`6afd9fd`) |
 | **B4** | RCA-3: `finalizePayrollBundleMerge` SSOT bootstrap/runtime | **CLOSED** | **2.63.21** (`b3d5664`) |
-| **B5** | RCA-2: closed week + archiwum UI | **OPEN** | — |
-| **B6** | Edge Parity — merge `directoryId` vs UUID | **OPEN** | — |
+| **B5** | RCA-2: closed week + archiwum UI | **CLOSED** | **2.63.22** (`187afb8`) |
+| **B6** | Edge Parity — merge `directoryId` vs UUID | **CLOSED** | **2.63.23** (`d670892`) |
+| **RB** | Restore Banner false positive (`payrollMetrics`) | **CLOSED** | **2.63.24** (`727e6c4`) |
 
 **SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)  
-**SSOT Guard Phase closeout:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)
-
+**SSOT Guard Phase closeout:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
 **SSOT B4 closeout:** [`docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md)
 
-**Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** fail-loud roster + JobsView guard · **2.63.18–20** Guard Phase B3/B3.1/B3.2 **CLOSED** · **2.63.21** B4 bootstrap/runtime merge SSOT **CLOSED**
+**Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** B1+B2 · **2.63.18–20** Guard Phase B3/B3.1/B3.2 · **2.63.21** B4 · **2.63.22** B5 · **2.63.23** B6 · **2.63.24** RB — **PRODUCTION VERIFIED**
+
+---
+
+## Audit Hub — AH-REG-1 · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Prod** | **2.63.25** (`d9ba13f`) |
+| **Skrót** | `notifySecurityAuditLogChanged` + `refreshAuditHubAuxFromCloud` |
+| **SSOT** | [`docs/AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md`](docs/AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md) · [`docs/AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md`](docs/AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md) |
 
 ---
 
@@ -101,36 +166,23 @@
 
 **Rytuał:** raz w tygodniu uzupełnij szablon metryk · werdykt `STABLE` / `WATCH` / `ACTION` · przy P0 → `INCIDENTS-2026-06.md` · zapis opcjonalnie w [`docs/stabilization-weekly/`](docs/stabilization-weekly/).
 
+**SSOT sync (AD-10):** [`docs/AD-10-SSOT-SYNCHRONIZATION-REPORT.md`](docs/AD-10-SSOT-SYNCHRONIZATION-REPORT.md) · 2026-07-01
+
 ---
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.21** (`b3d5664`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.26** (`3d6dd90`) · **PRODUCTION VERIFIED** |
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
-| **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B4 CLOSED** · backlog B5 · B6 **OPEN** |
+| **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
+| **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
+| **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Stabilization Window** | **ACTIVE** |
+| **NG-05 MPI** | **DESIGN COMPLETE** · **IMPLEMENT BLOCKED** |
 | **Aktywny epic Przetargi** | **brak** — na polecenie |
-
----
-
-## TEST-INFRA-001 — Universal Payroll Test Harness
-
-| Pole | Wartość |
-|------|---------|
-| **Design freeze** | **FINAL — APPROVED** (2026-07-01) |
-| **Status** | **READY FOR IMPLEMENTATION** |
-| **Implementacja** | **NOT STARTED** — okno stabilizacji; tylko na polecenie |
-| **SSOT** | [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
-
-### Backlog techniczny TEST-INFRA (przed prod smoke)
-
-| ID | Element | Status |
-|----|---------|--------|
-| **TI-B1** | Ekstrakcja `removeWeekEmployee()` do warstwy lib | OPEN |
-| **TI-B2** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run | OPEN · **P0 gate** |
 
 ---
 
@@ -138,9 +190,7 @@
 
 | Temat | Status |
 |-------|--------|
-| **B5** — closed week UI (RCA-2) | **OPEN** |
-| **B6** — Edge Parity `kw-week-employees` merge | **OPEN** |
-| **TEST-INFRA-001** implementacja harnessu | READY FOR IMPLEMENTATION · NOT STARTED |
+| **TEST-INFRA post-MVP** (TI-B1–B4) | OPEN · na polecenie |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |

@@ -102,6 +102,7 @@ function resolveTestsForScope(test, scope, includeAudit) {
   if (cond === `scope:${scope}`) return true;
   if (scope === "payroll" && cond.includes("payroll")) return true;
   if (scope === "platform" && cond.includes("platform")) return true;
+  if (scope === "tenders" && cond.includes("tenders")) return true;
   return false;
 }
 

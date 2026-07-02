@@ -1,10 +1,18 @@
 # W&G DOM — changelog (skrót dla programistów)
 
-## 2.63.26 — TEST-INFRA-001 MVP
+## 2.63.27 — TI-B4 Smoke agregat Przetargi NG-01–NG-04
+
+- **new:** `scripts/test-tenders-stabilization-smoke.mjs` — thin wrapper (12 child lib scripts, fail-fast)
+- **new:** Manifest `1.1.0` — `SMOKE-TENDERS-NG01-04` · suite `smoke-stabilization-ng01-04`
+- **improve:** Orchestrator `scope:tenders` — gate B release Przetargów
+- **docs:** `TEST-INFRA-LIFECYCLE.md` · `STABILIZATION-WINDOW-PLAN.md` M-02 CLOSED · Z-04 evidence
+
+## 2.63.26 — TEST-INFRA-001 MVP · **CLOSED**
 
 - **new:** Manifest SSOT `test-infra/test-manifest.json` + orchestrator `npm run test:infra`
 - **new:** Payroll Harness E2E preview — PAYROLL-GUARD-S1 (`npm run test:e2e:payroll-guard`)
 - **improve:** Release gates A/B/C → suite z manifestu; klasy lib/smoke/e2e/audit
+- **closeout:** [`docs/TEST-INFRA-001-CLOSEOUT.md`](docs/TEST-INFRA-001-CLOSEOUT.md) · prod **2.63.26** (`3d6dd90`)
 
 ## 2.63.25 — Audit Hub Freshness (AH-REG-1)
 

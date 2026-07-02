@@ -11,7 +11,7 @@
 | Faza | Kto | Akcja |
 |------|-----|-------|
 | **F1 Edit** | Dev | Zmiana w `src/` |
-| **F2 Scope** | Dev | Określenie scope: `payroll` · `platform` · `all` |
+| **F2 Scope** | Dev | Określenie scope: `payroll` · `tenders` · `platform` · `all` |
 | **F3 Local gate** | Dev | `npm run build` + orchestrator (tier B/C) |
 | **F4 Commit** | Dev | Aktualizacja manifestu jeśli zmieniono release gate |
 | **F5 CI** | GitHub Actions | build + E2E preview (path filter) |
@@ -26,9 +26,11 @@
 ```bash
 # Pojedynczy suite z manifestu
 npm run test:infra -- --suite lib-payroll-core
+npm run test:infra -- --suite smoke-stabilization-ng01-04
 
 # Release gate tier
 npm run test:infra -- --gate B --scope payroll
+npm run test:infra -- --gate B --scope tenders
 npm run test:infra -- --gate C --scope all
 
 # Kontynuacja po pierwszym FAIL
@@ -47,6 +49,19 @@ npm run test:infra -- --suite gate-c-e2e-preview --allow-prod
 | **A** | TAK | — |
 | **B** | TAK | `gate-b-relevant` (filtrowane `--scope`) |
 | **C** | TAK | `gate-b-relevant` + `gate-c-e2e-preview` |
+
+---
+
+## Scope `tenders` (TI-B4)
+
+Release dotykający Przetargów (`src/app/tenders/**`, `src/lib/tender*`, `src/lib/tenders*`):
+
+```bash
+npm run build
+npm run test:infra -- --gate B --scope tenders
+```
+
+Suite bezpośredni: `smoke-stabilization-ng01-04` → `SMOKE-TENDERS-NG01-04` (12 child lib scripts, fail-fast).
 
 ---
 
@@ -72,8 +87,9 @@ Orchestrator uruchamia w kolejności: **lib → smoke → e2e → audit** (audit
 |----------------------|------------|
 | `gate-c-e2e-preview` (happy + version + payroll S1) | `SMOKE-PAYROLL-CARRY-20.1B` |
 | `lib-payroll-core` przy scope payroll tier B/C | `AUDIT-IMPORT-CYCLES` |
-| `AUDIT-MOBILE-STATIC` przy `--include-audit` + scope platform | prod mobile E2E |
+| `SMOKE-TENDERS-NG01-04` przy scope tenders tier B | prod mobile E2E |
+| `AUDIT-MOBILE-STATIC` przy `--include-audit` + scope platform | |
 
 ---
 
-*TEST-INFRA-001 lifecycle · MVP · 2026-07-01*
+*TEST-INFRA-001 lifecycle · MVP + TI-B4 · 2026-07-02*

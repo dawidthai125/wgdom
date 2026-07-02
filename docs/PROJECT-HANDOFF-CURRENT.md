@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-01 (**prod 2.63.25** · **AH-REG-1 CLOSED** · **PAYROLL Etap 2 B4–B6 CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-02 (**prod 2.63.27** · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED** · **Z-04 PASS** · **STABILIZATION WINDOW ACTIVE**)  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -48,7 +48,10 @@
 12s. docs/STABILIZATION-WINDOW-PLAN.md      ← plan okresu stabilizacji
 12w. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy
 12n. docs/NG-04-EPIC-CLOSE-REPORT.md         ← NG-04 epic close
-12t. docs/TEST-INFRA-001-DESIGN-FREEZE.md     ← ★ TEST-INFRA-001 Harness (DESIGN FREEZE APPROVED · READY FOR IMPLEMENTATION)
+12t. docs/TEST-INFRA-001-CLOSEOUT.md           ← ★★ TEST-INFRA-001 Harness MVP (CLOSED · 2.63.26)
+12t4. docs/TI-B4-CLOSEOUT.md                   ← ★★ TI-B4 Smoke agregat NG-01–04 (CLOSED · 2.63.27)
+12t2. docs/TEST-INFRA-001-DESIGN-FREEZE.md     ← DESIGN FREEZE v2.0 (historyczny SSOT)
+12t3. docs/TEST-INFRA-LIFECYCLE.md              ← lifecycle orchestratora
 12p. docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md  ← ★ PAYROLL Etap 2 B1+B2 (CLOSED · 2.63.17)
 12p2. docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md  ← ★ PAYROLL Etap 2 B3 Guard Phase 2 (CLOSED · 2.63.18)
 12p3. AUDIT + DESIGN FREEZE B3.1 (2026-07-01)  ← ★ PAYROLL Etap 2 B3.1 Guard Rollover (CLOSED · 2.63.19)
@@ -67,6 +70,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **TI-B4** — Smoke agregat Przetargi NG-01–04 | **2.63.27** | **CLOSED** · thin wrapper · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
+| **TEST-INFRA-001** — Payroll Test Harness MVP | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **Audit Hub freshness AH-REG-1** | **2.63.25** (`d9ba13f`) | **CLOSED** · notify + `refreshAuditHubAuxFromCloud` | [`AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md`](AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md) · [`AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md`](AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md) |
 | **Payroll Restore Banner RB** | **2.63.24** (`727e6c4`) | **CLOSED** · `shouldShowPayrollRestoreBanner` / `payrollMetrics` | [`PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md`](PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B6** | **2.63.23** (`d670892`) | **CLOSED** · Edge parity `payroll-week-employee-merge.ts` | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) |
@@ -79,7 +84,7 @@
 | **PAYROLL-CLOUD-RECOVERY Etap 2 (MIN)** | **2.63.17** (`734cbfe`) | **CLOSED** · **B1–B6 CLOSED** | [`PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) |
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | **2.63.16** (`31a687a`) | **CLOSED** · `CloudSyncMutationGuard` Lista Płac Przydziały | [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) |
 | **PAYROLL-CLOUD-RECOVERY P0 roster** | **2.63.15** (`1a65341`) | **CLOSED** · UNION `directoryId` · dedup Kadr | [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
-| **TEST-INFRA-001** — Payroll Test Harness | 2026-07-01 | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** · kod NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 backlog |
+| **TEST-INFRA-001** — Payroll Test Harness | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 preview | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · TI-B1/TI-B2/TI-B3 backlog OPEN · **TI-B4 CLOSED** |
 | **STABILIZATION WINDOW** | od 2026-07-01 | **ACTIVE** · brak nowych epiców | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) |
 | **NG-04 Kosztorys Workspace PRO** | **2.63.9–12** (`ab6637f`) | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 | [`NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md) · [`NG-04-DESIGN-FREEZE.md`](NG-04-DESIGN-FREEZE.md) |
 | **P0 Tender Detail Tab SSOT** | **2.63.8** (`f482016`) | **CLOSED** · URL SSOT + `pendingTab` · sync modułu `list` przy detalu | [`SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · ARCHITECTURE § 12.1.27 · WORKFLOW § 3.2 |
@@ -193,7 +198,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.63.25       ← Audit Hub freshness AH-REG-1 · commit d9ba13f · PRODUCTION VERIFIED
+Version (prod):             2.63.27       ← TI-B4 smoke agregat · commit (see release) · PRODUCTION VERIFIED
+Version (prod):             2.63.26       ← TEST-INFRA-001 MVP · commit 3d6dd90 · PRODUCTION VERIFIED
+Version (prod):             2.63.25       ← Audit Hub freshness AH-REG-1 · commit d9ba13f
 Version (prod):             2.63.24       ← Payroll Restore Banner RB · commit 727e6c4
 Version (prod):             2.63.23       ← PAYROLL Etap 2 B6 Edge parity · commit d670892
 Version (prod):             2.63.22       ← PAYROLL Etap 2 B5 closed week UI · commit 187afb8
@@ -345,7 +352,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.79", "commit": "4397eac" }
+# oczekiwane: { "version": "2.63.26", "commit": "3d6dd90" }
 ```
 
 ---
@@ -993,13 +1000,25 @@ Przy wznowieniu:
 
 ---
 
+**Werdykt closeout (2026-07-02 — TEST-INFRA-001 · v2.63.26):**
+
+```text
+BASELINE v2.63.26 · COMMIT 3d6dd90 · PRODUCTION VERIFIED
+TEST-INFRA-001 CLOSED — manifest SSOT + orchestrator + Payroll Harness PAYROLL-GUARD-S1
+Closeout: docs/TEST-INFRA-001-CLOSEOUT.md · docs/TEST-INFRA-LIFECYCLE.md
+Backlog post-MVP: TI-B1 removeWeekEmployee lib · TI-B2 HARNESS_SANDBOX_JOB_IDS · CI lib suite
+STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
+Gotowe do wznowienia pracy
+```
+
 **Werdykt closeout (2026-07-01 — Audit Hub freshness AH-REG-1 · v2.63.25):**
 
 ```text
 BASELINE v2.63.25 · COMMIT d9ba13f · PRODUCTION VERIFIED
 AH-REG-1 CLOSED — notifySecurityAuditLogChanged + refreshAuditHubAuxFromCloud (security + wm-druk AUX)
 Closeout: docs/AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md · docs/AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md
-Łańcuch payroll: 2.63.15–21 B4 · 2.63.22 B5 · 2.63.23 B6 · 2.63.24 RB
+Łańcuch payroll: 2.63.15–21 B4 · 2.63.22 B5 · 2.63.23 B6 · 2.63.24 RB · 2.63.25 AH-REG-1
+PAYROLL Etap 2: B1–B6 + RB CLOSED
 STABILIZATION WINDOW ACTIVE — brak nowych epiców bez polecenia
 Gotowe do wznowienia pracy
 ```
