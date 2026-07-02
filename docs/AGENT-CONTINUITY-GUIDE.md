@@ -143,14 +143,35 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | Priorytet | Temat | Status | SSOT |
 |-----------|-------|--------|------|
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
-| **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
+| **Rytuał** | Raport tygodniowy metryk | co tydzień · **W01 GREEN** | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
 | **CLOSED** | **PAYROLL Etap 2** B1–B6 · RB · AH-REG-1 · **TEST-INFRA-001** | **2.63.15–26** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
-| Na polecenie | **TEST-INFRA post-MVP** TI-B1–B4 | OPEN | `TEST-INFRA-001-CLOSEOUT.md` · `CURRENT-TASK.md` |
+| Na polecenie | **TEST-INFRA post-MVP** TI-B1–B4 | OPEN (TI-B4 CLOSED) | `TEST-INFRA-001-CLOSEOUT.md` · `CURRENT-TASK.md` |
 | Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
-| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | M-01 **CLOSED** · M-02–M-05 OPEN | `STABILIZATION-WINDOW-PLAN.md` §3 |
+| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert · payroll regresja | M-01/M-02/M-03/M-05 **CLOSED** · M-04 OPEN | `STABILIZATION-WINDOW-PLAN.md` §3 |
 | Backlog | P3 Export notatki · P2-H.7 · Work Catalog P2.7+ | OPEN | `PROJECT-HANDOFF-CURRENT.md` |
 
 **Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → `version` + `commit` (patrz `WORKFLOW-RELEASE-DEPLOY.md`).
+
+### AD-10 Stabilization — postęp sesji (2026-07-02)
+
+> **Tracker + artefakty audytu poza repo:** `../WGDOM1-branch-audit/` (zasada AD-10 — **nie** twórz artefaktów audytu w repo). Plik statusu: `AD-10-LOCAL-STATUS.md`. Nowy agent: **najpierw przeczytaj ten katalog**, nie odtwarzaj audytów od zera.
+
+| Zadanie | Status | Dowód / lokalizacja |
+|---------|--------|---------------------|
+| **MOBILE-P0-S1** | **CLOSED** (feature branch) | `stabilization/mobile-p0-s1` · `2350e86` · goToView `reconcileModalScrollLock` · smoke 14/14 |
+| **M-03 Mobile Re-Certification** | **CLOSED** (feature branch) | `stabilization/mobile-p0-s2` · `e4eb733` · NG-03 C1–C7 SSOT scroll (`mobile-view-scroll` + `data-mobile-scroll-root` + `touch-action:pan-y`) · smoke 20/20 |
+| **M-03.1 Certification Coverage** | **CLOSED** (feature branch) | `stabilization/mobile-field-cert-m03-1` · `0988eb2` · `docs/testing/MOBILE-FIELD-CERTIFICATION.md` §4.7 (NG-03) + §4.8 (BOQ) |
+| **Z-05 FIELD VALIDATION** | **PENDING (Device Required)** | trylogia kod/docs CLOSED; wykonanie terenowe iPhone Safari — plan `FIELD-VALIDATION-EXECUTION-PLAN.md` (poza repo) |
+| **M-05 Payroll Etap 1 regresja** | **CLOSED (AUDIT PASS)** | suite `lib-payroll-core` 10/10 + Etap 1/race/carry PASS · B1–B6+RB CLOSED · 0 regresji · jedyny FAIL = P3 test hygiene (time-dependent) |
+| **W01 Weekly Metrics** | **CLOSED — Health GREEN** | Z-02/Z-03/Z-04/Z-06 PASS · Z-01 ACCRUAL · Z-05 Device · Z-07 Owner |
+
+**Feature branche mobilne NIE są zmergowane do `main`** — czekają na FIELD VALIDATION (Z-05) → decyzja właściciela. Drzewo robocze `main` może zawierać niezcommitowany WIP mobile/tenders z pierwotnego splitu (kod payroll pozostaje = stan prod).
+
+**Następne (na polecenie):** wykonanie FIELD VALIDATION na urządzeniu → raport PASS/FAIL → Z-05 · M-04 egress monitoring · E2E-PAYROLL-GUARD-S1 (gate C) · de-flake `test-payroll-extra-cost-etap1`.
+
+### Domknięcie sesji — rytuał (słowo-klucz)
+
+Na koniec sesji **zaktualizuj dokumentację ciągłości i zrób commit docs**. Wyzwalacz: użytkownik pisze **„domknij WGDOM”** (alias: „zamknij sesję WGDOM”, „aktualizuj docs WGDOM”). Procedura — patrz `.cursor/rules/wgdom-domkniecie-sesji.mdc`.
 
 ---
 
@@ -325,9 +346,11 @@ WGDOM1/
 └── e2e/                     Playwright
 ```
 
-**Poza repo:** `../WGDOM-RECOVERY-PACK/` — Recovery Pack (off-site backup).
+**Poza repo:**
+- `../WGDOM-RECOVERY-PACK/` — Recovery Pack (off-site backup).
+- `../WGDOM1-branch-audit/` — **tracker AD-10 + artefakty audytu/CLOSEOUT/DESIGN-FREEZE** (zasada AD-10: audyty **poza** repo). Zawiera `AD-10-LOCAL-STATUS.md`, raporty M-05/W01, plany FIELD VALIDATION.
 
-**Nie commitować:** `scripts/_tmp*`, większość `audit/*.pdf`, `.env`, artefakty packa.
+**Nie commitować:** `scripts/_tmp*`, większość `audit/*.pdf`, `.env`, artefakty packa, artefakty z `../WGDOM1-branch-audit/`.
 
 ---
 
@@ -368,4 +391,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-01 · prod 2.63.12 · NG-04 EPIC CLOSED · STABILIZATION WINDOW ACTIVE*
+*Ostatnia aktualizacja: 2026-07-02 · prod 2.63.27 · STABILIZATION WINDOW ACTIVE · W01 Health GREEN · AD-10: mobile trilogy (S1/M-03/M-03.1) CLOSED na feature branchach · Z-05 Device Required · M-05 payroll regresja PASS*

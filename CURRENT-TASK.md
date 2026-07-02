@@ -168,6 +168,19 @@
 
 **SSOT sync (AD-10):** [`docs/AD-10-SSOT-SYNCHRONIZATION-REPORT.md`](docs/AD-10-SSOT-SYNCHRONIZATION-REPORT.md) · 2026-07-01
 
+### AD-10 — postęp (2026-07-02) · **W01 Health GREEN**
+
+| Zadanie | Status |
+|---------|--------|
+| MOBILE-P0-S1 · M-03 · M-03.1 (mobile trilogy) | **CLOSED** na feature branchach (`stabilization/mobile-p0-s1/s2/field-cert-m03-1`) — **nie** zmergowane do `main` |
+| **Z-05 FIELD VALIDATION** | **PENDING (Device Required)** — trylogia kod/docs CLOSED; wykonanie terenowe iPhone Safari |
+| **M-05 Payroll Etap 1 regresja** | **CLOSED (AUDIT PASS)** — B1–B6+RB CLOSED · 0 regresji · jedyny FAIL = P3 test hygiene |
+| **W01 Weekly Metrics** | **CLOSED — GREEN** — Z-02/Z-03/Z-04/Z-06 PASS · Z-01 ACCRUAL · Z-05 Device · Z-07 Owner |
+
+**Tracker + artefakty AD-10 poza repo:** `../WGDOM1-branch-audit/AD-10-LOCAL-STATUS.md` (zasada: audyty nie w repo).
+
+**Domknięcie sesji (słowo-klucz):** „**domknij WGDOM**” → aktualizacja docs ciągłości + commit docs — patrz [`.cursor/rules/wgdom-domkniecie-sesji.mdc`](.cursor/rules/wgdom-domkniecie-sesji.mdc).
+
 ---
 
 ## STATUS

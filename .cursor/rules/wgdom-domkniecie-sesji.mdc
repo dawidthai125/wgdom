@@ -1,0 +1,36 @@
+---
+description: WGDOM — rytuał domknięcia sesji (aktualizacja docs ciągłości + commit) na słowo-klucz
+alwaysApply: true
+---
+
+# W&G DOM — domknięcie sesji (słowo-klucz)
+
+Komunikuj się z użytkownikiem po **polsku**.
+
+## Wyzwalacz
+
+Gdy użytkownik napisze **„domknij WGDOM”** (aliasy: **„zamknij sesję WGDOM”**, **„aktualizuj docs WGDOM”**) — wykonaj poniższą procedurę **bez dopytywania o zakres**. Intencja właściciela: „zaktualizuj dokumentację dla przyszłych AI (co robimy / co zrobiliśmy / struktura / architektura / funkcje) tak, aby nowy agent od razu wiedział co robić i gdzie kontynuować, bez czytania wszystkich plików po kolei — i zrób commit tych dokumentów”.
+
+## Procedura (kolejność)
+
+1. **Zbierz stan sesji** — co zrobiono, co w toku, co następne, jakie commity/branche/decyzje. Sprawdź `git log --oneline -15` i `git status` (bez modyfikacji WIP).
+2. **Zaktualizuj dokumenty ciągłości** (tylko realne zmiany, wysoki sygnał, bez lania wody):
+   - `docs/AGENT-CONTINUITY-GUIDE.md` — ★ główny: co zrobiliśmy / co robimy / struktura / architektura / gdzie kontynuować + data „Ostatnia aktualizacja”.
+   - `CURRENT-TASK.md` — status bieżący, baseline prod, backlog.
+   - `docs/PROJECT-HANDOFF-CURRENT.md` — baseline prod, commity, decyzje (gdy zmiana wersji/epicu).
+   - `docs/AGENT-APP-MAP.md` / `docs/AGENT-ONBOARDING.md` — gdy zmieniła się mapa widoków/modułów/KV/sync.
+   - `docs/ARCHITECTURE.md` — gdy zmiana architektury/sync/API (sekcja + data na górze).
+3. **Tracker AD-10 poza repo:** zaktualizuj `../WGDOM1-branch-audit/AD-10-LOCAL-STATUS.md` (jeśli dotyczy). **Nie** commituj artefaktów z tego katalogu.
+4. **Commit — tylko pliki dokumentacji** których dotyczy aktualizacja. **Nigdy** `git add -A` / `git commit -am` (drzewo robocze zawiera niezcommitowany WIP mobile/tenders — nie zagarniaj go). Użyj jawnego `git add <plik> …`.
+5. **Nie** rób push/merge/release, chyba że właściciel wyraźnie poprosi. Commit docs jest domyślnie dozwolony przy tym słowie-kluczu.
+
+## Zasady commitu
+
+- Zakres: wyłącznie zaktualizowane pliki `docs/**`, `*.md` ciągłości oraz reguły `.cursor/rules/**`.
+- Komunikat w konwencji repo, np. `docs: session closeout — continuity docs update` (+ 1 linia „co i dlaczego”).
+- Przed commitem: `git status` → potwierdź, że staged są **tylko** pliki docs/reguł. Untracked WIP i pliki implementacji zostają nietknięte.
+- Po commicie: `git status` → weryfikacja sukcesu. Bez push.
+
+## Cel jakościowy
+
+Nowy agent po przeczytaniu `docs/AGENT-CONTINUITY-GUIDE.md` musi wiedzieć: gdzie jest projekt, co jest CLOSED, co PENDING/blocked, gdzie leży tracker AD-10 (poza repo), i jaki jest następny krok — **bez** przeglądania całego `src/app/App.tsx` ani wszystkich handoffów.
