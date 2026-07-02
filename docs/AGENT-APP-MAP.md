@@ -1,8 +1,8 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** **2.63.25** · commit **`d9ba13f`** · https://www.wgdom.fun  
-> **Data:** 2026-07-01 · **STABILIZATION WINDOW:** ACTIVE
+> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED**  
+> **Data:** 2026-07-02 · **STABILIZATION WINDOW:** ACTIVE
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -222,6 +222,8 @@ Odczyt / merge
 | Audit Hub | `test-audit-hub-adapters.mjs`, `test-audit-hub-view-model.mjs`, `test-audit-hub-freshness-ah-reg-1.mjs` |
 | Security log | `test-security-audit-log.mjs` |
 | Payroll B3–B6, RB | `test-payroll-roster-guard-phase2.mjs`, `test-payroll-edge-parity-b6.mjs`, `test-payroll-closed-week-ui-rca2.mjs`, `test-payroll-restore-banner-false-positive.mjs` |
+| Przetargi smoke TI-B4 | `scripts/test-tenders-stabilization-smoke.mjs` · `npm run test:infra -- --gate B --scope tenders` |
+| TEST-INFRA orchestrator | `npm run test:infra:validate` · `--suite lib-payroll-core` · `--suite smoke-stabilization-ng01-04` · `npm run test:e2e:payroll-guard` |
 | WM druk audit | `test-wm-druk-audit.mjs` |
 | Przetargi workflow | `test-tender-workflow-hub.mjs`, … |
 
@@ -237,6 +239,8 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 | PAYROLL B3–B6 | 2.63.18–23 | `PAYROLL-GUARD-PHASE-CLOSEOUT.md`, B5/B6 closeout |
 | Restore banner RB | 2.63.24 | `PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md` |
 | Audit Hub freshness AH-REG-1 | 2.63.25 | `AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md` |
+| **TI-B4** smoke agregat NG-01–04 | **2.63.27** | `TI-B4-CLOSEOUT.md` · Z-04 PASS |
+| **TEST-INFRA-001** harness MVP | **2.63.26** | `TEST-INFRA-001-CLOSEOUT.md` · TI-B1–B3 backlog |
 | Audit Hub MVP + WM P1 | 2.62.36–77 | `SESSION-HANDOFF-AUDIT-HUB.md` |
 | Mobile Recovery | 2.62.78–79 | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` |
 
@@ -244,10 +248,12 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 ---
 
-## 9. Ostatnie releasy (2026-07-01)
+## 9. Ostatnie releasy (2026-07-02)
 
 | Wersja | Commit | Bundle | Zakres |
 |--------|--------|--------|--------|
+| **2.63.27** | `6c94223` | TI-B4 | Smoke agregat NG-01–04 · manifest 1.1.0 · Gate B `scope:tenders` |
+| **2.63.26** | `3d6dd90` | TEST-INFRA-001 | Manifest SSOT + orchestrator + PAYROLL-GUARD-S1 E2E |
 | **2.63.25** | `d9ba13f` | AH-REG-1 | Audit Hub freshness — notify + AUX pull on sync |
 | **2.63.24** | `727e6c4` | RB | Restore banner → `payrollMetrics` |
 | **2.63.23** | `d670892` | B6 | Edge parity `mergeWeekEmployees` |

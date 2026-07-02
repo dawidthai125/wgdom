@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.63.25** · commit **`d9ba13f`** · https://www.wgdom.fun · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun · **TI-B4 CLOSED** · **Z-04 PASS** · **TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -450,9 +450,9 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 
 ---
 
-## 6c1. Lista Płac — PAYROLL-CLOUD-RECOVERY (Etap 2 · B1–B4 CLOSED)
+## 6c1. Lista Płac — PAYROLL-CLOUD-RECOVERY (Etap 2 · **CLOSED**)
 
-**Prod:** **2.63.21** (`b3d5664`) · **STABILIZATION WINDOW ACTIVE**
+**Prod łańcuch:** **2.63.15–24** (B1–B6 + RB) · **AH-REG-1** **2.63.25** · **TEST-INFRA-001** **2.63.26** (`3d6dd90`) · **STABILIZATION WINDOW ACTIVE**
 
 | Dokument | Rola |
 |----------|------|
@@ -465,8 +465,8 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 
 ```text
 2.63.15 UNION roster · 2.63.16 guard LP · 2.63.17 B1+B2
-→ 2.63.18–20 Guard Phase · 2.63.21 B4 merge SSOT
-Backlog OPEN: B5 closed week UI · B6 Edge parity
+→ 2.63.18–20 Guard Phase · 2.63.21 B4 · 2.63.22 B5 · 2.63.23 B6 · 2.63.24 RB
+→ 2.63.25 AH-REG-1 · 2.63.26 TEST-INFRA-001 · 2.63.27 TI-B4 — PRODUCTION VERIFIED
 ```
 
 ### Smoke / test
@@ -477,7 +477,7 @@ npx vite-node scripts/test-p11-bootstrap-payroll.mjs
 npx vite-node scripts/test-payroll-roster-guard-phase2.mjs
 ```
 
-**Nie ruszać bez briefu:** `mergeWeekEmployees` UNION · `CloudSyncMutationGuard` · `finalizePayrollBundleMerge` · Edge parity (B6 backlog).
+**Nie ruszać bez briefu:** `mergeWeekEmployees` UNION · `CloudSyncMutationGuard` · `finalizePayrollBundleMerge` · Edge parity B6 (CLOSED 2.63.23).
 
 ---
 
@@ -682,8 +682,7 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 | Temat | Status | SSOT |
 |-------|--------|------|
-| **P0 Payroll Cloud Recovery** (P0.2–P0.4) | **EPIC OPEN** · następny epic biznesowy po stabilizacji | `CURRENT-TASK.md` · [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md) |
-| **TEST-INFRA-001** — Payroll Test Harness | **READY FOR IMPLEMENTATION** · NOT STARTED | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · TI-B1/TI-B2 |
+| **TEST-INFRA post-MVP** (TI-B1–B3) | **OPEN** · na polecenie | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · `CURRENT-TASK.md` |
 | P1.1 `schematic_edited` (anti-flood) | backlog | epic close report § 9 |
 | Workflow Cleanup P1 | backlog | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | TP200B kosztorys fidelity | PLANNED | `SESSION-HANDOFF-TP200-PLANNED.md` |
@@ -693,12 +692,12 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 | Zasada | Treść |
 |--------|--------|
-| **Kiedy czytać** | Przed implementacją Playwright seed dla Lista Płac / Przydziały |
-| **SSOT** | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) |
-| **Start kodu** | **Tylko na polecenie** — STABILIZATION WINDOW (M-08) |
-| **#014–#015** | Harness orchestruje — **zero** własnej logiki domenowej / merge |
-| **#018 prod** | Tylko sandbox joby — **TI-B2** `HARNESS_SANDBOX_JOB_IDS` przed prod smoke |
-| **#016–#019** | Manifest obowiązkowy na prod · cleanup z tombstone parity |
+| **Status** | **CLOSED** (prod **2.63.26** · `3d6dd90`) · **TI-B4 CLOSED** (2.63.27) |
+| **SSOT** | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
+| **Komendy** | `npm run test:infra` · `npm run test:infra:validate` · `--gate B --scope payroll|tenders` · `npm run test:e2e:payroll-guard` |
+| **Post-MVP backlog** | **TI-B1** · **TI-B2** · **TI-B3** — OPEN · **TI-B4** — **CLOSED** |
+| **Rozszerzenie** | **Tylko na polecenie** — STABILIZATION WINDOW |
+| **#018 prod** | Tylko sandbox joby — **TI-B2** przed prod harness L5 |
 | **Unit vs E2E** | Guard testowany przez `test-cloud-sync-mutation-guard.mjs` — harness ≠ regresja guarda |
 
 ---

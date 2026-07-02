@@ -70,7 +70,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **TI-B4** — Smoke agregat Przetargi NG-01–04 | **2.63.27** | **CLOSED** · thin wrapper · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
+| **TI-B4** — Smoke agregat Przetargi NG-01–04 | **2.63.27** (`6c94223`) | **CLOSED** · thin wrapper · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **TEST-INFRA-001** — Payroll Test Harness MVP | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **Audit Hub freshness AH-REG-1** | **2.63.25** (`d9ba13f`) | **CLOSED** · notify + `refreshAuditHubAuxFromCloud` | [`AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md`](AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md) · [`AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md`](AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md) |
 | **Payroll Restore Banner RB** | **2.63.24** (`727e6c4`) | **CLOSED** · `shouldShowPayrollRestoreBanner` / `payrollMetrics` | [`PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md`](PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md) |
@@ -198,7 +198,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.63.27       ← TI-B4 smoke agregat · commit (see release) · PRODUCTION VERIFIED
+Version (prod):             2.63.27       ← TI-B4 smoke agregat · commit 6c94223 · PRODUCTION VERIFIED
 Version (prod):             2.63.26       ← TEST-INFRA-001 MVP · commit 3d6dd90 · PRODUCTION VERIFIED
 Version (prod):             2.63.25       ← Audit Hub freshness AH-REG-1 · commit d9ba13f
 Version (prod):             2.63.24       ← Payroll Restore Banner RB · commit 727e6c4
@@ -352,7 +352,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.63.26", "commit": "3d6dd90" }
+# oczekiwane: { "version": "2.63.27", "commit": "6c94223" }
 ```
 
 ---
@@ -999,6 +999,15 @@ Przy wznowieniu:
 | Legacy PROJECT-HANDOFF | `PROJECT-HANDOFF.md` (częściowo nieaktualny baseline — używaj CURRENT) |
 
 ---
+
+**Werdykt closeout (2026-07-02 — TI-B4 · v2.63.27):**
+
+```text
+BASELINE v2.63.27 · COMMIT 6c94223 · PRODUCTION VERIFIED
+TI-B4 CLOSED — smoke agregat NG-01–04 · manifest 1.1.0 · Z-04 PASS
+Closeout: docs/TI-B4-CLOSEOUT.md · docs/TEST-INFRA-LIFECYCLE.md
+STABILIZATION WINDOW ACTIVE — M-02 CLOSED
+```
 
 **Werdykt closeout (2026-07-02 — TEST-INFRA-001 · v2.63.26):**
 

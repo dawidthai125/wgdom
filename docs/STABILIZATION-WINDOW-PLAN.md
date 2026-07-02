@@ -2,7 +2,7 @@
 
 > **Status:** **SSOT** · plan operacyjny (bez nowych epiców)  
 > **Data rozpoczęcia:** 2026-07-01 (prod **2.63.12** · NG-04 EPIC CLOSED)  
-> **Aktualny prod (monitoring):** **2.63.26** (`3d6dd90`) · 2026-07-02  
+> **Aktualny prod (monitoring):** **2.63.27** (`6c94223`) · 2026-07-02  
 > **Raport tygodniowy:** [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)  
 > **Bez zmian:** workflow release ([`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)) · kod aplikacji — tylko na polecenie
 
@@ -95,7 +95,7 @@ Szczegóły Przetargi: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVI
 | **Z-01** | Brak P0 w Przetargach przez ≥4 tygodnie |
 | **Z-02** | ≥2 deploye bez regresji `version.json` |
 | **Z-03** | Docs zsynchronizowane z 2.63.12+ |
-| **Z-04** | Smoke agregat Przetargi — PASS |
+| **Z-04** | Smoke agregat Przetargi — **PASS** (TI-B4 · 2.63.27) |
 | **Z-05** | Mobile re-cert — 0 blockerów P0 |
 | **Z-06** | Monitoring BOQ — brak zgłoszeń P1 |
 | **Z-07** | Świadoma decyzja właściciela repo w `CURRENT-TASK.md` |

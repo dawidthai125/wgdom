@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-01 (**AH-REG-1** · v2.63.25 · Audit Hub freshness · prod `d9ba13f`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-02 (**TI-B4** · v2.63.27 · smoke agregat Przetargi · manifest 1.1.0 · prod `6c94223`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -36,7 +36,8 @@ Reguły projektu: `.cursor/rules/wgdom-development.mdc`
 AGENTS.md
   → docs/AGENT-APP-MAP.md            (★ mapa widoków + moduły — START dla AI)
   → docs/AGENT-ONBOARDING.md         (mapa systemu — START)
-  → PROJECT-HANDOFF-CURRENT.md       (baseline 2.63.25)
+  → PROJECT-HANDOFF-CURRENT.md       (baseline 2.63.27)
+  → docs/TI-B4-CLOSEOUT.md           (smoke agregat NG-01–04 · Z-04)
   → MASTER-HANDOFF-POST-ZI-2026.md   (WM Druk COMPLETE)
   → ZI-2026-HANDOFF.md               (generator ZI prod)
   → CURRENT-TASK.md

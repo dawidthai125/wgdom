@@ -1,7 +1,7 @@
 # TI-B4 — Smoke Aggregator NG-01–NG-04 · CLOSEOUT
 
 > **Status:** **CLOSED** · **Data closeout:** 2026-07-02  
-> **Prod baseline:** **v2.63.27** (commit po release)  
+> **Prod baseline:** **v2.63.27** · commit **`6c94223`**  
 > **STABILIZATION WINDOW:** ACTIVE  
 > **Design freeze:** TI-B4 DESIGN FREEZE v1.0  
 > **Powiązane:** [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) · [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md)
@@ -61,6 +61,7 @@ npm run test:infra -- --gate B --scope tenders
 | Pole | Wartość |
 |------|---------|
 | **Wersja** | **2.63.27** |
+| **Commit** | **`6c94223`** |
 | **Message** | `feat(test-infra): implement TI-B4 smoke aggregator` |
 | **Artefakt R-02** | `test-tenders-stabilization-smoke.mjs` |
 | **Maintenance** | M-02 CLOSED |

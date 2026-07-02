@@ -1,8 +1,8 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.63.25** · commit **`d9ba13f`** · https://www.wgdom.fun  
-> **Data:** 2026-07-01 · **STABILIZATION WINDOW ACTIVE** · **PAYROLL Etap 2 B4–B6 CLOSED** · **AH-REG-1 CLOSED**
+> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun  
+> **Data:** 2026-07-02 · **STABILIZATION WINDOW ACTIVE** · **TI-B4 CLOSED** · **Z-04 PASS** · **TEST-INFRA-001 CLOSED**
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -18,7 +18,8 @@
 4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
 5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
 6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
-7. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ Harness Playwright Lista Płac (APPROVED · READY · kod NOT STARTED)
+7. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA Harness MVP (CLOSED · 2.63.26 · TI-B1–B3 backlog)
+7b. docs/TI-B4-CLOSEOUT.md          ← ★★ TI-B4 smoke agregat (CLOSED · 2.63.27 · Z-04 PASS)
 8. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
 9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
 10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
@@ -31,7 +32,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-01)
+## 2. Co zrobiliśmy (stan na 2026-07-02)
 
 ### STABILIZATION WINDOW — **ACTIVE** (po NG-04)
 
@@ -60,6 +61,8 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Kosztorys Process UX P0** | 2.62.64 | **CLOSED** |
 | **Audit Hub MVP-0→1B** | 2.62.36–41 | **CLOSED** — security log, recovery events |
 | **WM Schematy + ZI 2026 + EM-P1R** | 2.59–2.62 | **CLOSED / STABLE** |
+| **TEST-INFRA-001** harness MVP | **2.63.26** · `3d6dd90` | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 |
+| **TI-B4** smoke agregat Przetargi | **2.63.27** · `6c94223` | **CLOSED** · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** |
 | **Audit Hub freshness AH-REG-1** | 2.63.25 · `d9ba13f` | **CLOSED** · notify + AUX pull on sync |
 | **Payroll Restore Banner RB** | 2.63.24 · `727e6c4` | **CLOSED** · `payrollMetrics` zamiast richness |
 | **PAYROLL-CLOUD-RECOVERY Etap 2 B6** | 2.63.23 · `d670892` | **CLOSED** · Edge parity `mergeWeekEmployees` |
@@ -88,24 +91,37 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
-### TEST-INFRA-001 — Payroll Test Harness (design freeze · **nie implementować bez polecenia**)
+### TEST-INFRA-001 — Infrastruktura testowa · **CLOSED**
 
 | Pole | Wartość |
 |------|---------|
-| **Status** | **DESIGN FREEZE FINAL — APPROVED** · **READY FOR IMPLEMENTATION** |
-| **Kod** | **NOT STARTED** (okno stabilizacji · M-08) |
-| **SSOT** | [`TEST-INFRA-001-DESIGN-FREEZE.md`](TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
-| **Cel** | L0–L5 seed danych Playwright (Lista Płac → Przydziały) — **nie** zastępuje testów unit guarda |
+| **Status** | **CLOSED** (prod **2.63.26** · `3d6dd90`) |
+| **SSOT** | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
+| **Zakres MVP** | Manifest SSOT · orchestrator `npm run test:infra` · Payroll Harness PAYROLL-GUARD-S1 |
+| **Post-MVP backlog** | **TI-B1** `removeWeekEmployee()` lib · **TI-B2** `HARNESS_SANDBOX_JOB_IDS` (P0 gate) · **TI-B3** CI gate · **TI-B4** — **CLOSED** |
+
+**Release Przetargów (Gate B):** `npm run test:infra -- --gate B --scope tenders` · suite `smoke-stabilization-ng01-04`
 
 **Dla agentów AI — zasady:**
 
-1. **Nie** implementuj harnessu automatycznie — tylko na wyraźne polecenie (STABILIZATION WINDOW).
-2. **Nie** duplikuj logiki domenowej — wyłącznie importy SSOT z listy §8 design freeze (#015).
-3. **Prod:** Principle **#018** — tylko sandbox joby (`HARNESS_SANDBOX_JOB_IDS` lub marker); **zakaz** losowych kontraktów użytkownika.
-4. **Prod smoke:** wymaga **TI-B2** (whitelist sandbox) + cleanup manifest (#016, #019).
-5. **Backlog techniczny:** TI-B1 `removeWeekEmployee()` → lib · TI-B2 `HARNESS_SANDBOX_JOB_IDS`.
+1. **Nie** rozszerzaj TEST-INFRA bez polecenia (STABILIZATION WINDOW).
+2. **Nie** duplikuj logiki domenowej — SSOT import only (#015).
+3. **Prod harness L5:** Principle **#018** — tylko sandbox joby; **TI-B2** przed pierwszym prod run.
+4. **Komendy:** `npm run test:infra:validate` · `npm run test:infra -- --gate B --scope payroll` · `npm run test:infra -- --gate B --scope tenders` · `npm run test:e2e:payroll-guard`
 
-**Powiązane (prod CLOSED):** [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md`](PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md)
+**Powiązane (prod CLOSED):** [`PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) · [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md)
+
+### TI-B4 — Smoke agregat Przetargi · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** (prod **2.63.27** · `6c94223`) |
+| **SSOT** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) § scope tenders |
+| **Artefakt** | `scripts/test-tenders-stabilization-smoke.mjs` — 12 child lib NG-01–04 |
+| **Manifest** | `test-infra/test-manifest.json` v**1.1.0** · `SMOKE-TENDERS-NG01-04` |
+| **Z-04** | **PASS** (STABILIZATION · M-02 CLOSED) |
+
+**Dla agentów AI:** release dotykający Przetargów → Gate B `--scope tenders`. **Nie** duplikuj child scripts w orchestratorze — lista tylko w agregatorze (#028).
 
 ### Recovery Pack (dla programistów — tylko odczyt)
 
@@ -128,11 +144,10 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 |-----------|-------|--------|------|
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
-| **CLOSED** | **PAYROLL Etap 2** B5/B6 · RB restore banner · AH-REG-1 | **2.63.22–25** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
-| Na polecenie | **TEST-INFRA-001** implementacja harnessu | READY · NOT STARTED | `TEST-INFRA-001-DESIGN-FREEZE.md` · TI-B1/TI-B2 |
+| **CLOSED** | **PAYROLL Etap 2** B1–B6 · RB · AH-REG-1 · **TEST-INFRA-001** | **2.63.15–26** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
+| Na polecenie | **TEST-INFRA post-MVP** TI-B1–B4 | OPEN | `TEST-INFRA-001-CLOSEOUT.md` · `CURRENT-TASK.md` |
 | Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
-| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | plan M-01–M-05 | `STABILIZATION-WINDOW-PLAN.md` §3 |
-| Maintenance P2 | TEST-INFRA harness (M-08) | na polecenie | `TEST-INFRA-001-DESIGN-FREEZE.md` |
+| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert | M-01 **CLOSED** · M-02–M-05 OPEN | `STABILIZATION-WINDOW-PLAN.md` §3 |
 | Backlog | P3 Export notatki · P2-H.7 · Work Catalog P2.7+ | OPEN | `PROJECT-HANDOFF-CURRENT.md` |
 
 **Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → `version` + `commit` (patrz `WORKFLOW-RELEASE-DEPLOY.md`).

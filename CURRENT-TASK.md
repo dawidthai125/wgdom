@@ -8,7 +8,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Prod** | **2.63.27** |
+| **Prod** | **2.63.27** (`6c94223`) |
 | **Skrót** | Thin wrapper 12 child · manifest 1.1.0 · `scope:tenders` · Gate B |
 | **SSOT** | [`docs/TI-B4-CLOSEOUT.md`](docs/TI-B4-CLOSEOUT.md) · [`docs/TEST-INFRA-LIFECYCLE.md`](docs/TEST-INFRA-LIFECYCLE.md) |
 
@@ -174,7 +174,8 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.26** (`3d6dd90`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.27** (`6c94223`) · **PRODUCTION VERIFIED** |
+| **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
@@ -190,7 +191,7 @@
 
 | Temat | Status |
 |-------|--------|
-| **TEST-INFRA post-MVP** (TI-B1–B4) | OPEN · na polecenie |
+| **TEST-INFRA post-MVP** (TI-B1–B3) | OPEN · na polecenie |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |

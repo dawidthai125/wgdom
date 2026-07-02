@@ -12,8 +12,8 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.63.21** (prod) · commit **`b3d5664`**
-- **Prod (`main` / `origin/main`, app):** **2.63.21** · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.63.27** (prod) · commit **`6c94223`**
+- **Prod (`main` / `origin/main`, app):** **2.63.27** · https://www.wgdom.fun
 - **★★ NG-02 Tender Automation Pipeline:** **EPIC CLOSED** (2.62.95–98) · [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · ARCHITECTURE § 12.1.23–26
 - **★★ SUPER ADMIN ACL (Instrukcja + Zmiany):** **CLOSED** (2.62.92) · [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](../../docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1
 - **★★ Mobile Recovery:** **EPIC CLOSED** (2.62.78–79) · [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
@@ -198,16 +198,21 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  
  **Kluczowe pliki:** `JobsView.tsx` · `mobile.css` · wzorce: `OperationalNotesView.tsx`, `PayrollView.tsx`
  
-**Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · backlog PAYROLL Etap 2: **B5 · B6 OPEN** · harness: **TEST-INFRA-001** (design APPROVED, kod NOT STARTED)
+**Nie** rozpoczynaj ponownie bez AUDIT · SMOKE-03 BLOCKED ≠ bug prod · **TEST-INFRA-001 CLOSED** (2.63.26) · **TI-B4 CLOSED** (2.63.27) · post-MVP TI-B1–B3 OPEN
 
 ---
 
-## PAYROLL-CLOUD-RECOVERY — Etap 2 B4 (**CLOSED**, prod `b3d5664`, v2.63.21, 2026-07-01)
+## PAYROLL-CLOUD-RECOVERY — Etap 2 (**CLOSED**, prod `3d6dd90`, v2.63.26 baseline, 2026-07-02)
 
-**Status:** **B4 CLOSED** · **B1–B4 CLOSED** · backlog **B5 · B6 OPEN**
+**Status:** **B1–B6 + RB CLOSED** · **AH-REG-1 CLOSED** (2.63.25) · **TEST-INFRA-001 CLOSED** (2.63.26)
 
 | Etap | Wersja | Skrót |
 |------|--------|-------|
+| **TEST-INFRA-001** | **2.63.26** | Manifest + orchestrator + PAYROLL-GUARD-S1 |
+| **AH-REG-1** | **2.63.25** | Audit Hub freshness |
+| **RB** | **2.63.24** | Restore Banner `payrollMetrics` |
+| **B6** | **2.63.23** | Edge parity `payroll-week-employee-merge.ts` |
+| **B5** | **2.63.22** | closed week UI read-only |
 | **B4** | **2.63.21** | `finalizePayrollBundleMerge` SSOT bootstrap/runtime |
 | B3–B3.2 | 2.63.18–20 | Guard Phase — `CloudSyncMutationGuard` roster |
 | B1+B2 | 2.63.17 | fail-loud roster · JobsView guard |
@@ -219,23 +224,42 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 **Test:** `test-payroll-bootstrap-runtime-parity-b4.mjs` (13) · `test-p11-bootstrap-payroll.mjs`
 
-**Nie zmieniaj bez polecenia:** merge SSOT B4 · guard B3 · UNION P0 · Edge parity (B6 backlog).
+**Nie zmieniaj bez polecenia:** merge SSOT B4 · guard B3 · UNION P0 · Edge parity B6 (CLOSED).
 
 ---
 
-## TEST-INFRA-001 — Payroll Test Harness (DESIGN FREEZE APPROVED · 2026-07-01)
+## TEST-INFRA-001 — Infrastruktura testowa (**CLOSED**, prod `3d6dd90`, v2.63.26, 2026-07-02)
 
-**Status:** **READY FOR IMPLEMENTATION** · kod **NOT STARTED** · STABILIZATION WINDOW — tylko na polecenie (M-08)
+**Status:** **CLOSED** · M-08 **CLOSED** · post-MVP backlog **TI-B1–B3 OPEN** · **TI-B4 CLOSED**
 
 | Element | Skrót |
 |---|---|
-| **SSOT** | [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](../../docs/TEST-INFRA-001-DESIGN-FREEZE.md) · Principles **#014–#026** |
-| **Cel** | L0–L5 seed Playwright (Lista Płac → Przydziały) — nie zastępuje unit testów guarda |
-| **TI-B1 backlog** | Ekstrakcja `removeWeekEmployee()` do lib |
-| **TI-B2 gate prod** | Konfiguracja `HARNESS_SANDBOX_JOB_IDS` przed pierwszym prod run |
- | **Powiązane CLOSED** | `CloudSyncMutationGuard` **2.63.16** · PAYROLL-CLOUD-RECOVERY **2.63.15–21** (B4 merge SSOT) |
+| **SSOT** | [`docs/TEST-INFRA-001-CLOSEOUT.md`](../../docs/TEST-INFRA-001-CLOSEOUT.md) · [`docs/TEST-INFRA-LIFECYCLE.md`](../../docs/TEST-INFRA-LIFECYCLE.md) |
+| **MVP** | Manifest SSOT · `npm run test:infra` · PAYROLL-GUARD-S1 E2E preview |
+| **TI-B1** | Ekstrakcja `removeWeekEmployee()` do lib — OPEN |
+| **TI-B2** | `HARNESS_SANDBOX_JOB_IDS` przed prod harness L5 — OPEN · **P0 gate** |
+| **TI-B3** | CI GitHub Actions gate B/C — OPEN |
+| **TI-B4** | Smoke agregat NG-01–04 — **CLOSED** (2.63.27) |
+| **Powiązane CLOSED** | PAYROLL-CLOUD-RECOVERY **2.63.15–24** · `CloudSyncMutationGuard` **2.63.16** |
 
-**Nie** implementuj harnessu automatycznie · **nie** używaj losowych jobów prod (#018) · **nie** duplikuj merge — SSOT import only (#015).
+**Nie** rozszerzaj TEST-INFRA bez polecenia · **nie** używaj losowych jobów prod (#018) · **nie** duplikuj merge — SSOT import only (#015).
+
+---
+
+## TI-B4 — Smoke agregat Przetargi NG-01–04 (**CLOSED**, prod `6c94223`, v2.63.27, 2026-07-02)
+
+**Status:** **CLOSED** · M-02 **CLOSED** · **Z-04 PASS**
+
+| Element | Skrót |
+|---|---|
+| **SSOT** | [`docs/TI-B4-CLOSEOUT.md`](../../docs/TI-B4-CLOSEOUT.md) · [`docs/TEST-INFRA-LIFECYCLE.md`](../../docs/TEST-INFRA-LIFECYCLE.md) |
+| **Artefakt** | `scripts/test-tenders-stabilization-smoke.mjs` — thin wrapper 12 child |
+| **Manifest** | `test-infra/test-manifest.json` v1.1.0 · `SMOKE-TENDERS-NG01-04` |
+| **Gate B** | `npm run test:infra -- --gate B --scope tenders` |
+
+**Test:** `npm run test:infra -- --suite smoke-stabilization-ng01-04`
+
+**Nie** dodawaj child scripts bez design freeze · **nie** hardcoduj listy w orchestratorze (#006).
 
 ---
 

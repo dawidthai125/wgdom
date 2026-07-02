@@ -13,9 +13,11 @@
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
 2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
-2ti. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ TEST-INFRA Harness Lista Płac (APPROVED · READY · NOT STARTED)
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.25)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.25)
+2ti. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA-001 Harness MVP (CLOSED · 2.63.26)
+2ti3. docs/TI-B4-CLOSEOUT.md  ← ★★ TI-B4 Smoke agregat NG-01–04 (CLOSED · 2.63.27 · Z-04 PASS)
+2ti2. docs/TEST-INFRA-LIFECYCLE.md  ← lifecycle orchestratora test-infra
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.27)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.27)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
 3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
@@ -38,7 +40,8 @@
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
 5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
 5b. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★★ Lista Płac · Przydziały robót P1
-5c. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← ★ TEST-INFRA Harness Playwright (APPROVED · READY · kod NOT STARTED)
+5c. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA Harness (CLOSED · 2.63.26 · TI-B1–B4 backlog)
+5c2. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← DESIGN FREEZE v2.0 (historyczny SSOT)
 5d. docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md  ← ★★ PAYROLL Etap 2 B4 merge SSOT (CLOSED · 2.63.21)
 5e. docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md  ← CloudSyncMutationGuard P0 (CLOSED · 2.63.16)
 5e. docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md  ← mergeWeekEmployees hotfix (CLOSED · 2.63.15)
@@ -75,7 +78,10 @@
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? · **STABILIZATION WINDOW** · backlog |
 | **docs/STABILIZATION-WINDOW-PLAN.md** | **★★ Okres stabilizacji** po NG-04 — zasady, maintenance, kryteria zamknięcia |
 | **docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md** | **SSOT** raportu tygodniowego (wersja, commit, P0, zgłoszenia) |
-| **docs/TEST-INFRA-001-DESIGN-FREEZE.md** | **★ Harness Playwright Lista Płac** — DESIGN FREEZE APPROVED · Principles #014–#026 · **nie implementować bez polecenia** |
+| **docs/TI-B4-CLOSEOUT.md** | **★★ TI-B4 CLOSED** (2.63.27) — smoke agregat NG-01–04 · Gate B `scope:tenders` · **Z-04 PASS** |
+| **docs/TEST-INFRA-001-CLOSEOUT.md** | **★★ TEST-INFRA-001 MVP CLOSED** (2.63.26) — manifest + orchestrator + PAYROLL-GUARD-S1 · post-MVP TI-B1–B3 |
+| **docs/TEST-INFRA-LIFECYCLE.md** | Komendy orchestratora · mapowanie tier A/B/C |
+| **docs/TEST-INFRA-001-DESIGN-FREEZE.md** | DESIGN FREEZE v2.0 (historyczny) — Principles #001–#026 |
 | **docs/NG-04-EPIC-CLOSE-REPORT.md** | **★★ NG-04 BOQ PRO CLOSED** — Principles #001–#010 |
 | **docs/ARCHITECTURE-REVIEW-2026-TENDERS.md** | Review architektury Przetargi NG-01–04 (bez nowego epicu) |
 | **docs/AGENT-CONTINUITY-GUIDE.md** | **★★ Kontekst sesji** — co zrobiliśmy, co robimy, struktura app, mapa Przetargów |
@@ -191,8 +197,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.21**) |
-| Prod `main` (app) | **v2.63.21** (`b3d5664`) · PAYROLL B4 CLOSED · NG-02 EPIC CLOSED · Mobile Recovery **EPIC CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.27**) |
+| Prod `main` (app) | **v2.63.27** (`6c94223`) · TI-B4 CLOSED · Z-04 PASS · TEST-INFRA-001 CLOSED · PAYROLL Etap 2 B1–B6+RB CLOSED · NG-02 EPIC CLOSED · Mobile Recovery **EPIC CLOSED** |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
