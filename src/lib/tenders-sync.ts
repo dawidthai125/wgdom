@@ -4,7 +4,10 @@
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { mergeTenderDossierByQuality } from "@/lib/tender-dossier-merge";
-import { mergeWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog-store";
+import {
+  mergeWgdomCostCatalogStore,
+  WGDOM_COST_CATALOG_KEY,
+} from "@/lib/wgdom-cost-catalog-store";
 import { mergeWgdomUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeTenderCalibrationStore, TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
 import {
@@ -18,13 +21,13 @@ import {
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
-export const WGDOM_COST_CATALOG_KEY = "kw-wgdom-cost-catalog";
 export const WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY = "kw-wgdom-classification-dictionary";
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
 export { TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
 export { TENDER_PRICE_OVERRIDES_KEY } from "@/lib/tender-price-overrides";
 export { WGDOM_COST_CATALOG_HISTORY_KEY } from "@/lib/wgdom-cost-catalog-history";
+export { WGDOM_COST_CATALOG_KEY } from "@/lib/wgdom-cost-catalog-store";
 export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 
 export const TENDER_DATA_KEYS = [
