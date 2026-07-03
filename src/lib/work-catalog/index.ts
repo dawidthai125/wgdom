@@ -291,3 +291,37 @@ export {
   type RegisterMappingOptions,
   type RegisterMappingResult,
 } from "@/lib/work-catalog/market-work-mapping";
+
+// ─── P3.1-S4 — seed mapowań (D1: SSOT-safe, wgdom self-map) ─────────────────
+
+export {
+  createSeededMarketWorkMappingStore,
+  type CreateSeededMappingOptions,
+  type SeedCatalogWorkRef,
+} from "@/lib/work-catalog/market-work-mapping-seed";
+
+// ─── P3.1-S4 — parser CSV cen rynkowych (pure) ─────────────────────────────
+
+export {
+  parseCsvLine,
+  parseMarketCsv,
+  type MarketCsvDelimiter,
+  type MarketCsvParseOptions,
+  type MarketCsvParseRejectedLine,
+  type MarketCsvParseResult,
+  type MarketCsvParsedRow,
+} from "@/lib/work-catalog/market-csv-parser";
+
+// ─── P3.1-S4 — importer CSV w trybie PREVIEW (bez zapisu) ──────────────────
+
+export {
+  csvRowToAdapterRecord,
+  previewMarketCsvImport,
+  previewMarketCsvRows,
+  resolveCsvExternalId,
+  type MarketCsvPreviewInputRow,
+  type MarketCsvPreviewOptions,
+  type MarketCsvPreviewReport,
+  type MarketCsvPreviewRow,
+  type MarketCsvPreviewStatus,
+} from "@/lib/work-catalog/market-csv-preview";

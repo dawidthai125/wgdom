@@ -70,9 +70,14 @@ const REQUIRED_EXPORTS = [
   "resolveMappingBatch",
   "buildMarketWorkMappingIndex",
   "buildMarketWorkMappingIndexForOrigin",
-  // ── S4 (csv) — dopisać przy landing market-csv-* ──────────────────────────
-  // "parseMarketCsv",
-  // "previewMarketCsvImport",
+  // ── P3.1-S4 — market CSV import (preview) + seed ──────────────────────────
+  "parseMarketCsv",
+  "parseCsvLine",
+  "previewMarketCsvImport",
+  "previewMarketCsvRows",
+  "csvRowToAdapterRecord",
+  "resolveCsvExternalId",
+  "createSeededMarketWorkMappingStore",
 ];
 
 let pass = 0;
