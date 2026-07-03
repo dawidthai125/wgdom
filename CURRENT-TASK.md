@@ -31,11 +31,13 @@
 | **RCA** | `batch-set` bez `try/catch`/`app.onError`; cały bundle w jednym `kv.mset` → *statement timeout* → opaque HTTP 500 podczas sync Payroll |
 | **S7-1 Diagnostics** | **DONE · CLOSED** · `4c38f4f` (Edge deployed CI run `28655226870`) — `app.onError` + `try/catch` + `{ok,error,requestId}` + log realnego `error.message`; flow bez zmian |
 | **OBSERVATION** | **WAITING FOR PRODUCTION EVIDENCE** — zebrać 1 incydent (requestId/error/stack/payload + Edge/Postgres logs) przed decyzją S7-5 |
-| **S7-2** hardening (chunk/izolacja `mset`) | **DRAFT** |
+| **S7A** frequency (batch-get/set) | **AUDIT COMPLETE** — **CONFIRMED CONTRIBUTING CAUSE** (nie Root Cause; brak infinite loop) · [`docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) |
+| **H1** batch-set timeout = RC | **UNCONFIRMED** — do requestId · error.message · Edge stack · Postgres log |
+| **S7-2** hardening (chunk/izolacja `mset`) | **DRAFT** — NO GO bez Root Cause Confirmation |
 | **S7-3** singleton Supabase client | **DRAFT** |
-| **S7-4** klient retry/backoff + pull-merge read-only | **DRAFT** |
+| **S7-4** klient retry/backoff + pull-merge read-only + S7A (diff push, debounce pull, ETag, cross-tab) | **AUDIT COMPLETE · READY · WAITING FOR OWNER COMMAND** |
 | **S7-5** resurrection guard (tombstony na Edge / `replaceWeekEmployeesKeys`) | **DRAFT** |
-| **Zakaz** | implementacja S7-2…S7-5 — do jawnego owner command po zebraniu dowodów |
+| **Zakaz** | implementacja S7-2…S7-5 — do jawnego owner command; S7-2 dopiero po Root Cause Confirmation (H1) |
 
 ---
 
@@ -233,7 +235,7 @@
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
-| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`, Edge deployed) · **OBSERVATION** waiting for production evidence · S7-2…S7-5 DRAFT |
+| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **OBSERVATION** waiting for production evidence (H1 UNCONFIRMED) · **S7A** contributing cause AUDIT COMPLETE · **S7-4 READY (waiting owner)** · S7-2/S7-3/S7-5 DRAFT |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |

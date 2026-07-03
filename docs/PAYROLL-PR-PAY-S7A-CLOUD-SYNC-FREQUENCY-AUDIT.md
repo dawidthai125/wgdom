@@ -1,16 +1,34 @@
 # PAYROLL — PR-PAY-S7A · Cloud Sync Frequency Audit · AUDIT
 
-> **Status:** `AUDIT ONLY` · **NO IMPLEMENTATION** · sub-audyt P0 (PR-PAY-S7)
+> **Status:** `AUDIT COMPLETE` · **NO IMPLEMENTATION** · sub-audyt P0 (PR-PAY-S7)
 > **Data:** 2026-07-03 · **HEAD `caf46a9`** · Production **DEGRADED** · P0 ACTIVE
+> **Klasyfikacja:** **CONFIRMED CONTRIBUTING CAUSE** — **NIE Root Cause**
 > **Cel:** Sprawdzić, czy problem nie wynika z **nadmiernej częstotliwości synchronizacji** (batch-get / batch-set), a nie wyłącznie z `kv.mset` (H1).
 > **Powiązane:** [`PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md)
 
 ```text
-WNIOSEK: brak nieskończonej pętli w pojedynczej karcie (guardy działają),
-ALE potwierdzony ruch redundantny: pełny batch-get na KAŻDY focus/visibilitychange
-(bez change-detection) + pełny batch-set 38 kluczy (~391 KB) na KAŻDĄ trywialną zmianę.
-To AMPLIFIKATOR H1 (nie osobny root cause). Implementacja: NO GO.
+WNIOSEK: brak nieskończonej pętli w pojedynczej karcie (guardy działają).
+Potwierdzony ruch redundantny: pełny batch-get na KAŻDY focus/visibilitychange
+(bez change-detection/debounce/min-interval) + pełny batch-set 38 kluczy (~391 KB)
+na KAŻDĄ trywialną zmianę.
+KLASYFIKACJA: CONFIRMED CONTRIBUTING CAUSE (amplifikator H1) — NIE Root Cause.
+S7-4: AUDIT COMPLETE · READY · WAITING FOR OWNER COMMAND. Implementacja: NO GO (P0 freeze).
 ```
+
+### Klasyfikacja (owner, 2026-07-03)
+
+| Pozycja | Werdykt |
+|---------|---------|
+| batch-get bez change-detection | ✅ CONFIRMED |
+| batch-get na `focus` | ✅ CONFIRMED |
+| batch-get na `visibilitychange` | ✅ CONFIRMED |
+| brak debounce | ✅ CONFIRMED |
+| brak minimum interval | ✅ CONFIRMED |
+| pełny batch-set (~391 KB) | ✅ CONFIRMED |
+| pełny bundle dla trywialnych zmian | ✅ CONFIRMED |
+| Infinite loop | ❌ NIE POTWIERDZONO |
+| **Rola w incydencie** | **CONFIRMED CONTRIBUTING CAUSE — nie Root Cause** |
+| **H1 (batch-set timeout = RC)** | **UNCONFIRMED** — do czasu requestId · error.message · Edge stack · Postgres log |
 
 ---
 
@@ -97,7 +115,9 @@ runCloudSync: pullAndMergeDataBundle (batch-get ~40) ─▶ applyAdminDataBundle
 |------|--------|
 | **AUDIT S7A** | **COMPLETE** (analiza statyczna) |
 | **Loop (infinite)** | **NIE potwierdzona** — single-tab guardy działają |
-| **Ruch redundantny** | **POTWIERDZONY** — pełny batch-get/​batch-set bez change-detection |
+| **Ruch redundantny** | **CONFIRMED CONTRIBUTING CAUSE** — nie Root Cause |
+| **S7-4** | **AUDIT COMPLETE · READY · WAITING FOR OWNER COMMAND** |
+| **S7-2** | **NO GO** — bez Root Cause Confirmation (H1) |
 | **IMPLEMENT** | **NO GO** — P0 freeze; do Root Cause Confirmation + owner command |
 
 **Rekomendacja (do Design Freeze S7, bez implementacji):**

@@ -159,7 +159,7 @@ KLIENT:
 | **S7-1** ✅ DONE (`4c38f4f`) | `try/catch` w `batch-set` + `app.onError` → `500` z `{ ok:false, error, requestId }` (odsłonić realny `error.message`) | `index.tsx` | C1–C3 |
 | **S7-2** ⏳ NO GO (do potwierdzenia H1) | `kv.mset` w **chunkach** i/lub sekwencyjny zapis z izolacją per klucz + zebranie błędów (partial report zamiast pełnego 500) | `kv_store.tsx` / `index.tsx` | C4, **H1**, H-R4 |
 | **S7-3** DRAFT | Reużyć jednego klienta Supabase (module-level singleton) zamiast `client()` per operacja | `kv_store.tsx` | H-R4 |
-| **S7-4** DRAFT | Klient: retry z backoff dla 5xx (idempotentny) + nie mutować lokalnego stanu przed potwierdzonym push (pull-merge read-only do udanego push) | `cloud-sync.ts` / `App.tsx` | EV7 |
+| **S7-4** AUDIT COMPLETE · READY (WAITING OWNER) | Klient: retry z backoff dla 5xx (idempotentny) + nie mutować lokalnego stanu przed potwierdzonym push + **[S7A] push tylko zmienionych kluczy (nie cały bundle), debounce/min-interval na pull focus/visibility, ETag na batch-get, wygaszenie cross-tab** | `cloud-sync.ts` / `App.tsx` | EV7, **S7A contributing cause** |
 | **S7-5** DRAFT | (resurrection) Pushować `kw-week-employees-deleted-ids` do chmury **lub** tombstone-aware filtr w Edge; wymusić `replaceWeekEmployeesKeys` na wszystkich ścieżkach payroll | `cloud-sync.ts` + `index.tsx` | H-R1–H-R3 |
 
 **Zasada:** S7-1…S7-4 = przyczyna 500. S7-5 = przyczyna resurrection. To **dwa osobne bundle** (One Bundle = One Goal).
@@ -226,8 +226,10 @@ KLIENT:
 | **S7-1 Diagnostics** | ✅ **DONE** — deployed `4c38f4f` (`app.onError` + try/catch + requestId) |
 | **[LOG-CHECK] / OBSERVATION** | **WAITING FOR PRODUCTION EVIDENCE** — requestId · error.message · Edge stack · Postgres log |
 | **H1 (batch-set timeout = RC)** | **UNCONFIRMED** — potwierdzić lub odrzucić po dowodzie |
+| **S7A Frequency (contributing)** | **AUDIT COMPLETE** — CONFIRMED CONTRIBUTING CAUSE (nie RC) · [`PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md`](PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) |
+| **S7-4 (klient + S7A)** | **AUDIT COMPLETE · READY · WAITING FOR OWNER COMMAND** — implementacja NO GO (P0 freeze) |
 | **S7-2 Cloud Batch Hardening** | **NO GO (warunkowe)** — GO dopiero gdy **H1 CONFIRMED** |
-| **S7-4 / S7-5** | **NO GO** — nie implementować teraz |
+| **S7-5** | **NO GO** — nie implementować teraz |
 
 ### Decision — S7-2 Cloud Batch Hardening
 
