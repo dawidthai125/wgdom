@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.27** · HEAD `609ae53` · https://www.wgdom.fun  
+> **Prod:** UI **2.63.27** · HEAD `e4daaf4` (docs-only, docs-ahead) · **deploy SSOT `609ae53`** · https://www.wgdom.fun  
 > **Data:** 2026-07-04 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC) · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · faza PRODUCTION OBSERVATION** · STABILIZATION WINDOW ACTIVE
+
+> **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-04):** trwa **P0 Payroll Cloud Sync Incident** i **aktywny PAYROLL & SUPABASE RECOVERY PROGRAM** (faza: PRODUCTION OBSERVATION). Wdrożone i obserwowane na produkcji:
 > - **PR-PAY-S7-5 ETAP 1** (`ae132bc`, DEPLOYED) — cross-device tombstony week-employees (S7-5-1 sync `kw-week-employees-deleted-ids` + S7-5-2 Edge tombstone-aware przed UNION + restore-aware). Rozwiązuje problem **(B) resurrection**. Functional Obs **PASS**, Performance/AC8–AC11 (multi-device) **OPEN**.
@@ -442,4 +444,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-04 · prod UI 2.63.27 · HEAD `609ae53` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN) · PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN) · Edge-Opt-B MASTER AUDIT COMPLETE (DF NOT STARTED, IMPL BLOCKED) · S7-4A OBSERVATION · STABILIZATION WINDOW ACTIVE · Z-05 Device Required*
+*Ostatnia aktualizacja: 2026-07-04 (closeout `e4daaf4`) · prod UI 2.63.27 · HEAD `e4daaf4` (docs-only) · deploy SSOT `609ae53` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN) · PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN) · Evidence Gate OPEN · Edge-Opt-B MASTER AUDIT COMPLETE (DF NOT STARTED, IMPL BLOCKED) · S7-4A OBSERVATION · STABILIZATION WINDOW ACTIVE · Z-05 Device Required · backup lokalny klasy B (INFRA-DB-BACKUP-01 ON HOLD)*

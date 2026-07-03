@@ -39,6 +39,7 @@ playwright-report/
 
 # Lokalne backupy danych (zawierają hasła adminów — NIE commitować)
 backups/
+backup/
 restore-lista-plac-*.json
 
 # Tymczasowe / lokalne kopie

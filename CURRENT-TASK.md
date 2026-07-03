@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `609ae53`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (Obs OPEN)** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.27** · **HEAD `e4daaf4` (docs-only) · deploy SSOT `609ae53`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (Obs OPEN)** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -406,3 +406,4 @@
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |
+| **INFRA-DB-BACKUP-01** — podniesienie backupu z klasy B (Application) do A (Disaster Recovery): `supabase login` + link + pełny `supabase db dump` + certyfikacja | **ON HOLD** · priorytet średni · gate: poświadczenia DB + owner GO (backup lokalny klasy B wykonany 2026-07-04 w `backup/`, gitignored) |
