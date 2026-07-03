@@ -81,6 +81,11 @@ const REQUIRED_EXPORTS = [
   // ── P3.2-S1 — apply market quotes (merge-not-replace) ─────────────────────
   "applyMarketQuotesFromPreview",
   "mergeWorkMarketQuotes",
+  // ── P3.2-S2 — rollback (single undo) ──────────────────────────────────────
+  "MARKET_QUOTES_ROLLBACK_KIND",
+  "captureMarketQuotesSnapshot",
+  "restoreMarketQuotesSnapshot",
+  "fingerprintWorkCatalogStore",
 ];
 
 let pass = 0;

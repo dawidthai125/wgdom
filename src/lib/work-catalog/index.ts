@@ -335,3 +335,15 @@ export {
   type ApplyMarketQuotesReport,
   type MergeWorkMarketQuotesResult,
 } from "@/lib/work-catalog/apply-market-quotes";
+
+// ─── P3.2-S2 — rollback (single undo, pure) ─────────────────────────────────
+
+export {
+  MARKET_QUOTES_ROLLBACK_KIND,
+  captureMarketQuotesSnapshot,
+  restoreMarketQuotesSnapshot,
+  fingerprintWorkCatalogStore,
+  type MarketQuotesRollbackSnapshot,
+  type RestoreMarketQuotesReason,
+  type RestoreMarketQuotesResult,
+} from "@/lib/work-catalog/rollback-market-quotes";
