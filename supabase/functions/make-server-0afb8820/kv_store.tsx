@@ -11,6 +11,7 @@ CREATE TABLE kv_store_0afb8820 (
 
 // Prosty interfejs key-value dla danych aplikacji w Supabase (tabela kv_store_0afb8820).
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import { mgetWith } from "./kv-batch-order.ts"; // EDGE-OPT-A · A1
 
 const client = () => createClient(
   Deno.env.get("SUPABASE_URL"),
@@ -58,13 +59,18 @@ export const mset = async (keys: string[], values: any[]): Promise<void> => {
 };
 
 // Gets multiple key-value pairs from the database.
+// EDGE-OPT-A · A1 — order-preserving + null-fill (SELECT key, value → mgetWith).
+// Kontrakt: values.length === keys.length, values[i] ↔ keys[i], null dla braków,
+// duplikaty OK, keys=[] → [] bez zapytania. Rdzeń w ./kv-batch-order.ts.
 export const mget = async (keys: string[]): Promise<any[]> => {
-  const supabase = client()
-  const { data, error } = await supabase.from("kv_store_0afb8820").select("value").in("key", keys);
-  if (error) {
-    throw new Error(error.message);
-  }
-  return data?.map((d) => d.value) ?? [];
+  return mgetWith(keys, async (ks) => {
+    const supabase = client();
+    const { data, error } = await supabase.from("kv_store_0afb8820").select("key, value").in("key", ks);
+    if (error) {
+      throw new Error(error.message);
+    }
+    return (data ?? []) as { key: string; value: any }[];
+  });
 };
 
 // Deletes multiple key-value pairs from the database.

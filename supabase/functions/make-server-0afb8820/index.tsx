@@ -101,7 +101,8 @@ app.get("/make-server-0afb8820/health", (c) => {
 // Batch get multiple keys at once (preserves key order)
 app.post("/make-server-0afb8820/batch-get", async (c) => {
   const { keys } = await c.req.json();
-  const values = await Promise.all(keys.map((k: string) => kv.get(k)));
+  // EDGE-OPT-A · A2 — 1 order-preserving batch fetch (SELECT ... IN) zamiast N× kv.get.
+  const values = await kv.mget(keys);
   return c.json({ values });
 });
 
