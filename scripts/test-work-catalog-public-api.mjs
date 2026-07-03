@@ -78,6 +78,9 @@ const REQUIRED_EXPORTS = [
   "csvRowToAdapterRecord",
   "resolveCsvExternalId",
   "createSeededMarketWorkMappingStore",
+  // ── P3.2-S1 — apply market quotes (merge-not-replace) ─────────────────────
+  "applyMarketQuotesFromPreview",
+  "mergeWorkMarketQuotes",
 ];
 
 let pass = 0;

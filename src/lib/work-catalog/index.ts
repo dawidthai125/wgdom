@@ -325,3 +325,13 @@ export {
   type MarketCsvPreviewRow,
   type MarketCsvPreviewStatus,
 } from "@/lib/work-catalog/market-csv-preview";
+
+// ─── P3.2-S1 — apply market quotes (merge-not-replace, pure) ────────────────
+
+export {
+  applyMarketQuotesFromPreview,
+  mergeWorkMarketQuotes,
+  type ApplyMarketQuotesOptions,
+  type ApplyMarketQuotesReport,
+  type MergeWorkMarketQuotesResult,
+} from "@/lib/work-catalog/apply-market-quotes";
