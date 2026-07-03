@@ -228,6 +228,27 @@ export {
   type WorkMarketQuotes,
 } from "@/lib/work-catalog/market-sources";
 
+// ─── P3.1-S2 · WC-P3.3-S1 — market average engine (public API) ─────────────
+
+export {
+  DEFAULT_MARKET_RESOLUTION_CONTEXT,
+  DEFAULT_MARKET_SOURCE_ENGINE_CONFIG,
+  computeConfidenceWeightedAverage,
+  computeMarketAverage,
+  computeMarketAverageForWork,
+  defaultMarketResolutionContext,
+  defaultMarketSourceEngineConfig,
+  isMarketSnapshotEligible,
+  pickDominantRegionCode,
+  resolveLegacySeedPrice,
+  resolveOriginMarketQuote,
+  type MarketAverageResult,
+  type MarketAverageStrategy,
+  type MarketResolutionContext,
+  type MarketSourceEngineConfig,
+  type ResolvedMarketQuote,
+} from "@/lib/work-catalog/market-average-engine";
+
 // ─── P3.1-S3 — market source adapters (kontrakt adaptera, pure) ─────────────
 
 export {
