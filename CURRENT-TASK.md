@@ -1,20 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** (runtime bez zmian) · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 AUDIT COMPLETE · DESIGN FREEZE APPROVED · IMPLEMENT WAITING OWNER COMMAND** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `d2a3d90`** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED (IMPLEMENT COMPLETE · BUILD PASS · TEST PASS)** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
 
 ---
 
-## PR-PAY-S6 — Archive Restore Eligibility Guard · **DESIGN FREEZE APPROVED**
+## PR-PAY-S6 — Archive Restore Eligibility Guard · **CLOSED**
 
 | Pole | Wartość |
 |------|---------|
 | **AUDIT** | **COMPLETE** |
 | **DESIGN FREEZE** | **APPROVED** |
-| **IMPLEMENT** | **WAITING OWNER COMMAND** |
+| **IMPLEMENT** | **COMPLETE** · HEAD `d2a3d90` |
+| **BUILD** | **PASS** |
+| **TEST** | **PASS** — S6 22 PASS · gate regresji (S2/RB/closed/B4/B6) PASS |
 | **SSOT** | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
-| **RCA** | Baner (`shouldShowPayrollRestoreBanner`) i `restoreWeekFromArchive` nie stosują tombstonów PR-PAY-S2 do strony archiwum → false positive + wskrzeszanie starych/smoke pracowników |
-| **Plan IMPLEMENT** | S6-1 pure helper `eligibleArchiveWeekEmployees` · S6-2 baner z eligible (G1) · S6-3 restore z eligible (G2) · S6-4 test regresji · AC1–AC7 |
-| **Zakaz** | implementacja / kod / BUILD / TEST — do jawnego owner command startu bundla |
+| **RCA** | Baner (`shouldShowPayrollRestoreBanner`) i `restoreWeekFromArchive` nie stosowały tombstonów PR-PAY-S2 do strony archiwum → false positive + wskrzeszanie starych/smoke pracowników |
+| **Fix** | S6-1 pure helper `eligibleArchiveWeekEmployees` (reuse S2) · S6-2 baner z eligible (G1) · S6-3 restore z eligible (G2) · S6-4 test `test-payroll-archive-restore-eligibility-s6.mjs` · AC1–AC7 spełnione |
+| **Zakres** | `cloud-sync.ts` · `PayrollView.tsx` · `App.tsx` · nowy test — bez zmian merge/Edge/metrics/KV |
 
 ---
 
@@ -211,6 +213,7 @@
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
+| **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |

@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `fd56cf7` |
+| **Commit (HEAD `main`)** | `d2a3d90` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · Payroll P0 Incident **CLOSED** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · Payroll P0 Incident **CLOSED** · PR-PAY-S6 **CLOSED** |
 
 ---
 
@@ -18,17 +18,19 @@
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
 | **Wersja UI (prod)** | **v2.63.27** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | `fd56cf7` |
+| **HEAD `main`** | `d2a3d90` |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.27** to ostatni wpis w `changelog-data.ts`. Po niej na `main` trafiły zmiany **bez bumpu numeru UI** (biblioteka / test‑infra / hotfixy P0), zawarte w HEAD `fd56cf7`:
+Wersja UI **v2.63.27** to ostatni wpis w `changelog-data.ts`. Po niej na `main` trafiły zmiany **bez bumpu numeru UI** (biblioteka / test‑infra / hotfixy P0), zawarte w HEAD `d2a3d90`:
 
 - **Version Banner Refresh** — Build Identity (commit) — `e255aef`
 - **Work Catalog P3.1** (Market Average Engine) + **P3.2** (Import Persistence) — `c8e1b9e`…`f37b619`
 - **PAYROLL P0 Incident S1–S3 + S5** (cross‑week guard, tombstones, zero‑hours, settled persistence) — `1d5b0b7`…`fd56cf7`
+- **Work Catalog P3.3 S1–S3** (Public API Engine · status z engine · confidence + sources) — `0b3ec5a`…`fe1d4f5`
+- **PR‑PAY‑S6** Archive Restore Eligibility Guard — `d2a3d90`
 
 ---
 
@@ -79,7 +81,7 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 | Temat | Status | SSOT |
 |-------|--------|------|
 | **STABILIZATION WINDOW** (AD‑10, Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
-| **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **AUDIT COMPLETE · DESIGN FREEZE APPROVED · IMPLEMENT WAITING OWNER COMMAND** | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
+| **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **CLOSED** · IMPLEMENT COMPLETE · BUILD PASS · TEST PASS · HEAD `d2a3d90` | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
 | **Z‑05 Field Validation** (mobile, iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · DESIGN FREEZE (decyzje D‑A…D‑D pending)** | [`docs/work-catalog/`](docs/work-catalog/) |
 

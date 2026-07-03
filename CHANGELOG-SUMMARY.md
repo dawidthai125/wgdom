@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `fd56cf7` |
+| **Commit (HEAD `main`)** | `d2a3d90` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · PR-PAY-S6 **CLOSED** |
 
 ---
 
@@ -21,8 +21,9 @@ Seria naprawcza **P0 Incident** (integralność danych listy płac przy sync/mer
 | **PR‑PAY‑S2** | Deletion Tombstones (week‑scoped) — usunięty pracownik nie wraca | `d6c6117` |
 | **PR‑PAY‑S3** | Zero Hours Persistence — lokalne wyzerowanie wygrywa nad bogatszą chmurą przy remisie | `d496b88` |
 | **PR‑PAY‑S5** | Settled Status Persistence — „Rozliczony→Oczekujący" nie wraca (LWW `settledUpdatedAt`) | `fd56cf7` |
+| **PR‑PAY‑S6** | Archive Restore Eligibility Guard — baner (G1) i restore (G2) używają eligible archive roster (archiwum minus tombstony S2); koniec false positive + wskrzeszania usuniętych/smoke | `d2a3d90` |
 
-Wcześniej (CLOSED): **Etap 2 B1–B6 + Restore Banner** (v2.63.17–24), **Guard Phase B3/B3.1/B3.2** (v2.63.18–20). **Payroll P0 Incident — CLOSED.**
+Wcześniej (CLOSED): **Etap 2 B1–B6 + Restore Banner** (v2.63.17–24), **Guard Phase B3/B3.1/B3.2** (v2.63.18–20). **Payroll P0 Incident — CLOSED.** **PR‑PAY‑S6 — CLOSED** (IMPLEMENT COMPLETE · BUILD PASS · TEST PASS).
 
 ---
 

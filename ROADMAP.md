@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `fd56cf7` |
+| **Commit (HEAD `main`)** | `d2a3d90` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · PR-PAY-S6 **CLOSED** |
 
 ---
 
@@ -15,6 +15,7 @@
 
 | Pozycja | Wersja / commit |
 |---------|-----------------|
+| **PR‑PAY‑S6** — Archive Restore Eligibility Guard (eligible archive roster: baner G1 + restore G2) | `d2a3d90` |
 | **PAYROLL P0 Incident** — S1 week guard · S2 tombstones · S3 zero‑hours · S5 settled persistence | `1d5b0b7`→`fd56cf7` |
 | **Work Catalog P3.2** — Import Persistence (apply / rollback / commit market quotes) | `ba2699d`→`f37b619` |
 | **Work Catalog P3.1** — Market Average Engine + adapters + CSV preview + seed | `c8e1b9e`→`04cb034` |
@@ -46,7 +47,7 @@ Pełny rejestr historyczny: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HAN
 | Pozycja | Stan | SSOT |
 |---------|------|------|
 | **STABILIZATION WINDOW** (AD‑10 · Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
-| **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **AUDIT COMPLETE · DESIGN FREEZE APPROVED · IMPLEMENT WAITING OWNER COMMAND** | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
+| **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **CLOSED** · IMPLEMENT COMPLETE · BUILD PASS · TEST PASS · HEAD `d2a3d90` | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
 | **Z‑05 Field Validation** (mobile iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · design freeze pending (D‑A…D‑D)** | [`docs/work-catalog/`](docs/work-catalog/) |
 
