@@ -347,3 +347,13 @@ export {
   type RestoreMarketQuotesReason,
   type RestoreMarketQuotesResult,
 } from "@/lib/work-catalog/rollback-market-quotes";
+
+// ─── P3.2-S3 — commit orchestration (load→capture→apply→save→verify) ────────
+
+export {
+  commitMarketQuotesImport,
+  type CommitMarketQuotesDeps,
+  type CommitMarketQuotesOptions,
+  type CommitMarketQuotesReport,
+  type CommitMarketQuotesStatus,
+} from "@/lib/work-catalog/commit-market-quotes";

@@ -86,6 +86,8 @@ const REQUIRED_EXPORTS = [
   "captureMarketQuotesSnapshot",
   "restoreMarketQuotesSnapshot",
   "fingerprintWorkCatalogStore",
+  // ── P3.2-S3 — commit orchestration ────────────────────────────────────────
+  "commitMarketQuotesImport",
 ];
 
 let pass = 0;
