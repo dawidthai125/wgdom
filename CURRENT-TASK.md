@@ -35,10 +35,11 @@
 | **H1** batch-set timeout = RC | **UNCONFIRMED** — do requestId · error.message · Edge stack · Postgres log |
 | **S7-2** hardening (chunk/izolacja `mset`) | **DRAFT** — NO GO bez Root Cause Confirmation |
 | **S7-3** singleton Supabase client | **DRAFT** |
-| **S7-4** Cloud Sync Optimization (debounce · min-interval · focus/visibility throttle · change-detection · ETag audit) | **🥇 PRIORYTET · DESIGN FREEZE READY · WAITING FOR OWNER GO (IMPLEMENT)** · [`docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
+| **S7-4A** Cloud Sync Optimization (G1 debounce · G2 min-interval · G3/G4 focus/visibility throttle · AC4 no-change=no-push · AC5 metrics) | ✅ **IMPLEMENT COMPLETE · BUILD PASS · TEST PASS (17/17 + regresja)** → **PRODUCTION OBSERVATION 24–48h** · [`DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
+| **G5 Delta Push / G6 ETag** | **OUT OF SCOPE** — decyzja po obserwacji |
 | **S7-5** resurrection guard (tombstony na Edge / `replaceWeekEmployeesKeys`) | **DRAFT** |
-| **Rewizja planu** | Kolejność: **S7-4 (optymalizacja sync) → Observation 24–48h → warunkowo S7-2 (jeśli 500 nadal)**. Nowe dane: Supabase Resource Exhaustion + wysoka liczba batch-get |
-| **Zakaz** | implementacja bez owner GO; S7-4 bez zmian merge/LWW/Payroll/tombstones/kv.mset; S7-2 dopiero po Production Observation |
+| **Rewizja planu** | **S7-4A wdrożone → Observation 24–48h → warunkowo S7-2 (jeśli batch-set 500 nadal)**. Nowe dane: Supabase Resource Exhaustion + wysoka liczba batch-get |
+| **Zakaz** | S7-2/S7-5/G5/G6 bez owner GO; S7-4A nie ruszał merge/LWW/Payroll/tombstones/Edge/kv.mset |
 
 ---
 
@@ -236,7 +237,7 @@
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
-| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause AUDIT COMPLETE · **S7-4 DESIGN FREEZE READY — PRIORYTET, waiting owner GO** · S7-2 warunkowo po Observation · S7-3/S7-5 DRAFT · H1 UNCONFIRMED |
+| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause · **S7-4A IMPLEMENT COMPLETE (BUILD/TEST PASS) → OBSERVATION 24–48h** · S7-2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7-3/S7-5 DRAFT · H1 UNCONFIRMED |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |

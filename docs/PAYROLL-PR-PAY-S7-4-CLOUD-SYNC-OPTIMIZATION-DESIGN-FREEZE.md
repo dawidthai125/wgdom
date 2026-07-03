@@ -1,7 +1,11 @@
 # PAYROLL — PR-PAY-S7-4 · Cloud Sync Optimization · DESIGN FREEZE
 
-> **Status:** `DESIGN FREEZE` · **IMPLEMENT: WAITING FOR OWNER GO**
+> **Status:** `S7-4A IMPLEMENT COMPLETE · BUILD PASS · TEST PASS` → **PRODUCTION OBSERVATION 24–48h**
 > **Data:** 2026-07-03 · **HEAD `915da77`** · Production **DEGRADED** · P0 ACTIVE
+>
+> **✅ S7-4A (owner GO — G1–G4 only) wdrożone:** debounce (`AUTO_SYNC_DEBOUNCE_MS`) · minimum interval + focus/visibility throttle (`shouldPullNow`, `MIN_PULL_INTERVAL_MS=15s`) · AC4 no-change=no-push (`bundleFingerprint`, poziom bundla — **NIE** delta push) · AC5 metrics (`getSyncMetrics` / `__wgdomSyncMetrics()` w konsoli produkcyjnej).
+> **OUT OF SCOPE (potwierdzone):** G5 Delta Push · G6 ETag/Hash — do decyzji po obserwacji.
+> **Test:** `scripts/test-payroll-cloud-sync-frequency-s7-4.mjs` 17/17 PASS · gate regresji (S5/S2/S6/RB/B4/B6) PASS · BUILD PASS.
 > **Bazuje na:** [`PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md`](PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) (CONFIRMED CONTRIBUTING CAUSE) · [`PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md)
 
 ```text
@@ -99,9 +103,11 @@ Po wdrożeniu S7-4 → **obserwacja produkcyjna 24–48h**:
 |------|--------|
 | **AUDIT (S7A)** | **COMPLETE** — CONFIRMED CONTRIBUTING CAUSE |
 | **Nowe dane** | Supabase Resource Exhaustion + wysoka liczba batch-get (owner) |
-| **DESIGN FREEZE (S7-4)** | **READY — WAITING FOR OWNER GO** |
-| **IMPLEMENT** | **NO GO** — do jawnej komendy ownera (`GO S7-4 IMPLEMENT`) |
-| **S7-2** | pozostaje **NO GO** do Production Observation po S7-4 |
+| **DESIGN FREEZE (S7-4)** | **APPROVED** |
+| **S7-4A IMPLEMENT (G1–G4 + AC4/AC5)** | ✅ **COMPLETE · BUILD PASS · TEST PASS** |
+| **PRODUCTION OBSERVATION** | **24–48h** — mierzyć batch-get / batch-set (`__wgdomSyncMetrics()`), resource exhaustion, czy `batch-set 500` nadal |
+| **G5 Delta Push / G6 ETag** | **OUT OF SCOPE** — decyzja po obserwacji |
+| **S7-2** | **NO GO** — GO tylko jeśli `batch-set 500` nadal po S7-4A |
 
 **One Bundle = One Goal** — S7-4 wyłącznie optymalizacja częstotliwości/rozmiaru sync; Edge/`kv.mset` (S7-2) osobny bundle.
 

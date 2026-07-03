@@ -125,6 +125,13 @@ import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation } from "@/lib/cloud-sync-mutation-guard";
+import {
+  AUTO_SYNC_DEBOUNCE_MS,
+  shouldPullNow,
+  bundleFingerprint,
+  recordPushSkipped,
+  getSyncMetrics,
+} from "@/lib/cloud-sync-throttle";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
@@ -303,6 +310,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const deleteJobsInFlightRef = useRef(false);
   const syncInFlightRef = useRef(false);
   const pendingCloudSyncRef = useRef(false);
+  // PR-PAY-S7-4A — G2/G3/G4 throttle pull (batch-get) + AC4 no-change=no-push
+  const lastPullAtRef = useRef(0);
+  const lastPushedBundleHashRef = useRef("");
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   useModalScrollLock(showSaveConfirm);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
@@ -688,6 +698,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (deleteJobsInFlightRef.current) return;
     if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
+    // PR-PAY-S7-4A · G2/G3/G4 — minimum interval; focus+visibility w oknie = maks. 1 pull (AC2/AC3)
+    if (!shouldPullNow(lastPullAtRef.current, Date.now())) return;
+    lastPullAtRef.current = Date.now();
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
     try {
@@ -734,6 +747,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setSyncStatus("saving");
     setSyncError("");
     try {
+      lastPullAtRef.current = Date.now(); // PR-PAY-S7-4A — pull tu też liczy się do min-interval batch-get
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
       let opReadState = operationalNotesReadState;
@@ -745,7 +759,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
-      await pushMergedDataBundleToCloud(merged);
+      // PR-PAY-S7-4A · AC4 — brak zmian = brak push (fingerprint całego bundla; NIE delta push).
+      // Semantyka merge/LWW/tombstones bez zmian — gate wyłącznie na batch-set (kw-* data bundle).
+      const outgoingHash = bundleFingerprint(merged);
+      if (outgoingHash === lastPushedBundleHashRef.current) {
+        recordPushSkipped();
+      } else {
+        await pushMergedDataBundleToCloud(merged);
+        lastPushedBundleHashRef.current = outgoingHash;
+      }
       const opIdx = DATA_KEYS.indexOf("kw-operational-notes");
       await pushOperationalNotesToCloud(
         opIdx >= 0 ? merged[opIdx] : operationalNotes,
@@ -755,6 +777,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       );
       await refreshAuditHubAuxFromCloud();
       setSyncStatus("saved");
+      console.info("[sync-metrics]", getSyncMetrics()); // AC5 — obserwowalne w produkcji (24–48h)
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
     } catch (e) {
@@ -882,7 +905,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       pendingAutoSyncRef.current = false;
       void runCloudSync();
-    }, 2000);
+    }, AUTO_SYNC_DEBOUNCE_MS);
   }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
 
   useEffect(() => {
@@ -906,6 +929,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     initialSyncDone.current = true;
     queueMicrotask(() => { autoSyncMountSettledRef.current = true; });
+    // PR-PAY-S7-4A · AC5 — odczyt metryk sync w konsoli produkcyjnej: __wgdomSyncMetrics()
+    (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
   }, []);
 
   /** Deferred bootstrap scala kw-operational-notes w LS — odśwież notes + read-state w React. */

@@ -89,6 +89,7 @@ import {
   refreshUserClassificationDictionaryCacheFromLocalStorage,
 } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
+import { recordBatchGet, recordBatchSet } from "@/lib/cloud-sync-throttle";
 import {
   mergeSecurityAuditLog,
   normalizeSecurityAuditLog,
@@ -2177,6 +2178,7 @@ export async function pushKeysToCloud(
   const pushValues = guarded.values;
   const pushOptions = guarded.options;
   const safeValues = pushKeys.map((k, i) => sanitizeValueForCloud(k, pushValues[i]));
+  recordBatchSet(); // AC5 — production metrics
   const res = await fetch(`${API_BASE}/batch-set`, {
     method: "POST",
     headers: API_HEADERS,
@@ -2634,6 +2636,7 @@ export async function fetchKeysFromCloud(
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
+  recordBatchGet(); // AC5 — production metrics
   const res = await fetch(`${API_BASE}/batch-get`, {
     method: "POST",
     headers: API_HEADERS,
