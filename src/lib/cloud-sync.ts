@@ -886,10 +886,15 @@ function pickSettledByTimestamps(l: Record<string, unknown>, c: Record<string, u
       if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return false;
       return cSettled;
     }
-    // Remis — nie tracimy rozliczenia (np. sync z dwóch kart w tej samej sekundzie)
-    return lSettled || cSettled;
+    // PR-PAY-S5 — remis settledUpdatedAt (oba > 0): deterministycznie LOCAL.
+    // Świadome cofnięcie Rozliczony→Oczekujący na bieżącym urządzeniu nie może być
+    // przywracane przez OR (localSettled || cloudSettled).
+    return lSettled;
   }
-  // Legacy (bez settledUpdatedAt): nie tracimy rozliczeń z innej karty / admina
+  // Legacy (brak settledUpdatedAt po OBU stronach): brak sygnału czasowego świadomej
+  // decyzji (realne cofnięcie zawsze ustawia settledUpdatedAt > 0 → gałąź LWW powyżej).
+  // Zachowujemy OR, aby nie zgubić istniejącego rozliczenia (np. rekord świeżo dodany
+  // z katalogu z settled=false vs zarchiwizowane settled=true bez znacznika).
   return lSettled || cSettled;
 }
 
@@ -1659,6 +1664,33 @@ export function sanitizeWeekEmployeesForTargetRange(
  * align + sanitize + week mismatch (20.1C.1) + P11 richness override (ten sam tydzień).
  * Anti-leak — wyłącznie runtime: applyRuntimePayrollAntiLeak().
  */
+/**
+ * PR-PAY-S5 — po adopcji bogatszego składu z chmury (richness override) zachowaj wynik
+ * LWW statusu rozliczenia względem lokalu. Zmienia WYŁĄCZNIE settled/settledUpdatedAt
+ * (godziny/dni/pozostałe pola adoptowanego rekordu pozostają nietknięte).
+ */
+function preserveSettledLwwFromLocal(adopted: unknown[], localEmps: unknown): unknown[] {
+  const local = normalizeArrayValue(localEmps);
+  if (local.length === 0) return adopted;
+  const localByKey = new Map<string, Record<string, unknown>>();
+  for (const item of local) {
+    if (item && typeof item === "object") {
+      localByKey.set(
+        weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }),
+        item as Record<string, unknown>,
+      );
+    }
+  }
+  return adopted.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const c = item as Record<string, unknown>;
+    const l = localByKey.get(weekEmployeeMergeKey(c as { id?: string; directoryId?: string; name?: string }));
+    if (!l) return item;
+    const settled = pickSettledByTimestamps(l, c);
+    return { ...c, settled, settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled) };
+  });
+}
+
 export function finalizePayrollBundleMerge(
   merged: unknown[],
   localValues: unknown[],
@@ -1700,8 +1732,12 @@ export function finalizePayrollBundleMerge(
   if (cloudR > localR || cloudM.activeDays > localM.activeDays) {
     // PR-PAY-S2 — richness override nie może wskrzesić usuniętego (tombstone respektowany).
     const tombstoned = deletedWeekEmployeeMergeKeySet(getDeletedWeekEmployeeKeys(), targetFrom, targetTo);
+    const adopted = mergeWeekEmployees([], filterDeletedWeekEmployees(cloudEmps, tombstoned));
     const next = [...out];
-    next[empIdx] = mergeWeekEmployees([], filterDeletedWeekEmployees(cloudEmps, tombstoned));
+    // PR-PAY-S5 — richness override adoptuje bogatszy skład/godziny z chmury, ale NIE
+    // może nadpisać nowszego statusu rozliczenia. settled/settledUpdatedAt wyłącznie LWW
+    // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
+    next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
     return next;
   }
 
