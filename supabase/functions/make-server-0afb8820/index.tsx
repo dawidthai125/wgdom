@@ -81,6 +81,18 @@ app.use(
   }),
 );
 
+// PR-PAY-S7 · S7-1 — globalna diagnostyka: nieprzechwycone błędy → 500 z {ok,error,requestId}.
+// Tylko diagnostyka: nie zmienia logiki route'ów, które same zwracają własne błędy.
+app.onError((err, c) => {
+  const requestId = crypto.randomUUID();
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(
+    `[edge-error] requestId=${requestId} method=${c.req.method} path=${c.req.path} error=${message}`,
+    err instanceof Error ? err.stack : undefined,
+  );
+  return c.json({ ok: false, error: message, requestId }, 500);
+});
+
 app.get("/make-server-0afb8820/health", (c) => {
   return c.json({ status: "ok" });
 });
@@ -567,6 +579,10 @@ function coerceKvValue(key: string, value: unknown): unknown {
 
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
+  // PR-PAY-S7 · S7-1 — diagnostyka: przechwyć realny błąd (np. statement timeout w kv.mset)
+  // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
+  const requestId = crypto.randomUUID();
+  try {
   const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [] } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   const archBatchIdx = keys.indexOf("kw-archive");
@@ -695,6 +711,14 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
     console.log("daily full backup:", e);
   }
   return c.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[batch-set] requestId=${requestId} FAILED error=${message}`,
+      error instanceof Error ? error.stack : undefined,
+    );
+    return c.json({ ok: false, error: message, requestId }, 500);
+  }
 });
 
 /** Status kopii zapasowych robót w chmurze. */
