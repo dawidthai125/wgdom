@@ -2,16 +2,18 @@ import { useMemo } from "react";
 import type { CatalogWork } from "@/lib/work-catalog";
 import { workCatalogUnitLabelPl } from "@/app/work-catalog/work-catalog-list";
 import { formatCompanyPricePlnLabel } from "@/app/work-catalog/work-catalog-bulk-price";
-import { buildMarketComparisonForWork } from "@/app/work-catalog/work-catalog-market-comparison";
+import { buildEngineMarketComparisonForWork } from "@/app/work-catalog/work-catalog-market-engine";
 
 type Props = {
   work: CatalogWork;
 };
 
 export function WorkCatalogMarketComparison({ work }: Props) {
+  // WC-P3.3-S2: status i cena rynkowa liczone WYŁĄCZNIE przez Public API Engine (S1).
+  // UI nie robi własnych obliczeń — band 🟢🟡🔴 pochodzi z engine.comparison (reuse P2.5).
   const comparison = useMemo(
-    () => buildMarketComparisonForWork(work),
-    [work.companyPricePln, work.marketAvgPln, work.updatedAt],
+    () => buildEngineMarketComparisonForWork(work).comparison,
+    [work.companyPricePln, work.marketAvgPln, work.marketQuotes, work.updatedAt],
   );
 
   const unitSuffix = workCatalogUnitLabelPl(work.unit);
