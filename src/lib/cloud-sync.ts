@@ -573,6 +573,31 @@ export function filterDeletedWeekEmployees(list: unknown[], tombstoned: Set<stri
   });
 }
 
+// ─── PR-PAY-S6 · S6-1 — Archive Restore Eligibility (eligible archive roster) ─
+/**
+ * „Eligible archive roster" = skład archiwum tygodnia po odjęciu tombstonów Week
+ * Employee (PR-PAY-S2). Pure — reuse `deletedWeekEmployeeMergeKeySet` +
+ * `filterDeletedWeekEmployees` (Zero Duplicate Logic, week-scope zachowany).
+ *
+ * Używany przez baner (G1) i restore (G2), aby nie liczyć/wskrzeszać usuniętych
+ * (starych / smoke) pracowników obecnych wyłącznie w `kw-archive`.
+ *
+ * `deletedKeys` można wstrzyknąć (testy). Domyślnie czyta lokalne tombstony
+ * (`getDeletedWeekEmployeeKeys`, bezpieczne — try/catch na braku storage).
+ * Bez `weekFrom/weekTo` (pusty `weekRangeKey`) zbiór tombstonów jest pusty →
+ * zwraca surowy skład (kompatybilność wsteczna).
+ */
+export function eligibleArchiveWeekEmployees(
+  archivedWeekEmployees: unknown,
+  weekFrom: unknown,
+  weekTo: unknown,
+  deletedKeys: string[] = getDeletedWeekEmployeeKeys(),
+): unknown[] {
+  const list = Array.isArray(archivedWeekEmployees) ? archivedWeekEmployees : [];
+  const tombstoned = deletedWeekEmployeeMergeKeySet(deletedKeys, weekFrom, weekTo);
+  return filterDeletedWeekEmployees(list, tombstoned);
+}
+
 export function normalizeDeletedEmployeeLeaveIds(raw: unknown): string[] {
   return normalizeDeletedJobIds(raw);
 }
@@ -1087,13 +1112,31 @@ export function archivePayrollRicherThanLive(
   );
 }
 
-/** Czy pokazać baner przywrócenia z archiwum (bez gate closed week — PayrollView). */
+/**
+ * Czy pokazać baner przywrócenia z archiwum (bez gate closed week — PayrollView).
+ *
+ * PR-PAY-S6 · G1 — porównanie liczone WYŁĄCZNIE na eligible archive roster (bez
+ * tombstonów PR-PAY-S2). Gdy podano `weekFrom/weekTo`, usunięci (starzy / smoke)
+ * pracownicy obecni tylko w archiwum nie wywołują false positive banera (AC1).
+ * Realna utrata nietombstonowanych danych nadal daje baner ON (AC2/AC7).
+ * Bez `weekFrom/weekTo` zachowanie jak dawniej (RB v2.63.24).
+ */
 export function shouldShowPayrollRestoreBanner(
   weekEmployees: unknown[],
   archivedWeekEmployees?: unknown[] | null,
+  weekFrom?: unknown,
+  weekTo?: unknown,
+  deletedKeys?: string[],
 ): boolean {
   if (!Array.isArray(archivedWeekEmployees) || archivedWeekEmployees.length === 0) return false;
-  return archivePayrollRicherThanLive(archivedWeekEmployees, weekEmployees);
+  const eligible = eligibleArchiveWeekEmployees(
+    archivedWeekEmployees,
+    weekFrom,
+    weekTo,
+    deletedKeys ?? getDeletedWeekEmployeeKeys(),
+  );
+  if (eligible.length === 0) return false;
+  return archivePayrollRicherThanLive(eligible, weekEmployees);
 }
 
 /** Czy outgoing spada >50% vs chmura (dni aktywne lub godziny). */

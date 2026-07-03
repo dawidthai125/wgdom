@@ -714,7 +714,7 @@ export function PayrollView({
   const showRestoreBanner = Boolean(
     !isClosedWeek &&
     onRestoreFromArchive &&
-    shouldShowPayrollRestoreBanner(weekEmployees, archivedForWeek?.weekEmployees),
+    shouldShowPayrollRestoreBanner(weekEmployees, archivedForWeek?.weekEmployees, weekFrom, weekTo),
   );
 
   // Directory employees not yet in this week

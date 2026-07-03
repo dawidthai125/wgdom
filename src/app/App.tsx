@@ -50,6 +50,7 @@ import {
   addDeletedRecoverableChargeId,
   addDeletedArchiveId,
   addDeletedWeekEmployeeKey,
+  eligibleArchiveWeekEmployees,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
   pushPayrollWeekAfterRollover,
@@ -1206,8 +1207,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       alert("Brak pełnego archiwum dla tego tygodnia. Sprawdź zakładkę Archiwum lub import backup JSON (górny pasek / ⚙ Ustawienia).");
       return;
     }
+    // PR-PAY-S6 · G2 — przywracaj wyłącznie eligible archive roster (bez tombstonów
+    // PR-PAY-S2). Nigdy surowego snap.weekEmployees → brak wskrzeszania usuniętych
+    // / smoke pracowników. Reuse eligibleArchiveWeekEmployees (Zero Duplicate Logic).
+    const eligible = eligibleArchiveWeekEmployees(snap.weekEmployees, weekFrom, weekTo) as WeekEmployee[];
+    if (!eligible.length) {
+      alert("Archiwum tego tygodnia zawiera wyłącznie usuniętych pracowników — brak uprawnionego składu do przywrócenia.");
+      return;
+    }
     if (!window.confirm(`Przywrócić godziny, Sob.pr. i dodatkowe wpisy z archiwum (${fmtDate(weekFrom)} – ${fmtDate(weekTo)})?`)) return;
-    setWeekEmployees(JSON.parse(JSON.stringify(snap.weekEmployees)) as WeekEmployee[]);
+    setWeekEmployees(JSON.parse(JSON.stringify(eligible)) as WeekEmployee[]);
   }, [savedWeeks, weekFrom, weekTo, setWeekEmployees]);
 
   const restoreAllDataFromCloud = async (source: "prev" | "prev2" | "today" = "prev") => {
