@@ -51,7 +51,7 @@ Pełny rejestr historyczny: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HAN
 |---------|------|------|
 | **STABILIZATION WINDOW** (AD‑10 · Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
 | **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **CLOSED** · IMPLEMENT COMPLETE · BUILD PASS · TEST PASS · HEAD `d2a3d90` | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
-| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **OBSERVATION — waiting for production evidence** (H1 UNCONFIRMED) · **S7A frequency = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4 READY (waiting owner)** · S7‑2/S7‑3/S7‑5 DRAFT | [`docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) |
+| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **S7A = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4 Cloud Sync Optimization = DESIGN FREEZE READY (PRIORYTET, waiting owner GO)** · S7‑2 warunkowo po Observation 24–48h · S7‑3/S7‑5 DRAFT · H1 UNCONFIRMED | [`S7`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`S7-4 DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
 | **Z‑05 Field Validation** (mobile iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · design freeze pending (D‑A…D‑D)** | [`docs/work-catalog/`](docs/work-catalog/) |
 

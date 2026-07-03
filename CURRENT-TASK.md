@@ -35,9 +35,10 @@
 | **H1** batch-set timeout = RC | **UNCONFIRMED** — do requestId · error.message · Edge stack · Postgres log |
 | **S7-2** hardening (chunk/izolacja `mset`) | **DRAFT** — NO GO bez Root Cause Confirmation |
 | **S7-3** singleton Supabase client | **DRAFT** |
-| **S7-4** klient retry/backoff + pull-merge read-only + S7A (diff push, debounce pull, ETag, cross-tab) | **AUDIT COMPLETE · READY · WAITING FOR OWNER COMMAND** |
+| **S7-4** Cloud Sync Optimization (debounce · min-interval · focus/visibility throttle · change-detection · ETag audit) | **🥇 PRIORYTET · DESIGN FREEZE READY · WAITING FOR OWNER GO (IMPLEMENT)** · [`docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
 | **S7-5** resurrection guard (tombstony na Edge / `replaceWeekEmployeesKeys`) | **DRAFT** |
-| **Zakaz** | implementacja S7-2…S7-5 — do jawnego owner command; S7-2 dopiero po Root Cause Confirmation (H1) |
+| **Rewizja planu** | Kolejność: **S7-4 (optymalizacja sync) → Observation 24–48h → warunkowo S7-2 (jeśli 500 nadal)**. Nowe dane: Supabase Resource Exhaustion + wysoka liczba batch-get |
+| **Zakaz** | implementacja bez owner GO; S7-4 bez zmian merge/LWW/Payroll/tombstones/kv.mset; S7-2 dopiero po Production Observation |
 
 ---
 
@@ -235,7 +236,7 @@
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
-| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **OBSERVATION** waiting for production evidence (H1 UNCONFIRMED) · **S7A** contributing cause AUDIT COMPLETE · **S7-4 READY (waiting owner)** · S7-2/S7-3/S7-5 DRAFT |
+| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause AUDIT COMPLETE · **S7-4 DESIGN FREEZE READY — PRIORYTET, waiting owner GO** · S7-2 warunkowo po Observation · S7-3/S7-5 DRAFT · H1 UNCONFIRMED |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |
