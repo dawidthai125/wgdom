@@ -1,8 +1,43 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `f8620b2`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `609ae53`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (Obs OPEN)** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
 
-> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION PR-PAY-S7/S7-4A + dokumentacja. **PR-PAY-S7-5 Resurrection Guard: DESIGN FREEZE APPROVED — IMPLEMENT WAITING (gate: zakończenie Production Observation S7-4A)**, rollout etapowy (ETAP 1 = S7-5-1+S7-5-2; ETAP 2 warunkowy). Zakaz implementacji S7-2/S7-3/S7-4/S7-5 bez owner GO.
+> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
+
+---
+
+## PAYROLL & SUPABASE RECOVERY PROGRAM — **ACTIVE** · faza: **PRODUCTION OBSERVATION**
+
+> **Status programu:** ACTIVE. **Nie implementujemy równolegle kilku bundli** — każdy przechodzi pełny cykl AUDIT → DESIGN FREEZE → IMPLEMENT → BUILD → TEST → QUALITY GATE → COMMIT → PUSH → VERIFY → CLOSE. **Faza bieżąca: PRODUCTION OBSERVATION** dwóch wdrożonych bundli.
+
+| Bundle | Zakres | Status | HEAD | Functional Obs | Performance Obs |
+|--------|--------|:------:|------|:--------------:|:---------------:|
+| **PR-PAY-S7-5 ETAP 1** | S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware przed UNION + restore-aware) | **DEPLOYED** | `ae132bc` | **PASS** | **OPEN** |
+| **PR-PERF-EDGE-OPT-A** | `batch-get` → order-preserving `mget` (N `SELECT` → 1 `SELECT ... IN`) | **DEPLOYED** | `609ae53` | **PASS** | **OPEN** |
+
+**Functional Observation — PASS (potwierdzone):**
+- ✅ Deploy success (Vercel) dla `ae132bc` i `609ae53` · build success (lokalny + Vercel)
+- ✅ Automated regression PASS — S7-5 24/24 · Edge-Opt-A 12/12 · B4 13/13 · B6 10 · S2 15/15 · S6 22 · Frequency ALL
+- ✅ Brak wykrytych regresji funkcjonalnych (kontrakt HTTP i klient niezmienione; batch-set/restore/merge/LWW/tombstones/backup nietknięte)
+
+**Performance Observation — OPEN (wymaga telemetrii właściciela):**
+- • Supabase CPU (before `ae132bc` vs after `609ae53`)
+- • Postgres/API logs (`batch-get` = 1× `SELECT ... IN`; liczba `SELECT` before/after; `pg_stat_statements`)
+- • Edge duration / `batch-get` latency · brak HTTP 500/timeout
+- • `__wgdomSyncMetrics()` (`batchGet`/`batchSet`/`pushSkipped`)
+- • (S7-5) Multi-device AC8–AC11 · UI validation (Payroll · WM · Tender · Inspector · Roster · Archive)
+
+**Najwyższy pozostały hotspot CPU: Edge `batch-set`.** Główni kontrybutorzy (do przyszłego audytu, NIE implementować):
+- powtarzane `kv.get(prev)` (guardy shrink + poprzednie stany Payroll/Jobs/Archive/Directory)
+- `saveDailyFullBackup` (pełny bundle + scoring richness) na każdym `batch-set`
+- rotacja backupów (`rotateKvBackups` / `rotateJobsBackups`)
+- merge z poprzednią wartością (union/LWW po stronie Edge)
+- serializacja/deserializacja pełnego bundla (~391KB JSONB)
+
+**Edge-Opt-B** (redukcja kosztu Edge `batch-set`) — **MASTER AUDIT COMPLETE** · **Design Freeze: NOT STARTED** · **Implementation: BLOCKED**.
+- **SSOT audytu:** [`docs/EDGE-OPT-B-MASTER-AUDIT.md`](docs/EDGE-OPT-B-MASTER-AUDIT.md) (call graph · execution order · data/restore dependencies · rollback · hotspots · risk matrix · split B1–B5 · DF prerequisites).
+- **Blocking condition:** Performance Observation dla **PR-PAY-S7-5 ETAP 1** i **PR-PERF-EDGE-OPT-A** musi zostać **zamknięta** przed jakimkolwiek Design Freeze Edge-Opt-B.
+- **Next planned work:** **Edge-Opt-B Bundle B1** (bramkowanie `saveDailyFullBackup`) — po odblokowaniu + owner GO.
 
 ---
 
@@ -21,7 +56,7 @@
 - Scenario H (PASS / CLOSED)
 
 **OPEN P0:**
-- PR-PAY-S7-5 Resurrection
+- PR-PAY-S7-5 Resurrection — **ETAP 1 DEPLOYED (`ae132bc`) · Production Observation OPEN** (nie CLOSED do potwierdzenia AC8–AC11)
 - batch-set 500 (H1 UNCONFIRMED)
 
 **OPEN HIGH:**
@@ -150,7 +185,8 @@
 | **S7-3** singleton Supabase client | **DRAFT** |
 | **S7-4A** Cloud Sync Optimization (G1 debounce · G2 min-interval · G3/G4 focus/visibility throttle · AC4 no-change=no-push · AC5 metrics) | ✅ **IMPLEMENT COMPLETE · BUILD PASS · TEST PASS (17/17 + regresja)** → **PRODUCTION OBSERVATION 24–48h** · [`DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
 | **G5 Delta Push / G6 ETag** | **OUT OF SCOPE** — decyzja po obserwacji |
-| **S7-5** Resurrection Guard | **DESIGN FREEZE APPROVED** · **IMPLEMENT WAITING** (gate: Production Observation S7-4A) · rollout etapowy **ETAP 1 = S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware)** → BUILD/TEST → ponowna obserwacja → **ETAP 2 warunkowy** (S7-5-3 `replaceWeekEmployeesKeys` · S7-5-4 stabilizacja merge-key) · AC1–AC11 + backlog AC12/AC13 · [`DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
+| **S7-5** Resurrection Guard | **ETAP 1 DEPLOYED** (`ae132bc`) — S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware przed UNION + restore-aware) · BUILD/TEST PASS (24/24 + regresje) · **Production Observation OPEN** (AC8–AC11 na urządzeniach) → **ETAP 2 warunkowy** (S7-5-3 `replaceWeekEmployeesKeys` · S7-5-4 stabilizacja merge-key) tylko jeśli obserwacja wykaże resurrection · AC1–AC11 + backlog AC12/AC13 · [`DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
+| **PR-PERF-EDGE-OPT-A** (program Recovery) | **DEPLOYED** (`609ae53`) — `batch-get` → order-preserving `mget` (N `SELECT` → 1 `SELECT ... IN`) · BUILD/TEST PASS (12/12 + regresje) · kontrakt `{values}`/klient niezmienione · **Production Observation OPEN** (CPU/SELECT/500 do potwierdzenia) · [`DF`](docs/EDGE-OPT-A-BATCH-GET-ORDER-PRESERVING-DESIGN-FREEZE.md) |
 | **Rewizja planu** | **S7-4A wdrożone → Observation 24–48h → warunkowo S7-2 (jeśli batch-set 500 nadal)**. Nowe dane: Supabase Resource Exhaustion + wysoka liczba batch-get |
 | **Zakaz** | S7-2/S7-5/G5/G6 bez owner GO; S7-5 IMPLEMENT dopiero po zamknięciu obserwacji S7-4A; S7-4A nie ruszał merge/LWW/Payroll/tombstones/Edge/kv.mset |
 
@@ -350,7 +386,9 @@
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
-| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause · **S7-4A IMPLEMENT COMPLETE (BUILD/TEST PASS) → OBSERVATION 24–48h** · S7-2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7-3 DRAFT · **S7-5 DESIGN FREEZE APPROVED — IMPLEMENT WAITING (po obserwacji S7-4A) · ETAP 1 = S7-5-1+S7-5-2** · H1 UNCONFIRMED |
+| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause · **S7-4A OBSERVATION** · S7-2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7-3 DRAFT · **S7-5 ETAP 1 DEPLOYED (`ae132bc`) — Production Observation OPEN · ETAP 2 warunkowy** · H1 UNCONFIRMED |
+| **PR-PERF-EDGE-OPT-A** | **DEPLOYED** (`609ae53`) · `batch-get` → order-preserving `mget` (N→1 `SELECT`) · **Production Observation OPEN** |
+| **Recovery Program** | **ACTIVE** · faza **PRODUCTION OBSERVATION** · **Edge-Opt-B MASTER AUDIT COMPLETE** ([`EDGE-OPT-B-MASTER-AUDIT.md`](docs/EDGE-OPT-B-MASTER-AUDIT.md)) · DF NOT STARTED · IMPL BLOCKED (gate: Performance Observation S7-5+Edge-Opt-A) · next **B1 `saveDailyFullBackup` gating** |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |

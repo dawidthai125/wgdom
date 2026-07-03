@@ -1,10 +1,15 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.27** · HEAD `f8620b2` · https://www.wgdom.fun  
-> **Data:** 2026-07-03 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC) · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.63.27** · HEAD `609ae53` · https://www.wgdom.fun  
+> **Data:** 2026-07-04 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC) · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · faza PRODUCTION OBSERVATION** · STABILIZATION WINDOW ACTIVE
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-03):** trwa **P0 Payroll Cloud Sync Incident** — nie „STABILIZATION only". Dwa problemy: **(A)** `batch-set` HTTP 500 (H1 UNCONFIRMED), **(B)** **resurrection pracowników** (usunięty wraca na innym urządzeniu). Architektura sync/merge + oba problemy + plan naprawy: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj to zanim dotkniesz `cloud-sync.ts` / Edge.
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-04):** trwa **P0 Payroll Cloud Sync Incident** i **aktywny PAYROLL & SUPABASE RECOVERY PROGRAM** (faza: PRODUCTION OBSERVATION). Wdrożone i obserwowane na produkcji:
+> - **PR-PAY-S7-5 ETAP 1** (`ae132bc`, DEPLOYED) — cross-device tombstony week-employees (S7-5-1 sync `kw-week-employees-deleted-ids` + S7-5-2 Edge tombstone-aware przed UNION + restore-aware). Rozwiązuje problem **(B) resurrection**. Functional Obs **PASS**, Performance/AC8–AC11 (multi-device) **OPEN**.
+> - **PR-PERF-EDGE-OPT-A** (`609ae53`, DEPLOYED) — Edge `batch-get` → order-preserving `mget` (N `SELECT` → 1 `SELECT ... IN`). Functional Obs **PASS**, Performance (CPU/SELECT) **OPEN**.
+> - **Edge-Opt-B** — **MASTER AUDIT COMPLETE** ([`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md)) · Design Freeze **NOT STARTED** · Implementation **BLOCKED** (gate: domknięcie Performance Observation powyżej). Next: **B1** = bramkowanie `saveDailyFullBackup`.
+>
+> Problemy: **(A)** `batch-set` HTTP 500 (H1 UNCONFIRMED, nadal otwarte) · **(B)** resurrection — **zaadresowane** przez S7-5 ETAP 1 (czeka na potwierdzenie multi-device). Architektura sync/merge + oba problemy + plan naprawy: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj zanim dotkniesz `cloud-sync.ts` / Edge.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -16,7 +21,8 @@
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
 1m. docs/AGENT-APP-MAP.md            ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
 1p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md ← 🔴 P0: architektura sync/merge + oba problemy + plan (przed zmianą cloud-sync.ts / Edge)
-2. CURRENT-TASK.md                   ← status · P0 FREEZE · STABILIZATION · backlog
+1r. docs/EDGE-OPT-B-MASTER-AUDIT.md  ← ★ RECOVERY PROGRAM: call graph batch-set, hotspoty CPU, split B1–B5, DF prerequisites
+2. CURRENT-TASK.md                   ← status · P0 FREEZE · RECOVERY PROGRAM (PRODUCTION OBSERVATION) · backlog
 3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 — zasady, maintenance, Z-01–Z-07
 4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
 5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
@@ -47,11 +53,15 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **PR-PAY-S7-1** Cloud Batch Diagnostics | **CLOSED** | `4c38f4f` | `app.onError` + try/catch + `{ok,error,requestId}` w Edge `batch-set` |
 | **PR-PAY-S7A** Frequency Audit | **AUDIT COMPLETE** | — | CONFIRMED CONTRIBUTING CAUSE (nadmiarowe batch-get/set; brak infinite loop) |
 | **PR-PAY-S7-4A** Cloud Sync Optimization | **IMPLEMENT COMPLETE → OBSERVATION** | `12b09d8` | debounce 2s + min-interval 15s + focus/visibility throttle + AC4 (no-change=no-push) + AC5 metryki |
-| **PR-PAY-S7-5** Resurrection Guard | **DESIGN FREEZE APPROVED · IMPLEMENT WAITING** | `0cdbc54` | plan: sync tombstonów + Edge tombstone-aware + force-replace + stabilizacja merge-key |
+| **PR-PAY-S7-5 ETAP 1** Resurrection Guard | **DEPLOYED → OBSERVATION** | `ae132bc` | **S7-5-1** sync `kw-week-employees-deleted-ids` (push+pull+merge+save PRZED finalize) + **S7-5-2** Edge tombstone-aware (filtr prev/next PRZED UNION + restore-aware). Test 24/24. Functional PASS · AC8–AC11 multi-device OPEN. ETAP 2 (S7-5-3/S7-5-4) **warunkowy** |
+| **PR-PERF-EDGE-OPT-A** batch-get order-preserving | **DEPLOYED → OBSERVATION** | `609ae53` | `batch-get` → `kv.mget` (order-preserving + null-fill, `SELECT key,value ... IN`); N `SELECT` → 1. Kontrakt `{values}`/klient bez zmian. Test 12/12. Functional PASS · CPU/SELECT OPEN. Rdzeń: `kv-batch-order.ts` |
+| **Edge-Opt-B** batch-set CPU redukcja | **MASTER AUDIT COMPLETE · DF NOT STARTED · IMPL BLOCKED** | — | SSOT: [`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md). Hotspot `batch-set` (saveDailyFullBackup + rotacje + fan-out get). Next: **B1** gate `saveDailyFullBackup`. Gate: Performance Observation zamknięta |
 
 **Dwa problemy (z czym mamy problem):**
-- **(A) batch-set HTTP 500** — najpr. *statement timeout* na `kv.mset` całego bundla (**H1 UNCONFIRMED** — brak dowodu prod: requestId/error/stack/Postgres log).
-- **(B) Resurrection** — usunięty pracownik wraca na innym urządzeniu. **Root cause statyczny:** `kw-week-employees-deleted-ids` jest **wyłącznie lokalny** (nie synchronizowany) + merge UNION + niestabilny merge-key.
+- **(A) batch-set HTTP 500** — najpr. *statement timeout* na `kv.mset` całego bundla (**H1 UNCONFIRMED** — brak dowodu prod: requestId/error/stack/Postgres log). Wciąż otwarte.
+- **(B) Resurrection** — usunięty pracownik wracał na innym urządzeniu. **Root cause:** `kw-week-employees-deleted-ids` był **wyłącznie lokalny** + merge UNION. **ZAADRESOWANE** przez **PR-PAY-S7-5 ETAP 1** (`ae132bc`, DEPLOYED): tombstony współdzielone cross-device + Edge filtruje przed UNION. **Czeka na potwierdzenie multi-device (AC8–AC11)** w Performance Observation — do tego czasu OPEN, nie CLOSED.
+
+**Program naprawy (SSOT roadmapy):** [`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md) (Edge-Opt-B split B1–B5) · [`EDGE-OPT-A-BATCH-GET-ORDER-PRESERVING-DESIGN-FREEZE.md`](EDGE-OPT-A-BATCH-GET-ORDER-PRESERVING-DESIGN-FREEZE.md) · [`PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md).
 
 ### Payroll Process Design — 🔒 PROCESS COMPLETE (LOCK) · 2026-07-03
 
@@ -171,13 +181,15 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne
 
-**Zasada:** **P0 FREEZE ACTIVE** — do zamknięcia incydentu Payroll Cloud Sync **żadnych nowych EPIC** (WC-P3.3 S4 ON HOLD). Dozwolone: OBSERVATION S7-4A + dokumentacja + IMPLEMENT S7-5 po zakończeniu obserwacji. Ponadto STABILIZATION WINDOW ACTIVE.
+**Zasada:** **P0 FREEZE ACTIVE** + **RECOVERY PROGRAM faza PRODUCTION OBSERVATION** — **żadnych nowych EPIC** i **żadnego kolejnego bundla bez owner GO** (WC-P3.3 S4 ON HOLD). Dozwolone: OBSERVATION (S7-5 ETAP 1 · Edge-Opt-A · S7-4A) + dokumentacja. Kolejność cyklu bundla: AUDIT → DESIGN FREEZE → IMPLEMENT → BUILD → TEST → QUALITY GATE → COMMIT → PUSH → VERIFY → CLOSE.
 
 | Priorytet | Temat | Status | SSOT |
 |-----------|-------|--------|------|
-| **🔴 P0 #1** | Zakończyć **Production Observation S7-4A** (czy `batch-set 500` nadal; metryki `__wgdomSyncMetrics`) | **W TOKU** | [`S7-4 DF`](PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
-| **🔴 P0 #2** | **S7-5 ETAP 1** = S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware) — po obserwacji | **DESIGN FREEZE APPROVED · WAITING** | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
-| **P0 #3 (warunkowe)** | S7-5 ETAP 2 (S7-5-3/S7-5-4) tylko jeśli ETAP 1 nie rozwiąże · S7-2 hardening tylko jeśli 500 nadal | WARUNKOWE | j.w. · [`S7`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) |
+| **🔴 P0 #1** | **Performance Observation** S7-5 ETAP 1 + Edge-Opt-A — wymaga telemetrii właściciela: Supabase CPU (before/after), Postgres/API logs (`batch-get` = 1× `SELECT ... IN`, `pg_stat_statements`, brak 500), `__wgdomSyncMetrics()`, **multi-device AC8–AC11** (usunięty NIE wraca na A/B/C), UI (Payroll/WM/Tender/Inspector) | **OPEN** (Functional PASS) | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) · [`Edge-Opt-A DF`](EDGE-OPT-A-BATCH-GET-ORDER-PRESERVING-DESIGN-FREEZE.md) |
+| **🔴 P0 #2 (warunkowe)** | **S7-5 ETAP 2** (S7-5-3 `replaceWeekEmployeesKeys` · S7-5-4 stabilizacja merge-key) — **tylko jeśli** obserwacja wykaże, że resurrection nadal występuje | WARUNKOWE (po obserwacji) | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) §8 |
+| **P0 #3** | **Edge-Opt-B B1** (bramkowanie `saveDailyFullBackup`) — po domknięciu Performance Observation + owner GO → DESIGN FREEZE | **MASTER AUDIT COMPLETE · IMPL BLOCKED** | [`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md) |
+| **P0 #4 (warunkowe)** | S7-2 hardening `mset` — **tylko jeśli** `batch-set 500` nadal (H1 nadal UNCONFIRMED) | WARUNKOWE | [`S7`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) |
+| **Otwarte HIGH** | **F1** Lost Update `extraCosts` — REPRO REQUIRED · DESIGN FREEZE NOT STARTED | OPEN | [`F1 repro`](PAYROLL-F1-EXTRACOSTS-REPRO-EVIDENCE.md) |
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień · **W01 GREEN** | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
 | **CLOSED** | **PAYROLL Etap 2** B1–B6 · RB · AH-REG-1 · **TEST-INFRA-001** | **2.63.15–26** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
@@ -418,7 +430,10 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ## 9. Czego nie ruszać bez polecenia
 
-- `cloud-sync.ts` — merge, DATA_KEYS, Payroll Guard
+- `cloud-sync.ts` — merge, DATA_KEYS, Payroll Guard, **S7-5-1 sync tombstonów** (`kw-week-employees-deleted-ids` w push/pull/merge PRZED finalize)
+- **Edge `batch-set` tombstone-aware (S7-5-2)** — filtr `weekEmployeeTombstoneKeySetForWeek`/`filterWeekEmployeesByTombstones` PRZED `mergeWeekEmployeesUnion` (także restore); nie usuwać — to guard resurrection
+- **Edge `batch-get` / `kv.mget` (Edge-Opt-A)** — kontrakt order-preserving + null-fill (`kv-batch-order.ts`); NIE używać wadliwego wzorca `Promise.all(keys.map(get))` ani nie-uporządkowanego `mget`
+- **Kontrakt kluczy backupu** (`-prev`/`-prev2`/`-day`/`kw-full-day-*`) + reguła „richness-max" — twarda granica dla restore (patrz Edge-Opt-B audit)
 - Parsery dossier / ATH / PDF — bez testów TP113/TP182
 - Edge Function semantics (email, storage paths)
 - Canonical ZI template KV (`2b22da48…`)
@@ -427,4 +442,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-03 · prod UI 2.63.27 · HEAD `0cdbc54` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · S7-4A OBSERVATION · S7-5 DESIGN FREEZE APPROVED (IMPLEMENT WAITING) · STABILIZATION WINDOW ACTIVE · Z-05 Device Required*
+*Ostatnia aktualizacja: 2026-07-04 · prod UI 2.63.27 · HEAD `609ae53` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN) · PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN) · Edge-Opt-B MASTER AUDIT COMPLETE (DF NOT STARTED, IMPL BLOCKED) · S7-4A OBSERVATION · STABILIZATION WINDOW ACTIVE · Z-05 Device Required*

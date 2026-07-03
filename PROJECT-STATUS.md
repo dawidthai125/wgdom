@@ -5,9 +5,23 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `4c38f4f` |
+| **Commit (HEAD `main`)** | `609ae53` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · S7-4A OBSERVATION · S7-5 DESIGN FREEZE APPROVED (IMPLEMENT WAITING S7-4A obs.)** · nowe EPIC-i **FROZEN** (WC-P3.3 S4 ON HOLD) |
+| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · **PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION** · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN)** · **Edge-Opt-B: MASTER AUDIT COMPLETE · Design Freeze: NOT STARTED · Implementation: BLOCKED** · nowe EPIC-i **FROZEN** (WC-P3.3 S4 ON HOLD) |
+
+### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
+
+| Bundle | Zakres | Status | HEAD | Functional Obs | Performance Obs |
+|--------|--------|:------:|------|:--------------:|:---------------:|
+| **PR-PAY-S7-5 ETAP 1** | S7-5-1 sync tombstonów week-employees + S7-5-2 Edge tombstone-aware (przed UNION + restore) | **DEPLOYED** | `ae132bc` | **PASS** | **OPEN** |
+| **PR-PERF-EDGE-OPT-A** | `batch-get` → order-preserving `mget` (N `SELECT` → 1 `SELECT ... IN`) | **DEPLOYED** | `609ae53` | **PASS** | **OPEN** |
+
+**Functional Obs PASS:** deploy success · build success · automated regression PASS (S7-5 24/24 · Edge-Opt-A 12/12 · B4/B6/S2/S6/Frequency) · brak wykrytych regresji funkcjonalnych.
+**Performance Obs OPEN (PENDING telemetria):** Supabase CPU · Postgres/API logs (1× `SELECT ... IN`, `pg_stat_statements`, brak 500/timeout) · Edge duration/latency · `__wgdomSyncMetrics()` · multi-device (AC8–AC11) · UI (Payroll/WM/Tender/Inspector).
+**Najwyższy pozostały hotspot CPU:** Edge `batch-set` — kontrybutorzy: powtarzane `kv.get(prev)` · `saveDailyFullBackup` · rotacja backupów · merge z poprzednią wartością · serializacja pełnego bundla (~391KB).
+**Edge-Opt-B:** **MASTER AUDIT COMPLETE** ([`docs/EDGE-OPT-B-MASTER-AUDIT.md`](docs/EDGE-OPT-B-MASTER-AUDIT.md)) · **Design Freeze: NOT STARTED** · **Implementation: BLOCKED**.
+**Blocking condition:** Performance Observation dla PR-PAY-S7-5 ETAP 1 i PR-PERF-EDGE-OPT-A musi być **zamknięta** przed jakimkolwiek Design Freeze.
+**Next planned work:** Edge-Opt-B Bundle **B1** (bramkowanie `saveDailyFullBackup`).
 
 ---
 
@@ -26,7 +40,7 @@
 - Scenario H (PASS / CLOSED)
 
 **OPEN P0:**
-- PR-PAY-S7-5 Resurrection
+- PR-PAY-S7-5 Resurrection — **ETAP 1 DEPLOYED (`ae132bc`) · Production Observation OPEN** (nie CLOSED do potwierdzenia AC8–AC11)
 - batch-set 500 (H1 UNCONFIRMED)
 
 **OPEN HIGH:**
