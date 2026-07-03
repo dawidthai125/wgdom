@@ -3,6 +3,7 @@ import { Hono } from "npm:hono";
 import {
   mergeWeekEmployeesList,
   hasWeekEmployeesRosterExpansion,
+  weekEmployeeMergeKey,
 } from "../../../src/lib/payroll-week-employee-merge.ts";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
@@ -229,6 +230,40 @@ function weekEmployeesRichness(list: unknown[]): number {
 
 function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
   return mergeWeekEmployeesList(prev, next, mergeWeekEmployeeRecordByTimestamps);
+}
+
+// ─── PR-PAY-S7-5-2 — Edge tombstone-aware (parytet klienta cloud-sync.ts) ─────
+// Tombstone week-employee: `${weekFrom}|${weekTo}::${weekEmployeeMergeKey}` (week-scoped).
+// weekFrom (poniedziałek) jednoznacznie identyfikuje tydzień → kotwiczymy filtr na
+// prefiksie `${weekFrom}|`, co jest odporne na kanonikalizację weekTo bez importu
+// canonicalPayrollWeekTo (klient-only). Zbiór = weekEmployeeMergeKey usuniętych w tym tygodniu.
+const WEEK_EMPLOYEE_TOMBSTONE_SEP = "::";
+function weekEmployeeTombstoneKeySetForWeek(
+  deleted: string[],
+  weekFrom: unknown,
+  weekTo: unknown,
+): Set<string> {
+  const set = new Set<string>();
+  const from = typeof weekFrom === "string" ? weekFrom : "";
+  const to = typeof weekTo === "string" ? weekTo : "";
+  if (!from || !to) return set;
+  const prefix = `${from}|`;
+  for (const id of deleted) {
+    if (typeof id !== "string") continue;
+    const sepIdx = id.indexOf(WEEK_EMPLOYEE_TOMBSTONE_SEP);
+    if (sepIdx < 0) continue;
+    const wk = id.slice(0, sepIdx);
+    if (wk.startsWith(prefix)) set.add(id.slice(sepIdx + WEEK_EMPLOYEE_TOMBSTONE_SEP.length));
+  }
+  return set;
+}
+/** Usuń rekordy, których weekEmployeeMergeKey ∈ tombstony tygodnia (przed UNION). */
+function filterWeekEmployeesByTombstones(list: unknown[], tombstoned: Set<string>): unknown[] {
+  if (tombstoned.size === 0) return list;
+  return list.filter((item) => {
+    if (!item || typeof item !== "object") return true;
+    return !tombstoned.has(weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }));
+  });
 }
 
 function parseRecordTs(v: unknown): number {
@@ -599,6 +634,16 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const leavesDeletedFromBatch = leavesDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[leavesDeletedBatchIdx]) : [];
   const storedLeavesDeleted = normalizeDeletedIdsKv(await kv.get("kw-employee-leaves-deleted-ids"));
   const allLeavesDeletedIds = new Set([...storedLeavesDeleted, ...leavesDeletedFromBatch]);
+  // PR-PAY-S7-5-2 — tombstony week-employees (cross-device) + zakres tygodnia z batcha
+  const weekEmpDeletedBatchIdx = keys.indexOf("kw-week-employees-deleted-ids");
+  const weekEmpDeletedFromBatch = weekEmpDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[weekEmpDeletedBatchIdx]) : [];
+  const storedWeekEmpDeleted = normalizeDeletedIdsKv(await kv.get("kw-week-employees-deleted-ids"));
+  const allWeekEmpDeletedIds = new Set([...storedWeekEmpDeleted, ...weekEmpDeletedFromBatch]);
+  const weekFromBatchIdx = keys.indexOf("kw-weekFrom");
+  const weekToBatchIdx = keys.indexOf("kw-weekTo");
+  const batchWeekFrom = weekFromBatchIdx >= 0 ? values[weekFromBatchIdx] : await kv.get("kw-weekFrom");
+  const batchWeekTo = weekToBatchIdx >= 0 ? values[weekToBatchIdx] : await kv.get("kw-weekTo");
+  const weekEmpTombstoned = weekEmployeeTombstoneKeySetForWeek([...allWeekEmpDeletedIds], batchWeekFrom, batchWeekTo);
   const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
   const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
   const forceReplaceWeekEmployees =
@@ -611,6 +656,8 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues[i] = [...allDirDeletedIds].slice(-500);
     } else if (keys[i] === "kw-employee-leaves-deleted-ids") {
       safeValues[i] = [...allLeavesDeletedIds].slice(-500);
+    } else if (keys[i] === "kw-week-employees-deleted-ids") {
+      safeValues[i] = [...allWeekEmpDeletedIds].slice(-500); // PR-PAY-S7-5-2
     } else if (keys[i] === "kw-jobs") {
       const prev = await kv.get("kw-jobs");
       let nextNorm = filterJobsNotDeleted(normalizeJobsKvValue(values[i]), allDeletedIds);
@@ -629,10 +676,12 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-week-employees") {
       const prev = await kv.get("kw-week-employees");
-      let nextNorm = normalizeArrayKv(values[i]);
+      // PR-PAY-S7-5-2 — odfiltruj tombstonowanych z next PRZED UNION (AC3/AC8/AC9).
+      let nextNorm = filterWeekEmployeesByTombstones(normalizeArrayKv(values[i]), weekEmpTombstoned);
       if (prev != null) {
         await rotateKvBackups("kw-week-employees");
-        const prevNorm = normalizeArrayKv(prev);
+        // PR-PAY-S7-5-2 — i z prev, aby UNION nie re-dodał usuniętego rekordu.
+        const prevNorm = filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned);
         const intentionalClear = isIntentionalWeekClear(nextNorm, archiveInBatch);
         if (!forceReplaceWeekEmployees && !intentionalClear && isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
           console.log(
@@ -823,8 +872,14 @@ app.post("/make-server-0afb8820/restore-payroll-backup", async (c) => {
     if (currentEmps.length > 0) await rotateKvBackups("kw-week-employees");
     if (currentArch.length > 0) await rotateKvBackups("kw-archive");
 
+    // PR-PAY-S7-5-2 — restore nie może wskrzeszać usuniętych (respektuj tombstony tygodnia).
+    const restoreWeekTombstoned = weekEmployeeTombstoneKeySetForWeek(
+      normalizeDeletedIdsKv(await kv.get("kw-week-employees-deleted-ids")),
+      await kv.get("kw-weekFrom"),
+      await kv.get("kw-weekTo"),
+    );
     const mergedEmps = prevEmps.length > 0
-      ? mergeWeekEmployeesUnion(currentEmps, prevEmps)
+      ? filterWeekEmployeesByTombstones(mergeWeekEmployeesUnion(currentEmps, prevEmps), restoreWeekTombstoned)
       : currentEmps;
     const mergedArch = prevArch.length > 0
       ? mergeArchiveUnion(currentArch, prevArch)
@@ -935,7 +990,15 @@ app.post("/make-server-0afb8820/restore-data-backup", async (c) => {
 
       let merged: unknown;
       if (key === "kw-jobs") merged = mergeJobsUnion(current, backup);
-      else if (key === "kw-week-employees") merged = mergeWeekEmployeesUnion(current, backup);
+      else if (key === "kw-week-employees") {
+        // PR-PAY-S7-5-2 — restore-all też respektuje tombstony week-employees.
+        const tombstoned = weekEmployeeTombstoneKeySetForWeek(
+          normalizeDeletedIdsKv(await kv.get("kw-week-employees-deleted-ids")),
+          await kv.get("kw-weekFrom"),
+          await kv.get("kw-weekTo"),
+        );
+        merged = filterWeekEmployeesByTombstones(mergeWeekEmployeesUnion(current, backup), tombstoned);
+      }
       else if (key === "kw-archive") merged = mergeArchiveUnion(current, backup);
       else if (key === "kw-directory") merged = mergeRecordsByIdUnion(current, backup);
       else if (key === "kw-contacts") merged = mergeContactsUnion(current, backup);

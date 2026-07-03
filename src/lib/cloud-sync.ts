@@ -2500,6 +2500,7 @@ export async function computeMergedDataBundle(
   let cloudWmTplDeleted: string[] = [];
   let cloudWmDocDeleted: string[] = [];
   let cloudEmDeleted: string[] = [];
+  let cloudWeekEmpDeleted: string[] = []; // PR-PAY-S7-5-1
   let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
@@ -2514,6 +2515,7 @@ export async function computeMergedDataBundle(
       WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
       WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
       ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
+      WEEK_EMPLOYEES_DELETED_KEYS_KEY,
     ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
@@ -2526,6 +2528,7 @@ export async function computeMergedDataBundle(
     cloudWmTplDeleted = mergeDeletedWmPrintTemplateIds([], fetched[keys.length + 7]);
     cloudWmDocDeleted = mergeDeletedWmPrintJobDocIds([], fetched[keys.length + 8]);
     cloudEmDeleted = mergeDeletedElectricalMeasurementIds([], fetched[keys.length + 9]);
+    cloudWeekEmpDeleted = normalizeDeletedWeekEmployeeKeys(fetched[keys.length + 10]); // PR-PAY-S7-5-1
     cloudReachable = true;
   } catch {
     /* offline — scal tylko lokalne źródła */
@@ -2550,6 +2553,10 @@ export async function computeMergedDataBundle(
   saveDeletedWmPrintJobDocIds(mergedWmDocDeleted);
   const mergedEmDeleted = mergeDeletedElectricalMeasurementIds(getDeletedElectricalMeasurementIds(), cloudEmDeleted);
   saveDeletedElectricalMeasurementIds(mergedEmDeleted);
+  // PR-PAY-S7-5-1 — współdziel tombstony week-employees między urządzeniami i zapisz
+  // PRZED finalizePayrollBundleMerge, aby cross-device usunięcia zadziałały w tym cyklu merge.
+  const mergedWeekEmpDeleted = mergeDeletedWeekEmployeeKeys(getDeletedWeekEmployeeKeys(), cloudWeekEmpDeleted);
+  saveDeletedWeekEmployeeKeys(mergedWeekEmpDeleted);
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,
@@ -2576,7 +2583,7 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   await pushKeysToCloud(
-    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY],
+    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY, WEEK_EMPLOYEES_DELETED_KEYS_KEY],
     [
       ...merged,
       getDeletedJobIds(),
@@ -2587,6 +2594,7 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
       getDeletedRecoverableChargeIds(),
       getDeletedOperationalNoteIds(),
       getDeletedElectricalMeasurementIds(),
+      getDeletedWeekEmployeeKeys(), // PR-PAY-S7-5-1
     ],
     {
       replaceJobsKeys: ["kw-jobs"],
