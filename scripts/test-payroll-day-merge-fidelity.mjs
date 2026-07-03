@@ -37,12 +37,12 @@ console.log("T1 local active, cloud inactive, tie");
   assert("T1 Pn to", merged.Pn?.to === "17:00");
 }
 
-// T2 — local inactive, cloud active + hours, tie → cloud
-console.log("\nT2 local inactive, cloud active, tie");
+// T2 — local cleared (inactive), cloud active + hours, tie → local clear wins (PR-PAY-S3)
+console.log("\nT2 local cleared, cloud active, tie → clear wins (PR-PAY-S3)");
 {
   const merged = mergeDaysByRichness({ Pn: inactivePn }, { Pn: activePnCloud });
-  assert("T2 Pn active", merged.Pn?.active === true);
-  assert("T2 Pn from", merged.Pn?.from === "09:00");
+  assert("T2 Pn cleared (inactive)", merged.Pn?.active === false);
+  assert("T2 Pn local from kept", merged.Pn?.from === "07:00");
 }
 
 // T3 — both active, richer day wins

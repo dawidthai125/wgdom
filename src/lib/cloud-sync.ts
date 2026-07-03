@@ -909,12 +909,26 @@ function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   const cDays = (c.days as Record<string, DayLike>) || {};
   const lAt = parseRecordTs(l.dataUpdatedAt);
   const cAt = parseRecordTs(c.dataUpdatedAt);
+  // PR-PAY-S3 — nowszy rekord wygrywa (w tym świadome wyczyszczenie godzin);
+  // remis dataUpdatedAt → mergeDaysByRichness (który honoruje clear-wins lokalnie).
   if (lAt > cAt) return { ...cDays, ...lDays };
   if (cAt > lAt) return { ...lDays, ...cDays };
   return mergeDaysByRichness(lDays, cDays);
 }
 
-/** Per-day merge przy remisie dataUpdatedAt — bogatszy dzień wygrywa; remis → local. */
+/** Dzień „wyzerowany”: nieaktywny bez godzin dodatkowych → nie wnosi payrollu (świadomy clear). */
+function isZeroedDay(d: DayLike | undefined): boolean {
+  if (!d) return true;
+  if (d.active === true) return false;
+  return (d.extraHours?.length ?? 0) === 0;
+}
+
+/**
+ * Per-day merge przy remisie dataUpdatedAt.
+ * PR-PAY-S3 — clear-wins: świadome wyzerowanie po stronie LOKALNEJ wygrywa
+ * ze „starszym” bogatszym dniem z chmury (nie wskrzeszaj usuniętych godzin).
+ * Poza tym: bogatszy dzień wygrywa; remis → local.
+ */
 export function mergeDaysByRichness(
   lDays: Record<string, DayLike>,
   cDays: Record<string, DayLike>,
@@ -933,6 +947,11 @@ export function mergeDaysByRichness(
       continue;
     }
     if (!ld && !cd) continue;
+    // PR-PAY-S3 — lokalny clear ma pierwszeństwo nad bogatszym dniem z chmury.
+    if (isZeroedDay(ld) && !isZeroedDay(cd)) {
+      out[key] = ld!;
+      continue;
+    }
     const lr = dayRichness(ld);
     const cr = dayRichness(cd);
     if (lr > cr) out[key] = ld!;
