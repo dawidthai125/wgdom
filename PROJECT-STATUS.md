@@ -7,7 +7,7 @@
 | **Ostatnia aktualizacja** | 2026-07-03 |
 | **Commit (HEAD `main`)** | `4c38f4f` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · Payroll P0 Incident **CLOSED** · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION** |
+| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION (H1 pending evidence)** · nowe EPIC-i **FROZEN** (WC-P3.3 S4 ON HOLD) |
 
 ---
 
@@ -99,7 +99,8 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 | **TI‑B1** — ekstrakcja `removeWeekEmployee()` do lib | OPEN |
 | **TI‑B3** — CI GitHub Actions gate B/C z orchestratora | OPEN |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
-| **Work Catalog P3.3** — implementacja UI po decyzjach design freeze | OPEN |
+| **Work Catalog P3.3 S4** — Preview Mount | **ON HOLD** — zablokowane przez 🔴 P0 Payroll Cloud Sync Incident (do zamknięcia P0) |
+| **Work Catalog P3.3** — implementacja UI po decyzjach design freeze | OPEN (po P0) |
 | **G‑08** — persist `code` w snapshot BOQ | OPEN |
 | **G‑02** — R/M/S inline w BOQ | OPEN |
 | **TP200B** — kosztorys fidelity (`rows` cap) | PLANNED |

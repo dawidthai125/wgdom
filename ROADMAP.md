@@ -7,7 +7,9 @@
 | **Ostatnia aktualizacja** | 2026-07-03 |
 | **Commit (HEAD `main`)** | `4c38f4f` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION** |
+| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION** |
+
+> **🔴 P0 FREEZE:** nowe EPIC-i wstrzymane do zamknięcia P0 — **WC-P3.3 S4 Preview Mount = ON HOLD**. Dozwolone tylko OBSERVATION PR-PAY-S7 + docs.
 
 ---
 

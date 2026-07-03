@@ -1,6 +1,8 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `4c38f4f`** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · OBSERVATION (waiting for production evidence)** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `4c38f4f`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · OBSERVATION (waiting for production evidence)** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
+
+> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION PR-PAY-S7 (zbieranie dowodu H1) + dokumentacja. Zakaz implementacji S7-2/S7-3/S7-4/S7-5 oraz nowych funkcji WC bez Root Cause Confirmation.
 
 ---
 

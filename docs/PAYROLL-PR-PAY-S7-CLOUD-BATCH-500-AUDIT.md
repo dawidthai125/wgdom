@@ -205,6 +205,10 @@ KLIENT:
 | **B5** | payload size | rozmiar body `POST /batch-set` (DevTools Network / Edge log) | ` ` |
 | **B6** | liczba kluczy batch-set | `keys.length` z requestu (oczekiwane 38) | ` ` |
 | **B7** | rozmiar `kw-archive` | długość wartości `kw-archive` w KV / w payloadzie | ` ` |
+| **B8** | stan statusu „Rozliczony" | czy po incydencie status wrócił na „Oczekuje"; na którym rekordzie; czy `settledUpdatedAt` dotarł do chmury | ` ` |
+| **B9** | zachowanie na wielu urządzeniach | na ilu urządzeniach widoczny revert; czy urządzenie źródłowe też cofa po reloadzie; czy inne urządzenia nigdy nie dostały statusu | ` ` |
+
+> **Jeden kompletny incydent = wszystkie B1–B9 z tego samego zdarzenia** (ten sam `requestId`/okno czasowe).
 
 ### C. Kryterium decyzji
 
