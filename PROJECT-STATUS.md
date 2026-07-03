@@ -67,13 +67,13 @@
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
 | **Wersja UI (prod)** | **v2.63.27** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | `4c38f4f` |
+| **HEAD `main`** | `609ae53` |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.27** to ostatni wpis w `changelog-data.ts`. Po niej na `main` trafiły zmiany **bez bumpu numeru UI** (biblioteka / test‑infra / hotfixy P0), zawarte w HEAD `4c38f4f`:
+Wersja UI **v2.63.27** to ostatni wpis w `changelog-data.ts`. Po niej na `main` trafiły zmiany **bez bumpu numeru UI** (biblioteka / test‑infra / hotfixy P0 / Recovery Program), zawarte w HEAD `609ae53`:
 
 - **Version Banner Refresh** — Build Identity (commit) — `e255aef`
 - **Work Catalog P3.1** (Market Average Engine) + **P3.2** (Import Persistence) — `c8e1b9e`…`f37b619`
@@ -81,6 +81,8 @@ Wersja UI **v2.63.27** to ostatni wpis w `changelog-data.ts`. Po niej na `main` 
 - **Work Catalog P3.3 S1–S3** (Public API Engine · status z engine · confidence + sources) — `0b3ec5a`…`fe1d4f5`
 - **PR‑PAY‑S6** Archive Restore Eligibility Guard — `d2a3d90`
 - **PR‑PAY‑S7‑1** Cloud Batch Diagnostics (Edge `batch-set`: `app.onError` + try/catch + requestId) — `4c38f4f`
+- **PR‑PAY‑S7‑5 ETAP 1** Resurrection Guard (cross‑device tombstony week‑employees; S7‑5‑1 + S7‑5‑2) — `ae132bc`
+- **PR‑PERF‑EDGE‑OPT‑A** batch‑get order‑preserving `mget` (N `SELECT` → 1) — `609ae53`
 
 ---
 
@@ -132,7 +134,7 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 |-------|--------|------|
 | **STABILIZATION WINDOW** (AD‑10, Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
 | **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **CLOSED** · IMPLEMENT COMPLETE · BUILD PASS · TEST PASS · HEAD `d2a3d90` | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
-| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **S7A = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4A Cloud Sync Optimization = IMPLEMENT COMPLETE (BUILD/TEST PASS) → PRODUCTION OBSERVATION 24–48h** · S7‑2 warunkowo (jeśli batch-set 500 nadal) · G5/G6 out of scope · S7‑3 DRAFT · **S7‑5 Resurrection Guard = DESIGN FREEZE APPROVED · IMPLEMENT WAITING (gate: obserwacja S7‑4A) · ETAP 1 = S7‑5‑1+S7‑5‑2 · ETAP 2 warunkowy** · H1 UNCONFIRMED | [`S7`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`S7-4 DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) · [`S7-5 DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
+| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **S7A = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4A Cloud Sync Optimization = IMPLEMENT COMPLETE (BUILD/TEST PASS) → PRODUCTION OBSERVATION 24–48h** · S7‑2 warunkowo (jeśli batch-set 500 nadal) · G5/G6 out of scope · S7‑3 DRAFT · **S7‑5 Resurrection Guard = ETAP 1 DEPLOYED (`ae132bc`) · Production Observation OPEN · ETAP 1 = S7‑5‑1+S7‑5‑2 · ETAP 2 warunkowy** · H1 UNCONFIRMED | [`S7`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`S7-4 DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) · [`S7-5 DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
 | **Z‑05 Field Validation** (mobile, iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · DESIGN FREEZE (decyzje D‑A…D‑D pending)** | [`docs/work-catalog/`](docs/work-catalog/) |
 
