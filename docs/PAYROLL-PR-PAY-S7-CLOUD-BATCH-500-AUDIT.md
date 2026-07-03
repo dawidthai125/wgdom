@@ -1,24 +1,36 @@
 # PAYROLL — PR-PAY-S7 · Cloud Batch 500 Investigation · AUDIT
 
-> **Status:** `AUDIT COMPLETE` · `DESIGN FREEZE DRAFT` · **IMPLEMENT: NO GO**
+> **Status:** `AUDIT COMPLETE` · `S7-1 DONE` · `OBSERVATION — WAITING FOR PRODUCTION EVIDENCE` · **S7-2: NO GO (warunkowe)**
 > **Data audytu:** 2026-07-03
-> **Baseline prod:** **GREEN** · **HEAD `1b7bb73`**
+> **Baseline prod:** **GREEN** · **HEAD `1b7bb73`** · **S7-1 deployed `4c38f4f`**
 > **STABILIZATION WINDOW:** ACTIVE
 > **Powiązane:** PR-PAY-S2 (Deletion Tombstones) · PR-PAY-S6 (Archive Restore Eligibility Guard, `d2a3d90`) · [`docs/PAYROLL-CLOUD-RECOVERY-B6-AUDIT.md`](PAYROLL-CLOUD-RECOVERY-B6-AUDIT.md) (Edge parity)
 
 ```text
 AUDIT:         COMPLETE (analiza statyczna Edge + klient)
 CEL:           Przyczyna batch-set HTTP 500 podczas synchronizacji Payroll
-RCA:           CONFIRMED — batch-set bez obsługi błędów; cały bundle w jednym kv.mset; statement timeout
+RCA:           MOST PROBABLE — batch-set bez obsługi błędów; cały bundle w jednym kv.mset;
+               najprawdopodobniej statement timeout. NIE potwierdzone dowodem produkcyjnym.
+H1:            batch-set timeout = rzeczywisty Root Cause → do potwierdzenia/odrzucenia
+               po zebraniu: requestId · error.message · Edge stack · Postgres log
+S7-1:          DONE (diagnostyka wdrożona) · OBSERVATION: WAITING FOR PRODUCTION EVIDENCE
 DESIGN FREEZE: DRAFT — oczekuje akceptacji właściciela repo
-IMPLEMENT:     NO GO
+IMPLEMENT:     S7-2 NO GO do potwierdzenia H1 · S7-4/S7-5 NO GO
 ```
+
+> **⚠ Reklasyfikacja (2026-07-03, po S7-1 DONE):** poprzednia klasyfikacja `RCA: CONFIRMED`
+> została **obniżona do `MOST PROBABLE ROOT CAUSE`**. Treść Root Cause (sekcja 1) pozostaje
+> bez zmian. `statement timeout` traktujemy jako **hipotezę H1** — potwierdzoną dopiero po
+> zebraniu w fazie OBSERVATION: **requestId · error.message · Edge stack · Postgres log**.
+> Dopiero potwierdzenie H1 odblokowuje **NEXT BUNDLE PR-PAY-S7 · S7-2 Cloud Batch Hardening**.
 
 ---
 
-## 1. Root Cause
+## 1. Root Cause — **MOST PROBABLE (do potwierdzenia dowodem produkcyjnym)**
 
-**Handler `batch-set` nie ma żadnej obsługi błędów (`try/catch`), a Edge nie ma globalnego `app.onError`. Cały bundle danych jest zapisywany jednym `upsert` przez `kv.mset`. Dowolny wyjątek Postgresa/Deno — potwierdzony w logach jako *statement timeout* na dużym payloadzie payroll (`kw-archive` + `kw-week-employees` + `kw-jobs`) — wypływa jako nieprzechwycony błąd i Hono zwraca gołe `HTTP 500 Internal Server Error` bez ciała diagnostycznego.**
+> Treść poniżej bez zmian względem audytu; zmieniona wyłącznie **klasyfikacja** (CONFIRMED → MOST PROBABLE). Potwierdzenie = H1 (sekcja 5) po zebraniu requestId/error.message/Edge stack/Postgres log.
+
+**Handler `batch-set` nie ma żadnej obsługi błędów (`try/catch`), a Edge nie ma globalnego `app.onError`. Cały bundle danych jest zapisywany jednym `upsert` przez `kv.mset`. Dowolny wyjątek Postgresa/Deno — najprawdopodobniej *statement timeout* na dużym payloadzie payroll (`kw-archive` + `kw-week-employees` + `kw-jobs`), do potwierdzenia dowodem z produkcji — wypływa jako nieprzechwycony błąd i Hono zwraca gołe `HTTP 500 Internal Server Error` bez ciała diagnostycznego.**
 
 Skutki:
 - Zapis payroll do chmury **nie utrwala się** (mset all-or-nothing → klucze główne bez zmian).
@@ -88,7 +100,7 @@ Klient — `src/lib/cloud-sync.ts`:
 
 ## 4. Logical Stack Trace
 
-> Rekonstrukcja z kodu; treść komunikatu Postgres potwierdzona w logach jako *statement timeout*.
+> Rekonstrukcja z kodu; treść komunikatu Postgres **spodziewana** jako *statement timeout* — do potwierdzenia dowodem produkcyjnym (H1).
 
 ```
 POST /make-server-0afb8820/batch-set
@@ -116,18 +128,27 @@ KLIENT:
 | **C2** | **Brak `app.onError`** w Edge (globalny handler błędów nie istnieje) | wyszukiwanie w `index.tsx` |
 | **C3** | **Brak `try/catch`** w handlerze `batch-set` | `index.tsx:569–697` |
 | **C4** | `kv.mset` = **pojedynczy `upsert`** całego bundla (all-or-nothing, bez chunków/izolacji) | `kv_store.tsx:52–58` |
-| **C5** | **`statement timeout` w logach** (potwierdzenie właściciela / Postgres logs) jako przyczyna błędu `mset` | Supabase/Postgres logs |
 
-### ❓ HIPOTEZY (wymagają reprodukcji / [LOG-CHECK])
+> **Uwaga:** poprzednie „C5 — statement timeout w logach (CONFIRMED)" zostało **przesunięte do hipotez jako H1** — brak nam jeszcze dowodu produkcyjnego (requestId/error.message/stack/Postgres log). C1–C4 to fakty statyczne z kodu; H1 to przyczyna runtime do potwierdzenia.
+
+### ❓ HIPOTEZY (wymagają dowodu produkcyjnego / [LOG-CHECK])
+
+**H1 — GŁÓWNA (blokuje decyzję o S7-2):**
+
+| # | Hipoteza | Potwierdzenie wymaga | Odrzucenie jeśli |
+|---|----------|----------------------|------------------|
+| **H1** | **`batch-set` timeout = rzeczywisty Root Cause** — `kv.mset` całego bundla przekracza *statement timeout* Postgresa i to jest źródło HTTP 500 przy rozliczeniu payroll | Z incydentu OBSERVATION: **requestId** (z `[batch-set] requestId=…` / `{ok:false,error,requestId}`) · **error.message** zawiera `canceling statement due to statement timeout` (lub równoważny) · **Edge stack** wskazuje `kv.mset` → `upsert` · **Postgres log** z tym samym oknem czasowym | error.message wskazuje inną przyczynę (np. payload/JSONB limit, OOM/CPU, `remaining connection slots`, auth/PostgREST) — wtedy Root Cause = ta przyczyna, a właściwym bundlem może być S7-3/S7-4, nie S7-2 |
+
+**Hipotezy resurrection (osobny problem — NIE blokują S7-2):**
 
 | # | Hipoteza | Jak zweryfikować |
 |---|----------|------------------|
-| **H1** | `mergeWeekEmployeesUnion` po stronie Edge jest źródłem **resurrection** (cofa skurczenie rostera o usuniętych) | Repro: push rostera pomniejszonego o 2 prac. **bez** `replaceWeekEmployeesKeys`; sprawdzić log `roster expansion/blocked shrink ... merging` (`index.tsx:622–633`) i stan `kw-week-employees` w KV |
-| **H2** | **Brak tombstonów po stronie Edge** (`kw-week-employees-deleted-ids` nieobecne na serwerze) umożliwia powrót usuniętych przy union/richness | Sprawdzić czy klucz istnieje w KV; prześledzić, czy jakakolwiek ścieżka go pushuje (obecnie brak — EV8) |
-| **H3** | Wpływ `replaceWeekEmployeesKeys`: ścieżki payroll bez tej flagi (`pushKeysToCloudSafe`, WorkerPhotoView) pozwalają Edge na union re-add | Porównać push main path (`replaceWeekEmployeesKeys=["kw-week-employees"]`, force replace) vs `pushKeysToCloudSafe` (brak flagi) |
-| **H4** | Współprzyczyna 500: presja na pool połączeń (klient Supabase per operacja) lub OOM/CPU Edge na dużym payloadzie | Postgres logs: `remaining connection slots`; Edge logs: memory/CPU limit |
+| **H-R1** | `mergeWeekEmployeesUnion` po stronie Edge jest źródłem **resurrection** (cofa skurczenie rostera o usuniętych) | Repro: push rostera pomniejszonego o 2 prac. **bez** `replaceWeekEmployeesKeys`; sprawdzić log `roster expansion/blocked shrink ... merging` (`index.tsx:622–633`) i stan `kw-week-employees` w KV |
+| **H-R2** | **Brak tombstonów po stronie Edge** (`kw-week-employees-deleted-ids` nieobecne na serwerze) umożliwia powrót usuniętych przy union/richness | Sprawdzić czy klucz istnieje w KV; prześledzić, czy jakakolwiek ścieżka go pushuje (obecnie brak — EV8) |
+| **H-R3** | Wpływ `replaceWeekEmployeesKeys`: ścieżki payroll bez tej flagi (`pushKeysToCloudSafe`, WorkerPhotoView) pozwalają Edge na union re-add | Porównać push main path (`replaceWeekEmployeesKeys=["kw-week-employees"]`, force replace) vs `pushKeysToCloudSafe` (brak flagi) |
+| **H-R4** | Współprzyczyna 500: presja na pool połączeń (klient Supabase per operacja) lub OOM/CPU Edge na dużym payloadzie | Postgres logs: `remaining connection slots`; Edge logs: memory/CPU limit |
 
-> **Rozróżnienie kluczowe:** przyczyna **500** (C1–C5) i przyczyna **resurrection pracowników** (H1–H3) to **dwa odrębne problemy**. 500 blokuje utrwalenie korekty; resurrection jest napędzany przez Edge union + brak tombstonów. Nie łączyć w jeden bundle.
+> **Rozróżnienie kluczowe:** przyczyna **500** (C1–C4 + **H1**) i przyczyna **resurrection pracowników** (H-R1…H-R3) to **dwa odrębne problemy**. 500 blokuje utrwalenie korekty; resurrection jest napędzany przez Edge union + brak tombstonów. Nie łączyć w jeden bundle.
 
 ---
 
@@ -135,15 +156,15 @@ KLIENT:
 
 | ID | Zmiana | Plik (docelowy IMPLEMENT) | Adresuje |
 |----|--------|---------------------------|----------|
-| **S7-1** | `try/catch` w `batch-set` + `app.onError` → `500` z `{ ok:false, error }` (odsłonić realny `error.message`) | `index.tsx` | C1–C3 |
-| **S7-2** | `kv.mset` w **chunkach** i/lub sekwencyjny zapis z izolacją per klucz + zebranie błędów (partial report zamiast pełnego 500) | `kv_store.tsx` / `index.tsx` | C4, H4 |
-| **S7-3** | Reużyć jednego klienta Supabase (module-level singleton) zamiast `client()` per operacja | `kv_store.tsx` | H4 |
-| **S7-4** | Klient: retry z backoff dla 5xx (idempotentny) + nie mutować lokalnego stanu przed potwierdzonym push (pull-merge read-only do udanego push) | `cloud-sync.ts` / `App.tsx` | EV7 |
-| **S7-5** | (resurrection) Pushować `kw-week-employees-deleted-ids` do chmury **lub** tombstone-aware filtr w Edge; wymusić `replaceWeekEmployeesKeys` na wszystkich ścieżkach payroll | `cloud-sync.ts` + `index.tsx` | H1–H3 |
+| **S7-1** ✅ DONE (`4c38f4f`) | `try/catch` w `batch-set` + `app.onError` → `500` z `{ ok:false, error, requestId }` (odsłonić realny `error.message`) | `index.tsx` | C1–C3 |
+| **S7-2** ⏳ NO GO (do potwierdzenia H1) | `kv.mset` w **chunkach** i/lub sekwencyjny zapis z izolacją per klucz + zebranie błędów (partial report zamiast pełnego 500) | `kv_store.tsx` / `index.tsx` | C4, **H1**, H-R4 |
+| **S7-3** DRAFT | Reużyć jednego klienta Supabase (module-level singleton) zamiast `client()` per operacja | `kv_store.tsx` | H-R4 |
+| **S7-4** DRAFT | Klient: retry z backoff dla 5xx (idempotentny) + nie mutować lokalnego stanu przed potwierdzonym push (pull-merge read-only do udanego push) | `cloud-sync.ts` / `App.tsx` | EV7 |
+| **S7-5** DRAFT | (resurrection) Pushować `kw-week-employees-deleted-ids` do chmury **lub** tombstone-aware filtr w Edge; wymusić `replaceWeekEmployeesKeys` na wszystkich ścieżkach payroll | `cloud-sync.ts` + `index.tsx` | H-R1–H-R3 |
 
 **Zasada:** S7-1…S7-4 = przyczyna 500. S7-5 = przyczyna resurrection. To **dwa osobne bundle** (One Bundle = One Goal).
 
-**Rekomendowana kolejność:** **S7-1** (diagnostyka — natychmiast domyka [LOG-CHECK]) → **S7-5** (zatrzymać resurrection, najwyższy priorytet biznesowy) → **S7-2/S7-3/S7-4** (twardnienie zapisu).
+**Rekomendowana kolejność:** **S7-1** ✅ (diagnostyka — DONE) → **OBSERVATION** (zebrać dowód H1) → jeśli **H1 CONFIRMED** → **S7-2** (twardnienie zapisu, adresuje 500) → później **S7-5** (resurrection) → **S7-3/S7-4**. **S7-4 i S7-5 nie implementować** przed potwierdzeniem H1.
 
 ---
 
@@ -163,9 +184,18 @@ KLIENT:
 | Etap | Status |
 |------|--------|
 | **AUDIT** | **COMPLETE** |
-| **[LOG-CHECK]** | częściowo **DONE** (statement timeout potwierdzony) · H1–H4 do reprodukcji |
-| **DESIGN FREEZE** | **DRAFT** — oczekuje akceptacji właściciela repo |
-| **IMPLEMENT** | **NO GO** — do jawnej komendy ownera |
+| **RCA** | **MOST PROBABLE** (nie CONFIRMED) — timeout `kv.mset` jako H1, do potwierdzenia dowodem |
+| **S7-1 Diagnostics** | ✅ **DONE** — deployed `4c38f4f` (`app.onError` + try/catch + requestId) |
+| **[LOG-CHECK] / OBSERVATION** | **WAITING FOR PRODUCTION EVIDENCE** — requestId · error.message · Edge stack · Postgres log |
+| **H1 (batch-set timeout = RC)** | **UNCONFIRMED** — potwierdzić lub odrzucić po dowodzie |
+| **S7-2 Cloud Batch Hardening** | **NO GO (warunkowe)** — GO dopiero gdy **H1 CONFIRMED** |
+| **S7-4 / S7-5** | **NO GO** — nie implementować teraz |
+
+### Decision — S7-2 Cloud Batch Hardening
+
+- **JEŻELI H1 POTWIERDZONE** (error.message = statement timeout / stack `kv.mset`→`upsert` + Postgres log): → **GO dla NEXT BUNDLE PR-PAY-S7 · S7-2** (chunk/izolacja `mset`). RCA promowane MOST PROBABLE → CONFIRMED.
+- **JEŻELI H1 ODRZUCONE** (inna error.message): → **S7-2 NO GO**; przekierować na bundle odpowiadający faktycznej przyczynie (np. S7-3 pool / inny). Zaktualizować sekcję 1.
+- **DOPÓKI brak dowodu:** **NO GO** dla wszystkich S7-2…S7-5 — pozostajemy w OBSERVATION.
 
 ---
 
