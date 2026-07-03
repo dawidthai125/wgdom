@@ -1,8 +1,121 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `4c38f4f`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · OBSERVATION (waiting for production evidence)** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `f8620b2`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION PR-PAY-S7/S7-4A + dokumentacja. **PR-PAY-S7-5 Resurrection Guard: DESIGN FREEZE APPROVED — IMPLEMENT WAITING (gate: zakończenie Production Observation S7-4A)**, rollout etapowy (ETAP 1 = S7-5-1+S7-5-2; ETAP 2 warunkowy). Zakaz implementacji S7-2/S7-3/S7-4/S7-5 bez owner GO.
+
+---
+
+## Payroll Certification 2026
+
+**Status: IN PROGRESS** · SSOT: [`docs/PAYROLL-CERTIFICATION-2026-AUDIT.md`](docs/PAYROLL-CERTIFICATION-2026-AUDIT.md) · REPRO F1: [`docs/PAYROLL-F1-EXTRACOSTS-REPRO-EVIDENCE.md`](docs/PAYROLL-F1-EXTRACOSTS-REPRO-EVIDENCE.md)
+
+**PASS (zamknięte):**
+- React state
+- stale snapshot
+- selectedEmpId
+- re-derived record
+- functional updates
+- per-day patch
+- ETAP 1 regression guard
+- Scenario H (PASS / CLOSED)
+
+**OPEN P0:**
+- PR-PAY-S7-5 Resurrection
+- batch-set 500 (H1 UNCONFIRMED)
+
+**OPEN HIGH:**
+- F1 Lost Update extraCosts — REPRO REQUIRED · DESIGN FREEZE NOT STARTED
+
+**Kolejność prac:**
+1. Finish S7-5
+2. Verify Production
+3. REPRO F1
+4. AUDIT CLOSE
+5. DESIGN FREEZE F1
+6. IMPLEMENT F1
+
+> Certyfikacja pozostaje otwarta do czasu zamknięcia aktywnych pozycji OPEN.
+
+---
+
+## Payroll Process Design — 🔒 PROCESS COMPLETE (LOCK)
+
+**Status (2026-07-03): PROJECT PROCESS COMPLETE** — faza projektowania procesu Payroll zamknięta. Dokumenty procesu 🔒 **LOCK**; brak otwartych dokumentów projektowania procesu. Aktywne pozostają wyłącznie **techniczne P0** (S7-5, F1, S7-4A observation) — osobny strumień, nie proces.
+
+| Dokument | Rola | Status |
+|----------|------|:------:|
+| [`docs/PAYROLL-CERTIFICATION-SUITE.md`](docs/PAYROLL-CERTIFICATION-SUITE.md) | 27 funkcji · SETUP/TEST/VERIFY/ROLLBACK/VERIFY CLEAN · 10 multi-device · Smoke · Regression · BUG register | 🔒 LOCK |
+| [`docs/PAYROLL-QUALITY-GATE.md`](docs/PAYROLL-QUALITY-GATE.md) | bramka pre-merge · poziomy L1–L4 · macierz typ→poziom · BLOCKED/ALLOWED | 🔒 LOCK |
+| [`docs/QUALITY-GATE-INTEGRATION-PLAN.md`](docs/QUALITY-GATE-INTEGRATION-PLAN.md) | integracja z workflow (TEST → QUALITY GATE → COMMIT) · rekomendacje odwołań | 🔒 LOCK |
+| [`docs/PR-PERF-S1-CLOUD-SYNC-BUNDLE-OPTIMIZATION-DESIGN-FREEZE.md`](docs/PR-PERF-S1-CLOUD-SYNC-BUNDLE-OPTIMIZATION-DESIGN-FREEZE.md) | wariant B · 5 bundli (Shared/Payroll/Tender/WM/Catalog) · INV-1…INV-9 · KPI · migration | 🔒 LOCK |
+| [`docs/PAYROLL-CLOUD-SYNC-PERFORMANCE-AUDIT.md`](docs/PAYROLL-CLOUD-SYNC-PERFORMANCE-AUDIT.md) | audyt requestów/egress · 3 warianty (LOW/MEDIUM/LONG TERM) → zasila PR-PERF-S1 | 🔒 LOCK (audyt) |
+
+**BACKLOG (gated, NOT STARTED):** `PAYROLL-ARCHITECTURE-v3.md` (nieutworzony) · reorg `docs/payroll/` — patrz sekcje poniżej.
+
+**Następny etap:** Production Observation S7-4A → (owner GO) IMPLEMENT S7-5 ETAP 1 → REPRO F1 → AUDIT CLOSE → odblokowanie BACKLOG. Integracja Quality Gate w workflow: pilotaż na S7-5 ETAP 1.
+
+---
+
+## Payroll Documentation Backlog — ❄️ FROZEN
+
+> **FROZEN do zakończenia Payroll Certification 2026.** Oba zadania poniżej pozostają **BACKLOG · NOT STARTED**; nie startować przed spełnieniem gate. Nie dodawać nowych pozycji do tego backlogu bez polecenia. Powrót: po przejściu wszystkich pozycji OPEN → CLOSED (Certyfikacja).
+>
+> - **[1] `docs/PAYROLL-ARCHITECTURE-v3.md`** — gate: S7-5 CLOSED + F1 CLOSED (jeśli potwierdzony) + Certyfikacja CLOSED.
+> - **[2] Reorg `docs/payroll/`** — gate: Certyfikacja CLOSED + `PAYROLL-ARCHITECTURE-v3.md` utworzony (zależny od [1]).
+
+---
+
+## PLANNED (BACKLOG) — `docs/PAYROLL-ARCHITECTURE-v3.md` (SSOT architektury Payroll)
+
+**Status: BACKLOG · NOT STARTED · PLAN ONLY** (nie wykonywać teraz).
+
+**Gate uruchomienia (wszystkie warunki):**
+1. Zamknięcie **PR-PAY-S7-5** (Resurrection).
+2. Zamknięcie **F1** (Lost Update extraCosts) — jeżeli zostanie potwierdzony w REPRO.
+3. Zakończenie **Payroll Certification 2026** (wszystkie OPEN → CLOSED).
+
+**Deliverable:** `docs/PAYROLL-ARCHITECTURE-v3.md` — jeden dokument SSOT zastępujący konieczność analizy wielu historycznych handoffów.
+
+**Zakres (spis treści docelowy):**
+- przepływ danych (data flow end-to-end)
+- LocalStorage
+- Cloud (KV)
+- Edge (`make-server-0afb8820`)
+- merge klienta (`cloud-sync.ts`)
+- merge Edge (`index.tsx` parity)
+- LWW (`dataUpdatedAt` / `rateUpdatedAt` / `settledUpdatedAt`)
+- tombstones (`*-deleted-ids`)
+- force-replace (`replaceWeekEmployeesKeys`)
+- CloudSyncMutationGuard
+- bootstrap/runtime parity (`finalizePayrollBundleMerge`, `applyRuntimePayrollAntiLeak`)
+- rollover
+- archive
+- restore
+- settled
+- extraCosts
+- sequence diagrams (pull → merge → push; rollover; restore)
+- invariants (niezmienniki systemu)
+- anti-patterns
+- lessons learned
+
+**Cel:** onboarding nowego agenta bez czytania rozproszonych handoffów (PAYROLL-CLOUD-RECOVERY B4/B6, Guard Phase, S6, S7, S7-5, Certyfikacja, F1).
+
+**Workflow:** PLAN → BACKLOG → STOP. Do wykonania jako osobne zadanie po spełnieniu gate.
+
+---
+
+## PLANNED (BACKLOG) — Reorganizacja dokumentacji Payroll → `docs/payroll/`
+
+**Status: BACKLOG · NOT STARTED · PLAN ONLY** · **Plan gotowy:** [`docs/PAYROLL-DOCS-REORG-PLAN.md`](docs/PAYROLL-DOCS-REORG-PLAN.md)
+
+**Gate uruchomienia:** (1) zamknięcie Payroll Certification 2026 · (2) utworzenie `docs/PAYROLL-ARCHITECTURE-v3.md`.
+
+**Zakres:** 33 dokumenty Payroll (26 `PAYROLL-*` + 4 handoffy + 3 styczne settlement) → podział **ACTIVE SSOT / HISTORY (Audit) / HISTORY (Design Freeze) / Archive** → docelowa struktura `docs/payroll/{active,history/audit,history/design-freeze,archive}` + `README.md` indeks.
+
+**Twarde zasady:** ❌ nie usuwać · ❌ nie przenosić teraz · `git mv` przy wykonaniu (historia) · aktualizacja wszystkich linków (`.cursor/rules`, `AGENTS.md`, `PROJECT-STATUS.md`, `CURRENT-TASK.md`, `ARCHITECTURE.md`).
+
+**Workflow:** PLAN → BACKLOG → STOP.
 
 ---
 

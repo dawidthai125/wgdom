@@ -11,6 +11,41 @@
 
 ---
 
+## Payroll Certification 2026
+
+**Status: IN PROGRESS** · SSOT: [`docs/PAYROLL-CERTIFICATION-2026-AUDIT.md`](docs/PAYROLL-CERTIFICATION-2026-AUDIT.md)
+
+**PASS (zamknięte):**
+- React state
+- stale snapshot
+- selectedEmpId
+- re-derived record
+- functional updates
+- per-day patch
+- ETAP 1 regression guard
+- Scenario H (PASS / CLOSED)
+
+**OPEN P0:**
+- PR-PAY-S7-5 Resurrection
+- batch-set 500 (H1 UNCONFIRMED)
+
+**OPEN HIGH:**
+- F1 Lost Update extraCosts — REPRO REQUIRED · DESIGN FREEZE NOT STARTED
+
+**Kolejność prac:**
+1. Finish S7-5
+2. Verify Production
+3. REPRO F1
+4. AUDIT CLOSE
+5. DESIGN FREEZE F1
+6. IMPLEMENT F1
+
+> Certyfikacja pozostaje otwarta do czasu zamknięcia aktywnych pozycji OPEN.
+
+**PLANNED (BACKLOG · NOT STARTED):** `docs/PAYROLL-ARCHITECTURE-v3.md` — SSOT kompletnej architektury Payroll (data flow · LocalStorage · Cloud · Edge · merge klient/Edge · LWW · tombstones · force-replace · CloudSyncMutationGuard · bootstrap/runtime parity · rollover · archive · restore · settled · extraCosts · sequence diagrams · invariants · anti-patterns · lessons learned). **Gate:** po zamknięciu S7-5 + F1 (jeśli potwierdzony) + Payroll Certification 2026. Szczegóły: [`CURRENT-TASK.md`](CURRENT-TASK.md). PLAN ONLY.
+
+---
+
 ## 1. Stan produkcji
 
 | Pole | Wartość |

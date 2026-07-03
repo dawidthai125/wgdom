@@ -1,7 +1,7 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.27** · HEAD `0cdbc54` · https://www.wgdom.fun  
+> **Prod:** UI **2.63.27** · HEAD `f8620b2` · https://www.wgdom.fun  
 > **Data:** 2026-07-03 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC) · STABILIZATION WINDOW ACTIVE
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-03):** trwa **P0 Payroll Cloud Sync Incident** — nie „STABILIZATION only". Dwa problemy: **(A)** `batch-set` HTTP 500 (H1 UNCONFIRMED), **(B)** **resurrection pracowników** (usunięty wraca na innym urządzeniu). Architektura sync/merge + oba problemy + plan naprawy: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj to zanim dotkniesz `cloud-sync.ts` / Edge.
@@ -52,6 +52,20 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 **Dwa problemy (z czym mamy problem):**
 - **(A) batch-set HTTP 500** — najpr. *statement timeout* na `kv.mset` całego bundla (**H1 UNCONFIRMED** — brak dowodu prod: requestId/error/stack/Postgres log).
 - **(B) Resurrection** — usunięty pracownik wraca na innym urządzeniu. **Root cause statyczny:** `kw-week-employees-deleted-ids` jest **wyłącznie lokalny** (nie synchronizowany) + merge UNION + niestabilny merge-key.
+
+### Payroll Process Design — 🔒 PROCESS COMPLETE (LOCK) · 2026-07-03
+
+Faza projektowania procesu Payroll **zamknięta** (PROJECT PROCESS COMPLETE). Dokumenty procesu = LOCK; aktywne pozostają tylko techniczne P0 (S7-5, F1, S7-4A observation).
+
+| Dokument | Rola |
+|----------|------|
+| [`PAYROLL-CERTIFICATION-SUITE.md`](PAYROLL-CERTIFICATION-SUITE.md) | zestaw regresyjny — 27 funkcji, 10 multi-device, Smoke/Regression, BUG register |
+| [`PAYROLL-QUALITY-GATE.md`](PAYROLL-QUALITY-GATE.md) | bramka pre-merge L1–L4, macierz typ→poziom, BLOCKED/ALLOWED |
+| [`QUALITY-GATE-INTEGRATION-PLAN.md`](QUALITY-GATE-INTEGRATION-PLAN.md) | integracja z workflow (`TEST → QUALITY GATE → COMMIT`) |
+| [`PR-PERF-S1-CLOUD-SYNC-BUNDLE-OPTIMIZATION-DESIGN-FREEZE.md`](PR-PERF-S1-CLOUD-SYNC-BUNDLE-OPTIMIZATION-DESIGN-FREEZE.md) | wariant B — 5 bundli, INV-1…INV-9, KPI, migration |
+| [`PAYROLL-CLOUD-SYNC-PERFORMANCE-AUDIT.md`](PAYROLL-CLOUD-SYNC-PERFORMANCE-AUDIT.md) | audyt requestów/egress → zasila PR-PERF-S1 |
+
+**BACKLOG (gated):** `PAYROLL-ARCHITECTURE-v3.md` (nieutworzony) · reorg `docs/payroll/`. **Następny krok:** Production Observation S7-4A → S7-5 ETAP 1 (owner GO) → REPRO F1.
 
 ### STABILIZATION WINDOW — **ACTIVE** (po NG-04)
 
