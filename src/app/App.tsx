@@ -49,6 +49,7 @@ import {
   getDeletedRecoverableChargeIds,
   addDeletedRecoverableChargeId,
   addDeletedArchiveId,
+  addDeletedWeekEmployeeKey,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
   pushPayrollWeekAfterRollover,
@@ -1314,8 +1315,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const removeWeekEmployee = (id: string) => {
     setWeekEmployees((prev) => {
+      const removed = prev.find((e) => e.id === id);
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
+        // PR-PAY-S2 — tombstone: usunięty pracownik nie może wrócić z Cloud Sync/Restore/Merge.
+        if (removed) addDeletedWeekEmployeeKey(weekFrom, weekTo, removed);
         persistPayrollRoster(next);
         refreshSavedActiveWeekSnapshot(next);
       }
