@@ -179,6 +179,40 @@ KLIENT:
 
 ---
 
+## OBSERVATION — Evidence Capture (H1)
+
+**Cel:** potwierdzić lub odrzucić **H1** (batch-set timeout = rzeczywisty Root Cause).
+
+### A. Zmierzone statycznie z repo (PARTIAL — wspiera H1, nie potwierdza runtime)
+
+| # | Metryka | Wartość | Źródło |
+|---|---------|---------|--------|
+| **A1** | Liczba kluczy w jednym `batch-set` | **38** (`DATA_KEYS` 30 + 8× `*-deleted-ids`) → pojedynczy `kv.mset` 38 wierszy, **bez chunków** | `cloud-sync.ts:2576–2594` |
+| **A2** | Rozmiar pełnego bundla (próbka archiwalna) | **~391 KB** (`scripts/audit-cloud-archive-snapshot.json`, 9252 linie: `kw-directory`+`kw-archive`+…) — rośnie co tydzień | snapshot repo |
+| **A3** | Operacje Edge przed `mset` | ~9× `kv.get` + ~6× `rotateKvBackups`(get+set) + `rotateJobsBackups` + `saveDailyFullBackup`, **sekwencyjnie, nowy klient Supabase per op** | `index.tsx:588–712`, `kv_store.tsx:15–58` |
+| **A4** | `kw-week-employees-deleted-ids` w pushu | **BRAK** (nie na liście push) — dotyczy H-R2 (resurrection), nie H1 | `cloud-sync.ts:2577` |
+
+### B. Do zebrania z PRODUKCJI (owner action — BLOKUJE potwierdzenie H1)
+
+> Wymaga dostępu do Supabase Dashboard (Edge Function logs + Postgres logs). **Niedostępne z repo/agenta.** Odtworzyć 1 incydent rozliczenia payroll dającego czerwony status, następnie wypełnić:
+
+| # | Pole | Gdzie znaleźć | Wartość |
+|---|------|---------------|---------|
+| **B1** | `requestId` | Edge log `[batch-set] requestId=…` lub body `{ok:false,error,requestId}` (S7-1) | ` ` |
+| **B2** | `error.message` | ten sam log / response body | ` ` |
+| **B3** | Edge stack | Edge Function logs (S7-1 `app.onError` loguje `err.stack`) | ` ` |
+| **B4** | Postgres log | Supabase → Logs → Postgres, to samo okno czasowe | ` ` |
+| **B5** | payload size | rozmiar body `POST /batch-set` (DevTools Network / Edge log) | ` ` |
+| **B6** | liczba kluczy batch-set | `keys.length` z requestu (oczekiwane 38) | ` ` |
+| **B7** | rozmiar `kw-archive` | długość wartości `kw-archive` w KV / w payloadzie | ` ` |
+
+### C. Kryterium decyzji
+
+- **H1 CONFIRMED** ⇔ B2 zawiera `canceling statement due to statement timeout` (lub równoważny timeout) **i** B3/B4 wskazują `kv.mset`→`upsert`/Postgres w tym samym oknie.
+- **H1 REJECTED** ⇔ B2 wskazuje inną przyczynę (payload/JSONB limit, OOM/CPU, `remaining connection slots`, auth/PostgREST, itp.).
+
+---
+
 ## GO / NO-GO
 
 | Etap | Status |
