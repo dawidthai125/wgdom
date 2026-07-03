@@ -1,8 +1,10 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED**  
-> **Data:** 2026-07-02 · **STABILIZATION WINDOW:** ACTIVE
+> **Prod:** UI **2.63.27** · HEAD **`0cdbc54`** · https://www.wgdom.fun  
+> **Data:** 2026-07-03 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE** · **P0 FREEZE** · STABILIZATION WINDOW ACTIVE
+
+> **🔴 P0 (2026-07-03):** aktywny incydent sync Payroll (batch-set 500 + resurrection). Architektura sync/merge + oba problemy + plan: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj przed zmianą `cloud-sync.ts` / Edge.
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -98,9 +100,11 @@ Duże widoki ładowane dynamicznie w `AdminViewRouter.tsx` (m.in. `JobsView`, `P
 | Rollover | `payroll-rollover.ts` | `autoArchiveAndAdvance`, `pushPayrollWeekAfterRollover` |
 | Edge parity | `payroll-week-employee-merge.ts` | B6 — wspólny kernel z Edge |
 
-**KV:** `kw-week-employees`, `kw-weekFrom`, `kw-weekTo`, `kw-archive`, `kw-directory`, `kw-employee-leaves`.
+**KV:** `kw-week-employees`, `kw-weekFrom`, `kw-weekTo`, `kw-archive`, `kw-directory`, `kw-employee-leaves`. **Tombstony** `kw-week-employees-deleted-ids` = **TYLKO LOKALNE** (nie synchronizowane → root cause resurrection; naprawa w S7-5).
 
 **Closeout:** B3 Guard · B4 merge SSOT · B5 closed week UI · B6 Edge parity · RB restore banner (2.63.24).
+
+> **🔴 P0 ACTIVE:** merge Payroll = **UNION** + tombstony lokalne + `batch-set` `kv.mset` all-or-nothing → resurrection pracowników i ryzyko 500. Zanim zmienisz `mergeWeekEmployees*` / Edge / tombstony → **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)**.
 
 ### 4.2 Roboty (JOBS)
 
@@ -211,7 +215,7 @@ Odczyt / merge
 | Payroll shrink | `wouldBlockPayrollShrink` | batch-set blokada utraty godzin |
 | Jobs delete in flight | `App.tsx` refs | blokuje pull podczas usuwania |
 
-**Szczegóły:** `ARCHITECTURE.md` § 11 · `PAYROLL-GUARD-PHASE-CLOSEOUT.md`.
+**Szczegóły:** `ARCHITECTURE.md` § 11 · `PAYROLL-GUARD-PHASE-CLOSEOUT.md` · **`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`** (🔴 P0: pełny przepływ + Edge merge + oba problemy).
 
 ---
 

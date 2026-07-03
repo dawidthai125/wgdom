@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun  
-> **Data:** 2026-07-02 · **STABILIZATION WINDOW ACTIVE** · **TI-B4 CLOSED** · **Z-04 PASS** · **TEST-INFRA-001 CLOSED**
+> **Prod:** UI **2.63.27** · HEAD `0cdbc54` · https://www.wgdom.fun  
+> **Data:** 2026-07-03 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC) · STABILIZATION WINDOW ACTIVE
+
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-03):** trwa **P0 Payroll Cloud Sync Incident** — nie „STABILIZATION only". Dwa problemy: **(A)** `batch-set` HTTP 500 (H1 UNCONFIRMED), **(B)** **resurrection pracowników** (usunięty wraca na innym urządzeniu). Architektura sync/merge + oba problemy + plan naprawy: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj to zanim dotkniesz `cloud-sync.ts` / Edge.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -13,7 +15,8 @@
 ```text
 1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
 1m. docs/AGENT-APP-MAP.md            ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
-2. CURRENT-TASK.md                   ← status · STABILIZATION WINDOW · backlog
+1p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md ← 🔴 P0: architektura sync/merge + oba problemy + plan (przed zmianą cloud-sync.ts / Edge)
+2. CURRENT-TASK.md                   ← status · P0 FREEZE · STABILIZATION · backlog
 3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 — zasady, maintenance, Z-01–Z-07
 4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
 5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
@@ -32,7 +35,23 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-02)
+## 2. Co zrobiliśmy (stan na 2026-07-03)
+
+### 🔴 P0 PAYROLL CLOUD SYNC INCIDENT — **ACTIVE** (najwyższy priorytet)
+
+> Pełna architektura + hipotezy + plan: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)**. Audyty: [`S7`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md).
+
+| Bundle | Status | Commit | Skrót |
+|--------|--------|--------|-------|
+| **PR-PAY-S6** Archive Restore Eligibility Guard | **CLOSED** | `d2a3d90` | baner/restore respektuje tombstony S2 (`eligibleArchiveWeekEmployees`) |
+| **PR-PAY-S7-1** Cloud Batch Diagnostics | **CLOSED** | `4c38f4f` | `app.onError` + try/catch + `{ok,error,requestId}` w Edge `batch-set` |
+| **PR-PAY-S7A** Frequency Audit | **AUDIT COMPLETE** | — | CONFIRMED CONTRIBUTING CAUSE (nadmiarowe batch-get/set; brak infinite loop) |
+| **PR-PAY-S7-4A** Cloud Sync Optimization | **IMPLEMENT COMPLETE → OBSERVATION** | `12b09d8` | debounce 2s + min-interval 15s + focus/visibility throttle + AC4 (no-change=no-push) + AC5 metryki |
+| **PR-PAY-S7-5** Resurrection Guard | **DESIGN FREEZE APPROVED · IMPLEMENT WAITING** | `0cdbc54` | plan: sync tombstonów + Edge tombstone-aware + force-replace + stabilizacja merge-key |
+
+**Dwa problemy (z czym mamy problem):**
+- **(A) batch-set HTTP 500** — najpr. *statement timeout* na `kv.mset` całego bundla (**H1 UNCONFIRMED** — brak dowodu prod: requestId/error/stack/Postgres log).
+- **(B) Resurrection** — usunięty pracownik wraca na innym urządzeniu. **Root cause statyczny:** `kw-week-employees-deleted-ids` jest **wyłącznie lokalny** (nie synchronizowany) + merge UNION + niestabilny merge-key.
 
 ### STABILIZATION WINDOW — **ACTIVE** (po NG-04)
 
@@ -138,10 +157,13 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne
 
-**Zasada:** **STABILIZATION WINDOW ACTIVE** — nie rozpoczynaj epiców ani dużych feature. Kolejny duży EPIC dopiero po **Z-01–Z-07** ([`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) §5) + **AUDIT** + wyraźnym poleceniu.
+**Zasada:** **P0 FREEZE ACTIVE** — do zamknięcia incydentu Payroll Cloud Sync **żadnych nowych EPIC** (WC-P3.3 S4 ON HOLD). Dozwolone: OBSERVATION S7-4A + dokumentacja + IMPLEMENT S7-5 po zakończeniu obserwacji. Ponadto STABILIZATION WINDOW ACTIVE.
 
 | Priorytet | Temat | Status | SSOT |
 |-----------|-------|--------|------|
+| **🔴 P0 #1** | Zakończyć **Production Observation S7-4A** (czy `batch-set 500` nadal; metryki `__wgdomSyncMetrics`) | **W TOKU** | [`S7-4 DF`](PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
+| **🔴 P0 #2** | **S7-5 ETAP 1** = S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware) — po obserwacji | **DESIGN FREEZE APPROVED · WAITING** | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
+| **P0 #3 (warunkowe)** | S7-5 ETAP 2 (S7-5-3/S7-5-4) tylko jeśli ETAP 1 nie rozwiąże · S7-2 hardening tylko jeśli 500 nadal | WARUNKOWE | j.w. · [`S7`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) |
 | **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
 | **Rytuał** | Raport tygodniowy metryk | co tydzień · **W01 GREEN** | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
 | **CLOSED** | **PAYROLL Etap 2** B1–B6 · RB · AH-REG-1 · **TEST-INFRA-001** | **2.63.15–26** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
@@ -391,4 +413,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-02 · prod 2.63.27 · STABILIZATION WINDOW ACTIVE · W01 Health GREEN · AD-10: mobile trilogy (S1/M-03/M-03.1) CLOSED na feature branchach · Z-05 Device Required · M-05 payroll regresja PASS*
+*Ostatnia aktualizacja: 2026-07-03 · prod UI 2.63.27 · HEAD `0cdbc54` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · S7-4A OBSERVATION · S7-5 DESIGN FREEZE APPROVED (IMPLEMENT WAITING) · STABILIZATION WINDOW ACTIVE · Z-05 Device Required*

@@ -6,9 +6,11 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `fd56cf7` |
+| **Commit (HEAD `main`)** | `0cdbc54` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** — brak nowych epiców bez polecenia |
+| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC, WC-P3.3 S4 ON HOLD) · STABILIZATION WINDOW ACTIVE |
+
+> **🔴 CZYTAJ NAJPIERW (P0):** trwa incydent Payroll Cloud Sync — **(A)** `batch-set` HTTP 500, **(B)** resurrection pracowników (usunięty wraca na innym urządzeniu). Architektura sync/merge + oba problemy + plan naprawy: **[`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)**. Nie zaczynaj nowych EPIC do zamknięcia P0.
 
 ---
 
@@ -47,8 +49,8 @@ Produkcja: **https://www.wgdom.fun** · Repo: **github.com/dawidthai125/wgdom** 
 
 ## 3. Aktualny status (skrót)
 
-- **Prod v2.63.27** GREEN · HEAD `fd56cf7` zawiera zmiany po ostatnim bumpie UI (Version Banner Refresh, Work Catalog P3.1/P3.2, **PAYROLL P0 Incident S1–S3/S5 CLOSED**).
-- **Payroll P0 Incident** (cross‑week, tombstones, zero‑hours, settled) — **CLOSED**.
+- **Prod UI v2.63.27** · HEAD `0cdbc54`. Payroll P0 Incident **seria pierwotna S1–S3/S5 CLOSED**, ale **otwarty jest nowy P0 Cloud Sync** (batch-set 500 + resurrection) — patrz baner P0 wyżej i [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+- **🔴 P0 Payroll Cloud Sync ACTIVE:** S7-1 diagnostyka CLOSED · S7-4A optymalizacja → OBSERVATION · **S7-5 Resurrection Guard = DESIGN FREEZE APPROVED, IMPLEMENT WAITING** (po obserwacji S7-4A). H1 (500) UNCONFIRMED.
 - **STABILIZATION WINDOW ACTIVE** od 2026‑07‑01 — utrzymanie, bez nowych epiców.
 - **NG‑05 MPI** (Market Pricing Intelligence) — DESIGN COMPLETE, **IMPLEMENT BLOCKED**.
 
