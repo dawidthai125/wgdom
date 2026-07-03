@@ -1,6 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-02 · **prod 2.63.27** (TI-B4 release · runtime bez zmian) · **main HEAD `2efe8b5`** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** (test-infra/docs, bez bumpu) · **TEST-FIX-001 DONE (SUPERSEDED BY MB-1)** · **NG-04 EPIC CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** (runtime bez zmian) · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 AUDIT COMPLETE · DESIGN FREEZE APPROVED · IMPLEMENT WAITING OWNER COMMAND** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
+
+---
+
+## PR-PAY-S6 — Archive Restore Eligibility Guard · **DESIGN FREEZE APPROVED**
+
+| Pole | Wartość |
+|------|---------|
+| **AUDIT** | **COMPLETE** |
+| **DESIGN FREEZE** | **APPROVED** |
+| **IMPLEMENT** | **WAITING OWNER COMMAND** |
+| **SSOT** | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
+| **RCA** | Baner (`shouldShowPayrollRestoreBanner`) i `restoreWeekFromArchive` nie stosują tombstonów PR-PAY-S2 do strony archiwum → false positive + wskrzeszanie starych/smoke pracowników |
+| **Plan IMPLEMENT** | S6-1 pure helper `eligibleArchiveWeekEmployees` · S6-2 baner z eligible (G1) · S6-3 restore z eligible (G2) · S6-4 test regresji · AC1–AC7 |
+| **Zakaz** | implementacja / kod / BUILD / TEST — do jawnego owner command startu bundla |
 
 ---
 

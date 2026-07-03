@@ -79,6 +79,7 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 | Temat | Status | SSOT |
 |-------|--------|------|
 | **STABILIZATION WINDOW** (AD‑10, Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
+| **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **AUDIT COMPLETE · DESIGN FREEZE APPROVED · IMPLEMENT WAITING OWNER COMMAND** | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
 | **Z‑05 Field Validation** (mobile, iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · DESIGN FREEZE (decyzje D‑A…D‑D pending)** | [`docs/work-catalog/`](docs/work-catalog/) |
 
