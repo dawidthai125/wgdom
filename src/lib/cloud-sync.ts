@@ -1508,11 +1508,16 @@ export function mergeWeekEmployeesForWeekRange(
     return mergeWeekEmployees(local, cloud);
   }
 
+  // PR-PAY-S1 — twardy strażnik tygodnia: NIE dodawaj składu z obcego tygodnia.
+  // Usunięty cross-week UNION (kontaminacja P0). Zachowujemy wyłącznie skład
+  // należący do bieżącego zakresu Pn–So.
   if (localMatch && !cloudMatch) {
-    return mergeWeekEmployees(local, stripWeekEmployeeHoursList(cloud));
+    // chmura należy do innego tygodnia → zachowaj wyłącznie bieżący skład lokalny
+    return mergeWeekEmployees(local, []);
   }
   if (!localMatch && cloudMatch) {
-    return mergeWeekEmployees(stripWeekEmployeeHoursList(local), cloud);
+    // lokalny skład należy do innego tygodnia → bieżący skład wyłącznie z chmury
+    return mergeWeekEmployees([], cloud);
   }
 
   const roster = mergeWeekEmployees(local, cloud);

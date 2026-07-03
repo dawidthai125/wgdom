@@ -25,6 +25,7 @@ import {
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
   mergeWeekEmployees,
+  mergeWeekEmployeesForWeekRange,
   weekEmployeesSamePerson,
   mergeArchive,
   mergeDirectory,
@@ -1150,9 +1151,26 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setRestoreBusy(true);
     try {
       await restoreCloudPayrollBackup(source);
-      const [cloudEmps, cloudArch] = await fetchKeysFromCloud(["kw-week-employees", "kw-archive"]);
-      const mergedEmps = mergeWeekEmployees(weekEmployees, cloudEmps ?? []) as WeekEmployee[];
+      const [cloudEmps, cloudArch, cloudWeekFrom, cloudWeekTo] = await fetchKeysFromCloud([
+        "kw-week-employees",
+        "kw-archive",
+        "kw-weekFrom",
+        "kw-weekTo",
+      ]);
       const mergedArch = mergeArchive(savedWeeks, cloudArch ?? []) as WeekSnapshot[];
+      // PR-PAY-S1 — restore respektuje bieżący tydzień (identyczny week guard co sync):
+      // nie importuj rostera z innego zakresu Pn–So.
+      const mergedEmps = mergeWeekEmployeesForWeekRange(
+        weekFrom,
+        weekTo,
+        weekFrom,
+        weekTo,
+        weekEmployees,
+        cloudWeekFrom,
+        cloudWeekTo,
+        cloudEmps ?? [],
+        mergedArch,
+      ) as WeekEmployee[];
       localStorage.setItem("kw-week-employees", JSON.stringify(mergedEmps));
       localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
       setWeekEmployees(mergedEmps);
