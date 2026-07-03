@@ -7,9 +7,9 @@
 | **Ostatnia aktualizacja** | 2026-07-03 |
 | **Commit (HEAD `main`)** | `4c38f4f` |
 | **Production version (UI)** | **v2.63.27** |
-| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION** |
+| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · S7-4A OBSERVATION · S7-5 DESIGN FREEZE APPROVED (IMPLEMENT WAITING)** |
 
-> **🔴 P0 FREEZE:** nowe EPIC-i wstrzymane do zamknięcia P0 — **WC-P3.3 S4 Preview Mount = ON HOLD**. Dozwolone tylko OBSERVATION PR-PAY-S7 + docs.
+> **🔴 P0 FREEZE:** nowe EPIC-i wstrzymane do zamknięcia P0 — **WC-P3.3 S4 Preview Mount = ON HOLD**. Dozwolone tylko OBSERVATION PR-PAY-S7/S7-4A + docs. **S7-5 Resurrection Guard: DESIGN FREEZE APPROVED — IMPLEMENT WAITING** (gate: zakończenie obserwacji S7-4A; ETAP 1 = S7-5-1+S7-5-2, ETAP 2 warunkowy).
 
 ---
 
@@ -51,7 +51,7 @@ Pełny rejestr historyczny: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HAN
 |---------|------|------|
 | **STABILIZATION WINDOW** (AD‑10 · Z‑01–Z‑07) | **ACTIVE** · W01 Health GREEN | [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) |
 | **PR‑PAY‑S6** — Archive Restore Eligibility Guard | **CLOSED** · IMPLEMENT COMPLETE · BUILD PASS · TEST PASS · HEAD `d2a3d90` | [`docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md`](docs/PAYROLL-PR-PAY-S6-ARCHIVE-RESTORE-ELIGIBILITY-AUDIT.md) |
-| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **S7A = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4A Cloud Sync Optimization = IMPLEMENT COMPLETE (BUILD/TEST PASS) → PRODUCTION OBSERVATION 24–48h** · S7‑2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7‑3/S7‑5 DRAFT · H1 UNCONFIRMED | [`S7`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`S7-4 DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
+| **PR‑PAY‑S7** — Cloud Batch 500 Investigation | **S7‑1 CLOSED** (`4c38f4f`) · **S7A = CONFIRMED CONTRIBUTING CAUSE** · **S7‑4A Cloud Sync Optimization = IMPLEMENT COMPLETE (BUILD/TEST PASS) → PRODUCTION OBSERVATION 24–48h** · S7‑2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7‑3 DRAFT · **S7‑5 Resurrection Guard = DESIGN FREEZE APPROVED · IMPLEMENT WAITING (gate: obserwacja S7‑4A) · ETAP 1 = S7‑5‑1+S7‑5‑2 · ETAP 2 warunkowy** · H1 UNCONFIRMED | [`S7`](docs/PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`S7A`](docs/PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`S7-4 DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) · [`S7-5 DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
 | **Z‑05 Field Validation** (mobile iPhone Safari) | **PENDING (Device Required)** | j.w. |
 | **Work Catalog P3.3** — Market Pricing UX | **AUDIT DONE · design freeze pending (D‑A…D‑D)** | [`docs/work-catalog/`](docs/work-catalog/) |
 

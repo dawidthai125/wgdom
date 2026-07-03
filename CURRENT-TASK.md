@@ -2,7 +2,7 @@
 
 **Ostatnia aktualizacja:** 2026-07-03 · **prod 2.63.27** · **HEAD `4c38f4f`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · OBSERVATION (waiting for production evidence)** · **TEST-INFRA-001 CLOSED** · **MB-1 / MB-1.1 / MB-2 / TI-B2.1 CLOSED** · **NG-04 EPIC CLOSED**
 
-> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION PR-PAY-S7 (zbieranie dowodu H1) + dokumentacja. Zakaz implementacji S7-2/S7-3/S7-4/S7-5 oraz nowych funkcji WC bez Root Cause Confirmation.
+> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION PR-PAY-S7/S7-4A + dokumentacja. **PR-PAY-S7-5 Resurrection Guard: DESIGN FREEZE APPROVED — IMPLEMENT WAITING (gate: zakończenie Production Observation S7-4A)**, rollout etapowy (ETAP 1 = S7-5-1+S7-5-2; ETAP 2 warunkowy). Zakaz implementacji S7-2/S7-3/S7-4/S7-5 bez owner GO.
 
 ---
 
@@ -37,9 +37,9 @@
 | **S7-3** singleton Supabase client | **DRAFT** |
 | **S7-4A** Cloud Sync Optimization (G1 debounce · G2 min-interval · G3/G4 focus/visibility throttle · AC4 no-change=no-push · AC5 metrics) | ✅ **IMPLEMENT COMPLETE · BUILD PASS · TEST PASS (17/17 + regresja)** → **PRODUCTION OBSERVATION 24–48h** · [`DF`](docs/PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) |
 | **G5 Delta Push / G6 ETag** | **OUT OF SCOPE** — decyzja po obserwacji |
-| **S7-5** resurrection guard (tombstony na Edge / `replaceWeekEmployeesKeys`) | **DRAFT** |
+| **S7-5** Resurrection Guard | **DESIGN FREEZE APPROVED** · **IMPLEMENT WAITING** (gate: Production Observation S7-4A) · rollout etapowy **ETAP 1 = S7-5-1 (sync `kw-week-employees-deleted-ids`) + S7-5-2 (Edge tombstone-aware)** → BUILD/TEST → ponowna obserwacja → **ETAP 2 warunkowy** (S7-5-3 `replaceWeekEmployeesKeys` · S7-5-4 stabilizacja merge-key) · AC1–AC11 + backlog AC12/AC13 · [`DF`](docs/PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) |
 | **Rewizja planu** | **S7-4A wdrożone → Observation 24–48h → warunkowo S7-2 (jeśli batch-set 500 nadal)**. Nowe dane: Supabase Resource Exhaustion + wysoka liczba batch-get |
-| **Zakaz** | S7-2/S7-5/G5/G6 bez owner GO; S7-4A nie ruszał merge/LWW/Payroll/tombstones/Edge/kv.mset |
+| **Zakaz** | S7-2/S7-5/G5/G6 bez owner GO; S7-5 IMPLEMENT dopiero po zamknięciu obserwacji S7-4A; S7-4A nie ruszał merge/LWW/Payroll/tombstones/Edge/kv.mset |
 
 ---
 
@@ -237,7 +237,7 @@
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
 | **PAYROLL-CLOUD-RECOVERY Etap 2** | **B1–B6 + RB CLOSED** |
 | **PR-PAY-S6** | **CLOSED** · Archive Restore Eligibility Guard · HEAD `d2a3d90` |
-| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause · **S7-4A IMPLEMENT COMPLETE (BUILD/TEST PASS) → OBSERVATION 24–48h** · S7-2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7-3/S7-5 DRAFT · H1 UNCONFIRMED |
+| **PR-PAY-S7** | **S7-1 CLOSED** (`4c38f4f`) · **S7A** contributing cause · **S7-4A IMPLEMENT COMPLETE (BUILD/TEST PASS) → OBSERVATION 24–48h** · S7-2 warunkowo (jeśli 500 nadal) · G5/G6 out of scope · S7-3 DRAFT · **S7-5 DESIGN FREEZE APPROVED — IMPLEMENT WAITING (po obserwacji S7-4A) · ETAP 1 = S7-5-1+S7-5-2** · H1 UNCONFIRMED |
 | **Audit Hub AH-REG-1** | **CLOSED** · **2.63.25** |
 | **TEST-INFRA-001** | **CLOSED** · **2.63.26** |
 | **Test-infra post-close** | **MB-1 `460031f` · MB-1.1 `8b5c63c` · MB-2 (docs) · TI-B2.1 `2efe8b5` CLOSED** · TEST-FIX-001 DONE (SUPERSEDED BY MB-1) · runtime bez zmian |
