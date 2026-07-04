@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.33",
+    label: "Platform sync — reconcile notatek operacyjnych",
+    items: [
+      {
+        type: "fix",
+        text: "Auto-sync nie cofa już archiwizacji notatki operacyjnej — świeży LocalStorage jest scalany po zakończeniu pull z chmury.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.32",
     label: "Przetargi — Owner View: roboty z PDF i liczba pozycji",
     items: [

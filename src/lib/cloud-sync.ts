@@ -2917,6 +2917,26 @@ export async function computeMergedDataBundle(
   return { merged, cloudReachable };
 }
 
+/**
+ * PLATFORM-SYNC-01A — po await merge: świeży LS notatek + reconcile przed apply/push.
+ * Zapobiega cofnięciu archiwizacji gdy runCloudSync zaczął ze stale snapshot.
+ */
+export function reconcileOperationalNotesInMergedBundle(
+  merged: unknown[],
+  freshLocal?: unknown | null,
+): unknown[] {
+  const opIdx = DATA_KEYS.indexOf(OPERATIONAL_NOTES_KEY);
+  if (opIdx < 0 || opIdx >= merged.length) return merged;
+  const fresh = freshLocal ?? readLocalStorageDataKey(OPERATIONAL_NOTES_KEY);
+  const out = [...merged];
+  out[opIdx] = mergeOperationalNotes(
+    fresh,
+    merged[opIdx],
+    getDeletedOperationalNoteIds(),
+  );
+  return out;
+}
+
 /** Pobierz chmurę i scal z lokalnym — bez zapisu (do odświeżenia UI / pull on focus). */
 export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown[]> {
   payrollTraceEmit("sync.pull.bundle.start", "MERGE", "info", { trigger: "focus_pull" as const });

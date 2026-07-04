@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.33 — Platform sync reconcile notatek operacyjnych
+
+- **fix:** `reconcileOperationalNotesInMergedBundle` — świeży LS po await pull; archiwizacja nie wraca na active
+- **test:** `test-operational-notes-sync-race-p0.mjs` P0R-T05–T09
+
 ## 2.63.32 — Przetargi Owner View (P2A pdf_text)
 
 - **improve:** Document Summary Header — `formatDocumentRowCount` (pending / nie ustalono / liczba)
