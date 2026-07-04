@@ -75,7 +75,8 @@ app.use(
   "/*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization", "apikey"],
+    // SYNC-ARCH-01 RC-A HOTFIX — Runtime Trace header (preflight + POST batch-set/batch-get)
+    allowHeaders: ["Content-Type", "Authorization", "apikey", "X-WGDOM-Trace-Id"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
