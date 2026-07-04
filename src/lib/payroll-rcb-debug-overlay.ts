@@ -12,6 +12,7 @@ export type PayrollRcbDebugOverlaySnapshot = {
   batchSetStatus?: number | null;
   batchSetCount?: number | null;
   lastBatchGetCount?: number | null;
+  lastWeekEmployeesCount?: number | null;
   updatedAt?: string;
 };
 

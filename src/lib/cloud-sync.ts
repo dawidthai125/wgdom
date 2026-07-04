@@ -3021,7 +3021,7 @@ export async function fetchKeysFromCloud(
   const weekEmployeesCount =
     empIdx >= 0 ? normalizeArrayValue((values as unknown[])[empIdx]).length : null;
   patchPayrollRcbDebugOverlay(
-    { lastBatchGetCount: keys.length },
+    { lastBatchGetCount: keys.length, lastWeekEmployeesCount: weekEmployeesCount },
     "fetchKeysFromCloud.response",
     { weekEmployeesCount, keysReturned: keys.length },
   );

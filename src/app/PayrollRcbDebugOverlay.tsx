@@ -109,6 +109,7 @@ export function PayrollRcbDebugOverlay() {
       <Row label="batchSet.status" value={fmt(snap.batchSetStatus)} />
       <Row label="batchSet.count" value={fmt(snap.batchSetCount)} />
       <Row label="lastBatchGetCount" value={fmt(snap.lastBatchGetCount)} />
+      <Row label="lastWeekEmployeesCount" value={fmt(snap.lastWeekEmployeesCount)} />
       {timelineNewestFirst.length > 0 ? (
         <div style={{ marginTop: 8 }}>
           <div style={{ fontSize: 9, fontWeight: 700, opacity: 0.75, marginBottom: 2 }}>
