@@ -11,6 +11,7 @@ import {
   type WorkScopeConfidence,
   type WorkScopeSource,
 } from "@/lib/tender-work-scope-inference";
+import { formatDocumentRowCount } from "@/lib/tender-document-summary-header";
 
 export {
   dedupeWorkCategories,
@@ -59,6 +60,8 @@ export function buildExecutiveSummary(
   opts?: {
     parseResult?: AthPreviewResult | null;
     filename?: string;
+    pdfTextPreview?: string | null;
+    rowCountPending?: boolean;
   },
 ): ExecutiveSummary | null {
   const filename = opts?.filename ?? "";
@@ -86,6 +89,7 @@ export function buildExecutiveSummary(
     scopeDescription: ctx?.scopeDescription,
     rowDescriptions: ctx?.rowDescriptions,
     parseResult: opts?.parseResult,
+    pdfTextPreview: opts?.pdfTextPreview,
   });
 
   const mainWorks = scope.mainWorks;
@@ -96,12 +100,15 @@ export function buildExecutiveSummary(
 
   const headline = docSummary?.headline ?? headlineForKind(kind);
 
+  const rowCountDisplay = docSummary?.rowCountDisplay
+    ?? formatDocumentRowCount(rowCount, { pending: opts?.rowCountPending });
+
   return {
     headline,
     rowCount: rowCount != null && rowCount >= 0 ? rowCount : null,
-    rowCountLabel: rowCount != null && rowCount >= 0
+    rowCountLabel: rowCount != null && rowCount > 0
       ? formatCountLabel(rowCount, "pozycja", "pozycji")
-      : "—",
+      : rowCountDisplay,
     departmentCount: departmentCount != null && departmentCount > 0 ? departmentCount : null,
     departmentLabel: departmentCount != null && departmentCount > 0
       ? formatCountLabel(departmentCount, "dział", "działów")

@@ -33,6 +33,7 @@ export interface DocumentPreviewSummary {
   headline: string;
   typeLabel: string;
   rowCount: number | null;
+  rowCountDisplay: string;
   statusLabel: string;
   valueLabel: string | null;
   pricingLabel: string;
@@ -40,6 +41,17 @@ export interface DocumentPreviewSummary {
   categoryCount: number | null;
   costStatus: ResolvedCostStatus;
   costDocKind: CostDocKind;
+}
+
+/** Etykieta liczby pozycji — bez fałszywego „0” gdy brak danych strukturalnych. */
+export function formatDocumentRowCount(
+  rowCount: number | null | undefined,
+  opts?: { pending?: boolean },
+): string {
+  if (opts?.pending) return "W trakcie analizy";
+  if (rowCount != null && rowCount > 0) return String(rowCount);
+  if (rowCount === 0) return "Nie ustalono liczby pozycji";
+  return "—";
 }
 
 export function resolveCostDocKind(
@@ -100,6 +112,7 @@ export function buildDocumentPreviewSummary(
     parseResult?: AthPreviewResult | null;
     filename?: string;
     rowCount?: number;
+    rowCountPending?: boolean;
   },
 ): DocumentPreviewSummary | null {
   const filename = opts?.filename ?? "";
@@ -107,10 +120,11 @@ export function buildDocumentPreviewSummary(
   if (!kind) return null;
 
   const costStatus = ctx?.costStatus ?? inferCostStatusFromParse(opts?.parseResult);
-  const rowCount = ctx?.rowCount
+  const rawRowCount = ctx?.rowCount
     ?? opts?.rowCount
     ?? opts?.parseResult?.rows?.length
     ?? null;
+  const rowCount = rawRowCount != null && rawRowCount > 0 ? rawRowCount : (rawRowCount === 0 ? 0 : null);
 
   const valueLabel = costStatus === "FOUND_WITH_VALUE"
     ? (ctx?.totalValueDisplay ?? formatTotalValue(opts?.parseResult?.totalValue, opts?.parseResult?.currency))
@@ -124,7 +138,8 @@ export function buildDocumentPreviewSummary(
     typeLabel: ctx?.docType && kind === "ath" && ctx.docType !== "ATH"
       ? ctx.docType
       : TYPE_LABELS[kind],
-    rowCount: rowCount != null && rowCount > 0 ? rowCount : (rowCount === 0 ? 0 : null),
+    rowCount,
+    rowCountDisplay: formatDocumentRowCount(rowCount, { pending: opts?.rowCountPending }),
     statusLabel: mapCostStatusLabel(costStatus, kind),
     valueLabel,
     pricingLabel: mapPricingLabel(costStatus),

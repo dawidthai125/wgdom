@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-05",
+    version: "2.63.32",
+    label: "Przetargi — Owner View: roboty z PDF i liczba pozycji",
+    items: [
+      {
+        type: "improve",
+        text: "Podgląd przedmiaru/kosztorysu PDF — uczciwa liczba pozycji (W trakcie analizy / Nie ustalono liczby pozycji zamiast fałszywego 0)",
+      },
+      {
+        type: "new",
+        text: "Executive Summary (P2A) — główne roboty z tekstu PDF gdy brak działów i katalogu w snapshot (Case 2 przedmiar); rozszerzony słownik branż (sanitarne, wykończeniowe)",
+      },
+    ],
+  },
+  {
     date: "2026-07-04",
     version: "2.63.31",
     label: "RC-B — usunięcie artefaktów debug payroll pipeline",

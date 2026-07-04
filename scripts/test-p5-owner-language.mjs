@@ -37,10 +37,13 @@ assert(TENDER_OWNER_TAB_LABELS.offer === "Oferta", "offer module tab");
 assert(!TENDER_OWNER_TAB_LABELS.overview.includes("Przegląd"), "no Przegląd");
 assert(!TENDER_OWNER_TAB_LABELS.overview.includes("Decyzja"), "no legacy Decyzja tab");
 
-console.log("\n2. Intelligence copy SSOT");
+console.log("\n2. Decision / Hub copy SSOT (EPIC A)");
 const ownerView = readSrc("src/app/TenderOwnerView.tsx");
-assert(ownerView.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Intelligence section copy");
-assert(ownerView.includes("intelligenceCtx"), "Owner view renderer uses intelligenceCtx");
+const decisionView = readSrc("src/app/TenderDecisionView.tsx");
+const hubSections = readSrc("src/app/TenderWorkflowHubSections.tsx");
+assert(decisionView.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Decision view section copy");
+assert(hubSections.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Workflow hub blockers copy");
+assert(ownerView.includes("intelligenceCtx"), "Owner view delegates intelligenceCtx");
 assert(!ownerView.includes("scoreTenderForOwnerView"), "no scoring in OwnerView");
 assert(!ownerView.includes("OwnerNextSteps"), "OwnerNextSteps removed");
 const bidPrep = readSrc("src/app/TenderBidPrepPanel.tsx");

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.32 — Przetargi Owner View (P2A pdf_text)
+
+- **improve:** Document Summary Header — `formatDocumentRowCount` (pending / nie ustalono / liczba)
+- **new:** Work scope `pdf_text` — inferencja branż z tekstu PDF w modalu gdy brak categories/catalog
+- **improve:** Executive Summary — `rowCountLabel` SSOT z nagłówka dokumentu
+- **test:** `test-p2a-scope-from-pdf-text.mjs` (18) · regresja P1B/P1C/P1D/P5
+
 ## RC-B CLOSEOUT — 2026-07-04 (docs · PLATFORM)
 
 - **docs:** SYNC-ARCH-01 **RC-B CLOSED** — prod verification PASS (`2.63.31` · `31a7d5e`) · closeout SSOT [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)

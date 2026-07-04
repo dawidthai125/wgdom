@@ -10,8 +10,6 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 }
 
 export function DocumentSummaryHeader({ summary }: { summary: DocumentPreviewSummary }) {
-  const rowDisplay = summary.rowCount != null ? String(summary.rowCount) : "—";
-
   return (
     <div className="rounded-xl border border-primary/20 bg-primary/5 overflow-hidden mb-3">
       <div className="px-4 py-3 border-b border-primary/10">
@@ -21,7 +19,7 @@ export function DocumentSummaryHeader({ summary }: { summary: DocumentPreviewSum
       </div>
       <div className="px-4 py-3 space-y-1.5">
         <SummaryRow label="Typ:" value={summary.typeLabel} />
-        <SummaryRow label="Pozycje:" value={rowDisplay} />
+        <SummaryRow label="Pozycje:" value={summary.rowCountDisplay} />
         <SummaryRow label="Status:" value={summary.statusLabel} />
         {summary.valueLabel && (
           <SummaryRow label="Wartość:" value={summary.valueLabel} />

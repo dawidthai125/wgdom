@@ -212,7 +212,7 @@ const noRowsExec = buildExecutiveSummary(
   buildDocumentPreviewSummary({ costDocKind: "ath", costStatus: "NOT_FOUND", rowCount: 0 }, { filename: "x.ath" }),
   { filename: "x.ath", parseResult: { ok: false, format: "ath", rows: [], warnings: [] } },
 );
-assert("zero rows label", noRowsExec?.rowCount === 0);
+assert("zero rows label", noRowsExec?.rowCountLabel === "Nie ustalono liczby pozycji");
 
 // --- parseResult rows fallback ---
 const fromRows = extractMainWorkCategories({

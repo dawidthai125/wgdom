@@ -74,6 +74,7 @@ export type WorkScopeSource =
   | "row_categories"
   | "descriptions"
   | "catalog"
+  | "pdf_text"
   | "scope";
 
 export interface WorkScopeGroupDef {
@@ -151,6 +152,30 @@ export const WORK_SCOPE_GROUPS: WorkScopeGroupDef[] = [
     keywords: [
       "rozbior", "demontaz", "wyburzen", "rozkuc", "usunieci nawierzchn",
       "sciecie", "wykuc",
+    ],
+  },
+  {
+    id: "remont_sanitarny",
+    label: "Remont pomieszczeń sanitarnych",
+    keywords: [
+      "remont", "odnowien", "renowac", "toalet", "lazienk", "umywalk",
+      "sanitarn", "wc ", "spluczk", "mieszalk",
+    ],
+  },
+  {
+    id: "przebudowa_sanitarna",
+    label: "Przebudowa instalacji sanitarnych",
+    keywords: [
+      "przebudow", "modernizac instal", "wymiana instal", "instalacj sanit",
+      "wod-kan", "kanalizacj wewnetrz",
+    ],
+  },
+  {
+    id: "wykonczeniowe",
+    label: "Roboty wykończeniowe",
+    keywords: [
+      "wykoncz", "malow", "glazur", "podlog", "scienna", "sufit podwiesz",
+      "panele", "listwy", "fugow",
     ],
   },
 ];
@@ -299,6 +324,26 @@ export interface WorkScopeInferenceInput {
   scopeDescription?: string | null;
   parseResult?: AthPreviewResult | null;
   rowDescriptions?: string[] | null;
+  /** P2A — tekst wyekstrahowany z PDF w modalu (gdy brak categories/catalog). */
+  pdfTextPreview?: string | null;
+}
+
+/** Dzieli tekst PDF na linie do scoringu słów kluczowych. */
+export function pdfTextToInferenceChunks(text: string): string[] {
+  return text
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 4);
+}
+
+function hasStructuredScopeSources(input: WorkScopeInferenceInput): boolean {
+  if ((input.snapshotCategoryNames?.length ?? 0) > 0) return true;
+  if (namesFromParseCategories(input.parseResult).length > 0) return true;
+  if (namesFromRowCategories(input.parseResult).length > 0) return true;
+  if ((input.rowDescriptions?.length ?? 0) > 0) return true;
+  if (rowDescriptionTexts(input.parseResult).length > 0) return true;
+  if ((input.catalogDescriptions?.length ?? 0) > 0) return true;
+  return false;
 }
 
 export interface WorkScopeInferenceResult {
@@ -416,6 +461,19 @@ export function inferWorkScope(input: WorkScopeInferenceInput): WorkScopeInferen
         confidence: conf,
         confidenceLabel: conf ? WORK_SCOPE_CONFIDENCE_LABELS[conf] : null,
         source: "catalog",
+      };
+    }
+  }
+
+  if (input.pdfTextPreview?.trim() && !hasStructuredScopeSources(input)) {
+    const chunks = pdfTextToInferenceChunks(input.pdfTextPreview);
+    const inferred = inferWorkScopeFromTexts(chunks.length > 0 ? chunks : [input.pdfTextPreview]);
+    if (inferred.mainWorks.length > 0) {
+      return {
+        mainWorks: inferred.mainWorks,
+        confidence: "medium",
+        confidenceLabel: WORK_SCOPE_CONFIDENCE_LABELS.medium,
+        source: "pdf_text",
       };
     }
   }
