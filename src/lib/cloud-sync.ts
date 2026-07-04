@@ -123,6 +123,7 @@ import {
   payrollTraceNextHttpSeq,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { patchPayrollRcbDebugOverlay } from "@/lib/payroll-rcb-debug-overlay";
 
 function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
@@ -2314,6 +2315,9 @@ export async function pushKeysToCloud(
       replaceWeekEmployeesKeysBefore,
       replaceWeekEmployeesKeysAfter: guarded.options.replaceWeekEmployeesKeys ?? [],
     });
+    if (keysBefore.includes("kw-week-employees")) {
+      patchPayrollRcbDebugOverlay({ payrollGuardBlocked: guarded.blocked });
+    }
   }
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
@@ -2374,6 +2378,10 @@ export async function pushKeysToCloud(
         requestId: edgeRequestId ?? httpRequestId,
         count: normalizeArrayValue(safeValues[empIdx]).length,
       });
+      patchPayrollRcbDebugOverlay({
+        batchSetStatus: res.status,
+        batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
+      });
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
       httpStatus: res.status,
@@ -2391,6 +2399,10 @@ export async function pushKeysToCloud(
       status: res.status,
       requestId: httpRequestId,
       count: normalizeArrayValue(safeValues[empIdx]).length,
+    });
+    patchPayrollRcbDebugOverlay({
+      batchSetStatus: res.status,
+      batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
     });
   }
   payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {

@@ -52,6 +52,7 @@ import {
   payrollTraceEmit,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { patchPayrollRcbDebugOverlay } from "@/lib/payroll-rcb-debug-overlay";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -169,6 +170,11 @@ export function CloudLoader({ children }: { children: ReactNode }) {
               cloudCount: Array.isArray(cloudVal) ? cloudVal.length : 0,
               shouldPush,
             });
+            patchPayrollRcbDebugOverlay({
+              mergedCount: Array.isArray(merged) ? merged.length : 0,
+              cloudCount: Array.isArray(cloudVal) ? cloudVal.length : 0,
+              shouldPush,
+            });
           }
           if (key === "kw-week-employees") {
             payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "info", {
@@ -217,6 +223,12 @@ export function CloudLoader({ children }: { children: ReactNode }) {
                   : null,
               replaceWeekEmployeesKeys: [...replaceWeekEmployeesKeys],
               forceReplaceWeekEmployees: replaceWeekEmployeesKeys.length > 0,
+            });
+            patchPayrollRcbDebugOverlay({
+              payloadCount:
+                empPushIdx >= 0 && Array.isArray(pushValues[empPushIdx])
+                  ? pushValues[empPushIdx].length
+                  : null,
             });
           }
           const bootstrapPushId = pushKeys.includes("kw-week-employees")
