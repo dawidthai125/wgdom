@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   getPayrollRcbDebugOverlaySnapshot,
+  getPayrollRcbDebugTimeline,
   subscribePayrollRcbDebugOverlay,
   type PayrollRcbDebugOverlaySnapshot,
+  type PayrollRcbDebugTimelineEntry,
 } from "@/lib/payroll-rcb-debug-overlay";
 
 function fmt(value: boolean | number | null | undefined): string {
@@ -20,18 +22,48 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+function TimelineEntry({ entry }: { entry: PayrollRcbDebugTimelineEntry }) {
+  return (
+    <div
+      style={{
+        borderTop: "1px solid rgba(148, 163, 184, 0.25)",
+        marginTop: 5,
+        paddingTop: 5,
+        fontSize: 9,
+        lineHeight: 1.35,
+      }}
+    >
+      <div style={{ fontWeight: 600, marginBottom: 2 }}>
+        {entry.time} · {entry.event}
+      </div>
+      <div style={{ opacity: 0.9 }}>
+        m={fmt(entry.mergedCount)} c={fmt(entry.cloudCount)} p={fmt(entry.payloadCount)}
+      </div>
+      <div style={{ opacity: 0.9 }}>
+        bs.c={fmt(entry.batchSetCount)} bs.s={fmt(entry.batchSetStatus)}
+      </div>
+    </div>
+  );
+}
+
 export function PayrollRcbDebugOverlay() {
   const [snap, setSnap] = useState<PayrollRcbDebugOverlaySnapshot>(() =>
     getPayrollRcbDebugOverlaySnapshot(),
+  );
+  const [entries, setEntries] = useState<readonly PayrollRcbDebugTimelineEntry[]>(() =>
+    getPayrollRcbDebugTimeline(),
   );
 
   useEffect(
     () =>
       subscribePayrollRcbDebugOverlay(() => {
         setSnap({ ...getPayrollRcbDebugOverlaySnapshot() });
+        setEntries([...getPayrollRcbDebugTimeline()]);
       }),
     [],
   );
+
+  const timelineNewestFirst = [...entries].reverse();
 
   return (
     <div
@@ -41,7 +73,10 @@ export function PayrollRcbDebugOverlay() {
         right: "max(8px, env(safe-area-inset-right))",
         bottom: "max(8px, env(safe-area-inset-bottom))",
         zIndex: 2147483000,
-        maxWidth: "min(280px, calc(100vw - 16px))",
+        maxWidth: "min(300px, calc(100vw - 16px))",
+        maxHeight: "min(50vh, 320px)",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
         padding: "8px 10px",
         borderRadius: 8,
         background: "rgba(15, 23, 42, 0.92)",
@@ -65,6 +100,16 @@ export function PayrollRcbDebugOverlay() {
       <Row label="payrollGuard.blocked" value={fmt(snap.payrollGuardBlocked)} />
       <Row label="batchSet.status" value={fmt(snap.batchSetStatus)} />
       <Row label="batchSet.count" value={fmt(snap.batchSetCount)} />
+      {timelineNewestFirst.length > 0 ? (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 9, fontWeight: 700, opacity: 0.75, marginBottom: 2 }}>
+            TIMELINE ({timelineNewestFirst.length}/10)
+          </div>
+          {timelineNewestFirst.map((entry, index) => (
+            <TimelineEntry key={`${entry.time}-${entry.event}-${index}`} entry={entry} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

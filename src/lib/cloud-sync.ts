@@ -2316,7 +2316,7 @@ export async function pushKeysToCloud(
       replaceWeekEmployeesKeysAfter: guarded.options.replaceWeekEmployeesKeys ?? [],
     });
     if (keysBefore.includes("kw-week-employees")) {
-      patchPayrollRcbDebugOverlay({ payrollGuardBlocked: guarded.blocked });
+      patchPayrollRcbDebugOverlay({ payrollGuardBlocked: guarded.blocked }, "payrollGuard.after");
     }
   }
   if (guarded.blocked) {
@@ -2378,10 +2378,13 @@ export async function pushKeysToCloud(
         requestId: edgeRequestId ?? httpRequestId,
         count: normalizeArrayValue(safeValues[empIdx]).length,
       });
-      patchPayrollRcbDebugOverlay({
-        batchSetStatus: res.status,
-        batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
-      });
+      patchPayrollRcbDebugOverlay(
+        {
+          batchSetStatus: res.status,
+          batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
+        },
+        "batchSet.response",
+      );
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
       httpStatus: res.status,
@@ -2400,10 +2403,13 @@ export async function pushKeysToCloud(
       requestId: httpRequestId,
       count: normalizeArrayValue(safeValues[empIdx]).length,
     });
-    patchPayrollRcbDebugOverlay({
-      batchSetStatus: res.status,
-      batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
-    });
+    patchPayrollRcbDebugOverlay(
+      {
+        batchSetStatus: res.status,
+        batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
+      },
+      "batchSet.response",
+    );
   }
   payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
     httpStatus: res.status,
