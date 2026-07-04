@@ -159,6 +159,17 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             }
           }
           const shouldPush = bootstrapMergedShouldPush(key, merged, cloudVal);
+          if (
+            (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug &&
+            key === "kw-week-employees"
+          ) {
+            console.warn("[wgdom payroll RC-B] bootstrap.bootstrapMergedShouldPush", {
+              key,
+              mergedCount: Array.isArray(merged) ? merged.length : 0,
+              cloudCount: Array.isArray(cloudVal) ? cloudVal.length : 0,
+              shouldPush,
+            });
+          }
           if (key === "kw-week-employees") {
             payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "info", {
               key,
@@ -194,10 +205,23 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         if (pushKeys.length > 0) {
+          const replaceWeekEmployeesKeys = pushKeys.includes("kw-week-employees")
+            ? (["kw-week-employees"] as const)
+            : ([] as const);
+          const empPushIdx = pushKeys.indexOf("kw-week-employees");
+          if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug) {
+            console.warn("[wgdom payroll RC-B] bootstrap.pushKeysToCloud.before", {
+              payloadCount:
+                empPushIdx >= 0 && Array.isArray(pushValues[empPushIdx])
+                  ? pushValues[empPushIdx].length
+                  : null,
+              replaceWeekEmployeesKeys: [...replaceWeekEmployeesKeys],
+              forceReplaceWeekEmployees: replaceWeekEmployeesKeys.length > 0,
+            });
+          }
           const bootstrapPushId = pushKeys.includes("kw-week-employees")
             ? payrollTraceCreateBootstrapPushId()
             : undefined;
-          const empPushIdx = pushKeys.indexOf("kw-week-employees");
           if (empPushIdx >= 0 && bootstrapPushId) {
             const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
             const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
@@ -214,7 +238,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             {
               replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
               replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-              replaceWeekEmployeesKeys: pushKeys.includes("kw-week-employees") ? ["kw-week-employees"] : [],
+              replaceWeekEmployeesKeys: [...replaceWeekEmployeesKeys],
             },
           ).catch(() => {});
         }

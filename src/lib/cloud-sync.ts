@@ -1844,10 +1844,24 @@ export function finalizePayrollBundleMerge(
 
   const localEmps = normalizeArrayValue(localValues[empIdx]);
   const cloudEmps = normalizeArrayValue(cloudValues[empIdx]);
+  const mergedEmpsBefore = normalizeArrayValue(out[empIdx]);
   const localR = weekEmployeesListRichness(localEmps);
   const cloudR = weekEmployeesListRichness(cloudEmps);
   const localM = payrollMetrics(localEmps);
   const cloudM = payrollMetrics(cloudEmps);
+
+  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug) {
+    console.warn("[wgdom payroll] finalizePayrollBundleMerge", {
+      mergedCount: mergedEmpsBefore.length,
+      localCount: localEmps.length,
+      cloudCount: cloudEmps.length,
+      localR,
+      cloudR,
+      localActiveDays: localM.activeDays,
+      cloudActiveDays: cloudM.activeDays,
+      richnessOverrideWillFire: cloudR > localR || cloudM.activeDays > localM.activeDays,
+    });
+  }
 
   if (cloudR > localR || cloudM.activeDays > localM.activeDays) {
     // PR-PAY-S2 — richness override nie może wskrzesić usuniętego (tombstone respektowany).
@@ -1858,6 +1872,12 @@ export function finalizePayrollBundleMerge(
     // może nadpisać nowszego statusu rozliczenia. settled/settledUpdatedAt wyłącznie LWW
     // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
     next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
+    if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug) {
+      console.warn("[wgdom payroll] finalizePayrollBundleMerge RICHNESS OVERRIDE", {
+        inMergedCount: mergedEmpsBefore.length,
+        outCount: normalizeArrayValue(next[empIdx]).length,
+      });
+    }
     const wf = String(targetFrom ?? "");
     const wt = String(targetTo ?? "");
     payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
@@ -2283,7 +2303,18 @@ export async function pushKeysToCloud(
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
+  const keysBefore = keys;
+  const replaceWeekEmployeesKeysBefore = options?.replaceWeekEmployeesKeys ?? [];
   const guarded = await applyPayrollGuardBeforePush(keys, values, options);
+  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug === true) {
+    console.warn("[wgdom payroll RC-B] payrollGuard.after", {
+      blocked: guarded.blocked,
+      keysBefore,
+      keysAfter: guarded.keys,
+      replaceWeekEmployeesKeysBefore,
+      replaceWeekEmployeesKeysAfter: guarded.options.replaceWeekEmployeesKeys ?? [],
+    });
+  }
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
   }
@@ -2328,12 +2359,22 @@ export async function pushKeysToCloud(
   });
   const latencyMs = Date.now() - t0;
   let edgeRequestId: string | undefined;
+  const payrollPipelineDebug = Boolean(
+    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
+  );
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
     try {
       const parsed = JSON.parse(errText) as { requestId?: string };
       edgeRequestId = parsed.requestId;
     } catch { /* ignore */ }
+    if (payrollPipelineDebug && empIdx >= 0) {
+      console.warn("[wgdom payroll RC-B] batch-set.response", {
+        status: res.status,
+        requestId: edgeRequestId ?? httpRequestId,
+        count: normalizeArrayValue(safeValues[empIdx]).length,
+      });
+    }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
       httpStatus: res.status,
       ok: false,
@@ -2344,6 +2385,13 @@ export async function pushKeysToCloud(
       error: { message: errText.slice(0, 120) },
     });
     throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
+  }
+  if (payrollPipelineDebug && empIdx >= 0) {
+    console.warn("[wgdom payroll RC-B] batch-set.response", {
+      status: res.status,
+      requestId: httpRequestId,
+      count: normalizeArrayValue(safeValues[empIdx]).length,
+    });
   }
   payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
     httpStatus: res.status,
@@ -2788,6 +2836,11 @@ export async function computeMergedDataBundle(
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
   const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug && empIdx >= 0) {
+    console.warn("[wgdom payroll] mergeAllDataKeys week-employees", {
+      count: normalizeArrayValue(merged[empIdx]).length,
+    });
+  }
   if (empIdx >= 0) {
     const wf = String(merged[fromIdx] ?? wfT);
     const wt = String(merged[toIdx] ?? wtT);

@@ -12,6 +12,11 @@ import { initAppViewport } from "./lib/app-viewport";
 import { initDeepLinks } from "./lib/deep-link";
 import { AppUpdateBanner } from "./app/AppUpdateBanner";
 
+/** RC-B live repro — włącz: localStorage.setItem('wgdom-payroll-rcb-debug','1') · wyłącz: removeItem */
+if (localStorage.getItem("wgdom-payroll-rcb-debug") === "1") {
+  (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug = true;
+}
+
 registerServiceWorker();
 void initNativeShell();
 initMobileKeyboard();
