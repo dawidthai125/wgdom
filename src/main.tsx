@@ -11,25 +11,6 @@ import { initModalScrollLock } from "./lib/modal-scroll-lock";
 import { initAppViewport } from "./lib/app-viewport";
 import { initDeepLinks } from "./lib/deep-link";
 import { AppUpdateBanner } from "./app/AppUpdateBanner";
-import { PayrollRcbDebugOverlay } from "./app/PayrollRcbDebugOverlay";
-import { isPayrollRcbDebugOverlayEnabled, PAYROLL_RCB_DEBUG_LS_KEY } from "@/lib/payroll-rcb-debug-overlay";
-
-/** RC-B — URL ?rcbdebug=1 ustawia LS i czyści param z paska adresu. */
-try {
-  const bootUrl = new URL(window.location.href);
-  if (bootUrl.searchParams.get("rcbdebug") === "1") {
-    localStorage.setItem(PAYROLL_RCB_DEBUG_LS_KEY, "1");
-    bootUrl.searchParams.delete("rcbdebug");
-    history.replaceState(null, "", `${bootUrl.pathname}${bootUrl.search}${bootUrl.hash}`);
-  }
-} catch {
-  /* ignore */
-}
-
-/** RC-B live repro — włącz: localStorage.setItem('wgdom-payroll-rcb-debug','1') · wyłącz: removeItem */
-if (localStorage.getItem(PAYROLL_RCB_DEBUG_LS_KEY) === "1") {
-  (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug = true;
-}
 
 registerServiceWorker();
 void initNativeShell();
@@ -41,7 +22,6 @@ initDeepLinks();
 createRoot(document.getElementById("root")!).render(
   <>
     <AppUpdateBanner />
-    {isPayrollRcbDebugOverlayEnabled() ? <PayrollRcbDebugOverlay /> : null}
     <BrowserRouter>
       <App />
     </BrowserRouter>

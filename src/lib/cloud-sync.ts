@@ -123,8 +123,6 @@ import {
   payrollTraceNextHttpSeq,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
-import { patchPayrollRcbDebugOverlay, formatRcbDebugRequestKeys } from "@/lib/payroll-rcb-debug-overlay";
-
 function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
     const wf = JSON.parse(localStorage.getItem("kw-weekFrom") ?? '""');
@@ -2578,9 +2576,6 @@ export async function pushKeysToCloud(
       replaceWeekEmployeesKeysBefore,
       replaceWeekEmployeesKeysAfter: guarded.options.replaceWeekEmployeesKeys ?? [],
     });
-    if (keysBefore.includes("kw-week-employees")) {
-      patchPayrollRcbDebugOverlay({ payrollGuardBlocked: guarded.blocked }, "payrollGuard.after");
-    }
   }
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
@@ -2641,13 +2636,6 @@ export async function pushKeysToCloud(
         requestId: edgeRequestId ?? httpRequestId,
         count: normalizeArrayValue(safeValues[empIdx]).length,
       });
-      patchPayrollRcbDebugOverlay(
-        {
-          batchSetStatus: res.status,
-          batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
-        },
-        "batchSet.response",
-      );
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
       httpStatus: res.status,
@@ -2666,13 +2654,6 @@ export async function pushKeysToCloud(
       requestId: httpRequestId,
       count: normalizeArrayValue(safeValues[empIdx]).length,
     });
-    patchPayrollRcbDebugOverlay(
-      {
-        batchSetStatus: res.status,
-        batchSetCount: normalizeArrayValue(safeValues[empIdx]).length,
-      },
-      "batchSet.response",
-    );
   }
   payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
     httpStatus: res.status,
@@ -3296,20 +3277,6 @@ export async function fetchKeysFromCloud(
     trigger: traceOpts?.trigger,
     weekEmpRaw,
   });
-  const weekEmployeesCount =
-    empIdx >= 0 ? normalizeArrayValue((values as unknown[])[empIdx]).length : null;
-  const valuesArr = values as unknown[];
-  patchPayrollRcbDebugOverlay(
-    { lastBatchGetCount: keys.length, lastWeekEmployeesCount: weekEmployeesCount },
-    "fetchKeysFromCloud.response",
-    {
-      weekEmployeesCount,
-      keysReturned: keys.length,
-      containsWeekEmployees: empIdx >= 0,
-      requestKeys: formatRcbDebugRequestKeys(keys),
-      valuesLength: Array.isArray(valuesArr) ? valuesArr.length : null,
-    },
-  );
   return values as unknown[];
 }
 
