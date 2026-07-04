@@ -2,7 +2,9 @@
 
 > **Cel:** jeden dokument, dzięki któremu **przyszły AI / agent Cursor** rozumie architekturę synchronizacji i merge Payroll **bez analizowania kodu od zera**. Zawiera przepływ danych, pliki SSOT, klucze KV, model merge, logikę Edge, oraz **dwa aktywne problemy P0** (batch-set 500 + resurrection pracowników) z hipotezami i planem.
 >
-> **Data:** 2026-07-03 · **HEAD `0cdbc54`** · **Prod GREEN (UI v2.63.27)** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)**
+> **Data:** 2026-07-04 · **HEAD `24bde6e`** · **Prod UI v2.63.30** · **RC-B-1 CLOSED** · **P0 batch-set 500 OPEN (H1 UNCONFIRMED)**
+>
+> **★ RC-B-1 closeout:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · **PWRB facade:** `src/lib/payroll-week-roster-bundle.ts`
 >
 > **Powiązane SSOT:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) §11 · [`PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md`](PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md`](PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) · [`PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md)
 
@@ -11,11 +13,12 @@
 ## 0. TL;DR dla agenta (przeczytaj najpierw)
 
 - **Model danych = LocalStorage ↔ Supabase KV** (klucz→JSON). Klient scala, Edge scala ponownie. **Merge jest UNION** (nie replace) — to źródło większości pułapek Payroll.
+- **PWRB (RC-B-1):** skład tygodnia = **para** `kw-week-employees` + `kw-week-employees-deleted-ids`. Mutacje UI **tylko** przez `payroll-week-roster-bundle.ts` (`pwrAdd`, `pwrRemove`, `pwrPush`, …). Inwarianty **I-1…I-4** wymuszają G-0 (brak X w rosterze gdy istnieje tomb T).
 - **Parytet klient↔Edge to twardy wymóg** (regresja B6). Wspólny kernel identyfikacji: `src/lib/payroll-week-employee-merge.ts`. Nie zmieniaj jednej strony bez drugiej.
-- **Dwa aktywne problemy P0** (§7):
-  1. **batch-set HTTP 500** (najpr. *statement timeout* na dużym `kv.mset` — **H1 UNCONFIRMED**). Diagnostyka S7-1 wdrożona; optymalizacja częstotliwości S7-4A wdrożona; hardening S7-2 warunkowy.
-  2. **Resurrection pracowników** — usunięty pracownik wraca na innym urządzeniu. **Root cause (statyczny):** tombstony kasowania są **wyłącznie lokalne** (nie synchronizowane) + UNION + niestabilny merge-key. Fix = **S7-5** (DESIGN FREEZE APPROVED, IMPLEMENT WAITING po obserwacji S7-4A).
-- **NIE ruszaj** merge/LWW/tombstonów/Edge/kv.mset bez AUDIT i owner GO. Aktualny stan = **P0 FREEZE** (bez nowych EPIC).
+- **Aktywne problemy P0** (§7):
+  1. **batch-set HTTP 500** (najpr. *statement timeout* — **H1 UNCONFIRMED**). S7-4A observation OPEN.
+  2. **Resurrection** — **ZAADRESOWANE** S7-5 ETAP 1 (`ae132bc`) + **RC-B-1** re-add revocation (`35f37b1`). Multi-device AC8–AC11 **PENDING** owner validation.
+- **NIE ruszaj** merge/LWW/tombstonów/Edge/kv.mset bez AUDIT i owner GO. STABILIZATION WINDOW — brak nowych epiców.
 
 ---
 
@@ -23,7 +26,8 @@
 
 | Warstwa | Plik | Odpowiedzialność |
 |---------|------|------------------|
-| **Merge / sync klient** | `src/lib/cloud-sync.ts` | `DATA_KEYS`, fetch/push KV, `computeMergedDataBundle`, `finalizePayrollBundleMerge`, `mergeWeekEmployees*`, tombstony, guardy push |
+| **PWRB facade (RC-B-1)** | `src/lib/payroll-week-roster-bundle.ts` | **Jedyny** publiczny entry mutacji pary roster+tombstones w UI (`pwrAdd`, `pwrRemove`, `pwrPush`, `pwrReconcile`, …) |
+| **Merge / sync klient** | `src/lib/cloud-sync.ts` | `DATA_KEYS`, fetch/push KV, `computeMergedDataBundle`, **I-1**, `finalizePayrollBundleMerge`, `mergeWeekEmployees*`, tombstony, **I-4** `pushWeekEmployeesToCloud`, guardy push |
 | **Shell / orkiestracja** | `src/app/App.tsx` | `runCloudSync`, `pullFromCloudAndMerge`, `applyAdminDataBundle`, handlery Payroll (`removeWeekEmployee`, `persistPayrollRoster`, `toggleSettled`, rollover) |
 | **Backend / merge Edge** | `supabase/functions/make-server-0afb8820/index.tsx` | `batch-get`/`batch-set`, `mergeWeekEmployeesUnion`, guardy shrink/expansion, rotacja backupów, `kv.mset` |
 | **KV store Edge** | `supabase/functions/make-server-0afb8820/kv_store.tsx` | `get`/`set`/`mget`/`mset` → Postgres `kv_store_0afb8820` (upsert) |
@@ -71,7 +75,7 @@ Payroll rdzeń: `kw-week-employees`, `kw-weekFrom`, `kw-weekTo`, `kw-archive`, `
 | `kw-jobs-deleted-ids` | ✅ | ✅ | wzorzec: `mergeDeletedJobIds` + `save…` |
 | `kw-directory-deleted-ids` | ✅ | ✅ | |
 | `kw-contacts-deleted-ids` · `kw-archive-deleted-ids` · leaves · charges · op-notes · WM tpl/doc · EM | ✅ | ✅ | pełny wzorzec deleted-ids (`computeMergedDataBundle` ~2505–2596) |
-| **`kw-week-employees-deleted-ids`** | ❌ | ❌ | **TYLKO LOKALNY** (getter/setter `cloud-sync.ts:519–524`; brak w push/pull). **To root cause resurrection** — naprawa = **S7-5-1** |
+| **`kw-week-employees-deleted-ids`** | ✅ | ✅ | **Synchronizowany** od **S7-5-1** (`ae132bc`). **Revocation** przy re-add od **RC-B-1** (`35f37b1`) — I-1 pull, I-3 reconcile, I-4 coupled push, I-2 Edge |
 
 Format tombstona week-employee: `${weekFrom}|${weekTo}::${weekEmployeeMergeKey(emp)}` (week-scoped). Filtr: `deletedWeekEmployeeMergeKeySet` + `filterDeletedWeekEmployees`.
 
@@ -137,7 +141,9 @@ id:<uuid>
 | **PR-PAY-S7-1** Cloud Batch Diagnostics | CLOSED (`4c38f4f`) | `app.onError` + try/catch + `{ok,error,requestId}` w `batch-set` |
 | **PR-PAY-S7A** Frequency Audit | AUDIT COMPLETE | CONFIRMED CONTRIBUTING CAUSE (nadmiarowe batch-get/set) |
 | **PR-PAY-S7-4A** Cloud Sync Optimization | IMPLEMENT COMPLETE → **OBSERVATION** (`12b09d8`) | debounce + min-interval + focus/visibility throttle + AC4/AC5 |
-| **PR-PAY-S7-5** Resurrection Guard | **DESIGN FREEZE APPROVED · IMPLEMENT WAITING** (`0cdbc54`) | plan naprawy resurrection (§7.2) |
+| **PR-PAY-S7-5** Resurrection Guard | **ETAP 1 DEPLOYED** (`ae132bc`) | S7-5-1 sync tombów + S7-5-2 Edge tombstone-aware |
+| **SYNC-ARCH-01 RC-B-1** Tombstone Revocation | **CLOSED** (`35f37b1`) | PWRB facade + I-1…I-4 — fix re-add po delete |
+| **RC-B debug overlay cleanup** | **CLOSED** (`24bde6e`) | Usunięto UI overlay; `__wgdomPayrollPipelineDebug` zostaje |
 
 ---
 
@@ -150,18 +156,11 @@ id:<uuid>
 - **Dowód potrzebny (OBSERVATION):** `requestId` · `error.message` · Edge stack · Postgres log — patrz sekcja OBSERVATION w audycie S7.
 - **Plan:** S7-1 (diagnostyka) ✅ → S7-4A (mniej ruchu) ✅ OBSERVATION → jeśli 500 nadal → **S7-2 Cloud Batch Hardening** (chunk/izolacja `mset`). S7-3 = singleton klienta Supabase.
 
-### 7.2 Problem B — Resurrection pracowników
+### 7.2 Problem B — Resurrection / re-add po delete
 
-- **Objaw (produkcja):** Urządzenie A = 10 (poprawnie), Urządzenie B = 12 (ma usuniętych Mikołaja/Tomka); usunięcie na B → znikają → **wracają**; `Ctrl+Shift+R` nie pomaga.
-- **Root cause (statyczny, potwierdzony w kodzie):**
-  1. **H-R2 CONFIRMED** — `kw-week-employees-deleted-ids` **nigdy nie trafia do chmury** (tylko lokalny). Chmura reprezentuje usunięcie jedynie jako nieobecność.
-  2. **H-R1 HIGH** — merge klienta i Edge to **UNION**; urządzenie bez tombstona re-dodaje rekord i re-pushuje do chmury; Edge `mergeWeekEmployeesUnion` również re-dodaje przy braku force-replace.
-  3. **H-R-KEY MEDIUM→HIGH** — niestabilny `weekEmployeeMergeKey` (dir/name/id) potrafi ominąć lokalny filtr tombstona.
-- **Fix (PR-PAY-S7-5, DESIGN FREEZE APPROVED):**
-  - **ETAP 1** (jedyny zatwierdzony start): **S7-5-1** synchronizacja `kw-week-employees-deleted-ids` (push+pull+merge, save **przed** merge składu) + **S7-5-2** Edge tombstone-aware **przed** UNION.
-  - **ETAP 2 warunkowy:** **S7-5-3** `replaceWeekEmployeesKeys` na wszystkich ścieżkach + **S7-5-4** stabilizacja merge-key.
-  - **Acceptance:** AC1–AC11 (m.in. AC8 „nie wraca na żadnym urządzeniu", AC9 konwergencja 2 urz., AC10 offline return, AC11 konwergencja 3 urz.). Backlog: AC12 (DELETE > równoczesna edycja), AC13 (tombstone przetrwa restart).
-- **Gate:** IMPLEMENT S7-5 dopiero **po zakończeniu Production Observation S7-4A**.
+- **Resurrection (cross-device):** usunięty pracownik wracał na innym urządzeniu. **Fix:** **S7-5 ETAP 1** (`ae132bc`) — sync `kw-week-employees-deleted-ids` + Edge filtr przed UNION.
+- **RC-B (re-add po delete):** po ponownym dodaniu tej samej osoby F5 → znikał. **Root cause:** append-only tomb bez revocation. **Fix:** **RC-B-1** (`35f37b1`) — PWRB + I-1…I-4. Closeout: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md).
+- **Status:** mechanizmy **PASS** w testach automatycznych; **manual multi-device AC8–AC11 PENDING**.
 
 ---
 
@@ -187,7 +186,9 @@ id:<uuid>
 | Restore banner false positive | `scripts/test-payroll-restore-banner-false-positive.mjs` |
 | Settled merge | `scripts/test-payroll-settled-merge-fix-a.mjs` |
 | Sync frequency / throttle (S7-4A) | `scripts/test-payroll-cloud-sync-frequency-s7-4.mjs` |
-| (planowany S7-5) | `scripts/test-payroll-resurrection-guard-s7-5.mjs` |
+| (RC-B-1) PWRB boundary | `npm run audit:pwrb` · `scripts/test-pwrb-boundary-rcb.mjs` |
+| (RC-B-1) Tombstone revocation | `scripts/test-payroll-tombstone-revocation-rcb.mjs` |
+| (S7-5) Resurrection guard | `scripts/test-payroll-resurrection-guard-s7-5.mjs` |
 
 Uruchamianie: `npx vite-node scripts/<plik>.mjs`. Przed release: `npm run build`.
 
@@ -195,13 +196,16 @@ Uruchamianie: `npx vite-node scripts/<plik>.mjs`. Przed release: `npm run build`
 
 ## 10. Inwarianty — czego pilnować (dla przyszłego agenta)
 
-1. **Parytet klient↔Edge** — `weekEmployeeMergeKey`/union muszą dać ten sam wynik (B6). Wspólny kernel: `payroll-week-employee-merge.ts`.
-2. **Week-scope** — nigdy nie mieszaj składu między tygodniami (PR-PAY-S1).
-3. **Tombstony week-scoped** — filtr per `${weekFrom}|${weekTo}`.
-4. **Settled = LWW** — richness/union nie cofa nowszego `settledUpdatedAt`.
-5. **Force-replace** — usunięcie rostera musi iść z `replaceWeekEmployeesKeys`, inaczej Edge union re-doda.
-6. **Nie łącz bundli** — S7-5 (resurrection) ≠ S7-2 (500). One Bundle = One Goal.
-7. **PowerShell** — brak `&&`/heredoc; komendy osobno lub `;`; commit message `-m` (jednolinijkowy) lub `git commit -F <plik>`.
+1. **PWRB — para roster+tombstones** — mutacje składu tygodnia **tylko** przez `payroll-week-roster-bundle.ts`. Nie zapisuj rosteru i tombów osobno.
+2. **G-0** — `K ∈ roster(W)` ⟹ brak `tombstone(W,K)`. Wymuszane przez I-1…I-4.
+3. **Parytet klient↔Edge** — `weekEmployeeMergeKey`/union muszą dać ten sam wynik (B6). Wspólny kernel: `payroll-week-employee-merge.ts`.
+4. **Week-scope** — nigdy nie mieszaj składu między tygodniami (PR-PAY-S1).
+5. **Tombstony week-scoped** — filtr per `${weekFrom}|${weekTo}`; revocation przy re-add (RC-B-1).
+6. **Settled = LWW** — richness/union nie cofa nowszego `settledUpdatedAt`.
+7. **Force-replace** — usunięcie rostera musi iść z `replaceWeekEmployeesKeys`, inaczej Edge union re-doda.
+8. **Nie łącz bundli** — fix payroll ≠ optymalizacja Edge CPU. One Bundle = One Goal.
+9. **Przed commitem sync:** `npm run build` + `npm run audit:pwrb` + relevant payroll smoke.
+10. **PowerShell** — brak `&&`/heredoc; commit `-m` jednolinijkowy lub `git commit -F plik.txt`.
 
 ---
 

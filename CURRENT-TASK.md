@@ -1,12 +1,29 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.27** · **HEAD `e4daaf4` (docs-only) · deploy SSOT `609ae53`** · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE — production DEGRADED** · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION** · **PR-PAY-S6 CLOSED** · **PR-PAY-S7: S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (Obs OPEN)** · **PAYROLL PROCESS DESIGN — PROCESS COMPLETE (LOCK)** · **TEST-INFRA-001 CLOSED** · **NG-04 EPIC CLOSED**
+**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.30** · **HEAD `24bde6e`** · **★ SYNC-ARCH-01 RC-B-1 CLOSED** (`35f37b1` PWRB · `24bde6e` overlay cleanup) · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION**
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
 ---
 
-## PAYROLL & SUPABASE RECOVERY PROGRAM — **ACTIVE** · faza: **PRODUCTION OBSERVATION**
+## SYNC-ARCH-01 RC-B-1 — Tombstone Revocation · **CLOSED**
+
+> **SSOT:** [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
+
+| Element | Commit | Status |
+|---------|--------|--------|
+| PWRB facade + I-1…I-4 | `35f37b1` | **CLOSED** · prod **2.63.30** |
+| RC-B debug overlay cleanup | `24bde6e` | **CLOSED** · bez bumpu wersji |
+
+**Incydent:** delete → re-add → F5 → pracownik znika (11→10). **Fix:** spójna para roster+tombstones + revocation.
+
+**Testy PASS:** `npm run audit:pwrb` · `test-pwrb-boundary-rcb` · `test-payroll-tombstone-revocation-rcb`
+
+**OPEN:** manual multi-device validation · batch-set 500 (H1)
+
+**Dla agentów:** mutacje składu LP → **tylko** `payroll-week-roster-bundle.ts`. Przed sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+
+---
 
 > **Status programu:** ACTIVE. **Nie implementujemy równolegle kilku bundli** — każdy przechodzi pełny cykl AUDIT → DESIGN FREEZE → IMPLEMENT → BUILD → TEST → QUALITY GATE → COMMIT → PUSH → VERIFY → CLOSE. **Faza bieżąca: PRODUCTION OBSERVATION** dwóch wdrożonych bundli.
 
@@ -38,6 +55,21 @@
 - **SSOT audytu:** [`docs/EDGE-OPT-B-MASTER-AUDIT.md`](docs/EDGE-OPT-B-MASTER-AUDIT.md) (call graph · execution order · data/restore dependencies · rollback · hotspots · risk matrix · split B1–B5 · DF prerequisites).
 - **Blocking condition:** Performance Observation dla **PR-PAY-S7-5 ETAP 1** i **PR-PERF-EDGE-OPT-A** musi zostać **zamknięta** przed jakimkolwiek Design Freeze Edge-Opt-B.
 - **Next planned work:** **Edge-Opt-B Bundle B1** (bramkowanie `saveDailyFullBackup`) — po odblokowaniu + owner GO.
+
+---
+
+## Cloud Sync ADR
+
+**SSOT:** [`docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md`](docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md)
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **PROPOSED** |
+| **Evidence Gate** | **OPEN** |
+| **Design Freeze** | **BLOCKED** |
+| **Implementation** | **BLOCKED** |
+
+> ACCEPTED i SYNC-ARCH-01 Design Freeze wyłącznie po **pełnym** zamknięciu Evidence Gate (EG-1…EG-5). Audyty Recovery: [`docs/recovery/`](docs/recovery/).
 
 ---
 

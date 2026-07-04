@@ -1,7 +1,7 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-04 (**prod 2.63.27** UI bez zmian wersji · **main HEAD `609ae53`** · **PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION** · **TI-B4 / TEST-INFRA-001 / MB-1/1.1/2 / TI-B2.1 CLOSED** · **STABILIZATION WINDOW ACTIVE**)  
-> **★ RECOVERY PROGRAM (2026-07-04):** **PR-PAY-S7-5 ETAP 1** DEPLOYED (`ae132bc`) — cross-device tombstony week-employees (resurrection guard); test 24/24; Functional Obs PASS, multi-device AC8–AC11 OPEN. **PR-PERF-EDGE-OPT-A** DEPLOYED (`609ae53`) — Edge `batch-get` → order-preserving `mget` (N `SELECT`→1); test 12/12; Functional Obs PASS, CPU/SELECT OPEN. **Edge-Opt-B** MASTER AUDIT COMPLETE ([`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md)) · DF NOT STARTED · IMPL BLOCKED (gate: Performance Observation) · next **B1** `saveDailyFullBackup` gating. SSOT statusu: [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) · [`CURRENT-TASK.md`](../CURRENT-TASK.md).  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-04 (**prod 2.63.30** · **HEAD `24bde6e`** · **SYNC-ARCH-01 RC-B-1 CLOSED** · **PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ RC-B-1 closeout (2026-07-04):** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) — PWRB facade · I-1…I-4 · jak nie zepsuć listy płac przy nowej funkcji.  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -71,6 +71,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **SYNC-ARCH-01 RC-B-1** — Tombstone Revocation (PWRB) | **2.63.30** (`35f37b1`) | **CLOSED** · I-1…I-4 · overlay cleanup `24bde6e` | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`recovery/SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md`](recovery/SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md) |
 | **TI-B4** — Smoke agregat Przetargi NG-01–04 | **2.63.27** (`6c94223`) | **CLOSED** · thin wrapper · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **TEST-INFRA-001** — Payroll Test Harness MVP | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **Audit Hub freshness AH-REG-1** | **2.63.25** (`d9ba13f`) | **CLOSED** · notify + `refreshAuditHubAuxFromCloud` | [`AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md`](AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md) · [`AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md`](AUDIT-HUB-AH-REG-1-RELEASE-REPORT.md) |

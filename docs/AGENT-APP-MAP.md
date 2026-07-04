@@ -1,10 +1,10 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** UI **2.63.27** · HEAD **`0cdbc54`** · https://www.wgdom.fun  
-> **Data:** 2026-07-03 · **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE** · **P0 FREEZE** · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.63.30** · HEAD **`24bde6e`** · https://www.wgdom.fun  
+> **Data:** 2026-07-04 · **RC-B-1 CLOSED** · STABILIZATION WINDOW ACTIVE
 
-> **🔴 P0 (2026-07-03):** aktywny incydent sync Payroll (batch-set 500 + resurrection). Architektura sync/merge + oba problemy + plan: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj przed zmianą `cloud-sync.ts` / Edge.
+> **★ RC-B-1 (2026-07-04):** re-add po delete — PWRB facade. Closeout: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Architektura sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -75,7 +75,7 @@ main.tsx
 |--------|----------------|-----------|
 | **Routing** | `view`, `setView`, deep linki Audit Hub | `audit-hub/deeplink.ts` |
 | **Sync** | `runCloudSync`, `pullFromCloudAndMerge`, status chmury | `cloud-sync.ts` |
-| **Payroll** | `saveWeek`, `restoreWeekFromArchive`, rollover | `payroll-rollover.ts`, `payroll-cycle.ts` |
+| **Payroll** | `saveWeek`, `restoreWeekFromArchive`, rollover | `payroll-week-roster-bundle.ts` (PWRB), `payroll-rollover.ts`, `payroll-cycle.ts` |
 | **Jobs** | `deleteJobsByIds`, merge jobs | `cloud-sync.ts`, `job-activity.ts` |
 | **Audit props** | `securityAuditLog`, `wmDrukAuditLog`, `operationalNotesAuditLog` | `security-audit-log.ts`, `wm-druk-audit.ts` |
 | **AUX refresh** | `refreshAuditHubAuxFromCloud` (AH-REG-1) | `pullSecurityAuditLogFromCloud`, `pullWmDrukAuditLogFromCloud` |
@@ -252,10 +252,12 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 ---
 
-## 9. Ostatnie releasy (2026-07-02)
+## 9. Ostatnie releasy (2026-07-04)
 
 | Wersja | Commit | Bundle | Zakres |
 |--------|--------|--------|--------|
+| **2.63.30** | `35f37b1` | RC-B-1 | PWRB facade + tombstone revocation I-1…I-4 |
+| *(cleanup)* | `24bde6e` | RC-B overlay | Usunięcie debug overlay (wersja UI bez zmian) |
 | **2.63.27** | `6c94223` | TI-B4 | Smoke agregat NG-01–04 · manifest 1.1.0 · Gate B `scope:tenders` |
 | **2.63.26** | `3d6dd90` | TEST-INFRA-001 | Manifest SSOT + orchestrator + PAYROLL-GUARD-S1 E2E |
 | **2.63.25** | `d9ba13f` | AH-REG-1 | Audit Hub freshness — notify + AUX pull on sync |

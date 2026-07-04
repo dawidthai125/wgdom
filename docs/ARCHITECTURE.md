@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-02 (**TI-B4** · v2.63.27 · smoke agregat Przetargi · manifest 1.1.0 · prod `6c94223`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-04 (**RC-B-1** · v2.63.30 · PWRB facade · prod `24bde6e`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -628,6 +628,8 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 
 **Serce systemu.** Przed edycją syncu — przeczytaj ten plik.
 
+**★ ADR (przyszłość Cloud Sync):** [`architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md`](architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md) — Status **PROPOSED** · Evidence Gate **OPEN** · SYNC-ARCH Design Freeze **BLOCKED** · Implementation **BLOCKED**. Audyty Recovery: [`recovery/`](recovery/).
+
 ### 11.1 Główne funkcje
 
 | Funkcja | Kiedy używać |
@@ -647,7 +649,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 ### 11.2 Zasady merge (skrót)
 
 - **Jobs:** per `id`, winner po `updatedAt` + merge pól (documents, photos, activity…)
-- **Week employees:** **UNION po `weekEmployeeMergeKey`** (`directoryId` → `dir:{id}`; legacy: name/id) — lokalne dodanie z Kadr nie ginie przy starszym snapshotcie chmury (**PAYROLL-CLOUD-RECOVERY P0**, v2.63.15). Per klucz: `mergeWeekEmployeeRecord` dla pól (stawka, dni, settled). `addFromDirectory` — dedup po `directoryId`. Auto-sync defer: **`CloudSyncMutationGuard`** scope `kw-week-employees` (B3, v2.63.18) + **`suppressAutoSyncUntilRef`** — legacy `payrollRosterPushRef` usunięty w B3.2 (v2.63.20).
+- **Week employees:** **UNION po `weekEmployeeMergeKey`** (`directoryId` → `dir:{id}`; legacy: name/id) — lokalne dodanie z Kadr nie ginie przy starszym snapshotcie chmury (**PAYROLL-CLOUD-RECOVERY P0**, v2.63.15). Per klucz: `mergeWeekEmployeeRecord` dla pól (stawka, dni, settled). **RC-B-1 (v2.63.30):** mutacje składu tygodnia **tylko** przez **PWRB** (`src/lib/payroll-week-roster-bundle.ts`) — para `kw-week-employees` + `kw-week-employees-deleted-ids`; inwarianty **I-1…I-4** (revocation przy re-add). Closeout: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Auto-sync defer: **`CloudSyncMutationGuard`** scope `kw-week-employees` (B3, v2.63.18) + **`suppressAutoSyncUntilRef`** — legacy `payrollRosterPushRef` usunięty w B3.2 (v2.63.20).
 - **Jobs / workEntries:** `mergeWorkEntriesById` union + tombstone (bez zmian w P0 guard). **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** (v2.63.16): edycja przydziałów LP opakowana w `CloudSyncMutationGuard` scope `kw-jobs` — auto-sync defer podczas mutacji; recovery `reset()` po bootstrap.
 - **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Edge `batch-set` (B6, v2.63.23):** union listy `kw-week-employees` po **`weekEmployeeMergeKey`** (`directoryId` SSOT) — parity z klientem P0; expansion guard scala (nie `KeepPrevRoster` po UUID); SSOT `src/lib/payroll-week-employee-merge.ts`
@@ -678,8 +680,9 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 | `applyRuntimePayrollAntiLeak` | `cloud-sync.ts` | **Runtime only** — pusty skład po rolloverze; nie przenoś osób z KV |
 | `sanitizeWeekEmployeesForTargetRange` | `cloud-sync.ts` | Odrzuca rekordy spoza docelowego zakresu tygodnia |
 | `CloudSyncMutationGuard` | `cloud-sync-mutation-guard.ts` | Blokuje pull/push podczas mutacji `kw-week-employees` / `kw-jobs` (B3, v2.63.18) |
+| **`payroll-week-roster-bundle.ts` (PWRB)** | facade RC-B-1 | `pwrAdd`/`pwrRemove`/`pwrPush` — jedyny entry UI mutacji pary roster+tombstones |
 
-Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs` · `npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs` (B4 parity 13)
+Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs` · `npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs` (B4 parity 13) · **`npm run audit:pwrb`** (RC-B-1 boundary)
 
 ### 11.4 Egress i pełny bundle (P0 audit 2026-06-29) · **OPEN**
 
@@ -717,10 +720,12 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 **Cel:** szybsze `ready=true` — cięższe klucze przetargów i kontaktów pobierane **po** wejściu w UI (login / admin).
 
-| Faza | Kiedy | Klucze | Plik |
-|------|--------|--------|------|
-| **CORE** | przed `setReady(true)` | `BOOTSTRAP_CORE_KEYS` (6) + tombstones + admin keys | `CloudLoader.tsx`, `cloud-sync.ts` |
-| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (6) + tombstones (w tym `kw-employee-leaves-deleted-ids`, `kw-recoverable-charges-deleted-ids`) | `fetchAndMergeDeferredBootstrap()` |
+**SSOT liczby `batch-get` (Recovery E-08 / E-09):** faza 1 = **12 kl.** blocking · faza 2 = **28 kl.** deferred.
+
+| Faza | Kiedy | `batch-get` (SSOT) | Skład (referencja) | Plik |
+|------|--------|-------------------|-------------------|------|
+| **CORE** | przed `setReady(true)` | **12 kl.** | 6 core + 3 tombstone + 3 admin | `CloudLoader.tsx` L59–67 |
+| **DEFERRED** | `void` po `ready` | **28 kl.** | 6 deferred + tombstones (w tym `kw-employee-leaves-deleted-ids`, `kw-recoverable-charges-deleted-ids`) | `fetchAndMergeDeferredBootstrap()` |
 
 **CORE:** `kw-directory`, `kw-week-employees`, `kw-archive`, `kw-weekFrom`, `kw-weekTo`, `kw-jobs`.
 
