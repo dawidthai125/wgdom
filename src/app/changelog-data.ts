@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-04",
+    version: "2.63.31",
+    label: "RC-B — usunięcie artefaktów debug payroll pipeline",
+    items: [
+      {
+        type: "improve",
+        text: "RC-B debug cleanup — usunięto __wgdomPayrollPipelineDebug, console.warn RC-B i helpery diagnostyczne (logika PWRB/merge/sync bez zmian)",
+      },
+    ],
+  },
+  {
+    date: "2026-07-04",
     version: "2.63.30",
     label: "SYNC-ARCH-01 RC-B-1 — PWRB Facade + tombstone revocation",
     items: [

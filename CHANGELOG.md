@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.31 — RC-B debug cleanup
+
+- **improve:** Usunięto `__wgdomPayrollPipelineDebug`, `console.warn` RC-B i nieużywane helpery debug — zero zmiany logiki PWRB/merge/sync
+
 ## 2.63.30 — SYNC-ARCH-01 RC-B-1 PWRB Facade
 
 - **fix:** RC-B-1 tombstone revocation I-1…I-4 — re-add nie ginie po refresh (G-0)

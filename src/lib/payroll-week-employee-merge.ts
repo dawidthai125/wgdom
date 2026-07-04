@@ -78,6 +78,7 @@ export function mergeWeekEmployeesList(
 ): unknown[] {
   const localArr = Array.isArray(local) ? local : [];
   const cloudArr = Array.isArray(cloud) ? cloud : [];
+
   if (localArr.length === 0) {
     return collapseByMergeKey(cloudArr, mergeRecord);
   }

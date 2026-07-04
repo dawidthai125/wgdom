@@ -713,79 +713,6 @@ export function filterDeletedWeekEmployees(list: unknown[], tombstoned: Set<stri
   });
 }
 
-type WeekEmployeeRosterDebugMeta = {
-  count: number;
-  mergeKeys: string[];
-  directoryIds: string[];
-  rows: Array<{ directoryId: string; employeeId: string; mergeKey: string }>;
-};
-
-function debugWeekEmployeeRosterMeta(list: unknown[]): WeekEmployeeRosterDebugMeta {
-  const mergeKeys: string[] = [];
-  const directoryIds: string[] = [];
-  const rows: WeekEmployeeRosterDebugMeta["rows"] = [];
-  for (const item of list) {
-    if (!item || typeof item !== "object") continue;
-    const emp = item as { id?: string; directoryId?: string; name?: string };
-    const mergeKey = weekEmployeeMergeKey(emp);
-    const directoryId = String(emp.directoryId ?? "").trim();
-    const employeeId = String(emp.id ?? "").trim();
-    mergeKeys.push(mergeKey);
-    directoryIds.push(directoryId || employeeId || "?");
-    rows.push({ directoryId, employeeId, mergeKey });
-  }
-  return { count: list.length, mergeKeys, directoryIds, rows };
-}
-
-/** RC-B — diagnostyka tombstone filter (bez zmiany logiki filterDeletedWeekEmployees). */
-function debugFilterDeletedWeekEmployeesRcb(
-  side: "local" | "cloud",
-  list: unknown[],
-  tombstoned: Set<string>,
-  targetWeek: string,
-): unknown[] {
-  const payrollPipelineDebug = Boolean(
-    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
-  );
-  const inputMeta = debugWeekEmployeeRosterMeta(list);
-  if (payrollPipelineDebug) {
-    console.warn(`[wgdom payroll] filterDeletedWeekEmployees INPUT (${side})`, {
-      count: inputMeta.count,
-      mergeKeys: inputMeta.mergeKeys,
-      directoryIds: inputMeta.directoryIds,
-      tombstoneSetSize: tombstoned.size,
-      tombstoneKeys: [...tombstoned],
-      targetWeek,
-    });
-  }
-  const out = filterDeletedWeekEmployees(list, tombstoned);
-  if (payrollPipelineDebug) {
-    const outputMeta = debugWeekEmployeeRosterMeta(out);
-    console.warn(`[wgdom payroll] filterDeletedWeekEmployees OUTPUT (${side})`, {
-      count: outputMeta.count,
-      mergeKeys: outputMeta.mergeKeys,
-      directoryIds: outputMeta.directoryIds,
-    });
-    if (outputMeta.count < inputMeta.count) {
-      const kept = new Set(outputMeta.mergeKeys);
-      for (const row of inputMeta.rows) {
-        if (kept.has(row.mergeKey)) continue;
-        console.warn("[wgdom payroll] filterDeletedWeekEmployees REMOVED", {
-          side,
-          directoryId: row.directoryId,
-          employeeId: row.employeeId,
-          mergeKey: row.mergeKey,
-          matchedTombstone: tombstoned.has(row.mergeKey),
-          targetWeek,
-          reason: "tombstone_match",
-          line: "cloud-sync.ts:631",
-        });
-      }
-    }
-  }
-  return out;
-}
-
 // ─── PR-PAY-S6 · S6-1 — Archive Restore Eligibility (eligible archive roster) ─
 /**
  * „Eligible archive roster" = skład archiwum tygodnia po odjęciu tombstonów Week
@@ -1851,17 +1778,10 @@ export function mergeWeekEmployeesForWeekRange(
   // PR-PAY-S2 — tombstones: odfiltruj usuniętych z OBU stron zanim zadziała UNION,
   // aby usunięty pracownik nie wrócił z chmury/lokalu (Cloud Sync / Restore / Bootstrap).
   const tombstoned = deletedWeekEmployeeMergeKeySet(deleted, weekFrom, weekTo);
-  const targetWeek = weekRangeKey(weekFrom, weekTo);
   const localNorm = normalizeArrayValue(localEmps);
   const cloudNorm = normalizeArrayValue(cloudEmps);
-  const local = debugFilterDeletedWeekEmployeesRcb("local", localNorm, tombstoned, targetWeek);
-  const cloud = debugFilterDeletedWeekEmployeesRcb("cloud", cloudNorm, tombstoned, targetWeek);
-  const payrollPipelineDebug = Boolean(
-    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
-  );
-  if (payrollPipelineDebug && local.length === localNorm.length && cloud.length === cloudNorm.length) {
-    (globalThis as { __wgdomPayrollRcbLogMergeList?: boolean }).__wgdomPayrollRcbLogMergeList = true;
-  }
+  const local = filterDeletedWeekEmployees(localNorm, tombstoned);
+  const cloud = filterDeletedWeekEmployees(cloudNorm, tombstoned);
   const localMatch = weekRangeKey(localFrom, localTo) === target;
   const cloudMatch = weekRangeKey(cloudFrom, cloudTo) === target;
 
@@ -1912,50 +1832,6 @@ export function mergeWeekEmployeesForWeekRange(
   return roster;
 }
 
-/** RC-B debug — nazwa gałęzi mergeWeekEmployeesForWeekRange (bez zmiany logiki merge). */
-function debugMergeWeekEmployeesForWeekRangeBranch(
-  weekFrom: string,
-  weekTo: string,
-  localFrom: unknown,
-  localTo: unknown,
-  localEmps: unknown,
-  cloudFrom: unknown,
-  cloudTo: unknown,
-  cloudEmps: unknown,
-  archive: unknown,
-): string {
-  const target = weekRangeKey(weekFrom, weekTo);
-  if (!target) return "union_fallback_no_target";
-
-  const tombstoned = deletedWeekEmployeeMergeKeySet(getDeletedWeekEmployeeKeys(), weekFrom, weekTo);
-  const local = filterDeletedWeekEmployees(normalizeArrayValue(localEmps), tombstoned);
-  const cloud = filterDeletedWeekEmployees(normalizeArrayValue(cloudEmps), tombstoned);
-  const localMatch = weekRangeKey(localFrom, localTo) === target;
-  const cloudMatch = weekRangeKey(cloudFrom, cloudTo) === target;
-
-  const archSnap = normalizeArrayValue(archive).find(
-    (w) => (w as { weekFrom?: string; weekTo?: string }).weekFrom === weekFrom
-      && (w as { weekFrom?: string; weekTo?: string }).weekTo === weekTo,
-  ) as { weekEmployees?: unknown[] } | undefined;
-  const hasArchivedWeek = (archSnap?.weekEmployees?.length ?? 0) > 0;
-
-  if (localMatch && cloudMatch) {
-    const localEmpty = local.length === 0;
-    const cloudEmpty = cloud.length === 0;
-    if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
-      return localEmpty ? "pick_side_cloud" : "pick_side_local";
-    }
-    return "merge_both_same_week";
-  }
-  if (localMatch && !cloudMatch) return "local_only_cloud_mismatch";
-  if (!localMatch && cloudMatch) return "cloud_only_local_mismatch";
-
-  const roster = mergeWeekEmployees(local, cloud);
-  if (roster.length === 0) return "both_mismatch_empty";
-  if (!hasArchivedWeek) return "strip_hours_no_archive";
-  return "both_mismatch_keep_roster";
-}
-
 /** Po ustaleniu weekFrom/weekTo — nie przenoś godzin ze starego tygodnia. */
 export function sanitizeWeekEmployeesForTargetRange(
   merged: unknown[],
@@ -1972,13 +1848,6 @@ export function sanitizeWeekEmployeesForTargetRange(
   const weekTo = merged[toIdx] as string;
   if (!weekFrom || !weekTo) return merged;
 
-  const wf = String(weekFrom);
-  const wt = String(weekTo);
-  const beforeEmps = normalizeArrayValue(merged[empIdx]);
-  const payrollPipelineDebug = Boolean(
-    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
-  );
-
   const out = [...merged];
   out[empIdx] = mergeWeekEmployeesForWeekRange(
     weekFrom,
@@ -1991,28 +1860,6 @@ export function sanitizeWeekEmployeesForTargetRange(
     cloudValues[empIdx],
     archIdx >= 0 ? merged[archIdx] : [],
   );
-
-  if (payrollPipelineDebug) {
-    const afterEmps = normalizeArrayValue(out[empIdx]);
-    console.warn("[wgdom payroll] sanitizeWeekEmployeesForTargetRange", {
-      beforeCount: beforeEmps.length,
-      afterCount: afterEmps.length,
-      subjectPresentBefore: rosterTraceSnapshot(beforeEmps, wf, wt, "MERGED", "PRESENT").subjectPresent,
-      subjectPresentAfter: rosterTraceSnapshot(afterEmps, wf, wt, "MERGED", "PRESENT").subjectPresent,
-      targetWeek: weekRangeKey(weekFrom, weekTo),
-      branchTaken: debugMergeWeekEmployeesForWeekRangeBranch(
-        weekFrom,
-        weekTo,
-        localValues[fromIdx],
-        localValues[toIdx],
-        localValues[empIdx],
-        cloudValues[fromIdx],
-        cloudValues[toIdx],
-        cloudValues[empIdx],
-        archIdx >= 0 ? merged[archIdx] : [],
-      ),
-    });
-  }
 
   return out;
 }
@@ -2097,27 +1944,6 @@ export function finalizePayrollBundleMerge(
     "MERGED",
     "PRESENT",
   ).subjectPresent;
-  const payrollPipelineDebug = Boolean(
-    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
-  );
-  const richnessOverrideReason = `cloudR(${cloudR})>localR(${localR}) || cloudActiveDays(${cloudM.activeDays})>localActiveDays(${localM.activeDays})`;
-  const keepMergedReason = `cloudR(${cloudR})<=localR(${localR}) && cloudActiveDays(${cloudM.activeDays})<=localActiveDays(${localM.activeDays})`;
-
-  if (payrollPipelineDebug) {
-    console.warn("[wgdom payroll] finalizePayrollBundleMerge", {
-      localCount: localEmps.length,
-      cloudCount: cloudEmps.length,
-      mergedCount: mergedEmpsBefore.length,
-      localR,
-      cloudR,
-      richnessOverride,
-      subjectPresentBefore,
-      subjectPresentAfter: richnessOverride ? null : subjectPresentBefore,
-      adoptedCount: richnessOverride ? null : mergedEmpsBefore.length,
-      branchTaken: richnessOverride ? "richness_override" : "keep_merged",
-      reason: richnessOverride ? richnessOverrideReason : keepMergedReason,
-    });
-  }
 
   if (richnessOverride) {
     // PR-PAY-S2 — richness override nie może wskrzesić usuniętego (tombstone respektowany).
@@ -2129,21 +1955,6 @@ export function finalizePayrollBundleMerge(
     // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
     next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
     const adoptedEmps = normalizeArrayValue(next[empIdx]);
-    if (payrollPipelineDebug) {
-      console.warn("[wgdom payroll] finalizePayrollBundleMerge", {
-        localCount: localEmps.length,
-        cloudCount: cloudEmps.length,
-        mergedCount: mergedEmpsBefore.length,
-        localR,
-        cloudR,
-        richnessOverride: true,
-        subjectPresentBefore,
-        subjectPresentAfter: rosterTraceSnapshot(adoptedEmps, wf, wt, "MERGED", "OVERWRITTEN").subjectPresent,
-        adoptedCount: adoptedEmps.length,
-        branchTaken: "richness_override",
-        reason: richnessOverrideReason,
-      });
-    }
     payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
       localR,
       cloudR,
@@ -2565,18 +2376,7 @@ export async function pushKeysToCloud(
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
-  const keysBefore = keys;
-  const replaceWeekEmployeesKeysBefore = options?.replaceWeekEmployeesKeys ?? [];
   const guarded = await applyPayrollGuardBeforePush(keys, values, options);
-  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug === true) {
-    console.warn("[wgdom payroll RC-B] payrollGuard.after", {
-      blocked: guarded.blocked,
-      keysBefore,
-      keysAfter: guarded.keys,
-      replaceWeekEmployeesKeysBefore,
-      replaceWeekEmployeesKeysAfter: guarded.options.replaceWeekEmployeesKeys ?? [],
-    });
-  }
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
   }
@@ -2621,22 +2421,12 @@ export async function pushKeysToCloud(
   });
   const latencyMs = Date.now() - t0;
   let edgeRequestId: string | undefined;
-  const payrollPipelineDebug = Boolean(
-    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
-  );
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
     try {
       const parsed = JSON.parse(errText) as { requestId?: string };
       edgeRequestId = parsed.requestId;
     } catch { /* ignore */ }
-    if (payrollPipelineDebug && empIdx >= 0) {
-      console.warn("[wgdom payroll RC-B] batch-set.response", {
-        status: res.status,
-        requestId: edgeRequestId ?? httpRequestId,
-        count: normalizeArrayValue(safeValues[empIdx]).length,
-      });
-    }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
       httpStatus: res.status,
       ok: false,
@@ -2647,13 +2437,6 @@ export async function pushKeysToCloud(
       error: { message: errText.slice(0, 120) },
     });
     throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
-  }
-  if (payrollPipelineDebug && empIdx >= 0) {
-    console.warn("[wgdom payroll RC-B] batch-set.response", {
-      status: res.status,
-      requestId: httpRequestId,
-      count: normalizeArrayValue(safeValues[empIdx]).length,
-    });
   }
   payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
     httpStatus: res.status,
@@ -3113,11 +2896,6 @@ export async function computeMergedDataBundle(
     mergedChargesDeleted,
     mergedOpNotesDeleted,
   );
-  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug && empCloudIdx >= 0) {
-    console.warn("[wgdom payroll] mergeAllDataKeys week-employees", {
-      count: normalizeArrayValue(merged[empCloudIdx]).length,
-    });
-  }
   if (empCloudIdx >= 0) {
     const wf = String(merged[fromIdx] ?? wfT);
     const wt = String(merged[toIdx] ?? wtT);
