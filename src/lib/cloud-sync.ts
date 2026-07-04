@@ -1749,6 +1749,50 @@ export function mergeWeekEmployeesForWeekRange(
   return roster;
 }
 
+/** RC-B debug — nazwa gałęzi mergeWeekEmployeesForWeekRange (bez zmiany logiki merge). */
+function debugMergeWeekEmployeesForWeekRangeBranch(
+  weekFrom: string,
+  weekTo: string,
+  localFrom: unknown,
+  localTo: unknown,
+  localEmps: unknown,
+  cloudFrom: unknown,
+  cloudTo: unknown,
+  cloudEmps: unknown,
+  archive: unknown,
+): string {
+  const target = weekRangeKey(weekFrom, weekTo);
+  if (!target) return "union_fallback_no_target";
+
+  const tombstoned = deletedWeekEmployeeMergeKeySet(getDeletedWeekEmployeeKeys(), weekFrom, weekTo);
+  const local = filterDeletedWeekEmployees(normalizeArrayValue(localEmps), tombstoned);
+  const cloud = filterDeletedWeekEmployees(normalizeArrayValue(cloudEmps), tombstoned);
+  const localMatch = weekRangeKey(localFrom, localTo) === target;
+  const cloudMatch = weekRangeKey(cloudFrom, cloudTo) === target;
+
+  const archSnap = normalizeArrayValue(archive).find(
+    (w) => (w as { weekFrom?: string; weekTo?: string }).weekFrom === weekFrom
+      && (w as { weekFrom?: string; weekTo?: string }).weekTo === weekTo,
+  ) as { weekEmployees?: unknown[] } | undefined;
+  const hasArchivedWeek = (archSnap?.weekEmployees?.length ?? 0) > 0;
+
+  if (localMatch && cloudMatch) {
+    const localEmpty = local.length === 0;
+    const cloudEmpty = cloud.length === 0;
+    if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
+      return localEmpty ? "pick_side_cloud" : "pick_side_local";
+    }
+    return "merge_both_same_week";
+  }
+  if (localMatch && !cloudMatch) return "local_only_cloud_mismatch";
+  if (!localMatch && cloudMatch) return "cloud_only_local_mismatch";
+
+  const roster = mergeWeekEmployees(local, cloud);
+  if (roster.length === 0) return "both_mismatch_empty";
+  if (!hasArchivedWeek) return "strip_hours_no_archive";
+  return "both_mismatch_keep_roster";
+}
+
 /** Po ustaleniu weekFrom/weekTo — nie przenoś godzin ze starego tygodnia. */
 export function sanitizeWeekEmployeesForTargetRange(
   merged: unknown[],
@@ -1765,6 +1809,13 @@ export function sanitizeWeekEmployeesForTargetRange(
   const weekTo = merged[toIdx] as string;
   if (!weekFrom || !weekTo) return merged;
 
+  const wf = String(weekFrom);
+  const wt = String(weekTo);
+  const beforeEmps = normalizeArrayValue(merged[empIdx]);
+  const payrollPipelineDebug = Boolean(
+    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
+  );
+
   const out = [...merged];
   out[empIdx] = mergeWeekEmployeesForWeekRange(
     weekFrom,
@@ -1777,6 +1828,29 @@ export function sanitizeWeekEmployeesForTargetRange(
     cloudValues[empIdx],
     archIdx >= 0 ? merged[archIdx] : [],
   );
+
+  if (payrollPipelineDebug) {
+    const afterEmps = normalizeArrayValue(out[empIdx]);
+    console.warn("[wgdom payroll] sanitizeWeekEmployeesForTargetRange", {
+      beforeCount: beforeEmps.length,
+      afterCount: afterEmps.length,
+      subjectPresentBefore: rosterTraceSnapshot(beforeEmps, wf, wt, "MERGED", "PRESENT").subjectPresent,
+      subjectPresentAfter: rosterTraceSnapshot(afterEmps, wf, wt, "MERGED", "PRESENT").subjectPresent,
+      targetWeek: weekRangeKey(weekFrom, weekTo),
+      branchTaken: debugMergeWeekEmployeesForWeekRangeBranch(
+        weekFrom,
+        weekTo,
+        localValues[fromIdx],
+        localValues[toIdx],
+        localValues[empIdx],
+        cloudValues[fromIdx],
+        cloudValues[toIdx],
+        cloudValues[empIdx],
+        archIdx >= 0 ? merged[archIdx] : [],
+      ),
+    });
+  }
+
   return out;
 }
 
