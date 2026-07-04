@@ -70,6 +70,7 @@ import {
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
   isPayrollGuardBlockedError,
+  rsBundleFingerprintFromMerged,
 } from "@/lib/cloud-sync";
 import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
 import {
@@ -128,7 +129,6 @@ import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation } from "@/lib/
 import {
   AUTO_SYNC_DEBOUNCE_MS,
   shouldPullNow,
-  bundleFingerprint,
   recordPushSkipped,
   getSyncMetrics,
 } from "@/lib/cloud-sync-throttle";
@@ -759,9 +759,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
-      // PR-PAY-S7-4A · AC4 — brak zmian = brak push (fingerprint całego bundla; NIE delta push).
-      // Semantyka merge/LWW/tombstones bez zmian — gate wyłącznie na batch-set (kw-* data bundle).
-      const outgoingHash = bundleFingerprint(merged);
+      // PR-PAY-S7-4A · AC4 — brak zmian = brak push (NIE delta push).
+      // SYNC-ARCH-01 S1-2 — fingerprint RS subset (non-payroll); parity z pushMergedDataBundleToCloud.
+      const outgoingHash = rsBundleFingerprintFromMerged(merged);
       if (outgoingHash === lastPushedBundleHashRef.current) {
         recordPushSkipped();
       } else {

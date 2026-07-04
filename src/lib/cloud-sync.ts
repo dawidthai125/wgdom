@@ -89,7 +89,7 @@ import {
   refreshUserClassificationDictionaryCacheFromLocalStorage,
 } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
-import { recordBatchGet, recordBatchSet } from "@/lib/cloud-sync-throttle";
+import { recordBatchGet, recordBatchSet, bundleFingerprint } from "@/lib/cloud-sync-throttle";
 import {
   mergeSecurityAuditLog,
   normalizeSecurityAuditLog,
@@ -345,6 +345,38 @@ export const RECOVERABLE_CHARGES_DELETED_IDS_KEY = "kw-recoverable-charges-delet
 export const OPERATIONAL_NOTES_DELETED_IDS_KEY = "kw-operational-notes-deleted-ids";
 /** PR-PAY-S2 — tombstones usuniętych Week Employees (per-tydzień, analog deletedArchiveIds). */
 export const WEEK_EMPLOYEES_DELETED_KEYS_KEY = "kw-week-employees-deleted-ids";
+
+/** SYNC-ARCH-01 S1-1 — Payroll klucze wyłączone z Full Bundle RS push (domain sync owns push). */
+export const RS_PUSH_EXCLUDED_PAYROLL_DATA_KEYS = [
+  "kw-week-employees",
+  "kw-weekFrom",
+  "kw-weekTo",
+  "kw-archive",
+] as const satisfies readonly DataKey[];
+
+export const RS_PUSH_EXCLUDED_PAYROLL_KEYS: readonly string[] = [
+  ...RS_PUSH_EXCLUDED_PAYROLL_DATA_KEYS,
+  ARCHIVE_DELETED_IDS_KEY,
+  WEEK_EMPLOYEES_DELETED_KEYS_KEY,
+];
+
+const RS_PUSH_EXCLUDED_PAYROLL_KEY_SET = new Set<string>(RS_PUSH_EXCLUDED_PAYROLL_KEYS);
+
+/** SYNC-ARCH-01 S1-1 — filtr payload RS push (bez payroll). */
+export function filterRsPushKeysAndValues(
+  keys: string[],
+  values: unknown[],
+): { keys: string[]; values: unknown[] } {
+  const outKeys: string[] = [];
+  const outValues: unknown[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    if (!RS_PUSH_EXCLUDED_PAYROLL_KEY_SET.has(keys[i])) {
+      outKeys.push(keys[i]);
+      outValues.push(values[i]);
+    }
+  }
+  return { keys: outKeys, values: outValues };
+}
 
 export { OPERATIONAL_NOTES_KEY, OPERATIONAL_NOTES_READ_STATE_KEY, OPERATIONAL_NOTES_AUDIT_LOG_KEY };
 export { SECURITY_AUDIT_LOG_KEY };
@@ -2580,28 +2612,49 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
   return merged;
 }
 
+/** SYNC-ARCH-01 S1-2 — RS push subset (S1-1 filter); SSOT dla push i fingerprint. */
+function assembleRsPushKeysAndValues(merged: unknown[]): { keys: string[]; values: unknown[] } {
+  const rsKeys = [
+    ...DATA_KEYS,
+    JOBS_DELETED_IDS_KEY,
+    DIRECTORY_DELETED_IDS_KEY,
+    CONTACTS_DELETED_IDS_KEY,
+    ARCHIVE_DELETED_IDS_KEY,
+    EMPLOYEE_LEAVES_DELETED_IDS_KEY,
+    RECOVERABLE_CHARGES_DELETED_IDS_KEY,
+    OPERATIONAL_NOTES_DELETED_IDS_KEY,
+    ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
+    WEEK_EMPLOYEES_DELETED_KEYS_KEY,
+  ];
+  const rsValues = [
+    ...merged,
+    getDeletedJobIds(),
+    getDeletedDirectoryIds(),
+    getDeletedContactsIds(),
+    getDeletedArchiveIds(),
+    getDeletedEmployeeLeaveIds(),
+    getDeletedRecoverableChargeIds(),
+    getDeletedOperationalNoteIds(),
+    getDeletedElectricalMeasurementIds(),
+    getDeletedWeekEmployeeKeys(), // PR-PAY-S7-5-1
+  ];
+  return filterRsPushKeysAndValues(rsKeys, rsValues);
+}
+
+/** SYNC-ARCH-01 S1-2 — AC4 fingerprint tylko RS subset (non-payroll; parity z push). */
+export function rsBundleFingerprintFromMerged(merged: unknown[]): string {
+  const { values: pushValues } = assembleRsPushKeysAndValues(merged);
+  return bundleFingerprint(pushValues);
+}
+
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
-  await pushKeysToCloud(
-    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY, WEEK_EMPLOYEES_DELETED_KEYS_KEY],
-    [
-      ...merged,
-      getDeletedJobIds(),
-      getDeletedDirectoryIds(),
-      getDeletedContactsIds(),
-      getDeletedArchiveIds(),
-      getDeletedEmployeeLeaveIds(),
-      getDeletedRecoverableChargeIds(),
-      getDeletedOperationalNoteIds(),
-      getDeletedElectricalMeasurementIds(),
-      getDeletedWeekEmployeeKeys(), // PR-PAY-S7-5-1
-    ],
-    {
-      replaceJobsKeys: ["kw-jobs"],
-      replaceDirectoryKeys: ["kw-directory"],
-      replaceWeekEmployeesKeys: ["kw-week-employees"],
-    },
-  );
+  const { keys: pushKeys, values: pushValues } = assembleRsPushKeysAndValues(merged);
+  await pushKeysToCloud(pushKeys, pushValues, {
+    replaceJobsKeys: ["kw-jobs"],
+    replaceDirectoryKeys: ["kw-directory"],
+    // SYNC-ARCH-01 S1-1: brak replaceWeekEmployeesKeys w RS — roster via domain push
+  });
 }
 
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {

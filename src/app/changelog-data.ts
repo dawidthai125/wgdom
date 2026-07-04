@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-04",
+    version: "2.63.28",
+    label: "SYNC-ARCH-01 S1 — RS push bez payroll + fingerprint non-payroll",
+    items: [
+      {
+        type: "improve",
+        text: "S1-1 — Full Bundle RS push wyklucza payroll (kw-week-employees, kw-weekFrom, kw-weekTo, kw-archive + tombstones); brak replaceWeekEmployeesKeys w RS",
+      },
+      {
+        type: "improve",
+        text: "S1-2 — AC4 no-change=no-push: fingerprint tylko RS subset (rsBundleFingerprintFromMerged); edycja LP bez zmiany non-payroll nie wymusza batch-set",
+      },
+      {
+        type: "new",
+        text: "Testy SYNC-ARCH-01 S1 — test-sync-arch-01-s1-rs-no-payroll-push.mjs (22) + test-sync-arch-01-s2-rs-fingerprint.mjs (13)",
+      },
+    ],
+  },
+  {
     date: "2026-07-02",
     version: "2.63.27",
     label: "TI-B4 — smoke agregat Przetargi NG-01–NG-04",

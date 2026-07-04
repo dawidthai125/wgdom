@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.28 — SYNC-ARCH-01 S1 (RS payroll off + fingerprint)
+
+- **improve:** S1-1 — `pushMergedDataBundleToCloud` wyklucza 6 kluczy payroll z RS push; `replaceWeekEmployeesKeys` tylko w domain push
+- **improve:** S1-2 — `rsBundleFingerprintFromMerged` (parity z RS payload); payroll-only → `recordPushSkipped()` zamiast zbędnego batch-set
+- **new:** `test-sync-arch-01-s1-rs-no-payroll-push.mjs` (22) · `test-sync-arch-01-s2-rs-fingerprint.mjs` (13) · regresja S7-4 (17)
+- **note:** R1 — godziny/archive nadal poza RS do S2; po deploy → S1-3 observation 24–48h
+
 ## 2.63.27 — TI-B4 Smoke agregat Przetargi NG-01–NG-04
 
 - **new:** `scripts/test-tenders-stabilization-smoke.mjs` — thin wrapper (12 child lib scripts, fail-fast)
