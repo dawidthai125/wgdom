@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.29 — PAYROLL Runtime Trace logger (SSOT v1.1)
+
+- **new:** `payroll-runtime-trace.ts` — ring buffer 300 + `__wgdomPayrollTraceDump()` · emitters P0/P1 + GAP-A/B/C
+- **new:** Testy `test-payroll-runtime-trace-compliance.mjs` (35) · `test-payroll-runtime-trace-repro.mjs`
+- **note:** Diagnostyka only — zero zmian merge/sync/fix incydentu
+
 ## 2.63.28 — SYNC-ARCH-01 S1 (RS payroll off + fingerprint)
 
 - **improve:** S1-1 — `pushMergedDataBundleToCloud` wyklucza 6 kluczy payroll z RS push; `replaceWeekEmployeesKeys` tylko w domain push

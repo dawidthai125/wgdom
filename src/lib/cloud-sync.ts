@@ -112,6 +112,27 @@ import {
   mergeWorkCatalogStore,
   normalizeWorkCatalogStore,
 } from "@/lib/work-catalog/work-catalog-store";
+import {
+  payrollTraceBumpRosterRevision,
+  payrollTraceCreateBootstrapPushId,
+  payrollTraceCreateMergeTraceId,
+  payrollTraceCreatePushTraceId,
+  payrollTraceEmit,
+  payrollTraceGetSubjectMergeKey,
+  payrollTraceNextHttpRequestId,
+  payrollTraceNextHttpSeq,
+  rosterTraceSnapshot,
+} from "@/lib/payroll-runtime-trace";
+
+function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
+  try {
+    const wf = JSON.parse(localStorage.getItem("kw-weekFrom") ?? '""');
+    const wt = JSON.parse(localStorage.getItem("kw-weekTo") ?? '""');
+    return { weekFrom: typeof wf === "string" ? wf : "", weekTo: typeof wt === "string" ? wt : "" };
+  } catch {
+    return { weekFrom: "", weekTo: "" };
+  }
+}
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -375,6 +396,10 @@ export function filterRsPushKeysAndValues(
       outValues.push(values[i]);
     }
   }
+  payrollTraceEmit("sync.rs.push.filtered", "RS", "debug", {
+    excludedPayrollKeys: keys.filter((k) => RS_PUSH_EXCLUDED_PAYROLL_KEY_SET.has(k)),
+    outKeyCount: outKeys.length,
+  });
   return { keys: outKeys, values: outValues };
 }
 
@@ -1287,6 +1312,11 @@ async function applyPayrollGuardBeforePush(
     outgoing: payrollMetrics(outgoing),
   });
 
+  payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+    blocked: true,
+    skipReason: "guard_blocked" as const,
+  });
+
   const newKeys = keys.filter((_, i) => i !== empIdx);
   const newValues = values.filter((_, i) => i !== empIdx);
   return {
@@ -1681,6 +1711,20 @@ export function mergeWeekEmployeesForWeekRange(
     const localEmpty = local.length === 0;
     const cloudEmpty = cloud.length === 0;
     if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
+      const picked = localEmpty ? "cloud" : "local";
+      const { weekFrom: wf, weekTo: wt } = { weekFrom, weekTo };
+      payrollTraceEmit("sync.merge.week_range.pick_side", "MERGE", "info", {
+        pickedSide: picked,
+        localEmpty,
+        cloudEmpty,
+        out: rosterTraceSnapshot(
+          localEmpty ? cloud : local,
+          wf,
+          wt,
+          "MERGED",
+          "MERGED",
+        ),
+      });
       return localEmpty ? cloud : local;
     }
     return mergeWeekEmployees(local, cloud);
@@ -1814,8 +1858,31 @@ export function finalizePayrollBundleMerge(
     // może nadpisać nowszego statusu rozliczenia. settled/settledUpdatedAt wyłącznie LWW
     // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
     next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
+    const wf = String(targetFrom ?? "");
+    const wt = String(targetTo ?? "");
+    payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
+      localR,
+      cloudR,
+      localActiveDays: localM.activeDays,
+      cloudActiveDays: cloudM.activeDays,
+      richnessOverride: true,
+      weekKeyMismatch: false,
+      out: rosterTraceSnapshot(normalizeArrayValue(next[empIdx]), wf, wt, "MERGED", "OVERWRITTEN"),
+    });
     return next;
   }
+
+  const wf = String(targetFrom ?? "");
+  const wt = String(targetTo ?? "");
+  payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
+    localR,
+    cloudR,
+    localActiveDays: localM.activeDays,
+    cloudActiveDays: cloudM.activeDays,
+    richnessOverride: false,
+    weekKeyMismatch: false,
+    out: rosterTraceSnapshot(normalizeArrayValue(out[empIdx]), wf, wt, "MERGED", "PRESENT"),
+  });
 
   return out;
 }
@@ -1837,6 +1904,11 @@ export function applyRuntimePayrollAntiLeak(merged: unknown[], valuesForMerge: u
   ) {
     const next = [...merged];
     next[empIdx] = [];
+    const { weekFrom, weekTo } = traceWeekRangeFromLs();
+    payrollTraceEmit("sync.merge.payroll.anti_leak", "MERGE", "warn", {
+      fired: true,
+      out: rosterTraceSnapshot([], weekFrom, weekTo, "MERGED", "REMOVED"),
+    });
     return next;
   }
   return merged;
@@ -1850,7 +1922,19 @@ export function applyBootstrapPayrollMerge(
   localValues: unknown[],
   cloudValues: unknown[],
 ): unknown[] {
-  return finalizePayrollBundleMerge(merged, localValues, cloudValues);
+  const out = finalizePayrollBundleMerge(merged, localValues, cloudValues);
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx >= 0) {
+    const wf = String(out[fromIdx] ?? "");
+    const wt = String(out[toIdx] ?? "");
+    payrollTraceEmit("sync.bootstrap.payroll.finalize", "MERGE", "info", {
+      trigger: "bootstrap" as const,
+      out: rosterTraceSnapshot(normalizeArrayValue(out[empIdx]), wf, wt, "MERGED", "PRESENT"),
+    });
+  }
+  return out;
 }
 
 function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown, cloudTo: unknown, localEmps: unknown, cloudEmps: unknown): { from: string; to: string } {
@@ -2204,16 +2288,36 @@ export async function pushKeysToCloud(
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
   }
   if (guarded.keys.length === 0) {
+    payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
+      skipReason: "keys_empty" as const,
+    });
     return;
   }
   const pushKeys = guarded.keys;
   const pushValues = guarded.values;
   const pushOptions = guarded.options;
   const safeValues = pushKeys.map((k, i) => sanitizeValueForCloud(k, pushValues[i]));
+  const httpRequestId = payrollTraceNextHttpRequestId();
+  const httpSeq = payrollTraceNextHttpSeq();
+  const empIdx = pushKeys.indexOf("kw-week-employees");
+  const { weekFrom, weekTo } = traceWeekRangeFromLs();
+  const weekEmpPayload = empIdx >= 0
+    ? rosterTraceSnapshot(normalizeArrayValue(safeValues[empIdx]), weekFrom, weekTo, "LS", "PRESENT")
+    : undefined;
+  payrollTraceEmit("sync.http.batch_set.attempt", "HTTP_OUT", "info", {
+    keys: pushKeys,
+    replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
+    skipPayrollGuard: pushOptions.skipPayrollGuard ?? false,
+    forceReplaceWeekEmployees: (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees"),
+    httpRequestId,
+    httpSeq,
+    weekEmpPayload,
+  });
   recordBatchSet(); // AC5 — production metrics
+  const t0 = Date.now();
   const res = await fetch(`${API_BASE}/batch-set`, {
     method: "POST",
-    headers: API_HEADERS,
+    headers: { ...API_HEADERS, "X-WGDOM-Trace-Id": httpRequestId },
     body: JSON.stringify({
       keys: pushKeys,
       values: safeValues,
@@ -2222,9 +2326,45 @@ export async function pushKeysToCloud(
       replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
     }),
   });
+  const latencyMs = Date.now() - t0;
+  let edgeRequestId: string | undefined;
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
+    try {
+      const parsed = JSON.parse(errText) as { requestId?: string };
+      edgeRequestId = parsed.requestId;
+    } catch { /* ignore */ }
+    payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
+      httpStatus: res.status,
+      ok: false,
+      edgeRequestId,
+      latencyMs,
+      httpSeq,
+      httpRequestId,
+      error: { message: errText.slice(0, 120) },
+    });
     throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
+  }
+  payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
+    httpStatus: res.status,
+    ok: true,
+    edgeRequestId,
+    latencyMs,
+    httpSeq,
+    httpRequestId,
+  });
+  if (empIdx >= 0) {
+    const inCount = normalizeArrayValue(safeValues[empIdx]).length;
+    const forceReplace = (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees");
+    payrollTraceEmit("edge.kv.week_employees.write", "EDGE_KV", "info", {
+      forceReplaceWeekEmployees: forceReplace,
+      inCount,
+      writtenCount: inCount,
+      prevCount: undefined,
+      afterTombstoneCount: inCount,
+      tombstoneHitsOnSubject: false,
+      clientProxy: true,
+    });
   }
 }
 
@@ -2260,15 +2400,46 @@ export async function pushWeekEmployeesToCloud(
   weekEmployees: unknown[],
   options?: PushWeekEmployeesOptions,
 ): Promise<void> {
-  if (!isSupabaseConfigured() || !API_BASE) return;
-  const normalized = collapseWeekEmployeesByIdentity(normalizeArrayValue(weekEmployees));
-  try {
-    localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
-  } catch { /* ignore */ }
-  await pushKeysToCloud(["kw-week-employees"], [normalized], {
-    replaceWeekEmployeesKeys: ["kw-week-employees"],
-    skipPayrollGuard: options?.skipPayrollGuard,
+  if (!isSupabaseConfigured() || !API_BASE) {
+    payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
+      skipReason: !isSupabaseConfigured() ? "no_supabase" as const : "no_api_base" as const,
+    });
+    return;
+  }
+  const pushTraceId = payrollTraceCreatePushTraceId();
+  const { weekFrom, weekTo } = traceWeekRangeFromLs();
+  const beforeCollapse = normalizeArrayValue(weekEmployees);
+  payrollTraceEmit("payroll.roster.collapse", "PUSH", "debug", {
+    pushTraceId,
+    beforeCount: beforeCollapse.length,
   });
+  const normalized = collapseWeekEmployeesByIdentity(beforeCollapse);
+  payrollTraceEmit("payroll.roster.push.start", "PUSH", "info", {
+    pushTraceId,
+    subjectPresent: rosterTraceSnapshot(normalized, weekFrom, weekTo, "LOCAL", "PRESENT").subjectPresent,
+    count: normalized.length,
+  });
+  try {
+    payrollTraceBumpRosterRevision();
+    localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
+    payrollTraceEmit("payroll.roster.ls.write", "LS", "info", {
+      trigger: "ui_add" as const,
+      roster: rosterTraceSnapshot(normalized, weekFrom, weekTo, "LS", "PRESENT"),
+    });
+  } catch { /* ignore */ }
+  try {
+    await pushKeysToCloud(["kw-week-employees"], [normalized], {
+      replaceWeekEmployeesKeys: ["kw-week-employees"],
+      skipPayrollGuard: options?.skipPayrollGuard,
+    });
+    payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
+  } catch (e) {
+    payrollTraceEmit("payroll.roster.push.error", "PUSH", "error", {
+      pushTraceId,
+      error: { message: e instanceof Error ? e.message : String(e) },
+    });
+    throw e;
+  }
 }
 
 /** Atomowy push po rolloverze — nowy tydzień + archiwum starego (Sprint 20.1C.1). */
@@ -2518,6 +2689,9 @@ export async function pullWmDrukAuditLogFromCloud(): Promise<
 export async function computeMergedDataBundle(
   values: unknown[],
 ): Promise<{ merged: unknown[]; cloudReachable: boolean }> {
+  const mergeTraceId = payrollTraceCreateMergeTraceId();
+  const t0 = Date.now();
+  payrollTraceEmit("sync.merge.bundle.start", "MERGE", "info", { mergeTraceId });
   const keys = [...DATA_KEYS];
   const valuesForMerge = prepareDataBundleForCloudPush(values);
 
@@ -2548,7 +2722,7 @@ export async function computeMergedDataBundle(
       WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
       ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
       WEEK_EMPLOYEES_DELETED_KEYS_KEY,
-    ]);
+    ], { trigger: "run_cloud_sync" });
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
     cloudDirDeleted = normalizeDeletedDirectoryIds(fetched[keys.length + 1]);
@@ -2589,6 +2763,17 @@ export async function computeMergedDataBundle(
   // PRZED finalizePayrollBundleMerge, aby cross-device usunięcia zadziałały w tym cyklu merge.
   const mergedWeekEmpDeleted = mergeDeletedWeekEmployeeKeys(getDeletedWeekEmployeeKeys(), cloudWeekEmpDeleted);
   saveDeletedWeekEmployeeKeys(mergedWeekEmpDeleted);
+  const { weekFrom: wfT, weekTo: wtT } = traceWeekRangeFromLs();
+  const subjectKey = payrollTraceGetSubjectMergeKey();
+  let subjectInTombstoneSet = false;
+  if (subjectKey) {
+    const ts = deletedWeekEmployeeMergeKeySet(mergedWeekEmpDeleted, wfT, wtT);
+    subjectInTombstoneSet = ts.has(subjectKey);
+  }
+  payrollTraceEmit("sync.merge.tombstones.week_employees", "MERGE", "info", {
+    mergedTombstoneCount: mergedWeekEmpDeleted.length,
+    subjectInTombstoneSet,
+  });
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,
@@ -2600,15 +2785,35 @@ export async function computeMergedDataBundle(
     mergedChargesDeleted,
     mergedOpNotesDeleted,
   );
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx >= 0) {
+    const wf = String(merged[fromIdx] ?? wfT);
+    const wt = String(merged[toIdx] ?? wtT);
+    payrollTraceEmit("sync.merge.all_keys.week_employees", "MERGE", "info", {
+      local: rosterTraceSnapshot(normalizeArrayValue(valuesForMerge[empIdx]), wf, wt, "LOCAL", "PRESENT"),
+      cloud: rosterTraceSnapshot(normalizeArrayValue(cloudValues[empIdx]), wf, wt, "CLOUD", "PRESENT"),
+      out: rosterTraceSnapshot(normalizeArrayValue(merged[empIdx]), wf, wt, "MERGED", "MERGED"),
+    });
+  }
   merged = finalizePayrollBundleMerge(merged, valuesForMerge, cloudValues);
   merged = applyRuntimePayrollAntiLeak(merged, valuesForMerge);
+
+  payrollTraceEmit("sync.merge.bundle.complete", "MERGE", "info", {
+    mergeTraceId,
+    durationMs: Date.now() - t0,
+    cloudReachable,
+  });
 
   return { merged, cloudReachable };
 }
 
 /** Pobierz chmurę i scal z lokalnym — bez zapisu (do odświeżenia UI / pull on focus). */
 export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown[]> {
+  payrollTraceEmit("sync.pull.bundle.start", "MERGE", "info", { trigger: "focus_pull" as const });
   const { merged } = await computeMergedDataBundle(values);
+  payrollTraceEmit("sync.pull.bundle.complete", "MERGE", "info", { trigger: "focus_pull" as const });
   return merged;
 }
 
@@ -2649,12 +2854,18 @@ export function rsBundleFingerprintFromMerged(merged: unknown[]): string {
 
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
+  payrollTraceEmit("sync.rs.push.start", "RS", "info", {});
   const { keys: pushKeys, values: pushValues } = assembleRsPushKeysAndValues(merged);
+  if (pushKeys.length === 0) {
+    payrollTraceEmit("sync.rs.push.skip", "RS", "debug", { skipReason: "keys_empty" as const });
+    return;
+  }
   await pushKeysToCloud(pushKeys, pushValues, {
     replaceJobsKeys: ["kw-jobs"],
     replaceDirectoryKeys: ["kw-directory"],
     // SYNC-ARCH-01 S1-1: brak replaceWeekEmployeesKeys w RS — roster via domain push
   });
+  payrollTraceEmit("sync.rs.push.complete", "RS", "info", { keyCount: pushKeys.length });
 }
 
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {
@@ -2693,18 +2904,49 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
 /** Pobranie wielu kluczy z chmury. */
 export async function fetchKeysFromCloud(
   keys: string[],
+  traceOpts?: { trigger?: import("@/lib/payroll-runtime-trace").TraceTrigger },
 ): Promise<unknown[]> {
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
+  const httpRequestId = payrollTraceNextHttpRequestId();
+  const httpSeq = payrollTraceNextHttpSeq();
   recordBatchGet(); // AC5 — production metrics
+  const t0 = Date.now();
   const res = await fetch(`${API_BASE}/batch-get`, {
     method: "POST",
-    headers: API_HEADERS,
+    headers: { ...API_HEADERS, "X-WGDOM-Trace-Id": httpRequestId },
     body: JSON.stringify({ keys }),
   });
-  if (!res.ok) throw new Error(`batch-get failed: ${res.status}`);
+  const latencyMs = Date.now() - t0;
+  if (!res.ok) {
+    payrollTraceEmit("sync.http.batch_get.result", "HTTP_IN", "error", {
+      keys,
+      httpStatus: res.status,
+      ok: false,
+      httpRequestId,
+      httpSeq,
+      latencyMs,
+      trigger: traceOpts?.trigger,
+    });
+    throw new Error(`batch-get failed: ${res.status}`);
+  }
   const { values } = await res.json();
+  const empIdx = keys.indexOf("kw-week-employees");
+  const { weekFrom, weekTo } = traceWeekRangeFromLs();
+  const weekEmpRaw = empIdx >= 0
+    ? rosterTraceSnapshot(normalizeArrayValue((values as unknown[])[empIdx]), weekFrom, weekTo, "CLOUD", "PRESENT")
+    : undefined;
+  payrollTraceEmit("sync.http.batch_get.result", "HTTP_IN", "info", {
+    keys,
+    httpStatus: res.status,
+    ok: true,
+    httpRequestId,
+    httpSeq,
+    latencyMs,
+    trigger: traceOpts?.trigger,
+    weekEmpRaw,
+  });
   return values as unknown[];
 }
 

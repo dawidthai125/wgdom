@@ -3,6 +3,8 @@
  * PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0 — bez stanu biznesowego (#011).
  */
 
+import { payrollTraceEmit } from "@/lib/payroll-runtime-trace";
+
 export type CloudSyncScope = "kw-jobs" | "kw-week-employees" | "kw-directory" | "full-bundle" | string;
 
 export type MutationToken = string & { readonly __brand: "CloudSyncMutationToken" };
@@ -34,14 +36,21 @@ function begin(scope: CloudSyncScope, opts?: BeginOptions): MutationToken {
   suppressUntil = Math.max(suppressUntil, now + ms);
   const token = `csmg-${nextTokenSeq++}` as MutationToken;
   activeTokens.set(token, scope);
+  if (scope === "kw-week-employees") {
+    payrollTraceEmit("payroll.guard.mutation.begin", "GUARD", "debug", { scope, suppressMs: ms });
+  }
   return token;
 }
 
 function end(token: MutationToken): void {
   if (endedTokens.has(token)) return;
   if (!activeTokens.has(token)) return;
+  const scope = activeTokens.get(token);
   endedTokens.add(token);
   activeTokens.delete(token);
+  if (scope === "kw-week-employees") {
+    payrollTraceEmit("payroll.guard.mutation.end", "GUARD", "debug", { scope });
+  }
 }
 
 function scopeHasActiveToken(scope: CloudSyncScope): boolean {

@@ -603,8 +603,8 @@ export function PayrollView({
   );
   const isClosedWeek = isPayrollWeekClosedForUi(weekFrom, weekTo, hasRolloverBlockers);
   const displayEmployees = useMemo(
-    () => resolvePayrollDisplayEmployees(isClosedWeek, weekEmployees, archivedForWeek?.weekEmployees),
-    [isClosedWeek, weekEmployees, archivedForWeek],
+    () => resolvePayrollDisplayEmployees(isClosedWeek, weekEmployees, archivedForWeek?.weekEmployees, weekFrom, weekTo),
+    [isClosedWeek, weekEmployees, archivedForWeek, weekFrom, weekTo],
   );
 
   useEffect(() => {

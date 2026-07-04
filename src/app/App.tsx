@@ -132,6 +132,18 @@ import {
   recordPushSkipped,
   getSyncMetrics,
 } from "@/lib/cloud-sync-throttle";
+import {
+  installPayrollRuntimeTraceGlobals,
+  payrollTraceBumpRosterRevision,
+  payrollTraceCreateSyncTraceId,
+  payrollTraceEmit,
+  payrollTraceGetOperationId,
+  payrollTraceGetSubjectMergeKey,
+  payrollTraceSetOperationId,
+  payrollTraceSetSubject,
+  rosterTraceSnapshot,
+} from "@/lib/payroll-runtime-trace";
+import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
@@ -345,10 +357,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekEmployees((prev) => {
       const next = filterProductionWeekEmployees(prev, directory);
       if (next.length === prev.length) return prev;
+      const removed = prev.filter((e) => !next.some((n) => n.id === e.id));
+      payrollTraceEmit("payroll.roster.filter_production", "FILTER", "warn", {
+        before: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
+        after: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "FILTERED"),
+        removedMergeKeys: removed.map((e) => weekEmployeeMergeKey(e)),
+        subjectState: "FILTERED" as const,
+      });
       remoteMergeInFlightRef.current = true;
       return next;
     });
-  }, [directory, setWeekEmployees]);
+  }, [directory, setWeekEmployees, weekFrom, weekTo]);
 
   useEffect(() => {
     fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
@@ -518,12 +537,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
     const opNotesIdx = DATA_KEYS.indexOf("kw-operational-notes");
     const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
+    const previousUi = weekEmployees;
+    const incoming = Array.isArray(emps) ? (emps as WeekEmployee[]) : [];
+    const sk = payrollTraceGetSubjectMergeKey();
+    const wasInPrev = sk ? previousUi.some((e) => weekEmployeeMergeKey(e) === sk) : false;
+    const inIncoming = sk ? incoming.some((e) => weekEmployeeMergeKey(e) === sk) : true;
+    const subjectDropped = wasInPrev && !inIncoming;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     remoteMergeInFlightRef.current = true;
     setSkipApplyWriteTimestamps(true);
     try {
       if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
-      if (Array.isArray(emps)) setWeekEmployees(emps as WeekEmployee[]);
+      if (Array.isArray(emps)) {
+        payrollTraceEmit("sync.apply.admin_bundle", "APPLY", "info", {
+          incomingRoster: rosterTraceSnapshot(incoming, weekFrom, weekTo, "MERGED", "PRESENT"),
+          previousUiRoster: rosterTraceSnapshot(previousUi, weekFrom, weekTo, "LOCAL", "PRESENT"),
+          subjectDropped,
+          rosterRevision: payrollTraceBumpRosterRevision(),
+        });
+        setWeekEmployees(emps as WeekEmployee[]);
+        payrollTraceEmit("payroll.roster.state.commit", "STATE", "info", {
+          trigger: "run_cloud_sync" as const,
+          roster: rosterTraceSnapshot(incoming, weekFrom, weekTo, "MERGED", "PRESENT"),
+        });
+      }
       if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
       if (typeof wf === "string" && wf) setWeekFrom(wf);
       if (typeof wt === "string" && wt) setWeekTo(wt);
@@ -558,7 +595,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes, weekEmployees, weekFrom, weekTo]);
 
   const logSecurityAudit = useCallback((input: RecordSecurityAuditInput) => {
     void recordSecurityAudit({
@@ -698,8 +735,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (deleteJobsInFlightRef.current) return;
     if (cloudSyncMutationGuard.isBlocked()) return;
     if (Date.now() < suppressAutoSyncUntilRef.current) return;
-    // PR-PAY-S7-4A · G2/G3/G4 — minimum interval; focus+visibility w oknie = maks. 1 pull (AC2/AC3)
     if (!shouldPullNow(lastPullAtRef.current, Date.now())) return;
+    payrollTraceCreateSyncTraceId(payrollTraceGetOperationId());
+    payrollTraceEmit("sync.pull.focus.start", "HTTP_IN", "info", {});
     lastPullAtRef.current = Date.now();
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
@@ -712,6 +750,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
       await refreshAuditHubAuxFromCloud();
+      payrollTraceEmit("sync.pull.focus.complete", "HTTP_IN", "info", {});
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
@@ -722,13 +761,29 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pushToCloud = pushAllDataToCloud;
 
   const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
-    if (!tabVisibleRef.current) return;
-    if (pullInFlightRef.current) return;
+    if (!tabVisibleRef.current) {
+      payrollTraceEmit("sync.run.skip", "MERGE", "debug", { skipReason: "tab_hidden" as const });
+      return;
+    }
+    if (pullInFlightRef.current) {
+      payrollTraceEmit("sync.run.skip", "MERGE", "debug", { skipReason: "pull_in_flight" as const });
+      return;
+    }
     if (deleteJobsInFlightRef.current) return;
-    if (cloudSyncMutationGuard.isBlocked()) return;
-    if (Date.now() < suppressAutoSyncUntilRef.current) return;
+    if (cloudSyncMutationGuard.isBlocked()) {
+      payrollTraceEmit("sync.run.skip", "MERGE", "debug", { skipReason: "guard_blocked" as const });
+      return;
+    }
+    if (Date.now() < suppressAutoSyncUntilRef.current) {
+      payrollTraceEmit("sync.run.skip", "MERGE", "debug", {
+        skipReason: "suppress_until" as const,
+        suppressUntilMs: suppressAutoSyncUntilRef.current,
+      });
+      return;
+    }
     if (syncInFlightRef.current) {
       pendingCloudSyncRef.current = true;
+      payrollTraceEmit("sync.run.skip", "MERGE", "debug", { skipReason: "sync_in_flight" as const });
       return;
     }
     if (!isSupabaseConfigured()) {
@@ -746,6 +801,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     saveLocalDataSnapshot();
     setSyncStatus("saving");
     setSyncError("");
+    payrollTraceCreateSyncTraceId(payrollTraceGetOperationId());
+    payrollTraceEmit("sync.run.start", "MERGE", "info", { trigger: "run_cloud_sync" as const });
     try {
       lastPullAtRef.current = Date.now(); // PR-PAY-S7-4A — pull tu też liczy się do min-interval batch-get
       const merged = await pullAndMergeDataBundle(adminDataBundle());
@@ -881,6 +938,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
 
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    payrollTraceEmit("sync.auto.schedule", "MERGE", "debug", { debounceMs: AUTO_SYNC_DEBOUNCE_MS });
     syncTimerRef.current = setTimeout(() => {
       if (!tabVisibleRef.current) return;
       if (pullInFlightRef.current) return;
@@ -904,6 +962,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         return;
       }
       pendingAutoSyncRef.current = false;
+      payrollTraceEmit("sync.auto.fire", "MERGE", "debug", {});
       void runCloudSync();
     }, AUTO_SYNC_DEBOUNCE_MS);
   }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
@@ -931,6 +990,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     queueMicrotask(() => { autoSyncMountSettledRef.current = true; });
     // PR-PAY-S7-4A · AC5 — odczyt metryk sync w konsoli produkcyjnej: __wgdomSyncMetrics()
     (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
+    installPayrollRuntimeTraceGlobals();
   }, []);
 
   /** Deferred bootstrap scala kw-operational-notes w LS — odśwież notes + read-state w React. */
@@ -1308,17 +1368,24 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
+    payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
+      count: next.length,
+      roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
+    });
     void withKwWeekEmployeesAsyncMutation(() =>
       pushWeekEmployeesToCloud(next, { skipPayrollGuard: true }),
     )
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "error", {
+          error: { message: msg },
+        });
         toast.error("Nie udało się zapisać składu do chmury", {
           description: msg,
           id: "payroll-roster-push",
         });
       });
-  }, []);
+  }, [weekFrom, weekTo]);
 
   const refreshSavedActiveWeekSnapshot = useCallback((nextEmployees: WeekEmployee[]) => {
     const blockers = hasPayrollRolloverBlockers(nextEmployees, weekFrom, weekTo, directory, {
@@ -1335,10 +1402,38 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks]);
 
   const addFromDirectory = (ids: string[]) => {
+    let opId = `op-add-${Date.now().toString(36)}`;
+    try {
+      const manual = localStorage.getItem("wg-payroll-trace-operation-id");
+      if (manual) opId = manual;
+    } catch { /* ignore */ }
+    payrollTraceSetOperationId(opId);
     setWeekEmployees((prev) => {
       const toAdd = filterDirectoryForPayrollWeekAdd(directory, ids, prev);
+      if (toAdd.length === 0) {
+        payrollTraceEmit("payroll.roster.ui.add_filtered", "UI", "warn", {
+          skipReason: "dedup_empty" as const,
+          toAddCount: 0,
+          directoryIdsRequested: ids,
+        });
+        return prev;
+      }
       const newEmps = toAdd.map(weekEmployeeFromDir);
+      const first = newEmps[0];
+      if (first) {
+        payrollTraceSetSubject(weekEmployeeMergeKey(first), first.id);
+      }
       const next = [...prev, ...newEmps];
+      payrollTraceEmit("payroll.roster.ui.add", "UI", "info", {
+        operationId: opId,
+        directoryIdsRequested: ids,
+        toAddCount: newEmps.length,
+        dedupDroppedCount: ids.length - toAdd.length,
+        rosterBefore: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
+        rosterAfter: rosterTraceSnapshot(next, weekFrom, weekTo, "UI", "CREATED"),
+        subjectState: "CREATED" as const,
+      });
+      payrollTraceBumpRosterRevision();
       if (newEmps.length > 0) {
         persistPayrollRoster(next);
         refreshSavedActiveWeekSnapshot(next);

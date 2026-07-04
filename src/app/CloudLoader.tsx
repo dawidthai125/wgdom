@@ -45,6 +45,13 @@ import {
 import { loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
 import { markCloudBootstrapSuccess } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
+import {
+  payrollTraceBumpRosterRevision,
+  payrollTraceCreateBootstrapPushId,
+  payrollTraceCreateSyncTraceId,
+  payrollTraceEmit,
+  rosterTraceSnapshot,
+} from "@/lib/payroll-runtime-trace";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -56,6 +63,9 @@ export function CloudLoader({ children }: { children: ReactNode }) {
       void fetchAndMergeDeferredBootstrap();
     };
 
+    payrollTraceCreateSyncTraceId();
+    payrollTraceEmit("sync.bootstrap.start", "HTTP_IN", "info", { trigger: "bootstrap" as const });
+
     fetchKeysFromCloud([
       ...coreKeys,
       JOBS_DELETED_IDS_KEY,
@@ -64,8 +74,9 @@ export function CloudLoader({ children }: { children: ReactNode }) {
       ADMIN_PASSWORDS_KEY,
       ADMIN_USERS_CONFIG_KEY,
       APP_SETTINGS_KEY,
-    ])
+    ], { trigger: "bootstrap" })
       .then(async (allValues) => {
+        payrollTraceEmit("sync.bootstrap.merge", "MERGE", "info", {});
         const values = allValues.slice(0, coreKeys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[coreKeys.length]);
         const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[coreKeys.length + 1]);
@@ -137,8 +148,26 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           const merged = mergedBundle[i];
           if (bootstrapMergedShouldPersist(key, merged)) {
             localStorage.setItem(key, JSON.stringify(merged));
+            if (key === "kw-week-employees" && Array.isArray(merged)) {
+              const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
+              const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
+              payrollTraceBumpRosterRevision();
+              payrollTraceEmit("sync.bootstrap.ls.persist", "LS", "info", {
+                key,
+                roster: rosterTraceSnapshot(merged, wf, wt, "MERGED", "PRESENT"),
+              });
+            }
           }
-          if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
+          const shouldPush = bootstrapMergedShouldPush(key, merged, cloudVal);
+          if (key === "kw-week-employees") {
+            payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "info", {
+              key,
+              shouldPush,
+              mergedCount: Array.isArray(merged) ? merged.length : 0,
+              cloudCount: Array.isArray(cloudVal) ? cloudVal.length : 0,
+            });
+          }
+          if (shouldPush) {
             pushKeys.push(key);
             pushValues.push(merged);
           }
@@ -165,6 +194,20 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         if (pushKeys.length > 0) {
+          const bootstrapPushId = pushKeys.includes("kw-week-employees")
+            ? payrollTraceCreateBootstrapPushId()
+            : undefined;
+          const empPushIdx = pushKeys.indexOf("kw-week-employees");
+          if (empPushIdx >= 0 && bootstrapPushId) {
+            const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
+            const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
+            payrollTraceEmit("sync.bootstrap.kv_push", "HTTP_OUT", "info", {
+              bootstrapPushId,
+              replaceWeekEmployeesKeys: ["kw-week-employees"],
+              weekEmpPayload: rosterTraceSnapshot(pushValues[empPushIdx], wf, wt, "MERGED", "PRESENT"),
+              trigger: "bootstrap_push" as const,
+            });
+          }
           void pushKeysToCloud(
             [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
             [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
@@ -178,6 +221,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
 
         markCloudBootstrapSuccess();
         cloudSyncMutationGuard.reset();
+        payrollTraceEmit("sync.bootstrap.ready", "APPLY", "info", {});
         startDeferredPhase();
       })
       .catch(() => {

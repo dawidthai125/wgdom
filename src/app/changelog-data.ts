@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-04",
+    version: "2.63.29",
+    label: "PAYROLL Runtime Trace — logger diagnostyczny v1.1",
+    items: [
+      {
+        type: "new",
+        text: "Runtime Trace — ring buffer 300 eventów + __wgdomPayrollTraceDump(operationId?) wg SSOT v1.1 (emitters P0/P1, GAP-A/B/C)",
+      },
+      {
+        type: "new",
+        text: "Konsola: __wgdomPayrollTraceSetDevice / __wgdomPayrollTraceSetOperation + localStorage wg-payroll-trace-operation-id przed repro",
+      },
+      {
+        type: "new",
+        text: "Testy — test-payroll-runtime-trace-compliance.mjs (35) + test-payroll-runtime-trace-repro.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-07-04",
     version: "2.63.28",
     label: "SYNC-ARCH-01 S1 — RS push bez payroll + fingerprint non-payroll",
     items: [
