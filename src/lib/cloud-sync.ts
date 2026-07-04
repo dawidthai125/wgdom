@@ -123,7 +123,7 @@ import {
   payrollTraceNextHttpSeq,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
-import { patchPayrollRcbDebugOverlay } from "@/lib/payroll-rcb-debug-overlay";
+import { patchPayrollRcbDebugOverlay, formatRcbDebugRequestKeys } from "@/lib/payroll-rcb-debug-overlay";
 
 function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
@@ -3020,10 +3020,17 @@ export async function fetchKeysFromCloud(
   });
   const weekEmployeesCount =
     empIdx >= 0 ? normalizeArrayValue((values as unknown[])[empIdx]).length : null;
+  const valuesArr = values as unknown[];
   patchPayrollRcbDebugOverlay(
     { lastBatchGetCount: keys.length, lastWeekEmployeesCount: weekEmployeesCount },
     "fetchKeysFromCloud.response",
-    { weekEmployeesCount, keysReturned: keys.length },
+    {
+      weekEmployeesCount,
+      keysReturned: keys.length,
+      containsWeekEmployees: empIdx >= 0,
+      requestKeys: formatRcbDebugRequestKeys(keys),
+      valuesLength: Array.isArray(valuesArr) ? valuesArr.length : null,
+    },
   );
   return values as unknown[];
 }

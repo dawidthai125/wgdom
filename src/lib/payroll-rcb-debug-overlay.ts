@@ -26,11 +26,27 @@ export type PayrollRcbDebugTimelineEntry = {
   batchSetStatus: number | null;
   weekEmployeesCount: number | null;
   keysReturned: number | null;
+  containsWeekEmployees: boolean | null;
+  requestKeys: string | null;
+  valuesLength: number | null;
 };
 
 export type PayrollRcbDebugTimelineExtra = Partial<
-  Pick<PayrollRcbDebugTimelineEntry, "weekEmployeesCount" | "keysReturned">
+  Pick<
+    PayrollRcbDebugTimelineEntry,
+    | "weekEmployeesCount"
+    | "keysReturned"
+    | "containsWeekEmployees"
+    | "requestKeys"
+    | "valuesLength"
+  >
 >;
+
+/** Skrócona lista kluczy batch-get do timeline (RC-B debug). */
+export function formatRcbDebugRequestKeys(keys: string[]): string {
+  if (keys.length <= 8) return keys.join(",");
+  return `${keys.slice(0, 6).join(",")},+${keys.length - 6}`;
+}
 
 let snapshot: PayrollRcbDebugOverlaySnapshot = {};
 let timeline: PayrollRcbDebugTimelineEntry[] = [];
@@ -55,6 +71,9 @@ function snapshotToTimelineEntry(
     batchSetStatus: snapshot.batchSetStatus ?? null,
     weekEmployeesCount: extra?.weekEmployeesCount ?? null,
     keysReturned: extra?.keysReturned ?? null,
+    containsWeekEmployees: extra?.containsWeekEmployees ?? null,
+    requestKeys: extra?.requestKeys ?? null,
+    valuesLength: extra?.valuesLength ?? null,
   };
 }
 

@@ -37,9 +37,20 @@ function TimelineEntry({ entry }: { entry: PayrollRcbDebugTimelineEntry }) {
         {entry.time} · {entry.event}
       </div>
       {entry.event === "fetchKeysFromCloud.response" ? (
-        <div style={{ opacity: 0.9 }}>
-          we={fmt(entry.weekEmployeesCount)} keys={fmt(entry.keysReturned)}
-        </div>
+        <>
+          <div style={{ opacity: 0.9, wordBreak: "break-all" }}>
+            keys=[{entry.requestKeys ?? "—"}]
+          </div>
+          <div style={{ opacity: 0.9 }}>
+            containsWeekEmployees={fmt(entry.containsWeekEmployees)}
+          </div>
+          <div style={{ opacity: 0.9 }}>
+            weekEmployeesCount={fmt(entry.weekEmployeesCount)}
+          </div>
+          <div style={{ opacity: 0.9 }}>
+            valuesLength={fmt(entry.valuesLength)}
+          </div>
+        </>
       ) : (
         <>
           <div style={{ opacity: 0.9 }}>
