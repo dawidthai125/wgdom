@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## RC-B CLOSEOUT — 2026-07-04 (docs · PLATFORM)
+
+- **docs:** SYNC-ARCH-01 **RC-B CLOSED** — prod verification PASS (`2.63.31` · `31a7d5e`) · closeout SSOT [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
+- **docs:** `PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md` — RC-B timeline + next → FEATURE DEVELOPMENT (#CORE-013 · #CORE-014)
+- **docs:** `CURRENT-TASK.md` — RC-B program CLOSED · następny kierunek FEATURE (bez bumpu UI)
+
 ## 2.63.31 — RC-B debug cleanup
 
 - **improve:** Usunięto `__wgdomPayrollPipelineDebug`, `console.warn` RC-B i nieużywane helpery debug — zero zmiany logiki PWRB/merge/sync

@@ -1,9 +1,9 @@
 # SYNC-ARCH-01 · RC-B-1 · Tombstone Revocation — CLOSEOUT
 
-> **Status:** **CLOSED** (functional fix + debug overlay cleanup)  
+> **Status:** **RC-B CLOSED** (RC-B-1 functional + overlay cleanup + debug cleanup + prod verification)  
 > **Data closeout:** 2026-07-04  
-> **Prod UI:** **2.63.30** (bez bumpu przy overlay cleanup)  
-> **Commity:** `35f37b1` (PWRB facade + I-1…I-4) · `24bde6e` (usunięcie RC-B debug overlay)  
+> **Prod UI:** **2.63.31** · **PRODUCTION VERIFIED**  
+> **Commity:** `35f37b1` (PWRB facade + I-1…I-4) · `24bde6e` (RC-B debug overlay) · `31a7d5e` (RC-B debug cleanup)  
 > **Design Freeze SSOT:** [`SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md`](SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md)  
 > **Architektura sync dla agentów:** [`../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)
 
@@ -78,15 +78,17 @@ PWRB := {
 K ∈ roster(W)  ⟹  tombstone(W,K) MUST NOT exist
 ```
 
-### 2.3 Debug overlay — usunięty
+### 2.3 Debug RC-B — **CLOSED**
 
-Komponent diagnostyczny RC-B (`PayrollRcbDebugOverlay`, `payroll-rcb-debug-overlay.ts`, `?rcbdebug=1`) — **usunięty** w `24bde6e`.
+| Etap | Commit | Zakres |
+|------|--------|--------|
+| Overlay UI | `24bde6e` | Usunięto `PayrollRcbDebugOverlay`, `payroll-rcb-debug-overlay.ts`, `?rcbdebug=1` |
+| Runtime cleanup | `31a7d5e` | Usunięto `__wgdomPayrollPipelineDebug`, RC-B `console.warn`, helpery debug w `cloud-sync.ts` / `CloudLoader.tsx` / `payroll-week-employee-merge.ts` — **zero zmiany logiki PWRB/merge/sync** |
 
-**Zostaje** (do końcowego zamknięcia RC-B / Evidence Gate):
+**Zostaje** (poza RC-B, osobne strumienie):
 
-- `globalThis.__wgdomPayrollPipelineDebug` (włącz ręcznie w konsoli)
-- `console.warn` w `cloud-sync.ts` / `CloudLoader.tsx` (`payrollGuard.after`, `batch-set.response`, `bootstrap.*`)
-- `payroll-runtime-trace` (osobny strumień)
+- `payroll-runtime-trace` (diagnostyka SSOT v1.1 — nie RC-B)
+- `[PAYROLL-GUARD] blocked` (produkcyjny guard — nie debug RC-B)
 
 ---
 
@@ -190,30 +192,46 @@ pull / bootstrap / focus
 
 ---
 
-## 6. Co pozostaje OPEN
+## 6. RC-B Production Verification — **CLOSED** (2026-07-04)
+
+**Werdykt:** `RC-B READY FOR CLOSEOUT` → **RC-B CLOSED**
+
+| Check | Wynik |
+|-------|-------|
+| `version.json` | **PASS** — `2.63.31` · `31a7d5e` |
+| Lista Płac | **PASS** — 10 prac. · tydzień aktywny |
+| Usunięcie pracownika | **PASS** — tombstone + count ↓ |
+| Dodanie pracownika | **PASS** — re-add + count ↑ |
+| Synchronizacja (reload) | **PASS** — `syncError=false` po usunięciu i po dodaniu |
+| Archiwum | **PASS** — 7 tygodni · UI widoczne |
+
+**Następny kierunek projektu (po RC-B):** **FEATURE DEVELOPMENT** — #CORE-013 Runtime Freeze · #CORE-014 FEATURE Boundary Check. CORE-01B tylko on-demand (Owner GO).
+
+---
+
+## 7. Co pozostaje OPEN (poza RC-B)
 
 | Temat | Status |
 |-------|--------|
 | **batch-set HTTP 500** | OPEN — H1 UNCONFIRMED; S7-4A observation |
 | **Manual multi-device AC8–AC11** | PENDING — owner validation Chrome/Safari |
 | **Evidence Gate SYNC-ARCH-01** | OPEN — ADR PROPOSED |
-| **Debug `__wgdomPayrollPipelineDebug`** | Tymczasowy — usunąć po zamknięciu RC-B evidence |
-| **payroll-week-employee-merge.ts WIP trace** | Lokalny WIP — nie w prod commit overlay bundle |
 
 ---
 
-## 7. Commity i wersja
+## 8. Commity i wersja
 
 | Commit | Zakres |
 |--------|--------|
 | `35f37b1` | RC-B-1: PWRB facade, I-1…I-4, Edge coupled push, testy, changelog **2.63.30** |
-| `24bde6e` | Cleanup: usunięcie RC-B debug overlay (bez bumpu wersji) |
+| `24bde6e` | RC-B: usunięcie debug overlay (bez bumpu wersji) |
+| `31a7d5e` | RC-B: debug cleanup runtime — changelog **2.63.31** |
 
-**Prod UI:** `2.63.30` · **HEAD po cleanup:** `24bde6e`
+**Prod UI:** `2.63.31` · **HEAD RC-B closeout:** `31a7d5e` · **PRODUCTION VERIFIED**
 
 ---
 
-## 8. Referencje
+## 9. Referencje
 
 | Dokument | Rola |
 |----------|------|
@@ -225,4 +243,4 @@ pull / bootstrap / focus
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-04 · SYNC-ARCH-01 RC-B-1 CLOSEOUT*
+*Ostatnia aktualizacja: 2026-07-04 · SYNC-ARCH-01 **RC-B CLOSED** (RC-B-1 + debug cleanup + prod verification)*

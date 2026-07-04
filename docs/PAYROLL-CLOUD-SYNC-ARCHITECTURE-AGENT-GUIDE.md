@@ -2,7 +2,7 @@
 
 > **Cel:** jeden dokument, dzięki któremu **przyszły AI / agent Cursor** rozumie architekturę synchronizacji i merge Payroll **bez analizowania kodu od zera**. Zawiera przepływ danych, pliki SSOT, klucze KV, model merge, logikę Edge, oraz **dwa aktywne problemy P0** (batch-set 500 + resurrection pracowników) z hipotezami i planem.
 >
-> **Data:** 2026-07-04 · **HEAD `24bde6e`** · **Prod UI v2.63.30** · **RC-B-1 CLOSED** · **P0 batch-set 500 OPEN (H1 UNCONFIRMED)**
+> **Data:** 2026-07-04 · **HEAD `31a7d5e`** · **Prod UI v2.63.31** · **RC-B CLOSED** · **P0 batch-set 500 OPEN (H1 UNCONFIRMED)**
 >
 > **★ RC-B-1 closeout:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · **PWRB facade:** `src/lib/payroll-week-roster-bundle.ts`
 >
@@ -143,7 +143,9 @@ id:<uuid>
 | **PR-PAY-S7-4A** Cloud Sync Optimization | IMPLEMENT COMPLETE → **OBSERVATION** (`12b09d8`) | debounce + min-interval + focus/visibility throttle + AC4/AC5 |
 | **PR-PAY-S7-5** Resurrection Guard | **ETAP 1 DEPLOYED** (`ae132bc`) | S7-5-1 sync tombów + S7-5-2 Edge tombstone-aware |
 | **SYNC-ARCH-01 RC-B-1** Tombstone Revocation | **CLOSED** (`35f37b1`) | PWRB facade + I-1…I-4 — fix re-add po delete |
-| **RC-B debug overlay cleanup** | **CLOSED** (`24bde6e`) | Usunięto UI overlay; `__wgdomPayrollPipelineDebug` zostaje |
+| **RC-B debug overlay cleanup** | **CLOSED** (`24bde6e`) | Usunięto UI overlay |
+| **RC-B debug runtime cleanup** | **CLOSED** (`31a7d5e`) | Usunięto `__wgdomPayrollPipelineDebug`, RC-B warn, helpery debug — logika PWRB bez zmian |
+| **RC-B prod verification + closeout** | **CLOSED** (2026-07-04) | Lista Płac add/remove/sync/Archiwum PASS · docs closeout |
 
 ---
 
@@ -166,11 +168,14 @@ id:<uuid>
 
 ## 8. Co robimy dalej (next)
 
-1. **Zakończyć Production Observation S7-4A** (metryki `__wgdomSyncMetrics`, czy `batch-set 500` nadal występuje).
-2. **Po obserwacji** → automatycznie przygotować **IMPLEMENT ETAP 1 S7-5** (S7-5-1 + S7-5-2) → BUILD → TEST → ponowna obserwacja.
-3. **Ocena ETAP 2** (S7-5-3 / S7-5-4) — tylko jeśli resurrection nadal występuje.
-4. **Warunkowo S7-2** (batch-set hardening) — jeśli 500 nadal po S7-4A i H1 potwierdzone.
-5. **P0 FREEZE** — żadnych nowych EPIC (WC-P3.3 S4 ON HOLD) do zamknięcia incydentu.
+**RC-B Recovery Program — CLOSED.** Następny domyślny kierunek: **FEATURE DEVELOPMENT** (#CORE-013 Runtime Freeze · #CORE-014 FEATURE Boundary Check). Zmiany Protected Core (sync/merge/PWRB) — tylko osobny bundle CORE + Owner GO; CORE-01B on-demand.
+
+**Otwarte strumienie (poza RC-B, bez nowego epicu sync):**
+
+1. **Production Observation S7-4A** — metryki `__wgdomSyncMetrics`, czy `batch-set 500` nadal występuje.
+2. **Manual multi-device AC8–AC11** — owner validation resurrection guard.
+3. **Warunkowo S7-2** (batch-set hardening) — jeśli 500 nadal po S7-4A i H1 potwierdzone.
+4. **STABILIZATION WINDOW** — brak nowych epiców platformowych bez AUDIT + owner GO.
 
 ---
 

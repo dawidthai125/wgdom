@@ -1,27 +1,32 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.30** · **HEAD `24bde6e`** · **★ SYNC-ARCH-01 RC-B-1 CLOSED** (`35f37b1` PWRB · `24bde6e` overlay cleanup) · **STABILIZATION WINDOW ACTIVE** · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · PHASE: PRODUCTION OBSERVATION**
+**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.31** · **HEAD `31a7d5e`** · **★ SYNC-ARCH-01 RC-B CLOSED** · **STABILIZATION WINDOW ACTIVE** · **Następny kierunek: FEATURE DEVELOPMENT** (#CORE-013 · #CORE-014)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
 ---
 
-## SYNC-ARCH-01 RC-B-1 — Tombstone Revocation · **CLOSED**
+## SYNC-ARCH-01 RC-B — Recovery Program · **CLOSED**
 
 > **SSOT:** [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
 
 | Element | Commit | Status |
 |---------|--------|--------|
-| PWRB facade + I-1…I-4 | `35f37b1` | **CLOSED** · prod **2.63.30** |
-| RC-B debug overlay cleanup | `24bde6e` | **CLOSED** · bez bumpu wersji |
+| RC-B-1 PWRB facade + I-1…I-4 | `35f37b1` | **CLOSED** · prod **2.63.30** |
+| RC-B debug overlay cleanup | `24bde6e` | **CLOSED** |
+| RC-B debug runtime cleanup | `31a7d5e` | **CLOSED** · prod **2.63.31** |
+| RC-B prod verification | 2026-07-04 | **CLOSED** — Lista Płac add/remove/sync/Archiwum PASS |
+| RC-B docs closeout | (ten commit) | **CLOSED** |
 
-**Incydent:** delete → re-add → F5 → pracownik znika (11→10). **Fix:** spójna para roster+tombstones + revocation.
+**Incydent:** delete → re-add → F5 → pracownik znika (11→10). **Fix:** PWRB + G-0 (I-1…I-4). **Prod verified:** `2.63.31` @ `31a7d5e`.
 
 **Testy PASS:** `npm run audit:pwrb` · `test-pwrb-boundary-rcb` · `test-payroll-tombstone-revocation-rcb`
 
-**OPEN:** manual multi-device validation · batch-set 500 (H1)
+**OPEN (poza RC-B):** manual multi-device AC8–AC11 · batch-set 500 (H1) · Evidence Gate SYNC-ARCH-01
 
 **Dla agentów:** mutacje składu LP → **tylko** `payroll-week-roster-bundle.ts`. Przed sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+
+**Następny kierunek:** **FEATURE DEVELOPMENT** — #CORE-013 (osobny bundle CORE vs FEATURE) · #CORE-014 (FEATURE Boundary Check przed commitem). CORE-01B IMPLEMENT — tylko on-demand + Owner GO.
 
 ---
 
