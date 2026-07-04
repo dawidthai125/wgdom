@@ -4,6 +4,7 @@
 
 - **fix:** `reconcileOperationalNotesInMergedBundle` — świeży LS po await pull; archiwizacja nie wraca na active
 - **test:** `test-operational-notes-sync-race-p0.mjs` P0R-T05–T09
+- **verify:** **COMPLETE** (2026-07-05) — prod `version.json` **2.63.33** @ `a4cd5c2` · regresja 38/38 + 24/24 · **PLATFORM-SYNC-01A CLOSED** · ETAP B **ON HOLD**
 
 ## 2.63.32 — Przetargi Owner View (P2A pdf_text)
 

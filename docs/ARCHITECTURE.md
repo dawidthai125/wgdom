@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-04 (**RC-B-1** · v2.63.30 · PWRB facade · prod `24bde6e`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**PLATFORM-SYNC-01A** · v2.63.33 · reconcile notatek operacyjnych · prod `a4cd5c2`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -472,6 +472,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Read state (P1)** | `kw-operational-notes-read-state` — merge w sync; badge/banner ACK (P1) |
 | **Dashboard widget (P2B, v2.57.4)** | `DashboardOperationalNotesWidget` + `computeOperationalNotesDashboardSummary()` na Pulpicie — KPI per użytkownik |
 | **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
+| **Sync reconcile (PLATFORM-SYNC-01A, v2.63.33)** | Po `await pullAndMergeDataBundle` w `runCloudSync` / `pullFromCloudAndMerge`: `reconcileOperationalNotesInMergedBundle()` — odczyt świeżego `kw-operational-notes` z LS + merge przed `applyAdminDataBundle` / push; **naprawia race archiwizacji** (stale closure nie cofa `archived` → `active`). **ETAP B** (generation counter · telemetry) — **ON HOLD**. Test: `test-operational-notes-sync-race-p0.mjs` P0R-T05–T09 |
 | **Backup completeness (v2.58.1 HF)** | SSOT `OPERATIONAL_NOTES_BACKUP_KEYS` w `cloud-sync.ts` — 4 klucze w: export/import UI (`App.tsx`), snapshot lokalny (`local-data-backup.ts`), email tygodniowy (`EMAIL_KV_KEYS` w `backup-lib.mjs`), full backup niedzielny (via spread EMAIL) |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 

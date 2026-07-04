@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-04 · **prod 2.63.31** · **HEAD `31a7d5e`** · **★ SYNC-ARCH-01 RC-B CLOSED** · **STABILIZATION WINDOW ACTIVE** · **Następny kierunek: FEATURE DEVELOPMENT** (#CORE-013 · #CORE-014)
+**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.33** · **HEAD `a4cd5c2`** · **★ PLATFORM-SYNC-01A CLOSED** · **★ SYNC-ARCH-01 RC-B CLOSED** · **STABILIZATION WINDOW ACTIVE** · **Następny kierunek: FEATURE DEVELOPMENT** (#CORE-013 · #CORE-014)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -27,6 +27,29 @@
 **Dla agentów:** mutacje składu LP → **tylko** `payroll-week-roster-bundle.ts`. Przed sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
 
 **Następny kierunek:** **FEATURE DEVELOPMENT** — #CORE-013 (osobny bundle CORE vs FEATURE) · #CORE-014 (FEATURE Boundary Check przed commitem). CORE-01B IMPLEMENT — tylko on-demand + Owner GO.
+
+---
+
+## PLATFORM-SYNC-01A — Notatki operacyjne archive race · **CLOSED**
+
+> **Bundle:** PLATFORM · **Wersja:** **2.63.33** · **Commit:** **`a4cd5c2`** · **Verify:** 2026-07-05 · **prod `version.json` PASS**
+
+| Element | Status |
+|---------|--------|
+| **ETAP A** — `reconcileOperationalNotesInMergedBundle()` po `await pullAndMergeDataBundle` | **CLOSED** |
+| **ETAP B** — generation counter · telemetry · stale detection | **ON HOLD** (plan awaryjny — tylko przy regresji po smoke właściciela) |
+| Prod verify | **CLOSED** — `2.63.33` @ `a4cd5c2` |
+| Regresja lib | **PASS** — `test-operational-notes-sync-race-p0.mjs` 38/38 · `test-operational-notes-p0.mjs` 24/24 |
+
+**Incydent:** archiwizacja notatki → po auto-sync / przełączeniu zakładek / reload notatka wracała na listę **Aktywne** (race: `runCloudSync` ze stale `adminDataBundle()` nadpisywał React stanem `active`).
+
+**Fix (ETAP A):** po `await pullAndMergeDataBundle` — odczyt świeżego `kw-operational-notes` z LocalStorage + `mergeOperationalNotes(fresh, merged, deletedIds)` w `runCloudSync` i `pullFromCloudAndMerge` przed `applyAdminDataBundle` / push.
+
+**Testy:** P0R-T05–T09 w `scripts/test-operational-notes-sync-race-p0.mjs`.
+
+**Dokumentacja:** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) § 3.5 · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Notatki operacyjne · Sync.
+
+**Nie zmieniać bez polecenia:** `mergeOperationalNotePair` · LWW · dual-push architecture · Payroll/PWRB.
 
 ---
 

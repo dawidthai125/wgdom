@@ -4,10 +4,10 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `609ae53` |
-| **Production version (UI)** | **v2.63.27** |
-| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · **PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION** · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · S7-4A OBSERVATION · S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN)** · **PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN)** · **Edge-Opt-B: MASTER AUDIT COMPLETE · Design Freeze: NOT STARTED · Implementation: BLOCKED** · nowe EPIC-i **FROZEN** (WC-P3.3 S4 ON HOLD) |
+| **Ostatnia aktualizacja** | 2026-07-05 |
+| **Commit (HEAD `main`)** | `a4cd5c2` |
+| **Production version (UI)** | **v2.63.33** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, v2.63.33) · **SYNC-ARCH-01 RC-B CLOSED** · PAYROLL & SUPABASE RECOVERY PROGRAM — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED · PR-PERF-EDGE-OPT-A DEPLOYED · Edge-Opt-B: MASTER AUDIT COMPLETE · Design Freeze: NOT STARTED |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -22,6 +22,21 @@
 **Edge-Opt-B:** **MASTER AUDIT COMPLETE** ([`docs/EDGE-OPT-B-MASTER-AUDIT.md`](docs/EDGE-OPT-B-MASTER-AUDIT.md)) · **Design Freeze: NOT STARTED** · **Implementation: BLOCKED**.
 **Blocking condition:** Performance Observation dla PR-PAY-S7-5 ETAP 1 i PR-PERF-EDGE-OPT-A musi być **zamknięta** przed jakimkolwiek Design Freeze.
 **Next planned work:** Edge-Opt-B Bundle **B1** (bramkowanie `saveDailyFullBackup`).
+
+---
+
+## Cloud Sync ADR
+
+**SSOT:** [`docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md`](docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md)
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **PROPOSED** |
+| **Evidence Gate** | **OPEN** |
+| **Design Freeze** | **BLOCKED** |
+| **Implementation** | **BLOCKED** |
+
+> ACCEPTED i SYNC-ARCH-01 Design Freeze wyłącznie po **pełnym** zamknięciu Evidence Gate (EG-1…EG-5).
 
 ---
 
@@ -66,8 +81,8 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.27** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | `609ae53` |
+| **Wersja UI (prod)** | **v2.63.33** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
+| **HEAD `main`** | `a4cd5c2` |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
@@ -106,6 +121,7 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 
 | EPIC / Bundle | Wersja / commit | Status |
 |---------------|-----------------|--------|
+| **PLATFORM-SYNC-01A** — reconcile notatek operacyjnych po await (archive race) | **2.63.33** · `a4cd5c2` | **CLOSED** · ETAP B ON HOLD |
 | **PAYROLL P0 Incident** (S1 cross‑week · S2 tombstones · S3 zero‑hours · S5 settled) | `1d5b0b7`→`fd56cf7` | **CLOSED** |
 | **Work Catalog P3.2** — Import Persistence (apply/rollback/commit market quotes) | `ba2699d`→`f37b619` | **CLOSED** |
 | **Work Catalog P3.1** — Market Average Engine + adapters + CSV preview | `c8e1b9e`→`04cb034` | **CLOSED** |

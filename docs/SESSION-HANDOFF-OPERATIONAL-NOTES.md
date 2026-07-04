@@ -50,6 +50,8 @@
 
 **Sync:** `pushOperationalNotesToCloud()` · `pullOperationalNotesAuxFromCloud()` · merge LWW (`mergeOperationalNotes`, `mergeOperationalNotesReadState`, `mergeOperationalNotesAuditLog`).
 
+**PLATFORM-SYNC-01A (v2.63.33, `a4cd5c2`, CLOSED):** usunięto race condition archiwizacji — `runCloudSync` / `pullFromCloudAndMerge` po `await pullAndMergeDataBundle` wywołują `reconcileOperationalNotesInMergedBundle()` (świeży `kw-operational-notes` z LocalStorage + `mergeOperationalNotes` przed `applyAdminDataBundle`). **ETAP B** (generation counter · telemetry · stale detection) — **ON HOLD** jako plan awaryjny. Test: `test-operational-notes-sync-race-p0.mjs` P0R-T05–T09.
+
 ### 3.2 Warstwy kodu
 
 ```text
@@ -100,6 +102,7 @@ scripts/backup-lib.mjs              ← EMAIL_KV_KEYS (4 klucze od v2.58.1)
 
 ```bash
 npx vite-node scripts/test-operational-notes-p0.mjs      # 24 — rdzeń lib
+npx vite-node scripts/test-operational-notes-sync-race-p0.mjs  # 38 — read-state + archive race (P0R-T01–T09)
 npx vite-node scripts/test-operational-notes-p1.mjs      # 21 — ACK
 npx vite-node scripts/test-operational-notes-p2b.mjs     # 21 — widget
 npx vite-node scripts/test-operational-notes-p2c.mjs     # 36 — audit UI
