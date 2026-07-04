@@ -25,7 +25,6 @@ import {
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
   mergeWeekEmployees,
-  mergeWeekEmployeesForWeekRange,
   weekEmployeesSamePerson,
   mergeArchive,
   mergeDirectory,
@@ -49,10 +48,8 @@ import {
   getDeletedRecoverableChargeIds,
   addDeletedRecoverableChargeId,
   addDeletedArchiveId,
-  addDeletedWeekEmployeeKey,
   eligibleArchiveWeekEmployees,
   pushDirectoryToCloud,
-  pushWeekEmployeesToCloud,
   pushPayrollWeekAfterRollover,
   pushEmployeeLeavesToCloud,
   pushRecoverableChargesToCloud,
@@ -126,6 +123,12 @@ import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation } from "@/lib/cloud-sync-mutation-guard";
+import {
+  pwrRemove,
+  pwrPush,
+  pwrImportMerge,
+  pwrRestorePayrollMerge,
+} from "@/lib/payroll-week-roster-bundle";
 import {
   AUTO_SYNC_DEBOUNCE_MS,
   shouldPullNow,
@@ -1081,7 +1084,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         }
         if (data["kw-week-employees"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-week-employees") || "[]");
-          data["kw-week-employees"] = mergeWeekEmployees(local, data["kw-week-employees"]);
+          const localTombs = JSON.parse(localStorage.getItem("kw-week-employees-deleted-ids") || "[]");
+          const importedTombs = Array.isArray(data["kw-week-employees-deleted-ids"])
+            ? data["kw-week-employees-deleted-ids"]
+            : [];
+          const { roster, tombstones } = pwrImportMerge({
+            weekFrom,
+            weekTo,
+            localRoster: local,
+            importedRoster: data["kw-week-employees"],
+            localTombs: Array.isArray(localTombs) ? localTombs : [],
+            importedTombs: Array.isArray(importedTombs) ? importedTombs : [],
+          });
+          data["kw-week-employees"] = roster;
+          data["kw-week-employees-deleted-ids"] = tombstones;
         }
         if (data["kw-archive"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-archive") || "[]");
@@ -1245,24 +1261,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         "kw-weekTo",
       ]);
       const mergedArch = mergeArchive(savedWeeks, cloudArch ?? []) as WeekSnapshot[];
-      // PR-PAY-S1 — restore respektuje bieżący tydzień (identyczny week guard co sync):
-      // nie importuj rostera z innego zakresu Pn–So.
-      const mergedEmps = mergeWeekEmployeesForWeekRange(
+      const mergedEmps = pwrRestorePayrollMerge({
         weekFrom,
         weekTo,
-        weekFrom,
-        weekTo,
-        weekEmployees,
-        cloudWeekFrom,
-        cloudWeekTo,
-        cloudEmps ?? [],
-        mergedArch,
-      ) as WeekEmployee[];
+        localRoster: weekEmployees,
+        cloudRoster: (cloudEmps ?? []) as WeekEmployee[],
+        cloudWeekFrom: cloudWeekFrom,
+        cloudWeekTo: cloudWeekTo,
+        archive: mergedArch,
+      });
       localStorage.setItem("kw-week-employees", JSON.stringify(mergedEmps));
       localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
       setWeekEmployees(mergedEmps);
       setSavedWeeks(mergedArch);
-      await pushKeysToCloudSafe(["kw-week-employees", "kw-archive"], [mergedEmps, mergedArch]);
+      await pwrPush({ roster: mergedEmps, weekFrom, weekTo, options: { skipPayrollGuard: true } });
+      await pushKeysToCloudSafe(["kw-archive"], [mergedArch]);
       auditRestoreBackup("completed", {
         scope: "payroll",
         source: "cloud",
@@ -1373,7 +1386,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
     });
     void withKwWeekEmployeesAsyncMutation(() =>
-      pushWeekEmployeesToCloud(next, { skipPayrollGuard: true }),
+      pwrPush({ roster: next, weekFrom, weekTo, options: { skipPayrollGuard: true } }),
     )
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
@@ -1435,7 +1448,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       payrollTraceBumpRosterRevision();
       if (newEmps.length > 0) {
-        persistPayrollRoster(next);
+        void withKwWeekEmployeesAsyncMutation(() =>
+          pwrPush({
+            roster: next,
+            weekFrom,
+            weekTo,
+            revokeIdentities: newEmps,
+            options: { skipPayrollGuard: true },
+          }),
+        ).catch((e) => {
+          const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+          toast.error("Nie udało się zapisać składu do chmury", {
+            description: msg,
+            id: "payroll-roster-push",
+          });
+        });
         refreshSavedActiveWeekSnapshot(next);
       }
       return next;
@@ -1444,12 +1471,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const removeWeekEmployee = (id: string) => {
     setWeekEmployees((prev) => {
-      const removed = prev.find((e) => e.id === id);
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
-        // PR-PAY-S2 — tombstone: usunięty pracownik nie może wrócić z Cloud Sync/Restore/Merge.
-        if (removed) addDeletedWeekEmployeeKey(weekFrom, weekTo, removed);
-        persistPayrollRoster(next);
+        void withKwWeekEmployeesAsyncMutation(() =>
+          pwrRemove({
+            weekFrom,
+            weekTo,
+            employeeId: id,
+            currentRoster: prev,
+            options: { skipPayrollGuard: true },
+          }),
+        ).catch((e) => {
+          const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+          toast.error("Nie udało się zapisać składu do chmury", {
+            description: msg,
+            id: "payroll-roster-push",
+          });
+        });
         refreshSavedActiveWeekSnapshot(next);
       }
       return next;
@@ -1467,7 +1505,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       .filter(isProductionDirectoryEmployee)
       .map(weekEmployeeFromDir);
     setWeekEmployees(newEmps);
-    persistPayrollRoster(newEmps);
+    void withKwWeekEmployeesAsyncMutation(() =>
+      pwrPush({
+        roster: newEmps,
+        weekFrom,
+        weekTo,
+        revokeIdentities: newEmps,
+        options: { skipPayrollGuard: true },
+      }),
+    ).catch((e) => {
+      const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+      toast.error("Nie udało się zapisać składu do chmury", {
+        description: msg,
+        id: "payroll-roster-push",
+      });
+    });
     refreshSavedActiveWeekSnapshot(newEmps);
   };
 

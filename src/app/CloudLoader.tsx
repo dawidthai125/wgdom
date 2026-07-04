@@ -53,6 +53,7 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { patchPayrollRcbDebugOverlay } from "@/lib/payroll-rcb-debug-overlay";
+import { pwrReconcile } from "@/lib/payroll-week-roster-bundle";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -142,6 +143,16 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           mergedArchiveDeleted,
         );
         mergedBundle = applyBootstrapPayrollMerge(mergedBundle, localValues, cloudValues);
+
+        const wfIdx = DATA_KEYS.indexOf("kw-weekFrom");
+        const wtIdx = DATA_KEYS.indexOf("kw-weekTo");
+        const empIdxBootstrap = DATA_KEYS.indexOf("kw-week-employees");
+        const wfBoot = String(mergedBundle[wfIdx] ?? "");
+        const wtBoot = String(mergedBundle[wtIdx] ?? "");
+        const empsBoot = mergedBundle[empIdxBootstrap];
+        if (wfBoot && wtBoot && Array.isArray(empsBoot)) {
+          pwrReconcile({ weekFrom: wfBoot, weekTo: wtBoot, roster: empsBoot as never[] });
+        }
 
         coreKeys.forEach((key) => {
           const i = DATA_KEYS.indexOf(key);

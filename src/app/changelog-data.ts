@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-04",
+    version: "2.63.30",
+    label: "SYNC-ARCH-01 RC-B-1 — PWRB Facade + tombstone revocation",
+    items: [
+      {
+        type: "fix",
+        text: "RC-B-1 — re-add pracownika nie blokuje stale tombstone (I-1…I-4, G-0); facade payroll-week-roster-bundle",
+      },
+      {
+        type: "improve",
+        text: "I-4 coupled push roster+tombstones; Edge I-2 pair normalization; import/restore przez pwrImportMerge/pwrReconcile",
+      },
+      {
+        type: "new",
+        text: "Testy audit-pwrb-boundary + test-pwrb-boundary-rcb + test-payroll-tombstone-revocation-rcb",
+      },
+    ],
+  },
+  {
+    date: "2026-07-04",
     version: "2.63.29",
     label: "PAYROLL Runtime Trace — logger diagnostyczny v1.1",
     items: [

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.30 — SYNC-ARCH-01 RC-B-1 PWRB Facade
+
+- **fix:** RC-B-1 tombstone revocation I-1…I-4 — re-add nie ginie po refresh (G-0)
+- **new:** `payroll-week-roster-bundle.ts` — pwrAdd/pwrRemove/pwrPush/pwrReconcile/pwrImportMerge
+- **improve:** I-4 coupled domain push; Edge I-2; CloudLoader post-bootstrap reconcile
+- **new:** `audit-pwrb-boundary.mjs` · `test-pwrb-boundary-rcb.mjs` · `test-payroll-tombstone-revocation-rcb.mjs`
+
 ## 2.63.29 — PAYROLL Runtime Trace logger (SSOT v1.1)
 
 - **new:** `payroll-runtime-trace.ts` — ring buffer 300 + `__wgdomPayrollTraceDump()` · emitters P0/P1 + GAP-A/B/C

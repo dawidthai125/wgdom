@@ -640,16 +640,22 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const weekEmpDeletedBatchIdx = keys.indexOf("kw-week-employees-deleted-ids");
   const weekEmpDeletedFromBatch = weekEmpDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[weekEmpDeletedBatchIdx]) : [];
   const storedWeekEmpDeleted = normalizeDeletedIdsKv(await kv.get("kw-week-employees-deleted-ids"));
-  const allWeekEmpDeletedIds = new Set([...storedWeekEmpDeleted, ...weekEmpDeletedFromBatch]);
   const weekFromBatchIdx = keys.indexOf("kw-weekFrom");
   const weekToBatchIdx = keys.indexOf("kw-weekTo");
   const batchWeekFrom = weekFromBatchIdx >= 0 ? values[weekFromBatchIdx] : await kv.get("kw-weekFrom");
   const batchWeekTo = weekToBatchIdx >= 0 ? values[weekToBatchIdx] : await kv.get("kw-weekTo");
-  const weekEmpTombstoned = weekEmployeeTombstoneKeySetForWeek([...allWeekEmpDeletedIds], batchWeekFrom, batchWeekTo);
   const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
   const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
   const forceReplaceWeekEmployees =
     Array.isArray(replaceWeekEmployeesKeys) && replaceWeekEmployeesKeys.includes("kw-week-employees");
+  const coupledPwrbPush =
+    forceReplaceWeekEmployees &&
+    weekEmpDeletedBatchIdx >= 0 &&
+    keys.indexOf("kw-week-employees") >= 0;
+  const allWeekEmpDeletedIds = coupledPwrbPush
+    ? new Set(weekEmpDeletedFromBatch)
+    : new Set([...storedWeekEmpDeleted, ...weekEmpDeletedFromBatch]);
+  const weekEmpTombstoned = weekEmployeeTombstoneKeySetForWeek([...allWeekEmpDeletedIds], batchWeekFrom, batchWeekTo);
 
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] === "kw-jobs-deleted-ids") {
@@ -754,6 +760,29 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       }
       safeValues[i] = nextNorm;
     }
+  }
+  // RC-B-1 I-2 — pair normalization: G-0 przed persist KV
+  const weekEmpsIdx = keys.indexOf("kw-week-employees");
+  const weekEmpsDelIdx = keys.indexOf("kw-week-employees-deleted-ids");
+  if (weekEmpsIdx >= 0 && weekEmpsDelIdx >= 0) {
+    const roster = normalizeArrayKv(safeValues[weekEmpsIdx]);
+    const tombs = normalizeDeletedIdsKv(safeValues[weekEmpsDelIdx]);
+    const batchFrom = typeof batchWeekFrom === "string" ? batchWeekFrom : "";
+    const rosterKeys = new Set(
+      roster.map((item) =>
+        item && typeof item === "object"
+          ? weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string })
+          : "",
+      ).filter(Boolean),
+    );
+    safeValues[weekEmpsDelIdx] = tombs.filter((id) => {
+      const sepIdx = id.indexOf(WEEK_EMPLOYEE_TOMBSTONE_SEP);
+      if (sepIdx < 0) return true;
+      const wk = id.slice(0, sepIdx);
+      if (!batchFrom || !wk.startsWith(`${batchFrom}|`)) return true;
+      const mergeKey = id.slice(sepIdx + WEEK_EMPLOYEE_TOMBSTONE_SEP.length);
+      return !rosterKeys.has(mergeKey);
+    }).slice(-500);
   }
   await kv.mset(keys, safeValues);
   try {

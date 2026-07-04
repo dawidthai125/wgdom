@@ -578,6 +578,7 @@ export function getDeletedWeekEmployeeKeys(): string[] {
   return getDeletedIdsFromKey(WEEK_EMPLOYEES_DELETED_KEYS_KEY);
 }
 
+/** @internal RC-B-1 — zapis tombstonów PWRB (tylko kernel / facade). */
 export function saveDeletedWeekEmployeeKeys(keys: string[]): void {
   saveDeletedIdsToKey(WEEK_EMPLOYEES_DELETED_KEYS_KEY, keys);
 }
@@ -596,6 +597,7 @@ export function weekEmployeeTombstoneId(
   return `${wk}${WEEK_EMPLOYEE_TOMBSTONE_SEP}${weekEmployeeMergeKey(emp)}`;
 }
 
+/** @internal RC-B-1 — append tombstone (tylko facade `pwrRemove`). */
 export function addDeletedWeekEmployeeKey(
   weekFrom: unknown,
   weekTo: unknown,
@@ -605,6 +607,87 @@ export function addDeletedWeekEmployeeKey(
   const next = [...new Set([...getDeletedWeekEmployeeKeys(), id])].slice(-500);
   saveDeletedWeekEmployeeKeys(next);
   return next;
+}
+
+/** @internal RC-B-1 — revoke tombstoneId(W,K) dla podanych tożsamości w tygodniu W. */
+export function removeDeletedWeekEmployeeKeysForWeek(
+  weekFrom: unknown,
+  weekTo: unknown,
+  identities: Array<{ id?: string; directoryId?: string; name?: string }>,
+): string[] {
+  if (!identities.length) return getDeletedWeekEmployeeKeys();
+  const keysToRevoke = new Set(
+    identities.map((e) => weekEmployeeTombstoneId(weekFrom, weekTo, e)),
+  );
+  const tombs = getDeletedWeekEmployeeKeys();
+  const next = tombs.filter((id) => !keysToRevoke.has(id));
+  if (next.length !== tombs.length) {
+    saveDeletedWeekEmployeeKeys(next);
+    payrollTraceEmit("payroll.roster.tombstone.revoke", "PUSH", "info", {
+      revokedCount: tombs.length - next.length,
+      weekFrom: String(weekFrom ?? ""),
+      weekTo: String(weekTo ?? ""),
+    });
+  }
+  return next;
+}
+
+/** RC-B-1 I-3 — tombstones spełniają G-0 względem rosteru bieżącego tygodnia. */
+export function reconcileTombstonesWithRoster(
+  weekFrom: string,
+  weekTo: string,
+  roster: unknown[],
+): string[] {
+  const wk = weekRangeKey(weekFrom, weekTo);
+  const rosterKeys = new Set<string>();
+  for (const item of normalizeArrayValue(roster)) {
+    if (!item || typeof item !== "object") continue;
+    rosterKeys.add(weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }));
+  }
+  const tombs = getDeletedWeekEmployeeKeys();
+  const next = tombs.filter((id) => {
+    const sepIdx = id.indexOf(WEEK_EMPLOYEE_TOMBSTONE_SEP);
+    if (sepIdx < 0) return true;
+    const idWeek = id.slice(0, sepIdx);
+    if (!wk || idWeek !== wk) return true;
+    const mergeKey = id.slice(sepIdx + WEEK_EMPLOYEE_TOMBSTONE_SEP.length);
+    return !rosterKeys.has(mergeKey);
+  });
+  if (next.length !== tombs.length) {
+    saveDeletedWeekEmployeeKeys(next);
+    payrollTraceEmit("payroll.roster.tombstone.revoke", "MERGE", "info", {
+      revokedCount: tombs.length - next.length,
+      trigger: "reconcile" as const,
+      weekFrom,
+      weekTo,
+    });
+  }
+  return next;
+}
+
+/** RC-B-1 I-1 — strip tombstonów gdy mergeKey ∈ cloud roster (ten sam tydzień). */
+function applyI1CloudRosterTombstoneRevocation(
+  mergedTombs: string[],
+  cloudRoster: unknown[],
+  weekFrom: unknown,
+  weekTo: unknown,
+): string[] {
+  const wk = weekRangeKey(weekFrom, weekTo);
+  if (!wk) return mergedTombs;
+  const rosterKeys = new Set<string>();
+  for (const item of normalizeArrayValue(cloudRoster)) {
+    if (!item || typeof item !== "object") continue;
+    rosterKeys.add(weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }));
+  }
+  if (rosterKeys.size === 0) return mergedTombs;
+  return mergedTombs.filter((id) => {
+    const sepIdx = id.indexOf(WEEK_EMPLOYEE_TOMBSTONE_SEP);
+    if (sepIdx < 0) return true;
+    const idWeek = id.slice(0, sepIdx);
+    if (idWeek !== wk) return true;
+    const mergeKey = id.slice(sepIdx + WEEK_EMPLOYEE_TOMBSTONE_SEP.length);
+    return !rosterKeys.has(mergeKey);
+  });
 }
 
 /** Zbiór weekEmployeeMergeKey usuniętych DLA danego tygodnia (zdejmuje prefix). */
@@ -630,6 +713,79 @@ export function filterDeletedWeekEmployees(list: unknown[], tombstoned: Set<stri
     if (!item || typeof item !== "object") return true;
     return !tombstoned.has(weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }));
   });
+}
+
+type WeekEmployeeRosterDebugMeta = {
+  count: number;
+  mergeKeys: string[];
+  directoryIds: string[];
+  rows: Array<{ directoryId: string; employeeId: string; mergeKey: string }>;
+};
+
+function debugWeekEmployeeRosterMeta(list: unknown[]): WeekEmployeeRosterDebugMeta {
+  const mergeKeys: string[] = [];
+  const directoryIds: string[] = [];
+  const rows: WeekEmployeeRosterDebugMeta["rows"] = [];
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const emp = item as { id?: string; directoryId?: string; name?: string };
+    const mergeKey = weekEmployeeMergeKey(emp);
+    const directoryId = String(emp.directoryId ?? "").trim();
+    const employeeId = String(emp.id ?? "").trim();
+    mergeKeys.push(mergeKey);
+    directoryIds.push(directoryId || employeeId || "?");
+    rows.push({ directoryId, employeeId, mergeKey });
+  }
+  return { count: list.length, mergeKeys, directoryIds, rows };
+}
+
+/** RC-B — diagnostyka tombstone filter (bez zmiany logiki filterDeletedWeekEmployees). */
+function debugFilterDeletedWeekEmployeesRcb(
+  side: "local" | "cloud",
+  list: unknown[],
+  tombstoned: Set<string>,
+  targetWeek: string,
+): unknown[] {
+  const payrollPipelineDebug = Boolean(
+    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
+  );
+  const inputMeta = debugWeekEmployeeRosterMeta(list);
+  if (payrollPipelineDebug) {
+    console.warn(`[wgdom payroll] filterDeletedWeekEmployees INPUT (${side})`, {
+      count: inputMeta.count,
+      mergeKeys: inputMeta.mergeKeys,
+      directoryIds: inputMeta.directoryIds,
+      tombstoneSetSize: tombstoned.size,
+      tombstoneKeys: [...tombstoned],
+      targetWeek,
+    });
+  }
+  const out = filterDeletedWeekEmployees(list, tombstoned);
+  if (payrollPipelineDebug) {
+    const outputMeta = debugWeekEmployeeRosterMeta(out);
+    console.warn(`[wgdom payroll] filterDeletedWeekEmployees OUTPUT (${side})`, {
+      count: outputMeta.count,
+      mergeKeys: outputMeta.mergeKeys,
+      directoryIds: outputMeta.directoryIds,
+    });
+    if (outputMeta.count < inputMeta.count) {
+      const kept = new Set(outputMeta.mergeKeys);
+      for (const row of inputMeta.rows) {
+        if (kept.has(row.mergeKey)) continue;
+        console.warn("[wgdom payroll] filterDeletedWeekEmployees REMOVED", {
+          side,
+          directoryId: row.directoryId,
+          employeeId: row.employeeId,
+          mergeKey: row.mergeKey,
+          matchedTombstone: tombstoned.has(row.mergeKey),
+          targetWeek,
+          reason: "tombstone_match",
+          line: "cloud-sync.ts:631",
+        });
+      }
+    }
+  }
+  return out;
 }
 
 // ─── PR-PAY-S6 · S6-1 — Archive Restore Eligibility (eligible archive roster) ─
@@ -1697,8 +1853,17 @@ export function mergeWeekEmployeesForWeekRange(
   // PR-PAY-S2 — tombstones: odfiltruj usuniętych z OBU stron zanim zadziała UNION,
   // aby usunięty pracownik nie wrócił z chmury/lokalu (Cloud Sync / Restore / Bootstrap).
   const tombstoned = deletedWeekEmployeeMergeKeySet(deleted, weekFrom, weekTo);
-  const local = filterDeletedWeekEmployees(normalizeArrayValue(localEmps), tombstoned);
-  const cloud = filterDeletedWeekEmployees(normalizeArrayValue(cloudEmps), tombstoned);
+  const targetWeek = weekRangeKey(weekFrom, weekTo);
+  const localNorm = normalizeArrayValue(localEmps);
+  const cloudNorm = normalizeArrayValue(cloudEmps);
+  const local = debugFilterDeletedWeekEmployeesRcb("local", localNorm, tombstoned, targetWeek);
+  const cloud = debugFilterDeletedWeekEmployeesRcb("cloud", cloudNorm, tombstoned, targetWeek);
+  const payrollPipelineDebug = Boolean(
+    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
+  );
+  if (payrollPipelineDebug && local.length === localNorm.length && cloud.length === cloudNorm.length) {
+    (globalThis as { __wgdomPayrollRcbLogMergeList?: boolean }).__wgdomPayrollRcbLogMergeList = true;
+  }
   const localMatch = weekRangeKey(localFrom, localTo) === target;
   const cloudMatch = weekRangeKey(cloudFrom, cloudTo) === target;
 
@@ -2559,7 +2724,7 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<unknown[]> 
  * Chroni przed nadpisaniem pustszą wersją z innej karty / urządzenia.
  */
 /** Natychmiastowy zapis kartoteki po usunięciu / edycji pracownika. */
-/** Natychmiastowy zapis składu listy płac (usuń / dodaj pracownika w tygodniu). */
+/** @internal RC-B-1 I-4 — domain push PWRB (tylko facade `pwrPush`). */
 export async function pushWeekEmployeesToCloud(
   weekEmployees: unknown[],
   options?: PushWeekEmployeesOptions,
@@ -2578,10 +2743,12 @@ export async function pushWeekEmployeesToCloud(
     beforeCount: beforeCollapse.length,
   });
   const normalized = collapseWeekEmployeesByIdentity(beforeCollapse);
+  const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
   payrollTraceEmit("payroll.roster.push.start", "PUSH", "info", {
     pushTraceId,
     subjectPresent: rosterTraceSnapshot(normalized, weekFrom, weekTo, "LOCAL", "PRESENT").subjectPresent,
     count: normalized.length,
+    tombstoneCount: tombstones.length,
   });
   try {
     payrollTraceBumpRosterRevision();
@@ -2592,10 +2759,14 @@ export async function pushWeekEmployeesToCloud(
     });
   } catch { /* ignore */ }
   try {
-    await pushKeysToCloud(["kw-week-employees"], [normalized], {
-      replaceWeekEmployeesKeys: ["kw-week-employees"],
-      skipPayrollGuard: options?.skipPayrollGuard,
-    });
+    await pushKeysToCloud(
+      ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY],
+      [normalized, tombstones],
+      {
+        replaceWeekEmployeesKeys: ["kw-week-employees"],
+        skipPayrollGuard: options?.skipPayrollGuard,
+      },
+    );
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
   } catch (e) {
     payrollTraceEmit("payroll.roster.push.error", "PUSH", "error", {
@@ -2925,7 +3096,19 @@ export async function computeMergedDataBundle(
   saveDeletedElectricalMeasurementIds(mergedEmDeleted);
   // PR-PAY-S7-5-1 — współdziel tombstony week-employees między urządzeniami i zapisz
   // PRZED finalizePayrollBundleMerge, aby cross-device usunięcia zadziałały w tym cyklu merge.
-  const mergedWeekEmpDeleted = mergeDeletedWeekEmployeeKeys(getDeletedWeekEmployeeKeys(), cloudWeekEmpDeleted);
+  let mergedWeekEmpDeleted = mergeDeletedWeekEmployeeKeys(getDeletedWeekEmployeeKeys(), cloudWeekEmpDeleted);
+  const empCloudIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  const cloudRosterForI1 = empCloudIdx >= 0 ? normalizeArrayValue(cloudValues[empCloudIdx]) : [];
+  const i1WeekFrom = valuesForMerge[fromIdx] ?? cloudValues[fromIdx] ?? traceWeekRangeFromLs().weekFrom;
+  const i1WeekTo = valuesForMerge[toIdx] ?? cloudValues[toIdx] ?? traceWeekRangeFromLs().weekTo;
+  mergedWeekEmpDeleted = applyI1CloudRosterTombstoneRevocation(
+    mergedWeekEmpDeleted,
+    cloudRosterForI1,
+    i1WeekFrom,
+    i1WeekTo,
+  );
   saveDeletedWeekEmployeeKeys(mergedWeekEmpDeleted);
   const { weekFrom: wfT, weekTo: wtT } = traceWeekRangeFromLs();
   const subjectKey = payrollTraceGetSubjectMergeKey();
@@ -2949,21 +3132,18 @@ export async function computeMergedDataBundle(
     mergedChargesDeleted,
     mergedOpNotesDeleted,
   );
-  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
-  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
-  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
-  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug && empIdx >= 0) {
+  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug && empCloudIdx >= 0) {
     console.warn("[wgdom payroll] mergeAllDataKeys week-employees", {
-      count: normalizeArrayValue(merged[empIdx]).length,
+      count: normalizeArrayValue(merged[empCloudIdx]).length,
     });
   }
-  if (empIdx >= 0) {
+  if (empCloudIdx >= 0) {
     const wf = String(merged[fromIdx] ?? wfT);
     const wt = String(merged[toIdx] ?? wtT);
     payrollTraceEmit("sync.merge.all_keys.week_employees", "MERGE", "info", {
-      local: rosterTraceSnapshot(normalizeArrayValue(valuesForMerge[empIdx]), wf, wt, "LOCAL", "PRESENT"),
-      cloud: rosterTraceSnapshot(normalizeArrayValue(cloudValues[empIdx]), wf, wt, "CLOUD", "PRESENT"),
-      out: rosterTraceSnapshot(normalizeArrayValue(merged[empIdx]), wf, wt, "MERGED", "MERGED"),
+      local: rosterTraceSnapshot(normalizeArrayValue(valuesForMerge[empCloudIdx]), wf, wt, "LOCAL", "PRESENT"),
+      cloud: rosterTraceSnapshot(normalizeArrayValue(cloudValues[empCloudIdx]), wf, wt, "CLOUD", "PRESENT"),
+      out: rosterTraceSnapshot(normalizeArrayValue(merged[empCloudIdx]), wf, wt, "MERGED", "MERGED"),
     });
   }
   merged = finalizePayrollBundleMerge(merged, valuesForMerge, cloudValues);
