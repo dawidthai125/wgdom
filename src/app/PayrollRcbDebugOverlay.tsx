@@ -36,12 +36,20 @@ function TimelineEntry({ entry }: { entry: PayrollRcbDebugTimelineEntry }) {
       <div style={{ fontWeight: 600, marginBottom: 2 }}>
         {entry.time} · {entry.event}
       </div>
-      <div style={{ opacity: 0.9 }}>
-        m={fmt(entry.mergedCount)} c={fmt(entry.cloudCount)} p={fmt(entry.payloadCount)}
-      </div>
-      <div style={{ opacity: 0.9 }}>
-        bs.c={fmt(entry.batchSetCount)} bs.s={fmt(entry.batchSetStatus)}
-      </div>
+      {entry.event === "fetchKeysFromCloud.response" ? (
+        <div style={{ opacity: 0.9 }}>
+          we={fmt(entry.weekEmployeesCount)} keys={fmt(entry.keysReturned)}
+        </div>
+      ) : (
+        <>
+          <div style={{ opacity: 0.9 }}>
+            m={fmt(entry.mergedCount)} c={fmt(entry.cloudCount)} p={fmt(entry.payloadCount)}
+          </div>
+          <div style={{ opacity: 0.9 }}>
+            bs.c={fmt(entry.batchSetCount)} bs.s={fmt(entry.batchSetStatus)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -100,6 +108,7 @@ export function PayrollRcbDebugOverlay() {
       <Row label="payrollGuard.blocked" value={fmt(snap.payrollGuardBlocked)} />
       <Row label="batchSet.status" value={fmt(snap.batchSetStatus)} />
       <Row label="batchSet.count" value={fmt(snap.batchSetCount)} />
+      <Row label="lastBatchGetCount" value={fmt(snap.lastBatchGetCount)} />
       {timelineNewestFirst.length > 0 ? (
         <div style={{ marginTop: 8 }}>
           <div style={{ fontSize: 9, fontWeight: 700, opacity: 0.75, marginBottom: 2 }}>

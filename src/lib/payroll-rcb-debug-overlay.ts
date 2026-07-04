@@ -11,6 +11,7 @@ export type PayrollRcbDebugOverlaySnapshot = {
   payrollGuardBlocked?: boolean | null;
   batchSetStatus?: number | null;
   batchSetCount?: number | null;
+  lastBatchGetCount?: number | null;
   updatedAt?: string;
 };
 
@@ -22,7 +23,13 @@ export type PayrollRcbDebugTimelineEntry = {
   payloadCount: number | null;
   batchSetCount: number | null;
   batchSetStatus: number | null;
+  weekEmployeesCount: number | null;
+  keysReturned: number | null;
 };
+
+export type PayrollRcbDebugTimelineExtra = Partial<
+  Pick<PayrollRcbDebugTimelineEntry, "weekEmployeesCount" | "keysReturned">
+>;
 
 let snapshot: PayrollRcbDebugOverlaySnapshot = {};
 let timeline: PayrollRcbDebugTimelineEntry[] = [];
@@ -33,7 +40,10 @@ function formatTimelineTime(date = new Date()): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
 }
 
-function snapshotToTimelineEntry(event: string): PayrollRcbDebugTimelineEntry {
+function snapshotToTimelineEntry(
+  event: string,
+  extra?: PayrollRcbDebugTimelineExtra,
+): PayrollRcbDebugTimelineEntry {
   return {
     time: formatTimelineTime(),
     event,
@@ -42,6 +52,8 @@ function snapshotToTimelineEntry(event: string): PayrollRcbDebugTimelineEntry {
     payloadCount: snapshot.payloadCount ?? null,
     batchSetCount: snapshot.batchSetCount ?? null,
     batchSetStatus: snapshot.batchSetStatus ?? null,
+    weekEmployeesCount: extra?.weekEmployeesCount ?? null,
+    keysReturned: extra?.keysReturned ?? null,
   };
 }
 
@@ -69,11 +81,12 @@ export function subscribePayrollRcbDebugOverlay(listener: () => void): () => voi
 export function patchPayrollRcbDebugOverlay(
   patch: Partial<PayrollRcbDebugOverlaySnapshot>,
   timelineEvent?: string,
+  timelineExtra?: PayrollRcbDebugTimelineExtra,
 ): void {
   if (!isPayrollRcbDebugOverlayEnabled()) return;
   snapshot = { ...snapshot, ...patch, updatedAt: new Date().toISOString() };
   if (timelineEvent) {
-    timeline = [...timeline, snapshotToTimelineEntry(timelineEvent)].slice(-TIMELINE_CAP);
+    timeline = [...timeline, snapshotToTimelineEntry(timelineEvent, timelineExtra)].slice(-TIMELINE_CAP);
   }
   listeners.forEach((listener) => listener());
 }

@@ -3018,6 +3018,13 @@ export async function fetchKeysFromCloud(
     trigger: traceOpts?.trigger,
     weekEmpRaw,
   });
+  const weekEmployeesCount =
+    empIdx >= 0 ? normalizeArrayValue((values as unknown[])[empIdx]).length : null;
+  patchPayrollRcbDebugOverlay(
+    { lastBatchGetCount: keys.length },
+    "fetchKeysFromCloud.response",
+    { weekEmployeesCount, keysReturned: keys.length },
+  );
   return values as unknown[];
 }
 
