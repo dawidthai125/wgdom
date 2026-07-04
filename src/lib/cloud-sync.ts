@@ -1850,21 +1850,39 @@ export function finalizePayrollBundleMerge(
   const cloudR = weekEmployeesListRichness(cloudEmps);
   const localM = payrollMetrics(localEmps);
   const cloudM = payrollMetrics(cloudEmps);
+  const wf = String(targetFrom ?? "");
+  const wt = String(targetTo ?? "");
+  const richnessOverride = cloudR > localR || cloudM.activeDays > localM.activeDays;
+  const subjectPresentBefore = rosterTraceSnapshot(
+    mergedEmpsBefore,
+    wf,
+    wt,
+    "MERGED",
+    "PRESENT",
+  ).subjectPresent;
+  const payrollPipelineDebug = Boolean(
+    (globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug,
+  );
+  const richnessOverrideReason = `cloudR(${cloudR})>localR(${localR}) || cloudActiveDays(${cloudM.activeDays})>localActiveDays(${localM.activeDays})`;
+  const keepMergedReason = `cloudR(${cloudR})<=localR(${localR}) && cloudActiveDays(${cloudM.activeDays})<=localActiveDays(${localM.activeDays})`;
 
-  if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug) {
+  if (payrollPipelineDebug) {
     console.warn("[wgdom payroll] finalizePayrollBundleMerge", {
-      mergedCount: mergedEmpsBefore.length,
       localCount: localEmps.length,
       cloudCount: cloudEmps.length,
+      mergedCount: mergedEmpsBefore.length,
       localR,
       cloudR,
-      localActiveDays: localM.activeDays,
-      cloudActiveDays: cloudM.activeDays,
-      richnessOverrideWillFire: cloudR > localR || cloudM.activeDays > localM.activeDays,
+      richnessOverride,
+      subjectPresentBefore,
+      subjectPresentAfter: richnessOverride ? null : subjectPresentBefore,
+      adoptedCount: richnessOverride ? null : mergedEmpsBefore.length,
+      branchTaken: richnessOverride ? "richness_override" : "keep_merged",
+      reason: richnessOverride ? richnessOverrideReason : keepMergedReason,
     });
   }
 
-  if (cloudR > localR || cloudM.activeDays > localM.activeDays) {
+  if (richnessOverride) {
     // PR-PAY-S2 — richness override nie może wskrzesić usuniętego (tombstone respektowany).
     const tombstoned = deletedWeekEmployeeMergeKeySet(getDeletedWeekEmployeeKeys(), targetFrom, targetTo);
     const adopted = mergeWeekEmployees([], filterDeletedWeekEmployees(cloudEmps, tombstoned));
@@ -1873,14 +1891,22 @@ export function finalizePayrollBundleMerge(
     // może nadpisać nowszego statusu rozliczenia. settled/settledUpdatedAt wyłącznie LWW
     // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
     next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
-    if ((globalThis as { __wgdomPayrollPipelineDebug?: boolean }).__wgdomPayrollPipelineDebug) {
-      console.warn("[wgdom payroll] finalizePayrollBundleMerge RICHNESS OVERRIDE", {
-        inMergedCount: mergedEmpsBefore.length,
-        outCount: normalizeArrayValue(next[empIdx]).length,
+    const adoptedEmps = normalizeArrayValue(next[empIdx]);
+    if (payrollPipelineDebug) {
+      console.warn("[wgdom payroll] finalizePayrollBundleMerge", {
+        localCount: localEmps.length,
+        cloudCount: cloudEmps.length,
+        mergedCount: mergedEmpsBefore.length,
+        localR,
+        cloudR,
+        richnessOverride: true,
+        subjectPresentBefore,
+        subjectPresentAfter: rosterTraceSnapshot(adoptedEmps, wf, wt, "MERGED", "OVERWRITTEN").subjectPresent,
+        adoptedCount: adoptedEmps.length,
+        branchTaken: "richness_override",
+        reason: richnessOverrideReason,
       });
     }
-    const wf = String(targetFrom ?? "");
-    const wt = String(targetTo ?? "");
     payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
       localR,
       cloudR,
@@ -1888,13 +1914,11 @@ export function finalizePayrollBundleMerge(
       cloudActiveDays: cloudM.activeDays,
       richnessOverride: true,
       weekKeyMismatch: false,
-      out: rosterTraceSnapshot(normalizeArrayValue(next[empIdx]), wf, wt, "MERGED", "OVERWRITTEN"),
+      out: rosterTraceSnapshot(adoptedEmps, wf, wt, "MERGED", "OVERWRITTEN"),
     });
     return next;
   }
 
-  const wf = String(targetFrom ?? "");
-  const wt = String(targetTo ?? "");
   payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
     localR,
     cloudR,
