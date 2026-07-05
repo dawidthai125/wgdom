@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.42** · **runtime `7138957`** · **PRODUCTION VERIFIED** · **Bundle #6E CLOSED FINAL** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.43** · **runtime `c151b40`** · **PRODUCTION VERIFIED** · **Bundle #5C-0A CLOSED FINAL** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -204,6 +204,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.43       ← Bundle #5C-0A pricing catalog revision · commit c151b40 · PRODUCTION VERIFIED
 Version (prod):             2.63.42       ← Bundle #6E deferred bootstrap · commit 7138957 · PRODUCTION VERIFIED
 Version (prod):             2.63.40       ← Work Catalog P2.9 Pakiety filtry/badge · commit 898682a
 Version (prod):             2.63.39       ← Work Catalog P2.8 Pakiety UX MIN · commit 1fd3627
@@ -239,7 +240,7 @@ Version (prod):             2.62.92       ← SUPER ADMIN ACL · commit 5f212b4
 Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
-Work Catalog P2 UI:         2.63.37–40    P2.1–P2.6 Roboty + P2.7–P2.9 Pakiety · suite smoke-work-catalog-p2-mvp 16 testIds · #5C cutover OPEN
+Work Catalog P2 UI:         2.63.37–41    P2.1–P2.10 Roboty + Pakiety · suite smoke-work-catalog-p2-mvp **19** testIds · EPIC #5C **#5C-0A CLOSED** · **#5C-1 OPEN**
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)
