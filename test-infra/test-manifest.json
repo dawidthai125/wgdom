@@ -34,6 +34,8 @@
         "LIB-WORK-CATALOG-BULK-PERSIST-P24",
         "SMOKE-WORK-CATALOG-MARKET-P25",
         "SMOKE-WORK-CATALOG-COMPLETENESS-P26",
+        "SMOKE-WORK-CATALOG-BUNDLES-P27",
+        "LIB-WORK-CATALOG-BUNDLES-PERSIST-P27",
         "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
         "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
         "LIB-WORK-CATALOG-CSV-PREVIEW-P3.2A",
@@ -85,7 +87,7 @@
       "testIds": ["LIB-JOBS-LIST-OPS-20-MIN"]
     },
     "smoke-work-catalog-p2-mvp": {
-      "description": "Work Catalog P2.1–P2.6 MVP regression (FREEZE v1.0 · golden + 96)",
+      "description": "Work Catalog P2.1–P2.7 MVP regression (FREEZE v1.0 · golden + P2 smoke/lib)",
       "testIds": [
         "LIB-WORK-CATALOG-GOLDEN",
         "SMOKE-WORK-CATALOG-UI-P21",
@@ -96,7 +98,9 @@
         "SMOKE-WORK-CATALOG-BULK-P24",
         "LIB-WORK-CATALOG-BULK-PERSIST-P24",
         "SMOKE-WORK-CATALOG-MARKET-P25",
-        "SMOKE-WORK-CATALOG-COMPLETENESS-P26"
+        "SMOKE-WORK-CATALOG-COMPLETENESS-P26",
+        "SMOKE-WORK-CATALOG-BUNDLES-P27",
+        "LIB-WORK-CATALOG-BUNDLES-PERSIST-P27"
       ]
     }
   },
@@ -390,6 +394,30 @@
       "id": "SMOKE-WORK-CATALOG-COMPLETENESS-P26",
       "class": "smoke",
       "path": "scripts/smoke-test-work-catalog-completeness-p2.6.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-BUNDLES-P27",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-bundles-p2.7.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-BUNDLES-PERSIST-P27",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-bundles-persist-p2.7.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

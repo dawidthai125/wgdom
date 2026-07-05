@@ -292,8 +292,9 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#2** | NG-03 maintenance (R-03 docs banner) | docs | **CLOSED** · `f495a78` | `NG-03-DESIGN-FREEZE.md` |
 | **#3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** · prod **2.63.35** · `eebe389` | `test-tender-grouped-documents.mjs` · `LIB-TENDERS-GROUPED-DOCS` |
 | **#4** | **Bundle #4A — Roboty 2.0 MIN doc/help sync** | docs + test manifest | **CLOSED** · prod **2.63.36** · `5d2b207` | `test-job-list-ops-2.0-min.mjs` · `LIB-JOBS-LIST-OPS-20-MIN` |
-| **#5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** (commit pending push) | `smoke-work-catalog-p2-mvp` · golden + P2.1–P2.6 · runtime `5d2b207` |
-| **#6** | Work Catalog P2.7+ (pakiety UI) | FEATURE | OPEN · owner brief | `P2-FREEZE-v1.0.md` §6 |
+| **#5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** · prod **2.63.37** · `7e4eb57` | `smoke-work-catalog-p2-mvp` (10 testIds) |
+| **#5B** | **Bundle #5B — Work Catalog P2.7 Pakiety robót MIN** | FEATURE UI | **CLOSED** (commit pending push) · **2.63.38** | `SMOKE-WORK-CATALOG-BUNDLES-P27` · suite 12 testIds |
+| **#6** | Work Catalog P2.8+ (integracja Przetargi / favorite) | FEATURE | OPEN | backlog post-P2.7 |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |

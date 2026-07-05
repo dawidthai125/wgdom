@@ -81,8 +81,9 @@
 | **2** | **NG-03 Maintenance** (R-03 · M-06 · A-03-1) | docs | **CLOSED** (docs commit) · R-03+M-06+A-03-1 |
 | **3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** · prod **2.63.35** · `eebe389` · `LIB-TENDERS-GROUPED-DOCS` |
 | **4** | **Bundle #4A — Roboty 2.0 MIN doc/help sync** | docs + test manifest | **CLOSED** · prod **2.63.36** · `5d2b207` · `LIB-JOBS-LIST-OPS-20-MIN` |
-| **5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** (commit pending push) · runtime frozen `5d2b207` · `smoke-work-catalog-p2-mvp` |
-| 6 | Work Catalog P2.7+ (pakiety UI) | FEATURE | OPEN · owner brief |
+| **5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** · prod **2.63.37** · `7e4eb57` |
+| **5B** | **Bundle #5B — Work Catalog P2.7 Pakiety robót MIN** | FEATURE UI | **CLOSED** (commit pending push) · **2.63.38** · suite 12 testIds |
+| 6 | Work Catalog P2.8+ | FEATURE | OPEN · backlog |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 

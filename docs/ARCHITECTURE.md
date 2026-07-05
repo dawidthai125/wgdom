@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #5A Work Catalog P2** · test manifest sync · runtime SHIPPED v2.62.82–87 · prod **2.63.36+**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #5B Work Catalog P2.7** · Pakiety robót UI · prod baseline **2.63.37** → **2.63.38** pending push)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1884,9 +1884,9 @@ TendersModule (v4Detail z pathname)
 
 ---
 
-### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2 MVP UI (v2.62.85)
+### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2 MVP UI (v2.62.85 → P2.7 v2.63.38)
 
-**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP UI PRODUCTION** (v2.62.85) · PB-3 bootstrap **PROD** (v2.62.84) · cutover Przetargi / PB-WRITE **OPEN**  
+**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP UI PRODUCTION** · **P2.7 Pakiety robót MIN** (v2.63.38) · PB-3 bootstrap **PROD** · cutover Przetargi / PB-WRITE **OPEN**  
 **FREEZE P1:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
 **FREEZE P2:** [`docs/work-catalog/P2-FREEZE-v1.0.md`](work-catalog/P2-FREEZE-v1.0.md) · [`P2-MVP-FINAL-SUMMARY.md`](work-catalog/P2-MVP-FINAL-SUMMARY.md)  
 **Raport P1:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
@@ -1901,7 +1901,7 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 
 **Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks. **P3 market lib** — testy w manifeście; **P3 UI nie prod** (backlog).
 
-**UI P2 MVP (v2.62.85, jeden release):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · zakładka **Przetargi → Biblioteka robót**.
+**UI P2 MVP (v2.62.85, jeden release):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · zakładka **Przetargi → Biblioteka robót** · sub-nav **Roboty | Pakiety** (P2.7).
 
 | Sprint | Zakres |
 |--------|--------|
@@ -1911,8 +1911,9 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 | P2.4 | Bulk **Edytuj wiele** · `work-catalog-bulk-price.ts` |
 | P2.5 | `WorkCatalogMarketComparison` — firma vs `marketAvgPln` · 🟢≤10% · 🟡11–25% · 🔴>25% |
 | P2.6 | `WorkCatalogCompletenessPanel` — Uzupełniono X% · panel Branże |
+| **P2.7** | **Pakiety robót MIN** — `WorkCatalogBundlesPanel` · `useWorkBundles` · `work-catalog-bundle.ts` · persist `saveWorkBundleStore` · dialog usuwania · **zero lib diff** |
 
-**Hook reload:** `useWorkCatalog` nasłuchuje `WGDOM_DEFERRED_BOOTSTRAP_EVENT` — po PB-3 migracji lista odświeża się bez remount widoku.
+**Hook reload:** `useWorkCatalog` i `useWorkBundles` nasłuchują `WGDOM_DEFERRED_BOOTSTRAP_EVENT` — po PB-3 / deferred merge store odświeża się bez remount widoku.
 
 **PB-3 (§ 12.1.18b):** `maybeExecuteWorkCatalogBootstrap()` w deferred merge — legacy → work przy pierwszym logowaniu admina.
 
@@ -1920,9 +1921,9 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 
 **Seed:** `docs/work-catalog/SEED-MANIFEST-v1.0.yaml` — 116 robót · 16 branż (`TradeId`).
 
-**Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` · zapis po każdej edycji UI.
+**Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` + `kw-wgdom-work-bundles` · zapis po edycji UI (`saveWorkCatalogRouted` / `saveWorkBundleStore`).
 
-**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (`scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–P2.6 (96) · P3 lib w `gate-b-relevant` · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
+**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (`scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–**P2.7** · P3 lib w `gate-b-relevant` · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
 
 **Gate B:** `npm run test:infra -- --suite smoke-work-catalog-p2-mvp` (orchestrator `scope:work-catalog` — backlog TI-B5).
 

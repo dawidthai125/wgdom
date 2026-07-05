@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.38",
+    label: "Work Catalog P2.7 — Pakiety robót MIN",
+    items: [
+      {
+        type: "new",
+        text: "Biblioteka Robót — zakładka Pakiety: CRUD pakietów robót (nazwa, branża, kroki z ilością i notatką, reorder, duplikacja, aktywność) z sync kw-wgdom-work-bundles.",
+      },
+      {
+        type: "improve",
+        text: "Usuwanie pakietu wymaga potwierdzenia w dialogu; po zapisie pozostaje zaznaczony edytowany pakiet.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.37",
     label: "Work Catalog P2 — test manifest sync",
     items: [

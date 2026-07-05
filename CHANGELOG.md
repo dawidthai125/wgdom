@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.38 — Work Catalog P2.7 Pakiety robót MIN (Bundle #5B)
+
+- **new:** Biblioteka Robót → zakładka **Pakiety** — CRUD pakietów (kroki, ilości, notatki, reorder, duplikacja, dialog usuwania) · sync `kw-wgdom-work-bundles`
+- **test:** `SMOKE-WORK-CATALOG-BUNDLES-P27` · `LIB-WORK-CATALOG-BUNDLES-PERSIST-P27` · suite `smoke-work-catalog-p2-mvp` → 12 testIds
+- **zero lib/sync diff** — app layer only
+
 ## 2.63.37 — Work Catalog P2 test manifest sync (Bundle #5A)
 
 - **test:** suite `smoke-work-catalog-p2-mvp` — golden 1419 + P2.1–P2.6 (96) · `scope:work-catalog` · gate-b-relevant

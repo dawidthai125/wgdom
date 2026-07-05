@@ -21,8 +21,15 @@ import {
 } from "@/app/work-catalog/work-catalog-list";
 import { computeLibraryCompleteness } from "@/app/work-catalog/work-catalog-completeness";
 import { WorkCatalogCompletenessPanel } from "@/app/work-catalog/WorkCatalogCompletenessPanel";
+import { WorkCatalogBundlesPanel } from "@/app/work-catalog/WorkCatalogBundlesPanel";
 
 export type WorkCatalogLayout = "standalone" | "embedded";
+export type WorkCatalogSection = "works" | "bundles";
+
+const SECTION_OPTIONS: { id: WorkCatalogSection; label: string }[] = [
+  { id: "works", label: "Roboty" },
+  { id: "bundles", label: "Pakiety" },
+];
 
 const ACTIVE_FILTER_OPTIONS: { id: WorkCatalogActiveFilter; label: string }[] = [
   { id: "all", label: "Wszystkie" },
@@ -40,6 +47,7 @@ type WorkCatalogViewProps = {
 
 export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps) {
   const isEmbedded = layout === "embedded";
+  const [section, setSection] = useState<WorkCatalogSection>("works");
 
   const {
     works,
@@ -178,20 +186,24 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           <div className="min-w-0 flex-1">
             {isEmbedded ? (
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Katalog v3 · region {regionLabel} · cena firmy · aktywność
-                {bulkEditMode ? " · edycja wielu" : ""}
+                Katalog v3 · region {regionLabel}
+                {section === "works"
+                  ? ` · cena firmy · aktywność${bulkEditMode ? " · edycja wielu" : ""}`
+                  : " · pakiety robót"}
               </p>
             ) : (
               <>
                 <h1 className="text-base font-semibold text-foreground sm:text-lg">Biblioteka Robót</h1>
                 <p className="text-xs text-muted-foreground sm:text-sm">
-                  Katalog v3 · region {regionLabel} · cena firmy · aktywność
-                  {bulkEditMode ? " · edycja wielu" : ""}
+                  Katalog v3 · region {regionLabel}
+                  {section === "works"
+                    ? ` · cena firmy · aktywność${bulkEditMode ? " · edycja wielu" : ""}`
+                    : " · pakiety robót"}
                 </p>
               </>
             )}
           </div>
-          {totalCount > 0 && (
+          {section === "works" && totalCount > 0 && (
             <button
               type="button"
               onClick={() => {
@@ -209,12 +221,45 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           )}
         </div>
 
+        <div
+          className="mt-3 flex gap-2 rounded-xl border border-border bg-muted/30 p-1"
+          role="tablist"
+          aria-label="Sekcja biblioteki"
+        >
+          {SECTION_OPTIONS.map((opt) => {
+            const selected = section === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => {
+                  if (opt.id === "bundles" && bulkEditMode) exitBulkEdit();
+                  setSection(opt.id);
+                }}
+                className={`min-h-[44px] flex-1 rounded-lg px-3 text-sm font-medium transition-colors ${
+                  selected
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {section === "works" && (
         <WorkCatalogCompletenessPanel
           summary={completeness}
           selectedTradeId={filters.tradeId}
           onTradeSelect={handleTradeCompletenessSelect}
         />
+        )}
 
+        {section === "works" && (
+        <>
         <div className="relative mt-3">
           <Search
             size={18}
@@ -303,8 +348,13 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
             Wyczyść filtry
           </button>
         )}
+        </>
+        )}
       </header>
 
+      {section === "bundles" ? (
+        <WorkCatalogBundlesPanel isEmbedded={isEmbedded} tradesOrder={tradesOrder} />
+      ) : (
       <div className={listPad}>
         {totalCount === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-10 text-center">
@@ -338,8 +388,9 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           </ul>
         )}
       </div>
+      )}
 
-      {bulkEditMode && (
+      {section === "works" && bulkEditMode && (
         <WorkCatalogBulkEditBar
           selectedCount={selectedIds.size}
           onPreview={handleBulkPreview}
@@ -347,6 +398,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
         />
       )}
 
+      {section === "works" && (
       <WorkCatalogBulkPreviewModal
         open={previewOpen}
         rows={previewRows}
@@ -362,6 +414,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           void handleBulkConfirm();
         }}
       />
+      )}
     </div>
   );
 }

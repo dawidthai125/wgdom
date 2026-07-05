@@ -320,7 +320,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">
             <strong>Przetargi → zakładka Biblioteka robót</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
-            Lista z filtrami, edycja <strong>ceny firmy</strong>, aktywność, edycja wielu cen, podgląd rynku i kompletność katalogu.
+            Lista z filtrami, edycja <strong>ceny firmy</strong>, aktywność, edycja wielu cen, podgląd rynku, kompletność katalogu oraz <strong>pakiety robót</strong> (szablony kroków).
             Dostęp: Super Administrator zawsze; Administrator — gdy włączona flaga w ustawieniach aplikacji.
             Nie zastępuje zakładki Baza cen (legacy) — obie bazy współistnieją do czasu PB-WRITE.
           </p>
@@ -334,7 +334,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Edytuj wiele cen (P2.4)", a:"Przycisk Edytuj wiele w nagłówku — zaznacz roboty checkboxem, wybierz akcję (+%, −%, +zł, −zł lub ustaw cenę), wpisz wartość i kliknij Podgląd zmian. Zobaczysz starą i nową cenę każdej roboty, potem Potwierdź. Bez historii zmian i bez wpływu na Przetargi."},
               {q:"Firma vs rynek (P2.5)", a:"Pod polem ceny firmy widać podsumowanie: Twoja cena, cena rynkowa (gdy jest w katalogu) i status 🟢 ok. ±10% · 🟡 odbiega 11–25% · 🔴 >25%. Gdy brak ceny rynkowej — wyświetlamy „—”. Tylko podgląd — bez aktualizacji rynku i bez KNR/materiałów."},
               {q:"Kompletność (P2.6)", a:"Pod nagłówkiem widać Uzupełniono: X% — liczymy roboty z ceną firmy większą niż 0. Panel Branże pokazuje ile z ilu pozycji ma cenę w każdej branży (np. 8 / 11). 🟢 = 100% · 🟡 = 50–99% · 🔴 = poniżej 50%. Kliknij branżę, żeby przefiltrować listę; kliknij ponownie, żeby wrócić do wszystkich branż."},
-              {q:"Czego tu nie ma?", a:"Bez historii zmian, aktualizacji rynku z CSV, pakietów robót, AI i pełnego cutoveru Przetargów. Jedna robota = jeden wiersz listy."},
+              {q:"Pakiety robót (P2.7)", a:"Przełącznik Roboty | Pakiety u góry widoku. Pakiet to nazwa, branża i lista kroków (roboty z katalogu, opcjonalna ilość i notatka). Ta sama robota może wystąpić wielokrotnie. Strzałki ↑↓ zmieniają kolejność kroków. Duplikuj tworzy kopię pakietu. Usuń wymaga potwierdzenia w dialogu. Zapis trafia do kw-wgdom-work-bundles (przeglądarka + chmura). Po zapisie pozostajesz przy edytowanym pakiecie."},
+              {q:"Czego tu nie ma?", a:"Bez historii zmian, aktualizacji rynku z CSV, ikon/kolorów pakietów, integracji pakietów z kosztorysem Przetargów i pełnego cutoveru. Jedna robota = jeden wiersz listy Roboty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
