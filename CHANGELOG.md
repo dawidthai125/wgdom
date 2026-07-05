@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.41 — Work Catalog P2.10 Roboty ulubione (Bundle #6D)
+
+- Gwiazdka ulubione na liście Roboty · filtr chip Ulubione · sort favorite-first · licznik · smoke P2.10 (manifest 17 testIds)
+
 ## 2.63.40 — Work Catalog P2.9 Pakiety filtry i badge (Bundle #6C-A)
 
 - **improve:** Pakiety — filtr Ulubione (AND z search/branża/aktywność), badge kroków osieroconych/nieaktywnych, licznik ulubionych

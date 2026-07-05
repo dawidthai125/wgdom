@@ -16,6 +16,7 @@ import {
 } from "@/lib/work-catalog";
 import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 import { patchWorkActiveInStore } from "@/app/work-catalog/work-catalog-active";
+import { patchWorkFavoriteInStore } from "@/app/work-catalog/work-catalog-favorite";
 import { patchBulkCompanyPricesInStore } from "@/app/work-catalog/work-catalog-bulk-price";
 import { patchWorkCompanyPriceInStore } from "@/app/work-catalog/work-catalog-price";
 
@@ -28,6 +29,7 @@ export type UseWorkCatalogResult = {
   regionLabel: string;
   updateCompanyPrice: (workId: string, companyPricePln: number) => Promise<UpdateCompanyPriceResult>;
   updateWorkActive: (workId: string, active: boolean) => Promise<UpdateWorkActiveResult>;
+  toggleWorkFavorite: (workId: string, favorite: boolean) => Promise<UpdateWorkFavoriteResult>;
   updateBulkCompanyPrices: (
     priceByWorkId: Record<string, number>,
   ) => Promise<UpdateBulkCompanyPricesResult>;
@@ -38,6 +40,10 @@ export type UpdateCompanyPriceResult =
   | { ok: false; message: string };
 
 export type UpdateWorkActiveResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
+export type UpdateWorkFavoriteResult =
   | { ok: true }
   | { ok: false; message: string };
 
@@ -135,6 +141,37 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     [store],
   );
 
+  const toggleWorkFavorite = useCallback(
+    async (workId: string, favorite: boolean): Promise<UpdateWorkFavoriteResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const next = patchWorkFavoriteInStore(store, workId, favorite, updatedAtIso);
+      if (!next) {
+        return { ok: false, message: "Nie znaleziono roboty w aktywnym regionie" };
+      }
+
+      if (next !== store) {
+        setStore(next);
+        try {
+          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso });
+          if (!saveResult.ok || !saveResult.saved) {
+            return {
+              ok: false,
+              message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+            };
+          }
+        } catch {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+      }
+
+      return { ok: true };
+    },
+    [store],
+  );
+
   const updateBulkCompanyPrices = useCallback(
     async (priceByWorkId: Record<string, number>): Promise<UpdateBulkCompanyPricesResult> => {
       const updatedAtIso = new Date().toISOString();
@@ -177,6 +214,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     regionLabel: REGION_LABELS_PL[store.activeRegion] ?? store.activeRegion,
     updateCompanyPrice,
     updateWorkActive,
+    toggleWorkFavorite,
     updateBulkCompanyPrices,
   };
 }

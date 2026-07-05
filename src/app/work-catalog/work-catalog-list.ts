@@ -6,11 +6,13 @@ import type { CatalogWork, TradeId } from "@/lib/work-catalog";
 import { tradeLabelPl } from "@/lib/work-catalog";
 
 export type WorkCatalogActiveFilter = "all" | "active" | "inactive";
+export type WorkCatalogFavoriteFilter = "all" | "favorites";
 
 export interface WorkCatalogListFilters {
   search: string;
   tradeId: TradeId | "all";
   active: WorkCatalogActiveFilter;
+  favorite: WorkCatalogFavoriteFilter;
 }
 
 /** P2.3: domyślnie tylko aktywne; chip „Nieaktywne” / „Wszystkie” jak w P2.1. */
@@ -18,6 +20,7 @@ export const DEFAULT_WORK_CATALOG_LIST_FILTERS: WorkCatalogListFilters = {
   search: "",
   tradeId: "all",
   active: "active",
+  favorite: "all",
 };
 
 export interface WorkCatalogListCounts {
@@ -25,6 +28,7 @@ export interface WorkCatalogListCounts {
   filtered: number;
   active: number;
   inactive: number;
+  favorite: number;
 }
 
 const UNIT_LABELS_PL: Record<string, string> = {
@@ -57,6 +61,16 @@ function workMatchesSearch(work: CatalogWork, query: string): boolean {
   return haystack.includes(query);
 }
 
+/** P2.10 — ulubione na górze, potem branża i nazwa PL. */
+export function sortWorkCatalogWorksForDisplay(works: CatalogWork[]): CatalogWork[] {
+  return works.slice().sort((a, b) => {
+    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+    const tradeCmp = tradeLabelPl(a.tradeId).localeCompare(tradeLabelPl(b.tradeId), "pl");
+    if (tradeCmp !== 0) return tradeCmp;
+    return a.namePl.localeCompare(b.namePl, "pl");
+  });
+}
+
 export function filterWorkCatalogList(
   works: CatalogWork[],
   filters: WorkCatalogListFilters,
@@ -66,23 +80,22 @@ export function filterWorkCatalogList(
     if (filters.tradeId !== "all" && work.tradeId !== filters.tradeId) return false;
     if (filters.active === "active" && !work.active) return false;
     if (filters.active === "inactive" && work.active) return false;
+    if (filters.favorite === "favorites" && !work.favorite) return false;
     return workMatchesSearch(work, query);
   });
 
-  return [...filtered].sort((a, b) => {
-    const tradeCmp = tradeLabelPl(a.tradeId).localeCompare(tradeLabelPl(b.tradeId), "pl");
-    if (tradeCmp !== 0) return tradeCmp;
-    return a.namePl.localeCompare(b.namePl, "pl");
-  });
+  return sortWorkCatalogWorksForDisplay(filtered);
 }
 
 export function countWorkCatalogList(works: CatalogWork[]): WorkCatalogListCounts {
   const active = works.filter((w) => w.active).length;
+  const favorite = works.filter((w) => w.favorite).length;
   return {
     total: works.length,
     filtered: works.length,
     active,
     inactive: works.length - active,
+    favorite,
   };
 }
 

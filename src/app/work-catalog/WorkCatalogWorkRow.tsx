@@ -1,10 +1,15 @@
+import { Star } from "lucide-react";
 import type { CatalogWork } from "@/lib/work-catalog";
 import { tradeLabelPl } from "@/lib/work-catalog";
 import { workCatalogUnitLabelPl } from "@/app/work-catalog/work-catalog-list";
 import { WorkCatalogActiveToggle } from "@/app/work-catalog/WorkCatalogActiveToggle";
 import { WorkCatalogCompanyPriceField } from "@/app/work-catalog/WorkCatalogCompanyPriceField";
 import { WorkCatalogMarketComparison } from "@/app/work-catalog/WorkCatalogMarketComparison";
-import type { UpdateCompanyPriceResult, UpdateWorkActiveResult } from "@/app/hooks/useWorkCatalog";
+import type {
+  UpdateCompanyPriceResult,
+  UpdateWorkActiveResult,
+  UpdateWorkFavoriteResult,
+} from "@/app/hooks/useWorkCatalog";
 
 type Props = {
   work: CatalogWork;
@@ -13,6 +18,7 @@ type Props = {
     companyPricePln: number,
   ) => Promise<UpdateCompanyPriceResult>;
   onToggleActive: (workId: string, active: boolean) => Promise<UpdateWorkActiveResult>;
+  onToggleFavorite?: (workId: string, favorite: boolean) => Promise<UpdateWorkFavoriteResult>;
   bulkEditMode?: boolean;
   bulkSelected?: boolean;
   onBulkSelectToggle?: (workId: string, selected: boolean) => void;
@@ -22,6 +28,7 @@ export function WorkCatalogWorkRow({
   work,
   onSaveCompanyPrice,
   onToggleActive,
+  onToggleFavorite,
   bulkEditMode = false,
   bulkSelected = false,
   onBulkSelectToggle,
@@ -40,6 +47,21 @@ export function WorkCatalogWorkRow({
                 aria-label={`Zaznacz ${work.namePl}`}
               />
             </label>
+          )}
+          {!bulkEditMode && onToggleFavorite && (
+            <button
+              type="button"
+              onClick={() => {
+                void onToggleFavorite(work.id, !work.favorite);
+              }}
+              className={`flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border border-border hover:bg-muted ${
+                work.favorite ? "text-amber-500" : "text-muted-foreground"
+              }`}
+              aria-label={work.favorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+              aria-pressed={work.favorite}
+            >
+              <Star size={16} fill={work.favorite ? "currentColor" : "none"} />
+            </button>
           )}
           <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">{work.namePl}</p>

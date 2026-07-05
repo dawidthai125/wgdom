@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.41",
+    label: "Work Catalog P2.10 — Roboty ulubione",
+    items: [
+      {
+        type: "improve",
+        text: "Biblioteka Robót → Roboty: gwiazdka ulubione na karcie robota (zapis do chmury), chip filtr Ulubione, sortowanie ulubionych na górze listy oraz licznik ulubionych w nagłówku.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.40",
     label: "Work Catalog P2.9 — Pakiety filtry i badge kroków",
     items: [

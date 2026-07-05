@@ -17,6 +17,7 @@ import {
   countFilteredWorkCatalogList,
   filterWorkCatalogList,
   type WorkCatalogActiveFilter,
+  type WorkCatalogFavoriteFilter,
   type WorkCatalogListFilters,
 } from "@/app/work-catalog/work-catalog-list";
 import { computeLibraryCompleteness } from "@/app/work-catalog/work-catalog-completeness";
@@ -35,6 +36,11 @@ const ACTIVE_FILTER_OPTIONS: { id: WorkCatalogActiveFilter; label: string }[] = 
   { id: "all", label: "Wszystkie" },
   { id: "active", label: "Aktywne" },
   { id: "inactive", label: "Nieaktywne" },
+];
+
+const FAVORITE_FILTER_OPTIONS: { id: WorkCatalogFavoriteFilter; label: string }[] = [
+  { id: "all", label: "Wszystkie" },
+  { id: "favorites", label: "Ulubione" },
 ];
 
 /** Clearance below last row when bulk bar is sticky (embedded single-scroll). */
@@ -56,6 +62,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
     regionLabel,
     updateCompanyPrice,
     updateWorkActive,
+    toggleWorkFavorite,
     updateBulkCompanyPrices,
   } = useWorkCatalog();
   const [filters, setFilters] = useState<WorkCatalogListFilters>(DEFAULT_WORK_CATALOG_LIST_FILTERS);
@@ -88,12 +95,16 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
   const hasFilters =
     filters.search.trim().length > 0
     || filters.tradeId !== "all"
-    || filters.active !== DEFAULT_WORK_CATALOG_LIST_FILTERS.active;
+    || filters.active !== DEFAULT_WORK_CATALOG_LIST_FILTERS.active
+    || filters.favorite !== DEFAULT_WORK_CATALOG_LIST_FILTERS.favorite;
 
-  const counterLine =
-    counts.filtered === counts.total
-      ? `${counts.total} robót · ${counts.active} aktywnych`
-      : `${counts.filtered} z ${counts.total} · ${counts.active} aktywnych w bazie`;
+  const counterLine = useMemo(() => {
+    const favoriteSuffix = counts.favorite > 0 ? ` · ${counts.favorite} ulubionych` : "";
+    if (counts.filtered === counts.total) {
+      return `${counts.total} robót · ${counts.active} aktywnych${favoriteSuffix}`;
+    }
+    return `${counts.filtered} z ${counts.total} · ${counts.active} aktywnych w bazie${favoriteSuffix}`;
+  }, [counts]);
 
   const exitBulkEdit = useCallback(() => {
     setBulkEditMode(false);
@@ -293,6 +304,31 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
         <div
           className="mt-3 flex flex-wrap gap-2"
           role="group"
+          aria-label="Filtr ulubionych robót"
+        >
+          {FAVORITE_FILTER_OPTIONS.map((opt) => {
+            const selected = filters.favorite === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setFilters((prev) => ({ ...prev, favorite: opt.id }))}
+                className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors ${
+                  selected
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-card text-foreground hover:bg-muted"
+                }`}
+                aria-pressed={selected}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div
+          className="mt-3 flex flex-wrap gap-2"
+          role="group"
           aria-label="Filtr aktywności"
         >
           {ACTIVE_FILTER_OPTIONS.map((opt) => {
@@ -369,7 +405,9 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-10 text-center">
             <p className="text-sm font-medium text-foreground">Brak wyników</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Zmień wyszukiwanie lub filtry branży / aktywności.
+              {filters.favorite === "favorites"
+                ? "Brak ulubionych robót dla wybranych filtrów."
+                : "Zmień wyszukiwanie lub filtry branży / aktywności."}
             </p>
           </div>
         ) : (
@@ -380,6 +418,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
                 work={work}
                 onSaveCompanyPrice={updateCompanyPrice}
                 onToggleActive={updateWorkActive}
+                onToggleFavorite={toggleWorkFavorite}
                 bulkEditMode={bulkEditMode}
                 bulkSelected={selectedIds.has(work.id)}
                 onBulkSelectToggle={handleBulkSelectToggle}
