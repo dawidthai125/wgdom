@@ -185,10 +185,13 @@ scripts/smoke-test-work-catalog-completeness-p2.6.mjs
 
 | ID | Temat | Uwagi |
 |----|-------|-------|
-| P2.7+ | Pakiety robót UI | `WorkBundleStore` P1 gotowy |
-| — | CloudLoader bootstrap v3 | merge przy starcie app |
-| — | Cutover Przetargi → v3 | wymaga briefu produktowego |
+| **P2.7** | Pakiety robót UI | **CLOSED** (2.63.38) |
+| **P2.8** | Pakiety UX MIN | **CLOSED** (2.63.39) |
+| **P2.9** | Pakiety filtry i badge | **CLOSED** (2.63.40) |
+| **P2.10** | Roboty ulubione (filtr + gwiazdka) | **OPEN** — następny FEATURE (#6D) |
+| — | Deferred bootstrap on mount | race hooków — #6E |
+| — | Cutover Przetargi → v3 (#5C) | wymaga briefu produktowego · **OPEN** |
 | — | Historia cen / audyt | nowy KV lub Audit Hub |
-| — | Aktualizacja rynku | osobny pipeline |
+| — | Aktualizacja rynku (P3 UI) | osobny pipeline |
 
 **Nie rozpoczynać bez wyraźnego polecenia właściciela repo.**

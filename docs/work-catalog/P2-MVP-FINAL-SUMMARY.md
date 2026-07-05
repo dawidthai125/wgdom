@@ -178,6 +178,8 @@ Brak błędów TypeScript / linter na plikach P2.
 | Dane UI tylko `@/lib/work-catalog` | ✓ |
 | Deferred bootstrap prod (PB-3 + oba KV) | ✓ (v2.62.84+) |
 | P2.7 Pakiety robót UI | ✓ (v2.63.38, Bundle #5B) |
+| P2.8 Pakiety UX MIN | ✓ (v2.63.39, Bundle #6B) |
+| P2.9 Pakiety filtry i badge | ✓ (v2.63.40, Bundle #6C-A) |
 | Brak integracji Przetargów | ✓ |
 | Changelog + GuideView + ARCHITECTURE | ✓ |
 
@@ -200,13 +202,11 @@ Brak błędów TypeScript / linter na plikach P2.
 |-----------|--------|
 | Build PASS | ✓ |
 | Golden 1419 PASS | ✓ |
-| P2 tests 96 PASS | ✓ |
-| Changelog 2.62.87 | ✓ |
+| P2 tests (suite smoke-work-catalog-p2-mvp) | ✓ **16** testIds (P2.1–P2.9) |
+| Changelog 2.63.40 | ✓ |
 | P2 FREEZE doc | ✓ |
-| Pliki bundle tracked (po `git add`) | ⏳ czeka na commit właściciela |
+| Prod P2 MVP | ✓ **2.63.37–40** |
 
-**Werdykt:** **READY FOR RELEASE** — pierwsze wydanie produkcyjne Biblioteki Robót P2 MVP po commicie bundle + push (workflow A/B).
+**Werdykt:** **RELEASED** — Biblioteka Robót P2 MVP na prod (P2.1–P2.9). Ten dokument zachowuje historię pierwszego release (2.62.87).
 
-**Proponowany commit:** `feat(work-catalog): complete P2 MVP` — patrz `P2-FREEZE-v1.0.md` § commit bundle.
-
-**Następny EPIC (nie startować bez polecenia):** P2.8 UX (app-only) · #5C cutover Przetargi / PB-WRITE.
+**Następny slice (nie startować bez polecenia):** **P2.10** Roboty ulubione (#6D) · **#5C** cutover Przetargi / PB-WRITE · **P3** market UI.

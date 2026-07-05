@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.33** · **runtime `a4cd5c2`** · **docs `b7b4deb`** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.40** · **runtime `898682a`** · **PRODUCTION VERIFIED** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -204,6 +204,13 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.40       ← Work Catalog P2.9 Pakiety filtry/badge · commit 898682a · PRODUCTION VERIFIED
+Version (prod):             2.63.39       ← Work Catalog P2.8 Pakiety UX MIN · commit 1fd3627
+Version (prod):             2.63.38       ← Work Catalog P2.7 Pakiety robót MIN · commit 9aad48c
+Version (prod):             2.63.37       ← Work Catalog P2 test manifest sync · commit 7e4eb57
+Version (prod):             2.63.36       ← Roboty 2.0 MIN doc/help sync · commit 5d2b207
+Version (prod):             2.63.35       ← Grouped documents test sync · commit eebe389
+Version (prod):             2.63.34       ← Bundle C Mobile · commit eb0d51b
 Version (prod):             2.63.33       ← PLATFORM-SYNC-01A reconcile op notes · commit a4cd5c2 · PRODUCTION VERIFIED
 Version (prod):             2.63.32       ← FEATURE Bundle B Owner View P2A · commit 119576c
 Version (prod):             2.63.31       ← RC-B debug cleanup · commit 31a7d5e · RC-B program CLOSED
@@ -231,6 +238,7 @@ Version (prod):             2.62.92       ← SUPER ADMIN ACL · commit 5f212b4
 Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
+Work Catalog P2 UI:         2.63.37–40    P2.1–P2.6 Roboty + P2.7–P2.9 Pakiety · suite smoke-work-catalog-p2-mvp 16 testIds · #5C cutover OPEN
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)

@@ -17,12 +17,12 @@
 | § 4–9 | Bootstrap, auth, panele (admin / inspektor / pracownik) |
 | § 9.1 | **Dokumentacja robót** — workerReports[], worker → admin → inspektor |
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
-| § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
+| § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** · ADR: [`ADR-CLOUD-SYNC-ARCHITECTURE.md`](docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md) (**PROPOSED**) |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
 | — | **[`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)** — ★★ kontekst sesji + mapa struktury (2026-06-26) |
 | — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla programistów |
 | — | **[`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md)** — ★★ SSOT Workflow (Hub, CTA, zakładki V4) |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.80) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.63.40**) |
 | — | **[`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md)** — ★★ Biblioteka Robót v3.0 P1 FREEZE |
 | — | **[`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)** — ★★ P1 Audit Hub WM EPIC CLOSED |
 | — | **[`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)** — ★★ P0 Vercel deploy unblock |
@@ -63,17 +63,19 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 | **Workflow Architecture** | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Prod:** **2.62.80** · Work Catalog P1 **FOUNDATION CLOSED** · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
+**Prod:** **2.63.40** @ `898682a` · Work Catalog P2 **MVP PROD** (P2.1–P2.9) · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
 
-### Biblioteka Robót v3.0 (P1 Foundation)
+### Biblioteka Robót v3.0 (P1 Foundation + P2 MVP UI)
 
 | Element | Wartość |
 |---------|---------|
 | Moduł | `src/lib/work-catalog/` — import `@/lib/work-catalog` |
-| KV | `kw-wgdom-work-catalog`, `kw-wgdom-work-bundles` (legacy `kw-wgdom-cost-catalog` nadal UI) |
-| FREEZE | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md) |
+| KV | `kw-wgdom-work-catalog`, `kw-wgdom-work-bundles` (legacy `kw-wgdom-cost-catalog` nadal w Przetargach) |
+| FREEZE | [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md) · [`P2-FREEZE-v1.0.md`](docs/work-catalog/P2-FREEZE-v1.0.md) |
+| UI prod | P2.1–P2.6 Roboty · P2.7–P2.9 Pakiety · **2.63.37–40** |
+| Test suite | `smoke-work-catalog-p2-mvp` — **16** testIds |
+| PB-3 bootstrap | **PROD** · cutover Przetargi (#5C) **OPEN** |
 | Test golden | `npx vite-node scripts/test-work-catalog-golden.mjs` |
-| P2 | UI + cutover — **nie rozpoczęte** |
 
 ---
 
