@@ -65,14 +65,62 @@ export function createEmptyBundleDraft(
   };
 }
 
-export function validateBundleForSave(bundle: WorkBundle): BundleSaveValidationResult {
+export function validateBundleEstimatedDurationDays(
+  value: number | undefined,
+): BundleSaveValidationResult {
+  if (value === undefined) return { ok: true };
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value < 1) {
+    return { ok: false, message: "Podaj liczbę dni (minimum 1) lub zostaw puste" };
+  }
+  return { ok: true };
+}
+
+/** P2.8.1 — walidacja przed zapisem; workId wymaga catalogStore. */
+export function validateBundleForSave(
+  bundle: WorkBundle,
+  catalogStore?: WorkCatalogStore,
+): BundleSaveValidationResult {
   if (!bundle.namePl.trim()) {
     return { ok: false, message: "Podaj nazwę pakietu" };
   }
   if (!bundle.primaryTradeId) {
     return { ok: false, message: "Wybierz branżę pakietu" };
   }
+  if (bundle.steps.length === 0) {
+    return { ok: false, message: "Dodaj co najmniej jeden krok do pakietu" };
+  }
+
+  const durationCheck = validateBundleEstimatedDurationDays(bundle.estimatedDurationDays);
+  if (!durationCheck.ok) return durationCheck;
+
+  if (catalogStore) {
+    for (let index = 0; index < bundle.steps.length; index += 1) {
+      const step = bundle.steps[index];
+      if (!step.workId?.trim()) {
+        return {
+          ok: false,
+          message: `Krok ${index + 1}: wybierz robotę z katalogu regionu`,
+        };
+      }
+      const ref = resolveBundleStepWorkRef(catalogStore, step.workId);
+      if (!ref.ok) {
+        return {
+          ok: false,
+          message: `Krok ${index + 1}: ${ref.warning ?? "Robota nie ma w katalogu regionu"}`,
+        };
+      }
+    }
+  }
+
   return { ok: true };
+}
+
+export function normalizeBundleEstimatedDurationDays(
+  value: number | undefined,
+): number | undefined {
+  if (value === undefined) return undefined;
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value < 1) return undefined;
+  return value;
 }
 
 export function upsertBundleInStore(
@@ -84,6 +132,7 @@ export function upsertBundleInStore(
     ...bundle,
     namePl: bundle.namePl.trim(),
     descriptionPl: bundle.descriptionPl?.trim() || undefined,
+    estimatedDurationDays: normalizeBundleEstimatedDurationDays(bundle.estimatedDurationDays),
     steps: reindexStepOrders(bundle.steps),
     updatedAt: updatedAtIso,
   };
@@ -149,6 +198,23 @@ export function patchBundleActiveInStore(
 
   const bundles = [...store.bundles];
   bundles[index] = { ...previous, active, updatedAt: updatedAtIso };
+  return patchStoreBundles(store, bundles, updatedAtIso);
+}
+
+export function patchBundleFavoriteInStore(
+  store: WorkBundleStore,
+  bundleId: string,
+  favorite: boolean,
+  updatedAtIso: string,
+): WorkBundleStore | null {
+  const index = store.bundles.findIndex((bundle) => bundle.id === bundleId);
+  if (index < 0) return null;
+
+  const previous = store.bundles[index];
+  if (previous.favorite === favorite) return store;
+
+  const bundles = [...store.bundles];
+  bundles[index] = { ...previous, favorite, updatedAt: updatedAtIso };
   return patchStoreBundles(store, bundles, updatedAtIso);
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Copy, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Copy, Pencil, Plus, Search, Star, Trash2, X } from "lucide-react";
 import { tradeLabelPl, type TradeId, type WorkBundle } from "@/lib/work-catalog";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
 import { useWorkBundles } from "@/app/hooks/useWorkBundles";
@@ -33,6 +33,7 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
     deleteBundle,
     duplicateBundle,
     toggleBundleActive,
+    toggleBundleFavorite,
     createBundleDraft,
   } = useWorkBundles();
 
@@ -101,7 +102,7 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
     if (!draftBundle) return;
     setSaving(true);
     setSaveError(null);
-    const result = await saveBundle(draftBundle);
+    const result = await saveBundle(draftBundle, catalogStore);
     setSaving(false);
 
     if (!result.ok) {
@@ -301,6 +302,19 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
                       <div className="flex flex-wrap items-start gap-2">
                         <button
                           type="button"
+                          onClick={() => {
+                            void toggleBundleFavorite(bundle.id, !bundle.favorite);
+                          }}
+                          className={`flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border border-border hover:bg-muted ${
+                            bundle.favorite ? "text-amber-500" : "text-muted-foreground"
+                          }`}
+                          aria-label={bundle.favorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+                          aria-pressed={bundle.favorite}
+                        >
+                          <Star size={16} fill={bundle.favorite ? "currentColor" : "none"} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleSelectBundle(bundle.id)}
                           className="min-w-0 flex-1 text-left"
                         >
@@ -308,6 +322,9 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             {tradeLabelPl(bundle.primaryTradeId)} · {bundle.steps.length}{" "}
                             {bundle.steps.length === 1 ? "krok" : "kroków"}
+                            {bundle.estimatedDurationDays != null
+                              ? ` · ~${bundle.estimatedDurationDays} dni`
+                              : ""}
                           </p>
                         </button>
                         <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full px-2 text-xs font-medium">

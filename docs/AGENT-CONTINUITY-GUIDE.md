@@ -294,8 +294,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#4** | **Bundle #4A — Roboty 2.0 MIN doc/help sync** | docs + test manifest | **CLOSED** · prod **2.63.36** · `5d2b207` | `test-job-list-ops-2.0-min.mjs` · `LIB-JOBS-LIST-OPS-20-MIN` |
 | **#5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** · prod **2.63.37** · `7e4eb57` | `smoke-work-catalog-p2-mvp` (10 testIds) |
 | **#5B** | **Bundle #5B — Work Catalog P2.7 Pakiety robót MIN** | FEATURE UI | **CLOSED** · prod **2.63.38** · `9aad48c` | `SMOKE-WORK-CATALOG-BUNDLES-P27` · suite 12 testIds |
-| **#6A** | **Bundle #6A — Work Catalog stabilization** | docs + test manifest | **CLOSED** (commit pending push) · TD-01/02/03 | `LIB-WORK-CATALOG-BOOTSTRAP-PB3` · suite **13** testIds |
-| **#6B** | Work Catalog P2.8+ UX (integracja Przetargi / favorite) | FEATURE | OPEN | backlog post-#6A |
+| **#6A** | **Bundle #6A — Work Catalog stabilization** | docs + test manifest | **CLOSED** · prod **2.63.38** · `6af0427` | `LIB-WORK-CATALOG-BOOTSTRAP-PB3` · suite **13** testIds |
+| **#6B** | **Bundle #6B — Work Catalog P2.8 MIN UX** | FEATURE UI | **CLOSED** (commit pending push) · **2.63.39** | `SMOKE-WORK-CATALOG-BUNDLES-P28` · suite **15** testIds |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |

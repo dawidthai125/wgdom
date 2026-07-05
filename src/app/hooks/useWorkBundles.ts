@@ -9,11 +9,13 @@ import {
   saveWorkBundleStore,
   type WorkBundle,
   type WorkBundleStore,
+  type WorkCatalogStore,
 } from "@/lib/work-catalog";
 import {
   createEmptyBundleDraft,
   duplicateBundleInStore,
   patchBundleActiveInStore,
+  patchBundleFavoriteInStore,
   removeBundleFromStore,
   upsertBundleInStore,
   validateBundleForSave,
@@ -27,10 +29,14 @@ export type UseWorkBundlesResult = {
   store: WorkBundleStore;
   bundles: WorkBundle[];
   totalCount: number;
-  saveBundle: (bundle: WorkBundle) => Promise<BundleMutationResult>;
+  saveBundle: (
+    bundle: WorkBundle,
+    catalogStore: WorkCatalogStore,
+  ) => Promise<BundleMutationResult>;
   deleteBundle: (bundleId: string) => Promise<BundleMutationResult>;
   duplicateBundle: (bundleId: string) => Promise<BundleMutationResult>;
   toggleBundleActive: (bundleId: string, active: boolean) => Promise<BundleMutationResult>;
+  toggleBundleFavorite: (bundleId: string, favorite: boolean) => Promise<BundleMutationResult>;
   createBundleDraft: () => WorkBundle;
 };
 
@@ -67,8 +73,11 @@ export function useWorkBundles(): UseWorkBundlesResult {
   const bundles = useMemo(() => store.bundles, [store.bundles]);
 
   const saveBundle = useCallback(
-    async (bundle: WorkBundle): Promise<BundleMutationResult> => {
-      const validation = validateBundleForSave(bundle);
+    async (
+      bundle: WorkBundle,
+      catalogStore: WorkCatalogStore,
+    ): Promise<BundleMutationResult> => {
+      const validation = validateBundleForSave(bundle, catalogStore);
       if (!validation.ok) return validation;
 
       const updatedAtIso = new Date().toISOString();
@@ -133,6 +142,25 @@ export function useWorkBundles(): UseWorkBundlesResult {
     [store],
   );
 
+  const toggleBundleFavorite = useCallback(
+    async (bundleId: string, favorite: boolean): Promise<BundleMutationResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const next = patchBundleFavoriteInStore(store, bundleId, favorite, updatedAtIso);
+      if (!next) {
+        return { ok: false, message: "Nie znaleziono pakietu" };
+      }
+
+      if (next !== store) {
+        setStore(next);
+        const result = await persistBundleStore(next, updatedAtIso);
+        if (!result.ok) return result;
+      }
+
+      return { ok: true, bundleId };
+    },
+    [store],
+  );
+
   const createBundleDraft = useCallback(() => {
     return createEmptyBundleDraft("MALOWANIE", new Date().toISOString());
   }, []);
@@ -145,6 +173,7 @@ export function useWorkBundles(): UseWorkBundlesResult {
     deleteBundle,
     duplicateBundle,
     toggleBundleActive,
+    toggleBundleFavorite,
     createBundleDraft,
   };
 }

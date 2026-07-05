@@ -44,13 +44,15 @@ draft.id = "bundle-test-1";
 draft.namePl = "Łazienka test";
 
 assert("validate empty name fails", validateBundleForSave({ ...draft, namePl: " " }).ok === false);
-assert("validate named bundle ok", validateBundleForSave(draft).ok === true);
+assert("validate no steps fails", validateBundleForSave(draft).ok === false);
 
-let store = upsertBundleInStore(emptyStore, draft, SAVE_AT);
+let draftWithStep = addStepToBundle(draft, WORK_ID_A, SAVE_AT);
+assert("validate bundle with step ok without catalog", validateBundleForSave(draftWithStep).ok === true);
+
+let store = upsertBundleInStore(emptyStore, draftWithStep, SAVE_AT);
 assert("upsert adds bundle", store.bundles.length === 1);
 
 let bundle = store.bundles[0];
-bundle = addStepToBundle(bundle, WORK_ID_A, SAVE_AT);
 bundle = addStepToBundle(bundle, WORK_ID_A, SAVE_AT);
 assert("duplicate workId in steps allowed", bundle.steps.length === 2);
 assert("both steps same workId", bundle.steps.every((s) => s.workId === WORK_ID_A));

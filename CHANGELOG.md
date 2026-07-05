@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.39 — Work Catalog P2.8 Pakiety UX MIN (Bundle #6B)
+
+- **improve:** Pakiety — walidacja zapisu (≥1 krok, poprawny workId), ulubione + sort favorite first, szacowany czas (dni)
+- **test:** `SMOKE-WORK-CATALOG-BUNDLES-P28` · `LIB-WORK-CATALOG-BUNDLES-PERSIST-P28` · suite `smoke-work-catalog-p2-mvp` → 15 testIds
+- **app layer only** — zero lib/sync diff
+
 ## 2.63.38 — Work Catalog P2.7 Pakiety robót MIN (Bundle #5B)
 
 - **new:** Biblioteka Robót → zakładka **Pakiety** — CRUD pakietów (kroki, ilości, notatki, reorder, duplikacja, dialog usuwania) · sync `kw-wgdom-work-bundles`

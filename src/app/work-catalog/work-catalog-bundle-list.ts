@@ -24,6 +24,14 @@ export interface WorkCatalogBundleListCounts {
   active: number;
 }
 
+/** P2.8.2 — ulubione na górze, potem nazwa PL. */
+export function sortWorkCatalogBundlesForDisplay(bundles: WorkBundle[]): WorkBundle[] {
+  return bundles.slice().sort((a, b) => {
+    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+    return a.namePl.localeCompare(b.namePl, "pl");
+  });
+}
+
 function matchesSearch(bundle: WorkBundle, query: string): boolean {
   if (!query) return true;
   const haystack = [
@@ -42,13 +50,15 @@ export function filterWorkCatalogBundleList(
 ): WorkBundle[] {
   const query = filters.search.trim().toLocaleLowerCase("pl");
 
-  return bundles.filter((bundle) => {
+  const filtered = bundles.filter((bundle) => {
     if (filters.tradeId !== "all" && bundle.primaryTradeId !== filters.tradeId) return false;
     if (filters.active === "active" && !bundle.active) return false;
     if (filters.active === "inactive" && bundle.active) return false;
     if (!matchesSearch(bundle, query)) return false;
     return true;
   });
+
+  return sortWorkCatalogBundlesForDisplay(filtered);
 }
 
 export function countWorkCatalogBundleList(bundles: WorkBundle[]): WorkCatalogBundleListCounts {

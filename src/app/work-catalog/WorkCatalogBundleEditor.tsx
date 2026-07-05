@@ -116,6 +116,41 @@ export function WorkCatalogBundleEditor({
             placeholder="Opcjonalny opis całego pakietu"
           />
         </div>
+
+        <div>
+          <label
+            htmlFor="bundle-duration-days"
+            className="mb-1 block text-xs font-medium text-muted-foreground"
+          >
+            Szacowany czas (dni)
+          </label>
+          <input
+            id="bundle-duration-days"
+            type="number"
+            min={1}
+            step={1}
+            inputMode="numeric"
+            value={
+              bundle.estimatedDurationDays != null && Number.isFinite(bundle.estimatedDurationDays)
+                ? String(bundle.estimatedDurationDays)
+                : ""
+            }
+            onChange={(e) => {
+              const raw = e.target.value.trim();
+              if (raw === "") {
+                patchBundle({ ...bundle, estimatedDurationDays: undefined });
+                return;
+              }
+              const parsed = Number(raw.replace(",", "."));
+              patchBundle({
+                ...bundle,
+                estimatedDurationDays: Number.isFinite(parsed) ? parsed : undefined,
+              });
+            }}
+            placeholder="Opcjonalnie — liczba całkowita ≥ 1"
+            className="min-h-[44px] w-full max-w-xs rounded-xl border border-border bg-card px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </div>
       </div>
 
       <div className="mt-4">

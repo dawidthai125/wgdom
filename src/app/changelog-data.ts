@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.39",
+    label: "Work Catalog P2.8 — Pakiety UX MIN",
+    items: [
+      {
+        type: "improve",
+        text: "Biblioteka Robót → Pakiety: walidacja zapisu (min. 1 krok, poprawna robota w katalogu), ulubione z sortowaniem na górze listy oraz opcjonalny szacowany czas realizacji (dni).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.38",
     label: "Work Catalog P2.7 — Pakiety robót MIN",
     items: [
