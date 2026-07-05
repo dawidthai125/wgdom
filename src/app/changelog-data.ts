@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.34",
+    label: "Mobile — stabilizacja scrollu (MOBILE-P0-S1)",
+    items: [
+      {
+        type: "fix",
+        text: "Safari iOS — wysokość shell z visualViewport (--app-height), scroll w widokach Przetargi i Pulpit bez utkniętego sticky.",
+      },
+      {
+        type: "improve",
+        text: "Reset blokady scrollu modala przy zmianie widoku — brak „zamrożonego” ekranu po nawigacji.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.33",
     label: "Platform sync — reconcile notatek operacyjnych",
     items: [

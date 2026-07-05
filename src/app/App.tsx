@@ -150,7 +150,7 @@ import {
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
-import { useModalScrollLock } from "@/lib/modal-scroll-lock";
+import { reconcileModalScrollLock, useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
@@ -2080,6 +2080,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setViewReturn(null);
     setView(v);
     setMobileMoreOpen(false);
+    reconcileModalScrollLock();
     if (TENDERS_V4_ROUTING) {
       if (v === "tenders") {
         navigate(TENDERS_LIST_PATH);

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.34 — Mobile MOBILE-P0-S1 scroll stabilization
+
+- **fix:** `--app-height` z `visualViewport` (Safari iOS) · SSOT `.mobile-view-scroll` · Przetargi sticky `md+` · padding bottom nav
+- **improve:** `reconcileModalScrollLock()` w `goToView` — reset stuck modal lock
+- **test:** `smoke-test-mobile-scroll-p0-s1.mjs` 14/14
+
 ## 2.63.33 — Platform sync reconcile notatek operacyjnych
 
 - **fix:** `reconcileOperationalNotesInMergedBundle` — świeży LS po await pull; archiwizacja nie wraca na active

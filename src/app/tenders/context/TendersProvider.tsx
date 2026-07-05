@@ -146,5 +146,9 @@ export function TendersProvider({
     return <>{children}</>;
   }
 
-  return <TendersContextProvider value={value}>{children}</TendersContextProvider>;
+  return (
+    <TendersContextProvider value={value}>
+      <div className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">{children}</div>
+    </TendersContextProvider>
+  );
 }

@@ -537,11 +537,11 @@ export function TendersView({
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <div
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
-        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        data-mobile-scroll-root="tenders-list"
+        className="mobile-view-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain max-md:pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-[max(1rem,env(safe-area-inset-bottom))]"
       >
         {!hideModuleHeader && (
-        <div className="sticky top-0 z-20 px-4 sm:px-6 py-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
+        <div className="md:sticky md:top-0 z-20 px-4 sm:px-6 py-3 border-b border-border bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -569,8 +569,8 @@ export function TendersView({
         )}
 
         <div className="px-4 sm:px-6 py-2 space-y-2">
-        {/* V4 — Rząd 1: wyszukiwarka, status, odśwież */}
-        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 border-b border-border">
+        {/* V4 — Rząd 1: wyszukiwarka, status, odśwież (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
+        <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">
           <div className="flex flex-wrap gap-2 items-center">
             <div className="relative flex-1 min-w-[180px] max-w-3xl">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />

@@ -1,10 +1,20 @@
 /* Mobile / tablet — iOS Safari, Android Chrome, PWA */
 
-/* Admin shell — mobile: pełna wysokość (scroll wewnątrz widoków) */
+/* Admin shell — mobile: visualViewport (--app-height) z fallback 100dvh */
 .admin-app-shell {
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--app-height, 100dvh);
+  max-height: var(--app-height, 100dvh);
   min-height: 0;
+}
+
+/* SSOT scroll kontener widoku — TND-L-02 / MOBILE-P0-S1 */
+.mobile-view-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Admin shell — desktop: visualViewport z Chrome */
