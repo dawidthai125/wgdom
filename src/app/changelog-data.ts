@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.42",
+    label: "Deferred bootstrap — unified React hydration (#6E)",
+    items: [
+      {
+        type: "improve",
+        text: "DeferredBootstrapState (idle/running/done) — jednolite odświeżenie React po zakończeniu deferred bootstrap; Work Catalog i moduły admin czytają świeży LS bez race mountu.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.41",
     label: "Work Catalog P2.10 — Roboty ulubione",
     items: [

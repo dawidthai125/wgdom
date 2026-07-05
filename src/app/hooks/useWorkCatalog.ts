@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
+import { useDeferredBootstrap } from "@/app/context/DeferredBootstrapContext";
 import {
   TRADE_IDS,
   countActiveWorks,
@@ -63,13 +63,12 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     setStore(loadWorkCatalogStoreLocal());
   }, []);
 
+  const { generation } = useDeferredBootstrap();
+
   useEffect(() => {
-    const onDeferredBootstrap = () => {
-      reloadFromLocal();
-    };
-    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-  }, [reloadFromLocal]);
+    if (generation === 0) return;
+    reloadFromLocal();
+  }, [generation, reloadFromLocal]);
 
   const works = useMemo(() => {
     const raw = listWorksForRegion(store);

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.42 — Deferred bootstrap unified hydration (Bundle #6E)
+
+- **improve:** `DeferredBootstrapState` (idle/running/done) + scentralizowana hydracja React z LS po deferred bootstrap
+- **improve:** `useWorkCatalog` / `useWorkBundles` / `TendersProvider` — reload przez `generation` trigger
+- **test:** `LIB-DEFERRED-BOOTSTRAP-6E` · suite `smoke-work-catalog-p2-mvp` → 18 testIds
+- **app layer only** — zero CloudLoader/cloud-sync/Payroll diff
+
 ## 2.63.41 — Work Catalog P2.10 Roboty ulubione (Bundle #6D)
 
 - Gwiazdka ulubione na liście Roboty · filtr chip Ulubione · sort favorite-first · licznik · smoke P2.10 (manifest 17 testIds)

@@ -63,7 +63,6 @@ import {
   mergeDeletedOperationalNoteIds,
   normalizeDeletedOperationalNoteIds,
   OPERATIONAL_NOTES_BACKUP_AUX_KEYS,
-  WGDOM_DEFERRED_BOOTSTRAP_EVENT,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
@@ -154,6 +153,11 @@ import { reconcileModalScrollLock, useModalScrollLock } from "@/lib/modal-scroll
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
+import {
+  DeferredBootstrapProvider,
+  useRegisterDeferredHydration,
+} from "@/app/context/DeferredBootstrapContext";
+import type { DeferredAdminHydrationPatch } from "@/lib/deferred-bootstrap-hydrate";
 import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLocalStorage";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
@@ -999,24 +1003,46 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     installPayrollRuntimeTraceGlobals();
   }, []);
 
-  /** Deferred bootstrap scala kw-operational-notes w LS — odśwież notes + read-state w React. */
-  useEffect(() => {
-    const onDeferredBootstrap = () => {
-      void (async () => {
-        try {
-          const rawNotes = localStorage.getItem("kw-operational-notes");
-          if (rawNotes) {
-            setOperationalNotes(normalizeOperationalNotes(JSON.parse(rawNotes)));
-          }
-          const aux = await pullOperationalNotesAuxFromCloud();
-          setOperationalNotesReadState(aux.readState);
-          setOperationalNotesAuditLog(aux.auditLog);
-        } catch { /* offline */ }
-      })();
-    };
-    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-  }, [setOperationalNotes, setOperationalNotesReadState, setOperationalNotesAuditLog]);
+  const applyDeferredHydration = useCallback((patch: DeferredAdminHydrationPatch) => {
+    setSkipApplyWriteTimestamps(true);
+    try {
+      if (patch.contacts) setContacts(patch.contacts);
+      if (patch.employeeLeaves) setEmployeeLeaves(patch.employeeLeaves);
+      if (patch.recoverableCharges) setRecoverableCharges(patch.recoverableCharges);
+      if (patch.operationalNotes) setOperationalNotes(patch.operationalNotes);
+      if (patch.operationalNotesReadState) setOperationalNotesReadState(patch.operationalNotesReadState);
+      if (patch.operationalNotesAuditLog) setOperationalNotesAuditLog(patch.operationalNotesAuditLog);
+      if (patch.wmPrintTemplates) setWmPrintTemplates(patch.wmPrintTemplates);
+      if (patch.wmPrintJobDocs) setWmPrintJobDocs(patch.wmPrintJobDocs);
+      if (patch.wmPrintSettings) setWmPrintSettings(patch.wmPrintSettings);
+      if (patch.wmPrintHistory) setWmPrintHistory(patch.wmPrintHistory);
+      if (patch.deliveryPackagePublications) setDeliveryPackagePublications(patch.deliveryPackagePublications);
+      if (patch.electricalMeasurements) setElectricalMeasurements(patch.electricalMeasurements);
+      if (patch.electricalMeasurementRegistry) setElectricalMeasurementRegistry(patch.electricalMeasurementRegistry);
+      if (patch.electricalMeasurementSettings) setElectricalMeasurementSettings(patch.electricalMeasurementSettings);
+      if (patch.electricalSchematics) setElectricalSchematics(patch.electricalSchematics);
+    } finally {
+      setSkipApplyWriteTimestamps(false);
+    }
+  }, [
+    setContacts,
+    setEmployeeLeaves,
+    setRecoverableCharges,
+    setOperationalNotes,
+    setOperationalNotesReadState,
+    setOperationalNotesAuditLog,
+    setWmPrintTemplates,
+    setWmPrintJobDocs,
+    setWmPrintSettings,
+    setWmPrintHistory,
+    setDeliveryPackagePublications,
+    setElectricalMeasurements,
+    setElectricalMeasurementRegistry,
+    setElectricalMeasurementSettings,
+    setElectricalSchematics,
+  ]);
+
+  useRegisterDeferredHydration(applyDeferredHydration);
 
   const wmPrintSeedCheckedRef = useRef(false);
 
@@ -2515,5 +2541,11 @@ export { WorkerPhotoView } from "@/app/WorkerPhotoView";
 export { AppInner };
 
 export default function App() {
-  return <CloudLoader><AppInnerWithAuth/></CloudLoader>;
+  return (
+    <CloudLoader>
+      <DeferredBootstrapProvider>
+        <AppInnerWithAuth />
+      </DeferredBootstrapProvider>
+    </CloudLoader>
+  );
 }

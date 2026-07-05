@@ -41,6 +41,7 @@
         "LIB-WORK-CATALOG-BUNDLES-PERSIST-P28",
         "SMOKE-WORK-CATALOG-BUNDLES-P29",
         "SMOKE-WORK-CATALOG-FAVORITE-P210",
+        "LIB-DEFERRED-BOOTSTRAP-6E",
         "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
         "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
         "LIB-WORK-CATALOG-CSV-PREVIEW-P3.2A",
@@ -110,7 +111,8 @@
         "SMOKE-WORK-CATALOG-BUNDLES-P28",
         "LIB-WORK-CATALOG-BUNDLES-PERSIST-P28",
         "SMOKE-WORK-CATALOG-BUNDLES-P29",
-        "SMOKE-WORK-CATALOG-FAVORITE-P210"
+        "SMOKE-WORK-CATALOG-FAVORITE-P210",
+        "LIB-DEFERRED-BOOTSTRAP-6E"
       ]
     }
   },
@@ -488,6 +490,18 @@
       "id": "SMOKE-WORK-CATALOG-FAVORITE-P210",
       "class": "smoke",
       "path": "scripts/smoke-test-work-catalog-favorite-p2.10.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-DEFERRED-BOOTSTRAP-6E",
+      "class": "lib",
+      "path": "scripts/test-deferred-bootstrap-state-6e.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

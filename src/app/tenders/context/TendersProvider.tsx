@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
+import { useDeferredBootstrap } from "@/app/context/DeferredBootstrapContext";
 import { useOwnerTenderDecisions } from "@/app/tenders/strategy/hooks/useOwnerTenderDecisions";
 import {
   TendersContextProvider,
@@ -67,14 +67,12 @@ export function TendersProvider({
     setProfileVersion((v) => v + 1);
   }, []);
 
+  const { generation } = useDeferredBootstrap();
+
   useEffect(() => {
-    if (!enabled) return;
-    const onDeferredBootstrap = () => {
-      bumpProfileVersion();
-    };
-    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-  }, [enabled, bumpProfileVersion]);
+    if (generation === 0) return;
+    bumpProfileVersion();
+  }, [generation, bumpProfileVersion]);
 
   const ownerDecisions = useOwnerTenderDecisions();
   const snapshot = useTendersStrategySnapshot(input, profileVersion, ownerDecisions);
