@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.43",
+    label: "Przetargi — odświeżanie wyceny po zapisie Biblioteki Robót (#5C-0A)",
+    items: [
+      {
+        type: "fix",
+        text: "pricingCatalogRevision — globalny token invalidacji React: wycena, BOQ, benchmark i pipeline odświeżają się po zmianie ceny/aktywności w Bibliotece Robót (bez reloadu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.42",
     label: "Deferred bootstrap — unified React hydration (#6E)",
     items: [

@@ -128,7 +128,7 @@ export function TenderBidProposalPanel({
     return resolveActiveCatalogForTender({
       referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
     });
-  }, [dictRevision]);
+  }, [dictRevision, tendersCtx?.pricingCatalogRevision]);
 
   const catalogLinePricing = useMemo(() => {
     if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;

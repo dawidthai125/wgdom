@@ -54,7 +54,7 @@ export function TenderDetailPage({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { snapshot, profileVersion } = useTendersContext();
+  const { snapshot, profileVersion, pricingCatalogRevision } = useTendersContext();
   const { pipeline } = snapshot;
 
   const parsedDetail = useMemo(
@@ -158,6 +158,7 @@ export function TenderDetailPage({
     athPreviewEnabled,
     enabled: Boolean(item),
     priceOverridesRevision: pricingRevision,
+    pricingCatalogRevision,
   });
 
   const przetargCommand = useTenderPrzetargCommandContext(

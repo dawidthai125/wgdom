@@ -9,6 +9,9 @@ export type TendersContextValue = {
   strategicAlerts: TendersStrategySnapshot["ownerAlerts"];
   profileVersion: number;
   bumpProfileVersion: () => void;
+  /** #5C-0A — React invalidation token po zapisie cen Biblioteki Robót (nie wersja danych). */
+  pricingCatalogRevision: number;
+  bumpPricingCatalogRevision: () => void;
   activeTab: TendersTabId;
   setActiveTab: (tab: TendersTabId) => void;
   listExpandedId: string | null;

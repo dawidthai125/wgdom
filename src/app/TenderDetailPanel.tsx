@@ -839,11 +839,14 @@ type TenderDetailPanelHostedProps = Omit<
 /** Legacy accordion — mount runtime + Panel (NG-02-S6). */
 export function TenderDetailPanelHosted(props: TenderDetailPanelHostedProps) {
   const [pricingRevision, setPricingRevision] = useState(0);
+  const tendersCtx = useTendersContextOptional();
+  const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
   const pipelineRuntime = useTenderPipelineRuntime({
     item: props.item,
     onUpdate: props.onUpdate,
     athPreviewEnabled: props.athPreviewEnabled,
     priceOverridesRevision: pricingRevision,
+    pricingCatalogRevision,
   });
 
   return (

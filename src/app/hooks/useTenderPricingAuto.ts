@@ -21,6 +21,8 @@ export function useTenderPricingAuto(opts: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
   priceOverridesRevision?: number;
+  /** #5C-0A — invalidation token po zapisie Biblioteki Robót */
+  pricingCatalogRevision?: number;
   enabled?: boolean;
 }): {
   ownerFinanceProposal: TenderBidProposal | null;
@@ -28,10 +30,11 @@ export function useTenderPricingAuto(opts: {
   /** NG-03 P0 — ten sam odczyt co kalkulacja wyceny (UI Ceny). */
   priceOverrides: TenderPriceOverrideEntry[];
 } {
-  const { item, swz, priceOverridesRevision = 0, enabled = true } = opts;
+  const { item, swz, priceOverridesRevision = 0, pricingCatalogRevision = 0, enabled = true } = opts;
 
   const { priceOverrides, proposal } = useMemo(() => {
     void priceOverridesRevision;
+    void pricingCatalogRevision;
     const store = loadTenderPriceOverridesStoreLocal();
     const overrides = getTenderPriceOverrides(store, item.id).overrides;
 
@@ -72,6 +75,7 @@ export function useTenderPricingAuto(opts: {
     swz,
     item.swzAnalysis,
     priceOverridesRevision,
+    pricingCatalogRevision,
   ]);
 
   return {

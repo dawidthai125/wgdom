@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, Eye, Loader2 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { buildKosztorysV4Display } from "@/lib/tender-detail-v4-display";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { findTrustDimension } from "@/lib/tender-trust-layer";
@@ -135,6 +136,9 @@ export function TenderKosztorysWorkspace({
   onRetryParse?: () => void;
   trustAssessment: TenderTrustAssessment;
 }) {
+  const tendersCtx = useTendersContextOptional();
+  const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
+
   const session = useMemo(
     () => ({ ...processSession, lazyEnabled: true }),
     [processSession],
@@ -145,9 +149,9 @@ export function TenderKosztorysWorkspace({
     retryNonce,
     enabled: Boolean(processSession),
   });
-  const boqView = useMemo(() => buildKosztorysBoqExplorerView({ item }), [item]);
-  const pro = useMemo(() => buildKosztorysProDashboard(item, boqView), [item, boqView]);
-  const display = useMemo(() => buildKosztorysV4Display(item), [item]);
+  const boqView = useMemo(() => buildKosztorysBoqExplorerView({ item }), [item, pricingCatalogRevision]);
+  const pro = useMemo(() => buildKosztorysProDashboard(item, boqView), [item, boqView, pricingCatalogRevision]);
+  const display = useMemo(() => buildKosztorysV4Display(item), [item, pricingCatalogRevision]);
   const k = item.tenderDossier?.kosztorys;
   const phase = useMemo(
     () => health?.currentPhase ?? deriveKosztorysProcessPhase(item, session),

@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeferredBootstrap } from "@/app/context/DeferredBootstrapContext";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import {
   TRADE_IDS,
   countActiveWorks,
@@ -58,6 +59,11 @@ const REGION_LABELS_PL: Record<string, string> = {
 
 export function useWorkCatalog(): UseWorkCatalogResult {
   const [store, setStore] = useState<WorkCatalogStore>(() => loadWorkCatalogStoreLocal());
+  const tendersCtx = useTendersContextOptional();
+
+  const notifyPricingCatalogChanged = useCallback(() => {
+    tendersCtx?.bumpPricingCatalogRevision();
+  }, [tendersCtx]);
 
   const reloadFromLocal = useCallback(() => {
     setStore(loadWorkCatalogStoreLocal());
@@ -98,6 +104,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
         if (!result.saved) {
           return { ok: false, message: "Zapis zablokowany przez tryb katalogu" };
         }
+        notifyPricingCatalogChanged();
         return { ok: true };
       } catch {
         return {
@@ -106,7 +113,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
         };
       }
     },
-    [store],
+    [store, notifyPricingCatalogChanged],
   );
 
   const updateWorkActive = useCallback(
@@ -133,11 +140,12 @@ export function useWorkCatalog(): UseWorkCatalogResult {
             message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
           };
         }
+        notifyPricingCatalogChanged();
       }
 
       return { ok: true };
     },
-    [store],
+    [store, notifyPricingCatalogChanged],
   );
 
   const toggleWorkFavorite = useCallback(
@@ -193,6 +201,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
             message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
           };
         }
+        notifyPricingCatalogChanged();
         return { ok: true, updatedIds: result.updatedIds };
       } catch {
         return {
@@ -201,7 +210,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
         };
       }
     },
-    [store],
+    [store, notifyPricingCatalogChanged],
   );
 
   return {

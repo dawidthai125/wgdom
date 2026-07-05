@@ -42,6 +42,7 @@
         "SMOKE-WORK-CATALOG-BUNDLES-P29",
         "SMOKE-WORK-CATALOG-FAVORITE-P210",
         "LIB-DEFERRED-BOOTSTRAP-6E",
+        "LIB-PRICING-CATALOG-REVISION-5C0A",
         "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
         "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
         "LIB-WORK-CATALOG-CSV-PREVIEW-P3.2A",
@@ -112,7 +113,8 @@
         "LIB-WORK-CATALOG-BUNDLES-PERSIST-P28",
         "SMOKE-WORK-CATALOG-BUNDLES-P29",
         "SMOKE-WORK-CATALOG-FAVORITE-P210",
-        "LIB-DEFERRED-BOOTSTRAP-6E"
+        "LIB-DEFERRED-BOOTSTRAP-6E",
+        "LIB-PRICING-CATALOG-REVISION-5C0A"
       ]
     }
   },
@@ -502,6 +504,18 @@
       "id": "LIB-DEFERRED-BOOTSTRAP-6E",
       "class": "lib",
       "path": "scripts/test-deferred-bootstrap-state-6e.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PRICING-CATALOG-REVISION-5C0A",
+      "class": "lib",
+      "path": "scripts/test-tender-pricing-catalog-revision-5c0a.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

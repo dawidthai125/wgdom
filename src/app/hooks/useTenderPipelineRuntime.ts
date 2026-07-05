@@ -38,6 +38,8 @@ export function useTenderPipelineRuntime(opts: {
   athPreviewEnabled?: boolean;
   enabled?: boolean;
   priceOverridesRevision?: number;
+  /** #5C-0A — invalidation token po zapisie Biblioteki Robót */
+  pricingCatalogRevision?: number;
 }): TenderPipelineRuntime {
   const {
     item,
@@ -46,6 +48,7 @@ export function useTenderPipelineRuntime(opts: {
     athPreviewEnabled = true,
     enabled = true,
     priceOverridesRevision = 0,
+    pricingCatalogRevision = 0,
   } = opts;
 
   const [externalRunning, setExternalRunning] = useState(false);
@@ -142,6 +145,7 @@ export function useTenderPipelineRuntime(opts: {
     item,
     swz: swz ?? item.swzAnalysis ?? null,
     priceOverridesRevision,
+    pricingCatalogRevision,
     enabled,
   });
 

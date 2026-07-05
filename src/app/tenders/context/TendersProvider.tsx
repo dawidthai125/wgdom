@@ -59,12 +59,17 @@ export function TendersProvider({
   );
 
   const [profileVersion, setProfileVersion] = useState(0);
+  const [pricingCatalogRevision, setPricingCatalogRevision] = useState(0);
   const [activeTab, setActiveTabState] = useState<TendersTabId>(() => loadActiveTab(canViewWorkCatalog));
   const [listExpandedId, setListExpandedId] = useState<string | null>(null);
   const [strategyFocusTenderId, setStrategyFocusTenderId] = useState<string | null>(null);
 
   const bumpProfileVersion = useCallback(() => {
     setProfileVersion((v) => v + 1);
+  }, []);
+
+  const bumpPricingCatalogRevision = useCallback(() => {
+    setPricingCatalogRevision((v) => v + 1);
   }, []);
 
   const { generation } = useDeferredBootstrap();
@@ -116,6 +121,8 @@ export function TendersProvider({
       strategicAlerts: snapshot.ownerAlerts,
       profileVersion,
       bumpProfileVersion,
+      pricingCatalogRevision,
+      bumpPricingCatalogRevision,
       activeTab,
       setActiveTab,
       listExpandedId,
@@ -130,6 +137,8 @@ export function TendersProvider({
       ownerDecisions,
       profileVersion,
       bumpProfileVersion,
+      pricingCatalogRevision,
+      bumpPricingCatalogRevision,
       activeTab,
       setActiveTab,
       listExpandedId,

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.43 — Pricing refresh after Work Catalog save (Bundle #5C-0A)
+
+- **fix:** `pricingCatalogRevision` w `TendersContext` — invalidacja wyceny Przetargów po zapisie cen/aktywności w Bibliotece Robót
+- **fix:** `useTenderPricingAuto` · BOQ · panel Wycena — przeliczenie bez reloadu strony
+- **test:** `LIB-PRICING-CATALOG-REVISION-5C0A` · suite `smoke-work-catalog-p2-mvp` → 19 testIds
+- **app layer only** — zero resolver/PB-3/cloud-sync diff
+
 ## 2.63.42 — Deferred bootstrap unified hydration (Bundle #6E)
 
 - **improve:** `DeferredBootstrapState` (idle/running/done) + scentralizowana hydracja React z LS po deferred bootstrap
