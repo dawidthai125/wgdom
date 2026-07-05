@@ -1779,7 +1779,7 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 | **Stan** | `tender-pipeline-types.ts` | `PipelineState` enum · `TenderPipelineRuntime` |
 | **Dev** | `TenderPipelineDevTimeline.tsx` | Timeline tylko `import.meta.env.DEV` |
 | **Panel** | `TenderDetailPanel.tsx` | **Render only** — `pipelineRuntime` przez props |
-| **Legacy** | `TenderDetailPanelHosted` | Accordion `TendersView` gdy `TENDERS_V4_ROUTING=false` |
+| **Legacy** | `TenderDetailPanelHosted` | Accordion `TendersView` gdy `TENDERS_V4_ROUTING=false` · **DEPRECATED not REMOVED** — SSOT: [`NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · Removal Checklist przed usunięciem |
 
 **PipelineState:** `Idle` → `Notice` → `Discovery` → `External` → `Heavy` → `Pricing` → `Ready` | `Failed`
 

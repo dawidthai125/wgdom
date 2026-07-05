@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.33** · **runtime `a4cd5c2`** · **docs `b7b4deb`** · **★ FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.34** · **runtime `eb0d51b`** · **★ FEATURE DEVELOPMENT RESTART** · **Bundle C CLOSED** · **NG-03 Maintenance CLOSED (docs)** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -77,8 +77,8 @@
 
 | # | Następny bundle | Klasa | Status |
 |---|-----------------|-------|--------|
-| **1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM | WIP w tree ~90% · PLAN następny |
-| 2 | NG-03 R-03 docs hygiene | docs | OPEN |
+| **1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM | **CLOSED** · prod **2.63.34** · `eb0d51b` · Z-05 PASS |
+| **2** | **NG-03 Maintenance** (R-03 · M-06 · A-03-1) | docs | **CLOSED** (docs commit) · R-03+M-06+A-03-1 |
 | 3 | Grouped documents test | FEATURE | OPEN |
 | 4 | Roboty 2.0 MIN | FEATURE/UI | OPEN |
 | 5 | Work Catalog P2.7+ | FEATURE | OPEN · owner brief |
@@ -431,6 +431,16 @@
 ---
 
 ## NG-03 — Tender Workspace UX · **EPIC CLOSED** (2.63.7)
+
+## NG-03 Maintenance — R-03 · M-06 · A-03-1 · **CLOSED** (docs · 2026-07-05)
+
+| Element | SSOT |
+|---------|------|
+| **R-03** freeze banner | [`docs/NG-03-DESIGN-FREEZE.md`](docs/NG-03-DESIGN-FREEZE.md) · [`audit/NG-03-EPIC-CLOSE-REPORT.md`](audit/NG-03-EPIC-CLOSE-REPORT.md) |
+| **M-06** deprecation map | [`docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · Removal Checklist |
+| **A-03-1** overlap audit | [`docs/A-03-1-STATUS-OVERLAP-AUDIT.md`](docs/A-03-1-STATUS-OVERLAP-AUDIT.md) |
+
+**Zero** zmian `src/` · Protected Core GREEN.
 
 ---
 

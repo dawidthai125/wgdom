@@ -1,9 +1,11 @@
 # NG-03 — Tender Workspace UX EPIC CLOSE REPORT
 
 > **Status dokumentu:** **FINAL** · **EPIC NG-03 CLOSED** (seria 03.0 → 03.7)  
-> **Data closeout:** 2026-06-30  
-> **Production:** **2.63.7** · commit _pending push_  
-> **Design freeze SSOT:** [`docs/NG-03-DESIGN-FREEZE.md`](../docs/NG-03-DESIGN-FREEZE.md)  
+> **Data closeout epic:** 2026-06-30 · **docs maintenance (R-03):** 2026-07-05  
+> **Production:** **2.63.7** (tab SSOT **2.63.8**)  
+> **Design freeze SSOT:** [`docs/NG-03-DESIGN-FREEZE.md`](../docs/NG-03-DESIGN-FREEZE.md) · banner **EPIC CLOSED** (R-03)  
+> **Deprecation legacy:** [`docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](../docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) (M-06)  
+> **A-03-1 overlap audit:** [`docs/A-03-1-STATUS-OVERLAP-AUDIT.md`](../docs/A-03-1-STATUS-OVERLAP-AUDIT.md)  
 > **Audyt źródłowy:** [`audit/NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md`](NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md)
 
 ---
@@ -169,6 +171,8 @@ npm run build
 | TP200B | Kosztorys fidelity `rows` cap | Planned epic |
 | Mobile Certification | Field validation Pass 1–4 | Osobny program od NG-03 |
 | `schematic_edited` Audit Hub | P1.1 | Tylko na polecenie |
+| **M-06** | `TenderDetailPanelHosted` deprecation map | **CLOSED** docs · 2026-07-05 |
+| **A-03-1** | Status overlap audit (Ribbon/Strip/V2) | **CLOSED** audit-only · 2026-07-05 |
 
 ---
 

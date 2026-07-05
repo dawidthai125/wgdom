@@ -1,11 +1,13 @@
 # NG-03 — Tender Workspace UX · DESIGN FREEZE
 
-> **Status:** **DESIGN FREEZE** · SSOT implementacji NG-03  
-> **Data freeze:** 2026-06-30  
-> **Baseline prod:** **v2.62.99** · https://www.wgdom.fun  
-> **Audyt źródłowy:** [`audit/NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md`](../audit/NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md)  
+> **Status:** **EPIC CLOSED** · prod **v2.63.7** (tab SSOT hotfix **v2.63.8**)  
+> **Data freeze:** 2026-06-30 · **closeout docs:** 2026-07-05  
+> **Baseline prod (epic):** **v2.63.7** · https://www.wgdom.fun  
+> **Closeout:** [`audit/NG-03-EPIC-CLOSE-REPORT.md`](../audit/NG-03-EPIC-CLOSE-REPORT.md)  
+> **Audyt źródłowy (historyczny):** [`audit/NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md`](../audit/NG-03-TENDER-WORKSPACE-UX-ARCHITECTURE-AUDIT.md) — jeśli brak pliku, SSOT closeout powyżej  
 > **Workflow techniczny (niezmienny):** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md)  
-> **Pipeline (niezmienny):** NG-02 `useTenderPipelineRuntime` — bez zmian w tej fazie
+> **Pipeline (niezmienny):** NG-02 `useTenderPipelineRuntime` — bez zmian w tej fazie  
+> **Deprecation legacy panel:** [`NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md)
 
 ---
 
@@ -13,10 +15,12 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Faza** | NG-03.0 DESIGN FREEZE |
-| **Następna faza** | **NG-03.1 Navigation** (po akceptacji tego dokumentu) |
-| **Zakres freeze** | Prezentacja UI · nawigacja · layout · progressive disclosure |
-| **Poza freeze** | Parsery · dossier · sync KV · scoring engines · NG-02 runtime |
+| **Faza** | NG-03.0–03.7 **CLOSED** |
+| **Epic** | **NG-03 Tender Workspace UX — EPIC CLOSED** |
+| **Wersje prod** | 2.63.0 → 2.63.7 · P0 tab SSOT **2.63.8** (osobny hotfix) |
+| **Następna faza** | **Brak** — maintenance docs-only (R-03 · M-06) w STABILIZATION WINDOW |
+
+**Hasło sesji:** „kontynuuj WGDOM” + scope **NG-03** = read-only · **bez** nowego scope bez AUDIT + Owner GO.
 
 **Zasady wiążące implementację:**
 
