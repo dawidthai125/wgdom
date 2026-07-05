@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.40 — Work Catalog P2.9 Pakiety filtry i badge (Bundle #6C-A)
+
+- **improve:** Pakiety — filtr Ulubione (AND z search/branża/aktywność), badge kroków osieroconych/nieaktywnych, licznik ulubionych
+- **test:** `SMOKE-WORK-CATALOG-BUNDLES-P29` · suite `smoke-work-catalog-p2-mvp` → 16 testIds
+- **app layer only** — zero lib/sync diff
+
 ## 2.63.39 — Work Catalog P2.8 Pakiety UX MIN (Bundle #6B)
 
 - **improve:** Pakiety — walidacja zapisu (≥1 krok, poprawny workId), ulubione + sort favorite first, szacowany czas (dni)

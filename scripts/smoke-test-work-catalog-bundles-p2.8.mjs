@@ -124,6 +124,7 @@ assert(
     search: "",
     tradeId: "all",
     active: "all",
+    favorite: "all",
   })[0].favorite === true,
 );
 

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.40",
+    label: "Work Catalog P2.9 — Pakiety filtry i badge kroków",
+    items: [
+      {
+        type: "improve",
+        text: "Biblioteka Robót → Pakiety: filtr Ulubione (współpracuje z wyszukiwaniem, branżą i aktywnością), badge osieroconych lub nieaktywnych kroków na liście oraz licznik ulubionych w nagłówku.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.39",
     label: "Work Catalog P2.8 — Pakiety UX MIN",
     items: [

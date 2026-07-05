@@ -10,13 +10,20 @@ import {
   countFilteredWorkCatalogBundleList,
   filterWorkCatalogBundleList,
   type WorkCatalogBundleActiveFilter,
+  type WorkCatalogBundleFavoriteFilter,
   type WorkCatalogBundleListFilters,
 } from "@/app/work-catalog/work-catalog-bundle-list";
+import { summarizeBundleStepHealth } from "@/app/work-catalog/work-catalog-bundle";
 
 const ACTIVE_FILTER_OPTIONS: { id: WorkCatalogBundleActiveFilter; label: string }[] = [
   { id: "all", label: "Wszystkie" },
   { id: "active", label: "Aktywne" },
   { id: "inactive", label: "Nieaktywne" },
+];
+
+const FAVORITE_FILTER_OPTIONS: { id: WorkCatalogBundleFavoriteFilter; label: string }[] = [
+  { id: "all", label: "Wszystkie" },
+  { id: "favorites", label: "Ulubione" },
 ];
 
 type Props = {
@@ -58,15 +65,27 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
     [bundles, filteredBundles],
   );
 
-  const counterLine =
-    counts.filtered === counts.total
-      ? `${counts.total} pakietów · ${counts.active} aktywnych`
-      : `${counts.filtered} z ${counts.total} · ${counts.active} aktywnych w bazie`;
+  const counterLine = useMemo(() => {
+    const favoriteSuffix = counts.favorite > 0 ? ` · ${counts.favorite} ulubionych` : "";
+    if (counts.filtered === counts.total) {
+      return `${counts.total} pakietów · ${counts.active} aktywnych${favoriteSuffix}`;
+    }
+    return `${counts.filtered} z ${counts.total} · ${counts.active} aktywnych w bazie${favoriteSuffix}`;
+  }, [counts]);
 
   const hasFilters =
     filters.search.trim().length > 0
     || filters.tradeId !== "all"
-    || filters.active !== DEFAULT_WORK_CATALOG_BUNDLE_LIST_FILTERS.active;
+    || filters.active !== DEFAULT_WORK_CATALOG_BUNDLE_LIST_FILTERS.active
+    || filters.favorite !== DEFAULT_WORK_CATALOG_BUNDLE_LIST_FILTERS.favorite;
+
+  const bundleStepHealthById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof summarizeBundleStepHealth>>();
+    for (const bundle of filteredBundles) {
+      map.set(bundle.id, summarizeBundleStepHealth(bundle, catalogStore));
+    }
+    return map;
+  }, [catalogStore, filteredBundles]);
 
   const syncDraftFromStore = useCallback(
     (bundleId: string) => {
@@ -210,6 +229,27 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
           {counterLine}
         </p>
 
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtr ulubionych pakietów">
+          {FAVORITE_FILTER_OPTIONS.map((opt) => {
+            const selected = filters.favorite === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setFilters((prev) => ({ ...prev, favorite: opt.id }))}
+                className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors ${
+                  selected
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-card text-foreground hover:bg-muted"
+                }`}
+                aria-pressed={selected}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtr aktywności pakietów">
           {ACTIVE_FILTER_OPTIONS.map((opt) => {
             const selected = filters.active === opt.id;
@@ -284,12 +324,23 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
           <div className="flex flex-col gap-4 pb-4">
             {filteredBundles.length === 0 && !draftBundle ? (
               <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-                Brak pakietów dla wybranych filtrów.
+                {filters.favorite === "favorites"
+                  ? "Brak ulubionych pakietów dla wybranych filtrów."
+                  : "Brak pakietów dla wybranych filtrów."}
               </div>
             ) : (
               <ul className="flex flex-col gap-2" aria-label="Lista pakietów robót">
                 {filteredBundles.map((bundle) => {
                   const selected = selectedBundleId === bundle.id;
+                  const stepHealth = bundleStepHealthById.get(bundle.id);
+                  const orphanCount = stepHealth?.orphanCount ?? 0;
+                  const inactiveCount = stepHealth?.inactiveCount ?? 0;
+                  const stepBadgeLabel =
+                    orphanCount > 0
+                      ? `Brak roboty w ${orphanCount} ${orphanCount === 1 ? "kroku" : "krokach"}`
+                      : inactiveCount > 0
+                        ? `Nieaktywna robota w ${inactiveCount} ${inactiveCount === 1 ? "kroku" : "krokach"}`
+                        : null;
                   return (
                     <li
                       key={bundle.id}
@@ -326,6 +377,19 @@ export function WorkCatalogBundlesPanel({ isEmbedded, tradesOrder }: Props) {
                               ? ` · ~${bundle.estimatedDurationDays} dni`
                               : ""}
                           </p>
+                          {stepBadgeLabel && (
+                            <p
+                              className={`mt-1 text-[11px] font-medium ${
+                                orphanCount > 0
+                                  ? "text-destructive"
+                                  : "text-amber-700 dark:text-amber-300"
+                              }`}
+                              role="status"
+                            >
+                              {orphanCount > 0 ? "⚠ " : "◦ "}
+                              {stepBadgeLabel}
+                            </p>
+                          )}
                         </button>
                         <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-full px-2 text-xs font-medium">
                           <input

@@ -84,7 +84,8 @@
 | **5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** · prod **2.63.37** · `7e4eb57` |
 | **5B** | **Bundle #5B — Work Catalog P2.7 Pakiety robót MIN** | FEATURE UI | **CLOSED** · prod **2.63.38** · `9aad48c` · suite 12 testIds |
 | **6A** | **Bundle #6A — Work Catalog stabilization** | docs + test manifest | **CLOSED** · prod **2.63.38** · `6af0427` · suite **13** testIds |
-| **6B** | **Bundle #6B — Work Catalog P2.8 MIN UX** | FEATURE UI | **CLOSED** (commit pending push) · **2.63.39** · suite **15** testIds |
+| **6B** | **Bundle #6B — Work Catalog P2.8 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.39** · `1fd3627` · suite **15** testIds |
+| **6C-A** | **Bundle #6C-A — Work Catalog P2.9 MIN UX** | FEATURE UI | **CLOSED** (commit pending push) · **2.63.40** · suite **16** testIds |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 

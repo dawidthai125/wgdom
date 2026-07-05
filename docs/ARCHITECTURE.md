@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #6B Work Catalog P2.8** · Pakiety UX MIN · prod baseline **2.63.39** pending push)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #6C-A Work Catalog P2.9** · Pakiety filtry i badge · **2.63.40** pending push)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1884,9 +1884,9 @@ TendersModule (v4Detail z pathname)
 
 ---
 
-### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2 MVP UI (v2.62.85 → P2.8 v2.63.39)
+### 12.1.22 Biblioteka Robót i Cennik v3.0 — Foundation P1 + P2 MVP UI (v2.62.85 → P2.9 v2.63.40)
 
-**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP UI PRODUCTION** · **P2.7 Pakiety robót MIN** (v2.63.38) · **P2.8 Pakiety UX MIN** (v2.63.39) · PB-3 bootstrap **PROD** · cutover Przetargi / PB-WRITE **OPEN**  
+**Status:** **P1 FOUNDATION CLOSED** · **P2.1–P2.6 MVP UI PRODUCTION** · **P2.7 Pakiety robót MIN** (v2.63.38) · **P2.8 Pakiety UX MIN** (v2.63.39) · **P2.9 Pakiety filtry i badge** (v2.63.40) · PB-3 bootstrap **PROD** · cutover Przetargi / PB-WRITE **OPEN**  
 **FREEZE P1:** [`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](work-catalog/FOUNDATION-FREEZE-v1.0.md)  
 **FREEZE P2:** [`docs/work-catalog/P2-FREEZE-v1.0.md`](work-catalog/P2-FREEZE-v1.0.md) · [`P2-MVP-FINAL-SUMMARY.md`](work-catalog/P2-MVP-FINAL-SUMMARY.md)  
 **Raport P1:** [`audit/P1-WORK-CATALOG-COMPLETION-REPORT.md`](../audit/P1-WORK-CATALOG-COMPLETION-REPORT.md)
@@ -1913,6 +1913,7 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 | P2.6 | `WorkCatalogCompletenessPanel` — Uzupełniono X% · panel Branże |
 | **P2.7** | **Pakiety robót MIN** — `WorkCatalogBundlesPanel` · `useWorkBundles` · `work-catalog-bundle.ts` · persist `saveWorkBundleStore` · dialog usuwania · **zero lib diff** |
 | **P2.8** | **Pakiety UX MIN** — walidacja zapisu (≥1 krok + workId) · ulubione + sort favorite first · `estimatedDurationDays` · **app layer only** |
+| **P2.9** | **Pakiety filtry i badge** — chip Ulubione (AND filtrów) · badge osieroconych/nieaktywnych kroków na liście · licznik ulubionych · **app layer only** |
 
 **Hook reload:** `useWorkCatalog` i `useWorkBundles` nasłuchują `WGDOM_DEFERRED_BOOTSTRAP_EVENT` — po PB-3 / deferred merge store odświeża się bez remount widoku.
 
@@ -1924,7 +1925,7 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 
 **Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` + `kw-wgdom-work-bundles` · zapis po edycji UI (`saveWorkCatalogRouted` / `saveWorkBundleStore`).
 
-**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (**15** testIds, `scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–**P2.8** · **`LIB-WORK-CATALOG-BOOTSTRAP-PB3`** · P3 lib w `gate-b-relevant`
+**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (**16** testIds, `scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–**P2.9** · **`LIB-WORK-CATALOG-BOOTSTRAP-PB3`** · P3 lib w `gate-b-relevant`
 
 **Gate B:** `npm run test:infra -- --suite smoke-work-catalog-p2-mvp` (orchestrator `scope:work-catalog` — backlog TI-B5).
 

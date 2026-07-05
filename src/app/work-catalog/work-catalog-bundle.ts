@@ -324,3 +324,34 @@ export function resolveBundleStepWorkRef(
   }
   return { ok: true, workNamePl: work.namePl };
 }
+
+export type BundleStepHealthSummary = {
+  orphanCount: number;
+  inactiveCount: number;
+};
+
+/** P2.9.2 — podsumowanie kroków do badge na liście pakietów (read-only). */
+export function summarizeBundleStepHealth(
+  bundle: WorkBundle,
+  catalogStore: WorkCatalogStore,
+): BundleStepHealthSummary {
+  let orphanCount = 0;
+  let inactiveCount = 0;
+
+  for (const step of bundle.steps) {
+    if (!step.workId?.trim()) {
+      orphanCount += 1;
+      continue;
+    }
+    const ref = resolveBundleStepWorkRef(catalogStore, step.workId);
+    if (!ref.ok) {
+      orphanCount += 1;
+      continue;
+    }
+    if (ref.warning) {
+      inactiveCount += 1;
+    }
+  }
+
+  return { orphanCount, inactiveCount };
+}

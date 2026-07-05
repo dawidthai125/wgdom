@@ -5,23 +5,27 @@
 import { tradeLabelPl, type TradeId, type WorkBundle } from "@/lib/work-catalog";
 
 export type WorkCatalogBundleActiveFilter = "all" | "active" | "inactive";
+export type WorkCatalogBundleFavoriteFilter = "all" | "favorites";
 
 export interface WorkCatalogBundleListFilters {
   search: string;
   tradeId: TradeId | "all";
   active: WorkCatalogBundleActiveFilter;
+  favorite: WorkCatalogBundleFavoriteFilter;
 }
 
 export const DEFAULT_WORK_CATALOG_BUNDLE_LIST_FILTERS: WorkCatalogBundleListFilters = {
   search: "",
   tradeId: "all",
   active: "active",
+  favorite: "all",
 };
 
 export interface WorkCatalogBundleListCounts {
   total: number;
   filtered: number;
   active: number;
+  favorite: number;
 }
 
 /** P2.8.2 — ulubione na górze, potem nazwa PL. */
@@ -54,6 +58,7 @@ export function filterWorkCatalogBundleList(
     if (filters.tradeId !== "all" && bundle.primaryTradeId !== filters.tradeId) return false;
     if (filters.active === "active" && !bundle.active) return false;
     if (filters.active === "inactive" && bundle.active) return false;
+    if (filters.favorite === "favorites" && !bundle.favorite) return false;
     if (!matchesSearch(bundle, query)) return false;
     return true;
   });
@@ -63,7 +68,8 @@ export function filterWorkCatalogBundleList(
 
 export function countWorkCatalogBundleList(bundles: WorkBundle[]): WorkCatalogBundleListCounts {
   const active = bundles.filter((bundle) => bundle.active).length;
-  return { total: bundles.length, filtered: bundles.length, active };
+  const favorite = bundles.filter((bundle) => bundle.favorite).length;
+  return { total: bundles.length, filtered: bundles.length, active, favorite };
 }
 
 export function countFilteredWorkCatalogBundleList(
