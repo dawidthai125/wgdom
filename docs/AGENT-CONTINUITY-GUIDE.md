@@ -1,19 +1,19 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.30** · HEAD **`24bde6e`** · https://www.wgdom.fun  
-> **Data:** 2026-07-04 · **★ SYNC-ARCH-01 RC-B-1 CLOSED** (`35f37b1` PWRB + I-1…I-4 · `24bde6e` overlay cleanup) · **PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE · faza PRODUCTION OBSERVATION** · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.63.33** · runtime **`a4cd5c2`** · docs **`b7b4deb`** · https://www.wgdom.fun  
+> **Data:** 2026-07-05 · **★ FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-04):** **RC-B-1 (re-add po delete → znika po refresh) — CLOSED** przez PWRB facade + inwarianty I-1…I-4. Closeout: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). **Przed zmianą sync/payroll** czytaj [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) — **nie dotykaj** `cloud-sync.ts` / Edge bez AUDIT.
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
-> Trwa **PAYROLL & SUPABASE RECOVERY PROGRAM** (faza: PRODUCTION OBSERVATION). Wdrożone i obserwowane na produkcji:
-> - **PR-PAY-S7-5 ETAP 1** (`ae132bc`, DEPLOYED) — cross-device tombstony week-employees (S7-5-1 sync `kw-week-employees-deleted-ids` + S7-5-2 Edge tombstone-aware przed UNION + restore-aware). Rozwiązuje problem **(B) resurrection**. Functional Obs **PASS**, Performance/AC8–AC11 (multi-device) **OPEN**.
-> - **PR-PERF-EDGE-OPT-A** (`609ae53`, DEPLOYED) — Edge `batch-get` → order-preserving `mget` (N `SELECT` → 1 `SELECT ... IN`). Functional Obs **PASS**, Performance (CPU/SELECT) **OPEN**.
-> - **Edge-Opt-B** — **MASTER AUDIT COMPLETE** ([`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md)) · Design Freeze **NOT STARTED** · Implementation **BLOCKED** (gate: domknięcie Performance Observation powyżej). Next: **B1** = bramkowanie `saveDailyFullBackup`.
+> 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+> 2. **FEATURE DEVELOPMENT RESTART** — następny bundle: **Bundle C Mobile** (UI). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
+> 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
-> Problemy: **(A)** `batch-set` HTTP 500 (H1 UNCONFIRMED, nadal otwarte) · **(B)** resurrection — **zaadresowane** przez S7-5 ETAP 1 (czeka na potwierdzenie multi-device). Architektura sync/merge + oba problemy + plan naprawy: **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** — czytaj zanim dotkniesz `cloud-sync.ts` / Edge.
+> Recovery Program (S7-5, Edge-Opt-A) = **OBSERVATION** — nie blokuje FEATURE UI, ale **zakaz** dotykania payroll/sync w bundle FEATURE.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -46,7 +46,82 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-04)
+## 2. Co zrobiliśmy (stan na 2026-07-05)
+
+### ★ Seria napraw 2026-07 — skrót dla agentów (nie psuj LP)
+
+| Program / bundle | Wersja | Commit | Status | Czego **nie** cofać |
+|------------------|--------|--------|--------|---------------------|
+| **PAYROLL Etap 2 B1–B6 + RB** | 2.63.15–24 | `1a65341`→`727e6c4` | **CLOSED** | `finalizePayrollBundleMerge`, `CloudSyncMutationGuard`, UNION roster, closed week UI |
+| **SYNC-ARCH-01 RC-B** (PWRB + I-1…I-4) | 2.63.30–31 | `35f37b1`→`31a7d5e` | **CLOSED** | `payroll-week-roster-bundle.ts` — jedyna ścieżka add/remove składu |
+| **CORE-01A** | docs | — | **CLOSED** | #CORE-013 mixed bundle BLOCKED |
+| **PLATFORM-SYNC-01A** | 2.63.33 | `a4cd5c2` | **CLOSED** | `reconcileOperationalNotesInMergedBundle` po await — **tylko** notatki operacyjne |
+| **FEATURE Bundle B** (Owner View P2A) | 2.63.32 | `119576c` | **CLOSED** | `tender-work-scope-inference.ts` pdf_text — bez sync |
+
+**Prod verified (RC-B):** Lista Płac add/remove/sync/Archiwum PASS (2026-07-04).
+
+### ★ § 2b — Lista Płac: jak NIE zepsuć synchronizacji (OBOWIĄZKOWE)
+
+> Po miesiącach napraw (Guard Phase, B4 merge, PWRB, tombstone revocation) **Lista Płac jest stabilna na prod**. Każdy agent pracujący nad **dowolnym** modułem musi respektować poniższe — nawet jeśli task dotyczy Przetargów, Mobile lub Notatek.
+
+#### Zanim dotkniesz kodu sync / LP
+
+1. Przeczytaj **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)** (całość lub § skrót).
+2. Przeczytaj **[`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)** — inwarianty I-1…I-4.
+3. Sprawdź **`docs/architecture/CORE-01A-DESIGN-FREEZE.md`** §4A–4B — klasyfikacja pliku.
+
+#### Pliki CORE — nie zmieniaj w bundle FEATURE (#CORE-013)
+
+| Plik / obszar | Rola | Dozwolone tylko w |
+|---------------|------|-------------------|
+| `src/lib/cloud-sync.ts` — `finalizePayrollBundleMerge`, `mergeWeekEmployees`, payroll guards | SSOT merge LP | **Osobny CORE bundle** + AUDIT |
+| `src/lib/payroll-week-roster-bundle.ts` | **PWRB** — add/remove/push/reconcile składu | CORE bundle lub hotfix LP |
+| `src/lib/cloud-sync-mutation-guard.ts` | Guard mutacji roster + przydziały | CORE |
+| `src/lib/payroll-week-employee-merge.ts` | Merge parity klient/Edge | CORE |
+| `src/app/CloudLoader.tsx` — bootstrap payroll | P11 merge | CORE |
+| `supabase/functions/.../index.tsx` — batch-set payroll UNION | Edge merge | CORE + deploy Edge |
+| `src/app/App.tsx` — **intencja payroll** (`removeWeekEmployee`, rollover, week save) | Orkiestracja LP | CORE bundle |
+
+**PLATFORM-SYNC-01A** zmienił `cloud-sync.ts` + `App.tsx` **wyłącznie** dla `reconcileOperationalNotesInMergedBundle` — **nie** dotykał ścieżek payroll. Nowe reconcile dla innych domen = osobny AUDIT, **nie** kopiuj ślepo.
+
+#### Inwarianty PWRB (RC-B) — MUST
+
+| # | Reguła |
+|---|--------|
+| I-1 | Mutacja składu tygodnia → **tylko** `pwrAdd` / `pwrRemove` / `pwrPush` / `pwrReconcile` |
+| I-2 | Push `kw-week-employees` **zawsze** z `kw-week-employees-deleted-ids` (coupled domain) |
+| I-3 | Po pull — reconcile tombstonów przed apply do React |
+| I-4 | Re-add po delete → tombstone **revoked** (G-0) — pracownik nie znika po F5 |
+
+#### Testy obowiązkowe przed commitem dotykającym LP/sync
+
+```bash
+npm run audit:pwrb
+npx vite-node scripts/test-pwrb-boundary-rcb.mjs
+npx vite-node scripts/test-payroll-tombstone-revocation-rcb.mjs
+npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs
+npm run test:infra -- --gate B --scope payroll
+```
+
+#### Typowe błędy agentów (powodują regresję LP)
+
+| Błąd | Skutek |
+|------|--------|
+| Mixed bundle: `cloud-sync.ts` + `TendersView.tsx` w jednym commicie | **BLOCKED** — rozdziel |
+| Bezpośredni push `kw-week-employees` z `App.tsx` zamiast PWRB | resurrection / utrata składu |
+| Zmiana `mergeWeekEmployees` / `finalizePayrollBundleMerge` „dla wygody” | bootstrap/runtime drift |
+| Stale closure w `runCloudSync` nadpisuje świeżą mutację UI | race (naprawione dla notatek w 01A; **nie** dotykaj payroll bez AUDIT) |
+| Refactor `App.tsx` łączący payroll + inne moduły | mixed intent → split commit |
+
+#### Gdy task **nie** dotyczy LP
+
+- **Nie** importuj nowych ścieżek zapisu do `cloud-sync.ts` bez polecenia.
+- **Nie** zmieniaj `runCloudSync` / `pullFromCloudAndMerge` poza domeną zatwierdzoną w AUDIT (01A = tylko operational notes).
+- Boundary check przed commit: `git diff --cached --name-only` vs §4B CORE-01A.
+
+---
+
+## 2c. Co zrobiliśmy — szczegóły historyczne (2026-07-04)
 
 ### ★ SYNC-ARCH-01 RC-B-1 — Tombstone Revocation · **CLOSED**
 
@@ -117,6 +192,9 @@ Faza projektowania procesu Payroll **zamknięta** (PROJECT PROCESS COMPLETE). Do
 
 | Epic | Wersja / commit | Status |
 |------|-----------------|--------|
+| **PLATFORM-SYNC-01A** reconcile notatek | **2.63.33** · `a4cd5c2` | **CLOSED** · archive race · ETAP B ON HOLD |
+| **FEATURE Bundle B** Owner View P2A | **2.63.32** · `119576c` | **CLOSED** · pdf_text work scope |
+| **SYNC-ARCH-01 RC-B** (pełny program) | **2.63.30–31** | **CLOSED** · PWRB · prod verified |
 | **NG-04 Kosztorys Workspace PRO** | 2.63.9–12 · **`ab6637f`** | **EPIC CLOSED** · BOQ Explorer · Principles #001–#010 |
 | **NG-03 Tender Workspace UX** | 2.63.0–7 | **EPIC CLOSED** · Command/Content · 5 tabów |
 | **NG-01 Trust Layer** | w serii 2.63.x | **SHIPPED** · `tender-trust-layer.ts` |
@@ -204,26 +282,24 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne
+## 3. Co robimy teraz / następne (2026-07-05)
 
-**Zasada:** **P0 FREEZE ACTIVE** + **RECOVERY PROGRAM faza PRODUCTION OBSERVATION** — **żadnych nowych EPIC** i **żadnego kolejnego bundla bez owner GO** (WC-P3.3 S4 ON HOLD). Dozwolone: OBSERVATION (S7-5 ETAP 1 · Edge-Opt-A · S7-4A) + dokumentacja. Kolejność cyklu bundla: AUDIT → DESIGN FREEZE → IMPLEMENT → BUILD → TEST → QUALITY GATE → COMMIT → PUSH → VERIFY → CLOSE.
+**Zasada:** **FEATURE DEVELOPMENT RESTART** po zamknięciu RC-B + CORE-01A + PLATFORM-SYNC-01A. **Jeden bundle na raz** · #CORE-013 + #CORE-014 obowiązkowe. **Lista Płac — § 2b MUST** przy każdej sesji.
 
-| Priorytet | Temat | Status | SSOT |
-|-----------|-------|--------|------|
-| **🔴 P0 #1** | **Performance Observation** S7-5 ETAP 1 + Edge-Opt-A — wymaga telemetrii właściciela: Supabase CPU (before/after), Postgres/API logs (`batch-get` = 1× `SELECT ... IN`, `pg_stat_statements`, brak 500), `__wgdomSyncMetrics()`, **multi-device AC8–AC11** (usunięty NIE wraca na A/B/C), UI (Payroll/WM/Tender/Inspector) | **OPEN** (Functional PASS) | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) · [`Edge-Opt-A DF`](EDGE-OPT-A-BATCH-GET-ORDER-PRESERVING-DESIGN-FREEZE.md) |
-| **🔴 P0 #2 (warunkowe)** | **S7-5 ETAP 2** (S7-5-3 `replaceWeekEmployeesKeys` · S7-5-4 stabilizacja merge-key) — **tylko jeśli** obserwacja wykaże, że resurrection nadal występuje | WARUNKOWE (po obserwacji) | [`S7-5 DF`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md) §8 |
-| **P0 #3** | **Edge-Opt-B B1** (bramkowanie `saveDailyFullBackup`) — po domknięciu Performance Observation + owner GO → DESIGN FREEZE | **MASTER AUDIT COMPLETE · IMPL BLOCKED** | [`EDGE-OPT-B-MASTER-AUDIT.md`](EDGE-OPT-B-MASTER-AUDIT.md) |
-| **P0 #4 (warunkowe)** | S7-2 hardening `mset` — **tylko jeśli** `batch-set 500` nadal (H1 nadal UNCONFIRMED) | WARUNKOWE | [`S7`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) |
-| **Otwarte HIGH** | **F1** Lost Update `extraCosts` — REPRO REQUIRED · DESIGN FREEZE NOT STARTED | OPEN | [`F1 repro`](PAYROLL-F1-EXTRACOSTS-REPRO-EVIDENCE.md) |
-| **Bieżące** | Stabilizacja po NG-04 | **ACTIVE** | `STABILIZATION-WINDOW-PLAN.md` |
-| **Rytuał** | Raport tygodniowy metryk | co tydzień · **W01 GREEN** | `STABILIZATION-WEEKLY-METRICS-TEMPLATE.md` |
-| **CLOSED** | **PAYROLL Etap 2** B1–B6 · RB · AH-REG-1 · **TEST-INFRA-001** | **2.63.15–26** | [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) § 8–9 |
-| Na polecenie | **TEST-INFRA post-MVP** TI-B1–B4 | OPEN (TI-B4 CLOSED) | `TEST-INFRA-001-CLOSEOUT.md` · `CURRENT-TASK.md` |
-| Na polecenie | G-08 · G-02 (Przetargi backlog) | OPEN | `NG-04-EPIC-CLOSE-REPORT.md` |
-| Maintenance P1 | Docs hygiene · smoke agregat · mobile re-cert · payroll regresja | M-01/M-02/M-03/M-05 **CLOSED** · M-04 OPEN | `STABILIZATION-WINDOW-PLAN.md` §3 |
-| Backlog | P3 Export notatki · P2-H.7 · Work Catalog P2.7+ | OPEN | `PROJECT-HANDOFF-CURRENT.md` |
+| Priorytet | Temat | Klasa | Status | SSOT / testy |
+|-----------|-------|-------|--------|--------------|
+| **#1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM layout | **WIP ~90%** w tree · brak `App.tsx` T8 | `smoke-test-mobile-scroll-p0-s1.mjs` · Z-05 iPhone |
+| **#2** | NG-03 maintenance (R-03 docs banner) | docs | OPEN | `NG-03-DESIGN-FREEZE.md` |
+| **#3** | Grouped documents test + TI-B4 | FEATURE test | OPEN | `test-tender-grouped-documents.mjs` |
+| **#4** | Roboty 2.0 MIN | FEATURE/UI | OPEN | `jobs-2.0-product-audit.md` |
+| **#5** | Work Catalog P2.7+ | FEATURE | OPEN · owner brief | P2 freeze docs |
+| **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
+| **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
+| **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
 
-**Deploy:** push `main` → Vercel. Verify: jedno `curl https://www.wgdom.fun/version.json` → `version` + `commit` (patrz `WORKFLOW-RELEASE-DEPLOY.md`).
+**WIP w tree (nie commitować razem):** mobile cluster ≠ `backup-lib.mjs` ≠ `docs/recovery/*`.
+
+**Deploy:** push `main` → Vercel · verify jedno `curl https://www.wgdom.fun/version.json`.
 
 ### AD-10 Stabilization — postęp sesji (2026-07-02)
 

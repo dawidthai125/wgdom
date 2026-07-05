@@ -1,7 +1,7 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-04 (**prod 2.63.30** · **HEAD `24bde6e`** · **SYNC-ARCH-01 RC-B-1 CLOSED** · **PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
-> **★ RC-B-1 closeout (2026-07-04):** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) — PWRB facade · I-1…I-4 · jak nie zepsuć listy płac przy nowej funkcji.  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.33** · **runtime `a4cd5c2`** · **docs `b7b4deb`** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
@@ -71,6 +71,9 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **PLATFORM-SYNC-01A** — reconcile notatek operacyjnych (archive race) | **2.63.33** (`a4cd5c2`) | **CLOSED** · ETAP B ON HOLD | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) § 3.5 · `CURRENT-TASK.md` |
+| **FEATURE Bundle B** — Owner View P2A pdf_text | **2.63.32** (`119576c`) | **CLOSED** | [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
+| **SYNC-ARCH-01 RC-B** — pełny program (PWRB + verify) | **2.63.30–31** (`35f37b1`→`31a7d5e`) | **CLOSED** · prod LP verified | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) |
 | **SYNC-ARCH-01 RC-B-1** — Tombstone Revocation (PWRB) | **2.63.30** (`35f37b1`) | **CLOSED** · I-1…I-4 · overlay cleanup `24bde6e` | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`recovery/SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md`](recovery/SYNC-ARCH-01-RC-B-1-DESIGN-FREEZE-v2.md) |
 | **TI-B4** — Smoke agregat Przetargi NG-01–04 | **2.63.27** (`6c94223`) | **CLOSED** · thin wrapper · manifest 1.1.0 · Gate B `scope:tenders` · **Z-04 PASS** | [`TI-B4-CLOSEOUT.md`](TI-B4-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
 | **TEST-INFRA-001** — Payroll Test Harness MVP | **2.63.26** (`3d6dd90`) | **CLOSED** · manifest + orchestrator + PAYROLL-GUARD-S1 | [`TEST-INFRA-001-CLOSEOUT.md`](TEST-INFRA-001-CLOSEOUT.md) · [`TEST-INFRA-LIFECYCLE.md`](TEST-INFRA-LIFECYCLE.md) |
@@ -201,6 +204,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.33       ← PLATFORM-SYNC-01A reconcile op notes · commit a4cd5c2 · PRODUCTION VERIFIED
+Version (prod):             2.63.32       ← FEATURE Bundle B Owner View P2A · commit 119576c
+Version (prod):             2.63.31       ← RC-B debug cleanup · commit 31a7d5e · RC-B program CLOSED
+Version (prod):             2.63.30       ← RC-B-1 PWRB facade · commit 35f37b1
 Version (prod):             2.63.27       ← TI-B4 smoke agregat · commit 6c94223 · PRODUCTION VERIFIED
 Version (prod):             2.63.26       ← TEST-INFRA-001 MVP · commit 3d6dd90 · PRODUCTION VERIFIED
 Version (prod):             2.63.25       ← Audit Hub freshness AH-REG-1 · commit d9ba13f

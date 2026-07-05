@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.33** · **HEAD `a4cd5c2`** · **★ PLATFORM-SYNC-01A CLOSED** · **★ SYNC-ARCH-01 RC-B CLOSED** · **STABILIZATION WINDOW ACTIVE** · **Następny kierunek: FEATURE DEVELOPMENT** (#CORE-013 · #CORE-014)
+**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.33** · **runtime `a4cd5c2`** · **docs `b7b4deb`** · **★ FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -50,6 +50,40 @@
 **Dokumentacja:** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) § 3.5 · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Notatki operacyjne · Sync.
 
 **Nie zmieniać bez polecenia:** `mergeOperationalNotePair` · LWW · dual-push architecture · Payroll/PWRB.
+
+---
+
+## ★ Lista Płac — ochrona synchronizacji (MUST dla każdego agenta)
+
+> Po serii napraw **2.63.15–2.63.31** (Guard, B4, PWRB, RC-B) Lista Płac jest **zweryfikowana na prod**. Nowe FEATURE **nie** uzasadniają zmian w sync/merge LP.
+
+**SSOT:** [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 2b
+
+| Reguła | Opis |
+|--------|------|
+| **PWRB only** | Add/remove składu → `payroll-week-roster-bundle.ts` |
+| **Coupled push** | `kw-week-employees` + `kw-week-employees-deleted-ids` razem |
+| **#CORE-013** | Mixed CORE+FEATURE bundle = **BLOCKED** |
+| **Test przed commit sync** | `audit:pwrb` · `test-pwrb-boundary-rcb` · `test-payroll-tombstone-revocation-rcb` · `test:infra --scope payroll` |
+| **FEATURE bundle** | **Zero** zmian w `finalizePayrollBundleMerge`, `mergeWeekEmployees`, `CloudLoader` bootstrap payroll, Edge batch-set UNION |
+
+**PLATFORM-SYNC-01A** (`a4cd5c2`) — reconcile **tylko** `kw-operational-notes`; nie rozszerzać na payroll bez AUDIT.
+
+---
+
+## FEATURE DEVELOPMENT RESTART · **ACTIVE** (AUDIT 2026-07-05)
+
+> **SSOT audytu:** sesja FEATURE backlog restart · werdykt **GO WITH CONDITIONS**
+
+| # | Następny bundle | Klasa | Status |
+|---|-----------------|-------|--------|
+| **1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM | WIP w tree ~90% · PLAN następny |
+| 2 | NG-03 R-03 docs hygiene | docs | OPEN |
+| 3 | Grouped documents test | FEATURE | OPEN |
+| 4 | Roboty 2.0 MIN | FEATURE/UI | OPEN |
+| 5 | Work Catalog P2.7+ | FEATURE | OPEN · owner brief |
+
+**WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
 ---
 
@@ -440,7 +474,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.27** (`6c94223`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.33** (`a4cd5c2`) · docs **`b7b4deb`** · **PRODUCTION VERIFIED** |
 | **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |

@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-05 |
-| **Commit (HEAD `main`)** | `a4cd5c2` |
+| **Commit (HEAD `main`)** | `b7b4deb` (docs) · runtime **2.63.33** @ `a4cd5c2` |
 | **Production version (UI)** | **v2.63.33** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, v2.63.33) · **SYNC-ARCH-01 RC-B CLOSED** · PAYROLL & SUPABASE RECOVERY PROGRAM — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED · PR-PERF-EDGE-OPT-A DEPLOYED · Edge-Opt-B: MASTER AUDIT COMPLETE · Design Freeze: NOT STARTED |
+| **Status** | **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013) · STABILIZATION WINDOW ACTIVE · następny bundle: **Bundle C Mobile** · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 2b–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
