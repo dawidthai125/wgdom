@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #5B Work Catalog P2.7** · Pakiety robót UI · prod baseline **2.63.37** → **2.63.38** pending push)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #6A Work Catalog stabilization** · manifest PB-3 + doc sync TD-01/02/03 · prod baseline **2.63.38** · runtime **`9aad48c`**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1637,7 +1637,7 @@ tender-document-resolver.ts
 | **Skip** | `already_migrated` · `priced_work_exists` · `legacy_empty` |
 | **Poza zakresem** | Brak zmian adaptera / silnika / Tender pricing / Single Writer |
 
-**Test:** `test-work-catalog-bootstrap-pb3.mjs` · regresja `test-work-catalog-migration.mjs` · `test-tender-price-bridge.mjs`.
+**Test:** manifest `LIB-WORK-CATALOG-BOOTSTRAP-PB3` (`test-work-catalog-bootstrap-pb3.mjs`) · regresja `test-work-catalog-migration.mjs` · `test-tender-price-bridge.mjs`.
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
 
@@ -1923,7 +1923,7 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 
 **Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` + `kw-wgdom-work-bundles` · zapis po edycji UI (`saveWorkCatalogRouted` / `saveWorkBundleStore`).
 
-**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (`scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–**P2.7** · P3 lib w `gate-b-relevant` · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
+**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (**13** testIds, `scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–**P2.7** · **`LIB-WORK-CATALOG-BOOTSTRAP-PB3`** · P3 lib w `gate-b-relevant` · `test-tender-price-bridge.mjs` (poza suite P2)
 
 **Gate B:** `npm run test:infra -- --suite smoke-work-catalog-p2-mvp` (orchestrator `scope:work-catalog` — backlog TI-B5).
 

@@ -105,9 +105,10 @@
 
 | Klucz | Model | Merge |
 |-------|-------|-------|
-| `kw-wgdom-work-catalog` | `WorkCatalogStore` v3 | LWW `updatedAt` (P1 D5) |
+| `kw-wgdom-work-catalog` | `WorkCatalogStore` v4 (v3 normalize→v4) | LWW `updatedAt` (P1 D5) |
+| `kw-wgdom-work-bundles` | `WorkBundleStore` v3 | LWW `updatedAt` (P1 D5) |
 
-**Uwaga P2:** widok startuje z **localStorage** (`loadWorkCatalogStoreLocal`). Pełny bootstrap chmury (`loadWorkCatalogStore` / `CloudLoader`) — **poza zakresem P2** (KNOWN LIMITATION).
+**Bootstrap chmury (prod od v2.62.84):** `CloudLoader` → `fetchAndMergeDeferredBootstrap()` merge obu kluczy KV do localStorage → `maybeExecuteWorkCatalogBootstrap()` (PB-3) → `WGDOM_DEFERRED_BOOTSTRAP_EVENT`. Hooki `useWorkCatalog` / `useWorkBundles` startują z LS i odświeżają się po evencie — **nie** wołają `loadWorkCatalogStore()` / `loadWorkBundleStore()` on mount.
 
 ---
 
@@ -129,7 +130,9 @@
 - Mobile first (min-h 44px, scroll w widoku)
 - Jedna robota = jedna cena
 
-**Poza P2:** Przetargi, AI, historia zmian, pakiety robót, aktualizacja rynku, cutover legacy Baza cen.
+**Poza P2 MVP (2.62.87):** Przetargi cutover, AI, historia zmian, aktualizacja rynku w UI.
+
+**P2.7 (v2.63.38, Bundle #5B):** **CLOSED** — sub-nav **Roboty | Pakiety**, CRUD pakietów, persist `saveWorkBundleStore`.
 
 ---
 
@@ -173,7 +176,8 @@ Brak błędów TypeScript / linter na plikach P2.
 | P1 foundation niezmieniony | ✓ |
 | P2.1–P2.6 bez refaktoru wzajemnego | ✓ |
 | Dane UI tylko `@/lib/work-catalog` | ✓ |
-| Brak CloudLoader bootstrap w P2 | ✓ (świadomy limit) |
+| Deferred bootstrap prod (PB-3 + oba KV) | ✓ (v2.62.84+) |
+| P2.7 Pakiety robót UI | ✓ (v2.63.38, Bundle #5B) |
 | Brak integracji Przetargów | ✓ |
 | Changelog + GuideView + ARCHITECTURE | ✓ |
 
@@ -181,13 +185,12 @@ Brak błędów TypeScript / linter na plikach P2.
 
 ## KNOWN LIMITATIONS
 
-1. **Pusty stan na świeżej przeglądarce** — bez seed/migracji w UI; `CloudLoader` nie ładuje katalogu v3 przy starcie aplikacji.
-2. **Brak cutover** — Przetargi → Baza cen (`kw-wgdom-cost-catalog`) nadal legacy SSOT w module Przetargów.
-3. **Rynek read-only** — `marketAvgPln` tylko z danych store; brak bootstrap/aktualizacji rynku w UI.
+1. **Race deferred vs widok** — hooki startują z LS przed zakończeniem deferred bootstrap; po evencie reload. Krótkie okno pustego/starego stanu możliwe przy bardzo szybkim wejściu w widok (bez `load*Store()` on mount).
+2. **Brak cutover** — Przetargi → Baza cen (`kw-wgdom-cost-catalog`) nadal legacy SSOT w module Przetargów (edycja UI).
+3. **Rynek read-only** — `marketAvgPln` / `marketQuotes` tylko z danych store; brak aktualizacji rynku w UI prod (P3 backlog).
 4. **Brak historii cen** — zmiany nadpisują `companyPricePln` + `updatedAt` bez audytu.
-5. **Brak pakietów robót** — `WorkBundleStore` w P1 bez UI P2.
-6. **Sync przy starcie widoku** — hook nie woła `loadWorkCatalogStore()` (merge cloud); zapis po edycji idzie do chmury gdy sync działa.
-7. **Kompletność** — liczy wszystkie roboty regionu (nie tylko aktywne); lista domyślnie filtruje aktywne.
+5. **LWW całego store** — równoległa edycja na dwóch urządzeniach: ostatni `updatedAt` wygrywa (D5, frozen).
+6. **Kompletność** — liczy wszystkie roboty regionu (nie tylko aktywne); lista domyślnie filtruje aktywne.
 
 ---
 
@@ -206,4 +209,4 @@ Brak błędów TypeScript / linter na plikach P2.
 
 **Proponowany commit:** `feat(work-catalog): complete P2 MVP` — patrz `P2-FREEZE-v1.0.md` § commit bundle.
 
-**Następny EPIC (nie startować bez polecenia):** P2.7+ (pakiety, CloudLoader bootstrap, cutover Przetargi).
+**Następny EPIC (nie startować bez polecenia):** P2.8 UX (app-only) · #5C cutover Przetargi / PB-WRITE.

@@ -13,7 +13,7 @@
 
 Fundament P1 dostarcza **pure lib** w `src/lib/work-catalog/` bez UI, bez cutover i bez podpięcia `CloudLoader` / `App.tsx`. P2 może importować wyłącznie z `@/lib/work-catalog` (barrel `index.ts`).
 
-**Zakaz w P2 bez briefu:** refaktor P1.1–P1.11, zmiana schematu v3, zmiana strategii merge LWW (D5).
+**Zakaz w P2 bez briefu:** refaktor P1.1–P1.11, zmiana schematu runtime (v4 catalog / v3 bundle), zmiana strategii merge LWW (D5).
 
 ---
 
@@ -23,8 +23,10 @@ Fundament P1 dostarcza **pure lib** w `src/lib/work-catalog/` bez UI, bez cutove
 
 | Stała | Wartość |
 |-------|---------|
-| `WORK_CATALOG_SCHEMA_VERSION` | `3` |
+| `WORK_CATALOG_SCHEMA_VERSION` | **`4`** |
 | `WORK_BUNDLE_SCHEMA_VERSION` | `3` |
+
+**Nota v3→v4 (runtime, bez thaw):** store zapisany ze `schemaVersion: 3` normalizowany do v4 przy load (`normalizeWorkCatalogStore` w `work-catalog-store.ts`). v4 dodaje pole `marketQuotes` na `CatalogWork` — synteza z legacy `marketAvgPln` gdy brak quotes (P3.0 migracja inline). **Nazwa EPIC** „Cennik v3.0” = produkt; **schema runtime catalog = 4**.
 
 ### Encje
 
