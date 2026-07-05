@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #4A Roboty 2.0 MIN** · docs sync · runtime SHIPPED v2.45.32+ · prod **2.63.35+**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #5A Work Catalog P2** · test manifest sync · runtime SHIPPED v2.62.82–87 · prod **2.63.36+**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1899,9 +1899,9 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 | `kw-wgdom-work-bundles` | `WorkBundleStore` v3 | `mergeWorkBundleStore` (LWW) |
 | `kw-wgdom-cost-catalog` | `WgdomCostCatalogStore` v1 | **legacy** — bez zmian w P1 |
 
-**Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks. **P3 market engine — poza prod (backlog).**
+**Public API:** `@/lib/work-catalog` (`index.ts`) — typy, freshness, seed, migracja, adapter, stores, compat, cloud hooks. **P3 market lib** — testy w manifeście; **P3 UI nie prod** (backlog).
 
-**UI P2 MVP (v2.62.85, jeden release):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · menu **Biblioteka Robót**.
+**UI P2 MVP (v2.62.85, jeden release):** widok admin `workcatalog` — `WorkCatalogView.tsx` · hook `useWorkCatalog` · zakładka **Przetargi → Biblioteka robót**.
 
 | Sprint | Zakres |
 |--------|--------|
@@ -1916,13 +1916,15 @@ Pure lib `src/lib/work-catalog/` — następca semantyczny `wgdom-cost-catalog*`
 
 **PB-3 (§ 12.1.18b):** `maybeExecuteWorkCatalogBootstrap()` w deferred merge — legacy → work przy pierwszym logowaniu admina.
 
-**Backlog P3 (nie w prod):** market engine · CSV preview · `marketQuotes` persist.
+**Backlog P3 (UI nie prod):** market engine UI · CSV import UI · `marketQuotes` persist w UI.
 
 **Seed:** `docs/work-catalog/SEED-MANIFEST-v1.0.yaml` — 116 robót · 16 branż (`TradeId`).
 
 **Integracja cloud (P1.11):** `DATA_KEYS` + `work-catalog-sync.ts` · deferred bootstrap `kw-wgdom-work-catalog` · zapis po każdej edycji UI.
 
-**Testy:** `test-work-catalog-golden.mjs` (1419) · smoke/persist P2.1–P2.6 (96) · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
+**Testy:** manifest suite **`smoke-work-catalog-p2-mvp`** (`scope:work-catalog`) — `LIB-WORK-CATALOG-GOLDEN` (1419) · smoke/persist P2.1–P2.6 (96) · P3 lib w `gate-b-relevant` · `test-work-catalog-bootstrap-pb3.mjs` · `test-tender-price-bridge.mjs`
+
+**Gate B:** `npm run test:infra -- --suite smoke-work-catalog-p2-mvp` (orchestrator `scope:work-catalog` — backlog TI-B5).
 
 **Nie zmieniaj bez polecenia:** schemat v3, merge LWW D5, golden fingerprints, adapter round-trip, lib P1 FREEZE, P2 FREEZE bez hotfix briefu.
 

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.37",
+    label: "Work Catalog P2 — test manifest sync",
+    items: [
+      {
+        type: "improve",
+        text: "Test manifest — suite smoke-work-catalog-p2-mvp (golden + P2.1–P2.6, scope:work-catalog) dla regresji Biblioteki Robót MVP.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.36",
     label: "Roboty 2.0 MIN — instrukcja i test manifest",
     items: [

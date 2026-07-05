@@ -24,6 +24,16 @@
         "LIB-PAYROLL-DELETION-TOMBSTONES-S2",
         "LIB-PAYROLL-ZERO-HOURS-PERSIST-S3",
         "LIB-PAYROLL-SETTLED-PERSIST-S5",
+        "LIB-WORK-CATALOG-GOLDEN",
+        "SMOKE-WORK-CATALOG-UI-P21",
+        "SMOKE-WORK-CATALOG-PRICE-P22",
+        "LIB-WORK-CATALOG-PRICE-PERSIST-P22",
+        "SMOKE-WORK-CATALOG-ACTIVE-P23",
+        "LIB-WORK-CATALOG-ACTIVE-PERSIST-P23",
+        "SMOKE-WORK-CATALOG-BULK-P24",
+        "LIB-WORK-CATALOG-BULK-PERSIST-P24",
+        "SMOKE-WORK-CATALOG-MARKET-P25",
+        "SMOKE-WORK-CATALOG-COMPLETENESS-P26",
         "LIB-WORK-CATALOG-MARKET-ADAPTERS-P3.1A",
         "LIB-WORK-CATALOG-MARKET-MAPPING-P3.1B",
         "LIB-WORK-CATALOG-CSV-PREVIEW-P3.2A",
@@ -73,6 +83,21 @@
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
       "testIds": ["LIB-JOBS-LIST-OPS-20-MIN"]
+    },
+    "smoke-work-catalog-p2-mvp": {
+      "description": "Work Catalog P2.1–P2.6 MVP regression (FREEZE v1.0 · golden + 96)",
+      "testIds": [
+        "LIB-WORK-CATALOG-GOLDEN",
+        "SMOKE-WORK-CATALOG-UI-P21",
+        "SMOKE-WORK-CATALOG-PRICE-P22",
+        "LIB-WORK-CATALOG-PRICE-PERSIST-P22",
+        "SMOKE-WORK-CATALOG-ACTIVE-P23",
+        "LIB-WORK-CATALOG-ACTIVE-PERSIST-P23",
+        "SMOKE-WORK-CATALOG-BULK-P24",
+        "LIB-WORK-CATALOG-BULK-PERSIST-P24",
+        "SMOKE-WORK-CATALOG-MARKET-P25",
+        "SMOKE-WORK-CATALOG-COMPLETENESS-P26"
+      ]
     }
   },
   "releaseGates": {
@@ -251,6 +276,126 @@
       "mandatory": "conditional",
       "condition": "scope:payroll",
       "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-GOLDEN",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-golden.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-UI-P21",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-ui-p2.1.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-PRICE-P22",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-price-p2.2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-PRICE-PERSIST-P22",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-price-persist-p2.2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-ACTIVE-P23",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-active-p2.3.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-ACTIVE-PERSIST-P23",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-active-persist-p2.3.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-BULK-P24",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-bulk-price-p2.4.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WORK-CATALOG-BULK-PERSIST-P24",
+      "class": "lib",
+      "path": "scripts/test-work-catalog-bulk-price-persist-p2.4.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-MARKET-P25",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-market-p2.5.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-WORK-CATALOG-COMPLETENESS-P26",
+      "class": "smoke",
+      "path": "scripts/smoke-test-work-catalog-completeness-p2.6.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
       "status": "active"
     },
     {

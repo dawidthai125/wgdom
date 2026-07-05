@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.37 — Work Catalog P2 test manifest sync (Bundle #5A)
+
+- **test:** suite `smoke-work-catalog-p2-mvp` — golden 1419 + P2.1–P2.6 (96) · `scope:work-catalog` · gate-b-relevant
+- **docs:** ARCHITECTURE §12.1.22 manifest SSOT · zero runtime diff
+
 ## 2.63.36 — Roboty 2.0 MIN docs/test sync (Bundle #4A)
 
 - **improve:** HelpView FAQ — 3 KPI + widoczne kolejki (20.5Z.4A); WM/Bez ekipy → Pulpet / ukryte
