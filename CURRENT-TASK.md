@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.34** · **runtime `eb0d51b`** · **★ FEATURE DEVELOPMENT RESTART** · **Bundle C CLOSED** · **NG-03 Maintenance CLOSED (docs)** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.34** (runtime) · **HEAD po Bundle #3:** docs/test sync **2.63.35** pending push · **runtime `eb0d51b`** · **★ FEATURE DEVELOPMENT RESTART** · **Bundle C CLOSED** · **Bundle #3 CLOSED** (commit pending push) · **NG-03 Maintenance CLOSED (docs)** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -79,7 +79,7 @@
 |---|-----------------|-------|--------|
 | **1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM | **CLOSED** · prod **2.63.34** · `eb0d51b` · Z-05 PASS |
 | **2** | **NG-03 Maintenance** (R-03 · M-06 · A-03-1) | docs | **CLOSED** (docs commit) · R-03+M-06+A-03-1 |
-| 3 | Grouped documents test | FEATURE | OPEN |
+| **3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** (commit pending push) · runtime frozen `6cd8ebe` · `LIB-TENDERS-GROUPED-DOCS` |
 | 4 | Roboty 2.0 MIN | FEATURE/UI | OPEN |
 | 5 | Work Catalog P2.7+ | FEATURE | OPEN · owner brief |
 

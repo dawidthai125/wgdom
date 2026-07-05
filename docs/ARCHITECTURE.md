@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**PLATFORM-SYNC-01A** · v2.63.33 · reconcile notatek operacyjnych · prod `a4cd5c2`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #3 Grouped Documents** · docs sync · runtime `6cd8ebe` · prod **2.63.34+**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2202,7 +2202,7 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 
 **Handoff historyczny:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — **superseded** przez [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md).
 
-**UX.1C — Tender Documents:** tier dokumentów + grouped list + Summary Header — szczegóły w [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) § 4.4–4.5. Lib: `tender-workspace-ux.ts` · `tender-documents-tab-summary.ts` · `tender-grouped-documents.ts` (grouped — osobny release po 2.62.72).
+**UX.1C — Tender Documents:** tier dokumentów + grouped list + Summary Header — szczegóły w [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) § 4.4–4.5. Lib: `tender-workspace-ux.ts` · `tender-documents-tab-summary.ts` · `tender-grouped-documents.ts` (**SHIPPED** prod od `6cd8ebe` — 7 grup accordion w `TenderAttachmentsPanel`).
 
 **UX.1D — Formal Details Compression (v2.53.6):**
 

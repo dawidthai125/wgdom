@@ -40,7 +40,7 @@ Po serii 2.62.64–2.62.72 ekran przetargu ma **jednoznaczną hierarchię**:
 3. **Decyzja = decision-only** — werdykt, ekonomia, zapis decyzji właściciela. **Bez** duplikacji workflow.
 4. **Jeden agregat intelligence** — `buildTenderIntelligenceContext()` w `TenderDetailPanel`, przekazywany w dół (bez recompute w V2).
 5. **Jedno CTA** — `TenderWorkflowPrimaryAction` (sticky); sekcja „Następny krok” usunięta z V2 (Cleanup P0, 2.62.72).
-6. **Dokumenty** — nagłówek podsumowania nad listą; lista w grupach biznesowych (Grouped Documents — **lokalnie**, patrz § 4.5).
+6. **Dokumenty** — nagłówek podsumowania nad listą; lista w **7 grupach biznesowych** (Grouped Documents — **SHIPPED** prod od `6cd8ebe`, patrz § 4.5).
 
 **Klasyfikacja zmian serii:** STANDARD REFACTOR / UX-only — bez zmian parserów, pipeline i logiki biznesowej scoringu.
 
@@ -220,9 +220,9 @@ Klasyfikacja wyłącznie przez istniejące SSOT: `classifyDocumentRole()` + `cla
 
 **Zastępuje:** legacy TOP 5 + „Pokaż pozostałe dokumenty” + `prioritizeTenderDocuments()` (usunięte w Cleanup P0, 2.62.72).
 
-> **Status release:** implementacja **lokalna** (pliki `tender-grouped-documents.ts`, zmiany w `TenderAttachmentsPanel.tsx` — **nie** na `origin/main` w 2.62.72). Architektura docelowa jest opisana tutaj; prod nadal może pokazywać TOP 5 do czasu osobnego release'u Grouped Documents.
+> **Status release:** **SHIPPED** — commit **`6cd8ebe`** (`tender-grouped-documents.ts` + `TenderAttachmentsPanel.tsx`). Prod **2.63.34+** — 7 accordionów; legacy TOP 5 i `prioritizeTenderDocuments()` usunięte (Cleanup P0 `16b7fd7`). Bundle #3 (2026-07-05): sync test + docs + HelpView — **bez** zmian runtime.
 
-**Test:** `scripts/test-tender-grouped-documents.mjs` · regresja tier w `test-tender-workspace-ux.mjs` § UX.1C
+**Test:** `scripts/test-tender-grouped-documents.mjs` (`LIB-TENDERS-GROUPED-DOCS` · `scope:tenders`) · regresja tier w `test-tender-workspace-ux.mjs` § UX.1C T5–T6
 
 ---
 
@@ -423,7 +423,7 @@ Lista → Przetarg → [CTA: Pobierz dokumenty] → Dokumenty → analiza
 | **Sticky Primary CTA** | 2.62.69 | — | Jedno CTA z SSOT | `test-tender-workflow-primary-action.mjs` |
 | **Document Summary Header** | 2.62.71 | `c577a72` | Nagłówek nad listą Dokumenty | `test-tender-documents-summary-header.mjs` |
 | **Workflow Cleanup P0** | 2.62.72 | `16b7fd7` | Usunięcie duplikatu CTA/V2, `intelligenceCtx` z Huba, drop TOP 5 lib | `test-tender-workflow-hub.mjs`, `test-tender-workspace-ux.mjs` |
-| **Grouped Documents** | — | *lokalnie* | 7 grup, `groupTenderAttachmentRows` | `test-tender-grouped-documents.mjs` |
+| **Grouped Documents** | 2.62.72+ | `6cd8ebe` | 7 grup, `groupTenderAttachmentRows` | `test-tender-grouped-documents.mjs` |
 
 ---
 
@@ -453,7 +453,7 @@ Lista → Przetarg → [CTA: Pobierz dokumenty] → Dokumenty → analiza
 |-----------|-------|--------------|
 | **P1** | V2 key docs vs `WorkflowHubPositionsFileDisplay` | Dwa widoki „kluczowych dokumentów” — potencjalny duplikat informacji |
 | **P1** | Analysis Status Strip na Przetargu | Rozważyć skrócony pasek statusu analizy pod Process Strip (bez drugiego CTA) |
-| **P2** | Release **Grouped Documents** | Domknięcie UX.1C na prod; aktualizacja FAQ GuideView (TOP 5 → grupy) |
+| ~~**P2**~~ | ~~Release **Grouped Documents**~~ | **CLOSED** — runtime `6cd8ebe` · docs/test sync Bundle #3 (2026-07-05) |
 | **P2** | `strategia` / `materialy` V4 | Placeholdery → realne workspace lub trwałe przekierowanie |
 
 ---
@@ -504,7 +504,7 @@ Lista → Przetarg → [CTA: Pobierz dokumenty] → Dokumenty → analiza
 | `test-tender-workflow-process-strip.mjs` | 5 etapów, nawigacja V4 |
 | `test-tender-workspace-v2-ux.mjs` | Postęp, checklista, timeline, tier docs |
 | `test-tender-documents-summary-header.mjs` | Slots summary header |
-| `test-tender-grouped-documents.mjs` | 7 grup (po release Grouped Documents) |
+| `test-tender-grouped-documents.mjs` | 7 grup — klasyfikacja + partycjonowanie (`LIB-TENDERS-GROUPED-DOCS`) |
 | `test-tender-kosztorys-process-phase.mjs` | Fazy kosztorysu (tab Kosztorys) |
 | `test-p5-owner-view.mjs` | Regresja Owner / Intelligence |
 

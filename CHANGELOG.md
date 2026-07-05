@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.35 — Grouped Documents docs/test sync (Bundle #3)
+
+- **improve:** HelpView FAQ — 7 grup dokumentów zamiast legacy TOP 5 copy
+- **test:** track `test-tender-grouped-documents.mjs` · manifest `LIB-TENDERS-GROUPED-DOCS` · `scope:tenders`
+- **docs:** WORKFLOW §4.5 + ARCHITECTURE UX.1C — SHIPPED prod `6cd8ebe` · zero runtime diff
+
 ## 2.63.34 — Mobile MOBILE-P0-S1 scroll stabilization
 
 - **fix:** `--app-height` z `visualViewport` (Safari iOS) · SSOT `.mobile-view-scroll` · Przetargi sticky `md+` · padding bottom nav

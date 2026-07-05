@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.35",
+    label: "Przetargi — instrukcja Dokumenty (7 grup)",
+    items: [
+      {
+        type: "improve",
+        text: "Instrukcja — zakładka Dokumenty opisuje listę w 7 grupach biznesowych (accordion), zgodnie z UI na produkcji od wersji 2.62.72+.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.34",
     label: "Mobile — stabilizacja scrollu (MOBILE-P0-S1)",
     items: [

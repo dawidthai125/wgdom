@@ -32,6 +32,7 @@
         "LIB-WORK-CATALOG-COMMIT-P3.2S3",
         "SMOKE-WORK-CATALOG-CSV-UI-P3.2B",
         "SMOKE-PAYROLL-CARRY-20.1B",
+        "LIB-TENDERS-GROUPED-DOCS",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
         "AUDIT-IMPORT-CYCLES"
@@ -63,6 +64,10 @@
     "smoke-stabilization-ng01-04": {
       "description": "TI-B4 — smoke agregat NG-01–NG-04 (R-02 · Z-04)",
       "testIds": ["SMOKE-TENDERS-NG01-04"]
+    },
+    "lib-tenders-grouped-docs": {
+      "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
+      "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
     }
   },
   "releaseGates": {
@@ -337,6 +342,18 @@
       "mandatory": "optional",
       "condition": "scope:payroll",
       "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDERS-GROUPED-DOCS",
+      "class": "lib",
+      "path": "scripts/test-tender-grouped-documents.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
       "status": "active"
     },
     {
