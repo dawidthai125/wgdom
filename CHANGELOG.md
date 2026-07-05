@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.36 — Roboty 2.0 MIN docs/test sync (Bundle #4A)
+
+- **improve:** HelpView FAQ — 3 KPI + widoczne kolejki (20.5Z.4A); WM/Bez ekipy → Pulpet / ukryte
+- **test:** manifest `LIB-JOBS-LIST-OPS-20-MIN` · `scope:jobs` · suite `lib-jobs-list-ops-20-min`
+- **docs:** `jobs-2.0-product-audit.md` SHIPPED + Product Decision History · ARCHITECTURE §12.1.4 · zero runtime diff
+
 ## 2.63.35 — Grouped Documents docs/test sync (Bundle #3)
 
 - **improve:** HelpView FAQ — 7 grup dokumentów zamiast legacy TOP 5 copy

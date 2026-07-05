@@ -33,6 +33,7 @@
         "SMOKE-WORK-CATALOG-CSV-UI-P3.2B",
         "SMOKE-PAYROLL-CARRY-20.1B",
         "LIB-TENDERS-GROUPED-DOCS",
+        "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
         "AUDIT-IMPORT-CYCLES"
@@ -68,6 +69,10 @@
     "lib-tenders-grouped-docs": {
       "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
       "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
+    },
+    "lib-jobs-list-ops-20-min": {
+      "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
+      "testIds": ["LIB-JOBS-LIST-OPS-20-MIN"]
     }
   },
   "releaseGates": {
@@ -354,6 +359,18 @@
       "mandatory": "conditional",
       "condition": "scope:tenders",
       "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-JOBS-LIST-OPS-20-MIN",
+      "class": "lib",
+      "path": "scripts/test-job-list-ops-2.0-min.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:jobs",
+      "owner": "Roboty",
       "status": "active"
     },
     {

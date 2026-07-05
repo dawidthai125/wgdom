@@ -1,34 +1,54 @@
 # Roboty 2.0 — audyt produktowy (2026-06)
 
-> Po Fazie 8, ETAP 8.5 MIN/FULL, Fazie 9.0 i 9.0.1. **Tylko audyt** — bez implementacji.  
-> Indeks sesji: [`SESSION-HANDOFF-2026-06.md`](SESSION-HANDOFF-2026-06.md)
+> **Status runtime:** **SHIPPED** — Roboty 2.0 MIN od **v2.45.32** · MID-B kolejki od **2.50.x** · prod **2.63.35+**.  
+> **Ten dokument:** audyt historyczny (czerwiec 2026) + **Product Decision History** · maintenance **Bundle #4A** (2026-07-05) — **docs only**, bez zmian UI.  
+> Indeks sesji: [`SESSION-HANDOFF-2026-06.md`](SESSION-HANDOFF-2026-06.md) · architektura: [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.4
 
 ---
 
-## A. Stan obecny
+## Product Decision History
 
-### Co działa (fazy 8–9)
+| Release | Commit / wersja | Decyzja |
+|---------|-----------------|---------|
+| **Roboty 2.0 MIN** | v2.45.32 | KPI, chipy, sort pilności — `job-list-ops.ts` + lista |
+| **2.1A** | v2.45.33 | Prezentacja: 5 kafelków KPI w `JobListPanelHeader` |
+| **2.50.41** | — | Karta: badge **„Aktywni dziś”** zamiast mylącego „Ekipa: N” (plan vs faktyczne godziny) |
+| **20.5Z.4A Jobs Cleanup** | `640e3a9`, v2.50.62 | **UI-only:** ukryto KPI „Bez ekipy” i „WM po terminie” oraz kolejki `no_team` / `wm_overdue` |
+
+**Widoczne KPI na prod (od 20.5Z.4A):** W toku · Do odbioru · BZP (**3 kafelki**).
+
+**Logika lib bez zmian:** `computeJobListOpsKpi().noTeam`, `.wmOverdue`, chipy `no_team` / `wm_overdue`, `buildJobQueueSections()` — **bez UI** do aktywacji chipów ukrytych KPI.
+
+**WM po terminie:** sygnał na **Pulpicie** (`wmJobsWithOverduePlanned` w `DashboardView`), nie w KPI Roboty.
+
+**Bundle #4A (2026-07-05):** synchronizacja docs/HelpView/manifest — **nie cofa** decyzji 20.5Z.4A. Przywrócenie ukrytych KPI = osobny backlog (**Bundle #4B**, wymaga Owner GO).
+
+---
+
+## A. Stan obecny (prod 2.63.35 — zaktualizowano 2026-07-05)
+
+### Co działa (fazy 8–9 + 2.0 MIN)
 
 | Obszar | Gdzie w UI | Uwaga |
 |--------|------------|--------|
-| Kontrakt BZP | Baner w **szczegółach** robota (`linkedTenderId`) | Kwota, daty, „Otwórz przetarg”, „Rozpocznij realizację” |
-| Planowa ekipa | Ten sam baner | Lider + checkboxy, „Zapisz ekipę”, badge „Ekipa: N” na liście |
+| Kontrakt BZP | Baner w **szczegółach** + badge **BZP** na liście | `JobListCardV2` · baner: kwota, daty, start realizacji |
+| Planowa ekipa | Baner BZP w detalu | Lider + checkboxy, „Zapisz ekipę” — **bez** badge planu na karcie (2.50.41) |
 | Pracownik | `WorkerPhotoView` | „Twoje kontrakty” + status/termin (9.0.1) |
-| Lista robót | `JobListCard` | Adres, status, pasek dokumentów, brak zlecenia/kosztorysu |
-| Szczegóły | `JobDetailSectionNav` — 6 zakładek | Przegląd, Pliki, Dokumenty, Pracownicy, Zdjęcia, Raporty |
-| WM | `JobWmPanel`, `plannedHandoverDate` | Alerty WM na **Pulpicie**, nie na liście Roboty |
+| Lista robót | `JobListCardV2` + KPI (3) + Lista/Kolejki | Sort pilności w grupie miesiąca · badge Aktywni dziś |
+| Szczegóły | `JobDetailSectionNav` — 6 zakładek | Przegląd, Pliki, Dokumentacja, Pracownicy, Zdjęcia, … |
+| WM | `JobWmPlannedBadge` + **Pulpit** | WM overdue — Pulpet; KPI WM ukryte od 20.5Z.4A |
 
-### Odpowiedzi na pytania czytelności
+### Odpowiedzi na pytania czytelności (historyczny audyt → stan prod)
 
-| Pytanie | Ocena |
-|---------|--------|
-| Lista czytelna? | Częściowo — dobra baza, słabe skanowanie pilności |
-| Najważniejsze od razu? | Nie — brak BZP/ekipa/terminów na liście |
-| Najważniejsze roboty? | Nie — grupowanie po miesiącu `startDate` |
-| Opóźnione? | Częściowo — WM overdue na Pulpicie |
-| Do odbioru? | Tak — filtr + badge |
-| Bez ekipy? | Nie — brak sygnału „0” |
-| Kontrakty BZP? | Tylko po wejściu w detail |
+| Pytanie | Ocena (2026-06) | Prod dziś (2.63.35) |
+|---------|-----------------|---------------------|
+| Lista czytelna? | Częściowo | **Lepsza** — KPI, sort pilności, karta V2 |
+| Najważniejsze od razu? | Nie | **Częściowo** — BZP/termin/lider na karcie |
+| Najważniejsze roboty? | Nie — tylko miesiąc | Sort pilności **w** grupie miesiąca |
+| Opóźnione WM? | Pulpet | **Bez zmian** — Pulpet, nie KPI Roboty |
+| Do odbioru? | Tak | **Tak** — filtr + kolejki |
+| Bez ekipy (plan)? | Nie | **Lib TAK, UI KPI NIE** (20.5Z.4A) |
+| Kontrakty BZP? | Tylko detail | **Badge BZP** na liście |
 
 ---
 
@@ -55,13 +75,13 @@
 
 ---
 
-## D. Wariant MIN (1–2 sesje)
+## D. Wariant MIN (1–2 sesje) — **SHIPPED** (v2.45.32+)
 
-- Pasek KPI nad listą (w toku, odbiór, bez ekipy, BZP, WM po terminie).
-- Rozszerzone `JobListCard` (badge BZP, Ekipa 0/N, daty).
-- Sort pilności w grupie miesiąca + chipy filtrów.
+- Pasek KPI nad listą — **3 widoczne** (W toku, Do odbioru, BZP) od 20.5Z.4A; lib liczy też noTeam/wmOverdue.
+- `JobListCardV2` — badge BZP, Aktywni dziś, WM, daty kontraktu.
+- Sort pilności w grupie miesiąca + chip BZP (KPI).
 
-**Pliki:** `JobsView.tsx`, `JobListCard.tsx` (+ ewent. helper w `job-wm.ts` lub `app-domain.ts`).
+**Pliki:** `job-list-ops.ts`, `JobsView.tsx`, `JobListCardV2.tsx` · test: `test-job-list-ops-2.0-min.mjs` · manifest: `LIB-JOBS-LIST-OPS-20-MIN`.
 
 ---
 

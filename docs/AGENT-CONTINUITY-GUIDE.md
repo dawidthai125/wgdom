@@ -290,8 +290,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 |-----------|-------|-------|--------|--------------|
 | **#1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM layout | **CLOSED** · prod **2.63.34** · `eb0d51b` | `smoke-test-mobile-scroll-p0-s1.mjs` · Z-05 iPhone |
 | **#2** | NG-03 maintenance (R-03 docs banner) | docs | **CLOSED** · `f495a78` | `NG-03-DESIGN-FREEZE.md` |
-| **#3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** (commit pending push) | `test-tender-grouped-documents.mjs` · `LIB-TENDERS-GROUPED-DOCS` · runtime `6cd8ebe` |
-| **#4** | Roboty 2.0 MIN | FEATURE/UI | OPEN | `jobs-2.0-product-audit.md` |
+| **#3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** · prod **2.63.35** · `eebe389` | `test-tender-grouped-documents.mjs` · `LIB-TENDERS-GROUPED-DOCS` |
+| **#4** | **Bundle #4A — Roboty 2.0 MIN doc/help sync** | docs + test manifest | **CLOSED** (commit pending push) | `test-job-list-ops-2.0-min.mjs` · `LIB-JOBS-LIST-OPS-20-MIN` · runtime `eebe389` |
 | **#5** | Work Catalog P2.7+ | FEATURE | OPEN · owner brief | P2 freeze docs |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |

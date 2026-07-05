@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.36",
+    label: "Roboty 2.0 MIN — instrukcja i test manifest",
+    items: [
+      {
+        type: "improve",
+        text: "Instrukcja — FAQ Roboty opisuje 3 KPI (W toku, Do odbioru, BZP) i widoczne kolejki, zgodnie z UI prod od 20.5Z.4A.",
+      },
+      {
+        type: "improve",
+        text: "Test manifest — LIB-JOBS-LIST-OPS-20-MIN (scope:jobs) dla regresji job-list-ops.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.35",
     label: "Przetargi — instrukcja Dokumenty (7 grup)",
     items: [

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #3 Grouped Documents** · docs sync · runtime `6cd8ebe` · prod **2.63.34+**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #4A Roboty 2.0 MIN** · docs sync · runtime SHIPPED v2.45.32+ · prod **2.63.35+**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2249,20 +2249,22 @@ Sekcja **Kompletność oferty** w workspace **Oferta** — odpowiedź na gotowo�
 
 **Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1). **9.0.2+** — nie rozpoczęte bez polecenia.
 
-#### Roboty 2.0 MIN (lista admina, v2.45.32)
+#### Roboty 2.0 MIN (lista admina, v2.45.32) — **SHIPPED**
 
 Warstwa operacyjna **bez** nowych kluczy KV, syncu ani Edge. Logika w [`src/lib/job-list-ops.ts`](../src/lib/job-list-ops.ts); UI w `JobsView` + `JobListCardV2`.
 
 | Element | Opis |
 |---------|------|
-| KPI nad listą | W toku / Do odbioru (filtr fazy, klik toggle → „Wszystkie”) / Bez ekipy / BZP / WM po terminie (chipy) |
-| Chipy | `no_team` — `phase !== completed` && brak `executionAssigneeDirectoryIds`; `bzp_only` — `linkedTenderId` + aktywna; `wm_overdue` — reuse `wmJobsWithOverduePlanned` |
+| KPI nad listą (**UI widoczne, od 20.5Z.4A**) | **3 kafelki:** W toku / Do odbioru (filtr fazy, klik toggle → „Wszystkie”) / BZP (chip `bzp_only`) |
+| KPI / chipy (**lib, bez UI od 20.5Z.4A**) | `no_team`, `wm_overdue` — logika w `job-list-ops.ts`; kafelki ukryte w `JobListPanelHeader`; WM overdue → **Pulpit** |
 | Sort w grupie miesiąca | WM overdue → bez ekipy → BZP bez startu (`canShowStartExecutionButton`) → reszta po `startDate` desc |
-| Karta listy | Badge BZP, Ekipa: 0/N, `resolveWorkerContractDateLabel`; WM — `JobWmPlannedBadge` |
+| Karta listy | Badge BZP, **Aktywni dziś** (2.50.41), `resolveWorkerContractDateLabel`, lider; WM — `JobWmPlannedBadge` |
 
-Test: `node scripts/test-job-list-ops-2.0-min.mjs` (lub `npx vite-node`).
+**20.5Z.4A Jobs Cleanup** (`640e3a9`, v2.50.62): UI-only — ukryto KPI „Bez ekipy” / „WM po terminie” i kolejki `no_team` / `wm_overdue` w `JobQueueSections` (`HIDDEN_QUEUE_SECTION_IDS`). **Bez zmian** `job-list-ops.ts`. Handoff: [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) § 20.5Z.4A.
 
-Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
+Test: `npx vite-node scripts/test-job-list-ops-2.0-min.mjs` · manifest: **`LIB-JOBS-LIST-OPS-20-MIN`** · `scope:jobs`.
+
+Audyt + Product Decision History: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
 
 #### Roboty 2.1A (UX listy, v2.45.33)
 
@@ -2270,18 +2272,18 @@ Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.
 
 | Plik | Rola |
 |------|------|
-| `src/app/JobListPanelHeader.tsx` | Nagłówek listy: CTA w jednym rzędzie, KPI (5 kafelków, scroll poziomy), szukaj + **Filtry ▼**, `JobListFilterBar` |
+| `src/app/JobListPanelHeader.tsx` | Nagłówek listy: CTA, KPI (**3 kafelki** od 20.5Z.4A), szukaj + **Filtry ▼**, `JobListFilterBar`, Lista/Kolejki |
 | `src/app/JobsView.tsx` | Podłączenie nagłówka; lista + detail bez zmian logiki filtrowania |
-| `src/app/JobListCardV2.tsx` | Hierarchia karty: adres+status → klient•termin → BZP→Ekipa→WM→meta → docs/koszt → alerty (`JobListCard.tsx` legacy — nieużywany) |
+| `src/app/JobListCardV2.tsx` | Hierarchia karty: adres+status → klient•termin•lider → BZP→Aktywni dziś→WM→meta → docs/koszt → alerty |
 | `src/app/JobListStatus.tsx` | Fazy w jednym rzędzie ze scroll (layout) |
 
 | UX | Opis |
 |----|------|
-| Kolejność | CTA → KPI → Szukaj → Fazy → Filtry ▼ (zwinięte) → Lista |
-| Chipy operacyjne | **Brak** drugiego rzędu pod KPI — Bez ekipy / BZP / WM tylko przez klik w kafelek KPI |
-| Filtry ▼ | Pracownik (`workEntries`), tryb masowy, legenda statusów |
-| Mobile | KPI i fazy: `overflow-x-auto` |
-| Mobile lista (`<640px`, 20.5Z.5C) | Bez wybranej roboty: lista `flex-1` (pełna szerokość); pusty panel szczegółów `hidden sm:flex flex-[13]`; od `sm`: split `sm:flex-[7]` / `flex-[13]` |
+| Kolejność | CTA → KPI (3) → Lista/Kolejki → Szukaj → Fazy → Filtry ▼ → Lista |
+| Chipy operacyjne | **BZP** przez klik w kafelek KPI; `no_team` / `wm_overdue` — lib only (20.5Z.4A) |
+| Filtry ▼ | Lider realizacji, pracownik (`workEntries`), tryb masowy |
+| Mobile | KPI i fazy: `overflow-x-auto` · drill-in MV-2 (2.62.79) — **Mobile Recovery CLOSED** |
+| Mobile lista (`<640px`, 20.5Z.5C) | Bez wybranej roboty: lista `flex-1` (pełna szerokość); od `sm`: split `sm:flex-[7]` / `flex-[13]` |
 
 #### Przepływ produktowy
 
