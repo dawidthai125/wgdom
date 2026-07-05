@@ -22,7 +22,7 @@
 | — | **[`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)** — ★★ kontekst sesji + mapa struktury (2026-06-26) |
 | — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla programistów |
 | — | **[`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](docs/WORKFLOW-ARCHITECTURE-v2.63.md)** — ★★ SSOT Workflow (Hub, CTA, zakładki V4) |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.63.40**) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.63.41**) |
 | — | **[`docs/work-catalog/FOUNDATION-FREEZE-v1.0.md`](docs/work-catalog/FOUNDATION-FREEZE-v1.0.md)** — ★★ Biblioteka Robót v3.0 P1 FREEZE |
 | — | **[`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)** — ★★ P1 Audit Hub WM EPIC CLOSED |
 | — | **[`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)** — ★★ P0 Vercel deploy unblock |
@@ -63,7 +63,7 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 | **Workflow Architecture** | `WORKFLOW-ARCHITECTURE-v2.63.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
 
-**Prod:** **2.63.40** @ `898682a` · Work Catalog P2 **MVP PROD** (P2.1–P2.9) · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
+**Prod:** **2.63.41** @ `642a01d` · Work Catalog P2 **MVP PROD** (P2.1–P2.10) · Mobile Recovery **EPIC CLOSED** · P1 Audit Hub WM **EPIC CLOSED**
 
 ### Biblioteka Robót v3.0 (P1 Foundation + P2 MVP UI)
 

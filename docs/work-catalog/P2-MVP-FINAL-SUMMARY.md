@@ -180,6 +180,7 @@ Brak błędów TypeScript / linter na plikach P2.
 | P2.7 Pakiety robót UI | ✓ (v2.63.38, Bundle #5B) |
 | P2.8 Pakiety UX MIN | ✓ (v2.63.39, Bundle #6B) |
 | P2.9 Pakiety filtry i badge | ✓ (v2.63.40, Bundle #6C-A) |
+| P2.10 Roboty ulubione | ✓ (v2.63.41, Bundle #6D) |
 | Brak integracji Przetargów | ✓ |
 | Changelog + GuideView + ARCHITECTURE | ✓ |
 
@@ -202,11 +203,10 @@ Brak błędów TypeScript / linter na plikach P2.
 |-----------|--------|
 | Build PASS | ✓ |
 | Golden 1419 PASS | ✓ |
-| P2 tests (suite smoke-work-catalog-p2-mvp) | ✓ **16** testIds (P2.1–P2.9) |
-| Changelog 2.63.40 | ✓ |
-| P2 FREEZE doc | ✓ |
-| Prod P2 MVP | ✓ **2.63.37–40** |
+| P2 tests (suite smoke-work-catalog-p2-mvp) | ✓ **17** testIds (P2.1–P2.10) |
+| Changelog 2.63.41 | ✓ |
+| Prod P2 MVP | ✓ **2.63.37–41** |
 
-**Werdykt:** **RELEASED** — Biblioteka Robót P2 MVP na prod (P2.1–P2.9). Ten dokument zachowuje historię pierwszego release (2.62.87).
+**Werdykt:** **RELEASED** — Biblioteka Robót P2 MVP na prod (P2.1–P2.10). Ten dokument zachowuje historię pierwszego release (2.62.87).
 
-**Następny slice (nie startować bez polecenia):** **P2.10** Roboty ulubione (#6D) · **#5C** cutover Przetargi / PB-WRITE · **P3** market UI.
+**Następny slice (nie startować bez polecenia):** **#5C** cutover Przetargi / PB-WRITE · **P3** market UI · deferred bootstrap on mount (#6E).

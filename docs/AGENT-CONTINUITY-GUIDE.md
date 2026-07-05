@@ -1,15 +1,15 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.40** · runtime **`a487680`** · https://www.wgdom.fun  
-> **Data:** 2026-07-05 · **Bundle #6D P2.10 IMPLEMENT lokalny (2.63.41)** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.41** · runtime **`642a01d`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
+> **Ostatnia aktualizacja:** 2026-07-05 · **Bundle #6D P2.10 CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.9 CLOSED** (prod **2.63.40**). **#6D P2.10 IMPLEMENT lokalny** (2.63.41, bez PUSH). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** (prod **2.63.41** · `642a01d`). Następny FEATURE tylko na polecenie (#5C cutover · P3 market UI · P2.11+). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
 > 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
@@ -47,6 +47,17 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 ---
 
 ## 2. Co zrobiliśmy (stan na 2026-07-05)
+
+### ★ Sesja 2026-07-05 — Bundle #6D P2.10 Roboty ulubione (**CLOSED FINAL**)
+
+| Element | Wartość |
+|---------|---------|
+| **Commit** | `642a01d` · prod **2.63.41** · **PRODUCTION VERIFIED** |
+| **Zakres** | gwiazdka ulubione · filtr chip Ulubione · sort favorite-first · licznik · `work-catalog-favorite.ts` · app layer only |
+| **Test** | `SMOKE-WORK-CATALOG-FAVORITE-P210` · suite **17** testIds |
+| **Boundary** | #CORE-013/#CORE-014 **PASS** — zero CORE/lib diff |
+
+**Następny FEATURE:** tylko na polecenie (#5C cutover · P3 market UI · #6E deferred bootstrap).
 
 ### ★ Seria napraw 2026-07 — skrót dla agentów (nie psuj LP)
 
@@ -298,7 +309,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#6B** | **Bundle #6B — Work Catalog P2.8 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.39** · `1fd3627` | `SMOKE-WORK-CATALOG-BUNDLES-P28` · suite **15** testIds |
 | **#6C-A** | **Bundle #6C-A — Work Catalog P2.9 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.40** · `898682a` · **PRODUCTION VERIFIED** | `SMOKE-WORK-CATALOG-BUNDLES-P29` · suite **16** testIds |
 | **#6D-docs** | **Bundle #6D-docs — SSOT continuity** | docs | **CLOSED** · prod **2.63.40** · `a487680` |
-| **#6D** | **Bundle #6D — Work Catalog P2.10 Roboty ulubione** | FEATURE UI | **IMPLEMENT lokalny** · **2.63.41** · suite **17** testIds · **bez PUSH** | `SMOKE-WORK-CATALOG-FAVORITE-P210` |
+| **#6D** | **Bundle #6D — Work Catalog P2.10 Roboty ulubione** | FEATURE UI | **CLOSED FINAL** · prod **2.63.41** · `642a01d` · **PRODUCTION VERIFIED** | `SMOKE-WORK-CATALOG-FAVORITE-P210` · suite **17** testIds |
+| **—** | Następny FEATURE (na polecenie) | — | **OPEN** | **#5C** cutover Przetargi/PB-WRITE · **P3** market UI · deferred bootstrap on mount (#6E) |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
