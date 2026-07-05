@@ -189,7 +189,7 @@ scripts/smoke-test-work-catalog-completeness-p2.6.mjs
 | **P2.8** | Pakiety UX MIN | **CLOSED** (2.63.39) |
 | **P2.9** | Pakiety filtry i badge | **CLOSED** (2.63.40) |
 | **P2.10** | Roboty ulubione (filtr + gwiazdka) | **CLOSED** (2.63.41 · #6D) |
-| — | Deferred bootstrap on mount | race hooków — #6E |
+| — | Deferred bootstrap on mount | **CLOSED** (#6E · 2.63.42) |
 | — | Cutover Przetargi → v3 (#5C) | wymaga briefu produktowego · **OPEN** |
 | — | Historia cen / audyt | nowy KV lub Audit Hub |
 | — | Aktualizacja rynku (P3 UI) | osobny pipeline |

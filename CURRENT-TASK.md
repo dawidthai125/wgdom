@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.41** · **runtime `642a01d`** · **Bundle #6D CLOSED FINAL** · **PRODUCTION VERIFIED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-05 · **prod 2.63.42** · **runtime `7138957`** · **Bundle #6E CLOSED FINAL** · **PRODUCTION VERIFIED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -88,6 +88,7 @@
 | **6C-A** | **Bundle #6C-A — Work Catalog P2.9 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.40** · `898682a` · **PRODUCTION VERIFIED** · suite **16** testIds |
 | **6D-docs** | **Bundle #6D-docs — SSOT continuity** | docs | **CLOSED** · prod **2.63.40** · `a487680` |
 | **6D** | **Bundle #6D — Work Catalog P2.10 Roboty ulubione** | FEATURE UI | **CLOSED FINAL** · prod **2.63.41** · `642a01d` · **PRODUCTION VERIFIED** · suite **17** testIds |
+| **6E** | **Bundle #6E — Deferred bootstrap reliability** | FEATURE UI | **CLOSED FINAL** · prod **2.63.42** · `7138957` · **PRODUCTION VERIFIED** · `LIB-DEFERRED-BOOTSTRAP-6E` · suite **18** testIds |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
@@ -490,7 +491,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.41** (`642a01d`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.42** (`7138957`) · **PRODUCTION VERIFIED** |
 | **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |
@@ -514,6 +515,7 @@
 |-------|--------|
 | **TEST-INFRA post-MVP** (TI-B1 · TI-B3) | OPEN · na polecenie · (TI-B2 `803c0bc` · **TI-B2.1 `2efe8b5`** CLOSED) |
 | **Work Catalog P2** — UI Biblioteka Robót (P2.1–P2.10) | **CLOSED** · prod **2.63.41** · **#5C cutover OPEN** · następny slice na polecenie |
+| **Bundle #6E** — Deferred bootstrap reliability | **CLOSED** · prod **2.63.42** · `7138957` |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |
 | **INFRA-DB-BACKUP-01** — podniesienie backupu z klasy B (Application) do A (Disaster Recovery): `supabase login` + link + pełny `supabase db dump` + certyfikacja | **ON HOLD** · priorytet średni · gate: poświadczenia DB + owner GO (backup lokalny klasy B wykonany 2026-07-04 w `backup/`, gitignored) |

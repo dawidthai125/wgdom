@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.41** · **runtime `642a01d`** · **PRODUCTION VERIFIED** · **Bundle #6D P2.10 CLOSED FINAL** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-05 (**prod 2.63.42** · **runtime `7138957`** · **PRODUCTION VERIFIED** · **Bundle #6E CLOSED FINAL** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -204,7 +204,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.63.41       ← Work Catalog P2.10 Roboty ulubione · commit 642a01d · PRODUCTION VERIFIED
+Version (prod):             2.63.42       ← Bundle #6E deferred bootstrap · commit 7138957 · PRODUCTION VERIFIED
 Version (prod):             2.63.40       ← Work Catalog P2.9 Pakiety filtry/badge · commit 898682a
 Version (prod):             2.63.39       ← Work Catalog P2.8 Pakiety UX MIN · commit 1fd3627
 Version (prod):             2.63.38       ← Work Catalog P2.7 Pakiety robót MIN · commit 9aad48c
