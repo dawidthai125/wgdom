@@ -39,12 +39,12 @@ import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 
-/** PB-2b — jeden read path katalogu dla KPI V4 / Kosztorys PRO (work-first / legacy-fallback). */
+/** PB-2b / #5C-1 — jeden read path katalogu dla KPI V4 / Kosztorys PRO (Work Catalog SSOT). */
 export function resolveTenderPricingCatalogForDisplay(): {
   catalog: WgdomCostCatalog;
   costModel: TenderCompanyCostModel;
-  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
-  isFallback: boolean;
+  catalogSourceLabel: "Biblioteka Robót";
+  isFallback: false;
 } {
   const profile = loadCompanyProfileLocal();
   const costModel = profile.costModel ?? defaultCostModelFromPayroll();
@@ -54,8 +54,8 @@ export function resolveTenderPricingCatalogForDisplay(): {
   return {
     catalog: resolution.catalog,
     costModel,
-    catalogSourceLabel: resolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót",
-    isFallback: resolution.isFallback,
+    catalogSourceLabel: "Biblioteka Robót",
+    isFallback: false,
   };
 }
 
@@ -575,7 +575,7 @@ export interface KosztorysV4Stats {
   unpricedDisplay: string;
   valuationValueDisplay: string;
   valuationTotalPln: number | null;
-  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
+  catalogSourceLabel: "Biblioteka Robót";
 }
 
 export function buildKosztorysV4Stats(
@@ -662,7 +662,7 @@ export interface WycenaKpiDisplay {
   total: number;
   ratioDisplay: string;
   percentDisplay: string;
-  catalogSourceLabel: "Biblioteka Robót" | "Baza cen (fallback)";
+  catalogSourceLabel: "Biblioteka Robót";
 }
 
 export function buildWycenaKpiDisplay(item: TenderPipelineItem): WycenaKpiDisplay {

@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
 import { computeTenderBidProposal } from "../src/lib/tenders-bid-calculator.ts";
 import { defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
+import { defaultWgdomCostCatalog } from "../src/lib/wgdom-cost-catalog.ts";
 import {
   getActiveCatalog,
   WGDOM_COST_CATALOG_KEY,
@@ -86,18 +87,49 @@ function resetStorage() {
   storage.clear();
 }
 
-// T1 — empty work store → legacy fallback
+// T1 — empty work store → work-only (adapter/seed), legacy KV ignored
 resetStorage();
 const legacyStore = seedLegacyStore();
-seedWorkStore(defaultWorkCatalogStore(MIGRATED_AT));
+const emptyWork = defaultWorkCatalogStore(MIGRATED_AT);
+seedWorkStore(emptyWork);
 const t1 = resolveActiveCatalogForTender();
-assertEq(t1.source, "legacy", "T1 source legacy");
-assert(t1.isFallback === true, "T1 isFallback true");
+assertEq(t1.source, "work", "T1 source work");
+assert(t1.isFallback === false, "T1 isFallback false");
+const t1Expected =
+  resolveCatalogForEngine(emptyWork, { region: t1.activeRegion }) ??
+  defaultWgdomCostCatalog(t1.activeRegion);
 assertEq(
   JSON.stringify(t1.catalog.categories.map((c) => c.id)),
-  JSON.stringify(getActiveCatalog(legacyStore).categories.map((c) => c.id)),
-  "T1 catalog matches legacy getActiveCatalog",
+  JSON.stringify(t1Expected.categories.map((c) => c.id)),
+  "T1 catalog matches work adapter or seed template",
 );
+const t1CatalogBefore = JSON.stringify(t1.catalog);
+const legacyMutated = {
+  ...legacyStore,
+  catalogs: {
+    ...legacyStore.catalogs,
+    wroclaw: {
+      ...legacyStore.catalogs.wroclaw,
+      categories: legacyStore.catalogs.wroclaw.categories.map((cat) =>
+        cat.id === "MALOWANIE"
+          ? {
+              ...cat,
+              rates: cat.rates.map((r) =>
+                r.unit === "m2"
+                  ? { ...r, materialPlnPerUnit: r.materialPlnPerUnit + 77 }
+                  : r,
+              ),
+            }
+          : cat,
+      ),
+      updatedAt: MIGRATED_AT,
+    },
+  },
+  updatedAt: MIGRATED_AT,
+};
+localStorage.setItem(WGDOM_COST_CATALOG_KEY, JSON.stringify(legacyMutated));
+const t1AfterMutation = resolveActiveCatalogForTender();
+assertEq(t1CatalogBefore, JSON.stringify(t1AfterMutation.catalog), "T1 legacy KV mutation ignored");
 
 // T2 — work with priced active → work-first
 resetStorage();
@@ -122,7 +154,7 @@ if (t2Expected) {
   );
 }
 
-// T3 — work seed without company prices → legacy
+// T3 — work seed without company prices → still work-only
 resetStorage();
 seedLegacyStore();
 const emptyWorks = createEmptyWorkCatalogStore(MIGRATED_AT);
@@ -155,8 +187,8 @@ const workNoPrices = {
 };
 seedWorkStore(workNoPrices);
 const t3 = resolveActiveCatalogForTender();
-assertEq(t3.source, "legacy", "T3 source legacy");
-assert(t3.isFallback === true, "T3 isFallback true");
+assertEq(t3.source, "work", "T3 source work");
+assert(t3.isFallback === false, "T3 isFallback false");
 assertEq(t3.pricedActiveWorkCount, 0, "T3 pricedActiveWorkCount 0");
 
 // T6 — pricedActiveWorkCount matches listActiveWorksForRegion + isCompanyPricePresent
@@ -169,10 +201,10 @@ const manualCount = listActiveWorksForRegion(migratedWork, t6.activeRegion).filt
 ).length;
 assertEq(t6.pricedActiveWorkCount, manualCount, "T6 pricedActiveWorkCount manual parity");
 
-// T4 — computeTenderBidProposal with resolver catalog vs legacy direct (legacy path)
+// T4 — computeTenderBidProposal: resolver catalog vs work adapter (work-only path)
 resetStorage();
-const legacyOnly = seedLegacyStore();
-seedWorkStore(defaultWorkCatalogStore(MIGRATED_AT));
+seedLegacyStore();
+seedWorkStore(migratedWork);
 const costModel = defaultCostModelFromPayroll();
 const kosztorys = {
   ok: true,
@@ -190,7 +222,10 @@ const kosztorys = {
   totalValue: null,
   currency: "PLN",
 };
-const { catalog: resolverCatalog } = resolveActiveCatalogForTender();
+const t4Resolution = resolveActiveCatalogForTender();
+const workCatalog =
+  resolveCatalogForEngine(migratedWork, { region: t4Resolution.activeRegion }) ??
+  defaultWgdomCostCatalog(t4Resolution.activeRegion);
 const bidResolver = computeTenderBidProposal({
   kosztorys,
   swz: null,
@@ -198,24 +233,24 @@ const bidResolver = computeTenderBidProposal({
   costModel,
   minProjectDays: 30,
   maxConcurrentProjects: 3,
-  catalog: resolverCatalog,
+  catalog: t4Resolution.catalog,
 });
-const bidLegacy = computeTenderBidProposal({
+const bidWork = computeTenderBidProposal({
   kosztorys,
   swz: null,
   fit: null,
   costModel,
   minProjectDays: 30,
   maxConcurrentProjects: 3,
-  catalog: getActiveCatalog(legacyOnly),
+  catalog: workCatalog,
 });
-assert(bidResolver.ok && bidLegacy.ok, "T4 proposals ok");
-if (bidResolver.ok && bidLegacy.ok) {
-  assertEq(bidResolver.pricingMode, bidLegacy.pricingMode, "T4 pricingMode parity");
-  assertEq(bidResolver.costPricePln, bidLegacy.costPricePln, "T4 costPricePln parity on legacy path");
+assert(bidResolver.ok && bidWork.ok, "T4 proposals ok");
+if (bidResolver.ok && bidWork.ok) {
+  assertEq(bidResolver.pricingMode, bidWork.pricingMode, "T4 pricingMode parity");
+  assertEq(bidResolver.costPricePln, bidWork.costPricePln, "T4 costPricePln parity on work path");
 }
 
-// T5 — overrides parity on legacy path
+// T5 — overrides parity on work path
 const laborOverride = [{
   categoryId: "MALOWANIE",
   priceType: "labor",
@@ -230,22 +265,22 @@ const bidResolverOv = computeTenderBidProposal({
   costModel,
   minProjectDays: 30,
   maxConcurrentProjects: 3,
-  catalog: resolverCatalog,
+  catalog: t4Resolution.catalog,
   priceOverrides: laborOverride,
 });
-const bidLegacyOv = computeTenderBidProposal({
+const bidWorkOv = computeTenderBidProposal({
   kosztorys,
   swz: null,
   fit: null,
   costModel,
   minProjectDays: 30,
   maxConcurrentProjects: 3,
-  catalog: getActiveCatalog(legacyOnly),
+  catalog: workCatalog,
   priceOverrides: laborOverride,
 });
-assert(bidResolverOv.ok && bidLegacyOv.ok, "T5 proposals ok");
-if (bidResolverOv.ok && bidLegacyOv.ok) {
-  assertEq(bidResolverOv.costPricePln, bidLegacyOv.costPricePln, "T5 override cost parity");
+assert(bidResolverOv.ok && bidWorkOv.ok, "T5 proposals ok");
+if (bidResolverOv.ok && bidWorkOv.ok) {
+  assertEq(bidResolverOv.costPricePln, bidWorkOv.costPricePln, "T5 override cost parity");
 }
 
 console.log(`\nPRICE-BRIDGE: ${pass} pass, ${fail} fail`);

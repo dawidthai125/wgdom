@@ -182,7 +182,7 @@ resetStorage();
 seedLegacyStore();
 seedWorkStore(defaultWorkCatalogStore(MIGRATED_AT));
 const legacyStats = buildKosztorysV4Stats(item);
-assertEq(legacyStats.catalogSourceLabel, "Baza cen (fallback)", "T6 legacy fallback source label");
+assertEq(legacyStats.catalogSourceLabel, "Biblioteka Robót", "T6 work-only source label (legacy KV ignored)");
 
 const costModelCalc = defaultCostModelFromPayroll();
 const kosztorys = item.tenderDossier.kosztorys;

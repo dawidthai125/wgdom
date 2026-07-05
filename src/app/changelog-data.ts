@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-05",
+    version: "2.63.44",
+    label: "Przetargi — Read SSOT Work Catalog only (#5C-1)",
+    items: [
+      {
+        type: "improve",
+        text: "resolveActiveCatalogForTender() — work-only read path: zero legacy KV w resolverze, zawsze Biblioteka Robót w UI wyceny.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-05",
     version: "2.63.43",
     label: "Przetargi — odświeżanie wyceny po zapisie Biblioteki Robót (#5C-0A)",
     items: [

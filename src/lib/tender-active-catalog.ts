@@ -1,10 +1,10 @@
 /**
- * PRICE-BRIDGE PB-1 — jedyny publiczny entry point wyceny katalogowej dla modułu Przetargów.
- * Pure · read-only · bez persist / cloud.
+ * PRICE-BRIDGE PB-1 / #5C-1 — jedyny publiczny entry point wyceny katalogowej dla modułu Przetargów.
+ * Pure · read-only · Work Catalog SSOT · bez legacy KV w resolverze.
  */
 
 import type { WgdomCostCatalog, WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
-import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
+import { defaultWgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import {
   isCompanyPricePresent,
   listActiveWorksForRegion,
@@ -23,19 +23,19 @@ export interface ResolveActiveCatalogForTenderOptions {
 export interface ActiveTenderCatalogResolution {
   catalog: WgdomCostCatalog;
   source: TenderCatalogSource;
-  /** true gdy efektywny katalog pochodzi z legacy (Baza cen), nie z Biblioteki Robót. */
+  /** #5C-1 — zawsze false; legacy fallback usunięty z resolvera. */
   isFallback: boolean;
   activeRegion: WgdomCostRegion;
+  /** Diagnostyczny — nie wpływa na wybór źródła danych. */
   pricedActiveWorkCount: number;
 }
 
 function resolveActiveRegion(
   options: ResolveActiveCatalogForTenderOptions,
-  legacyStore: ReturnType<typeof loadWgdomCostCatalogStoreLocal>,
   workStore: ReturnType<typeof loadWorkCatalogStoreLocal>,
 ): WgdomCostRegion {
   if (options.region) return options.region;
-  return legacyStore.activeRegion ?? workStore.activeRegion ?? "wroclaw";
+  return workStore.activeRegion ?? "wroclaw";
 }
 
 function countPricedActiveWorks(
@@ -48,14 +48,13 @@ function countPricedActiveWorks(
 }
 
 /**
- * Work-first / legacy-fallback — wewnętrznie wyłącznie `resolveCatalogForEngine`.
+ * #5C-1 — Work Catalog only: `resolveCatalogForEngine(workStore)` + seed template gdy adapter null.
  */
 export function resolveActiveCatalogForTender(
   options: ResolveActiveCatalogForTenderOptions = {},
 ): ActiveTenderCatalogResolution {
   const workStore = loadWorkCatalogStoreLocal();
-  const legacyStore = loadWgdomCostCatalogStoreLocal();
-  const activeRegion = resolveActiveRegion(options, legacyStore, workStore);
+  const activeRegion = resolveActiveRegion(options, workStore);
   const compatOpts = {
     region: activeRegion,
     referenceHourlyPln: options.referenceHourlyPln,
@@ -63,26 +62,14 @@ export function resolveActiveCatalogForTender(
   };
   const pricedActiveWorkCount = countPricedActiveWorks(workStore, activeRegion);
 
-  if (pricedActiveWorkCount > 0) {
-    const adapted = resolveCatalogForEngine(workStore, compatOpts);
-    if (adapted) {
-      return {
-        catalog: adapted,
-        source: "work",
-        isFallback: false,
-        activeRegion,
-        pricedActiveWorkCount,
-      };
-    }
-  }
-
-  const legacyCatalog =
-    resolveCatalogForEngine(legacyStore, compatOpts) ?? getActiveCatalog(legacyStore);
+  const catalog =
+    resolveCatalogForEngine(workStore, compatOpts) ??
+    defaultWgdomCostCatalog(activeRegion);
 
   return {
-    catalog: legacyCatalog,
-    source: "legacy",
-    isFallback: true,
+    catalog,
+    source: "work",
+    isFallback: false,
     activeRegion,
     pricedActiveWorkCount,
   };

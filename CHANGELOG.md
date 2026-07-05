@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.44 — Read SSOT Work Catalog only (Bundle #5C-1)
+
+- **improve:** `resolveActiveCatalogForTender()` — work-only read path; legacy KV poza resolverem
+- **improve:** Wycena / BOQ / KPI — label zawsze „Biblioteka Robót”
+- **test:** `LIB-READ-SSOT-PREFLIGHT-5C1` + `LIB-READ-SSOT-WORK-ONLY-5C1` · suite `smoke-work-catalog-p2-mvp` → 21 testIds
+- **app layer only** — zero cloud-sync/PB-3/engine diff
+
 ## 2.63.43 — Pricing refresh after Work Catalog save (Bundle #5C-0A)
 
 - **fix:** `pricingCatalogRevision` w `TendersContext` — invalidacja wyceny Przetargów po zapisie cen/aktywności w Bibliotece Robót

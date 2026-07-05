@@ -301,7 +301,7 @@ export function TenderBidProposalPanel({
           <Calculator size={12} className="text-violet-600" />
           {TENDER_OWNER_VALUATION_COPY.panelTitle}
           <span className="rounded-full border border-border/70 bg-background/60 px-2 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
-            {tenderCatalogResolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót"}
+            Biblioteka Robót
           </span>
         </p>
         <div className="grid grid-cols-3 gap-2 text-center">
@@ -617,7 +617,7 @@ export function TenderBidProposalPanel({
                   <strong>{catalogRegionLabel}</strong>
                   {" · "}
                   <span className="text-muted-foreground">
-                    {tenderCatalogResolution.isFallback ? "Baza cen (fallback)" : "Biblioteka Robót"}
+                    Biblioteka Robót
                   </span>
                 </p>
               </div>
