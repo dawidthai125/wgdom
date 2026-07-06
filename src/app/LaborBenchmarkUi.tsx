@@ -90,13 +90,15 @@ export function LaborBenchmarkCell({
           <span className="text-muted-foreground">Rynek:</span>{" "}
           <strong className="font-mono tabular-nums">{comparison.rangeLabelPl}</strong>
         </p>
-        {comparison.historyPlnPerUnit != null && comparison.historyDaysAgo != null && (
+        {comparison.historyPlnPerUnit != null && comparison.historyDaysAgo != null ? (
           <p>
             <span className="text-muted-foreground">{comparison.historyDaysAgo} dni temu:</span>{" "}
             <strong className="font-mono tabular-nums">
               {comparison.historyPlnPerUnit.toLocaleString("pl-PL")} zł/{unitSuffix(comparison.unit)}
             </strong>
           </p>
+        ) : (
+          <p className="text-muted-foreground">Brak danych historycznych</p>
         )}
         <TrendLine trend={comparison.trend} />
         {impact && !impact.unavailable && impact.quantity > 0 && impact.impactPln !== 0 && (

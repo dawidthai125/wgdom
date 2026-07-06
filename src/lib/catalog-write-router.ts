@@ -18,12 +18,13 @@ import {
   type WgdomCostCatalogHistoryStore,
 } from "@/lib/wgdom-cost-catalog-history";
 import { saveWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog-store";
+import { appendWorkCatalogRateHistoryIfChanged } from "@/lib/catalog-rate-history";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import {
   saveWorkCatalogStore,
   type SaveWorkCatalogStoreCloudOptions,
 } from "@/lib/work-catalog/work-catalog-sync";
-import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
+import { loadCompanyProfileLocal, type TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 
 export type { CatalogWriteMode };
 
@@ -67,9 +68,14 @@ export async function saveLegacyCostCatalogRouted(
   }
 }
 
+export type SaveWorkCatalogRoutedOptions = SaveWorkCatalogStoreCloudOptions & {
+  /** Store sprzed zapisu — wymagany do snapshotu historii stawek (#5C-3D). */
+  previousStore?: WorkCatalogStore;
+};
+
 export async function saveWorkCatalogRouted(
   store: WorkCatalogStore,
-  options: SaveWorkCatalogStoreCloudOptions = {},
+  options: SaveWorkCatalogRoutedOptions = {},
   settings?: AppSettings,
 ): Promise<RoutedSaveResult> {
   if (!canWriteWorkCatalog(settings)) {
@@ -77,7 +83,12 @@ export async function saveWorkCatalogRouted(
     return { ok: true, saved: false, blocked: "legacy_only_blocks_work" };
   }
   try {
-    await saveWorkCatalogStore(store, options);
+    const { previousStore, ...saveOptions } = options;
+    await saveWorkCatalogStore(store, saveOptions);
+    if (previousStore) {
+      const costModel = loadCompanyProfileLocal().costModel;
+      await appendWorkCatalogRateHistoryIfChanged(previousStore, store, costModel);
+    }
     return { ok: true, saved: true };
   } catch (error) {
     return { ok: false, error };

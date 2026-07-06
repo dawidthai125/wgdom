@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.49",
+    label: "Przetargi — history SSOT from Work Catalog (#5C-3D)",
+    items: [
+      {
+        type: "improve",
+        text: "Historia stawek — snapshot po zapisie Biblioteki Robót (Work Catalog → kw-wgdom-cost-catalog-history); neutralny loader w Ustawieniach wyceny.",
+      },
+      {
+        type: "improve",
+        text: "Trend/benchmark — „Brak danych historycznych” gdy brak snapshotów w oknie 90 dni (bez backfillu legacy).",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-HISTORY-SSOT-5C3D — gate history SSOT; suite smoke-work-catalog-p2-mvp → 27 testIds.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.48",
     label: "Przetargi — dead UX cleanup (#5C-3C)",
     items: [

@@ -94,7 +94,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       setStore(next);
 
       try {
-        const result = await saveWorkCatalogRouted(next, { updatedAtIso });
+        const result = await saveWorkCatalogRouted(next, { updatedAtIso, previousStore: store });
         if (!result.ok) {
           return {
             ok: false,
@@ -127,7 +127,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       if (next !== store) {
         setStore(next);
         try {
-          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso });
+          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso, previousStore: store });
           if (!saveResult.ok || !saveResult.saved) {
             return {
               ok: false,
@@ -159,7 +159,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       if (next !== store) {
         setStore(next);
         try {
-          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso });
+          const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso, previousStore: store });
           if (!saveResult.ok || !saveResult.saved) {
             return {
               ok: false,
@@ -194,7 +194,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
       setStore(result.store);
 
       try {
-        const saveResult = await saveWorkCatalogRouted(result.store, { updatedAtIso });
+        const saveResult = await saveWorkCatalogRouted(result.store, { updatedAtIso, previousStore: store });
         if (!saveResult.ok || !saveResult.saved) {
           return {
             ok: false,

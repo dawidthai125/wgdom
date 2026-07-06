@@ -14,7 +14,7 @@ export function MaterialHistoryCell({
   compact?: boolean;
 }) {
   if (!view.hasHistory && compact) {
-    return <span className="text-muted-foreground text-[9px]">—</span>;
+    return <span className="text-muted-foreground text-[9px]">Brak danych historycznych</span>;
   }
 
   if (compact) {
@@ -71,7 +71,7 @@ export function MaterialHistoryCell({
         </p>
       )}
       {!view.hasHistory && (
-        <p className="text-muted-foreground">Brak historii</p>
+        <p className="text-muted-foreground">Brak danych historycznych</p>
       )}
     </div>
   );

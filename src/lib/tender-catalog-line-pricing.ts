@@ -33,9 +33,9 @@ import {
   type MaterialHistoryImpactResult,
 } from "@/lib/material-impact";
 import {
-  loadWgdomCostCatalogHistoryLocal,
-  type WgdomCostCatalogHistoryStore,
-} from "@/lib/wgdom-cost-catalog-history";
+  loadCatalogRateHistoryLocal,
+  type CatalogRateHistoryStore,
+} from "@/lib/catalog-rate-history";
 
 import {
   CATALOG_UX_OVERRIDE_LABEL,
@@ -138,7 +138,7 @@ export function buildCatalogLinePricingView(
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
   priceOverrides: TenderPriceOverrideEntry[] | null | undefined = null,
-  catalogHistory: WgdomCostCatalogHistoryStore | null = loadWgdomCostCatalogHistoryLocal(),
+  catalogHistory: CatalogRateHistoryStore | null = loadCatalogRateHistoryLocal(),
 ): CatalogLinePricingView | null {
   if (!catalogQuantities?.length) return null;
 

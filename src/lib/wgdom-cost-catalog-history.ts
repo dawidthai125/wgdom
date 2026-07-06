@@ -160,7 +160,7 @@ export async function loadWgdomCostCatalogHistory(): Promise<WgdomCostCatalogHis
   }
 }
 
-async function saveWgdomCostCatalogHistoryStore(store: WgdomCostCatalogHistoryStore): Promise<void> {
+export async function saveWgdomCostCatalogHistoryStore(store: WgdomCostCatalogHistoryStore): Promise<void> {
   const next: WgdomCostCatalogHistoryStore = {
     ...store,
     schemaVersion: 1,

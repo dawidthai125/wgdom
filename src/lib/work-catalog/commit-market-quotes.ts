@@ -143,7 +143,11 @@ export async function commitMarketQuotesImport(
   // 5. save (router respektuje catalogWriteMode) + persist (cloud w środku save)
   let saveResult: RoutedSaveResult;
   try {
-    saveResult = await deps.save(applied, { updatedAtIso: options.updatedAtIso }, options.settings);
+    saveResult = await deps.save(
+      applied,
+      { updatedAtIso: options.updatedAtIso, previousStore: loaded },
+      options.settings,
+    );
   } catch (error) {
     saveResult = { ok: false, error };
   }

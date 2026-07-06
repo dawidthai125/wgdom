@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.49 — History SSOT from Work Catalog (Bundle #5C-3D)
+
+- **improve:** `catalog-rate-history-snapshot.ts` + `catalog-rate-history.ts` — write/read SSOT historii stawek z Work Catalog
+- **improve:** `saveWorkCatalogRouted({ previousStore })` — snapshot po save do `kw-wgdom-cost-catalog-history`
+- **improve:** neutral loader w panelu wyceny + reload na `pricingCatalogRevision`; empty state „Brak danych historycznych”
+- **test:** `LIB-HISTORY-SSOT-5C3D` · suite `smoke-work-catalog-p2-mvp` → **27** testIds
+- **known:** `test-material-history.mjs` fixture drift (90d window) — pre-existing, bez zmian w `material-history.ts`
+
 ## 2.63.48 — Dead UX cleanup (Bundle #5C-3C)
 
 - **improve:** `TenderPriceBasePanel` — scalony callout; usunięto disabled „Zapisz bazę cen”; jedno CTA Biblioteka Robót

@@ -30,10 +30,10 @@ import {
 import { LaborBenchmarkCell, LaborBenchmarkSourcePanel } from "@/app/LaborBenchmarkUi";
 import { LABOR_BENCHMARK_SOURCE_LABEL } from "@/lib/labor-benchmark-data";
 import {
-  loadWgdomCostCatalogHistory,
-  loadWgdomCostCatalogHistoryLocal,
-  type WgdomCostCatalogHistoryStore,
-} from "@/lib/wgdom-cost-catalog-history";
+  loadCatalogRateHistory,
+  loadCatalogRateHistoryLocal,
+  type CatalogRateHistoryStore,
+} from "@/lib/catalog-rate-history";
 import { buildMaterialRateHistoryView } from "@/lib/material-history";
 import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
 import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
@@ -87,26 +87,31 @@ export function TenderPriceBasePanel({
   const tendersCtx = useTendersContextOptional();
   const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
-  const [catalogHistory, setCatalogHistory] = useState<WgdomCostCatalogHistoryStore>(
-    loadWgdomCostCatalogHistoryLocal(),
+  const [catalogHistory, setCatalogHistory] = useState<CatalogRateHistoryStore>(
+    loadCatalogRateHistoryLocal(),
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      loadCompanyProfile(),
-      loadWgdomCostCatalogHistory(),
-    ]).then(([p, history]) => {
+    void loadCompanyProfile().then((p) => {
       if (!cancelled) {
         setProfile(p);
-        setCatalogHistory(history);
         setLoading(false);
       }
     });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCatalogHistory(loadCatalogRateHistoryLocal());
+    void loadCatalogRateHistory().then((history) => {
+      if (!cancelled) setCatalogHistory(history);
+    });
+    return () => { cancelled = true; };
+  }, [pricingCatalogRevision]);
 
   const catalogResolution = useMemo(() => {
     void pricingCatalogRevision;

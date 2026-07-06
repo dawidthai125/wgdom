@@ -121,7 +121,8 @@
         "LIB-PB-WRITE-ROUTER",
         "LIB-UX-COPY-CUTOVER-5C3A",
         "LIB-PREVIEW-SSOT-5C3B",
-        "LIB-DEAD-UX-CLEANUP-5C3C"
+        "LIB-DEAD-UX-CLEANUP-5C3C",
+        "LIB-HISTORY-SSOT-5C3D"
       ]
     }
   },
@@ -595,6 +596,18 @@
       "id": "LIB-DEAD-UX-CLEANUP-5C3C",
       "class": "lib",
       "path": "scripts/test-tender-dead-ux-cleanup-5c3c.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-HISTORY-SSOT-5C3D",
+      "class": "lib",
+      "path": "scripts/test-tender-history-ssot-5c3d.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

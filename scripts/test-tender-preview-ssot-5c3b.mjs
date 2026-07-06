@@ -72,8 +72,8 @@ assert("T2 buildPriceBasePreviewRows", priceBasePanel.includes("buildPriceBasePr
 // T3 — pricingCatalogRevision invalidation
 assert("T3 pricingCatalogRevision", priceBasePanel.includes("pricingCatalogRevision"));
 
-// T4 — history loader unchanged (#5C-3D scope)
-assert("T4 loadWgdomCostCatalogHistory kept", priceBasePanel.includes("loadWgdomCostCatalogHistory()"));
+// T4 — neutral history loader (#5C-3D)
+assert("T4 loadCatalogRateHistory kept", priceBasePanel.includes("loadCatalogRateHistory()"));
 
 // T5 — helper pure (no I/O)
 assert("T5 helper no localStorage", !previewHelper.includes("localStorage"));
