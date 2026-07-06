@@ -1,15 +1,15 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.50** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-5A CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.51** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-5B CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A…#5C-3D CLOSED** + **#5C-5A legacy KV sync quiesce CLOSED** (prod **2.63.50**). **#5C-5B** Design Freeze **APPROVED** — IMPLEMENT **BLOCKED** (Owner GO). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A…#5C-3D CLOSED** + **#5C-5A legacy KV sync quiesce CLOSED** + **#5C-5B bootstrap/reconcile decouple CLOSED** (prod **2.63.51**). **#5C-5C** legacy cleanup — **BLOCKED** (osobny bundle). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
 > 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
@@ -59,17 +59,25 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Boundary** | #CORE-013 **PASS** — zero diff Payroll · PWRB · Bootstrap · Reconcile · CloudLoader · UI · router · store |
 | **Functional delta** | **Zero** — sync plane only |
 
-**Następny slice (#5C-5):** **#5C-5B** bootstrap/reconcile decouple — Design Freeze [`CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) **APPROVED** · IMPLEMENT **BLOCKED** (Owner GO).
+**Następny slice (#5C-5):** **#5C-5C** legacy cleanup — **BLOCKED** (po CLOSE #5C-5B · osobny bundle · tylko na polecenie).
 
-### ★ Sesja 2026-07-06 — #5C-5B Bootstrap / Reconcile Decouple (**DESIGN FREEZE APPROVED**)
+### ★ Sesja 2026-07-06 — Bundle #5C-5B Bootstrap / Reconcile Decouple (**CLOSED FINAL**)
 
 | Element | Wartość |
 |---------|---------|
 | **Klasa** | **CORE CATALOG** (#CORE-013) |
-| **SSOT** | [`docs/architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) |
-| **Werdykt** | **DESIGN FREEZE v1.0 APPROVED** · **IMPLEMENT BLOCKED** |
-| **Gate IMPLEMENT** | Owner GO + Exit Criteria §9 dokumentu |
-| **Zakres (po GO)** | `work-catalog-bootstrap.ts` · `work-catalog-reconcile-bootstrap.ts` · minimal `cloud-sync.ts` hook — **bez** Payroll · PWRB · CloudLoader · Edge · App.tsx |
+| **Commit** | `50dae97` · prod **2.63.51** · **PRODUCTION VERIFIED** |
+| **SSOT** | [`docs/architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) v1.1 |
+| **Zakres** | `finalizeWorkCatalogAfterDeferredMerge` — bez cyklicznego legacy read · bez reconcile w deferred path · ONE-SHOT PB-3 (scenariusz B) |
+| **Test** | `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds · gate B work-catalog + payroll **PASS** |
+| **Payroll gate** | **Payroll Bootstrap Integrity PASS** (P11 · B4 · B5 · RB · assignments · guards) |
+| **Boundary** | #CORE-013 **PASS** — zero diff Payroll · PWRB · CloudLoader · Edge · App.tsx |
+
+### ★ Sesja 2026-07-06 — #5C-5B Design Freeze v1.1 (**CLOSED** — superseded by IMPLEMENT closeout powyżej)
+
+| Element | Wartość |
+|---------|---------|
+| **Docs** | Design Freeze v1.1 + Payroll Regression Gate · commit `2702e20` |
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-3D History SSOT from Work Catalog (**CLOSED FINAL**)
 
@@ -425,7 +433,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-3C** | **Bundle #5C-3C — Dead UX cleanup** | FEATURE UI | **CLOSED FINAL** · prod **2.63.48** · `e89051b` · **PRODUCTION VERIFIED** | `LIB-DEAD-UX-CLEANUP-5C3C` · suite **26** testIds |
 | **#5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **#5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** | `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
-| **#5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **DF APPROVED** · IMPLEMENT **BLOCKED** (Owner GO) | [`CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) |
+| **#5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · **PRODUCTION VERIFIED** | `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds |
+| **—** | **#5C-5C** Legacy cleanup | CORE CATALOG | **BLOCKED** | osobny bundle · tylko na polecenie |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
