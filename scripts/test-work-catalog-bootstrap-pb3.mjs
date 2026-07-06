@@ -8,8 +8,8 @@ process.env.VITE_SUPABASE_ANON_KEY = "mock-anon-pb3";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
+import { activeCatalogFromStore } from "./lib/active-catalog-from-store.mjs";
 import {
-  getActiveCatalog,
   WGDOM_COST_CATALOG_KEY,
 } from "../src/lib/wgdom-cost-catalog-store.ts";
 import { resolveActiveCatalogForTender } from "../src/lib/tender-active-catalog.ts";
@@ -130,7 +130,7 @@ reset();
 const emptyLegacy = defaultWgdomCostCatalogStore();
 for (const region of ["wroclaw", "dolnyslask"]) {
   emptyLegacy.catalogs[region] = {
-    ...getActiveCatalog(emptyLegacy),
+    ...activeCatalogFromStore(emptyLegacy),
     categories: [],
     updatedAt: MIGRATED_AT,
   };

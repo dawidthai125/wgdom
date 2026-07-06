@@ -7,8 +7,8 @@ import { resolve } from "node:path";
 import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
 import { computeTenderBidProposal } from "../src/lib/tenders-bid-calculator.ts";
 import { defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
+import { activeCatalogFromStore } from "./lib/active-catalog-from-store.mjs";
 import {
-  getActiveCatalog,
   WGDOM_COST_CATALOG_KEY,
 } from "../src/lib/wgdom-cost-catalog-store.ts";
 import { resolveActiveCatalogForTender } from "../src/lib/tender-active-catalog.ts";
@@ -209,7 +209,7 @@ assert(
 resetStorage();
 const legacyOnly = seedLegacyStore();
 saveWorkCatalogStoreLocal(defaultWorkCatalogStore(MIGRATED_AT), { updatedAtIso: MIGRATED_AT });
-const legacyCatalogBefore = getActiveCatalog(legacyOnly);
+const legacyCatalogBefore = activeCatalogFromStore(legacyOnly);
 const legacyBidBefore = computeTenderBidProposal({
   kosztorys,
   swz: null,
@@ -250,7 +250,7 @@ const legacyBidAfter = computeTenderBidProposal({
   costModel,
   minProjectDays: 30,
   maxConcurrentProjects: 3,
-  catalog: getActiveCatalog(legacyMutated),
+  catalog: activeCatalogFromStore(legacyMutated),
 });
 assert(legacyBidBefore.ok && legacyBidAfter.ok, "T3 legacy proposals ok");
 if (legacyBidBefore.ok && legacyBidAfter.ok) {

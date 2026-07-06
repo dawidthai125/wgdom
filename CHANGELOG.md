@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.53 — Legacy compat cleanup F2 (#5C-5C)
+
+- **refactor:** usunięto `saveLegacyCostCatalogRouted`, `appendCostCatalogHistoryRouted`, `saveWgdomCostCatalogStore`, compat UI helpers (`resolveCatalogForUI`, …)
+- **keep:** `saveWorkCatalogRouted`, `resolveCatalogForEngine`, ONE-SHOT bootstrap, `loadWgdomCostCatalogStoreLocal`
+- **test:** `LIB-5C-5C-LEGACY-CLEANUP-F2` · zero `persistKey(kw-wgdom-cost-catalog)` w `src/`
+- **boundary:** zero diff `cloud-sync.ts`, Payroll, PWRB
+
 ## 2.63.52 — Legacy cleanup F1 orphan reconcile (#5C-5C)
 
 - **refactor:** usunięto `work-catalog-reconcile-bootstrap.ts`, `work-catalog-reconcile.ts` i eksporty PB-WRITE-C z `@/lib/work-catalog`

@@ -1,6 +1,6 @@
 /**
- * Biblioteka Robót i Cennik v3.0 — warstwa backward compatibility (P1.10).
- * Pure · deterministyczna · read-only — bez migracji, persist, zapisu.
+ * Biblioteka Robót i Cennik v3.0 — engine compat (P1.10 / #5C-5C F2).
+ * Pure · read-only — `resolveCatalogForEngine` only.
  */
 
 import {
@@ -15,25 +15,10 @@ import {
   type BuildLegacyCostCatalogOptions,
 } from "@/lib/work-catalog/work-catalog-engine-adapter";
 
-export type CatalogVersion = "legacy" | "work" | "unknown";
-
-export type LegacyCatalogInput = WgdomCostCatalogStore | WgdomCostCatalog;
-
 export interface ResolveCatalogCompatOptions {
   region?: WgdomCostRegion;
   referenceHourlyPln?: number;
   updatedAtIso?: string;
-}
-
-export interface CatalogForUiResolution {
-  version: Exclude<CatalogVersion, "unknown">;
-  activeRegion: WgdomCostRegion;
-  /** Store legacy (schema v1) — gdy wejście było `WgdomCostCatalogStore`. */
-  legacyStore: WgdomCostCatalogStore | null;
-  /** Pojedynczy katalog legacy — gdy wejście było `WgdomCostCatalog`. */
-  legacyCatalog: WgdomCostCatalog | null;
-  /** Store v3 — gdy wejście było `WorkCatalogStore`. */
-  workStore: WorkCatalogStore | null;
 }
 
 function normalizeRegion(value: unknown, fallback: WgdomCostRegion): WgdomCostRegion {
@@ -90,22 +75,6 @@ function toBuildLegacyOptions(options: ResolveCatalogCompatOptions): BuildLegacy
   };
 }
 
-/** `WgdomCostCatalogStore` lub pojedynczy `WgdomCostCatalog` (schema v1). */
-export function isLegacyCatalog(value: unknown): value is LegacyCatalogInput {
-  return isLegacyCostCatalogStore(value) || isLegacyCostCatalogSingle(value);
-}
-
-/** `WorkCatalogStore` (schema v3). */
-export function isWorkCatalog(value: unknown): value is WorkCatalogStore {
-  return isWorkCatalogStore(value);
-}
-
-export function resolveCatalogVersion(value: unknown): CatalogVersion {
-  if (isWorkCatalog(value)) return "work";
-  if (isLegacyCatalog(value)) return "legacy";
-  return "unknown";
-}
-
 /**
  * Zwraca `WgdomCostCatalog` dla silnika `wgdom-catalog-cost-engine`.
  * Legacy — pass-through; Work v3 — adapter (bez mutacji wejścia).
@@ -128,50 +97,6 @@ export function resolveCatalogForEngine(
   if (isWorkCatalogStore(value)) {
     const region = normalizeRegion(options.region, value.activeRegion);
     return buildLegacyCostCatalogFromWorkStore(value, region, toBuildLegacyOptions(options));
-  }
-
-  return null;
-}
-
-/**
- * Rozpoznaje wersję katalogu i zwraca referencje do store bez modyfikacji danych.
- * UI / cutover wybierają gałąź na podstawie `version`.
- */
-export function resolveCatalogForUI(
-  value: unknown,
-  options: ResolveCatalogCompatOptions = {},
-): CatalogForUiResolution | null {
-  if (isWorkCatalogStore(value)) {
-    const activeRegion = normalizeRegion(options.region, value.activeRegion);
-    return {
-      version: "work",
-      activeRegion,
-      legacyStore: null,
-      legacyCatalog: null,
-      workStore: value,
-    };
-  }
-
-  if (isLegacyCostCatalogStore(value)) {
-    const activeRegion = normalizeRegion(options.region, value.activeRegion);
-    return {
-      version: "legacy",
-      activeRegion,
-      legacyStore: value,
-      legacyCatalog: resolveLegacyCatalogFromStore(value, activeRegion),
-      workStore: null,
-    };
-  }
-
-  if (isLegacyCostCatalogSingle(value)) {
-    const activeRegion = normalizeRegion(options.region, value.region);
-    return {
-      version: "legacy",
-      activeRegion,
-      legacyStore: null,
-      legacyCatalog: value,
-      workStore: null,
-    };
   }
 
   return null;

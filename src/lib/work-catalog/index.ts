@@ -129,32 +129,21 @@ export {
   type SaveWorkBundleStoreLocalOptions,
 } from "@/lib/work-catalog/work-bundle-store";
 
-// ─── P1.10 — backward compatibility ────────────────────────────────────────
+// ─── P1.10 — engine compat (#5C-5C F2: resolveCatalogForEngine only) ─────
 
 export {
-  isLegacyCatalog,
-  isWorkCatalog,
   resolveCatalogForEngine,
-  resolveCatalogForUI,
-  resolveCatalogVersion,
-  type CatalogForUiResolution,
-  type CatalogVersion,
-  type LegacyCatalogInput,
   type ResolveCatalogCompatOptions,
 } from "@/lib/work-catalog/work-catalog-compat";
 
-// ─── PB-WRITE-A — catalog write router ─────────────────────────────────────
+// ─── PB-WRITE-A — catalog write router (#5C-5C F2: work path only) ─────────
 
 export {
-  appendCostCatalogHistoryRouted,
-  canWriteLegacyCatalog,
   canWriteWorkCatalog,
   resolveCatalogWriteMode,
-  saveLegacyCostCatalogRouted,
   saveWorkCatalogRouted,
   type CatalogWriteBlockReason,
   type CatalogWriteMode,
-  type RoutedHistoryAppendResult,
   type RoutedSaveResult,
 } from "@/lib/catalog-write-router";
 

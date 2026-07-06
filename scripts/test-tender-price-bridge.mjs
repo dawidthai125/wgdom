@@ -7,9 +7,7 @@ import { resolve } from "node:path";
 import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
 import { computeTenderBidProposal } from "../src/lib/tenders-bid-calculator.ts";
 import { defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
-import { defaultWgdomCostCatalog } from "../src/lib/wgdom-cost-catalog.ts";
 import {
-  getActiveCatalog,
   WGDOM_COST_CATALOG_KEY,
 } from "../src/lib/wgdom-cost-catalog-store.ts";
 import { resolveCatalogForEngine } from "../src/lib/work-catalog/work-catalog-compat.ts";

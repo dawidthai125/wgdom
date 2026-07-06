@@ -19,7 +19,6 @@ const REQUIRED_EXPORTS = [
   "normalizeWorkCatalogStore",
   "normalizeWorkBundleStore",
   "resolveCatalogForEngine",
-  "resolveCatalogForUI",
   "loadWorkCatalogStore",
   "saveWorkCatalogStore",
   "WORK_CATALOG_STORAGE_KEY",

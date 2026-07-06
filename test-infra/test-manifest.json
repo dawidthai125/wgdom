@@ -125,7 +125,8 @@
         "LIB-HISTORY-SSOT-5C3D",
         "LIB-LEGACY-KV-SYNC-QUIESCE-5C5A",
         "LIB-5C-5B-BOOTSTRAP-DECOUPLE",
-        "LIB-5C-5C-LEGACY-CLEANUP-F1"
+        "LIB-5C-5C-LEGACY-CLEANUP-F1",
+        "LIB-5C-5C-LEGACY-CLEANUP-F2"
       ]
     }
   },
@@ -647,6 +648,18 @@
       "id": "LIB-5C-5C-LEGACY-CLEANUP-F1",
       "class": "lib",
       "path": "scripts/test-5c-5c-legacy-cleanup-f1.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-5C-5C-LEGACY-CLEANUP-F2",
+      "class": "lib",
+      "path": "scripts/test-5c-5c-legacy-cleanup-f2.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

@@ -2,7 +2,7 @@
  * P2-G.1C — persystencja WGDOM Cost Catalog (localStorage + chmura).
  */
 
-import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
+import { fetchKeysFromCloud } from "@/lib/cloud-sync";
 import {
   defaultWgdomCostCatalog,
   defaultWgdomCostCatalogStore,
@@ -24,8 +24,8 @@ function ts(iso: string | undefined | null): number {
   return Number.isFinite(t) ? t : 0;
 }
 
-export function getActiveCatalog(store: WgdomCostCatalogStore): WgdomCostCatalog {
-  return store.catalogs[store.activeRegion] ?? defaultWgdomCostCatalog(store.activeRegion);
+function activeCatalogForRegion(store: WgdomCostCatalogStore, region: WgdomCostRegion): WgdomCostCatalog {
+  return store.catalogs[region] ?? defaultWgdomCostCatalog(region);
 }
 
 export function normalizeWgdomCostCatalogStore(raw: unknown): WgdomCostCatalogStore {
@@ -122,20 +122,6 @@ export async function loadWgdomCostCatalogStore(): Promise<WgdomCostCatalogStore
   }
 }
 
-export async function saveWgdomCostCatalogStore(store: WgdomCostCatalogStore): Promise<void> {
-  const next: WgdomCostCatalogStore = {
-    ...store,
-    schemaVersion: 1,
-    updatedAt: new Date().toISOString(),
-    catalogs: {
-      wroclaw: { ...store.catalogs.wroclaw, updatedAt: new Date().toISOString() },
-      dolnyslask: { ...store.catalogs.dolnyslask, updatedAt: new Date().toISOString() },
-    },
-  };
-  localStorage.setItem(WGDOM_COST_CATALOG_KEY, JSON.stringify(next));
-  await persistKey(WGDOM_COST_CATALOG_KEY, next);
-}
-
 export function restoreDefaultWgdomCostCatalogStore(): WgdomCostCatalogStore {
   return defaultWgdomCostCatalogStore();
 }
@@ -187,7 +173,9 @@ export function updateCategoryPrimaryRates(
 }
 
 export function listEditableCategories(store: WgdomCostCatalogStore, region?: WgdomCostRegion) {
-  const catalog = region ? store.catalogs[region] : getActiveCatalog(store);
+  const catalog = region
+    ? store.catalogs[region] ?? defaultWgdomCostCatalog(region)
+    : activeCatalogForRegion(store, store.activeRegion);
   return WGDOM_COST_CATEGORY_IDS.map((id) => {
     const cat = catalog.categories.find((c) => c.id === id);
     const primary = cat?.rates[0];

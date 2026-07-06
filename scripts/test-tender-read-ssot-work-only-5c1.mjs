@@ -4,9 +4,8 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { defaultWgdomCostCatalog, defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
+import { defaultWgdomCostCatalogStore } from "../src/lib/wgdom-cost-catalog.ts";
 import {
-  getActiveCatalog,
   WGDOM_COST_CATALOG_KEY,
 } from "../src/lib/wgdom-cost-catalog-store.ts";
 import { resolveActiveCatalogForTender } from "../src/lib/tender-active-catalog.ts";

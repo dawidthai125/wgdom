@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.53",
+    label: "Core — legacy compat cleanup F2 (#5C-5C)",
+    items: [
+      {
+        type: "improve",
+        text: "Usunięto martwe ścieżki zapisu legacy catalog (router, save store, compat UI) — prod nadal work_only + resolveCatalogForEngine.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-5C-5C-LEGACY-CLEANUP-F2 — gate router/compat + zero persistKey kw-wgdom-cost-catalog.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.52",
     label: "Core — legacy cleanup F1 orphan reconcile (#5C-5C)",
     items: [

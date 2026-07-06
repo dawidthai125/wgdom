@@ -1,5 +1,5 @@
 /**
- * P1.10 — backward compatibility layer (read-only resolve).
+ * P1.10 / #5C-5C F2 — engine compat (resolveCatalogForEngine only).
  * npx vite-node scripts/test-work-catalog-compat.mjs
  */
 import { readFileSync } from "node:fs";
@@ -11,19 +11,13 @@ import {
 } from "../src/lib/wgdom-cost-catalog.ts";
 import { aggregateCatalogDirectCost } from "../src/lib/wgdom-catalog-cost-engine.ts";
 import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
-import { getActiveCatalog } from "../src/lib/wgdom-cost-catalog-store.ts";
+import { activeCatalogFromStore } from "./lib/active-catalog-from-store.mjs";
 import {
   SEED_MANIFEST_RELATIVE_PATH,
   parseSeedManifestYaml,
 } from "../src/lib/work-catalog/seed-manifest.ts";
 import { buildLegacyCostCatalogFromWorkStore } from "../src/lib/work-catalog/work-catalog-engine-adapter.ts";
-import {
-  isLegacyCatalog,
-  isWorkCatalog,
-  resolveCatalogForEngine,
-  resolveCatalogForUI,
-  resolveCatalogVersion,
-} from "../src/lib/work-catalog/work-catalog-compat.ts";
+import { resolveCatalogForEngine } from "../src/lib/work-catalog/work-catalog-compat.ts";
 import { migrateLegacyCostCatalogStoreToWorkCatalog } from "../src/lib/work-catalog/work-catalog-migrate.ts";
 import {
   loadWorkCatalogStoreLocal,
@@ -53,7 +47,7 @@ const { store: workStore } = migrateLegacyCostCatalogStoreToWorkCatalog(legacySt
   seedManifest,
 });
 const workSnapshot = JSON.parse(JSON.stringify(workStore));
-const legacyCatalog = getActiveCatalog(legacyStore);
+const legacyCatalog = activeCatalogFromStore(legacyStore);
 
 const storage = new Map();
 globalThis.localStorage = {
@@ -103,36 +97,16 @@ function deepEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-// ─── detection ─────────────────────────────────────────────────────────────
-
-assert(isLegacyCatalog(legacyStore), "isLegacyCatalog legacy store");
-assert(isLegacyCatalog(legacyCatalog), "isLegacyCatalog single catalog");
-assert(!isLegacyCatalog(workStore), "isLegacyCatalog rejects work store");
-assert(!isLegacyCatalog(null), "isLegacyCatalog rejects null");
-assert(!isLegacyCatalog({ schemaVersion: 2 }), "isLegacyCatalog rejects schema 2");
-
-assert(isWorkCatalog(workStore), "isWorkCatalog work store");
-assert(!isWorkCatalog(legacyStore), "isWorkCatalog rejects legacy store");
-assert(!isWorkCatalog(legacyCatalog), "isWorkCatalog rejects single catalog");
-
-assertEq(resolveCatalogVersion(legacyStore), "legacy", "resolveCatalogVersion legacy store");
-assertEq(resolveCatalogVersion(workStore), "work", "resolveCatalogVersion work store");
-assertEq(resolveCatalogVersion({}), "unknown", "resolveCatalogVersion unknown");
-
-// ─── resolveCatalogForEngine: legacy pass-through ──────────────────────────
-
 const engineFromLegacyStore = resolveCatalogForEngine(legacyStore);
 assert(engineFromLegacyStore != null, "engine legacy store not null");
 assertEq(engineFromLegacyStore.region, "wroclaw", "engine legacy store default region");
-assert(deepEqual(engineFromLegacyStore, getActiveCatalog(legacyStore)), "engine legacy store = getActiveCatalog");
+assert(deepEqual(engineFromLegacyStore, activeCatalogFromStore(legacyStore)), "engine legacy store = activeCatalogFromStore");
 
 const engineFromSingle = resolveCatalogForEngine(legacyCatalog);
 assert(deepEqual(engineFromSingle, legacyCatalog), "engine single legacy pass-through");
 
 const engineDolnyslask = resolveCatalogForEngine(legacyStore, { region: "dolnyslask" });
 assertEq(engineDolnyslask?.region, "dolnyslask", "engine legacy region override");
-
-// ─── resolveCatalogForEngine: work via adapter ─────────────────────────────
 
 const engineFromWork = resolveCatalogForEngine(workStore);
 const adaptedDirect = buildLegacyCostCatalogFromWorkStore(workStore, "wroclaw");
@@ -143,8 +117,6 @@ const malowanieCompat = getCategoryRate(engineFromWork, "MALOWANIE", "m2");
 const malowanieDirect = getCategoryRate(adaptedDirect, "MALOWANIE", "m2");
 assertNear(malowanieCompat.materialPlnPerUnit, malowanieDirect.materialPlnPerUnit, EPSILON, "engine work MALOWANIE material");
 assertNear(malowanieCompat.laborRbhPerUnit, malowanieDirect.laborRbhPerUnit, EPSILON, "engine work MALOWANIE labor");
-
-// ─── engine parity: legacy vs work via compat ───────────────────────────────
 
 const legacyEngine = aggregateCatalogDirectCost(
   SAMPLE_ROWS,
@@ -162,38 +134,10 @@ assertEq(legacyEngine.rowCount, workEngine.rowCount, "compat engine parity rowCo
 assert(resolveCatalogForEngine(null) === null, "engine null input");
 assert(resolveCatalogForEngine({ schemaVersion: 99 }) === null, "engine unknown input");
 
-// ─── resolveCatalogForUI ─────────────────────────────────────────────────
-
-const uiLegacy = resolveCatalogForUI(legacyStore);
-assert(uiLegacy != null, "UI legacy store");
-assertEq(uiLegacy.version, "legacy", "UI legacy version");
-assertEq(uiLegacy.legacyStore, legacyStore, "UI legacy store reference");
-assert(uiLegacy.workStore === null, "UI legacy no work store");
-assert(deepEqual(uiLegacy.legacyCatalog, getActiveCatalog(legacyStore)), "UI legacy catalog slice");
-
-const uiSingle = resolveCatalogForUI(legacyCatalog);
-assertEq(uiSingle?.version, "legacy", "UI single legacy version");
-assertEq(uiSingle?.legacyStore, null, "UI single no store");
-assertEq(uiSingle?.legacyCatalog, legacyCatalog, "UI single catalog reference");
-
-const uiWork = resolveCatalogForUI(workStore, { region: "dolnyslask" });
-assertEq(uiWork?.version, "work", "UI work version");
-assertEq(uiWork?.workStore, workStore, "UI work store reference");
-assertEq(uiWork?.activeRegion, "dolnyslask", "UI work region override");
-assert(uiWork?.legacyStore === null && uiWork?.legacyCatalog === null, "UI work no legacy refs");
-
-assert(resolveCatalogForUI(null) === null, "UI null input");
-
-// ─── immutability ────────────────────────────────────────────────────────
-
 resolveCatalogForEngine(legacyStore);
 resolveCatalogForEngine(workStore);
-resolveCatalogForUI(legacyStore);
-resolveCatalogForUI(workStore);
 assert(deepEqual(legacyStore, legacySnapshot), "compat does not mutate legacy store");
 assert(deepEqual(workStore, workSnapshot), "compat does not mutate work store");
-
-// ─── persist → load → normalize → compat → engine ─────────────────────────
 
 storage.clear();
 saveWorkCatalogStoreLocal(workStore, { updatedAtIso: MIGRATED_AT });
@@ -208,15 +152,9 @@ assertNear(
   "persist→compat→engine parity",
 );
 
-const uiFromPersist = resolveCatalogForUI(persisted);
-assertEq(uiFromPersist?.version, "work", "persist→UI work version");
-assert(uiFromPersist?.workStore != null, "persist→UI work store present");
-
-// ─── single catalog region guard ─────────────────────────────────────────
-
 const wroclawOnly = defaultWgdomCostCatalog("wroclaw");
 assert(resolveCatalogForEngine(wroclawOnly, { region: "dolnyslask" }) === null, "single catalog rejects region mismatch");
 assert(resolveCatalogForEngine(wroclawOnly) != null, "single catalog engine without override");
 
-console.log(`\nP1.10 work-catalog compat: ${pass} PASS, ${fail} FAIL`);
+console.log(`\nP1.10 work-catalog compat (engine): ${pass} PASS, ${fail} FAIL`);
 if (fail > 0) process.exit(1);
