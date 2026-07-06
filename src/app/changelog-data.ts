@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.47",
+    label: "Przetargi — preview data SSOT cutover (#5C-3B)",
+    items: [
+      {
+        type: "improve",
+        text: "Ustawienia wyceny — stawki kategorii z resolveActiveCatalogForTender() (Work Catalog SSOT); buildPriceBasePreviewRows() pure.",
+      },
+      {
+        type: "improve",
+        text: "pricingCatalogRevision invaliduje podgląd stawek po zapisie Biblioteki Robót (bez F5).",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-PREVIEW-SSOT-5C3B — parity preview ↔ resolver; historia trend → #5C-3D.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.46",
     label: "Przetargi — UX copy & navigation cutover (#5C-3A)",
     items: [

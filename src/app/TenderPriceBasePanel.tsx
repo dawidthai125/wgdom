@@ -9,21 +9,16 @@ import {
   type TenderCompanyProfile,
 } from "@/lib/tenders-bzp-company";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
-import {
-  type WgdomCostCatalogStore,
-  type WgdomCostRegion,
-  listEditableCategories,
-  loadWgdomCostCatalogStore,
-  restoreDefaultWgdomCostCatalogStore,
-  getActiveCatalog,
-  WGDOM_COST_REGION_LABELS,
-} from "@/lib/wgdom-cost-catalog-store";
+import type { WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
+import { WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog-store";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
 import {
   CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
   CATALOG_UX_WORK_CATALOG_TAB_LABEL,
 } from "@/lib/tender-catalog-ux-labels";
+import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
+import { buildPriceBasePreviewRows } from "@/lib/tender-price-base-preview";
 import {
   compareLaborRateToBenchmark,
   computeLaborPlnPerUnitFromRbh,
@@ -88,8 +83,8 @@ export function TenderPriceBasePanel({
   onSaved?: () => void;
 }) {
   const tendersCtx = useTendersContextOptional();
+  const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
-  const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
   const [catalogHistory, setCatalogHistory] = useState<WgdomCostCatalogHistoryStore>(
     loadWgdomCostCatalogHistoryLocal(),
   );
@@ -100,12 +95,10 @@ export function TenderPriceBasePanel({
     let cancelled = false;
     void Promise.all([
       loadCompanyProfile(),
-      loadWgdomCostCatalogStore(),
       loadWgdomCostCatalogHistory(),
-    ]).then(([p, catalog, history]) => {
+    ]).then(([p, history]) => {
       if (!cancelled) {
         setProfile(p);
-        setCatalogStore(catalog);
         setCatalogHistory(history);
         setLoading(false);
       }
@@ -113,9 +106,20 @@ export function TenderPriceBasePanel({
     return () => { cancelled = true; };
   }, []);
 
-  const catalogRows = listEditableCategories(catalogStore);
-  const activeCatalog = getActiveCatalog(catalogStore);
-  const catalogUpdatedAt = activeCatalog.updatedAt ?? catalogStore.updatedAt;
+  const catalogResolution = useMemo(() => {
+    void pricingCatalogRevision;
+    return resolveActiveCatalogForTender({
+      referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
+    });
+  }, [profile.costModel.avgGrossHourlyPln, pricingCatalogRevision]);
+
+  const catalogRows = useMemo(
+    () => buildPriceBasePreviewRows(catalogResolution.catalog),
+    [catalogResolution.catalog],
+  );
+  const activeRegion = catalogResolution.activeRegion;
+  const catalogUpdatedAt = catalogResolution.catalog.updatedAt;
+
   const flHourly = useMemo(
     () => fullyLoadedHourly(profile.costModel),
     [profile.costModel],
@@ -136,13 +140,13 @@ export function TenderPriceBasePanel({
       return {
         ...compareLaborRateToBenchmark(laborPln, row.id, row.unit, {
           history: catalogHistory,
-          region: catalogStore.activeRegion,
+          region: activeRegion,
         }),
         categoryLabel: row.labelPl,
       };
     });
     return buildLaborBenchmarkAlerts(comparisons);
-  }, [catalogRows, profile.costModel, catalogHistory, catalogStore.activeRegion]);
+  }, [catalogRows, profile.costModel, catalogHistory, activeRegion]);
 
   const saveCompanyParams = useCallback(async () => {
     setSaving(true);
@@ -201,7 +205,7 @@ export function TenderPriceBasePanel({
       </div>
 
       <LaborBenchmarkSourcePanel
-        region={catalogStore.activeRegion}
+        region={activeRegion}
         coverageLabel={benchmarkCoverage.labelPl}
       />
 
@@ -229,7 +233,7 @@ export function TenderPriceBasePanel({
           Region aktywny (tylko odczyt)
         </span>
         <select
-          value={catalogStore.activeRegion}
+          value={activeRegion}
           disabled
           aria-readonly="true"
           className="mt-0.5 w-full bg-muted/40 text-muted-foreground rounded-lg px-2 py-1.5 text-xs border border-border/50 cursor-not-allowed"
@@ -267,7 +271,7 @@ export function TenderPriceBasePanel({
                 const laborPln = computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel);
                 const benchmark = compareLaborRateToBenchmark(laborPln, row.id, row.unit, {
                   history: catalogHistory,
-                  region: catalogStore.activeRegion,
+                  region: activeRegion,
                 });
                 return (
                   <tr key={`labor-${row.id}`} className="border-t border-border/40">
@@ -330,7 +334,7 @@ export function TenderPriceBasePanel({
                   row.id,
                   row.unit,
                   catalogHistory,
-                  catalogStore.activeRegion,
+                  activeRegion,
                 );
                 return (
                 <tr key={`mat-${row.id}`} className="border-t border-border/40">
@@ -361,7 +365,7 @@ export function TenderPriceBasePanel({
           </table>
         </div>
         <p className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border/40">
-          {WGDOM_COST_CATEGORY_IDS.length} kategorii · region {WGDOM_COST_REGION_LABELS[catalogStore.activeRegion]}
+          {WGDOM_COST_CATEGORY_IDS.length} kategorii · region {WGDOM_COST_REGION_LABELS[activeRegion]}
         </p>
       </section>
 

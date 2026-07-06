@@ -112,9 +112,11 @@ assert("no onOpenPriceBase", !lineSection.includes("onOpenPriceBase"));
 const appTsx = readFileSync(join(appRoot, "App.tsx"), "utf8");
 assert("App uses TENDERS_MODULE_LABELS", appTsx.includes("TENDERS_MODULE_LABELS.tabs.workcatalog"));
 
-// --- Loader unchanged (#5C-3B boundary) ---
+// --- Preview SSOT (#5C-3B) ---
 const priceBasePanel = readFileSync(join(appRoot, "TenderPriceBasePanel.tsx"), "utf8");
-assert("legacy catalog loader kept", priceBasePanel.includes("loadWgdomCostCatalogStore()"));
+assert("no legacy catalog loader", !priceBasePanel.includes("loadWgdomCostCatalogStore"));
+assert("resolveActiveCatalogForTender in panel", priceBasePanel.includes("resolveActiveCatalogForTender"));
+assert("pricingCatalogRevision in panel", priceBasePanel.includes("pricingCatalogRevision"));
 
 console.log(`\n=== ${pass} passed, ${fail} failed ===`);
 if (fail > 0) process.exit(1);

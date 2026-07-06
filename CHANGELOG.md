@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.47 — Preview data SSOT cutover (Bundle #5C-3B)
+
+- **improve:** `tender-price-base-preview.ts` — `buildPriceBasePreviewRows()` · Ustawienia wyceny czytają Work Catalog via `resolveActiveCatalogForTender()`
+- **improve:** `pricingCatalogRevision` — auto-refresh podglądu stawek po save BR
+- **test:** `LIB-PREVIEW-SSOT-5C3B` · suite `smoke-work-catalog-p2-mvp` → **25** testIds
+- **historia/trend 90d** — bez zmian loadera · naprawa w #5C-3D
+
 ## 2.63.46 — UX copy & navigation cutover (Bundle #5C-3A)
 
 - **improve:** `tender-catalog-ux-labels.ts` — SSOT `CATALOG_UX_SOURCE_LABEL` · tab „Ustawienia wyceny” · „Biblioteka Robót” wszędzie w UI wyceny
