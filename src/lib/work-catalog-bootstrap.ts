@@ -1,6 +1,7 @@
 /**
- * PB-3 — jednorazowy bootstrap Work Catalog z legacy Bazy cen.
+ * PB-3 / #5C-5B — Work Catalog deferred finalize (ONE-SHOT migrate from legacy LS).
  * Orchestracja tylko — logika migracji w work-catalog-migrate (P1.5).
+ * #5C-5B: bez cyklicznego legacy read (scenariusz A) · bez reconcile w deferred path.
  */
 
 import { loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
@@ -15,7 +16,6 @@ import {
 import { countLegacyCatalogRates } from "@/lib/work-catalog/work-catalog-migrate";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
-import { maybeExecuteWorkCatalogReconcile } from "@/lib/work-catalog-reconcile-bootstrap";
 
 export type WorkCatalogBootstrapSkipReason =
   | "already_migrated"
@@ -53,6 +53,11 @@ function countAllWorks(store: WorkCatalogStore): number {
   return listWorksForRegion(store, "wroclaw").length + listWorksForRegion(store, "dolnyslask").length;
 }
 
+function skipResult(reason: WorkCatalogBootstrapSkipReason): WorkCatalogBootstrapResult {
+  console.info("WORK CATALOG DEFERRED FINALIZE skipped", { reason });
+  return { decision: { action: "skip", reason }, migrated: false };
+}
+
 /** PB-3.0 — pure guard; SSOT dla logów i diagnostyki bootstrap. */
 export function decideWorkCatalogBootstrap(
   legacy: WgdomCostCatalogStore,
@@ -73,16 +78,26 @@ export function decideWorkCatalogBootstrap(
   return { action: "migrate", reason: "legacy_present" };
 }
 
-/** PB-3.1 — uruchamiać po fetchAndMergeDeferredBootstrap (legacy w LS). */
-export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBootstrapResult> {
-  const legacy = loadWgdomCostCatalogStoreLocal();
+/**
+ * #5C-5B — uruchamiać po fetchAndMergeDeferredBootstrap (work catalog z deferred merge).
+ * ONE-SHOT legacy read tylko gdy work pusty i brak migratedFromLegacyAt (scenariusz B).
+ */
+export async function finalizeWorkCatalogAfterDeferredMerge(): Promise<WorkCatalogBootstrapResult> {
   const work = loadWorkCatalogStoreLocal();
+
+  if (work.migratedFromLegacyAt) {
+    return skipResult("already_migrated");
+  }
+
+  if (countPricedActiveWorks(work) > 0 || countAllWorks(work) > 0) {
+    return skipResult("priced_work_exists");
+  }
+
+  const legacy = loadWgdomCostCatalogStoreLocal();
   const decision = decideWorkCatalogBootstrap(legacy, work);
 
   if (decision.action === "skip") {
-    console.info("WORK CATALOG BOOTSTRAP SKIPPED", { reason: decision.reason });
-    await maybeExecuteWorkCatalogReconcile();
-    return { decision, migrated: false };
+    return skipResult(decision.reason);
   }
 
   const migratedAtIso = new Date().toISOString();
@@ -95,14 +110,17 @@ export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBoo
   if (!saveResult.ok || !saveResult.saved) {
     throw new Error("Work catalog bootstrap save blocked or failed");
   }
-  console.info("WORK CATALOG BOOTSTRAP EXECUTED", {
+  console.info("WORK CATALOG DEFERRED FINALIZE ONE_SHOT_MIGRATE", {
     reason: decision.reason,
     migratedFromLegacyAt: store.migratedFromLegacyAt,
     workCount: countAllWorks(store),
     pricedCount: countPricedActiveWorks(store),
   });
 
-  await maybeExecuteWorkCatalogReconcile();
-
   return { decision, migrated: true };
+}
+
+/** @deprecated alias — SSOT: finalizeWorkCatalogAfterDeferredMerge (#5C-5B) */
+export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBootstrapResult> {
+  return finalizeWorkCatalogAfterDeferredMerge();
 }

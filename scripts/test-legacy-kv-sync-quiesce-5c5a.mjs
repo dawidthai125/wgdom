@@ -114,10 +114,14 @@ assert(!batchGetKeys.includes(LEGACY_KEY), "T6 batch-get excludes kw-wgdom-cost-
 assert(!batchSetKeys.includes(LEGACY_KEY), "T7 batch-set excludes kw-wgdom-cost-catalog");
 assert(batchGetKeys.length > 0, "T6 batch-get executed for deferred keys");
 
-console.log("\n=== T8 — bootstrap hook unchanged in cloud-sync ===");
+console.log("\n=== T8 — bootstrap hook #5C-5B finalize in cloud-sync ===");
 assert(
-  cloudSyncSrc.includes("maybeExecuteWorkCatalogBootstrap"),
-  "T8 fetchAndMergeDeferredBootstrap still calls maybeExecuteWorkCatalogBootstrap",
+  cloudSyncSrc.includes("finalizeWorkCatalogAfterDeferredMerge"),
+  "T8 fetchAndMergeDeferredBootstrap calls finalizeWorkCatalogAfterDeferredMerge",
+);
+assert(
+  !cloudSyncSrc.includes("maybeExecuteWorkCatalogReconcile"),
+  "T8 fetchAndMergeDeferredBootstrap does not call reconcile",
 );
 
 console.log("\n=== T9 — payroll keys unchanged in DATA_KEYS ===");

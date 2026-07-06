@@ -190,7 +190,7 @@ export async function reconcileLegacyToWorkCatalog(
   }
 }
 
-/** Uruchamiać po PB-3 bootstrap (deferred bootstrap path). */
+/** PB-WRITE-C reconcile lib — nie wołany z deferred bootstrap (#5C-5B). */
 export async function maybeExecuteWorkCatalogReconcile(): Promise<PBWriteReconcileResult> {
   return reconcileLegacyToWorkCatalog();
 }

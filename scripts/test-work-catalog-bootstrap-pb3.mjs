@@ -15,7 +15,7 @@ import {
 import { resolveActiveCatalogForTender } from "../src/lib/tender-active-catalog.ts";
 import {
   decideWorkCatalogBootstrap,
-  maybeExecuteWorkCatalogBootstrap,
+  finalizeWorkCatalogAfterDeferredMerge,
 } from "../src/lib/work-catalog-bootstrap.ts";
 import {
   SEED_MANIFEST_RELATIVE_PATH,
@@ -170,19 +170,19 @@ assertEq(b5.reason, "priced_work_exists", "B5 reason priced_work_exists");
 reset();
 seedLegacy();
 saveWorkCatalogStoreLocal(defaultWorkCatalogStore(MIGRATED_AT));
-const run1 = await maybeExecuteWorkCatalogBootstrap();
+const run1 = await finalizeWorkCatalogAfterDeferredMerge();
 assert(run1.migrated === true, "B2 first run migrated");
 assertEq(run1.decision.reason, "legacy_present", "B2 first reason");
 const afterFirst = loadWorkCatalogStoreLocal();
 assert(afterFirst.migratedFromLegacyAt != null, "B2 migratedFromLegacyAt set");
-const run2 = await maybeExecuteWorkCatalogBootstrap();
+const run2 = await finalizeWorkCatalogAfterDeferredMerge();
 assert(run2.migrated === false, "B2 second run not migrated");
 assertEq(run2.decision.reason, "already_migrated", "B2 second reason already_migrated");
 
 // B7 — post-bootstrap PRICE-BRIDGE work-first
 reset();
 seedLegacy();
-await maybeExecuteWorkCatalogBootstrap();
+await finalizeWorkCatalogAfterDeferredMerge();
 const bridge = resolveActiveCatalogForTender();
 assertEq(bridge.source, "work", "B7 source work");
 assert(bridge.isFallback === false, "B7 isFallback false");
@@ -193,7 +193,7 @@ reset();
 seedLegacy();
 saveWorkCatalogStoreLocal(defaultWorkCatalogStore(MIGRATED_AT));
 const callsBefore = persistCalls.length;
-await maybeExecuteWorkCatalogBootstrap();
+await finalizeWorkCatalogAfterDeferredMerge();
 assert(persistCalls.length > callsBefore, "B8 persistKey batch-set after migrate");
 
 // Guard SSOT — legacy rates required

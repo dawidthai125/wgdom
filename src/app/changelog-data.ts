@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.51",
+    label: "Core — bootstrap/reconcile decouple (#5C-5B)",
+    items: [
+      {
+        type: "improve",
+        text: "Deferred bootstrap — finalizeWorkCatalogAfterDeferredMerge bez cyklicznego odczytu legacy i bez reconcile; ONE-SHOT migrate tylko przy pustym Work Catalog.",
+      },
+      {
+        type: "improve",
+        text: "Lista Płac / Payroll — bez zmian kodu; obowiązkowy gate Payroll Bootstrap Integrity przy release.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-5C-5B-BOOTSTRAP-DECOUPLE — suite smoke-work-catalog-p2-mvp → 29 testIds.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.50",
     label: "Core — legacy KV sync quiesce (#5C-5A)",
     items: [

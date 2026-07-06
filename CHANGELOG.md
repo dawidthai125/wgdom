@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.51 — Bootstrap/reconcile decouple (#5C-5B)
+
+- `finalizeWorkCatalogAfterDeferredMerge` — bez cyklicznego legacy read i reconcile w deferred path; ONE-SHOT PB-3 migrate gdy work pusty.
+- Payroll/PWRB/CloudLoader bez diff; gate `npm run test:infra -- --gate B --scope payroll` obowiązkowy.
+- `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite 29 testIds.
+
 ## 2.63.50 — Legacy KV sync quiesce (Bundle #5C-5A)
 
 - **core:** `kw-wgdom-cost-catalog` — usunięty z `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, `mergeDataKey()` (`cloud-sync.ts`)
