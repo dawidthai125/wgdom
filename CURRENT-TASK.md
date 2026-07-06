@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.45** · **runtime `a7bc713`** · **Bundle #5C-2 CLOSED FINAL** · **PRODUCTION VERIFIED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.46** · **runtime `d95b30b`** · **Bundle #5C-3A CLOSED FINAL** · **PRODUCTION VERIFIED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -92,6 +92,7 @@
 | **5C-0A** | **Bundle #5C-0A — Pricing refresh after Work Catalog save** | FEATURE UI | **CLOSED FINAL** · prod **2.63.43** · `c151b40` · **PRODUCTION VERIFIED** · `LIB-PRICING-CATALOG-REVISION-5C0A` · suite **19** testIds |
 | **5C-1** | **Bundle #5C-1 — Read SSOT Work Catalog only** | FEATURE lib | **CLOSED FINAL** · prod **2.63.44** · `aecf851` · **PRODUCTION VERIFIED** · `LIB-READ-SSOT-PREFLIGHT-5C1` + `LIB-READ-SSOT-WORK-ONLY-5C1` · suite **21** testIds |
 | **5C-2** | **Bundle #5C-2 — Write SSOT work_only default** | FEATURE lib | **CLOSED FINAL** · prod **2.63.45** · `a7bc713` · **PRODUCTION VERIFIED** · `LIB-WRITE-SSOT-APP-NO-LEGACY-5C2` + `LIB-PB-WRITE-ROUTER` · suite **23** testIds |
+| **5C-3A** | **Bundle #5C-3A — UX copy & navigation cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.46** · `d95b30b` · **PRODUCTION VERIFIED** · `LIB-UX-COPY-CUTOVER-5C3A` · suite **24** testIds |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
@@ -521,7 +522,8 @@
 | **Bundle #5C-0A** — Pricing refresh after Work Catalog save | **CLOSED FINAL** · prod **2.63.43** · `c151b40` |
 | **Bundle #5C-1** — Read SSOT Work Catalog only | **CLOSED FINAL** · prod **2.63.44** · `aecf851` |
 | **Bundle #5C-2** — Write SSOT work_only default | **CLOSED FINAL** · prod **2.63.45** · `a7bc713` |
-| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · **#5C-3 UX cutover** następny slice na polecenie |
+| **Bundle #5C-3A** — UX copy & navigation cutover | **CLOSED FINAL** · prod **2.63.46** · `d95b30b` |
+| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · **#5C-3B** preview data SSOT następny slice na polecenie |
 | **Bundle #6E** — Deferred bootstrap reliability | **CLOSED** · prod **2.63.42** · `7138957` |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |

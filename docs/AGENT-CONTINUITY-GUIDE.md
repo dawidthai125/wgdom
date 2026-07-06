@@ -1,15 +1,15 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.45** · runtime **`a7bc713`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
-> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-2 CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.46** · runtime **`d95b30b`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-3A CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A pricing refresh CLOSED** + **#5C-1 read SSOT CLOSED** + **#5C-2 write SSOT CLOSED** (prod **2.63.45** · `a7bc713`). Następny FEATURE tylko na polecenie (**#5C-3** UX cutover · P3 market UI). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A pricing refresh CLOSED** + **#5C-1 read SSOT CLOSED** + **#5C-2 write SSOT CLOSED** + **#5C-3A UX copy cutover CLOSED** (prod **2.63.46** · `d95b30b`). Następny FEATURE tylko na polecenie (**#5C-3B** preview data SSOT · P3 market UI). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
 > 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
@@ -47,6 +47,17 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 ---
 
 ## 2. Co zrobiliśmy (stan na 2026-07-06)
+
+### ★ Sesja 2026-07-06 — Bundle #5C-3A UX copy & navigation cutover (**CLOSED FINAL**)
+
+| Element | Wartość |
+|---------|---------|
+| **Commit** | `d95b30b` · prod **2.63.46** · **PRODUCTION VERIFIED** |
+| **Zakres** | `tender-catalog-ux-labels.ts` · `CATALOG_UX_SOURCE_LABEL` „Biblioteka Robót” · tab `pricebase` → „Ustawienia wyceny” · CTA Wycena → `workcatalog` · usunięto „Katalog WGDOM” z `src/app/**` |
+| **Test** | `LIB-UX-COPY-CUTOVER-5C3A` · suite **24** testIds |
+| **Boundary** | #CORE-013 **PASS** — zero cloud-sync/bootstrap/engine/#6E/Payroll/Edge diff · preview loader `loadWgdomCostCatalogStore()` **bez zmian** (#5C-3B) |
+
+**Następny FEATURE (#5C):** **#5C-3B** preview data SSOT — tylko na polecenie.
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-2 Write SSOT work_only default (**CLOSED FINAL**)
 
@@ -354,7 +365,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-0A** | **Bundle #5C-0A — Pricing refresh after Work Catalog save** | FEATURE UI | **CLOSED FINAL** · prod **2.63.43** · `c151b40` · **PRODUCTION VERIFIED** | `LIB-PRICING-CATALOG-REVISION-5C0A` · suite **19** testIds |
 | **#5C-1** | **Bundle #5C-1 — Read SSOT Work Catalog only** | FEATURE lib | **CLOSED FINAL** · prod **2.63.44** · `aecf851` · **PRODUCTION VERIFIED** | `LIB-READ-SSOT-PREFLIGHT-5C1` + `LIB-READ-SSOT-WORK-ONLY-5C1` · suite **21** testIds |
 | **#5C-2** | **Bundle #5C-2 — Write SSOT work_only default** | FEATURE lib | **CLOSED FINAL** · prod **2.63.45** · `a7bc713` · **PRODUCTION VERIFIED** | `LIB-WRITE-SSOT-APP-NO-LEGACY-5C2` + `LIB-PB-WRITE-ROUTER` · suite **23** testIds |
-| **—** | Następny FEATURE (na polecenie) | — | **OPEN** | **#5C-3** UX cutover · **P3** market UI |
+| **#5C-3A** | **Bundle #5C-3A — UX copy & navigation cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.46** · `d95b30b` · **PRODUCTION VERIFIED** | `LIB-UX-COPY-CUTOVER-5C3A` · suite **24** testIds |
+| **—** | Następny FEATURE (na polecenie) | — | **OPEN** | **#5C-3B** preview data SSOT · **P3** market UI |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
