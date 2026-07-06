@@ -156,7 +156,6 @@ export const DATA_KEYS = [
   "kw-electrical-schematics",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
-  "kw-wgdom-cost-catalog",
   "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
@@ -183,7 +182,6 @@ export const BOOTSTRAP_CORE_KEYS = [
 export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
-  "kw-wgdom-cost-catalog",
   "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
@@ -2113,8 +2111,6 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
       return mergeTenderDataKey(TENDERS_COMPANY_PROFILE_KEY, local, cloud);
-    case "kw-wgdom-cost-catalog":
-      return mergeTenderDataKey(WGDOM_COST_CATALOG_KEY, local, cloud);
     case "kw-wgdom-classification-dictionary":
       return mergeTenderDataKey(WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY, local, cloud);
     case "kw-company-profile":

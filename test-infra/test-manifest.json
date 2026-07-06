@@ -122,7 +122,8 @@
         "LIB-UX-COPY-CUTOVER-5C3A",
         "LIB-PREVIEW-SSOT-5C3B",
         "LIB-DEAD-UX-CLEANUP-5C3C",
-        "LIB-HISTORY-SSOT-5C3D"
+        "LIB-HISTORY-SSOT-5C3D",
+        "LIB-LEGACY-KV-SYNC-QUIESCE-5C5A"
       ]
     }
   },
@@ -608,6 +609,18 @@
       "id": "LIB-HISTORY-SSOT-5C3D",
       "class": "lib",
       "path": "scripts/test-tender-history-ssot-5c3d.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-LEGACY-KV-SYNC-QUIESCE-5C5A",
+      "class": "lib",
+      "path": "scripts/test-legacy-kv-sync-quiesce-5c5a.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

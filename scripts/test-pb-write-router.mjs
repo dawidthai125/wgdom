@@ -122,7 +122,7 @@ persistKeys.length = 0;
 const legacyStore = defaultWgdomCostCatalogStore();
 const legacyResult = await saveLegacyCostCatalogRouted(legacyStore, settings("split"));
 assert(legacyResult.ok === true && legacyResult.saved === true, "R-01 split legacy save OK");
-assert(persistKeys.includes(WGDOM_COST_CATALOG_KEY), "R-01 legacy persistKey called");
+assert(!persistKeys.includes(WGDOM_COST_CATALOG_KEY), "R-01 legacy cloud quiesced (#5C-5A)");
 
 // R-02 split → work OK
 persistKeys.length = 0;

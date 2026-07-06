@@ -33,7 +33,6 @@ export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 export const TENDER_DATA_KEYS = [
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
-  WGDOM_COST_CATALOG_KEY,
   WGDOM_COST_CATALOG_HISTORY_KEY,
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
@@ -221,8 +220,6 @@ export function mergeTenderDataKey(key: TenderDataKey, local: unknown, cloud: un
       return mergeTenderPipelineForCloud(local, cloud);
     case TENDERS_COMPANY_PROFILE_KEY:
       return mergeCompanyProfileForCloud(local, cloud);
-    case WGDOM_COST_CATALOG_KEY:
-      return mergeWgdomCostCatalogForCloud(local, cloud);
     case WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY:
       return mergeWgdomUserClassificationDictionaryForCloud(local, cloud);
     case COMPANY_QUALIFICATION_PROFILE_KEY:

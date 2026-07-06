@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.50",
+    label: "Core — legacy KV sync quiesce (#5C-5A)",
+    items: [
+      {
+        type: "improve",
+        text: "Cloud sync — wyciszenie synchronizacji kw-wgdom-cost-catalog (deferred fetch/merge/push); historia kw-wgdom-cost-catalog-history bez zmian.",
+      },
+      {
+        type: "improve",
+        text: "Bootstrap/reconcile — nadal czytają local legacy; runtime wyceny bez zmian (Work Catalog SSOT).",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-LEGACY-KV-SYNC-QUIESCE-5C5A — gate sync quiesce; suite smoke-work-catalog-p2-mvp → 28 testIds.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.49",
     label: "Przetargi — history SSOT from Work Catalog (#5C-3D)",
     items: [

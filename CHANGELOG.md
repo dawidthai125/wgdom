@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.50 — Legacy KV sync quiesce (Bundle #5C-5A)
+
+- **core:** `kw-wgdom-cost-catalog` — usunięty z `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, `mergeDataKey()` (`cloud-sync.ts`)
+- **core:** `WGDOM_COST_CATALOG_KEY` — usunięty z `TENDER_DATA_KEYS`, `mergeTenderDataKey()`; **KEEP** `mergeWgdomCostCatalogForCloud()` (`tenders-sync.ts`)
+- **core:** deferred bootstrap — brak `batch-get`/`batch-set` dla legacy catalog; **KEEP** `kw-wgdom-cost-catalog-history` sync
+- **test:** `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · `test-pb-write-router` R-01 (split → local only, no cloud push) · suite `smoke-work-catalog-p2-mvp` → **28** testIds
+- **boundary:** zero diff Payroll · PWRB · Bootstrap · Reconcile · CloudLoader · UI · router · store
+
 ## 2.63.49 — History SSOT from Work Catalog (Bundle #5C-3D)
 
 - **improve:** `catalog-rate-history-snapshot.ts` + `catalog-rate-history.ts` — write/read SSOT historii stawek z Work Catalog
