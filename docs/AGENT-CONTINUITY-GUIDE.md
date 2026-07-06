@@ -9,7 +9,7 @@
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A…#5C-3D CLOSED** + **#5C-5A legacy KV sync quiesce CLOSED** (prod **2.63.50**). Następny slice **#5C-5B** bootstrap/reconcile decouple — tylko na polecenie. **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A…#5C-3D CLOSED** + **#5C-5A legacy KV sync quiesce CLOSED** (prod **2.63.50**). **#5C-5B** Design Freeze **APPROVED** — IMPLEMENT **BLOCKED** (Owner GO). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
 > 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
@@ -59,7 +59,17 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Boundary** | #CORE-013 **PASS** — zero diff Payroll · PWRB · Bootstrap · Reconcile · CloudLoader · UI · router · store |
 | **Functional delta** | **Zero** — sync plane only |
 
-**Następny slice (#5C-5):** **#5C-5B** bootstrap/reconcile decouple — tylko na polecenie (nie startować bez GO).
+**Następny slice (#5C-5):** **#5C-5B** bootstrap/reconcile decouple — Design Freeze [`CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) **APPROVED** · IMPLEMENT **BLOCKED** (Owner GO).
+
+### ★ Sesja 2026-07-06 — #5C-5B Bootstrap / Reconcile Decouple (**DESIGN FREEZE APPROVED**)
+
+| Element | Wartość |
+|---------|---------|
+| **Klasa** | **CORE CATALOG** (#CORE-013) |
+| **SSOT** | [`docs/architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) |
+| **Werdykt** | **DESIGN FREEZE v1.0 APPROVED** · **IMPLEMENT BLOCKED** |
+| **Gate IMPLEMENT** | Owner GO + Exit Criteria §9 dokumentu |
+| **Zakres (po GO)** | `work-catalog-bootstrap.ts` · `work-catalog-reconcile-bootstrap.ts` · minimal `cloud-sync.ts` hook — **bez** Payroll · PWRB · CloudLoader · Edge · App.tsx |
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-3D History SSOT from Work Catalog (**CLOSED FINAL**)
 
@@ -415,7 +425,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-3C** | **Bundle #5C-3C — Dead UX cleanup** | FEATURE UI | **CLOSED FINAL** · prod **2.63.48** · `e89051b` · **PRODUCTION VERIFIED** | `LIB-DEAD-UX-CLEANUP-5C3C` · suite **26** testIds |
 | **#5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **#5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** | `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
-| **—** | Następny slice (na polecenie) | — | **OPEN** | **#5C-5B** bootstrap/reconcile decouple |
+| **#5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **DF APPROVED** · IMPLEMENT **BLOCKED** (Owner GO) | [`CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md) |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |

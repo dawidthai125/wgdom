@@ -247,7 +247,7 @@ Version (prod):             2.62.92       ← SUPER ADMIN ACL · commit 5f212b4
 Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
-Work Catalog P2 UI:         2.63.37–41    P2.1–P2.10 Roboty + Pakiety · suite smoke-work-catalog-p2-mvp **28** testIds · EPIC #5C **#5C-0A CLOSED** · **#5C-1 CLOSED** · **#5C-2 CLOSED** · **#5C-3A CLOSED** · **#5C-3B CLOSED** · **#5C-3C CLOSED** · **#5C-3D CLOSED** · **#5C-5A CLOSED**
+Work Catalog P2 UI:         2.63.37–41    P2.1–P2.10 Roboty + Pakiety · suite smoke-work-catalog-p2-mvp **28** testIds · EPIC #5C **#5C-0A CLOSED** · **#5C-1 CLOSED** · **#5C-2 CLOSED** · **#5C-3A CLOSED** · **#5C-3B CLOSED** · **#5C-3C CLOSED** · **#5C-3D CLOSED** · **#5C-5A CLOSED** · **#5C-5B DF APPROVED** ([`architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md`](architecture/CORE-5C-5B-BOOTSTRAP-RECONCILE-DECOUPLE-DESIGN-FREEZE.md)) · IMPLEMENT BLOCKED (Owner GO)
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)
