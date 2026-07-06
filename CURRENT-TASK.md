@@ -96,7 +96,7 @@
 | **5C-3B** | **Bundle #5C-3B — Preview data SSOT cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.47** · `fcf3c6f` · **PRODUCTION VERIFIED** · `LIB-PREVIEW-SSOT-5C3B` · suite **25** testIds |
 | **5C-3C** | **Bundle #5C-3C — Dead UX cleanup** | FEATURE UI | **CLOSED FINAL** · prod **2.63.48** · `e89051b` · **PRODUCTION VERIFIED** · `LIB-DEAD-UX-CLEANUP-5C3C` · suite **26** testIds |
 | **5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** · `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
-| **5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · **PRODUCTION VERIFIED** · `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
+| **5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** · `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
@@ -530,7 +530,7 @@
 | **Bundle #5C-3B** — Preview data SSOT cutover | **CLOSED FINAL** · prod **2.63.47** · `fcf3c6f` |
 | **Bundle #5C-3C** — Dead UX cleanup | **CLOSED FINAL** · prod **2.63.48** · `e89051b` |
 | **Bundle #5C-3D** — History SSOT from Work Catalog | **CLOSED FINAL** · prod **2.63.49** · `03823ad` |
-| **Bundle #5C-5A** — Legacy KV sync quiesce | **CLOSED FINAL** · prod **2.63.50** |
+| **Bundle #5C-5A** — Legacy KV sync quiesce | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` |
 | **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · **#5C-5B** bootstrap/reconcile decouple następny slice na polecenie (nie startować bez GO) |
 | **Bundle #6E** — Deferred bootstrap reliability | **CLOSED** · prod **2.63.42** · `7138957` |
 | **G-08** persist `code` in snapshot | OPEN |

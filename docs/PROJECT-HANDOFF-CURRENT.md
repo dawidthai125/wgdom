@@ -204,7 +204,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
-Version (prod):             2.63.50       ← Bundle #5C-5A legacy KV sync quiesce · PRODUCTION VERIFIED
+Version (prod):             2.63.50       ← Bundle #5C-5A legacy KV sync quiesce · commit 36b3ddd · PRODUCTION VERIFIED
 Version (prod):             2.63.49       ← Bundle #5C-3D history SSOT from Work Catalog · commit 03823ad · PRODUCTION VERIFIED
 Version (prod):             2.63.48       ← Bundle #5C-3C dead UX cleanup · commit e89051b · PRODUCTION VERIFIED
 Version (prod):             2.63.47       ← Bundle #5C-3B preview data SSOT cutover · commit fcf3c6f · PRODUCTION VERIFIED

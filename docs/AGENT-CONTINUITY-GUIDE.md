@@ -53,6 +53,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | Element | Wartość |
 |---------|---------|
 | **Klasa** | **CORE** (#CORE-013) |
+| **Commit** | `36b3ddd` · prod **2.63.50** · **PRODUCTION VERIFIED** |
 | **Zakres** | `kw-wgdom-cost-catalog` usunięty z `DATA_KEYS` · `BOOTSTRAP_DEFERRED_KEYS` · `mergeDataKey()` · `TENDER_DATA_KEYS` · `mergeTenderDataKey()`; **KEEP** `mergeWgdomCostCatalogForCloud()` · historia KV pełny sync |
 | **Test** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **Boundary** | #CORE-013 **PASS** — zero diff Payroll · PWRB · Bootstrap · Reconcile · CloudLoader · UI · router · store |
@@ -412,7 +413,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-3A** | **Bundle #5C-3A — UX copy & navigation cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.46** · `d95b30b` · **PRODUCTION VERIFIED** | `LIB-UX-COPY-CUTOVER-5C3A` · suite **24** testIds |
 | **#5C-3B** | **Bundle #5C-3B — Preview data SSOT cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.47** · `fcf3c6f` · **PRODUCTION VERIFIED** | `LIB-PREVIEW-SSOT-5C3B` · suite **25** testIds |
 | **#5C-3C** | **Bundle #5C-3C — Dead UX cleanup** | FEATURE UI | **CLOSED FINAL** · prod **2.63.48** · `e89051b` · **PRODUCTION VERIFIED** | `LIB-DEAD-UX-CLEANUP-5C3C` · suite **26** testIds |
-| **#5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · **PRODUCTION VERIFIED** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
+| **#5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **#5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** | `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
 | **—** | Następny slice (na polecenie) | — | **OPEN** | **#5C-5B** bootstrap/reconcile decouple |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
