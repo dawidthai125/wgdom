@@ -25,6 +25,11 @@ export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl";
 
 export type WgdomCostRegion = "wroclaw" | "dolnyslask";
 
+export const WGDOM_COST_REGION_LABELS: Record<WgdomCostRegion, string> = {
+  wroclaw: "Wrocław",
+  dolnyslask: "Dolny Śląsk",
+};
+
 /** Kolejność = priorytet klasyfikacji seed katalogu (P2-G.2C). */
 export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
   "ROZBIORKI",

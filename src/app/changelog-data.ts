@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.48",
+    label: "Przetargi — dead UX cleanup (#5C-3C)",
+    items: [
+      {
+        type: "improve",
+        text: "Ustawienia wyceny — usunięto martwy CTA „Zapisz bazę cen”; scalony intro + jedno CTA do Biblioteki Robót.",
+      },
+      {
+        type: "improve",
+        text: "Copy SSOT — calculator / GuideView / WorkCatalogView bez „Baza cen” i „katalog WGDOM”; WGDOM_COST_REGION_LABELS w wgdom-cost-catalog.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-DEAD-UX-CLEANUP-5C3C — grep gate dead UX; suite smoke-work-catalog-p2-mvp → 26 testIds.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.47",
     label: "Przetargi — preview data SSOT cutover (#5C-3B)",
     items: [

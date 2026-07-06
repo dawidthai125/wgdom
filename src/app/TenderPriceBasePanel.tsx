@@ -9,9 +9,11 @@ import {
   type TenderCompanyProfile,
 } from "@/lib/tenders-bzp-company";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
-import type { WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
-import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
-import { WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog-store";
+import {
+  WGDOM_COST_CATEGORY_IDS,
+  WGDOM_COST_REGION_LABELS,
+  type WgdomCostRegion,
+} from "@/lib/wgdom-cost-catalog";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
 import {
   CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
@@ -176,23 +178,15 @@ export function TenderPriceBasePanel({
 
   return (
     <div id={PRICE_BASE_SECTION_ID} className="space-y-3">
-      <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-2">
         <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Tags size={14} className="text-primary" />
           {CATALOG_UX_PRICING_SETTINGS_TAB_LABEL} — podgląd stawek i parametry firmy
         </p>
-        <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
-          Stawki kategorii są tylko do odczytu. Kolumna Benchmark to orientacyjny zakres robocizny
-          ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-3 py-2.5 space-y-2">
-        <p className="text-xs font-semibold text-foreground leading-snug">
-          Ceny robót są zarządzane w {CATALOG_UX_WORK_CATALOG_TAB_LABEL}.
-        </p>
         <p className="text-[10px] text-muted-foreground leading-snug">
-          Parametry firmy (RBH, marża, narzuty) nadal edytujesz tutaj.
+          Stawki kategorii są tylko do odczytu — edycja w {CATALOG_UX_WORK_CATALOG_TAB_LABEL}.
+          Parametry firmy (RBH, marża, narzuty) edytujesz tutaj. Kolumna Benchmark to orientacyjny zakres robocizny
+          ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
         </p>
         <button
           type="button"
@@ -200,7 +194,7 @@ export function TenderPriceBasePanel({
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-600 text-white text-xs font-medium hover:bg-sky-600/90 min-h-[40px]"
         >
           <Library size={14} />
-          Przejdź do Biblioteki Robót
+          Przejdź do {CATALOG_UX_WORK_CATALOG_TAB_LABEL}
         </button>
       </div>
 
@@ -419,15 +413,6 @@ export function TenderPriceBasePanel({
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           Zapisz parametry firmy
-        </button>
-        <button
-          type="button"
-          disabled
-          title="Stawki kategorii edytujesz w Bibliotece Robót"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed opacity-60 min-h-[40px]"
-        >
-          <Lock size={14} />
-          Zapisz bazę cen
         </button>
       </div>
     </div>

@@ -17,6 +17,7 @@ import {
   type TenderPriceOverrideEntry,
 } from "@/lib/tender-price-overrides";
 import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
+import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 
 export type TenderBidPricingMode = "ath_priced" | "catalog";
@@ -360,10 +361,10 @@ export function computeTenderBidProposal(opts: {
     excludeWeeklyWasteDisposal = aggregateHasTransportUtillizationLines(agg);
 
     if (overrideLookup && (overrideLookup.material.size > 0 || overrideLookup.labor.size > 0)) {
-      assumptions.push("Nadpisania cen per przetarg — część stawek z Override (poza globalną Bazą cen).");
+      assumptions.push(`Nadpisania cen per przetarg — część stawek z Override (poza globalną ${CATALOG_UX_SOURCE_LABEL}).`);
     }
     assumptions.push(
-      `Wycena katalogowa WGDOM — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
+      `Wycena z ${CATALOG_UX_SOURCE_LABEL} — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
     );
     if (excludeWeeklyWasteDisposal) {
       assumptions.push(
@@ -383,15 +384,15 @@ export function computeTenderBidProposal(opts: {
         "Ponad 15% pozycji niesklasyfikowanych — wycena orientacyjna, zweryfikuj przed ofertą.",
       );
     }
-    warnings.push("Autorska wycena z katalogu WGDOM — przedmiar inwestora bez cen jednostkowych.");
+    warnings.push(`Autorska wycena katalogowa (${CATALOG_UX_SOURCE_LABEL}) — przedmiar inwestora bez cen jednostkowych.`);
 
     costStack.push({
-      label: "Robocizna (katalog WGDOM + ZUS)",
+      label: `Robocizna (${CATALOG_UX_SOURCE_LABEL} + ZUS)`,
       pln: roundPln(laborCostReal),
       detail: hoursSum > 0 ? `${Math.round(hoursSum)} rbh × ${flHourly.toFixed(2)} zł` : undefined,
     });
     costStack.push({
-      label: "Materiały (katalog WGDOM)",
+      label: `Materiały (${CATALOG_UX_SOURCE_LABEL})`,
       pln: roundPln(materialCostReal),
       detail: `Region ${catalog.region} × ${catalog.regionMultiplier}`,
     });

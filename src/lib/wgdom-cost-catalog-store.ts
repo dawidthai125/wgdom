@@ -16,10 +16,7 @@ import {
 
 export const WGDOM_COST_CATALOG_KEY = "kw-wgdom-cost-catalog";
 
-export const WGDOM_COST_REGION_LABELS: Record<WgdomCostRegion, string> = {
-  wroclaw: "Wrocław",
-  dolnyslask: "Dolny Śląsk",
-};
+export { WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog";
 
 function ts(iso: string | undefined | null): number {
   if (!iso) return 0;

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.48 — Dead UX cleanup (Bundle #5C-3C)
+
+- **improve:** `TenderPriceBasePanel` — scalony callout; usunięto disabled „Zapisz bazę cen”; jedno CTA Biblioteka Robót
+- **improve:** copy SSOT — `tenders-bid-calculator` / GuideView / WorkCatalogView · `WGDOM_COST_REGION_LABELS` → `wgdom-cost-catalog.ts`
+- **test:** `LIB-DEAD-UX-CLEANUP-5C3C` · suite `smoke-work-catalog-p2-mvp` → **26** testIds
+- **historia/benchmark** — bez zmian · #5C-3D
+
 ## 2.63.47 — Preview data SSOT cutover (Bundle #5C-3B)
 
 - **improve:** `tender-price-base-preview.ts` — `buildPriceBasePreviewRows()` · Ustawienia wyceny czytają Work Catalog via `resolveActiveCatalogForTender()`

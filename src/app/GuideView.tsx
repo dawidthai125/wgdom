@@ -331,7 +331,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           </p>
           <div className="space-y-3">
             {[
-              {q:"Skąd biorą się dane?", a:"Po pierwszym logowaniu admina aplikacja synchronizuje kw-wgdom-work-catalog z chmurą i uruchamia PB-3: jednorazową migrację z Bazy cen (legacy), gdy katalog work jest pusty. Widok czyta lokalny store przez loadWorkCatalogStoreLocal i odświeża się automatycznie po zakończeniu deferred bootstrap. Gdy lista jest pusta tuż po starcie — poczekaj chwilę lub odśwież stronę."},
+              {q:"Skąd biorą się dane?", a:"Po pierwszym logowaniu admina aplikacja synchronizuje kw-wgdom-work-catalog z chmurą. Gdy katalog jest pusty, po starcie uruchamia się jednorazowy bootstrap danych. Widok czyta lokalny store i odświeża się automatycznie po zakończeniu deferred bootstrap. Gdy lista jest pusta tuż po starcie — poczekaj chwilę lub odśwież stronę."},
               {q:"Wyszukiwarka", a:"Pole na górze ekranu (Search First) — szuka po nazwie robota, słowach kluczowych i branży. Wyczyść krzyżykiem po prawej."},
               {q:"Filtry", a:"Chipy Wszystkie / Aktywne / Nieaktywne, Ulubione (Roboty) oraz lista rozwijana Branża (16 branż TradeId). Licznik pod wyszukiwarką pokazuje ile robót pasuje do filtrów oraz ile jest ulubionych."},
               {q:"Cena firmy (P2.2)", a:"Na karcie roboty pole Cena firmy — wpisz kwotę ≥ 0 z max. 2 miejscami po przecinku. Zapis po Enter lub wyjściu z pola (blur). Jednostka obok pola (np. zł / m²). Dane zapisują się w kw-wgdom-work-catalog (przeglądarka + chmura gdy sync działa)."},
@@ -343,7 +343,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Pakiety robót (P2.7)", a:"Przełącznik Roboty | Pakiety u góry widoku. Pakiet to nazwa, branża i lista kroków (roboty z katalogu, opcjonalna ilość i notatka). Ta sama robota może wystąpić wielokrotnie. Strzałki ↑↓ zmieniają kolejność kroków. Duplikuj tworzy kopię pakietu. Usuń wymaga potwierdzenia w dialogu. Zapis trafia do kw-wgdom-work-bundles (przeglądarka + chmura). Po zapisie pozostajesz przy edytowanym pakiecie."},
               {q:"Pakiety — ulubione i czas (P2.8)", a:"Gwiazdka na liście pakietów oznacza ulubione — zapis od razu do chmury. Ulubione są wyświetlane na górze listy. W edytorze możesz podać Szacowany czas (dni) — liczba całkowita od 1 w górę albo puste pole. Zapis pakietu wymaga nazwy, branży, co najmniej jednego kroku oraz roboty obecnej w katalogu regionu."},
               {q:"Pakiety — filtr i badge kroków (P2.9)", a:"Chipy Ulubione filtrują listę pakietów (działają razem z wyszukiwaniem, branżą i aktywnością). W nagłówku widać liczbę ulubionych pakietów. Na karcie pakietu badge ostrzega, gdy krok wskazuje na brakującą robotę w katalogu (czerwony) lub nieaktywną robotę (pomarańczowy) — bez blokady podglądu listy; naprawę wykonuj w edytorze przed zapisem."},
-              {q:"Czego tu nie ma?", a:"Bez historii zmian, aktualizacji rynku z CSV, integracji pakietów z kosztorysem Przetargów i pełnego cutoveru. Jedna robota = jeden wiersz listy Roboty."},
+              {q:"Czego tu nie ma?", a:"Bez historii zmian, aktualizacji rynku z CSV i integracji pakietów z kosztorysem Przetargów. Jedna robota = jeden wiersz listy Roboty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

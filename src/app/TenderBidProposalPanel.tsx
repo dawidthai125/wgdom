@@ -19,8 +19,7 @@ import {
   TENDER_BID_PROPOSAL_PANEL_ID,
 } from "@/lib/tender-bid-ux";
 import { TENDER_OWNER_VALUATION_COPY } from "@/lib/tender-owner-language-pl";
-import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
-import { WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog-store";
+import { WGDOM_COST_CATEGORY_IDS, WGDOM_COST_REGION_LABELS } from "@/lib/wgdom-cost-catalog";
 import {
   assignUserCategoryFromAthLine,
   loadWgdomUserClassificationDictionaryStore,

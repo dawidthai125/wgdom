@@ -2,7 +2,6 @@ import { Tags } from "lucide-react";
 import { TenderPriceBasePanel } from "@/app/TenderPriceBasePanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
-import { CATALOG_UX_WORK_CATALOG_TAB_LABEL } from "@/lib/tender-catalog-ux-labels";
 
 export function TendersPriceBaseTab() {
   const { bumpProfileVersion } = useTendersContext();
@@ -16,10 +15,6 @@ export function TendersPriceBaseTab() {
         <Tags size={16} className="text-primary" />
         <h2 className="text-sm font-semibold">{TENDERS_MODULE_LABELS.tabs.pricebase}</h2>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Podgląd stawek kategorii (tylko odczyt) oraz edycja parametrów firmy — ceny pozycji w{" "}
-        {CATALOG_UX_WORK_CATALOG_TAB_LABEL}.
-      </p>
       <TenderPriceBasePanel onSaved={() => bumpProfileVersion()} />
     </div>
   );

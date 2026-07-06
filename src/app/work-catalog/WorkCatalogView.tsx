@@ -398,7 +398,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
             <p className="text-sm font-medium text-foreground">Brak robót w katalogu v3</p>
             <p className="mt-2 text-xs text-muted-foreground">
               Ten widok czyta <code className="text-[11px]">kw-wgdom-work-catalog</code>.
-              Po pierwszym logowaniu admina dane migrują z Bazy cen (PB-3) i synchronizują się z chmurą.
+              Po pierwszym starcie aplikacji dane synchronizują się z chmurą.
               Odśwież widok lub poczekaj chwilę po starcie aplikacji, jeśli lista jest jeszcze pusta.
             </p>
           </div>
