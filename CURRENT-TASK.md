@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.51** · **Bundle #5C-5B CLOSED FINAL** · **PRODUCTION VERIFIED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.52** · **Bundle #5C-5C F1 CLOSED FINAL** · **PRODUCTION VERIFIED** · **#5C-5C F2 READY** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -98,6 +98,8 @@
 | **5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** · `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
 | **5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** · `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · **PRODUCTION VERIFIED** · `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds · Payroll Bootstrap Integrity **PASS** |
+| **5C-5C F1** | **Bundle #5C-5C F1 — Orphan reconcile cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · **PRODUCTION VERIFIED** · `LIB-5C-5C-LEGACY-CLEANUP-F1` · suite **30** testIds |
+| **5C-5C F2** | Router / compat legacy path | CORE CATALOG | **READY** · Owner GO |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
@@ -533,8 +535,10 @@
 | **Bundle #5C-3D** — History SSOT from Work Catalog | **CLOSED FINAL** · prod **2.63.49** · `03823ad` |
 | **Bundle #5C-5A** — Legacy KV sync quiesce | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` |
 | **Bundle #5C-5B** — Bootstrap / Reconcile Decouple | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · verify 2026-07-06 |
-| **#5C-5C** — Legacy cleanup | **BLOCKED** · osobny bundle · tylko na polecenie |
-| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · pozostało **#5C-5C** |
+| **Bundle #5C-5C F1** — Orphan reconcile cleanup | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · verify 2026-07-06 |
+| **#5C-5C F2** — Router / compat legacy path | **READY** · Owner GO |
+| **#5C-5C F3** — ONE-SHOT sunset · store removal | **BLOCKED** · telemetria + F2 CLOSED |
+| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · pozostało **#5C-5C F2 + F3** |
 | **Bundle #6E** — Deferred bootstrap reliability | **CLOSED** · prod **2.63.42** · `7138957` |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |
