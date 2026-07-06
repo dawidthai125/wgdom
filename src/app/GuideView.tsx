@@ -39,6 +39,11 @@ import {
 } from "lucide-react";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { CHANGELOG } from "@/app/changelog-data";
+import {
+  CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
+  CATALOG_UX_SOURCE_LABEL,
+  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
 
 function fmtDate(iso: string) {
   if (!iso) return "";
@@ -314,15 +319,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
     {
       id:"workcatalog",
       icon:Library,
-      title:"Biblioteka Robót",
+      title: CATALOG_UX_WORK_CATALOG_TAB_LABEL,
       subtitle:"Katalog robót firmy v3 — lista, ceny i kompletność",
       content:(
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">
-            <strong>Przetargi → zakładka Biblioteka robót</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
+            <strong>Przetargi → zakładka {CATALOG_UX_WORK_CATALOG_TAB_LABEL}</strong> to katalog pozycji firmy (schema v3, <code>kw-wgdom-work-catalog</code>).
             Lista z filtrami, edycja <strong>ceny firmy</strong>, aktywność, edycja wielu cen, podgląd rynku, kompletność katalogu oraz <strong>pakiety robót</strong> (szablony kroków).
             Dostęp: Super Administrator zawsze; Administrator — gdy włączona flaga w ustawieniach aplikacji.
-            Nie zastępuje zakładki Baza cen (legacy) — obie bazy współistnieją do czasu PB-WRITE.
+            To jedyne miejsce edycji stawek używanych we wycenie przetargów.
           </p>
           <div className="space-y-3">
             {[
@@ -393,8 +398,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Archiwum 7Z — komunikat o kosztorysie", a:"Gdy załącznik to plik .7z, aplikacja rozpakowuje go automatycznie (jak ZIP). „Błąd odczytu archiwum 7Z” oznacza problem techniczny z plikiem. „Nie znaleziono kosztorysu ATH/XLS/XLSX w archiwum 7Z” oznacza, że archiwum zostało odczytane poprawnie, ale zamawiający nie dołączył kosztorysu (np. same PDF projektów). Wtedy pobierz kosztorys ręcznie z platformy zamawiającego."},
               {q:"Dokumenty u zamawiającego (BIP)", a:"Gdy załączniki e-Zamówienia nie wystarczą: linki tylko z treści ogłoszenia BZP + ewentualnie wyszukiwanie BIP po słowach z tytułu i numerze postępowania (nie cały portal). Pobierane są max. 3 pliki pasujące do tego przetargu (SWZ/kosztorys). Resztę otwórz ręcznie z listy linków z ogłoszenia."},
               {q:"Kosztorys PRO — ekran decyzyjny", a:"W zakładce Kosztorys: panel KOSZTORYS PRO (KPI: pozycje ATH, pokrycie, FIT WGDOM, status), TOP 20 pozycji oraz BOQ Explorer — jedna tabela ATH + WGDOM z wyszukiwaniem i filtrami branżowymi. Kolumna Benchmark rbh pokazuje orientacyjne porównanie stawki robocizny (below/ok/above). Przy komórkach ATH bez ceny lub bez dopasowania pojawia się ikona z wyjaśnieniem; nad tabelą widać chip źródła dokumentu (typ, pewność, plik). „Pełny podgląd ATH” (lub link w BOQ) otwiera modal z pełną tabelą parsera; „Pobierz ATH” zapisuje plik źródłowy z dossier."},
-              {q:"Kalkulator ceny ofertowej", a:"W zakładce workspace Wycena zobaczysz od razu: koszt własny, marżę i cenę oferty (rekomendowaną). W „Szczegóły → Pozycje kosztorysowe” sprawdzisz stawki materiału i robocizny per wiersz ATH (źródło: Baza cen). Stawki edytujesz w Przetargi → Baza cen."},
-              {q:"Baza cen przetargów", a:"Przetargi → Baza cen: podgląd stawek kategorii (tylko odczyt) oraz edycja parametrów firmy (RBH, marża, narzuty). Ceny pozycji edytujesz w Przetargi → Biblioteka robót. Kolumna Benchmark to orientacyjny zakres robocizny — bez zmiany wyceny. Override per przetarg: Wycena → Pozycje kosztorysowe."},
+              {q:"Kalkulator ceny ofertowej", a:`W zakładce workspace Wycena zobaczysz od razu: koszt własny, marżę i cenę oferty (rekomendowaną). W „Szczegóły → Pozycje kosztorysowe” sprawdzisz stawki materiału i robocizny per wiersz ATH (źródło: ${CATALOG_UX_SOURCE_LABEL}). Stawki edytujesz w Przetargi → ${CATALOG_UX_WORK_CATALOG_TAB_LABEL}.`},
+              {q:`${CATALOG_UX_PRICING_SETTINGS_TAB_LABEL} przetargów`, a:`Przetargi → ${CATALOG_UX_PRICING_SETTINGS_TAB_LABEL}: podgląd stawek kategorii (tylko odczyt) oraz edycja parametrów firmy (RBH, marża, narzuty). Ceny pozycji edytujesz w Przetargi → ${CATALOG_UX_WORK_CATALOG_TAB_LABEL}. Kolumna Benchmark to orientacyjny zakres robocizny — bez zmiany wyceny. Override per przetarg: Wycena → Pozycje kosztorysowe.`},
               {q:"Klasyfikacja przedmiaru (UNKNOWN)", a:"W Wycena → Szczegóły → Klasyfikacja przedmiaru pokrycie % pozycji ATH. Przy UNKNOWN wybierz kategorię i Zapisz — fraza trafia do słownika użytkownika (chmura). Zarządzanie słownikiem: Profil firmy → WGDOM Classification Dictionary."},
               {q:"Koszty robocizny w Robotach", a:"W karcie roboty — panel „Koszty robocizny”: ile kosztuje ekipa na tej robocie wg listy płac i alokacji kosztów pobocznych (paliwo, narzędzia…) proporcjonalnie do godzin. Pokazuje też minimalną cenę z marżą."},
               {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},

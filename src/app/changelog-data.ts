@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.46",
+    label: "Przetargi — UX copy & navigation cutover (#5C-3A)",
+    items: [
+      {
+        type: "improve",
+        text: "CATALOG_UX_SOURCE_LABEL — jedna etykieta „Biblioteka Robót” we wszystkich widokach źródła wyceny; usunięto „Katalog WGDOM” z UI.",
+      },
+      {
+        type: "improve",
+        text: "Zakładka pricebase → „Ustawienia wyceny”; CTA Wycena/UNKNOWN → Biblioteka Robót; GuideView i FAQ zsynchronizowane z SSOT.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-UX-COPY-CUTOVER-5C3A — grep gate copy + nawigacja (preview loader bez zmian — #5C-3B).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.45",
     label: "Przetargi — Write SSOT work_only default (#5C-2)",
     items: [

@@ -19,6 +19,7 @@ import {
   sanitizeTendersActiveTab,
 } from "../src/lib/tenders-module-nav.ts";
 import { TENDERS_MODULE_LABELS } from "../src/lib/tenders-module-labels.ts";
+import { CATALOG_UX_WORK_CATALOG_TAB_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -74,7 +75,7 @@ assert("sanitize list", sanitizeTendersActiveTab("list", false) === "list");
 // --- Tab id ---
 assert("isTendersTabId workcatalog", isTendersTabId("workcatalog") === true);
 assert("isTendersTabId invalid", isTendersTabId("bogus") === false);
-assert("label workcatalog", TENDERS_MODULE_LABELS.tabs.workcatalog === "Biblioteka robót");
+assert("label workcatalog", TENDERS_MODULE_LABELS.tabs.workcatalog === CATALOG_UX_WORK_CATALOG_TAB_LABEL);
 
 // --- openTendersAtWorkCatalogTab ---
 const key = "kw-tenders-active-tab-v1";

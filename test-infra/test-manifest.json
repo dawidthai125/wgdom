@@ -118,7 +118,8 @@
         "LIB-READ-SSOT-PREFLIGHT-5C1",
         "LIB-READ-SSOT-WORK-ONLY-5C1",
         "LIB-WRITE-SSOT-APP-NO-LEGACY-5C2",
-        "LIB-PB-WRITE-ROUTER"
+        "LIB-PB-WRITE-ROUTER",
+        "LIB-UX-COPY-CUTOVER-5C3A"
       ]
     }
   },
@@ -556,6 +557,18 @@
       "id": "LIB-WRITE-SSOT-APP-NO-LEGACY-5C2",
       "class": "lib",
       "path": "scripts/test-tender-write-ssot-app-no-legacy-5c2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-UX-COPY-CUTOVER-5C3A",
+      "class": "lib",
+      "path": "scripts/test-tender-ux-copy-cutover-5c3a.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

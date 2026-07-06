@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.46 — UX copy & navigation cutover (Bundle #5C-3A)
+
+- **improve:** `tender-catalog-ux-labels.ts` — SSOT `CATALOG_UX_SOURCE_LABEL` · tab „Ustawienia wyceny” · „Biblioteka Robót” wszędzie w UI wyceny
+- **improve:** Wycena CTA → `workcatalog` · usunięto „Katalog WGDOM” / „Baza cen” jako źródło aktywnej wyceny z `src/app/**`
+- **test:** `LIB-UX-COPY-CUTOVER-5C3A` · suite `smoke-work-catalog-p2-mvp` → **24** testIds
+- **app layer only** — preview loader `loadWgdomCostCatalogStore()` bez zmian (#5C-3B)
+
 ## 2.63.45 — Write SSOT work_only default (Bundle #5C-2)
 
 - **improve:** `defaultAppSettings().catalogWriteMode = "work_only"` · czysta instalacja bez pola w LS → work_only

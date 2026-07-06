@@ -5,6 +5,7 @@ import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
 import { AdminViewRouter } from "@/app/admin/AdminViewRouter";
 import { AdminMobileNav } from "@/app/admin/AdminMobileNav";
 import { buildAdminNavItems, splitMobileNav, isNavItemActive, type View } from "@/app/admin/admin-nav";
+import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { ContactsView } from "@/app/ContactsView";
 import { DirectoryView } from "@/app/DirectoryView";
 import { ArchiveView } from "@/app/ArchiveView";
@@ -2058,7 +2059,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       guide: "Instrukcja",
       changelog: "Zmiany",
       tenders: "Przetargi",
-      workcatalog: "Biblioteka Robót",
+      workcatalog: TENDERS_MODULE_LABELS.tabs.workcatalog,
     };
     if (view !== "jobs") {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
@@ -2086,7 +2087,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       jobs: "Roboty",
       operationalnotes: "Notatki operacyjne",
       audit: "Audit Hub",
-      workcatalog: "Biblioteka Robót",
+      workcatalog: TENDERS_MODULE_LABELS.tabs.workcatalog,
     };
     if ((dest === "jobs" || dest === "inspector") && view !== dest) {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });

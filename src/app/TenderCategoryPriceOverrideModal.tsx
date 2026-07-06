@@ -12,6 +12,10 @@ import {
 } from "@/lib/tender-price-overrides";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import {
+  CATALOG_UX_SOURCE_LABEL,
+  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
+import {
   getCategoryRate,
   type WgdomCostCatalog,
 } from "@/lib/wgdom-cost-catalog";
@@ -168,7 +172,7 @@ export function TenderCategoryPriceOverrideModal({
           <div className="rounded-lg border border-border/60 p-2.5 space-y-1.5">
             <p className="font-semibold">Materiał</p>
             <p className="text-muted-foreground">
-              Globalnie (Baza cen): <strong className="font-mono">{formatRate(globalRates.material, unitLabel)}</strong>
+              Globalnie ({CATALOG_UX_SOURCE_LABEL}): <strong className="font-mono">{formatRate(globalRates.material, unitLabel)}</strong>
             </p>
             <label className="block">
               <span className="text-muted-foreground">Override ({unitLabel})</span>
@@ -186,7 +190,7 @@ export function TenderCategoryPriceOverrideModal({
           <div className="rounded-lg border border-border/60 p-2.5 space-y-1.5">
             <p className="font-semibold">Robocizna</p>
             <p className="text-muted-foreground">
-              Globalnie (Baza cen): <strong className="font-mono">{formatRate(globalRates.labor, unitLabel)}</strong>
+              Globalnie ({CATALOG_UX_SOURCE_LABEL}): <strong className="font-mono">{formatRate(globalRates.labor, unitLabel)}</strong>
             </p>
             <label className="block">
               <span className="text-muted-foreground">Override ({unitLabel})</span>
@@ -203,7 +207,7 @@ export function TenderCategoryPriceOverrideModal({
         </div>
 
         <p className="text-[10px] text-muted-foreground">
-          Puste pole = powrót do Bazy cen dla danego składnika. Globalna Baza cen pozostaje bez zmian.
+          Puste pole = powrót do {CATALOG_UX_SOURCE_LABEL} dla danego składnika. Globalna {CATALOG_UX_WORK_CATALOG_TAB_LABEL} pozostaje bez zmian.
         </p>
 
         <div className="flex flex-wrap gap-2 justify-end">

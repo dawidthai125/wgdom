@@ -2,6 +2,7 @@
  * P2-G.1C + P2-G.1E — jakość wyceny, etykiety źródła, podstawa kalkulacji.
  */
 
+import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import type { TenderBidPricingMode, TenderBidProposal, TenderBidCostLine } from "@/lib/tenders-bid-calculator";
 
 export type TenderBidQualityLevel = "high" | "good" | "medium" | "limited";
@@ -31,7 +32,7 @@ export const TENDER_UNKNOWN_REVIEW_ADVICE =
   "Warto przejrzeć pozycje niesklasyfikowane przed złożeniem oferty.";
 
 export function getBidSourceLabel(pricingMode: TenderBidPricingMode | null | undefined): string | null {
-  if (pricingMode === "catalog") return "Katalog WGDOM";
+  if (pricingMode === "catalog") return CATALOG_UX_SOURCE_LABEL;
   if (pricingMode === "ath_priced") return "Kosztorys ATH";
   return null;
 }

@@ -21,6 +21,10 @@ import {
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
 import {
+  CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
+  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
+import {
   compareLaborRateToBenchmark,
   computeLaborPlnPerUnitFromRbh,
   buildLaborBenchmarkAlerts,
@@ -161,7 +165,7 @@ export function TenderPriceBasePanel({
   if (loading) {
     return (
       <p className="text-xs text-muted-foreground flex items-center gap-2 py-4">
-        <Loader2 size={14} className="animate-spin" /> Ładowanie bazy cen…
+        <Loader2 size={14} className="animate-spin" /> Ładowanie {CATALOG_UX_PRICING_SETTINGS_TAB_LABEL.toLowerCase()}…
       </p>
     );
   }
@@ -171,7 +175,7 @@ export function TenderPriceBasePanel({
       <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
         <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Tags size={14} className="text-primary" />
-          Baza cen — podgląd stawek i parametry firmy
+          {CATALOG_UX_PRICING_SETTINGS_TAB_LABEL} — podgląd stawek i parametry firmy
         </p>
         <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
           Stawki kategorii są tylko do odczytu. Kolumna Benchmark to orientacyjny zakres robocizny
@@ -181,7 +185,7 @@ export function TenderPriceBasePanel({
 
       <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-3 py-2.5 space-y-2">
         <p className="text-xs font-semibold text-foreground leading-snug">
-          Ceny robót są zarządzane w Bibliotece Robót.
+          Ceny robót są zarządzane w {CATALOG_UX_WORK_CATALOG_TAB_LABEL}.
         </p>
         <p className="text-[10px] text-muted-foreground leading-snug">
           Parametry firmy (RBH, marża, narzuty) nadal edytujesz tutaj.
@@ -305,7 +309,7 @@ export function TenderPriceBasePanel({
             Materiały — tylko odczyt
           </h3>
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            Stawka materiału na jednostkę miary (zł/j.m.) — historia i trend z własnej Bazy cen (90 dni).
+            Stawka materiału na jednostkę miary (zł/j.m.) — historia i trend z historii stawek firmy (90 dni).
           </p>
         </div>
         <div className="overflow-x-auto">

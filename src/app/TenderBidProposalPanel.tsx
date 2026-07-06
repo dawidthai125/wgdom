@@ -48,6 +48,7 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
+import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import { buildLaborBenchmarkAlerts } from "@/lib/labor-benchmark";
 import {
   buildLaborBenchmarkImpactSummary,
@@ -179,8 +180,8 @@ export function TenderBidProposalPanel({
     );
   }, [catalogLinePricing]);
 
-  const openPriceBase = useCallback(() => {
-    tendersCtx?.setActiveTab("pricebase");
+  const openWorkCatalog = useCallback(() => {
+    tendersCtx?.setActiveTab("workcatalog");
   }, [tendersCtx]);
 
   const openClassificationDict = useCallback(() => {
@@ -301,7 +302,7 @@ export function TenderBidProposalPanel({
           <Calculator size={12} className="text-violet-600" />
           {TENDER_OWNER_VALUATION_COPY.panelTitle}
           <span className="rounded-full border border-border/70 bg-background/60 px-2 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
-            Biblioteka Robót
+            {CATALOG_UX_SOURCE_LABEL}
           </span>
         </p>
         <div className="grid grid-cols-3 gap-2 text-center">
@@ -488,7 +489,7 @@ export function TenderBidProposalPanel({
                   catalog={tenderCatalogResolution.catalog}
                   costModel={loadCompanyProfileLocal().costModel}
                   onOverridesChanged={onPriceOverridesChanged}
-                  onOpenPriceBase={tendersCtx ? openPriceBase : undefined}
+                  onOpenWorkCatalog={tendersCtx ? openWorkCatalog : undefined}
                   onOpenClassificationDict={tendersCtx ? openClassificationDict : undefined}
                 />
               </div>
@@ -617,7 +618,7 @@ export function TenderBidProposalPanel({
                   <strong>{catalogRegionLabel}</strong>
                   {" · "}
                   <span className="text-muted-foreground">
-                    Biblioteka Robót
+                    {CATALOG_UX_SOURCE_LABEL}
                   </span>
                 </p>
               </div>

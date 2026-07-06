@@ -11,6 +11,7 @@ import {
   resolveBoqRowLaborBenchmark,
 } from "../src/lib/tender-kosztorys-boq-benchmark.ts";
 import { compareLaborRateToBenchmark } from "../src/lib/labor-benchmark.ts";
+import { CATALOG_UX_SOURCE_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
 import { buildKosztorysBoqExplorerView } from "../src/lib/tender-kosztorys-boq-explorer.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -40,8 +41,8 @@ function pricingRow(overrides = {}) {
     materialPlnPerUnit: 5,
     laborPlnPerUnit: 22,
     lineTotalPln: 27,
-    materialSource: "Baza cen",
-    laborSource: "Baza cen",
+    materialSource: CATALOG_UX_SOURCE_LABEL,
+    laborSource: CATALOG_UX_SOURCE_LABEL,
     isUnknown: false,
     ...overrides,
   };

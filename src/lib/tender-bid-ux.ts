@@ -2,6 +2,7 @@
  * P2-G.1D — UX wyceny: discoverability, explainability (bez logiki kalkulatora).
  */
 
+import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import type { TenderBidPricingMode } from "@/lib/tenders-bid-calculator";
 
 export const OUR_ESTIMATE_TILE_NAV_HINT = "Kliknij, aby zobaczyć szczegóły";
@@ -35,7 +36,7 @@ export function buildBidFlowExplanation(
     return [
       "Przedmiar ATH (ilości bez cen inwestora)",
       "Klasyfikacja robót WGDOM",
-      "Katalog stawek WGDOM (materiał + rbh)",
+      `${CATALOG_UX_SOURCE_LABEL} (materiał + rbh)`,
       "Robocizna (lista płac + ZUS)",
       "Materiały (indeks cen)",
       "Koszty pośrednie firmy (Kp, poboczne, stałe)",

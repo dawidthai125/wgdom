@@ -8,6 +8,7 @@ import {
 } from "../src/lib/tender-dossier-pipeline.ts";
 import { CURRENT_PARSER_VERSION } from "../src/lib/tender-dossier-parser-version.ts";
 import { parseSwzPlainText } from "../src/lib/tenders-bzp-swz.ts";
+import { CATALOG_UX_SOURCE_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
 
 let pass = 0;
 let fail = 0;
@@ -74,7 +75,7 @@ const bidProposal = {
   recommendedBidPln: 1_250_000,
   costPricePln: 980_000,
   pricingMode: "catalog",
-  sourceLabelPl: "Katalog WGDOM",
+  sourceLabelPl: CATALOG_UX_SOURCE_LABEL,
   warnings: [],
 };
 

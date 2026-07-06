@@ -37,9 +37,14 @@ import {
   type WgdomCostCatalogHistoryStore,
 } from "@/lib/wgdom-cost-catalog-history";
 
-export const CATALOG_LINE_PRICE_SOURCE_BASE = "Baza cen" as const;
-export const CATALOG_LINE_PRICE_SOURCE_CATALOG = "Katalog WGDOM" as const;
-export const CATALOG_LINE_PRICE_SOURCE_OVERRIDE = "Override" as const;
+import {
+  CATALOG_UX_OVERRIDE_LABEL,
+  CATALOG_UX_SOURCE_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
+
+export const CATALOG_LINE_PRICE_SOURCE_BASE = CATALOG_UX_SOURCE_LABEL;
+export const CATALOG_LINE_PRICE_SOURCE_CATALOG = CATALOG_UX_SOURCE_LABEL;
+export const CATALOG_LINE_PRICE_SOURCE_OVERRIDE = CATALOG_UX_OVERRIDE_LABEL;
 
 export type CatalogLinePriceSource =
   | typeof CATALOG_LINE_PRICE_SOURCE_BASE

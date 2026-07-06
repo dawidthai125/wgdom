@@ -37,13 +37,14 @@ import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
+import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 
 /** PB-2b / #5C-1 — jeden read path katalogu dla KPI V4 / Kosztorys PRO (Work Catalog SSOT). */
 export function resolveTenderPricingCatalogForDisplay(): {
   catalog: WgdomCostCatalog;
   costModel: TenderCompanyCostModel;
-  catalogSourceLabel: "Biblioteka Robót";
+  catalogSourceLabel: typeof CATALOG_UX_SOURCE_LABEL;
   isFallback: false;
 } {
   const profile = loadCompanyProfileLocal();
@@ -54,7 +55,7 @@ export function resolveTenderPricingCatalogForDisplay(): {
   return {
     catalog: resolution.catalog,
     costModel,
-    catalogSourceLabel: "Biblioteka Robót",
+    catalogSourceLabel: CATALOG_UX_SOURCE_LABEL,
     isFallback: false,
   };
 }
@@ -575,7 +576,7 @@ export interface KosztorysV4Stats {
   unpricedDisplay: string;
   valuationValueDisplay: string;
   valuationTotalPln: number | null;
-  catalogSourceLabel: "Biblioteka Robót";
+  catalogSourceLabel: typeof CATALOG_UX_SOURCE_LABEL;
 }
 
 export function buildKosztorysV4Stats(
@@ -662,7 +663,7 @@ export interface WycenaKpiDisplay {
   total: number;
   ratioDisplay: string;
   percentDisplay: string;
-  catalogSourceLabel: "Biblioteka Robót";
+  catalogSourceLabel: typeof CATALOG_UX_SOURCE_LABEL;
 }
 
 export function buildWycenaKpiDisplay(item: TenderPipelineItem): WycenaKpiDisplay {

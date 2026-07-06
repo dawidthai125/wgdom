@@ -28,7 +28,7 @@ export function openTendersAtStrategyTab(): void {
   saveTendersActiveTab("strategy");
 }
 
-/** Legacy view=workcatalog → Przetargi → Biblioteka robót (bez flicker — zapis przed setView). */
+/** Legacy view=workcatalog → Przetargi → Biblioteka Robót (bez flicker — zapis przed setView). */
 export function openTendersAtWorkCatalogTab(): void {
   saveTendersActiveTab("workcatalog");
 }

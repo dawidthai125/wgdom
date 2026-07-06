@@ -23,6 +23,7 @@ import {
 import { computeLibraryCompleteness } from "@/app/work-catalog/work-catalog-completeness";
 import { WorkCatalogCompletenessPanel } from "@/app/work-catalog/WorkCatalogCompletenessPanel";
 import { WorkCatalogBundlesPanel } from "@/app/work-catalog/WorkCatalogBundlesPanel";
+import { CATALOG_UX_WORK_CATALOG_TAB_LABEL } from "@/lib/tender-catalog-ux-labels";
 
 export type WorkCatalogLayout = "standalone" | "embedded";
 export type WorkCatalogSection = "works" | "bundles";
@@ -204,7 +205,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
               </p>
             ) : (
               <>
-                <h1 className="text-base font-semibold text-foreground sm:text-lg">Biblioteka Robót</h1>
+                <h1 className="text-base font-semibold text-foreground sm:text-lg">{CATALOG_UX_WORK_CATALOG_TAB_LABEL}</h1>
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Katalog v3 · region {regionLabel}
                   {section === "works"

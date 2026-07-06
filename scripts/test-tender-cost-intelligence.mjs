@@ -57,6 +57,7 @@ import {
   PROFILE_SECTION_TITLES,
   TENDER_BID_PROPOSAL_PANEL_ID,
 } from "../src/lib/tender-bid-ux.ts";
+import { CATALOG_UX_SOURCE_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
 import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 import {
   buildCatalogTuningHints,
@@ -388,7 +389,7 @@ const bidCatalog = computeTenderBidProposal({
 });
 assertEq(bidCatalog.ok, true, "AC-1 catalog 221 poz. ok === true");
 assertEq(bidCatalog.pricingMode, "catalog", "pricingMode catalog");
-assertEq(bidCatalog.sourceLabelPl, "Katalog WGDOM", "AC-7 source Katalog WGDOM");
+assertEq(bidCatalog.sourceLabelPl, CATALOG_UX_SOURCE_LABEL, "AC-7 source Biblioteka Robót");
 assertEq(bidCatalog.qualityLabelPl, "Wysoka", "quality Wysoka catalog 100% coverage");
 assert(bidCatalog.calculationBasis != null, "calculationBasis present");
 assertGt(bidCatalog.calculationBasis?.executionCostPln ?? 0, 0, "basis executionCost > 0");
@@ -447,13 +448,13 @@ assert(
   "AC-1 linia Rekomendowana",
 );
 assert(
-  displayCatalog.lines?.some((l) => l.includes("Katalog WGDOM")),
-  "AC-1 źródło Katalog WGDOM",
+  displayCatalog.lines?.some((l) => l.includes(CATALOG_UX_SOURCE_LABEL)),
+  "AC-1 źródło Biblioteka Robót",
 );
-assertEq(displayCatalog.sourceLabel, "Katalog WGDOM", "sourceLabel catalog");
+assertEq(displayCatalog.sourceLabel, CATALOG_UX_SOURCE_LABEL, "sourceLabel catalog");
 
 console.log("\n13. P2-G.1C — tender-bid-quality");
-assertEq(getBidSourceLabel("catalog"), "Katalog WGDOM", "badge catalog");
+assertEq(getBidSourceLabel("catalog"), CATALOG_UX_SOURCE_LABEL, "badge catalog");
 assertEq(getBidSourceLabel("ath_priced"), "Kosztorys ATH", "badge ath_priced");
 assertEq(assessBidQuality("ath_priced").level, "high", "quality high");
 assertEq(assessBidQuality("catalog", 0.05).level, "high", "quality high 95% coverage");
@@ -468,7 +469,7 @@ assert(!shouldShowUnknownReviewAdvice(0.15), "no advice at 15%");
 assert(TENDER_UNKNOWN_REVIEW_ADVICE.includes("niesklasyfikowane"), "advice text");
 assert(TENDER_BID_DISCLAIMER.includes("Autorska wycena WGDOM"), "disclaimer text");
 const enriched = enrichBidProposalMeta({ ...bidCatalog });
-assertEq(enriched.sourceLabelPl, "Katalog WGDOM", "enrich source");
+assertEq(enriched.sourceLabelPl, CATALOG_UX_SOURCE_LABEL, "enrich source");
 const basis = extractCalculationBasis(bidCatalog);
 assertGt(basis?.laborPln ?? 0, 0, "basis labor > 0");
 assertGt(basis?.materialPln ?? 0, 0, "basis material > 0");
@@ -520,7 +521,7 @@ assertEq(canNavigateToBidDetails(false, 100000), true, "nav when estimate set");
 assertEq(canNavigateToBidDetails(false, null), false, "no nav without data");
 const catalogFlow = buildBidFlowExplanation("catalog");
 assert(catalogFlow.length >= 6, "catalog flow steps");
-assert(catalogFlow.some((s) => s.includes("Katalog")), "catalog flow mentions catalog");
+assert(catalogFlow.some((s) => s.includes(CATALOG_UX_SOURCE_LABEL)), "catalog flow mentions Biblioteka Robót");
 const athFlow = buildBidFlowExplanation("ath_priced");
 assert(athFlow.some((s) => s.includes("ATH")), "ath flow mentions ATH");
 assert(PROFILE_SECTION_IDS.costIntelligence === "profile-section-cost-intelligence", "cost section id");

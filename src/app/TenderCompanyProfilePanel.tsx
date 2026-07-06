@@ -23,6 +23,10 @@ import {
   PROFILE_SECTION_TITLES,
 } from "@/lib/tender-bid-ux";
 import {
+  CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
+  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
+import {
   buildCalibrationSummary,
   buildCatalogCalibrationHints,
   formatCalibrationDeltaPct,
@@ -285,8 +289,16 @@ export function TenderCompanyProfilePanel({
 
               <div className="rounded-lg bg-violet-500/8 border border-violet-500/20 px-2.5 py-2 text-[10px] text-muted-foreground">
                 <p>
-                  <strong className="text-foreground">Stawki robocizny, materiałów i parametry wyceny</strong>
-                  {" "}— edytuj w zakładce <strong className="text-violet-800 dark:text-violet-300">Przetargi → Baza cen</strong>.
+                  <strong className="text-foreground">Stawki robocizny i materiałów</strong>
+                  {" "}— edytuj w zakładce{" "}
+                  <strong className="text-violet-800 dark:text-violet-300">
+                    Przetargi → {CATALOG_UX_WORK_CATALOG_TAB_LABEL}
+                  </strong>
+                  . Parametry wyceny (RBH, marża, narzuty) — w{" "}
+                  <strong className="text-violet-800 dark:text-violet-300">
+                    Przetargi → {CATALOG_UX_PRICING_SETTINGS_TAB_LABEL}
+                  </strong>
+                  .
                 </p>
               </div>
 
@@ -294,7 +306,7 @@ export function TenderCompanyProfilePanel({
                 id={PROFILE_SECTION_IDS.costIntelligence}
                 emoji="⚙️"
                 title="Parametry operacyjne wyceny"
-                description="Załoga, ZUS, koszty poboczne i rezerwy — uzupełnienie bazy cen (bez stawek kategorii)."
+                description={`Załoga, ZUS, koszty poboczne i rezerwy — uzupełnienie ${CATALOG_UX_PRICING_SETTINGS_TAB_LABEL.toLowerCase()} (bez stawek kategorii).`}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   <NumInput

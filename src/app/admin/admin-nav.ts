@@ -51,7 +51,7 @@ export type View =
   | "guide"
   | "changelog"
   | "tenders"
-  /** Legacy top-level route — redirect do Przetargi → Biblioteka robót (WC-P2.1). */
+  /** Legacy top-level route — redirect do Przetargi → Biblioteka Robót (WC-P2.1). */
   | "workcatalog"
   | "audit";
 

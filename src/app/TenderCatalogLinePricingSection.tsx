@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { AlertTriangle, ExternalLink, Pencil } from "lucide-react";
 import type { CatalogCategoryCostSummaryRow, CatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
-import { CATALOG_LINE_PRICE_SOURCE_OVERRIDE } from "@/lib/tender-catalog-line-pricing";
+import {
+  CATALOG_LINE_PRICE_SOURCE_OVERRIDE,
+} from "@/lib/tender-catalog-line-pricing";
+import {
+  CATALOG_UX_OVERRIDE_LABEL,
+  CATALOG_UX_SOURCE_LABEL,
+  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
+} from "@/lib/tender-catalog-ux-labels";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
@@ -39,9 +46,8 @@ function rowSourceLabel(materialSource: string | null, laborSource: string | nul
   const hasOverride =
     materialSource === CATALOG_LINE_PRICE_SOURCE_OVERRIDE
     || laborSource === CATALOG_LINE_PRICE_SOURCE_OVERRIDE;
-  if (hasOverride) return "Override";
-  if (materialSource === "Katalog WGDOM" || laborSource === "Katalog WGDOM") return "Katalog WGDOM";
-  return "Baza cen";
+  if (hasOverride) return CATALOG_UX_OVERRIDE_LABEL;
+  return CATALOG_UX_SOURCE_LABEL;
 }
 
 export function TenderCatalogLinePricingSection({
@@ -50,7 +56,7 @@ export function TenderCatalogLinePricingSection({
   catalog,
   costModel,
   onOverridesChanged,
-  onOpenPriceBase,
+  onOpenWorkCatalog,
   onOpenClassificationDict,
 }: {
   view: CatalogLinePricingView;
@@ -58,7 +64,7 @@ export function TenderCatalogLinePricingSection({
   catalog?: WgdomCostCatalog;
   costModel?: TenderCompanyCostModel;
   onOverridesChanged?: () => void;
-  onOpenPriceBase?: () => void;
+  onOpenWorkCatalog?: () => void;
   onOpenClassificationDict?: () => void;
 }) {
   const [editCategory, setEditCategory] = useState<CatalogCategoryCostSummaryRow | null>(null);
@@ -76,13 +82,13 @@ export function TenderCatalogLinePricingSection({
             Dla pozycji UNKNOWN nie podstawiamy cen z bazy — nie wliczają się do podsumowania kategorii.
           </p>
           <div className="flex flex-wrap gap-2">
-            {onOpenPriceBase && (
+            {onOpenWorkCatalog && (
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); onOpenPriceBase(); }}
+                onClick={(e) => { e.stopPropagation(); onOpenWorkCatalog(); }}
                 className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
               >
-                Przejdź do Bazy cen
+                Przejdź do {CATALOG_UX_WORK_CATALOG_TAB_LABEL}
                 <ExternalLink size={10} />
               </button>
             )}
