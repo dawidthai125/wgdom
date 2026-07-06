@@ -1,15 +1,15 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.52** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-5C F1 CLOSED FINAL** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.53** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E deferred bootstrap CLOSED** + **#5C-0A…#5C-3D CLOSED** + **#5C-5A CLOSED** + **#5C-5B CLOSED** + **#5C-5C F1 CLOSED** (prod **2.63.52**). **#5C-5C F2** router/compat cleanup — **READY** (Owner GO). **Nie** mieszaj FEATURE z CORE w jednym commicie (#CORE-013).
+> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E** + **#5C-0A…#5C-3D** + **#5C-5A/B** + **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** ONE-SHOT sunset — **BLOCKED** (telemetria T1–T7 · [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md)). **Nie** mieszaj FEATURE z CORE (#CORE-013).
 > 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
@@ -37,6 +37,7 @@
 8. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
 9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
 10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
+10f. docs/architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md  ← ★ POST F2 observation · T1–T7 · F3 BLOCKED
 11. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
 12. docs/ARCHITECTURE.md             ← pełna architektura techniczna
 13. AGENTS.md                        ← zasady pracy, zakazy
@@ -47,6 +48,19 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 ---
 
 ## 2. Co zrobiliśmy (stan na 2026-07-06)
+
+### ★ Sesja 2026-07-06 — Bundle #5C-5C F2 Legacy Compat Cleanup (**CLOSED FINAL**)
+
+| Element | Wartość |
+|---------|---------|
+| **Klasa** | **CORE CATALOG** (#CORE-013) |
+| **Commit** | `e3daa6d` · prod **2.63.53** · **PRODUCTION VERIFIED** |
+| **SSOT** | [`docs/architecture/CORE-5C-5C-F2-CLOSEOUT.md`](architecture/CORE-5C-5C-F2-CLOSEOUT.md) |
+| **Zakres** | Usunięto legacy write router + compat UI; **KEEP** `saveWorkCatalogRouted` · `resolveCatalogForEngine` · ONE-SHOT bootstrap |
+| **Test** | `LIB-5C-5C-LEGACY-CLEANUP-F2` · suite **31** testIds · payroll **15/15** |
+| **Boundary** | #CORE-013 **PASS** — zero diff `cloud-sync.ts` · Payroll · ONE-SHOT |
+
+**Następny krok:** **POST F2 OBSERVATION** — telemetria F3 T1–T7 · **bez IMPLEMENT F3**.
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-5A Legacy KV sync quiesce (**CLOSED FINAL**)
 
@@ -59,7 +73,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Boundary** | #CORE-013 **PASS** — zero diff Payroll · PWRB · Bootstrap · Reconcile · CloudLoader · UI · router · store |
 | **Functional delta** | **Zero** — sync plane only |
 
-**Następny slice (#5C-5):** **#5C-5C F2** — router/compat legacy path cleanup — **READY** (po CLOSE F1 · osobny bundle · Owner GO).
+**Następny slice (#5C-5):** **#5C-5C F3** — **BLOCKED** (telemetria · runbook · soak).
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-5C F1 Orphan Reconcile Cleanup (**CLOSED FINAL**)
 
@@ -72,7 +86,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Test** | `LIB-5C-5C-LEGACY-CLEANUP-F1` **31/31** · gate B payroll **15/15** · #CORE-013 **PASS** |
 | **Bez zmian** | `cloud-sync.ts` · ONE-SHOT bootstrap · router · compat · `wgdom-cost-catalog-store.ts` |
 
-**Następny slice:** **#5C-5C F2** — **READY** (nie startować bez Owner GO).
+**Następny slice:** **#5C-5C F2** — **CLOSED** (`e3daa6d`).
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-5B Bootstrap / Reconcile Decouple (**CLOSED FINAL**)
 
@@ -420,7 +434,9 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne (2026-07-05)
+## 3. Co robimy teraz / następne (2026-07-06)
+
+**Faza bieżąca:** **POST F2 OBSERVATION** (read-only) — monitor Work Catalog · Payroll · Cloud Sync · ONE-SHOT migrate. Zbieraj telemetrię **T1–T7** — SSOT: [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md). **F3 IMPLEMENT = BLOCKED.**
 
 **Zasada:** **FEATURE DEVELOPMENT RESTART** po zamknięciu RC-B + CORE-01A + PLATFORM-SYNC-01A. **Jeden bundle na raz** · #CORE-013 + #CORE-014 obowiązkowe. **Lista Płac — § 2b MUST** przy każdej sesji.
 
@@ -448,8 +464,9 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** | `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
 | **#5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · **PRODUCTION VERIFIED** | `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds |
 | **#5C-5C F1** | **Bundle #5C-5C F1 — Orphan reconcile cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · **PRODUCTION VERIFIED** | `LIB-5C-5C-LEGACY-CLEANUP-F1` · suite **30** testIds |
-| **#5C-5C F2** | Router / compat legacy path | CORE CATALOG | **READY** | osobny bundle · Owner GO |
-| **#5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** | telemetria + F2 CLOSED |
+| **#5C-5C F2** | **Bundle #5C-5C F2 — Legacy compat cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.53** · `e3daa6d` · **PRODUCTION VERIFIED** | `LIB-5C-5C-LEGACY-CLEANUP-F2` · suite **31** testIds |
+| **—** | **POST F2 observation** | OBSERVATION | **ACTIVE** | T1–T7 telemetria · bez `src/` |
+| **#5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** | telemetria T1–T7 + runbook + Owner GO |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
 | **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
@@ -630,6 +647,7 @@ npm run build
 | **Audit Hub** | `AuditHubView.tsx` | **7 źródeł** — MVP-1B + **P1 wm_druk** · § 15.2, § 15.6 |
 | **WM Druk audit** | `WmPrintView.tsx` + lib | `wm-druk-audit.ts` · `kw-wm-druk-audit-log` · `recordWmDrukAudit` |
 | **Lista Płac** | `PayrollView.tsx` | `SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md` |
+| **Work Catalog (#5C)** | `WorkCatalogView.tsx` · Przetargi wycena | `@/lib/work-catalog` · `saveWorkCatalogRouted` · read SSOT `resolveActiveCatalogForTender` · **F3 BLOCKED** — [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md) |
 | **Roboty** | `JobsView.tsx` | `job-*.ts`, inspektor w `InspectorPanel.tsx` |
 
 ---

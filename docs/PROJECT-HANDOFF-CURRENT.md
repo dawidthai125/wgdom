@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-06 (**prod 2.63.52** · **PRODUCTION VERIFIED** · **Bundle #5C-5C F1 CLOSED FINAL** · **Bundle #5C-5B CLOSED FINAL** · **Bundle #5C-5A CLOSED FINAL** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-06 (**prod 2.63.53** · **PRODUCTION VERIFIED** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **#5C-5B/#5C-5A CLOSED** · **FEATURE DEVELOPMENT RESTART** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -204,6 +204,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.53       ← Bundle #5C-5C F2 legacy compat cleanup · commit e3daa6d · PRODUCTION VERIFIED
 Version (prod):             2.63.52       ← Bundle #5C-5C F1 orphan reconcile · commit efc45d9 · PRODUCTION VERIFIED
 Version (prod):             2.63.50       ← Bundle #5C-5A legacy KV sync quiesce · commit 36b3ddd · PRODUCTION VERIFIED
 Version (prod):             2.63.49       ← Bundle #5C-3D history SSOT from Work Catalog · commit 03823ad · PRODUCTION VERIFIED
@@ -248,7 +249,7 @@ Version (prod):             2.62.92       ← SUPER ADMIN ACL · commit 5f212b4
 Version (prod):             2.62.81       ← Lista Płac P0 refresh-team race fix · commit 6364937
 Mobile Recovery 2.62.79:    4397eac       Jobs full-screen drill-in (MV-2) · EPIC CLOSED
 Work Catalog P1:            2.62.80       src/lib/work-catalog P1.1–P1.12 · FREEZE v1.0
-Work Catalog P2 UI:         2.63.37–41    P2.1–P2.10 Roboty + Pakiety · suite smoke-work-catalog-p2-mvp **30** testIds · EPIC #5C **#5C-0A CLOSED** · **#5C-1 CLOSED** · **#5C-2 CLOSED** · **#5C-3A CLOSED** · **#5C-3B CLOSED** · **#5C-3C CLOSED** · **#5C-3D CLOSED** · **#5C-5A CLOSED** · **#5C-5B CLOSED** · **#5C-5C F1 CLOSED** · **#5C-5C F2 READY** ([`architecture/CORE-5C-5C-LEGACY-CLEANUP-DESIGN-FREEZE.md`](architecture/CORE-5C-5C-LEGACY-CLEANUP-DESIGN-FREEZE.md))
+Work Catalog P2 UI:         2.63.37–41    P2.1–P2.10 Roboty + Pakiety · suite smoke-work-catalog-p2-mvp **31** testIds · EPIC #5C **#5C-0A…#5C-3D CLOSED** · **#5C-5A CLOSED** · **#5C-5B CLOSED** · **#5C-5C F1+F2 CLOSED** · **F3 BLOCKED** ([`architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md))
 P1 Audit Hub WM Etap 1:     b4fde0c       v2.62.74 — kw-wm-druk-audit-log · adapter wm_druk
 P1 Audit Hub WM Etap 2:     c31e1bd       v2.62.75 — hooki Pomiary/Katalog (rap_* · DOCX · ZIP)
 P1 Audit Hub WM Etap 3:     36718cc       v2.62.76 — hooki Schematy (schematic_* · import · PDF)

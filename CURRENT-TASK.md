@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.52** · **Bundle #5C-5C F1 CLOSED FINAL** · **PRODUCTION VERIFIED** · **#5C-5C F2 READY** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.53** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -99,7 +99,9 @@
 | **5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** · `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
 | **5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · **PRODUCTION VERIFIED** · `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds · Payroll Bootstrap Integrity **PASS** |
 | **5C-5C F1** | **Bundle #5C-5C F1 — Orphan reconcile cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · **PRODUCTION VERIFIED** · `LIB-5C-5C-LEGACY-CLEANUP-F1` · suite **30** testIds |
-| **5C-5C F2** | Router / compat legacy path | CORE CATALOG | **READY** · Owner GO |
+| **5C-5C F2** | **Bundle #5C-5C F2 — Legacy compat cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.53** · `e3daa6d` · **PRODUCTION VERIFIED** · `LIB-5C-5C-LEGACY-CLEANUP-F2` · suite **31** testIds |
+| **POST F2** | Observation · telemetria F3 T1–T7 | OBSERVATION | **ACTIVE** · [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](docs/architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md) |
+| **5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** · telemetria T1–T7 + runbook + Owner GO |
 
 **WIP poza commitem:** mobile ≠ backup scripts ≠ `docs/recovery/*`. **Z-05** iPhone field cert — gate właściciela dla mobile release.
 
@@ -536,9 +538,10 @@
 | **Bundle #5C-5A** — Legacy KV sync quiesce | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` |
 | **Bundle #5C-5B** — Bootstrap / Reconcile Decouple | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · verify 2026-07-06 |
 | **Bundle #5C-5C F1** — Orphan reconcile cleanup | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · verify 2026-07-06 |
-| **#5C-5C F2** — Router / compat legacy path | **READY** · Owner GO |
-| **#5C-5C F3** — ONE-SHOT sunset · store removal | **BLOCKED** · telemetria + F2 CLOSED |
-| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · pozostało **#5C-5C F2 + F3** |
+| **Bundle #5C-5C F2** — Legacy compat cleanup | **CLOSED FINAL** · prod **2.63.53** · `e3daa6d` · verify 2026-07-06 |
+| **POST F2 observation** — telemetria F3 | **ACTIVE** · T1–T7 NOT COLLECTED |
+| **#5C-5C F3** — ONE-SHOT sunset · store removal | **BLOCKED** · telemetria + runbook + Owner GO |
+| **EPIC #5C** — Cutover Przetargi → Work Catalog | **OPEN** · pozostało **#5C-5C F3** |
 | **Bundle #6E** — Deferred bootstrap reliability | **CLOSED** · prod **2.63.42** · `7138957` |
 | **G-08** persist `code` in snapshot | OPEN |
 | **G-02** R/M/S inline BOQ | OPEN |
