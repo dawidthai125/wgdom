@@ -1,5 +1,7 @@
 # STABILIZATION WEEKLY METRICS
 
+> **⚠ SUPERSEDED** — zastąpiony raportem finalnym [`STABILIZATION-WEEKLY-W02-2026-07-06.md`](STABILIZATION-WEEKLY-W02-2026-07-06.md) (werdykt `STABLE`, prod 2.63.50).
+
 > **⚠ RAPORT CZĘŚCIOWY / INTERIM** — tydzień niezamknięty (snapshot 2026-07-04). Wypełnione wyłącznie pola obiektywnie udokumentowane (bez telemetrii). Pola wymagające telemetrii / danych właściciela pozostają `PENDING`.
 
 **Tydzień stabilizacji:** W01 / okno od 2026-07-01
