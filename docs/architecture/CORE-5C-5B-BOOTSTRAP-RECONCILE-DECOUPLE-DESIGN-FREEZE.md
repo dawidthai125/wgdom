@@ -1,8 +1,8 @@
 # #5C-5B — Bootstrap / Reconcile Decouple · DESIGN FREEZE
 
-> **Status:** **DESIGN FREEZE v1.0 — APPROVED (docs-only)**  
+> **Status:** **DESIGN FREEZE v1.1 — APPROVED (docs-only)** · update: Payroll Regression Gate  
 > **Tryb:** AUDIT → PLAN → DESIGN FREEZE · **IMPLEMENT = BLOCKED** (do owner GO)  
-> **Data freeze:** 2026-07-06  
+> **Data freeze:** 2026-07-06 · **v1.1:** 2026-07-06  
 > **Bundle ID:** #5C-5B  
 > **Klasa:** **CORE CATALOG** (#CORE-013 — bez Payroll / PWRB / Edge)  
 > **Baseline prod:** UI **2.63.50** · feature `36b3ddd` · commit `5474707` · HEAD docs `1b29591`  
@@ -15,7 +15,7 @@ CEL:           Usunąć cykliczny odczyt legacy + reconcile z deferred bootstrap
 ZASADA:        Work Catalog SSOT z chmury (#6E); legacy LS nie jest źródłem prawdy po #5C-5A.
 WYJĄTEK:       ONE-SHOT PB-3 migrate tylko scenariusz B (patrz §2 Runtime Telemetry).
 ZAKAZ:         Payroll · PWRB · CloudLoader · Edge · #6E state machine · reconcile co sesję.
-GATE IMPLEMENT: Owner GO + Exit Criteria §9 + soak #5C-5A bez regresji.
+GATE IMPLEMENT: Owner GO + Exit Criteria §8 + soak #5C-5A + Payroll Regression Gate §7.3.
 ```
 
 ---
@@ -29,11 +29,11 @@ GATE IMPLEMENT: Owner GO + Exit Criteria §9 + soak #5C-5A bez regresji.
 | **Nowe pole KV** | **Brak** |
 | **Zmiana merge Payroll / PWRB** | **Brak** (twardy zakaz) |
 | **Zmiana BOOTSTRAP_DEFERRED_KEYS** | **Brak** (legacy już wyłączony w #5C-5A) |
-| **Principles #5C-5B** | **#5C5B-001–#5C5B-010** (§1.3) |
+| **Principles #5C-5B** | **#5C5B-001–#5C5B-011** (§1.1) |
 
 ### Final Decision
 
-**APPROVED (docs-only)** — Design Freeze kompletny. **IMPLEMENT pozostaje BLOCKED** do spełnienia Exit Criteria §9 + jawnego **Owner GO**.
+**APPROVED (docs-only)** — Design Freeze kompletny (v1.1). **IMPLEMENT pozostaje BLOCKED** do spełnienia Exit Criteria §8 + jawnego **Owner GO**.
 
 ---
 
@@ -53,6 +53,7 @@ GATE IMPLEMENT: Owner GO + Exit Criteria §9 + soak #5C-5A bez regresji.
 | **#5C5B-008** | Jeden bundle = jeden cel — bez #5C-5C cleanup w tym samym commicie. |
 | **#5C5B-009** | Rollback = revert commit + brak migracji danych KV (tylko zachowanie runtime). |
 | **#5C5B-010** | Test manifest: nowy `LIB-5C-5B-BOOTSTRAP-DECOUPLE` + regresja PB-3 / 5C-5A / 6E. |
+| **#5C5B-011** | **Payroll Regression Gate obowiązkowy** — zmiana kolejności/czasu deferred bootstrap **nie** może regresować LP (§7.3). |
 
 ### 1.2 Pliki W ZAKRESIE (IMPLEMENT — po GO)
 
@@ -297,6 +298,7 @@ dispatch WGDOM_DEFERRED_BOOTSTRAP_EVENT   ← bez zmian (#6E)
 | **Write router** | `scripts/test-pb-write-router.mjs` | `work_only` bez regresji | B |
 | **Manifest** | `test-infra/test-manifest.json` | `LIB-5C-5B-BOOTSTRAP-DECOUPLE` w `smoke-work-catalog-p2-mvp` | B |
 | **Orchestrator** | `npm run test:infra -- --gate B --scope work-catalog` | Agregat PASS | B |
+| **Payroll Regression Gate** | `npm run test:infra -- --gate B --scope payroll` | **OBOWIĄZKOWY** — Payroll Bootstrap Integrity (§7.3) | B |
 
 ### 7.2 Nowy test `LIB-5C-5B-BOOTSTRAP-DECOUPLE` (spec)
 
@@ -311,12 +313,45 @@ dispatch WGDOM_DEFERRED_BOOTSTRAP_EVENT   ← bez zmian (#6E)
 | T7 | Regresja: `kw-wgdom-cost-catalog` nie w batch-get deferred |
 | T8 | `#CORE-013` — plik diff nie zawiera `payroll-week-roster-bundle` / `finalizePayrollBundleMerge` |
 
-### 7.3 Poza gate #5C-5B (nie blokuje, monitor)
+### 7.3 Payroll Regression Gate — **OBOWIĄZKOWY** (#5C5B-011)
+
+Mimo **braku diff** w modułach Payroll/PWRB (#CORE-013), zmiana hooka deferred bootstrap może wpływać na **kolejność hydracji** i timing `WGDOM_DEFERRED_BOOTSTRAP_EVENT`. Gate **blokuje CLOSEOUT** bundle #5C-5B.
+
+**Nazwa gate:** **Payroll Bootstrap Integrity**
+
+**Komenda automatyczna (tier B):**
+
+```bash
+npm run test:infra -- --gate B --scope payroll
+```
+
+**Suites / testIds (manifest — bez nowych testIds w #5C-5B):** `lib-payroll-core` · m.in. `LIB-PAYROLL-P11-BOOTSTRAP` · `LIB-PAYROLL-B4-PARITY` · `LIB-PAYROLL-GUARD` · `LIB-PAYROLL-ASSIGNMENTS-P1` · `LIB-PAYROLL-RB-BANNER`
+
+**Scenariusz testowy (akceptacja CLOSEOUT):**
+
+| # | Scenariusz | Weryfikacja |
+|---|------------|-------------|
+| 1 | **Deferred Bootstrap** kończy się poprawnie | `LIB-DEFERRED-BOOTSTRAP-6E` PASS · event `wgdom-deferred-bootstrap` po merge · brak błędu w konsoli bootstrap |
+| 2 | **Lista Płac** otwiera się bez błędów | Smoke manual prod / preview: `PayrollView` render · brak white screen · brak toast error sync |
+| 3 | **Dane tygodnia** zgodne z baseline | `LIB-PAYROLL-P11-BOOTSTRAP` + `LIB-PAYROLL-B4-PARITY` PASS · roster count/hours ≠ regresja vs fixture |
+| 4 | **Archive** działa | `LIB-PAYROLL-B5-CLOSED-WEEK` PASS · zapisany tydzień read-only / snapshot semantics bez regresji |
+| 5 | **Restore** działa | `LIB-PAYROLL-RB-BANNER` PASS · restore banner / metrics bez false positive po bootstrap |
+| 6 | **Assignments** pozostają niezmienione | `LIB-PAYROLL-ASSIGNMENTS-P1` PASS · `job.workEntries[]` bez utraty przy bootstrap session |
+| 7 | **Cloud Sync Payroll** bez regresji | `LIB-PAYROLL-GUARD` · `LIB-PAYROLL-GUARD-FAIL-LOUD` · `LIB-PAYROLL-GUARD-PHASE2` PASS · push/pull payroll keys bez shrink/guard trip |
+
+**Werdykt gate:** **Payroll Bootstrap Integrity PASS** = wiersze 1–7 spełnione (automatyczne tier B + smoke manual #2 jeśli preview).
+
+**Opcjonalny tier C (nie blokuje samodzielnie, zalecany przed prod soak):**
+
+```bash
+npm run test:e2e:payroll-guard
+```
+
+### 7.4 Poza gate #5C-5B (nie blokuje, monitor)
 
 | Test | Uwaga |
 |------|-------|
 | `test-material-history.mjs` | Pre-existing 9/12 fixture drift |
-| `npm run test:infra -- --scope payroll` | Regresja Payroll — uruchomić, nie modyfikować |
 
 ---
 
@@ -330,11 +365,12 @@ Bundle IMPLEMENT można rozpocząć **tylko** gdy:
 | ☐ | **Boundary #CORE-013 PASS** | **PASS** (§4) |
 | ☐ | **Rollback gotowy** | **PASS** (§6 udokumentowany) |
 | ☐ | **Test Matrix kompletny** | **PASS** (§7 spec; skrypt NEW — przy IMPLEMENT) |
+| ☐ | **Payroll Bootstrap Integrity PASS** | **PENDING** (§7.3 — obowiązkowy przy CLOSEOUT) |
 | ☐ | **Owner GO** | **PENDING** |
 | ☐ | **Soak #5C-5A** (W02 STABLE + brak regresji prod) | **PASS** (W02); kontynuacja obserwacji zalecana |
-| ☐ | **DESIGN FREEZE APPROVED** | **PASS** (ten dokument) |
+| ☐ | **DESIGN FREEZE APPROVED** | **PASS** (v1.1 — ten dokument) |
 
-**IMPLEMENT:** **BLOCKED** do zaznaczenia **Owner GO**.
+**IMPLEMENT:** **BLOCKED** do zaznaczenia **Owner GO** + **Payroll Bootstrap Integrity PASS** przy CLOSEOUT.
 
 ---
 
@@ -349,8 +385,9 @@ Bundle IMPLEMENT można rozpocząć **tylko** gdy:
 6. UPDATE test-manifest.json (suite 29 testIds)
 7. npm run build
 8. Gate B work-catalog
-9. CHANGELOG + ARCHITECTURE §12.1.18b
-10. COMMIT → PUSH → VERIFY → CLOSEOUT
+9. Gate B payroll — Payroll Bootstrap Integrity (§7.3)
+10. CHANGELOG + ARCHITECTURE §12.1.18b
+11. COMMIT → PUSH → VERIFY → CLOSEOUT
 ```
 
 **Wersja docelowa UI:** patch **2.63.51** (propozycja — przy IMPLEMENT).
@@ -378,4 +415,4 @@ Bundle IMPLEMENT można rozpocząć **tylko** gdy:
 | Czy jeden bundle? | **TAK** — CORE CATALOG #5C-5B |
 | Czy #5C-5C w tym samym bundle? | **NIE** |
 
-**DESIGN FREEZE v1.0 — APPROVED** · **IMPLEMENT — BLOCKED (Owner GO)**
+**DESIGN FREEZE v1.1 — APPROVED** · **IMPLEMENT — BLOCKED (Owner GO + Payroll Bootstrap Integrity)**
