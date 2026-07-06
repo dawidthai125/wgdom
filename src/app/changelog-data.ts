@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-06",
+    version: "2.63.52",
+    label: "Core — legacy cleanup F1 orphan reconcile (#5C-5C)",
+    items: [
+      {
+        type: "improve",
+        text: "Usunięto martwy orchestrator reconcile (PB-WRITE-C) i eksporty z public API Work Catalog — bez zmian deferred bootstrap ONE-SHOT.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-5C-5C-LEGACY-CLEANUP-F1 — suite smoke-work-catalog-p2-mvp → 30 testIds.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-06",
     version: "2.63.51",
     label: "Core — bootstrap/reconcile decouple (#5C-5B)",
     items: [

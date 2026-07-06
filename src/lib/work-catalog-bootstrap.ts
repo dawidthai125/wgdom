@@ -119,8 +119,3 @@ export async function finalizeWorkCatalogAfterDeferredMerge(): Promise<WorkCatal
 
   return { decision, migrated: true };
 }
-
-/** @deprecated alias — SSOT: finalizeWorkCatalogAfterDeferredMerge (#5C-5B) */
-export async function maybeExecuteWorkCatalogBootstrap(): Promise<WorkCatalogBootstrapResult> {
-  return finalizeWorkCatalogAfterDeferredMerge();
-}

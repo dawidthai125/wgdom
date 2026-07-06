@@ -158,24 +158,6 @@ export {
   type RoutedSaveResult,
 } from "@/lib/catalog-write-router";
 
-// ─── PB-WRITE-C — legacy → work reconcile ───────────────────────────────────
-
-export {
-  decideWorkCatalogReconcile,
-  reconcileLegacyRatesIntoWorkStore,
-  countWorkCatalogWorks,
-  type PBWriteReconcileConflict,
-  type PBWriteReconcileDecision,
-  type PBWriteReconcileResult,
-  type PBWriteReconcileSkipReason,
-  type ReconcileLegacyToWorkOptions,
-} from "@/lib/work-catalog-reconcile";
-
-export {
-  reconcileLegacyToWorkCatalog,
-  maybeExecuteWorkCatalogReconcile,
-} from "@/lib/work-catalog-reconcile-bootstrap";
-
 // ─── P1.11 — cloud-sync hooks ──────────────────────────────────────────────
 
 export {

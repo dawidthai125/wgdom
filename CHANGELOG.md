@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.52 — Legacy cleanup F1 orphan reconcile (#5C-5C)
+
+- **refactor:** usunięto `work-catalog-reconcile-bootstrap.ts`, `work-catalog-reconcile.ts` i eksporty PB-WRITE-C z `@/lib/work-catalog`
+- **refactor:** usunięto deprecated alias `maybeExecuteWorkCatalogBootstrap`; ONE-SHOT deferred bootstrap bez zmian
+- **test:** `LIB-5C-5C-LEGACY-CLEANUP-F1` · suite `smoke-work-catalog-p2-mvp` → **30** testIds
+- **boundary:** zero diff `cloud-sync.ts`, router, `wgdom-cost-catalog-store.ts`, Payroll, PWRB
+
 ## 2.63.51 — Bootstrap/reconcile decouple (#5C-5B)
 
 - `finalizeWorkCatalogAfterDeferredMerge` — bez cyklicznego legacy read i reconcile w deferred path; ONE-SHOT PB-3 migrate gdy work pusty.
