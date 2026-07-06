@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.45 — Write SSOT work_only default (Bundle #5C-2)
+
+- **improve:** `defaultAppSettings().catalogWriteMode = "work_only"` · czysta instalacja bez pola w LS → work_only
+- **improve:** `saveLegacyCostCatalogRouted` / historia legacy — blocked pod default (UI już work-only)
+- **test:** `LIB-WRITE-SSOT-APP-NO-LEGACY-5C2` + `LIB-PB-WRITE-ROUTER` · suite `smoke-work-catalog-p2-mvp` → 23 testIds
+- **app layer only** — zero cloud-sync/PB-3 diff
+
 ## 2.63.44 — Read SSOT Work Catalog only (Bundle #5C-1)
 
 - **improve:** `resolveActiveCatalogForTender()` — work-only read path; legacy KV poza resolverem

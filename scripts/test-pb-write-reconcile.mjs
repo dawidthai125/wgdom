@@ -243,6 +243,27 @@ seedSettings("split");
   assert(workCountAfter >= workCountBefore, "C-06 works not removed");
 }
 
+// C-07 — default work_only orchestration saves via router (no explicit mode in LS)
+{
+  storage.clear();
+  persistKeys.length = 0;
+  const legacyBase = defaultWgdomCostCatalogStore();
+  legacyBase.updatedAt = LEGACY_OLD;
+  legacyBase.catalogs.wroclaw.updatedAt = LEGACY_OLD;
+  const work = migrateFixtureWork(legacyBase, WORK_OLD);
+  localStorage.setItem(WORK_CATALOG_STORAGE_KEY, JSON.stringify(work));
+  const legacyNew = bumpLegacyLabor(legacyBase, 0.5, LEGACY_NEW);
+  localStorage.setItem(WGDOM_COST_CATALOG_KEY, JSON.stringify(legacyNew));
+  assert(defaultAppSettings().catalogWriteMode === "work_only", "C-07 default work_only");
+
+  const result = await reconcileLegacyToWorkCatalog();
+  assert(result.ok === true, "C-07 ok");
+  assert(result.saved === true, "C-07 saved under default work_only");
+  assert(result.migrated >= 1, "C-07 migrated");
+  assert(persistKeys.includes(WORK_CATALOG_STORAGE_KEY), "C-07 work persist via router");
+  assert(!persistKeys.includes(WGDOM_COST_CATALOG_KEY), "C-07 no legacy write");
+}
+
 // legacy_only mode blocks save
 {
   storage.clear();

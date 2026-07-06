@@ -93,6 +93,19 @@ assert(normalizeCatalogWriteMode(undefined) === "split", "R-07a normalize undefi
 assert(normalizeCatalogWriteMode("bogus") === "split", "R-07b normalize bogus → split");
 assert(normalizeCatalogWriteMode("work_only") === "work_only", "R-07c normalize work_only");
 
+// #5C-2 — default work_only
+assert(defaultAppSettings().catalogWriteMode === "work_only", "R-00 defaultAppSettings work_only");
+storage.clear();
+assert(loadAppSettingsLocal().catalogWriteMode === "work_only", "R-00b empty LS work_only");
+localStorage.setItem(
+  APP_SETTINGS_KEY,
+  JSON.stringify({ athPreviewEnabled: true, tendersTabForStaffEnabled: false }),
+);
+assert(
+  loadAppSettingsLocal().catalogWriteMode === "work_only",
+  "R-00c LS missing catalogWriteMode field → work_only",
+);
+
 const local = defaultAppSettings();
 assert(
   mergeCatalogWriteMode({ catalogWriteMode: "legacy_only" }, local) === "legacy_only",

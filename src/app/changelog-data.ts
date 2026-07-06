@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-06",
+    version: "2.63.45",
+    label: "Przetargi — Write SSOT work_only default (#5C-2)",
+    items: [
+      {
+        type: "improve",
+        text: "catalogWriteMode domyślnie work_only — formalny Write SSOT Biblioteki Robót; legacy write tylko w testach routera.",
+      },
+    ],
+  },
+  {
     date: "2026-07-05",
     version: "2.63.44",
     label: "Przetargi — Read SSOT Work Catalog only (#5C-1)",

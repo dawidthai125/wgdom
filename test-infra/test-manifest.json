@@ -116,7 +116,9 @@
         "LIB-DEFERRED-BOOTSTRAP-6E",
         "LIB-PRICING-CATALOG-REVISION-5C0A",
         "LIB-READ-SSOT-PREFLIGHT-5C1",
-        "LIB-READ-SSOT-WORK-ONLY-5C1"
+        "LIB-READ-SSOT-WORK-ONLY-5C1",
+        "LIB-WRITE-SSOT-APP-NO-LEGACY-5C2",
+        "LIB-PB-WRITE-ROUTER"
       ]
     }
   },
@@ -542,6 +544,30 @@
       "id": "LIB-READ-SSOT-WORK-ONLY-5C1",
       "class": "lib",
       "path": "scripts/test-tender-read-ssot-work-only-5c1.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-WRITE-SSOT-APP-NO-LEGACY-5C2",
+      "class": "lib",
+      "path": "scripts/test-tender-write-ssot-app-no-legacy-5c2.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:work-catalog",
+      "owner": "WorkCatalog",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PB-WRITE-ROUTER",
+      "class": "lib",
+      "path": "scripts/test-pb-write-router.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

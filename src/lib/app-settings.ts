@@ -4,7 +4,7 @@ import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sy
 
 export { APP_SETTINGS_KEY };
 
-/** PB-WRITE-A — routing zapisu katalogu legacy vs work. Domyślnie split (bez zmiany prod). */
+/** PB-WRITE-A / #5C-2 — routing zapisu katalogu legacy vs work. Domyślnie work_only. */
 export type CatalogWriteMode = "split" | "work_only" | "legacy_only";
 
 const CATALOG_WRITE_MODES: CatalogWriteMode[] = ["split", "work_only", "legacy_only"];
@@ -57,7 +57,7 @@ export function defaultAppSettings(): AppSettings {
     workCatalogForAdminEnabled: false,
     instructionsForAdminEnabled: false,
     changesForAdminEnabled: false,
-    catalogWriteMode: "split",
+    catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
     bzpScanOrgPages: 5,
@@ -133,7 +133,10 @@ export function loadAppSettingsLocal(): AppSettings {
       workCatalogForAdminEnabled: parsed.workCatalogForAdminEnabled === true,
       instructionsForAdminEnabled: parsed.instructionsForAdminEnabled === true,
       changesForAdminEnabled: parsed.changesForAdminEnabled === true,
-      catalogWriteMode: normalizeCatalogWriteMode(parsed.catalogWriteMode),
+      catalogWriteMode:
+        parsed.catalogWriteMode === undefined
+          ? d.catalogWriteMode
+          : normalizeCatalogWriteMode(parsed.catalogWriteMode),
       bzpScanDays: numSetting(parsed.bzpScanDays, d.bzpScanDays, 7, 365),
       bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
       bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
