@@ -1,16 +1,17 @@
 # NG-06-TEUX — TEUX-7d Copy integrity · AUDIT READINESS
 
-> **Status:** **CLOSED** · **IMPLEMENT COMPLETE** (`129f22d`)  
+> **Status:** **TEUX-7d CLOSED** · **PRODUCTION VERIFIED**  
 > **Raport:** [`NG-06-TEUX-TEUX7D-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7D-AUDIT-REPORT.md)  
 > **Closeout:** [`NG-06-TEUX-TEUX7D-CLOSEOUT.md`](./NG-06-TEUX-TEUX7D-CLOSEOUT.md)  
-> **Baseline prod:** UI **2.63.63** · commit **`129f22d`** · **TEUX-7d CLOSED** · **RELEASE GO**  
+> **Baseline prod:** UI **2.63.63** · implement **`129f22d`** · **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-07  
 > **SSOT epic:** [`NG-06-TEUX-DESIGN-FREEZE.md`](./NG-06-TEUX-DESIGN-FREEZE.md) § TEUX-7d · test `LIB-TENDER-COPY-TEUX7D`
 
 ```text
-WERDYKT GOTOWOŚCI:  READY FOR AUDIT (nie IMPLEMENT)
+WERDYKT:            CLOSED · PRODUCTION VERIFIED
 ZALEŻNOŚĆ:          TEUX-7c CLOSED · TOKEN FREEZE ACTIVE
-GAP TARGET:          G-03 (user-facing „AI” copy)
+GAP G-03:           CLOSED (lista/workflow)
+NASTĘPNY:           TEUX-7e READY FOR AUDIT
 ```
 
 ---
@@ -54,4 +55,4 @@ Pełny grep w **AUDIT** — nie zgadywać zakresu przed raportem.
 AUDIT TEUX-7d → PLAN → (DESIGN FREEZE jeśli delta) → ARCH REVIEW → Owner GO → IMPLEMENT
 ```
 
-**Następny krok:** polecenie `AUDIT TEUX-7d` (tryb **AUDIT ONLY**).
+**Następny krok:** **TEUX-7e** — [`NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](./NG-06-TEUX-TEUX7E-AUDIT-READINESS.md) · `AUDIT TEUX-7e` (tryb **AUDIT ONLY**).

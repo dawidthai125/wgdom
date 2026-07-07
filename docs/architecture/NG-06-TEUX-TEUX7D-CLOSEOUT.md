@@ -1,14 +1,14 @@
 # NG-06-TEUX — TEUX-7d Copy integrity · Bundle Closeout
 
-> **Status:** **TEUX-7d CLOSED** · **RELEASE GO** · **DEPLOY PROPAGATING** (verify pending)  
-> **Prod (target):** UI **2.63.63** · commit **`129f22d`** · https://www.wgdom.fun  
-> **Data closeout:** 2026-07-07 · **push:** 2026-07-07  
+> **Status:** **TEUX-7d CLOSED** · **PRODUCTION VERIFIED**  
+> **Prod:** UI **2.63.63** · implement **`129f22d`** · `version.json` commit **`46847f3`** · https://www.wgdom.fun  
+> **Data closeout:** 2026-07-07 · **prod verify:** 2026-07-07T20:07Z  
 > **Owner GO:** APPROVED (IMPLEMENT + RELEASE)  
 > **Audyt:** [`NG-06-TEUX-TEUX7D-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7D-AUDIT-REPORT.md)
 
 ```text
-PUSH:     PASS (129f22d implement → origin/main)
-PROD:     DEPLOY PROPAGATING (version.json 2.63.62 @ 0546f79 przy pierwszym verify)
+PUSH:     PASS (129f22d implement + 46847f3 docs → origin/main)
+PROD:     VERIFIED (2.63.63 @ version.json · commit 46847f3 · 2026-07-07)
 RELEASE:  GO (build PASS + gate B 12/12)
 TOKEN FREEZE: ACTIVE (import-only)
 GAP G-03: CLOSED (lista/workflow copy)
@@ -40,7 +40,7 @@ GAP G-03: CLOSED (lista/workflow copy)
 | `LIB-TENDER-COPY-TEUX7D` | **PASS** 27/27 |
 | Gate B tenders | **PASS** 12/12 |
 | CHANGELOG **2.63.63** | **PASS** |
-| Prod verify `version.json` | **PENDING** (DEPLOY PROPAGATING) |
+| Prod verify `version.json` | **PASS** `2.63.63` (`46847f3` @ version.json; implement `129f22d`) |
 
 ---
 
@@ -83,4 +83,12 @@ GAP G-03: CLOSED (lista/workflow copy)
 
 ## 6. Następny slice
 
-**TEUX-7e** — Strategia + Pulpit copy (nie startować bez Owner GO).
+**TEUX-7e** — Strategia + Pulpit — **READY FOR AUDIT** · SSOT: [`NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](./NG-06-TEUX-TEUX7E-AUDIT-READINESS.md) · **IMPLEMENT BLOCKED** (bez Owner GO).
+
+---
+
+## 7. Maintenance follow-up (poza bundle 7d)
+
+| Item | Opis | Docelowy bundle |
+|------|------|-----------------|
+| `scripts/test-tenders-list-ux.mjs` | Import `buildTendersListAiInsight` → `buildTendersListInsight` po rename TEUX-7d | Przyszły bundle **testowy** (maintenance) — **nie** w TEUX-7e |

@@ -96,17 +96,17 @@ Phase 2 (TEUX-7+): bez thaw bez explicit Owner GO + MID/EPIC review
 
 | Slice | Opis | Status |
 |-------|------|--------|
-| **TEUX-7a** | Lista — filtry collapsible + FAB | **READY FOR AUDIT** |
-| **TEUX-7b** | Command Layer polish | **READY FOR AUDIT** |
-| **TEUX-7c** | Accessibility pass | **READY FOR AUDIT** |
-| **TEUX-7d** | Copy integrity (AI rebrand) | **READY FOR AUDIT** |
+| **TEUX-7a** | Lista — filtry collapsible + FAB | **CLOSED** · **2.63.60** |
+| **TEUX-7b** | Command Layer polish | **CLOSED** · **2.63.61** |
+| **TEUX-7c** | Accessibility pass | **CLOSED** · **2.63.62** |
+| **TEUX-7d** | Copy integrity (AI rebrand) | **CLOSED** · **2.63.63** · **PRODUCTION VERIFIED** |
 | **TEUX-7e** | Strategia + Pulpit alignment | **READY FOR AUDIT** |
 | **TEUX-7f** | Hosted deprecation guard | **READY FOR AUDIT** |
 | **TEUX-7z** | Epic closeout smoke agregat | **BLOCKED** (po 7a–7f) |
 
 **Gate:** TEUX-7+ wymaga **TEUX-6 CLOSED** — **SPEŁNIONE**.
 
-**Następny krok Owner:** wybór slice → `AUDIT TEUX-7x` → Owner GO → IMPLEMENT (osobny bundle).
+**Następny krok Owner:** `AUDIT TEUX-7e` → Owner GO → IMPLEMENT (osobny bundle). SSOT: [`NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](./NG-06-TEUX-TEUX7E-AUDIT-READINESS.md).
 
 **Zakaz:** automatyczny start TEUX-7 IMPLEMENT bez AUDIT.
 

@@ -1,6 +1,6 @@
 # NG-06-TEUX — TEUX-7d Copy integrity · AUDIT REPORT
 
-> **Status:** **AUDIT COMPLETE** · **TEUX-7d CLOSED** (`129f22d` · 2.63.63)  
+> **Status:** **AUDIT COMPLETE** · **TEUX-7d CLOSED** · **PRODUCTION VERIFIED** (`129f22d` · 2.63.63)  
 > **Tryb:** AUDIT ONLY · zero diff `src/` · zero BUILD/TEST/COMMIT/PUSH  
 > **Data audytu:** 2026-07-07  
 > **Baseline prod:** UI **2.63.62** · commit **`75f82f2`** · **TEUX-7c CLOSED** · **PRODUCTION VERIFIED** · **TOKEN FREEZE ACTIVE**  

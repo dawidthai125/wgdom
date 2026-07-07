@@ -2,14 +2,14 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.63.59** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-07 · **NG-06-TEUX Phase 1 COMPLETE** (TEUX-1…6 CLOSED) · **TEUX-7a+7b+7c CLOSED** · **prod 2.63.62** · **TEUX-7d READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+> **Ostatnia aktualizacja:** 2026-07-07 · **NG-06-TEUX Phase 1 COMPLETE** (TEUX-1…6 CLOSED) · **TEUX-7a–7d CLOSED** · **prod 2.63.63** · **TEUX-7e READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-07):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **NG-06-TEUX Phase 2** (prod **2.63.62**) — TEUX-7a+7b+7c **CLOSED** · **TEUX-7d READY FOR AUDIT** · **TOKEN FREEZE** na `tender-ux-tokens.ts` (import-only). SSOT: [`architecture/NG-06-TEUX-TEUX7C-CLOSEOUT.md`](architecture/NG-06-TEUX-TEUX7C-CLOSEOUT.md) · [`architecture/NG-06-TEUX-TEUX7D-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7D-AUDIT-READINESS.md).
+> 2. **NG-06-TEUX Phase 2** (prod **2.63.63**) — TEUX-7a–7d **CLOSED** · **TEUX-7e READY FOR AUDIT** · **TOKEN FREEZE** na `tender-ux-tokens.ts` (import-only). SSOT: [`architecture/NG-06-TEUX-TEUX7D-CLOSEOUT.md`](architecture/NG-06-TEUX-TEUX7D-CLOSEOUT.md) · [`architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md).
 > 3. **FEATURE DEVELOPMENT** — Work Catalog **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** — **BLOCKED** (telemetria T1–T7). **Nie** mieszaj FEATURE z CORE (#CORE-013).
 > 4. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
 > 5. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
@@ -64,7 +64,7 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 | **Test gates** | `LIB-TENDER-DETAIL-NAV-TEUX1` … `LIB-TENDER-EMPTY-STATES-TEUX6` |
 | **Boundary** | #CORE-013/#CORE-014 **PASS** — zero payroll/sync/pipeline diff |
 
-**Następny krok:** **TEUX-7d AUDIT ONLY** — copy integrity („AI” labels). **Nie** IMPLEMENT bez Owner GO. SSOT: [`architecture/NG-06-TEUX-TEUX7D-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7D-AUDIT-READINESS.md).
+**Następny krok:** **TEUX-7e AUDIT ONLY** — Strategia + Pulpit. **Nie** IMPLEMENT bez Owner GO. SSOT: [`architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md).
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-5C F2 Legacy Compat Cleanup (**CLOSED FINAL**)
 
@@ -462,7 +462,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 | Priorytet | Temat | Klasa | Status | SSOT / testy |
 |-----------|-------|-------|--------|--------------|
-| **NG-06** | **TEUX-7d** copy integrity | FEATURE UI | **READY FOR AUDIT** | [`NG-06-TEUX-TEUX7D-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7D-AUDIT-READINESS.md) |
+| **NG-06** | **TEUX-7d** copy integrity | FEATURE UI | **CLOSED** · **2.63.63** | [`NG-06-TEUX-TEUX7D-CLOSEOUT.md`](architecture/NG-06-TEUX-TEUX7D-CLOSEOUT.md) |
+| **NG-06** | **TEUX-7e** Strategia + Pulpit | FEATURE UI | **READY FOR AUDIT** | [`NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md) |
 | **NG-06** | **TEUX-1…6 Phase 1** | FEATURE UI | **COMPLETE** · prod **2.63.59** | [`NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
 | **#1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM layout | **CLOSED** · prod **2.63.34** · `eb0d51b` | `smoke-test-mobile-scroll-p0-s1.mjs` · Z-05 iPhone |
 | **#2** | NG-03 maintenance (R-03 docs banner) | docs | **CLOSED** · `f495a78` | `NG-03-DESIGN-FREEZE.md` |
