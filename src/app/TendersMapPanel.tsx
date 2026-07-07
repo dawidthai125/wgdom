@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { MapPin, ExternalLink, ChevronDown } from "lucide-react";
+import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptyState";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
@@ -116,10 +117,13 @@ export function TendersMapPanel({
   items,
   selectedId,
   onSelect,
+  onGoToList,
 }: {
   items: TenderPipelineItem[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  /** Tab mapa — CTA „Przejdź do listy”. */
+  onGoToList?: () => void;
 }) {
   const [open, setOpen] = useState(true);
   const [localSelected, setLocalSelected] = useState<string | null>(null);
@@ -170,9 +174,20 @@ export function TendersMapPanel({
       {open && (
         <div className="border-t border-border bg-card/50">
           {points.length === 0 ? (
-            <p className="text-xs text-muted-foreground px-3 py-3">
-              Brak aktywnych przetargów we Wrocławiu do pokazania na mapie.
-            </p>
+            <div className="px-3 py-2">
+              <TenderUxEmptyState
+                icon={MapPin}
+                title="Brak markerów we Wrocławiu"
+                description="Żaden aktywny przetarg z otwartym terminem składania ofert nie ma lokalizacji we Wrocławiu na mapie — sprawdź pełną listę przetargów."
+                primaryAction={
+                  onGoToList
+                    ? { label: "Przejdź do listy", onClick: onGoToList }
+                    : undefined
+                }
+                className="py-6"
+                data-teux6-empty="mapa"
+              />
+            </div>
           ) : (
             <>
               <div className="relative">

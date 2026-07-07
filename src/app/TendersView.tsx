@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } fr
 import {
   RefreshCw, Search, Scale,
   Filter, AlertCircle, Download, Trash2, CheckSquare, Square,
-  ChevronDown, SlidersHorizontal, Sparkles, Pin, BookmarkPlus,
+  ChevronDown, SlidersHorizontal, Sparkles, Pin, BookmarkPlus, Inbox,
 } from "lucide-react";
 import {
   type TenderPipelineItem,
@@ -22,6 +22,7 @@ import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-c
 import { TenderListDesktopCard } from "@/app/tenders/list/TenderListDesktopCard";
 import { TenderListMobileCard } from "@/app/tenders/list/TenderListMobileCard";
 import { TenderModuleLoadingShell } from "@/app/tenders/loading/TenderModuleLoadingShell";
+import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptyState";
 import { buildTenderListCardViewModel } from "@/app/tenders/list/tender-list-card-model";
 import {
   TENDERS_LIST_CLIENT_BAR,
@@ -300,6 +301,11 @@ export function TendersView({
     setMineOnly(false);
     setQueueFilter(null);
     pipeline.setLocalFilter("actionable");
+  }, [pipeline]);
+
+  const handleWidenListScope = useCallback(() => {
+    pipeline.setLocalFilter("all");
+    pipeline.setSearch("");
   }, [pipeline]);
 
   const listFilterState = useMemo(() => ({
@@ -840,14 +846,37 @@ export function TendersView({
         )}
 
         {displayList.length === 0 && todayItems.length === 0 ? (
-          <div className="text-center py-8 space-y-2">
-            <Filter size={32} className="mx-auto text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">
-              {pipeline.localFilter === "actionable" && !mineOnly
-                ? "Brak aktywnych przetargów do rozważenia — kliknij „Odśwież z BZP”"
-                : "Brak przetargów dla wybranych filtrów"}
-            </p>
-          </div>
+          pipeline.items.length === 0 ? (
+            <TenderUxEmptyState
+              icon={Inbox}
+              title="Brak aktywnych przetargów"
+              description="Pipeline jest pusty — pobierz ogłoszenia z BZP lub poszerz zakres listy, aby zobaczyć przetargi."
+              primaryAction={{
+                label: "Odśwież z BZP",
+                onClick: () => void pipeline.refreshFromBzp(),
+              }}
+              secondaryAction={{
+                label: "Zmień zakres listy",
+                onClick: handleWidenListScope,
+              }}
+              data-teux6-empty="lista-base"
+            />
+          ) : (
+            <TenderUxEmptyState
+              icon={Filter}
+              title="Brak przetargów dla filtrów"
+              description="Wybrane filtry, kolejka lub wyszukiwanie nie pasują do żadnego przetargu — wyczyść filtry lub odśwież listę z BZP."
+              primaryAction={{
+                label: "Wyczyść filtry",
+                onClick: handleClearFilters,
+              }}
+              secondaryAction={{
+                label: "Odśwież z BZP",
+                onClick: () => void pipeline.refreshFromBzp(),
+              }}
+              data-teux6-empty="lista-filtry"
+            />
+          )
         ) : displayList.length > 0 && (
           <>
             {todayItems.length > 0 && (

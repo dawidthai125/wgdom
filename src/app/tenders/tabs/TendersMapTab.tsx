@@ -7,7 +7,7 @@ import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
 
 export function TendersMapTab() {
   const navigate = useNavigate();
-  const { snapshot, openTenderInList } = useTendersContext();
+  const { snapshot, openTenderInList, setActiveTab } = useTendersContext();
   const { pipeline } = snapshot;
 
   const handleSelect = (tenderId: string) => {
@@ -34,6 +34,7 @@ export function TendersMapTab() {
         items={pipeline.items}
         selectedId={null}
         onSelect={handleSelect}
+        onGoToList={() => setActiveTab("list")}
       />
     </div>
   );

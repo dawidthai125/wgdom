@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.59 — NG-06-TEUX-6 Empty states
+
+- **improve:** `TenderUxEmptyState` — SSOT ikona + tytuł + opis + primary/secondary CTA
+- **improve:** Lista 2-copy (pusta baza vs filtry) · mapa CTA lista · platform docs UI unify · kosztorys → Dokumenty
+- **test:** `LIB-TENDER-EMPTY-STATES-TEUX6` · gate B tenders
+- **boundary:** zero pipeline/sync/tokens/AI/Strategia/Profil · TOKEN FREEZE import-only
+
 ## 2.63.58 — NG-06-TEUX-5 Loading skeletons
 
 - **improve:** `TenderUxSkeleton` + shells: moduł init, lista (3 karty), docs summary/attachments, BOQ 8 rows

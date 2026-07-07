@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
-import { Download, Eye, Loader2 } from "lucide-react";
+import { Download, Eye, Loader2, Scale } from "lucide-react";
+import { useNavigate } from "react-router";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
+import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptyState";
+import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
 import { buildKosztorysV4Display } from "@/lib/tender-detail-v4-display";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { findTrustDimension } from "@/lib/tender-trust-layer";
@@ -116,9 +119,26 @@ function KosztorysTopCostTable({ rows }: { rows: KosztorysProTopRow[] }) {
   );
 }
 
-function KosztorysEmptyMessage({ text }: { text: string }) {
+function KosztorysEmptyBlock({
+  itemId,
+  text,
+}: {
+  itemId: string;
+  text: string;
+}) {
+  const navigate = useNavigate();
+
   return (
-    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{text}</p>
+    <TenderUxEmptyState
+      icon={Scale}
+      title="Brak kosztorysu"
+      description={text}
+      primaryAction={{
+        label: "Przejdź do Dokumentów",
+        onClick: () => openTenderDetailV4(navigate, itemId, "dokumenty"),
+      }}
+      data-teux6-empty="kosztorys"
+    />
   );
 }
 
@@ -336,11 +356,14 @@ export function TenderKosztorysWorkspace({
       {!pro.hasCatalog && (
         <>
           {display.emptyMessage ? (
-            <KosztorysEmptyMessage text={display.emptyMessage} />
+            <KosztorysEmptyBlock itemId={item.id} text={display.emptyMessage} />
           ) : inProgress || phase.id === "waiting_data" ? (
             <TenderBoqTableSkeleton rowCount={8} />
           ) : (
-            <KosztorysEmptyMessage text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH." />
+            <KosztorysEmptyBlock
+              itemId={item.id}
+              text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH."
+            />
           )}
         </>
       )}

@@ -23,7 +23,8 @@ import {
   resolveTenderPlatformDocumentStatus,
   type TenderPlatformDocumentStatus,
 } from "@/lib/tender-platform-awareness";
-import { Building2, ExternalLink, Globe } from "lucide-react";
+import { Building2, ExternalLink, FileX, Globe } from "lucide-react";
+import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptyState";
 
 function docIcon(filename: string) {
   if (isZipFilename(filename) || is7zFilename(filename)) return Archive;
@@ -602,14 +603,30 @@ function PlatformDocumentEmptyState({
     return null;
   }
 
+  const descriptionParts = [
+    status.emptyMessage,
+    ...(status.detailLines ?? []),
+  ].filter(Boolean);
+  const description = descriptionParts.length > 0
+    ? descriptionParts.join("\n\n")
+    : "Dokumenty przetargowe nie zostały jeszcze pobrane z platformy zamawiającego.";
+
+  const primaryAction = status.showSearchExternalHint && onSearchExternal
+    ? {
+        label: externalDiscovering ? "Szukam…" : "Wyszukaj zewnętrzne",
+        onClick: () => onSearchExternal(),
+        disabled: externalDiscovering,
+      }
+    : undefined;
+
   return (
-    <div className="rounded-lg border border-border/70 bg-secondary/25 px-3 py-2.5 space-y-2">
-      {status.emptyMessage && (
-        <p className="text-xs font-medium text-foreground">{status.emptyMessage}</p>
-      )}
-      {status.detailLines?.map((line) => (
-        <p key={line} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
-      ))}
+    <TenderUxEmptyState
+      icon={FileX}
+      title="Brak dokumentów"
+      description={description}
+      primaryAction={primaryAction}
+      data-teux6-empty="dokumenty-platforma"
+    >
       {status.proceedingUrl && status.proceedingButtonLabel && (
         <a
           href={status.proceedingUrl}
@@ -622,17 +639,6 @@ function PlatformDocumentEmptyState({
           {status.proceedingButtonLabel}
         </a>
       )}
-      {status.showSearchExternalHint && onSearchExternal && (
-        <button
-          type="button"
-          disabled={externalDiscovering}
-          onClick={(e) => { e.stopPropagation(); onSearchExternal(); }}
-          className="inline-flex items-center gap-1 text-xs text-sky-700 dark:text-sky-300 hover:underline disabled:opacity-50"
-        >
-          {externalDiscovering ? <Loader2 size={11} className="animate-spin" /> : <Building2 size={11} />}
-          {externalDiscovering ? "Szukam…" : "Szukaj u zamawiającego"}
-        </button>
-      )}
-    </div>
+    </TenderUxEmptyState>
   );
 }

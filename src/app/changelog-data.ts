@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.59",
+    label: "NG-06-TEUX-6 — Empty states Przetargów",
+    items: [
+      {
+        type: "improve",
+        text: "Moduł Przetargi — wspólny komponent TenderUxEmptyState (ikona, tytuł, opis, CTA).",
+      },
+      {
+        type: "improve",
+        text: "Lista — dwa scenariusze pustej listy (pusta baza vs filtry) z przyciskami Wyczyść filtry / Odśwież z BZP.",
+      },
+      {
+        type: "improve",
+        text: "Mapa — empty state z CTA Przejdź do listy; dokumenty platformy i kosztorys — ujednolicony UI z zachowaną logiką platformy.",
+      },
+      {
+        type: "improve",
+        text: "Kosztorys — przycisk Przejdź do Dokumentów (deep link V4).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.58",
     label: "NG-06-TEUX-5 — Loading skeletons Przetargów",
     items: [
