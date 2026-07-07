@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.60 — NG-06-TEUX-7a Lista filtry
+
+- **improve:** `TenderListFiltersPanel` SSOT · `TenderListFilterFab` + `TenderListFilterSheet` (mobile) · desktop collapsible „Więcej filtrów”
+- **improve:** Migracja chipów filtrów → `TenderUxChip` · LS `filtersCollapsed` (UI-only)
+- **test:** `LIB-TENDER-FILTERS-TEUX7A` · gate B tenders + payroll 15/15
+- **boundary:** zero pipeline/sync/tokens/App.tsx · TOKEN FREEZE import-only
+
 ## 2.63.59 — NG-06-TEUX-6 Empty states
 
 - **improve:** `TenderUxEmptyState` — SSOT ikona + tytuł + opis + primary/secondary CTA

@@ -33,6 +33,8 @@ export type TenderPipelineLocalFilter =
 export const TENDERS_LIST_FILTER_PREFS_KEY = "wg-tenders-list-filter-prefs-v3";
 export const TENDERS_LIST_FILTER_PREFS_KEY_V2 = "wg-tenders-list-filter-prefs-v2";
 export const TENDERS_LIST_FAVORITES_KEY = "wg-tenders-list-favorites-v3";
+/** UI-only — zwinięty panel „Więcej filtrów” na desktop (TEUX-7a). */
+export const TENDERS_LIST_FILTERS_COLLAPSED_KEY = "wg-tenders-list-filters-collapsed-v1";
 
 export type TendersListQueueId =
   | "needs_decision"
@@ -786,6 +788,45 @@ export function detectListQuickBarId(state: {
   if (state.localFilter === "active" && !state.quickFilter && state.strategicClientFilter === "wm") return "wm";
   if (state.localFilter === "active" && !state.quickFilter && state.strategicClientFilter === "zzk") return "zzk";
   return null;
+}
+
+/** Domyślnie zwinięte — więcej miejsca na karty listy (first paint). */
+export function loadTendersListFiltersCollapsed(): boolean {
+  try {
+    const raw = localStorage.getItem(TENDERS_LIST_FILTERS_COLLAPSED_KEY);
+    if (raw === "0" || raw === "false") return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+export function saveTendersListFiltersCollapsed(collapsed: boolean): void {
+  try {
+    localStorage.setItem(TENDERS_LIST_FILTERS_COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+export function countActiveListFilters(state: {
+  search: string;
+  localFilter: TenderPipelineLocalFilter;
+  statusFilter: TenderPipelineStatus | "all";
+  quickFilter: TenderQuickFilter | null;
+  strategicClientFilter: StrategicClientFilterId | null;
+  mineOnly: boolean;
+  queueFilter: TendersListQueueId | null;
+}): number {
+  let n = 0;
+  if (state.search.trim().length > 0) n += 1;
+  if (state.statusFilter !== "all") n += 1;
+  if (state.localFilter !== "actionable") n += 1;
+  if (state.quickFilter) n += 1;
+  if (state.strategicClientFilter) n += 1;
+  if (state.mineOnly) n += 1;
+  if (state.queueFilter) n += 1;
+  return n;
 }
 
 export function buildTendersListFilterPrefs(state: {

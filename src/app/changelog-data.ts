@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.60",
+    label: "NG-06-TEUX-7a — Filtry listy Przetargów",
+    items: [
+      {
+        type: "improve",
+        text: "Lista Przetargów — filtry w panelu SSOT (kolejka, klienci, zakres, presety) z chipami TenderUxChip.",
+      },
+      {
+        type: "improve",
+        text: "Mobile — przycisk FAB otwiera arkusz filtrów; desktop — zwijany blok „Więcej filtrów” (więcej miejsca na karty).",
+      },
+      {
+        type: "improve",
+        text: "Opcjonalny zapis stanu zwinięcia filtrów w przeglądarce (UI-only).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.59",
     label: "NG-06-TEUX-6 — Empty states Przetargów",
     items: [
