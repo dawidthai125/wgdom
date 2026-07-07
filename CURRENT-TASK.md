@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-07 · **prod 2.63.59** · **NG-06-TEUX Phase 1 COMPLETE** · **TEUX-7+ READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-07 · **prod 2.63.61** (`d1e782b`) · **NG-06-TEUX Phase 1 COMPLETE** · **TEUX-7a+7b CLOSED** · **TEUX-7c READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -20,7 +20,18 @@
 | TEUX-6 Empty States | 2.63.59 | `ead4de7` | **CLOSED** · **PRODUCTION VERIFIED** |
 | Docs closeout | — | `5c65bae` | **CLOSED** |
 
-**Phase 2:** **TEUX-7+ READY FOR AUDIT** (7a–7f polish slices) — **IMPLEMENT BLOCKED** bez AUDIT + Owner GO per slice.
+### Phase 2 (TEUX-7+)
+
+| Bundle | Wersja | Commit | Status |
+|--------|--------|--------|--------|
+| TEUX-7a Lista filtry | 2.63.60 | `bc4b232` | **CLOSED** · **PRODUCTION VERIFIED** |
+| TEUX-7b Command Layer | 2.63.61 | `d1e782b` | **CLOSED** · **PRODUCTION VERIFIED** |
+| TEUX-7c Accessibility | — | — | **READY FOR AUDIT** · IMPLEMENT BLOCKED |
+| TEUX-7d Copy integrity | — | — | PENDING (po 7c) |
+| TEUX-7e Strategia+Pulpit | — | — | PENDING |
+| TEUX-7f Hosted deprecation | — | — | PENDING |
+
+**Phase 2 gate:** każdy slice = AUDIT → Owner GO → IMPLEMENT. SSOT 7c: [`docs/architecture/NG-06-TEUX-TEUX7C-AUDIT-READINESS.md`](docs/architecture/NG-06-TEUX-TEUX7C-AUDIT-READINESS.md)
 
 **Nie zmieniaj bez polecenia:** `tender-ux-tokens.ts` (TOKEN FREEZE) · pipeline · sync · payroll.
 

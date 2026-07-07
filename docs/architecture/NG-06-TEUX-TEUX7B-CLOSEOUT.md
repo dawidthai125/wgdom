@@ -1,12 +1,14 @@
 # NG-06-TEUX — TEUX-7b Command Layer polish · Bundle Closeout
 
-> **Status:** **TEUX-7b CLOSED**  
-> **Prod:** UI **2.63.61** (post-push verify)  
+> **Status:** **TEUX-7b CLOSED** · **PRODUCTION VERIFIED**  
+> **Prod:** UI **2.63.61** · commit **`d1e782b`** · https://www.wgdom.fun  
 > **Data closeout:** 2026-07-07  
 > **Owner GO:** APPROVED (IMPLEMENT + RELEASE)  
 > **Audyt:** [`NG-06-TEUX-TEUX7B-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7B-AUDIT-REPORT.md)
 
 ```text
+PUSH:     PASS (bc4b232..d1e782b → origin/main)
+PROD:     VERIFIED (2.63.61 · d1e782b @ version.json · 2026-07-07)
 TOKEN FREEZE: ACTIVE (import-only)
 GAP G-10: CLOSED
 ```
@@ -20,7 +22,7 @@ GAP G-10: CLOSED
 | **Cel** | CTA disabled reason · collapsible trust ribbon · mobile breadcrumb context |
 | **Deliverable** | `tender-command-layer-ux.ts` + Command Layer / Ribbon / PrimaryAction |
 | **Complexity** | **M** — 10 plików, 1 commit |
-| **Rollback** | `git revert <commit>` |
+| **Rollback** | `git revert d1e782b` |
 | **TOKEN FREEZE** | **ACTIVE** — import-only |
 
 ---
@@ -38,6 +40,7 @@ GAP G-10: CLOSED
 | `LIB-TENDER-COMMAND-TEUX7B` | **PASS** 31/31 |
 | Gate B tenders + payroll | **PASS** 10/10 + 15/15 |
 | CHANGELOG **2.63.61** | **PASS** |
+| Prod verify `version.json` | **PASS** `2.63.61` / `d1e782b` |
 
 ---
 
@@ -91,7 +94,9 @@ npm run test:infra -- --gate B --scope payroll
 
 ## 7. Następny slice
 
-**TEUX-7c** — a11y sweep (na Owner GO po audycie)
+**TEUX-7c** — Accessibility pass · **READY FOR AUDIT** (IMPLEMENT BLOCKED)
+
+SSOT gotowości: [`NG-06-TEUX-TEUX7C-AUDIT-READINESS.md`](./NG-06-TEUX-TEUX7C-AUDIT-READINESS.md)
 
 ---
 
