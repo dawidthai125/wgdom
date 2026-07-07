@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-07",
+    version: "2.63.54",
+    label: "NG-06-TEUX-1 — nawigacja V4 z mapy Przetargów",
+    items: [
+      {
+        type: "fix",
+        text: "Mapa przetargów — klik marker otwiera detal V4 (/przetargi/:id/przetarg) zamiast rozwijania accordion na liście.",
+      },
+      {
+        type: "improve",
+        text: "SSOT helper openTenderDetailV4 — wspólna nawigacja ze Strategii, listy i mapy.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-TENDER-DETAIL-NAV-TEUX1 — gate nawigacji TEUX-1.",
+      },
+    ],
+  },
+  {
     date: "2026-07-06",
     version: "2.63.53",
     label: "Core — legacy compat cleanup F2 (#5C-5C)",

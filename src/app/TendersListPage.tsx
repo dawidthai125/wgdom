@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TendersView } from "@/app/TendersView";
-import { buildTenderDetailPath } from "@/lib/tender-detail-routes-v4";
+import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
 
 export function TendersListPage({
   showTestBadge = false,
@@ -24,7 +24,7 @@ export function TendersListPage({
       onCreateJobFromTender={onCreateJobFromTender}
       onOpenJob={onOpenJob}
       athPreviewEnabled={athPreviewEnabled}
-      onItemNavigate={(id) => navigate(buildTenderDetailPath(id))}
+      onItemNavigate={(id) => openTenderDetailV4(navigate, id)}
     />
   );
 }

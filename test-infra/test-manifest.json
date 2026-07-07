@@ -52,6 +52,7 @@
         "SMOKE-WORK-CATALOG-CSV-UI-P3.2B",
         "SMOKE-PAYROLL-CARRY-20.1B",
         "LIB-TENDERS-GROUPED-DOCS",
+        "LIB-TENDER-DETAIL-NAV-TEUX1",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -88,6 +89,10 @@
     "lib-tenders-grouped-docs": {
       "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
       "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
+    },
+    "lib-tender-detail-nav-teux1": {
+      "description": "NG-06-TEUX-1 — SSOT openTenderDetailV4 navigation",
+      "testIds": ["LIB-TENDER-DETAIL-NAV-TEUX1"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -780,6 +785,18 @@
       "id": "LIB-TENDERS-GROUPED-DOCS",
       "class": "lib",
       "path": "scripts/test-tender-grouped-documents.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-DETAIL-NAV-TEUX1",
+      "class": "lib",
+      "path": "scripts/test-tender-detail-nav-teux1.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

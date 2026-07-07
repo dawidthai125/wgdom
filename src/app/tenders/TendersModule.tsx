@@ -29,10 +29,8 @@ import { TendersPriceBaseTab } from "@/app/tenders/tabs/TendersPriceBaseTab";
 import { TendersWorkCatalogTab } from "@/app/tenders/tabs/TendersWorkCatalogTab";
 import { TendersSettingsTab } from "@/app/tenders/tabs/TendersSettingsTab";
 import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
-import {
-  buildTenderDetailPath,
-  parseTenderDetailPath,
-} from "@/lib/tender-detail-routes-v4";
+import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
+import { parseTenderDetailPath } from "@/lib/tender-detail-routes-v4";
 import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
 import { TendersListPage } from "@/app/TendersListPage";
 import { TenderDetailPage } from "@/app/TenderDetailPage";
@@ -176,7 +174,7 @@ export function TendersModule({
       return;
     }
     if (initialExpandedId) {
-      navigate(buildTenderDetailPath(initialExpandedId, "decyzja"), { replace: true });
+      openTenderDetailV4(navigate, initialExpandedId, "decyzja", { replace: true });
     }
   }, [initialExpandedId, openTenderInList, navigate]);
 
@@ -236,7 +234,7 @@ export function TendersModule({
               clearStrategyFocus();
               setActiveTab("list");
               if (TENDERS_V4_ROUTING) {
-                navigate(buildTenderDetailPath(tenderId, "przetarg"));
+                openTenderDetailV4(navigate, tenderId, "przetarg");
               } else {
                 openTenderInList(tenderId);
               }

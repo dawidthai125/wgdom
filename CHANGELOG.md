@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.54 — NG-06-TEUX-1 Navigation
+
+- **fix:** mapa Przetargów → detal V4 (`openTenderDetailV4`) zamiast `openTenderInList` (G-01)
+- **lib:** `src/lib/tender-detail-nav.ts` — SSOT `navigate` + `buildTenderDetailPath`
+- **test:** `LIB-TENDER-DETAIL-NAV-TEUX1` · gate B `scope:tenders` + payroll 15/15
+- **boundary:** zero diff Protected Core · #CORE-013/#CORE-014 PASS
+
 ## 2.63.53 — Legacy compat cleanup F2 (#5C-5C)
 
 - **refactor:** usunięto `saveLegacyCostCatalogRouted`, `appendCostCatalogHistoryRouted`, `saveWgdomCostCatalogStore`, compat UI helpers (`resolveCatalogForUI`, …)
