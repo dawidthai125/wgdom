@@ -21,6 +21,7 @@ import {
   pickStripStageTrustMessage,
   trustStageOverlayLevel,
 } from "@/lib/tender-trust-ui";
+import { TEUX_FONT_CAPTION, TEUX_FONT_META } from "@/lib/tender-ux-tokens";
 
 function StageIcon({ status }: { status: WorkflowProcessStripStageStatus }) {
   if (status === "done") return <Check size={12} className="shrink-0" aria-hidden />;
@@ -53,7 +54,8 @@ function ProcessStripStageButton({
       type="button"
       onClick={handleClick}
       title={presentation.title}
-      className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${presentation.buttonClassName}`}
+      aria-label={presentation.title}
+      className={`inline-flex items-center gap-1.5 ${TEUX_FONT_CAPTION} font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${presentation.buttonClassName}`}
       data-workflow-process-stage={stage.id}
       data-tender-trust-overlay={trustLevel ?? undefined}
       data-tender-trust-strip-icon={presentation.iconKind}
@@ -96,10 +98,11 @@ function ProcessStripStageButtonCompact({
       type="button"
       onClick={handleClick}
       title={presentation.title}
-      className={`inline-flex items-center gap-1 font-semibold rounded-md border transition-colors duration-150 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 touch-manipulation ${
+      aria-label={presentation.title}
+      className={`inline-flex items-center gap-1 ${TEUX_FONT_CAPTION} font-semibold rounded-md border transition-colors duration-150 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 touch-manipulation ${
         ribbon
-          ? "text-[10px] md:max-lg:text-[10px] max-[390px]:text-[9px] px-2 py-1.5 min-h-[44px] lg:min-h-[32px] lg:px-1.5 lg:py-1 max-[390px]:px-1.5 max-[390px]:py-1"
-          : "text-[10px] px-2.5 py-1.5 min-h-[44px] lg:min-h-[32px] rounded-lg"
+          ? "px-2 py-1.5 min-h-[44px] lg:min-h-[32px] lg:px-1.5 lg:py-1 max-[390px]:px-1.5 max-[390px]:py-1"
+          : "px-2.5 py-1.5 min-h-[44px] lg:min-h-[32px] rounded-lg"
       } ${presentation.buttonClassName}`}
       data-workflow-process-stage={stage.id}
       data-tender-trust-overlay={trustLevel ?? undefined}
@@ -157,7 +160,7 @@ export function TenderWorkflowProcessStrip({
         className={
           ribbon
             ? "sr-only"
-            : "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2"
+            : `${TEUX_FONT_META} font-semibold uppercase tracking-wider text-muted-foreground mb-2`
         }
       >
         Proces oferty

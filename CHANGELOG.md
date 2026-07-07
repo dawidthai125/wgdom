@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.62 — NG-06-TEUX-7c Accessibility pass
+
+- **improve:** Bulk checkbox button + aria-label + keyboard · bulk toggle `aria-pressed`
+- **improve:** Process Strip / TrustChip / Decyzja sub-tabs / Overview shortcuts — TEUX_FONT_CAPTION (≥12px) · aria-label
+- **test:** `LIB-TENDER-A11Y-TEUX7C` + regresja TEUX-7a/7b/3
+- **boundary:** zero pipeline/sync/tokens edit/strategy · TOKEN FREEZE import-only
+
 ## 2.63.61 — NG-06-TEUX-7b Command Layer polish
 
 - **improve:** CTA disabled reason (prezentacja) · mobile breadcrumb context · collapsible trust ribbon

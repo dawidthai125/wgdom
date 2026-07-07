@@ -300,8 +300,11 @@ export function TenderListFiltersPanel(props: TenderListFiltersPanelProps) {
           <button
             type="button"
             onClick={onToggleBulkMode}
+            aria-pressed={bulkMode}
+            aria-label={bulkMode ? "Wyłącz zaznaczanie wielu przetargów" : "Włącz zaznaczanie wielu przetargów"}
+            data-teux7c-bulk-toggle
             className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs min-h-[44px] ${
-              bulkMode ? "bg-violet-500/15 text-violet-700" : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
+              bulkMode ? "bg-violet-500/15 text-violet-700 dark:text-violet-300" : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
           >
             {bulkMode ? <CheckSquare size={14} /> : <Square size={14} />}

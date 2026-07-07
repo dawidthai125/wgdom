@@ -60,6 +60,7 @@
         "LIB-TENDER-EMPTY-STATES-TEUX6",
         "LIB-TENDER-FILTERS-TEUX7A",
         "LIB-TENDER-COMMAND-TEUX7B",
+        "LIB-TENDER-A11Y-TEUX7C",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -128,6 +129,10 @@
     "lib-tender-command-teux7b": {
       "description": "NG-06-TEUX-7b — Command Layer CTA reason, collapsible trust, mobile context",
       "testIds": ["LIB-TENDER-COMMAND-TEUX7B"]
+    },
+    "lib-tender-a11y-teux7c": {
+      "description": "NG-06-TEUX-7c — A11y bulk checkbox, aria-pressed, min 12px, contrast",
+      "testIds": ["LIB-TENDER-A11Y-TEUX7C"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -916,6 +921,18 @@
       "id": "LIB-TENDER-COMMAND-TEUX7B",
       "class": "lib",
       "path": "scripts/test-tender-command-teux7b.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-A11Y-TEUX7C",
+      "class": "lib",
+      "path": "scripts/test-tender-a11y-teux7c.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

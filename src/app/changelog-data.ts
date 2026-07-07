@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.62",
+    label: "NG-06-TEUX-7c — Accessibility pass",
+    items: [
+      {
+        type: "improve",
+        text: "Lista Przetargów — tryb „Zaznacz wiele”: checkbox z etykietą głosową, klawiaturą (Spacja/Enter) i aria-pressed na przełączniku trybu.",
+      },
+      {
+        type: "improve",
+        text: "Pasek procesu, chipy zaufania, skróty Przeglądu i podzakładki Decyzji — min. 12 px na elementach interaktywnych, aria-label tam gdzie brakowało.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.61",
     label: "NG-06-TEUX-7b — Command Layer polish",
     items: [

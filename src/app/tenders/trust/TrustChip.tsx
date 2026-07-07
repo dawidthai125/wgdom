@@ -5,6 +5,7 @@ import {
   trustLevelToTone,
   trustToneClass,
 } from "@/lib/tender-trust-ui";
+import { TEUX_FONT_CAPTION, TEUX_TOUCH_TARGET } from "@/lib/tender-ux-tokens";
 
 export function TrustChip({
   dimension,
@@ -26,10 +27,16 @@ export function TrustChip({
   const tone = trustLevelToTone(resolvedLevel);
   const icon = trustLevelToIcon(resolvedLevel);
   const hint = title ?? dimension?.reasons[0]?.messagePl;
+  const ariaLabel = hint ? `${resolvedLabel}. ${hint}` : resolvedLabel;
+  const contrastBoost = onClick && tone === "neutral" ? "text-foreground/85" : "";
 
-  const className = `inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${
+  const className = `inline-flex items-center gap-1 ${TEUX_FONT_CAPTION} font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${
     trustToneClass(tone)
-  } ${onClick ? "hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-[44px] sm:min-h-0 sm:py-1.5" : "py-1"}`;
+  } ${contrastBoost} ${
+    onClick
+      ? `hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-[44px] sm:min-h-0 sm:py-1.5 ${TEUX_TOUCH_TARGET}`
+      : "py-1"
+  }`;
 
   if (onClick) {
     return (
@@ -37,6 +44,7 @@ export function TrustChip({
         type="button"
         onClick={onClick}
         title={hint}
+        aria-label={ariaLabel}
         className={className}
         data-tender-trust-chip={dimension?.id ?? "overall"}
         data-tender-trust-level={resolvedLevel}

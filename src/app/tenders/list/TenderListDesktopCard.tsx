@@ -36,7 +36,11 @@ export function TenderListDesktopCard({
       data-tender-severity={vm.severity}
     >
       {bulkMode && onToggleBulk && (
-        <TenderListBulkCheckbox selected={!!bulkSelected} onToggle={onToggleBulk} />
+        <TenderListBulkCheckbox
+          selected={!!bulkSelected}
+          onToggle={onToggleBulk}
+          ariaLabel={`${bulkSelected ? "Odznacz" : "Zaznacz"} przetarg: ${item.title}`}
+        />
       )}
       <div className="flex flex-wrap items-start justify-between gap-2 flex-1 min-w-0">
         <div className="min-w-0 flex-1 space-y-1.5 overflow-hidden">
