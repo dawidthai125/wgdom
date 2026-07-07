@@ -1,7 +1,7 @@
 # NG-06-TEUX — TEUX-7c Accessibility · AUDIT READINESS
 
-> **Status:** **READY FOR AUDIT** · **IMPLEMENT BLOCKED**  
-> **Baseline prod:** UI **2.63.61** · commit **`d1e782b`** · **TEUX-7b CLOSED**  
+> **Status:** **CLOSED** · **PRODUCTION VERIFIED** (2026-07-07)  
+> **Baseline prod:** UI **2.63.62** · commit **`75f82f2`** · **TEUX-7c CLOSED**  
 > **Data:** 2026-07-07  
 > **SSOT epic:** [`NG-06-TEUX-DESIGN-FREEZE.md`](./NG-06-TEUX-DESIGN-FREEZE.md) § TEUX-7c · test `LIB-TENDER-A11Y-TEUX7C`
 

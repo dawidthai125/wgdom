@@ -1,17 +1,17 @@
 # NG-06-TEUX — TEUX-7c Accessibility pass · Bundle Closeout
 
-> **Status:** **TEUX-7c CLOSED** · **RELEASE GO** · **DEPLOY PROPAGATING**  
-> **Prod (target):** UI **2.63.62** · commit **`75f82f2`** · https://www.wgdom.fun  
-> **Data closeout:** 2026-07-07  
+> **Status:** **TEUX-7c CLOSED** · **PRODUCTION VERIFIED**  
+> **Prod:** UI **2.63.62** · commit **`75f82f2`** · https://www.wgdom.fun  
+> **Data closeout:** 2026-07-07 · **prod verify:** 2026-07-07T19:16Z  
 > **Owner GO:** APPROVED (IMPLEMENT + RELEASE)  
 > **Audyt:** [`NG-06-TEUX-TEUX7C-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7C-AUDIT-REPORT.md)
 
 ```text
-PUSH:     PASS (d1e782b..75f82f2 → origin/main, incl. docs 4f0c035)
-PROD:     DEPLOY PROPAGATING (version.json 2.63.61 @ d1e782b — single verify 2026-07-07)
-RELEASE:  GO (build + gate B 11/11 + commit + push PASS)
+PUSH:     PASS (75f82f2 implement + 3ff5913 docs → origin/main)
+PROD:     VERIFIED (2.63.62 · 75f82f2 @ version.json · 2026-07-07)
+RELEASE:  GO (build + gate B 11/11)
 TOKEN FREEZE: ACTIVE (import-only)
-GAP G-11: CLOSED (bulk + in-scope typography/a11y)
+GAP G-11: CLOSED
 ```
 
 ---
@@ -42,6 +42,7 @@ GAP G-11: CLOSED (bulk + in-scope typography/a11y)
 | `LIB-TENDER-A11Y-TEUX7C` | **PASS** 33/33 |
 | Gate B tenders | **PASS** 11/11 |
 | CHANGELOG **2.63.62** | **PASS** |
+| Prod verify `version.json` | **PASS** `2.63.62` / `75f82f2` |
 
 ---
 
@@ -88,4 +89,4 @@ GAP G-11: CLOSED (bulk + in-scope typography/a11y)
 
 ## 6. Następny krok
 
-**TEUX-7d** — copy integrity („AI” labels) · AUDIT → Owner GO → IMPLEMENT
+**TEUX-7d** — Copy integrity („AI” labels) · **AUDIT ONLY** (IMPLEMENT BLOCKED) · SSOT: [`NG-06-TEUX-TEUX7D-AUDIT-READINESS.md`](./NG-06-TEUX-TEUX7D-AUDIT-READINESS.md)
