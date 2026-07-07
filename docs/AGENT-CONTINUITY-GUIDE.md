@@ -1,17 +1,18 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.53** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-06 · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.59** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+> **Ostatnia aktualizacja:** 2026-07-07 · **NG-06-TEUX Phase 1 COMPLETE** (TEUX-1…6 CLOSED) · **TEUX-7+ READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-05):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-07):**
 >
 > 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 2. **FEATURE DEVELOPMENT RESTART** — Work Catalog P2.1–**P2.10 CLOSED** + **#6E** + **#5C-0A…#5C-3D** + **#5C-5A/B** + **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** ONE-SHOT sunset — **BLOCKED** (telemetria T1–T7 · [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md)). **Nie** mieszaj FEATURE z CORE (#CORE-013).
-> 3. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
-> 4. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
+> 2. **NG-06-TEUX Phase 1 COMPLETE** (prod **2.63.59**) — TEUX-1…6 CLOSED · **TEUX-7+ READY FOR AUDIT** · **TOKEN FREEZE** na `tender-ux-tokens.ts` (import-only). SSOT: [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md).
+> 3. **FEATURE DEVELOPMENT** — Work Catalog **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** — **BLOCKED** (telemetria T1–T7). **Nie** mieszaj FEATURE z CORE (#CORE-013).
+> 4. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
+> 5. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
 >
 > Recovery Program (S7-5, Edge-Opt-A) = **OBSERVATION** — nie blokuje FEATURE UI, ale **zakaz** dotykania payroll/sync w bundle FEATURE.
 
@@ -38,6 +39,7 @@
 9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
 10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
 10f. docs/architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md  ← ★ POST F2 observation · T1–T7 · F3 BLOCKED
+10g. docs/architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md  ← ★★ NG-06 Phase 1 COMPLETE (TEUX-1…6) · TEUX-7+ READY FOR AUDIT
 11. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
 12. docs/ARCHITECTURE.md             ← pełna architektura techniczna
 13. AGENTS.md                        ← zasady pracy, zakazy
@@ -47,7 +49,22 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-06)
+## 2. Co zrobiliśmy (stan na 2026-07-07)
+
+### ★ Sesja 2026-07-07 — NG-06-TEUX Phase 1 (**COMPLETE**)
+
+| Element | Wartość |
+|---------|---------|
+| **Epic** | **NG-06-TEUX** — Tender Experience & Design System |
+| **Phase 1** | TEUX-1…6 **CLOSED** · prod **2.63.54 → 2.63.59** |
+| **Ostatni feature** | TEUX-6 Empty States · `ead4de7` · **PRODUCTION VERIFIED** |
+| **Docs closeout** | `5c65bae` — release verification + Phase 1 closeout |
+| **SSOT** | [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) · [`architecture/NG-06-TEUX-DESIGN-FREEZE.md`](architecture/NG-06-TEUX-DESIGN-FREEZE.md) |
+| **Deliverables** | `openTenderDetailV4` · `tender-ux-tokens` (**TOKEN FREEZE**) · list cards · mobile sheet · loading skeletons · `TenderUxEmptyState` |
+| **Test gates** | `LIB-TENDER-DETAIL-NAV-TEUX1` … `LIB-TENDER-EMPTY-STATES-TEUX6` |
+| **Boundary** | #CORE-013/#CORE-014 **PASS** — zero payroll/sync/pipeline diff |
+
+**Następny krok:** **TEUX-7+ READY FOR AUDIT** — Owner wybiera slice (7a–7f) → AUDIT → GO → osobny IMPLEMENT. **Nie** startować TEUX-7 bez polecenia.
 
 ### ★ Sesja 2026-07-06 — Bundle #5C-5C F2 Legacy Compat Cleanup (**CLOSED FINAL**)
 
@@ -434,14 +451,19 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne (2026-07-06)
+## 3. Co robimy teraz / następne (2026-07-07)
 
-**Faza bieżąca:** **POST F2 OBSERVATION** (read-only) — monitor Work Catalog · Payroll · Cloud Sync · ONE-SHOT migrate. Zbieraj telemetrię **T1–T7** — SSOT: [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md). **F3 IMPLEMENT = BLOCKED.**
+**Faza bieżąca (równolegle):**
 
-**Zasada:** **FEATURE DEVELOPMENT RESTART** po zamknięciu RC-B + CORE-01A + PLATFORM-SYNC-01A. **Jeden bundle na raz** · #CORE-013 + #CORE-014 obowiązkowe. **Lista Płac — § 2b MUST** przy każdej sesji.
+1. **NG-06-TEUX Phase 2** — **TEUX-7+ READY FOR AUDIT** (polish slices · Owner GO per slice). Phase 1 **COMPLETE** — nie wracać do TEUX-1…6 bez hotfix AUDIT.
+2. **POST F2 OBSERVATION** (read-only) — telemetria **T1–T7** · SSOT: [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md). **F3 IMPLEMENT = BLOCKED.**
+
+**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 obowiązkowe. **Lista Płac — § 2b MUST** przy każdej sesji. **TOKEN FREEZE** — `tender-ux-tokens.ts` import-only.
 
 | Priorytet | Temat | Klasa | Status | SSOT / testy |
 |-----------|-------|-------|--------|--------------|
+| **NG-06** | **TEUX-7+ polish** (7a–7f) | FEATURE UI | **READY FOR AUDIT** | [`NG-06-TEUX-DESIGN-FREEZE.md`](architecture/NG-06-TEUX-DESIGN-FREEZE.md) § TEUX-7+ |
+| **NG-06** | **TEUX-1…6 Phase 1** | FEATURE UI | **COMPLETE** · prod **2.63.59** | [`NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
 | **#1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM layout | **CLOSED** · prod **2.63.34** · `eb0d51b` | `smoke-test-mobile-scroll-p0-s1.mjs` · Z-05 iPhone |
 | **#2** | NG-03 maintenance (R-03 docs banner) | docs | **CLOSED** · `f495a78` | `NG-03-DESIGN-FREEZE.md` |
 | **#3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** · prod **2.63.35** · `eebe389` | `test-tender-grouped-documents.mjs` · `LIB-TENDERS-GROUPED-DOCS` |
@@ -469,7 +491,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** | telemetria T1–T7 + runbook + Owner GO |
 | **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
-| **—** | G-08 / G-02 / TP200B | FEATURE | OPEN · wysokie ryzyko | osobny AUDIT |
+| **—** | G-08 empty states | FEATURE | **CLOSED** (TEUX-6) | lista · mapa · docs · kosztorys |
+| **—** | G-02 / TP200B / TEUX-7a filtry | FEATURE | OPEN · TEUX-7+ | osobny AUDIT per slice |
 
 **WIP w tree (nie commitować razem):** mobile cluster ≠ `backup-lib.mjs` ≠ `docs/recovery/*`.
 

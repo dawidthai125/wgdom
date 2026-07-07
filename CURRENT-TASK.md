@@ -1,12 +1,30 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-06 · **prod 2.63.53** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-07 · **prod 2.63.59** · **NG-06-TEUX Phase 1 COMPLETE** · **TEUX-7+ READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
 ---
 
-## SYNC-ARCH-01 RC-B — Recovery Program · **CLOSED**
+## NG-06-TEUX — Phase 1 (TEUX-1…6) · **COMPLETE**
+
+> **SSOT:** [`docs/architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](docs/architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) · [`docs/architecture/NG-06-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-06-TEUX-DESIGN-FREEZE.md)
+
+| Bundle | Wersja | Commit | Status |
+|--------|--------|--------|--------|
+| TEUX-1 Navigation | 2.63.54 | `5a8b820` | **CLOSED** |
+| TEUX-2 Design Tokens | 2.63.55 | `3eb70a0` | **CLOSED** · **TOKEN FREEZE** |
+| TEUX-3 List Cards | 2.63.56 | `7a0ae83` | **CLOSED** |
+| TEUX-4 Mobile | 2.63.57 | `d965311` | **CLOSED** |
+| TEUX-5 Loading | 2.63.58 | `061fc9a` | **CLOSED** |
+| TEUX-6 Empty States | 2.63.59 | `ead4de7` | **CLOSED** · **PRODUCTION VERIFIED** |
+| Docs closeout | — | `5c65bae` | **CLOSED** |
+
+**Phase 2:** **TEUX-7+ READY FOR AUDIT** (7a–7f polish slices) — **IMPLEMENT BLOCKED** bez AUDIT + Owner GO per slice.
+
+**Nie zmieniaj bez polecenia:** `tender-ux-tokens.ts` (TOKEN FREEZE) · pipeline · sync · payroll.
+
+---
 
 > **SSOT:** [`docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
 
