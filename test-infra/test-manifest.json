@@ -62,6 +62,7 @@
         "LIB-TENDER-COMMAND-TEUX7B",
         "LIB-TENDER-A11Y-TEUX7C",
         "LIB-TENDER-COPY-TEUX7D",
+        "LIB-TENDER-STRATEGY-TEUX7E",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -138,6 +139,10 @@
     "lib-tender-copy-teux7d": {
       "description": "NG-06-TEUX-7d — Copy integrity lista/workflow bez user-facing AI",
       "testIds": ["LIB-TENDER-COPY-TEUX7D"]
+    },
+    "lib-tender-strategy-teux7e": {
+      "description": "NG-06-TEUX-7e — Strategia KPI tokens + Pulpit max 3 KPI",
+      "testIds": ["LIB-TENDER-STRATEGY-TEUX7E"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -950,6 +955,18 @@
       "id": "LIB-TENDER-COPY-TEUX7D",
       "class": "lib",
       "path": "scripts/test-tender-copy-teux7d.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-STRATEGY-TEUX7E",
+      "class": "lib",
+      "path": "scripts/test-tender-strategy-teux7e.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

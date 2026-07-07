@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.64 — NG-06-TEUX-7e Strategia + Pulpit
+
+- **improve:** Pulpit — max 3 KPI (terminy · decyzje · wygrane bez roboty) + CTA Strategia
+- **improve:** StrategyKpiStrip + labels PL — tokeny `TEUX_KPI_*` · `strategicInsights` bez „AI”
+- **test:** `LIB-TENDER-STRATEGY-TEUX7E` + regresja gate B tenders
+- **boundary:** zero scoring/pipeline/sync/tokens edit · TOKEN FREEZE import-only
+
 ## 2.63.63 — NG-06-TEUX-7d Copy integrity
 
 - **improve:** FAQ „Podpowiedzi listy” zamiast „Komunikaty AI” · rename `listInsight` API (bez zmiany logiki)

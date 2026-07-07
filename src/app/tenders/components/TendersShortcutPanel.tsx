@@ -1,11 +1,49 @@
-import { useMemo } from "react";
-import { AlertTriangle, Briefcase, ChevronRight, HelpCircle, Scale } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
+import { AlertTriangle, Briefcase, ChevronRight, Scale } from "lucide-react";
 import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { tenderChangesSummary } from "@/app/tenders/strategy/components/TenderChangeMonitorPanel";
-import { qaMonitorSummary } from "@/lib/tender-qa-monitor";
+import {
+  TEUX_FONT_META,
+  TEUX_KPI_LABEL,
+  TEUX_KPI_VALUE,
+} from "@/lib/tender-ux-tokens";
 
 const SHORTCUT_TITLE = "Przetargi — skrót";
+
+function DashboardKpiTile({
+  label,
+  value,
+  hint,
+  icon,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  hint: string;
+  icon: ReactNode;
+  tone?: "default" | "amber" | "violet";
+}) {
+  const toneClass =
+    tone === "amber"
+      ? "border-amber-500/35 bg-amber-500/5"
+      : tone === "violet"
+        ? "border-violet-500/35 bg-violet-500/5"
+        : "border-border bg-secondary/20";
+
+  return (
+    <div
+      className={`rounded-xl border px-3 py-2.5 ${toneClass}`}
+      data-teux7e-kpi
+    >
+      <p className={`${TEUX_KPI_LABEL} flex items-center gap-1`}>
+        {icon}
+        {label}
+      </p>
+      <p className={`${TEUX_KPI_VALUE} mt-0.5`}>{value}</p>
+      <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>{hint}</p>
+    </div>
+  );
+}
 
 export function TendersShortcutPanel({
   onOpenTendersStrategy,
@@ -29,16 +67,6 @@ export function TendersShortcutPanel({
     [scoredForForecast, ownerDecisions],
   );
 
-  const changeSummary = useMemo(
-    () => tenderChangesSummary(pipeline.items),
-    [pipeline.items],
-  );
-
-  const qaSummary = useMemo(
-    () => qaMonitorSummary(pipeline.items),
-    [pipeline.items],
-  );
-
   const handleOpenStrategy = () => {
     openTendersStrategy();
     onOpenTendersStrategy();
@@ -59,7 +87,7 @@ export function TendersShortcutPanel({
           <div className="min-w-0">
             <h2 className="text-sm font-bold tracking-wide text-foreground">{SHORTCUT_TITLE}</h2>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Pilne terminy, wygrane bez roboty i decyzje — szczegóły w {TENDERS_MODULE_LABELS.tabs.strategy}
+              3 sygnały operacyjne — monitoring, zmiany i Q&A w {TENDERS_MODULE_LABELS.tabs.strategy}
             </p>
           </div>
         </div>
@@ -72,114 +100,46 @@ export function TendersShortcutPanel({
           </p>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-          <div
-            className={`rounded-xl border px-3 py-2.5 ${
-              marketKpi.urgentCount > 0
-                ? "border-amber-500/35 bg-amber-500/5"
-                : "border-border bg-secondary/20"
-            }`}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <AlertTriangle size={11} className={marketKpi.urgentCount > 0 ? "text-amber-500" : "text-muted-foreground"} />
-              Pilne terminy
-            </p>
-            <p
-              className="text-2xl font-bold tabular-nums mt-0.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {marketKpi.urgentCount}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Termin składania ≤7 dni</p>
-          </div>
-
-          <div
-            className={`rounded-xl border px-3 py-2.5 ${
-              changeSummary.urgentCount > 0
-                ? "border-orange-500/35 bg-orange-500/5"
-                : "border-border bg-secondary/20"
-            }`}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <AlertTriangle size={11} className={changeSummary.urgentCount > 0 ? "text-orange-500" : "text-muted-foreground"} />
-              Pilne zmiany
-            </p>
-            <p
-              className="text-2xl font-bold tabular-nums mt-0.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {changeSummary.urgentCount}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {changeSummary.lastChangeRelative
-                ? `Ostatnia zmiana: ${changeSummary.lastChangeRelative}`
-                : "Zmiany dokumentacji (7 dni)"}
-            </p>
-          </div>
-
-          <div
-            className={`rounded-xl border px-3 py-2.5 ${
-              qaSummary.recentCount > 0
-                ? "border-violet-500/35 bg-violet-500/5"
-                : "border-border bg-secondary/20"
-            }`}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <HelpCircle size={11} className={qaSummary.recentCount > 0 ? "text-violet-500" : "text-muted-foreground"} />
-              Nowe Q&A
-            </p>
-            <p
-              className="text-2xl font-bold tabular-nums mt-0.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {qaSummary.recentCount}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {qaSummary.lastRelative
-                ? `Ostatnia: ${qaSummary.lastRelative}`
-                : "Odpowiedzi na pytania (7 dni)"}
-            </p>
-          </div>
-
-          <div
-            className={`rounded-xl border px-3 py-2.5 ${
-              wonWithoutJobCount > 0
-                ? "border-amber-500/35 bg-amber-500/5"
-                : "border-border bg-secondary/20"
-            }`}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <Briefcase size={11} className={wonWithoutJobCount > 0 ? "text-amber-500" : "text-muted-foreground"} />
-              Wygrane bez roboty
-            </p>
-            <p
-              className="text-2xl font-bold tabular-nums mt-0.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {wonWithoutJobCount}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Wymagają utworzenia roboty</p>
-          </div>
-
-          <div
-            className={`rounded-xl border px-3 py-2.5 ${
-              pendingDecisionsCount > 0
-                ? "border-violet-500/35 bg-violet-500/5"
-                : "border-border bg-secondary/20"
-            }`}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              <Scale size={11} className={pendingDecisionsCount > 0 ? "text-violet-500" : "text-muted-foreground"} />
-              Wymagają decyzji
-            </p>
-            <p
-              className="text-2xl font-bold tabular-nums mt-0.5"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {pendingDecisionsCount}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Okazje bez Twojej decyzji</p>
-          </div>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-3 gap-2.5"
+          data-teux7e-dashboard-kpi
+        >
+          <DashboardKpiTile
+            label="Pilne terminy"
+            value={marketKpi.urgentCount}
+            hint="Termin składania ≤7 dni"
+            icon={(
+              <AlertTriangle
+                size={11}
+                className={marketKpi.urgentCount > 0 ? "text-amber-500" : "text-muted-foreground"}
+              />
+            )}
+            tone={marketKpi.urgentCount > 0 ? "amber" : "default"}
+          />
+          <DashboardKpiTile
+            label="Wymagają decyzji"
+            value={pendingDecisionsCount}
+            hint="Okazje bez Twojej decyzji"
+            icon={(
+              <Scale
+                size={11}
+                className={pendingDecisionsCount > 0 ? "text-violet-500" : "text-muted-foreground"}
+              />
+            )}
+            tone={pendingDecisionsCount > 0 ? "violet" : "default"}
+          />
+          <DashboardKpiTile
+            label="Wygrane bez roboty"
+            value={wonWithoutJobCount}
+            hint="Wymagają utworzenia roboty"
+            icon={(
+              <Briefcase
+                size={11}
+                className={wonWithoutJobCount > 0 ? "text-amber-500" : "text-muted-foreground"}
+              />
+            )}
+            tone={wonWithoutJobCount > 0 ? "amber" : "default"}
+          />
         </div>
 
         <button

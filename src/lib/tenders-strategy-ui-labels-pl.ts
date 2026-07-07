@@ -64,7 +64,7 @@ export const PIPELINE_LABEL_PL = {
 export const SECTION_LABEL_PL = {
   insight: "Wniosek",
   authorLine: "Zaprojektowany i opracowany przez",
-  aiInsights: "Wnioski AI",
+  strategicInsights: "Rekomendacje strategiczne",
   explainability: "Wyjaśnienia scoringu",
   glossary: "Słownik pojęć przetargowych",
   howToUse: "Jak korzystać z modułu Przetargi",
@@ -90,7 +90,7 @@ export const GLOSSARY_TERM_PL = {
   decisions: "Startuj / Analizuj / Odpuszczaj",
   actionCenter: "Centrum działań",
   morningBriefing: "Poranny raport właściciela",
-  aiInsights: "Wnioski AI",
+  strategicInsights: "Rekomendacje strategiczne",
   ownerProfile: "Profil właściciela",
   learningEngine: "Silnik uczenia decyzji",
 } as const;

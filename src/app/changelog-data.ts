@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.64",
+    label: "NG-06-TEUX-7e — Strategia + Pulpit",
+    items: [
+      {
+        type: "improve",
+        text: "Pulpit — skrót Przetargów: 3 KPI (pilne terminy, decyzje, wygrane bez roboty) zamiast 5; pełny monitoring w Strategii.",
+      },
+      {
+        type: "improve",
+        text: "Strategia — ujednolicone etykiety KPI (tokeny TEUX) i SSOT copy bez „Wnioski AI”.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.63",
     label: "NG-06-TEUX-7d — Copy integrity",
     items: [
