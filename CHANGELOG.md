@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.56 — NG-06-TEUX-3 List Cards
+
+- **new:** `TenderListMobileCard` + `TenderListDesktopCard` w `tenders/list/` — severity stripe · `TenderUxBadge` · KPI row
+- **improve:** `TendersView.renderTenderItem` → komponenty `< lg` / `≥ lg` · badge overflow +N · bulk 44px
+- **test:** `LIB-TENDER-LIST-CARDS-TEUX3` · gate B tenders + payroll 15/15
+- **boundary:** TOKEN FREEZE (`tender-ux-tokens.ts` bez diff) · zero Protected Core
+
 ## 2.63.55 — NG-06-TEUX-2 Design Tokens
 
 - **new:** `src/lib/tender-ux-tokens.ts` — SSOT typography/spacing/colors/motion · **TOKEN FREEZE** do MID EPIC REVIEW

@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.56",
+    label: "NG-06-TEUX-3 — karty listy Przetargów",
+    items: [
+      {
+        type: "new",
+        text: "TenderListMobileCard i TenderListDesktopCard — severity stripe, TenderUxBadge, KPI row (Termin · Trafność · Wadium).",
+      },
+      {
+        type: "improve",
+        text: "Lista Przetargów — mobile < lg / desktop ≥ lg; badge overflow +N; bulk touch 44px.",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-TENDER-LIST-CARDS-TEUX3 — gate B scope:tenders.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.55",
     label: "NG-06-TEUX-2 — Design Tokens (foundation)",
     items: [

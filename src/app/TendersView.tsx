@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
-  RefreshCw, Search, Scale, MapPin, Calendar, Building2,
+  RefreshCw, Search, Scale,
   Filter, AlertCircle, Download, Trash2, CheckSquare, Square,
   ChevronDown, SlidersHorizontal, Sparkles, Pin, BookmarkPlus,
 } from "lucide-react";
@@ -8,24 +8,20 @@ import {
   type TenderPipelineItem,
   type TenderPipelineStatus,
   TENDER_STATUS_LABELS,
-  isTenderOpenForOffers,
-  daysUntilTenderDeadline,
   jobDraftFromTender,
-  labelTenderState,
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanelHosted } from "@/app/TenderDetailPanel";
 import { TendersLegend } from "@/app/TendersLegend";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
-import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
-import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
-import { tenderListBidLine } from "@/lib/tenders-bid-prep";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
+import { TenderListDesktopCard } from "@/app/tenders/list/TenderListDesktopCard";
+import { TenderListMobileCard } from "@/app/tenders/list/TenderListMobileCard";
+import { buildTenderListCardViewModel } from "@/app/tenders/list/tender-list-card-model";
 import {
   TENDERS_LIST_CLIENT_BAR,
   TENDERS_LIST_PRIMARY_QUEUE,
@@ -53,19 +49,6 @@ import {
   type TendersListQueueId,
   type TendersListQuickBarId,
 } from "@/lib/tenders-list-ux";
-
-function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString("pl-PL", {
-    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-  });
-}
-
-function daysUntil(iso: string | null): number | null {
-  return daysUntilTenderDeadline(iso);
-}
 
 function quickBarChipClass(active: boolean): string {
   const base = "text-[10px] font-medium px-2 py-0.5 rounded-md border transition-colors";
@@ -373,140 +356,50 @@ export function TendersView({
   };
 
   const renderTenderItem = (item: TenderPipelineItem, todayHighlight = false) => {
-    const days = daysUntil(item.submittingOffersDate);
-    const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
-    const urgent = offerOpen && days !== null && days >= 0 && days <= 7;
     const expanded = !onItemNavigate && expandedId === item.id;
-    const bidLine = tenderListBidLine(item);
-    const wadiumBlocked = computeWadiumInfo(
+    const vm = buildTenderListCardViewModel(
       item,
-      item.swzAnalysis,
+      todayHighlight,
       loadCompanyProfileLocal().maxWadiumPln,
-    ).blocked;
+    );
+
+    const handleCardClick = () => {
+      if (onItemNavigate) {
+        if (item.status === "new") {
+          pipeline.updateItem(item.id, { status: "seen" });
+        }
+        onItemNavigate(item.id);
+        return;
+      }
+      const opening = expandedId !== item.id;
+      setExpanded(opening ? item.id : null);
+      if (opening && item.status === "new") {
+        pipeline.updateItem(item.id, { status: "seen" });
+      }
+    };
+
+    const handleToggleBulk = (e: MouseEvent) => {
+      e.stopPropagation();
+      pipeline.toggleSelect(item.id);
+    };
+
+    const cardProps = {
+      item,
+      vm,
+      bulkMode: pipeline.bulkMode,
+      bulkSelected: pipeline.selectedIds.has(item.id),
+      onToggleBulk: handleToggleBulk,
+      onClick: handleCardClick,
+    };
+
     return (
-      <article
-        key={item.id}
-        className={`rounded-xl border bg-card overflow-hidden ${
-          todayHighlight
-            ? "border-amber-500/40 ring-1 ring-amber-500/15"
-            : item.isWroclaw ? "border-primary/30" : "border-border"
-        }`}
-      >
-        <button
-          type="button"
-          className="w-full text-left px-4 py-2.5 hover:bg-secondary/40 transition-colors flex gap-2"
-          onClick={() => {
-            if (onItemNavigate) {
-              if (item.status === "new") {
-                pipeline.updateItem(item.id, { status: "seen" });
-              }
-              onItemNavigate(item.id);
-              return;
-            }
-            const opening = expandedId !== item.id;
-            setExpanded(opening ? item.id : null);
-            if (opening && item.status === "new") {
-              pipeline.updateItem(item.id, { status: "seen" });
-            }
-          }}
-        >
-          {pipeline.bulkMode && (
-            <span
-              role="checkbox"
-              aria-checked={pipeline.selectedIds.has(item.id)}
-              className="shrink-0 pt-0.5"
-              onClick={(e) => { e.stopPropagation(); pipeline.toggleSelect(item.id); }}
-            >
-              {pipeline.selectedIds.has(item.id)
-                ? <CheckSquare size={16} className="text-primary" />
-                : <Square size={16} className="text-muted-foreground" />}
-            </span>
-          )}
-          <div className="flex flex-wrap items-start justify-between gap-2 flex-1 min-w-0">
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                {todayHighlight && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded">
-                    Dzisiaj
-                  </span>
-                )}
-                {item.isWroclaw && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">Wrocław</span>
-                )}
-                {item.priorityBuyerLabel && (
-                  <span className="text-[10px] font-semibold text-orange-700 dark:text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">{item.priorityBuyerLabel}</span>
-                )}
-                <span className="text-[10px] text-muted-foreground font-mono">{item.bzpNumber}</span>
-                {item.relevanceScore >= 20 && (
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Trafność {item.relevanceScore}</span>
-                )}
-                {item.swzAnalysis && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.swzAnalysis.profitabilityHint === "good" ? "bg-emerald-500/10 text-emerald-600" : item.swzAnalysis.profitabilityHint === "risky" ? "bg-red-500/10 text-red-600" : "bg-amber-500/10 text-amber-600"}`}>
-                    {PROFITABILITY_LABELS[item.swzAnalysis.profitabilityHint]}
-                  </span>
-                )}
-                {item.tenderFit && item.tenderFit.fitLabel !== "unknown" && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                    item.tenderFit.fitLabel === "strong" ? "bg-emerald-500/10 text-emerald-600" :
-                    item.tenderFit.fitLabel === "possible" ? "bg-blue-500/10 text-blue-600" :
-                    "bg-red-500/10 text-red-600"
-                  }`}>
-                    {FIT_LABELS[item.tenderFit.fitLabel]}
-                    {item.tenderFit.winChancePct != null && ` · ${item.tenderFit.winChancePct}%`}
-                  </span>
-                )}
-                {item.linkedJobId && (
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Robota</span>
-                )}
-                {item.tenderState && (
-                  <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded">{labelTenderState(item.tenderState)}</span>
-                )}
-                {wadiumBlocked && (
-                  <span className="text-[10px] font-semibold bg-red-500/10 text-red-600 px-1.5 py-0.5 rounded">Wadium blokada</span>
-                )}
-                {item.awardResult && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.awardResult.isUs ? "bg-emerald-500/10 text-emerald-600" : "bg-secondary text-muted-foreground"}`}>
-                    {item.awardResult.isUs ? "Wygraliśmy" : "Wynik BZP"}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm font-semibold leading-snug">{item.title}</p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                <Building2 size={12} />
-                {item.organizationName}
-                <span>·</span>
-                <MapPin size={12} />
-                {item.organizationCity || "—"}
-              </p>
-              {bidLine && (
-                <p className="text-[11px] font-medium text-foreground/85 tabular-nums">
-                  {bidLine}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                item.status === "new" ? "bg-blue-500/15 text-blue-600" :
-                item.status === "interested" || item.status === "preparing" ? "bg-violet-500/15 text-violet-600" :
-                item.status === "won" ? "bg-emerald-500/15 text-emerald-600" :
-                item.status === "ignored" || item.status === "lost" ? "bg-muted text-muted-foreground" :
-                "bg-secondary text-foreground"
-              }`}>
-                {TENDER_STATUS_LABELS[item.status]}
-              </span>
-              {item.submittingOffersDate && (
-                <span className={`text-[10px] flex items-center gap-1 ${
-                  !offerOpen ? "text-muted-foreground line-through" :
-                  urgent ? "text-amber-600 font-semibold" : "text-muted-foreground"
-                }`}>
-                  <Calendar size={11} />
-                  {offerOpen ? "Oferty do:" : "Termin minął:"} {fmtDate(item.submittingOffersDate)}
-                  {offerOpen && days !== null && days >= 0 && ` (${days} d.)`}
-                </span>
-              )}
-            </div>
-          </div>
-        </button>
+      <article key={item.id} className={vm.shellClass} data-tender-list-item>
+        <div className="lg:hidden">
+          <TenderListMobileCard {...cardProps} />
+        </div>
+        <div className="hidden lg:block">
+          <TenderListDesktopCard {...cardProps} />
+        </div>
 
         {expanded && !onItemNavigate && (
           <TenderDetailPanelHosted
