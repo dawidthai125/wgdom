@@ -44,6 +44,7 @@ export function TenderDetailPage({
   onCreateJobFromTender,
   onOpenJob,
   athPreviewEnabled = true,
+  canViewWorkCatalog = false,
 }: {
   tenderId: string;
   /** Awaryjny fallback — SSOT: parseTenderDetailPath(location.pathname). */
@@ -51,6 +52,7 @@ export function TenderDetailPage({
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
+  canViewWorkCatalog?: boolean;
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -240,6 +242,7 @@ export function TenderDetailPage({
         swz={swz}
         compactKosztorysChrome={compactKosztorysChrome}
         decyzjaWorkspace={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
+        canViewWorkCatalog={canViewWorkCatalog}
         onBack={() => navigate(TENDERS_LIST_PATH)}
         onTabChange={handleTabChange}
         onDecyzjaWorkspaceChange={activeTab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
@@ -310,8 +313,8 @@ export function TenderDetailPage({
 
         {przetargActionBarActive && (
           <div
-            className="lg:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-shadow duration-150"
-            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+            className="lg:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 pt-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-shadow duration-150"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
             data-tender-operator-action-bar-slot="mobile"
           >
             <TenderWorkflowOperatorActionBar {...operatorActionBar} variant="mobile" />

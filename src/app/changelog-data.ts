@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.57",
+    label: "NG-06-TEUX-4 — Mobile chrome Przetargów",
+    items: [
+      {
+        type: "new",
+        text: "TenderModuleNavSheet — z detalu mobile przejdź do Strategii, Mapy, Profilu bez powrotu do listy.",
+      },
+      {
+        type: "improve",
+        text: "Command Layer — przycisk Moduł w jednym rzędzie z Powrót; density pass ≤390px.",
+      },
+      {
+        type: "improve",
+        text: "Tab bar detalu — scroll shadow; Operator Action Bar safe-area max(1rem, inset-bottom).",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-TENDER-MOBILE-TEUX4 — gate B scope:tenders.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.56",
     label: "NG-06-TEUX-3 — karty listy Przetargów",
     items: [

@@ -216,6 +216,7 @@ export function TendersModule({
                   onCreateJobFromTender={onCreateJobFromTender}
                   onOpenJob={onOpenJob}
                   athPreviewEnabled={athPreviewEnabled}
+                  canViewWorkCatalog={canViewWorkCatalog}
                 />
               )
               : (

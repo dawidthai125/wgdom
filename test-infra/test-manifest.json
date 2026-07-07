@@ -55,6 +55,7 @@
         "LIB-TENDER-DETAIL-NAV-TEUX1",
         "LIB-TENDER-UX-TOKENS-TEUX2",
         "LIB-TENDER-LIST-CARDS-TEUX3",
+        "LIB-TENDER-MOBILE-TEUX4",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -103,6 +104,10 @@
     "lib-tender-list-cards-teux3": {
       "description": "NG-06-TEUX-3 — Lista Przetargów mobile/desktop cards",
       "testIds": ["LIB-TENDER-LIST-CARDS-TEUX3"]
+    },
+    "lib-tender-mobile-teux4": {
+      "description": "NG-06-TEUX-4 — Mobile chrome sheet + tab shadow + safe-area",
+      "testIds": ["LIB-TENDER-MOBILE-TEUX4"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -831,6 +836,18 @@
       "id": "LIB-TENDER-LIST-CARDS-TEUX3",
       "class": "lib",
       "path": "scripts/test-tender-list-cards-teux3.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-MOBILE-TEUX4",
+      "class": "lib",
+      "path": "scripts/test-tender-mobile-teux4.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.57 — NG-06-TEUX-4 Mobile chrome
+
+- **new:** `TenderModuleNavSheet` — nawigacja modułu z detalu mobile (M4)
+- **improve:** Command Layer density ≤390px · tab bar scroll shadow · Operator bar safe-area
+- **test:** `LIB-TENDER-MOBILE-TEUX4` · gate B tenders + payroll 15/15
+- **boundary:** TOKEN FREEZE · zero TendersView/list cards/filtry/Protected Core
+
 ## 2.63.56 — NG-06-TEUX-3 List Cards
 
 - **new:** `TenderListMobileCard` + `TenderListDesktopCard` w `tenders/list/` — severity stripe · `TenderUxBadge` · KPI row
