@@ -157,7 +157,10 @@ export function TenderWorkflowPrimaryAction({
               </>
             )}
             {commandLayerChrome && (
-              <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 hidden sm:block max-[390px]:hidden">
+              <p
+                className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 sm:line-clamp-1"
+                data-teux7d-cta-description
+              >
                 {view.description}
               </p>
             )}

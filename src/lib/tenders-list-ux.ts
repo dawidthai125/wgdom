@@ -100,7 +100,7 @@ export interface TendersListFavoritePreset {
   queueFilter: TendersListQueueId | null;
 }
 
-export interface TendersListAiInsight {
+export interface TendersListInsight {
   text: string;
   tone: "neutral" | "action" | "positive";
 }
@@ -436,11 +436,11 @@ function pickBestOpportunityLabel(items: TenderPipelineItem[]): string | null {
   return short && short.length <= 32 ? short : top.title.slice(0, 32);
 }
 
-export function buildTendersListAiInsight(
+export function buildTendersListInsight(
   items: TenderPipelineItem[],
   ownerStore: OwnerDecisionsStore,
   queueCounts: MyQueueCounts,
-): TendersListAiInsight {
+): TendersListInsight {
   const decisions = queueCounts.needs_decision;
   if (decisions > 0) {
     const word = decisions === 1 ? "przetarg" : decisions < 5 ? "przetargi" : "przetargów";

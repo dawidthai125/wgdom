@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.63",
+    label: "NG-06-TEUX-7d — Copy integrity",
+    items: [
+      {
+        type: "improve",
+        text: "Instrukcja i lista Przetargów — podpowiedzi listy bez etykiety „AI”; banner to heurystyki lokalne (decyzje, potencjał, terminy).",
+      },
+      {
+        type: "improve",
+        text: "Główna akcja na mobile — krótki opis CTA widoczny w Command Layer (line-clamp), bez zmiany logiki rekomendacji.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.62",
     label: "NG-06-TEUX-7c — Accessibility pass",
     items: [

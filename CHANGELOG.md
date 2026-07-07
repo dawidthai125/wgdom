@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.63 — NG-06-TEUX-7d Copy integrity
+
+- **improve:** FAQ „Podpowiedzi listy” zamiast „Komunikaty AI” · rename `listInsight` API (bez zmiany logiki)
+- **improve:** CTA mobile — opis widoczny w Command Layer (`line-clamp-2`)
+- **test:** `LIB-TENDER-COPY-TEUX7D` + regresja TEUX-7a/7b/7c
+- **boundary:** zero strategy/pipeline/sync/tokens · TOKEN FREEZE import-only
+
 ## 2.63.62 — NG-06-TEUX-7c Accessibility pass
 
 - **improve:** Bulk checkbox button + aria-label + keyboard · bulk toggle `aria-pressed`

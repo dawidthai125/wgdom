@@ -33,7 +33,7 @@ import {
   applyListKpiPreset,
   applyListQuickBarPreset,
   applyQueuePreset,
-  buildTendersListAiInsight,
+  buildTendersListInsight,
   buildTendersListFilterPrefs,
   buildTendersListVisibleSections,
   computeMyQueueCounts,
@@ -54,7 +54,7 @@ import {
   type TendersListQuickBarId,
 } from "@/lib/tenders-list-ux";
 
-function aiInsightClass(tone: "neutral" | "action" | "positive"): string {
+function listInsightClass(tone: "neutral" | "action" | "positive"): string {
   const base = "flex items-start gap-2 rounded-lg px-3 py-2 text-xs border";
   switch (tone) {
     case "action":
@@ -242,8 +242,8 @@ export function TendersView({
     [pipeline.items, ownerDecisions.store],
   );
 
-  const aiInsight = useMemo(
-    () => buildTendersListAiInsight(pipeline.items, ownerDecisions.store, queueCounts),
+  const listInsight = useMemo(
+    () => buildTendersListInsight(pipeline.items, ownerDecisions.store, queueCounts),
     [pipeline.items, ownerDecisions.store, queueCounts],
   );
 
@@ -549,22 +549,23 @@ export function TendersView({
           </div>
         </div>
 
-        {/* V4 — banner insight (klikalny → kolejka Do decyzji) */}
+        {/* V4 — banner podpowiedzi listy (klikalny → kolejka Do decyzji) */}
         {bannerQueueAction ? (
           <button
             type="button"
-            className={`${aiInsightClass(aiInsight.tone)} w-full text-left cursor-pointer hover:opacity-90 transition-opacity`}
+            className={`${listInsightClass(listInsight.tone)} w-full text-left cursor-pointer hover:opacity-90 transition-opacity`}
             onClick={() => handleQueueClick(bannerQueueAction)}
             data-tenders-list-banner-action={bannerQueueAction}
+            data-teux7d-list-insight
             aria-pressed={queueFilter === bannerQueueAction}
           >
-            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" />
-            <span>{aiInsight.text}</span>
+            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" aria-hidden />
+            <span>{listInsight.text}</span>
           </button>
         ) : (
-          <div className={aiInsightClass(aiInsight.tone)} role="status">
-            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" />
-            <span>{aiInsight.text}</span>
+          <div className={listInsightClass(listInsight.tone)} role="status" data-teux7d-list-insight>
+            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" aria-hidden />
+            <span>{listInsight.text}</span>
           </div>
         )}
 
