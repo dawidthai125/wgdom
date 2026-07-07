@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-07 · **prod 2.63.63** (`129f22d`) · **PRODUCTION VERIFIED** · **NG-06-TEUX Phase 1 COMPLETE** · **TEUX-7a–7d CLOSED** · **TEUX-7e READY FOR AUDIT** · **TOKEN FREEZE ACTIVE** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+**Ostatnia aktualizacja:** 2026-07-07 · **prod 2.63.64** (`f0a49cf`) · **RELEASE GO** · **DEPLOY PROPAGATING** · **NG-06-TEUX Phase 1 COMPLETE** · **TEUX-7a–7e CLOSED** · **TEUX-7f PENDING** · **TOKEN FREEZE ACTIVE**
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -28,10 +28,10 @@
 | TEUX-7b Command Layer | 2.63.61 | `d1e782b` | **CLOSED** · **PRODUCTION VERIFIED** |
 | TEUX-7c Accessibility | 2.63.62 | `75f82f2` | **CLOSED** · **PRODUCTION VERIFIED** |
 | TEUX-7d Copy integrity | 2.63.63 | `129f22d` | **CLOSED** · **PRODUCTION VERIFIED** |
-| TEUX-7e Strategia+Pulpit | — | — | **READY FOR AUDIT** · IMPLEMENT BLOCKED |
+| TEUX-7e Strategia+Pulpit | 2.63.64 | `f0a49cf` | **CLOSED** · **RELEASE GO** · deploy propagating |
 | TEUX-7f Hosted deprecation | — | — | PENDING |
 
-**Phase 2 gate:** każdy slice = AUDIT → Owner GO → IMPLEMENT. **Aktywny:** TEUX-7e **READY FOR AUDIT** — SSOT: [`docs/architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md`](docs/architecture/NG-06-TEUX-TEUX7E-AUDIT-READINESS.md) · 7d closeout: [`docs/architecture/NG-06-TEUX-TEUX7D-CLOSEOUT.md`](docs/architecture/NG-06-TEUX-TEUX7D-CLOSEOUT.md)
+**Phase 2 gate:** każdy slice = AUDIT → Owner GO → IMPLEMENT. **Następny:** TEUX-7f — tylko na Owner GO — SSOT: [`docs/architecture/NG-06-TEUX-TEUX7E-CLOSEOUT.md`](docs/architecture/NG-06-TEUX-TEUX7E-CLOSEOUT.md)
 
 **Nie zmieniaj bez polecenia:** `tender-ux-tokens.ts` (TOKEN FREEZE) · pipeline · sync · payroll.
 
