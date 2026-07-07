@@ -56,6 +56,7 @@
         "LIB-TENDER-UX-TOKENS-TEUX2",
         "LIB-TENDER-LIST-CARDS-TEUX3",
         "LIB-TENDER-MOBILE-TEUX4",
+        "LIB-TENDER-LOADING-TEUX5",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -108,6 +109,10 @@
     "lib-tender-mobile-teux4": {
       "description": "NG-06-TEUX-4 — Mobile chrome sheet + tab shadow + safe-area",
       "testIds": ["LIB-TENDER-MOBILE-TEUX4"]
+    },
+    "lib-tender-loading-teux5": {
+      "description": "NG-06-TEUX-5 — Loading skeletons module/list/docs/BOQ/parser label",
+      "testIds": ["LIB-TENDER-LOADING-TEUX5"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -848,6 +853,18 @@
       "id": "LIB-TENDER-MOBILE-TEUX4",
       "class": "lib",
       "path": "scripts/test-tender-mobile-teux4.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-LOADING-TEUX5",
+      "class": "lib",
+      "path": "scripts/test-tender-loading-teux5.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

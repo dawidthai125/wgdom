@@ -55,6 +55,9 @@ import { extractExperienceRequirements } from "@/lib/tender-experience-requireme
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
+import { TenderParserSteppedLabel } from "@/app/tenders/loading/TenderParserSteppedLabel";
+import { resolveTenderParserLoadingStep } from "@/app/tenders/loading/tender-loading-step-label";
+import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import { TenderQualificationWorkspace } from "@/app/TenderQualificationWorkspace";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import {
@@ -597,6 +600,25 @@ export function TenderDetailPanel({
     }
   }, [item, bidProposal, ownerFinanceProposal, submittedBidDraft, onUpdate]);
 
+  const parserLoadingStep = useMemo(
+    () => resolveTenderParserLoadingStep({
+      autoRunning,
+      dossierBuilding,
+      dossierSaving,
+      analyzing,
+      hasNoticeHtml: Boolean(item.noticeHtml),
+      attachmentCount: countTenderAttachments(item),
+    }),
+    [
+      autoRunning,
+      dossierBuilding,
+      dossierSaving,
+      analyzing,
+      item.noticeHtml,
+      item,
+    ],
+  );
+
   return (
     <div className={`space-y-3 ${embedV4ChromeHidden ? "" : "px-4 pb-4 pt-2 border-t border-border"}`}>
       {!embedV4ChromeHidden && (
@@ -608,10 +630,8 @@ export function TenderDetailPanel({
         />
       )}
 
-      {autoRunning && (
-        <p className="text-[10px] text-muted-foreground flex items-center gap-2">
-          <Loader2 size={11} className="animate-spin" /> Ładowanie ogłoszenia i załączników…
-        </p>
+      {parserLoadingStep && (
+        <TenderParserSteppedLabel step={parserLoadingStep} />
       )}
 
       {!embedV4ChromeHidden && (

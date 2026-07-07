@@ -27,6 +27,7 @@ import {
 } from "@/lib/tender-kosztorys-pro-dashboard";
 import { buildKosztorysBoqExplorerView } from "@/lib/tender-kosztorys-boq-explorer";
 import { KosztorysBoqExplorerSection } from "@/app/kosztorys/KosztorysBoqExplorerSection";
+import { TenderBoqTableSkeleton } from "@/app/tenders/loading/TenderBoqTableSkeleton";
 import {
   TenderDesktopTable,
   TenderMobileRowCard,
@@ -336,7 +337,9 @@ export function TenderKosztorysWorkspace({
         <>
           {display.emptyMessage ? (
             <KosztorysEmptyMessage text={display.emptyMessage} />
-          ) : inProgress || phase.id === "waiting_data" ? null : (
+          ) : inProgress || phase.id === "waiting_data" ? (
+            <TenderBoqTableSkeleton rowCount={8} />
+          ) : (
             <KosztorysEmptyMessage text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH." />
           )}
         </>

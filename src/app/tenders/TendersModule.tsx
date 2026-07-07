@@ -36,6 +36,7 @@ import { TendersListPage } from "@/app/TendersListPage";
 import { TenderDetailPage } from "@/app/TenderDetailPage";
 import { TenderUxBadge } from "@/app/tenders/design-system/TenderUxBadge";
 import { TenderUxChip } from "@/app/tenders/design-system/TenderUxChip";
+import { TenderModuleLoadingShell } from "@/app/tenders/loading/TenderModuleLoadingShell";
 import {
   TEUX_COLOR_PRIMARY_ACTION,
   TEUX_COLOR_TEXT_SECONDARY,
@@ -191,11 +192,7 @@ export function TendersModule({
   }, [initialExpandedId, openTenderInList, navigate]);
 
   if (pipeline.loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-        {TENDERS_MODULE_LABELS.loading}
-      </div>
-    );
+    return <TenderModuleLoadingShell showHeader showTabBar cardCount={3} />;
   }
 
   return (

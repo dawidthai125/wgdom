@@ -21,6 +21,7 @@ import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 import { TenderListDesktopCard } from "@/app/tenders/list/TenderListDesktopCard";
 import { TenderListMobileCard } from "@/app/tenders/list/TenderListMobileCard";
+import { TenderModuleLoadingShell } from "@/app/tenders/loading/TenderModuleLoadingShell";
 import { buildTenderListCardViewModel } from "@/app/tenders/list/tender-list-card-model";
 import {
   TENDERS_LIST_CLIENT_BAR,
@@ -421,9 +422,11 @@ export function TendersView({
 
   if (pipeline.loading) {
     return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-        Ładowanie pipeline przetargów…
-      </div>
+      <TenderModuleLoadingShell
+        showHeader={!hideModuleHeader}
+        showTabBar={false}
+        cardCount={3}
+      />
     );
   }
 

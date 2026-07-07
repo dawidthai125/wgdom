@@ -5,6 +5,7 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader";
+import { TenderDocumentsSummarySkeleton } from "@/app/tenders/loading/TenderDocumentsSummarySkeleton";
 import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
@@ -96,6 +97,8 @@ export function TenderDocumentsWorkspace({
     suggestions.length,
   );
 
+  const summaryLoading = Boolean(loadingDocs || autoRunning || dossierBuilding);
+
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
@@ -103,7 +106,11 @@ export function TenderDocumentsWorkspace({
         {platformSourceLabel}
       </p>
 
-      <TenderDocumentsSummaryHeader summary={documentsSummary} trustBadge={documentsTrustBadge} />
+      {summaryLoading ? (
+        <TenderDocumentsSummarySkeleton />
+      ) : (
+        <TenderDocumentsSummaryHeader summary={documentsSummary} trustBadge={documentsTrustBadge} />
+      )}
 
       <TenderAttachmentsPanel
         item={item}

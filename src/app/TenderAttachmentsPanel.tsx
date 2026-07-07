@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import { TenderDocumentsAttachmentsSkeleton } from "@/app/tenders/loading/TenderDocumentsAttachmentsSkeleton";
 import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
 import { loadTenderBzpDocumentBytesResolved } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
@@ -323,10 +324,7 @@ export function TenderAttachmentsPanel({
         </div>
 
         {loadingDocs && docs.length === 0 && (
-          <p className="text-xs text-muted-foreground flex items-center gap-2">
-            <Loader2 size={12} className="animate-spin" />
-            Skanowanie załączników BZP…
-          </p>
+          <TenderDocumentsAttachmentsSkeleton rowCount={3} />
         )}
 
         {!loadingDocs && platformStatus.successMessage && totalCount > 0 && (

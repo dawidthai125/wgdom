@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.58 — NG-06-TEUX-5 Loading skeletons
+
+- **improve:** `TenderUxSkeleton` + shells: moduł init, lista (3 karty), docs summary/attachments, BOQ 8 rows
+- **improve:** stepped parser label Pobieranie → Załączniki → Analiza (`TenderParserSteppedLabel`)
+- **test:** `LIB-TENDER-LOADING-TEUX5` · gate B tenders + payroll 15/15
+- **boundary:** zero parser/CTA/pipeline/sync · TOKEN FREEZE · `ui/skeleton.tsx` bez diff
+
 ## 2.63.57 — NG-06-TEUX-4 Mobile chrome
 
 - **new:** `TenderModuleNavSheet` — nawigacja modułu z detalu mobile (M4)

@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.58",
+    label: "NG-06-TEUX-5 — Loading skeletons Przetargów",
+    items: [
+      {
+        type: "improve",
+        text: "Moduł Przetargi — skeleton nagłówka, tabów i 3 kart listy zamiast samego tekstu „Ładowanie…”.",
+      },
+      {
+        type: "improve",
+        text: "Dokumenty — skeleton podsumowania (5 slotów) i załączników podczas skanowania BZP.",
+      },
+      {
+        type: "improve",
+        text: "Kosztorys BOQ — 8-row skeleton podczas przetwarzania; stepped label Pobieranie → Załączniki → Analiza.",
+      },
+      {
+        type: "improve",
+        text: "TenderUxSkeleton — spójny wrapper na ui/skeleton (TOKEN FREEZE bez zmian tokenów).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.57",
     label: "NG-06-TEUX-4 — Mobile chrome Przetargów",
     items: [
