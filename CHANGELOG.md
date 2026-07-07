@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.61 — NG-06-TEUX-7b Command Layer polish
+
+- **improve:** CTA disabled reason (prezentacja) · mobile breadcrumb context · collapsible trust ribbon
+- **improve:** Process Strip + CTA zawsze widoczne · LS trust collapsed (UI-only)
+- **test:** `LIB-TENDER-COMMAND-TEUX7B` + regresja workflow primary action + TEUX-4 shadow
+- **boundary:** zero pipeline/sync/intelligence/App.tsx · TOKEN FREEZE import-only
+
 ## 2.63.60 — NG-06-TEUX-7a Lista filtry
 
 - **improve:** `TenderListFiltersPanel` SSOT · `TenderListFilterFab` + `TenderListFilterSheet` (mobile) · desktop collapsible „Więcej filtrów”

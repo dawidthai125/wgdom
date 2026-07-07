@@ -104,6 +104,20 @@ export function TenderDetailCommandLayer({
         </div>
 
         {!compactKosztorysChrome && (
+          <p
+            className={`md:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
+            data-teux7b-mobile-context
+            aria-label="Kontekst przetargu"
+          >
+            Przetargi › {item.bzpNumber || item.id.slice(0, 8)} ›{" "}
+            {TENDER_DETAIL_V4_TAB_LABELS[tab]}
+            {tab === "decyzja" && decyzjaWorkspace && (
+              <> · {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}</>
+            )}
+          </p>
+        )}
+
+        {!compactKosztorysChrome && (
           <nav
             className={`${przetargChrome ? "hidden md:flex" : "hidden sm:flex"} flex-wrap items-center gap-1 text-[10px] text-muted-foreground`}
             aria-label="Breadcrumb"

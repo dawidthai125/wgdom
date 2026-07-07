@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.61",
+    label: "NG-06-TEUX-7b — Command Layer polish",
+    items: [
+      {
+        type: "improve",
+        text: "Przetarg → Główna akcja: widoczny powód wyłączenia przycisku (busy lub krok procesu) — bez zmiany logiki CTA.",
+      },
+      {
+        type: "improve",
+        text: "Command Layer mobile — kontekst jedną linią (Przetargi › numer › zakładka); zwijane sygnały zaufania; pasek procesu i CTA zawsze widoczne.",
+      },
+      {
+        type: "improve",
+        text: "Opcjonalny zapis stanu zwinięcia sygnałów zaufania w przeglądarce (UI-only).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.60",
     label: "NG-06-TEUX-7a — Filtry listy Przetargów",
     items: [

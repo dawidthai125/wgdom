@@ -13,6 +13,7 @@ import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { resolvePrimaryActionDisabledReason } from "@/lib/tender-command-layer-ux";
 import {
   buildWorkflowPrimaryActionResolveInput,
   buildWorkflowPrimaryActionView,
@@ -76,6 +77,9 @@ export function TenderWorkflowPrimaryAction({
     analyzing,
     kosztorysSession,
   });
+
+  const disabledReason = resolvePrimaryActionDisabledReason(view);
+  const disabledReasonId = "tender-primary-action-disabled-reason";
 
   const handleClick = () => {
     if (view.disabled) return;
@@ -163,6 +167,9 @@ export function TenderWorkflowPrimaryAction({
           type="button"
           onClick={handleClick}
           disabled={view.disabled}
+          aria-describedby={
+            view.disabled && disabledReason ? disabledReasonId : undefined
+          }
           className={
             commandLayerChrome
               ? "inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40"
@@ -175,6 +182,20 @@ export function TenderWorkflowPrimaryAction({
           {!view.disabled && <ArrowRight size={commandLayerChrome ? 12 : 14} />}
         </button>
       </div>
+      {view.disabled && disabledReason && (
+        <p
+          id={disabledReasonId}
+          role="status"
+          data-teux7b-disabled-reason
+          className={
+            commandLayerChrome
+              ? "text-[11px] text-muted-foreground mt-1.5 leading-snug line-clamp-2"
+              : "text-[11px] text-muted-foreground mt-2 leading-snug"
+          }
+        >
+          {disabledReason}
+        </p>
+      )}
     </div>
   );
 }

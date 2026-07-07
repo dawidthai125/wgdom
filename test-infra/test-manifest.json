@@ -59,6 +59,7 @@
         "LIB-TENDER-LOADING-TEUX5",
         "LIB-TENDER-EMPTY-STATES-TEUX6",
         "LIB-TENDER-FILTERS-TEUX7A",
+        "LIB-TENDER-COMMAND-TEUX7B",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -123,6 +124,10 @@
     "lib-tender-filters-teux7a": {
       "description": "NG-06-TEUX-7a — Lista filtry panel SSOT, FAB mobile, TenderUxChip",
       "testIds": ["LIB-TENDER-FILTERS-TEUX7A"]
+    },
+    "lib-tender-command-teux7b": {
+      "description": "NG-06-TEUX-7b — Command Layer CTA reason, collapsible trust, mobile context",
+      "testIds": ["LIB-TENDER-COMMAND-TEUX7B"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -899,6 +904,18 @@
       "id": "LIB-TENDER-FILTERS-TEUX7A",
       "class": "lib",
       "path": "scripts/test-tender-filters-teux7a.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-TENDER-COMMAND-TEUX7B",
+      "class": "lib",
+      "path": "scripts/test-tender-command-teux7b.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",
