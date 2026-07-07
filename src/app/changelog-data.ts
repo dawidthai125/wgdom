@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-07",
+    version: "2.63.55",
+    label: "NG-06-TEUX-2 — Design Tokens (foundation)",
+    items: [
+      {
+        type: "new",
+        text: "SSOT tender-ux-tokens.ts — typography, spacing, color roles, motion (TOKEN FREEZE do MID EPIC REVIEW).",
+      },
+      {
+        type: "new",
+        text: "TenderUxBadge, TenderUxChip, TenderUxSectionTitle — design-system modułu Przetargi.",
+      },
+      {
+        type: "improve",
+        text: "Adopcja tokenów: TendersModule (tab bar + header) i TenderDetailKpiCompact (KPI 11px).",
+      },
+      {
+        type: "improve",
+        text: "test: LIB-TENDER-UX-TOKENS-TEUX2 — gate B scope:tenders.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-07",
     version: "2.63.54",
     label: "NG-06-TEUX-1 — nawigacja V4 z mapy Przetargów",
     items: [

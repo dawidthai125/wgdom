@@ -2,6 +2,13 @@ import { useMemo } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { buildKpiBarCompactCells } from "@/lib/tender-detail-v4-display";
+import {
+  TEUX_KPI_COMPACT_CELL,
+  TEUX_KPI_COMPACT_CONTAINER,
+  TEUX_KPI_COMPACT_LABEL,
+  TEUX_KPI_COMPACT_SUBVALUE,
+  TEUX_KPI_COMPACT_VALUE,
+} from "@/lib/tender-ux-tokens";
 
 /** NG-03.2 — KPI Compact: Termin · Wartość · Dokumenty · Wycena (Command Layer). */
 export function TenderDetailKpiCompact({
@@ -14,23 +21,14 @@ export function TenderDetailKpiCompact({
   const cells = useMemo(() => buildKpiBarCompactCells(item, swz), [item, swz]);
 
   return (
-    <div
-      className="rounded-lg border border-border/70 bg-card/60 overflow-hidden"
-      data-tender-kpi-compact
-    >
+    <div className={TEUX_KPI_COMPACT_CONTAINER} data-tender-kpi-compact>
       <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border/50">
         {cells.map((cell) => (
-          <div key={cell.label} className="px-2.5 py-2 min-w-0">
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground truncate">
-              {cell.label}
-            </p>
-            <p className="text-[11px] sm:text-xs font-medium text-foreground mt-0.5 tabular-nums break-words leading-snug">
-              {cell.value}
-            </p>
+          <div key={cell.label} className={TEUX_KPI_COMPACT_CELL}>
+            <p className={`${TEUX_KPI_COMPACT_LABEL} truncate`}>{cell.label}</p>
+            <p className={`${TEUX_KPI_COMPACT_VALUE} mt-0.5`}>{cell.value}</p>
             {cell.subValue && (
-              <p className="text-[9px] font-semibold text-primary mt-0.5 tabular-nums line-clamp-1">
-                {cell.subValue}
-              </p>
+              <p className={`${TEUX_KPI_COMPACT_SUBVALUE} mt-0.5`}>{cell.subValue}</p>
             )}
           </div>
         ))}

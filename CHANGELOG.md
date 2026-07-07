@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.55 — NG-06-TEUX-2 Design Tokens
+
+- **new:** `src/lib/tender-ux-tokens.ts` — SSOT typography/spacing/colors/motion · **TOKEN FREEZE** do MID EPIC REVIEW
+- **new:** `TenderUxBadge`, `TenderUxChip`, `TenderUxSectionTitle` w `tenders/design-system/`
+- **improve:** adopcja `TendersModule` + `TenderDetailKpiCompact` (2 pliki)
+- **test:** `LIB-TENDER-UX-TOKENS-TEUX2` · gate B tenders + payroll 15/15
+- **boundary:** zero diff Protected Core · #CORE-013/#CORE-014 PASS
+
 ## 2.63.54 — NG-06-TEUX-1 Navigation
 
 - **fix:** mapa Przetargów → detal V4 (`openTenderDetailV4`) zamiast `openTenderInList` (G-01)

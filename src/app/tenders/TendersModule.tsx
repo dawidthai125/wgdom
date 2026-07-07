@@ -34,6 +34,17 @@ import { parseTenderDetailPath } from "@/lib/tender-detail-routes-v4";
 import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
 import { TendersListPage } from "@/app/TendersListPage";
 import { TenderDetailPage } from "@/app/TenderDetailPage";
+import { TenderUxBadge } from "@/app/tenders/design-system/TenderUxBadge";
+import { TenderUxChip } from "@/app/tenders/design-system/TenderUxChip";
+import {
+  TEUX_COLOR_PRIMARY_ACTION,
+  TEUX_COLOR_TEXT_SECONDARY,
+  TEUX_FONT_CAPTION,
+  TEUX_FONT_HEADLINE,
+  TEUX_MODULE_TAB_MIN_H,
+  TEUX_MODULE_TAB_PADDING,
+  TEUX_TRANSITION_FAST,
+} from "@/lib/tender-ux-tokens";
 
 const TAB_CONFIG: { id: TendersTabId; icon: typeof List }[] = [
   { id: "list", icon: List },
@@ -58,23 +69,24 @@ function TendersTabBar({ canViewWorkCatalog }: { canViewWorkCatalog: boolean }) 
         role="tablist"
         aria-label="Zakładki modułu Przetargi"
       >
-        {tabs.map(({ id, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === id}
-            onClick={() => setActiveTab(id)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[36px] whitespace-nowrap flex-1 sm:flex-none justify-center ${
-              activeTab === id
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Icon size={14} />
-            {TENDERS_MODULE_LABELS.tabs[id]}
-          </button>
-        ))}
+        {tabs.map(({ id, icon: Icon }) => {
+          const selected = activeTab === id;
+          return (
+            <TenderUxChip
+              key={id}
+              variant="moduleTab"
+              pressed={selected}
+              onClick={() => setActiveTab(id)}
+              role="tab"
+              ariaSelected={selected}
+              className={`inline-flex items-center gap-1.5 ${TEUX_MODULE_TAB_PADDING} ${TEUX_MODULE_TAB_MIN_H} rounded-lg flex-1 sm:flex-none justify-center`}
+              title={TENDERS_MODULE_LABELS.tabs[id]}
+            >
+              <Icon size={14} aria-hidden />
+              {TENDERS_MODULE_LABELS.tabs[id]}
+            </TenderUxChip>
+          );
+        })}
       </div>
     </div>
   );
@@ -89,14 +101,14 @@ function TendersModuleHeader({ showTestBadge }: { showTestBadge?: boolean }) {
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <Scale size={18} className="text-primary shrink-0" />
-          <h1 className="text-lg font-semibold">{TENDERS_MODULE_LABELS.moduleTitle}</h1>
+          <h1 className={TEUX_FONT_HEADLINE}>{TENDERS_MODULE_LABELS.moduleTitle}</h1>
           {showTestBadge && (
-            <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+            <TenderUxBadge variant="urgent" className="rounded-full">
               Super Admin · test
-            </span>
+            </TenderUxBadge>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className={`${TEUX_FONT_CAPTION} ${TEUX_COLOR_TEXT_SECONDARY} mt-0.5`}>
           Pipeline BZP, analiza strategiczna i decyzje STARTUJ / ANALIZUJ / ODPUŚĆ
         </p>
       </div>
@@ -104,7 +116,7 @@ function TendersModuleHeader({ showTestBadge }: { showTestBadge?: boolean }) {
         type="button"
         onClick={() => void pipeline.refreshFromBzp()}
         disabled={pipeline.syncing}
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px] shrink-0"
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl ${TEUX_COLOR_PRIMARY_ACTION} text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px] shrink-0 ${TEUX_TRANSITION_FAST}`}
       >
         <RefreshCw size={16} className={pipeline.syncing || pipeline.autoSyncing ? "animate-spin" : ""} />
         {pipeline.syncing ? "Pobieranie…" : pipeline.autoSyncing ? SECTION_LABEL_PL.autoSync : "Odśwież z BZP"}
