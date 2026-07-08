@@ -1,19 +1,19 @@
 # NG-06-TEUX — TEUX-7z Epic closeout · Bundle Closeout
 
-> **Status:** **TEUX-7z CLOSED FINAL** · **NG-06-TEUX EPIC CLOSED** · **RELEASE GO** · **DEPLOY PROPAGATING**  
-> **Prod (target):** UI **2.63.66** · implement **`2d94b0d`** · pre-push verify **2.63.65** @ `a6da2c9`  
-> **Data closeout:** 2026-07-08 · **verify:** 2026-07-08 (`curl version.json` → **2.63.65** @ `a6da2c9` — propagacja Vercel)  
+> **Status:** **TEUX-7z CLOSED FINAL** · **NG-06-TEUX EPIC COMPLETE** · **PRODUCTION VERIFIED**  
+> **Prod:** UI **2.63.66** · `version.json` commit **`80cf911`** · implement smoke **`2d94b0d`** · https://www.wgdom.fun  
+> **Data closeout:** 2026-07-08 · **verify:** 2026-07-08T05:48Z (`curl version.json` → **2.63.66** @ `80cf911` PASS)  
 > **Owner GO:** APPROVED (CONDITIONAL)  
 > **Audyt:** [`NG-06-TEUX-TEUX7Z-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7Z-AUDIT-REPORT.md)  
 > **Epic SSOT:** [`NG-06-TEUX-EPIC-CLOSE-REPORT.md`](./NG-06-TEUX-EPIC-CLOSE-REPORT.md)
 
 ```text
 PRE-VERIFY:  PASS (2.63.65 @ a6da2c9)
-PUSH:        PASS (2d94b0d → origin/main)
-PROD:        DEPLOY PROPAGATING (version.json 2.63.65 — single curl, no retry)
+PUSH:        PASS (2d94b0d + 80cf911 → origin/main)
+PROD:        PRODUCTION VERIFIED (version.json 2.63.66 @ 80cf911 — curl 2026-07-08T05:48Z)
 RELEASE:     GO (build PASS + smoke-teux 12/12 + gate B tenders 15/15 + payroll 15/15)
 BUNDLE:      CLOSED FINAL
-EPIC:        NG-06-TEUX CLOSED FINAL
+EPIC:        NG-06-TEUX COMPLETE · PRODUCTION VERIFIED
 TOKEN FREEZE: ACTIVE
 ```
 
@@ -41,7 +41,7 @@ TOKEN FREEZE: ACTIVE
 | CHANGELOG **2.63.66** | **PASS** |
 | FAQ routing V4 (GuideView) | **PASS** |
 | Gate B tenders + payroll 15/15 | **PASS** |
-| Prod verify `version.json` | **DEPLOY PROPAGATING** |
+| Prod verify `version.json` | **PASS** · **2.63.66** @ `80cf911` |
 
 ---
 
@@ -61,8 +61,8 @@ TOKEN FREEZE: ACTIVE
 ## 4. Werdykt epic
 
 ```text
-NG-06-TEUX — EPIC CLOSED FINAL
+NG-06-TEUX — EPIC COMPLETE · PRODUCTION VERIFIED
 Phase 1 (TEUX-1…6) + Phase 2 (TEUX-7a…7f) + Closeout (TEUX-7z) — COMPLETE
 ```
 
-**Defer:** hosted removal · Z-05 full mobile re-cert (M-03) · TOKEN thaw.
+**Poza roadmapą epic (defer — osobny AUDIT + Owner GO):** hosted removal · Z-05 mobile re-cert (M-03) · TOKEN thaw · Cloud Sync S7.

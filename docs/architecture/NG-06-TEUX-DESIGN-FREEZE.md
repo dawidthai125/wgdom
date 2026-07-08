@@ -345,17 +345,19 @@ TEUX-5    LOADING (skeletons)                  — ★ CLOSED (2.63.58 · 061fc9
     ↓
 TEUX-6    EMPTY STATES                         — ★ CLOSED (2.63.59 · ead4de7)
     ↓
-TEUX-7+   POLISH (slices on-demand · Owner GO per slice) — ★ READY FOR AUDIT
-    ├── 7a  Lista — filtry collapsible + FAB
-    ├── 7b  Command Layer polish
-    ├── 7c  Accessibility pass
-    ├── 7d  Copy — rebrand „AI” → „Rekomendacja”
-    ├── 7e  Strategia + Pulpit alignment
-    ├── 7f  Legacy Hosted deprecation guard (docs)
-    └── 7z  EPIC CLOSEOUT
+TEUX-7+   POLISH (slices on-demand · Owner GO per slice) — ★ COMPLETE (Phase 2)
+    ├── 7a  Lista — filtry collapsible + FAB          — ★ CLOSED (2.63.60)
+    ├── 7b  Command Layer polish                      — ★ CLOSED (2.63.61)
+    ├── 7c  Accessibility pass                        — ★ CLOSED (2.63.62)
+    ├── 7d  Copy — rebrand „AI” → „Rekomendacja”      — ★ CLOSED (2.63.63)
+    ├── 7e  Strategia + Pulpit alignment              — ★ CLOSED (2.63.64)
+    ├── 7f  Legacy Hosted deprecation guard           — ★ CLOSED (2.63.65)
+    └── 7z  EPIC CLOSEOUT                             — ★ CLOSED (2.63.66 · VERIFIED)
 ```
 
-**Zasada:** TEUX-1…6 = **Phase 1 core** — **COMPLETE** ([`NG-06-TEUX-PHASE1-CLOSEOUT.md`](./NG-06-TEUX-PHASE1-CLOSEOUT.md)). **TEUX-7+** = polish slices — każdy osobny commit po zamknięciu TEUX-6, **Owner GO per slice** · **READY FOR AUDIT**.
+**Zasada:** TEUX-1…6 = **Phase 1 core** — **COMPLETE**. **TEUX-7+** = **Phase 2 polish** — **COMPLETE** ([`NG-06-TEUX-EPIC-CLOSE-REPORT.md`](./NG-06-TEUX-EPIC-CLOSE-REPORT.md)). **Epic NG-06-TEUX** — **COMPLETE** · prod **2.63.66** @ `80cf911`.
+
+**Poza roadmapą epic (defer):** hosted removal · Z-05 mobile re-cert · TOKEN thaw · Cloud Sync S7.
 
 **SSOT Visual Inventory:** [`NG-06-TEUX-VISUAL-INVENTORY.md`](./NG-06-TEUX-VISUAL-INVENTORY.md)
 

@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.66** · **NG-06-TEUX EPIC CLOSED** · **TOKEN FREEZE ACTIVE** · **batch-set 500 OBSERVATION WINDOW** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.66 VERIFIED** · commit **`80cf911`** · **NG-06-TEUX EPIC COMPLETE** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE** · **batch-set 500 OBSERVATION WINDOW** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -60,7 +60,7 @@
 12p5. docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md  ← ★★ PAYROLL Etap 2 B4 Bootstrap Merge SSOT (CLOSED · 2.63.21)
 12q. docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md  ← ★ PAYROLL P0 roster UNION (CLOSED · 2.63.15)
 12r. docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md  ← ★ PAYROLL guard LP Przydziały (CLOSED · 2.63.16)
-12t5. docs/architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md  ← ★★ NG-06 Phase 1 COMPLETE (TEUX-1…6) · TEUX-7+ READY FOR AUDIT
+12t5. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.54→66) · Phase 1+2 CLOSED
 12u. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi
 13. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
 14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § 12.1.21 Schematy · § Notatki
@@ -72,7 +72,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **NG-06-TEUX Phase 1** — Tender Design System (TEUX-1…6) | **2.63.54–59** (`5a8b820`→`ead4de7`) | **COMPLETE** · prod **2.63.59 VERIFIED** · **TEUX-7+ READY FOR AUDIT** | [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) · [`architecture/NG-06-TEUX-DESIGN-FREEZE.md`](architecture/NG-06-TEUX-DESIGN-FREEZE.md) |
+| **NG-06-TEUX** — Tender Experience & Design System (Phase 1+2) | **2.63.54–66** (`5a8b820`→`80cf911`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · smoke `SMOKE-TEUX-NG06` | [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
+| **NG-06-TEUX Phase 1** — core (TEUX-1…6) | **2.63.54–59** (`5a8b820`→`ead4de7`) | **COMPLETE** · prod **2.63.59 VERIFIED** | j.w. |
 | **PLATFORM-SYNC-01A** — reconcile notatek operacyjnych (archive race) | **2.63.33** (`a4cd5c2`) | **CLOSED** · ETAP B ON HOLD | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) § 3.5 · `CURRENT-TASK.md` |
 | **FEATURE Bundle B** — Owner View P2A pdf_text | **2.63.32** (`119576c`) | **CLOSED** | [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
 | **SYNC-ARCH-01 RC-B** — pełny program (PWRB + verify) | **2.63.30–31** (`35f37b1`→`31a7d5e`) | **CLOSED** · prod LP verified | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) |
@@ -206,6 +207,13 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.66       ← NG-06-TEUX-7z epic closeout · commit 80cf911 · PRODUCTION VERIFIED
+Version (prod):             2.63.65       ← NG-06-TEUX-7f hosted deprecation · commit a6da2c9
+Version (prod):             2.63.64       ← NG-06-TEUX-7e Strategia+Pulpit · commit f0a49cf
+Version (prod):             2.63.63       ← NG-06-TEUX-7d copy integrity · commit 129f22d
+Version (prod):             2.63.62       ← NG-06-TEUX-7c accessibility · commit 75f82f2
+Version (prod):             2.63.61       ← NG-06-TEUX-7b command layer · commit d1e782b
+Version (prod):             2.63.60       ← NG-06-TEUX-7a lista filtry · commit bc4b232
 Version (prod):             2.63.59       ← NG-06-TEUX-6 empty states · commit ead4de7 · PRODUCTION VERIFIED
 Version (prod):             2.63.58       ← NG-06-TEUX-5 loading skeletons · commit 061fc9a
 Version (prod):             2.63.57       ← NG-06-TEUX-4 mobile chrome · commit d965311
