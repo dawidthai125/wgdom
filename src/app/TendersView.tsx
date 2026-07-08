@@ -26,6 +26,7 @@ import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptySta
 import { TenderListFilterFab } from "@/app/tenders/list/TenderListFilterFab";
 import { TenderListFilterSheet } from "@/app/tenders/list/TenderListFilterSheet";
 import { TenderListFiltersPanel } from "@/app/tenders/list/TenderListFiltersPanel";
+import { TenderListKpiDashboard } from "@/app/tenders/list/TenderListKpiDashboard";
 import { buildTenderListCardViewModel } from "@/app/tenders/list/tender-list-card-model";
 import {
   applyFavoritePreset,
@@ -53,16 +54,22 @@ import {
   type TendersListQueueId,
   type TendersListQuickBarId,
 } from "@/lib/tenders-list-ux";
+import {
+  TEUX_COLOR_SUCCESS,
+  TEUX_COLOR_SURFACE_MUTED,
+  TEUX_COLOR_URGENT,
+  TEUX_FONT_CAPTION,
+} from "@/lib/tender-ux-tokens";
 
 function listInsightClass(tone: "neutral" | "action" | "positive"): string {
-  const base = "flex items-start gap-2 rounded-lg px-3 py-2 text-xs border";
+  const base = `flex items-start gap-2 rounded-lg px-3 py-2 ${TEUX_FONT_CAPTION} border`;
   switch (tone) {
     case "action":
-      return `${base} bg-amber-500/10 border-amber-500/25 text-amber-900 dark:text-amber-200`;
+      return `${base} ${TEUX_COLOR_URGENT}`;
     case "positive":
-      return `${base} bg-emerald-500/10 border-emerald-500/25 text-emerald-900 dark:text-emerald-200`;
+      return `${base} ${TEUX_COLOR_SUCCESS}`;
     default:
-      return `${base} bg-secondary/60 border-border text-muted-foreground`;
+      return `${base} ${TEUX_COLOR_SURFACE_MUTED}`;
   }
 }
 
@@ -536,16 +543,6 @@ export function TendersView({
                 <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>
               ))}
             </select>
-            <button
-              type="button"
-              onClick={() => void pipeline.refreshFromBzp()}
-              disabled={pipeline.syncing}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[36px] shrink-0"
-              title="Odśwież z BZP"
-            >
-              <RefreshCw size={14} className={pipeline.syncing || pipeline.autoSyncing ? "animate-spin" : ""} />
-              {pipeline.syncing ? "Pobieranie…" : "Odśwież"}
-            </button>
           </div>
         </div>
 
@@ -568,6 +565,13 @@ export function TendersView({
             <span>{listInsight.text}</span>
           </div>
         )}
+
+        <TenderListKpiDashboard
+          stats={pipeline.stats}
+          queueCounts={queueCounts}
+          onKpiClick={handleKpiClick}
+          onQueueClick={handleQueueClick}
+        />
 
         {/* TEUX-7a — desktop: collapsible „Więcej filtrów” */}
         <div className="max-w-4xl hidden lg:block">

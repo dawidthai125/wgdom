@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.69",
+    label: "NG-07-01 — Lista Przetargów KPI dashboard + CTA dedup",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Lista — panel KPI nad listą (aktywne, do zgłoszenia, ≤7 dni, wymaga decyzji); kliknięcie filtruje listę.",
+      },
+      {
+        type: "improve",
+        text: "Nagłówek modułu Przetargi — kompaktowy; jedno przycisk „Odśwież z BZP” (bez duplikatu w pasku wyszukiwania).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.68",
     label: "PAYROLL-RACE-01 — reconcile przed apply + guard edycji LP",
     items: [

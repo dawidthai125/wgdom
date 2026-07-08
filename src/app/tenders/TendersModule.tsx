@@ -98,8 +98,8 @@ function TendersModuleHeader({ showTestBadge }: { showTestBadge?: boolean }) {
   const { pipeline } = snapshot;
 
   return (
-    <div className="shrink-0 px-4 sm:px-6 py-3 border-b border-border bg-card/95 backdrop-blur flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0">
+    <div className="shrink-0 px-4 sm:px-6 py-2 border-b border-border bg-card/95 backdrop-blur flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <Scale size={18} className="text-primary shrink-0" />
           <h1 className={TEUX_FONT_HEADLINE}>{TENDERS_MODULE_LABELS.moduleTitle}</h1>
@@ -109,8 +109,8 @@ function TendersModuleHeader({ showTestBadge }: { showTestBadge?: boolean }) {
             </TenderUxBadge>
           )}
         </div>
-        <p className={`${TEUX_FONT_CAPTION} ${TEUX_COLOR_TEXT_SECONDARY} mt-0.5`}>
-          Pipeline BZP, analiza strategiczna i decyzje STARTUJ / ANALIZUJ / ODPUŚĆ
+        <p className={`${TEUX_FONT_CAPTION} ${TEUX_COLOR_TEXT_SECONDARY} mt-0.5 line-clamp-1`}>
+          Pipeline BZP · decyzje STARTUJ / ANALIZUJ / ODPUŚĆ
         </p>
       </div>
       <button

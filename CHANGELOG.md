@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.69 — NG-07-01 Lista KPI dashboard + CTA dedup
+
+- **new:** `TenderListKpiDashboard` — 4 metryki nad listą przetargów (mobile 2×2, desktop 4-col)
+- **improve:** `TendersModuleHeader` compact · usunięty duplikat Odśwież z toolbaru listy
+- **boundary:** FEATURE UI only · slice NG-07-01/04
+
 ## 2.63.68 — PAYROLL-RACE-01 reconcile przed apply + guard edycji LP
 
 - **fix:** `reconcilePayrollKeysWithFreshLocal` — `kw-week-employees` + `kw-jobs` przed `applyAdminDataBundle` (race stale snapshot)
