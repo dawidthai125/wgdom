@@ -169,17 +169,19 @@ export function TenderDetailPage({
     pipelineRuntime,
   );
 
-  const przetargCommandSlot = useMemo(() => {
-    if (activeTab !== "przetarg" || !przetargCommand.intelligenceCtx) return null;
+  const workspaceCommandSlot = useMemo(() => {
+    if (!przetargCommand.intelligenceCtx) return null;
     return (
-      <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-przetarg-command-slot>
-        <TenderStatusRibbon
-          item={bootstrapItem}
-          swz={swz}
-          intelligenceCtx={przetargCommand.intelligenceCtx}
-          trustAssessment={pipelineRuntime.trustAssessment}
-          onNavigateTab={handleTabChange}
-        />
+      <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-workspace-command-slot>
+        {activeTab === "przetarg" && (
+          <TenderStatusRibbon
+            item={bootstrapItem}
+            swz={swz}
+            intelligenceCtx={przetargCommand.intelligenceCtx}
+            trustAssessment={pipelineRuntime.trustAssessment}
+            onNavigateTab={handleTabChange}
+          />
+        )}
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
@@ -194,6 +196,7 @@ export function TenderDetailPage({
           analyzing={false}
           onNavigateTab={handleTabChange}
           commandLayerChrome
+          activeTab={activeTab}
         />
       </div>
     );
@@ -246,7 +249,7 @@ export function TenderDetailPage({
         onBack={() => navigate(TENDERS_LIST_PATH)}
         onTabChange={handleTabChange}
         onDecyzjaWorkspaceChange={activeTab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
-        przetargCommandSlot={przetargCommandSlot}
+        przetargCommandSlot={workspaceCommandSlot}
       />
 
       {przetargActionBarActive && (
@@ -268,7 +271,7 @@ export function TenderDetailPage({
             : { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }
         }
       >
-        <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
+        <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"} max-w-7xl mx-auto w-full`}>
           <TenderPipelineDevTimeline
             timeline={pipelineRuntime.timeline}
             pipelineState={pipelineRuntime.pipelineState}

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.73",
+    label: "NG-08-01 — Tender Workspace Frame",
+    items: [
+      {
+        type: "improve",
+        text: "Detal przetargu — Workspace Frame: breadcrumb Decyzja › sub-sekcja, CTA workflow na wszystkich zakładkach, kontekst continuity w menu Moduł, content max-w-7xl jak lista.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.72",
     label: "NG-07-04 — Lista Przetargów desktop density",
     items: [

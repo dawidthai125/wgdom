@@ -1,9 +1,10 @@
 /**
  * NG-03.2 — Command Layer: sticky chrome detalu przetargu V4.
  * NG-06-TEUX-4 — module nav sheet (M4) + density pass ≤390px.
+ * NG-08-01 — Workspace Frame: breadcrumb continuity, CTA na wszystkich tabach.
  */
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -37,7 +38,7 @@ export function TenderDetailCommandLayer({
   onBack,
   onTabChange,
   onDecyzjaWorkspaceChange,
-  przetargCommandSlot,
+  przetargCommandSlot: workspaceCommandSlot,
 }: {
   item: TenderPipelineItem;
   tab: TenderDetailV4TabId;
@@ -48,7 +49,7 @@ export function TenderDetailCommandLayer({
   onBack: () => void;
   onTabChange: (tab: TenderDetailV4TabId) => void;
   onDecyzjaWorkspaceChange?: (ws: DecyzjaV4EmbedWorkspace) => void;
-  /** Ribbon + CTA — tylko tab Przetarg (montowane z TenderDetailPage). */
+  /** Ribbon (Przetarg) + CTA — wszystkie taby workspace (NG-08-01). */
   przetargCommandSlot?: ReactNode;
 }) {
   const navigate = useNavigate();
@@ -66,6 +67,25 @@ export function TenderDetailCommandLayer({
     [navigate, setActiveTab],
   );
 
+  const tenderRef = item.bzpNumber || item.id.slice(0, 8);
+
+  const breadcrumbTabSegment = useMemo(() => {
+    if (tab === "decyzja" && decyzjaWorkspace) {
+      return (
+        <>
+          <span>{TENDER_DETAIL_V4_TAB_LABELS[tab]}</span>
+          <ChevronRight size={12} className="shrink-0 opacity-60" aria-hidden />
+          <span className="text-foreground font-medium">
+            {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}
+          </span>
+        </>
+      );
+    }
+    return (
+      <span className="text-foreground font-medium">{TENDER_DETAIL_V4_TAB_LABELS[tab]}</span>
+    );
+  }, [tab, decyzjaWorkspace]);
+
   return (
     <>
       <div
@@ -77,6 +97,7 @@ export function TenderDetailCommandLayer({
               : "px-4 sm:px-6 py-2 sm:py-3 space-y-2 sm:space-y-2.5 max-[390px]:px-3 max-[390px]:py-1.5 max-[390px]:space-y-1.5"
         }`}
         data-tender-command-layer
+        data-ng08-workspace-frame
         data-tender-tab={tab}
         data-tender-command-przetarg={przetargChrome ? "true" : undefined}
       >
@@ -107,12 +128,21 @@ export function TenderDetailCommandLayer({
           <p
             className={`md:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
             data-teux7b-mobile-context
-            aria-label="Kontekst przetargu"
+            data-tender-workspace-breadcrumb-mobile
+            aria-label="Kontekst workspace"
           >
-            Przetargi › {item.bzpNumber || item.id.slice(0, 8)} ›{" "}
-            {TENDER_DETAIL_V4_TAB_LABELS[tab]}
-            {tab === "decyzja" && decyzjaWorkspace && (
-              <> · {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}</>
+            <span className="text-muted-foreground/80">Workspace</span>
+            {" › "}
+            {tenderRef}
+            {" › "}
+            {tab === "decyzja" && decyzjaWorkspace ? (
+              <>
+                {TENDER_DETAIL_V4_TAB_LABELS[tab]}
+                {" › "}
+                {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}
+              </>
+            ) : (
+              TENDER_DETAIL_V4_TAB_LABELS[tab]
             )}
           </p>
         )}
@@ -121,21 +151,23 @@ export function TenderDetailCommandLayer({
           <nav
             className={`${przetargChrome ? "hidden md:flex" : "hidden sm:flex"} flex-wrap items-center gap-1 text-[10px] text-muted-foreground`}
             aria-label="Breadcrumb"
+            data-tender-workspace-breadcrumb
           >
             <span>Przetargi</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="truncate max-w-[12rem]">{item.bzpNumber || item.id.slice(0, 8)}</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="text-foreground font-medium">
-              {TENDER_DETAIL_V4_TAB_LABELS[tab]}
-              {tab === "decyzja" && decyzjaWorkspace && (
-                <>
-                  {" · "}
-                  {DECYZJA_V4_SUB_TAB_LABELS[decyzjaWorkspace]}
-                </>
-              )}
-            </span>
+            <ChevronRight size={12} className="shrink-0 opacity-60" aria-hidden />
+            <span className="truncate max-w-[12rem]">{tenderRef}</span>
+            <ChevronRight size={12} className="shrink-0 opacity-60" aria-hidden />
+            {breadcrumbTabSegment}
           </nav>
+        )}
+
+        {compactKosztorysChrome && (
+          <p
+            className={`sm:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
+            data-tender-workspace-breadcrumb-compact
+          >
+            Workspace › {tenderRef} › {TENDER_DETAIL_V4_TAB_LABELS[tab]}
+          </p>
         )}
 
         <h1
@@ -163,13 +195,14 @@ export function TenderDetailCommandLayer({
           </div>
         )}
 
-        {tab === "przetarg" && przetargCommandSlot}
+        {workspaceCommandSlot}
       </div>
 
       <TenderModuleNavSheet
         open={moduleNavOpen}
         activeTab={moduleTab}
         canViewWorkCatalog={canViewWorkCatalog}
+        workspaceContext={{ tenderRef, title: item.title }}
         onClose={() => setModuleNavOpen(false)}
         onSelectTab={handleModuleNavSelect}
       />

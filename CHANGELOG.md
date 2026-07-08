@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.73 — NG-08-01 Tender Workspace Frame
+
+- **improve:** CTA workflow na wszystkich tabach detalu · breadcrumb Decyzja › sub-sekcja · continuity hint w menu Moduł · max-w-7xl content
+- **boundary:** slice NG-08-01/05 · presentation only · WF-01
+
 ## 2.63.72 — NG-07-04 Lista desktop density
 
 - **improve:** max-w-7xl content · filtry bez max-w-4xl · border-b między kartami · ciaśniejsze desktop rows

@@ -31,12 +31,15 @@ export function TenderModuleNavSheet({
   open,
   activeTab,
   canViewWorkCatalog,
+  workspaceContext,
   onClose,
   onSelectTab,
 }: {
   open: boolean;
   activeTab: TendersTabId;
   canViewWorkCatalog: boolean;
+  /** NG-08-01 — kontekst bieżącego tender workspace (continuity hint). */
+  workspaceContext?: { tenderRef: string; title: string };
   onClose: () => void;
   onSelectTab: (tab: TendersTabId) => void;
 }) {
@@ -77,6 +80,23 @@ export function TenderModuleNavSheet({
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mb-3`}>
           Przejdź do innej zakładki modułu bez powrotu do listy.
         </p>
+        {workspaceContext && (
+          <div
+            className="mb-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2"
+            data-tender-workspace-continuity-hint
+          >
+            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground leading-snug`}>
+              Aktywny workspace:{" "}
+              <span className="font-medium text-foreground">{workspaceContext.tenderRef}</span>
+            </p>
+            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5 line-clamp-2`}>
+              {workspaceContext.title}
+            </p>
+            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground/80 mt-1`}>
+              Powrót do tego przetargu: Zamknij menu lub Wstecz na liście.
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2 pb-2">
           {tabs.map((tabId) => {
             const Icon = TAB_ICONS[tabId];

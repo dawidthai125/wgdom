@@ -13,7 +13,7 @@ import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { resolvePrimaryActionDisabledReason } from "@/lib/tender-command-layer-ux";
+import { resolvePrimaryActionDisabledReason, buildWorkspacePrimaryActionContextLabel } from "@/lib/tender-command-layer-ux";
 import {
   buildWorkflowPrimaryActionResolveInput,
   buildWorkflowPrimaryActionView,
@@ -37,6 +37,7 @@ export function TenderWorkflowPrimaryAction({
   analyzing,
   onNavigateTab,
   commandLayerChrome = false,
+  activeTab,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -55,6 +56,8 @@ export function TenderWorkflowPrimaryAction({
   ) => void;
   /** NG-03 P0 — w Command Layer: bez sticky, zwarty layout (Design Freeze §2.1). */
   commandLayerChrome?: boolean;
+  /** NG-08-01 — kontekst widoku dla copy CTA (prezentacja only). */
+  activeTab?: TenderDetailV4TabId;
 }) {
   const { ownerDecisions } = useTendersContext();
 
@@ -80,6 +83,14 @@ export function TenderWorkflowPrimaryAction({
 
   const disabledReason = resolvePrimaryActionDisabledReason(view);
   const disabledReasonId = "tender-primary-action-disabled-reason";
+  const contextLabel =
+    commandLayerChrome && activeTab
+      ? buildWorkspacePrimaryActionContextLabel(activeTab)
+      : null;
+  const sectionLabel =
+    commandLayerChrome && activeTab && activeTab !== "przetarg"
+      ? contextLabel
+      : "Główna akcja";
 
   const handleClick = () => {
     if (view.disabled) return;
@@ -134,8 +145,9 @@ export function TenderWorkflowPrimaryAction({
                   ? "text-[9px] max-[390px]:sr-only font-semibold uppercase tracking-wider text-muted-foreground"
                   : "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
               }
+              data-tender-primary-action-section-label
             >
-              Główna akcja
+              {sectionLabel}
             </p>
             <p
               className={
