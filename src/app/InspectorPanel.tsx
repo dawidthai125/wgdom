@@ -296,7 +296,7 @@ export function InspectorPanel({
 }) {
   const inspectorId = session.id;
   const displayName = session.displayName;
-  const [jobsAll, setJobsAllAll] = useState<InspectorJob[]>([]);
+  const [jobsAll, setJobsAll] = useState<InspectorJob[]>([]);
   const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
   const [recoverableCharges, setRecoverableCharges] = useState<RecoverableCharge[]>([]);
   const [operationalNotes, setOperationalNotes] = useState<OperationalNote[]>([]);
