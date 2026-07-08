@@ -64,6 +64,7 @@
         "LIB-TENDER-COPY-TEUX7D",
         "LIB-TENDER-STRATEGY-TEUX7E",
         "LIB-TENDER-HOSTED-DEPRECATION-TEUX7F",
+        "SMOKE-TEUX-NG06",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
         "AUDIT-MOBILE-STATIC",
@@ -148,6 +149,10 @@
     "lib-tender-hosted-teux7f": {
       "description": "NG-06-TEUX-7f — Hosted deprecation SSOT + @deprecated + dev warn",
       "testIds": ["LIB-TENDER-HOSTED-DEPRECATION-TEUX7F"]
+    },
+    "smoke-teux": {
+      "description": "NG-06-TEUX-7z — Epic closeout smoke agregat TEUX-1…7f (12 child)",
+      "testIds": ["SMOKE-TEUX-NG06"]
     },
     "lib-jobs-list-ops-20-min": {
       "description": "Roboty 2.0 MIN — KPI, chipy, sort, kolejki (job-list-ops.ts)",
@@ -984,6 +989,18 @@
       "id": "LIB-TENDER-HOSTED-DEPRECATION-TEUX7F",
       "class": "lib",
       "path": "scripts/test-tender-hosted-deprecation-teux7f.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "SMOKE-TEUX-NG06",
+      "class": "smoke",
+      "path": "scripts/test-tenders-teux-smoke.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

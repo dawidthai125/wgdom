@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.66 — NG-06-TEUX-7z Epic closeout smoke
+
+- **improve:** `SMOKE-TEUX-NG06` — agregat 12 testów TEUX-1…7f · suite `smoke-teux`
+- **improve:** `NG-06-TEUX-EPIC-CLOSE-REPORT.md` — epic NG-06 TEUX **CLOSED**
+- **test:** gate B tenders + payroll 15/15 · zero zmian runtime/sync
+
 ## 2.63.65 — NG-06-TEUX-7f Hosted deprecation guard
 
 - **improve:** SSOT `NG-06-TEUX-HOSTED-DEPRECATION.md` — V4 default · rollback accordion deprecated

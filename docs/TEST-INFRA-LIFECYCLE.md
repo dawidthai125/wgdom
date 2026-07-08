@@ -27,6 +27,7 @@
 # Pojedynczy suite z manifestu
 npm run test:infra -- --suite lib-payroll-core
 npm run test:infra -- --suite smoke-stabilization-ng01-04
+npm run test:infra -- --suite smoke-teux
 
 # Release gate tier
 npm run test:infra -- --gate B --scope payroll
@@ -62,6 +63,8 @@ npm run test:infra -- --gate B --scope tenders
 ```
 
 Suite bezpośredni: `smoke-stabilization-ng01-04` → `SMOKE-TENDERS-NG01-04` (12 child lib scripts, fail-fast).
+
+Suite bezpośredni: `smoke-teux` → `SMOKE-TEUX-NG06` (NG-06 TEUX-1…7f, 12 child, fail-fast).
 
 ---
 

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.66",
+    label: "NG-06-TEUX-7z — Epic closeout smoke",
+    items: [
+      {
+        type: "improve",
+        text: "Testy — smoke agregat NG-06 TEUX (SMOKE-TEUX-NG06): regresja UX Przetargów TEUX-1…7f jednym poleceniem.",
+      },
+      {
+        type: "improve",
+        text: "Dokumentacja — formalne zamknięcie epicu NG-06 Tender Experience (design system + polish slices).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.65",
     label: "NG-06-TEUX-7f — Hosted deprecation guard",
     items: [
