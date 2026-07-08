@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.68 — PAYROLL-RACE-01 reconcile przed apply + guard edycji LP
+
+- **fix:** `reconcilePayrollKeysWithFreshLocal` — `kw-week-employees` + `kw-jobs` przed `applyAdminDataBundle` (race stale snapshot)
+- **fix:** `runPayrollWeekEmployeeFieldEdit` + `extendScopeSuppress` — guard parity edycji dni/przydziałów LP
+- **test:** `LIB-PAYROLL-RACE-01` T-RACE-01…09 · gate payroll 16/16
+- **boundary:** CORE only · zero Edge/PWRB/merge algorithm
+
 ## 2.63.67 — SMS-UI-01 Wyczyść wybór odbiorców
 
 - **fix:** `EmployeeSmsModal` — init wyboru odbiorców tylko przy otwarciu modala; sync nie nadpisuje „Wyczyść wybór”

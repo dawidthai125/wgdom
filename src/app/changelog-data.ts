@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.68",
+    label: "PAYROLL-RACE-01 — reconcile przed apply + guard edycji LP",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — szybkie edycje dni i przydziałów robót nie cofają się już po synchronizacji chmury (reconcile ze świeżym LocalStorage przed apply).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.67",
     label: "SMS-UI-01 — Wyczyść wybór odbiorców",
     items: [

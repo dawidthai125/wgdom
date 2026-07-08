@@ -24,6 +24,7 @@
         "LIB-PAYROLL-DELETION-TOMBSTONES-S2",
         "LIB-PAYROLL-ZERO-HOURS-PERSIST-S3",
         "LIB-PAYROLL-SETTLED-PERSIST-S5",
+        "LIB-PAYROLL-RACE-01",
         "LIB-WORK-CATALOG-GOLDEN",
         "SMOKE-WORK-CATALOG-UI-P21",
         "SMOKE-WORK-CATALOG-PRICE-P22",
@@ -87,7 +88,8 @@
         "LIB-PAYROLL-B5-CLOSED-WEEK",
         "LIB-PAYROLL-B6-EDGE",
         "LIB-PAYROLL-RB-BANNER",
-        "LIB-PAYROLL-ASSIGNMENTS-P1"
+        "LIB-PAYROLL-ASSIGNMENTS-P1",
+        "LIB-PAYROLL-RACE-01"
       ]
     },
     "audit-forensic": {
@@ -317,6 +319,18 @@
       "id": "LIB-PAYROLL-ASSIGNMENTS-P1",
       "class": "lib",
       "path": "scripts/test-payroll-assignments-p1.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-RACE-01",
+      "class": "lib",
+      "path": "scripts/test-payroll-race-apply-reconcile.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

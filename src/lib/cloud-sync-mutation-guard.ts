@@ -70,6 +70,11 @@ function extendSuppress(ms: number): void {
   suppressUntil = Math.max(suppressUntil, Date.now() + ms);
 }
 
+/** PAYROLL-RACE-01 — extend suppress dla scope z SSOT defaultSuppressMs (bez duplikacji MS). */
+export function extendScopeSuppress(scope: CloudSyncScope): void {
+  extendSuppress(defaultSuppressMs(scope));
+}
+
 function reset(): void {
   activeTokens.clear();
   endedTokens.clear();

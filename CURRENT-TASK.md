@@ -99,6 +99,18 @@
 
 ---
 
+## PAYROLL-RACE-01 — Stale apply reconcile + guard edycji LP · **CLOSED**
+
+> **Class:** **CORE** · **Wersja:** **2.63.68** · **SSOT:** [`docs/PAYROLL-RACE-01-DESIGN-FREEZE.md`](docs/PAYROLL-RACE-01-DESIGN-FREEZE.md)
+
+| Element | Status |
+|---------|--------|
+| **1A** | `reconcilePayrollKeysWithFreshLocal()` przed `applyAdminDataBundle` | **CLOSED** |
+| **1B** | `runPayrollWeekEmployeeFieldEdit` + `extendScopeSuppress` | **CLOSED** |
+| **Test** | `LIB-PAYROLL-RACE-01` T-RACE-01…09 · gate payroll **16/16** | **PASS** |
+
+---
+
 ## ★ Lista Płac — ochrona synchronizacji (MUST dla każdego agenta)
 
 > Po serii napraw **2.63.15–2.63.31** (Guard, B4, PWRB, RC-B) Lista Płac jest **zweryfikowana na prod**. Nowe FEATURE **nie** uzasadniają zmian w sync/merge LP.

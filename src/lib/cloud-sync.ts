@@ -2933,6 +2933,31 @@ export function reconcileOperationalNotesInMergedBundle(
   return out;
 }
 
+/**
+ * PAYROLL-RACE-01 — po await merge: świeży LS payroll + reconcile przed apply/push.
+ * Zapobiega cofnięciu edycji dni/przydziałów gdy runCloudSync zaczął ze stale snapshot.
+ */
+export function reconcilePayrollKeysWithFreshLocal(
+  merged: unknown[],
+  fresh?: { weekEmployees?: unknown | null; jobs?: unknown | null },
+): unknown[] {
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
+  const out = [...merged];
+
+  if (empIdx >= 0 && empIdx < out.length) {
+    const freshEmps = fresh?.weekEmployees ?? readLocalStorageDataKey("kw-week-employees");
+    out[empIdx] = mergeIncomingWithStored("kw-week-employees", freshEmps, merged[empIdx]);
+  }
+
+  if (jobsIdx >= 0 && jobsIdx < out.length) {
+    const freshJobs = fresh?.jobs ?? readLocalStorageDataKey("kw-jobs");
+    out[jobsIdx] = mergeIncomingWithStored("kw-jobs", freshJobs, merged[jobsIdx]);
+  }
+
+  return out;
+}
+
 /** Pobierz chmurę i scal z lokalnym — bez zapisu (do odświeżenia UI / pull on focus). */
 export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown[]> {
   payrollTraceEmit("sync.pull.bundle.start", "MERGE", "info", { trigger: "focus_pull" as const });

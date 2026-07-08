@@ -10,7 +10,7 @@ import {
   dayKeyForIsoInWeek,
   weekDayColumns,
 } from "@/app/app-domain";
-import { withKwJobsWorkEntryMutation } from "@/lib/cloud-sync-mutation-guard";
+import { withKwJobsWorkEntryMutation, extendScopeSuppress } from "@/lib/cloud-sync-mutation-guard";
 import {
   addWorkEntryForEmployee,
   canCopyAssignmentsFromPreviousDay,
@@ -50,6 +50,7 @@ export function PayrollJobAssignmentsPanel({
 
   const applyJobs = useCallback(
     (updater: (prev: Job[]) => Job[]) => {
+      extendScopeSuppress("kw-jobs");
       withKwJobsWorkEntryMutation(() => onSetJobs(updater));
     },
     [onSetJobs],
