@@ -18,6 +18,7 @@ import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
 import { resolveActiveProcessStripStageId } from "@/lib/tender-workflow-process-strip";
 import { TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
+import { buildIntelligenceHubShortcutLabel } from "@/lib/tender-command-layer-ux";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
@@ -187,6 +188,32 @@ export function TenderDetailPage({
     }
   }, []);
 
+  const [pendingIntelligenceScroll, setPendingIntelligenceScroll] = useState(false);
+
+  const scrollToIntelligenceHub = useCallback(() => {
+    const hub = document.getElementById("tender-intelligence-hub");
+    if (hub) {
+      hub.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, []);
+
+  const handleIntelligenceShortcutClick = useCallback(() => {
+    if (activeTab !== "przetarg") {
+      setPendingIntelligenceScroll(true);
+      handleTabChange("przetarg");
+      return;
+    }
+    scrollToIntelligenceHub();
+  }, [activeTab, handleTabChange, scrollToIntelligenceHub]);
+
+  useEffect(() => {
+    if (activeTab !== "przetarg" || !pendingIntelligenceScroll) return;
+    setPendingIntelligenceScroll(false);
+    requestAnimationFrame(() => {
+      scrollToIntelligenceHub();
+    });
+  }, [activeTab, pendingIntelligenceScroll, scrollToIntelligenceHub]);
+
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
@@ -216,6 +243,14 @@ export function TenderDetailPage({
             Blokery ({blockersCount})
           </button>
         )}
+        <button
+          type="button"
+          onClick={handleIntelligenceShortcutClick}
+          className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+          data-tender-intelligence-shortcut
+        >
+          {buildIntelligenceHubShortcutLabel()}
+        </button>
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
@@ -246,6 +281,7 @@ export function TenderDetailPage({
     pipelineRuntime,
     handleTabChange,
     handleBlockersChipClick,
+    handleIntelligenceShortcutClick,
   ]);
 
   if (!item) {

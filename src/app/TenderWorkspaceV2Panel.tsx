@@ -27,6 +27,7 @@ import {
   type WorkspaceV2InsightTone,
   type WorkspaceV2PillarStatus,
 } from "@/lib/tender-workspace-v2-ux";
+import { TEUX_FONT_BODY, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 
 function SectionShell({
   title,
@@ -122,6 +123,72 @@ export function TenderWorkspaceV2ProgressCompact({
   );
 }
 
+const HUB_INSIGHTS_VISIBLE_MAX = 3;
+
+/** NG-08-03 — pinned intelligence hub na Przetargu (WF-03 · OPT-A). */
+export function TenderWorkspaceV2InsightsCompact({
+  item,
+  swz,
+  intelligenceCtx,
+}: {
+  item: TenderPipelineItem;
+  swz: TenderSwzAnalysis | null | undefined;
+  intelligenceCtx: TenderIntelligenceContext;
+}) {
+  const autoChecklist = useMemo(() => buildWorkspaceV2AutoChecklist(item, swz), [item, swz]);
+  const timelineAutomation = useMemo(
+    () => buildWorkspaceV2TimelineAutomation(item, swz),
+    [item, swz],
+  );
+  const insights = useMemo(
+    () => buildWorkspaceV2Insights(item, swz, autoChecklist, timelineAutomation),
+    [item, swz, autoChecklist, timelineAutomation],
+  );
+
+  const visibleInsights = insights.slice(0, HUB_INSIGHTS_VISIBLE_MAX);
+  const extraCount = insights.length - visibleInsights.length;
+  const narrative = intelligenceCtx.narrative?.trim() ?? "";
+
+  return (
+    <section
+      id="tender-intelligence-hub"
+      data-tender-intelligence-hub
+      className="rounded-xl border border-border bg-card overflow-hidden"
+    >
+      <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30">
+        <h2 className={`${TEUX_SECTION_TITLE} text-foreground`}>Podsumowanie oferty</h2>
+      </div>
+      <div className="px-4 py-3 space-y-2">
+        {visibleInsights.length > 0 ? (
+          <ul className="space-y-1.5">
+            {visibleInsights.map((insight) => (
+              <li
+                key={insight.text}
+                className={`text-[11px] font-medium flex items-start gap-1.5 ${insightToneClass(insight.tone)}`}
+              >
+                <Sparkles size={11} className="shrink-0 mt-0.5 opacity-70" />
+                {insight.text}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>
+            Brak alertów — postęp w normie
+          </p>
+        )}
+        {extraCount > 0 && (
+          <p className="text-[10px] text-muted-foreground">+{extraCount} więcej w szczegółach postępu</p>
+        )}
+        {narrative && (
+          <p className={`${TEUX_FONT_BODY} text-muted-foreground line-clamp-2 border-t border-border/50 pt-2`}>
+            {narrative}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function docIcon(slot: string) {
   if (slot === "zip") return FileArchive;
   if (slot === "ath" || slot === "kosztorys") return FileSpreadsheet;
@@ -137,6 +204,8 @@ export function TenderWorkspaceV2Panel({
   hubDensity = false,
   /** NG-08-02 — compact row renderowany poza accordionem. */
   skipProgressSection = false,
+  /** NG-08-03 — insights renderowane w TenderWorkspaceV2InsightsCompact (hub). */
+  skipInsightsSection = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -148,6 +217,7 @@ export function TenderWorkspaceV2Panel({
   ) => void;
   hubDensity?: boolean;
   skipProgressSection?: boolean;
+  skipInsightsSection?: boolean;
 }) {
   const [checklistPersist, setChecklistPersist] = useState(
     () => loadWorkspaceV2ChecklistPersist(item.id),
@@ -210,7 +280,7 @@ export function TenderWorkspaceV2Panel({
               </span>
             ))}
           </div>
-          {insights.length > 0 && (
+          {!skipInsightsSection && insights.length > 0 && (
             <ul className="space-y-1 pt-1 border-t border-border/50">
               {insights.map((insight) => (
                 <li

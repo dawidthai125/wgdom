@@ -51,7 +51,7 @@ export function TenderPortfolioPositionPanel({
           type="button"
           onClick={() => onOpenStrategy(item.id)}
           className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline shrink-0 min-h-[44px] lg:min-h-0 px-2 touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          aria-label="Otwórz ten przetarg w module Strategia"
+          aria-label="Otwórz ten przetarg w module Strategia — po powrocie zostaniesz w tym samym przetargu"
         >
           Strategia
           <ArrowRight size={12} />

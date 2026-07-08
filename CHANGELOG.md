@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.75 — NG-08-03 Tender Workspace Intelligence
+
+- **improve:** Hub Podsumowanie oferty pinned na Przetargu · IntelligenceShortcutChip globalny · KPI-UX-01 · split progress/insights (OPT-E)
+- **boundary:** slice NG-08-03/05 · WF-03 · REC-1 · presentation only · #CORE-013 PASS
+
 ## 2.63.74 — NG-08-02 Tender Workspace Progress
 
 - **improve:** Process Strip na wszystkich tabach V4 · highlight „Tu jesteś” · BlockersChip · V2 compact poza accordionem · most Kosztorys

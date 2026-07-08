@@ -5,7 +5,12 @@ import type { ParticipationCheckResult } from "@/lib/tender-participation-check"
 import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { TenderWorkspaceV2Panel, TenderWorkspaceV2ChecklistCompact, TenderWorkspaceV2ProgressCompact } from "@/app/TenderWorkspaceV2Panel";
+import {
+  TenderWorkspaceV2Panel,
+  TenderWorkspaceV2ChecklistCompact,
+  TenderWorkspaceV2ProgressCompact,
+  TenderWorkspaceV2InsightsCompact,
+} from "@/app/TenderWorkspaceV2Panel";
 import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
@@ -105,7 +110,14 @@ export function TenderWorkflowHubPanel({
       )}
 
       {commandLayerActive && (
-        <TenderWorkspaceV2ProgressCompact item={item} swz={swz} />
+        <>
+          <TenderWorkspaceV2ProgressCompact item={item} swz={swz} />
+          <TenderWorkspaceV2InsightsCompact
+            item={item}
+            swz={swz}
+            intelligenceCtx={intelligenceCtx}
+          />
+        </>
       )}
 
       <details
@@ -140,6 +152,7 @@ export function TenderWorkflowHubPanel({
             onNavigateTab={onNavigateTab}
             hubDensity={commandLayerActive}
             skipProgressSection={commandLayerActive}
+            skipInsightsSection={commandLayerActive}
           />
 
           <WorkflowHubBlockersSection ctx={intelligenceCtx} />

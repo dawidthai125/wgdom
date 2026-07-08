@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.75",
+    label: "NG-08-03 — Tender Workspace Intelligence",
+    items: [
+      {
+        type: "improve",
+        text: "Detal przetargu — kanoniczny hub Podsumowanie oferty na Przetargu (insights + skrót kontekstu), chip skrótu w Command Layer na wszystkich zakładkach (≤1 klik z Dokumentów), typografia TEUX na Decyzji.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.74",
     label: "NG-08-02 — Tender Workspace Progress",
     items: [

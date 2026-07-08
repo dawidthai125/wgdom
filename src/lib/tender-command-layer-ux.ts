@@ -42,6 +42,11 @@ export function buildProcessStripYouAreHereLabel(stageLabel: string): string {
   return `Tu jesteś — ${stageLabel}`;
 }
 
+/** NG-08-03 — Intelligence hub shortcut w Command Layer (WF-03a). */
+export function buildIntelligenceHubShortcutLabel(): string {
+  return "Podsumowanie oferty";
+}
+
 /** Prezentacja only — pochodzi z istniejących pól view (bez zmiany reguł P0–P12). */
 export function resolvePrimaryActionDisabledReason(
   view: Pick<WorkflowPrimaryActionView, "disabled" | "busy" | "description">,

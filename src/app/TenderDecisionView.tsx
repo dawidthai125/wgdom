@@ -16,6 +16,7 @@ import {
   TENDER_OWNER_VIEW_COPY,
 } from "@/lib/tender-owner-language-pl";
 import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 
 function DecisionVerdictSection({ ctx }: { ctx: TenderIntelligenceContext }) {
   const { overlay } = ctx;
@@ -23,7 +24,7 @@ function DecisionVerdictSection({ ctx }: { ctx: TenderIntelligenceContext }) {
   return (
     <section className="rounded-xl border-2 border-primary/30 bg-card overflow-hidden shadow-sm">
       <div className="px-4 py-3 border-b border-border/60 bg-primary/5">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className={TEUX_SECTION_TITLE}>
           {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
         </p>
       </div>
@@ -75,7 +76,7 @@ function DecisionAboutSection({ ctx }: { ctx: TenderIntelligenceContext }) {
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-3 py-2 border-b border-border/60 bg-secondary/30">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className={TEUX_SECTION_TITLE}>
           {TENDER_INTELLIGENCE_SECTION_COPY.about}
         </p>
       </div>
@@ -93,7 +94,7 @@ function DecisionFinanceDisplay({ finance }: { finance: OwnerFinanceView }) {
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-3 py-2 border-b border-border/60 bg-secondary/30">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className={TEUX_SECTION_TITLE}>
           {TENDER_INTELLIGENCE_SECTION_COPY.economy}
         </p>
       </div>
@@ -105,7 +106,7 @@ function DecisionFinanceDisplay({ finance }: { finance: OwnerFinanceView }) {
             { label: TENDER_OWNER_VIEW_COPY.marginLabel, value: finance.marginDisplay },
           ] as const).map(({ label, value }) => (
             <div key={label} className="px-3 py-3 text-center min-w-0">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className={`${TEUX_SECTION_TITLE} normal-case tracking-normal`}>{label}</p>
               <p className="text-sm font-semibold mt-0.5 truncate">{value}</p>
             </div>
           ))}
@@ -132,7 +133,7 @@ function OwnerDecisionRecordSection({ ctx }: { ctx: TenderIntelligenceContext })
       data-tender-decision-view="owner-record"
     >
       <div className="px-3 py-2 border-b border-border/60 bg-primary/5">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className={TEUX_SECTION_TITLE}>
           {TENDER_OWNER_VIEW_COPY.decisionSection}
         </p>
       </div>
@@ -148,7 +149,7 @@ function OwnerDecisionRecordSection({ ctx }: { ctx: TenderIntelligenceContext })
           }}
         />
         {record && (
-          <p className="text-[10px] text-muted-foreground">
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
             Ostatnia decyzja: {DECISION_LABEL_PL[record.decision]}
             {" · "}
             {new Date(record.updatedAt).toLocaleString("pl-PL")}
