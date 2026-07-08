@@ -47,11 +47,8 @@ const ribbon = readSrc("src/app/TenderStatusRibbon.tsx");
 ok("collapsible data attr", ribbon.includes("data-tender-command-collapsible"));
 ok("trust collapsible marker", ribbon.includes("data-teux7b-trust-collapsible"));
 ok("trust toggle aria-expanded", ribbon.includes("aria-expanded"));
-ok("ProcessStrip outside collapsible", (() => {
-  const body = ribbon.split("export function TenderStatusRibbon")[1] || ribbon;
-  return body.indexOf("data-teux7b-trust-collapsible") < body.indexOf("<TenderWorkflowProcessStrip");
-})());
-ok("ProcessStrip always rendered", ribbon.includes("<TenderWorkflowProcessStrip"));
+ok("trust ribbon only (WF-02)", ribbon.includes("data-tender-trust-ribbon-only"));
+ok("ProcessStrip not in trust ribbon", !ribbon.includes("TenderWorkflowProcessStrip"));
 ok("loadTrustRibbonCollapsed used", ribbon.includes("loadTrustRibbonCollapsed"));
 
 const tabBar = readSrc("src/app/TenderDetailTabBar.tsx");
@@ -61,7 +58,8 @@ ok("gradient shadow left/right", tabBar.includes("data-tender-detail-tabs-shadow
 
 const detailPage = readSrc("src/app/TenderDetailPage.tsx");
 ok("przetarg slot has ribbon + CTA", detailPage.includes("TenderStatusRibbon") && detailPage.includes("TenderWorkflowPrimaryAction"));
-ok("ProcessStrip not duplicated in page", (detailPage.match(/TenderWorkflowProcessStrip/g) || []).length === 0);
+ok("ProcessStrip in workspace command slot", detailPage.includes("TenderWorkflowProcessStrip") && detailPage.includes('variant="ribbon"'));
+ok("single ProcessStrip mount in page", (detailPage.match(/<TenderWorkflowProcessStrip/g) || []).length === 1);
 
 ok("tokens frozen", !readSrc("src/lib/tender-ux-tokens.ts").includes("teux7b"));
 ok("workflow primary action lib untouched", !readSrc("src/lib/tender-workflow-primary-action.ts").includes("teux7b"));

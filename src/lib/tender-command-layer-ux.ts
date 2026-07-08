@@ -37,6 +37,11 @@ export function buildWorkspacePrimaryActionContextLabel(tab: TenderDetailV4TabId
   return `Następny krok · ${TENDER_DETAIL_V4_TAB_LABELS[tab]}`;
 }
 
+/** NG-08-02 — Process Strip „Tu jesteś” (prezentacja only). */
+export function buildProcessStripYouAreHereLabel(stageLabel: string): string {
+  return `Tu jesteś — ${stageLabel}`;
+}
+
 /** Prezentacja only — pochodzi z istniejących pól view (bez zmiany reguł P0–P12). */
 export function resolvePrimaryActionDisabledReason(
   view: Pick<WorkflowPrimaryActionView, "disabled" | "busy" | "description">,

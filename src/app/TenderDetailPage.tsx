@@ -14,7 +14,10 @@ import {
 } from "@/app/TenderWorkflowOperatorActionBar";
 import { TenderStatusRibbon } from "@/app/TenderStatusRibbon";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
+import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
+import { resolveActiveProcessStripStageId } from "@/lib/tender-workflow-process-strip";
+import { TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
@@ -169,18 +172,49 @@ export function TenderDetailPage({
     pipelineRuntime,
   );
 
+  const activeProcessStageId = useMemo(
+    () => resolveActiveProcessStripStageId(activeTab, decyzjaWorkspace),
+    [activeTab, decyzjaWorkspace],
+  );
+
+  const blockersCount = przetargCommand.intelligenceCtx?.overlay.allBlocks.length ?? 0;
+
+  const handleBlockersChipClick = useCallback(() => {
+    const accordion = document.getElementById("tender-progress-accordion");
+    if (accordion instanceof HTMLDetailsElement) {
+      accordion.open = true;
+      accordion.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, []);
+
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
       <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-workspace-command-slot>
         {activeTab === "przetarg" && (
           <TenderStatusRibbon
-            item={bootstrapItem}
-            swz={swz}
-            intelligenceCtx={przetargCommand.intelligenceCtx}
             trustAssessment={pipelineRuntime.trustAssessment}
             onNavigateTab={handleTabChange}
           />
+        )}
+        <TenderWorkflowProcessStrip
+          item={bootstrapItem}
+          swz={swz}
+          intelligenceCtx={przetargCommand.intelligenceCtx}
+          trustAssessment={pipelineRuntime.trustAssessment}
+          onNavigateTab={handleTabChange}
+          variant="ribbon"
+          activeStageId={activeProcessStageId}
+        />
+        {blockersCount > 0 && (
+          <button
+            type="button"
+            onClick={handleBlockersChipClick}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-amber-900 dark:text-amber-200 touch-manipulation hover:bg-amber-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            data-tender-blockers-chip
+          >
+            Blokery ({blockersCount})
+          </button>
         )}
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
@@ -202,6 +236,8 @@ export function TenderDetailPage({
     );
   }, [
     activeTab,
+    activeProcessStageId,
+    blockersCount,
     bootstrapItem,
     swz,
     przetargCommand.intelligenceCtx,
@@ -209,6 +245,7 @@ export function TenderDetailPage({
     przetargCommand.participationResult,
     pipelineRuntime,
     handleTabChange,
+    handleBlockersChipClick,
   ]);
 
   if (!item) {

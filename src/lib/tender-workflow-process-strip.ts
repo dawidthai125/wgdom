@@ -76,6 +76,27 @@ function prepLineToStripStatus(line: OwnerPrepStatusLine): WorkflowProcessStripS
   return "partial";
 }
 
+/** NG-08-02 — inbound UI map: aktywny tab → highlight stage (prezentacja only). */
+export function resolveActiveProcessStripStageId(
+  activeTab: TenderDetailV4TabId,
+  _decyzjaWorkspace?: DecyzjaV4EmbedWorkspace | null,
+): WorkflowProcessStripStageId | null {
+  switch (activeTab) {
+    case "przetarg":
+      return null;
+    case "dokumenty":
+      return "documents";
+    case "kosztorys":
+      return "kosztorys";
+    case "ceny":
+      return "wycena";
+    case "decyzja":
+      return "offer";
+    default:
+      return null;
+  }
+}
+
 export function workflowProcessStripStageToV4Navigate(
   stageId: WorkflowProcessStripStageId,
 ): WorkflowProcessStripNavigateTarget {

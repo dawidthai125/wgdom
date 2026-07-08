@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.74",
+    label: "NG-08-02 — Tender Workspace Progress",
+    items: [
+      {
+        type: "improve",
+        text: "Detal przetargu — Process Strip na wszystkich zakładkach workspace (WF-02), highlight „Tu jesteś”, chip blockerów, postęp V2 widoczny poza accordionem na Przetargu, most Kosztorys ↔ pasek procesu.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.73",
     label: "NG-08-01 — Tender Workspace Frame",
     items: [

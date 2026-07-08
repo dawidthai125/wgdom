@@ -77,6 +77,51 @@ function pillarStatusClass(status: WorkspaceV2PillarStatus): string {
   }
 }
 
+/** NG-08-02 — compact postęp V2 poza accordionem (hub Przetarg). */
+export function TenderWorkspaceV2ProgressCompact({
+  item,
+  swz,
+}: {
+  item: TenderPipelineItem;
+  swz: TenderSwzAnalysis | null | undefined;
+}) {
+  const progress = useMemo(() => computeWorkspaceV2AutoProgress(item, swz), [item, swz]);
+
+  return (
+    <div
+      className="rounded-xl border border-border bg-card px-4 py-3"
+      data-tender-workspace-v2-compact-row
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all rounded-full"
+            style={{ width: `${progress.percent}%` }}
+            role="progressbar"
+            aria-valuenow={progress.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
+        <span className="text-sm font-bold tabular-nums text-primary shrink-0">
+          {progress.percent}%
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5 mt-2">
+        {progress.pillars.map((pillar) => (
+          <span
+            key={pillar.id}
+            className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md border ${pillarStatusClass(pillar.status)}`}
+          >
+            {pillar.status === "done" ? <Check size={10} /> : <Circle size={8} />}
+            {pillar.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function docIcon(slot: string) {
   if (slot === "zip") return FileArchive;
   if (slot === "ath" || slot === "kosztorys") return FileSpreadsheet;
@@ -90,6 +135,8 @@ export function TenderWorkspaceV2Panel({
   onNavigateTab,
   /** NG-03.4 — tylko pasek postępu (bez osi czasu / dokumentów / pełnej checklisty). */
   hubDensity = false,
+  /** NG-08-02 — compact row renderowany poza accordionem. */
+  skipProgressSection = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -100,6 +147,7 @@ export function TenderWorkspaceV2Panel({
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
   hubDensity?: boolean;
+  skipProgressSection?: boolean;
 }) {
   const [checklistPersist, setChecklistPersist] = useState(
     () => loadWorkspaceV2ChecklistPersist(item.id),
@@ -133,6 +181,7 @@ export function TenderWorkspaceV2Panel({
 
   return (
     <div className="space-y-4" data-tender-workspace-v2>
+      {!skipProgressSection && (
       <SectionShell title="Status realizacji">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -176,6 +225,7 @@ export function TenderWorkspaceV2Panel({
           )}
         </div>
       </SectionShell>
+      )}
 
       {!hubDensity && (
         <>

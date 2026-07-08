@@ -220,6 +220,22 @@ export function TenderKosztorysWorkspace({
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
 
+      <p className="text-[11px] text-muted-foreground" data-kosztorys-process-strip-bridge>
+        Proces oferty: etap{" "}
+        <button
+          type="button"
+          className="text-primary font-semibold hover:underline touch-manipulation"
+          onClick={() => {
+            document
+              .querySelector("[data-tender-workflow-process-strip]")
+              ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
+        >
+          Kosztorys
+        </button>
+        {" "}— pasek u góry workspace.
+      </p>
+
       {kosztorysInlineHintView && (
         <TrustInlineHint
           message={kosztorysInlineHintView.message}

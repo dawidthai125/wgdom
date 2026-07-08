@@ -14,6 +14,7 @@ import {
   buildWorkflowProcessStripStages,
   workflowProcessStripStageToV4Navigate,
   type WorkflowProcessStripStage,
+  type WorkflowProcessStripStageId,
   type WorkflowProcessStripStageStatus,
 } from "@/lib/tender-workflow-process-strip";
 import {
@@ -21,6 +22,7 @@ import {
   pickStripStageTrustMessage,
   trustStageOverlayLevel,
 } from "@/lib/tender-trust-ui";
+import { buildProcessStripYouAreHereLabel } from "@/lib/tender-command-layer-ux";
 import { TEUX_FONT_CAPTION, TEUX_FONT_META } from "@/lib/tender-ux-tokens";
 
 function StageIcon({ status }: { status: WorkflowProcessStripStageStatus }) {
@@ -32,6 +34,7 @@ function ProcessStripStageButton({
   stage,
   onNavigate,
   trustAssessment,
+  isActive,
 }: {
   stage: WorkflowProcessStripStage;
   onNavigate: (
@@ -39,10 +42,12 @@ function ProcessStripStageButton({
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
   trustAssessment: TenderTrustAssessment;
+  isActive: boolean;
 }) {
   const trustLevel = trustStageOverlayLevel(trustAssessment, stage.id);
   const trustMessage = pickStripStageTrustMessage(trustAssessment, stage.id);
   const presentation = buildProcessStripStagePresentation(stage, trustLevel, trustMessage);
+  const title = isActive ? buildProcessStripYouAreHereLabel(stage.label) : presentation.title;
 
   const handleClick = () => {
     const target = workflowProcessStripStageToV4Navigate(stage.id);
@@ -53,12 +58,16 @@ function ProcessStripStageButton({
     <button
       type="button"
       onClick={handleClick}
-      title={presentation.title}
+      title={title}
       aria-label={presentation.title}
-      className={`inline-flex items-center gap-1.5 ${TEUX_FONT_CAPTION} font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${presentation.buttonClassName}`}
+      aria-current={isActive ? "step" : undefined}
+      className={`inline-flex items-center gap-1.5 ${TEUX_FONT_CAPTION} font-semibold px-2.5 py-1.5 rounded-lg border transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${presentation.buttonClassName} ${
+        isActive ? "ring-2 ring-primary/50" : ""
+      }`}
       data-workflow-process-stage={stage.id}
       data-tender-trust-overlay={trustLevel ?? undefined}
       data-tender-trust-strip-icon={presentation.iconKind}
+      data-workflow-process-stage-active={isActive ? "true" : undefined}
     >
       {presentation.iconKind === "trust" && presentation.trustIcon ? (
         <span className="shrink-0 font-bold" aria-hidden>{presentation.trustIcon}</span>
@@ -75,6 +84,7 @@ function ProcessStripStageButtonCompact({
   onNavigate,
   trustAssessment,
   ribbon,
+  isActive,
 }: {
   stage: WorkflowProcessStripStage;
   onNavigate: (
@@ -83,10 +93,12 @@ function ProcessStripStageButtonCompact({
   ) => void;
   trustAssessment: TenderTrustAssessment;
   ribbon: boolean;
+  isActive: boolean;
 }) {
   const trustLevel = trustStageOverlayLevel(trustAssessment, stage.id);
   const trustMessage = pickStripStageTrustMessage(trustAssessment, stage.id);
   const presentation = buildProcessStripStagePresentation(stage, trustLevel, trustMessage);
+  const title = isActive ? buildProcessStripYouAreHereLabel(stage.label) : presentation.title;
 
   const handleClick = () => {
     const target = workflowProcessStripStageToV4Navigate(stage.id);
@@ -97,16 +109,18 @@ function ProcessStripStageButtonCompact({
     <button
       type="button"
       onClick={handleClick}
-      title={presentation.title}
+      title={title}
       aria-label={presentation.title}
+      aria-current={isActive ? "step" : undefined}
       className={`inline-flex items-center gap-1 ${TEUX_FONT_CAPTION} font-semibold rounded-md border transition-colors duration-150 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shrink-0 touch-manipulation ${
         ribbon
           ? "px-2 py-1.5 min-h-[44px] lg:min-h-[32px] lg:px-1.5 lg:py-1 max-[390px]:px-1.5 max-[390px]:py-1"
           : "px-2.5 py-1.5 min-h-[44px] lg:min-h-[32px] rounded-lg"
-      } ${presentation.buttonClassName}`}
+      } ${presentation.buttonClassName} ${isActive ? "ring-2 ring-primary/50" : ""}`}
       data-workflow-process-stage={stage.id}
       data-tender-trust-overlay={trustLevel ?? undefined}
       data-tender-trust-strip-icon={presentation.iconKind}
+      data-workflow-process-stage-active={isActive ? "true" : undefined}
     >
       {presentation.iconKind === "trust" && presentation.trustIcon ? (
         <span className="shrink-0 font-bold" aria-hidden>{presentation.trustIcon}</span>
@@ -125,6 +139,7 @@ export function TenderWorkflowProcessStrip({
   trustAssessment,
   onNavigateTab,
   variant = "default",
+  activeStageId = null,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -136,6 +151,8 @@ export function TenderWorkflowProcessStrip({
   ) => void;
   /** NG-03 P0 — compact ribbon w Command Layer (bez wrap, scroll poziomy). */
   variant?: "default" | "ribbon";
+  /** NG-08-02 — „Tu jesteś” highlight (prezentacja only). */
+  activeStageId?: WorkflowProcessStripStageId | null;
 }) {
   const stages = buildWorkflowProcessStripStages({
     item,
@@ -180,12 +197,14 @@ export function TenderWorkflowProcessStrip({
                 onNavigate={onNavigateTab}
                 trustAssessment={trustAssessment}
                 ribbon
+                isActive={activeStageId === stage.id}
               />
             ) : (
               <ProcessStripStageButton
                 stage={stage}
                 onNavigate={onNavigateTab}
                 trustAssessment={trustAssessment}
+                isActive={activeStageId === stage.id}
               />
             )}
             {index < stages.length - 1 && (

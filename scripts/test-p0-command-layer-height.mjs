@@ -36,10 +36,13 @@ ok("command layer marker", cmd.includes("data-tender-command-layer"));
 ok("przetarg chrome tighter spacing", cmd.includes("data-tender-command-przetarg"));
 ok("kpi ukryte na tab przetarg", cmd.includes("!przetargChrome"));
 
-console.log("\n2. Compact / Ultra Compact Ribbon");
+console.log("\n2. Compact / Ultra Compact Ribbon + WF-02 strip");
 const ribbon = read("src/app/TenderStatusRibbon.tsx");
+const page = read("src/app/TenderDetailPage.tsx");
 ok("ribbon density compact marker", ribbon.includes('data-tender-ribbon-density="compact"'));
-ok("ribbon process strip variant ribbon", ribbon.includes('variant="ribbon"'));
+ok("trust ribbon only (no strip in ribbon)", ribbon.includes("data-tender-trust-ribbon-only"));
+ok("strip not in trust ribbon", !ribbon.includes("TenderWorkflowProcessStrip"));
+ok("strip ribbon in workspace command slot", page.includes("TenderWorkflowProcessStrip") && page.includes('variant="ribbon"'));
 ok("trust chips hidden ≤390px w ribbon", ribbon.includes("max-[390px]:hidden") && ribbon.includes("TrustChipRow"));
 ok("analysis strip NIE w ribbon", !ribbon.includes("TenderAnalysisStatusStrip"));
 ok("ultra compact spacing", ribbon.includes("max-[390px]:space-y-1"));
@@ -47,16 +50,17 @@ ok("ultra compact spacing", ribbon.includes("max-[390px]:space-y-1"));
 const strip = read("src/app/TenderWorkflowProcessStrip.tsx");
 ok("process strip ribbon variant", strip.includes('variant?: "default" | "ribbon"'));
 ok("ribbon nowrap horizontal scroll", strip.includes("flex-nowrap") && strip.includes("overflow-x-auto"));
-ok("ultra compact stage buttons touch-safe", strip.includes("max-[390px]:text-[9px]") && strip.includes("min-h-[44px]"));
+ok("ultra compact stage buttons touch-safe", strip.includes("min-h-[44px]") && strip.includes("touch-manipulation"));
 
 console.log("\n3. Analysis Strip → Szczegóły postępu");
 const hub = read("src/app/TenderWorkflowHubPanel.tsx");
 ok("analysis strip w hub gdy commandLayerActive", hub.includes("commandLayerActive") && hub.includes("TenderAnalysisStatusStrip"));
 ok("progress accordion marker", hub.includes("data-tender-progress-accordion"));
+ok("progress accordion id anchor", hub.includes('id="tender-progress-accordion"'));
+ok("v2 compact row outside accordion", hub.includes("TenderWorkspaceV2ProgressCompact"));
 
 console.log("\n4. Primary CTA — Command Layer chrome");
 const cta = read("src/app/TenderWorkflowPrimaryAction.tsx");
-const page = read("src/app/TenderDetailPage.tsx");
 ok("commandLayerChrome prop", cta.includes("commandLayerChrome"));
 ok("bez sticky gdy command layer", cta.includes('commandLayerChrome ?') && cta.includes("sticky top-0"));
 ok("page passes commandLayerChrome", page.includes("commandLayerChrome"));

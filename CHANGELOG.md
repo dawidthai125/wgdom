@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.74 — NG-08-02 Tender Workspace Progress
+
+- **improve:** Process Strip na wszystkich tabach V4 · highlight „Tu jesteś” · BlockersChip · V2 compact poza accordionem · most Kosztorys
+- **boundary:** slice NG-08-02/05 · WF-02 · presentation only · #CORE-013 PASS
+
 ## 2.63.73 — NG-08-01 Tender Workspace Frame
 
 - **improve:** CTA workflow na wszystkich tabach detalu · breadcrumb Decyzja › sub-sekcja · continuity hint w menu Moduł · max-w-7xl content

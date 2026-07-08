@@ -1,17 +1,13 @@
 /**
- * NG-03.2 — Status Ribbon: Trust (collapsible) + Process Strip (zawsze widoczny).
- * NG-06-TEUX-7b — zwijane sygnały zaufania; Process Strip poza collapsible.
+ * NG-03.2 / NG-06-TEUX-7b — Trust ribbon (collapsible) na tab Przetarg.
+ * NG-08-02 — Process Strip przeniesiony do workspace Command Layer (WF-02).
  */
 
 import { useCallback, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
-import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import {
   loadTrustRibbonCollapsed,
@@ -24,15 +20,9 @@ import {
 } from "@/lib/tender-ux-tokens";
 
 export function TenderStatusRibbon({
-  item,
-  swz,
-  intelligenceCtx,
   trustAssessment,
   onNavigateTab,
 }: {
-  item: TenderPipelineItem;
-  swz: TenderSwzAnalysis | null | undefined;
-  intelligenceCtx: TenderIntelligenceContext;
   trustAssessment: TenderTrustAssessment;
   onNavigateTab: (
     tab: TenderDetailV4TabId,
@@ -54,6 +44,7 @@ export function TenderStatusRibbon({
       className="space-y-1.5 max-[390px]:space-y-1 md:max-lg:space-y-2"
       data-tender-status-ribbon
       data-tender-ribbon-density="compact"
+      data-tender-trust-ribbon-only
     >
       <div
         className="max-[390px]:hidden"
@@ -91,15 +82,6 @@ export function TenderStatusRibbon({
           </div>
         )}
       </div>
-
-      <TenderWorkflowProcessStrip
-        item={item}
-        swz={swz}
-        intelligenceCtx={intelligenceCtx}
-        trustAssessment={trustAssessment}
-        onNavigateTab={onNavigateTab}
-        variant="ribbon"
-      />
     </div>
   );
 }

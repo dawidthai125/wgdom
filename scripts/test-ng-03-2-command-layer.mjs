@@ -63,7 +63,7 @@ ok("command layer marker", cmd.includes("data-tender-command-layer"));
 ok("kpi compact in command", cmd.includes("TenderDetailKpiCompact"));
 ok("ribbon marker", ribbon.includes("data-tender-status-ribbon"));
 ok("ribbon compact density", ribbon.includes("data-tender-ribbon-density"));
-ok("ribbon process strip variant", ribbon.includes('variant="ribbon"'));
+ok("process strip ribbon in workspace slot", page.includes("TenderWorkflowProcessStrip") && page.includes('variant="ribbon"'));
 ok("analysis strip w hub nie ribbon", !ribbon.includes("TenderAnalysisStatusStrip") && hub.includes("TenderAnalysisStatusStrip"));
 ok("hub commandLayerActive gate", hub.includes("commandLayerActive"));
 ok("v2 accordion default", hub.includes("data-tender-progress-accordion"));
