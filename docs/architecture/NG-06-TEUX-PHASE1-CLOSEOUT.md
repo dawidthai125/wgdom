@@ -101,14 +101,12 @@ Phase 2 (TEUX-7+): bez thaw bez explicit Owner GO + MID/EPIC review
 | **TEUX-7c** | Accessibility pass | **CLOSED** · **2.63.62** |
 | **TEUX-7d** | Copy integrity (AI rebrand) | **CLOSED** · **2.63.63** · **PRODUCTION VERIFIED** |
 | **TEUX-7e** | Strategia + Pulpit alignment | **CLOSED** · **2.63.64** · **PRODUCTION VERIFIED** |
-| **TEUX-7f** | Hosted deprecation guard | **CLOSED** · **2.63.65** · **RELEASE GO** · deploy propagating |
-| **TEUX-7z** | Epic closeout smoke agregat | **READY FOR AUDIT** (po 7f) |
+| **TEUX-7f** | Hosted deprecation guard | **CLOSED** · **2.63.65** · **PRODUCTION VERIFIED** |
+| **TEUX-7z** | Epic closeout smoke agregat | **CLOSED** · **2.63.66** |
 
 **Gate:** TEUX-7+ wymaga **TEUX-6 CLOSED** — **SPEŁNIONE**.
 
-**Następny krok Owner:** `AUDIT TEUX-7z` — epic closeout smoke agregat. SSOT: [`NG-06-TEUX-DESIGN-FREEZE.md`](./NG-06-TEUX-DESIGN-FREEZE.md) · closeout 7f: [`NG-06-TEUX-TEUX7F-CLOSEOUT.md`](./NG-06-TEUX-TEUX7F-CLOSEOUT.md).
-
-**Zakaz:** automatyczny start TEUX-7 IMPLEMENT bez AUDIT.
+**Epic NG-06-TEUX:** **CLOSED FINAL** — SSOT: [`NG-06-TEUX-EPIC-CLOSE-REPORT.md`](./NG-06-TEUX-EPIC-CLOSE-REPORT.md) · closeout 7z: [`NG-06-TEUX-TEUX7Z-CLOSEOUT.md`](./NG-06-TEUX-TEUX7Z-CLOSEOUT.md).
 
 ---
 

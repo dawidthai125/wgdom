@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.65** (`e0d4e47` · deploy propagating) · **RELEASE GO** · **NG-06-TEUX Phase 2** · **TEUX-7a–7f CLOSED** · **TEUX-7z READY FOR AUDIT** · **TOKEN FREEZE ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.66** (target) · **NG-06-TEUX EPIC CLOSED** · **TOKEN FREEZE ACTIVE**
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
@@ -29,9 +29,10 @@
 | TEUX-7c Accessibility | 2.63.62 | `75f82f2` | **CLOSED** · **PRODUCTION VERIFIED** |
 | TEUX-7d Copy integrity | 2.63.63 | `129f22d` | **CLOSED** · **PRODUCTION VERIFIED** |
 | TEUX-7e Strategia+Pulpit | 2.63.64 | `f0a49cf` | **CLOSED FINAL** · **PRODUCTION VERIFIED** |
-| TEUX-7f Hosted deprecation | 2.63.65 | `e0d4e47` | **CLOSED FINAL** · **RELEASE GO** · deploy propagating |
+| TEUX-7f Hosted deprecation | 2.63.65 | `e0d4e47` | **CLOSED** · **PRODUCTION VERIFIED** |
+| TEUX-7z Epic closeout | 2.63.66 | `2d94b0d` | **CLOSED FINAL** · **EPIC CLOSED** |
 
-**Phase 2 gate:** każdy slice = AUDIT → Owner GO → IMPLEMENT. **Następny:** **TEUX-7z** epic closeout smoke agregat — SSOT: [`docs/architecture/NG-06-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-06-TEUX-DESIGN-FREEZE.md) · closeout 7f: [`docs/architecture/NG-06-TEUX-TEUX7F-CLOSEOUT.md`](docs/architecture/NG-06-TEUX-TEUX7F-CLOSEOUT.md).
+**NG-06-TEUX EPIC:** **CLOSED FINAL** — [`docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md)
 
 **Nie zmieniaj bez polecenia:** `tender-ux-tokens.ts` (TOKEN FREEZE) · pipeline · sync · payroll.
 
