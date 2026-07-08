@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Eye, Download, Loader2, RefreshCw, FileText, ClipboardList, Paperclip, ChevronDown, Archive,
 } from "lucide-react";
@@ -25,6 +25,12 @@ import {
 } from "@/lib/tender-platform-awareness";
 import { Building2, ExternalLink, FileX, Globe } from "lucide-react";
 import { TenderUxEmptyState } from "@/app/tenders/design-system/TenderUxEmptyState";
+import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
+import {
+  loadTenderDocumentGroupExpandedOverrides,
+  saveTenderDocumentGroupExpandedOverrides,
+} from "@/lib/tender-documents-ui-persist";
+import { TEUX_FONT_CAPTION, TEUX_TOUCH_TARGET } from "@/lib/tender-ux-tokens";
 
 function docIcon(filename: string) {
   if (isZipFilename(filename) || is7zFilename(filename)) return Archive;
@@ -189,7 +195,11 @@ export function TenderAttachmentsPanel({
   const [preview, setPreview] = useState<InspectorFileItem | null>(null);
   const [groupExpandedOverrides, setGroupExpandedOverrides] = useState<
     Partial<Record<TenderDocumentBusinessGroupId, boolean>>
-  >({});
+  >(() => loadTenderDocumentGroupExpandedOverrides(item.tenderId));
+
+  useEffect(() => {
+    setGroupExpandedOverrides(loadTenderDocumentGroupExpandedOverrides(item.tenderId));
+  }, [item.tenderId]);
 
   const docs = item.bzpDocuments ?? [];
   const externalFiles = externalDiscovery?.files ?? [];
@@ -260,10 +270,14 @@ export function TenderAttachmentsPanel({
   };
 
   const toggleGroup = (groupId: TenderDocumentBusinessGroupId, count: number) => {
-    setGroupExpandedOverrides((prev) => ({
-      ...prev,
-      [groupId]: !isGroupExpanded(groupId, count),
-    }));
+    setGroupExpandedOverrides((prev) => {
+      const current = prev[groupId] !== undefined
+        ? prev[groupId]!
+        : defaultTenderDocumentGroupExpanded(count);
+      const next = { ...prev, [groupId]: !current };
+      saveTenderDocumentGroupExpandedOverrides(item.tenderId, next);
+      return next;
+    });
   };
 
   const showEmptyPlatformState = !loadingDocs
@@ -278,15 +292,15 @@ export function TenderAttachmentsPanel({
     <>
       <div id={sectionId} className="space-y-2 scroll-mt-2">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
-            <Paperclip size={11} />
+          <TenderUxSectionTitle className="flex items-center gap-1 text-muted-foreground">
+            <Paperclip size={11} className="shrink-0" />
             Dokumenty
             {totalCount > 0 && (
-              <span className="text-[10px] font-normal normal-case text-muted-foreground/80">
+              <span className={`${TEUX_FONT_CAPTION} font-normal normal-case text-muted-foreground/80`}>
                 ({totalCount})
               </span>
             )}
-          </p>
+          </TenderUxSectionTitle>
           {platformStatus.badge && (
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
@@ -305,7 +319,7 @@ export function TenderAttachmentsPanel({
               type="button"
               disabled={loadingDocs}
               onClick={(e) => { e.stopPropagation(); onRefresh(); }}
-              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+              className={`inline-flex items-center gap-1 min-h-[32px] touch-manipulation ${TEUX_FONT_CAPTION} text-muted-foreground/80 hover:text-foreground disabled:opacity-50`}
             >
               {loadingDocs ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
               Odśwież BZP
@@ -316,7 +330,7 @@ export function TenderAttachmentsPanel({
               type="button"
               disabled={externalDiscovering}
               onClick={(e) => { e.stopPropagation(); onSearchExternal(); }}
-              className="inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300 hover:underline disabled:opacity-50"
+              className={`inline-flex items-center gap-1 min-h-[32px] touch-manipulation ${TEUX_FONT_CAPTION} text-sky-700/80 dark:text-sky-300/90 hover:underline disabled:opacity-50`}
             >
               {(externalDiscovering) ? <Loader2 size={10} className="animate-spin" /> : <Building2 size={10} />}
               {externalDiscovering ? "Szukam…" : "Szukaj u zamawiającego"}
@@ -348,7 +362,7 @@ export function TenderAttachmentsPanel({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); toggleGroup(group.id, group.items.length); }}
-                className="w-full flex flex-wrap items-center gap-2 px-2.5 py-1.5 bg-secondary/30 hover:bg-secondary/45 text-left transition-colors"
+                className={`w-full flex flex-wrap items-center gap-2 px-2.5 py-1.5 ${TEUX_TOUCH_TARGET} touch-manipulation bg-secondary/30 hover:bg-secondary/45 text-left transition-colors`}
                 aria-expanded={expanded}
               >
                 <ChevronDown
@@ -378,7 +392,12 @@ export function TenderAttachmentsPanel({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[10px] text-muted-foreground px-2.5 py-1.5">Brak dokumentów</p>
+                  <p
+                    className={`${TEUX_FONT_CAPTION} text-muted-foreground px-2.5 py-1.5`}
+                    data-tender-doc-group-empty={group.id}
+                  >
+                    Brak dokumentów
+                  </p>
                 )
               )}
             </div>
@@ -419,7 +438,7 @@ export function TenderAttachmentsPanel({
         <JobFilePreviewModal
           item={preview}
           athPreviewEnabled={athPreviewEnabled !== false}
-          bzpDocuments={allDocs}
+          bzpDocuments={docs}
           onClose={() => setPreview(null)}
         />
       )}

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.76 — NG-08-04 Tender Documents Workspace
+
+- **improve:** TEUX section titles · LS persist expanded groups · secondary collapse SWZ meta · touch-safe headers · per-group empty row
+- **boundary:** slice NG-08-04/05 · WF-04 · REC-1 · presentation only · #CORE-013 PASS
+
 ## 2.63.75 — NG-08-03 Tender Workspace Intelligence
 
 - **improve:** Hub Podsumowanie oferty pinned na Przetargu · IntelligenceShortcutChip globalny · KPI-UX-01 · split progress/insights (OPT-E)

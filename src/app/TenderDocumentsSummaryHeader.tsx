@@ -7,6 +7,8 @@ import {
 } from "@/lib/tender-documents-tab-summary";
 import type { DocumentsTrustBadgeView } from "@/lib/tender-trust-ui";
 import { TrustBadge } from "@/app/tenders/trust/TrustBadge";
+import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
+import { TEUX_FONT_META } from "@/lib/tender-ux-tokens";
 
 function toneClass(tone: DocumentsTabSummaryTone): string {
   switch (tone) {
@@ -58,9 +60,9 @@ export function TenderDocumentsSummaryHeader({
     >
       <div className="px-4 py-2.5 border-b border-primary/10 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+          <TenderUxSectionTitle className="text-primary">
             Podsumowanie dokumentów
-          </p>
+          </TenderUxSectionTitle>
           {trustBadge && (
             <TrustBadge
               level={trustBadge.level}
@@ -69,7 +71,7 @@ export function TenderDocumentsSummaryHeader({
             />
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground">
+        <p className={TEUX_FONT_META}>
           Ostatnia analiza:{" "}
           <span className="font-medium text-foreground">{summary.lastAnalysisLabel}</span>
         </p>
@@ -83,16 +85,16 @@ export function TenderDocumentsSummaryHeader({
         </div>
 
         <div className="pt-2 border-t border-primary/10 space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <TenderUxSectionTitle className="text-muted-foreground">
             Gotowość procesu
-          </p>
+          </TenderUxSectionTitle>
           <div className="flex flex-wrap gap-1.5">
             {summary.processReadiness.map((row) => {
               const tone = analysisStepStateToTone(row.state);
               return (
                 <span
                   key={row.id}
-                  className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md border ${
+                  className={`inline-flex items-center gap-1 ${TEUX_FONT_META} font-medium px-2 py-0.5 rounded-md border ${
                     tone === "ok"
                       ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25"
                       : tone === "pending"

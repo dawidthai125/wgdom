@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.76",
+    label: "NG-08-04 — Tender Documents Workspace",
+    items: [
+      {
+        type: "improve",
+        text: "Zakładka Dokumenty — spójne nagłówki sekcji TEUX, pamięć rozwiniętych grup załączników (round-trip między zakładkami), zwinięte metadane analizy SWZ, większe pola dotyku na mobile.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.75",
     label: "NG-08-03 — Tender Workspace Intelligence",
     items: [

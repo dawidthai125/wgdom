@@ -6,6 +6,7 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader";
 import { TenderDocumentsSummarySkeleton } from "@/app/tenders/loading/TenderDocumentsSummarySkeleton";
+import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
 import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
@@ -21,7 +22,7 @@ import {
 export function TenderDocumentsWorkspace({
   item,
   swz,
-  platformSourceLabel,
+  platformSourceLabel: _platformSourceLabel,
   athPreviewEnabled,
   loadingDocs,
   analyzing,
@@ -99,13 +100,14 @@ export function TenderDocumentsWorkspace({
 
   const summaryLoading = Boolean(loadingDocs || autoRunning || dossierBuilding);
 
+  const hasSwzMetaSection = Boolean(
+    swz?.parsedAt
+    || (swz?.awardCriteria?.length ?? 0) > 0
+    || (swz?.tableExtracts?.length ?? 0) > 0,
+  );
+
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
-        {platformSourceLabel}
-      </p>
-
       {summaryLoading ? (
         <TenderDocumentsSummarySkeleton />
       ) : (
@@ -127,11 +129,9 @@ export function TenderDocumentsWorkspace({
 
       {showFormalSection && (
         <div id={TENDER_FORMAL_DETAILS_SECTION_ID} className="rounded-xl border border-border overflow-hidden scroll-mt-2">
-          <div className="px-3 py-2.5 bg-secondary/40 border-b border-border">
-            <p className="text-xs font-semibold flex items-center gap-1.5">
-              <ClipboardList size={13} className="text-muted-foreground shrink-0" />
-              Szczegóły formalne
-            </p>
+          <div className="px-3 py-2.5 bg-secondary/40 border-b border-border flex items-center gap-1.5">
+            <ClipboardList size={13} className="text-muted-foreground shrink-0" />
+            <TenderUxSectionTitle>Szczegóły formalne</TenderUxSectionTitle>
           </div>
           <div className="px-3 py-2.5 space-y-2">
             {formalSummary.length > 0 && (
@@ -189,42 +189,56 @@ export function TenderDocumentsWorkspace({
         </div>
       )}
 
-      {swz?.parsedAt && (
-        <p className="text-[10px] text-muted-foreground rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
-          Ostatnia analiza SWZ: {new Date(swz.parsedAt).toLocaleString("pl-PL")}
-          {sourceLabel && <> · źródło: {sourceLabel}</>}
-          {swz.profitabilityNote && (
-            <> · <span className={
-              swz.profitabilityHint === "good" ? "text-emerald-600"
-                : swz.profitabilityHint === "risky" ? "text-red-600" : "text-amber-600"
-            }>{swz.profitabilityNote}</span></>
-          )}
-        </p>
-      )}
-
-      {(swz?.awardCriteria?.length ?? 0) > 0 && (
-        <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-            Kryteria z analizy SWZ
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {swz!.awardCriteria!.map((c) => (
-              <span key={c.name} className="text-[10px] bg-violet-500/10 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded">
-                {c.name}{c.weightPct != null ? ` ${c.weightPct}%` : ""}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(swz?.tableExtracts?.length ?? 0) > 0 && (
-        <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
-          <summary className="cursor-pointer hover:text-foreground font-medium">
-            Fragmenty tabel z PDF ({swz!.tableExtracts!.length})
+      {hasSwzMetaSection && (
+        <details
+          data-tender-documents-swz-meta
+          className="rounded-xl border border-border/60 overflow-hidden scroll-mt-2"
+        >
+          <summary className="px-3 py-2.5 bg-secondary/40 border-b border-border cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <TenderUxSectionTitle as="p" className="inline">
+              Metadane analizy SWZ
+            </TenderUxSectionTitle>
           </summary>
-          <ul className="mt-1 space-y-0.5 list-disc pl-4 max-h-40 overflow-y-auto">
-            {swz!.tableExtracts!.map((t) => <li key={t}>{t}</li>)}
-          </ul>
+          <div className="px-3 py-2.5 space-y-2">
+            {swz?.parsedAt && (
+              <p className="text-[10px] text-muted-foreground rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
+                Ostatnia analiza SWZ: {new Date(swz.parsedAt).toLocaleString("pl-PL")}
+                {sourceLabel && <> · źródło: {sourceLabel}</>}
+                {swz.profitabilityNote && (
+                  <> · <span className={
+                    swz.profitabilityHint === "good" ? "text-emerald-600"
+                      : swz.profitabilityHint === "risky" ? "text-red-600" : "text-amber-600"
+                  }>{swz.profitabilityNote}</span></>
+                )}
+              </p>
+            )}
+
+            {(swz?.awardCriteria?.length ?? 0) > 0 && (
+              <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  Kryteria z analizy SWZ
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {swz!.awardCriteria!.map((c) => (
+                    <span key={c.name} className="text-[10px] bg-violet-500/10 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded">
+                      {c.name}{c.weightPct != null ? ` ${c.weightPct}%` : ""}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(swz?.tableExtracts?.length ?? 0) > 0 && (
+              <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
+                <p className="font-medium text-foreground/90 mb-1">
+                  Fragmenty tabel z PDF ({swz!.tableExtracts!.length})
+                </p>
+                <ul className="space-y-0.5 list-disc pl-4 max-h-40 overflow-y-auto">
+                  {swz!.tableExtracts!.map((t) => <li key={t}>{t}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
         </details>
       )}
 
