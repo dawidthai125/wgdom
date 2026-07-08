@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.72** · **PRODUCTION VERIFIED** · **NG-07-TEUX-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.73** · **PRODUCTION VERIFIED** · runtime **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,63 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i modułów?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) |
 | **Kontekst sesji i architektura skrót?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–4 |
-| **Baseline prod** | UI **2.63.72** · runtime **`08a6649`** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.63.73** · runtime **`e9720de`** · **PRODUCTION VERIFIED** · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-07-TEUX-01** (`08a6649`, 2.63.72) · Lista Przetargów UX 4/4 slices |
-| **Co dalej?** | STABILIZATION WINDOW · FEATURE tylko Owner GO · **bez** nowych epiców |
+| **Ostatnio zamknięte** | **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`) |
+| **Co dalej?** | **Następny AUDIT** (Owner GO) · **NG-08-02** — ARCH REVIEW → OWNER GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
+
+---
+
+## INSPECTOR-RUNTIME-STATE-01 · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](docs/recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) · pokrewne: [`docs/recovery/INSPECTOR-VISIBILITY-01-AUDIT-REPORT.md`](docs/recovery/INSPECTOR-VISIBILITY-01-AUDIT-REPORT.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · owner smoke **PASS** |
+| **Commit** | **`e9720de`** — `fix(inspector): restore jobs runtime state hydration` |
+| **Prod** | **2.63.73** @ `e9720de` · `version.json` timestamp `2026-07-08T12:02:08Z` |
+| **RC** | typo `setJobsAllAll` → `setJobsAll` w `InspectorPanel.tsx` (regresja `f85b42c` / INSPECTOR-JOB-ASSIGN-001) |
+| **Smoke** | Szymon **15** · Zofia **2** · Dashboard PASS · Roboty PASS · Assignment PASS |
+
+**Nie zmieniaj bez polecenia:** filtr `filterJobsForInspector` · KV assignment · sync/payroll.
+
+---
+
+## NG-08 — Tender Workspace UX (parent)
+
+> **PLAN:** [`docs/architecture/NG-08-TEUX-PLAN.md`](docs/architecture/NG-08-TEUX-PLAN.md) · **Freeze:** [`docs/architecture/NG-08-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-08-TEUX-DESIGN-FREEZE.md)
+
+| Slice | Wersja | Commit | Status |
+|-------|--------|--------|--------|
+| **NG-08-01** Workspace Frame | **2.63.73** | `84b1491` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-08-02** Workspace Progress | — | — | **PLAN + FREEZE ✅** · ARCH REVIEW |
+| NG-08-03…05 | — | — | **BLOCKED** |
+
+---
+
+## NG-08-02 — Workspace Progress · **PLAN + FREEZE APPROVED**
+
+> **PLAN:** [`docs/architecture/NG-08-02-TEUX-PLAN.md`](docs/architecture/NG-08-02-TEUX-PLAN.md) · **Freeze:** [`docs/architecture/NG-08-02-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-08-02-TEUX-DESIGN-FREEZE.md) · **Audyt:** [`docs/architecture/NG-08-02-TEUX-UX-AUDIT.md`](docs/architecture/NG-08-02-TEUX-UX-AUDIT.md)
+
+| Element | Status |
+|---------|--------|
+| **AUDIT (CODE)** | **ACCEPTED** |
+| **PLAN** | **APPROVED** — WF-02 · 6 pakietów P-01…P-06 |
+| **DESIGN FREEZE** | **v1.0** — PENDING ARCH REVIEW |
+| **IMPLEMENT** | **BLOCKED** |
+
+**Reguła WF-02:** Process Strip = komponent workspace, nie tabu.
+
+**Workflow:** ARCH REVIEW → OWNER GO → IMPLEMENT **2.63.74**
+
+---
+
+## NG-08 — parent freeze (historyczny)
 
 ---
 

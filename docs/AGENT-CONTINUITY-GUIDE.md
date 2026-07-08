@@ -1,23 +1,20 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.66** · https://www.wgdom.fun · **NG-06-TEUX EPIC COMPLETE** · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-08 · **docs sync** `58a7d38` · **TEUX-7z VERIFIED** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+> **Prod:** UI **2.63.73** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-08 · **runtime** `e9720de` · **INSPECTOR-RUNTIME-STATE-01 CLOSED**
 
-> **★ Closeout sesji (2026-07-08, docs-only):** `58a7d38` — NG-06 TEUX **EPIC COMPLETE** · **PRODUCTION VERIFIED** (runtime `80cf911`, UI **2.63.66**). Zaktualizowano continuity: ten plik · `CURRENT-TASK.md` · `PROJECT-HANDOFF-CURRENT.md` · `AGENT-APP-MAP.md` · `AGENT-ONBOARDING.md` · `ARCHITECTURE.md` · `AGENTS.md`. **Bez** zmian kodu / recovery WIP.
+> **★ Baseline (2026-07-08):** prod **2.63.73** @ **`e9720de`**. Ostatnio zamknięte: **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`). **Cloud Sync S7** = observation only. **Następny krok:** **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW. Workflow: AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → … → CLOSE.
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-08):**
 >
-> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja (Przetargi, Mobile, Katalog, UI) **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB** (`payroll-week-roster-bundle.ts`). Gate B payroll **15/15** przy każdym bundle dotykającym syncu.
-> 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Szczegóły: punkt 0 powyżej.
-> 2. **NG-06-TEUX** — **EPIC COMPLETE** · **PRODUCTION VERIFIED** (prod **2.63.66** @ `80cf911`) · smoke `SMOKE-TEUX-NG06` · **TOKEN FREEZE** active. SSOT: [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md).
-> 3. **FEATURE DEVELOPMENT** — Work Catalog **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** — **BLOCKED** (telemetria T1–T7). **Nie** mieszaj FEATURE z CORE (#CORE-013).
-> 4. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
-> 5. **RC-B CLOSED** — mutacje składu LP **tylko** przez PWRB (`payroll-week-roster-bundle.ts`).
->
-> Recovery Program (S7-5, Edge-Opt-A) = **OBSERVATION** — nie blokuje FEATURE UI, ale **zakaz** dotykania payroll/sync w bundle FEATURE.
+> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB**. Gate B payroll **16/16** przy bundle dotykającym syncu.
+> 1. **INSPECTOR-RUNTIME-STATE-01 CLOSED** (`e9720de`) — `setJobsAll` hydratacja `InspectorPanel` · smoke Szymon **15** / Zofia **2**. **NG-08-01 CLOSED**. **Protected Core GREEN.**
+> 2. **NG-06-TEUX** — **EPIC COMPLETE** · **TOKEN FREEZE** active.
+> 3. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
+> 4. **Następny krok** — **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW (#CORE-013 · #CORE-014).
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -29,10 +26,13 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.66** · https://www.wgdom.fun |
-| **Runtime commit** | **`80cf911`** (`version.json`) |
-| **Docs HEAD** | **`58a7d38`** (po push continuity) |
-| **Epic ostatni** | **NG-06-TEUX** — **COMPLETE** · **PRODUCTION VERIFIED** |
+| **Production (UI)** | **2.63.73** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`e9720de`** (`version.json`) |
+| **Ostatnio CLOSED** | **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`) |
+| **Protected Core** | **GREEN** |
+| **Payroll Gate** | **16/16** PASS |
+| **Cloud Sync S7** | Observation only — no changes |
+| **Następny krok** | **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW |
 
 ### Czym jest aplikacja
 
@@ -44,6 +44,11 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` (setJobsAll) | **CLOSED** | **2.63.73** @ `e9720de` |
+| **NG-08-01** — Workspace Frame | **CLOSED** | **2.63.73** @ `84b1491` |
+| **NG-07-TEUX-01** — Lista Przetargów UX (4 slices) | **CLOSED** | 2.63.69→**72** |
+| **PAYROLL-RACE-01** — reconcile przed apply + guard LP | **CLOSED** | 2.63.68 |
+| **SMS-UI-01** — SMS wyczyść wybór | **CLOSED** | 2.63.67 |
 | **NG-06-TEUX** — design system Przetargi (Phase 1+2) | **EPIC COMPLETE** | 2.63.54→**66** |
 | **PAYROLL Etap 2** B1–B6 + RB + Guard | **CLOSED** | 2.63.15–24 |
 | **RC-B** PWRB + tombstone revocation | **CLOSED** | 2.63.30–31 |
@@ -51,16 +56,18 @@
 | **NG-04 BOQ PRO** · **NG-02 Pipeline** · **NG-03 Workspace** | **CLOSED** | 2.63.x |
 | **TEST-INFRA-001** + **TI-B4** smoke Przetargi | **CLOSED** | 2.63.26–27 |
 
-**SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`
+**SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`  
+**SSOT hotfix Inspektor:** [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md)
 
 ### Co będzie robione (bez nowego epicu — STABILIZATION WINDOW)
 
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
+| **Następny AUDIT** | **GO** (Owner) | pełny workflow → CLOSE · #CORE-013 |
+| **NG-08-02** Workspace Progress | PLAN + FREEZE | ARCH REVIEW → OWNER GO |
+| **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |
 | **POST F2 observation** (#5C-5C F3 telemetria) | **ACTIVE** | T1–T7 read-only · **F3 BLOCKED** |
-| **FEATURE** na polecenie | Owner GO | osobny bundle · #CORE-013/#CORE-014 |
-| **CORE / sync / Edge** | tylko AUDIT + Owner GO | **nie** w bundle FEATURE UI |
-| **Defer (poza roadmapą TEUX)** | — | hosted removal · Z-05 mobile re-cert · TOKEN thaw · Cloud Sync S7 |
+| **FEATURE / CORE** | Owner GO | osobny bundle · zero mixed commit |
 
 ### Reguła nr 1 dla każdej implementacji
 
@@ -98,6 +105,19 @@ Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom
 ---
 
 ## 2. Co zrobiliśmy (stan na 2026-07-08)
+
+### ★ Sesja 2026-07-08 — INSPECTOR-RUNTIME-STATE-01 (**CLOSED · PRODUCTION VERIFIED · GREEN**)
+
+| Element | Wartość |
+|---------|---------|
+| **Bundle** | **INSPECTOR-RUNTIME-STATE-01** — hydratacja React `jobsAll` w panelu Inspektora |
+| **Commit** | **`e9720de`** — `fix(inspector): restore jobs runtime state hydration` |
+| **Wersja prod** | **2.63.73** @ `e9720de` · `version.json` `2026-07-08T12:02:08Z` |
+| **RC** | `setJobsAllAll` → `setJobsAll` (`InspectorPanel.tsx:299`) — regresja INSPECTOR-JOB-ASSIGN-001 |
+| **Owner smoke** | Szymon **15** · Zofia **2** · Dashboard / Roboty / Assignment **PASS** |
+| **SSOT** | [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) |
+
+**Uwaga:** UI version nadal **2.63.73** (hotfix 1-linijkowy, bez bump changelog). KV / assignment / sync **bez zmian**.
 
 ### ★ Sesja 2026-07-08 — NG-06-TEUX TEUX-7z (**EPIC COMPLETE · PRODUCTION VERIFIED**)
 

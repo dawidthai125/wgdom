@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.66 VERIFIED** · commit **`80cf911`** · **NG-06-TEUX EPIC COMPLETE** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE** · **batch-set 500 OBSERVATION WINDOW** · **Bundle #5C-5C F2 CLOSED FINAL** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **RC-B + CORE-01A + PLATFORM-SYNC-01A CLOSED** · **Protected Core ACTIVE** · **TI-B4 / TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.73 VERIFIED** · commit **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **SMS-UI-01 + PAYROLL-RACE-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE**)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
@@ -72,6 +72,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` (setJobsAll typo) | **2.63.73** (`e9720de`) | **CLOSED** · **PRODUCTION VERIFIED** · smoke Szymon 15 / Zofia 2 | [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) |
+| **NG-08-01** — Tender Workspace Frame | **2.63.73** (`84b1491`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-TEUX-PLAN.md`](architecture/NG-08-TEUX-PLAN.md) |
 | **NG-06-TEUX** — Tender Experience & Design System (Phase 1+2) | **2.63.54–66** (`5a8b820`→`80cf911`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · smoke `SMOKE-TEUX-NG06` | [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
 | **NG-06-TEUX Phase 1** — core (TEUX-1…6) | **2.63.54–59** (`5a8b820`→`ead4de7`) | **COMPLETE** · prod **2.63.59 VERIFIED** | j.w. |
 | **PLATFORM-SYNC-01A** — reconcile notatek operacyjnych (archive race) | **2.63.33** (`a4cd5c2`) | **CLOSED** · ETAP B ON HOLD | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) § 3.5 · `CURRENT-TASK.md` |
@@ -197,19 +199,24 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ### 2.0. Aktualny stan (2026-07-08)
 
 ```text
-NG-06-TEUX     EPIC COMPLETE · PRODUCTION VERIFIED
-Production UI  2.63.66
-Runtime        80cf911  (version.json — kod aplikacji na Vercel)
-Docs HEAD      58a7d38  (continuity po epic closeout)
+Production UI  2.63.73  (PRODUCTION VERIFIED · GREEN)
+Runtime        e9720de  (version.json — kod aplikacji na Vercel)
+Ostatnio CLOSED  INSPECTOR-RUNTIME-STATE-01 (e9720de) · NG-08-01 (84b1491 · 2.63.73) · NG-07-TEUX-01 (08a6649 · 2.63.72)
+Protected Core GREEN
+Cloud Sync S7  observation only — no changes
+Next bundle    start from AUDIT (Owner GO) · NG-08-02 ARCH REVIEW
 ```
 
 | Priorytet produkcyjny | Reguła |
 |-----------------------|--------|
-| **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6. **Każda** nowa funkcja: zero regresji sync/LP. PWRB = jedyna ścieżka mutacji składu. |
-| **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). |
-| **Nowe epici** | **STABILIZATION WINDOW** — tylko na AUDIT + Owner GO. |
+| **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6 + **PAYROLL-RACE-01**. Gate payroll **16/16**. PWRB = jedyna ścieżka mutacji składu. |
+| **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). NG-08-01 Workspace Frame **CLOSED**. |
+| **Inspektor** | **INSPECTOR-RUNTIME-STATE-01 CLOSED** — hydratacja `jobsAll` w `InspectorPanel` (`setJobsAll`). Smoke: Szymon 15 / Zofia 2. |
+| **Nowe bundle** | **AUDIT → … → CLOSE** · STABILIZATION WINDOW · Owner GO · **#CORE-013** |
 
 **Start dla AI:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 0 · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)
+
+**SSOT hotfix inspektora:** [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md)
 
 ### 2a. P0 CLOSED — Cloud Sync Incident / Supabase egress (2026-06-29)
 
@@ -224,6 +231,10 @@ Docs HEAD      58a7d38  (continuity po epic closeout)
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.73       ← INSPECTOR-RUNTIME-STATE-01 · commit e9720de · PRODUCTION VERIFIED · GREEN
+Version (prod):             2.63.73       ← NG-08-01 Workspace Frame · commit 84b1491 (baseline przed hotfixem)
+Version (prod):             2.63.68       ← PAYROLL-RACE-01 CORE reconcile + guard · commit 79f2d17 · PRODUCTION VERIFIED
+Version (prod):             2.63.67       ← SMS-UI-01 preserve cleared SMS recipients · commit 570e615 · PRODUCTION VERIFIED
 Version (prod):             2.63.66       ← NG-06-TEUX-7z epic closeout · commit 80cf911 · PRODUCTION VERIFIED
 Version (prod):             2.63.65       ← NG-06-TEUX-7f hosted deprecation · commit a6da2c9
 Version (prod):             2.63.64       ← NG-06-TEUX-7e Strategia+Pulpit · commit f0a49cf
