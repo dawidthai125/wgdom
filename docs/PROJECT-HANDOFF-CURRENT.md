@@ -194,6 +194,23 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
+### 2.0. Aktualny stan (2026-07-08)
+
+```text
+NG-06-TEUX     EPIC COMPLETE · PRODUCTION VERIFIED
+Production UI  2.63.66
+Runtime        80cf911  (version.json — kod aplikacji na Vercel)
+Docs HEAD      58a7d38  (continuity po epic closeout)
+```
+
+| Priorytet produkcyjny | Reguła |
+|-----------------------|--------|
+| **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6. **Każda** nowa funkcja: zero regresji sync/LP. PWRB = jedyna ścieżka mutacji składu. |
+| **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). |
+| **Nowe epici** | **STABILIZATION WINDOW** — tylko na AUDIT + Owner GO. |
+
+**Start dla AI:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 0 · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)
+
 ### 2a. P0 CLOSED — Cloud Sync Incident / Supabase egress (2026-06-29)
 
 | Pole | Wartość |

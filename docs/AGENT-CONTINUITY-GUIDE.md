@@ -2,13 +2,16 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.63.66** · https://www.wgdom.fun · **NG-06-TEUX EPIC COMPLETE** · **PRODUCTION VERIFIED**
-> **Ostatnia aktualizacja:** 2026-07-08 · **TEUX-7z PRODUCTION VERIFIED** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION ACTIVE** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+> **Ostatnia aktualizacja:** 2026-07-08 · **docs sync** `58a7d38` · **TEUX-7z VERIFIED** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE** · **POST F2 OBSERVATION** · **F3 BLOCKED** · **Protected Core ACTIVE** (#CORE-013)
+
+> **★ Closeout sesji (2026-07-08, docs-only):** `58a7d38` — NG-06 TEUX **EPIC COMPLETE** · **PRODUCTION VERIFIED** (runtime `80cf911`, UI **2.63.66**). Zaktualizowano continuity: ten plik · `CURRENT-TASK.md` · `PROJECT-HANDOFF-CURRENT.md` · `AGENT-APP-MAP.md` · `AGENT-ONBOARDING.md` · `ARCHITECTURE.md` · `AGENTS.md`. **Bez** zmian kodu / recovery WIP.
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-07):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-08):**
 >
-> 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Przed **jakąkolwiek** zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, `App.tsx` (payroll handlers) → **§ 2b poniżej** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja (Przetargi, Mobile, Katalog, UI) **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB** (`payroll-week-roster-bundle.ts`). Gate B payroll **15/15** przy każdym bundle dotykającym syncu.
+> 1. **Lista Płac i sync są chronione** — seria napraw RC-B + PAYROLL Etap 2 (B1–B6) + PWRB jest **CLOSED**. Szczegóły: punkt 0 powyżej.
 > 2. **NG-06-TEUX** — **EPIC COMPLETE** · **PRODUCTION VERIFIED** (prod **2.63.66** @ `80cf911`) · smoke `SMOKE-TEUX-NG06` · **TOKEN FREEZE** active. SSOT: [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md).
 > 3. **FEATURE DEVELOPMENT** — Work Catalog **#5C-5C F1+F2 CLOSED** (prod **2.63.53**). **#5C-5C F3** — **BLOCKED** (telemetria T1–T7). **Nie** mieszaj FEATURE z CORE (#CORE-013).
 > 4. **PLATFORM-SYNC-01A CLOSED** (`a4cd5c2`, 2.63.33) — reconcile notatek operacyjnych; **nie** cofaj wzorca reconcile przy innych domenach bez AUDIT.
@@ -17,6 +20,51 @@
 > Recovery Program (S7-5, Edge-Opt-A) = **OBSERVATION** — nie blokuje FEATURE UI, ale **zakaz** dotykania payroll/sync w bundle FEATURE.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
+
+---
+
+## 0. Szybki start dla nowego agenta (2026-07-08)
+
+### Baseline (SSOT)
+
+| Warstwa | Wartość |
+|---------|---------|
+| **Production (UI)** | **2.63.66** · https://www.wgdom.fun |
+| **Runtime commit** | **`80cf911`** (`version.json`) |
+| **Docs HEAD** | **`58a7d38`** (po push continuity) |
+| **Epic ostatni** | **NG-06-TEUX** — **COMPLETE** · **PRODUCTION VERIFIED** |
+
+### Czym jest aplikacja
+
+**W&G DOM** — monolit React/Vite/TS dla firmy remontowej (Wrocław): **Pulpit**, **Lista Płac**, **Grafik**, **Roboty**, **Przetargi** (pipeline BZP + workspace V4), **Odbiory WM Druk** (ZI, pomiary, schematy), **Notatki operacyjne**, **Audit Hub**, panel **Inspektora** i tryb **Pracownika** (telefon + PIN). Dane trwałe: **LocalStorage ↔ Supabase KV** (`cloud-sync.ts`). Pliki: **Supabase Storage** + Edge `make-server-0afb8820`.
+
+**Mapa widoków i modułów:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **Pełna architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · **Workflow Przetargów:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md)
+
+### Co zrobiliśmy (skrót 2026-07)
+
+| Program | Status | Wersja |
+|---------|--------|--------|
+| **NG-06-TEUX** — design system Przetargi (Phase 1+2) | **EPIC COMPLETE** | 2.63.54→**66** |
+| **PAYROLL Etap 2** B1–B6 + RB + Guard | **CLOSED** | 2.63.15–24 |
+| **RC-B** PWRB + tombstone revocation | **CLOSED** | 2.63.30–31 |
+| **Work Catalog #5C** cutover F1+F2 | **CLOSED** | 2.63.44–53 |
+| **NG-04 BOQ PRO** · **NG-02 Pipeline** · **NG-03 Workspace** | **CLOSED** | 2.63.x |
+| **TEST-INFRA-001** + **TI-B4** smoke Przetargi | **CLOSED** | 2.63.26–27 |
+
+**SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`
+
+### Co będzie robione (bez nowego epicu — STABILIZATION WINDOW)
+
+| Kierunek | Status | Uwaga |
+|----------|--------|-------|
+| **POST F2 observation** (#5C-5C F3 telemetria) | **ACTIVE** | T1–T7 read-only · **F3 BLOCKED** |
+| **FEATURE** na polecenie | Owner GO | osobny bundle · #CORE-013/#CORE-014 |
+| **CORE / sync / Edge** | tylko AUDIT + Owner GO | **nie** w bundle FEATURE UI |
+| **Defer (poza roadmapą TEUX)** | — | hosted removal · Z-05 mobile re-cert · TOKEN thaw · Cloud Sync S7 |
+
+### Reguła nr 1 dla każdej implementacji
+
+**Nowe funkcje nie mogą regresować Listy Płac.** Nawet jeśli task dotyczy wyłącznie Przetargów lub Mobile — sprawdź § **2b** przed commitem. Mixed bundle (`cloud-sync.ts` + UI feature) = **BLOCKED** (#CORE-013).
 
 ---
 
@@ -39,7 +87,7 @@
 9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
 10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
 10f. docs/architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md  ← ★ POST F2 observation · T1–T7 · F3 BLOCKED
-10g. docs/architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md  ← ★★ NG-06 Phase 1 COMPLETE (TEUX-1…6) · TEUX-7+ READY FOR AUDIT
+10g. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.54→66) · smoke SMOKE-TEUX-NG06
 11. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
 12. docs/ARCHITECTURE.md             ← pełna architektura techniczna
 13. AGENTS.md                        ← zasady pracy, zakazy
@@ -526,10 +574,9 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | **#5C-5C F2** | **Bundle #5C-5C F2 — Legacy compat cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.53** · `e3daa6d` · **PRODUCTION VERIFIED** | `LIB-5C-5C-LEGACY-CLEANUP-F2` · suite **31** testIds |
 | **—** | **POST F2 observation** | OBSERVATION | **ACTIVE** | T1–T7 telemetria · bez `src/` |
 | **#5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** | telemetria T1–T7 + runbook + Owner GO |
-| **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje #1–#4 UI | S7-5 · Edge-Opt-A |
+| **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje FEATURE UI | S7-5 · Edge-Opt-A |
 | **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
-| **—** | G-08 empty states | FEATURE | **CLOSED** (TEUX-6) | lista · mapa · docs · kosztorys |
-| **—** | G-02 / TP200B / TEUX-7a filtry | FEATURE | OPEN · TEUX-7+ | osobny AUDIT per slice |
+| **—** | NG-06 TEUX G-01…G-13 | FEATURE | **CLOSED** (TEUX-7a…7f) | epic **COMPLETE** · defer: hosted removal |
 
 **WIP w tree (nie commitować razem):** mobile cluster ≠ `backup-lib.mjs` ≠ `docs/recovery/*`.
 
@@ -778,4 +825,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-04 (closeout `e4daaf4`) · prod UI 2.63.27 · HEAD `e4daaf4` (docs-only) · deploy SSOT `609ae53` · 🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (P0 FREEZE) · PAYROLL & SUPABASE RECOVERY PROGRAM ACTIVE — faza PRODUCTION OBSERVATION · PR-PAY-S7-5 ETAP 1 DEPLOYED (`ae132bc`, Obs OPEN) · PR-PERF-EDGE-OPT-A DEPLOYED (`609ae53`, Obs OPEN) · Evidence Gate OPEN · Edge-Opt-B MASTER AUDIT COMPLETE (DF NOT STARTED, IMPL BLOCKED) · S7-4A OBSERVATION · STABILIZATION WINDOW ACTIVE · Z-05 Device Required · backup lokalny klasy B (INFRA-DB-BACKUP-01 ON HOLD)*
+*Ostatnia aktualizacja: 2026-07-08 (closeout `58a7d38`) · prod UI **2.63.66** @ `80cf911` · **NG-06-TEUX EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE** · **Lista Płac chroniona** (RC-B + PAYROLL B1–B6 CLOSED) · POST F2 OBSERVATION · F3 BLOCKED*

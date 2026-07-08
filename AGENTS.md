@@ -14,12 +14,14 @@
 2p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md  ← ★★ RC-B-1 CLOSED (PWRB · I-1…I-4 · jak nie zepsuć LP)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
+2og. docs/WORKFLOW-OWNER-GO.md  ← ★ Owner GO Policy (#WORKFLOW-OWNER-GO-001) · FEATURE vs CORE gate IMPLEMENT
 2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
 2ti. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA-001 Harness MVP (CLOSED · 2.63.26)
 2ti3. docs/TI-B4-CLOSEOUT.md  ← ★★ TI-B4 Smoke agregat NG-01–04 (CLOSED · 2.63.27 · Z-04 PASS)
 2ti2. docs/TEST-INFRA-LIFECYCLE.md  ← lifecycle orchestratora test-infra
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.27)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.53)
+2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.66)
+2w2. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.66)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.66)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
 3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
@@ -201,8 +203,9 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.53**) |
-| Prod `main` (app) | **v2.63.53** (`e3daa6d`) · #5C-5C F1+F2 CLOSED · F3 BLOCKED · Work Catalog P2.1–**P2.10** CLOSED · RC-B-1 CLOSED · TI-B4 CLOSED · TEST-INFRA-001 CLOSED · PAYROLL Etap 2 B1–B6+RB CLOSED · NG-02 EPIC CLOSED · Mobile Recovery **EPIC CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.66**) |
+| Prod `main` (app) | **v2.63.66** (`80cf911`) · **NG-06-TEUX EPIC COMPLETE** · #5C-5C F1+F2 CLOSED · F3 BLOCKED · Work Catalog P2.1–**P2.10** CLOSED · RC-B-1 CLOSED · TI-B4 CLOSED · TEST-INFRA-001 CLOSED · PAYROLL Etap 2 B1–B6+RB CLOSED · NG-02 EPIC CLOSED · Mobile Recovery **EPIC CLOSED** |
+| Docs `main` (continuity) | **`58a7d38`** — epic closeout PRODUCTION VERIFIED |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

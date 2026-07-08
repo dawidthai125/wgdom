@@ -2,6 +2,20 @@
 
 **Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.66** · **PRODUCTION VERIFIED** · **NG-06-TEUX EPIC COMPLETE** · **Phase 2 CLOSED** · **TOKEN FREEZE ACTIVE**
 
+## Dla przyszłych agentów — start tutaj
+
+| Pytanie | Odpowiedź / plik |
+|---------|------------------|
+| **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
+| **Mapa widoków i modułów?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) |
+| **Kontekst sesji i architektura skrót?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–4 |
+| **Baseline prod** | UI **2.63.66** · runtime **`80cf911`** · docs **`58a7d38`** |
+| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **15/15** |
+| **NG-06 TEUX (zamknięty)** | [`docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) |
+| **Co dalej?** | STABILIZATION WINDOW · POST F2 observation · FEATURE tylko Owner GO · **bez** nowych epiców |
+
+**Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
+
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
 
 ---

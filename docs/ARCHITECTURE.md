@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-05 (**Bundle #6D Work Catalog P2.10** · prod **2.63.41** @ `642a01d` · **PRODUCTION VERIFIED**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-08 (**NG-06-TEUX EPIC COMPLETE** · prod **2.63.66** @ `80cf911` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1881,6 +1881,31 @@ TendersModule (v4Detail z pathname)
 **Nie zmienia:** `useTenderPipelineRuntime` · bootstrap · gate · parsery · Pricing · Trust · Cloud Sync.
 
 **Test:** `test-p0-tender-detail-ssot-tab.mjs` (12) · `e2e/audit-p0-tender-freeze.spec.ts` (tab SSOT).
+
+---
+
+### 12.1.28 NG-06 — Tender Experience UX (TEUX) (v2.63.54 → v2.63.66)
+
+**Status:** **EPIC COMPLETE** · **PRODUCTION VERIFIED** · runtime **`80cf911`**  
+**SSOT:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · Design Freeze: [`architecture/NG-06-TEUX-DESIGN-FREEZE.md`](architecture/NG-06-TEUX-DESIGN-FREEZE.md)
+
+Epic dostarcza **design system i warstwę UX** modułu Przetargi — **bez** zmian pipeline/sync/payroll/Edge (boundary #CORE-013 **PASS** na całym epicu).
+
+| Faza | Zakres | Wersje |
+|------|--------|--------|
+| **Phase 1** | TEUX-1…6: nawigacja V4 · tokeny · karty · mobile · loading · empty states | 2.63.54–59 |
+| **Phase 2** | TEUX-7a…7f: filtry · command layer · a11y · copy · Strategia/Pulpit · hosted deprecation | 2.63.60–65 |
+| **Closeout** | TEUX-7z: smoke agregat `SMOKE-TEUX-NG06` (12 child) | **2.63.66** |
+
+| Element | Plik / artefakt |
+|---------|-----------------|
+| Nawigacja detalu V4 | `tender-detail-nav.ts` · `openTenderDetailV4` |
+| Tokeny UI | `tender-ux-tokens.ts` — **TOKEN FREEZE** (import-only od TEUX-2) |
+| Smoke SSOT | `scripts/test-tenders-teux-smoke.mjs` · `npm run test:infra -- --suite smoke-teux` |
+
+**Nie zmienia:** `cloud-sync.ts` · `useTenderPipelineRuntime` · parsery · merge dossier · **Lista Płac**.
+
+**Defer (poza epicem):** fizyczne usunięcie hosted · TOKEN thaw · bez Owner GO.
 
 ---
 

@@ -1,10 +1,10 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** UI **2.63.30** · HEAD **`24bde6e`** · https://www.wgdom.fun  
-> **Data:** 2026-07-04 · **RC-B-1 CLOSED** · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.63.66** · runtime **`80cf911`** · https://www.wgdom.fun  
+> **Data:** 2026-07-08 · **NG-06-TEUX EPIC COMPLETE** · **RC-B-1 CLOSED** · **PAYROLL B1–B6+RB CLOSED** · STABILIZATION WINDOW ACTIVE
 
-> **★ RC-B-1 (2026-07-04):** re-add po delete — PWRB facade. Closeout: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Architektura sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+> **★ LISTA PŁAC:** moduł **krytyczny produkcyjnie**. Przed zmianą sync/merge/Edge/payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Nowe FEATURE **nie mogą** mieszać się z CORE (#CORE-013).
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -245,6 +245,7 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 | Audit Hub freshness AH-REG-1 | 2.63.25 | `AUDIT-HUB-AH-REG-1-DESIGN-FREEZE.md` |
 | **TI-B4** smoke agregat NG-01–04 | **2.63.27** | `TI-B4-CLOSEOUT.md` · Z-04 PASS |
 | **TEST-INFRA-001** harness MVP | **2.63.26** | `TEST-INFRA-001-CLOSEOUT.md` · TI-B1–B3 backlog |
+| **NG-06-TEUX** Tender Design System | **2.63.54–66** | `NG-06-TEUX-EPIC-CLOSE-REPORT.md` · smoke `SMOKE-TEUX-NG06` |
 | Audit Hub MVP + WM P1 | 2.62.36–77 | `SESSION-HANDOFF-AUDIT-HUB.md` |
 | Mobile Recovery | 2.62.78–79 | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` |
 
@@ -252,10 +253,15 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 ---
 
-## 9. Ostatnie releasy (2026-07-04)
+## 9. Ostatnie releasy (2026-07-08)
 
 | Wersja | Commit | Bundle | Zakres |
 |--------|--------|--------|--------|
+| **2.63.66** | `80cf911` | NG-06 TEUX-7z | Epic closeout · smoke `SMOKE-TEUX-NG06` 12/12 |
+| **2.63.65** | `a6da2c9` | TEUX-7f | Hosted deprecation guard |
+| **2.63.64** | `f0a49cf` | TEUX-7e | Strategia + Pulpit KPI |
+| **2.63.60–63** | `bc4b232`→`129f22d` | TEUX-7a…7d | Phase 2 polish |
+| **2.63.54–59** | `5a8b820`→`ead4de7` | TEUX-1…6 | Phase 1 core UX Przetargi |
 | **2.63.30** | `35f37b1` | RC-B-1 | PWRB facade + tombstone revocation I-1…I-4 |
 | *(cleanup)* | `24bde6e` | RC-B overlay | Usunięcie debug overlay (wersja UI bez zmian) |
 | **2.63.27** | `6c94223` | TI-B4 | Smoke agregat NG-01–04 · manifest 1.1.0 · Gate B `scope:tenders` |

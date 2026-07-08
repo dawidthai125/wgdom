@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.63.27** · commit **`6c94223`** · https://www.wgdom.fun · **TI-B4 CLOSED** · **Z-04 PASS** · **TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** **2.63.66** · runtime **`80cf911`** · https://www.wgdom.fun · **NG-06-TEUX EPIC COMPLETE** · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -65,6 +65,21 @@ Monolit **React + Vite + TypeScript** dla firmy remontowej W&G DOM (Wrocław):
 **Provider przetargów:** `TendersProvider` — jeden pipeline BZP dla Pulpitu i modułu Przetargi.
 
 **Command Center:** **usunięty** (v2.51.0) — archiwum: `docs/archive/command-center/`.
+
+---
+
+## 2a. ★ Reguła nr 1: Lista Płac nie może zostać zepsuta
+
+**Lista Płac** to najważniejszy moduł operacyjny (godziny, wypłaty, archiwum tygodnia, sync między urządzeniami). Po miesiącach napraw (Guard Phase, B4 merge, PWRB, RC-B) jest **stabilna na prod**.
+
+| Zanim implementujesz cokolwiek | Działanie |
+|------------------------------|-----------|
+| Dotykasz `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` | Przeczytaj [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| Dodajesz/usuwasz pracownika z tygodnia | **Tylko** `payroll-week-roster-bundle.ts` (PWRB) |
+| Bundle FEATURE (Przetargi, Mobile, Katalog) | **Zero** diff w plikach CORE payroll/sync (#CORE-013) |
+| Przed commitem | `npm run test:infra -- --gate B --scope payroll` (15/15) |
+
+**SSOT continuity:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § **2b** · RC-B: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
 
 ---
 
