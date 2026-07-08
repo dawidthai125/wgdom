@@ -1,10 +1,10 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** UI **2.63.66** · runtime **`80cf911`** · https://www.wgdom.fun  
-> **Data:** 2026-07-08 · **NG-06-TEUX EPIC COMPLETE** · **RC-B-1 CLOSED** · **PAYROLL B1–B6+RB CLOSED** · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.63.73** · runtime **`e9720de`** · https://www.wgdom.fun · **GREEN**  
+> **Data:** 2026-07-08 · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-06-TEUX EPIC COMPLETE** · **RC-B-1 CLOSED** · **PAYROLL B1–B6+RB CLOSED** · STABILIZATION WINDOW ACTIVE
 
-> **★ LISTA PŁAC:** moduł **krytyczny produkcyjnie**. Przed zmianą sync/merge/Edge/payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Nowe FEATURE **nie mogą** mieszać się z CORE (#CORE-013).
+> **★ LISTA PŁAC:** moduł **krytyczny produkcyjnie**. Przed zmianą sync/merge/Edge/payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Nowe FEATURE **nie mogą** mieszać się z CORE (#CORE-013). Owner GO: [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -56,6 +56,8 @@
 
 **Tryby poza adminem:** `AppInnerWithAuth.tsx` — **admin** | **inspector** (`InspectorPanel.tsx`) | **worker** (telefon + PIN).
 
+**Inspektor — stan osobny:** `InspectorPanel` trzyma `jobsAll` w `useState` (nie `App.tsx`). Widoczność: `filterJobsForInspector(jobsAll, session.id)`. Hotfix `e9720de`: setter musi być `setJobsAll` (nie `setJobsAllAll`). SSOT: [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md).
+
 ---
 
 ## 3. Przepływ shell aplikacji
@@ -63,10 +65,12 @@
 ```text
 main.tsx
   └── AppInnerWithAuth.tsx          ← login, sesja admin/inspector/worker
-        └── App.tsx                 ← ★ shell admin: state LS, sync, setView
-              ├── AdminSidebar / AdminTopbar / AdminMobileNav
-              ├── AdminViewRouter   ← lazy *View.tsx per view
-              └── modale globalne (ustawienia, SMS, search, …)
+        ├── App.tsx                 ← ★ shell admin: state LS, sync, setView
+        │     ├── AdminSidebar / AdminTopbar / AdminMobileNav
+        │     ├── AdminViewRouter   ← lazy *View.tsx per view
+        │     └── modale globalne (ustawienia, SMS, search, …)
+        ├── InspectorPanel          ← izolowany sync + jobsAll (kw-jobs)
+        └── WorkerPhotoView
 ```
 
 ### 3.1 `App.tsx` — odpowiedzialności (nie czytaj całości)
@@ -239,6 +243,9 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 | Epic | Wersja | SSOT |
 |------|--------|------|
+| **INSPECTOR-RUNTIME-STATE-01** | **2.63.73** (`e9720de`) | `recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md` |
+| **NG-08-01** Workspace Frame | **2.63.73** (`84b1491`) | `architecture/NG-08-TEUX-PLAN.md` |
+| NG-07-TEUX-01 Lista | 2.63.69–72 | `architecture/NG-07-TEUX-01-CLOSEOUT.md` |
 | NG-04 BOQ PRO | 2.63.12 | `NG-04-EPIC-CLOSE-REPORT.md` |
 | PAYROLL B3–B6 | 2.63.18–23 | `PAYROLL-GUARD-PHASE-CLOSEOUT.md`, B5/B6 closeout |
 | Restore banner RB | 2.63.24 | `PAYROLL-RESTORE-BANNER-DESIGN-FREEZE.md` |
@@ -249,7 +256,7 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 | Audit Hub MVP + WM P1 | 2.62.36–77 | `SESSION-HANDOFF-AUDIT-HUB.md` |
 | Mobile Recovery | 2.62.78–79 | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` |
 
-**STABILIZATION WINDOW:** brak nowych epiców — `STABILIZATION-WINDOW-PLAN.md`.
+**STABILIZATION WINDOW:** brak nowych epiców — `STABILIZATION-WINDOW-PLAN.md`. **NG-08-02:** PLAN+FREEZE · ARCH REVIEW.
 
 ---
 
@@ -257,6 +264,9 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 | Wersja | Commit | Bundle | Zakres |
 |--------|--------|--------|--------|
+| **2.63.73** | `e9720de` | INSPECTOR-RUNTIME-STATE-01 | `setJobsAll` hydratacja · smoke 15/2 |
+| **2.63.73** | `84b1491` | NG-08-01 | Workspace Frame CTA + breadcrumb |
+| **2.63.72** | `08a6649` | NG-07-04 | Desktop list density |
 | **2.63.66** | `80cf911` | NG-06 TEUX-7z | Epic closeout · smoke `SMOKE-TEUX-NG06` 12/12 |
 | **2.63.65** | `a6da2c9` | TEUX-7f | Hosted deprecation guard |
 | **2.63.64** | `f0a49cf` | TEUX-7e | Strategia + Pulpit KPI |

@@ -1,18 +1,18 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.73** · **PRODUCTION VERIFIED** · runtime **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.73** · **PRODUCTION VERIFIED** · runtime **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
 
 ## Dla przyszłych agentów — start tutaj
 
 | Pytanie | Odpowiedź / plik |
 |---------|------------------|
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
-| **Mapa widoków i modułów?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) |
-| **Kontekst sesji i architektura skrót?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–4 |
+| **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
+| **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Baseline prod** | UI **2.63.73** · runtime **`e9720de`** · **PRODUCTION VERIFIED** · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
 | **Ostatnio zamknięte** | **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`) |
-| **Co dalej?** | **Następny AUDIT** (Owner GO) · **NG-08-02** — ARCH REVIEW → OWNER GO |
+| **Co dalej?** | **Następny AUDIT** (Owner GO) · **NG-08-02** — ARCH REVIEW → OWNER GO → IMPLEMENT **2.63.74** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 

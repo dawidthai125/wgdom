@@ -1,11 +1,12 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.73 VERIFIED** · commit **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **SMS-UI-01 + PAYROLL-RACE-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.73 VERIFIED** · commit **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **SMS-UI-01 + PAYROLL-RACE-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: AUDIT / NG-08-02 ARCH REVIEW**)
+> **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
-> **Hasło sesji:** „kontynuuj WGDOM”  
+> **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
 **Wejście dla nowej sesji:**

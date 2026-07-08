@@ -73,34 +73,53 @@
 
 **Nowe funkcje nie mogą regresować Listy Płac.** Nawet jeśli task dotyczy wyłącznie Przetargów lub Mobile — sprawdź § **2b** przed commitem. Mixed bundle (`cloud-sync.ts` + UI feature) = **BLOCKED** (#CORE-013).
 
+### ★ Obostrzenia (MUST — przeczytaj przed kodem)
+
+| ID / reguła | Co oznacza | SSOT |
+|-------------|------------|------|
+| **#CORE-013** | Zero **mixed bundle**: FEATURE UI ≠ `cloud-sync` / Payroll / Edge w jednym commicie | [`architecture/CORE-01A-DESIGN-FREEZE.md`](architecture/CORE-01A-DESIGN-FREEZE.md) |
+| **#CORE-014** | **Boundary Check** przed IMPLEMENT i przed COMMIT (klasyfikacja każdego pliku) | [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md) |
+| **Owner GO** | IMPLEMENT dopiero po AUDIT → PLAN → FREEZE → ARCH REVIEW → Boundary · wyjątki CORE w [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) | `#WORKFLOW-OWNER-GO-001` |
+| **STABILIZATION WINDOW** | Brak nowych epiców bez Owner GO + AUDIT; maintenance / hotfix dozwolone | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) |
+| **TOKEN FREEZE** | `tender-ux-tokens.ts` — **import-only** (bez edycji tokenów bez AUDIT) | NG-06 TEUX epic close |
+| **Lista Płac / PWRB** | Mutacje składu tygodnia **tylko** przez PWRB · gate B payroll **16/16** | § **2b** · Payroll Agent Guide |
+| **Cloud Sync S7** | **Observation only** — bez nowych implementacji sync bez Owner GO | CURRENT-TASK · recovery |
+| **Deploy** | Frontend: **tylko** `git push origin main` · verify **jedno** `version.json` · **zakaz** `vercel deploy` | [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) |
+| **Commit** | Tylko na polecenie właściciela · jeden bundle = jeden cel · zero mixed WIP | AGENTS.md · reguły Cursor |
+| **Inspektor state** | Panel ma **własny** `useState jobsAll` (nie `App.tsx`) · setter **`setJobsAll`** | [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) |
+
+**Workflow bundla:** `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT → BUILD/SMOKE → COMMIT → PUSH → VERIFY → CLOSE`.
+
 ---
 
 ## 1. Kolejność czytania (nowa sesja)
 
 ```text
-1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa)
+1. docs/AGENT-CONTINUITY-GUIDE.md     ← TEN PLIK (kontekst + mapa + obostrzenia)
 1m. docs/AGENT-APP-MAP.md            ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
-1p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md ← ★★ architektura sync/merge Payroll (OBOWIĄZKOWE przed cloud-sync.ts / Edge)
-1p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md ← ★★ RC-B-1 CLOSED: PWRB · I-1…I-4 · jak nie zepsuć LP
-1r. docs/EDGE-OPT-B-MASTER-AUDIT.md  ← ★ RECOVERY PROGRAM: call graph batch-set, hotspoty CPU, split B1–B5, DF prerequisites
-2. CURRENT-TASK.md                   ← status · P0 FREEZE · RECOVERY PROGRAM (PRODUCTION OBSERVATION) · backlog
-3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 — zasady, maintenance, Z-01–Z-07
-4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy (SSOT metryk)
-5. docs/AGENT-ONBOARDING.md          ← widoki, sync, smoke, workflow deweloperski
-6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod, epici, commity
-7. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA Harness MVP (CLOSED · 2.63.26 · TI-B1–B3 backlog)
-7b. docs/TI-B4-CLOSEOUT.md          ← ★★ TI-B4 smoke agregat (CLOSED · 2.63.27 · Z-04 PASS)
-8. docs/NG-04-EPIC-CLOSE-REPORT.md   ← BOQ PRO · Principles #001–#010 frozen
-9. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review Przetargi NG-01–04
-10. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy zmianie Przetargu
-10f. docs/architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md  ← ★ POST F2 observation · T1–T7 · F3 BLOCKED
-10g. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.54→66) · smoke SMOKE-TEUX-NG06
-11. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release + VERIFY (nie zmieniaj bez polecenia)
-12. docs/ARCHITECTURE.md             ← pełna architektura techniczna
-13. AGENTS.md                        ← zasady pracy, zakazy
+1og. docs/WORKFLOW-OWNER-GO.md       ← ★ Owner GO Policy (#WORKFLOW-OWNER-GO-001)
+1c. docs/architecture/CORE-01A-CHANGE-CHECKLIST.md ← Boundary Check FEATURE/CORE
+1c2. docs/architecture/CORE-PROTECTED-ARCHITECTURE.md ← co jest Protected Core
+1p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md ← ★★ sync/merge Payroll
+1p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md ← PWRB · I-1…I-4
+1r. docs/EDGE-OPT-B-MASTER-AUDIT.md  ← Edge-Opt-B BLOCKED (recovery)
+2. CURRENT-TASK.md                   ← status · backlog · CLOSED / PENDING
+3. docs/STABILIZATION-WINDOW-PLAN.md ← okres stabilizacji
+4. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md
+5. docs/AGENT-ONBOARDING.md
+6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod SSOT
+7. docs/TEST-INFRA-001-CLOSEOUT.md · docs/TI-B4-CLOSEOUT.md
+8. docs/architecture/NG-08-TEUX-PLAN.md · NG-08-02-*  ← następny UX workspace
+8i. docs/recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md  ← hotfix Inspektor CLOSED
+9. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy Przetargu
+10. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md
+11. docs/WORKFLOW-RELEASE-DEPLOY.md
+12. docs/ARCHITECTURE.md
+13. AGENTS.md
 ```
 
-Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
+Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.  
+Hasło **„domknij WGDOM”** → aktualizacja docs ciągłości + commit **tylko** docs (`.cursor/rules/wgdom-domkniecie-sesji.mdc`).
 
 ---
 
@@ -557,50 +576,33 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne (2026-07-08)
 
-**Faza bieżąca (równolegle):**
+**Production:** **GREEN** · UI **2.63.73** @ **`e9720de`**.
 
-1. **NG-06-TEUX** — **EPIC COMPLETE** · **PRODUCTION VERIFIED** (2.63.66 @ `80cf911`). **TOKEN FREEZE** active — brak nowych slice bez AUDIT.
-2. **POST F2 OBSERVATION** (read-only) — telemetria **T1–T7** · SSOT: [`CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md`](architecture/CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md). **F3 IMPLEMENT = BLOCKED.**
+**Faza bieżąca:**
 
-**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 obowiązkowe. **Lista Płac — § 2b MUST** przy każdej sesji. **TOKEN FREEZE** — `tender-ux-tokens.ts` import-only.
+1. **INSPECTOR-RUNTIME-STATE-01** — **CLOSED** · **PRODUCTION VERIFIED** (`e9720de`) · smoke Szymon 15 / Zofia 2.
+2. **NG-08-01** Workspace Frame — **CLOSED** (`84b1491`).
+3. **NG-08-02** Workspace Progress — **PLAN + FREEZE v1.0** → **ARCH REVIEW** → Owner GO → IMPLEMENT (**2.63.74**). SSOT: [`NG-08-02-TEUX-PLAN.md`](architecture/NG-08-02-TEUX-PLAN.md).
+4. **Następny AUDIT** — dowolny nowy zakres **tylko** po Owner GO (pełny workflow).
+5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
+6. **Cloud Sync S7** — observation only.
 
-| Priorytet | Temat | Klasa | Status | SSOT / testy |
-|-----------|-------|-------|--------|--------------|
-| **TEUX-7z** Epic closeout smoke | FEATURE UI | **CLOSED** · **2.63.66** · **VERIFIED** | [`NG-06-TEUX-TEUX7Z-CLOSEOUT.md`](architecture/NG-06-TEUX-TEUX7Z-CLOSEOUT.md) |
-| **NG-06** | **TEUX EPIC** | FEATURE UI | **COMPLETE** · **2.63.66 VERIFIED** | [`NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) |
-| **NG-06** | **TEUX-1…6 Phase 1** | FEATURE UI | **COMPLETE** · prod **2.63.59** | [`NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
-| **#1** | **Bundle C — Mobile** (MOBILE-P0-S1 / M-03) | UI + PLATFORM layout | **CLOSED** · prod **2.63.34** · `eb0d51b` | `smoke-test-mobile-scroll-p0-s1.mjs` · Z-05 iPhone |
-| **#2** | NG-03 maintenance (R-03 docs banner) | docs | **CLOSED** · `f495a78` | `NG-03-DESIGN-FREEZE.md` |
-| **#3** | **Bundle #3 — Grouped documents test sync** | FEATURE test + docs | **CLOSED** · prod **2.63.35** · `eebe389` | `test-tender-grouped-documents.mjs` · `LIB-TENDERS-GROUPED-DOCS` |
-| **#4** | **Bundle #4A — Roboty 2.0 MIN doc/help sync** | docs + test manifest | **CLOSED** · prod **2.63.36** · `5d2b207` | `test-job-list-ops-2.0-min.mjs` · `LIB-JOBS-LIST-OPS-20-MIN` |
-| **#5** | **Bundle #5A — Work Catalog P2 test manifest sync** | docs + test manifest | **CLOSED** · prod **2.63.37** · `7e4eb57` | `smoke-work-catalog-p2-mvp` (10 testIds) |
-| **#5B** | **Bundle #5B — Work Catalog P2.7 Pakiety robót MIN** | FEATURE UI | **CLOSED** · prod **2.63.38** · `9aad48c` | `SMOKE-WORK-CATALOG-BUNDLES-P27` · suite 12 testIds |
-| **#6A** | **Bundle #6A — Work Catalog stabilization** | docs + test manifest | **CLOSED** · prod **2.63.38** · `6af0427` | `LIB-WORK-CATALOG-BOOTSTRAP-PB3` · suite **13** testIds |
-| **#6B** | **Bundle #6B — Work Catalog P2.8 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.39** · `1fd3627` | `SMOKE-WORK-CATALOG-BUNDLES-P28` · suite **15** testIds |
-| **#6C-A** | **Bundle #6C-A — Work Catalog P2.9 MIN UX** | FEATURE UI | **CLOSED** · prod **2.63.40** · `898682a` · **PRODUCTION VERIFIED** | `SMOKE-WORK-CATALOG-BUNDLES-P29` · suite **16** testIds |
-| **#6D-docs** | **Bundle #6D-docs — SSOT continuity** | docs | **CLOSED** · prod **2.63.40** · `a487680` |
-| **#6D** | **Bundle #6D — Work Catalog P2.10 Roboty ulubione** | FEATURE UI | **CLOSED FINAL** · prod **2.63.41** · `642a01d` · **PRODUCTION VERIFIED** | `SMOKE-WORK-CATALOG-FAVORITE-P210` · suite **17** testIds |
-| **#6E** | **Bundle #6E — Deferred bootstrap reliability** | FEATURE UI | **CLOSED FINAL** · prod **2.63.42** · `7138957` · **PRODUCTION VERIFIED** | `LIB-DEFERRED-BOOTSTRAP-6E` · suite **18** testIds |
-| **#5C-0A** | **Bundle #5C-0A — Pricing refresh after Work Catalog save** | FEATURE UI | **CLOSED FINAL** · prod **2.63.43** · `c151b40` · **PRODUCTION VERIFIED** | `LIB-PRICING-CATALOG-REVISION-5C0A` · suite **19** testIds |
-| **#5C-1** | **Bundle #5C-1 — Read SSOT Work Catalog only** | FEATURE lib | **CLOSED FINAL** · prod **2.63.44** · `aecf851` · **PRODUCTION VERIFIED** | `LIB-READ-SSOT-PREFLIGHT-5C1` + `LIB-READ-SSOT-WORK-ONLY-5C1` · suite **21** testIds |
-| **#5C-2** | **Bundle #5C-2 — Write SSOT work_only default** | FEATURE lib | **CLOSED FINAL** · prod **2.63.45** · `a7bc713` · **PRODUCTION VERIFIED** | `LIB-WRITE-SSOT-APP-NO-LEGACY-5C2` + `LIB-PB-WRITE-ROUTER` · suite **23** testIds |
-| **#5C-3A** | **Bundle #5C-3A — UX copy & navigation cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.46** · `d95b30b` · **PRODUCTION VERIFIED** | `LIB-UX-COPY-CUTOVER-5C3A` · suite **24** testIds |
-| **#5C-3B** | **Bundle #5C-3B — Preview data SSOT cutover** | FEATURE UI | **CLOSED FINAL** · prod **2.63.47** · `fcf3c6f` · **PRODUCTION VERIFIED** | `LIB-PREVIEW-SSOT-5C3B` · suite **25** testIds |
-| **#5C-3C** | **Bundle #5C-3C — Dead UX cleanup** | FEATURE UI | **CLOSED FINAL** · prod **2.63.48** · `e89051b` · **PRODUCTION VERIFIED** | `LIB-DEAD-UX-CLEANUP-5C3C` · suite **26** testIds |
-| **#5C-5A** | **Bundle #5C-5A — Legacy KV sync quiesce** | CORE lib | **CLOSED FINAL** · prod **2.63.50** · `36b3ddd` · **PRODUCTION VERIFIED** | `LIB-LEGACY-KV-SYNC-QUIESCE-5C5A` · suite **28** testIds |
-| **#5C-3D** | **Bundle #5C-3D — History SSOT from Work Catalog** | FEATURE lib | **CLOSED FINAL** · prod **2.63.49** · `03823ad` · **PRODUCTION VERIFIED** | `LIB-HISTORY-SSOT-5C3D` · suite **27** testIds |
-| **#5C-5B** | **Bundle #5C-5B — Bootstrap / Reconcile Decouple** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.51** · `50dae97` · **PRODUCTION VERIFIED** | `LIB-5C-5B-BOOTSTRAP-DECOUPLE` · suite **29** testIds |
-| **#5C-5C F1** | **Bundle #5C-5C F1 — Orphan reconcile cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.52** · `efc45d9` · **PRODUCTION VERIFIED** | `LIB-5C-5C-LEGACY-CLEANUP-F1` · suite **30** testIds |
-| **#5C-5C F2** | **Bundle #5C-5C F2 — Legacy compat cleanup** | CORE CATALOG | **CLOSED FINAL** · prod **2.63.53** · `e3daa6d` · **PRODUCTION VERIFIED** | `LIB-5C-5C-LEGACY-CLEANUP-F2` · suite **31** testIds |
-| **—** | **POST F2 observation** | OBSERVATION | **ACTIVE** | T1–T7 telemetria · bez `src/` |
-| **#5C-5C F3** | ONE-SHOT sunset · store removal | CORE CATALOG | **BLOCKED** | telemetria T1–T7 + runbook + Owner GO |
-| **—** | Payroll Performance Observation | CORE obs | OPEN · nie blokuje FEATURE UI | S7-5 · Edge-Opt-A |
-| **—** | Edge-Opt-B | PLATFORM | BLOCKED | `EDGE-OPT-B-MASTER-AUDIT.md` |
-| **—** | NG-06 TEUX G-01…G-13 | FEATURE | **CLOSED** (TEUX-7a…7f) | epic **COMPLETE** · defer: hosted removal |
+**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · **TOKEN FREEZE** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
-**WIP w tree (nie commitować razem):** mobile cluster ≠ `backup-lib.mjs` ≠ `docs/recovery/*`.
+| Priorytet | Temat | Klasa | Status | SSOT |
+|-----------|-------|-------|--------|------|
+| **NOW** | **Następny AUDIT** | — | Owner wyznacza zakres | ten plik §0 · CURRENT-TASK |
+| **NG-08-02** | Workspace Progress | FEATURE UI | PLAN+FREEZE · ARCH REVIEW | `NG-08-02-TEUX-*` |
+| **NG-08-01** | Workspace Frame | FEATURE UI | **CLOSED** · 2.63.73 | `NG-08-TEUX-PLAN.md` |
+| **INSPECTOR-RUNTIME-STATE-01** | setJobsAll hydration | BUGFIX runtime | **CLOSED** · `e9720de` | `INSPECTOR-RUNTIME-STATE-01-AUDIT.md` |
+| **NG-06** | TEUX EPIC | FEATURE UI | **COMPLETE** · 2.63.66 | `NG-06-TEUX-EPIC-CLOSE-REPORT.md` |
+| **—** | POST F2 observation | OBSERVATION | **ACTIVE** | `CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md` |
+| **—** | Cloud Sync S7 | CORE obs | Observation only | CURRENT-TASK |
+| **—** | Edge-Opt-B | PLATFORM | **BLOCKED** | `EDGE-OPT-B-MASTER-AUDIT.md` |
 
-**Deploy:** push `main` → Vercel · verify jedno `curl https://www.wgdom.fun/version.json`.
+**WIP w tree (nie commitować razem z docs continuity):** skrypty audit-* · `backup-lib.mjs` · recovery payroll RCA (poza aktywnym closeoutem).
+
+**Deploy:** push `main` → Vercel · verify **jedno** `curl`/`Invoke-RestMethod` `https://www.wgdom.fun/version.json`.
 
 ### AD-10 Stabilization — postęp sesji (2026-07-02)
 
@@ -649,11 +651,20 @@ Na koniec sesji **zaktualizuj dokumentację ciągłości i zrób commit docs**. 
 
 ### 4.2 Role użytkowników
 
-| Rola | Dostęp |
-|------|--------|
-| **Admin** | Pełny panel — Pulpit, Roboty, Przetargi, WM Druk, Lista Płac, … |
-| **Inspektor terenowy** | Osobny login — roboty, zdjęcia, checklista |
-| **Pracownik** | Telefon + PIN — grafik, wypłata, zdjęcia |
+| Rola | Wejście | Shell / stan |
+|------|---------|--------------|
+| **Admin** | Login admin | `App.tsx` — `useLocalStorage` / sync globalny · `AdminViewRouter` |
+| **Inspektor terenowy** | Przycisk Inspektor | `InspectorPanel.tsx` — **osobny** `jobsAll` + `refreshFromCloud` (nie stan admina) |
+| **Pracownik** | Telefon + PIN | `WorkerPhotoView` |
+
+```text
+AppInnerWithAuth
+├─ admin     → AppInner (App.tsx) — kw-jobs w stanie app + CloudLoader
+├─ inspector → InspectorPanel — kw-jobs → useState(jobsAll) → jobsVisible
+└─ worker    → WorkerPhotoView
+```
+
+**Inspektor (ważne):** UI czyta `jobsVisible = filterJobsForInspector(jobsAll, session.id)`. Bug `setJobsAllAll` (CLOSED `e9720de`) zostawiał UI=0 przy pełnym LS. Filtr assignment: 15× szymon / 2× Zofia — **bez zmian** w hotfixcie.
 
 ### 4.3 Mapa widoków admina
 
