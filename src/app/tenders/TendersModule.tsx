@@ -64,7 +64,7 @@ function TendersTabBar({ canViewWorkCatalog }: { canViewWorkCatalog: boolean }) 
   );
 
   return (
-    <div className="shrink-0 px-4 sm:px-6 py-2 border-b border-border bg-secondary/30 overflow-x-auto">
+    <div className="shrink-0 px-4 sm:px-6 py-1.5 border-b border-border bg-secondary/30 overflow-x-auto">
       <div
         className="inline-flex min-w-full sm:min-w-0 rounded-xl bg-secondary p-0.5 border border-border gap-0.5"
         role="tablist"

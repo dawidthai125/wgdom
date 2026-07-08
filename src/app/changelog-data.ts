@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.70",
+    label: "NG-07-02 — Lista Przetargów first-screen compaction",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Lista — zwarty pasek zakładek, wyszukiwarka i banner; licznik wyników w nagłówkach sekcji Dzisiaj/Lista.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.69",
     label: "NG-07-01 — Lista Przetargów KPI dashboard + CTA dedup",
     items: [

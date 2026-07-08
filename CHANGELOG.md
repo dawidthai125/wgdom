@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.70 — NG-07-02 Lista first-screen compaction
+
+- **improve:** tab bar + search row `py-1.5` · insight banner single-line compact · liczniki inline w sekcjach
+- **boundary:** TendersModule + TendersView only · slice NG-07-02/04
+
 ## 2.63.69 — NG-07-01 Lista KPI dashboard + CTA dedup
 
 - **new:** `TenderListKpiDashboard` — 4 metryki nad listą przetargów (mobile 2×2, desktop 4-col)

@@ -59,10 +59,20 @@ import {
   TEUX_COLOR_SURFACE_MUTED,
   TEUX_COLOR_URGENT,
   TEUX_FONT_CAPTION,
+  TEUX_FONT_META,
 } from "@/lib/tender-ux-tokens";
 
+const LIST_SECTION_TITLE = `${TEUX_FONT_CAPTION} font-semibold text-foreground`;
+const LIST_SECTION_META = `${TEUX_FONT_META} font-normal text-muted-foreground tabular-nums`;
+
+function tenderCountPhrase(n: number): string {
+  if (n === 1) return "1 przetarg";
+  if (n < 5) return `${n} przetargi`;
+  return `${n} przetargów`;
+}
+
 function listInsightClass(tone: "neutral" | "action" | "positive"): string {
-  const base = `flex items-start gap-2 rounded-lg px-3 py-2 ${TEUX_FONT_CAPTION} border`;
+  const base = `flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 ${TEUX_FONT_CAPTION} border min-w-0`;
   switch (tone) {
     case "action":
       return `${base} ${TEUX_COLOR_URGENT}`;
@@ -519,9 +529,9 @@ export function TendersView({
         </div>
         )}
 
-        <div className="px-4 sm:px-6 py-2 space-y-2">
-        {/* V4 — Rząd 1: wyszukiwarka, status, odśwież (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
-        <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">
+        <div className="px-4 sm:px-6 py-1.5 space-y-1.5">
+        {/* V4 — Rząd 1: wyszukiwarka, status (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
+        <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-1.5 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">
           <div className="flex flex-wrap gap-2 items-center">
             <div className="relative flex-1 min-w-[180px] max-w-3xl">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -529,13 +539,13 @@ export function TendersView({
                 value={pipeline.search}
                 onChange={(e) => pipeline.setSearch(e.target.value)}
                 placeholder="Szukaj tytułu, zamawiającego, miasta, numeru BZP…"
-                className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+                className="w-full bg-secondary rounded-lg pl-8 pr-3 py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none"
               />
             </div>
             <select
               value={pipeline.statusFilter}
               onChange={(e) => pipeline.setStatusFilter(e.target.value as TenderPipelineStatus | "all")}
-              className="w-full sm:w-40 bg-secondary rounded-lg px-2.5 py-2 text-xs border border-border focus:border-primary focus:outline-none"
+              className="w-full sm:w-40 bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
               aria-label="Filtr statusu"
             >
               <option value="all">Wszystkie statusy</option>
@@ -556,13 +566,13 @@ export function TendersView({
             data-teux7d-list-insight
             aria-pressed={queueFilter === bannerQueueAction}
           >
-            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" aria-hidden />
-            <span>{listInsight.text}</span>
+            <Sparkles size={12} className="shrink-0 opacity-80" aria-hidden />
+            <span className="line-clamp-1 min-w-0">{listInsight.text}</span>
           </button>
         ) : (
           <div className={listInsightClass(listInsight.tone)} role="status" data-teux7d-list-insight>
-            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" aria-hidden />
-            <span>{listInsight.text}</span>
+            <Sparkles size={12} className="shrink-0 opacity-80" aria-hidden />
+            <span className="line-clamp-1 min-w-0">{listInsight.text}</span>
           </div>
         )}
 
@@ -595,15 +605,6 @@ export function TendersView({
             </div>
           )}
         </div>
-
-        <p className="text-[10px] text-muted-foreground tabular-nums">
-          Wyświetlono <strong className="text-foreground">{displayList.length + todayItems.length}</strong>
-          {" "}
-          {(displayList.length + todayItems.length) === 1 ? "przetarg" : (displayList.length + todayItems.length) < 5 ? "przetargi" : "przetargów"}
-          {pipeline.items.length !== displayList.length + todayItems.length && (
-            <> z <strong className="text-foreground">{pipeline.items.length}</strong></>
-          )}
-        </p>
 
         {!listOnly && (
           <>
@@ -655,13 +656,13 @@ export function TendersView({
         )}
         </div>
 
-        <div className="px-4 sm:px-6 pb-3 space-y-2">
+        <div className="px-4 sm:px-6 pb-3 space-y-1.5">
         {todayItems.length > 0 && (
-          <section className="space-y-1.5">
-            <h2 className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+          <section className="space-y-1">
+            <h2 className={`${LIST_SECTION_TITLE} flex flex-wrap items-baseline gap-x-1.5`}>
               Dzisiaj
-              <span className="text-[10px] font-normal text-muted-foreground">
-                — wymaga reakcji ({todayItems.length})
+              <span className={LIST_SECTION_META}>
+                — {tenderCountPhrase(todayItems.length)}
               </span>
             </h2>
             {todayItems.map((item) => renderTenderItem(item, true))}
@@ -701,12 +702,18 @@ export function TendersView({
             />
           )
         ) : displayList.length > 0 && (
-          <>
-            {todayItems.length > 0 && (
-              <h2 className="text-xs font-semibold text-muted-foreground pt-1">Lista</h2>
-            )}
+          <section className="space-y-1">
+            <h2 className={`${LIST_SECTION_TITLE} flex flex-wrap items-baseline gap-x-1.5`}>
+              Lista
+              <span className={LIST_SECTION_META}>
+                — {tenderCountPhrase(displayList.length)}
+                {pipeline.items.length !== displayList.length + todayItems.length && (
+                  <> z {tenderCountPhrase(pipeline.items.length)}</>
+                )}
+              </span>
+            </h2>
             {displayList.map((item) => renderTenderItem(item))}
-          </>
+          </section>
         )}
         </div>
       </div>
