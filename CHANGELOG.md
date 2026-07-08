@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.67 — SMS-UI-01 Wyczyść wybór odbiorców
+
+- **fix:** `EmployeeSmsModal` — init wyboru odbiorców tylko przy otwarciu modala; sync nie nadpisuje „Wyczyść wybór”
+- **boundary:** 1 plik UI · zero Protected Core
+
 ## 2.63.66 — NG-06-TEUX-7z Epic closeout smoke
 
 - **improve:** `SMOKE-TEUX-NG06` — agregat 12 testów TEUX-1…7f · suite `smoke-teux`

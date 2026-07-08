@@ -220,6 +220,7 @@ export function EmployeeSmsModal({
     }
   }, []);
 
+  /** SMS-UI-01: init only on open — never re-select when eligible churns (cloud sync). */
   useEffect(() => {
     if (!open) return;
     setTab("send");
@@ -229,6 +230,12 @@ export function EmployeeSmsModal({
     setResult(null);
     setHistory([]);
     setHistoryError("");
+    // eligible read at open only; omit from deps to preserve cleared selection after sync
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     setSmsStatus((s) => ({ ...s, loading: true }));
     if (!API_BASE) {
       setSmsStatus({ loading: false, configured: false, provider: "none", restricted: false, statusError: "Brak backendu" });
@@ -276,7 +283,7 @@ export function EmployeeSmsModal({
           statusError: "Błąd połączenia — status SMS nieznany",
         });
       });
-  }, [open, eligible]);
+  }, [open]);
 
   useEffect(() => {
     if (!open || tab !== "history") return;

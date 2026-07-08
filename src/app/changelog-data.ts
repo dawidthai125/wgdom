@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.67",
+    label: "SMS-UI-01 — Wyczyść wybór odbiorców",
+    items: [
+      {
+        type: "fix",
+        text: "SMS pilne — „Wyczyść wybór” nie jest już nadpisywane po synchronizacji chmury; przy otwarciu modala nadal domyślnie zaznaczeni wszyscy z numerem.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.66",
     label: "NG-06-TEUX-7z — Epic closeout smoke",
     items: [
