@@ -14,8 +14,14 @@ import type { TenderUxBadgeVariant } from "@/app/tenders/design-system/TenderUxB
 
 export type TenderListCardSeverity = "blocked" | "today" | "urgent" | "default";
 
-export const TENDER_LIST_MOBILE_BADGE_MAX = 4;
-export const TENDER_LIST_DESKTOP_BADGE_MAX = 8;
+export const TENDER_LIST_MOBILE_BADGE_MAX = 3;
+export const TENDER_LIST_DESKTOP_BADGE_MAX = 4;
+
+/** Zawsze w pierwszej widocznej grupie (mobile cap). */
+const URGENT_BADGE_KEYS = new Set(["today", "wadium-blocked"]);
+
+/** Desktop — wizualnie drugorzędne (gęstość bez utraty urgency). */
+const DESKTOP_MUTED_BADGE_KEYS = new Set(["bzp", "state"]);
 
 export type TenderListBadgeItem = {
   key: string;
@@ -204,6 +210,26 @@ function sliceBadges(
   return { visible: all.slice(0, max), overflow: all.length - max };
 }
 
+function prioritizeBadges(
+  all: TenderListBadgeItem[],
+  max: number,
+): { visible: TenderListBadgeItem[]; overflow: number } {
+  const urgent = all.filter((b) => URGENT_BADGE_KEYS.has(b.key));
+  const rest = all.filter((b) => !URGENT_BADGE_KEYS.has(b.key));
+  return sliceBadges([...urgent, ...rest], max);
+}
+
+function muteSecondaryDesktopBadges(badges: TenderListBadgeItem[]): TenderListBadgeItem[] {
+  return badges.map((b) => {
+    if (!DESKTOP_MUTED_BADGE_KEYS.has(b.key)) return b;
+    const muted = "opacity-80 text-muted-foreground";
+    return {
+      ...b,
+      className: b.className ? `${b.className} ${muted}` : muted,
+    };
+  });
+}
+
 export function buildTenderListCardViewModel(
   item: TenderPipelineItem,
   todayHighlight: boolean,
@@ -242,8 +268,8 @@ export function buildTenderListCardViewModel(
     includeStatus: false,
   });
 
-  const mobileSlice = sliceBadges(mobileAll, TENDER_LIST_MOBILE_BADGE_MAX);
-  const desktopSlice = sliceBadges(desktopAll, TENDER_LIST_DESKTOP_BADGE_MAX);
+  const mobileSlice = prioritizeBadges(mobileAll, TENDER_LIST_MOBILE_BADGE_MAX);
+  const desktopSlice = prioritizeBadges(desktopAll, TENDER_LIST_DESKTOP_BADGE_MAX);
 
   let kpiTermin = "—";
   if (item.submittingOffersDate) {
@@ -285,7 +311,7 @@ export function buildTenderListCardViewModel(
     shellClass: shellParts.join(" "),
     mobileBadges: mobileSlice.visible,
     mobileBadgeOverflow: mobileSlice.overflow,
-    desktopBadges: desktopSlice.visible,
+    desktopBadges: muteSecondaryDesktopBadges(desktopSlice.visible),
     bidLine: tenderListBidLine(item),
     kpiTermin,
     kpiTrafność,

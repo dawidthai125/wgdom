@@ -509,7 +509,7 @@ export function TendersView({
                 <Scale size={18} className="text-primary" />
                 <h1 className="text-lg font-semibold">Przetargi BZP</h1>
                 {showTestBadge && (
-                  <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin · test</span>
+                  <span className={`${TEUX_FONT_META} bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium`}>Super Admin · test</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
@@ -652,7 +652,7 @@ export function TendersView({
         )}
 
         {pipeline.autoAwardRunning && (
-          <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
+          <p className={`${TEUX_FONT_META} text-muted-foreground`}>Sprawdzam wyniki zakończonych postępowań…</p>
         )}
         </div>
 
@@ -674,12 +674,8 @@ export function TendersView({
             <TenderUxEmptyState
               icon={Inbox}
               title="Brak aktywnych przetargów"
-              description="Pipeline jest pusty — pobierz ogłoszenia z BZP lub poszerz zakres listy, aby zobaczyć przetargi."
+              description="Pipeline jest pusty — użyj „Odśwież z BZP” w nagłówku modułu lub poszerz zakres listy."
               primaryAction={{
-                label: "Odśwież z BZP",
-                onClick: () => void pipeline.refreshFromBzp(),
-              }}
-              secondaryAction={{
                 label: "Zmień zakres listy",
                 onClick: handleWidenListScope,
               }}
@@ -689,14 +685,10 @@ export function TendersView({
             <TenderUxEmptyState
               icon={Filter}
               title="Brak przetargów dla filtrów"
-              description="Wybrane filtry, kolejka lub wyszukiwanie nie pasują do żadnego przetargu — wyczyść filtry lub odśwież listę z BZP."
+              description="Wybrane filtry, kolejka lub wyszukiwanie nie pasują do żadnego przetargu — wyczyść filtry lub poszerz zakres."
               primaryAction={{
                 label: "Wyczyść filtry",
                 onClick: handleClearFilters,
-              }}
-              secondaryAction={{
-                label: "Odśwież z BZP",
-                onClick: () => void pipeline.refreshFromBzp(),
               }}
               data-teux6-empty="lista-filtry"
             />

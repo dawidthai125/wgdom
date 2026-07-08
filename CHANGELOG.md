@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.71 — NG-07-03 Lista karty + empty states
+
+- **improve:** badge cap 3 mobile / 4 desktop · urgency priority · karty hierarchy · desktop compact meta
+- **improve:** empty state bez duplikatu refresh · TEUX_FONT_META w list chrome
+- **boundary:** slice NG-07-03/04 · allowlist 4 pliki
+
 ## 2.63.70 — NG-07-02 Lista first-screen compaction
 
 - **improve:** tab bar + search row `py-1.5` · insight banner single-line compact · liczniki inline w sekcjach

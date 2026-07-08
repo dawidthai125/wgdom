@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.71",
+    label: "NG-07-03 — Lista Przetargów karty + empty states",
+    items: [
+      {
+        type: "improve",
+        text: "Karty listy przetargów — badge cap 3/4, urgency w top-3, czytelniejsza hierarchia tytuł → zamawiający → KPI; desktop meta Traf./Wad.",
+      },
+      {
+        type: "improve",
+        text: "Empty state listy — bez duplikatu Odśwież (SSOT: nagłówek modułu); typografia TEUX zamiast text-[10px].",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.70",
     label: "NG-07-02 — Lista Przetargów first-screen compaction",
     items: [

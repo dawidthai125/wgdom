@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { Building2, MapPin } from "lucide-react";
+import { Building2 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TenderUxBadge } from "@/app/tenders/design-system/TenderUxBadge";
 import {
@@ -26,10 +26,12 @@ export function TenderListMobileCard({
   onToggleBulk?: (e: MouseEvent) => void;
   onClick: () => void;
 }) {
+  const orgLine = [item.organizationName, item.organizationCity || "—"].filter(Boolean).join(" · ");
+
   return (
     <button
       type="button"
-      className={`w-full text-left ${TEUX_SPACE_MD} py-3 hover:bg-secondary/40 transition-colors flex gap-2 min-h-[44px] touch-manipulation`}
+      className={`w-full text-left ${TEUX_SPACE_MD} py-2.5 hover:bg-secondary/40 transition-colors flex gap-2 min-h-[44px] touch-manipulation`}
       onClick={onClick}
       data-tender-list-card="mobile"
       data-tender-id={item.id}
@@ -42,32 +44,31 @@ export function TenderListMobileCard({
           ariaLabel={`${bulkSelected ? "Odznacz" : "Zaznacz"} przetarg: ${item.title}`}
         />
       )}
-      <div className="flex-1 min-w-0 space-y-2 overflow-hidden">
-        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-          {vm.mobileBadges.map((b) => (
-            <TenderUxBadge
-              key={b.key}
-              variant={b.variant}
-              className={b.className}
-            >
-              {b.label}
-            </TenderUxBadge>
-          ))}
-          {vm.mobileBadgeOverflow > 0 && (
-            <TenderUxBadge variant="status" className="text-muted-foreground">
-              +{vm.mobileBadgeOverflow}
-            </TenderUxBadge>
-          )}
-        </div>
+      <div className="flex-1 min-w-0 space-y-1.5 overflow-hidden">
+        {vm.mobileBadges.length > 0 || vm.mobileBadgeOverflow > 0 ? (
+          <div className="flex flex-wrap items-center gap-1 min-w-0">
+            {vm.mobileBadges.map((b) => (
+              <TenderUxBadge
+                key={b.key}
+                variant={b.variant}
+                className={b.className}
+              >
+                {b.label}
+              </TenderUxBadge>
+            ))}
+            {vm.mobileBadgeOverflow > 0 && (
+              <TenderUxBadge variant="status" className="text-muted-foreground">
+                +{vm.mobileBadgeOverflow}
+              </TenderUxBadge>
+            )}
+          </div>
+        ) : null}
 
-        <p className={`${TEUX_FONT_TITLE} line-clamp-2`}>{item.title}</p>
+        <p className={`${TEUX_FONT_TITLE} line-clamp-2 leading-snug`}>{item.title}</p>
 
-        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground flex items-center gap-1.5 min-w-0`}>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground flex items-center gap-1 min-w-0`}>
           <Building2 size={12} className="shrink-0" aria-hidden />
-          <span className="truncate">{item.organizationName}</span>
-          <span aria-hidden>·</span>
-          <MapPin size={12} className="shrink-0" aria-hidden />
-          <span className="truncate">{item.organizationCity || "—"}</span>
+          <span className="truncate">{orgLine}</span>
         </p>
 
         {vm.bidLine && (
@@ -77,21 +78,21 @@ export function TenderListMobileCard({
         )}
 
         <dl
-          className={`grid grid-cols-3 gap-2 ${TEUX_FONT_META} text-muted-foreground`}
+          className={`grid grid-cols-3 gap-1.5 ${TEUX_FONT_META} text-muted-foreground`}
           data-tender-list-kpi-row
         >
           <div className="min-w-0">
-            <dt className="uppercase tracking-wide font-semibold">Termin</dt>
+            <dt className="uppercase tracking-wide font-semibold truncate">Termin</dt>
             <dd className={`font-medium text-foreground tabular-nums truncate ${vm.urgent ? "text-amber-600 dark:text-amber-400" : ""}`}>
               {vm.kpiTermin}
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="uppercase tracking-wide font-semibold">Trafność</dt>
-            <dd className="font-medium text-foreground tabular-nums">{vm.kpiTrafność}</dd>
+            <dt className="uppercase tracking-wide font-semibold truncate">Trafność</dt>
+            <dd className="font-medium text-foreground tabular-nums truncate">{vm.kpiTrafność}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="uppercase tracking-wide font-semibold">Wadium</dt>
+            <dt className="uppercase tracking-wide font-semibold truncate">Wadium</dt>
             <dd className={`font-medium tabular-nums truncate ${vm.kpiWadium === "Blokada" ? "text-red-600 dark:text-red-400" : "text-foreground"}`}>
               {vm.kpiWadium}
             </dd>
