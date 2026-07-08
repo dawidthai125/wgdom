@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-08",
+    version: "2.63.65",
+    label: "NG-06-TEUX-7f — Hosted deprecation guard",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — udokumentowana ścieżka legacy accordion (hosted); prod pozostaje na routingu V4 URL.",
+      },
+      {
+        type: "improve",
+        text: "Dev — ostrzeżenie w konsoli przy użyciu TenderDetailPanelHosted (rollback TENDERS_V4_ROUTING=false).",
+      },
+    ],
+  },
+  {
     date: "2026-07-07",
     version: "2.63.64",
     label: "NG-06-TEUX-7e — Strategia + Pulpit",

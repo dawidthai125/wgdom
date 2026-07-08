@@ -1,5 +1,7 @@
 /**
  * Przetargi V4 — feature flag routingu URL.
- * false = legacy accordion + TenderDetailPanel inline (rollback bez revertu kodu).
+ * true (prod) = lista → `/przetargi/:id/:tab` (SSOT).
+ * false = legacy accordion + TenderDetailPanelHosted (rollback only — deprecated TEUX-7f).
+ * SSOT: docs/architecture/NG-06-TEUX-HOSTED-DEPRECATION.md
  */
 export const TENDERS_V4_ROUTING = true;

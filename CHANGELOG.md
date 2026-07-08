@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.65 — NG-06-TEUX-7f Hosted deprecation guard
+
+- **improve:** SSOT `NG-06-TEUX-HOSTED-DEPRECATION.md` — V4 default · rollback accordion deprecated
+- **improve:** `@deprecated` + dev `console.warn` na `TenderDetailPanelHosted` (bez usuwania kodu)
+- **test:** `LIB-TENDER-HOSTED-DEPRECATION-TEUX7F` + regresja gate B tenders
+- **boundary:** zero routing change · Intelligence label unchanged · TOKEN FREEZE
+
 ## 2.63.64 — NG-06-TEUX-7e Strategia + Pulpit
 
 - **improve:** Pulpit — max 3 KPI (terminy · decyzje · wygrane bez roboty) + CTA Strategia

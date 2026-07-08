@@ -856,11 +856,29 @@ type TenderDetailPanelHostedProps = Omit<
   "pipelineRuntime"
 >;
 
-/** Legacy accordion — mount runtime + Panel (NG-02-S6). */
+const HOSTED_DEPRECATION_DOC = "docs/architecture/NG-06-TEUX-HOSTED-DEPRECATION.md";
+
+/**
+ * Legacy accordion — mount runtime + Panel (NG-02-S6).
+ *
+ * @deprecated NG-06-TEUX-7f — hosted accordion path. Prod uses V4 routing
+ * (`TENDERS_V4_ROUTING=true` → `TenderDetailPage`). Rollback only; see HOSTED_DEPRECATION_DOC.
+ */
 export function TenderDetailPanelHosted(props: TenderDetailPanelHostedProps) {
+  const hostedWarnedRef = useRef(false);
   const [pricingRevision, setPricingRevision] = useState(0);
   const tendersCtx = useTendersContextOptional();
   const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || hostedWarnedRef.current) return;
+    hostedWarnedRef.current = true;
+    console.warn(
+      `[WGDOM Przetargi] TenderDetailPanelHosted is deprecated (legacy accordion). ` +
+        `Prod uses V4 routing. Rollback: TENDERS_V4_ROUTING=false. See ${HOSTED_DEPRECATION_DOC}`,
+    );
+  }, []);
+
   const pipelineRuntime = useTenderPipelineRuntime({
     item: props.item,
     onUpdate: props.onUpdate,
