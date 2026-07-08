@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.72 — NG-07-04 Lista desktop density
+
+- **improve:** max-w-7xl content · filtry bez max-w-4xl · border-b między kartami · ciaśniejsze desktop rows
+- **boundary:** slice NG-07-04/04 · allowlist 3 pliki + changelog
+
 ## 2.63.71 — NG-07-03 Lista karty + empty states
 
 - **improve:** badge cap 3 mobile / 4 desktop · urgency priority · karty hierarchy · desktop compact meta

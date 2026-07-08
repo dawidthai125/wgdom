@@ -101,7 +101,7 @@ export function TenderListFiltersPanel(props: TenderListFiltersPanelProps) {
 
   return (
     <div
-      className="rounded-lg border border-border bg-secondary/30 px-2.5 py-3 space-y-3"
+      className="rounded-lg border border-border bg-secondary/30 px-2.5 py-2.5 space-y-2.5"
       data-tender-list-filters-panel
     >
       <section className="space-y-1.5" aria-label="Moja kolejka">

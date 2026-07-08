@@ -32,7 +32,7 @@ export function TenderListDesktopCard({
   return (
     <button
       type="button"
-      className={`w-full text-left ${TEUX_SPACE_MD} py-2 hover:bg-secondary/40 transition-colors flex gap-2`}
+      className={`w-full text-left ${TEUX_SPACE_MD} py-1.5 hover:bg-secondary/40 transition-colors flex gap-2`}
       onClick={onClick}
       data-tender-list-card="desktop"
       data-tender-id={item.id}
@@ -46,7 +46,7 @@ export function TenderListDesktopCard({
         />
       )}
       <div className="flex flex-wrap items-start justify-between gap-2 flex-1 min-w-0">
-        <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
+        <div className="min-w-0 flex-1 space-y-0.5 overflow-hidden">
           {vm.desktopBadges.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1 min-w-0">
               {vm.desktopBadges.map((b) => (

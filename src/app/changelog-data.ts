@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-08",
+    version: "2.63.72",
+    label: "NG-07-04 — Lista Przetargów desktop density",
+    items: [
+      {
+        type: "improve",
+        text: "Lista przetargów desktop — pełna szerokość content (max-w-7xl), filtry bez cap max-w-4xl, separatory między kartami i ciaśniejsze wiersze dla długiej listy.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-08",
     version: "2.63.71",
     label: "NG-07-03 — Lista Przetargów karty + empty states",
     items: [

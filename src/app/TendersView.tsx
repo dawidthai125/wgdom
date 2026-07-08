@@ -459,7 +459,11 @@ export function TendersView({
     };
 
     return (
-      <article key={item.id} className={vm.shellClass} data-tender-list-item>
+      <article
+        key={item.id}
+        className={`${vm.shellClass} border-b border-border/60 last:border-b-0`}
+        data-tender-list-item
+      >
         <div className="lg:hidden">
           <TenderListMobileCard {...cardProps} />
         </div>
@@ -529,6 +533,7 @@ export function TendersView({
         </div>
         )}
 
+        <div className="max-w-7xl mx-auto w-full">
         <div className="px-4 sm:px-6 py-1.5 space-y-1.5">
         {/* V4 — Rząd 1: wyszukiwarka, status (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
         <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-1.5 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">
@@ -583,8 +588,8 @@ export function TendersView({
           onQueueClick={handleQueueClick}
         />
 
-        {/* TEUX-7a — desktop: collapsible „Więcej filtrów” */}
-        <div className="max-w-4xl hidden lg:block">
+        {/* TEUX-7a — desktop: collapsible „Więcej filtrów” (NG-07-04: full content width) */}
+        <div className="w-full hidden lg:block">
           <button
             type="button"
             onClick={handleToggleMoreFilters}
@@ -658,7 +663,7 @@ export function TendersView({
 
         <div className="px-4 sm:px-6 pb-3 space-y-1.5">
         {todayItems.length > 0 && (
-          <section className="space-y-1">
+          <section className="space-y-0">
             <h2 className={`${LIST_SECTION_TITLE} flex flex-wrap items-baseline gap-x-1.5`}>
               Dzisiaj
               <span className={LIST_SECTION_META}>
@@ -694,7 +699,7 @@ export function TendersView({
             />
           )
         ) : displayList.length > 0 && (
-          <section className="space-y-1">
+          <section className="space-y-0">
             <h2 className={`${LIST_SECTION_TITLE} flex flex-wrap items-baseline gap-x-1.5`}>
               Lista
               <span className={LIST_SECTION_META}>
@@ -707,6 +712,7 @@ export function TendersView({
             {displayList.map((item) => renderTenderItem(item))}
           </section>
         )}
+        </div>
         </div>
       </div>
 
