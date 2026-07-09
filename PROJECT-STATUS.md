@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-09 |
-| **Commit (HEAD `main`)** | **`8b7124b`** (NG-09-03 release) |
-| **Production version (UI)** | **v2.63.82** · curl prod: **2.63.82** @ **`8b7124b`** · **PRODUCTION VERIFIED** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-03 CLOSED** · **NG-09-04 BLOCKED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Commit (HEAD `main`)** | **`c1d1caf`** (NG-09-04 release) |
+| **Production version (UI)** | **v2.63.83** · curl prod: **2.63.83** @ **`c1d1caf`** · **PRODUCTION VERIFIED** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-04 CLOSED** · **NG-09-05 BLOCKED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -81,14 +81,14 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.82** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — **GREEN, PRODUCTION VERIFIED** |
-| **HEAD `main`** | **`8b7124b`** |
+| **Wersja UI (prod)** | **v2.63.83** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — **GREEN, PRODUCTION VERIFIED** |
+| **HEAD `main`** | **`c1d1caf`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.82** to ostatni wpis w `changelog-data.ts` (**NG-09-03 Inspector Job Workspace L2**). Poprzedni: **2.63.81** (NG-09-02) @ `472304d`.
+Wersja UI **v2.63.83** to ostatni wpis w `changelog-data.ts` (**NG-09-04 Inspector Data Sync Layer**). Poprzedni: **2.63.82** (NG-09-03) @ `8b7124b`.
 
 ---
 
@@ -112,6 +112,7 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 
 | EPIC / Bundle | Wersja / commit | Status |
 |---------------|-----------------|--------|
+| **NG‑09‑04** — Inspector Data Sync Layer | **2.63.83** · `c1d1caf` | **CLOSED** · **PRODUCTION VERIFIED** |
 | **NG‑09‑03** — Inspector Job Workspace L2 | **2.63.82** · `8b7124b` | **CLOSED** · **PRODUCTION VERIFIED** |
 | **NG‑09‑02** — Inspector View Router L1 | **2.63.81** · `472304d` | **CLOSED** |
 | **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** |
@@ -175,6 +176,9 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 
 | Commit | Opis |
 |--------|------|
+| `c1d1caf` | release: **NG‑09‑04** Data Sync Layer **v2.63.83** |
+| `143f6d0` | feat(inspector): **NG‑09‑04** useInspectorDataSync extraction |
+| `8b7124b` | release: **NG‑09‑03** Job Workspace **v2.63.82** |
 | `472304d` | release: **NG‑09‑02** View Router **v2.63.81** |
 | `633272a` | feat(inspector): **NG‑09‑02** View Router L1 |
 | `566fa0d` | feat(inspector): **NG‑09‑01** Workspace Frame **v2.63.80** |
