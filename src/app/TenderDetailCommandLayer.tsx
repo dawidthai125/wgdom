@@ -124,7 +124,7 @@ export function TenderDetailCommandLayer({
 
         {!compactKosztorysChrome && (
           <p
-            className={`hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
+            className={`md:hidden max-[391px]:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
             data-teux7b-mobile-context
             data-tender-workspace-breadcrumb-mobile
             aria-label="Kontekst workspace"
