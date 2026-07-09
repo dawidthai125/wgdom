@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-09",
+    version: "2.63.78",
+    label: "NG-08-HF-01 — Visual Smoke Remediation",
+    items: [
+      {
+        type: "fix",
+        text: "Detal przetargu — remediacja Visual Smoke: gęstszy Command Layer (mobile ≤50vh, desktop ≤280px), skróty w jednym wierszu z dotykiem 44px na mobile, przewijanie hubu Podsumowanie oferty w obszarze treści.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-09",
     version: "2.63.77",
     label: "NG-08-05 — Tender Cost Workspace",
     items: [

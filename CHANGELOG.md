@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.78 — NG-08-HF-01 Visual Smoke Remediation
+
+- **fix:** Command Layer density · mobile KPI hide · shortcuts row + 44px touch · scroll hub w scroll root (KPI-UX-01)
+- **boundary:** hotfix REC-1 · 2 pliki UI · #CORE-013 PASS · #CORE-014 PASS
+
 ## 2.63.77 — NG-08-05 Tender Cost Workspace
 
 - **improve:** TenderCostWorkspaceBridge Kosztorys↔Ceny · CostShortcutChip · hub cost row · TEUX typography Ceny · LS scroll kosztorys|ceny

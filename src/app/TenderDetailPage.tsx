@@ -197,13 +197,20 @@ export function TenderDetailPage({
     }
   }, []);
 
+  const scrollRootRef = useRef<HTMLDivElement>(null);
+  const prevCostTabRef = useRef<TenderDetailV4TabId>(activeTab);
+  const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [pendingIntelligenceScroll, setPendingIntelligenceScroll] = useState(false);
 
-  const scrollToIntelligenceHub = useCallback(() => {
+  const scrollToIntelligenceHub = useCallback((behavior: ScrollBehavior = "smooth") => {
     const hub = document.getElementById("tender-intelligence-hub");
-    if (hub) {
-      hub.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+    const root = scrollRootRef.current;
+    if (!hub || !root) return;
+    const hubTop = hub.getBoundingClientRect().top;
+    const rootTop = root.getBoundingClientRect().top;
+    const nextTop = root.scrollTop + (hubTop - rootTop);
+    root.scrollTo({ top: Math.max(0, nextTop), behavior });
   }, []);
 
   const handleIntelligenceShortcutClick = useCallback(() => {
@@ -218,9 +225,30 @@ export function TenderDetailPage({
   useEffect(() => {
     if (activeTab !== "przetarg" || !pendingIntelligenceScroll) return;
     setPendingIntelligenceScroll(false);
-    requestAnimationFrame(() => {
-      scrollToIntelligenceHub();
-    });
+
+    let cancelled = false;
+    let frames = 0;
+    const maxFrames = 90;
+
+    const tick = () => {
+      if (cancelled) return;
+      const hub = document.getElementById("tender-intelligence-hub");
+      const root = scrollRootRef.current;
+      if (hub && root) {
+        scrollToIntelligenceHub("instant");
+        const hubRect = hub.getBoundingClientRect();
+        const rootRect = root.getBoundingClientRect();
+        const intersects = hubRect.bottom > rootRect.top && hubRect.top < rootRect.bottom;
+        if (intersects) return;
+      }
+      frames += 1;
+      if (frames < maxFrames) requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab, pendingIntelligenceScroll, scrollToIntelligenceHub]);
 
   const suggestedCostTab = useMemo(
@@ -231,10 +259,6 @@ export function TenderDetailPage({
   const handleCostShortcutClick = useCallback(() => {
     handleTabChange(suggestedCostTab);
   }, [handleTabChange, suggestedCostTab]);
-
-  const scrollRootRef = useRef<HTMLDivElement>(null);
-  const prevCostTabRef = useRef<TenderDetailV4TabId>(activeTab);
-  const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isCostScrollTab = (tab: TenderDetailV4TabId): tab is TenderCostScrollTab =>
     tab === "kosztorys" || tab === "ceny";
@@ -283,12 +307,14 @@ export function TenderDetailPage({
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
-      <div className="space-y-1.5 max-[390px]:space-y-1" data-tender-workspace-command-slot>
+      <div className="space-y-0.5" data-tender-workspace-command-slot>
         {activeTab === "przetarg" && (
-          <TenderStatusRibbon
-            trustAssessment={pipelineRuntime.trustAssessment}
-            onNavigateTab={handleTabChange}
-          />
+          <div className="hidden 2xl:block">
+            <TenderStatusRibbon
+              trustAssessment={pipelineRuntime.trustAssessment}
+              onNavigateTab={handleTabChange}
+            />
+          </div>
         )}
         <TenderWorkflowProcessStrip
           item={bootstrapItem}
@@ -309,22 +335,27 @@ export function TenderDetailPage({
             Blokery ({blockersCount})
           </button>
         )}
-        <button
-          type="button"
-          onClick={handleIntelligenceShortcutClick}
-          className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
-          data-tender-intelligence-shortcut
+        <div
+          className="flex flex-wrap items-center gap-1.5 max-[391px]:gap-1"
+          data-tender-command-shortcuts-row
         >
-          {buildIntelligenceHubShortcutLabel()}
-        </button>
-        <button
-          type="button"
-          onClick={handleCostShortcutClick}
-          className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
-          data-tender-cost-shortcut
-        >
-          {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
-        </button>
+          <button
+            type="button"
+            onClick={handleIntelligenceShortcutClick}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-8 max-[391px]:min-h-11 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            data-tender-intelligence-shortcut
+          >
+            {buildIntelligenceHubShortcutLabel()}
+          </button>
+          <button
+            type="button"
+            onClick={handleCostShortcutClick}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-8 max-[391px]:min-h-11 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            data-tender-cost-shortcut
+          >
+            {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
+          </button>
+        </div>
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
