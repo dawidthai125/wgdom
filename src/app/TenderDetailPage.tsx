@@ -307,7 +307,7 @@ export function TenderDetailPage({
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
-      <div className="space-y-0.5" data-tender-workspace-command-slot>
+      <div className="space-y-0.5 max-[430px]:space-y-0" data-tender-workspace-command-slot>
         {activeTab === "przetarg" && (
           <div className="hidden 2xl:block">
             <TenderStatusRibbon
@@ -336,13 +336,13 @@ export function TenderDetailPage({
           </button>
         )}
         <div
-          className="flex flex-wrap items-center gap-1.5 max-[391px]:gap-1"
+          className="flex flex-wrap items-center gap-1.5 max-[430px]:gap-1"
           data-tender-command-shortcuts-row
         >
           <button
             type="button"
             onClick={handleIntelligenceShortcutClick}
-            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-8 max-[391px]:min-h-11 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-11 lg:min-h-8 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
             data-tender-intelligence-shortcut
           >
             {buildIntelligenceHubShortcutLabel()}
@@ -350,12 +350,13 @@ export function TenderDetailPage({
           <button
             type="button"
             onClick={handleCostShortcutClick}
-            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-8 max-[391px]:min-h-11 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-11 lg:min-h-8 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
             data-tender-cost-shortcut
           >
             {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
           </button>
         </div>
+        <div className="max-[430px]:[&_[data-tender-primary-action-section-label]]:sr-only max-[430px]:[&_[data-teux7d-cta-description]]:hidden">
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
@@ -372,6 +373,7 @@ export function TenderDetailPage({
           commandLayerChrome
           activeTab={activeTab}
         />
+        </div>
       </div>
     );
   }, [

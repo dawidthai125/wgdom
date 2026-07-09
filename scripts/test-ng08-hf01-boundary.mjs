@@ -106,8 +106,8 @@ const cmd = readFileSync(resolve(root, "src/app/TenderDetailCommandLayer.tsx"), 
 ok("scroll hub via scrollRootRef", page.includes("scrollRootRef") && page.includes("root.scrollTo"));
 ok("no hub scrollIntoView", !page.includes("hub.scrollIntoView"));
 ok("shortcuts flex row", page.includes("data-tender-command-shortcuts-row"));
-ok("mobile shortcut min-h 44px", page.includes("max-[391px]:min-h-11"));
-ok("kpi hidden mobile non-przetarg", cmd.includes("max-[391px]:hidden") && cmd.includes("TenderDetailKpiCompact"));
+ok("mobile shortcut min-h 44px", page.includes("min-h-11 lg:min-h-8"));
+ok("kpi hidden mobile non-przetarg", cmd.includes("hidden 2xl:block") && cmd.includes("TenderDetailKpiCompact"));
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
 if (fail > 0) process.exit(1);

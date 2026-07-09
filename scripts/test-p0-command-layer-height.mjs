@@ -65,11 +65,13 @@ ok("commandLayerChrome prop", cta.includes("commandLayerChrome"));
 ok("bez sticky gdy command layer", cta.includes('commandLayerChrome ?') && cta.includes("sticky top-0"));
 ok("page passes commandLayerChrome", page.includes("commandLayerChrome"));
 
-console.log("\n6. NG-08-HF-01 remediation markers");
+console.log("\n6. NG-08-HF-01 + M-03 remediation markers");
 ok("HF-01 scroll hub via scroll root", page.includes("scrollRootRef") && page.includes("root.scrollTo"));
 ok("HF-01 shortcuts flex row", page.includes("data-tender-command-shortcuts-row"));
-ok("HF-01 mobile shortcut 44px", page.includes("max-[391px]:min-h-11"));
-ok("HF-01 kpi hidden mobile", cmd.includes("max-[391px]:hidden") && cmd.includes("TenderDetailKpiCompact"));
+ok("M-03 mobile shortcut 44px", page.includes("min-h-11 lg:min-h-8"));
+ok("M-03 kpi hidden detail chrome", cmd.includes("hidden 2xl:block") && cmd.includes("TenderDetailKpiCompact"));
+ok("M-03 phone breakpoint 430", cmd.includes("max-[430px]:"));
+ok("M-03 kpi 2xl visible guard", cmd.includes("2xl:block"));
 
 console.log("\n7. E2E regression spec");
 const e2e = read("e2e/audit-p0-tender-freeze.spec.ts");
@@ -78,6 +80,8 @@ ok("e2e asserts content scroll > 120", e2e.includes("contentScrollH") && e2e.inc
 ok("e2e mobile 50vh limit", e2e.includes("0.5") && e2e.includes("viewportHeight"));
 ok("e2e KPI-UX-01 hub viewport", e2e.includes("hubInScrollRootViewport"));
 ok("e2e scroll root selector", e2e.includes("data-tender-detail-scroll-root"));
+ok("e2e M-03 tab delta gate", e2e.includes("measureCommandLayerTabDelta"));
+ok("e2e M-03 viewport 412", e2e.includes("412"));
 
 console.log("\n8. Mobile immersive detail (moduł chrome)");
 const module = read("src/app/tenders/TendersModule.tsx");

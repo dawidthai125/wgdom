@@ -1,6 +1,6 @@
 /**
  * NG-03.2 — Command Layer: sticky chrome detalu przetargu V4.
- * NG-06-TEUX-4 — module nav sheet (M4) + density pass ≤390px.
+ * NG-06-TEUX-4 — module nav sheet (M4) + density pass ≤430px (M-03).
  * NG-08-01 — Workspace Frame: breadcrumb continuity, CTA na wszystkich tabach.
  */
 
@@ -89,11 +89,7 @@ export function TenderDetailCommandLayer({
   return (
     <>
       <div
-        className={`shrink-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 ${
-          compactKosztorysChrome
-            ? "px-4 sm:px-6 py-1.5 space-y-1.5 max-[391px]:px-3 max-[391px]:py-1 max-[391px]:space-y-1"
-            : "px-4 sm:px-6 py-0.5 space-y-0.5 max-[391px]:space-y-0.5 max-[391px]:px-3 max-[391px]:py-1"
-        }`}
+        className="shrink-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 px-4 sm:px-6 py-0.5 space-y-0.5 max-[430px]:px-3 max-[430px]:py-1 max-[430px]:space-y-0.5"
         data-tender-command-layer
         data-ng08-workspace-frame
         data-tender-tab={tab}
@@ -102,7 +98,7 @@ export function TenderDetailCommandLayer({
         <div className="flex items-center justify-between gap-2 -mx-1">
           <button
             type="button"
-            className={`inline-flex items-center gap-1.5 ${TEUX_FONT_CAPTION} font-medium text-primary hover:underline px-2 min-h-[44px] lg:min-h-[36px] rounded-lg touch-manipulation ${TEUX_TRANSITION_FAST} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 max-[391px]:gap-1 max-[391px]:px-1.5`}
+            className={`inline-flex items-center gap-1.5 ${TEUX_FONT_CAPTION} font-medium text-primary hover:underline px-2 min-h-[44px] lg:min-h-[36px] rounded-lg touch-manipulation ${TEUX_TRANSITION_FAST} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 max-[430px]:gap-1 max-[430px]:px-1.5`}
             onClick={onBack}
             aria-label="Powrót do listy przetargów"
           >
@@ -111,20 +107,20 @@ export function TenderDetailCommandLayer({
           </button>
           <button
             type="button"
-            className={`lg:hidden inline-flex items-center gap-1.5 px-2.5 min-h-[44px] rounded-lg border border-border bg-secondary/50 ${TEUX_FONT_CAPTION} font-medium text-foreground touch-manipulation ${TEUX_TRANSITION_FAST} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 max-[391px]:px-2`}
+            className={`lg:hidden inline-flex items-center gap-1.5 px-2.5 min-h-[44px] rounded-lg border border-border bg-secondary/50 ${TEUX_FONT_CAPTION} font-medium text-foreground touch-manipulation ${TEUX_TRANSITION_FAST} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 max-[430px]:px-2`}
             data-tender-module-nav-trigger
             aria-label="Menu modułu Przetargi"
             aria-expanded={moduleNavOpen}
             onClick={() => setModuleNavOpen(true)}
           >
             <LayoutGrid size={14} aria-hidden />
-            <span className="max-[391px]:hidden">Moduł</span>
+            <span className="max-[430px]:hidden">Moduł</span>
           </button>
         </div>
 
         {!compactKosztorysChrome && (
           <p
-            className={`md:hidden max-[391px]:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
+            className={`md:hidden max-[430px]:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
             data-teux7b-mobile-context
             data-tender-workspace-breadcrumb-mobile
             aria-label="Kontekst workspace"
@@ -161,7 +157,7 @@ export function TenderDetailCommandLayer({
 
         {compactKosztorysChrome && (
           <p
-            className={`sm:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
+            className={`sm:hidden max-[430px]:hidden ${TEUX_FONT_CAPTION} text-muted-foreground truncate`}
             data-tender-workspace-breadcrumb-compact
           >
             Workspace › {tenderRef} › {TENDER_DETAIL_V4_TAB_LABELS[tab]}
@@ -171,8 +167,8 @@ export function TenderDetailCommandLayer({
         <h1
           className={
             compactKosztorysChrome
-              ? `${TEUX_FONT_TITLE} text-foreground line-clamp-1 max-[391px]:text-[13px] max-[391px]:leading-snug`
-              : `${TEUX_FONT_TITLE} text-foreground line-clamp-1 max-[391px]:text-[13px] max-[391px]:leading-snug`
+              ? `${TEUX_FONT_TITLE} text-foreground line-clamp-1 max-[430px]:text-[13px] max-[430px]:leading-snug`
+              : `${TEUX_FONT_TITLE} text-foreground line-clamp-1 max-[430px]:text-[13px] max-[430px]:leading-snug`
           }
         >
           {item.title}
@@ -188,7 +184,7 @@ export function TenderDetailCommandLayer({
         )}
 
         {showKpiCompact && !przetargChrome && (
-          <div className="max-[391px]:hidden xl:hidden 2xl:block">
+          <div className="hidden 2xl:block">
             <TenderDetailKpiCompact item={item} swz={swz} />
           </div>
         )}

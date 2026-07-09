@@ -1,6 +1,7 @@
 /**
  * P0 — Command Layer height + V4 tab SSOT (Design Freeze §2.1).
  * NG-08-HF-01 — AC-HF-01…05, AC-HF-09 runtime DOM gates.
+ * M-03 — mobile re-cert 360–430px + AC-M03-08 tab delta ≤32px.
  * PW_BASE_URL=http://127.0.0.1:4173 npx playwright test e2e/audit-p0-tender-freeze.spec.ts --config=playwright.audit.config.ts
  */
 import { test, expect } from "@playwright/test";
@@ -66,6 +67,31 @@ function shortcutHeights(page: import("@playwright/test").Page) {
     };
   });
 }
+
+async function measureCommandLayerTabDelta(page: import("@playwright/test").Page) {
+  const heights: Record<string, number> = {};
+  for (const tab of ["przetarg", "dokumenty", "kosztorys"] as const) {
+    await page.locator(`[data-tender-detail-tabs] [data-tender-tab="${tab}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/przetargi/${E2E_TENDER_ID}/${tab}`));
+    await page.waitForTimeout(400);
+    heights[tab] = await page.locator("[data-tender-command-layer]").evaluate((el) => el.getBoundingClientRect().height);
+  }
+  const vals = Object.values(heights);
+  return { delta: Math.max(...vals) - Math.min(...vals), heights };
+}
+
+async function assertMobileChromeBudget(page: import("@playwright/test").Page) {
+  const m = await measureLayout(page);
+  expect(m.hasCommandScroll, "Command Layer nie scrolluje").toBe(false);
+  expect(m.commandLayerH).toBeLessThanOrEqual(m.viewportHeight * 0.5 + 1);
+  expect(m.contentScrollH).toBeGreaterThan(120);
+}
+
+const M03_PHONE_VIEWPORTS = [
+  { width: 390, height: 844 },
+  { width: 412, height: 915 },
+  { width: 430, height: 932 },
+] as const;
 
 test.describe("P0 Command Layer height regression", () => {
   test.beforeEach(async ({ page }) => {
@@ -152,4 +178,60 @@ test.describe("P0 Command Layer height regression", () => {
     expect(h.intelH).toBeGreaterThanOrEqual(44);
     expect(h.costH).toBeGreaterThanOrEqual(44);
   });
+});
+
+test.describe("M-03 mobile re-certification", () => {
+  test.beforeEach(async ({ page }) => {
+    const seedArgs = buildE2eSeedArgs();
+    await blockCloudSync(page);
+    await page.addInitScript(applyE2eSeedInBrowser, seedArgs);
+    await gotoLoginPick(page);
+    await page.evaluate(applyE2eSeedInBrowser, seedArgs);
+    await loginAdmin(page);
+  });
+
+  for (const vp of M03_PHONE_VIEWPORTS) {
+    test(`M-03 @${vp.width}px — chrome budget (przetarg + dokumenty)`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(`/przetargi/${E2E_TENDER_ID}/przetarg`, { waitUntil: "networkidle" });
+      await expect(page.locator("[data-tender-detail-v4]")).toBeVisible({ timeout: 30_000 });
+
+      await assertMobileChromeBudget(page);
+
+      await page.locator('[data-tender-tab="dokumenty"]').click();
+      await assertDokumentyWorkspace(page);
+      await assertMobileChromeBudget(page);
+
+      const kpiVisible = await page.locator("[data-tender-kpi-compact]").isVisible().catch(() => false);
+      expect(kpiVisible).toBe(false);
+    });
+  }
+
+  test("M-03 @412/430 — shortcuty ≥44px", async ({ page }) => {
+    for (const width of [412, 430]) {
+      await page.setViewportSize({ width, height: width === 412 ? 915 : 932 });
+      await page.goto(`/przetargi/${E2E_TENDER_ID}/przetarg`, { waitUntil: "networkidle" });
+      await expect(page.locator("[data-tender-detail-v4]")).toBeVisible({ timeout: 30_000 });
+      const h = await shortcutHeights(page);
+      expect(h.intelH, `intel @${width}`).toBeGreaterThanOrEqual(44);
+      expect(h.costH, `cost @${width}`).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  for (const vp of [
+    { width: 360, height: 800 },
+    { width: 375, height: 812 },
+    { width: 390, height: 844 },
+    { width: 412, height: 915 },
+    { width: 430, height: 932 },
+  ]) {
+    test(`M-03 AC-M03-08 @${vp.width}px — tab delta ≤32px`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(`/przetargi/${E2E_TENDER_ID}/przetarg`, { waitUntil: "networkidle" });
+      await expect(page.locator("[data-tender-detail-v4]")).toBeVisible({ timeout: 30_000 });
+
+      const { delta, heights } = await measureCommandLayerTabDelta(page);
+      expect(delta, JSON.stringify(heights)).toBeLessThanOrEqual(32);
+    });
+  }
 });
