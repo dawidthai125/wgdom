@@ -1,10 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.78** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-09 · **runtime** `4855a2d` · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN**
+> **Prod:** UI **2.63.79** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-09 · **runtime** `f7878fe` · **M-03 CLOSED** · **NG-08 parent FROZEN**
 
-> **★ Baseline (2026-07-09):** prod **2.63.78** @ **`4855a2d`**. Ostatnio zamknięte: **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`). **NG-08 parent = CLOSED / FROZEN** (slices 01–05 + HF-01). **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** po Owner GO + AUDIT (#CORE-013).
+> **★ Baseline (2026-07-09):** prod **2.63.79** @ **`f7878fe`**. Ostatnio zamknięte: **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`). **NG-08 parent = CLOSED / FROZEN** (slices 01–05 + HF-01). **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
@@ -12,9 +12,10 @@
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB**. Gate B payroll **16/16** przy bundle dotykającym syncu.
 > 1. **NG-08 parent CLOSED / FROZEN** — slices **01–05** + hotfix **HF-01** na prod **2.63.78** (`4855a2d`). **Nie** rozszerzaj NG-08 bez nowego AUDIT + Owner GO.
-> 2. **NG-08-HF-01 CLOSED** — Visual Smoke remediation (REC-1): Command Layer density ≤280px desktop / ≤50vh mobile · hub scroll w scroll root · shortcuty 44px mobile · allowlist 8 plików.
-> 3. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
-> 4. **Następny krok** — **STABILIZATION WINDOW** · Owner GO na **nowy** bundle (poza NG-08).
+> 2. **M-03 CLOSED** — Mobile Re-certification na prod **2.63.79** (`f7878fe`): breakpoint `max-[430px]` · KPI do `2xl` · shortcuts 44px · AC-M03-08 PASS.
+> 3. **NG-08-HF-01 CLOSED** — Visual Smoke remediation (REC-1): Command Layer density ≤280px desktop / ≤50vh mobile · hub scroll w scroll root · shortcuty 44px mobile.
+> 4. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
+> 5. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -26,13 +27,13 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.78** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`4855a2d`** (`version.json`) |
-| **Ostatnio CLOSED** | **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
+| **Production (UI)** | **2.63.79** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`f7878fe`** (`version.json`) |
+| **Ostatnio CLOSED** | **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS |
 | **Cloud Sync S7** | Observation only — no changes |
-| **Następny krok** | **STABILIZATION WINDOW** — nowy bundle po Owner GO + AUDIT |
+| **Następny krok** | **STABILIZATION WINDOW** — nowy bundle od nowego **AUDIT** + Owner GO |
 
 ### Czym jest aplikacja
 
@@ -44,6 +45,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **M-03** — Mobile Re-certification | **CLOSED** | **2.63.79** @ `f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |
 | **NG-08-05** — Cost Workspace (WF-05) | **CLOSED** | **2.63.77** @ `97ea90c` |
 | **NG-08-04** — Documents Workspace (WF-04) | **CLOSED** | **2.63.76** @ `6f6bb66` |
@@ -69,7 +71,7 @@
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
 | **NG-08 parent** | **CLOSED / FROZEN** | slices 01–05 + HF-01 · **nie rozszerzać** |
-| **Następny AUDIT** | Owner | nowy bundle poza NG-08 · #CORE-013 |
+| **Następny AUDIT** | Owner | nowy bundle od zera · #CORE-013 |
 | **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |
 | **POST F2 observation** (#5C-5C F3 telemetria) | **ACTIVE** | T1–T7 read-only · **F3 BLOCKED** |
 | **FEATURE / CORE** | Owner GO | osobny bundle · zero mixed commit |
@@ -489,6 +491,7 @@ Faza projektowania procesu Payroll **zamknięta** (PROJECT PROCESS COMPLETE). Do
 
 | Epic | Wersja / commit | Status |
 |------|-----------------|--------|
+| **M-03** Mobile Re-certification | **2.63.79** · `f7878fe` | **CLOSED** · breakpoint 430px · AC-M03-08 · STABILIZATION maintenance |
 | **PLATFORM-SYNC-01A** reconcile notatek | **2.63.33** · `a4cd5c2` | **CLOSED** · archive race · ETAP B ON HOLD |
 | **FEATURE Bundle B** Owner View P2A | **2.63.32** · `119576c` | **CLOSED** · pdf_text work scope |
 | **SYNC-ARCH-01 RC-B** (pełny program) | **2.63.30–31** | **CLOSED** · PWRB · prod verified |
@@ -581,21 +584,23 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne (2026-07-09)
 
-**Production:** **GREEN** · UI **2.63.78** @ **`4855a2d`**.
+**Production:** **GREEN** · UI **2.63.79** @ **`f7878fe`**.
 
 **Faza bieżąca:**
 
-1. **NG-08 parent** — **CLOSED / FROZEN** (slices 01–05 + **HF-01**).
-2. **NG-08-HF-01** Visual Smoke — **CLOSED** (`4855a2d`) · REC-1 · allowlist 8 plików · E2E AC-HF-01…09 PASS.
-3. **STABILIZATION WINDOW** — brak nowych slice'ów NG-08; kolejny program **tylko** Owner GO + AUDIT.
-4. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
-5. **Cloud Sync S7** — observation only.
+1. **M-03** — **CLOSED** (`f7878fe`) · mobile chrome 360–430px · allowlist 6 plików · E2E AC-M03-08 PASS.
+2. **NG-08 parent** — **CLOSED / FROZEN** (slices 01–05 + **HF-01**).
+3. **NG-08-HF-01** Visual Smoke — **CLOSED** (`4855a2d`) · REC-1 · allowlist 8 plików · E2E AC-HF-01…09 PASS.
+4. **STABILIZATION WINDOW** — brak nowych slice'ów NG-08; kolejny program **tylko** od nowego **AUDIT** + Owner GO.
+5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
+6. **Cloud Sync S7** — observation only.
 
 **Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · **TOKEN FREEZE** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **NOW** | STABILIZATION · nowy bundle | — | Owner GO + AUDIT | `STABILIZATION-WINDOW-PLAN.md` |
+| **NOW** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** (od zera) | `STABILIZATION-WINDOW-PLAN.md` |
+| **M-03** | Mobile Re-certification | FEATURE UI maintenance | **CLOSED** · 2.63.79 | `M-03-MOBILE-RECERT-DESIGN-FREEZE.md` · `0f8a165`+`f7878fe` |
 | **NG-08-HF-01** | Visual Smoke remediation | FEATURE UI hotfix | **CLOSED** · 2.63.78 | commits `4f8f256`+`4855a2d` |
 | **NG-08-05…01** | Tender Workspace UX | FEATURE UI | **CLOSED** · 2.63.73–77 | `NG-08-TEUX-PLAN.md` |
 | **NG-06** | TEUX EPIC | FEATURE UI | **COMPLETE** · 2.63.66 | `NG-06-TEUX-EPIC-CLOSE-REPORT.md` |
@@ -613,7 +618,8 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | Zadanie | Status | Dowód / lokalizacja |
 |---------|--------|---------------------|
 | **MOBILE-P0-S1** | **CLOSED** (feature branch) | `stabilization/mobile-p0-s1` · `2350e86` · goToView `reconcileModalScrollLock` · smoke 14/14 |
-| **M-03 Mobile Re-Certification** | **CLOSED** (feature branch) | `stabilization/mobile-p0-s2` · `e4eb733` · NG-03 C1–C7 SSOT scroll (`mobile-view-scroll` + `data-mobile-scroll-root` + `touch-action:pan-y`) · smoke 20/20 |
+| **M-03 Mobile Re-Certification** (feature branch · scroll SSOT) | **CLOSED** (feature branch) | `stabilization/mobile-p0-s2` · `e4eb733` · NG-03 C1–C7 · smoke 20/20 |
+| **M-03 Mobile Re-certification** (main · breakpoint cliff) | **CLOSED** · **PRODUCTION VERIFIED** | **`main`** · **`0f8a165`**+**`f7878fe`** · prod **2.63.79** · [`M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) |
 | **M-03.1 Certification Coverage** | **CLOSED** (feature branch) | `stabilization/mobile-field-cert-m03-1` · `0988eb2` · `docs/testing/MOBILE-FIELD-CERTIFICATION.md` §4.7 (NG-03) + §4.8 (BOQ) |
 | **Z-05 FIELD VALIDATION** | **PENDING (Device Required)** | trylogia kod/docs CLOSED; wykonanie terenowe iPhone Safari — plan `FIELD-VALIDATION-EXECUTION-PLAN.md` (poza repo) |
 | **M-05 Payroll Etap 1 regresja** | **CLOSED (AUDIT PASS)** | suite `lib-payroll-core` 10/10 + Etap 1/race/carry PASS · B1–B6+RB CLOSED · 0 regresji · jedyny FAIL = P3 test hygiene (time-dependent) |

@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-09 · **prod 2.63.78** · **PRODUCTION VERIFIED** · runtime **`4855a2d`** · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
+**Ostatnia aktualizacja:** 2026-07-09 · **prod 2.63.79** · **PRODUCTION VERIFIED** · runtime **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,31 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.78** · runtime **`4855a2d`** · **PRODUCTION VERIFIED** · **GREEN** |
+| **Baseline prod** | UI **2.63.79** · runtime **`f7878fe`** · **PRODUCTION VERIFIED** · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
-| **Co dalej?** | **STABILIZATION WINDOW** — nowy bundle **tylko** po Owner GO + AUDIT (poza NG-08) |
+| **Ostatnio zamknięte** | **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
+| **Co dalej?** | **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
+
+---
+
+## M-03 — Mobile Re-certification · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](docs/architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) · **STABILIZATION WINDOW** maintenance · parent: [`docs/STABILIZATION-WINDOW-PLAN.md`](docs/STABILIZATION-WINDOW-PLAN.md) § M-03
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **BUNDLE CLOSED** · workflow **COMPLETE** |
+| **Commits** | **`0f8a165`** (IMPLEMENT · allowlist 6 plików) · **`f7878fe`** (RELEASE changelog **2.63.79**) |
+| **Prod** | **2.63.79** @ `f7878fe` |
+| **Zakres** | breakpoint cliff 392px → `max-[430px]` · KPI `hidden 2xl:block` · shortcuts `min-h-11 lg:min-h-8` · unified Command Layer shell · **AC-M03-08** tab delta ≤32px |
+| **Test** | `test-m03-mobile-recert.mjs` 13/13 · `test-p0-command-layer-height.mjs` 36/36 · `test-ng08-hf01-boundary.mjs` 7/7 · E2E `audit-p0-tender-freeze` 14/14 |
+| **Protected Core** | **GREEN** — Payroll · Cloud Sync · Pipeline · Parser · Bootstrap · App.tsx CORE · Edge · Calculator · Phase Engine · `tender-ux-tokens.ts` nietknięte |
+
+**Nie zmieniaj bez polecenia:** TOKEN FREEZE · pipeline · sync · payroll · Command Layer poza hotfix track.
 
 ---
 
@@ -118,7 +135,7 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 **NG-06-TEUX EPIC:** **COMPLETE** · **PRODUCTION VERIFIED** — [`docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md)
 
-**Poza roadmapą epic (defer):** hosted removal · Z-05 mobile re-cert · TOKEN thaw · Cloud Sync S7.
+**Poza roadmapą epic (defer):** hosted removal · TOKEN thaw · Cloud Sync S7. **Z-05 mobile re-cert** — **CLOSED na main** jako **M-03** (`f7878fe`).
 
 **Nie zmieniaj bez polecenia:** `tender-ux-tokens.ts` (TOKEN FREEZE) · pipeline · sync · payroll.
 
@@ -632,7 +649,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.45** (`a7bc713`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.79** (`f7878fe`) · **PRODUCTION VERIFIED** |
+| **M-03** | **CLOSED** · Mobile Re-certification · **2.63.79** @ `f7878fe` |
 | **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |
 | **PAYROLL Guard Phase** | **B3+B3.1+B3.2 CLOSED** · [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md) |

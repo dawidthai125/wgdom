@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-09 (**prod 2.63.78 VERIFIED** · commit **`4855a2d`** · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN** (slices 01–05) · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle poza NG-08**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-09 (**prod 2.63.79 VERIFIED** · commit **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** (slices 01–05 + HF-01) · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -73,6 +73,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **M-03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** (`f7878fe`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) · commits `0f8a165`+`f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation (Command Layer) | **2.63.78** (`4855a2d`) | **CLOSED** · **PRODUCTION VERIFIED** | `CURRENT-TASK.md` · commits `4f8f256`+`4855a2d` |
 | **NG-08-05** — Cost Workspace (WF-05) | **2.63.77** (`97ea90c`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-05-TEUX-PLAN.md`](architecture/NG-08-05-TEUX-PLAN.md) |
 | **NG-08-04** — Documents Workspace (WF-04) | **2.63.76** (`6f6bb66`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-04-TEUX-PLAN.md`](architecture/NG-08-04-TEUX-PLAN.md) |
@@ -205,13 +206,13 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ### 2.0. Aktualny stan (2026-07-09)
 
 ```text
-Production UI  2.63.78  (PRODUCTION VERIFIED · GREEN)
-Runtime        4855a2d  (version.json — kod aplikacji na Vercel)
-Ostatnio CLOSED  NG-08-HF-01 (4855a2d) · NG-08-05 (97ea90c) · NG-08-04 (6f6bb66) · NG-08-03 (caa46b1) · NG-08-02 (09259ad)
+Production UI  2.63.79  (PRODUCTION VERIFIED · GREEN)
+Runtime        f7878fe  (version.json — kod aplikacji na Vercel)
+Ostatnio CLOSED  M-03 (f7878fe) · NG-08-HF-01 (4855a2d) · NG-08-05 (97ea90c) · NG-08-04 (6f6bb66) · NG-08-03 (caa46b1) · NG-08-02 (09259ad)
 NG-08 parent   CLOSED / FROZEN (slices 01–05 + HF-01)
 Protected Core GREEN
 Cloud Sync S7  observation only — no changes
-Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (poza NG-08)
+Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (nowy bundle od zera)
 ```
 
 | Priorytet produkcyjny | Reguła |
@@ -238,6 +239,7 @@ Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (poza NG-08)
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.79       ← M-03 Mobile Re-certification · commit f7878fe · PRODUCTION VERIFIED · GREEN
 Version (prod):             2.63.78       ← NG-08-HF-01 Visual Smoke · commit 4855a2d · PRODUCTION VERIFIED · GREEN
 Version (prod):             2.63.77       ← NG-08-05 Cost Workspace · commit 97ea90c · PRODUCTION VERIFIED
 Version (prod):             2.63.76       ← NG-08-04 Documents Workspace · commit 6f6bb66 · PRODUCTION VERIFIED
