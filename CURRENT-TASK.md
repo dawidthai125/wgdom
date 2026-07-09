@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-09 · **sesja domknięta** · prod **2.63.79** · runtime **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-09 · **NG-09-01 CLOSED** · prod **2.63.80** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **NG-09 slice 1/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,34 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.79** · runtime **`f7878fe`** · **PRODUCTION VERIFIED** · **GREEN** |
+| **Baseline prod** | UI **2.63.80** · **PRODUCTION VERIFIED** (post NG-09-01) · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
-| **Co dalej?** | **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO |
+| **Ostatnio zamknięte** | **NG-09-01** (**2.63.80**) · **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) |
+| **Co dalej?** | **NG-09-02…05 BLOCKED** — wymaga AUDIT + Owner GO per slice · **STABILIZATION WINDOW** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
+
+---
+
+## NG-09 — Inspector Workspace Modernization · **ACTIVE (slice 1/5 CLOSED)**
+
+> **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md)
+
+| Slice | Wersja | Status |
+|-------|--------|--------|
+| **NG-09-01** Workspace Frame | **2.63.80** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-09-02** View Router | — | **BLOCKED** — brak Owner GO |
+| NG-09-03…05 | — | **BLOCKED** |
+
+**NG-09-01 zakres:** `InspectorShell` · `InspectorCommandLayer` · `InspectorSidebar` · SSOT `INSPECTOR_MAIN_TAB_DEFS` · mobile bottom nav · desktop sidebar `md+` · job detail ukrywa bottom nav.
+
+**Protected Core:** **GREEN** — App.tsx · CloudLoader · cloud-sync.ts · Payroll · Edge nietknięte.
+
+**Maintenance debt (osobny task):** `smoke-test-inspector-scroll-20.1d1.mjs` T6 regex — nie blokuje NG-09-01.
+
+**Nie rozpoczynaj NG-09-02 bez AUDIT + Owner GO.**
 
 ---
 
@@ -649,7 +669,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.79** (`f7878fe`) · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.80** · **PRODUCTION VERIFIED** |
+| **NG-09-01** | **CLOSED** · Inspector Workspace Frame · **2.63.80** |
 | **M-03** | **CLOSED** · Mobile Re-certification · **2.63.79** @ `f7878fe` |
 | **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |

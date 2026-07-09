@@ -6,6 +6,25 @@ import {
 
 export type InspectorMainTab = "dashboard" | "jobs" | "gallery" | "files" | "portfolio";
 
+export type InspectorMainTabDef = {
+  id: InspectorMainTab;
+  label: string;
+  icon: LucideIcon;
+};
+
+/** SSOT — 5 tabów głównych (bottom nav + desktop sidebar). */
+export const INSPECTOR_MAIN_TAB_DEFS: InspectorMainTabDef[] = [
+  { id: "dashboard", label: "Pulpit", icon: LayoutDashboard },
+  { id: "jobs", label: "Roboty", icon: List },
+  { id: "gallery", label: "Galeria", icon: Images },
+  { id: "files", label: "Pliki", icon: FolderOpen },
+  { id: "portfolio", label: "Portfolio WM", icon: LayoutGrid },
+];
+
+export const INSPECTOR_MAIN_TAB_LABELS: Record<InspectorMainTab, string> = Object.fromEntries(
+  INSPECTOR_MAIN_TAB_DEFS.map(({ id, label }) => [id, label]),
+) as Record<InspectorMainTab, string>;
+
 export type InspectorJobSection =
   | "wm"
   | "files"
@@ -59,31 +78,31 @@ export function InspectorBottomNav({
       on ? "text-primary" : "text-muted-foreground hover:text-foreground"
     }`;
 
-  const tabs: { id: InspectorMainTab; label: string; icon: typeof List; onClick: () => void }[] = [
-    { id: "dashboard", label: "Pulpit", icon: LayoutDashboard, onClick: onDashboard },
-    { id: "jobs", label: "Roboty", icon: List, onClick: onJobs },
-    { id: "gallery", label: "Galeria", icon: Images, onClick: onGallery },
-    { id: "files", label: "Pliki", icon: FolderOpen, onClick: onFiles },
-    { id: "portfolio", label: "Portfolio WM", icon: LayoutGrid, onClick: onPortfolio },
-  ];
+  const handlers: Record<InspectorMainTab, () => void> = {
+    dashboard: onDashboard,
+    jobs: onJobs,
+    gallery: onGallery,
+    files: onFiles,
+    portfolio: onPortfolio,
+  };
 
   return (
     <nav
-      className="shrink-0 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+      className="inspector-bottom-nav shrink-0 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
       style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}
       aria-label="Nawigacja inspektora"
     >
       <div className="flex items-stretch max-w-lg mx-auto">
-        {tabs.map(({ id, label, icon: Icon, onClick }) => (
+        {INSPECTOR_MAIN_TAB_DEFS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
-            onClick={onClick}
+            onClick={handlers[id]}
             className={tabClass(active === id)}
             aria-current={active === id ? "page" : undefined}
           >
             <span className="relative">
-              <Icon size={18} strokeWidth={active === id ? 2.25 : 2}/>
+              <Icon size={18} strokeWidth={active === id ? 2.25 : 2} />
               {id === "dashboard" && alertCount > 0 && (
                 <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 px-0.5 rounded-full bg-red-600 text-white text-[8px] font-bold flex items-center justify-center">
                   {alertCount > 9 ? "9+" : alertCount}

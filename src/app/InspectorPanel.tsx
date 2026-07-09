@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from "react";
-import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
-import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
-import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
-  MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
+  MapPin, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Phone, Users,
-  ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
-  Cloud, CloudOff, CloudUpload, Eye,
+  ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, MessageSquare,
+  Eye,
 } from "lucide-react";
+import { InspectorCommandLayer } from "@/app/inspector/InspectorCommandLayer";
+import { InspectorShell } from "@/app/inspector/InspectorShell";
+import { InspectorSidebar } from "@/app/inspector/InspectorSidebar";
 import {
   fetchKeysFromCloud,
   pushKeysToCloudSafe,
@@ -140,6 +140,7 @@ import {
   InspectorBottomNav,
   InspectorJobSectionNav,
   InspectorQuickActions,
+  INSPECTOR_MAIN_TAB_LABELS,
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
@@ -1255,103 +1256,83 @@ export function InspectorPanel({
     setUploadBusy(null);
   };
 
+  const commandPrimaryLine = selectedJob
+    ? `${selectedJob.address || "Bez adresu"}${selectedJob.flatNumber ? ` m.${selectedJob.flatNumber}` : ""}`
+    : displayName;
+  const commandSecondaryLine = selectedJob
+    ? (selectedJob.client || displayName)
+    : "Inspektor WM · W&G DOM";
+
   return (
-    <div className="relative flex flex-col bg-background text-foreground" style={{ fontFamily: "'Inter', sans-serif", height: "100dvh" }}>
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0 gap-2" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
-        <div className="flex items-center gap-2 min-w-0">
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0"/>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-[10px] text-muted-foreground font-medium truncate">Inspektor WM · W&G DOM</p>
-            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt} onRetry={handleCloudSyncClick}/>
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          <CompanyMusicPlayer />
-          <button
-            type="button"
-            onClick={handleCloudSyncClick}
-            disabled={syncing && !pushFailed}
-            className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${pushFailed ? "hover:bg-secondary cursor-pointer" : syncing ? "cursor-default" : "hover:bg-secondary"}`}
-            title={cloudSyncTitle}
-            aria-label={cloudSyncTitle}
-          >
-            {inspectorCloudStatus === "saving" && <CloudUpload size={15} className="text-muted-foreground animate-pulse"/>}
-            {inspectorCloudStatus === "saved" && <Cloud size={15} className="text-green-500"/>}
-            {inspectorCloudStatus === "error" && <CloudOff size={15} className="text-destructive"/>}
-            {inspectorCloudStatus === "idle" && <Cloud size={15} className="text-muted-foreground/40"/>}
-          </button>
-          <button
-            type="button"
-            onClick={() => refreshFromCloud(false)}
-            disabled={syncing}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary disabled:opacity-50"
-            title={lastSyncedAt ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}` : "Odśwież dane z chmury"}
-          >
-            <RefreshCw size={14} className={syncing ? "animate-spin" : ""}/>
-            <span className="hidden sm:inline">{syncing ? "…" : "Odśwież"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setOperationalNotesOpen(true)}
-            className="relative p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary"
-            title={operationalNotesUnread > 0 ? `Notatki operacyjne · ${operationalNotesUnread} nieprzeczytanych` : "Notatki operacyjne"}
-            aria-label={operationalNotesUnread > 0 ? `Notatki operacyjne, ${operationalNotesUnread} nieprzeczytanych` : "Notatki operacyjne"}
-          >
-            <ScrollText size={16} className={operationalNotesUnread > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}/>
-            {operationalNotesUnread > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
-                {operationalNotesUnread > 9 ? "9+" : operationalNotesUnread}
-              </span>
+    <div className="relative h-[100dvh]">
+      <InspectorShell
+        jobDetailOpen={Boolean(selectedJob)}
+        commandLayer={
+          <InspectorCommandLayer
+            primaryLine={commandPrimaryLine}
+            secondaryLine={commandSecondaryLine}
+            activeTabLabel={selectedJob ? undefined : INSPECTOR_MAIN_TAB_LABELS[mainTab]}
+            syncing={syncing}
+            syncPending={syncPending}
+            pushFailed={pushFailed}
+            lastSyncedAt={lastSyncedAt}
+            cloudStatus={inspectorCloudStatus}
+            cloudSyncTitle={cloudSyncTitle}
+            onCloudSyncClick={handleCloudSyncClick}
+            onRefreshFromCloud={() => refreshFromCloud(false)}
+            operationalNotesUnread={operationalNotesUnread}
+            onOpenNotes={() => setOperationalNotesOpen(true)}
+            onOpenHelp={() => setHelpOpen(true)}
+            onLogout={onLogout}
+          />
+        }
+        sidebar={
+          <InspectorSidebar
+            active={mainTab}
+            dashboardAlertCount={dashboardAlertCount}
+            onSelect={switchMainTab}
+          />
+        }
+        beforeWorkspace={
+          <>
+            <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)} />
+            <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+            <div className="px-4 shrink-0">
+              <PwaInstallBanner compact dismissKey="wg-pwa-inspector-dismiss" persist="local" className="mb-0 mt-2" />
+            </div>
+            {adminNotesPending.length > 0 && !selectedJob && (
+              <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                    <MessageSquare size={14} /> Odpowiedź od admina ({adminNotesPending.length})
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {adminNotesPending.slice(0, 2).map((j) => j.address || "Bez adresu").join(" · ")}
+                    {adminNotesPending.length > 2 ? "…" : ""}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => openJob(adminNotesPending[0].id, "wm")}
+                    className="px-3 py-2.5 min-h-[44px] rounded-lg bg-violet-600 text-white text-xs font-medium touch-manipulation"
+                  >
+                    Otwórz
+                  </button>
+                  <button
+                    type="button"
+                    onClick={markAdminNotesSeen}
+                    className="px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-xs text-muted-foreground touch-manipulation"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
             )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setHelpOpen(true)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary px-3 py-2.5 min-h-[44px] rounded-lg"
-            title="Instrukcja"
-          >
-            <BookOpen size={14}/><span className="hidden sm:inline">Pomoc</span>
-          </button>
-          <button type="button" onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary">
-            <LogOut size={14}/>Wyloguj
-          </button>
-        </div>
-      </header>
-
-      <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)}/>
-      <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)}/>
-
-      <div className="px-4 shrink-0">
-        <PwaInstallBanner compact dismissKey="wg-pwa-inspector-dismiss" persist="local" className="mb-0 mt-2"/>
-      </div>
-
-      {adminNotesPending.length > 0 && !selectedJob && (
-        <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
-              <MessageSquare size={14}/> Odpowiedź od admina ({adminNotesPending.length})
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">
-              {adminNotesPending.slice(0, 2).map((j) => j.address || "Bez adresu").join(" · ")}
-              {adminNotesPending.length > 2 ? "…" : ""}
-            </p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => openJob(adminNotesPending[0].id, "wm")}
-              className="px-3 py-2.5 min-h-[44px] rounded-lg bg-violet-600 text-white text-xs font-medium touch-manipulation"
-            >
-              Otwórz
-            </button>
-            <button type="button" onClick={markAdminNotesSeen} className="px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-xs text-muted-foreground touch-manipulation">
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-
+          </>
+        }
+        bottomNav={renderBottomNav()}
+      >
       {!selectedJob && mainTab === "dashboard" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={dashboardPull.pull} refreshing={dashboardPull.refreshing} ready={dashboardPull.ready}/>
@@ -1375,13 +1356,11 @@ export function InspectorPanel({
               )}
             </div>
           </div>
-          {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "portfolio" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing} ready={portfolioPull.ready}/>
           <WmPortfolioView jobs={jobsVisible} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
-          {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "gallery" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1391,7 +1370,6 @@ export function InspectorPanel({
             scrollRef={galleryScrollRef}
             onOpenJob={(id) => openJob(id, "photos", "gallery")}
           />
-          {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "files" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1402,7 +1380,6 @@ export function InspectorPanel({
             scrollRef={filesScrollRef}
             onOpenJob={(id) => openJob(id, "files", "files")}
           />
-          {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "jobs" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1470,8 +1447,6 @@ export function InspectorPanel({
               })
             )}
           </div>
-
-          {renderBottomNav()}
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1915,6 +1890,8 @@ export function InspectorPanel({
         </div>
       )}
 
+      </InspectorShell>
+
       {lightbox && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4" onClick={() => setLightbox(null)}>
           <button type="button" className="absolute top-4 right-4 p-2 text-white" style={{ top: "max(1rem, env(safe-area-inset-top))" }} onClick={() => setLightbox(null)}>
@@ -1975,55 +1952,5 @@ export function InspectorPanel({
         </div>
       )}
     </div>
-  );
-}
-
-function SyncStatusBadge({
-  syncing,
-  syncPending,
-  pushFailed,
-  lastSyncedAt,
-  onRetry,
-}: {
-  syncing: boolean;
-  syncPending: boolean;
-  pushFailed: boolean;
-  lastSyncedAt: Date | null;
-  onRetry?: () => void;
-}) {
-  if (syncing) {
-    return (
-      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-        <RefreshCw size={10} className="animate-spin shrink-0"/>
-        Odświeżam z chmury…
-      </p>
-    );
-  }
-  if (pushFailed) {
-    return (
-      <button
-        type="button"
-        onClick={onRetry}
-        className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5 touch-manipulation min-h-[28px]"
-        title="Dotknij ikony chmury u góry, aby ponowić wysłanie"
-      >
-        <CloudOff size={10} className="shrink-0"/>
-        Czeka na wysłanie — dotknij
-      </button>
-    );
-  }
-  if (syncPending) {
-    return (
-      <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
-        <Cloud size={10} className="shrink-0"/>
-        Zapisywanie…
-      </p>
-    );
-  }
-  return (
-    <p className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5" title={lastSyncedAt ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}` : undefined}>
-      <Cloud size={10} className="shrink-0"/>
-      Zsynchronizowano
-    </p>
   );
 }

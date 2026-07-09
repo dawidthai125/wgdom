@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-09 |
-| **Commit (HEAD `main`)** | `f7878fe` (release M-03) · IMPLEMENT `0f8a165` |
-| **Production version (UI)** | **v2.63.79** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** (#CORE-013) · następny bundle: **nowy AUDIT** + Owner GO · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Commit (HEAD `main`)** | post NG-09-01 release |
+| **Production version (UI)** | **v2.63.80** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-01 CLOSED** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** (#CORE-013) · **NG-09-02 BLOCKED** · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -81,14 +81,14 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.79** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | `f7878fe` |
+| **Wersja UI (prod)** | **v2.63.80** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
+| **HEAD `main`** | post NG-09-01 release |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.79** to ostatni wpis w `changelog-data.ts` (**M-03 Mobile Re-certification**). Commity bundle: **`0f8a165`** (IMPLEMENT) + **`f7878fe`** (RELEASE changelog). Baseline prod: `version.json` → `{ "version": "2.63.79", "commit": "f7878fe" }`.
+Wersja UI **v2.63.80** to ostatni wpis w `changelog-data.ts` (**NG-09-01 Inspector Workspace Frame**). Poprzedni baseline: **2.63.79** @ `f7878fe` (M-03). Baseline prod: `version.json` → `{ "version": "2.63.80", "commit": "<release>" }`.
 
 ---
 
@@ -112,6 +112,7 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 
 | EPIC / Bundle | Wersja / commit | Status |
 |---------------|-----------------|--------|
+| **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** | **CLOSED** · PRODUCTION VERIFIED |
 | **M‑03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** · `f7878fe` | **CLOSED** · PRODUCTION VERIFIED |
 | **NG‑08‑HF‑01** — Visual Smoke remediation | **2.63.78** · `4855a2d` | **CLOSED** |
 | **NG‑08‑05…01** — Tender Workspace UX slices | **2.63.73–77** | **CLOSED** · parent **FROZEN** |

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-09",
+    version: "2.63.80",
+    label: "NG-09-01 — Inspector Workspace Frame",
+    items: [
+      {
+        type: "improve",
+        text: "Panel inspektora — Workspace Frame: Command Layer, sidebar desktop (md+), bottom nav mobile, SSOT 5 tabów L1; job detail ukrywa bottom nav.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-09",
     version: "2.63.79",
     label: "M-03 — Mobile Re-certification",
     items: [
