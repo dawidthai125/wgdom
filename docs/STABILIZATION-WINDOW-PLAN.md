@@ -2,7 +2,7 @@
 
 > **Status:** **SSOT** · plan operacyjny (bez nowych epiców)  
 > **Data rozpoczęcia:** 2026-07-01 (prod **2.63.12** · NG-04 EPIC CLOSED)  
-> **Aktualny prod (monitoring):** **2.63.27** (`6c94223`) · 2026-07-02  
+> **Aktualny prod (monitoring):** **2.63.79** (`f7878fe`) · **M-03 CLOSED** · 2026-07-09  
 > **Raport tygodniowy:** [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)  
 > **Bez zmian:** workflow release ([`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)) · kod aplikacji — tylko na polecenie
 
@@ -16,6 +16,7 @@
 4. **Przetargi:** NG-04 Principles #001–#010 — [`NG-04-DESIGN-FREEZE.md`](NG-04-DESIGN-FREEZE.md).
 5. **Release:** nie zmieniaj workflow — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md).
 6. **P0 incydent:** wpisz w raporcie tygodniowym + rozważ aktualizację [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md).
+7. **Owner GO:** [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) — FEATURE-only epic może startować w oknie po AUDIT+DF+review+boundary; CORE — BLOCKED.
 
 ---
 
@@ -53,7 +54,7 @@ Szczegóły Przetargi: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVI
 |----|--------|-----------|
 | M-01 | Docs SSOT (`ARCHITECTURE.md`, `PROJECT-HANDOFF-CURRENT.md`, `AGENTS.md`, `AGENT-ONBOARDING.md`) | P1 · **częściowo CLOSED** 2026-07-02 (4 pliki → 2.63.26) |
 | M-02 | Smoke agregat Przetargi NG-01–04 | P1 · **CLOSED** · TI-B4 · `test-tenders-stabilization-smoke.mjs` |
-| M-03 | Mobile re-certification post-NG-03/04 | P1 |
+| M-03 | Mobile re-certification post-NG-03/04 | P1 · **CLOSED** · prod **2.63.79** (`f7878fe`) · [`M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) |
 | M-04 | Monitoring egress Supabase | P1 |
 | M-05 | Payroll Etap 1 — regresja (Etap 2 **CLOSED** 2.63.15–24 w oknie) | P1 |
 | M-08 | TEST-INFRA-001 harness MVP | **CLOSED** · prod **2.63.26** (`3d6dd90`) · TI-B1–B3 backlog · **TI-B4 CLOSED** (manifest 1.1.0) |
@@ -125,6 +126,16 @@ Krótki **STABILIZATION CLOSE REPORT** + aktualizacja [`CURRENT-TASK.md`](../CUR
 
 Szczegóły: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVIEW-2026-TENDERS.md) §8.
 
+### 6.1 Wyjątek — epic FEATURE-only w trakcie okna
+
+Gdy epic **nie dotyka Protected Core** i spełnia [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) (#WORKFLOW-OWNER-GO-001):
+
+- **Nie wymaga** zamknięcia Z-01–Z-07
+- Wymaga: AUDIT · DESIGN FREEZE · ARCHITECTURE REVIEW · Boundary Check PASS
+- **Owner GO** (asystent może odblokować IMPLEMENT) zastępuje ręczny override STABILIZATION dla tego epicu
+
+Epic dotykający Payroll · PWRB · Sync · CloudLoader · Edge · Bootstrap · App.tsx CORE — **bez wyjątku**; Z-01–Z-07 lub osobna analiza CORE.
+
 ---
 
 ## Powiązane dokumenty (SSOT)
@@ -135,4 +146,5 @@ Szczegóły: [`ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVIEW-2026-TE
 | [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md) | Raport tygodniowy |
 | [`NG-04-EPIC-CLOSE-REPORT.md`](NG-04-EPIC-CLOSE-REPORT.md) | Baseline epicu |
 | [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) | Release / verify |
+| [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) | Owner GO Policy · #WORKFLOW-OWNER-GO-001 |
 | [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md) | P0 |

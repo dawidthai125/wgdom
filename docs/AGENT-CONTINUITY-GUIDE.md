@@ -6,6 +6,8 @@
 
 > **★ Baseline (2026-07-09):** prod **2.63.79** @ **`f7878fe`**. Ostatnio zamknięte: **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`). **NG-08 parent = CLOSED / FROZEN** (slices 01–05 + HF-01). **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
 
+> **★ Closeout sesji (2026-07-09, M-03):** **`0f8a165`** IMPLEMENT + **`f7878fe`** RELEASE (**2.63.79**) + **`cc7ba83`** docs continuity — bundle **M-03 Mobile Re-certification** **CLOSED** · workflow **COMPLETE** · Protected Core **GREEN** · verify `version.json` → **2.63.79** @ **`f7878fe`**. SSOT freeze: [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
+
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-09):**
@@ -21,7 +23,7 @@
 
 ---
 
-## 0. Szybki start dla nowego agenta (2026-07-08)
+## 0. Szybki start dla nowego agenta (2026-07-09)
 
 ### Baseline (SSOT)
 

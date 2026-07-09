@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-09 · **prod 2.63.79** · **PRODUCTION VERIFIED** · runtime **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
+**Ostatnia aktualizacja:** 2026-07-09 · **sesja domknięta** · prod **2.63.79** · runtime **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
