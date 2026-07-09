@@ -36,6 +36,9 @@ import {
   TenderMobileRowCard,
   TenderMobileTableCards,
 } from "@/app/tenders/mobile/tender-mobile-row-cards";
+import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
+import { TenderCostWorkspaceBridge } from "@/app/TenderCostWorkspaceBridge";
+import { TEUX_FONT_META } from "@/lib/tender-ux-tokens";
 
 function KosztorysKpiCard({
   label,
@@ -157,6 +160,7 @@ export function TenderKosztorysWorkspace({
   onRetryParse?: () => void;
   trustAssessment: TenderTrustAssessment;
 }) {
+  const navigate = useNavigate();
   const tendersCtx = useTendersContextOptional();
   const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
 
@@ -218,6 +222,12 @@ export function TenderKosztorysWorkspace({
         health={health}
         onRetry={onRetryParse}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
+      />
+
+      <TenderCostWorkspaceBridge
+        tenderId={item.id}
+        targetTab="ceny"
+        onNavigate={() => openTenderDetailV4(navigate, item.id, "ceny")}
       />
 
       <p className="text-[11px] text-muted-foreground" data-kosztorys-process-strip-bridge>
@@ -304,7 +314,7 @@ export function TenderKosztorysWorkspace({
       {pro.hasCatalog && (
         <section className="space-y-3" data-kosztorys-pro-dashboard>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-bold tracking-wide text-foreground">KOSZTORYS PRO</h3>
+            <TenderUxSectionTitle>KOSZTORYS PRO</TenderUxSectionTitle>
             <span
               className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                 statusReady
@@ -345,7 +355,9 @@ export function TenderKosztorysWorkspace({
       {pro.topRows.length > 0 && (
         <section className="space-y-2" data-kosztorys-top-cost>
           <h3 className="text-sm font-semibold text-foreground">Największe pozycje kosztowe</h3>
-          <p className="text-[10px] text-muted-foreground">TOP 20 · sortowanie malejąco po wartości wyceny katalogowej</p>
+          <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+            TOP 20 · sortowanie malejąco po wartości wyceny katalogowej
+          </p>
           <KosztorysTopCostTable rows={pro.topRows} />
         </section>
       )}

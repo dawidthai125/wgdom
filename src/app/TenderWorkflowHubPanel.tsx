@@ -116,6 +116,7 @@ export function TenderWorkflowHubPanel({
             item={item}
             swz={swz}
             intelligenceCtx={intelligenceCtx}
+            onNavigateCostTab={(tab) => onNavigateTab(tab)}
           />
         </>
       )}

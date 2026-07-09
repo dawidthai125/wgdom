@@ -3,6 +3,7 @@
  * UI-only · brak logiki pipeline / intelligence next-action.
  */
 
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { WorkflowPrimaryActionView } from "@/lib/tender-workflow-primary-action";
 import {
   TENDER_DETAIL_V4_TAB_LABELS,
@@ -45,6 +46,17 @@ export function buildProcessStripYouAreHereLabel(stageLabel: string): string {
 /** NG-08-03 — Intelligence hub shortcut w Command Layer (WF-03a). */
 export function buildIntelligenceHubShortcutLabel(): string {
   return "Podsumowanie oferty";
+}
+
+/** NG-08-05 — sugerowany pierwszy tab kosztowy (WF-05 · RC-01). */
+export function resolveSuggestedCostV4Tab(item: TenderPipelineItem): "kosztorys" | "ceny" {
+  if (item.tenderDossier?.kosztorys?.ok === true) return "ceny";
+  return "kosztorys";
+}
+
+/** NG-08-05 — etykieta skrótu cost workspace. */
+export function buildCostWorkspaceShortcutLabel(tab: "kosztorys" | "ceny"): string {
+  return tab === "ceny" ? "Wycena oferty" : TENDER_DETAIL_V4_TAB_LABELS.kosztorys;
 }
 
 /** Prezentacja only — pochodzi z istniejących pól view (bez zmiany reguł P0–P12). */

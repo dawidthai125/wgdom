@@ -27,7 +27,11 @@ import {
   type WorkspaceV2InsightTone,
   type WorkspaceV2PillarStatus,
 } from "@/lib/tender-workspace-v2-ux";
-import { TEUX_FONT_BODY, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
+import { TEUX_FONT_BODY, TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
+import {
+  buildCostWorkspaceShortcutLabel,
+  resolveSuggestedCostV4Tab,
+} from "@/lib/tender-command-layer-ux";
 
 function SectionShell({
   title,
@@ -130,12 +134,15 @@ export function TenderWorkspaceV2InsightsCompact({
   item,
   swz,
   intelligenceCtx,
+  onNavigateCostTab,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
   intelligenceCtx: TenderIntelligenceContext;
+  onNavigateCostTab?: (tab: "kosztorys" | "ceny") => void;
 }) {
   const autoChecklist = useMemo(() => buildWorkspaceV2AutoChecklist(item, swz), [item, swz]);
+  const suggestedCostTab = useMemo(() => resolveSuggestedCostV4Tab(item), [item]);
   const timelineAutomation = useMemo(
     () => buildWorkspaceV2TimelineAutomation(item, swz),
     [item, swz],
@@ -178,6 +185,21 @@ export function TenderWorkspaceV2InsightsCompact({
         )}
         {extraCount > 0 && (
           <p className="text-[10px] text-muted-foreground">+{extraCount} więcej w szczegółach postępu</p>
+        )}
+        {onNavigateCostTab && (
+          <div
+            className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-2"
+            data-tender-hub-cost-row
+          >
+            <span className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>Następny krok wyceny:</span>
+            <button
+              type="button"
+              onClick={() => onNavigateCostTab(suggestedCostTab)}
+              className={`inline-flex items-center rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-primary touch-manipulation hover:bg-primary/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            >
+              {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
+            </button>
+          </div>
         )}
         {narrative && (
           <p className={`${TEUX_FONT_BODY} text-muted-foreground line-clamp-2 border-t border-border/50 pt-2`}>

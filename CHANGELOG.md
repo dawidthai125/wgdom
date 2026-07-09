@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.77 — NG-08-05 Tender Cost Workspace
+
+- **improve:** TenderCostWorkspaceBridge Kosztorys↔Ceny · CostShortcutChip · hub cost row · TEUX typography Ceny · LS scroll kosztorys|ceny
+- **boundary:** slice NG-08-05/05 · WF-05 · REC-1 · presentation only · #CORE-013 PASS
+
 ## 2.63.76 — NG-08-04 Tender Documents Workspace
 
 - **improve:** TEUX section titles · LS persist expanded groups · secondary collapse SWZ meta · touch-safe headers · per-group empty row

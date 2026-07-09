@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -18,7 +18,16 @@ import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
 import { resolveActiveProcessStripStageId } from "@/lib/tender-workflow-process-strip";
 import { TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
-import { buildIntelligenceHubShortcutLabel } from "@/lib/tender-command-layer-ux";
+import {
+  buildCostWorkspaceShortcutLabel,
+  buildIntelligenceHubShortcutLabel,
+  resolveSuggestedCostV4Tab,
+} from "@/lib/tender-command-layer-ux";
+import {
+  loadTenderTabScrollTop,
+  saveTenderTabScrollTop,
+  type TenderCostScrollTab,
+} from "@/lib/tender-cost-ui-persist";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
@@ -214,6 +223,63 @@ export function TenderDetailPage({
     });
   }, [activeTab, pendingIntelligenceScroll, scrollToIntelligenceHub]);
 
+  const suggestedCostTab = useMemo(
+    () => resolveSuggestedCostV4Tab(bootstrapItem),
+    [bootstrapItem],
+  );
+
+  const handleCostShortcutClick = useCallback(() => {
+    handleTabChange(suggestedCostTab);
+  }, [handleTabChange, suggestedCostTab]);
+
+  const scrollRootRef = useRef<HTMLDivElement>(null);
+  const prevCostTabRef = useRef<TenderDetailV4TabId>(activeTab);
+  const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isCostScrollTab = (tab: TenderDetailV4TabId): tab is TenderCostScrollTab =>
+    tab === "kosztorys" || tab === "ceny";
+
+  useEffect(() => {
+    const el = scrollRootRef.current;
+    const tenderId = item?.id;
+    if (!el || !tenderId?.trim()) return;
+
+    const prev = prevCostTabRef.current;
+    if (isCostScrollTab(prev) && prev !== activeTab) {
+      saveTenderTabScrollTop(tenderId, prev, el.scrollTop);
+    }
+    prevCostTabRef.current = activeTab;
+
+    if (!isCostScrollTab(activeTab)) return;
+
+    const saved = loadTenderTabScrollTop(tenderId, activeTab);
+    if (saved != null) {
+      requestAnimationFrame(() => {
+        el.scrollTop = saved;
+      });
+    }
+  }, [activeTab, item?.id]);
+
+  useEffect(() => {
+    const el = scrollRootRef.current;
+    const tenderId = item?.id;
+    if (!el || !tenderId?.trim() || !isCostScrollTab(activeTab)) return;
+
+    const onScroll = () => {
+      if (scrollSaveTimerRef.current) clearTimeout(scrollSaveTimerRef.current);
+      scrollSaveTimerRef.current = setTimeout(() => {
+        saveTenderTabScrollTop(tenderId, activeTab, el.scrollTop);
+      }, 150);
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (scrollSaveTimerRef.current) clearTimeout(scrollSaveTimerRef.current);
+      saveTenderTabScrollTop(tenderId, activeTab, el.scrollTop);
+    };
+  }, [activeTab, item?.id]);
+
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
@@ -251,6 +317,14 @@ export function TenderDetailPage({
         >
           {buildIntelligenceHubShortcutLabel()}
         </button>
+        <button
+          type="button"
+          onClick={handleCostShortcutClick}
+          className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-[32px] ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+          data-tender-cost-shortcut
+        >
+          {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
+        </button>
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
@@ -282,6 +356,8 @@ export function TenderDetailPage({
     handleTabChange,
     handleBlockersChipClick,
     handleIntelligenceShortcutClick,
+    handleCostShortcutClick,
+    suggestedCostTab,
   ]);
 
   if (!item) {
@@ -335,6 +411,8 @@ export function TenderDetailPage({
       )}
 
       <div
+        ref={scrollRootRef}
+        data-tender-detail-scroll-root
         className={`flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
           przetargActionBarActive ? "max-lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
         }`}

@@ -1,6 +1,9 @@
 import { AlertTriangle, Calculator, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { TenderCostWorkspaceBridge } from "@/app/TenderCostWorkspaceBridge";
+import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { TENDER_BID_DISCLAIMER } from "@/lib/tender-bid-quality";
@@ -59,6 +62,12 @@ import {
   formatMaterialImpactPln,
   materialImpactClass,
 } from "@/lib/material-impact";
+import {
+  TEUX_FONT_CAPTION,
+  TEUX_FONT_META,
+  TEUX_KPI_LABEL,
+  TEUX_TOUCH_TARGET,
+} from "@/lib/tender-ux-tokens";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -104,6 +113,7 @@ export function TenderBidProposalPanel({
   priceOverrides?: TenderPriceOverrideEntry[];
   onPriceOverridesChanged?: () => void;
 }) {
+  const navigate = useNavigate();
   const [catalogRegionLabel, setCatalogRegionLabel] = useState(WGDOM_COST_REGION_LABELS.wroclaw);
   const [dictRevision, setDictRevision] = useState(0);
   const [assignCategoryByLp, setAssignCategoryByLp] = useState<Record<string, UserClassificationCategory>>({});
@@ -286,6 +296,15 @@ export function TenderBidProposalPanel({
         highlight ? "ring-2 ring-violet-500/50 shadow-md" : ""
       }`}
     >
+      {tenderId && (
+        <div className="px-3 pt-3">
+          <TenderCostWorkspaceBridge
+            tenderId={tenderId}
+            targetTab="kosztorys"
+            onNavigate={() => openTenderDetailV4(navigate, tenderId, "kosztorys")}
+          />
+        </div>
+      )}
       {showPricingTrust && pricingDim.reasons.length > 0 && (
         <div className="px-3 pt-3 border-b border-violet-500/10">
           <TrustReasonList
@@ -297,28 +316,28 @@ export function TenderBidProposalPanel({
         </div>
       )}
       <div className="px-3 py-3 border-b border-violet-500/15">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1 flex-wrap">
+        <p className={`${TEUX_KPI_LABEL} mb-2 flex items-center gap-1 flex-wrap`}>
           <Calculator size={12} className="text-violet-600" />
           {TENDER_OWNER_VALUATION_COPY.panelTitle}
-          <span className="rounded-full border border-border/70 bg-background/60 px-2 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
+          <span className={`rounded-full border border-border/70 bg-background/60 px-2 py-0.5 ${TEUX_FONT_META} font-medium normal-case tracking-normal text-muted-foreground`}>
             {CATALOG_UX_SOURCE_LABEL}
           </span>
         </p>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-background/70 border border-border/60 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.costPrice}</p>
+            <p className={`${TEUX_FONT_META} uppercase tracking-wide text-muted-foreground`}>{TENDER_OWNER_VALUATION_COPY.costPrice}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-foreground mt-0.5 tabular-nums">
               {costPrice != null ? fmtPln(costPrice) : "—"}
             </p>
           </div>
           <div className="rounded-lg bg-background/70 border border-border/60 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.margin}</p>
+            <p className={`${TEUX_FONT_META} uppercase tracking-wide text-muted-foreground`}>{TENDER_OWNER_VALUATION_COPY.margin}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-foreground mt-0.5 tabular-nums">
               {formatBidMarginPct(marginPct)}
             </p>
           </div>
           <div className="rounded-lg bg-violet-500/15 border border-violet-500/30 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-violet-800 dark:text-violet-300">{TENDER_OWNER_VALUATION_COPY.offerPrice}</p>
+            <p className={`${TEUX_FONT_META} uppercase tracking-wide text-violet-800 dark:text-violet-300`}>{TENDER_OWNER_VALUATION_COPY.offerPrice}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-violet-700 dark:text-violet-300 mt-0.5 tabular-nums">
               {fmtPln(rec)}
             </p>
@@ -327,7 +346,7 @@ export function TenderBidProposalPanel({
       </div>
 
       {materialHistoryImpact && materialHistoryImpact.changedCount > 0 && (
-        <details className="mx-3 mt-2 rounded-lg border border-sky-500/35 bg-sky-500/8 px-2.5 py-2 text-[10px]">
+        <details className={`mx-3 mt-2 rounded-lg border border-sky-500/35 bg-sky-500/8 px-2.5 py-2 ${TEUX_FONT_CAPTION}`}>
           <summary className="cursor-pointer font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1 flex-wrap">
             <TrendingUp size={11} className="shrink-0" />
             <span>Wpływ materiałów (historia firmy)</span>
@@ -361,7 +380,7 @@ export function TenderBidProposalPanel({
       )}
 
       {laborBenchmarkImpact && laborBenchmarkImpact.outOfRangeCount > 0 && (
-        <details className="mx-3 mt-2 rounded-lg border border-orange-500/35 bg-orange-500/8 px-2.5 py-2 text-[10px]">
+        <details className={`mx-3 mt-2 rounded-lg border border-orange-500/35 bg-orange-500/8 px-2.5 py-2 ${TEUX_FONT_CAPTION}`}>
           <summary className="cursor-pointer font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-1 flex-wrap">
             <AlertTriangle size={11} className="shrink-0" />
             <span>Benchmark Impact</span>
@@ -393,15 +412,15 @@ export function TenderBidProposalPanel({
 
       {bidAlerts.top.length > 0 && (
         <div className="px-3 py-2 border-b border-violet-500/10 space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.pricingAlerts}</p>
+          <p className={`${TEUX_KPI_LABEL}`}>{TENDER_OWNER_VALUATION_COPY.pricingAlerts}</p>
           {bidAlerts.top.map((w) => (
-            <div key={w} className="flex items-start gap-1.5 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded-lg px-2 py-1.5">
+            <div key={w} className={`flex items-start gap-1.5 ${TEUX_FONT_CAPTION} text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded-lg px-2 py-1.5`}>
               <AlertTriangle size={11} className="shrink-0 mt-0.5" />
               {w}
             </div>
           ))}
           {bidAlerts.more.length > 0 && (
-            <details className="text-[10px] text-muted-foreground">
+            <details className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
               <summary className="cursor-pointer hover:text-foreground">
                 Pokaż pozostałe alerty ({bidAlerts.more.length})
               </summary>
@@ -419,12 +438,12 @@ export function TenderBidProposalPanel({
       )}
 
       <details className="px-3 py-2 border-b border-violet-500/10 group">
-        <summary className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:text-foreground list-none flex items-center gap-1">
+        <summary className={`${TEUX_KPI_LABEL} cursor-pointer hover:text-foreground list-none flex items-center gap-1 min-h-[32px] touch-manipulation`}>
           <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
           Szczegóły
         </summary>
         <div className="mt-2 space-y-3 pb-1">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+          <div className={`grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 ${TEUX_FONT_CAPTION}`}>
             <p>
               <span className="text-muted-foreground">Źródło:</span>{" "}
               <strong>{proposal.sourceLabelPl ?? "—"}</strong>
@@ -457,7 +476,7 @@ export function TenderBidProposalPanel({
           </div>
 
           {laborBenchmarkAlerts && laborBenchmarkAlerts.outOfRangeCount > 0 && (
-            <details className="rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
+            <details className={`rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 ${TEUX_FONT_CAPTION}`}>
               <summary className="cursor-pointer font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1">
                 <AlertTriangle size={11} className="shrink-0" />
                 {laborBenchmarkAlerts.outOfRangeCount}{" "}
@@ -477,7 +496,7 @@ export function TenderBidProposalPanel({
 
           {catalogLinePricing && (
             <details className="rounded-lg border border-violet-500/20 bg-violet-500/5 overflow-hidden group/lines">
-              <summary className="cursor-pointer px-2.5 py-2 text-[10px] font-semibold text-violet-900 dark:text-violet-200 hover:bg-violet-500/10 list-none flex items-center gap-1">
+              <summary className={`cursor-pointer px-2.5 py-2 ${TEUX_FONT_CAPTION} font-semibold text-violet-900 dark:text-violet-200 hover:bg-violet-500/10 list-none flex items-center gap-1 min-h-[32px] touch-manipulation`}>
                 <span className="group-open/lines:rotate-90 transition-transform inline-block">▸</span>
                 Pozycje kosztorysowe ({catalogLinePricing.rows.length})
               </summary>
@@ -496,8 +515,8 @@ export function TenderBidProposalPanel({
           )}
 
           <div>
-            <p className="text-[10px] font-semibold text-muted-foreground mb-1">{TENDER_OWNER_VALUATION_COPY.howPriceBuilt}</p>
-            <ol className="text-[10px] text-muted-foreground space-y-0.5 list-decimal pl-4">
+            <p className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground mb-1`}>{TENDER_OWNER_VALUATION_COPY.howPriceBuilt}</p>
+            <ol className={`${TEUX_FONT_CAPTION} text-muted-foreground space-y-0.5 list-decimal pl-4`}>
               {flowSteps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
@@ -506,8 +525,8 @@ export function TenderBidProposalPanel({
 
           {showCalibration && (
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold text-muted-foreground">Kalibracja historyczna</p>
-              <div className="text-[10px] space-y-1">
+              <p className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground`}>Kalibracja historyczna</p>
+              <div className={`${TEUX_FONT_CAPTION} space-y-1`}>
                 <p>
                   <span className="text-muted-foreground">WGDOM rekomendował:</span>{" "}
                   <strong className="font-mono">{fmtPln(rec)}</strong>
@@ -534,8 +553,8 @@ export function TenderBidProposalPanel({
 
           {basis && (
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground mb-1">Podstawa kalkulacji</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+              <p className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground mb-1`}>Podstawa kalkulacji</p>
+              <div className={`grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 ${TEUX_FONT_CAPTION}`}>
                 <p><span className="text-muted-foreground">Robocizna:</span> <strong className="font-mono">{fmtPln(basis.laborPln)}</strong></p>
                 <p><span className="text-muted-foreground">Materiały:</span> <strong className="font-mono">{fmtPln(basis.materialPln)}</strong></p>
                 <p><span className="text-muted-foreground">Koszty pośrednie:</span> <strong className="font-mono">{fmtPln(basis.indirectPln)}</strong></p>
@@ -547,7 +566,7 @@ export function TenderBidProposalPanel({
           )}
 
           {(proposal.aggressiveBidPln != null || proposal.safeBidPln != null) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${TEUX_FONT_CAPTION}`}>
               {proposal.aggressiveBidPln != null && (
                 <div className="rounded-lg bg-background/60 border border-border px-2 py-1.5">
                   <p className="text-muted-foreground flex items-center gap-1">
@@ -569,11 +588,11 @@ export function TenderBidProposalPanel({
 
           {proposal.costStack.length > 0 && (
             <details open={breakdownOpen} className="group/nested">
-              <summary className="text-[10px] font-semibold text-muted-foreground cursor-pointer hover:text-foreground list-none flex items-center gap-1">
+              <summary className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground cursor-pointer hover:text-foreground list-none flex items-center gap-1 min-h-[32px] touch-manipulation`}>
                 <span className="group-open/nested:rotate-90 transition-transform inline-block">▸</span>
                 Pełny breakdown kosztów
               </summary>
-              <table className="w-full text-[10px] mt-2">
+              <table className={`w-full ${TEUX_FONT_CAPTION} mt-2`}>
                 <tbody>
                   {proposal.costStack.map((line) => (
                     <tr key={line.label} className="border-t border-border/40">
@@ -590,8 +609,8 @@ export function TenderBidProposalPanel({
 
           {classification && (
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.unknownPositions}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+              <p className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground`}>{TENDER_OWNER_VALUATION_COPY.unknownPositions}</p>
+              <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 ${TEUX_FONT_CAPTION}`}>
                 <p>
                   <span className="text-muted-foreground">Sklasyfikowane:</span>{" "}
                   <strong>{classification.summary.classifiedRows}</strong>
@@ -627,7 +646,7 @@ export function TenderBidProposalPanel({
                   .map((c) => (
                     <span
                       key={c.id}
-                      className="text-[9px] px-1.5 py-0.5 rounded-full border border-border/60 bg-background/60 text-muted-foreground"
+                      className="text-[11px] px-1.5 py-0.5 rounded-full border border-border/60 bg-background/60 text-muted-foreground"
                       title={`${c.quantity.toLocaleString("pl-PL")} j.m. łącznie`}
                     >
                       {c.id}: {c.count}
@@ -636,7 +655,7 @@ export function TenderBidProposalPanel({
               </div>
               {classification.summary.unknownRows > 0 && (
                 <details className="rounded-lg border border-amber-500/25 bg-amber-500/5 overflow-hidden">
-                  <summary className="cursor-pointer px-2.5 py-1.5 text-[10px] font-medium text-amber-800 dark:text-amber-200 hover:bg-amber-500/10">
+                  <summary className={`cursor-pointer px-2.5 py-1.5 ${TEUX_FONT_CAPTION} font-medium text-amber-800 dark:text-amber-200 hover:bg-amber-500/10 min-h-[32px] touch-manipulation`}>
                     Pozycje UNKNOWN ({classification.summary.unknownRows})
                   </summary>
                   <TenderMobileTableCards className="p-2 max-h-48 overflow-y-auto border-t border-amber-500/15">
@@ -656,7 +675,7 @@ export function TenderBidProposalPanel({
                                 ...prev,
                                 [row.lp]: e.target.value as UserClassificationCategory,
                               }))}
-                              className="flex-1 min-w-0 bg-secondary rounded px-2 py-1 border border-border text-[10px]"
+                              className={`flex-1 min-w-0 bg-secondary rounded px-2 py-1 border border-border ${TEUX_FONT_CAPTION} ${TEUX_TOUCH_TARGET} touch-manipulation`}
                             >
                               <option value="">— wybierz kategorię —</option>
                               {WGDOM_COST_CATEGORY_IDS.map((id) => (
@@ -667,7 +686,7 @@ export function TenderBidProposalPanel({
                               type="button"
                               disabled={assignSavingLp === row.lp || !assignCategoryByLp[row.lp]}
                               onClick={() => void handleAssignCategory(row)}
-                              className="shrink-0 px-2 py-1 rounded bg-violet-600 text-white text-[10px] font-medium hover:bg-violet-700 disabled:opacity-40"
+                              className={`shrink-0 px-2 py-1 rounded bg-violet-600 text-white ${TEUX_FONT_CAPTION} font-medium hover:bg-violet-700 disabled:opacity-40 ${TEUX_TOUCH_TARGET} touch-manipulation`}
                             >
                               {assignSavingLp === row.lp ? "…" : "Zapisz"}
                             </button>
@@ -678,7 +697,7 @@ export function TenderBidProposalPanel({
                   </TenderMobileTableCards>
                   <TenderDesktopTable>
                   <div className="max-h-48 overflow-y-auto border-t border-amber-500/15">
-                    <table className="w-full text-[10px]">
+                    <table className={`w-full ${TEUX_FONT_CAPTION}`}>
                       <thead className="bg-secondary/40 sticky top-0">
                         <tr>
                           <th className="text-left px-2 py-1 font-semibold w-10">LP</th>
@@ -703,7 +722,7 @@ export function TenderBidProposalPanel({
                                     ...prev,
                                     [row.lp]: e.target.value as UserClassificationCategory,
                                   }))}
-                                  className="flex-1 min-w-[88px] bg-secondary rounded px-1 py-0.5 border border-border text-[9px]"
+                                  className={`flex-1 min-w-[88px] bg-secondary rounded px-1 py-0.5 border border-border ${TEUX_FONT_META} min-h-[44px] sm:min-h-0 touch-manipulation`}
                                 >
                                   <option value="">— wybierz —</option>
                                   {WGDOM_COST_CATEGORY_IDS.map((id) => (
@@ -714,7 +733,7 @@ export function TenderBidProposalPanel({
                                   type="button"
                                   disabled={assignSavingLp === row.lp || !assignCategoryByLp[row.lp]}
                                   onClick={() => void handleAssignCategory(row)}
-                                  className="shrink-0 px-1.5 py-0.5 rounded bg-violet-600 text-white text-[9px] font-medium hover:bg-violet-700 disabled:opacity-40"
+                                  className={`shrink-0 px-1.5 py-0.5 rounded bg-violet-600 text-white ${TEUX_FONT_META} font-medium hover:bg-violet-700 disabled:opacity-40 min-h-[44px] sm:min-h-0 touch-manipulation`}
                                 >
                                   {assignSavingLp === row.lp ? "…" : "Zapisz"}
                                 </button>
@@ -730,8 +749,8 @@ export function TenderBidProposalPanel({
               )}
               {classification.tuningHints.length > 0 && (
                 <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-1">Top nieznane frazy</p>
-                  <ul className="text-[10px] space-y-0.5">
+                  <p className={`${TEUX_FONT_CAPTION} font-semibold text-muted-foreground mb-1`}>Top nieznane frazy</p>
+                  <ul className={`${TEUX_FONT_CAPTION} space-y-0.5`}>
                     {classification.tuningHints.map((h) => (
                       <li key={h.phrase} className="flex justify-between gap-2">
                         <span className="font-medium">&quot;{h.phrase}&quot;</span>
@@ -745,7 +764,7 @@ export function TenderBidProposalPanel({
           )}
 
           {proposal.assumptions.length > 0 && (
-            <details className="text-[10px] text-muted-foreground">
+            <details className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
               <summary className="cursor-pointer hover:text-foreground font-semibold">Założenia kalkulacji</summary>
               <ul className="mt-1 space-y-0.5 list-disc pl-4">
                 {proposal.assumptions.map((a) => <li key={a}>{a}</li>)}
@@ -753,9 +772,9 @@ export function TenderBidProposalPanel({
             </details>
           )}
 
-          <p className="text-[10px] text-muted-foreground italic">{TENDER_BID_DISCLAIMER}</p>
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground italic`}>{TENDER_BID_DISCLAIMER}</p>
           {teamHeadcount != null && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
               Model: {teamHeadcount} os. załogi · koszty stałe i ZUS wliczone w kalkulację.
             </p>
           )}

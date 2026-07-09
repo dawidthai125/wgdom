@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-09",
+    version: "2.63.77",
+    label: "NG-08-05 — Tender Cost Workspace",
+    items: [
+      {
+        type: "improve",
+        text: "Kosztorys i Ceny — most nawigacji między tabami, skrót wyceny w Command Layer i hubie Przetargu, typografia TEUX na wycenie, pamięć scrollu per tab kosztowy.",
+      },
+    ],
+  },
+  {
     date: "2026-07-08",
     version: "2.63.76",
     label: "NG-08-04 — Tender Documents Workspace",
