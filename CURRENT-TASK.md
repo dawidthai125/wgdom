@@ -9,7 +9,7 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.81** · **PRODUCTION VERIFIED** (post NG-09-02) · **GREEN** |
+| **Baseline prod** | UI **2.63.81** @ **`472304d`** · verify curl **DEPLOY PROPAGATING** (prod jeszcze 2.63.80) · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
 | **Ostatnio zamknięte** | **NG-09-02** (**2.63.81**) · **NG-09-01** (**2.63.80**) · **M-03** (`f7878fe`) |
 | **Co dalej?** | **NG-09-03 BLOCKED** — readiness [`NG-09-03-BUNDLE-READINESS-REVIEW.md`](docs/architecture/NG-09-03-BUNDLE-READINESS-REVIEW.md) · AUDIT + Owner GO |
@@ -28,7 +28,7 @@
 | Slice | Wersja | Status |
 |-------|--------|--------|
 | **NG-09-01** Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** |
-| **NG-09-02** View Router L1 | **2.63.81** · `633272a` | **CLOSED** |
+| **NG-09-02** View Router L1 | **2.63.81** · `472304d` | **CLOSED** · verify **DEPLOY PROPAGATING** |
 | **NG-09-03** Job Workspace Router | — | **BLOCKED** · readiness **READY FOR AUDIT** |
 | NG-09-04…05 | — | **BLOCKED** |
 
@@ -669,7 +669,7 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.81** · **PRODUCTION VERIFIED** |
+| **Wersja prod** | **2.63.81** @ **`472304d`** · verify **DEPLOY PROPAGATING** |
 | **NG-09-02** | **CLOSED** · View Router L1 · **2.63.81** |
 | **NG-09-01** | **CLOSED** · Workspace Frame · **2.63.80** |
 | **M-03** | **CLOSED** · Mobile Re-certification · **2.63.79** @ `f7878fe` |
