@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } fro
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import {
-  MapPin, Search, ArrowLeft, FileText, ClipboardList, Ruler,
+  ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Phone, Users,
   ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, MessageSquare,
   Eye,
@@ -10,6 +10,7 @@ import {
 import { InspectorCommandLayer } from "@/app/inspector/InspectorCommandLayer";
 import { InspectorShell } from "@/app/inspector/InspectorShell";
 import { InspectorSidebar } from "@/app/inspector/InspectorSidebar";
+import { InspectorViewRouter } from "@/app/inspector/InspectorViewRouter";
 import {
   fetchKeysFromCloud,
   pushKeysToCloudSafe,
@@ -93,15 +94,12 @@ import {
   resolveJobFileStoragePath,
 } from "@/lib/job-documents";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
-import { InspectorDashboard } from "@/app/InspectorDashboard";
 import { InspectorDocChecklist } from "@/app/InspectorDocChecklist";
-import { InspectorJobCard } from "@/app/InspectorJobCard";
 import { InspectorPhotoGallery } from "@/app/InspectorPhotoGallery";
 import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
 import {
   computeInspectionProgress,
-  sortJobsByInspectionPriority,
 } from "@/lib/inspector-dashboard";
 import { JobListPrimaryBadge } from "@/app/JobListStatus";
 import { DeliveryPackageStatusBadge } from "@/app/DeliveryPackageStatusBadge";
@@ -130,7 +128,6 @@ import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotes
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, type HousingType, type StoveType, type GasFurnaceStatus } from "@/lib/job-meta";
-import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
@@ -181,8 +178,6 @@ import { Toaster, toast } from "sonner";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
-import { InspectorJobPhotosGalleryView } from "@/app/InspectorJobPhotosGalleryView";
-import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 
@@ -307,8 +302,6 @@ export function InspectorPanel({
   const [packageDownloadBusy, setPackageDownloadBusy] = useState(false);
   const [operationalNotesOpen, setOperationalNotesOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
   const [mainTab, setMainTab] = useState<InspectorMainTab>("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
@@ -326,11 +319,6 @@ export function InspectorPanel({
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
   const jobScrollRef = useRef<HTMLDivElement>(null);
-  const listScrollRef = useRef<HTMLDivElement>(null);
-  const dashboardScrollRef = useRef<HTMLDivElement>(null);
-  const portfolioScrollRef = useRef<HTMLDivElement>(null);
-  const galleryScrollRef = useRef<HTMLDivElement>(null);
-  const filesScrollRef = useRef<HTMLDivElement>(null);
   const jobsRef = useRef(jobsAll);
   jobsRef.current = jobsAll;
   const flushingPhotoQueueRef = useRef(false);
@@ -859,22 +847,6 @@ export function InspectorPanel({
     return () => window.clearInterval(id);
   }, [refreshFromCloud]);
 
-  const filteredJobs = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const list = jobsVisible.filter((j) => {
-      if (filter === "active" && j.status !== "in_progress") return false;
-      if (filter === "completed" && j.status !== "completed") return false;
-      if (!q) return true;
-      return (
-        j.address.toLowerCase().includes(q)
-        || j.client.toLowerCase().includes(q)
-        || (j.flatNumber || "").toLowerCase().includes(q)
-      );
-    });
-    if (filter === "active") return sortJobsByInspectionPriority(list);
-    return [...list].sort((a, b) => b.startDate.localeCompare(a.startDate));
-  }, [jobsVisible, search, filter]);
-
   const recoverableStatsByJobId = useMemo(() => {
     const map = new Map<string, RecoverableChargeJobStats>();
     for (const job of jobsVisible) {
@@ -1159,12 +1131,7 @@ export function InspectorPanel({
         ? `Zsynchronizowano · ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`
         : "Synchronizacja z chmurą";
 
-  const dashboardPull = usePullToRefresh(dashboardScrollRef, pullRefresh, !selectedId && mainTab === "dashboard");
-  const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
-  const galleryPull = usePullToRefresh(galleryScrollRef, pullRefresh, !selectedId && mainTab === "gallery");
-  const filesPull = usePullToRefresh(filesScrollRef, pullRefresh, !selectedId && mainTab === "files");
   const jobPull = usePullToRefresh(jobScrollRef, pullRefresh, Boolean(selectedId));
-  const portfolioPull = usePullToRefresh(portfolioScrollRef, pullRefresh, !selectedId && mainTab === "portfolio");
 
   const jobSectionBadges = useMemo((): Partial<Record<InspectorJobSection, number>> => {
     if (!selectedJob) return {};
@@ -1333,122 +1300,7 @@ export function InspectorPanel({
         }
         bottomNav={renderBottomNav()}
       >
-      {!selectedJob && mainTab === "dashboard" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={dashboardPull.pull} refreshing={dashboardPull.refreshing} ready={dashboardPull.ready}/>
-          <div ref={dashboardScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
-            <div
-              className="max-w-2xl mx-auto w-full px-4 py-4"
-              style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
-            >
-              {loading ? (
-                <div className="flex justify-center py-16">
-                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
-                </div>
-              ) : (
-                <InspectorDashboard
-                  jobs={jobsVisible}
-                  displayName={displayName}
-                  adminNotesPending={adminNotesPending}
-                  onOpenJob={openJob}
-                  onMarkDoc={markDocFromDashboard}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      ) : !selectedJob && mainTab === "portfolio" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing} ready={portfolioPull.ready}/>
-          <WmPortfolioView jobs={jobsVisible} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
-        </div>
-      ) : !selectedJob && mainTab === "gallery" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing} ready={galleryPull.ready}/>
-          <InspectorJobPhotosGalleryView
-            jobs={jobsVisible}
-            scrollRef={galleryScrollRef}
-            onOpenJob={(id) => openJob(id, "photos", "gallery")}
-          />
-        </div>
-      ) : !selectedJob && mainTab === "files" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing} ready={filesPull.ready}/>
-          <JobFilesBrowser
-            jobs={jobsVisible}
-            athPreviewEnabled={athPreviewEnabled}
-            scrollRef={filesScrollRef}
-            onOpenJob={(id) => openJob(id, "files", "files")}
-          />
-        </div>
-      ) : !selectedJob && mainTab === "jobs" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
-            <div className="flex items-end justify-between gap-2">
-              <div>
-                <h2 className="text-base font-semibold">Roboty WM</h2>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {filter === "active" ? "Aktywne remonty" : filter === "completed" ? "Zdane klucze" : "Pełna lista"}
-                  {" · "}{filteredJobs.length} {filteredJobs.length === 1 ? "adres" : "adresów"}
-                </p>
-              </div>
-            </div>
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukaj adresu, klienta…"
-                className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 border border-transparent focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div className="flex gap-2 items-center">
-              <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
-                Status<InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista."/>
-              </span>
-              {(["active", "completed", "all"] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFilter(f)}
-                  className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-xs font-medium transition-colors touch-manipulation ${filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-                >
-                  {f === "active" ? "Aktywne" : f === "completed" ? "Zdane" : "Wszystkie"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing} ready={listPull.ready}/>
-          <div ref={listScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
-              </div>
-            ) : filteredJobs.length === 0 ? (
-              <div className="text-center py-16 px-4 space-y-2">
-                <MapPin size={28} className="mx-auto text-muted-foreground/40"/>
-                <p className="text-sm font-medium text-muted-foreground">Brak robót w tym filtrze</p>
-                <p className="text-xs text-muted-foreground/80">Zmień filtr na „Wszystkie” lub użyj wyszukiwarki</p>
-              </div>
-            ) : (
-              filteredJobs.map((job) => {
-                const rcStats = recoverableStatsByJobId.get(job.id);
-                return (
-                  <InspectorJobCard
-                    key={job.id}
-                    job={job}
-                    hasAdminReply={adminNotesPending.some((j) => j.id === job.id)}
-                    recoverableUnsettledCount={rcStats?.unsettledCount}
-                    recoverableToRecoverAmount={rcStats?.toRecoverAmount}
-                    onSelect={() => openJob(job.id, undefined, "jobs")}
-                  />
-                );
-              })
-            )}
-          </div>
-        </div>
-      ) : (
+      {selectedJob ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shrink-0">
             <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
@@ -1888,6 +1740,19 @@ export function InspectorPanel({
             )}
           </div>
         </div>
+      ) : (
+        <InspectorViewRouter
+          tab={mainTab}
+          loading={loading}
+          jobs={jobsVisible}
+          displayName={displayName}
+          adminNotesPending={adminNotesPending}
+          recoverableCharges={recoverableCharges}
+          athPreviewEnabled={athPreviewEnabled}
+          onPullRefresh={pullRefresh}
+          onOpenJob={openJob}
+          onMarkDoc={markDocFromDashboard}
+        />
       )}
 
       </InspectorShell>
