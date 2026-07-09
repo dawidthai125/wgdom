@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-09",
+    version: "2.63.83",
+    label: "NG-09-04 — Inspector Data Sync Layer",
+    items: [
+      {
+        type: "improve",
+        text: "Panel inspektora — Data Sync Layer: wydzielenie useInspectorDataSync (refresh, persist, op-notes commit, cloud UI); InspectorPanel jako orchestrator nawigacji/overlays; bez zmian merge/cloud keys.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-09",
     version: "2.63.82",
     label: "NG-09-03 — Inspector Job Workspace (L2)",
     items: [
