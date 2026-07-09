@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-08 (**prod 2.63.73 VERIFIED** · commit **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **SMS-UI-01 + PAYROLL-RACE-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: AUDIT / NG-08-02 ARCH REVIEW**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-09 (**prod 2.63.78 VERIFIED** · commit **`4855a2d`** · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN** (slices 01–05) · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle poza NG-08**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -73,6 +73,11 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG-08-HF-01** — Visual Smoke remediation (Command Layer) | **2.63.78** (`4855a2d`) | **CLOSED** · **PRODUCTION VERIFIED** | `CURRENT-TASK.md` · commits `4f8f256`+`4855a2d` |
+| **NG-08-05** — Cost Workspace (WF-05) | **2.63.77** (`97ea90c`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-05-TEUX-PLAN.md`](architecture/NG-08-05-TEUX-PLAN.md) |
+| **NG-08-04** — Documents Workspace (WF-04) | **2.63.76** (`6f6bb66`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-04-TEUX-PLAN.md`](architecture/NG-08-04-TEUX-PLAN.md) |
+| **NG-08-03** — Workspace Intelligence (WF-03) | **2.63.75** (`caa46b1`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-03-TEUX-PLAN.md`](architecture/NG-08-03-TEUX-PLAN.md) |
+| **NG-08-02** — Workspace Progress (WF-02) | **2.63.74** (`09259ad`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-02-TEUX-PLAN.md`](architecture/NG-08-02-TEUX-PLAN.md) |
 | **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` (setJobsAll typo) | **2.63.73** (`e9720de`) | **CLOSED** · **PRODUCTION VERIFIED** · smoke Szymon 15 / Zofia 2 | [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) |
 | **NG-08-01** — Tender Workspace Frame | **2.63.73** (`84b1491`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-TEUX-PLAN.md`](architecture/NG-08-TEUX-PLAN.md) |
 | **NG-06-TEUX** — Tender Experience & Design System (Phase 1+2) | **2.63.54–66** (`5a8b820`→`80cf911`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · smoke `SMOKE-TEUX-NG06` | [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · [`architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md`](architecture/NG-06-TEUX-PHASE1-CLOSEOUT.md) |
@@ -197,21 +202,22 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-08)
+### 2.0. Aktualny stan (2026-07-09)
 
 ```text
-Production UI  2.63.73  (PRODUCTION VERIFIED · GREEN)
-Runtime        e9720de  (version.json — kod aplikacji na Vercel)
-Ostatnio CLOSED  INSPECTOR-RUNTIME-STATE-01 (e9720de) · NG-08-01 (84b1491 · 2.63.73) · NG-07-TEUX-01 (08a6649 · 2.63.72)
+Production UI  2.63.78  (PRODUCTION VERIFIED · GREEN)
+Runtime        4855a2d  (version.json — kod aplikacji na Vercel)
+Ostatnio CLOSED  NG-08-HF-01 (4855a2d) · NG-08-05 (97ea90c) · NG-08-04 (6f6bb66) · NG-08-03 (caa46b1) · NG-08-02 (09259ad)
+NG-08 parent   CLOSED / FROZEN (slices 01–05 + HF-01)
 Protected Core GREEN
 Cloud Sync S7  observation only — no changes
-Next bundle    start from AUDIT (Owner GO) · NG-08-02 ARCH REVIEW
+Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (poza NG-08)
 ```
 
 | Priorytet produkcyjny | Reguła |
 |-----------------------|--------|
 | **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6 + **PAYROLL-RACE-01**. Gate payroll **16/16**. PWRB = jedyna ścieżka mutacji składu. |
-| **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). NG-08-01 Workspace Frame **CLOSED**. |
+| **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). **NG-08 parent FROZEN** (01–05 + HF-01). |
 | **Inspektor** | **INSPECTOR-RUNTIME-STATE-01 CLOSED** — hydratacja `jobsAll` w `InspectorPanel` (`setJobsAll`). Smoke: Szymon 15 / Zofia 2. |
 | **Nowe bundle** | **AUDIT → … → CLOSE** · STABILIZATION WINDOW · Owner GO · **#CORE-013** |
 
@@ -232,6 +238,11 @@ Next bundle    start from AUDIT (Owner GO) · NG-08-02 ARCH REVIEW
 | **Backlog architektury** | Delta-sync / focus throttle — **OPEN** · tylko na polecenie (P1 refactor, nie blokada prod) |
 
 ```text
+Version (prod):             2.63.78       ← NG-08-HF-01 Visual Smoke · commit 4855a2d · PRODUCTION VERIFIED · GREEN
+Version (prod):             2.63.77       ← NG-08-05 Cost Workspace · commit 97ea90c · PRODUCTION VERIFIED
+Version (prod):             2.63.76       ← NG-08-04 Documents Workspace · commit 6f6bb66 · PRODUCTION VERIFIED
+Version (prod):             2.63.75       ← NG-08-03 Workspace Intelligence · commit caa46b1 · PRODUCTION VERIFIED
+Version (prod):             2.63.74       ← NG-08-02 Workspace Progress · commit 09259ad · PRODUCTION VERIFIED
 Version (prod):             2.63.73       ← INSPECTOR-RUNTIME-STATE-01 · commit e9720de · PRODUCTION VERIFIED · GREEN
 Version (prod):             2.63.73       ← NG-08-01 Workspace Frame · commit 84b1491 (baseline przed hotfixem)
 Version (prod):             2.63.68       ← PAYROLL-RACE-01 CORE reconcile + guard · commit 79f2d17 · PRODUCTION VERIFIED

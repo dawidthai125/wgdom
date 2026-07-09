@@ -1,20 +1,20 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.73** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-08 · **runtime** `e9720de` · **INSPECTOR-RUNTIME-STATE-01 CLOSED**
+> **Prod:** UI **2.63.78** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-09 · **runtime** `4855a2d` · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN**
 
-> **★ Baseline (2026-07-08):** prod **2.63.73** @ **`e9720de`**. Ostatnio zamknięte: **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`). **Cloud Sync S7** = observation only. **Następny krok:** **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW. Workflow: AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → … → CLOSE.
+> **★ Baseline (2026-07-09):** prod **2.63.78** @ **`4855a2d`**. Ostatnio zamknięte: **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`). **NG-08 parent = CLOSED / FROZEN** (slices 01–05 + HF-01). **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** po Owner GO + AUDIT (#CORE-013).
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-08):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-09):**
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB**. Gate B payroll **16/16** przy bundle dotykającym syncu.
-> 1. **INSPECTOR-RUNTIME-STATE-01 CLOSED** (`e9720de`) — `setJobsAll` hydratacja `InspectorPanel` · smoke Szymon **15** / Zofia **2**. **NG-08-01 CLOSED**. **Protected Core GREEN.**
-> 2. **NG-06-TEUX** — **EPIC COMPLETE** · **TOKEN FREEZE** active.
+> 1. **NG-08 parent CLOSED / FROZEN** — slices **01–05** + hotfix **HF-01** na prod **2.63.78** (`4855a2d`). **Nie** rozszerzaj NG-08 bez nowego AUDIT + Owner GO.
+> 2. **NG-08-HF-01 CLOSED** — Visual Smoke remediation (REC-1): Command Layer density ≤280px desktop / ≤50vh mobile · hub scroll w scroll root · shortcuty 44px mobile · allowlist 8 plików.
 > 3. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
-> 4. **Następny krok** — **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW (#CORE-013 · #CORE-014).
+> 4. **Następny krok** — **STABILIZATION WINDOW** · Owner GO na **nowy** bundle (poza NG-08).
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -26,13 +26,13 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.73** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`e9720de`** (`version.json`) |
-| **Ostatnio CLOSED** | **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`) |
+| **Production (UI)** | **2.63.78** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`4855a2d`** (`version.json`) |
+| **Ostatnio CLOSED** | **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS |
 | **Cloud Sync S7** | Observation only — no changes |
-| **Następny krok** | **AUDIT** (Owner GO) · **NG-08-02** ARCH REVIEW |
+| **Następny krok** | **STABILIZATION WINDOW** — nowy bundle po Owner GO + AUDIT |
 
 ### Czym jest aplikacja
 
@@ -44,8 +44,13 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
-| **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` (setJobsAll) | **CLOSED** | **2.63.73** @ `e9720de` |
+| **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |
+| **NG-08-05** — Cost Workspace (WF-05) | **CLOSED** | **2.63.77** @ `97ea90c` |
+| **NG-08-04** — Documents Workspace (WF-04) | **CLOSED** | **2.63.76** @ `6f6bb66` |
+| **NG-08-03** — Workspace Intelligence (WF-03) | **CLOSED** | **2.63.75** @ `caa46b1` |
+| **NG-08-02** — Workspace Progress (WF-02) | **CLOSED** | **2.63.74** @ `09259ad` |
 | **NG-08-01** — Workspace Frame | **CLOSED** | **2.63.73** @ `84b1491` |
+| **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` | **CLOSED** | **2.63.73** @ `e9720de` |
 | **NG-07-TEUX-01** — Lista Przetargów UX (4 slices) | **CLOSED** | 2.63.69→**72** |
 | **PAYROLL-RACE-01** — reconcile przed apply + guard LP | **CLOSED** | 2.63.68 |
 | **SMS-UI-01** — SMS wyczyść wybór | **CLOSED** | 2.63.67 |
@@ -63,8 +68,8 @@
 
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
-| **Następny AUDIT** | **GO** (Owner) | pełny workflow → CLOSE · #CORE-013 |
-| **NG-08-02** Workspace Progress | PLAN + FREEZE | ARCH REVIEW → OWNER GO |
+| **NG-08 parent** | **CLOSED / FROZEN** | slices 01–05 + HF-01 · **nie rozszerzać** |
+| **Następny AUDIT** | Owner | nowy bundle poza NG-08 · #CORE-013 |
 | **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |
 | **POST F2 observation** (#5C-5C F3 telemetria) | **ACTIVE** | T1–T7 read-only · **F3 BLOCKED** |
 | **FEATURE / CORE** | Owner GO | osobny bundle · zero mixed commit |
@@ -109,7 +114,7 @@
 5. docs/AGENT-ONBOARDING.md
 6. docs/PROJECT-HANDOFF-CURRENT.md   ← baseline prod SSOT
 7. docs/TEST-INFRA-001-CLOSEOUT.md · docs/TI-B4-CLOSEOUT.md
-8. docs/architecture/NG-08-TEUX-PLAN.md · NG-08-02-*  ← następny UX workspace
+8. docs/architecture/NG-08-02-TEUX-CLOSEOUT.md · NG-08-03…05 closeout docs  ← NG-08 CLOSED
 8i. docs/recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md  ← hotfix Inspektor CLOSED
 9. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← OBOWIĄZKOWE przy Przetargu
 10. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md
@@ -574,31 +579,28 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne (2026-07-08)
+## 3. Co robimy teraz / następne (2026-07-09)
 
-**Production:** **GREEN** · UI **2.63.73** @ **`e9720de`**.
+**Production:** **GREEN** · UI **2.63.78** @ **`4855a2d`**.
 
 **Faza bieżąca:**
 
-1. **INSPECTOR-RUNTIME-STATE-01** — **CLOSED** · **PRODUCTION VERIFIED** (`e9720de`) · smoke Szymon 15 / Zofia 2.
-2. **NG-08-01** Workspace Frame — **CLOSED** (`84b1491`).
-3. **NG-08-02** Workspace Progress — **PLAN + FREEZE v1.0** → **ARCH REVIEW** → Owner GO → IMPLEMENT (**2.63.74**). SSOT: [`NG-08-02-TEUX-PLAN.md`](architecture/NG-08-02-TEUX-PLAN.md).
-4. **Następny AUDIT** — dowolny nowy zakres **tylko** po Owner GO (pełny workflow).
-5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
-6. **Cloud Sync S7** — observation only.
+1. **NG-08 parent** — **CLOSED / FROZEN** (slices 01–05 + **HF-01**).
+2. **NG-08-HF-01** Visual Smoke — **CLOSED** (`4855a2d`) · REC-1 · allowlist 8 plików · E2E AC-HF-01…09 PASS.
+3. **STABILIZATION WINDOW** — brak nowych slice'ów NG-08; kolejny program **tylko** Owner GO + AUDIT.
+4. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
+5. **Cloud Sync S7** — observation only.
 
 **Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · **TOKEN FREEZE** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **NOW** | **Następny AUDIT** | — | Owner wyznacza zakres | ten plik §0 · CURRENT-TASK |
-| **NG-08-02** | Workspace Progress | FEATURE UI | PLAN+FREEZE · ARCH REVIEW | `NG-08-02-TEUX-*` |
-| **NG-08-01** | Workspace Frame | FEATURE UI | **CLOSED** · 2.63.73 | `NG-08-TEUX-PLAN.md` |
-| **INSPECTOR-RUNTIME-STATE-01** | setJobsAll hydration | BUGFIX runtime | **CLOSED** · `e9720de` | `INSPECTOR-RUNTIME-STATE-01-AUDIT.md` |
+| **NOW** | STABILIZATION · nowy bundle | — | Owner GO + AUDIT | `STABILIZATION-WINDOW-PLAN.md` |
+| **NG-08-HF-01** | Visual Smoke remediation | FEATURE UI hotfix | **CLOSED** · 2.63.78 | commits `4f8f256`+`4855a2d` |
+| **NG-08-05…01** | Tender Workspace UX | FEATURE UI | **CLOSED** · 2.63.73–77 | `NG-08-TEUX-PLAN.md` |
 | **NG-06** | TEUX EPIC | FEATURE UI | **COMPLETE** · 2.63.66 | `NG-06-TEUX-EPIC-CLOSE-REPORT.md` |
 | **—** | POST F2 observation | OBSERVATION | **ACTIVE** | `CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md` |
 | **—** | Cloud Sync S7 | CORE obs | Observation only | CURRENT-TASK |
-| **—** | Edge-Opt-B | PLATFORM | **BLOCKED** | `EDGE-OPT-B-MASTER-AUDIT.md` |
 
 **WIP w tree (nie commitować razem z docs continuity):** skrypty audit-* · `backup-lib.mjs` · recovery payroll RCA (poza aktywnym closeoutem).
 

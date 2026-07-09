@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-08 · **prod 2.63.73** · **PRODUCTION VERIFIED** · runtime **`e9720de`** · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
+**Ostatnia aktualizacja:** 2026-07-09 · **prod 2.63.78** · **PRODUCTION VERIFIED** · runtime **`4855a2d`** · **NG-08-HF-01 CLOSED** · **NG-08 parent FROZEN** · **STABILIZATION WINDOW ACTIVE** · docs continuity refreshed
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,10 +9,10 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.73** · runtime **`e9720de`** · **PRODUCTION VERIFIED** · **GREEN** |
+| **Baseline prod** | UI **2.63.78** · runtime **`4855a2d`** · **PRODUCTION VERIFIED** · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **INSPECTOR-RUNTIME-STATE-01** (`e9720de`) · **NG-08-01** (`84b1491`) · **NG-07-TEUX-01** (`08a6649`) |
-| **Co dalej?** | **Następny AUDIT** (Owner GO) · **NG-08-02** — ARCH REVIEW → OWNER GO → IMPLEMENT **2.63.74** |
+| **Ostatnio zamknięte** | **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
+| **Co dalej?** | **STABILIZATION WINDOW** — nowy bundle **tylko** po Owner GO + AUDIT (poza NG-08) |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -36,36 +36,42 @@
 
 ---
 
-## NG-08 — Tender Workspace UX (parent)
+## NG-08 — Tender Workspace UX (parent) · **CLOSED / FROZEN**
 
 > **PLAN:** [`docs/architecture/NG-08-TEUX-PLAN.md`](docs/architecture/NG-08-TEUX-PLAN.md) · **Freeze:** [`docs/architecture/NG-08-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-08-TEUX-DESIGN-FREEZE.md)
 
 | Slice | Wersja | Commit | Status |
 |-------|--------|--------|--------|
+| **NG-08-HF-01** Visual Smoke remediation | **2.63.78** | `4855a2d` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-08-05** Cost Workspace (WF-05) | **2.63.77** | `97ea90c` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-08-04** Documents Workspace (WF-04) | **2.63.76** | `6f6bb66` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-08-03** Workspace Intelligence (WF-03) | **2.63.75** | `caa46b1` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-08-02** Workspace Progress (WF-02) | **2.63.74** | `09259ad` | **CLOSED** · **PRODUCTION VERIFIED** |
 | **NG-08-01** Workspace Frame | **2.63.73** | `84b1491` | **CLOSED** · **PRODUCTION VERIFIED** |
-| **NG-08-02** Workspace Progress | — | — | **PLAN + FREEZE ✅** · ARCH REVIEW |
-| NG-08-03…05 | — | — | **BLOCKED** |
+
+**Nie rozszerzaj NG-08 bez nowego AUDIT + Owner GO.**
 
 ---
 
-## NG-08-02 — Workspace Progress · **PLAN + FREEZE APPROVED**
+## NG-08-HF-01 — Visual Smoke remediation · **CLOSED** · **PRODUCTION VERIFIED**
 
-> **PLAN:** [`docs/architecture/NG-08-02-TEUX-PLAN.md`](docs/architecture/NG-08-02-TEUX-PLAN.md) · **Freeze:** [`docs/architecture/NG-08-02-TEUX-DESIGN-FREEZE.md`](docs/architecture/NG-08-02-TEUX-DESIGN-FREEZE.md) · **Audyt:** [`docs/architecture/NG-08-02-TEUX-UX-AUDIT.md`](docs/architecture/NG-08-02-TEUX-UX-AUDIT.md)
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · Owner GO REC-1 only |
+| **Commits** | **`4f8f256`** (bundle 8 plików) · **`4855a2d`** (breadcrumb `max-[391px]:hidden` — Gate B teux7b) |
+| **Prod** | **2.63.78** @ `4855a2d` |
+| **Zakres** | HF-P01 hub scroll w scroll root · HF-P02 KPI compact mobile · HF-P03 shortcut row · HF-P04 touch 44px · HF-P05 density |
+| **Test** | `test-ng08-hf01-boundary.mjs` 30/30 · `test-p0-command-layer-height.mjs` 32/32 · E2E `audit-p0-tender-freeze` 5/5 · Gate B tenders+payroll PASS |
 
-| Element | Status |
-|---------|--------|
-| **AUDIT (CODE)** | **ACCEPTED** |
-| **PLAN** | **APPROVED** — WF-02 · 6 pakietów P-01…P-06 |
-| **DESIGN FREEZE** | **v1.0** — PENDING ARCH REVIEW |
-| **IMPLEMENT** | **BLOCKED** |
+**Uwaga:** Design Freeze wymagał jednego commita — follow-up `4855a2d` poza allowlistą (breadcrumb marker). ARCH HF01-007 (Δ wysokości między tabami) = FAIL z waiver przy Owner GO — poza REC-1.
 
-**Reguła WF-02:** Process Strip = komponent workspace, nie tabu.
-
-**Workflow:** ARCH REVIEW → OWNER GO → IMPLEMENT **2.63.74**
+**Nie zmieniaj bez polecenia:** TOKEN FREEZE · pipeline · sync · payroll · Command Layer poza hotfix track.
 
 ---
 
-## NG-08 — parent freeze (historyczny)
+## NG-08-02…05 — historyczny closeout (CLOSED)
+
+Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architecture/NG-08-02-TEUX-*` … `NG-08-05-*`.
 
 ---
 
