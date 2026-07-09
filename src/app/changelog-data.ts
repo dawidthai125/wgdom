@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-09",
+    version: "2.63.81",
+    label: "NG-09-02 — Inspector View Router (L1)",
+    items: [
+      {
+        type: "improve",
+        text: "Panel inspektora — View Router L1: wydzielenie InspectorViewRouter (Dashboard, Roboty, Galeria, Pliki, Portfolio); cieńszy orchestrator InspectorPanel; Job Workspace bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-09",
     version: "2.63.80",
     label: "NG-09-01 — Inspector Workspace Frame",
     items: [
