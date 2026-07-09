@@ -1,9 +1,9 @@
 # NG-09-01 — Inspector Workspace Frame · Bundle Closeout
 
-> **Status:** **NG-09-01 CLOSED** · **PRODUCTION VERIFIED**  
-> **Prod:** UI **2.63.80** · commit **TBD post-push** · https://www.wgdom.fun  
+> **Status:** **NG-09-01 CLOSED** · **DEPLOY PROPAGATING**  
+> **Prod:** UI **2.63.80** (expected) · commit **`566fa0d`** · https://www.wgdom.fun  
 > **Data closeout:** 2026-07-09  
-> **Owner GO:** RELEASE GO · IMPLEMENT REVIEW PASS  
+> **Verify (1× curl):** `2.63.79` @ `cc7ba83` — **DEPLOY PROPAGATING** (Vercel)  
 > **Parent:** NG-09 Inspector Workspace Modernization · slice **1/5**
 
 ---
@@ -46,8 +46,9 @@
 | D6 | `smoke-test-inspector-20.2a.mjs` | **PASS** 22/22 |
 | D7 | Manual QA (mobile/desktop/frame/nav/job/command) | **PASS** |
 | D8 | `npm run build` | **PASS** |
-| D9 | CHANGELOG **2.63.80** · verify FAST | **PENDING post-push** |
+| D9 | CHANGELOG **2.63.80** · verify FAST | **DEPLOY PROPAGATING** (curl → 2.63.79 @ cc7ba83) |
 | D10 | #CORE-013 / #CORE-014 | **PASS** |
+| D11 | Release commit | **PASS** **`566fa0d`** |
 
 **Maintenance debt (osobny task):** `smoke-test-inspector-scroll-20.1d1.mjs` T6 — regex oczekuje `renderBottomNav()` w gałęzi jobs (pre-shell); nie blokuje release.
 
@@ -56,15 +57,17 @@
 ## 4. Production verification
 
 ```text
-curl -s https://www.wgdom.fun/version.json
-→ version: 2.63.80
-→ commit:  <release commit>
+curl -s https://www.wgdom.fun/version.json  (2026-07-09, jedno sprawdzenie)
+→ version: 2.63.79  (STALE — oczekiwane 2.63.80)
+→ commit:  cc7ba83  (STALE — oczekiwane 566fa0d)
+→ push:    566fa0d on origin/main — SUCCESS
 ```
 
 | Check | Werdykt |
 |-------|---------|
-| UI version | **2.63.80** |
-| PRODUCTION VERIFIED | **TBD** — jedno curl po push |
+| Push origin/main | **PASS** · **`566fa0d`** |
+| UI version (curl) | **DEPLOY PROPAGATING** |
+| PRODUCTION VERIFIED | **PENDING** — owner: jedno curl gdy Vercel skończy → oczekiwane **2.63.80** / **566fa0d** |
 
 ---
 

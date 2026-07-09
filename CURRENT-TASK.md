@@ -9,7 +9,7 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.80** · **PRODUCTION VERIFIED** (post NG-09-01) · **GREEN** |
+| **Baseline prod** | UI **2.63.80** @ **`566fa0d`** · verify curl **DEPLOY PROPAGATING** (prod jeszcze 2.63.79) · **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
 | **Ostatnio zamknięte** | **NG-09-01** (**2.63.80**) · **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) |
 | **Co dalej?** | **NG-09-02…05 BLOCKED** — wymaga AUDIT + Owner GO per slice · **STABILIZATION WINDOW** |
@@ -26,7 +26,7 @@
 
 | Slice | Wersja | Status |
 |-------|--------|--------|
-| **NG-09-01** Workspace Frame | **2.63.80** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-09-01** Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** · verify **DEPLOY PROPAGATING** |
 | **NG-09-02** View Router | — | **BLOCKED** — brak Owner GO |
 | NG-09-03…05 | — | **BLOCKED** |
 
@@ -669,8 +669,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.80** · **PRODUCTION VERIFIED** |
-| **NG-09-01** | **CLOSED** · Inspector Workspace Frame · **2.63.80** |
+| **Wersja prod** | **2.63.80** @ **`566fa0d`** · verify **DEPLOY PROPAGATING** |
+| **NG-09-01** | **CLOSED** · Inspector Workspace Frame · commit **`566fa0d`** |
 | **M-03** | **CLOSED** · Mobile Re-certification · **2.63.79** @ `f7878fe` |
 | **TI-B4** | **CLOSED** · **Z-04 PASS** · **2.63.27** |
 | **NG-04** | **EPIC CLOSED** |

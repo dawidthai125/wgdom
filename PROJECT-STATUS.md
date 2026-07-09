@@ -5,8 +5,8 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-09 |
-| **Commit (HEAD `main`)** | post NG-09-01 release |
-| **Production version (UI)** | **v2.63.80** |
+| **Commit (HEAD `main`)** | **`566fa0d`** (NG-09-01 release) |
+| **Production version (UI)** | **v2.63.80** (expected) · curl prod: **2.63.79** DEPLOY PROPAGATING |
 | **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-01 CLOSED** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** (#CORE-013) · **NG-09-02 BLOCKED** · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
@@ -82,7 +82,7 @@
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
 | **Wersja UI (prod)** | **v2.63.80** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | post NG-09-01 release |
+| **HEAD `main`** | **`566fa0d`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
@@ -112,7 +112,7 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 
 | EPIC / Bundle | Wersja / commit | Status |
 |---------------|-----------------|--------|
-| **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** | **CLOSED** · PRODUCTION VERIFIED |
+| **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** · DEPLOY PROPAGATING |
 | **M‑03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** · `f7878fe` | **CLOSED** · PRODUCTION VERIFIED |
 | **NG‑08‑HF‑01** — Visual Smoke remediation | **2.63.78** · `4855a2d` | **CLOSED** |
 | **NG‑08‑05…01** — Tender Workspace UX slices | **2.63.73–77** | **CLOSED** · parent **FROZEN** |
@@ -173,6 +173,7 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 
 | Commit | Opis |
 |--------|------|
+| `566fa0d` | feat(inspector): **NG‑09‑01** Workspace Frame **v2.63.80** |
 | `f7878fe` | release: **M‑03** mobile re-cert **v2.63.79** (changelog) |
 | `0f8a165` | fix(tenders): **M‑03** mobile re-cert breakpoint cliff 392px (IMPLEMENT) |
 | `4855a2d` | fix(tenders): NG‑08‑HF‑01 breadcrumb mobile hidden |
