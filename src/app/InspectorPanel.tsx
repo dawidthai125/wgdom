@@ -1,16 +1,11 @@
 import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
-import { isMediaAttachmentAvailable } from "@/lib/media-filter";
-import {
-  ArrowLeft, FileText, ClipboardList, Ruler,
-  CheckCircle2, Circle, ImagePlus, Phone, Users,
-  ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, MessageSquare,
-  Eye,
-} from "lucide-react";
+import { FileText, ClipboardList, X, FileCheck, MessageSquare } from "lucide-react";
 import { InspectorCommandLayer } from "@/app/inspector/InspectorCommandLayer";
 import { InspectorShell } from "@/app/inspector/InspectorShell";
 import { InspectorSidebar } from "@/app/inspector/InspectorSidebar";
 import { InspectorViewRouter } from "@/app/inspector/InspectorViewRouter";
+import { InspectorJobWorkspace } from "@/app/inspector/InspectorJobWorkspace";
 import {
   fetchKeysFromCloud,
   pushKeysToCloudSafe,
@@ -70,8 +65,7 @@ import {
   normalizeRecoverableCharges,
   type RecoverableChargeJobStats,
 } from "@/lib/recoverable-charges";
-import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
-import { InspectorBillingProposalModal } from "@/app/InspectorBillingProposalModal";
+import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import {
   appendBillingJobNote,
   appendBillingProposalNote,
@@ -80,39 +74,26 @@ import {
   type JobNoteAttachment,
 } from "@/lib/job-wm";
 import { uploadBillingEvidence, uploadBillingProposalEvidence } from "@/lib/billing-evidence-upload";
-import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
 import {
   DOC_LABELS,
   REQUIRED_DOCS,
   type DocType,
   type JobFileAttachment,
-  latestJobFile,
   syncJobDocuments,
   isReportSyncedDocLocked,
   applyJobFileKindUpload,
   resolveJobFileStoragePath,
 } from "@/lib/job-documents";
-import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
-import { InspectorDocChecklist } from "@/app/InspectorDocChecklist";
-import { InspectorPhotoGallery } from "@/app/InspectorPhotoGallery";
-import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
-import {
-  computeInspectionProgress,
-} from "@/lib/inspector-dashboard";
-import { JobListPrimaryBadge } from "@/app/JobListStatus";
-import { DeliveryPackageStatusBadge } from "@/app/DeliveryPackageStatusBadge";
+import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
-import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import {
   inferHandoverStage,
   plannedHandoverStatus,
   normalizeJobWmFields,
   jobsWithAdminNotesNeedingInspector,
-  applyHandoverStageToJob,
-  HANDOVER_STAGE_LABELS,
   type InspectorPhotoLabel,
   type JobHandoverStage,
   type JobWmJob,
@@ -125,24 +106,15 @@ import {
   type JobActivity,
 } from "@/lib/job-activity";
 import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotesSeen, syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
-import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
-import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
+import { InspectorHelpBanner, InspectorHelpModal } from "@/app/InspectorHelp";
 import { normalizeJobMetaFields, type HousingType, type StoveType, type GasFurnaceStatus } from "@/lib/job-meta";
-import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
-import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
-import { AuthorAttribution } from "@/app/AuthorAttribution";
-import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import { mergeAdminUsersConfig, loadAdminUsersConfig } from "@/lib/admin-auth";
 import {
   InspectorBottomNav,
-  InspectorJobSectionNav,
-  InspectorQuickActions,
   INSPECTOR_MAIN_TAB_LABELS,
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
-import { InspectorDeliveryPackagePanel } from "@/app/InspectorDeliveryPackagePanel";
-import { InspectorHandoverQuickBar } from "@/app/InspectorHandoverQuickBar";
 import {
   downloadPublishedDeliveryPackageZip,
   inspectorDeliveryPackageForJob,
@@ -173,12 +145,10 @@ const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto } from "@/lib/photo-queue";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
-import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
+import { usePullToRefresh } from "@/app/usePullToRefresh";
 import { Toaster, toast } from "sonner";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
-import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 
 type JobStatus = "in_progress" | "completed";
@@ -249,12 +219,6 @@ interface InspectorJob extends JobWmJob {
   gasFurnaceStatus?: GasFurnaceStatus | "";
 }
 
-function fmtDate(iso: string): string {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  return `${d}.${m}.${y}`;
-}
-
 function normalizeJob(raw: InspectorJob): InspectorJob {
   return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocuments({
     ...raw,
@@ -264,23 +228,6 @@ function normalizeJob(raw: InspectorJob): InspectorJob {
     jobFiles: raw.jobFiles || [],
     activityLog: raw.activityLog || [],
   })));
-}
-
-function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): { name: string; phone: string; position: string }[] {
-  const seen = new Set<string>();
-  const out: { name: string; phone: string; position: string }[] = [];
-  for (const e of job.workEntries) {
-    const key = e.directoryId || e.employeeName;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const dir = directory.find((d) => d.id === e.directoryId);
-    out.push({
-      name: e.employeeName || dir?.name || "—",
-      phone: dir?.phone || "—",
-      position: dir?.position || "—",
-    });
-  }
-  return out.sort((a, b) => a.name.localeCompare(b.name, "pl"));
 }
 
 export function InspectorPanel({
@@ -306,8 +253,6 @@ export function InspectorPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
-  const [showBillingProposalModal, setShowBillingProposalModal] = useState(false);
-  const [openReportId, setOpenReportId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -530,7 +475,6 @@ export function InspectorPanel({
     setJobReturnNav({ tab, label: TAB_RETURN_LABELS[tab] });
     setSelectedId(jobId);
     setMsg("");
-    setOpenReportId(null);
     if (section) setJobSection(section);
     else setJobSection("wm");
     if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
@@ -1301,446 +1245,43 @@ export function InspectorPanel({
         bottomNav={renderBottomNav()}
       >
       {selectedJob ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shrink-0">
-            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
-            <button type="button" onClick={closeJob} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
-              <ArrowLeft size={16}/>Wróć do {jobReturnNav?.label ?? "listy robót"}
-            </button>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1 space-y-1">
-                <h2 className="text-base font-semibold truncate leading-tight">
-                  {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
-                </h2>
-                {selectedJob.client && (
-                  <p className="text-xs text-muted-foreground truncate">{selectedJob.client}</p>
-                )}
-                <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                  <JobListPrimaryBadge job={selectedJob}/>
-                  {deliveryPackageStatus && (
-                    <DeliveryPackageStatusBadge ready={deliveryPackageStatus.ready}/>
-                  )}
-                </div>
-                <InspectorProgressBar percent={computeInspectionProgress(selectedJob).percent} className="pt-1"/>
-                <JobMetaBadges job={selectedJob}/>
-              </div>
-            </div>
-            <InspectorHandoverQuickBar
-              packageReady={deliveryPackageStatus?.ready ?? false}
-              downloadBusy={packageDownloadBusy}
-              onAction={handleHandoverQuickAction}
-            />
-            <InspectorJobSectionNav
-              active={jobSection}
-              badges={jobSectionBadges}
-              onSelect={scrollToJobSection}
-            />
-            <p className="text-[10px] text-muted-foreground px-0.5 pb-1">
-              {jobSection === "wm" && "Etap odbioru WM, do rozliczenia, notatki i odpowiedzi od admina"}
-              {jobSection === "files" && "Zlecenie, kosztorys i wszystkie pliki — pobierz pojedynczo lub ZIP"}
-              {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}
-              {jobSection === "team" && "Kto pracował na robocie — numery telefonów"}
-              {jobSection === "reports" && "Dokumentacja ekipy: zakres prac, wymiary, obrys lokalu"}
-              {jobSection === "photos" && "Zdjęcia ekipy i własne zdjęcia inspektora"}
-            </p>
-            </div>
-          </div>
-
-          <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing} ready={jobPull.ready}/>
-          <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4 max-w-3xl md:max-w-none mx-auto w-full md:py-3 md:space-y-3" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
-            {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
-
-            <InspectorDeliveryPackagePanel
-              jobId={selectedJob.id}
-              publications={deliveryPackagePublications}
-              downloadBusy={packageDownloadBusy}
-              onDownload={handlePackageDownload}
-            />
-
-            {jobSection === "wm" && (
-            <>
-            {stageSuggestion?.jobId === selectedJob.id && (
-              <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">
-                  Zlecenie wgrane — zmienić etap na <strong>{HANDOVER_STAGE_LABELS[stageSuggestion.stage]}</strong>?
-                </p>
-                <div className="flex gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = appendJobActivity(
-                        applyHandoverStageToJob(selectedJob, stageSuggestion.stage),
-                        "inspector_stage",
-                        `Etap: ${HANDOVER_STAGE_LABELS[stageSuggestion.stage]}`,
-                        displayName,
-                      );
-                      updateJob(updated);
-                      setStageSuggestion(null);
-                      setMsg("Etap zaktualizowany");
-                    }}
-                    className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium"
-                  >
-                    Tak, ustaw
-                  </button>
-                  <button type="button" onClick={() => setStageSuggestion(null)} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground">
-                    Później
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4 md:p-4 md:space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <JobWmStageBadge job={selectedJob}/>
-                <JobWmPlannedBadge job={selectedJob}/>
-                <JobListPrimaryBadge job={selectedJob}/>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Start {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` · koniec ${fmtDate(selectedJob.endDate)}`}
-              </p>
-              <JobMetaPickers
-                housingType={selectedJob.housingType}
-                stoveType={selectedJob.stoveType}
-                gasFurnaceStatus={selectedJob.gasFurnaceStatus}
-                onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
-                onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
-                onGasFurnaceChange={(v) => updateJob({ ...selectedJob, gasFurnaceStatus: v })}
-              />
-              <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
-            </div>
-
-            <div className="space-y-3 md:space-y-2">
-              <p className="text-sm font-semibold px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
-            <JobWmPanel
-              job={selectedJob}
-              onUpdate={updateJob}
-              actorName={displayName}
-              actorRole="inspector"
-              directory={directoryContacts}
-              viewerRole="inspector"
-              onGoToPhotos={() => scrollToJobSection("photos")}
-            />
-            </div>
-
-            <JobRecoverableChargesPanel
-              jobId={selectedJob.id}
-              charges={recoverableCharges}
-              jobNotes={selectedJob.jobNotes}
-              variant="inspector"
-              viewerRole="inspector"
-              jobsById={jobsById}
-              onCreateBillingProposal={() => setShowBillingProposalModal(true)}
-              onAddBillingNote={handleAddBillingNote}
-              billingNoteActorName={displayName}
-              billingNoteActorRole="inspector"
-              directory={directoryContacts}
-            />
-
-            {showBillingProposalModal && (
-              <InspectorBillingProposalModal
-                job={selectedJob}
-                directory={directory}
-                authorName={displayName}
-                onClose={() => setShowBillingProposalModal(false)}
-                onSubmit={handleSubmitBillingProposal}
-              />
-            )}
-
-            {jobInspectorHistory(selectedJob).length > 0 && (
-              <div className="bg-card border border-border rounded-xl p-4">
-                <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <ScrollText size={15}/> Ostatnie zmiany
-                </p>
-                <div className="space-y-2">
-                  {jobInspectorHistory(selectedJob).map((ev) => (
-                    <div key={ev.id} className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 py-0.5">
-                      <AuthorAttribution
-                        name={ev.actor}
-                        directory={directoryContacts}
-                        viewerRole="inspector"
-                        accentClass="text-foreground/90 font-medium"
-                      />
-                      {" · "}
-                      {ev.text}
-                      {" · "}
-                      {new Date(ev.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            </>
-            )}
-
-            {jobSection === "files" && (
-            <div className="space-y-3">
-              <p className="text-sm font-semibold px-0.5">Zlecenie i kosztorys</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {(["zlecenie", "kosztorys"] as const).map((kind) => {
-                const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/ATH/PDF)";
-                const hint = kind === "zlecenie"
-                  ? "Zaznacz „Jest” gdy wystawiłeś zlecenie (np. mailem) — plik PDF opcjonalny. Firma zobaczy status w Robotach."
-                  : "Kosztorys NORMA (.ath, .nor, .xml) lub PDF. Zaznacz „Jest” po dostarczeniu — wgrywanie pliku nie jest wymagane.";
-                const file = latestJobFile(selectedJob, kind);
-                const checked = selectedJob.documents[kind];
-                return (
-                  <div key={kind} className={`rounded-xl border p-4 space-y-3 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-card"}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold flex items-center">{label}<InspectorHint text={hint}/></p>
-                      <button
-                        type="button"
-                        onClick={() => toggleDoc(selectedJob, kind)}
-                        className={`flex items-center gap-1 text-xs font-medium px-3 py-2 min-h-[44px] rounded-full ${checked ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}
-                        title={checked ? "Oznacz jako brak" : "Oznacz jako jest"}
-                      >
-                        {checked ? <CheckCircle2 size={12}/> : <Circle size={12}/>}
-                        {checked ? "Jest" : "Brak"}
-                      </button>
-                    </div>
-                    {file ? (
-                      <>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
-                            <FileText size={12}/>{file.filename}
-                          </a>
-                          {(isPdfFilename(file.filename) || isKosztorysPreviewExt(file.filename)) && (
-                            <button
-                              type="button"
-                              onClick={() => setPreviewItem({ kind: "jobFile", file })}
-                              className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium shrink-0"
-                            >
-                              <Eye size={12}/> Podgląd
-                            </button>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground">
-                          Dodał:{" "}
-                          <AuthorAttribution
-                            name={file.uploadedBy}
-                            directory={directoryContacts}
-                            viewerRole="inspector"
-                            accentClass="text-muted-foreground font-medium"
-                          />
-                          {" · "}
-                          {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej</p>
-                    )}
-                    <InspectorJobFileUpload
-                      kind={kind}
-                      busy={uploadBusy === kind}
-                      hasFile={!!file}
-                      onPick={(f) => handleFileUpload(selectedJob, kind, f)}
-                      onError={(msg) => setMsg(msg)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-              {(() => {
-                const planFile = latestJobFile(selectedJob, "plan_techniczny");
-                if (!planFile) {
-                  return (
-                    <div className="rounded-xl border border-dashed border-border bg-card/50 p-4">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Plan techniczny (PDF)</p>
-                      <p className="text-[11px] text-muted-foreground">Plan techniczny wgrywa administrator w Robotach — tutaj tylko podgląd i pobranie.</p>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 space-y-2">
-                    <p className="text-xs font-semibold">Plan techniczny (PDF)</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <a href={planFile.publicUrl} target="_blank" rel="noopener noreferrer" download={planFile.filename} className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
-                        <FileText size={12}/>{planFile.filename}
-                      </a>
-                      {isPdfFilename(planFile.filename) && (
-                        <button
-                          type="button"
-                          onClick={() => setPreviewItem({ kind: "jobFile", file: planFile })}
-                          className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium shrink-0"
-                        >
-                          <Eye size={12}/> Podgląd
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      Dodał:{" "}
-                      <AuthorAttribution
-                        name={planFile.uploadedBy}
-                        directory={directoryContacts}
-                        viewerRole="inspector"
-                        accentClass="text-muted-foreground font-medium"
-                      />
-                      {" · "}
-                      {new Date(planFile.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                );
-              })()}
-              <JobInspectorFilesPanel
-                jobId={selectedJob.id}
-                jobAddress={selectedJob.address}
-                jobFlat={selectedJob.flatNumber}
-                jobFiles={selectedJob.jobFiles || []}
-                inspectorPhotos={selectedJob.inspectorPhotos || []}
-                athPreviewEnabled={athPreviewEnabled}
-                contacts={[]}
-                readOnly
-                packSource={selectedJob}
-                title="Wszystkie pliki roboty"
-              />
-            </div>
-            )}
-
-            {jobSection === "docs" && (
-              <InspectorDocChecklist
-                job={selectedJob}
-                onToggle={(doc) => toggleDoc(selectedJob, doc)}
-              />
-            )}
-
-            {jobSection === "team" && (
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Users size={15}/> Pracownicy na robocie
-                <InspectorHint text="Kto był przypisany do tego adresu — możesz zadzwonić. Bez wypłat i stawek."/>
-              </p>
-              {uniqueWorkersOnJob(selectedJob, directory).length === 0 ? (
-                <p className="text-xs text-muted-foreground">Brak wpisów czasu pracy</p>
-              ) : (
-                <div className="space-y-2">
-                  {uniqueWorkersOnJob(selectedJob, directory).map((w) => (
-                    <div key={w.name + w.phone} className="flex items-center justify-between gap-3 bg-secondary/40 rounded-xl px-3 py-2.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{w.name}</p>
-                        <p className="text-[11px] text-muted-foreground">{w.position}</p>
-                      </div>
-                      {w.phone && w.phone !== "—" && (
-                        <a href={`tel:${w.phone.replace(/\s/g, "")}`} className="flex items-center gap-1 text-xs text-primary shrink-0">
-                          <Phone size={12}/>{w.phone}
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            )}
-
-            {jobSection === "reports" && (
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-border">
-                <p className="text-sm font-semibold flex items-center gap-2">
-                  <Ruler size={15}/> Dokumentacja robót
-                  <InspectorHint text="Dokumentacja ekipy z budowy — zakres prac, metraże, foto obrysu lokalu. Rozwiń strzałką. Ważne przy odbiorze WM i kosztorysie. To nie jest plan techniczny PDF."/>
-                </p>
-              </div>
-              {(selectedJob.workerReports || []).length === 0 ? (
-                <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak dokumentacji od ekipy</p>
-              ) : (
-                <div className="divide-y divide-border">
-                  {[...(selectedJob.workerReports || [])].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)).map((report) => {
-                    const open = openReportId === report.id;
-                    return (
-                      <div key={report.id}>
-                        <button type="button" onClick={() => setOpenReportId(open ? null : report.id)} className="w-full px-4 py-3 flex items-center justify-between gap-2 hover:bg-secondary/30 text-left">
-                          <div>
-                            <p className="text-sm font-medium">
-                              <AuthorAttribution
-                                name={report.workerName}
-                                reportAdminRole={report.authorAdminRole || "worker"}
-                                directory={directoryContacts}
-                                viewerRole="inspector"
-                                accentClass="text-sm font-medium text-foreground"
-                              />
-                            </p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {fmtDate(report.submittedAt.slice(0, 10))}
-                              {reportHasWorkScope(report) && ` · ${scopeTextLineCount(getReportWorkScopeText(report))} linii`}
-                              {report.rooms.length > 0 && ` · ${report.rooms.length} pom.`}
-                            </p>
-                          </div>
-                          {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-                        </button>
-                        {open && (
-                          <div className="px-4 pb-4 space-y-4 bg-secondary/10">
-                            {reportHasWorkScope(report) && (
-                              <div>
-                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Zakres wykonanych prac</p>
-                                <WorkScopeDisplay text={getReportWorkScopeText(report)} className="text-sm"/>
-                              </div>
-                            )}
-                            {report.rooms.length > 0 && (
-                              <div className="overflow-x-auto rounded-lg border border-border">
-                                <table className="w-full text-xs">
-                                  <thead>
-                                    <tr className="bg-secondary/50 text-muted-foreground">
-                                      <th className="px-2 py-1.5 text-left">Pomieszczenie</th>
-                                      <th className="px-2 py-1.5 text-right">Dł.</th>
-                                      <th className="px-2 py-1.5 text-right">Szer.</th>
-                                      <th className="px-2 py-1.5 text-right">Wys.</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-border">
-                                    {report.rooms.map((room) => (
-                                      <tr key={room.id}>
-                                        <td className="px-2 py-1.5">{room.customLabel || room.roomType}</td>
-                                        <td className="px-2 py-1.5 text-right font-mono">{room.length || "—"}</td>
-                                        <td className="px-2 py-1.5 text-right font-mono">{room.width || "—"}</td>
-                                        <td className="px-2 py-1.5 text-right font-mono">{room.height || "—"}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                            {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
-                              <div>
-                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Rysunek / wymiary (foto)</p>
-                                <button type="button" onClick={() => setLightbox({ url: report.sketch!.publicUrl, label: "Rysunek" })} className="block w-full max-w-xs rounded-xl overflow-hidden border border-border">
-                                  <JobPhotoImg src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
-                                </button>
-                                {report.sketchNote && <p className="text-xs text-muted-foreground mt-1 italic">{report.sketchNote}</p>}
-                              </div>
-                            )}
-                            {report.generalNote && (
-                              <p className="text-xs bg-primary/5 border border-primary/15 rounded-lg px-3 py-2">{report.generalNote}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            )}
-
-            {jobSection === "photos" && (
-              <InspectorPhotoGallery
-                jobAddress={selectedJob.address || "robota"}
-                crewPhotos={selectedJob.photos || []}
-                inspectorPhotos={selectedJob.inspectorPhotos || []}
-                directory={directoryContacts}
-                viewerRole="inspector"
-                onStatusMessage={setMsg}
-                canUpload
-                onUploadInspectorPhoto={handleInspectorPhotoUpload}
-              />
-            )}
-
-            {selectedJob.notes && jobSection === "wm" && (
-              <div className="bg-card border border-border rounded-xl p-4">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Notatki</p>
-                <p className="text-sm whitespace-pre-wrap">{selectedJob.notes}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
+        <InspectorJobWorkspace
+          job={selectedJob}
+          jobSection={jobSection}
+          jobReturnLabel={jobReturnNav?.label ?? "listy robót"}
+          displayName={displayName}
+          msg={msg}
+          onClose={closeJob}
+          onJobSectionChange={scrollToJobSection}
+          jobSectionBadges={jobSectionBadges}
+          jobQuickActions={jobQuickActions}
+          deliveryPackageReady={deliveryPackageStatus?.ready ?? null}
+          deliveryPackagePublications={deliveryPackagePublications}
+          packageDownloadBusy={packageDownloadBusy}
+          onHandoverQuickAction={handleHandoverQuickAction}
+          onPackageDownload={handlePackageDownload}
+          updateJob={updateJob}
+          recoverableCharges={recoverableCharges}
+          directoryContacts={directoryContacts}
+          directory={directory}
+          jobsById={jobsById}
+          athPreviewEnabled={athPreviewEnabled}
+          uploadBusy={uploadBusy}
+          onToggleDoc={toggleDoc}
+          onFileUpload={handleFileUpload}
+          onStatusMessage={setMsg}
+          onPreview={setPreviewItem}
+          onLightbox={(url, label) => setLightbox({ url, label })}
+          onInspectorPhotoUpload={handleInspectorPhotoUpload}
+          onAddBillingNote={handleAddBillingNote}
+          onSubmitBillingProposal={handleSubmitBillingProposal}
+          jobInspectorHistory={jobInspectorHistory}
+          stageSuggestion={stageSuggestion}
+          onStageSuggestionChange={setStageSuggestion}
+          scrollRef={jobScrollRef}
+          pull={jobPull}
+        />
+) : (
         <InspectorViewRouter
           tab={mainTab}
           loading={loading}
