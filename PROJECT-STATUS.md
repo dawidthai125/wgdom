@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-09 |
-| **Commit (HEAD `main`)** | **`472304d`** (NG-09-02 release) |
-| **Production version (UI)** | **v2.63.81** (expected) · curl prod: **2.63.80** DEPLOY PROPAGATING |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-02 CLOSED** · **NG-09-03 BLOCKED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Commit (HEAD `main`)** | **`8b7124b`** (NG-09-03 release) |
+| **Production version (UI)** | **v2.63.82** · curl prod: **2.63.82** @ **`8b7124b`** · **PRODUCTION VERIFIED** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-03 CLOSED** · **NG-09-04 BLOCKED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -81,14 +81,14 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.80** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — GREEN, PRODUCTION VERIFIED |
-| **HEAD `main`** | **`566fa0d`** |
+| **Wersja UI (prod)** | **v2.63.82** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — **GREEN, PRODUCTION VERIFIED** |
+| **HEAD `main`** | **`8b7124b`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.81** to ostatni wpis w `changelog-data.ts` (**NG-09-02 Inspector View Router L1**). Poprzedni: **2.63.80** (NG-09-01) @ `566fa0d`.
+Wersja UI **v2.63.82** to ostatni wpis w `changelog-data.ts` (**NG-09-03 Inspector Job Workspace L2**). Poprzedni: **2.63.81** (NG-09-02) @ `472304d`.
 
 ---
 
@@ -112,7 +112,8 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 
 | EPIC / Bundle | Wersja / commit | Status |
 |---------------|-----------------|--------|
-| **NG‑09‑02** — Inspector View Router L1 | **2.63.81** · `472304d` | **CLOSED** · DEPLOY PROPAGATING |
+| **NG‑09‑03** — Inspector Job Workspace L2 | **2.63.82** · `8b7124b` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG‑09‑02** — Inspector View Router L1 | **2.63.81** · `472304d` | **CLOSED** |
 | **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** |
 | **M‑03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** · `f7878fe` | **CLOSED** · PRODUCTION VERIFIED |
 | **NG‑08‑HF‑01** — Visual Smoke remediation | **2.63.78** · `4855a2d` | **CLOSED** |

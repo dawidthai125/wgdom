@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-09 · **NG-09-02 CLOSED** · prod **2.63.81** · **NG-09 slice 2/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-09 · **NG-09-03 CLOSED** · prod **2.63.82** · **NG-09 slice 3/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,10 +9,10 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.81** @ **`472304d`** · verify curl **DEPLOY PROPAGATING** (prod jeszcze 2.63.80) · **GREEN** |
+| **Baseline prod** | UI **2.63.82** @ **`8b7124b`** · verify curl **GREEN** · **PRODUCTION VERIFIED** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-09-02** (**2.63.81**) · **NG-09-01** (**2.63.80**) · **M-03** (`f7878fe`) |
-| **Co dalej?** | **NG-09-03 BLOCKED** — readiness [`NG-09-03-BUNDLE-READINESS-REVIEW.md`](docs/architecture/NG-09-03-BUNDLE-READINESS-REVIEW.md) · AUDIT + Owner GO |
+| **Ostatnio zamknięte** | **NG-09-03** (**2.63.82**) · **NG-09-02** (**2.63.81**) · **NG-09-01** (**2.63.80**) |
+| **Co dalej?** | **NG-09-04 BLOCKED** — [`NG-09-04-PROGRAM-HEALTH-REVIEW.md`](docs/architecture/NG-09-04-PROGRAM-HEALTH-REVIEW.md) · Slice AUDIT przed Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -20,23 +20,24 @@
 
 ---
 
-## NG-09 — Inspector Workspace Modernization · **ACTIVE (slice 2/5 CLOSED)**
+## NG-09 — Inspector Workspace Modernization · **ACTIVE (slice 3/5 CLOSED)**
 
-> **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md) · [`docs/architecture/NG-09-02-CLOSEOUT.md`](docs/architecture/NG-09-02-CLOSEOUT.md)  
-> **NG-09-03 readiness:** [`docs/architecture/NG-09-03-BUNDLE-READINESS-REVIEW.md`](docs/architecture/NG-09-03-BUNDLE-READINESS-REVIEW.md)
+> **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md) · [`docs/architecture/NG-09-02-CLOSEOUT.md`](docs/architecture/NG-09-02-CLOSEOUT.md) · [`docs/architecture/NG-09-03-CLOSEOUT.md`](docs/architecture/NG-09-03-CLOSEOUT.md)  
+> **NG-09-04 health:** [`docs/architecture/NG-09-04-PROGRAM-HEALTH-REVIEW.md`](docs/architecture/NG-09-04-PROGRAM-HEALTH-REVIEW.md)
 
 | Slice | Wersja | Status |
 |-------|--------|--------|
 | **NG-09-01** Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** |
-| **NG-09-02** View Router L1 | **2.63.81** · `472304d` | **CLOSED** · verify **DEPLOY PROPAGATING** |
-| **NG-09-03** Job Workspace Router | — | **BLOCKED** · readiness **READY FOR AUDIT** |
-| NG-09-04…05 | — | **BLOCKED** |
+| **NG-09-02** View Router L1 | **2.63.81** · `472304d` | **CLOSED** |
+| **NG-09-03** Job Workspace L2 | **2.63.82** · `66859e9` / `8b7124b` | **CLOSED** · **PRODUCTION VERIFIED** |
+| **NG-09-04** Sync / Data Layer | — | **BLOCKED** · health review READY |
+| NG-09-05 | — | **BLOCKED** |
 
-**NG-09-02 zakres:** `InspectorViewRouter` — Dashboard · Jobs · Gallery · Files · Portfolio; panel −135 LOC; Job Workspace bez zmian.
+**NG-09-03 zakres:** `InspectorJobWorkspace` — 6 sekcji job detail; panel orchestrator (−459 LOC); L1 router bez zmian.
 
-**Maintenance debt:** `smoke-test-inspector-scroll-20.1d1.mjs` — grep L1 w `InspectorViewRouter.tsx` (osobny task).
+**Maintenance debt:** `smoke-test-inspector-scroll-20.1d1.mjs` — grep L1/L2 w router/workspace (osobny task).
 
-**Nie rozpoczynaj NG-09-03 bez AUDIT + Owner GO.**
+**Nie rozpoczynaj NG-09-04 bez Slice AUDIT + Owner GO.**
 
 ---
 
@@ -669,7 +670,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.81** @ **`472304d`** · verify **DEPLOY PROPAGATING** |
+| **Wersja prod** | **2.63.82** @ **`8b7124b`** · **PRODUCTION VERIFIED** |
+| **NG-09-03** | **CLOSED** · Job Workspace L2 · **2.63.82** |
 | **NG-09-02** | **CLOSED** · View Router L1 · **2.63.81** |
 | **NG-09-01** | **CLOSED** · Workspace Frame · **2.63.80** |
 | **M-03** | **CLOSED** · Mobile Re-certification · **2.63.79** @ `f7878fe` |
