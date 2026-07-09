@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.79 — M-03 Mobile Re-certification
+
+- **fix:** breakpoint cliff 392px → max-[430px] · KPI hidden until 2xl · shortcuts min-h-11 · unified command shell · AC-M03-08 tab delta ≤32px
+- **boundary:** STABILIZATION M-03 · 6 pliki allowlist · #CORE-013 PASS · #CORE-014 PASS
+
 ## 2.63.78 — NG-08-HF-01 Visual Smoke Remediation
 
 - **fix:** Command Layer density · mobile KPI hide · shortcuts row + 44px touch · scroll hub w scroll root (KPI-UX-01)

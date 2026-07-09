@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-09",
+    version: "2.63.79",
+    label: "M-03 — Mobile Re-certification",
+    items: [
+      {
+        type: "fix",
+        text: "Detal przetargu — mobile re-cert 360–430px: breakpoint cliff 392px (max-[430px]), KPI ukryte do 2xl na tabach ≠ przetarg, skróty min-h-11, parity padding Command Layer (AC-M03-08).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-09",
     version: "2.63.78",
     label: "NG-08-HF-01 — Visual Smoke Remediation",
     items: [
