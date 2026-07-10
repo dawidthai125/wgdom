@@ -5,8 +5,8 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-11 |
-| **Commit (HEAD `main`)** | **`70122b6`** |
-| **Production version (UI)** | **v2.63.85** @ **`70122b6`** · fix S2 **`e819124`** · **PRODUCTION VERIFIED** |
+| **Commit (HEAD `main`)** | **`88650be`** |
+| **Production version (UI)** | **v2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **PRODUCTION VERIFIED** · **BASELINE LOCKED** |
 | **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **Payroll Domain Push ACTIVE** · **Protected Core GREEN** (#CORE-013–#CORE-016) |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
@@ -82,14 +82,14 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.85** @ **`70122b6`** — **GREEN, PRODUCTION VERIFIED** |
-| **HEAD `main`** | **`70122b6`** |
+| **Wersja UI (prod)** | **v2.63.85** @ **`88650be`** — **GREEN, PRODUCTION VERIFIED** |
+| **HEAD `main`** | **`88650be`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
 ### Wersja UI vs HEAD — ważne
 
-Wersja UI **v2.63.83** to ostatni wpis w `changelog-data.ts` (**NG-09-04 Inspector Data Sync Layer**). Poprzedni: **2.63.82** (NG-09-03) @ `8b7124b`.
+Wersja UI **v2.63.85** to ostatni wpis w `changelog-data.ts` (**P0 Payroll Cross-Device Sync — SYNC-ARCH-01 S2**). Poprzedni: **2.63.84** (NG-09-05) @ `29f7842`.
 
 ---
 

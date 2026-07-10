@@ -2,9 +2,11 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **runtime** `70122b6` · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Ostatnia aktualizacja:** 2026-07-11 · **runtime** `88650be` · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **BASELINE LOCKED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-11):** prod **2.63.85** @ **`70122b6`** (fix S2 **`e819124`**). **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). **Payroll:** Domain Push **ACTIVE**. **Cloud Sync:** RS Push **bez Payroll** (by design). **Protected Core:** **GREEN**. **NG-09 = COMPLETE (5/5)**. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
+> **★ Baseline (2026-07-11):** prod **2.63.85** @ **`88650be`** (fix S2 **`e819124`**). **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). **Payroll:** Domain Push **ACTIVE**. **Cloud Sync:** RS Push **bez Payroll** (by design). **Protected Core:** **GREEN**. **NG-09 = COMPLETE (5/5)**. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
+
+> **★ Closeout sesji (2026-07-11, P0 Payroll):** **`e819124`** fix S2 · **`2525dd6`** docs closeout · **`70122b6`** observation FULLY CLOSED · **`88650be`** baseline lock + CORE-015/016 · prod **2.63.85** @ **`88650be`** · verify `version.json` → **2.63.85**. SSOT: [`SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md`](SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md) · [`INCIDENTS.md`](INCIDENTS.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
 
 > **★ Closeout sesji (2026-07-10, NG-09):** **`c5aa953`** IMPLEMENT + **`29f7842`** RELEASE (**2.63.84**) + **`1f1167a`** docs — epic **NG-09 Inspector Workspace Modernization** **COMPLETE** · verify `version.json` → **2.63.84**. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) · [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
 
@@ -29,7 +31,7 @@
 | Warstwa | Wartość |
 |---------|---------|
 | **Production (UI)** | **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`70122b6`** · fix S2 **`e819124`** |
+| **Runtime commit** | **`88650be`** · fix S2 **`e819124`** |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | P0 Payroll Cross-Device Sync → **FULLY CLOSED** (2026-07-11) |
 | **Ostatnio CLOSED** | **P0 Payroll Cross-Device Sync** · **NG-09 epic** · **M-03** |

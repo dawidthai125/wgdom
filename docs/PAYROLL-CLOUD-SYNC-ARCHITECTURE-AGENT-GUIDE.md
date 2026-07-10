@@ -2,7 +2,7 @@
 
 > **Cel:** jeden dokument, dzięki któremu **przyszły AI / agent Cursor** rozumie architekturę synchronizacji i merge Payroll **bez analizowania kodu od zera**. Zawiera przepływ danych, pliki SSOT, klucze KV, model merge, logikę Edge, oraz **dwa aktywne problemy P0** (batch-set 500 + resurrection pracowników) z hipotezami i planem.
 >
-> **Data:** 2026-07-11 · **HEAD `70122b6`** · **Prod UI v2.63.85** · **P0 Cross-Device Sync FULLY CLOSED** · **Domain Push ACTIVE**
+> **Data:** 2026-07-11 · **HEAD `88650be`** · **Prod UI v2.63.85** · **P0 Cross-Device Sync FULLY CLOSED** · **Domain Push ACTIVE** · **BASELINE LOCKED**
 >
 > **★ SYNC-ARCH S2 (2026-07-10):** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push (`runCloudSync`) **bez** `kw-week-employees` (S1-1 by design). **#CORE-015** · **#CORE-016**.
 >

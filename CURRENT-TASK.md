@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · **P0 Payroll Cross-Device Sync FULLY CLOSED** · prod **2.63.85** @ **`2525dd6`** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · **P0 Payroll Cross-Device Sync FULLY CLOSED** · prod **2.63.85** @ **`88650be`** · **BASELINE LOCKED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,9 +9,9 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.84** @ **`e819124`** · **P0 Payroll Cross-Device Sync CLOSED** · verify curl **GREEN** |
+| **Baseline prod** | UI **2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **P0 FULLY CLOSED** · **BASELINE LOCKED** · verify curl **GREEN** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **P0 Payroll Cross-Device Sync** (`e819124`) · **NG-09** epic (**2.63.84**) |
+| **Ostatnio zamknięte** | **P0 Payroll Cross-Device Sync** (`e819124` · observation 2026-07-11) · **NG-09** epic (**2.63.84**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
@@ -684,8 +684,9 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.63.83** @ **`c1d1caf`** · **PRODUCTION VERIFIED** |
-| **NG-09-04** | **CLOSED** · Data Sync Layer · **2.63.83** |
+| **Wersja prod** | **2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **BASELINE LOCKED** |
+| **P0 Payroll Cross-Device Sync** | **FULLY CLOSED** · observation **2026-07-11** · [`docs/INCIDENTS.md`](docs/INCIDENTS.md) |
+| **NG-09-05** | **CLOSED** · Closeout & Polish · **2.63.84** · `29f7842` |
 | **NG-09-03** | **CLOSED** · Job Workspace L2 · **2.63.82** |
 | **NG-09-02** | **CLOSED** · View Router L1 · **2.63.81** |
 | **NG-09-01** | **CLOSED** · Workspace Frame · **2.63.80** |

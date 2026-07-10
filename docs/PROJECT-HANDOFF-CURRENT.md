@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-10 (**prod 2.63.84 VERIFIED** · release **`29f7842`** · HEAD docs **`1f1167a`** · **NG-09 EPIC COMPLETE (5/5)** · **NG-09-05 CLOSED** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** · **Payroll Gate 16/16** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.85 VERIFIED** @ **`88650be`** · fix S2 **`e819124`** · **P0 Payroll Cross-Device Sync FULLY CLOSED** · observation **2026-07-11** · **BASELINE LOCKED** · **NG-09 EPIC COMPLETE (5/5)** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** · **Payroll Gate 16/16** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -28,6 +28,7 @@
 1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync egress · exceed_egress_quota (**INCIDENT CLOSED** 2026-06-29)
 1u3. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
 1u8. docs/SESSION-HANDOFF-NG-09-EPIC-CLOSE.md  ← ★★ NG-09 Inspector Workspace (CLOSED · 2.63.80–84)
+1u8b. docs/SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md  ← ★★ P0 Payroll Cross-Device Sync (FULLY CLOSED · 2.63.85)
 1u9. docs/architecture/NG-09-EPIC-CLOSE-REPORT.md  ← ★★ NG-09 epic closeout report
 1u7. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
 1u6. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout report
@@ -74,6 +75,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P0 Payroll Cross-Device Sync** — SYNC-ARCH-01 S2 Domain Push | **2.63.85** (`e819124` fix · `88650be` baseline) | **FULLY CLOSED** · observation **2026-07-11** | [`INCIDENTS.md`](INCIDENTS.md) · [`SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md`](SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md) |
 | **NG-09** — Inspector Workspace Modernization | **2.63.80–84** (`566fa0d`→`29f7842`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · 5 compositional seams | [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) |
 | **M-03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** (`f7878fe`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) · commits `0f8a165`+`f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation (Command Layer) | **2.63.78** (`4855a2d`) | **CLOSED** · **PRODUCTION VERIFIED** | `CURRENT-TASK.md` · commits `4f8f256`+`4855a2d` |
@@ -205,23 +207,26 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-10)
+### 2.0. Aktualny stan (2026-07-11)
 
 ```text
-Production UI  2.63.84  (PRODUCTION VERIFIED · GREEN)
-Runtime        1f1167a  (version.json — HEAD docs po closeout)
-Release        29f7842  (NG-09-05 InspectorOverlays)
-Ostatnio CLOSED  NG-09 epic (2.63.80–84) · NG-09-05 (29f7842) · M-03 (f7878fe)
+Production UI  2.63.85  (PRODUCTION VERIFIED · GREEN · BASELINE LOCKED)
+Runtime        88650be  (version.json — HEAD main po closeout P0)
+Fix S2         e819124  (SYNC-ARCH-01 S2 Domain Push — payroll field mutations)
+Ostatnio CLOSED  P0 Payroll Cross-Device Sync (FULLY CLOSED · observation 2026-07-11)
+                 NG-09 epic (2.63.80–84) · M-03 (f7878fe)
 NG-09          EPIC COMPLETE (5/5 compositional seams)
 NG-08 parent   CLOSED / FROZEN (slices 01–05 + HF-01)
 Protected Core GREEN
-Cloud Sync S7  observation only — no changes
-Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (nowy bundle od zera)
+Payroll        Domain Push ACTIVE (#CORE-015) · RS Push bez Payroll (by design)
+Cloud Sync S7  observation only — RS subset bez kw-week-employees
+Incident       P0 Payroll Cross-Device Sync → FULLY CLOSED (CLEAN register)
+Next bundle    STABILIZATION WINDOW — AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO
 ```
 
 | Priorytet produkcyjny | Reguła |
 |-----------------------|--------|
-| **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6 + **PAYROLL-RACE-01**. Gate payroll **16/16**. PWRB = jedyna ścieżka mutacji składu. |
+| **★ Lista Płac** | **Domain Push ACTIVE** (#CORE-015) po P0 closeout. Stabilna po RC-B + PAYROLL B1–B6 + **PAYROLL-RACE-01** + **S2**. Gate payroll **16/16**. PWRB = jedyna ścieżka mutacji składu. RS Push **bez** `kw-week-employees` (by design). |
 | **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). **NG-08 parent FROZEN** (01–05 + HF-01). |
 | **Inspektor** | **NG-09 EPIC COMPLETE** — workspace 5 seams (`InspectorShell` · `InspectorViewRouter` · `InspectorJobWorkspace` · `useInspectorDataSync` · `InspectorOverlays`). Panel ~777 LOC orchestrator. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md). |
 | **Nowe bundle** | **AUDIT → … → CLOSE** · STABILIZATION WINDOW · Owner GO · **#CORE-013** |

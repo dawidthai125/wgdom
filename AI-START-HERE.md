@@ -6,8 +6,8 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-11 |
-| **Commit (HEAD `main`)** | **`70122b6`** |
-| **Production version (UI)** | **v2.63.85** @ **`70122b6`** · fix S2 **`e819124`** |
+| **Commit (HEAD `main`)** | **`88650be`** |
+| **Production version (UI)** | **v2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **BASELINE LOCKED** |
 | **Status** | **STABILIZATION WINDOW ACTIVE** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** |
 
 > **P0 Payroll Cross-Device Sync:** **FULLY CLOSED** (observation 2026-07-11). SSOT: [`docs/INCIDENTS.md`](docs/INCIDENTS.md). **Payroll:** Domain Push (#CORE-015). **Cloud Sync:** RS Push bez Payroll (by design). **Nie** przywracać Payroll do RS push.
@@ -50,7 +50,7 @@ Produkcja: **https://www.wgdom.fun** · Repo: **github.com/dawidthai125/wgdom** 
 
 ## 3. Aktualny status (skrót)
 
-- **Prod UI v2.63.85** · HEAD `70122b6` · fix S2 `e819124`.
+- **Prod UI v2.63.85** · HEAD `88650be` · fix S2 `e819124` · **BASELINE LOCKED**.
 - **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). Domain Push **ACTIVE** (#CORE-015).
 - **Cloud Sync:** RS Push **bez** `kw-week-employees` (S1-1 by design). Regression contracts obowiązkowe (#CORE-016).
 - **Protected Core:** **GREEN** · **STABILIZATION WINDOW ACTIVE**.
