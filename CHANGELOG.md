@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.85 — P0 Payroll Cross-Device Sync (SYNC-ARCH-01 S2)
+
+- **fix:** Lista Płac — domain push dla mutacji pól (godziny, stawki, premie, potrącenia) — cross-device sync przywrócony
+- **fix:** Incydent P0 Payroll Cross-Device Sync CLOSED · prod smoke PASS 2026-07-10 · `e819124`
+- **boundary:** SYNC-ARCH-01 S2 · Payroll poza RS push · contract test cross-device 18/18
+
+## 2.63.84 — NG-09-05 Inspector Program Closeout
+
+- **improve:** InspectorOverlays · buildRecoverableStatsByJobId dedup · panel orchestrator
+- **boundary:** NG-09 epic COMPLETE (5/5)
+
 ## 2.63.79 — M-03 Mobile Re-certification
 
 - **fix:** breakpoint cliff 392px → max-[430px] · KPI hidden until 2xl · shortcuts min-h-11 · unified command shell · AC-M03-08 tab delta ≤32px

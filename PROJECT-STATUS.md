@@ -5,9 +5,9 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-10 |
-| **Commit (HEAD `main`)** | **`1f1167a`** (NG-09-05 closeout docs) |
-| **Production version (UI)** | **v2.63.84** · curl prod: **2.63.84** @ **`1f1167a`** · **PRODUCTION VERIFIED** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09 COMPLETE (5/5)** · **NG-09-05 CLOSED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Commit (HEAD `main`)** | **`e819124`** (SYNC-ARCH-01 S2) → docs closeout pending |
+| **Production version (UI)** | **v2.63.84** @ **`e819124`** · **PRODUCTION VERIFIED** · incident closeout docs → **v2.63.85** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync CLOSED** · **NG-09 COMPLETE (5/5)** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -55,6 +55,7 @@
 - Scenario H (PASS / CLOSED)
 
 **OPEN P0:**
+- ~~P0 Payroll Cross-Device Sync~~ — **CLOSED** (`e819124` · prod smoke PASS 2026-07-10) · [`docs/INCIDENTS.md`](docs/INCIDENTS.md)
 - PR-PAY-S7-5 Resurrection — **ETAP 1 DEPLOYED (`ae132bc`) · Production Observation OPEN** (nie CLOSED do potwierdzenia AC8–AC11)
 - batch-set 500 (H1 UNCONFIRMED)
 
@@ -81,8 +82,8 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.83** (`CHANGELOG[0].version` w `src/app/changelog-data.ts`) — **GREEN, PRODUCTION VERIFIED** |
-| **HEAD `main`** | **`c1d1caf`** |
+| **Wersja UI (prod)** | **v2.63.84** @ **`e819124`** — **GREEN, PRODUCTION VERIFIED** · closeout docs **v2.63.85** |
+| **HEAD `main`** | **`e819124`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 
@@ -164,8 +165,8 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 | **TI‑B1** — ekstrakcja `removeWeekEmployee()` do lib | OPEN |
 | **TI‑B3** — CI GitHub Actions gate B/C z orchestratora | OPEN |
 | **Work Catalog P2** — UI Biblioteka Robót | OPEN |
-| **Work Catalog P3.3 S4** — Preview Mount | **ON HOLD** — zablokowane przez 🔴 P0 Payroll Cloud Sync Incident (do zamknięcia P0) |
-| **Work Catalog P3.3** — implementacja UI po decyzjach design freeze | OPEN (po P0) |
+| **Work Catalog P3.3 S4** — Preview Mount | OPEN (P0 Payroll Cross-Device Sync **CLOSED** 2026-07-10) |
+| **Work Catalog P3.3** — implementacja UI po decyzjach design freeze | OPEN |
 | **G‑08** — persist `code` w snapshot BOQ | OPEN |
 | **G‑02** — R/M/S inline w BOQ | OPEN |
 | **TP200B** — kosztorys fidelity (`rows` cap) | PLANNED |
@@ -176,6 +177,7 @@ Pełny rejestr: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT
 
 | Commit | Opis |
 |--------|------|
+| `e819124` | fix(payroll): **SYNC-ARCH-01 S2** — domain push mutacji pól LP · **P0 CLOSED** |
 | `c1d1caf` | release: **NG‑09‑04** Data Sync Layer **v2.63.83** |
 | `143f6d0` | feat(inspector): **NG‑09‑04** useInspectorDataSync extraction |
 | `8b7124b` | release: **NG‑09‑03** Job Workspace **v2.63.82** |
@@ -205,6 +207,7 @@ Pełna historia UI: [`CHANGELOG.md`](CHANGELOG.md) · źródło prawdy: `src/app
 |--------|------|
 | **Build** | GREEN (`npm run build`) |
 | **Gate B — Payroll** | GREEN (15/15, w tym B6 Edge parity) |
-| **Payroll P0 Incident** | **CLOSED** — S1–S3/S5 pokryte guardami + Golden Regression |
+| **Payroll P0 Cross-Device Sync** | **CLOSED** — SYNC-ARCH-01 S2 (`e819124`) · prod smoke 2026-07-10 · [`docs/INCIDENTS.md`](docs/INCIDENTS.md) |
+| **Payroll P0 Incident** (S1–S3/S5 guards) | **CLOSED** — guardami + Golden Regression |
 | **Stabilization W01** | GREEN (Z‑02/03/04/06 PASS · Z‑05 device · Z‑07 owner) |
 | **Dług techniczny** | patrz [`TECHNICAL-DEBT.md`](TECHNICAL-DEBT.md) |

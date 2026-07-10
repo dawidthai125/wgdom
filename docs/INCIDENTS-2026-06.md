@@ -1,8 +1,9 @@
 # W&G DOM — incydenty i stabilizacja (czerwiec 2026)
 
 > **Dla programistów:** przeczytaj ten plik po `CURRENT-TASK.md`, jeśli pracujesz nad sync, payroll, adminami lub mediami.  
+> **SSOT incydentów:** [`INCIDENTS.md`](INCIDENTS.md)  
 > **Produkcja:** https://www.wgdom.fun · **Supabase KV:** `bdpygdvfgbggermvqtys`  
-> **Ostatnia aktualizacja:** 2026-06-29
+> **Ostatnia aktualizacja:** 2026-07-10
 
 ---
 

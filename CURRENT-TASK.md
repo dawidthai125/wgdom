@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-10 · **NG-09 COMPLETE** · prod **2.63.84** · **NG-09 slice 5/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-10 · **P0 Payroll Cross-Device Sync CLOSED** · prod **2.63.84** @ **`e819124`** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,33 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.84** @ **`29f7842`** · verify curl **GREEN** · **PRODUCTION VERIFIED** |
-| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-09** epic (**2.63.84**) · **NG-09-05** (**2.63.84**) · **NG-09-04** (**2.63.83**) |
+| **Baseline prod** | UI **2.63.84** @ **`e819124`** · **P0 Payroll Cross-Device Sync CLOSED** · verify curl **GREEN** |
+| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
+| **Ostatnio zamknięte** | **P0 Payroll Cross-Device Sync** (`e819124`) · **NG-09** epic (**2.63.84**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
-> **🔴 P0 FREEZE (2026-07-03):** aktywny incydent Payroll Cloud Sync. **Wszystkie nowe EPIC-i wstrzymane do zamknięcia P0**, w tym **WC-P3.3 S4 Preview Mount (ON HOLD)**. Dozwolone wyłącznie: OBSERVATION (PR-PAY-S7-5 ETAP 1 · PR-PERF-EDGE-OPT-A · S7-4A) + dokumentacja. **PR-PAY-S7-5 Resurrection Guard ETAP 1 (S7-5-1+S7-5-2): DEPLOYED (`ae132bc`) — Production Observation OPEN**; ETAP 2 (S7-5-3/S7-5-4) warunkowy po obserwacji. **PR-PERF-EDGE-OPT-A: DEPLOYED (`609ae53`) — Production Observation OPEN**. Zakaz implementacji kolejnych bundli (w tym Edge-Opt-B) bez owner GO.
+> **P0 Payroll Cross-Device Sync (2026-07-10):** **CLOSED** · fix **`e819124`** (SYNC-ARCH-01 S2) · prod smoke PASS · SSOT [`docs/INCIDENTS.md`](docs/INCIDENTS.md). Observation window **24h**. **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO.
+
+---
+
+## P0 — Payroll Cross-Device Sync · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/INCIDENTS.md`](docs/INCIDENTS.md) · [`docs/architecture/SYNC-ARCH-01-DOMAIN-SYNC-DESIGN-FREEZE.md`](docs/architecture/SYNC-ARCH-01-DOMAIN-SYNC-DESIGN-FREEZE.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **Production Verified** 2026-07-10 |
+| **Root cause** | S1-1 (`7ad4e06`) usunął Payroll z RS Push; S2 Domain Push nie ukończony |
+| **Resolution** | SYNC-ARCH-01 S2 — domain push mutacji pól `kw-week-employees` |
+| **Commit** | **`e819124`** |
+| **Prod** | **2.63.84** @ `e819124` |
+| **Smoke** | **PASS** (godziny · stawka · premia/potrącenie) · cross-device **PASS** · integrity **PASS** |
+| **Observation** | **24h** (do 2026-07-11) |
+| **Test** | `test-sync-arch-01-s2-domain-push-cross-device.mjs` **18/18** |
+
+**Lessons learned:** każda mutacja Payroll → Domain Push · contract test cross-device obowiązkowy · nie przywracać Payroll do RS Push.
 
 ---
 

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-10",
+    version: "2.63.85",
+    label: "P0 Payroll Cross-Device Sync — SYNC-ARCH-01 S2",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — edycje godzin, stawek, premii i potrąceń synchronizują się między urządzeniami (SYNC-ARCH-01 S2: debounced domain push → pwrPush → pushWeekEmployeesToCloud; bez przywracania Payroll do RS push).",
+      },
+      {
+        type: "fix",
+        text: "Incydent P0 Payroll Cross-Device Sync — CLOSED · production smoke PASS 2026-07-10 · commit e819124.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
     version: "2.63.84",
     label: "NG-09-05 — Inspector Program Closeout & Polish",
     items: [
