@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-10",
+    version: "2.63.84",
+    label: "NG-09-05 — Inspector Program Closeout & Polish",
+    items: [
+      {
+        type: "improve",
+        text: "Panel inspektora — InspectorOverlays: wydzielenie warstwy overlay (lightbox, preview, FAB, Toaster, notatki operacyjne); buildRecoverableStatsByJobId — dedup stats; panel orchestrator bez inline overlay JSX.",
+      },
+    ],
+  },
+  {
     date: "2026-07-09",
     version: "2.63.83",
     label: "NG-09-04 — Inspector Data Sync Layer",
