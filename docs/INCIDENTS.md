@@ -5,6 +5,31 @@
 
 ---
 
+## P0-A — iOS Safari Login Spinner (Incident A) · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** (2026-07-10) |
+| **Objaw** | Safari iPhone — spinner „Zaloguj” bez końca · brak wejścia do aplikacji |
+| **Root cause** | `LoginScreen` — brak `try/finally` na `passLoading`; throw w łańcuchu verify/remember |
+| **Resolution** | P0-A iOS Login Shell — `try/finally`, remember fail-safe, `mapAdminLoginError` |
+| **Fix commit** | **`6f85d4c`** · prod **v2.63.87** |
+| **Klasa** | FEATURE / SHELL — bez zmian CORE/sync/payroll |
+| **SSOT** | [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md) |
+
+---
+
+## P0-B — Cloud Sync batch-set HTTP 500 (Incident B) · **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** (rejestr Owner — 2026-07-10) |
+| **Objaw** | Login OK → `runCloudSync` → `POST batch-set` → HTTP 500 (legacy host `wgdom.online`) |
+| **Powiązane** | [`recovery/P0-B-CLOUDSYNC-500-PLAN.md`](recovery/P0-B-CLOUDSYNC-500-PLAN.md) · [`recovery/INCIDENT-BATCH-SET-500-AUDIT-717C2DD5.md`](recovery/INCIDENT-BATCH-SET-500-AUDIT-717C2DD5.md) |
+| **Uwaga** | Osobny program od Incident A — **nie** wspólny RCA |
+
+---
+
 ## P0 — Payroll Cross-Device Sync (2026-07-10) · **FULLY CLOSED**
 
 | Pole | Wartość |

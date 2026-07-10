@@ -1,12 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.85** (prod) · changelog closeout **2.63.86** (release pending) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `88650be` · **NG-10 EPIC COMPLETE** · **P0 Payroll FULLY CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.87** (prod) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `6f85d4c` · **P0-A iOS Login CLOSED** · **Incident Register CLEAN** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-10):** prod **2.63.85** @ **`88650be`** (fix S2 **`e819124`**). **NG-10 Autonomous Workspace → EPIC COMPLETE** (implement `d850534`→`5863acb` · closeout **2.63.86** pending release). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** release **2.63.86** + owner smoke M1–M6 · potem **STABILIZATION WINDOW**.
+> **★ Baseline (2026-07-10):** prod **2.63.87** @ **`6f85d4c`** (P0-A iOS Login Shell). **NG-10** @ **2.63.86** (`02e0d0a`). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** **STABILIZATION WINDOW** — nowy program od **AUDIT** + Owner GO.
 
-> **★ Closeout sesji (2026-07-10, NG-10):** slices **03–05** w `main` · **NG-10-06** closeout docs + changelog **2.63.86** · SSOT [`architecture/NG-10-CLOSEOUT.md`](architecture/NG-10-CLOSEOUT.md). **Owner smoke M1–M6:** PENDING.
+> **★ Closeout sesji (2026-07-10, P0-A):** **`6f85d4c`** release **2.63.87** · Incident A **CLOSED** · Owner QA Safari iPhone **PASS** · SSOT [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md).
+
+> **★ Closeout sesji (2026-07-10, NG-10):** slices **03–06** w `main` · **NG-10-06** @ **2.63.86** (`02e0d0a`) · SSOT [`architecture/NG-10-CLOSEOUT.md`](architecture/NG-10-CLOSEOUT.md).
 
 > **★ Closeout sesji (2026-07-11, P0 Payroll):** **`e819124`** fix S2 · prod **2.63.85** @ **`88650be`** · **FULLY CLOSED**. SSOT: [`INCIDENTS.md`](INCIDENTS.md).
 
@@ -14,14 +16,14 @@
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-11):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-10):**
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda mutacja pól LP → **Domain Push** (#CORE-015). Przed zmianą w `cloud-sync.ts`, Edge, payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **PWRB**. Zmiany sync → **Regression Contract Tests** (#CORE-016).
-> 1. **P0 Payroll Cross-Device Sync → FULLY CLOSED** (`e819124` · observation 2026-07-11) · SSOT [`INCIDENTS.md`](INCIDENTS.md).
-> 2. **NG-10 EPIC COMPLETE** — Autonomous Tender Workspace na prod (kod w `main` od `5863acb`). **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
-> 3. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84+**.
-> 3. **Cloud Sync S7** — **observation only** — RS push **bez** `kw-week-employees` (by design od S1-1).
-> 4. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
+> 1. **POST INCIDENT STANDBY** — prod **2.63.87** @ **`6f85d4c`** · **Incident Register CLEAN** (A + B CLOSED).
+> 2. **P0-A iOS Login Shell → CLOSED** (`6f85d4c`) · FEATURE only · SSOT [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md).
+> 3. **P0 Payroll Cross-Device Sync → FULLY CLOSED** (`e819124` · observation 2026-07-11) · SSOT [`INCIDENTS.md`](INCIDENTS.md).
+> 4. **NG-10 / NG-09 EPIC COMPLETE** — **nie** rozszerzaj bez nowego AUDIT + Owner GO.
+> 5. **Następny krok** — **STABILIZATION WINDOW** · `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT`.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -33,15 +35,15 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`88650be`** · fix S2 **`e819124`** |
+| **Production (UI)** | **2.63.87** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`6f85d4c`** · P0-A iOS Login Shell |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
-| **Incident register** | P0 Payroll Cross-Device Sync → **FULLY CLOSED** (2026-07-11) |
-| **Ostatnio CLOSED** | **NG-10** Autonomous Workspace · **P0 Payroll** · **NG-09** · **M-03** |
+| **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
+| **Ostatnio CLOSED** | **P0-A** iOS Login · **NG-10** · **P0 Payroll** · **NG-09** · **M-03** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **Następny krok** | Release **2.63.86** · owner smoke NG-10 M1–M6 · **STABILIZATION WINDOW** |
+| **Następny krok** | **STABILIZATION WINDOW** — AUDIT + Owner GO |
 
 ### Czym jest aplikacja
 
@@ -53,7 +55,8 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
-| **NG-10** — Autonomous Tender Workspace | **EPIC COMPLETE** | implement `d850534`→`5863acb` · closeout **2.63.86** |
+| **P0-A** — iOS Login Shell (Incident A) | **CLOSED** | **2.63.87** @ `6f85d4c` |
+| **NG-10** — Autonomous Tender Workspace | **EPIC COMPLETE** | **2.63.86** @ `02e0d0a` · implement `d850534`→`5863acb` |
 | **NG-09** — Inspector Workspace Modernization | **EPIC COMPLETE** | **2.63.80–84** @ `29f7842` |
 | **M-03** — Mobile Re-certification | **CLOSED** | **2.63.79** @ `f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |

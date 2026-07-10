@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-10 · **NG-10 EPIC COMPLETE** · **P0 Payroll FULLY CLOSED** · prod **2.63.85** @ **`88650be`** · changelog closeout **2.63.86** (release pending) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-10 · **POST INCIDENT STANDBY** · prod **2.63.87** @ **`6f85d4c`** · **Incident Register CLEAN** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,31 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **P0 FULLY CLOSED** · **BASELINE LOCKED** |
+| **Baseline prod** | UI **2.63.87** @ **`6f85d4c`** · **BASELINE LOCKED** · **PRODUCTION VERIFIED** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-10** Autonomous Workspace (**2.63.86** closeout) · **P0 Payroll** (`e819124`) · **NG-09** (**2.63.84**) |
-| **Co dalej?** | **STABILIZATION WINDOW** — release **2.63.86** (commit+push) · owner smoke NG-10 M1–M6 |
+| **Ostatnio zamknięte** | **P0-A** iOS Login (**2.63.87**) · **NG-10** (**2.63.86**) · **P0 Payroll** (**2.63.85**) · **NG-09** (**2.63.84**) |
+| **Co dalej?** | **STABILIZATION WINDOW** — brak aktywnych bundle · nowy program od **AUDIT** + Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
-> **P0 Payroll Cross-Device Sync:** **FULLY CLOSED** · observation complete **2026-07-11** · SSOT [`docs/INCIDENTS.md`](docs/INCIDENTS.md). **NG-10:** **EPIC COMPLETE** · closeout **2.63.86** (release pending). **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO.
+> **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## P0-A — iOS Login Shell (Incident A) · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](docs/recovery/P0-A-IOS-LOGIN-CLOSEOUT.md) · PLAN/DF w `docs/recovery/P0-A-IOS-LOGIN-*`
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **BUNDLE CLOSED** |
+| **Commit** | **`6f85d4c`** · **2.63.87** |
+| **Zakres** | `LoginScreen.tsx` · `admin-auth.ts` (remember UX) · `GuideView` FAQ · test `test-admin-login-shell-p0a.mjs` |
+| **Klasa** | FEATURE / SHELL — **#CORE-013 PASS** |
+| **Owner QA** | Safari iPhone · `www.wgdom.fun` · **PASS** (AC-A6) |
+| **Test auto** | `test-admin-login-shell-p0a.mjs` **11/11** |
+
+**Nie rozszerzaj bez nowego AUDIT + Owner GO.**
 
 ---
 
@@ -29,11 +46,7 @@
 | **NG-10-03** Autonomous Run lib | `d850534` | **CLOSED** · LIB-NG10-01 **41/41** |
 | **NG-10-04** Agent Screen (S1) | `2ece2c7` | **CLOSED** |
 | **NG-10-05** Outcome + Reveal (S2→S3) | `5863acb` | **CLOSED** |
-| **NG-10-06** Closeout & Polish | *(pending commit)* | **IMPLEMENT DONE** · release **2.63.86** pending |
-
-**Waivers:** Expert verdict copy · CTA wording · trust watchouts **P2**.
-
-**Owner smoke M1–M6:** **PENDING** (po release 2.63.86).
+| **NG-10-06** Closeout & Polish | `02e0d0a` | **CLOSED** · **2.63.86** · **PRODUCTION VERIFIED** |
 
 **Nie rozszerzaj NG-10 bez nowego AUDIT + Owner GO.**
 
