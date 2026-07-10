@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-10 · **P0 Payroll Cross-Device Sync CLOSED** · prod **2.63.84** @ **`e819124`** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · **P0 Payroll Cross-Device Sync FULLY CLOSED** · prod **2.63.85** @ **`2525dd6`** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -16,26 +16,21 @@
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
-> **P0 Payroll Cross-Device Sync (2026-07-10):** **CLOSED** · fix **`e819124`** (SYNC-ARCH-01 S2) · prod smoke PASS · SSOT [`docs/INCIDENTS.md`](docs/INCIDENTS.md). Observation window **24h**. **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO.
+> **P0 Payroll Cross-Device Sync:** **FULLY CLOSED** · observation complete **2026-07-11** · SSOT [`docs/INCIDENTS.md`](docs/INCIDENTS.md). **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO.
 
 ---
 
-## P0 — Payroll Cross-Device Sync · **CLOSED** · **PRODUCTION VERIFIED**
+## P0 — Payroll Cross-Device Sync · **FULLY CLOSED** · **OBSERVATION COMPLETE**
 
 > **SSOT:** [`docs/INCIDENTS.md`](docs/INCIDENTS.md) · [`docs/architecture/SYNC-ARCH-01-DOMAIN-SYNC-DESIGN-FREEZE.md`](docs/architecture/SYNC-ARCH-01-DOMAIN-SYNC-DESIGN-FREEZE.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **Production Verified** 2026-07-10 |
-| **Root cause** | S1-1 (`7ad4e06`) usunął Payroll z RS Push; S2 Domain Push nie ukończony |
-| **Resolution** | SYNC-ARCH-01 S2 — domain push mutacji pól `kw-week-employees` |
-| **Commit** | **`e819124`** |
-| **Prod** | **2.63.84** @ `e819124` |
-| **Smoke** | **PASS** (godziny · stawka · premia/potrącenie) · cross-device **PASS** · integrity **PASS** |
-| **Observation** | **24h** (do 2026-07-11) |
-| **Test** | `test-sync-arch-01-s2-domain-push-cross-device.mjs` **18/18** |
-
-**Lessons learned:** każda mutacja Payroll → Domain Push · contract test cross-device obowiązkowy · nie przywracać Payroll do RS Push.
+| **Status** | **FULLY CLOSED** · **Observation Complete** 2026-07-11 |
+| **Fix commit** | **`e819124`** (SYNC-ARCH-01 S2) |
+| **Observation** | 24h PASS — brak rollbacków · brak nowych incydentów |
+| **Regression** | S2 **18/18** · S1 **22/22** · Guard **4/4** |
+| **Cloud T+24h** | roster **15** · tombstones **6** · duplicates **0** |
 
 ---
 

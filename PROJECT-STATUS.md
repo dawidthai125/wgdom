@@ -7,7 +7,7 @@
 | **Ostatnia aktualizacja** | 2026-07-10 |
 | **Commit (HEAD `main`)** | **`e819124`** (SYNC-ARCH-01 S2) → docs closeout pending |
 | **Production version (UI)** | **v2.63.84** @ **`e819124`** · **PRODUCTION VERIFIED** · incident closeout docs → **v2.63.85** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync CLOSED** · **NG-09 COMPLETE (5/5)** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync FULLY CLOSED** (observation 2026-07-11) · **NG-09 COMPLETE (5/5)** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -55,7 +55,7 @@
 - Scenario H (PASS / CLOSED)
 
 **OPEN P0:**
-- ~~P0 Payroll Cross-Device Sync~~ — **CLOSED** (`e819124` · prod smoke PASS 2026-07-10) · [`docs/INCIDENTS.md`](docs/INCIDENTS.md)
+- ~~P0 Payroll Cross-Device Sync~~ — **FULLY CLOSED** (`e819124` · observation complete **2026-07-11**) · [`docs/INCIDENTS.md`](docs/INCIDENTS.md)
 - PR-PAY-S7-5 Resurrection — **ETAP 1 DEPLOYED (`ae132bc`) · Production Observation OPEN** (nie CLOSED do potwierdzenia AC8–AC11)
 - batch-set 500 (H1 UNCONFIRMED)
 
@@ -207,7 +207,7 @@ Pełna historia UI: [`CHANGELOG.md`](CHANGELOG.md) · źródło prawdy: `src/app
 |--------|------|
 | **Build** | GREEN (`npm run build`) |
 | **Gate B — Payroll** | GREEN (15/15, w tym B6 Edge parity) |
-| **Payroll P0 Cross-Device Sync** | **CLOSED** — SYNC-ARCH-01 S2 (`e819124`) · prod smoke 2026-07-10 · [`docs/INCIDENTS.md`](docs/INCIDENTS.md) |
+| **Payroll P0 Cross-Device Sync** | **FULLY CLOSED** — observation complete **2026-07-11** · [`docs/INCIDENTS.md`](docs/INCIDENTS.md) |
 | **Payroll P0 Incident** (S1–S3/S5 guards) | **CLOSED** — guardami + Golden Regression |
 | **Stabilization W01** | GREEN (Z‑02/03/04/06 PASS · Z‑05 device · Z‑07 owner) |
 | **Dług techniczny** | patrz [`TECHNICAL-DEBT.md`](TECHNICAL-DEBT.md) |
