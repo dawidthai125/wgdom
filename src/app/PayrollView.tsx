@@ -92,6 +92,13 @@ import {
   payrollAssignmentAlertsForWeek,
   type PayrollAssignmentBadgeStatus,
 } from "@/lib/payroll-job-assignments";
+import {
+  PAYROLL_SIMULATION_INITIAL,
+  computeSimulatedTotals,
+  filterEmployeesForSimulation,
+  isEmployeeExcluded,
+  type PayrollSimulationState,
+} from "@/lib/payroll-payout-simulation";
 
 
 export function toPayrollCalcRows(
@@ -535,8 +542,13 @@ export function PayrollView({
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showBacklogModal, setShowBacklogModal] = useState(false);
+  const [simulation, setSimulation] = useState<PayrollSimulationState>(PAYROLL_SIMULATION_INITIAL);
 
   useModalScrollLock(showPicker || showBacklogModal || showPdfPreview || showEmailModal);
+
+  useEffect(() => {
+    setSimulation(PAYROLL_SIMULATION_INITIAL);
+  }, [weekFrom, weekTo]);
 
   type PayrollListMode = "summary" | "detailed" | "assignments";
   const [payrollListMode, setPayrollListMode] = useState<PayrollListMode>(() => {
@@ -668,7 +680,6 @@ export function PayrollView({
     [isClosedWeek, weekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
-  const payrollCashContext = biweeklyCashContextLine(cashSplit, weekTo);
 
   const biweeklyRowMap = useMemo(() => {
     const m = new Map<string, ReturnType<typeof calcBiweeklyRowDisplay>>();
@@ -692,23 +703,77 @@ export function PayrollView({
   );
   const prevSatDetailIso = previousSaturdayIso(weekFrom);
 
-  const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
-  const totalPrevSatHours = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatHours),0);
-  const totalHoursAll = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekHours:r.totalHours),0);
-  const totalWeekGross = rows.reduce((s,r)=>s+(r.leaveStatus?0:r.weekGross),0);
-  const totalPrevSatGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)||r.leaveStatus?0:r.prevSatGross),0);
-  const totalGross = rows.reduce((s,r)=>s+(r.leaveStatus?0:(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay)),0);
-  const totalWeekZaliczka = rows.reduce((s,r)=>s+r.weekZaliczka,0);
-  const totalPrevSatZaliczka = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatZaliczka),0);
-  const totalZaliczkaSum = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka),0);
-  const totalExtraCostsSum = rows.reduce((s,r)=>s+r.totalExtraCosts,0);
-  const totalNet = rows.reduce((s,r)=>{
-    if (r.leaveStatus || (r.carryForwardOut != null && r.carryForwardOut > 0)) return s;
-    if (r.carryForwardIn != null && r.carryForwardIn > 0) return s + r.displayNetPay;
-    const bw = biweeklyRowMap.get(r.emp.id);
-    if (bw) return s+(bw.isPayoutWeek?bw.displayNet:bw.thisWeekNet);
-    return s+r.displayNetPay;
-  },0);
+  const exportTableTotals = useMemo(
+    () => computeSimulatedTotals(rows, biweeklyRowMap, PAYROLL_SIMULATION_INITIAL),
+    [rows, biweeklyRowMap],
+  );
+
+  const displayTableTotals = useMemo(
+    () => computeSimulatedTotals(rows, biweeklyRowMap, simulation),
+    [rows, biweeklyRowMap, simulation],
+  );
+
+  const {
+    totalWeekHours,
+    totalPrevSatHours,
+    totalHoursAll,
+    totalWeekGross,
+    totalPrevSatGross,
+    totalGross,
+    totalWeekZaliczka,
+    totalPrevSatZaliczka,
+    totalZaliczkaSum,
+    totalExtraCostsSum,
+    totalNet,
+  } = displayTableTotals;
+
+  const displayCashSplit = useMemo(() => {
+    if (!simulation.enabled) return cashSplit;
+    const emps = filterEmployeesForSimulation(displayEmployees, simulation);
+    return computePayrollCashSplit(
+      emps,
+      directory,
+      weekFrom,
+      weekTo,
+      savedWeeks,
+      (e) =>
+        calcWeeklyNetWithCarry(e, weekFrom, weekTo, {
+          employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
+          savedWeeks,
+          archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+        }),
+      (e, from, to) =>
+        calcBiweeklyWeekNetWithLeave(e, from, to, {
+          employeeLeaves,
+          savedWeeks,
+          hasRolloverBlockers,
+        }),
+    );
+  }, [
+    simulation,
+    cashSplit,
+    displayEmployees,
+    directory,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+    employeeLeaves,
+    isClosedWeek,
+    archivedForWeek,
+    hasRolloverBlockers,
+  ]);
+
+  const payrollCashContext = biweeklyCashContextLine(displayCashSplit, weekTo);
+
+  const toggleSimulationEmployee = useCallback((empId: string) => {
+    setSimulation((prev) => {
+      if (!prev.enabled) return prev;
+      const excluded = new Set(prev.excludedEmployeeIds);
+      if (excluded.has(empId)) excluded.delete(empId);
+      else excluded.add(empId);
+      return { ...prev, excludedEmployeeIds: [...excluded] };
+    });
+  }, []);
 
   const alreadySaved = isSavedWeek;
   const showRestoreBanner = Boolean(
@@ -769,17 +834,17 @@ export function PayrollView({
   );
 
   const exportTotals: PayrollExportTotals = {
-    totalWeekHours,
-    totalPrevSatHours,
-    totalHoursAll,
-    totalWeekGross,
-    totalPrevSatGross,
-    totalGross,
-    totalWeekZaliczka,
-    totalPrevSatZaliczka,
-    totalZaliczkaSum,
-    totalExtraCostsSum,
-    totalNet,
+    totalWeekHours: exportTableTotals.totalWeekHours,
+    totalPrevSatHours: exportTableTotals.totalPrevSatHours,
+    totalHoursAll: exportTableTotals.totalHoursAll,
+    totalWeekGross: exportTableTotals.totalWeekGross,
+    totalPrevSatGross: exportTableTotals.totalPrevSatGross,
+    totalGross: exportTableTotals.totalGross,
+    totalWeekZaliczka: exportTableTotals.totalWeekZaliczka,
+    totalPrevSatZaliczka: exportTableTotals.totalPrevSatZaliczka,
+    totalZaliczkaSum: exportTableTotals.totalZaliczkaSum,
+    totalExtraCostsSum: exportTableTotals.totalExtraCostsSum,
+    totalNet: exportTableTotals.totalNet,
     settledCount: rows.filter((r) => r.emp.settled).length,
     employeeCount: rows.length,
     cashWeeklyNet: cashSplit.weeklyNet,
@@ -887,7 +952,18 @@ export function PayrollView({
               </div>
             )}
 
-            {cashSplit.hasBiweeklyEmployees && canViewRates && (
+            {simulation.enabled && (
+              <div className="flex items-start gap-3 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3">
+                <Sparkles size={15} className="text-violet-400 shrink-0 mt-0.5"/>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-violet-300 uppercase tracking-wide">Tryb symulacji</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Dane Payroll nie zostały zmienione.</p>
+                  <p className="text-xs text-violet-300/90 mt-0.5">Wykluczono: {simulation.excludedEmployeeIds.length} os.</p>
+                </div>
+              </div>
+            )}
+
+            {displayCashSplit.hasBiweeklyEmployees && canViewRates && (
               <div className="bg-card border border-border rounded-xl px-5 py-4 space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Wypłata w sobotę · {fmtDate(weekTo).slice(0, 5)}</p>
                 {payrollCashContext && (
@@ -895,23 +971,23 @@ export function PayrollView({
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                   <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-muted-foreground mb-0.5">Tygodniówki ({cashSplit.weeklyCount} os.)</p>
-                    <p className="font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.weeklyNet)} PLN</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">Tygodniówki ({displayCashSplit.weeklyCount} os.)</p>
+                    <p className="font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(displayCashSplit.weeklyNet)} PLN</p>
                   </div>
-                  {cashSplit.isAnyBiweeklyPayoutWeek ? (
+                  {displayCashSplit.isAnyBiweeklyPayoutWeek ? (
                     <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-sky-300 mb-0.5">Wypłata co 2 tyg. ({cashSplit.biweeklyCount} os.) — bież. i poprzedni tydzień</p>
-                      <p className="font-bold text-sky-300" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyPayoutNet)} PLN</p>
+                      <p className="text-xs text-sky-300 mb-0.5">Wypłata co 2 tyg. ({displayCashSplit.biweeklyCount} os.) — bież. i poprzedni tydzień</p>
+                      <p className="font-bold text-sky-300" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(displayCashSplit.biweeklyPayoutNet)} PLN</p>
                     </div>
                   ) : (
                     <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-muted-foreground mb-0.5">Narastająco · co 2 tyg. ({cashSplit.biweeklyCount} os.) → {fmtDate(cashSplit.nextBiweeklyPayoutDate).slice(0, 5)}</p>
-                      <p className="font-bold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyAccruedNet)} PLN</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">Narastająco · co 2 tyg. ({displayCashSplit.biweeklyCount} os.) → {fmtDate(displayCashSplit.nextBiweeklyPayoutDate).slice(0, 5)}</p>
+                      <p className="font-bold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(displayCashSplit.biweeklyAccruedNet)} PLN</p>
                     </div>
                   )}
                   <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2.5">
                     <p className="text-xs text-primary/80 mb-0.5">Suma wypłaty w sobotę</p>
-                    <p className="font-bold text-primary text-lg" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} PLN</p>
+                    <p className="font-bold text-primary text-lg" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(displayCashSplit.totalSaturdayCash)} PLN</p>
                   </div>
                 </div>
               </div>
@@ -933,6 +1009,21 @@ export function PayrollView({
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
+                {canViewRates && (
+                  <button
+                    type="button"
+                    onClick={() => setSimulation((s) => ({ ...s, enabled: !s.enabled }))}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors border touch-manipulation min-h-[44px] ${
+                      simulation.enabled
+                        ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
+                        : "bg-secondary hover:bg-secondary/70 border-border text-foreground"
+                    }`}
+                    title="Tymczasowo wyklucz wybrane osoby z sumy wypłaty — bez zmiany danych Payroll"
+                  >
+                    <Sparkles size={14}/>
+                    Symulacja wypłaty
+                  </button>
+                )}
                 {!isClosedWeek && (
                 <>
                 <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
@@ -1101,10 +1192,21 @@ export function PayrollView({
                       <tbody className="divide-y divide-border">
                         {rows.map((r,i)=>(
                           <tr key={r.emp.id} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}
-                            className={`group cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled?"opacity-60":""} ${r.emp.id===selectedEmpId?"bg-primary/5 border-l-2 border-primary":""}`}>
+                            className={`group cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled?"opacity-60":""} ${simulation.enabled && isEmployeeExcluded(r.emp.id, simulation) ? "opacity-45 bg-violet-500/5" : ""} ${r.emp.id===selectedEmpId?"bg-primary/5 border-l-2 border-primary":""}`}>
                             <td className="px-3 py-3.5 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i+1}</td>
                             <td className="px-3 py-3.5 min-w-[140px]">
                               <div className="flex items-center gap-2.5">
+                                {simulation.enabled && (
+                                  <input
+                                    type="checkbox"
+                                    checked={!isEmployeeExcluded(r.emp.id, simulation)}
+                                    onChange={() => toggleSimulationEmployee(r.emp.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="shrink-0 rounded border-border size-4 touch-manipulation"
+                                    title="Uwzględnij w symulacji wypłaty"
+                                    aria-label={`Uwzględnij ${r.emp.name || "pracownika"} w symulacji wypłaty`}
+                                  />
+                                )}
                                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                                 <div className="min-w-0">
                                   <p className="font-medium leading-tight truncate flex items-center gap-1.5">
@@ -1209,10 +1311,10 @@ export function PayrollView({
                           </>
                           )}
                         </tr>
-                        {cashSplit.hasBiweeklyEmployees && canViewRates && (
+                        {displayCashSplit.hasBiweeklyEmployees && canViewRates && (
                         <tr className="border-t border-primary/20 bg-primary/5">
                           <td colSpan={8} className="px-4 py-3 text-xs font-bold text-primary uppercase tracking-wider">Wypłata w sobotę · {fmtDate(weekTo).slice(0, 5)}</td>
-                          <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                          <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(displayCashSplit.totalSaturdayCash)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
                           {!isClosedWeek && <td colSpan={2} className="sticky right-0 z-10 bg-primary/5"/>}
                         </tr>
                         )}
@@ -1222,9 +1324,20 @@ export function PayrollView({
                   {/* Mobile */}
                   <div className="sm:hidden divide-y divide-border">
                     {rows.map((r)=>(
-                      <div key={r.emp.id} className={`p-4 space-y-3 ${r.emp.settled?"opacity-60":""}`} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}>
+                      <div key={r.emp.id} className={`p-4 space-y-3 ${r.emp.settled?"opacity-60":""} ${simulation.enabled && isEmployeeExcluded(r.emp.id, simulation) ? "opacity-45 bg-violet-500/5" : ""}`} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}>
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
+                            {simulation.enabled && (
+                              <input
+                                type="checkbox"
+                                checked={!isEmployeeExcluded(r.emp.id, simulation)}
+                                onChange={() => toggleSimulationEmployee(r.emp.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="shrink-0 rounded border-border size-4 touch-manipulation"
+                                title="Uwzględnij w symulacji wypłaty"
+                                aria-label={`Uwzględnij ${r.emp.name || "pracownika"} w symulacji wypłaty`}
+                              />
+                            )}
                             <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                             <div className="min-w-0"><p className="text-sm font-medium truncate">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}</p></div>
                           </div>

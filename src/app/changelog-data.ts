@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-10",
+    version: "2.63.88",
+    label: "PAYROLL-SIM-01 — Symulacja wypłaty",
+    items: [
+      {
+        type: "new",
+        text: "Lista Płac — tryb „Symulacja wypłaty”: tymczasowe wykluczenie osób z sumy wypłaty tygodnia (tylko UI, bez zmiany danych Payroll).",
+      },
+      {
+        type: "improve",
+        text: "Eksport PDF/Word/Email listy płac — zawsze pełne dane; symulacja nie wpływa na dokumenty.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
     version: "2.63.87",
     label: "P0-A — Logowanie iOS Safari (shell)",
     items: [

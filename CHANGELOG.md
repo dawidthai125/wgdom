@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.88 — PAYROLL-SIM-01 Symulacja wypłaty
+
+- **new:** Lista Płac — tryb symulacji wypłaty (wykluczanie osób z sum UI, bez mutacji payroll)
+- **improve:** Eksport PDF/Word/Email — zawsze pełne dane (symulacja nie wpływa)
+
 ## 2.63.87 — P0-A iOS Login Shell
 
 - **fix:** LoginScreen — `try/finally` na `passLoading` (admin + inspektor)
