@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-10",
+    version: "2.63.87",
+    label: "P0-A — Logowanie iOS Safari (shell)",
+    items: [
+      {
+        type: "fix",
+        text: "Logowanie admina/inspektora — try/finally na spinnerze «Zaloguj»; brak nieskończonego passLoading przy błędzie crypto lub localStorage.",
+      },
+      {
+        type: "fix",
+        text: "Zapamiętaj hasło — fail-safe: błąd szyfrowania nie blokuje wejścia po poprawnym haśle; czytelne komunikaty PL (Safari, quota).",
+      },
+      {
+        type: "improve",
+        text: "Instrukcja — FAQ logowanie iPhone/Safari i kanoniczny adres www.wgdom.fun.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
     version: "2.63.86",
     label: "NG-10 — Autonomous Tender Workspace",
     items: [

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.87 — P0-A iOS Login Shell
+
+- **fix:** LoginScreen — `try/finally` na `passLoading` (admin + inspektor)
+- **fix:** Remember password fail-safe + `mapAdminLoginError` (crypto/LS)
+- **improve:** HelpView FAQ iPhone/Safari · boundary FEATURE only
+
 ## 2.63.86 — NG-10 Autonomous Tender Workspace
 
 - **new:** Autonomous Agent full-screen gate (S1) — fingerprint LS, feed, ETA, achievements nad pipeline NG-02

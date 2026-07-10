@@ -1026,36 +1026,61 @@ function getOrCreateRememberSalt(): Uint8Array {
 
 
 
+/** P0-A-IOS-LOGIN — błąd zapisu zapamiętanego hasła (lokalnie, bez chmury). */
+export class AdminRememberError extends Error {
+  readonly code = "admin_remember_failed" as const;
+
+  constructor(message?: string) {
+    super(message ?? "Nie udało się zapisać zapamiętanego hasła.");
+    this.name = "AdminRememberError";
+  }
+}
+
+/** Mapuje wyjątek logowania admina/inspektora na komunikat PL (SSOT UI). */
+export function mapAdminLoginError(e: unknown): string {
+  if (e instanceof AdminRememberError) {
+    return "Nie udało się zapisać zapamiętanego hasła. Wyłącz «Zapamiętaj hasło» lub zwolnij miejsce w przeglądarce.";
+  }
+  const domName =
+    e instanceof DOMException
+      ? e.name
+      : typeof e === "object" && e !== null && "name" in e
+        ? String((e as { name: unknown }).name)
+        : e instanceof Error
+          ? e.name
+          : "";
+  if (domName === "QuotaExceededError") {
+    return "Brak miejsca w pamięci przeglądarki. Zwolnij miejsce lub wyłącz «Zapamiętaj hasło».";
+  }
+  if (domName === "OperationError" || domName === "NotSupportedError") {
+    return "Logowanie niedostępne w tej przeglądarce. Otwórz https://www.wgdom.fun w Safari (nie tryb prywatny).";
+  }
+  if (e instanceof Error && e.message) {
+    console.warn("[admin-login]", e.message);
+  }
+  return "Logowanie przerwane. Spróbuj ponownie lub wyłącz zapamiętywanie hasła.";
+}
+
 export async function saveRememberedAdminPassword(userId: string, password: string): Promise<void> {
-
-  const salt = getOrCreateRememberSalt();
-
-  const key = await deriveRememberKey(salt);
-
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const encrypted = await crypto.subtle.encrypt(
-
-    { name: "AES-GCM", iv },
-
-    key,
-
-    new TextEncoder().encode(password),
-
-  );
-
-  localStorage.setItem(
-
-    ADMIN_REMEMBER_DATA_KEY,
-
-    JSON.stringify({ iv: [...iv], data: [...new Uint8Array(encrypted)] }),
-
-  );
-
-  localStorage.setItem(ADMIN_REMEMBER_USER_KEY, userId);
-
-  localStorage.setItem(ADMIN_REMEMBER_FLAG_KEY, "1");
-
+  try {
+    const salt = getOrCreateRememberSalt();
+    const key = await deriveRememberKey(salt);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      new TextEncoder().encode(password),
+    );
+    localStorage.setItem(
+      ADMIN_REMEMBER_DATA_KEY,
+      JSON.stringify({ iv: [...iv], data: [...new Uint8Array(encrypted)] }),
+    );
+    localStorage.setItem(ADMIN_REMEMBER_USER_KEY, userId);
+    localStorage.setItem(ADMIN_REMEMBER_FLAG_KEY, "1");
+  } catch (e) {
+    clearRememberedAdminPassword();
+    throw new AdminRememberError(e instanceof Error ? e.message : undefined);
+  }
 }
 
 

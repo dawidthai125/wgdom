@@ -15,6 +15,7 @@ import {
   loadRememberedAdminPassword,
   clearRememberedAdminPassword,
   digestSha256Hex,
+  mapAdminLoginError,
 } from "@/lib/admin-auth";
 import { recordSecurityAudit } from "@/lib/security-audit-log";
 import {
@@ -92,44 +93,77 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
   const handleAdminLogin = async () => {
     if (!selectedAdmin) { setPassError("Brak kont administratora"); return; }
     if (!password) { setPassError("Wpisz hasło"); return; }
+    setPassError("");
     setPassLoading(true);
-    const session = await verifyAdminLogin(selectedAdmin.login, password);
-    if (session) {
-      if (session.role === "inspector") { setPassLoading(false); setPassError("Użyj logowania Inspektor"); setPassword(""); return; }
-      if (rememberPassword) await saveRememberedAdminPassword(selectedAdmin.id, password);
-      else clearRememberedAdminPassword();
-      setPassLoading(false);
+    try {
+      const session = await verifyAdminLogin(selectedAdmin.login, password);
+      if (!session) {
+        setPassError("Błędne hasło");
+        setPassword("");
+        void recordSecurityAudit({
+          actor: selectedAdmin.login,
+          category: "AUTH",
+          action: "admin_login_failed",
+          severity: "warn",
+          summary: `Nieudane logowanie: ${selectedAdmin.login}`,
+          detail: JSON.stringify({ login: selectedAdmin.login }),
+        }).catch(() => {});
+        return;
+      }
+      if (session.role === "inspector") {
+        setPassError("Użyj logowania Inspektor");
+        setPassword("");
+        return;
+      }
+      if (rememberPassword) {
+        try {
+          await saveRememberedAdminPassword(selectedAdmin.id, password);
+        } catch (rememberErr) {
+          console.warn("[admin-login] remember save failed", rememberErr);
+          // #P0A-005 — login kontynuuje bez zapamiętanego hasła
+        }
+      } else {
+        clearRememberedAdminPassword();
+      }
       onAdmin(session);
-      return;
+    } catch (e) {
+      console.warn("[admin-login] failed", e);
+      setPassError(mapAdminLoginError(e));
+      setPassword("");
+    } finally {
+      setPassLoading(false);
     }
-    setPassLoading(false);
-    setPassError("Błędne hasło");
-    void recordSecurityAudit({
-      actor: selectedAdmin.login,
-      category: "AUTH",
-      action: "admin_login_failed",
-      severity: "warn",
-      summary: `Nieudane logowanie: ${selectedAdmin.login}`,
-      detail: JSON.stringify({ login: selectedAdmin.login }),
-    }).catch(() => {});
-    setPassword("");
   };
 
   const handleInspectorLogin = async () => {
     if (!selectedInspector) { setPassError("Brak kont inspektorów"); return; }
     if (!password) { setPassError("Wpisz hasło"); return; }
+    setPassError("");
     setPassLoading(true);
-    const session = await verifyAdminLogin(selectedInspector.login, password);
-    if (session && session.role === "inspector") {
-      if (rememberPassword) await saveRememberedAdminPassword(selectedInspector.id, password);
-      else clearRememberedAdminPassword();
-      setPassLoading(false);
+    try {
+      const session = await verifyAdminLogin(selectedInspector.login, password);
+      if (!session || session.role !== "inspector") {
+        setPassError("Błędne hasło");
+        setPassword("");
+        return;
+      }
+      if (rememberPassword) {
+        try {
+          await saveRememberedAdminPassword(selectedInspector.id, password);
+        } catch (rememberErr) {
+          console.warn("[inspector-login] remember save failed", rememberErr);
+        }
+      } else {
+        clearRememberedAdminPassword();
+      }
       onInspector(session);
-      return;
+    } catch (e) {
+      console.warn("[inspector-login] failed", e);
+      setPassError(mapAdminLoginError(e));
+      setPassword("");
+    } finally {
+      setPassLoading(false);
     }
-    setPassLoading(false);
-    setPassError("Błędne hasło");
-    setPassword("");
   };
 
   useEffect(() => {
