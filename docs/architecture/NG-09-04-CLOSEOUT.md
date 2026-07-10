@@ -67,4 +67,4 @@
 | NG-09-02 View Router L1 | **CLOSED** · 2.63.81 |
 | NG-09-03 Job Workspace L2 | **CLOSED** · 2.63.82 |
 | **NG-09-04** Sync / Data Layer | **CLOSED** · 2.63.83 |
-| **NG-09-05** Program Closeout & Polish | **BLOCKED** — [`NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md`](NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md) |
+| **NG-09-05** Program Closeout & Polish | **CLOSED** · 2.63.84 |

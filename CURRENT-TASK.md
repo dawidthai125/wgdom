@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-09 · **NG-09-04 CLOSED** · prod **2.63.83** · **NG-09 slice 4/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-10 · **NG-09 COMPLETE** · prod **2.63.84** · **NG-09 slice 5/5 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,10 +9,10 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.83** @ **`c1d1caf`** · verify curl **GREEN** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.63.84** @ **`29f7842`** · verify curl **GREEN** · **PRODUCTION VERIFIED** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **NG-09-04** (**2.63.83**) · **NG-09-03** (**2.63.82**) · **NG-09-02** (**2.63.81**) |
-| **Co dalej?** | **NG-09-05 BLOCKED** — [`NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md`](docs/architecture/NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md) · audit only · Owner GO przed IMPLEMENT |
+| **Ostatnio zamknięte** | **NG-09** epic (**2.63.84**) · **NG-09-05** (**2.63.84**) · **NG-09-04** (**2.63.83**) |
+| **Co dalej?** | **STABILIZATION WINDOW** — brak nowych programów/bundli bez Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -20,10 +20,10 @@
 
 ---
 
-## NG-09 — Inspector Workspace Modernization · **ACTIVE (slice 4/5 CLOSED)**
+## NG-09 — Inspector Workspace Modernization · **COMPLETE (5/5 CLOSED)**
 
-> **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md) · [`docs/architecture/NG-09-02-CLOSEOUT.md`](docs/architecture/NG-09-02-CLOSEOUT.md) · [`docs/architecture/NG-09-03-CLOSEOUT.md`](docs/architecture/NG-09-03-CLOSEOUT.md) · [`docs/architecture/NG-09-04-CLOSEOUT.md`](docs/architecture/NG-09-04-CLOSEOUT.md)  
-> **NG-09-05 audit:** [`docs/architecture/NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md`](docs/architecture/NG-09-05-PROGRAM-CLOSEOUT-AND-POLISH-AUDIT.md)
+> **SSOT epic:** [`docs/architecture/NG-09-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-09-EPIC-CLOSE-REPORT.md)  
+> **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md) · [`docs/architecture/NG-09-02-CLOSEOUT.md`](docs/architecture/NG-09-02-CLOSEOUT.md) · [`docs/architecture/NG-09-03-CLOSEOUT.md`](docs/architecture/NG-09-03-CLOSEOUT.md) · [`docs/architecture/NG-09-04-CLOSEOUT.md`](docs/architecture/NG-09-04-CLOSEOUT.md) · [`docs/architecture/NG-09-05-CLOSEOUT.md`](docs/architecture/NG-09-05-CLOSEOUT.md)
 
 | Slice | Wersja | Status |
 |-------|--------|--------|
@@ -31,13 +31,13 @@
 | **NG-09-02** View Router L1 | **2.63.81** · `472304d` | **CLOSED** |
 | **NG-09-03** Job Workspace L2 | **2.63.82** · `66859e9` / `8b7124b` | **CLOSED** · **PRODUCTION VERIFIED** |
 | **NG-09-04** Sync / Data Layer | **2.63.83** · `143f6d0` / `c1d1caf` | **CLOSED** · **PRODUCTION VERIFIED** |
-| **NG-09-05** Closeout & Polish | — | **BLOCKED** · audit READY |
+| **NG-09-05** Closeout & Polish | **2.63.84** · `c5aa953` / `29f7842` | **CLOSED** · **PRODUCTION VERIFIED** |
 
-**NG-09-04 zakres:** `useInspectorDataSync` — sync/state extraction; panel orchestrator UI (~774 LOC); L1/L2 bez zmian.
+**NG-09-05 zakres:** `InspectorOverlays` — overlay layer (lightbox, preview, FAB, Toaster, op-notes); `buildRecoverableStatsByJobId` dedup; panel orchestrator (~777 LOC, LOC waiver).
 
-**Maintenance debt:** `smoke-test-inspector-scroll-20.1d1.mjs` — grep L1/L2 w router/workspace (osobny task).
+**Maintenance debt:** `smoke-test-inspector-scroll-20.1d1.mjs` · billing a3a T6 · billing a6 T14 (pre-existing).
 
-**Nie rozpoczynaj NG-09-05 IMPLEMENT bez Owner GO.**
+**Nie rozpoczynaj nowego programu ani bundle bez Owner GO.**
 
 ---
 

@@ -4,10 +4,10 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-09 |
-| **Commit (HEAD `main`)** | **`c1d1caf`** (NG-09-04 release) |
-| **Production version (UI)** | **v2.63.83** · curl prod: **2.63.83** @ **`c1d1caf`** · **PRODUCTION VERIFIED** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09-04 CLOSED** · **NG-09-05 BLOCKED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Ostatnia aktualizacja** | 2026-07-10 |
+| **Commit (HEAD `main`)** | **`29f7842`** (NG-09-05 release) |
+| **Production version (UI)** | **v2.63.84** · curl prod: **2.63.84** @ **`29f7842`** · **PRODUCTION VERIFIED** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09 COMPLETE (5/5)** · **NG-09-05 CLOSED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
