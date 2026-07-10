@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-10",
+    version: "2.63.86",
+    label: "NG-10 — Autonomous Tender Workspace",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi — Autonomous Agent: pełnoekranowa analiza przy pierwszym wejściu lub gdy dane się zmieniły (fingerprint LS); ekran agenta z feedem, ETA i osiągnięciami pipeline.",
+      },
+      {
+        type: "new",
+        text: "Przetargi — ekran rekomendacji (GO / HOLD / NO-GO) przed wejściem do Workspace; CTA zapisuje fingerprint i odsłania NG-08 frame z Executive Brief.",
+      },
+      {
+        type: "improve",
+        text: "Pulpit → przetarg: wejście z alertu na zakładkę Przetarg (zamiast Decyzja) — spójność z Autonomous Run.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
     version: "2.63.85",
     label: "P0 Payroll Cross-Device Sync — SYNC-ARCH-01 S2",
     items: [

@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.85 VERIFIED** @ **`88650be`** · fix S2 **`e819124`** · **P0 Payroll Cross-Device Sync FULLY CLOSED** · observation **2026-07-11** · **BASELINE LOCKED** · **NG-09 EPIC COMPLETE (5/5)** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** · **Payroll Gate 16/16** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-10 (**prod 2.63.85** @ **`88650be`** · **NG-10 EPIC COMPLETE** · closeout changelog **2.63.86** release pending · **P0 Payroll FULLY CLOSED** · **Protected Core GREEN** · **STABILIZATION WINDOW ACTIVE**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG-10** — Autonomous Tender Workspace | **2.63.86** (closeout) · implement `d850534`→`5863acb` | **EPIC COMPLETE** · release pending | [`architecture/NG-10-CLOSEOUT.md`](architecture/NG-10-CLOSEOUT.md) · [`architecture/NG-10-DESIGN-FREEZE.md`](architecture/NG-10-DESIGN-FREEZE.md) |
 | **P0 Payroll Cross-Device Sync** — SYNC-ARCH-01 S2 Domain Push | **2.63.85** (`e819124` fix · `88650be` baseline) | **FULLY CLOSED** · observation **2026-07-11** | [`INCIDENTS.md`](INCIDENTS.md) · [`SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md`](SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md) |
 | **NG-09** — Inspector Workspace Modernization | **2.63.80–84** (`566fa0d`→`29f7842`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · 5 compositional seams | [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) |
 | **M-03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** (`f7878fe`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) · commits `0f8a165`+`f7878fe` |

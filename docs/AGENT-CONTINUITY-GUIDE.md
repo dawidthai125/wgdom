@@ -1,12 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **runtime** `88650be` · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **BASELINE LOCKED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.85** (prod) · changelog closeout **2.63.86** (release pending) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `88650be` · **NG-10 EPIC COMPLETE** · **P0 Payroll FULLY CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-11):** prod **2.63.85** @ **`88650be`** (fix S2 **`e819124`**). **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). **Payroll:** Domain Push **ACTIVE**. **Cloud Sync:** RS Push **bez Payroll** (by design). **Protected Core:** **GREEN**. **NG-09 = COMPLETE (5/5)**. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
+> **★ Baseline (2026-07-10):** prod **2.63.85** @ **`88650be`** (fix S2 **`e819124`**). **NG-10 Autonomous Workspace → EPIC COMPLETE** (implement `d850534`→`5863acb` · closeout **2.63.86** pending release). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** release **2.63.86** + owner smoke M1–M6 · potem **STABILIZATION WINDOW**.
 
-> **★ Closeout sesji (2026-07-11, P0 Payroll):** **`e819124`** fix S2 · **`2525dd6`** docs closeout · **`70122b6`** observation FULLY CLOSED · **`88650be`** baseline lock + CORE-015/016 · prod **2.63.85** @ **`88650be`** · verify `version.json` → **2.63.85**. SSOT: [`SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md`](SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md) · [`INCIDENTS.md`](INCIDENTS.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
+> **★ Closeout sesji (2026-07-10, NG-10):** slices **03–05** w `main` · **NG-10-06** closeout docs + changelog **2.63.86** · SSOT [`architecture/NG-10-CLOSEOUT.md`](architecture/NG-10-CLOSEOUT.md). **Owner smoke M1–M6:** PENDING.
+
+> **★ Closeout sesji (2026-07-11, P0 Payroll):** **`e819124`** fix S2 · prod **2.63.85** @ **`88650be`** · **FULLY CLOSED**. SSOT: [`INCIDENTS.md`](INCIDENTS.md).
 
 > **★ Closeout sesji (2026-07-10, NG-09):** **`c5aa953`** IMPLEMENT + **`29f7842`** RELEASE (**2.63.84**) + **`1f1167a`** docs — epic **NG-09 Inspector Workspace Modernization** **COMPLETE** · verify `version.json` → **2.63.84**. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) · [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
 
@@ -16,7 +18,8 @@
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda mutacja pól LP → **Domain Push** (#CORE-015). Przed zmianą w `cloud-sync.ts`, Edge, payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **PWRB**. Zmiany sync → **Regression Contract Tests** (#CORE-016).
 > 1. **P0 Payroll Cross-Device Sync → FULLY CLOSED** (`e819124` · observation 2026-07-11) · SSOT [`INCIDENTS.md`](INCIDENTS.md).
-> 2. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84+**. **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
+> 2. **NG-10 EPIC COMPLETE** — Autonomous Tender Workspace na prod (kod w `main` od `5863acb`). **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
+> 3. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84+**.
 > 3. **Cloud Sync S7** — **observation only** — RS push **bez** `kw-week-employees` (by design od S1-1).
 > 4. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
 
@@ -34,11 +37,11 @@
 | **Runtime commit** | **`88650be`** · fix S2 **`e819124`** |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | P0 Payroll Cross-Device Sync → **FULLY CLOSED** (2026-07-11) |
-| **Ostatnio CLOSED** | **P0 Payroll Cross-Device Sync** · **NG-09 epic** · **M-03** |
+| **Ostatnio CLOSED** | **NG-10** Autonomous Workspace · **P0 Payroll** · **NG-09** · **M-03** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **Następny krok** | **STABILIZATION WINDOW** — nowy bundle od nowego **AUDIT** + Owner GO |
+| **Następny krok** | Release **2.63.86** · owner smoke NG-10 M1–M6 · **STABILIZATION WINDOW** |
 
 ### Czym jest aplikacja
 
@@ -50,6 +53,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG-10** — Autonomous Tender Workspace | **EPIC COMPLETE** | implement `d850534`→`5863acb` · closeout **2.63.86** |
 | **NG-09** — Inspector Workspace Modernization | **EPIC COMPLETE** | **2.63.80–84** @ `29f7842` |
 | **M-03** — Mobile Re-certification | **CLOSED** | **2.63.79** @ `f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |

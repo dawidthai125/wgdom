@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.86 — NG-10 Autonomous Tender Workspace
+
+- **new:** Autonomous Agent full-screen gate (S1) — fingerprint LS, feed, ETA, achievements nad pipeline NG-02
+- **new:** Outcome / rekomendacja GO·HOLD·NO-GO (S2) → Reveal NG-08 Workspace
+- **improve:** Pulpit `openTenderById` → tab `przetarg` (było `decyzja`)
+- **boundary:** FEATURE UI only · slices 03–05 `d850534`→`5863acb` · #CORE-013 PASS · LIB-NG10-01 41/41
+
 ## 2.63.85 — P0 Payroll Cross-Device Sync (SYNC-ARCH-01 S2)
 
 - **fix:** Lista Płac — domain push dla mutacji pól (godziny, stawki, premie, potrącenia) — cross-device sync przywrócony

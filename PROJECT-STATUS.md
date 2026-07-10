@@ -4,10 +4,10 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-11 |
+| **Ostatnia aktualizacja** | 2026-07-10 |
 | **Commit (HEAD `main`)** | **`88650be`** |
-| **Production version (UI)** | **v2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **PRODUCTION VERIFIED** · **BASELINE LOCKED** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **Payroll Domain Push ACTIVE** · **Protected Core GREEN** (#CORE-013–#CORE-016) |
+| **Production version (UI)** | **v2.63.85** @ **`88650be`** · closeout changelog **v2.63.86** (release pending) |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-10 EPIC COMPLETE** · **P0 Payroll FULLY CLOSED** · **Protected Core GREEN** |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -117,6 +117,7 @@ Pełna: [`ROADMAP.md`](ROADMAP.md).
 | **NG‑09‑03** — Inspector Job Workspace L2 | **2.63.82** · `8b7124b` | **CLOSED** · **PRODUCTION VERIFIED** |
 | **NG‑09‑02** — Inspector View Router L1 | **2.63.81** · `472304d` | **CLOSED** |
 | **NG‑09‑01** — Inspector Workspace Frame | **2.63.80** · `566fa0d` | **CLOSED** |
+| **NG‑10** — Autonomous Tender Workspace | **2.63.86** (closeout) · `d850534`→`5863acb` | **EPIC COMPLETE** · release pending |
 | **M‑03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** · `f7878fe` | **CLOSED** · PRODUCTION VERIFIED |
 | **NG‑08‑HF‑01** — Visual Smoke remediation | **2.63.78** · `4855a2d` | **CLOSED** |
 | **NG‑08‑05…01** — Tender Workspace UX slices | **2.63.73–77** | **CLOSED** · parent **FROZEN** |

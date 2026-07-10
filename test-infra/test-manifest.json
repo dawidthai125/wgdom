@@ -65,6 +65,7 @@
         "LIB-TENDER-COPY-TEUX7D",
         "LIB-TENDER-STRATEGY-TEUX7E",
         "LIB-TENDER-HOSTED-DEPRECATION-TEUX7F",
+        "LIB-NG10-01",
         "SMOKE-TEUX-NG06",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
@@ -151,6 +152,10 @@
     "lib-tender-hosted-teux7f": {
       "description": "NG-06-TEUX-7f — Hosted deprecation SSOT + @deprecated + dev warn",
       "testIds": ["LIB-TENDER-HOSTED-DEPRECATION-TEUX7F"]
+    },
+    "lib-ng10-autonomous-run": {
+      "description": "NG-10-03 — Autonomous Run derive (fingerprint, phase, ETA, outcome)",
+      "testIds": ["LIB-NG10-01"]
     },
     "smoke-teux": {
       "description": "NG-06-TEUX-7z — Epic closeout smoke agregat TEUX-1…7f (12 child)",
@@ -1003,6 +1008,18 @@
       "id": "LIB-TENDER-HOSTED-DEPRECATION-TEUX7F",
       "class": "lib",
       "path": "scripts/test-tender-hosted-deprecation-teux7f.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Przetargi",
+      "status": "active"
+    },
+    {
+      "id": "LIB-NG10-01",
+      "class": "lib",
+      "path": "scripts/test-tender-autonomous-run-phase.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

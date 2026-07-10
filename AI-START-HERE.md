@@ -5,10 +5,10 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-11 |
+| **Ostatnia aktualizacja** | 2026-07-10 |
 | **Commit (HEAD `main`)** | **`88650be`** |
-| **Production version (UI)** | **v2.63.85** @ **`88650be`** · fix S2 **`e819124`** · **BASELINE LOCKED** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** |
+| **Production version (UI)** | **v2.63.85** @ **`88650be`** · closeout **v2.63.86** (release pending) |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-10 EPIC COMPLETE** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** |
 
 > **P0 Payroll Cross-Device Sync:** **FULLY CLOSED** (observation 2026-07-11). SSOT: [`docs/INCIDENTS.md`](docs/INCIDENTS.md). **Payroll:** Domain Push (#CORE-015). **Cloud Sync:** RS Push bez Payroll (by design). **Nie** przywracać Payroll do RS push.
 
@@ -50,11 +50,11 @@ Produkcja: **https://www.wgdom.fun** · Repo: **github.com/dawidthai125/wgdom** 
 
 ## 3. Aktualny status (skrót)
 
-- **Prod UI v2.63.85** · HEAD `88650be` · fix S2 `e819124` · **BASELINE LOCKED**.
+- **Prod UI v2.63.85** · HEAD `88650be` · **NG-10 EPIC COMPLETE** (closeout **2.63.86** release pending).
 - **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). Domain Push **ACTIVE** (#CORE-015).
 - **Cloud Sync:** RS Push **bez** `kw-week-employees` (S1-1 by design). Regression contracts obowiązkowe (#CORE-016).
 - **Protected Core:** **GREEN** · **STABILIZATION WINDOW ACTIVE**.
-- **NG-09 Inspector** epic **COMPLETE (5/5)**.
+- **NG-09 Inspector** epic **COMPLETE (5/5)** · **NG-10 Autonomous Workspace** epic **COMPLETE**.
 
 Pełny obraz: [`PROJECT-STATUS.md`](PROJECT-STATUS.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)
 
