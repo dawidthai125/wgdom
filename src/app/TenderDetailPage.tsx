@@ -7,6 +7,7 @@ import {
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
+import { TenderAutonomousGate } from "@/app/tenders/autonomous/TenderAutonomousGate";
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import {
   TenderWorkflowOperatorActionBar,
@@ -414,6 +415,13 @@ export function TenderDetailPage({
   }
 
   return (
+    <TenderAutonomousGate
+      item={item}
+      pipelineRuntime={pipelineRuntime}
+      intelligenceCtx={przetargCommand.intelligenceCtx}
+      pricingCatalogRevision={pricingCatalogRevision}
+      onBack={() => navigate(TENDERS_LIST_PATH)}
+    >
     <div
       className="flex-1 min-h-0 flex flex-col overflow-hidden"
       data-tender-detail-v4
@@ -509,5 +517,6 @@ export function TenderDetailPage({
         )}
       </div>
     </div>
+    </TenderAutonomousGate>
   );
 }
