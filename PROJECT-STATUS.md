@@ -5,8 +5,8 @@
 | Meta | Wartość |
 |------|---------|
 | **Ostatnia aktualizacja** | 2026-07-10 |
-| **Commit (HEAD `main`)** | **`29f7842`** (NG-09-05 release) |
-| **Production version (UI)** | **v2.63.84** · curl prod: **2.63.84** @ **`29f7842`** · **PRODUCTION VERIFIED** |
+| **Commit (HEAD `main`)** | **`1f1167a`** (NG-09-05 closeout docs) |
+| **Production version (UI)** | **v2.63.84** · curl prod: **2.63.84** @ **`1f1167a`** · **PRODUCTION VERIFIED** |
 | **Status** | **STABILIZATION WINDOW ACTIVE** · **NG-09 COMPLETE (5/5)** · **NG-09-05 CLOSED** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)

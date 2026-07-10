@@ -1,37 +1,36 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.79** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-09 · **runtime** `f7878fe` · **M-03 CLOSED** · **NG-08 parent FROZEN**
+> **Prod:** UI **2.63.84** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `1f1167a` · **NG-09 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-09):** prod **2.63.79** @ **`f7878fe`**. Ostatnio zamknięte: **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`). **NG-08 parent = CLOSED / FROZEN** (slices 01–05 + HF-01). **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
+> **★ Baseline (2026-07-10):** prod **2.63.84** @ **`1f1167a`**. Ostatnio zamknięte: **NG-09 epic** (`29f7842` release) · **NG-09-05** Overlays (`c5aa953`+`29f7842`). **NG-09 = COMPLETE (5/5)**. **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
 
-> **★ Closeout sesji (2026-07-09, M-03):** **`0f8a165`** IMPLEMENT + **`f7878fe`** RELEASE (**2.63.79**) + **`cc7ba83`** docs continuity — bundle **M-03 Mobile Re-certification** **CLOSED** · workflow **COMPLETE** · Protected Core **GREEN** · verify `version.json` → **2.63.79** @ **`f7878fe`**. SSOT freeze: [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
+> **★ Closeout sesji (2026-07-10, NG-09):** **`c5aa953`** IMPLEMENT + **`29f7842`** RELEASE (**2.63.84**) + **`1f1167a`** docs — epic **NG-09 Inspector Workspace Modernization** **COMPLETE** · verify `version.json` → **2.63.84**. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) · [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-09):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-10):**
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB**. Gate B payroll **16/16** przy bundle dotykającym syncu.
-> 1. **NG-08 parent CLOSED / FROZEN** — slices **01–05** + hotfix **HF-01** na prod **2.63.78** (`4855a2d`). **Nie** rozszerzaj NG-08 bez nowego AUDIT + Owner GO.
-> 2. **M-03 CLOSED** — Mobile Re-certification na prod **2.63.79** (`f7878fe`): breakpoint `max-[430px]` · KPI do `2xl` · shortcuts 44px · AC-M03-08 PASS.
-> 3. **NG-08-HF-01 CLOSED** — Visual Smoke remediation (REC-1): Command Layer density ≤280px desktop / ≤50vh mobile · hub scroll w scroll root · shortcuty 44px mobile.
-> 4. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
-> 5. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
+> 1. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84** (`29f7842`). **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
+> 2. **NG-08 parent CLOSED / FROZEN** — slices **01–05** + HF-01. **Nie** rozszerzaj NG-08 bez nowego AUDIT + Owner GO.
+> 3. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
+> 4. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
 ---
 
-## 0. Szybki start dla nowego agenta (2026-07-09)
+## 0. Szybki start dla nowego agenta (2026-07-10)
 
 ### Baseline (SSOT)
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.79** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`f7878fe`** (`version.json`) |
-| **Ostatnio CLOSED** | **M-03** (`f7878fe`) · **NG-08-HF-01** (`4855a2d`) · **NG-08-05** (`97ea90c`) · **NG-08-04** (`6f6bb66`) · **NG-08-03** (`caa46b1`) · **NG-08-02** (`09259ad`) |
+| **Production (UI)** | **2.63.84** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`1f1167a`** (`version.json`) |
+| **Ostatnio CLOSED** | **NG-09 epic** (`29f7842`) · **NG-09-05** Overlays · **M-03** (`f7878fe`) |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS |
 | **Cloud Sync S7** | Observation only — no changes |
@@ -47,6 +46,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG-09** — Inspector Workspace Modernization | **EPIC COMPLETE** | **2.63.80–84** @ `29f7842` |
 | **M-03** — Mobile Re-certification | **CLOSED** | **2.63.79** @ `f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |
 | **NG-08-05** — Cost Workspace (WF-05) | **CLOSED** | **2.63.77** @ `97ea90c` |
@@ -65,8 +65,8 @@
 | **NG-04 BOQ PRO** · **NG-02 Pipeline** · **NG-03 Workspace** | **CLOSED** | 2.63.x |
 | **TEST-INFRA-001** + **TI-B4** smoke Przetargi | **CLOSED** | 2.63.26–27 |
 
-**SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`  
-**SSOT hotfix Inspektor:** [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md)
+**SSOT epic NG-09:** [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md)  
+**SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`
 
 ### Co będzie robione (bez nowego epicu — STABILIZATION WINDOW)
 
@@ -602,6 +602,7 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
 | **NOW** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** (od zera) | `STABILIZATION-WINDOW-PLAN.md` |
+| **NG-09** | Inspector Workspace | FEATURE UI | **EPIC COMPLETE** · 2.63.84 | `NG-09-EPIC-CLOSE-REPORT.md` |
 | **M-03** | Mobile Re-certification | FEATURE UI maintenance | **CLOSED** · 2.63.79 | `M-03-MOBILE-RECERT-DESIGN-FREEZE.md` · `0f8a165`+`f7878fe` |
 | **NG-08-HF-01** | Visual Smoke remediation | FEATURE UI hotfix | **CLOSED** · 2.63.78 | commits `4f8f256`+`4855a2d` |
 | **NG-08-05…01** | Tender Workspace UX | FEATURE UI | **CLOSED** · 2.63.73–77 | `NG-08-TEUX-PLAN.md` |

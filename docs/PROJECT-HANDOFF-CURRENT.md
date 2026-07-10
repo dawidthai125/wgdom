@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-09 (**prod 2.63.79 VERIFIED** · commit **`f7878fe`** · **M-03 CLOSED** · **NG-08 parent FROZEN** (slices 01–05 + HF-01) · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-07-TEUX-01 CLOSED** · **Protected Core GREEN** · **Payroll Gate 16/16** · **NG-06-TEUX EPIC COMPLETE** · **TOKEN FREEZE ACTIVE** · **Cloud Sync S7 OBSERVATION ONLY** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-10 (**prod 2.63.84 VERIFIED** · release **`29f7842`** · HEAD docs **`1f1167a`** · **NG-09 EPIC COMPLETE (5/5)** · **NG-09-05 CLOSED** · **M-03 CLOSED** · **NG-08 parent FROZEN** · **Protected Core GREEN** · **Payroll Gate 16/16** · **STABILIZATION WINDOW ACTIVE** · **next: Owner GO + AUDIT — nowy bundle od zera**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -27,7 +27,8 @@
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync egress · exceed_egress_quota (**INCIDENT CLOSED** 2026-06-29)
 1u3. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
-1u5. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
+1u8. docs/SESSION-HANDOFF-NG-09-EPIC-CLOSE.md  ← ★★ NG-09 Inspector Workspace (CLOSED · 2.63.80–84)
+1u9. docs/architecture/NG-09-EPIC-CLOSE-REPORT.md  ← ★★ NG-09 epic closeout report
 1u7. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
 1u6. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout report
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
@@ -73,6 +74,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG-09** — Inspector Workspace Modernization | **2.63.80–84** (`566fa0d`→`29f7842`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · 5 compositional seams | [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) |
 | **M-03** — Mobile Re-certification (breakpoint cliff 392px) | **2.63.79** (`f7878fe`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md`](architecture/M-03-MOBILE-RECERT-DESIGN-FREEZE.md) · commits `0f8a165`+`f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation (Command Layer) | **2.63.78** (`4855a2d`) | **CLOSED** · **PRODUCTION VERIFIED** | `CURRENT-TASK.md` · commits `4f8f256`+`4855a2d` |
 | **NG-08-05** — Cost Workspace (WF-05) | **2.63.77** (`97ea90c`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/NG-08-05-TEUX-PLAN.md`](architecture/NG-08-05-TEUX-PLAN.md) |
@@ -203,12 +205,14 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-09)
+### 2.0. Aktualny stan (2026-07-10)
 
 ```text
-Production UI  2.63.79  (PRODUCTION VERIFIED · GREEN)
-Runtime        f7878fe  (version.json — kod aplikacji na Vercel)
-Ostatnio CLOSED  M-03 (f7878fe) · NG-08-HF-01 (4855a2d) · NG-08-05 (97ea90c) · NG-08-04 (6f6bb66) · NG-08-03 (caa46b1) · NG-08-02 (09259ad)
+Production UI  2.63.84  (PRODUCTION VERIFIED · GREEN)
+Runtime        1f1167a  (version.json — HEAD docs po closeout)
+Release        29f7842  (NG-09-05 InspectorOverlays)
+Ostatnio CLOSED  NG-09 epic (2.63.80–84) · NG-09-05 (29f7842) · M-03 (f7878fe)
+NG-09          EPIC COMPLETE (5/5 compositional seams)
 NG-08 parent   CLOSED / FROZEN (slices 01–05 + HF-01)
 Protected Core GREEN
 Cloud Sync S7  observation only — no changes
@@ -219,7 +223,7 @@ Next bundle    STABILIZATION WINDOW — Owner GO + AUDIT (nowy bundle od zera)
 |-----------------------|--------|
 | **★ Lista Płac** | Stabilna po RC-B + PAYROLL B1–B6 + **PAYROLL-RACE-01**. Gate payroll **16/16**. PWRB = jedyna ścieżka mutacji składu. |
 | **Przetargi UX** | NG-06 **CLOSED** — `tender-ux-tokens.ts` **TOKEN FREEZE** (import-only). **NG-08 parent FROZEN** (01–05 + HF-01). |
-| **Inspektor** | **INSPECTOR-RUNTIME-STATE-01 CLOSED** — hydratacja `jobsAll` w `InspectorPanel` (`setJobsAll`). Smoke: Szymon 15 / Zofia 2. |
+| **Inspektor** | **NG-09 EPIC COMPLETE** — workspace 5 seams (`InspectorShell` · `InspectorViewRouter` · `InspectorJobWorkspace` · `useInspectorDataSync` · `InspectorOverlays`). Panel ~777 LOC orchestrator. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md). |
 | **Nowe bundle** | **AUDIT → … → CLOSE** · STABILIZATION WINDOW · Owner GO · **#CORE-013** |
 
 **Start dla AI:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 0 · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)
@@ -441,6 +445,22 @@ E2E (origin/main):    8906485         20.5Z.2B
 curl -s https://www.wgdom.fun/version.json
 # oczekiwane: { "version": "2.63.27", "commit": "6c94223" }
 ```
+
+---
+
+## 2d. NG-09 Inspector Workspace Modernization EPIC — **CLOSED** (v2.63.80–2.63.84)
+
+> **SSOT:** [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) · [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md)
+
+| Slice | Wersja | Deliverable |
+|-------|--------|-------------|
+| NG-09-01 | 2.63.80 | InspectorShell · CommandLayer · Sidebar |
+| NG-09-02 | 2.63.81 | InspectorViewRouter (L1) |
+| NG-09-03 | 2.63.82 | InspectorJobWorkspace (L2) |
+| NG-09-04 | 2.63.83 | useInspectorDataSync |
+| NG-09-05 | 2.63.84 | InspectorOverlays · buildRecoverableStatsByJobId |
+
+**Verify:** `curl -s https://www.wgdom.fun/version.json` → **2.63.84** @ **`29f7842`** (lub **`1f1167a`** po docs deploy).
 
 ---
 

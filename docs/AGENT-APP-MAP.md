@@ -56,7 +56,7 @@
 
 **Tryby poza adminem:** `AppInnerWithAuth.tsx` — **admin** | **inspector** (`InspectorPanel.tsx`) | **worker** (telefon + PIN).
 
-**Inspektor — stan osobny:** `InspectorPanel` trzyma `jobsAll` w `useState` (nie `App.tsx`). Widoczność: `filterJobsForInspector(jobsAll, session.id)`. Hotfix `e9720de`: setter musi być `setJobsAll` (nie `setJobsAllAll`). SSOT: [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md).
+**Inspektor — stan osobny:** `InspectorPanel` trzyma `jobsAll` w `useState` (nie `App.tsx`). Widoczność: `filterJobsForInspector(jobsAll, session.id)`. **NG-09 EPIC COMPLETE (2.63.84):** workspace 5 seams — `InspectorShell` · `InspectorViewRouter` · `InspectorJobWorkspace` · `useInspectorDataSync` · `InspectorOverlays`. SSOT: [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md).
 
 ---
 
