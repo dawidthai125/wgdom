@@ -1133,6 +1133,22 @@ export function getRecoverableChargeJobStats(
   };
 }
 
+/** Pure aggregation map per jobId (read-only). No React, no cache, no side effects. */
+export function buildRecoverableStatsByJobId(
+  jobs: ReadonlyArray<{ id: string }>,
+  charges: ReadonlyArray<RecoverableCharge>,
+  now?: Date,
+): Map<string, RecoverableChargeJobStats> {
+  const map = new Map<string, RecoverableChargeJobStats>();
+  for (const job of jobs) {
+    const stats = getRecoverableChargeJobStats(charges, job.id, now);
+    if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
+      map.set(job.id, stats);
+    }
+  }
+  return map;
+}
+
 /** Adres roboty do presetu tworzenia pozycji (Sprint 20.5A.2). */
 export function jobAddressForRecoverableCharge(job: Pick<Job, "address" | "flatNumber">): string {
   const addr = job.address?.trim() || "";

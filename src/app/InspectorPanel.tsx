@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from "react";
-import { JobPhotoImg } from "@/app/JobPhotoImg";
-import { FileText, ClipboardList, X, FileCheck, MessageSquare } from "lucide-react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { FileText, ClipboardList, FileCheck, MessageSquare } from "lucide-react";
 import { InspectorCommandLayer } from "@/app/inspector/InspectorCommandLayer";
 import { InspectorShell } from "@/app/inspector/InspectorShell";
 import { InspectorSidebar } from "@/app/inspector/InspectorSidebar";
 import { InspectorViewRouter } from "@/app/inspector/InspectorViewRouter";
 import { InspectorJobWorkspace } from "@/app/inspector/InspectorJobWorkspace";
+import { InspectorOverlays } from "@/app/inspector/InspectorOverlays";
 import { useInspectorDataSync, type InspectorJob } from "@/app/inspector/useInspectorDataSync";
 import type { AdminSession } from "@/lib/admin-auth";
 import {
@@ -14,9 +14,8 @@ import {
 } from "@/lib/inspector-job-assignment";
 import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
 import {
-  getRecoverableChargeJobStats,
+  buildRecoverableStatsByJobId,
   recoverableChargeDescriptionLine,
-  type RecoverableChargeJobStats,
 } from "@/lib/recoverable-charges";
 import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import {
@@ -36,7 +35,6 @@ import {
   applyJobFileKindUpload,
   resolveJobFileStoragePath,
 } from "@/lib/job-documents";
-import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
 import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
@@ -75,14 +73,9 @@ import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto } from "@/lib/photo-queue";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { usePullToRefresh } from "@/app/usePullToRefresh";
-import { Toaster, toast } from "sonner";
-import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import { toast } from "sonner";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
-
-const OperationalNotesView = lazy(() =>
-  import("@/app/OperationalNotesView").then((m) => ({ default: m.OperationalNotesView })),
-);
 
 const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
   dashboard: "Pulpitu",
@@ -291,16 +284,10 @@ export function InspectorPanel({
     return (job.activityLog || []).filter((ev) => isInspectorActivityType(ev.type)).slice(0, limit);
   }, []);
 
-  const recoverableStatsByJobId = useMemo(() => {
-    const map = new Map<string, RecoverableChargeJobStats>();
-    for (const job of jobsVisible) {
-      const stats = getRecoverableChargeJobStats(recoverableCharges, job.id);
-      if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
-        map.set(job.id, stats);
-      }
-    }
-    return map;
-  }, [jobsVisible, recoverableCharges]);
+  const recoverableStatsByJobId = useMemo(
+    () => buildRecoverableStatsByJobId(jobsVisible, recoverableCharges),
+    [jobsVisible, recoverableCharges],
+  );
 
   const jobsById = useMemo(
     () => new Map(jobsVisible.map((j) => [j.id, { id: j.id, address: j.address, flatNumber: j.flatNumber, client: j.client }])),
@@ -763,65 +750,28 @@ export function InspectorPanel({
 
       </InspectorShell>
 
-      {lightbox && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <button type="button" className="absolute top-4 right-4 p-2 text-white" style={{ top: "max(1rem, env(safe-area-inset-top))" }} onClick={() => setLightbox(null)}>
-            <X size={24}/>
-          </button>
-          <p className="text-white text-sm mb-3">{lightbox.label}</p>
-          <JobPhotoImg src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
-        </div>
-      )}
-
-      {previewItem && (
-        <JobFilePreviewModal
-          item={previewItem}
-          athPreviewEnabled={athPreviewEnabled}
-          onClose={() => setPreviewItem(null)}
-        />
-      )}
-
-      {!selectedJob && (
-        <InspectorQuickPhotoFab
-          jobs={jobsVisible}
-          onUpload={handleQuickPhotoUpload}
-          disabled={loading || syncing}
-        />
-      )}
-
-      <Toaster
-        position="top-center"
-        richColors
-        closeButton
-        duration={4000}
-        style={{ top: "calc(env(safe-area-inset-top, 0px) + 4.25rem)" }}
+      <InspectorOverlays
+        selectedJob={selectedJob}
+        loading={loading}
+        syncing={syncing}
+        lightbox={lightbox}
+        onCloseLightbox={() => setLightbox(null)}
+        previewItem={previewItem}
+        athPreviewEnabled={athPreviewEnabled}
+        onClosePreview={() => setPreviewItem(null)}
+        jobs={jobsVisible}
+        onQuickPhotoUpload={handleQuickPhotoUpload}
+        operationalNotesOpen={operationalNotesOpen}
+        onCloseOperationalNotes={() => setOperationalNotesOpen(false)}
+        session={session}
+        operationalNotes={operationalNotes}
+        operationalNotesReadState={operationalNotesReadState}
+        operationalNotesAuditLog={operationalNotesAuditLog}
+        onChangeNotes={setOperationalNotes}
+        onChangeReadState={setOperationalNotesReadState}
+        onChangeAuditLog={setOperationalNotesAuditLog}
+        onCommitOperationalNotes={commitOperationalNotes}
       />
-
-      {operationalNotesOpen && (
-        <div
-          className="absolute inset-0 z-40 flex flex-col bg-background"
-          style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
-        >
-          <Suspense fallback={<div className="flex-1 flex items-center justify-center"><p className="text-sm text-muted-foreground">Ładowanie notatek…</p></div>}>
-            <OperationalNotesView
-              variant="inspector"
-              notes={operationalNotes}
-              jobs={jobsVisible}
-              session={session}
-              auditLog={operationalNotesAuditLog}
-              readState={operationalNotesReadState}
-              onChangeReadState={setOperationalNotesReadState}
-              onChangeNotes={setOperationalNotes}
-              onChangeAuditLog={setOperationalNotesAuditLog}
-              onCommit={commitOperationalNotes}
-              returnNav={{
-                label: "inspektora",
-                onBack: () => setOperationalNotesOpen(false),
-              }}
-            />
-          </Suspense>
-        </div>
-      )}
     </div>
   );
 }

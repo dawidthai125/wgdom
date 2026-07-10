@@ -12,7 +12,7 @@ import type { InspectorDashboardJob } from "@/lib/inspector-dashboard";
 import { sortJobsByInspectionPriority } from "@/lib/inspector-dashboard";
 import type { DocType } from "@/lib/job-documents";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
-import { getRecoverableChargeJobStats, type RecoverableChargeJobStats } from "@/lib/recoverable-charges";
+import { buildRecoverableStatsByJobId } from "@/lib/recoverable-charges";
 
 export type InspectorViewRouterProps = {
   tab: InspectorMainTab;
@@ -54,16 +54,10 @@ export function InspectorViewRouter({
   const filesPull = usePullToRefresh(filesScrollRef, onPullRefresh, tab === "files");
   const portfolioPull = usePullToRefresh(portfolioScrollRef, onPullRefresh, tab === "portfolio");
 
-  const recoverableStatsByJobId = useMemo(() => {
-    const map = new Map<string, RecoverableChargeJobStats>();
-    for (const job of jobs) {
-      const stats = getRecoverableChargeJobStats(recoverableCharges, job.id);
-      if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
-        map.set(job.id, stats);
-      }
-    }
-    return map;
-  }, [jobs, recoverableCharges]);
+  const recoverableStatsByJobId = useMemo(
+    () => buildRecoverableStatsByJobId(jobs, recoverableCharges),
+    [jobs, recoverableCharges],
+  );
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
