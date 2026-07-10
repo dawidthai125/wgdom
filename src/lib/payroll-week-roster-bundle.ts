@@ -17,6 +17,22 @@ import {
   saveDeletedWeekEmployeeKeys,
   type PushWeekEmployeesOptions,
 } from "@/lib/cloud-sync";
+import {
+  bindPayrollDomainPushHandler,
+  cancelPayrollDomainPush,
+  flushPayrollDomainPush,
+  schedulePayrollDomainPush,
+  unbindPayrollDomainPushHandler,
+} from "@/lib/payroll-domain-sync";
+
+export {
+  bindPayrollDomainPushHandler,
+  cancelPayrollDomainPush,
+  flushPayrollDomainPush,
+  schedulePayrollDomainPush,
+  unbindPayrollDomainPushHandler,
+  PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS,
+} from "@/lib/payroll-domain-sync";
 
 export type PwrMutationResult = {
   roster: WeekEmployee[];

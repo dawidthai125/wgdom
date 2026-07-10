@@ -130,6 +130,9 @@ import {
   pwrPush,
   pwrImportMerge,
   pwrRestorePayrollMerge,
+  schedulePayrollDomainPush,
+  bindPayrollDomainPushHandler,
+  unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-week-roster-bundle";
 import {
   AUTO_SYNC_DEBOUNCE_MS,
@@ -320,7 +323,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
-  const settledSyncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
   const suppressAutoSyncUntilRef = useRef(initialAutoSyncSuppressUntil());
@@ -1448,6 +1450,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
   }, [weekFrom, weekTo]);
 
+  useEffect(() => {
+    bindPayrollDomainPushHandler((roster) => persistPayrollRoster(roster));
+    return () => unbindPayrollDomainPushHandler();
+  }, [persistPayrollRoster]);
+
   const refreshSavedActiveWeekSnapshot = useCallback((nextEmployees: WeekEmployee[]) => {
     const blockers = hasPayrollRolloverBlockers(nextEmployees, weekFrom, weekTo, directory, {
       employeeLeaves,
@@ -1461,6 +1468,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return prev.map((w) => (w.id === existing.id ? snapshot : w));
     });
   }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks]);
+
+  const commitLivePayrollRosterEdit = useCallback((next: WeekEmployee[]) => {
+    refreshSavedActiveWeekSnapshot(next);
+    schedulePayrollDomainPush(next);
+  }, [refreshSavedActiveWeekSnapshot]);
 
   const addFromDirectory = (ids: string[]) => {
     let opId = `op-add-${Date.now().toString(36)}`;
@@ -1574,6 +1586,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev)=>{
+        let changed = false;
         const next = prev.map((e)=>{
           if (e.id !== updated.id) return e;
           const now = new Date().toISOString();
@@ -1581,6 +1594,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           const dataChanged =
             JSON.stringify({ days: updated.days, prevSaturday: updated.prevSaturday, extraCosts: updated.extraCosts, payrollCarryForward: updated.payrollCarryForward })
             !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts, payrollCarryForward: e.payrollCarryForward });
+          if (rateChanged || dataChanged) changed = true;
           return {
             ...updated,
             settled: updated.settled ?? e.settled,
@@ -1589,82 +1603,90 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
           };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  },[setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  },[setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   /** ETAP 1 — koszty do zwrotu: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeExtraCosts = useCallback((empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => {
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
+        let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
           const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
           if (!dataChanged) return e;
+          changed = true;
           return {
             ...e,
             extraCosts: nextExtraCosts,
             dataUpdatedAt: now,
           };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   /** ETAP 1 — godziny dnia: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeDay = useCallback((empId: string, key: DayKey, nextDay: DayData) => {
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
+        let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
           const days = { ...e.days, [key]: nextDay };
           const dataChanged = JSON.stringify(e.days) !== JSON.stringify(days);
           if (!dataChanged) return e;
+          changed = true;
           return { ...e, days, dataUpdatedAt: now };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeeRate = useCallback((empId: string, rate: string) => {
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
+        let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
           if (e.rate === rate) return e;
+          changed = true;
           return { ...e, rate, rateUpdatedAt: now };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeePrevSaturday = useCallback((empId: string, nextPrevSaturday: DayData) => {
     const prevSaturday = { ...nextPrevSaturday, extraHours: undefined };
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
+        let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
           const dataChanged = JSON.stringify(e.prevSaturday) !== JSON.stringify(prevSaturday);
           if (!dataChanged) return e;
+          changed = true;
           return { ...e, prevSaturday, dataUpdatedAt: now };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeePayrollCarryForward = useCallback((
     empId: string,
@@ -1673,57 +1695,56 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     runPayrollWeekEmployeeFieldEdit(() => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
+        let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
           const dataChanged = JSON.stringify(e.payrollCarryForward) !== JSON.stringify(payrollCarryForward);
           if (!dataChanged) return e;
+          changed = true;
           return { ...e, payrollCarryForward, dataUpdatedAt: now };
         });
-        refreshSavedActiveWeekSnapshot(next);
+        if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
     });
-  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot, runPayrollWeekEmployeeFieldEdit]);
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const syncWeekRatesFromDirectory = useCallback(() => {
     const now = new Date().toISOString();
     const byId = new Map(directory.map((d) => [d.id, d]));
-    setWeekEmployees((prev) => {
-      const next = prev.map((emp) => {
-        if (!emp.directoryId) return emp;
-        const dir = byId.get(emp.directoryId);
-        if (!dir?.defaultRate) return emp;
-        return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
+    runPayrollWeekEmployeeFieldEdit(() => {
+      setWeekEmployees((prev) => {
+        let changed = false;
+        const next = prev.map((emp) => {
+          if (!emp.directoryId) return emp;
+          const dir = byId.get(emp.directoryId);
+          if (!dir?.defaultRate || emp.rate === dir.defaultRate) return emp;
+          changed = true;
+          return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
+        });
+        if (!changed) return prev;
+        const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+        if (
+          existing
+          && !isPayrollWeekClosedForUi(
+            weekFrom,
+            weekTo,
+            hasPayrollRolloverBlockers(next, weekFrom, weekTo, directory, {
+              employeeLeaves,
+              savedWeeks,
+            }),
+          )
+        ) {
+          const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
+          const archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
+          try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
+          setSavedWeeks(archive);
+        }
+        commitLivePayrollRosterEdit(next);
+        return next;
       });
-      void (async () => {
-        suppressAutoSyncUntilRef.current = Date.now() + 6000;
-        try {
-          await withKwWeekEmployeesAsyncMutation(async () => {
-            let archive = savedWeeks;
-            const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-            if (
-              existing
-              && !isPayrollWeekClosedForUi(
-                weekFrom,
-                weekTo,
-                hasPayrollRolloverBlockers(next, weekFrom, weekTo, directory, {
-                  employeeLeaves,
-                  savedWeeks: archive,
-                }),
-              )
-            ) {
-              const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
-              archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
-              try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
-              setSavedWeeks(archive);
-            }
-            await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges]);
-          });
-        } catch { /* auto-sync ponowi */ }
-      })();
-      return next;
     });
-  }, [directory, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, setWeekEmployees, setSavedWeeks]);
+  }, [directory, savedWeeks, weekFrom, weekTo, jobs, employeeLeaves, setWeekEmployees, setSavedWeeks, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const patchArchiveWeek = useCallback((weekId: string, patchEmployees: (emps: WeekEmployee[]) => WeekEmployee[]) => {
     setSavedWeeks((prev) => {
@@ -1827,18 +1848,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const emp = weekEmployees.find((e) => e.id === id);
     if (!emp) return;
     const newSettled = !emp.settled;
-    setWeekEmployees((prev) => {
-      const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
-      refreshSavedActiveWeekSnapshot(next);
-      return next;
+    runPayrollWeekEmployeeFieldEdit(() => {
+      setWeekEmployees((prev) => {
+        const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
+        commitLivePayrollRosterEdit(next);
+        return next;
+      });
     });
-    if (settledSyncTimerRef.current) clearTimeout(settledSyncTimerRef.current);
-    settledSyncTimerRef.current = setTimeout(() => {
-      clearPendingAutoSync();
-      suppressAutoSyncUntilRef.current = 0;
-      void runCloudSync();
-    }, 400);
-  }, [weekEmployees, weekFrom, weekTo, refreshSavedActiveWeekSnapshot, setWeekEmployees, runCloudSync, clearPendingAutoSync]);
+  }, [weekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, setWeekEmployees]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
