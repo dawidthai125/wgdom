@@ -5,12 +5,12 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `0cdbc54` |
-| **Production version (UI)** | **v2.63.27** |
-| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · **P0 FREEZE** (bez nowych EPIC, WC-P3.3 S4 ON HOLD) · STABILIZATION WINDOW ACTIVE |
+| **Ostatnia aktualizacja** | 2026-07-11 |
+| **Commit (HEAD `main`)** | **`70122b6`** |
+| **Production version (UI)** | **v2.63.85** @ **`70122b6`** · fix S2 **`e819124`** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **Protected Core GREEN** · **Payroll Domain Push ACTIVE** |
 
-> **🔴 CZYTAJ NAJPIERW (P0):** trwa incydent Payroll Cloud Sync — **(A)** `batch-set` HTTP 500, **(B)** resurrection pracowników (usunięty wraca na innym urządzeniu). Architektura sync/merge + oba problemy + plan naprawy: **[`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)**. Nie zaczynaj nowych EPIC do zamknięcia P0.
+> **P0 Payroll Cross-Device Sync:** **FULLY CLOSED** (observation 2026-07-11). SSOT: [`docs/INCIDENTS.md`](docs/INCIDENTS.md). **Payroll:** Domain Push (#CORE-015). **Cloud Sync:** RS Push bez Payroll (by design). **Nie** przywracać Payroll do RS push.
 
 ---
 
@@ -40,7 +40,8 @@ Produkcja: **https://www.wgdom.fun** · Repo: **github.com/dawidthai125/wgdom** 
 | **Wersja UI** | `src/app/changelog-data.ts` → `CHANGELOG[0].version` |
 | **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | **Workflow deweloperski** | [`AGENTS.md`](AGENTS.md) |
-| **Baseline prod (handoff)** | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
+| **Incydenty** | [`docs/INCIDENTS.md`](docs/INCIDENTS.md) |
+| **Payroll / Cloud Sync architektura** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
 | **Status sesji / backlog** | [`CURRENT-TASK.md`](CURRENT-TASK.md) |
 
 > **Parytet klient↔Edge:** merge listy płac musi dawać identyczny wynik w `cloud-sync.ts` i w Edge `index.tsx`. To twardy wymóg (regresja B6). Nie zmieniaj jednej strony bez drugiej.
@@ -49,12 +50,13 @@ Produkcja: **https://www.wgdom.fun** · Repo: **github.com/dawidthai125/wgdom** 
 
 ## 3. Aktualny status (skrót)
 
-- **Prod UI v2.63.27** · HEAD `0cdbc54`. Payroll P0 Incident **seria pierwotna S1–S3/S5 CLOSED**, ale **otwarty jest nowy P0 Cloud Sync** (batch-set 500 + resurrection) — patrz baner P0 wyżej i [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-- **🔴 P0 Payroll Cloud Sync ACTIVE:** S7-1 diagnostyka CLOSED · S7-4A optymalizacja → OBSERVATION · **S7-5 Resurrection Guard = DESIGN FREEZE APPROVED, IMPLEMENT WAITING** (po obserwacji S7-4A). H1 (500) UNCONFIRMED.
-- **STABILIZATION WINDOW ACTIVE** od 2026‑07‑01 — utrzymanie, bez nowych epiców.
-- **NG‑05 MPI** (Market Pricing Intelligence) — DESIGN COMPLETE, **IMPLEMENT BLOCKED**.
+- **Prod UI v2.63.85** · HEAD `70122b6` · fix S2 `e819124`.
+- **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). Domain Push **ACTIVE** (#CORE-015).
+- **Cloud Sync:** RS Push **bez** `kw-week-employees` (S1-1 by design). Regression contracts obowiązkowe (#CORE-016).
+- **Protected Core:** **GREEN** · **STABILIZATION WINDOW ACTIVE**.
+- **NG-09 Inspector** epic **COMPLETE (5/5)**.
 
-Pełny obraz: [`PROJECT-STATUS.md`](PROJECT-STATUS.md) · [`ROADMAP.md`](ROADMAP.md)
+Pełny obraz: [`PROJECT-STATUS.md`](PROJECT-STATUS.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md)
 
 ---
 

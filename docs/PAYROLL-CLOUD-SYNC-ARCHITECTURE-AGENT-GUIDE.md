@@ -2,7 +2,9 @@
 
 > **Cel:** jeden dokument, dzięki któremu **przyszły AI / agent Cursor** rozumie architekturę synchronizacji i merge Payroll **bez analizowania kodu od zera**. Zawiera przepływ danych, pliki SSOT, klucze KV, model merge, logikę Edge, oraz **dwa aktywne problemy P0** (batch-set 500 + resurrection pracowników) z hipotezami i planem.
 >
-> **Data:** 2026-07-04 · **HEAD `31a7d5e`** · **Prod UI v2.63.31** · **RC-B CLOSED** · **P0 batch-set 500 OPEN (H1 UNCONFIRMED)**
+> **Data:** 2026-07-11 · **HEAD `70122b6`** · **Prod UI v2.63.85** · **P0 Cross-Device Sync FULLY CLOSED** · **Domain Push ACTIVE**
+>
+> **★ SYNC-ARCH S2 (2026-07-10):** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push (`runCloudSync`) **bez** `kw-week-employees` (S1-1 by design). **#CORE-015** · **#CORE-016**.
 >
 > **★ RC-B-1 closeout:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · **PWRB facade:** `src/lib/payroll-week-roster-bundle.ts`
 >
@@ -13,12 +15,12 @@
 ## 0. TL;DR dla agenta (przeczytaj najpierw)
 
 - **Model danych = LocalStorage ↔ Supabase KV** (klucz→JSON). Klient scala, Edge scala ponownie. **Merge jest UNION** (nie replace) — to źródło większości pułapek Payroll.
-- **PWRB (RC-B-1):** skład tygodnia = **para** `kw-week-employees` + `kw-week-employees-deleted-ids`. Mutacje UI **tylko** przez `payroll-week-roster-bundle.ts` (`pwrAdd`, `pwrRemove`, `pwrPush`, …). Inwarianty **I-1…I-4** wymuszają G-0 (brak X w rosterze gdy istnieje tomb T).
-- **Parytet klient↔Edge to twardy wymóg** (regresja B6). Wspólny kernel identyfikacji: `src/lib/payroll-week-employee-merge.ts`. Nie zmieniaj jednej strony bez drugiej.
-- **Aktywne problemy P0** (§7):
-  1. **batch-set HTTP 500** (najpr. *statement timeout* — **H1 UNCONFIRMED**). S7-4A observation OPEN.
-  2. **Resurrection** — **ZAADRESOWANE** S7-5 ETAP 1 (`ae132bc`) + **RC-B-1** re-add revocation (`35f37b1`). Multi-device AC8–AC11 **PENDING** owner validation.
-- **NIE ruszaj** merge/LWW/tombstonów/Edge/kv.mset bez AUDIT i owner GO. STABILIZATION WINDOW — brak nowych epiców.
+- **Domain Push (S2 — ACTIVE):** każda mutacja **pól** rosteru (`godziny`, `stawka`, `extraCosts`, `settled`, carry-forward) → `schedulePayrollDomainPush` (debounce 1s) → `persistPayrollRoster` → `pwrPush(skipPayrollGuard)` → `pushWeekEmployeesToCloud(replaceWeekEmployeesKeys)`. **#CORE-015**
+- **RS Push (S1-1):** `runCloudSync` / `pushMergedDataBundleToCloud` **nie zawiera** `kw-week-employees` — by design. Payroll idzie wyłącznie Domain Push + PWRB (add/remove).
+- **PWRB (RC-B-1):** skład tygodnia = **para** `kw-week-employees` + `kw-week-employees-deleted-ids`. Mutacje składu UI **tylko** przez `payroll-week-roster-bundle.ts` (`pwrAdd`, `pwrRemove`, `pwrPush`, …).
+- **Parytet klient↔Edge** na `payroll-week-employee-merge.ts`. Nie zmieniaj jednej strony bez drugiej.
+- **Regression contracts (#CORE-016):** przy każdej zmianie sync — `test-sync-arch-01-s2-domain-push-cross-device.mjs` (18/18) + `test-sync-arch-01-s1-rs-no-payroll-push.mjs` (22/22) + payroll guard (4/4).
+- **Otwarte poza P0 cross-device:** batch-set 500 (H1 UNCONFIRMED) · AC8–AC11 multi-device observation.
 
 ---
 
@@ -27,6 +29,7 @@
 | Warstwa | Plik | Odpowiedzialność |
 |---------|------|------------------|
 | **PWRB facade (RC-B-1)** | `src/lib/payroll-week-roster-bundle.ts` | **Jedyny** publiczny entry mutacji pary roster+tombstones w UI (`pwrAdd`, `pwrRemove`, `pwrPush`, `pwrReconcile`, …) |
+| **Domain Push facade (S2)** | `src/lib/payroll-domain-sync.ts` | Debounced push mutacji pól rosteru → handler `persistPayrollRoster` → `pwrPush` |
 | **Merge / sync klient** | `src/lib/cloud-sync.ts` | `DATA_KEYS`, fetch/push KV, `computeMergedDataBundle`, **I-1**, `finalizePayrollBundleMerge`, `mergeWeekEmployees*`, tombstony, **I-4** `pushWeekEmployeesToCloud`, guardy push |
 | **Shell / orkiestracja** | `src/app/App.tsx` | `runCloudSync`, `pullFromCloudAndMerge`, `applyAdminDataBundle`, handlery Payroll (`removeWeekEmployee`, `persistPayrollRoster`, `toggleSettled`, rollover) |
 | **Backend / merge Edge** | `supabase/functions/make-server-0afb8820/index.tsx` | `batch-get`/`batch-set`, `mergeWeekEmployeesUnion`, guardy shrink/expansion, rotacja backupów, `kv.mset` |
@@ -40,26 +43,34 @@
 
 ## 2. Przepływ danych (sync)
 
-```text
-ZAPIS (mutacja lokalna)
-  setWeekEmployees / persistPayrollRoster / toggleSettled
-    → localStorage.setItem(kw-*)
-    → scheduleAutoCloudSync (debounce AUTO_SYNC_DEBOUNCE_MS = 2s)
-    → runCloudSync():
-        1) pull:  pullAndMergeDataBundle → computeMergedDataBundle
-                   → finalizePayrollBundleMerge → applyRuntimePayrollAntiLeak
-        2) apply: applyAdminDataBundle(merged)      ← lokalny stan ZMIENIONY tu
-        3) push:  bundleFingerprint(merged) == last? → recordPushSkipped (AC4)
-                   inaczej → pushMergedDataBundleToCloud(merged)
-                             → pushKeysToCloud → POST /batch-set
+### 2A. Domain Push — mutacje pól (S2 · ACTIVE)
 
-ODCZYT (focus / visibility / resume / boot)
-  pullFromCloudAndMerge  (throttled: shouldPullNow, MIN_PULL_INTERVAL_MS = 15s)
-    → computeMergedDataBundle → finalizePayrollBundleMerge
-  CloudLoader (boot / F5): mergeAllDataKeys → applyBootstrapPayrollMerge
+```text
+Edycja pola (godziny / stawka / extraCosts / settled / …)
+  App.tsx → commitLivePayrollRosterEdit(next)
+    → localStorage kw-week-employees
+    → schedulePayrollDomainPush(next)     [debounce 1s]
+    → persistPayrollRoster(roster)
+    → pwrPush({ skipPayrollGuard: true })
+    → pushWeekEmployeesToCloud(roster, { replaceWeekEmployeesKeys })
+    → POST /batch-set (tylko payroll keys)
 ```
 
-**Ważne (partial sync):** pull→apply zachodzi **przed** push (`App.tsx` ~736–770). Jeśli push (`batch-set`) padnie 500, lokalny stan jest już zmutowany po pull-merge → to jeden z mechanizmów, przez który resurrection/utrata statusu jest widoczna mimo błędu zapisu.
+### 2B. RS Push — reszta domeny (bez Payroll od S1-1)
+
+```text
+ZAPIS (mutacja non-payroll lub auto-sync)
+  scheduleAutoCloudSync (debounce 2s)
+    → runCloudSync():
+        1) pull → merge → apply
+        2) pushMergedDataBundleToCloud(merged)   ← BEZ kw-week-employees
+                             → POST /batch-set (RS subset)
+
+ODCZYT (focus / boot)
+  pullFromCloudAndMerge → computeMergedDataBundle → finalizePayrollBundleMerge
+```
+
+**Ważne:** RS push i Domain Push są **rozdzielone**. Nie przywracać Payroll do RS push (#CORE-015).
 
 ---
 

@@ -54,8 +54,8 @@
 **Dowód operacyjny (okno 24h):** Po deployzie `e819124` chmura przyjęła 14/15 rekordów z `dataUpdatedAt` ≥ deploy; burst edycji operacyjnych 08:01–08:03 UTC bez utraty danych. T+24h: roster i tombstones stabilne, brak duplikacji.
 
 **Lessons learned:**
-- Każda mutacja Payroll musi kończyć się **Domain Push** (`kw-week-employees`).
-- **Contract Test cross-device** jest obowiązkowy przed zamknięciem incydentu sync.
+- Każda mutacja Payroll musi kończyć się **Domain Push** (`kw-week-employees`). → **#CORE-015**
+- **Contract Test cross-device** jest obowiązkowy przed zamknięciem incydentu sync. → **#CORE-016**
 - **Nie przywracać** Payroll do RS Push — domain push jest ścieżką docelową (SYNC-ARCH-01).
 - S1 bez S2 = regresja P0 — kolejność slice'ów jest krytyczna.
 

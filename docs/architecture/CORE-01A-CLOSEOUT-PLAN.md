@@ -123,7 +123,7 @@ Deliverables: pakiet `docs/architecture/CORE-*.md` · stub ARCHITECTURE §11.3a 
 
 | Dokument | Rola |
 |----------|------|
-| [CORE-01A-DESIGN-FREEZE.md](./CORE-01A-DESIGN-FREEZE.md) | Principles #CORE-001…#CORE-014 |
+| [CORE-01A-DESIGN-FREEZE.md](./CORE-01A-DESIGN-FREEZE.md) | Principles #CORE-001…#CORE-016 |
 | [CORE-01B-BACKLOG.md](./CORE-01B-BACKLOG.md) | Itemy 01B (gdy epic uruchomiony) |
 | [STABILIZATION-WINDOW-PLAN.md](../STABILIZATION-WINDOW-PLAN.md) | Maintenance FEATURE |
 

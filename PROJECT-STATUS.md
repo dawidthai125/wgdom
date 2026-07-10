@@ -4,10 +4,10 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-10 |
-| **Commit (HEAD `main`)** | **`e819124`** (SYNC-ARCH-01 S2) → docs closeout pending |
-| **Production version (UI)** | **v2.63.84** @ **`e819124`** · **PRODUCTION VERIFIED** · incident closeout docs → **v2.63.85** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync FULLY CLOSED** (observation 2026-07-11) · **NG-09 COMPLETE (5/5)** · **Protected Core GREEN** (#CORE-013) · szczegóły: [`AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) § 0–3 |
+| **Ostatnia aktualizacja** | 2026-07-11 |
+| **Commit (HEAD `main`)** | **`70122b6`** |
+| **Production version (UI)** | **v2.63.85** @ **`70122b6`** · fix S2 **`e819124`** · **PRODUCTION VERIFIED** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **Payroll Domain Push ACTIVE** · **Protected Core GREEN** (#CORE-013–#CORE-016) |
 
 ### PAYROLL & SUPABASE RECOVERY PROGRAM — ACTIVE (faza: PRODUCTION OBSERVATION)
 
@@ -82,8 +82,8 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun |
 | **Repo / branch** | github.com/dawidthai125/wgdom · `main` |
-| **Wersja UI (prod)** | **v2.63.84** @ **`e819124`** — **GREEN, PRODUCTION VERIFIED** · closeout docs **v2.63.85** |
-| **HEAD `main`** | **`e819124`** |
+| **Wersja UI (prod)** | **v2.63.85** @ **`70122b6`** — **GREEN, PRODUCTION VERIFIED** |
+| **HEAD `main`** | **`70122b6`** |
 | **Deploy** | Vercel Git Integration (`git push origin main`) · Edge → GitHub Actions (`supabase/functions/**`) |
 | **Identyfikacja buildu** | `version.json` (deploy verify) · Version Banner (commit‑based identity) · PWA SW cache `wgdom-shell-{version}` |
 

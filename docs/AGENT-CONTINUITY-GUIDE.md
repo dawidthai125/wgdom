@@ -1,21 +1,21 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.84** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `1f1167a` · **NG-09 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **runtime** `70122b6` · **P0 Payroll Cross-Device Sync FULLY CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-10):** prod **2.63.84** @ **`1f1167a`**. Ostatnio zamknięte: **NG-09 epic** (`29f7842` release) · **NG-09-05** Overlays (`c5aa953`+`29f7842`). **NG-09 = COMPLETE (5/5)**. **Cloud Sync S7** = observation only. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
+> **★ Baseline (2026-07-11):** prod **2.63.85** @ **`70122b6`** (fix S2 **`e819124`**). **P0 Payroll Cross-Device Sync → FULLY CLOSED** (observation 2026-07-11). **Payroll:** Domain Push **ACTIVE**. **Cloud Sync:** RS Push **bez Payroll** (by design). **Protected Core:** **GREEN**. **NG-09 = COMPLETE (5/5)**. **Następny krok:** **STABILIZATION WINDOW** — nowy bundle **tylko** od nowego **AUDIT** + Owner GO (#CORE-013).
 
 > **★ Closeout sesji (2026-07-10, NG-09):** **`c5aa953`** IMPLEMENT + **`29f7842`** RELEASE (**2.63.84**) + **`1f1167a`** docs — epic **NG-09 Inspector Workspace Modernization** **COMPLETE** · verify `version.json` → **2.63.84**. SSOT: [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md) · [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md). **Następny bundle:** od nowego **AUDIT** + Owner GO.
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-10):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-11):**
 >
-> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda nowa funkcja **nie może** psuć syncu LP. Przed zmianą w `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` → **§ 2b** + [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **tylko PWRB**. Gate B payroll **16/16** przy bundle dotykającym syncu.
-> 1. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84** (`29f7842`). **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
-> 2. **NG-08 parent CLOSED / FROZEN** — slices **01–05** + HF-01. **Nie** rozszerzaj NG-08 bez nowego AUDIT + Owner GO.
-> 3. **Cloud Sync S7** — **observation only** — bez zmian implementacyjnych bez Owner GO.
+> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda mutacja pól LP → **Domain Push** (#CORE-015). Przed zmianą w `cloud-sync.ts`, Edge, payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **PWRB**. Zmiany sync → **Regression Contract Tests** (#CORE-016).
+> 1. **P0 Payroll Cross-Device Sync → FULLY CLOSED** (`e819124` · observation 2026-07-11) · SSOT [`INCIDENTS.md`](INCIDENTS.md).
+> 2. **NG-09 EPIC COMPLETE** — Inspector Workspace 5 seams na prod **2.63.84+**. **Nie** rozszerzaj bez nowego AUDIT + Owner GO.
+> 3. **Cloud Sync S7** — **observation only** — RS push **bez** `kw-week-employees` (by design od S1-1).
 > 4. **Następny krok** — **STABILIZATION WINDOW** · nowy bundle **od nowego AUDIT** + Owner GO.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
@@ -28,12 +28,14 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.84** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`1f1167a`** (`version.json`) |
-| **Ostatnio CLOSED** | **NG-09 epic** (`29f7842`) · **NG-09-05** Overlays · **M-03** (`f7878fe`) |
+| **Production (UI)** | **2.63.85** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`70122b6`** · fix S2 **`e819124`** |
+| **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
+| **Incident register** | P0 Payroll Cross-Device Sync → **FULLY CLOSED** (2026-07-11) |
+| **Ostatnio CLOSED** | **P0 Payroll Cross-Device Sync** · **NG-09 epic** · **M-03** |
 | **Protected Core** | **GREEN** |
-| **Payroll Gate** | **16/16** PASS |
-| **Cloud Sync S7** | Observation only — no changes |
+| **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
+| **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **Następny krok** | **STABILIZATION WINDOW** — nowy bundle od nowego **AUDIT** + Owner GO |
 
 ### Czym jest aplikacja
@@ -57,6 +59,7 @@
 | **INSPECTOR-RUNTIME-STATE-01** — hydratacja `jobsAll` | **CLOSED** | **2.63.73** @ `e9720de` |
 | **NG-07-TEUX-01** — Lista Przetargów UX (4 slices) | **CLOSED** | 2.63.69→**72** |
 | **PAYROLL-RACE-01** — reconcile przed apply + guard LP | **CLOSED** | 2.63.68 |
+| **P0 Payroll Cross-Device Sync** — SYNC-ARCH-01 S2 Domain Push | **FULLY CLOSED** | **2.63.85** @ `e819124` |
 | **SMS-UI-01** — SMS wyczyść wybór | **CLOSED** | 2.63.67 |
 | **NG-06-TEUX** — design system Przetargi (Phase 1+2) | **EPIC COMPLETE** | 2.63.54→**66** |
 | **PAYROLL Etap 2** B1–B6 + RB + Guard | **CLOSED** | 2.63.15–24 |

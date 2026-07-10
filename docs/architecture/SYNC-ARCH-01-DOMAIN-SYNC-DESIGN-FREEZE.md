@@ -296,7 +296,7 @@ Po każdym slice P0/P1: **24–48h** · `__wgdomSyncMetrics()` · multi-device s
 | **S2-3** | Archive + settled | `doSaveWeek` → push archive; `toggleSettled` → domain push zamiast `runCloudSync` | S2-1 | Wysokie P0 | S6 + S5 | B |
 | **S2-4** | Rates from directory | `syncWeekRatesFromDirectory` → `pushWeekEmployeesToCloud` only | S2-1 | Średnie P1 | regresja | B |
 
-**Status implementacji (2026-07-10):** S2-1…S2-4 **CLOSED** — `payroll-domain-sync.ts` + hooki w `App.tsx`; test `test-sync-arch-01-s2-domain-push-cross-device.mjs`. R1 (godziny bez KV) **mitigated**. S3 pull domain — osobny slice.
+**Status implementacji (2026-07-11):** S2-1…S2-4 **CLOSED** · prod **`e819124`** · observation **FULLY CLOSED** (2026-07-11). `payroll-domain-sync.ts` + hooki w `App.tsx`; test `test-sync-arch-01-s2-domain-push-cross-device.mjs` **18/18**. S3 pull domain — osobny slice.
 
 **Rollback S2:** feature flag lub revert hooków w `App.tsx`; RS pull nadal aktualizuje UI.
 

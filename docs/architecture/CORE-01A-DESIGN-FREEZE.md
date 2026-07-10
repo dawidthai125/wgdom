@@ -30,7 +30,7 @@ GATE:          RC-B-POST-RELEASE-01 musi być CLOSED przed IMPLEMENT CORE-01A.
 | **Nowe pole KV** | **Brak** |
 | **Zmiana modelu danych** | **Brak** |
 | **Zmiana merge / PWRB / Edge** | **Brak** (twardy zakaz) |
-| **Principles CORE-01A** | **#CORE-001–#CORE-014** (§4) |
+| **Principles CORE-01A** | **#CORE-001–#CORE-016** (§4) |
 | **Module Classification** | CORE · PLATFORM · FEATURE · UI (§4B) |
 | **FEATURE Boundary Check** | Obowiązkowa przed każdym FEATURE bundle (§4C) |
 
@@ -136,7 +136,7 @@ Szczegóły: [CORE-PROTECTED-ARCHITECTURE.md](./CORE-PROTECTED-ARCHITECTURE.md).
 
 ---
 
-## 4. Principles CORE-01A (#CORE-001–#CORE-014)
+## 4. Principles CORE-01A (#CORE-001–#CORE-016)
 
 | ID | Zasada |
 |----|--------|
@@ -154,6 +154,8 @@ Szczegóły: [CORE-PROTECTED-ARCHITECTURE.md](./CORE-PROTECTED-ARCHITECTURE.md).
 | **#CORE-012** | Zamknięcie 01A = docs + CI green; **nie** wymaga zamknięcia Bypass Registry (otwarte do 01B) |
 | **#CORE-013** | **Runtime Freeze** — jeden commit/bundle **nie może** łączyć diff Protected Core (klasa CORE) z diff Feature (klasa FEATURE); CORE zawsze osobny bundle (§4A) |
 | **#CORE-014** | **FEATURE Boundary Check** — przed **każdym** FEATURE bundle: klasyfikacja §4B + boundary check §4C; bez PASS → **STOP** commit |
+| **#CORE-015** | **Payroll Domain Push** — każda mutacja `kw-week-employees` (pola: godziny, stawki, extraCosts, settled, carry-forward) kończy się Domain Push (`schedulePayrollDomainPush` → `pwrPush`); wyłącznie localStorage bez push = **BLOCKED** (lesson P0 2026-07) |
+| **#CORE-016** | **Cloud Sync Regression Contracts** — każda zmiana Cloud Sync (RS subset, domain push, merge, throttle) wymaga Regression Contract Tests dla **wszystkich** dotkniętych domen (payroll domain, RS-no-payroll, guard, cross-device); bez PASS → **STOP** release |
 
 ---
 
