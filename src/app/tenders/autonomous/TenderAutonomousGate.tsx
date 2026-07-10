@@ -20,10 +20,12 @@ import {
   TenderAutonomousRunScreen,
   type TenderAutonomousRunScreenMode,
 } from "@/app/tenders/autonomous/TenderAutonomousRunScreen";
+import { TenderAutonomousOutcomeScreen } from "@/app/tenders/autonomous/TenderAutonomousOutcomeScreen";
 
 const COMPLETE_HOLD_MS = 850;
+const REVEAL_MS = 500;
 
-type GatePhase = "workspace" | "running" | "complete_hold" | "outcome";
+type GatePhase = "workspace" | "running" | "complete_hold" | "outcome" | "revealing";
 
 function loadPersistedAutonomousRun(tenderId: string): AutonomousRunPersistedState | null {
   if (typeof localStorage === "undefined") return null;
@@ -38,13 +40,25 @@ function loadPersistedAutonomousRun(tenderId: string): AutonomousRunPersistedSta
   }
 }
 
+function savePersistedAutonomousRun(
+  tenderId: string,
+  state: AutonomousRunPersistedState,
+): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(autonomousRunStorageKey(tenderId), JSON.stringify(state));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
 export function TenderAutonomousGate({
   item,
   pipelineRuntime,
   intelligenceCtx,
   pricingCatalogRevision,
   onBack,
-  outcomeSlot,
+  onReveal,
   children,
 }: {
   item: TenderPipelineItem;
@@ -52,8 +66,8 @@ export function TenderAutonomousGate({
   intelligenceCtx: TenderIntelligenceContext | null;
   pricingCatalogRevision: number;
   onBack: () => void;
-  /** NG-10-05 — ekran rekomendacji; gdy brak, most outcome_bridge. */
-  outcomeSlot?: ReactNode;
+  /** Po Reveal (S2→S3): scroll top, opcjonalna nawigacja tab. */
+  onReveal?: () => void;
   children: ReactNode;
 }) {
   const persisted = useMemo(
@@ -88,6 +102,8 @@ export function TenderAutonomousGate({
   const [initialEtaSeconds, setInitialEtaSeconds] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const completeHoldStartedRef = useRef(false);
+  const onRevealRef = useRef(onReveal);
+  onRevealRef.current = onReveal;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -173,28 +189,73 @@ export function TenderAutonomousGate({
     return () => window.clearTimeout(id);
   }, [gatePhase]);
 
+  useEffect(() => {
+    if (gatePhase !== "revealing") return;
+    const ms = reducedMotion ? 0 : REVEAL_MS;
+    const id = window.setTimeout(() => {
+      setGatePhase("workspace");
+      onRevealRef.current?.();
+    }, ms);
+    return () => window.clearTimeout(id);
+  }, [gatePhase, reducedMotion]);
+
+  const handleOutcomeCta = useCallback(() => {
+    savePersistedAutonomousRun(item.id, {
+      fingerprint,
+      completedAt: new Date().toISOString(),
+      outcomeDecision: intelligenceCtx?.overlay.displayDecision ?? null,
+    });
+    setGatePhase("revealing");
+  }, [item.id, fingerprint, intelligenceCtx?.overlay.displayDecision]);
+
   const screenMode: TenderAutonomousRunScreenMode | null = useMemo(() => {
     if (gatePhase === "running") return "running";
     if (gatePhase === "complete_hold") return "complete_hold";
-    if (gatePhase === "outcome" && !outcomeSlot) return "outcome_bridge";
+    if (gatePhase === "outcome" && !intelligenceCtx) return "outcome_bridge";
     return null;
-  }, [gatePhase, outcomeSlot]);
+  }, [gatePhase, intelligenceCtx]);
 
-  const showAutonomousOverlay = gatePhase !== "workspace";
   const showRunScreen = screenMode != null;
+  const showOutcomeOverlay = gatePhase === "outcome" || gatePhase === "revealing";
+  const workspaceMounted = gatePhase === "revealing";
+  const gateBlocksWorkspace = gatePhase !== "workspace" && gatePhase !== "revealing";
 
   const handleBack = useCallback(() => {
     setGatePhase("workspace");
     onBack();
   }, [onBack]);
 
-  if (!showAutonomousOverlay) {
+  if (gatePhase === "workspace") {
     return <>{children}</>;
   }
 
   return (
     <>
-      <div className="hidden" aria-hidden data-tender-autonomous-gate-active>
+      <div
+        className={
+          gateBlocksWorkspace
+            ? "hidden"
+            : workspaceMounted
+              ? `ng10-workspace-reveal-root${reducedMotion ? "" : " ng10-workspace-reveal-enter"}`
+              : undefined
+        }
+        aria-hidden={gateBlocksWorkspace}
+        data-tender-autonomous-gate-active={gateBlocksWorkspace ? "" : undefined}
+      >
+        {workspaceMounted && (
+          <style>{`
+            @keyframes ng10-workspace-reveal-in {
+              from { opacity: 0; transform: translateY(4px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .ng10-workspace-reveal-enter {
+              animation: ng10-workspace-reveal-in 300ms ease-out forwards;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .ng10-workspace-reveal-enter { animation: none; }
+            }
+          `}</style>
+        )}
         {children}
       </div>
 
@@ -211,7 +272,18 @@ export function TenderAutonomousGate({
         />
       )}
 
-      {gatePhase === "outcome" && outcomeSlot}
+      {showOutcomeOverlay && intelligenceCtx && (
+        <TenderAutonomousOutcomeScreen
+          intelligenceCtx={intelligenceCtx}
+          ownerFinanceWarnings={pipelineRuntime.ownerFinanceProposal?.warnings}
+          tenderTitle={item.title ?? ""}
+          reducedMotion={reducedMotion}
+          exiting={gatePhase === "revealing"}
+          onCta={handleOutcomeCta}
+        />
+      )}
     </>
   );
 }
+
+export { savePersistedAutonomousRun, loadPersistedAutonomousRun, type GatePhase };

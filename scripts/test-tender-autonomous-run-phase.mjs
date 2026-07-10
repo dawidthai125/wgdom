@@ -351,7 +351,7 @@ ok("watchouts includes warning", watchouts.some((w) => w.includes("Wadium") || w
 
 ok("hero GO label", AUTONOMOUS_RECOMMENDATION_HERO.GO.includes("WARTO"));
 ok("hero HOLD label", AUTONOMOUS_RECOMMENDATION_HERO.HOLD.includes("ANALIZY"));
-ok("hero NO-GO label", AUTONOMOUS_RECOMMENDATION_HERO["NO-GO"].includes("NIE WARTO"));
+ok("hero NO-GO label", AUTONOMOUS_RECOMMENDATION_HERO["NO-GO"].includes("NIE REKOMENDUJEMY"));
 
 // —— Feed ordering ——
 console.log("\n-- feed ordering --");

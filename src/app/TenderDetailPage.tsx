@@ -421,6 +421,9 @@ export function TenderDetailPage({
       intelligenceCtx={przetargCommand.intelligenceCtx}
       pricingCatalogRevision={pricingCatalogRevision}
       onBack={() => navigate(TENDERS_LIST_PATH)}
+      onReveal={() => {
+        scrollRootRef.current?.scrollTo({ top: 0, behavior: "instant" });
+      }}
     >
     <div
       className="flex-1 min-h-0 flex flex-col overflow-hidden"

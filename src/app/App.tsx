@@ -2150,7 +2150,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const openTenderById = useCallback((tid: string) => {
     setView("tenders");
     if (TENDERS_V4_ROUTING) {
-      navigate(buildTenderDetailPath(tid, "decyzja"));
+      navigate(buildTenderDetailPath(tid, "przetarg"));
     } else {
       setPendingTenderId(tid);
     }

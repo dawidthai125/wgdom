@@ -54,9 +54,16 @@ export const AUTONOMOUS_OUTCOME_POSITIVES_MAX = 4;
 export const AUTONOMOUS_OUTCOME_WATCHOUTS_MAX = 5;
 
 export const AUTONOMOUS_RECOMMENDATION_HERO: Record<"GO" | "HOLD" | "NO-GO", string> = {
-  GO: "🟢 WARTO STARTOWAĆ",
+  GO: "🟢 WARTO ZŁOŻYĆ OFERTĘ",
   HOLD: "🟡 WYMAGA DODATKOWEJ ANALIZY",
-  "NO-GO": "🔴 NIE WARTO STARTOWAĆ",
+  "NO-GO": "🔴 NIE REKOMENDUJEMY SKŁADANIA OFERTY",
+};
+
+/** CTA Outcome Screen (S2) — biznesowy język zamiast „Workspace”. */
+export const AUTONOMOUS_OUTCOME_CTA: Record<"GO" | "HOLD" | "NO-GO", string> = {
+  GO: "Otwórz analizę przetargu",
+  HOLD: "Przejdź do analizy",
+  "NO-GO": "Przejdź do analizy",
 };
 
 /** Rotacja gdy faza trwa dłużej niż oczekiwano. */
