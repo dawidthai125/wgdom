@@ -47,7 +47,7 @@
 | **Runtime commit** | **`4b35228`** (feature **`f6f7265`**) · NG11-Q3 debounced persist |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-Q3** (release) · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
+| **Ostatnio CLOSED** | **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
