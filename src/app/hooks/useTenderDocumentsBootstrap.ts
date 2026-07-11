@@ -113,6 +113,8 @@ export function tryMarkPipelineBootstrapCompleted(item: TenderPipelineItem): voi
 export async function attemptTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  /** NG11-P0 — merged item dla intelligence przed pełnym re-render pipeline. */
+  onDiscoveryMerged?: (merged: TenderPipelineItem) => void;
   isCancelled?: () => boolean;
   deps?: Partial<TenderDocumentsBootstrapDeps>;
   onExternalRunning?: (running: boolean) => void;
@@ -120,6 +122,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   const {
     item,
     onUpdate,
+    onDiscoveryMerged,
     isCancelled = () => false,
     deps: depsOverride,
     onExternalRunning,
@@ -128,7 +131,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 
   clearStickyBootstrapStateForSettledEmpty(item);
 
-  if (pipelineBootstrapCompletedIds.has(item.id)) {
+  if (pipelineBootstrapCompletedIds.has(item.id) && countTenderAttachments(item) > 0) {
     return { ok: true };
   }
   if (bootstrapInflightIds.has(item.id)) {
@@ -141,7 +144,10 @@ export async function attemptTenderDocumentsBootstrap(opts: {
     let html = item.noticeHtml ?? null;
     let discoveryResult: TenderFullDiscoveryResult | null = null;
 
-    if (!discoveryCompletedIds.has(item.id)) {
+    const skipDiscoveryOrchestrator =
+      discoveryCompletedIds.has(item.id) && countTenderAttachments(item) > 0;
+
+    if (!skipDiscoveryOrchestrator) {
       onExternalRunning?.(true);
       try {
         const discovery = await runTenderFullDocumentDiscovery(item, {
@@ -157,6 +163,13 @@ export async function attemptTenderDocumentsBootstrap(opts: {
         if (applyDiscovery) {
           Object.assign(patch, discovery.patch);
           html = patch.noticeHtml ?? item.noticeHtml ?? null;
+          const mergedAfterDiscovery: TenderPipelineItem = { ...item, ...discovery.patch };
+          onDiscoveryMerged?.(mergedAfterDiscovery);
+          if (Object.keys(discovery.patch).length > 0) {
+            markPipelineTimingStage(item.id, "discovery.persist_shell", "start");
+            onUpdate(discovery.patch);
+            markPipelineTimingStage(item.id, "discovery.persist_shell", "end");
+          }
           if (!isCancelled()) {
             const totalNew = discovery.meta.changeEventCount + discovery.meta.qaEventCount
               + discovery.meta.externalNewEventCount;
@@ -170,14 +183,15 @@ export async function attemptTenderDocumentsBootstrap(opts: {
       }
     }
 
-    let swz = item.swzAnalysis ?? null;
+    const shellPatch: Partial<TenderPipelineItem> = {};
+    let swz = item.swzAnalysis ?? patch.swzAnalysis ?? null;
     if (!swz && !isCancelled() && html) {
       markPipelineTimingStage(item.id, "discovery.light_swz", "start");
       const lightSwz = analyzeSwzFromNoticeHtmlOnly(html, item.ourEstimatePln ?? null);
       markPipelineTimingStage(item.id, "discovery.light_swz", "end");
       if (lightSwz) {
         swz = lightSwz;
-        patch.swzAnalysis = lightSwz;
+        shellPatch.swzAnalysis = lightSwz;
       }
     }
 
@@ -186,23 +200,20 @@ export async function attemptTenderDocumentsBootstrap(opts: {
         html ? parseNoticeHtmlBrief(html) : parseNoticeHtmlBrief(""),
         item.title,
       );
-      patch.tenderDossier = {
+      shellPatch.tenderDossier = {
         brief,
         kosztorys: null,
         builtAt: new Date().toISOString(),
       };
     }
 
-    const mergedForCount = { ...item, ...patch };
-    const shouldPersist =
+    const mergedForCount = { ...item, ...patch, ...shellPatch };
+    const shouldPersistShell =
       !isCancelled()
-      || (discoveryResult != null && hasAuthoritativeDiscoveryPatch(discoveryResult))
-      || countTenderAttachments(mergedForCount) > 0;
+      && Object.keys(shellPatch).length > 0;
 
-    if (Object.keys(patch).length > 0 && shouldPersist) {
-      markPipelineTimingStage(item.id, "discovery.persist_shell", "start");
-      onUpdate(patch);
-      markPipelineTimingStage(item.id, "discovery.persist_shell", "end");
+    if (shouldPersistShell) {
+      onUpdate(shellPatch);
     }
 
     const canMarkComplete =
@@ -231,6 +242,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 export function useTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onDiscoveryMerged?: (merged: TenderPipelineItem) => void;
   enabled?: boolean;
   retryNonce?: number;
   onExternalRunning?: (running: boolean) => void;
@@ -238,6 +250,7 @@ export function useTenderDocumentsBootstrap(opts: {
   const {
     item,
     onUpdate,
+    onDiscoveryMerged,
     enabled = true,
     retryNonce = 0,
     onExternalRunning,
@@ -245,18 +258,21 @@ export function useTenderDocumentsBootstrap(opts: {
   const [autoRunning, setAutoRunning] = useState(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+  const onDiscoveryMergedRef = useRef(onDiscoveryMerged);
+  onDiscoveryMergedRef.current = onDiscoveryMerged;
   const bootstrapKey = documentDiscoveryBootstrapKey(item);
 
   useEffect(() => {
     if (!enabled) return;
     clearStickyBootstrapStateForSettledEmpty(item);
-    if (pipelineBootstrapCompletedIds.has(item.id)) return;
+    if (pipelineBootstrapCompletedIds.has(item.id) && countTenderAttachments(item) > 0) return;
 
     let cancelled = false;
     setAutoRunning(true);
     void attemptTenderDocumentsBootstrap({
       item,
       onUpdate: (patch) => onUpdateRef.current(patch),
+      onDiscoveryMerged: (merged) => onDiscoveryMergedRef.current?.(merged),
       isCancelled: () => cancelled,
       onExternalRunning,
     }).finally(() => {

@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-12",
+    version: "2.65.1",
+    label: "NG11-P0 — Discovery Unification",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — NG11-P0: discoverTenderDocumentsSSOT — manual „Odśwież BZP” i Autonomous/bootstrap używają tego samego core fetch BZP + monitory.",
+      },
+      {
+        type: "fix",
+        text: "Intelligence czyta discoveryMergedItem (patch discovery przed sync pipeline) — koniec fałszywego „brak dokumentów” przy auto.",
+      },
+      {
+        type: "improve",
+        text: "Bootstrap: persist discovery patch przed shell SWZ/dossier; session guards nie blokują retry przy 0 załącznikach.",
+      },
+    ],
+  },
+  {
     date: "2026-07-11",
     version: "2.65.0",
     label: "NG11-A5 — Strategic vs Economic",

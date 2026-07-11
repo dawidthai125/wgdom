@@ -2,6 +2,7 @@
  * NG-02 — typy pipeline automatyzacji przetargu (slot pod orchestrator P1).
  */
 
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
@@ -65,4 +66,6 @@ export interface TenderPipelineRuntime {
   pricingReadyPartial: boolean;
   /** NG11-A1 — compute po pełnym enrichment. */
   pricingReadyFinal: boolean;
+  /** NG11-P0 — merged discovery result dla intelligence (P0-C2). */
+  discoveryMergedItem: TenderPipelineItem;
 }

@@ -177,8 +177,10 @@ export function TenderDetailPage({
     pricingCatalogRevision,
   });
 
+  const intelligenceItem = pipelineRuntime.discoveryMergedItem ?? bootstrapItem;
+
   const przetargCommand = useTenderPrzetargCommandContext(
-    bootstrapItem,
+    intelligenceItem,
     swz,
     pipelineRuntime,
   );

@@ -13,6 +13,7 @@ import {
   canRunDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
 import { runTenderFullDocumentDiscovery } from "@/lib/tender-pipeline/tender-full-document-discovery";
+import { runManualBzpDocumentDiscovery } from "@/lib/tender-document-discovery-ssot";
 import {
   recordSubmittedBidCalibration,
   syncCalibrationAwardFromItem,
@@ -166,6 +167,8 @@ export function TenderDetailPanel({
     pricingReadyFinal,
   } = pipelineRuntime;
 
+  const intelligenceItem = pipelineRuntime.discoveryMergedItem ?? item;
+
   const platformTelemetryRef = useRef<string | null>(null);
 
   const tendersCtx = useTendersContextOptional();
@@ -260,21 +263,18 @@ export function TenderDetailPanel({
     }
     setLoadingDocs(true);
     try {
-      const result = await runTenderFullDocumentDiscovery(item, {
-        mode: "manual",
-        includeExternal: false,
-        prefetchNotice: false,
+      const result = await runManualBzpDocumentDiscovery(item, {
+        onPersist: onUpdate,
       });
-      if (!result.meta.bzpRan) {
+      if (!result.meta.fetchExecuted) {
         toast.error("Nie udało się uruchomić pobierania załączników");
         return;
       }
-      const totalNew = result.meta.changeEventCount + result.meta.qaEventCount;
-      onUpdate(result.patch);
+      const totalNew = result.changeEventCount + result.qaEventCount;
       if (totalNew > 0) {
         toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
       } else {
-        const docCount = result.meta.bzpDocCount;
+        const docCount = result.meta.documentsFound;
         toast.success(docCount ? `Znaleziono ${docCount} załączników` : "Brak załączników");
       }
     } catch (e) {
@@ -445,11 +445,11 @@ export function TenderDetailPanel({
   }, [item, bidProposal, ownerFinanceProposal]);
 
   const bidPrepChecks = useMemo(
-    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal ?? ownerFinanceProposal, {
+    () => computeBidPrepChecks(intelligenceItem, swz, intelligenceItem.tenderFit, bidProposal ?? ownerFinanceProposal, {
       pricingDeferred,
       kosztorysSession: kosztorysProcessSession,
     }),
-    [item, swz, item.tenderFit, bidProposal, ownerFinanceProposal, pricingDeferred, kosztorysProcessSession],
+    [intelligenceItem, swz, bidProposal, ownerFinanceProposal, pricingDeferred, kosztorysProcessSession],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
@@ -461,7 +461,7 @@ export function TenderDetailPanel({
   );
 
   const participationResult = useMemo(() => {
-    const combinedText = [item.title, item.noticeHtml ?? ""].join("\n");
+    const combinedText = [intelligenceItem.title, intelligenceItem.noticeHtml ?? ""].join("\n");
     const requirements = swz?.participationRequirements?.length
       ? swz.participationRequirements
       : extractParticipationRequirements(combinedText);
@@ -475,18 +475,18 @@ export function TenderDetailPanel({
       experienceRequirements,
     );
   }, [
-    item.title,
-    item.noticeHtml,
+    intelligenceItem.title,
+    intelligenceItem.noticeHtml,
     swz?.participationRequirements,
     swz?.experienceRequirements,
   ]);
 
-  const monitoringCounts = useMemo(() => getTenderMonitoringCounts(item), [item]);
+  const monitoringCounts = useMemo(() => getTenderMonitoringCounts(intelligenceItem), [intelligenceItem]);
 
   const intelligenceCtx = useMemo(() => {
     if (!scoringContext) return null;
     return buildTenderIntelligenceContext({
-      item,
+      item: intelligenceItem,
       scoringContext,
       ownerFinanceProposal,
       ownerDecision,
@@ -494,13 +494,13 @@ export function TenderDetailPanel({
       bidPrepChecks,
       participationResult,
       swz,
-      fit: item.tenderFit,
+      fit: intelligenceItem.tenderFit,
       kosztorysProcessSession,
       pricingReadyPartial,
       pricingReadyFinal,
     });
   }, [
-    item,
+    intelligenceItem,
     scoringContext,
     ownerFinanceProposal,
     ownerDecision,
@@ -508,7 +508,6 @@ export function TenderDetailPanel({
     bidPrepChecks,
     participationResult,
     swz,
-    item.tenderFit,
     kosztorysProcessSession,
     pricingReadyPartial,
     pricingReadyFinal,

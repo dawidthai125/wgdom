@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.1 — NG11-P0 Discovery Unification
+
+- **fix:** `discoverTenderDocumentsSSOT` — wspólny core BZP fetch dla manual · bootstrap · rescan
+- **fix:** intelligence `discoveryMergedItem` — patch discovery przed sync pipeline props
+- **improve:** bootstrap persist discovery przed shell SWZ; guards retry przy 0 załącznikach
+
 ## 2.65.0 — NG11-A5 Strategic vs Economic
 
 - **improve:** jawny split strategic (T0) vs economic (Q5) w `TenderIntelligenceContext` — readiness fields

@@ -6,17 +6,17 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { fetchTenderDocuments, fetchTenderNoticeDetails } from "@/lib/tenders-bzp";
 import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
-import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
-import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
 import { buildExternalDiscoveryResult } from "@/lib/tender-external-discovery-apply";
 import {
   canRunDocumentDiscovery,
-  type DocumentDiscoveryFetchInput,
-  type DocumentDiscoveryResult,
   isDocumentDiscoverySettled,
-  runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
+import {
+  applyDiscoveryMonitors,
+  discoverTenderDocumentsSSOT,
+  type DiscoverTenderDocumentsSsotResult,
+} from "@/lib/tender-document-discovery-ssot";
 import { recordDiscoverySnapshot } from "@/lib/tender-pipeline/tender-pipeline-discovery-snapshot";
 import {
   runDiscoveryForkJoin,
@@ -25,8 +25,6 @@ import {
 import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 export type TenderDiscoveryMode = "auto" | "manual" | "rescan";
-
-type FetchDocumentsFn = (input: DocumentDiscoveryFetchInput) => Promise<DocumentDiscoveryResult["docs"]>;
 
 export type TenderFullDiscoveryDeps = {
   fetchTenderNoticeDetails: typeof fetchTenderNoticeDetails;
@@ -122,34 +120,34 @@ export function shouldRunExternalDiscovery(
   return true;
 }
 
-export function applyDiscoveryMonitors(
-  item: TenderPipelineItem,
-  documents: TenderPipelineItem["bzpDocuments"],
-): {
-  patch: Partial<TenderPipelineItem>;
-  changeEventCount: number;
-  qaEventCount: number;
-} {
-  const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
-    item,
-    { documents: documents ?? [] },
-  );
-  const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(
-    item,
-    { documents: documents ?? [] },
-  );
-  return {
-    patch: { changeMonitor, qaMonitor },
-    changeEventCount: newEvents.length,
-    qaEventCount: newQaEvents.length,
-  };
-}
+export { applyDiscoveryMonitors } from "@/lib/tender-document-discovery-ssot";
 
 function mergePatch(
   target: Partial<TenderPipelineItem>,
   source: Partial<TenderPipelineItem>,
 ): void {
   Object.assign(target, source);
+}
+
+function applyBzpSsotToRun(
+  item: TenderPipelineItem,
+  patch: Partial<TenderPipelineItem>,
+  meta: TenderFullDiscoveryMeta,
+  ssot: DiscoverTenderDocumentsSsotResult,
+): { merged: TenderPipelineItem; docs: NonNullable<TenderPipelineItem["bzpDocuments"]> } {
+  if (!ssot.meta.fetchExecuted) {
+    const merged = { ...item, ...patch };
+    return { merged, docs: merged.bzpDocuments ?? [] };
+  }
+  meta.bzpRan = true;
+  meta.bzpForce = ssot.meta.force;
+  mergePatch(patch, ssot.patch);
+  meta.changeEventCount = ssot.changeEventCount;
+  meta.qaEventCount = ssot.qaEventCount;
+  return {
+    merged: ssot.mergedItem,
+    docs: ssot.mergedItem.bzpDocuments ?? [],
+  };
 }
 
 /**
@@ -242,9 +240,10 @@ export async function runTenderFullDocumentDiscovery(
       const join = await runDiscoveryForkJoin({
         isCancelled,
         runBzp: async () => withPipelineTimingStage(item.id, "discovery.bzp", async () => {
-          return runTenderDocumentDiscovery(merged, {
+          return discoverTenderDocumentsSSOT(merged, {
             force,
             fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+            noticeFetched: meta.noticePrefetched,
           });
         }),
         runExternal: async () => withPipelineTimingStage(item.id, "discovery.external", async () => {
@@ -257,25 +256,22 @@ export async function runTenderFullDocumentDiscovery(
             bzpNumber: merged.bzpNumber,
           });
         }),
-        getBzpDocCount: (discovery) => (discovery.ran ? discovery.docs.length : docs.length),
+        getBzpDocCount: (ssot) => (ssot.meta.fetchExecuted ? ssot.meta.documentsFound : docs.length),
       });
 
       meta.forkStarted = join.meta.forkStarted;
       meta.forkCancelled = join.meta.forkCancelled;
       meta.forkWon = join.meta.forkWon;
       meta.forkTimedOut = join.meta.forkTimedOut;
+      if (join.meta.forkCancelled) {
+        meta.externalCancelled = true;
+      }
 
-      const discovery = join.bzp;
-      if (!isCancelled() && discovery.ran) {
-        meta.bzpRan = true;
-        mergePatch(patch, discovery.patch);
-        docs = discovery.docs;
-        merged = { ...item, ...patch };
-        const monitors = applyDiscoveryMonitors(merged, docs);
-        mergePatch(patch, monitors.patch);
-        meta.changeEventCount = monitors.changeEventCount;
-        meta.qaEventCount = monitors.qaEventCount;
-        merged = { ...item, ...patch };
+      const ssot = join.bzp;
+      if (!isCancelled() && ssot.meta.fetchExecuted) {
+        const applied = applyBzpSsotToRun(item, patch, meta, ssot);
+        docs = applied.docs;
+        merged = applied.merged;
       }
 
       meta.bzpDocCount = docs.length;
@@ -291,6 +287,7 @@ export async function runTenderFullDocumentDiscovery(
         })
       ) {
         forkHandledExternal = true;
+        meta.externalExecuted = true;
         try {
           await applyExternalDiscovery(join.external);
         } catch (e) {
@@ -298,23 +295,18 @@ export async function runTenderFullDocumentDiscovery(
         }
       }
     } else {
-      await withPipelineTimingStage(item.id, "discovery.bzp", async () => {
-        const discovery = await runTenderDocumentDiscovery(merged, {
+      const ssot = await withPipelineTimingStage(item.id, "discovery.bzp", async () => {
+        return discoverTenderDocumentsSSOT(merged, {
           force,
           fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+          noticeFetched: meta.noticePrefetched,
         });
-        if (!isCancelled() && discovery.ran) {
-          meta.bzpRan = true;
-          mergePatch(patch, discovery.patch);
-          docs = discovery.docs;
-          merged = { ...item, ...patch };
-          const monitors = applyDiscoveryMonitors(merged, docs);
-          mergePatch(patch, monitors.patch);
-          meta.changeEventCount = monitors.changeEventCount;
-          meta.qaEventCount = monitors.qaEventCount;
-          merged = { ...item, ...patch };
-        }
       });
+      if (!isCancelled() && ssot.meta.fetchExecuted) {
+        const applied = applyBzpSsotToRun(item, patch, meta, ssot);
+        docs = applied.docs;
+        merged = applied.merged;
+      }
     }
   }
 
@@ -339,6 +331,7 @@ export async function runTenderFullDocumentDiscovery(
           title: merged.title,
           bzpNumber: merged.bzpNumber,
         });
+        meta.externalExecuted = true;
         await applyExternalDiscovery(discovery);
       });
     } catch (e) {

@@ -65,9 +65,19 @@ export function useTenderPipelineRuntime(opts: {
   } = opts;
 
   const [externalRunning, setExternalRunning] = useState(false);
+  const [discoveryMergedItem, setDiscoveryMergedItem] = useState<TenderPipelineItem>(item);
   const [timeline, setTimeline] = useState<PipelineTimelineEntry[]>(() =>
     readPipelineTimeline(item.id),
   );
+
+  useEffect(() => {
+    setDiscoveryMergedItem(item);
+  }, [item]);
+
+  const onDiscoveryMerged = useCallback((merged: TenderPipelineItem) => {
+    setDiscoveryMergedItem(merged);
+  }, []);
+
   const prevStateRef = useRef<PipelineState | null>(null);
   const prevTimelineStateRef = useRef<PipelineState | null>(null);
   const prevGateFingerprintRef = useRef<string | null>(null);
@@ -94,6 +104,7 @@ export function useTenderPipelineRuntime(opts: {
   const { autoRunning } = useTenderDocumentsBootstrap({
     item,
     onUpdate,
+    onDiscoveryMerged,
     enabled,
     onExternalRunning: setExternalRunning,
   });
@@ -308,6 +319,8 @@ export function useTenderPipelineRuntime(opts: {
     dossierEnriching: dossierEnrichingSignal,
     pricingReadyPartial,
     pricingReadyFinal,
+    /** NG11-P0 — item po discovery merge (przed pełnym sync pipeline props). */
+    discoveryMergedItem,
   };
 }
 
