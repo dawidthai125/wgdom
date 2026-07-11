@@ -52,6 +52,8 @@ export interface AppSettings {
   pipelinePerfDebouncePersist: boolean;
   /** NG11-Q1 — równoległy parse dossier cost/metadata (≤3+3). Domyślnie wyłączone. */
   pipelinePerfParseConcurrency: boolean;
+  /** NG11-Q2 — równoległy unpack ZIP/7Z w dossier (≤2). Domyślnie wyłączone. */
+  pipelinePerfUnpackParallel: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -68,6 +70,7 @@ export function defaultAppSettings(): AppSettings {
     bzpAutoRefreshHours: 20,
     pipelinePerfDebouncePersist: false,
     pipelinePerfParseConcurrency: false,
+    pipelinePerfUnpackParallel: false,
   };
 }
 
@@ -79,6 +82,11 @@ export function isPipelinePerfDebouncePersistEnabled(): boolean {
 /** NG11-Q1 — parallel dossier parse (feature flag, default OFF). */
 export function isPipelinePerfParseConcurrencyEnabled(): boolean {
   return loadAppSettingsLocal().pipelinePerfParseConcurrency === true;
+}
+
+/** NG11-Q2 — parallel archive unpack dossier (feature flag, default OFF). */
+export function isPipelinePerfUnpackParallelEnabled(): boolean {
+  return loadAppSettingsLocal().pipelinePerfUnpackParallel === true;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -159,6 +167,7 @@ export function loadAppSettingsLocal(): AppSettings {
       bzpAutoRefreshHours: numSetting(parsed.bzpAutoRefreshHours, d.bzpAutoRefreshHours, 1, 168),
       pipelinePerfDebouncePersist: parsed.pipelinePerfDebouncePersist === true,
       pipelinePerfParseConcurrency: parsed.pipelinePerfParseConcurrency === true,
+      pipelinePerfUnpackParallel: parsed.pipelinePerfUnpackParallel === true,
     };
   } catch {
     return defaultAppSettings();
@@ -217,5 +226,11 @@ export function mergeAppSettings(
         : remote?.pipelinePerfParseConcurrency === false
           ? false
           : local.pipelinePerfParseConcurrency === true,
+    pipelinePerfUnpackParallel:
+      remote?.pipelinePerfUnpackParallel === true
+        ? true
+        : remote?.pipelinePerfUnpackParallel === false
+          ? false
+          : local.pipelinePerfUnpackParallel === true,
   };
 }

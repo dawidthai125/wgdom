@@ -254,6 +254,25 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.pipelinePerfUnpackParallel}
+                onChange={async (e) => {
+                  const next = { ...appSettings, pipelinePerfUnpackParallel: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">NG11-Q2 — równoległy unpack archiwów ZIP/7Z</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Po włączeniu rozpakowanie archiwów w dossier działa do 2 równolegle.
+                  Merge kandydatów pozostaje sekwencyjny; końcowy sort bez zmian.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.pipelinePerfDebouncePersist}
                 onChange={async (e) => {
                   const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };

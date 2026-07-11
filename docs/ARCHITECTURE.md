@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q1** parse concurrency · **2.63.97** · feature flag OFF default)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q2** parallel archive unpack · **2.63.98** · feature flag OFF default)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,7 +2016,28 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 2:** NG11-Q1 — **RELEASED** (v2.63.97) · patrz §12.1.33 · NG11-Q2 unpack HOLD.
+**Backlog Wave 2:** NG11-A2 — artifact cache — po Q2 PRODUCTION VERIFIED.
+
+---
+
+### 12.1.34 NG11-Q2 — Parallel Archive Unpack (v2.63.98)
+
+**Status:** **IMPLEMENTED** · commit pending OWNER QA · flaga `pipelinePerfUnpackParallel` default **OFF**  
+**SSOT:** [`architecture/NG11-Q2-PARALLEL-ARCHIVE-UNPACK-AUDIT-PLAN.md`](architecture/NG11-Q2-PARALLEL-ARCHIVE-UNPACK-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Concurrency runner | `src/lib/tender-pipeline/tender-archive-unpack-concurrency.ts` |
+| ZIP/7Z unpack branches | `src/lib/tender-document-resolver.ts` (`buildTenderDocCandidates`) |
+| Flaga Super Admin | `src/lib/app-settings.ts` · `AdminSettingsModal.tsx` |
+
+**Limity frozen:** unpack **2** · immutable worker results · merge serial po `doc.index` · końcowy `sort` bez zmian.
+
+**Test:** `scripts/test-ng11-unpack-parallel.mjs` (10) + regresja Q1/Q3/A1/gate-exit 28/28/heavy-lifecycle/7z.
+
+**Nie zmienia:** `cloud-sync.ts` · NG10 gate-exit · Payroll · `wgdom-7z-archive.ts` internals · parsery fidelity · Edge.
+
+**Rollback:** `pipelinePerfUnpackParallel = false` w ⚙ Super Admin.
 
 ---
 

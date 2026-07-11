@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.63.98",
+    label: "NG11-Q2 — Parallel Archive Unpack dossier",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-Q2: rozpakowanie archiwów ZIP/7Z w dossier może działać do 2 równolegle; merge kandydatów pozostaje sekwencyjny i deterministyczny.",
+      },
+      {
+        type: "improve",
+        text: "Super Admin — flaga pipelinePerfUnpackParallel w ustawieniach (domyślnie wyłączona; rollback bez deployu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.97",
     label: "NG11-Q1 — Parse Concurrency dossier",
     items: [

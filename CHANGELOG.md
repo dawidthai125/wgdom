@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.98 — NG11-Q2 Parallel Archive Unpack
+
+- **improve:** dossier ZIP/7Z unpack — bounded parallel ≤2 · serial deterministic merge · sort unchanged
+- **improve:** flaga `pipelinePerfUnpackParallel` (Super Admin, default OFF)
+
 ## 2.63.97 — NG11-Q1 Parse Concurrency
 
 - **improve:** dossier cost/metadata parse — bounded parallel ≤3+3 · serial deterministic merge

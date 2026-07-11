@@ -51,6 +51,11 @@ import {
   isPipelineParseConcurrencyEnabled,
   runParseCandidatesWithConcurrency,
 } from "@/lib/tender-pipeline/tender-parse-concurrency";
+import {
+  DOSSIER_ARCHIVE_UNPACK_CONCURRENCY,
+  isPipelineUnpackParallelEnabled,
+  runArchiveUnpackWithConcurrency,
+} from "@/lib/tender-pipeline/tender-archive-unpack-concurrency";
 
 const DOSSIER_MAX_CANDIDATES = 15;
 const ZIP_INNER_MAX = 20;
@@ -334,6 +339,122 @@ function collectArchivePrefetchSpecs(docs: TenderBzpDocument[]): BytesPrefetchSp
     .map((d) => ({ documentIndex: d.index, downloadUrl: parentDownloadUrl(d) }));
 }
 
+interface ArchiveUnpackTask {
+  doc: TenderBzpDocument;
+  kind: "zip" | "7z";
+  downloadUrl?: string;
+}
+
+async function unpackZipArchiveInnerCandidates(
+  tenderId: string,
+  docs: TenderBzpDocument[],
+  doc: TenderBzpDocument,
+  dl: string | undefined,
+): Promise<TenderDocCandidate[]> {
+  const innerCandidates: TenderDocCandidate[] = [];
+  try {
+    traceDossierPipeline("zip_downloaded", doc.filename, {
+      documentIndex: doc.index,
+      downloadUrl: Boolean(dl),
+    });
+    const { listZipFiles } = await loadDocParse();
+    let inner = await loadZipInnerEntries(tenderId, doc, dl);
+    let zipBytes: Uint8Array | null = null;
+    if (!inner?.length) {
+      zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
+      traceDossierPipeline("zip_opened", doc.filename, { bytes: zipBytes.byteLength });
+      inner = await listZipFiles(zipBytes);
+    } else {
+      traceDossierPipeline("zip_opened", doc.filename, { bytes: "edge_catalog", innerViaEdge: true });
+    }
+    const docZipBoost = /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename) ? 20 : 0;
+    traceDossierPipeline("zip_inner_files_found", doc.filename, {
+      count: inner.length,
+      ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
+    });
+    traceCostPipeline("zip_found", doc.filename, { innerCount: inner.length });
+    for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
+      const innerName = `${doc.filename} → ${entry.filename}`;
+      if (/\.ath$/i.test(entry.filename)) {
+        traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
+        traceCostPipeline("ath_found", innerName, { path: entry.path });
+      }
+      innerCandidates.push({
+        documentIndex: doc.index,
+        filename: innerName,
+        zipInnerPath: entry.path,
+        score: entry.score + (doc.isSwzHint ? 10 : 0) + docZipBoost,
+        downloadUrl: dl,
+        platform: doc.platform,
+      });
+    }
+  } catch (e) {
+    traceDossierPipeline("zip_open_failed", doc.filename, {
+      documentIndex: doc.index,
+      downloadUrl: Boolean(dl),
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+  return innerCandidates;
+}
+
+async function unpack7zArchiveInnerCandidates(
+  tenderId: string,
+  docs: TenderBzpDocument[],
+  doc: TenderBzpDocument,
+  dl: string | undefined,
+): Promise<TenderDocCandidate[]> {
+  const innerCandidates: TenderDocCandidate[] = [];
+  try {
+    traceDossierPipeline("7z_downloaded", doc.filename, {
+      documentIndex: doc.index,
+      downloadUrl: Boolean(dl),
+    });
+    const { list7zFiles } = await loadDocParse();
+    const archiveBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
+    traceDossierPipeline("7z_opened", doc.filename, { bytes: archiveBytes.byteLength });
+    const inner = await list7zFiles(archiveBytes);
+    traceDossierPipeline("7z_inner_files_found", doc.filename, {
+      count: inner.length,
+      ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
+    });
+    traceCostPipeline("7z_found", doc.filename, { innerCount: inner.length });
+    for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
+      const innerName = `${doc.filename} → ${entry.filename}`;
+      if (/\.ath$/i.test(entry.filename)) {
+        traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
+        traceCostPipeline("ath_found", innerName, { path: entry.path });
+      }
+      innerCandidates.push({
+        documentIndex: doc.index,
+        filename: innerName,
+        zipInnerPath: entry.path,
+        score: entry.score + (doc.isSwzHint ? 10 : 0),
+        downloadUrl: dl,
+        platform: doc.platform,
+      });
+    }
+  } catch (e) {
+    traceDossierPipeline("7z_open_failed", doc.filename, {
+      documentIndex: doc.index,
+      downloadUrl: Boolean(dl),
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+  return innerCandidates;
+}
+
+async function runArchiveUnpackTask(
+  tenderId: string,
+  docs: TenderBzpDocument[],
+  task: ArchiveUnpackTask,
+): Promise<TenderDocCandidate[]> {
+  if (task.kind === "zip") {
+    return unpackZipArchiveInnerCandidates(tenderId, docs, task.doc, task.downloadUrl);
+  }
+  return unpack7zArchiveInnerCandidates(tenderId, docs, task.doc, task.downloadUrl);
+}
+
 function collectCandidatePrefetchSpecs(candidates: TenderDocCandidate[]): BytesPrefetchSpec[] {
   return candidates.map((c) => ({
     documentIndex: c.documentIndex,
@@ -424,6 +545,8 @@ export async function buildTenderDocCandidates(
 ): Promise<TenderDocCandidate[]> {
   await prefetchDossierDocumentBytes(tenderId, docs, collectArchivePrefetchSpecs(docs));
   const candidates: TenderDocCandidate[] = [];
+  const unpackTasks: ArchiveUnpackTask[] = [];
+
   for (const doc of docs) {
     const dl = parentDownloadUrl(doc);
     let score = scoreTenderFilename(doc.filename);
@@ -436,89 +559,31 @@ export async function buildTenderDocCandidates(
       platform: doc.platform,
     });
     if (isZipFilename(doc.filename)) {
-      try {
-        traceDossierPipeline("zip_downloaded", doc.filename, {
-          documentIndex: doc.index,
-          downloadUrl: Boolean(dl),
-        });
-        const { listZipFiles } = await loadDocParse();
-        let inner = await loadZipInnerEntries(tenderId, doc, dl);
-        let zipBytes: Uint8Array | null = null;
-        if (!inner?.length) {
-          zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
-          traceDossierPipeline("zip_opened", doc.filename, { bytes: zipBytes.byteLength });
-          inner = await listZipFiles(zipBytes);
-        } else {
-          traceDossierPipeline("zip_opened", doc.filename, { bytes: "edge_catalog", innerViaEdge: true });
-        }
-        const docZipBoost = /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename) ? 20 : 0;
-        traceDossierPipeline("zip_inner_files_found", doc.filename, {
-          count: inner.length,
-          ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
-        });
-        traceCostPipeline("zip_found", doc.filename, { innerCount: inner.length });
-        for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
-          const innerName = `${doc.filename} → ${entry.filename}`;
-          if (/\.ath$/i.test(entry.filename)) {
-            traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
-            traceCostPipeline("ath_found", innerName, { path: entry.path });
-          }
-          candidates.push({
-            documentIndex: doc.index,
-            filename: innerName,
-            zipInnerPath: entry.path,
-            score: entry.score + (doc.isSwzHint ? 10 : 0) + docZipBoost,
-            downloadUrl: dl,
-            platform: doc.platform,
-          });
-        }
-      } catch (e) {
-        traceDossierPipeline("zip_open_failed", doc.filename, {
-          documentIndex: doc.index,
-          downloadUrl: Boolean(dl),
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
-    }
-    if (is7zFilename(doc.filename)) {
-      try {
-        traceDossierPipeline("7z_downloaded", doc.filename, {
-          documentIndex: doc.index,
-          downloadUrl: Boolean(dl),
-        });
-        const { list7zFiles } = await loadDocParse();
-        const archiveBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
-        traceDossierPipeline("7z_opened", doc.filename, { bytes: archiveBytes.byteLength });
-        const inner = await list7zFiles(archiveBytes);
-        traceDossierPipeline("7z_inner_files_found", doc.filename, {
-          count: inner.length,
-          ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
-        });
-        traceCostPipeline("7z_found", doc.filename, { innerCount: inner.length });
-        for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
-          const innerName = `${doc.filename} → ${entry.filename}`;
-          if (/\.ath$/i.test(entry.filename)) {
-            traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
-            traceCostPipeline("ath_found", innerName, { path: entry.path });
-          }
-          candidates.push({
-            documentIndex: doc.index,
-            filename: innerName,
-            zipInnerPath: entry.path,
-            score: entry.score + (doc.isSwzHint ? 10 : 0),
-            downloadUrl: dl,
-            platform: doc.platform,
-          });
-        }
-      } catch (e) {
-        traceDossierPipeline("7z_open_failed", doc.filename, {
-          documentIndex: doc.index,
-          downloadUrl: Boolean(dl),
-          error: e instanceof Error ? e.message : String(e),
-        });
-      }
+      unpackTasks.push({ doc, kind: "zip", downloadUrl: dl });
+    } else if (is7zFilename(doc.filename)) {
+      unpackTasks.push({ doc, kind: "7z", downloadUrl: dl });
     }
   }
+
+  if (!isPipelineUnpackParallelEnabled() || unpackTasks.length <= 1) {
+    for (const task of unpackTasks) {
+      const inners = await runArchiveUnpackTask(tenderId, docs, task);
+      candidates.push(...inners);
+    }
+  } else {
+    const outcomes = await runArchiveUnpackWithConcurrency(
+      unpackTasks,
+      DOSSIER_ARCHIVE_UNPACK_CONCURRENCY,
+      async (task) => {
+        const inners = await runArchiveUnpackTask(tenderId, docs, task);
+        return { value: inners, error: null };
+      },
+    );
+    for (const outcome of outcomes) {
+      if (outcome.value?.length) candidates.push(...outcome.value);
+    }
+  }
+
   return candidates.sort((a, b) => b.score - a.score);
 }
 
