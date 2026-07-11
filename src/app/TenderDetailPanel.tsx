@@ -162,6 +162,8 @@ export function TenderDetailPanel({
     pipelineState,
     attachmentGateStatus,
     attachmentGateReason,
+    pricingReadyPartial,
+    pricingReadyFinal,
   } = pipelineRuntime;
 
   const platformTelemetryRef = useRef<string | null>(null);
@@ -494,6 +496,8 @@ export function TenderDetailPanel({
       swz,
       fit: item.tenderFit,
       kosztorysProcessSession,
+      pricingReadyPartial,
+      pricingReadyFinal,
     });
   }, [
     item,
@@ -506,6 +510,8 @@ export function TenderDetailPanel({
     swz,
     item.tenderFit,
     kosztorysProcessSession,
+    pricingReadyPartial,
+    pricingReadyFinal,
   ]);
 
   useEffect(() => {

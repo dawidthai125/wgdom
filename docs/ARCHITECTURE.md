@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A3** discovery fork · **2.64.0** · **PRODUCTION VERIFIED**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A5** strategic vs economic · **2.65.0**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,7 +2016,26 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 3:** NG11-A5 — strategic/economic decision — po A3 release.
+**Backlog Wave 3:** NG11-Q4 (optional Edge) — po A5.
+
+---
+
+### 12.1.37 NG11-A5 — Strategic vs Economic Decision (v2.65.0)
+
+**Status:** **IMPLEMENTED** · **OWNER QA PENDING** · always-on additive lib (brak flagi §20.1)  
+**SSOT:** [`architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Readiness predicates | `src/lib/tender-intelligence-decision-readiness.ts` |
+| Context export | `src/lib/tender-intelligence-context.ts` |
+| Runtime wire | `useTenderPrzetargCommandContext.ts` · `TenderDetailPanel.tsx` |
+
+**Pola frozen:** `strategicDecision` (raw pre-overlay) · `strategicDecisionReady` (T0) · `economicDecisionReady` ≈ `pricingReadyPartial` · `economicDecisionFinalReady` ≈ `pricingReadyFinal`.
+
+**Nie zmienia:** `overlay.displayDecision` · NG10 gate-exit · scoring rules · `cloud-sync.ts` · Edge · Payroll · parsery · pipeline runtime business logic.
+
+**Test:** `scripts/test-ng11-strategic-economic-decision.mjs` + regresja gate-exit 28/28 + Q5/A1.
 
 ---
 

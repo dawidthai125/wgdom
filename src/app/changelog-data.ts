@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.65.0",
+    label: "NG11-A5 — Strategic vs Economic",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-A5: jawny split decyzji strategicznej (T0) i ekonomicznej (Q5) w kontekście intelligence — strategicDecisionReady / economicDecisionReady / economicDecisionFinalReady.",
+      },
+      {
+        type: "improve",
+        text: "Lib-only additive — overlay.displayDecision bez zmian (NG10 gate-exit frozen); mapowanie economicDecisionReady = pricingReadyPartial.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.64.0",
     label: "NG11-A3 — Discovery Fork",
     items: [

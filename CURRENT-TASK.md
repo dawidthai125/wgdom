@@ -13,7 +13,7 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) |
-| **Co dalej?** | **NG11-A5** — **AUDIT READY** (nie IMPLEMENT) · lub release **TWSL** **2.63.91** |
+| **Co dalej?** | **NG11-A5** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,21 +96,23 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A5** strategic/economic decision — **AUDIT READY** · **IMPLEMENT BLOCKED** (Owner GO po AUDIT).
+**Następny slice NG11:** **A5** strategic vs economic — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
 
 ---
 
-## NG11-A5 — Strategic/Economic Decision · **AUDIT READY** · **IMPLEMENT BLOCKED**
+## NG11-A5 — Strategic vs Economic · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
 
-> **SSOT:** [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A5
+> **SSOT:** [`docs/architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](docs/architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md) · [`docs/architecture/NG11-A5-RELEASE-REPORT.md`](docs/architecture/NG11-A5-RELEASE-REPORT.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **AUDIT READY** · **IMPLEMENT NOT STARTED** |
-| **Zależność** | **NG11-A3** ✅ **PRODUCTION VERIFIED** |
-| **Następny krok** | AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO |
+| **Status** | **IMPLEMENT COMPLETE** · **OWNER QA PENDING** · **PUSH BLOCKED** |
+| **Wersja** | **2.65.0** |
+| **Test** | **23/23** A5 · **28/28** gate-exit · smoke **126/126** |
+| **Zależność** | **NG11-A3** ✅ PRODUCTION VERIFIED |
+| **Następny krok** | **OWNER QA** → push → verify `version.json` |
 
-**Nie rozpoczynaj IMPLEMENT** bez pozytywnej weryfikacji `version.json` A3 ✅ i Owner GO.
+**Bez push** do OWNER QA PASS.
 
 ---
 
@@ -128,7 +130,7 @@
 | **Test smoke** | **95/95 PASS** |
 | **PG-A3** | **PASS** (−35% P50 mock) |
 | **Flaga** | `pipelinePerfDiscoveryFork` default **OFF** |
-| **Następny program** | **NG11-A5** — **AUDIT READY** (IMPLEMENT blocked) |
+| **Następny program** | **NG11-A5** — **AUDIT COMPLETE** · ARCH REVIEW + Owner GO |
 
 ---
 

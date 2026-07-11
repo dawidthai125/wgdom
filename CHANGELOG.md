@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.0 — NG11-A5 Strategic vs Economic
+
+- **improve:** jawny split strategic (T0) vs economic (Q5) w `TenderIntelligenceContext` — readiness fields
+- **improve:** lib-only additive · `displayDecision` bez zmian (NG10 frozen)
+
 ## 2.64.0 — NG11-A3 Discovery Fork
 
 - **improve:** auto bootstrap — speculative external ∥ BZP · cancel when BZP>0 · timeout 45s · T1 pool ≤2

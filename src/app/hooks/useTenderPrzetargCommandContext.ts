@@ -24,7 +24,12 @@ export function useTenderPrzetargCommandContext(
 ) {
   const { snapshot } = useTendersContext();
   const scoringContext = snapshot.scoringContext;
-  const { ownerFinanceProposal, kosztorysProcessSession } = pipelineRuntime;
+  const {
+    ownerFinanceProposal,
+    kosztorysProcessSession,
+    pricingReadyPartial,
+    pricingReadyFinal,
+  } = pipelineRuntime;
 
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
   const pricingDeferred = !ownerFinanceProposal && !heavyDone;
@@ -78,6 +83,8 @@ export function useTenderPrzetargCommandContext(
       swz,
       fit: item.tenderFit,
       kosztorysProcessSession,
+      pricingReadyPartial,
+      pricingReadyFinal,
     });
   }, [
     item,
@@ -89,6 +96,8 @@ export function useTenderPrzetargCommandContext(
     participationResult,
     swz,
     kosztorysProcessSession,
+    pricingReadyPartial,
+    pricingReadyFinal,
   ]);
 
   return {

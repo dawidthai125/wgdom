@@ -39,6 +39,11 @@ import {
   type IntelligenceNextAction,
 } from "@/lib/tender-intelligence-next-action";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
+import {
+  deriveTenderDecisionReadiness,
+  type TenderDecisionReadiness,
+} from "@/lib/tender-intelligence-decision-readiness";
+import type { TenderDecision } from "@/lib/tenders-strategy-decision";
 
 export interface BuildTenderIntelligenceContextInput {
   item: TenderPipelineItem;
@@ -52,6 +57,10 @@ export interface BuildTenderIntelligenceContextInput {
   swz?: TenderSwzAnalysis | null;
   fit?: TenderFitAssessment | null;
   kosztorysProcessSession?: KosztorysProcessSession;
+  /** NG11-A5 — z runtime `pricingReadyPartial`; default false bez wire. */
+  pricingReadyPartial?: boolean;
+  /** NG11-A5 — z runtime `pricingReadyFinal`; default false bez wire. */
+  pricingReadyFinal?: boolean;
 }
 
 export interface TenderIntelligenceContext {
@@ -68,6 +77,12 @@ export interface TenderIntelligenceContext {
   riskRows: OwnerRiskTermRow[];
   monitoringCounts: TenderMonitoringCounts;
   bidPrepChecks: BidPrepCheckItem[] | undefined;
+  /** NG11-A5 — strategic vs economic readiness (additive). */
+  strategicDecision: TenderDecision;
+  strategicDecisionReady: boolean;
+  economicDecisionReady: boolean;
+  economicDecisionFinalReady: boolean;
+  decisionReadiness: TenderDecisionReadiness;
 }
 
 function buildIntelligenceExecutive(item: TenderPipelineItem): ExecutiveSummary | null {
@@ -91,9 +106,16 @@ export function buildTenderIntelligenceContext(
     swz = item.swzAnalysis,
     fit = item.tenderFit,
     kosztorysProcessSession,
+    pricingReadyPartial = false,
+    pricingReadyFinal = false,
   } = input;
 
   const scoringBundle = scoreTenderForOwnerView(item, scoringContext);
+  const decisionReadiness = deriveTenderDecisionReadiness({
+    scoringBundle,
+    pricingReadyPartial,
+    pricingReadyFinal,
+  });
   const decisionView = buildOwnerDecisionView(scoringBundle);
   const finance = buildOwnerFinanceView(item, ownerFinanceProposal);
   const overlay = applyTenderIntelligenceOverlay({
@@ -128,5 +150,10 @@ export function buildTenderIntelligenceContext(
     riskRows: buildOwnerRiskTermRows(item, swz, fit),
     monitoringCounts,
     bidPrepChecks,
+    strategicDecision: decisionReadiness.strategicDecision,
+    strategicDecisionReady: decisionReadiness.strategicDecisionReady,
+    economicDecisionReady: decisionReadiness.economicDecisionReady,
+    economicDecisionFinalReady: decisionReadiness.economicDecisionFinalReady,
+    decisionReadiness,
   };
 }
