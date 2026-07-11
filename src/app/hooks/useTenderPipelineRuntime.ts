@@ -8,6 +8,12 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { derivePipelineState } from "@/lib/tender-pipeline/derive-pipeline-state";
+import {
+  deriveDossierEnriching,
+  derivePartialDossierReady,
+  derivePricingReadyFinal,
+  derivePricingReadyPartial,
+} from "@/lib/tender-pipeline/derive-pipeline-readiness";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 import {
   PipelineState,
@@ -20,6 +26,13 @@ import {
   recordPipelineTimelineEvent,
   resetPipelineTimelineForTests,
 } from "@/lib/tender-pipeline/tender-pipeline-timeline";
+import {
+  buildPipelineTimingSnapshot,
+  isPipelineTimingEnabled,
+  markPipelineTimingStage,
+  recordPipelineStateTiming,
+  resetPipelineTimingForTests,
+} from "@/lib/tender-pipeline/tender-pipeline-timing";
 import { retryTenderPipelinePhase } from "@/lib/tender-pipeline/tender-pipeline-retry";
 import {
   tryMarkPipelineBootstrapCompleted,
@@ -56,7 +69,11 @@ export function useTenderPipelineRuntime(opts: {
     readPipelineTimeline(item.id),
   );
   const prevStateRef = useRef<PipelineState | null>(null);
+  const prevTimelineStateRef = useRef<PipelineState | null>(null);
   const prevGateFingerprintRef = useRef<string | null>(null);
+  const prevPricingPartialRef = useRef(false);
+  const prevPricingFinalRef = useRef(false);
+  const gateWaitMarkedRef = useRef(false);
 
   const attachmentGate = useMemo(
     () => deriveUnifiedAttachmentGate(item),
@@ -83,6 +100,8 @@ export function useTenderPipelineRuntime(opts: {
 
   const {
     dossierBuilding,
+    dossierEnriching,
+    partialPersistPending,
     dossierSaving,
     dossierParseFailed,
     parseErrorMessage,
@@ -119,6 +138,7 @@ export function useTenderPipelineRuntime(opts: {
       autoRunning,
       dossierBuilding,
       dossierSaving,
+      dossierEnriching,
       dossierParseFailed,
       parseErrorMessage,
       lazyEnabled: true,
@@ -128,6 +148,7 @@ export function useTenderPipelineRuntime(opts: {
       autoRunning,
       dossierBuilding,
       dossierSaving,
+      dossierEnriching,
       dossierParseFailed,
       parseErrorMessage,
       pipelineQueued,
@@ -141,18 +162,45 @@ export function useTenderPipelineRuntime(opts: {
     loadingDocs: autoRunning,
   });
 
+  const partialDossierReady = useMemo(
+    () => derivePartialDossierReady({ item, partialPersistPending }),
+    [item, item.tenderDossier?.kosztorys?.ok, item.tenderDossier?.builtAt, partialPersistPending],
+  );
+
   const { ownerFinanceProposal, bidProposal, priceOverrides } = useTenderPricingAuto({
     item,
     swz: swz ?? item.swzAnalysis ?? null,
+    partialDossierReady,
     priceOverridesRevision,
     pricingCatalogRevision,
     enabled,
   });
 
-  const pricingReady = heavyDone && (
-    ownerFinanceProposal?.ok === true
-    || ownerFinanceProposal?.recommendedBidPln != null
-    || item.ourEstimatePln != null
+  const dossierEnrichingSignal = useMemo(
+    () => deriveDossierEnriching({ metadataPhaseRunning: dossierEnriching }),
+    [dossierEnriching],
+  );
+
+  const pricingReadyPartial = useMemo(
+    () => derivePricingReadyPartial({ partialDossierReady, ownerFinanceProposal }),
+    [partialDossierReady, ownerFinanceProposal],
+  );
+
+  const pricingReadyFinal = useMemo(
+    () => derivePricingReadyFinal({
+      item,
+      ownerFinanceProposal,
+      dossierEnriching: dossierEnrichingSignal,
+    }),
+    [item, item.tenderDossier, ownerFinanceProposal, dossierEnrichingSignal],
+  );
+
+  const pricingReady = pricingReadyFinal || pricingReadyPartial || (
+    heavyDone && (
+      ownerFinanceProposal?.ok === true
+      || ownerFinanceProposal?.recommendedBidPln != null
+      || item.ourEstimatePln != null
+    )
   );
 
   const pipelineState = derivePipelineState({
@@ -163,15 +211,63 @@ export function useTenderPipelineRuntime(opts: {
     dossierSaving,
     dossierParseFailed,
     pricingReady,
+    partialDossierReady,
+    dossierEnriching: dossierEnrichingSignal,
+    pricingReadyPartial,
+    pricingReadyFinal,
     canStartHeavyParse: attachmentGate.canStartHeavyParse,
   });
 
   useEffect(() => {
+    recordPipelineStateTiming(item.id, pipelineState, prevStateRef.current);
+    prevStateRef.current = pipelineState;
+  }, [item.id, pipelineState]);
+
+  useEffect(() => {
+    if (!isPipelineTimingEnabled()) return;
+    if (pipelineQueued && !gateWaitMarkedRef.current) {
+      markPipelineTimingStage(item.id, "heavy.gate_wait", "start");
+      gateWaitMarkedRef.current = true;
+    }
+    if (!pipelineQueued && gateWaitMarkedRef.current) {
+      markPipelineTimingStage(item.id, "heavy.gate_wait", "end");
+      gateWaitMarkedRef.current = false;
+    }
+  }, [item.id, pipelineQueued]);
+
+  useEffect(() => {
+    if (!isPipelineTimingEnabled()) return;
+    if (pricingReadyPartial && !prevPricingPartialRef.current) {
+      markPipelineTimingStage(item.id, "pricing.compute_partial", "mark", {
+        pipelineState,
+        detail: "pricingReadyPartial",
+      });
+    }
+    if (pricingReadyFinal && !prevPricingFinalRef.current) {
+      markPipelineTimingStage(item.id, "pricing.compute_final", "mark", {
+        pipelineState,
+        detail: "pricingReadyFinal",
+      });
+      markPipelineTimingStage(item.id, "pricing.compute", "mark", {
+        pipelineState,
+        detail: "pricingReadyFinal",
+      });
+    } else if (pricingReady && !prevPricingPartialRef.current && !prevPricingFinalRef.current) {
+      markPipelineTimingStage(item.id, "pricing.compute", "mark", {
+        pipelineState,
+        detail: "pricingReady",
+      });
+    }
+    prevPricingPartialRef.current = pricingReadyPartial;
+    prevPricingFinalRef.current = pricingReadyFinal;
+  }, [item.id, pricingReady, pricingReadyPartial, pricingReadyFinal, pipelineState]);
+
+  useEffect(() => {
     if (!isPipelineTimelineEnabled()) return;
-    const stateChanged = prevStateRef.current !== pipelineState;
+    const stateChanged = prevTimelineStateRef.current !== pipelineState;
     const gateChanged = prevGateFingerprintRef.current !== attachmentGate.fingerprint;
     if (!stateChanged && !gateChanged) return;
-    prevStateRef.current = pipelineState;
+    prevTimelineStateRef.current = pipelineState;
     prevGateFingerprintRef.current = attachmentGate.fingerprint;
     setTimeline(recordPipelineTimelineEvent(item.id, pipelineState, {
       gateStatus: attachmentGate.gateStatus,
@@ -183,6 +279,11 @@ export function useTenderPipelineRuntime(opts: {
     retryTenderPipelinePhase(item.id, "heavy");
     retryHeavyOnly();
   }, [item.id, retryHeavyOnly]);
+
+  const pipelineTimingSnapshot = useMemo(
+    () => buildPipelineTimingSnapshot(item.id, pipelineState),
+    [item.id, pipelineState, timeline, dossierBuilding, dossierSaving, pricingReady],
+  );
 
   return {
     pipelineState,
@@ -202,6 +303,11 @@ export function useTenderPipelineRuntime(opts: {
     attachmentGateFingerprint: attachmentGate.fingerprint,
     attachmentGateStatus: attachmentGate.gateStatus,
     attachmentGateReason: attachmentGate.gateReason,
+    pipelineTimingSnapshot,
+    partialDossierReady,
+    dossierEnriching: dossierEnrichingSignal,
+    pricingReadyPartial,
+    pricingReadyFinal,
   };
 }
 
@@ -210,4 +316,5 @@ export function resetTenderPipelineRuntimeForTests(): void {
   resetTenderDocumentsBootstrapForTests();
   resetDossierHeavyLazyForTests();
   resetPipelineTimelineForTests();
+  resetPipelineTimingForTests();
 }

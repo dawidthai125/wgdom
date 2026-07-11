@@ -10,6 +10,7 @@ import type {
   UnifiedGateReason,
   UnifiedGateStatus,
 } from "@/lib/tender-pipeline/unified-attachment-gate";
+import type { PipelineTimingSnapshot } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 /** Etap wysokopoziomowy pipeline NG-02. */
 export enum PipelineState {
@@ -54,4 +55,14 @@ export interface TenderPipelineRuntime {
   attachmentGateFingerprint: string;
   attachmentGateStatus: UnifiedGateStatus;
   attachmentGateReason: UnifiedGateReason;
+  /** NG11-F0 — null gdy timing wyłączony (prod default). */
+  pipelineTimingSnapshot: PipelineTimingSnapshot | null;
+  /** NG11-A1 — kosztorys persist flushed po fazie cost. */
+  partialDossierReady: boolean;
+  /** NG11-A1 — metadata phase w toku. */
+  dossierEnriching: boolean;
+  /** NG11-A1 — pierwszy compute na partial dossier (Q5 consume). */
+  pricingReadyPartial: boolean;
+  /** NG11-A1 — compute po pełnym enrichment. */
+  pricingReadyFinal: boolean;
 }

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.95 — NG11 Wave 1 (Progressive Heavy A1 + Cost-first Pricing Q5)
+
+- **improve:** A1 — cost/metadata split heavy build · partial dossier persist · partialDossierReady / dossierEnriching
+- **improve:** Q5 — early pricing on partialDossierReady (pricingReadyPartial) · final recompute after metadata (pricingReadyFinal)
+- **improve:** PipelineState Pricing before Ready · dev timing pricing.compute_partial / pricing.compute_final
+
 ## 2.63.94 — NG10 Autonomous Agent UX Complete
 
 - **improve:** Timeline 12 kroków + 5 makr · mobile collapsible Postęp analizy

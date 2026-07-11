@@ -9,7 +9,7 @@ import { mergeBriefWithItemTitle, parseNoticeHtmlBrief } from "@/lib/tenders-bzp
 import { stripHtmlToText, parseSwzPlainText, type TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
-import { parseTenderDossierDocuments, mergeSwzAnalysis } from "@/lib/tender-document-resolver";
+import { parseTenderDossierDocuments, mergeSwzAnalysis, prepareTenderDossierParseSession, executeTenderDossierCostPhase, executeTenderDossierMetadataPhase, type TenderDossierParseSession } from "@/lib/tender-document-resolver";
 import { classifyDocumentRole, is7zFilename } from "@/lib/tender-document-role";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt, isPdfFilename } from "@/lib/ath-parser";
 import { isDocxFilename, isXlsxFilename, isZipFilename, parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
@@ -24,6 +24,7 @@ import {
 } from "@/lib/tender-dossier-parser-version";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
+import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 export interface TenderDossierScanCounts {
   pdf: number;
@@ -60,7 +61,7 @@ export interface TenderDossierScanSummary {
   pdfPrzedmiarNoTextLayer?: boolean;
   /** TP190C-2E-B — CASE 3 z powodu błędu ekstrakcji pdf.js. */
   pdfPrzedmiarExtractError?: boolean;
-  parsedAt: string;
+  parsedAt?: string;
 }
 
 export interface TenderDossierAnalysisResult {
@@ -190,25 +191,107 @@ export interface TenderDossierHeavyBuildResult {
   ourEstimatePln: number | null;
 }
 
-/** Ciężkie parsowanie dossier — ten sam wynik co wcześniejszy auto-pipeline na expand. */
-export async function buildTenderDossierHeavy(opts: {
-  item: Pick<TenderPipelineItem, "tenderId" | "title" | "ourEstimatePln" | "uploadedFile">;
+/** NG11-A1 — wynik fazy kosztorysu + sesja do enrichment. */
+export interface TenderDossierHeavyCostPhaseResult extends TenderDossierHeavyBuildResult {
+  parseSession: TenderDossierParseSession | null;
+}
+
+type HeavyBuildOpts = {
+  item: Pick<TenderPipelineItem, "tenderId" | "title" | "ourEstimatePln" | "uploadedFile" | "id">;
   docs: TenderBzpDocument[];
   noticeHtml?: string | null;
   existingSwz?: TenderSwzAnalysis | null;
   existingDossier?: TenderDossier | null;
   athPreviewEnabled?: boolean;
-}): Promise<TenderDossierHeavyBuildResult> {
-  const brief = opts.existingDossier?.brief
+  pipelineTimingItemId?: string;
+};
+
+function buildHeavyBrief(opts: HeavyBuildOpts): TenderDossier["brief"] {
+  return opts.existingDossier?.brief
     ?? mergeBriefWithItemTitle(
       opts.noticeHtml ? parseNoticeHtmlBrief(opts.noticeHtml) : parseNoticeHtmlBrief(""),
       opts.item.title,
     );
+}
 
+async function applyUploadFallbackKosztorys(
+  opts: HeavyBuildOpts,
+  kosztorysSnap: TenderKosztorysSnapshot | null,
+  estimatePln: number | null,
+): Promise<{ kosztorys: TenderKosztorysSnapshot | null; estimatePln: number | null }> {
+  const uploaded = opts.item.uploadedFile;
+  const timingItemId = opts.pipelineTimingItemId ?? opts.item.id;
+  if (
+    uploaded
+    && opts.athPreviewEnabled !== false
+    && isKosztorysPreviewExt(uploaded.filename)
+    && !kosztorysSnap?.ok
+  ) {
+    try {
+      await withPipelineTimingStage(timingItemId, "heavy.upload_fallback", async () => {
+        const preview = await fetchAndParseKosztorys(
+          uploaded.publicUrl,
+          uploaded.filename,
+          uploaded.path,
+        );
+        const { athPreviewToSnapshot } = await import("@/lib/tenders-bzp-brief");
+        kosztorysSnap = athPreviewToSnapshot(preview, uploaded.filename);
+        if (estimatePln == null) {
+          estimatePln = parsePlnFromKosztorysTotal(kosztorysSnap.totalValue, kosztorysSnap.currency);
+        }
+      });
+    } catch { /* ignore */ }
+  }
+  return { kosztorys: kosztorysSnap, estimatePln };
+}
+
+function buildHeavyScanSummary(
+  opts: HeavyBuildOpts,
+  row: {
+    kosztorysSnap: TenderKosztorysSnapshot | null;
+    swzMerged: TenderSwzAnalysis | null;
+    estimatePln: number | null;
+    scanned: number;
+    parsed: number;
+    costDiscovery: TenderCostDiscoveryResult | null;
+    sevenZUnpackOk?: boolean;
+    sevenZInnerCount?: number;
+    zipUnpackOk?: boolean;
+    zipInnerCount?: number;
+    partial: boolean;
+  },
+): TenderDossierScanSummary {
+  const filenames = opts.docs.map((d) => d.filename);
+  const kosztorysValuePln = plnFromKosztorysSnapshot(row.kosztorysSnap);
+  return {
+    totalDocuments: opts.docs.length,
+    scanned: row.scanned,
+    parsed: row.parsed,
+    byType: countDocumentsByType(filenames),
+    sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
+    sevenZUnpackOk: row.sevenZUnpackOk,
+    sevenZInnerCount: row.sevenZInnerCount,
+    zipUnpackOk: row.zipUnpackOk,
+    zipInnerCount: row.zipInnerCount,
+    kosztorysFound: Boolean(row.kosztorysSnap?.ok),
+    valueFound: row.swzMerged?.estimatedValuePln != null || kosztorysValuePln != null,
+    criteriaFound: (row.swzMerged?.awardCriteria?.length ?? 0) > 0,
+    estimateFound: row.estimatePln != null,
+    costDiscovery: row.costDiscovery,
+    pdfPrzedmiarCase: row.kosztorysSnap?.pdfPrzedmiarCase,
+    pdfPrzedmiarNoTextLayer: row.kosztorysSnap?.pdfPrzedmiarNoTextLayer,
+    pdfPrzedmiarExtractError: row.kosztorysSnap?.pdfPrzedmiarExtractError,
+    parsedAt: row.partial ? undefined : new Date().toISOString(),
+  };
+}
+
+/** NG11-A1 — faza kosztorysu + partial dossier (bez parsedAt w scanSummary). */
+export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise<TenderDossierHeavyCostPhaseResult> {
+  const brief = buildHeavyBrief(opts);
   let kosztorysSnap: TenderKosztorysSnapshot | null = opts.existingDossier?.kosztorys ?? null;
   let swzMerged = opts.existingSwz ?? null;
   let estimatePln = opts.item.ourEstimatePln ?? null;
-  const filenames = opts.docs.map((d) => d.filename);
+  let parseSession: TenderDossierParseSession | null = null;
   let scanned = 0;
   let parsed = 0;
   let costDiscovery: TenderCostDiscoveryResult | null = null;
@@ -218,87 +301,56 @@ export async function buildTenderDossierHeavy(opts: {
   let zipInnerCount: number | undefined;
 
   if (opts.docs.length && opts.item.tenderId) {
-    const parsedResult = await parseTenderDossierDocuments(opts.item.tenderId, opts.docs, {
+    parseSession = await prepareTenderDossierParseSession(opts.item.tenderId, opts.docs, {
       ourEstimatePln: estimatePln,
       existingSwz: swzMerged ?? undefined,
       tenderTitle: opts.item.title,
+      pipelineTimingItemId: opts.pipelineTimingItemId ?? opts.item.id,
     });
-    {
-      const existingK = existingKosztorysForRebuildPick(opts.existingDossier, kosztorysSnap);
-      const freshK = parsedResult.kosztorys?.ok ? parsedResult.kosztorys : null;
-      if (existingK || freshK) {
-        kosztorysSnap = pickBetterKosztorys(existingK, freshK) ?? kosztorysSnap;
+    if (parseSession) {
+      await executeTenderDossierCostPhase(parseSession);
+      {
+        const existingK = existingKosztorysForRebuildPick(opts.existingDossier, kosztorysSnap);
+        const freshK = parseSession.bestKosztorys?.ok ? parseSession.bestKosztorys : null;
+        if (existingK || freshK) {
+          kosztorysSnap = pickBetterKosztorys(existingK, freshK) ?? kosztorysSnap;
+        }
       }
+      if (parseSession.swzMerged) swzMerged = parseSession.swzMerged;
+      if (parseSession.estimatePln != null && opts.item.ourEstimatePln == null) {
+        estimatePln = parseSession.estimatePln;
+      }
+      scanned = parseSession.candidates.length;
+      parsed = parseSession.parsedCount;
+      costDiscovery = parseSession.costDiscovery;
+      sevenZUnpackOk = parseSession.sevenZUnpackOk;
+      sevenZInnerCount = parseSession.sevenZInnerCount;
+      zipUnpackOk = parseSession.zipUnpackOk;
+      zipInnerCount = parseSession.zipInnerCount;
     }
-    if (parsedResult.swzMerged) swzMerged = parsedResult.swzMerged;
-    if (parsedResult.estimatePln != null && opts.item.ourEstimatePln == null) {
-      estimatePln = parsedResult.estimatePln;
-    }
-    scanned = parsedResult.scannedCount;
-    parsed = parsedResult.parsedCount;
-    costDiscovery = parsedResult.costDiscovery;
-    sevenZUnpackOk = parsedResult.sevenZUnpackOk;
-    sevenZInnerCount = parsedResult.sevenZInnerCount;
-    zipUnpackOk = parsedResult.zipUnpackOk;
-    zipInnerCount = parsedResult.zipInnerCount;
   }
 
-  const uploaded = opts.item.uploadedFile;
-  if (
-    uploaded
-    && opts.athPreviewEnabled !== false
-    && isKosztorysPreviewExt(uploaded.filename)
-    && !kosztorysSnap?.ok
-  ) {
-    try {
-      const preview = await fetchAndParseKosztorys(
-        uploaded.publicUrl,
-        uploaded.filename,
-        uploaded.path,
-      );
-      const { athPreviewToSnapshot } = await import("@/lib/tenders-bzp-brief");
-      kosztorysSnap = athPreviewToSnapshot(preview, uploaded.filename);
-      if (estimatePln == null) {
-        estimatePln = parsePlnFromKosztorysTotal(kosztorysSnap.totalValue, kosztorysSnap.currency);
-      }
-    } catch { /* ignore */ }
-  }
+  const uploadResult = await applyUploadFallbackKosztorys(opts, kosztorysSnap, estimatePln);
+  kosztorysSnap = uploadResult.kosztorys;
+  estimatePln = uploadResult.estimatePln;
 
   if (swzMerged) {
     swzMerged = mergeKosztorysValueIntoSwz(swzMerged, kosztorysSnap);
-    try {
-      swzMerged = applyMetadataConfidence(swzMerged);
-    } catch {
-      /* TP193B — metadata best-effort; scanSummary.parsedAt must still be set */
-    }
   }
-  const kosztorysValuePln = plnFromKosztorysSnapshot(kosztorysSnap);
-  estimatePln = estimatePlnFromKosztorysSnapshot(
-    kosztorysSnap,
-    estimatePln,
-    kosztorysSnap?.sourceFilename ?? "dossier",
-  );
 
-  const scanSummary: TenderDossierScanSummary = {
-    totalDocuments: opts.docs.length,
+  const scanSummary = buildHeavyScanSummary(opts, {
+    kosztorysSnap,
+    swzMerged,
+    estimatePln,
     scanned,
     parsed,
-    byType: countDocumentsByType(filenames),
-    sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
+    costDiscovery,
     sevenZUnpackOk,
     sevenZInnerCount,
     zipUnpackOk,
     zipInnerCount,
-    kosztorysFound: Boolean(kosztorysSnap?.ok),
-    valueFound: swzMerged?.estimatedValuePln != null || kosztorysValuePln != null,
-    criteriaFound: (swzMerged?.awardCriteria?.length ?? 0) > 0,
-    estimateFound: estimatePln != null,
-    costDiscovery,
-    pdfPrzedmiarCase: kosztorysSnap?.pdfPrzedmiarCase,
-    pdfPrzedmiarNoTextLayer: kosztorysSnap?.pdfPrzedmiarNoTextLayer,
-    pdfPrzedmiarExtractError: kosztorysSnap?.pdfPrzedmiarExtractError,
-    parsedAt: new Date().toISOString(),
-  };
+    partial: true,
+  });
 
   return {
     tenderDossier: stampDossierParserVersion({
@@ -310,7 +362,86 @@ export async function buildTenderDossierHeavy(opts: {
     }),
     swzAnalysis: swzMerged,
     ourEstimatePln: estimatePln,
+    parseSession,
   };
+}
+
+/** NG11-A1 — faza metadanych SWZ (tło) + final dossier z parsedAt. */
+export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
+  parseSession: TenderDossierParseSession;
+  partialDossier: TenderDossier;
+  partialSwz: TenderSwzAnalysis | null;
+  partialEstimatePln: number | null;
+}): Promise<TenderDossierHeavyBuildResult> {
+  const parsedResult = await executeTenderDossierMetadataPhase(opts.parseSession);
+  let kosztorysSnap = opts.partialDossier.kosztorys ?? null;
+  {
+    const existingK = existingKosztorysForRebuildPick(opts.existingDossier, kosztorysSnap);
+    const freshK = parsedResult.kosztorys?.ok ? parsedResult.kosztorys : null;
+    if (existingK || freshK) {
+      kosztorysSnap = pickBetterKosztorys(existingK, freshK) ?? kosztorysSnap;
+    }
+  }
+  let swzMerged = parsedResult.swzMerged ?? opts.partialSwz;
+  let estimatePln = parsedResult.estimatePln ?? opts.partialEstimatePln;
+  if (swzMerged) {
+    swzMerged = mergeKosztorysValueIntoSwz(swzMerged, kosztorysSnap);
+    try {
+      swzMerged = applyMetadataConfidence(swzMerged);
+    } catch {
+      /* TP193B — metadata best-effort */
+    }
+  }
+  estimatePln = estimatePlnFromKosztorysSnapshot(
+    kosztorysSnap,
+    estimatePln,
+    kosztorysSnap?.sourceFilename ?? "dossier",
+  );
+
+  const scanSummary = buildHeavyScanSummary(opts, {
+    kosztorysSnap,
+    swzMerged,
+    estimatePln,
+    scanned: parsedResult.scannedCount,
+    parsed: parsedResult.parsedCount,
+    costDiscovery: parsedResult.costDiscovery,
+    sevenZUnpackOk: parsedResult.sevenZUnpackOk,
+    sevenZInnerCount: parsedResult.sevenZInnerCount,
+    zipUnpackOk: parsedResult.zipUnpackOk,
+    zipInnerCount: parsedResult.zipInnerCount,
+    partial: false,
+  });
+
+  return {
+    tenderDossier: stampDossierParserVersion({
+      brief: opts.partialDossier.brief,
+      kosztorys: kosztorysSnap,
+      scanSummary,
+      estimatePln: estimatePln ?? null,
+      builtAt: new Date().toISOString(),
+    }),
+    swzAnalysis: swzMerged,
+    ourEstimatePln: estimatePln,
+  };
+}
+
+/** Ciężkie parsowanie dossier — ten sam wynik co wcześniejszy auto-pipeline na expand. */
+export async function buildTenderDossierHeavy(opts: HeavyBuildOpts): Promise<TenderDossierHeavyBuildResult> {
+  const costPhase = await buildTenderDossierCostPhase(opts);
+  if (!costPhase.parseSession) {
+    return {
+      tenderDossier: costPhase.tenderDossier,
+      swzAnalysis: costPhase.swzAnalysis,
+      ourEstimatePln: costPhase.ourEstimatePln,
+    };
+  }
+  return enrichTenderDossierMetadataPhase({
+    ...opts,
+    parseSession: costPhase.parseSession,
+    partialDossier: costPhase.tenderDossier,
+    partialSwz: costPhase.swzAnalysis,
+    partialEstimatePln: costPhase.ourEstimatePln,
+  });
 }
 
 /** Pełna analiza: SWZ + dossier ze wszystkich załączników. */

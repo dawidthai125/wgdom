@@ -25,6 +25,7 @@ import {
   isExternalDiscoverySettled,
   type TenderFullDiscoveryResult,
 } from "@/lib/tender-pipeline/tender-full-document-discovery";
+import { markPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 /** Discovery phase ukończona — nie powtarzaj orchestratora. */
 const discoveryCompletedIds = new Set<string>();
@@ -171,7 +172,9 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 
     let swz = item.swzAnalysis ?? null;
     if (!swz && !isCancelled() && html) {
+      markPipelineTimingStage(item.id, "discovery.light_swz", "start");
       const lightSwz = analyzeSwzFromNoticeHtmlOnly(html, item.ourEstimatePln ?? null);
+      markPipelineTimingStage(item.id, "discovery.light_swz", "end");
       if (lightSwz) {
         swz = lightSwz;
         patch.swzAnalysis = lightSwz;
@@ -197,7 +200,9 @@ export async function attemptTenderDocumentsBootstrap(opts: {
       || countTenderAttachments(mergedForCount) > 0;
 
     if (Object.keys(patch).length > 0 && shouldPersist) {
+      markPipelineTimingStage(item.id, "discovery.persist_shell", "start");
       onUpdate(patch);
+      markPipelineTimingStage(item.id, "discovery.persist_shell", "end");
     }
 
     const canMarkComplete =

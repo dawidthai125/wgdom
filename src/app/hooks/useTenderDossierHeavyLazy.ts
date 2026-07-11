@@ -1,11 +1,13 @@
 /**
  * TP200A — lazy heavy dossier build (Dokumenty / Wycena / Kosztorys V4).
+ * NG11-A1 — progressive: cost phase → partial persist → metadata enrichment (tło).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
-  buildTenderDossierHeavy,
+  buildTenderDossierCostPhase,
+  enrichTenderDossierMetadataPhase,
   tenderDossierHeavyParseDone,
 } from "@/lib/tender-dossier-pipeline";
 import {
@@ -13,11 +15,14 @@ import {
   buildHeavyParseDocumentSet,
   deriveUnifiedAttachmentGate,
 } from "@/lib/tender-pipeline/unified-attachment-gate";
+import { markPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 const dossierInflightIds = new Set<string>();
+const enrichmentInflightIds = new Set<string>();
 
 export function clearDossierInflightForItem(itemId: string): void {
   dossierInflightIds.delete(itemId);
+  enrichmentInflightIds.delete(itemId);
 }
 
 const DOSSIER_PARSE_TELEMETRY_KEY = "wgdom-dossier-parse-telemetry";
@@ -65,6 +70,8 @@ export function useTenderDossierHeavyLazy(opts: {
   athPreviewEnabled?: boolean;
 }): {
   dossierBuilding: boolean;
+  dossierEnriching: boolean;
+  partialPersistPending: boolean;
   dossierSaving: boolean;
   dossierParseFailed: boolean;
   parseErrorMessage: string | null;
@@ -74,30 +81,48 @@ export function useTenderDossierHeavyLazy(opts: {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
   const itemId = item.id;
   const [dossierBuilding, setDossierBuilding] = useState(false);
+  const [dossierEnriching, setDossierEnriching] = useState(false);
   const [dossierSaving, setDossierSaving] = useState(false);
   const [dossierParseFailed, setDossierParseFailed] = useState(false);
   const [parseErrorMessage, setParseErrorMessage] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
+  const [partialPersistPending, setPartialPersistPending] = useState(false);
+  const [finalPersistPending, setFinalPersistPending] = useState(false);
   const onUpdateRef = useRef(onUpdate);
-  const pendingSaveRef = useRef(false);
   onUpdateRef.current = onUpdate;
 
   const retryDossierParse = useCallback(() => {
     clearDossierInflightForItem(itemId);
-    pendingSaveRef.current = false;
+    setPartialPersistPending(false);
+    setFinalPersistPending(false);
     setDossierSaving(false);
+    setDossierEnriching(false);
     setDossierParseFailed(false);
     setParseErrorMessage(null);
     setRetryNonce((n) => n + 1);
   }, [itemId]);
 
   useEffect(() => {
-    if (!pendingSaveRef.current) return;
+    if (!partialPersistPending) return;
+    if (item.tenderDossier?.kosztorys?.ok) {
+      setPartialPersistPending(false);
+      if (!finalPersistPending) setDossierSaving(false);
+    }
+  }, [
+    partialPersistPending,
+    finalPersistPending,
+    item.tenderDossier?.builtAt,
+    item.tenderDossier?.kosztorys?.ok,
+  ]);
+
+  useEffect(() => {
+    if (!finalPersistPending) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
-      pendingSaveRef.current = false;
+      setFinalPersistPending(false);
       setDossierSaving(false);
     }
   }, [
+    finalPersistPending,
     item.tenderDossier?.builtAt,
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.kosztorys?.ok,
@@ -125,8 +150,10 @@ export function useTenderDossierHeavyLazy(opts: {
   useEffect(() => {
     if (!enabled) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
-      pendingSaveRef.current = false;
+      setPartialPersistPending(false);
+      setFinalPersistPending(false);
       setDossierSaving(false);
+      setDossierEnriching(false);
       setDossierParseFailed(false);
       setParseErrorMessage(null);
       return;
@@ -149,25 +176,63 @@ export function useTenderDossierHeavyLazy(opts: {
     (async () => {
       setDossierBuilding(true);
       try {
-        const built = await buildTenderDossierHeavy({
+        const costBuilt = await buildTenderDossierCostPhase({
           item: snapshot,
           docs: snapshotDocs,
           noticeHtml: snapshotNoticeHtml,
           existingSwz: snapshotSwz,
           existingDossier: snapshotDossier,
           athPreviewEnabled,
+          pipelineTimingItemId: itemId,
         });
         if (cancelled) return;
-        const patch: Partial<TenderPipelineItem> = {
-          tenderDossier: built.tenderDossier,
+
+        const partialPatch: Partial<TenderPipelineItem> = {
+          tenderDossier: costBuilt.tenderDossier,
         };
-        if (built.swzAnalysis) patch.swzAnalysis = built.swzAnalysis;
-        if (built.ourEstimatePln != null && snapshotEstimate == null) {
-          patch.ourEstimatePln = built.ourEstimatePln;
+        if (costBuilt.swzAnalysis) partialPatch.swzAnalysis = costBuilt.swzAnalysis;
+        if (costBuilt.ourEstimatePln != null && snapshotEstimate == null) {
+          partialPatch.ourEstimatePln = costBuilt.ourEstimatePln;
         }
-        pendingSaveRef.current = true;
+        setPartialPersistPending(true);
         setDossierSaving(true);
-        onUpdateRef.current(patch);
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "partial" });
+        onUpdateRef.current(partialPatch);
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "partial" });
+
+        setDossierBuilding(false);
+
+        if (!costBuilt.parseSession) return;
+
+        setDossierEnriching(true);
+        enrichmentInflightIds.add(itemId);
+        const finalBuilt = await enrichTenderDossierMetadataPhase({
+          item: snapshot,
+          docs: snapshotDocs,
+          noticeHtml: snapshotNoticeHtml,
+          existingSwz: snapshotSwz,
+          existingDossier: snapshotDossier,
+          athPreviewEnabled,
+          pipelineTimingItemId: itemId,
+          parseSession: costBuilt.parseSession,
+          partialDossier: costBuilt.tenderDossier,
+          partialSwz: costBuilt.swzAnalysis,
+          partialEstimatePln: costBuilt.ourEstimatePln,
+        });
+        if (cancelled) return;
+
+        const finalPatch: Partial<TenderPipelineItem> = {
+          tenderDossier: finalBuilt.tenderDossier,
+        };
+        if (finalBuilt.swzAnalysis) finalPatch.swzAnalysis = finalBuilt.swzAnalysis;
+        if (finalBuilt.ourEstimatePln != null && snapshotEstimate == null) {
+          finalPatch.ourEstimatePln = finalBuilt.ourEstimatePln;
+        }
+        setFinalPersistPending(true);
+        setDossierSaving(true);
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "final" });
+        onUpdateRef.current(finalPatch);
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "final" });
       } catch (e) {
         if (cancelled) return;
         const message = e instanceof Error ? e.message : String(e);
@@ -180,16 +245,23 @@ export function useTenderDossierHeavyLazy(opts: {
         });
       } finally {
         dossierInflightIds.delete(itemId);
-        if (!cancelled) setDossierBuilding(false);
+        enrichmentInflightIds.delete(itemId);
+        if (!cancelled) {
+          setDossierBuilding(false);
+          setDossierEnriching(false);
+        }
         if (cancelled) {
-          pendingSaveRef.current = false;
+          setPartialPersistPending(false);
+          setFinalPersistPending(false);
           setDossierSaving(false);
+          setDossierEnriching(false);
         }
       }
     })();
     return () => {
       cancelled = true;
       dossierInflightIds.delete(itemId);
+      enrichmentInflightIds.delete(itemId);
     };
   }, [
     enabled,
@@ -206,6 +278,8 @@ export function useTenderDossierHeavyLazy(opts: {
 
   return {
     dossierBuilding,
+    dossierEnriching,
+    partialPersistPending,
     dossierSaving,
     dossierParseFailed,
     parseErrorMessage,
@@ -217,11 +291,17 @@ export function useTenderDossierHeavyLazy(opts: {
 /** Test-only reset — nie używać w prod UI. */
 export function resetDossierHeavyLazyForTests(): void {
   dossierInflightIds.clear();
+  enrichmentInflightIds.clear();
 }
 
 /** Test-only — stan inflight workera. */
 export function isDossierInflightForItem(itemId: string): boolean {
   return dossierInflightIds.has(itemId);
+}
+
+/** Test-only — enrichment w toku. */
+export function isDossierEnrichmentInflightForItem(itemId: string): boolean {
+  return enrichmentInflightIds.has(itemId);
 }
 
 /** Test-only — symulacja zajętego inflight (abort lifecycle). */

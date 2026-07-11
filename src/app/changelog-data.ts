@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.63.95",
+    label: "NG11 Wave 1 — Progressive Heavy + Cost-first Pricing",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — pipeline NG11-A1: progressive heavy build (faza kosztorysu + metadata w tle) z partial persist i sygnałami partialDossierReady / dossierEnriching.",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — pipeline NG11-Q5: wcześniejsza wycena po partialDossierReady (pricingReadyPartial) i recompute po zakończeniu metadata (pricingReadyFinal).",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — PipelineState: Pricing przed Ready; timing pricing.compute_partial / pricing.compute_final (dev telemetry).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.94",
     label: "NG10 — Autonomous Agent UX Complete",
     items: [

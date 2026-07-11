@@ -378,6 +378,8 @@ export function resolveKosztorysAwaitingParseDisplay(
 export function buildKosztorysProcessSession(opts: {
   autoRunning?: boolean;
   dossierBuilding?: boolean;
+  /** NG11-A1 — metadata enrichment w toku. */
+  dossierEnriching?: boolean;
   dossierSaving?: boolean;
   dossierParseFailed?: boolean;
   parseErrorMessage?: string | null;
