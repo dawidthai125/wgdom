@@ -16,6 +16,7 @@ import {
   deriveAutonomousEtaSeconds,
   deriveAutonomousRunPhase,
 } from "@/lib/tender-autonomous-run-phase";
+import { deriveAutonomousStatusMessage } from "@/lib/tender-autonomous-run-status";
 import { deriveAutonomousRunTimelineView } from "@/lib/tender-autonomous-run-timeline";
 import {
   AUTONOMOUS_RUN_MIN_DISPLAY_MS,
@@ -180,6 +181,11 @@ export function TenderAutonomousGate({
     [phaseInput, phaseView],
   );
 
+  const statusMessage = useMemo(
+    () => deriveAutonomousStatusMessage(phaseInput, phaseView),
+    [phaseInput, phaseView],
+  );
+
   const elapsedMs = Date.now() - runStartedAt;
   const rowCount = item.tenderDossier?.kosztorys?.rowCount ?? 0;
   const etaSeconds = deriveAutonomousEtaSeconds({
@@ -309,7 +315,8 @@ export function TenderAutonomousGate({
           tenderTitle={item.title ?? ""}
           mode={screenMode}
           activeLiveMessage={phaseView.activeLive?.message ?? null}
-          achievements={phaseView.achievements}
+          feed={phaseView.feed}
+          statusMessage={screenMode === "running" ? statusMessage : null}
           timelineView={screenMode === "running" ? timelineView : null}
           etaLabel={formatAutonomousEtaSeconds(etaSeconds)}
           etaExceeded={etaExceeded}

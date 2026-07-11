@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import type { AutonomousActivityEvent } from "@/lib/tender-autonomous-run-phase";
+import type { AutonomousActivityKind } from "@/lib/tender-autonomous-run-ux";
 import type {
   AutonomousRunTimelineView,
   AutonomousTimelineStepStatus,
@@ -30,6 +31,107 @@ function timelineStatusSymbol(status: AutonomousTimelineStepStatus): string {
     default:
       return "○";
   }
+}
+
+function feedEntrySymbol(kind: AutonomousActivityKind): string {
+  switch (kind) {
+    case "achievement":
+      return "✓";
+    case "live":
+      return "●";
+    case "status":
+      return "·";
+    default:
+      return "·";
+  }
+}
+
+function feedEntryClass(kind: AutonomousActivityKind): string {
+  switch (kind) {
+    case "live":
+      return "border-primary/50 bg-primary/10 text-foreground font-medium";
+    case "status":
+      return "border-border/50 bg-muted/30 text-muted-foreground";
+    case "thought":
+      return "border-border/40 bg-muted/20 text-muted-foreground italic";
+    default:
+      return "border-border/60 bg-secondary/30 text-foreground";
+  }
+}
+
+function TenderAutonomousActivityLog({
+  feed,
+  reducedMotion,
+}: {
+  feed: AutonomousActivityEvent[];
+  reducedMotion: boolean;
+}) {
+  const feedEndRef = useRef<HTMLDivElement>(null);
+  const feedScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const end = feedEndRef.current;
+    if (!end) return;
+    end.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "nearest",
+    });
+  }, [feed.length, feed[feed.length - 1]?.message, reducedMotion]);
+
+  return (
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <p className={`${TEUX_FONT_CAPTION} font-semibold uppercase tracking-wide text-muted-foreground mb-2`}>
+        Dziennik analizy
+      </p>
+      <div
+        ref={feedScrollRef}
+        className="flex-1 min-h-0 max-h-[40vh] lg:max-h-none overflow-y-auto overscroll-contain space-y-2 pr-1"
+        data-tender-autonomous-feed
+        aria-live="polite"
+        aria-relevant="additions"
+      >
+        {feed.map((entry) => (
+          <div
+            key={`${entry.id}-${entry.kind}-${entry.message}`}
+            className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 ${TEUX_FONT_BODY} ng10-feed-item-enter ${feedEntryClass(entry.kind)}`}
+            data-tender-autonomous-feed-entry={entry.id}
+            data-tender-autonomous-feed-kind={entry.kind}
+            data-tender-autonomous-agent={entry.agentId}
+          >
+            <span
+              className={`shrink-0 w-4 text-center ${entry.kind === "achievement" ? "text-primary font-semibold" : entry.kind === "live" ? "text-primary" : "text-muted-foreground"}`}
+              aria-hidden
+            >
+              {feedEntrySymbol(entry.kind)}
+            </span>
+            <div className="min-w-0">
+              <p>{entry.message.replace(/^✓\s*/, "")}</p>
+              {entry.kind !== "status" && (
+                <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
+                  {AUTONOMOUS_AI_AGENT_LABELS[entry.agentId]}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+        <div ref={feedEndRef} className="h-px shrink-0" aria-hidden />
+      </div>
+    </div>
+  );
+}
+
+function TenderAutonomousDynamicStatus({ message }: { message: string }) {
+  return (
+    <div
+      className={`sticky top-0 z-10 shrink-0 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 ${TEUX_FONT_BODY} text-foreground shadow-sm`}
+      data-tender-autonomous-dynamic-status
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {message}
+    </div>
+  );
 }
 
 function timelineStatusClass(status: AutonomousTimelineStepStatus): string {
@@ -164,7 +266,8 @@ export function TenderAutonomousRunScreen({
   tenderTitle,
   mode,
   activeLiveMessage,
-  achievements,
+  feed,
+  statusMessage,
   timelineView,
   etaLabel,
   etaExceeded,
@@ -174,27 +277,16 @@ export function TenderAutonomousRunScreen({
   tenderTitle: string;
   mode: TenderAutonomousRunScreenMode;
   activeLiveMessage: string | null;
-  achievements: AutonomousActivityEvent[];
+  feed: AutonomousActivityEvent[];
+  statusMessage: string | null;
   timelineView: AutonomousRunTimelineView | null;
   etaLabel: string | null;
   etaExceeded: boolean;
   reducedMotion: boolean;
   onBack: () => void;
 }) {
-  const feedEndRef = useRef<HTMLDivElement>(null);
-  const feedScrollRef = useRef<HTMLDivElement>(null);
   const showTimeline = mode === "running" && timelineView != null;
-
-  useEffect(() => {
-    if (mode === "complete_hold" || mode === "partial_hold" || mode === "outcome_bridge") return;
-    const el = feedScrollRef.current;
-    const end = feedEndRef.current;
-    if (!el || !end) return;
-    end.scrollIntoView({
-      behavior: reducedMotion ? "auto" : "smooth",
-      block: "nearest",
-    });
-  }, [achievements.length, activeLiveMessage, mode, reducedMotion]);
+  const showDynamicStatus = mode === "running" && statusMessage != null && statusMessage.trim().length > 0;
 
   const handleBack = () => {
     const ok = window.confirm(
@@ -330,6 +422,10 @@ export function TenderAutonomousRunScreen({
             </div>
           )}
 
+          {showDynamicStatus && (
+            <TenderAutonomousDynamicStatus message={statusMessage} />
+          )}
+
           {mode === "running" && (
             <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 overflow-hidden">
               {showTimeline && (
@@ -340,34 +436,7 @@ export function TenderAutonomousRunScreen({
                   />
                 </div>
               )}
-              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                <p className={`${TEUX_FONT_CAPTION} font-semibold uppercase tracking-wide text-muted-foreground mb-2`}>
-                  Dotychczas
-                </p>
-                <div
-                  ref={feedScrollRef}
-                  className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2 pr-1"
-                  data-tender-autonomous-feed
-                >
-                  {achievements.map((entry) => (
-                    <div
-                      key={`${entry.id}-${entry.message}`}
-                      className={`flex items-start gap-2 rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 ${TEUX_FONT_BODY} text-foreground ng10-feed-item-enter`}
-                      data-tender-autonomous-achievement={entry.id}
-                      data-tender-autonomous-agent={entry.agentId}
-                    >
-                      <span className="shrink-0 text-primary font-semibold" aria-hidden>✓</span>
-                      <div className="min-w-0">
-                        <p>{entry.message.replace(/^✓\s*/, "")}</p>
-                        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
-                          {AUTONOMOUS_AI_AGENT_LABELS[entry.agentId]}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={feedEndRef} className="h-px shrink-0" aria-hidden />
-                </div>
-              </div>
+              <TenderAutonomousActivityLog feed={feed} reducedMotion={reducedMotion} />
             </div>
           )}
         </div>
