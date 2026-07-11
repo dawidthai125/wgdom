@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11 Wave 1** A1+Q5 · prod **2.63.95** @ `4710d11` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q3** debounced persist · **2.63.96** · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,7 +2016,29 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 2:** NG11-Q3 debounced persist — AUDIT+PLAN · Owner GO **NOT READY**.
+**Backlog Wave 2:** NG11-Q3 — **RELEASED** (v2.63.96) · patrz §12.1.32.
+
+---
+
+### 12.1.32 NG11-Q3 — Debounced Persist (v2.63.96)
+
+**Status:** **RELEASED** · LS sync natychmiast · cloud debounce 500 ms · flaga `pipelinePerfDebouncePersist` default **OFF**  
+**SSOT:** [`architecture/NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md`](architecture/NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Coalesce schedule/flush | `src/lib/tender-pipeline/tender-pipeline-persist-coalesce.ts` |
+| Hook integracji | `src/app/tenders/strategy/hooks/useTendersPipeline.ts` |
+| Flaga Super Admin | `src/lib/app-settings.ts` · `AdminSettingsModal.tsx` |
+| Ready/Failed bridge | `recordPipelineStateTiming` → `notifyPipelinePersistTerminalState` |
+
+**Flush triggers:** Ready · Failed · `visibilitychange(hidden)` · `beforeunload` · unmount provider · bulk `persist()` (BZP merge).
+
+**Test:** `scripts/test-ng11-debounce-persist.mjs` (10) + regresja A1/Q5/timing/gate-exit.
+
+**Nie zmienia:** `cloud-sync.ts` kernel · NG10 gate-exit · Payroll · parsery · `derivePipelineState` · Edge.
+
+**Rollback:** `pipelinePerfDebouncePersist = false` w ⚙ Super Admin.
 
 ---
 

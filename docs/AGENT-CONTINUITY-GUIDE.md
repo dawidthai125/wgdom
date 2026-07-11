@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.95** (prod) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Prod:** UI **2.63.96** (lokalny IMPLEMENT) · prod nadal **2.63.95** do push · https://www.wgdom.fun
 > **Ostatnia aktualizacja:** 2026-07-11 · **runtime prod** `4710d11` · **NG11 Wave 1 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Closeout sesji (2026-07-11, NG11-Q3):** **NG11-Q3** debounced persist **2.63.96** · flaga `pipelinePerfDebouncePersist` default OFF · test **91/91 PASS** · SSOT [`architecture/NG11-Q3-CLOSEOUT.md`](architecture/NG11-Q3-CLOSEOUT.md) · **następny krok:** push → verify **2.63.96** lub release **TWSL** **2.63.91**.
 
 > **★ Closeout sesji (2026-07-11, NG11 Wave 1):** **NG11-A1+Q5** release **2.63.95** @ **`4710d11`** · FAST RELEASE · build+test **81/81 PASS** · verify `version.json` **PASS** · SSOT [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md) · **następny krok:** NG11-Q3 (Owner GO) lub release **TWSL** **2.63.91**.
 

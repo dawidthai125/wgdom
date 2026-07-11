@@ -48,6 +48,8 @@ export interface AppSettings {
   bzpScanOrgPages: number;
   /** Auto-odświeżenie listy BZP (godziny). */
   bzpAutoRefreshHours: number;
+  /** NG11-Q3 — debounced cloud persist pipeline przetargów (LS sync natychmiast). Domyślnie wyłączone. */
+  pipelinePerfDebouncePersist: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -62,7 +64,13 @@ export function defaultAppSettings(): AppSettings {
     bzpScanPages: 4,
     bzpScanOrgPages: 5,
     bzpAutoRefreshHours: 20,
+    pipelinePerfDebouncePersist: false,
   };
+}
+
+/** NG11-Q3 — debounced persist pipeline (feature flag, default OFF). */
+export function isPipelinePerfDebouncePersistEnabled(): boolean {
+  return loadAppSettingsLocal().pipelinePerfDebouncePersist === true;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -141,6 +149,7 @@ export function loadAppSettingsLocal(): AppSettings {
       bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
       bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
       bzpAutoRefreshHours: numSetting(parsed.bzpAutoRefreshHours, d.bzpAutoRefreshHours, 1, 168),
+      pipelinePerfDebouncePersist: parsed.pipelinePerfDebouncePersist === true,
     };
   } catch {
     return defaultAppSettings();
@@ -187,5 +196,11 @@ export function mergeAppSettings(
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),
     bzpScanOrgPages: numSetting(remote?.bzpScanOrgPages, local.bzpScanOrgPages, 1, 20),
     bzpAutoRefreshHours: numSetting(remote?.bzpAutoRefreshHours, local.bzpAutoRefreshHours, 1, 168),
+    pipelinePerfDebouncePersist:
+      remote?.pipelinePerfDebouncePersist === true
+        ? true
+        : remote?.pipelinePerfDebouncePersist === false
+          ? false
+          : local.pipelinePerfDebouncePersist === true,
   };
 }

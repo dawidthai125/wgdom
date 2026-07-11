@@ -235,6 +235,25 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.pipelinePerfDebouncePersist}
+                onChange={async (e) => {
+                  const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">NG11-Q3 — debounced persist pipeline przetargów</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Po włączeniu zapis lokalny (LS) jest natychmiastowy, a synchronizacja
+                  chmury kw-tenders-pipeline jest grupowana (500 ms) z flush przy Ready/Failed i zamknięciu karty.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.athPreviewEnabled}
                 onChange={async (e) => {
                   const next = { ...appSettings, athPreviewEnabled: e.target.checked };

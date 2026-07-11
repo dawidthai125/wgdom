@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.63.96",
+    label: "NG11-Q3 — Debounced Persist pipeline",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-Q3: zapis lokalny pipeline natychmiastowy; synchronizacja chmury kw-tenders-pipeline grupowana (500 ms) z flush przy Ready/Failed, ukryciu karty i zamknięciu.",
+      },
+      {
+        type: "improve",
+        text: "Super Admin — flaga pipelinePerfDebouncePersist w ustawieniach (domyślnie wyłączona; rollback bez deployu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.95",
     label: "NG11 Wave 1 — Progressive Heavy + Cost-first Pricing",
     items: [

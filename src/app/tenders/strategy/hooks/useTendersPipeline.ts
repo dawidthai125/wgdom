@@ -2,6 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { saveAs } from "file-saver";
 import { loadAppSettingsLocal } from "@/lib/app-settings";
+import {
+  flushTenderPipelinePersist,
+  installTenderPipelinePersistFlushListeners,
+  isDebouncePersistActive,
+  persistTenderPipelineImmediate,
+  scheduleTenderPipelinePersist,
+} from "@/lib/tender-pipeline/tender-pipeline-persist-coalesce";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   type TenderPipelineItem,
@@ -86,10 +93,18 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
   const persist = useCallback(async (next: TenderPipelineItem[]) => {
     setItems(next);
     try {
-      await saveTendersPipeline(next);
+      await persistTenderPipelineImmediate(next);
     } catch {
       toast.error("Nie udało się zapisać pipeline do chmury");
     }
+  }, []);
+
+  useEffect(() => {
+    const releaseListeners = installTenderPipelinePersistFlushListeners();
+    return () => {
+      void flushTenderPipelinePersist("unmount");
+      releaseListeners();
+    };
   }, []);
 
   const runBzpMerge = useCallback(async (baseItems: TenderPipelineItem[], silent = false) => {
@@ -146,7 +161,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
           const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
           if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
           if (updated > 0) {
-            await saveTendersPipeline(withAwards);
+            await persistTenderPipelineImmediate(withAwards);
             if (!cancelled) setItems(withAwards);
           }
           markPipelineAutoAwardCompleted();
@@ -186,7 +201,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
                 partialMeta: { keywordsEpoch: epoch },
               });
               if (!cancelled && genAtStart === getPipelineCacheGeneration()) {
-                void saveTendersPipeline(rescored).catch(() => {});
+                void persistTenderPipelineImmediate(rescored).catch(() => {});
               }
             }
           }
@@ -212,7 +227,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
         });
 
         if (changed) {
-          void saveTendersPipeline(rescored).catch(() => {});
+          void persistTenderPipelineImmediate(rescored).catch(() => {});
         }
 
         void runBackgroundTasks(loaded);
@@ -249,10 +264,16 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
       const next = prev.map((i) =>
         i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i,
       );
-      void persist(next);
+      if (isDebouncePersistActive()) {
+        scheduleTenderPipelinePersist(next);
+      } else {
+        void saveTendersPipeline(next).catch(() => {
+          toast.error("Nie udało się zapisać pipeline do chmury");
+        });
+      }
       return next;
     });
-  }, [persist]);
+  }, []);
 
   const removeItem = useCallback(async (id: string) => {
     if (!window.confirm("Usunąć przetarg z listy pipeline? (nie wróci przy sync BZP)")) return false;
@@ -284,7 +305,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
       let loaded = await loadTendersPipeline();
       const { items: rescored, changed, custom } = await syncTenderKeywordsAndRescore(loaded);
       if (changed) {
-        await saveTendersPipeline(rescored);
+        await persistTenderPipelineImmediate(rescored);
         loaded = rescored;
       }
       setPipelineSessionCache({

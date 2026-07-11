@@ -203,8 +203,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.95**) |
-| Prod `main` (app) | **v2.63.95** (`4710d11`) · **NG11 Wave 1 CLOSED** · **NG10 UX COMPLETE** · **POST INCIDENT STANDBY** · Protected Core **GREEN** · Payroll **GREEN** · Cloud Sync **GREEN** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.96** lokalny · prod **2.63.95** do push Q3) |
+| Prod `main` (app) | **v2.63.95** (`4710d11`) · **NG11-Q3 IMPLEMENT lokalny 2.63.96** · **NG11 Wave 1 CLOSED** · Protected Core **GREEN** |
 | Docs `main` (continuity) | **`58a7d38`** — epic closeout PRODUCTION VERIFIED |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |

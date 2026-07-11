@@ -4,6 +4,7 @@
  */
 
 import { PipelineState } from "@/lib/tender-pipeline/tender-pipeline-types";
+import { notifyPipelinePersistTerminalState } from "@/lib/tender-pipeline/tender-pipeline-persist-coalesce";
 
 export const PIPELINE_TIMING_STAGE_KEYS = [
   "discovery.notice",
@@ -155,6 +156,7 @@ export function recordPipelineStateTiming(
   state: PipelineState,
   prevState: PipelineState | null,
 ): void {
+  notifyPipelinePersistTerminalState(state, prevState);
   if (!itemId?.trim() || !isPipelineTimingEnabled()) return;
   if (prevState === state) return;
   markPipelineTimingStage(itemId, "pipeline.state", "mark", {

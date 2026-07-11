@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.96 — NG11-Q3 Debounced Persist
+
+- **improve:** LS sync natychmiast · cloud persist debounce 500 ms · flush Ready/Failed/visibility/beforeunload/unmount
+- **improve:** flaga `pipelinePerfDebouncePersist` (Super Admin, default OFF)
+
 ## 2.63.95 — NG11 Wave 1 (Progressive Heavy A1 + Cost-first Pricing Q5)
 
 - **improve:** A1 — cost/metadata split heavy build · partial dossier persist · partialDossierReady / dossierEnriching

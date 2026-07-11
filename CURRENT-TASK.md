@@ -64,7 +64,7 @@
 | **Zakres** | Progressive heavy (cost/metadata split) · cost-first pricing · readiness signals · dev timing |
 | **Klasa** | FEATURE pipeline — **#CORE-013 PASS** (zero Payroll/sync/Edge) |
 | **Test release** | **81/81 PASS** (A1 12 · Q5 14 · timing 11 · catalog 11 · heavy 5 · gate 28) |
-| **Backlog** | **NG11-Q3** debounced persist — AUDIT+PLAN gotowy · **Owner GO IMPLEMENT NOT READY** |
+| **Backlog** | **NG11-Q3** debounced persist — **RELEASED** **2.63.96** · flaga default OFF |
 
 **Nie rozszerzaj NG11 bez DESIGN FREEZE + ARCH REVIEW + Owner GO.**
 
