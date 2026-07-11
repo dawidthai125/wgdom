@@ -69,20 +69,20 @@
 ```text
 Push: git push origin main → d14bb7e..e003591 PASS
 
-curl -s https://www.wgdom.fun/version.json (jedno sprawdzenie, 2026-07-11)
-→ { "version": "2.63.96", "commit": "d14bb7e", ... }
+curl -s https://www.wgdom.fun/version.json (verify final, 2026-07-11)
+→ { "version": "2.63.97", "commit": "e003591", "timestamp": "2026-07-11T21:25:09.940Z" }
 ```
 
-| Pole | Oczekiwane | Stan (verify #1) |
-|------|------------|------------------|
-| `version` | **2.63.97** | **2.63.96** — **DEPLOY PROPAGATING** |
-| `commit` | **`e003591`** | **`d14bb7e`** (poprzedni prod) |
+| Pole | Oczekiwane | Stan |
+|------|------------|------|
+| `version` | **2.63.97** | **2.63.97** ✅ |
+| `commit` | **`e003591`** | **`e003591`** ✅ |
 
-**RELEASE GO:** **PASS** (push + test + build).
+**RELEASE GO:** **PASS**
 
-**PRODUCTION VERIFIED:** **PENDING PROPAGATION** → po propagacji Vercel oczekiwane **2.63.97** @ **`e003591`**.
+**PRODUCTION VERIFIED:** **PASS** (2026-07-11)
 
-**Rollback Required:** **NIE** (flaga OFF — zero behavior change vs 2.63.96).
+**Rollback Required:** **NIE** (flaga OFF — zero behavior change vs 2.63.96)
 
 ---
 

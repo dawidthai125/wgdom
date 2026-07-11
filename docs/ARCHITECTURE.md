@@ -2022,7 +2022,7 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 ### 12.1.33 NG11-Q1 — Parse Concurrency (v2.63.97)
 
-**Status:** **RELEASED** (2026-07-11) · flaga `pipelinePerfParseConcurrency` default **OFF**  
+**Status:** **RELEASED** · **PRODUCTION VERIFIED** (2026-07-11) · flaga `pipelinePerfParseConcurrency` default **OFF**  
 **SSOT:** [`architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md`](architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md)
 
 | Element | Plik |

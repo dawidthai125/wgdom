@@ -2,8 +2,8 @@
 
 > **Program:** NG11-TENDER-PIPELINE-PERFORMANCE  
 > **Slice:** **NG11-Q1**  
-> **Prod:** UI **2.63.97** · https://www.wgdom.fun · **RELEASE GO** · verify `version.json` **DEPLOY PROPAGATING** (2026-07-11)  
-> **Feature commit:** **`e003591`**  
+> **Prod:** UI **2.63.97** · https://www.wgdom.fun · **PRODUCTION VERIFIED** (2026-07-11)  
+> **Feature commit:** **`e003591`** · **Prod HEAD:** **`19a526c`** (feature + docs closeout)  
 > **SSOT plan:** [`NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md`](./NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md)  
 > **Release verify:** [`NG11-Q1-RELEASE-VERIFICATION.md`](./NG11-Q1-RELEASE-VERIFICATION.md)
 
@@ -13,7 +13,7 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Status** | **EPIC SLICE CLOSED** · **RELEASE GO** |
+| **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
 | **OWNER QA** | **PASS** |
 | **Test release** | **80/80 PASS** |
 | **PG-1** | **PASS (harness proxy)** |
@@ -55,10 +55,12 @@
 
 ## Następny program
 
-**NG11-Q2** — Parallel archive unpack — **HOLD** do pełnego **PRODUCTION VERIFIED** Q1 + Owner GO Q2.
+**NG11-Q2** — Parallel archive unpack (`buildTenderDocCandidates` · concurrency **≤2**) — **AUDIT READY**.
 
-**Nie rozpoczynaj Q2** przed zamknięciem propagacji deploy **2.63.97**.
+Workflow: **AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO** · **IMPLEMENT NOT STARTED**.
+
+SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § Q2.
 
 ---
 
-*NG11-Q1 closeout · RELEASE GO · 2026-07-11*
+*NG11-Q1 closeout · PRODUCTION VERIFIED · 2026-07-11*

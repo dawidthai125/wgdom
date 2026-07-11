@@ -1,10 +1,12 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.97** @ **`e003591`** · https://www.wgdom.fun · **RELEASE GO** · verify **DEPLOY PROPAGATING** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-Q1 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.97** @ **`e003591`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-Q1 PRODUCTION VERIFIED** · **NG11-Q2 AUDIT READY** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Closeout sesji (2026-07-11, NG11-Q1 RELEASE):** **2.63.97** @ **`e003591`** · OWNER QA **PASS** · test **80/80** · PG-1 harness **PASS** · push **PASS** · SSOT [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md) · **następny:** Q2 **HOLD** do PRODUCTION VERIFIED.
+> **★ Closeout sesji (2026-07-11, NG11-Q1 PRODUCTION VERIFIED):** **2.63.97** @ **`e003591`** · `version.json` **PASS** · test **80/80** · SSOT [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md) · **następny:** **NG11-Q2** od **AUDIT** (bez IMPLEMENT).
+
+> **★ Closeout sesji (2026-07-11, NG11-Q1 RELEASE):** **2.63.97** @ **`e003591`** · OWNER QA **PASS** · test **80/80** · PG-1 harness **PASS** · push **PASS** · SSOT [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md).
 
 > **★ Closeout sesji (2026-07-11, NG11-Q3 PRODUCTION VERIFIED):** **2.63.96** · OWNER QA **PASS** · test **91/91** · `version.json` **PASS** · SSOT [`architecture/NG11-Q3-CLOSEOUT.md`](architecture/NG11-Q3-CLOSEOUT.md).
 
@@ -45,7 +47,7 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.97** · https://www.wgdom.fun · **RELEASE GO** · verify propagating · **GREEN** |
+| **Production (UI)** | **2.63.97** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
 | **Runtime commit** | **`e003591`** · NG11-Q1 parse concurrency |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
@@ -54,7 +56,7 @@
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-Q2** HOLD · verify `version.json` **2.63.97** · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-Q2** od **AUDIT** (parallel archive unpack) · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 
