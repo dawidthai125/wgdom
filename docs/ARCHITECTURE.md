@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q3** debounced persist · **2.63.96** · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q3** debounced persist · **2.63.96 PRODUCTION VERIFIED** @ `4b35228` · feature `f6f7265`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2022,7 +2022,7 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 ### 12.1.32 NG11-Q3 — Debounced Persist (v2.63.96)
 
-**Status:** **RELEASED** · LS sync natychmiast · cloud debounce 500 ms · flaga `pipelinePerfDebouncePersist` default **OFF**  
+**Status:** **RELEASED** · **PRODUCTION VERIFIED** (2026-07-11) · flaga `pipelinePerfDebouncePersist` default **OFF**  
 **SSOT:** [`architecture/NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md`](architecture/NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md)
 
 | Element | Plik |

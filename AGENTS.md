@@ -204,7 +204,7 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.96**) |
-| Prod `main` (app) | **v2.63.96** (`f6f7265`) · **NG11-Q3 RELEASED** · verify **DEPLOY PROPAGATING** · Protected Core **GREEN** |
+| Prod `main` (app) | **v2.63.96** (`4b35228` · feature `f6f7265`) · **NG11-Q3 PRODUCTION VERIFIED** · Protected Core **GREEN** |
 | Docs `main` (continuity) | **`58a7d38`** — epic closeout PRODUCTION VERIFIED |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |

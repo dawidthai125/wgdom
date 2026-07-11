@@ -45,17 +45,19 @@
 
 ```text
 curl -s https://www.wgdom.fun/version.json
-→ { "version": "2.63.95", "commit": "4710d11", ... }  (2026-07-11T20:44Z)
+→ { "version": "2.63.96", "commit": "4b35228", "timestamp": "2026-07-11T20:46:44.710Z" }
 ```
 
 | Pole | Oczekiwane | Stan |
 |------|------------|------|
-| `version` | **2.63.96** | **2.63.95** (propagacja Vercel) |
-| `commit` | **f6f7265** | **4710d11** |
+| `version` | **2.63.96** | **2.63.96** ✅ |
+| `commit` | feature **`f6f7265`** (prod HEAD **`4b35228`**) | **4b35228** ✅ |
 
-**PRODUCTION VERIFIED:** **PENDING** — **DEPLOY PROPAGATING** (jedno sprawdzenie FAST, bez retry).
+**PRODUCTION VERIFIED:** **PASS** (2026-07-11).
 
-**RELEASE GO:** **PASS** (push `main` OK).
+**RELEASE GO:** **PASS**.
+
+**Rollback Required:** **NIE**.
 
 ---
 

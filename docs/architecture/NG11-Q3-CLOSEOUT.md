@@ -2,15 +2,26 @@
 
 > **Program:** NG11-TENDER-PIPELINE-PERFORMANCE  
 > **Slice:** **NG11-Q3**  
-> **Wersja:** **2.63.96**  
-> **Commit:** **`f6f7265`**  
-> **Status:** **RELEASED** · **DEPLOY PROPAGATING** · verify `version.json` → **2.63.96** pending  
+> **Prod:** UI **2.63.96** · https://www.wgdom.fun · **PRODUCTION VERIFIED** (2026-07-11)  
+> **Feature commit:** **`f6f7265`** · **Prod `main` HEAD:** **`4b35228`** (feature + docs closeout)  
 > **SSOT plan:** [`NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md`](./NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md)  
 > **Release verify:** [`NG11-Q3-RELEASE-VERIFICATION.md`](./NG11-Q3-RELEASE-VERIFICATION.md)
 
 ---
 
-## Zakres
+## Werdykt
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
+| **OWNER QA** | **PASS** |
+| **Test release** | **91/91 PASS** |
+| **Flaga** | `pipelinePerfDebouncePersist` default **OFF** |
+| **Rollback** | Wyłącz flagę w ⚙ Super Admin |
+
+---
+
+## Zakres dostarczony
 
 | Element | Status |
 |---------|--------|
@@ -23,27 +34,27 @@
 
 ---
 
-## Pliki
+## Kluczowe pliki
 
 | Plik | Rola |
 |------|------|
 | `tender-pipeline-persist-coalesce.ts` | schedule · flush · listeners |
 | `useTendersPipeline.ts` | updateItem debounce · persist immediate |
 | `app-settings.ts` | feature flag |
-| `tender-pipeline-timing.ts` | Ready/Failed notify bridge (2 linie) |
+| `tender-pipeline-timing.ts` | Ready/Failed notify bridge |
 
 ---
 
-## Boundary
+## Boundary (PASS)
 
 **Nie dotknięto:** Payroll · `cloud-sync.ts` kernel · `App.tsx` CORE · Edge · NG10 gate · parsery · pricing runtime logic.
 
 ---
 
-## Rollback
+## Następny program (po zamknięciu Q3)
 
-Super Admin → wyłącz **NG11-Q3 debounced persist** → natychmiastowy legacy `saveTendersPipeline`.
+**NG11-Q1** — Parse concurrency · workflow: **AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO** · **IMPLEMENT NOT STARTED**
 
 ---
 
-*NG11-Q3 closeout · 2026-07-11*
+*NG11-Q3 closeout · PRODUCTION VERIFIED · 2026-07-11*
