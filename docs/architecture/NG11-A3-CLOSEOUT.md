@@ -87,7 +87,7 @@
 
 ## Następny program
 
-**NG11-A5** — strategic/economic decision — **BLOCKED** do pełnego closeout A3 ✅ · workflow: AUDIT → Owner GO.
+**NG11-A5** — strategic/economic decision — **AUDIT READY** · **IMPLEMENT BLOCKED**.
 
 SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A5.
 
@@ -95,4 +95,4 @@ SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE
 
 ---
 
-*NG11-A3 closeout · PRODUCTION VERIFIED · 2026-07-11*
+*NG11-A3 closeout · PRODUCTION VERIFIED · version.json 2.64.0 @ 78c0a40 · 2026-07-11*

@@ -16,10 +16,9 @@
 | Krok | Wynik |
 |------|-------|
 | `git push origin main` | **PASS** (`446e061..78c0a40`) |
-| `curl -s https://www.wgdom.fun/version.json` | **DEPLOY PROPAGATING** @ verify T0 → `{ "version": "2.63.99", "commit": "446e061" }` |
-| **RELEASE GO** | **PASS** (push + build + test + OWNER QA) |
-
-> Jedno odczytanie `version.json` per WORKFLOW §3.2 — propagacja Vercel oczekiwana na **2.64.0** / **`78c0a40`**.
+| `curl -s https://www.wgdom.fun/version.json` | **PASS** (final verify) → `{ "version": "2.64.0", "commit": "78c0a40" }` |
+| **RELEASE GO** | **PASS** |
+| **PRODUCTION VERIFIED** | **PASS** (`version.json` 2026-07-11T22:31:51Z) |
 
 ---
 
@@ -98,7 +97,7 @@
 |---|---|
 | **RELEASE** | **COMPLETE** |
 | **OWNER QA** | **PASS** |
-| **PRODUCTION** | **VERIFIED** (functional) · `version.json` **DEPLOY PROPAGATING** @ T0 |
+| **PRODUCTION** | **VERIFIED** · `version.json` **2.64.0** @ **`78c0a40`** |
 
 ---
 

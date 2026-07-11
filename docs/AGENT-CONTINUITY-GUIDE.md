@@ -4,7 +4,9 @@
 > **Prod:** UI **2.64.0** @ **`78c0a40`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
 > **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Closeout sesji (2026-07-11, NG11-A3 PRODUCTION VERIFIED):** **2.64.0** @ **`78c0a40`** · OWNER QA **PASS** · test smoke **95/95** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-CLOSEOUT.md`](architecture/NG11-A3-CLOSEOUT.md) · **następny:** **NG11-A5** od **AUDIT**.
+> **★ Final verify (2026-07-11, NG11-A3):** `version.json` **PASS** → **2.64.0** @ **`78c0a40`** · **PRODUCTION VERIFIED** · baseline zaktualizowany.
+
+> **★ Closeout sesji (2026-07-11, NG11-A3 PRODUCTION VERIFIED):** **2.64.0** @ **`78c0a40`** · OWNER QA **PASS** · test smoke **95/95** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-CLOSEOUT.md`](architecture/NG11-A3-CLOSEOUT.md) · **następny:** **NG11-A5** — **AUDIT READY**.
 
 > **★ Closeout sesji (2026-07-11, NG11-A3 IMPLEMENT COMPLETE):** **v2.64.0** · test **138/138** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-RELEASE-VERIFICATION.md`](architecture/NG11-A3-RELEASE-VERIFICATION.md).
 
@@ -64,7 +66,7 @@
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-A5** od AUDIT · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-A5** — **AUDIT READY** (IMPLEMENT blocked) · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 

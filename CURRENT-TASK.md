@@ -13,7 +13,7 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) |
-| **Co dalej?** | **NG11-A5** od AUDIT (po closeout A3 ✅) · lub release **TWSL** **2.63.91** |
+| **Co dalej?** | **NG11-A5** — **AUDIT READY** (nie IMPLEMENT) · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,7 +96,21 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A3** discovery fork — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
+**Następny slice NG11:** **A5** strategic/economic decision — **AUDIT READY** · **IMPLEMENT BLOCKED** (Owner GO po AUDIT).
+
+---
+
+## NG11-A5 — Strategic/Economic Decision · **AUDIT READY** · **IMPLEMENT BLOCKED**
+
+> **SSOT:** [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A5
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **AUDIT READY** · **IMPLEMENT NOT STARTED** |
+| **Zależność** | **NG11-A3** ✅ **PRODUCTION VERIFIED** |
+| **Następny krok** | AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO |
+
+**Nie rozpoczynaj IMPLEMENT** bez pozytywnej weryfikacji `version.json` A3 ✅ i Owner GO.
 
 ---
 
@@ -109,11 +123,12 @@
 | **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
 | **Wersja** | **2.64.0** |
 | **Commit** | **`78c0a40`** |
+| **`version.json`** | **VERIFIED** → **2.64.0** @ **`78c0a40`** |
 | **OWNER QA** | **PASS** |
 | **Test smoke** | **95/95 PASS** |
 | **PG-A3** | **PASS** (−35% P50 mock) |
 | **Flaga** | `pipelinePerfDiscoveryFork` default **OFF** |
-| **Następny program** | **NG11-A5** — AUDIT (nie startować bez closeout ✅) |
+| **Następny program** | **NG11-A5** — **AUDIT READY** (IMPLEMENT blocked) |
 
 ---
 
