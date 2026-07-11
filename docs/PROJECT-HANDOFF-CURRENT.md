@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.98** @ **`608c9ec`** · **PRODUCTION VERIFIED** · **WIP:** TWSL **2.63.91**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.99** @ **`447a58b`** · **PRODUCTION VERIFIED** · **WIP:** TWSL **2.63.91**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG11-A2** — Dossier Artifact Cache | **2.63.99** (`447a58b`) | **CLOSED** · **PRODUCTION VERIFIED** · test **92/92** · PG-A2 harness **PASS** | [`architecture/NG11-A2-CLOSEOUT.md`](architecture/NG11-A2-CLOSEOUT.md) |
 | **NG11-Q2** — Parallel Archive Unpack | **2.63.98** (`608c9ec`) | **CLOSED** · **PRODUCTION VERIFIED** · test **76/76** · PG-Q2 harness **PASS** | [`architecture/NG11-Q2-CLOSEOUT.md`](architecture/NG11-Q2-CLOSEOUT.md) |
 | **NG11-Q1** — Parse Concurrency | **2.63.97** (`e003591`) | **CLOSED** · **PRODUCTION VERIFIED** · test **80/80** · PG-1 harness **PASS** | [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md) |
 | **NG11-Q3** — Debounced Persist | **2.63.96** (`f6f7265` / prod `d14bb7e`) | **CLOSED** · **PRODUCTION VERIFIED** · test **91/91** | [`architecture/NG11-Q3-CLOSEOUT.md`](architecture/NG11-Q3-CLOSEOUT.md) |

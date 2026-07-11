@@ -5,7 +5,7 @@
 | **Program** | NG11-TENDER-PIPELINE-PERFORMANCE |
 | **Slice** | **NG11-A2** |
 | **Tryb** | **AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW** (ARCHITECTURE ONLY) |
-| **Status** | **IMPLEMENTED** · **Owner GO APPROVED** · **RELEASE NOT READY** (awaiting OWNER QA) |
+| **Status** | **IMPLEMENTED** · **CLOSED** · **PRODUCTION VERIFIED** |
 | **Data** | 2026-07-11 |
 | **Baseline prod** | **2.63.98** @ **`608c9ec`** · NG11-Q2 **PRODUCTION VERIFIED** |
 | **Zależności** | **NG11-Q2** ✅ · **NG11-Q1** ✅ · **NG11-Q3** ✅ · **NG11-A1** ✅ · **NG11-Q5** ✅ |
@@ -20,8 +20,8 @@
 | **AUDIT** | **PASS WITH CONDITIONS** — warstwy bytes/pdf/zip/7z istnieją; brak cache wyniku heavy parse; fingerprint + `parserVersion` gotowe |
 | **PLAN** | **READY** — session Map MVP · flag OFF · skip parse przy hit · serial merge/persist bez zmian |
 | **DESIGN FREEZE A2** | **DRAFT READY** — klucz `fingerprint|parserVersion|phase` · eviction LRU+cap · ADR przed KV |
-| **ARCH REVIEW** | **PENDING** (ten dokument = input) |
-| **Owner GO (IMPLEMENT)** | **APPROVED** |
+| **ARCH REVIEW** | **PASS WITH CONDITIONS** |
+| **Owner GO (IMPLEMENT)** | **APPROVED** · **CLOSED** |
 
 ---
 
@@ -415,8 +415,8 @@ isPipelineArtifactCacheEnabled(): boolean    // flag + test override
 | | |
 |---|---|
 | **AUDIT → PLAN → DESIGN FREEZE** | **COMPLETE** |
-| **ARCH REVIEW** | **PENDING** |
-| **Owner GO dla IMPLEMENT NG11-A2** | **NOT READY** |
+| **ARCH REVIEW** | **PASS WITH CONDITIONS** |
+| **Owner GO dla IMPLEMENT NG11-A2** | **CLOSED** · **PRODUCTION VERIFIED** |
 
 ---
 

@@ -59,13 +59,13 @@
 
 ---
 
-## Następny program
+**Następny program**
 
-**NG11-A2** — artifact cache — **BLOCKED** do zamknięcia Q2 ✅ · workflow: AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO.
+**NG11-A3** — discovery fork — **AUDIT NOT STARTED** (po A2 closeout ✅).
 
-SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A2.
+SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A3.
 
-**IMPLEMENT A2 NOT STARTED** — czeka na Owner GO po pełnym closeout Q2.
+**IMPLEMENT A3 NOT STARTED** — czeka na pełny closeout A2 ✅.
 
 ---
 

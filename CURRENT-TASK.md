@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · prod **2.63.98** @ **`608c9ec`** · **NG11-Q2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · prod **2.63.99** @ **`447a58b`** · **NG11-A2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.98** @ **`608c9ec`** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.63.99** @ **`447a58b`** · **PRODUCTION VERIFIED** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-Q2** (**2.63.98**) · **NG11-Q1** (**2.63.97**) · **NG11-Q3** (**2.63.96**) |
-| **Co dalej?** | **NG11-A2** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) · **NG11-Q1** (**2.63.97**) |
+| **Co dalej?** | **NG11-A3** od AUDIT (bez IMPLEMENT) · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,26 +96,28 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A2** artifact cache — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
+**Następny slice NG11:** **A3** discovery fork — **AUDIT NOT STARTED** (po A2 closeout ✅).
 
 ---
 
-## NG11-A2 — Dossier Artifact Cache · **IMPLEMENTED** · **RELEASE NOT READY**
+## NG11-A2 — Dossier Artifact Cache · **CLOSED** · **PRODUCTION VERIFIED**
 
-> **SSOT:** [`docs/architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md`](docs/architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md) · DF § A2 · #NG11-007
+> **SSOT:** [`docs/architecture/NG11-A2-CLOSEOUT.md`](docs/architecture/NG11-A2-CLOSEOUT.md) · [`docs/architecture/NG11-A2-RELEASE-VERIFICATION.md`](docs/architecture/NG11-A2-RELEASE-VERIFICATION.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · **OWNER QA PENDING** · **bez push** |
-| **Wersja** | **2.63.99** (lokalny changelog) |
-| **Werdykt** | session LRU 12 · phase-split cost/full · flag OFF |
-| **Test** | **111/111 PASS** (A2 21 + regresja NG11 57 + gate 28 + heavy 5) |
-| **PG-A2** | retry hit P50 −100% vs miss (mock harness) |
-| **Następny krok** | OWNER QA → commit push → verify `version.json` **2.63.99** |
+| **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
+| **Wersja** | **2.63.99** |
+| **Commit** | **`447a58b`** |
+| **Verify** | `version.json` **2.63.99** ✅ |
+| **Test** | **92/92 PASS** (release smoke) · PG-A2 harness **PASS** |
+| **Flaga** | `pipelinePerfArtifactCache` **OFF** (default) |
+
+**Nie rozszerzaj A2 bez nowego AUDIT + Owner GO.**
 
 ---
 
-## NG11 Wave 1 — **CLOSED** (A1+Q5+F0 timing)
+## NG11-Q2 — Parallel Archive Unpack · **CLOSED** · **PRODUCTION VERIFIED**
 
 | Element | Wartość |
 |---------|---------|
