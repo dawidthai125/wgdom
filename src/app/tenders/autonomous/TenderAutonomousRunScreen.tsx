@@ -1,6 +1,10 @@
-import { useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import type { AutonomousActivityEvent } from "@/lib/tender-autonomous-run-phase";
+import type {
+  AutonomousRunTimelineView,
+  AutonomousTimelineStepStatus,
+} from "@/lib/tender-autonomous-run-timeline";
 import { AUTONOMOUS_AI_AGENT_LABELS, AUTONOMOUS_PARTIAL_HOLD_MESSAGE } from "@/lib/tender-autonomous-run-ux";
 import {
   TEUX_FONT_CAPTION,
@@ -13,6 +17,143 @@ const ETA_EXCEEDED_MESSAGE =
 
 const COMPLETE_HOLD_MESSAGE = "✓ Analiza zakończona";
 
+function timelineStatusSymbol(status: AutonomousTimelineStepStatus): string {
+  switch (status) {
+    case "done":
+      return "✓";
+    case "active":
+      return "●";
+    case "partial":
+      return "◐";
+    case "skipped":
+      return "—";
+    default:
+      return "○";
+  }
+}
+
+function timelineStatusClass(status: AutonomousTimelineStepStatus): string {
+  switch (status) {
+    case "done":
+      return "text-primary font-semibold";
+    case "active":
+      return "text-foreground font-semibold";
+    case "partial":
+      return "text-amber-700 dark:text-amber-300";
+    case "skipped":
+      return "text-muted-foreground line-through";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function TenderAutonomousTimelinePanel({
+  timelineView,
+  reducedMotion,
+  compact,
+}: {
+  timelineView: AutonomousRunTimelineView;
+  reducedMotion: boolean;
+  compact?: boolean;
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const activeMacro = timelineView.macros.find((m) => m.id === timelineView.activeMacroId);
+
+  const stepList = (
+    <ol
+      className="space-y-1.5"
+      role="list"
+      data-tender-autonomous-timeline-steps
+    >
+      {timelineView.steps.map((step) => (
+        <li
+          key={step.id}
+          role="listitem"
+          aria-current={step.status === "active" ? "step" : undefined}
+          className={`flex items-start gap-2 ${TEUX_FONT_CAPTION} ${timelineStatusClass(step.status)}`}
+          data-tender-autonomous-timeline-step={step.id}
+          data-tender-autonomous-timeline-status={step.status}
+        >
+          <span className="shrink-0 w-4 text-center tabular-nums" aria-hidden>
+            {timelineStatusSymbol(step.status)}
+          </span>
+          <span className="min-w-0 leading-snug">{step.label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+
+  const macroChips = (
+    <div
+      className="flex flex-wrap gap-1.5 justify-center lg:justify-start"
+      data-tender-autonomous-timeline-macros
+    >
+      {timelineView.macros.map((macro) => (
+        <span
+          key={macro.id}
+          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${TEUX_FONT_CAPTION} ${
+            macro.status === "active"
+              ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
+              : macro.status === "done"
+                ? "border-border/60 bg-secondary/40 text-muted-foreground"
+                : macro.status === "partial"
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100"
+                  : "border-border/50 bg-muted/30 text-muted-foreground"
+          }`}
+          data-tender-autonomous-timeline-macro={macro.id}
+          data-tender-autonomous-timeline-macro-status={macro.status}
+        >
+          <span aria-hidden>{timelineStatusSymbol(macro.status)}</span>
+          {macro.label}
+        </span>
+      ))}
+    </div>
+  );
+
+  if (compact) {
+    return (
+      <div className="shrink-0" data-tender-autonomous-timeline>
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          className={`w-full flex items-center justify-between gap-2 min-h-11 px-3 py-2 rounded-lg border border-border bg-card/80 touch-manipulation ${TEUX_FONT_CAPTION} font-semibold text-foreground`}
+          aria-expanded={mobileOpen}
+          data-tender-autonomous-timeline-toggle
+        >
+          <span>Postęp analizy</span>
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground font-medium">
+            {activeMacro && (
+              <span className="text-primary">{activeMacro.label}</span>
+            )}
+            <ChevronDown
+              size={16}
+              className={`shrink-0 transition-transform ${mobileOpen ? "rotate-180" : ""} ${reducedMotion ? "" : "duration-200"}`}
+              aria-hidden
+            />
+          </span>
+        </button>
+        {mobileOpen && (
+          <div className="mt-2 rounded-lg border border-border bg-card/60 px-3 py-3 max-h-[40vh] overflow-y-auto overscroll-contain">
+            {stepList}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 min-h-0" data-tender-autonomous-timeline>
+      <p className={`${TEUX_FONT_CAPTION} font-semibold uppercase tracking-wide text-muted-foreground`}>
+        Postęp analizy
+      </p>
+      {macroChips}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
+        {stepList}
+      </div>
+    </div>
+  );
+}
+
 export type TenderAutonomousRunScreenMode =
   | "running"
   | "complete_hold"
@@ -24,6 +165,7 @@ export function TenderAutonomousRunScreen({
   mode,
   activeLiveMessage,
   achievements,
+  timelineView,
   etaLabel,
   etaExceeded,
   reducedMotion,
@@ -33,6 +175,7 @@ export function TenderAutonomousRunScreen({
   mode: TenderAutonomousRunScreenMode;
   activeLiveMessage: string | null;
   achievements: AutonomousActivityEvent[];
+  timelineView: AutonomousRunTimelineView | null;
   etaLabel: string | null;
   etaExceeded: boolean;
   reducedMotion: boolean;
@@ -40,6 +183,7 @@ export function TenderAutonomousRunScreen({
 }) {
   const feedEndRef = useRef<HTMLDivElement>(null);
   const feedScrollRef = useRef<HTMLDivElement>(null);
+  const showTimeline = mode === "running" && timelineView != null;
 
   useEffect(() => {
     if (mode === "complete_hold" || mode === "partial_hold" || mode === "outcome_bridge") return;
@@ -67,7 +211,7 @@ export function TenderAutonomousRunScreen({
         ? "Przygotowuję rekomendację…"
         : (activeLiveMessage ?? "Analizuję przetarg…");
 
-  const showEta = mode === "running" && etaLabel != null && !etaExceeded;
+  const showEta = mode === "running" && etaLabel != null && !etaExceeded && !showTimeline;
   const pulseClass = reducedMotion
     ? ""
     : "motion-safe:animate-[ng10-agent-breathe_2.4s_ease-in-out_infinite]";
@@ -128,6 +272,26 @@ export function TenderAutonomousRunScreen({
               <p className={`${TEUX_FONT_CAPTION} text-muted-foreground line-clamp-2`}>{tenderTitle}</p>
             )}
           </div>
+          {showTimeline && (
+            <div className="hidden lg:block w-full">
+              <div className="flex flex-wrap gap-1.5" data-tender-autonomous-timeline-macros-desktop>
+                {timelineView.macros.map((macro) => (
+                  <span
+                    key={macro.id}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${TEUX_FONT_CAPTION} ${
+                      macro.status === "active"
+                        ? "border-primary/50 bg-primary/10 text-foreground font-semibold"
+                        : "border-border/50 text-muted-foreground"
+                    }`}
+                    data-tender-autonomous-timeline-macro={macro.id}
+                  >
+                    <span aria-hidden>{timelineStatusSymbol(macro.status)}</span>
+                    {macro.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {showEta && (
             <p
               className={`${TEUX_FONT_CAPTION} font-medium text-muted-foreground tabular-nums text-center lg:text-left`}
@@ -136,7 +300,7 @@ export function TenderAutonomousRunScreen({
               {etaLabel}
             </p>
           )}
-          {mode === "running" && etaExceeded && (
+          {mode === "running" && etaExceeded && !showTimeline && (
             <p
               className={`${TEUX_FONT_BODY} text-amber-800 dark:text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2`}
               data-tender-autonomous-eta-exceeded
@@ -156,33 +320,53 @@ export function TenderAutonomousRunScreen({
             {displayMessage}
           </div>
 
+          {showTimeline && (
+            <div className="lg:hidden">
+              <TenderAutonomousTimelinePanel
+                timelineView={timelineView}
+                reducedMotion={reducedMotion}
+                compact
+              />
+            </div>
+          )}
+
           {mode === "running" && (
-            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-              <p className={`${TEUX_FONT_CAPTION} font-semibold uppercase tracking-wide text-muted-foreground mb-2`}>
-                Dotychczas
-              </p>
-              <div
-                ref={feedScrollRef}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2 pr-1"
-                data-tender-autonomous-feed
-              >
-                {achievements.map((entry) => (
-                  <div
-                    key={`${entry.id}-${entry.message}`}
-                    className={`flex items-start gap-2 rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 ${TEUX_FONT_BODY} text-foreground ng10-feed-item-enter`}
-                    data-tender-autonomous-achievement={entry.id}
-                    data-tender-autonomous-agent={entry.agentId}
-                  >
-                    <span className="shrink-0 text-primary font-semibold" aria-hidden>✓</span>
-                    <div className="min-w-0">
-                      <p>{entry.message.replace(/^✓\s*/, "")}</p>
-                      <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
-                        {AUTONOMOUS_AI_AGENT_LABELS[entry.agentId]}
-                      </p>
+            <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 overflow-hidden">
+              {showTimeline && (
+                <div className="hidden lg:flex lg:w-[42%] lg:shrink-0 min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card/40 px-3 py-3">
+                  <TenderAutonomousTimelinePanel
+                    timelineView={timelineView}
+                    reducedMotion={reducedMotion}
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                <p className={`${TEUX_FONT_CAPTION} font-semibold uppercase tracking-wide text-muted-foreground mb-2`}>
+                  Dotychczas
+                </p>
+                <div
+                  ref={feedScrollRef}
+                  className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2 pr-1"
+                  data-tender-autonomous-feed
+                >
+                  {achievements.map((entry) => (
+                    <div
+                      key={`${entry.id}-${entry.message}`}
+                      className={`flex items-start gap-2 rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 ${TEUX_FONT_BODY} text-foreground ng10-feed-item-enter`}
+                      data-tender-autonomous-achievement={entry.id}
+                      data-tender-autonomous-agent={entry.agentId}
+                    >
+                      <span className="shrink-0 text-primary font-semibold" aria-hidden>✓</span>
+                      <div className="min-w-0">
+                        <p>{entry.message.replace(/^✓\s*/, "")}</p>
+                        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
+                          {AUTONOMOUS_AI_AGENT_LABELS[entry.agentId]}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <div ref={feedEndRef} className="h-px shrink-0" aria-hidden />
+                  ))}
+                  <div ref={feedEndRef} className="h-px shrink-0" aria-hidden />
+                </div>
               </div>
             </div>
           )}
