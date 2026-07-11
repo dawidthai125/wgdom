@@ -1,10 +1,12 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.99** @ **`447a58b`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.64.0** @ **`78c0a40`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Closeout sesji (2026-07-11, NG11-A3 IMPLEMENT COMPLETE):** **v2.64.0** · test **138/138** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-RELEASE-VERIFICATION.md`](architecture/NG11-A3-RELEASE-VERIFICATION.md) · **PUSH BLOCKED** (Owner QA).
+> **★ Closeout sesji (2026-07-11, NG11-A3 PRODUCTION VERIFIED):** **2.64.0** @ **`78c0a40`** · OWNER QA **PASS** · test smoke **95/95** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-CLOSEOUT.md`](architecture/NG11-A3-CLOSEOUT.md) · **następny:** **NG11-A5** od **AUDIT**.
+
+> **★ Closeout sesji (2026-07-11, NG11-A3 IMPLEMENT COMPLETE):** **v2.64.0** · test **138/138** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-RELEASE-VERIFICATION.md`](architecture/NG11-A3-RELEASE-VERIFICATION.md).
 
 > **★ Closeout sesji (2026-07-11, NG11-A3 AUDIT COMPLETE):** **AUDIT + PLAN + DF DRAFT** · SSOT [`architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md`](architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md).
 
@@ -53,16 +55,16 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.99** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`447a58b`** · NG11-A2 dossier artifact cache |
+| **Production (UI)** | **2.64.0** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`78c0a40`** · NG11-A3 discovery fork |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-A2** · **NG11-Q2** · **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
+| **Ostatnio CLOSED** | **NG11-A3** · **NG11-A2** · **NG11-Q2** · **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-A3** Owner QA → push · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-A5** od AUDIT · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 
@@ -74,7 +76,8 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
-| **NG11-Q2** — Parallel Archive Unpack | **CLOSED** | **2.63.98** @ `608c9ec` |
+| **NG11-A3** — Discovery Fork | **CLOSED** | **2.64.0** @ `78c0a40` |
+| **NG11-A2** — Dossier Artifact Cache | **CLOSED** | **2.63.99** @ `447a58b` |
 | **NG11-Q1** — Parse Concurrency | **CLOSED** | **2.63.97** @ `e003591` |
 | **NG11** — Pipeline Performance Wave 1 (A1+Q5) | **WAVE 1 CLOSED** | **2.63.95** @ `4710d11` |
 | **NG10** — Autonomous Agent UX | **EPIC COMPLETE** | **2.63.94** @ `890f1fa` |

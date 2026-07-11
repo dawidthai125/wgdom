@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · prod **2.63.99** @ **`447a58b`** · **NG11-A2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · prod **2.64.0** @ **`78c0a40`** · **NG11-A3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.99** @ **`447a58b`** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.64.0** @ **`78c0a40`** · **PRODUCTION VERIFIED** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) · **NG11-Q1** (**2.63.97**) |
-| **Co dalej?** | **NG11-A3** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) |
+| **Co dalej?** | **NG11-A5** od AUDIT (po closeout A3 ✅) · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -100,17 +100,20 @@
 
 ---
 
-## NG11-A3 — Discovery Fork · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
+## NG11-A3 — Discovery Fork · **CLOSED** · **PRODUCTION VERIFIED**
 
-> **SSOT:** [`docs/architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md`](docs/architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md) · [`NG11-A3-RELEASE-VERIFICATION.md`](docs/architecture/NG11-A3-RELEASE-VERIFICATION.md)
+> **SSOT:** [`docs/architecture/NG11-A3-CLOSEOUT.md`](docs/architecture/NG11-A3-CLOSEOUT.md) · [`NG11-A3-RELEASE-VERIFICATION.md`](docs/architecture/NG11-A3-RELEASE-VERIFICATION.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · **v2.64.0** · **PUSH BLOCKED** (Owner QA) |
-| **Test** | **138/138 PASS** (A3 27 + regresja NG11) |
-| **PG-A3** | P50 −35% (mock empty BZP) · **PASS** |
+| **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
+| **Wersja** | **2.64.0** |
+| **Commit** | **`78c0a40`** |
+| **OWNER QA** | **PASS** |
+| **Test smoke** | **95/95 PASS** |
+| **PG-A3** | **PASS** (−35% P50 mock) |
 | **Flaga** | `pipelinePerfDiscoveryFork` default **OFF** |
-| **Następny krok** | **Owner QA** → push → verify `version.json` |
+| **Następny program** | **NG11-A5** — AUDIT (nie startować bez closeout ✅) |
 
 ---
 

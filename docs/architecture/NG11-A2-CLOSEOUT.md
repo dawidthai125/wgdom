@@ -68,11 +68,11 @@
 
 ## Następny program
 
-**NG11-A3** — discovery fork — **BLOCKED** do pełnego closeout A2 ✅ · workflow: AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO.
+**NG11-A5** — strategic/economic decision — **BLOCKED** do pełnego closeout A3 ✅ · workflow: AUDIT → Owner GO.
 
-SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A3.
+SSOT: [`NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](./NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) § A5 · [`NG11-A3-CLOSEOUT.md`](./NG11-A3-CLOSEOUT.md).
 
-**IMPLEMENT A3 NOT STARTED.**
+**IMPLEMENT A5 NOT STARTED.**
 
 ---
 
