@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A5** strategic vs economic · **2.65.0**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A5** strategic vs economic · **2.65.0** · **PRODUCTION VERIFIED**)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2022,7 +2022,7 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 ### 12.1.37 NG11-A5 — Strategic vs Economic Decision (v2.65.0)
 
-**Status:** **IMPLEMENTED** · **OWNER QA PENDING** · always-on additive lib (brak flagi §20.1)  
+**Status:** **IMPLEMENTED** · **PRODUCTION VERIFIED** (2026-07-11) · always-on additive lib  
 **SSOT:** [`architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md)
 
 | Element | Plik |

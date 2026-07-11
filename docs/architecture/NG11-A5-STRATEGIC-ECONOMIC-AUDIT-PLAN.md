@@ -5,7 +5,7 @@
 | **Program** | NG11-TENDER-PIPELINE-PERFORMANCE |
 | **Slice** | **NG11-A5** |
 | **Tryb** | **AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW** (ARCHITECTURE ONLY) |
-| **Status** | **AUDIT COMPLETE** · **IMPLEMENT COMPLETE** · **OWNER QA PENDING** |
+| **Status** | **AUDIT COMPLETE** · **IMPLEMENT COMPLETE** · **PRODUCTION VERIFIED** |
 | **Data** | 2026-07-11 |
 | **Baseline prod** | **2.64.0** @ **`78c0a40`** · NG11-A3 **PRODUCTION VERIFIED** |
 | **Zależności** | **NG11-A3** ✅ · **NG11-A2** ✅ · **NG11-Q2** ✅ · **NG11-Q1** ✅ · **NG11-Q3** ✅ · **NG11-A1** ✅ · **NG11-Q5** ✅ · **F0** ✅ |
@@ -21,7 +21,7 @@
 | **PLAN** | **READY** — additive fields + wire runtime → context · **bez zmiany** `overlay.displayDecision` / NG10 |
 | **DESIGN FREEZE A5** | **DRAFT READY** — mapowanie frozen · lib-only MVP |
 | **ARCH REVIEW** | **PASS WITH CONDITIONS** |
-| **Owner GO (IMPLEMENT)** | **APPROVED** · **IMPLEMENTED** · **OWNER QA PENDING** |
+| **Owner GO (IMPLEMENT)** | **APPROVED** · **IMPLEMENTED** · **PRODUCTION VERIFIED** |
 
 ---
 

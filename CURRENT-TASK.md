@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · prod **2.64.0** @ **`78c0a40`** · **NG11-A3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · prod **2.65.0** @ **`2606bfd`** · **NG11-A5 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.64.0** @ **`78c0a40`** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.65.0** @ **`2606bfd`** · **PRODUCTION VERIFIED** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) |
-| **Co dalej?** | **NG11-A5** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) |
+| **Co dalej?** | **NG11-Q4** (optional) lub epic E2 closeout — **Owner GO** · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,23 +96,23 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A5** strategic vs economic — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
+**Następny slice NG11:** **Q4** (optional Edge) lub **epic E2 closeout** — **Owner GO only** (A5 **CLOSED**).
 
 ---
 
-## NG11-A5 — Strategic vs Economic · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
+## NG11-A5 — Strategic vs Economic · **CLOSED** · **PRODUCTION VERIFIED**
 
-> **SSOT:** [`docs/architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](docs/architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md) · [`docs/architecture/NG11-A5-RELEASE-REPORT.md`](docs/architecture/NG11-A5-RELEASE-REPORT.md)
+> **SSOT:** [`docs/architecture/NG11-A5-CLOSEOUT.md`](docs/architecture/NG11-A5-CLOSEOUT.md) · [`docs/architecture/NG11-A5-RELEASE-VERIFICATION.md`](docs/architecture/NG11-A5-RELEASE-VERIFICATION.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · **OWNER QA PENDING** · **PUSH BLOCKED** |
+| **Status** | **EPIC SLICE CLOSED** · **PRODUCTION VERIFIED** |
 | **Wersja** | **2.65.0** |
-| **Test** | **23/23** A5 · **28/28** gate-exit · smoke **126/126** |
-| **Zależność** | **NG11-A3** ✅ PRODUCTION VERIFIED |
-| **Następny krok** | **OWNER QA** → push → verify `version.json` |
-
-**Bez push** do OWNER QA PASS.
+| **Commit** | **`2606bfd`** |
+| **`version.json`** | **VERIFIED** → **2.65.0** @ **`2606bfd`** |
+| **Test smoke** | **99/99** · gate-exit **28/28** |
+| **OWNER QA** | **PASS** |
+| **Następny program** | **NG11-Q4** (optional) lub epic E2 — **Owner GO only** |
 
 ---
 
@@ -130,7 +130,7 @@
 | **Test smoke** | **95/95 PASS** |
 | **PG-A3** | **PASS** (−35% P50 mock) |
 | **Flaga** | `pipelinePerfDiscoveryFork` default **OFF** |
-| **Następny program** | **NG11-A5** — **AUDIT COMPLETE** · ARCH REVIEW + Owner GO |
+| **Następny program** | **NG11-Q4** (optional) lub epic E2 — **Owner GO** |
 
 ---
 

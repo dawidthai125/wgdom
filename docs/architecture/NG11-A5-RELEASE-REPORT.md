@@ -5,7 +5,7 @@
 | **Program** | NG11-TENDER-PIPELINE-PERFORMANCE |
 | **Slice** | **NG11-A5** |
 | **Wersja** | **2.65.0** |
-| **Status** | **IMPLEMENT COMPLETE** · **OWNER QA PENDING** · **PUSH BLOCKED** |
+| **Status** | **IMPLEMENT COMPLETE** · **PRODUCTION VERIFIED** |
 | **Data** | 2026-07-11 |
 | **Baseline** | **2.64.0** @ **`78c0a40`** (NG11-A3 PRODUCTION VERIFIED) |
 | **SSOT** | [`NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](./NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md) |
@@ -89,9 +89,9 @@ Jeden bundle lib-only · build PASS · smoke PASS · gate-exit 28/28 · brak fla
 | | |
 |---|---|
 | **IMPLEMENTATION** | **COMPLETE** |
-| **RELEASE GO** | **READY** (commit local) |
-| **PUSH** | **BLOCKED** — czeka OWNER QA |
-| **PRODUCTION** | **NOT VERIFIED** |
+| **RELEASE GO** | **COMPLETE** |
+| **PUSH** | **DONE** (`cbf90d4..2606bfd`) |
+| **PRODUCTION** | **VERIFIED** · `version.json` **2.65.0** @ **`2606bfd`** |
 
 ---
 

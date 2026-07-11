@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.64.0** @ **`78c0a40`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.0** @ **`2606bfd`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A5 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Closeout sesji (2026-07-11, NG11-A5 PRODUCTION VERIFIED):** **2.65.0** @ **`2606bfd`** · OWNER QA **PASS** · test smoke **99/99** · gate-exit **28/28** · SSOT [`architecture/NG11-A5-CLOSEOUT.md`](architecture/NG11-A5-CLOSEOUT.md) · **następny:** **NG11-Q4** (optional) lub epic E2 closeout — **Owner GO**.
 
 > **★ Closeout sesji (2026-07-11, NG11-A5 AUDIT COMPLETE):** **AUDIT + PLAN + DF DRAFT** · SSOT [`architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md`](architecture/NG11-A5-STRATEGIC-ECONOMIC-AUDIT-PLAN.md) · **następny:** **ARCH REVIEW** + **Owner GO** (bez IMPLEMENT).
 
@@ -59,16 +61,16 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.64.0** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`78c0a40`** · NG11-A3 discovery fork |
+| **Production (UI)** | **2.65.0** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`2606bfd`** · NG11-A5 strategic vs economic |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-A3** · **NG11-A2** · **NG11-Q2** · **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
+| **Ostatnio CLOSED** | **NG11-A5** · **NG11-A3** · **NG11-A2** · **NG11-Q2** · **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-A5** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-Q4** (optional Edge) lub epic E2 closeout — **Owner GO** · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 
@@ -80,6 +82,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG11-A5** — Strategic vs Economic | **CLOSED** | **2.65.0** @ `2606bfd` |
 | **NG11-A3** — Discovery Fork | **CLOSED** | **2.64.0** @ `78c0a40` |
 | **NG11-A2** — Dossier Artifact Cache | **CLOSED** | **2.63.99** @ `447a58b` |
 | **NG11-Q1** — Parse Concurrency | **CLOSED** | **2.63.97** @ `e003591` |
