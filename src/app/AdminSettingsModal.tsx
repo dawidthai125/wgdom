@@ -235,6 +235,25 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.pipelinePerfParseConcurrency}
+                onChange={async (e) => {
+                  const next = { ...appSettings, pipelinePerfParseConcurrency: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">NG11-Q1 — równoległy parse dossier (cost + metadata)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Po włączeniu fazy kosztorysu i metadanych SWZ parsują do 3 plików
+                  równolegle (osobne pule). Merge wyników pozostaje sekwencyjny i deterministyczny.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.pipelinePerfDebouncePersist}
                 onChange={async (e) => {
                   const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };

@@ -50,6 +50,8 @@ export interface AppSettings {
   bzpAutoRefreshHours: number;
   /** NG11-Q3 — debounced cloud persist pipeline przetargów (LS sync natychmiast). Domyślnie wyłączone. */
   pipelinePerfDebouncePersist: boolean;
+  /** NG11-Q1 — równoległy parse dossier cost/metadata (≤3+3). Domyślnie wyłączone. */
+  pipelinePerfParseConcurrency: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -65,12 +67,18 @@ export function defaultAppSettings(): AppSettings {
     bzpScanOrgPages: 5,
     bzpAutoRefreshHours: 20,
     pipelinePerfDebouncePersist: false,
+    pipelinePerfParseConcurrency: false,
   };
 }
 
 /** NG11-Q3 — debounced persist pipeline (feature flag, default OFF). */
 export function isPipelinePerfDebouncePersistEnabled(): boolean {
   return loadAppSettingsLocal().pipelinePerfDebouncePersist === true;
+}
+
+/** NG11-Q1 — parallel dossier parse (feature flag, default OFF). */
+export function isPipelinePerfParseConcurrencyEnabled(): boolean {
+  return loadAppSettingsLocal().pipelinePerfParseConcurrency === true;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -150,6 +158,7 @@ export function loadAppSettingsLocal(): AppSettings {
       bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
       bzpAutoRefreshHours: numSetting(parsed.bzpAutoRefreshHours, d.bzpAutoRefreshHours, 1, 168),
       pipelinePerfDebouncePersist: parsed.pipelinePerfDebouncePersist === true,
+      pipelinePerfParseConcurrency: parsed.pipelinePerfParseConcurrency === true,
     };
   } catch {
     return defaultAppSettings();
@@ -202,5 +211,11 @@ export function mergeAppSettings(
         : remote?.pipelinePerfDebouncePersist === false
           ? false
           : local.pipelinePerfDebouncePersist === true,
+    pipelinePerfParseConcurrency:
+      remote?.pipelinePerfParseConcurrency === true
+        ? true
+        : remote?.pipelinePerfParseConcurrency === false
+          ? false
+          : local.pipelinePerfParseConcurrency === true,
   };
 }

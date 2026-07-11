@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.97 — NG11-Q1 Parse Concurrency
+
+- **improve:** dossier cost/metadata parse — bounded parallel ≤3+3 · serial deterministic merge
+- **improve:** flaga `pipelinePerfParseConcurrency` (Super Admin, default OFF)
+
 ## 2.63.96 — NG11-Q3 Debounced Persist
 
 - **improve:** LS sync natychmiast · cloud persist debounce 500 ms · flush Ready/Failed/visibility/beforeunload/unmount

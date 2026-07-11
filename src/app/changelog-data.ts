@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.63.97",
+    label: "NG11-Q1 — Parse Concurrency dossier",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-Q1: fazy kosztorysu i metadanych SWZ mogą parsować do 3 plików równolegle (osobne pule); merge wyników pozostaje sekwencyjny i deterministyczny.",
+      },
+      {
+        type: "improve",
+        text: "Super Admin — flaga pipelinePerfParseConcurrency w ustawieniach (domyślnie wyłączona; rollback bez deployu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.96",
     label: "NG11-Q3 — Debounced Persist pipeline",
     items: [

@@ -45,6 +45,12 @@ import {
   type BytesPrefetchSpec,
 } from "@/lib/tender-document-bytes-prefetch";
 import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
+import {
+  DOSSIER_PARSE_COST_CONCURRENCY,
+  DOSSIER_PARSE_METADATA_CONCURRENCY,
+  isPipelineParseConcurrencyEnabled,
+  runParseCandidatesWithConcurrency,
+} from "@/lib/tender-pipeline/tender-parse-concurrency";
 
 const DOSSIER_MAX_CANDIDATES = 15;
 const ZIP_INNER_MAX = 20;
@@ -1080,48 +1086,213 @@ export async function prepareTenderDossierParseSession(
   };
 }
 
+function shouldSkipMetadataCandidate(
+  session: TenderDossierParseSession,
+  cand: TenderDocCandidate,
+): boolean {
+  const role = classifyDocumentRole(cand.filename);
+  const contributesMeta =
+    roleContributesMetadata(role, "estimatedValue")
+    || roleContributesMetadata(role, "awardCriteria")
+    || roleContributesMetadata(role, "wadium")
+    || roleContributesMetadata(role, "implementationDeadline");
+  if (!contributesMeta && role !== "kosztorys" && roleParsePriority(role) > 7) return true;
+  const skipDuplicateCost = session.costCandidates.some((cc) => candidateKey(cc) === candidateKey(cand))
+    && session.bestKosztorys?.ok
+    && classifyDocumentRole(cand.filename) === "kosztorys";
+  return skipDuplicateCost;
+}
+
+function applyCostCandidateParseToSession(
+  session: TenderDossierParseSession,
+  cand: TenderDocCandidate,
+  parsed: TenderDocumentParseResult | null,
+  errorMessage: string | null,
+): void {
+  if (errorMessage) {
+    session.warnings.push(`${cand.filename}: ${errorMessage}`);
+    return;
+  }
+  if (!parsed) return;
+  session.parsedCount += 1;
+  if (parsed.kosztorys?.ok) {
+    if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery, {
+      allowTotalValueFill: true,
+    })) {
+      session.bestKosztorys = parsed.kosztorys;
+      session.sourceDocumentIndex = parsed.sourceDocumentIndex;
+      session.zipInnerPath = parsed.zipInnerPath;
+      session.sourceFilename = parsed.sourceFilename;
+      session.winningCostSource = cand.filename;
+    }
+    if (parsed.estimatePln != null) {
+      session.estimatePln = parsed.estimatePln;
+      traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln: parsed.estimatePln });
+    }
+  }
+}
+
+function applyMetadataCandidateParseToSession(
+  session: TenderDossierParseSession,
+  cand: TenderDocCandidate,
+  parsed: TenderDocumentParseResult | null,
+  errorMessage: string | null,
+): void {
+  if (errorMessage) {
+    session.warnings.push(`${cand.filename}: ${errorMessage}`);
+    return;
+  }
+  if (!parsed) return;
+  session.parsedCount += 1;
+  traceDossierPipeline("document_parsed", cand.filename, {
+    kosztorys: Boolean(parsed.kosztorys?.ok),
+    swz: Boolean(parsed.swzFromDoc),
+  });
+
+  if (parsed.kosztorys?.ok) {
+    if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery)) {
+      session.bestKosztorys = parsed.kosztorys;
+      session.sourceDocumentIndex = parsed.sourceDocumentIndex;
+      session.zipInnerPath = parsed.zipInnerPath;
+      session.sourceFilename = parsed.sourceFilename;
+      session.winningCostSource = cand.filename;
+    }
+    if (parsed.estimatePln != null) {
+      session.estimatePln = parsed.estimatePln;
+      traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln: parsed.estimatePln });
+    }
+  }
+
+  if (parsed.swzFromDoc) {
+    const role = classifyDocumentRole(cand.filename);
+    const valueConf = scoreEstimatedValueConfidence({
+      valuePln: parsed.swzFromDoc.estimatedValuePln,
+      valueRaw: parsed.swzFromDoc.estimatedValueRaw,
+      sourceFilename: parsed.swzFromDoc.sourceFilename,
+    });
+    traceDossierPipeline("value_document_trace", cand.filename, {
+      role,
+      valueFound: parsed.swzFromDoc.estimatedValuePln != null,
+      value: parsed.swzFromDoc.estimatedValuePln,
+      confidence: valueConf,
+    });
+    if (parsed.swzFromDoc.estimatedValuePln != null) {
+      traceDossierPipeline("value_extracted", cand.filename, {
+        value: parsed.swzFromDoc.estimatedValuePln,
+      });
+    }
+    if ((parsed.swzFromDoc.awardCriteria?.length ?? 0) > 0) {
+      traceDossierPipeline("criteria_extracted", cand.filename, {
+        count: parsed.swzFromDoc.awardCriteria?.length,
+      });
+    }
+    session.swzMerged = mergeSwzAnalysis(session.swzMerged, parsed.swzFromDoc);
+    if (parsed.swzFromDoc.estimatedValuePln != null && session.estimatePln == null) {
+      session.estimatePln = parsed.swzFromDoc.estimatedValuePln;
+    }
+  }
+}
+
+async function parseCostCandidateForSession(
+  session: TenderDossierParseSession,
+  cand: TenderDocCandidate,
+): Promise<{ value: TenderDocumentParseResult | null; error: string | null }> {
+  traceDossierPipeline("document_downloaded", cand.filename, {
+    documentIndex: cand.documentIndex,
+    phase: "cost",
+    downloadUrl: Boolean(cand.downloadUrl),
+  });
+  try {
+    const parsed = await parseTenderDocumentCandidate(session.tenderId, cand, session.docs, {
+      ourEstimatePln: session.estimatePln,
+      mergeSwz: session.swzMerged,
+    });
+    return { value: parsed, error: null };
+  } catch (e) {
+    return {
+      value: null,
+      error: e instanceof Error ? e.message : "błąd kosztorysu",
+    };
+  }
+}
+
+async function parseMetadataCandidateForSession(
+  session: TenderDossierParseSession,
+  cand: TenderDocCandidate,
+): Promise<{ value: TenderDocumentParseResult | null; error: string | null }> {
+  traceDossierPipeline("document_downloaded", cand.filename, { documentIndex: cand.documentIndex });
+  try {
+    const parsed = await parseTenderDocumentCandidate(session.tenderId, cand, session.docs, {
+      ourEstimatePln: session.estimatePln,
+      mergeSwz: session.swzMerged,
+    });
+    return { value: parsed, error: null };
+  } catch (e) {
+    return {
+      value: null,
+      error: e instanceof Error ? e.message : "błąd parsowania",
+    };
+  }
+}
+
+async function runCostParseLoop(session: TenderDossierParseSession): Promise<void> {
+  if (!isPipelineParseConcurrencyEnabled()) {
+    for (const cand of session.costCandidates) {
+      const outcome = await parseCostCandidateForSession(session, cand);
+      applyCostCandidateParseToSession(session, cand, outcome.value, outcome.error);
+    }
+    return;
+  }
+
+  const outcomes = await runParseCandidatesWithConcurrency(
+    session.costCandidates,
+    DOSSIER_PARSE_COST_CONCURRENCY,
+    (cand) => parseCostCandidateForSession(session, cand),
+  );
+  for (let i = 0; i < outcomes.length; i += 1) {
+    const cand = session.costCandidates[i];
+    const outcome = outcomes[i];
+    applyCostCandidateParseToSession(session, cand, outcome.value, outcome.error);
+  }
+}
+
+async function runMetadataParseLoop(session: TenderDossierParseSession): Promise<void> {
+  const toParse: TenderDocCandidate[] = [];
+  for (const cand of session.candidates) {
+    const role = classifyDocumentRole(cand.filename);
+    traceDossierPipeline("document_classified", cand.filename, { role, score: cand.score });
+    if (shouldSkipMetadataCandidate(session, cand)) continue;
+    toParse.push(cand);
+  }
+
+  if (!isPipelineParseConcurrencyEnabled()) {
+    for (const cand of toParse) {
+      const outcome = await parseMetadataCandidateForSession(session, cand);
+      applyMetadataCandidateParseToSession(session, cand, outcome.value, outcome.error);
+    }
+    return;
+  }
+
+  const outcomes = await runParseCandidatesWithConcurrency(
+    toParse,
+    DOSSIER_PARSE_METADATA_CONCURRENCY,
+    (cand) => parseMetadataCandidateForSession(session, cand),
+  );
+  for (let i = 0; i < outcomes.length; i += 1) {
+    const cand = toParse[i];
+    const outcome = outcomes[i];
+    applyMetadataCandidateParseToSession(session, cand, outcome.value, outcome.error);
+  }
+}
+
 /** NG11-A1 — faza kosztorysu (ATH/PDF inner ZIP). */
 export async function executeTenderDossierCostPhase(session: TenderDossierParseSession): Promise<void> {
   if (session.costPhaseComplete) return;
   const timingItemId = session.opts.pipelineTimingItemId;
-  const runCostLoop = async () => {
-    for (const cand of session.costCandidates) {
-      try {
-        traceDossierPipeline("document_downloaded", cand.filename, {
-          documentIndex: cand.documentIndex,
-          phase: "cost",
-          downloadUrl: Boolean(cand.downloadUrl),
-        });
-        const parsed = await parseTenderDocumentCandidate(session.tenderId, cand, session.docs, {
-          ourEstimatePln: session.estimatePln,
-          mergeSwz: session.swzMerged,
-        });
-        session.parsedCount += 1;
-        if (parsed.kosztorys?.ok) {
-          if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery, {
-            allowTotalValueFill: true,
-          })) {
-            session.bestKosztorys = parsed.kosztorys;
-            session.sourceDocumentIndex = parsed.sourceDocumentIndex;
-            session.zipInnerPath = parsed.zipInnerPath;
-            session.sourceFilename = parsed.sourceFilename;
-            session.winningCostSource = cand.filename;
-          }
-          if (parsed.estimatePln != null) {
-            session.estimatePln = parsed.estimatePln;
-            traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln: parsed.estimatePln });
-          }
-        }
-      } catch (e) {
-        session.warnings.push(`${cand.filename}: ${e instanceof Error ? e.message : "błąd kosztorysu"}`);
-      }
-    }
-  };
-
   if (timingItemId) {
-    await withPipelineTimingStage(timingItemId, "heavy.parse_cost", runCostLoop);
+    await withPipelineTimingStage(timingItemId, "heavy.parse_cost", () => runCostParseLoop(session));
   } else {
-    await runCostLoop();
+    await runCostParseLoop(session);
   }
   session.costPhaseComplete = true;
 }
@@ -1135,83 +1306,10 @@ export async function executeTenderDossierMetadataPhase(
   }
 
   const timingItemId = session.opts.pipelineTimingItemId;
-  const runMetadataLoop = async () => {
-    for (const cand of session.candidates) {
-      const role = classifyDocumentRole(cand.filename);
-      traceDossierPipeline("document_classified", cand.filename, { role, score: cand.score });
-      const contributesMeta =
-        roleContributesMetadata(role, "estimatedValue")
-        || roleContributesMetadata(role, "awardCriteria")
-        || roleContributesMetadata(role, "wadium")
-        || roleContributesMetadata(role, "implementationDeadline");
-      if (!contributesMeta && role !== "kosztorys" && roleParsePriority(role) > 7) continue;
-      const skipDuplicateCost = session.costCandidates.some((cc) => candidateKey(cc) === candidateKey(cand))
-        && session.bestKosztorys?.ok
-        && classifyDocumentRole(cand.filename) === "kosztorys";
-      if (skipDuplicateCost) continue;
-      try {
-        traceDossierPipeline("document_downloaded", cand.filename, { documentIndex: cand.documentIndex });
-        const parsed = await parseTenderDocumentCandidate(session.tenderId, cand, session.docs, {
-          ourEstimatePln: session.estimatePln,
-          mergeSwz: session.swzMerged,
-        });
-        session.parsedCount += 1;
-        traceDossierPipeline("document_parsed", cand.filename, {
-          kosztorys: Boolean(parsed.kosztorys?.ok),
-          swz: Boolean(parsed.swzFromDoc),
-        });
-
-        if (parsed.kosztorys?.ok) {
-          if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery)) {
-            session.bestKosztorys = parsed.kosztorys;
-            session.sourceDocumentIndex = parsed.sourceDocumentIndex;
-            session.zipInnerPath = parsed.zipInnerPath;
-            session.sourceFilename = parsed.sourceFilename;
-            session.winningCostSource = cand.filename;
-          }
-          if (parsed.estimatePln != null) {
-            session.estimatePln = parsed.estimatePln;
-            traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln: parsed.estimatePln });
-          }
-        }
-
-        if (parsed.swzFromDoc) {
-          const valueConf = scoreEstimatedValueConfidence({
-            valuePln: parsed.swzFromDoc.estimatedValuePln,
-            valueRaw: parsed.swzFromDoc.estimatedValueRaw,
-            sourceFilename: parsed.swzFromDoc.sourceFilename,
-          });
-          traceDossierPipeline("value_document_trace", cand.filename, {
-            role,
-            valueFound: parsed.swzFromDoc.estimatedValuePln != null,
-            value: parsed.swzFromDoc.estimatedValuePln,
-            confidence: valueConf,
-          });
-          if (parsed.swzFromDoc.estimatedValuePln != null) {
-            traceDossierPipeline("value_extracted", cand.filename, {
-              value: parsed.swzFromDoc.estimatedValuePln,
-            });
-          }
-          if ((parsed.swzFromDoc.awardCriteria?.length ?? 0) > 0) {
-            traceDossierPipeline("criteria_extracted", cand.filename, {
-              count: parsed.swzFromDoc.awardCriteria?.length,
-            });
-          }
-          session.swzMerged = mergeSwzAnalysis(session.swzMerged, parsed.swzFromDoc);
-          if (parsed.swzFromDoc.estimatedValuePln != null && session.estimatePln == null) {
-            session.estimatePln = parsed.swzFromDoc.estimatedValuePln;
-          }
-        }
-      } catch (e) {
-        session.warnings.push(`${cand.filename}: ${e instanceof Error ? e.message : "błąd parsowania"}`);
-      }
-    }
-  };
-
   if (timingItemId) {
-    await withPipelineTimingStage(timingItemId, "heavy.parse_metadata", runMetadataLoop);
+    await withPipelineTimingStage(timingItemId, "heavy.parse_metadata", () => runMetadataParseLoop(session));
   } else {
-    await runMetadataLoop();
+    await runMetadataParseLoop(session);
   }
 
   if (session.swzMerged) {

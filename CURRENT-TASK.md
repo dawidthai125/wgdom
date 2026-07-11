@@ -13,7 +13,7 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-Q3** (**2.63.96** release) · **NG11 Wave 1** (**2.63.95**) · **NG10 UX** (**2.63.94**) |
-| **Co dalej?** | **NG11-Q1** od AUDIT · lub release **TWSL** → **2.63.91** |
+| **Co dalej?** | **NG11-Q1** OWNER QA → push **2.63.97** · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -67,14 +67,19 @@
 
 ---
 
-## NG11-Q1 — Parse Concurrency · **NEXT** · **AUDIT NOT STARTED**
+## NG11-Q1 — Parse Concurrency · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
 
-> **SSOT:** [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) §7 Q1
+> **SSOT:** [`docs/architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md`](docs/architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md) · DF §7 Q1
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **PLANNED** — workflow: AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO |
-| **IMPLEMENT** | **NOT STARTED** |
+| **Status** | **IMPLEMENT COMPLETE** · **RELEASE NOT PUSHED** · **OWNER QA PENDING** |
+| **Wersja** | **2.63.97** (lokalny changelog) |
+| **Limity** | Cost **3** · Metadata **3** · serial merge · flaga `pipelinePerfParseConcurrency` OFF |
+| **Test** | Q1 **11/11** · regresja **69/69** (Q3+A1+Q5+gate+heavy) · build **PASS** |
+| **Następny krok** | OWNER QA → commit push → verify `version.json` **2.63.97** |
+
+**Bez push** do Owner QA.
 
 ---
 
@@ -89,7 +94,7 @@
 | **Zakres** | Progressive heavy (cost/metadata split) · cost-first pricing · readiness signals · dev timing |
 | **Klasa** | FEATURE pipeline — **#CORE-013 PASS** (zero Payroll/sync/Edge) |
 | **Test release** | **81/81 PASS** (A1 12 · Q5 14 · timing 11 · catalog 11 · heavy 5 · gate 28) |
-| **Backlog** | **NG11-Q1** parse concurrency — **AUDIT** (następny program) |
+| **Backlog** | **NG11-Q1** parse concurrency — AUDIT **COMPLETE** · Owner GO PENDING |
 
 **Nie rozszerzaj NG11 bez DESIGN FREEZE + ARCH REVIEW + Owner GO.**
 

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q3** debounced persist · **2.63.96 PRODUCTION VERIFIED** @ `4b35228` · feature `f6f7265`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q1** parse concurrency · **2.63.97** · feature flag OFF default)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,7 +2016,28 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 2:** NG11-Q3 — **RELEASED** (v2.63.96) · patrz §12.1.32.
+**Backlog Wave 2:** NG11-Q1 — **RELEASED** (v2.63.97) · patrz §12.1.33 · NG11-Q2 unpack HOLD.
+
+---
+
+### 12.1.33 NG11-Q1 — Parse Concurrency (v2.63.97)
+
+**Status:** **RELEASED** (2026-07-11) · flaga `pipelinePerfParseConcurrency` default **OFF**  
+**SSOT:** [`architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md`](architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Concurrency runner | `src/lib/tender-pipeline/tender-parse-concurrency.ts` |
+| Cost/metadata loops | `src/lib/tender-document-resolver.ts` (`runCostParseLoop` · `runMetadataParseLoop`) |
+| Flaga Super Admin | `src/lib/app-settings.ts` · `AdminSettingsModal.tsx` |
+
+**Limity frozen:** cost **3** · metadata **3** · osobne pule · merge serial po workerach.
+
+**Test:** `scripts/test-ng11-parse-concurrency.mjs` (10) + regresja A1/Q3/Q5/gate-exit/heavy-lifecycle.
+
+**Nie zmienia:** `cloud-sync.ts` kernel · NG10 gate-exit · Payroll · parsery fidelity · `derivePipelineState` · Edge.
+
+**Rollback:** `pipelinePerfParseConcurrency = false` w ⚙ Super Admin.
 
 ---
 
