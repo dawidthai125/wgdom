@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.87** @ **`6f85d4c`** · **WIP lokalny:** TWSL **2.63.91** + NG10-HF-02 **2.63.90** · **STABILIZATION WINDOW ACTIVE**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.95** @ **`4710d11`** · **WIP lokalny:** TWSL **2.63.91** · **STABILIZATION WINDOW ACTIVE**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,8 +75,10 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **NG11** — Pipeline Performance Wave 1 (A1+Q5) | **2.63.95** (`4710d11`) | **WAVE 1 CLOSED** · **PRODUCTION VERIFIED** · test **81/81** | [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md) · [`architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) |
+| **NG10** — Autonomous Agent UX | **2.63.94** (`890f1fa`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** | [`architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md`](architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md) |
 | **TENDER-WORKSPACE-LAYOUT** — scrollable accordiony Przetarg | **2.63.91** (lokalny WIP) | **IMPLEMENT COMPLETE** · **RELEASE NOT READY** | [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md) |
-| **NG10-HOTFIX-02** — Autonomous timeout partial | **2.63.90** (lokalny WIP) | **WIP** · osobny bundle | gate-exit + autonomous UX |
+| **NG10-HOTFIX-02** — Autonomous timeout partial | **2.63.90** (`a5c75e2`) | **CLOSED** · on prod | gate-exit + autonomous UX |
 | **P0-A** — iOS Login Shell (Incident A) | **2.63.87** (`6f85d4c`) | **CLOSED** · Owner QA PASS | [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md) |
 | **NG-10** — Autonomous Tender Workspace | **2.63.86** @ `02e0d0a` · implement `d850534`→`5863acb` | **EPIC COMPLETE** · **PRODUCTION VERIFIED** | [`architecture/NG-10-CLOSEOUT.md`](architecture/NG-10-CLOSEOUT.md) · [`architecture/NG-10-DESIGN-FREEZE.md`](architecture/NG-10-DESIGN-FREEZE.md) |
 | **P0 Payroll Cross-Device Sync** — SYNC-ARCH-01 S2 Domain Push | **2.63.85** (`e819124` fix · `88650be` baseline) | **FULLY CLOSED** · observation **2026-07-11** | [`INCIDENTS.md`](INCIDENTS.md) · [`SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md`](SESSION-HANDOFF-P0-PAYROLL-CROSS-DEVICE-SYNC.md) |

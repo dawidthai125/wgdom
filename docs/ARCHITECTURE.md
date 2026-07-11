@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG10 Autonomous Agent UX** EPIC COMPLETE · prod **2.63.94** @ `adf3250` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11 Wave 1** A1+Q5 · prod **2.63.95** @ `4710d11` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1983,6 +1983,40 @@ running → complete_hold | partial_hold (850ms)
 **Status:** **EPIC COMPLETE**  
 **Production:** **`adf3250`**  
 **Regression:** **96/96 PASS**
+
+---
+
+### 12.1.31 NG11 — Tender Pipeline Performance Wave 1 (v2.63.95 · A1+Q5)
+
+**Status:** **WAVE 1 CLOSED** · progressive heavy + cost-first pricing · **bez zmian** NG10 gate-exit / Payroll / sync  
+**SSOT:** [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md) · [`architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md)
+
+Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost before metadata, partial dossier persist, wcześniejsza wycena.
+
+| Slice | Opis | Plik SSOT |
+|-------|------|-----------|
+| **A1** | Heavy split: cost phase → partial persist → metadata phase | `tender-dossier-pipeline.ts` · `useTenderDossierHeavyLazy.ts` |
+| **Q5** | Early pricing on `partialDossierReady`; final on `pricingReadyFinal` | `useTenderPricingAuto.ts` · `derive-pipeline-readiness.ts` |
+| **F0** | Dev timing ring buffer | `tender-pipeline-timing.ts` |
+
+| Sygnał | Znaczenie |
+|--------|-----------|
+| `partialDossierReady` | Kosztorys OK + partial persist flushed |
+| `dossierEnriching` | Metadata phase w toku |
+| `pricingReadyPartial` | Wycena po partial dossier |
+| `pricingReadyFinal` | Pełny heavy + wycena final (OD-3: Ready dopiero tu) |
+
+| Element | Plik |
+|---------|------|
+| Readiness derive | `src/lib/tender-pipeline/derive-pipeline-readiness.ts` |
+| Pipeline state | `src/lib/tender-pipeline/derive-pipeline-state.ts` |
+| Runtime mount | `src/app/hooks/useTenderPipelineRuntime.ts` |
+
+**Testy release (81):** `test-ng11-a1-progressive-heavy.mjs` (12) · `test-ng11-cost-first-pricing.mjs` (14) · `test-ng11-pipeline-timing.mjs` (11) · regresja gate-exit (28).
+
+**Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
+
+**Backlog Wave 2:** NG11-Q3 debounced persist — AUDIT+PLAN · Owner GO **NOT READY**.
 
 ---
 

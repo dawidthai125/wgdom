@@ -1,14 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.87** (prod) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **runtime prod** `6f85d4c` · **P0-A iOS Login CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.95** (prod) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **runtime prod** `4710d11` · **NG11 Wave 1 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline prod (2026-07-11):** prod **2.63.87** @ **`6f85d4c`**. **Lokalny WIP (nie na prod):** **TENDER-WORKSPACE-LAYOUT** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** — osobne bundle, **RELEASE NOT READY** (untracked / brak commit+push).
+> **★ Closeout sesji (2026-07-11, NG11 Wave 1):** **NG11-A1+Q5** release **2.63.95** @ **`4710d11`** · FAST RELEASE · build+test **81/81 PASS** · verify `version.json` **PASS** · SSOT [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md) · **następny krok:** NG11-Q3 (Owner GO) lub release **TWSL** **2.63.91**.
+
+> **★ Baseline prod (2026-07-11):** prod **2.63.95** @ **`4710d11`**. **Lokalny WIP (nie na prod):** **TENDER-WORKSPACE-LAYOUT** **2.63.91** — osobny bundle, **RELEASE NOT READY** (untracked / brak commit+push).
 
 > **★ Closeout sesji (2026-07-11, TWSL):** **TENDER-WORKSPACE-LAYOUT** — ARCH REVIEW → Owner GO → **IMPLEMENT lokalny** · `TenderScrollableAccordion` · tokeny TWSL · 3 accordiony Tier A · build+test **PASS** · SSOT [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md) · **następny krok:** commit bundle TWSL → push → verify **2.63.91**.
-
-> **★ Closeout sesji (2026-07-11, NG10-HF-02 WIP):** timeout partial bez `discoverySettled` · AC-11 gate nie wraca po Workspace · changelog **2.63.90** w tree · **osobny commit** przed/po TWSL — **nie mieszać** z TWSL.
 
 > **★ Baseline (2026-07-10):** prod **2.63.87** @ **`6f85d4c`** (P0-A iOS Login Shell). **NG-10** @ **2.63.86** (`02e0d0a`). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** release WIP bundle lub nowy program od **AUDIT** + Owner GO.
 
@@ -41,16 +41,16 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.87** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`6f85d4c`** · P0-A iOS Login Shell |
+| **Production (UI)** | **2.63.95** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`4710d11`** · NG11 Wave 1 (A1+Q5) |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **P0-A** iOS Login · **NG-10** · **P0 Payroll** · **NG-09** · **M-03** |
+| **Ostatnio CLOSED** | **NG11 Wave 1** · **NG10 UX** · **P0-A** · **NG-09** · **M-03** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **WIP lokalny** | **TWSL** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** (osobne bundle) |
-| **Następny krok** | Commit+push TWSL lub NG10-HF-02 → verify `version.json` |
+| **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
+| **Następny krok** | NG11-Q3 (Owner GO) lub commit+push TWSL → verify **2.63.91** |
 
 ### Czym jest aplikacja
 
@@ -62,8 +62,9 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG11** — Pipeline Performance Wave 1 (A1+Q5) | **WAVE 1 CLOSED** | **2.63.95** @ `4710d11` |
+| **NG10** — Autonomous Agent UX | **EPIC COMPLETE** | **2.63.94** @ `890f1fa` |
 | **P0-A** — iOS Login Shell (Incident A) | **CLOSED** | **2.63.87** @ `6f85d4c` |
-| **NG-10** — Autonomous Tender Workspace | **EPIC COMPLETE** | **2.63.86** @ `02e0d0a` · implement `d850534`→`5863acb` |
 | **NG-09** — Inspector Workspace Modernization | **EPIC COMPLETE** | **2.63.80–84** @ `29f7842` |
 | **M-03** — Mobile Re-certification | **CLOSED** | **2.63.79** @ `f7878fe` |
 | **NG-08-HF-01** — Visual Smoke remediation | **CLOSED** | **2.63.78** @ `4855a2d` |
@@ -605,28 +606,28 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne (2026-07-11)
 
-**Production:** **GREEN** · UI prod **2.63.87** @ **`6f85d4c`** · https://www.wgdom.fun
+**Production:** **GREEN** · UI prod **2.63.95** @ **`4710d11`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
 
 **Faza bieżąca:**
 
-1. **TENDER-WORKSPACE-LAYOUT (TWSL)** — **IMPLEMENT COMPLETE lokalnie** · changelog **2.63.91** · build+test **PASS** · **RELEASE NOT READY** (untracked pliki) · SSOT [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md).
-2. **NG10-HOTFIX-02** — **WIP lokalny** · changelog **2.63.90** · **osobny bundle** — nie mieszać z TWSL w jednym commicie (#CORE-013).
-3. **STABILIZATION WINDOW** — kolejny program od **AUDIT** + Owner GO po release WIP.
-4. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
-5. **Cloud Sync S7** — observation only.
+1. **NG11 Wave 1 (A1+Q5)** — **CLOSED** · prod **2.63.95** · test **81/81** · SSOT [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md).
+2. **TENDER-WORKSPACE-LAYOUT (TWSL)** — **IMPLEMENT COMPLETE lokalnie** · changelog **2.63.91** · **RELEASE NOT READY** (untracked) · osobny commit.
+3. **NG11-Q3** debounced persist — AUDIT+PLAN gotowy · **Owner GO IMPLEMENT NOT READY**.
+4. **STABILIZATION WINDOW** — kolejny program od **AUDIT** + Owner GO.
+5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
 
 **Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **NOW** | **TWSL** scrollable accordiony Przetarg | FEATURE UI | **IMPLEMENT lokalny** · **2.63.91** · czeka commit+push | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
-| **NEXT** | **NG10-HOTFIX-02** timeout partial | BUGFIX UI | **WIP lokalny** · **2.63.90** | gate-exit + autonomous UX |
-| **—** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** (od zera) | `STABILIZATION-WINDOW-PLAN.md` |
-| **NG-10** | Autonomous Tender Workspace | FEATURE UI | **EPIC COMPLETE** · prod **2.63.86** | `NG-10-CLOSEOUT.md` |
+| **DONE** | **NG11 Wave 1** A1+Q5 | FEATURE pipeline | **CLOSED** · **2.63.95** @ `4710d11` | `NG11-WAVE1-CLOSEOUT.md` |
+| **NOW** | **TWSL** scrollable accordiony | FEATURE UI | **IMPLEMENT lokalny** · **2.63.91** | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
+| **NEXT** | **NG11-Q3** debounced persist | FEATURE pipeline | AUDIT+PLAN · **Owner GO NOT READY** | `NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md` |
+| **—** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** | `STABILIZATION-WINDOW-PLAN.md` |
+| **NG10** | Autonomous Agent UX | FEATURE UI | **EPIC COMPLETE** · **2.63.94** | `NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md` |
 | **P0-A** | iOS Login Shell | FEATURE | **CLOSED** · **2.63.87** | `P0-A-IOS-LOGIN-CLOSEOUT.md` |
-| **—** | POST F2 observation | OBSERVATION | **ACTIVE** | `CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md` |
 
-**WIP w tree (nie commitować razem z docs continuity):** `TenderScrollableAccordion.tsx` · NG10 autonomous · skrypty audit-* · recovery payroll RCA · `.tmp/`.
+**WIP w tree (nie commitować razem z docs continuity):** `TenderScrollableAccordion.tsx` · `TenderPrzetargWorkspace.tsx` · skrypty audit-* · recovery payroll RCA · `.tmp/`.
 
 **Deploy:** push `main` → Vercel · verify **jedno** `curl`/`Invoke-RestMethod` `https://www.wgdom.fun/version.json`.
 

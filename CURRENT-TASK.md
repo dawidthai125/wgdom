@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · **POST INCIDENT STANDBY** · prod **2.63.87** @ **`6f85d4c`** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · **POST INCIDENT STANDBY** · prod **2.63.95** @ **`4710d11`** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.87** @ **`6f85d4c`** · **BASELINE LOCKED** · **PRODUCTION VERIFIED** |
-| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** — osobne commity |
+| **Baseline prod** | UI **2.63.95** @ **`4710d11`** · **BASELINE LOCKED** · **PRODUCTION VERIFIED** |
+| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **P0-A** iOS Login (**2.63.87**) · **NG-10** (**2.63.86**) · **P0 Payroll** (**2.63.85**) · **NG-09** (**2.63.84**) |
-| **Co dalej?** | Release bundle **TWSL** lub **NG10-HF-02** (commit+push) · potem STABILIZATION WINDOW |
+| **Ostatnio zamknięte (prod)** | **NG11 Wave 1** (**2.63.95**) · **NG10 UX** (**2.63.94**) · **P0-A** (**2.63.87**) · **P0 Payroll** (**2.63.85**) |
+| **Co dalej?** | **NG11-Q3** (Owner GO) lub release bundle **TWSL** → verify **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -53,6 +53,23 @@
 
 ---
 
+## NG11 — Tender Pipeline Performance · **Wave 1 CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/architecture/NG11-WAVE1-CLOSEOUT.md`](docs/architecture/NG11-WAVE1-CLOSEOUT.md) · [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **Wave 1 CLOSED** (A1+Q5+F0 timing) |
+| **Commit** | **`4710d11`** · **2.63.95** |
+| **Zakres** | Progressive heavy (cost/metadata split) · cost-first pricing · readiness signals · dev timing |
+| **Klasa** | FEATURE pipeline — **#CORE-013 PASS** (zero Payroll/sync/Edge) |
+| **Test release** | **81/81 PASS** (A1 12 · Q5 14 · timing 11 · catalog 11 · heavy 5 · gate 28) |
+| **Backlog** | **NG11-Q3** debounced persist — AUDIT+PLAN gotowy · **Owner GO IMPLEMENT NOT READY** |
+
+**Nie rozszerzaj NG11 bez DESIGN FREEZE + ARCH REVIEW + Owner GO.**
+
+---
+
 ## TENDER-WORKSPACE-LAYOUT (TWSL) · **IMPLEMENT lokalny** · **RELEASE NOT READY**
 
 > **SSOT:** [`docs/architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](docs/architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md)
@@ -66,18 +83,16 @@
 | **Test** | `test-tender-workspace-scrollable-accordion.mjs` **20/20** · NG-03 regresja **PASS** · `npm run build` **PASS** |
 | **Następny krok** | `git add` allowlist TWSL → commit → push → verify `version.json` **2.63.91** |
 
-**Nie mieszać** z bundle **NG10-HOTFIX-02** (2.63.90) w jednym commicie.
+**Nie mieszać** z innymi bundle w jednym commicie.
 
 ---
 
-## NG10-HOTFIX-02 · **WIP lokalny** · **RELEASE NOT READY**
+## NG10-HOTFIX-02 · **CLOSED** (prod **2.63.90**)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT** w tree · **nie commitowany** |
-| **Wersja changelog** | **2.63.90** |
+| **Status** | **ON PROD** · commit `a5c75e2` |
 | **Zakres** | Autonomous gate timeout partial bez `discoverySettled` · AC-11 session unlock |
-| **Następny krok** | Osobny commit+push po/decyzji względem TWSL |
 
 ---
 
