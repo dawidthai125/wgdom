@@ -4,7 +4,9 @@
 > **Prod:** UI **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
 > **Ostatnia aktualizacja:** 2026-07-12 · **NG11-P0 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Closeout sesji (2026-07-12, NG11-P0 PRODUCTION VERIFIED):** **2.65.1** · OWNER QA **PASS** · RCA harness **12/12** · SSOT [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) · **następny:** STABILIZATION — brak nowego programu bez Owner GO.
+> **★ POST RELEASE (2026-07-12, NG11-P0):** obserwacja produkcyjna **ACTIVE** · SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · **zero implementacji** · po oknie → POST STABILIZATION REPORT + rekomendacja Q4 vs TWSL.
+
+> **★ Closeout sesji (2026-07-12, NG11-P0 PRODUCTION VERIFIED):** **2.65.1** · OWNER QA **PASS** · RCA harness **12/12** · SSOT [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) · **następny:** POST RELEASE observation — brak nowego programu bez Owner GO.
 
 > **★ Closeout sesji (2026-07-11, NG11-A5 PRODUCTION VERIFIED):** **2.65.0** @ **`2606bfd`** · OWNER QA **PASS** · test smoke **99/99** · gate-exit **28/28** · SSOT [`architecture/NG11-A5-CLOSEOUT.md`](architecture/NG11-A5-CLOSEOUT.md) · **następny:** **NG11-Q4** (optional) lub epic E2 closeout — **Owner GO**.
 
@@ -72,7 +74,7 @@
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL** **2.63.91** — Owner GO |
+| **Następny krok** | **POST RELEASE obserwacja NG11-P0** (read-only) → potem **NG11-Q4** lub **TWSL 2.63.91** — Owner GO |
 
 ### Czym jest aplikacja
 
@@ -118,6 +120,7 @@
 
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
+| **NG11-P0 POST RELEASE** | **OBSERVATION ACTIVE** | Realne przetargi · bootstrap/intelligence/manual/retry/SSOT · [`NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) |
 | **NG-08 parent** | **CLOSED / FROZEN** | slices 01–05 + HF-01 · **nie rozszerzać** |
 | **Następny AUDIT** | Owner | nowy bundle od zera · #CORE-013 |
 | **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |

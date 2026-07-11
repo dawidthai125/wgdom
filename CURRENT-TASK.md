@@ -13,7 +13,10 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-P0** (**2.65.1**) · **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) |
-| **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL** **2.63.91** — Owner GO |
+| **Co dalej?** | **POST RELEASE obserwacja NG11-P0** — [`docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · **bez kodu** · po oknie: **NG11-Q4** lub **TWSL 2.63.91** — Owner GO |
+
+> **POST RELEASE (NG11-P0):** prod **2.65.1** · **obserwacja produkcyjna ACTIVE** · zbieraj tylko regresje / logi / edge-case · przy regresji → INCIDENT REPORT + RCA · po oknie → [`NG11-P0-POST-STABILIZATION-REPORT.md`](docs/architecture/NG11-P0-POST-STABILIZATION-REPORT.md) · **nie implementuj** bez Owner GO.
+
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -821,6 +824,24 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 ---
 
 ## NG-01 — Tender Trust Layer · **SHIPPED** (w ramach serii 2.63.x)
+
+---
+
+## NG11-P0 — POST RELEASE obserwacja · **ACTIVE**
+
+> **SSOT:** [`docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · closeout: [`NG11-P0-CLOSEOUT.md`](docs/architecture/NG11-P0-CLOSEOUT.md)
+
+| Pole | Wartość |
+|------|---------|
+| **Release** | **PRODUCTION VERIFIED** · **2.65.1** @ `f4697f9` |
+| **Start obserwacji** | **2026-07-12** |
+| **Tryb** | **read-only** — zero IMPLEMENT |
+| **Cel** | Realne przetargi: bootstrap · intelligence · manual refresh · settled-empty retry · SSOT |
+| **Zbieraj** | Regresje · logi `[wgdom:discovery-snapshot]` · edge-case |
+| **Regresja** | → `NG11-P0-INCIDENT-REPORT-YYYY-MM-DD.md` + pełne RCA |
+| **Po oknie (~T2)** | → [`NG11-P0-POST-STABILIZATION-REPORT.md`](docs/architecture/NG11-P0-POST-STABILIZATION-REPORT.md) + rekomendacja **NG11-Q4** lub **TWSL 2.63.91** |
+
+**Zakaz:** nowy program · nowe funkcje · zmiany kodu bez Owner GO.
 
 ---
 

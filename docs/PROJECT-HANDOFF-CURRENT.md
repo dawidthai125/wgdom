@@ -75,7 +75,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **NG11-P0** — Discovery Unification | **2.65.1** | **CLOSED** · **PRODUCTION VERIFIED** · RCA harness **12/12** | [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) |
+| **NG11-P0** — Discovery Unification | **2.65.1** (`f4697f9`) | **CLOSED** · **PRODUCTION VERIFIED** · **POST RELEASE observation ACTIVE** | [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) · [`NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) |
 | **NG11-A5** — Strategic vs Economic | **2.65.0** (`2606bfd`) | **CLOSED** · **PRODUCTION VERIFIED** · test **99/99** smoke · gate-exit **28/28** | [`architecture/NG11-A5-CLOSEOUT.md`](architecture/NG11-A5-CLOSEOUT.md) |
 | **NG11-A3** — Discovery Fork | **2.64.0** (`78c0a40`) | **CLOSED** · **PRODUCTION VERIFIED** · test **95/95** smoke · PG-A3 **PASS** | [`architecture/NG11-A3-CLOSEOUT.md`](architecture/NG11-A3-CLOSEOUT.md) |
 | **NG11-A2** — Dossier Artifact Cache | **2.63.99** (`447a58b`) | **CLOSED** · **PRODUCTION VERIFIED** · test **92/92** · PG-A2 harness **PASS** | [`architecture/NG11-A2-CLOSEOUT.md`](architecture/NG11-A2-CLOSEOUT.md) |
