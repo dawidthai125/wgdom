@@ -19,6 +19,12 @@ import {
 import { deriveAutonomousStatusMessage } from "@/lib/tender-autonomous-run-status";
 import { deriveAutonomousRunTimelineView } from "@/lib/tender-autonomous-run-timeline";
 import {
+  deriveAutonomousExitSummary,
+  deriveAutonomousPartialReasonLabel,
+  type AutonomousPartialReasonLabel,
+} from "@/lib/tender-autonomous-run-transition";
+import type { AutonomousRunTimelineView } from "@/lib/tender-autonomous-run-timeline";
+import {
   AUTONOMOUS_RUN_MIN_DISPLAY_MS,
   formatAutonomousEtaSeconds,
 } from "@/lib/tender-autonomous-run-ux";
@@ -117,6 +123,9 @@ export function TenderAutonomousGate({
   const [tick, setTick] = useState(0);
   const [initialEtaSeconds, setInitialEtaSeconds] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [exitSummary, setExitSummary] = useState<string[] | null>(null);
+  const [timelineSnapshot, setTimelineSnapshot] = useState<AutonomousRunTimelineView | null>(null);
+  const [partialReasonLabel, setPartialReasonLabel] = useState<AutonomousPartialReasonLabel | null>(null);
   const gateExitStartedRef = useRef(false);
   /**
    * AC-18 / AC-11 — po wejściu do Workspace (Reveal) nie wracaj do S1 w tej sesji.
@@ -224,10 +233,22 @@ export function TenderAutonomousGate({
     gateExitStartedRef.current = true;
     setOutcomeMode(gateExit.outcomeMode);
     const isTimeout = gateExit.partialReason === "timeout";
+    const discoveryPending = isTimeout && !isDocumentDiscoverySettled(item);
     setTimeoutExitFlag(isTimeout);
-    setDiscoveryPendingFlag(isTimeout && !isDocumentDiscoverySettled(item));
+    setDiscoveryPendingFlag(discoveryPending);
+    setExitSummary(deriveAutonomousExitSummary(phaseView.feed));
+    setTimelineSnapshot(timelineView);
+    setPartialReasonLabel(
+      gateExit.outcomeMode === "partial"
+        ? deriveAutonomousPartialReasonLabel({
+            gatePartialReason: gateExit.partialReason,
+            input: phaseInput,
+            discoveryPending,
+          })
+        : null,
+    );
     setGatePhase(gateExit.outcomeMode === "partial" ? "partial_hold" : "complete_hold");
-  }, [gatePhase, gateExit.ready, gateExit.outcomeMode, gateExit.partialReason, item, tick]);
+  }, [gatePhase, gateExit.ready, gateExit.outcomeMode, gateExit.partialReason, item, phaseInput, phaseView.feed, timelineView, tick]);
 
   useEffect(() => {
     if (gatePhase !== "complete_hold" && gatePhase !== "partial_hold") return;
@@ -320,6 +341,11 @@ export function TenderAutonomousGate({
           timelineView={screenMode === "running" ? timelineView : null}
           etaLabel={formatAutonomousEtaSeconds(etaSeconds)}
           etaExceeded={etaExceeded}
+          elapsedMs={elapsedMs}
+          runComplete={phaseView.runComplete}
+          exitSummary={exitSummary}
+          partialReasonLabel={partialReasonLabel}
+          timelineSnapshot={timelineSnapshot}
           reducedMotion={reducedMotion}
           onBack={handleBack}
         />

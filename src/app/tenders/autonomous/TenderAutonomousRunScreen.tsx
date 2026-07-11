@@ -6,7 +6,23 @@ import type {
   AutonomousRunTimelineView,
   AutonomousTimelineStepStatus,
 } from "@/lib/tender-autonomous-run-timeline";
-import { AUTONOMOUS_AI_AGENT_LABELS, AUTONOMOUS_PARTIAL_HOLD_MESSAGE } from "@/lib/tender-autonomous-run-ux";
+import {
+  AUTONOMOUS_COMPLETE_HOLD_TITLE,
+  AUTONOMOUS_PARTIAL_HOLD_TITLE,
+  AUTONOMOUS_PARTIAL_REASON_CHIP,
+  AUTONOMOUS_TIMEOUT_BAR_LABEL,
+  AUTONOMOUS_TRANSITION_BRIDGE_MESSAGE,
+  AUTONOMOUS_TRANSITION_PRESENTATION_SUBTITLE,
+  deriveAutonomousTimeoutProgress,
+  deriveAutonomousTimeoutT30Message,
+  formatAutonomousTimeoutElapsed,
+  shouldAutoExpandAutonomousFaq,
+  shouldHideLegacyAutonomousEta,
+  shouldShowAutonomousTimeoutBar,
+  type AutonomousPartialReasonLabel,
+} from "@/lib/tender-autonomous-run-transition";
+import { TenderAutonomousRunFaq } from "@/app/tenders/autonomous/TenderAutonomousRunFaq";
+import { AUTONOMOUS_AI_AGENT_LABELS } from "@/lib/tender-autonomous-run-ux";
 import {
   TEUX_FONT_CAPTION,
   TEUX_FONT_HEADLINE,
@@ -16,7 +32,121 @@ import {
 const ETA_EXCEEDED_MESSAGE =
   "Analiza trwa dłużej — rozbudowana dokumentacja wymaga więcej czasu.";
 
-const COMPLETE_HOLD_MESSAGE = "✓ Analiza zakończona";
+function TenderAutonomousTimeoutBar({ elapsedMs }: { elapsedMs: number }) {
+  const { percent, elapsedSeconds, maxSeconds } = deriveAutonomousTimeoutProgress(elapsedMs);
+
+  return (
+    <div className="shrink-0 space-y-1.5" data-tender-autonomous-timeout-bar>
+      <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{AUTONOMOUS_TIMEOUT_BAR_LABEL}</p>
+      <div
+        className="h-1 w-full rounded-full bg-muted overflow-hidden"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={maxSeconds}
+        aria-valuenow={elapsedSeconds}
+        aria-label="Czas analizy automatycznej"
+      >
+        <div
+          className="h-full rounded-full bg-primary transition-[width] duration-1000 ease-linear"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p className={`${TEUX_FONT_CAPTION} text-muted-foreground tabular-nums`}>
+        {formatAutonomousTimeoutElapsed(elapsedSeconds)} / ~{formatAutonomousTimeoutElapsed(maxSeconds)}
+      </p>
+    </div>
+  );
+}
+
+function TenderAutonomousNearLimitStatus({ message }: { message: string }) {
+  return (
+    <div
+      className={`shrink-0 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 ${TEUX_FONT_BODY} text-foreground`}
+      data-tender-autonomous-timeout-t30
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {message}
+    </div>
+  );
+}
+
+function TenderAutonomousTimelineSnapshot({
+  snapshot,
+}: {
+  snapshot: AutonomousRunTimelineView;
+}) {
+  return (
+    <div
+      className="shrink-0 flex flex-wrap gap-1.5"
+      data-tender-autonomous-timeline-snapshot
+      aria-label="Podsumowanie postępu analizy"
+    >
+      {snapshot.macros.map((macro) => (
+        <span
+          key={macro.id}
+          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${TEUX_FONT_CAPTION} ${
+            macro.status === "done"
+              ? "border-primary/40 bg-primary/10 text-foreground"
+              : macro.status === "active"
+                ? "border-primary/50 bg-primary/15 text-foreground font-semibold"
+                : macro.status === "partial"
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100"
+                  : macro.status === "skipped"
+                    ? "border-border/50 bg-muted/30 text-muted-foreground line-through"
+                    : "border-border/50 bg-muted/20 text-muted-foreground"
+          }`}
+          data-tender-autonomous-timeline-snapshot-macro={macro.id}
+        >
+          <span aria-hidden>{timelineStatusSymbol(macro.status)}</span>
+          {macro.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TenderAutonomousTransitionPanel({
+  mode,
+  exitSummary,
+  partialReasonLabel,
+  timelineSnapshot,
+}: {
+  mode: "complete_hold" | "partial_hold" | "outcome_bridge";
+  exitSummary: string[] | null;
+  partialReasonLabel: AutonomousPartialReasonLabel | null;
+  timelineSnapshot: AutonomousRunTimelineView | null;
+}) {
+  return (
+    <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto overscroll-contain" data-tender-autonomous-transition>
+      {mode === "partial_hold" && partialReasonLabel != null && (
+        <span
+          className={`inline-flex w-fit items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 ${TEUX_FONT_CAPTION} font-semibold text-amber-900 dark:text-amber-100`}
+          data-tender-autonomous-partial-reason={partialReasonLabel}
+        >
+          {AUTONOMOUS_PARTIAL_REASON_CHIP[partialReasonLabel]}
+        </span>
+      )}
+      {exitSummary != null && exitSummary.length > 0 && (
+        <ul className="space-y-2" data-tender-autonomous-exit-summary role="list">
+          {exitSummary.map((line) => (
+            <li
+              key={line}
+              className={`flex items-start gap-2 ${TEUX_FONT_BODY} text-foreground`}
+            >
+              <span className="text-primary font-semibold shrink-0" aria-hidden>✓</span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {timelineSnapshot != null && (
+        <TenderAutonomousTimelineSnapshot snapshot={timelineSnapshot} />
+      )}
+    </div>
+  );
+}
 
 function timelineStatusSymbol(status: AutonomousTimelineStepStatus): string {
   switch (status) {
@@ -271,6 +401,11 @@ export function TenderAutonomousRunScreen({
   timelineView,
   etaLabel,
   etaExceeded,
+  elapsedMs,
+  runComplete,
+  exitSummary,
+  partialReasonLabel,
+  timelineSnapshot,
   reducedMotion,
   onBack,
 }: {
@@ -282,11 +417,27 @@ export function TenderAutonomousRunScreen({
   timelineView: AutonomousRunTimelineView | null;
   etaLabel: string | null;
   etaExceeded: boolean;
+  elapsedMs: number;
+  runComplete: boolean;
+  exitSummary: string[] | null;
+  partialReasonLabel: AutonomousPartialReasonLabel | null;
+  timelineSnapshot: AutonomousRunTimelineView | null;
   reducedMotion: boolean;
   onBack: () => void;
 }) {
   const showTimeline = mode === "running" && timelineView != null;
   const showDynamicStatus = mode === "running" && statusMessage != null && statusMessage.trim().length > 0;
+  const showTimeoutBar = mode === "running" && shouldShowAutonomousTimeoutBar(elapsedMs, runComplete);
+  const nearLimitMessage = mode === "running"
+    ? deriveAutonomousTimeoutT30Message(elapsedMs, runComplete)
+    : null;
+  const hideLegacyEta = shouldHideLegacyAutonomousEta({
+    showTimeline,
+    elapsedMs,
+    runComplete,
+  });
+  const faqAutoExpand = mode === "running" && shouldAutoExpandAutonomousFaq(elapsedMs, runComplete);
+  const isTransitionMode = mode === "complete_hold" || mode === "partial_hold" || mode === "outcome_bridge";
 
   const handleBack = () => {
     const ok = window.confirm(
@@ -296,14 +447,15 @@ export function TenderAutonomousRunScreen({
   };
 
   const displayMessage = mode === "complete_hold"
-    ? COMPLETE_HOLD_MESSAGE
+    ? AUTONOMOUS_COMPLETE_HOLD_TITLE
     : mode === "partial_hold"
-      ? AUTONOMOUS_PARTIAL_HOLD_MESSAGE
+      ? AUTONOMOUS_PARTIAL_HOLD_TITLE
       : mode === "outcome_bridge"
-        ? "Przygotowuję rekomendację…"
+        ? AUTONOMOUS_TRANSITION_BRIDGE_MESSAGE
         : (activeLiveMessage ?? "Analizuję przetarg…");
 
-  const showEta = mode === "running" && etaLabel != null && !etaExceeded && !showTimeline;
+  const showEta = mode === "running" && etaLabel != null && !etaExceeded && !hideLegacyEta;
+  const showEtaExceeded = mode === "running" && etaExceeded && !hideLegacyEta;
   const pulseClass = reducedMotion
     ? ""
     : "motion-safe:animate-[ng10-agent-breathe_2.4s_ease-in-out_infinite]";
@@ -392,7 +544,7 @@ export function TenderAutonomousRunScreen({
               {etaLabel}
             </p>
           )}
-          {mode === "running" && etaExceeded && !showTimeline && (
+          {showEtaExceeded && (
             <p
               className={`${TEUX_FONT_BODY} text-amber-800 dark:text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2`}
               data-tender-autonomous-eta-exceeded
@@ -404,13 +556,27 @@ export function TenderAutonomousRunScreen({
 
         <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
           <div
-            className={`rounded-xl border border-border bg-card/80 px-4 py-3 min-h-[3.5rem] flex items-center ${TEUX_FONT_BODY} font-medium text-foreground`}
+            className={`rounded-xl border border-border bg-card/80 px-4 py-3 min-h-[3.5rem] flex flex-col justify-center gap-1 ${TEUX_FONT_BODY} font-medium text-foreground`}
             data-tender-autonomous-live
             aria-live="polite"
             aria-atomic="true"
           >
-            {displayMessage}
+            <span>{displayMessage}</span>
+            {(mode === "complete_hold" || mode === "partial_hold") && (
+              <span
+                className={`${TEUX_FONT_CAPTION} font-normal text-muted-foreground`}
+                data-tender-autonomous-transition-subtitle
+              >
+                {AUTONOMOUS_TRANSITION_PRESENTATION_SUBTITLE}
+              </span>
+            )}
           </div>
+
+          {showTimeoutBar && <TenderAutonomousTimeoutBar elapsedMs={elapsedMs} />}
+
+          {nearLimitMessage != null && (
+            <TenderAutonomousNearLimitStatus message={nearLimitMessage} />
+          )}
 
           {showTimeline && (
             <div className="lg:hidden">
@@ -436,8 +602,20 @@ export function TenderAutonomousRunScreen({
                   />
                 </div>
               )}
-              <TenderAutonomousActivityLog feed={feed} reducedMotion={reducedMotion} />
+              <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
+                <TenderAutonomousActivityLog feed={feed} reducedMotion={reducedMotion} />
+                <TenderAutonomousRunFaq autoExpand={faqAutoExpand} />
+              </div>
             </div>
+          )}
+
+          {isTransitionMode && (
+            <TenderAutonomousTransitionPanel
+              mode={mode as "complete_hold" | "partial_hold" | "outcome_bridge"}
+              exitSummary={exitSummary}
+              partialReasonLabel={partialReasonLabel}
+              timelineSnapshot={timelineSnapshot}
+            />
           )}
         </div>
       </div>
@@ -445,4 +623,4 @@ export function TenderAutonomousRunScreen({
   );
 }
 
-export { ETA_EXCEEDED_MESSAGE, COMPLETE_HOLD_MESSAGE };
+export { ETA_EXCEEDED_MESSAGE, AUTONOMOUS_COMPLETE_HOLD_TITLE as COMPLETE_HOLD_MESSAGE };
