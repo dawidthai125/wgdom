@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · prod **2.65.0** @ **`2606bfd`** · **NG11-A5 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-12 · prod **2.65.1** · **NG11-P0 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.0** @ **`2606bfd`** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.65.1** · **PRODUCTION VERIFIED** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) · **NG11-A2** (**2.63.99**) |
-| **Co dalej?** | **NG11-Q4** (optional) lub epic E2 closeout — **Owner GO** · lub release **TWSL** **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-P0** (**2.65.1**) · **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) |
+| **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL** **2.63.91** — Owner GO |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
