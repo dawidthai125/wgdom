@@ -1,5 +1,20 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.94 — NG10 Autonomous Agent UX Complete
+
+- **improve:** Timeline 12 kroków + 5 makr · mobile collapsible Postęp analizy
+- **improve:** Dziennik analizy — pełny `phaseView.feed` (achievement/live/status)
+- **improve:** Dynamic Status P0–P4 (discovery, wycena, opłacalność, partial data)
+- **improve:** Transition S4 — hold/bridge „prezentacja wyników” + exitSummary + timelineSnapshot
+- **improve:** Timeout S5 — pasek 150 s (po 30 s) · T-30 · FAQ auto-expand 45 s · ukrycie legacy ETA
+- **improve:** Chip analizy częściowej (timeout / no_attachments / discovery_pending / incomplete_pricing)
+- **improve:** HelpView — sekcja Autonomous Agent FAQ
+
+## 2.63.91 — TENDER-WORKSPACE-LAYOUT scrollowalne accordiony
+
+- **improve:** `TenderScrollableAccordion` — SSOT Tier A (postęp, info, operator) · max-h 280/300/320 + overscroll-contain
+- **improve:** Tokeny TWSL w `tender-ux-tokens.ts`
+
 ## 2.63.90 — NG10-HOTFIX-02 Autonomous Gate timeout bez discovery
 
 - **fix:** Timeout 150 s → rekomendacja bez `discoverySettled` (wymaga `scoringReady` + `displayDecision`)

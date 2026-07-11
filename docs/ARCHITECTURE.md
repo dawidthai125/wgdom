@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**TENDER-WORKSPACE-LAYOUT** WIP · prod **2.63.87** @ `6f85d4c` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG10 Autonomous Agent UX** EPIC COMPLETE · prod **2.63.94** @ `adf3250` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1931,6 +1931,58 @@ Wspólny wrapper **Tier A** dla accordionów tab **Przetarg** — cap wysokości
 **API:** `title: ReactNode` · `variant` default `workspace-card` · natywny `<details>` · `open` tylko z rodzica.
 
 **Nie zmienia:** pipeline NG-02 · NG-10 logika gate · sync · Pricing · `App.tsx`.
+
+---
+
+### 12.1.30 NG10 — Autonomous Agent UX (v2.63.94 · UX-01…03)
+
+**Status:** **EPIC COMPLETE** · prezentacja S1–S5 · **bez zmian** pipeline runtime / gate-exit / sync  
+**SSOT programu:** [`architecture/NG10-AUTONOMOUS-AGENT-UX-DESIGN-FREEZE.md`](architecture/NG10-AUTONOMOUS-AGENT-UX-DESIGN-FREEZE.md) · closeout [`architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md`](architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md)  
+**Parent:** NG-10 Autonomous Tender Workspace (S1/S2 core) · HF-01/02 gate exit **CLOSED**
+
+Warstwa **prezentacji only** — czyta `deriveAutonomousRunPhase()` i istniejące derive NG-02; **nie** mutuje `useTenderPipelineRuntime`.
+
+| Warstwa | Opis | Plik SSOT | Slice |
+|---------|------|-----------|-------|
+| **S1 Timeline** | 12 kroków + 5 makrogrup | `tender-autonomous-run-timeline.ts` | UX-01 |
+| **S2 Activity Log** | Render `phaseView.feed` | `TenderAutonomousRunScreen.tsx` | UX-02 |
+| **S3 Dynamic Status** | P0–P4 copy kontekstowe | `tender-autonomous-run-status.ts` | UX-02 |
+| **S4 Transition** | hold / bridge / exitSummary / snapshot | `tender-autonomous-run-transition.ts` | UX-03 |
+| **S5 Timeout + FAQ** | Pasek 150 s · T-30 · `<details>` FAQ | `TenderAutonomousRunFaq.tsx` | UX-03 |
+
+**Gate flow (frozen):**
+
+```text
+running → complete_hold | partial_hold (850ms)
+       → outcome → outcome_bridge? → TenderAutonomousOutcomeScreen
+       → revealing → workspace (AC-11: brak powrotu do S1 w sesji)
+```
+
+| Element | Plik |
+|---------|------|
+| Gate orchestration | `TenderAutonomousGate.tsx` |
+| Run screen S1 | `TenderAutonomousRunScreen.tsx` |
+| Outcome S2 | `TenderAutonomousOutcomeScreen.tsx` |
+| Gate exit (frozen HF-02) | `tender-autonomous-run-gate-exit.ts` |
+| Phase runtime (frozen) | `tender-autonomous-run-phase.ts` |
+| Copy / stałe UX | `tender-autonomous-run-ux.ts` |
+
+**Testy regresji NG10 UX (96):**
+
+| Skrypt | Testy |
+|--------|-------|
+| `test-tender-autonomous-run-timeline.mjs` | 24 |
+| `test-tender-autonomous-run-status.mjs` | 15 |
+| `test-tender-autonomous-run-transition-timeout.mjs` | 29 |
+| `test-tender-autonomous-run-gate-exit.mjs` | 28 |
+
+**Principles:** #NG10-UX-001…007 (read-only SSOT · reuse feed · TOKEN FREEZE · HF-02 frozen).
+
+**Nie zmienia:** `cloud-sync.ts` · `deriveAutonomousGateExitReady` logika · parsery · KV · Edge · Payroll.
+
+**Status:** **EPIC COMPLETE**  
+**Production:** **`adf3250`**  
+**Regression:** **96/96 PASS**
 
 ---
 

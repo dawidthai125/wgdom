@@ -11,6 +11,56 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-11",
+    version: "2.63.94",
+    label: "NG10 — Autonomous Agent UX Complete",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — Autonomous Agent: timeline 12 kroków i 5 makrogrup postępu analizy (mobile: zwijany panel Postęp analizy).",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — Dziennik analizy: pełny feed agentów (osiągnięcia, status, komunikaty live) z auto-scroll.",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — Status kontekstowy podczas analizy (np. pobieranie BZP, wycena, opłacalność bez pełnego kosztorysu).",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — Przejście do rekomendacji: ekran „Przygotowuję prezentację wyników” z podsumowaniem osiągnięć i snapshotem postępu.",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — Limit czasu ~2 min: pasek postępu (po 30 s), komunikat T-30 oraz FAQ „Dlaczego analiza może potrwać dłużej?”.",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — Analiza częściowa: chip powodu (limit czasu, brak załączników, dokumenty w toku, wycena w toku) przed ekranem rekomendacji.",
+      },
+      {
+        type: "improve",
+        text: "Instrukcja — nowa sekcja FAQ Autonomous Agent (timeline, dziennik, timeout, analiza częściowa).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
+    version: "2.63.91",
+    label: "TENDER-WORKSPACE-LAYOUT — scrollowalne accordiony Przetarg",
+    items: [
+      {
+        type: "improve",
+        text: "Przetarg — accordiony „Szczegóły postępu”, „Informacje o przetargu” i „Przygotowanie oferty”: wspólny komponent z limitem wysokości i wewnętrznym scrollem (stabilniejszy układ na mobile).",
+      },
+      {
+        type: "improve",
+        text: "Tokeny layout accordionów Workspace w tender-ux-tokens — jednakowe max-height desktop/mobile.",
+      },
+    ],
+  },
+  {
     date: "2026-07-10",
     version: "2.63.90",
     label: "NG10-HOTFIX-02 — Autonomous Gate timeout bez discovery",
