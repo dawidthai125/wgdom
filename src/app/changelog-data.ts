@@ -12,6 +12,44 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-10",
+    version: "2.63.90",
+    label: "NG10-HOTFIX-02 — Autonomous Gate timeout bez discovery",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — Autonomous Agent: po 150 s przejście do rekomendacji nawet gdy pobieranie dokumentów nie zakończyło się (scoring + decyzja HOLD/GO/NO-GO gotowe).",
+      },
+      {
+        type: "improve",
+        text: "Ekran rekomendacji — watchout gdy dokumentacja nadal się pobiera po wyjściu timeout.",
+      },
+      {
+        type: "fix",
+        text: "Po wejściu do Workspace (AC-11) gate nie przejmuje ponownie ekranu — Workspace uzupełnia się o nowe dane z pipeline.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
+    version: "2.63.89",
+    label: "NG10-HOTFIX-01 — Autonomous Gate partial + timeout",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — Autonomous Agent: po 150 s lub przy analizie częściowej (HOLD/NO-GO) przejście do ekranu rekomendacji zamiast nieskończonego S1 (np. „Oceniam opłacalność”).",
+      },
+      {
+        type: "fix",
+        text: "Po wejściu do Workspace gate nie przejmuje ponownie pełnego ekranu w tej samej sesji — pipeline może dokończyć pracę w tle.",
+      },
+      {
+        type: "improve",
+        text: "Ekran rekomendacji — banner analizy częściowej i watchout przy przekroczeniu czasu automatycznej analizy.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-10",
     version: "2.63.88",
     label: "PAYROLL-SIM-01 — Symulacja wypłaty",
     items: [

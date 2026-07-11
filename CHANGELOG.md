@@ -1,5 +1,17 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.90 — NG10-HOTFIX-02 Autonomous Gate timeout bez discovery
+
+- **fix:** Timeout 150 s → rekomendacja bez `discoverySettled` (wymaga `scoringReady` + `displayDecision`)
+- **improve:** Watchout „dokumentacja nadal się pobiera” przy timeout + discovery pending
+- **fix:** AC-11 — po Workspace gate nie wraca do S1; Workspace dostaje aktualizacje pipeline
+
+## 2.63.89 — NG10-HOTFIX-01 Autonomous Gate partial + timeout
+
+- **fix:** Autonomous S1 — OutcomePartial (HOLD/NO-GO) + timeout 150 s → ekran rekomendacji
+- **fix:** AC-18 — po Reveal gate nie przejmuje ponownie ekranu w tej sesji
+- **improve:** Banner analizy częściowej + watchout timeout na S2
+
 ## 2.63.88 — PAYROLL-SIM-01 Symulacja wypłaty
 
 - **new:** Lista Płac — tryb symulacji wypłaty (wykluczanie osób z sum UI, bez mutacji payroll)

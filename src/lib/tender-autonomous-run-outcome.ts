@@ -7,7 +7,9 @@ import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import { isDocumentDiscoverySettled } from "@/lib/tender-document-discovery";
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import {
+  AUTONOMOUS_OUTCOME_DISCOVERY_PENDING_WATCHOUT,
   AUTONOMOUS_OUTCOME_POSITIVES_MAX,
+  AUTONOMOUS_OUTCOME_TIMEOUT_WATCHOUT,
   AUTONOMOUS_OUTCOME_WATCHOUTS_MAX,
 } from "@/lib/tender-autonomous-run-ux";
 
@@ -71,8 +73,16 @@ export function deriveAutonomousOutcomePositives(
 export function deriveAutonomousOutcomeWatchouts(
   ctx: TenderIntelligenceContext,
   ownerFinanceWarnings?: string[] | null,
+  opts?: { partialMode?: boolean; timeoutExit?: boolean; discoveryPending?: boolean },
 ): string[] {
   const lines: string[] = [];
+
+  if (opts?.timeoutExit) {
+    lines.push(AUTONOMOUS_OUTCOME_TIMEOUT_WATCHOUT);
+  }
+  if (opts?.discoveryPending) {
+    lines.push(AUTONOMOUS_OUTCOME_DISCOVERY_PENDING_WATCHOUT);
+  }
 
   for (const block of ctx.overlay.allBlocks) {
     lines.push(block.message);

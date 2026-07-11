@@ -47,6 +47,22 @@ export const AUTONOMOUS_RUN_LS_KEY_PREFIX = "kw-tender-autonomous-run-v1:";
 
 export const AUTONOMOUS_RUN_MIN_DISPLAY_MS = 3000;
 
+/** NG10-HOTFIX-01 — twardy limit S1 (ms); po przekroczeniu → OutcomePartial. */
+export const AUTONOMOUS_RUN_MAX_MS = 150_000;
+
+export const AUTONOMOUS_PARTIAL_HOLD_MESSAGE =
+  "Analiza częściowa gotowa — przygotowuję rekomendację.";
+
+export const AUTONOMOUS_OUTCOME_PARTIAL_BANNER =
+  "Wynik na podstawie dostępnych danych — wycena lub pipeline mogą być nadal w toku.";
+
+export const AUTONOMOUS_OUTCOME_TIMEOUT_WATCHOUT =
+  "Przekroczono czas analizy automatycznej — sprawdź wycenę w Workspace.";
+
+/** NG10-HOTFIX-02 — timeout partial gdy discovery jeszcze nie settled. */
+export const AUTONOMOUS_OUTCOME_DISCOVERY_PENDING_WATCHOUT =
+  "Dokumentacja przetargu nadal się pobiera — uzupełnij analizę w zakładce Dokumenty.";
+
 export const AUTONOMOUS_ETA_MIN_SECONDS = 8;
 export const AUTONOMOUS_ETA_MAX_SECONDS = 120;
 

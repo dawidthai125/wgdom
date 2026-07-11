@@ -7,8 +7,10 @@ import {
 } from "@/lib/tender-autonomous-run-outcome";
 import {
   AUTONOMOUS_OUTCOME_CTA,
+  AUTONOMOUS_OUTCOME_PARTIAL_BANNER,
   AUTONOMOUS_RECOMMENDATION_HERO,
 } from "@/lib/tender-autonomous-run-ux";
+import type { AutonomousGateOutcomeMode } from "@/lib/tender-autonomous-run-gate-exit";
 import {
   TEUX_FONT_BODY,
   TEUX_FONT_CAPTION,
@@ -28,6 +30,9 @@ export function TenderAutonomousOutcomeScreen({
   tenderTitle,
   reducedMotion,
   exiting,
+  outcomeMode = "complete",
+  timeoutExit = false,
+  discoveryPending = false,
   onCta,
 }: {
   intelligenceCtx: TenderIntelligenceContext;
@@ -35,6 +40,9 @@ export function TenderAutonomousOutcomeScreen({
   tenderTitle: string;
   reducedMotion: boolean;
   exiting?: boolean;
+  outcomeMode?: AutonomousGateOutcomeMode;
+  timeoutExit?: boolean;
+  discoveryPending?: boolean;
   onCta: () => void;
 }) {
   const decision = intelligenceCtx.overlay.displayDecision;
@@ -48,8 +56,12 @@ export function TenderAutonomousOutcomeScreen({
   );
 
   const watchouts = useMemo(
-    () => deriveAutonomousOutcomeWatchouts(intelligenceCtx, ownerFinanceWarnings),
-    [intelligenceCtx, ownerFinanceWarnings],
+    () => deriveAutonomousOutcomeWatchouts(intelligenceCtx, ownerFinanceWarnings, {
+      partialMode: outcomeMode === "partial",
+      timeoutExit,
+      discoveryPending,
+    }),
+    [intelligenceCtx, ownerFinanceWarnings, outcomeMode, timeoutExit, discoveryPending],
   );
 
   const motionClass = reducedMotion ? "" : "motion-safe:ng10-outcome-enter";
@@ -60,6 +72,7 @@ export function TenderAutonomousOutcomeScreen({
       className={`fixed inset-0 z-[100] flex flex-col bg-background text-foreground ${exitClass}`}
       data-tender-autonomous-outcome
       data-tender-autonomous-decision={decision}
+      data-tender-autonomous-outcome-mode={outcomeMode}
       role="dialog"
       aria-modal="true"
       aria-label="Rekomendacja analizy przetargu"
@@ -122,6 +135,15 @@ export function TenderAutonomousOutcomeScreen({
               </span>
             </div>
           </header>
+
+          {outcomeMode === "partial" && (
+            <p
+              className={`${TEUX_FONT_BODY} text-amber-800 dark:text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2.5 text-center`}
+              data-tender-autonomous-outcome-partial-banner
+            >
+              {AUTONOMOUS_OUTCOME_PARTIAL_BANNER}
+            </p>
+          )}
 
           {positives.length > 0 && (
             <section data-tender-autonomous-outcome-positives>

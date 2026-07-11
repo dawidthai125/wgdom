@@ -9,6 +9,10 @@ import {
   type AutonomousRunPersistedState,
 } from "@/lib/tender-autonomous-run-fingerprint";
 import {
+  deriveAutonomousGateExitReady,
+  type AutonomousGateOutcomeMode,
+} from "@/lib/tender-autonomous-run-gate-exit";
+import {
   deriveAutonomousEtaSeconds,
   deriveAutonomousRunPhase,
 } from "@/lib/tender-autonomous-run-phase";
@@ -16,6 +20,7 @@ import {
   AUTONOMOUS_RUN_MIN_DISPLAY_MS,
   formatAutonomousEtaSeconds,
 } from "@/lib/tender-autonomous-run-ux";
+import { isDocumentDiscoverySettled } from "@/lib/tender-document-discovery";
 import {
   TenderAutonomousRunScreen,
   type TenderAutonomousRunScreenMode,
@@ -25,7 +30,13 @@ import { TenderAutonomousOutcomeScreen } from "@/app/tenders/autonomous/TenderAu
 const COMPLETE_HOLD_MS = 850;
 const REVEAL_MS = 500;
 
-type GatePhase = "workspace" | "running" | "complete_hold" | "outcome" | "revealing";
+type GatePhase =
+  | "workspace"
+  | "running"
+  | "complete_hold"
+  | "partial_hold"
+  | "outcome"
+  | "revealing";
 
 function loadPersistedAutonomousRun(tenderId: string): AutonomousRunPersistedState | null {
   if (typeof localStorage === "undefined") return null;
@@ -97,11 +108,19 @@ export function TenderAutonomousGate({
   const [gatePhase, setGatePhase] = useState<GatePhase>(() =>
     runRequired ? "running" : "workspace",
   );
+  const [outcomeMode, setOutcomeMode] = useState<AutonomousGateOutcomeMode>("complete");
+  const [timeoutExitFlag, setTimeoutExitFlag] = useState(false);
+  const [discoveryPendingFlag, setDiscoveryPendingFlag] = useState(false);
   const [runStartedAt] = useState(() => Date.now());
   const [tick, setTick] = useState(0);
   const [initialEtaSeconds, setInitialEtaSeconds] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const completeHoldStartedRef = useRef(false);
+  const gateExitStartedRef = useRef(false);
+  /**
+   * AC-18 / AC-11 — po wejściu do Workspace (Reveal) nie wracaj do S1 w tej sesji.
+   * Pipeline i discovery mogą dokończyć pracę; children (Workspace) dostają aktualizacje.
+   */
+  const sessionWorkspaceUnlockedRef = useRef(false);
   const onRevealRef = useRef(onReveal);
   onRevealRef.current = onReveal;
 
@@ -115,13 +134,16 @@ export function TenderAutonomousGate({
   }, []);
 
   useEffect(() => {
+    if (sessionWorkspaceUnlockedRef.current) return;
     if (gatePhase === "workspace" && runRequired) {
       setGatePhase("running");
     }
   }, [gatePhase, runRequired]);
 
   useEffect(() => {
-    if (gatePhase !== "running" && gatePhase !== "complete_hold") return;
+    if (gatePhase !== "running" && gatePhase !== "complete_hold" && gatePhase !== "partial_hold") {
+      return;
+    }
     const id = window.setInterval(() => setTick((t) => t + 1), 1000);
     return () => window.clearInterval(id);
   }, [gatePhase]);
@@ -152,10 +174,11 @@ export function TenderAutonomousGate({
     [phaseInput],
   );
 
+  const elapsedMs = Date.now() - runStartedAt;
   const rowCount = item.tenderDossier?.kosztorys?.rowCount ?? 0;
   const etaSeconds = deriveAutonomousEtaSeconds({
     pipelineState: pipelineRuntime.pipelineState,
-    elapsedMs: Date.now() - runStartedAt,
+    elapsedMs,
     rowCount,
     autoRunning: pipelineRuntime.autoRunning,
     dossierBuilding: pipelineRuntime.dossierBuilding,
@@ -169,20 +192,33 @@ export function TenderAutonomousGate({
   const etaExceeded = gatePhase === "running"
     && initialEtaSeconds != null
     && !phaseView.runComplete
-    && (Date.now() - runStartedAt) > initialEtaSeconds * 1000 + 3000;
+    && elapsedMs > initialEtaSeconds * 1000 + 3000;
 
-  const minDisplayElapsed = (Date.now() - runStartedAt) >= AUTONOMOUS_RUN_MIN_DISPLAY_MS;
+  const minDisplayElapsed = elapsedMs >= AUTONOMOUS_RUN_MIN_DISPLAY_MS;
+
+  const gateExit = useMemo(
+    () => deriveAutonomousGateExitReady({
+      input: phaseInput,
+      elapsedMs,
+      minDisplayElapsed,
+    }),
+    [phaseInput, elapsedMs, minDisplayElapsed],
+  );
 
   useEffect(() => {
     if (gatePhase !== "running") return;
-    if (!phaseView.runComplete || !minDisplayElapsed) return;
-    if (completeHoldStartedRef.current) return;
-    completeHoldStartedRef.current = true;
-    setGatePhase("complete_hold");
-  }, [gatePhase, phaseView.runComplete, minDisplayElapsed, tick]);
+    if (!gateExit.ready || gateExit.outcomeMode == null) return;
+    if (gateExitStartedRef.current) return;
+    gateExitStartedRef.current = true;
+    setOutcomeMode(gateExit.outcomeMode);
+    const isTimeout = gateExit.partialReason === "timeout";
+    setTimeoutExitFlag(isTimeout);
+    setDiscoveryPendingFlag(isTimeout && !isDocumentDiscoverySettled(item));
+    setGatePhase(gateExit.outcomeMode === "partial" ? "partial_hold" : "complete_hold");
+  }, [gatePhase, gateExit.ready, gateExit.outcomeMode, gateExit.partialReason, item, tick]);
 
   useEffect(() => {
-    if (gatePhase !== "complete_hold") return;
+    if (gatePhase !== "complete_hold" && gatePhase !== "partial_hold") return;
     const id = window.setTimeout(() => {
       setGatePhase("outcome");
     }, COMPLETE_HOLD_MS);
@@ -193,6 +229,7 @@ export function TenderAutonomousGate({
     if (gatePhase !== "revealing") return;
     const ms = reducedMotion ? 0 : REVEAL_MS;
     const id = window.setTimeout(() => {
+      sessionWorkspaceUnlockedRef.current = true;
       setGatePhase("workspace");
       onRevealRef.current?.();
     }, ms);
@@ -200,6 +237,7 @@ export function TenderAutonomousGate({
   }, [gatePhase, reducedMotion]);
 
   const handleOutcomeCta = useCallback(() => {
+    sessionWorkspaceUnlockedRef.current = true;
     savePersistedAutonomousRun(item.id, {
       fingerprint,
       completedAt: new Date().toISOString(),
@@ -211,6 +249,7 @@ export function TenderAutonomousGate({
   const screenMode: TenderAutonomousRunScreenMode | null = useMemo(() => {
     if (gatePhase === "running") return "running";
     if (gatePhase === "complete_hold") return "complete_hold";
+    if (gatePhase === "partial_hold") return "partial_hold";
     if (gatePhase === "outcome" && !intelligenceCtx) return "outcome_bridge";
     return null;
   }, [gatePhase, intelligenceCtx]);
@@ -225,7 +264,7 @@ export function TenderAutonomousGate({
     onBack();
   }, [onBack]);
 
-  if (gatePhase === "workspace") {
+  if (sessionWorkspaceUnlockedRef.current || gatePhase === "workspace") {
     return <>{children}</>;
   }
 
@@ -279,6 +318,9 @@ export function TenderAutonomousGate({
           tenderTitle={item.title ?? ""}
           reducedMotion={reducedMotion}
           exiting={gatePhase === "revealing"}
+          outcomeMode={outcomeMode}
+          timeoutExit={timeoutExitFlag}
+          discoveryPending={discoveryPendingFlag}
           onCta={handleOutcomeCta}
         />
       )}

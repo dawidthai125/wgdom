@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { AutonomousActivityEvent } from "@/lib/tender-autonomous-run-phase";
-import { AUTONOMOUS_AI_AGENT_LABELS } from "@/lib/tender-autonomous-run-ux";
+import { AUTONOMOUS_AI_AGENT_LABELS, AUTONOMOUS_PARTIAL_HOLD_MESSAGE } from "@/lib/tender-autonomous-run-ux";
 import {
   TEUX_FONT_CAPTION,
   TEUX_FONT_HEADLINE,
@@ -13,7 +13,11 @@ const ETA_EXCEEDED_MESSAGE =
 
 const COMPLETE_HOLD_MESSAGE = "✓ Analiza zakończona";
 
-export type TenderAutonomousRunScreenMode = "running" | "complete_hold" | "outcome_bridge";
+export type TenderAutonomousRunScreenMode =
+  | "running"
+  | "complete_hold"
+  | "partial_hold"
+  | "outcome_bridge";
 
 export function TenderAutonomousRunScreen({
   tenderTitle,
@@ -38,7 +42,7 @@ export function TenderAutonomousRunScreen({
   const feedScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (mode === "complete_hold" || mode === "outcome_bridge") return;
+    if (mode === "complete_hold" || mode === "partial_hold" || mode === "outcome_bridge") return;
     const el = feedScrollRef.current;
     const end = feedEndRef.current;
     if (!el || !end) return;
@@ -57,9 +61,11 @@ export function TenderAutonomousRunScreen({
 
   const displayMessage = mode === "complete_hold"
     ? COMPLETE_HOLD_MESSAGE
-    : mode === "outcome_bridge"
-      ? "Przygotowuję rekomendację…"
-      : (activeLiveMessage ?? "Analizuję przetarg…");
+    : mode === "partial_hold"
+      ? AUTONOMOUS_PARTIAL_HOLD_MESSAGE
+      : mode === "outcome_bridge"
+        ? "Przygotowuję rekomendację…"
+        : (activeLiveMessage ?? "Analizuję przetarg…");
 
   const showEta = mode === "running" && etaLabel != null && !etaExceeded;
   const pulseClass = reducedMotion
