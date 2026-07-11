@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · prod **2.63.96** @ **`4b35228`** · **NG11-Q3 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · prod **2.63.97** @ **`e003591`** · **NG11-Q1 RELEASE GO** · verify propagating · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.96** @ **`4b35228`** · **PRODUCTION VERIFIED** · feature **`f6f7265`** |
+| **Baseline prod** | UI **2.63.97** @ **`e003591`** · **RELEASE GO** · verify propagating |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-Q3** (**2.63.96** release) · **NG11 Wave 1** (**2.63.95**) · **NG10 UX** (**2.63.94**) |
-| **Co dalej?** | **NG11-Q1** OWNER QA → push **2.63.97** · lub release **TWSL** **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-Q1** (**2.63.97** release) · **NG11-Q3** (**2.63.96**) · **NG11 Wave 1** (**2.63.95**) |
+| **Co dalej?** | Verify `version.json` **2.63.97** · **NG11-Q2 HOLD** · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -67,19 +67,18 @@
 
 ---
 
-## NG11-Q1 — Parse Concurrency · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
+## NG11-Q1 — Parse Concurrency · **CLOSED** · **RELEASE GO**
 
-> **SSOT:** [`docs/architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md`](docs/architecture/NG11-Q1-PARSE-CONCURRENCY-AUDIT-PLAN.md) · DF §7 Q1
+> **SSOT:** [`docs/architecture/NG11-Q1-CLOSEOUT.md`](docs/architecture/NG11-Q1-CLOSEOUT.md) · [`docs/architecture/NG11-Q1-RELEASE-VERIFICATION.md`](docs/architecture/NG11-Q1-RELEASE-VERIFICATION.md)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · **RELEASE NOT PUSHED** · **OWNER QA PENDING** |
-| **Wersja** | **2.63.97** (lokalny changelog) |
-| **Limity** | Cost **3** · Metadata **3** · serial merge · flaga `pipelinePerfParseConcurrency` OFF |
-| **Test** | Q1 **11/11** · regresja **69/69** (Q3+A1+Q5+gate+heavy) · build **PASS** |
-| **Następny krok** | OWNER QA → commit push → verify `version.json` **2.63.97** |
-
-**Bez push** do Owner QA.
+| **Status** | **EPIC SLICE CLOSED** · **RELEASE GO** · verify **DEPLOY PROPAGATING** |
+| **Wersja** | **2.63.97** |
+| **Commit** | **`e003591`** |
+| **Test** | **80/80 PASS** · PG-1 harness **PASS** |
+| **Flaga** | `pipelinePerfParseConcurrency` **OFF** (default) |
+| **Następny** | **NG11-Q2 HOLD** do PRODUCTION VERIFIED |
 
 ---
 

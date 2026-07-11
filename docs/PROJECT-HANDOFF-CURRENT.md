@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.96** @ **`4b35228`** · feature **`f6f7265`** · **PRODUCTION VERIFIED** · **WIP:** TWSL **2.63.91**)
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-07-11 (**prod 2.63.97** @ **`e003591`** · **RELEASE GO** · verify propagating · **WIP:** TWSL **2.63.91**)
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,7 +75,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **NG11-Q3** — Debounced Persist | **2.63.96** (`f6f7265` / prod `4b35228`) | **CLOSED** · **PRODUCTION VERIFIED** · test **91/91** | [`architecture/NG11-Q3-CLOSEOUT.md`](architecture/NG11-Q3-CLOSEOUT.md) |
+| **NG11-Q1** — Parse Concurrency | **2.63.97** (`e003591`) | **CLOSED** · **RELEASE GO** · test **80/80** · PG-1 harness **PASS** | [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md) |
+| **NG11-Q3** — Debounced Persist | **2.63.96** (`f6f7265` / prod `d14bb7e`) | **CLOSED** · **PRODUCTION VERIFIED** · test **91/91** | [`architecture/NG11-Q3-CLOSEOUT.md`](architecture/NG11-Q3-CLOSEOUT.md) |
 | **NG11** — Pipeline Performance Wave 1 (A1+Q5) | **2.63.95** (`4710d11`) | **WAVE 1 CLOSED** · **PRODUCTION VERIFIED** · test **81/81** | [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md) · [`architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md) |
 | **NG10** — Autonomous Agent UX | **2.63.94** (`890f1fa`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** | [`architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md`](architecture/NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md) |
 | **TENDER-WORKSPACE-LAYOUT** — scrollable accordiony Przetarg | **2.63.91** (lokalny WIP) | **IMPLEMENT COMPLETE** · **RELEASE NOT READY** | [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md) |
