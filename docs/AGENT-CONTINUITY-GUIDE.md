@@ -2,9 +2,15 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.63.87** (prod) · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** · **Protected Core GREEN**
-> **Ostatnia aktualizacja:** 2026-07-10 · **runtime** `6f85d4c` · **P0-A iOS Login CLOSED** · **Incident Register CLEAN** · **STABILIZATION WINDOW ACTIVE**
+> **Ostatnia aktualizacja:** 2026-07-11 · **runtime prod** `6f85d4c` · **P0-A iOS Login CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Baseline (2026-07-10):** prod **2.63.87** @ **`6f85d4c`** (P0-A iOS Login Shell). **NG-10** @ **2.63.86** (`02e0d0a`). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** **STABILIZATION WINDOW** — nowy program od **AUDIT** + Owner GO.
+> **★ Baseline prod (2026-07-11):** prod **2.63.87** @ **`6f85d4c`**. **Lokalny WIP (nie na prod):** **TENDER-WORKSPACE-LAYOUT** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** — osobne bundle, **RELEASE NOT READY** (untracked / brak commit+push).
+
+> **★ Closeout sesji (2026-07-11, TWSL):** **TENDER-WORKSPACE-LAYOUT** — ARCH REVIEW → Owner GO → **IMPLEMENT lokalny** · `TenderScrollableAccordion` · tokeny TWSL · 3 accordiony Tier A · build+test **PASS** · SSOT [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md) · **następny krok:** commit bundle TWSL → push → verify **2.63.91**.
+
+> **★ Closeout sesji (2026-07-11, NG10-HF-02 WIP):** timeout partial bez `discoverySettled` · AC-11 gate nie wraca po Workspace · changelog **2.63.90** w tree · **osobny commit** przed/po TWSL — **nie mieszać** z TWSL.
+
+> **★ Baseline (2026-07-10):** prod **2.63.87** @ **`6f85d4c`** (P0-A iOS Login Shell). **NG-10** @ **2.63.86** (`02e0d0a`). **Payroll:** Domain Push **ACTIVE**. **Protected Core:** **GREEN**. **Następny krok:** release WIP bundle lub nowy program od **AUDIT** + Owner GO.
 
 > **★ Closeout sesji (2026-07-10, P0-A):** **`6f85d4c`** release **2.63.87** · Incident A **CLOSED** · Owner QA Safari iPhone **PASS** · SSOT [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md).
 
@@ -43,7 +49,8 @@
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **Następny krok** | **STABILIZATION WINDOW** — AUDIT + Owner GO |
+| **WIP lokalny** | **TWSL** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** (osobne bundle) |
+| **Następny krok** | Commit+push TWSL lub NG10-HF-02 → verify `version.json` |
 
 ### Czym jest aplikacja
 
@@ -102,7 +109,7 @@
 | **#CORE-014** | **Boundary Check** przed IMPLEMENT i przed COMMIT (klasyfikacja każdego pliku) | [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Owner GO** | IMPLEMENT dopiero po AUDIT → PLAN → FREEZE → ARCH REVIEW → Boundary · wyjątki CORE w [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) | `#WORKFLOW-OWNER-GO-001` |
 | **STABILIZATION WINDOW** | Brak nowych epiców bez Owner GO + AUDIT; maintenance / hotfix dozwolone | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) |
-| **TOKEN FREEZE** | `tender-ux-tokens.ts` — **import-only** (bez edycji tokenów bez AUDIT) | NG-06 TEUX epic close |
+| **TOKEN FREEZE** | `tender-ux-tokens.ts` — typography **import-only**; **wyjątek TWSL:** tokeny layout accordion (`TENDER_SCROLLABLE_ACCORDION_*`) — Owner GO 2026-07-11 | NG-06 TEUX + TWSL DF |
 | **Lista Płac / PWRB** | Mutacje składu tygodnia **tylko** przez PWRB · gate B payroll **16/16** | § **2b** · Payroll Agent Guide |
 | **Cloud Sync S7** | **Observation only** — bez nowych implementacji sync bez Owner GO | CURRENT-TASK · recovery |
 | **Deploy** | Frontend: **tylko** `git push origin main` · verify **jedno** `version.json` · **zakaz** `vercel deploy` | [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) |
@@ -596,33 +603,30 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne (2026-07-09)
+## 3. Co robimy teraz / następne (2026-07-11)
 
-**Production:** **GREEN** · UI **2.63.79** @ **`f7878fe`**.
+**Production:** **GREEN** · UI prod **2.63.87** @ **`6f85d4c`** · https://www.wgdom.fun
 
 **Faza bieżąca:**
 
-1. **M-03** — **CLOSED** (`f7878fe`) · mobile chrome 360–430px · allowlist 6 plików · E2E AC-M03-08 PASS.
-2. **NG-08 parent** — **CLOSED / FROZEN** (slices 01–05 + **HF-01**).
-3. **NG-08-HF-01** Visual Smoke — **CLOSED** (`4855a2d`) · REC-1 · allowlist 8 plików · E2E AC-HF-01…09 PASS.
-4. **STABILIZATION WINDOW** — brak nowych slice'ów NG-08; kolejny program **tylko** od nowego **AUDIT** + Owner GO.
-5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
-6. **Cloud Sync S7** — observation only.
+1. **TENDER-WORKSPACE-LAYOUT (TWSL)** — **IMPLEMENT COMPLETE lokalnie** · changelog **2.63.91** · build+test **PASS** · **RELEASE NOT READY** (untracked pliki) · SSOT [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md).
+2. **NG10-HOTFIX-02** — **WIP lokalny** · changelog **2.63.90** · **osobny bundle** — nie mieszać z TWSL w jednym commicie (#CORE-013).
+3. **STABILIZATION WINDOW** — kolejny program od **AUDIT** + Owner GO po release WIP.
+4. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
+5. **Cloud Sync S7** — observation only.
 
-**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · **TOKEN FREEZE** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
+**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **NOW** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** (od zera) | `STABILIZATION-WINDOW-PLAN.md` |
-| **NG-09** | Inspector Workspace | FEATURE UI | **EPIC COMPLETE** · 2.63.84 | `NG-09-EPIC-CLOSE-REPORT.md` |
-| **M-03** | Mobile Re-certification | FEATURE UI maintenance | **CLOSED** · 2.63.79 | `M-03-MOBILE-RECERT-DESIGN-FREEZE.md` · `0f8a165`+`f7878fe` |
-| **NG-08-HF-01** | Visual Smoke remediation | FEATURE UI hotfix | **CLOSED** · 2.63.78 | commits `4f8f256`+`4855a2d` |
-| **NG-08-05…01** | Tender Workspace UX | FEATURE UI | **CLOSED** · 2.63.73–77 | `NG-08-TEUX-PLAN.md` |
-| **NG-06** | TEUX EPIC | FEATURE UI | **COMPLETE** · 2.63.66 | `NG-06-TEUX-EPIC-CLOSE-REPORT.md` |
+| **NOW** | **TWSL** scrollable accordiony Przetarg | FEATURE UI | **IMPLEMENT lokalny** · **2.63.91** · czeka commit+push | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
+| **NEXT** | **NG10-HOTFIX-02** timeout partial | BUGFIX UI | **WIP lokalny** · **2.63.90** | gate-exit + autonomous UX |
+| **—** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** (od zera) | `STABILIZATION-WINDOW-PLAN.md` |
+| **NG-10** | Autonomous Tender Workspace | FEATURE UI | **EPIC COMPLETE** · prod **2.63.86** | `NG-10-CLOSEOUT.md` |
+| **P0-A** | iOS Login Shell | FEATURE | **CLOSED** · **2.63.87** | `P0-A-IOS-LOGIN-CLOSEOUT.md` |
 | **—** | POST F2 observation | OBSERVATION | **ACTIVE** | `CORE-5C-5C-F3-TELEMETRY-OBSERVATION.md` |
-| **—** | Cloud Sync S7 | CORE obs | Observation only | CURRENT-TASK |
 
-**WIP w tree (nie commitować razem z docs continuity):** skrypty audit-* · `backup-lib.mjs` · recovery payroll RCA (poza aktywnym closeoutem).
+**WIP w tree (nie commitować razem z docs continuity):** `TenderScrollableAccordion.tsx` · NG10 autonomous · skrypty audit-* · recovery payroll RCA · `.tmp/`.
 
 **Deploy:** push `main` → Vercel · verify **jedno** `curl`/`Invoke-RestMethod` `https://www.wgdom.fun/version.json`.
 

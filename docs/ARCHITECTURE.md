@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-08 (**NG-06-TEUX EPIC COMPLETE** · prod **2.63.66** @ `80cf911` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**TENDER-WORKSPACE-LAYOUT** WIP · prod **2.63.87** @ `6f85d4c` · **Lista Płac chroniona** — RC-B + PAYROLL B1–B6 CLOSED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1906,6 +1906,31 @@ Epic dostarcza **design system i warstwę UX** modułu Przetargi — **bez** zmi
 **Nie zmienia:** `cloud-sync.ts` · `useTenderPipelineRuntime` · parsery · merge dossier · **Lista Płac**.
 
 **Defer (poza epicem):** fizyczne usunięcie hosted · TOKEN thaw · bez Owner GO.
+
+---
+
+### 12.1.29 TENDER-WORKSPACE-LAYOUT — Scrollable Accordion (v2.63.91 · WIP lokalny)
+
+**Status:** **IMPLEMENT COMPLETE** lokalnie · **nie na prod** (2026-07-11)  
+**SSOT:** [`architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md)
+
+Wspólny wrapper **Tier A** dla accordionów tab **Przetarg** — cap wysokości body + wewnętrzny scroll (anti-CLS mobile).
+
+| Accordion | `data-tender-*` | Plik konsumenta |
+|-----------|-----------------|-----------------|
+| Szczegóły postępu | `progress-accordion` · `id="tender-progress-accordion"` | `TenderWorkflowHubPanel.tsx` |
+| Informacje o przetargu | `info-accordion` | `TenderPrzetargWorkspace.tsx` |
+| Przygotowanie oferty | `operator-accordion` | `TenderPrzetargWorkspace.tsx` |
+
+| Element | Plik |
+|---------|------|
+| Komponent SSOT | `src/app/tenders/components/TenderScrollableAccordion.tsx` |
+| Tokeny layout | `tender-ux-tokens.ts` — `TENDER_SCROLLABLE_ACCORDION_*` |
+| Test gate | `scripts/test-tender-workspace-scrollable-accordion.mjs` |
+
+**API:** `title: ReactNode` · `variant` default `workspace-card` · natywny `<details>` · `open` tylko z rodzica.
+
+**Nie zmienia:** pipeline NG-02 · NG-10 logika gate · sync · Pricing · `App.tsx`.
 
 ---
 

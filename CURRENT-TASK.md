@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-10 · **POST INCIDENT STANDBY** · prod **2.63.87** @ **`6f85d4c`** · **Incident Register CLEAN** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · **POST INCIDENT STANDBY** · prod **2.63.87** @ **`6f85d4c`** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -10,9 +10,10 @@
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Baseline prod** | UI **2.63.87** @ **`6f85d4c`** · **BASELINE LOCKED** · **PRODUCTION VERIFIED** |
+| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · **NG10-HOTFIX-02** **2.63.90** — osobne commity |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte** | **P0-A** iOS Login (**2.63.87**) · **NG-10** (**2.63.86**) · **P0 Payroll** (**2.63.85**) · **NG-09** (**2.63.84**) |
-| **Co dalej?** | **STABILIZATION WINDOW** — brak aktywnych bundle · nowy program od **AUDIT** + Owner GO |
+| **Ostatnio zamknięte (prod)** | **P0-A** iOS Login (**2.63.87**) · **NG-10** (**2.63.86**) · **P0 Payroll** (**2.63.85**) · **NG-09** (**2.63.84**) |
+| **Co dalej?** | Release bundle **TWSL** lub **NG10-HF-02** (commit+push) · potem STABILIZATION WINDOW |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -49,6 +50,34 @@
 | **NG-10-06** Closeout & Polish | `02e0d0a` | **CLOSED** · **2.63.86** · **PRODUCTION VERIFIED** |
 
 **Nie rozszerzaj NG-10 bez nowego AUDIT + Owner GO.**
+
+---
+
+## TENDER-WORKSPACE-LAYOUT (TWSL) · **IMPLEMENT lokalny** · **RELEASE NOT READY**
+
+> **SSOT:** [`docs/architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md`](docs/architecture/TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** lokalnie · **nie na prod** |
+| **Wersja changelog** | **2.63.91** (lokalny `changelog-data.ts`) |
+| **Zakres** | `TenderScrollableAccordion` · tokeny TWSL · migracja 3 accordionów Tier A (Hub + Przetarg) |
+| **Klasa** | FEATURE UI — **#CORE-013 PASS** (zero sync/pipeline) |
+| **Test** | `test-tender-workspace-scrollable-accordion.mjs` **20/20** · NG-03 regresja **PASS** · `npm run build` **PASS** |
+| **Następny krok** | `git add` allowlist TWSL → commit → push → verify `version.json` **2.63.91** |
+
+**Nie mieszać** z bundle **NG10-HOTFIX-02** (2.63.90) w jednym commicie.
+
+---
+
+## NG10-HOTFIX-02 · **WIP lokalny** · **RELEASE NOT READY**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT** w tree · **nie commitowany** |
+| **Wersja changelog** | **2.63.90** |
+| **Zakres** | Autonomous gate timeout partial bez `discoverySettled` · AC-11 session unlock |
+| **Następny krok** | Osobny commit+push po/decyzji względem TWSL |
 
 ---
 
