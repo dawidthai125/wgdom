@@ -54,6 +54,8 @@ export interface AppSettings {
   pipelinePerfParseConcurrency: boolean;
   /** NG11-Q2 — równoległy unpack ZIP/7Z w dossier (≤2). Domyślnie wyłączone. */
   pipelinePerfUnpackParallel: boolean;
+  /** NG11-A2 — sesyjny cache artefaktów heavy parse dossier (cost/full). Domyślnie wyłączone. */
+  pipelinePerfArtifactCache: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -71,6 +73,7 @@ export function defaultAppSettings(): AppSettings {
     pipelinePerfDebouncePersist: false,
     pipelinePerfParseConcurrency: false,
     pipelinePerfUnpackParallel: false,
+    pipelinePerfArtifactCache: false,
   };
 }
 
@@ -87,6 +90,11 @@ export function isPipelinePerfParseConcurrencyEnabled(): boolean {
 /** NG11-Q2 — parallel archive unpack dossier (feature flag, default OFF). */
 export function isPipelinePerfUnpackParallelEnabled(): boolean {
   return loadAppSettingsLocal().pipelinePerfUnpackParallel === true;
+}
+
+/** NG11-A2 — dossier artifact cache (feature flag, default OFF). */
+export function isPipelinePerfArtifactCacheEnabled(): boolean {
+  return loadAppSettingsLocal().pipelinePerfArtifactCache === true;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -168,6 +176,7 @@ export function loadAppSettingsLocal(): AppSettings {
       pipelinePerfDebouncePersist: parsed.pipelinePerfDebouncePersist === true,
       pipelinePerfParseConcurrency: parsed.pipelinePerfParseConcurrency === true,
       pipelinePerfUnpackParallel: parsed.pipelinePerfUnpackParallel === true,
+      pipelinePerfArtifactCache: parsed.pipelinePerfArtifactCache === true,
     };
   } catch {
     return defaultAppSettings();
@@ -232,5 +241,11 @@ export function mergeAppSettings(
         : remote?.pipelinePerfUnpackParallel === false
           ? false
           : local.pipelinePerfUnpackParallel === true,
+    pipelinePerfArtifactCache:
+      remote?.pipelinePerfArtifactCache === true
+        ? true
+        : remote?.pipelinePerfArtifactCache === false
+          ? false
+          : local.pipelinePerfArtifactCache === true,
   };
 }

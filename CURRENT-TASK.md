@@ -13,7 +13,7 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-Q2** (**2.63.98**) · **NG11-Q1** (**2.63.97**) · **NG11-Q3** (**2.63.96**) |
-| **Co dalej?** | **NG11-A2** artifact cache — od **AUDIT** + Owner GO · lub release **TWSL** **2.63.91** |
+| **Co dalej?** | **NG11-A2** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,13 +96,26 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A2** artifact cache — **IMPLEMENT NOT STARTED** (wymaga AUDIT + Owner GO).
+**Następny slice NG11:** **A2** artifact cache — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
 
 ---
 
-## NG11-Q1 — Parse Concurrency · **CLOSED** · **PRODUCTION VERIFIED**
+## NG11-A2 — Dossier Artifact Cache · **IMPLEMENTED** · **RELEASE NOT READY**
 
-> **SSOT:** [`docs/architecture/NG11-WAVE1-CLOSEOUT.md`](docs/architecture/NG11-WAVE1-CLOSEOUT.md) · [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md)
+> **SSOT:** [`docs/architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md`](docs/architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md) · DF § A2 · #NG11-007
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · **OWNER QA PENDING** · **bez push** |
+| **Wersja** | **2.63.99** (lokalny changelog) |
+| **Werdykt** | session LRU 12 · phase-split cost/full · flag OFF |
+| **Test** | **111/111 PASS** (A2 21 + regresja NG11 57 + gate 28 + heavy 5) |
+| **PG-A2** | retry hit P50 −100% vs miss (mock harness) |
+| **Następny krok** | OWNER QA → commit push → verify `version.json` **2.63.99** |
+
+---
+
+## NG11 Wave 1 — **CLOSED** (A1+Q5+F0 timing)
 
 | Element | Wartość |
 |---------|---------|

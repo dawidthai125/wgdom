@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-Q2** parallel archive unpack · **2.63.98** · feature flag OFF default)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A2** dossier artifact cache · **2.63.99** · feature flag OFF default)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,7 +2016,30 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 2:** NG11-A2 — artifact cache — po Q2 PRODUCTION VERIFIED.
+**Backlog Wave 2:** NG11-A3 — discovery fork — po A2 release.
+
+---
+
+### 12.1.35 NG11-A2 — Dossier Artifact Cache (v2.63.99)
+
+**Status:** **IMPLEMENTED** · flaga `pipelinePerfArtifactCache` default **OFF**  
+**SSOT:** [`architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md`](architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Session LRU cache | `src/lib/tender-pipeline/tender-dossier-artifact-cache.ts` |
+| Cost/full phase hooks | `src/lib/tender-dossier-pipeline.ts` |
+| Flaga Super Admin | `src/lib/app-settings.ts` · `AdminSettingsModal.tsx` |
+
+**Limity frozen:** max **12** LRU entries · phase-split **cost** / **full** · key = normalized fingerprint + `CURRENT_PARSER_VERSION` · **bez KV** persist cache.
+
+**Invalidation:** `isDossierParserStale` force miss · fingerprint change · LRU eviction · flag OFF.
+
+**Test:** `scripts/test-ng11-artifact-cache.mjs` (21) + regresja A1/Q1/Q2/Q3/Q5/gate-exit 28/28/heavy-lifecycle.
+
+**Nie zmienia:** `cloud-sync.ts` · NG10 gate-exit · Payroll · `wgdom-7z-archive.ts` internals · parsery fidelity · Edge.
+
+**Rollback:** `pipelinePerfArtifactCache = false` w ⚙ Super Admin.
 
 ---
 

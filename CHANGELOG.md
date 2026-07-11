@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.63.99 — NG11-A2 Dossier Artifact Cache
+
+- **improve:** session artifact cache heavy parse (cost/full phases, LRU 12) — retry same fingerprint
+- **improve:** flaga `pipelinePerfArtifactCache` (Super Admin, default OFF)
+
 ## 2.63.98 — NG11-Q2 Parallel Archive Unpack
 
 - **improve:** dossier ZIP/7Z unpack — bounded parallel ≤2 · serial deterministic merge · sort unchanged

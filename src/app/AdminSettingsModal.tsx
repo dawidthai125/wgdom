@@ -273,6 +273,25 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.pipelinePerfArtifactCache}
+                onChange={async (e) => {
+                  const next = { ...appSettings, pipelinePerfArtifactCache: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">NG11-A2 — cache artefaktów dossier (retry)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Po włączeniu sesyjny cache wyniku heavy parse (cost/full, LRU 12)
+                  przy ponownym parse z tym samym fingerprint — bez KV persist cache.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.pipelinePerfDebouncePersist}
                 onChange={async (e) => {
                   const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };

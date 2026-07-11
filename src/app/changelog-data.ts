@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.63.99",
+    label: "NG11-A2 — Dossier Artifact Cache",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-A2: sesyjny cache wyniku heavy parse dossier (fazy cost/full, LRU 12) przy ponownym parse z tym samym fingerprint — głównie retry po błędzie.",
+      },
+      {
+        type: "improve",
+        text: "Super Admin — flaga pipelinePerfArtifactCache w ustawieniach (domyślnie wyłączona; rollback bez deployu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.98",
     label: "NG11-Q2 — Parallel Archive Unpack dossier",
     items: [

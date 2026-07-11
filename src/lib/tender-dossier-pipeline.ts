@@ -25,6 +25,11 @@ import {
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
 import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
+import {
+  getDossierArtifactCached,
+  isPipelineArtifactCacheEnabled,
+  setDossierArtifactCached,
+} from "@/lib/tender-pipeline/tender-dossier-artifact-cache";
 
 export interface TenderDossierScanCounts {
   pdf: number;
@@ -197,7 +202,17 @@ export interface TenderDossierHeavyCostPhaseResult extends TenderDossierHeavyBui
 }
 
 type HeavyBuildOpts = {
-  item: Pick<TenderPipelineItem, "tenderId" | "title" | "ourEstimatePln" | "uploadedFile" | "id">;
+  item: Pick<
+    TenderPipelineItem,
+    | "tenderId"
+    | "title"
+    | "ourEstimatePln"
+    | "uploadedFile"
+    | "id"
+    | "bzpDocuments"
+    | "externalDocDiscovery"
+    | "tenderDossier"
+  >;
   docs: TenderBzpDocument[];
   noticeHtml?: string | null;
   existingSwz?: TenderSwzAnalysis | null;
@@ -205,6 +220,10 @@ type HeavyBuildOpts = {
   athPreviewEnabled?: boolean;
   pipelineTimingItemId?: string;
 };
+
+function heavyCacheItem(opts: HeavyBuildOpts): TenderPipelineItem {
+  return opts.item as TenderPipelineItem;
+}
 
 function buildHeavyBrief(opts: HeavyBuildOpts): TenderDossier["brief"] {
   return opts.existingDossier?.brief
@@ -288,6 +307,29 @@ function buildHeavyScanSummary(
 /** NG11-A1 — faza kosztorysu + partial dossier (bez parsedAt w scanSummary). */
 export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise<TenderDossierHeavyCostPhaseResult> {
   const brief = buildHeavyBrief(opts);
+  const cacheItem = heavyCacheItem(opts);
+
+  if (opts.docs.length && opts.item.tenderId && isPipelineArtifactCacheEnabled()) {
+    const fullHit = getDossierArtifactCached(cacheItem, "full", opts.existingDossier);
+    if (fullHit?.phase === "full") {
+      return {
+        tenderDossier: fullHit.tenderDossier,
+        swzAnalysis: fullHit.swzAnalysis,
+        ourEstimatePln: fullHit.ourEstimatePln,
+        parseSession: null,
+      };
+    }
+    const costHit = getDossierArtifactCached(cacheItem, "cost", opts.existingDossier);
+    if (costHit?.phase === "cost") {
+      return {
+        tenderDossier: costHit.tenderDossier,
+        swzAnalysis: costHit.swzAnalysis,
+        ourEstimatePln: costHit.ourEstimatePln,
+        parseSession: costHit.parseSession,
+      };
+    }
+  }
+
   let kosztorysSnap: TenderKosztorysSnapshot | null = opts.existingDossier?.kosztorys ?? null;
   let swzMerged = opts.existingSwz ?? null;
   let estimatePln = opts.item.ourEstimatePln ?? null;
@@ -352,7 +394,7 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
     partial: true,
   });
 
-  return {
+  const costResult: TenderDossierHeavyCostPhaseResult = {
     tenderDossier: stampDossierParserVersion({
       brief,
       kosztorys: kosztorysSnap,
@@ -364,6 +406,18 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
     ourEstimatePln: estimatePln,
     parseSession,
   };
+
+  if (opts.docs.length && opts.item.tenderId && parseSession && isPipelineArtifactCacheEnabled()) {
+    setDossierArtifactCached(cacheItem, {
+      phase: "cost",
+      tenderDossier: costResult.tenderDossier,
+      swzAnalysis: costResult.swzAnalysis,
+      ourEstimatePln: costResult.ourEstimatePln,
+      parseSession,
+    });
+  }
+
+  return costResult;
 }
 
 /** NG11-A1 — faza metadanych SWZ (tło) + final dossier z parsedAt. */
@@ -373,6 +427,19 @@ export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
   partialSwz: TenderSwzAnalysis | null;
   partialEstimatePln: number | null;
 }): Promise<TenderDossierHeavyBuildResult> {
+  const cacheItem = heavyCacheItem(opts);
+
+  if (isPipelineArtifactCacheEnabled()) {
+    const fullHit = getDossierArtifactCached(cacheItem, "full", opts.existingDossier);
+    if (fullHit?.phase === "full") {
+      return {
+        tenderDossier: fullHit.tenderDossier,
+        swzAnalysis: fullHit.swzAnalysis,
+        ourEstimatePln: fullHit.ourEstimatePln,
+      };
+    }
+  }
+
   const parsedResult = await executeTenderDossierMetadataPhase(opts.parseSession);
   let kosztorysSnap = opts.partialDossier.kosztorys ?? null;
   {
@@ -412,7 +479,7 @@ export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
     partial: false,
   });
 
-  return {
+  const finalResult: TenderDossierHeavyBuildResult = {
     tenderDossier: stampDossierParserVersion({
       brief: opts.partialDossier.brief,
       kosztorys: kosztorysSnap,
@@ -423,6 +490,17 @@ export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
     swzAnalysis: swzMerged,
     ourEstimatePln: estimatePln,
   };
+
+  if (isPipelineArtifactCacheEnabled()) {
+    setDossierArtifactCached(cacheItem, {
+      phase: "full",
+      tenderDossier: finalResult.tenderDossier,
+      swzAnalysis: finalResult.swzAnalysis,
+      ourEstimatePln: finalResult.ourEstimatePln,
+    });
+  }
+
+  return finalResult;
 }
 
 /** Ciężkie parsowanie dossier — ten sam wynik co wcześniejszy auto-pipeline na expand. */
