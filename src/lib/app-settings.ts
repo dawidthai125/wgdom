@@ -56,6 +56,8 @@ export interface AppSettings {
   pipelinePerfUnpackParallel: boolean;
   /** NG11-A2 — sesyjny cache artefaktów heavy parse dossier (cost/full). Domyślnie wyłączone. */
   pipelinePerfArtifactCache: boolean;
+  /** NG11-A3 — speculative external discovery fork (∥ BZP) w auto bootstrap. Domyślnie wyłączone. */
+  pipelinePerfDiscoveryFork: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -74,6 +76,7 @@ export function defaultAppSettings(): AppSettings {
     pipelinePerfParseConcurrency: false,
     pipelinePerfUnpackParallel: false,
     pipelinePerfArtifactCache: false,
+    pipelinePerfDiscoveryFork: false,
   };
 }
 
@@ -95,6 +98,11 @@ export function isPipelinePerfUnpackParallelEnabled(): boolean {
 /** NG11-A2 — dossier artifact cache (feature flag, default OFF). */
 export function isPipelinePerfArtifactCacheEnabled(): boolean {
   return loadAppSettingsLocal().pipelinePerfArtifactCache === true;
+}
+
+/** NG11-A3 — discovery fork speculative external (feature flag, default OFF). */
+export function isPipelinePerfDiscoveryForkEnabled(): boolean {
+  return loadAppSettingsLocal().pipelinePerfDiscoveryFork === true;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -177,6 +185,7 @@ export function loadAppSettingsLocal(): AppSettings {
       pipelinePerfParseConcurrency: parsed.pipelinePerfParseConcurrency === true,
       pipelinePerfUnpackParallel: parsed.pipelinePerfUnpackParallel === true,
       pipelinePerfArtifactCache: parsed.pipelinePerfArtifactCache === true,
+      pipelinePerfDiscoveryFork: parsed.pipelinePerfDiscoveryFork === true,
     };
   } catch {
     return defaultAppSettings();
@@ -247,5 +256,11 @@ export function mergeAppSettings(
         : remote?.pipelinePerfArtifactCache === false
           ? false
           : local.pipelinePerfArtifactCache === true,
+    pipelinePerfDiscoveryFork:
+      remote?.pipelinePerfDiscoveryFork === true
+        ? true
+        : remote?.pipelinePerfDiscoveryFork === false
+          ? false
+          : local.pipelinePerfDiscoveryFork === true,
   };
 }

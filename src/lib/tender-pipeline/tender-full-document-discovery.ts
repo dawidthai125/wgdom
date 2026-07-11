@@ -18,6 +18,11 @@ import {
   runTenderDocumentDiscovery,
 } from "@/lib/tender-document-discovery";
 import { recordDiscoverySnapshot } from "@/lib/tender-pipeline/tender-pipeline-discovery-snapshot";
+import {
+  runDiscoveryForkJoin,
+  shouldStartDiscoveryFork,
+} from "@/lib/tender-pipeline/tender-discovery-fork";
+import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 
 export type TenderDiscoveryMode = "auto" | "manual" | "rescan";
 
@@ -53,6 +58,10 @@ export type TenderFullDiscoveryMeta = {
   changeEventCount: number;
   qaEventCount: number;
   externalNewEventCount: number;
+  forkStarted: boolean;
+  forkCancelled: boolean;
+  forkWon: boolean;
+  forkTimedOut: boolean;
 };
 
 export type TenderFullDiscoveryResult = {
@@ -173,80 +182,165 @@ export async function runTenderFullDocumentDiscovery(
     changeEventCount: 0,
     qaEventCount: 0,
     externalNewEventCount: 0,
+    forkStarted: false,
+    forkCancelled: false,
+    forkWon: false,
+    forkTimedOut: false,
   };
 
   let html: string | null | undefined = item.noticeHtml ?? null;
 
   if (prefetchNotice && item.noticeNumber && !html && !isCancelled()) {
-    const det = await deps.fetchTenderNoticeDetails(item.noticeNumber);
-    if (!isCancelled()) {
-      patch.tenderState = det.tenderState;
-      patch.noticeHtml = det.htmlBody;
-      patch.noticeHtmlFetchedAt = new Date().toISOString();
-      html = det.htmlBody;
-      meta.noticePrefetched = true;
-    }
+    await withPipelineTimingStage(item.id, "discovery.notice", async () => {
+      const det = await deps.fetchTenderNoticeDetails(item.noticeNumber!);
+      if (!isCancelled()) {
+        patch.tenderState = det.tenderState;
+        patch.noticeHtml = det.htmlBody;
+        patch.noticeHtmlFetchedAt = new Date().toISOString();
+        html = det.htmlBody;
+        meta.noticePrefetched = true;
+      }
+    });
   }
 
   let merged: TenderPipelineItem = { ...item, ...patch };
   let docs = merged.bzpDocuments ?? [];
+  let forkHandledExternal = false;
+
+  const applyExternalDiscovery = async (
+    discovery: Awaited<ReturnType<TenderFullDiscoveryDeps["discoverExternalTenderDocs"]>>,
+  ): Promise<void> => {
+    if (isCancelled()) return;
+    meta.externalRan = true;
+    meta.externalFileCount = discovery.files.length;
+    if (discovery.files.length > 0) {
+      const mergedBase = { ...item, ...patch };
+      const { patch: extPatch, newEventCount } = await buildExternalDiscoveryResult(
+        mergedBase,
+        discovery,
+      );
+      mergePatch(patch, extPatch);
+      meta.externalNewEventCount = newEventCount;
+      merged = { ...item, ...patch };
+    } else {
+      patch.externalDocDiscovery = discovery;
+      merged = { ...item, ...patch };
+    }
+  };
 
   if (!skipBzp && merged.tenderId && !isCancelled()) {
     const force = resolveDiscoveryForcePolicy(merged, mode);
     meta.bzpForce = force;
-    const discovery = await runTenderDocumentDiscovery(merged, {
-      force,
-      fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+    const useFork = shouldStartDiscoveryFork(merged, {
+      mode,
+      includeExternal,
+      skipBzp,
+      noticeHtml: html,
     });
-    if (!isCancelled() && discovery.ran) {
-      meta.bzpRan = true;
-      mergePatch(patch, discovery.patch);
-      docs = discovery.docs;
-      merged = { ...item, ...patch };
-      const monitors = applyDiscoveryMonitors(merged, docs);
-      mergePatch(patch, monitors.patch);
-      meta.changeEventCount = monitors.changeEventCount;
-      meta.qaEventCount = monitors.qaEventCount;
-      merged = { ...item, ...patch };
+
+    if (useFork) {
+      const join = await runDiscoveryForkJoin({
+        isCancelled,
+        runBzp: async () => withPipelineTimingStage(item.id, "discovery.bzp", async () => {
+          return runTenderDocumentDiscovery(merged, {
+            force,
+            fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+          });
+        }),
+        runExternal: async () => withPipelineTimingStage(item.id, "discovery.external", async () => {
+          return deps.discoverExternalTenderDocs({
+            tenderId: merged.tenderId!,
+            noticeHtml: html ?? merged.noticeHtml,
+            organizationName: merged.organizationName,
+            priorityBuyerId: merged.priorityBuyerId,
+            title: merged.title,
+            bzpNumber: merged.bzpNumber,
+          });
+        }),
+        getBzpDocCount: (discovery) => (discovery.ran ? discovery.docs.length : docs.length),
+      });
+
+      meta.forkStarted = join.meta.forkStarted;
+      meta.forkCancelled = join.meta.forkCancelled;
+      meta.forkWon = join.meta.forkWon;
+      meta.forkTimedOut = join.meta.forkTimedOut;
+
+      const discovery = join.bzp;
+      if (!isCancelled() && discovery.ran) {
+        meta.bzpRan = true;
+        mergePatch(patch, discovery.patch);
+        docs = discovery.docs;
+        merged = { ...item, ...patch };
+        const monitors = applyDiscoveryMonitors(merged, docs);
+        mergePatch(patch, monitors.patch);
+        meta.changeEventCount = monitors.changeEventCount;
+        meta.qaEventCount = monitors.qaEventCount;
+        merged = { ...item, ...patch };
+      }
+
+      meta.bzpDocCount = docs.length;
+
+      if (
+        !isCancelled()
+        && join.external != null
+        && !join.meta.forkCancelled
+        && shouldRunExternalDiscovery(merged, mode, {
+          includeExternal,
+          bzpDocCount: docs.length,
+          noticeHtml: html,
+        })
+      ) {
+        forkHandledExternal = true;
+        try {
+          await applyExternalDiscovery(join.external);
+        } catch (e) {
+          if (mode === "manual") throw e;
+        }
+      }
+    } else {
+      await withPipelineTimingStage(item.id, "discovery.bzp", async () => {
+        const discovery = await runTenderDocumentDiscovery(merged, {
+          force,
+          fetchDocuments: (input) => deps.fetchTenderDocuments(input),
+        });
+        if (!isCancelled() && discovery.ran) {
+          meta.bzpRan = true;
+          mergePatch(patch, discovery.patch);
+          docs = discovery.docs;
+          merged = { ...item, ...patch };
+          const monitors = applyDiscoveryMonitors(merged, docs);
+          mergePatch(patch, monitors.patch);
+          meta.changeEventCount = monitors.changeEventCount;
+          meta.qaEventCount = monitors.qaEventCount;
+          merged = { ...item, ...patch };
+        }
+      });
     }
   }
 
   meta.bzpDocCount = docs.length;
 
   if (
-    !isCancelled()
+    !forkHandledExternal
+    && !isCancelled()
     && shouldRunExternalDiscovery(merged, mode, {
       includeExternal,
       bzpDocCount: docs.length,
       noticeHtml: html,
     })
   ) {
-    meta.externalRan = true;
     try {
-      const discovery = await deps.discoverExternalTenderDocs({
-        tenderId: merged.tenderId!,
-        noticeHtml: html ?? merged.noticeHtml,
-        organizationName: merged.organizationName,
-        priorityBuyerId: merged.priorityBuyerId,
-        title: merged.title,
-        bzpNumber: merged.bzpNumber,
+      await withPipelineTimingStage(item.id, "discovery.external", async () => {
+        const discovery = await deps.discoverExternalTenderDocs({
+          tenderId: merged.tenderId!,
+          noticeHtml: html ?? merged.noticeHtml,
+          organizationName: merged.organizationName,
+          priorityBuyerId: merged.priorityBuyerId,
+          title: merged.title,
+          bzpNumber: merged.bzpNumber,
+        });
+        await applyExternalDiscovery(discovery);
       });
-      if (!isCancelled()) {
-        meta.externalFileCount = discovery.files.length;
-        if (discovery.files.length > 0) {
-          const mergedBase = { ...item, ...patch };
-          const { patch: extPatch, newEventCount } = await buildExternalDiscoveryResult(
-            mergedBase,
-            discovery,
-          );
-          mergePatch(patch, extPatch);
-          meta.externalNewEventCount = newEventCount;
-          merged = { ...item, ...patch };
-        } else {
-          patch.externalDocDiscovery = discovery;
-          merged = { ...item, ...patch };
-        }
-      }
     } catch (e) {
       if (mode === "manual") throw e;
       /* auto/rescan external best-effort */

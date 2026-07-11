@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-11",
+    version: "2.64.0",
+    label: "NG11-A3 — Discovery Fork",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — NG11-A3: auto bootstrap może startować external discovery równolegle z BZP; gdy BZP zwróci dokumenty, wynik external jest odrzucany (timeout 45 s).",
+      },
+      {
+        type: "improve",
+        text: "Super Admin — flaga pipelinePerfDiscoveryFork w ustawieniach (domyślnie wyłączona; rollback bez deployu).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-11",
     version: "2.63.99",
     label: "NG11-A2 — Dossier Artifact Cache",
     items: [

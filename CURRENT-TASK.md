@@ -13,7 +13,7 @@
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **NG11-A2** (**2.63.99**) · **NG11-Q2** (**2.63.98**) · **NG11-Q1** (**2.63.97**) |
-| **Co dalej?** | **NG11-A3** od AUDIT (bez IMPLEMENT) · lub release **TWSL** **2.63.91** |
+| **Co dalej?** | **NG11-A3** ARCH REVIEW + Owner GO · lub release **TWSL** **2.63.91** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -96,7 +96,21 @@
 | **Flaga** | `pipelinePerfUnpackParallel` **OFF** (default) |
 | **Pre-existing** | 3 FAIL dossier/7Z — **out of scope** (nie regresja Q2) |
 
-**Następny slice NG11:** **A3** discovery fork — **AUDIT NOT STARTED** (po A2 closeout ✅).
+**Następny slice NG11:** **A3** discovery fork — **AUDIT COMPLETE** · **IMPLEMENT BLOCKED** (ARCH REVIEW + Owner GO).
+
+---
+
+## NG11-A3 — Discovery Fork · **IMPLEMENT COMPLETE** · **OWNER QA PENDING**
+
+> **SSOT:** [`docs/architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md`](docs/architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md) · [`NG11-A3-RELEASE-VERIFICATION.md`](docs/architecture/NG11-A3-RELEASE-VERIFICATION.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · **v2.64.0** · **PUSH BLOCKED** (Owner QA) |
+| **Test** | **138/138 PASS** (A3 27 + regresja NG11) |
+| **PG-A3** | P50 −35% (mock empty BZP) · **PASS** |
+| **Flaga** | `pipelinePerfDiscoveryFork` default **OFF** |
+| **Następny krok** | **Owner QA** → push → verify `version.json` |
 
 ---
 

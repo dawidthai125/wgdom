@@ -292,6 +292,26 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.pipelinePerfDiscoveryFork}
+                onChange={async (e) => {
+                  const next = { ...appSettings, pipelinePerfDiscoveryFork: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">NG11-A3 — discovery fork (external ∥ BZP)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Po włączeniu auto bootstrap startuje external discovery
+                  równolegle z BZP; gdy BZP zwróci dokumenty, wynik external jest odrzucany.
+                  Timeout external 45 s · max 2 równoległe żądania T1.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.pipelinePerfDebouncePersist}
                 onChange={async (e) => {
                   const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A2** dossier artifact cache · **2.63.99** · **PRODUCTION VERIFIED**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A3** discovery fork · **2.64.0** · IMPLEMENTED)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2016,11 +2016,33 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 **Nie zmienia:** `cloud-sync.ts` · NG10 autonomous gate-exit · parsery merge quality · KV · Edge · Payroll.
 
-**Backlog Wave 2:** NG11-A3 — discovery fork — po A2 release.
+**Backlog Wave 3:** NG11-A5 — strategic/economic decision — po A3 release.
 
 ---
 
-### 12.1.35 NG11-A2 — Dossier Artifact Cache (v2.63.99)
+### 12.1.36 NG11-A3 — Discovery Fork (v2.64.0)
+
+**Status:** **IMPLEMENTED** · flaga `pipelinePerfDiscoveryFork` default **OFF**  
+**SSOT:** [`architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md`](architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md)
+
+| Element | Plik |
+|---------|------|
+| Fork scheduler + T1 pool | `src/lib/tender-pipeline/tender-discovery-fork.ts` |
+| Orchestrator wire | `src/lib/tender-pipeline/tender-full-document-discovery.ts` |
+| Bootstrap cancel wire | `src/app/hooks/useTenderDocumentsBootstrap.ts` |
+| Flaga Super Admin | `src/lib/app-settings.ts` · `AdminSettingsModal.tsx` |
+
+**Limity frozen:** speculative external **∥** BZP tylko `mode=auto` · cancel gdy BZP **>0** · external timeout **45 s** · T1 network pool **≤2** · merge/persist serial.
+
+**Test:** `scripts/test-ng11-discovery-fork.mjs` + regresja NG-02.1B/A1/Q1/Q2/Q3/A2/gate-exit 28/28.
+
+**Nie zmienia:** `cloud-sync.ts` · Edge `tenders-external-discover` · NG10 gate-exit · Payroll · parsery fidelity · pipeline runtime business logic.
+
+**Rollback:** `pipelinePerfDiscoveryFork = false` w ⚙ Super Admin.
+
+---
+
+### 12.1.35 NG11-A2 — Dossier Artifact Cache (v2.63.99) · **PRODUCTION VERIFIED**
 
 **Status:** **IMPLEMENTED** · **PRODUCTION VERIFIED** (2026-07-11) · flaga `pipelinePerfArtifactCache` default **OFF**  
 **SSOT:** [`architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md`](architecture/NG11-A2-ARTIFACT-CACHE-AUDIT-PLAN.md)

@@ -4,7 +4,9 @@
 > **Prod:** UI **2.63.99** @ **`447a58b`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
 > **Ostatnia aktualizacja:** 2026-07-11 · **NG11-A2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Closeout sesji (2026-07-11, NG11-A2 PRODUCTION VERIFIED):** **2.63.99** @ **`447a58b`** · `version.json` **PASS** · test **92/92** · PG-A2 **PASS** · SSOT [`architecture/NG11-A2-CLOSEOUT.md`](architecture/NG11-A2-CLOSEOUT.md) · **następny:** **NG11-A3** od **AUDIT** (bez IMPLEMENT).
+> **★ Closeout sesji (2026-07-11, NG11-A3 IMPLEMENT COMPLETE):** **v2.64.0** · test **138/138** · PG-A3 **PASS** · SSOT [`architecture/NG11-A3-RELEASE-VERIFICATION.md`](architecture/NG11-A3-RELEASE-VERIFICATION.md) · **PUSH BLOCKED** (Owner QA).
+
+> **★ Closeout sesji (2026-07-11, NG11-A3 AUDIT COMPLETE):** **AUDIT + PLAN + DF DRAFT** · SSOT [`architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md`](architecture/NG11-A3-DISCOVERY-FORK-AUDIT-PLAN.md).
 
 > **★ Closeout sesji (2026-07-11, NG11-Q2 PRODUCTION VERIFIED):** **2.63.98** @ **`608c9ec`** · `version.json` **PASS** · test **76/76** · PG-Q2 **PASS** · SSOT [`architecture/NG11-Q2-CLOSEOUT.md`](architecture/NG11-Q2-CLOSEOUT.md) · **następny:** **NG11-A2** od **AUDIT** (bez IMPLEMENT).
 
@@ -60,7 +62,7 @@
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-A3** od AUDIT (bez IMPLEMENT) · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-A3** Owner QA → push · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 

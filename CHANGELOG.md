@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.64.0 — NG11-A3 Discovery Fork
+
+- **improve:** auto bootstrap — speculative external ∥ BZP · cancel when BZP>0 · timeout 45s · T1 pool ≤2
+- **improve:** flaga `pipelinePerfDiscoveryFork` (Super Admin, default OFF)
+
 ## 2.63.99 — NG11-A2 Dossier Artifact Cache
 
 - **improve:** session artifact cache heavy parse (cost/full phases, LRU 12) — retry same fingerprint
