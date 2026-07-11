@@ -3,7 +3,10 @@
 > **Program:** NG11-TENDER-PIPELINE-PERFORMANCE  
 > **Slice:** **NG11-Q3**  
 > **Wersja:** **2.63.96**  
-> **SSOT plan:** [`NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md`](./NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md)
+> **Commit:** **`f6f7265`**  
+> **Status:** **RELEASED** · **DEPLOY PROPAGATING** · verify `version.json` → **2.63.96** pending  
+> **SSOT plan:** [`NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md`](./NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md)  
+> **Release verify:** [`NG11-Q3-RELEASE-VERIFICATION.md`](./NG11-Q3-RELEASE-VERIFICATION.md)
 
 ---
 

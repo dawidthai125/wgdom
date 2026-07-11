@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-11 · **POST INCIDENT STANDBY** · prod **2.63.95** @ **`4710d11`** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-11 · prod target **2.63.96** @ **`f6f7265`** · **POST INCIDENT STANDBY** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,11 +9,11 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.63.95** @ **`4710d11`** · **BASELINE LOCKED** · **PRODUCTION VERIFIED** |
+| **Baseline prod** | UI **2.63.96** (target) @ **`f6f7265`** · deploy **PROPAGATING** · ostatnio verified **2.63.95** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11 Wave 1** (**2.63.95**) · **NG10 UX** (**2.63.94**) · **P0-A** (**2.63.87**) · **P0 Payroll** (**2.63.85**) |
-| **Co dalej?** | **NG11-Q3** (Owner GO) lub release bundle **TWSL** → verify **2.63.91** |
+| **Ostatnio zamknięte (prod)** | **NG11-Q3** (**2.63.96** release) · **NG11 Wave 1** (**2.63.95**) · **NG10 UX** (**2.63.94**) |
+| **Co dalej?** | Potwierdź `version.json` **2.63.96** · release **TWSL** → **2.63.91** · **NG11-Q1 HOLD** |
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
@@ -53,6 +53,20 @@
 
 ---
 
+## NG11-Q3 — Debounced Persist · **RELEASED** · verify **PENDING**
+
+> **SSOT:** [`docs/architecture/NG11-Q3-CLOSEOUT.md`](docs/architecture/NG11-Q3-CLOSEOUT.md) · [`docs/architecture/NG11-Q3-RELEASE-VERIFICATION.md`](docs/architecture/NG11-Q3-RELEASE-VERIFICATION.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RELEASED** · **DEPLOY PROPAGATING** |
+| **Commit** | **`f6f7265`** · **2.63.96** |
+| **Flaga** | `pipelinePerfDebouncePersist` default **OFF** |
+| **Test release** | **91/91 PASS** |
+| **OWNER QA** | **PASS** (automated proxy) |
+
+---
+
 ## NG11 — Tender Pipeline Performance · **Wave 1 CLOSED** · **PRODUCTION VERIFIED**
 
 > **SSOT:** [`docs/architecture/NG11-WAVE1-CLOSEOUT.md`](docs/architecture/NG11-WAVE1-CLOSEOUT.md) · [`docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md`](docs/architecture/NG11-PIPELINE-PERFORMANCE-DESIGN-FREEZE.md)
@@ -64,7 +78,7 @@
 | **Zakres** | Progressive heavy (cost/metadata split) · cost-first pricing · readiness signals · dev timing |
 | **Klasa** | FEATURE pipeline — **#CORE-013 PASS** (zero Payroll/sync/Edge) |
 | **Test release** | **81/81 PASS** (A1 12 · Q5 14 · timing 11 · catalog 11 · heavy 5 · gate 28) |
-| **Backlog** | **NG11-Q3** debounced persist — **RELEASED** **2.63.96** · flaga default OFF |
+| **Backlog** | **NG11-Q1** — HOLD do pełnego **PRODUCTION VERIFIED** Q3 |
 
 **Nie rozszerzaj NG11 bez DESIGN FREEZE + ARCH REVIEW + Owner GO.**
 
