@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.63.97** @ **`e003591`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-Q1 PRODUCTION VERIFIED** · **NG11-Q2 AUDIT READY** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.63.98** @ **`608c9ec`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-11 · **NG11-Q2 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Closeout sesji (2026-07-11, NG11-Q2 PRODUCTION VERIFIED):** **2.63.98** @ **`608c9ec`** · `version.json` **PASS** · test **76/76** · PG-Q2 **PASS** · SSOT [`architecture/NG11-Q2-CLOSEOUT.md`](architecture/NG11-Q2-CLOSEOUT.md) · **następny:** **NG11-A2** od **AUDIT** (bez IMPLEMENT).
 
 > **★ Closeout sesji (2026-07-11, NG11-Q1 PRODUCTION VERIFIED):** **2.63.97** @ **`e003591`** · `version.json` **PASS** · test **80/80** · SSOT [`architecture/NG11-Q1-CLOSEOUT.md`](architecture/NG11-Q1-CLOSEOUT.md) · **następny:** **NG11-Q2** od **AUDIT** (bez IMPLEMENT).
 
@@ -47,16 +49,16 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.63.97** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`e003591`** · NG11-Q1 parse concurrency |
+| **Production (UI)** | **2.63.98** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`608c9ec`** · NG11-Q2 parallel archive unpack |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
+| **Ostatnio CLOSED** | **NG11-Q2** · **NG11-Q1** · **NG11-Q3** · **NG11 Wave 1** · **NG10 UX** · **P0-A** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **NG11-Q2** od **AUDIT** (parallel archive unpack) · lub release **TWSL** **2.63.91** |
+| **Następny krok** | **NG11-A2** artifact cache — AUDIT + Owner GO · lub release **TWSL** **2.63.91** |
 
 ### Czym jest aplikacja
 
@@ -68,6 +70,8 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG11-Q2** — Parallel Archive Unpack | **CLOSED** | **2.63.98** @ `608c9ec` |
+| **NG11-Q1** — Parse Concurrency | **CLOSED** | **2.63.97** @ `e003591` |
 | **NG11** — Pipeline Performance Wave 1 (A1+Q5) | **WAVE 1 CLOSED** | **2.63.95** @ `4710d11` |
 | **NG10** — Autonomous Agent UX | **EPIC COMPLETE** | **2.63.94** @ `890f1fa` |
 | **P0-A** — iOS Login Shell (Incident A) | **CLOSED** | **2.63.87** @ `6f85d4c` |

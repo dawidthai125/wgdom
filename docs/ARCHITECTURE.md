@@ -2022,7 +2022,7 @@ Optymalizacja **runtime pipeline** pod `useTenderPipelineRuntime` — cost befor
 
 ### 12.1.34 NG11-Q2 — Parallel Archive Unpack (v2.63.98)
 
-**Status:** **IMPLEMENTED** · commit pending OWNER QA · flaga `pipelinePerfUnpackParallel` default **OFF**  
+**Status:** **IMPLEMENTED** · **PRODUCTION VERIFIED** (2026-07-11) · flaga `pipelinePerfUnpackParallel` default **OFF**  
 **SSOT:** [`architecture/NG11-Q2-PARALLEL-ARCHIVE-UNPACK-AUDIT-PLAN.md`](architecture/NG11-Q2-PARALLEL-ARCHIVE-UNPACK-AUDIT-PLAN.md)
 
 | Element | Plik |
