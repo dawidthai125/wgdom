@@ -3,7 +3,7 @@
 > **Status:** **PRODUCTION VERIFIED · CLOSED**  
 > **Bundle:** NG11-FF-01 · **UI ONLY** (Owner GO APPROVED)  
 > **Baseline przed:** UI **2.65.7** · `ce2b73b` · JOBS-FORM-RACE-01 CLOSED  
-> **Release:** UI **2.65.8** · **`8b3c991`** · 2026-07-12 · **PRODUCTION:** DEPLOY PROPAGATING (verify `version.json` → 2.65.8)
+> **Release:** UI **2.65.8** · **`8b3c991`** · 2026-07-12 · **PRODUCTION VERIFIED** (`version.json` 2.65.8 @ `0703b04`)
 
 ---
 
@@ -45,7 +45,14 @@ Uporządkować panel Super Administratora — przenieść 5 flag NG11 Pipeline P
 | D3 | `test-admin-guide-acl.mjs` regresja | **PASS** (35/35) |
 | D4 | CHANGELOG + ARCHITECTURE | **PASS** |
 | D5 | Brak zmian Protected Core | **PASS** |
-| D6 | PRODUCTION VERIFIED (`version.json` 2.65.8) | **DEPLOY PROPAGATING** (post-push `2.65.7` @ `c3abb69`) |
+| D6 | PRODUCTION VERIFIED (`version.json` 2.65.8) | **PASS** (prod smoke **17/17**) |
+
+---
+
+## Powiązane raporty
+
+- [`NG11-FF-01-RELEASE-VERIFICATION.md`](NG11-FF-01-RELEASE-VERIFICATION.md)
+- [`NG11-FF-01-OWNER-CLOSEOUT.md`](NG11-FF-01-OWNER-CLOSEOUT.md)
 
 ---
 
