@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **NG11-FF-01**) · prod **2.65.8** @ `8b3c991` · **PRODUCTION VERIFIED** · **main** `0703b04`
+**Ostatnia aktualizacja:** 2026-07-12 (Owner GO **JOBS-ASSETS-SYNC-01**) · prod **2.65.9** @ `f8a64d7` (DEPLOY PROPAGATING) · **main** `f8a64d7`
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,12 +9,14 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.8** @ `8b3c991` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`8b3c991`** (NG11-FF-01) |
+| **Baseline prod** | UI **2.65.9** @ `f8a64d7` · **RELEASE GO** (verify propagating) |
+| **main HEAD** | **`f8a64d7`** (JOBS-ASSETS-SYNC-01) |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-FF-01** (**2.65.8**) · **JOBS-FORM-RACE-01** (**2.65.7**) · **ROBOTS-INSPECTOR-01** (**2.65.5**) |
+| **Ostatnio zamknięte (prod)** | **JOBS-ASSETS-SYNC-01** (**2.65.9** RELEASE GO) · **NG11-FF-01** (**2.65.8**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
+
+> **JOBS-ASSETS-SYNC-01 RELEASE GO:** UI **2.65.9** @ **`f8a64d7`** · SSOT [`docs/architecture/JOBS-ASSETS-SYNC-01-CLOSEOUT.md`](docs/architecture/JOBS-ASSETS-SYNC-01-CLOSEOUT.md)
 
 > **NG11-FF-01 CLOSED:** UI **2.65.8** @ **`8b3c991`** · **PRODUCTION VERIFIED** · SSOT [`docs/architecture/NG11-FF-01-OWNER-CLOSEOUT.md`](docs/architecture/NG11-FF-01-OWNER-CLOSEOUT.md)
 
@@ -27,7 +29,20 @@
 
 ---
 
-## NG11-FF-01 — Super Admin Developer section · **CLOSED** · **RELEASE GO**
+## JOBS-ASSETS-SYNC-01 — photos[] union merge · **RELEASE GO**
+
+> **SSOT:** [`docs/architecture/JOBS-ASSETS-SYNC-01-CLOSEOUT.md`](docs/architecture/JOBS-ASSETS-SYNC-01-CLOSEOUT.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RELEASE GO** · DEPLOY PROPAGATING |
+| **Commit** | **`f8a64d7`** · **2.65.9** |
+| **Zakres** | `mergePhotos` + `mergeJobsById.mergePair` |
+| **Test** | JA-ASSETS-T01…T08 **16/16** · regresja JA/JF/RI/PAYROLL **PASS** |
+
+---
+
+## NG11-FF-01 — Super Admin Developer section · **CLOSED** · **PRODUCTION VERIFIED**
 
 > **SSOT:** [`docs/architecture/NG11-FF-01-CLOSEOUT.md`](docs/architecture/NG11-FF-01-CLOSEOUT.md)
 
