@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.7",
+    label: "JOBS-FORM-RACE-01 — Formularz Robót bez utraty znaków",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty — pola formularza (adres, klient, uwagi, daty, WM) nie tracą znaków podczas szybkiego wpisywania (functional merge w updateJob).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.6",
     label: "JOBS-ADDRESS-SYNC-01 — Adres roboty nie znika po sync",
     items: [

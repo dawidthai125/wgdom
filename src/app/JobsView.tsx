@@ -793,31 +793,36 @@ export function JobsView({
   );
 
   const updateJob = (
-    updated: Job,
+    updated: Partial<Job> & { id: string },
     activity?: { type: JobActivityType; text: string; actor?: string },
     guardWorkEntries = false,
   ) => {
-    const validation = validateJobAssignedInspectorForSave(updated);
-    if (!validation.ok) {
-      toast.error(validation.message);
-      return;
-    }
-    let next = syncJobDocuments(updated);
-    next = activity
-      ? appendJobActivity(next, activity.type, activity.text, activity.actor ?? createdByName ?? "Administrator")
-      : next;
-
-    if (next.jobPhase) {
-      next = applyJobPhase(next, next.jobPhase);
-    } else if (isWmClient(next.client)) {
-      next = normalizeJobWmFields(next);
-    }
-
     const write = (updater: (prev: Job[]) => Job[]) => {
       if (guardWorkEntries) applyJobs(updater);
       else setJobs(updater);
     };
-    write((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+    write((prev) => {
+      const jobIdx = prev.findIndex((j) => j.id === updated.id);
+      if (jobIdx < 0) return prev;
+      const base = { ...prev[jobIdx], ...updated };
+      const validation = validateJobAssignedInspectorForSave(base);
+      if (!validation.ok) {
+        toast.error(validation.message);
+        return prev;
+      }
+      let next = syncJobDocuments(base);
+      next = activity
+        ? appendJobActivity(next, activity.type, activity.text, activity.actor ?? createdByName ?? "Administrator")
+        : next;
+
+      if (next.jobPhase) {
+        next = applyJobPhase(next, next.jobPhase);
+      } else if (isWmClient(next.client)) {
+        next = normalizeJobWmFields(next);
+      }
+
+      return prev.map((j) => (j.id === updated.id ? next : j));
+    });
   };
 
   const handleRemoveWorkEntry = useCallback(
@@ -1622,15 +1627,15 @@ export function JobsView({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Adres</label>
-                      <input type="text" value={selectedJob.address} onChange={(e) => { const job = jobs.find((j) => j.id === selectedJobId); if (!job) return; updateJob({ ...job, address: e.target.value }); }} placeholder="ul. Przykładowa 12" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      <input type="text" value={selectedJob.address} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, address: e.target.value }); }} placeholder="ul. Przykładowa 12" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Nr mieszkania</label>
-                      <input type="text" value={selectedJob.flatNumber} onChange={(e) => { const job = jobs.find((j) => j.id === selectedJobId); if (!job) return; updateJob({ ...job, flatNumber: e.target.value }); }} placeholder="np. 5A" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      <input type="text" value={selectedJob.flatNumber} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, flatNumber: e.target.value }); }} placeholder="np. 5A" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Klient / Zleceniodawca</label>
-                      <input type="text" value={selectedJob.client} onChange={e=>updateJob({...selectedJob,client:e.target.value})} placeholder="np. Wrocławskie Mieszkania" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      <input type="text" value={selectedJob.client} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, client: e.target.value }); }} placeholder="np. Wrocławskie Mieszkania" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                     </div>
                     <div className="sm:col-span-2">
                       <label className="text-xs text-muted-foreground block mb-1">Inspektor WM <span className="text-destructive">*</span></label>
@@ -1640,11 +1645,14 @@ export function JobsView({
                             ? (selectedJob.assignedInspectorId ?? "")
                             : ""
                         }
-                        onChange={(e) => updateJob({
-                          ...selectedJob,
-                          assignedInspectorId: e.target.value || undefined,
-                          updatedAt: new Date().toISOString(),
-                        })}
+                        onChange={(e) => {
+                          if (!selectedJobId) return;
+                          updateJob({
+                            id: selectedJobId,
+                            assignedInspectorId: e.target.value || undefined,
+                            updatedAt: new Date().toISOString(),
+                          });
+                        }}
                         className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
                       >
                         {!selectedJob.assignedInspectorId?.trim() || !isKnownInspectorUserId(selectedJob.assignedInspectorId) ? (
@@ -1668,11 +1676,11 @@ export function JobsView({
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <label className="text-xs text-muted-foreground block mb-1">Data rozpoczęcia</label>
-                        <input type="date" value={selectedJob.startDate} onChange={e=>updateJob({...selectedJob,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                        <input type="date" value={selectedJob.startDate} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, startDate: e.target.value }); }} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       </div>
                       <div className="flex-1">
                         <label className="text-xs text-muted-foreground block mb-1">Data zakończenia</label>
-                        <input type="date" value={selectedJob.endDate} onChange={e=>updateJob({...selectedJob,endDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                        <input type="date" value={selectedJob.endDate} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, endDate: e.target.value }); }} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       </div>
                     </div>
                     <div className="sm:col-span-2">
@@ -1680,9 +1688,9 @@ export function JobsView({
                         housingType={selectedJob.housingType}
                         stoveType={selectedJob.stoveType}
                         gasFurnaceStatus={selectedJob.gasFurnaceStatus}
-                        onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
-                        onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
-                        onGasFurnaceChange={(v) => updateJob({ ...selectedJob, gasFurnaceStatus: v })}
+                        onHousingChange={(v) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, housingType: v }); }}
+                        onStoveChange={(v) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, stoveType: v }); }}
+                        onGasFurnaceChange={(v) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, gasFurnaceStatus: v }); }}
                       />
                     </div>
                   </div>
@@ -1929,9 +1937,9 @@ export function JobsView({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <label className="text-xs text-muted-foreground flex-1">Uwagi wewnętrzne (robota)</label>
-                  <VoiceNoteButton focusRef={jobNotesRef} onResult={text=>updateJob({...selectedJob,notes:(selectedJob.notes?selectedJob.notes+" ":"")+text})}/>
+                  <VoiceNoteButton focusRef={jobNotesRef} onResult={(text) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, notes: (selectedJob.notes ? selectedJob.notes + " " : "") + text }); }}/>
                 </div>
-                <textarea ref={jobNotesRef} value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
+                <textarea ref={jobNotesRef} value={selectedJob.notes} onChange={(e) => { if (!selectedJobId) return; updateJob({ id: selectedJobId, notes: e.target.value }); }} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
               </div>
 
               {/* Link podglądu dla klienta */}
@@ -2541,7 +2549,7 @@ export function JobsView({
                                     placeholder="Notatka..."
                                     value={entry.notes || ""}
                                     onChange={(e) => updateJob({
-                                      ...selectedJob,
+                                      id: selectedJob.id,
                                       workEntries: selectedJob.workEntries.map((we) => we.id === entry.id ? { ...we, notes: e.target.value } : we),
                                     }, undefined, true)}
                                     className="w-full mt-1 bg-transparent text-[11px] text-muted-foreground placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors py-0.5"

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.7 — JOBS-FORM-RACE-01 Formularz Robót bez utraty znaków
+
+- **fix:** `JobsView.updateJob` — functional merge `{ ...prevJob, ...delta }` w setJobs; pola formularza delta-only (bez `{...selectedJob}`)
+
 ## 2.65.6 — JOBS-ADDRESS-SYNC-01 Adres roboty nie znika po sync
 
 - **fix:** `mergeJobsById` field-level merge `address`/`flatNumber` — non-empty wins over empty; JobsView functional onChange

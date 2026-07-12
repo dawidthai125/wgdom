@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**JOBS-ADDRESS-SYNC-01** · **2.65.6** · field-level merge `address`/`flatNumber` w `mergeJobsById`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**JOBS-FORM-RACE-01** · **2.65.7** · functional merge `updateJob` + delta-only form payloads w `JobsView.tsx`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -476,6 +476,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Sync reconcile (PAYROLL-ARCHIVE-01, v2.65.4)** | Po reconcile notatek i payroll: `reconcileArchiveWithFreshLocal()` — świeży `kw-archive` z LS + `mergeIncomingWithStored` przed `applyAdminDataBundle`; **naprawia stale apply** edycji dni w Archiwum (Pn cofa się po ~2–5 s). Test: `test-payroll-archive-sync-race-p0.mjs` PA-T01–T05 |
 | **Sync reconcile (ROBOTS-INSPECTOR-01, v2.65.5)** | SSOT `reconcileAdminBundleWithFreshLocal()` → `finalBundle` dla **apply + push + fingerprint**; `reconcileJobsWithFreshLocal()` dla `kw-jobs` (w tym `assignedInspectorId`). **Naprawia** utratę inspektora WM po auto-sync (~2 s) i cloud poison przez push bez jobs reconcile. Test: `test-robots-inspector-01-sync-race.mjs` RI-T01–T05 |
 | **Merge jobs address (JOBS-ADDRESS-SYNC-01, v2.65.6)** | `mergeJobsById` → `mergePair`: field-level `address` + `flatNumber` przez `mergeJobAddressField` (`job-address-fields.ts`) — **non-empty wins over empty**; obie niepuste → LWW po `updatedAt`. **Naprawia** znikający adres/nr mieszkania po auto-sync gdy chmura ma pusty snapshot z wyższym `updatedAt`. Test: `test-jobs-address-sync-race.mjs` JA-T01–T06 |
+| **Form patch Roboty (JOBS-FORM-RACE-01, v2.65.7)** | `JobsView.updateJob` — functional merge `{ ...prevJob, ...delta }` wewnątrz `setJobs`/`applyJobs`; walidacja inspektora na **merged** job; pola formularza summary przekazują **delta-only** (`{ id, pole }`) zamiast `{...selectedJob}`. **Naprawia** utratę znaków podczas szybkiego wpisywania (keystroke race). **Bez** zmian `cloud-sync` / Edge / PWRB. Test: `test-jobs-form-race-01.mjs` JF-T01–T08 |
 | **Backup completeness (v2.58.1 HF)** | SSOT `OPERATIONAL_NOTES_BACKUP_KEYS` w `cloud-sync.ts` — 4 klucze w: export/import UI (`App.tsx`), snapshot lokalny (`local-data-backup.ts`), email tygodniowy (`EMAIL_KV_KEYS` w `backup-lib.mjs`), full backup niedzielny (via spread EMAIL) |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 
