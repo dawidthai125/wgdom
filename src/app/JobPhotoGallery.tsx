@@ -5,8 +5,19 @@ import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection } from "@
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import { filterAvailablePhotos } from "@/lib/media-filter";
+import type { JobActivityType } from "@/lib/job-activity";
 
-export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[], activity?: {type: JobActivityType; text: string})=>void}) {
+export function JobPhotoGallery({
+  photos,
+  onUpdate,
+  onRemovePhoto,
+  onClearRejected,
+}: {
+  photos: PhotoEntry[];
+  onUpdate: (photos: PhotoEntry[], activity?: { type: JobActivityType; text: string }) => void;
+  onRemovePhoto?: (id: string) => void;
+  onClearRejected?: () => void;
+}) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
   const failRev = useMediaFailureRevision();
 
@@ -30,7 +41,10 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
       p ? { type: "photo_rejected", text: `Odrzucono zdjęcie (${p.label})${reason.trim() ? `: ${reason.trim()}` : ""}` } : undefined,
     );
   };
-  const remove  = (id: string) => onUpdate(photos.filter(p=>p.id!==id));
+  const remove = (id: string) => {
+    if (onRemovePhoto) onRemovePhoto(id);
+    else onUpdate(photos.filter((p) => p.id !== id));
+  };
 
   if (visiblePhotos.length === 0) return (
     <div className="text-center py-10 text-muted-foreground">
@@ -181,7 +195,13 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Odrzucone</span>
               <span className="bg-secondary text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{rejected.length}</span>
             </div>
-            <button onClick={() => onUpdate(photos.filter((p) => p.status !== "rejected"))} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
+            <button
+              onClick={() => {
+                if (onClearRejected) onClearRejected();
+                else onUpdate(photos.filter((p) => p.status !== "rejected"));
+              }}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            >
               Usuń wszystkie odrzucone
             </button>
           </div>

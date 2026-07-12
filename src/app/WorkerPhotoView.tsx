@@ -7,6 +7,7 @@ import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import { filterAvailablePhotos } from "@/lib/media-filter";
+import { removePhotoWithTombstone } from "@/lib/job-photos";
 import { appendJobActivity } from "@/lib/job-activity";
 import {
   Camera, Eye, ImagePlus, Lock, LogOut, MapPin, CalendarDays, Wallet,
@@ -626,11 +627,11 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   const deleteMyPhoto = (photoId: string) => {
     if (!window.confirm("Usunąć to zdjęcie z listy?")) return;
     syncJobs((prev) =>
-      prev.map((j) =>
-        j.id === selectedJobId
-          ? { ...j, photos: (j.photos || []).filter((p) => p.id !== photoId) }
-          : j,
-      ),
+      prev.map((j) => {
+        if (j.id !== selectedJobId) return j;
+        const next = removePhotoWithTombstone(j, photoId, { deletedBy: workerName });
+        return { ...next, updatedAt: new Date().toISOString() };
+      }),
     );
   };
 

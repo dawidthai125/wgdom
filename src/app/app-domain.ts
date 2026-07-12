@@ -288,6 +288,8 @@ export interface Job {
   deletedJobAttachmentTombstones?: import("@/lib/job-attachments").JobAttachmentTombstone[];
   /** Usunięte wpisy robocizny — tombstone dla sync (union merge workEntries). */
   deletedWorkEntryTombstones?: import("@/lib/payroll-job-assignments").WorkEntryTombstone[];
+  /** Usunięte zdjęcia ekipy — tombstone dla sync (union merge photos[]). */
+  deletedPhotoTombstones?: import("@/lib/job-photos").PhotoTombstone[];
   handoverStage?: import("@/lib/job-wm").JobHandoverStage;
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];

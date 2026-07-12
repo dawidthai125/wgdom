@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.10",
+    label: "JOBS-PHOTOS-DELETE-SYNC-01 — Usunięte zdjęcia nie wracają po sync",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty → Zdjęcia — usunięcie zapisuje tombstone (deletedPhotoTombstones); merge chmury nie przywraca skasowanych zdjęć ekipy.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.9",
     label: "JOBS-ASSETS-SYNC-01 — Zdjęcia robót nie znikają po sync",
     items: [

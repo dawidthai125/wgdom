@@ -22,6 +22,7 @@ export type JobActivityType =
   | "photo_upload"
   | "photo_approved"
   | "photo_rejected"
+  | "photo_delete"
   | "report_add"
   | "report_edit"
   | "report_delete"

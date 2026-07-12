@@ -48,7 +48,8 @@ import { JobWorkerReportsPanel } from "@/app/JobWorkerReportsPanel";
 import { JobPhotoGallery } from "@/app/JobPhotoGallery";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { filterAvailablePhotos, isMediaAttachmentAvailable } from "@/lib/media-filter";
-import { uploadPhoto, prepareWatermarkedPhoto } from "@/app/app-domain";
+import { removePhotoWithTombstone } from "@/lib/job-photos";
+import { uploadPhoto, prepareWatermarkedPhoto, PHOTO_LABEL_NAMES } from "@/app/app-domain";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { LabelWithHint, VoiceNoteButton } from "@/app/app-ui";
@@ -824,6 +825,42 @@ export function JobsView({
       return prev.map((j) => (j.id === updated.id ? next : j));
     });
   };
+
+  const handleRemoveJobPhoto = useCallback(
+    (photoId: string) => {
+      if (!selectedJob) return;
+      const photo = (selectedJob.photos || []).find((p) => p.id === photoId);
+      const next = removePhotoWithTombstone(selectedJob, photoId, {
+        deletedBy: createdByName ?? "Administrator",
+      });
+      updateJob(
+        { ...next, updatedAt: new Date().toISOString() },
+        photo
+          ? {
+              type: "photo_delete",
+              text: `Usunięto zdjęcie (${PHOTO_LABEL_NAMES[photo.label]})${photo.caption ? `: ${photo.caption}` : ""}`,
+            }
+          : undefined,
+      );
+    },
+    [selectedJob, createdByName, updateJob],
+  );
+
+  const handleClearRejectedJobPhotos = useCallback(() => {
+    if (!selectedJob) return;
+    const rejected = (selectedJob.photos || []).filter((p) => p.status === "rejected");
+    if (rejected.length === 0) return;
+    let next = selectedJob;
+    for (const photo of rejected) {
+      next = removePhotoWithTombstone(next, photo.id, {
+        deletedBy: createdByName ?? "Administrator",
+      });
+    }
+    updateJob(
+      { ...next, updatedAt: new Date().toISOString() },
+      { type: "photo_delete", text: `Usunięto odrzucone zdjęcia (${rejected.length})` },
+    );
+  }, [selectedJob, createdByName, updateJob]);
 
   const handleRemoveWorkEntry = useCallback(
     (entryId: string) => {
@@ -2783,6 +2820,8 @@ export function JobsView({
                   onUpdate={(photos, activity) => {
                     updateJob({ ...selectedJob, photos }, activity);
                   }}
+                  onRemovePhoto={handleRemoveJobPhoto}
+                  onClearRejected={handleClearRejectedJobPhotos}
                 />
               </div>
             </div>

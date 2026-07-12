@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.10 — JOBS-PHOTOS-DELETE-SYNC-01 Usunięte zdjęcia nie wracają po sync
+
+- **fix:** `deletedPhotoTombstones[]` + `mergePhotos(..., tombstones)` w `mergeJobsById`; delete admin/pracownik przez `removePhotoWithTombstone`
+
 ## 2.65.9 — JOBS-ASSETS-SYNC-01 Zdjęcia robót nie znikają po sync
 
 - **fix:** `mergeJobsById` — `photos[]` union po `id` (`mergePhotos`); bez zmian upload/storage/reconcile chain

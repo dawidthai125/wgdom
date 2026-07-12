@@ -18,7 +18,7 @@ import {
 } from "@/lib/job-wm";
 import { mergeAssignedInspectorId } from "@/lib/inspector-job-assignment";
 import { mergeJobAddressField } from "@/lib/job-address-fields";
-import { mergePhotos } from "@/lib/job-photos";
+import { mergePhotoTombstones, mergePhotos } from "@/lib/job-photos";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 import {
   mergeTenderDataKey,
@@ -850,6 +850,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     updatedAt?: string;
     workEntries?: unknown[];
     photos?: unknown[];
+    deletedPhotoTombstones?: import("@/lib/job-photos").PhotoTombstone[];
     startDate?: string;
     documents?: Record<string, boolean>;
     reportDocSaOverride?: import("@/lib/job-documents").ReportDocSaOverride;
@@ -911,6 +912,10 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       prev.deletedWorkEntryTombstones,
       j.deletedWorkEntryTombstones,
     );
+    const mergedPhotoTombstones = mergePhotoTombstones(
+      prev.deletedPhotoTombstones,
+      j.deletedPhotoTombstones,
+    );
     const mergedJobAttachments = jTs !== prevTs
       ? filterJobAttachmentsByTombstones(
           jTs >= prevTs ? (j.jobAttachments || []) : (prev.jobAttachments || []),
@@ -953,7 +958,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         j.assignedInspectorId,
         jTs >= prevTs,
       ),
-      photos: mergePhotos(prev.photos, j.photos),
+      photos: mergePhotos(prev.photos, j.photos, mergedPhotoTombstones),
+      deletedPhotoTombstones: mergedPhotoTombstones.length ? mergedPhotoTombstones : undefined,
       address: mergeJobAddressField(prev.address, j.address, jTs >= prevTs),
       flatNumber: mergeJobAddressField(prev.flatNumber, j.flatNumber, jTs >= prevTs),
       handoverStage: mergeHandoverStage(
