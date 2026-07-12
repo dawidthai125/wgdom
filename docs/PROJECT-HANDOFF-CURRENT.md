@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-12 (**prod 2.65.1** · **PRODUCTION VERIFIED**)
+> **Data closeout:** 2026-07-12 (`domknij WGDOM`) · prod **2.65.1** @ `f4697f9` · main **`bba41fe`** · **POST RELEASE observation ACTIVE**
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -220,19 +220,18 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-10)
+### 2.0. Aktualny stan (2026-07-12)
 
 ```text
-Production UI  2.63.87  (PRODUCTION VERIFIED · GREEN · BASELINE LOCKED)
-Runtime        6f85d4c  (P0-A iOS Login Shell — HEAD main)
-Poprzedni      02e0d0a  (NG-10-06 · 2.63.86)
-Fix S2         e819124  (SYNC-ARCH-01 S2 Domain Push — payroll field mutations)
-Ostatnio CLOSED  P0-A iOS Login (Incident A) · NG-10 (2.63.86) · P0 Payroll (FULLY CLOSED)
+Production UI  2.65.1  (PRODUCTION VERIFIED · GREEN)
+Runtime feat   f4697f9  (NG11-P0 Discovery Unification SSOT)
+Docs HEAD      bba41fe  (post-release observation docs)
+Poprzedni UI   2.65.0  (NG11-A5 · 2606bfd)
+Ostatnio CLOSED  NG11-P0 · NG11-A5 · NG11-A3
+Faza bieżąca   POST RELEASE observation (read-only) — NG11-P0
 Incident       Register CLEAN (A + B CLOSED)
-NG-09          EPIC COMPLETE (5/5 compositional seams)
-NG-08 parent   CLOSED / FROZEN (slices 01–05 + HF-01)
 Protected Core GREEN · Payroll GREEN · Cloud Sync GREEN · Pipeline GREEN
-Next bundle    STABILIZATION WINDOW — AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO
+Next step      Obserwacja prod → POST STABILIZATION REPORT → NG11-Q4 lub TWSL — Owner GO
 ```
 
 | Priorytet produkcyjny | Reguła |

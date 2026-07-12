@@ -1,7 +1,7 @@
 # NG11-P0 — Discovery Unification · CLOSEOUT
 
 > **Program:** NG11-TENDER-PIPELINE-PERFORMANCE (slice P0)  
-> **Prod:** UI **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
+> **Prod:** UI **2.65.1** @ **`f4697f9`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
 > **SSOT audit:** audyt sesji NG11-P0 (Discovery Unification AUDIT)  
 > **Release verify:** [`NG11-P0-RELEASE-VERIFICATION.md`](./NG11-P0-RELEASE-VERIFICATION.md)
 
@@ -52,4 +52,5 @@ Manual „Odśwież BZP” znajdował dokumenty natychmiast; Autonomous/bootstra
 
 ## Następny krok
 
-**STABILIZATION WINDOW** — brak nowego programu bez Owner GO · opcjonalnie **NG11-Q4** (Edge).
+**POST RELEASE observation** (read-only) — [`NG11-P0-POST-RELEASE-OBSERVATION.md`](./NG11-P0-POST-RELEASE-OBSERVATION.md)  
+Po oknie: **POST STABILIZATION REPORT** → rekomendacja **NG11-Q4** lub **TWSL 2.63.91** — **Owner GO** · brak implementacji do decyzji.

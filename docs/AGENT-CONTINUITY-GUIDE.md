@@ -2,7 +2,9 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-12 · **NG11-P0 PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Ostatnia aktualizacja:** 2026-07-12 (`domknij WGDOM`) · prod **2.65.1** · **NG11-P0 POST RELEASE observation** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-12, `domknij WGDOM`):** NG11-P0 **PRODUCTION VERIFIED** · commity `f4697f9` (feat) → `ed6f3ce` (closeout) → `bba41fe` (post-release docs) · **HEAD `bba41fe`** · obserwacja produkcyjna **ACTIVE** · WIP lokalny: **TWSL 2.63.91** (nie prod) · **zero IMPLEMENT** do końca okna.
 
 > **★ POST RELEASE (2026-07-12, NG11-P0):** obserwacja produkcyjna **ACTIVE** · SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · **zero implementacji** · po oknie → POST STABILIZATION REPORT + rekomendacja Q4 vs TWSL.
 
@@ -66,7 +68,8 @@
 | Warstwa | Wartość |
 |---------|---------|
 | **Production (UI)** | **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | feature NG11-P0 · `discoverTenderDocumentsSSOT` |
+| **Runtime commit** | **`f4697f9`** · NG11-P0 `discoverTenderDocumentsSSOT` |
+| **Docs / main HEAD** | **`bba41fe`** · post-release observation docs |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
 | **Ostatnio CLOSED** | **NG11-P0** · **NG11-A5** · **NG11-A3** · **NG11-A2** · **NG11-Q2** |
@@ -86,6 +89,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **NG11-P0** — Discovery Unification | **CLOSED** · POST RELEASE obs. | **2.65.1** @ `f4697f9` |
 | **NG11-A5** — Strategic vs Economic | **CLOSED** | **2.65.0** @ `2606bfd` |
 | **NG11-A3** — Discovery Fork | **CLOSED** | **2.64.0** @ `78c0a40` |
 | **NG11-A2** — Dossier Artifact Cache | **CLOSED** | **2.63.99** @ `447a58b` |
@@ -633,32 +637,32 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ---
 
-## 3. Co robimy teraz / następne (2026-07-11)
+## 3. Co robimy teraz / następne (2026-07-12)
 
-**Production:** **GREEN** · UI prod **2.63.95** @ **`4710d11`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+**Production:** **GREEN** · UI prod **2.65.1** @ **`f4697f9`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · main **`bba41fe`**
 
-**Faza bieżąca:**
+**Faza bieżąca — POST RELEASE obserwacja (read-only):**
 
-1. **NG11 Wave 1 (A1+Q5)** — **CLOSED** · prod **2.63.95** · test **81/81** · SSOT [`architecture/NG11-WAVE1-CLOSEOUT.md`](architecture/NG11-WAVE1-CLOSEOUT.md).
-2. **TENDER-WORKSPACE-LAYOUT (TWSL)** — **IMPLEMENT COMPLETE lokalnie** · changelog **2.63.91** · **RELEASE NOT READY** (untracked) · osobny commit.
-3. **NG11-Q3** debounced persist — AUDIT+PLAN gotowy · **Owner GO IMPLEMENT NOT READY**.
-4. **STABILIZATION WINDOW** — kolejny program od **AUDIT** + Owner GO.
-5. **POST F2 OBSERVATION** (read-only) — T1–T7 · **F3 BLOCKED**.
+1. **NG11-P0** — **CLOSED** · **PRODUCTION VERIFIED** · harness RCA **12/12** · SSOT [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md).
+2. **Obserwacja prod** — realne przetargi: bootstrap · intelligence · manual refresh · settled-empty retry · SSOT · SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md).
+3. **Regresja?** → `NG11-P0-INCIDENT-REPORT-*.md` + RCA · **bez fix bez Owner GO**.
+4. **Po oknie (~T2)** → [`NG11-P0-POST-STABILIZATION-REPORT.md`](architecture/NG11-P0-POST-STABILIZATION-REPORT.md) · rekomendacja **NG11-Q4** lub **TWSL 2.63.91**.
+5. **TWSL** — WIP lokalny **2.63.91** · **nie na prod** · osobny bundle.
+6. **STABILIZATION WINDOW** — **ACTIVE** · brak nowego programu bez Owner GO.
 
-**Zasada:** **Jeden bundle na raz** · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST** · Owner GO wg [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
+**Zasada:** **Obserwacja only** · zero IMPLEMENT · #CORE-013 + #CORE-014 przy każdym przyszłym bundle · **Lista Płac — § 2b MUST**.
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **DONE** | **NG11 Wave 1** A1+Q5 | FEATURE pipeline | **CLOSED** · **2.63.95** @ `4710d11` | `NG11-WAVE1-CLOSEOUT.md` |
-| **NOW** | **TWSL** scrollable accordiony | FEATURE UI | **IMPLEMENT lokalny** · **2.63.91** | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
-| **NEXT** | **NG11-Q3** debounced persist | FEATURE pipeline | AUDIT+PLAN · **Owner GO NOT READY** | `NG11-Q3-DEBOUNCED-PERSIST-AUDIT-PLAN.md` |
+| **NOW** | **NG11-P0 POST RELEASE** observation | Monitoring | **ACTIVE** · read-only | `NG11-P0-POST-RELEASE-OBSERVATION.md` |
+| **WIP** | **TWSL** scrollable accordiony | FEATURE UI | **lokalny** · **2.63.91** | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
+| **NEXT** | **NG11-Q4** (optional Edge) | CORE-adjacent | **BLOCKED** · Owner GO | pipeline perf DF |
+| **ALT** | **TWSL** release | FEATURE UI | **BLOCKED** · osobny commit | TWSL DF |
 | **—** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** | `STABILIZATION-WINDOW-PLAN.md` |
-| **NG10** | Autonomous Agent UX | FEATURE UI | **EPIC COMPLETE** · **2.63.94** | `NG10-AUTONOMOUS-AGENT-UX-CLOSEOUT.md` |
-| **P0-A** | iOS Login Shell | FEATURE | **CLOSED** · **2.63.87** | `P0-A-IOS-LOGIN-CLOSEOUT.md` |
 
-**WIP w tree (nie commitować razem z docs continuity):** `TenderScrollableAccordion.tsx` · `TenderPrzetargWorkspace.tsx` · skrypty audit-* · recovery payroll RCA · `.tmp/`.
+**WIP w tree (nie commitować razem z continuity):** `TenderScrollableAccordion.tsx` · `TenderPrzetargWorkspace.tsx` · `tender-ux-tokens.ts` · skrypty audit-* · recovery docs · `.tmp/`.
 
-**Deploy:** push `main` → Vercel · verify **jedno** `curl`/`Invoke-RestMethod` `https://www.wgdom.fun/version.json`.
+**Deploy:** push `main` → Vercel · verify **jedno** `Invoke-RestMethod` `https://www.wgdom.fun/version.json` · **docs-only push nie zmienia wersji UI**.
 
 ### AD-10 Stabilization — postęp sesji (2026-07-02)
 
@@ -913,4 +917,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-08 (closeout `58a7d38`) · prod UI **2.63.66** @ `80cf911` · **NG-06-TEUX EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE** · **Lista Płac chroniona** (RC-B + PAYROLL B1–B6 CLOSED) · POST F2 OBSERVATION · F3 BLOCKED*
+*Ostatnia aktualizacja: 2026-07-12 (`domknij WGDOM`) · prod UI **2.65.1** @ `f4697f9` · main **`bba41fe`** · **NG11-P0 POST RELEASE observation ACTIVE** · **STABILIZATION WINDOW ACTIVE** · **Lista Płac chroniona** · WIP **TWSL 2.63.91** (lokalny)*
