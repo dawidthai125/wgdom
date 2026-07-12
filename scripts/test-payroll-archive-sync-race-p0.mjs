@@ -189,7 +189,7 @@ console.log("\n=== PA-T05 — payroll reconcile still isolated from archive ==="
   const bundle = emptyBundle();
   const sentinelArch = [makeWeekSnapshot("2026-02-01", "2026-02-07", [makeArchiveEmp("x1")])];
   bundle[archIdx] = sentinelArch;
-  const out = reconcilePayrollKeysWithFreshLocal(bundle, { weekEmployees: [], jobs: [] });
+  const out = reconcilePayrollKeysWithFreshLocal(bundle, { weekEmployees: [] });
   assert(out[archIdx] === sentinelArch, "PA-T05 kw-archive untouched by payroll reconcile");
 }
 

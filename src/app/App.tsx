@@ -33,9 +33,7 @@ import {
   mergeDataKey,
   pushKeysToCloudSafe,
   pullAndMergeDataBundle,
-  reconcileOperationalNotesInMergedBundle,
-  reconcilePayrollKeysWithFreshLocal,
-  reconcileArchiveWithFreshLocal,
+  reconcileAdminBundleWithFreshLocal,
   pushMergedDataBundleToCloud,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
@@ -756,10 +754,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     clearAutoSyncTimers();
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
-      const reconciled = reconcileOperationalNotesInMergedBundle(merged);
-      const payrollReconciled = reconcilePayrollKeysWithFreshLocal(reconciled);
-      const archiveReconciled = reconcileArchiveWithFreshLocal(payrollReconciled);
-      applyAdminDataBundle(archiveReconciled);
+      const finalBundle = reconcileAdminBundleWithFreshLocal(merged);
+      applyAdminDataBundle(finalBundle);
       try {
         const aux = await pullOperationalNotesAuxFromCloud();
         setOperationalNotesReadState(aux.readState);
@@ -822,10 +818,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       lastPullAtRef.current = Date.now(); // PR-PAY-S7-4A — pull tu też liczy się do min-interval batch-get
       const merged = await pullAndMergeDataBundle(adminDataBundle());
-      const reconciled = reconcileOperationalNotesInMergedBundle(merged);
-      const payrollReconciled = reconcilePayrollKeysWithFreshLocal(reconciled);
-      const archiveReconciled = reconcileArchiveWithFreshLocal(payrollReconciled);
-      applyAdminDataBundle(archiveReconciled);
+      const finalBundle = reconcileAdminBundleWithFreshLocal(merged);
+      applyAdminDataBundle(finalBundle);
       let opReadState = operationalNotesReadState;
       let opAuditLog = operationalNotesAuditLog;
       try {
@@ -837,16 +831,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       } catch { /* offline */ }
       // PR-PAY-S7-4A · AC4 — brak zmian = brak push (NIE delta push).
       // SYNC-ARCH-01 S1-2 — fingerprint RS subset (non-payroll); parity z pushMergedDataBundleToCloud.
-      const outgoingHash = rsBundleFingerprintFromMerged(reconciled);
+      const outgoingHash = rsBundleFingerprintFromMerged(finalBundle);
       if (outgoingHash === lastPushedBundleHashRef.current) {
         recordPushSkipped();
       } else {
-        await pushMergedDataBundleToCloud(reconciled);
+        await pushMergedDataBundleToCloud(finalBundle);
         lastPushedBundleHashRef.current = outgoingHash;
       }
       const opIdx = DATA_KEYS.indexOf("kw-operational-notes");
       await pushOperationalNotesToCloud(
-        opIdx >= 0 ? reconciled[opIdx] : operationalNotes,
+        opIdx >= 0 ? finalBundle[opIdx] : operationalNotes,
         getDeletedOperationalNoteIds(),
         opReadState,
         opAuditLog,

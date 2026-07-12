@@ -26,6 +26,7 @@
         "LIB-PAYROLL-SETTLED-PERSIST-S5",
         "LIB-PAYROLL-RACE-01",
         "LIB-PAYROLL-ARCHIVE-01",
+        "LIB-ROBOTS-INSPECTOR-01",
         "LIB-WORK-CATALOG-GOLDEN",
         "SMOKE-WORK-CATALOG-UI-P21",
         "SMOKE-WORK-CATALOG-PRICE-P22",
@@ -356,6 +357,18 @@
       "mandatory": "conditional",
       "condition": "scope:payroll",
       "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-ROBOTS-INSPECTOR-01",
+      "class": "lib",
+      "path": "scripts/test-robots-inspector-01-sync-race.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:jobs",
+      "owner": "Jobs",
       "status": "active"
     },
     {

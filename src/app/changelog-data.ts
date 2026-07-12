@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.5",
+    label: "ROBOTS-INSPECTOR-01 — Inspektor WM nie znika po sync",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty — wybór inspektora WM nie cofa się po auto-sync z chmurą (reconcile kw-jobs + ten sam bundle apply/push/fingerprint).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.4",
     label: "PAYROLL-ARCHIVE-01 — Archiwum stale apply reconcile",
     items: [

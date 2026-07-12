@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.5 — ROBOTS-INSPECTOR-01 Inspektor WM stale sync reconcile
+
+- **fix:** `reconcileJobsWithFreshLocal` + SSOT `finalBundle` — `assignedInspectorId` nie znika po auto-sync; push/fingerprint parity z apply
+
 ## 2.65.4 — PAYROLL-ARCHIVE-01 Archiwum stale apply reconcile
 
 - **fix:** `reconcileArchiveWithFreshLocal` — edycja dnia w Archiwum nie cofa się po cloud sync (stale apply race)

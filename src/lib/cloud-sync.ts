@@ -2934,15 +2934,15 @@ export function reconcileOperationalNotesInMergedBundle(
 }
 
 /**
- * PAYROLL-RACE-01 — po await merge: świeży LS payroll + reconcile przed apply/push.
- * Zapobiega cofnięciu edycji dni/przydziałów gdy runCloudSync zaczął ze stale snapshot.
+ * PAYROLL-RACE-01 — po await merge: świeży LS week-employees + reconcile przed apply/push.
+ * Zapobiega cofnięciu edycji dni gdy runCloudSync zaczął ze stale snapshot.
+ * (kw-jobs → reconcileJobsWithFreshLocal)
  */
 export function reconcilePayrollKeysWithFreshLocal(
   merged: unknown[],
-  fresh?: { weekEmployees?: unknown | null; jobs?: unknown | null },
+  fresh?: { weekEmployees?: unknown | null },
 ): unknown[] {
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
-  const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
   const out = [...merged];
 
   if (empIdx >= 0 && empIdx < out.length) {
@@ -2950,12 +2950,43 @@ export function reconcilePayrollKeysWithFreshLocal(
     out[empIdx] = mergeIncomingWithStored("kw-week-employees", freshEmps, merged[empIdx]);
   }
 
-  if (jobsIdx >= 0 && jobsIdx < out.length) {
-    const freshJobs = fresh?.jobs ?? readLocalStorageDataKey("kw-jobs");
-    out[jobsIdx] = mergeIncomingWithStored("kw-jobs", freshJobs, merged[jobsIdx]);
-  }
-
   return out;
+}
+
+/**
+ * ROBOTS-INSPECTOR-01 (A) — po await merge: świeży LS kw-jobs + reconcile przed apply/push.
+ * Zapobiega utracie assignedInspectorId / workEntries gdy runCloudSync zaczął ze stale snapshot.
+ */
+export function reconcileJobsWithFreshLocal(
+  merged: unknown[],
+  freshJobs?: unknown | null,
+): unknown[] {
+  const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
+  if (jobsIdx < 0 || jobsIdx >= merged.length) return merged;
+  const fresh = freshJobs ?? readLocalStorageDataKey("kw-jobs");
+  const out = [...merged];
+  out[jobsIdx] = mergeIncomingWithStored("kw-jobs", fresh, merged[jobsIdx]);
+  return out;
+}
+
+/**
+ * ROBOTS-INSPECTOR-01 (D) + PAYROLL-RACE / PAYROLL-ARCHIVE — SSOT reconcile chain przed apply/push/fingerprint.
+ */
+export function reconcileAdminBundleWithFreshLocal(
+  merged: unknown[],
+  fresh?: {
+    operationalNotes?: unknown | null;
+    weekEmployees?: unknown | null;
+    jobs?: unknown | null;
+    archive?: unknown | null;
+  },
+): unknown[] {
+  const op = reconcileOperationalNotesInMergedBundle(merged, fresh?.operationalNotes);
+  const payroll = reconcilePayrollKeysWithFreshLocal(op, {
+    weekEmployees: fresh?.weekEmployees,
+  });
+  const jobs = reconcileJobsWithFreshLocal(payroll, fresh?.jobs);
+  return reconcileArchiveWithFreshLocal(jobs, fresh?.archive);
 }
 
 /**

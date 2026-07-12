@@ -7,6 +7,7 @@ import {
   DATA_KEYS,
   mergeJobsById,
   mergeWeekEmployees,
+  reconcileJobsWithFreshLocal,
   reconcilePayrollKeysWithFreshLocal,
 } from "../src/lib/cloud-sync.ts";
 
@@ -79,8 +80,10 @@ function jobHasEntry(jobs, entryId) {
 }
 
 function syncPipeline(staleMerged, fresh) {
-  const reconciled = reconcilePayrollKeysWithFreshLocal(staleMerged, fresh);
-  return reconciled;
+  const payroll = reconcilePayrollKeysWithFreshLocal(staleMerged, {
+    weekEmployees: fresh.weekEmployees,
+  });
+  return reconcileJobsWithFreshLocal(payroll, fresh.jobs);
 }
 
 console.log("=== T-RACE-01 — fresh day edit survives stale merged (AC1) ===");
@@ -143,7 +146,7 @@ console.log("\n=== T-RACE-04 — helper touches only payroll keys ===");
   bundle[archIdx] = [{ weekFrom: "2026-01-01", weekTo: "2026-01-07", weekEmployees: [] }];
   const sentinelDir = bundle[dirIdx];
   const sentinelArch = bundle[archIdx];
-  const out = reconcilePayrollKeysWithFreshLocal(bundle, { weekEmployees: [], jobs: [] });
+  const out = reconcilePayrollKeysWithFreshLocal(bundle, { weekEmployees: [] });
   assert(out[dirIdx] === sentinelDir, "T-RACE-04 kw-directory unchanged");
   assert(out[archIdx] === sentinelArch, "T-RACE-04 kw-archive unchanged");
 }
@@ -156,7 +159,6 @@ console.log("\n=== T-RACE-05 — null fresh falls back to merge semantics (AC9 b
   const staleMerged = bundleWithPayroll(mergedEmps, []);
   const out = reconcilePayrollKeysWithFreshLocal(staleMerged, {
     weekEmployees: null,
-    jobs: null,
   });
   const emps = out[DATA_KEYS.indexOf("kw-week-employees")];
   assert(Array.isArray(emps) && emps.length === 1, "T-RACE-05 employee preserved");
