@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**JOBS-FORM-RACE-01** · **2.65.7** · functional merge `updateJob` + delta-only form payloads w `JobsView.tsx`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**NG11-FF-01** · **2.65.8** · sekcja Developer w `AdminSettingsModal` — NG11 pipeline perf kill switches UI-only)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -239,6 +239,8 @@ Pola w `kw-app-settings` (`src/lib/app-settings.ts`). **Domyślnie `false`.** Ty
 **Wzorzec implementacji:** helper w `admin-auth.ts` → `canView*` w `App.tsx` → `buildAdminNavItems({ canView*Nav })` → guard w `AdminViewRouter` + `useEffect` redirect na `dashboard` przy direct URL.
 
 **Test ACL guide/changelog:** `scripts/test-admin-guide-acl.mjs`
+
+**Sekcja Developer (NG11-FF-01, 2.65.8):** w `AdminSettingsModal` zwijana podsekcja **NG11 Pipeline Performance** (`⚠ Experimental / Kill Switches`) grupuje flagi wydajności pipeline przetargów — **tylko reorganizacja UI**; klucze `pipelinePerf*` w `app-settings.ts`, helpery `isPipelinePerf*Enabled()` i runtime **bez zmian**. Test: `scripts/test-ng11-ff-01-admin-settings-ui.mjs`.
 
 **Widoczność etykiet ról w UI (20.5A.7)** — `src/lib/role-visibility.ts` → `visibleRoleLabelForViewer(viewerRole, subjectRole)`:
 

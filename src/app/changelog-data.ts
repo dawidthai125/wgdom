@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.8",
+    label: "NG11-FF-01 — Panel Super Admin: sekcja Developer",
+    items: [
+      {
+        type: "improve",
+        text: "Ustawienia Super Admina — przełączniki NG11 Pipeline Performance przeniesione do zwijanej sekcji Developer (Experimental / Kill Switches); logika flag bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.7",
     label: "JOBS-FORM-RACE-01 — Formularz Robót bez utraty znaków",
     items: [

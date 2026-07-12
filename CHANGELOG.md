@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.8 — NG11-FF-01 Panel Super Admin: sekcja Developer
+
+- **improve:** `AdminSettingsModal` — NG11-Q1/Q2/Q3 + A2/A3 w zwijanej sekcji Developer (kill switches); bez zmian AppSettings/runtime
+
 ## 2.65.7 — JOBS-FORM-RACE-01 Formularz Robót bez utraty znaków
 
 - **fix:** `JobsView.updateJob` — functional merge `{ ...prevJob, ...delta }` w setJobs; pola formularza delta-only (bez `{...selectedJob}`)

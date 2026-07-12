@@ -63,6 +63,7 @@ export function AdminSettingsModal({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ userId: string; text: string; ok: boolean } | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [ng11PipelinePerfOpen, setNg11PipelinePerfOpen] = useState(false);
   const [newLogin, setNewLogin] = useState("");
   const [newPw, setNewPw] = useState("");
   const [newPw2, setNewPw2] = useState("");
@@ -235,102 +236,6 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={appSettings.pipelinePerfParseConcurrency}
-                onChange={async (e) => {
-                  const next = { ...appSettings, pipelinePerfParseConcurrency: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">NG11-Q1 — równoległy parse dossier (cost + metadata)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Po włączeniu fazy kosztorysu i metadanych SWZ parsują do 3 plików
-                  równolegle (osobne pule). Merge wyników pozostaje sekwencyjny i deterministyczny.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.pipelinePerfUnpackParallel}
-                onChange={async (e) => {
-                  const next = { ...appSettings, pipelinePerfUnpackParallel: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">NG11-Q2 — równoległy unpack archiwów ZIP/7Z</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Po włączeniu rozpakowanie archiwów w dossier działa do 2 równolegle.
-                  Merge kandydatów pozostaje sekwencyjny; końcowy sort bez zmian.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.pipelinePerfArtifactCache}
-                onChange={async (e) => {
-                  const next = { ...appSettings, pipelinePerfArtifactCache: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">NG11-A2 — cache artefaktów dossier (retry)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Po włączeniu sesyjny cache wyniku heavy parse (cost/full, LRU 12)
-                  przy ponownym parse z tym samym fingerprint — bez KV persist cache.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.pipelinePerfDiscoveryFork}
-                onChange={async (e) => {
-                  const next = { ...appSettings, pipelinePerfDiscoveryFork: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">NG11-A3 — discovery fork (external ∥ BZP)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Po włączeniu auto bootstrap startuje external discovery
-                  równolegle z BZP; gdy BZP zwróci dokumenty, wynik external jest odrzucany.
-                  Timeout external 45 s · max 2 równoległe żądania T1.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.pipelinePerfDebouncePersist}
-                onChange={async (e) => {
-                  const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">NG11-Q3 — debounced persist pipeline przetargów</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Po włączeniu zapis lokalny (LS) jest natychmiastowy, a synchronizacja
-                  chmury kw-tenders-pipeline jest grupowana (500 ms) z flush przy Ready/Failed i zamknięciu karty.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
                 checked={appSettings.athPreviewEnabled}
                 onChange={async (e) => {
                   const next = { ...appSettings, athPreviewEnabled: e.target.checked };
@@ -404,6 +309,130 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+          </div>
+
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300 px-4 pt-4">
+              Developer
+            </p>
+            <button
+              type="button"
+              onClick={() => setNg11PipelinePerfOpen((v) => !v)}
+              className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-amber-500/10 transition-colors"
+              aria-expanded={ng11PipelinePerfOpen}
+            >
+              <ChevronDown
+                size={14}
+                className={`shrink-0 text-muted-foreground transition-transform ${ng11PipelinePerfOpen ? "rotate-180" : ""}`}
+              />
+              <span className="text-sm font-medium flex-1">NG11 Pipeline Performance</span>
+              <span className="text-[10px] font-medium text-amber-700 dark:text-amber-400 shrink-0">
+                ⚠ Experimental / Kill Switches
+              </span>
+            </button>
+            {ng11PipelinePerfOpen && (
+              <div className="px-4 pb-4 space-y-3 border-t border-amber-500/15">
+                <p className="text-[10px] text-muted-foreground leading-relaxed pt-3">
+                  Zaawansowane przełączniki wydajności używane do diagnostyki i awaryjnego wyłączenia optymalizacji NG11.
+                </p>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={appSettings.pipelinePerfParseConcurrency}
+                    onChange={async (e) => {
+                      const next = { ...appSettings, pipelinePerfParseConcurrency: e.target.checked };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">NG11-Q1 — równoległy parse dossier (cost + metadata)</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Wyłączone domyślnie. Po włączeniu fazy kosztorysu i metadanych SWZ parsują do 3 plików
+                      równolegle (osobne pule). Merge wyników pozostaje sekwencyjny i deterministyczny.
+                    </p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={appSettings.pipelinePerfUnpackParallel}
+                    onChange={async (e) => {
+                      const next = { ...appSettings, pipelinePerfUnpackParallel: e.target.checked };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">NG11-Q2 — równoległy unpack archiwów ZIP/7Z</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Wyłączone domyślnie. Po włączeniu rozpakowanie archiwów w dossier działa do 2 równolegle.
+                      Merge kandydatów pozostaje sekwencyjny; końcowy sort bez zmian.
+                    </p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={appSettings.pipelinePerfArtifactCache}
+                    onChange={async (e) => {
+                      const next = { ...appSettings, pipelinePerfArtifactCache: e.target.checked };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">NG11-A2 — cache artefaktów dossier (retry)</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Wyłączone domyślnie. Po włączeniu sesyjny cache wyniku heavy parse (cost/full, LRU 12)
+                      przy ponownym parse z tym samym fingerprint — bez KV persist cache.
+                    </p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={appSettings.pipelinePerfDiscoveryFork}
+                    onChange={async (e) => {
+                      const next = { ...appSettings, pipelinePerfDiscoveryFork: e.target.checked };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">NG11-A3 — discovery fork (external ∥ BZP)</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Wyłączone domyślnie. Po włączeniu auto bootstrap startuje external discovery
+                      równolegle z BZP; gdy BZP zwróci dokumenty, wynik external jest odrzucany.
+                      Timeout external 45 s · max 2 równoległe żądania T1.
+                    </p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={appSettings.pipelinePerfDebouncePersist}
+                    onChange={async (e) => {
+                      const next = { ...appSettings, pipelinePerfDebouncePersist: e.target.checked };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">NG11-Q3 — debounced persist pipeline przetargów</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Wyłączone domyślnie. Po włączeniu zapis lokalny (LS) jest natychmiastowy, a synchronizacja
+                      chmury kw-tenders-pipeline jest grupowana (500 ms) z flush przy Ready/Failed i zamknięciu karty.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            )}
           </div>
 
           <div className="bg-sky-500/5 border border-sky-500/20 rounded-xl p-4 space-y-3">
