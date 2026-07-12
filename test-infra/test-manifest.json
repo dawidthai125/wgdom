@@ -25,6 +25,7 @@
         "LIB-PAYROLL-ZERO-HOURS-PERSIST-S3",
         "LIB-PAYROLL-SETTLED-PERSIST-S5",
         "LIB-PAYROLL-RACE-01",
+        "LIB-PAYROLL-ARCHIVE-01",
         "LIB-WORK-CATALOG-GOLDEN",
         "SMOKE-WORK-CATALOG-UI-P21",
         "SMOKE-WORK-CATALOG-PRICE-P22",
@@ -90,7 +91,8 @@
         "LIB-PAYROLL-B6-EDGE",
         "LIB-PAYROLL-RB-BANNER",
         "LIB-PAYROLL-ASSIGNMENTS-P1",
-        "LIB-PAYROLL-RACE-01"
+        "LIB-PAYROLL-RACE-01",
+        "LIB-PAYROLL-ARCHIVE-01"
       ]
     },
     "audit-forensic": {
@@ -336,6 +338,18 @@
       "id": "LIB-PAYROLL-RACE-01",
       "class": "lib",
       "path": "scripts/test-payroll-race-apply-reconcile.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:payroll",
+      "owner": "Payroll",
+      "status": "active"
+    },
+    {
+      "id": "LIB-PAYROLL-ARCHIVE-01",
+      "class": "lib",
+      "path": "scripts/test-payroll-archive-sync-race-p0.mjs",
       "runner": "vite-node",
       "environment": "node",
       "releaseTier": "B",

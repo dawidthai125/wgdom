@@ -35,6 +35,7 @@ import {
   pullAndMergeDataBundle,
   reconcileOperationalNotesInMergedBundle,
   reconcilePayrollKeysWithFreshLocal,
+  reconcileArchiveWithFreshLocal,
   pushMergedDataBundleToCloud,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
@@ -757,7 +758,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       const reconciled = reconcileOperationalNotesInMergedBundle(merged);
       const payrollReconciled = reconcilePayrollKeysWithFreshLocal(reconciled);
-      applyAdminDataBundle(payrollReconciled);
+      const archiveReconciled = reconcileArchiveWithFreshLocal(payrollReconciled);
+      applyAdminDataBundle(archiveReconciled);
       try {
         const aux = await pullOperationalNotesAuxFromCloud();
         setOperationalNotesReadState(aux.readState);
@@ -822,7 +824,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       const reconciled = reconcileOperationalNotesInMergedBundle(merged);
       const payrollReconciled = reconcilePayrollKeysWithFreshLocal(reconciled);
-      applyAdminDataBundle(payrollReconciled);
+      const archiveReconciled = reconcileArchiveWithFreshLocal(payrollReconciled);
+      applyAdminDataBundle(archiveReconciled);
       let opReadState = operationalNotesReadState;
       let opAuditLog = operationalNotesAuditLog;
       try {

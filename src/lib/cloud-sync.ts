@@ -2958,6 +2958,22 @@ export function reconcilePayrollKeysWithFreshLocal(
   return out;
 }
 
+/**
+ * PAYROLL-ARCHIVE-01 — po await pull merge: świeży LS archiwum + reconcile przed apply.
+ * Zapobiega cofnięciu edycji dni w Archiwum gdy runCloudSync zaczął ze stale snapshot.
+ */
+export function reconcileArchiveWithFreshLocal(
+  merged: unknown[],
+  freshArchive?: unknown | null,
+): unknown[] {
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  if (archIdx < 0 || archIdx >= merged.length) return merged;
+  const fresh = freshArchive ?? readLocalStorageDataKey("kw-archive");
+  const out = [...merged];
+  out[archIdx] = mergeIncomingWithStored("kw-archive", fresh, merged[archIdx]);
+  return out;
+}
+
 /** Pobierz chmurę i scal z lokalnym — bez zapisu (do odświeżenia UI / pull on focus). */
 export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown[]> {
   payrollTraceEmit("sync.pull.bundle.start", "MERGE", "info", { trigger: "focus_pull" as const });

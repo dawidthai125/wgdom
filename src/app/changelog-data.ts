@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.4",
+    label: "PAYROLL-ARCHIVE-01 — Archiwum stale apply reconcile",
+    items: [
+      {
+        type: "fix",
+        text: "Archiwum — edycja dnia roboczego nie cofa się po synchronizacji z chmurą (reconcile kw-archive po merge, wzorzec PAYROLL-RACE-01).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.3",
     label: "NG11-P0.2 — BZP documents transport (414 fix)",
     items: [

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.4 — PAYROLL-ARCHIVE-01 Archiwum stale apply reconcile
+
+- **fix:** `reconcileArchiveWithFreshLocal` — edycja dnia w Archiwum nie cofa się po cloud sync (stale apply race)
+
 ## 2.65.3 — NG11-P0.2 BZP documents transport (414 fix)
 
 - **fix:** `fetchTenderDocuments` — bez `noticeHtml` w GET query gdy jest `noticeNumber`/`bzpNumber` (HTTP 414 · Autonomous Bootstrap)

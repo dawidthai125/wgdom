@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-11 (**NG11-A5** strategic vs economic · **2.65.0** · **PRODUCTION VERIFIED**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**PAYROLL-ARCHIVE-01** · **2.65.4** · reconcile `kw-archive`)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -473,6 +473,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Dashboard widget (P2B, v2.57.4)** | `DashboardOperationalNotesWidget` + `computeOperationalNotesDashboardSummary()` na Pulpicie — KPI per użytkownik |
 | **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
 | **Sync reconcile (PLATFORM-SYNC-01A, v2.63.33)** | Po `await pullAndMergeDataBundle` w `runCloudSync` / `pullFromCloudAndMerge`: `reconcileOperationalNotesInMergedBundle()` — odczyt świeżego `kw-operational-notes` z LS + merge przed `applyAdminDataBundle` / push; **naprawia race archiwizacji** (stale closure nie cofa `archived` → `active`). **ETAP B** (generation counter · telemetry) — **ON HOLD**. Test: `test-operational-notes-sync-race-p0.mjs` P0R-T05–T09 |
+| **Sync reconcile (PAYROLL-ARCHIVE-01, v2.65.4)** | Po reconcile notatek i payroll: `reconcileArchiveWithFreshLocal()` — świeży `kw-archive` z LS + `mergeIncomingWithStored` przed `applyAdminDataBundle`; **naprawia stale apply** edycji dni w Archiwum (Pn cofa się po ~2–5 s). Test: `test-payroll-archive-sync-race-p0.mjs` PA-T01–T05 |
 | **Backup completeness (v2.58.1 HF)** | SSOT `OPERATIONAL_NOTES_BACKUP_KEYS` w `cloud-sync.ts` — 4 klucze w: export/import UI (`App.tsx`), snapshot lokalny (`local-data-backup.ts`), email tygodniowy (`EMAIL_KV_KEYS` w `backup-lib.mjs`), full backup niedzielny (via spread EMAIL) |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 
