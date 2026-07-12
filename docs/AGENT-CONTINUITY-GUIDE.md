@@ -1,8 +1,10 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.3** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **NG11-P0**) · prod **2.65.3** @ **`281ede1`** · **NG11-P0 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ **`9307386`** · **ROBOTS-INSPECTOR-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Owner CLOSEOUT (2026-07-12, ROBOTS-INSPECTOR-01):** **2.65.5** @ **`9307386`** · prod smoke **PASS** · Protected Core **GREEN** · SSOT [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) · fix: `reconcileJobsWithFreshLocal` + SSOT `finalBundle` (apply/push/fingerprint).
 
 > **★ Owner CLOSEOUT (2026-07-12, NG11-P0 EPIC COMPLETE):** **2.65.3** @ **`281ede1`** · slice'y P0 (`f4697f9`) + P0.1-A (`db927ea`) + P0.2 (`281ede1`) · prod smoke **PASS** · Protected Core **GREEN** · SSOT [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · **następny:** STABILIZATION WINDOW — **NG11-Q4** lub **TWSL 2.63.91** — Owner GO.
 
@@ -67,12 +69,12 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.3** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`281ede1`** · NG11-P0.2 transport (414 fix) |
-| **Docs / main HEAD** | **`281ede1`** (feature) · docs closeout po Owner GO |
+| **Production (UI)** | **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`9307386`** · ROBOTS-INSPECTOR-01 sync reconcile |
+| **Docs / main HEAD** | **`9307386`** (feature) |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-P0 EPIC** · **NG11-A5** · **NG11-A3** · **NG11-A2** · **NG11-Q2** |
+| **Ostatnio CLOSED** | **ROBOTS-INSPECTOR-01** · **PAYROLL-ARCHIVE-01** · **NG11-P0 EPIC** · **NG11-A5** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
@@ -89,6 +91,8 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **ROBOTS-INSPECTOR-01** — Inspektor WM stale sync | **CLOSED** | **2.65.5** @ `9307386` |
+| **PAYROLL-ARCHIVE-01** — Archiwum stale apply | **CLOSED** | **2.65.4** @ `872e171` |
 | **NG11-P0** — Discovery + Bootstrap + Transport | **EPIC COMPLETE** | **2.65.3** @ `281ede1` |
 | **NG11-A5** — Strategic vs Economic | **CLOSED** | **2.65.0** @ `2606bfd` |
 | **NG11-A3** — Discovery Fork | **CLOSED** | **2.64.0** @ `78c0a40` |

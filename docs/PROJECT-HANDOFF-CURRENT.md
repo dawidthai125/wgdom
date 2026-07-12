@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-12 (Owner CLOSEOUT **NG11-P0**) · prod **2.65.3** @ `281ede1` · **EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
+> **Data closeout:** 2026-07-12 (Owner CLOSEOUT **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ `9307386` · **CLOSED** · **STABILIZATION WINDOW ACTIVE**
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **ROBOTS-INSPECTOR-01** — Inspektor WM stale sync | **2.65.5** (`9307386`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) |
+| **PAYROLL-ARCHIVE-01** — Archiwum stale apply | **2.65.4** (`872e171`) | **CLOSED** · **PRODUCTION VERIFIED** | [`PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md`](PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md) |
 | **NG11-P0** — Discovery + Bootstrap + Transport | **2.65.3** (`281ede1`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** | [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · [`NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) |
 | **NG11-A5** — Strategic vs Economic | **2.65.0** (`2606bfd`) | **CLOSED** · **PRODUCTION VERIFIED** · test **99/99** smoke · gate-exit **28/28** | [`architecture/NG11-A5-CLOSEOUT.md`](architecture/NG11-A5-CLOSEOUT.md) |
 | **NG11-A3** — Discovery Fork | **2.64.0** (`78c0a40`) | **CLOSED** · **PRODUCTION VERIFIED** · test **95/95** smoke · PG-A3 **PASS** | [`architecture/NG11-A3-CLOSEOUT.md`](architecture/NG11-A3-CLOSEOUT.md) |
@@ -223,11 +225,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ### 2.0. Aktualny stan (2026-07-12)
 
 ```text
-Production UI  2.65.3  (PRODUCTION VERIFIED · GREEN)
-Runtime feat   281ede1  (NG11-P0.2 transport 414 fix)
-Slice chain    f4697f9 (P0) → db927ea (P0.1-A) → 281ede1 (P0.2)
-Poprzedni UI   2.65.2  (NG11-P0.1-A · db927ea)
-Ostatnio CLOSED  NG11-P0 EPIC · NG11-A5 · NG11-A3
+Production UI  2.65.5  (PRODUCTION VERIFIED · GREEN)
+Runtime feat   9307386  (ROBOTS-INSPECTOR-01 · finalBundle sync reconcile)
+Poprzedni UI   2.65.4  (PAYROLL-ARCHIVE-01 · 872e171)
+Ostatnio CLOSED  ROBOTS-INSPECTOR-01 · PAYROLL-ARCHIVE-01 · NG11-P0 EPIC
 Faza bieżąca   STABILIZATION WINDOW
 Incident       Register CLEAN (A + B CLOSED)
 Protected Core GREEN · Payroll GREEN · Cloud Sync GREEN · Pipeline GREEN

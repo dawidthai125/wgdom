@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **NG11-P0**) · prod **2.65.3** @ `281ede1` · **NG11-P0 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ `9307386` · **ROBOTS-INSPECTOR-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,19 +9,35 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.3** @ `281ede1` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`281ede1`** — NG11-P0.2 release |
+| **Baseline prod** | UI **2.65.5** @ `9307386` · **PRODUCTION VERIFIED** |
+| **main HEAD** | **`9307386`** — ROBOTS-INSPECTOR-01 release |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-P0 EPIC** (**2.65.3**) · **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) |
+| **Ostatnio zamknięte (prod)** | **ROBOTS-INSPECTOR-01** (**2.65.5**) · **PAYROLL-ARCHIVE-01** (**2.65.4**) · **NG11-P0 EPIC** (**2.65.3**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
 
-> **NG11-P0 EPIC COMPLETE:** prod **2.65.3** @ **`281ede1`** · slice'y P0 + P0.1-A + P0.2 · SSOT [`docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · **nie implementuj** bez Owner GO.
+> **ROBOTS-INSPECTOR-01 CLOSED:** prod **2.65.5** @ **`9307386`** · SSOT [`docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) · **nie implementuj** bez Owner GO.
 
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## ROBOTS-INSPECTOR-01 — Inspektor WM stale sync · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **Commit** | **`9307386`** · **2.65.5** |
+| **Zakres** | `reconcileJobsWithFreshLocal` · `reconcileAdminBundleWithFreshLocal` · `App.tsx` finalBundle parity |
+| **Test** | `test-robots-inspector-01-sync-race.mjs` **7/7** · regresja PAYROLL-RACE + PAYROLL-ARCHIVE **PASS** |
+| **Prod smoke** | Inspector select + LS + zapis po 12 s auto-sync **PASS** |
+
+**Nie rozszerzaj bez nowego AUDIT + Owner GO.** Variant **1B** (suppress guard) — tylko na polecenie przy regresji.
 
 ---
 
