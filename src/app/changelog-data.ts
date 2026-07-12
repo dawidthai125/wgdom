@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.3",
+    label: "NG11-P0.2 — BZP documents transport (414 fix)",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — NG11-P0.2: discovery BZP nie wysyła noticeHtml w URL GET gdy jest numer ogłoszenia — koniec HTTP 414 przy Autonomous Bootstrap.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.2",
     label: "NG11-P0.1-A — Bootstrap deferred retry",
     items: [

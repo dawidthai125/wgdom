@@ -71,11 +71,15 @@ export function buildDocumentDiscoveryFetchInput(
   if (!item.tenderId?.trim()) return null;
   const anchor = resolveDocumentDiscoveryAnchor(item);
   if (!anchor.noticeNumber && !anchor.noticeHtml) return null;
-  return {
+  const input: DocumentDiscoveryFetchInput = {
     tenderId: item.tenderId.trim(),
     noticeNumber: anchor.noticeNumber,
-    noticeHtml: anchor.noticeHtml,
   };
+  // NG11-P0.2 — noticeHtml tylko gdy brak numeru (GET query); inaczej Edge pobiera HTML server-side.
+  if (!anchor.noticeNumber && anchor.noticeHtml) {
+    input.noticeHtml = anchor.noticeHtml;
+  }
+  return input;
 }
 
 export function shouldMarkDocumentsFetchedAt(authoritative: boolean): boolean {

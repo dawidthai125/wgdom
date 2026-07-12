@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.3 — NG11-P0.2 BZP documents transport (414 fix)
+
+- **fix:** `fetchTenderDocuments` — bez `noticeHtml` w GET query gdy jest `noticeNumber`/`bzpNumber` (HTTP 414 · Autonomous Bootstrap)
+
 ## 2.65.2 — NG11-P0.1-A Bootstrap deferred retry
 
 - **fix:** bootstrap ponawia discovery po `bootstrapKey` drift (RC-1) — koniec utraty dokumentów przy Autonomous Run

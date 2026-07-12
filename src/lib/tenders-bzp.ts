@@ -794,8 +794,13 @@ export async function fetchTenderDocuments(
       ? { tenderId: input, noticeNumber: noticeNumber?.trim() || undefined }
       : input;
   const params: Record<string, string> = { tenderId: resolved.tenderId };
-  if (resolved.noticeNumber?.trim()) params.noticeNumber = resolved.noticeNumber.trim();
-  if (resolved.noticeHtml?.trim()) params.noticeHtml = resolved.noticeHtml.trim();
+  const noticeNum = resolved.noticeNumber?.trim();
+  if (noticeNum) {
+    params.noticeNumber = noticeNum;
+  } else if (resolved.noticeHtml?.trim()) {
+    // NG11-P0.2 — html-only anchor (P0.2.1 backlog); nigdy noticeHtml gdy jest numer (414 URI Too Long).
+    params.noticeHtml = resolved.noticeHtml.trim();
+  }
   const data = await tenderApiGet("/tenders-bzp-documents", params) as {
     documents: TenderBzpDocument[];
   };
