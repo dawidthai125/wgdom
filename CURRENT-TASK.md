@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-12 (domknięcie sesji **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ `9307386` · **main** `6bddea1` · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-12 (domknięcie **NG11-FF-01**) · prod **2.65.8** @ `8b3c991` (DEPLOY PROPAGATING) · **main** `8b3c991` · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,12 +9,14 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.5** @ `9307386` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`6bddea1`** (docs) · feature prod **`9307386`** |
+| **Baseline prod** | UI **2.65.8** @ `8b3c991` · **RELEASE GO** · verify propagating |
+| **main HEAD** | **`8b3c991`** (NG11-FF-01) |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **ROBOTS-INSPECTOR-01** (**2.65.5**) · **PAYROLL-ARCHIVE-01** (**2.65.4**) · **NG11-P0 EPIC** (**2.65.3**) |
+| **Ostatnio zamknięte (prod)** | **NG11-FF-01** (**2.65.8**) · **JOBS-FORM-RACE-01** (**2.65.7**) · **ROBOTS-INSPECTOR-01** (**2.65.5**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
+
+> **NG11-FF-01 CLOSED:** UI **2.65.8** @ **`8b3c991`** · SSOT [`docs/architecture/NG11-FF-01-CLOSEOUT.md`](docs/architecture/NG11-FF-01-CLOSEOUT.md) · sekcja Developer w ⚙ — **UI only**.
 
 > **ROBOTS-INSPECTOR-01 CLOSED:** prod **2.65.5** @ **`9307386`** · SSOT [`docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) · **nie implementuj** bez Owner GO.
 
@@ -22,6 +24,21 @@
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## NG11-FF-01 — Super Admin Developer section · **CLOSED** · **RELEASE GO**
+
+> **SSOT:** [`docs/architecture/NG11-FF-01-CLOSEOUT.md`](docs/architecture/NG11-FF-01-CLOSEOUT.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **RELEASE GO** · prod verify propagating |
+| **Commit** | **`8b3c991`** · **2.65.8** |
+| **Zakres** | `AdminSettingsModal` — zwijana sekcja Developer + NG11-Q1/Q2/Q3/A2/A3 |
+| **Test** | `test-ng11-ff-01-admin-settings-ui.mjs` **22/22** · ACL regresja **35/35** |
+
+**Nie zmieniaj AppSettings/runtime bez Owner GO.**
 
 ---
 
