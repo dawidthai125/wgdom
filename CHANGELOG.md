@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.2 — NG11-P0.1-A Bootstrap deferred retry
+
+- **fix:** bootstrap ponawia discovery po `bootstrapKey` drift (RC-1) — koniec utraty dokumentów przy Autonomous Run
+
 ## 2.65.1 — NG11-P0 Discovery Unification
 
 - **fix:** `discoverTenderDocumentsSSOT` — wspólny core BZP fetch dla manual · bootstrap · rescan

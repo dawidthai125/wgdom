@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.2",
+    label: "NG11-P0.1-A — Bootstrap deferred retry",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — NG11-P0.1-A: bootstrap ponawia discovery po zmianie anchor (bootstrapKey drift) — koniec utraty dokumentów przy Autonomous Run.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.1",
     label: "NG11-P0 — Discovery Unification",
     items: [

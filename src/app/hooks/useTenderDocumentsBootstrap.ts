@@ -33,6 +33,33 @@ const discoveryCompletedIds = new Set<string>();
 const pipelineBootstrapCompletedIds = new Set<string>();
 /** Trwająca próba — blokuj równoległe duplikaty. */
 const bootstrapInflightIds = new Set<string>();
+/** NG11-P0.1-A — bootstrapKey zapisany na start inflight (RC-1 drift detection). */
+const inflightKeyAtStart = new Map<string, string>();
+/** NG11-P0.1-A — odroczony retry po key drift podczas inflight. */
+const pendingKeyDriftRetry = new Map<string, string>();
+/** NG11-P0.1-A — hook callback: jeden deferred retry po zakończeniu inflight. */
+const deferredRetryHandlers = new Map<string, () => void>();
+
+/** NG11-P0.1-A — max pełnych prób bootstrap na mount (initial + 1 deferred). */
+export const BOOTSTRAP_MOUNT_ATTEMPT_CAP = 2;
+
+function registerBootstrapDeferredRetryHandler(
+  itemId: string,
+  handler: () => void,
+): () => void {
+  deferredRetryHandlers.set(itemId, handler);
+  return () => {
+    deferredRetryHandlers.delete(itemId);
+  };
+}
+
+function maybeScheduleDeferredKeyDriftRetry(itemId: string): void {
+  const pendingKey = pendingKeyDriftRetry.get(itemId);
+  const startKey = inflightKeyAtStart.get(itemId);
+  if (!pendingKey || !startKey || pendingKey === startKey) return;
+  pendingKeyDriftRetry.delete(itemId);
+  deferredRetryHandlers.get(itemId)?.();
+}
 
 export function isTenderDiscoveryCompleted(itemId: string): boolean {
   return discoveryCompletedIds.has(itemId);
@@ -54,6 +81,9 @@ export function resetTenderDocumentsBootstrapForItem(itemId: string): void {
   discoveryCompletedIds.delete(itemId);
   pipelineBootstrapCompletedIds.delete(itemId);
   bootstrapInflightIds.delete(itemId);
+  inflightKeyAtStart.delete(itemId);
+  pendingKeyDriftRetry.delete(itemId);
+  deferredRetryHandlers.delete(itemId);
 }
 
 export type TenderDocumentsBootstrapDeps = {
@@ -118,7 +148,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   isCancelled?: () => boolean;
   deps?: Partial<TenderDocumentsBootstrapDeps>;
   onExternalRunning?: (running: boolean) => void;
-}): Promise<{ ok: boolean }> {
+}): Promise<{ ok: boolean; blockedByInflight?: boolean }> {
   const {
     item,
     onUpdate,
@@ -134,11 +164,17 @@ export async function attemptTenderDocumentsBootstrap(opts: {
   if (pipelineBootstrapCompletedIds.has(item.id) && countTenderAttachments(item) > 0) {
     return { ok: true };
   }
+  const keyNow = documentDiscoveryBootstrapKey(item);
   if (bootstrapInflightIds.has(item.id)) {
-    return { ok: false };
+    const startKey = inflightKeyAtStart.get(item.id);
+    if (startKey && keyNow !== startKey) {
+      pendingKeyDriftRetry.set(item.id, keyNow);
+    }
+    return { ok: false, blockedByInflight: true };
   }
 
   bootstrapInflightIds.add(item.id);
+  inflightKeyAtStart.set(item.id, keyNow);
   try {
     const patch: Partial<TenderPipelineItem> = {};
     let html = item.noticeHtml ?? null;
@@ -236,6 +272,8 @@ export async function attemptTenderDocumentsBootstrap(opts: {
     return { ok: false };
   } finally {
     bootstrapInflightIds.delete(item.id);
+    maybeScheduleDeferredKeyDriftRetry(item.id);
+    inflightKeyAtStart.delete(item.id);
   }
 }
 
@@ -256,25 +294,46 @@ export function useTenderDocumentsBootstrap(opts: {
     onExternalRunning,
   } = opts;
   const [autoRunning, setAutoRunning] = useState(false);
+  const [deferredRetryNonce, setDeferredRetryNonce] = useState(0);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
   const onDiscoveryMergedRef = useRef(onDiscoveryMerged);
   onDiscoveryMergedRef.current = onDiscoveryMerged;
+  const itemRef = useRef(item);
+  itemRef.current = item;
+  const mountAttemptsRef = useRef(0);
   const bootstrapKey = documentDiscoveryBootstrapKey(item);
+
+  useEffect(() => {
+    mountAttemptsRef.current = 0;
+    setDeferredRetryNonce(0);
+  }, [item.id]);
+
+  useEffect(() => {
+    return registerBootstrapDeferredRetryHandler(item.id, () => {
+      if (mountAttemptsRef.current >= BOOTSTRAP_MOUNT_ATTEMPT_CAP) return;
+      setDeferredRetryNonce((n) => n + 1);
+    });
+  }, [item.id]);
 
   useEffect(() => {
     if (!enabled) return;
     clearStickyBootstrapStateForSettledEmpty(item);
     if (pipelineBootstrapCompletedIds.has(item.id) && countTenderAttachments(item) > 0) return;
+    if (mountAttemptsRef.current >= BOOTSTRAP_MOUNT_ATTEMPT_CAP) return;
 
     let cancelled = false;
     setAutoRunning(true);
     void attemptTenderDocumentsBootstrap({
-      item,
+      item: itemRef.current,
       onUpdate: (patch) => onUpdateRef.current(patch),
       onDiscoveryMerged: (merged) => onDiscoveryMergedRef.current?.(merged),
       isCancelled: () => cancelled,
       onExternalRunning,
+    }).then((result) => {
+      if (!result.blockedByInflight) {
+        mountAttemptsRef.current += 1;
+      }
     }).finally(() => {
       if (!cancelled) setAutoRunning(false);
     });
@@ -285,6 +344,7 @@ export function useTenderDocumentsBootstrap(opts: {
     item.id,
     bootstrapKey,
     retryNonce,
+    deferredRetryNonce,
   ]);
 
   return { autoRunning };
@@ -294,6 +354,17 @@ export function resetTenderDocumentsBootstrapForTests(): void {
   discoveryCompletedIds.clear();
   pipelineBootstrapCompletedIds.clear();
   bootstrapInflightIds.clear();
+  inflightKeyAtStart.clear();
+  pendingKeyDriftRetry.clear();
+  deferredRetryHandlers.clear();
+}
+
+/** Test-only — rejestr deferred retry (NG11-P0.1-A harness). */
+export function registerTenderDocumentsBootstrapDeferredRetryForTests(
+  itemId: string,
+  handler: () => void,
+): () => void {
+  return registerBootstrapDeferredRetryHandler(itemId, handler);
 }
 
 export { canRunDocumentDiscovery, isDocumentDiscoverySettled };
