@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-12",
+    version: "2.65.6",
+    label: "JOBS-ADDRESS-SYNC-01 — Adres roboty nie znika po sync",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty — adres i nr mieszkania nie są nadpisywane pustą wartością z chmury po auto-sync (field-level merge w kw-jobs).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-12",
     version: "2.65.5",
     label: "ROBOTS-INSPECTOR-01 — Inspektor WM nie znika po sync",
     items: [

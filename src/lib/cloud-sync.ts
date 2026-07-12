@@ -17,6 +17,7 @@ import {
   mergeExecutionAssigneeDirectoryIds,
 } from "@/lib/job-wm";
 import { mergeAssignedInspectorId } from "@/lib/inspector-job-assignment";
+import { mergeJobAddressField } from "@/lib/job-address-fields";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 import {
   mergeTenderDataKey,
@@ -951,6 +952,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         j.assignedInspectorId,
         jTs >= prevTs,
       ),
+      address: mergeJobAddressField(prev.address, j.address, jTs >= prevTs),
+      flatNumber: mergeJobAddressField(prev.flatNumber, j.flatNumber, jTs >= prevTs),
       handoverStage: mergeHandoverStage(
         prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
         j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,

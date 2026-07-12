@@ -1622,11 +1622,11 @@ export function JobsView({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Adres</label>
-                      <input type="text" value={selectedJob.address} onChange={e=>updateJob({...selectedJob,address:e.target.value})} placeholder="ul. Przykładowa 12" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      <input type="text" value={selectedJob.address} onChange={(e) => { const job = jobs.find((j) => j.id === selectedJobId); if (!job) return; updateJob({ ...job, address: e.target.value }); }} placeholder="ul. Przykładowa 12" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Nr mieszkania</label>
-                      <input type="text" value={selectedJob.flatNumber} onChange={e=>updateJob({...selectedJob,flatNumber:e.target.value})} placeholder="np. 5A" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      <input type="text" value={selectedJob.flatNumber} onChange={(e) => { const job = jobs.find((j) => j.id === selectedJobId); if (!job) return; updateJob({ ...job, flatNumber: e.target.value }); }} placeholder="np. 5A" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Klient / Zleceniodawca</label>

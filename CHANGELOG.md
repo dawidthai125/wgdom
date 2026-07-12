@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.6 — JOBS-ADDRESS-SYNC-01 Adres roboty nie znika po sync
+
+- **fix:** `mergeJobsById` field-level merge `address`/`flatNumber` — non-empty wins over empty; JobsView functional onChange
+
 ## 2.65.5 — ROBOTS-INSPECTOR-01 Inspektor WM stale sync reconcile
 
 - **fix:** `reconcileJobsWithFreshLocal` + SSOT `finalBundle` — `assignedInspectorId` nie znika po auto-sync; push/fingerprint parity z apply
