@@ -227,9 +227,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ```text
 Production UI  2.65.5  (PRODUCTION VERIFIED · GREEN)
 Runtime feat   9307386  (ROBOTS-INSPECTOR-01 · finalBundle sync reconcile)
+main HEAD      6bddea1  (docs continuity — synced origin/main)
 Poprzedni UI   2.65.4  (PAYROLL-ARCHIVE-01 · 872e171)
 Ostatnio CLOSED  ROBOTS-INSPECTOR-01 · PAYROLL-ARCHIVE-01 · NG11-P0 EPIC
-Faza bieżąca   STABILIZATION WINDOW
+Faza bieżąca   STABILIZATION WINDOW — czekaj na Owner GO
 Incident       Register CLEAN (A + B CLOSED)
 Protected Core GREEN · Payroll GREEN · Cloud Sync GREEN · Pipeline GREEN
 Next step      NG11-Q4 (optional) lub TWSL 2.63.91 — Owner GO

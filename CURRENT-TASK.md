@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ `9307386` · **ROBOTS-INSPECTOR-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-12 (domknięcie sesji **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ `9307386` · **main** `6bddea1` · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -10,7 +10,7 @@
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Baseline prod** | UI **2.65.5** @ `9307386` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`9307386`** — ROBOTS-INSPECTOR-01 release |
+| **main HEAD** | **`6bddea1`** (docs) · feature prod **`9307386`** |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **ROBOTS-INSPECTOR-01** (**2.65.5**) · **PAYROLL-ARCHIVE-01** (**2.65.4**) · **NG11-P0 EPIC** (**2.65.3**) |

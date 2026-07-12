@@ -2,7 +2,9 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ **`9307386`** · **ROBOTS-INSPECTOR-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Ostatnia aktualizacja:** 2026-07-12 (domknięcie sesji **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ **`9307386`** · docs **`6bddea1`** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-12):** **ROBOTS-INSPECTOR-01** **CLOSED** · feature `9307386` · docs sync `6bddea1` pushed · prod smoke **PASS** · **czekaj na Owner GO** (NG11-Q4 / TWSL).
 
 > **★ Owner CLOSEOUT (2026-07-12, ROBOTS-INSPECTOR-01):** **2.65.5** @ **`9307386`** · prod smoke **PASS** · Protected Core **GREEN** · SSOT [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) · fix: `reconcileJobsWithFreshLocal` + SSOT `finalBundle` (apply/push/fingerprint).
 
@@ -70,8 +72,8 @@
 | Warstwa | Wartość |
 |---------|---------|
 | **Production (UI)** | **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`9307386`** · ROBOTS-INSPECTOR-01 sync reconcile |
-| **Docs / main HEAD** | **`9307386`** (feature) |
+| **Runtime commit (app)** | **`9307386`** · ROBOTS-INSPECTOR-01 sync reconcile |
+| **main HEAD** | **`6bddea1`** · docs continuity (feature `9307386` na prod) |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
 | **Ostatnio CLOSED** | **ROBOTS-INSPECTOR-01** · **PAYROLL-ARCHIVE-01** · **NG11-P0 EPIC** · **NG11-A5** |
@@ -189,7 +191,28 @@ Hasło **„domknij WGDOM”** → aktualizacja docs ciągłości + commit **tyl
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-08)
+## 2. Co zrobiliśmy (stan na 2026-07-12)
+
+### ★ Sesja 2026-07-12 — ROBOTS-INSPECTOR-01 (**CLOSED · PRODUCTION VERIFIED**)
+
+| Element | Wartość |
+|---------|---------|
+| **Problem** | Roboty → Nowa robota → wybór inspektora WM cofa się po ~2 s auto-sync |
+| **RCA** | Push/fingerprint bez `kw-jobs` reconcile; apply z reconcile — cloud poison |
+| **Fix** | `reconcileJobsWithFreshLocal` + `reconcileAdminBundleWithFreshLocal` (finalBundle) |
+| **Feature commit** | **`9307386`** · **2.65.5** |
+| **Docs commit** | **`6bddea1`** · continuity + closeout |
+| **Test** | RI-T01–T05 **7/7** · PAYROLL-RACE + PAYROLL-ARCHIVE regresja **PASS** |
+| **SSOT** | [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) |
+
+### ★ Sesja 2026-07-12 — PAYROLL-ARCHIVE-01 (**CLOSED · PRODUCTION VERIFIED**)
+
+| Element | Wartość |
+|---------|---------|
+| **Problem** | Edycja dnia w Archiwum cofa się po cloud sync |
+| **Fix** | `reconcileArchiveWithFreshLocal` przed apply |
+| **Commit** | **`872e171`** · **2.65.4** |
+| **SSOT** | [`PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md`](PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md) |
 
 ### ★ Sesja 2026-07-08 — INSPECTOR-RUNTIME-STATE-01 (**CLOSED · PRODUCTION VERIFIED · GREEN**)
 
@@ -643,15 +666,15 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne (2026-07-12)
 
-**Production:** **GREEN** · UI prod **2.65.3** @ **`281ede1`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+**Production:** **GREEN** · UI prod **2.65.5** @ **`9307386`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
 
-**Faza bieżąca — STABILIZATION WINDOW:**
+**Faza bieżąca — STABILIZATION WINDOW (brak aktywnego programu):**
 
-1. **NG11-P0** — **EPIC COMPLETE** · **PRODUCTION VERIFIED** · SSOT [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md).
-2. **Brak aktywnego programu NG11-P0** — POST RELEASE observation **CLOSED**.
-3. **Następny bundle (Owner GO):** **NG11-Q4** (optional Edge) lub **TWSL 2.63.91** (WIP lokalny).
-4. **TWSL** — WIP lokalny **2.63.91** · **nie na prod** · osobny bundle.
-5. **STABILIZATION WINDOW** — **ACTIVE** · brak nowego programu bez Owner GO.
+1. **ROBOTS-INSPECTOR-01** — **CLOSED** · **PRODUCTION VERIFIED** · SSOT [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md).
+2. **PAYROLL-ARCHIVE-01** — **CLOSED** · prod **2.65.4** @ `872e171`.
+3. **NG11-P0** — **EPIC COMPLETE** · SSOT [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md).
+4. **Następny bundle (Owner GO):** **NG11-Q4** (optional) lub **TWSL 2.63.91** (WIP lokalny).
+5. **STABILIZATION WINDOW** — **ACTIVE** · **nie implementuj** bez Owner GO.
 
 **Zasada:** zero IMPLEMENT bez Owner GO · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST**.
 
