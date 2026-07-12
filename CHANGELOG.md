@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.9 — JOBS-ASSETS-SYNC-01 Zdjęcia robót nie znikają po sync
+
+- **fix:** `mergeJobsById` — `photos[]` union po `id` (`mergePhotos`); bez zmian upload/storage/reconcile chain
+
 ## 2.65.8 — NG11-FF-01 Panel Super Admin: sekcja Developer
 
 - **improve:** `AdminSettingsModal` — NG11-Q1/Q2/Q3 + A2/A3 w zwijanej sekcji Developer (kill switches); bez zmian AppSettings/runtime
