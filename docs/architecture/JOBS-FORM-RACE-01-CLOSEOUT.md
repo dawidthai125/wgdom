@@ -1,10 +1,10 @@
 # JOBS-FORM-RACE-01 — Final Closeout Report
 
-> **Status:** **CLOSED** (po PRODUCTION VERIFIED)  
+> **Status:** **PRODUCTION VERIFIED · CLOSED**  
 > **Bundle:** JOBS-FORM-RACE-01 · **Wariant A** (functional merge + delta-only form)  
 > **Design Freeze:** [`JOBS-FORM-RACE-01-DESIGN-FREEZE.md`](JOBS-FORM-RACE-01-DESIGN-FREEZE.md) v1.0  
 > **Baseline przed:** UI **2.65.6** · `aa91640` · JOBS-ADDRESS-SYNC-01 CLOSED  
-> **Release:** UI **2.65.7**
+> **Release:** UI **2.65.7** · **`ce2b73b`** · 2026-07-12
 
 ---
 
@@ -53,9 +53,10 @@ Podczas szybkiego wpisywania w formularzu Robót (adres, klient, uwagi…) tekst
 | D4 | Regresja RI-T01…T05 | **PASS** (7/7) |
 | D5 | Regresja PAYROLL-RACE + ARCHIVE | **PASS** (12+10) |
 | D6 | Manifest `LIB-JOBS-FORM-RACE-01` | **PASS** |
+| D7 | Prod smoke szybkie `Obornicka` | **PASS** (13/13) |
 | D8 | CHANGELOG + ARCHITECTURE | **PASS** |
 | D9 | Brak Protected Core w diff | **PASS** |
-| D7 | Prod smoke szybkie `Obornicka` | _owner manual / post-deploy_ |
+| D10 | PRODUCTION VERIFIED | **PASS** |
 
 ---
 
@@ -78,8 +79,10 @@ Podczas szybkiego wpisywania w formularzu Robót (adres, klient, uwagi…) tekst
 | DESIGN FREEZE v1.0 | **FROZEN** |
 | Owner GO | **APPROVED** |
 | IMPLEMENT | **COMPLETE** |
-| PRODUCTION VERIFIED | _po version.json_ |
+| PRODUCTION VERIFIED | **PASS** (2026-07-12) |
+| **PROGRAM** | **CLOSED** |
 
 ---
 
-*Release verification: [`JOBS-FORM-RACE-01-RELEASE-VERIFICATION.md`](JOBS-FORM-RACE-01-RELEASE-VERIFICATION.md)*
+*Release verification: [`JOBS-FORM-RACE-01-RELEASE-VERIFICATION.md`](JOBS-FORM-RACE-01-RELEASE-VERIFICATION.md)*  
+*Owner closeout: [`JOBS-FORM-RACE-01-OWNER-CLOSEOUT.md`](JOBS-FORM-RACE-01-OWNER-CLOSEOUT.md)*

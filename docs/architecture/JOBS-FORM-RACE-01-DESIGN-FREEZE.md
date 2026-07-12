@@ -441,10 +441,12 @@ THEN zero plików z §5 Protected Core.
 | AUDIT | **COMPLETE** | 2026-07-12 |
 | RCA | **COMPLETE** | 2026-07-12 |
 | DESIGN FREEZE v1.0 | **FROZEN** | 2026-07-12 |
-| ARCH REVIEW | **PENDING** | — |
-| Owner GO | **PENDING** | — |
-| IMPLEMENT | **BLOCKED** | — |
+| ARCH REVIEW | **APPROVED** | 2026-07-12 |
+| Owner GO | **APPROVED** | 2026-07-12 |
+| IMPLEMENT | **COMPLETE** | 2026-07-12 |
+| PRODUCTION VERIFIED | **PASS** | 2026-07-12 |
+| **PROGRAM** | **CLOSED** | 2026-07-12 |
 
 ---
 
-*Nie implementuj bez ARCH REVIEW APPROVED + Owner GO. Po zamknięciu: `JOBS-FORM-RACE-01-RELEASE-VERIFICATION.md` + closeout.*
+*Program zamknięty: [`JOBS-FORM-RACE-01-OWNER-CLOSEOUT.md`](JOBS-FORM-RACE-01-OWNER-CLOSEOUT.md) · prod **2.65.7** · `ce2b73b`*

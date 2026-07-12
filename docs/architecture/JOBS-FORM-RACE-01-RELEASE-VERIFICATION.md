@@ -1,15 +1,15 @@
-# JOBS-FORM-RACE-01 — Release Verification Report
+# JOBS-FORM-RACE-01 — Production Verification Report
 
 > **Program:** JOBS-FORM-RACE-01  
 > **Design Freeze:** [`JOBS-FORM-RACE-01-DESIGN-FREEZE.md`](JOBS-FORM-RACE-01-DESIGN-FREEZE.md) v1.0 · **Wariant A**  
-> **Prod:** UI **2.65.7** · https://www.wgdom.fun  
-> **Commit:** _pending post-push_
+> **Prod:** UI **2.65.7** · https://www.wgdom.fun · **PRODUCTION VERIFIED** (2026-07-12)  
+> **Commit:** **`ce2b73b`**
 
 ---
 
 ## RELEASE MODE: FAST RELEASE
 
-Jeden spójny bundle (< 15 plików), build PASS, testy PASS, bez zmian Protected Core.
+Jeden spójny bundle (9 plików), build PASS, testy PASS, bez zmian Protected Core.
 
 ---
 
@@ -35,7 +35,38 @@ Jeden spójny bundle (< 15 plików), build PASS, testy PASS, bez zmian Protected
 
 ### 1. `version.json` (jednorazowo)
 
-_Wypełnione po push — oczekiwane: `version` = **2.65.7**_
+```json
+{
+  "version": "2.65.7",
+  "commit": "ce2b73b",
+  "timestamp": "2026-07-12T18:35:44.183Z"
+}
+```
+
+**PASS** — `version` = **2.65.7**, `commit` = **ce2b73b**
+
+### 2. Manual smoke prod (Playwright headless)
+
+Scenariusz: Roboty → Nowa robota → inspektor WM (`szymon`) → szybkie wpisanie `Obornicka` (35 ms/char) + `flatNumber` **5A** → odczekanie **4,5 s** auto-sync.
+
+| Krok | Wynik |
+|------|-------|
+| prod-version | **PASS** 2.65.7@ce2b73b |
+| login admin | **PASS** |
+| nav-roboty / new-job | **PASS** |
+| select-inspector | **PASS** value=szymon |
+| fast-type-address-full | **PASS** `"Obornicka"` |
+| fast-type-not-truncated | **PASS** ≠ `Obornic` |
+| fast-type-flat | **PASS** `5A` |
+| ui-address-after-sync (4,5 s) | **PASS** `Obornicka` |
+| ui-flat-after-sync | **PASS** `5A` |
+| no-reset-after-sync | **PASS** pełna długość |
+| localStorage `kw-jobs` address | **PASS** `Obornicka` |
+| localStorage `kw-jobs` flatNumber | **PASS** `5A` |
+
+**Prod smoke: 13/13 PASS**
+
+Artefakt (lokalny, niecommitowany): `.tmp/jobs-form-race-01-prod-smoke.mjs`
 
 ---
 
@@ -44,19 +75,20 @@ _Wypełnione po push — oczekiwane: `version` = **2.65.7**_
 | Pole | Wartość |
 |------|---------|
 | Changelog | **2.65.7** |
+| Production commit | **`ce2b73b`** |
 | Baseline poprzedni | **2.65.6** (`aa91640`) |
 
 ---
 
 ## PRODUCTION STATUS
 
-_PENDING — VERIFY DEPLOY FAST po push_
+**PRODUCTION VERIFIED**
 
 ---
 
 ## WERDYKT
 
-**RELEASE GO** (pre-push) · **PRODUCTION STATUS** — po `version.json`
+**RELEASE GO** · **PRODUCTION VERIFIED** · **JOBS-FORM-RACE-01 CLOSED**
 
 ---
 
