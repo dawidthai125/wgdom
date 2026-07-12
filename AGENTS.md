@@ -21,9 +21,10 @@
 2ti2. docs/TEST-INFRA-LIFECYCLE.md  ← lifecycle orchestratora test-infra
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.66)
 2w2. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.66)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.63.95)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.65.3)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
 3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
+3n6. docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md  ← ★★ NG11-P0 EPIC COMPLETE (2.65.3 · 281ede1)
 3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
 3w4. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout
 3w5. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
@@ -203,9 +204,9 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.63.96**) |
-| Prod `main` (app) | **v2.63.96** (`4b35228` · feature `f6f7265`) · **NG11-Q3 PRODUCTION VERIFIED** · Protected Core **GREEN** |
-| Docs `main` (continuity) | **`58a7d38`** — epic closeout PRODUCTION VERIFIED |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.65.3**) |
+| Prod `main` (app) | **v2.65.3** (`281ede1`) · **NG11-P0 EPIC COMPLETE** · Protected Core **GREEN** |
+| Docs `main` (continuity) | po Owner CLOSEOUT NG11-P0 |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

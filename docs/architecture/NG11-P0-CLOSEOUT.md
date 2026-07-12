@@ -1,9 +1,9 @@
-# NG11-P0 — Discovery Unification · CLOSEOUT
+# NG11-P0 — Tender Pipeline Discovery · CLOSEOUT
 
-> **Program:** NG11-TENDER-PIPELINE-PERFORMANCE (slice P0)  
-> **Prod:** UI **2.65.1** @ **`f4697f9`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
-> **SSOT audit:** audyt sesji NG11-P0 (Discovery Unification AUDIT)  
-> **Release verify:** [`NG11-P0-RELEASE-VERIFICATION.md`](./NG11-P0-RELEASE-VERIFICATION.md)
+> **Program:** NG11-P0 (Discovery Unification + Bootstrap + Transport)  
+> **Prod:** UI **2.65.3** @ **`281ede1`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**  
+> **Status:** **EPIC COMPLETE** (Owner CLOSEOUT 2026-07-12)  
+> **Epic report:** [`NG11-P0-EPIC-CLOSE-REPORT.md`](./NG11-P0-EPIC-CLOSE-REPORT.md)
 
 ---
 
@@ -11,46 +11,63 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Status** | **SLICE CLOSED** · **PRODUCTION VERIFIED** |
-| **OWNER QA** | **PASS** |
-| **RCA harness** | **12/12 PASS** |
-| **Rollback** | Revert feature commit (brak migracji KV) |
+| **Status** | **EPIC COMPLETE** · **PRODUCTION VERIFIED** |
+| **Protected Core** | **GREEN** |
+| **Release Quality** | **PASS** |
+| **Architecture** | **APPROVED** |
+| **Następny stan** | **STABILIZATION WINDOW** |
 
 ---
 
-## Problem (RCA)
+## Slice'y (chronologia)
 
-Manual „Odśwież BZP” znajdował dokumenty natychmiast; Autonomous/bootstrap używał innej ścieżki (force policy, session guards, stale `item` w intelligence) → fałszywy „brak dokumentów”.
-
----
-
-## Rozwiązanie
-
-| Element | Status |
-|---------|--------|
-| `discoverTenderDocumentsSSOT()` | **DONE** |
-| `runManualBzpDocumentDiscovery()` (force=true) | **DONE** |
-| Orchestrator → SSOT core | **DONE** |
-| `discoveryMergedItem` (P0-C2) | **DONE** |
-| Persist discovery przed shell (P0-C3) | **DONE** |
-| Guards retry przy 0 załącznikach | **DONE** |
-| `test-ng11-p0-discovery-unification.mjs` | **DONE** |
+| Slice | Wersja | Commit | Dostarczone |
+|-------|--------|--------|-------------|
+| **P0** | 2.65.1 | `f4697f9` | `discoverTenderDocumentsSSOT` · `discoveryMergedItem` · harness **12/12** |
+| **P0.1-A** | 2.65.2 | `db927ea` | Deferred bootstrap retry po key drift (RC-1) · **15/15** |
+| **P0.2** | 2.65.3 | `281ede1` | Bez `noticeHtml` w GET przy `noticeNumber` (414 fix) · prod smoke **8/8** |
 
 ---
 
-## Kluczowe pliki
+## Problem (RCA — skrót)
 
-| Plik | Rola |
-|------|------|
-| `tender-document-discovery-ssot.ts` | SSOT BZP fetch + monitory |
-| `tender-full-document-discovery.ts` | Wrapper external + prefetch + fork |
-| `useTenderDocumentsBootstrap.ts` | Auto bootstrap + persist order |
-| `useTenderPipelineRuntime.ts` | `discoveryMergedItem` |
-| `TenderDetailPage.tsx` / `TenderDetailPanel.tsx` | Intelligence wire |
+1. **Fork discovery** — manual „Odśwież BZP” vs Autonomous bootstrap (różne ścieżki).
+2. **RC-1 race** — `bootstrapKey` drift podczas inflight → utrata retry.
+3. **HTTP 414** — pełny `noticeHtml` w query GET `/tenders-bzp-documents`.
+
+---
+
+## Rozwiązanie (SSOT)
+
+| Element | Plik / moduł |
+|---------|----------------|
+| Discovery SSOT | `tender-document-discovery-ssot.ts` |
+| Bootstrap + retry | `useTenderDocumentsBootstrap.ts` |
+| Transport GET | `tender-document-discovery.ts` · `tenders-bzp.ts` `fetchTenderDocuments` |
+| Intelligence wire | `useTenderPipelineRuntime.ts` · `TenderDetailPanel.tsx` |
+
+**Edge:** bez zmian w P0.2 (C-lite).
+
+---
+
+## Production verify (final)
+
+| Pole | Wartość |
+|------|---------|
+| `version.json` | **2.65.3** @ **281ede1** |
+| Prod smoke tender | `08deb7df-c8a3-22f4-5fad-9500012bb032` — **PASS** |
+| DevTools transport | `tenderId` + `noticeNumber` only · URL **192** znaków · **200** · **7 docs** |
+
+---
+
+## POST RELEASE observation
+
+**CLOSED** wcześniej przez Owner — slice P0.1-A + P0.2 domknęły regresje prod. SSOT historyczny: [`NG11-P0-POST-RELEASE-OBSERVATION.md`](./NG11-P0-POST-RELEASE-OBSERVATION.md).
 
 ---
 
 ## Następny krok
 
-**POST RELEASE observation** (read-only) — [`NG11-P0-POST-RELEASE-OBSERVATION.md`](./NG11-P0-POST-RELEASE-OBSERVATION.md)  
-Po oknie: **POST STABILIZATION REPORT** → rekomendacja **NG11-Q4** lub **TWSL 2.63.91** — **Owner GO** · brak implementacji do decyzji.
+**STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL 2.63.91** — wyłącznie po **Owner GO** + AUDIT.
+
+**Nie implementować:** P0.2.1 · POST transport — bez nowego briefu.

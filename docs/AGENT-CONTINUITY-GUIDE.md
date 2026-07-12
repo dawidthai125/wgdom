@@ -1,14 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-12 (`domknij WGDOM`) · prod **2.65.1** · **NG11-P0 POST RELEASE observation** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.3** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **NG11-P0**) · prod **2.65.3** @ **`281ede1`** · **NG11-P0 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Domknięcie sesji (2026-07-12, `domknij WGDOM`):** NG11-P0 **PRODUCTION VERIFIED** · commity `f4697f9` (feat) → `ed6f3ce` (closeout) → `bba41fe` (post-release docs) · **HEAD `bba41fe`** · obserwacja produkcyjna **ACTIVE** · WIP lokalny: **TWSL 2.63.91** (nie prod) · **zero IMPLEMENT** do końca okna.
+> **★ Owner CLOSEOUT (2026-07-12, NG11-P0 EPIC COMPLETE):** **2.65.3** @ **`281ede1`** · slice'y P0 (`f4697f9`) + P0.1-A (`db927ea`) + P0.2 (`281ede1`) · prod smoke **PASS** · Protected Core **GREEN** · SSOT [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · **następny:** STABILIZATION WINDOW — **NG11-Q4** lub **TWSL 2.63.91** — Owner GO.
 
-> **★ POST RELEASE (2026-07-12, NG11-P0):** obserwacja produkcyjna **ACTIVE** · SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · **zero implementacji** · po oknie → POST STABILIZATION REPORT + rekomendacja Q4 vs TWSL.
+> **★ POST RELEASE (NG11-P0):** **CLOSED** — superseded przez P0.1-A + P0.2 · historyczny SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md).
 
-> **★ Closeout sesji (2026-07-12, NG11-P0 PRODUCTION VERIFIED):** **2.65.1** · OWNER QA **PASS** · RCA harness **12/12** · SSOT [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) · **następny:** POST RELEASE observation — brak nowego programu bez Owner GO.
+> **★ Closeout sesji (2026-07-12, NG11-P0.2 PRODUCTION VERIFIED):** **2.65.3** · HTTP 414 fix (C-lite) · DevTools transport **PASS** · SSOT [`architecture/NG11-P0.2-DESIGN-FREEZE.md`](architecture/NG11-P0.2-DESIGN-FREEZE.md).
 
 > **★ Closeout sesji (2026-07-11, NG11-A5 PRODUCTION VERIFIED):** **2.65.0** @ **`2606bfd`** · OWNER QA **PASS** · test smoke **99/99** · gate-exit **28/28** · SSOT [`architecture/NG11-A5-CLOSEOUT.md`](architecture/NG11-A5-CLOSEOUT.md) · **następny:** **NG11-Q4** (optional) lub epic E2 closeout — **Owner GO**.
 
@@ -67,17 +67,17 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.1** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit** | **`f4697f9`** · NG11-P0 `discoverTenderDocumentsSSOT` |
-| **Docs / main HEAD** | **`bba41fe`** · post-release observation docs |
+| **Production (UI)** | **2.65.3** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit** | **`281ede1`** · NG11-P0.2 transport (414 fix) |
+| **Docs / main HEAD** | **`281ede1`** (feature) · docs closeout po Owner GO |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **NG11-P0** · **NG11-A5** · **NG11-A3** · **NG11-A2** · **NG11-Q2** |
+| **Ostatnio CLOSED** | **NG11-P0 EPIC** · **NG11-A5** · **NG11-A3** · **NG11-A2** · **NG11-Q2** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **POST RELEASE obserwacja NG11-P0** (read-only) → potem **NG11-Q4** lub **TWSL 2.63.91** — Owner GO |
+| **Następny krok** | **STABILIZATION WINDOW** · **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
 
 ### Czym jest aplikacja
 
@@ -89,7 +89,7 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
-| **NG11-P0** — Discovery Unification | **CLOSED** · POST RELEASE obs. | **2.65.1** @ `f4697f9` |
+| **NG11-P0** — Discovery + Bootstrap + Transport | **EPIC COMPLETE** | **2.65.3** @ `281ede1` |
 | **NG11-A5** — Strategic vs Economic | **CLOSED** | **2.65.0** @ `2606bfd` |
 | **NG11-A3** — Discovery Fork | **CLOSED** | **2.64.0** @ `78c0a40` |
 | **NG11-A2** — Dossier Artifact Cache | **CLOSED** | **2.63.99** @ `447a58b` |
@@ -124,7 +124,7 @@
 
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
-| **NG11-P0 POST RELEASE** | **OBSERVATION ACTIVE** | Realne przetargi · bootstrap/intelligence/manual/retry/SSOT · [`NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) |
+| **NG11-P0 POST RELEASE** | **CLOSED** | Epic complete P0.1-A + P0.2 · [`NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) |
 | **NG-08 parent** | **CLOSED / FROZEN** | slices 01–05 + HF-01 · **nie rozszerzać** |
 | **Następny AUDIT** | Owner | nowy bundle od zera · #CORE-013 |
 | **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |
@@ -639,23 +639,20 @@ Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
 
 ## 3. Co robimy teraz / następne (2026-07-12)
 
-**Production:** **GREEN** · UI prod **2.65.1** @ **`f4697f9`** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · main **`bba41fe`**
+**Production:** **GREEN** · UI prod **2.65.3** @ **`281ede1`** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
 
-**Faza bieżąca — POST RELEASE obserwacja (read-only):**
+**Faza bieżąca — STABILIZATION WINDOW:**
 
-1. **NG11-P0** — **CLOSED** · **PRODUCTION VERIFIED** · harness RCA **12/12** · SSOT [`architecture/NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md).
-2. **Obserwacja prod** — realne przetargi: bootstrap · intelligence · manual refresh · settled-empty retry · SSOT · SSOT [`architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](architecture/NG11-P0-POST-RELEASE-OBSERVATION.md).
-3. **Regresja?** → `NG11-P0-INCIDENT-REPORT-*.md` + RCA · **bez fix bez Owner GO**.
-4. **Po oknie (~T2)** → [`NG11-P0-POST-STABILIZATION-REPORT.md`](architecture/NG11-P0-POST-STABILIZATION-REPORT.md) · rekomendacja **NG11-Q4** lub **TWSL 2.63.91**.
-5. **TWSL** — WIP lokalny **2.63.91** · **nie na prod** · osobny bundle.
-6. **STABILIZATION WINDOW** — **ACTIVE** · brak nowego programu bez Owner GO.
+1. **NG11-P0** — **EPIC COMPLETE** · **PRODUCTION VERIFIED** · SSOT [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md).
+2. **Brak aktywnego programu NG11-P0** — POST RELEASE observation **CLOSED**.
+3. **Następny bundle (Owner GO):** **NG11-Q4** (optional Edge) lub **TWSL 2.63.91** (WIP lokalny).
+4. **TWSL** — WIP lokalny **2.63.91** · **nie na prod** · osobny bundle.
+5. **STABILIZATION WINDOW** — **ACTIVE** · brak nowego programu bez Owner GO.
 
-**Zasada:** **Obserwacja only** · zero IMPLEMENT · #CORE-013 + #CORE-014 przy każdym przyszłym bundle · **Lista Płac — § 2b MUST**.
+**Zasada:** zero IMPLEMENT bez Owner GO · #CORE-013 + #CORE-014 · **Lista Płac — § 2b MUST**.
 
 | Priorytet | Temat | Klasa | Status | SSOT |
 |-----------|-------|-------|--------|------|
-| **NOW** | **NG11-P0 POST RELEASE** observation | Monitoring | **ACTIVE** · read-only | `NG11-P0-POST-RELEASE-OBSERVATION.md` |
-| **WIP** | **TWSL** scrollable accordiony | FEATURE UI | **lokalny** · **2.63.91** | `TENDER-WORKSPACE-LAYOUT-DESIGN-FREEZE.md` |
 | **NEXT** | **NG11-Q4** (optional Edge) | CORE-adjacent | **BLOCKED** · Owner GO | pipeline perf DF |
 | **ALT** | **TWSL** release | FEATURE UI | **BLOCKED** · osobny commit | TWSL DF |
 | **—** | STABILIZATION · nowy bundle | — | Owner GO + **AUDIT** | `STABILIZATION-WINDOW-PLAN.md` |
@@ -917,4 +914,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-12 (`domknij WGDOM`) · prod UI **2.65.1** @ `f4697f9` · main **`bba41fe`** · **NG11-P0 POST RELEASE observation ACTIVE** · **STABILIZATION WINDOW ACTIVE** · **Lista Płac chroniona** · WIP **TWSL 2.63.91** (lokalny)*
+*Ostatnia aktualizacja: 2026-07-12 (Owner CLOSEOUT **NG11-P0 EPIC COMPLETE**) · prod UI **2.65.3** @ `281ede1` · **STABILIZATION WINDOW ACTIVE** · **Lista Płac chroniona** · WIP **TWSL 2.63.91** (lokalny)*

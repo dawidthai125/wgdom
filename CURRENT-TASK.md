@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-12 (`domknij WGDOM`) · prod **2.65.1** @ `f4697f9` · main **`bba41fe`** · **NG11-P0 POST RELEASE observation** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-12 (Owner CLOSEOUT **NG11-P0**) · prod **2.65.3** @ `281ede1` · **NG11-P0 EPIC COMPLETE** · **STABILIZATION WINDOW ACTIVE**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,14 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.1** @ `f4697f9` · **PRODUCTION VERIFIED** |
-| **main HEAD (docs)** | **`bba41fe`** — post-release observation |
+| **Baseline prod** | UI **2.65.3** @ `281ede1` · **PRODUCTION VERIFIED** |
+| **main HEAD** | **`281ede1`** — NG11-P0.2 release |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **NG11-P0** (**2.65.1**) · **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) |
-| **Co dalej?** | **POST RELEASE obserwacja NG11-P0** — [`docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · **bez kodu** · po oknie: **NG11-Q4** lub **TWSL 2.63.91** — Owner GO |
+| **Ostatnio zamknięte (prod)** | **NG11-P0 EPIC** (**2.65.3**) · **NG11-A5** (**2.65.0**) · **NG11-A3** (**2.64.0**) |
+| **Co dalej?** | **STABILIZATION WINDOW** — **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
 
-> **POST RELEASE (NG11-P0):** prod **2.65.1** · **obserwacja produkcyjna ACTIVE** · zbieraj tylko regresje / logi / edge-case · przy regresji → INCIDENT REPORT + RCA · po oknie → [`NG11-P0-POST-STABILIZATION-REPORT.md`](docs/architecture/NG11-P0-POST-STABILIZATION-REPORT.md) · **nie implementuj** bez Owner GO.
+> **NG11-P0 EPIC COMPLETE:** prod **2.65.3** @ **`281ede1`** · slice'y P0 + P0.1-A + P0.2 · SSOT [`docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · **nie implementuj** bez Owner GO.
 
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
@@ -828,21 +828,19 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 
 ---
 
-## NG11-P0 — POST RELEASE obserwacja · **ACTIVE**
+## NG11-P0 — Tender Pipeline Discovery · **EPIC COMPLETE**
 
-> **SSOT:** [`docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md`](docs/architecture/NG11-P0-POST-RELEASE-OBSERVATION.md) · closeout: [`NG11-P0-CLOSEOUT.md`](docs/architecture/NG11-P0-CLOSEOUT.md)
+> **SSOT:** [`docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · [`docs/architecture/NG11-P0-CLOSEOUT.md`](docs/architecture/NG11-P0-CLOSEOUT.md)
 
 | Pole | Wartość |
 |------|---------|
-| **Release** | **PRODUCTION VERIFIED** · **2.65.1** @ `f4697f9` |
-| **Start obserwacji** | **2026-07-12** |
-| **Tryb** | **read-only** — zero IMPLEMENT |
-| **Cel** | Realne przetargi: bootstrap · intelligence · manual refresh · settled-empty retry · SSOT |
-| **Zbieraj** | Regresje · logi `[wgdom:discovery-snapshot]` · edge-case |
-| **Regresja** | → `NG11-P0-INCIDENT-REPORT-YYYY-MM-DD.md` + pełne RCA |
-| **Po oknie (~T2)** | → [`NG11-P0-POST-STABILIZATION-REPORT.md`](docs/architecture/NG11-P0-POST-STABILIZATION-REPORT.md) + rekomendacja **NG11-Q4** lub **TWSL 2.63.91** |
+| **Status** | **EPIC COMPLETE** · **PRODUCTION VERIFIED** |
+| **Prod** | **2.65.3** @ **`281ede1`** |
+| **Slice'y** | P0 `f4697f9` · P0.1-A `db927ea` · P0.2 `281ede1` |
+| **Protected Core** | **GREEN** |
+| **POST RELEASE obs.** | **CLOSED** (superseded) |
 
-**Zakaz:** nowy program · nowe funkcje · zmiany kodu bez Owner GO.
+**Nie rozszerzaj bez nowego AUDIT + Owner GO.** Backlog: P0.2.1 · POST transport — OPEN.
 
 ---
 

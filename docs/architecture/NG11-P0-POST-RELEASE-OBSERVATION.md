@@ -1,9 +1,9 @@
 # NG11-P0 — POST RELEASE · obserwacja produkcyjna
 
 > **Program:** NG11-P0 Discovery Unification  
-> **Baseline prod:** **2.65.1** @ **`f4697f9`** · docs **`ed6f3ce`**  
-> **Status release:** **PRODUCTION VERIFIED** (2026-07-12)  
-> **Tryb:** **STABILIZATION WINDOW** — **obserwacja only** · **zero implementacji**
+> **Status:** **CLOSED** — superseded przez **NG11-P0 EPIC COMPLETE** (**2.65.3** @ **`281ede1`**)  
+> **Historyczny baseline:** **2.65.1** @ **`f4697f9`**  
+> **SSOT epic:** [`NG11-P0-EPIC-CLOSE-REPORT.md`](./NG11-P0-EPIC-CLOSE-REPORT.md)
 
 **SSOT closeout:** [`NG11-P0-CLOSEOUT.md`](./NG11-P0-CLOSEOUT.md) · **verify:** [`NG11-P0-RELEASE-VERIFICATION.md`](./NG11-P0-RELEASE-VERIFICATION.md)
 
@@ -128,4 +128,4 @@ Po zamknięciu okna obserwacji utwórz: [`NG11-P0-POST-STABILIZATION-REPORT.md`]
 
 ---
 
-*Ostatnia aktualizacja: 2026-07-12 · POST RELEASE observation OPEN*
+*Ostatnia aktualizacja: 2026-07-12 · **CLOSED** (Owner EPIC CLOSEOUT — P0.1-A + P0.2 PRODUCTION VERIFIED)*
