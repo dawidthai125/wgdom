@@ -5,6 +5,7 @@
 - **fix:** `applyRuntimePayrollAntiLeak` — nie czyści same-week Cloud SSOT (focus pull po wpisie godzin)
 - **fix:** anti-leak tylko cross-week leak lub stale archive republish — P-INV-5 zachowany
 - **improve:** trace `anti_leak` — `reason` + `cloudWeekKey` / `targetWeekKey`
+- **closeout:** PROGRAM CLOSED · prod smoke **12/12 PASS** · [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md)
 
 ## 2.65.13 — JOBS-SYNC-FIX-01 admin bundle write-first + reconcile fresh
 

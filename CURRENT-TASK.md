@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-SYNC-FIX-01 CLOSED** · prod **2.65.13** @ `309609e`) · **main** `309609e`
+**Ostatnia aktualizacja:** 2026-07-13 (**PAYROLL-ANTI-LEAK-FIX-01 CLOSED** · prod **2.65.14** @ `26f3eb5`) · **main** `26f3eb5`
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,12 +9,14 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.13** @ `309609e` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`309609e`** (app + sync fix) |
+| **Baseline prod** | UI **2.65.14** @ `26f3eb5` · **PRODUCTION VERIFIED** |
+| **main HEAD** | **`26f3eb5`** (payroll anti-leak fix) |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · instrumentacja photos trace (opcjonalny cleanup) |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **JOBS-SYNC-FIX-01** (**2.65.13** CLOSED) · **JOBS-PHOTOS-DELETE-SYNC-01** (**2.65.10**) |
+| **Ostatnio zamknięte (prod)** | **PAYROLL-ANTI-LEAK-FIX-01** (**2.65.14** CLOSED) · **JOBS-SYNC-FIX-01** (**2.65.13**) |
 | **Co dalej?** | **STABILIZATION WINDOW** — cleanup trace (opcjonalnie) · **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
+
+> **PAYROLL-ANTI-LEAK-FIX-01 CLOSED:** UI **2.65.14** @ **`26f3eb5`** · **PRODUCTION VERIFIED** · prod smoke **12/12 PASS** · SSOT [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md) · DF [`docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md`](docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md)
 
 > **JOBS-SYNC-FIX-01 CLOSED:** UI **2.65.13** @ **`309609e`** · **PRODUCTION VERIFIED** · prod smoke **PASS** (photos 19/19 + payroll) · SSOT [`docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md)
 
@@ -30,6 +32,23 @@
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## PAYROLL-ANTI-LEAK-FIX-01 — same-week Cloud SSOT guard (Wariant B) · **CLOSED** · **PRODUCTION VERIFIED**
+
+> **SSOT:** [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md) · DF [`docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md`](docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · **SMOKE PASS** |
+| **Commit** | **`26f3eb5`** · **2.65.14** |
+| **Root cause** | `applyRuntimePayrollAntiLeak` — błędny predykat kasował poprawny roster same-week z Cloud |
+| **Fix** | Wariant B — anti-leak tylko cross-week leak / stale archive republish |
+| **Test** | T-AL **7/7** · B4 **13/13** · refresh-race **4/4** · 20.1C.1 **5/5** |
+| **Prod smoke** | **12/12 PASS** — focus pull · refresh · second context · roster **14** |
+
+**Nie zmieniaj** `mergeAllDataKeys` / `finalizePayrollBundleMerge` / reconcile bez AUDIT + Owner GO (#CORE-013).
 
 ---
 
