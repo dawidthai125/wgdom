@@ -16,6 +16,7 @@ import {
 } from "@/lib/payroll-week-employees-write-trace";
 import { logPayrollStorageNote } from "@/lib/payroll-kw-week-employees-storage-trace";
 import { logPayrollBootPath } from "@/lib/payroll-boot-path-trace";
+import { peekBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
@@ -27,6 +28,29 @@ function weekRangeFromLs(): { weekFrom: string; weekTo: string } {
   } catch {
     return { weekFrom: "", weekTo: "" };
   }
+}
+
+/** PAYROLL-P0-FIX-01 — gdy LS puste po QuotaExceeded, użyj merge handoff z CloudLoader. */
+function resolvePayrollBootstrapInitValue<T>(key: string, fromLs: T, initial: T): T {
+  const handoff = peekBootstrapPayrollHandoff();
+  if (!handoff) return fromLs;
+
+  if (key === "kw-week-employees") {
+    const n = Array.isArray(fromLs) ? fromLs.length : 0;
+    if (n > 0) return fromLs;
+    return handoff.weekEmployees as T;
+  }
+  if (key === "kw-weekFrom") {
+    const s = typeof fromLs === "string" ? fromLs : "";
+    if (s) return fromLs;
+    return (handoff.weekFrom || initial) as T;
+  }
+  if (key === "kw-weekTo") {
+    const s = typeof fromLs === "string" ? fromLs : "";
+    if (s) return fromLs;
+    return (handoff.weekTo || initial) as T;
+  }
+  return fromLs;
 }
 
 /** Sync z chmury — nie nadpisuj settledUpdatedAt przy apply merge (unikaj fałszywego „cofnięcia” rozliczenia). */
@@ -42,32 +66,39 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
   const [state, setState] = useState<T>(() => {
     try {
       const s = localStorage.getItem(key);
-      const parsed = s ? JSON.parse(s) : initial;
+      const fromLs = (s ? JSON.parse(s) : initial) as T;
+      const parsed = resolvePayrollBootstrapInitValue(key, fromLs, initial);
       if (key === "kw-week-employees") {
-        const { weekFrom, weekTo } = weekRangeFromLs();
+        const handoff = peekBootstrapPayrollHandoff();
+        const lsWeek = weekRangeFromLs();
+        const weekFrom = lsWeek.weekFrom || handoff?.weekFrom || "";
+        const weekTo = lsWeek.weekTo || handoff?.weekTo || "";
         const n = Array.isArray(parsed) ? parsed.length : 0;
+        const fromHandoff = Array.isArray(fromLs) && fromLs.length === 0 && n > 0;
         logPayrollBootstrapTraceFromWeekKeys({
           caller: "useLocalStorage.init",
-          reason: "react_state_init_from_ls",
+          reason: fromHandoff ? "react_state_init_from_bootstrap_handoff" : "react_state_init_from_ls",
           weekFrom,
           weekTo,
           employeeCount: n,
         });
         logPayrollWeekEmployeesInit({ employeeCount: n, weekFrom, weekTo });
         logPayrollBootPath("APP_MOUNT", {
-          reason: "app_children_mount≈useLocalStorage.kw-week-employees_init",
+          reason: fromHandoff
+            ? "app_children_mount≈bootstrap_payroll_handoff"
+            : "app_children_mount≈useLocalStorage.kw-week-employees_init",
           weekFrom,
           weekTo,
           employeeCount: n,
         });
         logPayrollBootPath("USELOCALSTORAGE_INIT", {
-          reason: "react_state_init_from_ls",
+          reason: fromHandoff ? "react_state_init_from_bootstrap_handoff" : "react_state_init_from_ls",
           weekFrom,
           weekTo,
           employeeCount: n,
         });
         logPayrollStorageNote(
-          `react_useLocalStorage.init employeeCount=${n} (see preceding GET for raw LS)`,
+          `react_useLocalStorage.init employeeCount=${n} handoff=${fromHandoff} (see preceding GET for raw LS)`,
           "useLocalStorage.init",
         );
       }

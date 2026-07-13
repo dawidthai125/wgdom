@@ -34,6 +34,10 @@ import {
   isSupabaseConfigured,
   bootstrapMergedShouldPersist,
   bootstrapMergedShouldPush,
+  persistBootstrapMergedKey,
+  safeSetLocalStorageJson,
+  safeSetLocalStorageRaw,
+  safeRemoveLocalStorageKey,
 } from "@/lib/cloud-sync";
 import {
   loadAdminPasswordOverrides,
@@ -43,7 +47,7 @@ import {
   mergeAdminUsersConfig,
 } from "@/lib/admin-auth";
 import { loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
-import { markCloudBootstrapSuccess } from "@/lib/cloud-bootstrap";
+import { markCloudBootstrapSuccess, publishBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
 import {
   payrollTraceBumpRosterRevision,
@@ -60,6 +64,12 @@ import {
   resolveBootstrapPhaseOpen,
   type BootstrapPhase,
 } from "@/lib/cloud-loader-bootstrap-gate";
+
+const PAYROLL_BOOTSTRAP_PERSIST_KEYS = [
+  "kw-weekFrom",
+  "kw-weekTo",
+  "kw-week-employees",
+] as const satisfies ReadonlyArray<(typeof BOOTSTRAP_CORE_KEYS)[number]>;
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [bootstrapPhase, setBootstrapPhase] = useState<BootstrapPhase>("PENDING");
@@ -117,6 +127,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         const cloudArchiveDeleted = normalizeDeletedJobIds(allValues[coreKeys.length + 2]);
         const cloudAdminPw = allValues[coreKeys.length + 3];
         const cloudAdminUsers = allValues[coreKeys.length + 4];
+        const cloudAppSettings = allValues[coreKeys.length + 5];
         const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
         saveDeletedJobIds(mergedDeleted);
         const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
@@ -127,23 +138,8 @@ export function CloudLoader({ children }: { children: ReactNode }) {
 
         const localAdminPw = loadAdminPasswordOverrides();
         const mergedAdminPw = mergeAdminPasswordOverrides(localAdminPw, cloudAdminPw);
-        if (Object.keys(mergedAdminPw).length > 0) {
-          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(mergedAdminPw));
-        } else {
-          localStorage.removeItem(ADMIN_PASSWORDS_KEY);
-        }
-
         const localAdminUsers = loadAdminUsersConfig();
         const mergedAdminUsers = mergeAdminUsersConfig(localAdminUsers, cloudAdminUsers);
-        localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers));
-
-        const cloudAppSettings = allValues[coreKeys.length + 5];
-        if (cloudAppSettings && typeof cloudAppSettings === "object") {
-          const localSettings = loadAppSettingsLocal();
-          const cloudS = cloudAppSettings as AppSettings;
-          const mergedSettings: AppSettings = mergeAppSettings(cloudS, localSettings);
-          localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
-        }
 
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
@@ -186,15 +182,22 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           pwrReconcile({ weekFrom: wfBoot, weekTo: wtBoot, roster: empsBoot as never[] });
         }
 
-        coreKeys.forEach((key) => {
+        // Fetch+merge OK → handoff przed persist LS (QuotaExceeded nie blokuje App z rosterem)
+        if (Array.isArray(empsBoot) && empsBoot.length > 0) {
+          publishBootstrapPayrollHandoff({
+            weekEmployees: empsBoot as unknown[],
+            weekFrom: wfBoot,
+            weekTo: wtBoot,
+          });
+        }
+
+        const persistCoreKey = (key: (typeof BOOTSTRAP_CORE_KEYS)[number]) => {
           const i = DATA_KEYS.indexOf(key);
           const cloudVal = cloudValues[i];
           const merged = mergedBundle[i];
           const shouldPersist = bootstrapMergedShouldPersist(key, merged);
           if (key === "kw-week-employees") {
             const empCount = Array.isArray(merged) ? merged.length : 0;
-            const wfIdx = DATA_KEYS.indexOf("kw-weekFrom");
-            const wtIdx = DATA_KEYS.indexOf("kw-weekTo");
             logPayrollBootstrapTraceFromWeekKeys({
               caller: "CloudLoader",
               reason: shouldPersist ? "bootstrap_persist_roster" : "bootstrap_persist_skipped_empty",
@@ -212,25 +215,33 @@ export function CloudLoader({ children }: { children: ReactNode }) {
               bootstrapPersist14: shouldPersist && empCount === 14,
             });
           }
-          if (shouldPersist) {
-            localStorage.setItem(key, JSON.stringify(merged));
-            if (key === "kw-week-employees" && Array.isArray(merged)) {
+          const persistResult = persistBootstrapMergedKey(key, merged);
+          if (shouldPersist && key === "kw-week-employees" && Array.isArray(merged)) {
+            if (persistResult.ok) {
               logPayrollBootstrapTraceFromWeekKeys({
                 caller: "localStorage.setItem",
                 reason: "bootstrap_ls_write_week_employees",
-                targetFrom: String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? ""),
-                targetTo: String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? ""),
+                targetFrom: wfBoot,
+                targetTo: wtBoot,
                 employeeCount: merged.length,
                 persistKwWeekEmployees: true,
                 bootstrapPersist14: merged.length === 14,
                 bootstrapPersistEmpty: merged.length === 0,
               });
-              const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
-              const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
               payrollTraceBumpRosterRevision();
               payrollTraceEmit("sync.bootstrap.ls.persist", "LS", "info", {
                 key,
-                roster: rosterTraceSnapshot(merged, wf, wt, "MERGED", "PRESENT"),
+                roster: rosterTraceSnapshot(merged, wfBoot, wtBoot, "MERGED", "PRESENT"),
+              });
+            } else if (persistResult.storageFailure) {
+              logPayrollBootstrapTraceFromWeekKeys({
+                caller: "CloudLoader",
+                reason: "bootstrap_ls_storage_failure_week_employees",
+                targetFrom: wfBoot,
+                targetTo: wtBoot,
+                employeeCount: merged.length,
+                persistKwWeekEmployees: false,
+                persistSkipped: true,
               });
             }
           }
@@ -247,7 +258,30 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             pushKeys.push(key);
             pushValues.push(merged);
           }
-        });
+        };
+
+        // Payroll LS first — quota ma chronić roster przed jobs/directory
+        for (const key of PAYROLL_BOOTSTRAP_PERSIST_KEYS) {
+          persistCoreKey(key);
+        }
+        for (const key of coreKeys) {
+          if ((PAYROLL_BOOTSTRAP_PERSIST_KEYS as readonly string[]).includes(key)) continue;
+          persistCoreKey(key);
+        }
+
+        // Admin meta AFTER payroll — nie zużywaj quota przed rosterem
+        if (Object.keys(mergedAdminPw).length > 0) {
+          safeSetLocalStorageJson(ADMIN_PASSWORDS_KEY, mergedAdminPw);
+        } else {
+          safeRemoveLocalStorageKey(ADMIN_PASSWORDS_KEY);
+        }
+        safeSetLocalStorageJson(ADMIN_USERS_CONFIG_KEY, mergedAdminUsers);
+        if (cloudAppSettings && typeof cloudAppSettings === "object") {
+          const localSettings = loadAppSettingsLocal();
+          const cloudS = cloudAppSettings as AppSettings;
+          const mergedSettings: AppSettings = mergeAppSettings(cloudS, localSettings);
+          safeSetLocalStorageJson(APP_SETTINGS_KEY, mergedSettings);
+        }
 
         if (localStorage.getItem(WORKER_PINS_RESET_FLAG) !== "1") {
           try {
@@ -255,7 +289,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             const parsed = raw ? JSON.parse(raw) : [];
             const arr = Array.isArray(parsed) ? parsed : [];
             const { directory: stripped } = stripWorkerPinHashesFromDirectory(arr);
-            localStorage.setItem("kw-directory", JSON.stringify(stripped));
+            safeSetLocalStorageJson("kw-directory", stripped);
             if (isSupabaseConfigured()) {
               await pushKeysToCloud(
                 ["kw-directory", DIRECTORY_DELETED_IDS_KEY],
@@ -263,7 +297,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
                 { replaceDirectoryKeys: ["kw-directory"] },
               );
             }
-            localStorage.setItem(WORKER_PINS_RESET_FLAG, "1");
+            safeSetLocalStorageRaw(WORKER_PINS_RESET_FLAG, "1");
           } catch {
             /* ponowi przy następnym wejściu */
           }
@@ -278,12 +312,10 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             ? payrollTraceCreateBootstrapPushId()
             : undefined;
           if (empPushIdx >= 0 && bootstrapPushId) {
-            const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
-            const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
             payrollTraceEmit("sync.bootstrap.kv_push", "HTTP_OUT", "info", {
               bootstrapPushId,
               replaceWeekEmployeesKeys: ["kw-week-employees"],
-              weekEmpPayload: rosterTraceSnapshot(pushValues[empPushIdx], wf, wt, "MERGED", "PRESENT"),
+              weekEmpPayload: rosterTraceSnapshot(pushValues[empPushIdx], wfBoot, wtBoot, "MERGED", "PRESENT"),
               trigger: "bootstrap_push" as const,
             });
           }
@@ -301,9 +333,6 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         markCloudBootstrapSuccess();
         cloudSyncMutationGuard.reset();
         payrollTraceEmit("sync.bootstrap.ready", "APPLY", "info", {});
-        const wfDone = DATA_KEYS.indexOf("kw-weekFrom");
-        const wtDone = DATA_KEYS.indexOf("kw-weekTo");
-        const empDone = DATA_KEYS.indexOf("kw-week-employees");
         let lsEmpCount = 0;
         try {
           const raw = localStorage.getItem("kw-week-employees");
@@ -312,12 +341,15 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         logPayrollBootstrapTraceFromWeekKeys({
           caller: "CloudLoader",
           reason: "bootstrap_ready",
-          targetFrom: mergedBundle[wfDone],
-          targetTo: mergedBundle[wtDone],
+          targetFrom: mergedBundle[wfIdx],
+          targetTo: mergedBundle[wtIdx],
           employeeCount: lsEmpCount,
-          employeeCountAfter: Array.isArray(mergedBundle[empDone]) ? mergedBundle[empDone].length : 0,
+          employeeCountAfter: Array.isArray(mergedBundle[empIdxBootstrap])
+            ? (mergedBundle[empIdxBootstrap] as unknown[]).length
+            : 0,
         });
         startDeferredPhase();
+        // SUCCESS = fetch + merge zakończone — niezależnie od storageFailure LS
         openBootstrapPhase("SUCCESS");
       })
       .catch(() => {

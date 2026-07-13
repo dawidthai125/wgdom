@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.27 — PAYROLL-P0-FIX-01 (QuotaExceeded ≠ FAILED)
+
+- **fix:** CloudLoader — `safeSetLocalStorageJson` / `persistBootstrapMergedKey`; QuotaExceeded = storage-failure (log), nie abort bootstrapu
+- **fix:** SUCCESS = fetch + merge; payroll LS first; in-memory handoff → INIT roster bez czekania na pull
+- **test:** `scripts/test-payroll-p0-fix-01-storage.mjs`
+
 ## 2.65.26-diag — PAYROLL-P0-RCA-07 (boot path A vs B)
 
 - **diag:** `window.__WG_PAYROLL_BOOT_PATH__` — report / verdict (A=TIMEOUT→INIT=0 · B=SUCCESS+persist skip→INIT=0)

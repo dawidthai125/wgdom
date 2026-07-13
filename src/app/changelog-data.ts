@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-14",
+    version: "2.65.27",
+    label: "PAYROLL-P0-FIX-01 — QuotaExceeded ≠ bootstrap FAILED",
+    items: [
+      {
+        type: "fix",
+        text: "P0 — CloudLoader: localStorage.setItem przez safeSetLocalStorageJson / persistBootstrapMergedKey; QuotaExceeded logowany jako storage-failure, nie przerywa bootstrapu. SUCCESS = fetch+merge. Payroll persist first + in-memory handoff → Lista Płac bez czekania na pull.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-14",
     version: "2.65.26-diag",
     label: "PAYROLL-P0-RCA-07 — bootstrap path timeline (A vs B)",
     items: [

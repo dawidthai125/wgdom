@@ -2481,14 +2481,86 @@ export function bootstrapMergedShouldPush(key: DataKey, merged: unknown, cloudVa
   );
 }
 
-function persistBootstrapMergedKey(key: DataKey, merged: unknown): void {
-  if (!bootstrapMergedShouldPersist(key, merged)) return;
+export type LocalStoragePersistResult = {
+  ok: boolean;
+  /** true gdy setItem rzucił (QuotaExceeded / inne) — NIE jest to failure fetch/merge */
+  storageFailure: boolean;
+  errorName?: string;
+};
+
+/**
+ * PAYROLL-P0-FIX-01 — jedyny kontrakt zapisu LS w bootstrap.
+ * QuotaExceeded → log + storageFailure; nigdy throw.
+ */
+function classifyLocalStorageWriteError(e: unknown): { errorName: string; quota: boolean } {
+  const errorName =
+    e instanceof DOMException
+      ? e.name
+      : e instanceof Error
+        ? e.name
+        : typeof e === "object" && e !== null && "name" in e
+          ? String((e as { name: unknown }).name)
+          : "Error";
+  const quota =
+    errorName === "QuotaExceededError" ||
+    (typeof e === "object" &&
+      e !== null &&
+      "code" in e &&
+      ((e as { code: unknown }).code === 22 || (e as { code: unknown }).code === 1014));
+  return { errorName, quota };
+}
+
+/** Zapis JSON — QuotaExceeded → log + storageFailure; nigdy throw. */
+export function safeSetLocalStorageJson(key: string, value: unknown): LocalStoragePersistResult {
   try {
-    localStorage.setItem(key, JSON.stringify(merged));
-    if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) {
-      refreshUserClassificationDictionaryCacheFromLocalStorage();
-    }
-  } catch { /* ignore */ }
+    localStorage.setItem(key, JSON.stringify(value));
+    return { ok: true, storageFailure: false };
+  } catch (e) {
+    const { errorName, quota } = classifyLocalStorageWriteError(e);
+    console.warn(
+      `[storage-failure] localStorage.setItem(${key}) name=${errorName} quota=${quota}`,
+      e,
+    );
+    return { ok: false, storageFailure: true, errorName };
+  }
+}
+
+/** Zapis surowego stringa (flagi typu WORKER_PINS_RESET) — ten sam kontrakt, bez JSON.stringify. */
+export function safeSetLocalStorageRaw(key: string, raw: string): LocalStoragePersistResult {
+  try {
+    localStorage.setItem(key, raw);
+    return { ok: true, storageFailure: false };
+  } catch (e) {
+    const { errorName, quota } = classifyLocalStorageWriteError(e);
+    console.warn(
+      `[storage-failure] localStorage.setItem(${key}) raw name=${errorName} quota=${quota}`,
+      e,
+    );
+    return { ok: false, storageFailure: true, errorName };
+  }
+}
+
+export function safeRemoveLocalStorageKey(key: string): LocalStoragePersistResult {
+  try {
+    localStorage.removeItem(key);
+    return { ok: true, storageFailure: false };
+  } catch (e) {
+    const errorName = e instanceof Error ? e.name : "Error";
+    console.warn(`[storage-failure] localStorage.removeItem(${key}) name=${errorName}`, e);
+    return { ok: false, storageFailure: true, errorName };
+  }
+}
+
+/** Bootstrap / deferred — ten sam kontrakt co safeSetLocalStorageJson + shouldPersist. */
+export function persistBootstrapMergedKey(key: DataKey, merged: unknown): LocalStoragePersistResult {
+  if (!bootstrapMergedShouldPersist(key, merged)) {
+    return { ok: true, storageFailure: false };
+  }
+  const result = safeSetLocalStorageJson(key, merged);
+  if (result.ok && key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) {
+    refreshUserClassificationDictionaryCacheFromLocalStorage();
+  }
+  return result;
 }
 
 /** Faza 2 — deferred klucze + tombstone kontaktów; na końcu wgdom-deferred-bootstrap. */
