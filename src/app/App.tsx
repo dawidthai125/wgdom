@@ -150,6 +150,7 @@ import {
   payrollTraceSetSubject,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { installJobsPhotosLiveTraceGlobals, logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -548,6 +549,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
     const opNotesIdx = DATA_KEYS.indexOf("kw-operational-notes");
     const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
+    const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
+    const incomingJobs = Array.isArray(jbs) ? (jbs as Job[]) : Array.isArray(merged[jobsIdx]) ? (merged[jobsIdx] as Job[]) : null;
+    logJobsPhotosLiveTrace({
+      event: "applyAdminDataBundle",
+      caller: "App.applyAdminDataBundle",
+      origin: "sync",
+      jobs: incomingJobs,
+      prevJobs: jobs,
+      extra: { incomingJobsCount: incomingJobs?.length ?? null },
+    });
     const previousUi = weekEmployees;
     const incoming = Array.isArray(emps) ? (emps as WeekEmployee[]) : [];
     const sk = payrollTraceGetSubjectMergeKey();
@@ -606,7 +617,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes, weekEmployees, weekFrom, weekTo]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes, weekEmployees, weekFrom, weekTo, jobs]);
 
   const logSecurityAudit = useCallback((input: RecordSecurityAuditInput) => {
     void recordSecurityAudit({
@@ -742,6 +753,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [setSecurityAuditLog, setWmDrukAuditLog]);
 
   const pullFromCloudAndMerge = useCallback(async () => {
+    logJobsPhotosLiveTrace({
+      event: "pullFromCloudAndMerge",
+      caller: "App.pullFromCloudAndMerge",
+      origin: "pull",
+      jobs,
+    });
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     if (deleteJobsInFlightRef.current) return;
     if (cloudSyncMutationGuard.isBlocked()) return;
@@ -768,11 +785,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs]);
 
   const pushToCloud = pushAllDataToCloud;
 
   const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
+    logJobsPhotosLiveTrace({
+      event: "runCloudSync",
+      caller: "App.runCloudSync",
+      origin: "sync",
+      jobs,
+      extra: { toastSuccess: opts?.toastSuccess ?? false },
+    });
     if (!tabVisibleRef.current) {
       payrollTraceEmit("sync.run.skip", "MERGE", "debug", { skipReason: "tab_hidden" as const });
       return;
@@ -1004,6 +1028,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     // PR-PAY-S7-4A · AC5 — odczyt metryk sync w konsoli produkcyjnej: __wgdomSyncMetrics()
     (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
     installPayrollRuntimeTraceGlobals();
+    installJobsPhotosLiveTraceGlobals();
   }, []);
 
   const applyDeferredHydration = useCallback((patch: DeferredAdminHydrationPatch) => {
@@ -1079,10 +1104,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     const onVis = () => {
       tabVisibleRef.current = !document.hidden;
+      logJobsPhotosLiveTrace({
+        event: "visibilitychange",
+        caller: "App.visibilitychange",
+        origin: "visibility",
+        jobs,
+        extra: { hidden: document.hidden },
+      });
       if (!document.hidden) void pullFromCloudAndMerge();
     };
     const onFocus = () => {
       tabVisibleRef.current = true;
+      logJobsPhotosLiveTrace({
+        event: "focus",
+        caller: "App.window.focus",
+        origin: "focus",
+        jobs,
+      });
       void pullFromCloudAndMerge();
     };
     document.addEventListener("visibilitychange", onVis);
@@ -1092,7 +1130,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
     };
-  }, [pullFromCloudAndMerge]);
+  }, [pullFromCloudAndMerge, jobs]);
 
   // Backup
   const exportBackup = () => {

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.11 — JOBS-PHOTOS-LIVE-INSTRUMENTATION-02 diagnostic trace (Owner only)
+
+- **improve:** `jobs-photos-live-trace.ts` — read-only hooks setJobs/sync/pull/apply/focus; aktywne tylko przy `localStorage wg-jobs-photos-live-trace=1`; export `__WG_JOBS_PHOTOS_LIVE_TRACE__`
+
 ## 2.65.10 — JOBS-PHOTOS-DELETE-SYNC-01 Usunięte zdjęcia nie wracają po sync
 
 - **fix:** `deletedPhotoTombstones[]` + `mergePhotos(..., tombstones)` w `mergeJobsById`; delete admin/pracownik przez `removePhotoWithTombstone`

@@ -6,6 +6,8 @@ import {
   payrollTraceEmit,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
+import type { Job } from "@/app/app-domain";
 
 function weekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
@@ -44,6 +46,15 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
         return incoming;
       }
       const next = (skipApplyWriteTimestamps ? incoming : applyWriteTimestamps(key, prev, incoming)) as T;
+      if (key === "kw-jobs") {
+        logJobsPhotosLiveTrace({
+          event: "setJobs",
+          caller: "useLocalStorage.set(kw-jobs)",
+          origin: "render",
+          jobs: next as Job[],
+          prevJobs: prev as Job[],
+        });
+      }
       try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
       if (key === "kw-week-employees" && Array.isArray(next)) {
         payrollTraceBumpRosterRevision();
@@ -63,7 +74,19 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== key || e.newValue == null) return;
-      try { setState(JSON.parse(e.newValue) as T); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(e.newValue) as T;
+        if (key === "kw-jobs") {
+          logJobsPhotosLiveTrace({
+            event: "storage",
+            caller: "useLocalStorage.storage(kw-jobs)",
+            origin: "storage",
+            jobs: parsed as Job[],
+            extra: { storageKey: e.key, url: e.url },
+          });
+        }
+        setState(parsed);
+      } catch { /* ignore */ }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

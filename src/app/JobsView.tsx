@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
+import { logJobsPhotosLiveTrace, registerJobsPhotosSelectedJobId } from "@/lib/jobs-photos-live-trace";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
@@ -677,6 +678,10 @@ export function JobsView({
     });
   }, [selectedJobId]);
 
+  useEffect(() => {
+    registerJobsPhotosSelectedJobId(selectedJobId);
+  }, [selectedJobId]);
+
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
   const selectedJobInspectorIssue = useMemo(() => {
     if (!selectedJob) return null;
@@ -798,6 +803,19 @@ export function JobsView({
     activity?: { type: JobActivityType; text: string; actor?: string },
     guardWorkEntries = false,
   ) => {
+    const prevJob = jobs.find((j) => j.id === updated.id);
+    logJobsPhotosLiveTrace({
+      event: "updateJob",
+      caller: "JobsView.updateJob",
+      origin: "user",
+      prevJobs: jobs,
+      extra: {
+        jobId: updated.id,
+        prevPhotosLength: (prevJob?.photos || []).length,
+        hasPhotosPatch: updated.photos != null,
+        nextPhotosLength: updated.photos != null ? updated.photos.length : null,
+      },
+    });
     const write = (updater: (prev: Job[]) => Job[]) => {
       if (guardWorkEntries) applyJobs(updater);
       else setJobs(updater);
@@ -926,6 +944,17 @@ export function JobsView({
 
   const appendJobPhotos = (entries: PhotoEntry[], activityText: string) => {
     if (!selectedJobId || entries.length === 0) return;
+    logJobsPhotosLiveTrace({
+      event: "appendJobPhotos",
+      caller: "JobsView.appendJobPhotos",
+      origin: "user",
+      prevJobs: jobs,
+      extra: {
+        appendCount: entries.length,
+        entryIds: entries.map((e) => e.id),
+        activityText,
+      },
+    });
     setJobs((prev) =>
       prev.map((j) => {
         if (j.id !== selectedJobId) return j;

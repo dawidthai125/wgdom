@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-13",
+    version: "2.65.11",
+    label: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-02 — diagnostic trace (Owner only)",
+    items: [
+      {
+        type: "improve",
+        text: "Tymczasowa instrumentacja diagnostyczna zdjęć robót — aktywna wyłącznie po localStorage wg-jobs-photos-live-trace=1; zero zmian logiki sync/upload.",
+      },
+    ],
+  },
+  {
     date: "2026-07-12",
     version: "2.65.10",
     label: "JOBS-PHOTOS-DELETE-SYNC-01 — Usunięte zdjęcia nie wracają po sync",
