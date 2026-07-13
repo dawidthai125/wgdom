@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.19 — PAYROLL-DISPLAY-UNLOCK-TRACE-02 (findFirstDisplayUnlock)
+
+- **improve:** `findFirstDisplayUnlock()` — pierwsze przejście display 0→N + diff vs poprzedni event · `calendarBehind` · `download()` → `{ firstDisplayUnlock, events }`
+
 ## 2.65.18 — PAYROLL-BOOTSTRAP-RACE-FIX-01 (CORE)
 
 - **fix:** CloudLoader — `bootstrapPhase` gate: persist CORE LS przed mount App (koniec race `useLocalStorage.init` vs bootstrap `setItem`)

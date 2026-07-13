@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.19",
+    label: "PAYROLL-DISPLAY-UNLOCK-TRACE-02 — findFirstDisplayUnlock (tymczasowa diagnostyka)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — __WG_PAYROLL_DISPLAY_TRACE__.findFirstDisplayUnlock() z diff 0→N; download() eksportuje firstDisplayUnlock + calendarBehind; bez zmiany logiki display.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.18",
     label: "PAYROLL-BOOTSTRAP-RACE-FIX-01 — CloudLoader bootstrap gate (CORE)",
     items: [
