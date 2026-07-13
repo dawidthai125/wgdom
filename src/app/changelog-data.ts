@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.14",
+    label: "PAYROLL-ANTI-LEAK-FIX-01 — cross-week leak guard (Wariant B)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — applyRuntimePayrollAntiLeak nie czyści poprawnego rosteru bieżącego tygodnia z chmury (focus pull / same-week Cloud SSOT).",
+      },
+      {
+        type: "fix",
+        text: "Anti-leak strzela wyłącznie przy cross-week leak lub stale republish archiwum pod nowymi kluczami tygodnia — P-INV-5 bez regresji.",
+      },
+      {
+        type: "improve",
+        text: "Trace sync.merge.payroll.anti_leak — reason: cross_week_leak | stale_archive_republish | skipped_same_week_cloud_ssot.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.13",
     label: "JOBS-SYNC-FIX-01 — admin bundle write-first + reconcile fresh",
     items: [

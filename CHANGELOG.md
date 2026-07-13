@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.14 — PAYROLL-ANTI-LEAK-FIX-01 cross-week leak guard (Wariant B)
+
+- **fix:** `applyRuntimePayrollAntiLeak` — nie czyści same-week Cloud SSOT (focus pull po wpisie godzin)
+- **fix:** anti-leak tylko cross-week leak lub stale archive republish — P-INV-5 zachowany
+- **improve:** trace `anti_leak` — `reason` + `cloudWeekKey` / `targetWeekKey`
+
 ## 2.65.13 — JOBS-SYNC-FIX-01 admin bundle write-first + reconcile fresh
 
 - **fix:** auto-sync po lokalnej mutacji — `writeOnly` skip `applyAdminDataBundle` w tym cyklu

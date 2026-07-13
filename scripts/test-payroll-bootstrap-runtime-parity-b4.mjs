@@ -128,7 +128,7 @@ function runBootstrap(localValues, cloudValues) {
 function runRuntime(localValues, cloudValues, valuesForMerge = localValues) {
   const merged = mergeAllDataKeys(localValues, cloudValues);
   let out = finalizePayrollBundleMerge(merged, valuesForMerge, cloudValues);
-  out = applyRuntimePayrollAntiLeak(out, valuesForMerge);
+  out = applyRuntimePayrollAntiLeak(out, valuesForMerge, cloudValues);
   return out;
 }
 

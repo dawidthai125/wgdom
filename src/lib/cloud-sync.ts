@@ -2048,31 +2048,121 @@ export function finalizePayrollBundleMerge(
   return out;
 }
 
-/** Runtime-only: pusty skład nowego tygodnia po rolloverze — nie przenoś osób z chmury. */
-export function applyRuntimePayrollAntiLeak(merged: unknown[], valuesForMerge: unknown[]): unknown[] {
+/**
+ * PAYROLL-ANTI-LEAK-FIX-01 (Wariant B) — cross-week leak tylko.
+ * Same-week Cloud SSOT z poprawnym rosterem nie jest czyszczony.
+ */
+function isStaleArchiveRosterRepublishedUnderTargetWeek(
+  targetFrom: unknown,
+  targetTo: unknown,
+  cloudEmps: unknown[],
+  archive: unknown[],
+): boolean {
+  const targetFromStr = typeof targetFrom === "string" ? targetFrom : "";
+  if (!targetFromStr || cloudEmps.length === 0) return false;
+
+  const prevSnaps = archive
+    .filter((w) => {
+      const wt = (w as { weekTo?: string }).weekTo;
+      return typeof wt === "string" && wt < targetFromStr;
+    })
+    .sort((a, b) =>
+      String((b as { weekTo?: string }).weekTo).localeCompare(
+        String((a as { weekTo?: string }).weekTo),
+      ),
+    );
+  const prev = prevSnaps[0] as { weekEmployees?: unknown[] } | undefined;
+  const prevEmps = normalizeArrayValue(prev?.weekEmployees);
+  if (prevEmps.length === 0) return false;
+
+  const prevKeys = new Set(
+    prevEmps.map((e) =>
+      weekEmployeeMergeKey(e as { id?: string; directoryId?: string; name?: string }),
+    ),
+  );
+  const cloudKeys = cloudEmps.map((e) =>
+    weekEmployeeMergeKey(e as { id?: string; directoryId?: string; name?: string }),
+  );
+  return (
+    cloudKeys.length > 0
+    && cloudKeys.every((k) => prevKeys.has(k))
+    && cloudKeys.length === prevEmps.length
+  );
+}
+
+/** Runtime-only: pusty skład nowego tygodnia po rolloverze — nie przenoś osób z chmury (cross-week). */
+export function applyRuntimePayrollAntiLeak(
+  merged: unknown[],
+  valuesForMerge: unknown[],
+  cloudValues: unknown[] = valuesForMerge,
+): unknown[] {
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
-  if (empIdx < 0 || archIdx < 0) return merged;
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx < 0 || archIdx < 0 || fromIdx < 0 || toIdx < 0) return merged;
 
   const payrollSourceForAntiLeak = normalizeArrayValue(valuesForMerge[empIdx]);
   const archiveSourceForAntiLeak = normalizeArrayValue(valuesForMerge[archIdx]);
-  if (
-    payrollSourceForAntiLeak.length === 0 &&
-    archiveSourceForAntiLeak.some(
-      (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
-    ) &&
-    weekEmployeesListRichness(merged[empIdx]) > 0
-  ) {
-    const next = [...merged];
-    next[empIdx] = [];
-    const { weekFrom, weekTo } = traceWeekRangeFromLs();
-    payrollTraceEmit("sync.merge.payroll.anti_leak", "MERGE", "warn", {
-      fired: true,
-      out: rosterTraceSnapshot([], weekFrom, weekTo, "MERGED", "REMOVED"),
-    });
-    return next;
+  const mergedRichness = weekEmployeesListRichness(merged[empIdx]);
+  const archiveRich = archiveSourceForAntiLeak.some(
+    (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
+  );
+  const baseConditions =
+    payrollSourceForAntiLeak.length === 0 && archiveRich && mergedRichness > 0;
+
+  const targetFrom = merged[fromIdx];
+  const targetTo = merged[toIdx];
+  const targetKey = weekRangeKey(targetFrom, targetTo);
+  const cloudKey = weekRangeKey(cloudValues[fromIdx], cloudValues[toIdx]);
+  const localKey = weekRangeKey(valuesForMerge[fromIdx], valuesForMerge[toIdx]);
+  const cloudEmps = normalizeArrayValue(cloudValues[empIdx]);
+  const crossWeekLeak = Boolean(
+    (targetKey && cloudKey && cloudKey !== targetKey)
+    || (localKey && cloudKey && localKey !== cloudKey),
+  );
+  const sameWeekCloudSsot = Boolean(
+    targetKey && cloudKey && cloudKey === targetKey && cloudEmps.length > 0,
+  );
+  const staleArchiveRepublish = sameWeekCloudSsot
+    && isStaleArchiveRosterRepublishedUnderTargetWeek(
+      targetFrom,
+      targetTo,
+      cloudEmps,
+      archiveSourceForAntiLeak,
+    );
+  const shouldFireAntiLeak = baseConditions && (crossWeekLeak || staleArchiveRepublish);
+
+  const { weekFrom, weekTo } = traceWeekRangeFromLs();
+  if (!shouldFireAntiLeak) {
+    if (baseConditions && sameWeekCloudSsot && !staleArchiveRepublish) {
+      payrollTraceEmit("sync.merge.payroll.anti_leak", "MERGE", "info", {
+        fired: false,
+        reason: "skipped_same_week_cloud_ssot" as const,
+        cloudWeekKey: cloudKey,
+        targetWeekKey: targetKey,
+        out: rosterTraceSnapshot(
+          normalizeArrayValue(merged[empIdx]),
+          String(targetFrom ?? weekFrom),
+          String(targetTo ?? weekTo),
+          "MERGED",
+          "PRESENT",
+        ),
+      });
+    }
+    return merged;
   }
-  return merged;
+
+  const next = [...merged];
+  next[empIdx] = [];
+  payrollTraceEmit("sync.merge.payroll.anti_leak", "MERGE", "warn", {
+    fired: true,
+    reason: crossWeekLeak ? ("cross_week_leak" as const) : ("stale_archive_republish" as const),
+    cloudWeekKey: cloudKey,
+    targetWeekKey: targetKey,
+    out: rosterTraceSnapshot([], weekFrom, weekTo, "MERGED", "REMOVED"),
+  });
+  return next;
 }
 
 /**
@@ -2972,7 +3062,7 @@ export async function computeMergedDataBundle(
     });
   }
   merged = finalizePayrollBundleMerge(merged, valuesForMerge, cloudValues);
-  merged = applyRuntimePayrollAntiLeak(merged, valuesForMerge);
+  merged = applyRuntimePayrollAntiLeak(merged, valuesForMerge, cloudValues);
 
   payrollTraceEmit("sync.merge.bundle.complete", "MERGE", "info", {
     mergeTraceId,
