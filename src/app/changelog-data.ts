@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.18",
+    label: "PAYROLL-BOOTSTRAP-RACE-FIX-01 — CloudLoader bootstrap gate (CORE)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — naprawa race F5: CloudLoader otwiera aplikację dopiero po zapisie CORE do localStorage (bootstrapPhase SUCCESS); usunięty równoległy fallback 3 s powodujący pusty roster po Ctrl+Shift+R.",
+      },
+      {
+        type: "improve",
+        text: "CloudLoader — bootstrapPhase PENDING/SUCCESS/FAILED/TIMEOUT; offline escape 15 s zamiast bezwarunkowego ready @ 3 s.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.17",
     label: "PAYROLL-DISPLAY-RUNTIME-TRACE-01 — diagnostyka warstwy renderu LP (tymczasowa)",
     items: [

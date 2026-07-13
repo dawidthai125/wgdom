@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
@@ -54,13 +54,40 @@ import {
 } from "@/lib/payroll-runtime-trace";
 import { pwrReconcile } from "@/lib/payroll-week-roster-bundle";
 import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
+import {
+  BOOTSTRAP_OFFLINE_TIMEOUT_MS,
+  isCloudBootstrapReady,
+  resolveBootstrapPhaseOpen,
+  type BootstrapPhase,
+} from "@/lib/cloud-loader-bootstrap-gate";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(false);
+  const [bootstrapPhase, setBootstrapPhase] = useState<BootstrapPhase>("PENDING");
+  const fetchSettledRef = useRef(false);
 
   useEffect(() => {
     const coreKeys = [...BOOTSTRAP_CORE_KEYS];
-    const fallback = setTimeout(() => setReady(true), 3000);
+    fetchSettledRef.current = false;
+    let cancelled = false;
+
+    const openBootstrapPhase = (next: Exclude<BootstrapPhase, "PENDING">) => {
+      setBootstrapPhase((prev) => {
+        const resolved = resolveBootstrapPhaseOpen(prev, next);
+        if (resolved !== prev) {
+          logPayrollBootstrapTraceFromWeekKeys({
+            caller: "CloudLoader",
+            reason: `bootstrap_phase_${resolved.toLowerCase()}`,
+          });
+        }
+        return resolved;
+      });
+    };
+
+    const offlineTimeoutId = setTimeout(() => {
+      if (cancelled || fetchSettledRef.current) return;
+      openBootstrapPhase("TIMEOUT");
+    }, BOOTSTRAP_OFFLINE_TIMEOUT_MS);
+
     const startDeferredPhase = () => {
       void fetchAndMergeDeferredBootstrap();
     };
@@ -82,6 +109,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
       APP_SETTINGS_KEY,
     ], { trigger: "bootstrap" })
       .then(async (allValues) => {
+        if (cancelled) return;
         payrollTraceEmit("sync.bootstrap.merge", "MERGE", "info", {});
         const values = allValues.slice(0, coreKeys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[coreKeys.length]);
@@ -290,15 +318,25 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           employeeCountAfter: Array.isArray(mergedBundle[empDone]) ? mergedBundle[empDone].length : 0,
         });
         startDeferredPhase();
+        openBootstrapPhase("SUCCESS");
       })
       .catch(() => {
+        if (cancelled) return;
         startDeferredPhase();
+        openBootstrapPhase("FAILED");
       })
       .finally(() => {
-        clearTimeout(fallback);
-        setReady(true);
+        fetchSettledRef.current = true;
+        clearTimeout(offlineTimeoutId);
       });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(offlineTimeoutId);
+    };
   }, []);
+
+  const ready = isCloudBootstrapReady(bootstrapPhase);
 
   if (!ready) return (
     <div style={{fontFamily:"'Inter',sans-serif", height:"100dvh"}} className="flex bg-background text-foreground items-center justify-center flex-col gap-4">

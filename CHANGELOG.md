@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.18 — PAYROLL-BOOTSTRAP-RACE-FIX-01 (CORE)
+
+- **fix:** CloudLoader — `bootstrapPhase` gate: persist CORE LS przed mount App (koniec race `useLocalStorage.init` vs bootstrap `setItem`)
+- **fix:** usunięty równoległy `setReady` @ 3 s — offline escape `TIMEOUT` @ 15 s
+- **closeout:** PROGRAM CORE · test `test-payroll-bootstrap-race-fix-01.mjs`
+
 ## 2.65.17 — PAYROLL-DISPLAY-RUNTIME-TRACE-01 (tymczasowa diagnostyka renderu LP)
 
 - **improve:** `payroll-display-runtime-trace.ts` — flaga `__WG_PAYROLL_DISPLAY_TRACE__` · trace `resolvePayrollDisplayEmployees` + `PayrollView` pre-table · `findFirstDisplayCollapse()` · sessionStorage przetrwa Ctrl+Shift+R
