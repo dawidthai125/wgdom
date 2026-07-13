@@ -15,6 +15,7 @@ import {
   takePayrollWeekEmployeesWriteSource,
 } from "@/lib/payroll-week-employees-write-trace";
 import { logPayrollStorageNote } from "@/lib/payroll-kw-week-employees-storage-trace";
+import { logPayrollBootPath } from "@/lib/payroll-boot-path-trace";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
@@ -53,6 +54,18 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
           employeeCount: n,
         });
         logPayrollWeekEmployeesInit({ employeeCount: n, weekFrom, weekTo });
+        logPayrollBootPath("APP_MOUNT", {
+          reason: "app_children_mount≈useLocalStorage.kw-week-employees_init",
+          weekFrom,
+          weekTo,
+          employeeCount: n,
+        });
+        logPayrollBootPath("USELOCALSTORAGE_INIT", {
+          reason: "react_state_init_from_ls",
+          weekFrom,
+          weekTo,
+          employeeCount: n,
+        });
         logPayrollStorageNote(
           `react_useLocalStorage.init employeeCount=${n} (see preceding GET for raw LS)`,
           "useLocalStorage.init",

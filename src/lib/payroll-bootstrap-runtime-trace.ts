@@ -3,6 +3,8 @@
  * Aktywacja: __WG_PAYROLL_BOOTSTRAP_TRACE__.enable() (sessionStorage — przetrwa Ctrl+Shift+R)
  */
 
+import { observePayrollBootstrapForBootPath } from "@/lib/payroll-boot-path-trace";
+
 const MAX_EVENTS = 4_000;
 const SESSION_FLAG = "wg-payroll-bootstrap-trace-enabled";
 
@@ -149,6 +151,21 @@ export function logPayrollBootstrapTraceFromWeekKeys(input: {
   const wf = input.weekFrom ?? (typeof input.targetFrom === "string" ? input.targetFrom : "");
   const wt = input.weekTo ?? (typeof input.targetTo === "string" ? input.targetTo : "");
   const count = input.employeeCount ?? (input.roster != null ? empCount(input.roster) : undefined);
+  // RCA-07: always mirror into boot-path timeline (independent of bootstrap-trace enable).
+  try {
+    observePayrollBootstrapForBootPath({
+      caller: input.caller,
+      reason: input.reason,
+      weekFrom: wf || undefined,
+      weekTo: wt || undefined,
+      employeeCount: count,
+      employeeCountAfter: input.employeeCountAfter,
+      persistKwWeekEmployees: input.persistKwWeekEmployees,
+      persistSkipped: input.persistSkipped,
+    });
+  } catch {
+    /* ignore — diag must never break bootstrap */
+  }
   push({
     caller: input.caller,
     reason: input.reason,

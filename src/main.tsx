@@ -2,6 +2,9 @@
 import { installPayrollKwWeekEmployeesStorageTrace } from "@/lib/payroll-kw-week-employees-storage-trace";
 installPayrollKwWeekEmployeesStorageTrace();
 
+/* PAYROLL-P0-RCA-07 — boot path A vs B */
+import "@/lib/payroll-boot-path-trace";
+
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { Analytics } from "@vercel/analytics/react";

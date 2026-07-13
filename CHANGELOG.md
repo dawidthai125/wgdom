@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.26-diag — PAYROLL-P0-RCA-07 (boot path A vs B)
+
+- **diag:** `window.__WG_PAYROLL_BOOT_PATH__` — report / verdict (A=TIMEOUT→INIT=0 · B=SUCCESS+persist skip→INIT=0)
+- **diag:** mirror z istniejących reason `logPayrollBootstrapTraceFromWeekKeys` (bez edycji CloudLoader)
+- **bez** zmian logiki — usuń po Architecture Review
+
 ## 2.65.25-diag — PAYROLL-P0-DIAGNOSTIC-02 (sourceFunction)
 
 - **diag:** każdy `setWeekEmployees` → `sourceFunction` (pullFromCloudAndMerge, applyAdminDataBundle, replaceWeekWithAllActive, tryPayrollWeekCycle, …)

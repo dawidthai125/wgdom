@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-14",
+    version: "2.65.26-diag",
+    label: "PAYROLL-P0-RCA-07 — bootstrap path timeline (A vs B)",
+    items: [
+      {
+        type: "improve",
+        text: "DIAG ONLY — window.__WG_PAYROLL_BOOT_PATH__ (.report/.verdict): timeline BOOT_TIMEOUT vs BOOT_SUCCESS+persist skip → INIT=0. Bez zmian logiki Payroll/Sync/CloudLoader. Usunąć po Architecture Review.",
+      },
+    ],
+  },
+  {
     date: "2026-07-13",
     version: "2.65.25-diag",
     label: "PAYROLL-P0-DIAGNOSTIC-02 — sourceFunction na każdym setWeekEmployees",
