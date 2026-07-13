@@ -43,6 +43,7 @@ import {
   biweeklyMissingPrevWeekArchive,
   biweeklyCashContextLine,
   calcWeekNetNoPrevSat,
+  findPayrollWeekSnapshot,
   getPayrollWeekRange,
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
@@ -607,7 +608,7 @@ export function PayrollView({
     if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id));
   };
 
-  const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const archivedForWeek = findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo);
   const isSavedWeek = isPayrollWeekSaved(savedWeeks, weekFrom, weekTo);
   const hasRolloverBlockers = useMemo(
     () =>

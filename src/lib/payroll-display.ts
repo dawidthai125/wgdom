@@ -2,7 +2,7 @@
 
 import type { WeekEmployee } from "@/app/app-domain";
 import { logPayrollDisplayTrace } from "@/lib/payroll-display-runtime-trace";
-import { getPayrollWeekRange } from "@/lib/payroll-cycle";
+import { getPayrollWeekRange, isPayrollCalendarBehind } from "@/lib/payroll-cycle";
 import { payrollTraceEmit, payrollTraceGetSubjectMergeKey, rosterTraceSnapshot } from "@/lib/payroll-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 
@@ -27,6 +27,8 @@ export function resolvePayrollDisplayEmployees(
   traceMeta?: PayrollDisplayResolveTraceMeta,
 ): WeekEmployee[] {
   const display = (() => {
+    // PAYROLL-P0-REGRESSION-02 — bieżący tydzień płacowy: zawsze live roster (nie collapse display).
+    if (!isPayrollCalendarBehind(weekFrom, weekTo)) return weekEmployees;
     if (!isClosedWeek) return weekEmployees;
     if (archivedWeekEmployees?.length) return archivedWeekEmployees;
     return [];
@@ -39,13 +41,16 @@ export function resolvePayrollDisplayEmployees(
     subjectInDisplay: sk ? display.some((e) => weekEmployeeMergeKey(e) === sk) : undefined,
   });
   const currentWeek = getPayrollWeekRange();
+  const calendarBehind = isPayrollCalendarBehind(weekFrom, weekTo);
   logPayrollDisplayTrace({
     caller: "resolvePayrollDisplayEmployees",
-    reason: isClosedWeek
-      ? archivedWeekEmployees?.length
-        ? "closed_week_archive_snapshot"
-        : "closed_week_no_archive_collapse"
-      : "operational_week_live_roster",
+    reason: !calendarBehind
+      ? "operational_week_live_roster"
+      : isClosedWeek
+        ? archivedWeekEmployees?.length
+          ? "closed_week_archive_snapshot"
+          : "closed_week_no_archive_collapse"
+        : "operational_week_live_roster",
     weekEmployeesLength: weekEmployees.length,
     productionWeekEmployeesLength: traceMeta?.productionWeekEmployeesLength ?? weekEmployees.length,
     displayEmployeesLength: display.length,

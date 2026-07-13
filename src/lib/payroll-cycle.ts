@@ -39,13 +39,70 @@ export function getPayrollWeekRange(now = new Date()): { from: string; to: strin
   return { from: localIsoDate(mon), to: localIsoDate(sat) };
 }
 
+function parsePayrollIsoDate(iso: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return null;
+  return new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0, 0);
+}
+
+/**
+ * Pn–So: weekTo = sobota; niedziela (Pn+6) traktowana jak sobota (Pn+5) przy porównaniu tygodni.
+ * SSOT UI — parity z merge w cloud-sync (weekRangeKey).
+ */
+export function canonicalPayrollWeekTo(weekFrom: string, weekTo: string): string {
+  const mon = parsePayrollIsoDate(weekFrom);
+  if (!mon) return weekTo;
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  if (weekTo === localIsoDate(sun)) {
+    const sat = new Date(mon);
+    sat.setDate(mon.getDate() + 5);
+    return localIsoDate(sat);
+  }
+  return weekTo;
+}
+
+/** Kanoniczny klucz tygodnia Pn–So (from|canonicalTo). */
+export function payrollWeekRangeKey(weekFrom: string, weekTo: string): string {
+  if (!weekFrom || !weekTo) return "";
+  return `${weekFrom}|${canonicalPayrollWeekTo(weekFrom, weekTo)}`;
+}
+
+export function isSamePayrollWeekRange(
+  aFrom: string,
+  aTo: string,
+  bFrom: string,
+  bTo: string,
+): boolean {
+  return payrollWeekRangeKey(aFrom, aTo) === payrollWeekRangeKey(bFrom, bTo);
+}
+
+/** Wyświetlany tydzień jest za bieżącym tygodniem płacowym (kalendarzowo). */
+export function isPayrollCalendarBehind(
+  weekFrom: string,
+  weekTo: string,
+  now = new Date(),
+): boolean {
+  const current = getPayrollWeekRange(now);
+  return !isSamePayrollWeekRange(weekFrom, weekTo, current.from, current.to);
+}
+
+export function findPayrollWeekSnapshot(
+  savedWeeks: WeekSnapshot[],
+  weekFrom: string,
+  weekTo: string,
+): WeekSnapshot | undefined {
+  const key = payrollWeekRangeKey(weekFrom, weekTo);
+  return savedWeeks.find((w) => payrollWeekRangeKey(w.weekFrom, w.weekTo) === key);
+}
+
 /** Snapshot istnieje w archiwum (backup) — nie oznacza zamknięcia operacyjnego tygodnia. */
 export function isPayrollWeekSaved(
   savedWeeks: WeekSnapshot[],
   weekFrom: string,
   weekTo: string,
 ): boolean {
-  return savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  return findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo) != null;
 }
 
 /**
@@ -57,8 +114,7 @@ export function isPayrollWeekClosed(
   weekTo: string,
   now = new Date(),
 ): boolean {
-  const current = getPayrollWeekRange(now);
-  return weekFrom !== current.from || weekTo !== current.to;
+  return isPayrollCalendarBehind(weekFrom, weekTo, now);
 }
 
 /**
@@ -71,8 +127,7 @@ export function isPayrollWeekClosedForUi(
   hasRolloverBlockers: boolean,
   now = new Date(),
 ): boolean {
-  const current = getPayrollWeekRange(now);
-  const calendarBehind = weekFrom !== current.from || weekTo !== current.to;
+  const calendarBehind = isPayrollCalendarBehind(weekFrom, weekTo, now);
   if (!calendarBehind) return false;
   if (hasRolloverBlockers) return false;
   return true;
@@ -304,7 +359,7 @@ export function findWeekEmployeeInArchive(
   weekTo: string,
   empRef: Pick<WeekEmpPayrollInput, "directoryId" | "name">,
 ): WeekEmpPayrollInput | undefined {
-  const snap = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const snap = findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo);
   if (!snap?.weekEmployees?.length) return undefined;
   return snap.weekEmployees.find(
     (we) =>

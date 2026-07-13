@@ -188,7 +188,7 @@ import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-st
 import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
 import { OperationalNotesUnreadBanner } from "@/app/OperationalNotesUnreadBanner";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
-import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
+import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi, isPayrollCalendarBehind } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
@@ -2044,7 +2044,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
-    const onCurrentRange = weekFrom === current.from && weekTo === current.to;
+    const onCurrentRange = !isPayrollCalendarBehind(weekFrom, weekTo);
 
     logPayrollBootstrapTraceFromWeekKeys({
       caller: "tryPayrollWeekCycle",

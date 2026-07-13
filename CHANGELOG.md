@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.20 — PAYROLL-P0-REGRESSION-02 (tabela LP natychmiast — nowy tydzień)
+
+- **fix:** P0 regresja po utworzeniu nowego tygodnia — collapse display przy żywym rosterze (topbar 14 / KPI OK, tabela pusta 60–120 s)
+- **fix:** `payroll-cycle` — kanoniczne `payrollWeekRangeKey` (So ≡ Nd) w `isPayrollWeekClosedForUi` / `findPayrollWeekSnapshot`
+- **fix:** `resolvePayrollDisplayEmployees` — bieżący tydzień płacowy zawsze live roster (guard `isPayrollCalendarBehind`)
+- **test:** `test-payroll-display-p0-regression-02.mjs`
+
 ## 2.65.19 — PAYROLL-DISPLAY-UNLOCK-TRACE-02 (findFirstDisplayUnlock)
 
 - **improve:** `findFirstDisplayUnlock()` — pierwsze przejście display 0→N + diff vs poprzedni event · `calendarBehind` · `download()` → `{ firstDisplayUnlock, events }`

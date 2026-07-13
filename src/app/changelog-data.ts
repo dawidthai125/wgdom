@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.20",
+    label: "PAYROLL-P0-REGRESSION-02 — natychmiastowy render tabeli LP (nowy tydzień)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — P0 regresja po nowym tygodniu: kanoniczne porównanie Pn–So (So/Nd) w isPayrollWeekClosedForUi + guard display na bieżącym tygodniu; tabela od razu po Ctrl+Shift+R (bez 60–120 s collapse).",
+      },
+      {
+        type: "improve",
+        text: "payroll-cycle — SSOT payrollWeekRangeKey / findPayrollWeekSnapshot; smoke test-payroll-display-p0-regression-02.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.19",
     label: "PAYROLL-DISPLAY-UNLOCK-TRACE-02 — findFirstDisplayUnlock (tymczasowa diagnostyka)",
     items: [

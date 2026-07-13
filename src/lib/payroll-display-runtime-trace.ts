@@ -3,6 +3,8 @@
  * Aktywacja: __WG_PAYROLL_DISPLAY_TRACE__.enable() (sessionStorage — przetrwa Ctrl+Shift+R)
  */
 
+import { isPayrollCalendarBehind } from "@/lib/payroll-cycle";
+
 const MAX_EVENTS = 4_000;
 const SESSION_FLAG = "wg-payroll-display-trace-enabled";
 
@@ -136,10 +138,10 @@ function isEnabled(): boolean {
 function computeCalendarBehind(
   weekFrom: string,
   weekTo: string,
-  currentWeekFrom: string,
-  currentWeekTo: string,
+  _currentWeekFrom: string,
+  _currentWeekTo: string,
 ): boolean {
-  return weekFrom !== currentWeekFrom || weekTo !== currentWeekTo;
+  return isPayrollCalendarBehind(weekFrom, weekTo);
 }
 
 function push(input: PayrollDisplayTraceInput): void {
