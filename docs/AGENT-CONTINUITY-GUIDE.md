@@ -77,7 +77,7 @@
 |---------|---------|
 | **Production (UI)** | **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
 | **Runtime commit (app)** | **`d8f2d99`** · JOBS-PHOTOS-DELETE-SYNC-01 photo tombstones |
-| **main HEAD** | **`d8f2d99`** · app + docs continuity (pending docs commit) |
+| **main HEAD** | **`92c9f5a`** · docs continuity · app **`d8f2d99`** na prod |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
 | **Ostatnio CLOSED** | **JOBS-PHOTOS-DELETE-SYNC-01** · **JOBS-ASSETS-SYNC-01** · **ROBOTS-INSPECTOR-01** |
