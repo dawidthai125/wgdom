@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.21 — PAYROLL-P0-REGRESSION-03 (tabela LP bez ~20 s opóźnienia)
+
+- **fix:** P0 — żywy roster + stale `weekFrom`/`weekTo` po rolloverze → `resolvePayrollOperationalWeekKeys` wyrównuje klucze od razu (bez `pullFromCloudAndMerge` ~15–20 s)
+- **fix:** `bumpAutoSyncSuppress` — nie nadpisuje 60 s bootstrap suppress (wmPrint seed / commity)
+- **fix:** `kw-employee-leaves` → `BOOTSTRAP_CORE_KEYS` (rollover blockers bez deferred hydrate)
+- **test:** `test-payroll-display-p0-regression-03.mjs`
+
 ## 2.65.20 — PAYROLL-P0-REGRESSION-02 (tabela LP natychmiast — nowy tydzień)
 
 - **fix:** P0 regresja po utworzeniu nowego tygodnia — collapse display przy żywym rosterze (topbar 14 / KPI OK, tabela pusta 60–120 s)

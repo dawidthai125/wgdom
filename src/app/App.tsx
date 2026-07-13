@@ -188,7 +188,7 @@ import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-st
 import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
 import { OperationalNotesUnreadBanner } from "@/app/OperationalNotesUnreadBanner";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
-import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi, isPayrollCalendarBehind } from "@/lib/payroll-cycle";
+import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi, isPayrollCalendarBehind, findPayrollWeekSnapshot, resolvePayrollOperationalWeekKeys } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
@@ -339,6 +339,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
   const suppressAutoSyncUntilRef = useRef(initialAutoSyncSuppressUntil());
+  const bumpAutoSyncSuppress = useCallback((ms: number) => {
+    suppressAutoSyncUntilRef.current = Math.max(suppressAutoSyncUntilRef.current, Date.now() + ms);
+  }, []);
   const pullInFlightRef = useRef(false);
   const pendingAutoSyncRef = useRef(false);
   const suppressWakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -414,7 +417,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const payload = next ?? employeeLeaves;
     let deletedIds = getDeletedEmployeeLeaveIds();
     if (deletedId) deletedIds = addDeletedEmployeeLeaveId(deletedId);
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushEmployeeLeavesToCloud(payload, deletedIds).catch(() => {});
   }, [employeeLeaves]);
 
@@ -422,7 +425,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const payload = next ?? recoverableCharges;
     let deletedIds = getDeletedRecoverableChargeIds();
     if (deletedId) deletedIds = addDeletedRecoverableChargeId(deletedId);
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushRecoverableChargesToCloud(payload, deletedIds).catch(() => {});
   }, [recoverableCharges]);
 
@@ -438,7 +441,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (nextReadState) setOperationalNotesReadState(nextReadState);
     let deletedIds = getDeletedOperationalNoteIds();
     if (deletedId) deletedIds = addDeletedOperationalNoteId(deletedId);
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushOperationalNotesToCloud(notesPayload, deletedIds, readStatePayload, auditPayload).catch(() => {});
   }, [operationalNotes, operationalNotesAuditLog, operationalNotesReadState, setOperationalNotesReadState]);
 
@@ -458,13 +461,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     let delDoc = getDeletedWmPrintJobDocIds();
     if (deletedTemplateId) delTpl = addDeletedWmPrintTemplateId(deletedTemplateId);
     if (deletedJobDocId) delDoc = addDeletedWmPrintJobDocId(deletedJobDocId);
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
   }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
 
   const commitDeliveryPackagePublications = useCallback((next?: DeliveryPackagePublication[]) => {
     const payload = next ?? deliveryPackagePublications;
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushDeliveryPackagePublicationsToCloud(payload)
       .then((merged) => setDeliveryPackagePublications(merged))
       .catch(() => {});
@@ -473,7 +476,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const commitElectricalMeasurementSettings = useCallback(
     (next?: ElectricalMeasurementSettings) => {
       const payload = next ?? electricalMeasurementSettings;
-      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      bumpAutoSyncSuppress(4500);
       setElectricalMeasurementSettings(payload);
       pushElectricalMeasurementSettingsToCloud(payload).catch(() => {});
     },
@@ -490,7 +493,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (nextRegistry !== undefined || registryNeedsMigrationFromMeasurements(electricalMeasurementRegistry, payload)) {
         setElectricalMeasurementRegistry(registryPayload);
       }
-      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      bumpAutoSyncSuppress(4500);
       pushElectricalMeasurementsBundleToCloud(payload, registryPayload).catch(() => {});
     },
     [electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurementRegistry],
@@ -502,7 +505,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (next !== undefined) {
         setElectricalSchematics(payload);
       }
-      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      bumpAutoSyncSuppress(4500);
       pushElectricalSchematicsToCloud(payload).catch(() => {});
     },
     [electricalSchematics, setElectricalSchematics],
@@ -532,7 +535,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const registryPayload = ensureRegistryWithMigration(repaired.state, repaired.measurements);
     setElectricalMeasurements(repaired.measurements);
     setElectricalMeasurementRegistry(registryPayload);
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     pushElectricalMeasurementsBundleToCloud(repaired.measurements, registryPayload).catch(() => {});
   }, [jobs, electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurements, setElectricalMeasurementRegistry]);
 
@@ -588,7 +591,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const wasInPrev = sk ? previousUi.some((e) => weekEmployeeMergeKey(e) === sk) : false;
     const inIncoming = sk ? incoming.some((e) => weekEmployeeMergeKey(e) === sk) : true;
     const subjectDropped = wasInPrev && !inIncoming;
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    bumpAutoSyncSuppress(4500);
     remoteMergeInFlightRef.current = true;
     setSkipApplyWriteTimestamps(true);
     try {
@@ -742,7 +745,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (unique.length === 0) return;
     deleteJobsInFlightRef.current = true;
     clearPendingAutoSync();
-    suppressAutoSyncUntilRef.current = Date.now() + 12_000;
+    bumpAutoSyncSuppress(12_000);
     let deletedIds = getDeletedJobIds();
     for (const id of unique) {
       deletedIds = addDeletedJobId(id);
@@ -1119,7 +1122,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const result = await maybeExecuteWmPrintSeed();
       if (!result.seeded) return;
       setWmPrintTemplates(result.templates);
-      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      bumpAutoSyncSuppress(4500);
       pushWmPrintToCloud(
         result.templates,
         normalizeWmPrintJobDocuments(wmPrintJobDocs),
@@ -1503,7 +1506,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [bumpPayrollEditAutoSyncHold]);
 
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
-    suppressAutoSyncUntilRef.current = Date.now() + 6000;
+    bumpAutoSyncSuppress(6000);
     payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
       count: next.length,
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
@@ -1987,7 +1990,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekFrom(targetFrom);
     setWeekTo(targetTo);
     setWeekEmployees([]);
-    suppressAutoSyncUntilRef.current = Date.now() + 6000;
+    bumpAutoSyncSuppress(6000);
     void withKwWeekEmployeesAsyncMutation(() =>
       pushPayrollWeekAfterRollover({
         weekFrom: targetFrom,
@@ -2098,6 +2101,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance, trySundayArchiveOnly]);
 
   payrollWeekCycleRef.current = tryPayrollWeekCycle;
+
+  const payrollWeekKeysAlignedRef = useRef(false);
+  useEffect(() => {
+    if (payrollWeekKeysAlignedRef.current) return;
+    if (weekEmployees.length === 0) return;
+    if (findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo)?.weekEmployees?.length) return;
+    const resolved = resolvePayrollOperationalWeekKeys(weekFrom, weekTo, weekEmployees.length);
+    if (!resolved.didAlign) return;
+    payrollWeekKeysAlignedRef.current = true;
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "App.resolvePayrollOperationalWeekKeys",
+      reason: resolved.reason,
+      weekFrom,
+      weekTo,
+      targetFrom: resolved.from,
+      targetTo: resolved.to,
+      employeeCount: weekEmployees.length,
+    });
+    setWeekFrom(resolved.from);
+    setWeekTo(resolved.to);
+  }, [weekEmployees.length, weekFrom, weekTo, savedWeeks, setWeekFrom, setWeekTo]);
 
   useEffect(() => {
     payrollWeekCycleRef.current();

@@ -180,6 +180,7 @@ export const BOOTSTRAP_CORE_KEYS = [
   "kw-weekFrom",
   "kw-weekTo",
   "kw-jobs",
+  "kw-employee-leaves",
 ] as const satisfies readonly DataKey[];
 
 /** Faza 2 CloudLoader — pobierane w tle po ready. */
@@ -195,7 +196,6 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wgdom-work-catalog",
   "kw-wgdom-work-bundles",
   "kw-contacts",
-  "kw-employee-leaves",
   "kw-recoverable-charges",
   "kw-operational-notes",
   "kw-wm-print-templates",

@@ -96,6 +96,34 @@ export function findPayrollWeekSnapshot(
   return savedWeeks.find((w) => payrollWeekRangeKey(w.weekFrom, w.weekTo) === key);
 }
 
+/**
+ * PAYROLL-P0-REGRESSION-03 — żywy roster + weekFrom/weekTo za kalendarzem (stale po rolloverze).
+ * Zwraca bieżący tydzień płacowy bez czekania na pullFromCloudAndMerge (~15–20 s MIN_PULL).
+ */
+export function resolvePayrollOperationalWeekKeys(
+  weekFrom: string,
+  weekTo: string,
+  liveRosterCount: number,
+  now = new Date(),
+): { from: string; to: string; didAlign: boolean; reason: string } {
+  const current = getPayrollWeekRange(now);
+  if (liveRosterCount <= 0) {
+    return { from: weekFrom, to: weekTo, didAlign: false, reason: "empty_roster" };
+  }
+  if (isSamePayrollWeekRange(weekFrom, weekTo, current.from, current.to)) {
+    return { from: weekFrom, to: weekTo, didAlign: false, reason: "keys_match_current" };
+  }
+  if (!isPayrollCalendarBehind(weekFrom, weekTo, now)) {
+    return { from: weekFrom, to: weekTo, didAlign: false, reason: "not_calendar_behind" };
+  }
+  return {
+    from: current.from,
+    to: current.to,
+    didAlign: true,
+    reason: "live_roster_stale_week_keys",
+  };
+}
+
 /** Snapshot istnieje w archiwum (backup) — nie oznacza zamknięcia operacyjnego tygodnia. */
 export function isPayrollWeekSaved(
   savedWeeks: WeekSnapshot[],

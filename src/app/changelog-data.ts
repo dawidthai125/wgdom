@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.21",
+    label: "PAYROLL-P0-REGRESSION-03 — natychmiastowy render LP (bez ~20 s pull)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — P0: żywy roster + stale weekFrom/weekTo po rolloverze → natychmiastowe wyrównanie kluczy (resolvePayrollOperationalWeekKeys); koniec czekania na pullFromCloudAndMerge ~15–20 s.",
+      },
+      {
+        type: "fix",
+        text: "Auto-sync suppress — bumpAutoSyncSuppress (Math.max) zamiast nadpisywania 60 s bootstrap window (wmPrint seed / commity); kw-employee-leaves w BOOTSTRAP_CORE_KEYS.",
+      },
+      {
+        type: "improve",
+        text: "test-payroll-display-p0-regression-03.mjs — stale keys + CORE leaves.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.20",
     label: "PAYROLL-P0-REGRESSION-02 — natychmiastowy render tabeli LP (nowy tydzień)",
     items: [
