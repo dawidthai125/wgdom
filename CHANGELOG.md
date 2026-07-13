@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.13 — JOBS-SYNC-FIX-01 admin bundle write-first + reconcile fresh
+
+- **fix:** auto-sync po lokalnej mutacji — `writeOnly` skip `applyAdminDataBundle` w tym cyklu
+- **fix:** `resolveReconcileFreshForKey` — React snapshot nowszy od LS wygrywa w reconcile
+- **improve:** `admin-bundle-sync-guard` — generation guard przed apply
+
 ## 2.65.12 — JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 trace in-memory activation
 
 - **improve:** `jobs-photos-live-trace.ts` — aktywacja in-memory (`__WG_ENABLE_JOBS_PHOTO_TRACE__` / `enable()`); usunięty gate localStorage (QuotaExceeded)

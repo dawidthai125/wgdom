@@ -1495,6 +1495,65 @@ export function readLocalStorageDataKey(key: DataKey): unknown | null {
   }
 }
 
+function reconcileFreshnessScore(key: DataKey, value: unknown): number {
+  const parseTs = (v: unknown): number => {
+    if (typeof v !== "string") return 0;
+    const t = Date.parse(v);
+    return Number.isNaN(t) ? 0 : t;
+  };
+  switch (key) {
+    case "kw-jobs": {
+      if (!Array.isArray(value)) return 0;
+      let max = 0;
+      for (const item of value) {
+        const j = item as { updatedAt?: string; activityLog?: { at: string }[]; startDate?: string };
+        let ts = parseTs(j.updatedAt);
+        if (!ts && Array.isArray(j.activityLog)) {
+          for (const ev of j.activityLog) ts = Math.max(ts, parseTs(ev.at));
+        }
+        if (!ts) ts = parseTs(j.startDate);
+        max = Math.max(max, ts);
+      }
+      return max;
+    }
+    case "kw-week-employees": {
+      if (!Array.isArray(value)) return 0;
+      let max = 0;
+      for (const e of value) max = Math.max(max, parseTs((e as { dataUpdatedAt?: string }).dataUpdatedAt));
+      return max;
+    }
+    case "kw-archive": {
+      if (!Array.isArray(value)) return 0;
+      let max = 0;
+      for (const w of value) max = Math.max(max, parseTs((w as { savedAt?: string }).savedAt));
+      return max;
+    }
+    case "kw-operational-notes": {
+      if (!Array.isArray(value)) return 0;
+      let max = 0;
+      for (const n of value) max = Math.max(max, parseTs((n as { updatedAt?: string }).updatedAt));
+      return max;
+    }
+    default:
+      return 0;
+  }
+}
+
+/** JOBS-SYNC-FIX-01 MF-1 — explicit React fresh wins over stale LS when newer (tie → explicit). */
+export function resolveReconcileFreshForKey(
+  key: DataKey,
+  explicitFresh?: unknown | null,
+): unknown | null {
+  const lsFresh = readLocalStorageDataKey(key);
+  if (explicitFresh == null) return lsFresh;
+  if (lsFresh == null) return explicitFresh;
+  const explicitScore = reconcileFreshnessScore(key, explicitFresh);
+  const lsScore = reconcileFreshnessScore(key, lsFresh);
+  if (explicitScore > lsScore) return explicitFresh;
+  if (lsScore > explicitScore) return lsFresh;
+  return explicitFresh;
+}
+
 /** Przed pushem do chmury — localStorage może być świeższy niż React (inna karta). stored wygrywa nad incoming. */
 export function mergeIncomingWithStored(key: DataKey, stored: unknown, incoming: unknown): unknown {
   if (stored == null) return incoming;
@@ -2934,7 +2993,7 @@ export function reconcileOperationalNotesInMergedBundle(
 ): unknown[] {
   const opIdx = DATA_KEYS.indexOf(OPERATIONAL_NOTES_KEY);
   if (opIdx < 0 || opIdx >= merged.length) return merged;
-  const fresh = freshLocal ?? readLocalStorageDataKey(OPERATIONAL_NOTES_KEY);
+  const fresh = resolveReconcileFreshForKey(OPERATIONAL_NOTES_KEY, freshLocal);
   const out = [...merged];
   out[opIdx] = mergeOperationalNotes(
     fresh,
@@ -2957,7 +3016,7 @@ export function reconcilePayrollKeysWithFreshLocal(
   const out = [...merged];
 
   if (empIdx >= 0 && empIdx < out.length) {
-    const freshEmps = fresh?.weekEmployees ?? readLocalStorageDataKey("kw-week-employees");
+    const freshEmps = resolveReconcileFreshForKey("kw-week-employees", fresh?.weekEmployees);
     out[empIdx] = mergeIncomingWithStored("kw-week-employees", freshEmps, merged[empIdx]);
   }
 
@@ -2974,7 +3033,7 @@ export function reconcileJobsWithFreshLocal(
 ): unknown[] {
   const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
   if (jobsIdx < 0 || jobsIdx >= merged.length) return merged;
-  const fresh = freshJobs ?? readLocalStorageDataKey("kw-jobs");
+  const fresh = resolveReconcileFreshForKey("kw-jobs", freshJobs);
   const out = [...merged];
   out[jobsIdx] = mergeIncomingWithStored("kw-jobs", fresh, merged[jobsIdx]);
   return out;
@@ -3010,7 +3069,7 @@ export function reconcileArchiveWithFreshLocal(
 ): unknown[] {
   const archIdx = DATA_KEYS.indexOf("kw-archive");
   if (archIdx < 0 || archIdx >= merged.length) return merged;
-  const fresh = freshArchive ?? readLocalStorageDataKey("kw-archive");
+  const fresh = resolveReconcileFreshForKey("kw-archive", freshArchive);
   const out = [...merged];
   out[archIdx] = mergeIncomingWithStored("kw-archive", fresh, merged[archIdx]);
   return out;

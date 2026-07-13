@@ -7,6 +7,7 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
+import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
 function weekRangeFromLs(): { weekFrom: string; weekTo: string } {
@@ -46,6 +47,9 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
         return incoming;
       }
       const next = (skipApplyWriteTimestamps ? incoming : applyWriteTimestamps(key, prev, incoming)) as T;
+      if (!skipApplyWriteTimestamps) {
+        bumpAdminBundleGeneration();
+      }
       if (key === "kw-jobs") {
         logJobsPhotosLiveTrace({
           event: "setJobs",

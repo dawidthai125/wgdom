@@ -70,6 +70,10 @@ import {
   isPayrollGuardBlockedError,
   rsBundleFingerprintFromMerged,
 } from "@/lib/cloud-sync";
+import {
+  getAdminBundleGeneration,
+  shouldApplyAdminBundleAtGeneration,
+} from "@/lib/admin-bundle-sync-guard";
 import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
 import {
   SECURITY_AUDIT_LOG_KEY,
@@ -546,6 +550,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes],
   );
 
+  const buildAdminFreshSnapshot = useCallback(
+    () => ({
+      weekEmployees,
+      jobs,
+      archive: savedWeeks,
+      operationalNotes,
+    }),
+    [weekEmployees, jobs, savedWeeks, operationalNotes],
+  );
+
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
     const opNotesIdx = DATA_KEYS.indexOf("kw-operational-notes");
     const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
@@ -769,10 +783,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     lastPullAtRef.current = Date.now();
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
+    const capturedGeneration = getAdminBundleGeneration();
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
-      const finalBundle = reconcileAdminBundleWithFreshLocal(merged);
-      applyAdminDataBundle(finalBundle);
+      const finalBundle = reconcileAdminBundleWithFreshLocal(merged, buildAdminFreshSnapshot());
+      if (shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
+        applyAdminDataBundle(finalBundle);
+      }
       try {
         const aux = await pullOperationalNotesAuxFromCloud();
         setOperationalNotesReadState(aux.readState);
@@ -785,11 +802,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs]);
+  }, [adminDataBundle, applyAdminDataBundle, buildAdminFreshSnapshot, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs]);
 
   const pushToCloud = pushAllDataToCloud;
 
-  const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
+  const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean; writeOnly?: boolean }) => {
     logJobsPhotosLiveTrace({
       event: "runCloudSync",
       caller: "App.runCloudSync",
@@ -839,11 +856,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setSyncError("");
     payrollTraceCreateSyncTraceId(payrollTraceGetOperationId());
     payrollTraceEmit("sync.run.start", "MERGE", "info", { trigger: "run_cloud_sync" as const });
+    const capturedGeneration = getAdminBundleGeneration();
     try {
       lastPullAtRef.current = Date.now(); // PR-PAY-S7-4A — pull tu też liczy się do min-interval batch-get
       const merged = await pullAndMergeDataBundle(adminDataBundle());
-      const finalBundle = reconcileAdminBundleWithFreshLocal(merged);
-      applyAdminDataBundle(finalBundle);
+      const finalBundle = reconcileAdminBundleWithFreshLocal(merged, buildAdminFreshSnapshot());
+      if (!opts?.writeOnly && shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
+        applyAdminDataBundle(finalBundle);
+      }
       let opReadState = operationalNotesReadState;
       let opAuditLog = operationalNotesAuditLog;
       try {
@@ -890,7 +910,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         void runCloudSync(opts);
       }
     }
-  }, [adminDataBundle, applyAdminDataBundle, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog, refreshAuditHubAuxFromCloud]);
+  }, [adminDataBundle, applyAdminDataBundle, buildAdminFreshSnapshot, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog, refreshAuditHubAuxFromCloud]);
 
   const fireDeferredAutoSync = useCallback(() => {
     suppressWakeTimerRef.current = null;
@@ -917,7 +937,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     pendingAutoSyncRef.current = false;
-    void runCloudSync();
+    void runCloudSync({ writeOnly: true });
   }, [runCloudSync]);
 
   const scheduleWakeAtSuppressExpiry = useCallback(() => {
@@ -1000,7 +1020,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       pendingAutoSyncRef.current = false;
       payrollTraceEmit("sync.auto.fire", "MERGE", "debug", {});
-      void runCloudSync();
+      void runCloudSync({ writeOnly: true });
     }, AUTO_SYNC_DEBOUNCE_MS);
   }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
 

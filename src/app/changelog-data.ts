@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.13",
+    label: "JOBS-SYNC-FIX-01 — admin bundle write-first + reconcile fresh",
+    items: [
+      {
+        type: "fix",
+        text: "Auto-sync po lokalnej mutacji — write-first: bez applyAdminDataBundle w tym samym cyklu (koniec cofania zdjęć 2→3).",
+      },
+      {
+        type: "fix",
+        text: "Reconcile przed apply/push — React snapshot nowszy od localStorage wygrywa (MF-1).",
+      },
+      {
+        type: "improve",
+        text: "Generation guard — starszy bundle sync nie nadpisuje nowszego stanu React (MF-3).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.12",
     label: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 — trace in-memory activation",
     items: [
