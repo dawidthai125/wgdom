@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-DELETE-SYNC-01 CLOSED**) · prod **2.65.10** @ `d8f2d99` · **main** `d8f2d99`
+**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **main** `7615129` (docs)
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -10,11 +10,13 @@
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Baseline prod** | UI **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`d8f2d99`** (JOBS-PHOTOS-DELETE-SYNC-01) |
-| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** — osobny commit |
+| **main HEAD** | **`7615129`** (docs) · app prod **`d8f2d99`** |
+| **WIP lokalny (nie prod)** | **JOBS-PHOTOS-P0** live trace · **TWSL** **2.63.91** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **JOBS-PHOTOS-DELETE-SYNC-01** (**2.65.10** CLOSED) · **JOBS-ASSETS-SYNC-01** (**2.65.9**) |
-| **Co dalej?** | **STABILIZATION WINDOW** — backlog **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
+| **Co dalej?** | Owner **live repro** photos → export trace · **STABILIZATION WINDOW** — **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
+
+> **JOBS-PHOTOS-P0 AUDIT COMPLETE:** seria audytów upload/delete regression · **bez fixa** · live instrumentation WIP lokalnie · SSOT [`docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md)
 
 > **JOBS-PHOTOS-DELETE-SYNC-01 CLOSED:** UI **2.65.10** @ **`d8f2d99`** · **PRODUCTION VERIFIED** · prod smoke **19/19** · SSOT [`docs/architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](docs/architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md)
 
@@ -26,6 +28,24 @@
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## JOBS-PHOTOS-P0 — photos upload/delete regression audit · **AUDIT COMPLETE** · live trace **WIP**
+
+> **SSOT:** [`docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **AUDIT COMPLETE** · **bez fixa** · **LIVE INSTRUMENTATION WIP** (lokalnie) |
+| **Prod baseline** | **2.65.10** @ **`d8f2d99`** |
+| **Symptom Ownera** | Zdjęcia znikają po upload/delete, wracają po ~2–3 s |
+| **Werdykty audytu** | Stale closure **możliwy** w kodzie, **nie** potwierdzony runtime; `failedUrls` **wykluczone**; UI empty = `filterAvailablePhotos` |
+| **WIP pliki** | `src/lib/jobs-photos-live-trace.ts` · hooki w `App.tsx`, `JobsView.tsx`, `useLocalStorage.ts` |
+| **Włączenie trace** | `localStorage.setItem("wg-jobs-photos-live-trace","1")` → reload |
+| **Następny krok** | Owner ręczna reprodukcja → `__wgdomJobsPhotosLiveTraceExport()` → analiza `firstRegression` → **usuń instrumentację** |
+
+**Nie implementuj fixa** bez logu live + Owner GO (#CORE-013 osobny bundle).
 
 ---
 

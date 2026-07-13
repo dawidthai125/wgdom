@@ -2,7 +2,9 @@
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
 > **Prod:** UI **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **JOBS-PHOTOS-DELETE-SYNC-01**) · prod **2.65.10** @ **`d8f2d99`** · **STABILIZATION WINDOW ACTIVE**
+> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **JOBS-PHOTOS-P0** audit + live trace WIP) · prod **2.65.10** @ **`d8f2d99`** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-13):** **JOBS-PHOTOS-P0** seria audytów **COMPLETE** · werdykty: stale closure możliwy w kodzie, **nie** potwierdzony runtime; `failedUrls` **wykluczone**; UI empty = `filterAvailablePhotos` · **LIVE INSTRUMENTATION WIP** (lokalnie, nie prod) · SSOT [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md).
 
 > **★ Domknięcie sesji (2026-07-13):** **JOBS-PHOTOS-DELETE-SYNC-01** **CLOSED** · **`d8f2d99`** · prod smoke **19/19 PASS** · `deletedPhotoTombstones[]` + `mergePhotos` tombstone filter · SSOT [`architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md).
 
@@ -84,8 +86,8 @@
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **STABILIZATION WINDOW** · **ASSETS-03** (backlog) · **NG11-Q4** / **TWSL** — Owner GO |
+| **WIP lokalny** | **JOBS-PHOTOS-P0** live trace (`jobs-photos-live-trace.ts`) · **TWSL** **2.63.91** |
+| **Następny krok** | Owner **live repro** + export trace → analiza `firstRegression` → usuń instrumentację · **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
 
 ### Czym jest aplikacja
 
@@ -98,6 +100,7 @@
 | Program | Status | Wersja |
 |---------|--------|--------|
 | **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **CLOSED** | **2.65.10** @ `d8f2d99` |
+| **JOBS-PHOTOS-P0** — audit photos upload/delete regression | **AUDIT COMPLETE** · live trace **WIP** | prod **2.65.10** · SSOT [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md) |
 | **JOBS-ASSETS-SYNC-01** — photos[] union merge | **CLOSED** | **2.65.9** @ `f8a64d7` |
 | **JOBS-FORM-RACE-01** — functional merge updateJob | **CLOSED** | **2.65.7** |
 | **JOBS-ADDRESS-SYNC-01** — address field merge | **CLOSED** | **2.65.6** |

@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-13 (**JOBS-PHOTOS-DELETE-SYNC-01 CLOSED**) · prod **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Data closeout:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **JOBS-PHOTOS-P0** — photos upload/delete regression audit | prod **2.65.10** | **AUDIT COMPLETE** · live trace **WIP** (lokalnie) | [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md) |
 | **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **2.65.10** (`d8f2d99`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **19/19** | [`architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md) |
 | **JOBS-ASSETS-SYNC-01** — photos[] union merge | **2.65.9** (`f8a64d7`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **14/14** | [`architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md) |
 | **ROBOTS-INSPECTOR-01** — Inspektor WM stale sync | **2.65.5** (`9307386`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) |
