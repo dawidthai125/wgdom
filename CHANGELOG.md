@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.22 — PAYROLL-P0-REGRESSION-04 (mount bez wipe rosteru)
+
+- **fix:** P0 — `tryPayrollWeekCycle` deferuje `autoArchiveAndAdvance` gdy żywy roster + stale week keys → najpierw `resolvePayrollOperationalWeekKeys` (bez `setWeekEmployees([])` na mount)
+- **test:** `test-payroll-display-p0-regression-04.mjs`
+
 ## 2.65.21 — PAYROLL-P0-REGRESSION-03 (tabela LP bez ~20 s opóźnienia)
 
 - **fix:** P0 — żywy roster + stale `weekFrom`/`weekTo` po rolloverze → `resolvePayrollOperationalWeekKeys` wyrównuje klucze od razu (bez `pullFromCloudAndMerge` ~15–20 s)

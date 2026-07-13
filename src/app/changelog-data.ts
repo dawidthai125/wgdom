@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.22",
+    label: "PAYROLL-P0-REGRESSION-04 — mount bez wipe rosteru (lifecycle align)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — P0: tryPayrollWeekCycle najpierw alignuje stale weekFrom/weekTo przy żywym rosterze (resolvePayrollOperationalWeekKeys), dopiero potem rollover; koniec setWeekEmployees([]) na mount → Topbar/KPI/tabela 14 od razu bez pull.",
+      },
+      {
+        type: "improve",
+        text: "test-payroll-display-p0-regression-04.mjs — bootstrap→mount→14 bez pull.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.21",
     label: "PAYROLL-P0-REGRESSION-03 — natychmiastowy render LP (bez ~20 s pull)",
     items: [

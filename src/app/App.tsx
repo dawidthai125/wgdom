@@ -2047,6 +2047,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
+
+    // PAYROLL-P0-REGRESSION-04 — lifecycle: align live-roster week keys BEFORE any rollover.
+    // Mount used to call autoArchiveAndAdvance with stale weekFrom/weekTo in the same tick as
+    // setWeekFrom/To (REGRESSION-03), wiping weekEmployees=[] until delayed pull restored 14.
+    const keyAlign = resolvePayrollOperationalWeekKeys(weekFrom, weekTo, weekEmployees.length);
+    if (keyAlign.didAlign) {
+      logPayrollBootstrapTraceFromWeekKeys({
+        caller: "tryPayrollWeekCycle",
+        reason: "defer_rollover_align_live_roster_keys",
+        weekFrom,
+        weekTo,
+        targetFrom: keyAlign.from,
+        targetTo: keyAlign.to,
+        employeeCount: weekEmployees.length,
+        tryPayrollWeekCycleCleared: false,
+      });
+      setWeekFrom(keyAlign.from);
+      setWeekTo(keyAlign.to);
+      return;
+    }
+
     const onCurrentRange = !isPayrollCalendarBehind(weekFrom, weekTo);
 
     logPayrollBootstrapTraceFromWeekKeys({
@@ -2098,7 +2119,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
 
     trySundayArchiveOnly();
-  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance, trySundayArchiveOnly]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance, trySundayArchiveOnly, setWeekFrom, setWeekTo]);
 
   payrollWeekCycleRef.current = tryPayrollWeekCycle;
 
