@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.12",
+    label: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 — trace in-memory activation",
+    items: [
+      {
+        type: "improve",
+        text: "Instrumentacja photos trace — aktywacja in-memory (__WG_ENABLE_JOBS_PHOTO_TRACE__ / enable()); bez localStorage (QuotaExceeded).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.11",
     label: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-02 — diagnostic trace (Owner only)",
     items: [

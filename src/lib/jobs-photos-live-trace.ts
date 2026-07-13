@@ -1,11 +1,10 @@
 /**
- * TEMP · JOBS-PHOTOS-LIVE-INSTRUMENTATION-02 — diagnostic release; usuń po domknięciu trace Ownera.
- * Aktywacja: localStorage.setItem("wg-jobs-photos-live-trace","1") → reload → __WG_JOBS_PHOTOS_LIVE_TRACE__.download()
+ * TEMP · JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 — diagnostic release; usuń po domknięciu trace Ownera.
+ * Aktywacja in-memory: window.__WG_ENABLE_JOBS_PHOTO_TRACE__ = true lub __WG_JOBS_PHOTOS_LIVE_TRACE__.enable()
  */
 
 import type { Job } from "@/app/app-domain";
 
-const LS_FLAG = "wg-jobs-photos-live-trace";
 const MAX_EVENTS = 12_000;
 
 export type JobsPhotosLiveTraceOrigin =
@@ -39,21 +38,50 @@ type SelectedJobSnap = {
   photoIds: string[];
 };
 
+type JobsPhotosTraceGlobals = {
+  __WG_ENABLE_JOBS_PHOTO_TRACE__?: boolean;
+  __WG_JOBS_PHOTOS_LIVE_TRACE__?: {
+    download: () => void;
+    findFirstRegression: () => JobsPhotosLiveTraceEvent | null;
+    clear: () => void;
+    enable: () => void;
+    disable: () => void;
+  };
+};
+
+let memoryTraceEnabled = false;
 let seq = 0;
 let selectedJobId: string | null = null;
 let lastSelectedSnap: SelectedJobSnap = { photosLength: null, photoIds: [] };
 const events: JobsPhotosLiveTraceEvent[] = [];
 
-export function isJobsPhotosLiveTraceEnabled(): boolean {
-  try {
-    return localStorage.getItem(LS_FLAG) === "1";
-  } catch {
-    return false;
+function traceGlobals(): JobsPhotosTraceGlobals {
+  return globalThis as JobsPhotosTraceGlobals;
+}
+
+function readWindowTraceFlag(): boolean {
+  return traceGlobals().__WG_ENABLE_JOBS_PHOTO_TRACE__ === true;
+}
+
+function syncWindowTraceFlag(enabled: boolean): void {
+  traceGlobals().__WG_ENABLE_JOBS_PHOTO_TRACE__ = enabled;
+}
+
+export function setJobsPhotosLiveTraceEnabled(enabled: boolean): void {
+  memoryTraceEnabled = enabled;
+  syncWindowTraceFlag(enabled);
+  if (enabled) {
+    console.info(
+      "[jobs-photos-live-trace] ACTIVE · export: __WG_JOBS_PHOTOS_LIVE_TRACE__.download()",
+    );
   }
 }
 
+export function isJobsPhotosLiveTraceEnabled(): boolean {
+  return memoryTraceEnabled || readWindowTraceFlag();
+}
+
 export function registerJobsPhotosSelectedJobId(id: string | null): void {
-  if (!isJobsPhotosLiveTraceEnabled()) return;
   selectedJobId = id;
 }
 
@@ -164,7 +192,7 @@ export function jobsPhotosLiveTraceFindFirstRegression(): JobsPhotosLiveTraceEve
 export function jobsPhotosLiveTraceExportJson(): string {
   return JSON.stringify(
     {
-      program: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-02",
+      program: "JOBS-PHOTOS-LIVE-INSTRUMENTATION-03",
       exportedAt: new Date().toISOString(),
       selectedJobId,
       eventCount: events.length,
@@ -188,15 +216,11 @@ export function jobsPhotosLiveTraceDownload(): void {
 }
 
 export function installJobsPhotosLiveTraceGlobals(): void {
-  const g = globalThis as {
-    __WG_JOBS_PHOTOS_LIVE_TRACE__?: {
-      download: () => void;
-      findFirstRegression: () => JobsPhotosLiveTraceEvent | null;
-      clear: () => void;
-    };
-  };
+  if (readWindowTraceFlag()) {
+    memoryTraceEnabled = true;
+  }
 
-  g.__WG_JOBS_PHOTOS_LIVE_TRACE__ = {
+  traceGlobals().__WG_JOBS_PHOTOS_LIVE_TRACE__ = {
     download: jobsPhotosLiveTraceDownload,
     findFirstRegression: jobsPhotosLiveTraceFindFirstRegression,
     clear: () => {
@@ -204,6 +228,8 @@ export function installJobsPhotosLiveTraceGlobals(): void {
       seq = 0;
       lastSelectedSnap = { photosLength: null, photoIds: [] };
     },
+    enable: () => setJobsPhotosLiveTraceEnabled(true),
+    disable: () => setJobsPhotosLiveTraceEnabled(false),
   };
 
   if (isJobsPhotosLiveTraceEnabled()) {

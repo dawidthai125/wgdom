@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.12 — JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 trace in-memory activation
+
+- **improve:** `jobs-photos-live-trace.ts` — aktywacja in-memory (`__WG_ENABLE_JOBS_PHOTO_TRACE__` / `enable()`); usunięty gate localStorage (QuotaExceeded)
+
 ## 2.65.11 — JOBS-PHOTOS-LIVE-INSTRUMENTATION-02 diagnostic trace (Owner only)
 
 - **improve:** `jobs-photos-live-trace.ts` — read-only hooks setJobs/sync/pull/apply/focus; aktywne tylko przy `localStorage wg-jobs-photos-live-trace=1`; export `__WG_JOBS_PHOTOS_LIVE_TRACE__`
