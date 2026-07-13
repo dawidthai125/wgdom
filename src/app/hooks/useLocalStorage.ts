@@ -12,7 +12,9 @@ import {
   logPayrollWeekEmployeesInit,
   logPayrollWeekEmployeesStorageEvent,
   logPayrollWeekEmployeesWrite,
+  takePayrollWeekEmployeesWriteSource,
 } from "@/lib/payroll-week-employees-write-trace";
+import { logPayrollStorageNote } from "@/lib/payroll-kw-week-employees-storage-trace";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
@@ -51,6 +53,10 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
           employeeCount: n,
         });
         logPayrollWeekEmployeesInit({ employeeCount: n, weekFrom, weekTo });
+        logPayrollStorageNote(
+          `react_useLocalStorage.init employeeCount=${n} (see preceding GET for raw LS)`,
+          "useLocalStorage.init",
+        );
       }
       return parsed;
     } catch {
@@ -58,9 +64,14 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
     }
   });
   const set = useCallback((v: T | ((p: T) => T)) => {
+    // DIAG-02 — capture source at call time (before deferred setState updater).
+    const sourceFunction =
+      key === "kw-week-employees" ? takePayrollWeekEmployeesWriteSource() : "—";
     setState((prev) => {
       const incoming = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
-      if (Object.is(prev, incoming)) return prev;
+      if (Object.is(prev, incoming)) {
+        return prev;
+      }
       if (!isDataKey(key)) {
         try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
         return incoming;
@@ -96,6 +107,7 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
         logPayrollWeekEmployeesWrite({
           caller: "setWeekEmployees",
           reason,
+          sourceFunction,
           employeeCountBefore: prevCount,
           employeeCountAfter: next.length,
           weekFrom,

@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.25-diag — PAYROLL-P0-DIAGNOSTIC-02 (sourceFunction)
+
+- **diag:** każdy `setWeekEmployees` → `sourceFunction` (pullFromCloudAndMerge, applyAdminDataBundle, replaceWeekWithAllActive, tryPayrollWeekCycle, …)
+- **bez** zmian logiki — usuń po capture WRITE #2 (0→14)
+
+## 2.65.24-diag — PAYROLL-P0-REGRESSION-06 (storage timeline only)
+
+- **diag:** `window.__WG_PAYROLL_STORAGE_TRACE__` — enable / report / download / clear
+- **diag:** patch `localStorage` GET/SET/REMOVE dla `kw-week-employees` (size, count, caller, stack) + BOOT_SNAPSHOT przed React + CloudLoader PHASE
+- **bez** zmian logiki Payroll / Cloud Sync / PayrollView — usunąć po capture Ownera
+
 ## 2.65.23-diag — PAYROLL-P0-DIAGNOSTIC-01 (write-trace only)
 
 - **diag:** `window.__WG_PAYROLL_WRITE_TRACE__` — enable / report / download / clear

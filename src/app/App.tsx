@@ -167,6 +167,7 @@ import { installPayrollDisplayRuntimeTraceGlobals } from "@/lib/payroll-display-
 import {
   installPayrollWriteTraceGlobals,
   logPayrollProductionRecompute,
+  withPayrollWeekEmployeesWriteSource,
 } from "@/lib/payroll-week-employees-write-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
@@ -393,18 +394,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [directory, setDirectory]);
 
   useEffect(() => {
-    setWeekEmployees((prev) => {
-      const next = filterProductionWeekEmployees(prev, directory);
-      if (next.length === prev.length) return prev;
-      const removed = prev.filter((e) => !next.some((n) => n.id === e.id));
-      payrollTraceEmit("payroll.roster.filter_production", "FILTER", "warn", {
-        before: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
-        after: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "FILTERED"),
-        removedMergeKeys: removed.map((e) => weekEmployeeMergeKey(e)),
-        subjectState: "FILTERED" as const,
+    withPayrollWeekEmployeesWriteSource("filterProductionWeekEmployees", () => {
+      setWeekEmployees((prev) => {
+        const next = filterProductionWeekEmployees(prev, directory);
+        if (next.length === prev.length) return prev;
+        const removed = prev.filter((e) => !next.some((n) => n.id === e.id));
+        payrollTraceEmit("payroll.roster.filter_production", "FILTER", "warn", {
+          before: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
+          after: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "FILTERED"),
+          removedMergeKeys: removed.map((e) => weekEmployeeMergeKey(e)),
+          subjectState: "FILTERED" as const,
+        });
+        remoteMergeInFlightRef.current = true;
+        return next;
       });
-      remoteMergeInFlightRef.current = true;
-      return next;
     });
   }, [directory, setWeekEmployees, weekFrom, weekTo]);
 
@@ -583,7 +586,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [weekEmployees, jobs, savedWeeks, operationalNotes],
   );
 
-  const applyAdminDataBundle = useCallback((merged: unknown[]) => {
+  const applyAdminDataBundle = useCallback((merged: unknown[], sourceFunction = "applyAdminDataBundle") => {
     const opNotesIdx = DATA_KEYS.indexOf("kw-operational-notes");
     const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
     const jobsIdx = DATA_KEYS.indexOf("kw-jobs");
@@ -620,7 +623,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           subjectDropped,
           rosterRevision: payrollTraceBumpRosterRevision(),
         });
-        setWeekEmployees(emps as WeekEmployee[]);
+        withPayrollWeekEmployeesWriteSource(sourceFunction, () => {
+          setWeekEmployees(emps as WeekEmployee[]);
+        });
         payrollTraceEmit("payroll.roster.state.commit", "STATE", "info", {
           trigger: "run_cloud_sync" as const,
           roster: rosterTraceSnapshot(incoming, weekFrom, weekTo, "MERGED", "PRESENT"),
@@ -817,7 +822,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       const finalBundle = reconcileAdminBundleWithFreshLocal(merged, buildAdminFreshSnapshot());
       if (shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
-        applyAdminDataBundle(finalBundle);
+        applyAdminDataBundle(finalBundle, "pullFromCloudAndMerge");
       }
       try {
         const aux = await pullOperationalNotesAuxFromCloud();
@@ -891,7 +896,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       const finalBundle = reconcileAdminBundleWithFreshLocal(merged, buildAdminFreshSnapshot());
       if (!opts?.writeOnly && shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
-        applyAdminDataBundle(finalBundle);
+        applyAdminDataBundle(finalBundle, opts?.toastSuccess ? "ManualRefresh" : "runCloudSync");
       }
       let opReadState = operationalNotesReadState;
       let opAuditLog = operationalNotesAuditLog;
@@ -1395,7 +1400,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       localStorage.setItem("kw-week-employees", JSON.stringify(mergedEmps));
       localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
-      setWeekEmployees(mergedEmps);
+      withPayrollWeekEmployeesWriteSource("restorePayrollFromCloud", () => {
+        setWeekEmployees(mergedEmps);
+      });
       setSavedWeeks(mergedArch);
       await pwrPush({ roster: mergedEmps, weekFrom, weekTo, options: { skipPayrollGuard: true } });
       await pushKeysToCloudSafe(["kw-archive"], [mergedArch]);
@@ -1437,7 +1444,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     if (!window.confirm(`Przywrócić godziny, Sob.pr. i dodatkowe wpisy z archiwum (${fmtDate(weekFrom)} – ${fmtDate(weekTo)})?`)) return;
-    setWeekEmployees(JSON.parse(JSON.stringify(eligible)) as WeekEmployee[]);
+    withPayrollWeekEmployeesWriteSource("restoreArchivedWeek", () => {
+      setWeekEmployees(JSON.parse(JSON.stringify(eligible)) as WeekEmployee[]);
+    });
   }, [savedWeeks, weekFrom, weekTo, setWeekEmployees]);
 
   const restoreAllDataFromCloud = async (source: "prev" | "prev2" | "today" = "prev") => {
@@ -1569,6 +1578,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (manual) opId = manual;
     } catch { /* ignore */ }
     payrollTraceSetOperationId(opId);
+    withPayrollWeekEmployeesWriteSource("addFromDirectory", () => {
     setWeekEmployees((prev) => {
       const toAdd = filterDirectoryForPayrollWeekAdd(directory, ids, prev);
       if (toAdd.length === 0) {
@@ -1615,9 +1625,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       return next;
     });
+    });
   };
 
   const removeWeekEmployee = (id: string) => {
+    withPayrollWeekEmployeesWriteSource("removeWeekEmployee", () => {
     setWeekEmployees((prev) => {
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
@@ -1640,10 +1652,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       return next;
     });
+    });
   };
 
   const clearAllWeekEmployees = () => {
-    setWeekEmployees([]);
+    withPayrollWeekEmployeesWriteSource("clearAllWeekEmployees", () => {
+      setWeekEmployees([]);
+    });
     persistPayrollRoster([]);
     refreshSavedActiveWeekSnapshot([]);
   };
@@ -1652,7 +1667,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const newEmps = filterProductionActiveDirectory(directory)
       .filter(isProductionDirectoryEmployee)
       .map(weekEmployeeFromDir);
-    setWeekEmployees(newEmps);
+    withPayrollWeekEmployeesWriteSource("replaceWeekWithAllActive", () => {
+      setWeekEmployees(newEmps);
+    });
     void withKwWeekEmployeesAsyncMutation(() =>
       pwrPush({
         roster: newEmps,
@@ -1673,6 +1690,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployee", () => {
       setWeekEmployees((prev)=>{
         let changed = false;
         const next = prev.map((e)=>{
@@ -1694,12 +1712,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   },[setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   /** ETAP 1 — koszty do zwrotu: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeExtraCosts = useCallback((empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => {
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeeExtraCosts", () => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
         let changed = false;
@@ -1717,12 +1737,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   /** ETAP 1 — godziny dnia: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeDay = useCallback((empId: string, key: DayKey, nextDay: DayData) => {
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeeDay", () => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
         let changed = false;
@@ -1737,11 +1759,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeeRate = useCallback((empId: string, rate: string) => {
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeeRate", () => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
         let changed = false;
@@ -1754,12 +1778,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeePrevSaturday = useCallback((empId: string, nextPrevSaturday: DayData) => {
     const prevSaturday = { ...nextPrevSaturday, extraHours: undefined };
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeePrevSaturday", () => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
         let changed = false;
@@ -1773,6 +1799,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
@@ -1781,6 +1808,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     payrollCarryForward: PayrollCarryForward | undefined,
   ) => {
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeePayrollCarryForward", () => {
       setWeekEmployees((prev) => {
         const now = new Date().toISOString();
         let changed = false;
@@ -1794,6 +1822,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (changed) commitLivePayrollRosterEdit(next);
         return next;
       });
+      });
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
@@ -1801,6 +1830,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const now = new Date().toISOString();
     const byId = new Map(directory.map((d) => [d.id, d]));
     runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("syncWeekRatesFromDirectory", () => {
       setWeekEmployees((prev) => {
         let changed = false;
         const next = prev.map((emp) => {
@@ -1830,6 +1860,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         }
         commitLivePayrollRosterEdit(next);
         return next;
+      });
       });
     });
   }, [directory, savedWeeks, weekFrom, weekTo, jobs, employeeLeaves, setWeekEmployees, setSavedWeeks, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
@@ -1937,10 +1968,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!emp) return;
     const newSettled = !emp.settled;
     runPayrollWeekEmployeeFieldEdit(() => {
-      setWeekEmployees((prev) => {
-        const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
-        commitLivePayrollRosterEdit(next);
-        return next;
+      withPayrollWeekEmployeesWriteSource("toggleSettled", () => {
+        setWeekEmployees((prev) => {
+          const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
+          commitLivePayrollRosterEdit(next);
+          return next;
+        });
       });
     });
   }, [weekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, setWeekEmployees]);
@@ -1977,7 +2010,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     doSaveWeek();
   };
 
-  const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
+  const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string, sourceFunction = "autoArchiveAndAdvance") => {
     logPayrollBootstrapTraceFromWeekKeys({
       caller: "autoArchiveAndAdvance",
       reason: "auto_archive_and_advance_enter",
@@ -2001,7 +2034,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
     setWeekFrom(targetFrom);
     setWeekTo(targetTo);
-    setWeekEmployees([]);
+    withPayrollWeekEmployeesWriteSource(sourceFunction, () => {
+      setWeekEmployees([]);
+    });
     bumpAutoSyncSuppress(6000);
     void withKwWeekEmployeesAsyncMutation(() =>
       pushPayrollWeekAfterRollover({
@@ -2119,7 +2154,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         employeeCountAfter: 0,
         tryPayrollWeekCycleCleared: weekEmployees.length > 0,
       });
-      autoArchiveAndAdvance(current.from, current.to);
+      autoArchiveAndAdvance(current.from, current.to, "tryPayrollWeekCycle");
       if (payrollWeekAdvancedToastRef.current !== current.from) {
         payrollWeekAdvancedToastRef.current = current.from;
         toast.success(`Nowy tydzień listy płac · ${fmtDate(current.from)}–${fmtDate(current.to)}`, {
@@ -2176,7 +2211,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const emps = snap?.weekEmployees;
     if (!emps?.length) return;
     payrollRestoredRef.current = true;
-    setWeekEmployees(JSON.parse(JSON.stringify(emps)) as WeekEmployee[]);
+    withPayrollWeekEmployeesWriteSource("restoreArchivedWeekAuto", () => {
+      setWeekEmployees(JSON.parse(JSON.stringify(emps)) as WeekEmployee[]);
+    });
     toast.info("Przywrócono listę płac z archiwum", {
       description: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · ${emps.length} os.`,
       id: "payroll-auto-restore",

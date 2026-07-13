@@ -1,3 +1,7 @@
+/* PAYROLL-P0-REGRESSION-06 — MUST be first: patch LS before any setItem/getItem */
+import { installPayrollKwWeekEmployeesStorageTrace } from "@/lib/payroll-kw-week-employees-storage-trace";
+installPayrollKwWeekEmployeesStorageTrace();
+
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { Analytics } from "@vercel/analytics/react";

@@ -12,6 +12,28 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.25-diag",
+    label: "PAYROLL-P0-DIAGNOSTIC-02 — sourceFunction na każdym setWeekEmployees",
+    items: [
+      {
+        type: "improve",
+        text: "DIAG ONLY — write-trace sourceFunction na każdym setWeekEmployees (kolejka FIFO · firstRestore()); pullFromCloudAndMerge/runCloudSync/… Bez zmian logiki. Usunąć po zrzucie WRITE 0→14.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
+    version: "2.65.24-diag",
+    label: "PAYROLL-P0-REGRESSION-06 — storage timeline only (tymczasowy)",
+    items: [
+      {
+        type: "improve",
+        text: "DIAG ONLY — window.__WG_PAYROLL_STORAGE_TRACE__: każdy GET/SET/REMOVE localStorage[kw-week-employees] (timestamp, size, count, caller, stack) + BOOT_SNAPSHOT przed mount + CloudLoader PHASE. Bez zmian logiki Payroll/Sync. Usunąć po zrzucie Ownera.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.23-diag",
     label: "PAYROLL-P0-DIAGNOSTIC-01 — write-trace only (tymczasowy)",
     items: [
