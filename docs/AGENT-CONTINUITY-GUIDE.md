@@ -1,8 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **JOBS-PHOTOS-P0** audit + live trace WIP) · prod **2.65.10** @ **`d8f2d99`** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.19** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **PAYROLL-DISPLAY-UNLOCK** RCA + TRACE-02) · prod **2.65.19** @ **`c1e76ca`** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-13):** **PAYROLL-DISPLAY-UNLOCK** — forensic RCA (kod) wykluczył bootstrap/merge/anti-leak/leaves; gate tabeli LP = `resolvePayrollDisplayEmployees` (`displayEmployees`); **runtime proof OPEN** — Owner musi dostarczyć `__WG_PAYROLL_DISPLAY_TRACE__.download()` po repro · instrumentacja **TRACE-02** na prod (**2.65.19**).
+
+> **★ Domknięcie sesji (2026-07-13):** **PAYROLL-BOOTSTRAP-RACE-FIX-01** **CLOSED** · **`47de89b`** · **2.65.18** — CloudLoader `bootstrapPhase` gate (CORE persist przed mount App).
+
+> **★ Domknięcie sesji (2026-07-13):** **PAYROLL-ANTI-LEAK-FIX-01** **CLOSED** · **`26f3eb5`** · **2.65.14** · **JOBS-SYNC-FIX-01** **CLOSED** · **`309609e`** · **2.65.13**.
 
 > **★ Domknięcie sesji (2026-07-13):** **JOBS-PHOTOS-P0** seria audytów **COMPLETE** · werdykty: stale closure możliwy w kodzie, **nie** potwierdzony runtime; `failedUrls` **wykluczone**; UI empty = `filterAvailablePhotos` · **LIVE INSTRUMENTATION WIP** (lokalnie, nie prod) · SSOT [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md).
 
@@ -77,17 +83,18 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit (app)** | **`d8f2d99`** · JOBS-PHOTOS-DELETE-SYNC-01 photo tombstones |
-| **main HEAD** | **`4ae959e`** · docs continuity · app **`d8f2d99`** na prod |
+| **Production (UI)** | **2.65.19** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit (app)** | **`c1e76ca`** · PAYROLL-DISPLAY-UNLOCK-TRACE-02 |
+| **main HEAD** | **`c1e76ca`** · app = prod |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **JOBS-PHOTOS-DELETE-SYNC-01** · **JOBS-ASSETS-SYNC-01** · **ROBOTS-INSPECTOR-01** |
+| **Ostatnio CLOSED** | **PAYROLL-BOOTSTRAP-RACE-FIX-01** · **PAYROLL-ANTI-LEAK-FIX-01** · **JOBS-SYNC-FIX-01** |
+| **OPEN (Owner)** | **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP ~60–120 s po Ctrl+Shift+R · **runtime RCA czeka na dump** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **WIP lokalny** | **JOBS-PHOTOS-P0** live trace (`jobs-photos-live-trace.ts`) · **TWSL** **2.63.91** |
-| **Następny krok** | Owner **live repro** + export trace → analiza `firstRegression` → usuń instrumentację · **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
+| **WIP lokalny** | **JOBS-PHOTOS-P0** live trace · **TWSL** **2.63.91** |
+| **Następny krok** | Owner: `__WG_PAYROLL_DISPLAY_TRACE__.enable()` → repro → `download()` → ostateczny RCA A/B · **bez fixa** bez Owner GO |
 
 ### Czym jest aplikacja
 
@@ -99,6 +106,10 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP mimo roster=14 | **RCA OPEN** · czeka Owner dump | prod **2.65.19** · trace `findFirstDisplayUnlock()` |
+| **PAYROLL-BOOTSTRAP-RACE-FIX-01** — F5 bootstrap gate | **CLOSED** | **2.65.18** @ `47de89b` |
+| **PAYROLL-ANTI-LEAK-FIX-01** — same-week SSOT guard | **CLOSED** | **2.65.14** @ `26f3eb5` |
+| **JOBS-SYNC-FIX-01** — write-first admin bundle | **CLOSED** | **2.65.13** @ `309609e` |
 | **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **CLOSED** | **2.65.10** @ `d8f2d99` |
 | **JOBS-PHOTOS-P0** — audit photos upload/delete regression | **AUDIT COMPLETE** · live trace **WIP** | prod **2.65.10** · SSOT [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md) |
 | **JOBS-ASSETS-SYNC-01** — photos[] union merge | **CLOSED** | **2.65.9** @ `f8a64d7` |
@@ -202,7 +213,23 @@ Hasło **„domknij WGDOM”** → aktualizacja docs ciągłości + commit **tyl
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-12)
+## 2. Co zrobiliśmy (stan na 2026-07-13)
+
+### ★ Sesja 2026-07-13 — PAYROLL-DISPLAY-UNLOCK (**RCA OPEN · czeka Owner runtime dump**)
+
+| Element | Wartość |
+|---------|---------|
+| **Objaw prod** | Po Ctrl+Shift+R: topbar/KPI roster=14, **tabela LP pusta ~60–120 s**, potem sama się pojawia |
+| **Wykluczone (forensic)** | Bootstrap race · merge · anti-leak · `employeeLeaves` · `weekEmployees` jako gate |
+| **Gate tabeli** | `PayrollView` → `displayEmployees` ← `resolvePayrollDisplayEmployees()` (`payroll-display.ts`) |
+| **Hipotezy kodu (nieudowodnione runtime)** | **A:** `savedWeeks` → `archivedForWeek` · **B:** `weekFrom`/`weekTo` → `isClosedWeek=false` |
+| **Instrumentacja prod** | `__WG_PAYROLL_DISPLAY_TRACE__` · **TRACE-02** `findFirstDisplayUnlock()` + diff · **`c1e76ca`** · **2.65.19** |
+| **Test** | `npx vite-node scripts/test-payroll-display-unlock-trace-02.mjs` **PASS** |
+| **Owner — jeden przebieg** | `enable()` → Ctrl+Shift+R → Lista Płac → czekaj na tabelę → `download()` |
+| **Reguła RCA z dumpu** | `reason=closed_week_archive_snapshot` + `isClosedWeek=true` → **A** · `reason=operational_week_live_roster` + `isClosedWeek=false` → **B** |
+| **Następny krok** | Owner dostarcza JSON · agent podaje **jednoznaczny RCA** · **bez fixa** bez Owner GO (#CORE-013) |
+
+**Kluczowe pliki (read-only przy RCA):** `payroll-display.ts` · `payroll-display-runtime-trace.ts` · `PayrollView.tsx` (L610–637, L1188) · `App.tsx` `applyAdminDataBundle` (L615–617)
 
 ### ★ Sesja 2026-07-12 — ROBOTS-INSPECTOR-01 (**CLOSED · PRODUCTION VERIFIED**)
 

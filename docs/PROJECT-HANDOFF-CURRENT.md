@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Data closeout:** 2026-07-13 (**PAYROLL-DISPLAY-UNLOCK** RCA OPEN · TRACE-02 deployed) · prod **2.65.19** @ `c1e76ca` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,10 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP po F5 | **2.65.19** (`c1e76ca`) | **RCA OPEN** · trace deployed · czeka Owner dump | [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §2 sesja 2026-07-13 |
+| **PAYROLL-BOOTSTRAP-RACE-FIX-01** — F5 bootstrap gate | **2.65.18** (`47de89b`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md) |
+| **PAYROLL-ANTI-LEAK-FIX-01** — same-week SSOT guard | **2.65.14** (`26f3eb5`) | **CLOSED** · **PRODUCTION VERIFIED** | [`releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md) |
+| **JOBS-SYNC-FIX-01** — write-first admin bundle | **2.65.13** (`309609e`) | **CLOSED** · **PRODUCTION VERIFIED** | [`releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md`](releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md) |
 | **JOBS-PHOTOS-P0** — photos upload/delete regression audit | prod **2.65.10** | **AUDIT COMPLETE** · live trace **WIP** (lokalnie) | [`architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md) |
 | **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **2.65.10** (`d8f2d99`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **19/19** | [`architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md) |
 | **JOBS-ASSETS-SYNC-01** — photos[] union merge | **2.65.9** (`f8a64d7`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **14/14** | [`architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md) |
@@ -225,18 +229,18 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-12)
+### 2.0. Aktualny stan (2026-07-13)
 
 ```text
-Production UI  2.65.5  (PRODUCTION VERIFIED · GREEN)
-Runtime feat   9307386  (ROBOTS-INSPECTOR-01 · finalBundle sync reconcile)
-main HEAD      6bddea1  (docs continuity — synced origin/main)
-Poprzedni UI   2.65.4  (PAYROLL-ARCHIVE-01 · 872e171)
-Ostatnio CLOSED  ROBOTS-INSPECTOR-01 · PAYROLL-ARCHIVE-01 · NG11-P0 EPIC
-Faza bieżąca   STABILIZATION WINDOW — czekaj na Owner GO
+Production UI  2.65.19  (PRODUCTION VERIFIED · GREEN)
+Runtime feat   c1e76ca  (PAYROLL-DISPLAY-UNLOCK-TRACE-02 · findFirstDisplayUnlock)
+main HEAD      c1e76ca  (synced origin/main)
+OPEN           PAYROLL-DISPLAY-UNLOCK — Owner runtime dump → RCA A/B
+Ostatnio CLOSED  PAYROLL-BOOTSTRAP-RACE-FIX-01 · PAYROLL-ANTI-LEAK-FIX-01 · JOBS-SYNC-FIX-01
+Faza bieżąca   STABILIZATION WINDOW — bez fixa LP bez Owner GO
 Incident       Register CLEAN (A + B CLOSED)
 Protected Core GREEN · Payroll GREEN · Cloud Sync GREEN · Pipeline GREEN
-Next step      NG11-Q4 (optional) lub TWSL 2.63.91 — Owner GO
+Next step      Owner: __WG_PAYROLL_DISPLAY_TRACE__.download() po repro F5
 ```
 
 | Priorytet produkcyjny | Reguła |

@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**PAYROLL-ANTI-LEAK-FIX-01 CLOSED** · prod **2.65.14** @ `26f3eb5`) · **main** `26f3eb5`
+**Ostatnia aktualizacja:** 2026-07-13 (**PAYROLL-DISPLAY-UNLOCK-TRACE-02** · prod **2.65.19** @ `c1e76ca`) · **main** `c1e76ca`
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,14 +9,19 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.14** @ `26f3eb5` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`26f3eb5`** (payroll anti-leak fix) |
+| **Baseline prod** | UI **2.65.19** @ `c1e76ca` · **PRODUCTION VERIFIED** |
+| **main HEAD** | **`c1e76ca`** (PAYROLL-DISPLAY-UNLOCK-TRACE-02) |
 | **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · instrumentacja photos trace (opcjonalny cleanup) |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **Ostatnio zamknięte (prod)** | **PAYROLL-ANTI-LEAK-FIX-01** (**2.65.14** CLOSED) · **JOBS-SYNC-FIX-01** (**2.65.13**) |
-| **Co dalej?** | **STABILIZATION WINDOW** — cleanup trace (opcjonalnie) · **ASSETS-03** · **NG11-Q4** / **TWSL** — Owner GO |
+| **OPEN (Owner)** | **PAYROLL-DISPLAY-UNLOCK** — runtime dump `__WG_PAYROLL_DISPLAY_TRACE__.download()` |
+| **Ostatnio zamknięte (prod)** | **PAYROLL-BOOTSTRAP-RACE-FIX-01** (**2.65.18**) · **PAYROLL-ANTI-LEAK-FIX-01** (**2.65.14**) · **JOBS-SYNC-FIX-01** (**2.65.13**) |
+| **Co dalej?** | Owner repro + dump → ostateczny RCA A/B · **STABILIZATION WINDOW** — **bez fixa** bez Owner GO |
 
-> **PAYROLL-ANTI-LEAK-FIX-01 CLOSED:** UI **2.65.14** @ **`26f3eb5`** · **PRODUCTION VERIFIED** · prod smoke **12/12 PASS** · SSOT [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md) · DF [`docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md`](docs/architecture/PAYROLL-ANTI-LEAK-DESIGN-FREEZE-01.md)
+> **PAYROLL-DISPLAY-UNLOCK OPEN:** UI **2.65.19** @ **`c1e76ca`** · trace `findFirstDisplayUnlock()` na prod · **czeka Owner dump** · SSOT kontekst [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §2 sesja 2026-07-13
+
+> **PAYROLL-BOOTSTRAP-RACE-FIX-01 CLOSED:** UI **2.65.18** @ **`47de89b`** · **PRODUCTION VERIFIED** · CloudLoader bootstrapPhase gate · DF [`docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md)
+
+> **PAYROLL-ANTI-LEAK-FIX-01 CLOSED:** UI **2.65.14** @ **`26f3eb5`** · **PRODUCTION VERIFIED** · SSOT [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md)
 
 > **JOBS-SYNC-FIX-01 CLOSED:** UI **2.65.13** @ **`309609e`** · **PRODUCTION VERIFIED** · prod smoke **PASS** (photos 19/19 + payroll) · SSOT [`docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md)
 
@@ -32,6 +37,34 @@
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## PAYROLL-DISPLAY-UNLOCK — pusta tabela LP po F5 · **RCA OPEN** (czeka Owner runtime dump)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RCA OPEN** · instrumentacja **DEPLOYED** · **bez fixa** |
+| **Prod** | **2.65.19** @ **`c1e76ca`** · **PRODUCTION VERIFIED** |
+| **Objaw** | Topbar roster=14, KPI OK, tabela pusta ~60–120 s, potem sama się pojawia |
+| **Gate** | `displayEmployees` w `PayrollView` ← `resolvePayrollDisplayEmployees()` |
+| **Trace** | `__WG_PAYROLL_DISPLAY_TRACE__.enable()` · `findFirstDisplayUnlock()` · `download()` |
+| **Test** | `npx vite-node scripts/test-payroll-display-unlock-trace-02.mjs` |
+| **Owner** | Jeden przebieg → JSON z `firstDisplayUnlock` na górze pliku |
+| **RCA z dumpu** | `closed_week_archive_snapshot` → **A** (`savedWeeks`) · `operational_week_live_roster` → **B** (`weekFrom`/`weekTo`) |
+
+**Nie implementuj fixa** bez jednoznacznego dumpu + Owner GO (#CORE-013).
+
+---
+
+## PAYROLL-BOOTSTRAP-RACE-FIX-01 — CloudLoader bootstrap gate · **CLOSED** · **PRODUCTION VERIFIED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **Commit** | **`47de89b`** · **2.65.18** |
+| **Fix** | `bootstrapPhase` SUCCESS przed mount App — koniec race LS vs bootstrap persist |
+| **DF** | [`docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md) |
 
 ---
 
