@@ -8,6 +8,11 @@ import {
 } from "@/lib/payroll-runtime-trace";
 import { logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
 import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
+import {
+  logPayrollWeekEmployeesInit,
+  logPayrollWeekEmployeesStorageEvent,
+  logPayrollWeekEmployeesWrite,
+} from "@/lib/payroll-week-employees-write-trace";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
@@ -37,13 +42,15 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
       const parsed = s ? JSON.parse(s) : initial;
       if (key === "kw-week-employees") {
         const { weekFrom, weekTo } = weekRangeFromLs();
+        const n = Array.isArray(parsed) ? parsed.length : 0;
         logPayrollBootstrapTraceFromWeekKeys({
           caller: "useLocalStorage.init",
           reason: "react_state_init_from_ls",
           weekFrom,
           weekTo,
-          employeeCount: Array.isArray(parsed) ? parsed.length : 0,
+          employeeCount: n,
         });
+        logPayrollWeekEmployeesInit({ employeeCount: n, weekFrom, weekTo });
       }
       return parsed;
     } catch {
@@ -75,15 +82,24 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
       if (key === "kw-week-employees" && Array.isArray(next)) {
         const prevCount = Array.isArray(prev) ? prev.length : 0;
         const { weekFrom, weekTo } = weekRangeFromLs();
+        const reason = prevCount > 0 && next.length === 0 ? "roster_cleared" : "roster_updated";
         logPayrollBootstrapTraceFromWeekKeys({
           caller: "setWeekEmployees",
-          reason: prevCount > 0 && next.length === 0 ? "roster_cleared" : "roster_updated",
+          reason,
           weekFrom,
           weekTo,
           employeeCount: next.length,
           employeeCountBefore: prevCount,
           employeeCountAfter: next.length,
           tryPayrollWeekCycleCleared: prevCount > 0 && next.length === 0 ? true : undefined,
+        });
+        logPayrollWeekEmployeesWrite({
+          caller: "setWeekEmployees",
+          reason,
+          employeeCountBefore: prevCount,
+          employeeCountAfter: next.length,
+          weekFrom,
+          weekTo,
         });
         payrollTraceBumpRosterRevision();
         payrollTraceEmit("payroll.roster.state.commit", "STATE", "info", {
@@ -111,6 +127,17 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
             jobs: parsed as Job[],
             extra: { storageKey: e.key, url: e.url },
           });
+        }
+        if (key === "kw-week-employees" && Array.isArray(parsed)) {
+          setState((prev) => {
+            const before = Array.isArray(prev) ? prev.length : 0;
+            logPayrollWeekEmployeesStorageEvent({
+              employeeCountBefore: before,
+              employeeCountAfter: parsed.length,
+            });
+            return parsed;
+          });
+          return;
         }
         setState(parsed);
       } catch { /* ignore */ }

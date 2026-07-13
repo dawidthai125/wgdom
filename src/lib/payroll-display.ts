@@ -2,6 +2,7 @@
 
 import type { WeekEmployee } from "@/app/app-domain";
 import { logPayrollDisplayTrace } from "@/lib/payroll-display-runtime-trace";
+import { logPayrollDisplayRecompute } from "@/lib/payroll-week-employees-write-trace";
 import { getPayrollWeekRange, isPayrollCalendarBehind } from "@/lib/payroll-cycle";
 import { payrollTraceEmit, payrollTraceGetSubjectMergeKey, rosterTraceSnapshot } from "@/lib/payroll-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
@@ -42,15 +43,16 @@ export function resolvePayrollDisplayEmployees(
   });
   const currentWeek = getPayrollWeekRange();
   const calendarBehind = isPayrollCalendarBehind(weekFrom, weekTo);
+  const reason = !calendarBehind
+    ? "operational_week_live_roster"
+    : isClosedWeek
+      ? archivedWeekEmployees?.length
+        ? "closed_week_archive_snapshot"
+        : "closed_week_no_archive_collapse"
+      : "operational_week_live_roster";
   logPayrollDisplayTrace({
     caller: "resolvePayrollDisplayEmployees",
-    reason: !calendarBehind
-      ? "operational_week_live_roster"
-      : isClosedWeek
-        ? archivedWeekEmployees?.length
-          ? "closed_week_archive_snapshot"
-          : "closed_week_no_archive_collapse"
-        : "operational_week_live_roster",
+    reason,
     weekEmployeesLength: weekEmployees.length,
     productionWeekEmployeesLength: traceMeta?.productionWeekEmployeesLength ?? weekEmployees.length,
     displayEmployeesLength: display.length,
@@ -62,6 +64,14 @@ export function resolvePayrollDisplayEmployees(
     weekTo,
     currentWeekFrom: currentWeek.from,
     currentWeekTo: currentWeek.to,
+  });
+  logPayrollDisplayRecompute({
+    weekEmployeesLength: weekEmployees.length,
+    displayLength: display.length,
+    weekFrom,
+    weekTo,
+    isClosedWeek,
+    reason,
   });
   return display;
 }

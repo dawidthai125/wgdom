@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.23-diag",
+    label: "PAYROLL-P0-DIAGNOSTIC-01 — write-trace only (tymczasowy)",
+    items: [
+      {
+        type: "improve",
+        text: "DIAG ONLY — window.__WG_PAYROLL_WRITE_TRACE__ (enable/report/download/clear); każdy write weekEmployees + recompute production/display. Bez zmian logiki Payroll/Sync. Usunąć po zrzucie Ownera.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.22",
     label: "PAYROLL-P0-REGRESSION-04 — mount bez wipe rosteru (lifecycle align)",
     items: [

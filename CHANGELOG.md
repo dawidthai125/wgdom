@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.23-diag — PAYROLL-P0-DIAGNOSTIC-01 (write-trace only)
+
+- **diag:** `window.__WG_PAYROLL_WRITE_TRACE__` — enable / report / download / clear
+- **diag:** każdy write `kw-week-employees` + recompute `productionWeekEmployees` / `displayEmployees`
+- **bez** zmian logiki Payroll / Cloud Sync / PayrollView — usunąć po capture Ownera
+
 ## 2.65.22 — PAYROLL-P0-REGRESSION-04 (mount bez wipe rosteru)
 
 - **fix:** P0 — `tryPayrollWeekCycle` deferuje `autoArchiveAndAdvance` gdy żywy roster + stale week keys → najpierw `resolvePayrollOperationalWeekKeys` (bez `setWeekEmployees([])` na mount)

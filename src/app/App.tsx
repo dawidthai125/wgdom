@@ -164,6 +164,10 @@ import {
   logPayrollBootstrapTraceFromWeekKeys,
 } from "@/lib/payroll-bootstrap-runtime-trace";
 import { installPayrollDisplayRuntimeTraceGlobals } from "@/lib/payroll-display-runtime-trace";
+import {
+  installPayrollWriteTraceGlobals,
+  logPayrollProductionRecompute,
+} from "@/lib/payroll-week-employees-write-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -360,10 +364,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [fullDataBackupStatus, setFullDataBackupStatus] = useState<{ dailyBackupDate: string | null; hasPrev: boolean } | null>(null);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
-  const productionWeekEmployees = useMemo(
-    () => filterProductionWeekEmployees(weekEmployees, directory),
-    [weekEmployees, directory],
-  );
+  const productionWeekEmployees = useMemo(() => {
+    const next = filterProductionWeekEmployees(weekEmployees, directory);
+    logPayrollProductionRecompute({
+      weekEmployeesLength: weekEmployees.length,
+      productionLength: next.length,
+      directoryLength: directory.length,
+      weekFrom,
+      weekTo,
+    });
+    return next;
+  }, [weekEmployees, directory, weekFrom, weekTo]);
 
   useEffect(() => {
     syncAlertsSeenFromCloud().catch(() => {});
@@ -1069,6 +1080,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     installPayrollAntiLeakRuntimeTraceGlobals();
     installPayrollBootstrapRuntimeTraceGlobals();
     installPayrollDisplayRuntimeTraceGlobals();
+    installPayrollWriteTraceGlobals();
     installJobsPhotosLiveTraceGlobals();
   }, []);
 
