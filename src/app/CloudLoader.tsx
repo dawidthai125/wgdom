@@ -53,6 +53,7 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { pwrReconcile } from "@/lib/payroll-week-roster-bundle";
+import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
 
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -66,6 +67,10 @@ export function CloudLoader({ children }: { children: ReactNode }) {
 
     payrollTraceCreateSyncTraceId();
     payrollTraceEmit("sync.bootstrap.start", "HTTP_IN", "info", { trigger: "bootstrap" as const });
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "CloudLoader",
+      reason: "bootstrap_start",
+    });
 
     fetchKeysFromCloud([
       ...coreKeys,
@@ -157,9 +162,41 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           const i = DATA_KEYS.indexOf(key);
           const cloudVal = cloudValues[i];
           const merged = mergedBundle[i];
-          if (bootstrapMergedShouldPersist(key, merged)) {
+          const shouldPersist = bootstrapMergedShouldPersist(key, merged);
+          if (key === "kw-week-employees") {
+            const empCount = Array.isArray(merged) ? merged.length : 0;
+            const wfIdx = DATA_KEYS.indexOf("kw-weekFrom");
+            const wtIdx = DATA_KEYS.indexOf("kw-weekTo");
+            logPayrollBootstrapTraceFromWeekKeys({
+              caller: "CloudLoader",
+              reason: shouldPersist ? "bootstrap_persist_roster" : "bootstrap_persist_skipped_empty",
+              targetFrom: mergedBundle[wfIdx],
+              targetTo: mergedBundle[wtIdx],
+              cloudFrom: cloudValues[wfIdx],
+              cloudTo: cloudValues[wtIdx],
+              localFrom: localValues[wfIdx],
+              localTo: localValues[wtIdx],
+              employeeCount: empCount,
+              employeeCountBefore: Array.isArray(localValues[i]) ? localValues[i].length : 0,
+              persistKwWeekEmployees: shouldPersist,
+              persistSkipped: !shouldPersist,
+              bootstrapPersistEmpty: !shouldPersist && empCount === 0,
+              bootstrapPersist14: shouldPersist && empCount === 14,
+            });
+          }
+          if (shouldPersist) {
             localStorage.setItem(key, JSON.stringify(merged));
             if (key === "kw-week-employees" && Array.isArray(merged)) {
+              logPayrollBootstrapTraceFromWeekKeys({
+                caller: "localStorage.setItem",
+                reason: "bootstrap_ls_write_week_employees",
+                targetFrom: String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? ""),
+                targetTo: String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? ""),
+                employeeCount: merged.length,
+                persistKwWeekEmployees: true,
+                bootstrapPersist14: merged.length === 14,
+                bootstrapPersistEmpty: merged.length === 0,
+              });
               const wf = String(mergedBundle[DATA_KEYS.indexOf("kw-weekFrom")] ?? "");
               const wt = String(mergedBundle[DATA_KEYS.indexOf("kw-weekTo")] ?? "");
               payrollTraceBumpRosterRevision();
@@ -236,6 +273,22 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         markCloudBootstrapSuccess();
         cloudSyncMutationGuard.reset();
         payrollTraceEmit("sync.bootstrap.ready", "APPLY", "info", {});
+        const wfDone = DATA_KEYS.indexOf("kw-weekFrom");
+        const wtDone = DATA_KEYS.indexOf("kw-weekTo");
+        const empDone = DATA_KEYS.indexOf("kw-week-employees");
+        let lsEmpCount = 0;
+        try {
+          const raw = localStorage.getItem("kw-week-employees");
+          lsEmpCount = raw ? (JSON.parse(raw) as unknown[]).length : 0;
+        } catch { /* ignore */ }
+        logPayrollBootstrapTraceFromWeekKeys({
+          caller: "CloudLoader",
+          reason: "bootstrap_ready",
+          targetFrom: mergedBundle[wfDone],
+          targetTo: mergedBundle[wtDone],
+          employeeCount: lsEmpCount,
+          employeeCountAfter: Array.isArray(mergedBundle[empDone]) ? mergedBundle[empDone].length : 0,
+        });
         startDeferredPhase();
       })
       .catch(() => {

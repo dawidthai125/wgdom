@@ -126,6 +126,7 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { logPayrollAntiLeakRuntimeTrace } from "@/lib/payroll-anti-leak-runtime-trace";
+import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
 function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
     const wf = JSON.parse(localStorage.getItem("kw-weekFrom") ?? '""');
@@ -1918,6 +1919,7 @@ export function sanitizeWeekEmployeesForTargetRange(
   if (!weekFrom || !weekTo) return merged;
 
   const out = [...merged];
+  const empBefore = normalizeArrayValue(out[empIdx]).length;
   out[empIdx] = mergeWeekEmployeesForWeekRange(
     weekFrom,
     weekTo,
@@ -1929,6 +1931,20 @@ export function sanitizeWeekEmployeesForTargetRange(
     cloudValues[empIdx],
     archIdx >= 0 ? merged[archIdx] : [],
   );
+  const empAfter = normalizeArrayValue(out[empIdx]).length;
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "sanitizeWeekEmployeesForWeekRange",
+    reason: "sanitize_complete",
+    targetFrom: weekFrom,
+    targetTo: weekTo,
+    cloudFrom: cloudValues[fromIdx],
+    cloudTo: cloudValues[toIdx],
+    localFrom: localValues[fromIdx],
+    localTo: localValues[toIdx],
+    employeeCountBefore: empBefore,
+    employeeCountAfter: empAfter,
+    employeeCount: empAfter,
+  });
 
   return out;
 }
@@ -1970,6 +1986,21 @@ export function finalizePayrollBundleMerge(
   localValues: unknown[],
   cloudValues: unknown[],
 ): unknown[] {
+  const empIdxIn = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdxIn = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdxIn = DATA_KEYS.indexOf("kw-weekTo");
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "finalizePayrollBundleMerge",
+    reason: "finalize_enter",
+    targetFrom: merged[fromIdxIn],
+    targetTo: merged[toIdxIn],
+    cloudFrom: cloudValues[fromIdxIn],
+    cloudTo: cloudValues[toIdxIn],
+    localFrom: localValues[fromIdxIn],
+    localTo: localValues[toIdxIn],
+    employeeCount: empIdxIn >= 0 ? normalizeArrayValue(merged[empIdxIn]).length : 0,
+  });
+
   let out = alignWeekRangeInMerged(merged, localValues, cloudValues);
   out = sanitizeWeekEmployeesForTargetRange(out, localValues, cloudValues);
 
@@ -1990,9 +2021,31 @@ export function finalizePayrollBundleMerge(
 
   // Sprint 20.1C.1 — nie adoptuj bogatszej chmury z innego tygodnia (rollover leak).
   if (targetKey && cloudKey && targetKey !== cloudKey) {
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "finalizePayrollBundleMerge",
+      reason: "finalize_early_return_week_mismatch_target_cloud",
+      targetFrom,
+      targetTo,
+      cloudFrom,
+      cloudTo,
+      localFrom,
+      localTo,
+      employeeCount: normalizeArrayValue(out[empIdx]).length,
+    });
     return out;
   }
   if (localKey && cloudKey && localKey !== cloudKey && localKey === targetKey) {
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "finalizePayrollBundleMerge",
+      reason: "finalize_early_return_week_mismatch_local_cloud",
+      targetFrom,
+      targetTo,
+      cloudFrom,
+      cloudTo,
+      localFrom,
+      localTo,
+      employeeCount: normalizeArrayValue(out[empIdx]).length,
+    });
     return out;
   }
 
@@ -2033,6 +2086,19 @@ export function finalizePayrollBundleMerge(
       weekKeyMismatch: false,
       out: rosterTraceSnapshot(adoptedEmps, wf, wt, "MERGED", "OVERWRITTEN"),
     });
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "finalizePayrollBundleMerge",
+      reason: "finalize_exit_richness_override",
+      targetFrom,
+      targetTo,
+      cloudFrom,
+      cloudTo,
+      localFrom,
+      localTo,
+      employeeCountBefore: mergedEmpsBefore.length,
+      employeeCountAfter: adoptedEmps.length,
+      employeeCount: adoptedEmps.length,
+    });
     return next;
   }
 
@@ -2044,6 +2110,19 @@ export function finalizePayrollBundleMerge(
     richnessOverride: false,
     weekKeyMismatch: false,
     out: rosterTraceSnapshot(normalizeArrayValue(out[empIdx]), wf, wt, "MERGED", "PRESENT"),
+  });
+
+  const finalEmps = normalizeArrayValue(out[empIdx]);
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "finalizePayrollBundleMerge",
+    reason: "finalize_exit",
+    targetFrom,
+    targetTo,
+    cloudFrom,
+    cloudTo,
+    localFrom,
+    localTo,
+    employeeCount: finalEmps.length,
   });
 
   return out;
@@ -2198,10 +2277,35 @@ export function applyBootstrapPayrollMerge(
   localValues: unknown[],
   cloudValues: unknown[],
 ): unknown[] {
+  const empIdxPre = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdxPre = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdxPre = DATA_KEYS.indexOf("kw-weekTo");
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "applyBootstrapPayrollMerge",
+    reason: "bootstrap_merge_enter",
+    targetFrom: merged[fromIdxPre],
+    targetTo: merged[toIdxPre],
+    cloudFrom: cloudValues[fromIdxPre],
+    cloudTo: cloudValues[toIdxPre],
+    localFrom: localValues[fromIdxPre],
+    localTo: localValues[toIdxPre],
+    employeeCount: empIdxPre >= 0 ? normalizeArrayValue(merged[empIdxPre]).length : 0,
+  });
   const out = finalizePayrollBundleMerge(merged, localValues, cloudValues);
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
   const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "applyBootstrapPayrollMerge",
+    reason: "bootstrap_merge_exit",
+    targetFrom: out[fromIdx],
+    targetTo: out[toIdx],
+    cloudFrom: cloudValues[fromIdx],
+    cloudTo: cloudValues[toIdx],
+    localFrom: localValues[fromIdx],
+    localTo: localValues[toIdx],
+    employeeCount: empIdx >= 0 ? normalizeArrayValue(out[empIdx]).length : 0,
+  });
   if (empIdx >= 0) {
     const wf = String(out[fromIdx] ?? "");
     const wt = String(out[toIdx] ?? "");
@@ -2221,19 +2325,52 @@ function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown,
   const localR = weekEmployeesListRichness(localEmps);
   const cloudR = weekEmployeesListRichness(cloudEmps);
 
+  let picked: { from: string; to: string };
+  let reason = "pick_week_range_default";
+
   if (lf && lt && cf && ct && (lf !== cf || lt !== ct)) {
     const localEmpty = localR === 0;
     const cloudEmpty = cloudR === 0;
-    if (localEmpty && !cloudEmpty) return { from: cf, to: ct };
-    if (cloudEmpty && !localEmpty) return { from: lf, to: lt };
-    if (cf >= lf) return { from: cf, to: ct };
-    return { from: lf, to: lt };
+    if (localEmpty && !cloudEmpty) {
+      picked = { from: cf, to: ct };
+      reason = "local_empty_cloud_rich_adopt_cloud_week";
+    } else if (cloudEmpty && !localEmpty) {
+      picked = { from: lf, to: lt };
+      reason = "cloud_empty_local_rich_adopt_local_week";
+    } else if (cf >= lf) {
+      picked = { from: cf, to: ct };
+      reason = "both_weeks_cloud_newer_or_equal";
+    } else {
+      picked = { from: lf, to: lt };
+      reason = "both_weeks_local_newer";
+    }
+  } else if (localR > cloudR + 1 && lf && lt) {
+    picked = { from: lf, to: lt };
+    reason = "local_richness_dominant";
+  } else if (cloudR > localR + 1 && cf && ct) {
+    picked = { from: cf, to: ct };
+    reason = "cloud_richness_dominant";
+  } else if (lf && lt) {
+    picked = { from: lf, to: lt };
+    reason = "prefer_local_week_keys";
+  } else {
+    picked = { from: cf || lf, to: ct || lt };
+    reason = "fallback_cloud_or_local";
   }
 
-  if (localR > cloudR + 1 && lf && lt) return { from: lf, to: lt };
-  if (cloudR > localR + 1 && cf && ct) return { from: cf, to: ct };
-  if (lf && lt) return { from: lf, to: lt };
-  return { from: cf || lf, to: ct || lt };
+  logPayrollBootstrapTraceFromWeekKeys({
+    caller: "pickWeekRange",
+    reason,
+    targetFrom: picked.from,
+    targetTo: picked.to,
+    cloudFrom: cloudFrom,
+    cloudTo: cloudTo,
+    localFrom: localFrom,
+    localTo: localTo,
+    employeeCount: Math.max(normalizeArrayValue(localEmps).length, normalizeArrayValue(cloudEmps).length),
+  });
+
+  return picked;
 }
 
 /** Scal local + chmura dla jednego klucza danych. */
@@ -2438,7 +2575,7 @@ export function mergeAllDataKeys(
   deletedRecoverableChargeIds: string[] = getDeletedRecoverableChargeIds(),
   deletedOperationalNoteIds: string[] = getDeletedOperationalNoteIds(),
 ): unknown[] {
-  return DATA_KEYS.map((key, i) =>
+  const merged = DATA_KEYS.map((key, i) =>
     mergeDataKey(
       key,
       localValues[i],
@@ -2452,6 +2589,25 @@ export function mergeAllDataKeys(
       deletedOperationalNoteIds,
     ),
   );
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx >= 0) {
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "mergeAllDataKeys",
+      reason: "merge_all_keys_complete",
+      targetFrom: merged[fromIdx],
+      targetTo: merged[toIdx],
+      cloudFrom: cloudValues[fromIdx],
+      cloudTo: cloudValues[toIdx],
+      localFrom: localValues[fromIdx],
+      localTo: localValues[toIdx],
+      employeeCountBefore: normalizeArrayValue(localValues[empIdx]).length,
+      employeeCountAfter: normalizeArrayValue(merged[empIdx]).length,
+      employeeCount: normalizeArrayValue(merged[empIdx]).length,
+    });
+  }
+  return merged;
 }
 
 /** Po merge weekFrom/weekTo — dopasuj do tygodnia z bogatszą listą płac (local vs chmura). */

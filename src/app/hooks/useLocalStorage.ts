@@ -7,6 +7,7 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
+import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import type { Job } from "@/app/app-domain";
 
@@ -33,7 +34,18 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
   const [state, setState] = useState<T>(() => {
     try {
       const s = localStorage.getItem(key);
-      return s ? JSON.parse(s) : initial;
+      const parsed = s ? JSON.parse(s) : initial;
+      if (key === "kw-week-employees") {
+        const { weekFrom, weekTo } = weekRangeFromLs();
+        logPayrollBootstrapTraceFromWeekKeys({
+          caller: "useLocalStorage.init",
+          reason: "react_state_init_from_ls",
+          weekFrom,
+          weekTo,
+          employeeCount: Array.isArray(parsed) ? parsed.length : 0,
+        });
+      }
+      return parsed;
     } catch {
       return initial;
     }
@@ -61,8 +73,19 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
       }
       try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
       if (key === "kw-week-employees" && Array.isArray(next)) {
-        payrollTraceBumpRosterRevision();
+        const prevCount = Array.isArray(prev) ? prev.length : 0;
         const { weekFrom, weekTo } = weekRangeFromLs();
+        logPayrollBootstrapTraceFromWeekKeys({
+          caller: "setWeekEmployees",
+          reason: prevCount > 0 && next.length === 0 ? "roster_cleared" : "roster_updated",
+          weekFrom,
+          weekTo,
+          employeeCount: next.length,
+          employeeCountBefore: prevCount,
+          employeeCountAfter: next.length,
+          tryPayrollWeekCycleCleared: prevCount > 0 && next.length === 0 ? true : undefined,
+        });
+        payrollTraceBumpRosterRevision();
         payrollTraceEmit("payroll.roster.state.commit", "STATE", "info", {
           trigger: "ui_add" as const,
           roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),

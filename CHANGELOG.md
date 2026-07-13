@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.16 — PAYROLL-BOOTSTRAP-RUNTIME-TRACE-01 (tymczasowa diagnostyka F5)
+
+- **improve:** `payroll-bootstrap-runtime-trace.ts` — flaga `__WG_PAYROLL_BOOTSTRAP_TRACE__` · trace CloudLoader → rollover mount · sessionStorage przetrwa Ctrl+Shift+R
+- **note:** brak zmiany logiki merge — tylko audyt bootstrap Ownera
+
 ## 2.65.15 — PAYROLL-ANTI-LEAK-RUNTIME-TRACE-01 (tymczasowa diagnostyka P0)
 
 - **improve:** `payroll-anti-leak-runtime-trace.ts` — flaga `__WG_PAYROLL_ANTI_LEAK_TRACE__` · log anti-leak + probe przed `applyAdminDataBundle`

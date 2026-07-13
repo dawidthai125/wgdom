@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.16",
+    label: "PAYROLL-BOOTSTRAP-RUNTIME-TRACE-01 — diagnostyka F5 bootstrap (tymczasowa)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — tymczasowy runtime trace bootstrap F5 (flaga __WG_PAYROLL_BOOTSTRAP_TRACE__) — CloudLoader → tryPayrollWeekCycle; bez zmiany logiki merge.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.15",
     label: "PAYROLL-ANTI-LEAK-RUNTIME-TRACE-01 — diagnostyka P0 (tymczasowa)",
     items: [

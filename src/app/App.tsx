@@ -159,6 +159,10 @@ import {
   installPayrollAntiLeakRuntimeTraceGlobals,
   logApplyAdminDataBundleAntiLeakProbe,
 } from "@/lib/payroll-anti-leak-runtime-trace";
+import {
+  installPayrollBootstrapRuntimeTraceGlobals,
+  logPayrollBootstrapTraceFromWeekKeys,
+} from "@/lib/payroll-bootstrap-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -1059,6 +1063,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
     installPayrollRuntimeTraceGlobals();
     installPayrollAntiLeakRuntimeTraceGlobals();
+    installPayrollBootstrapRuntimeTraceGlobals();
     installJobsPhotosLiveTraceGlobals();
   }, []);
 
@@ -1956,6 +1961,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   };
 
   const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "autoArchiveAndAdvance",
+      reason: "auto_archive_and_advance_enter",
+      weekFrom,
+      weekTo,
+      targetFrom,
+      targetTo,
+      employeeCountBefore: weekEmployees.length,
+      employeeCountAfter: 0,
+      autoArchiveAndAdvanceCalled: true,
+      tryPayrollWeekCycleCleared: weekEmployees.length > 0,
+    });
     let nextArchive = savedWeeks;
     if (weekEmployees.length > 0) {
       const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
@@ -2027,11 +2044,43 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const current = getPayrollWeekRange();
     const onCurrentRange = weekFrom === current.from && weekTo === current.to;
 
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "tryPayrollWeekCycle",
+      reason: onCurrentRange ? "on_current_week_range" : "off_current_week_range",
+      weekFrom,
+      weekTo,
+      targetFrom: current.from,
+      targetTo: current.to,
+      employeeCount: weekEmployees.length,
+    });
+
     if (!onCurrentRange) {
       if (
         weekEmployees.length > 0
         && hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx)
-      ) return;
+      ) {
+        logPayrollBootstrapTraceFromWeekKeys({
+          caller: "tryPayrollWeekCycle",
+          reason: "blocked_by_rollover_blockers",
+          weekFrom,
+          weekTo,
+          targetFrom: current.from,
+          targetTo: current.to,
+          employeeCount: weekEmployees.length,
+        });
+        return;
+      }
+      logPayrollBootstrapTraceFromWeekKeys({
+        caller: "tryPayrollWeekCycle",
+        reason: "will_call_auto_archive_and_advance",
+        weekFrom,
+        weekTo,
+        targetFrom: current.from,
+        targetTo: current.to,
+        employeeCountBefore: weekEmployees.length,
+        employeeCountAfter: 0,
+        tryPayrollWeekCycleCleared: weekEmployees.length > 0,
+      });
       autoArchiveAndAdvance(current.from, current.to);
       if (payrollWeekAdvancedToastRef.current !== current.from) {
         payrollWeekAdvancedToastRef.current = current.from;
