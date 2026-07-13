@@ -5,6 +5,7 @@
 - **fix:** auto-sync po lokalnej mutacji — `writeOnly` skip `applyAdminDataBundle` w tym cyklu
 - **fix:** `resolveReconcileFreshForKey` — React snapshot nowszy od LS wygrywa w reconcile
 - **improve:** `admin-bundle-sync-guard` — generation guard przed apply
+- **closeout:** PROGRAM CLOSED · prod smoke PASS · [`docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md)
 
 ## 2.65.12 — JOBS-PHOTOS-LIVE-INSTRUMENTATION-03 trace in-memory activation
 
