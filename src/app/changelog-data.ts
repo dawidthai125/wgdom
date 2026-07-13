@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.17",
+    label: "PAYROLL-DISPLAY-RUNTIME-TRACE-01 — diagnostyka warstwy renderu LP (tymczasowa)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — tymczasowy runtime trace warstwy display (flaga __WG_PAYROLL_DISPLAY_TRACE__) — resolvePayrollDisplayEmployees + PayrollView; bez zmiany logiki.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.16",
     label: "PAYROLL-BOOTSTRAP-RUNTIME-TRACE-01 — diagnostyka F5 bootstrap (tymczasowa)",
     items: [

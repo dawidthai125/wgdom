@@ -49,6 +49,7 @@ import {
 } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { resolvePayrollDisplayEmployees } from "@/lib/payroll-display";
+import { logPayrollDisplayTrace } from "@/lib/payroll-display-runtime-trace";
 import { contactsForPayroll, contactAllowsPayroll, type EmailContact } from "@/lib/email-contacts";
 import { API_BASE, API_HEADERS, shouldShowPayrollRestoreBanner } from "@/lib/cloud-sync";
 import { useAdminAccess } from "@/app/admin-access";
@@ -503,8 +504,11 @@ export function PayrollView({
   onInitialEmpConsumed,
   onDetailOpenChange,
   onSetJobs,
+  rawWeekEmployeesCount,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
+  /** TEMP · PAYROLL-DISPLAY-RUNTIME-TRACE-01 — surowy stan LS/React (bez filtra test); tylko diagnostyka. */
+  rawWeekEmployeesCount?: number;
   directory: DirectoryEmployee[];
   employeeLeaves: EmployeeLeave[];
   contacts: EmailContact[];
@@ -615,8 +619,21 @@ export function PayrollView({
   );
   const isClosedWeek = isPayrollWeekClosedForUi(weekFrom, weekTo, hasRolloverBlockers);
   const displayEmployees = useMemo(
-    () => resolvePayrollDisplayEmployees(isClosedWeek, weekEmployees, archivedForWeek?.weekEmployees, weekFrom, weekTo),
-    [isClosedWeek, weekEmployees, archivedForWeek, weekFrom, weekTo],
+    () =>
+      resolvePayrollDisplayEmployees(
+        isClosedWeek,
+        weekEmployees,
+        archivedForWeek?.weekEmployees,
+        weekFrom,
+        weekTo,
+        {
+          productionWeekEmployeesLength: weekEmployees.length,
+          hasRolloverBlockers,
+          savedWeeksLength: savedWeeks.length,
+          rawWeekEmployeesLength: rawWeekEmployeesCount,
+        },
+      ),
+    [isClosedWeek, weekEmployees, archivedForWeek, weekFrom, weekTo, hasRolloverBlockers, savedWeeks.length, rawWeekEmployeesCount],
   );
 
   useEffect(() => {
@@ -882,6 +899,23 @@ export function PayrollView({
     const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, extraCostLines);
     saveAs(blob, `lista-plac-${weekFrom}.docx`);
   };
+
+  const payrollDisplayTraceCurrentWeek = getPayrollWeekRange();
+  logPayrollDisplayTrace({
+    caller: "PayrollView",
+    reason: "pre_table_render",
+    weekEmployeesLength: rawWeekEmployeesCount ?? weekEmployees.length,
+    productionWeekEmployeesLength: weekEmployees.length,
+    displayEmployeesLength: displayEmployees.length,
+    isClosedWeek,
+    hasRolloverBlockers,
+    archivedForWeekLength: archivedForWeek?.weekEmployees?.length ?? 0,
+    savedWeeksLength: savedWeeks.length,
+    weekFrom,
+    weekTo,
+    currentWeekFrom: payrollDisplayTraceCurrentWeek.from,
+    currentWeekTo: payrollDisplayTraceCurrentWeek.to,
+  });
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">

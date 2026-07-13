@@ -107,6 +107,8 @@ export type AdminViewRouterProps = {
   jobs: Job[];
   directory: DirectoryEmployee[];
   productionWeekEmployees: WeekEmployee[];
+  /** TEMP · PAYROLL-DISPLAY-RUNTIME-TRACE-01 — surowy count kw-week-employees; tylko diagnostyka. */
+  rawWeekEmployeesCount?: number;
   weekFrom: string;
   weekTo: string;
   savedWeeks: WeekSnapshot[];
@@ -281,6 +283,7 @@ export function AdminViewRouter({
   jobs,
   directory,
   productionWeekEmployees,
+  rawWeekEmployeesCount,
   weekFrom,
   weekTo,
   savedWeeks,
@@ -471,6 +474,7 @@ export function AdminViewRouter({
           <Suspense fallback={<ViewLoadFallback label="Ładowanie listy płac…" />}>
             <PayrollView
               weekEmployees={productionWeekEmployees}
+              rawWeekEmployeesCount={rawWeekEmployeesCount}
               weekFrom={weekFrom}
               weekTo={weekTo}
               directory={directory}

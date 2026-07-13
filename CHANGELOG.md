@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.17 — PAYROLL-DISPLAY-RUNTIME-TRACE-01 (tymczasowa diagnostyka renderu LP)
+
+- **improve:** `payroll-display-runtime-trace.ts` — flaga `__WG_PAYROLL_DISPLAY_TRACE__` · trace `resolvePayrollDisplayEmployees` + `PayrollView` pre-table · `findFirstDisplayCollapse()` · sessionStorage przetrwa Ctrl+Shift+R
+
 ## 2.65.16 — PAYROLL-BOOTSTRAP-RUNTIME-TRACE-01 (tymczasowa diagnostyka F5)
 
 - **improve:** `payroll-bootstrap-runtime-trace.ts` — flaga `__WG_PAYROLL_BOOTSTRAP_TRACE__` · trace CloudLoader → rollover mount · sessionStorage przetrwa Ctrl+Shift+R

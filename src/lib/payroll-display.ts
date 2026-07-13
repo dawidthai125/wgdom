@@ -1,8 +1,18 @@
 /** B5 — SSOT wyświetlania listy płac (displayEmployees). */
 
 import type { WeekEmployee } from "@/app/app-domain";
+import { logPayrollDisplayTrace } from "@/lib/payroll-display-runtime-trace";
+import { getPayrollWeekRange } from "@/lib/payroll-cycle";
 import { payrollTraceEmit, payrollTraceGetSubjectMergeKey, rosterTraceSnapshot } from "@/lib/payroll-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
+
+/** TEMP · PAYROLL-DISPLAY-RUNTIME-TRACE-01 — metadane diagnostyczne; bez wpływu na logikę display. */
+export type PayrollDisplayResolveTraceMeta = {
+  productionWeekEmployeesLength?: number;
+  hasRolloverBlockers?: boolean;
+  savedWeeksLength?: number;
+  rawWeekEmployeesLength?: number;
+};
 
 /**
  * Jedno źródło listy pracowników do renderu w PayrollView.
@@ -14,6 +24,7 @@ export function resolvePayrollDisplayEmployees(
   archivedWeekEmployees?: WeekEmployee[] | null,
   weekFrom = "",
   weekTo = "",
+  traceMeta?: PayrollDisplayResolveTraceMeta,
 ): WeekEmployee[] {
   const display = (() => {
     if (!isClosedWeek) return weekEmployees;
@@ -26,6 +37,26 @@ export function resolvePayrollDisplayEmployees(
     displayRoster: rosterTraceSnapshot(display, weekFrom, weekTo, "LOCAL", "PRESENT"),
     isClosedWeek,
     subjectInDisplay: sk ? display.some((e) => weekEmployeeMergeKey(e) === sk) : undefined,
+  });
+  const currentWeek = getPayrollWeekRange();
+  logPayrollDisplayTrace({
+    caller: "resolvePayrollDisplayEmployees",
+    reason: isClosedWeek
+      ? archivedWeekEmployees?.length
+        ? "closed_week_archive_snapshot"
+        : "closed_week_no_archive_collapse"
+      : "operational_week_live_roster",
+    weekEmployeesLength: weekEmployees.length,
+    productionWeekEmployeesLength: traceMeta?.productionWeekEmployeesLength ?? weekEmployees.length,
+    displayEmployeesLength: display.length,
+    isClosedWeek,
+    hasRolloverBlockers: traceMeta?.hasRolloverBlockers,
+    archivedForWeekLength: archivedWeekEmployees?.length ?? 0,
+    savedWeeksLength: traceMeta?.savedWeeksLength,
+    weekFrom,
+    weekTo,
+    currentWeekFrom: currentWeek.from,
+    currentWeekTo: currentWeek.to,
   });
   return display;
 }

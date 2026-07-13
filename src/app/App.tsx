@@ -163,6 +163,7 @@ import {
   installPayrollBootstrapRuntimeTraceGlobals,
   logPayrollBootstrapTraceFromWeekKeys,
 } from "@/lib/payroll-bootstrap-runtime-trace";
+import { installPayrollDisplayRuntimeTraceGlobals } from "@/lib/payroll-display-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -1064,6 +1065,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     installPayrollRuntimeTraceGlobals();
     installPayrollAntiLeakRuntimeTraceGlobals();
     installPayrollBootstrapRuntimeTraceGlobals();
+    installPayrollDisplayRuntimeTraceGlobals();
     installJobsPhotosLiveTraceGlobals();
   }, []);
 
@@ -2437,6 +2439,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           jobs={jobs}
           directory={directory}
           productionWeekEmployees={productionWeekEmployees}
+          rawWeekEmployeesCount={weekEmployees.length}
           weekFrom={weekFrom}
           weekTo={weekTo}
           savedWeeks={savedWeeks}
