@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **main** `7615129` (docs)
+**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **main** `89974f4` (docs)
 
 ## Dla przyszłych agentów — start tutaj
 
