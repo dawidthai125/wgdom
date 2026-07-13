@@ -2,14 +2,14 @@
 
 > **Program:** JOBS-PHOTOS-DELETE-SYNC-01  
 > **Design Freeze:** [`JOBS-PHOTOS-DELETE-SYNC-01-DESIGN-FREEZE.md`](JOBS-PHOTOS-DELETE-SYNC-01-DESIGN-FREEZE.md) v1.0  
-> **Prod:** UI **2.65.10** (pre-deploy) · **RELEASE GO** (pre-push)  
+> **Release:** UI **2.65.10** · commit **`d8f2d99`** · 2026-07-12  
 > **Baseline:** **2.65.9** · JOBS-ASSETS-SYNC-01 CLOSED
 
 ---
 
 ## RELEASE MODE: FAST RELEASE
 
-Wąski bundle CORE-adjacent (~12 plików implementacji), build PASS, wszystkie testy PASS, bez zmian App.tsx CORE / reconcile / Edge / uploadPhoto.
+Wąski bundle CORE-adjacent (15 plików w commicie), build PASS, wszystkie testy PASS, bez zmian App.tsx CORE / reconcile / Edge / uploadPhoto.
 
 ---
 
@@ -50,9 +50,34 @@ Wąski bundle CORE-adjacent (~12 plików implementacji), build PASS, wszystkie t
 
 ---
 
+## GIT READINESS (post-commit)
+
+| Pole | Wartość |
+|------|---------|
+| Commit | **`d8f2d99`** — `fix(jobs): add photo tombstones to prevent delete resurrection` |
+| `HEAD` | `d8f2d9937e0ba27d175ca5a12848ce9e4f257fe1` |
+| `origin/main` | `d8f2d9937e0ba27d175ca5a12848ce9e4f257fe1` |
+| **HEAD == origin/main** | **PASS** |
+| Push | **PASS** (`c0d2527..d8f2d99 main -> main`) |
+
+**Staged bundle (15 plików):** implementacja + test + changelog + ARCHITECTURE + 4 docs programu.
+
+---
+
+## VERSION
+
+| Pole | Wartość |
+|------|---------|
+| Changelog (release) | **2.65.10** |
+| Release commit | **`d8f2d99`** |
+| Poprzedni prod | **2.65.9** · `c0d2527` |
+
+---
+
 ## PRODUCTION STATUS
 
-**PRE-DEPLOY** — prod smoke delete post-push (Owner QA backlog po `git push`)
+**PRODUCTION VERIFIED** (2026-07-12) — prod smoke **19/19 PASS**  
+Szczegóły: [`JOBS-PHOTOS-DELETE-SYNC-01-PRODUCTION-VERIFICATION.md`](JOBS-PHOTOS-DELETE-SYNC-01-PRODUCTION-VERIFICATION.md)
 
 ---
 
@@ -75,4 +100,4 @@ BUGFIX
 
 ## WERDYKT
 
-**RELEASE GO** (pre-push) · **PRODUCTION VERIFY PENDING**
+**RELEASE GO** · **PRODUCTION VERIFIED** · **PROGRAM CLOSED**

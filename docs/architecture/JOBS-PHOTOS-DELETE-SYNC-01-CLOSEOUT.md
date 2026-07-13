@@ -1,9 +1,9 @@
 # JOBS-PHOTOS-DELETE-SYNC-01 — Final Closeout Report
 
-> **Status:** **RELEASE GO · PRODUCTION VERIFY PENDING**  
+> **Status:** **PRODUCTION VERIFIED · CLOSED**  
 > **Bundle:** JOBS-PHOTOS-DELETE-SYNC-01 · DESIGN FREEZE v1.0  
 > **Baseline przed:** UI **2.65.9** · JOBS-ASSETS-SYNC-01 CLOSED  
-> **Release:** UI **2.65.10** · 2026-07-12
+> **Release:** UI **2.65.10** · commit **`d8f2d99`** · 2026-07-12
 
 ---
 
@@ -37,7 +37,8 @@ Po JOBS-ASSETS-SYNC-01: upload stabilny, ale **usunięte zdjęcia wracały** po 
 | D4 | JA / JF / RI / PAYROLL regresja | **PASS** |
 | D5 | CHANGELOG + ARCHITECTURE | **PASS** |
 | D6 | Allowlist only | **PASS** |
-| D7 | PRODUCTION VERIFIED | **PENDING** post-push smoke |
+| D7 | `git push` + HEAD == origin/main | **PASS** (`d8f2d99`) |
+| D8 | PRODUCTION VERIFIED | **PASS** — prod smoke 19/19 (2026-07-12) |
 
 ---
 

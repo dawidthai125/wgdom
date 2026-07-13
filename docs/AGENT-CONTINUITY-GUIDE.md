@@ -1,8 +1,12 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-12 (domknięcie sesji **ROBOTS-INSPECTOR-01**) · prod **2.65.5** @ **`9307386`** · docs **`6bddea1`** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **JOBS-PHOTOS-DELETE-SYNC-01**) · prod **2.65.10** @ **`d8f2d99`** · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-13):** **JOBS-PHOTOS-DELETE-SYNC-01** **CLOSED** · **`d8f2d99`** · prod smoke **19/19 PASS** · `deletedPhotoTombstones[]` + `mergePhotos` tombstone filter · SSOT [`architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md).
+
+> **★ Owner CLOSEOUT (2026-07-12, JOBS-ASSETS-SYNC-01):** **2.65.9** @ **`f8a64d7`** · union `mergePhotos` · prod smoke **14/14** · SSOT [`architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md).
 
 > **★ Domknięcie sesji (2026-07-12):** **ROBOTS-INSPECTOR-01** **CLOSED** · feature `9307386` · docs sync `6bddea1` pushed · prod smoke **PASS** · **czekaj na Owner GO** (NG11-Q4 / TWSL).
 
@@ -71,17 +75,17 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.5** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit (app)** | **`9307386`** · ROBOTS-INSPECTOR-01 sync reconcile |
-| **main HEAD** | **`6bddea1`** · docs continuity (feature `9307386` na prod) |
+| **Production (UI)** | **2.65.10** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit (app)** | **`d8f2d99`** · JOBS-PHOTOS-DELETE-SYNC-01 photo tombstones |
+| **main HEAD** | **`d8f2d99`** · app + docs continuity (pending docs commit) |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
 | **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **ROBOTS-INSPECTOR-01** · **PAYROLL-ARCHIVE-01** · **NG11-P0 EPIC** · **NG11-A5** |
+| **Ostatnio CLOSED** | **JOBS-PHOTOS-DELETE-SYNC-01** · **JOBS-ASSETS-SYNC-01** · **ROBOTS-INSPECTOR-01** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | **TWSL** **2.63.91** (osobny bundle) |
-| **Następny krok** | **STABILIZATION WINDOW** · **NG11-Q4** (optional) lub **TWSL 2.63.91** — Owner GO |
+| **Następny krok** | **STABILIZATION WINDOW** · **ASSETS-03** (backlog) · **NG11-Q4** / **TWSL** — Owner GO |
 
 ### Czym jest aplikacja
 
@@ -93,6 +97,10 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **CLOSED** | **2.65.10** @ `d8f2d99` |
+| **JOBS-ASSETS-SYNC-01** — photos[] union merge | **CLOSED** | **2.65.9** @ `f8a64d7` |
+| **JOBS-FORM-RACE-01** — functional merge updateJob | **CLOSED** | **2.65.7** |
+| **JOBS-ADDRESS-SYNC-01** — address field merge | **CLOSED** | **2.65.6** |
 | **ROBOTS-INSPECTOR-01** — Inspektor WM stale sync | **CLOSED** | **2.65.5** @ `9307386` |
 | **PAYROLL-ARCHIVE-01** — Archiwum stale apply | **CLOSED** | **2.65.4** @ `872e171` |
 | **NG11-P0** — Discovery + Bootstrap + Transport | **EPIC COMPLETE** | **2.65.3** @ `281ede1` |

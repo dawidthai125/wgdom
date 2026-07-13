@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-12 (Owner GO **JOBS-ASSETS-SYNC-01**) · prod **2.65.9** @ `f8a64d7` · **RELEASE GO** · **STABILIZATION WINDOW ACTIVE**
+> **Data closeout:** 2026-07-13 (**JOBS-PHOTOS-DELETE-SYNC-01 CLOSED**) · prod **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -75,6 +75,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **JOBS-PHOTOS-DELETE-SYNC-01** — photo delete tombstones | **2.65.10** (`d8f2d99`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **19/19** | [`architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md) |
+| **JOBS-ASSETS-SYNC-01** — photos[] union merge | **2.65.9** (`f8a64d7`) | **CLOSED** · **PRODUCTION VERIFIED** · prod smoke **14/14** | [`architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md`](architecture/JOBS-ASSETS-SYNC-01-OWNER-CLOSEOUT.md) |
 | **ROBOTS-INSPECTOR-01** — Inspektor WM stale sync | **2.65.5** (`9307386`) | **CLOSED** · **PRODUCTION VERIFIED** | [`architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) |
 | **PAYROLL-ARCHIVE-01** — Archiwum stale apply | **2.65.4** (`872e171`) | **CLOSED** · **PRODUCTION VERIFIED** | [`PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md`](PAYROLL-ARCHIVE-01-DESIGN-FREEZE.md) |
 | **NG11-P0** — Discovery + Bootstrap + Transport | **2.65.3** (`281ede1`) | **EPIC COMPLETE** · **PRODUCTION VERIFIED** | [`architecture/NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) · [`NG11-P0-CLOSEOUT.md`](architecture/NG11-P0-CLOSEOUT.md) |
