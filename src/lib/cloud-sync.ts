@@ -125,6 +125,7 @@ import {
   payrollTraceNextHttpSeq,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { logPayrollAntiLeakRuntimeTrace } from "@/lib/payroll-anti-leak-runtime-trace";
 function traceWeekRangeFromLs(): { weekFrom: string; weekTo: string } {
   try {
     const wf = JSON.parse(localStorage.getItem("kw-weekFrom") ?? '""');
@@ -2132,6 +2133,30 @@ export function applyRuntimePayrollAntiLeak(
       archiveSourceForAntiLeak,
     );
   const shouldFireAntiLeak = baseConditions && (crossWeekLeak || staleArchiveRepublish);
+  const mergedEmployeeCountBefore = normalizeArrayValue(merged[empIdx]).length;
+  let archiveRichness = 0;
+  for (const w of archiveSourceForAntiLeak) {
+    archiveRichness = Math.max(
+      archiveRichness,
+      weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees),
+    );
+  }
+  logPayrollAntiLeakRuntimeTrace({
+    shouldFireAntiLeak,
+    baseConditions,
+    crossWeekLeak,
+    staleArchiveRepublish,
+    sameWeekCloudSsot,
+    payrollSourceLength: payrollSourceForAntiLeak.length,
+    archiveRich,
+    archiveRichness,
+    mergedRichness,
+    cloudWeekKey: cloudKey,
+    targetWeekKey: targetKey,
+    localWeekKey: localKey,
+    mergedEmployeeCountBefore,
+    mergedEmployeeCountAfter: shouldFireAntiLeak ? 0 : mergedEmployeeCountBefore,
+  });
 
   const { weekFrom, weekTo } = traceWeekRangeFromLs();
   if (!shouldFireAntiLeak) {

@@ -155,6 +155,10 @@ import {
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
 import { installJobsPhotosLiveTraceGlobals, logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
+import {
+  installPayrollAntiLeakRuntimeTraceGlobals,
+  logApplyAdminDataBundleAntiLeakProbe,
+} from "@/lib/payroll-anti-leak-runtime-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -585,6 +589,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
       if (Array.isArray(emps)) {
+        logApplyAdminDataBundleAntiLeakProbe({
+          incomingRosterCount: incoming.length,
+          weekFrom,
+          weekTo,
+          generation: getAdminBundleGeneration(),
+        });
         payrollTraceEmit("sync.apply.admin_bundle", "APPLY", "info", {
           incomingRoster: rosterTraceSnapshot(incoming, weekFrom, weekTo, "MERGED", "PRESENT"),
           previousUiRoster: rosterTraceSnapshot(previousUi, weekFrom, weekTo, "LOCAL", "PRESENT"),
@@ -1048,6 +1058,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     // PR-PAY-S7-4A · AC5 — odczyt metryk sync w konsoli produkcyjnej: __wgdomSyncMetrics()
     (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
     installPayrollRuntimeTraceGlobals();
+    installPayrollAntiLeakRuntimeTraceGlobals();
     installJobsPhotosLiveTraceGlobals();
   }, []);
 

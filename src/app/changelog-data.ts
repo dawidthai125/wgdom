@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-13",
+    version: "2.65.15",
+    label: "PAYROLL-ANTI-LEAK-RUNTIME-TRACE-01 — diagnostyka P0 (tymczasowa)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — tymczasowy runtime trace applyRuntimePayrollAntiLeak (flaga __WG_PAYROLL_ANTI_LEAK_TRACE__) — tylko audyt P0, bez zmiany logiki merge.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-13",
     version: "2.65.14",
     label: "PAYROLL-ANTI-LEAK-FIX-01 — cross-week leak guard (Wariant B)",
     items: [

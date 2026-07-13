@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.15 — PAYROLL-ANTI-LEAK-RUNTIME-TRACE-01 (tymczasowa diagnostyka P0)
+
+- **improve:** `payroll-anti-leak-runtime-trace.ts` — flaga `__WG_PAYROLL_ANTI_LEAK_TRACE__` · log anti-leak + probe przed `applyAdminDataBundle`
+- **note:** brak zmiany logiki merge — tylko audyt runtime Ownera
+
 ## 2.65.14 — PAYROLL-ANTI-LEAK-FIX-01 cross-week leak guard (Wariant B)
 
 - **fix:** `applyRuntimePayrollAntiLeak` — nie czyści same-week Cloud SSOT (focus pull po wpisie godzin)
