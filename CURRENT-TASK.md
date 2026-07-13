@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **main** `0277ce2` (docs)
+**Ostatnia aktualizacja:** 2026-07-13 (**JOBS-PHOTOS-P0 audit COMPLETE** · live trace WIP) · prod **2.65.10** @ `d8f2d99` · **main** `4ae959e` (docs)
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -10,7 +10,7 @@
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
 | **Baseline prod** | UI **2.65.10** @ `d8f2d99` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`89974f4`** (docs) · app prod **`d8f2d99`** |
+| **main HEAD** | **`0277ce2`** (docs) · app prod **`d8f2d99`** |
 | **WIP lokalny (nie prod)** | **JOBS-PHOTOS-P0** live trace · **TWSL** **2.63.91** |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
 | **Ostatnio zamknięte (prod)** | **JOBS-PHOTOS-DELETE-SYNC-01** (**2.65.10** CLOSED) · **JOBS-ASSETS-SYNC-01** (**2.65.9**) |
