@@ -28,6 +28,9 @@ import {
   type WmPrintSettings,
   type WmPrintTemplate,
 } from "@/lib/wm-print/types";
+import { idbSet } from "@/lib/storage/storage-idb";
+import { estimateJsonBytes } from "@/lib/storage/storage-budget";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 
 export { mergeWmPrintHistory, normalizeWmPrintHistory, WM_PRINT_HISTORY_KEY };
 export type { WmPrintHistoryEntry };
@@ -125,11 +128,47 @@ export function mergeWmPrintJobDocuments(
 }
 
 function persistWmPrintLocal(keys: string[], values: unknown[]): void {
+  const COLD_KEYS = new Set([
+    WM_PRINT_TEMPLATES_KEY,
+    WM_PRINT_JOB_DOCS_KEY,
+    WM_PRINT_HISTORY_KEY,
+  ]);
+
   keys.forEach((key, i) => {
+    const value = values[i];
+    if (COLD_KEYS.has(key)) {
+      // Single-writer (sync path): nie duplikuj LS — React useLocalStorage jest LS hot;
+      // cold pełny blob idzie tylko do IndexedDB.
+      const idbKey = `wm-print-cold:${key}`;
+      void idbSet(idbKey, value).then((ok) => {
+        recordStorageWrite({
+          key: idbKey,
+          bytes: estimateJsonBytes(value),
+          writer: "wm-print.persistCold",
+          ok,
+          tier: 2,
+        });
+      });
+      return;
+    }
     try {
-      localStorage.setItem(key, JSON.stringify(values[i]));
+      localStorage.setItem(key, JSON.stringify(value));
+      recordStorageWrite({
+        key,
+        bytes: estimateJsonBytes(value),
+        writer: "wm-print.persistLocal",
+        ok: true,
+        tier: 1,
+      });
     } catch {
-      /* ignore quota */
+      recordStorageWrite({
+        key,
+        bytes: estimateJsonBytes(value),
+        writer: "wm-print.persistLocal",
+        ok: false,
+        tier: 1,
+        note: "quota_or_error",
+      });
     }
   });
 }

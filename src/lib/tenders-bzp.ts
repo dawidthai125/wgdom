@@ -31,6 +31,14 @@ import {
   tenderDocumentBytesCacheKey,
 } from "@/lib/tender-document-bytes-cache";
 import { recordTenderDocumentFetch } from "@/lib/tender-pipeline-metrics";
+import {
+  getPipelineColdMemory,
+  hydratePipelineColdFromIdb,
+  resolvePipelineLocalWithCold,
+  setPipelineColdMemory,
+  stripTenderPipelineForLocalStorage,
+} from "@/lib/storage/tenders-pipeline-cold";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -572,11 +580,15 @@ export async function fetchBzpTendersFromServer(opts?: {
 export function loadTendersPipelineLocal(): TenderPipelineItem[] {
   try {
     const raw = localStorage.getItem(TENDERS_PIPELINE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      const cold = getPipelineColdMemory();
+      return cold && cold.length > 0 ? cold : [];
+    }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const lean = Array.isArray(parsed) ? (parsed as TenderPipelineItem[]) : [];
+    return resolvePipelineLocalWithCold(lean);
   } catch {
-    return [];
+    return getPipelineColdMemory() ?? [];
   }
 }
 
@@ -622,12 +634,22 @@ export function readPipelineLocalSaveTelemetry(): PipelineLsTelemetryEntry[] {
 }
 
 export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
-  const payload = JSON.stringify(items);
+  setPipelineColdMemory(items);
+  const lean = stripTenderPipelineForLocalStorage(items);
+  const payload = JSON.stringify(lean);
   const bytes = typeof Blob !== "undefined"
     ? new Blob([payload]).size
     : payload.length * 2;
   try {
     localStorage.setItem(TENDERS_PIPELINE_KEY, payload);
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes,
+      writer: "tenders-bzp.saveTendersPipelineLocal",
+      ok: true,
+      tier: 1,
+      note: "lean",
+    });
   } catch (e) {
     const isQuota = e instanceof DOMException
       && (e.name === "QuotaExceededError" || e.code === 22);
@@ -637,11 +659,20 @@ export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
       itemCount: items.length,
       message: e instanceof Error ? e.message : String(e),
     });
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes,
+      writer: "tenders-bzp.saveTendersPipelineLocal",
+      ok: false,
+      tier: 1,
+      note: isQuota ? "quota_exceeded_lean" : "save_error",
+    });
   }
 }
 
 export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
   try {
+    await hydratePipelineColdFromIdb();
     const local = loadTendersPipelineLocal();
     const [cloud] = await fetchKeysFromCloud([TENDERS_PIPELINE_KEY]);
     if (cloud == null || !Array.isArray(cloud)) return local;
@@ -649,6 +680,7 @@ export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
     saveTendersPipelineLocal(merged);
     return merged;
   } catch {
+    await hydratePipelineColdFromIdb();
     return loadTendersPipelineLocal();
   }
 }

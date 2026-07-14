@@ -1,9 +1,11 @@
 /** WM Druk audit log — append-only KV `kw-wm-druk-audit-log` (Pomiary · Schematy · Katalog). */
 
 import { fetchKeysFromCloud, pushKeysToCloud } from "@/lib/cloud-sync";
+import { readAuditRingLocal, writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
 
 export const WM_DRUK_AUDIT_LOG_KEY = "kw-wm-druk-audit-log";
 export const WM_DRUK_AUDIT_CAP = 3000;
+const WM_DRUK_AUDIT_IDB_KEY = "audit-ring:kw-wm-druk-audit-log";
 
 export type WmDrukAuditModule = "measurements" | "schematics" | "katalog";
 
@@ -153,14 +155,12 @@ export function buildWmDrukAuditEntry(input: RecordWmDrukAuditInput): WmDrukAudi
   };
 }
 
+export function getWmDrukAuditLogLocal(): WmDrukAuditEntry[] {
+  return readAuditRingLocal(WM_DRUK_AUDIT_LOG_KEY, WM_DRUK_AUDIT_IDB_KEY, normalizeWmDrukAuditLog);
+}
+
 function readWmDrukAuditLogLocal(): WmDrukAuditEntry[] {
-  try {
-    const raw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
-    if (!raw) return [];
-    return normalizeWmDrukAuditLog(JSON.parse(raw));
-  } catch {
-    return [];
-  }
+  return getWmDrukAuditLogLocal();
 }
 
 /** Append + merge z chmurą + push pojedynczego klucza AUX (bez pełnego runCloudSync). */
@@ -177,11 +177,7 @@ export async function recordWmDrukAudit(input: RecordWmDrukAuditInput): Promise<
   } catch {
     /* offline — zostaw lokalny append */
   }
-  try {
-    localStorage.setItem(WM_DRUK_AUDIT_LOG_KEY, JSON.stringify(merged));
-  } catch {
-    /* ignore quota */
-  }
+  writeAuditRingLocal(WM_DRUK_AUDIT_LOG_KEY, WM_DRUK_AUDIT_IDB_KEY, merged, "wm-druk-audit.record");
   void pushKeysToCloud([WM_DRUK_AUDIT_LOG_KEY], [merged]).catch(() => {});
   return entry;
 }

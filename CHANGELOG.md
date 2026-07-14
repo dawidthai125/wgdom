@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.28 — LOCALSTORAGE-ARCH-02 A–E
+
+- **improve:** snapshot bundles / jobs snaps → IndexedDB; pipeline lean + cold; WM cold single-writer; audit rings IDB
+- **diag:** `window.__WG_STORAGE__` — report / largest / budget / writers / history
+- **bez** Payroll / CloudLoader gate / cloud merge / Facade F
+
 ## 2.65.27 — PAYROLL-P0-FIX-01 (QuotaExceeded ≠ FAILED)
 
 - **fix:** CloudLoader — `safeSetLocalStorageJson` / `persistBootstrapMergedKey`; QuotaExceeded = storage-failure (log), nie abort bootstrapu

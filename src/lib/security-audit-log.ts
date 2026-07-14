@@ -1,8 +1,10 @@
 /** Globalny security audit log admina — append-only KV `kw-security-audit-log`. */
 
 import { fetchKeysFromCloud, pushKeysToCloud } from "@/lib/cloud-sync";
+import { readAuditRingLocal, writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
 
 export const SECURITY_AUDIT_LOG_KEY = "kw-security-audit-log";
+const SECURITY_AUDIT_IDB_KEY = "audit-ring:kw-security-audit-log";
 export const SECURITY_AUDIT_LOG_CHANGED_EVENT = "wg-security-audit-log-changed";
 export const SECURITY_AUDIT_CAP = 5000;
 
@@ -167,14 +169,12 @@ export function notifySecurityAuditLogChanged(): void {
   window.dispatchEvent(new CustomEvent(SECURITY_AUDIT_LOG_CHANGED_EVENT));
 }
 
+export function getSecurityAuditLogLocal(): SecurityAuditEntry[] {
+  return readAuditRingLocal(SECURITY_AUDIT_LOG_KEY, SECURITY_AUDIT_IDB_KEY, normalizeSecurityAuditLog);
+}
+
 function readSecurityAuditLogLocal(): SecurityAuditEntry[] {
-  try {
-    const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
-    if (!raw) return [];
-    return normalizeSecurityAuditLog(JSON.parse(raw));
-  } catch {
-    return [];
-  }
+  return getSecurityAuditLogLocal();
 }
 
 /** Append + merge z chmurą + push pojedynczego klucza (bez pełnego runCloudSync). */
@@ -188,12 +188,13 @@ export async function recordSecurityAudit(input: RecordSecurityAuditInput): Prom
   } catch {
     /* offline — zostaw lokalny append */
   }
-  try {
-    localStorage.setItem(SECURITY_AUDIT_LOG_KEY, JSON.stringify(merged));
-    notifySecurityAuditLogChanged();
-  } catch {
-    /* ignore quota */
-  }
+  writeAuditRingLocal(
+    SECURITY_AUDIT_LOG_KEY,
+    SECURITY_AUDIT_IDB_KEY,
+    merged,
+    "security-audit-log.record",
+  );
+  notifySecurityAuditLogChanged();
   void pushKeysToCloud([SECURITY_AUDIT_LOG_KEY], [merged]).catch(() => {});
   return entry;
 }

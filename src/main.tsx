@@ -1,3 +1,6 @@
+/* LOCALSTORAGE-ARCH-02 A0 — storage budget / telemetry */
+import "@/lib/storage/storage-telemetry";
+
 /* PAYROLL-P0-REGRESSION-06 — MUST be first: patch LS before any setItem/getItem */
 import { installPayrollKwWeekEmployeesStorageTrace } from "@/lib/payroll-kw-week-employees-storage-trace";
 installPayrollKwWeekEmployeesStorageTrace();

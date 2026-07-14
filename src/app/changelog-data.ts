@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-14",
+    version: "2.65.28",
+    label: "LOCALSTORAGE-ARCH-02 A–E — cold store + telemetry",
+    items: [
+      {
+        type: "improve",
+        text: "localStorage — snapshot bundles + jobs snaps → IndexedDB; pipeline lean LS + cold IDB; WM bez double-write cold; audit rings w IDB; window.__WG_STORAGE__ (report/largest/budget/writers/history). Bez zmian Payroll/CloudLoader/merge.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-14",
     version: "2.65.27",
     label: "PAYROLL-P0-FIX-01 — QuotaExceeded ≠ bootstrap FAILED",
     items: [

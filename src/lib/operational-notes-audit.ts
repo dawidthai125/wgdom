@@ -1,9 +1,11 @@
 /** Audit log notatek operacyjnych — append-only KV `kw-operational-notes-audit-log`. */
 
 import type { AdminRole } from "@/lib/admin-auth";
+import { readAuditRingLocal, writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
 
 export const OPERATIONAL_NOTES_AUDIT_LOG_KEY = "kw-operational-notes-audit-log";
 export const OPERATIONAL_NOTES_AUDIT_CAP = 3000;
+const OPERATIONAL_NOTES_AUDIT_IDB_KEY = "audit-ring:kw-operational-notes-audit-log";
 
 export type OperationalNoteAuditAction =
   | "create"
@@ -118,4 +120,25 @@ export function buildOperationalNoteAuditEntry(input: {
     noteTitleSnapshot: input.noteTitleSnapshot,
     detail: input.detail,
   };
+}
+
+/** LOCALSTORAGE-ARCH-02 E — hot path UI / migrate. */
+export function getOperationalNotesAuditLogLocal(): OperationalNoteAuditEntry[] {
+  return readAuditRingLocal(
+    OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+    OPERATIONAL_NOTES_AUDIT_IDB_KEY,
+    normalizeOperationalNotesAuditLog,
+  );
+}
+
+export function persistOperationalNotesAuditLogLocal(
+  entries: OperationalNoteAuditEntry[],
+  writer = "operational-notes-audit.persist",
+): void {
+  writeAuditRingLocal(
+    OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+    OPERATIONAL_NOTES_AUDIT_IDB_KEY,
+    entries,
+    writer,
+  );
 }

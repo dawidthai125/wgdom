@@ -74,22 +74,27 @@ import {
   getAdminBundleGeneration,
   shouldApplyAdminBundleAtGeneration,
 } from "@/lib/admin-bundle-sync-guard";
-import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
+import {
+  mergeOperationalNotesAuditLog,
+  getOperationalNotesAuditLogLocal,
+  persistOperationalNotesAuditLogLocal,
+} from "@/lib/operational-notes-audit";
 import {
   SECURITY_AUDIT_LOG_KEY,
   SECURITY_AUDIT_LOG_CHANGED_EVENT,
-  normalizeSecurityAuditLog,
+  getSecurityAuditLogLocal,
   recordSecurityAudit,
   type RecordSecurityAuditInput,
   type SecurityAuditEntry,
 } from "@/lib/security-audit-log";
 import {
-  WM_DRUK_AUDIT_LOG_KEY,
-  normalizeWmDrukAuditLog,
+  getWmDrukAuditLogLocal,
   recordWmDrukAudit,
   type RecordWmDrukAuditInput,
   type WmDrukAuditEntry,
 } from "@/lib/wm-druk-audit";
+import { writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
+
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -257,29 +262,32 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     "kw-operational-notes-read-state",
     [],
   );
-  const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useLocalStorage<OperationalNoteAuditEntry[]>(
-    "kw-operational-notes-audit-log",
-    [],
+  const [operationalNotesAuditLog, setOperationalNotesAuditLogRaw] = useState<OperationalNoteAuditEntry[]>(
+    () => getOperationalNotesAuditLogLocal(),
   );
-  const [securityAuditLog, setSecurityAuditLog] = useLocalStorage<SecurityAuditEntry[]>(
-    SECURITY_AUDIT_LOG_KEY,
-    [],
+  const setOperationalNotesAuditLog = useCallback((
+    update: OperationalNoteAuditEntry[] | ((prev: OperationalNoteAuditEntry[]) => OperationalNoteAuditEntry[]),
+  ) => {
+    setOperationalNotesAuditLogRaw((prev) => {
+      const next = typeof update === "function" ? update(prev) : update;
+      persistOperationalNotesAuditLogLocal(next, "App.setOperationalNotesAuditLog");
+      return next;
+    });
+  }, []);
+  const [securityAuditLog, setSecurityAuditLog] = useState<SecurityAuditEntry[]>(
+    () => getSecurityAuditLogLocal(),
   );
-  const [wmDrukAuditLog, setWmDrukAuditLog] = useLocalStorage<WmDrukAuditEntry[]>(
-    WM_DRUK_AUDIT_LOG_KEY,
-    [],
+  const [wmDrukAuditLog, setWmDrukAuditLog] = useState<WmDrukAuditEntry[]>(
+    () => getWmDrukAuditLogLocal(),
   );
 
   useEffect(() => {
     const refreshSecurityAuditLogFromLocal = () => {
-      try {
-        const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
-        setSecurityAuditLog(normalizeSecurityAuditLog(raw ? JSON.parse(raw) : []));
-      } catch { /* ignore */ }
+      setSecurityAuditLog(getSecurityAuditLogLocal());
     };
     window.addEventListener(SECURITY_AUDIT_LOG_CHANGED_EVENT, refreshSecurityAuditLogFromLocal);
     return () => window.removeEventListener(SECURITY_AUDIT_LOG_CHANGED_EVENT, refreshSecurityAuditLogFromLocal);
-  }, [setSecurityAuditLog]);
+  }, []);
 
   const [wmPrintTemplates, setWmPrintTemplates] = useLocalStorage<WmPrintTemplate[]>("kw-wm-print-templates", []);
   const [wmPrintJobDocs, setWmPrintJobDocs] = useLocalStorage<WmPrintJobDocument[]>("kw-wm-print-job-docs", []);
@@ -682,13 +690,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       actorUserId: input.actorUserId ?? adminSession?.id,
     })
       .then(() => {
-        try {
-          const raw = localStorage.getItem(WM_DRUK_AUDIT_LOG_KEY);
-          if (raw) setWmDrukAuditLog(normalizeWmDrukAuditLog(JSON.parse(raw)));
-        } catch { /* ignore */ }
+        setWmDrukAuditLog(getWmDrukAuditLogLocal());
       })
       .catch(() => {});
-  }, [adminSession, setWmDrukAuditLog]);
+  }, [adminSession]);
 
   const auditRestoreBackup = useCallback((
     phase: "started" | "completed" | "failed",
@@ -792,13 +797,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const refreshAuditHubAuxFromCloud = useCallback(async () => {
     try {
       const securityLog = await pullSecurityAuditLogFromCloud();
+      writeAuditRingLocal(
+        SECURITY_AUDIT_LOG_KEY,
+        "audit-ring:kw-security-audit-log",
+        securityLog,
+        "App.refreshAuditHubAux.security",
+      );
       setSecurityAuditLog(securityLog);
     } catch { /* offline */ }
     try {
       const wmDrukLog = await pullWmDrukAuditLogFromCloud();
+      writeAuditRingLocal(
+        "kw-wm-druk-audit-log",
+        "audit-ring:kw-wm-druk-audit-log",
+        wmDrukLog,
+        "App.refreshAuditHubAux.wm",
+      );
       setWmDrukAuditLog(wmDrukLog);
     } catch { /* offline */ }
-  }, [setSecurityAuditLog, setWmDrukAuditLog]);
+  }, []);
 
   const pullFromCloudAndMerge = useCallback(async () => {
     logJobsPhotosLiveTrace({
