@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-13 (**PAYROLL-DISPLAY-UNLOCK-TRACE-02** · prod **2.65.19** @ `c1e76ca`) · **main** `c1e76ca`
+**Ostatnia aktualizacja:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** · prod **2.65.28** @ `d896852`) · **main** `d896852`
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,15 +9,19 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod** | UI **2.65.19** @ `c1e76ca` · **PRODUCTION VERIFIED** |
-| **main HEAD** | **`c1e76ca`** (PAYROLL-DISPLAY-UNLOCK-TRACE-02) |
-| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · instrumentacja photos trace (opcjonalny cleanup) |
+| **Baseline prod** | UI **2.65.28** @ `d896852` · **PRODUCTION VERIFIED** |
+| **main HEAD** | **`d896852`** (LOCALSTORAGE-ARCH-02 A–E) |
+| **WIP lokalny (nie prod)** | **TWSL** **2.63.91** · unrelated WIP |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **OPEN (Owner)** | **PAYROLL-DISPLAY-UNLOCK** — runtime dump `__WG_PAYROLL_DISPLAY_TRACE__.download()` |
-| **Ostatnio zamknięte (prod)** | **PAYROLL-BOOTSTRAP-RACE-FIX-01** (**2.65.18**) · **PAYROLL-ANTI-LEAK-FIX-01** (**2.65.14**) · **JOBS-SYNC-FIX-01** (**2.65.13**) |
-| **Co dalej?** | Owner repro + dump → ostateczny RCA A/B · **STABILIZATION WINDOW** — **bez fixa** bez Owner GO |
+| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** — **GO YES** · czeka jawne **IMPLEMENT** |
+| **Ostatnio zamknięte (prod)** | **LOCALSTORAGE-ARCH-02 A–E** (**2.65.28**) · **PAYROLL-P0-FIX-01** (**2.65.27**) · **PAYROLL-BOOTSTRAP-RACE-FIX-01** (**2.65.18**) |
+| **Co dalej?** | IMPLEMENT F tylko na polecenie · **STABILIZATION WINDOW** — zero CloudLoader facade / merge bez GO |
 
-> **PAYROLL-DISPLAY-UNLOCK OPEN:** UI **2.65.19** @ **`c1e76ca`** · trace `findFirstDisplayUnlock()` na prod · **czeka Owner dump** · SSOT kontekst [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §2 sesja 2026-07-13
+> **LOCALSTORAGE-ARCH-02 A–E CLOSED:** UI **2.65.28** @ **`d896852`** · observation **PASS** · F **GO** / not started · SSOT [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md)
+
+> **PAYROLL-P0-FIX-01 CLOSED:** UI **2.65.27** @ **`1c41b61`** · QuotaExceeded ≠ bootstrap FAILED
+
+> **PAYROLL-DISPLAY-UNLOCK:** hist. **2.65.19** TRACE-02 · Owner **Payroll FIX VERIFIED** przy ARCH-02 observation (quota root) · bez nowego diga bez polecenia
 
 > **PAYROLL-BOOTSTRAP-RACE-FIX-01 CLOSED:** UI **2.65.18** @ **`47de89b`** · **PRODUCTION VERIFIED** · CloudLoader bootstrapPhase gate · DF [`docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md)
 
@@ -40,20 +44,41 @@
 
 ---
 
-## PAYROLL-DISPLAY-UNLOCK — pusta tabela LP po F5 · **RCA OPEN** (czeka Owner runtime dump)
+## LOCALSTORAGE-ARCH-02 A–E — IDB cold + telemetry · **CLOSED** · **PRODUCTION VERIFIED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RCA OPEN** · instrumentacja **DEPLOYED** · **bez fixa** |
-| **Prod** | **2.65.19** @ **`c1e76ca`** · **PRODUCTION VERIFIED** |
-| **Objaw** | Topbar roster=14, KPI OK, tabela pusta ~60–120 s, potem sama się pojawia |
-| **Gate** | `displayEmployees` w `PayrollView` ← `resolvePayrollDisplayEmployees()` |
-| **Trace** | `__WG_PAYROLL_DISPLAY_TRACE__.enable()` · `findFirstDisplayUnlock()` · `download()` |
-| **Test** | `npx vite-node scripts/test-payroll-display-unlock-trace-02.mjs` |
-| **Owner** | Jeden przebieg → JSON z `firstDisplayUnlock` na górze pliku |
-| **RCA z dumpu** | `closed_week_archive_snapshot` → **A** (`savedWeeks`) · `operational_week_live_roster` → **B** (`weekFrom`/`weekTo`) |
+| **Status** | **CLOSED** · observation **PASS** · **PRODUCTION VERIFIED** |
+| **Prod** | **2.65.28** @ **`d896852`** |
+| **Zakres** | A0 `__WG_STORAGE__` · A/B snaps IDB · C pipeline lean+cold · D WM writer+cold · E audit rings IDB |
+| **Poza zakresem** | F facade · CloudLoader · cloud merge · Payroll logic |
+| **DF** | [`docs/architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](docs/architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md) |
+| **Post-release** | [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md) |
+| **Test** | `npx vite-node scripts/test-localstorage-arch-02-ae.mjs` |
+| **Etap F** | **GO YES** · **NOT STARTED** · tylko jawne IMPLEMENT |
 
-**Nie implementuj fixa** bez jednoznacznego dumpu + Owner GO (#CORE-013).
+---
+
+## PAYROLL-P0-FIX-01 — QuotaExceeded ≠ bootstrap FAILED · **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **Prod** | **2.65.27** @ **`1c41b61`** |
+| **Fix** | safe LS writes · SUCCESS = fetch+merge · payroll-first persist · in-memory handoff |
+| **Test** | `scripts/test-payroll-p0-fix-01-storage.mjs` |
+
+---
+
+## PAYROLL-DISPLAY-UNLOCK — hist. delay tabeli LP · **CLOSED jako quota incident** (Owner FIX VERIFIED 2026-07-14)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **Owner: Payroll FIX VERIFIED** przy ARCH-02 · root = LS quota / bootstrap FAILED (nie display gate) |
+| **Hist. prod** | TRACE-02 **2.65.19** @ `c1e76ca` |
+| **Trace** | `__WG_PAYROLL_DISPLAY_TRACE__` — opcjonalny dig, nie priorytet |
+
+**Nie** otwieraj nowego fixa display bez świeżego Owner repro.
 
 ---
 

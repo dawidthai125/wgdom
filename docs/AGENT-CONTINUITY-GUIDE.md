@@ -1,10 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.19** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-13 (domknięcie sesji **PAYROLL-DISPLAY-UNLOCK** RCA + TRACE-02) · prod **2.65.19** @ **`c1e76ca`** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.28** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
+> **Ostatnia aktualizacja:** 2026-07-14 (domknięcie **LOCALSTORAGE-ARCH-02 A–E** + observation PASS · F **GO** / not started) · prod **2.65.28** @ **`d896852`** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Domknięcie sesji (2026-07-13):** **PAYROLL-DISPLAY-UNLOCK** — forensic RCA (kod) wykluczył bootstrap/merge/anti-leak/leaves; gate tabeli LP = `resolvePayrollDisplayEmployees` (`displayEmployees`); **runtime proof OPEN** — Owner musi dostarczyć `__WG_PAYROLL_DISPLAY_TRACE__.download()` po repro · instrumentacja **TRACE-02** na prod (**2.65.19**).
+> **★ Domknięcie sesji (2026-07-14):** **LOCALSTORAGE-ARCH-02 A–E** **CLOSED** · **`d896852`** · **2.65.28** — IDB cold (snapshots / jobs / pipeline lean / WM / audit rings) + `window.__WG_STORAGE__` · Owner observation **PASS** (quota STABLE · storage UNDER LIMIT · Payroll FIX VERIFIED · regression NONE) · **Etap F GO YES** · **NIE START** bez jawnego IMPLEMENT · SSOT [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md) · DF [`architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md).
+
+> **★ Domknięcie sesji (2026-07-14):** **PAYROLL-P0-FIX-01** **CLOSED** · **`1c41b61`** · **2.65.27** — `QuotaExceededError` na LS **nie** otwiera bootstrap FAILED · payroll-first persist + in-memory handoff.
+
+> **★ Domknięcie sesji (2026-07-13):** **PAYROLL-DISPLAY-UNLOCK** — forensic RCA (kod) wykluczył bootstrap/merge/anti-leak/leaves; gate tabeli LP = `resolvePayrollDisplayEmployees` (`displayEmployees`); **runtime proof** — w praktyce supersedowane / częściowo rozwiązane przez FIX-01 + ARCH-02 (Owner: Payroll FIX VERIFIED); TRACE-02 nadal w kodzie przy potrzebie diga.
 
 > **★ Domknięcie sesji (2026-07-13):** **PAYROLL-BOOTSTRAP-RACE-FIX-01** **CLOSED** · **`47de89b`** · **2.65.18** — CloudLoader `bootstrapPhase` gate (CORE persist przed mount App).
 
@@ -83,18 +87,18 @@
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.19** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit (app)** | **`c1e76ca`** · PAYROLL-DISPLAY-UNLOCK-TRACE-02 |
-| **main HEAD** | **`c1e76ca`** · app = prod |
+| **Production (UI)** | **2.65.28** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit (app)** | **`d896852`** · LOCALSTORAGE-ARCH-02 A–E |
+| **main HEAD** | **`d896852`** · app = prod |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
-| **Incident register** | **CLEAN** — Incident A (iOS login) + B (batch-set) **CLOSED** · P0 Payroll **FULLY CLOSED** |
-| **Ostatnio CLOSED** | **PAYROLL-BOOTSTRAP-RACE-FIX-01** · **PAYROLL-ANTI-LEAK-FIX-01** · **JOBS-SYNC-FIX-01** |
-| **OPEN (Owner)** | **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP ~60–120 s po Ctrl+Shift+R · **runtime RCA czeka na dump** |
+| **Incident register** | **CLEAN** — Incident A + B **CLOSED** · quota LP surface **FIX-01 + ARCH-02** |
+| **Ostatnio CLOSED** | **LOCALSTORAGE-ARCH-02 A–E** · **PAYROLL-P0-FIX-01** · **PAYROLL-BOOTSTRAP-RACE-FIX-01** |
+| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** — **GO YES** · czeka jawne **IMPLEMENT** (nie startuj sam) |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **WIP lokalny** | **JOBS-PHOTOS-P0** live trace · **TWSL** **2.63.91** |
-| **Następny krok** | Owner: `__WG_PAYROLL_DISPLAY_TRACE__.enable()` → repro → `download()` → ostateczny RCA A/B · **bez fixa** bez Owner GO |
+| **WIP lokalny** | **TWSL** **2.63.91** · unrelated docs/WIP |
+| **Następny krok** | IMPLEMENT **ARCH-02F** tylko po poleceniu Owner · **STABILIZATION WINDOW** · zero merge/Payroll bez GO |
 
 ### Czym jest aplikacja
 
@@ -106,7 +110,10 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
-| **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP mimo roster=14 | **RCA OPEN** · czeka Owner dump | prod **2.65.19** · trace `findFirstDisplayUnlock()` |
+| **LOCALSTORAGE-ARCH-02 A–E** — IDB cold + `__WG_STORAGE__` | **CLOSED** · observation **PASS** | **2.65.28** @ `d896852` |
+| **LOCALSTORAGE-ARCH-02F** — platform facade | **GO** · **NOT STARTED** | czeka IMPLEMENT |
+| **PAYROLL-P0-FIX-01** — QuotaExceeded ≠ bootstrap FAILED | **CLOSED** | **2.65.27** @ `1c41b61` |
+| **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP mimo roster=14 | **superseded / Owner FIX VERIFIED** (quota root) · TRACE opcjonalny | hist. **2.65.19** |
 | **PAYROLL-BOOTSTRAP-RACE-FIX-01** — F5 bootstrap gate | **CLOSED** | **2.65.18** @ `47de89b` |
 | **PAYROLL-ANTI-LEAK-FIX-01** — same-week SSOT guard | **CLOSED** | **2.65.14** @ `26f3eb5` |
 | **JOBS-SYNC-FIX-01** — write-first admin bundle | **CLOSED** | **2.65.13** @ `309609e` |
@@ -213,7 +220,19 @@ Hasło **„domknij WGDOM”** → aktualizacja docs ciągłości + commit **tyl
 
 ---
 
-## 2. Co zrobiliśmy (stan na 2026-07-13)
+## 2. Co zrobiliśmy (stan na 2026-07-14)
+
+### Sesja 2026-07-14 — LOCALSTORAGE-ARCH-02 A–E + observation PASS
+
+| | |
+|--|--|
+| **Prod** | **2.65.28** @ **`d896852`** |
+| **A–E** | IDB cold + `__WG_STORAGE__` · **CLOSED** · Owner observation **PASS** |
+| **FIX-01** | **2.65.27** @ `1c41b61` — QuotaExceeded ≠ FAILED |
+| **F** | **GO YES** · **NOT STARTED** |
+| **SSOT** | [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md) |
+
+### Sesja 2026-07-13 (hist.) — PAYROLL-DISPLAY-UNLOCK TRACE-02
 
 ### ★ Sesja 2026-07-13 — PAYROLL-DISPLAY-UNLOCK (**RCA OPEN · czeka Owner runtime dump**)
 

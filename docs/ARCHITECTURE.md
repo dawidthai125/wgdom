@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-12 (**JOBS-PHOTOS-DELETE-SYNC-01** · **2.65.10** · `deletedPhotoTombstones` + `mergePhotos(..., tombstones)`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** · **2.65.28** · IDB cold path + `__WG_STORAGE__` · F not started)
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -84,7 +84,7 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Style | Tailwind CSS 4, `src/styles/mobile.css` |
 | Komponenty UI | shadcn/Radix (`src/app/components/ui/`) |
 | Routing | **Brak react-router** — nawigacja przez stan React w `App.tsx` |
-| Dane lokalne | `localStorage` + merge timestampów |
+| Dane lokalne | Hot: `localStorage` (`kw-*`) · Cold: IndexedDB `wgdom-storage-v1` (ARCH-02 A–E) · telemetry `window.__WG_STORAGE__` |
 | Chmura | Supabase Edge Function (Hono) + KV store + Storage |
 | Hosting UI | Vercel (SPA, auto-deploy z `main`) |
 | PWA | `scripts/sw.template.js` → `dist/sw.js`, `manifest.webmanifest` |
@@ -127,6 +127,11 @@ flowchart TB
   client <-->|read/write + merge| LS
 ```
 
+### 3.0a LOCALSTORAGE-ARCH-02 (A–E CLOSED · 2.65.28)
+
+Hot path = lean `localStorage`. Cold blobs (snapshot bundles, jobs snaps, pipeline body, WM templates/docs/history, audit rings) → IndexedDB via `src/lib/storage/*`. DevTools: `window.__WG_STORAGE__` (`report` / `largest` / `budget` / `writers` / `history`). **Etap F** (global StorageManager / `useLocalStorage` facade) — **GO**, nie shipped. SSOT: [`architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md) · post-release [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md).
+
+**Zakaz bez Owner GO:** zmiana merge / CloudLoader phase machine / Payroll w ramach F.
 ### 3.1 Domeny produktu (admin) — P1 baseline v2.51.x
 
 ```text
