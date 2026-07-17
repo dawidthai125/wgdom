@@ -24,6 +24,8 @@ import {
 } from "@/lib/tenders-admin";
 import { listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
+import { useTheme } from "@/app/theme/WgdomThemeProvider";
+import type { WgThemeId } from "@/app/theme/theme-engine";
 
 export interface AdminBackupTools {
   exportBackup: () => void;
@@ -72,6 +74,8 @@ export function AdminSettingsModal({
   const [addBusy, setAddBusy] = useState(false);
   const [addMsg, setAddMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [phoneDrafts, setPhoneDrafts] = useState<Record<string, string>>({});
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const activeTheme = (resolvedTheme ?? theme ?? "dark") as WgThemeId;
 
   useEffect(() => {
     setDrafts((prev) => {
@@ -228,6 +232,32 @@ export function AdminSettingsModal({
           <p className="text-xs text-muted-foreground leading-relaxed">
             Tylko Super Administrator. Hasła i role synchronizowane w chmurze — obowiązują na telefonie i komputerze.
           </p>
+
+          <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Wygląd aplikacji
+            </p>
+            <p className="text-sm font-medium">Motyw</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Domyślnie ciemny (jak dotychczas). Jasny motyw zapisuje się tylko na tym urządzeniu (localStorage).
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={`flex-1 min-h-[44px] rounded-xl border text-sm font-medium transition-colors ${activeTheme === "dark" ? "bg-primary/15 border-primary/40 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+              >
+                Ciemny
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={`flex-1 min-h-[44px] rounded-xl border text-sm font-medium transition-colors ${activeTheme === "light" ? "bg-primary/15 border-primary/40 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
+              >
+                Jasny
+              </button>
+            </div>
+          </div>
 
           <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">

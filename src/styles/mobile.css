@@ -51,9 +51,13 @@
   }
 }
 
-/* Sidebar scroll — dark theme, cienki (v2.57.3) */
+/* Sidebar scroll — theme-aware (THEME-01C) */
 .admin-sidebar-scroll {
   scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.16) transparent;
+}
+
+.dark .admin-sidebar-scroll {
   scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
 
@@ -66,11 +70,19 @@
 }
 
 .admin-sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.14);
   border-radius: 9999px;
 }
 
+.dark .admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.dark .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.22);
 }
 

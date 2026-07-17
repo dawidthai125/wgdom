@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** · **2.65.28** · IDB cold path + `__WG_STORAGE__` · F not started)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-15 (**THEME-01C** atomic migration · **2.65.30** · :root Light · .dark prod) · **THEME-01B** · **2.65.29**
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -81,7 +81,8 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Warstwa | Technologia |
 |---------|-------------|
 | UI | React 18, TypeScript, Vite 6 |
-| Style | Tailwind CSS 4, `src/styles/mobile.css` |
+| Style | Tailwind CSS 4, `src/styles/theme.css`, `src/styles/mobile.css` |
+| Motyw UI | **THEME-01C** · `next-themes` standard · SSOT `src/app/theme/theme-engine.ts` · pref `localStorage` `wg-theme` · **UI-only** |
 | Komponenty UI | shadcn/Radix (`src/app/components/ui/`) |
 | Routing | **Brak react-router** — nawigacja przez stan React w `App.tsx` |
 | Dane lokalne | Hot: `localStorage` (`kw-*`) · Cold: IndexedDB `wgdom-storage-v1` (ARCH-02 A–E) · telemetry `window.__WG_STORAGE__` |
@@ -91,6 +92,22 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Native | Capacitor (Android/iOS) — WebView → www.wgdom.fun |
 | Testy E2E | Playwright (`e2e/`) |
 | PDF | pdfmake (lazy load), docx (dynamic import) |
+
+### 2.1 Motyw aplikacji (THEME-01 · od 2.65.30)
+
+| Element | SSOT |
+|---------|------|
+| Provider | `WgdomThemeProvider` w `src/main.tsx` — standard `next-themes` (`attribute="class"`) |
+| Engine | `src/app/theme/theme-engine.ts` |
+| Tokeny CSS | `src/styles/theme.css` — **`:root` = Light** · **`.dark` = Production Dark** (#THEME-020 · #THEME-012) |
+| Pref | `localStorage` `wg-theme` — wartości `dark` \| `light` · **bez KV** (#THEME-015) |
+| Domyślny | `dark` · System wyłączony do v1.1 |
+| UI toggle | ⚙ Super Admin → sekcja „Wygląd aplikacji” (`AdminSettingsModal.tsx`) |
+| Toaster | `App.tsx` import z `@/app/components/ui/sonner` (theme-aware) |
+
+**Model (#THEME-020 CLOSED w 01C):** `theme=dark` → `class="dark"` · `theme=light` → brak klasy → `:root`. **Zakaz** `.light`, aliasów 01B, `value={{ dark: "", light: "light" }}`.
+
+Design freeze: [`architecture/THEME-01-DESIGN-FREEZE.md`](architecture/THEME-01-DESIGN-FREEZE.md) · closeout C: [`architecture/THEME-01C-CLOSEOUT.md`](architecture/THEME-01C-CLOSEOUT.md) · closeout B: [`architecture/THEME-01B-CLOSEOUT.md`](architecture/THEME-01B-CLOSEOUT.md).
 
 ---
 

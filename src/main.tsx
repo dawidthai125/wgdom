@@ -21,6 +21,7 @@ import { initModalScrollLock } from "./lib/modal-scroll-lock";
 import { initAppViewport } from "./lib/app-viewport";
 import { initDeepLinks } from "./lib/deep-link";
 import { AppUpdateBanner } from "./app/AppUpdateBanner";
+import { WgdomThemeProvider } from "./app/theme/WgdomThemeProvider";
 
 registerServiceWorker();
 void initNativeShell();
@@ -30,11 +31,13 @@ initAppViewport();
 initDeepLinks();
 
 createRoot(document.getElementById("root")!).render(
-  <>
-    <AppUpdateBanner />
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-    {!isNativeApp() && <Analytics />}
-  </>,
+  <WgdomThemeProvider>
+    <>
+      <AppUpdateBanner />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+      {!isNativeApp() && <Analytics />}
+    </>
+  </WgdomThemeProvider>,
 );

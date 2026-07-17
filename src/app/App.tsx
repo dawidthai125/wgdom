@@ -178,7 +178,8 @@ import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { reconcileModalScrollLock, useModalScrollLock } from "@/lib/modal-scroll-lock";
-import { Toaster, toast } from "sonner";
+import { Toaster } from "@/app/components/ui/sonner";
+import { toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
 import {

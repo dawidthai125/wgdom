@@ -16,6 +16,10 @@
       <link rel="manifest" href="/manifest.webmanifest" />
       <link rel="dns-prefetch" href="https://bdpygdvfgbggermvqtys.supabase.co" />
       <link rel="preconnect" href="https://bdpygdvfgbggermvqtys.supabase.co" crossorigin />
+      <!-- THEME-01C — FOUC guard (SSOT: src/app/theme/theme-engine.ts) -->
+      <script>
+        (function(){try{var k="wg-theme";var t=localStorage.getItem(k);if(t!=="light"){document.documentElement.classList.add("dark");}}catch(e){}})();
+      </script>
       <style>
         html, body { height: var(--app-height, 100dvh); max-height: var(--app-height, 100dvh); margin: 0; overflow: hidden; }
         #root { height: var(--app-height, 100dvh); max-height: var(--app-height, 100dvh); min-height: 0; }

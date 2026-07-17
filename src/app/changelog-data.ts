@@ -11,6 +11,28 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-15",
+    version: "2.65.30",
+    label: "THEME-01C — Atomic theme migration (Light/Dark standard)",
+    items: [
+      {
+        type: "improve",
+        text: "Motyw aplikacji — :root = jasny, .dark = dotychczasowy ciemny prod. Standard next-themes/Tailwind/shadcn. Przełącznik Ciemny/Jasny w ⚙ Super Admin. Domyślnie ciemny — bez regresji wyglądu.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-15",
+    version: "2.65.29",
+    label: "THEME-01B — Theme foundation (dark parity)",
+    items: [
+      {
+        type: "improve",
+        text: "Motyw aplikacji — fundament next-themes (WgdomThemeProvider, wg-theme localStorage, FOUC guard). Domyślnie ciemny jak dotychczas; brak zmian wyglądu prod. Light palette — kolejny etap.",
+      },
+    ],
+  },
+  {
     date: "2026-07-14",
     version: "2.65.28",
     label: "LOCALSTORAGE-ARCH-02 A–E — cold store + telemetry",

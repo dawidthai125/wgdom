@@ -1,5 +1,19 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.30 — THEME-01C Atomic theme migration
+
+- **improve:** `:root` = Light · `.dark` = Production Dark (2.65.28 parity) · standard next-themes/Tailwind/shadcn
+- **improve:** Przełącznik Ciemny/Jasny w ⚙ Super Admin · `App.tsx` Toaster z `ui/sonner`
+- **bez** Payroll / CloudLoader / sync / IndexedDB / Edge
+- **test:** `npx vite-node scripts/test-theme-01c-atomic-migration.mjs`
+
+## 2.65.29 — THEME-01B Theme foundation
+
+- **improve:** `WgdomThemeProvider` (next-themes) · `wg-theme` localStorage · FOUC guard w `index.html`
+- **improve:** Theme Engine SSOT `src/app/theme/theme-engine.ts` — dark = `:root` bez klasy `.dark` (dark parity prod)
+- **bez** zmian widoków / Payroll / CloudLoader / sync · App.tsx nietknięty
+- **test:** `npx vite-node scripts/test-theme-01b-foundation.mjs`
+
 ## 2.65.28 — LOCALSTORAGE-ARCH-02 A–E
 
 - **improve:** snapshot bundles / jobs snaps → IndexedDB; pipeline lean + cold; WM cold single-writer; audit rings IDB
