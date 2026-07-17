@@ -126,7 +126,7 @@ import {
   calcWeekEmployee, workItemHasContent, roomHasContent, jobAddressKey, roomDisplayName,
   duplicateWorkEntry, payrollHoursForDirectoryOnDate, DEFAULT_MULTI_SITE_VISIT_HOURS,
   jobActiveWorkerCountOnDate,
-  PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection, filterProductionActiveDirectory, MONTH_NAMES,
+  PHOTO_LABEL_ORDER, getAppPhotoLabelSection, filterProductionActiveDirectory, MONTH_NAMES,
 } from "@/app/app-domain";
 import {
   type RecoverableCharge,
