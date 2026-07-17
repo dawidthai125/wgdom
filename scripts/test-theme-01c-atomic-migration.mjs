@@ -77,4 +77,9 @@ for (const token of prodDarkTokens) {
   assert(`.dark contains ${token}`, darkBlock.includes(token));
 }
 
+const topbarTsx = read("src/app/admin/AdminTopbar.tsx");
+assert("AdminTopbar uses useTheme from WgdomThemeProvider", topbarTsx.includes('from "@/app/theme/WgdomThemeProvider"') && topbarTsx.includes("useTheme"));
+assert("AdminTopbar theme toggle Moon/Sun", topbarTsx.includes("Moon") && topbarTsx.includes("Sun"));
+assert("AdminTopbar no direct next-themes import", !topbarTsx.includes('from "next-themes"'));
+
 console.log("\nTHEME-01C atomic migration smoke: ALL PASS");

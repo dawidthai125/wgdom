@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.31 — THEME-01D.1 TopBar theme toggle
+
+- **improve:** Szybki przełącznik motywu w `AdminTopbar` (Moon/Sun) — obok Hymnów, `≥sm`
+- **improve:** Ten sam `useTheme` / `wg-theme` co ⚙ Ustawienia — bez nowego storage
+- **bez** zmian theme.css / FOUC / Dark Parity / Protected Core
+- **test:** `e2e/theme-01c-local-verify.spec.ts` (test 10 topbar toggle)
+
 ## 2.65.30 — THEME-01C Atomic theme migration
 
 - **improve:** `:root` = Light · `.dark` = Production Dark (2.65.28 parity) · standard next-themes/Tailwind/shadcn

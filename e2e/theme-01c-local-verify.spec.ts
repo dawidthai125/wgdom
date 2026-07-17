@@ -319,4 +319,39 @@ test.describe("THEME-01C localhost verification", () => {
     expect(result.hasDark).toBe(true);
     expect(rgbClose(result.bg, "rgb(17, 24, 39)")).toBe(true);
   });
+
+  test("10 — topbar theme toggle + persistence", async ({ page }) => {
+    await gotoLoginPick(page);
+    await loginAdmin(page);
+
+    const topbarToggle = page.getByRole("button", { name: "Przełącz na jasny motyw" });
+    await expect(topbarToggle).toBeVisible({ timeout: 10_000 });
+
+    await topbarToggle.click();
+    await page.waitForTimeout(400);
+    let sample = await readThemeSample(page);
+    expect(sample.wgTheme).toBe("light");
+    expect(sample.htmlClass).not.toContain("dark");
+    await expect(page.getByRole("button", { name: "Przełącz na ciemny motyw" })).toBeVisible();
+    await page.screenshot({ path: `${OUT_DIR}/10-topbar-light.png`, fullPage: true });
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Pulpit", level: 1 })).toBeVisible({ timeout: 90_000 });
+    sample = await readThemeSample(page);
+    expect(sample.wgTheme).toBe("light");
+    expect(sample.htmlClass).not.toContain("dark");
+
+    await page.getByRole("button", { name: "Przełącz na ciemny motyw" }).click();
+    await page.waitForTimeout(400);
+    sample = await readThemeSample(page);
+    expect(sample.wgTheme).toBe("dark");
+    expect(sample.htmlClass).toContain("dark");
+    await page.screenshot({ path: `${OUT_DIR}/10-topbar-dark-restored.png`, fullPage: true });
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Pulpit", level: 1 })).toBeVisible({ timeout: 90_000 });
+    sample = await readThemeSample(page);
+    expect(sample.wgTheme).toBe("dark");
+    expect(sample.htmlClass).toContain("dark");
+  });
 });

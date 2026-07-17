@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-17",
+    version: "2.65.31",
+    label: "THEME-01D.1 — TopBar theme toggle",
+    items: [
+      {
+        type: "improve",
+        text: "Motyw aplikacji — szybki przełącznik Ciemny/Jasny w górnym pasku (obok Hymnów). Ten sam motyw co w ⚙ Ustawienia. Widoczny na tablecie i desktopie.",
+      },
+    ],
+  },
+  {
     date: "2026-07-15",
     version: "2.65.30",
     label: "THEME-01C — Atomic theme migration (Light/Dark standard)",

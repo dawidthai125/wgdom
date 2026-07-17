@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-15 (**THEME-01C** atomic migration · **2.65.30** · :root Light · .dark prod) · **THEME-01B** · **2.65.29**
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-17 (**THEME-01D.1** topbar toggle · **2.65.31**) · **THEME-01C** · **2.65.30**
 > **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -102,7 +102,7 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Tokeny CSS | `src/styles/theme.css` — **`:root` = Light** · **`.dark` = Production Dark** (#THEME-020 · #THEME-012) |
 | Pref | `localStorage` `wg-theme` — wartości `dark` \| `light` · **bez KV** (#THEME-015) |
 | Domyślny | `dark` · System wyłączony do v1.1 |
-| UI toggle | ⚙ Super Admin → sekcja „Wygląd aplikacji” (`AdminSettingsModal.tsx`) |
+| UI toggle | TopBar `AdminTopbar` (Moon/Sun, `≥sm`, wszyscy admini) · ⚙ Super Admin → „Wygląd aplikacji” (`AdminSettingsModal.tsx`) |
 | Toaster | `App.tsx` import z `@/app/components/ui/sonner` (theme-aware) |
 
 **Model (#THEME-020 CLOSED w 01C):** `theme=dark` → `class="dark"` · `theme=light` → brak klasy → `:root`. **Zakaz** `.light`, aliasów 01B, `value={{ dark: "", light: "light" }}`.
