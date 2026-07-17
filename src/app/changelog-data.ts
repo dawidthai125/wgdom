@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-17",
+    version: "2.65.32",
+    label: "TENDER-P0.1 — Active Catalog Classifier SSOT",
+    items: [
+      {
+        type: "fix",
+        text: "Wycena katalogowa — klasyfikacja pozycji przedmiaru używa keywords z aktywnej Biblioteki Robót (ten sam katalog co stawki), a nie stałego seeda. Pure pass-through parametru — bez zmiany Payroll/Cloud/Jobs.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-17",
     version: "2.65.31",
     label: "THEME-01D.1 — TopBar theme toggle",
     items: [

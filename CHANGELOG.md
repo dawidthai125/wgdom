@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.32 — TENDER-P0.1 Active Catalog Classifier SSOT
+
+- **fix:** `classifyAthLineCategory(desc, unit, catalog?)` — keywords z aktywnego `WgdomCostCatalog`
+- **fix:** `computeFromCatalogRow` przekazuje ten sam katalog do klasyfikacji i stawek
+- **bez** parsera PDF / phrase rules / user dict / Payroll / Cloud / Jobs
+- **test:** `npx vite-node scripts/test-tender-p0.1-active-catalog-classifier.mjs`
+
 ## 2.65.31 — THEME-01D.1 TopBar theme toggle
 
 - **improve:** Szybki przełącznik motywu w `AdminTopbar` (Moon/Sun) — obok Hymnów, `≥sm`

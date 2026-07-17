@@ -106,7 +106,8 @@ export function computeFromCatalogRow(
   overrideLookup: TenderPriceOverrideLookup | null = null,
 ): CatalogRowCost {
   const quantity = parseQty(row.quantity);
-  const category = classifyAthLineCategory(row.description, row.unit);
+  // TENDER-P0.1 — ten sam aktywny katalog do keywords (klasyfikacja) i stawek.
+  const category = classifyAthLineCategory(row.description, row.unit, catalog);
   const { rate, unit, usedFallback } = resolveRateForRow(catalog, category, row.unit);
 
   const flHourly = fullyLoadedHourly(costModel);

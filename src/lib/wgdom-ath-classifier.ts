@@ -2,7 +2,7 @@
  * P2-G.1A — klasyfikacja pozycji ATH → kategoria WGDOM Cost Catalog.
  */
 
-import type { WgdomCostCategoryId } from "@/lib/wgdom-cost-catalog";
+import type { WgdomCostCatalog, WgdomCostCategoryId } from "@/lib/wgdom-cost-catalog";
 import {
   defaultWgdomCostCatalog,
   getCatalogClassificationRules,
@@ -53,36 +53,42 @@ function unitCategoryHint(unit: string | undefined): WgdomCostCategoryId | null 
 
 /**
  * Klasyfikacja bez słownika branżowego P2-G.1F — do pomiaru coverageDelta.
+ * TENDER-P0.1 — opcjonalny `catalog` (SSOT keywords); default = seed.
  */
 export function classifyAthLineCategoryWithoutDictionary(
   description: string,
   unit?: string,
+  catalog?: WgdomCostCatalog,
 ): WgdomCostCategoryId {
-  return classifyAthLineCategoryInternal(description, unit, false);
+  return classifyAthLineCategoryInternal(description, unit, false, catalog);
 }
 
 /**
  * Klasyfikuje opis pozycji ATH do kategorii WGDOM.
- * Kolejność: katalog seed → user dict → phrase rules → słownik branżowy → STOLARKA.
+ * Kolejność: keywords katalogu → user dict → phrase rules → słownik branżowy → STOLARKA.
+ * TENDER-P0.1 — opcjonalny `catalog` (SSOT); bez argumentu = seed (kompatybilność).
+ * Pure — bez I/O / Context / Work Catalog store.
  */
 export function classifyAthLineCategory(
   description: string,
   unit?: string,
+  catalog?: WgdomCostCatalog,
 ): WgdomCostCategoryId {
-  return classifyAthLineCategoryInternal(description, unit, true);
+  return classifyAthLineCategoryInternal(description, unit, true, catalog);
 }
 
 function classifyAthLineCategoryInternal(
   description: string,
   unit: string | undefined,
   useDictionary: boolean,
+  catalog?: WgdomCostCatalog,
 ): WgdomCostCategoryId {
   ensureUserClassificationDictionaryCacheHydrated();
   const hay = foldPolishText(description || "");
   if (!hay.trim()) return "UNKNOWN";
 
   const unitHint = unitCategoryHint(unit);
-  const rules = getCatalogClassificationRules(defaultWgdomCostCatalog());
+  const rules = getCatalogClassificationRules(catalog ?? defaultWgdomCostCatalog());
 
   for (const rule of rules) {
     for (const kw of rule.keywords) {
