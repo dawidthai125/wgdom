@@ -55,11 +55,19 @@ export function bundleFingerprint(values: unknown[]): string {
 export interface SyncMetrics {
   batchGet: number;
   batchSet: number;
+  /** CLOUD-P0-DEADLOCK-N1 — ile razy batch-set był ponawiany (transient 40P01). */
+  batchSetRetries: number;
   pushSkipped: number;
   since: number;
 }
 
-let metrics: SyncMetrics = { batchGet: 0, batchSet: 0, pushSkipped: 0, since: Date.now() };
+let metrics: SyncMetrics = {
+  batchGet: 0,
+  batchSet: 0,
+  batchSetRetries: 0,
+  pushSkipped: 0,
+  since: Date.now(),
+};
 
 export function recordBatchGet(): void {
   metrics.batchGet += 1;
@@ -67,6 +75,11 @@ export function recordBatchGet(): void {
 
 export function recordBatchSet(): void {
   metrics.batchSet += 1;
+}
+
+/** CLOUD-P0-DEADLOCK-N1 — jeden retry po transient deadlock. */
+export function recordBatchSetRetry(): void {
+  metrics.batchSetRetries += 1;
 }
 
 /** AC4 — zliczaj pominięte pushe (brak zmian). */
@@ -79,5 +92,11 @@ export function getSyncMetrics(): SyncMetrics {
 }
 
 export function resetSyncMetrics(): void {
-  metrics = { batchGet: 0, batchSet: 0, pushSkipped: 0, since: Date.now() };
+  metrics = {
+    batchGet: 0,
+    batchSet: 0,
+    batchSetRetries: 0,
+    pushSkipped: 0,
+    since: Date.now(),
+  };
 }

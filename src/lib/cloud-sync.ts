@@ -91,7 +91,13 @@ import {
   refreshUserClassificationDictionaryCacheFromLocalStorage,
 } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
-import { recordBatchGet, recordBatchSet, bundleFingerprint } from "@/lib/cloud-sync-throttle";
+import { recordBatchGet, recordBatchSet, recordBatchSetRetry, bundleFingerprint } from "@/lib/cloud-sync-throttle";
+import {
+  BATCH_SET_MAX_ATTEMPTS,
+  delayBeforeBatchSetAttempt,
+  isTransientBatchSetError,
+  sleepMs,
+} from "@/lib/cloud-batch-set-retry";
 import {
   mergeSecurityAuditLog,
   normalizeSecurityAuditLog,
@@ -218,6 +224,13 @@ export const INSPECTOR_STATS_KEY = "kw-inspector-stats";
 export const APP_SETTINGS_KEY = "kw-app-settings";
 
 export { isSupabaseConfigured } from "@/config/supabase";
+
+/** CLOUD-P0-DEADLOCK-N1 — transient batch-set retry (pure helpers). */
+export {
+  isTransientBatchSetError,
+  BATCH_SET_TRANSIENT_RETRY_DELAYS_MS,
+  BATCH_SET_MAX_ATTEMPTS,
+} from "@/lib/cloud-batch-set-retry";
 
 export const API_BASE = supabaseFunctionsBase;
 
@@ -2799,75 +2812,120 @@ export async function pushKeysToCloud(
   const pushValues = guarded.values;
   const pushOptions = guarded.options;
   const safeValues = pushKeys.map((k, i) => sanitizeValueForCloud(k, pushValues[i]));
-  const httpRequestId = payrollTraceNextHttpRequestId();
-  const httpSeq = payrollTraceNextHttpSeq();
   const empIdx = pushKeys.indexOf("kw-week-employees");
   const { weekFrom, weekTo } = traceWeekRangeFromLs();
   const weekEmpPayload = empIdx >= 0
     ? rosterTraceSnapshot(normalizeArrayValue(safeValues[empIdx]), weekFrom, weekTo, "LS", "PRESENT")
     : undefined;
-  payrollTraceEmit("sync.http.batch_set.attempt", "HTTP_OUT", "info", {
+  const requestBody = JSON.stringify({
     keys: pushKeys,
+    values: safeValues,
+    replaceJobsKeys: pushOptions.replaceJobsKeys ?? [],
+    replaceDirectoryKeys: pushOptions.replaceDirectoryKeys ?? [],
     replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
-    skipPayrollGuard: pushOptions.skipPayrollGuard ?? false,
-    forceReplaceWeekEmployees: (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees"),
-    httpRequestId,
-    httpSeq,
-    weekEmpPayload,
   });
-  recordBatchSet(); // AC5 — production metrics
-  const t0 = Date.now();
-  const res = await fetch(`${API_BASE}/batch-set`, {
-    method: "POST",
-    headers: { ...API_HEADERS, "X-WGDOM-Trace-Id": httpRequestId },
-    body: JSON.stringify({
+  const keysCount = pushKeys.length;
+  const batchSizeBytes = requestBody.length;
+
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= BATCH_SET_MAX_ATTEMPTS; attempt++) {
+    const delayMs = delayBeforeBatchSetAttempt(attempt);
+    if (attempt > 1) {
+      recordBatchSetRetry();
+      payrollTraceEmit("sync.http.batch_set.retry", "HTTP_OUT", "warn", {
+        attempt,
+        delayMs,
+        keysCount,
+        batchSizeBytes,
+        retryCounter: attempt - 1,
+        keys: pushKeys,
+      });
+      await sleepMs(delayMs);
+    }
+
+    const httpRequestId = payrollTraceNextHttpRequestId();
+    const httpSeq = payrollTraceNextHttpSeq();
+    payrollTraceEmit("sync.http.batch_set.attempt", "HTTP_OUT", "info", {
       keys: pushKeys,
-      values: safeValues,
-      replaceJobsKeys: pushOptions.replaceJobsKeys ?? [],
-      replaceDirectoryKeys: pushOptions.replaceDirectoryKeys ?? [],
       replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
-    }),
-  });
-  const latencyMs = Date.now() - t0;
-  let edgeRequestId: string | undefined;
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    try {
-      const parsed = JSON.parse(errText) as { requestId?: string };
-      edgeRequestId = parsed.requestId;
-    } catch { /* ignore */ }
-    payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
+      skipPayrollGuard: pushOptions.skipPayrollGuard ?? false,
+      forceReplaceWeekEmployees: (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees"),
+      httpRequestId,
+      httpSeq,
+      weekEmpPayload,
+      attempt,
+      delayMs,
+      keysCount,
+      batchSizeBytes,
+      retryCounter: attempt - 1,
+    });
+    recordBatchSet(); // AC5 — production metrics (per HTTP)
+    const t0 = Date.now();
+    const res = await fetch(`${API_BASE}/batch-set`, {
+      method: "POST",
+      headers: { ...API_HEADERS, "X-WGDOM-Trace-Id": httpRequestId },
+      body: requestBody,
+    });
+    const latencyMs = Date.now() - t0;
+    let edgeRequestId: string | undefined;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      try {
+        const parsed = JSON.parse(errText) as { requestId?: string };
+        edgeRequestId = parsed.requestId;
+      } catch { /* ignore */ }
+      payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
+        httpStatus: res.status,
+        ok: false,
+        edgeRequestId,
+        latencyMs,
+        httpSeq,
+        httpRequestId,
+        attempt,
+        delayMs,
+        keysCount,
+        batchSizeBytes,
+        retryCounter: attempt - 1,
+        error: { message: errText.slice(0, 120) },
+      });
+      lastError = new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
+      if (
+        isTransientBatchSetError(res.status, errText) &&
+        attempt < BATCH_SET_MAX_ATTEMPTS
+      ) {
+        continue;
+      }
+      throw lastError;
+    }
+    payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
       httpStatus: res.status,
-      ok: false,
+      ok: true,
       edgeRequestId,
       latencyMs,
       httpSeq,
       httpRequestId,
-      error: { message: errText.slice(0, 120) },
+      attempt,
+      delayMs,
+      keysCount,
+      batchSizeBytes,
+      retryCounter: attempt - 1,
     });
-    throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
+    if (empIdx >= 0) {
+      const inCount = normalizeArrayValue(safeValues[empIdx]).length;
+      const forceReplace = (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees");
+      payrollTraceEmit("edge.kv.week_employees.write", "EDGE_KV", "info", {
+        forceReplaceWeekEmployees: forceReplace,
+        inCount,
+        writtenCount: inCount,
+        prevCount: undefined,
+        afterTombstoneCount: inCount,
+        tombstoneHitsOnSubject: false,
+        clientProxy: true,
+      });
+    }
+    return;
   }
-  payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
-    httpStatus: res.status,
-    ok: true,
-    edgeRequestId,
-    latencyMs,
-    httpSeq,
-    httpRequestId,
-  });
-  if (empIdx >= 0) {
-    const inCount = normalizeArrayValue(safeValues[empIdx]).length;
-    const forceReplace = (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees");
-    payrollTraceEmit("edge.kv.week_employees.write", "EDGE_KV", "info", {
-      forceReplaceWeekEmployees: forceReplace,
-      inCount,
-      writtenCount: inCount,
-      prevCount: undefined,
-      afterTombstoneCount: inCount,
-      tombstoneHitsOnSubject: false,
-      clientProxy: true,
-    });
-  }
+  throw lastError ?? new Error("batch-set failed after retries");
 }
 
 /** Natychmiastowy zapis po usunięciu roboty — z listą skasowanych id (tombstones). */

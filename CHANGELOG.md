@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.33 — CLOUD-P0-DEADLOCK-N1 retry transient batch-set
+
+- **fix:** `pushKeysToCloud` — retry 40P01 / `deadlock detected` (4 próby: 0 → 250 → 500 → 1000 ms)
+- **fix:** `isTransientBatchSetError` — jedyna klasyfikacja retryable; toast dopiero po wyczerpaniu
+- **telemetry:** attempt · delay · requestId · keysCount · batchSize · `batchSetRetries`
+- **bez** App.tsx / Edge / merge / Payroll guard
+- **test:** `npx vite-node scripts/test-cloud-deadlock-n1-retry.mjs`
+
 ## 2.65.32 — TENDER-P0.1 Active Catalog Classifier SSOT
 
 - **fix:** `classifyAthLineCategory(desc, unit, catalog?)` — keywords z aktywnego `WgdomCostCatalog`

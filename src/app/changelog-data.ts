@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-17",
+    version: "2.65.33",
+    label: "CLOUD-P0-DEADLOCK-N1 — retry transient batch-set",
+    items: [
+      {
+        type: "fix",
+        text: "Synchronizacja chmury — przy chwilowym deadlocku bazy (40P01) zapis jest ponawiany automatycznie (do 4 prób). Komunikat błędu dopiero po wyczerpaniu prób.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-17",
     version: "2.65.32",
     label: "TENDER-P0.1 — Active Catalog Classifier SSOT",
     items: [
