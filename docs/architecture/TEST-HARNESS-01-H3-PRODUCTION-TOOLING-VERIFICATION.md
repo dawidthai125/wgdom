@@ -18,15 +18,16 @@ Powód: tooling-only (harness H3-A + docs), brak zmian UI/changelog, brak Protec
 
 | Kryterium | Wynik |
 |-----------|--------|
-| `git push origin main` | **PASS** (`d5ff66b..1d40425`) |
+| `git push origin main` | **PASS** (`d5ff66b..1d40425` code · tip docs `df97e78`) |
 | Konflikty | **NONE** |
-| `HEAD` == `origin/main` | **PASS** (`1d40425`) |
+| `HEAD` == `origin/main` | **PASS** (`df97e78`) |
 
-Commit na `main` (H3-A):
+Commits na `main` (H3-A):
 
 | SHA | Message |
 |-----|---------|
 | **`1d40425`** | `test(infra): TEST-HARNESS-01 H3-A payroll read-only production sandbox` |
+| **`df97e78`** | `docs: TEST-HARNESS-01 H3-A RELEASED — production tooling verification` |
 
 ---
 
@@ -45,7 +46,7 @@ Commit na `main` (H3-A):
 | Zmiana wersji UI | **NIE oczekiwana** (H3-A tooling-only) |
 | Zmiana `commit` w `version.json` | **NIE wymagana** dla PASS tooling |
 | Zachowanie aplikacji | **bez zmian** |
-| Werdykt | **EXPECTED** — UI nadal **2.65.33** · tooling na `main` = **`1d40425`** |
+| Werdykt | **EXPECTED** — UI nadal **2.65.33** · tooling na `main` = **`df97e78`** (code **`1d40425`**) |
 
 ---
 
@@ -78,7 +79,7 @@ npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
 | TEST-HARNESS-01 H0 | **RELEASED** |
 | TEST-HARNESS-01 H1 | **RELEASED** |
 | TEST-HARNESS-01 H2 | **RELEASED** |
-| TEST-HARNESS-01 **H3-A** | **RELEASED** (`1d40425`) |
+| TEST-HARNESS-01 **H3-A** | **RELEASED** (`1d40425` / tip `df97e78`) |
 | **H3-B / H3-C** | **NOT STARTED** · czekaj Owner GO |
 | **H0.x Persist Ledger** | **READY** · **nie implementować** bez Owner GO |
 | H4–H5 | **NOT STARTED** · czekaj Owner GO |
