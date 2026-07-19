@@ -1,6 +1,7 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** CLOSED · F GO / not started) · prod **2.65.28** @ `d896852` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Data closeout:** 2026-07-17 (**THEME-01C** atomic theme migration CLOSED) · prod **2.65.30** @ `ff1df62` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Poprzedni baseline:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** CLOSED · F GO / not started) · prod 2.65.28 @ `d896852`
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
@@ -8,6 +9,9 @@
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
+
+> **★★ TEST-HARNESS-01 H0 — Production Sandbox Harness foundation:** **RELEASED** (2026-07-19) · commit tooling **`df6d153`** on `main` · **UI prod unchanged** **2.65.33** @ `a2d1caf` (tooling-only, no changelog bump) · SSOT [`architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) · DF [`architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](architecture/TEST-HARNESS-01-DESIGN-FREEZE.md)  
+> **Backlog H0.x — Persist Ledger** (cleanup orphan recovery po przerwanym procesie): **READY** · **nie implementować** bez Owner GO · **H1 nie startować** bez Owner GO
 
 **Wejście dla nowej sesji:**
 
@@ -75,6 +79,10 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **THEME-01C** — atomic theme migration (`:root`=Light · `.dark`=Prod Dark · next-themes standard · #THEME-020) | **2.65.30** (`ff1df62`) | **COMPLETE** · **PRODUCTION VERIFIED** · prod smoke **9/9** | [`architecture/THEME-01C-CLOSEOUT.md`](architecture/THEME-01C-CLOSEOUT.md) · [`architecture/THEME-01C-PRODUCTION-VERIFICATION.md`](architecture/THEME-01C-PRODUCTION-VERIFICATION.md) |
+| **THEME-01B** — theme foundation (WgdomThemeProvider · `wg-theme` · FOUC · dark parity bridge) | **2.65.29** (w `ff1df62`) | **COMPLETE** (most 01B usunięty w 01C) | [`architecture/THEME-01B-CLOSEOUT.md`](architecture/THEME-01B-CLOSEOUT.md) |
+| **THEME-01A** — theme audit + architecture review + design freeze v1.1 | — (docs) | **COMPLETE** | [`architecture/THEME-01-DESIGN-FREEZE.md`](architecture/THEME-01-DESIGN-FREEZE.md) |
+| **fix(dev)** — duplicate `PHOTO_LABEL_NAMES` import (JobsView · Vite dev unblock) | (`11c390b`) | **CLOSED** — osobny commit poza bundle THEME | commit `11c390b` |
 | **LOCALSTORAGE-ARCH-02 A–E** — IDB cold + `__WG_STORAGE__` | **2.65.28** (`d896852`) | **CLOSED** · observation **PASS** · F **GO** / not started | [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md) |
 | **PAYROLL-P0-FIX-01** — QuotaExceeded ≠ bootstrap FAILED | **2.65.27** (`1c41b61`) | **CLOSED** · **PRODUCTION VERIFIED** | [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) |
 | **PAYROLL-DISPLAY-UNLOCK** — pusta tabela LP po F5 | **2.65.19** (`c1e76ca`) | **CLOSED** (quota root · Owner FIX VERIFIED 2026-07-14) | TRACE hist. · supersede FIX-01 + ARCH-02 |
@@ -231,18 +239,19 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ## 2. PRODUCTION BASELINE
 
-### 2.0. Aktualny stan (2026-07-13)
+### 2.0. Aktualny stan (2026-07-17)
 
 ```text
-Production UI  2.65.19  (PRODUCTION VERIFIED · GREEN)
-Runtime feat   c1e76ca  (PAYROLL-DISPLAY-UNLOCK-TRACE-02 · findFirstDisplayUnlock)
-main HEAD      c1e76ca  (synced origin/main)
-OPEN           PAYROLL-DISPLAY-UNLOCK — Owner runtime dump → RCA A/B
-Ostatnio CLOSED  PAYROLL-BOOTSTRAP-RACE-FIX-01 · PAYROLL-ANTI-LEAK-FIX-01 · JOBS-SYNC-FIX-01
-Faza bieżąca   STABILIZATION WINDOW — bez fixa LP bez Owner GO
-Incident       Register CLEAN (A + B CLOSED)
+Production UI  2.65.30  (PRODUCTION VERIFIED · GREEN)
+Commit         ff1df62  (THEME-01C atomic theme migration)
+main HEAD      ff1df62  (synced origin/main)
+Historia THEME THEME-01A COMPLETE · THEME-01B COMPLETE · THEME-01C COMPLETE
+Aktywne EPIC   THEME-01D (Dashboard + Payroll UI light polish) — BLOCKED · Waiting for Owner GO
+Ostatnio CLOSED  THEME-01C (2.65.30) · fix(dev) JobsView 11c390b · LOCALSTORAGE-ARCH-02 A–E (2.65.28)
+Faza bieżąca   STABILIZATION WINDOW — nowe bundle tylko z Owner GO
+Model motywów  :root = Light · .dark = Production Dark · next-themes standard · wg-theme localStorage
 Protected Core GREEN · Payroll GREEN · Cloud Sync GREEN · Pipeline GREEN
-Next step      Owner: __WG_PAYROLL_DISPLAY_TRACE__.download() po repro F5
+Next step      Owner GO dla THEME-01D → docs/architecture/THEME-01D-HANDOFF.md
 ```
 
 | Priorytet produkcyjny | Reguła |
@@ -1004,6 +1013,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P2-F regresja** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` |
 | **Dashboard V3** | `npx vite-node scripts/test-dashboard-v3-counts.mjs` |
 | Mobile | `npm run test:mobile` |
+| **TEST-HARNESS-01 H0** | `npm run test:prod-sandbox` · `npm run test:infra -- --suite prod-sandbox-h0` · **RELEASED** `df6d153` |
 
 **Ostatni znany CI E2E:** `#27260457990` (20.5Z.2B) — regresja po 20.7/2.1 lokalnie: build + smoke 2.1 PASS.
 
@@ -1041,6 +1051,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | P3.7+ | Dalsze usprawnienia listy Przetargów | **OTWARTY** (bez polecenia) |
 | **Mobile (future)** | Inspector mobile UX · WM Pomiary UX · WM Katalog drill-in · Jobs browser history (optional) | **BACKLOG** — enhancements, nie production bugs |
 | **Mobile Certification** | Field validation Pass 1–4 (ios-safari → android-pwa) | **OTWARTY** — osobny program od Mobile Recovery |
+| **TEST-HARNESS-01 H0** | Production Sandbox foundations (`psb-*`, allowlist, PSB-001 cleanup) | **RELEASED** (`df6d153`) · tooling only |
+| **TEST-HARNESS-01 H0.x** | Persist Ledger — orphan recovery po kill procesu | **READY** · **nie implementować** bez Owner GO |
+| **TEST-HARNESS-01 H1–H5** | Tender / Jobs / Payroll / Cloud / Biblioteka scenarios | **NOT STARTED** · czekaj Owner GO |
 
 ---
 
