@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * TEST-HARNESS-01 — Production Sandbox Harness runner (H0)
+ * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1)
  *
  * Usage:
  *   npm run test:prod-sandbox -- --scenario h0-preflight
- *   npm run test:prod-sandbox -- --scenario h0-preflight --dry-run
- *   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod  → blocked until H2
+ *   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
+ *   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod --dry-run
  *
  * Exit codes (Design Freeze §6):
  *   0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -15,11 +15,12 @@ import { fileURLToPath } from "url";
 import { writeReport, defaultOutDir } from "./report.mjs";
 import { exitCodeForRun } from "./cleanup.mjs";
 import { runH0Preflight } from "./scenarios/h0-preflight.mjs";
+import { runH1Tender } from "./scenarios/h1-tender.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 
-const IMPLEMENTED = new Set(["h0-preflight", "h0"]);
+const IMPLEMENTED = new Set(["h0-preflight", "h0", "h1-tender", "h1"]);
 
 function parseArgs(argv) {
   const out = {
@@ -36,6 +37,7 @@ function parseArgs(argv) {
     else if (a === "--help" || a === "-h") out.help = true;
   }
   if (out.scenario === "h0") out.scenario = "h0-preflight";
+  if (out.scenario === "h1") out.scenario = "h1-tender";
   return out;
 }
 
@@ -44,11 +46,12 @@ function printHelp() {
 TEST-HARNESS-01 Production Sandbox Harness
 
   npm run test:prod-sandbox -- --scenario h0-preflight
-  npm run test:prod-sandbox -- --scenario h0-preflight --dry-run
+  npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
+  npm run test:prod-sandbox -- --scenario h1-tender --allow-prod --dry-run
 
 Flags:
-  --scenario <id>   h0-preflight (H1–H5 not implemented)
-  --allow-prod      required for future H1–H5 prod writes (H0 ignores)
+  --scenario <id>   h0-preflight | h1-tender (H2–H5 not implemented)
+  --allow-prod      required for H1 prod writes
   --dry-run         side-effect free planning mode
 
 Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -64,32 +67,43 @@ async function main() {
 
   if (!IMPLEMENTED.has(args.scenario)) {
     console.error(
-      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H0 only; H1–H5 require Owner GO)`,
+      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H2–H5 require Owner GO)`,
     );
     process.exit(2);
   }
 
-  const outDir = defaultOutDir(ROOT);
-  console.log("=== TEST-HARNESS-01 / H0 ===");
+  const slice = args.scenario.startsWith("h1") ? "H1" : "H0";
+  const outDir = defaultOutDir(ROOT, `${args.scenario}-${Date.now().toString(36)}`);
+  console.log(`=== TEST-HARNESS-01 / ${slice} ===`);
   console.log(`scenario=${args.scenario} dryRun=${args.dryRun} allowProd=${args.allowProd}`);
   console.log(`outDir=${outDir}`);
 
   let result;
   try {
-    result = await runH0Preflight({
-      allowProd: args.allowProd,
-      dryRun: args.dryRun,
-      root: ROOT,
-    });
+    if (args.scenario === "h1-tender") {
+      result = await runH1Tender({
+        allowProd: args.allowProd,
+        dryRun: args.dryRun,
+        root: ROOT,
+      });
+    } else {
+      result = await runH0Preflight({
+        allowProd: args.allowProd,
+        dryRun: args.dryRun,
+        root: ROOT,
+      });
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`PSB_PRECONDITION: ${msg}`);
     const reportPath = writeReport(outDir, {
+      program: "TEST-HARNESS-01",
+      slice,
       scenario: args.scenario,
       scenarioStatus: "FAIL",
       exitCode: 2,
       error: msg,
-      code: msg.startsWith("PSB_") ? msg.split(":")[0] : "PSB_PRECONDITION",
+      code: msg.startsWith("PSB_") || msg.startsWith("H1_") ? msg.split(":")[0] : "PSB_PRECONDITION",
     });
     console.error(`report=${reportPath}`);
     process.exit(2);
@@ -97,12 +111,11 @@ async function main() {
 
   const cleanupStatus = result.cleanupResult?.status || "PASS";
   const leftovers = result.cleanupResult?.leftovers || [];
-  const exitCode = exitCodeForRun(result.scenarioStatus, result.cleanupResult || {
-    status: "PASS",
-    leftovers: [],
-  });
+  const exitCode = exitCodeForRun(
+    result.scenarioStatus,
+    result.cleanupResult || { status: "PASS", leftovers: [] },
+  );
 
-  // If scenario passed but cleanup failed → force emphasize leftovers
   if (leftovers.length > 0) {
     console.error("\nPSB-001 CLEANUP GUARANTEE FAILED — leftovers:");
     for (const L of leftovers) {
@@ -111,6 +124,8 @@ async function main() {
   }
 
   const reportPath = writeReport(outDir, {
+    program: "TEST-HARNESS-01",
+    slice,
     scenario: args.scenario,
     dryRun: args.dryRun,
     allowProd: args.allowProd,
@@ -121,13 +136,15 @@ async function main() {
     allowlistSummary: result.allowlistSummary,
     cleanupResult: result.cleanupResult,
     sessionRemaining: result.sessionRemaining,
+    meta: result.meta,
     principles: {
       "PSB-001-CleanupGuarantee": "enforced",
+      "H1-001-StableAssertions": slice === "H1" ? "enforced" : "n/a",
       "DF-PSB-001-NeverTouch": "enforced-via-mutate-guard",
     },
   });
 
-  console.log("\n--- H0 STEPS ---");
+  console.log(`\n--- ${slice} STEPS ---`);
   for (const s of result.steps) {
     console.log(`${s.status.padEnd(7)} ${s.name}: ${s.detail}`);
   }
