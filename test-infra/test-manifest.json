@@ -106,6 +106,10 @@
       "description": "TI-B4 — smoke agregat NG-01–NG-04 (R-02 · Z-04)",
       "testIds": ["SMOKE-TENDERS-NG01-04"]
     },
+    "prod-sandbox-h0": {
+      "description": "TEST-HARNESS-01 H0 — Production Sandbox foundations (manual / Owner; NOT in gate B/C)",
+      "testIds": ["PROD-SANDBOX-H0"]
+    },
     "lib-tenders-grouped-docs": {
       "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
       "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
@@ -1179,6 +1183,18 @@
       "condition": "scope:platform",
       "owner": "Platform",
       "status": "forensic-only"
+    },
+    {
+      "id": "PROD-SANDBOX-H0",
+      "class": "smoke",
+      "path": "test-infra/prod-sandbox/runner.mjs",
+      "runner": "node",
+      "environment": "node",
+      "releaseTier": "none",
+      "mandatory": "optional",
+      "condition": "manual:prod-sandbox",
+      "owner": "Platform",
+      "status": "active"
     }
   ]
 }

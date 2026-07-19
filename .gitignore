@@ -80,3 +80,7 @@ test-out*.txt
 scripts/_tmp-*
 scripts/experiment-*
 scripts/probe-*
+
+# TEST-HARNESS-01 — Production Sandbox Harness (local allowlist + reports)
+test-infra/prod-sandbox/allowlist.json
+.tmp/prod-sandbox-out/

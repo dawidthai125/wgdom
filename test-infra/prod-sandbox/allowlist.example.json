@@ -1,0 +1,7 @@
+{
+  "jobIds": [],
+  "tenderIds": [],
+  "catalogRowIds": [],
+  "payrollWeekId": null,
+  "_comment": "Copy to allowlist.json (gitignored) or set PSB_* env vars. Never commit production IDs with secrets."
+}

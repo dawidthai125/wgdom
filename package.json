@@ -25,7 +25,8 @@
     "test:e2e:version": "playwright test --project=e2e-version-awareness",
     "test:e2e:payroll-guard": "playwright test --project=e2e-payroll-guard",
     "test:infra": "node scripts/test-infra-orchestrator.mjs",
-    "test:infra:validate": "node scripts/test-infra-manifest-validate.mjs"
+    "test:infra:validate": "node scripts/test-infra-manifest-validate.mjs",
+    "test:prod-sandbox": "node scripts/test-prod-sandbox.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
