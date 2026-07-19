@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.35 — PAYROLL-CLOUD-RESURRECTION-01 (bootstrap freshness fence)
+
+- **fix:** Bootstrap CloudLoader — freshness fence przed push payroll KV
+- **fix:** `mergeWeekEmployeesForWeekRange` / `mergeArchive` — Cloud intentional empty wygrywa nad bogatym LS
+- **lib:** `payroll-bootstrap-resurrection-fence.ts`
+- **test:** `scripts/test-payroll-cloud-resurrection-01.mjs` (T1–T6 dual-session)
+
 ## 2.65.34 — PAYROLL-P0-WEEK-ROLLOVER-01 (PAYROLL-ROLL-001)
 
 - **fix:** Lista Płac — realny rollover tygodnia (Nd ≥20:00): archiwum + clear roster + push KV; align etykiet tylko gdy poprzedni tydzień już w archiwum (bootstrap).

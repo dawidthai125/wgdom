@@ -1,5 +1,11 @@
 import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 import {
+  evaluatePayrollResurrectionFence,
+  stripLocalOnlyArchiveWeek,
+  bootstrapPayrollPushAllowed,
+  type ResurrectionFenceDecision,
+} from "./payroll-bootstrap-resurrection-fence.ts";
+import {
   supabaseProjectId,
   supabaseAnonKey,
   supabaseFunctionsBase,
@@ -1609,11 +1615,19 @@ export function mergeArchive(
   local: unknown[],
   cloud: unknown[],
   deletedIds: string[] = getDeletedArchiveIds(),
+  /** PAYROLL-CLOUD-RESURRECTION-01 — nie przywracaj local-only current week gdy cloud live jest puste. */
+  resurrectionCtx?: {
+    cloudLiveFrom?: string;
+    cloudLiveTo?: string;
+    cloudLiveEmpty?: boolean;
+  },
 ): unknown[] {
   type W = { id?: string; weekFrom?: string; weekTo?: string; savedAt?: string; weekEmployees?: unknown[] };
   const localArr = filterDeletedByRecordId(normalizeArrayValue(local), deletedIds);
   const cloudArr = filterDeletedByRecordId(normalizeArrayValue(cloud), deletedIds);
   const keyOf = (w: W) => (w.id ? w.id : `${w.weekFrom}|${w.weekTo}`);
+  const rangeKeyOf = (w: W) =>
+    w.weekFrom && w.weekTo ? `${w.weekFrom}|${w.weekTo}` : "";
   const score = (w: W) => {
     const we = w.weekEmployees;
     const richness = Array.isArray(we) ? weekEmployeesListRichness(we) : 0;
@@ -1634,11 +1648,20 @@ export function mergeArchive(
     };
   };
   const cloudMap = new Map<string, W>();
+  const cloudRangeKeys = new Set<string>();
   for (const item of cloudArr) {
     const w = item as W;
     if (!w?.weekFrom) continue;
     cloudMap.set(keyOf(w), w);
+    const rk = rangeKeyOf(w);
+    if (rk) cloudRangeKeys.add(rk);
   }
+  const suppressLiveRange =
+    resurrectionCtx?.cloudLiveEmpty &&
+    resurrectionCtx.cloudLiveFrom &&
+    resurrectionCtx.cloudLiveTo
+      ? `${resurrectionCtx.cloudLiveFrom}|${resurrectionCtx.cloudLiveTo}`
+      : "";
   const localKeys = new Set<string>();
   const result: W[] = [];
   for (const item of localArr) {
@@ -1647,7 +1670,16 @@ export function mergeArchive(
     const k = keyOf(w);
     localKeys.add(k);
     const cloudItem = cloudMap.get(k);
-    result.push(cloudItem ? mergeWeek(w, cloudItem) : w);
+    if (cloudItem) {
+      result.push(mergeWeek(w, cloudItem));
+      continue;
+    }
+    // Local-only week: do not resurrect current live week archive onto empty cloud live
+    const rk = rangeKeyOf(w);
+    if (suppressLiveRange && rk === suppressLiveRange && !cloudRangeKeys.has(rk)) {
+      continue;
+    }
+    result.push(w);
   }
   for (const [k, item] of cloudMap) {
     if (!localKeys.has(k)) result.push(item);
@@ -1877,6 +1909,30 @@ export function mergeWeekEmployeesForWeekRange(
   if (localMatch && cloudMatch) {
     const localEmpty = local.length === 0;
     const cloudEmpty = cloud.length === 0;
+    // PAYROLL-CLOUD-RESURRECTION-01 — empty cloud wins over stale local clone of archived week
+    if (cloudEmpty && !localEmpty) {
+      const fence = evaluatePayrollResurrectionFence({
+        localEmps: local,
+        cloudEmps: cloud,
+        localFrom: weekFrom,
+        localTo: weekTo,
+        cloudFrom: weekFrom,
+        cloudTo: weekTo,
+        localArchive: archive,
+        cloudArchive: archive,
+      });
+      if (fence.preferCloudEmptyRoster) {
+        payrollTraceEmit("sync.merge.week_range.pick_side", "MERGE", "info", {
+          pickedSide: "cloud",
+          localEmpty,
+          cloudEmpty,
+          resurrectionFence: fence.reason,
+          hasArchivedWeek,
+          out: rosterTraceSnapshot(cloud, weekFrom, weekTo, "MERGED", "MERGED"),
+        });
+        return cloud;
+      }
+    }
     if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
       const picked = localEmpty ? "cloud" : "local";
       const { weekFrom: wf, weekTo: wt } = { weekFrom, weekTo };
@@ -2045,7 +2101,7 @@ export function finalizePayrollBundleMerge(
       localTo,
       employeeCount: normalizeArrayValue(out[empIdx]).length,
     });
-    return out;
+    return applyPayrollResurrectionFenceToBundle(out, localValues, cloudValues);
   }
   if (localKey && cloudKey && localKey !== cloudKey && localKey === targetKey) {
     logPayrollBootstrapTraceFromWeekKeys({
@@ -2059,7 +2115,7 @@ export function finalizePayrollBundleMerge(
       localTo,
       employeeCount: normalizeArrayValue(out[empIdx]).length,
     });
-    return out;
+    return applyPayrollResurrectionFenceToBundle(out, localValues, cloudValues);
   }
 
   const localEmps = normalizeArrayValue(localValues[empIdx]);
@@ -2112,7 +2168,7 @@ export function finalizePayrollBundleMerge(
       employeeCountAfter: adoptedEmps.length,
       employeeCount: adoptedEmps.length,
     });
-    return next;
+    return applyPayrollResurrectionFenceToBundle(next, localValues, cloudValues);
   }
 
   payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
@@ -2138,7 +2194,83 @@ export function finalizePayrollBundleMerge(
     employeeCount: finalEmps.length,
   });
 
-  return out;
+  return applyPayrollResurrectionFenceToBundle(out, localValues, cloudValues);
+}
+
+/** PAYROLL-CLOUD-RESURRECTION-01 — apply empty-cloud fence after payroll finalize. */
+export function applyPayrollResurrectionFenceToBundle(
+  merged: unknown[],
+  localValues: unknown[],
+  cloudValues: unknown[],
+  calendarFrom?: string,
+  calendarTo?: string,
+): unknown[] {
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx < 0 || fromIdx < 0 || toIdx < 0) return merged;
+
+  const fence = evaluatePayrollResurrectionFence({
+    localEmps: localValues[empIdx],
+    cloudEmps: cloudValues[empIdx],
+    localFrom: localValues[fromIdx],
+    localTo: localValues[toIdx],
+    cloudFrom: cloudValues[fromIdx],
+    cloudTo: cloudValues[toIdx],
+    localArchive: archIdx >= 0 ? localValues[archIdx] : [],
+    cloudArchive: archIdx >= 0 ? cloudValues[archIdx] : [],
+    calendarFrom,
+    calendarTo,
+  });
+
+  if (!fence.preferCloudEmptyRoster && !fence.stripLocalOnlyCurrentArchive) {
+    return merged;
+  }
+
+  const next = [...merged];
+  if (fence.preferCloudEmptyRoster) {
+    next[empIdx] = [];
+  }
+  if (fence.stripLocalOnlyCurrentArchive && archIdx >= 0) {
+    next[archIdx] = stripLocalOnlyArchiveWeek(
+      next[archIdx],
+      cloudValues[archIdx],
+      cloudValues[fromIdx],
+      cloudValues[toIdx],
+    );
+  }
+  payrollTraceEmit("sync.merge.payroll.resurrection_fence", "MERGE", "info", {
+    reason: fence.reason,
+    preferCloudEmptyRoster: fence.preferCloudEmptyRoster,
+    stripLocalOnlyCurrentArchive: fence.stripLocalOnlyCurrentArchive,
+  });
+  return next;
+}
+
+/** Expose fence for bootstrap push gate. */
+export function evaluatePayrollResurrectionFenceForBundle(
+  localValues: unknown[],
+  cloudValues: unknown[],
+  calendarFrom?: string,
+  calendarTo?: string,
+): ResurrectionFenceDecision {
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  return evaluatePayrollResurrectionFence({
+    localEmps: empIdx >= 0 ? localValues[empIdx] : [],
+    cloudEmps: empIdx >= 0 ? cloudValues[empIdx] : [],
+    localFrom: fromIdx >= 0 ? localValues[fromIdx] : "",
+    localTo: toIdx >= 0 ? localValues[toIdx] : "",
+    cloudFrom: fromIdx >= 0 ? cloudValues[fromIdx] : "",
+    cloudTo: toIdx >= 0 ? cloudValues[toIdx] : "",
+    localArchive: archIdx >= 0 ? localValues[archIdx] : [],
+    cloudArchive: archIdx >= 0 ? cloudValues[archIdx] : [],
+    calendarFrom,
+    calendarTo,
+  });
 }
 
 /**
@@ -2470,14 +2602,41 @@ export function mergeDataKey(
   }
 }
 
-export function bootstrapMergedShouldPersist(key: DataKey, merged: unknown): boolean {
+export function bootstrapMergedShouldPersist(
+  key: DataKey,
+  merged: unknown,
+  /** PAYROLL-CLOUD-RESURRECTION-01 — force persist empty roster when fence clears stale local */
+  forcePersistEmptyWeekEmployees = false,
+): boolean {
+  if (
+    forcePersistEmptyWeekEmployees &&
+    key === "kw-week-employees" &&
+    Array.isArray(merged) &&
+    merged.length === 0
+  ) {
+    return true;
+  }
   const hasRealData =
     merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
   return hasRealData || ((key === "kw-weekFrom" || key === "kw-weekTo") && Boolean(merged));
 }
 
-export function bootstrapMergedShouldPush(key: DataKey, merged: unknown, cloudVal: unknown): boolean {
+export function bootstrapMergedShouldPush(
+  key: DataKey,
+  merged: unknown,
+  cloudVal: unknown,
+  fence?: ResurrectionFenceDecision,
+): boolean {
   if (!isSupabaseConfigured()) return false;
+  if (fence) {
+    const gate = bootstrapPayrollPushAllowed({
+      key,
+      mergedValue: merged,
+      cloudValue: cloudVal,
+      fence,
+    });
+    if (!gate.allow) return false;
+  }
   const hasRealData =
     merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
   const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);

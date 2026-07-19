@@ -35,10 +35,12 @@ import {
   bootstrapMergedShouldPersist,
   bootstrapMergedShouldPush,
   persistBootstrapMergedKey,
+  evaluatePayrollResurrectionFenceForBundle,
   safeSetLocalStorageJson,
   safeSetLocalStorageRaw,
   safeRemoveLocalStorageKey,
 } from "@/lib/cloud-sync";
+import { getPayrollWeekRange } from "@/lib/payroll-cycle";
 import {
   loadAdminPasswordOverrides,
   mergeAdminPasswordOverrides,
@@ -172,6 +174,14 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         );
         mergedBundle = applyBootstrapPayrollMerge(mergedBundle, localValues, cloudValues);
 
+        const calendar = getPayrollWeekRange();
+        const resurrectionFence = evaluatePayrollResurrectionFenceForBundle(
+          localValues,
+          cloudValues,
+          calendar.from,
+          calendar.to,
+        );
+
         const wfIdx = DATA_KEYS.indexOf("kw-weekFrom");
         const wtIdx = DATA_KEYS.indexOf("kw-weekTo");
         const empIdxBootstrap = DATA_KEYS.indexOf("kw-week-employees");
@@ -195,7 +205,11 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           const i = DATA_KEYS.indexOf(key);
           const cloudVal = cloudValues[i];
           const merged = mergedBundle[i];
-          const shouldPersist = bootstrapMergedShouldPersist(key, merged);
+          const shouldPersist = bootstrapMergedShouldPersist(
+            key,
+            merged,
+            resurrectionFence.preferCloudEmptyRoster,
+          );
           if (key === "kw-week-employees") {
             const empCount = Array.isArray(merged) ? merged.length : 0;
             logPayrollBootstrapTraceFromWeekKeys({
@@ -245,13 +259,14 @@ export function CloudLoader({ children }: { children: ReactNode }) {
               });
             }
           }
-          const shouldPush = bootstrapMergedShouldPush(key, merged, cloudVal);
+          const shouldPush = bootstrapMergedShouldPush(key, merged, cloudVal, resurrectionFence);
           if (key === "kw-week-employees") {
             payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "info", {
               key,
               shouldPush,
               mergedCount: Array.isArray(merged) ? merged.length : 0,
               cloudCount: Array.isArray(cloudVal) ? cloudVal.length : 0,
+              resurrectionFence: resurrectionFence.reason,
             });
           }
           if (shouldPush) {

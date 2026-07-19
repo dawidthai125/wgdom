@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-20",
+    version: "2.65.35",
+    label: "PAYROLL-CLOUD-RESURRECTION-01 — bootstrap freshness fence",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — stary LocalStorage z innej sesji nie nadpisuje już pustej chmury przy starcie aplikacji. Bootstrap nie wypycha przestarzałego lub już zarchiwizowanego tygodnia; merge nie przywraca bogatego lokalnego snapshotu tylko dlatego, że jest „pełniejszy” niż Cloud.",
+      },
+    ],
+  },
+  {
     date: "2026-07-19",
     version: "2.65.34",
     label: "PAYROLL-P0-WEEK-ROLLOVER-01 — rollover vs bootstrap align",
