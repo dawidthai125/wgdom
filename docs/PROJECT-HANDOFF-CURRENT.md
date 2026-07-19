@@ -10,8 +10,9 @@
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
-> **★★ TEST-HARNESS-01 H0 — Production Sandbox Harness foundation:** **RELEASED** (2026-07-19) · commit tooling **`df6d153`** on `main` · **UI prod unchanged** **2.65.33** @ `a2d1caf` (tooling-only, no changelog bump) · SSOT [`architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) · DF [`architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](architecture/TEST-HARNESS-01-DESIGN-FREEZE.md)  
-> **Backlog H0.x — Persist Ledger** (cleanup orphan recovery po przerwanym procesie): **READY** · **nie implementować** bez Owner GO · **H1 nie startować** bez Owner GO
+> **★★ TEST-HARNESS-01 H0 — Production Sandbox Harness foundation:** **RELEASED** (2026-07-19) · commit tooling **`df6d153`** on `main` · **UI prod unchanged** **2.65.33** (tooling-only) · SSOT [`architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) · DF [`architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](architecture/TEST-HARNESS-01-DESIGN-FREEZE.md)  
+> **★★ TEST-HARNESS-01 H1 — Tender Production Sandbox:** **RELEASED** (2026-07-19) · tooling **`b482687`** / tip **`05f62bf`** on `main` · **UI prod unchanged** **2.65.33** (tooling-only) · SSOT [`architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md) · Final [`architecture/TEST-HARNESS-01-H1-FINAL-VERIFICATION.md`](architecture/TEST-HARNESS-01-H1-FINAL-VERIFICATION.md)  
+> **Backlog H0.x — Persist Ledger** (cleanup orphan recovery po przerwanym procesie): **READY** · **nie implementować** bez Owner GO · **H2 nie startować** bez Owner GO
 
 **Wejście dla nowej sesji:**
 
@@ -1014,6 +1015,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **Dashboard V3** | `npx vite-node scripts/test-dashboard-v3-counts.mjs` |
 | Mobile | `npm run test:mobile` |
 | **TEST-HARNESS-01 H0** | `npm run test:prod-sandbox` · `npm run test:infra -- --suite prod-sandbox-h0` · **RELEASED** `df6d153` |
+| **TEST-HARNESS-01 H1** | `npm run test:prod-sandbox -- --scenario h1-tender --allow-prod` · suite `prod-sandbox-h1` · **RELEASED** `b482687` |
 
 **Ostatni znany CI E2E:** `#27260457990` (20.5Z.2B) — regresja po 20.7/2.1 lokalnie: build + smoke 2.1 PASS.
 
@@ -1052,8 +1054,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **Mobile (future)** | Inspector mobile UX · WM Pomiary UX · WM Katalog drill-in · Jobs browser history (optional) | **BACKLOG** — enhancements, nie production bugs |
 | **Mobile Certification** | Field validation Pass 1–4 (ios-safari → android-pwa) | **OTWARTY** — osobny program od Mobile Recovery |
 | **TEST-HARNESS-01 H0** | Production Sandbox foundations (`psb-*`, allowlist, PSB-001 cleanup) | **RELEASED** (`df6d153`) · tooling only |
+| **TEST-HARNESS-01 H1** | Tender sandbox (`h1-tender`, H1-001, hybrid KV+Playwright) | **RELEASED** (`b482687` / `05f62bf`) · tooling only |
 | **TEST-HARNESS-01 H0.x** | Persist Ledger — orphan recovery po kill procesu | **READY** · **nie implementować** bez Owner GO |
-| **TEST-HARNESS-01 H1–H5** | Tender / Jobs / Payroll / Cloud / Biblioteka scenarios | **NOT STARTED** · czekaj Owner GO |
+| **TEST-HARNESS-01 H2–H5** | Jobs / Payroll / Cloud / Biblioteka scenarios | **NOT STARTED** · czekaj Owner GO |
 
 ---
 

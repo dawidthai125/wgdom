@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-19 (**TEST-HARNESS-01 H0 RELEASED** · tooling `df6d153`) · UI prod **2.65.33** @ `a2d1caf` · **main** `df6d153`
+**Ostatnia aktualizacja:** 2026-07-19 (**TEST-HARNESS-01 H1 RELEASED** · tooling `b482687` / tip `05f62bf`) · UI prod **2.65.33** · **main** `05f62bf`
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,16 +9,17 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod (UI)** | **2.65.33** @ `a2d1caf` · tooling HEAD **`df6d153`** (H0; UI version.json may stay on app commit) |
-| **main HEAD** | **`df6d153`** — TEST-HARNESS-01 H0 |
-| **TEST-HARNESS-01 H0** | **RELEASED** · `npm run test:prod-sandbox` · [`docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) |
+| **Baseline prod (UI)** | **2.65.33** · tooling HEAD **`05f62bf`** (H1 RELEASED; UI version.json bez zmiany — tooling-only) |
+| **main HEAD** | **`05f62bf`** — TEST-HARNESS-01 H1 tip |
+| **TEST-HARNESS-01 H0** | **RELEASED** · [`docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) |
+| **TEST-HARNESS-01 H1** | **RELEASED** · `npm run test:prod-sandbox -- --scenario h1-tender --allow-prod` · [`docs/architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md) |
 | **Backlog H0.x Persist Ledger** | **READY** · **nie implementować** bez Owner GO |
-| **H1–H5** | **NOT STARTED** · czekaj Owner GO |
-| **WIP lokalny (nie prod)** | unrelated WIP — nie mieszać z H0 |
+| **H2–H5** | **NOT STARTED** · czekaj Owner GO |
+| **WIP lokalny (nie prod)** | unrelated WIP — nie mieszać z H1 |
 | **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **OPEN (Owner)** | **H0.x** / **H1** tylko po jawnych GO · STABILIZATION WINDOW |
-| **Ostatnio zamknięte** | **TEST-HARNESS-01 H0** (**df6d153**) · UI app **CLOUD-P0-DEADLOCK-N1** (**2.65.33**) |
-| **Co dalej?** | Czekaj Owner GO · **nie startuj H1** · H0.x bez GO |
+| **OPEN (Owner)** | **H0.x** / **H2** tylko po jawnych GO · STABILIZATION WINDOW |
+| **Ostatnio zamknięte** | **TEST-HARNESS-01 H1** (**b482687**) · H0 (**df6d153**) · UI app **CLOUD-P0-DEADLOCK-N1** (**2.65.33**) |
+| **Co dalej?** | Czekaj Owner GO · **nie startuj H2** · H0.x bez GO |
 
 > **LOCALSTORAGE-ARCH-02 A–E CLOSED:** UI **2.65.28** @ **`d896852`** · observation **PASS** · F **GO** / not started · SSOT [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md)
 
