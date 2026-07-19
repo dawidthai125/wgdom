@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.34 — PAYROLL-P0-WEEK-ROLLOVER-01 (PAYROLL-ROLL-001)
+
+- **fix:** Lista Płac — realny rollover tygodnia (Nd ≥20:00): archiwum + clear roster + push KV; align etykiet tylko gdy poprzedni tydzień już w archiwum (bootstrap).
+
 ## 2.65.33 — CLOUD-P0-DEADLOCK-N1 retry transient batch-set
 
 - **fix:** `pushKeysToCloud` — retry 40P01 / `deadlock detected` (4 próby: 0 → 250 → 500 → 1000 ms)

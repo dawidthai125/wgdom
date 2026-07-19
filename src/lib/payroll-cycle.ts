@@ -99,28 +99,83 @@ export function findPayrollWeekSnapshot(
 /**
  * PAYROLL-P0-REGRESSION-03 — żywy roster + weekFrom/weekTo za kalendarzem (stale po rolloverze).
  * Zwraca bieżący tydzień płacowy bez czekania na pullFromCloudAndMerge (~15–20 s MIN_PULL).
+ *
+ * PAYROLL-P0-WEEK-ROLLOVER-01 / **PAYROLL-ROLL-001** — nie mylić bootstrap align z realnym rolloverem:
+ * użyj {@link classifyPayrollWeekTransition}. Ta funkcja zwraca `didAlign` tylko dla ścieżki **align**.
  */
 export function resolvePayrollOperationalWeekKeys(
   weekFrom: string,
   weekTo: string,
   liveRosterCount: number,
   now = new Date(),
-): { from: string; to: string; didAlign: boolean; reason: string } {
+  savedWeeks?: readonly WeekSnapshot[] | null,
+): { from: string; to: string; didAlign: boolean; reason: string; kind: PayrollWeekTransitionKind } {
+  const c = classifyPayrollWeekTransition(weekFrom, weekTo, liveRosterCount, savedWeeks, now);
+  return {
+    from: c.from,
+    to: c.to,
+    didAlign: c.kind === "align",
+    reason: c.reason,
+    kind: c.kind,
+  };
+}
+
+/** PAYROLL-ROLL-001 — principle id (bootstrap align vs real rollover). */
+export const PAYROLL_ROLL_001 = "PAYROLL-ROLL-001";
+
+export type PayrollWeekTransitionKind = "none" | "align" | "rollover";
+
+export type PayrollWeekTransition = {
+  kind: PayrollWeekTransitionKind;
+  from: string;
+  to: string;
+  reason: string;
+};
+
+/**
+ * PAYROLL-ROLL-001 / PAYROLL-P0-WEEK-ROLLOVER-01
+ *
+ * - **align** (bootstrap / mount-race): stored week już w archiwum → tylko popraw etykiety, nie czyść rosteru
+ * - **rollover** (real): calendar-behind + żywy roster + brak archiwum stored week → archive + clear + advance + push
+ * - **none**: nic do zrobienia (pusto / już current / nie behind)
+ */
+export function classifyPayrollWeekTransition(
+  weekFrom: string,
+  weekTo: string,
+  liveRosterCount: number,
+  savedWeeks?: readonly WeekSnapshot[] | null,
+  now = new Date(),
+): PayrollWeekTransition {
   const current = getPayrollWeekRange(now);
   if (liveRosterCount <= 0) {
-    return { from: weekFrom, to: weekTo, didAlign: false, reason: "empty_roster" };
+    return { kind: "none", from: weekFrom, to: weekTo, reason: "empty_roster" };
   }
   if (isSamePayrollWeekRange(weekFrom, weekTo, current.from, current.to)) {
-    return { from: weekFrom, to: weekTo, didAlign: false, reason: "keys_match_current" };
+    return { kind: "none", from: weekFrom, to: weekTo, reason: "keys_match_current" };
   }
   if (!isPayrollCalendarBehind(weekFrom, weekTo, now)) {
-    return { from: weekFrom, to: weekTo, didAlign: false, reason: "not_calendar_behind" };
+    return { kind: "none", from: weekFrom, to: weekTo, reason: "not_calendar_behind" };
   }
+
+  const storedArchived = !!findPayrollWeekSnapshot(savedWeeks ?? [], weekFrom, weekTo)?.weekEmployees
+    ?.length;
+
+  // Bootstrap / mount-race: previous week already archived → live roster is current-week data with stale labels
+  if (storedArchived) {
+    return {
+      kind: "align",
+      from: current.from,
+      to: current.to,
+      reason: "bootstrap_align_stored_week_archived",
+    };
+  }
+
+  // Real rollover: unarchived previous week still sitting in live roster under stale calendar
   return {
+    kind: "rollover",
     from: current.from,
     to: current.to,
-    didAlign: true,
-    reason: "live_roster_stale_week_keys",
+    reason: "real_rollover_archive_clear_advance",
   };
 }
 

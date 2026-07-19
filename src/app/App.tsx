@@ -199,7 +199,7 @@ import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-st
 import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
 import { OperationalNotesUnreadBanner } from "@/app/OperationalNotesUnreadBanner";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
-import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi, isPayrollCalendarBehind, findPayrollWeekSnapshot, resolvePayrollOperationalWeekKeys } from "@/lib/payroll-cycle";
+import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi, isPayrollCalendarBehind, classifyPayrollWeekTransition, PAYROLL_ROLL_001 } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
@@ -2113,23 +2113,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
 
-    // PAYROLL-P0-REGRESSION-04 — lifecycle: align live-roster week keys BEFORE any rollover.
-    // Mount used to call autoArchiveAndAdvance with stale weekFrom/weekTo in the same tick as
-    // setWeekFrom/To (REGRESSION-03), wiping weekEmployees=[] until delayed pull restored 14.
-    const keyAlign = resolvePayrollOperationalWeekKeys(weekFrom, weekTo, weekEmployees.length);
-    if (keyAlign.didAlign) {
+    // PAYROLL-ROLL-001 / PAYROLL-P0-WEEK-ROLLOVER-01 — distinguish bootstrap align vs real rollover.
+    // Align-only when stored week already archived (mount-race). Otherwise full autoArchiveAndAdvance.
+    const transition = classifyPayrollWeekTransition(
+      weekFrom,
+      weekTo,
+      weekEmployees.length,
+      savedWeeks,
+    );
+    if (transition.kind === "align") {
       logPayrollBootstrapTraceFromWeekKeys({
         caller: "tryPayrollWeekCycle",
-        reason: "defer_rollover_align_live_roster_keys",
+        reason: `defer_rollover_align_live_roster_keys:${PAYROLL_ROLL_001}:${transition.reason}`,
         weekFrom,
         weekTo,
-        targetFrom: keyAlign.from,
-        targetTo: keyAlign.to,
+        targetFrom: transition.from,
+        targetTo: transition.to,
         employeeCount: weekEmployees.length,
         tryPayrollWeekCycleCleared: false,
       });
-      setWeekFrom(keyAlign.from);
-      setWeekTo(keyAlign.to);
+      setWeekFrom(transition.from);
+      setWeekTo(transition.to);
       return;
     }
 
@@ -2137,7 +2141,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
     logPayrollBootstrapTraceFromWeekKeys({
       caller: "tryPayrollWeekCycle",
-      reason: onCurrentRange ? "on_current_week_range" : "off_current_week_range",
+      reason:
+        transition.kind === "rollover"
+          ? `${PAYROLL_ROLL_001}:${transition.reason}`
+          : onCurrentRange
+            ? "on_current_week_range"
+            : "off_current_week_range",
       weekFrom,
       weekTo,
       targetFrom: current.from,
@@ -2145,7 +2154,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       employeeCount: weekEmployees.length,
     });
 
-    if (!onCurrentRange) {
+    if (!onCurrentRange || transition.kind === "rollover") {
       if (
         weekEmployees.length > 0
         && hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx)
@@ -2184,7 +2193,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
 
     trySundayArchiveOnly();
-  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance, trySundayArchiveOnly, setWeekFrom, setWeekTo]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, savedWeeks, autoArchiveAndAdvance, trySundayArchiveOnly, setWeekFrom, setWeekTo]);
 
   payrollWeekCycleRef.current = tryPayrollWeekCycle;
 
@@ -2192,21 +2201,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     if (payrollWeekKeysAlignedRef.current) return;
     if (weekEmployees.length === 0) return;
-    if (findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo)?.weekEmployees?.length) return;
-    const resolved = resolvePayrollOperationalWeekKeys(weekFrom, weekTo, weekEmployees.length);
-    if (!resolved.didAlign) return;
-    payrollWeekKeysAlignedRef.current = true;
-    logPayrollBootstrapTraceFromWeekKeys({
-      caller: "App.resolvePayrollOperationalWeekKeys",
-      reason: resolved.reason,
+    // PAYROLL-ROLL-001 — mount: align-only when stored week already archived (bootstrap race).
+    // Real rollover is handled by tryPayrollWeekCycle → autoArchiveAndAdvance (do not label-only here).
+    const transition = classifyPayrollWeekTransition(
       weekFrom,
       weekTo,
-      targetFrom: resolved.from,
-      targetTo: resolved.to,
+      weekEmployees.length,
+      savedWeeks,
+    );
+    if (transition.kind !== "align") return;
+    payrollWeekKeysAlignedRef.current = true;
+    logPayrollBootstrapTraceFromWeekKeys({
+      caller: "App.classifyPayrollWeekTransition",
+      reason: `${PAYROLL_ROLL_001}:${transition.reason}`,
+      weekFrom,
+      weekTo,
+      targetFrom: transition.from,
+      targetTo: transition.to,
       employeeCount: weekEmployees.length,
     });
-    setWeekFrom(resolved.from);
-    setWeekTo(resolved.to);
+    setWeekFrom(transition.from);
+    setWeekTo(transition.to);
   }, [weekEmployees.length, weekFrom, weekTo, savedWeeks, setWeekFrom, setWeekTo]);
 
   useEffect(() => {

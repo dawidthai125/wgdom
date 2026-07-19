@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-19",
+    version: "2.65.34",
+    label: "PAYROLL-P0-WEEK-ROLLOVER-01 — rollover vs bootstrap align",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — przy przejściu tygodnia (Nd ≥20:00) poprzedni tydzień trafia do archiwum, skład jest czyszczony i zapis idzie do chmury. Samo przesunięcie dat bez archiwizacji (błąd REGRESSION-04) nie występuje przy realnym rolloverze; align etykiet zostaje tylko gdy poprzedni tydzień jest już w archiwum (bootstrap).",
+      },
+    ],
+  },
+  {
     date: "2026-07-17",
     version: "2.65.33",
     label: "CLOUD-P0-DEADLOCK-N1 — retry transient batch-set",

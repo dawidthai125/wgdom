@@ -1,5 +1,5 @@
 /**
- * PAYROLL-P0-REGRESSION-03 — natychmiastowy render (bez ~20 s pull/deferred)
+ * PAYROLL-P0-REGRESSION-03 — natychmiastowy render + PAYROLL-ROLL-001
  * Run: npx vite-node scripts/test-payroll-display-p0-regression-03.mjs
  */
 import { defaultDay } from "../src/app/app-domain.ts";
@@ -9,6 +9,7 @@ import {
   getPayrollWeekRange,
   isPayrollWeekClosedForUi,
   resolvePayrollOperationalWeekKeys,
+  classifyPayrollWeekTransition,
 } from "../src/lib/payroll-cycle.ts";
 
 const DAYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
@@ -44,19 +45,35 @@ function makeEmp(id) {
   };
 }
 
-// R1 — employee-leaves w CORE (payroll blockers bez deferred ~20 s)
+// R1 — employee-leaves w CORE
 {
   assert("R1 kw-employee-leaves in BOOTSTRAP_CORE_KEYS", BOOTSTRAP_CORE_KEYS.includes("kw-employee-leaves"));
   assert("R1 kw-employee-leaves not in DEFERRED", !BOOTSTRAP_DEFERRED_KEYS.includes("kw-employee-leaves"));
 }
 
-// R2 — stale week keys + live roster → align to current (bez czekania na pull)
+// R2 — bootstrap align: stale keys + live roster + stored week archived → align (bez wipe)
 {
   const current = getPayrollWeekRange(mondayNewWeek);
-  const prev = { from: "2026-07-07", to: "2026-07-12" };
+  const prev = { from: "2026-07-06", to: "2026-07-12" };
   const roster = Array.from({ length: 14 }, (_, i) => makeEmp(`e-${i}`));
-  const aligned = resolvePayrollOperationalWeekKeys(prev.from, prev.to, roster.length, mondayNewWeek);
+  const archive = [
+    {
+      id: "snap-prev",
+      weekFrom: prev.from,
+      weekTo: prev.to,
+      weekEmployees: roster.map((e) => ({ ...e })),
+      savedAt: "2026-07-12T18:00:00.000Z",
+    },
+  ];
+  const aligned = resolvePayrollOperationalWeekKeys(
+    prev.from,
+    prev.to,
+    roster.length,
+    mondayNewWeek,
+    archive,
+  );
   assert("R2 didAlign stale keys", aligned.didAlign === true);
+  assert("R2 kind align", aligned.kind === "align");
   assert("R2 aligned to current from", aligned.from === current.from);
   assert("R2 aligned to current to", aligned.to === current.to);
 
@@ -83,11 +100,23 @@ function makeEmp(id) {
   assert("R2 display immediate after align", displayAfter.length === 14);
 }
 
+// R2b — real rollover: no archive → kind rollover (not align-only)
+{
+  const prev = { from: "2026-07-06", to: "2026-07-12" };
+  const roster = Array.from({ length: 14 }, (_, i) => makeEmp(`x-${i}`));
+  const t = classifyPayrollWeekTransition(prev.from, prev.to, roster.length, [], mondayNewWeek);
+  assert("R2b kind rollover", t.kind === "rollover");
+  assert("R2b didAlign false via resolve", {
+    ...resolvePayrollOperationalWeekKeys(prev.from, prev.to, roster.length, mondayNewWeek, []),
+  }.didAlign === false);
+}
+
 // R3 — empty roster: no align
 {
-  const prev = { from: "2026-07-07", to: "2026-07-12" };
-  const aligned = resolvePayrollOperationalWeekKeys(prev.from, prev.to, 0, mondayNewWeek);
+  const prev = { from: "2026-07-06", to: "2026-07-12" };
+  const aligned = resolvePayrollOperationalWeekKeys(prev.from, prev.to, 0, mondayNewWeek, []);
   assert("R3 empty roster no align", aligned.didAlign === false);
+  assert("R3 kind none", aligned.kind === "none");
 }
 
 console.log(`\n${pass} PASS / ${fail} FAIL`);
