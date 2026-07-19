@@ -116,10 +116,10 @@ Sprawdzono brak diff względem:
 
 | | |
 |--|--|
-| Commit | *(uzupełnione po commit)* |
+| Commit | **`c919d16`** |
 | Message | `test(infra): TEST-HARNESS-01 H2 jobs photos production sandbox` |
-| Zakres | wyłącznie H2 (harness + docs H2 + manifest) |
-| Branch | `main` ahead vs `origin/main` |
+| Zakres | wyłącznie H2 (harness + docs H2 + manifest) · 14 files |
+| Branch | `main` **ahead 2** vs `origin/main` |
 | Push | **NIE** — czekaj na Owner GO |
 
 ---
