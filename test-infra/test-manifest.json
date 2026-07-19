@@ -114,6 +114,10 @@
       "description": "TEST-HARNESS-01 H1 — Tender Production Sandbox (manual / Owner; requires --allow-prod; NOT in gate B/C)",
       "testIds": ["PROD-SANDBOX-H1"]
     },
+    "prod-sandbox-h2": {
+      "description": "TEST-HARNESS-01 H2 — Jobs Photos Production Sandbox (manual / Owner; requires --allow-prod; NOT in gate B/C)",
+      "testIds": ["PROD-SANDBOX-H2"]
+    },
     "lib-tenders-grouped-docs": {
       "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
       "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
@@ -1204,6 +1208,18 @@
       "id": "PROD-SANDBOX-H1",
       "class": "smoke",
       "path": "scripts/test-prod-sandbox-h1.mjs",
+      "runner": "node",
+      "environment": "prod",
+      "releaseTier": "none",
+      "mandatory": "optional",
+      "condition": "manual:prod-sandbox",
+      "owner": "Platform",
+      "status": "active"
+    },
+    {
+      "id": "PROD-SANDBOX-H2",
+      "class": "smoke",
+      "path": "scripts/test-prod-sandbox-h2.mjs",
       "runner": "node",
       "environment": "prod",
       "releaseTier": "none",

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1)
+ * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1 + H2)
  *
  * Usage:
  *   npm run test:prod-sandbox -- --scenario h0-preflight
  *   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
- *   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod --dry-run
+ *   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
+ *   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod --dry-run
  *
  * Exit codes (Design Freeze §6):
  *   0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -16,11 +17,19 @@ import { writeReport, defaultOutDir } from "./report.mjs";
 import { exitCodeForRun } from "./cleanup.mjs";
 import { runH0Preflight } from "./scenarios/h0-preflight.mjs";
 import { runH1Tender } from "./scenarios/h1-tender.mjs";
+import { runH2JobsPhotos } from "./scenarios/h2-jobs-photos.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 
-const IMPLEMENTED = new Set(["h0-preflight", "h0", "h1-tender", "h1"]);
+const IMPLEMENTED = new Set([
+  "h0-preflight",
+  "h0",
+  "h1-tender",
+  "h1",
+  "h2-jobs-photos",
+  "h2",
+]);
 
 function parseArgs(argv) {
   const out = {
@@ -38,6 +47,7 @@ function parseArgs(argv) {
   }
   if (out.scenario === "h0") out.scenario = "h0-preflight";
   if (out.scenario === "h1") out.scenario = "h1-tender";
+  if (out.scenario === "h2") out.scenario = "h2-jobs-photos";
   return out;
 }
 
@@ -47,15 +57,22 @@ TEST-HARNESS-01 Production Sandbox Harness
 
   npm run test:prod-sandbox -- --scenario h0-preflight
   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
-  npm run test:prod-sandbox -- --scenario h1-tender --allow-prod --dry-run
+  npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
+  npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod --dry-run
 
 Flags:
-  --scenario <id>   h0-preflight | h1-tender (H2–H5 not implemented)
-  --allow-prod      required for H1 prod writes
+  --scenario <id>   h0-preflight | h1-tender | h2-jobs-photos (H3–H5 not implemented)
+  --allow-prod      required for H1/H2 prod writes
   --dry-run         side-effect free planning mode
 
 Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
 `);
+}
+
+function sliceFor(scenario) {
+  if (scenario.startsWith("h2")) return "H2";
+  if (scenario.startsWith("h1")) return "H1";
+  return "H0";
 }
 
 async function main() {
@@ -67,12 +84,12 @@ async function main() {
 
   if (!IMPLEMENTED.has(args.scenario)) {
     console.error(
-      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H2–H5 require Owner GO)`,
+      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H3–H5 require Owner GO)`,
     );
     process.exit(2);
   }
 
-  const slice = args.scenario.startsWith("h1") ? "H1" : "H0";
+  const slice = sliceFor(args.scenario);
   const outDir = defaultOutDir(ROOT, `${args.scenario}-${Date.now().toString(36)}`);
   console.log(`=== TEST-HARNESS-01 / ${slice} ===`);
   console.log(`scenario=${args.scenario} dryRun=${args.dryRun} allowProd=${args.allowProd}`);
@@ -80,7 +97,13 @@ async function main() {
 
   let result;
   try {
-    if (args.scenario === "h1-tender") {
+    if (args.scenario === "h2-jobs-photos") {
+      result = await runH2JobsPhotos({
+        allowProd: args.allowProd,
+        dryRun: args.dryRun,
+        root: ROOT,
+      });
+    } else if (args.scenario === "h1-tender") {
       result = await runH1Tender({
         allowProd: args.allowProd,
         dryRun: args.dryRun,
@@ -103,7 +126,10 @@ async function main() {
       scenarioStatus: "FAIL",
       exitCode: 2,
       error: msg,
-      code: msg.startsWith("PSB_") || msg.startsWith("H1_") ? msg.split(":")[0] : "PSB_PRECONDITION",
+      code:
+        msg.startsWith("PSB_") || msg.startsWith("H1_") || msg.startsWith("H2_")
+          ? msg.split(":")[0]
+          : "PSB_PRECONDITION",
     });
     console.error(`report=${reportPath}`);
     process.exit(2);
@@ -140,6 +166,7 @@ async function main() {
     principles: {
       "PSB-001-CleanupGuarantee": "enforced",
       "H1-001-StableAssertions": slice === "H1" ? "enforced" : "n/a",
+      "H2-001-SyncStabilityWindow": slice === "H2" ? "enforced" : "n/a",
       "DF-PSB-001-NeverTouch": "enforced-via-mutate-guard",
     },
   });
