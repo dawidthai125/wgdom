@@ -18,9 +18,9 @@ Powód: tooling-only (harness H1 + docs), brak zmian UI/changelog, brak Protecte
 
 | Kryterium | Wynik |
 |-----------|--------|
-| `git push origin main` | **PASS** (`b431510..05f62bf`) |
+| `git push origin main` | **PASS** (`b431510..05f62bf` H1; handoff tip **`223ef82`**) |
 | Konflikty | **NONE** |
-| `HEAD` == `origin/main` | **PASS** (`05f62bf`) |
+| `HEAD` == `origin/main` | **PASS** (`223ef82`) |
 
 Commits na `main`:
 
@@ -28,6 +28,7 @@ Commits na `main`:
 |-----|---------|
 | **`b482687`** | `test(infra): TEST-HARNESS-01 H1 tender production sandbox` |
 | **`05f62bf`** | `docs: TEST-HARNESS-01 H1 final verification — record commit SHA` |
+| **`223ef82`** | `docs: TEST-HARNESS-01 H1 RELEASED — production tooling verification` |
 
 ---
 
@@ -46,7 +47,7 @@ Commits na `main`:
 | Zmiana wersji UI | **NIE oczekiwana** (H1 tooling-only) |
 | Zmiana `commit` w `version.json` | **NIE wymagana** dla PASS tooling |
 | Zachowanie aplikacji | **bez zmian** |
-| Werdykt | **EXPECTED** — UI nadal **2.65.33** · tooling na `main` = **`05f62bf`** |
+| Werdykt | **EXPECTED** — UI nadal **2.65.33** · tooling na `main` = **`223ef82`** |
 
 ---
 
@@ -77,7 +78,7 @@ npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
 | Pozycja | Status |
 |---------|--------|
 | TEST-HARNESS-01 H0 | **RELEASED** |
-| TEST-HARNESS-01 **H1** | **RELEASED** (`b482687` / tip `05f62bf`) |
+| TEST-HARNESS-01 **H1** | **RELEASED** (`b482687` · tip **`223ef82`**) |
 | **H0.x Persist Ledger** | **READY** · **nie implementować** bez Owner GO |
 | H2–H5 | **NOT STARTED** · czekaj Owner GO |
 
