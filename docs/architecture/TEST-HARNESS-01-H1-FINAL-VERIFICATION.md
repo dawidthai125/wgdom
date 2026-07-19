@@ -112,10 +112,10 @@ Niezwiązany WIP w working tree (TEUX / inne docs / audit scripts) **nie** wchod
 
 | | |
 |--|--|
-| Commit | *(wypełnione po `git commit`)* |
+| Commit | **`b482687`** |
 | Message | `test(infra): TEST-HARNESS-01 H1 tender production sandbox` |
-| Zakres | wyłącznie H1 (kod harness + docs H1 + manifest) |
-| Branch | `main` ahead vs `origin/main` |
+| Zakres | wyłącznie H1 (kod harness + docs H1 + manifest) · 15 files |
+| Branch | `main` **ahead 2** vs `origin/main` |
 | Push | **NIE** — czekaj na Owner GO |
 
 ---
