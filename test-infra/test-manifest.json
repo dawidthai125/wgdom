@@ -122,6 +122,10 @@
       "description": "TEST-HARNESS-01 H3-A — Payroll read-only Production Sandbox (manual / Owner; requires --allow-prod; NOT in gate B/C)",
       "testIds": ["PROD-SANDBOX-H3"]
     },
+    "prod-sandbox-h4": {
+      "description": "TEST-HARNESS-01 H4 — Cloud KV-only Production Sandbox (manual / Owner; requires --allow-prod; NOT in gate B/C)",
+      "testIds": ["PROD-SANDBOX-H4"]
+    },
     "lib-tenders-grouped-docs": {
       "description": "Grouped Documents — klasyfikacja 7 grup (EPIC P2 · UX.1C)",
       "testIds": ["LIB-TENDERS-GROUPED-DOCS"]
@@ -1236,6 +1240,18 @@
       "id": "PROD-SANDBOX-H3",
       "class": "smoke",
       "path": "scripts/test-prod-sandbox-h3.mjs",
+      "runner": "node",
+      "environment": "prod",
+      "releaseTier": "none",
+      "mandatory": "optional",
+      "condition": "manual:prod-sandbox",
+      "owner": "Platform",
+      "status": "active"
+    },
+    {
+      "id": "PROD-SANDBOX-H4",
+      "class": "smoke",
+      "path": "scripts/test-prod-sandbox-h4.mjs",
       "runner": "node",
       "environment": "prod",
       "releaseTier": "none",

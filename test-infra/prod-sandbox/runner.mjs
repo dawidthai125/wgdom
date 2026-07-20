@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1 + H2 + H3-A)
+ * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1 + H2 + H3-A + H4)
  *
  * Usage:
  *   npm run test:prod-sandbox -- --scenario h0-preflight
  *   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
  *   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
  *   npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
- *   npm run test:prod-sandbox -- --scenario h3-payroll --dry-run
+ *   npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
+ *   npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
  *
  * Exit codes (Design Freeze §6):
  *   0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -20,6 +21,7 @@ import { runH0Preflight } from "./scenarios/h0-preflight.mjs";
 import { runH1Tender } from "./scenarios/h1-tender.mjs";
 import { runH2JobsPhotos } from "./scenarios/h2-jobs-photos.mjs";
 import { runH3Payroll } from "./scenarios/h3-payroll.mjs";
+import { runH4Cloud } from "./scenarios/h4-cloud.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
@@ -33,6 +35,8 @@ const IMPLEMENTED = new Set([
   "h2",
   "h3-payroll",
   "h3",
+  "h4-cloud",
+  "h4",
 ]);
 
 function parseArgs(argv) {
@@ -53,6 +57,7 @@ function parseArgs(argv) {
   if (out.scenario === "h1") out.scenario = "h1-tender";
   if (out.scenario === "h2") out.scenario = "h2-jobs-photos";
   if (out.scenario === "h3") out.scenario = "h3-payroll";
+  if (out.scenario === "h4") out.scenario = "h4-cloud";
   return out;
 }
 
@@ -64,11 +69,12 @@ TEST-HARNESS-01 Production Sandbox Harness
   npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
   npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
-  npm run test:prod-sandbox -- --scenario h3-payroll --dry-run
+  npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
+  npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
 
 Flags:
-  --scenario <id>   h0-preflight | h1-tender | h2-jobs-photos | h3-payroll (H4–H5 not implemented)
-  --allow-prod      required for H1/H2 writes and H3-A prod read on prod URL
+  --scenario <id>   h0-preflight | h1-tender | h2-jobs-photos | h3-payroll | h4-cloud (H5 not implemented)
+  --allow-prod      required for H1/H2/H4 writes and H3-A prod read on prod URL
   --dry-run         side-effect free planning mode
 
 Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -76,6 +82,7 @@ Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
 }
 
 function sliceFor(scenario) {
+  if (scenario.startsWith("h4")) return "H4";
   if (scenario.startsWith("h3")) return "H3";
   if (scenario.startsWith("h2")) return "H2";
   if (scenario.startsWith("h1")) return "H1";
@@ -91,7 +98,7 @@ async function main() {
 
   if (!IMPLEMENTED.has(args.scenario)) {
     console.error(
-      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H4–H5 require Owner GO)`,
+      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H5 require Owner GO)`,
     );
     process.exit(2);
   }
@@ -104,7 +111,13 @@ async function main() {
 
   let result;
   try {
-    if (args.scenario === "h3-payroll") {
+    if (args.scenario === "h4-cloud") {
+      result = await runH4Cloud({
+        allowProd: args.allowProd,
+        dryRun: args.dryRun,
+        root: ROOT,
+      });
+    } else if (args.scenario === "h3-payroll") {
       result = await runH3Payroll({
         allowProd: args.allowProd,
         dryRun: args.dryRun,
@@ -143,7 +156,8 @@ async function main() {
         msg.startsWith("PSB_") ||
         msg.startsWith("H1_") ||
         msg.startsWith("H2_") ||
-        msg.startsWith("H3_")
+        msg.startsWith("H3_") ||
+        msg.startsWith("H4_")
           ? msg.split(":")[0]
           : "PSB_PRECONDITION",
     });
@@ -184,6 +198,8 @@ async function main() {
       "H1-001-StableAssertions": slice === "H1" ? "enforced" : "n/a",
       "H2-001-SyncStabilityWindow": slice === "H2" ? "enforced" : "n/a",
       "H3-001-StableAssertions": slice === "H3" ? "enforced" : "n/a",
+      "H4-SOFT-METRICS": slice === "H4" ? "warning-only" : "n/a",
+      "H4-FORBIDDEN-KEYS": slice === "H4" ? "enforced" : "n/a",
       "DF-PSB-001-NeverTouch": "enforced-via-mutate-guard",
     },
   });

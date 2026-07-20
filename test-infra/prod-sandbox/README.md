@@ -1,7 +1,7 @@
 # Production Sandbox Harness (TEST-HARNESS-01)
 
-> **Slices:** **H0** foundations · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · H4–H5 **NOT IMPLEMENTED**  
-> **SSOT:** [`docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md) · [`TEST-HARNESS-01-H3-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H3-DESIGN-FREEZE.md)
+> **Slices:** **H0** foundations · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · **H4** Cloud KV-only · H5 **NOT IMPLEMENTED**  
+> **SSOT:** [`docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md) · [`TEST-HARNESS-01-H4-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H4-DESIGN-FREEZE.md)
 
 ## Run
 
@@ -11,7 +11,8 @@ npm run test:prod-sandbox -- --scenario h0-preflight
 npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
 npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
 npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
-npm run test:prod-sandbox -- --scenario h3-payroll --dry-run
+npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
+npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
 ```
 
 Via orchestrator (manual / Owner — not in gate B/C):
@@ -21,7 +22,17 @@ npm run test:infra -- --suite prod-sandbox-h0
 npm run test:infra -- --suite prod-sandbox-h1 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h2 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h3 --allow-prod
+npm run test:infra -- --suite prod-sandbox-h4 --allow-prod
 ```
+
+## H4 notes (Cloud KV-only)
+
+- `batch-get` → nested seed `psb-cloud-*` via **reuse** H1 `buildSandboxTenderItem` / `seedSandboxTender` → parity → preservacja non-`psb-*` → cleanup + `kw-tenders-deleted-ids`
+- **FORBIDDEN keys** hard-deny (payroll / auth / billing) before every `batch-set`
+- **KV-only** — no Playwright / no login required for PASS
+- Telemetry / `batchSetRetries=0` → **WARNING only** (never FAIL)
+- Zero Protected Core / Edge / Payroll / Theme / new KV
+- Requires `--allow-prod` for real writes
 
 ## H3-A notes (Payroll read-only)
 
@@ -67,4 +78,5 @@ Empty allowlist OK for always-create `psb-*` + cleanup.
 ## Zakazy
 
 - No Protected Core / cloud-sync / Edge / Payroll / catalog mutations
-- No H3-B/C save · No H4–H5 without Owner GO
+- No H3-B/C save · No H5 without Owner GO
+- H4: no dual-writer · no new KV · no FAIL on `batchSetRetries=0`
