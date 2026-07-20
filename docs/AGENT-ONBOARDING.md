@@ -1,7 +1,7 @@
 # W&G DOM — onboarding programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.63.66** · runtime **`80cf911`** · https://www.wgdom.fun · **NG-06-TEUX EPIC COMPLETE** · **TI-B4 CLOSED** · **TEST-INFRA-001 CLOSED** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** **2.65.35** · runtime **`fce7b78`** · https://www.wgdom.fun · **PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · **STABILIZATION WINDOW ACTIVE**
 
 ---
 
@@ -14,6 +14,7 @@
 3. docs/STABILIZATION-WINDOW-PLAN.md ← ★★ okres po NG-04 (brak nowych epiców)
 4. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 5. docs/PROJECT-HANDOFF-CURRENT.md    ← ★★ baseline prod, epici, commity
+5p. docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md ← LP fence
 6. docs/NG-04-EPIC-CLOSE-REPORT.md    ← BOQ PRO · epic close
 7. docs/WORKFLOW-ARCHITECTURE-v2.63.md ← ★★ SSOT Workflow (OBOWIĄZKOWE przy Przetargu)
 8. docs/ARCHITECTURE.md               ← pełna architektura (§ 15.2 Audit Hub · § 15.6 wm_druk)
@@ -51,11 +52,13 @@ Monolit **React + Vite + TypeScript** dla firmy remontowej W&G DOM (Wrocław):
 │  Browser (PWA) · Vite build · lazy chunks per widok         │
 ├─────────────────────────────────────────────────────────────┤
 │  src/app/App.tsx          — shell, routing admin/worker     │
+│  src/app/CloudLoader.tsx  — bootstrap fetch/merge/push      │
 │  src/app/*View.tsx        — duże panele (Jobs, Payroll, …)  │
 │  src/app/tenders/         — Przetargi 3.0 module            │
 │  src/lib/*                — logika domenowa (sync, jobs, …) │
 ├─────────────────────────────────────────────────────────────┤
 │  LocalStorage  ←merge/push→  Supabase KV (DATA_KEYS)        │
+│  ★ bootstrap: resurrection fence (LP) — empty Cloud ≫ stale LS │
 │  Storage upload  ←→  Edge make-server-0afb8820              │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -70,11 +73,13 @@ Monolit **React + Vite + TypeScript** dla firmy remontowej W&G DOM (Wrocław):
 
 ## 2a. ★ Reguła nr 1: Lista Płac nie może zostać zepsuta
 
-**Lista Płac** to najważniejszy moduł operacyjny (godziny, wypłaty, archiwum tygodnia, sync między urządzeniami). Po miesiącach napraw (Guard Phase, B4 merge, PWRB, RC-B) jest **stabilna na prod**.
+**Lista Płac** to najważniejszy moduł operacyjny (godziny, wypłaty, archiwum tygodnia, sync między urządzeniami). Po miesiącach napraw (Guard Phase, B4 merge, PWRB, RC-B, **resurrection fence**, **rollover classifier**) jest **stabilna na prod**.
 
 | Zanim implementujesz cokolwiek | Działanie |
 |------------------------------|-----------|
 | Dotykasz `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` | Przeczytaj [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| Bootstrap push / merge weekEmployees | **Nie usuwaj** `payroll-bootstrap-resurrection-fence.ts` |
+| Rollover tygodnia (Nd ≥20:00) | Zachowaj `classifyPayrollWeekTransition` (ALIGN ≠ wipe) |
 | Dodajesz/usuwasz pracownika z tygodnia | **Tylko** `payroll-week-roster-bundle.ts` (PWRB) |
 | Bundle FEATURE (Przetargi, Mobile, Katalog) | **Zero** diff w plikach CORE payroll/sync (#CORE-013) |
 | Przed commitem | `npm run test:infra -- --gate B --scope payroll` (15/15) |

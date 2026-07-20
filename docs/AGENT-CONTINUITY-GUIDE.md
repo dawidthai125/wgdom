@@ -1,10 +1,14 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.28** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**
-> **Ostatnia aktualizacja:** 2026-07-14 (domknięcie **LOCALSTORAGE-ARCH-02 A–E** + observation PASS · F **GO** / not started) · prod **2.65.28** @ **`d896852`** · **STABILIZATION WINDOW ACTIVE**
+> **Prod:** UI **2.65.35** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**  
+> **Ostatnia aktualizacja:** 2026-07-20 (domknięcie **PAYROLL-CLOUD-RESURRECTION-01** + **PAYROLL-P0-WEEK-ROLLOVER-01**) · app **`fce7b78`** · tip docs **`5d6e798`** · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Domknięcie sesji (2026-07-14):** **LOCALSTORAGE-ARCH-02 A–E** **CLOSED** · **`d896852`** · **2.65.28** — IDB cold (snapshots / jobs / pipeline lean / WM / audit rings) + `window.__WG_STORAGE__` · Owner observation **PASS** (quota STABLE · storage UNDER LIMIT · Payroll FIX VERIFIED · regression NONE) · **Etap F GO YES** · **NIE START** bez jawnego IMPLEMENT · SSOT [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md) · DF [`architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md).
+> **★ Domknięcie sesji (2026-07-20):** **PAYROLL-CLOUD-RESURRECTION-01** **CLOSED** · **`fce7b78`** · **2.65.35** — bootstrap freshness fence: stary LocalStorage innej sesji **nie** reseeds intentional empty Cloud KV · SSOT [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts` · test `scripts/test-payroll-cloud-resurrection-01.mjs`.
+
+> **★ Domknięcie sesji (2026-07-20):** **PAYROLL-P0-WEEK-ROLLOVER-01** **CLOSED** · **`e38610a`** · **2.65.34** — `classifyPayrollWeekTransition` ALIGN vs real ROLLOVER (Nd ≥20:00) · SSOT [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md).
+
+> **★ Domknięcie sesji (2026-07-14):** **LOCALSTORAGE-ARCH-02 A–E** **CLOSED** · **`d896852`** · **2.65.28** — IDB cold (snapshots / jobs / pipeline lean / WM / audit rings) + `window.__WG_STORAGE__` · Owner observation **PASS** · **Etap F GO YES** · **NIE START** bez jawnego IMPLEMENT · SSOT [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md).
 
 > **★ Domknięcie sesji (2026-07-14):** **PAYROLL-P0-FIX-01** **CLOSED** · **`1c41b61`** · **2.65.27** — `QuotaExceededError` na LS **nie** otwiera bootstrap FAILED · payroll-first persist + in-memory handoff.
 
@@ -68,37 +72,36 @@
 
 > **★ Closeout sesji (2026-07-04, docs-only):** `e4daaf4` — sync `PROJECT-STATUS.md` (HEAD → `609ae53`, S7-5 ETAP 1 = DEPLOYED) + raport interim `docs/stabilization-weekly/STABILIZATION-WEEKLY-W01-2026-07-04.md` (pola telemetryczne PENDING). Evidence Gate **OPEN** — bez zmian (zero telemetrii/AC8–AC11/reportów). Wykonany **lokalny backup Supabase klasy B** (Application Backup) w `backup/` (gitignored — hasła adminów): KV 31 kluczy + Storage 166/237 (71 osieroconych `job-photo` 404) + schema/Edge/config. **Do klasy A (Disaster Recovery)** brak `pg_dump` serwera Postgres → backlog **INFRA-DB-BACKUP-01** (ON HOLD, gate: `supabase login`+link+hasło DB+owner GO).
 
-> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-10):**
+> **⚠ PIERWSZE, co musisz wiedzieć (2026-07-20):**
 >
-> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — każda mutacja pól LP → **Domain Push** (#CORE-015). Przed zmianą w `cloud-sync.ts`, Edge, payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md). Mutacje składu → **PWRB**. Zmiany sync → **Regression Contract Tests** (#CORE-016).
-> 1. **POST INCIDENT STANDBY** — prod **2.63.87** @ **`6f85d4c`** · **Incident Register CLEAN** (A + B CLOSED).
-> 2. **P0-A iOS Login Shell → CLOSED** (`6f85d4c`) · FEATURE only · SSOT [`recovery/P0-A-IOS-LOGIN-CLOSEOUT.md`](recovery/P0-A-IOS-LOGIN-CLOSEOUT.md).
-> 3. **P0 Payroll Cross-Device Sync → FULLY CLOSED** (`e819124` · observation 2026-07-11) · SSOT [`INCIDENTS.md`](INCIDENTS.md).
-> 4. **NG-10 / NG-09 EPIC COMPLETE** — **nie** rozszerzaj bez nowego AUDIT + Owner GO.
-> 5. **Następny krok** — **STABILIZATION WINDOW** · `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT`.
+> 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — Domain Push (#CORE-015) · **resurrection fence** · rollover classifier · PWRB. Przed `cloud-sync` / Edge / payroll → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+> 1. **Baseline prod** — **2.65.35** @ **`fce7b78`** · tip docs **`5d6e798`** · **GREEN**.
+> 2. **PAYROLL-CLOUD-RESURRECTION-01 + ROLLOVER-01 CLOSED** — nie usuwaj fence / nie cofaj ALIGN vs ROLLOVER.
+> 3. **STABILIZATION WINDOW** — brak nowych epiców bez AUDIT + Owner GO.
+> 4. **Następny krok** — czekaj Owner GO · `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT`.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
 ---
 
-## 0. Szybki start dla nowego agenta (2026-07-10)
+## 0. Szybki start dla nowego agenta (2026-07-20)
 
 ### Baseline (SSOT)
 
 | Warstwa | Wartość |
 |---------|---------|
-| **Production (UI)** | **2.65.28** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit (app)** | **`d896852`** · LOCALSTORAGE-ARCH-02 A–E |
-| **main HEAD** | **`d896852`** · app = prod |
-| **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · RS Push **bez Payroll** (S1-1 by design) |
-| **Incident register** | **CLEAN** — Incident A + B **CLOSED** · quota LP surface **FIX-01 + ARCH-02** |
-| **Ostatnio CLOSED** | **LOCALSTORAGE-ARCH-02 A–E** · **PAYROLL-P0-FIX-01** · **PAYROLL-BOOTSTRAP-RACE-FIX-01** |
-| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** — **GO YES** · czeka jawne **IMPLEMENT** (nie startuj sam) |
+| **Production (UI)** | **2.65.35** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
+| **Runtime commit (app)** | **`fce7b78`** · PAYROLL-CLOUD-RESURRECTION-01 |
+| **main HEAD (tip)** | **`5d6e798`** · docs closeout RESURRECTION (app nadal `fce7b78`) |
+| **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · **resurrection fence** na bootstrap · RS Push **bez Payroll** |
+| **Incident register** | **CLEAN** — Resurrection-01 + Rollover-01 **CLOSED** · A/B historyczne **CLOSED** |
+| **Ostatnio CLOSED** | **PAYROLL-CLOUD-RESURRECTION-01** · **PAYROLL-P0-WEEK-ROLLOVER-01** · TEST-HARNESS H0–H3 tooling · THEME-01 · DEADLOCK-N1 |
+| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** — GO / not started · **H0.x Persist Ledger** · dalsze H* sandbox **tylko po GO** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
-| **WIP lokalny** | **TWSL** **2.63.91** · unrelated docs/WIP |
-| **Następny krok** | IMPLEMENT **ARCH-02F** tylko po poleceniu Owner · **STABILIZATION WINDOW** · zero merge/Payroll bez GO |
+| **WIP lokalny** | unrelated tenders/theme/`.tmp*` — **nie** mieszać z CORE |
+| **Następny krok** | **STABILIZATION WINDOW** · czekaj Owner GO · **nie** ruszaj fence/merge payroll bez AUDIT+GO |
 
 ### Czym jest aplikacja
 
@@ -110,6 +113,10 @@
 
 | Program | Status | Wersja |
 |---------|--------|--------|
+| **PAYROLL-CLOUD-RESURRECTION-01** — bootstrap freshness fence | **CLOSED** · dual-session smoke **PASS** | **2.65.35** @ `fce7b78` |
+| **PAYROLL-P0-WEEK-ROLLOVER-01** — ALIGN vs real rollover | **CLOSED** | **2.65.34** @ `e38610a` |
+| **CLOUD-P0-DEADLOCK-N1** — retry transient batch-set | **CLOSED** | **2.65.33** |
+| **TEST-HARNESS-01 H0–H3** — prod sandbox tooling | **RELEASED** (tooling) | tip docs · UI bez zmiany przy H* |
 | **LOCALSTORAGE-ARCH-02 A–E** — IDB cold + `__WG_STORAGE__` | **CLOSED** · observation **PASS** | **2.65.28** @ `d896852` |
 | **LOCALSTORAGE-ARCH-02F** — platform facade | **GO** · **NOT STARTED** | czeka IMPLEMENT |
 | **PAYROLL-P0-FIX-01** — QuotaExceeded ≠ bootstrap FAILED | **CLOSED** | **2.65.27** @ `1c41b61` |
@@ -159,11 +166,13 @@
 
 | Kierunek | Status | Uwaga |
 |----------|--------|-------|
-| **NG11-P0 POST RELEASE** | **CLOSED** | Epic complete P0.1-A + P0.2 · [`NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) |
-| **NG-08 parent** | **CLOSED / FROZEN** | slices 01–05 + HF-01 · **nie rozszerzać** |
+| **Lista Płac — observation** | **ACTIVE** | Live po recovery może być puste (intentional) · **nie** auto-seed ze starego LS |
+| **LOCALSTORAGE-ARCH-02F** | **GO / NOT STARTED** | tylko jawne IMPLEMENT |
+| **TEST-HARNESS H0.x / dalsze H*** | **gated** | Persist Ledger READY · bez GO = nie startuj |
+| **NG11-P0 POST RELEASE** | **CLOSED** | [`NG11-P0-EPIC-CLOSE-REPORT.md`](architecture/NG11-P0-EPIC-CLOSE-REPORT.md) |
+| **NG-08 parent** | **CLOSED / FROZEN** | **nie rozszerzać** |
 | **Następny AUDIT** | Owner | nowy bundle od zera · #CORE-013 |
-| **Cloud Sync S7** | **OBSERVATION** | bez zmian implementacyjnych |
-| **POST F2 observation** (#5C-5C F3 telemetria) | **ACTIVE** | T1–T7 read-only · **F3 BLOCKED** |
+| **Cloud Sync S7** | **OBSERVATION** | bez implementacji sync |
 | **FEATURE / CORE** | Owner GO | osobny bundle · zero mixed commit |
 
 ### Reguła nr 1 dla każdej implementacji
@@ -180,10 +189,13 @@
 | **STABILIZATION WINDOW** | Brak nowych epiców bez Owner GO + AUDIT; maintenance / hotfix dozwolone | [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) |
 | **TOKEN FREEZE** | `tender-ux-tokens.ts` — typography **import-only**; **wyjątek TWSL:** tokeny layout accordion (`TENDER_SCROLLABLE_ACCORDION_*`) — Owner GO 2026-07-11 | NG-06 TEUX + TWSL DF |
 | **Lista Płac / PWRB** | Mutacje składu tygodnia **tylko** przez PWRB · gate B payroll **16/16** | § **2b** · Payroll Agent Guide |
+| **Resurrection fence** | **Nie usuwaj / nie omijaj** `payroll-bootstrap-resurrection-fence.ts` · intentional empty Cloud ≫ bogaty LS | [`architecture/PAYROLL-CLOUD-RESURRECTION-01-DESIGN-FREEZE.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-DESIGN-FREEZE.md) |
+| **Rollover classifier** | **Nie cofaj** `classifyPayrollWeekTransition` (ALIGN ≠ wipe; ROLLOVER = archive+clear) | [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-DESIGN-FREEZE.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-DESIGN-FREEZE.md) |
 | **Cloud Sync S7** | **Observation only** — bez nowych implementacji sync bez Owner GO | CURRENT-TASK · recovery |
 | **Deploy** | Frontend: **tylko** `git push origin main` · verify **jedno** `version.json` · **zakaz** `vercel deploy` | [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) |
 | **Commit** | Tylko na polecenie właściciela · jeden bundle = jeden cel · zero mixed WIP | AGENTS.md · reguły Cursor |
 | **Inspektor state** | Panel ma **własny** `useState jobsAll` (nie `App.tsx`) · setter **`setJobsAll`** | [`recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md`](recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md) |
+| **Po KV clear payroll** | Zamknij inne klienty / wyczyść LS payroll **zanim** ktoś otworzy app (playbook recovery) | Resurrection DF D-05 |
 
 **Workflow bundla:** `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT → BUILD/SMOKE → COMMIT → PUSH → VERIFY → CLOSE`.
 
@@ -831,31 +843,39 @@ AppInnerWithAuth
 
 **Nie czytaj** `App.tsx` od zera (~15k linii) — grep po nazwie widoku lub ARCHITECTURE § 15.
 
-### 4.4 Lista Płac — sync i merge (SSOT po B4)
+### 4.4 Lista Płac — sync i merge (SSOT po B4 + Resurrection fence)
 
-**Closeout:** [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · Guard Phase: [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md)
+**Closeout B4:** [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · Guard: [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
+**Resurrection fence (2.65.35):** [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md)  
+**Rollover ALIGN/ROLLOVER (2.65.34):** [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)
 
 ```text
 PayrollView.tsx / App.tsx
   persistPayrollRoster ──► withKwWeekEmployeesAsyncMutation (B3 guard)
   syncWeekRatesFromDirectory ──► guard roster (R2)
-  autoArchiveAndAdvance ──► pushPayrollWeekAfterRollover + guard (R3)
+  autoArchiveAndAdvance ──► classifyPayrollWeekTransition (ALIGN | ROLLOVER)
+                         ──► pushPayrollWeekAfterRollover + guard (R3)
 
 CloudLoader (F5 / pierwszy mount)
   mergeAllDataKeys → applyBootstrapPayrollMerge → finalizePayrollBundleMerge
-
-pullFromCloudAndMerge / focus sync
-  computeMergedDataBundle → finalizePayrollBundleMerge → applyRuntimePayrollAntiLeak
+  → evaluatePayrollResurrectionFenceForBundle
+  → bootstrapMergedShouldPush(..., fence)   ★ nie pushuj stale LS na empty Cloud
 ```
 
 | Warstwa | Plik | Klucz KV |
 |---------|------|----------|
 | UI Lista Płac | `PayrollView.tsx`, `WeekEmployeeDetail.tsx` | `kw-week-employees`, `kw-weekFrom`, `kw-weekTo` |
 | Merge SSOT | `cloud-sync.ts` — `finalizePayrollBundleMerge` | po `mergeAllDataKeys` |
+| Freshness fence | `payroll-bootstrap-resurrection-fence.ts` | blokuje resurrection z LS |
 | Guard mutacji | `cloud-sync-mutation-guard.ts` | `kw-week-employees`, `kw-jobs` |
 | Przydziały robót | `PayrollJobAssignmentsPanel.tsx` | `job.workEntries[]` w `kw-jobs` |
 
-**Test parity B4:** `npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs`
+**Testy:**  
+`npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs`  
+`npx vite-node scripts/test-payroll-cloud-resurrection-01.mjs`  
+`npx vite-node scripts/test-payroll-p0-week-rollover-01.mjs`
+
+**Nie wolno:** preferować bogatszego LS nad intentional empty Cloud przy bootstrap; klonować archive 13–18 → 20–25 tylko dlatego że „ma dane”.
 
 ---
 

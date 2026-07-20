@@ -1,19 +1,16 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-17 (**THEME-01C** atomic theme migration CLOSED) · prod **2.65.30** @ `ff1df62` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
-> **Poprzedni baseline:** 2026-07-14 (**LOCALSTORAGE-ARCH-02 A–E** CLOSED · F GO / not started) · prod 2.65.28 @ `d896852`
+> **Data closeout:** 2026-07-20 (**PAYROLL-CLOUD-RESURRECTION-01** CLOSED) · prod **2.65.35** @ `fce7b78` · tip docs `5d6e798` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
+> **Poprzedni baseline app:** 2026-07-20 (**PAYROLL-P0-WEEK-ROLLOVER-01**) · **2.65.34** @ `e38610a`
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
-> **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b — **nie psuj LP przy FEATURE**  
+> **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b / § 4.4 — **nie psuj LP przy FEATURE** · **nie omijaj resurrection fence**
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
-> **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4 (finalized przy 2.62.72)  
-> **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
-> **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”  
-> **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
+> **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4  
+> **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”
 
-> **★★ TEST-HARNESS-01 H0 — Production Sandbox Harness foundation:** **RELEASED** (2026-07-19) · commit tooling **`df6d153`** on `main` · **UI prod unchanged** **2.65.33** (tooling-only) · SSOT [`architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) · DF [`architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](architecture/TEST-HARNESS-01-DESIGN-FREEZE.md)  
-> **★★ TEST-HARNESS-01 H1 — Tender Production Sandbox:** **RELEASED** (2026-07-19) · tooling **`b482687`** on `main` · **UI prod unchanged** **2.65.33** (tooling-only) · SSOT [`architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md)  
-> **★★ TEST-HARNESS-01 H2 — Jobs Photos Production Sandbox:** **RELEASED** (2026-07-19) · tooling **`c919d16`** / tip **`f06b40d`** on `main` · **UI prod unchanged** **2.65.33** (tooling-only) · SSOT [`architecture/TEST-HARNESS-01-H2-PRODUCTION-TOOLING-VERIFICATION.md`](architecture/TEST-HARNESS-01-H2-PRODUCTION-TOOLING-VERIFICATION.md) · Final [`architecture/TEST-HARNESS-01-H2-FINAL-VERIFICATION.md`](architecture/TEST-HARNESS-01-H2-FINAL-VERIFICATION.md)  
-> **Backlog H0.x — Persist Ledger** (cleanup orphan recovery po przerwanym procesie): **READY** · **nie implementować** bez Owner GO · **H3 nie startować** bez Owner GO
+> **★★ PAYROLL-CLOUD-RESURRECTION-01:** **CLOSED** (2026-07-20) · **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`  
+> **★★ PAYROLL-P0-WEEK-ROLLOVER-01:** **CLOSED** (2026-07-20) · **2.65.34** @ **`e38610a`** · SSOT [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)  
+> **★★ TEST-HARNESS-01 H0–H3:** tooling **RELEASED** · H0.x Persist Ledger **READY** · **nie implementować** bez Owner GO
 
 **Wejście dla nowej sesji:**
 
@@ -21,6 +18,8 @@
 0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
+0p. docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md  ← ★★ LP bootstrap fence (CLOSED · 2.65.35)
+0r. docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md    ← ★★ rollover ALIGN/ROLLOVER (CLOSED · 2.65.34)
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
 1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)

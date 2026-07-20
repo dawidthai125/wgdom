@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-19 (**TEST-HARNESS-01 H2 RELEASED** · tooling `c919d16` / tip `f06b40d`) · UI prod **2.65.33** · **main** `f06b40d`
+**Ostatnia aktualizacja:** 2026-07-20 (**PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · **2.65.35**) · UI prod **2.65.35** · app **`fce7b78`** · tip **`5d6e798`**
 
 ## Dla przyszłych agentów — start tutaj
 
@@ -9,43 +9,50 @@
 | **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
 | **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
 | **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod (UI)** | **2.65.33** · tooling HEAD **`f06b40d`** (H2 RELEASED; UI version.json bez zmiany — tooling-only) |
-| **main HEAD** | **`f06b40d`** — TEST-HARNESS-01 H2 tip |
-| **TEST-HARNESS-01 H0** | **RELEASED** · [`docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H0-PRODUCTION-TOOLING-VERIFICATION.md) |
-| **TEST-HARNESS-01 H1** | **RELEASED** · [`docs/architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H1-PRODUCTION-TOOLING-VERIFICATION.md) |
-| **TEST-HARNESS-01 H2** | **RELEASED** · `npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod` · [`docs/architecture/TEST-HARNESS-01-H2-PRODUCTION-TOOLING-VERIFICATION.md`](docs/architecture/TEST-HARNESS-01-H2-PRODUCTION-TOOLING-VERIFICATION.md) |
-| **Backlog H0.x Persist Ledger** | **READY** · **nie implementować** bez Owner GO |
-| **H3–H5** | **NOT STARTED** · czekaj Owner GO |
-| **WIP lokalny (nie prod)** | unrelated WIP — nie mieszać z H2 |
-| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · PWRB · domain push S2 · gate B payroll **16/16** |
-| **OPEN (Owner)** | **H0.x** / **H3** tylko po jawnych GO · STABILIZATION WINDOW |
-| **Ostatnio zamknięte** | **TEST-HARNESS-01 H2** (**c919d16**) · H1 · H0 · UI app **CLOUD-P0-DEADLOCK-N1** (**2.65.33**) |
-| **Co dalej?** | Czekaj Owner GO · **nie startuj H3** · H0.x bez GO |
+| **Baseline prod (UI)** | **2.65.35** · app commit **`fce7b78`** · tip docs **`5d6e798`** |
+| **main HEAD** | **`5d6e798`** (docs closeout) · app release **`fce7b78`** |
+| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · **resurrection fence** · rollover classifier · PWRB · gate B payroll |
+| **Ostatnio zamknięte** | **PAYROLL-CLOUD-RESURRECTION-01** (**2.65.35**) · **PAYROLL-P0-WEEK-ROLLOVER-01** (**2.65.34**) · TEST-HARNESS H0–H3 · DEADLOCK-N1 |
+| **OPEN (Owner)** | **ARCH-02F** · **H0.x Persist Ledger** · dalsze sandbox H* — tylko po GO |
+| **Co dalej?** | **STABILIZATION WINDOW** · czekaj Owner GO · **nie** omijaj fence / nie mixed CORE+FEATURE |
 
-> **LOCALSTORAGE-ARCH-02 A–E CLOSED:** UI **2.65.28** @ **`d896852`** · observation **PASS** · F **GO** / not started · SSOT [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md)
+> **PAYROLL-CLOUD-RESURRECTION-01 CLOSED:** UI **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`
 
-> **PAYROLL-P0-FIX-01 CLOSED:** UI **2.65.27** @ **`1c41b61`** · QuotaExceeded ≠ bootstrap FAILED
+> **PAYROLL-P0-WEEK-ROLLOVER-01 CLOSED:** UI **2.65.34** @ **`e38610a`** · `classifyPayrollWeekTransition` · SSOT [`docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)
 
-> **PAYROLL-DISPLAY-UNLOCK:** hist. **2.65.19** TRACE-02 · Owner **Payroll FIX VERIFIED** przy ARCH-02 observation (quota root) · bez nowego diga bez polecenia
+> **TEST-HARNESS-01 H0–H3:** tooling **RELEASED** · UI version przy H* często bez zmiany · H0.x / dalsze H **nie startuj** bez GO
 
-> **PAYROLL-BOOTSTRAP-RACE-FIX-01 CLOSED:** UI **2.65.18** @ **`47de89b`** · **PRODUCTION VERIFIED** · CloudLoader bootstrapPhase gate · DF [`docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](docs/architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md)
-
-> **PAYROLL-ANTI-LEAK-FIX-01 CLOSED:** UI **2.65.14** @ **`26f3eb5`** · **PRODUCTION VERIFIED** · SSOT [`docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/PAYROLL-ANTI-LEAK-FIX-01-RELEASE-VERIFICATION.md)
-
-> **JOBS-SYNC-FIX-01 CLOSED:** UI **2.65.13** @ **`309609e`** · **PRODUCTION VERIFIED** · prod smoke **PASS** (photos 19/19 + payroll) · SSOT [`docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md`](docs/releases/JOBS-SYNC-FIX-01-RELEASE-VERIFICATION.md)
-
-> **JOBS-PHOTOS-P0 RESOLVED:** root cause admin bundle apply-before-push + stale LS reconcile · fix MF-1/2/3 · audit [`docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md`](docs/architecture/JOBS-PHOTOS-P0-AUDIT-CLOSEOUT.md) · DF [`docs/architecture/JOBS-SYNC-DESIGN-FREEZE-01.md`](docs/architecture/JOBS-SYNC-DESIGN-FREEZE-01.md)
-
-> **JOBS-PHOTOS-DELETE-SYNC-01 CLOSED:** UI **2.65.10** @ **`d8f2d99`** · **PRODUCTION VERIFIED** · prod smoke **19/19** · SSOT [`docs/architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md`](docs/architecture/JOBS-PHOTOS-DELETE-SYNC-01-OWNER-CLOSEOUT.md)
-
-> **NG11-FF-01 CLOSED:** UI **2.65.8** @ **`8b3c991`** · **PRODUCTION VERIFIED** · SSOT [`docs/architecture/NG11-FF-01-OWNER-CLOSEOUT.md`](docs/architecture/NG11-FF-01-OWNER-CLOSEOUT.md)
-
-> **ROBOTS-INSPECTOR-01 CLOSED:** prod **2.65.5** @ **`9307386`** · SSOT [`docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md`](docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md) · **nie implementuj** bez Owner GO.
-
+> **LOCALSTORAGE-ARCH-02 A–E CLOSED:** UI **2.65.28** @ **`d896852`** · F **GO** / not started · SSOT [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md)
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
-> **POST INCIDENT STANDBY:** prod **GREEN** · Incident A + B **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+> **POST INCIDENT STANDBY:** prod **GREEN** · Resurrection + Rollover **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## PAYROLL-CLOUD-RESURRECTION-01 — bootstrap freshness fence · **CLOSED** · **PRODUCTION VERIFIED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · dual-session smoke **PASS** · **PRODUCTION VERIFIED** |
+| **Prod** | **2.65.35** @ **`fce7b78`** |
+| **RCA** | Stary LS innej sesji → CloudLoader merge → push → re-seed empty Cloud |
+| **Fix** | `payroll-bootstrap-resurrection-fence.ts` · gated `bootstrapMergedShouldPush` · merge prefer empty Cloud |
+| **Test** | `scripts/test-payroll-cloud-resurrection-01.mjs` (T1–T6) |
+| **SSOT** | [`docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) |
+| **Nie** | Usuwać fence · preferować bogatszego LS nad intentional empty Cloud |
+
+---
+
+## PAYROLL-P0-WEEK-ROLLOVER-01 — ALIGN vs ROLLOVER · **CLOSED** · **PRODUCTION VERIFIED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** |
+| **Prod** | **2.65.34** @ **`e38610a`** |
+| **Fix** | `classifyPayrollWeekTransition` w `payroll-cycle.ts` — realny rollover vs align etykiet |
+| **Test** | `scripts/test-payroll-p0-week-rollover-01.mjs` |
+| **Nie** | Traktować align jak wipe rosteru · cofać classifier bez AUDIT |
 
 ---
 

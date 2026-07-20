@@ -1,10 +1,10 @@
 # W&G DOM — mapa aplikacji dla agentów AI
 
 > **Cel:** jeden dokument SSOT o **strukturze UI**, **routingu**, **funkcjach domenowych** i **przepływie danych** — bez czytania `App.tsx` od zera.  
-> **Prod:** UI **2.63.73** · runtime **`e9720de`** · https://www.wgdom.fun · **GREEN**  
-> **Data:** 2026-07-08 · **INSPECTOR-RUNTIME-STATE-01 CLOSED** · **NG-08-01 CLOSED** · **NG-06-TEUX EPIC COMPLETE** · **RC-B-1 CLOSED** · **PAYROLL B1–B6+RB CLOSED** · STABILIZATION WINDOW ACTIVE
+> **Prod:** UI **2.65.35** · runtime **`fce7b78`** · https://www.wgdom.fun · **GREEN**  
+> **Data:** 2026-07-20 · **PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · **PAYROLL-P0-WEEK-ROLLOVER-01 CLOSED** · STABILIZATION WINDOW ACTIVE
 
-> **★ LISTA PŁAC:** moduł **krytyczny produkcyjnie**. Przed zmianą sync/merge/Edge/payroll w `App.tsx` → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md). Nowe FEATURE **nie mogą** mieszać się z CORE (#CORE-013). Owner GO: [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
+> **★ LISTA PŁAC:** moduł **krytyczny produkcyjnie**. Przed zmianą sync/merge/Edge/payroll → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · **nie omijaj** `payroll-bootstrap-resurrection-fence.ts` · [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md). FEATURE ≠ CORE (#CORE-013). Owner GO: [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md).
 
 **Powiązane (głębiej):** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 11 (sync) · § 15 (widoki) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md)
 
@@ -243,6 +243,8 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 
 | Epic | Wersja | SSOT |
 |------|--------|------|
+| **PAYROLL-CLOUD-RESURRECTION-01** | **2.65.35** (`fce7b78`) | `architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md` |
+| **PAYROLL-P0-WEEK-ROLLOVER-01** | **2.65.34** (`e38610a`) | `architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md` |
 | **INSPECTOR-RUNTIME-STATE-01** | **2.63.73** (`e9720de`) | `recovery/INSPECTOR-RUNTIME-STATE-01-AUDIT.md` |
 | **NG-08-01** Workspace Frame | **2.63.73** (`84b1491`) | `architecture/NG-08-TEUX-PLAN.md` |
 | NG-07-TEUX-01 Lista | 2.63.69–72 | `architecture/NG-07-TEUX-01-CLOSEOUT.md` |
@@ -256,14 +258,18 @@ Przed release: `npm run build` + testy modułu + **jedno** `GET /version.json`.
 | Audit Hub MVP + WM P1 | 2.62.36–77 | `SESSION-HANDOFF-AUDIT-HUB.md` |
 | Mobile Recovery | 2.62.78–79 | `SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md` |
 
-**STABILIZATION WINDOW:** brak nowych epiców — `STABILIZATION-WINDOW-PLAN.md`. **NG-08-02:** PLAN+FREEZE · ARCH REVIEW.
+**STABILIZATION WINDOW:** brak nowych epiców — `STABILIZATION-WINDOW-PLAN.md`.
+
+**Nie ruszać bez AUDIT + Owner GO:** `payroll-bootstrap-resurrection-fence.ts` · `classifyPayrollWeekTransition` · `finalizePayrollBundleMerge` · PWRB · Edge payroll merge.
 
 ---
 
-## 9. Ostatnie releasy (2026-07-08)
+## 9. Ostatnie releasy (skrót — pełna lista w PROJECT-HANDOFF-CURRENT)
 
 | Wersja | Commit | Bundle | Zakres |
 |--------|--------|--------|--------|
+| **2.65.35** | `fce7b78` | PAYROLL-CLOUD-RESURRECTION-01 | bootstrap freshness fence |
+| **2.65.34** | `e38610a` | PAYROLL-P0-WEEK-ROLLOVER-01 | ALIGN vs ROLLOVER |
 | **2.63.73** | `e9720de` | INSPECTOR-RUNTIME-STATE-01 | `setJobsAll` hydratacja · smoke 15/2 |
 | **2.63.73** | `84b1491` | NG-08-01 | Workspace Frame CTA + breadcrumb |
 | **2.63.72** | `08a6649` | NG-07-04 | Desktop list density |
