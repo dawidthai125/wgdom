@@ -1,7 +1,8 @@
 # Production Sandbox Harness (TEST-HARNESS-01)
 
-> **Slices:** **H0** foundations · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · **H4** Cloud KV-only · H5 **NOT IMPLEMENTED**  
-> **SSOT:** [`docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-DESIGN-FREEZE.md) · [`TEST-HARNESS-01-H4-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H4-DESIGN-FREEZE.md)
+> **Slices:** **H0–H4 RELEASED** · H4 epic **CLOSED** · **H5 IMPLEMENTED** (awaiting Owner Verification)  
+> **H0** foundations · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · **H4** Cloud KV-only · **H5** Biblioteka work-catalog  
+> **SSOT H5:** [`docs/architecture/TEST-HARNESS-01-H5-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H5-DESIGN-FREEZE.md) · ARCH [`TEST-HARNESS-01-H5-ARCHITECTURE-REVIEW.md`](../../docs/architecture/TEST-HARNESS-01-H5-ARCHITECTURE-REVIEW.md)
 
 ## Run
 
@@ -12,7 +13,8 @@ npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
 npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
 npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
 npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
-npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
+npm run test:prod-sandbox -- --scenario h5-biblioteka --dry-run
+npm run test:prod-sandbox -- --scenario h5-biblioteka --allow-prod
 ```
 
 Via orchestrator (manual / Owner — not in gate B/C):
@@ -23,7 +25,19 @@ npm run test:infra -- --suite prod-sandbox-h1 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h2 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h3 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h4 --allow-prod
+npm run test:infra -- --suite prod-sandbox-h5 --allow-prod
 ```
+
+## H5 notes (Biblioteka · work-catalog KV-only)
+
+- Write-surface: **`kw-wgdom-work-catalog` only** · **`kw-wgdom-cost-catalog` = REJECT**
+- Flow: `batch-get` → CREATE `CatalogWork` `psb-*` + keywords → EDIT → DELETE → PSB-001 cleanup (both regions)
+- RMW anti-wipe: preservacja non-`psb-*` · non-psb keywords unchanged
+- **FORBIDDEN** payroll/auth/billing + cost-catalog + bundles + tenders/jobs writes
+- **KV-only** — no Playwright / UI Biblioteka required for PASS
+- Reuse: H0 markers/guard/cleanup · H4 FORBIDDEN pattern · `kv-client` · `catalog-helpers.mjs`
+- Zero Protected Core / Edge / Payroll / Theme / new KV
+- Requires `--allow-prod` for real writes
 
 ## H4 notes (Cloud KV-only)
 
@@ -73,10 +87,13 @@ H3-A creates **no** entities → cleanup `runAll()` no-op **PASS** (`mutatedIds:
 
 Copy `allowlist.example.json` → `allowlist.json` (gitignored) or set `PSB_*` env vars.  
 Empty allowlist OK for always-create `psb-*` + cleanup.  
-`PSB_PAYROLL_WEEK_ID` does **not** enable save in H3-A.
+`PSB_PAYROLL_WEEK_ID` does **not** enable save in H3-A.  
+`PSB_CATALOG_ROW_IDS` optional for H5 (always-create `psb-catalog-*` preferred).
 
 ## Zakazy
 
-- No Protected Core / cloud-sync / Edge / Payroll / catalog mutations
-- No H3-B/C save · No H5 without Owner GO
-- H4: no dual-writer · no new KV · no FAIL on `batchSetRetries=0`
+- No Protected Core / cloud-sync / Edge / Payroll / Theme
+- No H3-B/C save · No H0.x without Owner GO
+- No `kw-wgdom-cost-catalog` writes (H5 REJECT)
+- No `kw-wgdom-work-bundles` writes
+- H4/H5: no dual-writer · no new KV · no Playwright hard dependency for PASS

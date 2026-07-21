@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * TEST-HARNESS-01 — Production Sandbox Harness runner (H0 + H1 + H2 + H3-A + H4)
+ * TEST-HARNESS-01 — Production Sandbox Harness runner (H0–H5)
  *
  * Usage:
  *   npm run test:prod-sandbox -- --scenario h0-preflight
@@ -8,7 +8,8 @@
  *   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
  *   npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
  *   npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
- *   npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
+ *   npm run test:prod-sandbox -- --scenario h5-biblioteka --allow-prod
+ *   npm run test:prod-sandbox -- --scenario h5-biblioteka --dry-run
  *
  * Exit codes (Design Freeze §6):
  *   0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -22,6 +23,7 @@ import { runH1Tender } from "./scenarios/h1-tender.mjs";
 import { runH2JobsPhotos } from "./scenarios/h2-jobs-photos.mjs";
 import { runH3Payroll } from "./scenarios/h3-payroll.mjs";
 import { runH4Cloud } from "./scenarios/h4-cloud.mjs";
+import { runH5Biblioteka } from "./scenarios/h5-biblioteka.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
@@ -37,6 +39,8 @@ const IMPLEMENTED = new Set([
   "h3",
   "h4-cloud",
   "h4",
+  "h5-biblioteka",
+  "h5",
 ]);
 
 function parseArgs(argv) {
@@ -58,6 +62,7 @@ function parseArgs(argv) {
   if (out.scenario === "h2") out.scenario = "h2-jobs-photos";
   if (out.scenario === "h3") out.scenario = "h3-payroll";
   if (out.scenario === "h4") out.scenario = "h4-cloud";
+  if (out.scenario === "h5") out.scenario = "h5-biblioteka";
   return out;
 }
 
@@ -70,11 +75,12 @@ TEST-HARNESS-01 Production Sandbox Harness
   npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
   npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
   npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod
-  npm run test:prod-sandbox -- --scenario h4-cloud --dry-run
+  npm run test:prod-sandbox -- --scenario h5-biblioteka --allow-prod
+  npm run test:prod-sandbox -- --scenario h5-biblioteka --dry-run
 
 Flags:
-  --scenario <id>   h0-preflight | h1-tender | h2-jobs-photos | h3-payroll | h4-cloud (H5 not implemented)
-  --allow-prod      required for H1/H2/H4 writes and H3-A prod read on prod URL
+  --scenario <id>   h0-preflight | h1-tender | h2-jobs-photos | h3-payroll | h4-cloud | h5-biblioteka
+  --allow-prod      required for H1/H2/H4/H5 writes and H3-A prod read on prod URL
   --dry-run         side-effect free planning mode
 
 Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
@@ -82,6 +88,7 @@ Exit: 0 PASS · 2 Precondition · 3 Scenario FAIL · 4 Cleanup FAIL
 }
 
 function sliceFor(scenario) {
+  if (scenario.startsWith("h5")) return "H5";
   if (scenario.startsWith("h4")) return "H4";
   if (scenario.startsWith("h3")) return "H3";
   if (scenario.startsWith("h2")) return "H2";
@@ -98,7 +105,7 @@ async function main() {
 
   if (!IMPLEMENTED.has(args.scenario)) {
     console.error(
-      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (H5 require Owner GO)`,
+      `PSB_SCENARIO_NOT_IMPLEMENTED: ${args.scenario} (unknown scenario)`,
     );
     process.exit(2);
   }
@@ -111,7 +118,13 @@ async function main() {
 
   let result;
   try {
-    if (args.scenario === "h4-cloud") {
+    if (args.scenario === "h5-biblioteka") {
+      result = await runH5Biblioteka({
+        allowProd: args.allowProd,
+        dryRun: args.dryRun,
+        root: ROOT,
+      });
+    } else if (args.scenario === "h4-cloud") {
       result = await runH4Cloud({
         allowProd: args.allowProd,
         dryRun: args.dryRun,
@@ -157,7 +170,8 @@ async function main() {
         msg.startsWith("H1_") ||
         msg.startsWith("H2_") ||
         msg.startsWith("H3_") ||
-        msg.startsWith("H4_")
+        msg.startsWith("H4_") ||
+        msg.startsWith("H5_")
           ? msg.split(":")[0]
           : "PSB_PRECONDITION",
     });
@@ -200,6 +214,8 @@ async function main() {
       "H3-001-StableAssertions": slice === "H3" ? "enforced" : "n/a",
       "H4-SOFT-METRICS": slice === "H4" ? "warning-only" : "n/a",
       "H4-FORBIDDEN-KEYS": slice === "H4" ? "enforced" : "n/a",
+      "H5-FORBIDDEN-KEYS": slice === "H5" ? "enforced" : "n/a",
+      "H5-WORK-CATALOG-ONLY": slice === "H5" ? "enforced" : "n/a",
       "DF-PSB-001-NeverTouch": "enforced-via-mutate-guard",
     },
   });
