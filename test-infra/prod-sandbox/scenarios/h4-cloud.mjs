@@ -10,6 +10,7 @@ import { makePsbId, isPsbId } from "../markers.mjs";
 import { loadAllowlist } from "../allowlist.mjs";
 import { SessionEntityRegistry, createMutateGuard } from "../mutate-guard.mjs";
 import { CleanupTracker, PSB_001_CLEANUP_GUARANTEE } from "../cleanup.mjs";
+import { LedgerCleanupTracker, trackPending } from "../ledger-bridge.mjs";
 import {
   createKvClient,
   PIPELINE_KEY,
@@ -56,7 +57,10 @@ export async function runH4Cloud(ctx) {
   /** @type {StepResult[]} */
   const steps = [];
   const session = new SessionEntityRegistry();
-  const cleanup = new CleanupTracker();
+  const cleanup = new LedgerCleanupTracker({
+    scenario: "h4-cloud",
+    enabled: !ctx.dryRun && !!ctx.allowProd,
+  });
   const allowlist = loadAllowlist();
   const guard = createMutateGuard({
     allowlist,
@@ -123,9 +127,10 @@ export async function runH4Cloud(ctx) {
     notes: "TEST-HARNESS-01 H4 cloud sandbox — safe to delete",
   };
 
-  cleanup.track({
+  await trackPending(cleanup, {
     id: cloudId,
     kind: "cloud",
+    kvKey: PIPELINE_KEY,
     cleanup: () =>
       cleanupSandboxTender(kv, cloudId, {
         dryRun: ctx.dryRun,
@@ -173,6 +178,7 @@ export async function runH4Cloud(ctx) {
         assertWritable: (e) => guard.assertWritable(e),
       });
       seeded = true;
+      await cleanup.markOpen(cloudId);
       pass(
         "h4.create",
         `seeded=${seedResult.seeded} pipelineLen=${seedResult.pipelineLen} upsert=${!!seedResult.upsert}`,

@@ -14,6 +14,7 @@ import { makePsbId, isPsbId } from "../markers.mjs";
 import { loadAllowlist } from "../allowlist.mjs";
 import { SessionEntityRegistry, createMutateGuard } from "../mutate-guard.mjs";
 import { CleanupTracker, PSB_001_CLEANUP_GUARANTEE } from "../cleanup.mjs";
+import { LedgerCleanupTracker, trackPending } from "../ledger-bridge.mjs";
 import { createKvClient, PIPELINE_KEY, asTenderList } from "../kv-client.mjs";
 import {
   buildSandboxTenderItem,
@@ -44,7 +45,10 @@ export async function runH1Tender(ctx) {
   /** @type {StepResult[]} */
   const steps = [];
   const session = new SessionEntityRegistry();
-  const cleanup = new CleanupTracker();
+  const cleanup = new LedgerCleanupTracker({
+    scenario: "h1-tender",
+    enabled: !ctx.dryRun && !!ctx.allowProd,
+  });
   const allowlist = loadAllowlist();
   const guard = createMutateGuard({
     allowlist,
@@ -85,9 +89,10 @@ export async function runH1Tender(ctx) {
   let playwrightUsed = false;
   let classificationNote = "";
 
-  cleanup.track({
+  await trackPending(cleanup, {
     id: tenderId,
     kind: "tender",
+    kvKey: PIPELINE_KEY,
     cleanup: () =>
       cleanupSandboxTender(kv, tenderId, {
         dryRun: ctx.dryRun,
@@ -112,30 +117,7 @@ export async function runH1Tender(ctx) {
       let classWarn = false;
       const item = buildSandboxTenderItem(tenderId, title);
 
-      // Best-effort: remove leftover H1 sandboxes from prior FAIL (psb-tender-* with H1 marker)
-      try {
-        const map = await kv.batchGet([PIPELINE_KEY]);
-        const list = asTenderList(map[PIPELINE_KEY]);
-        const orphans = list.filter(
-          (x) =>
-            x &&
-            isPsbId(x.id) &&
-            String(x.id).startsWith("psb-tender-") &&
-            String(x.notes || "").includes("TEST-HARNESS-01 H1"),
-        );
-        for (const o of orphans) {
-          await cleanupSandboxTender(kv, o.id, {
-            dryRun: false,
-            assertWritable: () => ({ ok: true, reason: "orphan-scrub" }),
-          });
-        }
-        if (orphans.length) {
-          warn("h1.orphan-scrub", `removed ${orphans.length} prior H1 leftover(s)`);
-        }
-      } catch {
-        /* non-blocking */
-      }
-
+      // Orphan scrub: delegated to H0.x runner pre-recover (D-H0X-20)
       try {
         const { chromium } = await import("playwright");
         const browser = await chromium.launch({ headless: true });
@@ -163,6 +145,7 @@ export async function runH1Tender(ctx) {
           if (!seeded || !isPsbId(seeded.id)) {
             fail("h1.create", "seed not visible in batch-get");
           } else {
+            await cleanup.markOpen(tenderId);
             pass("h1.create", `seeded after login settle ${tenderId}`);
           }
 
@@ -315,7 +298,10 @@ export async function runH1Tender(ctx) {
             dryRun: false,
             assertWritable: (e) => guard.assertWritable(e),
           });
+          await cleanup.markOpen(tenderId);
           pass("h1.create", `seeded KV-only ${tenderId}`);
+        } else {
+          await cleanup.markOpen(tenderId);
         }
         await patchUploadedFileStub(kv, tenderId, guard);
         uploadOk = true;

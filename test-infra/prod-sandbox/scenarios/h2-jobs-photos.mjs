@@ -14,6 +14,7 @@ import { makePsbId, isPsbId } from "../markers.mjs";
 import { loadAllowlist } from "../allowlist.mjs";
 import { SessionEntityRegistry, createMutateGuard } from "../mutate-guard.mjs";
 import { CleanupTracker, PSB_001_CLEANUP_GUARANTEE } from "../cleanup.mjs";
+import { LedgerCleanupTracker, trackPending } from "../ledger-bridge.mjs";
 import { createKvClient } from "../kv-client.mjs";
 import {
   JOBS_KEY,
@@ -63,7 +64,10 @@ export async function runH2JobsPhotos(ctx) {
   /** @type {StepResult[]} */
   const steps = [];
   const session = new SessionEntityRegistry();
-  const cleanup = new CleanupTracker();
+  const cleanup = new LedgerCleanupTracker({
+    scenario: "h2-jobs-photos",
+    enabled: !ctx.dryRun && !!ctx.allowProd,
+  });
   const allowlist = loadAllowlist();
   const guard = createMutateGuard({
     allowlist,
@@ -109,9 +113,10 @@ export async function runH2JobsPhotos(ctx) {
   const kv = createKvClient(ctx.root);
   let playwrightUsed = false;
 
-  cleanup.track({
+  await trackPending(cleanup, {
     id: jobId,
     kind: "job",
+    kvKey: JOBS_KEY,
     cleanup: () =>
       cleanupSandboxJob(kv, jobId, {
         dryRun: ctx.dryRun,
@@ -131,30 +136,7 @@ export async function runH2JobsPhotos(ctx) {
       const adminPass = process.env.WGDOM_ADMIN_PASS || "Dawidneon1990!";
       const job = buildSandboxJob(jobId, { address });
 
-      // Best-effort orphan scrub prior H2 leftovers
-      try {
-        const map = await kv.batchGet([JOBS_KEY]);
-        const list = asJobList(map[JOBS_KEY]);
-        const orphans = list.filter(
-          (x) =>
-            x &&
-            isPsbId(x.id) &&
-            String(x.id).startsWith("psb-job-") &&
-            String(x.notes || "").includes("TEST-HARNESS-01 H2"),
-        );
-        for (const o of orphans) {
-          await cleanupSandboxJob(kv, o.id, {
-            dryRun: false,
-            assertWritable: () => ({ ok: true, reason: "orphan-scrub" }),
-          });
-        }
-        if (orphans.length) {
-          warn("h2.orphan-scrub", `removed ${orphans.length} prior H2 leftover(s)`);
-        }
-      } catch {
-        /* non-blocking */
-      }
-
+      // Orphan scrub: delegated to H0.x runner pre-recover (D-H0X-20)
       const { chromium } = await import("playwright");
       const browser = await chromium.launch({ headless: true });
       const page = await browser.newPage();
@@ -191,6 +173,7 @@ export async function runH2JobsPhotos(ctx) {
         if (!seeded || !isPsbId(seeded.id)) {
           fail("h2.create", "seed not visible in batch-get");
         } else {
+          await cleanup.markOpen(jobId);
           pass("h2.create", `seeded after login settle ${jobId}`);
         }
 

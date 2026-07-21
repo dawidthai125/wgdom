@@ -1,14 +1,16 @@
 # Production Sandbox Harness (TEST-HARNESS-01)
 
-> **Slices:** **H0–H4 RELEASED** · H4 epic **CLOSED** · **H5 IMPLEMENTED** (awaiting Owner Verification)  
-> **H0** foundations · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · **H4** Cloud KV-only · **H5** Biblioteka work-catalog  
-> **SSOT H5:** [`docs/architecture/TEST-HARNESS-01-H5-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H5-DESIGN-FREEZE.md) · ARCH [`TEST-HARNESS-01-H5-ARCHITECTURE-REVIEW.md`](../../docs/architecture/TEST-HARNESS-01-H5-ARCHITECTURE-REVIEW.md)
+> **Slices:** **H0–H5 RELEASED** · **H0.x Persist Ledger IMPLEMENTED** (Owner Verification next)  
+> **H0** foundations · **H0.x** cross-process recovery · **H1** Tender · **H2** Jobs photos · **H3-A** Payroll RO · **H4** Cloud KV-only · **H5** Biblioteka work-catalog  
+> **SSOT H0.x:** [`docs/architecture/TEST-HARNESS-01-H0X-PERSIST-LEDGER-DESIGN-FREEZE.md`](../../docs/architecture/TEST-HARNESS-01-H0X-PERSIST-LEDGER-DESIGN-FREEZE.md)
 
 ## Run
 
 ```bash
 npm run test:prod-sandbox
 npm run test:prod-sandbox -- --scenario h0-preflight
+npm run test:prod-sandbox -- --scenario h0x-recover --dry-run
+npm run test:prod-sandbox -- --scenario h0x-recover --allow-prod
 npm run test:prod-sandbox -- --scenario h1-tender --allow-prod
 npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod
 npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod
@@ -21,12 +23,26 @@ Via orchestrator (manual / Owner — not in gate B/C):
 
 ```bash
 npm run test:infra -- --suite prod-sandbox-h0
+npm run test:infra -- --suite prod-sandbox-h0x
 npm run test:infra -- --suite prod-sandbox-h1 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h2 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h3 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h4 --allow-prod
 npm run test:infra -- --suite prod-sandbox-h5 --allow-prod
 ```
+
+## H0.x notes (Persist Ledger)
+
+- **Hybrid C:** file ledger primary + optional KV scan (`PSB_H0X_SCAN=1`)
+- Ledger: `.tmp/prod-sandbox-out/h0x-open-entities.json`
+- Lock: `.tmp/prod-sandbox-out/h0x.lock` (single-writer · stale takeover)
+- Lifecycle: `pending → open → cleaning → closed → prune`
+- Recovery order: lock → ledger recover → optional scan → scenario
+- REUSE cleaners: tender/cloud · job · catalog (H5 RMW)
+- H1/H2 local orphan-scrub **deprecated** (runner pre-recover)
+- Zero Core / Payroll / Theme / Edge / new KV
+- Kill-sim proof: `h0x-recover --allow-prod`
+
 
 ## H5 notes (Biblioteka · work-catalog KV-only)
 

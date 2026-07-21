@@ -9,6 +9,7 @@ import { makePsbId } from "../markers.mjs";
 import { loadAllowlist } from "../allowlist.mjs";
 import { SessionEntityRegistry, createMutateGuard } from "../mutate-guard.mjs";
 import { CleanupTracker, PSB_001_CLEANUP_GUARANTEE } from "../cleanup.mjs";
+import { LedgerCleanupTracker, trackPending } from "../ledger-bridge.mjs";
 import { createKvClient } from "../kv-client.mjs";
 import {
   assertH5KeysWritable,
@@ -28,6 +29,7 @@ import {
   countNonPsbBothRegions,
   nonPsbKeywordsFingerprint,
   workStillPresent,
+  cleanupSandboxCatalogWork,
 } from "../catalog-helpers.mjs";
 
 /**
@@ -45,7 +47,10 @@ export async function runH5Biblioteka(ctx) {
   /** @type {StepResult[]} */
   const steps = [];
   const session = new SessionEntityRegistry();
-  const cleanup = new CleanupTracker();
+  const cleanup = new LedgerCleanupTracker({
+    scenario: "h5-biblioteka",
+    enabled: !ctx.dryRun && !!ctx.allowProd,
+  });
   const allowlist = loadAllowlist();
   const guard = createMutateGuard({
     allowlist,
@@ -114,32 +119,17 @@ export async function runH5Biblioteka(ctx) {
   const rawKv = createKvClient(ctx.root);
   const kv = wrapKvWithH5ForbiddenGate(rawKv);
 
-  /**
-   * Cleanup: remove psb id from both regions via RMW.
-   * @returns {Promise<{ ok: boolean, detail?: string }>}
-   */
   async function cleanupCatalogWork() {
-    if (ctx.dryRun) return { ok: true, detail: "dry-run" };
-    guard.assertWritable({ id: catalogId, kind: "catalog" });
-    const map = await kv.batchGet([WORK_CATALOG_KEY]);
-    let store = coerceWorkCatalogStore(map[WORK_CATALOG_KEY]);
-    if (!workStillPresent(store, catalogId)) {
-      return { ok: true, detail: "already-absent" };
-    }
-    store = removePsbWork(store, catalogId);
-    const res = await kv.batchSet([WORK_CATALOG_KEY], [store]);
-    if (res && res.ok === false) {
-      return {
-        ok: false,
-        detail: `batch-set failed: ${JSON.stringify(res).slice(0, 120)}`,
-      };
-    }
-    return { ok: true, detail: "removed" };
+    return cleanupSandboxCatalogWork(kv, catalogId, {
+      dryRun: ctx.dryRun,
+      assertWritable: (e) => guard.assertWritable(e),
+    });
   }
 
-  cleanup.track({
+  await trackPending(cleanup, {
     id: catalogId,
     kind: "catalog",
+    kvKey: WORK_CATALOG_KEY,
     cleanup: cleanupCatalogWork,
   });
 
@@ -186,9 +176,11 @@ export async function runH5Biblioteka(ctx) {
       store = upsertPsbWork(store, /** @type {"wroclaw"|"dolnyslask"} */ (region), work);
       let setRes = await kv.batchSet([WORK_CATALOG_KEY], [store]);
       if (setRes && setRes.ok === false) {
+        await cleanup.markWriteFailed(catalogId);
         throw new Error(`PSB_KV_BATCH_SET_FAILED: create ${JSON.stringify(setRes).slice(0, 120)}`);
       }
       wrote = true;
+      await cleanup.markOpen(catalogId);
       pass(
         "h5.create",
         `upserted id=${catalogId} keywords=${JSON.stringify(work.keywords)}`,

@@ -272,3 +272,41 @@ export function removePsbWork(store, id) {
 export function workStillPresent(store, id) {
   return !!findWorkById(store, id);
 }
+
+/**
+ * H0.x / H5 REUSE — remove CatalogWork psb-* via RMW (both regions).
+ * @param {ReturnType<import("./kv-client.mjs").createKvClient>} kv
+ * @param {string} catalogId
+ * @param {{ dryRun?: boolean, assertWritable: (e: {id:string,kind?:string}) => unknown }} opts
+ */
+export async function cleanupSandboxCatalogWork(kv, catalogId, opts) {
+  if (!isPsbId(catalogId)) {
+    return { ok: false, detail: `not psb-* id: ${catalogId}` };
+  }
+  try {
+    opts.assertWritable({ id: catalogId, kind: "catalog" });
+  } catch (e) {
+    return { ok: false, detail: e instanceof Error ? e.message : String(e) };
+  }
+  if (opts.dryRun) {
+    return { ok: true, detail: "dry-run skip" };
+  }
+  try {
+    const map = await kv.batchGet([WORK_CATALOG_KEY]);
+    let store = coerceWorkCatalogStore(map[WORK_CATALOG_KEY]);
+    if (!workStillPresent(store, catalogId)) {
+      return { ok: true, detail: "already-absent" };
+    }
+    store = removePsbWork(store, catalogId);
+    const res = await kv.batchSet([WORK_CATALOG_KEY], [store]);
+    if (res && res.ok === false) {
+      return {
+        ok: false,
+        detail: `batch-set failed: ${JSON.stringify(res).slice(0, 120)}`,
+      };
+    }
+    return { ok: true, detail: "removed" };
+  } catch (e) {
+    return { ok: false, detail: e instanceof Error ? e.message : String(e) };
+  }
+}
