@@ -63,36 +63,37 @@ VERDICT: PASS
 | `tsc --noEmit` | **PASS źródeł** (pre-existing TS5101 `baseUrl` only) |
 | `vite build` | **PASS** |
 | `test-tenders-sync-storm-p0.mjs` | **PASS** (24/0) |
-| Smoke Dashboard/Payroll/Tenders/MOPS/Jobs/Sync | *(po deploy — patrz §4)* |
+| Smoke Dashboard / Payroll / Tenders / MOPS / Jobs / Sync | **PASS** (prod **2.65.39**) |
+
+### Smoke detail (prod `f9d922a` / 2.65.39)
+
+| Scenariusz | Wynik |
+|------------|--------|
+| Dashboard (Pulpit) | **PASS** |
+| Cloud Sync UI reachable | **PASS** |
+| Payroll (Lista Płac) | **PASS** |
+| Jobs (Roboty) | **PASS** (nav `Roboty9` — badge w label) |
+| Tenders | **PASS** |
+| MOPS Kamieńskiego | **PASS** |
+| Sync Storm `builtAt` stable | **PASS** (1 unique) |
+| Diag globals opt-in only | **PASS** (`payrollTraceForced: false`) |
 
 ---
 
-## 4. Smoke (produkcja po 2.65.39)
-
-Cel: potwierdzić brak regresji zachowania (nawigacja + Sync Storm stable).
-
-| Scenariusz | Kryterium |
-|------------|-----------|
-| Dashboard | Pulpit po login |
-| Payroll | Lista Płac otwiera się |
-| Tenders | Przetargi otwiera się |
-| MOPS Kamieńskiego | detal widoczny; `builtAt` nie thrash |
-| Jobs | Roboty otwiera się |
-| Cloud Sync | sesja żywa (UI reachable) |
-
----
-
-## 5. Definition of Done
+## 4. Definition of Done
 
 | DoD | Status |
 |-----|--------|
-| Brak martwej auto-instrumentacji na prod | **PASS** (AUTO_ENABLE off; payroll-trace default off) |
+| Brak martwej auto-instrumentacji na prod | **PASS** |
 | Brak zmian logiki | **PASS** |
 | Build PASS | **PASS** |
+| Smoke PASS | **PASS** |
 | Sync Storm nietknięty | **PASS** |
-| Dokumentacja | **PASS** (ten plik) |
+| Dokumentacja | **PASS** |
+| Commit / deploy | **PASS** `f9d922a` · UI **2.65.39** |
 
 ```text
 INCIDENT-23-07 CLEANUP COMPLETE
 VERDICT: PASS
+STOP
 ```
