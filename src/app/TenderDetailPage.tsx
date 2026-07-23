@@ -156,7 +156,8 @@ export function TenderDetailPage({
   }, [navigate]);
 
   const onUpdateItem = useCallback(
-    (patch: Partial<TenderPipelineItem>) => pipeline.updateItem(item?.id ?? tenderId, patch),
+    (patch: Partial<TenderPipelineItem>, opts?: { persist?: "local" | "cloud" }) =>
+      pipeline.updateItem(item?.id ?? tenderId, patch, opts),
     [pipeline, item?.id, tenderId],
   );
 

@@ -39,14 +39,17 @@ import {
   resetTenderDocumentsBootstrapForTests,
   useTenderDocumentsBootstrap,
 } from "@/app/hooks/useTenderDocumentsBootstrap";
-import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
+import {
+  useTenderDossierHeavyLazy,
+  type TenderItemUpdateOpts,
+  resetDossierHeavyLazyForTests,
+} from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderPricingAuto } from "@/app/hooks/useTenderPricingAuto";
 import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
-import { resetDossierHeavyLazyForTests } from "@/app/hooks/useTenderDossierHeavyLazy";
 
 export function useTenderPipelineRuntime(opts: {
   item: TenderPipelineItem;
-  onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onUpdate: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
   swz?: TenderSwzAnalysis | null;
   athPreviewEnabled?: boolean;
   enabled?: boolean;

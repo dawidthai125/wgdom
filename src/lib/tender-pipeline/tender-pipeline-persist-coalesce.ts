@@ -31,9 +31,17 @@ let listenerRefCount = 0;
 
 let cloudWriteCount = 0;
 let forceDebounceForTests: boolean | null = null;
+let cloudPushOverrideForTests: ((items: TenderPipelineItem[]) => Promise<void>) | null = null;
 
 export function forcePipelinePersistDebounceForTests(on: boolean | null): void {
   forceDebounceForTests = on;
+}
+
+/** Test-only — stub cloud push (avoid live Edge/network in unit gates). */
+export function setTenderPipelineCloudPushForTests(
+  fn: ((items: TenderPipelineItem[]) => Promise<void>) | null,
+): void {
+  cloudPushOverrideForTests = fn;
 }
 
 export function resetTenderPipelinePersistCoalesceForTests(): void {
@@ -43,6 +51,7 @@ export function resetTenderPipelinePersistCoalesceForTests(): void {
   cloudInFlight = null;
   cloudWriteCount = 0;
   forceDebounceForTests = null;
+  cloudPushOverrideForTests = null;
 }
 
 export function getTenderPipelineCloudWriteCountForTests(): number {
@@ -61,6 +70,10 @@ export function syncTenderPipelineLocalOnly(items: TenderPipelineItem[]): void {
 
 async function pushTenderPipelineCloudOnly(items: TenderPipelineItem[]): Promise<void> {
   cloudWriteCount += 1;
+  if (cloudPushOverrideForTests) {
+    await cloudPushOverrideForTests(items);
+    return;
+  }
   await persistKey(TENDERS_PIPELINE_KEY, items);
 }
 
@@ -70,30 +83,31 @@ export function getTenderPipelinePersistPending(): boolean {
 
 export function scheduleTenderPipelinePersist(
   items: TenderPipelineItem[],
-  opts?: { immediate?: boolean },
+  opts?: { immediate?: boolean; force?: boolean },
 ): void {
-  if (!isDebouncePersistActive()) return;
+  if (!opts?.force && !isDebouncePersistActive()) return;
 
   pendingItems = items;
   syncTenderPipelineLocalOnly(items);
 
   if (opts?.immediate) {
-    void flushTenderPipelinePersist("flush_explicit");
+    void flushTenderPipelinePersist("flush_explicit", { force: opts.force });
     return;
   }
 
   if (debounceTimer != null) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
-    void flushTenderPipelinePersist("debounce_timer");
+    void flushTenderPipelinePersist("debounce_timer", { force: opts?.force });
   }, DEBOUNCE_MS);
 }
 
 export async function flushTenderPipelinePersist(
   reason: TenderPipelinePersistFlushReason,
+  opts?: { force?: boolean },
 ): Promise<void> {
   void reason;
-  if (!isDebouncePersistActive()) return;
+  if (!opts?.force && !isDebouncePersistActive()) return;
 
   if (debounceTimer != null) {
     clearTimeout(debounceTimer);

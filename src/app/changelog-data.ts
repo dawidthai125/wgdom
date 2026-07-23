@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-24",
+    version: "2.65.38",
+    label: "TENDERS-SYNC-STORM-P0 — heavy dossier sync storm",
+    items: [
+      {
+        type: "fix",
+        text: "Ciężkie dossier (Przetargi): partial zapis tylko lokalnie, cloud max 1× na final; builtAt nie restartuje parse — brak lawiny batch-get/set przy otwarciu dużego przetargu.",
+      },
+    ],
+  },
+  {
     date: "2026-07-20",
     version: "2.65.35",
     label: "PAYROLL-CLOUD-RESURRECTION-01 — bootstrap freshness fence",

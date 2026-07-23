@@ -105,7 +105,7 @@ export function TenderDetailPanel({
   allItems: TenderPipelineItem[];
   /** NG-02 — SSOT runtime z TenderDetailPage (jedyny mount hooków). */
   pipelineRuntime: TenderPipelineRuntime;
-  onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onUpdate: (patch: Partial<TenderPipelineItem>, opts?: { persist?: "local" | "cloud" }) => void;
   onCreateJob?: (item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;

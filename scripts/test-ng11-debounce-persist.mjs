@@ -13,9 +13,32 @@ import {
   notifyPipelinePersistTerminalState,
   resetTenderPipelinePersistCoalesceForTests,
   scheduleTenderPipelinePersist,
+  setTenderPipelineCloudPushForTests,
 } from "../src/lib/tender-pipeline/tender-pipeline-persist-coalesce.ts";
 import { recordPipelineStateTiming } from "../src/lib/tender-pipeline/tender-pipeline-timing.ts";
 import { forcePipelineTimingDisabledForTests } from "../src/lib/tender-pipeline/tender-pipeline-timing.ts";
+
+globalThis.localStorage = {
+  _m: new Map(),
+  setItem(k, v) {
+    this._m.set(String(k), String(v));
+  },
+  getItem(k) {
+    return this._m.has(String(k)) ? this._m.get(String(k)) : null;
+  },
+  removeItem(k) {
+    this._m.delete(String(k));
+  },
+  clear() {
+    this._m.clear();
+  },
+  key(i) {
+    return [...this._m.keys()][i] ?? null;
+  },
+  get length() {
+    return this._m.size;
+  },
+};
 
 let pass = 0;
 let fail = 0;
@@ -41,11 +64,13 @@ async function run() {
   console.log("=== NG11-Q3 Debounced Persist ===\n");
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(false);
   scheduleTenderPipelinePersist([itemA]);
   ok("Q3-1 flag OFF — schedule is no-op (no pending)", !getTenderPipelinePersistPending());
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
 
   scheduleTenderPipelinePersist([itemA]);
@@ -57,6 +82,7 @@ async function run() {
   ok("Q3-4 pending cleared after flush", !getTenderPipelinePersistPending());
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
 
   scheduleTenderPipelinePersist([itemA]);
@@ -65,24 +91,28 @@ async function run() {
   ok("Q3-5 debounce timer — one cloud write", getTenderPipelineCloudWriteCountForTests() === 1);
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
   scheduleTenderPipelinePersist([itemA]);
   notifyPipelinePersistTerminalState(PipelineState.Ready, PipelineState.Pricing);
   ok("Q3-6 Ready terminal — immediate flush", getTenderPipelineCloudWriteCountForTests() === 1);
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
   scheduleTenderPipelinePersist([itemA]);
   await flushTenderPipelinePersist("beforeunload");
   ok("Q3-7 beforeunload flush — one write", getTenderPipelineCloudWriteCountForTests() === 1);
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
   scheduleTenderPipelinePersist([itemA]);
   notifyPipelinePersistTerminalState(PipelineState.Failed, PipelineState.Heavy);
   ok("Q3-8 Failed terminal — immediate flush", getTenderPipelineCloudWriteCountForTests() === 1);
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
   forcePipelineTimingDisabledForTests(true);
   scheduleTenderPipelinePersist([itemA]);
@@ -90,6 +120,7 @@ async function run() {
   ok("Q3-9 timing bridge Ready (timing telemetry off)", getTenderPipelineCloudWriteCountForTests() === 1);
 
   resetTenderPipelinePersistCoalesceForTests();
+  setTenderPipelineCloudPushForTests(async () => {});
   forcePipelinePersistDebounceForTests(true);
   scheduleTenderPipelinePersist([itemA]);
   cancelTenderPipelinePersist();

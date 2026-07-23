@@ -8,7 +8,9 @@ import {
   isDebouncePersistActive,
   persistTenderPipelineImmediate,
   scheduleTenderPipelinePersist,
+  syncTenderPipelineLocalOnly,
 } from "@/lib/tender-pipeline/tender-pipeline-persist-coalesce";
+import type { TenderItemUpdateOpts } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   type TenderPipelineItem,
@@ -258,13 +260,27 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     }
   }, [items, runBzpMerge]);
 
-  /** P3-AUDIT-001-FIX-A — functional update; bez stale closure na items. */
-  const updateItem = useCallback((id: string, patch: Partial<TenderPipelineItem>) => {
+  /**
+   * P3-AUDIT-001-FIX-A — functional update; bez stale closure na items.
+   * TENDERS-SYNC-STORM-P0 — opts.persist: local = LS only; cloud = coalesce (force);
+   * brak opts = dotychczasowe zachowanie (debounce flag / immediate save).
+   */
+  const updateItem = useCallback((
+    id: string,
+    patch: Partial<TenderPipelineItem>,
+    opts?: TenderItemUpdateOpts,
+  ) => {
     setItems((prev) => {
       const next = prev.map((i) =>
         i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i,
       );
-      if (isDebouncePersistActive()) {
+      const mode = opts?.persist;
+      if (mode === "local") {
+        syncTenderPipelineLocalOnly(next);
+      } else if (mode === "cloud") {
+        // Heavy final: always coalesce — even when pipelinePerfDebouncePersist is OFF.
+        scheduleTenderPipelinePersist(next, { force: true });
+      } else if (isDebouncePersistActive()) {
         scheduleTenderPipelinePersist(next);
       } else {
         void saveTendersPipeline(next).catch(() => {

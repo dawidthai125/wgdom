@@ -1,6 +1,7 @@
 /**
  * TP200A — lazy heavy dossier build (Dokumenty / Wycena / Kosztorys V4).
- * NG11-A1 — progressive: cost phase → partial persist → metadata enrichment (tło).
+ * NG11-A1 — progressive: cost phase → partial (local) → metadata enrichment → final (cloud).
+ * TENDERS-SYNC-STORM-P0 — E-RUN deps stable (no builtAt); partial local-only; circuit breaker.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -19,6 +20,25 @@ import { markPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-t
 
 const dossierInflightIds = new Set<string>();
 const enrichmentInflightIds = new Set<string>();
+
+/** E-RUN attempts per (itemId + gateFingerprint + retryNonce) — circuit breaker. */
+const heavyRunAttempts = new Map<string, number>();
+const HEAVY_MAX_RUNS_PER_KEY = 2;
+
+/** E-RUN dependency keys — Sync Storm P0 contract (must not include builtAt). */
+export const HEAVY_E_RUN_DEP_KEYS = [
+  "enabled",
+  "itemId",
+  "gateFingerprint",
+  "athPreviewEnabled",
+  "retryNonce",
+] as const;
+
+export type TenderItemPersistMode = "local" | "cloud";
+
+export type TenderItemUpdateOpts = {
+  persist?: TenderItemPersistMode;
+};
 
 export function clearDossierInflightForItem(itemId: string): void {
   dossierInflightIds.delete(itemId);
@@ -63,10 +83,14 @@ export function readDossierParseTelemetry(): DossierParseTelemetryEntry[] {
   }
 }
 
+function heavyRunKey(itemId: string, gateFingerprint: string, retryNonce: number): string {
+  return `${itemId}::${gateFingerprint}::${retryNonce}`;
+}
+
 export function useTenderDossierHeavyLazy(opts: {
   item: TenderPipelineItem;
   enabled: boolean;
-  onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onUpdate: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
   athPreviewEnabled?: boolean;
 }): {
   dossierBuilding: boolean;
@@ -90,6 +114,10 @@ export function useTenderDossierHeavyLazy(opts: {
   const [finalPersistPending, setFinalPersistPending] = useState(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+  const itemRef = useRef(item);
+  itemRef.current = item;
+  /** Generation guard — persist re-render must not invalidate in-flight work. */
+  const runGenerationRef = useRef(0);
 
   const retryDossierParse = useCallback(() => {
     clearDossierInflightForItem(itemId);
@@ -102,6 +130,7 @@ export function useTenderDossierHeavyLazy(opts: {
     setRetryNonce((n) => n + 1);
   }, [itemId]);
 
+  // E-UI — partial save flags (may watch builtAt / kosztorys; must NOT start E-RUN)
   useEffect(() => {
     if (!partialPersistPending) return;
     if (item.tenderDossier?.kosztorys?.ok) {
@@ -115,6 +144,7 @@ export function useTenderDossierHeavyLazy(opts: {
     item.tenderDossier?.kosztorys?.ok,
   ]);
 
+  // E-UI — final completion flags
   useEffect(() => {
     if (!finalPersistPending) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
@@ -129,6 +159,7 @@ export function useTenderDossierHeavyLazy(opts: {
     item.tenderDossier?.scanSummary?.parsedAt,
   ]);
 
+  // Docs-only fingerprint — parserVersion / builtAt MUST NOT be here (Sync Storm).
   const gateFingerprint = useMemo(
     () => buildHeavyParseDocumentFingerprint(item),
     [
@@ -138,18 +169,15 @@ export function useTenderDossierHeavyLazy(opts: {
       item.externalDocDiscovery?.files,
       item.uploadedFile?.id,
       item.uploadedFile?.filename,
-      item.tenderDossier?.parserVersion,
     ],
   );
 
-  const heavyParseDocuments = useMemo(
-    () => buildHeavyParseDocumentSet(item),
-    [gateFingerprint, item],
-  );
-
+  // E-RUN — start heavy only when enabled / item / docs / retry change
   useEffect(() => {
     if (!enabled) return;
-    if (tenderDossierHeavyParseDone(item.tenderDossier)) {
+
+    const live = itemRef.current;
+    if (tenderDossierHeavyParseDone(live.tenderDossier)) {
       setPartialPersistPending(false);
       setFinalPersistPending(false);
       setDossierSaving(false);
@@ -158,21 +186,34 @@ export function useTenderDossierHeavyLazy(opts: {
       setParseErrorMessage(null);
       return;
     }
-    const gate = deriveUnifiedAttachmentGate(item);
+
+    const gate = deriveUnifiedAttachmentGate(live);
     if (!gate.canStartHeavyParse) return;
     if (dossierInflightIds.has(itemId)) return;
 
-    const snapshot = item;
-    const snapshotDocs = heavyParseDocuments;
-    const snapshotNoticeHtml = item.noticeHtml;
-    const snapshotSwz = item.swzAnalysis ?? null;
-    const snapshotDossier = item.tenderDossier ?? null;
-    const snapshotEstimate = item.ourEstimatePln;
+    const runKey = heavyRunKey(itemId, gateFingerprint, retryNonce);
+    const attempts = heavyRunAttempts.get(runKey) ?? 0;
+    if (attempts >= HEAVY_MAX_RUNS_PER_KEY) {
+      setDossierParseFailed(true);
+      setParseErrorMessage("Przekroczono limit ponowień parsowania dossier (circuit breaker).");
+      return;
+    }
+    heavyRunAttempts.set(runKey, attempts + 1);
+
+    const snapshot = live;
+    const snapshotDocs = buildHeavyParseDocumentSet(snapshot);
+    const snapshotNoticeHtml = snapshot.noticeHtml;
+    const snapshotSwz = snapshot.swzAnalysis ?? null;
+    const snapshotDossier = snapshot.tenderDossier ?? null;
+    const snapshotEstimate = snapshot.ourEstimatePln;
 
     let cancelled = false;
+    const generation = ++runGenerationRef.current;
+    const isStale = () => cancelled || generation !== runGenerationRef.current;
     dossierInflightIds.add(itemId);
     setDossierParseFailed(false);
     setParseErrorMessage(null);
+
     (async () => {
       setDossierBuilding(true);
       try {
@@ -185,7 +226,7 @@ export function useTenderDossierHeavyLazy(opts: {
           athPreviewEnabled,
           pipelineTimingItemId: itemId,
         });
-        if (cancelled) return;
+        if (isStale()) return;
 
         const partialPatch: Partial<TenderPipelineItem> = {
           tenderDossier: costBuilt.tenderDossier,
@@ -196,13 +237,50 @@ export function useTenderDossierHeavyLazy(opts: {
         }
         setPartialPersistPending(true);
         setDossierSaving(true);
-        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "partial" });
-        onUpdateRef.current(partialPatch);
-        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "partial" });
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "partial-local" });
+        // Sync Storm P0: partial = local only — must not trigger cloud get+set.
+        onUpdateRef.current(partialPatch, { persist: "local" });
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "partial-local" });
 
         setDossierBuilding(false);
 
-        if (!costBuilt.parseSession) return;
+        if (!costBuilt.parseSession) {
+          // Terminal: no enrichment — mark parsedAt so heavy won't re-arm on remount (G4).
+          const dossier = costBuilt.tenderDossier;
+          const parsedAt = dossier.scanSummary?.parsedAt ?? new Date().toISOString();
+          const terminalDossier = {
+            ...dossier,
+            scanSummary: dossier.scanSummary
+              ? { ...dossier.scanSummary, parsedAt }
+              : {
+                  totalDocuments: 0,
+                  scanned: 0,
+                  parsed: 0,
+                  byType: {
+                    pdf: 0,
+                    docx: 0,
+                    xlsx: 0,
+                    zip: 0,
+                    ath: 0,
+                    sevenZip: 0,
+                    other: 0,
+                  },
+                  sevenZipCount: 0,
+                  kosztorysFound: false,
+                  valueFound: false,
+                  criteriaFound: false,
+                  estimateFound: false,
+                  costDiscovery: null,
+                  parsedAt,
+                },
+          };
+          onUpdateRef.current(
+            { tenderDossier: terminalDossier },
+            { persist: "cloud" },
+          );
+          setFinalPersistPending(true);
+          return;
+        }
 
         setDossierEnriching(true);
         enrichmentInflightIds.add(itemId);
@@ -219,7 +297,7 @@ export function useTenderDossierHeavyLazy(opts: {
           partialSwz: costBuilt.swzAnalysis,
           partialEstimatePln: costBuilt.ourEstimatePln,
         });
-        if (cancelled) return;
+        if (isStale()) return;
 
         const finalPatch: Partial<TenderPipelineItem> = {
           tenderDossier: finalBuilt.tenderDossier,
@@ -230,11 +308,11 @@ export function useTenderDossierHeavyLazy(opts: {
         }
         setFinalPersistPending(true);
         setDossierSaving(true);
-        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "final" });
-        onUpdateRef.current(finalPatch);
-        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "final" });
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "final-cloud" });
+        onUpdateRef.current(finalPatch, { persist: "cloud" });
+        markPipelineTimingStage(itemId, "heavy.persist_dossier", "end", { detail: "final-cloud" });
       } catch (e) {
-        if (cancelled) return;
+        if (isStale()) return;
         const message = e instanceof Error ? e.message : String(e);
         setDossierParseFailed(true);
         setParseErrorMessage(message);
@@ -244,37 +322,31 @@ export function useTenderDossierHeavyLazy(opts: {
           message,
         });
       } finally {
-        dossierInflightIds.delete(itemId);
-        enrichmentInflightIds.delete(itemId);
-        if (!cancelled) {
+        // Only the live generation clears inflight / building flags (avoid clobbering remount).
+        if (generation === runGenerationRef.current) {
+          dossierInflightIds.delete(itemId);
+          enrichmentInflightIds.delete(itemId);
           setDossierBuilding(false);
-          setDossierEnriching(false);
-        }
-        if (cancelled) {
-          setPartialPersistPending(false);
-          setFinalPersistPending(false);
-          setDossierSaving(false);
           setDossierEnriching(false);
         }
       }
     })();
+
     return () => {
+      // Cancel only when E-RUN deps truly change (item/docs/retry) — not on persist re-render.
       cancelled = true;
+      if (runGenerationRef.current === generation) {
+        runGenerationRef.current += 1;
+      }
       dossierInflightIds.delete(itemId);
       enrichmentInflightIds.delete(itemId);
+      setPartialPersistPending(false);
+      setFinalPersistPending(false);
+      setDossierSaving(false);
+      setDossierEnriching(false);
+      setDossierBuilding(false);
     };
-  }, [
-    enabled,
-    itemId,
-    gateFingerprint,
-    heavyParseDocuments,
-    item.tenderDossier?.builtAt,
-    item.tenderDossier?.parserVersion,
-    item.tenderDossier?.kosztorys?.ok,
-    item.tenderDossier?.scanSummary?.parsedAt,
-    athPreviewEnabled,
-    retryNonce,
-  ]);
+  }, [enabled, itemId, gateFingerprint, athPreviewEnabled, retryNonce]);
 
   return {
     dossierBuilding,
@@ -292,6 +364,7 @@ export function useTenderDossierHeavyLazy(opts: {
 export function resetDossierHeavyLazyForTests(): void {
   dossierInflightIds.clear();
   enrichmentInflightIds.clear();
+  heavyRunAttempts.clear();
 }
 
 /** Test-only — stan inflight workera. */
@@ -307,4 +380,29 @@ export function isDossierEnrichmentInflightForItem(itemId: string): boolean {
 /** Test-only — symulacja zajętego inflight (abort lifecycle). */
 export function markDossierInflightForTest(itemId: string): void {
   dossierInflightIds.add(itemId);
+}
+
+/** Test-only — circuit breaker attempt count. */
+export function getHeavyRunAttemptsForTest(
+  itemId: string,
+  gateFingerprint: string,
+  retryNonce: number,
+): number {
+  return heavyRunAttempts.get(heavyRunKey(itemId, gateFingerprint, retryNonce)) ?? 0;
+}
+
+/** Test-only — bump attempt counter (circuit breaker). */
+export function bumpHeavyRunAttemptsForTest(
+  itemId: string,
+  gateFingerprint: string,
+  retryNonce: number,
+): number {
+  const k = heavyRunKey(itemId, gateFingerprint, retryNonce);
+  const n = (heavyRunAttempts.get(k) ?? 0) + 1;
+  heavyRunAttempts.set(k, n);
+  return n;
+}
+
+export function getHeavyMaxRunsPerKeyForTest(): number {
+  return HEAVY_MAX_RUNS_PER_KEY;
 }

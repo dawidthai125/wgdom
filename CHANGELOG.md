@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.38 — TENDERS-SYNC-STORM-P0 (heavy dossier sync storm)
+
+- **fix:** `useTenderDossierHeavyLazy` — E-RUN deps bez `builtAt`; partial = local only; final = 1× coalesce cloud; generation + inflight + circuit breaker
+- **lib:** `updateItem(..., { persist })` · `scheduleTenderPipelinePersist({ force })`
+- **test:** `scripts/test-tenders-sync-storm-p0.mjs` (T1–T8)
+- **bez** persistKey API / Payroll / StorageManager / Edge / Merge / Cloud protocol
+
 ## 2.65.35 — PAYROLL-CLOUD-RESURRECTION-01 (bootstrap freshness fence)
 
 - **fix:** Bootstrap CloudLoader — freshness fence przed push payroll KV
