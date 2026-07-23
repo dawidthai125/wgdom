@@ -943,7 +943,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       );
       await refreshAuditHubAuxFromCloud();
       setSyncStatus("saved");
-      console.info("[sync-metrics]", getSyncMetrics()); // AC5 — obserwowalne w produkcji (24–48h)
+      if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_SYNC_METRICS === "1") {
+        console.info("[sync-metrics]", getSyncMetrics());
+      }
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
     } catch (e) {

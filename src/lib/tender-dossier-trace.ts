@@ -39,7 +39,7 @@ export function traceDossierPipeline(
   const entry: DossierTraceEntry = { step, at: new Date().toISOString(), filename, detail };
   buffer.unshift(entry);
   if (buffer.length > MAX) buffer.length = MAX;
-  if (typeof console !== "undefined" && console.debug) {
+  if (import.meta.env?.DEV && typeof console !== "undefined" && console.debug) {
     console.debug(`[Dossier trace] ${step}`, filename, detail);
   }
 }

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.39 — INCIDENT-23-07 cleanup (diag off by default)
+
+- **improve:** Payroll DIAG auto-enable OFF (storage/write/boot-path); `isPayrollTraceEnabled` opt-in; `[sync-metrics]` / dossier `console.debug` tylko DEV lub `VITE_DEBUG_*`
+- **bez** Sync Storm / Edge / StorageManager / ARCH-02F / logiki biznesowej
+
 ## 2.65.38 — TENDERS-SYNC-STORM-P0 (heavy dossier sync storm)
 
 - **fix:** `useTenderDossierHeavyLazy` — E-RUN deps bez `builtAt`; partial = local only; final = 1× coalesce cloud; generation + inflight + circuit breaker

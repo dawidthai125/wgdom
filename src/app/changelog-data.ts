@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.39",
+    label: "INCIDENT-23-07 cleanup — diag instrumentation off by default",
+    items: [
+      {
+        type: "improve",
+        text: "Ślady diagnostyczne Payroll/RCA (storage/write/boot path, ring payroll-trace, sync-metrics console) domyślnie wyłączone na produkcji — włączenie ręczne przez flagi / VITE_DEBUG_*. Bez zmiany logiki Sync Storm ani sync.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.38",
     label: "TENDERS-SYNC-STORM-P0 — heavy dossier sync storm",
     items: [

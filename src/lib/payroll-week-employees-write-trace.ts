@@ -14,8 +14,8 @@
 const MAX_EVENTS = 8_000;
 const SESSION_FLAG = "wg-payroll-write-trace-enabled";
 
-/** 2.65.25-diag — ustaw false / usuń moduł po capture. */
-export const PAYROLL_WRITE_TRACE_DIAG_AUTO_ENABLE = true;
+/** INCIDENT-23-07 cleanup — opt-in only (`__WG_PAYROLL_WRITE_TRACE__.enable()` / session). */
+export const PAYROLL_WRITE_TRACE_DIAG_AUTO_ENABLE = false;
 
 export type PayrollWriteKind =
   | "INIT"

@@ -184,11 +184,15 @@ export function isPayrollTraceEnabled(): boolean {
   if (typeof globalThis !== "undefined" && (globalThis as { __wgdomPayrollTraceForce?: boolean }).__wgdomPayrollTraceForce) {
     return true;
   }
+  if (import.meta.env?.VITE_DEBUG_PAYROLL_TRACE === "1") return true;
   if (typeof window === "undefined") return false;
   try {
-    if (localStorage.getItem("wg-payroll-trace") === "0") return false;
+    const flag = localStorage.getItem("wg-payroll-trace");
+    if (flag === "0") return false;
+    // INCIDENT-23-07 cleanup — default OFF on prod; enable via __wgdomPayrollTraceEnable() / localStorage=1
+    if (flag === "1") return true;
   } catch { /* ignore */ }
-  return true;
+  return false;
 }
 
 export function payrollTraceSetDeviceLabel(label: string): void {

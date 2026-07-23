@@ -14,8 +14,8 @@ const KEY = "kw-week-employees";
 const MAX_EVENTS = 8_000;
 const SESSION_FLAG = "wg-payroll-storage-trace-enabled";
 
-/** 2.65.24-diag — ustaw false / usuń moduł po capture. */
-export const PAYROLL_STORAGE_TRACE_DIAG_AUTO_ENABLE = true;
+/** INCIDENT-23-07 cleanup — opt-in only (`__WG_PAYROLL_STORAGE_TRACE__.enable()` / session). */
+export const PAYROLL_STORAGE_TRACE_DIAG_AUTO_ENABLE = false;
 
 export type PayrollStorageOp = "BOOT_SNAPSHOT" | "GET" | "SET" | "REMOVE" | "PHASE" | "NOTE";
 

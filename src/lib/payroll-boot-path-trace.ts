@@ -5,12 +5,13 @@
  * window.__WG_PAYROLL_BOOT_PATH__
  *   .enable() | .clear() | .dump() | .report() | .verdict()
  *
- * Auto-enable przy loacie.
+ * Opt-in: `__WG_PAYROLL_BOOT_PATH__.enable()` / sessionStorage (default OFF po INCIDENT-23-07 cleanup).
  */
 
 const MAX = 2_000;
 const SESSION_FLAG = "wg-payroll-boot-path-enabled";
-export const PAYROLL_BOOT_PATH_DIAG_AUTO_ENABLE = true;
+/** INCIDENT-23-07 cleanup — opt-in only (`__WG_PAYROLL_BOOT_PATH__.enable()` / session). */
+export const PAYROLL_BOOT_PATH_DIAG_AUTO_ENABLE = false;
 
 export type BootPathEventName =
   | "BOOT_START"
