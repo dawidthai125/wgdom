@@ -4,6 +4,7 @@
  */
 
 import type { WeekEmployee } from "@/app/app-domain";
+import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 
 /** Debounce edycji pól — scala szybkie zmiany przed jednym batch-set. */
 export const PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS = 1000;
@@ -45,6 +46,21 @@ export function flushPayrollDomainPush(): void {
   if (!pushHandler || pendingRoster == null) return;
   const roster = pendingRoster;
   pendingRoster = null;
+  // D1 passive — telemetry only; does not alter handler / roster
+  try {
+    let weekFrom = "";
+    let weekTo = "";
+    try {
+      weekFrom = localStorage.getItem("kw-weekFrom") || "";
+      weekTo = localStorage.getItem("kw-weekTo") || "";
+    } catch { /* ignore */ }
+    emitPayrollWritePathTelemetry({
+      source: "domain_push_flush",
+      weekFrom,
+      weekTo,
+      rosterAfter: roster,
+    });
+  } catch { /* ignore */ }
   pushHandler(roster);
 }
 

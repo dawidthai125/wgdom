@@ -159,6 +159,7 @@ import {
   payrollTraceSetSubject,
   rosterTraceSnapshot,
 } from "@/lib/payroll-runtime-trace";
+import { installPayrollWritePathTelemetryGlobals } from "@/lib/payroll-write-path-telemetry";
 import { installJobsPhotosLiveTraceGlobals, logJobsPhotosLiveTrace } from "@/lib/jobs-photos-live-trace";
 import {
   installPayrollAntiLeakRuntimeTraceGlobals,
@@ -1102,6 +1103,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     // PR-PAY-S7-4A · AC5 — odczyt metryk sync w konsoli produkcyjnej: __wgdomSyncMetrics()
     (globalThis as unknown as { __wgdomSyncMetrics?: () => unknown }).__wgdomSyncMetrics = getSyncMetrics;
     installPayrollRuntimeTraceGlobals();
+    installPayrollWritePathTelemetryGlobals();
     installPayrollAntiLeakRuntimeTraceGlobals();
     installPayrollBootstrapRuntimeTraceGlobals();
     installPayrollDisplayRuntimeTraceGlobals();

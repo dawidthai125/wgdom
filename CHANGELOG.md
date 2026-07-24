@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.41 — PAYROLL-IMPLEMENT-01 D1 (write-path telemetry)
+
+- **improve:** Passive write-path forensic ring (`payroll.write_path`) on domain flush / `pwrPush` / `pwrAdd` / `pwrRemove`
+- **fields:** hoursBefore/After · source · intentionalHoursClear (log only) · empSample
+- **console:** opt-in via existing `wg-payroll-trace=1` / `__wgdomPayrollTraceEnable`
+- **kill-switch:** `wg-payroll-write-path-telemetry=0`
+- **bez** D2/D3/D4/D5 · bez zmiany guardów / Domain Push / Cloud Sync / W1/W2
+- **test:** `scripts/test-payroll-write-path-telemetry-d1.mjs`
+
 ## 2.65.39 — INCIDENT-23-07 cleanup (diag off by default)
 
 - **improve:** Payroll DIAG auto-enable OFF (storage/write/boot-path); `isPayrollTraceEnabled` opt-in; `[sync-metrics]` / dossier `console.debug` tylko DEV lub `VITE_DEBUG_*`

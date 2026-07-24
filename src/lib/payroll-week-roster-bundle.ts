@@ -24,6 +24,7 @@ import {
   schedulePayrollDomainPush,
   unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-domain-sync";
+import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 
 export {
   bindPayrollDomainPushHandler,
@@ -72,6 +73,15 @@ export async function pwrAdd(params: {
   const next = [...params.currentRoster, ...newEmps];
   removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
   const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+  emitPayrollWritePathTelemetry({
+    source: "pwrAdd",
+    weekFrom: params.weekFrom,
+    weekTo: params.weekTo,
+    rosterBefore: params.currentRoster,
+    rosterAfter: next,
+    intentionalHoursClear: params.options?.intentionalHoursClear,
+    skipPayrollGuard: params.options?.skipPayrollGuard,
+  });
   try {
     await pushWeekEmployeesToCloud(next, params.options);
     return { roster: next, tombstones, changed: true, pushed: true };
@@ -99,6 +109,15 @@ export async function pwrRemove(params: {
   const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
   addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
   const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+  emitPayrollWritePathTelemetry({
+    source: "pwrRemove",
+    weekFrom: params.weekFrom,
+    weekTo: params.weekTo,
+    rosterBefore: params.currentRoster,
+    rosterAfter: next,
+    intentionalHoursClear: params.options?.intentionalHoursClear,
+    skipPayrollGuard: params.options?.skipPayrollGuard,
+  });
   try {
     await pushWeekEmployeesToCloud(next, params.options);
     return { roster: next, tombstones, changed: true, pushed: true };
@@ -112,6 +131,14 @@ export async function pwrPush(params: PwrPushParams): Promise<void> {
     removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
   }
   reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);
+  emitPayrollWritePathTelemetry({
+    source: "pwrPush",
+    weekFrom: params.weekFrom,
+    weekTo: params.weekTo,
+    rosterAfter: params.roster,
+    intentionalHoursClear: params.options?.intentionalHoursClear,
+    skipPayrollGuard: params.options?.skipPayrollGuard,
+  });
   await pushWeekEmployeesToCloud(params.roster, params.options);
 }
 

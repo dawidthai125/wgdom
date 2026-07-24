@@ -285,14 +285,23 @@ export function rosterTraceSnapshot(
   };
 }
 
-export function payrollTraceEmit(
+function appendPayrollTraceEnvelope(envelope: PayrollTraceEnvelope): void {
+  if (ring.length < RING_MAX) {
+    ring.push(envelope);
+  } else {
+    ring[ringWrite % RING_MAX] = envelope;
+  }
+  ringWrite += 1;
+  ringCount = Math.min(ringCount + 1, RING_MAX);
+}
+
+function buildPayrollTraceEnvelope(
   event: string,
   phase: TracePhase,
   level: PayrollTraceEnvelope["level"],
   extra: Record<string, unknown> = {},
-): void {
-  if (!isPayrollTraceEnabled()) return;
-  const envelope: PayrollTraceEnvelope = {
+): PayrollTraceEnvelope {
+  return {
     ts: new Date().toISOString(),
     level,
     event,
@@ -311,13 +320,56 @@ export function payrollTraceEmit(
     rosterRevision,
     ...extra,
   };
-  if (ring.length < RING_MAX) {
-    ring.push(envelope);
-  } else {
-    ring[ringWrite % RING_MAX] = envelope;
+}
+
+/**
+ * Opt-in diagnostic emit (merge/display/…). Ring + optional console only when enabled.
+ * Write-path forensics (D1): use `payrollTraceEmitWritePath` — always rings.
+ */
+export function payrollTraceEmit(
+  event: string,
+  phase: TracePhase,
+  level: PayrollTraceEnvelope["level"],
+  extra: Record<string, unknown> = {},
+): void {
+  if (!isPayrollTraceEnabled()) return;
+  const envelope = buildPayrollTraceEnvelope(event, phase, level, extra);
+  appendPayrollTraceEnvelope(envelope);
+  if (typeof console !== "undefined" && typeof console.debug === "function") {
+    try {
+      console.debug("[payroll-trace]", event, phase, level);
+    } catch { /* ignore */ }
   }
-  ringWrite += 1;
-  ringCount = Math.min(ringCount + 1, RING_MAX);
+}
+
+/**
+ * PAYROLL-IMPLEMENT-01 D1 — write-path forensic emit.
+ * Always appends to ring (passive). Console only when `isPayrollTraceEnabled()`.
+ * Must never throw / never affect callers.
+ */
+export function payrollTraceEmitWritePath(
+  event: string,
+  phase: TracePhase,
+  level: PayrollTraceEnvelope["level"],
+  extra: Record<string, unknown> = {},
+): void {
+  try {
+    const envelope = buildPayrollTraceEnvelope(event, phase, level, {
+      writePath: true,
+      ...extra,
+    });
+    appendPayrollTraceEnvelope(envelope);
+    if (isPayrollTraceEnabled() && typeof console !== "undefined" && typeof console.info === "function") {
+      try {
+        console.info("[payroll-write-path]", event, {
+          hoursBefore: extra.hoursBefore,
+          hoursAfter: extra.hoursAfter,
+          source: extra.source,
+          intentionalHoursClear: extra.intentionalHoursClear,
+        });
+      } catch { /* ignore */ }
+    }
+  } catch { /* D1 passive — never propagate */ }
 }
 
 function orderedEvents(): PayrollTraceEnvelope[] {

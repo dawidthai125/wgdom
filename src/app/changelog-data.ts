@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.41",
+    label: "PAYROLL-IMPLEMENT-01 D1 — write-path telemetry (passive)",
+    items: [
+      {
+        type: "improve",
+        text: "Lista Płac — stały pierścień forensic write-path (hoursBefore/After, source, intentionalHoursClear) na domain flush / pwrPush / pwrAdd / pwrRemove. 100% pasywny: bez wpływu na Domain Push, guardy, Cloud Sync ani SSOT. Konsola tylko opt-in (wg-payroll-trace); kill-switch wg-payroll-write-path-telemetry=0.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.40",
     label: "HARDENING-01A — Persist SSOT (bootstrap local + opts forward)",
     items: [

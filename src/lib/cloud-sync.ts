@@ -1389,6 +1389,11 @@ export type PushKeysToCloudOptions = {
 
 export type PushWeekEmployeesOptions = {
   skipPayrollGuard?: boolean;
+  /**
+   * PAYROLL-DF D3 — intentional hours clear (guard bypass).
+   * D1 logs this field only; does not interpret for control flow.
+   */
+  intentionalHoursClear?: boolean;
 };
 
 async function applyPayrollGuardBeforePush(
