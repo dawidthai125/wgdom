@@ -96,19 +96,22 @@ Duże widoki ładowane dynamicznie w `AdminViewRouter.tsx` (m.in. `JobsView`, `P
 
 ### 4.1 Lista Płac (PAYROLL)
 
-| Warstwa | SSOT | Uwagi |
-|---------|------|-------|
-| UI tygodnia | `PayrollView.tsx`, `WeekEmployeeDetail.tsx` | Baner restore: `shouldShowPayrollRestoreBanner` (`cloud-sync.ts`) |
+> **★ AI START:** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · tip **2.65.43** / Hours-wipe D1–D5 **ACTIVE** · fence + Domain Push **ACTIVE**.
+
+| Warstwa | Pliki | Uwagi |
+|---------|-------|-------|
+| UI tygodnia | `PayrollView.tsx`, `WeekEmployeeDetail.tsx` | D4 `-prev` ≠ archive RB (`shouldShowPayrollRestoreBanner`) |
 | Przydziały | `PayrollJobAssignmentsPanel.tsx` | `job.workEntries[]` w `kw-jobs` |
 | Merge / guard | `cloud-sync.ts` | `finalizePayrollBundleMerge`, `mergeWeekEmployees`, `CloudSyncMutationGuard` |
-| Rollover | `payroll-rollover.ts` | `autoArchiveAndAdvance`, `pushPayrollWeekAfterRollover` |
+| Domain Push / gate | `payroll-domain-sync.ts`, `payroll-hours-collapse-gate.ts` | D2/D3 · `intentionalHoursClear` |
+| Soft Restore / -prev | `payroll-soft-restore.ts`, `payroll-prev-recovery.ts` | D5 · `weekEmployeeFromDir` **PURE** |
+| Rollover | `payroll-rollover.ts` | `classifyPayrollWeekTransition` ALIGN ≠ wipe |
 | Edge parity | `payroll-week-employee-merge.ts` | B6 — wspólny kernel z Edge |
+| Bootstrap fence | `payroll-bootstrap-resurrection-fence.ts` | **ACTIVE** — nie usuwać |
 
-**KV:** `kw-week-employees`, `kw-weekFrom`, `kw-weekTo`, `kw-archive`, `kw-directory`, `kw-employee-leaves`. **Tombstony** `kw-week-employees-deleted-ids` = **TYLKO LOKALNE** (nie synchronizowane → root cause resurrection; naprawa w S7-5).
+**KV:** `kw-week-employees`, `kw-week-employees-deleted-ids` (PWRB), `kw-week-employees-prev` (D4), `kw-weekFrom`/`kw-weekTo`, `kw-archive`, `kw-directory`, `kw-employee-leaves`.
 
-**Closeout:** B3 Guard · B4 merge SSOT · B5 closed week UI · B6 Edge parity · RB restore banner (2.63.24).
-
-> **🔴 P0 ACTIVE:** merge Payroll = **UNION** + tombstony lokalne + `batch-set` `kv.mset` all-or-nothing → resurrection pracowników i ryzyko 500. Zanim zmienisz `mergeWeekEmployees*` / Edge / tombstony → **[`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)**.
+> **🔴 CORE:** nie ruszaj merge/PWRB/fence/Domain Push bez SSOT + Owner GO. Merge = UNION + tombstones — klasyczna pułapka; Hours-wipe D2–D5 chroni partial wipe. Głęboki sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
 
 ### 4.2 Roboty (JOBS)
 

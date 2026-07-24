@@ -10,8 +10,10 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
 2m. docs/AGENT-APP-MAP.md  ← ★★★ mapa widoków, modułów lib, KV, sync (START dla AI)
-2p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  ← ★★★ sync Payroll — OBOWIĄZKOWE przed cloud-sync.ts / Edge
+2p0. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przepływ · invariants · Hours-wipe) — START przed LP/sync
+2p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  ← ★★ sync/merge głęboko — po SSOT
 2p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md  ← ★★ RC-B-1 CLOSED (PWRB · I-1…I-4 · jak nie zepsuć LP)
+2p3. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED (2.65.43 / ea1b0a6)
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
 2og. docs/WORKFLOW-OWNER-GO.md  ← ★ Owner GO Policy (#WORKFLOW-OWNER-GO-001) · FEATURE vs CORE gate IMPLEMENT
@@ -21,7 +23,7 @@
 2ti2. docs/TEST-INFRA-LIFECYCLE.md  ← lifecycle orchestratora test-infra
 2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.66)
 2w2. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.66)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.65.35)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT handoff (tip **2.65.43** / `ea1b0a6` — patrz docs/AI/09)
 3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
 3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
 3n6. docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md  ← ★★ NG11-P0 EPIC COMPLETE (2.65.3 · 281ede1)
@@ -207,7 +209,7 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.65.35**) |
 | Prod `main` (app) | **v2.65.35** (`fce7b78`) · **PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · Protected Core **GREEN** |
-| Docs tip | **`5d6e798`** — RESURRECTION production verification |
+| Docs tip | **`1addd97`** — TEST-HARNESS-01 H4 **CLOSED** (UI **2.65.35** bez bumpu) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

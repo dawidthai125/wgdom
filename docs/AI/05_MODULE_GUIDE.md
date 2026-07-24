@@ -31,10 +31,12 @@
 |--|--|
 | **Cel** | Tygodnie, godziny, archiwum, przydziały |
 | **UI** | `PayrollView.tsx` |
-| **Lib** | `payroll-*.ts`, `payroll-week-roster-bundle.ts` (PWRB), `payroll-bootstrap-resurrection-fence.ts` |
-| **KV** | `kw-week-employees`, archive keys |
-| **Na co uważać** | Tylko PWRB dla roster; fence; rollover classifier; gate B przed CORE commit |
-| **Guide** | `PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md` |
+| **Lib** | `payroll-*.ts` · PWRB · `payroll-bootstrap-resurrection-fence.ts` · `payroll-hours-collapse-gate.ts` · `payroll-write-path-telemetry.ts` · `payroll-prev-recovery.ts` · `payroll-soft-restore.ts` · `payroll-domain-sync.ts` |
+| **KV** | `kw-week-employees` · deleted-ids · `-prev` · archive · directory |
+| **Na co uważać** | Tylko PWRB (W1) · Domain Push sole write (D6) · Domain Gate + intentionalHoursClear · factory PURE · fence · rollover · #CORE-013 |
+| **SSOT AI** | [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |
+| **Sync guide** | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| **Closeout** | [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
 
 ---
 

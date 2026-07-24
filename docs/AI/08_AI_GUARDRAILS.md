@@ -27,7 +27,7 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 | 3 | **Dodawać duplicate business logic** (drugi merge weekEmployees, drugi persist pipeline, drugi roster) |
 | 4 | **Omijać Cloud Sync** (`fetch` prosto do Edge z UI zamiast `persistKey` / Domain Push / kontraktu) |
 | 5 | **Zmieniać Tender Engine / heavy E-RUN** bez analizy wpływu Sync Storm (deps, persist modes, coalesce) |
-| 6 | **Dotykać Payroll CORE** bez Payroll Agent Guide + Quality Gate + Owner GO (człowiek) |
+| 6 | **Dotykać Payroll CORE** bez [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) + Quality Gate + Owner GO |
 | 7 | **Usuwać debug API** oznaczone **KEEP (DEBUG)** bez cleanup GO |
 | 8 | **Włączać** `*_DIAG_AUTO_ENABLE = true` na prod |
 | 9 | **Wkładać `builtAt` / parserVersion` do E-RUN deps** heavy lazy |
@@ -41,12 +41,17 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 | 17 | **Usuwać / omijać** `payroll-bootstrap-resurrection-fence` |
 | 18 | **Cofać** `classifyPayrollWeekTransition` (ALIGN ≠ wipe) |
 | 19 | **Mutować roster tygodnia** poza PWRB |
-| 20 | **Nadpisywać `photos[]`** bez union + tombstones |
-| 21 | **Start nowego EPIC** w STABILIZATION WINDOW bez Owner GO |
-| 22 | **Implementować LOCALSTORAGE-ARCH-02F / Edge kv-chunk / H0.x** bez jawnego IMPLEMENT |
-| 23 | **Czytać i „naprawiać” cały `App.tsx`** od zera |
-| 24 | **Zakładać Next.js / SSR** — stack to Vite + React SPA |
-| 25 | **Szybkie „temporary HACK”** w prod bez ticketu i closeout |
+| 20 | **`skipPayrollGuard` bez** `intentionalHoursClear === true` |
+| 21 | **Modyfikować** `weekEmployeeFromDir` (musi zostać PURE) — Soft Restore tylko overlay |
+| 22 | **Pisać godziny live poza Domain Push** / przywracać LP do RS push |
+| 23 | **Łączyć** D4 `-prev` banner z archive Restore Banner |
+| 24 | **Nowy write path Payroll** bez Architecture Review + Owner GO |
+| 25 | **Nadpisywać `photos[]`** bez union + tombstones |
+| 26 | **Start nowego EPIC** w STABILIZATION WINDOW bez Owner GO |
+| 27 | **Implementować LOCALSTORAGE-ARCH-02F / Edge kv-chunk / H0.x** bez jawnego IMPLEMENT |
+| 28 | **Czytać i „naprawiać” cały `App.tsx`** od zera |
+| 29 | **Zakładać Next.js / SSR** — stack to Vite + React SPA |
+| 30 | **Szybkie „temporary HACK”** w prod bez ticketu i closeout |
 
 ---
 
@@ -70,11 +75,13 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 □ Czytałem 08_AI_GUARDRAILS + 09_PRODUCTION_BASELINE
 □ Znam scope (FEATURE vs CORE)
 □ Boundary Check (#CORE-014) — lista plików
-□ Jeśli Payroll/Sync — Payroll Guide
+□ Jeśli Payroll/Sync — PAYROLL-ARCHITECTURE-SSOT + (głęboko) Cloud Sync Agent Guide
+□ Payroll checklist: W1 PWRB · W2 Domain Push · Cloud Sync merge · SSOT · fence · gate D2/D3
 □ Jeśli Tenders heavy — Sync Storm kontrakt
 □ Jeśli persist — local vs cloud mode
 □ Owner GO / IMPLEMENT wypowiedziane
 □ Plan testów / smoke istnieje
+□ Zakaz implementacji „na skróty”
 ```
 
 Bez checkboxów → **nie implementuj**.

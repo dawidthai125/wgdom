@@ -11,6 +11,7 @@
 | **Stages** | D1 `ace2855` · D2+D3 `f3b8c03` · D4+D5 `ea1b0a6` |
 | **OUT** | Nowe prace Payroll · CI Gate B (osobny EPIC) |
 | **SSOT CLOSE** | [`docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
+| **AI SSOT** | [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](docs/PAYROLL-ARCHITECTURE-SSOT.md) — invariants · safety · AI guardrails |
 | **Release History** | [`docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) |
 | **Next Payroll** | **NONE** bez nowego Owner GO |
 

@@ -98,12 +98,17 @@ SSOT Workflow UI: [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTU
 
 | Element | SSOT |
 |---------|------|
+| **AI entry** | [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) — przepływ · invariants · safety |
 | UI | `PayrollView.tsx` |
 | Week roster mutations | **tylko** PWRB (`payroll-week-roster-bundle.ts`) |
-| Guard shrink | `wouldBlockPayrollShrink` |
+| Domain Push | `payroll-domain-sync.ts` → `pwrPush` · **sole hours write** (D6) |
+| Guard shrink | `wouldBlockPayrollShrink` · Domain Gate D2 · `intentionalHoursClear` ⇔ `skipPayrollGuard` (D3) |
+| Soft Restore / factory | overlay D5 · `weekEmployeeFromDir` **PURE** |
+| `-prev` recovery | D4 · `payroll-prev-recovery.ts` ≠ archive Restore Banner |
 | Bootstrap | fence + `applyBootstrapPayrollMerge` + phase gate |
 | Rollover | `classifyPayrollWeekTransition` ALIGN ≠ wipe |
-| Agent guide | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| Sync guide (głęboko) | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| Hours-wipe closeout | [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
 
 **Reguła #1:** nowe FEATURE nie mogą regresować Listy Płac.
 

@@ -89,11 +89,16 @@ AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Boundary (#CORE-014)
 
 ## 9. Payroll / Protected Core
 
-- Mutacje składu tygodnia → **tylko PWRB**.  
+- **SSOT AI:** [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) — przeczytaj przed kodem.  
+- Mutacje składu tygodnia → **tylko PWRB** (W1).  
+- Zapis godzin live → **tylko Domain Push** (W2 / D6) — nie RS push.  
+- Hours collapse → Domain Gate (D2); `skipPayrollGuard` **tylko** z `intentionalHoursClear` (D3).  
+- `weekEmployeeFromDir` **PURE**; Soft Restore = overlay (D5).  
 - Nie usuwaj / nie omijaj **resurrection fence**.  
 - Nie cofaj **ALIGN vs ROLLOVER**.  
-- Przed commitem CORE: gate payroll (`test:infra --gate B --scope payroll`).  
-- Reguła #1: FEATURE nie psuje LP.
+- Przed commitem CORE: gate payroll (`test:infra --gate B --scope payroll`) + skrypty D1/D2–D5 jeśli dotyczy.  
+- Reguła #1: FEATURE nie psuje LP · #CORE-013.  
+- Nowe prace Payroll: **tylko Owner GO** (Hours-wipe EPIC CLOSED).
 
 ---
 

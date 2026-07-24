@@ -1,26 +1,28 @@
 # PAYROLL Cloud Sync — Architecture Agent Guide
 
-> **Cel:** jeden dokument, dzięki któremu **przyszły AI / agent Cursor** rozumie architekturę synchronizacji i merge Payroll **bez analizowania kodu od zera**. Zawiera przepływ danych, pliki SSOT, klucze KV, model merge, logikę Edge, oraz **dwa aktywne problemy P0** (batch-set 500 + resurrection pracowników) z hipotezami i planem.
+> **Cel:** głęboki przewodnik synchronizacji i merge Payroll (Domain Push, PWRB, Edge, guardy).  
+> **★ AI START (2026-07-24):** najpierw przeczytaj **[`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md)** — przepływ UI→SSOT · CRITICAL INVARIANTS · SAFETY · Hours-wipe D1–D5.  
+> **Production tip:** UI **2.65.43** · feature **`ea1b0a6`** · Hours-wipe EPIC **CLOSED** · [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 >
-> **Data:** 2026-07-11 · **HEAD `88650be`** · **Prod UI v2.63.85** · **P0 Cross-Device Sync FULLY CLOSED** · **Domain Push ACTIVE** · **BASELINE LOCKED**
+> **Historia dokumentu:** 2026-07-11 · Domain Push S2 / PWRB baseline (v2.63.85). Sekcje sync poniżej **nadal ACTIVE**. Otwarte „P0 batch-set / resurrection” w starym TL;DR = **historyczne** — resurrection fence **CLOSED @ 2.65.35** (fence **ACTIVE**); Hours-wipe **CLOSED @ 2.65.43**.
 >
-> **★ SYNC-ARCH S2 (2026-07-10):** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push (`runCloudSync`) **bez** `kw-week-employees` (S1-1 by design). **#CORE-015** · **#CORE-016**.
+> **★ SYNC-ARCH S2:** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push **bez** `kw-week-employees`. **#CORE-015** · **#CORE-016**.
 >
-> **★ RC-B-1 closeout:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · **PWRB facade:** `src/lib/payroll-week-roster-bundle.ts`
+> **★ RC-B-1:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · PWRB `payroll-week-roster-bundle.ts`
 >
-> **Powiązane SSOT:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) §11 · [`PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md`](PAYROLL-PR-PAY-S7-CLOUD-BATCH-500-AUDIT.md) · [`PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md`](PAYROLL-PR-PAY-S7A-CLOUD-SYNC-FREQUENCY-AUDIT.md) · [`PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md`](PAYROLL-PR-PAY-S7-4-CLOUD-SYNC-OPTIMIZATION-DESIGN-FREEZE.md) · [`PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md`](PAYROLL-PR-PAY-S7-5-RESURRECTION-GUARD-DESIGN-FREEZE.md)
+> **Powiązane:** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) §11 · Hours-wipe DF [`architecture/PAYROLL-DESIGN-FREEZE-01.md`](architecture/PAYROLL-DESIGN-FREEZE-01.md)
 
 ---
 
 ## 0. TL;DR dla agenta (przeczytaj najpierw)
 
-- **Model danych = LocalStorage ↔ Supabase KV** (klucz→JSON). Klient scala, Edge scala ponownie. **Merge jest UNION** (nie replace) — to źródło większości pułapek Payroll.
-- **Domain Push (S2 — ACTIVE):** każda mutacja **pól** rosteru (`godziny`, `stawka`, `extraCosts`, `settled`, carry-forward) → `schedulePayrollDomainPush` (debounce 1s) → `persistPayrollRoster` → `pwrPush(skipPayrollGuard)` → `pushWeekEmployeesToCloud(replaceWeekEmployeesKeys)`. **#CORE-015**
-- **RS Push (S1-1):** `runCloudSync` / `pushMergedDataBundleToCloud` **nie zawiera** `kw-week-employees` — by design. Payroll idzie wyłącznie Domain Push + PWRB (add/remove).
-- **PWRB (RC-B-1):** skład tygodnia = **para** `kw-week-employees` + `kw-week-employees-deleted-ids`. Mutacje składu UI **tylko** przez `payroll-week-roster-bundle.ts` (`pwrAdd`, `pwrRemove`, `pwrPush`, …).
-- **Parytet klient↔Edge** na `payroll-week-employee-merge.ts`. Nie zmieniaj jednej strony bez drugiej.
-- **Regression contracts (#CORE-016):** przy każdej zmianie sync — `test-sync-arch-01-s2-domain-push-cross-device.mjs` (18/18) + `test-sync-arch-01-s1-rs-no-payroll-push.mjs` (22/22) + payroll guard (4/4).
-- **Otwarte poza P0 cross-device:** batch-set 500 (H1 UNCONFIRMED) · AC8–AC11 multi-device observation.
+- **★ Hours-wipe (ACTIVE):** Domain Gate (D2) + `intentionalHoursClear` ⇔ `skipPayrollGuard` (D3) · `-prev` banner (D4) · Soft Restore overlay (D5) · `weekEmployeeFromDir` **PURE** · szczegóły: [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md).
+- **Model danych = LocalStorage ↔ Supabase KV**. **Merge jest UNION** (nie replace) — klasyczna pułapka Payroll.
+- **Domain Push (S2 — ACTIVE):** mutacje **pól** → `schedulePayrollDomainPush` → `persistPayrollRoster` → `pwrPush` (guard Strict; skip **tylko** z `intentionalHoursClear`) → `pushWeekEmployeesToCloud`. **#CORE-015**
+- **RS Push:** **bez** `kw-week-employees` — by design. Nie przywracać LP do RS.
+- **PWRB:** skład = para roster + deleted-ids · **tylko** `payroll-week-roster-bundle.ts`.
+- **Parytet klient↔Edge** · `payroll-week-employee-merge.ts`.
+- **Regression:** S2 domain-push + S1 RS-no-payroll + D1/D2–D3/D4–D5 unit scripts + gate B.
 
 ---
 

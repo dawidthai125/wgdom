@@ -30,7 +30,7 @@ Role: **Admin** (Dawid / Stanisław / Pawel), **Inspektor** (Szymon), **Pracowni
 | 2.51–2.59 | Przetargi 3.0, WM Druk / ZI 2026, Notatki, Pomiary |
 | 2.62–2.63 | Workflow V4, TEUX, NG-02…NG-10, Payroll Domain Push, Mobile Recovery |
 | 2.64–2.65 | NG11 pipeline performance, Jobs/Photos sync, Payroll fence/rollover, Theme-01 |
-| **2026-07-23/24** | **Incident 23.07** — Sync Storm → CF 522 / DB stress → fix **TENDERS-SYNC-STORM-P0** (**2.65.38**) + cleanup diag (**2.65.39**) |
+| **2026-07-23/24** | **Incident 23.07** Sync Storm → **2.65.38/39** · **Hours Wipe** Lista Płac → Hours-wipe EPIC D1–D5 **CLOSED @ 2.65.43** |
 
 Szczegóły: [`04_INCIDENTS_HISTORY.md`](04_INCIDENTS_HISTORY.md).
 
@@ -89,7 +89,7 @@ scripts/                  ← smoke / harness vite-node
 | Moduł | Wejście |
 |-------|---------|
 | Cloud Sync | `src/lib/cloud-sync.ts` · `CloudLoader.tsx` |
-| Payroll | `PayrollView.tsx` · `payroll-*` · PWRB · resurrection fence |
+| Payroll | `PayrollView.tsx` · `payroll-*` · PWRB · fence · **Hours-wipe D1–D5** · SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |
 | Jobs | `JobsView.tsx` · merge photos / tombstones |
 | Tenders | `TendersModule` · `useTenderPipelineRuntime` · heavy lazy |
 | Work Catalog | `src/lib/work-catalog/` |
@@ -120,17 +120,17 @@ Szczegóły: [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md).
 | Pole | Wartość (2026-07-24) |
 |------|----------------------|
 | URL | https://www.wgdom.fun |
-| UI tip (changelog) | **2.65.40** |
-| Feature commit | **`23d7723`** |
-| Docs tip | **`96d44d0`** |
+| UI tip (changelog) | **2.65.43** |
+| Feature commit | **`ea1b0a6`** |
+| Docs tip (Hours-wipe closeout) | **`19a1d89`** |
 | Status | **PRODUCTION VERIFIED · GREEN** |
-| HARDENING-01A | **CLOSED** (Persist SSOT) |
-| HARDENING-01D | **CLOSED** (546 monitor · D-V3 DEFER · M-EDGE-546 MONITOR) |
+| PAYROLL Hours-wipe EPIC | **CLOSED** (D1–D5) |
+| HARDENING-01A / 01D / 01B0 | **CLOSED** |
 | Sync Storm fix | **2.65.38** |
-| Final audit Sync Storm | **PRODUCTION READY** (klasa 23.07) |
 | STABILIZATION WINDOW | **ACTIVE** — brak nowych epiców bez Owner GO |
 
-Aktualny stan: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md).
+Aktualny stan: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md).  
+**Payroll (obowiązkowe przed zmianą LP):** [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md).
 
 ---
 
@@ -140,9 +140,11 @@ Aktualny stan: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md).
 2. Runtime: mutacje → LS → `persistKey` / Domain Push / coalesce.  
 3. **Nigdy** trwałe dane tylko w React state.  
 4. Partial push **musi** iść przez `prepareKeysForCloudPush`.  
-5. Payroll shrink → **Payroll Guard**.  
+5. Payroll shrink → **Payroll Guard** + Domain Gate (D2) przy hours collapse.  
+6. `skipPayrollGuard` **tylko** z `intentionalHoursClear` (D3).  
+7. `weekEmployeeFromDir` **PURE** — Soft Restore = overlay (D5).
 
-Guide: [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
+Guide: [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) · głęboki sync: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
 
 ---
 
@@ -178,9 +180,10 @@ Pełny proces: [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md).
 1. docs/AI/README.md              ← INDEX
 2. docs/AI/08_AI_GUARDRAILS.md    ← zakazy
 3. docs/AI/09_PRODUCTION_BASELINE.md
-4. CURRENT-TASK.md
-5. docs/AGENT-CONTINUITY-GUIDE.md §0
-6. Tematycznie: Payroll Guide / WORKFLOW-ARCHITECTURE / Sync Storm RCA
+4. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★ jeśli cokolwiek przy LP / sync / Edge merge
+5. CURRENT-TASK.md
+6. docs/AGENT-CONTINUITY-GUIDE.md §0
+7. Tematycznie: Payroll Cloud Sync Guide / WORKFLOW-ARCHITECTURE / Sync Storm RCA
 ```
 
 **Hasło Ownera „kontynuuj WGDOM”** → czytać też `.cursor/rules/wgdom-stan-projektu.mdc`.

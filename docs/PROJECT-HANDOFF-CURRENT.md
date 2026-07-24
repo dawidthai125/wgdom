@@ -9,7 +9,7 @@
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4  
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”
 
-> **★★ PAYROLL Hours-wipe protection EPIC:** **CLOSED** (2026-07-24) · **2.65.43** @ **`ea1b0a6`** · D1–D5 PRODUCTION VERIFIED · SSOT [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Release History [`releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) · CI Gate B = **osobny EPIC**  
+> **★★ PAYROLL Hours-wipe protection EPIC:** **CLOSED** (2026-07-24) · **2.65.43** @ **`ea1b0a6`** · D1–D5 PRODUCTION VERIFIED · SSOT [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · **AI SSOT** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · Release History [`releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) · CI Gate B = **osobny EPIC**  
 > **★★ WGDOM-HARDENING-01B0:** **CLOSED** (2026-07-24) · docs tip **`fcf66b0`** · H3-C FP-churn monitor · M6 **DEFER** · **H-FP-CHURN = MITIGATED / MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md)  
 > **★★ WGDOM-HARDENING-01D:** **CLOSED** (2026-07-24) · docs tip **`96d44d0`** (ancestor) · Edge 546 M2-A monitor · D-V3 **DEFER** · **M-EDGE-546 = MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md)  
 > **★★ WGDOM-HARDENING-01A:** **CLOSED** (2026-07-24) · **2.65.40** @ **`23d7723`** · Persist SSOT H1+H2 · SSOT [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) · CI TEUX-7d = osobny follow-up  
@@ -26,6 +26,7 @@
 0. docs/AI/README.md                      ← ★★★ AI Knowledge Base (START dla nowego AI)
 0b. docs/AI/09_PRODUCTION_BASELINE.md     ← UI 2.65.43 / feature ea1b0a6
 0c. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED
+0c2. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przed każdą zmianą LP)
 0d. docs/architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md  ← ★★ 01B0 CLOSED
 0e. docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md  ← ★★ 01D CLOSED
 0f. docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md  ← ★★ 01A CLOSED

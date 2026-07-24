@@ -31,7 +31,7 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 12. 10_HANDOFF_TEMPLATE.md      koniec sesji
 ```
 
-**Potem living SSOT repo:** `AGENTS.md` → `docs/AGENT-CONTINUITY-GUIDE.md` → `CURRENT-TASK.md` → tematyczny guide (Payroll / Workflow / ARCHITECTURE).
+**Potem living SSOT repo:** `AGENTS.md` → `docs/AGENT-CONTINUITY-GUIDE.md` → `CURRENT-TASK.md` → **[`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md)** (jeśli Lista Płac / sync) → tematyczny guide (Payroll Cloud Sync / Workflow / ARCHITECTURE).
 
 ---
 
@@ -47,10 +47,10 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 | [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md) | AUDIT→…→CLOSE — znaczenie każdego etapu + VERIFY FAST |
 | [`07_KNOWN_RISKS.md`](07_KNOWN_RISKS.md) | Critical→Info: residual Sync Storm, fat key, payroll regress, gated EPICs |
 | [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) | **★ Najważniejszy** — lista NIE WOLNO + checklisty przed kod/commit/push |
-| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | UI **2.65.40** / feature `23d7723` · docs tip `96d44d0` · open EPICs B/C/E |
+| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | UI **2.65.43** / feature `ea1b0a6` · Hours-wipe EPIC CLOSED · Hardening 01A/B0/D CLOSED |
 | [`10_HANDOFF_TEMPLATE.md`](10_HANDOFF_TEMPLATE.md) | Wzorzec handoffu między agentami |
 | [`11_GLOSSARY.md`](11_GLOSSARY.md) | SSOT, Sync Storm, coalesce, fence, PWRB, OV, … |
-| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-19 z uzasadnieniem |
+| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-20 z uzasadnieniem |
 
 ---
 
@@ -82,7 +82,8 @@ Po przeczytaniu Knowledge Base AI rozumie:
 | [`docs/AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md) | Kontekst sesji |
 | [`docs/AGENT-APP-MAP.md`](../AGENT-APP-MAP.md) | Mapa widoków/KV |
 | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Living architecture |
-| [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) | Payroll sync |
+| [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) | **★ Payroll AI SSOT** — przepływ · invariants · safety · Hours-wipe |
+| [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) | Payroll sync/merge (głęboko) |
 | [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) | Przetargi UX SSOT |
 | [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../WORKFLOW-RELEASE-DEPLOY.md) | Deploy |
 | [`docs/WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md) | Owner GO |

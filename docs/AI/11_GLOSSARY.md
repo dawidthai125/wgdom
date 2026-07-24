@@ -35,6 +35,12 @@
 | **#CORE-013** | Zakaz mixed FEATURE+CORE w jednym commicie |
 | **#CORE-014** | Boundary Check przed IMPLEMENT/COMMIT |
 | **PWRB** | Payroll Week Roster Bundle — jedyna mutacja składu tygodnia |
+| **Domain Gate (D2)** | Confirm przed hours collapse push |
+| **intentionalHoursClear** | Flaga świadomego wyzerowania godzin (D3) — **≠** `isIntentionalPayrollWeekClear` |
+| **Soft Restore (D5)** | Overlay godzin z `-prev` / session przy re-add — nie w factory |
+| **weekEmployeeFromDir** | Factory z katalogu — **PURE** (C5) |
+| **-prev recovery (D4)** | Banner z `kw-week-employees-prev` — **≠** archive Restore Banner |
+| **write_path telemetry (D1)** | Passive ring `payroll.write_path` |
 | **Resurrection fence** | Blokada reseedu pustej chmury ze starego bogatego LS |
 | **ALIGN vs ROLLOVER** | ALIGN = dopasuj zakres; ROLLOVER = archive+clear (Nd ≥20:00) |
 | **Payroll Guard** | Blokada push shrink godzin/dni |
