@@ -1,11 +1,11 @@
 # PAYROLL-RELEASE-03 — D4+D5 PUSH & PRODUCTION VERIFY · EPIC CLOSE
 
 > **ID:** PAYROLL-RELEASE-03  
-> **STATUS:** RELEASE COMPLETE · PRODUCTION VERIFIED (D4+D5) · **PAYROLL EPIC COMPLETE**  
+> **STATUS:** **CLOSED** · RELEASE COMPLETE · PRODUCTION VERIFIED (D4+D5) · **PAYROLL EPIC CLOSED**  
 > **Data:** 2026-07-24  
 > **Commit:** **`ea1b0a6`**  
 > **UI:** **2.65.43**  
-> **Epic:** D1 → D2+D3 → D4+D5 **CLOSED**
+> **Epic:** D1 → D2+D3 → D4+D5 **CLOSED** · Closeout [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 
 ```text
 PUSH ea1b0a6 → main
@@ -128,7 +128,7 @@ docs/architecture/PAYROLL-IMPLEMENT-03-D4-D5-IMPLEMENTATION-REPORT.md
 ## 7. Owner Readiness
 
 ```text
-OWNER READINESS: PAYROLL EPIC COMPLETE (D1–D5)
+OWNER READINESS: PAYROLL EPIC CLOSED (D1–D5)
 
 Released & verified:
   D1 passive telemetry
@@ -137,11 +137,14 @@ Released & verified:
   D4 -prev Recovery Banner
   D5 Soft Restore overlay
 
-Optional follow-up (OUT of epic):
-  A) Fix pre-existing Gate B CI (TEUX / guard)
-  B) Owner manual: force live≪-prev to see D4 banner UI once
+Closeout: PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
+Release History: docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md
 
-No further payroll DF protections pending in this epic.
+Out of epic (not TODOs of this EPIC):
+  A) Fix pre-existing Gate B CI (TEUX / guard) — osobny EPIC
+  B) Optional ops: force live≪-prev to see D4 banner once
+
+No further payroll DF protections pending · no new Payroll work from this epic.
 ```
 
 ---
@@ -154,4 +157,4 @@ No further payroll DF protections pending in this epic.
 4. **Deploy** — PASS · version.json **2.65.43**  
 5. **Production Verify** — PROD_SMOKE_PASS (+ unit Soft Restore / preferEmpty / D1–D3)  
 6. **Final Version** — **2.65.43 / ea1b0a6**  
-7. **Owner Readiness** — **PAYROLL EPIC COMPLETE**  
+7. **Owner Readiness** — **PAYROLL EPIC CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  

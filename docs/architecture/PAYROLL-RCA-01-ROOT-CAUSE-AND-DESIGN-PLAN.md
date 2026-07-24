@@ -1,11 +1,11 @@
 # PAYROLL-RCA-01 — ROOT CAUSE & DESIGN PLAN
 
 > **ID:** PAYROLL-RCA-01  
-> **STATUS:** RCA + PLAN COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · RCA + PLAN COMPLETE · **P0** · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** RCA + PLAN ONLY  
 > **Data:** 2026-07-24  
 > **Łańcuch:** INCIDENT-01/02 · FORENSICS-01 · REGRESSION-01 · RUNTIME-01 · REPRO-01  
-> **Poza zakresem:** implementacja · Design Freeze (osobny GO) · commit · push  
+> **Poza zakresem (historyczne):** implementacja · Design Freeze (osobny GO) · commit · push — **DF + D1–D5 DELIVERED**  
 
 ```text
 ════════════════════════════════════════════════════════
@@ -320,6 +320,6 @@ Forbidden this step: implement · commit · push
 5. **Recommended** — D8 → D3+D1 → D2 → D7 → D5/D6  
 6. **Risks** — §6  
 7. **Migration** — M0–M6 + flags  
-8. **Owner Readiness** — COMPLETE · czekaj GO na DF  
+8. **Owner Readiness** — **CLOSED** · DF + D1–D5 DELIVERED · EPIC CLOSE [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
 
 **BEZ IMPLEMENTACJI · BEZ COMMIT · BEZ PUSH**

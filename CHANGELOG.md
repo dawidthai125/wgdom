@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## PAYROLL EPIC CLOSED — Hours-wipe protection (2026-07-24)
+
+- **status:** **CLOSED** · **PRODUCTION VERIFIED** · UI tip **2.65.43** · feature **`ea1b0a6`**
+- **stages:** D1 Telemetry · D2 Domain Gate · D3 intentionalHoursClear · D4 `-prev` Recovery Banner · D5 Soft Restore
+- **closeout:** `docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`
+- **release history:** `docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`
+- **out of epic:** CI Gate B (TEUX / guard CI) → osobny EPIC · brak nowych prac Payroll z tego EPIC
+
 ## 2.65.43 — PAYROLL-IMPLEMENT-03 D4+D5 (-prev banner + Soft Restore)
 
 - **fix:** D4 Recovery Banner from `kw-week-employees-prev` only (≠ archive RB); CTA → Domain Push

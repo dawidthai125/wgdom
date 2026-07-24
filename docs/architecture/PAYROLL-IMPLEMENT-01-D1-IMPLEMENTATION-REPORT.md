@@ -1,10 +1,11 @@
 # PAYROLL-IMPLEMENT-01 D1 — IMPLEMENTATION REPORT
 
 > **ID:** PAYROLL-IMPLEMENT-01 / D1  
-> **STATUS:** IMPLEMENT COMPLETE · Owner Verification PENDING  
+> **STATUS:** **CLOSED** · IMPLEMENT COMPLETE · OV PASS · RELEASE-01 VERIFIED  
 > **Data:** 2026-07-24  
 > **Wersja:** **2.65.41**  
-> **Commit:** **`0e04760`**  
+> **Commit:** **`ace2855`**  
+> **EPIC:** Hours-wipe protection · **CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **DF:** [`PAYROLL-DESIGN-FREEZE-01.md`](./PAYROLL-DESIGN-FREEZE-01.md) + [`PAYROLL-DESIGN-AMENDMENT-01.md`](./PAYROLL-DESIGN-AMENDMENT-01.md)  
 > **Zakazane w tym etapie:** D2 · D3 · D4 · D5  
 
@@ -83,4 +84,4 @@ docs/architecture/PAYROLL-IMPLEMENT-01-D1-IMPLEMENTATION-REPORT.md
 5. Godziny / sync zachowanie identyczne jak przed D1
 ```
 
-**Owner Readiness:** IMPLEMENT D1 DONE · commit po PASS · OV PENDING  
+**Owner Readiness:** **CLOSED** · OV PASS · RELEASE-01 VERIFIED · EPIC CLOSE [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  

@@ -1,11 +1,11 @@
 # PAYROLL-RUNTIME-01 — TIMELINE RECONSTRUCTION
 
 > **ID:** PAYROLL-RUNTIME-01  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data:** 2026-07-24  
 > **Wejście:** FORENSICS-01 · REGRESSION-01 · INCIDENT-01/02  
-> **Poza zakresem:** implementacja · commit · push  
+> **Poza zakresem (historyczne):** implementacja · commit · push  
 
 ```text
 ════════════════════════════════════════════════════════

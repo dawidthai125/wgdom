@@ -1,11 +1,11 @@
 # PAYROLL-ARCH-REVIEW-01 — ARCHITECTURE REVIEW
 
 > **ID:** PAYROLL-ARCH-REVIEW-01  
-> **STATUS:** ARCH REVIEW COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · ARCH REVIEW COMPLETE · PASS WITH C1–C6 · **P0**  
 > **Data:** 2026-07-24  
-> **Owner GO:** ARCH REVIEW ONLY  
+> **Owner GO:** ARCH REVIEW ONLY · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Wejście:** [`PAYROLL-DESIGN-FREEZE-01.md`](./PAYROLL-DESIGN-FREEZE-01.md) · [`PAYROLL-RCA-01-ROOT-CAUSE-AND-DESIGN-PLAN.md`](./PAYROLL-RCA-01-ROOT-CAUSE-AND-DESIGN-PLAN.md) · `docs/AI/03_ENGINEERING_RULES.md`  
-> **Poza zakresem:** implementacja · DF rewrite pełny · commit · push  
+> **Poza zakresem (historyczne):** implementacja · DF rewrite pełny · commit · push — **done**  
 > **Baseline:** UI **2.65.40** · Domain Push ACTIVE · STABILIZATION ACTIVE
 
 ```text

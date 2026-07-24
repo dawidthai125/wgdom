@@ -209,6 +209,35 @@
 
 ---
 
+## D-20 — HARDENING-01B0 Circuit Breaker Telemetry (H3-C monitor-only)
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 · UI **2.65.40** · feature **`23d7723`** · docs tip **`fcf66b0`** |
+| **Powód** | Residual Final Audit H3 — bounded FP churn bez mierzalnej telemetry Stabilization |
+| **Decyzja** | H3-C tooling/docs: smoke + M1–M5 + progi WARN/FAIL + trend ledger + runbook; **zero** runtime / breaker semantics / limits / deps / `builtAt` / B1 / CORE |
+| **M6** | **DEFER** (`includeM6=false`) — re-open tylko Owner GO + DF amendment |
+| **OUT** | Zmiana limitu 2 · B1 global cap · „FIXED” H-FP-CHURN · `src/**` |
+| **Alternatywy** | B1 H3-A/B (gated); podniesienie limitu (zakazane w Stabilization) |
+| **Dlaczego** | Per-FP breaker by design (P0 G2/T3); monitor chroni przed regresją limitu i anomalią trips bez blast radius |
+| **Obowiązuje** | **TAK** · Closeout [`WGDOM-HARDENING-01B0-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md) · residual **H-FP-CHURN = MITIGATED / MONITOR** |
+
+---
+
+## D-15 — Payroll hours-collapse protections (D1–D5)
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 |
+| **Powód** | INCIDENT-01 partial hours wipe na Domain Push bez ACK; brak recovery z `-prev` / Soft Restore |
+| **Decyzja** | DF-01 D1–D5: passive telemetry · Domain Gate+confirm · `intentionalHoursClear` ⇔ `skipPayrollGuard` · `-prev` Recovery Banner · Soft Restore overlay (factory PURE) · D6 Domain Push SSOT constraint |
+| **OUT** | Zmiana W1/W2 entry · Cloud Sync merge semantics · resurrection fence · CI Gate B (osobny EPIC) |
+| **Alternatywy** | Sam shrink guard (>50%) — niewystarczający (C4); mutacja `weekEmployeeFromDir` — zakaz (C5) |
+| **Dlaczego** | Primary = D2 Domain Gate; D3 secondary; recovery UX bez regresji archive Restore Banner |
+| **Obowiązuje** | **TAK** · Closeout [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · tip **2.65.43** / **`ea1b0a6`** |
+
+---
+
 ## Jak dodać decyzję
 
 1. Nowy wpis D-xx z datą, powodem, alternatywami.  

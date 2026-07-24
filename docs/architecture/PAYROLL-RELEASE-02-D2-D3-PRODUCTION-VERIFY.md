@@ -1,11 +1,12 @@
 # PAYROLL-RELEASE-02 — D2+D3 PUSH & PRODUCTION VERIFY
 
 > **ID:** PAYROLL-RELEASE-02  
-> **STATUS:** RELEASE COMPLETE · PRODUCTION VERIFIED (D2+D3)  
+> **STATUS:** **CLOSED** · RELEASE COMPLETE · PRODUCTION VERIFIED (D2+D3)  
 > **Data:** 2026-07-24  
 > **Commit:** **`f3b8c03`**  
 > **UI:** **2.65.42**  
-> **Zakaz:** D4 · D5 nie wdrażane  
+> **EPIC:** Hours-wipe protection · **CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
+> **Zakaz (historyczny etap):** D4 · D5 nie wdrażane w tym release  
 
 ```text
 PUSH f3b8c03 → main
@@ -127,14 +128,13 @@ Live assets zawierają `intentionalHoursClear` + D1 `payroll.write_path` / `__WG
 ## 7. Owner Readiness
 
 ```text
-OWNER READINESS: D2+D3 RELEASED & VERIFIED
+OWNER READINESS: D2+D3 RELEASED & VERIFIED · EPIC CLOSED
 
-Next (Owner GO):
-  A) IMPLEMENT D4 Recovery Banner (-prev) — osobny GO
-  B) Optional: fix pre-existing Gate B (TEUX / guard CI) — OUT of RELEASE-02
-  C) Optional Owner: live W1 Cancel/Confirm na Admin LP (manual)
+Historical next (DONE):
+  A) IMPLEMENT D4+D5 — DONE @ 2.65.43 / ea1b0a6
 
-Forbidden: D4/D5 without GO
+EPIC CLOSE: PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
+Out of epic: Gate B CI → osobny EPIC
 ```
 
 ---

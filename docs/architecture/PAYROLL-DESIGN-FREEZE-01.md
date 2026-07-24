@@ -1,11 +1,11 @@
 # PAYROLL-DESIGN-FREEZE-01 — DESIGN FREEZE
 
 > **ID:** PAYROLL-DESIGN-FREEZE-01  
-> **STATUS:** DESIGN FREEZE FINAL + ERRATA ACK · **P0**  
+> **STATUS:** **CLOSED** · DESIGN FREEZE FINAL + ERRATA ACK · **DELIVERED** (D1–D5) · **P0**  
 > **Data:** 2026-07-24  
-> **Owner GO:** DESIGN FREEZE + [`PAYROLL-DESIGN-AMENDMENT-01`](./PAYROLL-DESIGN-AMENDMENT-01.md) ACK  
+> **Owner GO:** DESIGN FREEZE + [`PAYROLL-DESIGN-AMENDMENT-01`](./PAYROLL-DESIGN-AMENDMENT-01.md) ACK · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Wejście:** [`PAYROLL-RCA-01-ROOT-CAUSE-AND-DESIGN-PLAN.md`](./PAYROLL-RCA-01-ROOT-CAUSE-AND-DESIGN-PLAN.md) · [`PAYROLL-ARCH-REVIEW-01.md`](./PAYROLL-ARCH-REVIEW-01.md) · REPRO / RUNTIME / FORENSICS / REGRESSION / INCIDENT-01/02  
-> **Poza zakresem:** implementacja · commit · push  
+> **Poza zakresem (historyczne):** implementacja · commit · push — **done via IMPLEMENT/RELEASE 01–03**  
 > **Production Baseline:** UI **2.65.40** · feature **`23d7723`** · Domain Push Payroll **ACTIVE** · **STABILIZATION WINDOW ACTIVE**  
 > **Errata wiążąca:** C1–C6 w AMENDMENT-01 (D1–D6 IN **bez zmian zestawu**)
 
@@ -25,7 +25,7 @@ OUT / ZAKAZ ZMIANY SEMANTYKI PIPELINE:
   Replace W1/W2 paths · move payroll into RS · Edge CORS
   Rewrite Cloud Sync merge core · disable domain push
 
-NEXT: Owner GO IMPLEMENT (po ACK erraty — DONE)
+NEXT: **NONE** · EPIC **CLOSED** · Closeout [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 ════════════════════════════════════════════════════════
 ```
 
@@ -291,19 +291,17 @@ DoD IMPLEMENT (przyszły — nie teraz):
 ## 8. Owner Readiness
 
 ```text
-OWNER READINESS: DESIGN FREEZE FINAL + ERRATA ACK
+OWNER READINESS: DESIGN FREEZE FINAL + ERRATA ACK · EPIC CLOSED
 
-Frozen: D1 Telemetry (passive) · D2 Domain Gate+UI (primary)
+Frozen & DELIVERED: D1 Telemetry · D2 Domain Gate+UI (primary)
         D3 intentionalHoursClear (secondary) · D4 -prev banner
-        D5 Soft Restore overlay · D6 Domain Push SSOT
+        D5 Soft Restore overlay · D6 Domain Push SSOT (constraint ACTIVE)
 
 Errata: C1–C6 ACCEPTED · see PAYROLL-DESIGN-AMENDMENT-01
 
-Next (Owner GO only):
-  A) GO IMPLEMENT — start D1
-  B) Hold further DF change
-
-Forbidden this step: implement · commit · push
+Next: NONE — EPIC CLOSED
+  Closeout: PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
+  No new Payroll work from this epic · CI Gate B = osobny EPIC
 ```
 
 ---
@@ -317,6 +315,6 @@ Forbidden this step: implement · commit · push
 5. **Migration Order** — M0–M6 + flags §5  
 6. **Acceptance Criteria** — §6 (updated)  
 7. **Definition of Done** — §7  
-8. **Owner Readiness** — FINAL + ERRATA ACK · czekaj GO IMPLEMENT  
+8. **Owner Readiness** — **CLOSED** · D1–D5 DELIVERED · EPIC CLOSE [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
 
 **BEZ IMPLEMENTACJI · BEZ COMMIT · BEZ PUSH**

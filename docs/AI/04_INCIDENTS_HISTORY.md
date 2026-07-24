@@ -23,6 +23,20 @@ Dla każdego: **objawy · root cause · naprawa · detekcja · nie rób · statu
 
 ---
 
+## 1b. PAYROLL Hours wipe ~24.07 (INCIDENT-01) · **CLOSED**
+
+| Pole | Treść |
+|------|--------|
+| **Objawy** | Bieżący tydzień Lista Płac — godziny wyzerowane / partial wipe (Piotrek Ukraina) |
+| **Root cause (klasa)** | Hours collapse na Domain Push bez świadomego ACK; brak `-prev` recovery UX; Soft Restore bez overlay |
+| **Naprawa** | **Hours-wipe EPIC** D1–D5 · UI **2.65.41–2.65.43** · tip feature **`ea1b0a6`** |
+| **Detekcja** | `payroll.write_path` ring · Domain Gate confirm · `-prev` richer-than banner |
+| **Nie rób** | Omijać Domain Gate · mylić `intentionalHoursClear` z `isIntentionalPayrollWeekClear` · mutować `weekEmployeeFromDir` · mieszać Gate B CI z tym EPIC |
+| **Status** | **CLOSED** · PRODUCTION VERIFIED |
+| **SSOT** | [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Release History [`PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](../releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) |
+
+---
+
 ## 2. PAYROLL — seria (2026-06 → 2026-07) · większość CLOSED
 
 ### 2.1 Shrink / Guard / Bootstrap P11

@@ -1,11 +1,11 @@
 # PAYROLL-INCIDENT-01 — AUDIT / RCA
 
 > **ID:** PAYROLL-INCIDENT-01  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data audytu:** 2026-07-24  
 > **Incydent:** ~2026-07-24 · Piotrek Ukraina · bieżący tydzień 0h  
-> **Poza zakresem:** implementacja · commit · push · migracje · zmiany kodu / Cloud Sync / Payroll  
+> **Poza zakresem (historyczne):** implementacja · commit · push · migracje · zmiany kodu / Cloud Sync / Payroll — **protections D1–D5 DELIVERED**  
 > **Production tip:** UI **2.65.40** · commit tip **`fcf66b0`** · feature baseline **`23d7723`**
 
 ```text

@@ -1,11 +1,11 @@
 # PAYROLL-REPRO-01 — SANDBOX REPRODUCTION
 
 > **ID:** PAYROLL-REPRO-01  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data:** 2026-07-24  
 > **Wejście:** RUNTIME-01 · FORENSICS-01 · REGRESSION-01 · INCIDENT-01  
-> **Poza zakresem:** implementacja produktowa · commit · push · **prod `batch-set` payroll**  
+> **Poza zakresem (historyczne):** implementacja produktowa · commit · push · **prod `batch-set` payroll**  
 
 ```text
 ════════════════════════════════════════════════════════

@@ -1,11 +1,11 @@
 # PAYROLL-DESIGN-AMENDMENT-01 — ARCH REVIEW ERRATA ACK
 
 > **ID:** PAYROLL-DESIGN-AMENDMENT-01  
-> **STATUS:** ERRATA ACK COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · ERRATA ACK COMPLETE · **DELIVERED** · **P0**  
 > **Data:** 2026-07-24  
-> **Owner GO:** ACK ERRATA ONLY  
+> **Owner GO:** ACK ERRATA ONLY · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Wejście:** [`PAYROLL-ARCH-REVIEW-01.md`](./PAYROLL-ARCH-REVIEW-01.md) · [`PAYROLL-DESIGN-FREEZE-01.md`](./PAYROLL-DESIGN-FREEZE-01.md)  
-> **Poza zakresem:** implementacja · commit · push · zmiana zestawu IN D1–D6  
+> **Poza zakresem (historyczne):** implementacja · commit · push · zmiana zestawu IN D1–D6 — **delivered via IMPLEMENT/RELEASE**  
 
 ```text
 ════════════════════════════════════════════════════════
@@ -16,7 +16,7 @@ Errata C1–C6: ACCEPTED (implementacyjnie wiążące)
 SSOT / Domain Push / W1·W2 / Cloud Sync merge: UNCHANGED
 
 Final DF = DESIGN-FREEZE-01 + this amendment
-Next: Owner GO IMPLEMENT
+Next: **NONE** · EPIC **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 ════════════════════════════════════════════════════════
 ```
 
@@ -146,17 +146,14 @@ UI W1/W2 (semantics retained)
 ## 4. Owner Readiness
 
 ```text
-OWNER READINESS: ERRATA ACK COMPLETE
+OWNER READINESS: ERRATA ACK COMPLETE · EPIC CLOSED
 
 Accepted: C1–C6
 Final Design Freeze: DF-01 + AMENDMENT-01
 SSOT / Domain Push / W1·W2 / Cloud Sync: UNCHANGED
 
-Next (Owner GO only):
-  A) GO IMPLEMENT — start D1 (telemetry passive)
-  B) Hold — if further DF change requested
-
-Forbidden this step: implement · commit · push
+Next: NONE — EPIC CLOSED
+  Closeout: PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
 ```
 
 ---
@@ -166,6 +163,6 @@ Forbidden this step: implement · commit · push
 1. **Accepted Amendments** — C1–C6 ACK · IC-7 retained  
 2. **Final Design Freeze** — §2 (D1–D6 + errata)  
 3. **Implementation Constraints** — IC-1…IC-10  
-4. **Owner Readiness** — COMPLETE · czekaj GO IMPLEMENT  
+4. **Owner Readiness** — **CLOSED** · D1–D5 DELIVERED · EPIC CLOSE [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
 
 **BEZ IMPLEMENTACJI · BEZ COMMIT · BEZ PUSH**

@@ -1,11 +1,12 @@
 # PAYROLL-IMPLEMENT-02 D2+D3 — IMPLEMENTATION REPORT
 
 > **ID:** PAYROLL-IMPLEMENT-02 / D2+D3  
-> **STATUS:** IMPLEMENT COMPLETE · Owner Verification **PASS** · RELEASE-02 in progress  
+> **STATUS:** **CLOSED** · IMPLEMENT COMPLETE · OV PASS · RELEASE-02 VERIFIED  
 > **Data:** 2026-07-24  
-> **Wersja (changelog):** **2.65.42**  
+> **Wersja (changelog):** **2.65.42** · commit **`f3b8c03`**  
+> **EPIC:** Hours-wipe protection · **CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **DF:** [`PAYROLL-DESIGN-FREEZE-01.md`](./PAYROLL-DESIGN-FREEZE-01.md) + [`PAYROLL-DESIGN-AMENDMENT-01.md`](./PAYROLL-DESIGN-AMENDMENT-01.md)  
-> **Zakazane w tym etapie:** D4 Recovery Banner · D5 Soft Restore
+> **Zakazane w tym etapie (historyczne):** D4 Recovery Banner · D5 Soft Restore — delivered in IMPLEMENT-03
 
 ```text
 D2 Domain Gate + UI Confirm (PRIMARY)

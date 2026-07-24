@@ -1,11 +1,11 @@
 # PAYROLL-FORENSICS-01 — DOMAIN WRITE PATH AUDIT
 
 > **ID:** PAYROLL-FORENSICS-01  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data:** 2026-07-24  
 > **Wejście:** [`PAYROLL-INCIDENT-01-AUDIT.md`](./PAYROLL-INCIDENT-01-AUDIT.md) · [`PAYROLL-INCIDENT-02-CORS-EDGE-AUDIT.md`](./PAYROLL-INCIDENT-02-CORS-EDGE-AUDIT.md)  
-> **Poza zakresem:** implementacja · commit · push · zmiany kodu  
+> **Poza zakresem (historyczne):** implementacja · commit · push · zmiany kodu  
 > **Evidence Cloud (01):** Piotrek `active:false` + `07:00–16:00` (= `defaultDay`) · `dataUpdatedAt=2026-07-24T09:29:17.795Z` · Tomek też 0h · 12/14 z godzinami
 
 ```text

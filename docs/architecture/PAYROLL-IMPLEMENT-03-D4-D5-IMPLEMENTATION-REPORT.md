@@ -1,10 +1,11 @@
 # PAYROLL-IMPLEMENT-03 D4+D5 — IMPLEMENTATION REPORT
 
 > **ID:** PAYROLL-IMPLEMENT-03 / D4+D5  
-> **STATUS:** IMPLEMENT COMPLETE · Owner Verification **PASS** · RELEASE-03 in progress  
+> **STATUS:** **CLOSED** · IMPLEMENT COMPLETE · OV PASS · RELEASE-03 VERIFIED  
 > **Data:** 2026-07-24  
-> **Wersja (changelog):** **2.65.43**  
-> **Baseline prod:** 2.65.42 / `f3b8c03` (tip docs `8fa0851`)  
+> **Wersja (changelog):** **2.65.43** · commit **`ea1b0a6`**  
+> **EPIC:** Hours-wipe protection · **CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
+> **Baseline prod (pre-release):** 2.65.42 / `f3b8c03` (tip docs `8fa0851`)  
 > **DF:** [`PAYROLL-DESIGN-FREEZE-01.md`](./PAYROLL-DESIGN-FREEZE-01.md) + [`PAYROLL-DESIGN-AMENDMENT-01.md`](./PAYROLL-DESIGN-AMENDMENT-01.md)  
 > **Zakaz:** zmiany D1–D3 · rozszerzenie poza D4/D5
 

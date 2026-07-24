@@ -1,11 +1,11 @@
 # PAYROLL-INCIDENT-02 — CORS / Edge Functions AUDIT
 
 > **ID:** PAYROLL-INCIDENT-02  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data:** 2026-07-24  
 > **Powiązane:** [`PAYROLL-INCIDENT-01-AUDIT.md`](./PAYROLL-INCIDENT-01-AUDIT.md) · historyczne [`docs/recovery/PAYROLL-RUNTIME-TRACE-CORS-RCA.md`](../recovery/PAYROLL-RUNTIME-TRACE-CORS-RCA.md)  
-> **Poza zakresem:** implementacja · poprawki · commit · push  
+> **Poza zakresem (historyczne):** implementacja · poprawki · commit · push  
 > **Production tip:** UI **2.65.40** · tip commit **`fcf66b0`**
 
 ```text

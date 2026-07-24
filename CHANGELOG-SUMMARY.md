@@ -4,14 +4,33 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `4c38f4f` |
-| **Production version (UI)** | **v2.63.27** |
-| **Status** | **STABILIZATION WINDOW ACTIVE** · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · OBSERVATION** |
+| **Ostatnia aktualizacja** | 2026-07-24 |
+| **Production version (UI)** | **v2.65.43** |
+| **Feature commit** | **`ea1b0a6`** |
+| **Status** | **STABILIZATION WINDOW ACTIVE** · **PAYROLL Hours-wipe EPIC CLOSED** · Hardening 01A/01B0/01D CLOSED |
 
 ---
 
 ## Payroll
+
+### Hours-wipe protection EPIC (2026-07-24) — **CLOSED**
+
+Incident ~24.07 (bieżący tydzień 0h / partial wipe) → DF-01 D1–D5 · **PRODUCTION VERIFIED**.
+
+| Stage | Cel | Version | Commit |
+|-------|-----|---------|--------|
+| **D1** | Passive write-path telemetry (`payroll.write_path`) | **2.65.41** | `ace2855` |
+| **D2** | Domain Gate + UI confirm (hours collapse) | **2.65.42** | `f3b8c03` |
+| **D3** | `intentionalHoursClear` ⇔ `skipPayrollGuard` | **2.65.42** | `f3b8c03` |
+| **D4** | Recovery Banner from `kw-week-employees-prev` | **2.65.43** | `ea1b0a6` |
+| **D5** | Soft Restore overlay (factory PURE) | **2.65.43** | `ea1b0a6` |
+| **D6** | Domain Push = sole hours write (constraint) | — | ACTIVE |
+
+**SSOT:** [`docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Release History [`docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md)
+
+**Out of epic:** CI Gate B → osobny EPIC · DF D10/D11 DEFER · **zakaz** nowych prac Payroll bez nowego Owner GO.
+
+### Wcześniejsze (CLOSED)
 
 Seria naprawcza **P0 Incident** (integralność danych listy płac przy sync/merge). Root cause: dodatywny UNION rostera (`1a65341`, v2.63.15) powodował „zmartwychwstawanie" i cofanie intencji użytkownika.
 
@@ -23,8 +42,10 @@ Seria naprawcza **P0 Incident** (integralność danych listy płac przy sync/mer
 | **PR‑PAY‑S5** | Settled Status Persistence — „Rozliczony→Oczekujący" nie wraca (LWW `settledUpdatedAt`) | `fd56cf7` |
 | **PR‑PAY‑S6** | Archive Restore Eligibility Guard — baner (G1) i restore (G2) używają eligible archive roster (archiwum minus tombstony S2); koniec false positive + wskrzeszania usuniętych/smoke | `d2a3d90` |
 | **PR‑PAY‑S7‑1** | Cloud Batch Diagnostics — Edge `batch-set` `app.onError` + try/catch + `{ok,error,requestId}` + log realnego `error.message` (diagnostyka, flow bez zmian); S7‑2…S7‑5 DRAFT, OBSERVATION waiting for production evidence | `4c38f4f` |
+| **PAYROLL-CLOUD-RESURRECTION-01** | Bootstrap freshness fence | `fce7b78` @ **2.65.35** |
+| **PAYROLL-P0-WEEK-ROLLOVER-01** | Real week rollover (ROLL-001) | `e38610a` @ **2.65.34** |
 
-Wcześniej (CLOSED): **Etap 2 B1–B6 + Restore Banner** (v2.63.17–24), **Guard Phase B3/B3.1/B3.2** (v2.63.18–20). **Payroll P0 Incident — CLOSED.** **PR‑PAY‑S6 — CLOSED** (IMPLEMENT COMPLETE · BUILD PASS · TEST PASS).
+Wcześniej (CLOSED): **Etap 2 B1–B6 + Restore Banner** (v2.63.17–24), **Guard Phase B3/B3.1/B3.2** (v2.63.18–20). **Payroll P0 Incident — CLOSED.** **PR‑PAY‑S6 — CLOSED**. **Hours-wipe EPIC — CLOSED.**
 
 ---
 

@@ -1,11 +1,11 @@
 # PAYROLL-REGRESSION-01 — REGRESSION WINDOW AUDIT
 
 > **ID:** PAYROLL-REGRESSION-01  
-> **STATUS:** AUDIT COMPLETE · **P0**  
+> **STATUS:** **CLOSED** · AUDIT COMPLETE · **P0** · inputs to DF-01 · **EPIC CLOSED** ([CLOSE-01](./PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md))  
 > **Owner GO:** AUDIT ONLY  
 > **Data:** 2026-07-24  
 > **Wejście:** [`PAYROLL-FORENSICS-01-DOMAIN-WRITE-PATH-AUDIT.md`](./PAYROLL-FORENSICS-01-DOMAIN-WRITE-PATH-AUDIT.md) · [`PAYROLL-INCIDENT-01-AUDIT.md`](./PAYROLL-INCIDENT-01-AUDIT.md)  
-> **Poza zakresem:** implementacja · poprawki · commit · push  
+> **Poza zakresem (historyczne):** implementacja · poprawki · commit · push  
 
 ```text
 ════════════════════════════════════════════════════════

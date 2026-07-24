@@ -1,17 +1,19 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-24 (**WGDOM-HARDENING-01D CLOSED**) · prod UI **2.65.40** · feature **`23d7723`** · docs tip **`96d44d0`** · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**  
-> **SSOT AI baseline:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · Closeout 01D [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) · Closeout 01A [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md)  
-> **Poprzedni tip:** **2.65.39** @ `e666443` (Incident 23.07 cleanup) · Sync Storm P0 **2.65.38**  
+> **Data closeout:** 2026-07-24 (**PAYROLL Hours-wipe EPIC CLOSED**) · prod UI **2.65.43** · feature **`ea1b0a6`** · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**  
+> **SSOT AI baseline:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · Closeout Hours-wipe [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Closeout 01B0 [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md) · Closeout 01D [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) · Closeout 01A [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md)  
+> **Poprzedni tip (hardening):** **2.65.40** @ `23d7723` · docs `fcf66b0` · Sync Storm P0 **2.65.38**  
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
-> **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b / § 4.4 — **nie psuj LP przy FEATURE** · **nie omijaj resurrection fence**
+> **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b / § 4.4 — **nie psuj LP przy FEATURE** · **nie omijaj resurrection fence** · **Hours-wipe D1–D5 ACTIVE — nie regresuj**
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4  
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”
 
-> **★★ WGDOM-HARDENING-01D:** **CLOSED** (2026-07-24) · docs tip **`96d44d0`** · Edge 546 M2-A monitor · D-V3 **DEFER** · **M-EDGE-546 = MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md)  
+> **★★ PAYROLL Hours-wipe protection EPIC:** **CLOSED** (2026-07-24) · **2.65.43** @ **`ea1b0a6`** · D1–D5 PRODUCTION VERIFIED · SSOT [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Release History [`releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) · CI Gate B = **osobny EPIC**  
+> **★★ WGDOM-HARDENING-01B0:** **CLOSED** (2026-07-24) · docs tip **`fcf66b0`** · H3-C FP-churn monitor · M6 **DEFER** · **H-FP-CHURN = MITIGATED / MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md)  
+> **★★ WGDOM-HARDENING-01D:** **CLOSED** (2026-07-24) · docs tip **`96d44d0`** (ancestor) · Edge 546 M2-A monitor · D-V3 **DEFER** · **M-EDGE-546 = MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md)  
 > **★★ WGDOM-HARDENING-01A:** **CLOSED** (2026-07-24) · **2.65.40** @ **`23d7723`** · Persist SSOT H1+H2 · SSOT [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) · CI TEUX-7d = osobny follow-up  
-> **★★ TENDERS-SYNC-STORM-P0:** **CLOSED** · **2.65.38** · Final Audit READY · tip supersedowany przez 01A  
+> **★★ TENDERS-SYNC-STORM-P0:** **CLOSED** · **2.65.38** · Final Audit READY · tip supersedowany  
 > **★★ PAYROLL-CLOUD-RESURRECTION-01:** **CLOSED** (2026-07-20) · **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`  
 > **★★ PAYROLL-P0-WEEK-ROLLOVER-01:** **CLOSED** (2026-07-20) · **2.65.34** @ **`e38610a`** · SSOT [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)  
 > **★★ TEST-HARNESS-01 H5:** **CLOSED** (2026-07-21) · tip **`3356349`** · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md)  
@@ -22,9 +24,11 @@
 
 ```text
 0. docs/AI/README.md                      ← ★★★ AI Knowledge Base (START dla nowego AI)
-0b. docs/AI/09_PRODUCTION_BASELINE.md     ← UI 2.65.40 / feature 23d7723 / docs tip 96d44d0
-0c. docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md  ← ★★ 01D CLOSED
-0d. docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md  ← ★★ 01A CLOSED
+0b. docs/AI/09_PRODUCTION_BASELINE.md     ← UI 2.65.43 / feature ea1b0a6
+0c. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED
+0d. docs/architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md  ← ★★ 01B0 CLOSED
+0e. docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md  ← ★★ 01D CLOSED
+0f. docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md  ← ★★ 01A CLOSED
 0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
