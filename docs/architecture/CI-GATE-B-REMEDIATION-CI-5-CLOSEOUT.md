@@ -3,7 +3,7 @@
 > **Status:** **CLOSED**  
 > **Data:** 2026-07-25  
 > **DF:** [`CI-GATE-B-REMEDIATION-CI-5-DESIGN-FREEZE.md`](./CI-GATE-B-REMEDIATION-CI-5-DESIGN-FREEZE.md) · **Wariant T12: A**  
-> **Commit:** *(uzupełnij po push)*
+> **Commit:** `df5f2ef`
 
 ## IMPLEMENT
 
