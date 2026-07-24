@@ -32,7 +32,7 @@ Legenda statusu: **FIXED** · **MITIGATED** · **BACKLOG** · **MONITOR** · **G
 | ID | Opis | Objawy | Monitor | Status |
 |----|------|--------|---------|--------|
 | **M-DEADLOCK-RETRY** | Retry ×4 przy 40P01 amplifikuje load | Powtórzone batch-set | Edge logs, status 500 body | **FIXED** N1 / **MONITOR** amplifier |
-| **M-EDGE-546** | Sporadyczne 546 przy multi-open | 546 w Network | Smoke multi-tender · [`WGDOM-HARDENING-01D-TREND-LEDGER.md`](../architecture/WGDOM-HARDENING-01D-TREND-LEDGER.md) · [`WGDOM-HARDENING-01D-RUNBOOK.md`](../architecture/WGDOM-HARDENING-01D-RUNBOOK.md) | **MONITOR** |
+| **M-EDGE-546** | Sporadyczne 546 przy multi-open | 546 w Network | Smoke + ledger · [`WGDOM-HARDENING-01D-TREND-LEDGER.md`](../architecture/WGDOM-HARDENING-01D-TREND-LEDGER.md) · [`WGDOM-HARDENING-01D-RUNBOOK.md`](../architecture/WGDOM-HARDENING-01D-RUNBOOK.md) · CLOSE [`WGDOM-HARDENING-01D-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) | **MONITOR** (01D M2-A ACTIVE · nie FIXED) |
 | **M-AUTONOMOUS-BUILTAT** | Autonomous FP zawiera `builtAt` | Gate UI re-run | Autonomous Gate | **BACKLOG** niskopriorytetowy |
 | **M-EGRESS** | Pełne batch-get focus | 402 historycznie | Billing egress | **MITIGATED** ops; delta-sync **BACKLOG** |
 | **M-STALE-LS** | Stary LS przywraca klucze | Passwords / martwe URL | Hard refresh; merge cloud-wins | **MITIGATED** P15+ |
@@ -59,7 +59,8 @@ Legenda statusu: **FIXED** · **MITIGATED** · **BACKLOG** · **MONITOR** · **G
 |----|------|--------|
 | **I-STABILIZATION** | STABILIZATION WINDOW ACTIVE | Process |
 | **I-HARDENING-01A** | Persist SSOT CLOSED @ 2.65.40 / 23d7723 | CLOSED |
-| **I-HARDENING-01B-E** | EPIC B–E PLAN ready — tylko po Owner GO | OPEN |
+| **I-HARDENING-01D** | Edge 546 monitor CLOSED @ docs tip 96d44d0 · D-V3 DEFER · M-EDGE-546 MONITOR | CLOSED |
+| **I-HARDENING-01B-C-E** | EPIC B / C / E PLAN ready — tylko po Owner GO | OPEN |
 | **I-02F-GO** | LOCALSTORAGE-ARCH-02F GO / NOT STARTED | **GATED** |
 | **I-H0X** | Persist Ledger / H3-B/C harness | **GATED** |
 | **I-TWSL-WIP** | Tender workspace layout lokalny | **RELEASE NOT READY** hist. |

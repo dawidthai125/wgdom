@@ -47,10 +47,10 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 | [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md) | AUDIT→…→CLOSE — znaczenie każdego etapu + VERIFY FAST |
 | [`07_KNOWN_RISKS.md`](07_KNOWN_RISKS.md) | Critical→Info: residual Sync Storm, fat key, payroll regress, gated EPICs |
 | [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) | **★ Najważniejszy** — lista NIE WOLNO + checklisty przed kod/commit/push |
-| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | Tip **2.65.40** / `23d7723`, open EPICs, backlog HIGH |
+| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | UI **2.65.40** / feature `23d7723` · docs tip `96d44d0` · open EPICs B/C/E |
 | [`10_HANDOFF_TEMPLATE.md`](10_HANDOFF_TEMPLATE.md) | Wzorzec handoffu między agentami |
 | [`11_GLOSSARY.md`](11_GLOSSARY.md) | SSOT, Sync Storm, coalesce, fence, PWRB, OV, … |
-| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-17 z uzasadnieniem |
+| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-19 z uzasadnieniem |
 
 ---
 

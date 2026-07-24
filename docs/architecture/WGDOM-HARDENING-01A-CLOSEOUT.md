@@ -68,7 +68,7 @@ Next:    HARDENING-01 EPIC B+ (Owner GO)
 |------|-------|--------|
 | **B** | Circuit Breaker (H3) | OPEN · PLAN ready · czekaj Owner GO |
 | **C** | CORE Sync / N2 (M1) | OPEN · GATED CORE |
-| **D** | Edge 546 monitoring (M2) | OPEN |
+| **D** | Edge 546 monitoring (M2) | **CLOSED** @ docs tip `96d44d0` · D-V3 DEFER · M-EDGE-546 MONITOR |
 | **E** | Autonomous FP (M3) | OPEN |
 
 ## 6. Definition of Done (CLOSE)

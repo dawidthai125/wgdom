@@ -3,7 +3,7 @@
 > **Aktualizacja tego pliku:** przy każdym domknięciu release / closeout.  
 > Cross-check: `src/app/changelog-data.ts`, `git log -1`, `https://www.wgdom.fun/version.json`, `PROJECT-HANDOFF-CURRENT.md`.
 
-**Snapshot dokumentacji:** 2026-07-24 (po **WGDOM-HARDENING-01A CLOSED** · tip **2.65.40**).
+**Snapshot dokumentacji:** 2026-07-24 (po **WGDOM-HARDENING-01D CLOSED** · UI **2.65.40** · docs tip **`96d44d0`**).
 
 ---
 
@@ -13,7 +13,8 @@
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog tip)** | **2.65.40** |
-| **Tip commit (repo `main` / Vercel)** | **`23d7723`** — `fix(tenders): HARDENING-01A Persist SSOT (2.65.40)` |
+| **Feature commit (app semantyka)** | **`23d7723`** — `fix(tenders): HARDENING-01A Persist SSOT (2.65.40)` |
+| **Docs / tooling tip (`main` / Vercel)** | **`96d44d0`** — `docs(hardening): HARDENING-01D Edge 546 monitor` |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
 | **Sync Storm fix** | **2.65.38** · commit feature **`838e8e2`** |
 | **Prior tip** | **2.65.39** · **`e666443`** (Incident 23.07 cleanup) |
@@ -23,15 +24,16 @@
 | **Protected Core** | **GREEN** (Sync Storm class READY · Persist SSOT 01A ACTIVE) |
 | **STABILIZATION WINDOW** | **ACTIVE** |
 
-> **Uwaga:** lokalne working tree może mieć **uncommitted** WT (ARCH-02F, Edge chunk, TEUX). **Prod tip** = `origin/main` / Vercel — nie lokalny brud. Przed pracą: `git log -1` + `curl version.json`.
+> **Uwaga:** `version.json.commit` może wskazywać **docs tip** (`96d44d0`). **Feature baseline** = UI **2.65.40** / **`23d7723`**. Lokalne WT (ARCH-02F, Edge chunk, TEUX) ≠ prod tip.
 
 ---
 
 ## 2. Ostatnie releasy istotne
 
-| Version | Temat | Status |
-|---------|-------|--------|
-| **2.65.40** | **WGDOM-HARDENING-01A** Persist SSOT (H1+H2) | **CLOSED** · **PRODUCTION VERIFIED · GREEN** |
+| Version / tip | Temat | Status |
+|---------------|-------|--------|
+| docs **`96d44d0`** | **WGDOM-HARDENING-01D** Edge 546 monitor (tooling/docs) | **CLOSED** · PV PASS |
+| **2.65.40** / **`23d7723`** | **WGDOM-HARDENING-01A** Persist SSOT (H1+H2) | **CLOSED** · **PRODUCTION VERIFIED · GREEN** |
 | **2.65.39** | Incident 23.07 cleanup — diag OFF | RELEASED |
 | **2.65.38** | TENDERS-SYNC-STORM-P0 | RELEASED · Final Audit **PRODUCTION READY** |
 | **2.65.35** | PAYROLL-CLOUD-RESURRECTION-01 · H5 tip | CLOSED |
@@ -50,9 +52,10 @@
 | Resurrection fence | ACTIVE — nie usuwać |
 | Sync Storm heavy | P0 ACTIVE — deps bez builtAt |
 | **HARDENING-01A bootstrap persist** | **ACTIVE** — mid-flight local · ≤1 terminal cloud · flag `pipelineBootstrapPersistLocal` default ON |
+| **HARDENING-01D 546 monitor** | **ACTIVE** tooling — smoke + ledger · **M-EDGE-546 = MONITOR** |
 | Deadlock retry N1 | ACTIVE |
 | ADR Cloud Sync | PROPOSED · Evidence Gate OPEN · DF BLOCKED |
-| pipelinePerfDebouncePersist | default **false** (nie zmieniane w 01A) |
+| pipelinePerfDebouncePersist | default **false** (nie zmieniane w 01A/01D) |
 
 ---
 
@@ -62,7 +65,7 @@
 |-------|------|
 | Lista Płac | STABLE · priorytet #1 |
 | Roboty / Photos | STABLE po Assets/Delete sync |
-| Przetargi / Pipeline | STABLE vs Sync Storm · **01A persist SSOT ACTIVE** |
+| Przetargi / Pipeline | STABLE vs Sync Storm · **01A persist SSOT ACTIVE** · **01D 546 MONITOR** |
 | WM Druk / ZI | COMPLETE / STABLE |
 | Work Catalog | MVP PROD |
 | Theme | 01C VERIFIED |
@@ -74,8 +77,9 @@
 
 | Item | Status |
 |------|--------|
-| **WGDOM-HARDENING-01 EPIC A** | **CLOSED** @ 2.65.40 |
-| **WGDOM-HARDENING-01 EPIC B–E** | PLAN ready · **czekaj Owner GO** (B breaker · C N2 · D 546 · E Autonomous FP) |
+| **WGDOM-HARDENING-01 EPIC A** | **CLOSED** @ 2.65.40 / `23d7723` |
+| **WGDOM-HARDENING-01 EPIC D** | **CLOSED** @ docs tip `96d44d0` · D-V3 **DEFER** |
+| **WGDOM-HARDENING-01 EPIC B / C / E** | PLAN ready · **czekaj Owner GO** (B0 prefer · C N2 CORE · E Autonomous FP) |
 | **LOCALSTORAGE-ARCH-02F** | GO / **NOT STARTED** (IMPLEMENT only on command) |
 | **TEST-HARNESS H0.x Persist Ledger** | READY · **GATED** |
 | **H3-B/C** harness | **GATED** |
@@ -84,7 +88,7 @@
 | **TWSL 2.63.91** | lokalny WIP hist. · RELEASE NOT READY |
 | **ADR SYNC-ARCH implementation** | **BLOCKED** Evidence Gate |
 | **INFRA-DB-BACKUP-01** | ON HOLD |
-| **CI TEUX-7d GuideView `\bAI\b`** | **OPEN follow-up** · pre-existing · **nie** regresja 01A |
+| **CI TEUX-7d GuideView `\bAI\b`** | **OPEN follow-up** · pre-existing · **nie** regresja 01A/01D |
 
 ---
 
@@ -95,7 +99,7 @@
 3. Circuit breaker scope vs fingerprint churn → **EPIC B**.  
 4. Fat pipeline chunking (osobny epic).  
 5. Autonomous fingerprint vs builtAt → **EPIC E**.  
-6. Edge 546 monitoring → **EPIC D**.  
+6. ~~Edge 546 monitoring~~ → **CLOSED 01D** (M2-A monitor; residual **M-EDGE-546 MONITOR**; D-V3 DEFER).  
 7. Deadlock N2 / retry review → **EPIC C**.
 
 ---
@@ -117,10 +121,13 @@
 ```bash
 git log -1 --oneline
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: version 2.65.40 · commit 23d7723
+# oczekiwane: version 2.65.40
+# commit: docs tip 96d44d0 (lub nowszy docs) — feature baseline nadal 23d7723
 # porównaj z CHANGELOG[0].version w changelog-data.ts
 ```
 
 Health (opcjonalnie): Edge `/functions/v1/make-server-0afb8820/health`.
 
-SSOT closeout 01A: [`docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01A-CLOSEOUT.md).
+SSOT closeout 01A: [`docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01A-CLOSEOUT.md).  
+SSOT closeout 01D: [`docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01D-CLOSEOUT.md).  
+01D runbook: [`docs/architecture/WGDOM-HARDENING-01D-RUNBOOK.md`](../architecture/WGDOM-HARDENING-01D-RUNBOOK.md).

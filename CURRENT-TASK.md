@@ -1,6 +1,25 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-24 (**WGDOM-HARDENING-01A CLOSED**) · UI prod **2.65.40** · tip **`23d7723`** · **PRODUCTION VERIFIED · GREEN**
+**Ostatnia aktualizacja:** 2026-07-24 (**WGDOM-HARDENING-01D CLOSED**) · UI prod **2.65.40** · feature **`23d7723`** · docs tip **`96d44d0`** · **PRODUCTION VERIFIED · GREEN**
+
+## ★ WGDOM-HARDENING-01D — Edge 546 Monitoring · **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** |
+| **Prod** | UI **2.65.40** · feature **`23d7723`** · docs tip **`96d44d0`** · **PRODUCTION VERIFIED · GREEN** |
+| **Zakres** | D-V1 smoke+progi · D-V2 ledger+runbook · tooling/docs only |
+| **OUT** | Runtime · Cloud Sync · retry 546 · Edge chunk · D-V3 (DEFER) |
+| **Residual** | **M-EDGE-546 = MONITOR** · D-V3 **DEFER** · H-FAT MONITOR |
+| **SSOT CLOSE** | [`docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) |
+| **SSOT PV** | [`docs/architecture/WGDOM-HARDENING-01D-PRODUCTION-VERIFICATION.md`](docs/architecture/WGDOM-HARDENING-01D-PRODUCTION-VERIFICATION.md) |
+| **Runbook** | [`docs/architecture/WGDOM-HARDENING-01D-RUNBOOK.md`](docs/architecture/WGDOM-HARDENING-01D-RUNBOOK.md) |
+| **Next HARDENING** | EPIC **B0 / E / C** — tylko po Owner GO |
+
+> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.  
+> **Nie** startuj EPIC B/C/E / ARCH-02F / N2 bez jawnego Owner GO.
+
+---
 
 ## ★ WGDOM-HARDENING-01A — Persist SSOT · **CLOSED**
 
@@ -13,10 +32,9 @@
 | **SSOT CLOSE** | [`docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) |
 | **SSOT PV** | [`docs/architecture/WGDOM-HARDENING-01A-PRODUCTION-VERIFICATION.md`](docs/architecture/WGDOM-HARDENING-01A-PRODUCTION-VERIFICATION.md) |
 | **CI caveat** | TEST-INFRA Gate B **TEUX-7d** GuideView `\bAI\b` — **pre-existing follow-up** · **nie** regresja 01A |
-| **Next HARDENING** | EPIC **B–E** — tylko po Owner GO (PLAN: [`WGDOM-HARDENING-01-PLAN.md`](docs/architecture/WGDOM-HARDENING-01-PLAN.md)) |
+| **Next HARDENING** | EPIC **B / C / E** — PLAN: [`WGDOM-HARDENING-01-PLAN.md`](docs/architecture/WGDOM-HARDENING-01-PLAN.md) · **D CLOSED** |
 
-> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.  
-> **Nie** startuj EPIC B/C/D/E / ARCH-02F / N2 bez jawnego Owner GO.
+> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.
 
 ---
 
@@ -25,7 +43,7 @@
 | Element | Wartość |
 |---------|---------|
 | **Status** | **CLOSED** · tip feature **2.65.38** · cleanup **2.65.39** · Final Audit **PRODUCTION READY** |
-| **Aktualny tip** | **2.65.40** / **`23d7723`** (HARDENING-01A na tipie Sync Storm) |
+| **Aktualny tip** | UI **2.65.40** / feature **`23d7723`** · docs tip **`96d44d0`** |
 
 > Historyczny RELEASE HOLD / platform 522 — **zamknięty** przed 01A. Nie wznawiaj HOLD.
 
@@ -35,11 +53,11 @@
 
 | Pytanie | Odpowiedź / plik |
 |---------|------------------|
-| **Baseline prod (UI)** | **2.65.40** · tip **`23d7723`** · [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **Baseline prod (UI)** | **2.65.40** · feature **`23d7723`** · docs tip **`96d44d0`** · [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | **AI Knowledge Base** | [`docs/AI/README.md`](docs/AI/README.md) → Guardrails → Baseline |
-| **Ostatnio zamknięte** | **HARDENING-01A** · Sync Storm P0 · Incident 23.07 cleanup · Resurrection · Rollover · H5 |
-| **OPEN (Owner GO)** | HARDENING **B–E** · ARCH-02F · H0.x · DEADLOCK-N2 · CI TEUX-7d |
-| **Co dalej?** | Owner GO na kolejny EPIC (prefer B0 monitor / D / E — nie C bez CORE GO) |
+| **Ostatnio zamknięte** | **HARDENING-01D** · **HARDENING-01A** · Sync Storm P0 · Incident 23.07 cleanup · Resurrection · Rollover · H5 |
+| **OPEN (Owner GO)** | HARDENING **B / C / E** · ARCH-02F · H0.x · DEADLOCK-N2 · CI TEUX-7d |
+| **Co dalej?** | Owner GO na kolejny EPIC (prefer **B0** monitor / **E** — nie C bez CORE GO) |
 
 > **PAYROLL-CLOUD-RESURRECTION-01 CLOSED:** UI **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`
 

@@ -194,6 +194,21 @@
 
 ---
 
+## D-19 — HARDENING-01D Edge 546 Monitoring (M2-A monitor-only)
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 · UI **2.65.40** · feature **`23d7723`** · docs tip **`96d44d0`** |
+| **Powód** | Residual Final Audit M2 — sporadyczny HTTP 546 przy multi-open; potrzeba mierzalnego sygnału Stabilization |
+| **Decyzja** | M2-A tooling/docs: smoke + progi WARN/FAIL + trend ledger + runbook; **zero** runtime / Cloud Sync / retry 546 / Edge chunk |
+| **D-V3** | **DEFER** (`statusByPath=null`) — re-open tylko Owner GO + DF amendment |
+| **OUT** | Naprawa 546 · Edge chunk · retry · `src/**` |
+| **Alternatywy** | M2-C chunk (gated osobny); retry 546 (zakazane) |
+| **Dlaczego** | 546 = `WORKER_RESOURCE_LIMIT` (load signal); 01A już obniżył pipeSet; monitor chroni przed regresją bez blast radius |
+| **Obowiązuje** | **TAK** · Closeout [`WGDOM-HARDENING-01D-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) · residual **M-EDGE-546 = MONITOR** |
+
+---
+
 ## Jak dodać decyzję
 
 1. Nowy wpis D-xx z datą, powodem, alternatywami.  

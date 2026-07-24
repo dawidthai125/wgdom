@@ -1,7 +1,7 @@
 # WGDOM-HARDENING-01 — PLAN
 
 > **ID:** WGDOM-HARDENING-01  
-> **STATUS:** PLAN COMPLETE · **EPIC A CLOSED** @ 2.65.40 / `23d7723`  
+> **STATUS:** PLAN COMPLETE · **EPIC A CLOSED** @ 2.65.40 / `23d7723` · **EPIC D CLOSED** @ docs tip `96d44d0`  
 > **Data:** 2026-07-24  
 > **Owner GO:** APPROVED (PLAN only) · EPIC A: CLOSEOUT [`WGDOM-HARDENING-01A-CLOSEOUT.md`](./WGDOM-HARDENING-01A-CLOSEOUT.md)  
 > **Wejście:** [`WGDOM-HARDENING-01-AUDIT.md`](./WGDOM-HARDENING-01-AUDIT.md) · [`WGDOM-HARDENING-01-RCA.md`](./WGDOM-HARDENING-01-RCA.md)  
@@ -277,7 +277,9 @@ Owner GO = **ścieżka B CORE** (`WORKFLOW-OWNER-GO`).
 
 ---
 
-## EPIC D — Edge Monitoring (M2)
+## EPIC D — Edge Monitoring (M2) · **CLOSED** @ docs tip `96d44d0`
+
+> **CLOSEOUT:** [`WGDOM-HARDENING-01D-CLOSEOUT.md`](./WGDOM-HARDENING-01D-CLOSEOUT.md) · PV PASS · D-V3 **DEFER** · **M-EDGE-546 = MONITOR**.
 
 ### Cel
 
@@ -331,10 +333,10 @@ Klasa: PLATFORM / tooling — FEATURE PASS jeśli zero `src/` CORE.
 
 ### Definition of Done
 
-- [ ] DF 01D · skrypt/runbook w repo  
-- [ ] Baseline 546 udokumentowany  
-- [ ] Post-A comparison (po CLOSE A)  
-- [ ] CLOSE 01D
+- [x] DF 01D · skrypt/runbook w repo  
+- [x] Baseline 546 udokumentowany  
+- [x] Post-A comparison (po CLOSE A)  
+- [x] CLOSE 01D
 
 ---
 

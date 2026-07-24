@@ -121,9 +121,11 @@ Szczegóły: [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md).
 |------|----------------------|
 | URL | https://www.wgdom.fun |
 | UI tip (changelog) | **2.65.40** |
-| Tip commit (docs) | **`23d7723`** |
+| Feature commit | **`23d7723`** |
+| Docs tip | **`96d44d0`** |
 | Status | **PRODUCTION VERIFIED · GREEN** |
 | HARDENING-01A | **CLOSED** (Persist SSOT) |
+| HARDENING-01D | **CLOSED** (546 monitor · D-V3 DEFER · M-EDGE-546 MONITOR) |
 | Sync Storm fix | **2.65.38** |
 | Final audit Sync Storm | **PRODUCTION READY** (klasa 23.07) |
 | STABILIZATION WINDOW | **ACTIVE** — brak nowych epiców bez Owner GO |
