@@ -10,7 +10,7 @@ import {
   scheduleTenderPipelinePersist,
   syncTenderPipelineLocalOnly,
 } from "@/lib/tender-pipeline/tender-pipeline-persist-coalesce";
-import type { TenderItemUpdateOpts } from "@/app/hooks/useTenderDossierHeavyLazy";
+import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   type TenderPipelineItem,

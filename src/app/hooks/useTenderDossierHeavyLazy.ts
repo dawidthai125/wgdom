@@ -17,6 +17,13 @@ import {
   deriveUnifiedAttachmentGate,
 } from "@/lib/tender-pipeline/unified-attachment-gate";
 import { markPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
+import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
+
+export type {
+  TenderItemPersistMode,
+  TenderItemUpdateOpts,
+  TenderItemOnUpdate,
+} from "@/lib/tender-pipeline/tender-item-persist";
 
 const dossierInflightIds = new Set<string>();
 const enrichmentInflightIds = new Set<string>();
@@ -33,12 +40,6 @@ export const HEAVY_E_RUN_DEP_KEYS = [
   "athPreviewEnabled",
   "retryNonce",
 ] as const;
-
-export type TenderItemPersistMode = "local" | "cloud";
-
-export type TenderItemUpdateOpts = {
-  persist?: TenderItemPersistMode;
-};
 
 export function clearDossierInflightForItem(itemId: string): void {
   dossierInflightIds.delete(itemId);

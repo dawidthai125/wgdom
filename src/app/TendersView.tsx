@@ -18,6 +18,7 @@ import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { bindTenderPipelineOnUpdate } from "@/lib/tender-pipeline/bind-tender-pipeline-on-update";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 import { TenderListDesktopCard } from "@/app/tenders/list/TenderListDesktopCard";
 import { TenderListMobileCard } from "@/app/tenders/list/TenderListMobileCard";
@@ -475,7 +476,7 @@ export function TendersView({
           <TenderDetailPanelHosted
             item={item}
             allItems={pipeline.items}
-            onUpdate={(patch) => pipeline.updateItem(item.id, patch)}
+            onUpdate={bindTenderPipelineOnUpdate(pipeline.updateItem, item.id)}
             onRemove={() => void handleRemoveItem(item.id)}
             athPreviewEnabled={athPreviewEnabled}
             profileVersion={profileVersion}

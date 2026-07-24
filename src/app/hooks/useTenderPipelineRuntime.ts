@@ -41,9 +41,9 @@ import {
 } from "@/app/hooks/useTenderDocumentsBootstrap";
 import {
   useTenderDossierHeavyLazy,
-  type TenderItemUpdateOpts,
   resetDossierHeavyLazyForTests,
 } from "@/app/hooks/useTenderDossierHeavyLazy";
+import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import { useTenderPricingAuto } from "@/app/hooks/useTenderPricingAuto";
 import { useTenderTrustAssessment } from "@/app/hooks/useTenderTrustAssessment";
 

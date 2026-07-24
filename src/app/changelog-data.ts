@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.40",
+    label: "HARDENING-01A — Persist SSOT (bootstrap local + opts forward)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi: bootstrap discovery/shell zapisuje mid-flight lokalnie i robi ≤1 terminal cloud (coalesce). Kill-switch pipelineBootstrapPersistLocal (domyślnie ON). Adapter bindTenderPipelineOnUpdate forwarduje persist opts — bez zmiany Heavy E-RUN / Sync Storm P0.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.39",
     label: "INCIDENT-23-07 cleanup — diag instrumentation off by default",
     items: [

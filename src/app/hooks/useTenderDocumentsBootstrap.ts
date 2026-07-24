@@ -26,6 +26,11 @@ import {
   type TenderFullDiscoveryResult,
 } from "@/lib/tender-pipeline/tender-full-document-discovery";
 import { markPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
+import { isPipelineBootstrapPersistLocalEnabled } from "@/lib/app-settings";
+import type {
+  TenderItemOnUpdate,
+  TenderItemUpdateOpts,
+} from "@/lib/tender-pipeline/tender-item-persist";
 
 /** Discovery phase ukończona — nie powtarzaj orchestratora. */
 const discoveryCompletedIds = new Set<string>();
@@ -130,6 +135,11 @@ function shouldMarkPipelineBootstrapCompleted(item: TenderPipelineItem): boolean
   return tenderDossierHeavyParseDone(item.tenderDossier);
 }
 
+/** HARDENING-01A — mid-flight opts when kill-switch ON; undefined = legacy default cloud. */
+function bootstrapMidFlightPersistOpts(): TenderItemUpdateOpts | undefined {
+  return isPipelineBootstrapPersistLocalEnabled() ? { persist: "local" } : undefined;
+}
+
 /**
  * Jedna próba bootstrap dokumentów.
  * Discovery przez runTenderFullDocumentDiscovery (SSOT).
@@ -142,7 +152,7 @@ export function tryMarkPipelineBootstrapCompleted(item: TenderPipelineItem): voi
 
 export async function attemptTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
-  onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onUpdate: TenderItemOnUpdate;
   /** NG11-P0 — merged item dla intelligence przed pełnym re-render pipeline. */
   onDiscoveryMerged?: (merged: TenderPipelineItem) => void;
   isCancelled?: () => boolean;
@@ -158,6 +168,8 @@ export async function attemptTenderDocumentsBootstrap(opts: {
     onExternalRunning,
   } = opts;
   const deps = { ...defaultDeps, ...depsOverride };
+  const midOpts = bootstrapMidFlightPersistOpts();
+  const bootstrapLocalOn = midOpts?.persist === "local";
 
   clearStickyBootstrapStateForSettledEmpty(item);
 
@@ -179,6 +191,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
     const patch: Partial<TenderPipelineItem> = {};
     let html = item.noticeHtml ?? null;
     let discoveryResult: TenderFullDiscoveryResult | null = null;
+    let appliedAnyPatch = false;
 
     const skipDiscoveryOrchestrator =
       discoveryCompletedIds.has(item.id) && countTenderAttachments(item) > 0;
@@ -203,7 +216,8 @@ export async function attemptTenderDocumentsBootstrap(opts: {
           onDiscoveryMerged?.(mergedAfterDiscovery);
           if (Object.keys(discovery.patch).length > 0) {
             markPipelineTimingStage(item.id, "discovery.persist_shell", "start");
-            onUpdate(discovery.patch);
+            onUpdate(discovery.patch, midOpts);
+            appliedAnyPatch = true;
             markPipelineTimingStage(item.id, "discovery.persist_shell", "end");
           }
           if (!isCancelled()) {
@@ -249,7 +263,13 @@ export async function attemptTenderDocumentsBootstrap(opts: {
       && Object.keys(shellPatch).length > 0;
 
     if (shouldPersistShell) {
-      onUpdate(shellPatch);
+      onUpdate(shellPatch, midOpts);
+      appliedAnyPatch = true;
+    }
+
+    // HARDENING-01A / C2 — terminal cloud in same sync turn as shell local (no await).
+    if (appliedAnyPatch && !isCancelled() && bootstrapLocalOn) {
+      onUpdate({}, { persist: "cloud" });
     }
 
     const canMarkComplete =
@@ -279,7 +299,7 @@ export async function attemptTenderDocumentsBootstrap(opts: {
 
 export function useTenderDocumentsBootstrap(opts: {
   item: TenderPipelineItem;
-  onUpdate: (patch: Partial<TenderPipelineItem>) => void;
+  onUpdate: TenderItemOnUpdate;
   onDiscoveryMerged?: (merged: TenderPipelineItem) => void;
   enabled?: boolean;
   retryNonce?: number;
@@ -326,7 +346,7 @@ export function useTenderDocumentsBootstrap(opts: {
     setAutoRunning(true);
     void attemptTenderDocumentsBootstrap({
       item: itemRef.current,
-      onUpdate: (patch) => onUpdateRef.current(patch),
+      onUpdate: (patch, updateOpts) => onUpdateRef.current(patch, updateOpts),
       onDiscoveryMerged: (merged) => onDiscoveryMergedRef.current?.(merged),
       isCancelled: () => cancelled,
       onExternalRunning,

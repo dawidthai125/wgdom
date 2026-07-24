@@ -33,6 +33,7 @@ import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { bindTenderPipelineOnUpdate } from "@/lib/tender-pipeline/bind-tender-pipeline-on-update";
 import {
   buildTenderDetailPath,
   buildTenderDetailPathFromLegacyWorkspace,
@@ -493,7 +494,7 @@ export function TenderDetailPage({
               item={item}
               allItems={pipeline.items}
               pipelineRuntime={pipelineRuntime}
-              onUpdate={(patch) => pipeline.updateItem(item.id, patch)}
+              onUpdate={bindTenderPipelineOnUpdate(pipeline.updateItem, item.id)}
               onRemove={() => void pipeline.removeItem(item.id).then(() => navigate(TENDERS_LIST_PATH))}
               athPreviewEnabled={athPreviewEnabled}
               profileVersion={profileVersion}

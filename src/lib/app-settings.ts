@@ -58,6 +58,11 @@ export interface AppSettings {
   pipelinePerfArtifactCache: boolean;
   /** NG11-A3 — speculative external discovery fork (∥ BZP) w auto bootstrap. Domyślnie wyłączone. */
   pipelinePerfDiscoveryFork: boolean;
+  /**
+   * WGDOM-HARDENING-01A — bootstrap discovery/shell mid-flight local + ≤1 terminal cloud.
+   * Default ON. Kill-switch OFF = legacy immediate cloud per patch (pre-01A).
+   */
+  pipelineBootstrapPersistLocal: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -77,6 +82,7 @@ export function defaultAppSettings(): AppSettings {
     pipelinePerfUnpackParallel: false,
     pipelinePerfArtifactCache: false,
     pipelinePerfDiscoveryFork: false,
+    pipelineBootstrapPersistLocal: true,
   };
 }
 
@@ -103,6 +109,21 @@ export function isPipelinePerfArtifactCacheEnabled(): boolean {
 /** NG11-A3 — discovery fork speculative external (feature flag, default OFF). */
 export function isPipelinePerfDiscoveryForkEnabled(): boolean {
   return loadAppSettingsLocal().pipelinePerfDiscoveryFork === true;
+}
+
+/** HARDENING-01A — bootstrap local mid-flight (default ON; kill-switch = false). */
+export function isPipelineBootstrapPersistLocalEnabled(): boolean {
+  return loadAppSettingsLocal().pipelineBootstrapPersistLocal !== false;
+}
+
+/** Chmura ma pierwszeństwo — default true (C3: !== false). */
+export function mergePipelineBootstrapPersistLocal(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.pipelineBootstrapPersistLocal === false) return false;
+  if (remote?.pipelineBootstrapPersistLocal === true) return true;
+  return local.pipelineBootstrapPersistLocal !== false;
 }
 
 function numSetting(v: unknown, fallback: number, min: number, max: number): number {
@@ -186,6 +207,7 @@ export function loadAppSettingsLocal(): AppSettings {
       pipelinePerfUnpackParallel: parsed.pipelinePerfUnpackParallel === true,
       pipelinePerfArtifactCache: parsed.pipelinePerfArtifactCache === true,
       pipelinePerfDiscoveryFork: parsed.pipelinePerfDiscoveryFork === true,
+      pipelineBootstrapPersistLocal: parsed.pipelineBootstrapPersistLocal !== false,
     };
   } catch {
     return defaultAppSettings();
@@ -262,5 +284,6 @@ export function mergeAppSettings(
         : remote?.pipelinePerfDiscoveryFork === false
           ? false
           : local.pipelinePerfDiscoveryFork === true,
+    pipelineBootstrapPersistLocal: mergePipelineBootstrapPersistLocal(remote, local),
   };
 }
