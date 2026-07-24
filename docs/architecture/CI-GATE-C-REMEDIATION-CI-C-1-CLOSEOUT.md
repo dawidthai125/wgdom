@@ -44,7 +44,7 @@ Komenda: `npm run test:infra -- --suite gate-c-e2e-preview --skip-build --contin
 
 | ID | Status | Notatka |
 |----|--------|---------|
-| **CI-C-1b** | **NOWY (odsłonięty na CI)** | Gate C job bez `VITE_SUPABASE_*` → GUARD-FAIL-LOUD blokuje przed E2E · **workflow env** · poza DF CI-C-1 (YAML był OUT) |
+| **CI-C-1b** | **DF FROZEN** → [`CI-GATE-C-REMEDIATION-CI-C-1b-DESIGN-FREEZE.md`](./CI-GATE-C-REMEDIATION-CI-C-1b-DESIGN-FREEZE.md) · czekaj Owner GO → IMPLEMENT | Gate C job bez `VITE_SUPABASE_*` → GUARD-FAIL-LOUD · **workflow env** |
 | **CI-C-2** | OPEN | `jobs-mobile` „Powrót do listy” — latent legacy |
 | **CI-C-3** | **ODSŁONIĘTY lokalnie** | Happy-path FAIL @ `openInspectorJob` |
 | **CI-C-4** | PASS lokalnie | Version awareness |

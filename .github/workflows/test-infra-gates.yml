@@ -85,6 +85,10 @@ jobs:
     timeout-minutes: 30
     env:
       PW_BASE_URL: http://127.0.0.1:4173
+      # CI-C-1b / CI-2 parity: Gate C re-runs gate-b-relevant (scope=all);
+      # Vite reads VITE_* into import.meta.env at vite-node boot.
+      VITE_SUPABASE_PROJECT_ID: ci-gate-b-mock
+      VITE_SUPABASE_ANON_KEY: ci-gate-b-mock-anon
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
