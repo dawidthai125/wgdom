@@ -32,7 +32,7 @@ Legenda statusu: **FIXED** · **MITIGATED** · **BACKLOG** · **MONITOR** · **G
 | ID | Opis | Objawy | Monitor | Status |
 |----|------|--------|---------|--------|
 | **M-DEADLOCK-RETRY** | Retry ×4 przy 40P01 amplifikuje load | Powtórzone batch-set | Edge logs, status 500 body | **FIXED** N1 / **MONITOR** amplifier |
-| **M-EDGE-546** | Sporadyczne 546 przy multi-open | 546 w Network | Smoke multi-tender | **MONITOR** |
+| **M-EDGE-546** | Sporadyczne 546 przy multi-open | 546 w Network | Smoke multi-tender · [`WGDOM-HARDENING-01D-TREND-LEDGER.md`](../architecture/WGDOM-HARDENING-01D-TREND-LEDGER.md) · [`WGDOM-HARDENING-01D-RUNBOOK.md`](../architecture/WGDOM-HARDENING-01D-RUNBOOK.md) | **MONITOR** |
 | **M-AUTONOMOUS-BUILTAT** | Autonomous FP zawiera `builtAt` | Gate UI re-run | Autonomous Gate | **BACKLOG** niskopriorytetowy |
 | **M-EGRESS** | Pełne batch-get focus | 402 historycznie | Billing egress | **MITIGATED** ops; delta-sync **BACKLOG** |
 | **M-STALE-LS** | Stary LS przywraca klucze | Passwords / martwe URL | Hard refresh; merge cloud-wins | **MITIGATED** P15+ |
