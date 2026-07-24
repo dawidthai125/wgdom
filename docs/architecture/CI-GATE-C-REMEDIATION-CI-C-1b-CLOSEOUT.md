@@ -3,7 +3,7 @@
 > **Status:** **CLOSED**  
 > **Data:** 2026-07-25  
 > **DF:** [`CI-GATE-C-REMEDIATION-CI-C-1b-DESIGN-FREEZE.md`](./CI-GATE-C-REMEDIATION-CI-C-1b-DESIGN-FREEZE.md) · Wariant **A**  
-> **Commit:** *(uzupełnij po push)*
+> **Commit:** `075719a`
 
 ## IMPLEMENT
 
