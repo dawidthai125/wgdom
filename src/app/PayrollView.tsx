@@ -499,6 +499,9 @@ export function PayrollView({
   onUpdateWeekEmployeePrevSaturday, onUpdateWeekEmployeePayrollCarryForward, onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
+  showPayrollPrevRecoveryBanner,
+  onRestorePayrollHoursFromPrev,
+  onDismissPayrollPrevRecoveryBanner,
   onSyncRatesFromDirectory,
   onSaveBacklogWeek,
   initialEmpId,
@@ -518,7 +521,7 @@ export function PayrollView({
   onToggleSettled:(id:string)=>void;
   onSaveWeek:()=>void;
   savedWeeks:WeekSnapshot[];
-  onAddFromDirectory:(ids:string[])=>void;
+  onAddFromDirectory:(ids:string[], options?: { preferEmptyHours?: boolean })=>void;
   onRemoveWeekEmployee:(id:string)=>void;
   onClearAllWeekEmployees?:()=>void;
   onReplaceWithAllActive?:()=>void;
@@ -530,6 +533,10 @@ export function PayrollView({
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
+  /** D4 — -prev recovery (≠ archive banner). */
+  showPayrollPrevRecoveryBanner?: boolean;
+  onRestorePayrollHoursFromPrev?: () => void;
+  onDismissPayrollPrevRecoveryBanner?: () => void;
   onSyncRatesFromDirectory?:()=>void;
   onSaveBacklogWeek?:(weekFrom:string, weekTo:string, employees:WeekEmployee[])=>void;
   initialEmpId?: string | null;
@@ -542,6 +549,7 @@ export function PayrollView({
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
   const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
+  const [pickerPreferEmptyHours, setPickerPreferEmptyHours] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
   const [satDismissed, setSatDismissed] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -799,6 +807,11 @@ export function PayrollView({
     onRestoreFromArchive &&
     shouldShowPayrollRestoreBanner(weekEmployees, archivedForWeek?.weekEmployees, weekFrom, weekTo),
   );
+  const showPrevRecoveryBanner = Boolean(
+    !isClosedWeek &&
+    showPayrollPrevRecoveryBanner &&
+    onRestorePayrollHoursFromPrev,
+  );
 
   // Directory employees not yet in this week
   const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
@@ -957,6 +970,40 @@ export function PayrollView({
                       ? "Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Przeniesienia wypłat i nowe urlopy nie zmieniają tego tygodnia."
                       : `Brak zapisanego archiwum dla tygodnia ${fmtDate(weekFrom)}–${fmtDate(weekTo)}. Zapisz tydzień przed rolloverem lub otwórz zakładkę Archiwum.`}
                   </p>
+                </div>
+              </div>
+            )}
+
+            {showPrevRecoveryBanner && (
+              <div
+                className="flex flex-col sm:flex-row sm:items-center gap-3 bg-sky-500/10 border border-sky-500/25 rounded-xl px-4 py-3"
+                data-payroll-prev-recovery-banner
+              >
+                <AlertTriangle size={15} className="text-sky-400 shrink-0 hidden sm:block"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sky-300">Wykryto bogatszą kopię godzin (-prev)</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Ostatnia kopia chmurowa ma więcej godzin niż bieżąca lista dla tych samych pracowników.
+                    To nie jest baner archiwum — przywrócenie idzie Domain Push z -prev.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  {onDismissPayrollPrevRecoveryBanner && (
+                    <button
+                      type="button"
+                      onClick={onDismissPayrollPrevRecoveryBanner}
+                      className="px-3 py-2 rounded-lg bg-secondary text-muted-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+                    >
+                      Ukryj
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={onRestorePayrollHoursFromPrev}
+                    className="px-4 py-2 rounded-lg bg-sky-500/20 text-sky-200 text-sm font-medium hover:bg-sky-500/30 transition-colors"
+                  >
+                    Przywróć z -prev
+                  </button>
                 </div>
               </div>
             )}
@@ -1665,9 +1712,26 @@ export function PayrollView({
                 );
               })}
             </div>
-            <div className="px-4 py-3 border-t border-border shrink-0">
+            <div className="px-4 py-3 border-t border-border shrink-0 space-y-2">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={pickerPreferEmptyHours}
+                  onChange={(e) => setPickerPreferEmptyHours(e.target.checked)}
+                  className="rounded border-border"
+                />
+                Dodaj puste (bez Soft Restore godzin)
+              </label>
               <button
-                onClick={()=>{if(pickerSelected.size>0){onAddFromDirectory([...pickerSelected]);}setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}}
+                onClick={()=>{
+                  if(pickerSelected.size>0){
+                    onAddFromDirectory([...pickerSelected], { preferEmptyHours: pickerPreferEmptyHours });
+                  }
+                  setShowPicker(false);
+                  setPickerSearch("");
+                  setPickerSelected(new Set());
+                  setPickerPreferEmptyHours(false);
+                }}
                 disabled={pickerSelected.size===0}
                 className="w-full min-h-[48px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >

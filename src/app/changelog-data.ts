@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.43",
+    label: "PAYROLL-IMPLEMENT-03 D4+D5 — -prev recovery banner + Soft Restore",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — D4 baner odzysku z kw-week-employees-prev (≠ archiwum) + Domain Push CTA; D5 Soft Restore overlay przy re-add (weekEmployeeFromDir PURE). Bez zmian D1–D3 / SSOT / W1–W2 entry.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.42",
     label: "PAYROLL-IMPLEMENT-02 D2+D3 — domain gate + intentionalHoursClear",
     items: [

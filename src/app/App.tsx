@@ -149,6 +149,17 @@ import {
   isPayrollHoursCollapseConfirmEnabled,
   PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED,
 } from "@/lib/payroll-hours-collapse-gate";
+import {
+  applyPrevRecoveryToLiveRoster,
+  dismissPayrollPrevRecovery,
+  isPayrollPrevRecoveryDismissed,
+  PAYROLL_PREV_KEY,
+  shouldShowPayrollPrevRecoveryBanner,
+} from "@/lib/payroll-prev-recovery";
+import {
+  applyPayrollSoftRestoreOverlay,
+  rememberPayrollSoftRestoreSnapshot,
+} from "@/lib/payroll-soft-restore";
 import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import {
   AUTO_SYNC_DEBOUNCE_MS,
@@ -380,6 +391,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useModalScrollLock(showSaveConfirm);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
+  /** D4 — cloud kw-week-employees-prev (read-only cache for banner / soft restore). */
+  const [payrollPrevRoster, setPayrollPrevRoster] = useState<WeekEmployee[]>([]);
+  const [payrollPrevRecoveryDismissTick, setPayrollPrevRecoveryDismissTick] = useState(0);
   const [fullDataBackupStatus, setFullDataBackupStatus] = useState<{ dailyBackupDate: string | null; hasPrev: boolean } | null>(null);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
@@ -439,7 +453,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const hasPrev = Object.values(s.keys).some((k) => k.prev > 0 || k.prev2 > 0);
       setFullDataBackupStatus({ dailyBackupDate: s.dailyBackupDate, hasPrev });
     }).catch(() => {});
+    // D4 — load -prev for recovery banner (read-only; no SSOT write)
+    fetchKeysFromCloud([PAYROLL_PREV_KEY])
+      .then(([raw]) => {
+        setPayrollPrevRoster(Array.isArray(raw) ? (raw as WeekEmployee[]) : []);
+      })
+      .catch(() => {
+        setPayrollPrevRoster([]);
+      });
   }, [jobs.length, weekEmployees.length, savedWeeks.length, directory.length, contacts.length]);
+
+  const showPayrollPrevRecoveryBanner = useMemo(() => {
+    void payrollPrevRecoveryDismissTick;
+    if (isPayrollPrevRecoveryDismissed(weekFrom, weekTo, payrollPrevRoster)) return false;
+    return shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster);
+  }, [weekEmployees, payrollPrevRoster, weekFrom, weekTo, payrollPrevRecoveryDismissTick]);
 
   const commitDirectory = useCallback(() => {
     pushDirectoryToCloud(directory).catch(() => {});
@@ -1485,6 +1513,44 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [savedWeeks, weekFrom, weekTo, setWeekEmployees]);
 
+  /** D4 CTA — restore hours from -prev via Domain Push (≠ archive banner). */
+  const restorePayrollHoursFromPrev = useCallback(() => {
+    if (!shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster)) {
+      toast.message("Brak bogatszej kopii -prev dla bieżącego składu.");
+      return;
+    }
+    if (!window.confirm(
+      `Przywrócić godziny z ostatniej kopii chmurowej (-prev) dla pracowników na liście?\n\nTo zapisze listę płac do chmury (Domain Push).`,
+    )) return;
+    const before = weekEmployees;
+    const next = applyPrevRecoveryToLiveRoster(before, payrollPrevRoster);
+    withPayrollWeekEmployeesWriteSource("restorePayrollHoursFromPrev", () => {
+      setWeekEmployees(next);
+    });
+    void withKwWeekEmployeesAsyncMutation(() =>
+      pwrPush({
+        roster: next,
+        weekFrom,
+        weekTo,
+        rosterBefore: before,
+      }),
+    ).catch((e) => {
+      const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+      toast.error("Nie udało się zapisać przywróconych godzin", {
+        description: msg,
+        id: "payroll-prev-recovery-push",
+      });
+    });
+    dismissPayrollPrevRecovery(weekFrom, weekTo, payrollPrevRoster);
+    setPayrollPrevRecoveryDismissTick((t) => t + 1);
+    toast.success("Przywrócono godziny z kopii -prev");
+  }, [weekEmployees, payrollPrevRoster, weekFrom, weekTo, setWeekEmployees]);
+
+  const dismissPayrollPrevRecoveryBanner = useCallback(() => {
+    dismissPayrollPrevRecovery(weekFrom, weekTo, payrollPrevRoster);
+    setPayrollPrevRecoveryDismissTick((t) => t + 1);
+  }, [weekFrom, weekTo, payrollPrevRoster]);
+
   const restoreAllDataFromCloud = async (source: "prev" | "prev2" | "today" = "prev") => {
     const labels = { prev: "poprzedni zapis", prev2: "starszą kopię", today: "zapis z dziś" };
     if (!window.confirm(`Przywrócić WSZYSTKIE dane firmy z chmury (${labels[source]})? Scalą się z obecnymi — bogatsze wpisy wygrywają.`)) return;
@@ -1647,7 +1713,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     return true;
   }, [refreshSavedActiveWeekSnapshot]);
 
-  const addFromDirectory = (ids: string[]) => {
+  const addFromDirectory = (ids: string[], options?: { preferEmptyHours?: boolean }) => {
     let opId = `op-add-${Date.now().toString(36)}`;
     try {
       const manual = localStorage.getItem("wg-payroll-trace-operation-id");
@@ -1665,7 +1731,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         });
         return prev;
       }
-      const newEmps = toAdd.map(weekEmployeeFromDir);
+      // D5 — factory PURE; Soft Restore overlay before Domain Push
+      const created = toAdd.map(weekEmployeeFromDir);
+      const { roster: newEmps, restoredDirectoryIds } = applyPayrollSoftRestoreOverlay(created, {
+        weekFrom,
+        weekTo,
+        prevRoster: payrollPrevRoster,
+        preferEmptyHours: options?.preferEmptyHours === true,
+      });
       const first = newEmps[0];
       if (first) {
         payrollTraceSetSubject(weekEmployeeMergeKey(first), first.id);
@@ -1699,6 +1772,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           });
         });
         refreshSavedActiveWeekSnapshot(next);
+        if (restoredDirectoryIds.length > 0) {
+          toast.success(`Przywrócono godziny dla ${restoredDirectoryIds.length} os. (Soft Restore)`);
+        }
       }
       return next;
     });
@@ -1708,6 +1784,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const removeWeekEmployee = (id: string) => {
     withPayrollWeekEmployeesWriteSource("removeWeekEmployee", () => {
     setWeekEmployees((prev) => {
+      const removed = prev.find((e) => e.id === id);
+      if (removed) {
+        rememberPayrollSoftRestoreSnapshot(removed, weekFrom, weekTo);
+      }
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
         // Remove ≠ D2 hours-collapse; guard stays active (no bare skip)
@@ -2724,6 +2804,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           syncWeekRatesFromDirectory={syncWeekRatesFromDirectory}
           goToCurrent={goToCurrent}
           restoreWeekFromArchive={restoreWeekFromArchive}
+          showPayrollPrevRecoveryBanner={showPayrollPrevRecoveryBanner}
+          onRestorePayrollHoursFromPrev={restorePayrollHoursFromPrev}
+          onDismissPayrollPrevRecoveryBanner={dismissPayrollPrevRecoveryBanner}
           saveBiweeklyBacklogWeek={saveBiweeklyBacklogWeek}
           pendingPayrollEmpId={pendingPayrollEmpId}
           onInitialPayrollEmpConsumed={() => setPendingPayrollEmpId(null)}

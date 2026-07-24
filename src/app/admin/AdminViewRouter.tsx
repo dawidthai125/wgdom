@@ -209,7 +209,7 @@ export type AdminViewRouterProps = {
   setWeekTo: (v: string) => void;
   toggleSettled: (id: string) => void;
   saveWeek: () => void;
-  addFromDirectory: (ids: string[]) => void;
+  addFromDirectory: (ids: string[], options?: { preferEmptyHours?: boolean }) => void;
   removeWeekEmployee: (id: string) => void;
   clearAllWeekEmployees: () => void;
   replaceWeekWithAllActive: () => void;
@@ -222,6 +222,9 @@ export type AdminViewRouterProps = {
   syncWeekRatesFromDirectory: () => void;
   goToCurrent: () => void;
   restoreWeekFromArchive: () => void;
+  showPayrollPrevRecoveryBanner?: boolean;
+  onRestorePayrollHoursFromPrev?: () => void;
+  onDismissPayrollPrevRecoveryBanner?: () => void;
   saveBiweeklyBacklogWeek: (backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => void;
   pendingPayrollEmpId: string | null;
   onInitialPayrollEmpConsumed: () => void;
@@ -319,6 +322,9 @@ export function AdminViewRouter({
   syncWeekRatesFromDirectory,
   goToCurrent,
   restoreWeekFromArchive,
+  showPayrollPrevRecoveryBanner,
+  onRestorePayrollHoursFromPrev,
+  onDismissPayrollPrevRecoveryBanner,
   saveBiweeklyBacklogWeek,
   pendingPayrollEmpId,
   onInitialPayrollEmpConsumed,
@@ -502,6 +508,9 @@ export function AdminViewRouter({
               onGoToCurrent={goToCurrent}
               onManageContacts={() => onSetView("contacts")}
               onRestoreFromArchive={restoreWeekFromArchive}
+              showPayrollPrevRecoveryBanner={showPayrollPrevRecoveryBanner}
+              onRestorePayrollHoursFromPrev={onRestorePayrollHoursFromPrev}
+              onDismissPayrollPrevRecoveryBanner={onDismissPayrollPrevRecoveryBanner}
               onSaveBacklogWeek={saveBiweeklyBacklogWeek}
               initialEmpId={pendingPayrollEmpId}
               onInitialEmpConsumed={onInitialPayrollEmpConsumed}

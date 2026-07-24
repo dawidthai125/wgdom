@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.43 — PAYROLL-IMPLEMENT-03 D4+D5 (-prev banner + Soft Restore)
+
+- **fix:** D4 Recovery Banner from `kw-week-employees-prev` only (≠ archive RB); CTA → Domain Push
+- **fix:** D5 Soft Restore overlay on add (session / -prev); `weekEmployeeFromDir` stays PURE; „Dodaj puste” skip
+- **bez** zmian D1–D3 · W1/W2 entry · Domain Push model · Cloud Sync merge · SSOT · Resurrection
+- **test:** `scripts/test-payroll-prev-recovery-soft-restore-d4-d5.mjs`
+
 ## 2.65.42 — PAYROLL-IMPLEMENT-02 D2+D3 (domain gate + intentionalHoursClear)
 
 - **fix:** D2 Domain Gate + UI confirm for hours collapse (D14 thresholds); Cancel = no Cloud write / UI keeps before
