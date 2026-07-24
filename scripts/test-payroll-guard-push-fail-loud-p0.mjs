@@ -1,9 +1,13 @@
 /**
  * P0 Payroll Cloud Recovery — Payroll Guard fail-loud (pushKeysToCloud throws).
  * Run: npx vite-node scripts/test-payroll-guard-push-fail-loud-p0.mjs
+ *
+ * CI-2: VITE_SUPABASE_* must be present in the process env *before* vite-node
+ * starts (Gate B job env / shell / .env). Assignments to process.env inside
+ * this file do NOT populate import.meta.env — see supabase.ts.
  */
-process.env.VITE_SUPABASE_PROJECT_ID = "mock-proj-p0-guard";
-process.env.VITE_SUPABASE_ANON_KEY = "mock-anon-p0-guard";
+process.env.VITE_SUPABASE_PROJECT_ID ??= "mock-proj-p0-guard";
+process.env.VITE_SUPABASE_ANON_KEY ??= "mock-anon-p0-guard";
 
 const kvStore = {};
 globalThis.localStorage = {
@@ -13,10 +17,12 @@ globalThis.localStorage = {
   clear: () => {},
 };
 
+let batchGetHits = 0;
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const u = String(url);
   if (u.includes("/batch-get")) {
+    batchGetHits++;
     const { keys } = JSON.parse(opts.body);
     return {
       ok: true,
@@ -32,6 +38,7 @@ globalThis.fetch = async (url, opts) => {
 const {
   PAYROLL_GUARD_BLOCKED_MESSAGE,
   isPayrollGuardBlockedError,
+  isSupabaseConfigured,
   pushKeysToCloud,
   weekEmployeesListRichness,
 } = await import("../src/lib/cloud-sync.ts");
@@ -48,6 +55,16 @@ function assert(name, cond) {
     console.log("FAIL", name);
   }
 }
+
+if (!isSupabaseConfigured()) {
+  console.error(
+    "FAIL harness: isSupabaseConfigured() === false.\n" +
+      "CI-2: Gate B / shell must set VITE_SUPABASE_PROJECT_ID + VITE_SUPABASE_ANON_KEY " +
+      "before vite-node starts (import.meta.env). process.env set inside this script is NOT enough.",
+  );
+  process.exit(1);
+}
+assert("supabase configured", true);
 
 function richEmp(hours = 8) {
   return {
@@ -101,6 +118,11 @@ try {
 
 assert("guard throws", threw);
 assert("guard message", errMsg === PAYROLL_GUARD_BLOCKED_MESSAGE);
+if (threw && errMsg !== PAYROLL_GUARD_BLOCKED_MESSAGE) {
+  console.error("  expected:", PAYROLL_GUARD_BLOCKED_MESSAGE);
+  console.error("  actual:  ", errMsg);
+}
+assert("guard fetched cloud (batch-get)", batchGetHits >= 1);
 assert("isPayrollGuardBlockedError", isPayrollGuardBlockedError(new Error(PAYROLL_GUARD_BLOCKED_MESSAGE)));
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

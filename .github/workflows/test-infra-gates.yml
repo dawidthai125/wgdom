@@ -58,6 +58,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: manifest-validate
     timeout-minutes: 20
+    # CI-2: Vite reads VITE_* into import.meta.env at vite-node boot.
+    # process.env set inside test scripts does NOT populate import.meta.env.
+    # Dummy non-prod values — enough for isSupabaseConfigured() + fetch mocks.
+    env:
+      VITE_SUPABASE_PROJECT_ID: ci-gate-b-mock
+      VITE_SUPABASE_ANON_KEY: ci-gate-b-mock-anon
     strategy:
       fail-fast: false
       matrix:
