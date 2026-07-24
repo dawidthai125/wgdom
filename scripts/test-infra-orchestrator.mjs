@@ -150,15 +150,15 @@ function sleepSync(ms) {
 
 function isPreviewReachable(url) {
   try {
-    const parsed = new URL(url);
+    // CI-C-1 DF: shell:false + GET / (parity legacy curl -sf …/) — success = HTTP 2xx
     const status = spawnSync(
       "node",
       [
         "-e",
-        `const http=require('http');const u=new URL(process.argv[1]);const req=http.get({hostname:u.hostname,port:u.port,path:'/version.json',timeout:3000},res=>process.exit(res.statusCode===200?0:1));req.on('error',()=>process.exit(1));`,
+        `const http=require('http');const u=new URL(process.argv[1]);const req=http.get({hostname:u.hostname,port:u.port||80,path:'/',timeout:3000},res=>process.exit(res.statusCode>=200&&res.statusCode<400?0:1));req.on('error',()=>process.exit(1));`,
         url,
       ],
-      { cwd: ROOT, shell: true, timeout: 5000 },
+      { cwd: ROOT, shell: false, timeout: 5000 },
     );
     return status.status === 0;
   } catch {
@@ -166,15 +166,35 @@ function isPreviewReachable(url) {
   }
 }
 
+function stopPreviewServer(child) {
+  if (!child?.pid) return;
+  try {
+    child.kill("SIGTERM");
+  } catch {
+    /* ignore */
+  }
+}
+
 function startPreviewServer() {
-  console.log("\n=== PREVIEW (#010) — starting npm run preview ===\n");
-  const child = spawn("npm", ["run", "preview"], {
-    cwd: ROOT,
-    shell: true,
-    detached: true,
-    stdio: "ignore",
-  });
-  child.unref();
+  // CI-C-1 DF Wariant A: non-detached, no unref, pipe stdio, explicit host/port (legacy parity)
+  console.log("\n=== PREVIEW (#010) — starting npm run preview -- --host 127.0.0.1 --port 4173 ===\n");
+  const child = spawn(
+    "npm",
+    ["run", "preview", "--", "--host", "127.0.0.1", "--port", "4173"],
+    {
+      cwd: ROOT,
+      shell: true,
+      detached: false,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  child._wgPreviewLog = "";
+  const appendLog = (buf) => {
+    const chunk = String(buf || "");
+    child._wgPreviewLog = (child._wgPreviewLog + chunk).slice(-8000);
+  };
+  child.stdout?.on("data", appendLog);
+  child.stderr?.on("data", appendLog);
   return child;
 }
 
@@ -194,11 +214,11 @@ function ensurePreviewServer(previewUrl) {
     sleepSync(1000);
   }
 
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    /* ignore */
+  const tail = String(child._wgPreviewLog || "").trim();
+  if (tail) {
+    console.error("\n--- preview stdout/stderr (tail) ---\n" + tail + "\n--- end preview log ---\n");
   }
+  stopPreviewServer(child);
   throw new Error(`Preview server not reachable at ${previewUrl} after 90s (#010)`);
 }
 
@@ -380,13 +400,8 @@ function main() {
       }
     }
   } finally {
-    if (previewChild?.pid) {
-      try {
-        process.kill(-previewChild.pid, "SIGTERM");
-      } catch {
-        /* ignore */
-      }
-    }
+    // CI-C-1 DF: non-detached child — kill PID (not process-group -pid)
+    stopPreviewServer(previewChild);
   }
 
   const ok = printReport(results, label);
