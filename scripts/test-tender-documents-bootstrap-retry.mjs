@@ -203,13 +203,18 @@ resetTenderDocumentsBootstrapForTests();
   });
   ok("T3 docs fetch fail → not completed", r1.ok === false && !isTenderDocumentsBootstrapCompleted(ITEM_ID));
 
+  const patches = [];
   const r2 = await attemptTenderDocumentsBootstrap({
     item: baseItem(),
     onUpdate: (p) => {
-      ok("T3 retry got smartpzp doc", p.bzpDocuments?.[0]?.platform === "smartpzp");
+      patches.push(p);
     },
     deps,
   });
+  ok(
+    "T3 retry got smartpzp doc",
+    patches.some((p) => p.bzpDocuments?.[0]?.platform === "smartpzp"),
+  );
   ok("T3 retry ok", r2.ok === true);
   ok("T3 discover best-effort does not block retry path", discoverCalls >= 0);
 }

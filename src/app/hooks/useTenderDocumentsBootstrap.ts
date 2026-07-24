@@ -203,8 +203,9 @@ export async function attemptTenderDocumentsBootstrap(opts: {
           mode: "auto",
           prefetchNotice: true,
           includeExternal: true,
-          // NG-02.1C: orchestrator kończy fetch; persist gate'ujemy w bootstrap (nie w SSOT).
-          isCancelled,
+          // NG-02.1C / CI-5: orchestrator bez cancel z effect — kończy fetch;
+          // persist gate zostaje w bootstrap (applyDiscovery / hasAuthoritativeDiscoveryPatch).
+          isCancelled: () => false,
           deps,
         });
         discoveryResult = discovery;
