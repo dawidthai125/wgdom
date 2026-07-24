@@ -139,9 +139,17 @@ import {
   pwrImportMerge,
   pwrRestorePayrollMerge,
   schedulePayrollDomainPush,
+  cancelPayrollDomainPush,
   bindPayrollDomainPushHandler,
   unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-week-roster-bundle";
+import {
+  detectHoursCollapse,
+  formatHoursCollapseConfirmMessage,
+  isPayrollHoursCollapseConfirmEnabled,
+  PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED,
+} from "@/lib/payroll-hours-collapse-gate";
+import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import {
   AUTO_SYNC_DEBOUNCE_MS,
   shouldPullNow,
@@ -1426,7 +1434,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setWeekEmployees(mergedEmps);
       });
       setSavedWeeks(mergedArch);
-      await pwrPush({ roster: mergedEmps, weekFrom, weekTo, options: { skipPayrollGuard: true } });
+      await pwrPush({
+        roster: mergedEmps,
+        weekFrom,
+        weekTo,
+        rosterBefore: weekEmployees,
+        options: { intentionalHoursClear: true },
+      });
       await pushKeysToCloudSafe(["kw-archive"], [mergedArch]);
       auditRestoreBackup("completed", {
         scope: "payroll",
@@ -1548,17 +1562,35 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [bumpPayrollEditAutoSyncHold]);
 
-  const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
+  const persistPayrollRoster = useCallback((
+    next: WeekEmployee[],
+    options?: PushWeekEmployeesOptions,
+    rosterBefore?: WeekEmployee[],
+  ) => {
     bumpAutoSyncSuppress(6000);
+    const before = rosterBefore ?? weekEmployees;
     payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
       count: next.length,
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
     });
     void withKwWeekEmployeesAsyncMutation(() =>
-      pwrPush({ roster: next, weekFrom, weekTo, options: { skipPayrollGuard: true } }),
+      pwrPush({
+        roster: next,
+        weekFrom,
+        weekTo,
+        rosterBefore: before,
+        options,
+      }),
     )
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        if (msg === PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED) {
+          toast.error("Zapis godzin wymaga potwierdzenia", {
+            description: "Anulowano lub brak intentionalHoursClear — Cloud nie został nadpisany.",
+            id: "payroll-hours-collapse-gate",
+          });
+          return;
+        }
         payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "error", {
           error: { message: msg },
         });
@@ -1567,10 +1599,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           id: "payroll-roster-push",
         });
       });
-  }, [weekFrom, weekTo]);
+  }, [weekFrom, weekTo, weekEmployees]);
 
   useEffect(() => {
-    bindPayrollDomainPushHandler((roster) => persistPayrollRoster(roster));
+    bindPayrollDomainPushHandler((roster, options, rosterBefore) => {
+      persistPayrollRoster(roster, options, rosterBefore);
+    });
     return () => unbindPayrollDomainPushHandler();
   }, [persistPayrollRoster]);
 
@@ -1588,9 +1622,29 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks]);
 
-  const commitLivePayrollRosterEdit = useCallback((next: WeekEmployee[]) => {
+  /**
+   * D2 UI + schedule domain push.
+   * @returns true if roster `next` should be kept; false → caller must keep `before`.
+   */
+  const commitLivePayrollRosterEdit = useCallback((before: WeekEmployee[], next: WeekEmployee[]): boolean => {
+    const findings = detectHoursCollapse(before, next);
+    if (findings.length > 0) {
+      const needDialog = isPayrollHoursCollapseConfirmEnabled();
+      if (needDialog) {
+        const ok = window.confirm(formatHoursCollapseConfirmMessage(findings));
+        if (!ok) {
+          cancelPayrollDomainPush();
+          return false;
+        }
+      }
+      // D2 ACK (or kill-switch auto) → intentionalHoursClear for D3
+      refreshSavedActiveWeekSnapshot(next);
+      schedulePayrollDomainPush(next, { intentionalHoursClear: true }, before);
+      return true;
+    }
     refreshSavedActiveWeekSnapshot(next);
-    schedulePayrollDomainPush(next);
+    schedulePayrollDomainPush(next, undefined, before);
+    return true;
   }, [refreshSavedActiveWeekSnapshot]);
 
   const addFromDirectory = (ids: string[]) => {
@@ -1628,13 +1682,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       payrollTraceBumpRosterRevision();
       if (newEmps.length > 0) {
+        // W2 add — no skipPayrollGuard / no intentionalHoursClear (CREATED, no D2)
         void withKwWeekEmployeesAsyncMutation(() =>
           pwrPush({
             roster: next,
             weekFrom,
             weekTo,
+            rosterBefore: prev,
             revokeIdentities: newEmps,
-            options: { skipPayrollGuard: true },
           }),
         ).catch((e) => {
           const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
@@ -1655,15 +1710,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekEmployees((prev) => {
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
-        void withKwWeekEmployeesAsyncMutation(() =>
-          pwrRemove({
+        // Remove ≠ D2 hours-collapse; guard stays active (no bare skip)
+        void withKwWeekEmployeesAsyncMutation(async () => {
+          await pwrRemove({
             weekFrom,
             weekTo,
             employeeId: id,
             currentRoster: prev,
-            options: { skipPayrollGuard: true },
-          }),
-        ).catch((e) => {
+          });
+        }).catch((e) => {
           const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
           toast.error("Nie udało się zapisać składu do chmury", {
             description: msg,
@@ -1678,10 +1733,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   };
 
   const clearAllWeekEmployees = () => {
+    // IC-7 — clear-all outside D2 hours gate; intentionalHoursClear for D3 after UI confirm
     withPayrollWeekEmployeesWriteSource("clearAllWeekEmployees", () => {
       setWeekEmployees([]);
     });
-    persistPayrollRoster([]);
+    persistPayrollRoster([], { intentionalHoursClear: true }, weekEmployees);
     refreshSavedActiveWeekSnapshot([]);
   };
 
@@ -1689,6 +1745,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const newEmps = filterProductionActiveDirectory(directory)
       .filter(isProductionDirectoryEmployee)
       .map(weekEmployeeFromDir);
+    // IC-7 — replace-all outside D2 hours gate (new UUIDs); intentionalHoursClear after UI confirm
     withPayrollWeekEmployeesWriteSource("replaceWeekWithAllActive", () => {
       setWeekEmployees(newEmps);
     });
@@ -1697,8 +1754,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         roster: newEmps,
         weekFrom,
         weekTo,
+        rosterBefore: weekEmployees,
         revokeIdentities: newEmps,
-        options: { skipPayrollGuard: true },
+        options: { intentionalHoursClear: true },
       }),
     ).catch((e) => {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
@@ -1731,7 +1789,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
           };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1756,7 +1816,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             dataUpdatedAt: now,
           };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1778,7 +1840,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           changed = true;
           return { ...e, days, dataUpdatedAt: now };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1797,7 +1861,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           changed = true;
           return { ...e, rate, rateUpdatedAt: now };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1818,7 +1884,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           changed = true;
           return { ...e, prevSaturday, dataUpdatedAt: now };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1841,7 +1909,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           changed = true;
           return { ...e, payrollCarryForward, dataUpdatedAt: now };
         });
-        if (changed) commitLivePayrollRosterEdit(next);
+        if (changed) {
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+        }
         return next;
       });
       });
@@ -1863,6 +1933,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
         });
         if (!changed) return prev;
+        if (!commitLivePayrollRosterEdit(prev, next)) return prev;
         const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
         if (
           existing
@@ -1880,7 +1951,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
           setSavedWeeks(archive);
         }
-        commitLivePayrollRosterEdit(next);
         return next;
       });
       });
@@ -1993,7 +2063,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       withPayrollWeekEmployeesWriteSource("toggleSettled", () => {
         setWeekEmployees((prev) => {
           const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
-          commitLivePayrollRosterEdit(next);
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
           return next;
         });
       });

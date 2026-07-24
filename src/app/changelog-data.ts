@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.42",
+    label: "PAYROLL-IMPLEMENT-02 D2+D3 — domain gate + intentionalHoursClear",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac — D2 Domain Gate + confirm przy wyzerowaniu godzin (D14); D3 skipPayrollGuard wyłącznie gdy intentionalHoursClear=true. Cancel = brak zapisu Cloud. Bez D4/D5.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.41",
     label: "PAYROLL-IMPLEMENT-01 D1 — write-path telemetry (passive)",
     items: [

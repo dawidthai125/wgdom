@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.42 — PAYROLL-IMPLEMENT-02 D2+D3 (domain gate + intentionalHoursClear)
+
+- **fix:** D2 Domain Gate + UI confirm for hours collapse (D14 thresholds); Cancel = no Cloud write / UI keeps before
+- **fix:** D3 `skipPayrollGuard` only when `intentionalHoursClear === true` (guardStrict ON)
+- **lib:** `payroll-hours-collapse-gate.ts` · sticky intentional in domain-push debounce
+- **IC-7:** rollover / clear-all / replace-all outside D2 hours gate (clear/replace use intentionalHoursClear after existing UI confirm)
+- **bez** D4 Recovery Banner · D5 Soft Restore · bez zmiany W1/W2 entry / `weekEmployeeFromDir` / resurrection / SSOT
+- **test:** `scripts/test-payroll-hours-collapse-gate-d2-d3.mjs`
+
 ## 2.65.41 — PAYROLL-IMPLEMENT-01 D1 (write-path telemetry)
 
 - **improve:** Passive write-path forensic ring (`payroll.write_path`) on domain flush / `pwrPush` / `pwrAdd` / `pwrRemove`

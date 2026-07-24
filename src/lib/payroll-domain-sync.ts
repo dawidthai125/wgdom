@@ -4,15 +4,22 @@
  */
 
 import type { WeekEmployee } from "@/app/app-domain";
+import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 
 /** Debounce edycji pól — scala szybkie zmiany przed jednym batch-set. */
 export const PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS = 1000;
 
-export type PayrollDomainPushHandler = (roster: WeekEmployee[]) => void;
+export type PayrollDomainPushHandler = (
+  roster: WeekEmployee[],
+  options?: PushWeekEmployeesOptions,
+  rosterBefore?: WeekEmployee[],
+) => void;
 
 let pushHandler: PayrollDomainPushHandler | null = null;
 let pendingRoster: WeekEmployee[] | null = null;
+let pendingRosterBefore: WeekEmployee[] | undefined;
+let pendingOptions: PushWeekEmployeesOptions | undefined;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function bindPayrollDomainPushHandler(handler: PayrollDomainPushHandler): void {
@@ -24,8 +31,27 @@ export function unbindPayrollDomainPushHandler(): void {
   pushHandler = null;
 }
 
-export function schedulePayrollDomainPush(roster: WeekEmployee[]): void {
+/**
+ * @param rosterAfter — roster po edycji
+ * @param options — D2/D3 push options (intentionalHoursClear)
+ * @param rosterBefore — pre-edit snapshot for D2 domain gate (captured at schedule, not flush)
+ */
+export function schedulePayrollDomainPush(
+  roster: WeekEmployee[],
+  options?: PushWeekEmployeesOptions,
+  rosterBefore?: WeekEmployee[],
+): void {
   pendingRoster = roster;
+  // Keep earliest baseline in debounce window (partial wipe across rapid edits)
+  if (rosterBefore !== undefined && pendingRosterBefore === undefined) {
+    pendingRosterBefore = rosterBefore;
+  }
+  // Sticky intentionalHoursClear once ACK'd in this debounce window
+  if (options?.intentionalHoursClear === true || pendingOptions?.intentionalHoursClear === true) {
+    pendingOptions = { intentionalHoursClear: true, skipPayrollGuard: true };
+  } else {
+    pendingOptions = options;
+  }
   if (debounceTimer != null) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
@@ -39,13 +65,19 @@ export function cancelPayrollDomainPush(): void {
     debounceTimer = null;
   }
   pendingRoster = null;
+  pendingRosterBefore = undefined;
+  pendingOptions = undefined;
 }
 
 /** Natychmiastowy push (testy / flush przed unload). */
 export function flushPayrollDomainPush(): void {
   if (!pushHandler || pendingRoster == null) return;
   const roster = pendingRoster;
+  const options = pendingOptions;
+  const rosterBefore = pendingRosterBefore;
   pendingRoster = null;
+  pendingOptions = undefined;
+  pendingRosterBefore = undefined;
   // D1 passive — telemetry only; does not alter handler / roster
   try {
     let weekFrom = "";
@@ -58,10 +90,13 @@ export function flushPayrollDomainPush(): void {
       source: "domain_push_flush",
       weekFrom,
       weekTo,
+      rosterBefore,
       rosterAfter: roster,
+      intentionalHoursClear: options?.intentionalHoursClear,
+      skipPayrollGuard: options?.skipPayrollGuard,
     });
   } catch { /* ignore */ }
-  pushHandler(roster);
+  pushHandler(roster, options, rosterBefore);
 }
 
 export function hasPendingPayrollDomainPush(): boolean {

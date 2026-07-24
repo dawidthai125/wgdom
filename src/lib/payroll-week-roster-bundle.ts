@@ -24,6 +24,10 @@ import {
   schedulePayrollDomainPush,
   unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-domain-sync";
+import {
+  assertHoursCollapseAllowedOrThrow,
+  resolvePayrollDomainPushOptions,
+} from "@/lib/payroll-hours-collapse-gate";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 
 export {
@@ -47,6 +51,8 @@ export type PwrPushParams = {
   weekFrom: string;
   weekTo: string;
   tombstones?: string[];
+  /** Pre-edit roster — D2 domain gate (hours collapse without intentionalHoursClear → throw). */
+  rosterBefore?: WeekEmployee[];
   /** RC-B-1 revoke przed push (add / replace-all — te same tożsamości co w rosterze). */
   revokeIdentities?: Array<{ id?: string; directoryId?: string; name?: string }>;
   options?: PushWeekEmployeesOptions;
@@ -73,17 +79,18 @@ export async function pwrAdd(params: {
   const next = [...params.currentRoster, ...newEmps];
   removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
   const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+  const resolved = resolvePayrollDomainPushOptions(params.options);
   emitPayrollWritePathTelemetry({
     source: "pwrAdd",
     weekFrom: params.weekFrom,
     weekTo: params.weekTo,
     rosterBefore: params.currentRoster,
     rosterAfter: next,
-    intentionalHoursClear: params.options?.intentionalHoursClear,
-    skipPayrollGuard: params.options?.skipPayrollGuard,
+    intentionalHoursClear: resolved.intentionalHoursClear,
+    skipPayrollGuard: resolved.skipPayrollGuard,
   });
   try {
-    await pushWeekEmployeesToCloud(next, params.options);
+    await pushWeekEmployeesToCloud(next, resolved);
     return { roster: next, tombstones, changed: true, pushed: true };
   } catch {
     return { roster: next, tombstones, changed: true, pushed: false };
@@ -109,17 +116,18 @@ export async function pwrRemove(params: {
   const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
   addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
   const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+  const resolved = resolvePayrollDomainPushOptions(params.options);
   emitPayrollWritePathTelemetry({
     source: "pwrRemove",
     weekFrom: params.weekFrom,
     weekTo: params.weekTo,
     rosterBefore: params.currentRoster,
     rosterAfter: next,
-    intentionalHoursClear: params.options?.intentionalHoursClear,
-    skipPayrollGuard: params.options?.skipPayrollGuard,
+    intentionalHoursClear: resolved.intentionalHoursClear,
+    skipPayrollGuard: resolved.skipPayrollGuard,
   });
   try {
-    await pushWeekEmployeesToCloud(next, params.options);
+    await pushWeekEmployeesToCloud(next, resolved);
     return { roster: next, tombstones, changed: true, pushed: true };
   } catch {
     return { roster: next, tombstones, changed: true, pushed: false };
@@ -131,15 +139,21 @@ export async function pwrPush(params: PwrPushParams): Promise<void> {
     removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
   }
   reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);
+  const resolved = resolvePayrollDomainPushOptions(params.options);
+  // D2 domain gate — block hours collapse without intentionalHoursClear (UI dialog is presentation only)
+  if (params.rosterBefore) {
+    assertHoursCollapseAllowedOrThrow(params.rosterBefore, params.roster, resolved);
+  }
   emitPayrollWritePathTelemetry({
     source: "pwrPush",
     weekFrom: params.weekFrom,
     weekTo: params.weekTo,
+    rosterBefore: params.rosterBefore,
     rosterAfter: params.roster,
-    intentionalHoursClear: params.options?.intentionalHoursClear,
-    skipPayrollGuard: params.options?.skipPayrollGuard,
+    intentionalHoursClear: resolved.intentionalHoursClear,
+    skipPayrollGuard: resolved.skipPayrollGuard,
   });
-  await pushWeekEmployeesToCloud(params.roster, params.options);
+  await pushWeekEmployeesToCloud(params.roster, resolved);
 }
 
 export async function pwrPullMerge(params: {

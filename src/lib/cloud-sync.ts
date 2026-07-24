@@ -1,4 +1,5 @@
 import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
+import { maySkipPayrollShrinkGuard } from "./payroll-hours-collapse-gate.ts";
 import {
   evaluatePayrollResurrectionFence,
   stripLocalOnlyArchiveWeek,
@@ -1381,8 +1382,16 @@ export type PushKeysToCloudOptions = {
   replaceJobsKeys?: string[];
   replaceDirectoryKeys?: string[];
   replaceWeekEmployeesKeys?: string[];
-  /** Restore script / jawny bypass guarda. */
+  /**
+   * Legacy bare bypass — D3: ignored when guardStrict ON unless intentionalHoursClear.
+   * Prefer intentionalHoursClear after D2 ACK.
+   */
   skipPayrollGuard?: boolean;
+  /**
+   * PAYROLL-DF D3 — intentional hours clear (sole skipPayrollGuard trigger when guardStrict ON).
+   * ≠ isIntentionalPayrollWeekClear (empty week after archive).
+   */
+  intentionalHoursClear?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
   cloudWeekEmployees?: unknown;
 };
@@ -1391,7 +1400,7 @@ export type PushWeekEmployeesOptions = {
   skipPayrollGuard?: boolean;
   /**
    * PAYROLL-DF D3 — intentional hours clear (guard bypass).
-   * D1 logs this field only; does not interpret for control flow.
+   * skipPayrollGuard effective only when this is true (guardStrict ON).
    */
   intentionalHoursClear?: boolean;
 };
@@ -1404,7 +1413,15 @@ async function applyPayrollGuardBeforePush(
   const opts: PushKeysToCloudOptions = { ...(options ?? {}) };
   const empIdx = keys.indexOf("kw-week-employees");
   if (empIdx < 0) return { keys, values, options: opts, blocked: false };
-  if (opts.skipPayrollGuard) return { keys, values, options: opts, blocked: false };
+  // D3: skip shrink guard only via intentionalHoursClear (or legacy kill-switch)
+  if (maySkipPayrollShrinkGuard(opts)) {
+    return {
+      keys,
+      values,
+      options: { ...opts, skipPayrollGuard: true },
+      blocked: false,
+    };
+  }
 
   const outgoing = values[empIdx];
   if (isIntentionalPayrollWeekClear(keys, values, outgoing)) {
@@ -3153,13 +3170,16 @@ export async function pushWeekEmployeesToCloud(
       roster: rosterTraceSnapshot(normalized, weekFrom, weekTo, "LS", "PRESENT"),
     });
   } catch { /* ignore */ }
+  // D3 — force-couple skipPayrollGuard to intentionalHoursClear (guardStrict ON)
+  const resolvedSkip = maySkipPayrollShrinkGuard(options);
   try {
     await pushKeysToCloud(
       ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY],
       [normalized, tombstones],
       {
         replaceWeekEmployeesKeys: ["kw-week-employees"],
-        skipPayrollGuard: options?.skipPayrollGuard,
+        intentionalHoursClear: options?.intentionalHoursClear === true,
+        skipPayrollGuard: resolvedSkip,
       },
     );
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
@@ -3188,12 +3208,12 @@ export async function pushPayrollWeekAfterRollover(params: {
     localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
     localStorage.setItem("kw-archive", JSON.stringify(archive));
   } catch { /* ignore */ }
+  // IC-7 — rollover empty week: rely on isIntentionalPayrollWeekClear (≠ intentionalHoursClear)
   await pushKeysToCloud(
     ["kw-weekFrom", "kw-weekTo", "kw-week-employees", "kw-archive"],
     [params.weekFrom, params.weekTo, normalized, archive],
     {
       replaceWeekEmployeesKeys: ["kw-week-employees"],
-      skipPayrollGuard: true,
     },
   );
 }
