@@ -1,32 +1,92 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-20 (**PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · **2.65.35**) · UI prod **2.65.35** · app **`fce7b78`** · tip **`5d6e798`**
+**Ostatnia aktualizacja:** 2026-07-24 (**WGDOM-HARDENING-01A CLOSED**) · UI prod **2.65.40** · tip **`23d7723`** · **PRODUCTION VERIFIED · GREEN**
+
+## ★ WGDOM-HARDENING-01A — Persist SSOT · **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** |
+| **Prod** | **2.65.40** @ **`23d7723`** · **PRODUCTION VERIFIED · GREEN** |
+| **Zakres** | H1 bootstrap local + ≤1 terminal cloud · H2 `bindTenderPipelineOnUpdate` · kill-switch `pipelineBootstrapPersistLocal` |
+| **OUT** | Heavy E-RUN · breaker · cloud-sync · Payroll · Autonomous FP |
+| **SSOT CLOSE** | [`docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) |
+| **SSOT PV** | [`docs/architecture/WGDOM-HARDENING-01A-PRODUCTION-VERIFICATION.md`](docs/architecture/WGDOM-HARDENING-01A-PRODUCTION-VERIFICATION.md) |
+| **CI caveat** | TEST-INFRA Gate B **TEUX-7d** GuideView `\bAI\b` — **pre-existing follow-up** · **nie** regresja 01A |
+| **Next HARDENING** | EPIC **B–E** — tylko po Owner GO (PLAN: [`WGDOM-HARDENING-01-PLAN.md`](docs/architecture/WGDOM-HARDENING-01-PLAN.md)) |
+
+> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.  
+> **Nie** startuj EPIC B/C/D/E / ARCH-02F / N2 bez jawnego Owner GO.
+
+---
+
+## ★ TENDERS-SYNC-STORM-P0 — **CLOSED** (superseded tip)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip feature **2.65.38** · cleanup **2.65.39** · Final Audit **PRODUCTION READY** |
+| **Aktualny tip** | **2.65.40** / **`23d7723`** (HARDENING-01A na tipie Sync Storm) |
+
+> Historyczny RELEASE HOLD / platform 522 — **zamknięty** przed 01A. Nie wznawiaj HOLD.
+
+---
 
 ## Dla przyszłych agentów — start tutaj
 
 | Pytanie | Odpowiedź / plik |
 |---------|------------------|
-| **Co to za aplikacja?** | W&G DOM — React monolit · admin / inspektor / pracownik · [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
-| **Mapa widoków i architektura UI?** | [`docs/AGENT-APP-MAP.md`](docs/AGENT-APP-MAP.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §4 |
-| **Obostrzenia (#CORE, Owner GO, LP)?** | [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md) §0 „Obostrzenia” · [`docs/WORKFLOW-OWNER-GO.md`](docs/WORKFLOW-OWNER-GO.md) · [`docs/architecture/CORE-01A-CHANGE-CHECKLIST.md`](docs/architecture/CORE-01A-CHANGE-CHECKLIST.md) |
-| **Baseline prod (UI)** | **2.65.35** · app commit **`fce7b78`** · tip docs **`5d6e798`** |
-| **main HEAD** | **`5d6e798`** (docs closeout) · app release **`fce7b78`** |
-| **★ Lista Płac — nie psuj** | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · **resurrection fence** · rollover classifier · PWRB · gate B payroll |
-| **Ostatnio zamknięte** | **PAYROLL-CLOUD-RESURRECTION-01** (**2.65.35**) · **PAYROLL-P0-WEEK-ROLLOVER-01** (**2.65.34**) · TEST-HARNESS H0–H3 · DEADLOCK-N1 |
-| **OPEN (Owner)** | **ARCH-02F** · **H0.x Persist Ledger** · dalsze sandbox H* — tylko po GO |
-| **Co dalej?** | **STABILIZATION WINDOW** · czekaj Owner GO · **nie** omijaj fence / nie mixed CORE+FEATURE |
+| **Baseline prod (UI)** | **2.65.40** · tip **`23d7723`** · [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **AI Knowledge Base** | [`docs/AI/README.md`](docs/AI/README.md) → Guardrails → Baseline |
+| **Ostatnio zamknięte** | **HARDENING-01A** · Sync Storm P0 · Incident 23.07 cleanup · Resurrection · Rollover · H5 |
+| **OPEN (Owner GO)** | HARDENING **B–E** · ARCH-02F · H0.x · DEADLOCK-N2 · CI TEUX-7d |
+| **Co dalej?** | Owner GO na kolejny EPIC (prefer B0 monitor / D / E — nie C bez CORE GO) |
 
 > **PAYROLL-CLOUD-RESURRECTION-01 CLOSED:** UI **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`
 
+
 > **PAYROLL-P0-WEEK-ROLLOVER-01 CLOSED:** UI **2.65.34** @ **`e38610a`** · `classifyPayrollWeekTransition` · SSOT [`docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)
 
-> **TEST-HARNESS-01 H0–H3:** tooling **RELEASED** · UI version przy H* często bez zmiany · H0.x / dalsze H **nie startuj** bez GO
+> **TEST-HARNESS-01 H5 CLOSED:** tip **`3356349`** · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · **STABILIZATION WINDOW ACTIVE** · SSOT [`docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md)
+
+> **TEST-HARNESS-01 H0–H5:** tooling **RELEASED** · tip **`3356349`** · UI **2.65.35** bez bumpu · H0.x / H3-B/C **nie startuj** bez GO · SSOT [`docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md)
+
+> **TEST-HARNESS-01 H4 CLOSED:** tip **`1addd97`** · H0–H4 tooling **RELEASED** · SSOT [`docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md`](docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md)
 
 > **LOCALSTORAGE-ARCH-02 A–E CLOSED:** UI **2.65.28** @ **`d896852`** · F **GO** / not started · SSOT [`docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](docs/architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md)
 
 **Zasada:** każda nowa funkcjonalność musi przejść **#CORE-013** (brak mixed bundle z LP/sync) i **#CORE-014** (boundary check przed commitem).
 
 > **POST INCIDENT STANDBY:** prod **GREEN** · Resurrection + Rollover **CLOSED** · Protected Core / Payroll / Cloud Sync / Pipeline **GREEN**. **Nie implementuj** bez Owner GO.
+
+---
+
+## TEST-HARNESS-01 H5 — Biblioteka / Work Catalog prod sandbox · **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tooling **RELEASED** · otwarte działania H5 **BRAK** |
+| **Prod tip** | **`3356349`** · UI **2.65.35** (bez bumpu) · **PRODUCTION VERIFIED · GREEN** |
+| **Zakres** | `h5-biblioteka` KV-only · `kw-wgdom-work-catalog` · RMW · FORBIDDEN payroll+cost-catalog · PSB-001 |
+| **OUT** | Playwright hard · Core/Payroll/Theme/Edge · cost-catalog write · H3-B/C · H0.x |
+| **Test** | `npm run test:prod-sandbox -- --scenario h5-biblioteka --allow-prod` |
+| **SSOT** | [`docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md) |
+| **H0–H5** | **RELEASED** · next: **H0.x** (READY) lub H3-B/C — tylko po GO |
+| **Projekt** | **STABILIZATION WINDOW ACTIVE** |
+
+---
+
+## TEST-HARNESS-01 H4 — Cloud KV-only prod sandbox · **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tooling **RELEASED** · otwarte działania H4 **BRAK** |
+| **Prod tip** | **`1addd97`** · UI **2.65.35** (bez bumpu) · **PRODUCTION VERIFIED · GREEN** |
+| **Zakres** | `h4-cloud` KV-only · nested `psb-*` · FORBIDDEN keys · PSB-001 · soft metrics WARNING |
+| **OUT** | Playwright · Core/Payroll/Theme/Edge · H3-B/C · dual-writer |
+| **Test** | `npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod` |
+| **SSOT** | [`docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md`](docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md) |
+| **H0–H4** | **RELEASED** (superseded tip by H5 **`3356349`**) |
+| **Projekt** | **STABILIZATION WINDOW ACTIVE** |
 
 ---
 

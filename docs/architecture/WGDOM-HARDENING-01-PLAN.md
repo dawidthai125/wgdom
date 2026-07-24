@@ -1,12 +1,12 @@
 # WGDOM-HARDENING-01 — PLAN
 
 > **ID:** WGDOM-HARDENING-01  
-> **STATUS:** PLAN COMPLETE  
+> **STATUS:** PLAN COMPLETE · **EPIC A CLOSED** @ 2.65.40 / `23d7723`  
 > **Data:** 2026-07-24  
-> **Owner GO:** APPROVED (PLAN only)  
+> **Owner GO:** APPROVED (PLAN only) · EPIC A: CLOSEOUT [`WGDOM-HARDENING-01A-CLOSEOUT.md`](./WGDOM-HARDENING-01A-CLOSEOUT.md)  
 > **Wejście:** [`WGDOM-HARDENING-01-AUDIT.md`](./WGDOM-HARDENING-01-AUDIT.md) · [`WGDOM-HARDENING-01-RCA.md`](./WGDOM-HARDENING-01-RCA.md)  
 > **Poza zakresem tej fazy:** implementacja · refactor · commit · push · DESIGN FREEZE (osobne artefakty per EPIC)  
-> **Baseline tip:** `e666443` · UI **2.65.39** · Sync Storm P0 **PRODUCTION READY** (nie naruszać)
+> **Baseline tip:** **`23d7723`** · UI **2.65.40** · Sync Storm P0 **PRODUCTION READY** (nie naruszać) · EPIC A **CLOSED**
 
 ```text
 ══════════════════════════════════════
@@ -41,7 +41,10 @@ EPICs: A Persist · B Breaker · C CORE Sync · D Monitor · E Autonomous FP
 
 ---
 
-## EPIC A — Persist SSOT (H1 + H2)
+## EPIC A — Persist SSOT (H1 + H2) · **CLOSED** @ 2.65.40 / `23d7723`
+
+> **CLOSEOUT:** [`WGDOM-HARDENING-01A-CLOSEOUT.md`](./WGDOM-HARDENING-01A-CLOSEOUT.md) · PV tip GREEN.  
+> Następny start: EPIC B/D/E — tylko po Owner GO.
 
 ### Cel
 

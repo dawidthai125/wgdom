@@ -1,23 +1,33 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-20 (**PAYROLL-CLOUD-RESURRECTION-01** CLOSED) · prod **2.65.35** @ `fce7b78` · tip docs `5d6e798` · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE**
-> **Poprzedni baseline app:** 2026-07-20 (**PAYROLL-P0-WEEK-ROLLOVER-01**) · **2.65.34** @ `e38610a`
+> **Data closeout:** 2026-07-24 (**WGDOM-HARDENING-01A CLOSED**) · prod **2.65.40** · tip **`23d7723`** · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**  
+> **SSOT AI baseline:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · Closeout [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md)  
+> **Poprzedni tip:** **2.65.39** @ `e666443` (Incident 23.07 cleanup) · Sync Storm P0 **2.65.38**  
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b / § 4.4 — **nie psuj LP przy FEATURE** · **nie omijaj resurrection fence**
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4  
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”
 
+> **★★ WGDOM-HARDENING-01A:** **CLOSED** (2026-07-24) · **2.65.40** @ **`23d7723`** · Persist SSOT H1+H2 · SSOT [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) · CI TEUX-7d = osobny follow-up  
+> **★★ TENDERS-SYNC-STORM-P0:** **CLOSED** · **2.65.38** · Final Audit READY · tip supersedowany przez 01A  
 > **★★ PAYROLL-CLOUD-RESURRECTION-01:** **CLOSED** (2026-07-20) · **2.65.35** @ **`fce7b78`** · dual-session smoke **PASS** · SSOT [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts`  
 > **★★ PAYROLL-P0-WEEK-ROLLOVER-01:** **CLOSED** (2026-07-20) · **2.65.34** @ **`e38610a`** · SSOT [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)  
-> **★★ TEST-HARNESS-01 H0–H3:** tooling **RELEASED** · H0.x Persist Ledger **READY** · **nie implementować** bez Owner GO
+> **★★ TEST-HARNESS-01 H5:** **CLOSED** (2026-07-21) · tip **`3356349`** · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md)  
+> **★★ TEST-HARNESS-01 H4:** **CLOSED** (2026-07-20) · tip **`1addd97`** · SSOT [`architecture/TEST-HARNESS-01-H4-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H4-CLOSEOUT.md)  
+> **★★ TEST-HARNESS-01 H0–H5:** tooling **RELEASED** · H0.x / H3-B/C **nie implementować** bez Owner GO · **STABILIZATION WINDOW ACTIVE**
 
 **Wejście dla nowej sesji:**
 
 ```text
-0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync (START dla AI)
+0. docs/AI/README.md                      ← ★★★ AI Knowledge Base (START dla nowego AI)
+0b. docs/AI/09_PRODUCTION_BASELINE.md     ← tip 2.65.40 / 23d7723
+0c. docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md  ← ★★ 01A CLOSED
+0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
+0h5. docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md  ← ★★ TEST-HARNESS-01 H5 CLOSED (`3356349`)
+0h4. docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md  ← ★★ TEST-HARNESS-01 H4 CLOSED (`1addd97`)
 0p. docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md  ← ★★ LP bootstrap fence (CLOSED · 2.65.35)
 0r. docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md    ← ★★ rollover ALIGN/ROLLOVER (CLOSED · 2.65.34)
 1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
@@ -1017,6 +1027,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **TEST-HARNESS-01 H0** | `npm run test:prod-sandbox` · `npm run test:infra -- --suite prod-sandbox-h0` · **RELEASED** `df6d153` |
 | **TEST-HARNESS-01 H1** | `npm run test:prod-sandbox -- --scenario h1-tender --allow-prod` · suite `prod-sandbox-h1` · **RELEASED** `b482687` |
 | **TEST-HARNESS-01 H2** | `npm run test:prod-sandbox -- --scenario h2-jobs-photos --allow-prod` · suite `prod-sandbox-h2` · **RELEASED** `c919d16` |
+| **TEST-HARNESS-01 H3-A** | `npm run test:prod-sandbox -- --scenario h3-payroll --allow-prod` · suite `prod-sandbox-h3` · **RELEASED** |
+| **TEST-HARNESS-01 H4** | `npm run test:prod-sandbox -- --scenario h4-cloud --allow-prod` · suite `prod-sandbox-h4` · **RELEASED** `1addd97` |
+| **TEST-HARNESS-01 H5** | `npm run test:prod-sandbox -- --scenario h5-biblioteka --allow-prod` · suite `prod-sandbox-h5` · **RELEASED** `3356349` |
 
 **Ostatni znany CI E2E:** `#27260457990` (20.5Z.2B) — regresja po 20.7/2.1 lokalnie: build + smoke 2.1 PASS.
 
@@ -1057,8 +1070,11 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **TEST-HARNESS-01 H0** | Production Sandbox foundations (`psb-*`, allowlist, PSB-001 cleanup) | **RELEASED** (`df6d153`) · tooling only |
 | **TEST-HARNESS-01 H1** | Tender sandbox (`h1-tender`, H1-001, hybrid KV+Playwright) | **RELEASED** (`b482687`) · tooling only |
 | **TEST-HARNESS-01 H2** | Jobs photos (`h2-jobs-photos`, H2-001 Sync Stability Window) | **RELEASED** (`c919d16` / `f06b40d`) · tooling only |
-| **TEST-HARNESS-01 H0.x** | Persist Ledger — orphan recovery po kill procesu | **READY** · **nie implementować** bez Owner GO |
-| **TEST-HARNESS-01 H3–H5** | Payroll / Cloud / Biblioteka scenarios | **NOT STARTED** · czekaj Owner GO |
+| **TEST-HARNESS-01 H3-A** | Payroll read-only (`h3-payroll`) | **RELEASED** · tooling only |
+| **TEST-HARNESS-01 H4** | Cloud KV-only (`h4-cloud`, FORBIDDEN keys, PSB-001) | **CLOSED** + tooling **RELEASED** (`1addd97`) · SSOT [`architecture/TEST-HARNESS-01-H4-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H4-CLOSEOUT.md) |
+| **TEST-HARNESS-01 H5** | Biblioteka / Work Catalog (`h5-biblioteka`, `kw-wgdom-work-catalog`) | **CLOSED** + tooling **RELEASED** (`3356349`) · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md) |
+| **TEST-HARNESS-01 H0.x** | Persist Ledger — orphan recovery po kill procesu | **READY** · **nie implementować** bez Owner GO · **preferowany next** |
+| **TEST-HARNESS-01 H3-B/C** | Payroll write scenarios | **NOT STARTED** · czekaj Owner GO |
 
 ---
 

@@ -1,0 +1,202 @@
+# 12 — Decision Log (WGDOM)
+
+> Najważniejsze decyzje architektoniczne. **Obowiązuje = TAK** dopóki Owner nie superseduje DF/ADR.
+
+---
+
+## D-01 — Vite/React SPA (nie Next.js)
+
+| | |
+|--|--|
+| **Data** | historyczna / utrzymana |
+| **Powód** | PWA + Capacitor + prosty deploy Vercel |
+| **Alternatywy** | Next SSR |
+| **Dlaczego** | Brak wymogu SSR; monolit admin już na Vite |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-02 — LocalStorage + Supabase KV jako primary data plane
+
+| | |
+|--|--|
+| **Data** | foundational |
+| **Powód** | Offline-ish admin, multi-device merge |
+| **Alternatywy** | pure Postgres rows / Firebase |
+| **Dlaczego** | Szybkość UI + Edge batch API |
+| **Obowiązuje** | **TAK** (ADR Sync = ewolucja, nie wymiana z dnia na dzień) |
+
+---
+
+## D-03 — Single Edge Function `make-server-0afb8820`
+
+| | |
+|--|--|
+| **Powód** | Jeden kontrakt API app |
+| **Alternatywy** | wiele functions |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-04 — Deploy FE tylko przez `git push main` → Vercel
+
+| | |
+|--|--|
+| **Powód** | Determinizm, zero CLI drift |
+| **Zakaz** | `vercel deploy` |
+| **Obowiązuje** | **TAK** · `WORKFLOW-RELEASE-DEPLOY.md` |
+
+---
+
+## D-05 — VERIFY DEPLOY FAST (jedno curl)
+
+| | |
+|--|--|
+| **Powód** | Uniknąć agent loops na propagacji |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-06 — Owner GO + Stabilization Window
+
+| | |
+|--|--|
+| **Data** | 2026-07 |
+| **Powód** | Chronić CORE po serii P0 |
+| **Obowiązuje** | **TAK** · `#WORKFLOW-OWNER-GO-001` |
+
+---
+
+## D-07 — #CORE-013 zero mixed bundles
+
+| | |
+|--|--|
+| **Powód** | Regresje LP przy FEATURE |
+| **Obowiązuje** | **TAK** · CORE-01A |
+
+---
+
+## D-08 — Payroll Domain Push + PWRB + Fence + Rollover classifier
+
+| | |
+|--|--|
+| **Data** | 2026-07 (seria) |
+| **Powód** | Cross-device LP; anty-resurrection; ALIGN≠wipe |
+| **Alternatywy** | pełny RS push payroll; free-form roster edits |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-09 — Photos union merge + delete tombstones
+
+| | |
+|--|--|
+| **Data** | 2026-07 |
+| **Powód** | Utrata / resurrect zdjęć |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-10 — Tender Workflow V4 SSOT (`WORKFLOW-ARCHITECTURE-v2.63`)
+
+| | |
+|--|--|
+| **Powód** | Jedna nawigacja Hub/CTA/tabs |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-11 — TEUX token freeze (typography import-only)
+
+| | |
+|--|--|
+| **Powód** | Spójność design systemu Przetargi |
+| **Wyjątek** | TWSL layout tokens z Owner GO |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-12 — Sync Storm P0: E-RUN bez builtAt; partial local; final cloud
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 |
+| **Powód** | Incident 23.07 — pętla fat persist |
+| **Alternatywy** | debounce-only; Edge chunk only |
+| **Dlaczego** | Usuwa root cause restartu; chunk to osobny epic |
+| **Obowiązuje** | **TAK** · Final Audit READY |
+
+---
+
+## D-13 — Deadlock retry tylko 40P01 (nie CF 522)
+
+| | |
+|--|--|
+| **Data** | 2026-07 · N1 |
+| **Powód** | Transient DB deadlock ≠ origin timeout HTML |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-14 — Theme-01C next-themes standard (#THEME-020)
+
+| | |
+|--|--|
+| **Data** | 2026-07 |
+| **Powód** | FOUC / dual bridges |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-15 — LOCALSTORAGE-ARCH-02 A–E (IDB cold); 02F gated
+
+| | |
+|--|--|
+| **Data** | 2026-07 |
+| **Powód** | Quota / cold storage |
+| **02F** | GO ale **NOT STARTED** bez IMPLEMENT |
+| **Obowiązuje** | A–E **TAK**; 02F **GATED** |
+
+---
+
+## D-16 — Diag AUTO_ENABLE OFF po Incident 23.07 cleanup
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 · 2.65.39 |
+| **Powód** | Hałas / ryzyko na prod |
+| **KEEP DEBUG** | API zostaje, default off |
+| **Obowiązuje** | **TAK** |
+
+---
+
+## D-17 — ADR Cloud Sync = PROPOSED (Evidence Gate OPEN)
+
+| | |
+|--|--|
+| **Powód** | Duża migracja wymaga dowodów |
+| **IMPL** | **BLOCKED** do Gate |
+| **Obowiązuje** | Status ADR **TAK** |
+
+---
+
+## D-18 — HARDENING-01A Persist SSOT (bootstrap local + opts forward)
+
+| | |
+|--|--|
+| **Data** | 2026-07-24 · **2.65.40** · **`23d7723`** |
+| **Powód** | Residual Final Audit H1/H2 — fat cloud przy bootstrap / drop opts w UI |
+| **Decyzja** | Mid-flight `{persist:"local"}` · ≤1 terminal `{persist:"cloud"}` · `bindTenderPipelineOnUpdate` · kill-switch `pipelineBootstrapPersistLocal` default ON |
+| **OUT** | Heavy E-RUN / breaker / `builtAt` / cloud-sync / Payroll |
+| **Alternatywy** | Global debounce ON; thinner payload only |
+| **Dlaczego** | Reuse istniejącego `TenderItemUpdateOpts` bez naruszania Sync Storm P0 |
+| **Obowiązuje** | **TAK** · Closeout [`WGDOM-HARDENING-01A-CLOSEOUT.md`](../architecture/WGDOM-HARDENING-01A-CLOSEOUT.md) |
+
+---
+
+## Jak dodać decyzję
+
+1. Nowy wpis D-xx z datą, powodem, alternatywami.  
+2. Link do DF/ADR/Closeout.  
+3. Ustaw **Obowiązuje**.  
+4. Jeśli superseduje starą — oznacz starą **NIE** + pointer.
