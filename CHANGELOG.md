@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.44 — Theme toggle Inspektor + Pracownik
+
+- **improve:** SSOT `ThemeToggle` (wydzielony z AdminTopbar) także w Panelu Inspektora i Panelu Pracownika
+- **bez** zmian ThemeProvider / storageKey / logiki motywów / RBAC / layoutów
+
 ## PAYROLL EPIC CLOSED — Hours-wipe protection (2026-07-24)
 
 - **status:** **CLOSED** · **PRODUCTION VERIFIED** · UI tip **2.65.43** · feature **`ea1b0a6`**

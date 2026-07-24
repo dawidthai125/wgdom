@@ -1,5 +1,6 @@
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import { ThemeToggle } from "@/app/theme/ThemeToggle";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   BookOpen,
@@ -190,6 +191,7 @@ export function InspectorCommandLayer({
           <BookOpen size={14} />
           <span className="hidden sm:inline">Pomoc</span>
         </button>
+        <ThemeToggle />
         <button
           type="button"
           onClick={onLogout}

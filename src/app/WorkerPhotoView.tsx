@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import { ThemeToggle } from "@/app/theme/ThemeToggle";
 import { useWorkerPrivacyShield } from "@/app/hooks/useWorkerPrivacyShield";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
@@ -660,9 +661,12 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
             <p className="text-[10px] text-muted-foreground">Tryb pracownika</p>
           </div>
         </div>
-        <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary transition-colors">
-          <LogOut size={13}/>Wyloguj
-        </button>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <ThemeToggle />
+          <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary transition-colors">
+            <LogOut size={13}/>Wyloguj
+          </button>
+        </div>
       </div>
 
       {!selectedJob && (

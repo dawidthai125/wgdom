@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-24",
+    version: "2.65.44",
+    label: "Theme toggle — Inspektor + Pracownik",
+    items: [
+      {
+        type: "improve",
+        text: "Motyw Jasny/Ciemny — ten sam przełącznik co w panelu Admin/Moderator także w Panelu Inspektora i Panelu Pracownika (SSOT ThemeToggle, bez zmian Providera).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-24",
     version: "2.65.43",
     label: "PAYROLL-IMPLEMENT-03 D4+D5 — -prev recovery banner + Soft Restore",
     items: [

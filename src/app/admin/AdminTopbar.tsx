@@ -10,11 +10,8 @@ import {
   Search,
   Settings,
   LogOut,
-  Moon,
-  Sun,
 } from "lucide-react";
-import { useTheme } from "@/app/theme/WgdomThemeProvider";
-import type { WgThemeId } from "@/app/theme/theme-engine";
+import { ThemeToggle } from "@/app/theme/ThemeToggle";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { fmt, fmtDate } from "@/app/app-domain";
@@ -76,11 +73,6 @@ export function AdminTopbar({
   onOpenAdminSettings,
   onLogout,
 }: AdminTopbarProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const activeTheme = (resolvedTheme ?? theme ?? "dark") as WgThemeId;
-  const isDark = activeTheme === "dark";
-  const themeToggleTitle = isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw";
-
   return (
     <div
       className="admin-topbar flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0 min-h-[3rem]"
@@ -124,15 +116,7 @@ export function AdminTopbar({
             <CompanyMusicPlayer />
           </Suspense>
         </div>
-        <button
-          type="button"
-          onClick={() => setTheme(isDark ? "light" : "dark")}
-          title={themeToggleTitle}
-          aria-label={themeToggleTitle}
-          className="hidden sm:flex p-2.5 min-w-[44px] min-h-[44px] items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-        >
-          {isDark ? <Moon size={16} /> : <Sun size={16} />}
-        </button>
+        <ThemeToggle className="hidden sm:flex p-2.5 min-w-[44px] min-h-[44px] items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" />
         {view === "payroll" && canViewRates && (
           <span
             className="text-xs text-muted-foreground hidden sm:block"
