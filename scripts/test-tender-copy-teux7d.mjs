@@ -40,11 +40,17 @@ console.log("=== TEUX-7d TENDER COPY INTEGRITY ===\n");
 
 const guide = readSrc("src/app/GuideView.tsx");
 const tendersStart = guide.indexOf('id:"tenders"');
-const tendersEnd = guide.indexOf('id:"directory"', tendersStart);
+// CI-1: slice ends at ng10-autonomous-agent (exclusive). Old end `directory`
+// incorrectly included Autonomous Agent FAQ ("agentów AI") → false positive.
+const ng10Start = guide.indexOf('id:"ng10-autonomous-agent"', tendersStart);
+const directoryStart = guide.indexOf('id:"directory"', tendersStart);
+const tendersEnd =
+  ng10Start > tendersStart ? ng10Start : directoryStart > tendersStart ? directoryStart : -1;
 const przetargiSection =
   tendersStart >= 0 && tendersEnd > tendersStart
     ? guide.slice(tendersStart, tendersEnd)
     : guide;
+ok("GuideView Przetargi slice excludes Autonomous Agent", !przetargiSection.includes('id:"ng10-autonomous-agent"'));
 ok("GuideView Przetargi FAQ — Podpowiedzi listy", przetargiSection.includes("Podpowiedzi listy (rekomendacje)"));
 ok("GuideView no Komunikaty AI", !przetargiSection.includes("Komunikaty AI"));
 noUserFacingAi(przetargiSection, "GuideView Przetargi section");
