@@ -48,7 +48,8 @@ const command = readSrc("src/app/TenderDetailCommandLayer.tsx");
 ok("module nav trigger lg:hidden", command.includes("data-tender-module-nav-trigger") && command.includes("lg:hidden"));
 ok("TenderModuleNavSheet wired", command.includes("TenderModuleNavSheet"));
 ok("navigateToTendersModuleTab used", command.includes("navigateToTendersModuleTab"));
-ok("density max-[390px] pass", command.includes("max-[390px]"));
+// M-03 (`0f8a165`): breakpoint cliff 392px → density uses max-[430px] (not 390).
+ok("density max-[430px] pass", command.includes("max-[430px]"));
 ok("menu on same row as back", command.includes("justify-between"));
 
 const tabBar = readSrc("src/app/TenderDetailTabBar.tsx");
