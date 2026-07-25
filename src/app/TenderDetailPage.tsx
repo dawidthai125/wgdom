@@ -335,7 +335,7 @@ export function TenderDetailPage({
           </div>
         )}
 
-        {/* MFS-01: Process Strip collapsed on max-lg; full ribbon on lg+ */}
+        {/* MFS-01: Process Strip — one mount; collapsed on max-lg, always on lg+ */}
         <div className="lg:hidden" data-mfs01-process-collapse>
           <button
             type="button"
@@ -356,21 +356,13 @@ export function TenderDetailPage({
               aria-hidden
             />
           </button>
-          {processStripExpanded && (
-            <div id="tender-mfs01-process-strip-panel" className="mt-0.5" data-mfs01-process-panel>
-              <TenderWorkflowProcessStrip
-                item={bootstrapItem}
-                swz={swz}
-                intelligenceCtx={przetargCommand.intelligenceCtx}
-                trustAssessment={pipelineRuntime.trustAssessment}
-                onNavigateTab={handleTabChange}
-                variant="ribbon"
-                activeStageId={activeProcessStageId}
-              />
-            </div>
-          )}
         </div>
-        <div className="hidden lg:block" data-mfs01-process-desktop>
+        <div
+          id="tender-mfs01-process-strip-panel"
+          className={`${processStripExpanded ? "block mt-0.5" : "hidden"} lg:block lg:mt-0`}
+          data-mfs01-process-panel
+          data-mfs01-process-desktop
+        >
           <TenderWorkflowProcessStrip
             item={bootstrapItem}
             swz={swz}
