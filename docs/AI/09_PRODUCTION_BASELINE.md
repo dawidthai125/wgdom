@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.44** |
-| **Deploy tip commit (`main`)** | **`5f68322`** — AI-DOCS-PAYROLL-GUARD-02 (docs) · UI nadal **2.65.44** |
+| **Deploy tip commit (`main`)** | **`af15e30`** — tip SSOT bump · GUARD-02 body **`5f68322`** · UI **2.65.44** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -48,9 +48,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
-| docs **`5f68322`** | **AI-DOCS-PAYROLL-GUARD-02** — AI Entry + Payroll Safety Gate | **CLOSED** |
+| docs **`af15e30`** / **`5f68322`** | **AI-DOCS-PAYROLL-GUARD-02** — AI Entry + Payroll Safety Gate (+ tip SSOT) | **CLOSED** |
 | **2.65.44** / **`c461bde`** | MOBILE-FIRST-SCREEN-01 release finalize | **CLOSED** |
-| docs GUARD-02 | AI Payroll Safety onboarding (docs-only) | **ten release** |
 | **2.65.43** / **`ea1b0a6`** | **PAYROLL Hours-wipe** D4+D5 · EPIC CLOSED | **CLOSED** · **PV** |
 | **2.65.42** / **`f3b8c03`** | PAYROLL D2+D3 Domain Gate | **CLOSED** |
 | **2.65.41** / **`ace2855`** | PAYROLL D1 write-path telemetry | **CLOSED** |
