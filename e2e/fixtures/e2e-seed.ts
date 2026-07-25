@@ -142,6 +142,7 @@ export function applyE2eSeedInBrowser(args: E2eSeedArgs): void {
     startDate: args.weekFrom,
     endDate: "",
     status: "in_progress",
+    assignedInspectorId: "szymon", // CI-C-3 — INSPECTOR-JOB-ASSIGN-001 visibility
     keysHandedOver: false,
     notes: "",
     documents: {},
