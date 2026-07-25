@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Camera, Eye, X, ThumbsUp, ThumbsDown, CheckCircle2, Clock3 } from "lucide-react";
 import type { PhotoEntry } from "@/app/app-domain";
 import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection } from "@/app/app-domain";
@@ -6,6 +7,7 @@ import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 import type { JobActivityType } from "@/lib/job-activity";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 
 export function JobPhotoGallery({
   photos,
@@ -20,6 +22,16 @@ export function JobPhotoGallery({
 }) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
   const failRev = useMediaFailureRevision();
+  useModalScrollLock(lightbox != null);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const visiblePhotos = useMemo(() => filterAvailablePhotos(photos), [photos, failRev]);
   const pending  = visiblePhotos.filter(p=>p.status==="pending");
@@ -211,20 +223,43 @@ export function JobPhotoGallery({
         </div>
       )}
 
-      {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" onClick={()=>setLightbox(null)}>
-          <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"><X size={24}/></button>
-          <JobPhotoImg src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90dvh] rounded-xl object-contain" onClick={(e)=>e.stopPropagation()}/>
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
-            <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
-            {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
-            <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
-            {lightbox.status === "rejected" && lightbox.rejectReason && (
-              <p className="text-red-300 text-xs mt-1">Powód odrzucenia: {lightbox.rejectReason}</p>
-            )}
-          </div>
-        </div>
-      )}
+      {lightbox &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 modal-overlay modal-lightbox flex items-center justify-center p-4 bg-black/90 touch-manipulation"
+            onClick={() => setLightbox(null)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              className="absolute right-4 z-10 text-white/70 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+              style={{ top: "max(1rem, env(safe-area-inset-top))" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox(null);
+              }}
+              aria-label="Zamknij"
+            >
+              <X size={24}/>
+            </button>
+            <JobPhotoImg
+              src={lightbox.publicUrl}
+              alt={lightbox.label}
+              className="max-w-full max-h-[90dvh] rounded-xl object-contain touch-manipulation"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center pointer-events-none">
+              <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
+              {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
+              <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
+              {lightbox.status === "rejected" && lightbox.rejectReason && (
+                <p className="text-red-300 text-xs mt-1">Powód odrzucenia: {lightbox.rejectReason}</p>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

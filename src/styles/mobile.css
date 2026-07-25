@@ -126,6 +126,11 @@
   }
 }
 
+/* Fullscreen media lightbox (MOBILE-LIGHTBOX-IOS-01) — NOT a sheet; no 92dvh cap */
+.modal-lightbox {
+  max-height: none;
+}
+
 /* Tablet portrait — bottom sheets until md (768px) */
 @media (max-width: 767px) {
   .modal-sheet {
