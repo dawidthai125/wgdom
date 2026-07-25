@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import {
@@ -17,7 +17,10 @@ import { TenderStatusRibbon } from "@/app/TenderStatusRibbon";
 import { TenderWorkflowPrimaryAction } from "@/app/TenderWorkflowPrimaryAction";
 import { TenderWorkflowProcessStrip } from "@/app/TenderWorkflowProcessStrip";
 import { useTenderPrzetargCommandContext } from "@/app/hooks/useTenderPrzetargCommandContext";
-import { resolveActiveProcessStripStageId } from "@/lib/tender-workflow-process-strip";
+import {
+  resolveActiveProcessStripStageId,
+  WORKFLOW_PROCESS_STRIP_LABELS,
+} from "@/lib/tender-workflow-process-strip";
 import { TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
 import {
   buildCostWorkspaceShortcutLabel,
@@ -192,6 +195,16 @@ export function TenderDetailPage({
     [activeTab, decyzjaWorkspace],
   );
 
+  const [processStripExpanded, setProcessStripExpanded] = useState(false);
+
+  useEffect(() => {
+    setProcessStripExpanded(false);
+  }, [tenderId]);
+
+  const activeProcessStageLabel = activeProcessStageId
+    ? WORKFLOW_PROCESS_STRIP_LABELS[activeProcessStageId]
+    : "Proces";
+
   const blockersCount = przetargCommand.intelligenceCtx?.overlay.allBlocks.length ?? 0;
 
   const handleBlockersChipClick = useCallback(() => {
@@ -312,7 +325,7 @@ export function TenderDetailPage({
   const workspaceCommandSlot = useMemo(() => {
     if (!przetargCommand.intelligenceCtx) return null;
     return (
-      <div className="space-y-0.5 max-[430px]:space-y-0" data-tender-workspace-command-slot>
+      <div className="space-y-0.5 max-[430px]:space-y-0" data-tender-workspace-command-slot data-mfs01="true">
         {activeTab === "przetarg" && (
           <div className="hidden 2xl:block">
             <TenderStatusRibbon
@@ -321,15 +334,54 @@ export function TenderDetailPage({
             />
           </div>
         )}
-        <TenderWorkflowProcessStrip
-          item={bootstrapItem}
-          swz={swz}
-          intelligenceCtx={przetargCommand.intelligenceCtx}
-          trustAssessment={pipelineRuntime.trustAssessment}
-          onNavigateTab={handleTabChange}
-          variant="ribbon"
-          activeStageId={activeProcessStageId}
-        />
+
+        {/* MFS-01: Process Strip collapsed on max-lg; full ribbon on lg+ */}
+        <div className="lg:hidden" data-mfs01-process-collapse>
+          <button
+            type="button"
+            className={`flex w-full items-center justify-between gap-2 rounded-md border border-border/70 bg-card/80 px-2.5 min-h-[36px] ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            aria-expanded={processStripExpanded}
+            aria-controls="tender-mfs01-process-strip-panel"
+            data-mfs01-process-toggle
+            onClick={() => setProcessStripExpanded((v) => !v)}
+          >
+            <span className="truncate">
+              {activeProcessStageId
+                ? `Proces · ${activeProcessStageLabel}`
+                : "Proces"}
+            </span>
+            <ChevronDown
+              size={14}
+              className={`shrink-0 text-muted-foreground transition-transform duration-150 ${processStripExpanded ? "rotate-180" : ""}`}
+              aria-hidden
+            />
+          </button>
+          {processStripExpanded && (
+            <div id="tender-mfs01-process-strip-panel" className="mt-0.5" data-mfs01-process-panel>
+              <TenderWorkflowProcessStrip
+                item={bootstrapItem}
+                swz={swz}
+                intelligenceCtx={przetargCommand.intelligenceCtx}
+                trustAssessment={pipelineRuntime.trustAssessment}
+                onNavigateTab={handleTabChange}
+                variant="ribbon"
+                activeStageId={activeProcessStageId}
+              />
+            </div>
+          )}
+        </div>
+        <div className="hidden lg:block" data-mfs01-process-desktop>
+          <TenderWorkflowProcessStrip
+            item={bootstrapItem}
+            swz={swz}
+            intelligenceCtx={przetargCommand.intelligenceCtx}
+            trustAssessment={pipelineRuntime.trustAssessment}
+            onNavigateTab={handleTabChange}
+            variant="ribbon"
+            activeStageId={activeProcessStageId}
+          />
+        </div>
+
         {blockersCount > 0 && (
           <button
             type="button"
@@ -340,8 +392,10 @@ export function TenderDetailPage({
             Blokery ({blockersCount})
           </button>
         )}
+
+        {/* MFS-01: shortcuts desktop-only */}
         <div
-          className="flex flex-wrap items-center gap-1.5 max-[430px]:gap-1"
+          className="hidden lg:flex flex-wrap items-center gap-1.5"
           data-tender-command-shortcuts-row
         >
           <button
@@ -361,7 +415,7 @@ export function TenderDetailPage({
             {buildCostWorkspaceShortcutLabel(suggestedCostTab)}
           </button>
         </div>
-        <div className="max-[430px]:[&_[data-tender-primary-action-section-label]]:sr-only max-[430px]:[&_[data-teux7d-cta-description]]:hidden">
+
         <TenderWorkflowPrimaryAction
           item={bootstrapItem}
           swz={swz}
@@ -378,12 +432,13 @@ export function TenderDetailPage({
           commandLayerChrome
           activeTab={activeTab}
         />
-        </div>
       </div>
     );
   }, [
     activeTab,
     activeProcessStageId,
+    activeProcessStageLabel,
+    processStripExpanded,
     blockersCount,
     bootstrapItem,
     swz,
@@ -461,8 +516,8 @@ export function TenderDetailPage({
       <div
         ref={scrollRootRef}
         data-tender-detail-scroll-root
-        className={`flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
-          przetargActionBarActive ? "max-lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))]" : ""
+        className={`mobile-view-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain relative ${
+          przetargActionBarActive ? "max-lg:pb-[calc(3.25rem+env(safe-area-inset-bottom))]" : ""
         }`}
         style={
           przetargActionBarActive
@@ -516,8 +571,9 @@ export function TenderDetailPage({
         {przetargActionBarActive && (
           <div
             className="lg:hidden sticky bottom-0 z-20 shrink-0 border-t border-border bg-card/95 backdrop-blur-sm px-4 pt-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-shadow duration-150"
-            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
             data-tender-operator-action-bar-slot="mobile"
+            data-mfs01-operator-slot="horizontal-scroll"
           >
             <TenderWorkflowOperatorActionBar {...operatorActionBar} variant="mobile" />
           </div>

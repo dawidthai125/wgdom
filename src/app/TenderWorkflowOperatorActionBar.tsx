@@ -84,14 +84,20 @@ export function TenderWorkflowOperatorActionBar({
   const canAnalyze = tenderOperatorCanAnalyze(item);
   const compact = variant === "mobile";
 
+  // MFS-01: mobile = wariant A (horizontal scroll, 1 rząd) — bez flex-wrap / flex-1.
   const btnBase = compact
-    ? "flex-1 min-w-[calc(50%-0.25rem)] inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-[11px] font-medium min-h-[44px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+    ? "shrink-0 inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-[11px] font-medium min-h-[44px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     : "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
   return (
     <div
       data-tender-operator-action-bar={variant}
-      className={compact ? "flex flex-wrap gap-2" : "flex flex-wrap items-center gap-2"}
+      data-mfs01-operator-layout={compact ? "horizontal-scroll" : "wrap"}
+      className={
+        compact
+          ? "flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain scrollbar-thin"
+          : "flex flex-wrap items-center gap-2"
+      }
       role="toolbar"
       aria-label="Akcje operacyjne przetargu"
     >

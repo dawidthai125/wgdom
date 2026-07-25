@@ -116,33 +116,38 @@ export function TenderWorkflowPrimaryAction({
     }
   };
 
+  // MFS-01: mobile command-layer CTA — krótki busy label (logika busy bez zmian).
+  const displayButtonLabel =
+    commandLayerChrome && view.busy ? "Przetwarzam…" : view.buttonLabel;
+
   return (
     <div
       className={
         commandLayerChrome
-          ? "rounded-lg border-2 border-primary/25 bg-background/95 px-3 py-2 shadow-sm transition-shadow duration-150"
+          ? "rounded-lg border border-primary/25 lg:border-2 bg-background/95 px-2 py-1 lg:px-3 lg:py-2 shadow-sm transition-shadow duration-150"
           : "sticky top-0 z-10 rounded-xl border-2 border-primary/25 bg-background/95 backdrop-blur-sm px-4 py-3 shadow-sm transition-shadow duration-150"
       }
       data-tender-workflow-primary-action
       data-tender-primary-action-chrome={commandLayerChrome ? "command-layer" : "content"}
+      data-mfs01-cta-compact={commandLayerChrome ? "true" : undefined}
     >
       <div
         className={
           commandLayerChrome
-            ? "flex flex-wrap items-center justify-between gap-2 max-[390px]:gap-1.5"
+            ? "flex flex-nowrap items-center justify-between gap-2 max-lg:gap-1.5"
             : "flex flex-wrap items-center justify-between gap-3"
         }
       >
-        <div className="flex items-start gap-2 min-w-0 flex-1">
+        <div className={`flex min-w-0 flex-1 ${commandLayerChrome ? "items-center gap-1.5" : "items-start gap-2"}`}>
           <Sparkles
             size={commandLayerChrome ? 14 : 16}
-            className="shrink-0 text-primary mt-0.5"
+            className={`shrink-0 text-primary ${commandLayerChrome ? "" : "mt-0.5"}`}
           />
           <div className="min-w-0">
             <p
               className={
                 commandLayerChrome
-                  ? "text-[9px] max-[390px]:sr-only font-semibold uppercase tracking-wider text-muted-foreground"
+                  ? "hidden lg:block text-[9px] font-semibold uppercase tracking-wider text-muted-foreground"
                   : "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
               }
               data-tender-primary-action-section-label
@@ -155,6 +160,7 @@ export function TenderWorkflowPrimaryAction({
                   ? "text-xs max-[390px]:text-[11px] font-semibold text-foreground leading-snug line-clamp-1"
                   : "text-sm font-semibold text-foreground mt-0.5"
               }
+              title={view.title}
             >
               {view.title}
             </p>
@@ -170,7 +176,7 @@ export function TenderWorkflowPrimaryAction({
             )}
             {commandLayerChrome && (
               <p
-                className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 sm:line-clamp-1"
+                className="hidden lg:block text-[10px] text-muted-foreground mt-0.5 line-clamp-1"
                 data-teux7d-cta-description
               >
                 {view.description}
@@ -187,13 +193,13 @@ export function TenderWorkflowPrimaryAction({
           }
           className={
             commandLayerChrome
-              ? "inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40"
+              ? "inline-flex items-center gap-1 px-2.5 py-1.5 lg:px-3 lg:py-2 rounded-lg bg-primary text-primary-foreground text-[11px] lg:text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] max-lg:max-w-[46%] touch-manipulation transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40"
               : "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed shrink-0 min-h-[44px] lg:min-h-[36px] touch-manipulation transition-colors duration-150"
           }
           data-workflow-primary-cta
         >
           {view.busy && <Loader2 size={commandLayerChrome ? 12 : 14} className="animate-spin" />}
-          {view.buttonLabel}
+          {displayButtonLabel}
           {!view.disabled && <ArrowRight size={commandLayerChrome ? 12 : 14} />}
         </button>
       </div>
@@ -204,7 +210,7 @@ export function TenderWorkflowPrimaryAction({
           data-teux7b-disabled-reason
           className={
             commandLayerChrome
-              ? "text-[11px] text-muted-foreground mt-1.5 leading-snug line-clamp-2"
+              ? "hidden lg:block text-[11px] text-muted-foreground mt-1.5 leading-snug line-clamp-2"
               : "text-[11px] text-muted-foreground mt-2 leading-snug"
           }
         >
