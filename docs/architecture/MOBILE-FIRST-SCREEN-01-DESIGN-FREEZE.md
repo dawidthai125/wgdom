@@ -1,13 +1,11 @@
 # MOBILE-FIRST-SCREEN-01 — DESIGN FREEZE
 
 > **ID:** MOBILE-FIRST-SCREEN-01 / MFS-01  
-> **STATUS:** **RELEASE IN PROGRESS** · Owner GO RELEASE **TAK** · czeka na tip prod  
+> **STATUS:** **CLOSED · RELEASE COMPLETE** · tip prod **`bf8d3d5`** · UI **2.65.44**  
 > **Data:** 2026-07-25  
 > **AUDIT SSOT:** [`MOBILE-UX-SAFARI-02-AUDIT-RCA.md`](MOBILE-UX-SAFARI-02-AUDIT-RCA.md)  
 > **Owner Verification:** [`MOBILE-FIRST-SCREEN-01-OWNER-VERIFICATION.md`](MOBILE-FIRST-SCREEN-01-OWNER-VERIFICATION.md)  
 > **Release:** [`MOBILE-FIRST-SCREEN-01-RELEASE-REPORT.md`](MOBILE-FIRST-SCREEN-01-RELEASE-REPORT.md)  
-> **Baseline prod (pre-release):** UI **2.65.44** @ **`57b059d`**  
-> **Typ bundla:** **FEATURE / shell UX** · **NIE** Payroll · **NIE** Cloud Sync · **NIE** scoring/workflow logic · **NIE** write-path  
 > **Owner GO (IMPLEMENT):** **TAK**  
 > **Owner GO (RELEASE):** **TAK**
 

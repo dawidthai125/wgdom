@@ -1,11 +1,10 @@
 # MOBILE-FIRST-SCREEN-01 — Owner Verification
 
-> **STATUS:** **RELEASE IN PROGRESS** · Owner GO RELEASE **TAK** · Emulation **PASS** · Field Safari: Owner GO release (emulacja + GO)  
+> **STATUS:** **CLOSED · RELEASE COMPLETE** · tip **`bf8d3d5`** · Emulation **PASS** · CI Gates **success**  
 > **FINAL field scorecard:** [`MOBILE-FIRST-SCREEN-01-FINAL-OWNER-VERIFICATION.md`](MOBILE-FIRST-SCREEN-01-FINAL-OWNER-VERIFICATION.md)  
 > **Release:** [`MOBILE-FIRST-SCREEN-01-RELEASE-REPORT.md`](MOBILE-FIRST-SCREEN-01-RELEASE-REPORT.md)  
 > **Data:** 2026-07-25  
-> **DF:** [`MOBILE-FIRST-SCREEN-01-DESIGN-FREEZE.md`](MOBILE-FIRST-SCREEN-01-DESIGN-FREEZE.md)  
-> **Commit / push:** w toku (Owner GO RELEASE)
+> **DF:** [`MOBILE-FIRST-SCREEN-01-DESIGN-FREEZE.md`](MOBILE-FIRST-SCREEN-01-DESIGN-FREEZE.md)
 
 ---
 
