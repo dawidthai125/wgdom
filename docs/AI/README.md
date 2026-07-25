@@ -17,6 +17,8 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 
 ```text
 0. Ten INDEX (README.md)
+0a. AI_MEMORY.md                 ★★★ pamięć projektu — PRZED wszystkim
+0b. AI_DECISION_TREE.md          ★★★ drzewo decyzji — zanim kod
 1. 08_AI_GUARDRAILS.md          ★ zakazy — PRZED kodem
 2. 01_AI_ONBOARDING.md          mapa projektu
 3. 09_PRODUCTION_BASELINE.md    aktualny tip prod
@@ -31,7 +33,22 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 12. 10_HANDOFF_TEMPLATE.md      koniec sesji
 ```
 
-**Potem living SSOT repo:** `AGENTS.md` → `docs/AGENT-CONTINUITY-GUIDE.md` → `CURRENT-TASK.md` → **[`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md)** (jeśli Lista Płac / sync) → tematyczny guide (Payroll Cloud Sync / Workflow / ARCHITECTURE).
+### ★ Lista Płac / Cloud Sync (obowiązkowa ścieżka AI Safety)
+
+```text
+P−1. AI_MEMORY.md + AI_DECISION_TREE.md  ← zawsze najpierw
+P0. PAYROLL_QUICK_START.md      ← minimalny onboarding LP
+P1. PAYROLL_GUARD_RAILS.md      ← zakazy + checklisty commit/push
+P2. PAYROLL_DEPENDENCY_MAP.md   ← co przypadkowo psuje LP
+P3. PAYROLL_REGRESSION_HISTORY.md
+P4. PAYROLL_AI_PLAYBOOK.md      ← AUDIT / DF / Owner GO
+P5. ../PAYROLL-ARCHITECTURE-SSOT.md  ← ★ SSOT przepływ + invariants
+P6. ../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  (głęboko)
+```
+
+Audyt docs: [`../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md).
+
+**Potem living SSOT repo:** `AGENTS.md` → `docs/AGENT-CONTINUITY-GUIDE.md` → `CURRENT-TASK.md` → Workflow / ARCHITECTURE (wg tematu).
 
 ---
 
@@ -39,6 +56,9 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 
 | Plik | Opis |
 |------|------|
+| [`AI_MEMORY.md`](AI_MEMORY.md) | **★★★ Pamięć projektu** — reguły, których AI nie wolno zapomnieć (≤5 min) |
+| [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) | **★★★ Drzewo decyzji** — Payroll / bootstrap / sync / Shared → AUDIT/DF/GO |
+| [`PROJECT_HANDOFF.md`](PROJECT_HANDOFF.md) | **★★ Handoff** — stan docs FINALIZED · start nowych sesji |
 | [`01_AI_ONBOARDING.md`](01_AI_ONBOARDING.md) | Cel, historia, stack, repo, moduły, sync, release, OV vs PV — start kognitywny |
 | [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md) | Frontend (Vite/React **nie** Next), Supabase, LS/KV, Pipeline, Payroll, Jobs, Catalog, Auth, Edge, SSOT, przepływy, CORE |
 | [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) | SSOT/Reuse/Mobile/Cloud First, flagi, release, Owner GO, Payroll, Tenders, git |
@@ -51,6 +71,11 @@ WGDOM AI KNOWLEDGE BASE COMPLETE
 | [`10_HANDOFF_TEMPLATE.md`](10_HANDOFF_TEMPLATE.md) | Wzorzec handoffu między agentami |
 | [`11_GLOSSARY.md`](11_GLOSSARY.md) | SSOT, Sync Storm, coalesce, fence, PWRB, OV, … |
 | [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-20 z uzasadnieniem |
+| [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) | **★ Payroll** — minimalny onboarding AI |
+| [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) | **★ Payroll** — kolejność AUDIT → DF → GO → IMPLEMENT |
+| [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) | **★ Payroll** — zakazy + checklisty commit/push |
+| [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md) | **★ Payroll** — co zależy / co psuje LP |
+| [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) | **★ Payroll** — RC → fix → zapobieganie |
 
 ---
 
@@ -84,6 +109,8 @@ Po przeczytaniu Knowledge Base AI rozumie:
 | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Living architecture |
 | [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) | **★ Payroll AI SSOT** — przepływ · invariants · safety · Hours-wipe |
 | [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) | Payroll sync/merge (głęboko) |
+| [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) (+ Playbook / Guard Rails / Dependency / Regression) | AI Safety pack Listy Płac |
+| [`docs/architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md) | Audyt + gap hardening docs |
 | [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) | Przetargi UX SSOT |
 | [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../WORKFLOW-RELEASE-DEPLOY.md) | Deploy |
 | [`docs/WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md) | Owner GO |

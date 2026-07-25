@@ -1,6 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-24 (**PAYROLL Hours-wipe EPIC CLOSED**) · UI prod **2.65.43** · feature **`ea1b0a6`** · **PRODUCTION VERIFIED · GREEN**
+**Ostatnia aktualizacja:** 2026-07-25 (**DOCS FINALIZED** · AI handoff) · UI prod **2.65.43** · feature **`ea1b0a6`** · CI Gates **GREEN** (`c681f88`) · **PRODUCTION VERIFIED · GREEN**
+
+## ★ DOCUMENTATION FINALIZATION & AI HANDOFF — **COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **COMPLETE** · docs-only · gotowe do **nowych** sesji AI |
+| **CI Remediation** | **EPIC CLOSED** · [`docs/architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md`](docs/architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md) |
+| **Payroll AI Safety docs** | Quick Start · Guard Rails · Dependency · Playbook · Regression · SSOT |
+| **AI Memory / Decision Tree** | [`docs/AI/AI_MEMORY.md`](docs/AI/AI_MEMORY.md) · [`docs/AI/AI_DECISION_TREE.md`](docs/AI/AI_DECISION_TREE.md) |
+| **Handoff nowych sesji** | [`docs/AI/PROJECT_HANDOFF.md`](docs/AI/PROJECT_HANDOFF.md) |
+| **Start path** | Root `README` → `docs/AI/README` → Memory → Decision Tree → Payroll pack → SSOT |
+| **Residual** | CI-C-2 (P3, legacy e2e) · HARDENING B1/C/E / 02F / H0.x — tylko Owner GO |
+| **OUT** | Zero zmian `src/**` w tym etapie |
+
+> **STABILIZATION WINDOW ACTIVE** · CI tip **GREEN** · starye sesje ChatGPT/Cursor **można zamknąć** · nowe sesje startują od `docs/AI/PROJECT_HANDOFF.md`.
+
+---
 
 ## ★ PAYROLL Hours-wipe protection EPIC — **CLOSED**
 
@@ -9,7 +26,7 @@
 | **Status** | **CLOSED** |
 | **Prod** | UI **2.65.43** · feature **`ea1b0a6`** · **PRODUCTION VERIFIED** |
 | **Stages** | D1 `ace2855` · D2+D3 `f3b8c03` · D4+D5 `ea1b0a6` |
-| **OUT** | Nowe prace Payroll · CI Gate B (osobny EPIC) |
+| **OUT** | Nowe prace Payroll · CI Gate B (zamknięty osobno — CI Remediation CLOSED) |
 | **SSOT CLOSE** | [`docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
 | **AI SSOT** | [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](docs/PAYROLL-ARCHITECTURE-SSOT.md) — invariants · safety · AI guardrails |
 | **Release History** | [`docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](docs/releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) |

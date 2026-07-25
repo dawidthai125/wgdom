@@ -97,7 +97,7 @@
 | **TWSL 2.63.91** | lokalny WIP hist. · RELEASE NOT READY |
 | **ADR SYNC-ARCH implementation** | **BLOCKED** Evidence Gate |
 | **INFRA-DB-BACKUP-01** | ON HOLD |
-| **CI TEUX-7d / Gate B** | **OPEN follow-up** · pre-existing · **osobny EPIC** · **nie** regresja Hours-wipe / 01A/01D/01B0 |
+| **CI TEUX-7d / Gate B / Gate C** | **CLOSED** · CI Remediation EPIC · tip Gate C green `c681f88` · [`CI-REMEDIATION-EPIC-CLOSEOUT.md`](../architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md) · residual **CI-C-2** (legacy e2e only, P3) |
 
 ---
 

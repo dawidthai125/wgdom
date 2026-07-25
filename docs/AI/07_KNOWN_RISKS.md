@@ -46,7 +46,7 @@ Legenda statusu: **FIXED** · **MITIGATED** · **BACKLOG** · **MONITOR** · **G
 |----|------|--------|---------|--------|
 | **L-FP-PARSER-DEP** | Fingerprint string ma parserVersion, useMemo deps nie | Stale FP | Code review | **BACKLOG** |
 | **L-TEMP-DIAG** | Moduły TEMP w bundle | Hałas jeśli włączone | AUTO_ENABLE false | **MITIGATED** 2.65.39 |
-| **L-CI-TEUX7D** | Gate B `GuideView` `\bAI\b` fail w TEST-INFRA | CI red na tipie | `test-tender-copy-teux7d.mjs` | **OPEN** follow-up · **nie** regresja HARDENING-01A |
+| **L-CI-TEUX7D** | Gate B `GuideView` `\bAI\b` (historyczny) | — | CI Remediation CI-1 | **CLOSED** · [`CI-REMEDIATION-EPIC-CLOSEOUT.md`](../architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md) |
 | **L-TS5101** | baseUrl deprecated | tsc warning | tsc | **BACKLOG** tooling |
 | **L-NO-ESLINT-FLAT** | Brak eslint.config | eslint CLI fail | — | **INFO** |
 | **L-PLAYWRIGHT-SAFARI** | E2E ≠ iPhone | False confidence mobile | Real device | **MONITOR** |

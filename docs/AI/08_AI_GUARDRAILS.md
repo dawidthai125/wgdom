@@ -72,10 +72,12 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 ## 3. Obowiązkowe „zanim zakodujesz”
 
 ```text
+□ AI_MEMORY + AI_DECISION_TREE
 □ Czytałem 08_AI_GUARDRAILS + 09_PRODUCTION_BASELINE
 □ Znam scope (FEATURE vs CORE)
 □ Boundary Check (#CORE-014) — lista plików
-□ Jeśli Payroll/Sync — PAYROLL-ARCHITECTURE-SSOT + (głęboko) Cloud Sync Agent Guide
+□ Jeśli Payroll/Sync — `PAYROLL_QUICK_START` → `PAYROLL_GUARD_RAILS` → `PAYROLL_AI_PLAYBOOK` → PAYROLL-ARCHITECTURE-SSOT + (głęboko) Cloud Sync Agent Guide
+□ Dependency Map — czy Shared może uszkodzić LP?
 □ Payroll checklist: W1 PWRB · W2 Domain Push · Cloud Sync merge · SSOT · fence · gate D2/D3
 □ Jeśli Tenders heavy — Sync Storm kontrakt
 □ Jeśli persist — local vs cloud mode

@@ -77,14 +77,15 @@ Monolit **React + Vite + TypeScript** dla firmy remontowej W&G DOM (Wrocław):
 
 | Zanim implementujesz cokolwiek | Działanie |
 |------------------------------|-----------|
-| Dotykasz `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` | Przeczytaj [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
+| **Start AI Safety** | [`AI/PAYROLL_QUICK_START.md`](AI/PAYROLL_QUICK_START.md) → [`AI/PAYROLL_AI_PLAYBOOK.md`](AI/PAYROLL_AI_PLAYBOOK.md) → [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) |
+| Dotykasz `cloud-sync.ts`, `CloudLoader.tsx`, Edge, payroll w `App.tsx` | Guard Rails + Dependency Map + Agent Guide sync |
 | Bootstrap push / merge weekEmployees | **Nie usuwaj** `payroll-bootstrap-resurrection-fence.ts` |
 | Rollover tygodnia (Nd ≥20:00) | Zachowaj `classifyPayrollWeekTransition` (ALIGN ≠ wipe) |
 | Dodajesz/usuwasz pracownika z tygodnia | **Tylko** `payroll-week-roster-bundle.ts` (PWRB) |
-| Bundle FEATURE (Przetargi, Mobile, Katalog) | **Zero** diff w plikach CORE payroll/sync (#CORE-013) |
-| Przed commitem | `npm run test:infra -- --gate B --scope payroll` (15/15) |
+| Bundle FEATURE (Przetargi, Mobile, Katalog) | **Zero** diff w plikach CORE payroll/sync (#CORE-013) · [`AI/PAYROLL_DEPENDENCY_MAP.md`](AI/PAYROLL_DEPENDENCY_MAP.md) |
+| Przed commitem | `npm run test:infra -- --gate B --scope payroll` · checklist [`AI/PAYROLL_GUARD_RAILS.md`](AI/PAYROLL_GUARD_RAILS.md) |
 
-**SSOT continuity:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § **2b** · RC-B: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md)
+**SSOT continuity:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § **2b** · RC-B: [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · Docs audit: [`architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md)
 
 ---
 

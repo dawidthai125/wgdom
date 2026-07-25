@@ -1,7 +1,9 @@
 # PAYROLL-AI-GUARD-DOCS-01 — DOCUMENTATION AUDIT
 
+> **STATUS:** **SUPERSEDED** (2026-07-25) — kontynuacja: [`PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](./PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md) · pack: `docs/AI/PAYROLL_*.md`  
+> **Zachowano** jako historyczny inventory/gap z 2026-07-24 (Zero Delete).  
 > **ID:** PAYROLL-AI-GUARD-DOCS-01  
-> **STATUS:** AUDIT COMPLETE · DOCS COMPLETION DONE · **COMMIT HOLD** (czekaj OV)  
+> **STATUS (oryginalny):** AUDIT COMPLETE · DOCS COMPLETION DONE · **COMMIT HOLD** (czekaj OV)  
 > **Data:** 2026-07-24  
 > **Owner GO:** DOCUMENTATION AUDIT & COMPLETION  
 > **Zakaz:** zero zmian `src/` / `scripts/` / `supabase/`  

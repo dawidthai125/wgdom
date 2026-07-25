@@ -2,7 +2,8 @@
 
 > **ID:** WGDOM-AI-KNOWLEDGEBASE-01 / 01  
 > **Dla:** Cursor Agents, ChatGPT, nowe AI bez historii projektu  
-> **Następny:** [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) (przeczytaj **przed** kodem) · Index: [`README.md`](README.md)
+> **Najpierw:** [`AI_MEMORY.md`](AI_MEMORY.md) · [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md)  
+> **Potem:** [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) (zakazy) · Index: [`README.md`](README.md)
 
 ---
 
@@ -89,7 +90,7 @@ scripts/                  ← smoke / harness vite-node
 | Moduł | Wejście |
 |-------|---------|
 | Cloud Sync | `src/lib/cloud-sync.ts` · `CloudLoader.tsx` |
-| Payroll | `PayrollView.tsx` · `payroll-*` · PWRB · fence · **Hours-wipe D1–D5** · SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |
+| Payroll | `PayrollView.tsx` · `payroll-*` · PWRB · fence · **Hours-wipe D1–D5** · start: [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) → [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) → SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |
 | Jobs | `JobsView.tsx` · merge photos / tombstones |
 | Tenders | `TendersModule` · `useTenderPipelineRuntime` · heavy lazy |
 | Work Catalog | `src/lib/work-catalog/` |
@@ -130,7 +131,7 @@ Szczegóły: [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md).
 | STABILIZATION WINDOW | **ACTIVE** — brak nowych epiców bez Owner GO |
 
 Aktualny stan: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md).  
-**Payroll (obowiązkowe przed zmianą LP):** [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md).
+**Payroll (obowiązkowe przed zmianą LP):** [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) → [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) → [`PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md).
 
 ---
 

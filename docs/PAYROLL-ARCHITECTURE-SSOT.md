@@ -19,11 +19,13 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | Potrzeba | Ten plik | Inny SSOT |
 |----------|----------|-----------|
 | Pełny przepływ + zakazy + AI checklist | **TU** | — |
+| **Quick Start / Playbook / Guard Rails / Dependency / Regression** | → | [`AI/PAYROLL_QUICK_START.md`](AI/PAYROLL_QUICK_START.md) · [`AI/PAYROLL_AI_PLAYBOOK.md`](AI/PAYROLL_AI_PLAYBOOK.md) · [`AI/PAYROLL_GUARD_RAILS.md`](AI/PAYROLL_GUARD_RAILS.md) · [`AI/PAYROLL_DEPENDENCY_MAP.md`](AI/PAYROLL_DEPENDENCY_MAP.md) · [`AI/PAYROLL_REGRESSION_HISTORY.md`](AI/PAYROLL_REGRESSION_HISTORY.md) |
 | Detale Domain Push / merge / Edge | → | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
 | PWRB kontrakt I-1…I-4 | → | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) |
 | Hours-wipe D1–D5 design | → | [`architecture/PAYROLL-DESIGN-FREEZE-01.md`](architecture/PAYROLL-DESIGN-FREEZE-01.md) + Amendment |
 | Tip produkcji | → | [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) |
-| Audyt docs (inventory/gaps) | → | [`architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md`](architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md) |
+| Audyt docs hardening (2026-07-25) | → | [`architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md) |
+| Audyt docs (poprzedni pass 2026-07-24) | → | [`architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md`](architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md) **SUPERSEDED** |
 
 ---
 
@@ -173,14 +175,19 @@ Bez pełnej checklisty → **nie koduj**.
 ### 4.2 Co czytać w jakiej kolejności (Payroll task)
 
 ```text
-1. docs/PAYROLL-ARCHITECTURE-SSOT.md          ← TEN plik
-2. docs/AI/08_AI_GUARDRAILS.md
-3. docs/AI/09_PRODUCTION_BASELINE.md
-4. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md
-5. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md   (jeśli W1/PWRB)
-6. docs/architecture/PAYROLL-DESIGN-FREEZE-01.md   (jeśli Hours-wipe / gate)
-7. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
-8. CURRENT-TASK.md
+0. docs/AI/AI_MEMORY.md + AI_DECISION_TREE.md
+0b. docs/AI/PAYROLL_QUICK_START.md
+1. docs/AI/PAYROLL_GUARD_RAILS.md + docs/AI/08_AI_GUARDRAILS.md
+2. docs/AI/PAYROLL_DEPENDENCY_MAP.md
+3. docs/AI/PAYROLL_REGRESSION_HISTORY.md
+4. docs/AI/PAYROLL_AI_PLAYBOOK.md
+5. docs/PAYROLL-ARCHITECTURE-SSOT.md          ← TEN plik
+6. docs/AI/09_PRODUCTION_BASELINE.md
+7. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md
+8. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md   (jeśli W1/PWRB)
+9. docs/architecture/PAYROLL-DESIGN-FREEZE-01.md   (jeśli Hours-wipe / gate)
+10. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md
+11. CURRENT-TASK.md
 ```
 
 ### 4.3 Zakaz typowych „skrótów” AI
@@ -259,7 +266,9 @@ Akcja:
 | PWRB | `recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md` |
 | AI tip | `AI/09_PRODUCTION_BASELINE.md` |
 | AI zakazy globalne | `AI/08_AI_GUARDRAILS.md` |
-| Docs audit | `architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md` |
+| Docs audit hardening | `architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md` |
+| Quick Start / Playbook / Guard / Deps / Regression | `AI/PAYROLL_*.md` |
+| Docs audit (2026-07-24) | `architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md` **SUPERSEDED** |
 
 **Historyczne** (`docs/PAYROLL-*` Etap 2, recovery RC-B, session handoffs): czytaj tylko gdy RCA wymaga; **nie** traktuj nagłówków „PENDING” jako otwartego EPIC jeśli closeout mówi CLOSED.
 

@@ -9,11 +9,20 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
+2ai. docs/AI/AI_MEMORY.md  ← ★★★ pamięć projektu (reguły — PRZED kodem)
+2ai2. docs/AI/AI_DECISION_TREE.md  ← ★★★ drzewo decyzji (Payroll/sync/Shared → AUDIT/DF/GO)
 2m. docs/AGENT-APP-MAP.md  ← ★★★ mapa widoków, modułów lib, KV, sync (START dla AI)
-2p0. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przepływ · invariants · Hours-wipe) — START przed LP/sync
+2ai3. docs/AI/PROJECT_HANDOFF.md  ← ★★ handoff nowych sesji AI (docs FINALIZED)
+2p0. docs/AI/PAYROLL_QUICK_START.md  ← ★★★ Payroll AI Safety — Quick Start (przed LP/sync)
+2p0a. docs/AI/PAYROLL_AI_PLAYBOOK.md  ← ★★★ kolejność AUDIT → DF → Owner GO → IMPLEMENT
+2p0b. docs/AI/PAYROLL_GUARD_RAILS.md  ← ★★★ zakazy LP + checklisty commit/push
+2p0c. docs/AI/PAYROLL_DEPENDENCY_MAP.md  ← ★★ co przypadkowo psuje Payroll
+2p0d. docs/AI/PAYROLL_REGRESSION_HISTORY.md  ← ★★ RC → fix → zapobieganie
+2p0e. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przepływ · invariants · Hours-wipe)
 2p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  ← ★★ sync/merge głęboko — po SSOT
 2p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md  ← ★★ RC-B-1 CLOSED (PWRB · I-1…I-4 · jak nie zepsuć LP)
 2p3. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED (2.65.43 / ea1b0a6)
+2p4. docs/architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md  ← ★ Payroll docs hardening audit
 2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
 2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
 2og. docs/WORKFLOW-OWNER-GO.md  ← ★ Owner GO Policy (#WORKFLOW-OWNER-GO-001) · FEATURE vs CORE gate IMPLEMENT
