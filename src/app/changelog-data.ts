@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.46",
+    label: "LOGIN-UI-01 — mobile hotfix (font + back)",
+    items: [
+      {
+        type: "fix",
+        text: "Login — inputy text-base (≥16px, bez zoom iOS) · toolbar chrome po treści w DOM (strzałka wstecz mobile-flows).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.45",
     label: "Login screen — premium UI refresh",
     items: [

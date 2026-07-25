@@ -61,14 +61,14 @@ const cardClass =
   "backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.25)] space-y-6";
 
 const inputClass =
-  "w-full h-14 bg-secondary/50 rounded-2xl px-4 text-[15px] border border-border/40 " +
+  "w-full h-14 bg-secondary/50 rounded-2xl px-4 text-base border border-border/40 " +
   "placeholder:text-muted-foreground/45 focus:border-primary/50 focus:bg-secondary/70 " +
   "focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all duration-200";
 
 const labelClass = "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/80";
 
 const primaryBtnClass =
-  "w-full h-14 rounded-2xl bg-primary text-primary-foreground text-[15px] font-semibold " +
+  "w-full h-14 rounded-2xl bg-primary text-primary-foreground text-base font-semibold " +
   "hover:bg-primary/92 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 " +
   "disabled:opacity-55 disabled:hover:scale-100 disabled:cursor-not-allowed " +
   "flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]";
@@ -367,7 +367,6 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
       }}
     >
       <LoginAtmosphere />
-      <LoginToolbar copy={copy} locale={locale} onLocaleChange={onLocaleChange} />
 
       <div className="relative z-10 w-full max-w-[420px] space-y-10">
         {/* Hero */}
@@ -531,7 +530,7 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
                 type="button"
                 onClick={handleInspectorLogin}
                 disabled={passLoading}
-                className="w-full h-14 rounded-2xl bg-emerald-600 text-white text-[15px] font-semibold hover:bg-emerald-600/92 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 disabled:opacity-55 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(16,185,129,0.2)]"
+                className="w-full h-14 rounded-2xl bg-emerald-600 text-white text-base font-semibold hover:bg-emerald-600/92 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 disabled:opacity-55 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(16,185,129,0.2)]"
               >
                 {passLoading && <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin"/>}
                 {copy.enterPanel}
@@ -668,6 +667,9 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
         <PwaInstallBanner/>
         <LoginStatusFooter copy={copy} />
       </div>
+
+      {/* Toolbar after main content in DOM so mobile-flows back-arrow (button:has(svg).first) hits card back, not chrome */}
+      <LoginToolbar copy={copy} locale={locale} onLocaleChange={onLocaleChange} />
     </div>
   );
 }
