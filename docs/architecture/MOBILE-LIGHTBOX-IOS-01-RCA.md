@@ -1,7 +1,7 @@
 # MOBILE-LIGHTBOX-IOS-01 — RCA / AUDIT
 
 > **ID:** MOBILE-LIGHTBOX-IOS-01  
-> **STATUS:** RCA COMPLETE · DF: [`MOBILE-LIGHTBOX-IOS-01-DESIGN-FREEZE.md`](MOBILE-LIGHTBOX-IOS-01-DESIGN-FREEZE.md) · czeka na Owner GO  
+> **STATUS:** **CLOSED** · DF: [`MOBILE-LIGHTBOX-IOS-01-DESIGN-FREEZE.md`](MOBILE-LIGHTBOX-IOS-01-DESIGN-FREEZE.md) · Release: [`MOBILE-LIGHTBOX-IOS-01-RELEASE-REPORT.md`](MOBILE-LIGHTBOX-IOS-01-RELEASE-REPORT.md) · field **PASS iPhone**  
 > **Data:** 2026-07-25  
 > **IMPLEMENT / src / commit / push:** **NIE** bez Owner GO  
 > **Objaw:** fizyczny **iPhone Safari** — Roboty → robota → Zdjęcia → otwarcie zdjęcia → lightbox „zamarza” (brak close / brak przejścia na kolejne); wyjście tylko przez zmianę zakładki (np. Dokumenty → Zdjęcia).  

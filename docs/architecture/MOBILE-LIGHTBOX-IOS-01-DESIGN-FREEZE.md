@@ -1,7 +1,7 @@
 # MOBILE-LIGHTBOX-IOS-01 — DESIGN FREEZE
 
 > **ID:** MOBILE-LIGHTBOX-IOS-01  
-> **STATUS:** **IMPLEMENT COMPLETE** · Chromium PASS · field iPhone Safari **PENDING OWNER** · czeka na verify/commit Ownera  
+> **STATUS:** **CLOSED · RELEASE COMPLETE** · field **PASS iPhone** · tip prod `57b059d` · Release: [`MOBILE-LIGHTBOX-IOS-01-RELEASE-REPORT.md`](MOBILE-LIGHTBOX-IOS-01-RELEASE-REPORT.md)  
 > **Data:** 2026-07-25  
 > **RCA SSOT:** [`MOBILE-LIGHTBOX-IOS-01-RCA.md`](MOBILE-LIGHTBOX-IOS-01-RCA.md)  
 > **Kontrakty bazowe:** MUX-A R1/R4/R7 · MUX-B1 LB1–LB8 (z **amendem LB2 dla L1** — §1.3)  

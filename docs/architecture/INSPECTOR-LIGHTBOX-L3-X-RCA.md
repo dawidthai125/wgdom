@@ -1,7 +1,7 @@
 # INSPECTOR-LIGHTBOX-L3-X — RCA
 
 > **ID:** INSPECTOR-LIGHTBOX-L3-X  
-> **STATUS:** RCA COMPLETE · **brak zmian w `src/**`** · brak IMPLEMENT · brak commit/push  
+> **STATUS:** **CLOSED** · false alarm (harness) · fix w TEST-HARNESS-LIGHTBOX-01 (`97f0424`) · **brak zmian w `src/**`**  
 > **Data:** 2026-07-25  
 > **Scope:** wyłącznie `InspectorPhotoGallery` (L3) + harness, który fałszywie raportował FAIL X  
 > **NIE jest** kontynuacją MOBILE-LIGHTBOX-IOS-01 (IOS-01 nadal OPEN tylko na field Safari)
