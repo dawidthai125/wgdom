@@ -1,5 +1,5 @@
 ---
-description: WGDOM — na start sesji czytaj docs/ARCHITECTURE.md i AGENTS.md
+description: WGDOM — na start sesji: AI_ENTRY + Payroll Safety Gate
 alwaysApply: true
 ---
 
@@ -9,69 +9,12 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.63.21**).
-2y. [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
-2y. [`docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED)
-2s. [`docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) ← ★★ WM Druk ZI §4/§5 · TP203 · P4
-2t. [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) ← ★★ WM Schematy visual V2 (CLOSED)
-2u. [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md) ← audyt historyczny SUPERSEDED · P1 **CLOSED** · SSOT: ARCHITECTURE § 15.6
-2v. [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) ← ★★ P1 Audit Hub WM epic closeout
-2v2. [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md) ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
-2v3. [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) ← ★★ P0 sync Failed to fetch · exceed_egress_quota (INCIDENT CLOSED)
-2v4. [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
-2v5. [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) ← ★★ NG-02 Pipeline (CLOSED · 2.62.98)
-2v7. [`docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
-2v8. [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) ← ★ TEST-INFRA Harness (APPROVED · READY · NOT STARTED) · Principles #014–#026
-2v10. [`docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) ← ★★ PAYROLL Etap 2 B4 Bootstrap Merge SSOT (CLOSED · 2.63.21)
-2v9. [`docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) ← CloudSyncMutationGuard CLOSED · 2.63.16
-2v6. [`audit/NG-02-EPIC-CLOSE-REPORT.md`](audit/NG-02-EPIC-CLOSE-REPORT.md) ← ★★ NG-02 epic closeout
-3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
-4. **Przeczytaj [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)** — ★★ Pomiary Elektryczne EM-P1R.
-5. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT.
-6. **Przeczytaj [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)** — ★★ Odbiory WM Druk (COMPLETE).
-7. **Przeczytaj [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)** — ★★ Notatki operacyjne P0→HF (COMPLETE).
-8. **Przeczytaj [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM.
-9. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie.
-10. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
-11. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
-12. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § **5.1 AppSettings ACL** · § 10.1 Przydziały robót · § 11 sync · § **12.1.16 P0/P1 merge kosztorysu** · § **12.1.8 WM Druk** · § **12.1.10 EM** · § 15.1 widoki.
-13. **Tematycznie (gdy dotyczy zadania):**
- - **Kosztorys UX P0 (2.62.64)** → [`docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md`](docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md) · ARCHITECTURE § 12.1.15a
- - **WM Schematy jednokreskowe (CLOSED 2.62.51)** → [`docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
- - **P0/P1 merge jakościowy kosztorysu (TP113/TP182)** → [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md)
- - **Lista Płac · PAYROLL-CLOUD-RECOVERY B4** → [`docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)
- - **Lista Płac · Przydziały robót** → [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md)
- - **Pomiary Elektryczne / DOCX** → [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)
- - **P2-H Dokumenty / ZIP / 7Z** → [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
- - **Notatki operacyjne** → [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
- - **Audit Hub WM P1 (CLOSED 2.62.77)** → [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md) · ARCHITECTURE § 15.6
- - **P0 Cloud Sync egress (INCIDENT CLOSED 2026-06-29)** → [`docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md`](docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md) · ARCHITECTURE § 11.4 · `INCIDENTS-2026-06.md` §0
- - **SUPER ADMIN ACL Instrukcja/Zmiany (CLOSED 2.62.92)** → [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1 · `test-admin-guide-acl.mjs`
- - **Mobile Recovery (CLOSED 2.62.79)** → [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md) · `JobsView.tsx` drill-in MV-2
- - **Przetargi / pipeline:** ARCHITECTURE § 12.1.23–27 · `useTenderPipelineRuntime` · NG-02 **EPIC CLOSED** · tab SSOT § 12.1.27
- - **P0 Tab SSOT (2.63.8):** [`docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md`](docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md) · `pendingTab` · nie przywracać `tab={v4Detail.tab}`
- - **TEST-INFRA-001 Harness:** [`docs/TEST-INFRA-001-DESIGN-FREEZE.md`](docs/TEST-INFRA-001-DESIGN-FREEZE.md) · **nie implementować bez polecenia** · prod tylko sandbox joby (#018)
- - **Payroll guard P0 (2.63.16):** [`docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md`](docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md) · `cloud-sync-mutation-guard.ts`
- - **UX.1 Tender Workspace** → [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
- - **P2-F Kwalifikacja ofertowa** → [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
+1. **[`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)** — ★★★ **JEDYNY oficjalny START AI**
+2. **[`docs/AI/PAYROLL_SAFETY_GATE.md`](docs/AI/PAYROLL_SAFETY_GATE.md)** — ★★★ Hard Gate G1–G9 **przed IMPLEMENT**
+3. **[`docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md`](docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md)** — obowiązkowa checklista
+4. **Tip produkcji:** tylko [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) (nie hardcoduj wersji tutaj)
+5. Potem: [`AGENTS.md`](AGENTS.md) · [`CURRENT-TASK.md`](CURRENT-TASK.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
-Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md + AGENT-ONBOARDING opisują system jako całość.
+**DEPRECATED:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md`.
 
-## Po każdej zmianie w kodzie
-
-Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura → CHANGELOG → HelpView → **aktualizacja `docs/ARCHITECTURE.md`** (gdy dotyczy) → **`CURRENT-TASK.md` + `docs/PROJECT-HANDOFF-CURRENT.md`** na końcu sesji → podsumowanie.
-
-## Kluczowe pliki (gdy ARCHITECTURE nie wystarcza)
-
-| Temat | Plik |
-|-------|------|
-| **Lista Płac · Przydziały (P1)** | `PayrollView.tsx`, `PayrollJobAssignmentsPanel.tsx`, `payroll-job-assignments.ts` |
-| **Pomiary Elektryczne (EM-P1R COMPLETE)** | `docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`, `src/lib/electrical-measurements/*`, `public/em-measurements/` |
-| **Odbiory WM Druk (COMPLETE · ZI 2026 STABLE)** | `docs/ZI-2026-HANDOFF.md`, `docs/MASTER-HANDOFF-POST-ZI-2026.md`, `src/lib/wm-print/*`, `WmPrintView.tsx` |
-| **Notatki operacyjne (COMPLETE)** | `docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`, `operational-notes.ts`, `OperationalNotesView.tsx` |
-| **P2-H Dokumenty przetargowe** | `docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`, `wgdom-7z-archive.ts` |
-| **P3 Wycena · BZP pipeline** | `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`, `tenders-strategic-client-filters.ts` |
-| **Baseline prod (SSOT)** | `docs/PROJECT-HANDOFF-CURRENT.md`, `CURRENT-TASK.md` |
-| **Sync / merge** | `src/lib/cloud-sync.ts`, ARCHITECTURE § 11 |
-| **Backend API** | `supabase/functions/make-server-0afb8820/index.tsx` |
+Tematycznie (po Entry + Gate): handoffy w `docs/` / `AGENTS.md` appendix — **nie** zamiast Entry.

@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.63.27** (prod) · commit **`6c94223`**
-- **Prod (`main` / `origin/main`, app):** **2.63.27** · https://www.wgdom.fun
+- **Aktualna wersja UI / tip:** **patrz [`docs/AI/09_PRODUCTION_BASELINE.md`](../../docs/AI/09_PRODUCTION_BASELINE.md)** + `https://www.wgdom.fun/version.json` — **nie** hardcoduj tutaj
+- **★★ AI START:** [`docs/AI/AI_ENTRY.md`](../../docs/AI/AI_ENTRY.md) · Gate [`docs/AI/PAYROLL_SAFETY_GATE.md`](../../docs/AI/PAYROLL_SAFETY_GATE.md)
+- **Prod:** https://www.wgdom.fun
 - **★★ NG-02 Tender Automation Pipeline:** **EPIC CLOSED** (2.62.95–98) · [`docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · ARCHITECTURE § 12.1.23–26
 - **★★ SUPER ADMIN ACL (Instrukcja + Zmiany):** **CLOSED** (2.62.92) · [`docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md`](../../docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md) · ARCHITECTURE § 5.1
 - **★★ Mobile Recovery:** **EPIC CLOSED** (2.62.78–79) · [`docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](../../docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)

@@ -1,8 +1,16 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
-> **Cel:** jeden dokument odpowiadający na pytania: *co zrobiliśmy, co robimy teraz, jak wygląda struktura aplikacji i gdzie szukać SSOT.*  
-> **Prod:** UI **2.65.35** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN**  
-> **Ostatnia aktualizacja:** 2026-07-20 (domknięcie **PAYROLL-CLOUD-RESURRECTION-01** + **PAYROLL-P0-WEEK-ROLLOVER-01**) · app **`fce7b78`** · tip docs **`5d6e798`** · **STABILIZATION WINDOW ACTIVE**
+> **★★ AI START:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).  
+> **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
+
+> **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-21):** **TEST-HARNESS-01 H5** **CLOSED** · **`3356349`** · UI **2.65.35** — Biblioteka / Work Catalog KV-only (`kw-wgdom-work-catalog`) · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · **STABILIZATION WINDOW ACTIVE** · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md).
+
+> **★ Domknięcie sesji (2026-07-20):** **TEST-HARNESS-01 H4** **CLOSED** · **`1addd97`** · UI **2.65.35** — Cloud KV-only prod sandbox · H0–H4 tooling **RELEASED** · SSOT [`architecture/TEST-HARNESS-01-H4-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H4-CLOSEOUT.md).
+
+> **★ Domknięcie sesji (2026-07-20):** **TEST-HARNESS-01 H4** **RELEASED** (POST RELEASE) · superseded by CLOSE — [`architecture/TEST-HARNESS-01-H4-POST-RELEASE.md`](architecture/TEST-HARNESS-01-H4-POST-RELEASE.md).
 
 > **★ Domknięcie sesji (2026-07-20):** **PAYROLL-CLOUD-RESURRECTION-01** **CLOSED** · **`fce7b78`** · **2.65.35** — bootstrap freshness fence: stary LocalStorage innej sesji **nie** reseeds intentional empty Cloud KV · SSOT [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md) · fence `src/lib/payroll-bootstrap-resurrection-fence.ts` · test `scripts/test-payroll-cloud-resurrection-01.mjs`.
 
@@ -75,10 +83,10 @@
 > **⚠ PIERWSZE, co musisz wiedzieć (2026-07-20):**
 >
 > 0. **★★ LISTA PŁAC = PRIORYTET PRODUKCYJNY** — Domain Push (#CORE-015) · **resurrection fence** · rollover classifier · PWRB. Przed `cloud-sync` / Edge / payroll → [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md).
-> 1. **Baseline prod** — **2.65.35** @ **`fce7b78`** · tip docs **`5d6e798`** · **GREEN**.
-> 2. **PAYROLL-CLOUD-RESURRECTION-01 + ROLLOVER-01 CLOSED** — nie usuwaj fence / nie cofaj ALIGN vs ROLLOVER.
-> 3. **STABILIZATION WINDOW** — brak nowych epiców bez AUDIT + Owner GO.
-> 4. **Następny krok** — czekaj Owner GO · `AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Owner GO → IMPLEMENT`.
+> 1. **Baseline prod** — UI **2.65.35** · tip **`3356349`** (H5 tooling) · app feature **`fce7b78`** · **GREEN**.
+> 2. **TEST-HARNESS-01 H5 CLOSED** · H0–H5 tooling **RELEASED** · H0.x / H3-B/C **nie startuj** bez GO · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md).
+> 3. **PAYROLL-CLOUD-RESURRECTION-01 + ROLLOVER-01 CLOSED** — nie usuwaj fence / nie cofaj ALIGN vs ROLLOVER.
+> 4. **STABILIZATION WINDOW ACTIVE** — brak nowych epiców bez AUDIT + Owner GO · czekaj Owner GO.
 
 **Nie zastępuje** `ARCHITECTURE.md` ani handoffów tematycznych — **linkuje** do nich.
 
@@ -91,17 +99,18 @@
 | Warstwa | Wartość |
 |---------|---------|
 | **Production (UI)** | **2.65.35** · https://www.wgdom.fun · **PRODUCTION VERIFIED** · **GREEN** |
-| **Runtime commit (app)** | **`fce7b78`** · PAYROLL-CLOUD-RESURRECTION-01 |
-| **main HEAD (tip)** | **`5d6e798`** · docs closeout RESURRECTION (app nadal `fce7b78`) |
+| **Runtime tip (`version.json`)** | **`3356349`** · TEST-HARNESS-01 H5 tooling (UI bez bumpu) |
+| **App feature (ostatni)** | **`fce7b78`** · PAYROLL-CLOUD-RESURRECTION-01 |
+| **main HEAD (tip)** | **`3356349`** · H5 **CLOSED** · H0–H5 tooling RELEASED |
 | **Payroll sync** | **Domain Push ACTIVE** (#CORE-015) · **resurrection fence** na bootstrap · RS Push **bez Payroll** |
 | **Incident register** | **CLEAN** — Resurrection-01 + Rollover-01 **CLOSED** · A/B historyczne **CLOSED** |
-| **Ostatnio CLOSED** | **PAYROLL-CLOUD-RESURRECTION-01** · **PAYROLL-P0-WEEK-ROLLOVER-01** · TEST-HARNESS H0–H3 tooling · THEME-01 · DEADLOCK-N1 |
-| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** — GO / not started · **H0.x Persist Ledger** · dalsze H* sandbox **tylko po GO** |
+| **Ostatnio CLOSED** | **TEST-HARNESS-01 H5** · H4 · RESURRECTION-01 · ROLLOVER-01 · H0–H3 tooling · THEME-01 · DEADLOCK-N1 |
+| **OPEN (Owner)** | **LOCALSTORAGE-ARCH-02F** · **H0.x Persist Ledger** · H3-B/C — **tylko po GO** |
 | **Protected Core** | **GREEN** |
 | **Payroll Gate** | **16/16** PASS · S2 cross-device **18/18** |
 | **Cloud Sync S7** | Observation only — RS subset bez `kw-week-employees` |
 | **WIP lokalny** | unrelated tenders/theme/`.tmp*` — **nie** mieszać z CORE |
-| **Następny krok** | **STABILIZATION WINDOW** · czekaj Owner GO · **nie** ruszaj fence/merge payroll bez AUDIT+GO |
+| **Następny krok** | **STABILIZATION WINDOW ACTIVE** · preferowany next harness: **H0.x** (READY) · czekaj Owner GO · **nie** ruszaj fence/merge payroll bez AUDIT+GO |
 
 ### Czym jest aplikacja
 
@@ -116,7 +125,7 @@
 | **PAYROLL-CLOUD-RESURRECTION-01** — bootstrap freshness fence | **CLOSED** · dual-session smoke **PASS** | **2.65.35** @ `fce7b78` |
 | **PAYROLL-P0-WEEK-ROLLOVER-01** — ALIGN vs real rollover | **CLOSED** | **2.65.34** @ `e38610a` |
 | **CLOUD-P0-DEADLOCK-N1** — retry transient batch-set | **CLOSED** | **2.65.33** |
-| **TEST-HARNESS-01 H0–H3** — prod sandbox tooling | **RELEASED** (tooling) | tip docs · UI bez zmiany przy H* |
+| **TEST-HARNESS-01 H0–H5** — prod sandbox tooling | **RELEASED** · H5 epic **CLOSED** | tip **`3356349`** · UI **2.65.35** · next: H0.x / H3-B/C po GO |
 | **LOCALSTORAGE-ARCH-02 A–E** — IDB cold + `__WG_STORAGE__` | **CLOSED** · observation **PASS** | **2.65.28** @ `d896852` |
 | **LOCALSTORAGE-ARCH-02F** — platform facade | **GO** · **NOT STARTED** | czeka IMPLEMENT |
 | **PAYROLL-P0-FIX-01** — QuotaExceeded ≠ bootstrap FAILED | **CLOSED** | **2.65.27** @ `1c41b61` |

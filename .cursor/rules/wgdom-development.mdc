@@ -5,7 +5,9 @@ alwaysApply: true
 
 # W&G DOM — zasady przy każdej zmianie
 
-**Start sesji:** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+**Start sesji:** [`docs/AI/AI_ENTRY.md`](../../docs/AI/AI_ENTRY.md) → [`docs/AI/PAYROLL_SAFETY_GATE.md`](../../docs/AI/PAYROLL_SAFETY_GATE.md) → [`AGENTS.md`](../../AGENTS.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+
+**Tip produkcji:** tylko [`docs/AI/09_PRODUCTION_BASELINE.md`](../../docs/AI/09_PRODUCTION_BASELINE.md) — nie hardcoduj wersji w rules.
 
 Komunikuj się z użytkownikiem po **polsku**.
 

@@ -8,18 +8,22 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 
 ## Dla nowych sesji AI (ChatGPT / Cursor)
 
-**Zacznij tutaj (kolejność obowiązkowa, ≤15 min):**
+**Jedyne oficjalne wejście:** [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)
 
-| # | Dokument |
-|---|----------|
-| 0 | [`docs/AI/README.md`](docs/AI/README.md) — index Knowledge Base |
-| 1 | [`docs/AI/AI_MEMORY.md`](docs/AI/AI_MEMORY.md) — pamięć projektu |
-| 2 | [`docs/AI/AI_DECISION_TREE.md`](docs/AI/AI_DECISION_TREE.md) — drzewo decyzji |
-| 3 | [`docs/AI/PAYROLL_QUICK_START.md`](docs/AI/PAYROLL_QUICK_START.md) → Guard Rails → Dependency → Playbook |
-| 4 | [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](docs/PAYROLL-ARCHITECTURE-SSOT.md) → Agent Guide sync |
-| Handoff | [`docs/AI/PROJECT_HANDOFF.md`](docs/AI/PROJECT_HANDOFF.md) — stan zamknięcia docs / jak startować |
+```text
+AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
+  → PAYROLL_SAFETY_GATE → (Payroll Manual jeśli TAK)
+  → Architecture → CURRENT-TASK → FEATURE_IMPLEMENTATION_CHECKLIST
+  → dopiero IMPLEMENT
+```
 
-Potem: [`AGENTS.md`](AGENTS.md) · [`CURRENT-TASK.md`](CURRENT-TASK.md) · [`docs/AGENT-CONTINUITY-GUIDE.md`](docs/AGENT-CONTINUITY-GUIDE.md).
+| | |
+|--|--|
+| Tip produkcji (SSOT) | [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| Index Knowledge Base | [`docs/AI/README.md`](docs/AI/README.md) (po Entry) |
+| Workflow | [`AGENTS.md`](AGENTS.md) |
+
+**DEPRECATED (nie startuj stąd):** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md`.
 
 ---
 
@@ -29,8 +33,9 @@ Potem: [`AGENTS.md`](AGENTS.md) · [`CURRENT-TASK.md`](CURRENT-TASK.md) · [`doc
 
 | Dokument | Opis |
 |----------|------|
-| **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow deweloperski) |
-| **[`docs/AI/README.md`](docs/AI/README.md)** | **★ AI Knowledge Base** — Memory · Decision Tree · Guardrails |
+| **[`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)** | **★ AI START** — onboarding + Payroll Safety Gate |
+| **[`AGENTS.md`](AGENTS.md)** | Jak pracować (workflow) — **po** AI_ENTRY |
+| **[`docs/AI/README.md`](docs/AI/README.md)** | Index Knowledge Base |
 | **[`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** | **★ Release/deploy A/B/C** + VERIFY (oficjalny) |
 | **[`PROJECT-GUIDE.md`](PROJECT-GUIDE.md)** | Jak działa projekt + Known Issues |
 | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy |

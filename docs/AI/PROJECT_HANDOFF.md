@@ -1,18 +1,13 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **DOCS FINALIZED** · gotowe do **nowych** sesji ChatGPT / Cursor  
-> **Data:** 2026-07-25  
-> **Zakaz w tym handoffie:** implementacja bez Owner GO · mieszanie FEATURE+CORE  
-> **Tip app (feature):** UI **2.65.43** / `ea1b0a6` · CI Gates green @ `c681f88`  
-> **Tip docs (ten handoff):** **`08e5c60`**
+> **STATUS:** **ACTIVE** · AI-DOCS-PAYROLL-GUARD-02  
+> **Data:** 2026-07-26  
+> **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
+> **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE
 
 ```text
 ══════════════════════════════════════
-ZAMKNIĘTE SESJE DOCS (2026-07-25)
-CI Remediation EPIC ………… CLOSED (Gates GREEN)
-Payroll Docs Hardening …… COMPLETE
-AI Safety pack …………… COMPLETE
-AI_MEMORY + Decision Tree … COMPLETE
+OFICJALNY START = docs/AI/AI_ENTRY.md
 ══════════════════════════════════════
 ```
 
@@ -21,39 +16,37 @@ AI_MEMORY + Decision Tree … COMPLETE
 ## 1. Jak startuje NOWA sesja AI
 
 ```text
-README.md (root)
-  → docs/AI/README.md
+docs/AI/AI_ENTRY.md
+  → PROJECT_HANDOFF.md          ← ten plik
   → AI_MEMORY.md
   → AI_DECISION_TREE.md
-  → PAYROLL_QUICK_START.md
-  → PAYROLL_GUARD_RAILS.md
-  → PAYROLL_DEPENDENCY_MAP.md
-  → PAYROLL_AI_PLAYBOOK.md
-  → docs/PAYROLL-ARCHITECTURE-SSOT.md
-  → docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  (głęboko)
-  → AGENTS.md · CURRENT-TASK.md · AGENT-CONTINUITY-GUIDE.md
+  → PAYROLL_SAFETY_GATE.md      ← odpowiedz G1–G9
+  → AI_PAYROLL_SAFETY_MANUAL.md (gdy ≥1 TAK)
+  → 02_ARCHITECTURE / docs/ARCHITECTURE.md
+  → CURRENT-TASK.md
+  → FEATURE_IMPLEMENTATION_CHECKLIST.md
+  → IMPLEMENT
 ```
 
-**Hasło Ownera „kontynuuj WGDOM”** → dodatkowo `.cursor/rules` + Continuity Guide.
+**Hasło Ownera „kontynuuj WGDOM”** → najpierw Entry + Gate, potem Continuity / rules.
 
 ---
 
-## 2. SSOT map (jeden dokument na temat)
+## 2. SSOT map
 
 | Temat | SSOT |
 |-------|------|
-| Pamięć / decyzje AI | `docs/AI/AI_MEMORY.md` · `AI_DECISION_TREE.md` |
-| Zakazy globalne | `docs/AI/08_AI_GUARDRAILS.md` |
+| Entry AI | `docs/AI/AI_ENTRY.md` |
 | Tip produkcji | `docs/AI/09_PRODUCTION_BASELINE.md` |
-| Payroll AI | `docs/PAYROLL-ARCHITECTURE-SSOT.md` |
-| Payroll Guard / Playbook / Deps / Regression | `docs/AI/PAYROLL_*.md` |
-| Sync głęboko | `docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md` |
-| CI Remediation | `docs/architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md` |
-| Docs hardening audit | `docs/architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md` |
-| Workflow / deploy | `docs/WORKFLOW-RELEASE-DEPLOY.md` · Owner GO |
-| Living arch | `docs/ARCHITECTURE.md` |
+| Safety Gate | `docs/AI/PAYROLL_SAFETY_GATE.md` |
+| Never break | `docs/AI/PAYROLL_NEVER_BREAK_RULES.md` |
+| Feature checklist | `docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md` |
+| Payroll architektura | `docs/PAYROLL-ARCHITECTURE-SSOT.md` |
+| Incidents / RCA | `PAYROLL_INCIDENT_INDEX` · `PAYROLL_RCA_INDEX` |
+| Zakazy globalne | `08_AI_GUARDRAILS.md` |
+| Workflow / deploy | `WORKFLOW-RELEASE-DEPLOY` · Owner GO |
 
-Historyczne RCA/DF w `docs/architecture/` i `docs/recovery/` — **nie kasować**; czytać przy potrzebie.
+Historyczne `docs/architecture/PAYROLL-*` — przez INDEX, nie jako start.
 
 ---
 
@@ -61,42 +54,23 @@ Historyczne RCA/DF w `docs/architecture/` i `docs/recovery/` — **nie kasować*
 
 | Obszar | Status |
 |--------|--------|
-| App / Lista Płac Hours-wipe | **CLOSED** @ 2.65.43 |
-| TEST-INFRA Gates M/B/C | **GREEN** |
-| CI Remediation | **EPIC CLOSED** |
-| Residual CI-C-2 | P3 · legacy `e2e-happy-path` · **nie** blokuje Gate C |
-| STABILIZATION WINDOW | **ACTIVE** — brak auto-EPIC |
+| Lista Płac Hours-wipe | **CLOSED** (feature baseline w 09) |
+| AI Payroll Guard onboarding | **ACTIVE** (GUARD-02) |
+| STABILIZATION WINDOW | **ACTIVE** |
 | Protected Core | **GREEN** |
 
 ---
 
-## 4. Co wolno / czego nie w nowej sesji
+## 4. Co wolno / czego nie
 
-| Wolno (docs / AUDIT) | Nie wolno bez Owner GO |
-|----------------------|-------------------------|
+| Wolno | Nie wolno bez Owner GO |
+|-------|-------------------------|
 | AUDIT / RCA / DF (docs) | IMPLEMENT Payroll / cloud-sync / Edge |
-| Smoke read-only | Mixed FEATURE+CORE commit |
+| Smoke read-only | Mixed FEATURE+CORE |
 | Pytania / mapowanie | Usuwanie fence / omijanie Domain Gate |
-| CI-C-2 maintenance (po GO) | Nowy EPIC w Stabilization |
 
 ---
 
-## 5. Backlog (nie tip-blockery)
+## 5. DEPRECATED
 
-1. **CI-C-2** — `jobs-mobile-layout` „Lista” (P3).  
-2. HARDENING B1/C/E · ARCH-02F · H0.x · DEADLOCK-N2 — tylko Owner GO.  
-3. TI-B1–B3 — post-MVP test-infra.
-
----
-
-## 6. Definition of Done — nowe sesje
-
-Nowy Agent po ścieżce §1:
-
-- wie, że **Lista Płac = #1**  
-- umie użyć Decision Tree przed kodem  
-- zna SSOT Payroll i Dependency Map  
-- nie miesza FEATURE z write-path  
-- wie, że CI tip jest GREEN i docs AI są kompletne  
-
-**Projekt gotowy do zamknięcia starych sesji i startu nowych.**
+`AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → Entry.

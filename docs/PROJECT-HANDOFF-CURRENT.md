@@ -23,21 +23,21 @@
 **Wejście dla nowej sesji:**
 
 ```text
-0. docs/AI/README.md                      ← ★★★ AI Knowledge Base (START dla nowego AI)
-0b. docs/AI/09_PRODUCTION_BASELINE.md     ← UI 2.65.43 / feature ea1b0a6
-0c. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED
-0c2. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przed każdą zmianą LP)
-0d. docs/architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md  ← ★★ 01B0 CLOSED
-0e. docs/architecture/WGDOM-HARDENING-01D-CLOSEOUT.md  ← ★★ 01D CLOSED
-0f. docs/architecture/WGDOM-HARDENING-01A-CLOSEOUT.md  ← ★★ 01A CLOSED
-0. docs/AGENT-APP-MAP.md                  ← ★★★ mapa widoków, modułów, KV, sync
-1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-0. docs/AGENT-CONTINUITY-GUIDE.md         ← ★★ kontekst sesji + mapa struktury dla programistów
-0h5. docs/architecture/TEST-HARNESS-01-H5-CLOSEOUT.md  ← ★★ TEST-HARNESS-01 H5 CLOSED (`3356349`)
-0h4. docs/architecture/TEST-HARNESS-01-H4-CLOSEOUT.md  ← ★★ TEST-HARNESS-01 H4 CLOSED (`1addd97`)
-0p. docs/architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md  ← ★★ LP bootstrap fence (CLOSED · 2.65.35)
-0r. docs/architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md    ← ★★ rollover ALIGN/ROLLOVER (CLOSED · 2.65.34)
-1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md   ← ★★ SSOT Workflow (finalized 2.62.72)
+★  docs/AI/AI_ENTRY.md                    ← JEDYNY oficjalny START AI
+★  docs/AI/PAYROLL_SAFETY_GATE.md         ← HARD GATE przed IMPLEMENT
+★  docs/AI/09_PRODUCTION_BASELINE.md      ← tip SSOT (nie kopiuj numerów gdzie indziej)
+→  docs/AI/PROJECT_HANDOFF.md · AI_MEMORY · AI_DECISION_TREE
+→  CURRENT-TASK.md · FEATURE_IMPLEMENTATION_CHECKLIST.md
+Appendix (po Entry — living / historyczne):
+0c. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← Hours-wipe EPIC CLOSED
+0c2. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← Payroll AI SSOT
+0d–0f. WGDOM-HARDENING-01B0 / 01D / 01A closeouts
+0. docs/AGENT-APP-MAP.md
+1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod — living)
+0. docs/AGENT-CONTINUITY-GUIDE.md
+0h5 / 0h4. TEST-HARNESS H5 / H4 closeouts
+0p / 0r. Resurrection / Week rollover PV
+1w. docs/WORKFLOW-ARCHITECTURE-v2.63.md
 1y. docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P0.md  ← ★★ Kosztorys V4 fazy procesu P0 (CLOSED · 2.62.64)
 1z. docs/SESSION-HANDOFF-DISCOVERY-DOCUMENTS-VARIANT-B.md  ← ★ Discovery dokumentów variant B (CLOSED · 2.62.63)
 1s. docs/SESSION-HANDOFF-2026-06-24.md    ← sesja Audit Hub · TP200C · P0 cloud-sync

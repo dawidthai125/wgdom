@@ -124,6 +124,8 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 
 ## 10. Mapa do pełnych RCA (gdy potrzeba)
 
+**Indeks kanoniczny:** [`PAYROLL_RCA_INDEX.md`](PAYROLL_RCA_INDEX.md) · [`PAYROLL_INCIDENT_INDEX.md`](PAYROLL_INCIDENT_INDEX.md)
+
 | Temat | Wejście |
 |-------|---------|
 | Hours-wipe closeout | `architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md` |

@@ -1,11 +1,12 @@
 # AI_DECISION_TREE — drzewo decyzyjne WGDOM
 
 > **Cel:** w ≤ 5 min zdecydować, **czy wolno kodować** i **co przeczytać**.  
-> **Pamięć projektu:** [`AI_MEMORY.md`](AI_MEMORY.md) · **Index:** [`README.md`](README.md)  
+> **Entry:** [`AI_ENTRY.md`](AI_ENTRY.md) · **Pamięć:** [`AI_MEMORY.md`](AI_MEMORY.md)  
+> **HARD GATE (obowiązkowy):** [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) — **przed** IMPLEMENT  
 > **Bez duplikacji SSOT** — tylko routing.
 
 ```text
-START → odpowiedz TAK/NIE po kolei → idź gałęzią → STOP gdy wymaga AUDIT/DF/GO
+START → Safety Gate G1–G9 → ten drzewiec → STOP gdy AUDIT/DF/GO
 ```
 
 ---
@@ -19,9 +20,12 @@ START → odpowiedz TAK/NIE po kolei → idź gałęzią → STOP gdy wymaga AUD
                          NIE   │   TAK
                     ┌──────────┴──────────┐
                     ▼                     ▼
-              STOP — pytaj          Czytaj AI_MEMORY
-              Ownera                + ten drzewiec
+              STOP — pytaj          AI_MEMORY
+              Ownera                → PAYROLL_SAFETY_GATE (G1–G9)
+                                    → ten drzewiec
 ```
+
+> **Uwaga:** Safety Gate obejmuje też shell / routing / shared hooks — nie pomijaj go „bo to tylko FEATURE”.
 
 ---
 

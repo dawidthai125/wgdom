@@ -178,15 +178,20 @@ Pełny proces: [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md).
 ## 12. Od czego zacząć pracę (nowe AI)
 
 ```text
-1. docs/AI/README.md              ← INDEX
-2. docs/AI/08_AI_GUARDRAILS.md    ← zakazy
-3. docs/AI/09_PRODUCTION_BASELINE.md
-4. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★ jeśli cokolwiek przy LP / sync / Edge merge
-5. CURRENT-TASK.md
-6. docs/AGENT-CONTINUITY-GUIDE.md §0
-7. Tematycznie: Payroll Cloud Sync Guide / WORKFLOW-ARCHITECTURE / Sync Storm RCA
+1. docs/AI/AI_ENTRY.md              ← ★ oficjalny START
+2. docs/AI/PROJECT_HANDOFF.md
+3. docs/AI/AI_MEMORY.md
+4. docs/AI/AI_DECISION_TREE.md
+5. docs/AI/PAYROLL_SAFETY_GATE.md   ← HARD GATE
+6. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
+7. docs/AI/09_PRODUCTION_BASELINE.md  ← tip SSOT
+8. docs/AI/08_AI_GUARDRAILS.md      ← zakazy (gdy Gate / przed kodem)
+9. CURRENT-TASK.md
+→ IMPLEMENT dopiero potem
+
+Appendix: docs/AI/README.md · PAYROLL-ARCHITECTURE-SSOT · AGENT-CONTINUITY §0 (po Entry)
 ```
 
-**Hasło Ownera „kontynuuj WGDOM”** → czytać też `.cursor/rules/wgdom-stan-projektu.mdc`.
+**Hasło Ownera „kontynuuj WGDOM”** → Entry + Gate najpierw; rules / Continuity potem.
 
 **Nie implementuj** bez jawnego polecenia Ownera (szczególnie CORE / Payroll / Sync / Edge / Pipeline).

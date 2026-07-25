@@ -1,132 +1,63 @@
-# WGDOM AI Knowledge Base — INDEX
+# AI Knowledge Base — INDEX
 
-> **ID:** WGDOM-AI-KNOWLEDGEBASE-01  
-> **STATUS:** DOCUMENTATION COMPLETE  
-> **Dla:** Cursor Agents · ChatGPT · każde nowe AI **bez** historii projektu  
-> **Zakaz w tej bazie:** implementacja kodu (tu tylko docs)
+> **Oficjalny START sesji AI:** [`AI_ENTRY.md`](AI_ENTRY.md) — **nie zaczynaj od tego INDEX.**  
+> Tip produkcji (SSOT): [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
 
 ```text
-══════════════════════════════════════
-WGDOM AI KNOWLEDGE BASE COMPLETE
-══════════════════════════════════════
+AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
+  → PAYROLL_SAFETY_GATE → (Manual jeśli TAK) → Architecture
+  → CURRENT-TASK → FEATURE_IMPLEMENTATION_CHECKLIST → IMPLEMENT
 ```
 
 ---
 
-## Start here (kolejność dla nowego AI)
+## Katalog — Onboarding Guard (GUARD-02)
 
-```text
-0. Ten INDEX (README.md)
-0a. AI_MEMORY.md                 ★★★ pamięć projektu — PRZED wszystkim
-0b. AI_DECISION_TREE.md          ★★★ drzewo decyzji — zanim kod
-1. 08_AI_GUARDRAILS.md          ★ zakazy — PRZED kodem
-2. 01_AI_ONBOARDING.md          mapa projektu
-3. 09_PRODUCTION_BASELINE.md    aktualny tip prod
-4. 03_ENGINEERING_RULES.md      zasady
-5. 02_ARCHITECTURE.md           architektura
-6. 04_INCIDENTS_HISTORY.md      pułapki historyczne
-7. 07_KNOWN_RISKS.md            ryzyka otwarte
-8. 05_MODULE_GUIDE.md           moduł, nad którym pracujesz
-9. 06_RELEASE_PROCESS.md        gdy release
-10. 11_GLOSSARY.md              słownik
-11. 12_DECISION_LOG.md          dlaczego tak jest
-12. 10_HANDOFF_TEMPLATE.md      koniec sesji
-```
-
-### ★ Lista Płac / Cloud Sync (obowiązkowa ścieżka AI Safety)
-
-```text
-P−1. AI_MEMORY.md + AI_DECISION_TREE.md  ← zawsze najpierw
-P0. PAYROLL_QUICK_START.md      ← minimalny onboarding LP
-P1. PAYROLL_GUARD_RAILS.md      ← zakazy + checklisty commit/push
-P2. PAYROLL_DEPENDENCY_MAP.md   ← co przypadkowo psuje LP
-P3. PAYROLL_REGRESSION_HISTORY.md
-P4. PAYROLL_AI_PLAYBOOK.md      ← AUDIT / DF / Owner GO
-P5. ../PAYROLL-ARCHITECTURE-SSOT.md  ← ★ SSOT przepływ + invariants
-P6. ../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  (głęboko)
-```
-
-Audyt docs: [`../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md).
-
-**Potem living SSOT repo:** `AGENTS.md` → `docs/AGENT-CONTINUITY-GUIDE.md` → `CURRENT-TASK.md` → Workflow / ARCHITECTURE (wg tematu).
+| Plik | Rola |
+|------|------|
+| [`AI_ENTRY.md`](AI_ENTRY.md) | **★★★ JEDYNY oficjalny entry** |
+| [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) | **★★★ Hard Gate G1–G9** |
+| [`AI_PAYROLL_SAFETY_MANUAL.md`](AI_PAYROLL_SAFETY_MANUAL.md) | Agregator packu LP |
+| [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) | Checklist NIGDY |
+| [`FEATURE_IMPLEMENTATION_CHECKLIST.md`](FEATURE_IMPLEMENTATION_CHECKLIST.md) | Obowiązkowa przed IMPLEMENT |
+| [`PAYROLL_BOUNDARY_MAP.md`](PAYROLL_BOUNDARY_MAP.md) | FEATURE vs CORE |
+| [`PAYROLL_WEEK_MODEL.md`](PAYROLL_WEEK_MODEL.md) | ALIGN / ROLLOVER / tydzień |
+| [`PAYROLL_DATA_FLOW_INDEX.md`](PAYROLL_DATA_FLOW_INDEX.md) | Indeks przepływów |
+| [`PAYROLL_INCIDENT_INDEX.md`](PAYROLL_INCIDENT_INDEX.md) | Indeks incydentów |
+| [`PAYROLL_RCA_INDEX.md`](PAYROLL_RCA_INDEX.md) | Indeks RCA |
 
 ---
 
-## Katalog dokumentów
+## Katalog — Knowledge Base
 
 | Plik | Opis |
 |------|------|
-| [`AI_MEMORY.md`](AI_MEMORY.md) | **★★★ Pamięć projektu** — reguły, których AI nie wolno zapomnieć (≤5 min) |
-| [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) | **★★★ Drzewo decyzji** — Payroll / bootstrap / sync / Shared → AUDIT/DF/GO |
-| [`PROJECT_HANDOFF.md`](PROJECT_HANDOFF.md) | **★★ Handoff** — stan docs FINALIZED · start nowych sesji |
-| [`01_AI_ONBOARDING.md`](01_AI_ONBOARDING.md) | Cel, historia, stack, repo, moduły, sync, release, OV vs PV — start kognitywny |
-| [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md) | Frontend (Vite/React **nie** Next), Supabase, LS/KV, Pipeline, Payroll, Jobs, Catalog, Auth, Edge, SSOT, przepływy, CORE |
-| [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) | SSOT/Reuse/Mobile/Cloud First, flagi, release, Owner GO, Payroll, Tenders, git |
-| [`04_INCIDENTS_HISTORY.md`](04_INCIDENTS_HISTORY.md) | Sync Storm 23.07, Payroll seria, bootstrap, Jobs photos, Theme, egress, deadlock, iOS login |
-| [`05_MODULE_GUIDE.md`](05_MODULE_GUIDE.md) | Per-moduł: cel, pliki, hooki, zależności, pułapki |
-| [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md) | AUDIT→…→CLOSE — znaczenie każdego etapu + VERIFY FAST |
-| [`07_KNOWN_RISKS.md`](07_KNOWN_RISKS.md) | Critical→Info: residual Sync Storm, fat key, payroll regress, gated EPICs |
-| [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) | **★ Najważniejszy** — lista NIE WOLNO + checklisty przed kod/commit/push |
-| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | UI **2.65.43** / feature `ea1b0a6` · Hours-wipe EPIC CLOSED · Hardening 01A/B0/D CLOSED |
-| [`10_HANDOFF_TEMPLATE.md`](10_HANDOFF_TEMPLATE.md) | Wzorzec handoffu między agentami |
-| [`11_GLOSSARY.md`](11_GLOSSARY.md) | SSOT, Sync Storm, coalesce, fence, PWRB, OV, … |
-| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decyzje D-01…D-20 z uzasadnieniem |
-| [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) | **★ Payroll** — minimalny onboarding AI |
-| [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) | **★ Payroll** — kolejność AUDIT → DF → GO → IMPLEMENT |
-| [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) | **★ Payroll** — zakazy + checklisty commit/push |
-| [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md) | **★ Payroll** — co zależy / co psuje LP |
-| [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) | **★ Payroll** — RC → fix → zapobieganie |
+| [`AI_MEMORY.md`](AI_MEMORY.md) | **★★★ Pamięć projektu** |
+| [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) | **★★★ Drzewo decyzji** |
+| [`PROJECT_HANDOFF.md`](PROJECT_HANDOFF.md) | Handoff nowych sesji |
+| [`01_AI_ONBOARDING.md`](01_AI_ONBOARDING.md) | Mapa kognitywna |
+| [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md) | Architektura skrót |
+| [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) | Zasady |
+| [`04_INCIDENTS_HISTORY.md`](04_INCIDENTS_HISTORY.md) | Historia incydentów |
+| [`05_MODULE_GUIDE.md`](05_MODULE_GUIDE.md) | Per-moduł |
+| [`06_RELEASE_PROCESS.md`](06_RELEASE_PROCESS.md) | Release |
+| [`07_KNOWN_RISKS.md`](07_KNOWN_RISKS.md) | Ryzyka |
+| [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) | Zakazy globalne |
+| [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | **★★ Tip SSOT** |
+| [`10_HANDOFF_TEMPLATE.md`](10_HANDOFF_TEMPLATE.md) | Szablon handoffu |
+| [`11_GLOSSARY.md`](11_GLOSSARY.md) | Słownik |
+| [`12_DECISION_LOG.md`](12_DECISION_LOG.md) | Decision log |
+| [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) | Payroll quick start |
+| [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) | AUDIT → DF → GO |
+| [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) | Guard Rails LP |
+| [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md) | Blast radius |
+| [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) | Regresje skrót |
+
+**SSOT LP:** [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md)  
+**Audyt:** [`../architecture/AI-DOCS-PAYROLL-GUARD-01-AUDIT.md`](../architecture/AI-DOCS-PAYROLL-GUARD-01-AUDIT.md)
 
 ---
 
-## Definition of Done (tożsamość nowego AI)
+## DEPRECATED entry (root)
 
-Po przeczytaniu Knowledge Base AI rozumie:
-
-| # | Kompetencja | Doc |
-|---|-------------|-----|
-| ✔ | Architektura Vite/React + KV sync + Edge | 02 |
-| ✔ | Jak działa WGDOM operacyjnie | 01, 05 |
-| ✔ | Historia i incydenty | 04 |
-| ✔ | Release + RCA pipeline | 06 |
-| ✔ | Zasady inżynierskie | 03 |
-| ✔ | Stan produkcji | 09 |
-| ✔ | Czego nie wolno zmieniać | **08** |
-| ✔ | Ryzyka residual | 07 |
-| ✔ | Od czego zacząć | INDEX + 01 |
-| ✔ | Słownik i decyzje | 11, 12 |
-
----
-
-## Powiązane dokumenty poza `docs/AI/`
-
-| Doc | Rola |
-|-----|------|
-| [`AGENTS.md`](../../AGENTS.md) | Workflow deweloperski |
-| [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) | Known Issues |
-| [`docs/AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md) | Kontekst sesji |
-| [`docs/AGENT-APP-MAP.md`](../AGENT-APP-MAP.md) | Mapa widoków/KV |
-| [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Living architecture |
-| [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) | **★ Payroll AI SSOT** — przepływ · invariants · safety · Hours-wipe |
-| [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) | Payroll sync/merge (głęboko) |
-| [`PAYROLL_QUICK_START.md`](PAYROLL_QUICK_START.md) (+ Playbook / Guard Rails / Dependency / Regression) | AI Safety pack Listy Płac |
-| [`docs/architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](../architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md) | Audyt + gap hardening docs |
-| [`docs/WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) | Przetargi UX SSOT |
-| [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../WORKFLOW-RELEASE-DEPLOY.md) | Deploy |
-| [`docs/WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md) | Owner GO |
-| [`docs/architecture/WGDOM-FINAL-PRODUCTION-AUDIT-01.md`](../architecture/WGDOM-FINAL-PRODUCTION-AUDIT-01.md) | Sync Storm final audit |
-| [`CURRENT-TASK.md`](../../CURRENT-TASK.md) | Status sesji |
-
----
-
-## Utrzymanie
-
-- Po każdym major release / P0 closeout: zaktualizuj **09** + wpis w **04/07/12** jeśli trzeba.  
-- Guardrails (**08**) zmieniaj tylko świadomie (to kontrakt bezpieczeństwa AI).  
-- Nie zastępuje Design Freeze / RCA w `docs/architecture/` — **indeksuje** je.
-
----
-
-```text
-WGDOM AI KNOWLEDGE BASE COMPLETE
-```
+`AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → **redirect** do [`AI_ENTRY.md`](AI_ENTRY.md).

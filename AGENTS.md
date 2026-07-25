@@ -7,72 +7,31 @@
 ## START HERE
 
 ```text
-1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/AGENT-CONTINUITY-GUIDE.md  ← ★★ kontekst sesji + mapa struktury (START dla nowej sesji)
-2ai. docs/AI/AI_MEMORY.md  ← ★★★ pamięć projektu (reguły — PRZED kodem)
-2ai2. docs/AI/AI_DECISION_TREE.md  ← ★★★ drzewo decyzji (Payroll/sync/Shared → AUDIT/DF/GO)
-2m. docs/AGENT-APP-MAP.md  ← ★★★ mapa widoków, modułów lib, KV, sync (START dla AI)
-2ai3. docs/AI/PROJECT_HANDOFF.md  ← ★★ handoff nowych sesji AI (docs FINALIZED)
-2p0. docs/AI/PAYROLL_QUICK_START.md  ← ★★★ Payroll AI Safety — Quick Start (przed LP/sync)
-2p0a. docs/AI/PAYROLL_AI_PLAYBOOK.md  ← ★★★ kolejność AUDIT → DF → Owner GO → IMPLEMENT
-2p0b. docs/AI/PAYROLL_GUARD_RAILS.md  ← ★★★ zakazy LP + checklisty commit/push
-2p0c. docs/AI/PAYROLL_DEPENDENCY_MAP.md  ← ★★ co przypadkowo psuje Payroll
-2p0d. docs/AI/PAYROLL_REGRESSION_HISTORY.md  ← ★★ RC → fix → zapobieganie
-2p0e. docs/PAYROLL-ARCHITECTURE-SSOT.md  ← ★★★ Payroll AI SSOT (przepływ · invariants · Hours-wipe)
-2p. docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md  ← ★★ sync/merge głęboko — po SSOT
-2p2. docs/recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md  ← ★★ RC-B-1 CLOSED (PWRB · I-1…I-4 · jak nie zepsuć LP)
-2p3. docs/architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md  ← ★★ Hours-wipe EPIC CLOSED (2.65.43 / ea1b0a6)
-2p4. docs/architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md  ← ★ Payroll docs hardening audit
-2b. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (widoki, sync, smoke)
-2s. docs/STABILIZATION-WINDOW-PLAN.md  ← ★★ STABILIZATION WINDOW ACTIVE (po NG-04 · brak nowych epiców)
-2og. docs/WORKFLOW-OWNER-GO.md  ← ★ Owner GO Policy (#WORKFLOW-OWNER-GO-001) · FEATURE vs CORE gate IMPLEMENT
-2t. docs/STABILIZATION-WEEKLY-METRICS-TEMPLATE.md  ← raport tygodniowy SSOT
-2ti. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA-001 Harness MVP (CLOSED · 2.63.26)
-2ti3. docs/TI-B4-CLOSEOUT.md  ← ★★ TI-B4 Smoke agregat NG-01–04 (CLOSED · 2.63.27 · Z-04 PASS)
-2ti2. docs/TEST-INFRA-LIFECYCLE.md  ← lifecycle orchestratora test-infra
-2w. docs/WORKFLOW-ARCHITECTURE-v2.63.md  ← ★★ SSOT Workflow (OBOWIĄZKOWE · prod 2.63.66)
-2w2. docs/architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md  ← ★★ NG-06 TEUX EPIC COMPLETE (2.63.66)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT handoff (tip **2.65.43** / `ea1b0a6` — patrz docs/AI/09)
-3n4. docs/NG-04-EPIC-CLOSE-REPORT.md  ← ★★ NG-04 BOQ PRO EPIC CLOSED (2.63.12)
-3n5. docs/ARCHITECTURE-REVIEW-2026-TENDERS.md  ← review NG-01–04 (READ ONLY)
-3n6. docs/architecture/NG11-P0-EPIC-CLOSE-REPORT.md  ← ★★ NG11-P0 EPIC COMPLETE (2.65.3 · 281ede1)
-3n7. docs/architecture/ROBOTS-INSPECTOR-01-CLOSEOUT.md  ← ★★ ROBOTS-INSPECTOR-01 CLOSED (2.65.5 · 9307386)
-3w3. docs/SESSION-HANDOFF-NG-02-EPIC-CLOSE.md  ← ★★ NG-02 Pipeline auto przetarg (CLOSED · 2.62.95–98)
-3w4. audit/NG-02-EPIC-CLOSE-REPORT.md  ← ★★ NG-02 epic closeout
-3w5. docs/SESSION-HANDOFF-P0-TENDER-DETAIL-SSOT-TAB.md  ← ★★ P0 tab SSOT URL (CLOSED · 2.63.8)
-3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED · 7 źródeł)
-3w. audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md  ← ★★ P1 Audit Hub WM EPIC CLOSED
-3w2. docs/SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md  ← ★★ Mobile Recovery EPIC CLOSED (2.62.78–79)
-3w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← audyt historyczny SUPERSEDED
-3u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 deploy unblock (CLOSED)
-3u2. docs/SESSION-HANDOFF-P0-CLOUD-SYNC-EGRESS-AUDIT-2026-06-29.md  ← ★★ P0 sync · exceed_egress_quota (INCIDENT CLOSED)
-2r. docs/architecture/ADR-CLOUD-SYNC-ARCHITECTURE.md  ← ★★ Cloud Sync ADR (PROPOSED · Evidence Gate OPEN · SYNC-ARCH Design Freeze BLOCKED)
-3u4. docs/SESSION-HANDOFF-SUPER-ADMIN-ACL-GUIDE-CHANGES.md  ← ★★ ACL Instrukcja + Zmiany (CLOSED · 2.62.92)
-3u3. audit/P0-CLOUD-SYNC-EGRESS-AUDIT-REPORT.md  ← skrót audytu egress
-3a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (CLOSED)
-3a2. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
-3a3. docs/SESSION-HANDOFF-TP200-PLANNED.md  ← ★★ TP200B fidelity (PLANNED)
-3b. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (CLOSED)
-3c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge jakościowy kosztorysu (CLOSED)
-3b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal
-4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
-5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
-5b. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★★ Lista Płac · Przydziały robót P1
-5c. docs/TEST-INFRA-001-CLOSEOUT.md  ← ★★ TEST-INFRA Harness (CLOSED · 2.63.26 · TI-B1–B4 backlog)
-5c2. docs/TEST-INFRA-001-DESIGN-FREEZE.md  ← DESIGN FREEZE v2.0 (historyczny SSOT)
-5d. docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md  ← ★★ PAYROLL Etap 2 B4 merge SSOT (CLOSED · 2.63.21)
-5e. docs/PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD-P0-DESIGN-FREEZE.md  ← CloudSyncMutationGuard P0 (CLOSED · 2.63.16)
-5e. docs/PAYROLL-CLOUD-RECOVERY-P0-DESIGN-FREEZE.md  ← mergeWeekEmployees hotfix (CLOSED · 2.63.15)
-6. docs/ZI-2026-HANDOFF.md  ← ZI Tauron 2026 prod SSOT
-7. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
-8. CURRENT-TASK.md        ← status sesji
-9. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release/deploy + VERIFY
-10. docs/ARCHITECTURE.md   ← § 15.2 Audit Hub · § 15.6 wm_druk · § 12.1.8 WM Druk · § 15.1 widoki
-11. PROJECT-GUIDE.md      ← skrót + Known Issues
-12. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← Notatki operacyjne
-13. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← P3 wycena · BZP
-… (pozostałe handoffy tematyczne — patrz § 1 poniżej)
+★ AI / nowa sesja — TYLKO TA ŚCIEŻKA:
+  0. docs/AI/AI_ENTRY.md                         ← oficjalny START
+  1. docs/AI/PROJECT_HANDOFF.md
+  2. docs/AI/AI_MEMORY.md
+  3. docs/AI/AI_DECISION_TREE.md
+  4. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
+  5. docs/AI/AI_PAYROLL_SAFETY_MANUAL.md         ← gdy Gate ≥1 TAK
+  6. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
+  7. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT
+  8. CURRENT-TASK.md                             ← status Ownera
+  9. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
+ 10. IMPLEMENT dopiero po Gate + checklist
+
+Appendix (po Entry — nie zamiast Entry):
+  · docs/AGENT-CONTINUITY-GUIDE.md
+  · docs/AGENT-APP-MAP.md
+  · docs/PAYROLL-ARCHITECTURE-SSOT.md
+  · docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md
+  · docs/WORKFLOW-OWNER-GO.md · docs/WORKFLOW-RELEASE-DEPLOY.md
+  · docs/ARCHITECTURE.md · PROJECT-GUIDE.md
+  · docs/AI/PAYROLL_* · recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md
+  · pozostałe handoffy tematyczne — §1 poniżej
 ```
+
+**DEPRECATED entry:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → `docs/AI/AI_ENTRY.md`.
 
 ### WAŻNE
 

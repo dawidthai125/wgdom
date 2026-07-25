@@ -3,7 +3,8 @@
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
 > **Data:** 2026-07-24  
-> **Production tip:** UI **2.65.43** · feature **`ea1b0a6`** · docs closeout **`19a1d89`**  
+> **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT)  
+> **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
 > **Zakaz:** ten plik **nie** zastępuje Design Freeze; **nie** implementuj Payroll bez Owner GO
 
@@ -19,6 +20,7 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | Potrzeba | Ten plik | Inny SSOT |
 |----------|----------|-----------|
 | Pełny przepływ + zakazy + AI checklist | **TU** | — |
+| **Entry / Gate / Manual / Indexes** | → | [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md) · [`AI/AI_PAYROLL_SAFETY_MANUAL.md`](AI/AI_PAYROLL_SAFETY_MANUAL.md) · Incident/RCA INDEX |
 | **Quick Start / Playbook / Guard Rails / Dependency / Regression** | → | [`AI/PAYROLL_QUICK_START.md`](AI/PAYROLL_QUICK_START.md) · [`AI/PAYROLL_AI_PLAYBOOK.md`](AI/PAYROLL_AI_PLAYBOOK.md) · [`AI/PAYROLL_GUARD_RAILS.md`](AI/PAYROLL_GUARD_RAILS.md) · [`AI/PAYROLL_DEPENDENCY_MAP.md`](AI/PAYROLL_DEPENDENCY_MAP.md) · [`AI/PAYROLL_REGRESSION_HISTORY.md`](AI/PAYROLL_REGRESSION_HISTORY.md) |
 | Detale Domain Push / merge / Edge | → | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
 | PWRB kontrakt I-1…I-4 | → | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) |
