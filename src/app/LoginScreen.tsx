@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, ShieldCheck, ClipboardCheck, HardHat, Lock, Eye, Search,
+  ArrowLeft, ShieldCheck, ClipboardCheck, HardHat, Lock, Eye, EyeOff, Search, User,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
+import { LoginAtmosphere } from "@/app/login/LoginAtmosphere";
+import { LoginToolbar } from "@/app/login/LoginToolbar";
+import { LoginStatusFooter } from "@/app/login/LoginStatusFooter";
+import {
+  loginCopy,
+  readLoginLocale,
+  writeLoginLocale,
+  type LoginLocale,
+} from "@/app/login/login-i18n";
 import {
   type AdminSession,
   listAdminUsersForLogin,
@@ -46,10 +56,36 @@ async function verifyWorkerPin(emp: DirectoryEmployee, pin: string): Promise<boo
   return hash === emp.workerPinHash;
 }
 
+const cardClass =
+  "bg-card/75 dark:bg-card/60 border border-border/60 rounded-[24px] p-8 sm:p-10 " +
+  "backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.25)] space-y-6";
+
+const inputClass =
+  "w-full h-14 bg-secondary/50 rounded-2xl px-4 text-[15px] border border-border/40 " +
+  "placeholder:text-muted-foreground/45 focus:border-primary/50 focus:bg-secondary/70 " +
+  "focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all duration-200";
+
+const labelClass = "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/80";
+
+const primaryBtnClass =
+  "w-full h-14 rounded-2xl bg-primary text-primary-foreground text-[15px] font-semibold " +
+  "hover:bg-primary/92 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 " +
+  "disabled:opacity-55 disabled:hover:scale-100 disabled:cursor-not-allowed " +
+  "flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]";
+
+const modeMotion = {
+  initial: { opacity: 0, y: 8, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -6, scale: 0.98 },
+  transition: { duration: 0.2 },
+};
+
 export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminSession)=>void; onInspector:(session: AdminSession)=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
   const adminUsers = useMemo(() => listAdminUsersForLogin(), []);
   const inspectorUsers = useMemo(() => listInspectorUsersForLogin(), []);
   const [mode, setMode] = useState<"pick"|"admin"|"worker"|"inspector">("pick");
+  const [locale, setLocale] = useState<LoginLocale>(readLoginLocale);
+  const copy = loginCopy(locale);
 
   const [selectedAdminId, setSelectedAdminId] = useState(adminUsers[0]?.id ?? "");
   const [selectedInspectorId, setSelectedInspectorId] = useState(inspectorUsers[0]?.id ?? "");
@@ -289,289 +325,349 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
     setWorkerError("");
   };
 
+  const onLocaleChange = (next: LoginLocale) => {
+    setLocale(next);
+    writeLoginLocale(next);
+  };
+
   const PasswordField = ({value, show, onToggle, onChange, onEnter, placeholder, autoFocus}: {
     value:string; show:boolean; onToggle:()=>void; onChange:(v:string)=>void;
     onEnter?:()=>void; placeholder?:string; autoFocus?:boolean;
   }) => (
     <div className="relative">
-      <input type={show?"text":"password"} placeholder={placeholder||"Wpisz hasło..."} value={value} autoFocus={autoFocus}
+      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none" strokeWidth={1.75} />
+      <input type={show?"text":"password"} placeholder={placeholder||copy.passwordPh} value={value} autoFocus={autoFocus}
         onChange={e=>onChange(e.target.value)}
         onKeyDown={e=>e.key==="Enter"&&onEnter?.()}
-        className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-base border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-      <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-        <Eye size={15}/>
+        className={`${inputClass} pl-11 pr-12`}/>
+      <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors duration-200" aria-label={show ? "Hide" : "Show"}>
+        {show ? <EyeOff size={16} strokeWidth={1.75}/> : <Eye size={16} strokeWidth={1.75}/>}
       </button>
     </div>
   );
 
-  return (
-    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4 py-8 overflow-y-auto" style={{fontFamily:"'Inter',sans-serif", paddingTop:"max(2rem, env(safe-area-inset-top))", paddingBottom:"max(2rem, env(safe-area-inset-bottom))"}}>
-      <div className="w-full max-w-sm space-y-8">
+  const BackButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors duration-200"
+      aria-label={copy.back}
+    >
+      <ArrowLeft size={16} strokeWidth={1.75}/>
+    </button>
+  );
 
-        {/* Logo */}
-        <div className="text-center space-y-2">
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-10 w-auto object-contain mx-auto"/>
-          <p className="text-xs text-muted-foreground">System zarządzania robotami</p>
+  return (
+    <div
+      className="relative min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4 py-10 sm:py-14 overflow-y-auto"
+      style={{
+        fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
+        paddingTop: "max(2.5rem, env(safe-area-inset-top))",
+        paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+      }}
+    >
+      <LoginAtmosphere />
+      <LoginToolbar copy={copy} locale={locale} onLocaleChange={onLocaleChange} />
+
+      <div className="relative z-10 w-full max-w-[420px] space-y-10">
+        {/* Hero */}
+        <div className="text-center space-y-5 pt-6 sm:pt-2">
+          <ImageWithFallback src={logoSrc} alt="WGDOM" className="h-9 sm:h-10 w-auto object-contain mx-auto opacity-95"/>
+          <div className="space-y-2.5">
+            <h1 className="text-[1.75rem] sm:text-[2rem] font-semibold tracking-tight text-foreground leading-tight">
+              {copy.heroTitle}
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-[28ch] mx-auto leading-relaxed">
+              {copy.heroDesc}
+            </p>
+          </div>
         </div>
 
-        {/* Mode: pick */}
-        {mode === "pick" && (
-          <div className="space-y-3">
-            <button onClick={()=>setMode("admin")}
-              className="w-full bg-primary text-primary-foreground rounded-2xl px-6 py-5 flex items-center gap-4 hover:bg-primary/90 active:scale-[0.98] transition-all">
-              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><ShieldCheck size={22}/></div>
-              <div className="text-left">
-                <p className="font-semibold text-base">Panel administracyjny</p>
-                <p className="text-xs opacity-70 mt-0.5">Wybierz użytkownika i wpisz hasło</p>
-              </div>
-            </button>
-            <button onClick={()=>setMode("inspector")}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-emerald-500/40 hover:bg-emerald-500/5 active:scale-[0.98] transition-all">
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0"><ClipboardCheck size={22} className="text-emerald-600 dark:text-emerald-400"/></div>
-              <div className="text-left">
-                <p className="font-semibold text-base">Inspektor</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Roboty, dokumenty, zlecenia — Wrocławskie Mieszkania</p>
-              </div>
-            </button>
-            <button onClick={()=>setMode("worker")}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] transition-all">
-              <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
-              <div className="text-left">
-                <p className="font-semibold text-base">Pracownik</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Zdjęcia, raport · telefon + kod 4 cyfry</p>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* Mode: admin login */}
-        {mode === "admin" && (
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
-              <div className="flex items-center gap-2"><Lock size={14} className="text-primary"/><span className="text-sm font-semibold">Logowanie administratora</span></div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Użytkownik</label>
-              <select
-                value={selectedAdminId}
-                onChange={(e) => {
-                  setSelectedAdminId(e.target.value);
-                  setPassword("");
-                  setPassError("");
-                }}
-                className="w-full bg-secondary rounded-xl px-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+        <AnimatePresence mode="wait">
+          {mode === "pick" && (
+            <motion.div key="pick" {...modeMotion} className="space-y-3">
+              <button
+                type="button"
+                onClick={()=>setMode("admin")}
+                className="w-full rounded-[24px] border border-border/50 bg-card/70 backdrop-blur-md px-5 py-5 flex items-center gap-4 hover:border-primary/30 hover:bg-card/90 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
               >
-                {adminUsers.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Hasło</label>
-              <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
-                onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleAdminLogin} autoFocus/>
-              {passError && <p className="text-xs text-destructive">{passError}</p>}
-              <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
-                <input
-                  type="checkbox"
-                  checked={rememberPassword}
-                  onChange={(e) => setRememberPassword(e.target.checked)}
-                  className="mt-0.5 rounded border-border accent-primary shrink-0"
-                />
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  Zapamiętaj hasło na tym urządzeniu
-                  <span className="block text-[10px] text-muted-foreground/60 mt-0.5">Tylko lokalnie w przeglądarce — nie trafia do chmury</span>
-                </span>
-              </label>
-            </div>
-            <button onClick={handleAdminLogin} disabled={passLoading}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-              {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
-              Zaloguj
-            </button>
-          </div>
-        )}
-
-        {/* Mode: inspector login */}
-        {mode === "inspector" && (
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
-              <div className="flex items-center gap-2"><ClipboardCheck size={14} className="text-emerald-600 dark:text-emerald-400"/><span className="text-sm font-semibold">Logowanie inspektora</span></div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Użytkownik</label>
-              <select
-                value={selectedInspectorId}
-                onChange={(e) => {
-                  setSelectedInspectorId(e.target.value);
-                  setPassword("");
-                  setPassError("");
-                }}
-                className="w-full bg-secondary rounded-xl px-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <ShieldCheck size={22} className="text-primary" strokeWidth={1.75}/>
+                </div>
+                <div>
+                  <p className="font-semibold text-[15px] tracking-tight">{copy.adminTitle}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{copy.adminDesc}</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={()=>setMode("inspector")}
+                className="w-full rounded-[24px] border border-border/50 bg-card/70 backdrop-blur-md px-5 py-5 flex items-center gap-4 hover:border-emerald-500/30 hover:bg-card/90 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
               >
-                {inspectorUsers.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Hasło</label>
-              <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
-                onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleInspectorLogin} autoFocus/>
-              {passError && <p className="text-xs text-destructive">{passError}</p>}
-              <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
-                <input
-                  type="checkbox"
-                  checked={rememberPassword}
-                  onChange={(e) => setRememberPassword(e.target.checked)}
-                  className="mt-0.5 rounded border-border accent-primary shrink-0"
-                />
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  Zapamiętaj hasło na tym urządzeniu
-                  <span className="block text-[10px] text-muted-foreground/60 mt-0.5">Tylko lokalnie w przeglądarce — nie trafia do chmury</span>
-                </span>
-              </label>
-            </div>
-            <button onClick={handleInspectorLogin} disabled={passLoading}
-              className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-600/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-              {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
-              Wejdź do panelu
-            </button>
-          </div>
-        )}
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <ClipboardCheck size={22} className="text-emerald-600 dark:text-emerald-400" strokeWidth={1.75}/>
+                </div>
+                <div>
+                  <p className="font-semibold text-[15px] tracking-tight">{copy.inspectorTitle}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{copy.inspectorDesc}</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={()=>setMode("worker")}
+                className="w-full rounded-[24px] border border-border/50 bg-card/70 backdrop-blur-md px-5 py-5 flex items-center gap-4 hover:border-border hover:bg-card/90 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                  <HardHat size={22} className="text-muted-foreground" strokeWidth={1.75}/>
+                </div>
+                <div>
+                  <p className="font-semibold text-[15px] tracking-tight">{copy.workerTitle}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{copy.workerDesc}</p>
+                </div>
+              </button>
+            </motion.div>
+          )}
 
-        {/* Mode: worker */}
-        {mode === "worker" && (
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <button onClick={resetWorkerLogin} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
-              <div className="flex items-center gap-2"><HardHat size={14} className="text-muted-foreground"/><span className="text-sm font-semibold">{workerStep === "setup-pin" ? "Ustaw kod pracownika" : "Logowanie pracownika"}</span></div>
-            </div>
-
-            {dirLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+          {mode === "admin" && (
+            <motion.div key="admin" {...modeMotion} className={cardClass}>
+              <div className="flex items-center gap-3">
+                <BackButton onClick={()=>{setMode("pick");setPassword("");setPassError("");}} />
+                <div className="flex items-center gap-2">
+                  <Lock size={14} className="text-primary" strokeWidth={1.75}/>
+                  <span className="text-sm font-semibold tracking-tight">{copy.adminLogin}</span>
+                </div>
               </div>
-            ) : workerStep === "setup-pin" && selectedWorker ? (
-              <>
-                <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 space-y-1">
-                  <p className="text-sm font-semibold">{selectedWorker.name}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    To pierwsze logowanie — ustaw <strong>osobisty kod 4 cyfry</strong> (jak PIN do karty). Zapamiętaj go — chroni Twoją wypłatę przed podglądem przez innych. Nie podawaj kodu kolegom.
-                  </p>
+              <div className="space-y-2.5">
+                <label className={labelClass}>{copy.user}</label>
+                <div className="relative">
+                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none" strokeWidth={1.75} />
+                  <select
+                    value={selectedAdminId}
+                    onChange={(e) => {
+                      setSelectedAdminId(e.target.value);
+                      setPassword("");
+                      setPassError("");
+                    }}
+                    className={`${inputClass} pl-11 appearance-none`}
+                  >
+                    {adminUsers.map((u) => (
+                      <option key={u.id} value={u.id}>{u.displayName}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Nowy kod (4 cyfry)</label>
-                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin1}
-                      onChange={e=>{setSetupPin1(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
-                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors" autoFocus/>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Powtórz kod</label>
-                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin2}
-                      onChange={e=>{setSetupPin2(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
-                      onKeyDown={e=>e.key==="Enter"&&handleWorkerSetupPin()}
-                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-                  </div>
-                </div>
-                {workerError && <p className="text-xs text-destructive">{workerError}</p>}
-                <button onClick={handleWorkerSetupPin} disabled={setupPinLoading || setupPin1.length !== 4 || setupPin2.length !== 4}
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                  {setupPinLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
-                  Zapisz kod i wejdź
-                </button>
-                <button type="button" onClick={()=>{setWorkerStep("login");setSetupPin1("");setSetupPin2("");setWorkerError("");}}
-                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  Wróć
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Wybierz siebie z listy</label>
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-                    <input type="search" placeholder="Szukaj imienia..." value={workerSearch}
-                      onChange={e=>{setWorkerSearch(e.target.value);setWorkerError("");}}
-                      className="w-full bg-secondary rounded-xl pl-9 pr-4 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-                  </div>
-                  <div className="max-h-44 overflow-y-auto rounded-xl border border-border divide-y divide-border">
-                    {activeWorkers.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-6">Brak aktywnych pracowników w kartotece.</p>
-                    ) : activeWorkers.map((emp) => {
-                      const hasPin = workerHasPhonePin(emp);
-                      const sel = selectedWorkerId === emp.id;
-                      return (
-                        <button key={emp.id} type="button" disabled={!hasPin}
-                          onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");setWorkerCode("");}}
-                          className={`w-full px-4 py-3 text-left transition-colors ${sel?"bg-primary/10":"hover:bg-secondary/50"} ${!hasPin?"opacity-50 cursor-not-allowed":""}`}>
-                          <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
-                          {!hasPin && <p className="text-[10px] text-amber-400 mt-0.5">Brak numeru — poproś admina</p>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className={labelClass}>{copy.password}</label>
+                <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
+                  onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleAdminLogin} autoFocus/>
+                {passError && <p className="text-xs text-destructive">{passError}</p>}
+                <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    checked={rememberPassword}
+                    onChange={(e) => setRememberPassword(e.target.checked)}
+                    className="mt-0.5 rounded border-border accent-primary shrink-0"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    {copy.remember}
+                    <span className="block text-[10px] text-muted-foreground/55 mt-0.5">{copy.rememberHint}</span>
+                  </span>
+                </label>
+              </div>
+              <button type="button" onClick={handleAdminLogin} disabled={passLoading} className={primaryBtnClass}>
+                {passLoading && <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin"/>}
+                {copy.signIn}
+              </button>
+            </motion.div>
+          )}
 
-                {selectedWorker && workerHasPhonePin(selectedWorker) && (
-                  <>
-                    <div className="space-y-2">
-                      <label className="text-xs text-muted-foreground">Telefon — 9 cyfr (bez +48)</label>
-                      <input type="tel" inputMode="numeric" autoComplete="off" maxLength={11}
-                        placeholder="np. 501234567" value={phonePin}
-                        onChange={e=>{setPhonePin(e.target.value.replace(/\D/g,"").slice(0,9));setWorkerError("");}}
-                        className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-widest border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+          {mode === "inspector" && (
+            <motion.div key="inspector" {...modeMotion} className={cardClass}>
+              <div className="flex items-center gap-3">
+                <BackButton onClick={()=>{setMode("pick");setPassword("");setPassError("");}} />
+                <div className="flex items-center gap-2">
+                  <ClipboardCheck size={14} className="text-emerald-600 dark:text-emerald-400" strokeWidth={1.75}/>
+                  <span className="text-sm font-semibold tracking-tight">{copy.inspectorLogin}</span>
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className={labelClass}>{copy.user}</label>
+                <div className="relative">
+                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 pointer-events-none" strokeWidth={1.75} />
+                  <select
+                    value={selectedInspectorId}
+                    onChange={(e) => {
+                      setSelectedInspectorId(e.target.value);
+                      setPassword("");
+                      setPassError("");
+                    }}
+                    className={`${inputClass} pl-11 appearance-none`}
+                  >
+                    {inspectorUsers.map((u) => (
+                      <option key={u.id} value={u.id}>{u.displayName}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className={labelClass}>{copy.password}</label>
+                <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
+                  onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleInspectorLogin} autoFocus/>
+                {passError && <p className="text-xs text-destructive">{passError}</p>}
+                <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    checked={rememberPassword}
+                    onChange={(e) => setRememberPassword(e.target.checked)}
+                    className="mt-0.5 rounded border-border accent-primary shrink-0"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    {copy.remember}
+                    <span className="block text-[10px] text-muted-foreground/55 mt-0.5">{copy.rememberHint}</span>
+                  </span>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={handleInspectorLogin}
+                disabled={passLoading}
+                className="w-full h-14 rounded-2xl bg-emerald-600 text-white text-[15px] font-semibold hover:bg-emerald-600/92 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200 disabled:opacity-55 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(16,185,129,0.2)]"
+              >
+                {passLoading && <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin"/>}
+                {copy.enterPanel}
+              </button>
+            </motion.div>
+          )}
+
+          {mode === "worker" && (
+            <motion.div key="worker" {...modeMotion} className={cardClass}>
+              <div className="flex items-center gap-3">
+                <BackButton onClick={resetWorkerLogin} />
+                <div className="flex items-center gap-2">
+                  <HardHat size={14} className="text-muted-foreground" strokeWidth={1.75}/>
+                  <span className="text-sm font-semibold tracking-tight">
+                    {workerStep === "setup-pin" ? copy.setupPin : copy.workerLogin}
+                  </span>
+                </div>
+              </div>
+
+              {dirLoading ? (
+                <div className="flex justify-center py-10">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+                </div>
+              ) : workerStep === "setup-pin" && selectedWorker ? (
+                <>
+                  <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3.5 space-y-1">
+                    <p className="text-sm font-semibold tracking-tight">{selectedWorker.name}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{copy.setupIntro}</p>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2.5">
+                      <label className={labelClass}>{copy.newPin}</label>
+                      <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin1}
+                        onChange={e=>{setSetupPin1(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                        className={`${inputClass} tracking-[0.4em] text-center`} autoFocus/>
                     </div>
-                    {workerHasPersonalPin(selectedWorker) && (
-                      <div className="space-y-2">
-                        <label className="text-xs text-muted-foreground">Twój kod pracownika (4 cyfry)</label>
-                        <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4}
-                          placeholder="••••" value={workerCode}
-                          onChange={e=>{setWorkerCode(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
-                          onKeyDown={e=>e.key==="Enter"&&handleWorkerSubmit()}
-                          className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-                        <p className="text-[10px] text-muted-foreground">Osobisty kod — nie taki sam jak u kolegów. Zapomniałeś? Poproś administratora o reset w kartotece.</p>
+                    <div className="space-y-2.5">
+                      <label className={labelClass}>{copy.repeatPin}</label>
+                      <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin2}
+                        onChange={e=>{setSetupPin2(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                        onKeyDown={e=>e.key==="Enter"&&handleWorkerSetupPin()}
+                        className={`${inputClass} tracking-[0.4em] text-center`}/>
+                    </div>
+                  </div>
+                  {workerError && <p className="text-xs text-destructive">{workerError}</p>}
+                  <button type="button" onClick={handleWorkerSetupPin} disabled={setupPinLoading || setupPin1.length !== 4 || setupPin2.length !== 4}
+                    className={primaryBtnClass}>
+                    {setupPinLoading && <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin"/>}
+                    {copy.savePin}
+                  </button>
+                  <button type="button" onClick={()=>{setWorkerStep("login");setSetupPin1("");setSetupPin2("");setWorkerError("");}}
+                    className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">
+                    {copy.back}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2.5">
+                    <label className={labelClass}>{copy.pickSelf}</label>
+                    <div className="relative">
+                      <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" strokeWidth={1.75}/>
+                      <input type="search" placeholder={copy.searchName} value={workerSearch}
+                        onChange={e=>{setWorkerSearch(e.target.value);setWorkerError("");}}
+                        className={`${inputClass} h-12 pl-11`}/>
+                    </div>
+                    <div className="max-h-44 overflow-y-auto rounded-2xl border border-border/50 divide-y divide-border/50">
+                      {activeWorkers.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-8">{copy.noWorkers}</p>
+                      ) : activeWorkers.map((emp) => {
+                        const hasPin = workerHasPhonePin(emp);
+                        const sel = selectedWorkerId === emp.id;
+                        return (
+                          <button key={emp.id} type="button" disabled={!hasPin}
+                            onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");setWorkerCode("");}}
+                            className={`w-full px-4 py-3.5 text-left transition-colors duration-200 ${sel?"bg-primary/10":"hover:bg-secondary/50"} ${!hasPin?"opacity-50 cursor-not-allowed":""}`}>
+                            <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
+                            {!hasPin && <p className="text-[10px] text-amber-500 mt-0.5">{copy.noPhone}</p>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {selectedWorker && workerHasPhonePin(selectedWorker) && (
+                    <>
+                      <div className="space-y-2.5">
+                        <label className={labelClass}>{copy.phoneLabel}</label>
+                        <input type="tel" inputMode="numeric" autoComplete="off" maxLength={11}
+                          placeholder={copy.phonePh} value={phonePin}
+                          onChange={e=>{setPhonePin(e.target.value.replace(/\D/g,"").slice(0,9));setWorkerError("");}}
+                          className={`${inputClass} tracking-widest`}/>
                       </div>
-                    )}
-                    {!workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g,"").length === 9 && workerPhonePinValid(selectedWorker, phonePin) && (
-                      <p className="text-[11px] text-primary/90 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
-                        Pierwsze logowanie — po potwierdzeniu telefonu ustawisz osobisty kod 4 cyfry.
-                      </p>
-                    )}
-                  </>
-                )}
+                      {workerHasPersonalPin(selectedWorker) && (
+                        <div className="space-y-2.5">
+                          <label className={labelClass}>{copy.pinLabel}</label>
+                          <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4}
+                            placeholder="••••" value={workerCode}
+                            onChange={e=>{setWorkerCode(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                            onKeyDown={e=>e.key==="Enter"&&handleWorkerSubmit()}
+                            className={`${inputClass} tracking-[0.4em] text-center`}/>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed">{copy.pinHint}</p>
+                        </div>
+                      )}
+                      {!workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g,"").length === 9 && workerPhonePinValid(selectedWorker, phonePin) && (
+                        <p className="text-[11px] text-primary/90 bg-primary/8 border border-primary/15 rounded-xl px-3.5 py-2.5">
+                          {copy.firstLoginHint}
+                        </p>
+                      )}
+                    </>
+                  )}
 
-                {workerError && <p className="text-xs text-destructive">{workerError}</p>}
+                  {workerError && <p className="text-xs text-destructive">{workerError}</p>}
 
-                {selectedWorker && workerHasPhonePin(selectedWorker) && phonePin.replace(/\D/g, "").length !== 9 && (
-                  <p className="text-[11px] text-muted-foreground">Wpisz 9 cyfr telefonu, żeby kontynuować.</p>
-                )}
-                {selectedWorker && workerHasPhonePin(selectedWorker) && workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g, "").length === 9 && workerCode.length !== 4 && (
-                  <p className="text-[11px] text-muted-foreground">Wpisz swój 4-cyfrowy kod pracownika.</p>
-                )}
+                  {selectedWorker && workerHasPhonePin(selectedWorker) && phonePin.replace(/\D/g, "").length !== 9 && (
+                    <p className="text-[11px] text-muted-foreground">{copy.phoneContinue}</p>
+                  )}
+                  {selectedWorker && workerHasPhonePin(selectedWorker) && workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g, "").length === 9 && workerCode.length !== 4 && (
+                    <p className="text-[11px] text-muted-foreground">{copy.pinContinue}</p>
+                  )}
 
-                <button
-                  type="button"
-                  onClick={handleWorkerSubmit}
-                  disabled={!selectedWorker || !workerHasPhonePin(selectedWorker)}
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                  {selectedWorker && workerHasPersonalPin(selectedWorker) ? "Zaloguj" : "Dalej — ustaw kod"}
-                </button>
-              </>
-            )}
-          </div>
-        )}
+                  <button
+                    type="button"
+                    onClick={handleWorkerSubmit}
+                    disabled={!selectedWorker || !workerHasPhonePin(selectedWorker)}
+                    className={primaryBtnClass}>
+                    {selectedWorker && workerHasPersonalPin(selectedWorker) ? copy.signIn : copy.nextSetup}
+                  </button>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <PwaInstallBanner/>
+        <LoginStatusFooter copy={copy} />
       </div>
     </div>
   );
 }
-

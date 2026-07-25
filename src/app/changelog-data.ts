@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-26",
+    version: "2.65.45",
+    label: "Login screen — premium UI refresh",
+    items: [
+      {
+        type: "improve",
+        text: "Ekran logowania — spokojny hero, karty glass 24px, większe inputy, toolbar (motyw Light/Dark/System, hymny, język PL/EN, About), status Production/wersja/commit oraz footer. Zero zmian logiki auth/routingu.",
+      },
+    ],
+  },
+  {
     date: "2026-07-24",
     version: "2.65.44",
     label: "Theme toggle — Inspektor + Pracownik",
