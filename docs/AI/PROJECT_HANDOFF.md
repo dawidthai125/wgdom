@@ -4,7 +4,7 @@
 > **Data:** 2026-07-25  
 > **Zakaz w tym handoffie:** implementacja bez Owner GO · mieszanie FEATURE+CORE  
 > **Tip app (feature):** UI **2.65.43** / `ea1b0a6` · CI Gates green @ `c681f88`  
-> **Tip docs (ten handoff):** uzupełnij po push (commit hash w raporcie sesji)
+> **Tip docs (ten handoff):** **`08e5c60`**
 
 ```text
 ══════════════════════════════════════

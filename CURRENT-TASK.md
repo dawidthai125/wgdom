@@ -15,7 +15,7 @@
 | **Residual** | CI-C-2 (P3, legacy e2e) · HARDENING B1/C/E / 02F / H0.x — tylko Owner GO |
 | **OUT** | Zero zmian `src/**` w tym etapie |
 
-> **STABILIZATION WINDOW ACTIVE** · CI tip **GREEN** · starye sesje ChatGPT/Cursor **można zamknąć** · nowe sesje startują od `docs/AI/PROJECT_HANDOFF.md`.
+> **STABILIZATION WINDOW ACTIVE** · CI tip **GREEN** · stare sesje ChatGPT/Cursor **można zamknąć** · nowe sesje startują od `docs/AI/PROJECT_HANDOFF.md`.
 
 ---
 
