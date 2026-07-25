@@ -1,10 +1,11 @@
 # CI GATE C REMEDIATION — CI-C-3 CLOSEOUT
 
-> **Status:** **CLOSED** (local Gate C **PASS** · CI verify poniżej)  
+> **Status:** **CLOSED**  
 > **Data:** 2026-07-25  
 > **DF:** [`CI-GATE-C-REMEDIATION-CI-C-3-DESIGN-FREEZE.md`](./CI-GATE-C-REMEDIATION-CI-C-3-DESIGN-FREEZE.md) · Wariant **A**  
 > **AUDIT:** [`CI-GATE-C-REMEDIATION-CI-C-3-AUDIT.md`](./CI-GATE-C-REMEDIATION-CI-C-3-AUDIT.md)  
-> **Commit tip:** *(uzupełnione po push)*
+> **Commit tip:** `c681f88`  
+> **CI:** [#30137417279](https://github.com/dawidthai125/wgdom/actions/runs/30137417279) · **success**
 
 ---
 
@@ -41,15 +42,22 @@ npm run test:infra -- --gate C --scope all
 
 ---
 
-## VERIFY (CI)
-
-*(Wypełniane po push `main`.)*
+## VERIFY (CI — [#30137417279](https://github.com/dawidthai125/wgdom/actions/runs/30137417279) @ `c681f88`)
 
 | Job | Wynik |
 |-----|--------|
-| Manifest | *pending* |
-| Gate B | *pending* |
-| Gate C | *pending* |
+| Manifest validate | **PASS** |
+| Gate B payroll | **PASS** (17/17) |
+| Gate B tenders | **PASS** (16/16) |
+| Gate C (E2E preview) | **PASS** · **66 PASS / 0 FAIL** · BLOCKING 0 |
+
+| Kryterium Gate C | Wynik |
+|------------------|--------|
+| Preview `#010` | PASS |
+| `E2E-HAPPY-PATH` | **PASS** (~2.6s test · 5602ms suite) |
+| E2E-PAYROLL-GUARD-S1 | PASS |
+| E2E-VERSION-AWARENESS | PASS |
+| Nowe tip blokery | **BRAK** |
 
 ---
 
