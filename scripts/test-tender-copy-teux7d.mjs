@@ -64,9 +64,16 @@ ok("TendersView no aiInsight variable", !tendersView.match(/\baiInsight\b/));
 noUserFacingAi(tendersView, "TendersView");
 
 const primaryAction = readSrc("src/app/TenderWorkflowPrimaryAction.tsx");
-ok("CTA mobile description visible", primaryAction.includes("data-teux7d-cta-description"));
-ok("CTA no max-[390px]:hidden on description", !primaryAction.includes("max-[390px]:hidden"));
-ok("CTA line-clamp-2 mobile", primaryAction.includes("line-clamp-2 sm:line-clamp-1"));
+ok("CTA description data attr", primaryAction.includes("data-teux7d-cta-description"));
+// MFS-01: description hidden on max-lg (compact first-screen); desktop lg+ keeps copy.
+ok(
+  "CTA description hidden on mobile (MFS-01)",
+  primaryAction.includes("hidden lg:block") && primaryAction.includes("data-teux7d-cta-description"),
+);
+ok(
+  "CTA no line-clamp-2 mobile description (MFS-01)",
+  !primaryAction.includes("line-clamp-2 sm:line-clamp-1"),
+);
 noUserFacingAi(primaryAction, "TenderWorkflowPrimaryAction");
 
 const listUx = readSrc("src/lib/tenders-list-ux.ts");
