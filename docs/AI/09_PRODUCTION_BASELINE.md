@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03 RELEASED**) · prod UI **2.65.46** · live tip **`a1ed3b8`** · feature BODY-S4 **`bd0f239`**.
+**Snapshot dokumentacji:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03 RELEASED**) · prod UI **2.65.46** · live tip **`44655fe`** · content **`a1ed3b8`** · feature BODY-S4 **`bd0f239`**.
 
 ---
 
@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main` / `version.json`)** | **`a1ed3b8`** — **AI-DOCS-CONSOLIDATION-03** MASTER_HANDOFF + AI docs sync · prior docs tip **`1e07574`** |
+| **Deploy tip commit (`main` / `version.json`)** | **`44655fe`** — CONSOLIDATION-03 release report + tip SSOT · content **`a1ed3b8`** · prior **`1e07574`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS · prior S3 **`ca08c75`** · S2 **`e2e1c58`** · S1 **`1cf8af2`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
@@ -51,6 +51,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| docs **`a1ed3b8`** | **AI-DOCS-CONSOLIDATION-03** — MASTER_HANDOFF + AI docs sync · Body closeout published | **CLOSED** · [`CONSOLIDATION-03-RELEASE`](../architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-RELEASE-REPORT.md) |
 | docs **`1e07574`** | BODY-S4 release report + tip SSOT | **CLOSED** |
 | **2.65.46** / **`bd0f239`** | **DASHBOARD-BODY-S4** — Przetargi skrót → WgCard soft · Body EPIC **COMPLETE** | **CLOSED** · **PV** · [`S4-RELEASE`](../architecture/WGDOM-DASHBOARD-BODY-S4-RELEASE-REPORT.md) · [`BODY-02-CLOSEOUT`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **2.65.46** / **`ca08c75`** | **DASHBOARD-BODY-S3** — Notatki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md) |
