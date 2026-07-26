@@ -164,17 +164,17 @@ export function JobListFilterBar({
   ];
   return (
     <div className="-mx-1 px-1 overflow-x-auto overscroll-x-contain">
-      <div className="flex gap-1.5 min-w-max pb-0.5">
+      <div className="flex gap-1 min-w-max">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => onFilter(t.id)}
             aria-pressed={filter === t.id}
-            className={`shrink-0 text-xs md:text-[11px] py-2 md:py-1 px-3 md:px-2.5 min-h-[44px] md:min-h-[28px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
+            className={`shrink-0 text-xs py-1.5 md:py-1 px-2.5 min-h-[40px] md:min-h-[28px] rounded-md font-medium transition-colors duration-150 motion-reduce:transition-none touch-manipulation border whitespace-nowrap ${
               filter === t.id
-                ? "bg-primary/10 text-foreground border-primary/35"
-                : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"
+                ? "bg-primary/10 text-primary border-primary/30"
+                : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/50"
             }`}
           >
             {t.label}

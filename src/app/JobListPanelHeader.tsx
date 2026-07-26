@@ -24,42 +24,47 @@ import {
 import type { JobListFilter } from "@/lib/job-list-status";
 import type { DirectoryEmployee } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
+import { WgButton, WgField } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_RADIUS_MD,
+  WG_RADIUS_SM,
+  WG_TOUCH_MIN,
+} from "@/lib/wg-ui-tokens";
 
-/** 20.5Z.4A — KPI widoczne w UI (logika noTeam/wmOverdue bez zmian w job-list-ops). */
+/** KPI keys — logika kliknięć bez zmian (job-list-ops). */
 const KPI_ITEMS = [
-  { key: "inProgress", label: "W toku", countKey: "inProgress" as const, phaseActive: "in_progress" as const, kind: "phase" as const },
-  { key: "handover", label: "Do odbioru", countKey: "handover" as const, phaseActive: "handover" as const, kind: "phase" as const },
-  { key: "bzp", label: "BZP", countKey: "bzp" as const, chip: "bzp_only" as const, kind: "chip" as const },
+  {
+    key: "inProgress",
+    label: "W toku",
+    countKey: "inProgress" as const,
+    phaseActive: "in_progress" as const,
+    kind: "phase" as const,
+    icon: HardHat,
+  },
+  {
+    key: "handover",
+    label: "Do odbioru",
+    countKey: "handover" as const,
+    phaseActive: "handover" as const,
+    kind: "phase" as const,
+    icon: ClipboardCheck,
+  },
+  {
+    key: "bzp",
+    label: "BZP",
+    countKey: "bzp" as const,
+    chip: "bzp_only" as const,
+    kind: "chip" as const,
+    icon: Scale,
+  },
 ] as const;
 
-/** 2.1B MIN — tylko wizualizacja KPI (ikony + akcenty); bez wpływu na liczenie/filtry. */
-const KPI_VISUAL: Record<
-  (typeof KPI_ITEMS)[number]["key"],
-  { icon: LucideIcon; idle: string; active: string; iconIdle: string; iconActive: string }
-> = {
-  inProgress: {
-    icon: HardHat,
-    idle: "border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10",
-    active: "border-yellow-500/45 bg-yellow-500/15 text-yellow-900 dark:text-yellow-100",
-    iconIdle: "text-yellow-600/70 dark:text-yellow-400/70",
-    iconActive: "text-yellow-700 dark:text-yellow-300",
-  },
-  handover: {
-    icon: ClipboardCheck,
-    idle: "border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10",
-    active: "border-orange-500/45 bg-orange-500/15 text-orange-900 dark:text-orange-100",
-    iconIdle: "text-orange-600/70 dark:text-orange-400/70",
-    iconActive: "text-orange-700 dark:text-orange-300",
-  },
-  bzp: {
-    icon: Scale,
-    idle: "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10",
-    active: "border-violet-500/45 bg-violet-500/15 text-violet-900 dark:text-violet-100",
-    iconIdle: "text-violet-600/70 dark:text-violet-400/70",
-    iconActive: "text-violet-700 dark:text-violet-300",
-  },
-};
-
+/**
+ * WGDOM-UI-01D-B-TOOLBAR — visual polish (TB-DF-01…12).
+ * Handlers/props unchanged — presentation only.
+ */
 export function JobListPanelHeader({
   returnNav,
   onAddJob,
@@ -133,50 +138,155 @@ export function JobListPanelHeader({
   };
 
   return (
-    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 md:pt-2 md:pb-2 md:space-y-1 border-b border-border">
+    <div
+      className={cn(
+        // TB-DF-01 / TB-DF-11 — niższy rytm + wyraźne zakończenie przed listą
+        "px-4 pt-3 pb-4 md:pt-2.5 md:pb-4",
+        "space-y-2.5 md:space-y-2",
+        "border-b border-border/60",
+      )}
+    >
       {returnNav && (
         <button
           type="button"
           onClick={returnNav.onBack}
-          className="w-full flex items-center gap-2 text-sm font-medium text-primary px-1 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+          className={cn(
+            "w-full flex items-center gap-2 text-sm font-medium text-primary px-1 py-1.5",
+            WG_RADIUS_SM,
+            "hover:bg-primary/10",
+            `transition-colors ${WG_DURATION_HOVER}`,
+            "motion-reduce:transition-none",
+          )}
         >
           <ArrowLeft size={16} />
           Wróć do {returnNav.label}
         </button>
       )}
 
-      <div className="flex gap-2">
-        <button
+      {/* TB-DF-02 — 1 Primary · Pliki secondary */}
+      <div className="flex gap-2 items-center">
+        <WgButton
           type="button"
+          variant="primary"
           onClick={onAddJob}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 md:py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors min-h-[44px] md:min-h-[36px]"
+          className={cn(
+            "flex-1 md:flex-none md:shrink-0 gap-2 px-4",
+            WG_TOUCH_MIN,
+            "h-10 md:h-9 text-sm font-medium",
+            WG_RADIUS_MD,
+          )}
         >
           <Plus size={14} />
           Nowa robota
-        </button>
-        <button
+        </WgButton>
+        <WgButton
           type="button"
+          variant="secondary"
           onClick={onShowAllFiles}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 md:py-2 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors min-h-[44px] md:min-h-[36px]"
+          className={cn(
+            "shrink-0 gap-1.5 px-3",
+            WG_TOUCH_MIN,
+            "h-10 md:h-9 text-xs font-medium",
+            WG_RADIUS_MD,
+          )}
+          aria-label={
+            totalJobFilesCount > 0 ? `Pliki (${totalJobFilesCount})` : "Pliki"
+          }
         >
           <FolderOpen size={14} className="shrink-0" />
-          <span className="truncate">
+          <span className="truncate max-w-[7rem] sm:max-w-none">
             Pliki{totalJobFilesCount > 0 ? ` (${totalJobFilesCount})` : ""}
           </span>
-        </button>
+        </WgButton>
       </div>
 
+      {/* TB-DF-04 / TB-DF-05 / TB-DF-06 — Search dominant · segment · Filtry */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-2">
+        <WgField
+          type="search"
+          placeholder="Szukaj adresu, klienta…"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          aria-label="Szukaj adresu, klienta"
+          className="w-full min-w-0 md:flex-1 order-1"
+          controlClassName={cn(WG_TOUCH_MIN, "h-11 md:h-10")}
+          leading={
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              aria-hidden
+            />
+          }
+        />
+
+        <div className="flex gap-2 order-2 md:contents">
+          <div
+            className={cn(
+              "flex flex-1 md:flex-none rounded-lg border border-border/50 bg-secondary/50 p-0.5",
+              "md:order-first",
+            )}
+            role="group"
+            aria-label="Widok listy robót"
+          >
+            {(["list", "queues"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onListViewModeChange(mode)}
+                aria-pressed={listViewMode === mode}
+                className={cn(
+                  "flex-1 md:flex-none px-3 rounded-md text-xs font-medium",
+                  "min-h-[44px] md:min-h-[32px] md:h-8",
+                  `transition-colors ${WG_DURATION_HOVER}`,
+                  "motion-reduce:transition-none touch-manipulation",
+                  listViewMode === mode
+                    ? "bg-background text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {mode === "list" ? "Lista" : "Kolejki"}
+              </button>
+            ))}
+          </div>
+
+          <WgButton
+            type="button"
+            variant={showMoreFilters || filtersActive ? "secondary" : "ghost"}
+            onClick={() => setShowMoreFilters((v) => !v)}
+            aria-expanded={showMoreFilters}
+            className={cn(
+              "shrink-0 gap-1 px-3 text-xs font-medium",
+              WG_TOUCH_MIN,
+              "h-11 md:h-9 md:min-h-0",
+              WG_RADIUS_SM,
+              (showMoreFilters || filtersActive) && "border border-primary/30 bg-primary/10",
+            )}
+          >
+            <span className="md:hidden">Filtry</span>
+            <span className="hidden md:inline">Filtry</span>
+            <ChevronDown
+              size={14}
+              className={cn(
+                "transition-transform duration-150",
+                "motion-reduce:transition-none",
+                showMoreFilters && "rotate-180",
+              )}
+            />
+          </WgButton>
+        </div>
+      </div>
+
+      {/* TB-DF-03 / TB-DF-12 — KPI chips pomocnicze (pod Search, nie Dashboard tiles) */}
       <div
         className="-mx-1 px-1 overflow-x-auto overscroll-x-contain scrollbar-thin"
         role="group"
-        aria-label="KPI robót"
+        aria-label="Szybkie filtry robót"
       >
-        <div className="flex flex-nowrap gap-2.5 md:gap-1.5 min-w-max pb-0.5">
+        <div className="flex flex-nowrap gap-1.5 min-w-max">
           {KPI_ITEMS.map((item) => {
             const active = kpiActive(item);
             const count = opsKpi[item.countKey];
-            const visual = KPI_VISUAL[item.key];
-            const Icon = visual.icon;
+            const Icon = item.icon as LucideIcon;
             return (
               <button
                 key={item.key}
@@ -184,84 +294,36 @@ export function JobListPanelHeader({
                 onClick={() => onKpiClick(item)}
                 aria-pressed={active}
                 title={`${count} — ${item.label}`}
-                className={`shrink-0 flex items-center gap-2.5 md:gap-1.5 min-w-[7.25rem] md:min-w-[5.25rem] px-3.5 md:px-2.5 py-3 max-md:py-2 md:py-1 rounded-2xl md:rounded-xl border text-left transition-colors touch-manipulation ${
-                  active ? visual.active : `text-muted-foreground ${visual.idle} hover:text-foreground`
-                }`}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 h-8 md:h-7 px-2.5",
+                  "rounded-md border text-left touch-manipulation",
+                  `transition-colors ${WG_DURATION_HOVER}`,
+                  "motion-reduce:transition-none",
+                  active
+                    ? "bg-primary/10 text-primary border-primary/30"
+                    : "bg-secondary/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60",
+                )}
               >
                 <Icon
-                  size={18}
-                  className={`shrink-0 md:w-3.5 md:h-3.5 ${active ? visual.iconActive : visual.iconIdle}`}
+                  size={14}
+                  className={cn("shrink-0 opacity-70", active && "opacity-100")}
                   aria-hidden
                 />
-                <span className="flex items-baseline gap-1.5 md:gap-1 min-w-0 whitespace-nowrap leading-none">
-                  <span className="text-xl max-md:text-lg md:text-sm font-bold tabular-nums tracking-tight">{count}</span>
-                  <span className="text-[11px] md:text-[10px] font-semibold leading-tight">{item.label}</span>
-                </span>
+                <span className="text-sm font-semibold tabular-nums leading-none">{count}</span>
+                <span className="text-xs font-medium leading-none">{item.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="space-y-3 max-md:space-y-2 md:space-y-0 md:grid md:grid-cols-[minmax(9rem,auto)_1fr_auto] md:gap-2 md:items-center">
-        <div
-          className="flex rounded-xl border border-border bg-secondary/40 p-0.5"
-          role="group"
-          aria-label="Widok listy robót"
-        >
-          {(["list", "queues"] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => onListViewModeChange(mode)}
-              aria-pressed={listViewMode === mode}
-              className={`flex-1 px-3 py-2 md:py-1.5 rounded-[10px] text-xs font-semibold min-h-[44px] md:min-h-[32px] transition-colors touch-manipulation ${
-                listViewMode === mode
-                  ? "bg-background text-foreground shadow-sm border border-border/60"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {mode === "list" ? "Lista" : "Kolejki"}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative w-full min-w-0">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <input
-            type="search"
-            placeholder="Szukaj adresu, klienta…"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 md:py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px] md:min-h-[32px]"
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowMoreFilters((v) => !v)}
-          aria-expanded={showMoreFilters}
-          className={`w-full md:w-auto md:shrink-0 flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium border min-h-[44px] md:min-h-[32px] touch-manipulation transition-colors ${
-            showMoreFilters || filtersActive
-              ? "bg-primary/10 text-foreground border-primary/35"
-              : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"
-          }`}
-        >
-          <span className="md:hidden">Filtry dodatkowe</span>
-          <span className="hidden md:inline">Filtry</span>
-          <ChevronDown size={14} className={`transition-transform ${showMoreFilters ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-
       <JobListFilterBar filter={filter} onFilter={onFilterChange} counts={filterCounts} />
 
       {showMoreFilters && (
-        <div className="rounded-xl border border-border bg-secondary/25 p-3 space-y-3">
+        <div className={cn("rounded-xl border border-border/60 bg-secondary/20 p-3 space-y-3")}>
           {activeDirectory.length > 0 && (
             <label className="block space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Lider realizacji
-              </span>
+              <span className="text-xs font-medium text-muted-foreground">Lider realizacji</span>
               <select
                 value={leadFilter}
                 onChange={(e) => onLeadFilterChange(e.target.value)}
@@ -281,9 +343,7 @@ export function JobListPanelHeader({
 
           {activeDirectory.length > 0 && (
             <label className="block space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Pracownik
-              </span>
+              <span className="text-xs font-medium text-muted-foreground">Pracownik</span>
               <select
                 value={workerFilter}
                 onChange={(e) => onWorkerFilterChange(e.target.value)}
@@ -303,7 +363,12 @@ export function JobListPanelHeader({
           <button
             type="button"
             onClick={onBulkModeToggle}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border border-border bg-secondary/60 hover:bg-secondary transition-colors min-h-[44px]"
+            className={cn(
+              "w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium",
+              "border border-border bg-secondary/60 hover:bg-secondary",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              "motion-reduce:transition-none min-h-[44px]",
+            )}
           >
             {bulkMode ? <CheckSquare size={13} /> : <Square size={13} />}
             {bulkMode ? "Tryb masowy — zaznacz roboty" : "Zaznacz wiele do usunięcia"}
@@ -321,7 +386,11 @@ export function JobListPanelHeader({
                 <Trash2 size={12} />
                 {deleteBusy ? "Usuwanie…" : "Usuń"}
               </button>
-              <button type="button" onClick={onBulkClear} className="text-xs text-muted-foreground hover:underline min-h-[36px]">
+              <button
+                type="button"
+                onClick={onBulkClear}
+                className="text-xs text-muted-foreground hover:underline min-h-[36px]"
+              >
                 Wyczyść
               </button>
             </div>

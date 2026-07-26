@@ -1,7 +1,5 @@
-import { FileText, ClipboardList, KeyRound, Trash2, X, CheckSquare, Square } from "lucide-react";
+import { KeyRound, Trash2, X, CheckSquare, Square } from "lucide-react";
 import { JobListPrimaryBadge } from "@/app/JobListStatus";
-import { JobMetaBadges } from "@/app/JobMetaPickers";
-import { JobWmPlannedBadge } from "@/app/JobWmPanel";
 import {
   inferJobPhase,
   jobMissingRequiredDocs,
@@ -11,17 +9,48 @@ import { resolveWorkerContractDateLabel } from "@/app/app-domain";
 import { jobOpsIsBzpContract } from "@/lib/job-list-ops";
 import { DOC_LABELS, DOCUMENT_TYPES, REQUIRED_DOCS } from "@/lib/job-documents";
 import { countJobFiles } from "@/lib/job-files-index";
+import { fmtPlannedHandover } from "@/lib/job-wm";
+import {
+  GAS_FURNACE_STATUS_LABELS,
+  GAS_FURNACE_STATUSES,
+  HOUSING_TYPE_LABELS,
+  STOVE_TYPE_LABELS_FULL,
+  STOVE_TYPES,
+  isJobHousingSet,
+  type GasFurnaceStatus,
+  type StoveType,
+} from "@/lib/job-meta";
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_HOVER, WG_RADIUS_MD } from "@/lib/wg-ui-tokens";
 
 type JobListCardJob = JobListStatusJob & {
   id: string;
   linkedTenderId?: string;
   endDate?: string;
   startDate: string;
+  plannedHandoverDate?: string;
   workEntries: { directoryId?: string; employeeName: string }[];
   executionAssigneeDirectoryIds?: string[];
 };
 
-/** Roboty 2.1B MIN — ten sam kontrakt i reguły co JobListCard; wyłącznie układ wizualny. */
+/** Fixed rails — LIST-DF-12 */
+const BADGE_RAIL = "w-[7.5rem] shrink-0";
+const PROGRESS_BLOCK = "w-[10.25rem] shrink-0";
+const COST_RAIL = "w-[4.75rem] shrink-0";
+const DELETE_RAIL = "w-11 shrink-0";
+
+const META_SEP = " · ";
+
+function shortenMeta(value: string, max = 32): string {
+  const t = value.trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, Math.max(1, max - 1))}…`;
+}
+
+/**
+ * WGDOM-UI-01D-A-LIST-02 — final list visual polish (hierarchy / rhythm / progress block).
+ * Same handlers/props — presentation only.
+ */
 export function JobListCardV2({
   job,
   selected,
@@ -47,7 +76,6 @@ export function JobListCardV2({
   selected: boolean;
   isDuplicate: boolean;
   workerCount: number;
-  /** Unikalni pracownicy z wpisów czasu na dziś (0 = badge ukryty). */
   activeTodayCount?: number;
   totalHoursLabel: string;
   costLabel: string | null;
@@ -69,19 +97,88 @@ export function JobListCardV2({
   const jobPhase = inferJobPhase(job);
   const fileCount = countJobFiles(job);
   const contractDateLabel = resolveWorkerContractDateLabel(job);
-  const clientLine = [job.client?.trim() || null, contractDateLabel, leadName ? `Lider: ${leadName}` : null]
-    .filter(Boolean)
-    .join(" • ");
+  const docsComplete = docsCount === REQUIRED_DOCS.length;
+
+  const missingCritical: string[] = [];
+  if (!job.documents.zlecenie) missingCritical.push("zlecenie");
+  if (!job.documents.kosztorys) missingCritical.push("kosztorys");
+
+  let exposedChip: { key: string; label: string; title?: string; warn?: boolean } | null = null;
+  if (jobOpsIsBzpContract(job)) {
+    exposedChip = { key: "bzp", label: "BZP" };
+  } else if (activeTodayCount > 0) {
+    exposedChip = {
+      key: "active",
+      label: `Aktywni dziś: ${activeTodayCount}`,
+      title: "Unikalni pracownicy z wpisem czasu na dziś",
+    };
+  } else if (missingCritical.length > 0) {
+    exposedChip = {
+      key: "docs",
+      label: missingCritical.length === 2 ? "Brak zlecenia / kosztorysu" : `Brak ${missingCritical[0]}`,
+      warn: true,
+    };
+  }
+
+  const metaParts: string[] = [];
+  if (job.client?.trim()) metaParts.push(shortenMeta(job.client, 28));
+  if (contractDateLabel) metaParts.push(shortenMeta(contractDateLabel, 24));
+  if (leadName) metaParts.push(shortenMeta(`Lider: ${leadName}`, 28));
+  if (job.plannedHandoverDate) metaParts.push(`WM ${fmtPlannedHandover(job.plannedHandoverDate)}`);
+  if (isJobHousingSet(job)) metaParts.push(HOUSING_TYPE_LABELS[job.housingType]);
+  if (job.stoveType && STOVE_TYPES.includes(job.stoveType as StoveType)) {
+    metaParts.push(shortenMeta(STOVE_TYPE_LABELS_FULL[job.stoveType as StoveType], 22));
+  }
+  if (job.gasFurnaceStatus && GAS_FURNACE_STATUSES.includes(job.gasFurnaceStatus as GasFurnaceStatus)) {
+    metaParts.push(
+      shortenMeta(`Piec: ${GAS_FURNACE_STATUS_LABELS[job.gasFurnaceStatus as GasFurnaceStatus]}`, 24),
+    );
+  }
+  if (job.keysHandedOver) metaParts.push("Klucze");
+  if (fileCount > 0) metaParts.push(`${fileCount} pl.`);
+  if ((recoverableUnsettledCount ?? 0) > 0) {
+    const amount =
+      (recoverableToRecoverAmount ?? 0) > 0
+        ? recoverableToRecoverAmount!.toLocaleString("pl-PL", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          })
+        : null;
+    metaParts.push(amount ? `Odzysk: ${amount} PLN` : `Odzysk: ${recoverableUnsettledCount}`);
+  }
+  if (isDuplicate) metaParts.push("Duplikat");
+  if (workerCount > 0) metaParts.push(`${workerCount} os.${META_SEP}${totalHoursLabel}`);
+
+  const metaLine = metaParts.join(META_SEP);
+  const metaTitle = metaParts.length
+    ? [
+        job.client?.trim(),
+        contractDateLabel,
+        leadName ? `Lider: ${leadName}` : null,
+      ]
+        .filter(Boolean)
+        .join(META_SEP) || metaLine
+    : undefined;
+
+  const handoverAlert =
+    jobPhase === "handover" && missingDocs.length > 0
+      ? `Brakuje: ${missingDocs.map((d) => DOC_LABELS[d]).join(", ")}`
+      : null;
 
   return (
     <div
-      className={`flex items-stretch mx-2 my-1.5 rounded-xl border transition-colors ${
+      className={cn(
+        "flex items-stretch mx-2 my-2.5 border",
+        WG_RADIUS_MD,
+        `transition-colors ${WG_DURATION_HOVER}`,
+        "motion-reduce:transition-none",
+        "min-h-[7.75rem]",
         selected
-          ? "border-primary/50 bg-primary/8 shadow-sm ring-1 ring-primary/20"
-          : "border-border/80 bg-card hover:border-border"
-      } ${isDuplicate && !selected ? "border-amber-500/25 bg-amber-500/5" : ""} ${
-        bulkSelected ? "border-destructive/30 bg-destructive/5" : ""
-      }`}
+          ? "border-primary/30 bg-primary/10"
+          : "border-border/70 bg-card hover:bg-secondary/20",
+        isDuplicate && !selected && "border-amber-500/25 bg-amber-500/5",
+        bulkSelected && "border-destructive/30 bg-destructive/5",
+      )}
     >
       {bulkMode && (
         <div className="flex items-center pl-2 shrink-0">
@@ -91,7 +188,11 @@ export function JobListCardV2({
               e.stopPropagation();
               onBulkToggle?.();
             }}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+            className={cn(
+              "p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              "motion-reduce:transition-none",
+            )}
             aria-label={bulkSelected ? "Odznacz robotę" : "Zaznacz robotę"}
             aria-pressed={bulkSelected}
           >
@@ -99,140 +200,122 @@ export function JobListCardV2({
           </button>
         </div>
       )}
+
       <button
         type="button"
         onClick={onSelect}
-        className="flex-1 min-w-0 text-left px-3 py-2.5 hover:bg-secondary/30 rounded-xl transition-colors"
+        className={cn(
+          "flex-1 min-w-0 text-left px-3.5 py-3.5 flex flex-col",
+          WG_RADIUS_MD,
+          `transition-colors ${WG_DURATION_HOVER}`,
+          "motion-reduce:transition-none",
+        )}
       >
-        {/* Nagłówek: adres + status */}
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <p className="text-sm font-semibold truncate leading-tight min-w-0 flex-1">
-            {job.address || <span className="italic text-muted-foreground">Bez adresu</span>}
+        {/* Adres dominant — LIST-02 */}
+        <div className="flex items-start gap-2.5 min-w-0">
+          <p className="text-base font-semibold tracking-tight truncate leading-snug min-w-0 flex-1 text-foreground">
+            {job.address || <span className="italic text-muted-foreground font-medium text-sm">Bez adresu</span>}
             {job.flatNumber && (
-              <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>
+              <span className="text-muted-foreground/80 font-normal text-sm"> m.{job.flatNumber}</span>
             )}
           </p>
-          <JobListPrimaryBadge job={job} />
+          <div className={cn(BADGE_RAIL, "flex justify-end pt-0.5 [&_span]:max-w-full [&_span]:truncate [&_span]:rounded-md")}>
+            <JobListPrimaryBadge job={job} />
+          </div>
         </div>
 
-        {/* Druga linia: klient + termin */}
-        {clientLine && (
-          <p className="text-xs text-muted-foreground truncate mb-2">{clientLine}</p>
-        )}
+        {/* Meta — większy odstęp, niższy kontrast, max 2 linie */}
+        <p
+          className="text-[11px] text-muted-foreground/70 leading-relaxed line-clamp-2 mt-2.5 min-h-[2.5rem]"
+          title={metaTitle}
+        >
+          {metaLine || "\u00A0"}
+        </p>
 
-        {/* Trzecia linia: BZP | Aktywni dziś | WM | Meta | Klucze | Pliki */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-2.5 min-h-[1.25rem]">
-          {jobOpsIsBzpContract(job) && (
-            <span className="text-[10px] bg-violet-500/12 text-violet-700 dark:text-violet-400 px-1.5 py-0.5 rounded-full font-semibold">
-              BZP
-            </span>
-          )}
-          {activeTodayCount > 0 && (
+        <div className="mt-2 min-h-[1.5rem] flex items-center gap-1.5">
+          {exposedChip ? (
             <span
-              title="Unikalni pracownicy z wpisem czasu na dziś"
-              className="text-[10px] bg-teal-500/12 text-teal-800 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium"
+              title={exposedChip.title}
+              className={cn(
+                "inline-flex items-center text-[11px] font-medium px-1.5 h-5 rounded-md tabular-nums",
+                exposedChip.warn
+                  ? "bg-destructive/10 text-destructive"
+                  : exposedChip.key === "bzp"
+                    ? "bg-violet-500/10 text-violet-700/90 dark:text-violet-400/90"
+                    : "bg-teal-500/10 text-teal-800/90 dark:text-teal-300/90",
+              )}
             >
-              Aktywni dziś: {activeTodayCount}
+              {exposedChip.label}
             </span>
-          )}
-          <JobWmPlannedBadge job={job} />
-          <JobMetaBadges job={job} />
-          {job.keysHandedOver && (
-            <span title="Klucze zdane" className="inline-flex items-center">
-              <KeyRound size={11} className="text-blue-400" />
+          ) : job.keysHandedOver ? (
+            <span title="Klucze zdane" className="inline-flex text-muted-foreground/60">
+              <KeyRound size={12} aria-hidden />
             </span>
-          )}
-          {fileCount > 0 && (
-            <span className="text-[10px] bg-emerald-500/12 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-medium">
-              {fileCount} pl.
-            </span>
-          )}
-          {(recoverableUnsettledCount ?? 0) > 0 && (
-            <span
-              title={
-                (recoverableToRecoverAmount ?? 0) > 0
-                  ? `Do odzyskania:\n${recoverableToRecoverAmount!.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} PLN`
-                  : undefined
-              }
-              className="text-[10px] bg-amber-500/12 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium shrink-0"
-            >
-              💰 {recoverableUnsettledCount}
-            </span>
-          )}
-          {isDuplicate && (
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Duplikat</span>
-          )}
-          {workerCount > 0 && (
-            <span className="text-[10px] text-muted-foreground">
-              {workerCount} os. · {totalHoursLabel}
-            </span>
-          )}
+          ) : null}
         </div>
 
-        {/* Stopka: postęp dokumentów + koszt */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <div className="flex-1 bg-border rounded-full h-1.5 overflow-hidden max-w-[8rem]">
+        {/* Progress = jeden zintegrowany blok + koszt */}
+        <div className="mt-auto pt-3 flex items-center gap-2.5 min-w-0">
+          <div
+            className={cn(
+              PROGRESS_BLOCK,
+              "flex items-center gap-2 rounded-md bg-secondary/35 dark:bg-secondary/25 px-2 py-1.5",
+            )}
+          >
+            <div className="flex-1 bg-border/80 rounded-full h-1.5 overflow-hidden min-w-0">
               <div
-                className={`h-1.5 rounded-full transition-all ${
-                  docsCount === REQUIRED_DOCS.length ? "bg-emerald-500" : "bg-primary"
-                }`}
+                className={cn("h-1.5 rounded-full", docsComplete ? "bg-emerald-500" : "bg-primary/80")}
                 style={{ width: `${(docsCount / REQUIRED_DOCS.length) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
+            <span className="text-[11px] text-muted-foreground/80 shrink-0 tabular-nums tracking-tight">
               {docsCount}/{REQUIRED_DOCS.length}
             </span>
           </div>
-          {costLabel && (
-            <span
-              className="text-[10px] font-semibold text-primary shrink-0"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {costLabel}
-            </span>
-          )}
+          <div
+            className={cn(
+              COST_RAIL,
+              "text-right text-xs font-semibold text-primary/90 tabular-nums truncate ml-auto",
+            )}
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            title={costLabel ?? undefined}
+          >
+            {costLabel || "\u00A0"}
+          </div>
         </div>
 
-        {/* Alerty — jak V1 */}
-        {jobPhase === "handover" && missingDocs.length > 0 && (
-          <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-2 leading-snug">
-            Brakuje: {missingDocs.map((d) => DOC_LABELS[d]).join(", ")}
+        {handoverAlert ? (
+          <p
+            className="text-[11px] text-orange-600/90 dark:text-orange-400/90 mt-2 leading-snug line-clamp-1"
+            title={handoverAlert}
+          >
+            {handoverAlert}
           </p>
-        )}
-
-        {(!job.documents.zlecenie || !job.documents.kosztorys) && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {!job.documents.zlecenie && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 dark:text-red-400 font-medium">
-                <FileText size={9} /> Brak zlecenia
-              </span>
-            )}
-            {!job.documents.kosztorys && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 dark:text-red-400 font-medium">
-                <ClipboardList size={9} /> Brak kosztorysu
-              </span>
-            )}
-          </div>
+        ) : (
+          <div className="mt-2 min-h-[1rem]" aria-hidden />
         )}
       </button>
-      <div className="flex items-center pr-1.5 shrink-0">
+
+      <div className={cn(DELETE_RAIL, "flex items-center justify-center pr-1")}>
         {!bulkMode &&
           (deleteConfirm ? (
-            <div className="flex flex-col items-end gap-1 py-2" onClick={(e) => e.stopPropagation()}>
-              <span className="text-[10px] text-muted-foreground text-right leading-tight max-w-[72px]">
-                Usunąć?
-              </span>
-              <div className="flex items-center gap-1">
+            <div className="flex flex-col items-end gap-1 py-1" onClick={(e) => e.stopPropagation()}>
+              <span className="text-[10px] text-muted-foreground text-right leading-tight">Usunąć?</span>
+              <div className="flex items-center gap-0.5">
                 <button
                   type="button"
                   disabled={deleteBusy}
                   onClick={onDeleteConfirm}
-                  className="text-[10px] bg-destructive text-white px-2.5 py-1.5 rounded font-medium min-h-[32px] disabled:opacity-50"
+                  className="text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium min-h-[32px] disabled:opacity-50"
                 >
                   {deleteBusy ? "…" : "Usuń"}
                 </button>
-                <button type="button" onClick={onDeleteCancel} className="text-[10px] text-muted-foreground px-1 min-h-[32px]">
+                <button
+                  type="button"
+                  onClick={onDeleteCancel}
+                  className="text-[10px] text-muted-foreground px-1 min-h-[32px]"
+                  aria-label="Anuluj usuwanie"
+                >
                   <X size={12} />
                 </button>
               </div>
@@ -245,7 +328,12 @@ export function JobListCardV2({
                 onDeleteRequest();
               }}
               title="Usuń robotę"
-              className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+              className={cn(
+                "p-2 min-h-[40px] min-w-[40px] flex items-center justify-center",
+                "text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg",
+                `transition-colors ${WG_DURATION_HOVER}`,
+                "motion-reduce:transition-none",
+              )}
             >
               <Trash2 size={14} />
             </button>

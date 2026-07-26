@@ -13,6 +13,9 @@ import { logJobsPhotosLiveTrace, registerJobsPhotosSelectedJobId } from "@/lib/j
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
+import { WgButton, WgEmptyState, WgField, WgModalFrame } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_ENTER, WG_DURATION_HOVER, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin, listInspectorUsersForLogin } from "@/lib/admin-auth";
 import {
@@ -350,18 +353,30 @@ export function JobEmailModal({
 
   if (allKeys.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-        <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-md shadow-2xl p-6 space-y-4 modal-sheet">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold">Wyślij email z roboty</p>
-              <p className="text-xs text-muted-foreground mt-1">Na tej robocie nie ma jeszcze zdjęć ani raportów do wysłania.</p>
-            </div>
-            <button type="button" onClick={onClose} className="touch-target p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+      <WgModalFrame
+        open
+        onClose={onClose}
+        showHeader={false}
+        variant="sheet"
+        surface="solid"
+        size="md"
+        zIndex={50}
+        aria-label="Wyślij email z roboty"
+        className="p-6 space-y-4"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Wyślij email z roboty</p>
+            <p className="text-xs text-muted-foreground mt-1">Na tej robocie nie ma jeszcze zdjęć ani raportów do wysłania.</p>
           </div>
-          <button type="button" onClick={onClose} className="w-full py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Zamknij</button>
+          <WgButton type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Zamknij" className={cn(WG_TOUCH_MIN, "h-11 w-11 rounded-lg hover:bg-secondary text-muted-foreground")}>
+            <X size={16}/>
+          </WgButton>
         </div>
-      </div>
+        <WgButton type="button" variant="secondary" onClick={onClose} className={cn("w-full rounded-xl", WG_TOUCH_MIN, "h-11", `transition-colors ${WG_DURATION_ENTER}`, "motion-reduce:transition-none")}>
+          Zamknij
+        </WgButton>
+      </WgModalFrame>
     );
   }
 
@@ -371,14 +386,24 @@ export function JobEmailModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
+    <WgModalFrame
+      open
+      onClose={onClose}
+      showHeader={false}
+      variant="sheet"
+      surface="solid"
+      size="lg"
+      zIndex={50}
+      aria-label="Wyślij email"
+    >
         <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
             <p className="text-sm font-semibold flex items-center gap-2"><Mail size={15} className="text-primary"/>Wyślij email</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.address || "Robota"}{job.flatNumber && ` m.${job.flatNumber}`}</p>
           </div>
-          <button type="button" onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+          <WgButton type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Zamknij" className={cn(WG_TOUCH_MIN, "h-11 w-11 rounded-lg hover:bg-secondary text-muted-foreground")}>
+            <X size={16}/>
+          </WgButton>
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
@@ -390,43 +415,65 @@ export function JobEmailModal({
           ) : (
             <>
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground block">Odbiorca (kontakty z uprawnieniem Roboty)</label>
                 {validContacts.length === 0 ? (
                   <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 text-xs text-yellow-400/90">
                     Brak kontaktów z uprawnieniem „Roboty”.{" "}
-                    <button type="button" onClick={onManageContacts} className="underline font-medium hover:text-yellow-300">Dodaj w Kontaktach</button>
+                    <WgButton type="button" variant="ghost" onClick={onManageContacts} className="h-auto w-auto p-0 text-xs underline font-medium hover:text-yellow-300 text-inherit">
+                      Dodaj w Kontaktach
+                    </WgButton>
                   </div>
                 ) : (
-                  <select value={contactId} onChange={(e) => setContactId(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none">
+                  <WgField
+                    control="select"
+                    label="Odbiorca (kontakty z uprawnieniem Roboty)"
+                    value={contactId}
+                    onChange={(e) => setContactId(e.target.value)}
+                    controlClassName="h-11 min-h-[44px]"
+                  >
                     <option value="">— Wybierz z listy —</option>
                     {validContacts.map((c) => (
                       <option key={c.id} value={c.id}>{c.name || c.email}{c.company ? ` (${c.company})` : ""} — {c.email}</option>
                     ))}
                     <option value="__manual__">Inny adres…</option>
-                  </select>
+                  </WgField>
                 )}
                 {(useManual || validContacts.length === 0) && (
-                  <input type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} placeholder="email@example.com" className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+                  <WgField
+                    type="email"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder="email@example.com"
+                    controlClassName="h-11 min-h-[44px]"
+                    aria-label="Email ręczny"
+                  />
                 )}
               </div>
 
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Temat</label>
-                <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-              </div>
+              <WgField
+                label="Temat"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                controlClassName="h-11 min-h-[44px]"
+              />
 
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Wiadomość (opcjonalnie)</label>
-                <textarea value={introMessage} onChange={(e) => setIntroMessage(e.target.value)} rows={2} placeholder="Krótka wiadomość na początku maila..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"/>
-              </div>
+              <WgField
+                control="textarea"
+                label="Wiadomość (opcjonalnie)"
+                value={introMessage}
+                onChange={(e) => setIntroMessage(e.target.value)}
+                rows={2}
+                placeholder="Krótka wiadomość na początku maila..."
+                controlClassName="min-h-[4.5rem] resize-none"
+              />
 
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Co wysłać</label>
                   <div className="flex gap-2">
-                    <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">Wszystko</button>
+                    <WgButton type="button" variant="ghost" onClick={selectAll} className="h-auto w-auto p-0 text-[10px] text-primary hover:underline">Wszystko</WgButton>
                     <span className="text-muted-foreground/30">·</span>
-                    <button type="button" onClick={selectNone} className="text-[10px] text-muted-foreground hover:underline">Nic</button>
+                    <WgButton type="button" variant="ghost" onClick={selectNone} className="h-auto w-auto p-0 text-[10px] text-muted-foreground hover:underline">Nic</WgButton>
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mb-3">Zaznaczono: {selectionCount} z {allKeys.length}</p>
@@ -538,14 +585,15 @@ export function JobEmailModal({
 
         {!success && (
           <div className="px-5 py-4 border-t border-border flex gap-2 shrink-0" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Anuluj</button>
-            <button type="button" onClick={handleSend} disabled={!canSend} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-              {sending ? <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"/>Wysyłanie…</> : <><Send size={14}/>Wyślij</>}
-            </button>
+            <WgButton type="button" variant="secondary" onClick={onClose} className={cn("flex-1 rounded-xl", WG_TOUCH_MIN, "h-11", `transition-colors ${WG_DURATION_ENTER}`, "motion-reduce:transition-none")}>
+              Anuluj
+            </WgButton>
+            <WgButton type="button" variant="primary" onClick={handleSend} disabled={!canSend} loading={sending} className={cn("flex-1 gap-2 rounded-xl", WG_TOUCH_MIN, "h-11", `transition-colors ${WG_DURATION_ENTER}`, "motion-reduce:transition-none")}>
+              <Send size={14}/>Wyślij
+            </WgButton>
           </div>
         )}
-      </div>
-    </div>
+    </WgModalFrame>
   );
 }
 
@@ -1559,7 +1607,7 @@ export function JobsView({
       {/* 2.1B STREFA A — toolbar pełna szerokość (KPI, szukaj, filtry) */}
       <div
         ref={jobsListHeaderRef}
-        className={`shrink-0 w-full border-b border-border bg-card ${mobileJobDetailOpen ? "hidden sm:block" : ""}`}
+        className={`shrink-0 w-full bg-background ${mobileJobDetailOpen ? "hidden sm:block" : ""}`}
       >
         <JobListPanelHeader
           returnNav={returnNav ? { label: returnNav.label, onBack: () => { setSelectedJobId(null); returnNav.onBack(); } } : undefined}
@@ -1598,7 +1646,7 @@ export function JobsView({
       {/* STREFA B — lista (~35%) | szczegóły (~65%); mobile drill-in: detal absolute inset-0 */}
       <div className={`flex flex-1 min-h-0 overflow-hidden ${mobileJobDetailOpen ? "relative" : ""}`}>
       <div
-        className={`flex flex-col min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
+        className={`flex flex-col min-w-0 min-h-0 border-r border-border/60 bg-background overflow-hidden transition-all duration-300 ${
           mobileJobDetailOpen ? "hidden sm:flex sm:flex-[7]" : "flex flex-1 sm:flex-[7]"
         }`}
       >
@@ -1607,17 +1655,18 @@ export function JobsView({
           className="mobile-view-scroll flex-1 overflow-y-auto overscroll-contain"
         >
           {jobs.length===0&&(
-            <div className="p-8 text-center space-y-2 text-muted-foreground">
-              <MapPin size={32} className="mx-auto opacity-20"/>
-              <p className="text-sm">Brak robót. Kliknij "Nowa robota".</p>
-            </div>
+            <WgEmptyState
+              icon={MapPin}
+              title="Brak robót"
+              description={'Dodaj robotę z paska narzędzi — przycisk „Nowa robota”.'}
+            />
           )}
           {listViewMode === "queues" ? (
             <JobQueueSections sections={queueSections} renderJob={renderJobListCard} />
           ) : (
             grouped.map(([key, groupJobs]) => (
               <div key={key}>
-                <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground bg-background/50 border-b border-border sticky top-0">
+                <div className="px-4 py-3 text-sm font-semibold tracking-tight text-foreground bg-background/95 border-b border-border/40 sticky top-0 z-[1]">
                   {groupLabel(key)}
                 </div>
                 {groupJobs.map((job) => renderJobListCard(job))}
@@ -1625,7 +1674,11 @@ export function JobsView({
             ))
           )}
           {jobs.length>0&&filtered.length===0&&(
-            <div className="p-8 text-center text-muted-foreground text-sm">Brak wyników.</div>
+            <WgEmptyState
+              icon={MapPin}
+              title="Brak wyników"
+              description="Zmień wyszukiwanie lub filtry, aby zobaczyć roboty."
+            />
           )}
         </div>
       </div>
@@ -1639,33 +1692,50 @@ export function JobsView({
               : "flex flex-[13]"
           }`}
         >
-          <div ref={jobDetailHeaderRef} className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
-            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
+          <div
+            ref={jobDetailHeaderRef}
+            className="shrink-0 border-b border-border/50 bg-background z-10"
+          >
+            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-2 pb-2 md:pt-1.5 md:pb-2 space-y-1.5 md:space-y-1.5">
               <button
                 type="button"
                 onClick={() => setSelectedJobId(null)}
-                className="sm:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-target -ml-2 px-2 min-h-[44px] rounded-lg"
+                className={cn(
+                  "sm:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground",
+                  `transition-colors ${WG_DURATION_HOVER}`,
+                  "motion-reduce:transition-none touch-target -ml-2 px-2 min-h-[40px] rounded-lg",
+                )}
               >
                 <ArrowLeft size={16} />
                 Lista
               </button>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <h2 className="text-base font-semibold truncate leading-tight">{selectedJobTitle}</h2>
+              {/* DC-DF-02 / DC-DF-13 — title + meta + CTA, then tabs below */}
+              <div className="flex items-start justify-between gap-2.5 min-w-0">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <h2 className="text-lg md:text-base font-semibold tracking-tight truncate leading-snug">
+                    {selectedJobTitle}
+                  </h2>
                   {selectedJob.client && (
-                    <p className="text-xs text-muted-foreground truncate">{selectedJob.client}</p>
+                    <p className="text-xs text-muted-foreground/80 truncate">{selectedJob.client}</p>
                   )}
-                  <JobListPrimaryBadge job={selectedJob}/>
+                  <div className="pt-0.5">
+                    <JobListPrimaryBadge job={selectedJob} />
+                  </div>
                 </div>
                 {detailSection !== "files" && (
-                  <button
+                  <WgButton
                     type="button"
+                    variant="secondary"
                     onClick={() => setDetailSection("files")}
-                    className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium transition-colors"
+                    className={cn(
+                      "shrink-0 gap-1.5 px-3 text-xs font-medium",
+                      WG_TOUCH_MIN,
+                      "h-9 md:h-8 md:min-h-0",
+                    )}
                   >
-                    <FolderOpen size={12}/>
+                    <FolderOpen size={12} />
                     Pliki{selectedHubCount > 0 ? ` (${selectedHubCount})` : ""}
-                  </button>
+                  </WgButton>
                 )}
               </div>
               <JobDetailSectionNav
@@ -1683,7 +1753,7 @@ export function JobsView({
             data-mobile-scroll-root="jobs-detail"
             className="mobile-view-scroll flex-1 overflow-y-auto overscroll-contain"
           >
-            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 py-4 space-y-4 md:py-3 md:space-y-3">
+            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 py-3 md:py-3 space-y-4 md:space-y-3">
 
             {detailSection === "summary" && (
             <>
