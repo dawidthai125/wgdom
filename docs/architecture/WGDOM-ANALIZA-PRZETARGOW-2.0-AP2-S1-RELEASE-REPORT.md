@@ -2,9 +2,10 @@
 
 > **ID:** AP2-S1  
 > **Parent:** WGDOM-ANALIZA-PRZETARGOW-2.0  
-> **STATUS:** **IMPLEMENT COMPLETE**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.48**  
+> **Commit:** **`01d8981`**  
 > **DF:** [`WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md`](WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md)  
 > **Prior:** AP2-S0 `2.65.47` @ `2c1ef53`
 
@@ -73,12 +74,18 @@ Rozszerzenie klasyfikacji dokumentów + sekcja **Kompletność dokumentacji** + 
 
 ---
 
-## 6. Production Readiness
+## 6. Production Verification
 
-**READY TO PUSH** → po deploy PV: otwórz Przetarg → Dokumenty → checklista + gotowość.
+| | |
+|--|--|
+| Push | `01d8981` → `main` |
+| Live `https://www.wgdom.fun/version.json` | **2.65.48** / **`01d8981`** |
+| Status | **PRODUCTION VERIFIED · GREEN** |
+
+**Smoke:** Przetarg → Dokumenty → checklista kompletności + gotowość wyceny.
 
 **Następny:** AP2-S2 tylko po Owner GO.
 
 ---
 
-**AP2-S1 RELEASE REPORT** · 2026-07-26
+**AP2-S1 RELEASE REPORT** · 2026-07-26 · **PV OK**
