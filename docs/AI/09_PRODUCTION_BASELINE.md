@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD BODY COMPLETE** · **UI FOUNDATION v1.0** · **AI-DOCS-CONSOLIDATION-03**) · prod UI **2.65.46** · live tip **`1e07574`** · feature BODY-S4 **`bd0f239`**.
+**Snapshot dokumentacji:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03 RELEASED**) · prod UI **2.65.46** · live tip **`a1ed3b8`** · feature BODY-S4 **`bd0f239`**.
 
 ---
 
@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main` / `version.json`)** | **`1e07574`** — docs tip BODY-S4 RR + SSOT · live check `version.json` |
+| **Deploy tip commit (`main` / `version.json`)** | **`a1ed3b8`** — **AI-DOCS-CONSOLIDATION-03** MASTER_HANDOFF + AI docs sync · prior docs tip **`1e07574`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS · prior S3 **`ca08c75`** · S2 **`e2e1c58`** · S1 **`1cf8af2`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
