@@ -127,11 +127,28 @@ TAK → Architecture Review obowiązkowy (docs)
 ```text
 Czy heavy lazy, E-RUN deps, fat pipeline, persist local vs cloud?
 
-NIE → §7
+NIE → §6b
 TAK → Czytaj kontrakt Sync Storm / HARDENING closeouty
     → Nie wkładaj builtAt do E-RUN deps
     → Nie partial→cloud w pętli
     → Zero payroll keys w tym samym FEATURE commit
+```
+
+---
+
+## 6b. UI / GDS / Dashboard shell·body?
+
+```text
+Czy zmiana = Wg* / Dashboard chrome / body widget / ui-guard?
+
+NIE → §7
+TAK → DS-13: tylko Wg* (nie shadcn, nie lokalny Button)
+    → Thin slice: DF allowlist · zero Primary w body (T05)
+    → Nie ruszaj liczników V3 / dashboard-urgent-today w paint
+    → Foundation + Body S1–S4 = COMPLETE — nie re-open bez briefu
+    → TEUX Strategia ≠ global GDS (osobny tor)
+    → SSOT: MASTER_HANDOFF · BODY-02-CLOSEOUT · FOUNDATION-REPORT
+    → §8
 ```
 
 ---
@@ -180,6 +197,8 @@ TAK → Koduj TYLKO w scope DF/brief
 | Multi-module | Arch Review + #CORE-013 |
 | Wipe / bug LP | Regression History · AUDIT ONLY |
 | Tip wersji | `09_PRODUCTION_BASELINE` |
+| Stan / NEXT | `MASTER_HANDOFF` |
+| UI / GDS / Body | Foundation report · BODY-02 · D-21/D-22 |
 | Zakazy globalne | `08_AI_GUARDRAILS` · `AI_MEMORY` |
 
 ---

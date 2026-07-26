@@ -8,10 +8,11 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 
 ## Dla nowych sesji AI (ChatGPT / Cursor)
 
-**Jedyne oficjalne wejście:** [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)
+**Stan projektu + NEXT (bez historii czatu):** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md)  
+**Oficjalny start procesu:** [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)
 
 ```text
-AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
+MASTER_HANDOFF → AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
   → PAYROLL_SAFETY_GATE → (Payroll Manual jeśli TAK)
   → Architecture → CURRENT-TASK → FEATURE_IMPLEMENTATION_CHECKLIST
   → dopiero IMPLEMENT
@@ -19,6 +20,7 @@ AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
 
 | | |
 |--|--|
+| Master Handoff | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) |
 | Tip produkcji (SSOT) | [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | Index Knowledge Base | [`docs/AI/README.md`](docs/AI/README.md) (po Entry) |
 | Workflow | [`AGENTS.md`](AGENTS.md) |

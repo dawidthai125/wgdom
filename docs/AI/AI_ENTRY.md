@@ -1,18 +1,20 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** WGDOM-AI-DOCS-CONSOLIDATION-03  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
 > **Data:** 2026-07-26
 
 ```text
 ════════════════════════════════════════════════════════
 STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
-losowego PAYROLL-*, ani historii czatu.
-Ten plik → obowiązkowa ścieżka → Safety Gate → dopiero kod.
+    losowego PAYROLL-*, ani historii czatu.
+MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
+
+**Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)
 
 ---
 
@@ -26,8 +28,9 @@ Ten plik → obowiązkowa ścieżka → Safety Gate → dopiero kod.
 ## 1. Obowiązkowa ścieżka czytania (kolejność)
 
 ```text
+0. MASTER_HANDOFF.md                    ← stan · baseline · NEXT (≤10 min)
 1. AI_ENTRY.md                          ← JESTEŚ TUTAJ
-2. PROJECT_HANDOFF.md                   ← stan docs / zasady startu
+2. PROJECT_HANDOFF.md                   ← zasady startu
 3. AI_MEMORY.md                         ← pamięć ≤5 min
 4. AI_DECISION_TREE.md                  ← routing decyzji
 5. PAYROLL_SAFETY_GATE.md               ← ★ GATE — odpowiedz TAK/NIE

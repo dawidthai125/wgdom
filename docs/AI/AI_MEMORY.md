@@ -27,13 +27,28 @@ Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE z CORE.
 
 | Zasada | Znaczenie |
 |--------|-----------|
-| **SSOT** | Jedna reguła na domenę — nie duplikuj merge / write path |
-| **Reuse** | Istniejąca facade (PWRB, Domain Push) > nowy kod |
+| **SSOT** | Jedna reguła na domenę — nie duplikuj merge / write path · tip tylko w `09` |
+| **REUSE FIRST** | Istniejąca facade (PWRB, Domain Push, `Wg*`) > nowy kod |
+| **ZERO DUPLICATE LOGIC** | Zakaz drugiej ścieżki merge / persist / roster |
+| **Thin Slice** | Jeden concern · cienki allowlist · DF · commit · PV · potem next |
 | **Cloud First** | Nowy typ danych → `DATA_KEYS` + sync |
 | **Boundary Check** | FEATURE ≠ CORE w jednym commit (#CORE-013) |
 | **Fail-closed** | Guardy / fence zostają — nie „wyłącz na chwilę” |
 
-**SSOT:** [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) · [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md)
+**SSOT:** [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) · [`02_ARCHITECTURE.md`](02_ARCHITECTURE.md) · stan: [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)
+
+---
+
+## UI Foundation · GDS · Dashboard Body
+
+| Warstwa | Status | Nie rób |
+|---------|--------|---------|
+| **GDS-01 + MAINT-01** | **CLOSED** · DS-13 | Parallel Button/Input/Modal · shadcn bez DF |
+| **UI Foundation v1.0** | **COMPLETE** · ui-guard **9/9** | Regresja shell / T05 (≤1 hero Primary) |
+| **Dashboard Body S1–S4** | **COMPLETE** · mid-body GDS | Second Primary w body · zmiana liczników V3 w paint |
+| **S5 / S6** | BACKLOG (opcjonalne) | Auto-start bez Owner GO |
+
+Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) · Body [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md)
 
 ---
 
@@ -79,7 +94,9 @@ Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE z CORE.
 | Zakazy globalne | [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) |
 | Payroll AI | [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |
 | Deploy | [`../WORKFLOW-RELEASE-DEPLOY.md`](../WORKFLOW-RELEASE-DEPLOY.md) |
-| Sesja | `CURRENT-TASK.md` · [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md) |
+| Sesja / stan | [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) · `CURRENT-TASK.md` · Continuity (po Entry) |
+| UI Foundation | [`../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
+| Dashboard Body | [`../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 
 Historyczne DF/RCA = czytaj przy potrzebie; **closeout CLOSED** = prawda statusu.
 
@@ -195,4 +212,4 @@ Pełna lista: [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`PAYROLL_GUARD_RA
 
 ## Następny krok
 
-→ [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) · Index: [`README.md`](README.md)
+→ [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) (§ NEXT) · [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) · Index: [`README.md`](README.md)

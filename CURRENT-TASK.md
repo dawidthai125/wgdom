@@ -1,21 +1,95 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-25 (**DOCS FINALIZED** · AI handoff) · UI prod **2.65.43** · feature **`ea1b0a6`** · CI Gates **GREEN** (`c681f88`) · **PRODUCTION VERIFIED · GREEN**
+**Ostatnia aktualizacja:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03** · **DASHBOARD BODY COMPLETE** · **UI FOUNDATION v1.0 COMPLETE**) · UI tip **2.65.46** · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) (live **`1e07574`** · feature BODY-S4 **`bd0f239`**) · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**
 
-## ★ DOCUMENTATION FINALIZATION & AI HANDOFF — **COMPLETE**
+> **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ WGDOM-AI-DOCS-CONSOLIDATION-03 — **DOCS COMPLETE** (lokalnie; commit tylko na Owner GO)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **COMPLETE** · docs-only · gotowe do **nowych** sesji AI |
+| **Status** | **DOCS COMPLETE** · AUDIT → DOCUMENTATION → HANDOFF · **bez** kodu / commit / push w tickecie |
+| **MASTER** | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) |
+| **AUDIT** | [`docs/architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md`](docs/architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md) |
+| **OUT** | Zero `src/**` · zero UI · zero migracji |
+
+---
+
+## ★ WGDOM DASHBOARD BODY (S1–S4) — **COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **COMPLETE** |
+| **Slices** | S1 Braki `1cf8af2` · S2 Pilne `e2e1c58` · S3 Notatki `ca08c75` · S4 Przetargi skrót `bd0f239` |
+| **Thin** | Każdy = 3 pliki (1 src + DF + IMPLEMENT) · PV GREEN · ui-guard 9/9 |
+| **Closeout** | [`docs/architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](docs/architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
+| **Backlog** | S5 rows W08/W09 · S6 ui-guard body — **opcjonalne** · nie blokują COMPLETE |
+| **OUT** | Liczniki V3 · Payroll · pełny TEUX Strategia |
+
+---
+
+## ★ WGDOM UI FOUNDATION v1.0 — **COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **COMPLETE** |
+| **Deploy tip Foundation** | **`2a99e54`** (A11Y + e2e-ui-guard) · UI **2.65.46** |
+| **Zamknięte** | GDS · Dashboard shell · Sidebar · Topbar · Roboty chrome · A11Y · UI Regression Guard |
+| **PV** | `test:e2e:ui-guard` **9/9** @ prod |
+| **SSOT** | [`docs/architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](docs/architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
+
+---
+
+## ★ GLOBAL-DESIGN-SYSTEM-MAINT-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** |
+| **Parent** | GLOBAL-DESIGN-SYSTEM-01 = **CLOSED** (bez re-open) |
+| **MAINT-01A** | Owner **ACCEPTED** |
+| **SOAK-01** | **WDROŻONY** (WgField id/htmlFor) |
+| **SOAK-03** | **WDROŻONY** (WgModalFrame close 44×44) |
+| **SOAK-02** | **DEFER** |
+| **SOAK-06** | **DEFER** |
+| **Tip UI** | nadal **2.65.46** — patrz `09` (nie kopiuj SHA tutaj) |
+| **SSOT CLOSE** | [`docs/architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](docs/architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) |
+
+> **STABILIZATION WINDOW ACTIVE**. Nie startuj SOAK-02/06 ani GDS-02 bez Owner GO.
+
+---
+
+## ★ GLOBAL-DESIGN-SYSTEM-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** |
+| **Owner** | Production UI Review **ACCEPTED** · EPIC CLOSE GO |
+| **Slices** | S0 Foundation · S1 Focus+Overlay · S2 Shell Topbar · S3 CTA+Search · S4 Modal Rollout |
+| **DS-13** | **No Parallel Design Systems** — nowe UI wyłącznie `Wg*`; bez lokalnych Button/Input/Modal; bez reaktywacji shadcn bez decyzji architektonicznej |
+| **Tip UI** | nadal **2.65.46** (LOGIN-UI-01) — GDS release commit = osobny Owner step |
+| **OUT** | TEUX · Payroll CORE · Dashboard/Sidebar full · Cloud Sync · Edge · auth/routing/API |
+| **SSOT CLOSE** | [`docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) |
+| **Decision** | D-21 [`docs/AI/12_DECISION_LOG.md`](docs/AI/12_DECISION_LOG.md) · tip [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **Next GDS** | **GDS-02** tylko po Owner GO (wąski high-traffic) · SOAK-02/06 = DEFER (patrz MAINT-01) |
+
+> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN**. Nie startuj pełnego GDS-02 ani Payroll bez Owner GO.
+
+---
+
+## ★ DOCUMENTATION FINALIZATION & AI HANDOFF — **COMPLETE** (superseded path → CONSOLIDATION-03)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **COMPLETE** · docs-only · **aktualny MASTER:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) |
 | **CI Remediation** | **EPIC CLOSED** · [`docs/architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md`](docs/architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md) |
 | **Payroll AI Safety docs** | Quick Start · Guard Rails · Dependency · Playbook · Regression · SSOT |
 | **AI Memory / Decision Tree** | [`docs/AI/AI_MEMORY.md`](docs/AI/AI_MEMORY.md) · [`docs/AI/AI_DECISION_TREE.md`](docs/AI/AI_DECISION_TREE.md) |
-| **Handoff nowych sesji** | [`docs/AI/PROJECT_HANDOFF.md`](docs/AI/PROJECT_HANDOFF.md) |
-| **Start path** | Root `README` → `docs/AI/README` → Memory → Decision Tree → Payroll pack → SSOT |
+| **Handoff nowych sesji** | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) · [`docs/AI/PROJECT_HANDOFF.md`](docs/AI/PROJECT_HANDOFF.md) |
+| **Start path** | `MASTER_HANDOFF` → `AI_ENTRY` → Gate → … |
 | **Residual** | CI-C-2 (P3, legacy e2e) · HARDENING B1/C/E / 02F / H0.x — tylko Owner GO |
 | **OUT** | Zero zmian `src/**` w tym etapie |
 
-> **STABILIZATION WINDOW ACTIVE** · CI tip **GREEN** · stare sesje ChatGPT/Cursor **można zamknąć** · nowe sesje startują od `docs/AI/PROJECT_HANDOFF.md`.
+> **STABILIZATION WINDOW ACTIVE** · CI tip **GREEN** · nowe sesje startują od `docs/AI/MASTER_HANDOFF.md`.
 
 ---
 

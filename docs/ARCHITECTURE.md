@@ -2,9 +2,11 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-17 (**THEME-01D.1** topbar toggle · **2.65.31**) · **THEME-01C** · **2.65.30**
-> **★ Mapa aplikacji dla AI:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-26 (**AI pointer**) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md)  
+> **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+
+> **Uwaga tip:** nagłówek historyczny tego pliku może lagować względem `09` — **zawsze** czytaj tip z `09` / `version.json`, nie z daty w ARCHITECTURE.
 
 ---
 
@@ -144,11 +146,20 @@ flowchart TB
   client <-->|read/write + merge| LS
 ```
 
-### 3.0a LOCALSTORAGE-ARCH-02 (A–E CLOSED · 2.65.28)
+### 3.0a LOCALSTORAGE-ARCH-02 (A–E CLOSED · 2.65.28 · F1 SHIPPED · 2.65.36 · P0 V-PERF-A · 2.65.37)
 
-Hot path = lean `localStorage`. Cold blobs (snapshot bundles, jobs snaps, pipeline body, WM templates/docs/history, audit rings) → IndexedDB via `src/lib/storage/*`. DevTools: `window.__WG_STORAGE__` (`report` / `largest` / `budget` / `writers` / `history`). **Etap F** (global StorageManager / `useLocalStorage` facade) — **GO**, nie shipped. SSOT: [`architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md) · post-release [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md).
+Hot path = lean `localStorage` via **StorageManager** (F1 · `#LSA-001`). **V-PERF-A:** `saveSync` używa **cache + delta** — **bez** pełnego skanu LS na każdy zapis; `measureLocalStorageBytes` tylko bootstrap / diagnostics / recovery. Cold blobs (snapshot bundles, jobs snaps, pipeline body, WM templates/docs/history, audit rings) → IndexedDB via `src/lib/storage/*`. DevTools: `window.__WG_STORAGE__` (`report` / `largest` / `budget` / `writers` / `history`).
 
-**Zakaz bez Owner GO:** zmiana merge / CloudLoader phase machine / Payroll w ramach F.
+| Slice | Status |
+|-------|--------|
+| A–E cold + telemetry | **CLOSED** · **2.65.28** @ `d896852` |
+| **F1 Platform Facade** | **SHIPPED** · **2.65.36** — `storage-manager` · `storage-key-registry` · `storage-tier1-ls` · `useLocalStorage` / `cloud-sync` LS / `CloudLoader` via facade |
+| **P0 Tenders freeze** | **FIXED (WT)** · **2.65.37** — V-PERF-A hot-path delta budget ([RCA](architecture/LOCALSTORAGE-ARCH-02F-P0-TENDERS-FREEZE-RCA.md) · [PLAN](architecture/LOCALSTORAGE-ARCH-02F-P0-TENDERS-FREEZE-01-PERFORMANCE-FIX-PLAN.md)) |
+| F2 / F3 | **NOT STARTED** (domain stores / eslint ban) |
+
+SSOT F1: [`architecture/LOCALSTORAGE-ARCH-02F-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02F-DESIGN-FREEZE.md) · ARCH REVIEW [`architecture/LOCALSTORAGE-ARCH-02F-ARCHITECTURE-REVIEW.md`](architecture/LOCALSTORAGE-ARCH-02F-ARCHITECTURE-REVIEW.md) · A–E: [`architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md`](architecture/LOCALSTORAGE-ARCH-02-DESIGN-FREEZE.md) · post-release [`architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md`](architecture/LOCALSTORAGE-ARCH-02-POST-RELEASE-REPORT.md).
+
+**Zakaz bez Owner GO:** zmiana merge / CloudLoader phase machine / Payroll **logiki** w ramach F; F2/F3 bez osobnego GO.
 ### 3.1 Domeny produktu (admin) — P1 baseline v2.51.x
 
 ```text

@@ -1,21 +1,23 @@
 # AI Knowledge Base — INDEX
 
-> **Oficjalny START sesji AI:** [`AI_ENTRY.md`](AI_ENTRY.md) — **nie zaczynaj od tego INDEX.**  
+> **Stan + NEXT (MASTER):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+> **Oficjalny START procesu:** [`AI_ENTRY.md`](AI_ENTRY.md) — **nie zaczynaj od tego INDEX.**  
 > Tip produkcji (SSOT): [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
 
 ```text
-AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
+MASTER_HANDOFF → AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TREE
   → PAYROLL_SAFETY_GATE → (Manual jeśli TAK) → Architecture
   → CURRENT-TASK → FEATURE_IMPLEMENTATION_CHECKLIST → IMPLEMENT
 ```
 
 ---
 
-## Katalog — Onboarding Guard (GUARD-02)
+## Katalog — Onboarding Guard (GUARD-02 + CONSOLIDATION-03)
 
 | Plik | Rola |
 |------|------|
-| [`AI_ENTRY.md`](AI_ENTRY.md) | **★★★ JEDYNY oficjalny entry** |
+| [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) | **★★★ Stan projektu · historia skrót · NEXT EPICS** |
+| [`AI_ENTRY.md`](AI_ENTRY.md) | **★★★ JEDYNY oficjalny entry procesu** |
 | [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) | **★★★ Hard Gate G1–G9** |
 | [`AI_PAYROLL_SAFETY_MANUAL.md`](AI_PAYROLL_SAFETY_MANUAL.md) | Agregator packu LP |
 | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) | Checklist NIGDY |

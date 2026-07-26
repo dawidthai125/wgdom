@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD-BODY-S4** Przetargi skrót GDS) · prod UI **2.65.46** @ **`bd0f239`**.
+**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD BODY COMPLETE** · **UI FOUNDATION v1.0** · **AI-DOCS-CONSOLIDATION-03**) · prod UI **2.65.46** · live tip **`1e07574`** · feature BODY-S4 **`bd0f239`**.
 
 ---
 
@@ -27,11 +27,14 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main`)** | **`bd0f239`** — **DASHBOARD-BODY-S4** Przetargi skrót → GDS · prior S3 **`ca08c75`** · S2 **`e2e1c58`** · S1 **`1cf8af2`** |
+| **Deploy tip commit (`main` / `version.json`)** | **`1e07574`** — docs tip BODY-S4 RR + SSOT · live check `version.json` |
+| **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS · prior S3 **`ca08c75`** · S2 **`e2e1c58`** · S1 **`1cf8af2`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
+| **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
+| **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
-| **AI onboarding** | [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) |
+| **AI onboarding / Master Handoff** | [`AI_ENTRY.md`](AI_ENTRY.md) · [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) |
 | **Sync Storm fix** | **2.65.38** · **`838e8e2`** |
 | **Prior tip (hardening)** | **2.65.40** · **`23d7723`** (HARDENING-01A) |
 | **Deploy FE** | Vercel Git Integration ← `push origin main` |
@@ -40,7 +43,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Protected Core** | **GREEN** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
 
-> **Uwaga:** `version.json.commit` często = ostatni push (docs lub feature). **Semantyka Hours-wipe** = **`ea1b0a6`**. Lokalne WT ≠ tip. CI Gate B = osobny EPIC.
+> **Uwaga:** `version.json.commit` = ostatni push na `main` (docs lub feature). **Semantyka Hours-wipe** = **`ea1b0a6`**. **Feature BODY-S4** = **`bd0f239`**. Lokalne WT ≠ tip. CI Gate B = osobny EPIC (CLOSED).
 
 ---
 
@@ -48,7 +51,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
-| **2.65.46** / **`bd0f239`** | **DASHBOARD-BODY-S4** — Przetargi skrót → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S4-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S4-RELEASE-REPORT.md) |
+| docs **`1e07574`** | BODY-S4 release report + tip SSOT | **CLOSED** |
+| **2.65.46** / **`bd0f239`** | **DASHBOARD-BODY-S4** — Przetargi skrót → WgCard soft · Body EPIC **COMPLETE** | **CLOSED** · **PV** · [`S4-RELEASE`](../architecture/WGDOM-DASHBOARD-BODY-S4-RELEASE-REPORT.md) · [`BODY-02-CLOSEOUT`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **2.65.46** / **`ca08c75`** | **DASHBOARD-BODY-S3** — Notatki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md) |
 | **2.65.46** / **`e2e1c58`** | **DASHBOARD-BODY-S2** — Pilne → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S2-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S2-RELEASE-REPORT.md) |
 | **2.65.46** / **`1cf8af2`** | **DASHBOARD-BODY-S1** — Braki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md) |
@@ -98,6 +102,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Work Catalog | MVP PROD |
 | Theme | 01C VERIFIED |
 | Audit Hub | MVP CLOSED |
+| GDS (Wg*) | GDS-01 + MAINT-01 **CLOSED** · DS-13 |
+| UI Foundation | **COMPLETE** · ui-guard 9/9 |
+| Dashboard Body mid | **COMPLETE** (S1–S4) · S5/S6 backlog |
+| CI Gates B/C | **GREEN** · CI Remediation **CLOSED** |
 
 ---
 
@@ -115,5 +123,6 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | | |
 |--|--|
 | Entry | [`AI_ENTRY.md`](AI_ENTRY.md) |
+| Master Handoff | [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) |
 | Gate | [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) |
 | Payroll SSOT | [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) |

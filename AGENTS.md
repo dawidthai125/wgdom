@@ -8,17 +8,18 @@
 
 ```text
 ★ AI / nowa sesja — TYLKO TA ŚCIEŻKA:
-  0. docs/AI/AI_ENTRY.md                         ← oficjalny START
-  1. docs/AI/PROJECT_HANDOFF.md
-  2. docs/AI/AI_MEMORY.md
-  3. docs/AI/AI_DECISION_TREE.md
-  4. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
-  5. docs/AI/AI_PAYROLL_SAFETY_MANUAL.md         ← gdy Gate ≥1 TAK
-  6. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
-  7. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT
-  8. CURRENT-TASK.md                             ← status Ownera
-  9. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
- 10. IMPLEMENT dopiero po Gate + checklist
+  0. docs/AI/MASTER_HANDOFF.md                   ← stan · NEXT · zakazy
+  1. docs/AI/AI_ENTRY.md                         ← oficjalny START procesu
+  2. docs/AI/PROJECT_HANDOFF.md
+  3. docs/AI/AI_MEMORY.md
+  4. docs/AI/AI_DECISION_TREE.md
+  5. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
+  6. docs/AI/AI_PAYROLL_SAFETY_MANUAL.md         ← gdy Gate ≥1 TAK
+  7. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
+  8. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT
+  9. CURRENT-TASK.md                             ← status Ownera
+ 10. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
+ 11. IMPLEMENT dopiero po Gate + checklist
 
 Appendix (po Entry — nie zamiast Entry):
   · docs/AGENT-CONTINUITY-GUIDE.md
@@ -31,7 +32,7 @@ Appendix (po Entry — nie zamiast Entry):
   · pozostałe handoffy tematyczne — §1 poniżej
 ```
 
-**DEPRECATED entry:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → `docs/AI/AI_ENTRY.md`.
+**DEPRECATED entry:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → `docs/AI/AI_ENTRY.md` (+ `MASTER_HANDOFF`).
 
 ### WAŻNE
 

@@ -72,6 +72,21 @@ Workflow A/B/C: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../WORKFLOW-RELEASE-DEPLOY.m
 
 ---
 
+## 7b. Thin Slice Workflow (UI / FEATURE)
+
+```text
+DF (IN/OUT plików) → IMPLEMENT (tylko allowlist) → thin COMMIT
+  → PUSH → Vercel → PV (build · smoke · ui-guard gdy shell)
+  → RELEASE REPORT → tip bump w 09 → dopiero next slice
+```
+
+- **Jeden** widget / concern na release (wzór: Dashboard Body S1–S4).  
+- **Zero** drive-by w `DashboardView` / Payroll / Cloud poza IN.  
+- Body: CTA ghost/secondary · **zakaz** Primary (Guard T05).  
+- Tip feature ≠ docs tip — `version.json` = ostatni push; semantyka feature w `09` §1.
+
+---
+
 ## 8. Owner GO / Stabilization
 
 ```text
@@ -107,7 +122,31 @@ AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Boundary (#CORE-014)
 - Nie wkładaj `builtAt` / `parserVersion` do E-RUN deps heavy.  
 - Partial heavy → `persist: "local"`; final → `persist: "cloud"`.  
 - TOKEN FREEZE TEUX — typography import-only (wyjątki tylko z GO, np. TWSL).  
-- Workflow UI SSOT: `WORKFLOW-ARCHITECTURE-v2.63.md`.
+- Workflow UI SSOT: `WORKFLOW-ARCHITECTURE-v2.63.md`.  
+- TEUX ma **własny** DS (NG-06) — **nie** mieszać z globalnym Wg* (DS-02).
+
+---
+
+## 10b. Global UI SSOT (GLOBAL-DESIGN-SYSTEM-01 CLOSED)
+
+- SSOT chrome (poza TEUX): `src/lib/wg-ui-tokens.ts` + `WgButton` · `WgField` · `WgCard` · `WgModalFrame`.  
+- **DS-13 No Parallel Design Systems:** nowe UI wyłącznie Wg*; **zakaz** nowych lokalnych Button/Input/Modal; **zakaz** reaktywacji `components/ui` (shadcn) bez Owner + DF.  
+- Login **2.65.46** = quality bar (DS-01). Allowlist S0–S4 zamknięta; legacy poza allowlist **nie** reskinować ad-hoc.  
+- **MAINT-01 CLOSED:** SOAK-01 (WgField id/htmlFor) + SOAK-03 (modal close 44×44) WDROŻONE; SOAK-02 / SOAK-06 **DEFER**.  
+- Closeout: [`../architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](../architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) · MAINT [`../architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](../architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) · D-21.
+
+---
+
+## 10c. UI Foundation + Dashboard Body (COMPLETE)
+
+| Warstwa | Status | SSOT |
+|---------|--------|------|
+| Shell · Sidebar · Topbar · Roboty chrome · A11Y · ui-guard | **Foundation v1.0 COMPLETE** | [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
+| Mid-body Braki · Pilne · Notatki · Przetargi skrót | **BODY S1–S4 COMPLETE** | [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
+| Rows W08/W09 · guard body extend | S5 / S6 **BACKLOG** | Master Handoff § NEXT |
+
+- `npm run test:e2e:ui-guard` @ prod = **9/9** (Foundation).  
+- Nie regresuj hero Primary contract. Semantyka Pulpit V3 / liczniki — poza paint.
 
 ---
 
@@ -125,7 +164,9 @@ AUDIT → PLAN → DESIGN FREEZE → ARCH REVIEW → Boundary (#CORE-014)
 
 - Preferuj istniejące `scripts/test-*.mjs` / `npm run test:infra`.  
 - Brak uniwersalnego `npm test` — nie zakładaj Jest default.  
-- Po Sync Storm: `scripts/test-tenders-sync-storm-p0.mjs`.
+- Po Sync Storm: `scripts/test-tenders-sync-storm-p0.mjs`.  
+- Shell / Dashboard chrome: `npm run test:e2e:ui-guard` (Foundation — 9/9 @ prod).  
+- CI: Gate B/C **GREEN** · residual CI-C-2 = P3 (nie tip-blocker) · [`CI-REMEDIATION-EPIC-CLOSEOUT.md`](../architecture/CI-REMEDIATION-EPIC-CLOSEOUT.md).
 
 ---
 

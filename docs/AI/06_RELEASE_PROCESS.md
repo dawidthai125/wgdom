@@ -78,6 +78,20 @@ W STABILIZATION WINDOW: bez GO = brak nowego epicu.
 - CHANGELOG bump jeśli UI widoczne.  
 - Trwałe dane → ścieżka cloud zgodna z kontraktem.
 
+### Thin Slice (UI FEATURE)
+
+Dla modernizacji UI (wzór Dashboard Body S1–S4):
+
+1. DF z allowlistą **≤ kilku plików** (preferuj 1 komponent).  
+2. IMPLEMENT paint-only — zero logiki liczników / API.  
+3. Thin COMMIT (src + DF + IMPLEMENT report).  
+4. PUSH → VERIFY `version.json` → PV (build · smoke · `test:e2e:ui-guard` gdy shell).  
+5. RELEASE REPORT + bump tip **tylko** w `docs/AI/09_PRODUCTION_BASELINE.md`.  
+6. Dopiero wtedy next slice.
+
+Zakaz: second Primary w Dashboard body · mixed FEATURE+CORE · re-open Foundation/Body bez briefu.  
+SSOT: [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) · [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) §7b.
+
 ---
 
 ## TEST

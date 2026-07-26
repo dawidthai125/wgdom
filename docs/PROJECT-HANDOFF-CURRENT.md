@@ -1,14 +1,19 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **Data closeout:** 2026-07-24 (**PAYROLL Hours-wipe EPIC CLOSED**) · prod UI **2.65.43** · feature **`ea1b0a6`** · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**  
-> **SSOT AI baseline:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · Closeout Hours-wipe [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Closeout 01B0 [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md) · Closeout 01D [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) · Closeout 01A [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md)  
-> **Poprzedni tip (hardening):** **2.65.40** @ `23d7723` · docs `fcf66b0` · Sync Storm P0 **2.65.38**  
+> **Data closeout:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03** · **DASHBOARD BODY COMPLETE** · **UI FOUNDATION v1.0** · GDS-MAINT-01 / GDS-01 CLOSED) · tip UI **2.65.46** · tip SSOT [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (live **`1e07574`** · feature BODY-S4 **`bd0f239`**) · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**  
+> **★★ MASTER HANDOFF (nowe sesje):** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Entry [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Audit konsolidacji [`architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md`](architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md)  
+> **SSOT AI baseline:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · Body [`architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) · Foundation [`architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) · Closeout GDS-MAINT-01 [`architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) · Closeout GDS-01 [`architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) · Closeout Hours-wipe [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · Closeout 01B0 [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md) · Closeout 01D [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md) · Closeout 01A [`architecture/WGDOM-HARDENING-01A-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01A-CLOSEOUT.md)  
+> **Poprzedni tip (Hours-wipe):** **2.65.43** @ `ea1b0a6` · hardening **2.65.40** @ `23d7723` · Sync Storm P0 **2.65.38**  
 > **★ Obostrzenia / Owner GO:** [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) §0 · [`WORKFLOW-OWNER-GO.md`](WORKFLOW-OWNER-GO.md) · [`architecture/CORE-01A-CHANGE-CHECKLIST.md`](architecture/CORE-01A-CHANGE-CHECKLIST.md)
 > **★ RC-B + Lista Płac:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) · [`AGENT-CONTINUITY-GUIDE.md`](AGENT-CONTINUITY-GUIDE.md) § 2b / § 4.4 — **nie psuj LP przy FEATURE** · **nie omijaj resurrection fence** · **Hours-wipe D1–D5 ACTIVE — nie regresuj**
 > **★ Stabilizacja:** [`STABILIZATION-WINDOW-PLAN.md`](STABILIZATION-WINDOW-PLAN.md) · [`STABILIZATION-WEEKLY-METRICS-TEMPLATE.md`](STABILIZATION-WEEKLY-METRICS-TEMPLATE.md)
 > **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) — Hub, Process Strip, Sticky CTA, zakładki V4  
 > **Hasło sesji:** „kontynuuj WGDOM” · **domknięcie docs:** „domknij WGDOM”
 
+> **★★ DASHBOARD BODY S1–S4:** **COMPLETE** (2026-07-26) · thin GDS mid-body · SSOT [`architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) · S5/S6 backlog  
+> **★★ UI FOUNDATION v1.0:** **COMPLETE** · tip Foundation **`2a99e54`** · ui-guard 9/9 · SSOT [`architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md)  
+> **★★ GLOBAL-DESIGN-SYSTEM-MAINT-01:** **CLOSED** (2026-07-26) · MAINT-01A: SOAK-01 + SOAK-03 **WDROŻONE** · SOAK-02 / SOAK-06 **DEFER** · SSOT [`architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) · parent GDS-01 **CLOSED**  
+> **★★ GLOBAL-DESIGN-SYSTEM-01:** **CLOSED** (2026-07-26) · S0–S4 + Production UI Review ACCEPTED · DS-13 No Parallel Design Systems · tip UI **2.65.46** · SSOT [`architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) · D-21 [`AI/12_DECISION_LOG.md`](AI/12_DECISION_LOG.md) · **GDS-02** tylko po Owner GO  
 > **★★ PAYROLL Hours-wipe protection EPIC:** **CLOSED** (2026-07-24) · **2.65.43** @ **`ea1b0a6`** · D1–D5 PRODUCTION VERIFIED · SSOT [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) · **AI SSOT** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · Release History [`releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md`](releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md) · CI Gate B = **osobny EPIC**  
 > **★★ WGDOM-HARDENING-01B0:** **CLOSED** (2026-07-24) · docs tip **`fcf66b0`** · H3-C FP-churn monitor · M6 **DEFER** · **H-FP-CHURN = MITIGATED / MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01B0-CLOSEOUT.md)  
 > **★★ WGDOM-HARDENING-01D:** **CLOSED** (2026-07-24) · docs tip **`96d44d0`** (ancestor) · Edge 546 M2-A monitor · D-V3 **DEFER** · **M-EDGE-546 = MONITOR** · SSOT [`architecture/WGDOM-HARDENING-01D-CLOSEOUT.md`](architecture/WGDOM-HARDENING-01D-CLOSEOUT.md)  
@@ -23,7 +28,8 @@
 **Wejście dla nowej sesji:**
 
 ```text
-★  docs/AI/AI_ENTRY.md                    ← JEDYNY oficjalny START AI
+★  docs/AI/MASTER_HANDOFF.md              ← stan · NEXT · zakazy (bez historii czatu)
+★  docs/AI/AI_ENTRY.md                    ← JEDYNY oficjalny START procesu AI
 ★  docs/AI/PAYROLL_SAFETY_GATE.md         ← HARD GATE przed IMPLEMENT
 ★  docs/AI/09_PRODUCTION_BASELINE.md      ← tip SSOT (nie kopiuj numerów gdzie indziej)
 →  docs/AI/PROJECT_HANDOFF.md · AI_MEMORY · AI_DECISION_TREE
@@ -97,6 +103,12 @@ Appendix (po Entry — living / historyczne):
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **WGDOM-AI-DOCS-CONSOLIDATION-03** — Master Handoff + sync AI docs | docs 2026-07-26 | **DOCS COMPLETE** (commit na GO) | [`architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md`](architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-AUDIT.md) · [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) |
+| **DASHBOARD BODY S1–S4** — mid-body → GDS thin | **2.65.46** · S4 **`bd0f239`** | **COMPLETE** | [`architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
+| **UI FOUNDATION v1.0** — shell+A11Y+ui-guard | **2.65.46** · **`2a99e54`** | **COMPLETE** | [`architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
+| **GLOBAL-DESIGN-SYSTEM-MAINT-01** — thin post-soak (MAINT-01A: SOAK-01+03) | tip **2.65.46** · CLOSED 2026-07-26 | **COMPLETE** · SOAK-02/06 **DEFER** | [`architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) |
+| **GLOBAL-DESIGN-SYSTEM-01** — global UI SSOT (Wg* + tokens · S0–S4 · DS-13) | tip **2.65.46** (LOGIN-UI-01) · EPIC CLOSED 2026-07-26 | **EPIC COMPLETE** · Production UI Review **ACCEPTED** · tip bump = osobny release | [`architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) · D-21 |
+| **LOGIN-UI-01** — premium login + mobile hotfix | **2.65.45–46** (`5f2baf8` / `6df8373`) | **CLOSED** · **PRODUCTION VERIFIED** · GDS quality bar (DS-01) | tip [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) |
 | **THEME-01C** — atomic theme migration (`:root`=Light · `.dark`=Prod Dark · next-themes standard · #THEME-020) | **2.65.30** (`ff1df62`) | **COMPLETE** · **PRODUCTION VERIFIED** · prod smoke **9/9** | [`architecture/THEME-01C-CLOSEOUT.md`](architecture/THEME-01C-CLOSEOUT.md) · [`architecture/THEME-01C-PRODUCTION-VERIFICATION.md`](architecture/THEME-01C-PRODUCTION-VERIFICATION.md) |
 | **THEME-01B** — theme foundation (WgdomThemeProvider · `wg-theme` · FOUC · dark parity bridge) | **2.65.29** (w `ff1df62`) | **COMPLETE** (most 01B usunięty w 01C) | [`architecture/THEME-01B-CLOSEOUT.md`](architecture/THEME-01B-CLOSEOUT.md) |
 | **THEME-01A** — theme audit + architecture review + design freeze v1.1 | — (docs) | **COMPLETE** | [`architecture/THEME-01-DESIGN-FREEZE.md`](architecture/THEME-01-DESIGN-FREEZE.md) |

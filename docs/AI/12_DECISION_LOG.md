@@ -238,6 +238,37 @@
 
 ---
 
+## D-21 — GLOBAL-DESIGN-SYSTEM-01 (global UI SSOT + DS-13)
+
+| | |
+|--|--|
+| **Data** | 2026-07-26 · EPIC **CLOSED** |
+| **Powód** | Po premium Login (2.65.46) admin UI był niespójny (legacy dense + dormant shadcn); potrzeba jednego SSOT poza TEUX |
+| **Decyzja** | SSOT = `src/lib/wg-ui-tokens.ts` + `WgButton` · `WgField` · `WgCard` · `WgModalFrame`; slices S0–S4 (Login → focus/overlay → Topbar → CTA/Search allowlist → Modal allowlist); TEUX / Payroll CORE **OUT** |
+| **DS-13** | **No Parallel Design Systems** — nowe komponenty UI wyłącznie Wg*; zakaz nowych lokalnych Button/Input/Modal; zakaz reaktywacji `components/ui` (shadcn) bez świadomej decyzji architektonicznej (Owner + DF) |
+| **OUT** | Dashboard full reskin · Sidebar · Payroll CORE · Cloud Sync · Edge · auth/routing/API · TEUX rewrite |
+| **GDS-02** | Nie startować pełnego EPIC bez Owner GO; prefer soak + wąski high-traffic |
+| **Alternatywy** | Adopcja shadcn jako global SSOT — odrzucone (dormant kit, Login bar = Wg*) |
+| **Dlaczego** | Jedna ścieżka chrome; chroni Login quality bar; zero blast radius na CORE |
+| **Obowiązuje** | **TAK** · Closeout [`GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](../architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) · tip UI nadal **2.65.46** do release commit |
+| **Post-epic MAINT** | **GLOBAL-DESIGN-SYSTEM-MAINT-01 CLOSED** — SOAK-01+03 WDROŻONE · SOAK-02/06 DEFER · [`GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](../architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) · **nie** re-open GDS-01 |
+
+---
+
+## D-22 — UI Foundation v1.0 + Dashboard Body S1–S4 COMPLETE
+
+| | |
+|--|--|
+| **Data** | 2026-07-26 · **COMPLETE** |
+| **Powód** | Po GDS chrome nadal mid-body (Braki/Pilne/Notatki/Przetargi skrót) = legacy/TEUX paint + ryzyko second Primary |
+| **Decyzja** | (1) Foundation v1.0 = shell+sidebar+topbar+Roboty+A11Y+e2e-ui-guard **COMPLETE**; (2) Body S1–S4 = thin paint-only → `WgCard` soft · ghost/secondary CTA · **0** Primary w body; (3) semantyka V3 / liczniki / TEUX Strategia **OUT** |
+| **Thin** | Każdy slice = 1 src + DF + IMPLEMENT · osobny PV · tip w `09` |
+| **OUT / backlog** | S5 rows W08/W09 · S6 guard body · GDS-02 · Payroll CORE |
+| **Dlaczego** | Jeden język GDS na Pulpicie bez blast radius CORE |
+| **Obowiązuje** | **TAK** · Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) · Body [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) · tip live **`1e07574`** / feature S4 **`bd0f239`** |
+
+---
+
 ## Jak dodać decyzję
 
 1. Nowy wpis D-xx z datą, powodem, alternatywami.  

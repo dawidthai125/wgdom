@@ -5,9 +5,9 @@
 
 ## Oficjalny start
 
-→ **[`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)**
+→ **[`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md)** (stan) → **[`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md)** (proces)
 
-Ścieżka: Entry → Project Handoff → Memory → Decision Tree → **Payroll Safety Gate** → … → IMPLEMENT.
+Ścieżka: Master Handoff → Entry → Project Handoff → Memory → Decision Tree → **Payroll Safety Gate** → … → IMPLEMENT.
 
 Tip produkcji: [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md)
 
