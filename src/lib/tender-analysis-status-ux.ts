@@ -13,15 +13,17 @@ import {
   type KosztorysProcessSession,
 } from "@/lib/tender-kosztorys-process-phase";
 
-export const KOSZTORYS_AWAITING_PARSE_LABEL = "⏳ Kosztorys oczekuje na przetworzenie";
+export const KOSZTORYS_AWAITING_PARSE_LABEL = "⏳ Analiza dokumentów w toku";
 export const KOSZTORYS_AWAITING_PARSE_HINT =
-  "Otwórz Dokumenty lub Wycena aby rozpocząć analizę.";
+  "Analiza uruchamia się automatycznie w tle. Jeśli utknęła — użyj „Uruchom ponownie analizę”.";
 
 export const PRICING_AWAITING_TAB_LABEL = "⏳ Wycena oczekuje na przetworzenie";
-export const PRICING_AWAITING_TAB_HINT = "Otwórz zakładkę Wycena aby uruchomić kalkulator.";
+export const PRICING_AWAITING_TAB_HINT =
+  "Wycena startuje automatycznie po analizie dokumentów. W razie potrzeby otwórz zakładkę Wycena.";
 
 export const PRICING_NEEDS_ANALYSIS_LABEL = "Wycena wymaga analizy";
-export const PRICING_NEEDS_ANALYSIS_HINT = "Otwórz zakładkę Wycena — kosztorys jest gotowy.";
+export const PRICING_NEEDS_ANALYSIS_HINT =
+  "Dokumenty są gotowe — wycena uruchomi się automatycznie lub na zakładce Wycena.";
 
 export type TenderAnalysisStepState = "ready" | "pending" | "warn" | "missing";
 

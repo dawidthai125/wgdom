@@ -404,7 +404,7 @@ function catalogLineToCostRow(line: TenderCatalogQuantityLine): TenderCostLine {
 export type KosztorysV4EmptyState = "awaiting_parse" | "no_data" | "formal_document" | null;
 
 export const KOSZTORYS_V4_EMPTY_NO_POSITIONS =
-  "Nie znaleziono pozycji kosztorysowych.\n\nOtwórz Dokumenty i uruchom analizę kosztorysu.";
+  "Nie znaleziono pozycji kosztorysowych.\n\nAnaliza uruchamia się automatycznie przy otwarciu przetargu. W razie potrzeby użyj „Uruchom ponownie analizę”.";
 
 export const KOSZTORYS_V4_EMPTY_FORMAL =
   "Nie znaleziono pozycji kosztorysowych.\n\nTen plik wygląda na formularz ofertowy lub dokument formalny.\n\nPrzejdź do zakładki Dokumenty.";

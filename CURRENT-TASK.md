@@ -1,8 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S1 PRODUCTION** · UI **2.65.48** @ **`01d8981`**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S2 IMPLEMENT** · UI **2.65.49**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AP2-S2 — Auto Analysis & UX Flow — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · commit/push per Owner DoD |
+| **UI** | **2.65.49** |
+| **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-RELEASE-REPORT.md) |
+| **IN** | Re-run CTA · historia · journey stages · live summary · hint cleanup · REUSE auto pipeline |
+| **OUT** | fingerprint redesign · Pricing/Autonomous Gate · S3+ · duży panel |
+| **Next** | PV · potem **AP2-S3** tylko po Owner GO |
+
+---
 
 ## ★ AP2-S1 — Kompletność dokumentacji + gotowość wyceny — **PRODUCTION**
 
@@ -15,7 +29,7 @@
 | **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md) |
 | **IN** | DocumentRole+ · Completeness 14 slots · valuation readiness · Documents summary UX |
 | **OUT** | Pricing Gate · Autonomous · S2+ · duży panel |
-| **Next** | **AP2-S2** tylko po Owner GO |
+| **Next** | superseded by AP2-S2 |
 
 ---
 
@@ -28,7 +42,7 @@
 
 ---
 
-## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **ACTIVE** (S0–S1)
+## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **ACTIVE** (S0–S2)
 
 | Element | Wartość |
 |---------|---------|
@@ -38,6 +52,7 @@
 ---
 
 ## ★ WGDOM-AI-DOCS-CONSOLIDATION-03 — **DOCS COMPLETE** (lokalnie; commit tylko na Owner GO)
+
 
 | Element | Wartość |
 |---------|---------|

@@ -284,7 +284,7 @@ function resolvePositionsCta(
   state: OwnerPositionsFileState,
 ): string | null {
   const athCtx = buildAthQuickAccessContext(item);
-  if (state === "awaiting") return "Otwórz Dokumenty";
+  if (state === "awaiting") return null;
   if (state === "przedmiar") return athCtx.previewItem ? "Otwórz przedmiar" : null;
   if (state === "kosztorys") return athCtx.previewItem ? "Otwórz kosztorys" : null;
   return null;

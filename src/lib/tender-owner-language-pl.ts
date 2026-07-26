@@ -69,8 +69,8 @@ export const TENDER_OWNER_OPERATOR_COPY = {
   bidPrepPanelTitle: "Checklist oferty",
   bidPrepReadyLine: (ready: number, total: number) =>
     `${ready}/${total} elementów gotowych`,
-  analyzeDocuments: "Przeanalizuj dokumenty",
-  analyzingDocuments: "Przetwarzam dokumenty…",
+  analyzeDocuments: "Uruchom ponownie analizę",
+  analyzingDocuments: "Analiza w toku…",
   exportSummaryPdf: "Pobierz podsumowanie PDF",
   detailChecklistSummary: (total: number, ready: number) =>
     `Szczegółowa checklista (${total} elementów) — ${ready}/${total} gotowych`,
@@ -100,6 +100,6 @@ export const TENDER_OWNER_VALUATION_COPY = {
 
 /** Hinty checklisty — bez skrótów SWZ/STWIOR. */
 export const TENDER_OWNER_HINT_COPY = {
-  criteriaAfterAnalyze: "Pojawi się po „Przeanalizuj dokumenty”",
-  analyzeDocumentsTitle: "PDF i załączniki — wadium, kryteria, wartość",
+  criteriaAfterAnalyze: "Pojawi się po automatycznej analizie lub „Uruchom ponownie analizę”",
+  analyzeDocumentsTitle: "Wymusza ponowną analizę PDF i załączników — wadium, kryteria, wartość",
 } as const;

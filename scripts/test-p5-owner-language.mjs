@@ -53,7 +53,8 @@ assert(!bidPrep.includes('"Analizuj SWZ"'), "removed Analizuj SWZ string");
 console.log("\n3. Owner view copy retained");
 assert(TENDER_OWNER_VIEW_COPY.financeCta === "Policz zysk", "finance CTA");
 assert(TENDER_OWNER_TILE_LABELS.kosztorys === "Plik z pozycjami", "tile kosztorys");
-assert(TENDER_OWNER_OPERATOR_COPY.analyzeDocuments === "Przeanalizuj dokumenty", "analyze label");
+assert(TENDER_OWNER_OPERATOR_COPY.analyzeDocuments === "Uruchom ponownie analizę", "analyze re-run label");
+assert(!TENDER_OWNER_OPERATOR_COPY.analyzeDocuments.includes("Przeanalizuj"), "no legacy Przeanalizuj CTA");
 
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail > 0 ? 1 : 0);

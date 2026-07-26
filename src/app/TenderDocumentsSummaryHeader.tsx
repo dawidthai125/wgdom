@@ -50,9 +50,11 @@ export function TenderDocumentsSummaryHeader({
   summary: TenderDocumentsTabSummary;
   trustBadge?: DocumentsTrustBadgeView | null;
 }) {
-  const { completeness } = summary;
+  const { completeness, analysisHistory, journeyStages, glance } = summary;
   const readiness = completeness.valuationReadiness;
   const stats = completeness.stats;
+  const showJourney = summary.analysisBusy
+    || journeyStages.some((s) => s.state === "active");
 
   return (
     <section
@@ -60,6 +62,7 @@ export function TenderDocumentsSummaryHeader({
       aria-label="Podsumowanie dokumentów"
       data-tenders-documents-summary-header
       data-ap2-s1-completeness
+      data-ap2-s2-auto-ux
     >
       <div className="px-4 py-2.5 border-b border-primary/10 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
@@ -74,14 +77,84 @@ export function TenderDocumentsSummaryHeader({
             />
           )}
         </div>
-        <p className={TEUX_FONT_META}>
-          Ostatnia analiza:{" "}
-          <span className="font-medium text-foreground">{summary.lastAnalysisLabel}</span>
-        </p>
       </div>
 
       <div className="px-4 py-3 space-y-3">
-        {/* AP2-S1 — Gotowość do wyceny (at-a-glance) */}
+        {/* AP2-S2 — Ostatnia analiza */}
+        <div
+          className="rounded-lg border border-primary/15 bg-background/60 px-3 py-2.5"
+          data-ap2-s2-analysis-history
+        >
+          <p className={`${TEUX_FONT_META} text-muted-foreground mb-0.5`}>
+            Ostatnia analiza
+          </p>
+          <p className="text-sm font-semibold text-foreground">
+            {analysisHistory.headline}
+          </p>
+          <div className={`mt-1 flex flex-wrap gap-x-3 gap-y-0.5 ${TEUX_FONT_META} text-muted-foreground`}>
+            <span>
+              Status:{" "}
+              <span className="font-medium text-foreground">{analysisHistory.statusLabelPl}</span>
+            </span>
+            <span>
+              Dokumenty:{" "}
+              <span className="font-medium text-foreground">{analysisHistory.documentCount}</span>
+            </span>
+            {analysisHistory.relativeLabel && (
+              <span>
+                <span className="font-medium text-foreground">{analysisHistory.relativeLabel}</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* AP2-S2 — postęp etapów */}
+        {showJourney && (
+          <div data-ap2-s2-journey-progress className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <TenderUxSectionTitle className="text-muted-foreground">
+                Postęp analizy
+              </TenderUxSectionTitle>
+              {summary.activeStageLabel && (
+                <p className={`${TEUX_FONT_META} text-amber-800 dark:text-amber-300 font-medium`}>
+                  {summary.activeStageLabel}
+                </p>
+              )}
+            </div>
+            <div
+              className="h-1.5 rounded-full bg-secondary overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(summary.progressRatio * 100)}
+              aria-label="Postęp analizy dokumentów"
+            >
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-300"
+                style={{ width: `${Math.max(8, Math.round(summary.progressRatio * 100))}%` }}
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {journeyStages.map((stage) => (
+                <span
+                  key={stage.id}
+                  className={`inline-flex items-center ${TEUX_FONT_META} font-medium px-2 py-0.5 rounded-md border ${
+                    stage.state === "done"
+                      ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25"
+                      : stage.state === "active"
+                        ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/25"
+                        : "bg-secondary/60 text-muted-foreground border-border"
+                  }`}
+                >
+                  {stage.state === "done" ? "✓ " : stage.state === "active" ? "● " : ""}
+                  {stage.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* AP2-S1 — Gotowość do wyceny */}
         <div
           className="rounded-lg border border-primary/15 bg-background/60 px-3 py-2.5"
           data-ap2-s1-valuation-readiness
@@ -98,6 +171,27 @@ export function TenderDocumentsSummaryHeader({
           )}
         </div>
 
+        {/* AP2-S2 — rekomendacja + ryzyko (REUSE fit + S1) */}
+        {(glance.recommendationLabel || glance.riskLabel) && (
+          <div
+            className={`grid gap-2 sm:grid-cols-2 ${TEUX_FONT_META}`}
+            data-ap2-s2-glance
+          >
+            {glance.recommendationLabel && (
+              <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
+                <p className="text-muted-foreground mb-0.5">Rekomendacja (profil)</p>
+                <p className="font-medium text-foreground">{glance.recommendationLabel}</p>
+              </div>
+            )}
+            {glance.riskLabel && (
+              <div className="rounded-md border border-border/60 bg-background/40 px-2.5 py-2">
+                <p className="text-muted-foreground mb-0.5">Ryzyko</p>
+                <p className="font-medium text-foreground">{glance.riskLabel}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* AP2-S1 — Kompletność dokumentacji */}
         <div data-ap2-s1-doc-completeness>
           <TenderUxSectionTitle className="text-muted-foreground mb-1.5">
@@ -110,7 +204,6 @@ export function TenderDocumentsSummaryHeader({
           </div>
         </div>
 
-        {/* Highlights */}
         {(completeness.highlights.found.length > 0
           || completeness.highlights.missing.length > 0
           || completeness.highlights.info.length > 0) && (
@@ -142,7 +235,6 @@ export function TenderDocumentsSummaryHeader({
           </div>
         )}
 
-        {/* Stats from existing dossier */}
         <div
           className={`flex flex-wrap gap-x-3 gap-y-1 pt-1 border-t border-primary/10 ${TEUX_FONT_META} text-muted-foreground`}
           data-ap2-s1-analysis-stats

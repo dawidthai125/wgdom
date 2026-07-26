@@ -8,6 +8,7 @@ import { TenderDocumentsSummaryHeader } from "@/app/TenderDocumentsSummaryHeader
 import { TenderDocumentsSummarySkeleton } from "@/app/tenders/loading/TenderDocumentsSummarySkeleton";
 import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
 import { buildTenderDocumentsTabSummary } from "@/lib/tender-documents-tab-summary";
+import { shouldShowLiveAnalysisSummary } from "@/lib/tender-analysis-auto-ux";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { pickDocumentsTrustBadge } from "@/lib/tender-trust-ui";
@@ -76,17 +77,17 @@ export function TenderDocumentsWorkspace({
     () => buildTenderDocumentsTabSummary({
       item,
       swz,
-      autoRunning,
-      dossierBuilding,
+      autoRunning: Boolean(autoRunning || analyzing),
+      dossierBuilding: Boolean(dossierBuilding || analyzing),
       dossierSaving,
       kosztorysSession: {
-        autoRunning,
-        dossierBuilding,
+        autoRunning: Boolean(autoRunning || analyzing),
+        dossierBuilding: Boolean(dossierBuilding || analyzing),
         dossierSaving,
         lazyEnabled: true,
       },
     }),
-    [item, swz, autoRunning, dossierBuilding, dossierSaving],
+    [item, swz, autoRunning, dossierBuilding, dossierSaving, analyzing],
   );
 
   const formalSummary = buildTenderFormalDetailsSummary(item, swz, item.tenderDossier);
@@ -98,7 +99,13 @@ export function TenderDocumentsWorkspace({
     suggestions.length,
   );
 
-  const summaryLoading = Boolean(loadingDocs || autoRunning || dossierBuilding);
+  const summaryBusy = Boolean(loadingDocs || autoRunning || dossierBuilding || analyzing);
+  const showLiveSummary = shouldShowLiveAnalysisSummary({
+    busy: summaryBusy,
+    item,
+    swz,
+  });
+  const summaryLoading = summaryBusy && !showLiveSummary;
 
   const hasSwzMetaSection = Boolean(
     swz?.parsedAt

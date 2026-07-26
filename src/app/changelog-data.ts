@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.49",
+    label: "AP2-S2 — auto-analiza UX + Uruchom ponownie",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi — analiza dokumentów jako proces w tle (istniejący pipeline); przycisk „Uruchom ponownie analizę”; historia ostatniej analizy + etapy postępu na Dokumentach.",
+      },
+      {
+        type: "fix",
+        text: "Usunięto legacy hinty „Otwórz Dokumenty aby rozpocząć analizę”. Wyniki (kompletność, gotowość wyceny) nie chowają się za skeletonem, gdy dane już są.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.48",
     label: "AP2-S1 — kompletność dokumentacji + gotowość wyceny",
     items: [

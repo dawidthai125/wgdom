@@ -1,6 +1,7 @@
 /**
  * EPIC — Document Summary Header na zakładce Dokumenty (prezentacja only).
- * AP2-S1 — agreguje SSOT kompletności + gotowość wyceny.
+ * AP2-S1 — kompletność + gotowość wyceny.
+ * AP2-S2 — historia analizy + journey stages + glance rekomendacja/ryzyko.
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -21,12 +22,22 @@ import {
   classifyTenderDocumentDisplayTier,
   type TenderDocumentDisplayTier,
 } from "@/lib/tender-workspace-ux";
-import { formatRelativeChangeTime } from "@/lib/tender-change-monitor";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import {
   buildDocumentationCompleteness,
   type DocumentationCompletenessView,
 } from "@/lib/tender-documentation-completeness";
+import {
+  analysisProgressRatio,
+  buildAnalysisJourneyStages,
+  buildDocumentsAnalysisGlance,
+  buildDocumentsAnalysisHistory,
+  isAnalysisSessionBusy,
+  resolveActiveJourneyStageLabel,
+  type AnalysisJourneyStage,
+  type DocumentsAnalysisGlanceView,
+  type DocumentsAnalysisHistoryView,
+} from "@/lib/tender-analysis-auto-ux";
 
 export type DocumentsTabSummaryTone =
   | "missing"
@@ -53,6 +64,13 @@ export interface TenderDocumentsTabSummary {
   lastAnalysisLabel: string;
   /** AP2-S1 — kompletność + gotowość wyceny + stats. */
   completeness: DocumentationCompletenessView;
+  /** AP2-S2 — historia / etapy / glance. */
+  analysisHistory: DocumentsAnalysisHistoryView;
+  journeyStages: AnalysisJourneyStage[];
+  activeStageLabel: string | null;
+  progressRatio: number;
+  analysisBusy: boolean;
+  glance: DocumentsAnalysisGlanceView;
 }
 
 export interface BuildTenderDocumentsTabSummaryOpts {
@@ -219,38 +237,17 @@ function buildFormularzSlot(item: TenderPipelineItem): DocumentsTabSummarySlot {
   return { id: "formularz", label: "Formularz ofertowy", value: "Brak", tone: "missing" };
 }
 
-function resolveLastAnalysisIso(
-  item: TenderPipelineItem,
-  swz?: TenderSwzAnalysis | null,
-): string | null {
-  const candidates = [
-    swz?.parsedAt,
-    item.swzAnalysis?.parsedAt,
-    item.tenderDossier?.kosztorys?.parsedAt,
-  ].filter((v): v is string => Boolean(v?.trim()));
-
-  if (candidates.length === 0) return null;
-
-  let latest = candidates[0];
-  let latestMs = new Date(latest).getTime();
-  for (const iso of candidates.slice(1)) {
-    const ms = new Date(iso).getTime();
-    if (!Number.isNaN(ms) && ms > latestMs) {
-      latest = iso;
-      latestMs = ms;
-    }
-  }
-  return Number.isNaN(latestMs) ? null : latest;
-}
-
 export function formatDocumentsTabLastAnalysisLabel(
   item: TenderPipelineItem,
   swz?: TenderSwzAnalysis | null,
   now = new Date(),
 ): string {
-  const iso = resolveLastAnalysisIso(item, swz);
-  if (!iso) return "Brak analizy";
-  return formatRelativeChangeTime(iso, now);
+  const history = buildDocumentsAnalysisHistory({ item, swz, now });
+  if (history.status === "none") return "Brak analizy";
+  if (history.absoluteLabel && history.relativeLabel) {
+    return `${history.absoluteLabel} · ${history.relativeLabel}`;
+  }
+  return history.headline;
 }
 
 export function mapAnalysisStepStateLabel(state: TenderAnalysisStepState): string {
@@ -292,13 +289,33 @@ export function buildTenderDocumentsTabSummary(
     now = new Date(),
   } = opts;
 
+  const session: KosztorysProcessSession = kosztorysSession ?? {
+    autoRunning,
+    dossierBuilding,
+    dossierSaving,
+    lazyEnabled: true,
+  };
+
   const processReadiness = buildTenderAnalysisStatusRows({
     item,
     swz,
     dossierBuilding,
     dossierSaving,
     autoRunning,
-    kosztorysSession,
+    kosztorysSession: session,
+  });
+
+  const completeness = buildDocumentationCompleteness({ item, swz });
+  const analysisHistory = buildDocumentsAnalysisHistory({
+    item,
+    swz,
+    session,
+    now,
+  });
+  const journeyStages = buildAnalysisJourneyStages({ item, swz, session });
+  const glance = buildDocumentsAnalysisGlance({
+    fit: item.tenderFit,
+    valuationLevel: completeness.valuationReadiness.level,
   });
 
   return {
@@ -309,6 +326,12 @@ export function buildTenderDocumentsTabSummary(
     formularz: buildFormularzSlot(item),
     processReadiness,
     lastAnalysisLabel: formatDocumentsTabLastAnalysisLabel(item, swz, now),
-    completeness: buildDocumentationCompleteness({ item, swz }),
+    completeness,
+    analysisHistory,
+    journeyStages,
+    activeStageLabel: resolveActiveJourneyStageLabel(journeyStages),
+    progressRatio: analysisProgressRatio(journeyStages),
+    analysisBusy: isAnalysisSessionBusy(session),
+    glance,
   };
 }
