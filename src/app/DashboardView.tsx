@@ -67,6 +67,9 @@ import {
 } from "@/lib/operational-notes-dashboard";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import { WgButton, WgCard, WgEmptyState, WgKpi } from "@/app/ui";
+import { WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
+import { cn } from "@/app/components/ui/utils";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
@@ -409,187 +412,170 @@ export function DashboardView({
       data-mobile-scroll-root="dashboard"
       className="mobile-view-scroll flex-1 min-w-0 overflow-y-auto overscroll-contain"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10 space-y-8 sm:space-y-10">
 
-        {/* Nagłówek */}
+        {/* Nagłówek — DF-03/04: typography + ≤1 Primary · mobile icon-only */}
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Pulpit</h1>
-            <p className="text-sm text-muted-foreground capitalize mt-0.5">{todayLabel}</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <h1 className={cn(WG_TYPE_TITLE, "text-2xl font-semibold tracking-tight")}>Pulpit</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed capitalize mt-1">{todayLabel}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
               Tydzień listy płac: {fmtDate(weekFrom)} – {fmtDate(weekTo)}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             {onOpenSms && (
-              <button
+              <WgButton
                 type="button"
+                variant="outline"
                 onClick={onOpenSms}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200 hover:bg-amber-500/20 transition-colors"
+                aria-label="SMS pilne"
+                title="SMS pilne"
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-3 sm:px-4")}
               >
-                <MessageSquare size={13}/>
-                SMS pilne
-              </button>
+                <MessageSquare size={13} />
+                <span className="hidden sm:inline">SMS pilne</span>
+              </WgButton>
             )}
-            {(
-              [
-                { v: "schedule" as const, icon: CalendarDays, label: "Grafik" },
-                { v: "payroll" as const, icon: Wallet, label: "Lista płac" },
-                { v: "jobs" as const, icon: MapPin, label: "Roboty" },
-              ] as const
-            ).map(({ v, icon: Icon, label }) => (
-              <button
-                key={v}
+            <WgButton
+              type="button"
+              variant="secondary"
+              onClick={() => onNavigate("schedule")}
+              aria-label="Grafik"
+              title="Grafik"
+              className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-3 sm:px-4")}
+            >
+              <CalendarDays size={13} className="text-primary" />
+              <span className="hidden sm:inline">Grafik</span>
+            </WgButton>
+            <WgButton
+              type="button"
+              variant="secondary"
+              onClick={() => onNavigate("payroll")}
+              aria-label="Lista płac"
+              title="Lista płac"
+              className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-3 sm:px-4")}
+            >
+              <Wallet size={13} className="text-primary" />
+              <span className="hidden sm:inline">Lista płac</span>
+            </WgButton>
+            {!showSaturdayBanner && (
+              <WgButton
                 type="button"
-                onClick={() => onNavigate(v)}
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border transition-colors"
+                variant="primary"
+                onClick={() => onNavigate("jobs")}
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-sm")}
               >
-                <Icon size={13} className="text-primary"/>
-                {label}
-              </button>
-            ))}
+                <MapPin size={13} />
+                Przejdź do Robot
+              </WgButton>
+            )}
+            {showSaturdayBanner && (
+              <WgButton
+                type="button"
+                variant="secondary"
+                onClick={() => onNavigate("jobs")}
+                aria-label="Roboty"
+                title="Roboty"
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-3 sm:px-4")}
+              >
+                <MapPin size={13} className="text-primary" />
+                <span className="hidden sm:inline">Roboty</span>
+              </WgButton>
+            )}
           </div>
         </div>
 
         {showSaturdayBanner && (
-          <div className="bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              <Bell size={18} className="text-primary shrink-0 mt-0.5"/>
-              <div>
-                <p className="text-sm font-semibold text-primary">Sobota — czas zamknąć tydzień</p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  {!weekSaved && "Tydzień zapisze się automatycznie dziś przy otwarciu aplikacji — możesz też zapisać ręcznie. "}
-                  {payrollRolloverBlockers.length > 0 && (
-                    <>{payrollRolloverBlockers.length} {payrollRolloverBlockers.length === 1 ? "osoba ma" : "osób ma"} nierozliczoną kasę sobotnią: {payrollRolloverBlockers.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{payrollRolloverBlockers.length > 4 ? "…" : ""}.</>
-                  )}
-                  {weekSaved && payrollRolloverBlockers.length === 0 && "Tydzień zapisany — brak blokad wypłaty sobotniej."}
-                </p>
+          <WgCard elevation="soft" padding="md" radius="md" className="border-primary/30 bg-primary/10">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <Bell size={18} className="text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-primary">Sobota — czas zamknąć tydzień</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    {!weekSaved && "Tydzień zapisze się automatycznie dziś przy otwarciu aplikacji — możesz też zapisać ręcznie. "}
+                    {payrollRolloverBlockers.length > 0 && (
+                      <>{payrollRolloverBlockers.length} {payrollRolloverBlockers.length === 1 ? "osoba ma" : "osób ma"} nierozliczoną kasę sobotnią: {payrollRolloverBlockers.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{payrollRolloverBlockers.length > 4 ? "…" : ""}.</>
+                    )}
+                    {weekSaved && payrollRolloverBlockers.length === 0 && "Tydzień zapisany — brak blokad wypłaty sobotniej."}
+                  </p>
+                </div>
               </div>
+              <WgButton
+                type="button"
+                variant="primary"
+                onClick={() => onNavigate("payroll")}
+                className={cn(WG_TOUCH_MIN, "h-11 shrink-0")}
+              >
+                {!weekSaved ? "Zapisz tydzień →" : "Lista płac →"}
+              </WgButton>
             </div>
-            <button
-              type="button"
-              onClick={() => onNavigate("payroll")}
-              className="shrink-0 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              {!weekSaved ? "Zapisz tydzień →" : "Lista płac →"}
-            </button>
-          </div>
+          </WgCard>
         )}
 
-        {/* KPI operacyjne */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <button
-            type="button"
+        {/* KPI — DF-05 3+2 wrap · DF-10 equal height via WgKpi h-full */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+          <WgKpi
+            label={`Wypłata · sob. ${fmtDate(weekTo).slice(0, 5)}`}
+            value={fmt(weekTotal)}
+            hint={`${fmtH(weekHours)} · ${weekEmployees.length} os.${payrollContextLine ? ` · ${payrollContextLine}` : ""}`}
+            status="info"
             onClick={() => onNavigate("payroll")}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
           >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              Wypłata · sob. {fmtDate(weekTo).slice(0, 5)}
-            </p>
-            <p className="text-2xl font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmt(weekTotal)}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {fmtH(weekHours)} · {weekEmployees.length} os.
-            </p>
-            {payrollContextLine && (
-              <p className="text-[10px] text-muted-foreground/90 mt-1 leading-snug">
-                {payrollContextLine}
-              </p>
-            )}
-            {payrollCash.hasBiweeklyEmployees && (
-              <div className="text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/60 space-y-0.5">
-                <div className="flex justify-between gap-2">
-                  <span>Tygodniówki ({payrollCash.weeklyCount} os.)</span>
+            {payrollCash.hasBiweeklyEmployees ? (
+              <div className="text-xs text-muted-foreground mt-1 pt-1 border-t border-border/60 space-y-0.5">
+                <div className="flex justify-between gap-2 line-clamp-1">
+                  <span className="truncate">Tygodniówki ({payrollCash.weeklyCount})</span>
                   <span className="font-medium text-foreground shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.weeklyNet)}</span>
                 </div>
-                <div className="flex justify-between gap-2">
-                  <span>
+                <div className="flex justify-between gap-2 line-clamp-1">
+                  <span className="truncate">
                     {payrollCash.isAnyBiweeklyPayoutWeek
-                      ? `Co 2 tyg. (${payrollCash.biweeklyCount} os.)`
-                      : `Co 2 tyg. (${payrollCash.biweeklyCount} os.) → ${fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}`}
+                      ? `Co 2 tyg. (${payrollCash.biweeklyCount})`
+                      : `Co 2 tyg. → ${fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}`}
                   </span>
                   <span className="font-medium text-foreground shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     {fmt(payrollCash.isAnyBiweeklyPayoutWeek ? payrollCash.biweeklyPayoutNet : payrollCash.biweeklyAccruedNet)}
                   </span>
                 </div>
               </div>
-            )}
-          </button>
-          <button
-            type="button"
+            ) : null}
+          </WgKpi>
+          <WgKpi
+            label="Ekipa dziś"
+            value={String(workingToday.length)}
+            hint={weekEmployees.length > 0 ? `${offToday.length} wolne · ${filterProductionActiveDirectory(directory).length} w kartotece` : "brak w liście płac"}
             onClick={() => onNavigate("directory")}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Ekipa dziś</p>
-            <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {workingToday.length}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {weekEmployees.length > 0 ? `${offToday.length} wolne · ${filterProductionActiveDirectory(directory).length} w kartotece` : "brak w liście płac"}
-            </p>
-          </button>
-          <button
-            type="button"
+          />
+          <WgKpi
+            label="Aktywne WM"
+            value={String(wmPortfolioStats.total)}
+            hint={wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Roboty →"}
+            icon={LayoutGrid}
+            status="ok"
             onClick={() => onNavigate("jobs")}
-            className="bg-card border border-emerald-500/20 rounded-xl px-4 py-3 text-left hover:border-emerald-500/40 transition-colors"
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
-              <LayoutGrid size={10} className="text-emerald-500"/> Aktywne WM
-            </p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {wmPortfolioStats.total}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Roboty →"}
-            </p>
-          </button>
-          <button
-            type="button"
+          />
+          <WgKpi
+            label="Braki dokumentów"
+            value={String(jobsMissingDocs.length)}
+            hint={jobsMissingDocs.length > 0 ? "roboty bez kompletu" : "wszystko OK"}
+            status={jobsMissingDocs.length > 0 ? "warn" : "neutral"}
             onClick={() => {
               scrollToSection("dashboard-braki-dokumentow");
               if (jobsMissingDocs.length > 0) setBrakiExpanded(true);
             }}
-            className={`rounded-xl px-4 py-3 text-left border transition-colors ${
-              jobsMissingDocs.length > 0
-                ? "bg-amber-500/5 border-amber-500/25 hover:border-amber-500/40"
-                : "bg-card border-border hover:border-primary/30"
-            }`}
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Braki dokumentów</p>
-            <p
-              className={`text-2xl font-bold ${jobsMissingDocs.length > 0 ? "text-amber-400" : "text-muted-foreground"}`}
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {jobsMissingDocs.length}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {jobsMissingDocs.length > 0 ? "roboty bez kompletu" : "wszystko OK"}
-            </p>
-          </button>
-          <button
-            type="button"
+          />
+          <WgKpi
+            label="Pilne uwagi"
+            value={String(urgentToday.urgentTodayTotal)}
+            hint={urgentToday.urgentTodayTotal > 0 ? "kategorie poniżej" : "wszystko OK"}
+            status={urgentToday.urgentTodayTotal > 0 ? "warn" : "neutral"}
             onClick={() => {
               scrollToSection("dashboard-pilne-uwagi");
               if (urgentToday.urgentTodayTotal > 0) setPilneExpanded(true);
             }}
-            className={`rounded-xl px-4 py-3 text-left border transition-colors ${
-              urgentToday.urgentTodayTotal > 0
-                ? "bg-amber-500/5 border-amber-500/25 hover:border-amber-500/40"
-                : "bg-card border-border hover:border-primary/30"
-            }`}
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Pilne uwagi</p>
-            <p
-              className={`text-2xl font-bold ${urgentToday.urgentTodayTotal > 0 ? "text-amber-400" : "text-muted-foreground"}`}
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {urgentToday.urgentTodayTotal}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {urgentToday.urgentTodayTotal > 0 ? "kategorie poniżej" : "wszystko OK"}
-            </p>
-          </button>
+          />
         </div>
 
         {showOperationalNotesWidget && (
@@ -606,12 +592,12 @@ export function DashboardView({
             className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
             aria-label="Roboty — braki dokumentów"
           >
-            <div className="px-4 sm:px-5 py-3 border-b border-border bg-secondary/20">
+            <div className="px-5 py-3.5 border-b border-border/50 bg-secondary/20">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <FileText size={14} className="text-amber-600 dark:text-amber-400 shrink-0"/>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Roboty → Braki dokumentów</span>
-                  <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
+                  <span className="text-sm font-semibold text-foreground">Roboty → Braki dokumentów</span>
+                  <span className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
                     {jobsMissingDocs.length}
                   </span>
                 </div>
@@ -619,7 +605,7 @@ export function DashboardView({
                   type="button"
                   onClick={() => setBrakiExpanded((v) => !v)}
                   aria-expanded={brakiExpanded}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation transition-colors duration-150 motion-reduce:transition-none"
                 >
                   {brakiExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
                   {brakiExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -793,31 +779,36 @@ export function DashboardView({
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Pracuje dziś — szersza kolumna */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          {/* Pracuje dziś */}
+          <WgCard elevation="soft" padding="sm" radius="md" className="lg:col-span-2 overflow-hidden !p-0">
+            <div className="px-5 py-3.5 border-b border-border/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HardHat size={13} className="text-primary"/>
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracuje dziś</span>
+                <span className="text-sm font-semibold text-foreground">Pracuje dziś</span>
               </div>
-              <button type="button" onClick={() => onNavigate("schedule")} className="text-xs text-primary hover:underline">
+              <WgButton type="button" variant="ghost" onClick={() => onNavigate("schedule")} className="h-auto w-auto p-0 text-xs text-primary hover:underline">
                 Grafik →
-              </button>
+              </WgButton>
             </div>
             {weekEmployees.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">
-                Brak pracowników w tym tygodniu.
-                <button type="button" onClick={() => onNavigate("payroll")} className="block mx-auto mt-2 text-xs text-primary hover:underline">
-                  Otwórz listę płac
-                </button>
-              </div>
+              <WgEmptyState
+                icon={HardHat}
+                title="Brak pracowników w tym tygodniu"
+                description="Dodaj ekipę na liście płac, aby zobaczyć plan na dziś."
+                className="py-12 sm:py-14 gap-4"
+                action={
+                  <WgButton type="button" variant="primary" onClick={() => onNavigate("payroll")} className={cn(WG_TOUCH_MIN, "h-11")}>
+                    Otwórz listę płac
+                  </WgButton>
+                }
+              />
             ) : workingToday.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">
-                {todayKey ? "Nikt nie jest zaplanowany na dziś." : "Niedziela — wolne"}
-                {offToday.length > 0 && (
-                  <p className="text-xs mt-2">{offToday.length} w ekipie tygodnia</p>
-                )}
-              </div>
+              <WgEmptyState
+                icon={HardHat}
+                title={todayKey ? "Nikt nie jest zaplanowany na dziś" : "Niedziela — wolne"}
+                description={offToday.length > 0 ? `${offToday.length} w ekipie tygodnia` : undefined}
+                className="py-12 sm:py-14 gap-4"
+              />
             ) : (
               <div className="divide-y divide-border max-h-[420px] overflow-y-auto">
                 {workingToday.map((emp) => {
@@ -832,7 +823,7 @@ export function DashboardView({
                   const todayJobs = jobsForEmployeeOnDashboard(emp, jobs, todayIso, weekFrom, weekTo, directory);
                   const streets = todayJobs.map(formatJobStreet);
                   return (
-                    <div key={emp.id} className="px-5 py-3.5 flex items-start gap-3">
+                    <div key={emp.id} className="px-5 py-3.5 flex items-start gap-3 hover:bg-secondary/25 transition-colors duration-150 motion-reduce:transition-none">
                       <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
                         {emp.name ? emp.name[0].toUpperCase() : "?"}
                       </div>
@@ -853,40 +844,45 @@ export function DashboardView({
                             <span>{streets.join(" · ")}</span>
                           </p>
                         ) : (
-                          <p className="text-[10px] text-muted-foreground mt-1 italic">Brak wpisu na robocie na dziś</p>
+                          <p className="text-xs text-muted-foreground mt-1 italic">Brak wpisu na robocie na dziś</p>
                         )}
-                        <p className="text-[10px] text-muted-foreground mt-1">Tydz.: {fmt(netPay)} PLN</p>
+                        <p className="text-xs text-muted-foreground mt-1">Tydz.: {fmt(netPay)} PLN</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
             )}
-          </div>
+          </WgCard>
 
           {/* Aktywne roboty */}
-          <div className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <WgCard elevation="soft" padding="sm" radius="md" className="lg:col-span-3 overflow-hidden !p-0">
+            <div className="px-5 py-3.5 border-b border-border/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={13} className="text-muted-foreground"/>
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Roboty w trakcie</span>
+                <span className="text-sm font-semibold text-foreground">Roboty w trakcie</span>
                 {totalReportsActive > 0 && (
-                  <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
                     {totalReportsActive} dok.
                   </span>
                 )}
               </div>
-              <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
+              <WgButton type="button" variant="ghost" onClick={() => onNavigate("jobs")} className="h-auto w-auto p-0 text-xs text-primary hover:underline">
                 Wszystkie →
-              </button>
+              </WgButton>
             </div>
             {recentJobs.length === 0 ? (
-              <div className="p-10 text-center text-muted-foreground text-sm">
-                Brak aktywnych robót.
-                <button type="button" onClick={() => onNavigate("jobs")} className="block mx-auto mt-2 text-xs text-primary hover:underline">
-                  Dodaj robotę
-                </button>
-              </div>
+              <WgEmptyState
+                icon={MapPin}
+                title="Brak aktywnych robót"
+                description="Dodaj robotę, aby śledzić postęp na pulpicie."
+                className="py-12 sm:py-14 gap-4"
+                action={
+                  <WgButton type="button" variant="primary" onClick={() => onNavigate("jobs")} className={cn(WG_TOUCH_MIN, "h-11")}>
+                    Przejdź do Robot
+                  </WgButton>
+                }
+              />
             ) : (
               <div className="divide-y divide-border">
                 {recentJobs.map((job) => {
@@ -899,7 +895,7 @@ export function DashboardView({
                       key={job.id}
                       type="button"
                       onClick={() => onNavigate("jobs", job.id)}
-                      className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-secondary/20 transition-colors text-left"
+                      className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-secondary/25 transition-colors duration-150 motion-reduce:transition-none text-left"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -909,10 +905,10 @@ export function DashboardView({
                           </p>
                           {job.keysHandedOver && <KeyRound size={11} className="text-blue-400 shrink-0"/>}
                           {pendingN > 0 && (
-                            <span className="text-[9px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full">{pendingN} zdj.</span>
+                            <span className="text-xs bg-amber-500/15 text-amber-500 px-1.5 py-0.5 rounded-full">{pendingN} zdj.</span>
                           )}
                           {reportsN > 0 && (
-                            <span className="text-[9px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">{reportsN} dok.</span>
+                            <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{reportsN} dok.</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">{job.client || "—"} · od {fmtDate(job.startDate)}</p>
@@ -922,7 +918,7 @@ export function DashboardView({
                           <div className="w-14 bg-border rounded-full h-1 overflow-hidden">
                             <div className="bg-primary h-1 rounded-full" style={{ width: `${(docsOk / DOCUMENT_TYPES.length) * 100}%` }}/>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">{docsOk}/{DOCUMENT_TYPES.length}</span>
+                          <span className="text-xs text-muted-foreground">{docsOk}/{DOCUMENT_TYPES.length}</span>
                         </div>
                         {cost > 0 && (
                           <p className="text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -935,39 +931,36 @@ export function DashboardView({
                 })}
               </div>
             )}
-          </div>
+          </WgCard>
         </div>
 
         {/* Podsumowanie finansowe + archiwum */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <TrendingUp size={16} className="text-primary"/>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wypłaty · {MONTH_NAMES[monthNow]}</p>
-              <p className="text-lg font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(monthTotal)} PLN</p>
-              <p className="text-[10px] text-muted-foreground">{monthWeeks.length} tyg. w archiwum</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-              <Calendar size={16} className="text-muted-foreground"/>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wypłaty · {yearNow}</p>
-              <p className="text-lg font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(yearTotal)} PLN</p>
-              <p className="text-[10px] text-muted-foreground">{yearWeeks.length} tyg. zapisanych</p>
-            </div>
-          </div>
-          <button
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+          <WgKpi
+            label={`Wypłaty · ${MONTH_NAMES[monthNow]}`}
+            value={`${fmt(monthTotal)} PLN`}
+            hint={`${monthWeeks.length} tyg. w archiwum`}
+            icon={TrendingUp}
+            status="info"
+          />
+          <WgKpi
+            label={`Wypłaty · ${yearNow}`}
+            value={`${fmt(yearTotal)} PLN`}
+            hint={`${yearWeeks.length} tyg. zapisanych`}
+            icon={Calendar}
+          />
+          <WgCard
+            as="button"
             type="button"
+            elevation="soft"
+            padding="sm"
+            radius="md"
             onClick={() => onNavigate("archive")}
-            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/30 transition-colors"
+            className="text-left w-full h-full hover:border-primary/30 transition-colors duration-150 motion-reduce:transition-none"
           >
             <div className="flex items-center gap-2 mb-2">
-              <Archive size={14} className="text-muted-foreground"/>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Ostatnie tygodnie</span>
+              <Archive size={14} className="text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">Ostatnie tygodnie</span>
             </div>
             {recentWeeks.length === 0 ? (
               <p className="text-xs text-muted-foreground">Brak archiwum — zapisz tydzień w liście płac</p>
@@ -981,7 +974,7 @@ export function DashboardView({
                 ))}
               </div>
             )}
-          </button>
+          </WgCard>
         </div>
 
       </div>
