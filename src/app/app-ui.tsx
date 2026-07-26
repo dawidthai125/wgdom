@@ -54,11 +54,17 @@ export function NavItemWithHint({
   children: ReactNode;
 }) {
   return (
-    <div className="relative group/navhint">
+    <div className="relative min-w-0 w-full group/navhint">
       {children}
+      {/*
+        SIDEBAR-REGRESSION-02: ukryty tooltip MUSI być display:none (nie opacity/visibility),
+        inaczej left:100%+w-max powiększa scrollWidth .admin-sidebar-scroll.
+        Pozycja: w obrębie szerokości itemu (left-0 right-0), nie poza prawą krawędzią.
+        Fade/delay CSS niemożliwy przy display:none — zachowane paint/typography/shadow.
+      */}
       <div
         role="tooltip"
-        className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 z-[100] w-max max-w-[240px] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/90 bg-card/95 backdrop-blur-sm border border-border/80 shadow-lg opacity-0 invisible group-hover/navhint:opacity-100 group-hover/navhint:visible transition-all duration-200 delay-300 group-hover/navhint:delay-500 pointer-events-none"
+        className="absolute left-0 right-0 top-full mt-1 z-[100] hidden group-hover/navhint:block group-focus-within/navhint:block px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/90 bg-card/95 backdrop-blur-sm border border-border/80 shadow-lg pointer-events-none"
       >
         {hint}
       </div>
