@@ -1,29 +1,37 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S0 IMPLEMENT** · **ANALIZA-PRZETARGOW-2.0** · UI **2.65.47**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S1 IMPLEMENT** · UI **2.65.48**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AP2-S0 — Semantyka przedmiaru / brak kosztorysu ≠ błąd — **IMPLEMENT COMPLETE**
+## ★ AP2-S1 — Kompletność dokumentacji + gotowość wyceny — **IMPLEMENT COMPLETE**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · Release Report gotowy · commit/push per Owner DoD |
-| **UI** | **2.65.47** |
-| **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-DESIGN-FREEZE.md) |
-| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) |
-| **IN** | `canPrepareValuation` · Trust info · confidence · copy E10/7Z/Dokumenty |
-| **OUT** | Pricing Gate · Autonomous · S1+ |
-| **Next** | PV po deploy · potem AP2-S1 tylko po Owner GO |
+| **Status** | **IMPLEMENT COMPLETE** · commit/push per Owner DoD |
+| **UI** | **2.65.48** |
+| **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md) |
+| **IN** | DocumentRole+ · Completeness 14 slots · valuation readiness · Documents summary UX |
+| **OUT** | Pricing Gate · Autonomous · S2+ · duży panel |
+| **Next** | PV · potem **AP2-S2** tylko po Owner GO |
 
 ---
 
-## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **AUDIT COMPLETE** · S0 w toku release
+## ★ AP2-S0 — Semantyka przedmiaru / brak kosztorysu ≠ błąd — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **AUDIT COMPLETE** · **AP2-S0 IMPLEMENT** |
-| **AUDIT + RCA** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md) |
+| **Status** | **PRODUCTION** · UI **2.65.47** @ **`2c1ef53`** |
+| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) |
+
+---
+
+## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **ACTIVE** (S0–S1)
+
+| Element | Wartość |
+|---------|---------|
+| **AUDIT** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md) |
 | **PLAN** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-PLAN.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-PLAN.md) |
 
 ---

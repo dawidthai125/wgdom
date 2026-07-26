@@ -1,6 +1,6 @@
 /**
  * EPIC — Document Summary Header na zakładce Dokumenty (prezentacja only).
- * Agreguje wyłącznie istniejące SSOT — bez nowej logiki biznesowej.
+ * AP2-S1 — agreguje SSOT kompletności + gotowość wyceny.
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -23,6 +23,10 @@ import {
 } from "@/lib/tender-workspace-ux";
 import { formatRelativeChangeTime } from "@/lib/tender-change-monitor";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
+import {
+  buildDocumentationCompleteness,
+  type DocumentationCompletenessView,
+} from "@/lib/tender-documentation-completeness";
 
 export type DocumentsTabSummaryTone =
   | "missing"
@@ -47,6 +51,8 @@ export interface TenderDocumentsTabSummary {
   formularz: DocumentsTabSummarySlot;
   processReadiness: TenderAnalysisStatusRow[];
   lastAnalysisLabel: string;
+  /** AP2-S1 — kompletność + gotowość wyceny + stats. */
+  completeness: DocumentationCompletenessView;
 }
 
 export interface BuildTenderDocumentsTabSummaryOpts {
@@ -303,5 +309,6 @@ export function buildTenderDocumentsTabSummary(
     formularz: buildFormularzSlot(item),
     processReadiness,
     lastAnalysisLabel: formatDocumentsTabLastAnalysisLabel(item, swz, now),
+    completeness: buildDocumentationCompleteness({ item, swz }),
   };
 }

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.48",
+    label: "AP2-S1 — kompletność dokumentacji + gotowość wyceny",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Dokumenty — sekcja „Kompletność dokumentacji” (14 slotów: SWZ/OPZ/STWiOR/przedmiar/projekt/rysunki/…) oraz wskaźnik gotowości wyceny (gotowy / z ryzykiem / niewystarczająca).",
+      },
+      {
+        type: "improve",
+        text: "Rozszerzona klasyfikacja ról dokumentów + sygnały z dossier (costDiscovery/kategorie). Brak kosztorysu inwestorskiego = info/N-D, nie błąd. Pricing/Autonomous Gate bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.47",
     label: "AP2-S0 — semantyka przedmiaru / brak kosztorysu ≠ błąd",
     items: [
