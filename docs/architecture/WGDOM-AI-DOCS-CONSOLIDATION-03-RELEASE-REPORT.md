@@ -12,10 +12,10 @@
 | Pole | Wartość |
 |------|---------|
 | **Content commit (MASTER + sync)** | **`a1ed3b8`** (`a1ed3b8afe1b5816b8ca95a5bf7193c27feb67aa`) |
-| **Tip / RR commits** | **`44655fe`** → **`0a6996e`** → tip-lock `c1a97c7` |
+| **Tip / RR commits** | **`44655fe`** → **`0a6996e`** → **`c1a97c7`** → **`a12904b`** (+ this typo-fix) |
 | **Message (content)** | `docs(ai): publish MASTER_HANDOFF + AI docs consolidation-03` |
 | **Files in content commit** | **21** (973 insertions / 77 deletions) |
-| **Push** | **`origin/main` SUCCESS** · `1e07574..c1a97c7 |
+| **Push** | **`origin/main` SUCCESS** · docs-only chain from `1e07574` |
 | **Docs-only confirm** | **PASS** — allowlist wyłącznie dokumentacja; brak `src/` · `scripts/` · `e2e/` · `supabase/` · playwright |
 
 ### 1b. Push status
@@ -24,7 +24,8 @@
 |-------|--------|
 | `git push origin main` | **SUCCESS** (docs-only chain from `1e07574`) |
 | Remote tracking | `main` = `origin/main` |
-| Live tip | `https://www.wgdom.fun/version.json` (docs tip; UI nadal **2.65.46**) |
+| Content baseline | **`a1ed3b8`** (MASTER_HANDOFF + AI sync) |
+| Live tip | curl `https://www.wgdom.fun/version.json` (docs tip; UI nadal **2.65.46**) |
 
 ---
 
