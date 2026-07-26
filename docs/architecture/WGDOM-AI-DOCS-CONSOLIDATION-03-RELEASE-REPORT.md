@@ -12,10 +12,10 @@
 | Pole | Wartość |
 |------|---------|
 | **Content commit (MASTER + sync)** | **`a1ed3b8`** (`a1ed3b8afe1b5816b8ca95a5bf7193c27feb67aa`) |
-| **Tip / RR commits** | **`44655fe`** → **`0a6996e`** → tip-lock (this finalize) |
+| **Tip / RR commits** | **`44655fe`** → **`0a6996e`** → tip-lock `c1a97c7` |
 | **Message (content)** | `docs(ai): publish MASTER_HANDOFF + AI docs consolidation-03` |
 | **Files in content commit** | **21** (973 insertions / 77 deletions) |
-| **Push** | **`origin/main` SUCCESS** · `1e07574..` tip-lock |
+| **Push** | **`origin/main` SUCCESS** · `1e07574..c1a97c7 |
 | **Docs-only confirm** | **PASS** — allowlist wyłącznie dokumentacja; brak `src/` · `scripts/` · `e2e/` · `supabase/` · playwright |
 
 ### 1b. Push status
