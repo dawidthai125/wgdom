@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**SHELL-RELEASE-01** App Shell · prior LOGIN-UI-01) · prod UI **2.65.46** @ **`5888a76`**.
+**Snapshot dokumentacji:** 2026-07-26 (**SIDEBAR-REGRESSION-02** · prior SHELL-RELEASE-01) · prod UI **2.65.46** @ **`da24e5a`**.
 
 ---
 
@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main`)** | **`5888a76`** — **SHELL-RELEASE-01** App Shell (Dashboard UI-01B · Sidebar UI-01C · Topbar GDS S2) · UI **2.65.46** · prior Roboty **`cf76d28`** · LOGIN hotfix body **`6df8373`** |
+| **Deploy tip commit (`main`)** | **`da24e5a`** — **SIDEBAR-REGRESSION-02** NavItemWithHint scrollWidth fix · UI **2.65.46** · prior App Shell **`5888a76`** · Roboty **`cf76d28`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -48,6 +48,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.46** / **`da24e5a`** | **SIDEBAR-REGRESSION-02** — NavItemWithHint horizontal scroll | **CLOSED** · **PV** · [`WGDOM-SIDEBAR-REGRESSION-02-RELEASE-REPORT.md`](../architecture/WGDOM-SIDEBAR-REGRESSION-02-RELEASE-REPORT.md) |
 | **2.65.46** / **`5888a76`** | **SHELL-RELEASE-01** — Dashboard · Sidebar · Topbar visual | **CLOSED** · **PV** · [`WGDOM-SHELL-RELEASE-01-RELEASE-REPORT.md`](../architecture/WGDOM-SHELL-RELEASE-01-RELEASE-REPORT.md) |
 | **2.65.46** / **`cf76d28`** | Roboty UI-01D-A/B/C + Wg* primitives | **CLOSED** · **PV** |
 | **2.65.46** / **`6df8373`** | **LOGIN-UI-01** mobile hotfix (16px + back DOM) | **CLOSED** · **PV** |
