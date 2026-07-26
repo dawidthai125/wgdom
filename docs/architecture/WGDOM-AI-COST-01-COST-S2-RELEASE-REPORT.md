@@ -2,9 +2,10 @@
 
 > **ID:** COST-S2  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **READY FOR PV**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.53**  
+> **Commit:** **`17a7a83`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S2-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S2-DESIGN-FREEZE.md)  
 > **Prior:** COST-S1 `2.65.52` @ `fd4b112`
 

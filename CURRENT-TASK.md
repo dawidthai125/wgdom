@@ -8,7 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.53** · PV po deploy |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.53** / **`17a7a83`** |
+| **Feature commit** | **`17a7a83`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S2-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S2-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md) |
 | **IN** | Mapping Engine · catalogWorkId · workCategory · confidence · matchedBy · aiRationale · candidateMatches |
