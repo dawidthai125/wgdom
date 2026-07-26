@@ -2,9 +2,10 @@
 
 > **ID:** COST-S1  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **READY FOR PV** (po push)  
+> **STATUS:** **PRODUCTION VERIFIED** (po PV `version.json`)  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.52**  
+> **Commit:** **`fd4b112`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md)  
 > **Prior tip:** AP2-S4 `2.65.51` @ `5355c19`
 
@@ -65,7 +66,7 @@ Fundament AI Kosztorysanta: model **OfferBoq** / **OfferBoqLine** ze istniejące
 | Transparentność (źródło / confidence / rationale) | **PASS** |
 | Brak regresji gate’ów / bid | **PASS** (nie ruszane) |
 | typecheck / build / testy | **PASS** |
-| RR + commit + push | **po domknięciu** |
+| RR + commit + push | **PASS** · `fd4b112` |
 
 ---
 
