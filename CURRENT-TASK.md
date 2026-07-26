@@ -1,8 +1,32 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03** · **DASHBOARD BODY COMPLETE** · **UI FOUNDATION v1.0 COMPLETE**) · UI tip **2.65.46** · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) (live **`1e07574`** · feature BODY-S4 **`bd0f239`**) · **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S0 IMPLEMENT** · **ANALIZA-PRZETARGOW-2.0** · UI **2.65.47**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AP2-S0 — Semantyka przedmiaru / brak kosztorysu ≠ błąd — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · Release Report gotowy · commit/push per Owner DoD |
+| **UI** | **2.65.47** |
+| **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) |
+| **IN** | `canPrepareValuation` · Trust info · confidence · copy E10/7Z/Dokumenty |
+| **OUT** | Pricing Gate · Autonomous · S1+ |
+| **Next** | PV po deploy · potem AP2-S1 tylko po Owner GO |
+
+---
+
+## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **AUDIT COMPLETE** · S0 w toku release
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **AUDIT COMPLETE** · **AP2-S0 IMPLEMENT** |
+| **AUDIT + RCA** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AUDIT.md) |
+| **PLAN** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-PLAN.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-PLAN.md) |
+
+---
 
 ## ★ WGDOM-AI-DOCS-CONSOLIDATION-03 — **DOCS COMPLETE** (lokalnie; commit tylko na Owner GO)
 

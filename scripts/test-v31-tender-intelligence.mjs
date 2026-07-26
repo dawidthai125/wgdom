@@ -245,7 +245,7 @@ console.log("\nT10 — dokładnie jedna akcja");
   assert(typeof ctx.nextAction.ruleId === "string", "T10 single ruleId");
 }
 
-console.log("\nT11 — pewność Niska bez kosztorysu");
+console.log("\nT11 — pewność Niska przy pustym przetargu (brak sygnałów jakości)");
 {
   const item = baseItem();
   const o = overlayFor(item, "HOLD", null);

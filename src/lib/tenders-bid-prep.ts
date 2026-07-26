@@ -30,6 +30,8 @@ import {
   resolvedCostStatus,
   resolvedTenderValuePln,
   resolvedWadiumDisplay,
+  KOSZTORYS_NOT_PROVIDED_LABEL,
+  PRZEDMIAR_VALUATION_READY_LABEL,
   traceSsotSnapshot,
 } from "@/lib/tender-data-ssot";
 import { OUR_ESTIMATE_TILE_NAV_HINT, canNavigateToBidDetails } from "@/lib/tender-bid-ux";
@@ -94,21 +96,23 @@ export function computeBidPrepChecks(
       : kosztorysAwaiting
         ? "Kosztorys oczekuje na przetworzenie"
         : docCount > 0
-          ? "Nie znaleziono kosztorysu."
+          ? KOSZTORYS_NOT_PROVIDED_LABEL
           : platformDoc.emptyMessage
             ?? platformDoc.detailLines?.[0]
             ?? "Brak plików")
-    : buildKosztorysChecklistDisplay(item);
+    : costStatus === "FOUND_NO_VALUE"
+      ? PRZEDMIAR_VALUATION_READY_LABEL
+      : buildKosztorysChecklistDisplay(item);
   const kosztorysMissingHint = costStatus === "NOT_FOUND"
     ? (awaitingUx?.hint
       ?? (kosztorysAwaiting
-        ? "Otwórz Dokumenty lub Wycena aby rozpocząć analizę."
+        ? "Analiza dokumentów uruchomi się automatycznie po pobraniu załączników."
         : !kosztorysOk && scanSummary
           ? `${buildKosztorysMissingMessage(scanSummary)}`
           : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
             ? platformDoc.detailLines[1]
             : !kosztorysOk
-              ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
+              ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj przedmiar PDF / ATH"
               : undefined))
     : buildKosztorysChecklistHint(item);
 

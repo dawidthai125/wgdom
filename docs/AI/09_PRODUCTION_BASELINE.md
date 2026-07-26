@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**AI-DOCS-CONSOLIDATION-03 RELEASED**) · prod UI **2.65.46** · content tip **`a1ed3b8`** · feature BODY-S4 **`bd0f239`** · live `version.json` = ostatni docs push na `main`.
+**Snapshot dokumentacji:** 2026-07-26 (**AP2-S0** · ANALIZA-PRZETARGOW-2.0) · prod UI **2.65.47** (po deploy) · prior **2.65.46** · feature BODY-S4 **`bd0f239`** · live `version.json` = ostatni push na `main`.
 
 ---
 
@@ -26,11 +26,12 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main` / `version.json`)** | **Live:** curl `version.json` · **Content CONSOLIDATION-03:** **`a1ed3b8`** · RR chain **`44655fe`** → **`0a6996e`** → (tip lock this commit) · prior **`1e07574`** |
-| **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS · prior S3 **`ca08c75`** · S2 **`e2e1c58`** · S1 **`1cf8af2`** |
+| **UI version (changelog / version.json)** | **2.65.47** (AP2-S0) · prior **2.65.46** |
+| **Deploy tip commit (`main` / `version.json`)** | **Live:** curl `version.json` po push AP2-S0 · prior content tip patrz git log |
+| **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS · prior S3 **`ca08c75`** |
+| **Ostatni feature (AP2-S0)** | Semantyka przedmiaru / brak kosztorysu ≠ błąd — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED · GREEN** |
+| **Status** | **PRODUCTION VERIFIED · GREEN** (baseline) · AP2-S0 → PV po deploy |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -51,6 +52,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.47** / AP2-S0 | **ANALIZA-PRZETARGOW-2.0 S0** — przedmiar = wycena · brak kosztorysu = INFO | **IMPLEMENT** · PV po deploy · [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) |
 | docs **`0a6996e`** | CONSOLIDATION-03 tip finalize (SSOT + RR push status) | **CLOSED** |
 | docs **`44655fe`** | CONSOLIDATION-03 release report + tip @ `a1ed3b8` | **CLOSED** |
 | docs **`a1ed3b8`** | **AI-DOCS-CONSOLIDATION-03** — MASTER_HANDOFF + AI docs sync · Body closeout published | **CLOSED** · [`CONSOLIDATION-03-RELEASE`](../architecture/WGDOM-AI-DOCS-CONSOLIDATION-03-RELEASE-REPORT.md) |

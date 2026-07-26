@@ -40,12 +40,12 @@ const parsedNoKosztorys = {
   ...withDocsNotParsed,
   tenderDossier: {
     ...withDocsNotParsed.tenderDossier,
-    parserVersion: 3,
+    parserVersion: 4,
     scanSummary: { parsedAt: new Date().toISOString(), kosztorysFound: false, estimateFound: false },
   },
 };
 assert.equal(isKosztorysAwaitingHeavyParse(parsedNoKosztorys), false);
-assert.equal(resolvedCostStatusDisplay(parsedNoKosztorys).display, "Nie znaleziono kosztorysu.");
+assert.equal(resolvedCostStatusDisplay(parsedNoKosztorys).display, "Zamawiający nie udostępnił kosztorysu inwestorskiego.");
 
 const noDocs = { ...baseItem, bzpDocuments: [] };
 assert.equal(isKosztorysAwaitingHeavyParse(noDocs), false);
@@ -62,7 +62,7 @@ const withKosztorys = {
   bzpDocuments: [{ filename: "a.ath", url: "https://x", documentIndex: 0 }],
   tenderDossier: {
     brief: {},
-    parserVersion: 3,
+    parserVersion: 4,
     kosztorys: { ok: true, filename: "a.ath", rowCount: 10, totalValue: null, currency: "PLN" },
     builtAt: new Date().toISOString(),
     scanSummary: { parsedAt: new Date().toISOString(), kosztorysFound: true, estimateFound: false },

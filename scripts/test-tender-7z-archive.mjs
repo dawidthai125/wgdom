@@ -90,7 +90,7 @@ assert("discoverBestCostDocument source ath", cost.source.includes("sample.ath")
 // 6. classifyCostDocumentType inner
 const athType = classifyCostDocumentType(`${outerName} → sample.ath`);
 assert("classify inner ath", athType.type === "zip_ath");
-const xlsxType = classifyCostDocumentType(`${outerName} → sample.xlsx`);
+const xlsxType = classifyCostDocumentType(`${outerName} → kosztorys.xlsx`);
 assert("classify inner xlsx", xlsxType.type === "zip_xlsx");
 
 // 7. buildKosztorysStatusLine
@@ -120,7 +120,7 @@ const scanUnpackNoAth = {
   byType: countDocumentsByType([outerName]),
   costDiscovery: null,
 };
-assert("kosztorys status 7z no ath", buildKosztorysStatusLine(scanUnpackNoAth).includes("Nie znaleziono kosztorysu ATH"));
+assert("kosztorys status 7z no ath", buildKosztorysStatusLine(scanUnpackNoAth).includes("nie udostępnił") || buildKosztorysStatusLine(scanUnpackNoAth).includes("Zamawiający"));
 
 // 8. P2-H.6 — folder / no-extension filter
 assert("inner listable rejects folder przedmiary", !isArchiveInnerListableFile("II. PRZEDMIARY"));

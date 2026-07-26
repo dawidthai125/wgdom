@@ -1,6 +1,7 @@
 /**
  * P2-E.3 — Single Source of Truth dla danych przetargu (wartość, kosztorys, kryteria, wadium).
  * P2-E.5 — FOUND_WITH_VALUE / FOUND_NO_VALUE (kosztorys bez cen ≠ kosztorys wyceniony).
+ * AP2-S0 — przedmiar bez cen = podstawa wyceny; brak kosztorysu inwestorskiego = INFO (nie błąd).
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -45,6 +46,14 @@ export type TenderValueSource = "swz" | "dossier" | "estimate" | "fallback";
 
 /** P2-E.5 — kosztorys wyceniony vs przedmiar bez cen. */
 export type ResolvedCostStatus = "FOUND_WITH_VALUE" | "FOUND_NO_VALUE" | "NOT_FOUND";
+
+/** AP2-S0 — copy SSOT (brak kosztorysu inwestorskiego ≠ błąd). */
+export const KOSZTORYS_NOT_PROVIDED_LABEL =
+  "Zamawiający nie udostępnił kosztorysu inwestorskiego.";
+
+/** AP2-S0 — przedmiar z ilościami / zakresem umożliwia wycenę własną. */
+export const PRZEDMIAR_VALUATION_READY_LABEL =
+  "Wykryto przedmiar robót — możliwe przygotowanie wyceny.";
 
 export interface ResolvedTenderValue {
   pln: number | null;
@@ -243,7 +252,17 @@ export function resolvedCostStatus(item: TenderPipelineItem): ResolvedCostStatus
   return "FOUND_NO_VALUE";
 }
 
-/** P2-E.5 — główny komunikat + opcjonalny hint (druga linia UI). */
+/**
+ * AP2-S0 — czy dokumentacja umożliwia przygotowanie wyceny własnej.
+ * True przy kosztorysie z cenami LUB przedmiarze/zakresie bez cen (`FOUND_NO_VALUE`).
+ * Nie zmienia Pricing Gate (AP2-S6) — SSOT prezentacji / trust / confidence.
+ */
+export function canPrepareValuation(item: TenderPipelineItem): boolean {
+  const status = resolvedCostStatus(item);
+  return status === "FOUND_WITH_VALUE" || status === "FOUND_NO_VALUE";
+}
+
+/** P2-E.5 / AP2-S0 — główny komunikat + opcjonalny hint (druga linia UI). */
 export function resolvedCostStatusDisplay(
   item: TenderPipelineItem,
   status: ResolvedCostStatus = resolvedCostStatus(item),
@@ -263,7 +282,10 @@ export function resolvedCostStatusDisplay(
         hint: KOSZTORYS_AWAITING_PARSE_HINT,
       };
     }
-    return { display: "Nie znaleziono kosztorysu." };
+    return {
+      display: KOSZTORYS_NOT_PROVIDED_LABEL,
+      hint: "Brak kosztorysu inwestorskiego jest typowy — sprawdź przedmiar PDF i załączniki.",
+    };
   }
 
   const classified = classifyCostDocument(item);
@@ -276,8 +298,8 @@ export function resolvedCostStatusDisplay(
 
   const rowSuffix = rowCount > 0 ? ` (${rowCount} pozycji)` : "";
   return {
-    display: `Przedmiar ${docType} znaleziony${rowSuffix}`,
-    hint: "Brak cen i wartości w pliku.\nDokument zawiera zakres robót bez wyceny.",
+    display: PRZEDMIAR_VALUATION_READY_LABEL,
+    hint: `${KOSZTORYS_NOT_PROVIDED_LABEL}\nPrzedmiar ${docType}${rowSuffix} — zakres robót bez cen jednostkowych.`,
   };
 }
 
@@ -421,8 +443,8 @@ export function buildOurEstimateDisplaySsot(opts: {
   }
   if (cost === "FOUND_NO_VALUE") {
     return {
-      display: "Nie można automatycznie wyliczyć wyceny",
-      hint: "ATH nie zawiera cen jednostkowych ani wartości pozycji.",
+      display: PRZEDMIAR_VALUATION_READY_LABEL,
+      hint: `${KOSZTORYS_NOT_PROVIDED_LABEL} Użyj wyceny katalogowej z ilości na zakładce Ceny.`,
     };
   }
   if (cost === "FOUND_WITH_VALUE") {
@@ -437,13 +459,13 @@ export function buildOurEstimateDisplaySsot(opts: {
     return {
       display: sevenZLine,
       hint: isSevenZUnpackOk(scan!)
-        ? "Archiwum rozpakowane — w dokumentacji zamawiającego brak pliku kosztorysowego"
+        ? "Archiwum rozpakowane — sprawdź przedmiar PDF; kosztorys inwestorski często nie jest publikowany"
         : "Sprawdź integralność pliku lub pobierz archiwum ręcznie",
     };
   }
   return {
-    display: "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)",
-    hint: "Pobierz załączniki lub wgraj kosztorys",
+    display: KOSZTORYS_NOT_PROVIDED_LABEL,
+    hint: "Pobierz załączniki lub wgraj przedmiar PDF / ATH",
   };
 }
 

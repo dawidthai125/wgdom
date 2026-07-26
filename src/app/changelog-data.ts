@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.47",
+    label: "AP2-S0 — semantyka przedmiaru / brak kosztorysu ≠ błąd",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi — przedmiar PDF (FOUND_NO_VALUE) = podstawa wyceny; brak kosztorysu inwestorskiego = INFO (nie ERROR); pewność AI z jakości dokumentów, nie z samego braku ATH.",
+      },
+      {
+        type: "improve",
+        text: "Copy: „Zamawiający nie udostępnił kosztorysu inwestorskiego” · „Wykryto przedmiar robót — możliwe przygotowanie wyceny”. Pricing Gate / Autonomous Gate bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.46",
     label: "LOGIN-UI-01 — mobile hotfix (font + back)",
     items: [

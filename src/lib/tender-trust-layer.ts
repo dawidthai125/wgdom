@@ -9,6 +9,8 @@ import {
   resolvedAwardCriteria,
   resolvedCostStatus,
   resolveTenderValue,
+  KOSZTORYS_NOT_PROVIDED_LABEL,
+  PRZEDMIAR_VALUATION_READY_LABEL,
   type ResolvedCostStatus,
 } from "@/lib/tender-data-ssot";
 import {
@@ -37,7 +39,7 @@ import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import { SNAPSHOT_PRICED_ROWS_CAP } from "@/lib/tenders-bzp-brief";
 
 /** Bump przy zmianie reguł derive (nie przy zmianie parsera). */
-export const TENDER_TRUST_LAYER_VERSION = 1;
+export const TENDER_TRUST_LAYER_VERSION = 2;
 
 export type TenderTrustLevel = "trusted" | "partial" | "blocked" | "unknown";
 
@@ -410,10 +412,13 @@ function deriveKosztorysDimension(
   }
 
   if (costStatus === "NOT_FOUND") {
-    reasons.push(reason("kosztorys_not_found", "Nie znaleziono dokumentu kosztorysowego.", "error"));
+    // AP2-S0 — brak kosztorysu inwestorskiego = INFO, nie ERROR/blocked
+    reasons.push(
+      reason("kosztorys_not_provided", KOSZTORYS_NOT_PROVIDED_LABEL, "info"),
+    );
     return {
       id: "kosztorys",
-      level: "blocked",
+      level: "partial",
       labelPl: DIMENSION_LABELS.kosztorys,
       reasons,
     };
@@ -436,11 +441,10 @@ function deriveKosztorysDimension(
 
   if (costStatus === "FOUND_NO_VALUE") {
     reasons.push(
-      reason(
-        "kosztorys_no_prices",
-        "Przedmiar bez cen — zakres robót bez wyceny w pliku.",
-        "warn",
-      ),
+      reason("przedmiar_valuation_ready", PRZEDMIAR_VALUATION_READY_LABEL, "info"),
+    );
+    reasons.push(
+      reason("kosztorys_not_provided", KOSZTORYS_NOT_PROVIDED_LABEL, "info"),
     );
     return {
       id: "kosztorys",
@@ -486,7 +490,13 @@ function derivePricingDimension(
   }
 
   if (kosztorysLevel === "blocked") {
-    reasons.push(reason("pricing_blocked", "Wycena zablokowana — brak kosztorysu.", "error"));
+    reasons.push(
+      reason(
+        "pricing_blocked",
+        "Wycena zablokowana — nieczytelny lub uszkodzony dokument przedmiaru/kosztorysu.",
+        "error",
+      ),
+    );
     return {
       id: "pricing",
       level: "blocked",
@@ -498,11 +508,27 @@ function derivePricingDimension(
   const costStatus = resolvedCostStatus(item);
   const proposal = item.tenderDossier?.bidProposal;
 
-  if (kosztorysLevel === "partial" || costStatus === "FOUND_NO_VALUE") {
+  if (costStatus === "FOUND_NO_VALUE") {
     reasons.push(
       reason(
         "pricing_partial",
-        "Możliwa wycena katalogowa z ilości — bez cen jednostkowych z przedmiaru.",
+        "Możliwa wycena z przedmiaru — bez cen jednostkowych z kosztorysu inwestorskiego.",
+        "warn",
+      ),
+    );
+    return {
+      id: "pricing",
+      level: "partial",
+      labelPl: DIMENSION_LABELS.pricing,
+      reasons,
+    };
+  }
+
+  if (costStatus === "NOT_FOUND") {
+    reasons.push(
+      reason(
+        "pricing_no_boq",
+        "Brak przedmiaru z ilościami — automatyczna wycena niedostępna.",
         "warn",
       ),
     );

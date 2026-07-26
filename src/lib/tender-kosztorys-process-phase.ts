@@ -213,9 +213,9 @@ const TECHNICAL_PHASE_COPY: Record<
     tone: "success",
   },
   e10: {
-    label: "Nie znaleziono kosztorysu",
-    hint: "Przeskanowano załączniki — brak pliku ATH/PDF/XLSX z pozycjami.",
-    tone: "warning",
+    label: "Zamawiający nie udostępnił kosztorysu inwestorskiego",
+    hint: "Typowe w postępowaniach publicznych — sprawdź przedmiar PDF (KNR/ilości).",
+    tone: "neutral",
   },
   e11: {
     label: "Analiza została przerwana",

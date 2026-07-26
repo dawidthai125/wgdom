@@ -116,14 +116,14 @@ export function isSevenZUnpackOk(summary: TenderDossierScanSummary): boolean {
   return (summary.sevenZInnerCount ?? 0) > 0;
 }
 
-/** P2-H.4 — komunikat gdy 7Z bez kosztorysu; null gdy nie dotyczy. */
+/** P2-H.4 / AP2-S0 — komunikat gdy 7Z bez kosztorysu; null gdy nie dotyczy. */
 export function sevenZKosztorysMissingLine(summary: TenderDossierScanSummary): string | null {
   if (!summary.sevenZipCount || summary.kosztorysFound) return null;
   if (summary.byType.ath > 0 || summary.byType.xlsx > 0) return null;
   if (!isSevenZUnpackOk(summary)) {
-    return "Błąd odczytu archiwum 7Z. Analiza kosztorysu jest niedostępna.";
+    return "Błąd odczytu archiwum 7Z. Analiza przedmiaru/kosztorysu jest niedostępna.";
   }
-  return "Nie znaleziono kosztorysu ATH/XLS/XLSX w archiwum 7Z.";
+  return "Zamawiający nie udostępnił kosztorysu ATH/XLS/XLSX w archiwum 7Z.";
 }
 
 export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): string {
@@ -143,7 +143,7 @@ export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): str
   }
   const sevenZLine = sevenZKosztorysMissingLine(summary);
   if (sevenZLine) return `Kosztorys:\n${sevenZLine}`;
-  return "Kosztorys:\nNie znaleziono dokumentu kosztorysowego";
+  return "Kosztorys:\nZamawiający nie udostępnił kosztorysu inwestorskiego.";
 }
 
 export function buildKosztorysMissingMessage(summary: TenderDossierScanSummary): string {
@@ -164,7 +164,7 @@ export function buildEstimateMissingReason(summary: TenderDossierScanSummary): s
   }
   const sevenZLine = sevenZKosztorysMissingLine(summary);
   if (sevenZLine) return sevenZLine;
-  return "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)";
+  return "Zamawiający nie udostępnił kosztorysu inwestorskiego (ATH/NOR/XML/XLS/XLSX)";
 }
 
 /** P3-FIX-C + TP200A — ciężkie parsowanie zakończone i parser aktualny. */

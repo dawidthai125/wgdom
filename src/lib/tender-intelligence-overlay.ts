@@ -8,7 +8,8 @@ import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { computeReferenceMatchSummary } from "@/lib/tenders-actions";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { resolvedCostStatus } from "@/lib/tender-data-ssot";
+import { canPrepareValuation, resolvedCostStatus } from "@/lib/tender-data-ssot";
+import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
 import { computeBidMarginPct } from "@/lib/tender-bid-ux";
 import {
   DECISION_LABEL_PL,
@@ -118,16 +119,41 @@ function buildOverlayReasons(
   return rawReasons.slice(0, 3);
 }
 
+/**
+ * AP2-S0 — pewność AI z jakości sygnałów (dokumenty / SWZ / przedmiar / marża).
+ * Brak kosztorysu inwestorskiego sam w sobie NIE wymusza "low".
+ */
 function resolveConfidence(
   item: TenderPipelineItem,
   ownerFinanceProposal: TenderBidProposal | null | undefined,
   hasHardBlocker: boolean,
 ): IntelligenceConfidence {
+  const docCount = countTenderAttachments(item);
+  const hasSwzSignal = Boolean(
+    item.swzAnalysis?.parsedAt
+    || item.swzAnalysis?.source
+    || (item.noticeHtml && item.noticeHtml.trim().length >= 80),
+  );
+  const valuationReady = canPrepareValuation(item);
+  const rowCount = item.tenderDossier?.kosztorys?.rowCount ?? 0;
   const costStatus = resolvedCostStatus(item);
-  const kosztorysOk = Boolean(item.tenderDossier?.kosztorys?.ok);
-  if (!kosztorysOk || costStatus === "NOT_FOUND") return "low";
-  if (hasHardBlocker || !hasReadyTenderMargin(ownerFinanceProposal)) return "medium";
-  return "high";
+  const marginReady = hasReadyTenderMargin(ownerFinanceProposal);
+
+  let signals = 0;
+  if (docCount > 0) signals += 1;
+  if (docCount >= 3) signals += 1;
+  if (hasSwzSignal) signals += 1;
+  if (valuationReady) signals += 1;
+  if (rowCount >= 5) signals += 1;
+  if (costStatus === "FOUND_WITH_VALUE") signals += 1;
+  if (marginReady) signals += 1;
+
+  if (hasHardBlocker) {
+    return signals >= 3 ? "medium" : "low";
+  }
+  if (signals >= 5 && marginReady) return "high";
+  if (signals >= 3) return "medium";
+  return "low";
 }
 
 function resolveHelperMessage(

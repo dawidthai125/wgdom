@@ -8,6 +8,7 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import {
   classifyCostDocument,
   resolvedCostStatus,
+  canPrepareValuation,
   type ResolvedCostStatus,
 } from "@/lib/tender-data-ssot";
 import {
@@ -177,7 +178,22 @@ function buildKosztorysSlot(item: TenderPipelineItem): DocumentsTabSummarySlot {
     };
   }
 
-  return { id: "kosztorys", label: "Kosztorys", value: "Brak", tone: "missing" };
+  // AP2-S0 — brak kosztorysu inwestorskiego = „nie dostarczono”, nie błąd krytyczny
+  if (canPrepareValuation(item) || costStatus === "FOUND_NO_VALUE") {
+    return {
+      id: "kosztorys",
+      label: "Kosztorys",
+      value: "Nie dostarczono",
+      tone: "partial",
+    };
+  }
+
+  return {
+    id: "kosztorys",
+    label: "Kosztorys",
+    value: "Nie dostarczono",
+    tone: "missing",
+  };
 }
 
 function buildUmowaSlot(item: TenderPipelineItem): DocumentsTabSummarySlot {

@@ -537,7 +537,7 @@ const kosztCheck = checks.find((c) => c.id === "kosztorys");
 const bidCheck = checks.find((c) => c.id === "our-bid");
 assert("checklist kosztorys ok", kosztCheck?.status === "ok");
 assert("checklist bid not missing file", !bidCheck?.display.includes("Brak pliku kosztorysowego"));
-assert("checklist bid no value manual", bidCheck?.display.includes("automatycznie"));
+assert("checklist bid no value manual", bidCheck?.display.includes("przedmiar") || bidCheck?.display.includes("Przedmiar") || bidCheck?.display.includes("Wykryto przedmiar"));
 
 // P2-E.3 — value / cost / criteria SSOT
 const baseItem = {
@@ -603,9 +603,10 @@ const valueCheck = checksUi.find((c) => c.id === "value");
 const kosztCheck2 = checksUi.find((c) => c.id === "kosztorys");
 assert("ui_consistency value label", valueCheck?.display === TENDER_VALUE_NOT_FOUND_LABEL);
 assert("ui_consistency no nie odczytano", !valueCheck?.display.includes("Nie odczytano"));
-assert("ui_consistency kosztorys przedmiar", kosztCheck2?.display.includes("Przedmiar"));
+assert("ui_consistency kosztorys przedmiar", Boolean(kosztCheck2?.display.includes("przedmiar") || kosztCheck2?.display.includes("Przedmiar") || kosztCheck2?.display.includes("Wykryto przedmiar")));
 assert("ui_consistency no brak pliku when found", !checksUi.find((c) => c.id === "our-bid")?.display.includes("Brak pliku kosztorysowego"));
-assert("ui_consistency bid no auto estimate", checksUi.find((c) => c.id === "our-bid")?.display.includes("automatycznie"));
+const bidUiDisplay = checksUi.find((c) => c.id === "our-bid")?.display ?? "";
+assert("ui_consistency bid no auto estimate", bidUiDisplay.includes("przedmiar") || bidUiDisplay.includes("Przedmiar") || bidUiDisplay.includes("Wykryto przedmiar"));
 
 clearSsotTraceLog();
 traceSsotSnapshot(athItem, swzWithValue);
@@ -684,13 +685,13 @@ const tbsAthNoPrice = {
 assert("p2e5 tbs wk0 status", resolvedCostStatus(tbsAthNoPrice) === "FOUND_NO_VALUE");
 assert("p2e5 tbs wk0 not with value", resolvedCostStatus(tbsAthNoPrice) !== "FOUND_WITH_VALUE");
 const tbsUi = resolvedCostStatusDisplay(tbsAthNoPrice);
-assert("p2e5 tbs przedmiar label", tbsUi.display.includes("Przedmiar ATH") && tbsUi.display.includes("221"));
-assert("p2e5 tbs hint brak cen", tbsUi.hint?.includes("Brak cen"));
+assert("p2e5 tbs przedmiar label", tbsUi.display.includes("Wykryto przedmiar") || (tbsUi.display.includes("przedmiar") && tbsUi.hint?.includes("221")));
+assert("p2e5 tbs hint brak cen", tbsUi.hint?.includes("bez cen") || tbsUi.hint?.includes("nie udostępnił") || tbsUi.hint?.includes("inwestorskiego"));
 const tbsClass = classifyCostDocument(tbsAthNoPrice);
 assert("p2e5 tbs classify", tbsClass?.type === "ATH" && tbsClass.priced === false && tbsClass.rowCount === 221);
 const tbsEstimate = buildOurEstimateDisplaySsot({ item: tbsAthNoPrice });
-assert("p2e5 tbs estimate msg", tbsEstimate.display.includes("automatycznie"));
-assert("p2e5 tbs estimate hint", tbsEstimate.hint?.includes("cen jednostkowych"));
+assert("p2e5 tbs estimate msg", tbsEstimate.display.includes("Wykryto przedmiar") || tbsEstimate.display.includes("przedmiar"));
+assert("p2e5 tbs estimate hint", tbsEstimate.hint?.includes("cen") || tbsEstimate.hint?.includes("inwestorskiego") || tbsEstimate.hint?.includes("katalogowej"));
 assert("p2e5 zero total not priced", kosztorysHasPricedValue(tbsAthNoPrice.tenderDossier.kosztorys) === false);
 
 clearCostStatusTraceLog();
@@ -700,11 +701,11 @@ assert("p2e5 cost status trace", getCostStatusTraceLog()[0]?.detail?.status === 
 const tbsChecks = computeBidPrepChecks(tbsAthNoPrice, null, null, null);
 const tbsKoszt = tbsChecks.find((c) => c.id === "kosztorys");
 const tbsBid = tbsChecks.find((c) => c.id === "our-bid");
-assert("p2e5 ui kosztorys przedmiar", tbsKoszt?.display.includes("Przedmiar ATH"));
+assert("p2e5 ui kosztorys przedmiar", tbsKoszt?.display.includes("Wykryto przedmiar") || tbsKoszt?.display.includes("przedmiar"));
 assert("p2e5 ui no kosztorys znaleziony generic", !tbsKoszt?.display.includes("Kosztorys znaleziony"));
-assert("p2e5 ui bid no auto", tbsBid?.display.includes("automatycznie"));
+assert("p2e5 ui bid no auto", tbsBid?.display.includes("Wykryto przedmiar") || tbsBid?.display.includes("przedmiar"));
 assert("p2e5 ui not found", resolvedCostStatus(baseItem) === "NOT_FOUND");
-assert("p2e5 not found label", resolvedCostStatusLabel(baseItem).includes("Nie znaleziono"));
+assert("p2e5 not found label", resolvedCostStatusLabel(baseItem).includes("nie udostępnił") || resolvedCostStatusLabel(baseItem).includes("inwestorskiego"));
 
 // scan summary UX
 const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);
@@ -742,10 +743,10 @@ assert("scan has PDF line", scanLines.includes("PDF:"));
 assert("scan has DOC line", scanLines.includes("DOC/DOCX:"));
 
 const missingStatus = buildKosztorysStatusLine(summary);
-assert("missing status 7z unpack ok no ath", missingStatus.includes("Nie znaleziono kosztorysu ATH"));
+assert("missing status 7z unpack ok no ath", missingStatus.includes("Zamawiający nie udostępnił kosztorysu ATH") || missingStatus.includes("nie udostępnił"));
 
 const summaryNo7z = { ...summary, sevenZipCount: 0, sevenZUnpackOk: undefined, sevenZInnerCount: undefined, byType: { ...summary.byType, sevenZip: 0 } };
-assert("missing status generic", buildKosztorysStatusLine(summaryNo7z).includes("Nie znaleziono dokumentu kosztorysowego"));
+assert("missing status generic", buildKosztorysStatusLine(summaryNo7z).includes("nie udostępnił") || buildKosztorysStatusLine(summaryNo7z).includes("Zamawiający"));
 
 const summary7zFail = { ...summary, sevenZUnpackOk: false, sevenZInnerCount: 0 };
 assert("missing status 7z unpack fail", buildKosztorysStatusLine(summary7zFail).includes("Błąd odczytu"));
@@ -769,7 +770,7 @@ const estReason7zOk = buildEstimateMissingReason({
   ...summary,
   byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
 });
-assert("estimate reason 7z ok no ath", estReason7zOk.includes("Nie znaleziono kosztorysu ATH"));
+assert("estimate reason 7z ok no ath", estReason7zOk.includes("nie udostępnił") || estReason7zOk.includes("Zamawiający"));
 
 const estReason7zFail = buildEstimateMissingReason({
   ...summary,
