@@ -1,8 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S4 PRODUCTION** · UI **2.65.51** @ **`5355c19`**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**COST-S1** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AI-COST-01 / COST-S1 — OfferBoq model — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.52** · PV po deploy `version.json` |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S1-RELEASE-REPORT.md) |
+| **AUDIT / ARCH** | [`WGDOM-AI-COST-01-AUDIT.md`](docs/architecture/WGDOM-AI-COST-01-AUDIT.md) · [`WGDOM-AI-COST-01-ARCHITECTURE.md`](docs/architecture/WGDOM-AI-COST-01-ARCHITECTURE.md) |
+| **IN** | `tender-offer-boq.ts` · adapter ze snapshotu · pola M/R/S/Kp/marża (null) · prep edycji |
+| **OUT** | parsery · wycena · UI tabeli · Bid Proposal · Pricing/Autonomous · AP2 |
+| **Next** | Owner GO → **COST-S2** (Mapping Engine catalogWorkId / confidence / aiRationale) |
+
+---
 
 ## ★ AP2-S4 — Business Risk Engine — **PRODUCTION**
 

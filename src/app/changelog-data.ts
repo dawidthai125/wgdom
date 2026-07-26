@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.52",
+    label: "AI-COST-01 / COST-S1 — OfferBoq model",
+    items: [
+      {
+        type: "new",
+        text: "Fundament AI Kosztorysanta: model OfferBoq / OfferBoqLine budowany ze snapshotu przedmiaru (LP, opis, ilość, jm) — pola M/R/S, Kp, marża i źródła wyceny gotowe pod kolejne Slice.",
+      },
+      {
+        type: "improve",
+        text: "Bez nowych parserów i bez wyceny. Bid Proposal, Pricing Gate i Autonomous Gate bez zmian. Przygotowanie pod edycję pozycji i transparentność AI.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.51",
     label: "AP2-S4 — Business Risk Engine",
     items: [
