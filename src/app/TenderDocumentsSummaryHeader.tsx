@@ -15,6 +15,11 @@ import {
   type DocCompletenessPresence,
   type DocCompletenessSlot,
 } from "@/lib/tender-documentation-completeness";
+import {
+  confidenceLabelPl,
+  type IntelligenceConfidence,
+  type IntelligenceFact,
+} from "@/lib/tender-deep-intelligence";
 
 function presenceToneClass(presence: DocCompletenessPresence): string {
   switch (presence) {
@@ -27,6 +32,35 @@ function presenceToneClass(presence: DocCompletenessPresence): string {
     default:
       return "text-muted-foreground";
   }
+}
+
+function confidenceToneClass(c: IntelligenceConfidence): string {
+  switch (c) {
+    case "high":
+      return "text-emerald-700 dark:text-emerald-400";
+    case "medium":
+      return "text-amber-800 dark:text-amber-300";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function KeyFactRow({ fact }: { fact: IntelligenceFact }) {
+  return (
+    <div className="min-w-0 border-b border-border/40 last:border-0 py-1.5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+        <p className={`${TEUX_FONT_META} text-muted-foreground`}>{fact.label}</p>
+        <span className={`${TEUX_FONT_META} ${confidenceToneClass(fact.confidence)}`}>
+          pewność: {confidenceLabelPl(fact.confidence)}
+        </span>
+      </div>
+      <p className="text-sm font-medium text-foreground break-words">{fact.value}</p>
+      <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>
+        Źródło: {fact.sourceDoc}
+        {fact.sourceSection ? ` · ${fact.sourceSection}` : ""}
+      </p>
+    </div>
+  );
 }
 
 function CompletenessSlotRow({ slot }: { slot: DocCompletenessSlot }) {
@@ -50,11 +84,12 @@ export function TenderDocumentsSummaryHeader({
   summary: TenderDocumentsTabSummary;
   trustBadge?: DocumentsTrustBadgeView | null;
 }) {
-  const { completeness, analysisHistory, journeyStages, glance } = summary;
+  const { completeness, analysisHistory, journeyStages, glance, deepIntelligence } = summary;
   const readiness = completeness.valuationReadiness;
   const stats = completeness.stats;
   const showJourney = summary.analysisBusy
     || journeyStages.some((s) => s.state === "active");
+  const keyFacts = deepIntelligence.keyFacts;
 
   return (
     <section
@@ -63,6 +98,7 @@ export function TenderDocumentsSummaryHeader({
       data-tenders-documents-summary-header
       data-ap2-s1-completeness
       data-ap2-s2-auto-ux
+      data-ap2-s3-deep-intelligence
     >
       <div className="px-4 py-2.5 border-b border-primary/10 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
@@ -151,6 +187,44 @@ export function TenderDocumentsSummaryHeader({
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* AP2-S3 — Najważniejsze informacje */}
+        {keyFacts.length > 0 && (
+          <div
+            className="rounded-lg border border-primary/15 bg-background/60 px-3 py-2.5"
+            data-ap2-s3-key-facts
+          >
+            <TenderUxSectionTitle className="text-muted-foreground mb-1">
+              Najważniejsze informacje
+            </TenderUxSectionTitle>
+            <p className={`${TEUX_FONT_META} text-muted-foreground mb-2`}>
+              Skrót z treści dokumentów — każda pozycja ma źródło i poziom pewności.
+            </p>
+            <div className="space-y-0">
+              {keyFacts.map((f) => (
+                <KeyFactRow key={f.id} fact={f} />
+              ))}
+            </div>
+            {(deepIntelligence.przedmiar.workGroups.length > 1
+              || deepIntelligence.przedmiar.knrCatalogs.length > 0) && (
+              <div className={`mt-2 pt-2 border-t border-primary/10 ${TEUX_FONT_META} text-muted-foreground`}>
+                {deepIntelligence.przedmiar.workGroups.length > 0 && (
+                  <p>
+                    Grupy robót:{" "}
+                    <span className="font-medium text-foreground">
+                      {deepIntelligence.przedmiar.workGroups.slice(0, 5).join(" · ")}
+                    </span>
+                  </p>
+                )}
+                {deepIntelligence.hasUmowaSignal && (
+                  <p className="mt-0.5">
+                    Wykryto projekt umowy — klauzule wyodrębnione bez oceny ryzyka.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

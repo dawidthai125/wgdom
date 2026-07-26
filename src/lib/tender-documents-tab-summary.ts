@@ -38,6 +38,10 @@ import {
   type DocumentsAnalysisGlanceView,
   type DocumentsAnalysisHistoryView,
 } from "@/lib/tender-analysis-auto-ux";
+import {
+  buildDeepIntelligenceView,
+  type DeepIntelligenceView,
+} from "@/lib/tender-deep-intelligence";
 
 export type DocumentsTabSummaryTone =
   | "missing"
@@ -71,6 +75,8 @@ export interface TenderDocumentsTabSummary {
   progressRatio: number;
   analysisBusy: boolean;
   glance: DocumentsAnalysisGlanceView;
+  /** AP2-S3 — kluczowe fakty z treści dokumentów. */
+  deepIntelligence: DeepIntelligenceView;
 }
 
 export interface BuildTenderDocumentsTabSummaryOpts {
@@ -317,6 +323,7 @@ export function buildTenderDocumentsTabSummary(
     fit: item.tenderFit,
     valuationLevel: completeness.valuationReadiness.level,
   });
+  const deepIntelligence = buildDeepIntelligenceView({ item, swz });
 
   return {
     swz: buildSwzSlot(item, swz),
@@ -333,5 +340,6 @@ export function buildTenderDocumentsTabSummary(
     progressRatio: analysisProgressRatio(journeyStages),
     analysisBusy: isAnalysisSessionBusy(session),
     glance,
+    deepIntelligence,
   };
 }

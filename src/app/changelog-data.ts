@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.50",
+    label: "AP2-S3 — deep intelligence + Najważniejsze informacje",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Dokumenty — panel „Najważniejsze informacje” (terminy, wadium, gwarancja, przedmiar, kryteria, formalne…) z źródłem i pewnością ekstrakcji.",
+      },
+      {
+        type: "improve",
+        text: "Agregacja treści SWZ/przedmiaru/umowy z istniejących parserów (bez nowych modeli AI). Klauzule umowy tylko wyodrębnione — bez oceny ryzyka. Pricing/Autonomous Gate bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.49",
     label: "AP2-S2 — auto-analiza UX + Uruchom ponownie",
     items: [
