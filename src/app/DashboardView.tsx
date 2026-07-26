@@ -68,7 +68,7 @@ import {
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import { WgButton, WgCard, WgEmptyState, WgKpi } from "@/app/ui";
-import { WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
+import { WG_FOCUS_RING, WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
 import { cn } from "@/app/components/ui/utils";
 
 export function DashboardView({
@@ -585,38 +585,40 @@ export function DashboardView({
           />
         )}
 
-        {/* Roboty → Braki dokumentów */}
+        {/* Roboty → Braki dokumentów — BODY-S1 GDS shell */}
         {jobsMissingDocs.length > 0 && (
-          <div
+          <WgCard
             id="dashboard-braki-dokumentow"
-            className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+            elevation="soft"
+            padding="sm"
+            radius="md"
+            className="overflow-hidden"
             aria-label="Roboty — braki dokumentów"
           >
-            <div className="px-5 py-3.5 border-b border-border/50 bg-secondary/20">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <FileText size={14} className="text-amber-600 dark:text-amber-400 shrink-0"/>
-                  <span className="text-sm font-semibold text-foreground">Roboty → Braki dokumentów</span>
-                  <span className="text-xs bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
-                    {jobsMissingDocs.length}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setBrakiExpanded((v) => !v)}
-                  aria-expanded={brakiExpanded}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation transition-colors duration-150 motion-reduce:transition-none"
-                >
-                  {brakiExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
-                  {brakiExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </button>
+            <div className="flex flex-wrap items-start justify-between gap-2 pb-3 border-b border-border/50">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <FileText size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="text-sm font-semibold text-foreground">Roboty → Braki dokumentów</span>
+                <span className="text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-lg shrink-0">
+                  {jobsMissingDocs.length}
+                </span>
               </div>
+              <WgButton
+                type="button"
+                variant="ghost"
+                onClick={() => setBrakiExpanded((v) => !v)}
+                aria-expanded={brakiExpanded}
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-2 shrink-0")}
+              >
+                {brakiExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+                {brakiExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </WgButton>
             </div>
             {brakiExpanded && (
-              <div className="px-4 sm:px-5 py-4 border-l-4 border-l-amber-500/50">
+              <div className="pt-4">
                 <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany.
                       Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
                       {staleDocsJobs.length > 0 && (
@@ -626,9 +628,14 @@ export function DashboardView({
                       )}
                     </p>
                   </div>
-                  <button type="button" onClick={() => onNavigate("jobs")} className="text-xs font-medium text-primary hover:underline shrink-0 px-2 py-1">
+                  <WgButton
+                    type="button"
+                    variant="ghost"
+                    onClick={() => onNavigate("jobs")}
+                    className="h-auto w-auto p-0 text-xs text-primary hover:underline shrink-0 px-2 py-1"
+                  >
                     Wszystkie roboty →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-2.5 pr-0.5">
                   {jobsMissingDocsSorted.map((job) => {
@@ -640,14 +647,20 @@ export function DashboardView({
                     return (
                       <div
                         key={job.id}
-                        className={`rounded-xl border px-3.5 py-3 transition-colors ${
-                          isStale ? "border-amber-500/35 bg-amber-500/5" : "border-border bg-card/80"
-                        }`}
+                        className={cn(
+                          "rounded-lg border px-3.5 py-3 transition-colors",
+                          isStale
+                            ? "border-amber-500/35 bg-amber-500/5"
+                            : "border-border/60 bg-secondary/10",
+                        )}
                       >
                         <button
                           type="button"
                           onClick={() => onNavigate("jobs", job.id)}
-                          className="w-full text-left hover:opacity-90 transition-opacity"
+                          className={cn(
+                            "w-full text-left hover:opacity-90 transition-opacity",
+                            WG_FOCUS_RING,
+                          )}
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
                             <div className="min-w-0 flex-1">
@@ -656,7 +669,7 @@ export function DashboardView({
                                 {job.flatNumber ? ` · m.${job.flatNumber}` : ""}
                               </p>
                               {(job.client || job.startDate) && (
-                                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                <p className="text-xs text-muted-foreground mt-0.5 truncate">
                                   {job.client ? job.client : ""}
                                   {job.client && job.startDate ? " · " : ""}
                                   {job.startDate ? `od ${fmtDate(job.startDate)}` : ""}
@@ -670,13 +683,14 @@ export function DashboardView({
                             </div>
                             <div className="shrink-0 text-right">
                               <span
-                                className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-lg ${
+                                className={cn(
+                                  "inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md",
                                   pct === 100
                                     ? "bg-green-500/15 text-green-600 dark:text-green-400"
                                     : pct >= 75
                                       ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300"
-                                      : "bg-red-500/15 text-red-600 dark:text-red-400"
-                                }`}
+                                      : "bg-red-500/15 text-red-600 dark:text-red-400",
+                                )}
                                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
                               >
                                 {done}/{REQUIRED_DOCS.length}
@@ -686,9 +700,10 @@ export function DashboardView({
                         </button>
                         <div className="mt-2.5 h-1.5 rounded-full bg-border overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              pct === 100 ? "bg-green-500" : pct >= 75 ? "bg-yellow-500" : "bg-red-500"
-                            }`}
+                            className={cn(
+                              "h-full rounded-full transition-all duration-300",
+                              pct === 100 ? "bg-green-500" : pct >= 75 ? "bg-yellow-500" : "bg-red-500",
+                            )}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -711,18 +726,21 @@ export function DashboardView({
                                         : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
                                 }
                                 onClick={() => toggleJobDocumentOnDashboard(job, doc)}
-                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-3 py-2.5 min-h-[44px] rounded-md border transition-all touch-manipulation ${
+                                className={cn(
+                                  WG_FOCUS_RING,
+                                  WG_TOUCH_MIN,
+                                  "inline-flex items-center gap-1 text-[11px] font-medium px-3 py-2.5 rounded-md border transition-all touch-manipulation",
                                   locked
                                     ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
                                     : checked
                                       ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
-                                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
-                                }`}
+                                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]",
+                                )}
                               >
                                 {checked ? (
-                                  <CheckCircle2 size={10} className="shrink-0"/>
+                                  <CheckCircle2 size={10} className="shrink-0" />
                                 ) : (
-                                  <Circle size={10} className="shrink-0 opacity-70"/>
+                                  <Circle size={10} className="shrink-0 opacity-70" />
                                 )}
                                 {DOC_LABELS[doc]}
                               </button>
@@ -734,14 +752,14 @@ export function DashboardView({
                   })}
                 </div>
                 {jobsReadyToClose.length > 0 && (
-                  <p className="text-[11px] text-green-600 dark:text-green-400 mt-2 flex items-center gap-1.5">
-                    <CheckCircle2 size={12}/>
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1.5">
+                    <CheckCircle2 size={12} />
                     {jobsReadyToClose.length} {jobsReadyToClose.length === 1 ? "robota gotowa" : "roboty gotowe"} do zdania (pełny komplet dokumentów)
                   </p>
                 )}
               </div>
             )}
-          </div>
+          </WgCard>
         )}
 
         <DashboardPilneUwagiSection
