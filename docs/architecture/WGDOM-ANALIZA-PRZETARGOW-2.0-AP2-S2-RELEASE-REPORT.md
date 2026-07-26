@@ -2,9 +2,10 @@
 
 > **ID:** AP2-S2  
 > **Parent:** WGDOM-ANALIZA-PRZETARGOW-2.0  
-> **STATUS:** **IMPLEMENT COMPLETE**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.49**  
+> **Commit:** **`7c04203`**  
 > **DF:** [`WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-DESIGN-FREEZE.md`](WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-DESIGN-FREEZE.md)  
 > **Prior:** AP2-S1 `2.65.48` @ `01d8981`
 
@@ -80,12 +81,18 @@ Auto-analiza jako default UX (REUSE istniejącego bootstrap/heavy/Autonomous) + 
 
 ---
 
-## 6. Production Readiness
+## 6. Production Verification
 
-**READY TO PUSH** → PV: `version.json` **2.65.49**.
+| | |
+|--|--|
+| Push | `7c04203` → `main` |
+| Live `https://www.wgdom.fun/version.json` | **2.65.49** / **`7c04203`** |
+| Status | **PRODUCTION VERIFIED · GREEN** |
+
+**Smoke:** Przetarg → Dokumenty → historia + postęp · CTA „Uruchom ponownie analizę”.
 
 **Następny:** AP2-S3 tylko po Owner GO.
 
 ---
 
-**AP2-S2 RELEASE REPORT** · 2026-07-26
+**AP2-S2 RELEASE REPORT** · 2026-07-26 · **PV OK**
