@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**UI FOUNDATION v1.0** · A11Y-01 + UI-REGRESSION-GUARD-01) · prod UI **2.65.46** @ **`2a99e54`**.
+**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD-BODY-S1** Braki GDS) · prod UI **2.65.46** @ **`1cf8af2`**.
 
 ---
 
@@ -27,9 +27,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main`)** | **`2a99e54`** — **UI FOUNDATION v1.0** (Guard) · A11Y **`780b41e`** · prior Sidebar **`da24e5a`** · Shell **`5888a76`** · Roboty **`cf76d28`** |
+| **Deploy tip commit (`main`)** | **`1cf8af2`** — **DASHBOARD-BODY-S1** Braki → GDS · prior Foundation **`2a99e54`** · A11Y **`780b41e`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED · GREEN** · **UI FOUNDATION v1.0 COMPLETE** |
+| **Status** | **PRODUCTION VERIFIED · GREEN** |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
 | **AI onboarding** | [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) |
 | **Sync Storm fix** | **2.65.38** · **`838e8e2`** |
@@ -48,6 +48,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.46** / **`1cf8af2`** | **DASHBOARD-BODY-S1** — Braki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md) |
 | **2.65.46** / **`2a99e54`** | **UI FOUNDATION v1.0** — A11Y-01 + e2e-ui-guard (9/9 prod) | **COMPLETE** · **PV** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **2.65.46** / **`da24e5a`** | **SIDEBAR-REGRESSION-02** — NavItemWithHint horizontal scroll | **CLOSED** · **PV** · [`WGDOM-SIDEBAR-REGRESSION-02-RELEASE-REPORT.md`](../architecture/WGDOM-SIDEBAR-REGRESSION-02-RELEASE-REPORT.md) |
 | **2.65.46** / **`5888a76`** | **SHELL-RELEASE-01** — Dashboard · Sidebar · Topbar visual | **CLOSED** · **PV** · [`WGDOM-SHELL-RELEASE-01-RELEASE-REPORT.md`](../architecture/WGDOM-SHELL-RELEASE-01-RELEASE-REPORT.md) |
