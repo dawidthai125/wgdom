@@ -23,7 +23,7 @@ Shipped Dashboard Body **S3**: widget **Notatki operacyjne** migrated to GDS (`W
 | Thin confirm | **PASS** — zero `DashboardView` · Payroll · Pilne · Braki · other WT |
 | Push | **`origin/main`** `2ea784a..ca08c75` · **OK** |
 | Deploy | Vercel Git Integration · **success** |
-| Live tip | `https://www.wgdom.fun/version.json` → `"commit":"ca08c75"` · `"version":"2.65.46"` |
+| Live tip | `https://www.wgdom.fun/version.json` → `"commit":"ca08c75"` · `"version":"2.65.46"` · `2026-07-26T17:26:51.169Z` |
 
 ---
 
