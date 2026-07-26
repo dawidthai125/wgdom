@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { WgButton, WgEmptyState } from "@/app/ui";
 import { cn } from "@/app/components/ui/utils";
-import { WG_DURATION_HOVER, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
+import { WG_DURATION_HOVER, WG_FOCUS_RING, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 export type JobDetailSection = "summary" | "documents" | "files" | "workers" | "photos" | "reports";
 
@@ -98,14 +98,15 @@ export function JobDetailSectionNav({
             key={id}
             type="button"
             role="tab"
+            id={`job-detail-tab-${id}`}
             aria-selected={isActive}
-            aria-pressed={isActive}
             onClick={() => onSelect(id)}
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 h-8 md:h-7",
               "rounded-md text-xs font-medium whitespace-nowrap shrink-0 border",
               `transition-colors ${WG_DURATION_HOVER}`,
               "motion-reduce:transition-none touch-manipulation",
+              WG_FOCUS_RING,
               isActive
                 ? "bg-primary/10 text-primary border-primary/30"
                 : "bg-secondary/40 text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/60",

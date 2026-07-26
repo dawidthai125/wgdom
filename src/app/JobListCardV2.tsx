@@ -21,7 +21,7 @@ import {
   type StoveType,
 } from "@/lib/job-meta";
 import { cn } from "@/app/components/ui/utils";
-import { WG_DURATION_HOVER, WG_RADIUS_MD } from "@/lib/wg-ui-tokens";
+import { WG_DURATION_HOVER, WG_FOCUS_RING, WG_RADIUS_MD } from "@/lib/wg-ui-tokens";
 
 type JobListCardJob = JobListStatusJob & {
   id: string;
@@ -192,6 +192,7 @@ export function JobListCardV2({
               "p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60",
               `transition-colors ${WG_DURATION_HOVER}`,
               "motion-reduce:transition-none",
+              WG_FOCUS_RING,
             )}
             aria-label={bulkSelected ? "Odznacz robotę" : "Zaznacz robotę"}
             aria-pressed={bulkSelected}
@@ -204,11 +205,13 @@ export function JobListCardV2({
       <button
         type="button"
         onClick={onSelect}
+        aria-pressed={selected}
         className={cn(
           "flex-1 min-w-0 text-left px-3.5 py-3.5 flex flex-col",
           WG_RADIUS_MD,
           `transition-colors ${WG_DURATION_HOVER}`,
           "motion-reduce:transition-none",
+          WG_FOCUS_RING,
         )}
       >
         {/* Adres dominant — LIST-02 */}
@@ -306,14 +309,21 @@ export function JobListCardV2({
                   type="button"
                   disabled={deleteBusy}
                   onClick={onDeleteConfirm}
-                  className="text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium min-h-[32px] disabled:opacity-50"
+                  aria-label="Potwierdź usunięcie roboty"
+                  className={cn(
+                    "text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium min-h-[32px] disabled:opacity-50",
+                    WG_FOCUS_RING,
+                  )}
                 >
                   {deleteBusy ? "…" : "Usuń"}
                 </button>
                 <button
                   type="button"
                   onClick={onDeleteCancel}
-                  className="text-[10px] text-muted-foreground px-1 min-h-[32px]"
+                  className={cn(
+                    "text-[10px] text-muted-foreground px-1 min-h-[32px]",
+                    WG_FOCUS_RING,
+                  )}
                   aria-label="Anuluj usuwanie"
                 >
                   <X size={12} />
@@ -328,11 +338,13 @@ export function JobListCardV2({
                 onDeleteRequest();
               }}
               title="Usuń robotę"
+              aria-label="Usuń robotę"
               className={cn(
                 "p-2 min-h-[40px] min-w-[40px] flex items-center justify-center",
                 "text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg",
                 `transition-colors ${WG_DURATION_HOVER}`,
                 "motion-reduce:transition-none",
+                WG_FOCUS_RING,
               )}
             >
               <Trash2 size={14} />

@@ -28,9 +28,9 @@ export const WG_DURATION_EXIT = "duration-150" as const;
 export const WG_MOTION_ENTER_S = WG_MOTION_ENTER_MS / 1000;
 export const WG_MOTION_EXIT_S = WG_MOTION_EXIT_MS / 1000;
 
-/** DS-07 Focus */
+/** DS-07 Focus — keyboard/focus-visible only (A11Y-01); paint unchanged */
 export const WG_FOCUS_RING =
-  "focus:outline-none focus:ring-2 focus:ring-primary/15" as const;
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/15" as const;
 
 /** DS-07 Touch / type */
 export const WG_TOUCH_MIN = "min-h-[44px] min-w-[44px]" as const;
