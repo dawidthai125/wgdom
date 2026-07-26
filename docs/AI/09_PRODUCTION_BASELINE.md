@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD-BODY-S2** Pilne GDS) · prod UI **2.65.46** @ **`e2e1c58`**.
+**Snapshot dokumentacji:** 2026-07-26 (**DASHBOARD-BODY-S3** Notatki GDS) · prod UI **2.65.46** @ **`ca08c75`**.
 
 ---
 
@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.46** |
-| **Deploy tip commit (`main`)** | **`e2e1c58`** — **DASHBOARD-BODY-S2** Pilne → GDS · prior S1 Braki **`1cf8af2`** · Foundation **`2a99e54`** |
+| **Deploy tip commit (`main`)** | **`ca08c75`** — **DASHBOARD-BODY-S3** Notatki → GDS · prior S2 Pilne **`e2e1c58`** · S1 Braki **`1cf8af2`** |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
 | **Status** | **PRODUCTION VERIFIED · GREEN** |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -48,6 +48,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.46** / **`ca08c75`** | **DASHBOARD-BODY-S3** — Notatki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S3-RELEASE-REPORT.md) |
 | **2.65.46** / **`e2e1c58`** | **DASHBOARD-BODY-S2** — Pilne → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S2-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S2-RELEASE-REPORT.md) |
 | **2.65.46** / **`1cf8af2`** | **DASHBOARD-BODY-S1** — Braki → WgCard soft | **CLOSED** · **PV** · [`WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md`](../architecture/WGDOM-DASHBOARD-BODY-S1-RELEASE-REPORT.md) |
 | **2.65.46** / **`2a99e54`** | **UI FOUNDATION v1.0** — A11Y-01 + e2e-ui-guard (9/9 prod) | **COMPLETE** · **PV** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
