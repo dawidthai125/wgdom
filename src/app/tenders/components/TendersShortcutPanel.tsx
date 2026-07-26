@@ -1,46 +1,51 @@
-import { useMemo, type ReactNode } from "react";
-import { AlertTriangle, Briefcase, ChevronRight, Scale } from "lucide-react";
+import { useMemo } from "react";
+import { AlertTriangle, Briefcase, ChevronRight, Scale, type LucideIcon } from "lucide-react";
 import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import {
-  TEUX_FONT_META,
-  TEUX_KPI_LABEL,
-  TEUX_KPI_VALUE,
-} from "@/lib/tender-ux-tokens";
+import { WgButton, WgCard } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_TOUCH_MIN, WG_TYPE_LABEL } from "@/lib/wg-ui-tokens";
 
 const SHORTCUT_TITLE = "Przetargi — skrót";
 
-function DashboardKpiTile({
+function ShortcutKpiTile({
   label,
   value,
   hint,
-  icon,
+  icon: Icon,
   tone = "default",
 }: {
   label: string;
   value: number;
   hint: string;
-  icon: ReactNode;
-  tone?: "default" | "amber" | "violet";
+  icon: LucideIcon;
+  /** warn = amber (urgent/won); info = soft GDS (decisions); default = idle */
+  tone?: "default" | "warn" | "info";
 }) {
-  const toneClass =
-    tone === "amber"
+  const surface =
+    tone === "warn"
       ? "border-amber-500/35 bg-amber-500/5"
-      : tone === "violet"
-        ? "border-violet-500/35 bg-violet-500/5"
-        : "border-border bg-secondary/20";
+      : "border-border/60 bg-secondary/10";
+  const iconClass =
+    tone === "warn"
+      ? "text-amber-500 shrink-0"
+      : tone === "info"
+        ? "text-primary shrink-0"
+        : "text-muted-foreground shrink-0";
 
   return (
-    <div
-      className={`rounded-xl border px-3 py-2.5 ${toneClass}`}
-      data-teux7e-kpi
-    >
-      <p className={`${TEUX_KPI_LABEL} flex items-center gap-1`}>
-        {icon}
+    <div className={cn("rounded-lg border px-3 py-2.5", surface)} data-teux7e-kpi>
+      <p className={cn(WG_TYPE_LABEL, "flex items-center gap-1 truncate")}>
+        <Icon size={11} className={iconClass} />
         {label}
       </p>
-      <p className={`${TEUX_KPI_VALUE} mt-0.5`}>{value}</p>
-      <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>{hint}</p>
+      <p
+        className="text-lg font-semibold text-foreground leading-tight mt-0.5"
+        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      >
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{hint}</p>
     </div>
   );
 }
@@ -74,26 +79,22 @@ export function TendersShortcutPanel({
 
   if (pipeline.loading) {
     return (
-      <section className="rounded-xl border border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+      <WgCard elevation="soft" padding="sm" radius="md" className="text-center text-sm text-muted-foreground py-6">
         {TENDERS_MODULE_LABELS.loading}
-      </section>
+      </WgCard>
     );
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <div className="px-4 py-3 border-b border-border bg-secondary/30">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold tracking-wide text-foreground">{SHORTCUT_TITLE}</h2>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              3 sygnały operacyjne — monitoring, zmiany i Q&A w {TENDERS_MODULE_LABELS.tabs.strategy}
-            </p>
-          </div>
-        </div>
+    <WgCard elevation="soft" padding="sm" radius="md" className="overflow-hidden">
+      <div className="pb-3 border-b border-border/50">
+        <h2 className="text-sm font-semibold text-foreground">{SHORTCUT_TITLE}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+          3 sygnały operacyjne — monitoring, zmiany i Q&A w {TENDERS_MODULE_LABELS.tabs.strategy}
+        </p>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="pt-3 space-y-3">
         {pipeline.error && (
           <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             {pipeline.error}
@@ -104,53 +105,39 @@ export function TendersShortcutPanel({
           className="grid grid-cols-1 sm:grid-cols-3 gap-2.5"
           data-teux7e-dashboard-kpi
         >
-          <DashboardKpiTile
+          <ShortcutKpiTile
             label="Pilne terminy"
             value={marketKpi.urgentCount}
             hint="Termin składania ≤7 dni"
-            icon={(
-              <AlertTriangle
-                size={11}
-                className={marketKpi.urgentCount > 0 ? "text-amber-500" : "text-muted-foreground"}
-              />
-            )}
-            tone={marketKpi.urgentCount > 0 ? "amber" : "default"}
+            icon={AlertTriangle}
+            tone={marketKpi.urgentCount > 0 ? "warn" : "default"}
           />
-          <DashboardKpiTile
+          <ShortcutKpiTile
             label="Wymagają decyzji"
             value={pendingDecisionsCount}
             hint="Okazje bez Twojej decyzji"
-            icon={(
-              <Scale
-                size={11}
-                className={pendingDecisionsCount > 0 ? "text-violet-500" : "text-muted-foreground"}
-              />
-            )}
-            tone={pendingDecisionsCount > 0 ? "violet" : "default"}
+            icon={Scale}
+            tone={pendingDecisionsCount > 0 ? "info" : "default"}
           />
-          <DashboardKpiTile
+          <ShortcutKpiTile
             label="Wygrane bez roboty"
             value={wonWithoutJobCount}
             hint="Wymagają utworzenia roboty"
-            icon={(
-              <Briefcase
-                size={11}
-                className={wonWithoutJobCount > 0 ? "text-amber-500" : "text-muted-foreground"}
-              />
-            )}
-            tone={wonWithoutJobCount > 0 ? "amber" : "default"}
+            icon={Briefcase}
+            tone={wonWithoutJobCount > 0 ? "warn" : "default"}
           />
         </div>
 
-        <button
+        <WgButton
           type="button"
+          variant="secondary"
           onClick={handleOpenStrategy}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-colors min-h-[44px]"
+          className={cn(WG_TOUCH_MIN, "w-full h-11 gap-2 text-sm font-semibold")}
         >
           Przetargi → {TENDERS_MODULE_LABELS.tabs.strategy}
           <ChevronRight size={16} />
-        </button>
+        </WgButton>
       </div>
-    </section>
+    </WgCard>
   );
 }
