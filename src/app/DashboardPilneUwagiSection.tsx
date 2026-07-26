@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import {
-  AlertTriangle, Archive, Wallet, Scale, Camera, Receipt, ClipboardList,
-  ClipboardCheck, Calendar, CalendarDays, MessageSquare, ChevronDown, ChevronUp,
+  AlertTriangle, Archive, Wallet, Scale, Receipt, ClipboardCheck,
+  Calendar, CalendarDays, MessageSquare, ChevronDown, ChevronUp,
 } from "lucide-react";
-import type { DirectoryEmployee, WeekEmployee, Job, PayrollJobConsistencyAlert } from "@/app/app-domain";
+import type { WeekEmployee, Job, PayrollJobConsistencyAlert } from "@/app/app-domain";
 import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import { fmt, fmtDate, consistencyAlertMessage } from "@/app/app-domain";
 import { PAYROLL_WEEK_ROLLOVER_HOUR } from "@/lib/payroll-cycle";
@@ -17,10 +17,23 @@ import type { UrgentCategoryId, UrgentTodayCategory } from "@/lib/dashboard-urge
 import type { RecoverableChargesAlertsResult } from "@/lib/recoverable-charges";
 import { fmtRecoverableAmount } from "@/lib/recoverable-charges";
 import type { InspectorFeedItem } from "@/lib/job-activity";
+import { WgButton, WgCard } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_FOCUS_RING, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 type PendingPhoto = { photo: Job["photos"][number]; job: Job };
 type PendingReceipt = { cost: NonNullable<WeekEmployee["extraCosts"]>[number]; emp: WeekEmployee };
 type PendingReport = { report: ReturnType<typeof import("@/app/app-domain").jobWorkerReports>[number]; job: Job };
+
+/** Ghost text CTA — S2: never primary */
+const GHOST_LINK =
+  "h-auto w-auto p-0 text-xs text-primary hover:underline shrink-0";
+
+const ROW_BTN =
+  "w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors";
+
+const COUNT_BADGE =
+  "text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-lg shrink-0";
 
 export function DashboardPilneUwagiSection({
   urgentTodayTotal,
@@ -97,10 +110,10 @@ export function DashboardPilneUwagiSection({
         return (
           <div className="divide-y divide-border/60">
             {needsUnsavedWeekAlert && (
-              <div className="px-5 py-3.5 flex items-center justify-between gap-3">
+              <div className="px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium flex items-center gap-2 flex-wrap">
-                    <Archive size={14} className="text-primary shrink-0"/>
+                    <Archive size={14} className="text-primary shrink-0" />
                     Tydzień niezapisany w archiwum
                     <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
                   </p>
@@ -108,21 +121,21 @@ export function DashboardPilneUwagiSection({
                     W niedzielę (po {PAYROLL_WEEK_ROLLOVER_HOUR}:00 — nowy tydzień) tydzień zapisuje się automatycznie, gdy wszyscy rozliczeni. Zapisz ręcznie, jeśli auto-zapis nie zadziałał.
                   </p>
                 </div>
-                <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
+                <WgButton type="button" variant="ghost" onClick={() => onNavigate("payroll")} className={GHOST_LINK}>
                   Zapisz tydzień →
-                </button>
+                </WgButton>
               </div>
             )}
             {needsPayrollBlockerAlert && payrollRolloverBlockers.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <Wallet size={14} className="text-yellow-400"/>
+                    <Wallet size={14} className="text-yellow-400" />
                     Wypłata sobotnia bez rozliczenia
                   </p>
-                  <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                  <WgButton type="button" variant="ghost" onClick={() => onNavigate("payroll")} className={GHOST_LINK}>
                     Lista płac →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-1.5">
                   {payrollRolloverBlockers.map((e) => (
@@ -130,7 +143,7 @@ export function DashboardPilneUwagiSection({
                       key={e.id}
                       type="button"
                       onClick={() => onNavigate("payroll", undefined, e.id)}
-                      className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className={cn(ROW_BTN, WG_FOCUS_RING)}
                     >
                       <span className="text-foreground">{e.name || "—"}</span>
                       {" — nierozliczona kasa sobotnia"}
@@ -140,15 +153,15 @@ export function DashboardPilneUwagiSection({
               </div>
             )}
             {consistencyAlerts.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <Scale size={14} className="text-orange-400"/>
+                    <Scale size={14} className="text-orange-400" />
                     Spójność listy płac ↔ roboty
                   </p>
-                  <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                  <WgButton type="button" variant="ghost" onClick={() => onNavigate("payroll")} className={GHOST_LINK}>
                     Lista płac →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-2">
                   {consistencyAlerts.map((a, i) => {
@@ -160,8 +173,10 @@ export function DashboardPilneUwagiSection({
                         <p className="text-xs text-muted-foreground leading-relaxed min-w-0 flex-1">
                           {consistencyAlertMessage(a)}
                         </p>
-                        <button
+                        <WgButton
                           type="button"
+                          variant="secondary"
+                          size="sm"
                           disabled={!canFix}
                           title={
                             canFix
@@ -171,10 +186,10 @@ export function DashboardPilneUwagiSection({
                               : "Brak aktywnej roboty — dodaj wpis ręcznie w Roboty"
                           }
                           onClick={() => handleFixConsistency(a)}
-                          className="shrink-0 text-[10px] px-2.5 py-1 rounded-lg bg-primary/15 text-primary hover:bg-primary/25 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="shrink-0 h-auto min-h-0 px-2.5 py-1 text-xs font-medium"
                         >
                           Popraw
-                        </button>
+                        </WgButton>
                       </div>
                     );
                   })}
@@ -182,15 +197,15 @@ export function DashboardPilneUwagiSection({
               </div>
             )}
             {pendingReceipts.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <Receipt size={14} className="text-emerald-400"/>
+                    <Receipt size={14} className="text-emerald-400" />
                     Paragony / faktury do akceptacji
                   </p>
-                  <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                  <WgButton type="button" variant="ghost" onClick={() => onNavigate("payroll")} className={GHOST_LINK}>
                     Lista płac →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-1.5">
                   {pendingReceipts.map(({ cost, emp }) => (
@@ -198,7 +213,7 @@ export function DashboardPilneUwagiSection({
                       key={cost.id}
                       type="button"
                       onClick={() => onNavigate("payroll", undefined, emp.id)}
-                      className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className={cn(ROW_BTN, WG_FOCUS_RING)}
                     >
                       <span className="text-foreground">{emp.name || "—"}</span>
                       {cost.description ? ` — ${cost.description}` : ""}
@@ -216,7 +231,7 @@ export function DashboardPilneUwagiSection({
         );
       case "dokumentacja-ekipy":
         return (
-          <div className="px-5 py-3.5 space-y-1.5">
+          <div className="px-4 sm:px-5 py-3.5 space-y-1.5">
             {pendingReports.map(({ report, job }) => (
               <button
                 key={report.id}
@@ -225,7 +240,7 @@ export function DashboardPilneUwagiSection({
                   acknowledgeReport(job.id, report.id);
                   onNavigate("jobs", job.id);
                 }}
-                className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                className={cn(ROW_BTN, "truncate", WG_FOCUS_RING)}
               >
                 <span className="text-foreground">{report.workerName}</span>
                 {" · "}
@@ -242,13 +257,13 @@ export function DashboardPilneUwagiSection({
         );
       case "zdjecia":
         return (
-          <div className="px-5 py-3.5 space-y-1.5">
+          <div className="px-4 sm:px-5 py-3.5 space-y-1.5">
             {pendingPhotos.map(({ photo, job }) => (
               <button
                 key={photo.id}
                 type="button"
                 onClick={() => onNavigate("jobs", job.id)}
-                className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                className={cn(ROW_BTN, "truncate", WG_FOCUS_RING)}
               >
                 <span className="text-foreground">{job.address || "Bez adresu"}</span>
                 {" · "}
@@ -264,19 +279,24 @@ export function DashboardPilneUwagiSection({
         return (
           <div className="divide-y divide-border/60">
             {unseenInspectorFeed.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <ClipboardCheck size={14} className="text-emerald-500"/>
+                    <ClipboardCheck size={14} className="text-emerald-500" />
                     Inspektor — nowe zmiany
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
+                    <WgButton
+                      type="button"
+                      variant="ghost"
+                      onClick={markInspectorAlertsSeen}
+                      className="h-auto w-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                    >
                       Oznacz przeczytane
-                    </button>
-                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
+                    </WgButton>
+                    <WgButton type="button" variant="ghost" onClick={() => onNavigate("inspector")} className={GHOST_LINK}>
                       Inspektor →
-                    </button>
+                    </WgButton>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -285,7 +305,7 @@ export function DashboardPilneUwagiSection({
                       key={item.id}
                       type="button"
                       onClick={() => onNavigate("jobs", item.jobId, undefined, resolveInspectorFeedDeepLink(item).section)}
-                      className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className={cn(ROW_BTN, WG_FOCUS_RING)}
                     >
                       <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.actor}</span>
                       {" · "}
@@ -300,19 +320,24 @@ export function DashboardPilneUwagiSection({
               </div>
             )}
             {inspectorNotesPending.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <MessageSquare size={14} className="text-violet-400"/>
+                    <MessageSquare size={14} className="text-violet-400" />
                     Notatki od inspektora
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
+                    <WgButton
+                      type="button"
+                      variant="ghost"
+                      onClick={markInspectorAlertsSeen}
+                      className="h-auto w-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                    >
                       Oznacz przeczytane
-                    </button>
-                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
+                    </WgButton>
+                    <WgButton type="button" variant="ghost" onClick={() => onNavigate("inspector")} className={GHOST_LINK}>
                       Inspektor →
-                    </button>
+                    </WgButton>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -324,7 +349,7 @@ export function DashboardPilneUwagiSection({
                         key={job.id}
                         type="button"
                         onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        className={cn(ROW_BTN, WG_FOCUS_RING)}
                       >
                         <span className="text-foreground">{job.address || "Bez adresu"}</span>
                         {" · "}
@@ -345,15 +370,15 @@ export function DashboardPilneUwagiSection({
         return (
           <div className="divide-y divide-border/60">
             {wmOverdueJobs.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <Calendar size={14} className="text-red-400"/>
+                    <Calendar size={14} className="text-red-400" />
                     WM — termin odbioru minął
                   </p>
-                  <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
+                  <WgButton type="button" variant="ghost" onClick={() => onNavigate("jobs")} className={GHOST_LINK}>
                     Roboty →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-1.5">
                   {wmOverdueJobs.map((job) => (
@@ -361,7 +386,7 @@ export function DashboardPilneUwagiSection({
                       key={job.id}
                       type="button"
                       onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                      className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className={cn(ROW_BTN, WG_FOCUS_RING)}
                     >
                       <span className="text-foreground">{job.address || "Bez adresu"}</span>
                       {job.flatNumber ? ` m.${job.flatNumber}` : ""}
@@ -375,15 +400,15 @@ export function DashboardPilneUwagiSection({
               </div>
             )}
             {wmThisWeekJobs.length > 0 && (
-              <div className="px-5 py-3.5">
+              <div className="px-4 sm:px-5 py-3.5">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <CalendarDays size={14} className="text-amber-400"/>
+                    <CalendarDays size={14} className="text-amber-400" />
                     WM — odbiór w tym tygodniu
                   </p>
-                  <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
+                  <WgButton type="button" variant="ghost" onClick={() => onNavigate("jobs")} className={GHOST_LINK}>
                     Roboty →
-                  </button>
+                  </WgButton>
                 </div>
                 <div className="space-y-1.5">
                   {wmThisWeekJobs.map((job) => (
@@ -391,7 +416,7 @@ export function DashboardPilneUwagiSection({
                       key={job.id}
                       type="button"
                       onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                      className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className={cn(ROW_BTN, WG_FOCUS_RING)}
                     >
                       <span className="text-foreground">{job.address || "Bez adresu"}</span>
                       {job.flatNumber ? ` m.${job.flatNumber}` : ""}
@@ -408,7 +433,7 @@ export function DashboardPilneUwagiSection({
         );
       case "odbior":
         return (
-          <div className="px-5 py-3.5 space-y-1.5">
+          <div className="px-4 sm:px-5 py-3.5 space-y-1.5">
             {handoverJobs.map((job) => {
               const statusKind = resolveJobListStatus(job);
               const statusLabel = JOB_LIST_STATUS_CONFIG[statusKind].label;
@@ -417,7 +442,7 @@ export function DashboardPilneUwagiSection({
                   key={job.id}
                   type="button"
                   onClick={() => onNavigate("jobs", job.id)}
-                  className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                  className={cn(ROW_BTN, "truncate", WG_FOCUS_RING)}
                 >
                   <span className="text-foreground">{job.address || "Bez adresu"}</span>
                   {job.flatNumber ? ` m.${job.flatNumber}` : ""}
@@ -442,19 +467,22 @@ export function DashboardPilneUwagiSection({
         );
       case "do-odzyskania":
         return (
-          <div className="px-5 py-3.5 space-y-2">
+          <div className="px-4 sm:px-5 py-3.5 space-y-2">
             {recoverableAlertStats.alerts.map((alert) => (
               <button
                 key={alert.chargeId}
                 type="button"
                 onClick={() => onNavigate("recoverablecharges")}
-                className="w-full text-left rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 hover:bg-amber-500/10 transition-colors"
+                className={cn(
+                  WG_FOCUS_RING,
+                  "w-full text-left rounded-lg border border-border/60 bg-amber-500/5 px-2.5 py-2 hover:bg-amber-500/10 transition-colors",
+                )}
               >
                 <p className="text-xs font-medium truncate">{alert.title}</p>
                 <p className="text-xs font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   {fmtRecoverableAmount(alert.amountRemaining)}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{alert.reason}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{alert.reason}</p>
               </button>
             ))}
           </div>
@@ -465,58 +493,62 @@ export function DashboardPilneUwagiSection({
   };
 
   return (
-    <div
+    <WgCard
       id="dashboard-pilne-uwagi"
-      className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+      elevation="soft"
+      padding="sm"
+      radius="md"
+      className="overflow-hidden"
       aria-label="Pilne uwagi na dziś"
     >
-      <div className="px-4 sm:px-5 py-3 border-b border-border bg-secondary/20">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <AlertTriangle size={14} className="text-amber-500 shrink-0"/>
-            <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Pilne uwagi na dziś</span>
-            <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
-              {urgentTodayTotal}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPilneExpanded((v) => !v)}
-            aria-expanded={pilneExpanded}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation"
-          >
-            {pilneExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
-            {pilneExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+      <div className="flex flex-wrap items-start justify-between gap-2 pb-3 border-b border-border/50">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <AlertTriangle size={13} className="text-amber-500 shrink-0" />
+          <span className="text-sm font-semibold text-foreground">Pilne uwagi na dziś</span>
+          <span className={COUNT_BADGE}>{urgentTodayTotal}</span>
         </div>
-        {!pilneExpanded && pilneCollapsedSummary && (
-          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pilneCollapsedSummary}</p>
-        )}
+        <WgButton
+          type="button"
+          variant="ghost"
+          onClick={() => setPilneExpanded((v) => !v)}
+          aria-expanded={pilneExpanded}
+          className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs px-2 shrink-0")}
+        >
+          {pilneExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+          {pilneExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </WgButton>
       </div>
+      {!pilneExpanded && pilneCollapsedSummary && (
+        <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pilneCollapsedSummary}</p>
+      )}
       {pilneExpanded && (
-        <div className="divide-y divide-border">
+        <div className="pt-1 -mx-1 divide-y divide-border">
           {visibleCategories.map((category) => (
             <div key={category.id}>
               <button
                 type="button"
                 onClick={() => toggleCategory(category.id)}
                 aria-expanded={expandedCategories.has(category.id)}
-                className="w-full px-4 sm:px-5 py-3 flex items-center justify-between gap-2 text-left hover:bg-secondary/30 transition-colors"
+                className={cn(
+                  WG_FOCUS_RING,
+                  "w-full px-3 sm:px-4 py-3 flex items-center justify-between gap-2 text-left hover:bg-secondary/25 transition-colors",
+                )}
               >
-                <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">▶</span>
+                <span className="text-sm font-medium text-foreground flex items-center gap-2 min-w-0">
                   {category.label}
-                  <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold">
-                    {category.count}
-                  </span>
+                  <span className={COUNT_BADGE}>{category.count}</span>
                 </span>
-                {expandedCategories.has(category.id) ? <ChevronUp size={16} className="shrink-0 text-muted-foreground"/> : <ChevronDown size={16} className="shrink-0 text-muted-foreground"/>}
+                {expandedCategories.has(category.id) ? (
+                  <ChevronUp size={16} className="shrink-0 text-muted-foreground" />
+                ) : (
+                  <ChevronDown size={16} className="shrink-0 text-muted-foreground" />
+                )}
               </button>
               {expandedCategories.has(category.id) && renderCategoryBody(category.id)}
             </div>
           ))}
         </div>
       )}
-    </div>
+    </WgCard>
   );
 }
