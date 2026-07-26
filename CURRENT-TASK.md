@@ -1,20 +1,21 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S1 IMPLEMENT** · UI **2.65.48**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S1 PRODUCTION** · UI **2.65.48** @ **`01d8981`**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AP2-S1 — Kompletność dokumentacji + gotowość wyceny — **IMPLEMENT COMPLETE**
+## ★ AP2-S1 — Kompletność dokumentacji + gotowość wyceny — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · commit/push per Owner DoD |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.48** / **`01d8981`** |
 | **UI** | **2.65.48** |
+| **Feature commit** | **`01d8981`** |
 | **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md) |
 | **IN** | DocumentRole+ · Completeness 14 slots · valuation readiness · Documents summary UX |
 | **OUT** | Pricing Gate · Autonomous · S2+ · duży panel |
-| **Next** | PV · potem **AP2-S2** tylko po Owner GO |
+| **Next** | **AP2-S2** tylko po Owner GO |
 
 ---
 
