@@ -24,6 +24,7 @@
     "test:e2e:mobile-auth": "playwright test --project=e2e-mobile-auth-iphone-se --project=e2e-mobile-auth-iphone-14 --project=e2e-mobile-auth-pixel-7 --project=e2e-mobile-auth-ipad-mini",
     "test:e2e:version": "playwright test --project=e2e-version-awareness",
     "test:e2e:payroll-guard": "playwright test --project=e2e-payroll-guard",
+    "test:e2e:ui-guard": "playwright test --project=e2e-ui-guard",
     "test:infra": "node scripts/test-infra-orchestrator.mjs",
     "test:infra:validate": "node scripts/test-infra-manifest-validate.mjs",
     "test:prod-sandbox": "node scripts/test-prod-sandbox.mjs"

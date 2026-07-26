@@ -44,6 +44,12 @@ export default defineConfig({
       fullyParallel: false,
     },
     {
+      name: "e2e-ui-guard",
+      use: { browserName: "chromium", viewport: { width: 1280, height: 800 } },
+      testMatch: /ui-regression-guard\.spec\.ts/,
+      fullyParallel: false,
+    },
+    {
       name: "desktop-chrome",
       use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
       testMatch: /desktop-(smoke|layout)\.spec\.ts/,
