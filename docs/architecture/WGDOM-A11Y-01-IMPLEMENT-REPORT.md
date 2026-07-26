@@ -1,6 +1,8 @@
 # WGDOM-A11Y-01 — IMPLEMENT REPORT
 
-> **Status:** IMPLEMENT COMPLETE · **Commit/Push:** NIE  
+> **Status:** **SHIPPED** · tip **`780b41e`** (Foundation deploy **`2a99e54`**)  
+> **Date:** 2026-07-26  
+> **Foundation:** [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](./WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md)  
 > **Date:** 2026-07-26  
 > **DF:** [`WGDOM-A11Y-01-DESIGN-FREEZE.md`](./WGDOM-A11Y-01-DESIGN-FREEZE.md)  
 > **Parent:** POST-RELEASE PR-P1-1 · PR-P1-2 · PR-P2-6
