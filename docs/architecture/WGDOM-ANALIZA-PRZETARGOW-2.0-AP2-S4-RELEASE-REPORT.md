@@ -2,9 +2,10 @@
 
 > **ID:** AP2-S4  
 > **Parent:** WGDOM-ANALIZA-PRZETARGOW-2.0  
-> **STATUS:** **IMPLEMENT COMPLETE**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.51**  
+> **Commit:** **`5355c19`**  
 > **DF:** [`WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-DESIGN-FREEZE.md`](WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-DESIGN-FREEZE.md)  
 > **Prior:** AP2-S3 `2.65.50` @ `3e23631`
 
@@ -77,12 +78,18 @@ Fakty AP2-S3 → czytelna ocena biznesowa: ryzyka, mocne strony, uzasadniona rek
 
 ---
 
-## 7. Production Readiness
+## 7. Production Verification
 
-**READY TO PUSH** → PV: `version.json` **2.65.51**.
+| | |
+|--|--|
+| Push | `5355c19` → `main` |
+| Live `https://www.wgdom.fun/version.json` | **2.65.51** / **`5355c19`** |
+| Status | **PRODUCTION VERIFIED · GREEN** |
+
+**Smoke:** Przetarg → Dokumenty → Ocena biznesowa (werdykt · Dlaczego? · fit · ryzyka · mocne strony).
 
 **Następny:** kolejny slice tylko po Owner GO.
 
 ---
 
-**AP2-S4 RELEASE REPORT** · 2026-07-26
+**AP2-S4 RELEASE REPORT** · 2026-07-26 · **PV OK**
