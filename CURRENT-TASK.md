@@ -8,8 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **PRODUCTION VERIFIED** · UI **2.65.52** · feature **`fd4b112`** |
-| **Feature commit** | **`fd4b112`** |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.52** / **`fd4b112`** |
+| **Feature commit** | **`fd4b112`** · tip docs **`47303cb`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S1-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S1-RELEASE-REPORT.md) |
 | **AUDIT / ARCH** | [`WGDOM-AI-COST-01-AUDIT.md`](docs/architecture/WGDOM-AI-COST-01-AUDIT.md) · [`WGDOM-AI-COST-01-ARCHITECTURE.md`](docs/architecture/WGDOM-AI-COST-01-ARCHITECTURE.md) |
