@@ -1,8 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S3 PRODUCTION** · UI **2.65.50** @ **`3e23631`**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S4 IMPLEMENT** · UI **2.65.51**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AP2-S4 — Business Risk Engine — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · commit/push per Owner DoD |
+| **UI** | **2.65.51** |
+| **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md) |
+| **IN** | Risk Engine · 5 kategorii · uzasadnienie · mocne strony · Business Fit (docs-only) |
+| **OUT** | profil firmy · Autonomous/Pricing · BundleV2 full · S7 |
+| **Next** | PV · kolejny slice tylko po Owner GO |
+
+---
 
 ## ★ AP2-S3 — Deep Tender Intelligence — **PRODUCTION**
 
@@ -15,7 +29,7 @@
 | **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md) |
 | **IN** | Fakty SWZ/przedmiar/umowa · panel Najważniejsze informacje · source+confidence |
 | **OUT** | Pricing/Autonomous · risk scoring · S7 panel · nowe parsery |
-| **Next** | **AP2-S4** tylko po Owner GO |
+| **Next** | superseded by AP2-S4 |
 
 ---
 
@@ -58,7 +72,7 @@
 
 ---
 
-## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **ACTIVE** (S0–S3)
+## ★ WGDOM-ANALIZA-PRZETARGOW-2.0 — **ACTIVE** (S0–S4)
 
 | Element | Wartość |
 |---------|---------|
@@ -68,6 +82,7 @@
 ---
 
 ## ★ WGDOM-AI-DOCS-CONSOLIDATION-03 — **DOCS COMPLETE** (lokalnie; commit tylko na Owner GO)
+
 
 
 

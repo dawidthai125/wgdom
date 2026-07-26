@@ -42,6 +42,10 @@ import {
   buildDeepIntelligenceView,
   type DeepIntelligenceView,
 } from "@/lib/tender-deep-intelligence";
+import {
+  buildBusinessRiskEngineView,
+  type BusinessRiskEngineView,
+} from "@/lib/tender-business-risk-engine";
 
 export type DocumentsTabSummaryTone =
   | "missing"
@@ -77,6 +81,8 @@ export interface TenderDocumentsTabSummary {
   glance: DocumentsAnalysisGlanceView;
   /** AP2-S3 — kluczowe fakty z treści dokumentów. */
   deepIntelligence: DeepIntelligenceView;
+  /** AP2-S4 — Business Risk Engine. */
+  businessRisk: BusinessRiskEngineView;
 }
 
 export interface BuildTenderDocumentsTabSummaryOpts {
@@ -324,6 +330,10 @@ export function buildTenderDocumentsTabSummary(
     valuationLevel: completeness.valuationReadiness.level,
   });
   const deepIntelligence = buildDeepIntelligenceView({ item, swz });
+  const businessRisk = buildBusinessRiskEngineView({
+    deep: deepIntelligence,
+    valuationLevel: completeness.valuationReadiness.level,
+  });
 
   return {
     swz: buildSwzSlot(item, swz),
@@ -341,5 +351,6 @@ export function buildTenderDocumentsTabSummary(
     analysisBusy: isAnalysisSessionBusy(session),
     glance,
     deepIntelligence,
+    businessRisk,
   };
 }

@@ -20,6 +20,12 @@ import {
   type IntelligenceConfidence,
   type IntelligenceFact,
 } from "@/lib/tender-deep-intelligence";
+import {
+  BUSINESS_RISK_CATEGORY_LABEL_PL,
+  businessRiskLevelLabelPl,
+  type BusinessRiskAssessment,
+  type BusinessRiskCategory,
+} from "@/lib/tender-business-risk-engine";
 
 function presenceToneClass(presence: DocCompletenessPresence): string {
   switch (presence) {
@@ -63,6 +69,40 @@ function KeyFactRow({ fact }: { fact: IntelligenceFact }) {
   );
 }
 
+function AssessmentRow({ item }: { item: BusinessRiskAssessment }) {
+  const isRisk = item.polarity === "risk";
+  return (
+    <div className="min-w-0 border-b border-border/40 last:border-0 py-1.5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+        <p className="text-xs font-semibold text-foreground">{item.label}</p>
+        <span
+          className={`${TEUX_FONT_META} ${
+            isRisk
+              ? item.level === "high"
+                ? "text-red-700 dark:text-red-400"
+                : "text-amber-800 dark:text-amber-300"
+              : "text-emerald-700 dark:text-emerald-400"
+          }`}
+        >
+          {isRisk ? "ryzyko" : "mocna strona"} · {businessRiskLevelLabelPl(item.level)} · waga {item.weight}
+        </span>
+      </div>
+      <p className={`${TEUX_FONT_META} text-foreground`}>{item.description}</p>
+      <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>
+        Wpływ: {item.impact}
+      </p>
+      <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+        {item.rationale}
+      </p>
+      <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>
+        Źródło: {item.sourceDoc}
+        {item.factValue ? ` · fakt: ${item.factValue.slice(0, 80)}` : ""}
+        {" · "}reguła: {item.ruleId} ({item.ruleLabel})
+      </p>
+    </div>
+  );
+}
+
 function CompletenessSlotRow({ slot }: { slot: DocCompletenessSlot }) {
   const detail = slot.detailPl ? ` (${slot.detailPl})` : "";
   return (
@@ -84,12 +124,14 @@ export function TenderDocumentsSummaryHeader({
   summary: TenderDocumentsTabSummary;
   trustBadge?: DocumentsTrustBadgeView | null;
 }) {
-  const { completeness, analysisHistory, journeyStages, glance, deepIntelligence } = summary;
+  const { completeness, analysisHistory, journeyStages, glance, deepIntelligence, businessRisk } = summary;
   const readiness = completeness.valuationReadiness;
   const stats = completeness.stats;
   const showJourney = summary.analysisBusy
     || journeyStages.some((s) => s.state === "active");
   const keyFacts = deepIntelligence.keyFacts;
+  const riskCategories = (Object.keys(BUSINESS_RISK_CATEGORY_LABEL_PL) as BusinessRiskCategory[])
+    .filter((c) => businessRisk.risksByCategory[c].length > 0);
 
   return (
     <section
@@ -99,6 +141,7 @@ export function TenderDocumentsSummaryHeader({
       data-ap2-s1-completeness
       data-ap2-s2-auto-ux
       data-ap2-s3-deep-intelligence
+      data-ap2-s4-business-risk
     >
       <div className="px-4 py-2.5 border-b border-primary/10 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
@@ -220,13 +263,95 @@ export function TenderDocumentsSummaryHeader({
                 )}
                 {deepIntelligence.hasUmowaSignal && (
                   <p className="mt-0.5">
-                    Wykryto projekt umowy — klauzule wyodrębnione bez oceny ryzyka.
+                    Wykryto projekt umowy — klauzule uwzględnione w ocenie ryzyka (AP2-S4).
                   </p>
                 )}
               </div>
             )}
           </div>
         )}
+
+        {/* AP2-S4 — Business Risk Engine */}
+        <div
+          className="rounded-lg border border-primary/15 bg-background/60 px-3 py-2.5 space-y-3"
+          data-ap2-s4-business-risk-panel
+        >
+          <div>
+            <TenderUxSectionTitle className="text-muted-foreground mb-1">
+              Ocena biznesowa
+            </TenderUxSectionTitle>
+            <p className="text-sm font-semibold text-foreground">
+              <span aria-hidden>{businessRisk.recommendation.verdictBadge} </span>
+              {businessRisk.recommendation.verdict}
+            </p>
+            <p className={`${TEUX_FONT_META} text-muted-foreground mt-1`}>
+              {businessRisk.recommendation.summaryLine}
+            </p>
+            {businessRisk.recommendation.reasons.length > 0 && (
+              <div className="mt-2">
+                <p className={`${TEUX_FONT_META} font-semibold text-foreground mb-0.5`}>
+                  Dlaczego?
+                </p>
+                <ul className={`${TEUX_FONT_META} text-muted-foreground list-disc pl-4 space-y-0.5`}>
+                  {businessRisk.recommendation.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div data-ap2-s4-business-fit>
+            <p className={`${TEUX_FONT_META} text-muted-foreground mb-0.5`}>
+              Dopasowanie przetargu do firmy (z dokumentacji)
+            </p>
+            <p className="text-sm font-semibold text-foreground">
+              <span aria-hidden>{businessRisk.businessFit.badge} </span>
+              {businessRisk.businessFit.labelPl}
+              <span className={`${TEUX_FONT_META} font-normal text-muted-foreground`}>
+                {" "}· score {businessRisk.businessFit.score}/100
+              </span>
+            </p>
+            <p className={`${TEUX_FONT_META} text-muted-foreground mt-1`}>
+              {businessRisk.businessFit.rationale}
+            </p>
+          </div>
+
+          {businessRisk.strengths.length > 0 && (
+            <div data-ap2-s4-strengths>
+              <TenderUxSectionTitle className="text-muted-foreground mb-1">
+                Mocne strony przetargu
+              </TenderUxSectionTitle>
+              <div className="space-y-0">
+                {businessRisk.strengths.slice(0, 8).map((s) => (
+                  <AssessmentRow key={s.id} item={s} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {riskCategories.length > 0 && (
+            <div data-ap2-s4-risks>
+              <TenderUxSectionTitle className="text-muted-foreground mb-1">
+                Ryzyka (wg kategorii)
+              </TenderUxSectionTitle>
+              <div className="space-y-2">
+                {riskCategories.map((cat) => (
+                  <div key={cat}>
+                    <p className={`${TEUX_FONT_META} font-semibold text-foreground`}>
+                      {BUSINESS_RISK_CATEGORY_LABEL_PL[cat]}
+                    </p>
+                    <div className="space-y-0">
+                      {businessRisk.risksByCategory[cat].map((r) => (
+                        <AssessmentRow key={r.id} item={r} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* AP2-S1 — Gotowość do wyceny */}
         <div

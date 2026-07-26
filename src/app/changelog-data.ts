@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.51",
+    label: "AP2-S4 — Business Risk Engine",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Dokumenty — ocena biznesowa na faktach S3: rekomendacja STARTUJ / STARTUJ WARUNKOWO / ODPUŚĆ z uzasadnieniem, ryzyka wg 5 kategorii, mocne strony, Business Fit (tylko z dokumentacji).",
+      },
+      {
+        type: "improve",
+        text: "Każda ocena wskazuje dokument, fakt i regułę decyzyjną (bez czarnej skrzynki). Pricing/Autonomous Gate i overlay.displayDecision bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.50",
     label: "AP2-S3 — deep intelligence + Najważniejsze informacje",
     items: [

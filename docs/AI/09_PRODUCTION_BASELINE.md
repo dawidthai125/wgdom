@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**AP2-S3** · ANALIZA-PRZETARGOW-2.0) · prod UI **2.65.50** (po deploy) · prior **2.65.49** AP2-S2 · live `version.json` = ostatni push na `main`.
+**Snapshot dokumentacji:** 2026-07-26 (**AP2-S4** · ANALIZA-PRZETARGOW-2.0) · prod UI **2.65.51** (po deploy) · prior **2.65.50** AP2-S3 · live `version.json` = ostatni push na `main`.
 
 ---
 
@@ -26,15 +26,16 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.50** (AP2-S3) · prior **2.65.49** (AP2-S2) |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`3e23631`** (AP2-S3) · docs tip = last push after PV finalize |
+| **UI version (changelog / version.json)** | **2.65.51** (AP2-S4) · prior **2.65.50** (AP2-S3) |
+| **Deploy tip commit (`main` / `version.json`)** | **Live:** curl `version.json` po push AP2-S4 |
+| **Ostatni feature (AP2-S4)** | Business Risk Engine — [`AP2-S4-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md) |
 | **Ostatni feature (AP2-S3)** | Deep intelligence + Najważniejsze informacje — [`AP2-S3-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md) · **`3e23631`** |
 | **Ostatni feature (AP2-S2)** | Auto-analiza UX + „Uruchom ponownie analizę” — [`AP2-S2-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-RELEASE-REPORT.md) · **`7c04203`** |
 | **Ostatni feature (AP2-S1)** | Kompletność dokumentacji + gotowość wyceny — [`AP2-S1-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md) · **`01d8981`** |
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED · GREEN** · AP2-S3 **PV** `version.json` = **2.65.50** / **`3e23631`** |
+| **Status** | **PRODUCTION VERIFIED · GREEN** (baseline) · AP2-S4 → PV po deploy |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -55,6 +56,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.51** / AP2-S4 | Business Risk Engine | **IMPLEMENT** · PV po deploy · [`AP2-S4-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md) |
 | **2.65.50** / **`3e23631`** | AP2-S3 deep intelligence + Najważniejsze informacje | **PRODUCTION** · **PV** · [`AP2-S3-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md) |
 | **2.65.49** / **`7c04203`** | AP2-S2 auto-analiza UX + Uruchom ponownie | **PRODUCTION** · **PV** · [`AP2-S2-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S2-RELEASE-REPORT.md) |
 | **2.65.48** / **`01d8981`** | AP2-S1 kompletność dokumentacji + gotowość wyceny | **PRODUCTION** · **PV** · [`AP2-S1-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S1-RELEASE-REPORT.md) |
