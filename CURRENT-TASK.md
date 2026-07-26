@@ -1,20 +1,21 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S3 IMPLEMENT** · UI **2.65.50**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-26 (**AP2-S3 PRODUCTION** · UI **2.65.50** @ **`3e23631`**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AP2-S3 — Deep Tender Intelligence — **IMPLEMENT COMPLETE**
+## ★ AP2-S3 — Deep Tender Intelligence — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · commit/push per Owner DoD |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.50** / **`3e23631`** |
 | **UI** | **2.65.50** |
+| **Feature commit** | **`3e23631`** |
 | **DF** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-DESIGN-FREEZE.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md`](docs/architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-RELEASE-REPORT.md) |
 | **IN** | Fakty SWZ/przedmiar/umowa · panel Najważniejsze informacje · source+confidence |
 | **OUT** | Pricing/Autonomous · risk scoring · S7 panel · nowe parsery |
-| **Next** | PV · potem **AP2-S4** tylko po Owner GO |
+| **Next** | **AP2-S4** tylko po Owner GO |
 
 ---
 

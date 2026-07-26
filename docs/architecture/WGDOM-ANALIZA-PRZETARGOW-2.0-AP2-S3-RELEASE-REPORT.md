@@ -2,9 +2,10 @@
 
 > **ID:** AP2-S3  
 > **Parent:** WGDOM-ANALIZA-PRZETARGOW-2.0  
-> **STATUS:** **IMPLEMENT COMPLETE**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-26  
 > **UI:** **2.65.50**  
+> **Commit:** **`3e23631`**  
 > **DF:** [`WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-DESIGN-FREEZE.md`](WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S3-DESIGN-FREEZE.md)  
 > **Prior:** AP2-S2 `2.65.49` @ `7c04203`
 
@@ -75,12 +76,18 @@ System ma „przeczytać” dokumenty: agregacja kluczowych faktów z SWZ / prze
 
 ---
 
-## 7. Production Readiness
+## 7. Production Verification
 
-**READY TO PUSH** → PV: `version.json` **2.65.50**.
+| | |
+|--|--|
+| Push | `3e23631` → `main` |
+| Live `https://www.wgdom.fun/version.json` | **2.65.50** / **`3e23631`** |
+| Status | **PRODUCTION VERIFIED · GREEN** |
+
+**Smoke:** Przetarg → Dokumenty → „Najważniejsze informacje” (źródło + pewność).
 
 **Następny:** AP2-S4 tylko po Owner GO.
 
 ---
 
-**AP2-S3 RELEASE REPORT** · 2026-07-26
+**AP2-S3 RELEASE REPORT** · 2026-07-26 · **PV OK**
