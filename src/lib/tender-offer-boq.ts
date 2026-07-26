@@ -11,7 +11,7 @@ import type {
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
 
 /** Wersja schematu OfferBoq — bump przy breaking change. */
-export const OFFER_BOQ_SCHEMA_VERSION = 1;
+export const OFFER_BOQ_SCHEMA_VERSION = 2;
 
 export type OfferBoqMatchMethod =
   | "exact_knr"
@@ -22,7 +22,32 @@ export type OfferBoqMatchMethod =
   | "unmatched"
   | "snapshot";
 
+/** Produktowy alias metody dopasowania (COST-S2+) — synonim semantyczny `matchMethod`. */
+export type OfferBoqMatchedBy =
+  | "exact_knr"
+  | "catalog_map"
+  | "category_heuristic"
+  | "keyword"
+  | "manual"
+  | "unmatched"
+  | "snapshot";
+
 export type OfferBoqConfidence = "high" | "medium" | "low";
+
+/** Kandydat mapowania — prep pod multi-activity (dostawa + montaż + …). */
+export type OfferBoqMatchCandidateRole = "primary" | "candidate";
+
+export interface OfferBoqMatchCandidate {
+  catalogWorkId: string;
+  workNamePl: string;
+  workCategory: string;
+  tradeId: string | null;
+  score: number;
+  role: OfferBoqMatchCandidateRole;
+  matchedBy: OfferBoqMatchedBy;
+  matchConfidence: OfferBoqConfidence;
+  rationale: string;
+}
 
 export type OfferBoqEditableField =
   | "material"
@@ -60,10 +85,16 @@ export interface OfferBoqLine {
   unit: string;
 
   catalogWorkId: string | null;
+  /** Branża / kategoria robót (label PL) — COST-S2. */
+  workCategory: string | null;
   categoryId: string | null;
   knrHint: string | null;
   matchMethod: OfferBoqMatchMethod;
+  /** Alias produktowy metody (DoD COST-S2). */
+  matchedBy: OfferBoqMatchedBy;
   matchConfidence: OfferBoqConfidence;
+  /** Primary + alternatywy — przyszły split pozycji bez przebudowy modelu. */
+  candidateMatches: OfferBoqMatchCandidate[];
 
   materialUnitPln: number | null;
   materialCostPln: number | null;
@@ -136,9 +167,21 @@ export interface OfferBoqDocument {
   totals: OfferBoqTotals;
   /** Token do invalidacji UI po edycji (S7). */
   recomputeToken: string;
-  /** Status budowy — S1 zawsze structural_only. */
-  buildStatus: "empty" | "structural_only" | "partially_priced" | "priced";
+  /** Status budowy — S1 structural_only; S2+ może zostać mapped. */
+  buildStatus: "empty" | "structural_only" | "mapped" | "partially_priced" | "priced";
+  /** Statystyki mapowania COST-S2 (null przed mapowaniem). */
+  mappingStats: OfferBoqMappingStats | null;
+  mappingAppliedAt: string | null;
   warnings: string[];
+}
+
+export interface OfferBoqMappingStats {
+  lineCount: number;
+  matchedCount: number;
+  unmatchedCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
 }
 
 export const UNKNOWN_PRICE_SOURCE: OfferBoqPriceSourceRef = {
@@ -241,10 +284,13 @@ function structuralLine(opts: {
     unit: opts.unit?.trim() || "",
 
     catalogWorkId: null,
+    workCategory: null,
     categoryId: null,
     knrHint,
     matchMethod: "snapshot",
+    matchedBy: "snapshot",
     matchConfidence: knrHint ? "medium" : "low",
+    candidateMatches: [],
 
     materialUnitPln: null,
     materialCostPln: null,
@@ -315,13 +361,16 @@ function linesFromCostRows(tenderId: string, rows: TenderCostLine[]): OfferBoqLi
   );
 }
 
-function computeRecomputeToken(lines: OfferBoqLine[]): string {
+export function computeOfferBoqRecomputeToken(lines: OfferBoqLine[]): string {
   const payload = lines
     .map((l) =>
       [
         l.lineId,
         l.lp,
         l.quantity,
+        l.catalogWorkId ?? "",
+        l.matchMethod,
+        l.matchConfidence,
         l.materialUnitPln,
         l.laborCostPln,
         l.equipmentCostPln,
@@ -387,8 +436,10 @@ export function buildOfferBoqFromSnapshot(opts: {
     },
     lines,
     totals: emptyOfferBoqTotals(lines.length),
-    recomputeToken: computeRecomputeToken(lines),
+    recomputeToken: computeOfferBoqRecomputeToken(lines),
     buildStatus,
+    mappingStats: null,
+    mappingAppliedAt: null,
     warnings: docWarnings,
   };
 }
@@ -457,7 +508,7 @@ export function replaceOfferBoqLine(
     ...doc,
     lines,
     totals: { ...doc.totals, lineCount: lines.length },
-    recomputeToken: computeRecomputeToken(lines),
+    recomputeToken: computeOfferBoqRecomputeToken(lines),
     version: doc.version + 1,
   };
 }

@@ -101,11 +101,14 @@ assert.deepEqual(l0.editedFields, []);
 assert.equal(l0.materialSource.kind, "unknown");
 assert.equal(l0.aiRationale, null);
 assert.equal(l0.matchMethod, "snapshot");
+assert.equal(l0.matchedBy, "snapshot");
+assert.equal(l0.workCategory, null);
+assert.deepEqual(l0.candidateMatches, []);
+assert.equal(doc.mappingStats, null);
 assert.ok(l0.knrHint); // KNR hint from description
 assert.ok(l0.pricingSourceLabelPl.length > 0);
 assert.ok(doc.recomputeToken.startsWith("rt_"));
-
-// prefer catalog over rows when both present
+assert.equal(doc.schemaVersion, OFFER_BOQ_SCHEMA_VERSION);
 const both = buildOfferBoqFromSnapshot({
   tenderId: "t2",
   snapshot: {

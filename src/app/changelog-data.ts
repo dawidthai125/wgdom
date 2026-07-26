@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-26",
+    version: "2.65.53",
+    label: "AI-COST-01 / COST-S2 — Mapping Engine",
+    items: [
+      {
+        type: "new",
+        text: "AI Kosztorysant — mapowanie pozycji przedmiaru do Biblioteki Robót: catalogWorkId, kategoria, pewność HIGH/MEDIUM/LOW, matchedBy oraz uzasadnienie AI (bez wyceny).",
+      },
+      {
+        type: "improve",
+        text: "Model OfferBoq gotowy na wielu kandydatów (dostawa+montaż). REUSE klasyfikatora ATH i Work Catalog. Bez parserów, Bid Proposal i Pricing Gate bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-26",
     version: "2.65.52",
     label: "AI-COST-01 / COST-S1 — OfferBoq model",
     items: [
