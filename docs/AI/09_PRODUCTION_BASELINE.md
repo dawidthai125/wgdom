@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.61** (STAB-01) · oczekiwane live po push |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** commit STAB-01 (ten release) · prior tip **`f5ba5ac`** (2.65.60) |
+| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`87610b5`** (STAB-01) · prior tip **`f5ba5ac`** (2.65.60) |
 | **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **FIELD READY** |
 | **Ostatni feature (COST-S7)** | AI Validation & Offer Quality — [`COST-S7-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) · **`1c84363`** / tip docs **`f5ba5ac`** |
 | **Ostatni feature (COST-S6)** | Bid Proposal Integration — [`COST-S6-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) · **`754c997`** |
