@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-27 (**AI-COST-01-STAB-01** · FIELD READY) · feature UI **2.65.61** · live `version.json` — po deploy · prior **2.65.60** COST-S7.
+**Snapshot dokumentacji:** 2026-07-27 (**AI-COST-01 EPIC COMPLETE** · **FIELD READY**) · feature UI **2.65.61** · live `version.json` **2.65.61** / **`4bbaa6d`** · prior **2.65.60** COST-S7.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.61** (STAB-01) · oczekiwane live po push |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`87610b5`** (STAB-01) · prior tip **`f5ba5ac`** (2.65.60) |
-| **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **FIELD READY** |
+| **UI version (changelog / version.json)** | **2.65.61** (STAB-01) · live **2.65.61** |
+| **Deploy tip commit (`main` / `version.json`)** | **Live tip:** **`4bbaa6d`** (= `origin/main`) · feature STAB-01 **`87610b5`** · prior **`f5ba5ac`** (2.65.60) |
+| **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **PRODUCTION VERIFIED** — S1–S7 + STAB-01 + RWAT (brak P0/P1) |
+| **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **`87610b5`** |
 | **Ostatni feature (COST-S7)** | AI Validation & Offer Quality — [`COST-S7-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) · **`1c84363`** / tip docs **`f5ba5ac`** |
 | **Ostatni feature (COST-S6)** | Bid Proposal Integration — [`COST-S6-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) · **`754c997`** |
 | **Ostatni feature (COST-S5.1)** | AI Learning & Company Knowledge — [`COST-S5.1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) · **`973821f`** |
@@ -45,7 +46,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED** · GREEN · feature **`1c84363`** · live `version.json` = **2.65.60** / **`f5ba5ac`** |
+| **Status** | **PRODUCTION VERIFIED** · GREEN · live `version.json` = **2.65.61** / **`4bbaa6d`** · AI-COST-01 **FIELD READY** · **EPIC COMPLETE** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |

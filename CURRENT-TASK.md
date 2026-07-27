@@ -1,20 +1,34 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-01-STAB-01** · FIELD READY) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-01 EPIC COMPLETE** · **FIELD READY** · **PRODUCTION VERIFIED**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01-STAB-01 — Field Ready Stabilization — **RELEASE**
+## ★ AI-COST-01 — **EPIC COMPLETE** · **FIELD READY**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RELEASE GO** · UI **2.65.61** · **FIELD READY** (RWAT po STAB: brak P0/P1) |
+| **Status** | **EPIC COMPLETE** · **FIELD READY** · **PRODUCTION VERIFIED** |
+| **Live** | `version.json` **2.65.61** / **`4bbaa6d`** (= `origin/main`) |
+| **Feature STAB-01** | **`87610b5`** · tip docs **`4bbaa6d`** |
+| **Zakres zamknięcia** | S1–S7 · STAB-01 · RWAT-01 + re-RWAT · brak P0 · brak P1 |
+| **SSOT / REUSE** | OfferBoq → Bid Proposal (`offer_boq_ai`) · bez drugiego kalkulatora · bez przebudowy parserów |
+| **Raporty** | [`STAB-01-RELEASE`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · [`RWAT-COMPARE`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md) · [`RWAT-01`](docs/architecture/WGDOM-AI-COST-01-RWAT-01-REPORT.md) |
+| **Next** | kolejny EPIC (**AI-COST-02** / modele cen / konkurencyjność / predykcja) — **tylko na polecenie Ownera** |
+
+---
+
+## ★ AI-COST-01-STAB-01 — Field Ready Stabilization — **PRODUCTION**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **PRODUCTION VERIFIED** · UI **2.65.61** · **FIELD READY** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) |
 | **RWAT compare** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md) |
 | **IN** | ochrona edycji · grupowanie rekomendacji · klasyfikacja · pokrycie wyceny · explain unpriced · telemetria lokalna |
 | **OUT** | parsery · Bid Proposal rebuild · nowe funkcje AI-COST-02 · zewnętrzne ceny |
-| **Next** | po PV `version.json` **2.65.61** — kolejny EPIC **AI-COST-02** tylko na polecenie Ownera |
+| **Next** | superseded by AI-COST-01 EPIC COMPLETE |
 
 ---
 
@@ -22,7 +36,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RWAT-01 COMPLETE** · supersedowane przez STAB-01 (**FIELD READY**) |
+| **Status** | **RWAT-01 COMPLETE** · po STAB-01: **FIELD READY** (brak P0/P1) |
 | **Raport** | [`docs/architecture/WGDOM-AI-COST-01-RWAT-01-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-RWAT-01-REPORT.md) |
 
 ---
@@ -31,8 +45,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.60** / **`f5ba5ac`** · **EPIC COMPLETE** (+ STAB-01) |
-| **Feature commit** | **`f5ba5ac`** |
+| **Status** | **PRODUCTION VERIFIED** · superseded by STAB-01 / EPIC COMPLETE |
+| **Feature commit** | **`1c84363`** / tip **`f5ba5ac`** (2.65.60) |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) |
 | **IN** | AI Validation Engine (RO) · kompletność % · AI Quality Score · rekomendacje z priorytetem · panel „Gotowość oferty” · explainability jakości |
