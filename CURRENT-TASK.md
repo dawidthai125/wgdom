@@ -8,8 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **READY FOR PV** · UI **2.65.58** (po push / `version.json`) |
-| **Feature commit** | *(po push)* |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.58** / **`973821f`** |
+| **Feature commit** | **`973821f`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) |
 | **IN** | store wiedzy · uczenie z decyzji · provider `company_knowledge` · explainability · panel stats RO · prep S6 |

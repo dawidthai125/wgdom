@@ -2,9 +2,10 @@
 
 > **ID:** COST-S5.1  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **READY FOR PV** (po push)  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.58**  
+> **Commit:** **`973821f`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md)  
 > **Prior:** COST-S5 `2.65.57` @ `351f534`  
 > **Język:** polski
@@ -69,7 +70,7 @@ Lokalna, firmowa baza wiedzy kosztorysowej: każda decyzja użytkownika (zatwier
 | Explainability pokazuje wpływ | **PASS** |
 | Panel statystyk RO | **PASS** |
 | Bez Kp/marży/oferty | **PASS** |
-| RR · commit · push · tip | po push |
+| RR · commit · push · tip | **PASS** · `973821f` |
 
 ---
 
