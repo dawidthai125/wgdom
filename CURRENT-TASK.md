@@ -8,7 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.57** · PV po deploy |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.57** / **`351f534`** |
+| **Feature commit** | **`351f534`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md) |
 | **IN** | edycja komponentów · status · historia · recompute lineDirect · summary ingerencji |

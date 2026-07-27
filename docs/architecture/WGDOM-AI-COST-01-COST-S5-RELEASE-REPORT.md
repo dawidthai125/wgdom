@@ -2,9 +2,10 @@
 
 > **ID:** COST-S5  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **GOTOWY DO PV**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.57**  
+> **Commit:** **`351f534`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md)  
 > **Prior:** COST-S4.1 `2.65.56` @ `8fe1147`  
 > **Język:** polski
@@ -64,7 +65,7 @@ Użytkownik współtworzy kosztorys z AI: edytuje i zatwierdza komponenty, od ra
 | Historia zmian | **PASS** |
 | Summary ingerencji | **PASS** |
 | Bez Kp/marży/oferty | **PASS** |
-| RR · commit · push · tip | **po domknięciu** |
+| RR · commit · push · tip | **PASS** · `351f534` |
 
 ---
 
