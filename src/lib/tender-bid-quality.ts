@@ -4,6 +4,7 @@
 
 import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import type { TenderBidPricingMode, TenderBidProposal, TenderBidCostLine } from "@/lib/tenders-bid-calculator";
+import type { OfferBoqConfidence } from "@/lib/tender-offer-boq";
 
 export type TenderBidQualityLevel = "high" | "good" | "medium" | "limited";
 
@@ -34,6 +35,7 @@ export const TENDER_UNKNOWN_REVIEW_ADVICE =
 export function getBidSourceLabel(pricingMode: TenderBidPricingMode | null | undefined): string | null {
   if (pricingMode === "catalog") return CATALOG_UX_SOURCE_LABEL;
   if (pricingMode === "ath_priced") return "Kosztorys ATH";
+  if (pricingMode === "offer_boq_ai") return "AI Cost + Bid Proposal";
   return null;
 }
 
@@ -56,7 +58,29 @@ function qualityLevelFromCoverage(coveragePct: number): TenderBidQualityLevel {
 export function assessBidQuality(
   pricingMode: TenderBidPricingMode | null | undefined,
   catalogUnknownPct: number | null | undefined,
+  offerBoqConfidence?: OfferBoqConfidence,
+  companyKnowledgeHits?: number,
 ): TenderBidQualityInfo {
+  if (pricingMode === "offer_boq_ai") {
+    const level: TenderBidQualityLevel =
+      offerBoqConfidence === "high"
+        ? "high"
+        : offerBoqConfidence === "medium"
+          ? "good"
+          : "medium";
+    const detailParts = [
+      `Średnia pewność AI Cost: ${offerBoqConfidence ?? "—"}`,
+    ];
+    if (companyKnowledgeHits != null && companyKnowledgeHits > 0) {
+      detailParts.push(`Wiedza firmy: ${companyKnowledgeHits} komponentów`);
+    }
+    detailParts.push("Kp i cena końcowa — moduł Bid Proposal (REUSE).");
+    return {
+      level,
+      labelPl: QUALITY_LABELS[level],
+      detailPl: detailParts.join(" · "),
+    };
+  }
   if (pricingMode === "ath_priced") {
     return { level: "high", labelPl: QUALITY_LABELS.high };
   }
@@ -114,9 +138,16 @@ export function extractCalculationBasis(proposal: TenderBidProposal): TenderBidC
 export function enrichBidProposalMeta(
   proposal: TenderBidProposal,
   catalogUnknownPct?: number | null,
+  offerBoqConfidence?: OfferBoqConfidence,
+  companyKnowledgeHits?: number,
 ): TenderBidProposal {
   if (!proposal.ok) return proposal;
-  const quality = assessBidQuality(proposal.pricingMode, catalogUnknownPct ?? proposal.catalogUnknownPct);
+  const quality = assessBidQuality(
+    proposal.pricingMode,
+    catalogUnknownPct ?? proposal.catalogUnknownPct,
+    offerBoqConfidence,
+    companyKnowledgeHits,
+  );
   return {
     ...proposal,
     sourceLabelPl: getBidSourceLabel(proposal.pricingMode),

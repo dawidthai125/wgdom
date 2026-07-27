@@ -1,10 +1,28 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S5.1** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S6** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S5.1 — AI Learning & Company Knowledge — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S6 — Bid Proposal Integration — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **READY FOR PV** (po push) · UI **2.65.59** |
+| **Feature commit** | *(po push)* |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) |
+| **IN** | adapter AI Cost → Bid Proposal · tryb `offer_boq_ai` · explainability „Wpływ AI na ofertę” · podsumowanie oferty · ścieżka audytu |
+| **OUT** | nowy kalkulator oferty · kopia logiki Kp/marży · VAT/brutto · parsery |
+| **Next** | Owner GO → kolejny slice AI-COST-01 (TBD) |
+
+---
+
+## ★ AI-COST-01 / COST-S5.1 — AI Learning & Company Knowledge — **PRODUCTION**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.58** / **`973821f`** |
 
 | Element | Wartość |
 |---------|---------|
@@ -14,7 +32,7 @@
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) |
 | **IN** | store wiedzy · uczenie z decyzji · provider `company_knowledge` · explainability · panel stats RO · prep S6 |
 | **OUT** | Kp · marża · oferta · przebudowa Pricing Engine · integracje zewnętrzne · parsery |
-| **Next** | Owner GO → **COST-S6** (Kp + marża + Bid Proposal REUSE + wiedza firmy) |
+| **Next** | superseded by COST-S6 |
 
 ---
 

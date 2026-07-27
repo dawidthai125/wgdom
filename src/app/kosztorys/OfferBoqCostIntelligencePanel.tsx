@@ -15,6 +15,8 @@ import {
   type OfferBoqExplainConfidenceBadge,
   type OfferBoqExplainComponentRow,
   type OfferBoqExplainLineCard,
+  type OfferBoqBidImpactSection,
+  type OfferBoqOfferSummarySection,
 } from "@/lib/tender-offer-boq-explainability";
 import {
   approveOfferBoqComponentInDocument,
@@ -75,6 +77,126 @@ function SummaryKpi({ label, value, sub }: { label: string; value: string; sub?:
       <p className="text-base font-bold text-foreground mt-0.5 tabular-nums break-words">{value}</p>
       {sub ? <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>{sub}</p> : null}
     </div>
+  );
+}
+
+function BidImpactSection({ section }: { section: OfferBoqBidImpactSection }) {
+  return (
+    <section
+      className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-2"
+      data-offer-boq-bid-impact
+    >
+      <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground flex items-center gap-1.5`}>
+        <Info className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden />
+        Wpływ AI na ofertę
+      </h3>
+      <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+        <SummaryKpi label="Koszt bezpośredni → Bid Proposal" value={section.directCostDisplay} />
+        <SummaryKpi
+          label="Pewność AI"
+          value={`${section.averageConfidenceBadge.emoji} ${section.averageConfidenceLabelPl}`}
+        />
+        <SummaryKpi
+          label="Wiedza firmy"
+          value={String(section.companyKnowledgeHitCount)}
+          sub="komponentów z trafieniem"
+        />
+        <SummaryKpi
+          label="Źródło oferty"
+          value={section.bidProposalSourceLabelPl ?? "Bid Proposal"}
+        />
+      </div>
+      <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{section.computedByBidProposalPl}</p>
+      {section.auditTrail.length > 0 ? (
+        <ol className="space-y-2" data-offer-boq-audit-trail>
+          {section.auditTrail.map((step) => (
+            <li
+              key={step.id}
+              className="rounded-md border border-border/70 bg-background/60 px-2.5 py-2"
+              data-offer-boq-audit-step={step.id}
+            >
+              <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>{step.labelPl}</p>
+              <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>{step.detailPl}</p>
+              {step.valueDisplay ? (
+                <p className={`${TEUX_FONT_CAPTION} font-medium text-foreground mt-1 tabular-nums`}>
+                  {step.valueDisplay}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </section>
+  );
+}
+
+function OfferSummarySection({ section }: { section: OfferBoqOfferSummarySection }) {
+  if (!section.available) {
+    return (
+      <section
+        className="rounded-lg border border-dashed border-border bg-secondary/10 p-3"
+        data-offer-boq-offer-summary
+        data-offer-boq-offer-empty
+      >
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>Podsumowanie oferty</h3>
+        <p className={`${TEUX_FONT_META} text-muted-foreground mt-1`}>
+          Brak pełnej wyceny ofertowej — uzupełnij koszt bezpośredni AI Cost.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="rounded-lg border border-border bg-background/60 p-3 space-y-3"
+      data-offer-boq-offer-summary
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>Podsumowanie oferty (Bid Proposal)</h3>
+        {section.qualityLabelPl ? (
+          <span className={`${TEUX_FONT_META} rounded-md border border-border px-2 py-0.5 text-muted-foreground`}>
+            Jakość: {section.qualityLabelPl}
+          </span>
+        ) : null}
+      </div>
+      <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+        <SummaryKpi label="Koszt bezpośredni" value={section.directCostDisplay} />
+        <SummaryKpi label="Kp" value={section.kpDisplay} />
+        <SummaryKpi label="Koszty poboczne" value={section.ancillaryDisplay} />
+        <SummaryKpi label="Stałe firmy (KZP)" value={section.overheadDisplay} />
+        <SummaryKpi label="Zysk" value={section.profitDisplay} />
+        <SummaryKpi label="Koszt własny" value={section.costPriceDisplay} />
+        <SummaryKpi label="Marża (netto)" value={section.marginDisplay} />
+        <SummaryKpi label="Rentowność" value={section.profitabilityDisplay} />
+        <SummaryKpi
+          label="Cena rekomendowana"
+          value={section.recommendedBidDisplay}
+          sub="netto · Bid Proposal SSOT"
+        />
+      </div>
+      {section.costStack.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse" data-offer-boq-cost-stack>
+            <thead>
+              <tr className="border-b border-border text-left text-muted-foreground">
+                <th className="py-1 pr-2 font-semibold">Składnik</th>
+                <th className="py-1 pr-2 font-semibold text-right">PLN</th>
+                <th className="py-1 font-semibold">Szczegóły</th>
+              </tr>
+            </thead>
+            <tbody>
+              {section.costStack.map((row) => (
+                <tr key={row.label} className="border-b border-border/50">
+                  <td className="py-1 pr-2 text-foreground">{row.label}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums font-medium">{row.pln.toLocaleString("pl-PL")}</td>
+                  <td className="py-1 text-muted-foreground">{row.detail ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -360,7 +482,7 @@ function LineExplainCard({
           </section>
 
           <p className={`${TEUX_FONT_META} text-muted-foreground`}>
-            Zmiany przeliczają koszt bezpośredni od razu. Kp, marża i cena ofertowa — COST-S6 (REUSE Bid Proposal).
+            Zmiany przeliczają koszt bezpośredni i ofertę końcową (Bid Proposal REUSE).
           </p>
         </div>
       ) : null}
@@ -391,8 +513,8 @@ export function OfferBoqCostIntelligencePanel({
   const view = useMemo(() => {
     if (!baseline.available) return baseline;
     if (!doc) return baseline;
-    return presentOfferBoqExplainabilityView(doc, baseline.builtAt);
-  }, [baseline, doc]);
+    return presentOfferBoqExplainabilityView(doc, baseline.builtAt, { item });
+  }, [baseline, doc, item]);
 
   const knowledgeStats: CompanyKnowledgeStats = useMemo(
     () => computeCompanyKnowledgeStats(loadCompanyKnowledgeStoreLocal()),
@@ -445,7 +567,7 @@ export function OfferBoqCostIntelligencePanel({
       <div className="space-y-1">
         <TenderUxSectionTitle>AI Cost Intelligence</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
-          Współtwórz kosztorys z AI — edytuj komponenty i zatwierdzaj. To nie jest cena ofertowa (bez Kp i marży).
+          Współtwórz kosztorys z AI — edytuj komponenty, zatwierdzaj. Kp, marża i cena ofertowa: moduł Bid Proposal (SSOT).
         </p>
       </div>
 
@@ -517,6 +639,10 @@ export function OfferBoqCostIntelligencePanel({
           </p>
         )}
       </section>
+
+      {view.bidImpact?.available ? <BidImpactSection section={view.bidImpact} /> : null}
+
+      {view.offerSummary ? <OfferSummarySection section={view.offerSummary} /> : null}
 
       <div className="space-y-2" data-offer-boq-lines>
         <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>

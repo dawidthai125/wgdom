@@ -1,5 +1,29 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.59 — AI-COST-01 / COST-S6 Bid Proposal Integration (2026-07-27)
+
+- **new:** adapter AI Cost → `computeTenderBidProposal` (tryb `offer_boq_ai`) — koszt bezpośredni z AI, Kp/marża/oferta przez istniejący Bid Proposal
+- **improve:** panel Kosztorys — „Wpływ AI na ofertę”, podsumowanie oferty (costStack SSOT), ścieżka audytu 4 kroki
+- **DF/RR:** `docs/architecture/WGDOM-AI-COST-01-COST-S6-*`
+
+## GLOBAL-DESIGN-SYSTEM-MAINT-01 — CLOSED (2026-07-26)
+
+- **status:** **CLOSED** · thin maintenance po GDS-01 · **GDS-01 pozostaje CLOSED**
+- **MAINT-01A:** SOAK-01 (WgField id/htmlFor) + SOAK-03 (WgModalFrame close 44×44) — **WDROŻONE** · Owner ACCEPTED
+- **DEFER:** SOAK-02 (WgButton touch target) · SOAK-06 (body scroll lock)
+- **tip UI:** nadal **2.65.46** (LOGIN-UI-01) do release commit Ownera
+- **closeout:** `docs/architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`
+
+## GLOBAL-DESIGN-SYSTEM-01 — EPIC CLOSED (2026-07-26)
+
+- **status:** **CLOSED** · Production UI Review **ACCEPTED** · tip UI nadal **2.65.46** (LOGIN-UI-01) do release commit Ownera
+- **slices:** S0 Foundation · S1 Focus+Overlay · S2 Shell Topbar · S3 CTA+Search · S4 Modal Rollout
+- **SSOT:** `wg-ui-tokens` + `WgButton` · `WgField` · `WgCard` · `WgModalFrame`
+- **DS-13:** No Parallel Design Systems — nowe UI wyłącznie Wg*; bez lokalnych Button/Input/Modal; bez reaktywacji shadcn bez decyzji architektonicznej
+- **OUT:** TEUX · Payroll CORE · Dashboard/Sidebar full · Cloud Sync · Edge · auth/routing/API
+- **closeout:** `docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md` · D-21 `docs/AI/12_DECISION_LOG.md`
+- **next:** GDS-02 tylko po Owner GO · post-epic MAINT-01 **CLOSED** (SOAK-01+03 · DEFER 02/06)
+
 ## 2.65.44 — Theme toggle Inspektor + Pracownik
 
 - **improve:** SSOT `ThemeToggle` (wydzielony z AdminTopbar) także w Panelu Inspektora i Panelu Pracownika

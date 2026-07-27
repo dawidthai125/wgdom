@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.59",
+    label: "AI-COST-01 / COST-S6 — integracja Bid Proposal",
+    items: [
+      {
+        type: "new",
+        text: "AI Kosztorysant — koszt bezpośredni z AI Cost przekazywany do istniejącego modułu Bid Proposal (Kp, marża, cena rekomendowana). Adapter bez duplikacji logiki.",
+      },
+      {
+        type: "improve",
+        text: "Panel Kosztorys: „Wpływ AI na ofertę”, podsumowanie oferty (costStack SSOT), ścieżka audytu AI Cost → Adapter → Bid Proposal → Wynik.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.58",
     label: "AI-COST-01 / COST-S5.1 — wiedza firmy",
     items: [

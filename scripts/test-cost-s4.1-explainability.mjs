@@ -95,10 +95,14 @@ const ups = view.lines.find((l) => /UPS/i.test(l.description));
 assert.ok(ups);
 assert.ok(ups.componentCount >= 2);
 
-// document present for future edit prep — read only in S4.1
+// document + integracja Bid Proposal (COST-S6)
 assert.ok(view.document);
-assert.equal(view.document.totals.recommendedBidPln, null);
-assert.equal(view.document.totals.marginPln, null);
+assert.ok(view.document.totals.directPln != null && view.document.totals.directPln > 0);
+assert.ok(view.bidImpact?.available);
+assert.ok(view.offerSummary?.available);
+assert.ok(view.document.totals.recommendedBidPln != null);
+assert.ok(view.document.totals.kpPln != null);
+assert.equal(view.bidProposal?.pricingMode, "offer_boq_ai");
 
 console.log("COST-S4.1 Explainability tests: PASS");
 console.log(

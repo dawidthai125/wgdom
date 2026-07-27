@@ -19,8 +19,24 @@ import {
 import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
 import { CATALOG_UX_SOURCE_LABEL } from "@/lib/tender-catalog-ux-labels";
 import { resolveActiveCatalogForTender } from "@/lib/tender-active-catalog";
+import type { OfferBoqConfidence } from "@/lib/tender-offer-boq";
 
-export type TenderBidPricingMode = "ath_priced" | "catalog";
+export type TenderBidPricingMode = "ath_priced" | "catalog" | "offer_boq_ai";
+
+/** COST-S6 — wejście z adaptera AI Cost (bez logiki Kp/marży). */
+export interface TenderBidOfferBoqDirectInput {
+  directPln: number;
+  materialsPln: number;
+  laborPln: number;
+  equipmentPln: number;
+  transportPln: number;
+  auxiliaryPln: number;
+  componentCount: number;
+  pricedComponentCount: number;
+  averageConfidence: OfferBoqConfidence;
+  companyKnowledgeHitCount: number;
+  sourceLabelPl?: string;
+}
 
 export interface TenderBidCostLine {
   label: string;
@@ -241,6 +257,8 @@ export function computeTenderBidProposal(opts: {
   catalog?: WgdomCostCatalog;
   /** P3.5B — nadpisania cen per przetarg (nie zmieniają globalnej Bazy cen). */
   priceOverrides?: TenderPriceOverrideEntry[] | null;
+  /** COST-S6 — koszt bezpośredni z AI Cost (adapter); Kp/marża/oferta = ten sam tail. */
+  offerBoqDirect?: TenderBidOfferBoqDirectInput | null;
 }): TenderBidProposal {
   const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
   const catalog = opts.catalog ?? resolveActiveCatalogForTender({
@@ -250,9 +268,14 @@ export function computeTenderBidProposal(opts: {
   const warnings: string[] = [];
   const costStack: TenderBidCostLine[] = [];
 
-  const pricingMode = resolveTenderBidPricingMode(kosztorys);
+  const offerBoqDirect =
+    opts.offerBoqDirect && opts.offerBoqDirect.directPln > 0 ? opts.offerBoqDirect : null;
 
-  if (!pricingMode || !kosztorys?.ok) {
+  let pricingMode: TenderBidPricingMode | null = offerBoqDirect
+    ? "offer_boq_ai"
+    : resolveTenderBidPricingMode(kosztorys);
+
+  if (!offerBoqDirect && (!pricingMode || !kosztorys?.ok)) {
     return {
       ok: false,
       pricingMode: null,
@@ -268,6 +291,10 @@ export function computeTenderBidProposal(opts: {
         : ["Brak kosztorysu ATH/XLSX — wczytaj załącznik, aby wyliczyć ofertę."],
       computedAt: new Date().toISOString(),
     };
+  }
+
+  if (offerBoqDirect && !kosztorys?.ok) {
+    warnings.push("Kosztorys dossier niedostępny — oferta liczona wyłącznie z kosztu bezpośredniego AI Cost.");
   }
 
   const flHourly = fullyLoadedHourlyFromModel(costModel);
@@ -290,7 +317,43 @@ export function computeTenderBidProposal(opts: {
   let catalogUnknownPct: number | null = null;
   let excludeWeeklyWasteDisposal = false;
 
-  if (pricingMode === "ath_priced") {
+  if (pricingMode === "offer_boq_ai" && offerBoqDirect) {
+    const ob = offerBoqDirect;
+    referencePln = ob.directPln;
+    materialCostReal = ob.materialsPln;
+    laborCostReal =
+      ob.laborPln + ob.equipmentPln + ob.transportPln + ob.auxiliaryPln;
+    hoursSum = 0;
+
+    assumptions.push(
+      ob.sourceLabelPl ?? "AI Cost Intelligence — koszt bezpośredni z komponentów wyceny.",
+    );
+    assumptions.push(
+      `${ob.componentCount} komponentów (${ob.pricedComponentCount} z ceną) · pewność średnia: ${ob.averageConfidence}.`,
+    );
+    if (ob.companyKnowledgeHitCount > 0) {
+      assumptions.push(`Wiedza firmy wykorzystana w ${ob.companyKnowledgeHitCount} komponentach.`);
+    }
+    if (ob.pricedComponentCount < ob.componentCount) {
+      warnings.push(
+        `${ob.componentCount - ob.pricedComponentCount} komponentów bez ceny — koszt bezpośredni może być zaniżony.`,
+      );
+    }
+    if (ob.averageConfidence === "low") {
+      warnings.push("Niska średnia pewność AI Cost — zweryfikuj komponenty przed złożeniem oferty.");
+    }
+
+    costStack.push({
+      label: "Robocizna + sprzęt + transport + pomocnicze (AI Cost)",
+      pln: roundPln(laborCostReal),
+      detail: `Robocizna ${roundPln(ob.laborPln)} · sprzęt ${roundPln(ob.equipmentPln)} · transport ${roundPln(ob.transportPln)} · pom. ${roundPln(ob.auxiliaryPln)} zł`,
+    });
+    costStack.push({
+      label: "Materiały (AI Cost)",
+      pln: roundPln(materialCostReal),
+      detail: `Suma komponentów materiałowych · direct ${roundPln(ob.directPln)} zł`,
+    });
+  } else if (pricingMode === "ath_priced") {
     athTotal = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
       ?? kosztorys.rows.reduce((s, r) => s + parseRowTotal(r.total), 0);
     if (athTotal == null || athTotal <= 0) {
@@ -489,6 +552,18 @@ export function computeTenderBidProposal(opts: {
     );
   }
 
+  if (
+    pricingMode === "offer_boq_ai"
+    && offerBoqDirect
+    && swz?.estimatedValuePln != null
+    && swz.estimatedValuePln > 0
+    && recommended > swz.estimatedValuePln * 1.15
+  ) {
+    warnings.push(
+      "Rekomendacja AI Cost + Bid Proposal przekracza wartość szacunkową SWZ o >15% — zweryfikuj koszt bezpośredni.",
+    );
+  }
+
   const baseProposal: TenderBidProposal = {
     ok: true,
     pricingMode,
@@ -506,6 +581,8 @@ export function computeTenderBidProposal(opts: {
 
   return enrichBidProposalMeta(
     baseProposal,
-    catalogUnknownPct,
+    pricingMode === "catalog" ? catalogUnknownPct : null,
+    pricingMode === "offer_boq_ai" ? offerBoqDirect?.averageConfidence : undefined,
+    pricingMode === "offer_boq_ai" ? offerBoqDirect?.companyKnowledgeHitCount : undefined,
   );
 }

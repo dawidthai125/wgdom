@@ -25,6 +25,12 @@ import {
   createCompanyKnowledgePriceProvider,
   loadCompanyKnowledgeStoreLocal,
 } from "@/lib/tender-offer-boq-company-knowledge";
+import {
+  integrateOfferBoqWithBidProposal,
+  type OfferBoqBidAuditStep,
+} from "@/lib/tender-offer-boq-bid-adapter";
+import type { TenderBidCostLine, TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import { formatBidMarginPct } from "@/lib/tender-bid-ux";
 
 /** Status wizualny pewności — mapowanie z istniejącego confidence (+ review). */
 export type OfferBoqExplainConfidenceStatus = "high" | "review" | "low";
@@ -102,6 +108,36 @@ export interface OfferBoqExplainSummary {
   companyKnowledgeHitCount: number;
 }
 
+/** COST-S6 — wpływ AI Cost na ofertę (przed Bid Proposal). */
+export interface OfferBoqBidImpactSection {
+  available: boolean;
+  directCostDisplay: string;
+  directCostPln: number | null;
+  companyKnowledgeHitCount: number;
+  averageConfidenceBadge: OfferBoqExplainConfidenceBadge;
+  averageConfidenceLabelPl: string;
+  bidProposalSourceLabelPl: string | null;
+  computedByBidProposalPl: string;
+  auditTrail: OfferBoqBidAuditStep[];
+}
+
+/** COST-S6 — podsumowanie oferty z Bid Proposal (SSOT). */
+export interface OfferBoqOfferSummarySection {
+  available: boolean;
+  directCostDisplay: string;
+  kpDisplay: string;
+  ancillaryDisplay: string;
+  overheadDisplay: string;
+  profitDisplay: string;
+  costPriceDisplay: string;
+  recommendedBidDisplay: string;
+  marginDisplay: string;
+  profitabilityDisplay: string;
+  costStack: TenderBidCostLine[];
+  proposalOk: boolean;
+  qualityLabelPl: string | null;
+}
+
 export interface OfferBoqExplainabilityView {
   available: boolean;
   emptyReasonPl: string | null;
@@ -110,6 +146,10 @@ export interface OfferBoqExplainabilityView {
   /** Dokument OfferBoq po pipeline — tylko do odczytu / przyszła edycja. */
   document: OfferBoqDocument | null;
   builtAt: string;
+  /** COST-S6 */
+  bidImpact: OfferBoqBidImpactSection | null;
+  offerSummary: OfferBoqOfferSummarySection | null;
+  bidProposal: TenderBidProposal | null;
 }
 
 export function resolveOfferBoqExplainConfidenceBadge(
@@ -198,12 +238,70 @@ function buildWhyAiDecision(opts: {
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
+function ancillaryFromStack(lines: TenderBidCostLine[]): number | null {
+  const hit = lines.find((l) => /poboczne/i.test(l.label));
+  return hit?.pln ?? null;
+}
+
+function buildOfferBoqBidViewSections(opts: {
+  integration: ReturnType<typeof integrateOfferBoqWithBidProposal>;
+}): {
+  bidImpact: OfferBoqBidImpactSection | null;
+  offerSummary: OfferBoqOfferSummarySection | null;
+  bidProposal: TenderBidProposal | null;
+} {
+  const { integration } = opts;
+  if (!integration) {
+    return { bidImpact: null, offerSummary: null, bidProposal: null };
+  }
+
+  const { proposal, payload, auditTrail, documentWithTotals } = integration;
+  const avgBadge = resolveOfferBoqExplainConfidenceBadge(payload.averageConfidence);
+
+  const bidImpact: OfferBoqBidImpactSection = {
+    available: true,
+    directCostDisplay: formatMoney(documentWithTotals.totals.directPln),
+    directCostPln: documentWithTotals.totals.directPln,
+    companyKnowledgeHitCount: payload.companyKnowledgeHitCount,
+    averageConfidenceBadge: avgBadge,
+    averageConfidenceLabelPl: avgBadge.labelPl,
+    bidProposalSourceLabelPl: proposal.sourceLabelPl ?? "Bid Proposal",
+    computedByBidProposalPl:
+      "Kp, narzuty, marża i cena rekomendowana wyliczone wyłącznie przez moduł Bid Proposal (REUSE).",
+    auditTrail,
+  };
+
+  const ancillaryPln = ancillaryFromStack(proposal.costStack);
+  const offerSummary: OfferBoqOfferSummarySection = {
+    available: proposal.ok,
+    directCostDisplay: formatMoney(documentWithTotals.totals.directPln),
+    kpDisplay: formatMoney(documentWithTotals.totals.kpPln),
+    ancillaryDisplay: formatMoney(ancillaryPln),
+    overheadDisplay: formatMoney(documentWithTotals.totals.overheadPln),
+    profitDisplay: formatMoney(documentWithTotals.totals.profitPln),
+    costPriceDisplay: formatMoney(documentWithTotals.totals.costPricePln),
+    recommendedBidDisplay: formatMoney(documentWithTotals.totals.recommendedBidPln),
+    marginDisplay: formatMoney(documentWithTotals.totals.marginPln),
+    profitabilityDisplay: formatBidMarginPct(documentWithTotals.totals.profitabilityPct),
+    costStack: proposal.costStack,
+    proposalOk: proposal.ok,
+    qualityLabelPl: proposal.qualityLabelPl ?? null,
+  };
+
+  return { bidImpact, offerSummary, bidProposal: proposal };
+}
+
 /**
  * Prezentacja istniejącego dokumentu OfferBoq (po AI lub po edycji użytkownika).
  */
 export function presentOfferBoqExplainabilityView(
   doc: OfferBoqDocument,
   builtAt?: string,
+  bidContext?: {
+    item: TenderPipelineItem;
+    minProjectDays?: number;
+    maxConcurrentProjects?: number;
+  },
 ): OfferBoqExplainabilityView {
   const at = builtAt ?? doc.builtAt;
   const normalized = normalizeOfferBoqDocumentForEdit(doc);
@@ -336,13 +434,42 @@ export function presentOfferBoqExplainabilityView(
     companyKnowledgeHitCount: countCompanyKnowledgeHits(normalized),
   };
 
+  let presentationDoc = normalized;
+  let bidSections = {
+    bidImpact: null as OfferBoqBidImpactSection | null,
+    offerSummary: null as OfferBoqOfferSummarySection | null,
+    bidProposal: null as TenderBidProposal | null,
+  };
+
+  if (bidContext) {
+    const profile = loadCompanyProfileLocal();
+    const dossier = bidContext.item.tenderDossier;
+    const integration = integrateOfferBoqWithBidProposal({
+      doc: normalized,
+      kosztorys: dossier?.kosztorys,
+      swz: dossier?.swz ?? null,
+      fit: dossier?.fit ?? null,
+      costModel: profile.costModel,
+      minProjectDays: bidContext.minProjectDays ?? 14,
+      maxConcurrentProjects: bidContext.maxConcurrentProjects ?? 2,
+      builtAt: at,
+    });
+    bidSections = buildOfferBoqBidViewSections({ integration });
+    if (integration) {
+      presentationDoc = integration.documentWithTotals;
+    }
+  }
+
   return {
     available: true,
     emptyReasonPl: null,
     summary,
     lines,
-    document: normalized,
+    document: presentationDoc,
     builtAt: at,
+    bidImpact: bidSections.bidImpact,
+    offerSummary: bidSections.offerSummary,
+    bidProposal: bidSections.bidProposal,
   };
 }
 
@@ -366,6 +493,9 @@ export function buildOfferBoqExplainabilityView(opts: {
       lines: [],
       document: null,
       builtAt,
+      bidImpact: null,
+      offerSummary: null,
+      bidProposal: null,
     };
   }
 
@@ -396,5 +526,5 @@ export function buildOfferBoqExplainabilityView(opts: {
     leadingProviders: [createCompanyKnowledgePriceProvider(knowledgeStore)],
   });
 
-  return presentOfferBoqExplainabilityView(doc, builtAt);
+  return presentOfferBoqExplainabilityView(doc, builtAt, { item: opts.item });
 }
