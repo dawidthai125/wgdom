@@ -2,7 +2,7 @@
 
 > **ID:** COST-S6  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **RELEASE GO** · **READY FOR PV** (po push)  
+> **STATUS:** **RELEASE GO** · **DEPLOY PROPAGATING** · commit **`754c997`**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.59**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md)  
@@ -65,10 +65,21 @@ AI Cost dostarcza koszt bezpośredni i metadane. Końcowa oferta (Kp, narzuty, m
 | Panel podsumowania oferty | **PASS** |
 | Ścieżka audytu | **PASS** |
 | REUSE FIRST | **PASS** |
-| RR · commit · push · tip | po push |
+| RR · commit · push · tip | **PASS** · **`754c997`** |
 
 ---
 
 ## 6. Gate
 
 G1–G9 **ALL-NIE** · Owner GO: YES
+
+---
+
+## 7. Production Verification
+
+| Pole | Wartość |
+|------|---------|
+| Feature commit | **`754c997`** |
+| Oczekiwany `version.json` | **2.65.59** |
+| Stan po push (jedno odczytanie) | **2.65.58** / **`18c7eb7`** |
+| Werdykt | **RELEASE GO** · **DEPLOY PROPAGATING** |

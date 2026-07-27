@@ -8,8 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **READY FOR PV** (po push) · UI **2.65.59** |
-| **Feature commit** | *(po push)* |
+| **Status** | **RELEASE GO** · **DEPLOY PROPAGATING** (`version.json` jeszcze **2.65.58** — oczekiwane **2.65.59** / **`754c997`**) |
+| **Feature commit** | **`754c997`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) |
 | **IN** | adapter AI Cost → Bid Proposal · tryb `offer_boq_ai` · explainability „Wpływ AI na ofertę” · podsumowanie oferty · ścieżka audytu |
