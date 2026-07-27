@@ -41,6 +41,17 @@ G1–G9 **ALL-NIE** (docs-only) · Owner GO: YES
 
 ---
 
+## 5. Git / Deploy
+
+| Pole | Wartość |
+|------|---------|
+| Content commit | **`79cd0e5`** |
+| Tip finalize | **`945adb4`** (pushed `origin/main`) |
+| UI | bez bumpu · **2.65.61** |
+| `version.json` (jedno sprawdzenie) | **2.65.61** / **`5b36b17`** → **DEPLOY PROPAGATING** (docs tip; UI bez zmian) |
+
+---
+
 ## HOTFIX CLASSIFICATION
 
 OTHER (dokumentacja / handover)
