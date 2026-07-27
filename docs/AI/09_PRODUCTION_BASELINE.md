@@ -27,8 +27,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.56** (COST-S4.1) · prior **2.65.55** (COST-S4) |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** *(po push COST-S4.1)* · docs tip = last push after PV finalize |
-| **Ostatni feature (COST-S4.1)** | Explainability RO — [`COST-S4.1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md) |
+| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`8fe1147`** (COST-S4.1) · docs tip = last push after PV finalize |
+| **Ostatni feature (COST-S4.1)** | Explainability RO — [`COST-S4.1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md) · **`8fe1147`** |
 | **Ostatni feature (COST-S4)** | AI Pricing Engine — [`COST-S4-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S4-RELEASE-REPORT.md) · **`b321867`** |
 | **Ostatni feature (COST-S3)** | AI Cost Intelligence — [`COST-S3-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md) · **`61b7590`** |
 | **Ostatni feature (COST-S2)** | Mapping Engine — [`COST-S2-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md) · **`17a7a83`** |
@@ -40,7 +40,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED · GREEN** · COST-S4.1 tip **2.65.56** (po PV) · prior COST-S4 **`b321867`** |
+| **Status** | **PRODUCTION VERIFIED · GREEN** · COST-S4.1 **PV** `version.json` = **2.65.56** / **`8fe1147`** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |

@@ -8,7 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.56** · PV po deploy |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.56** / **`8fe1147`** |
+| **Feature commit** | **`8fe1147`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md) |
 | **IN** | panel RO AI Cost Intelligence · summary · accordion pozycji · komponenty · 🟢🟡🔴 · „Dlaczego AI…” |

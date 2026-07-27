@@ -2,9 +2,10 @@
 
 > **ID:** COST-S4.1  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **GOTOWY DO PV**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.56**  
+> **Commit:** **`8fe1147`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md)  
 > **Prior:** COST-S4 `2.65.55` @ `b321867`  
 > **Język:** polski
@@ -62,7 +63,7 @@ Pierwszy krok do **zaufania**: użytkownik widzi decyzje AI (typ, strategia, kom
 | Panel zbiorczy | **PASS** |
 | Tylko odczyt | **PASS** |
 | Silniki bez przebudowy | **PASS** |
-| RR PL · commit · push · tip | **po domknięciu** |
+| RR PL · commit · push · tip | **PASS** · `8fe1147` |
 
 ---
 
