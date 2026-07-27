@@ -178,6 +178,12 @@ export interface OfferBoqPricedComponent {
   changeHistory?: OfferBoqComponentChangeRecord[];
   /** COST-S5.1 — wpływ firmowej bazy wiedzy na wycenę. */
   companyKnowledgeHint?: OfferBoqCompanyKnowledgeHint;
+  /**
+   * STAB-01 — propozycja AI po reprice, gdy obowiązuje decyzja użytkownika.
+   * Nie zmienia unitPricePln / totalPln — użytkownik decyduje o przyjęciu.
+   */
+  aiSuggestedUnitPricePln?: number | null;
+  aiSuggestedRationale?: string;
 }
 
 /** COST-S5.1 — transparentność użycia wiedzy firmy. */

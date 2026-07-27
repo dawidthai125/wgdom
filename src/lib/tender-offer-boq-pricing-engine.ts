@@ -35,6 +35,7 @@ import {
   type OfferBoqPricingStats,
   UNKNOWN_PRICE_SOURCE,
 } from "@/lib/tender-offer-boq";
+import { recordOfferBoqAiQualityTelemetry } from "@/lib/tender-offer-boq-ai-quality-telemetry";
 
 export interface OfferBoqPriceLookupRequest {
   category: OfferBoqPricedComponentCategory;
@@ -261,6 +262,20 @@ export function createCompanyModelPriceProvider(
  * Moduł heurystyk (transport, pomocnicze, sprzęt) — niskiej pewności.
  * Nie scrapuje Internetu; tylko lokalne proporcje.
  */
+/** STAB-01 — szacunek materiału gdy brak katalogu (niska pewność, wymaga weryfikacji). */
+function heuristicMaterialUnitPln(unit: string, lineKind: string | undefined): number {
+  const u = normalizeWgdomCostUnit(unit) || "";
+  const civilBias =
+    lineKind === "CivilWorks" || lineKind === "IndividualAnalysis" || lineKind === "Unknown";
+  if (u === "m2") return civilBias ? 42 : 35;
+  if (u === "mb") return civilBias ? 28 : 22;
+  if (u === "m3") return 140;
+  if (u === "szt") return civilBias ? 95 : 75;
+  if (u === "kpl") return 160;
+  if (u === "kg") return 8;
+  return civilBias ? 55 : 40;
+}
+
 export function createHeuristicPriceProvider(): OfferBoqPriceSourceProvider {
   return {
     id: "heuristic_estimate",
@@ -299,8 +314,120 @@ export function createHeuristicPriceProvider(): OfferBoqPriceSourceProvider {
           rationale: "Szacunek użycia sprzętu pomiarowego (dzień/pozycja) — do kalibracji.",
         };
       }
+      // STAB-4 — materiał / zakup bez katalogu: propozycja domenowa (nie null)
+      if (req.category === "material") {
+        const kind = req.line.costIntelligence?.lineKind;
+        const unitPricePln = heuristicMaterialUnitPln(req.unit, kind);
+        return {
+          unitPricePln,
+          origin: {
+            kind: "heuristic_estimate",
+            labelPl: "Heurystyka materiału (brak katalogu)",
+          },
+          confidence: "low",
+          rationale:
+            `Brak ceny katalogowej — szacunek domenowy ${unitPricePln} zł/${req.unit || "j.m."}. ` +
+            "Uzupełnij Bibliotekę Robót lub popraw cenę ręcznie.",
+        };
+      }
       return null;
     },
+  };
+}
+
+/** STAB-01 — klucz stabilny komponentu (ID regeneruje się przy reprice). */
+export function offerBoqComponentStableKey(c: {
+  category: OfferBoqPricedComponentCategory;
+  namePl: string;
+  pricingComponentKind?: OfferBoqPricingComponent;
+  fromDecompositionElementId?: string;
+}): string {
+  return [
+    c.category,
+    (c.namePl || "").trim().toLowerCase(),
+    c.pricingComponentKind ?? "",
+    c.fromDecompositionElementId ?? "",
+  ].join("|");
+}
+
+export function isOfferBoqUserProtectedEditStatus(
+  status: OfferBoqPricedComponent["editStatus"] | undefined,
+): boolean {
+  return status === "user_approved" || status === "user_changed";
+}
+
+/**
+ * STAB-01 — łączy wynik AI z decyzjami użytkownika.
+ * Chronione komponenty zachowują cenę/status/historię; AI trafia do aiSuggested*.
+ */
+export function mergeOfferBoqLinePricingPreservingUserDecisions(
+  previous: OfferBoqLine | undefined,
+  next: OfferBoqLine,
+): OfferBoqLine {
+  const prevComps = previous?.linePricing?.components;
+  if (!prevComps?.length || !next.linePricing) return next;
+
+  const prevByKey = new Map(
+    prevComps.map((c) => [offerBoqComponentStableKey(c), c] as const),
+  );
+
+  const components = next.linePricing.components.map((aiComp) => {
+    const prev = prevByKey.get(offerBoqComponentStableKey(aiComp));
+    if (!prev || !isOfferBoqUserProtectedEditStatus(prev.editStatus)) {
+      return aiComp;
+    }
+    const qty = prev.quantity > 0 ? prev.quantity : aiComp.quantity;
+    const unitPricePln = prev.unitPricePln;
+    const totalPln =
+      unitPricePln != null && qty > 0 ? roundPln(unitPricePln * qty) : prev.totalPln;
+    return {
+      ...aiComp,
+      componentId: prev.componentId,
+      namePl: prev.namePl,
+      category: prev.category,
+      quantity: qty,
+      unit: prev.unit || aiComp.unit,
+      unitPricePln,
+      totalPln,
+      priceOrigin: prev.priceOrigin,
+      confidence: prev.confidence,
+      aiRationale:
+        `Zachowano decyzję użytkownika (${prev.editStatus}). ` +
+        (aiComp.unitPricePln != null && aiComp.unitPricePln !== unitPricePln
+          ? `AI proponuje teraz ${aiComp.unitPricePln} zł — przyjmij ręcznie, jeśli chcesz.`
+          : prev.aiRationale),
+      requiresUserReview: false,
+      editStatus: prev.editStatus,
+      changeHistory: prev.changeHistory ? [...prev.changeHistory] : [],
+      companyKnowledgeHint: prev.companyKnowledgeHint ?? aiComp.companyKnowledgeHint,
+      aiSuggestedUnitPricePln: aiComp.unitPricePln,
+      aiSuggestedRationale: aiComp.aiRationale,
+    };
+  });
+
+  const aggregates = aggregateComponents(components);
+  const pricedCount = components.filter((c) => c.totalPln != null).length;
+  const confidence = overallConfidence(components);
+
+  return {
+    ...next,
+    linePricing: {
+      ...next.linePricing,
+      components,
+      aggregates,
+      confidence,
+      pricedComponentCount: pricedCount,
+      componentCount: components.length,
+      aiRationale:
+        next.linePricing.aiRationale +
+        " Decyzje użytkownika (zatwierdzone/zmienione) zostały zachowane przy ponownej wycenie.",
+    },
+    materialCostPln: aggregates.materialsPln,
+    laborCostPln: aggregates.laborPln,
+    equipmentCostPln: aggregates.equipmentPln,
+    directCostPln: aggregates.lineDirectPln,
+    lineTotalPln: aggregates.lineDirectPln,
+    aiConfidence: confidence,
   };
 }
 
@@ -345,7 +472,9 @@ function resolvePrice(
       labelPl: "Brak źródła ceny",
     },
     confidence: "low",
-    rationale: "Nie znaleziono ceny w dostępnych źródłach — komponent bez kwoty, wymaga uzupełnienia.",
+    rationale:
+      "Nie znaleziono ceny w Bibliotece Robót, stawkach kategorii, modelu firmy ani heurystyce. " +
+      "Uzupełnij cenę ręcznie albo dodaj pozycję do katalogu — bez tego koszt bezpośredni będzie zaniżony.",
   };
 }
 
@@ -631,9 +760,11 @@ export function applyOfferBoqPricing(
   ctx: OfferBoqPricingContext = {},
 ): OfferBoqDocument {
   const pricedAt = ctx.pricedAt ?? new Date().toISOString();
-  const lines = doc.lines.map((line) =>
-    priceOfferBoqLine(line, { ...ctx, pricedAt }),
-  );
+  const prevByLineId = new Map(doc.lines.map((l) => [l.lineId, l] as const));
+  const lines = doc.lines.map((line) => {
+    const priced = priceOfferBoqLine(line, { ...ctx, pricedAt });
+    return mergeOfferBoqLinePricingPreservingUserDecisions(prevByLineId.get(line.lineId), priced);
+  });
   const pricingStats = computeOfferBoqPricingStats(lines);
 
   let materials = 0;
@@ -691,7 +822,7 @@ export function applyOfferBoqPricing(
           ? "analyzed"
           : "mapped";
 
-  return {
+  const nextDoc: OfferBoqDocument = {
     ...doc,
     lines,
     totals,
@@ -702,6 +833,18 @@ export function applyOfferBoqPricing(
     buildStatus,
     version: doc.version + 1,
   };
+
+  // STAB-6 — lokalna telemetria (no-op bez localStorage)
+  try {
+    recordOfferBoqAiQualityTelemetry(nextDoc, {
+      tenderId: nextDoc.tenderId,
+      recordedAt: pricedAt,
+    });
+  } catch {
+    /* ignore */
+  }
+
+  return nextDoc;
 }
 
 /** Etykiety kategorii komponentów (UI / raporty). */

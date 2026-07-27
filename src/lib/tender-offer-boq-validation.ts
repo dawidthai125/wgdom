@@ -42,6 +42,11 @@ export interface OfferBoqValidationRecommendation {
   titlePl: string;
   detailPl: string;
   issueCode: OfferBoqValidationIssue["code"] | "quality_score";
+  /** STAB-01 — liczność problemów w grupie. */
+  occurrenceCount: number;
+  /** Przykładowe LP / opisy do rozwinięcia w UI. */
+  sampleLabelsPl: string[];
+  expandable: boolean;
 }
 
 export interface OfferBoqValidationCompleteness {
@@ -168,7 +173,13 @@ function pushLineIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine): voi
 function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine): void {
   const components = line.linePricing?.components ?? [];
   for (const c of components) {
-    if (c.unitPricePln == null || !(c.unitPricePln > 0) || c.totalPln == null || !(c.totalPln > 0)) {
+    const editStatus: OfferBoqComponentEditStatus = c.editStatus ?? "ai_proposal";
+    const userLocked = editStatus === "user_approved" || editStatus === "user_changed";
+
+    if (
+      !userLocked &&
+      (c.unitPricePln == null || !(c.unitPricePln > 0) || c.totalPln == null || !(c.totalPln > 0))
+    ) {
       pushIssue(out, {
         id: `component_unpriced:${line.lineId}:${c.componentId}`,
         severity: "critical",
@@ -180,7 +191,7 @@ function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine)
       });
     }
 
-    if (c.confidence === "low") {
+    if (!userLocked && c.confidence === "low") {
       pushIssue(out, {
         id: `component_low_confidence:${line.lineId}:${c.componentId}`,
         severity: "warning",
@@ -192,7 +203,8 @@ function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine)
       });
     }
 
-    if (c.requiresUserReview || (c.editStatus ?? "ai_proposal") === "ai_proposal") {
+    // STAB-01 — nie oznaczaj każdego ai_proposal; tylko realny requiresUserReview
+    if (!userLocked && c.requiresUserReview) {
       pushIssue(out, {
         id: `component_review_required:${line.lineId}:${c.componentId}`,
         severity: "warning",
@@ -200,7 +212,7 @@ function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine)
         lineId: line.lineId,
         componentId: c.componentId,
         titlePl: "Komponent wymaga weryfikacji",
-        detailPl: `Komponent „${c.namePl}” nie został jeszcze zatwierdzony przez użytkownika.`,
+        detailPl: `Komponent „${c.namePl}” wymaga weryfikacji użytkownika.`,
       });
     }
 
@@ -228,7 +240,7 @@ function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine)
       });
     }
 
-    if (!hasPriceSource(c)) {
+    if (!userLocked && !hasPriceSource(c)) {
       pushIssue(out, {
         id: `component_missing_price_source:${line.lineId}:${c.componentId}`,
         severity: "warning",
@@ -240,6 +252,100 @@ function pushComponentIssues(out: OfferBoqValidationIssue[], line: OfferBoqLine)
       });
     }
   }
+}
+
+const ISSUE_TITLE_PL: Record<OfferBoqValidationIssue["code"], string> = {
+  line_unrecognized: "Pozycje bez dopasowania katalogowego",
+  line_unclassified: "Pozycje bez klasyfikacji AI",
+  component_unpriced: "Komponenty bez ceny",
+  component_low_confidence: "Komponenty z niską pewnością",
+  component_review_required: "Komponenty wymagające weryfikacji",
+  component_quantity_inconsistent: "Niespójne ilości komponentów",
+  component_unit_inconsistent: "Brak jednostki komponentu",
+  component_missing_price_source: "Brak źródła wyceny",
+  line_not_priced: "Pozycje bez kosztu bezpośredniego",
+  bid_not_available: "Oferta końcowa niedostępna",
+};
+
+function sampleLabelFromIssue(issue: OfferBoqValidationIssue, doc: OfferBoqDocument): string {
+  if (!issue.lineId) return issue.detailPl.slice(0, 80);
+  const line = doc.lines.find((l) => l.lineId === issue.lineId);
+  if (!line) return issue.detailPl.slice(0, 80);
+  const desc = String(line.description || "").slice(0, 48);
+  return `LP ${line.lp}: ${desc}${desc.length >= 48 ? "…" : ""}`;
+}
+
+/**
+ * STAB-01 — grupuj podobne rekomendacje zamiast 1:1 na każdy issue.
+ */
+export function buildGroupedRecommendations(
+  issues: OfferBoqValidationIssue[],
+  doc: OfferBoqDocument,
+  qualityScore: number,
+): OfferBoqValidationRecommendation[] {
+  const byCode = new Map<OfferBoqValidationIssue["code"], OfferBoqValidationIssue[]>();
+  for (const issue of issues) {
+    const list = byCode.get(issue.code) ?? [];
+    list.push(issue);
+    byCode.set(issue.code, list);
+  }
+
+  const severityRank = (code: OfferBoqValidationIssue["code"]): number => {
+    const sample = byCode.get(code)?.[0];
+    if (!sample) return 9;
+    if (sample.severity === "critical") return 0;
+    if (sample.severity === "warning") return 1;
+    return 2;
+  };
+
+  const codes = Array.from(byCode.keys()).sort((a, b) => severityRank(a) - severityRank(b));
+  const recommendations: OfferBoqValidationRecommendation[] = [];
+
+  for (const code of codes) {
+    const group = byCode.get(code) ?? [];
+    if (!group.length) continue;
+    const count = group.length;
+    const priority = issuePriorityFromSeverity(group[0].severity);
+    const baseTitle = ISSUE_TITLE_PL[code] ?? group[0].titlePl;
+    const titlePl = count === 1 ? group[0].titlePl : `${baseTitle} — ${count} wystąpień`;
+    const samples = group.slice(0, 8).map((i) => sampleLabelFromIssue(i, doc));
+    recommendations.push({
+      id: `rec:group:${code}`,
+      priority,
+      titlePl,
+      detailPl:
+        count === 1
+          ? group[0].detailPl
+          : `Wykryto ${count} podobnych problemów. Rozwiń listę, aby zobaczyć przykłady (LP). Najpierw krytyczne / bez ceny.`,
+      issueCode: code,
+      occurrenceCount: count,
+      sampleLabelsPl: samples,
+      expandable: count > 1,
+    });
+  }
+
+  if (qualityScore < 75) {
+    recommendations.push({
+      id: "rec:quality_score",
+      priority: "high",
+      titlePl: "Wzmocnij jakość przed wysłaniem oferty",
+      detailPl: "Score AI Quality jest niski — priorytetowo usuń błędy krytyczne i pozycje bez cen.",
+      issueCode: "quality_score",
+      occurrenceCount: 1,
+      sampleLabelsPl: [],
+      expandable: false,
+    });
+  }
+
+  return recommendations;
+}
+
+function buildRecommendations(
+  issues: OfferBoqValidationIssue[],
+  qualityScore: number,
+  doc: OfferBoqDocument,
+): OfferBoqValidationRecommendation[] {
+  return buildGroupedRecommendations(issues, doc, qualityScore);
 }
 
 function dedupeIssues(issues: OfferBoqValidationIssue[]): OfferBoqValidationIssue[] {
@@ -256,12 +362,15 @@ function calcCompleteness(opts: {
 }): OfferBoqValidationCompleteness {
   const lineCount = Math.max(opts.doc.lines.length, 1);
   const recognized = opts.doc.lines.filter((l) => Boolean(l.catalogWorkId)).length;
-  const classified = opts.doc.lines.filter((l) => l.costIntelligence && l.costIntelligence.lineKind !== "Unknown").length;
+  const classified = opts.doc.lines.filter(
+    (l) => l.costIntelligence && l.costIntelligence.lineKind !== "Unknown",
+  ).length;
   const priced = opts.doc.lines.filter((l) => {
     const d = l.linePricing?.aggregates.lineDirectPln;
     return d != null && d > 0;
   }).length;
-  const passedToBid = opts.bidProposal?.ok && opts.bidProposal.recommendedBidPln != null ? lineCount : 0;
+  const passedToBid =
+    opts.bidProposal?.ok && opts.bidProposal.recommendedBidPln != null ? lineCount : 0;
 
   const recognizedPct = toPct(recognized, lineCount);
   const classifiedPct = toPct(classified, lineCount);
@@ -289,37 +398,11 @@ function countByEditStatus(
       componentCount += 1;
       const status: OfferBoqComponentEditStatus = c.editStatus ?? "ai_proposal";
       if (status === "user_changed") changedCount += 1;
-      if (c.requiresUserReview || status === "ai_proposal") reviewPendingCount += 1;
+      if (c.requiresUserReview && status === "ai_proposal") reviewPendingCount += 1;
     }
   }
 
   return { componentCount, changedCount, reviewPendingCount };
-}
-
-function buildRecommendations(
-  issues: OfferBoqValidationIssue[],
-  qualityScore: number,
-): OfferBoqValidationRecommendation[] {
-  const recommendations: OfferBoqValidationRecommendation[] = [];
-  for (const issue of issues) {
-    recommendations.push({
-      id: `rec:${issue.id}`,
-      priority: issuePriorityFromSeverity(issue.severity),
-      titlePl: issue.titlePl,
-      detailPl: issue.detailPl,
-      issueCode: issue.code,
-    });
-  }
-  if (qualityScore < 75) {
-    recommendations.push({
-      id: "rec:quality_score",
-      priority: "high",
-      titlePl: "Wzmocnij jakość przed wysłaniem oferty",
-      detailPl: "Score AI Quality jest niski — priorytetowo usuń błędy krytyczne i pozycje bez cen.",
-      issueCode: "quality_score",
-    });
-  }
-  return recommendations;
 }
 
 function buildStatus(opts: {
@@ -384,7 +467,8 @@ export function evaluateOfferBoqValidation(opts: {
   const manualPenalty = Math.min(20, toPct(edit.changedCount, componentCount) * 0.25);
   const lowConfidencePenalty = Math.min(18, toPct(lowCount, Math.max(opts.doc.lines.length, 1)) * 0.18);
   const unresolvedPenalty = Math.min(22, toPct(unpricedComponentCount, componentCount) * 0.22);
-  const issuePenalty = Math.min(26, criticalCount * 8 + warningCount * 2);
+  const issueGroupCount = new Set(uniqueIssues.map((i) => i.code)).size;
+  const issuePenalty = Math.min(26, criticalCount * 2 + issueGroupCount * 3);
 
   const rawScore =
     completeness.overallPct * 0.32
@@ -399,7 +483,7 @@ export function evaluateOfferBoqValidation(opts: {
     - issuePenalty;
   const qualityScore = Math.round(clampPct(rawScore));
 
-  const recommendations = buildRecommendations(uniqueIssues, qualityScore);
+  const recommendations = buildRecommendations(uniqueIssues, qualityScore, opts.doc);
   const status = buildStatus({
     criticalCount,
     warningCount,

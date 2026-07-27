@@ -248,6 +248,7 @@ function buildWhyAiDecision(opts: {
   strategyLabel: string;
   sources: string[];
   companyKnowledgeNotes: string[];
+  unpricedGapPl?: string | null;
 }): string {
   const parts: string[] = [];
   if (opts.ciRationale?.trim()) {
@@ -263,10 +264,34 @@ function buildWhyAiDecision(opts: {
   if (opts.pricingRationale?.trim() && opts.pricingRationale !== opts.ciRationale) {
     parts.push(opts.pricingRationale.trim());
   }
+  if (opts.unpricedGapPl?.trim()) {
+    parts.push(opts.unpricedGapPl.trim());
+  }
   if (opts.companyKnowledgeNotes.length) {
     parts.push(opts.companyKnowledgeNotes.join(" "));
   }
   return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
+function buildUnpricedExplainPl(line: {
+  catalogWorkId?: string | null;
+  linePricing?: { components?: Array<{ unitPricePln: number | null; totalPln: number | null; namePl: string; priceOrigin?: { kind: string; labelPl: string }; aiRationale?: string }> } | null;
+}): string | null {
+  const comps = line.linePricing?.components ?? [];
+  const unpriced = comps.filter(
+    (c) => c.unitPricePln == null || !(c.unitPricePln > 0) || c.totalPln == null,
+  );
+  if (!unpriced.length) return null;
+  const names = unpriced.slice(0, 3).map((c) => `„${c.namePl}”`).join(", ");
+  const why =
+    unpriced[0]?.aiRationale?.trim() ||
+    (unpriced[0]?.priceOrigin?.kind === "unknown"
+      ? "brak źródła ceny w katalogu / modelu firmy / heurystyce"
+      : "niepełna wycena komponentu");
+  const action = !line.catalogWorkId
+    ? "Dodaj dopasowanie w Bibliotece Robót albo uzupełnij cenę ręcznie."
+    : "Uzupełnij brakujące ceny komponentów ręcznie lub zatwierdź po weryfikacji.";
+  return `Brak pełnej wyceny (${unpriced.length} komp.: ${names}). Dlaczego: ${why}. Co zrobić: ${action}`;
 }
 
 function ancillaryFromStack(lines: TenderBidCostLine[]): number | null {
@@ -460,6 +485,7 @@ export function presentOfferBoqExplainabilityView(
         strategyLabel,
         sources: sourceLabels,
         companyKnowledgeNotes,
+        unpricedGapPl: buildUnpricedExplainPl(line),
       }),
       lineDirectDisplay: formatMoney(pricing?.aggregates.lineDirectPln ?? line.directCostPln),
       components: componentRows,

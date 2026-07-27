@@ -1,20 +1,43 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S7** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-01-STAB-01** · FIELD READY) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AI-COST-01-STAB-01 — Field Ready Stabilization — **RELEASE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RELEASE GO** · UI **2.65.61** · **FIELD READY** (RWAT po STAB: brak P0/P1) |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) |
+| **RWAT compare** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md) |
+| **IN** | ochrona edycji · grupowanie rekomendacji · klasyfikacja · pokrycie wyceny · explain unpriced · telemetria lokalna |
+| **OUT** | parsery · Bid Proposal rebuild · nowe funkcje AI-COST-02 · zewnętrzne ceny |
+| **Next** | po PV `version.json` **2.65.61** — kolejny EPIC **AI-COST-02** tylko na polecenie Ownera |
+
+---
+
+## ★ AI-COST-01 / RWAT-01 — Real World Acceptance Test — **COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RWAT-01 COMPLETE** · supersedowane przez STAB-01 (**FIELD READY**) |
+| **Raport** | [`docs/architecture/WGDOM-AI-COST-01-RWAT-01-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-RWAT-01-REPORT.md) |
+
+---
 
 ## ★ AI-COST-01 / COST-S7 — AI Validation & Offer Quality — **IMPLEMENT COMPLETE**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RELEASE GO** · **DEPLOY PROPAGATING** (`version.json` jeszcze **2.65.59** / **`9b3e101`** — oczekiwane **2.65.60** / **`1c84363`**) |
-| **Feature commit** | **`1c84363`** |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.60** / **`f5ba5ac`** · **EPIC COMPLETE** (+ STAB-01) |
+| **Feature commit** | **`f5ba5ac`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) |
 | **IN** | AI Validation Engine (RO) · kompletność % · AI Quality Score · rekomendacje z priorytetem · panel „Gotowość oferty” · explainability jakości |
 | **OUT** | zmiana parserów · zmiana Pricing Engine · przebudowa Bid Proposal · auto-naprawa danych · modyfikacja Kp/marży |
-| **Next** | Owner GO → kolejny slice AI-COST-01 (TBD) |
+| **Next** | superseded by STAB-01 |
 
 ---
 

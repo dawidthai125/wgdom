@@ -56,7 +56,7 @@ const STRATEGY_COMPONENTS: Record<OfferBoqPricingStrategyId, OfferBoqPricingComp
   finished_device: ["purchase", "installation", "commissioning"],
   measurement: ["labor", "measurement_equipment"],
   supply_and_install: ["purchase", "transport", "installation", "commissioning", "acceptance"],
-  individual_analysis: ["material", "labor", "purchase"],
+  individual_analysis: ["labor", "transport", "auxiliary_material"],
   complete_system_decompose: ["material", "labor", "purchase", "installation", "commissioning"],
   demolition: ["labor", "transport"],
   civil_works: ["material", "labor"],
@@ -109,6 +109,11 @@ interface ClassificationSignals {
   hasPaintSimple: boolean;
   hasLedLuminaire: boolean;
   hasIndividualHint: boolean;
+  hasCleaningPhrase: boolean;
+  hasProtectionPhrase: boolean;
+  hasAcceptancePhrase: boolean;
+  hasTestPhrase: boolean;
+  hasAsBuiltDocsPhrase: boolean;
 }
 
 function collectSignals(line: OfferBoqLine): ClassificationSignals {
@@ -146,6 +151,10 @@ function collectSignals(line: OfferBoqLine): ClassificationSignals {
       "protokol z pomiar",
       "badanie instalacji",
       "sprawdzenie rezystanc",
+      "sprawdzenie samoczynnego",
+      "sprawdzenie dzialania",
+      "sprawdzenie wyłączania",
+      "sprawdzenie wylaczania",
     ]),
     hasProgrammingPhrase: hayHasAny(hay, [
       "programowan",
@@ -190,6 +199,49 @@ function collectSignals(line: OfferBoqLine): ClassificationSignals {
       "dokumentacja powybuchowa",
       "indywidualn",
     ]),
+    // STAB-3 — RWAT P1 klasyfikacja
+    hasCleaningPhrase: hayHasAny(hay, [
+      "sprzatanie",
+      "prace porzadkowe",
+      "porzadkowanie",
+      "utrzymanie czystosci",
+      "zamiatanie",
+      "wywoz smieci",
+      "wywoz odpad",
+      "czyszczenie pomieszczen",
+    ]),
+    hasProtectionPhrase: hayHasAny(hay, [
+      "zabezpieczenie",
+      "zabezpieczen",
+      "oslony ochron",
+      "bariery ochron",
+      "tasma ostrzegawcza",
+      "ogrodzenie tymczasowe",
+    ]),
+    hasAcceptancePhrase: hayHasAny(hay, [
+      "odbior technicz",
+      "odbior koncow",
+      "odbiory",
+      "protokol odbioru",
+      "uczestnictwo w odbior",
+    ]),
+    hasTestPhrase: hayHasAny(hay, [
+      "proba dzialania",
+      "proby ruchowe",
+      "proba szczelnosci",
+      "proba cisnieniowa",
+      "nastepna proba",
+      "testowanie",
+      "testy odbior",
+    ]),
+    hasAsBuiltDocsPhrase: hayHasAny(hay, [
+      "dokumentacja powykonawcza",
+      "dokumentacja powykon",
+      "as-built",
+      "as built",
+      "inwentaryzacja powykon",
+      "rysunki powykonawcze",
+    ]),
   };
 }
 
@@ -199,6 +251,32 @@ function classifyLineKind(s: ClassificationSignals): {
   reasons: string[];
 } {
   const reasons: string[] = [];
+
+  // STAB-3 — priorytet nad błędnym matchowaniem katalogowym (RWAT sprzątanie→transport)
+  if (s.hasCleaningPhrase) {
+    reasons.push("opis wskazuje sprzątanie / prace porządkowe (robocizna + utylizacja/transport)");
+    return { kind: "Demolition", confidence: "high", reasons };
+  }
+
+  if (s.hasAsBuiltDocsPhrase) {
+    reasons.push("opis wskazuje dokumentację powykonawczą / as-built");
+    return { kind: "Programming", confidence: "high", reasons };
+  }
+
+  if (s.hasAcceptancePhrase) {
+    reasons.push("opis wskazuje odbiory / protokół odbioru");
+    return { kind: "Measurement", confidence: "high", reasons };
+  }
+
+  if (s.hasTestPhrase) {
+    reasons.push("opis wskazuje próby / testy odbiorowe");
+    return { kind: "Measurement", confidence: "high", reasons };
+  }
+
+  if (s.hasProtectionPhrase) {
+    reasons.push("opis wskazuje zabezpieczenia tymczasowe / ochronę");
+    return { kind: "CivilWorks", confidence: "medium", reasons };
+  }
 
   if (s.hasPaintSimple || s.hasLedLuminaire) {
     reasons.push(
@@ -214,7 +292,7 @@ function classifyLineKind(s: ClassificationSignals): {
   }
 
   if (s.hasMeasurementPhrase) {
-    reasons.push("opis wskazuje pomiary / badania");
+    reasons.push("opis wskazuje pomiary / badania / sprawdzenia");
     return { kind: "Measurement", confidence: "high", reasons };
   }
 
@@ -236,7 +314,7 @@ function classifyLineKind(s: ClassificationSignals): {
   if (s.hasSupplyAndInstallPhrase) {
     reasons.push("opis łączy dostawę i montaż");
     return {
-      kind: s.hasEquipmentPhrase ? "SupplyInstallation" : "SupplyInstallation",
+      kind: "SupplyInstallation",
       confidence: "high",
       reasons,
     };
@@ -292,7 +370,7 @@ function strategyForKind(kind: OfferBoqLineKind): OfferBoqPricingStrategyId {
     case "Measurement":
       return "measurement";
     case "Programming":
-      return "individual_analysis";
+      return "measurement";
     case "SupplyInstallation":
       return "supply_and_install";
     case "IndividualAnalysis":

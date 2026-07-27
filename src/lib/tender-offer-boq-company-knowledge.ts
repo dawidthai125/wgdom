@@ -186,14 +186,26 @@ export function findCompanyKnowledgeEntry(
 
   const nameKey = buildCompanyKnowledgeNameKey(opts.namePl);
   if (!nameKey) return null;
+  // STAB-01 — nie uogólniaj po nazwach generycznych („Materiał”, „Robocizna”)
+  const GENERIC_NAME_KEYS = new Set([
+    "material",
+    "robocizna",
+    "zakup",
+    "transport",
+    "materialy pomocnicze",
+    "montaz",
+    "uruchomienie",
+    "odbior",
+    "sprzet pomiarowy",
+  ]);
+  if (GENERIC_NAME_KEYS.has(nameKey)) return null;
+
   const unitKey = foldPolishText(opts.unit || "");
   const candidates = store.entries.filter(
     (e) =>
       e.category === opts.category &&
       foldPolishText(e.unit || "") === unitKey &&
-      (e.nameKey === nameKey ||
-        e.nameKey.includes(nameKey) ||
-        nameKey.includes(e.nameKey)),
+      e.nameKey === nameKey,
   );
   if (!candidates.length) return null;
   candidates.sort((a, b) => b.occurrenceCount - a.occurrenceCount);

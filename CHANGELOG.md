@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.61 — AI-COST-01-STAB-01 Field Ready Stabilization (2026-07-27)
+
+- **fix:** reprice zachowuje `user_approved` / `user_changed` (AI tylko `aiSuggested*`)
+- **improve:** rekomendacje walidacji grupowane z licznością + expand w UI
+- **fix:** klasyfikacja sprzątanie/odbiory/próby/dokumentacja/zabezpieczenia
+- **improve:** pokrycie wyceny (heurystyka materiału) · explainability braku ceny · telemetria lokalna
+- **RWAT:** unpriced 252→0 · rekomendacje ~2009→4 · Quality 8→41 · **FIELD READY** (kandydat)
+- **DF/RR:** `docs/architecture/WGDOM-AI-COST-01-STAB-01-*`
+
 ## 2.65.60 — AI-COST-01 / COST-S7 AI Validation & Offer Quality (2026-07-27)
 
 - **new:** `tender-offer-boq-validation.ts` — silnik walidacji jakości (read-only): braki wyceny, low confidence, review pending, niespójności ilości/jednostek/źródła, kompletność pipeline

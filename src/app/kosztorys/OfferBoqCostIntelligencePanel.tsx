@@ -20,6 +20,7 @@ import {
   type OfferBoqOfferReadinessSection,
   type OfferBoqOfferSummarySection,
 } from "@/lib/tender-offer-boq-explainability";
+import type { OfferBoqValidationRecommendation } from "@/lib/tender-offer-boq-validation";
 import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
@@ -240,6 +241,45 @@ function OfferReadinessSection({ section }: { section: OfferBoqOfferReadinessSec
   );
 }
 
+function RecommendationGroupRow({ rec }: { rec: OfferBoqValidationRecommendation }) {
+  const [open, setOpen] = useState(false);
+  const priorityLabel =
+    rec.priority === "high" ? "Wysoki" : rec.priority === "medium" ? "Średni" : "Niski";
+  return (
+    <li className="rounded-md border border-border/70 bg-background/70 px-2 py-1.5">
+      <button
+        type="button"
+        className="w-full text-left"
+        onClick={() => rec.expandable && setOpen((v) => !v)}
+        data-offer-boq-rec-group={rec.issueCode}
+        aria-expanded={rec.expandable ? open : undefined}
+      >
+        <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground flex items-center gap-1`}>
+          {rec.expandable ? (
+            open ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          ) : null}
+          [{priorityLabel}] {rec.titlePl}
+          {rec.occurrenceCount > 1 ? (
+            <span className={`${TEUX_FONT_META} text-muted-foreground font-normal`}>
+              ({rec.occurrenceCount})
+            </span>
+          ) : null}
+        </p>
+        <p className={`${TEUX_FONT_META} text-muted-foreground`}>{rec.detailPl}</p>
+      </button>
+      {open && rec.sampleLabelsPl.length > 0 ? (
+        <ul className="mt-1.5 space-y-0.5 border-t border-border/50 pt-1.5" data-offer-boq-rec-samples>
+          {rec.sampleLabelsPl.map((label, idx) => (
+            <li key={`${rec.id}-s-${idx}`} className={`${TEUX_FONT_META} text-muted-foreground`}>
+              • {label}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
 function AiQualitySection({ section }: { section: OfferBoqAiQualitySection }) {
   if (!section.available) return null;
   return (
@@ -298,16 +338,11 @@ function AiQualitySection({ section }: { section: OfferBoqAiQualitySection }) {
       {section.recommendations.length > 0 ? (
         <div className="space-y-1.5" data-offer-boq-recommendations>
           <p className={`${TEUX_FONT_META} font-semibold uppercase tracking-wide text-muted-foreground`}>
-            Rekomendacje przed wysłaniem
+            Rekomendacje przed wysłaniem ({section.recommendations.length} grup)
           </p>
           <ul className="space-y-1">
             {section.recommendations.map((rec) => (
-              <li key={rec.id} className="rounded-md border border-border/70 bg-background/70 px-2 py-1.5">
-                <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
-                  [{rec.priority === "high" ? "Wysoki" : rec.priority === "medium" ? "Średni" : "Niski"}] {rec.titlePl}
-                </p>
-                <p className={`${TEUX_FONT_META} text-muted-foreground`}>{rec.detailPl}</p>
-              </li>
+              <RecommendationGroupRow key={rec.id} rec={rec} />
             ))}
           </ul>
         </div>

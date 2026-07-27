@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.61",
+    label: "AI-COST-01-STAB-01 — stabilizacja Field Ready",
+    items: [
+      {
+        type: "fix",
+        text: "Ponowna wycena AI nie nadpisuje zatwierdzonych ani ręcznie zmienionych komponentów — decyzja użytkownika ma pierwszeństwo (sugestia AI osobno).",
+      },
+      {
+        type: "improve",
+        text: "Rekomendacje jakości oferty są grupowane z licznością (np. „Brak dopasowania — 128 wystąpień”) zamiast tysięcy pojedynczych pozycji.",
+      },
+      {
+        type: "fix",
+        text: "Lepsza klasyfikacja: sprzątanie/porządki, zabezpieczenia, odbiory, próby, dokumentacja powykonawcza oraz sprawdzenia.",
+      },
+      {
+        type: "improve",
+        text: "Większe pokrycie propozycji wyceny (heurystyki domenowe) + jasne wyjaśnienie braku ceny i lokalna telemetria jakości AI.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.60",
     label: "AI-COST-01 / COST-S7 — walidacja jakości oferty",
     items: [

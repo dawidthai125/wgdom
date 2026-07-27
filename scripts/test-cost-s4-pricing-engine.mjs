@@ -136,10 +136,16 @@ const onlyHeuristic = priceOfferBoqLine(analyzed.lines[0], {
   pricedAt: FIXED_AT,
 });
 assert.ok(onlyHeuristic.linePricing.components.length >= 1);
-// material/labor bez heurystyki → null OK
+// STAB-01 / STAB-4 — heurystyka domenowa wycenia materiał (niska pewność); labor nadal bez ceny w samym heuristic
 const mat = onlyHeuristic.linePricing.components.find((c) => c.category === "material");
 if (mat) {
-  assert.equal(mat.priceOrigin.kind === "unknown" || mat.unitPricePln == null, true);
+  assert.equal(mat.priceOrigin.kind, "heuristic_estimate");
+  assert.ok(mat.unitPricePln != null && mat.unitPricePln > 0);
+  assert.equal(mat.confidence, "low");
+}
+const laborOnlyH = onlyHeuristic.linePricing.components.find((c) => c.category === "labor");
+if (laborOnlyH) {
+  assert.equal(laborOnlyH.unitPricePln == null || laborOnlyH.priceOrigin.kind === "unknown", true);
 }
 
 console.log("COST-S4 Pricing Engine tests: PASS");
