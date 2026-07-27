@@ -131,6 +131,7 @@ export type OfferBoqPriceOriginKind =
   | "company_model"
   | "category_rate"
   | "heuristic_estimate"
+  | "company_knowledge"
   | "external_future"
   | "unknown";
 
@@ -175,6 +176,17 @@ export interface OfferBoqPricedComponent {
   editStatus?: OfferBoqComponentEditStatus;
   /** COST-S5 — historia decyzji użytkownika. */
   changeHistory?: OfferBoqComponentChangeRecord[];
+  /** COST-S5.1 — wpływ firmowej bazy wiedzy na wycenę. */
+  companyKnowledgeHint?: OfferBoqCompanyKnowledgeHint;
+}
+
+/** COST-S5.1 — transparentność użycia wiedzy firmy. */
+export interface OfferBoqCompanyKnowledgeHint {
+  used: boolean;
+  entryId: string;
+  occurrenceCount: number;
+  lastUsedAt: string | null;
+  confidenceBoosted: boolean;
 }
 
 export interface OfferBoqUserEditStats {

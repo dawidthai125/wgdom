@@ -18,6 +18,7 @@ import {
   type OfferBoqUserEditStats,
 } from "@/lib/tender-offer-boq";
 import { aggregateOfferBoqPricedComponents } from "@/lib/tender-offer-boq-pricing-engine";
+import { learnFromOfferBoqComponentDecision } from "@/lib/tender-offer-boq-company-knowledge";
 
 export const OFFER_BOQ_COMPONENT_EDIT_STATUS_LABELS_PL: Record<OfferBoqComponentEditStatus, string> = {
   ai_proposal: "Propozycja AI",
@@ -30,11 +31,10 @@ export const OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL: Record<OfferBoqPriceOriginKi
   company_model: "Model kosztów firmy",
   category_rate: "Stawka kategorii",
   heuristic_estimate: "Heurystyka / szacunek",
+  company_knowledge: "Wiedza firmy (kosztorysy)",
   external_future: "Przyszła integracja",
   unknown: "Nieznane / ręczne",
 };
-
-// OfferBoqPriceOriginKind — bez "manual"; ręczna korekta = unknown + label.
 
 function roundPln(n: number): number {
   if (!Number.isFinite(n)) return 0;
@@ -227,6 +227,7 @@ function appendHistory(
 
 /**
  * Patch komponentu + natychmiastowe przeliczenie pozycji i dokumentu.
+ * Przy zmianie zapisuje wiedzę firmy (COST-S5.1).
  */
 export function patchOfferBoqComponentInDocument(
   doc: OfferBoqDocument,
@@ -235,6 +236,10 @@ export function patchOfferBoqComponentInDocument(
   patch: OfferBoqComponentPatch,
   changedAt = new Date().toISOString(),
 ): OfferBoqDocument {
+  let learned: OfferBoqPricedComponent | null = null;
+  let learnedFromAi = false;
+  let learnedFields: string[] = [];
+
   const lines = doc.lines.map((line) => {
     if (line.lineId !== lineId || !line.linePricing) return line;
     const components = line.linePricing.components.map((raw) => {
@@ -243,6 +248,7 @@ export function patchOfferBoqComponentInDocument(
 
       let history = [...(c.changeHistory ?? [])];
       let next: OfferBoqPricedComponent = { ...c };
+      const histBefore = history.length;
 
       if (patch.namePl !== undefined && patch.namePl !== c.namePl) {
         history = appendHistory(history, "namePl", c.namePl, patch.namePl, changedAt);
@@ -284,9 +290,8 @@ export function patchOfferBoqComponentInDocument(
           labelPl:
             patch.priceOriginLabelPl ??
             (patch.priceOriginKind
-              ? (OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL as Record<string, string>)[
-                  patch.priceOriginKind
-                ] ?? c.priceOrigin.labelPl
+              ? OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL[patch.priceOriginKind] ??
+                c.priceOrigin.labelPl
               : c.priceOrigin.labelPl),
         };
         if (
@@ -298,13 +303,16 @@ export function patchOfferBoqComponentInDocument(
         }
       }
 
-      const touched = history.length > (c.changeHistory?.length ?? 0);
+      const touched = history.length > histBefore;
       next.changeHistory = history;
       if (touched) {
         next.editStatus = "user_changed";
         if (patch.requiresUserReview === undefined) {
           next.requiresUserReview = false;
         }
+        learned = recomputeComponentTotal(next);
+        learnedFromAi = (c.editStatus ?? "ai_proposal") === "ai_proposal";
+        learnedFields = history.slice(histBefore).map((h) => h.field);
       }
       return next;
     });
@@ -313,7 +321,19 @@ export function patchOfferBoqComponentInDocument(
     return syncLineMoneyFields(line, pricing);
   });
 
-  return rollupDocumentTotals(doc, lines);
+  const nextDoc = rollupDocumentTotals(doc, lines);
+  if (learned) {
+    learnFromOfferBoqComponentDecision({
+      component: learned,
+      decision: "changed",
+      fromAi: learnedFromAi,
+      fieldsChanged: learnedFields,
+      tenderId: doc.tenderId,
+      lineId,
+      observedAt: changedAt,
+    });
+  }
+  return nextDoc;
 }
 
 /** Zatwierdzenie komponentu bez zmiany wartości. */
@@ -323,12 +343,16 @@ export function approveOfferBoqComponentInDocument(
   componentId: string,
   changedAt = new Date().toISOString(),
 ): OfferBoqDocument {
+  let approvedComp: OfferBoqPricedComponent | null = null;
+  let fromAi = false;
+
   const lines = doc.lines.map((line) => {
     if (line.lineId !== lineId || !line.linePricing) return line;
     const components = line.linePricing.components.map((raw) => {
       const c = normalizeOfferBoqPricedComponent(raw);
       if (c.componentId !== componentId) return c;
       if (c.editStatus === "user_approved") return c;
+      fromAi = (c.editStatus ?? "ai_proposal") === "ai_proposal";
       const history = appendHistory(
         c.changeHistory ?? [],
         "editStatus",
@@ -336,15 +360,29 @@ export function approveOfferBoqComponentInDocument(
         "user_approved",
         changedAt,
       );
-      return {
+      const next = {
         ...c,
         editStatus: "user_approved" as const,
         requiresUserReview: false,
         changeHistory: history,
       };
+      approvedComp = next;
+      return next;
     });
     const pricing = rebuildLinePricing(line, components, changedAt);
     return syncLineMoneyFields(line, pricing);
   });
-  return rollupDocumentTotals(doc, lines);
+  const nextDoc = rollupDocumentTotals(doc, lines);
+  if (approvedComp) {
+    learnFromOfferBoqComponentDecision({
+      component: approvedComp,
+      decision: "approved",
+      fromAi,
+      fieldsChanged: ["editStatus"],
+      tenderId: doc.tenderId,
+      lineId,
+      observedAt: changedAt,
+    });
+  }
+  return nextDoc;
 }

@@ -20,6 +20,11 @@ import {
   normalizeOfferBoqDocumentForEdit,
   OFFER_BOQ_COMPONENT_EDIT_STATUS_LABELS_PL,
 } from "@/lib/tender-offer-boq-component-edit";
+import {
+  countCompanyKnowledgeHits,
+  createCompanyKnowledgePriceProvider,
+  loadCompanyKnowledgeStoreLocal,
+} from "@/lib/tender-offer-boq-company-knowledge";
 
 /** Status wizualny pewności — mapowanie z istniejącego confidence (+ review). */
 export type OfferBoqExplainConfidenceStatus = "high" | "review" | "low";
@@ -50,6 +55,12 @@ export interface OfferBoqExplainComponentRow {
   editStatus: OfferBoqComponentEditStatus;
   editStatusLabelPl: string;
   changeHistoryCount: number;
+  /** COST-S5.1 */
+  companyKnowledgeUsed: boolean;
+  companyKnowledgeOccurrenceCount: number;
+  companyKnowledgeLastUsedAt: string | null;
+  companyKnowledgeConfidenceBoosted: boolean;
+  companyKnowledgeExplainPl: string | null;
 }
 
 export interface OfferBoqExplainLineCard {
@@ -87,6 +98,8 @@ export interface OfferBoqExplainSummary {
   approvedCount: number;
   changedCount: number;
   aiOnlyCount: number;
+  /** COST-S5.1 — ile komponentów w tym dokumencie skorzystało z wiedzy firmy. */
+  companyKnowledgeHitCount: number;
 }
 
 export interface OfferBoqExplainabilityView {
@@ -136,12 +149,34 @@ function averageConfidenceFromCounts(
   return "low";
 }
 
+function buildCompanyKnowledgeExplainPl(opts: {
+  used: boolean;
+  occurrenceCount: number;
+  lastUsedAt: string | null;
+  confidenceBoosted: boolean;
+}): string | null {
+  if (!opts.used) return null;
+  const last =
+    opts.lastUsedAt && opts.lastUsedAt.length >= 10
+      ? opts.lastUsedAt.slice(0, 10)
+      : null;
+  return (
+    `Wykorzystano wiedzę firmy` +
+    ` · podobne przypadki: ${opts.occurrenceCount}` +
+    (last ? ` · ostatnie użycie: ${last}` : "") +
+    (opts.confidenceBoosted
+      ? " · wpływ: podniesiono poziom pewności"
+      : " · wpływ: dopasowanie bez podniesienia pewności")
+  );
+}
+
 function buildWhyAiDecision(opts: {
   ciRationale: string | null | undefined;
   pricingRationale: string | null | undefined;
   kindLabel: string;
   strategyLabel: string;
   sources: string[];
+  companyKnowledgeNotes: string[];
 }): string {
   const parts: string[] = [];
   if (opts.ciRationale?.trim()) {
@@ -156,6 +191,9 @@ function buildWhyAiDecision(opts: {
   }
   if (opts.pricingRationale?.trim() && opts.pricingRationale !== opts.ciRationale) {
     parts.push(opts.pricingRationale.trim());
+  }
+  if (opts.companyKnowledgeNotes.length) {
+    parts.push(opts.companyKnowledgeNotes.join(" "));
   }
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
@@ -189,6 +227,12 @@ export function presentOfferBoqExplainabilityView(
 
     const componentRows: OfferBoqExplainComponentRow[] = comps.map((c) => {
       const editStatus = c.editStatus ?? "ai_proposal";
+      const hint = c.companyKnowledgeHint;
+      const used =
+        Boolean(hint?.used) || c.priceOrigin.kind === "company_knowledge";
+      const occurrenceCount = hint?.occurrenceCount ?? (used ? 1 : 0);
+      const lastUsedAt = hint?.lastUsedAt ?? null;
+      const confidenceBoosted = Boolean(hint?.confidenceBoosted);
       return {
         componentId: c.componentId,
         namePl: c.namePl,
@@ -211,11 +255,24 @@ export function presentOfferBoqExplainabilityView(
         editStatus,
         editStatusLabelPl: OFFER_BOQ_COMPONENT_EDIT_STATUS_LABELS_PL[editStatus],
         changeHistoryCount: c.changeHistory?.length ?? 0,
+        companyKnowledgeUsed: used,
+        companyKnowledgeOccurrenceCount: occurrenceCount,
+        companyKnowledgeLastUsedAt: lastUsedAt,
+        companyKnowledgeConfidenceBoosted: confidenceBoosted,
+        companyKnowledgeExplainPl: buildCompanyKnowledgeExplainPl({
+          used,
+          occurrenceCount,
+          lastUsedAt,
+          confidenceBoosted,
+        }),
       };
     });
 
     const kindLabel = ci?.lineKindLabelPl ?? "Nieznany";
     const strategyLabel = ci?.pricingStrategyLabelPl ?? "Do ustalenia";
+    const companyKnowledgeNotes = componentRows
+      .map((r) => r.companyKnowledgeExplainPl)
+      .filter((x): x is string => Boolean(x));
 
     return {
       lineId: line.lineId,
@@ -239,6 +296,7 @@ export function presentOfferBoqExplainabilityView(
         kindLabel,
         strategyLabel,
         sources: sourceLabels,
+        companyKnowledgeNotes,
       }),
       lineDirectDisplay: formatMoney(pricing?.aggregates.lineDirectPln ?? line.directCostPln),
       components: componentRows,
@@ -275,6 +333,7 @@ export function presentOfferBoqExplainabilityView(
     approvedCount: editStats.approvedCount,
     changedCount: editStats.changedCount,
     aiOnlyCount: editStats.aiOnlyCount,
+    companyKnowledgeHitCount: countCompanyKnowledgeHits(normalized),
   };
 
   return {
@@ -328,11 +387,13 @@ export function buildOfferBoqExplainabilityView(opts: {
     analyzedAt: builtAt,
     documentContext: snapshot.sourceFilename,
   });
+  const knowledgeStore = loadCompanyKnowledgeStoreLocal();
   doc = applyOfferBoqPricing(doc, {
     works,
     costModel: profile.costModel,
     pricedAt: builtAt,
     documentContext: snapshot.sourceFilename,
+    leadingProviders: [createCompanyKnowledgePriceProvider(knowledgeStore)],
   });
 
   return presentOfferBoqExplainabilityView(doc, builtAt);

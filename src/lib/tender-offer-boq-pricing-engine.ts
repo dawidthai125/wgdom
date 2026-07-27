@@ -51,6 +51,13 @@ export interface OfferBoqPriceLookupResult {
   origin: OfferBoqPriceOrigin;
   confidence: OfferBoqConfidence;
   rationale: string;
+  /** COST-S5.1 — meta wiedzy firmy (opcjonalne). */
+  companyKnowledge?: {
+    entryId: string;
+    occurrenceCount: number;
+    lastUsedAt: string | null;
+    confidenceBoosted: boolean;
+  };
 }
 
 /** Interfejs źródła ceny — rozszerzalny (katalog, model firmy, przyszłe feedy). */
@@ -65,7 +72,9 @@ export interface OfferBoqPricingContext {
   works?: CatalogWork[];
   costCatalog?: WgdomCostCatalog;
   costModel?: TenderCompanyCostModel;
-  /** Dodatkowe / zamienne providery (po domyślnych lub zamiast). */
+  /** Providery przed domyślnymi (np. wiedza firmy) — nie zastępują łańcucha. */
+  leadingProviders?: OfferBoqPriceSourceProvider[];
+  /** Dodatkowe providery po domyślnych. */
   providers?: OfferBoqPriceSourceProvider[];
   /** Gdy true — użyj tylko `providers` (bez domyślnego łańcucha). */
   replaceDefaultProviders?: boolean;
@@ -432,7 +441,11 @@ export function priceOfferBoqLine(
   const costModel = ctx.costModel ?? defaultCostModelFromPayroll();
   const providers = ctx.replaceDefaultProviders
     ? (ctx.providers ?? [])
-    : [...buildDefaultPriceProviders({ works, costCatalog, costModel }), ...(ctx.providers ?? [])];
+    : [
+        ...(ctx.leadingProviders ?? []),
+        ...buildDefaultPriceProviders({ works, costCatalog, costModel }),
+        ...(ctx.providers ?? []),
+      ];
 
   const specs = buildComponentSpecs(line);
   const components: OfferBoqPricedComponent[] = specs.map((spec, index) => {
@@ -457,6 +470,24 @@ export function priceOfferBoqLine(
       lookup.origin.kind === "heuristic_estimate" ||
       lookup.origin.kind === "unknown";
 
+    const companyKnowledgeHint = lookup.companyKnowledge
+      ? {
+          used: true,
+          entryId: lookup.companyKnowledge.entryId,
+          occurrenceCount: lookup.companyKnowledge.occurrenceCount,
+          lastUsedAt: lookup.companyKnowledge.lastUsedAt,
+          confidenceBoosted: lookup.companyKnowledge.confidenceBoosted,
+        }
+      : lookup.origin.kind === "company_knowledge"
+        ? {
+            used: true,
+            entryId: lookup.origin.refId ?? "",
+            occurrenceCount: 1,
+            lastUsedAt: null as string | null,
+            confidenceBoosted: lookup.confidence !== "low",
+          }
+        : undefined;
+
     return {
       componentId: `pc_${line.lineId}_${index}_${spec.category}`,
       namePl: spec.namePl,
@@ -471,6 +502,7 @@ export function priceOfferBoqLine(
       requiresUserReview,
       fromDecompositionElementId: spec.fromDecompositionElementId,
       pricingComponentKind: spec.pricingComponentKind,
+      companyKnowledgeHint,
     };
   });
 

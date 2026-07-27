@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.58",
+    label: "AI-COST-01 / COST-S5.1 — wiedza firmy",
+    items: [
+      {
+        type: "new",
+        text: "AI Kosztorysant — lokalna baza wiedzy firmy z zatwierdzeń i korekt komponentów; AI wykorzystuje ją przy kolejnych wycenach jako dodatkowe źródło.",
+      },
+      {
+        type: "improve",
+        text: "Explainability: wpływ wiedzy firmy (podobne przypadki, data, pewność). Panel statystyk RO. Bez Kp/marży/oferty (prep COST-S6).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.57",
     label: "AI-COST-01 / COST-S5 — edycja komponentów",
     items: [

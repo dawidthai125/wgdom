@@ -1,5 +1,5 @@
 /**
- * COST-S5 — panel AI Cost Intelligence z edycją komponentów wyceny.
+ * COST-S5 / S5.1 — panel AI Cost Intelligence: edycja komponentów + wiedza firmy.
  * Edycja tylko komponentów · natychmiastowe przeliczenie lineDirect · bez Kp/marży/oferty.
  */
 
@@ -22,6 +22,11 @@ import {
   patchOfferBoqComponentInDocument,
 } from "@/lib/tender-offer-boq-component-edit";
 import { OFFER_BOQ_PRICED_CATEGORY_LABELS_PL } from "@/lib/tender-offer-boq-pricing-engine";
+import {
+  computeCompanyKnowledgeStats,
+  loadCompanyKnowledgeStoreLocal,
+  type CompanyKnowledgeStats,
+} from "@/lib/tender-offer-boq-company-knowledge";
 
 const CATEGORY_OPTIONS = Object.keys(OFFER_BOQ_PRICED_CATEGORY_LABELS_PL) as OfferBoqPricedComponentCategory[];
 const ORIGIN_OPTIONS = Object.keys(OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL) as OfferBoqPriceOriginKind[];
@@ -108,6 +113,14 @@ function EditableComponentCard({
         {component.changeHistoryCount > 0 ? (
           <span className={`${TEUX_FONT_META} text-muted-foreground`}>
             Historia: {component.changeHistoryCount}
+          </span>
+        ) : null}
+        {component.companyKnowledgeUsed ? (
+          <span
+            className={`${TEUX_FONT_META} rounded-md border border-teal-500/30 bg-teal-500/10 px-2 py-0.5 text-teal-900 dark:text-teal-200`}
+            data-offer-boq-company-knowledge
+          >
+            Wiedza firmy · {component.companyKnowledgeOccurrenceCount}×
           </span>
         ) : null}
         <button
@@ -235,6 +248,14 @@ function EditableComponentCard({
       </div>
 
       <p className={`${TEUX_FONT_META} text-muted-foreground`}>{component.aiRationale}</p>
+      {component.companyKnowledgeExplainPl ? (
+        <p
+          className={`${TEUX_FONT_CAPTION} text-teal-900 dark:text-teal-200`}
+          data-offer-boq-company-knowledge-explain
+        >
+          {component.companyKnowledgeExplainPl}
+        </p>
+      ) : null}
     </li>
   );
 }
@@ -360,6 +381,7 @@ export function OfferBoqCostIntelligencePanel({
   );
   const [doc, setDoc] = useState<OfferBoqDocument | null>(null);
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
+  const [knowledgeRevision, setKnowledgeRevision] = useState(0);
 
   useEffect(() => {
     setDoc(baseline.document);
@@ -372,6 +394,11 @@ export function OfferBoqCostIntelligencePanel({
     return presentOfferBoqExplainabilityView(doc, baseline.builtAt);
   }, [baseline, doc]);
 
+  const knowledgeStats: CompanyKnowledgeStats = useMemo(
+    () => computeCompanyKnowledgeStats(loadCompanyKnowledgeStoreLocal()),
+    [knowledgeRevision, doc, item.id],
+  );
+
   const handlePatch = (
     lineId: string,
     componentId: string,
@@ -381,6 +408,7 @@ export function OfferBoqCostIntelligencePanel({
       if (!prev) return prev;
       return patchOfferBoqComponentInDocument(prev, lineId, componentId, patch);
     });
+    setKnowledgeRevision((n) => n + 1);
   };
 
   const handleApprove = (lineId: string, componentId: string) => {
@@ -388,6 +416,7 @@ export function OfferBoqCostIntelligencePanel({
       if (!prev) return prev;
       return approveOfferBoqComponentInDocument(prev, lineId, componentId);
     });
+    setKnowledgeRevision((n) => n + 1);
   };
 
   if (!view.available || !view.summary) {
@@ -435,6 +464,59 @@ export function OfferBoqCostIntelligencePanel({
           sub={`${s.averageConfidenceBadge.emoji} ${s.averageConfidenceLabelPl}`}
         />
       </div>
+
+      <section
+        className="rounded-lg border border-border bg-background/60 p-3 space-y-2"
+        data-offer-boq-company-knowledge-stats
+      >
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+          Baza wiedzy firmy (tylko odczyt)
+        </h3>
+        <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+          Lokalna wiedza z zatwierdzeń i korekt — bez synchronizacji chmurowej. W tym kosztorysie
+          wiedza firmy użyta w {s.companyKnowledgeHitCount} komponentach.
+        </p>
+        <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+          <SummaryKpi label="Zapisane komponenty" value={String(knowledgeStats.entryCount)} />
+          <SummaryKpi
+            label="Potwierdzone przez użytkownika"
+            value={String(knowledgeStats.userConfirmedEntryCount)}
+          />
+          <SummaryKpi
+            label="Zgodność AI ↔ użytkownik"
+            value={
+              knowledgeStats.aiUserAgreementPct == null
+                ? "—"
+                : `${knowledgeStats.aiUserAgreementPct}%`
+            }
+            sub="zatwierdzenia / decyzje"
+          />
+          <SummaryKpi
+            label="Obserwacje"
+            value={String(knowledgeStats.observationCount)}
+            sub={`zatw. ${knowledgeStats.approvedObservationCount} · zm. ${knowledgeStats.changedObservationCount}`}
+          />
+        </div>
+        {knowledgeStats.topMaterials.length > 0 ? (
+          <div className="space-y-1">
+            <p className={`${TEUX_FONT_META} font-semibold text-muted-foreground uppercase tracking-wide`}>
+              Najczęściej wykorzystywane materiały
+            </p>
+            <ul className={`${TEUX_FONT_CAPTION} text-foreground space-y-0.5`}>
+              {knowledgeStats.topMaterials.map((m) => (
+                <li key={`${m.namePl}-${m.category}`}>
+                  {m.namePl}{" "}
+                  <span className="text-muted-foreground">({m.occurrenceCount}×)</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+            Brak zapisanych materiałów — zatwierdź lub skoryguj komponenty, aby budować wiedzę.
+          </p>
+        )}
+      </section>
 
       <div className="space-y-2" data-offer-boq-lines>
         <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>

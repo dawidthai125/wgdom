@@ -1,10 +1,24 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S5** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S5.1** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S5 — Editable Cost Estimate — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S5.1 — AI Learning & Company Knowledge — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **READY FOR PV** · UI **2.65.58** (po push / `version.json`) |
+| **Feature commit** | *(po push)* |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5.1-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) |
+| **IN** | store wiedzy · uczenie z decyzji · provider `company_knowledge` · explainability · panel stats RO · prep S6 |
+| **OUT** | Kp · marża · oferta · przebudowa Pricing Engine · integracje zewnętrzne · parsery |
+| **Next** | Owner GO → **COST-S6** (Kp + marża + Bid Proposal REUSE + wiedza firmy) |
+
+---
+
+## ★ AI-COST-01 / COST-S5 — Editable Cost Estimate — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
@@ -14,7 +28,7 @@
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md) |
 | **IN** | edycja komponentów · status · historia · recompute lineDirect · summary ingerencji |
 | **OUT** | Kp · marża · oferta · przebudowa Pricing Engine · nowy kalkulator |
-| **Next** | Owner GO → **COST-S6** (Kp + marża + Bid Proposal REUSE) |
+| **Next** | superseded by COST-S5.1 |
 
 ---
 
