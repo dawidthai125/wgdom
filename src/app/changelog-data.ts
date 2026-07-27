@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.56",
+    label: "AI-COST-01 / COST-S4.1 — Explainability RO",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Kosztorys — panel AI Cost Intelligence (tylko odczyt): typ, strategia, komponenty wyceny, źródła, pewność 🟢🟡🔴 oraz uzasadnienie „Dlaczego AI…”.",
+      },
+      {
+        type: "improve",
+        text: "Podsumowanie zbiorcze (pozycje, weryfikacja, dekompozycja, koszt bezpośredni). Bez edycji, bez Kp/marży/oferty. Silniki S3/S4 bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.55",
     label: "AI-COST-01 / COST-S4 — AI Pricing Engine",
     items: [

@@ -30,6 +30,7 @@ import {
 } from "@/lib/tender-kosztorys-pro-dashboard";
 import { buildKosztorysBoqExplorerView } from "@/lib/tender-kosztorys-boq-explorer";
 import { KosztorysBoqExplorerSection } from "@/app/kosztorys/KosztorysBoqExplorerSection";
+import { OfferBoqCostIntelligencePanel } from "@/app/kosztorys/OfferBoqCostIntelligencePanel";
 import { TenderBoqTableSkeleton } from "@/app/tenders/loading/TenderBoqTableSkeleton";
 import {
   TenderDesktopTable,
@@ -360,6 +361,13 @@ export function TenderKosztorysWorkspace({
           </p>
           <KosztorysTopCostTable rows={pro.topRows} />
         </section>
+      )}
+
+      {(pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0) && (
+        <OfferBoqCostIntelligencePanel
+          item={item}
+          pricingCatalogRevision={pricingCatalogRevision}
+        />
       )}
 
       {pro.hasCatalog && (

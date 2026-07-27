@@ -1,10 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S4** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S4.1** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S4 — AI Pricing Engine — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S4.1 — Explainability + RO UI — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.56** · PV po deploy |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md) |
+| **IN** | panel RO AI Cost Intelligence · summary · accordion pozycji · komponenty · 🟢🟡🔴 · „Dlaczego AI…” |
+| **OUT** | edycja · przebudowa silników · Kp/marża/oferta · parsery |
+| **Next** | Owner GO → **COST-S5** (kalibracja) / edycja komponentów / **S6** (Kp+marża+oferta) |
+
+---
+
+## ★ AI-COST-01 / COST-S4 — AI Pricing Engine — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
@@ -13,8 +26,8 @@
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4-RELEASE-REPORT.md) |
 | **IN** | komponenty wyceny · providery multi-source · agregacja lineDirect · bez Kp/marży/oferty |
-| **OUT** | scraping · UI panel (deferred) · Bid Proposal · Pricing/Autonomous · parsery |
-| **Next** | Owner GO → **COST-S5** (kalibracja źródeł) / **S4.1** (panel RO) / **S6** (Kp+marża+oferta) |
+| **OUT** | scraping · UI panel (superseded by S4.1) · Bid Proposal · Pricing/Autonomous · parsery |
+| **Next** | superseded by COST-S4.1 |
 
 ---
 
