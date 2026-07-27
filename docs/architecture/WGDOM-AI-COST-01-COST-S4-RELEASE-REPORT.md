@@ -2,9 +2,10 @@
 
 > **ID:** COST-S4  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **GOTOWY DO PV**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.55**  
+> **Commit:** **`b321867`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md)  
 > **Prior:** COST-S3 `2.65.54` @ `61b7590`  
 > **Język:** polski
@@ -73,7 +74,7 @@ Panel komponentów wyceny **ODŁOŻONY** (ryzyko regresji BOQ Explorer) → **CO
 | Architektura wielu źródeł | **PASS** |
 | Transparentność (źródło / rationale / confidence / review) | **PASS** |
 | Bez Kp / marży / oferty | **PASS** |
-| RR PL · commit · push · tip | **po domknięciu** |
+| RR PL · commit · push · tip | **PASS** · `b321867` |
 
 ---
 

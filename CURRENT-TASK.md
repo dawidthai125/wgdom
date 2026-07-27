@@ -8,7 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.55** · PV po deploy |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.55** / **`b321867`** |
+| **Feature commit** | **`b321867`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4-RELEASE-REPORT.md) |
 | **IN** | komponenty wyceny · providery multi-source · agregacja lineDirect · bez Kp/marży/oferty |
