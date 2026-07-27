@@ -11,7 +11,7 @@ import type {
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
 
 /** Wersja schematu OfferBoq — bump przy breaking change. */
-export const OFFER_BOQ_SCHEMA_VERSION = 4;
+export const OFFER_BOQ_SCHEMA_VERSION = 5;
 
 export type OfferBoqMatchMethod =
   | "exact_knr"
@@ -142,6 +142,20 @@ export interface OfferBoqPriceOrigin {
   externalProviderId?: string;
 }
 
+/** COST-S5 — status współpracy użytkownika z propozycją AI. */
+export type OfferBoqComponentEditStatus =
+  | "ai_proposal"
+  | "user_approved"
+  | "user_changed";
+
+/** COST-S5 — wpis historii zmian komponentu (append-only, prep audytu). */
+export interface OfferBoqComponentChangeRecord {
+  field: string;
+  previousValue: string;
+  nextValue: string;
+  changedAt: string;
+}
+
 /** COST-S4 — pojedynczy komponent wyceny pozycji. */
 export interface OfferBoqPricedComponent {
   componentId: string;
@@ -157,6 +171,17 @@ export interface OfferBoqPricedComponent {
   requiresUserReview: boolean;
   fromDecompositionElementId?: string;
   pricingComponentKind?: OfferBoqPricingComponent;
+  /** COST-S5 — domyślnie ai_proposal. */
+  editStatus?: OfferBoqComponentEditStatus;
+  /** COST-S5 — historia decyzji użytkownika. */
+  changeHistory?: OfferBoqComponentChangeRecord[];
+}
+
+export interface OfferBoqUserEditStats {
+  componentCount: number;
+  aiOnlyCount: number;
+  approvedCount: number;
+  changedCount: number;
 }
 
 export interface OfferBoqLinePricingAggregates {
@@ -342,6 +367,8 @@ export interface OfferBoqDocument {
   /** Statystyki wyceny COST-S4. */
   pricingStats: OfferBoqPricingStats | null;
   pricingAppliedAt: string | null;
+  /** Statystyki ingerencji użytkownika COST-S5. */
+  userEditStats: OfferBoqUserEditStats | null;
   warnings: string[];
 }
 
@@ -619,6 +646,7 @@ export function buildOfferBoqFromSnapshot(opts: {
     costIntelligenceAppliedAt: null,
     pricingStats: null,
     pricingAppliedAt: null,
+    userEditStats: null,
     warnings: docWarnings,
   };
 }

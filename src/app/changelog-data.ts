@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.57",
+    label: "AI-COST-01 / COST-S5 — edycja komponentów",
+    items: [
+      {
+        type: "new",
+        text: "Przetargi → Kosztorys — edycja komponentów wyceny AI: ilość, cena, kategoria, źródło, zatwierdzenie; natychmiastowe przeliczenie kosztu bezpośredniego pozycji.",
+      },
+      {
+        type: "improve",
+        text: "Status Propozycja AI / Zatwierdzony / Zmieniony + historia zmian. Panel summary: zaakceptowane · zmienione · tylko AI. Bez Kp, marży i ceny ofertowej (prep COST-S6).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.56",
     label: "AI-COST-01 / COST-S4.1 — Explainability RO",
     items: [

@@ -8,13 +8,18 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
-import { buildOfferBoqFromSnapshot, type OfferBoqConfidence, type OfferBoqDocument } from "@/lib/tender-offer-boq";
+import { buildOfferBoqFromSnapshot, type OfferBoqConfidence, type OfferBoqDocument, type OfferBoqComponentEditStatus } from "@/lib/tender-offer-boq";
 import { mapOfferBoqDocument } from "@/lib/tender-offer-boq-mapping";
 import { applyOfferBoqCostIntelligence } from "@/lib/tender-offer-boq-cost-intelligence";
 import {
   applyOfferBoqPricing,
   OFFER_BOQ_PRICED_CATEGORY_LABELS_PL,
 } from "@/lib/tender-offer-boq-pricing-engine";
+import {
+  computeOfferBoqUserEditStats,
+  normalizeOfferBoqDocumentForEdit,
+  OFFER_BOQ_COMPONENT_EDIT_STATUS_LABELS_PL,
+} from "@/lib/tender-offer-boq-component-edit";
 
 /** Status wizualny pewności — mapowanie z istniejącego confidence (+ review). */
 export type OfferBoqExplainConfidenceStatus = "high" | "review" | "low";
@@ -28,16 +33,23 @@ export interface OfferBoqExplainConfidenceBadge {
 export interface OfferBoqExplainComponentRow {
   componentId: string;
   namePl: string;
+  category: string;
   categoryLabelPl: string;
+  quantity: number;
   quantityDisplay: string;
   unit: string;
+  unitPricePln: number | null;
   unitPriceDisplay: string;
   totalDisplay: string;
+  sourceKind: string;
   sourceLabelPl: string;
   confidenceBadge: OfferBoqExplainConfidenceBadge;
   aiRationale: string;
   requiresUserReview: boolean;
   reviewLabelPl: string;
+  editStatus: OfferBoqComponentEditStatus;
+  editStatusLabelPl: string;
+  changeHistoryCount: number;
 }
 
 export interface OfferBoqExplainLineCard {
@@ -71,6 +83,10 @@ export interface OfferBoqExplainSummary {
   highCount: number;
   mediumCount: number;
   lowCount: number;
+  /** COST-S5 */
+  approvedCount: number;
+  changedCount: number;
+  aiOnlyCount: number;
 }
 
 export interface OfferBoqExplainabilityView {
@@ -145,6 +161,133 @@ function buildWhyAiDecision(opts: {
 }
 
 /**
+ * Prezentacja istniejącego dokumentu OfferBoq (po AI lub po edycji użytkownika).
+ */
+export function presentOfferBoqExplainabilityView(
+  doc: OfferBoqDocument,
+  builtAt?: string,
+): OfferBoqExplainabilityView {
+  const at = builtAt ?? doc.builtAt;
+  const normalized = normalizeOfferBoqDocumentForEdit(doc);
+  const editStats =
+    normalized.userEditStats ?? computeOfferBoqUserEditStats(normalized);
+
+  const lines: OfferBoqExplainLineCard[] = normalized.lines.map((line) => {
+    const ci = line.costIntelligence;
+    const pricing = line.linePricing;
+    const comps = pricing?.components ?? [];
+    const requiresReview =
+      comps.some((c) => c.requiresUserReview) ||
+      pricing?.confidence === "low" ||
+      pricing?.confidence === "medium" ||
+      ci?.confidence === "low" ||
+      ci?.confidence === "medium";
+    const lineConf = pricing?.confidence ?? ci?.confidence ?? "low";
+    const sourceLabels = Array.from(
+      new Set(comps.map((c) => c.priceOrigin.labelPl).filter(Boolean)),
+    );
+
+    const componentRows: OfferBoqExplainComponentRow[] = comps.map((c) => {
+      const editStatus = c.editStatus ?? "ai_proposal";
+      return {
+        componentId: c.componentId,
+        namePl: c.namePl,
+        category: c.category,
+        categoryLabelPl: OFFER_BOQ_PRICED_CATEGORY_LABELS_PL[c.category] ?? c.category,
+        quantity: c.quantity,
+        quantityDisplay: formatQty(c.quantity),
+        unit: c.unit || "—",
+        unitPricePln: c.unitPricePln,
+        unitPriceDisplay: formatMoney(c.unitPricePln),
+        totalDisplay: formatMoney(c.totalPln),
+        sourceKind: c.priceOrigin.kind,
+        sourceLabelPl: c.priceOrigin.labelPl,
+        confidenceBadge: resolveOfferBoqExplainConfidenceBadge(c.confidence, c.requiresUserReview),
+        aiRationale: c.aiRationale,
+        requiresUserReview: c.requiresUserReview,
+        reviewLabelPl: c.requiresUserReview
+          ? "Wymaga weryfikacji użytkownika"
+          : "Bez pilnej weryfikacji",
+        editStatus,
+        editStatusLabelPl: OFFER_BOQ_COMPONENT_EDIT_STATUS_LABELS_PL[editStatus],
+        changeHistoryCount: c.changeHistory?.length ?? 0,
+      };
+    });
+
+    const kindLabel = ci?.lineKindLabelPl ?? "Nieznany";
+    const strategyLabel = ci?.pricingStrategyLabelPl ?? "Do ustalenia";
+
+    return {
+      lineId: line.lineId,
+      lp: line.lp,
+      description: line.description,
+      lineKindLabelPl: kindLabel,
+      pricingStrategyLabelPl: strategyLabel,
+      requiresDecomposition: ci?.requiresDecomposition ?? false,
+      decompositionLabelPl: ci?.requiresDecomposition
+        ? `Tak — ${ci.decompositionElements.length} elementów`
+        : "Nie — jedna pozycja",
+      decompositionElementCount: ci?.decompositionElements.length ?? 0,
+      componentCount: comps.length,
+      confidenceBadge: resolveOfferBoqExplainConfidenceBadge(lineConf, requiresReview),
+      sourceLabelsPl: sourceLabels,
+      requiresUserReview: requiresReview,
+      reviewLabelPl: requiresReview ? "Wymaga weryfikacji użytkownika" : "Bez pilnej weryfikacji",
+      whyAiDecisionPl: buildWhyAiDecision({
+        ciRationale: ci?.aiRationale,
+        pricingRationale: pricing?.aiRationale ?? line.aiRationale,
+        kindLabel,
+        strategyLabel,
+        sources: sourceLabels,
+      }),
+      lineDirectDisplay: formatMoney(pricing?.aggregates.lineDirectPln ?? line.directCostPln),
+      components: componentRows,
+    };
+  });
+
+  const reviewRequiredCount = lines.filter((l) => l.requiresUserReview).length;
+  const recognizedCount = lines.filter(
+    (l) => l.lineKindLabelPl !== "Nieznany / do weryfikacji" && l.lineKindLabelPl !== "Nieznany",
+  ).length;
+  const decomposedCount =
+    normalized.costIntelligenceStats?.decomposedCount ??
+    lines.filter((l) => l.requiresDecomposition).length;
+  const high = normalized.pricingStats?.highCount ?? 0;
+  const medium = normalized.pricingStats?.mediumCount ?? 0;
+  const low = normalized.pricingStats?.lowCount ?? 0;
+  const avgConf = averageConfidenceFromCounts(high, medium, low);
+  const avgBadge = resolveOfferBoqExplainConfidenceBadge(avgConf, reviewRequiredCount > 0);
+
+  const summary: OfferBoqExplainSummary = {
+    lineCount: lines.length,
+    recognizedCount,
+    reviewRequiredCount,
+    decomposedCount,
+    averageConfidenceLabelPl: avgBadge.labelPl,
+    averageConfidenceBadge: avgBadge,
+    directCostDisplay: formatMoney(
+      normalized.totals.directPln ?? normalized.totals.costPricePln,
+    ),
+    pricedComponentCount: normalized.pricingStats?.pricedComponentCount ?? 0,
+    highCount: high,
+    mediumCount: medium,
+    lowCount: low,
+    approvedCount: editStats.approvedCount,
+    changedCount: editStats.changedCount,
+    aiOnlyCount: editStats.aiOnlyCount,
+  };
+
+  return {
+    available: true,
+    emptyReasonPl: null,
+    summary,
+    lines,
+    document: normalized,
+    builtAt: at,
+  };
+}
+
+/**
  * Buduje widok Explainability ze snapshotu dossier (call-only silniki S1–S4).
  */
 export function buildOfferBoqExplainabilityView(opts: {
@@ -192,97 +335,5 @@ export function buildOfferBoqExplainabilityView(opts: {
     documentContext: snapshot.sourceFilename,
   });
 
-  const lines: OfferBoqExplainLineCard[] = doc.lines.map((line) => {
-    const ci = line.costIntelligence;
-    const pricing = line.linePricing;
-    const comps = pricing?.components ?? [];
-    const requiresReview =
-      comps.some((c) => c.requiresUserReview) ||
-      (pricing?.confidence === "low" || pricing?.confidence === "medium") ||
-      (ci?.confidence === "low" || ci?.confidence === "medium");
-    const lineConf = pricing?.confidence ?? ci?.confidence ?? "low";
-    const sourceLabels = Array.from(
-      new Set(comps.map((c) => c.priceOrigin.labelPl).filter(Boolean)),
-    );
-
-    const componentRows: OfferBoqExplainComponentRow[] = comps.map((c) => ({
-      componentId: c.componentId,
-      namePl: c.namePl,
-      categoryLabelPl: OFFER_BOQ_PRICED_CATEGORY_LABELS_PL[c.category] ?? c.category,
-      quantityDisplay: formatQty(c.quantity),
-      unit: c.unit || "—",
-      unitPriceDisplay: formatMoney(c.unitPricePln),
-      totalDisplay: formatMoney(c.totalPln),
-      sourceLabelPl: c.priceOrigin.labelPl,
-      confidenceBadge: resolveOfferBoqExplainConfidenceBadge(c.confidence, c.requiresUserReview),
-      aiRationale: c.aiRationale,
-      requiresUserReview: c.requiresUserReview,
-      reviewLabelPl: c.requiresUserReview ? "Wymaga weryfikacji użytkownika" : "Bez pilnej weryfikacji",
-    }));
-
-    const kindLabel = ci?.lineKindLabelPl ?? "Nieznany";
-    const strategyLabel = ci?.pricingStrategyLabelPl ?? "Do ustalenia";
-
-    return {
-      lineId: line.lineId,
-      lp: line.lp,
-      description: line.description,
-      lineKindLabelPl: kindLabel,
-      pricingStrategyLabelPl: strategyLabel,
-      requiresDecomposition: ci?.requiresDecomposition ?? false,
-      decompositionLabelPl: ci?.requiresDecomposition
-        ? `Tak — ${ci.decompositionElements.length} elementów`
-        : "Nie — jedna pozycja",
-      decompositionElementCount: ci?.decompositionElements.length ?? 0,
-      componentCount: comps.length,
-      confidenceBadge: resolveOfferBoqExplainConfidenceBadge(lineConf, requiresReview),
-      sourceLabelsPl: sourceLabels,
-      requiresUserReview: requiresReview,
-      reviewLabelPl: requiresReview ? "Wymaga weryfikacji użytkownika" : "Bez pilnej weryfikacji",
-      whyAiDecisionPl: buildWhyAiDecision({
-        ciRationale: ci?.aiRationale,
-        pricingRationale: pricing?.aiRationale ?? line.aiRationale,
-        kindLabel,
-        strategyLabel,
-        sources: sourceLabels,
-      }),
-      lineDirectDisplay: formatMoney(pricing?.aggregates.lineDirectPln ?? line.directCostPln),
-      components: componentRows,
-    };
-  });
-
-  const reviewRequiredCount = lines.filter((l) => l.requiresUserReview).length;
-  const recognizedCount = lines.filter(
-    (l) => l.lineKindLabelPl !== "Nieznany / do weryfikacji" && l.lineKindLabelPl !== "Nieznany",
-  ).length;
-  const decomposedCount = doc.costIntelligenceStats?.decomposedCount ??
-    lines.filter((l) => l.requiresDecomposition).length;
-  const high = doc.pricingStats?.highCount ?? 0;
-  const medium = doc.pricingStats?.mediumCount ?? 0;
-  const low = doc.pricingStats?.lowCount ?? 0;
-  const avgConf = averageConfidenceFromCounts(high, medium, low);
-  const avgBadge = resolveOfferBoqExplainConfidenceBadge(avgConf, reviewRequiredCount > 0);
-
-  const summary: OfferBoqExplainSummary = {
-    lineCount: lines.length,
-    recognizedCount,
-    reviewRequiredCount,
-    decomposedCount,
-    averageConfidenceLabelPl: avgBadge.labelPl,
-    averageConfidenceBadge: avgBadge,
-    directCostDisplay: formatMoney(doc.totals.directPln ?? doc.totals.costPricePln),
-    pricedComponentCount: doc.pricingStats?.pricedComponentCount ?? 0,
-    highCount: high,
-    mediumCount: medium,
-    lowCount: low,
-  };
-
-  return {
-    available: true,
-    emptyReasonPl: null,
-    summary,
-    lines,
-    document: doc,
-    builtAt,
-  };
+  return presentOfferBoqExplainabilityView(doc, builtAt);
 }

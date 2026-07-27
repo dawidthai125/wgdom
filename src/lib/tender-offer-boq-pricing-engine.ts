@@ -405,6 +405,13 @@ function aggregateComponents(components: OfferBoqPricedComponent[]): OfferBoqLin
   };
 }
 
+/** REUSE COST-S5 — agregacja komponentów bez przebudowy silnika wyceny. */
+export function aggregateOfferBoqPricedComponents(
+  components: OfferBoqPricedComponent[],
+): OfferBoqLinePricingAggregates {
+  return aggregateComponents(components);
+}
+
 function overallConfidence(components: OfferBoqPricedComponent[]): OfferBoqConfidence {
   if (components.length === 0) return "low";
   if (components.every((c) => c.confidence === "high")) return "high";
@@ -658,6 +665,7 @@ export function applyOfferBoqPricing(
     totals,
     pricingStats,
     pricingAppliedAt: pricedAt,
+    userEditStats: null,
     recomputeToken: computeOfferBoqRecomputeToken(lines),
     buildStatus,
     version: doc.version + 1,

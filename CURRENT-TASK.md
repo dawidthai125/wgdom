@@ -1,10 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S4.1** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S5** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S4.1 — Explainability + RO UI — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S5 — Editable Cost Estimate — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.57** · PV po deploy |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md) |
+| **IN** | edycja komponentów · status · historia · recompute lineDirect · summary ingerencji |
+| **OUT** | Kp · marża · oferta · przebudowa Pricing Engine · nowy kalkulator |
+| **Next** | Owner GO → **COST-S6** (Kp + marża + Bid Proposal REUSE) |
+
+---
+
+## ★ AI-COST-01 / COST-S4.1 — Explainability + RO UI — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
@@ -13,8 +26,8 @@
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S4.1-RELEASE-REPORT.md) |
 | **IN** | panel RO AI Cost Intelligence · summary · accordion pozycji · komponenty · 🟢🟡🔴 · „Dlaczego AI…” |
-| **OUT** | edycja · przebudowa silników · Kp/marża/oferta · parsery |
-| **Next** | Owner GO → **COST-S5** (kalibracja) / edycja komponentów / **S6** (Kp+marża+oferta) |
+| **OUT** | edycja (superseded by S5) · przebudowa silników · Kp/marża/oferta · parsery |
+| **Next** | superseded by COST-S5 |
 
 ---
 
