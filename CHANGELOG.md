@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.62 — AI-COST-02 / COST-02-A Modele cenowe (2026-07-27)
+
+- **new:** `tender-offer-boq-controlled-price-source.ts` — provider `controlled_market` z odczytu Work Catalog `marketQuotes` (region · aktualność · confidence)
+- **improve:** leadingProviders: CK + controlled market · badge UI · explainability RO
+- **reuse:** Bid Proposal / S6 bez zmian · zero Kp/marży w AI-COST · zero scrapingu · zero Cloud Sync
+- **DF:** `docs/architecture/WGDOM-AI-COST-02-COST-02-A-DESIGN-FREEZE.md`
+
 ## 2.65.61 — AI-COST-01-STAB-01 Field Ready Stabilization (2026-07-27)
 
 - **fix:** reprice zachowuje `user_approved` / `user_changed` (AI tylko `aiSuggested*`)

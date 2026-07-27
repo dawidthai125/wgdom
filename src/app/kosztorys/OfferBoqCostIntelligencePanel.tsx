@@ -396,6 +396,18 @@ function EditableComponentCard({
             Wiedza firmy · {component.companyKnowledgeOccurrenceCount}×
           </span>
         ) : null}
+        {component.controlledMarketUsed ? (
+          <span
+            className={`${TEUX_FONT_META} rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-900 dark:text-sky-200`}
+            data-offer-boq-controlled-market
+            title={component.controlledMarketExplainPl ?? undefined}
+          >
+            Benchmark rynkowy
+            {component.controlledMarketRegionLabelPl
+              ? ` · ${component.controlledMarketRegionLabelPl}`
+              : ""}
+          </span>
+        ) : null}
         <button
           type="button"
           className="ml-auto inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300"

@@ -33,6 +33,7 @@ export const OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL: Record<OfferBoqPriceOriginKi
   heuristic_estimate: "Heurystyka / szacunek",
   company_knowledge: "Wiedza firmy (kosztorysy)",
   external_future: "Przyszła integracja",
+  controlled_market: "Kontrolowany benchmark rynkowy",
   unknown: "Nieznane / ręczne",
 };
 

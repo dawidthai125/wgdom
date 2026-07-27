@@ -25,6 +25,8 @@ import {
   createCompanyKnowledgePriceProvider,
   loadCompanyKnowledgeStoreLocal,
 } from "@/lib/tender-offer-boq-company-knowledge";
+import { createControlledMarketPriceProvider } from "@/lib/tender-offer-boq-controlled-price-source";
+import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import {
   integrateOfferBoqWithBidProposal,
   type OfferBoqBidAuditStep,
@@ -75,6 +77,12 @@ export interface OfferBoqExplainComponentRow {
   companyKnowledgeLastUsedAt: string | null;
   companyKnowledgeConfidenceBoosted: boolean;
   companyKnowledgeExplainPl: string | null;
+  /** COST-02-A */
+  controlledMarketUsed: boolean;
+  controlledMarketRegionLabelPl: string | null;
+  controlledMarketAsOf: string | null;
+  controlledMarketOriginCount: number;
+  controlledMarketExplainPl: string | null;
 }
 
 export interface OfferBoqExplainLineCard {
@@ -238,6 +246,25 @@ function buildCompanyKnowledgeExplainPl(opts: {
     (opts.confidenceBoosted
       ? " · wpływ: podniesiono poziom pewności"
       : " · wpływ: dopasowanie bez podniesienia pewności")
+  );
+}
+
+function buildControlledMarketExplainPl(opts: {
+  used: boolean;
+  regionLabelPl: string | null;
+  asOf: string | null;
+  originCount: number;
+  legacyFallbackUsed: boolean;
+}): string | null {
+  if (!opts.used) return null;
+  const asOf =
+    opts.asOf && opts.asOf.length >= 10 ? opts.asOf.slice(0, 10) : null;
+  return (
+    `Kontrolowany benchmark rynkowy (marketQuotes, odczyt)` +
+    (opts.regionLabelPl ? ` · region: ${opts.regionLabelPl}` : "") +
+    (asOf ? ` · aktualność: ${asOf}` : "") +
+    ` · źródeł: ${opts.originCount}` +
+    (opts.legacyFallbackUsed ? " · uwaga: legacy seed — weryfikacja" : "")
   );
 }
 
@@ -421,6 +448,15 @@ export function presentOfferBoqExplainabilityView(
       const occurrenceCount = hint?.occurrenceCount ?? (used ? 1 : 0);
       const lastUsedAt = hint?.lastUsedAt ?? null;
       const confidenceBoosted = Boolean(hint?.confidenceBoosted);
+      const marketHint = c.controlledMarketHint;
+      const marketUsed =
+        Boolean(marketHint?.used) || c.priceOrigin.kind === "controlled_market";
+      const marketRegion =
+        marketHint?.regionLabelPl ??
+        (c.priceOrigin.regionCode ? String(c.priceOrigin.regionCode) : null);
+      const marketAsOf = marketHint?.asOf ?? c.priceOrigin.asOf ?? null;
+      const marketOriginCount = marketHint?.originCount ?? (marketUsed ? 1 : 0);
+      const marketLegacy = Boolean(marketHint?.legacyFallbackUsed);
       return {
         componentId: c.componentId,
         namePl: c.namePl,
@@ -452,6 +488,17 @@ export function presentOfferBoqExplainabilityView(
           occurrenceCount,
           lastUsedAt,
           confidenceBoosted,
+        }),
+        controlledMarketUsed: marketUsed,
+        controlledMarketRegionLabelPl: marketRegion,
+        controlledMarketAsOf: marketAsOf,
+        controlledMarketOriginCount: marketOriginCount,
+        controlledMarketExplainPl: buildControlledMarketExplainPl({
+          used: marketUsed,
+          regionLabelPl: marketRegion,
+          asOf: marketAsOf,
+          originCount: marketOriginCount,
+          legacyFallbackUsed: marketLegacy,
         }),
       };
     });
@@ -615,12 +662,20 @@ export function buildOfferBoqExplainabilityView(opts: {
     documentContext: snapshot.sourceFilename,
   });
   const knowledgeStore = loadCompanyKnowledgeStoreLocal();
+  const hourly = fullyLoadedHourly(profile.costModel);
   doc = applyOfferBoqPricing(doc, {
     works,
     costModel: profile.costModel,
     pricedAt: builtAt,
     documentContext: snapshot.sourceFilename,
-    leadingProviders: [createCompanyKnowledgePriceProvider(knowledgeStore)],
+    leadingProviders: [
+      createCompanyKnowledgePriceProvider(knowledgeStore),
+      createControlledMarketPriceProvider(works, {
+        hourlyPln: hourly,
+        startRegionCode: store.activeRegion,
+        computedAtIso: builtAt,
+      }),
+    ],
   });
 
   return presentOfferBoqExplainabilityView(doc, builtAt, { item: opts.item });

@@ -59,6 +59,15 @@ export interface OfferBoqPriceLookupResult {
     lastUsedAt: string | null;
     confidenceBoosted: boolean;
   };
+  /** COST-02-A — meta kontrolowanego benchmarku (opcjonalne). */
+  controlledMarket?: {
+    workId: string;
+    regionCode: string | null;
+    regionLabelPl: string | null;
+    asOf: string | null;
+    originCount: number;
+    legacyFallbackUsed: boolean;
+  };
 }
 
 /** Interfejs źródła ceny — rozszerzalny (katalog, model firmy, przyszłe feedy). */
@@ -400,6 +409,7 @@ export function mergeOfferBoqLinePricingPreservingUserDecisions(
       editStatus: prev.editStatus,
       changeHistory: prev.changeHistory ? [...prev.changeHistory] : [],
       companyKnowledgeHint: prev.companyKnowledgeHint ?? aiComp.companyKnowledgeHint,
+      controlledMarketHint: prev.controlledMarketHint ?? aiComp.controlledMarketHint,
       aiSuggestedUnitPricePln: aiComp.unitPricePln,
       aiSuggestedRationale: aiComp.aiRationale,
     };
@@ -597,7 +607,9 @@ export function priceOfferBoqLine(
       lookup.confidence === "low" ||
       unitPricePln == null ||
       lookup.origin.kind === "heuristic_estimate" ||
-      lookup.origin.kind === "unknown";
+      lookup.origin.kind === "unknown" ||
+      (lookup.origin.kind === "controlled_market" &&
+        (lookup.confidence === "low" || Boolean(lookup.controlledMarket?.legacyFallbackUsed)));
 
     const companyKnowledgeHint = lookup.companyKnowledge
       ? {
@@ -617,6 +629,28 @@ export function priceOfferBoqLine(
           }
         : undefined;
 
+    const controlledMarketHint = lookup.controlledMarket
+      ? {
+          used: true,
+          workId: lookup.controlledMarket.workId,
+          regionCode: lookup.controlledMarket.regionCode,
+          regionLabelPl: lookup.controlledMarket.regionLabelPl,
+          asOf: lookup.controlledMarket.asOf,
+          originCount: lookup.controlledMarket.originCount,
+          legacyFallbackUsed: lookup.controlledMarket.legacyFallbackUsed,
+        }
+      : lookup.origin.kind === "controlled_market"
+        ? {
+            used: true,
+            workId: lookup.origin.refId ?? "",
+            regionCode: lookup.origin.regionCode ?? null,
+            regionLabelPl: null as string | null,
+            asOf: lookup.origin.asOf ?? null,
+            originCount: 1,
+            legacyFallbackUsed: false,
+          }
+        : undefined;
+
     return {
       componentId: `pc_${line.lineId}_${index}_${spec.category}`,
       namePl: spec.namePl,
@@ -632,6 +666,7 @@ export function priceOfferBoqLine(
       fromDecompositionElementId: spec.fromDecompositionElementId,
       pricingComponentKind: spec.pricingComponentKind,
       companyKnowledgeHint,
+      controlledMarketHint,
     };
   });
 

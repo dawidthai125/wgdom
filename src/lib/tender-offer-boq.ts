@@ -133,6 +133,8 @@ export type OfferBoqPriceOriginKind =
   | "heuristic_estimate"
   | "company_knowledge"
   | "external_future"
+  /** COST-02-A — kontrolowany benchmark z Work Catalog `marketQuotes` (odczyt). */
+  | "controlled_market"
   | "unknown";
 
 export interface OfferBoqPriceOrigin {
@@ -141,6 +143,10 @@ export interface OfferBoqPriceOrigin {
   labelPl: string;
   /** Miejsce na przyszłe oficjalne integracje (bez scrapingu). */
   externalProviderId?: string;
+  /** COST-02-A — region benchmarku (gdy dostępny). */
+  regionCode?: string;
+  /** COST-02-A — aktualność źródła (ISO), gdy dostępna. */
+  asOf?: string;
 }
 
 /** COST-S5 — status współpracy użytkownika z propozycją AI. */
@@ -178,6 +184,8 @@ export interface OfferBoqPricedComponent {
   changeHistory?: OfferBoqComponentChangeRecord[];
   /** COST-S5.1 — wpływ firmowej bazy wiedzy na wycenę. */
   companyKnowledgeHint?: OfferBoqCompanyKnowledgeHint;
+  /** COST-02-A — transparentność kontrolowanego benchmarku rynkowego. */
+  controlledMarketHint?: OfferBoqControlledMarketHint;
   /**
    * STAB-01 — propozycja AI po reprice, gdy obowiązuje decyzja użytkownika.
    * Nie zmienia unitPricePln / totalPln — użytkownik decyduje o przyjęciu.
@@ -193,6 +201,17 @@ export interface OfferBoqCompanyKnowledgeHint {
   occurrenceCount: number;
   lastUsedAt: string | null;
   confidenceBoosted: boolean;
+}
+
+/** COST-02-A — transparentność kontrolowanego źródła cen (marketQuotes). */
+export interface OfferBoqControlledMarketHint {
+  used: boolean;
+  workId: string;
+  regionCode: string | null;
+  regionLabelPl: string | null;
+  asOf: string | null;
+  originCount: number;
+  legacyFallbackUsed: boolean;
 }
 
 export interface OfferBoqUserEditStats {

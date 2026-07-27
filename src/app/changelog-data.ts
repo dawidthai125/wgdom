@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.62",
+    label: "AI-COST-02 / COST-02-A — modele cenowe (kontrolowany benchmark)",
+    items: [
+      {
+        type: "new",
+        text: "Kontrolowane źródło cen rynkowych w wycenie AI (marketQuotes Biblioteki Robót, tylko odczyt) — region i aktualność widoczne przy komponencie.",
+      },
+      {
+        type: "improve",
+        text: "Badge „Benchmark rynkowy” w panelu kosztorysu — bez scrapingu i bez zmiany kalkulatora oferty (Kp/marża nadal w Bid Proposal).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.61",
     label: "AI-COST-01-STAB-01 — stabilizacja Field Ready",
     items: [
