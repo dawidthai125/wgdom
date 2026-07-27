@@ -1,20 +1,34 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**COST-S6** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S7** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S6 — Bid Proposal Integration — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S7 — AI Validation & Offer Quality — **IMPLEMENT COMPLETE**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RELEASE GO** · **DEPLOY PROPAGATING** (`version.json` jeszcze **2.65.58** — oczekiwane **2.65.59** / **`754c997`**) |
+| **Status** | **RELEASE GO** · **READY FOR PV** (po push) · UI **2.65.60** |
+| **Feature commit** | *(po push)* |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) |
+| **IN** | AI Validation Engine (RO) · kompletność % · AI Quality Score · rekomendacje z priorytetem · panel „Gotowość oferty” · explainability jakości |
+| **OUT** | zmiana parserów · zmiana Pricing Engine · przebudowa Bid Proposal · auto-naprawa danych · modyfikacja Kp/marży |
+| **Next** | Owner GO → kolejny slice AI-COST-01 (TBD) |
+
+---
+
+## ★ AI-COST-01 / COST-S6 — Bid Proposal Integration — **PRODUCTION**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.59** / **`754c997`** |
 | **Feature commit** | **`754c997`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) |
 | **IN** | adapter AI Cost → Bid Proposal · tryb `offer_boq_ai` · explainability „Wpływ AI na ofertę” · podsumowanie oferty · ścieżka audytu |
 | **OUT** | nowy kalkulator oferty · kopia logiki Kp/marży · VAT/brutto · parsery |
-| **Next** | Owner GO → kolejny slice AI-COST-01 (TBD) |
+| **Next** | superseded by COST-S7 |
 
 ---
 

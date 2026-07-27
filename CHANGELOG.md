@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.60 — AI-COST-01 / COST-S7 AI Validation & Offer Quality (2026-07-27)
+
+- **new:** `tender-offer-boq-validation.ts` — silnik walidacji jakości (read-only): braki wyceny, low confidence, review pending, niespójności ilości/jednostek/źródła, kompletność pipeline
+- **improve:** panel „Gotowość oferty” + „Ocena jakości AI” + lista rekomendacji (priorytet) w `OfferBoqCostIntelligencePanel`
+- **reuse:** wyliczenia Kp/marży/oferty pozostają wyłącznie w `computeTenderBidProposal` (brak drugiego kalkulatora)
+
 ## 2.65.59 — AI-COST-01 / COST-S6 Bid Proposal Integration (2026-07-27)
 
 - **new:** adapter AI Cost → `computeTenderBidProposal` (tryb `offer_boq_ai`) — koszt bezpośredni z AI, Kp/marża/oferta przez istniejący Bid Proposal

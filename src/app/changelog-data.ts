@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.60",
+    label: "AI-COST-01 / COST-S7 — walidacja jakości oferty",
+    items: [
+      {
+        type: "new",
+        text: "AI Validation Engine (RO): wykrywanie braków i ryzyk kosztorysu/oferty (braki cen, niska pewność, review, niespójności ilości/jednostek/źródła ceny).",
+      },
+      {
+        type: "improve",
+        text: "Panel Kosztorys: „Gotowość oferty” (kompletność, AI Quality Score, status), rekomendacje z priorytetami oraz Explainability „Ocena jakości AI”.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.59",
     label: "AI-COST-01 / COST-S6 — integracja Bid Proposal",
     items: [

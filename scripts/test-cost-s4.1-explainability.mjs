@@ -100,6 +100,8 @@ assert.ok(view.document);
 assert.ok(view.document.totals.directPln != null && view.document.totals.directPln > 0);
 assert.ok(view.bidImpact?.available);
 assert.ok(view.offerSummary?.available);
+assert.ok(view.offerReadiness?.available);
+assert.ok(view.aiQuality?.available);
 assert.ok(view.document.totals.recommendedBidPln != null);
 assert.ok(view.document.totals.kpPln != null);
 assert.equal(view.bidProposal?.pricingMode, "offer_boq_ai");

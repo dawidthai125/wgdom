@@ -15,7 +15,9 @@ import {
   type OfferBoqExplainConfidenceBadge,
   type OfferBoqExplainComponentRow,
   type OfferBoqExplainLineCard,
+  type OfferBoqAiQualitySection,
   type OfferBoqBidImpactSection,
+  type OfferBoqOfferReadinessSection,
   type OfferBoqOfferSummarySection,
 } from "@/lib/tender-offer-boq-explainability";
 import {
@@ -194,6 +196,120 @@ function OfferSummarySection({ section }: { section: OfferBoqOfferSummarySection
               ))}
             </tbody>
           </table>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function readinessTone(status: OfferBoqOfferReadinessSection["status"]): string {
+  if (status === "ready") {
+    return "bg-emerald-500/12 text-emerald-800 dark:text-emerald-300 border-emerald-500/30";
+  }
+  if (status === "review_required") {
+    return "bg-amber-500/12 text-amber-800 dark:text-amber-300 border-amber-500/30";
+  }
+  return "bg-rose-500/12 text-rose-800 dark:text-rose-300 border-rose-500/30";
+}
+
+function OfferReadinessSection({ section }: { section: OfferBoqOfferReadinessSection }) {
+  if (!section.available) return null;
+  return (
+    <section
+      className="rounded-lg border border-border bg-background/60 p-3 space-y-3"
+      data-offer-boq-offer-readiness
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>Gotowość oferty</h3>
+        <span
+          className={`${TEUX_FONT_META} rounded-md border px-2 py-0.5 ${readinessTone(section.status)}`}
+          data-offer-boq-readiness-status={section.status}
+        >
+          {section.statusLabelPl}
+        </span>
+      </div>
+      <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        <SummaryKpi label="Kompletność" value={`${section.completenessPct.toFixed(1)}%`} />
+        <SummaryKpi label="AI Quality Score" value={`${section.qualityScore}/100`} />
+        <SummaryKpi label="Ostrzeżenia" value={String(section.warningCount)} />
+        <SummaryKpi label="Błędy krytyczne" value={String(section.criticalCount)} />
+        <SummaryKpi label="Rekomendacje" value={String(section.recommendationCount)} />
+        <SummaryKpi label="Status" value={section.statusLabelPl} />
+      </div>
+    </section>
+  );
+}
+
+function AiQualitySection({ section }: { section: OfferBoqAiQualitySection }) {
+  if (!section.available) return null;
+  return (
+    <section
+      className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-3"
+      data-offer-boq-ai-quality
+    >
+      <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>Ocena jakości AI</h3>
+      <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+        <SummaryKpi label="Rozpoznane" value={`${section.completeness.recognizedPct.toFixed(1)}%`} />
+        <SummaryKpi label="Sklasyfikowane" value={`${section.completeness.classifiedPct.toFixed(1)}%`} />
+        <SummaryKpi label="Wycenione" value={`${section.completeness.pricedPct.toFixed(1)}%`} />
+        <SummaryKpi label="Przekazane do oferty" value={`${section.completeness.passedToBidPct.toFixed(1)}%`} />
+      </div>
+
+      <div className="space-y-1">
+        {section.qualityExplainability.reasoningPl.map((line, idx) => (
+          <p key={`reason-${idx}`} className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+            {line}
+          </p>
+        ))}
+      </div>
+
+      {section.qualityExplainability.loweredBy.length > 0 ? (
+        <div className="space-y-1.5">
+          <p className={`${TEUX_FONT_META} font-semibold uppercase tracking-wide text-rose-800 dark:text-rose-300`}>
+            Co obniżyło ocenę
+          </p>
+          <ul className="space-y-1">
+            {section.qualityExplainability.loweredBy.map((f) => (
+              <li key={`low-${f.labelPl}`} className="rounded-md border border-rose-500/25 bg-rose-500/10 px-2 py-1.5">
+                <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>{f.labelPl} (−{f.impactScore})</p>
+                <p className={`${TEUX_FONT_META} text-muted-foreground`}>{f.detailPl}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {section.qualityExplainability.increasedBy.length > 0 ? (
+        <div className="space-y-1.5">
+          <p className={`${TEUX_FONT_META} font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300`}>
+            Co zwiększyło wiarygodność
+          </p>
+          <ul className="space-y-1">
+            {section.qualityExplainability.increasedBy.map((f) => (
+              <li key={`up-${f.labelPl}`} className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-1.5">
+                <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>{f.labelPl} (+{f.impactScore})</p>
+                <p className={`${TEUX_FONT_META} text-muted-foreground`}>{f.detailPl}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {section.recommendations.length > 0 ? (
+        <div className="space-y-1.5" data-offer-boq-recommendations>
+          <p className={`${TEUX_FONT_META} font-semibold uppercase tracking-wide text-muted-foreground`}>
+            Rekomendacje przed wysłaniem
+          </p>
+          <ul className="space-y-1">
+            {section.recommendations.map((rec) => (
+              <li key={rec.id} className="rounded-md border border-border/70 bg-background/70 px-2 py-1.5">
+                <p className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+                  [{rec.priority === "high" ? "Wysoki" : rec.priority === "medium" ? "Średni" : "Niski"}] {rec.titlePl}
+                </p>
+                <p className={`${TEUX_FONT_META} text-muted-foreground`}>{rec.detailPl}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </section>
@@ -643,6 +759,10 @@ export function OfferBoqCostIntelligencePanel({
       {view.bidImpact?.available ? <BidImpactSection section={view.bidImpact} /> : null}
 
       {view.offerSummary ? <OfferSummarySection section={view.offerSummary} /> : null}
+
+      {view.offerReadiness ? <OfferReadinessSection section={view.offerReadiness} /> : null}
+
+      {view.aiQuality ? <AiQualitySection section={view.aiQuality} /> : null}
 
       <div className="space-y-2" data-offer-boq-lines>
         <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>

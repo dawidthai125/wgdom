@@ -29,6 +29,14 @@ import {
   integrateOfferBoqWithBidProposal,
   type OfferBoqBidAuditStep,
 } from "@/lib/tender-offer-boq-bid-adapter";
+import {
+  evaluateOfferBoqValidation,
+  type OfferBoqValidationIssue,
+  type OfferBoqValidationRecommendation,
+  type OfferBoqValidationCompleteness,
+  type OfferBoqQualityExplainability,
+  type OfferBoqReadinessStatus,
+} from "@/lib/tender-offer-boq-validation";
 import type { TenderBidCostLine, TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { formatBidMarginPct } from "@/lib/tender-bid-ux";
 
@@ -138,6 +146,27 @@ export interface OfferBoqOfferSummarySection {
   qualityLabelPl: string | null;
 }
 
+/** COST-S7 — panel gotowości oferty (RO). */
+export interface OfferBoqOfferReadinessSection {
+  available: boolean;
+  completenessPct: number;
+  qualityScore: number;
+  warningCount: number;
+  criticalCount: number;
+  recommendationCount: number;
+  status: OfferBoqReadinessStatus;
+  statusLabelPl: string;
+}
+
+/** COST-S7 — sekcja jakości AI w Explainability. */
+export interface OfferBoqAiQualitySection {
+  available: boolean;
+  completeness: OfferBoqValidationCompleteness;
+  qualityExplainability: OfferBoqQualityExplainability;
+  recommendations: OfferBoqValidationRecommendation[];
+  topIssues: OfferBoqValidationIssue[];
+}
+
 export interface OfferBoqExplainabilityView {
   available: boolean;
   emptyReasonPl: string | null;
@@ -149,6 +178,8 @@ export interface OfferBoqExplainabilityView {
   /** COST-S6 */
   bidImpact: OfferBoqBidImpactSection | null;
   offerSummary: OfferBoqOfferSummarySection | null;
+  offerReadiness: OfferBoqOfferReadinessSection | null;
+  aiQuality: OfferBoqAiQualitySection | null;
   bidProposal: TenderBidProposal | null;
 }
 
@@ -248,11 +279,19 @@ function buildOfferBoqBidViewSections(opts: {
 }): {
   bidImpact: OfferBoqBidImpactSection | null;
   offerSummary: OfferBoqOfferSummarySection | null;
+  offerReadiness: OfferBoqOfferReadinessSection | null;
+  aiQuality: OfferBoqAiQualitySection | null;
   bidProposal: TenderBidProposal | null;
 } {
   const { integration } = opts;
   if (!integration) {
-    return { bidImpact: null, offerSummary: null, bidProposal: null };
+    return {
+      bidImpact: null,
+      offerSummary: null,
+      offerReadiness: null,
+      aiQuality: null,
+      bidProposal: null,
+    };
   }
 
   const { proposal, payload, auditTrail, documentWithTotals } = integration;
@@ -288,7 +327,33 @@ function buildOfferBoqBidViewSections(opts: {
     qualityLabelPl: proposal.qualityLabelPl ?? null,
   };
 
-  return { bidImpact, offerSummary, bidProposal: proposal };
+  const validation = evaluateOfferBoqValidation({
+    doc: documentWithTotals,
+    bidProposal: proposal,
+    averageConfidence: payload.averageConfidence,
+    companyKnowledgeHitCount: payload.companyKnowledgeHitCount,
+  });
+
+  const offerReadiness: OfferBoqOfferReadinessSection = {
+    available: true,
+    completenessPct: validation.summary.completenessPct,
+    qualityScore: validation.summary.qualityScore,
+    warningCount: validation.summary.warningCount,
+    criticalCount: validation.summary.criticalCount,
+    recommendationCount: validation.summary.recommendationCount,
+    status: validation.summary.status,
+    statusLabelPl: validation.summary.statusLabelPl,
+  };
+
+  const aiQuality: OfferBoqAiQualitySection = {
+    available: true,
+    completeness: validation.completeness,
+    qualityExplainability: validation.qualityExplainability,
+    recommendations: validation.recommendations,
+    topIssues: validation.issues.slice(0, 8),
+  };
+
+  return { bidImpact, offerSummary, offerReadiness, aiQuality, bidProposal: proposal };
 }
 
 /**
@@ -438,6 +503,8 @@ export function presentOfferBoqExplainabilityView(
   let bidSections = {
     bidImpact: null as OfferBoqBidImpactSection | null,
     offerSummary: null as OfferBoqOfferSummarySection | null,
+    offerReadiness: null as OfferBoqOfferReadinessSection | null,
+    aiQuality: null as OfferBoqAiQualitySection | null,
     bidProposal: null as TenderBidProposal | null,
   };
 
@@ -469,6 +536,8 @@ export function presentOfferBoqExplainabilityView(
     builtAt: at,
     bidImpact: bidSections.bidImpact,
     offerSummary: bidSections.offerSummary,
+    offerReadiness: bidSections.offerReadiness,
+    aiQuality: bidSections.aiQuality,
     bidProposal: bidSections.bidProposal,
   };
 }
@@ -495,6 +564,8 @@ export function buildOfferBoqExplainabilityView(opts: {
       builtAt,
       bidImpact: null,
       offerSummary: null,
+      offerReadiness: null,
+      aiQuality: null,
       bidProposal: null,
     };
   }
