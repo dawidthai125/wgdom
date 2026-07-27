@@ -52,6 +52,20 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## AI-COST-01 (Kosztorysant) — FROZEN
+
+| Pole | Wartość |
+|------|---------|
+| Status | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
+| Pipeline | Snapshot → S1→S7 → Bid Proposal → UI |
+| Oferta | **Tylko** `computeTenderBidProposal` (`offer_boq_ai`) — **zakaz** drugiego Kp/marży |
+| STAB-01 | Preservacja edycji usera · grupy rekomendacji · klasyfikacja · pokrycie · explain · telemetria LS |
+| AI-COST-02 | **BACKLOG** — Starting Point; **nie** implementuj bez Owner GO |
+
+**Nie:** przebudowa parserów „przy AI Cost” · kasowanie `user_changed`/`user_approved` przy reprice · scrapowanie cen ad-hoc.
+
+---
+
 ## Payroll Critical Rules
 
 - Godziny live → **tylko Domain Push** (nie RS `runCloudSync`).  
@@ -97,8 +111,13 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Sesja / stan | [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) · `CURRENT-TASK.md` · Continuity (po Entry) |
 | UI Foundation | [`../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | Dashboard Body | [`../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
+| **AI-COST-01 Freeze** | [`../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) |
+| **AI-COST-01 SSOT** | [`../architecture/WGDOM-AI-COST-01-SSOT.md`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
+| **AI-COST Lessons** | [`../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md) |
+| **AI-COST-02 start** | [`../architecture/WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 
-Historyczne DF/RCA = czytaj przy potrzebie; **closeout CLOSED** = prawda statusu.
+Historyczne DF/RCA = czytaj przy potrzebie; **closeout CLOSED** = prawda statusu.  
+Draft `WGDOM-AI-COST-01-ARCHITECTURE.md` = **SUPERSEDED**.
 
 ---
 
@@ -154,8 +173,10 @@ TAK → Payroll pack obowiązkowy. → [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEP
 - Commit sekretów / force push `main`  
 - Start EPIC bez Owner GO  
 - Hotfix merge po wipe bez RCA  
+- Drugi kalkulator oferty / przebudowa AI-COST-01 bez DF  
+- Auto-start AI-COST-02 z Starting Point  
 
-Pełna lista: [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md)
+Pełna lista: [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) · [`LESSONS`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md)
 
 ---
 

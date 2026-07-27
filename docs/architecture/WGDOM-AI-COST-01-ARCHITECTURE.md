@@ -1,13 +1,13 @@
 # WGDOM — AI-COST-01 · ARCHITEKTURA (AI Kosztorysant)
 
 > **ID:** WGDOM-AI-COST-01  
-> **STATUS:** **ARCHITECTURE DRAFT** · czekaj na Owner ACK → Design Freeze thin → Owner GO  
-> **Data:** 2026-07-26  
-> **AUDIT:** [`WGDOM-AI-COST-01-AUDIT.md`](WGDOM-AI-COST-01-AUDIT.md)  
-> **Zasada:** REUSE FIRST · ZERO DUPLICATE LOGIC · THIN SLICE · bez scrapingu cen
+> **STATUS:** **SUPERSEDED** — patrz **[`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md)**  
+> **Data draftu:** 2026-07-26 · **Freeze:** 2026-07-27  
+> **AUDIT:** [`WGDOM-AI-COST-01-AUDIT.md`](WGDOM-AI-COST-01-AUDIT.md)
 
 ```text
-Nie implementować. Ten plik = kontrakt produktowo-techniczny do akceptacji Ownera.
+Ten plik = historyczny draft kontraktu.
+Źródło prawdy architektury = ARCHITECTURE-FREEZE + SSOT.
 ```
 
 ---

@@ -141,7 +141,7 @@ TAK → Czytaj kontrakt Sync Storm / HARDENING closeouty
 ```text
 Czy zmiana = Wg* / Dashboard chrome / body widget / ui-guard?
 
-NIE → §7
+NIE → §6c
 TAK → DS-13: tylko Wg* (nie shadcn, nie lokalny Button)
     → Thin slice: DF allowlist · zero Primary w body (T05)
     → Nie ruszaj liczników V3 / dashboard-urgent-today w paint
@@ -149,6 +149,26 @@ TAK → DS-13: tylko Wg* (nie shadcn, nie lokalny Button)
     → TEUX Strategia ≠ global GDS (osobny tor)
     → SSOT: MASTER_HANDOFF · BODY-02-CLOSEOUT · FOUNDATION-REPORT
     → §8
+```
+
+---
+
+## 6c. AI Cost / OfferBoq / Bid Proposal?
+
+```text
+Czy zmiana = tender-offer-boq*, OfferBoq panel, pricing AI,
+company knowledge, validation S7, bid adapter, offer_boq_ai?
+
+NIE → §7
+TAK → Najpierw przeczytaj:
+        WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md
+        WGDOM-AI-COST-01-SSOT.md
+        WGDOM-AI-COST-01-LESSONS-LEARNED.md
+    → AI-COST-01 = FROZEN — nie przebudowuj S1–S7 / Bid / preservacji user
+    → AI-COST-02? → tylko STARTING-POINT.md + Owner GO + nowy AUDIT→DF
+       (Starting Point ≠ Design Freeze ≠ pozwolenie na kod)
+    → Zakaz: drugi kalkulator oferty · scraper cen · parser rewrite „przy Cost”
+    → §8 (gdy GO + DF na nowy slice)
 ```
 
 ---
@@ -199,6 +219,7 @@ TAK → Koduj TYLKO w scope DF/brief
 | Tip wersji | `09_PRODUCTION_BASELINE` |
 | Stan / NEXT | `MASTER_HANDOFF` |
 | UI / GDS / Body | Foundation report · BODY-02 · D-21/D-22 |
+| AI Cost / oferta | FREEZE · SSOT · Lessons · COST-02 Starting Point |
 | Zakazy globalne | `08_AI_GUARDRAILS` · `AI_MEMORY` |
 
 ---

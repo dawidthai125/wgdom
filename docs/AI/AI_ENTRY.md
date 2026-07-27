@@ -1,20 +1,22 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** WGDOM-AI-DOCS-CONSOLIDATION-03  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** AI-COST-01-FREEZE-01 handover  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
-> **Data:** 2026-07-26
+> **Data:** 2026-07-27
 
 ```text
 ════════════════════════════════════════════════════════
 STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
+AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
-**Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)
+**Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) (BACKLOG)
 
 ---
 

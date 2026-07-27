@@ -1,7 +1,7 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · AI-DOCS-PAYROLL-GUARD-02 · **CONSOLIDATION-03**  
-> **Data:** 2026-07-26  
+> **STATUS:** **ACTIVE** · AI-COST-01 **FROZEN** · FREEZE-01 · GUARD-02  
+> **Data:** 2026-07-27  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
 > **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE
@@ -10,6 +10,8 @@
 ══════════════════════════════════════
 STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
+AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
+AI-COST-02 = BACKLOG (Starting Point only)
 ══════════════════════════════════════
 ```
 
@@ -29,6 +31,12 @@ docs/AI/AI_ENTRY.md
   → CURRENT-TASK.md
   → FEATURE_IMPLEMENTATION_CHECKLIST.md
   → IMPLEMENT
+
+Gdy AI Cost / oferta / kosztorys:
+  → WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md
+  → WGDOM-AI-COST-01-SSOT.md
+  → WGDOM-AI-COST-01-LESSONS-LEARNED.md
+  → WGDOM-AI-COST-02-STARTING-POINT.md  (tylko po Owner GO na COST-02)
 ```
 
 **Hasło Ownera „kontynuuj WGDOM”** → najpierw Master Handoff + Entry + Gate, potem Continuity / rules.
@@ -46,14 +54,17 @@ docs/AI/AI_ENTRY.md
 | Never break | `docs/AI/PAYROLL_NEVER_BREAK_RULES.md` |
 | Feature checklist | `docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md` |
 | Payroll architektura | `docs/PAYROLL-ARCHITECTURE-SSOT.md` |
+| **AI-COST-01 architektura** | `docs/architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md` |
+| **AI-COST-01 SSOT** | `docs/architecture/WGDOM-AI-COST-01-SSOT.md` |
+| **AI-COST-01 Lessons** | `docs/architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md` |
+| **AI-COST-02 start** | `docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md` |
 | UI Foundation | `docs/architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md` |
 | Dashboard Body | `docs/architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md` |
 | GDS | `docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md` |
-| Incidents / RCA | `PAYROLL_INCIDENT_INDEX` · `PAYROLL_RCA_INDEX` |
 | Zakazy globalne | `08_AI_GUARDRAILS.md` |
 | Workflow / deploy | `WORKFLOW-RELEASE-DEPLOY` · Owner GO |
 
-Historyczne `docs/architecture/PAYROLL-*` — przez INDEX, nie jako start.
+Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-01-ARCHITECTURE.md` = **SUPERSEDED** przez FREEZE.
 
 ---
 
@@ -61,17 +72,17 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX, nie jako start.
 
 | Obszar | Status |
 |--------|--------|
-| Lista Płac Hours-wipe | **CLOSED** (feature baseline w 09) |
+| **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
+| **AI-COST-02** | **BACKLOG** · Starting Point only |
+| Lista Płac Hours-wipe | **CLOSED** |
 | UI Foundation v1.0 | **COMPLETE** |
 | Dashboard Body S1–S4 | **COMPLETE** |
 | GDS-01 + MAINT-01 | **CLOSED** |
 | CI Remediation | **CLOSED** · Gates B/C **GREEN** |
-| AI Payroll Guard onboarding | **ACTIVE** (GUARD-02) |
-| AI docs consolidation | **ACTIVE** (CONSOLIDATION-03) |
 | STABILIZATION WINDOW | **ACTIVE** |
 | Protected Core | **GREEN** |
 
-Pełny snapshot + NEXT EPICS → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md).
+Pełny snapshot + NEXT → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md). Tip → [`09`](09_PRODUCTION_BASELINE.md).
 
 ---
 
@@ -81,11 +92,13 @@ Pełny snapshot + NEXT EPICS → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md).
 |-------|-------------------------|
 | AUDIT / RCA / DF (docs) | IMPLEMENT Payroll / cloud-sync / Edge |
 | Smoke read-only | Mixed FEATURE+CORE |
-| Thin UI FEATURE (Boundary PASS) | Usuwanie fence / omijanie Domain Gate / second Primary w body |
-| Pytania / mapowanie | Re-open Foundation / BODY S1–S4 bez briefu |
+| Thin UI FEATURE (Boundary PASS) | Usuwanie fence / Domain Gate / second Primary |
+| Czytanie Freeze + Starting Point | **AI-COST-02 IMPLEMENT** / przebudowa S1–S7 |
+| Pytania / mapowanie | Re-open Foundation / BODY / AI-COST-01 freeze bez briefu |
 
 ---
 
 ## 5. DEPRECATED
 
-`AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → Entry (+ Master Handoff).
+`AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → Entry (+ Master Handoff).  
+`WGDOM-AI-COST-01-ARCHITECTURE.md` (draft) → **FREEZE + SSOT**.
