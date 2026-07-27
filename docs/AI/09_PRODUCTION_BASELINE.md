@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.61** (STAB-01) · live **2.65.61** |
-| **Deploy tip commit (`main` / `version.json`)** | Po FREEZE-01 push = ten commit tip · feature STAB-01 **`87610b5`** · prior docs **`5b36b17`** · live zawsze `version.json` |
+| **Deploy tip commit (`main` / `version.json`)** | **Live tip (FREEZE-01):** **`79cd0e5`** · feature STAB-01 **`87610b5`** · prior docs **`5b36b17`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **BACKLOG** · [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) — bez DF / bez implementacji |
 | **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **`87610b5`** |
