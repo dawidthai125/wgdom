@@ -1,8 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-01-FREEZE-01** · Architecture Freeze + AI handover) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-02 / COST-02-A** · **CLOSED**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+
+## ★ AI-COST-02 / COST-02-A — Modele cenowe — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC COMPLETE** · **PRODUCTION VERIFIED** · **CLOSED** |
+| **UI** | **2.65.62** · feature **`1e6fb12`** · tip → [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **DF** | [`WGDOM-AI-COST-02-COST-02-A-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-02-COST-02-A-DESIGN-FREEZE.md) |
+| **RELEASE** | [`WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
+| **CLOSEOUT** | [`WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](docs/architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **IN** | `OfferBoqPriceSourceProvider` controlled market · odczyt `marketQuotes` · origin/metadata · badge RO |
+| **OUT** | scraping · Kp/marża w AI-COST · Bid rebuild · Cloud Sync · Payroll · CK schema |
+| **Next** | dalsze AI-COST-02 slice tylko po nowym Owner GO + DF · [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+
+---
 
 ## ★ AI-COST-01-FREEZE-01 — Architecture Freeze + AI Handover — **COMPLETE**
 
@@ -12,12 +27,12 @@
 | **Freeze** | [`ARCHITECTURE-FREEZE`](docs/architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) |
 | **SSOT** | [`WGDOM-AI-COST-01-SSOT`](docs/architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **Lessons** | [`LESSONS-LEARNED`](docs/architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md) |
-| **AI-COST-02** | [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) — **BACKLOG** · bez DF / bez kodu |
+| **AI-COST-02** | COST-02-A **PV** · dalsze obszary [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 | **Cold Start** | [`COLD-START-AUDIT`](docs/architecture/WGDOM-AI-COST-01-FREEZE-01-COLD-START-AUDIT.md) **PASS** |
 | **RR** | [`FREEZE-01-RELEASE`](docs/architecture/WGDOM-AI-COST-01-FREEZE-01-RELEASE-REPORT.md) |
 | **IN** | zamrożenie architektury · handover docs · aktualizacja MASTER/MEMORY/TREE/PROJECT/CURRENT |
-| **OUT** | kod aplikacji · AI-COST-02 implementacja · zmiana architektury |
-| **Next** | nowa sesja od `AI_ENTRY` · AI-COST-02 **tylko** po Owner GO |
+| **OUT** | kod aplikacji · przebudowa AI-COST-01 · zmiana architektury freeze |
+| **Next** | superseded by COST-02-A tip · kolejne slice AI-COST-02 po Owner GO |
 
 ---
 
@@ -26,11 +41,11 @@
 | Element | Wartość |
 |---------|---------|
 | **Status** | **EPIC COMPLETE** · **FIELD READY** · **PRODUCTION VERIFIED** · **ARCHITECTURE FROZEN** |
-| **UI** | **2.65.61** · feature STAB-01 **`87610b5`** · tip live → [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **UI** | tip live → [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · STAB-01 feature **`87610b5`** / **2.65.61** |
 | **Zakres zamknięcia** | S1–S7 · STAB-01 · RWAT-01 + re-RWAT · FREEZE-01 · brak P0/P1 |
 | **SSOT / REUSE** | OfferBoq → Bid Proposal (`offer_boq_ai`) · bez drugiego kalkulatora · bez przebudowy parserów |
 | **Raporty** | Freeze · SSOT · Lessons · [`STAB-01-RELEASE`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · [`RWAT-COMPARE`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md) |
-| **Next** | **AI-COST-02** — Starting Point only · **tylko na polecenie Ownera** |
+| **Next** | AI-COST-02 thin slices — COST-02-A **shipped**; kolejne tylko na polecenie Ownera |
 
 ---
 
@@ -44,7 +59,7 @@
 | **RWAT compare** | [`docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md`](docs/architecture/WGDOM-AI-COST-01-STAB-01-RWAT-COMPARE.md) |
 | **IN** | ochrona edycji · grupowanie rekomendacji · klasyfikacja · pokrycie wyceny · explain unpriced · telemetria lokalna |
 | **OUT** | parsery · Bid Proposal rebuild · nowe funkcje AI-COST-02 · zewnętrzne ceny |
-| **Next** | superseded by AI-COST-01 EPIC COMPLETE |
+| **Next** | superseded by AI-COST-01 EPIC COMPLETE · tip supersedowany przez **2.65.62** |
 
 ---
 

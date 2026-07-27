@@ -60,7 +60,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Pipeline | Snapshot → S1→S7 → Bid Proposal → UI |
 | Oferta | **Tylko** `computeTenderBidProposal` (`offer_boq_ai`) — **zakaz** drugiego Kp/marży |
 | STAB-01 | Preservacja edycji usera · grupy rekomendacji · klasyfikacja · pokrycie · explain · telemetria LS |
-| AI-COST-02 | **BACKLOG** — Starting Point; **nie** implementuj bez Owner GO |
+| AI-COST-02 | **COST-02-A CLOSED** (Modele cenowe · **2.65.62**) · dalsze slice **BACKLOG** · Starting Point + Owner GO |
 
 **Nie:** przebudowa parserów „przy AI Cost” · kasowanie `user_changed`/`user_approved` przy reprice · scrapowanie cen ad-hoc.
 
@@ -115,6 +115,8 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | **AI-COST-01 SSOT** | [`../architecture/WGDOM-AI-COST-01-SSOT.md`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST Lessons** | [`../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md) |
 | **AI-COST-02 start** | [`../architecture/WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| **COST-02-A CLOSEOUT** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **COST-02-A RELEASE** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
 
 Historyczne DF/RCA = czytaj przy potrzebie; **closeout CLOSED** = prawda statusu.  
 Draft `WGDOM-AI-COST-01-ARCHITECTURE.md` = **SUPERSEDED**.
@@ -174,7 +176,8 @@ TAK → Payroll pack obowiązkowy. → [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEP
 - Start EPIC bez Owner GO  
 - Hotfix merge po wipe bez RCA  
 - Drugi kalkulator oferty / przebudowa AI-COST-01 bez DF  
-- Auto-start AI-COST-02 z Starting Point  
+- Auto-start kolejnego thin slice AI-COST-02 bez Owner GO + DF  
+- Re-implementacja COST-02-A „przy okazji”
 
 Pełna lista: [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) · [`LESSONS`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md)
 
