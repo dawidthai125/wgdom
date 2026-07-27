@@ -8,8 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RELEASE GO** · **READY FOR PV** (po push) · UI **2.65.60** |
-| **Feature commit** | *(po push)* |
+| **Status** | **RELEASE GO** · **DEPLOY PROPAGATING** (`version.json` jeszcze **2.65.59** / **`9b3e101`** — oczekiwane **2.65.60** / **`1c84363`**) |
+| **Feature commit** | **`1c84363`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) |
 | **IN** | AI Validation Engine (RO) · kompletność % · AI Quality Score · rekomendacje z priorytetem · panel „Gotowość oferty” · explainability jakości |

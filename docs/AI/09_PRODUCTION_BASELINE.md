@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-27 (**COST-S6** · AI-COST-01) · prod UI **2.65.59** · prior **2.65.58** COST-S5.1 · live `version.json` = ostatni push na `main`.
+**Snapshot dokumentacji:** 2026-07-27 (**COST-S7** · AI-COST-01) · feature UI **2.65.60** · live `version.json` **2.65.59** (propagacja) · prior **2.65.58** COST-S5.1.
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.59** (COST-S6) · prior **2.65.58** (COST-S5.1) |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`754c997`** (COST-S6) · docs tip = last push after PV finalize |
+| **UI version (changelog / version.json)** | **2.65.60** (COST-S7 feature) · live **2.65.59** (propagacja) |
+| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`1c84363`** (COST-S7) · live tip: **`9b3e101`** (S6 docs) |
+| **Ostatni feature (COST-S7)** | AI Validation & Offer Quality — [`COST-S7-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) · **`1c84363`** |
 | **Ostatni feature (COST-S6)** | Bid Proposal Integration — [`COST-S6-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S6-RELEASE-REPORT.md) · **`754c997`** |
 | **Ostatni feature (COST-S5.1)** | AI Learning & Company Knowledge — [`COST-S5.1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) · **`973821f`** |
 | **Ostatni feature (COST-S5)** | Edycja komponentów — [`COST-S5-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md) · **`351f534`** |
@@ -43,7 +44,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **RELEASE GO · DEPLOY PROPAGATING** · feature **`754c997`** · live `version.json` = **2.65.58** / **`18c7eb7`** (propaguje → **2.65.59**) |
+| **Status** | **RELEASE GO · DEPLOY PROPAGATING** · feature **`1c84363`** · live `version.json` = **2.65.59** / **`9b3e101`** (propaguje → **2.65.60**) |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -64,6 +65,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.60** / **`1c84363`** | COST-S7 AI Validation & Offer Quality | **RELEASE GO** · **DEPLOY PROPAGATING** · [`COST-S7-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) |
 | **2.65.58** / **`973821f`** | COST-S5.1 AI Learning & Company Knowledge | **PRODUCTION** · **PV** · [`COST-S5.1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S5.1-RELEASE-REPORT.md) |
 | **2.65.57** / **`351f534`** | COST-S5 edycja komponentów | **PRODUCTION** · **PV** · [`COST-S5-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S5-RELEASE-REPORT.md) |
 | **2.65.51** / **`5355c19`** | AP2-S4 Business Risk Engine | **PRODUCTION** · **PV** · [`AP2-S4-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md) |

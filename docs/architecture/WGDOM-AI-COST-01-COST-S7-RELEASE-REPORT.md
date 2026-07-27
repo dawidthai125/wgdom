@@ -2,7 +2,7 @@
 
 > **ID:** COST-S7  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **RELEASE GO** · **READY FOR PV** (po push)  
+> **STATUS:** **RELEASE GO** · **DEPLOY PROPAGATING** · commit **`1c84363`**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.60**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S7-DESIGN-FREEZE.md)  
@@ -66,10 +66,21 @@ Dodać automatyczną walidację jakości oferty po AI Cost + Bid Proposal: kompl
 | Panel „Gotowość oferty” | **PASS** |
 | Explainability jakości AI | **PASS** |
 | REUSE FIRST (bez 2. kalkulatora) | **PASS** |
-| RR · commit · push · tip | po push |
+| RR · commit · push · tip | **PASS** · feature **`1c84363`** |
 
 ---
 
 ## 6. Gate
 
 G1–G9 **ALL-NIE** · Owner GO: YES
+
+---
+
+## 7. Production Verification
+
+| Pole | Wartość |
+|------|---------|
+| Feature commit | **`1c84363`** |
+| Oczekiwany `version.json` | **2.65.60** |
+| Stan po push (jedno odczytanie) | **2.65.59** / **`9b3e101`** |
+| Werdykt | **RELEASE GO** · **DEPLOY PROPAGATING** |
