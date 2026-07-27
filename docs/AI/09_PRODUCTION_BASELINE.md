@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-26 (**COST-S2** · AI-COST-01) · prod UI **2.65.53** (po deploy) · prior **2.65.52** COST-S1 · live `version.json` = ostatni push na `main`.
+**Snapshot dokumentacji:** 2026-07-27 (**COST-S3** · AI-COST-01) · prod UI **2.65.54** (po deploy) · prior **2.65.53** COST-S2 · live `version.json` = ostatni push na `main`.
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.53** (COST-S2) · prior **2.65.52** (COST-S1) |
-| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** **`17a7a83`** (COST-S2) · docs tip = last push after PV finalize |
+| **UI version (changelog / version.json)** | **2.65.54** (COST-S3) · prior **2.65.53** (COST-S2) |
+| **Deploy tip commit (`main` / `version.json`)** | **Feature tip:** *(po push COST-S3)* · docs tip = last push after PV finalize |
+| **Ostatni feature (COST-S3)** | AI Cost Intelligence — [`COST-S3-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md) |
 | **Ostatni feature (COST-S2)** | Mapping Engine — [`COST-S2-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md) · **`17a7a83`** |
 | **Ostatni feature (COST-S1)** | OfferBoq model — [`COST-S1-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S1-RELEASE-REPORT.md) · **`fd4b112`** |
 | **Ostatni feature (AP2-S4)** | Business Risk Engine — [`AP2-S4-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S4-RELEASE-REPORT.md) · **`5355c19`** |
@@ -37,7 +38,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED · GREEN** · COST-S2 **PV** `version.json` = **2.65.53** / **`17a7a83`** |
+| **Status** | **PRODUCTION VERIFIED · GREEN** · COST-S3 tip **2.65.54** (po PV) · prior COST-S2 **`17a7a83`** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |

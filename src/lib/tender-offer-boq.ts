@@ -11,7 +11,7 @@ import type {
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
 
 /** Wersja schematu OfferBoq — bump przy breaking change. */
-export const OFFER_BOQ_SCHEMA_VERSION = 2;
+export const OFFER_BOQ_SCHEMA_VERSION = 3;
 
 export type OfferBoqMatchMethod =
   | "exact_knr"
@@ -33,6 +33,89 @@ export type OfferBoqMatchedBy =
   | "snapshot";
 
 export type OfferBoqConfidence = "high" | "medium" | "low";
+
+/** COST-S3 — typ pozycji (klasyfikacja inteligencji kosztowej). */
+export type OfferBoqLineKind =
+  | "MaterialInstallation"
+  | "Equipment"
+  | "Measurement"
+  | "Programming"
+  | "SupplyInstallation"
+  | "IndividualAnalysis"
+  | "CompleteSystem"
+  | "Demolition"
+  | "CivilWorks"
+  | "Unknown";
+
+/** COST-S3 — identyfikator strategii przyszłej wyceny. */
+export type OfferBoqPricingStrategyId =
+  | "material_plus_labor"
+  | "finished_device"
+  | "measurement"
+  | "supply_and_install"
+  | "individual_analysis"
+  | "complete_system_decompose"
+  | "demolition"
+  | "civil_works"
+  | "unknown";
+
+/** Składowe planu wyceny (bez kwot) — prep pod silniki S4+. */
+export type OfferBoqPricingComponent =
+  | "material"
+  | "labor"
+  | "auxiliary_material"
+  | "purchase"
+  | "transport"
+  | "carry_in"
+  | "installation"
+  | "commissioning"
+  | "measurement_equipment"
+  | "configuration"
+  | "acceptance"
+  | "wiring"
+  | "test";
+
+/** Planowane silniki wyceny (COST-S4+) — bez implementacji cen. */
+export type OfferBoqPlannedEngine =
+  | "material"
+  | "labour"
+  | "equipment"
+  | "transport"
+  | "calculator";
+
+export interface OfferBoqDecompositionElement {
+  elementId: string;
+  labelPl: string;
+  kindHint: OfferBoqLineKind | null;
+  pricingComponents: OfferBoqPricingComponent[];
+  source: "rule" | "candidate_match" | "domain";
+  notesPl?: string;
+}
+
+/** COST-S3 — wynik AI Cost Intelligence dla pozycji. */
+export interface OfferBoqCostIntelligence {
+  lineKind: OfferBoqLineKind;
+  lineKindLabelPl: string;
+  pricingStrategyId: OfferBoqPricingStrategyId;
+  pricingStrategyLabelPl: string;
+  pricingComponents: OfferBoqPricingComponent[];
+  requiresDecomposition: boolean;
+  decompositionElements: OfferBoqDecompositionElement[];
+  confidence: OfferBoqConfidence;
+  aiRationale: string;
+  plannedEngines: OfferBoqPlannedEngine[];
+  analyzedAt: string;
+}
+
+export interface OfferBoqCostIntelligenceStats {
+  lineCount: number;
+  withIntelligence: number;
+  decomposedCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+  byKind: Partial<Record<OfferBoqLineKind, number>>;
+}
 
 /** Kandydat mapowania — prep pod multi-activity (dostawa + montaż + …). */
 export type OfferBoqMatchCandidateRole = "primary" | "candidate";
@@ -95,6 +178,9 @@ export interface OfferBoqLine {
   matchConfidence: OfferBoqConfidence;
   /** Primary + alternatywy — przyszły split pozycji bez przebudowy modelu. */
   candidateMatches: OfferBoqMatchCandidate[];
+
+  /** COST-S3 — klasyfikacja / strategia / dekompozycja (bez cen). */
+  costIntelligence: OfferBoqCostIntelligence | null;
 
   materialUnitPln: number | null;
   materialCostPln: number | null;
@@ -167,11 +253,14 @@ export interface OfferBoqDocument {
   totals: OfferBoqTotals;
   /** Token do invalidacji UI po edycji (S7). */
   recomputeToken: string;
-  /** Status budowy — S1 structural_only; S2+ może zostać mapped. */
-  buildStatus: "empty" | "structural_only" | "mapped" | "partially_priced" | "priced";
+  /** Status: S1 structural · S2 mapped · S3 analyzed · later priced. */
+  buildStatus: "empty" | "structural_only" | "mapped" | "analyzed" | "partially_priced" | "priced";
   /** Statystyki mapowania COST-S2 (null przed mapowaniem). */
   mappingStats: OfferBoqMappingStats | null;
   mappingAppliedAt: string | null;
+  /** Statystyki Cost Intelligence COST-S3. */
+  costIntelligenceStats: OfferBoqCostIntelligenceStats | null;
+  costIntelligenceAppliedAt: string | null;
   warnings: string[];
 }
 
@@ -291,6 +380,7 @@ function structuralLine(opts: {
     matchedBy: "snapshot",
     matchConfidence: knrHint ? "medium" : "low",
     candidateMatches: [],
+    costIntelligence: null,
 
     materialUnitPln: null,
     materialCostPln: null,
@@ -371,6 +461,8 @@ export function computeOfferBoqRecomputeToken(lines: OfferBoqLine[]): string {
         l.catalogWorkId ?? "",
         l.matchMethod,
         l.matchConfidence,
+        l.costIntelligence?.lineKind ?? "",
+        l.costIntelligence?.pricingStrategyId ?? "",
         l.materialUnitPln,
         l.laborCostPln,
         l.equipmentCostPln,
@@ -440,6 +532,8 @@ export function buildOfferBoqFromSnapshot(opts: {
     buildStatus,
     mappingStats: null,
     mappingAppliedAt: null,
+    costIntelligenceStats: null,
+    costIntelligenceAppliedAt: null,
     warnings: docWarnings,
   };
 }

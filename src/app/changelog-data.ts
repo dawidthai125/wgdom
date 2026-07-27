@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-27",
+    version: "2.65.54",
+    label: "AI-COST-01 / COST-S3 — AI Cost Intelligence",
+    items: [
+      {
+        type: "new",
+        text: "AI Kosztorysant — klasyfikacja pozycji (typ), strategia przyszłej wyceny oraz inteligentna dekompozycja tylko tam, gdzie ma wartość (bez cen).",
+      },
+      {
+        type: "improve",
+        text: "Model OfferBoqCostIntelligence z pewnością, uzasadnieniem PL i planem silników S4. Malowanie / oprawa LED bez zbędnego rozbijania. Bid Proposal i parsery bez zmian.",
+      },
+    ],
+  },
+  {
     date: "2026-07-26",
     version: "2.65.53",
     label: "AI-COST-01 / COST-S2 — Mapping Engine",

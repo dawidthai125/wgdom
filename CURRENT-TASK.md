@@ -1,10 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-26 (**COST-S2** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-27 (**COST-S3** · AI-COST-01) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 
-## ★ AI-COST-01 / COST-S2 — Mapping Engine — **IMPLEMENT COMPLETE**
+## ★ AI-COST-01 / COST-S3 — AI Cost Intelligence — **IMPLEMENT COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.54** · PV po deploy |
+| **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md) |
+| **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md) |
+| **IN** | klasyfikacja typu · strategia wyceny · inteligentna dekompozycja · `OfferBoqCostIntelligence` · prep silników S4 |
+| **OUT** | ceny · UI panel (deferred) · Bid Proposal · Pricing/Autonomous · parsery |
+| **Next** | Owner GO → **COST-S4** (Material / Labour engines) lub **S3.1** (panel RO) |
+
+---
+
+## ★ AI-COST-01 / COST-S2 — Mapping Engine — **PRODUCTION**
 
 | Element | Wartość |
 |---------|---------|
@@ -14,7 +27,7 @@
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S2-RELEASE-REPORT.md) |
 | **IN** | Mapping Engine · catalogWorkId · workCategory · confidence · matchedBy · aiRationale · candidateMatches |
 | **OUT** | wycena M/R/S · UI BOQ (deferred) · Bid Proposal · Pricing/Autonomous · parsery |
-| **Next** | Owner GO → **COST-S3** (materiały) lub **S2.1** (RO UI preview) |
+| **Next** | superseded by COST-S3 |
 
 ---
 
