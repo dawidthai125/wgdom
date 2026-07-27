@@ -8,7 +8,8 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT COMPLETE** · tip UI **2.65.54** · PV po deploy |
+| **Status** | **PRODUCTION VERIFIED** · `version.json` **2.65.54** / **`61b7590`** |
+| **Feature commit** | **`61b7590`** |
 | **DF** | [`docs/architecture/WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md`](docs/architecture/WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md) |
 | **RELEASE** | [`docs/architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md`](docs/architecture/WGDOM-AI-COST-01-COST-S3-RELEASE-REPORT.md) |
 | **IN** | klasyfikacja typu · strategia wyceny · inteligentna dekompozycja · `OfferBoqCostIntelligence` · prep silników S4 |

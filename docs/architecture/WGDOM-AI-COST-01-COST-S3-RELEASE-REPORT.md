@@ -2,9 +2,10 @@
 
 > **ID:** COST-S3  
 > **Parent:** WGDOM-AI-COST-01  
-> **STATUS:** **GOTOWY DO PV**  
+> **STATUS:** **PRODUCTION VERIFIED**  
 > **Data:** 2026-07-27  
 > **UI:** **2.65.54**  
+> **Commit:** **`61b7590`**  
 > **DF:** [`WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md`](WGDOM-AI-COST-01-COST-S3-DESIGN-FREEZE.md)  
 > **Prior:** COST-S2 `2.65.53` @ `17a7a83`  
 > **Język:** polski
@@ -75,7 +76,7 @@ Panel „AI Cost Intelligence” **ODŁOŻONY** — podpięcie do BOQ Explorer w
 | Model AI Cost Intelligence | **PASS** |
 | Zgodność architektury / REUSE | **PASS** |
 | Zero cen / zero nowych parserów | **PASS** |
-| RR PL · commit · push · tip | **po domknięciu** |
+| RR PL · commit · push · tip | **PASS** · `61b7590` |
 
 ---
 
