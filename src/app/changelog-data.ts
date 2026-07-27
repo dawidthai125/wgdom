@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-27",
+    version: "2.65.55",
+    label: "AI-COST-01 / COST-S4 — AI Pricing Engine",
+    items: [
+      {
+        type: "new",
+        text: "AI Kosztorysant — propozycja wyceny pozycji: komponenty (M/R/S/transport/pomocnicze), źródła cen, pewność i agregacja kosztu bezpośredniego (bez marży i ceny ofertowej).",
+      },
+      {
+        type: "improve",
+        text: "Jeden AI Pricing Engine z wymiennymi providerami (Biblioteka Robót, stawki kategorii, model firmy, heurystyka). Bez scrapingu i bez przebudowy Bid Proposal.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-27",
     version: "2.65.54",
     label: "AI-COST-01 / COST-S3 — AI Cost Intelligence",
     items: [

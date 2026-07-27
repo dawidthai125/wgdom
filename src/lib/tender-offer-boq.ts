@@ -11,7 +11,7 @@ import type {
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
 
 /** Wersja schematu OfferBoq — bump przy breaking change. */
-export const OFFER_BOQ_SCHEMA_VERSION = 3;
+export const OFFER_BOQ_SCHEMA_VERSION = 4;
 
 export type OfferBoqMatchMethod =
   | "exact_knr"
@@ -117,6 +117,81 @@ export interface OfferBoqCostIntelligenceStats {
   byKind: Partial<Record<OfferBoqLineKind, number>>;
 }
 
+/** COST-S4 — kategoria komponentu wyceny (agregacja). */
+export type OfferBoqPricedComponentCategory =
+  | "material"
+  | "labor"
+  | "equipment"
+  | "transport"
+  | "auxiliary";
+
+/** COST-S4 — rodzaj źródła ceny (architektura multi-source). */
+export type OfferBoqPriceOriginKind =
+  | "work_catalog"
+  | "company_model"
+  | "category_rate"
+  | "heuristic_estimate"
+  | "external_future"
+  | "unknown";
+
+export interface OfferBoqPriceOrigin {
+  kind: OfferBoqPriceOriginKind;
+  refId?: string;
+  labelPl: string;
+  /** Miejsce na przyszłe oficjalne integracje (bez scrapingu). */
+  externalProviderId?: string;
+}
+
+/** COST-S4 — pojedynczy komponent wyceny pozycji. */
+export interface OfferBoqPricedComponent {
+  componentId: string;
+  namePl: string;
+  category: OfferBoqPricedComponentCategory;
+  quantity: number;
+  unit: string;
+  unitPricePln: number | null;
+  totalPln: number | null;
+  priceOrigin: OfferBoqPriceOrigin;
+  confidence: OfferBoqConfidence;
+  aiRationale: string;
+  requiresUserReview: boolean;
+  fromDecompositionElementId?: string;
+  pricingComponentKind?: OfferBoqPricingComponent;
+}
+
+export interface OfferBoqLinePricingAggregates {
+  materialsPln: number | null;
+  laborPln: number | null;
+  equipmentPln: number | null;
+  transportPln: number | null;
+  auxiliaryPln: number | null;
+  /** Suma bezpośrednia pozycji (bez Kp / marży / oferty). */
+  lineDirectPln: number | null;
+}
+
+/** COST-S4 — propozycja wyceny pozycji. */
+export interface OfferBoqLinePricing {
+  components: OfferBoqPricedComponent[];
+  aggregates: OfferBoqLinePricingAggregates;
+  pricedAt: string;
+  confidence: OfferBoqConfidence;
+  aiRationale: string;
+  componentCount: number;
+  pricedComponentCount: number;
+}
+
+export interface OfferBoqPricingStats {
+  lineCount: number;
+  withPricing: number;
+  componentCount: number;
+  pricedComponentCount: number;
+  unpricedComponentCount: number;
+  reviewRequiredCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+}
+
 /** Kandydat mapowania — prep pod multi-activity (dostawa + montaż + …). */
 export type OfferBoqMatchCandidateRole = "primary" | "candidate";
 
@@ -181,6 +256,9 @@ export interface OfferBoqLine {
 
   /** COST-S3 — klasyfikacja / strategia / dekompozycja (bez cen). */
   costIntelligence: OfferBoqCostIntelligence | null;
+
+  /** COST-S4 — propozycja wyceny komponentowej. */
+  linePricing: OfferBoqLinePricing | null;
 
   materialUnitPln: number | null;
   materialCostPln: number | null;
@@ -261,6 +339,9 @@ export interface OfferBoqDocument {
   /** Statystyki Cost Intelligence COST-S3. */
   costIntelligenceStats: OfferBoqCostIntelligenceStats | null;
   costIntelligenceAppliedAt: string | null;
+  /** Statystyki wyceny COST-S4. */
+  pricingStats: OfferBoqPricingStats | null;
+  pricingAppliedAt: string | null;
   warnings: string[];
 }
 
@@ -381,6 +462,7 @@ function structuralLine(opts: {
     matchConfidence: knrHint ? "medium" : "low",
     candidateMatches: [],
     costIntelligence: null,
+    linePricing: null,
 
     materialUnitPln: null,
     materialCostPln: null,
@@ -463,6 +545,7 @@ export function computeOfferBoqRecomputeToken(lines: OfferBoqLine[]): string {
         l.matchConfidence,
         l.costIntelligence?.lineKind ?? "",
         l.costIntelligence?.pricingStrategyId ?? "",
+        l.linePricing?.aggregates.lineDirectPln ?? "",
         l.materialUnitPln,
         l.laborCostPln,
         l.equipmentCostPln,
@@ -534,6 +617,8 @@ export function buildOfferBoqFromSnapshot(opts: {
     mappingAppliedAt: null,
     costIntelligenceStats: null,
     costIntelligenceAppliedAt: null,
+    pricingStats: null,
+    pricingAppliedAt: null,
     warnings: docWarnings,
   };
 }

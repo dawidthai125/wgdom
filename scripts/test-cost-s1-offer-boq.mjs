@@ -105,8 +105,10 @@ assert.equal(l0.matchedBy, "snapshot");
 assert.equal(l0.workCategory, null);
 assert.deepEqual(l0.candidateMatches, []);
 assert.equal(l0.costIntelligence, null);
+assert.equal(l0.linePricing, null);
 assert.equal(doc.mappingStats, null);
 assert.equal(doc.costIntelligenceStats, null);
+assert.equal(doc.pricingStats, null);
 assert.ok(l0.knrHint); // KNR hint from description
 assert.ok(l0.pricingSourceLabelPl.length > 0);
 assert.ok(doc.recomputeToken.startsWith("rt_"));
