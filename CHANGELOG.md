@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.75 — COST-MULTI-02 Aggregate Bid (2026-07-28)
+
+- **new:** `resolveCostBidInput` SSOT · modes ONE | AGGREGATE | MANUAL_HOLD · merge Branch winners → Bid/OfferBoq
+- **improve:** `scanSummary.branchWinnerArtifacts` (addycyjne) · UX banner Aggregate/HOLD · flaga `COST_MULTI_02_AGGREGATE_BID`
+- **lib:** `cost-multi-02*.ts` · test `scripts/test-cost-multi-02.mjs`
+- **DF:** `docs/architecture/COST-MULTI-02-DESIGN-FREEZE.md`
+- **bez zmian:** Discovery ONE · parsers ZIP/ATH/PDF/XLSX · COST-MULTI-01 klasyfikacja · Payroll · cloud-sync.ts
+
 ## 2.65.74 — COST-MULTI-01 Multi Cost Package (2026-07-28)
 
 - **new:** CostPackage / BranchPackage · klasyfikacja branż · SUM_BRANCH_WINNERS / HOLD_MANUAL · banner UX na Kosztorysach

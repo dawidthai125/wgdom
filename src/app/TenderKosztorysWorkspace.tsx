@@ -329,7 +329,7 @@ export function TenderKosztorysWorkspace({
         onRetry={onRetryParse ? handleGuardedRetryParse : undefined}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
-      {costMultiPackage && <CostMultiPackageBanner pkg={costMultiPackage} />}
+      {costMultiPackage && <CostMultiPackageBanner pkg={costMultiPackage} item={item} />}
 
       <TenderCostWorkspaceBridge
         tenderId={item.id}

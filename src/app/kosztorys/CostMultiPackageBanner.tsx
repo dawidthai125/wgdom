@@ -1,26 +1,48 @@
 /**
- * COST-MULTI-01 M3 — banner wielobranżowy (read-only, bez Bid).
+ * COST-MULTI-01 M3 + COST-MULTI-02 B3 — banner wielobranżowy / Aggregate Bid.
  */
 import { shouldShowCostMultiUi, resolveCostMultiUiCopy, type CostPackage } from "@/lib/cost-multi-01";
+import {
+  resolveCostBidInput,
+  resolveCostMulti02UiOverlay,
+} from "@/lib/cost-multi-02";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 
-export function CostMultiPackageBanner({ pkg }: { pkg: CostPackage }) {
+export function CostMultiPackageBanner({
+  pkg,
+  item,
+}: {
+  pkg: CostPackage;
+  item?: TenderPipelineItem | null;
+}) {
   if (!shouldShowCostMultiUi(pkg)) return null;
   const copy = resolveCostMultiUiCopy(pkg);
+  const bidDecision = item ? resolveCostBidInput(item) : null;
+  const overlay = bidDecision ? resolveCostMulti02UiOverlay(bidDecision) : null;
+
+  const tone = overlay?.tone ?? copy.tone;
+  const title = overlay?.title ?? copy.title;
+  const body = overlay?.body ?? copy.body;
+
   const border =
-    copy.tone === "warn"
+    tone === "warn"
       ? "border-amber-500/40 bg-amber-500/10"
-      : "border-sky-500/40 bg-sky-500/10";
+      : tone === "success"
+        ? "border-emerald-500/40 bg-emerald-500/10"
+        : "border-sky-500/40 bg-sky-500/10";
 
   return (
     <div
       className={`rounded-xl border px-3 py-2.5 space-y-2 ${border}`}
       data-cost-multi-01="1"
+      data-cost-multi-02={overlay?.mode ?? ""}
       data-cost-multi-status={pkg.status}
       data-cost-multi-policy={pkg.aggregate?.policy ?? ""}
+      data-cost-bid-mode={bidDecision?.mode ?? ""}
     >
       <div>
-        <p className="text-sm font-semibold text-foreground">{copy.title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{copy.body}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{body}</p>
         {copy.policyLabel && (
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">{copy.policyLabel}</p>
         )}

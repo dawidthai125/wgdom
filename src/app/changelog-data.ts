@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.75",
+    label: "COST-MULTI-02 — Aggregate Bid z branż",
+    items: [
+      {
+        type: "new",
+        text: "Gdy jest kilka przedmiarów branżowych i pełne odczyty: wycena oferty liczy sumę Branch winners (Aggregate), nie tylko jeden plik ONE.",
+      },
+      {
+        type: "improve",
+        text: "Przy braku odczytów branż lub HOLD: ostrzeżenie + fallback ONE; Discovery ONE w dossier bez zmian. Flaga COST_MULTI_02_AGGREGATE_BID.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.74",
     label: "COST-MULTI-01 — pakiet wielobranżowy (sygnał ONE niepełne)",
     items: [

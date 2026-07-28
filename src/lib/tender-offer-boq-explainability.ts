@@ -27,6 +27,7 @@ import {
 } from "@/lib/tender-offer-boq-company-knowledge";
 import { createControlledMarketPriceProvider } from "@/lib/tender-offer-boq-controlled-price-source";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
+import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 import {
   integrateOfferBoqWithBidProposal,
   type OfferBoqBidAuditStep,
@@ -625,7 +626,8 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
   builtAt?: string;
 }): OfferBoqDocument | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
-  const snapshot = opts.item.tenderDossier?.kosztorys;
+  // COST-MULTI-02 — OfferBoq z kosztorysForBid (to samo SSOT co Bid).
+  const snapshot = resolveKosztorysSnapshotForPricing(opts.item);
   const hasLines =
     (snapshot?.catalogQuantities?.length ?? 0) > 0 || (snapshot?.rows?.length ?? 0) > 0;
   if (!snapshot || !hasLines) return null;
@@ -689,9 +691,10 @@ export function computeRuntimeBidFromOfferBoq(opts: {
 
   const profile = loadCompanyProfileLocal();
   const dossier = opts.item.tenderDossier;
+  const kosztorysForBid = resolveKosztorysSnapshotForPricing(opts.item);
   const integration = integrateOfferBoqWithBidProposal({
     doc,
-    kosztorys: dossier?.kosztorys,
+    kosztorys: kosztorysForBid,
     swz: opts.swz ?? dossier?.swz ?? null,
     fit: dossier?.fit ?? opts.item.tenderFit ?? null,
     costModel: profile.costModel,

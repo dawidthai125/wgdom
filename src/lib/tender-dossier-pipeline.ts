@@ -70,6 +70,8 @@ export interface TenderDossierScanSummary {
   costDiscovery: TenderCostDiscoveryResult | null;
   /** COST-MULTI-01 — lista kandydatów kosztowych (addycyjna; nie zmienia ONE discovery). */
   costCandidateSources?: string[];
+  /** COST-MULTI-02 — snapshoty per kandydat kosztowy (addycyjne; nie nadpisuje ONE). */
+  branchWinnerArtifacts?: import("@/lib/cost-multi-02-types").CostBranchArtifact[];
   /** P2-H.5B — jakość odczytu PDF przedmiaru (1=pozycje, 2=brak, 3=skan). */
   pdfPrzedmiarCase?: 1 | 2 | 3;
   /** P2-H.5C — CASE 3 z powodu braku warstwy tekstowej. */
@@ -293,6 +295,8 @@ function buildHeavyScanSummary(
   zipUnpackFailReason?: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason;
   /** COST-MULTI-01 */
   costCandidateSources?: string[];
+  /** COST-MULTI-02 */
+  branchWinnerArtifacts?: import("@/lib/cost-multi-02-types").CostBranchArtifact[];
   partial: boolean;
   },
 ): TenderDossierScanSummary {
@@ -328,6 +332,7 @@ function buildHeavyScanSummary(
     estimateFound: row.estimatePln != null,
     costDiscovery: row.costDiscovery,
     costCandidateSources: row.costCandidateSources,
+    branchWinnerArtifacts: row.branchWinnerArtifacts,
     pdfPrzedmiarCase: row.kosztorysSnap?.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: row.kosztorysSnap?.pdfPrzedmiarNoTextLayer,
     pdfPrzedmiarExtractError: row.kosztorysSnap?.pdfPrzedmiarExtractError,
@@ -432,6 +437,9 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
   const costCandidateSources = parseSession
     ? collectCostCandidateSourcesFromFilenames(parseSession.allCandidates.map((c) => c.filename))
     : undefined;
+  const branchWinnerArtifacts = parseSession?.costParseArtifacts?.length
+    ? parseSession.costParseArtifacts
+    : undefined;
 
   const scanSummary = buildHeavyScanSummary(opts, {
     kosztorysSnap,
@@ -448,6 +456,7 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
     zipCostInnerPresent,
     zipUnpackFailReason,
     costCandidateSources,
+    branchWinnerArtifacts,
     partial: true,
   });
 
@@ -539,6 +548,9 @@ export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
     costCandidateSources: collectCostCandidateSourcesFromFilenames(
       opts.parseSession.allCandidates.map((c) => c.filename),
     ),
+    branchWinnerArtifacts: opts.parseSession.costParseArtifacts?.length
+      ? opts.parseSession.costParseArtifacts
+      : opts.partialDossier.scanSummary?.branchWinnerArtifacts,
     partial: false,
   });
 
@@ -634,6 +646,7 @@ export async function analyzeTenderWithDossier(opts: {
   let zipUnpackOk: boolean | undefined;
   let zipInnerCount: number | undefined;
   let costCandidateSources: string[] | undefined;
+  let branchWinnerArtifacts: import("@/lib/cost-multi-02-types").CostBranchArtifact[] | undefined;
 
   if (opts.tenderId && docs.length > 0) {
     const dossier = await parseTenderDossierDocuments(opts.tenderId, docs, {
@@ -659,6 +672,7 @@ export async function analyzeTenderWithDossier(opts: {
     parsed = dossier.parsedCount;
     costDiscovery = dossier.costDiscovery;
     costCandidateSources = dossier.costCandidateSources;
+    branchWinnerArtifacts = dossier.branchWinnerArtifacts;
     sevenZUnpackOk = dossier.sevenZUnpackOk;
     sevenZInnerCount = dossier.sevenZInnerCount;
     zipUnpackOk = dossier.zipUnpackOk;
@@ -704,6 +718,7 @@ export async function analyzeTenderWithDossier(opts: {
     estimateFound: estimatePln != null,
     costDiscovery,
     costCandidateSources,
+    branchWinnerArtifacts,
     pdfPrzedmiarCase: kosztorys?.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: kosztorys?.pdfPrzedmiarNoTextLayer,
     pdfPrzedmiarExtractError: kosztorys?.pdfPrzedmiarExtractError,

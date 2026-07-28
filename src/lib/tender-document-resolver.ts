@@ -105,6 +105,8 @@ export interface TenderDossierParseResult extends TenderDocumentParseResult {
   zipInnerCount?: number;
   /** COST-MULTI-01 — kandydaci kosztowi z allCandidates (addycyjne). */
   costCandidateSources?: string[];
+  /** COST-MULTI-02 — snapshot per sparsowany kandydat kosztowy (addycyjne). */
+  branchWinnerArtifacts?: import("@/lib/cost-multi-02-types").CostBranchArtifact[];
 }
 
 /** NG11-A1 — stan między fazą kosztorysu a metadanymi SWZ. */
@@ -141,6 +143,8 @@ export interface TenderDossierParseSession {
   warnings: string[];
   costPhaseComplete: boolean;
   metadataPhaseComplete: boolean;
+  /** COST-MULTI-02 — pełne snapshoty z costCandidates (nie tylko bestKosztorys). */
+  costParseArtifacts?: import("@/lib/cost-multi-02-types").CostBranchArtifact[];
 }
 
 function emptyDossierParseResult(
@@ -182,7 +186,26 @@ function buildDossierParseResultFromSession(session: TenderDossierParseSession):
     costCandidateSources: filterCostCandidateFilenames(
       session.allCandidates.map((c) => c.filename),
     ),
+    branchWinnerArtifacts: session.costParseArtifacts?.length
+      ? session.costParseArtifacts
+      : undefined,
   };
+}
+
+function recordCostParseArtifact(
+  session: TenderDossierParseSession,
+  filename: string,
+  snapshot: TenderKosztorysSnapshot,
+): void {
+  if (!snapshot.ok) return;
+  session.costParseArtifacts ??= [];
+  const entry = {
+    filename,
+    snapshot,
+  };
+  const i = session.costParseArtifacts.findIndex((a) => a.filename === filename);
+  if (i >= 0) session.costParseArtifacts[i] = entry;
+  else session.costParseArtifacts.push(entry);
 }
 
 function shouldBzpReadmodelsBytesFallback(
@@ -1200,6 +1223,7 @@ export async function prepareTenderDossierParseSession(
     warnings,
     costPhaseComplete: false,
     metadataPhaseComplete: false,
+    costParseArtifacts: [],
   };
 }
 
@@ -1233,6 +1257,8 @@ function applyCostCandidateParseToSession(
   if (!parsed) return;
   session.parsedCount += 1;
   if (parsed.kosztorys?.ok) {
+    // COST-MULTI-02 — zachowaj snapshot per kandydat (nie tylko bestKosztorys / ONE).
+    recordCostParseArtifact(session, cand.filename, parsed.kosztorys);
     if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery, {
       allowTotalValueFill: true,
     })) {
@@ -1267,6 +1293,7 @@ function applyMetadataCandidateParseToSession(
   });
 
   if (parsed.kosztorys?.ok) {
+    recordCostParseArtifact(session, cand.filename, parsed.kosztorys);
     if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery)) {
       session.bestKosztorys = parsed.kosztorys;
       session.sourceDocumentIndex = parsed.sourceDocumentIndex;

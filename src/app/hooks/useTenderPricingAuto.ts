@@ -3,6 +3,7 @@
  * NG11-Q5 — early pricing po partialDossierReady + recompute po metadata merge.
  * COST-PIPELINE-01 — OfferBoq (L1) → Bid (L2) jako SSOT Outcome (flaga R0).
  * COST-PIPELINE-01-BUGFIX-01 — OfferBoq first, catalog fallback gdy OfferBoq null.
+ * COST-MULTI-02 — Bid/OfferBoq input via resolveKosztorysSnapshotForPricing.
  */
 
 import { useMemo } from "react";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/tender-price-overrides";
 import { computeRuntimeBidFromOfferBoq } from "@/lib/tender-offer-boq-explainability";
 import { isCostPipeline01Enabled } from "@/lib/tenders-v4-config";
+import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 
 /** Legacy catalog Bid — REUSE path sprzed COST-PIPELINE-01 wire. */
 export function computeCatalogBidProposalForPricingAuto(opts: {
@@ -31,8 +33,10 @@ export function computeCatalogBidProposalForPricingAuto(opts: {
   const { catalog } = resolveActiveCatalogForTender({
     referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
   });
+  // COST-MULTI-02 — Bid czyta kosztorysForBid (Aggregate|ONE|HOLD fallback), nie mutuje dossier.
+  const kosztorys = resolveKosztorysSnapshotForPricing(opts.item);
   return computeTenderBidProposal({
-    kosztorys: opts.item.tenderDossier?.kosztorys,
+    kosztorys,
     swz: opts.swz ?? opts.item.swzAnalysis ?? null,
     fit: opts.item.tenderFit,
     costModel: profile.costModel,
@@ -134,6 +138,8 @@ export function useTenderPricingAuto(opts: {
     item.tenderDossier?.kosztorys?.rowCount,
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.scanSummary?.parsedAt,
+    item.tenderDossier?.scanSummary?.branchWinnerArtifacts,
+    item.tenderDossier?.scanSummary?.costCandidateSources,
     item.tenderFit,
     swz,
     item.swzAnalysis,
