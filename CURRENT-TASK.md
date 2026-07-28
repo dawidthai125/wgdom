@@ -9,7 +9,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **RELEASE GO** · UI **2.65.66** · L0 Evidence · L1 OfferBoq · L2 Bid |
+| **Status** | **RELEASE GO** · **DEPLOY PROPAGATING** · UI **2.65.66** · feature **`c7b608a`** · tip docs **`59c6397`** |
 | **DF** | [`COST-PIPELINE-01-DESIGN-FREEZE.md`](docs/architecture/COST-PIPELINE-01-DESIGN-FREEZE.md) |
 | **AR** | [`COST-PIPELINE-01-ARCHITECTURE-REVIEW.md`](docs/architecture/COST-PIPELINE-01-ARCHITECTURE-REVIEW.md) |
 | **CLOSEOUT** | [`COST-PIPELINE-01-CLOSEOUT.md`](docs/architecture/COST-PIPELINE-01-CLOSEOUT.md) |
