@@ -36,6 +36,7 @@ import {
   isPdfPrzedmiarCostFilename,
   type TenderCostDiscoveryResult,
 } from "@/lib/tender-cost-discovery";
+import { filterCostCandidateFilenames } from "@/lib/cost-multi-01-package";
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
@@ -102,6 +103,8 @@ export interface TenderDossierParseResult extends TenderDocumentParseResult {
   /** P0 — inner z archiwów ZIP (np. DOKUMENTACJA PROJEKTOWA.zip). */
   zipUnpackOk?: boolean;
   zipInnerCount?: number;
+  /** COST-MULTI-01 — kandydaci kosztowi z allCandidates (addycyjne). */
+  costCandidateSources?: string[];
 }
 
 /** NG11-A1 — stan między fazą kosztorysu a metadanymi SWZ. */
@@ -176,6 +179,9 @@ function buildDossierParseResultFromSession(session: TenderDossierParseSession):
     sevenZInnerCount: session.sevenZInnerCount,
     zipUnpackOk: session.zipUnpackOk,
     zipInnerCount: session.zipInnerCount,
+    costCandidateSources: filterCostCandidateFilenames(
+      session.allCandidates.map((c) => c.filename),
+    ),
   };
 }
 

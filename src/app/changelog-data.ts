@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.74",
+    label: "COST-MULTI-01 — pakiet wielobranżowy (sygnał ONE niepełne)",
+    items: [
+      {
+        type: "new",
+        text: "Kosztorysy: gdy w dokumentach jest kilka przedmiarów branżowych, widać listę i komunikat, że wycena z jednego pliku (ONE) może być niepełna — bez automatycznego sumowania do oferty.",
+      },
+      {
+        type: "improve",
+        text: "Klasyfikacja branż / wariant / opcja / rewizja; polityka SUM_BRANCH_WINNERS lub HOLD — bez zmiany kalkulatora oferty.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.73",
     label: "COST-PARSER-01 — ZIP unpack A/B/C + 1× retry",
     items: [

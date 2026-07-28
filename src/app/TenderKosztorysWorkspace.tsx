@@ -37,6 +37,8 @@ import {
   resolveCostRegressionF2Presentation,
   triggerCostRegressionF2Reparse,
 } from "@/lib/cost-regression-f2";
+import { resolveCostPackageFromItem } from "@/lib/cost-multi-01";
+import { CostMultiPackageBanner } from "@/app/kosztorys/CostMultiPackageBanner";
 import {
   TenderDesktopTable,
   TenderMobileRowCard,
@@ -273,6 +275,7 @@ export function TenderKosztorysWorkspace({
     ],
   );
   const f2Discovery = f2Copy?.discovery ?? null;
+  const costMultiPackage = useMemo(() => resolveCostPackageFromItem(item), [item]);
 
   const handleAttachPrzedmiar = () => {
     openTenderDetailV4(navigate, item.id, "dokumenty");
@@ -326,6 +329,7 @@ export function TenderKosztorysWorkspace({
         onRetry={onRetryParse ? handleGuardedRetryParse : undefined}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
+      {costMultiPackage && <CostMultiPackageBanner pkg={costMultiPackage} />}
 
       <TenderCostWorkspaceBridge
         tenderId={item.id}

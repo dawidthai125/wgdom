@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**COST-PARSER-01 ZIP-UNPACK**) · feature UI **2.65.73** · tip commit w §1 · prior CR-02 **2.65.72**.
+**Snapshot dokumentacji:** 2026-07-28 (**COST-MULTI-01**) · feature UI **2.65.74** · tip commit w §1 · prior PARSER-01 **2.65.73**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.73** (COST-PARSER-01) · **DEPLOY PROPAGATING** (live może jeszcze 2.65.72) |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`076781d`** · prior CR-02 **`c5c95ed`** / tip **`d8f6fc7`** |
+| **UI version (changelog / version.json)** | **2.65.74** (COST-MULTI-01) |
+| **Deploy tip commit (`main` / `version.json`)** | Feature **(po push)** · prior PARSER-01 **`076781d`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **Ostatni feature (COST-MULTI-01)** | CostPackage · BranchPackage · SUM_BRANCH_WINNERS / HOLD · UX incomplete ONE — **CLOSED (M1–M3)** · [`AUDIT`](../architecture/COST-MULTI-01-AUDIT.md) · [`DF`](../architecture/COST-MULTI-01-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-MULTI-01-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-MULTI-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-MULTI-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-MULTI-01-CLOSEOUT.md) · UI **2.65.74** |
 | **Ostatni feature (COST-PARSER-01)** | ZIP unpack A/B/C · 1× retry · HeavyDone gate — **`076781d`** · **CLOSED (code)** · [`RCA`](../architecture/COST-PARSER-01-HEAVY-PARSE-RCA.md) · [`DF`](../architecture/COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-PARSER-01-ZIP-UNPACK-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-PARSER-01-ZIP-UNPACK-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-PARSER-01-ZIP-UNPACK-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-PARSER-01-ZIP-UNPACK-CLOSEOUT.md) · UI **2.65.73** |
 | **Ostatni feature (COST-REGRESSION-02)** | Discovery ZIP · `archive_candidate` · ZIP-aware F2 copy — **`c5c95ed`** · **CLOSED** · [`DF`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-CLOSEOUT.md) · UI **2.65.72** |
 | **Ostatni feature (COST-REGRESSION-01 EPIC A)** | F2 diagnostyka · macierz copy · CTA Dołącz/Ponów (reuse heavy) — **`0a96744`** · **CLOSED** · **PV** · [`DF`](../architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-01-EPIC-A-CLOSEOUT.md) · UI **2.65.71** |

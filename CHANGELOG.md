@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.74 — COST-MULTI-01 Multi Cost Package (2026-07-28)
+
+- **new:** CostPackage / BranchPackage · klasyfikacja branż · SUM_BRANCH_WINNERS / HOLD_MANUAL · banner UX na Kosztorysach
+- **improve:** `scanSummary.costCandidateSources` (addycyjne) — lista kandydatów bez zmiany ONE discovery / Bid
+- **lib:** `cost-multi-01*.ts` · test `scripts/test-cost-multi-01.mjs`
+- **DF:** `docs/architecture/COST-MULTI-01-DESIGN-FREEZE.md`
+- **bez zmian:** Bid · Discovery turniej · ZIP/ATH/PDF parsers · COST-PIPELINE · AI Cost · OfferBoq · Payroll · cloud-sync.ts
+
 ## 2.65.73 — COST-PARSER-01 ZIP unpack A/B/C (2026-07-28)
 
 - **fix:** Stany A/B/C — unpack failed ≠ brak ATH w ZIP ≠ parse fail; 1× auto-retry unpack (Edge→JSZip)
