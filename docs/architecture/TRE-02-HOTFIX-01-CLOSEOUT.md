@@ -15,14 +15,12 @@
 
 ```text
 ══════════════════════════════════════
-TRE-02-HOTFIX-01 — CLOSED
+TRE-02-HOTFIX-01 — CLOSED (kod + push)
 
 deriveOfferRunSnapshot terminal mapping FIXED
-Pricing bez ceny → „Brak rekomendowanej ceny”
-„Trwa wycena…” tylko przy workInFlight
+UI 2.65.65 @ 5eef0ff
+PRODUCTION: DEPLOY PROPAGATING (VERIFY FAST)
 
-UI 2.65.65
-Gate G1–G9 NIE
 TRE-03 = NIE START
 ══════════════════════════════════════
 ```
@@ -42,8 +40,8 @@ TRE-03 = NIE START
 | | |
 |--|--|
 | **UI** | **2.65.65** |
-| **Feature commit** | **`5eef0ff`** |
-| **version.json** | VERIFY FAST po push — oczekiwane **2.65.65** / **`5eef0ff`** |
+| **Feature commit** | **`5eef0ff`** (tip docs **`02bf83d`**) |
+| **version.json (VERIFY FAST)** | **DEPLOY PROPAGATING** — live jeszcze **2.65.64** / **`ac6f9e4`**; oczekiwane **2.65.65** / **`5eef0ff`** (lub tip **`02bf83d`**) |
 
 ---
 

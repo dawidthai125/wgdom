@@ -26,7 +26,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.65** (TRE-02-HOTFIX-01) · VERIFY FAST po push |
+| **UI version (changelog / version.json)** | **2.65.65** (TRE-02-HOTFIX-01) · **DEPLOY PROPAGATING** |
 | **Deploy tip commit (`main` / `version.json`)** | Feature **`5eef0ff`** · prior TRE-02 **`a39533d`** / tip **`ac6f9e4`** · prior TRE-01 **`74ac6a0`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
