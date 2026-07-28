@@ -33,7 +33,13 @@ import {
   type CompanyKnowledgeStats,
 } from "@/lib/tender-offer-boq-company-knowledge";
 import { OfferBoqStickySummaryBar } from "@/app/kosztorys/OfferBoqStickySummaryBar";
-import { filterOfferBoqLinesReviewOnly } from "@/app/kosztorys/offer-boq-ux-wave1";
+import {
+  buildOfferBoqVisibleLines,
+  defaultOfferBoqDensity,
+  type OfferBoqDensityMode,
+  type OfferBoqSortDir,
+  type OfferBoqSortKey,
+} from "@/app/kosztorys/offer-boq-ux-wave2";
 
 const CATEGORY_OPTIONS = Object.keys(OFFER_BOQ_PRICED_CATEGORY_LABELS_PL) as OfferBoqPricedComponentCategory[];
 const ORIGIN_OPTIONS = Object.keys(OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL) as OfferBoqPriceOriginKind[];
@@ -357,11 +363,10 @@ function FieldLabel({ children }: { children: string }) {
   return <label className={`${TEUX_FONT_META} text-muted-foreground block mb-0.5`}>{children}</label>;
 }
 
-function EditableComponentCard({
+function EditableComponentFields({
   lineId,
   component,
   onPatch,
-  onApprove,
 }: {
   lineId: string;
   component: OfferBoqExplainComponentRow;
@@ -370,57 +375,12 @@ function EditableComponentCard({
     componentId: string,
     patch: Parameters<typeof patchOfferBoqComponentInDocument>[3],
   ) => void;
-  onApprove: (lineId: string, componentId: string) => void;
 }) {
   const inputClass =
-    "w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground";
+    "w-full rounded-md border border-border bg-background px-2 py-1.5 text-base sm:text-xs text-foreground";
 
   return (
-    <li
-      className="rounded-lg border border-border bg-background/80 p-2.5 space-y-2"
-      data-offer-boq-component-id={component.componentId}
-      data-offer-boq-editable="true"
-      data-offer-boq-component-editable="true"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <EditStatusBadge status={component.editStatus} label={component.editStatusLabelPl} />
-        <ConfidenceBadge badge={component.confidenceBadge} />
-        {component.changeHistoryCount > 0 ? (
-          <span className={`${TEUX_FONT_META} text-muted-foreground`}>
-            Historia: {component.changeHistoryCount}
-          </span>
-        ) : null}
-        {component.companyKnowledgeUsed ? (
-          <span
-            className={`${TEUX_FONT_META} rounded-md border border-teal-500/30 bg-teal-500/10 px-2 py-0.5 text-teal-900 dark:text-teal-200`}
-            data-offer-boq-company-knowledge
-          >
-            Wiedza firmy · {component.companyKnowledgeOccurrenceCount}×
-          </span>
-        ) : null}
-        {component.controlledMarketUsed ? (
-          <span
-            className={`${TEUX_FONT_META} rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-900 dark:text-sky-200`}
-            data-offer-boq-controlled-market
-            title={component.controlledMarketExplainPl ?? undefined}
-          >
-            Benchmark rynkowy
-            {component.controlledMarketRegionLabelPl
-              ? ` · ${component.controlledMarketRegionLabelPl}`
-              : ""}
-          </span>
-        ) : null}
-        <button
-          type="button"
-          className="ml-auto inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300"
-          onClick={() => onApprove(lineId, component.componentId)}
-          data-offer-boq-approve
-        >
-          <Check className="h-3 w-3" aria-hidden />
-          Zatwierdź
-        </button>
-      </div>
-
+    <div className="space-y-2" data-offer-boq-component-fields>
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <FieldLabel>Nazwa</FieldLabel>
@@ -543,20 +503,23 @@ function EditableComponentCard({
           {component.companyKnowledgeExplainPl}
         </p>
       ) : null}
-    </li>
+    </div>
   );
 }
 
-function LineExplainCard({
-  line,
-  open,
-  onToggle,
+/** WAVE 2.2 — collapsed component row + inline expand (bez Drawer). */
+function CollapsedComponentRow({
+  lineId,
+  component,
+  editing,
+  onToggleEdit,
   onPatch,
   onApprove,
 }: {
-  line: OfferBoqExplainLineCard;
-  open: boolean;
-  onToggle: () => void;
+  lineId: string;
+  component: OfferBoqExplainComponentRow;
+  editing: boolean;
+  onToggleEdit: () => void;
   onPatch: (
     lineId: string,
     componentId: string,
@@ -564,41 +527,181 @@ function LineExplainCard({
   ) => void;
   onApprove: (lineId: string, componentId: string) => void;
 }) {
+  const catShort =
+    OFFER_BOQ_PRICED_CATEGORY_LABELS_PL[
+      component.category as OfferBoqPricedComponentCategory
+    ] ?? component.categoryLabelPl;
+  const unitPrice =
+    component.unitPricePln == null
+      ? "—"
+      : component.unitPriceDisplay || String(component.unitPricePln);
+
+  return (
+    <li
+      className="rounded-lg border border-border bg-background/80 overflow-hidden"
+      data-offer-boq-component-id={component.componentId}
+      data-offer-boq-editable="true"
+      data-offer-boq-component-collapsed={editing ? "false" : "true"}
+    >
+      <div
+        className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-2 min-h-[44px]"
+        data-offer-boq-component-row
+      >
+        <EditStatusBadge status={component.editStatus} label={component.editStatusLabelPl} />
+        <span
+          className={`${TEUX_FONT_CAPTION} font-medium text-foreground line-clamp-1 min-w-0 flex-1`}
+          title={component.namePl}
+        >
+          {component.namePl}
+        </span>
+        <span className={`${TEUX_FONT_META} text-muted-foreground shrink-0`}>{catShort}</span>
+        <span className={`${TEUX_FONT_META} tabular-nums text-muted-foreground shrink-0`}>
+          {component.quantityDisplay} {component.unit}
+        </span>
+        <span className={`${TEUX_FONT_META} tabular-nums text-muted-foreground shrink-0`}>
+          {unitPrice}
+        </span>
+        <span className={`${TEUX_FONT_CAPTION} font-semibold tabular-nums text-foreground shrink-0`}>
+          {component.totalDisplay}
+        </span>
+        <ConfidenceBadge badge={component.confidenceBadge} />
+        {component.companyKnowledgeUsed ? (
+          <span
+            className={`${TEUX_FONT_META} text-teal-800 dark:text-teal-200`}
+            data-offer-boq-company-knowledge
+            title="Wiedza firmy"
+          >
+            ★
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5 min-h-[44px] sm:min-h-0 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300 touch-manipulation"
+          onClick={() => onApprove(lineId, component.componentId)}
+          data-offer-boq-approve
+        >
+          <Check className="h-3 w-3" aria-hidden />
+          Zatwierdź
+        </button>
+        <button
+          type="button"
+          className="inline-flex items-center rounded-md border border-border bg-secondary/40 px-2 py-1.5 min-h-[44px] sm:min-h-0 text-[10px] font-semibold text-foreground touch-manipulation"
+          onClick={onToggleEdit}
+          aria-expanded={editing}
+          data-offer-boq-component-edit-toggle
+        >
+          {editing ? "Zamknij edycję" : "Edytuj"}
+        </button>
+      </div>
+
+      {editing ? (
+        <div
+          className="border-t border-border/70 px-2.5 py-2.5 bg-secondary/10"
+          data-offer-boq-component-inline-edit
+        >
+          <EditableComponentFields lineId={lineId} component={component} onPatch={onPatch} />
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+function LineExplainCard({
+  line,
+  open,
+  density,
+  editingComponentId,
+  onToggle,
+  onPatch,
+  onApprove,
+  onToggleComponentEdit,
+}: {
+  line: OfferBoqExplainLineCard;
+  open: boolean;
+  density: OfferBoqDensityMode;
+  editingComponentId: string | null;
+  onToggle: () => void;
+  onPatch: (
+    lineId: string,
+    componentId: string,
+    patch: Parameters<typeof patchOfferBoqComponentInDocument>[3],
+  ) => void;
+  onApprove: (lineId: string, componentId: string) => void;
+  onToggleComponentEdit: (componentId: string) => void;
+}) {
+  const [whyAiOpen, setWhyAiOpen] = useState(false);
+  const compact = density === "compact";
+
   return (
     <article
       className="rounded-xl border border-border bg-card/40 overflow-hidden"
       data-offer-boq-line-id={line.lineId}
       data-offer-boq-editable="false"
+      data-offer-boq-line-density={density}
     >
       <button
         type="button"
-        className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-secondary/30 transition-colors"
+        className={`w-full text-left px-3 flex items-center gap-2 hover:bg-secondary/30 transition-colors touch-manipulation min-h-[44px] ${
+          compact ? "py-2" : "py-2.5 items-start"
+        }`}
         onClick={onToggle}
         aria-expanded={open}
         data-offer-boq-line-toggle
       >
-        <span className="mt-0.5 text-muted-foreground shrink-0">
+        <span className={`${compact ? "" : "mt-0.5"} text-muted-foreground shrink-0`}>
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </span>
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">{line.lp}</span>
+
+        {compact ? (
+          <div className="min-w-0 flex-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-mono text-xs text-muted-foreground w-8 shrink-0">{line.lp}</span>
+            <span
+              className={`${TEUX_FONT_CAPTION} font-medium text-foreground line-clamp-1 min-w-0 flex-1`}
+              title={line.description}
+            >
+              {line.description}
+            </span>
+            <span className={`${TEUX_FONT_CAPTION} tabular-nums text-foreground font-semibold shrink-0`}>
+              {line.lineDirectDisplay}
+            </span>
             <ConfidenceBadge badge={line.confidenceBadge} />
             {line.requiresUserReview ? (
-              <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300`}>
-                {line.reviewLabelPl}
+              <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300 shrink-0`}>
+                rev
               </span>
             ) : null}
+            <span className={`${TEUX_FONT_META} text-muted-foreground shrink-0`}>
+              {line.componentCount} komp.
+            </span>
           </div>
-          <p className={`${TEUX_FONT_BODY} font-medium text-foreground line-clamp-2`}>
-            {line.description}
-          </p>
-          <div className={`flex flex-wrap gap-x-3 gap-y-1 ${TEUX_FONT_CAPTION} text-muted-foreground`}>
-            <span>Typ: <strong className="text-foreground">{line.lineKindLabelPl}</strong></span>
-            <span>Komponenty: <strong className="text-foreground">{line.componentCount}</strong></span>
-            <span>Koszt bezp.: <strong className="text-foreground tabular-nums">{line.lineDirectDisplay}</strong></span>
+        ) : (
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs text-muted-foreground">{line.lp}</span>
+              <ConfidenceBadge badge={line.confidenceBadge} />
+              {line.requiresUserReview ? (
+                <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300`}>
+                  {line.reviewLabelPl}
+                </span>
+              ) : null}
+            </div>
+            <p className={`${TEUX_FONT_BODY} font-medium text-foreground line-clamp-2`}>
+              {line.description}
+            </p>
+            <div className={`flex flex-wrap gap-x-3 gap-y-1 ${TEUX_FONT_CAPTION} text-muted-foreground`}>
+              <span>
+                Typ: <strong className="text-foreground">{line.lineKindLabelPl}</strong>
+              </span>
+              <span>
+                Komponenty: <strong className="text-foreground">{line.componentCount}</strong>
+              </span>
+              <span>
+                Koszt bezp.:{" "}
+                <strong className="text-foreground tabular-nums">{line.lineDirectDisplay}</strong>
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </button>
 
       {open ? (
@@ -614,30 +717,49 @@ function LineExplainCard({
             </p>
           </div>
 
-          <section
-            className="rounded-lg border border-border/80 bg-background/60 p-3 space-y-1.5"
+          <div
+            className="rounded-lg border border-border/80 bg-background/60 overflow-hidden"
             data-offer-boq-why-ai
           >
-            <h4 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground flex items-center gap-1.5`}>
+            <button
+              type="button"
+              className="w-full text-left px-3 py-2 flex items-center gap-1.5 hover:bg-secondary/30 min-h-[44px] touch-manipulation"
+              onClick={() => setWhyAiOpen((v) => !v)}
+              aria-expanded={whyAiOpen}
+              data-offer-boq-why-ai-toggle
+            >
+              {whyAiOpen ? (
+                <ChevronDown className="h-3.5 w-3.5 text-primary shrink-0" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 text-primary shrink-0" />
+              )}
               <Info className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden />
-              Dlaczego AI podjęło taką decyzję?
-            </h4>
-            <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>{line.whyAiDecisionPl}</p>
-          </section>
+              <span className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+                Uzasadnienie AI
+              </span>
+            </button>
+            {whyAiOpen ? (
+              <p className={`${TEUX_FONT_BODY} text-muted-foreground px-3 pb-3`}>
+                {line.whyAiDecisionPl}
+              </p>
+            ) : null}
+          </div>
 
           <section className="space-y-2" data-offer-boq-components>
             <h4 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
-              Komponenty wyceny — edycja ({line.components.length})
+              Komponenty wyceny ({line.components.length})
             </h4>
             {line.components.length === 0 ? (
               <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>Brak komponentów wyceny.</p>
             ) : (
               <ul className="space-y-2">
                 {line.components.map((c) => (
-                  <EditableComponentCard
+                  <CollapsedComponentRow
                     key={c.componentId}
                     lineId={line.lineId}
                     component={c}
+                    editing={editingComponentId === c.componentId}
+                    onToggleEdit={() => onToggleComponentEdit(c.componentId)}
                     onPatch={onPatch}
                     onApprove={onApprove}
                   />
@@ -672,12 +794,26 @@ export function OfferBoqCostIntelligencePanel({
   /** COSTORYS-UX-01 W1 — UI-only. */
   const [reviewOnly, setReviewOnly] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  /** COSTORYS-UX-01 W2 — UI-only. */
+  const [density, setDensity] = useState<OfferBoqDensityMode>("comfort");
+  const [densityUserOverride, setDensityUserOverride] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<OfferBoqSortKey>("lp");
+  const [sortDir, setSortDir] = useState<OfferBoqSortDir>("asc");
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   useEffect(() => {
     setDoc(baseline.document);
     setOpenIds({});
     setReviewOnly(false);
     setDetailsOpen(false);
+    setSearchQuery("");
+    setSortKey("lp");
+    setSortDir("asc");
+    setEditingKey(null);
+    setDensityUserOverride(false);
+    const lineCount = baseline.available ? baseline.lines.length : 0;
+    setDensity(defaultOfferBoqDensity(lineCount));
   }, [item.id, pricingCatalogRevision, baseline.builtAt]);
 
   const view = useMemo(() => {
@@ -686,9 +822,26 @@ export function OfferBoqCostIntelligencePanel({
     return presentOfferBoqExplainabilityView(doc, baseline.builtAt, { item });
   }, [baseline, doc, item]);
 
+  useEffect(() => {
+    if (densityUserOverride || !view.available) return;
+    setDensity(defaultOfferBoqDensity(view.lines.length));
+  }, [view.available, view.lines.length, densityUserOverride]);
+
   const knowledgeStats: CompanyKnowledgeStats = useMemo(
     () => computeCompanyKnowledgeStats(loadCompanyKnowledgeStoreLocal()),
     [knowledgeRevision, doc, item.id],
+  );
+
+  const visibleLines = useMemo(
+    () =>
+      buildOfferBoqVisibleLines({
+        lines: view.lines,
+        reviewOnly,
+        searchQuery,
+        sortKey,
+        sortDir,
+      }),
+    [view.lines, reviewOnly, searchQuery, sortKey, sortDir],
   );
 
   const handlePatch = (
@@ -711,6 +864,16 @@ export function OfferBoqCostIntelligencePanel({
     setKnowledgeRevision((n) => n + 1);
   };
 
+  const handleDensityToggle = (next: OfferBoqDensityMode) => {
+    setDensityUserOverride(true);
+    setDensity(next);
+  };
+
+  const handleToggleComponentEdit = (lineId: string, componentId: string) => {
+    const key = `${lineId}:${componentId}`;
+    setEditingKey((prev) => (prev === key ? null : key));
+  };
+
   if (!view.available || !view.summary) {
     return (
       <section
@@ -731,7 +894,7 @@ export function OfferBoqCostIntelligencePanel({
     view.offerSummary?.available && view.offerSummary.recommendedBidDisplay
       ? view.offerSummary.recommendedBidDisplay
       : "Brak rekomendowanej ceny";
-  const visibleLines = filterOfferBoqLinesReviewOnly(view.lines, reviewOnly);
+  const filterActive = reviewOnly || searchQuery.trim().length > 0;
 
   return (
     <section
@@ -739,6 +902,8 @@ export function OfferBoqCostIntelligencePanel({
       data-offer-boq-explainability
       data-offer-boq-editable="components-only"
       data-costorys-ux-wave1="true"
+      data-costorys-ux-wave2="true"
+      data-offer-boq-density={density}
     >
       <OfferBoqStickySummaryBar
         recommendedBidDisplay={recommendedDisplay}
@@ -747,6 +912,74 @@ export function OfferBoqCostIntelligencePanel({
         reviewOnly={reviewOnly}
         onReviewOnlyChange={setReviewOnly}
       />
+
+      <div
+        className="flex flex-col gap-2 rounded-lg border border-border bg-background/60 p-2.5"
+        data-offer-boq-scan-toolbar
+      >
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Szukaj pozycji (LP, opis)…"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-base sm:text-sm text-foreground min-h-[44px]"
+          data-offer-boq-search
+          aria-label="Szukaj pozycji kosztorysu"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <label className={`${TEUX_FONT_META} text-muted-foreground shrink-0`} htmlFor="offer-boq-sort">
+            Sort
+          </label>
+          <select
+            id="offer-boq-sort"
+            className="rounded-md border border-border bg-background px-2 py-2 text-sm min-h-[44px]"
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as OfferBoqSortKey)}
+            data-offer-boq-sort-key
+          >
+            <option value="lp">LP</option>
+            <option value="direct">Direct</option>
+            <option value="confidence">Pewność</option>
+          </select>
+          <button
+            type="button"
+            className="rounded-md border border-border bg-secondary/40 px-2.5 py-2 text-xs font-semibold min-h-[44px] touch-manipulation"
+            onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+            data-offer-boq-sort-dir={sortDir}
+            aria-label={sortDir === "asc" ? "Rosnąco" : "Malejąco"}
+          >
+            {sortDir === "asc" ? "↑" : "↓"}
+          </button>
+          <div
+            className="ml-auto inline-flex rounded-md border border-border overflow-hidden"
+            role="group"
+            aria-label="Gęstość listy"
+          >
+            <button
+              type="button"
+              className={`px-3 py-2 text-xs font-semibold min-h-[44px] touch-manipulation ${
+                density === "compact" ? "bg-primary/15 text-foreground" : "bg-background text-muted-foreground"
+              }`}
+              onClick={() => handleDensityToggle("compact")}
+              data-offer-boq-density-toggle="compact"
+              aria-pressed={density === "compact"}
+            >
+              Zwarty
+            </button>
+            <button
+              type="button"
+              className={`px-3 py-2 text-xs font-semibold min-h-[44px] touch-manipulation border-l border-border ${
+                density === "comfort" ? "bg-primary/15 text-foreground" : "bg-background text-muted-foreground"
+              }`}
+              onClick={() => handleDensityToggle("comfort")}
+              data-offer-boq-density-toggle="comfort"
+              aria-pressed={density === "comfort"}
+            >
+              Komfort
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-1">
         <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
@@ -864,16 +1097,18 @@ export function OfferBoqCostIntelligencePanel({
       <div className="space-y-2" data-offer-boq-lines>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>
-          {reviewOnly ? (
-            <span className={`${TEUX_FONT_META} text-muted-foreground`} data-offer-boq-review-only-active>
-              Filtr: tylko do weryfikacji ({visibleLines.length})
+          {filterActive ? (
+            <span className={`${TEUX_FONT_META} text-muted-foreground`} data-offer-boq-filter-active>
+              Widoczne: {visibleLines.length}
+              {reviewOnly ? " · tylko do weryfikacji" : ""}
+              {searchQuery.trim() ? " · wyszukiwanie" : ""}
             </span>
           ) : null}
         </div>
         {visibleLines.length === 0 ? (
           <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-offer-boq-review-only-empty>
-            {reviewOnly
-              ? "Brak pozycji wymagających weryfikacji."
+            {filterActive
+              ? "Brak pozycji dla filtra / wyszukiwania."
               : "Brak pozycji kosztorysu."}
           </p>
         ) : (
@@ -882,11 +1117,21 @@ export function OfferBoqCostIntelligencePanel({
               key={line.lineId}
               line={line}
               open={Boolean(openIds[line.lineId])}
-              onToggle={() =>
-                setOpenIds((prev) => ({ ...prev, [line.lineId]: !prev[line.lineId] }))
+              density={density}
+              editingComponentId={
+                editingKey?.startsWith(`${line.lineId}:`)
+                  ? editingKey.slice(line.lineId.length + 1)
+                  : null
               }
+              onToggle={() => {
+                setOpenIds((prev) => ({ ...prev, [line.lineId]: !prev[line.lineId] }));
+                setEditingKey(null);
+              }}
               onPatch={handlePatch}
               onApprove={handleApprove}
+              onToggleComponentEdit={(componentId) =>
+                handleToggleComponentEdit(line.lineId, componentId)
+              }
             />
           ))
         )}

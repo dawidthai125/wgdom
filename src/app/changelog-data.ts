@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.70",
+    label: "COSTORYS-UX-01 WAVE 2 — zwarta lista · skan · sort",
+    items: [
+      {
+        type: "improve",
+        text: "Kosztorysy: tryb Zwarty/Komfort — więcej pozycji na ekranie; komponenty jako wiersze z edycją inline.",
+      },
+      {
+        type: "improve",
+        text: "Szukaj po LP/opisie i sortuj (LP · Direct · Pewność) razem z filtrem „Tylko do weryfikacji”.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.69",
     label: "COSTORYS-UX-01 WAVE 1 — sticky oferta · full width · mniej chrome",
     items: [

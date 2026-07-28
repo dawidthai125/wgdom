@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.70 — COSTORYS-UX-01 WAVE 2 density & scan (2026-07-28)
+
+- **improve:** Compact/Comfort · collapsed component rows + inline edit · Search L1 · Sort LP/Direct/Confidence
+- **pipeline:** review → search → sort → render (`offer-boq-ux-wave2.ts`)
+- **test:** `scripts/test-costorys-ux-01-wave2.mjs`
+- **DF:** `docs/architecture/COSTORYS-UX-01-WAVE-2-DESIGN-FREEZE.md`
+- **bez zmian:** Bid / AI Cost engines / COST-PIPELINE / parser / Drawer / virtualization
+
 ## 2.65.69 — COSTORYS-UX-01 WAVE 1 sticky / full width (2026-07-28)
 
 - **improve:** Sticky Offer Summary Bar · full width tylko tab Kosztorysy · accordion Szczegóły wyceny (closed) · Evidence collapsed · filtr „Tylko do weryfikacji”
