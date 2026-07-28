@@ -32,6 +32,8 @@ import {
   loadCompanyKnowledgeStoreLocal,
   type CompanyKnowledgeStats,
 } from "@/lib/tender-offer-boq-company-knowledge";
+import { OfferBoqStickySummaryBar } from "@/app/kosztorys/OfferBoqStickySummaryBar";
+import { filterOfferBoqLinesReviewOnly } from "@/app/kosztorys/offer-boq-ux-wave1";
 
 const CATEGORY_OPTIONS = Object.keys(OFFER_BOQ_PRICED_CATEGORY_LABELS_PL) as OfferBoqPricedComponentCategory[];
 const ORIGIN_OPTIONS = Object.keys(OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL) as OfferBoqPriceOriginKind[];
@@ -667,10 +669,15 @@ export function OfferBoqCostIntelligencePanel({
   const [doc, setDoc] = useState<OfferBoqDocument | null>(null);
   const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
   const [knowledgeRevision, setKnowledgeRevision] = useState(0);
+  /** COSTORYS-UX-01 W1 — UI-only. */
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     setDoc(baseline.document);
     setOpenIds({});
+    setReviewOnly(false);
+    setDetailsOpen(false);
   }, [item.id, pricingCatalogRevision, baseline.builtAt]);
 
   const view = useMemo(() => {
@@ -720,13 +727,27 @@ export function OfferBoqCostIntelligencePanel({
   }
 
   const s = view.summary;
+  const recommendedDisplay =
+    view.offerSummary?.available && view.offerSummary.recommendedBidDisplay
+      ? view.offerSummary.recommendedBidDisplay
+      : "Brak rekomendowanej ceny";
+  const visibleLines = filterOfferBoqLinesReviewOnly(view.lines, reviewOnly);
 
   return (
     <section
       className="rounded-xl border border-border bg-secondary/15 p-4 space-y-4"
       data-offer-boq-explainability
       data-offer-boq-editable="components-only"
+      data-costorys-ux-wave1="true"
     >
+      <OfferBoqStickySummaryBar
+        recommendedBidDisplay={recommendedDisplay}
+        directCostDisplay={s.directCostDisplay}
+        reviewRequiredCount={s.reviewRequiredCount}
+        reviewOnly={reviewOnly}
+        onReviewOnlyChange={setReviewOnly}
+      />
+
       <div className="space-y-1">
         <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
@@ -750,81 +771,125 @@ export function OfferBoqCostIntelligencePanel({
         />
       </div>
 
-      <section
-        className="rounded-lg border border-border bg-background/60 p-3 space-y-2"
-        data-offer-boq-company-knowledge-stats
+      <div
+        className="rounded-lg border border-border bg-background/60 overflow-hidden"
+        data-offer-boq-details-accordion
       >
-        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
-          Baza wiedzy firmy (tylko odczyt)
-        </h3>
-        <p className={`${TEUX_FONT_META} text-muted-foreground`}>
-          Lokalna wiedza z zatwierdzeń i korekt — bez synchronizacji chmurowej. W tym kosztorysie
-          wiedza firmy użyta w {s.companyKnowledgeHitCount} komponentach.
-        </p>
-        <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
-          <SummaryKpi label="Zapisane komponenty" value={String(knowledgeStats.entryCount)} />
-          <SummaryKpi
-            label="Potwierdzone przez użytkownika"
-            value={String(knowledgeStats.userConfirmedEntryCount)}
-          />
-          <SummaryKpi
-            label="Zgodność AI ↔ użytkownik"
-            value={
-              knowledgeStats.aiUserAgreementPct == null
-                ? "—"
-                : `${knowledgeStats.aiUserAgreementPct}%`
-            }
-            sub="zatwierdzenia / decyzje"
-          />
-          <SummaryKpi
-            label="Obserwacje"
-            value={String(knowledgeStats.observationCount)}
-            sub={`zatw. ${knowledgeStats.approvedObservationCount} · zm. ${knowledgeStats.changedObservationCount}`}
-          />
-        </div>
-        {knowledgeStats.topMaterials.length > 0 ? (
-          <div className="space-y-1">
-            <p className={`${TEUX_FONT_META} font-semibold text-muted-foreground uppercase tracking-wide`}>
-              Najczęściej wykorzystywane materiały
-            </p>
-            <ul className={`${TEUX_FONT_CAPTION} text-foreground space-y-0.5`}>
-              {knowledgeStats.topMaterials.map((m) => (
-                <li key={`${m.namePl}-${m.category}`}>
-                  {m.namePl}{" "}
-                  <span className="text-muted-foreground">({m.occurrenceCount}×)</span>
-                </li>
-              ))}
-            </ul>
+        <button
+          type="button"
+          className="w-full text-left px-3 py-2.5 flex items-center gap-2 hover:bg-secondary/30 touch-manipulation min-h-[44px]"
+          onClick={() => setDetailsOpen((v) => !v)}
+          aria-expanded={detailsOpen}
+          data-offer-boq-details-toggle
+        >
+          {detailsOpen ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          )}
+          <span className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+            Szczegóły wyceny
+          </span>
+          <span className={`${TEUX_FONT_META} text-muted-foreground`}>
+            Jakość · Wiedza · Explainability · Readiness
+          </span>
+        </button>
+
+        {detailsOpen ? (
+          <div className="border-t border-border/70 p-3 space-y-3" data-offer-boq-details-body>
+            <section
+              className="rounded-lg border border-border bg-background/60 p-3 space-y-2"
+              data-offer-boq-company-knowledge-stats
+            >
+              <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+                Baza wiedzy firmy (tylko odczyt)
+              </h3>
+              <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+                Lokalna wiedza z zatwierdzeń i korekt — bez synchronizacji chmurowej. W tym kosztorysie
+                wiedza firmy użyta w {s.companyKnowledgeHitCount} komponentach.
+              </p>
+              <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+                <SummaryKpi label="Zapisane komponenty" value={String(knowledgeStats.entryCount)} />
+                <SummaryKpi
+                  label="Potwierdzone przez użytkownika"
+                  value={String(knowledgeStats.userConfirmedEntryCount)}
+                />
+                <SummaryKpi
+                  label="Zgodność AI ↔ użytkownik"
+                  value={
+                    knowledgeStats.aiUserAgreementPct == null
+                      ? "—"
+                      : `${knowledgeStats.aiUserAgreementPct}%`
+                  }
+                  sub="zatwierdzenia / decyzje"
+                />
+                <SummaryKpi
+                  label="Obserwacje"
+                  value={String(knowledgeStats.observationCount)}
+                  sub={`zatw. ${knowledgeStats.approvedObservationCount} · zm. ${knowledgeStats.changedObservationCount}`}
+                />
+              </div>
+              {knowledgeStats.topMaterials.length > 0 ? (
+                <div className="space-y-1">
+                  <p className={`${TEUX_FONT_META} font-semibold text-muted-foreground uppercase tracking-wide`}>
+                    Najczęściej wykorzystywane materiały
+                  </p>
+                  <ul className={`${TEUX_FONT_CAPTION} text-foreground space-y-0.5`}>
+                    {knowledgeStats.topMaterials.map((m) => (
+                      <li key={`${m.namePl}-${m.category}`}>
+                        {m.namePl}{" "}
+                        <span className="text-muted-foreground">({m.occurrenceCount}×)</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+                  Brak zapisanych materiałów — zatwierdź lub skoryguj komponenty, aby budować wiedzę.
+                </p>
+              )}
+            </section>
+
+            {view.bidImpact?.available ? <BidImpactSection section={view.bidImpact} /> : null}
+
+            {view.offerSummary ? <OfferSummarySection section={view.offerSummary} /> : null}
+
+            {view.offerReadiness ? <OfferReadinessSection section={view.offerReadiness} /> : null}
+
+            {view.aiQuality ? <AiQualitySection section={view.aiQuality} /> : null}
           </div>
-        ) : (
-          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
-            Brak zapisanych materiałów — zatwierdź lub skoryguj komponenty, aby budować wiedzę.
-          </p>
-        )}
-      </section>
-
-      {view.bidImpact?.available ? <BidImpactSection section={view.bidImpact} /> : null}
-
-      {view.offerSummary ? <OfferSummarySection section={view.offerSummary} /> : null}
-
-      {view.offerReadiness ? <OfferReadinessSection section={view.offerReadiness} /> : null}
-
-      {view.aiQuality ? <AiQualitySection section={view.aiQuality} /> : null}
+        ) : null}
+      </div>
 
       <div className="space-y-2" data-offer-boq-lines>
-        <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>
-        {view.lines.map((line) => (
-          <LineExplainCard
-            key={line.lineId}
-            line={line}
-            open={Boolean(openIds[line.lineId])}
-            onToggle={() =>
-              setOpenIds((prev) => ({ ...prev, [line.lineId]: !prev[line.lineId] }))
-            }
-            onPatch={handlePatch}
-            onApprove={handleApprove}
-          />
-        ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-foreground">Pozycje — edycja komponentów</h3>
+          {reviewOnly ? (
+            <span className={`${TEUX_FONT_META} text-muted-foreground`} data-offer-boq-review-only-active>
+              Filtr: tylko do weryfikacji ({visibleLines.length})
+            </span>
+          ) : null}
+        </div>
+        {visibleLines.length === 0 ? (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-offer-boq-review-only-empty>
+            {reviewOnly
+              ? "Brak pozycji wymagających weryfikacji."
+              : "Brak pozycji kosztorysu."}
+          </p>
+        ) : (
+          visibleLines.map((line) => (
+            <LineExplainCard
+              key={line.lineId}
+              line={line}
+              open={Boolean(openIds[line.lineId])}
+              onToggle={() =>
+                setOpenIds((prev) => ({ ...prev, [line.lineId]: !prev[line.lineId] }))
+              }
+              onPatch={handlePatch}
+              onApprove={handleApprove}
+            />
+          ))
+        )}
       </div>
     </section>
   );

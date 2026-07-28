@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.69",
+    label: "COSTORYS-UX-01 WAVE 1 — sticky oferta · full width · mniej chrome",
+    items: [
+      {
+        type: "improve",
+        text: "Kosztorysy: pasek oferty (rekomendacja · direct · weryfikacja) zostaje widoczny przy przewijaniu pozycji.",
+      },
+      {
+        type: "improve",
+        text: "Zakładka Kosztorysy na pełną szerokość; szczegóły AI w accordionie; Evidence ATH zwinięte; filtr „Tylko do weryfikacji”.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.68",
     label: "CATALOG-BID-01 — ilości catalogQuantities przed wyceną",
     items: [

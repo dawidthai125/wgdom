@@ -36,6 +36,7 @@ import {
   type TenderCostScrollTab,
 } from "@/lib/tender-cost-ui-persist";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
+import { tenderDetailContentMaxWidthClass } from "@/app/kosztorys/offer-boq-ux-wave1";
 import { useTenderPipelineRuntime } from "@/app/hooks/useTenderPipelineRuntime";
 import { TenderPipelineDevTimeline } from "@/app/tenders/pipeline/TenderPipelineDevTimeline";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
@@ -577,7 +578,10 @@ export function TenderDetailPage({
             : { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }
         }
       >
-        <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"} max-w-7xl mx-auto w-full`}>
+        <div
+          className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"} mx-auto w-full ${tenderDetailContentMaxWidthClass(activeTab)}`}
+          data-tender-detail-content-width={activeTab === "kosztorys" ? "full" : "constrained"}
+        >
           <TenderPipelineDevTimeline
             timeline={pipelineRuntime.timeline}
             pipelineState={pipelineRuntime.pipelineState}

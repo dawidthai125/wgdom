@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.69 — COSTORYS-UX-01 WAVE 1 sticky / full width (2026-07-28)
+
+- **improve:** Sticky Offer Summary Bar · full width tylko tab Kosztorysy · accordion Szczegóły wyceny (closed) · Evidence collapsed · filtr „Tylko do weryfikacji”
+- **test:** `scripts/test-costorys-ux-01-wave1.mjs`
+- **DF:** `docs/architecture/COSTORYS-UX-01-WAVE-1-DESIGN-FREEZE.md`
+- **bez zmian:** Bid / AI Cost / OfferBoq engines / COST-PIPELINE / parser
+
 ## 2.65.68 — CATALOG-BID-01 catalogQuantities materialization (2026-07-28)
 
 - **fix:** `buildCatalogQuantitiesFromPreview` / `ensureKosztorysCatalogQuantities` — tylko qty > 0; martwe `catalogQuantities` bez qty nie blokują F1 recovery z `rows`

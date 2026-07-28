@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Eye, Loader2, Scale } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Eye, Loader2, Scale } from "lucide-react";
+import { defaultEvidenceExpanded } from "@/app/kosztorys/offer-boq-ux-wave1";
 import { useNavigate } from "react-router";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
@@ -196,6 +197,7 @@ export function TenderKosztorysWorkspace({
   const [categoryFilter, setCategoryFilter] = useState<KosztorysProFilterId>("all");
   const [athDownloadBusy, setAthDownloadBusy] = useState(false);
   const [athDownloadError, setAthDownloadError] = useState<string | null>(null);
+  const [evidenceOpen, setEvidenceOpen] = useState(true);
 
   const athPreviewItem = useMemo(() => resolveAthPreviewItem(item), [item]);
   const canOpenFullPreview = athPreviewEnabled && athPreviewItem != null;
@@ -214,6 +216,10 @@ export function TenderKosztorysWorkspace({
 
   const hasOfferBoqSource =
     pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0;
+
+  useEffect(() => {
+    setEvidenceOpen(defaultEvidenceExpanded(hasOfferBoqSource));
+  }, [item.id, hasOfferBoqSource]);
 
   useEffect(() => {
     if (!focusOfferBoq) return;
@@ -298,15 +304,33 @@ export function TenderKosztorysWorkspace({
       <section
         className="rounded-xl border border-dashed border-border/80 bg-secondary/10 p-3 space-y-3"
         data-cost-pipeline-evidence-l0
+        data-evidence-collapsed={evidenceOpen ? "false" : "true"}
       >
-        <div className="space-y-1">
-          <TenderUxSectionTitle>Dowód / przedmiar (ATH)</TenderUxSectionTitle>
-          <p className={`${TEUX_FONT_META} text-muted-foreground`}>
-            Warstwa Evidence — dokument inwestorski i klasyfikacja. Nie jest ceną oferty WGDOM.
-            Brak cen w pliku ATH nie oznacza braku kosztorysu ofertowego powyżej.
-          </p>
-        </div>
+        <button
+          type="button"
+          className="w-full text-left space-y-1 touch-manipulation"
+          onClick={() => setEvidenceOpen((v) => !v)}
+          aria-expanded={evidenceOpen}
+          data-kosztorys-evidence-toggle
+        >
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 text-muted-foreground shrink-0">
+              {evidenceOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </span>
+            <div className="min-w-0 flex-1 space-y-1">
+              <TenderUxSectionTitle>Dowód / przedmiar (ATH)</TenderUxSectionTitle>
+              <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+                Warstwa Evidence — dokument inwestorski i klasyfikacja. Nie jest ceną oferty WGDOM.
+                {hasOfferBoqSource && !evidenceOpen
+                  ? " · zwinięte (kosztorys ofertowy powyżej)."
+                  : " Brak cen w pliku ATH nie oznacza braku kosztorysu ofertowego powyżej."}
+              </p>
+            </div>
+          </div>
+        </button>
 
+        {evidenceOpen ? (
+          <>
         {pro.hasCatalog && (
           <section
             className="rounded-xl border border-border/60 bg-background/50 px-3 py-2.5 space-y-2"
@@ -448,6 +472,8 @@ export function TenderKosztorysWorkspace({
             ))}
           </div>
         )}
+          </>
+        ) : null}
       </section>
 
       {docPreview && (
