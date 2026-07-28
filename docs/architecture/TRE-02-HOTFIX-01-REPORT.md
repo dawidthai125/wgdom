@@ -5,7 +5,10 @@
 > **Owner GO:** ✅  
 > **Data:** 2026-07-28  
 > **UI:** **2.65.65**  
+> **Feature commit:** **`5eef0ff`**  
+> **Deploy tip (`version.json`):** **`02bf83d`**  
 > **RCA:** [`TRE-02-HOTFIX-RCA.md`](TRE-02-HOTFIX-RCA.md)  
+> **CLOSEOUT:** [`TRE-02-HOTFIX-01-CLOSEOUT.md`](TRE-02-HOTFIX-01-CLOSEOUT.md)  
 > **Język:** polski
 
 ---
@@ -62,13 +65,17 @@ UX
 ## 6. WERDYKT
 
 ```text
-RELEASE GO
+RELEASE GO + PRODUCTION VERIFIED
 IMPLEMENTATION COMPLETE
-Commit 5eef0ff · UI 2.65.65
+Commit 5eef0ff · tip 02bf83d · UI 2.65.65
 ```
 
 ---
 
 ## 7. PRODUCTION STATUS
 
-VERIFY FAST po push — jedno `curl version.json`.
+```json
+{ "version": "2.65.65", "commit": "02bf83d", "timestamp": "2026-07-28T08:50:57.701Z" }
+```
+
+→ **PRODUCTION VERIFIED** (feature **`5eef0ff`** w ancestry tipu).
