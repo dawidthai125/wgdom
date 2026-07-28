@@ -1,9 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-28 (**TRE-02 Outcome First** · UI **2.65.64**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-28 (**TRE-02-HOTFIX-01** · UI **2.65.65**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ TRE-02-HOTFIX-01 — Offer Run terminal mapping — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · UI **2.65.65** · mapper terminal bez wiecznego „Trwa wycena…” |
+| **RCA** | [`TRE-02-HOTFIX-RCA.md`](docs/architecture/TRE-02-HOTFIX-RCA.md) |
+| **REPORT** | [`TRE-02-HOTFIX-01-REPORT.md`](docs/architecture/TRE-02-HOTFIX-01-REPORT.md) |
+| **CLOSEOUT** | [`TRE-02-HOTFIX-01-CLOSEOUT.md`](docs/architecture/TRE-02-HOTFIX-01-CLOSEOUT.md) |
+| **IN** | `deriveOfferRunSnapshot` · testy HF1–HF6 · changelog |
+| **OUT** | Bid · AI-COST · Edge · sync · Outcome UI · TRE-03 |
+| **Test** | `npx vite-node scripts/test-tre-02-hotfix-01-offer-run-terminal.mjs` |
+
+---
 
 ## ★ TRE-02 — Outcome First Experience — **CLOSED**
 

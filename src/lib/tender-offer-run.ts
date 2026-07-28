@@ -108,15 +108,29 @@ export function deriveOfferRunSnapshot(
   const recommendedBidPln = extractRecommendedBidPln(signals.bidProposal);
   const hasBidRecommendation = recommendedBidPln != null;
   const trust = signals.trustAssessment.overall;
-  const busy =
+  /** I/O + dokumenty w toku — spinner OK. Pricing sam w sobie ≠ in-flight (Bid jest sync). */
+  const ioBusy =
     signals.autoRunning ||
     signals.dossierBuilding ||
-    signals.dossierSaving ||
+    signals.dossierSaving;
+  const docsBusy =
     signals.pipelineState === PipelineState.Notice ||
     signals.pipelineState === PipelineState.Discovery ||
     signals.pipelineState === PipelineState.External ||
-    signals.pipelineState === PipelineState.Heavy ||
-    signals.pipelineState === PipelineState.Pricing;
+    signals.pipelineState === PipelineState.Heavy;
+  const workInFlight = ioBusy || docsBusy;
+  const pricingPhase =
+    signals.pipelineState === PipelineState.Pricing ||
+    signals.pricingReadyPartial ||
+    signals.pricingReadyFinal;
+  /** TRE-02-HOTFIX-01: Pricing/Ready bez ceny + brak I/O → terminal, nie wieczne „Trwa wycena…”. */
+  const pricingSettledWithoutBid =
+    !hasBidRecommendation &&
+    !workInFlight &&
+    (pricingPhase ||
+      signals.pipelineState === PipelineState.Ready ||
+      signals.bidProposal?.ok === false ||
+      (signals.bidProposal != null && recommendedBidPln == null));
 
   const documentsReadyHint =
     (item.bzpDocuments?.length ?? 0) > 0 ||
@@ -136,7 +150,7 @@ export function deriveOfferRunSnapshot(
   let lifecycleStatus: OfferRunLifecycleStatus = "running";
   let phaseLabelPl = "Trwa wyliczanie…";
 
-  if (criticalErrorMessage && !hasBidRecommendation && !busy) {
+  if (criticalErrorMessage && !hasBidRecommendation && !workInFlight) {
     phase = "failed";
     lifecycleStatus = "insufficient_data";
     phaseLabelPl = "Brak danych krytycznych";
@@ -154,7 +168,11 @@ export function deriveOfferRunSnapshot(
       lifecycleStatus = "ready";
       phaseLabelPl = "Rekomendacja gotowa";
     }
-  } else if (busy || signals.pricingReadyPartial || signals.pricingReadyFinal) {
+  } else if (pricingSettledWithoutBid) {
+    phase = "degraded";
+    lifecycleStatus = "insufficient_data";
+    phaseLabelPl = "Brak rekomendowanej ceny";
+  } else if (workInFlight || pricingPhase) {
     if (signals.pipelineState === PipelineState.Pricing || signals.pricingReadyPartial) {
       phase = "pricing";
       phaseLabelPl = "Trwa wycena…";
@@ -169,10 +187,6 @@ export function deriveOfferRunSnapshot(
       phaseLabelPl = "Pobieranie dokumentów…";
     }
     lifecycleStatus = "running";
-  } else if (signals.pipelineState === PipelineState.Ready && !hasBidRecommendation) {
-    phase = "degraded";
-    lifecycleStatus = "insufficient_data";
-    phaseLabelPl = "Brak rekomendowanej ceny";
   } else {
     phase = documentsReadyHint ? "documents" : "started";
     lifecycleStatus = "running";

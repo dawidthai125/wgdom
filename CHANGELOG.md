@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.65 — TRE-02-HOTFIX-01 Offer Run terminal mapping (2026-07-28)
+
+- **fix:** `deriveOfferRunSnapshot` — Pricing/Ready bez `recommendedBidPln > 0` → `insufficient_data` / „Brak rekomendowanej ceny” (nie wieczne „Trwa wycena…”)
+- **improve:** „Trwa wycena…” tylko przy faktycznym I/O / docs in-flight
+- **test:** `scripts/test-tre-02-hotfix-01-offer-run-terminal.mjs`
+- **RCA:** `docs/architecture/TRE-02-HOTFIX-RCA.md`
+
 ## 2.65.64 — TRE-02 Outcome First Experience (2026-07-28)
 
 - **improve:** `TRE_01_SLICE_A_DEFAULT=true` — Outcome domyślny po otwarciu przetargu (Product SSOT)

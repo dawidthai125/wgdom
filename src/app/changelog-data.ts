@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.65",
+    label: "TRE-02-HOTFIX-01 — Outcome bez wiecznego „Trwa wycena…”",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy wycena Bid zakończy się bez rekomendowanej ceny, Outcome pokazuje „Brak rekomendowanej ceny” zamiast nieskończonego „Trwa wycena…”.",
+      },
+      {
+        type: "improve",
+        text: "Spinner / „Trwa wycena…” tylko przy faktycznie trwającym pobieraniu lub analizie dokumentów.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.64",
     label: "TRE-02 — Outcome First (domyślny ekran rekomendacji)",
     items: [

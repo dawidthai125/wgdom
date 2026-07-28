@@ -148,6 +148,8 @@ assert("F2 enabled mirrors default (no LS)", isTre01SliceAEnabled() === TRE_01_S
     }),
   );
   assert("R5 Bid null → no recommendation", snap.hasBidRecommendation === false);
+  assert("R5 Bid null → terminal insufficient", snap.lifecycleStatus === "insufficient_data");
+  assert("R5 Bid null → Brak rekomendowanej ceny", snap.phaseLabelPl === "Brak rekomendowanej ceny");
 }
 
 // --- Recommendation Result (Bid only) ---

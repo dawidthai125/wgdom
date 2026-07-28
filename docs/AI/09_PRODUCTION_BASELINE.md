@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**TRE-02 Outcome First CLOSED**) · feature UI **2.65.64** · tip commit w §1 · prior TRE-01 **`74ac6a0`** / **2.65.63**.
+**Snapshot dokumentacji:** 2026-07-28 (**TRE-02-HOTFIX-01**) · feature UI **2.65.65** · tip commit w §1 · prior TRE-02 **`a39533d`** / **2.65.64**.
 
 ---
 
@@ -26,11 +26,12 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.64** (TRE-02 Outcome First) · live — VERIFY FAST |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`a39533d`** · prior TRE-01 **`74ac6a0`** · prior COST-02-A **`1e6fb12`** |
+| **UI version (changelog / version.json)** | **2.65.65** (TRE-02-HOTFIX-01) · VERIFY FAST po push |
+| **Deploy tip commit (`main` / `version.json`)** | Feature HOTFIX-01 (patrz HEAD po push) · prior TRE-02 **`a39533d`** / tip **`ac6f9e4`** · prior TRE-01 **`74ac6a0`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
-| **Ostatni feature (TRE-02)** | Outcome First Experience — **CLOSED** · [`RELEASE`](../architecture/TRE-02-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/TRE-02-CLOSEOUT.md) · **`a39533d`** · UI **2.65.64** · default **ON** |
+| **Ostatni feature (TRE-02-HOTFIX-01)** | Terminal mapping Offer Run — [`REPORT`](../architecture/TRE-02-HOTFIX-01-REPORT.md) · [`RCA`](../architecture/TRE-02-HOTFIX-RCA.md) · [`CLOSEOUT`](../architecture/TRE-02-HOTFIX-01-CLOSEOUT.md) · UI **2.65.65** |
+| **Ostatni feature (TRE-02)** | Outcome First Experience — **CLOSED** · **PV** · [`PV FINAL`](../architecture/TRE-02-PRODUCTION-VERIFY-FINAL.md) · [`RELEASE`](../architecture/TRE-02-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/TRE-02-CLOSEOUT.md) · feature **`a39533d`** · tip **`ac6f9e4`** · UI **2.65.64** · default **ON** |
 | **Ostatni feature (TRE-01 Slice A)** | Offer Run + Outcome MVP — **CLOSED** · **PV** · [`RELEASE`](../architecture/TRE-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/TRE-01-CLOSEOUT.md) · **`74ac6a0`** · UI **2.65.63** |
 | **Ostatni feature (COST-02-A)** | Modele cenowe (controlled market) — **CLOSED** · [`COST-02-A-RELEASE`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) · **`1e6fb12`** · UI **2.65.62** |
 | **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **`87610b5`** |
