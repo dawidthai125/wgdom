@@ -202,18 +202,81 @@ export function parseNoticeHtmlBrief(html: string): TenderBrief {
   };
 }
 
+/** CATALOG-BID-01 — dodatnia ilość (ten sam kontrakt co Bid parseQty, lokalnie bez importu kalkulatora). */
+function parsePositiveCatalogQty(s: string | undefined): number {
+  if (!s?.trim()) return 0;
+  const n = parseFloat(s.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+type CatalogQtySourceRow = {
+  lp?: string;
+  description?: string;
+  unit?: string;
+  quantity?: string;
+};
+
+/** Czy catalogQuantities ma ≥1 linię roboczą z qty > 0 (po filtrze noise). */
+export function hasUsableCatalogQuantities(
+  lines: TenderCatalogQuantityLine[] | null | undefined,
+): boolean {
+  if (!lines?.length) return false;
+  return lines.some(
+    (r) =>
+      isLikelyCatalogQuantityRow(r.description ?? "")
+      && parsePositiveCatalogQty(r.quantity) > 0,
+  );
+}
+
+/**
+ * CATALOG-BID-01 — budowa SSOT ilości z wierszy przedmiaru.
+ * Wymaga: opis „roboczy” (noise filter) + quantity > 0.
+ * Puste qty nie trafiają do catalogQuantities (unikamy blokady fallbacku rows w Bid).
+ */
+export function buildCatalogQuantitiesFromRows(
+  rows: CatalogQtySourceRow[],
+): TenderCatalogQuantityLine[] {
+  return rows
+    .filter(
+      (r) =>
+        isLikelyCatalogQuantityRow(r.description ?? "")
+        && parsePositiveCatalogQty(r.quantity) > 0,
+    )
+    .slice(0, CATALOG_QUANTITIES_CAP)
+    .map((r) => ({
+      lp: r.lp ?? "",
+      description: r.description ?? "",
+      unit: r.unit ?? "",
+      quantity: r.quantity ?? "",
+    }));
+}
+
 export function buildCatalogQuantitiesFromPreview(
   preview: AthPreviewResult,
 ): TenderCatalogQuantityLine[] {
-  return preview.rows
-    .filter((r) => isLikelyCatalogQuantityRow(r.description ?? ""))
-    .slice(0, CATALOG_QUANTITIES_CAP)
-    .map((r) => ({
-      lp: r.lp,
-      description: r.description,
-      unit: r.unit,
-      quantity: r.quantity,
-    }));
+  return buildCatalogQuantitiesFromRows(preview.rows);
+}
+
+/**
+ * CATALOG-BID-01 — jedyny normalizer qty PRZED kalkulatorem.
+ * Gdy brak użytecznych qty w catalogQuantities → odbudowa z rows (ten sam tor SSOT).
+ * Nie zmienia ok / ATH totals / merge / parsera. Nie rusza kontraktu Bid (F1–F4).
+ */
+export function ensureKosztorysCatalogQuantities(
+  snapshot: TenderKosztorysSnapshot,
+): TenderKosztorysSnapshot {
+  if (hasUsableCatalogQuantities(snapshot.catalogQuantities)) {
+    return snapshot;
+  }
+  const rebuilt = buildCatalogQuantitiesFromRows(snapshot.rows ?? []);
+  /** [] gdy brak qty — pozwala resolveCatalogQuantities spaść na rows (bez zmiany helpera Bid). */
+  if (
+    rebuilt.length === 0
+    && (snapshot.catalogQuantities?.length ?? 0) === 0
+  ) {
+    return snapshot;
+  }
+  return { ...snapshot, catalogQuantities: rebuilt };
 }
 
 export function athPreviewToSnapshot(
@@ -240,7 +303,7 @@ export function athPreviewToSnapshot(
       });
     }
   }
-  return {
+  const snapshot: TenderKosztorysSnapshot = {
     ok: preview.ok || preview.rows.length > 0 || Boolean(preview.totalValue)
       || (preview.summaryLines?.length ?? 0) > 0,
     sourceFilename,
@@ -261,6 +324,7 @@ export function athPreviewToSnapshot(
     pdfPrzedmiarNoTextLayer: preview.pdfPrzedmiarNoTextLayer,
     pdfPrzedmiarExtractError: preview.pdfPrzedmiarExtractError,
   };
+  return ensureKosztorysCatalogQuantities(snapshot);
 }
 
 export function pickBestKosztorysDocument(docs: TenderBzpDocument[]): TenderBzpDocument | null {

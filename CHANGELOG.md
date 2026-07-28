@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.68 — CATALOG-BID-01 catalogQuantities materialization (2026-07-28)
+
+- **fix:** `buildCatalogQuantitiesFromPreview` / `ensureKosztorysCatalogQuantities` — tylko qty > 0; martwe `catalogQuantities` bez qty nie blokują F1 recovery z `rows`
+- **improve:** `athPreviewToSnapshot` kończy tor `ensure…` (SSOT przed kalkulatorem)
+- **test:** `scripts/test-catalog-bid-01.mjs` (T1–T6)
+- **DF:** `docs/architecture/CATALOG-BID-01-DESIGN-FREEZE.md` · **RCA:** `docs/architecture/CATALOG-BID-01-RCA.md`
+- **bez zmian:** `computeTenderBidProposal` · `resolveTenderBidPricingMode` · COST-PIPELINE / OfferBoq
+
 ## 2.65.67 — COST-PIPELINE-01-BUGFIX-01 catalog fallback (2026-07-28)
 
 - **fix:** `useTenderPricingAuto` / `resolveTenderPricingAutoProposal` — OfferBoq null → catalog Bid (nie early `proposal:null`)

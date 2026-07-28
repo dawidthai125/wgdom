@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.68",
+    label: "CATALOG-BID-01 — ilości catalogQuantities przed wyceną",
+    items: [
+      {
+        type: "fix",
+        text: "Przedmiar z ilościami poprawnie trafia do wyceny katalogowej — mniej przypadków „Brak rekomendowanej ceny” przy pustym OfferBoq.",
+      },
+      {
+        type: "improve",
+        text: "catalogQuantities budowane tylko z pozycji z dodatnią ilością; martwe wpisy bez qty nie blokują wyceny. Kontrakt Bid (F1–F4) bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.67",
     label: "COST-PIPELINE-01-BUGFIX-01 — fallback catalog gdy OfferBoq niedostępny",
     items: [
