@@ -28,11 +28,11 @@ Tracked implementacja: lib cost-multi-01 · banner · pipeline costCandidateSour
 
 ## PRODUCTION STATUS
 
-Po push: jedno `curl` version.json → VERIFIED / PROPAGATING.
+**DEPLOY PROPAGATING** — live `version.json` = 2.65.73 (`0a69f73`); oczekiwane 2.65.74 (`cdd8caf4`).
 
 ## WERDYKT
 
-**RELEASE GO** + PRODUCTION STATUS z PV.
+**RELEASE GO** + **DEPLOY PROPAGATING**
 
 =====================================
 
