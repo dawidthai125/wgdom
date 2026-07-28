@@ -1,0 +1,13 @@
+/**
+ * FND-05a — kody błędów Foundation Event (FOUNDATION-31).
+ */
+
+export const FND_EVENT_INVALID = "FND_EVENT_INVALID";
+export const FND_EVENT_PAYLOAD_INVALID = "FND_EVENT_PAYLOAD_INVALID";
+export const FND_EVENT_ID_INVALID = "FND_EVENT_ID_INVALID";
+
+export const BUILTIN_EVENT_CODES = [
+  FND_EVENT_INVALID,
+  FND_EVENT_PAYLOAD_INVALID,
+  FND_EVENT_ID_INVALID,
+] as const;
