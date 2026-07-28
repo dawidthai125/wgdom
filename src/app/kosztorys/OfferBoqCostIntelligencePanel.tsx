@@ -40,6 +40,11 @@ import {
   type OfferBoqSortDir,
   type OfferBoqSortKey,
 } from "@/app/kosztorys/offer-boq-ux-wave2";
+import {
+  resolveCostRegressionF2DiscoveryStatus,
+  resolveCostRegressionF2UiCopy,
+  type CostRegressionF2UiCopy,
+} from "@/lib/cost-regression-f2";
 
 const CATEGORY_OPTIONS = Object.keys(OFFER_BOQ_PRICED_CATEGORY_LABELS_PL) as OfferBoqPricedComponentCategory[];
 const ORIGIN_OPTIONS = Object.keys(OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL) as OfferBoqPriceOriginKind[];
@@ -780,9 +785,21 @@ function LineExplainCard({
 export function OfferBoqCostIntelligencePanel({
   item,
   pricingCatalogRevision = 0,
+  f2Signals,
+  onAttachPrzedmiar,
+  onRetryParse,
 }: {
   item: TenderPipelineItem;
   pricingCatalogRevision?: number;
+  /** COST-REGRESSION-01 — sygnały parse do discovery F2. */
+  f2Signals?: {
+    dossierBuilding?: boolean;
+    dossierSaving?: boolean;
+    autoRunning?: boolean;
+    dossierParseFailed?: boolean;
+  };
+  onAttachPrzedmiar?: () => void;
+  onRetryParse?: () => void;
 }) {
   const baseline = useMemo(
     () => buildOfferBoqExplainabilityView({ item }),
@@ -875,24 +892,76 @@ export function OfferBoqCostIntelligencePanel({
   };
 
   if (!view.available || !view.summary) {
+    const emptyDiscovery = resolveCostRegressionF2DiscoveryStatus({
+      item,
+      dossierBuilding: f2Signals?.dossierBuilding,
+      dossierSaving: f2Signals?.dossierSaving,
+      autoRunning: f2Signals?.autoRunning,
+      dossierParseFailed: f2Signals?.dossierParseFailed,
+    });
+    const emptyF2: CostRegressionF2UiCopy | null = emptyDiscovery
+      ? resolveCostRegressionF2UiCopy(emptyDiscovery)
+      : null;
     return (
       <section
         className="rounded-xl border border-dashed border-border bg-secondary/10 p-4 space-y-2"
         data-offer-boq-explainability
         data-offer-boq-empty
+        data-cost-regression-f2={emptyF2 ? "1" : "0"}
+        data-cost-regression-discovery={emptyF2?.discovery ?? undefined}
       >
         <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>
-          {view.emptyReasonPl ?? "Brak danych do wyjaśnienia wyceny AI."}
+          {emptyF2
+            ? `${emptyF2.phaseLabelPl}. ${emptyF2.hintPl}`
+            : (view.emptyReasonPl ?? "Brak danych do wyjaśnienia wyceny AI.")}
         </p>
+        {emptyF2 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {emptyF2.primaryCta === "reparse" && onRetryParse && (
+              <button
+                type="button"
+                className="inline-flex items-center min-h-[44px] px-3 rounded-md bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+                onClick={onRetryParse}
+                disabled={emptyF2.discovery === "parse_running" || Boolean(f2Signals?.dossierBuilding)}
+                data-cost-regression-reparse-cta
+              >
+                Ponów analizę kosztorysu
+              </button>
+            )}
+            {(emptyF2.primaryCta === "attach" || emptyF2.secondaryCta === "attach") && onAttachPrzedmiar && (
+              <button
+                type="button"
+                className="inline-flex items-center min-h-[44px] px-3 rounded-md border border-border bg-background text-xs font-semibold"
+                onClick={onAttachPrzedmiar}
+                data-cost-regression-attach-cta
+              >
+                Dołącz przedmiar
+              </button>
+            )}
+          </div>
+        )}
       </section>
     );
   }
 
   const s = view.summary;
-  const recommendedDisplay =
-    view.offerSummary?.available && view.offerSummary.recommendedBidDisplay
-      ? view.offerSummary.recommendedBidDisplay
+  const f2Discovery = resolveCostRegressionF2DiscoveryStatus({
+    item,
+    dossierBuilding: f2Signals?.dossierBuilding,
+    dossierSaving: f2Signals?.dossierSaving,
+    autoRunning: f2Signals?.autoRunning,
+    dossierParseFailed: f2Signals?.dossierParseFailed,
+  });
+  const f2Copy: CostRegressionF2UiCopy | null = f2Discovery
+    ? resolveCostRegressionF2UiCopy(f2Discovery)
+    : null;
+  const hasRecommended =
+    Boolean(view.offerSummary?.available && view.offerSummary.recommendedBidDisplay);
+  const recommendedDisplay = hasRecommended
+    ? view.offerSummary!.recommendedBidDisplay
+    : f2Copy
+      ? f2Copy.phaseLabelPl
       : "Brak rekomendowanej ceny";
   const filterActive = reviewOnly || searchQuery.trim().length > 0;
 
@@ -911,6 +980,10 @@ export function OfferBoqCostIntelligencePanel({
         reviewRequiredCount={s.reviewRequiredCount}
         reviewOnly={reviewOnly}
         onReviewOnlyChange={setReviewOnly}
+        f2Copy={!hasRecommended ? f2Copy : null}
+        onAttachPrzedmiar={onAttachPrzedmiar}
+        onRetryParse={onRetryParse}
+        reparseBusy={Boolean(f2Signals?.dossierBuilding || f2Signals?.dossierSaving || f2Signals?.autoRunning)}
       />
 
       <div

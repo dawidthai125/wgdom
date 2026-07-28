@@ -145,6 +145,13 @@ assert("F2 enabled mirrors default (no LS)", isTre01SliceAEnabled() === TRE_01_S
     signals({
       bidProposal: { recommendedBidPln: null },
       pricingReadyFinal: true,
+      /** F1-like dossier — nie F2; legacy label „Brak rekomendowanej ceny”. */
+      discoveryMergedItem: baseItem({
+        tenderDossier: {
+          builtAt: "2026-07-28",
+          kosztorys: { ok: true, rows: [], rowCount: 0, sourceFilename: "x.pdf", przedmiar: [], categories: [], warnings: [], parsedAt: "t" },
+        },
+      }),
     }),
   );
   assert("R5 Bid null → no recommendation", snap.hasBidRecommendation === false);

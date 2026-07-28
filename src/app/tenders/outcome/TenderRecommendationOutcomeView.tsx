@@ -1,9 +1,10 @@
 /**
  * TRE-01 Slice A — Outcome UI MVP (rekomendowana cena oferty).
  * Konsumuje wyłącznie TenderRecommendationResult — bez Foundation w UI.
+ * COST-REGRESSION-01 EPIC A — CTA F2 (Dołącz / Ponów).
  */
 
-import { ArrowLeft, FileText, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, FileText, LayoutDashboard, Loader2, RefreshCw, Upload } from "lucide-react";
 import {
   formatRecommendedOfferPln,
   type TenderRecommendationResult,
@@ -28,15 +29,29 @@ export function TenderRecommendationOutcomeView({
   onBack,
   onShowCostEstimate,
   onOpenHub,
+  onAttachPrzedmiar,
+  onRetryParse,
+  reparseBusy = false,
 }: {
   result: TenderRecommendationResult;
   onBack: () => void;
   onShowCostEstimate: () => void;
   onOpenHub: () => void;
+  onAttachPrzedmiar?: () => void;
+  onRetryParse?: () => void;
+  reparseBusy?: boolean;
 }) {
   const priceLabel = formatRecommendedOfferPln(result.recommendedOfferPln);
   const showPrice =
     result.hasBidRecommendation && result.recommendedOfferPln != null;
+  const f2 = result.costRegressionF2;
+  const showAttach =
+    Boolean(onAttachPrzedmiar) &&
+    f2 != null &&
+    (f2.primaryCta === "attach" || f2.secondaryCta === "attach");
+  const showReparse =
+    Boolean(onRetryParse) && f2 != null && f2.primaryCta === "reparse";
+  const reparseDisabled = reparseBusy || f2?.discovery === "parse_running";
 
   return (
     <div
@@ -44,6 +59,8 @@ export function TenderRecommendationOutcomeView({
       data-tre-01-outcome
       data-tre-01-quality={result.qualityStatus}
       data-tre-01-has-price={showPrice ? "1" : "0"}
+      data-cost-regression-f2={f2 ? "1" : "0"}
+      data-cost-regression-discovery={f2?.discovery ?? undefined}
     >
       <header className="shrink-0 border-b border-border px-4 sm:px-6 py-3 flex items-center gap-3">
         <button
@@ -93,6 +110,38 @@ export function TenderRecommendationOutcomeView({
             <p className={`text-xs text-muted-foreground ${TEUX_FONT_CAPTION}`}>
               Poziom zaufania: {result.trustLabelPl}
             </p>
+          )}
+
+          {(showAttach || showReparse) && (
+            <div className="flex flex-col sm:flex-row gap-3" data-cost-regression-cta-row>
+              {showReparse && (
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
+                  onClick={onRetryParse}
+                  disabled={reparseDisabled}
+                  data-cost-regression-reparse-cta
+                >
+                  {reparseDisabled ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                  Ponów analizę kosztorysu
+                </button>
+              )}
+              {showAttach && (
+                <button
+                  type="button"
+                  className={`inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-md text-sm font-medium ${
+                    f2?.primaryCta === "attach"
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border bg-card"
+                  }`}
+                  onClick={onAttachPrzedmiar}
+                  data-cost-regression-attach-cta
+                >
+                  <Upload size={16} />
+                  Dołącz przedmiar
+                </button>
+              )}
+            </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">

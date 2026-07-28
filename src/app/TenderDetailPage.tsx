@@ -12,6 +12,7 @@ import { TenderRecommendationOutcomeView } from "@/app/tenders/outcome/TenderRec
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
+import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
 import {
   TenderWorkflowOperatorActionBar,
   type TenderWorkflowOperatorActionBarProps,
@@ -219,6 +220,36 @@ export function TenderDetailPage({
     setTre01ForceWorkspace(true);
     handleTabChange("przetarg");
   }, [handleTabChange]);
+
+  const handleTre01AttachPrzedmiar = useCallback(() => {
+    setTre01ForceWorkspace(true);
+    handleTabChange("dokumenty");
+  }, [handleTabChange]);
+
+  const handleTre01RetryParse = useCallback(() => {
+    const current = pipelineRuntime.discoveryMergedItem ?? item;
+    if (!current) return;
+    const started = triggerCostRegressionF2Reparse({
+      item: current,
+      parseRunning:
+        pipelineRuntime.dossierBuilding ||
+        pipelineRuntime.dossierSaving ||
+        pipelineRuntime.autoRunning,
+      retry: pipelineRuntime.retryDossierParse,
+    });
+    if (started) {
+      setTre01ForceWorkspace(true);
+      handleTabChange("kosztorys");
+    }
+  }, [
+    item,
+    pipelineRuntime.discoveryMergedItem,
+    pipelineRuntime.dossierBuilding,
+    pipelineRuntime.dossierSaving,
+    pipelineRuntime.autoRunning,
+    pipelineRuntime.retryDossierParse,
+    handleTabChange,
+  ]);
 
   const intelligenceItem = pipelineRuntime.discoveryMergedItem ?? bootstrapItem;
 
@@ -511,6 +542,13 @@ export function TenderDetailPage({
         onBack={() => navigate(TENDERS_LIST_PATH)}
         onShowCostEstimate={handleTre01ShowCostEstimate}
         onOpenHub={handleTre01OpenHub}
+        onAttachPrzedmiar={handleTre01AttachPrzedmiar}
+        onRetryParse={handleTre01RetryParse}
+        reparseBusy={
+          pipelineRuntime.dossierBuilding ||
+          pipelineRuntime.dossierSaving ||
+          pipelineRuntime.autoRunning
+        }
       />
     );
   }

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.71",
+    label: "COST-REGRESSION-01 EPIC A — diagnostyka F2 (brak kosztorysu)",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy brak kosztorysu w dossier: jasny komunikat (brak przedmiaru / analiza w toku / nieudany odczyt) zamiast ogólnego „Brak rekomendowanej ceny”.",
+      },
+      {
+        type: "improve",
+        text: "CTA: Dołącz przedmiar → Dokumenty albo Ponów analizę kosztorysu (gdy plik jest) — bez zmiany kalkulatora oferty.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.70",
     label: "COSTORYS-UX-01 WAVE 2 — zwarta lista · skan · sort",
     items: [

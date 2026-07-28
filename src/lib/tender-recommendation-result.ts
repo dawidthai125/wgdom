@@ -28,6 +28,8 @@ export interface TenderRecommendationResult {
   trustOverall: TenderTrustLevel;
   trustLabelPl: string;
   hasBidRecommendation: boolean;
+  /** COST-REGRESSION-01 EPIC A — CTA F2 (null gdy nie dotyczy). */
+  costRegressionF2: import("@/lib/cost-regression-f2").CostRegressionF2UiCopy | null;
 }
 
 function mapLifecycleToQuality(
@@ -41,6 +43,9 @@ function mapLifecycleToQuality(
 }
 
 function buildStatusLabelPl(snapshot: OfferRunSnapshot, trust: TenderTrustAssessment): string {
+  if (snapshot.statusHintPl?.trim()) {
+    return snapshot.statusHintPl.trim();
+  }
   if (snapshot.criticalErrorMessage) {
     return snapshot.criticalErrorMessage;
   }
@@ -87,6 +92,7 @@ export function buildTenderRecommendationResult(input: {
     trustOverall: trustAssessment.overall,
     trustLabelPl: trustAssessment.overallLabelPl,
     hasBidRecommendation: snapshot.hasBidRecommendation,
+    costRegressionF2: snapshot.costRegressionF2,
   };
 }
 

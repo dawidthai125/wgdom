@@ -8,6 +8,11 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { PipelineState } from "@/lib/tender-pipeline/tender-pipeline-types";
+import {
+  resolveCostRegressionF2DiscoveryStatus,
+  resolveCostRegressionF2UiCopy,
+  type CostRegressionF2UiCopy,
+} from "@/lib/cost-regression-f2";
 
 /** Session-only (nie kw-tenders-pipeline). */
 export const TRE_01_OFFER_RUN_ID_LS_PREFIX = "kw-tre-01-offer-run-id:";
@@ -51,10 +56,14 @@ export interface OfferRunSnapshot {
   phase: OfferRunPhase;
   lifecycleStatus: OfferRunLifecycleStatus;
   phaseLabelPl: string;
+  /** Secondary / hint (COST-REGRESSION-01 F2/F1) — Outcome statusLabel. */
+  statusHintPl: string | null;
   documentsReadyHint: boolean;
   hasBidRecommendation: boolean;
   recommendedBidPln: number | null;
   criticalErrorMessage: string | null;
+  /** F2 presentation — null gdy nie F2. */
+  costRegressionF2: CostRegressionF2UiCopy | null;
 }
 
 export function offerRunIdStorageKey(tenderPipelineItemId: string): string {
@@ -146,14 +155,29 @@ export function deriveOfferRunSnapshot(
     criticalErrorMessage = "Pipeline przetargu zakończył się błędem.";
   }
 
+  const f2Discovery = resolveCostRegressionF2DiscoveryStatus({
+    item,
+    dossierBuilding: signals.dossierBuilding,
+    dossierSaving: signals.dossierSaving,
+    autoRunning: signals.autoRunning,
+    dossierParseFailed: signals.dossierParseFailed,
+  });
+  const f2Copy = f2Discovery ? resolveCostRegressionF2UiCopy(f2Discovery) : null;
+
   let phase: OfferRunPhase = "started";
   let lifecycleStatus: OfferRunLifecycleStatus = "running";
   let phaseLabelPl = "Trwa wyliczanie…";
+  let statusHintPl: string | null = null;
 
   if (criticalErrorMessage && !hasBidRecommendation && !workInFlight) {
     phase = "failed";
     lifecycleStatus = "insufficient_data";
-    phaseLabelPl = "Brak danych krytycznych";
+    if (f2Copy) {
+      phaseLabelPl = f2Copy.phaseLabelPl;
+      statusHintPl = f2Copy.hintPl;
+    } else {
+      phaseLabelPl = "Brak danych krytycznych";
+    }
   } else if (hasBidRecommendation) {
     if (trust === "blocked") {
       phase = "degraded";
@@ -171,9 +195,19 @@ export function deriveOfferRunSnapshot(
   } else if (pricingSettledWithoutBid) {
     phase = "degraded";
     lifecycleStatus = "insufficient_data";
-    phaseLabelPl = "Brak rekomendowanej ceny";
+    if (f2Copy) {
+      phaseLabelPl = f2Copy.phaseLabelPl;
+      statusHintPl = f2Copy.hintPl;
+    } else {
+      /** F1 / inne — legacy; Epic A nie nakłada copy F2 (AC-A8). */
+      phaseLabelPl = "Brak rekomendowanej ceny";
+    }
   } else if (workInFlight || pricingPhase) {
-    if (signals.pipelineState === PipelineState.Pricing || signals.pricingReadyPartial) {
+    if (f2Copy?.discovery === "parse_running") {
+      phase = "documents";
+      phaseLabelPl = f2Copy.phaseLabelPl;
+      statusHintPl = f2Copy.hintPl;
+    } else if (signals.pipelineState === PipelineState.Pricing || signals.pricingReadyPartial) {
       phase = "pricing";
       phaseLabelPl = "Trwa wycena…";
     } else if (
@@ -191,6 +225,10 @@ export function deriveOfferRunSnapshot(
     phase = documentsReadyHint ? "documents" : "started";
     lifecycleStatus = "running";
     phaseLabelPl = documentsReadyHint ? "Analiza w toku…" : "Start przebiegu…";
+    if (f2Copy) {
+      phaseLabelPl = f2Copy.phaseLabelPl;
+      statusHintPl = f2Copy.hintPl;
+    }
   }
 
   return {
@@ -200,9 +238,11 @@ export function deriveOfferRunSnapshot(
     phase,
     lifecycleStatus,
     phaseLabelPl,
+    statusHintPl,
     documentsReadyHint,
     hasBidRecommendation,
     recommendedBidPln,
     criticalErrorMessage,
+    costRegressionF2: f2Copy,
   };
 }

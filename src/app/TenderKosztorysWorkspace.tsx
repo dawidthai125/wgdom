@@ -34,6 +34,11 @@ import { KosztorysBoqExplorerSection } from "@/app/kosztorys/KosztorysBoqExplore
 import { OfferBoqCostIntelligencePanel } from "@/app/kosztorys/OfferBoqCostIntelligencePanel";
 import { TenderBoqTableSkeleton } from "@/app/tenders/loading/TenderBoqTableSkeleton";
 import {
+  resolveCostRegressionF2DiscoveryStatus,
+  resolveCostRegressionF2UiCopy,
+  triggerCostRegressionF2Reparse,
+} from "@/lib/cost-regression-f2";
+import {
   TenderDesktopTable,
   TenderMobileRowCard,
   TenderMobileTableCards,
@@ -130,23 +135,51 @@ function KosztorysTopCostTable({ rows }: { rows: KosztorysProTopRow[] }) {
 function KosztorysEmptyBlock({
   itemId,
   text,
+  title = "Brak kosztorysu",
+  primaryLabel = "Przejdź do Dokumentów",
+  onPrimary,
+  secondaryLabel,
+  onSecondary,
+  secondaryDisabled,
+  f2Discovery,
 }: {
   itemId: string;
   text: string;
+  title?: string;
+  primaryLabel?: string;
+  onPrimary?: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+  secondaryDisabled?: boolean;
+  f2Discovery?: string;
 }) {
   const navigate = useNavigate();
 
   return (
-    <TenderUxEmptyState
-      icon={Scale}
-      title="Brak kosztorysu"
-      description={text}
-      primaryAction={{
-        label: "Przejdź do Dokumentów",
-        onClick: () => openTenderDetailV4(navigate, itemId, "dokumenty"),
-      }}
-      data-teux6-empty="kosztorys"
-    />
+    <div
+      data-cost-regression-f2={f2Discovery ? "1" : undefined}
+      data-cost-regression-discovery={f2Discovery}
+    >
+      <TenderUxEmptyState
+        icon={Scale}
+        title={title}
+        description={text}
+        primaryAction={{
+          label: primaryLabel,
+          onClick: onPrimary ?? (() => openTenderDetailV4(navigate, itemId, "dokumenty")),
+        }}
+        secondaryAction={
+          secondaryLabel && onSecondary
+            ? {
+                label: secondaryLabel,
+                onClick: onSecondary,
+                disabled: secondaryDisabled,
+              }
+            : undefined
+        }
+        data-teux6-empty="kosztorys"
+      />
+    </div>
   );
 }
 
@@ -217,6 +250,41 @@ export function TenderKosztorysWorkspace({
   const hasOfferBoqSource =
     pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0;
 
+  const f2Discovery = useMemo(
+    () =>
+      resolveCostRegressionF2DiscoveryStatus({
+        item,
+        dossierBuilding: processSession?.dossierBuilding,
+        dossierSaving: processSession?.dossierSaving,
+        autoRunning: processSession?.autoRunning,
+        dossierParseFailed: processSession?.dossierParseFailed,
+      }),
+    [
+      item,
+      processSession?.dossierBuilding,
+      processSession?.dossierSaving,
+      processSession?.autoRunning,
+      processSession?.dossierParseFailed,
+    ],
+  );
+  const f2Copy = f2Discovery ? resolveCostRegressionF2UiCopy(f2Discovery) : null;
+
+  const handleAttachPrzedmiar = () => {
+    openTenderDetailV4(navigate, item.id, "dokumenty");
+  };
+
+  const handleGuardedRetryParse = () => {
+    if (!onRetryParse) return;
+    triggerCostRegressionF2Reparse({
+      item,
+      parseRunning:
+        Boolean(processSession?.dossierBuilding) ||
+        Boolean(processSession?.dossierSaving) ||
+        Boolean(processSession?.autoRunning),
+      retry: onRetryParse,
+    });
+  };
+
   useEffect(() => {
     setEvidenceOpen(defaultEvidenceExpanded(hasOfferBoqSource));
   }, [item.id, hasOfferBoqSource]);
@@ -250,7 +318,7 @@ export function TenderKosztorysWorkspace({
       <KosztorysProcessStatusBar
         phase={phase}
         health={health}
-        onRetry={onRetryParse}
+        onRetry={onRetryParse ? handleGuardedRetryParse : undefined}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
 
@@ -289,13 +357,46 @@ export function TenderKosztorysWorkspace({
           <OfferBoqCostIntelligencePanel
             item={item}
             pricingCatalogRevision={pricingCatalogRevision}
+            f2Signals={{
+              dossierBuilding: processSession?.dossierBuilding,
+              dossierSaving: processSession?.dossierSaving,
+              autoRunning: processSession?.autoRunning,
+              dossierParseFailed: processSession?.dossierParseFailed,
+            }}
+            onAttachPrzedmiar={handleAttachPrzedmiar}
+            onRetryParse={onRetryParse ? handleGuardedRetryParse : undefined}
           />
         ) : inProgress || phase.id === "waiting_data" ? (
           <TenderBoqTableSkeleton rowCount={8} />
         ) : (
           <KosztorysEmptyBlock
             itemId={item.id}
-            text="Brak pozycji przedmiaru do kosztorysu ofertowego. Otwórz Dokumenty i uruchom analizę."
+            title={f2Copy?.phaseLabelPl ?? "Brak kosztorysu"}
+            text={
+              f2Copy
+                ? f2Copy.hintPl
+                : "Brak pozycji przedmiaru do kosztorysu ofertowego. Otwórz Dokumenty i uruchom analizę."
+            }
+            primaryLabel={
+              f2Copy?.primaryCta === "reparse"
+                ? "Ponów analizę kosztorysu"
+                : "Dołącz przedmiar"
+            }
+            onPrimary={
+              f2Copy?.primaryCta === "reparse"
+                ? handleGuardedRetryParse
+                : handleAttachPrzedmiar
+            }
+            secondaryLabel={
+              f2Copy?.primaryCta === "reparse" && f2Copy.secondaryCta === "attach"
+                ? "Dołącz inny plik"
+                : undefined
+            }
+            onSecondary={
+              f2Copy?.primaryCta === "reparse" ? handleAttachPrzedmiar : undefined
+            }
+            secondaryDisabled={f2Copy?.discovery === "parse_running"}
+            f2Discovery={f2Discovery ?? undefined}
           />
         )}
       </div>

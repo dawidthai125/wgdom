@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.71 — COST-REGRESSION-01 EPIC A F2 diagnostyka (2026-07-28)
+
+- **fix:** Outcome / sticky / empty Kosztorysy — macierz F2 (brak przedmiaru · w toku · nieudany) zamiast ogólnego „Brak rekomendowanej ceny”
+- **improve:** CTA Dołącz przedmiar → Dokumenty · Ponów analizę (reuse heavy) z guard `isCostRegressionF2`
+- **lib:** `src/lib/cost-regression-f2.ts` · test `scripts/test-cost-regression-01-epic-a.mjs`
+- **DF:** `docs/architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md`
+- **bez zmian:** Bid calculator · useTenderPricingAuto resolve · COST-PIPELINE · AI Cost · OfferBoq engines · Epic B
+
 ## 2.65.70 — COSTORYS-UX-01 WAVE 2 density & scan (2026-07-28)
 
 - **improve:** Compact/Comfort · collapsed component rows + inline edit · Search L1 · Sort LP/Direct/Confidence
