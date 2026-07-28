@@ -8,7 +8,10 @@ import {
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderAutonomousGate } from "@/app/tenders/autonomous/TenderAutonomousGate";
+import { TenderRecommendationOutcomeView } from "@/app/tenders/outcome/TenderRecommendationOutcomeView";
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
+import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
+import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import {
   TenderWorkflowOperatorActionBar,
   type TenderWorkflowOperatorActionBarProps,
@@ -181,6 +184,36 @@ export function TenderDetailPage({
     priceOverridesRevision: pricingRevision,
     pricingCatalogRevision,
   });
+
+  /** TRE-01 Slice A — Outcome-first (flaga); Hub = recovery. */
+  const tre01SliceA = isTre01SliceAEnabled();
+  const [tre01ForceWorkspace, setTre01ForceWorkspace] = useState(false);
+
+  useEffect(() => {
+    setTre01ForceWorkspace(false);
+  }, [tenderId]);
+
+  const { recommendation: tre01Recommendation } = useTenderOfferRun({
+    enabled: tre01SliceA && Boolean(item),
+    tenderPipelineItemId: item?.id ?? tenderId,
+    pipelineRuntime,
+  });
+
+  const showTre01Outcome =
+    tre01SliceA &&
+    Boolean(item) &&
+    !tre01ForceWorkspace &&
+    activeTab === "przetarg";
+
+  const handleTre01ShowCostEstimate = useCallback(() => {
+    setTre01ForceWorkspace(true);
+    handleTabChange("kosztorys");
+  }, [handleTabChange]);
+
+  const handleTre01OpenHub = useCallback(() => {
+    setTre01ForceWorkspace(true);
+    handleTabChange("przetarg");
+  }, [handleTabChange]);
 
   const intelligenceItem = pipelineRuntime.discoveryMergedItem ?? bootstrapItem;
 
@@ -463,6 +496,29 @@ export function TenderDetailPage({
 
   if (retiredRedirect) {
     return null;
+  }
+
+  /** TRE-01: Outcome MVP bez Autonomous theater (DF §5 — nie blokować Outcome). */
+  if (showTre01Outcome && tre01Recommendation) {
+    return (
+      <TenderRecommendationOutcomeView
+        result={tre01Recommendation}
+        onBack={() => navigate(TENDERS_LIST_PATH)}
+        onShowCostEstimate={handleTre01ShowCostEstimate}
+        onOpenHub={handleTre01OpenHub}
+      />
+    );
+  }
+
+  if (showTre01Outcome && !tre01Recommendation) {
+    return (
+      <div
+        className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground text-sm"
+        data-tre-01-outcome-loading
+      >
+        Trwa wyliczanie…
+      </div>
+    );
   }
 
   return (

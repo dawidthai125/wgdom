@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.63 — TRE-01 Slice A Outcome MVP (2026-07-28)
+
+- **new:** Offer Run thin + Recommendation Result + Outcome UI MVP (cena z Bid Proposal)
+- **new:** Foundation spine FND-01…05 na Run (niewidoczna) · flaga `TRE_01_SLICE_A` / LS `kw-tre-01-slice-a`
+- **improve:** Hub V4 = recovery · default flag OFF (R0) · zero rewrite AI-COST/Bid/parserów/sync
+- **DF:** `docs/architecture/TRE-01-DESIGN-FREEZE.md`
+
 ## 2.65.62 — AI-COST-02 / COST-02-A Modele cenowe (2026-07-27)
 
 - **new:** `tender-offer-boq-controlled-price-source.ts` — provider `controlled_market` z odczytu Work Catalog `marketQuotes` (region · aktualność · confidence)

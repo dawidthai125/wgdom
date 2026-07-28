@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-28",
+    version: "2.65.63",
+    label: "TRE-01 Slice A — Outcome MVP (rekomendowana cena oferty)",
+    items: [
+      {
+        type: "new",
+        text: "Po otwarciu przetargu (flaga TRE-01) ekran Outcome z rekomendowaną ceną oferty z Bid Proposal — bez przepisywania wyceny AI.",
+      },
+      {
+        type: "improve",
+        text: "Hub / szczegóły V4 pozostają jako recovery; wyłączenie flagi przywraca dotychczasowy detal (rollback R0).",
+      },
+    ],
+  },
+  {
     date: "2026-07-27",
     version: "2.65.62",
     label: "AI-COST-02 / COST-02-A — modele cenowe (kontrolowany benchmark)",

@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-27 (**AI-COST-02 / COST-02-A** · Modele cenowe · **CLOSED**) · feature UI **2.65.62** · tip commit w §1 · prior feature STAB-01 **`87610b5`** / UI **2.65.61**.
+**Snapshot dokumentacji:** 2026-07-28 (**TRE-01 Slice A** · Outcome MVP) · feature UI **2.65.63** · tip commit w §1 · prior COST-02-A **`1e6fb12`** / UI **2.65.62**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.62** (COST-02-A) · live **2.65.62** |
-| **Deploy tip commit (`main` / `version.json`)** | **Live tip (docs CLOSE):** **`cfd76ab`** · feature COST-02-A **`1e6fb12`** · prior STAB-01 **`87610b5`** |
+| **UI version (changelog / version.json)** | **2.65.63** (TRE-01 Slice A) · live — po push |
+| **Deploy tip commit (`main` / `version.json`)** | **TRE-01 Slice A** — po push (ten release) · prior COST-02-A **`1e6fb12`** · prior STAB-01 **`87610b5`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **Ostatni feature (TRE-01 Slice A)** | Offer Run + Outcome MVP — [`TRE-01-DESIGN-FREEZE`](../architecture/TRE-01-DESIGN-FREEZE.md) · UI **2.65.63** · flaga default **OFF** |
 | **Ostatni feature (COST-02-A)** | Modele cenowe (controlled market) — **CLOSED** · [`COST-02-A-RELEASE`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) · **`1e6fb12`** · UI **2.65.62** |
 | **Ostatni feature (STAB-01)** | Field Ready Stabilization — [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) · **`87610b5`** |
 | **Ostatni feature (COST-S7)** | AI Validation & Offer Quality — [`COST-S7-RELEASE`](../architecture/WGDOM-AI-COST-01-COST-S7-RELEASE-REPORT.md) · **`1c84363`** / tip docs **`f5ba5ac`** |
@@ -48,7 +49,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION VERIFIED** · GREEN · UI **2.65.62** · COST-02-A **CLOSED** · AI-COST-01 **FIELD READY** · **EPIC COMPLETE** · **FROZEN** |
+| **Status** | **TRE-01 Slice A** shipped (flaga OFF) · prior **PRODUCTION VERIFIED** UI **2.65.62** · COST-02-A **CLOSED** · AI-COST-01 **FIELD READY** · **EPIC COMPLETE** · **FROZEN** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -69,6 +70,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.63** | TRE-01 Slice A Outcome MVP (Offer Run · Bid SSOT · FND spine) | **IMPLEMENT** · flaga OFF · [`TRE-01-DF`](../architecture/TRE-01-DESIGN-FREEZE.md) |
 | **2.65.62** / **`1e6fb12`** | AI-COST-02 / COST-02-A Modele cenowe | **CLOSED** · **EPIC COMPLETE** · **PV** · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | docs FREEZE-01 | Architecture Freeze + AI handover · Cold Start PASS | **CLOSED** · [`FREEZE-01-RR`](../architecture/WGDOM-AI-COST-01-FREEZE-01-RELEASE-REPORT.md) |
 | **2.65.61** / **`87610b5`** | STAB-01 Field Ready Stabilization | **PRODUCTION VERIFIED** · **FIELD READY** · [`STAB-01-RELEASE`](../architecture/WGDOM-AI-COST-01-STAB-01-RELEASE-REPORT.md) |
