@@ -23,6 +23,9 @@ import {
   shouldParseRoleForDossier,
 } from "@/lib/tender-document-role";
 import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
+import {
+  hasZipCostInnerFromCandidates,
+} from "@/lib/cost-parser-zip-unpack";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
@@ -119,6 +122,11 @@ export interface TenderDossierParseSession {
   sevenZInnerCount: number;
   zipUnpackOk: boolean;
   zipInnerCount: number;
+  /** COST-PARSER-01 — 1× auto-retry unpack zużyty. */
+  zipUnpackRetryUsed: boolean;
+  /** COST-PARSER-01 — inner ZIP o typie kosztowym. */
+  zipCostInnerPresent: boolean;
+  zipUnpackFailReason?: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason;
   swzMerged: TenderSwzAnalysis | null;
   bestKosztorys: TenderKosztorysSnapshot | null;
   estimatePln: number | null;
@@ -1037,7 +1045,7 @@ export async function parseBestTenderDocuments(
   };
 }
 
-/** NG11-A1 — setup + prefetch (shared przez cost i metadata). */
+/** NG11-A1 — setup + prefetch (shared przez cost i metadata). COST-PARSER-01: 1× ZIP unpack retry. */
 export async function prepareTenderDossierParseSession(
   tenderId: string,
   docs: TenderBzpDocument[],
@@ -1051,10 +1059,51 @@ export async function prepareTenderDossierParseSession(
   if (!docs.length) return null;
 
   const timingItemId = opts?.pipelineTimingItemId;
-  const allCandidates = timingItemId
-    ? await withPipelineTimingStage(timingItemId, "heavy.archive_unpack", () =>
-        buildTenderDocCandidates(tenderId, docs))
-    : await buildTenderDocCandidates(tenderId, docs);
+  const hasTopLevelZip = docs.some((d) => isZipFilename(d.filename));
+
+  const buildCandidates = () =>
+    timingItemId
+      ? withPipelineTimingStage(timingItemId, "heavy.archive_unpack", () =>
+          buildTenderDocCandidates(tenderId, docs))
+      : buildTenderDocCandidates(tenderId, docs);
+
+  let allCandidates = await buildCandidates();
+  let zipUnpackRetryUsed = false;
+  let zipUnpackFailReason: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason | undefined;
+
+  const computeZipFlags = (candidates: TenderDocCandidate[]) => {
+    const zipDocIndices = new Set(
+      docs.filter((d) => isZipFilename(d.filename)).map((d) => d.index),
+    );
+    const zipWithInner = new Set(
+      candidates
+        .filter((c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex))
+        .map((c) => c.documentIndex),
+    );
+    const zipInnerCount = candidates.filter(
+      (c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex),
+    ).length;
+    const zipUnpackOk = zipDocIndices.size === 0 || zipWithInner.size > 0;
+    const zipCostInnerPresent = hasZipCostInnerFromCandidates(candidates);
+    return { zipDocIndices, zipWithInner, zipInnerCount, zipUnpackOk, zipCostInnerPresent };
+  };
+
+  let zipFlags = computeZipFlags(allCandidates);
+
+  /* COST-PARSER-01 §6 — dokładnie 1× retry unpack gdy pierwszy pass fail. */
+  if (hasTopLevelZip && !zipFlags.zipUnpackOk && !zipUnpackRetryUsed) {
+    zipUnpackRetryUsed = true;
+    traceDossierPipeline("zip_unpack_retry", "dossier", {
+      tenderId,
+      reason: "zipUnpackOk_false",
+    });
+    allCandidates = await buildCandidates();
+    zipFlags = computeZipFlags(allCandidates);
+    if (!zipFlags.zipUnpackOk) {
+      zipUnpackFailReason = "unknown";
+    }
+  }
+
   let costDiscovery = discoverBestCostDocument(allCandidates, { tenderTitle: opts?.tenderTitle });
   if (costDiscovery.found) {
     traceDossierPipeline("cost_document_discovered", costDiscovery.source, {
@@ -1076,18 +1125,7 @@ export async function prepareTenderDossierParseSession(
   ).length;
   const sevenZUnpackOk = sevenZDocIndices.size === 0 || sevenZWithInner.size > 0;
 
-  const zipDocIndices = new Set(
-    docs.filter((d) => isZipFilename(d.filename)).map((d) => d.index),
-  );
-  const zipWithInner = new Set(
-    allCandidates
-      .filter((c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex))
-      .map((c) => c.documentIndex),
-  );
-  const zipInnerCount = allCandidates.filter(
-    (c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex),
-  ).length;
-  const zipUnpackOk = zipDocIndices.size === 0 || zipWithInner.size > 0;
+  const { zipDocIndices, zipWithInner, zipInnerCount, zipUnpackOk, zipCostInnerPresent } = zipFlags;
 
   const candidates = selectDossierCandidates(allCandidates);
   const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
@@ -1122,8 +1160,13 @@ export async function prepareTenderDossierParseSession(
     }
     if (isZipFilename(doc.filename)) {
       const supported = zipWithInner.has(doc.index);
-      traceDossierPipeline("document_classified", doc.filename, { role: "zip", supported, inner: zipInnerCount });
-      if (!supported && /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename)) {
+      traceDossierPipeline("document_classified", doc.filename, {
+        role: "zip",
+        supported,
+        inner: zipInnerCount,
+        retryUsed: zipUnpackRetryUsed,
+      });
+      if (!supported) {
         warnings.push(`Wykryto archiwum ZIP: ${doc.filename} — nie udało się odczytać zawartości`);
       }
     }
@@ -1141,6 +1184,9 @@ export async function prepareTenderDossierParseSession(
     sevenZInnerCount,
     zipUnpackOk,
     zipInnerCount,
+    zipUnpackRetryUsed,
+    zipCostInnerPresent,
+    zipUnpackFailReason,
     swzMerged: opts?.existingSwz ?? null,
     bestKosztorys: null,
     estimatePln: opts?.ourEstimatePln ?? null,

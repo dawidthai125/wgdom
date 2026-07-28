@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.73 — COST-PARSER-01 ZIP unpack A/B/C (2026-07-28)
+
+- **fix:** Stany A/B/C — unpack failed ≠ brak ATH w ZIP ≠ parse fail; 1× auto-retry unpack (Edge→JSZip)
+- **improve:** HeavyDone przy `zipUnpackOk=false` tylko po retry; copy UI Outcome/sticky/empty
+- **lib:** `cost-parser-zip-unpack.ts` · test `scripts/test-cost-parser-01-zip-unpack.mjs`
+- **DF:** `docs/architecture/COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE.md`
+- **bez zmian:** Bid · COST-PIPELINE · AI Cost · OfferBoq · ATH/XLSX/PDF parsers · CR-02 `archive_candidate` · Payroll · Sync
+
 ## 2.65.72 — COST-REGRESSION-02 Discovery ZIP (2026-07-28)
 
 - **fix:** Top-level ZIP/7Z = `archive_candidate` → Discovery ≠ „Brak przedmiaru w dokumentach”

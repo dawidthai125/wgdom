@@ -13,6 +13,7 @@ export type DossierTraceStep =
   | "zip_opened"
   | "zip_open_failed"
   | "zip_inner_files_found"
+  | "zip_unpack_retry"
   | "ath_detected"
   | "ath_bytes_loaded"
   | "ath_parsed"

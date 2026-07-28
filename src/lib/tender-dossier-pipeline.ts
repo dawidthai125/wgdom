@@ -30,6 +30,7 @@ import {
   isPipelineArtifactCacheEnabled,
   setDossierArtifactCached,
 } from "@/lib/tender-pipeline/tender-dossier-artifact-cache";
+import { canStampHeavyParsedAtForZipUnpack } from "@/lib/cost-parser-zip-unpack";
 
 export interface TenderDossierScanCounts {
   pdf: number;
@@ -55,6 +56,12 @@ export interface TenderDossierScanSummary {
   zipUnpackOk?: boolean;
   /** P0 — liczba inner candidates z archiwów ZIP. */
   zipInnerCount?: number;
+  /** COST-PARSER-01 — zużyto 1× auto-retry unpack. */
+  zipUnpackRetryUsed?: boolean;
+  /** COST-PARSER-01 — inner ZIP o typie kosztowym (ATH/XLSX/PDF…). */
+  zipCostInnerPresent?: boolean;
+  /** COST-PARSER-01 — powód fail unpack (opcjonalnie). */
+  zipUnpackFailReason?: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason;
   kosztorysFound: boolean;
   valueFound: boolean;
   criteriaFound: boolean;
@@ -276,12 +283,27 @@ function buildHeavyScanSummary(
     sevenZUnpackOk?: boolean;
     sevenZInnerCount?: number;
     zipUnpackOk?: boolean;
-    zipInnerCount?: number;
-    partial: boolean;
+  zipInnerCount?: number;
+  /** COST-PARSER-01 */
+  zipUnpackRetryUsed?: boolean;
+  zipCostInnerPresent?: boolean;
+  zipUnpackFailReason?: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason;
+  partial: boolean;
   },
 ): TenderDossierScanSummary {
   const filenames = opts.docs.map((d) => d.filename);
   const kosztorysValuePln = plnFromKosztorysSnapshot(row.kosztorysSnap);
+  const hasTopLevelZip = filenames.some((f) => isZipFilename(f));
+  const zipOk = row.zipUnpackOk !== false;
+  const retryUsed =
+    Boolean(row.zipUnpackRetryUsed) || zipOk || !hasTopLevelZip;
+  const allowParsedAt =
+    !row.partial
+    && canStampHeavyParsedAtForZipUnpack({
+      hasTopLevelZip,
+      zipUnpackOk: zipOk,
+      zipUnpackRetryUsed: retryUsed,
+    });
   return {
     totalDocuments: opts.docs.length,
     scanned: row.scanned,
@@ -292,6 +314,9 @@ function buildHeavyScanSummary(
     sevenZInnerCount: row.sevenZInnerCount,
     zipUnpackOk: row.zipUnpackOk,
     zipInnerCount: row.zipInnerCount,
+    zipUnpackRetryUsed: row.zipUnpackRetryUsed,
+    zipCostInnerPresent: row.zipCostInnerPresent,
+    zipUnpackFailReason: row.zipUnpackFailReason,
     kosztorysFound: Boolean(row.kosztorysSnap?.ok),
     valueFound: row.swzMerged?.estimatedValuePln != null || kosztorysValuePln != null,
     criteriaFound: (row.swzMerged?.awardCriteria?.length ?? 0) > 0,
@@ -300,7 +325,7 @@ function buildHeavyScanSummary(
     pdfPrzedmiarCase: row.kosztorysSnap?.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: row.kosztorysSnap?.pdfPrzedmiarNoTextLayer,
     pdfPrzedmiarExtractError: row.kosztorysSnap?.pdfPrzedmiarExtractError,
-    parsedAt: row.partial ? undefined : new Date().toISOString(),
+    parsedAt: allowParsedAt ? new Date().toISOString() : undefined,
   };
 }
 
@@ -311,7 +336,14 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
 
   if (opts.docs.length && opts.item.tenderId && isPipelineArtifactCacheEnabled()) {
     const fullHit = getDossierArtifactCached(cacheItem, "full", opts.existingDossier);
-    if (fullHit?.phase === "full") {
+    const fullScan = fullHit?.tenderDossier?.scanSummary;
+    const fullStaleZipFail =
+      fullHit?.phase === "full"
+      && opts.docs.some((d) => isZipFilename(d.filename))
+      && fullScan?.zipUnpackOk === false
+      && !fullScan?.zipUnpackRetryUsed
+      && !fullHit.tenderDossier?.kosztorys?.ok;
+    if (fullHit?.phase === "full" && !fullStaleZipFail) {
       return {
         tenderDossier: fullHit.tenderDossier,
         swzAnalysis: fullHit.swzAnalysis,
@@ -320,7 +352,12 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
       };
     }
     const costHit = getDossierArtifactCached(cacheItem, "cost", opts.existingDossier);
-    if (costHit?.phase === "cost") {
+    const costStaleZipFail =
+      costHit?.phase === "cost"
+      && opts.docs.some((d) => isZipFilename(d.filename))
+      && costHit.parseSession?.zipUnpackOk === false
+      && !costHit.parseSession?.zipUnpackRetryUsed;
+    if (costHit?.phase === "cost" && !costStaleZipFail) {
       return {
         tenderDossier: costHit.tenderDossier,
         swzAnalysis: costHit.swzAnalysis,
@@ -341,6 +378,9 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
   let sevenZInnerCount: number | undefined;
   let zipUnpackOk: boolean | undefined;
   let zipInnerCount: number | undefined;
+  let zipUnpackRetryUsed: boolean | undefined;
+  let zipCostInnerPresent: boolean | undefined;
+  let zipUnpackFailReason: import("@/lib/cost-parser-zip-unpack").CostParserZipUnpackFailReason | undefined;
 
   if (opts.docs.length && opts.item.tenderId) {
     parseSession = await prepareTenderDossierParseSession(opts.item.tenderId, opts.docs, {
@@ -369,6 +409,9 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
       sevenZInnerCount = parseSession.sevenZInnerCount;
       zipUnpackOk = parseSession.zipUnpackOk;
       zipInnerCount = parseSession.zipInnerCount;
+      zipUnpackRetryUsed = parseSession.zipUnpackRetryUsed;
+      zipCostInnerPresent = parseSession.zipCostInnerPresent;
+      zipUnpackFailReason = parseSession.zipUnpackFailReason;
     }
   }
 
@@ -391,6 +434,9 @@ export async function buildTenderDossierCostPhase(opts: HeavyBuildOpts): Promise
     sevenZInnerCount,
     zipUnpackOk,
     zipInnerCount,
+    zipUnpackRetryUsed,
+    zipCostInnerPresent,
+    zipUnpackFailReason,
     partial: true,
   });
 
@@ -476,6 +522,9 @@ export async function enrichTenderDossierMetadataPhase(opts: HeavyBuildOpts & {
     sevenZInnerCount: parsedResult.sevenZInnerCount,
     zipUnpackOk: parsedResult.zipUnpackOk,
     zipInnerCount: parsedResult.zipInnerCount,
+    zipUnpackRetryUsed: opts.parseSession.zipUnpackRetryUsed,
+    zipCostInnerPresent: opts.parseSession.zipCostInnerPresent,
+    zipUnpackFailReason: opts.parseSession.zipUnpackFailReason,
     partial: false,
   });
 

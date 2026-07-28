@@ -1,5 +1,6 @@
 /**
- * COST-REGRESSION-01 EPIC A + COST-REGRESSION-02 DISCOVERY-ZIP (Variant D).
+ * COST-REGRESSION-01 EPIC A + COST-REGRESSION-02 DISCOVERY-ZIP (Variant D)
+ * + COST-PARSER-01 ZIP-UNPACK (stany A/B/C presentation).
  * Classifier F2/F1 + discovery + macierz copy (pure).
  * Zero zmian Bid / COST-PIPELINE / AI Cost — tylko diagnostyka UI + gate CTA.
  */
@@ -11,6 +12,11 @@ import {
   isXlsxFilename,
   parsePlnFromKosztorysTotal,
 } from "@/lib/tenders-bzp-filename";
+import {
+  resolveCostParserZipState,
+  resolveCostParserZipUiOverlay,
+  type CostParserZipState,
+} from "@/lib/cost-parser-zip-unpack";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 
@@ -31,6 +37,8 @@ export interface CostRegressionF2UiCopy {
   secondaryCta: "attach" | null;
   /** CR-02 — top-level ZIP/7z obecny. */
   archiveCandidate: boolean;
+  /** COST-PARSER-01 — stan A/B/C gdy znany. */
+  zipState?: CostParserZipState | null;
 }
 
 export interface CostRegressionF2UiCopyOpts {
@@ -39,6 +47,8 @@ export interface CostRegressionF2UiCopyOpts {
   heavyDoneEmpty?: boolean;
   /** Top-level ATH/XLSX/PDF-przedmiar (bez ZIP). */
   fileCandidate?: boolean;
+  /** COST-PARSER-01 A/B/C (null = legacy CR-02). */
+  zipState?: CostParserZipState | null;
 }
 
 const PDF_PRZEDMIAR_NAME_RE =
@@ -163,7 +173,7 @@ export function resolveCostRegressionF2DiscoveryStatus(input: {
   return "no_candidate";
 }
 
-/** Macierz komunikatów Epic A §7.1 + CR-02 §4. */
+/** Macierz komunikatów Epic A §7.1 + CR-02 §4 + COST-PARSER-01 A/B/C. */
 export function resolveCostRegressionF2UiCopy(
   discovery: CostRegressionF2DiscoveryStatus,
   opts?: CostRegressionF2UiCopyOpts,
@@ -172,10 +182,16 @@ export function resolveCostRegressionF2UiCopy(
   const heavyDoneEmpty = Boolean(opts?.heavyDoneEmpty);
   const fileCandidate = Boolean(opts?.fileCandidate);
   const archiveOnlyReady = archiveCandidate && !fileCandidate;
+  const zipState = opts?.zipState ?? null;
+
+  const withZip = (copy: CostRegressionF2UiCopy): CostRegressionF2UiCopy => ({
+    ...copy,
+    zipState,
+  });
 
   switch (discovery) {
     case "no_candidate":
-      return {
+      return withZip({
         discovery,
         phaseLabelPl: "Brak przedmiaru w dokumentach",
         hintPl:
@@ -183,10 +199,10 @@ export function resolveCostRegressionF2UiCopy(
         primaryCta: "attach",
         secondaryCta: null,
         archiveCandidate,
-      };
+      });
     case "candidate_ready":
       if (archiveOnlyReady) {
-        return {
+        return withZip({
           discovery,
           phaseLabelPl: "W dokumentach jest archiwum ZIP",
           hintPl:
@@ -194,9 +210,9 @@ export function resolveCostRegressionF2UiCopy(
           primaryCta: "reparse",
           secondaryCta: "attach",
           archiveCandidate,
-        };
+        });
       }
-      return {
+      return withZip({
         discovery,
         phaseLabelPl: "Brak odczytanego kosztorysu",
         hintPl:
@@ -204,19 +220,31 @@ export function resolveCostRegressionF2UiCopy(
         primaryCta: "reparse",
         secondaryCta: "attach",
         archiveCandidate,
-      };
+      });
     case "parse_running":
-      return {
+      return withZip({
         discovery,
         phaseLabelPl: "Trwa analiza kosztorysu…",
         hintPl: "Po zakończeniu wycena uruchomi się automatycznie.",
         primaryCta: "none",
         secondaryCta: null,
         archiveCandidate,
-      };
+      });
     case "parse_failed":
+      if (archiveCandidate && heavyDoneEmpty && zipState) {
+        const overlay = resolveCostParserZipUiOverlay(zipState);
+        return withZip({
+          discovery,
+          phaseLabelPl: overlay.phaseLabelPl,
+          hintPl: overlay.hintPl,
+          primaryCta: "reparse",
+          secondaryCta: "attach",
+          archiveCandidate,
+        });
+      }
       if (archiveCandidate && heavyDoneEmpty) {
-        return {
+        /* Legacy CR-02 — brak sygnału zipUnpackOk w starym dossier */
+        return withZip({
           discovery,
           phaseLabelPl: "Nie znaleziono kosztorysu w archiwum ZIP",
           hintPl:
@@ -224,9 +252,9 @@ export function resolveCostRegressionF2UiCopy(
           primaryCta: "reparse",
           secondaryCta: "attach",
           archiveCandidate,
-        };
+        });
       }
-      return {
+      return withZip({
         discovery,
         phaseLabelPl: "Nie udało się odczytać kosztorysu",
         hintPl:
@@ -234,7 +262,7 @@ export function resolveCostRegressionF2UiCopy(
         primaryCta: "reparse",
         secondaryCta: "attach",
         archiveCandidate,
-      };
+      });
     default: {
       const _exhaustive: never = discovery;
       return _exhaustive;
@@ -242,7 +270,7 @@ export function resolveCostRegressionF2UiCopy(
   }
 }
 
-/** Buduje discovery + copy z kontekstem itemu (CR-02). */
+/** Buduje discovery + copy z kontekstem itemu (CR-02 + COST-PARSER-01). */
 export function resolveCostRegressionF2Presentation(input: {
   item: TenderPipelineItem;
   dossierBuilding?: boolean;
@@ -254,10 +282,22 @@ export function resolveCostRegressionF2Presentation(input: {
   if (!discovery) return null;
   const archiveCandidate = hasArchiveCandidate(input.item);
   const heavyDone = tenderDossierHeavyParseDone(input.item.tenderDossier);
+  const heavyDoneEmpty = heavyDone && !input.item.tenderDossier?.kosztorys?.ok;
+  const scan = input.item.tenderDossier?.scanSummary;
+  const zipState =
+    archiveCandidate && heavyDoneEmpty
+      ? resolveCostParserZipState({
+          hasTopLevelZip: archiveCandidate,
+          zipUnpackOk: scan?.zipUnpackOk,
+          zipCostInnerPresent: scan?.zipCostInnerPresent,
+          kosztorysOk: Boolean(input.item.tenderDossier?.kosztorys?.ok),
+        })
+      : null;
   return resolveCostRegressionF2UiCopy(discovery, {
     archiveCandidate,
-    heavyDoneEmpty: heavyDone && !input.item.tenderDossier?.kosztorys?.ok,
+    heavyDoneEmpty,
     fileCandidate: hasFilePrzedmiarCandidate(input.item),
+    zipState,
   });
 }
 

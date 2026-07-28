@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.73",
+    label: "COST-PARSER-01 — ZIP unpack A/B/C + 1× retry",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy Heavy nie otworzy ZIP: komunikat „Nie udało się odczytać archiwum ZIP” (nie myli z brakiem kosztorysu w środku) — jedna automatyczna ponowna próba odczytu.",
+      },
+      {
+        type: "improve",
+        text: "Po udanym unpacku: osobne komunikaty — brak ATH/XLSX/PDF w ZIP vs nieudany odczyt kandydata — bez zmiany kalkulatora oferty.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.72",
     label: "COST-REGRESSION-02 — Discovery ZIP (archive_candidate)",
     items: [

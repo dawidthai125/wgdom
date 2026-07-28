@@ -142,6 +142,7 @@ function KosztorysEmptyBlock({
   secondaryDisabled,
   f2Discovery,
   f2Archive,
+  f2ZipState,
 }: {
   itemId: string;
   text: string;
@@ -153,6 +154,7 @@ function KosztorysEmptyBlock({
   secondaryDisabled?: boolean;
   f2Discovery?: string;
   f2Archive?: boolean;
+  f2ZipState?: string | null;
 }) {
   const navigate = useNavigate();
 
@@ -161,6 +163,7 @@ function KosztorysEmptyBlock({
       data-cost-regression-f2={f2Discovery ? "1" : undefined}
       data-cost-regression-discovery={f2Discovery}
       data-cost-regression-archive={f2Archive ? "1" : undefined}
+      data-cost-parser-zip-state={f2ZipState ?? undefined}
     >
       <TenderUxEmptyState
         icon={Scale}
@@ -400,6 +403,7 @@ export function TenderKosztorysWorkspace({
             secondaryDisabled={f2Copy?.discovery === "parse_running"}
             f2Discovery={f2Discovery ?? undefined}
             f2Archive={f2Copy?.archiveCandidate}
+            f2ZipState={f2Copy?.zipState}
           />
         )}
       </div>

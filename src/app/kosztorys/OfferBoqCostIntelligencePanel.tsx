@@ -906,6 +906,7 @@ export function OfferBoqCostIntelligencePanel({
         data-cost-regression-f2={emptyF2 ? "1" : "0"}
         data-cost-regression-discovery={emptyF2?.discovery ?? undefined}
         data-cost-regression-archive={emptyF2?.archiveCandidate ? "1" : undefined}
+        data-cost-parser-zip-state={emptyF2?.zipState ?? undefined}
       >
         <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>

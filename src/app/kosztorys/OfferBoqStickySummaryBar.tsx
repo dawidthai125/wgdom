@@ -38,6 +38,7 @@ export function OfferBoqStickySummaryBar({
       data-cost-regression-f2={showF2 ? "1" : "0"}
       data-cost-regression-discovery={f2Copy?.discovery ?? undefined}
       data-cost-regression-archive={f2Copy?.archiveCandidate ? "1" : undefined}
+      data-cost-parser-zip-state={f2Copy?.zipState ?? undefined}
     >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2">
         <div className="min-w-0">
