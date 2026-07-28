@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**COST-REGRESSION-02 DISCOVERY-ZIP**) · feature UI **2.65.72** · tip commit w §1 · prior Epic A **2.65.71**.
+**Snapshot dokumentacji:** 2026-07-28 (**COST-PARSER-01 ZIP-UNPACK**) · feature UI **2.65.73** · tip commit w §1 · prior CR-02 **2.65.72**.
 
 ---
 
@@ -26,12 +26,13 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.72** (COST-REGRESSION-02) · **DEPLOY PROPAGATING** (live tip może jeszcze pokazywać 2.65.71) |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`c5c95ed`** · prior Epic A **`0a96744`** / tip **`fbb971d`** |
+| **UI version (changelog / version.json)** | **2.65.73** (COST-PARSER-01) · **DEPLOY PROPAGATING** (live może jeszcze 2.65.72) |
+| **Deploy tip commit (`main` / `version.json`)** | Feature **`076781d`** · prior CR-02 **`c5c95ed`** / tip **`d8f6fc7`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
-| **Ostatni feature (COST-REGRESSION-02)** | Discovery ZIP · `archive_candidate` · ZIP-aware F2 copy — **`c5c95ed`** · **CLOSED (code)** · [`DF`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-CLOSEOUT.md) · UI **2.65.72** |
-| **Ostatni feature (COST-REGRESSION-01 EPIC A)** | F2 diagnostyka · macierz copy · CTA Dołącz/Ponów (reuse heavy) — **`0a96744`** · **CLOSED** · **PV** · [`DF`](../architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-REGRESSION-01-EPIC-A-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-REGRESSION-01-EPIC-A-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-01-EPIC-A-CLOSEOUT.md) · UI **2.65.71** |
+| **Ostatni feature (COST-PARSER-01)** | ZIP unpack A/B/C · 1× retry · HeavyDone gate — **`076781d`** · **CLOSED (code)** · [`RCA`](../architecture/COST-PARSER-01-HEAVY-PARSE-RCA.md) · [`DF`](../architecture/COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-PARSER-01-ZIP-UNPACK-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-PARSER-01-ZIP-UNPACK-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-PARSER-01-ZIP-UNPACK-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-PARSER-01-ZIP-UNPACK-CLOSEOUT.md) · UI **2.65.73** |
+| **Ostatni feature (COST-REGRESSION-02)** | Discovery ZIP · `archive_candidate` · ZIP-aware F2 copy — **`c5c95ed`** · **CLOSED** · [`DF`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-CLOSEOUT.md) · UI **2.65.72** |
+| **Ostatni feature (COST-REGRESSION-01 EPIC A)** | F2 diagnostyka · macierz copy · CTA Dołącz/Ponów (reuse heavy) — **`0a96744`** · **CLOSED** · **PV** · [`DF`](../architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-01-EPIC-A-CLOSEOUT.md) · UI **2.65.71** |
 | **Ostatni feature (COSTORYS-UX-01 W2)** | Compact/Comfort · collapsed components · Search · Sort — **`ef122a5`** · [`DF`](../architecture/COSTORYS-UX-01-WAVE-2-DESIGN-FREEZE.md) · [`PV`](../architecture/COSTORYS-UX-01-WAVE-2-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-2-CLOSEOUT.md) · UI **2.65.70** |
 | **Ostatni feature (COSTORYS-UX-01 W1)** | Sticky oferta · full width · accordion · Evidence collapsed · filtr review — **`3e57e8d`** · [`DF`](../architecture/COSTORYS-UX-01-WAVE-1-DESIGN-FREEZE.md) · [`PV`](../architecture/COSTORYS-UX-01-WAVE-1-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-1-CLOSEOUT.md) · UI **2.65.69** |
 | **Ostatni feature (CATALOG-BID-01)** | Materializacja `catalogQuantities` (qty > 0) przed Bid — **`e10efa9`** · [`RCA`](../architecture/CATALOG-BID-01-RCA.md) · [`DF`](../architecture/CATALOG-BID-01-DESIGN-FREEZE.md) · [`PV`](../architecture/CATALOG-BID-01-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/CATALOG-BID-01-CLOSEOUT.md) · UI **2.65.68** |

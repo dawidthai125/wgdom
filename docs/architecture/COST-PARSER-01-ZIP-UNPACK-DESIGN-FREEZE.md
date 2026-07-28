@@ -2,7 +2,7 @@
 
 > **ID:** COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE  
 > **EPIC:** COST-PARSER-01 · **CHILD:** ZIP-UNPACK  
-> **STATUS:** **DESIGN FREEZE · IMPLEMENTED** · UI **2.65.73** · czekaj tip commit w closeout  
+> **STATUS:** **DESIGN FREEZE · IMPLEMENTED** · UI **2.65.73** · feature **`076781d`** · [`CLOSEOUT`](COST-PARSER-01-ZIP-UNPACK-CLOSEOUT.md)  
 > **Data:** 2026-07-28  
 > **Język:** polski  
 > **Klasa:** PARSER / Heavy Dossier · **#CORE-013** — zero Payroll · zero sync merge · **zero Bid / COST-PIPELINE / AI Cost / OfferBoq**  
