@@ -96,7 +96,7 @@ function signals(over = {}) {
 }
 
 // --- Flag R0 ---
-assert("F1 default OFF", TRE_01_SLICE_A_DEFAULT === false);
+assert("F1 default ON (TRE-02)", TRE_01_SLICE_A_DEFAULT === true);
 assert("F2 enabled mirrors default (no LS)", isTre01SliceAEnabled() === TRE_01_SLICE_A_DEFAULT);
 
 // --- Offer Run mapping ---

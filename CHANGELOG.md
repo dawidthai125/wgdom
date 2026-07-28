@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.64 — TRE-02 Outcome First Experience (2026-07-28)
+
+- **improve:** `TRE_01_SLICE_A_DEFAULT=true` — Outcome domyślny po otwarciu przetargu (Product SSOT)
+- **improve:** R0 Hub-first: LS `kw-tre-01-slice-a=0` · Hub recovery bez zmian · zero zmian Bid/AI-COST/sync
+- **DF:** `docs/architecture/TRE-02-DESIGN-FREEZE.md`
+
 ## 2.65.63 — TRE-01 Slice A Outcome MVP (2026-07-28)
 
 - **new:** Offer Run thin + Recommendation Result + Outcome UI MVP (cena z Bid Proposal)

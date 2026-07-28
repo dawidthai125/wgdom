@@ -7,11 +7,12 @@
 export const TENDERS_V4_ROUTING = true;
 
 /**
- * TRE-01 Slice A — Outcome-first default (Offer Run + Recommendation Result).
- * DF: default OFF do PV Ownera; R0 rollback = OFF (bez redeployu silników).
- * Override sesji (bez sync): localStorage `kw-tre-01-slice-a` = `1` | `0`.
+ * TRE-01 / TRE-02 — Outcome-first default (Offer Run + Recommendation Result).
+ * TRE-02 DF: default ON (Outcome First Experience).
+ * R0 rollback: localStorage `kw-tre-01-slice-a` = `0` → Hub-first (bez redeployu silników).
+ * Override: `1` = ON · `0` = OFF · brak klucza → default tip.
  */
-export const TRE_01_SLICE_A_DEFAULT = false;
+export const TRE_01_SLICE_A_DEFAULT = true;
 
 export const TRE_01_SLICE_A_LS_KEY = "kw-tre-01-slice-a";
 

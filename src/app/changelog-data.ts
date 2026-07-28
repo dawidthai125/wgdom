@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.64",
+    label: "TRE-02 — Outcome First (domyślny ekran rekomendacji)",
+    items: [
+      {
+        type: "improve",
+        text: "Po otwarciu przetargu domyślnie widać rekomendowaną cenę oferty (lub status wyliczania) — zamiast od razu pełnego Hubu.",
+      },
+      {
+        type: "improve",
+        text: "„Szczegóły / Hub” nadal dostępne jako recovery; wyłączenie: localStorage kw-tre-01-slice-a=0 (rollback bez zmiany silników).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.63",
     label: "TRE-01 Slice A — Outcome MVP (rekomendowana cena oferty)",
     items: [
