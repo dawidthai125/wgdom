@@ -2,12 +2,12 @@
 
 > **ID:** COST-MULTI-02-DESIGN-FREEZE  
 > **EPIC:** COST-MULTI-02 · AGGREGATE BID  
-> **STATUS:** **DESIGN FREEZE · Owner GO (architektura)** · **IMPLEMENT ZABLOKOWANY** do Owner GO IMPLEMENTATION  
+> **STATUS:** **DESIGN FREEZE · IMPLEMENT COMPLETE (B0–B3)** · UI **2.65.75** · `8f4673ce`  
 > **Data:** 2026-07-28  
 > **Język:** polski  
 > **Klasa:** FEATURE / Przetargi · **wejście Bid z CostPackage Aggregate** · **#CORE-013**  
 > **Wejście:** [`COST-MULTI-01-DESIGN-FREEZE.md`](COST-MULTI-01-DESIGN-FREEZE.md) · [`COST-MULTI-01-CLOSEOUT.md`](COST-MULTI-01-CLOSEOUT.md) · UI tip **2.65.74**  
-> **Zakaz sesji DF:** bez kodu · bez commit · bez push
+> **Closeout:** [`COST-MULTI-02-CLOSEOUT.md`](COST-MULTI-02-CLOSEOUT.md)
 
 ```text
 ════════════════════════════════════════════════════════
