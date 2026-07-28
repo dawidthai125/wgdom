@@ -1,27 +1,29 @@
 # COST-REGRESSION-01 EPIC A — PRODUCTION VERIFY
 
-> **UI target:** 2.65.71  
+> **UI target:** 2.65.71 · feature **`0a96744`**  
 > **Data:** 2026-07-28
 
-## VERIFY DEPLOY FAST
+## VERIFY DEPLOY FAST (jedno odczytanie)
 
-Jedno odczytanie `https://www.wgdom.fun/version.json` po push.
+```json
+{
+  "version": "2.65.70",
+  "commit": "9c28488",
+  "timestamp": "2026-07-28T18:02:48.607Z"
+}
+```
 
-| Pole | Oczekiwane |
-|------|------------|
-| version | `2.65.71` |
-| commit | tip feature EPIC A |
+| Pole | Oczekiwane | Live |
+|------|------------|------|
+| version | `2.65.71` | **2.65.70** |
+| commit | `0a96744` | **9c28488** |
 
-## Smoke Owner (manual)
+**PRODUCTION STATUS:** **DEPLOY PROPAGATING** (RELEASE GO nadal OK — bez retry/poll).
 
-1. WM bez kosztorysu (F2 TRACE) → Outcome: **Brak przedmiaru…** + CTA Dokumenty — nie „Brak rekomendowanej ceny”.
-2. F2 + ATH w załącznikach → CTA **Ponów analizę** startuje heavy (reuse).
-3. Podczas parse → **Trwa analiza kosztorysu…**, CTA disabled.
-4. Tender z PLN>0 → bez auto re-parse, cena bez zmian.
-5. F1 (ok + 0 rows) → **nie** copy „Brak przedmiaru w dokumentach”.
+## Smoke Owner (manual — po propagacji)
 
-## Status
-
-Uzupełnij po curl:
-
-- PRODUCTION VERIFIED | DEPLOY PROPAGATING
+1. WM bez kosztorysu (F2) → Outcome: **Brak przedmiaru…** + CTA Dokumenty.
+2. F2 + ATH → CTA **Ponów analizę**.
+3. Podczas parse → **Trwa analiza…**, CTA disabled.
+4. Tender z PLN>0 → bez auto re-parse.
+5. F1 → nie „Brak przedmiaru w dokumentach”.

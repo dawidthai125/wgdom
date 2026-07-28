@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**COSTORYS-UX-01 WAVE 2**) · feature UI **2.65.70** · tip commit w §1 · prior WAVE 1 **2.65.69**.
+**Snapshot dokumentacji:** 2026-07-28 (**COST-REGRESSION-01 EPIC A**) · feature UI **2.65.71** · tip commit w §1 · prior WAVE 2 **2.65.70**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.70** (COSTORYS-UX-01 WAVE 2) · **DEPLOY PROPAGATING** (live 2.65.69) |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`ef122a5`** · live VERIFY **`8aaae32`** / **2.65.69** · prior WAVE 1 **`3e57e8d`** |
+| **UI version (changelog / version.json)** | **2.65.71** (COST-REGRESSION-01 EPIC A) · **DEPLOY PROPAGATING** (live 2.65.70) |
+| **Deploy tip commit (`main` / `version.json`)** | Feature **`0a96744`** · live VERIFY **`9c28488`** / **2.65.70** · prior WAVE 2 **`ef122a5`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **Ostatni feature (COST-REGRESSION-01 EPIC A)** | F2 diagnostyka · macierz copy · CTA Dołącz/Ponów (reuse heavy) — **`0a96744`** · [`DF`](../architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-REGRESSION-01-EPIC-A-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-REGRESSION-01-EPIC-A-PRODUCTION-VERIFY.md) · UI **2.65.71** |
 | **Ostatni feature (COSTORYS-UX-01 W2)** | Compact/Comfort · collapsed components · Search · Sort — **`ef122a5`** · [`DF`](../architecture/COSTORYS-UX-01-WAVE-2-DESIGN-FREEZE.md) · [`PV`](../architecture/COSTORYS-UX-01-WAVE-2-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-2-CLOSEOUT.md) · UI **2.65.70** |
 | **Ostatni feature (COSTORYS-UX-01 W1)** | Sticky oferta · full width · accordion · Evidence collapsed · filtr review — **`3e57e8d`** · [`DF`](../architecture/COSTORYS-UX-01-WAVE-1-DESIGN-FREEZE.md) · [`PV`](../architecture/COSTORYS-UX-01-WAVE-1-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-1-CLOSEOUT.md) · UI **2.65.69** |
 | **Ostatni feature (CATALOG-BID-01)** | Materializacja `catalogQuantities` (qty > 0) przed Bid — **`e10efa9`** · [`RCA`](../architecture/CATALOG-BID-01-RCA.md) · [`DF`](../architecture/CATALOG-BID-01-DESIGN-FREEZE.md) · [`PV`](../architecture/CATALOG-BID-01-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/CATALOG-BID-01-CLOSEOUT.md) · UI **2.65.68** |

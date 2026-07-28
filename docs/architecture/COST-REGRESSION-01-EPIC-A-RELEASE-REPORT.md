@@ -23,10 +23,10 @@ Stage: wyłącznie allowlist EPIC A (bez `useTenderPricingAuto` / sync / payroll
 - DF: `COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md`
 
 ## PRODUCTION STATUS
-Patrz `COST-REGRESSION-01-EPIC-A-PRODUCTION-VERIFY.md` (VERIFY FAST po push).
+**DEPLOY PROPAGATING** — live `version.json` = 2.65.70 / `9c28488`; tip feature **2.65.71** / **`0a96744`**.
 
 ## WERDYKT
-RELEASE GO — oczekiwany tip UI **2.65.71**
+**RELEASE GO** + **DEPLOY PROPAGATING**
 
 =====================================
 
