@@ -2,7 +2,7 @@
 
 > **ID:** COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE  
 > **EPIC:** COST-REGRESSION-02 · **VARIANT:** **D — Discovery + UX**  
-> **STATUS:** **DESIGN FREEZE · Owner GO (architektura)** · **IMPLEMENT ZABLOKOWANY** do Owner GO IMPLEMENTATION  
+> **STATUS:** **DESIGN FREEZE · IMPLEMENTED** · UI **2.65.72** · feature **`c5c95ed`** · [`CLOSEOUT`](COST-REGRESSION-02-DISCOVERY-ZIP-CLOSEOUT.md)  
 > **Data:** 2026-07-28  
 > **Język:** polski  
 > **Klasa:** FEATURE / Przetargi · **UI Discovery only** · **#CORE-013** — zero Payroll · zero sync merge · **zero Bid / COST-PIPELINE / AI Cost / OfferBoq / Epic B**  
