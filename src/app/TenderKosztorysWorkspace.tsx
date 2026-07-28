@@ -34,8 +34,7 @@ import { KosztorysBoqExplorerSection } from "@/app/kosztorys/KosztorysBoqExplore
 import { OfferBoqCostIntelligencePanel } from "@/app/kosztorys/OfferBoqCostIntelligencePanel";
 import { TenderBoqTableSkeleton } from "@/app/tenders/loading/TenderBoqTableSkeleton";
 import {
-  resolveCostRegressionF2DiscoveryStatus,
-  resolveCostRegressionF2UiCopy,
+  resolveCostRegressionF2Presentation,
   triggerCostRegressionF2Reparse,
 } from "@/lib/cost-regression-f2";
 import {
@@ -142,6 +141,7 @@ function KosztorysEmptyBlock({
   onSecondary,
   secondaryDisabled,
   f2Discovery,
+  f2Archive,
 }: {
   itemId: string;
   text: string;
@@ -152,6 +152,7 @@ function KosztorysEmptyBlock({
   onSecondary?: () => void;
   secondaryDisabled?: boolean;
   f2Discovery?: string;
+  f2Archive?: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -159,6 +160,7 @@ function KosztorysEmptyBlock({
     <div
       data-cost-regression-f2={f2Discovery ? "1" : undefined}
       data-cost-regression-discovery={f2Discovery}
+      data-cost-regression-archive={f2Archive ? "1" : undefined}
     >
       <TenderUxEmptyState
         icon={Scale}
@@ -250,9 +252,9 @@ export function TenderKosztorysWorkspace({
   const hasOfferBoqSource =
     pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0;
 
-  const f2Discovery = useMemo(
+  const f2Copy = useMemo(
     () =>
-      resolveCostRegressionF2DiscoveryStatus({
+      resolveCostRegressionF2Presentation({
         item,
         dossierBuilding: processSession?.dossierBuilding,
         dossierSaving: processSession?.dossierSaving,
@@ -267,7 +269,7 @@ export function TenderKosztorysWorkspace({
       processSession?.dossierParseFailed,
     ],
   );
-  const f2Copy = f2Discovery ? resolveCostRegressionF2UiCopy(f2Discovery) : null;
+  const f2Discovery = f2Copy?.discovery ?? null;
 
   const handleAttachPrzedmiar = () => {
     openTenderDetailV4(navigate, item.id, "dokumenty");
@@ -397,6 +399,7 @@ export function TenderKosztorysWorkspace({
             }
             secondaryDisabled={f2Copy?.discovery === "parse_running"}
             f2Discovery={f2Discovery ?? undefined}
+            f2Archive={f2Copy?.archiveCandidate}
           />
         )}
       </div>

@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.72 — COST-REGRESSION-02 Discovery ZIP (2026-07-28)
+
+- **fix:** Top-level ZIP/7Z = `archive_candidate` → Discovery ≠ „Brak przedmiaru w dokumentach”
+- **improve:** Heavy Done bez kosztorysu → `parse_failed` + copy „Nie znaleziono kosztorysu w archiwum ZIP”
+- **lib:** `cost-regression-f2.ts` (Variant D) · test `scripts/test-cost-regression-02-discovery-zip.mjs`
+- **DF:** `docs/architecture/COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE.md`
+- **bez zmian:** Bid · COST-PIPELINE · AI Cost · OfferBoq engines · tender-document-resolver · Payroll · Sync · Epic B · Variant C
+
 ## 2.65.71 — COST-REGRESSION-01 EPIC A F2 diagnostyka (2026-07-28)
 
 - **fix:** Outcome / sticky / empty Kosztorysy — macierz F2 (brak przedmiaru · w toku · nieudany) zamiast ogólnego „Brak rekomendowanej ceny”

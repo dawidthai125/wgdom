@@ -1,5 +1,6 @@
 /**
- * COST-REGRESSION-01 EPIC A — classifier F2/F1 + discovery + macierz copy (pure).
+ * COST-REGRESSION-01 EPIC A + COST-REGRESSION-02 DISCOVERY-ZIP (Variant D).
+ * Classifier F2/F1 + discovery + macierz copy (pure).
  * Zero zmian Bid / COST-PIPELINE / AI Cost — tylko diagnostyka UI + gate CTA.
  */
 
@@ -10,9 +11,10 @@ import {
   isXlsxFilename,
   parsePlnFromKosztorysTotal,
 } from "@/lib/tenders-bzp-filename";
+import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 
-/** Enum discovery UI (DF §5.3). */
+/** Enum discovery UI (Epic A §5.3 · CR-02 REUSE). */
 export type CostRegressionF2DiscoveryStatus =
   | "no_candidate"
   | "candidate_ready"
@@ -27,12 +29,32 @@ export interface CostRegressionF2UiCopy {
   hintPl: string;
   primaryCta: CostRegressionF2PrimaryCta;
   secondaryCta: "attach" | null;
+  /** CR-02 — top-level ZIP/7z obecny. */
+  archiveCandidate: boolean;
+}
+
+export interface CostRegressionF2UiCopyOpts {
+  archiveCandidate?: boolean;
+  /** archive ∧ heavyDone ∧ !kosztorys.ok */
+  heavyDoneEmpty?: boolean;
+  /** Top-level ATH/XLSX/PDF-przedmiar (bez ZIP). */
+  fileCandidate?: boolean;
 }
 
 const PDF_PRZEDMIAR_NAME_RE =
   /przedmiar|kosztorys|obmiar|ath|norma|stwior|formularz.?cen/i;
 
-/** Nazwa pliku wygląda na kandydata przedmiaru (ATH/XLSX/PDF). */
+/** CR-02 — top-level ZIP/7Z. */
+export function isZipOr7zFilename(name: string): boolean {
+  return /\.(zip|7z)$/i.test((name || "").trim());
+}
+
+/** CR-02 — każdy top-level ZIP/7Z = archive_candidate. */
+export function isArchiveCandidateFilename(name: string): boolean {
+  return isZipOr7zFilename(name);
+}
+
+/** Nazwa pliku wygląda na kandydata przedmiaru (ATH/XLSX/PDF) — Epic A, bez ZIP. */
 export function isPrzedmiarCandidateFilename(name: string): boolean {
   const n = (name || "").trim();
   if (!n) return false;
@@ -42,8 +64,33 @@ export function isPrzedmiarCandidateFilename(name: string): boolean {
   return false;
 }
 
-/** Czy w itemie jest kandydat przedmiaru (REUSE gate + nazwy plików). */
-export function hasPrzedmiarCandidate(item: TenderPipelineItem): boolean {
+function collectTopLevelFilenames(item: TenderPipelineItem): string[] {
+  const names: string[] = [];
+  const uploaded = item.uploadedFile?.filename;
+  if (uploaded) names.push(uploaded);
+  for (const doc of item.bzpDocuments ?? []) {
+    if (doc.filename) names.push(doc.filename);
+  }
+  for (const file of item.externalDocDiscovery?.files ?? []) {
+    if (file.filename) names.push(file.filename);
+  }
+  return names;
+}
+
+/** CR-02 — czy w itemie jest top-level ZIP/7Z. */
+export function hasArchiveCandidate(item: TenderPipelineItem): boolean {
+  for (const name of collectTopLevelFilenames(item)) {
+    if (isArchiveCandidateFilename(name)) return true;
+  }
+  const gate = deriveUnifiedAttachmentGate(item);
+  for (const ref of gate.refs) {
+    if (isArchiveCandidateFilename(ref.filename)) return true;
+  }
+  return false;
+}
+
+/** Epic A — ATH/XLSX/PDF top-level (bez archive). */
+export function hasFilePrzedmiarCandidate(item: TenderPipelineItem): boolean {
   const uploaded = item.uploadedFile?.filename;
   if (uploaded && isPrzedmiarCandidateFilename(uploaded)) return true;
 
@@ -54,7 +101,6 @@ export function hasPrzedmiarCandidate(item: TenderPipelineItem): boolean {
     if (isPrzedmiarCandidateFilename(file.filename || "")) return true;
   }
 
-  /** Gate NG-02: heavy-eligible z nazwą przedmiaru (bez nowego crawlera). */
   const gate = deriveUnifiedAttachmentGate(item);
   if (gate.heavyEligibleCount > 0) {
     for (const ref of gate.refs) {
@@ -67,8 +113,13 @@ export function hasPrzedmiarCandidate(item: TenderPipelineItem): boolean {
   return false;
 }
 
+/** Epic A + CR-02: plik kosztowy LUB archive_candidate. */
+export function hasPrzedmiarCandidate(item: TenderPipelineItem): boolean {
+  return hasFilePrzedmiarCandidate(item) || hasArchiveCandidate(item);
+}
+
 /**
- * F1 (Epic B — tylko rozróżnienie copy w Epic A):
+ * F1 (Epic B — tylko rozróżnienie copy):
  * kosztorys.ok + 0 rows + brak usable catalogQuantities + brak ATH total > 0.
  */
 export function isCostRegressionF1(item: TenderPipelineItem): boolean {
@@ -83,13 +134,14 @@ export function isCostRegressionF1(item: TenderPipelineItem): boolean {
 }
 
 /**
- * F2 (Epic A): brak / nie-ok kosztorysu w dossier — i nie F1.
+ * F2: brak / nie-ok kosztorysu w dossier — i nie F1.
  */
 export function isCostRegressionF2(item: TenderPipelineItem): boolean {
   if (item.tenderDossier?.kosztorys?.ok) return false;
   return !isCostRegressionF1(item);
 }
 
+/** CR-02 §3.2 — priorytet discovery. */
 export function resolveCostRegressionF2DiscoveryStatus(input: {
   item: TenderPipelineItem;
   dossierBuilding?: boolean;
@@ -101,26 +153,49 @@ export function resolveCostRegressionF2DiscoveryStatus(input: {
   if (input.dossierBuilding || input.dossierSaving || input.autoRunning) {
     return "parse_running";
   }
+  const archive = hasArchiveCandidate(input.item);
+  const heavyDone = tenderDossierHeavyParseDone(input.item.tenderDossier);
+  if (archive && heavyDone && !input.item.tenderDossier?.kosztorys?.ok) {
+    return "parse_failed";
+  }
   if (input.dossierParseFailed) return "parse_failed";
   if (hasPrzedmiarCandidate(input.item)) return "candidate_ready";
   return "no_candidate";
 }
 
-/** Macierz komunikatów DF §7.1. */
+/** Macierz komunikatów Epic A §7.1 + CR-02 §4. */
 export function resolveCostRegressionF2UiCopy(
   discovery: CostRegressionF2DiscoveryStatus,
+  opts?: CostRegressionF2UiCopyOpts,
 ): CostRegressionF2UiCopy {
+  const archiveCandidate = Boolean(opts?.archiveCandidate);
+  const heavyDoneEmpty = Boolean(opts?.heavyDoneEmpty);
+  const fileCandidate = Boolean(opts?.fileCandidate);
+  const archiveOnlyReady = archiveCandidate && !fileCandidate;
+
   switch (discovery) {
     case "no_candidate":
       return {
         discovery,
         phaseLabelPl: "Brak przedmiaru w dokumentach",
         hintPl:
-          "Dołącz ATH, XLSX lub PDF przedmiaru — bez tego nie da się wyliczyć oferty.",
+          "Dołącz ATH, XLSX, PDF przedmiaru lub archiwum ZIP z kosztorysem — bez tego nie da się wyliczyć oferty.",
         primaryCta: "attach",
         secondaryCta: null,
+        archiveCandidate,
       };
     case "candidate_ready":
+      if (archiveOnlyReady) {
+        return {
+          discovery,
+          phaseLabelPl: "W dokumentach jest archiwum ZIP",
+          hintPl:
+            "Uruchom analizę kosztorysu — system przeszuka ZIP pod kątem ATH/XLSX/PDF. To nie gwarantuje ceny oferty.",
+          primaryCta: "reparse",
+          secondaryCta: "attach",
+          archiveCandidate,
+        };
+      }
       return {
         discovery,
         phaseLabelPl: "Brak odczytanego kosztorysu",
@@ -128,6 +203,7 @@ export function resolveCostRegressionF2UiCopy(
           "W dokumentach jest kandydat przedmiaru — uruchom ponownie analizę kosztorysu.",
         primaryCta: "reparse",
         secondaryCta: "attach",
+        archiveCandidate,
       };
     case "parse_running":
       return {
@@ -136,8 +212,20 @@ export function resolveCostRegressionF2UiCopy(
         hintPl: "Po zakończeniu wycena uruchomi się automatycznie.",
         primaryCta: "none",
         secondaryCta: null,
+        archiveCandidate,
       };
     case "parse_failed":
+      if (archiveCandidate && heavyDoneEmpty) {
+        return {
+          discovery,
+          phaseLabelPl: "Nie znaleziono kosztorysu w archiwum ZIP",
+          hintPl:
+            "Heavy przeanalizował załączniki ZIP, ale nie powstał snapshot kosztorysu. Sprawdź zawartość ZIP (ATH/XLSX/PDF) lub dołącz inny plik. To nie awaria kalkulatora oferty.",
+          primaryCta: "reparse",
+          secondaryCta: "attach",
+          archiveCandidate,
+        };
+      }
       return {
         discovery,
         phaseLabelPl: "Nie udało się odczytać kosztorysu",
@@ -145,6 +233,7 @@ export function resolveCostRegressionF2UiCopy(
           "Sprawdź plik lub ponów analizę. To nie awaria kalkulatora oferty.",
         primaryCta: "reparse",
         secondaryCta: "attach",
+        archiveCandidate,
       };
     default: {
       const _exhaustive: never = discovery;
@@ -153,7 +242,26 @@ export function resolveCostRegressionF2UiCopy(
   }
 }
 
-/** Copy F1 (Epic B lite) — nie mylić z „brak przedmiaru w dokumentach”. */
+/** Buduje discovery + copy z kontekstem itemu (CR-02). */
+export function resolveCostRegressionF2Presentation(input: {
+  item: TenderPipelineItem;
+  dossierBuilding?: boolean;
+  dossierSaving?: boolean;
+  autoRunning?: boolean;
+  dossierParseFailed?: boolean;
+}): CostRegressionF2UiCopy | null {
+  const discovery = resolveCostRegressionF2DiscoveryStatus(input);
+  if (!discovery) return null;
+  const archiveCandidate = hasArchiveCandidate(input.item);
+  const heavyDone = tenderDossierHeavyParseDone(input.item.tenderDossier);
+  return resolveCostRegressionF2UiCopy(discovery, {
+    archiveCandidate,
+    heavyDoneEmpty: heavyDone && !input.item.tenderDossier?.kosztorys?.ok,
+    fileCandidate: hasFilePrzedmiarCandidate(input.item),
+  });
+}
+
+/** Copy F1 (Epic B lite). */
 export function resolveCostRegressionF1UiCopy(): {
   phaseLabelPl: string;
   hintPl: string;
@@ -165,7 +273,7 @@ export function resolveCostRegressionF1UiCopy(): {
   };
 }
 
-/** Guard CTA re-parse (AC-A11). */
+/** Guard CTA re-parse (AC-A11 / AC-02-8). */
 export function canRetryCostRegressionF2Parse(
   item: TenderPipelineItem,
   opts?: { parseRunning?: boolean },

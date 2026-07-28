@@ -61,6 +61,7 @@ export function TenderRecommendationOutcomeView({
       data-tre-01-has-price={showPrice ? "1" : "0"}
       data-cost-regression-f2={f2 ? "1" : "0"}
       data-cost-regression-discovery={f2?.discovery ?? undefined}
+      data-cost-regression-archive={f2?.archiveCandidate ? "1" : undefined}
     >
       <header className="shrink-0 border-b border-border px-4 sm:px-6 py-3 flex items-center gap-3">
         <button

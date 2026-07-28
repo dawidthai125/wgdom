@@ -9,8 +9,7 @@ import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { PipelineState } from "@/lib/tender-pipeline/tender-pipeline-types";
 import {
-  resolveCostRegressionF2DiscoveryStatus,
-  resolveCostRegressionF2UiCopy,
+  resolveCostRegressionF2Presentation,
   type CostRegressionF2UiCopy,
 } from "@/lib/cost-regression-f2";
 
@@ -155,14 +154,13 @@ export function deriveOfferRunSnapshot(
     criticalErrorMessage = "Pipeline przetargu zakończył się błędem.";
   }
 
-  const f2Discovery = resolveCostRegressionF2DiscoveryStatus({
+  const f2Copy = resolveCostRegressionF2Presentation({
     item,
     dossierBuilding: signals.dossierBuilding,
     dossierSaving: signals.dossierSaving,
     autoRunning: signals.autoRunning,
     dossierParseFailed: signals.dossierParseFailed,
   });
-  const f2Copy = f2Discovery ? resolveCostRegressionF2UiCopy(f2Discovery) : null;
 
   let phase: OfferRunPhase = "started";
   let lifecycleStatus: OfferRunLifecycleStatus = "running";

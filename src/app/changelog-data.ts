@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.72",
+    label: "COST-REGRESSION-02 — Discovery ZIP (archive_candidate)",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy w dokumentach jest ZIP/7Z, Discovery nie mówi już „Brak przedmiaru w dokumentach” — uznaje archiwum za kandydata i proponuje Ponów analizę.",
+      },
+      {
+        type: "improve",
+        text: "Po heavy bez kosztorysu: komunikat „Nie znaleziono kosztorysu w archiwum ZIP” zamiast mylącego braku przedmiaru — bez zmiany kalkulatora oferty.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.71",
     label: "COST-REGRESSION-01 EPIC A — diagnostyka F2 (brak kosztorysu)",
     items: [

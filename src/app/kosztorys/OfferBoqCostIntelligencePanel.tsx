@@ -41,8 +41,7 @@ import {
   type OfferBoqSortKey,
 } from "@/app/kosztorys/offer-boq-ux-wave2";
 import {
-  resolveCostRegressionF2DiscoveryStatus,
-  resolveCostRegressionF2UiCopy,
+  resolveCostRegressionF2Presentation,
   type CostRegressionF2UiCopy,
 } from "@/lib/cost-regression-f2";
 
@@ -892,16 +891,13 @@ export function OfferBoqCostIntelligencePanel({
   };
 
   if (!view.available || !view.summary) {
-    const emptyDiscovery = resolveCostRegressionF2DiscoveryStatus({
+    const emptyF2: CostRegressionF2UiCopy | null = resolveCostRegressionF2Presentation({
       item,
       dossierBuilding: f2Signals?.dossierBuilding,
       dossierSaving: f2Signals?.dossierSaving,
       autoRunning: f2Signals?.autoRunning,
       dossierParseFailed: f2Signals?.dossierParseFailed,
     });
-    const emptyF2: CostRegressionF2UiCopy | null = emptyDiscovery
-      ? resolveCostRegressionF2UiCopy(emptyDiscovery)
-      : null;
     return (
       <section
         className="rounded-xl border border-dashed border-border bg-secondary/10 p-4 space-y-2"
@@ -909,6 +905,7 @@ export function OfferBoqCostIntelligencePanel({
         data-offer-boq-empty
         data-cost-regression-f2={emptyF2 ? "1" : "0"}
         data-cost-regression-discovery={emptyF2?.discovery ?? undefined}
+        data-cost-regression-archive={emptyF2?.archiveCandidate ? "1" : undefined}
       >
         <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>
@@ -946,16 +943,13 @@ export function OfferBoqCostIntelligencePanel({
   }
 
   const s = view.summary;
-  const f2Discovery = resolveCostRegressionF2DiscoveryStatus({
+  const f2Copy: CostRegressionF2UiCopy | null = resolveCostRegressionF2Presentation({
     item,
     dossierBuilding: f2Signals?.dossierBuilding,
     dossierSaving: f2Signals?.dossierSaving,
     autoRunning: f2Signals?.autoRunning,
     dossierParseFailed: f2Signals?.dossierParseFailed,
   });
-  const f2Copy: CostRegressionF2UiCopy | null = f2Discovery
-    ? resolveCostRegressionF2UiCopy(f2Discovery)
-    : null;
   const hasRecommended =
     Boolean(view.offerSummary?.available && view.offerSummary.recommendedBidDisplay);
   const recommendedDisplay = hasRecommended
