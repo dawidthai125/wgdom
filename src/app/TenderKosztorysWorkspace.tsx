@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, Loader2, Scale } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -40,6 +40,9 @@ import {
 import { TenderUxSectionTitle } from "@/app/tenders/design-system/TenderUxSectionTitle";
 import { TenderCostWorkspaceBridge } from "@/app/TenderCostWorkspaceBridge";
 import { TEUX_FONT_META } from "@/lib/tender-ux-tokens";
+
+/** COST-PIPELINE-01 — kotwica CTA „Pokaż pełny kosztorys” → OfferBoq (L1). */
+export const OFFER_BOQ_PRIMARY_ANCHOR_ID = "offer-boq-primary";
 
 function KosztorysKpiCard({
   label,
@@ -153,6 +156,8 @@ export function TenderKosztorysWorkspace({
   retryNonce = 0,
   onRetryParse,
   trustAssessment,
+  focusOfferBoq = false,
+  onFocusOfferBoqConsumed,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
@@ -160,6 +165,9 @@ export function TenderKosztorysWorkspace({
   retryNonce?: number;
   onRetryParse?: () => void;
   trustAssessment: TenderTrustAssessment;
+  /** COST-PIPELINE-01 — po CTA Outcome scroll do OfferBoq. */
+  focusOfferBoq?: boolean;
+  onFocusOfferBoqConsumed?: () => void;
 }) {
   const navigate = useNavigate();
   const tendersCtx = useTendersContextOptional();
@@ -203,6 +211,21 @@ export function TenderKosztorysWorkspace({
   const totalValueLabel = k?.totalValue
     ? ` · wartość wg pliku: ${k.totalValue} ${k.currency || "PLN"}`
     : null;
+
+  const hasOfferBoqSource =
+    pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0;
+
+  useEffect(() => {
+    if (!focusOfferBoq) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(OFFER_BOQ_PRIMARY_ANCHOR_ID)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      onFocusOfferBoqConsumed?.();
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [focusOfferBoq, onFocusOfferBoqConsumed, item.id]);
 
   async function handleDownloadAth() {
     setAthDownloadError(null);
@@ -254,165 +277,178 @@ export function TenderKosztorysWorkspace({
         />
       )}
 
-      {pro.hasCatalog && (
-        <section
-          className="rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 space-y-2"
-          data-kosztorys-pro-hero
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <KosztorysKpiCard compact label="Pozycje ATH" value={pro.athPositionsDisplay} />
-            <KosztorysKpiCard compact label="Pokrycie" value={pro.coverageDisplay} />
-            <KosztorysKpiCard
-              compact
-              label="FIT WGDOM"
-              value={pro.fitDisplay ?? "—"}
-              subValue={pro.fitLabel ?? undefined}
-              highlight={Boolean(pro.fitDisplay)}
-            />
-            <KosztorysKpiCard
-              compact
-              label="Status"
-              value={statusDisplay}
-              highlight={statusReady}
-            />
-          </div>
-        </section>
-      )}
-
-      {(canOpenFullPreview || canDownloadAth) && (
-      <div className="flex flex-wrap items-center gap-2">
-        {canOpenFullPreview && (
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15"
-            onClick={() => setDocPreview(athPreviewItem)}
-            data-kosztorys-full-preview-cta
-          >
-            <Eye size={14} />
-            Pełny podgląd ATH
-          </button>
-        )}
-
-        {canDownloadAth && (
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/40 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-60"
-            onClick={() => void handleDownloadAth()}
-            disabled={athDownloadBusy}
-            data-kosztorys-download-ath-cta
-          >
-            {athDownloadBusy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            Pobierz ATH
-          </button>
+      {/* L1 OfferBoq — główny kosztorys ofertowy (COST-PIPELINE-01) */}
+      <div id={OFFER_BOQ_PRIMARY_ANCHOR_ID} data-cost-pipeline-offer-boq-primary>
+        {hasOfferBoqSource ? (
+          <OfferBoqCostIntelligencePanel
+            item={item}
+            pricingCatalogRevision={pricingCatalogRevision}
+          />
+        ) : inProgress || phase.id === "waiting_data" ? (
+          <TenderBoqTableSkeleton rowCount={8} />
+        ) : (
+          <KosztorysEmptyBlock
+            itemId={item.id}
+            text="Brak pozycji przedmiaru do kosztorysu ofertowego. Otwórz Dokumenty i uruchom analizę."
+          />
         )}
       </div>
-      )}
 
-      {athDownloadError && (
-        <p className="text-xs text-red-600 dark:text-red-400">{athDownloadError}</p>
-      )}
-
-      {pro.hasCatalog && (
-        <section className="space-y-3" data-kosztorys-pro-dashboard>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <TenderUxSectionTitle>KOSZTORYS PRO</TenderUxSectionTitle>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                statusReady
-                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                  : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-              }`}
-            >
-              {pro.statusLabel}
-            </span>
-          </div>
-
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-            <KosztorysKpiCard label="Wycenione" value={String(pro.priced)} />
-            <KosztorysKpiCard label="Niewycenione" value={String(pro.unpriced)} />
-            <KosztorysKpiCard label="Wartość wyceny" value={pro.valuationDisplay} />
-            <KosztorysKpiCard label="Średnia marża" value={pro.avgMarginDisplay} />
-          </div>
-
-          {pro.marketHint && (
-            <p className="text-xs text-muted-foreground">{pro.marketHint}</p>
-          )}
-        </section>
-      )}
-
-      {pro.assessment && (
-        <section
-          className="rounded-xl border border-border bg-secondary/20 p-4 space-y-2"
-          data-kosztorys-assessment
-        >
-          <h3 className="text-sm font-semibold text-foreground">Ocena kosztorysu</h3>
-          <p className="text-sm font-medium text-foreground">{pro.assessment.headline}</p>
-          {pro.assessment.paragraphs.map((p) => (
-            <p key={p} className="text-sm text-muted-foreground">{p}</p>
-          ))}
-        </section>
-      )}
-
-      {pro.topRows.length > 0 && (
-        <section className="space-y-2" data-kosztorys-top-cost>
-          <h3 className="text-sm font-semibold text-foreground">Największe pozycje kosztowe</h3>
+      {/* L0 Evidence — ATH / przedmiar inwestorski (secondary) */}
+      <section
+        className="rounded-xl border border-dashed border-border/80 bg-secondary/10 p-3 space-y-3"
+        data-cost-pipeline-evidence-l0
+      >
+        <div className="space-y-1">
+          <TenderUxSectionTitle>Dowód / przedmiar (ATH)</TenderUxSectionTitle>
           <p className={`${TEUX_FONT_META} text-muted-foreground`}>
-            TOP 20 · sortowanie malejąco po wartości wyceny katalogowej
+            Warstwa Evidence — dokument inwestorski i klasyfikacja. Nie jest ceną oferty WGDOM.
+            Brak cen w pliku ATH nie oznacza braku kosztorysu ofertowego powyżej.
           </p>
-          <KosztorysTopCostTable rows={pro.topRows} />
-        </section>
-      )}
-
-      {(pro.hasCatalog || (k?.catalogQuantities?.length ?? 0) > 0 || (k?.rows?.length ?? 0) > 0) && (
-        <OfferBoqCostIntelligencePanel
-          item={item}
-          pricingCatalogRevision={pricingCatalogRevision}
-        />
-      )}
-
-      {pro.hasCatalog && (
-        <KosztorysBoqExplorerSection
-          item={item}
-          view={boqView}
-          categoryFilter={categoryFilter}
-          onCategoryFilterChange={setCategoryFilter}
-          sourceFilename={k?.sourceFilename}
-          totalValueLabel={totalValueLabel}
-          rowsFallbackSource={display.source === "rows_fallback"}
-          trustReasons={kosztorysTrustReasons}
-          trustLevelIcon={trustLevelToIcon(kosztorysTrust?.level ?? "partial")}
-          onOpenAthPreview={
-            canOpenFullPreview && athPreviewItem
-              ? () => setDocPreview(athPreviewItem)
-              : undefined
-          }
-        />
-      )}
-
-      {!pro.hasCatalog && (
-        <>
-          {display.emptyMessage ? (
-            <KosztorysEmptyBlock itemId={item.id} text={display.emptyMessage} />
-          ) : inProgress || phase.id === "waiting_data" ? (
-            <TenderBoqTableSkeleton rowCount={8} />
-          ) : (
-            <KosztorysEmptyBlock
-              itemId={item.id}
-              text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH."
-            />
-          )}
-        </>
-      )}
-
-      {(k?.categories?.length ?? 0) > 0 && boqView.rows.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {k!.categories.map((c, i) => (
-            <span key={i} className="text-[10px] bg-secondary px-2 py-1 rounded border border-border">
-              {c.name}: <strong>{c.total}</strong>
-            </span>
-          ))}
         </div>
-      )}
+
+        {pro.hasCatalog && (
+          <section
+            className="rounded-xl border border-border/60 bg-background/50 px-3 py-2.5 space-y-2"
+            data-kosztorys-pro-hero
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <KosztorysKpiCard compact label="Pozycje ATH" value={pro.athPositionsDisplay} />
+              <KosztorysKpiCard compact label="Pokrycie" value={pro.coverageDisplay} />
+              <KosztorysKpiCard
+                compact
+                label="FIT WGDOM"
+                value={pro.fitDisplay ?? "—"}
+                subValue={pro.fitLabel ?? undefined}
+                highlight={Boolean(pro.fitDisplay)}
+              />
+              <KosztorysKpiCard
+                compact
+                label="Status"
+                value={statusDisplay}
+                highlight={statusReady}
+              />
+            </div>
+          </section>
+        )}
+
+        {(canOpenFullPreview || canDownloadAth) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {canOpenFullPreview && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/40 text-xs font-semibold hover:bg-secondary/60"
+                onClick={() => setDocPreview(athPreviewItem)}
+                data-kosztorys-full-preview-cta
+              >
+                <Eye size={14} />
+                Podgląd ATH (Evidence)
+              </button>
+            )}
+
+            {canDownloadAth && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-secondary/40 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-60"
+                onClick={() => void handleDownloadAth()}
+                disabled={athDownloadBusy}
+                data-kosztorys-download-ath-cta
+              >
+                {athDownloadBusy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                Pobierz ATH
+              </button>
+            )}
+          </div>
+        )}
+
+        {athDownloadError && (
+          <p className="text-xs text-red-600 dark:text-red-400">{athDownloadError}</p>
+        )}
+
+        {pro.hasCatalog && (
+          <section className="space-y-3" data-kosztorys-pro-dashboard>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <TenderUxSectionTitle>KOSZTORYS PRO (Evidence)</TenderUxSectionTitle>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                  statusReady
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                }`}
+              >
+                {pro.statusLabel}
+              </span>
+            </div>
+
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              <KosztorysKpiCard label="Wycenione" value={String(pro.priced)} />
+              <KosztorysKpiCard label="Niewycenione" value={String(pro.unpriced)} />
+              <KosztorysKpiCard label="Wartość wyceny" value={pro.valuationDisplay} />
+              <KosztorysKpiCard label="Średnia marża" value={pro.avgMarginDisplay} />
+            </div>
+
+            {pro.marketHint && (
+              <p className="text-xs text-muted-foreground">{pro.marketHint}</p>
+            )}
+          </section>
+        )}
+
+        {pro.assessment && (
+          <section
+            className="rounded-xl border border-border bg-secondary/20 p-4 space-y-2"
+            data-kosztorys-assessment
+          >
+            <h3 className="text-sm font-semibold text-foreground">Ocena kosztorysu (Evidence)</h3>
+            <p className="text-sm font-medium text-foreground">{pro.assessment.headline}</p>
+            {pro.assessment.paragraphs.map((p) => (
+              <p key={p} className="text-sm text-muted-foreground">{p}</p>
+            ))}
+          </section>
+        )}
+
+        {pro.topRows.length > 0 && (
+          <section className="space-y-2" data-kosztorys-top-cost>
+            <h3 className="text-sm font-semibold text-foreground">Największe pozycje (katalog Evidence)</h3>
+            <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+              TOP 20 · sortowanie malejąco po wartości wyceny katalogowej — nie jest ceną oferty
+            </p>
+            <KosztorysTopCostTable rows={pro.topRows} />
+          </section>
+        )}
+
+        {pro.hasCatalog && (
+          <KosztorysBoqExplorerSection
+            item={item}
+            view={boqView}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            sourceFilename={k?.sourceFilename}
+            totalValueLabel={totalValueLabel}
+            rowsFallbackSource={display.source === "rows_fallback"}
+            trustReasons={kosztorysTrustReasons}
+            trustLevelIcon={trustLevelToIcon(kosztorysTrust?.level ?? "partial")}
+            onOpenAthPreview={
+              canOpenFullPreview && athPreviewItem
+                ? () => setDocPreview(athPreviewItem)
+                : undefined
+            }
+          />
+        )}
+
+        {!pro.hasCatalog && !hasOfferBoqSource && display.emptyMessage ? (
+          <KosztorysEmptyBlock itemId={item.id} text={display.emptyMessage} />
+        ) : null}
+
+        {(k?.categories?.length ?? 0) > 0 && boqView.rows.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {k!.categories.map((c, i) => (
+              <span key={i} className="text-[10px] bg-secondary px-2 py-1 rounded border border-border">
+                {c.name}: <strong>{c.total}</strong>
+              </span>
+            ))}
+          </div>
+        )}
+      </section>
 
       {docPreview && (
         <JobFilePreviewModal

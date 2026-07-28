@@ -104,7 +104,7 @@ export function TenderRecommendationOutcomeView({
               data-tre-01-cta-kosztorys
             >
               <FileText size={16} />
-              Pokaż pełny kosztorys
+              Pokaż pełny kosztorys ofertowy
             </button>
             <button
               type="button"

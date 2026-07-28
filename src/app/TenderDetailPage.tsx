@@ -188,9 +188,12 @@ export function TenderDetailPage({
   /** TRE-01 Slice A — Outcome-first (flaga); Hub = recovery. */
   const tre01SliceA = isTre01SliceAEnabled();
   const [tre01ForceWorkspace, setTre01ForceWorkspace] = useState(false);
+  /** COST-PIPELINE-01 — CTA „Pokaż pełny kosztorys” → focus OfferBoq (nie ATH). */
+  const [focusOfferBoq, setFocusOfferBoq] = useState(false);
 
   useEffect(() => {
     setTre01ForceWorkspace(false);
+    setFocusOfferBoq(false);
   }, [tenderId]);
 
   const { recommendation: tre01Recommendation } = useTenderOfferRun({
@@ -207,6 +210,7 @@ export function TenderDetailPage({
 
   const handleTre01ShowCostEstimate = useCallback(() => {
     setTre01ForceWorkspace(true);
+    setFocusOfferBoq(true);
     handleTabChange("kosztorys");
   }, [handleTabChange]);
 
@@ -589,6 +593,8 @@ export function TenderDetailPage({
               retryNonce={pipelineRuntime.retryNonce}
               onRetryParse={pipelineRuntime.retryDossierParse}
               trustAssessment={pipelineRuntime.trustAssessment}
+              focusOfferBoq={focusOfferBoq}
+              onFocusOfferBoqConsumed={() => setFocusOfferBoq(false)}
             />
           )}
 

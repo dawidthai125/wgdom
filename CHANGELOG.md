@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.66 — COST-PIPELINE-01 OfferBoq → Bid (2026-07-28)
+
+- **improve:** `useTenderPricingAuto` — gdy flaga ON: Bid z OfferBoq (S6 `offer_boq_ai`); bez milczącego catalog fallback
+- **improve:** CTA Outcome → tab kosztorys + focus `#offer-boq-primary`; ATH = Evidence (L0)
+- **improve:** R0: LS `kw-cost-pipeline-01=0` → catalog Bid (pre-wire)
+- **test:** `scripts/test-cost-pipeline-01-wire.mjs`
+- **DF:** `docs/architecture/COST-PIPELINE-01-DESIGN-FREEZE.md`
+
 ## 2.65.65 — TRE-02-HOTFIX-01 Offer Run terminal mapping (2026-07-28)
 
 - **fix:** `deriveOfferRunSnapshot` — Pricing/Ready bez `recommendedBidPln > 0` → `insufficient_data` / „Brak rekomendowanej ceny” (nie wieczne „Trwa wycena…”)

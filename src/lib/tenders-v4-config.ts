@@ -29,3 +29,25 @@ export function isTre01SliceAEnabled(): boolean {
   }
   return TRE_01_SLICE_A_DEFAULT;
 }
+
+/**
+ * COST-PIPELINE-01 — OfferBoq (L1) → Bid (L2) jako SSOT Outcome.
+ * Default ON. R0 rollback: localStorage `kw-cost-pipeline-01` = `0` → catalog Bid (pre-wire).
+ */
+export const COST_PIPELINE_01_DEFAULT = true;
+
+export const COST_PIPELINE_01_LS_KEY = "kw-cost-pipeline-01";
+
+/** Czy runtime Outcome używa OfferBoq → Bid (S6), nie catalog. */
+export function isCostPipeline01Enabled(): boolean {
+  if (typeof localStorage !== "undefined") {
+    try {
+      const raw = localStorage.getItem(COST_PIPELINE_01_LS_KEY);
+      if (raw === "1") return true;
+      if (raw === "0") return false;
+    } catch {
+      /* private mode */
+    }
+  }
+  return COST_PIPELINE_01_DEFAULT;
+}

@@ -1,6 +1,7 @@
 /**
  * NG-02 P0-D — auto pricing po heavy parse.
  * NG11-Q5 — early pricing po partialDossierReady + recompute po metadata merge.
+ * COST-PIPELINE-01 — OfferBoq (L1) → Bid (L2) jako SSOT Outcome (flaga R0).
  */
 
 import { useMemo } from "react";
@@ -16,6 +17,8 @@ import {
   loadTenderPriceOverridesStoreLocal,
   type TenderPriceOverrideEntry,
 } from "@/lib/tender-price-overrides";
+import { computeRuntimeBidFromOfferBoq } from "@/lib/tender-offer-boq-explainability";
+import { isCostPipeline01Enabled } from "@/lib/tenders-v4-config";
 
 export function useTenderPricingAuto(opts: {
   item: TenderPipelineItem;
@@ -48,6 +51,16 @@ export function useTenderPricingAuto(opts: {
     const overrides = getTenderPriceOverrides(store, item.id).overrides;
 
     if (!canComputeTenderPricingAuto({ enabled, partialDossierReady, item })) {
+      return { priceOverrides: overrides, proposal: null };
+    }
+
+    // COST-PIPELINE-01: OfferBoq → Bid (S6). R0 OFF → legacy catalog poniżej.
+    if (isCostPipeline01Enabled()) {
+      const runtime = computeRuntimeBidFromOfferBoq({ item, swz: swz ?? null });
+      if (runtime) {
+        return { priceOverrides: overrides, proposal: runtime.proposal };
+      }
+      // DF §2.2: OfferBoq niedostępny → preferuj status (null), nie milczący catalog.
       return { priceOverrides: overrides, proposal: null };
     }
 

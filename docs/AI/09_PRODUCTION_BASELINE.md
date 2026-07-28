@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**TRE-02-HOTFIX-01**) · feature UI **2.65.65** · tip commit w §1 · prior TRE-02 **`a39533d`** / **2.65.64**.
+**Snapshot dokumentacji:** 2026-07-28 (**COST-PIPELINE-01**) · feature UI **2.65.66** · tip commit w §1 · prior TRE-02-HOTFIX-01 **2.65.65**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.65** (TRE-02-HOTFIX-01) · **PRODUCTION VERIFIED** |
-| **Deploy tip commit (`main` / `version.json`)** | Live **`02bf83d`** · feature **`5eef0ff`** · prior TRE-02 **`a39533d`** / tip **`ac6f9e4`** · prior TRE-01 **`74ac6a0`** |
+| **UI version (changelog / version.json)** | **2.65.66** (COST-PIPELINE-01) · tip po VERIFY |
+| **Deploy tip commit (`main` / `version.json`)** | _(uzupełnij po push / VERIFY FAST)_ · prior HOTFIX **`5eef0ff`** / live **`02bf83d`** · prior TRE-02 **`a39533d`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **Ostatni feature (COST-PIPELINE-01)** | OfferBoq → Bid wire · CTA OfferBoq · L0/L1/L2 — [`DF`](../architecture/COST-PIPELINE-01-DESIGN-FREEZE.md) · [`RELEASE`](../architecture/COST-PIPELINE-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-PIPELINE-01-CLOSEOUT.md) · UI **2.65.66** |
 | **Ostatni feature (TRE-02-HOTFIX-01)** | Terminal mapping Offer Run — **`5eef0ff`** · [`REPORT`](../architecture/TRE-02-HOTFIX-01-REPORT.md) · [`RCA`](../architecture/TRE-02-HOTFIX-RCA.md) · [`CLOSEOUT`](../architecture/TRE-02-HOTFIX-01-CLOSEOUT.md) · UI **2.65.65** |
 | **Ostatni feature (TRE-02)** | Outcome First Experience — **CLOSED** · **PV** · [`PV FINAL`](../architecture/TRE-02-PRODUCTION-VERIFY-FINAL.md) · [`RELEASE`](../architecture/TRE-02-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/TRE-02-CLOSEOUT.md) · feature **`a39533d`** · tip **`ac6f9e4`** · UI **2.65.64** · default **ON** |
 | **Ostatni feature (TRE-01 Slice A)** | Offer Run + Outcome MVP — **CLOSED** · **PV** · [`RELEASE`](../architecture/TRE-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/TRE-01-CLOSEOUT.md) · **`74ac6a0`** · UI **2.65.63** |

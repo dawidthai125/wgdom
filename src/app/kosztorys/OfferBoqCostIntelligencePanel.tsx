@@ -711,7 +711,7 @@ export function OfferBoqCostIntelligencePanel({
         data-offer-boq-explainability
         data-offer-boq-empty
       >
-        <TenderUxSectionTitle>AI Cost Intelligence</TenderUxSectionTitle>
+        <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_BODY} text-muted-foreground`}>
           {view.emptyReasonPl ?? "Brak danych do wyjaśnienia wyceny AI."}
         </p>
@@ -728,9 +728,9 @@ export function OfferBoqCostIntelligencePanel({
       data-offer-boq-editable="components-only"
     >
       <div className="space-y-1">
-        <TenderUxSectionTitle>AI Cost Intelligence</TenderUxSectionTitle>
+        <TenderUxSectionTitle>Kosztorys ofertowy (AI Cost)</TenderUxSectionTitle>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
-          Współtwórz kosztorys z AI — edytuj komponenty, zatwierdzaj. Kp, marża i cena ofertowa: moduł Bid Proposal (SSOT).
+          Główny kosztorys ofertowy WGDOM — edytuj komponenty, zatwierdzaj. Kp, marża i cena ofertowa: Bid Proposal (L2).
         </p>
       </div>
 

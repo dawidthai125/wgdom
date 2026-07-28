@@ -1,9 +1,24 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-28 (**TRE-02-HOTFIX-01** · UI **2.65.65**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-28 (**COST-PIPELINE-01** · UI **2.65.66**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ COST-PIPELINE-01 — OfferBoq → Bid wire — **RELEASE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **RELEASE GO** · UI **2.65.66** · L0 Evidence · L1 OfferBoq · L2 Bid |
+| **DF** | [`COST-PIPELINE-01-DESIGN-FREEZE.md`](docs/architecture/COST-PIPELINE-01-DESIGN-FREEZE.md) |
+| **AR** | [`COST-PIPELINE-01-ARCHITECTURE-REVIEW.md`](docs/architecture/COST-PIPELINE-01-ARCHITECTURE-REVIEW.md) |
+| **CLOSEOUT** | [`COST-PIPELINE-01-CLOSEOUT.md`](docs/architecture/COST-PIPELINE-01-CLOSEOUT.md) |
+| **IN** | `useTenderPricingAuto` OfferBoq→Bid · CTA focus OfferBoq · layout Kosztorysy |
+| **OUT** | PDF · XLS · AI-COST rewrite · TRE-03 · Edge · Foundation |
+| **Rollback** | `localStorage['kw-cost-pipeline-01']='0'` |
+| **Test** | `npx vite-node scripts/test-cost-pipeline-01-wire.mjs` |
+
+---
 
 ## ★ TRE-02-HOTFIX-01 — Offer Run terminal mapping — **CLOSED**
 

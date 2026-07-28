@@ -3,7 +3,7 @@
  * Orkiestracja istniejących silników S1–S4 — bez zmiany ich logiki, bez edycji.
  */
 
-import { fmtPln } from "@/lib/tenders-bzp-swz";
+import { fmtPln, type TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
@@ -590,8 +590,9 @@ export function presentOfferBoqExplainabilityView(
       swz: dossier?.swz ?? null,
       fit: dossier?.fit ?? null,
       costModel: profile.costModel,
-      minProjectDays: bidContext.minProjectDays ?? 14,
-      maxConcurrentProjects: bidContext.maxConcurrentProjects ?? 2,
+      minProjectDays: bidContext.minProjectDays ?? profile.minProjectDays,
+      maxConcurrentProjects:
+        bidContext.maxConcurrentProjects ?? profile.maxConcurrentProjects,
       builtAt: at,
     });
     bidSections = buildOfferBoqBidViewSections({ integration });
@@ -616,32 +617,18 @@ export function presentOfferBoqExplainabilityView(
 }
 
 /**
- * Buduje widok Explainability ze snapshotu dossier (call-only silniki S1–S4).
+ * COST-PIPELINE-01 / M1 — budowa OfferBoq (S1–S4) dla pipeline item (REUSE, bez rewrite).
+ * Wspólna ścieżka dla panelu Explainability i runtime Bid Outcome.
  */
-export function buildOfferBoqExplainabilityView(opts: {
+export function buildOfferBoqDocumentForPipelineItem(opts: {
   item: TenderPipelineItem;
   builtAt?: string;
-}): OfferBoqExplainabilityView {
+}): OfferBoqDocument | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
   const snapshot = opts.item.tenderDossier?.kosztorys;
   const hasLines =
     (snapshot?.catalogQuantities?.length ?? 0) > 0 || (snapshot?.rows?.length ?? 0) > 0;
-
-  if (!snapshot || !hasLines) {
-    return {
-      available: false,
-      emptyReasonPl: "Brak pozycji przedmiaru w dossier — uruchom analizę dokumentów.",
-      summary: null,
-      lines: [],
-      document: null,
-      builtAt,
-      bidImpact: null,
-      offerSummary: null,
-      offerReadiness: null,
-      aiQuality: null,
-      bidProposal: null,
-    };
-  }
+  if (!snapshot || !hasLines) return null;
 
   const store = loadWorkCatalogStoreLocal();
   const works = listActiveWorksForRegion(store, store.activeRegion);
@@ -677,6 +664,78 @@ export function buildOfferBoqExplainabilityView(opts: {
       }),
     ],
   });
+  return doc;
+}
+
+export type RuntimeOfferBoqBidResult = {
+  document: OfferBoqDocument;
+  proposal: TenderBidProposal;
+  /** true gdy Bid zasilony OfferBoq (S6) — Bid nie re-aggregate katalogu. */
+  usedOfferBoqDirect: true;
+};
+
+/**
+ * COST-PIPELINE-01 / M1 — OfferBoq → S6 → Bid Proposal (jedna ścieżka Outcome + tab).
+ * Zwraca null gdy L1 nie gotowy (direct ≤ 0 / brak linii) — DF: preferuj status, nie milczący catalog.
+ */
+export function computeRuntimeBidFromOfferBoq(opts: {
+  item: TenderPipelineItem;
+  swz?: TenderSwzAnalysis | null;
+  builtAt?: string;
+}): RuntimeOfferBoqBidResult | null {
+  const builtAt = opts.builtAt ?? new Date().toISOString();
+  const doc = buildOfferBoqDocumentForPipelineItem({ item: opts.item, builtAt });
+  if (!doc) return null;
+
+  const profile = loadCompanyProfileLocal();
+  const dossier = opts.item.tenderDossier;
+  const integration = integrateOfferBoqWithBidProposal({
+    doc,
+    kosztorys: dossier?.kosztorys,
+    swz: opts.swz ?? dossier?.swz ?? null,
+    fit: dossier?.fit ?? opts.item.tenderFit ?? null,
+    costModel: profile.costModel,
+    minProjectDays: profile.minProjectDays,
+    maxConcurrentProjects: profile.maxConcurrentProjects,
+    builtAt,
+  });
+  if (!integration) return null;
+  if (integration.proposal.pricingMode !== "offer_boq_ai") return null;
+  if (!(integration.proposal.recommendedBidPln != null && integration.proposal.recommendedBidPln > 0)) {
+    return null;
+  }
+
+  return {
+    document: integration.documentWithTotals,
+    proposal: integration.proposal,
+    usedOfferBoqDirect: true,
+  };
+}
+
+/**
+ * Buduje widok Explainability ze snapshotu dossier (call-only silniki S1–S4).
+ */
+export function buildOfferBoqExplainabilityView(opts: {
+  item: TenderPipelineItem;
+  builtAt?: string;
+}): OfferBoqExplainabilityView {
+  const builtAt = opts.builtAt ?? new Date().toISOString();
+  const doc = buildOfferBoqDocumentForPipelineItem(opts);
+  if (!doc) {
+    return {
+      available: false,
+      emptyReasonPl: "Brak pozycji przedmiaru w dossier — uruchom analizę dokumentów.",
+      summary: null,
+      lines: [],
+      document: null,
+      builtAt,
+      bidImpact: null,
+      offerSummary: null,
+      offerReadiness: null,
+      aiQuality: null,
+      bidProposal: null,
+    };
+  }
 
   return presentOfferBoqExplainabilityView(doc, builtAt, { item: opts.item });
 }

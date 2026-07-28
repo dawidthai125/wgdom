@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.66",
+    label: "COST-PIPELINE-01 — OfferBoq → Bid · pełny kosztorys ofertowy",
+    items: [
+      {
+        type: "improve",
+        text: "Rekomendowana cena oferty (Outcome) liczy się z kosztorysu ofertowego AI (OfferBoq → Bid), nie z równoległego katalogu.",
+      },
+      {
+        type: "improve",
+        text: "„Pokaż pełny kosztorys ofertowy” otwiera zakładkę Kosztorysy na sekcji OfferBoq; ATH zostaje jako dowód (Evidence).",
+      },
+      {
+        type: "improve",
+        text: "Rollback bez redeployu silników: localStorage kw-cost-pipeline-01=0 przywraca wycenę katalogową Outcome.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.65",
     label: "TRE-02-HOTFIX-01 — Outcome bez wiecznego „Trwa wycena…”",
     items: [
