@@ -1,8 +1,8 @@
 # COST-PIPELINE-01 — Closeout
 
-> **STATUS:** RELEASE IN PROGRESS → uzupełnij po VERIFY  
+> **STATUS:** **RELEASE GO** · **DEPLOY PROPAGATING** (VERIFY FAST: live 2.65.65)  
 > **Data:** 2026-07-28  
-> **UI:** **2.65.66**
+> **UI:** **2.65.66** · feature **`c7b608a`**
 
 ## Co zamknięto
 
@@ -11,6 +11,7 @@
 - ATH = Evidence (L0) secondary
 - R0: `kw-cost-pipeline-01=0`
 - Testy: `test-cost-pipeline-01-wire.mjs` + TRE regresja
+- Push `origin/main` **`c7b608a`**
 
 ## Artefakty
 
@@ -26,5 +27,5 @@
 
 ## NEXT
 
-- Owner QA: Outcome PLN === Bid na tabie OfferBoq
+- Owner QA po propagacji tipu **2.65.66**: Outcome PLN === Bid na tabie OfferBoq
 - TRE-03 / PDF / eksport — tylko osobny DF + Owner GO

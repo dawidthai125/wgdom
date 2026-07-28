@@ -1,14 +1,18 @@
 # COST-PIPELINE-01 — Production Verify
 
-> Uzupełniane po `git push` + jedno `curl version.json` (VERIFY FAST).
+> **VERIFY FAST** (jedno `version.json`, bez retry).
 
 | Pole | Wartość |
 |------|---------|
 | **Oczekiwana UI** | **2.65.66** |
-| **version.json** | _(po push)_ |
-| **Deploy tip commit** | _(po push)_ |
-| **STATUS** | **PENDING VERIFY** |
+| **Feature commit** | **`c7b608a`** |
+| **version.json (po push)** | `"version":"2.65.65"` · `"commit":"8c5e776"` |
+| **STATUS** | **DEPLOY PROPAGATING** |
 
 ```text
-curl -s https://www.wgdom.fun/version.json
+curl.exe -s https://www.wgdom.fun/version.json
+→ 2.65.65 / 8c5e776  (poprzedni tip)
+RELEASE GO = PASS · PRODUCTION VERIFIED = NIE (jeszcze)
 ```
+
+**Werdykt:** **RELEASE GO** + **DEPLOY PROPAGATING**
