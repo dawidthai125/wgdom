@@ -90,7 +90,7 @@ const catalogProposal = computeTenderBidProposal({
 assert.equal(catalogProposal.pricingMode, "catalog");
 assert.notEqual(runtime.proposal.pricingMode, "catalog");
 
-// CP6 — empty item → null runtime (prefer status, nie milczący catalog)
+// CP6 — empty item → null runtime (hook BUGFIX-01: catalog fallback poza tym testem)
 const emptyRuntime = computeRuntimeBidFromOfferBoq({
   item: { id: "empty", tenderDossier: { kosztorys: null } },
   builtAt: FIXED_AT,

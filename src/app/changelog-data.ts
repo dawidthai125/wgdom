@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-28",
+    version: "2.65.67",
+    label: "COST-PIPELINE-01-BUGFIX-01 — fallback catalog gdy OfferBoq niedostępny",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy kosztorys ofertowy AI nie da ceny, Outcome wraca do wyceny katalogowej zamiast od razu pokazywać „Brak rekomendowanej ceny”.",
+      },
+      {
+        type: "improve",
+        text: "Kolejność: OfferBoq → catalog → dopiero wtedy brak ceny. Architektura L0/L1/L2 bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-28",
     version: "2.65.66",
     label: "COST-PIPELINE-01 — OfferBoq → Bid · pełny kosztorys ofertowy",
     items: [

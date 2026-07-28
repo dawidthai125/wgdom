@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.67 — COST-PIPELINE-01-BUGFIX-01 catalog fallback (2026-07-28)
+
+- **fix:** `useTenderPricingAuto` / `resolveTenderPricingAutoProposal` — OfferBoq null → catalog Bid (nie early `proposal:null`)
+- **improve:** kolejność OfferBoq → catalog → brak ceny; L0/L1/L2 / CTA / AI-COST bez zmian
+- **test:** `scripts/test-cost-pipeline-01-bugfix-01.mjs`
+- **RCA:** `docs/architecture/COST-PIPELINE-01-RCA-REGRESSION-01.md`
+
 ## 2.65.66 — COST-PIPELINE-01 OfferBoq → Bid (2026-07-28)
 
 - **improve:** `useTenderPricingAuto` — gdy flaga ON: Bid z OfferBoq (S6 `offer_boq_ai`); bez milczącego catalog fallback

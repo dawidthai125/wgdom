@@ -2,6 +2,7 @@
  * NG-02 P0-D — auto pricing po heavy parse.
  * NG11-Q5 — early pricing po partialDossierReady + recompute po metadata merge.
  * COST-PIPELINE-01 — OfferBoq (L1) → Bid (L2) jako SSOT Outcome (flaga R0).
+ * COST-PIPELINE-01-BUGFIX-01 — OfferBoq first, catalog fallback gdy OfferBoq null.
  */
 
 import { useMemo } from "react";
@@ -19,6 +20,69 @@ import {
 } from "@/lib/tender-price-overrides";
 import { computeRuntimeBidFromOfferBoq } from "@/lib/tender-offer-boq-explainability";
 import { isCostPipeline01Enabled } from "@/lib/tenders-v4-config";
+
+/** Legacy catalog Bid — REUSE path sprzed COST-PIPELINE-01 wire. */
+export function computeCatalogBidProposalForPricingAuto(opts: {
+  item: TenderPipelineItem;
+  swz?: TenderSwzAnalysis | null;
+  priceOverrides: TenderPriceOverrideEntry[];
+}): TenderBidProposal {
+  const profile = loadCompanyProfileLocal();
+  const { catalog } = resolveActiveCatalogForTender({
+    referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
+  });
+  return computeTenderBidProposal({
+    kosztorys: opts.item.tenderDossier?.kosztorys,
+    swz: opts.swz ?? opts.item.swzAnalysis ?? null,
+    fit: opts.item.tenderFit,
+    costModel: profile.costModel,
+    minProjectDays: profile.minProjectDays,
+    maxConcurrentProjects: profile.maxConcurrentProjects,
+    catalog,
+    priceOverrides: opts.priceOverrides,
+  });
+}
+
+/**
+ * COST-PIPELINE-01-BUGFIX-01 — wybór Bid:
+ * 1) OfferBoq → Bid (sukces)
+ * 2) inaczej catalog Bid
+ * 3) catalog też bez ceny → proposal null/ok:false (Outcome: Brak rekomendowanej ceny)
+ *
+ * Pure — testowalne bez React.
+ */
+export function resolveTenderPricingAutoProposal(opts: {
+  item: TenderPipelineItem;
+  swz?: TenderSwzAnalysis | null;
+  priceOverrides: TenderPriceOverrideEntry[];
+  /** Test override; domyślnie flaga tip. */
+  costPipeline01Enabled?: boolean;
+}): TenderBidProposal | null {
+  const costPipelineOn =
+    opts.costPipeline01Enabled ?? isCostPipeline01Enabled();
+
+  if (costPipelineOn) {
+    const runtime = computeRuntimeBidFromOfferBoq({
+      item: opts.item,
+      swz: opts.swz ?? null,
+    });
+    if (runtime) {
+      return runtime.proposal;
+    }
+    // BUGFIX-01: bezpieczny fallback — catalog, gdy OfferBoq niedostępny.
+    return computeCatalogBidProposalForPricingAuto({
+      item: opts.item,
+      swz: opts.swz,
+      priceOverrides: opts.priceOverrides,
+    });
+  }
+
+  return computeCatalogBidProposalForPricingAuto({
+    item: opts.item,
+    swz: opts.swz,
+    priceOverrides: opts.priceOverrides,
+  });
+}
 
 export function useTenderPricingAuto(opts: {
   item: TenderPipelineItem;
@@ -54,31 +118,12 @@ export function useTenderPricingAuto(opts: {
       return { priceOverrides: overrides, proposal: null };
     }
 
-    // COST-PIPELINE-01: OfferBoq → Bid (S6). R0 OFF → legacy catalog poniżej.
-    if (isCostPipeline01Enabled()) {
-      const runtime = computeRuntimeBidFromOfferBoq({ item, swz: swz ?? null });
-      if (runtime) {
-        return { priceOverrides: overrides, proposal: runtime.proposal };
-      }
-      // DF §2.2: OfferBoq niedostępny → preferuj status (null), nie milczący catalog.
-      return { priceOverrides: overrides, proposal: null };
-    }
-
-    const profile = loadCompanyProfileLocal();
-    const { catalog } = resolveActiveCatalogForTender({
-      referenceHourlyPln: profile.costModel.avgGrossHourlyPln,
-    });
-    const nextProposal = computeTenderBidProposal({
-      kosztorys: item.tenderDossier?.kosztorys,
-      swz: swz ?? item.swzAnalysis ?? null,
-      fit: item.tenderFit,
-      costModel: profile.costModel,
-      minProjectDays: profile.minProjectDays,
-      maxConcurrentProjects: profile.maxConcurrentProjects,
-      catalog,
+    const next = resolveTenderPricingAutoProposal({
+      item,
+      swz: swz ?? null,
       priceOverrides: overrides,
     });
-    return { priceOverrides: overrides, proposal: nextProposal };
+    return { priceOverrides: overrides, proposal: next };
   }, [
     enabled,
     partialDossierReady,
