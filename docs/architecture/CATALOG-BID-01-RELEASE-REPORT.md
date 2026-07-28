@@ -29,3 +29,11 @@ BUGFIX
 ```
 
 (odzysk qty do SSOT catalog — mniej F1 przy pustym OfferBoq)
+
+## Production Verify (FAST)
+
+| Pole | Wartość |
+|------|---------|
+| Feature commit | **`e10efa9`** |
+| Live | **2.65.67** / `36fdda5` |
+| Status | **DEPLOY PROPAGATING** |
