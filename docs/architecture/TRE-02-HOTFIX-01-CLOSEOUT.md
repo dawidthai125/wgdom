@@ -42,8 +42,8 @@ TRE-03 = NIE START
 | | |
 |--|--|
 | **UI** | **2.65.65** |
-| **Feature commit** | (uzupełnij po commit) |
-| **version.json** | (VERIFY FAST po push) |
+| **Feature commit** | **`5eef0ff`** |
+| **version.json** | VERIFY FAST po push — oczekiwane **2.65.65** / **`5eef0ff`** |
 
 ---
 

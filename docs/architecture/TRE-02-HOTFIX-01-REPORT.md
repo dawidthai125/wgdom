@@ -59,8 +59,16 @@ UX
 
 ---
 
-## 6. WERDYKT (pre-push)
+## 6. WERDYKT
 
 ```text
-IMPLEMENTATION COMPLETE (kod) · COMMIT/PUSH/PV — patrz CLOSEOUT po verify
+RELEASE GO
+IMPLEMENTATION COMPLETE
+Commit 5eef0ff · UI 2.65.65
 ```
+
+---
+
+## 7. PRODUCTION STATUS
+
+VERIFY FAST po push — jedno `curl version.json`.
