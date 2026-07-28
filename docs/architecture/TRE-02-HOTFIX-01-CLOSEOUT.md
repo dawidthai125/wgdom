@@ -15,11 +15,11 @@
 
 ```text
 ══════════════════════════════════════
-TRE-02-HOTFIX-01 — CLOSED (kod + push)
+TRE-02-HOTFIX-01 — CLOSED
 
 deriveOfferRunSnapshot terminal mapping FIXED
-UI 2.65.65 @ 5eef0ff
-PRODUCTION: DEPLOY PROPAGATING (VERIFY FAST)
+UI 2.65.65 @ 5eef0ff · tip 02bf83d
+PRODUCTION VERIFIED
 
 TRE-03 = NIE START
 ══════════════════════════════════════
@@ -41,7 +41,7 @@ TRE-03 = NIE START
 |--|--|
 | **UI** | **2.65.65** |
 | **Feature commit** | **`5eef0ff`** (tip docs **`02bf83d`**) |
-| **version.json (VERIFY FAST)** | **DEPLOY PROPAGATING** — live jeszcze **2.65.64** / **`ac6f9e4`**; oczekiwane **2.65.65** / **`5eef0ff`** (lub tip **`02bf83d`**) |
+| **version.json (VERIFY FAST)** | **PRODUCTION VERIFIED** — **2.65.65** / **`02bf83d`** (feature **`5eef0ff`**) |
 
 ---
 
