@@ -2,9 +2,10 @@
 
 > **ID:** TRE-02-RELEASE  
 > **EPIC:** TENDER RECOMMENDATION ENGINE · **Outcome First Experience**  
-> **STATUS:** **RELEASE** · VERIFY FAST poniżej  
+> **STATUS:** **RELEASE GO** · **DEPLOY PROPAGATING** (VERIFY FAST)  
 > **Data:** 2026-07-28  
 > **UI:** **2.65.64**  
+> **Feature commit:** **`a39533d`** (`a39533d0456961f674d1fa72a080a4c8d29a0639`)  
 > **DF:** [`TRE-02-DESIGN-FREEZE.md`](TRE-02-DESIGN-FREEZE.md)  
 > **AR:** [`TRE-02-ARCHITECTURE-REVIEW.md`](TRE-02-ARCHITECTURE-REVIEW.md)  
 > **Closeout:** [`TRE-02-CLOSEOUT.md`](TRE-02-CLOSEOUT.md)  
@@ -28,34 +29,26 @@ Powód: jeden thin bundle (flaga + testy + changelog + docs) · <15 plików · b
 
 ---
 
-## 3. Pliki (allowlist)
+## 3. BUILD / TEST / GIT
 
-1. `src/lib/tenders-v4-config.ts`  
-2. `scripts/test-tre-02-outcome-default.mjs`  
-3. `scripts/test-tre-01-offer-run.mjs` (asercja default ON)  
-4. `src/app/changelog-data.ts`  
-5. `CHANGELOG.md`  
-6. `docs/architecture/TRE-02-DESIGN-FREEZE.md`  
-7. `docs/architecture/TRE-02-RELEASE-REPORT.md`  
-8. `docs/architecture/TRE-02-CLOSEOUT.md`  
-9. `docs/AI/09_PRODUCTION_BASELINE.md`  
-10. `CURRENT-TASK.md`  
-
-**Bez** `TenderDetailPage` (ACR nie wymagany).
+| | |
+|--|--|
+| **BUILD** | `npm run build` — **PASS** |
+| **TEST** | `test-tre-02-outcome-default.mjs` — **6 PASS** · `test-tre-01-offer-run.mjs` — **28 PASS** |
+| **Commit** | **`a39533d`** |
+| **Push** | **`origin/main`** (`39f0c4f..a39533d`) |
+| **Allowlist** | 11 plików · **bez** TenderDetailPage |
 
 ---
 
-## 4. BUILD / TEST / GIT / PV
+## 4. PRODUCTION STATUS (VERIFY FAST — jedno odczytanie)
 
-Wypełniane w raporcie końcowym sesji IMPLEMENT (po build/push).
+```json
+{ "version": "2.65.63", "commit": "39f0c4f" }
+```
 
-| Pole | Wartość |
-|------|---------|
-| Build | patrz raport końcowy |
-| Test TRE-02 | `test-tre-02-outcome-default.mjs` |
-| Test TRE-01 regresja | `test-tre-01-offer-run.mjs` |
-| Commit feature | po push |
-| version.json | VERIFY FAST |
+→ **DEPLOY PROPAGATING** (oczekiwane **2.65.64** / **`a39533d`**)  
+**RELEASE GO** nadal OK.
 
 ---
 
@@ -67,10 +60,20 @@ UX
 
 ---
 
-## 6. REUSE
+## 6. REUSE / OUT
 
-Outcome · Offer Run · Bid · Hub recovery · Foundation spine — **bez przebudowy**.
+REUSE: Outcome · Offer Run · Bid · Hub recovery · Foundation spine.  
+OUT: explain · Decision · Offer Run V2 · Hub delete · Autonomous · FND-06 · AI-COST · Bid · parsery · sync · Edge · e-składanie · Roboty.
 
 ---
 
-**Koniec TRE-02-RELEASE-REPORT (szkielet — uzupełniony po push).**
+## 7. WERDYKT
+
+```text
+RELEASE GO + DEPLOY PROPAGATING
+IMPLEMENTATION COMPLETE (allowlist tracked · build PASS · test PASS · pushed)
+```
+
+---
+
+**Koniec TRE-02-RELEASE-REPORT.**

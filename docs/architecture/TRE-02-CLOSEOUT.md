@@ -2,9 +2,9 @@
 
 > **ID:** TRE-02-CLOSEOUT  
 > **EPIC:** TENDER RECOMMENDATION ENGINE · **Outcome First Experience**  
-> **Status końcowy:** **CLOSED** (po PV)  
+> **Status końcowy:** **CLOSED** · **RELEASE GO** · tip feature **`a39533d`** / UI **2.65.64**  
 > **Data:** 2026-07-28  
-> **UI:** **2.65.64**  
+> **Owner GO IMPLEMENT:** ✅  
 > **DF:** [`TRE-02-DESIGN-FREEZE.md`](TRE-02-DESIGN-FREEZE.md)  
 > **RELEASE:** [`TRE-02-RELEASE-REPORT.md`](TRE-02-RELEASE-REPORT.md)  
 > **Język:** polski
@@ -22,19 +22,30 @@ R0 = LS kw-tre-01-slice-a=0
 Hub = recovery
 Bid / AI-COST / sync = nienaruszone
 
-UI 2.65.64
+UI 2.65.64 @ a39533d
+PRODUCTION: DEPLOY PROPAGATING → oczekuj 2.65.64
+
 TRE-03 = NIE START — czekaj na Owner GO + DF
 ══════════════════════════════════════
 ```
 
+| Kryterium | Wynik |
+|-----------|--------|
+| DoD DF TRE-02 | **PASS** (kod + testy + push) |
+| Build / Test | **PASS** |
+| Allowlist | **PASS** · bez TenderDetailPage |
+| PV tip version.json | **DEPLOY PROPAGATING** przy CLOSE (jedno curl) |
+| TRE-03 | **BLOCKED** |
+
 ---
 
-## 2. Zakres zamknięty
+## 2. Identyfikatory
 
-- Default Outcome ON.  
-- R0 Hub-first przez LS=`0`.  
-- REUSE Outcome/Offer Run/Bid.  
-- Zero OUT (explain / Decision / Offer Run V2 / Hub delete / …).
+| Pole | Wartość |
+|------|---------|
+| **UI** | **2.65.64** |
+| **Commit** | **`a39533d`** |
+| **Prior TRE-01** | **2.65.63** / **`74ac6a0`** |
 
 ---
 
@@ -43,33 +54,32 @@ TRE-03 = NIE START — czekaj na Owner GO + DF
 | Akcja | Skutek |
 |-------|--------|
 | `localStorage.setItem('kw-tre-01-slice-a','0')` | Hub-first natychmiast |
-| `removeItem('kw-tre-01-slice-a')` | Z powrotem default tipu (Outcome ON) |
+| `removeItem('kw-tre-01-slice-a')` | Default tip = Outcome ON |
 | Hotfix `DEFAULT=false` | Tip Hub-first |
 
 ---
 
-## 4. Identyfikatory (wypełnij po push)
+## 4. Lessons Learned
 
-| Pole | Wartość |
-|------|---------|
-| **UI** | **2.65.64** |
-| **Commit** | *(po push)* |
-| **PV** | *(version.json)* |
+1. Thin flip flagi domyka Product SSOT po TRE-01 bez ACR na DetailPage.  
+2. Ta sama nazwa LS zachowuje R0 z dokumentacją TRE-01.  
+3. VERIFY FAST: tip może chwilę pokazywać poprzednią wersję — RELEASE GO ≠ PV.
 
 ---
 
-## 5. Lessons Learned
+## 5. Owner QA (zalecane po propagacji)
 
-1. Thin flip flagi = najszybsze domknięcie Product SSOT po TRE-01.  
-2. Ta sama nazwa LS zachowuje R0 kompatybilny z dokumentacją TRE-01.  
-3. Nie ruszać TenderDetailPage bez ACR — ścieżka Outcome już gotowa.
+1. Bez LS → Outcome po otwarciu przetargu.  
+2. CTA Hub → recovery.  
+3. LS=`0` → Hub-first.  
+4. `removeItem` → z powrotem Outcome.
 
 ---
 
 ## 6. Zakaz po CLOSE
 
 - **Nie** startuj TRE-03 / P3–P12 bez DF + Owner GO.  
-- **Nie** mieszaj explain / Decision w hotfix TRE-02.
+- **Nie** dodawaj explain / Decision w hotfix TRE-02.
 
 ---
 

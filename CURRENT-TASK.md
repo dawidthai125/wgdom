@@ -5,18 +5,19 @@
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ TRE-02 — Outcome First Experience — **IMPLEMENT / RELEASE**
+## ★ TRE-02 — Outcome First Experience — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **Owner GO** · UI **2.65.64** · Outcome **default ON** |
+| **Status** | **CLOSED** · **RELEASE GO** · UI **2.65.64** · **`a39533d`** · Outcome **default ON** |
 | **DF** | [`TRE-02-DESIGN-FREEZE.md`](docs/architecture/TRE-02-DESIGN-FREEZE.md) |
-| **AR** | [`TRE-02-ARCHITECTURE-REVIEW.md`](docs/architecture/TRE-02-ARCHITECTURE-REVIEW.md) |
+| **RELEASE** | [`TRE-02-RELEASE-REPORT.md`](docs/architecture/TRE-02-RELEASE-REPORT.md) |
+| **CLOSEOUT** | [`TRE-02-CLOSEOUT.md`](docs/architecture/TRE-02-CLOSEOUT.md) |
 | **IN** | `TRE_01_SLICE_A_DEFAULT=true` · R0 LS=`0` · Hub recovery · REUSE Outcome/Offer Run/Bid |
 | **OUT** | explain · Decision · Offer Run V2 · Hub delete · Autonomous · FND-06 · AI-COST/Bid/sync/Edge |
 | **Rollback** | `localStorage['kw-tre-01-slice-a']='0'` |
 | **Test** | `npx vite-node scripts/test-tre-02-outcome-default.mjs` |
-| **Next** | CLOSE po PV · TRE-03 tylko po nowym DF + Owner GO |
+| **Next** | TRE-03 tylko po nowym DF + Owner GO · Owner QA po propagacji tipu |
 
 ---
 
