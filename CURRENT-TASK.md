@@ -1,23 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-28 (**TRE-01 Slice A** · UI **2.65.63**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-28 (**TRE-01 Slice A CLOSED** · UI **2.65.63** · **`74ac6a0`**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ TRE-01 Slice A — Offer Run + Outcome MVP — **IMPLEMENT**
+## ★ TRE-01 Slice A — Offer Run + Outcome MVP — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT** · Owner **GO** · UI **2.65.63** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.63** · **`74ac6a0`** |
 | **DF** | [`TRE-01-DESIGN-FREEZE.md`](docs/architecture/TRE-01-DESIGN-FREEZE.md) |
-| **Product SSOT** | [`WGDOM-TENDER-PRODUCT-SSOT.md`](docs/architecture/WGDOM-TENDER-PRODUCT-SSOT.md) |
-| **IN** | Offer Run thin · Recommendation Result · Outcome UI · FND-01…05 spine · flaga R0 (default **OFF**) · Hub = recovery |
+| **RELEASE** | [`TRE-01-RELEASE-REPORT.md`](docs/architecture/TRE-01-RELEASE-REPORT.md) |
+| **CLOSEOUT** | [`TRE-01-CLOSEOUT.md`](docs/architecture/TRE-01-CLOSEOUT.md) |
+| **IN** | Offer Run thin · Recommendation Result · Outcome UI · FND-01…05 · flaga R0 (default **OFF**) · Hub = recovery |
 | **OUT** | rewrite AI-COST/Bid/parserów/sync/Edge · FND-06 · Hub delete · e-składanie |
-| **REUSE** | `useTenderPipelineRuntime` · Bid `recommendedBidPln` · trust odczyt · kosztorys CTA |
-| **Flaga** | `TRE_01_SLICE_A_DEFAULT=false` · LS `kw-tre-01-slice-a`=`1` włącza Outcome |
-| **Test** | `npx vite-node scripts/test-tre-01-offer-run.mjs` |
-| **Next** | Owner QA Outcome (LS=1) · kolejne TRE slice tylko po nowym DF |
+| **Flaga QA** | LS `kw-tre-01-slice-a`=`1` włącza Outcome |
+| **TRE-02** | **NIE START** — czekać na Owner GO + nowy DF |
 
 ---
 
@@ -29,7 +28,7 @@
 | **Tip git** | **`bed8dd8`** (`feat(foundation): implement FND-05 event`) |
 | **Pakiety** | FND-01 `ae1ef96` · FND-02 `c6b881a` · FND-03 `1c435fb` · FND-04 `ca5fbf7` · FND-05 `bed8dd8` |
 | **Kod** | `src/lib/wgdom-foundation/` — root export id+digest+errors+audit+events |
-| **App wiring** | **BRAK** — Przetargi / Roboty / Kadry / Kosztorysy **nie** używają jeszcze Foundation |
+| **App wiring** | **TRE-01 Offer Run** (FND-01…05) · pozostałe moduły bez Foundation · **FND-06 BLOCKED** |
 | **SSOT** | [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
 | **Next** | **FND-06 Observability = BLOCKED** — najpierw ADR lub rozszerzenie Blueprint; **zakaz IMPLEMENT** |
 | **Nie mylić z** | UI Foundation · Work Catalog Foundation Freeze |

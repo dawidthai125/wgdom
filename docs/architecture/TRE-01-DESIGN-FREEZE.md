@@ -3,14 +3,15 @@
 > **ID:** TRE-01-DESIGN-FREEZE-01  
 > **EPIC:** TENDER RECOMMENDATION ENGINE (TRE-01)  
 > **Slice:** **A — Offer Run Spine + Outcome MVP**  
-> **STATUS:** **DESIGN FREEZE · Owner GO** · IMPLEMENT Slice A **IN PROGRESS / COMPLETE** (patrz tip `09`)  
+> **STATUS:** **DESIGN FREEZE · Owner GO** · Slice A **CLOSED** · **PRODUCTION VERIFIED** (`74ac6a0` / 2.65.63)  
 > **Data:** 2026-07-28  
 > **Język:** polski  
 > **Klasa:** FEATURE / Przetargi · **#CORE-013** — zero Payroll write-path / zero zmiany semantyki cloud-sync merge / zero Edge  
 > **Nadrzędne:** [`WGDOM-TENDER-PRODUCT-SSOT.md`](WGDOM-TENDER-PRODUCT-SSOT.md) · [`WGDOM-TENDER-ARCHITECTURE-BLUEPRINT.md`](WGDOM-TENDER-ARCHITECTURE-BLUEPRINT.md) · [`TRE-01-ARCHITECTURE-REVIEW.md`](TRE-01-ARCHITECTURE-REVIEW.md)  
 > **Foundation:** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **Wycena SSOT:** [`WGDOM-AI-COST-01-SSOT.md`](WGDOM-AI-COST-01-SSOT.md) · Architecture Freeze  
-> **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)
+> **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
+> **RELEASE / CLOSE:** [`TRE-01-RELEASE-REPORT.md`](TRE-01-RELEASE-REPORT.md) · [`TRE-01-CLOSEOUT.md`](TRE-01-CLOSEOUT.md)
 
 ```text
 ════════════════════════════════════════════════════════
@@ -19,7 +20,7 @@ One Bundle = One Goal:
   + Foundation spine (FND-01…05, niewidoczna)
   + REUSE: pipeline · AI-COST · Bid · trust · docs/dossier
 Zakaz: rewrite silników · FND-06 · Hub delete · e-składanie
-IMPLEMENT odblokowany — Owner GO (2026-07-28).
+Slice A CLOSED — TRE-02 tylko po nowym DF + Owner GO.
 ════════════════════════════════════════════════════════
 ```
 
@@ -358,8 +359,8 @@ Podpis/ACK: Owner GO (TRE-01-IMPLEMENTATION-SLICE-A)
 | Pole | Wartość |
 |------|---------|
 | **Kontrakt implementacyjny Slice A** | **TEN PLIK** |
-| **IMPLEMENT** | **Owner GO** — Slice A według allowlist |
-| **Commit / push** | na polecenie Ownera (ten brief: commit + push + PV) |
+| **IMPLEMENT** | **CLOSED** — Slice A shipped · PV |
+| **Commit / push** | Feature **`74ac6a0`** · dalsze tylko docs tip / Owner GO |
 
 ---
 
