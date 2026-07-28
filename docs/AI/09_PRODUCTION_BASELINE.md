@@ -26,11 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.69** (COSTORYS-UX-01 WAVE 1) |
-| **Deploy tip commit (`main` / `version.json`)** | Feature tip po push — prior CATALOG-BID-01 **`e10efa9`** / **2.65.68** |
+| **UI version (changelog / version.json)** | **2.65.69** (COSTORYS-UX-01 WAVE 1) · **DEPLOY PROPAGATING** (live 2.65.68) |
+| **Deploy tip commit (`main` / `version.json`)** | Feature **`3e57e8d`** · live VERIFY **`765668d`** / **2.65.68** · prior CATALOG-BID-01 **`e10efa9`** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
-| **Ostatni feature (COSTORYS-UX-01 W1)** | Sticky oferta · full width · accordion · Evidence collapsed · filtr review — [`DF`](../architecture/COSTORYS-UX-01-WAVE-1-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-1-CLOSEOUT.md) · UI **2.65.69** |
+| **Ostatni feature (COSTORYS-UX-01 W1)** | Sticky oferta · full width · accordion · Evidence collapsed · filtr review — **`3e57e8d`** · [`DF`](../architecture/COSTORYS-UX-01-WAVE-1-DESIGN-FREEZE.md) · [`PV`](../architecture/COSTORYS-UX-01-WAVE-1-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/COSTORYS-UX-01-WAVE-1-CLOSEOUT.md) · UI **2.65.69** |
 | **Ostatni feature (CATALOG-BID-01)** | Materializacja `catalogQuantities` (qty > 0) przed Bid — **`e10efa9`** · [`RCA`](../architecture/CATALOG-BID-01-RCA.md) · [`DF`](../architecture/CATALOG-BID-01-DESIGN-FREEZE.md) · [`PV`](../architecture/CATALOG-BID-01-PRODUCTION-VERIFY.md) · [`CLOSEOUT`](../architecture/CATALOG-BID-01-CLOSEOUT.md) · UI **2.65.68** |
 | **Ostatni feature (COST-PIPELINE-01-BUGFIX-01)** | Catalog fallback gdy OfferBoq null — **`fdfdc05`** · [`RCA`](../architecture/COST-PIPELINE-01-RCA-REGRESSION-01.md) · [`REPORT`](../architecture/COST-PIPELINE-01-BUGFIX-01-REPORT.md) · [`PV`](../architecture/COST-PIPELINE-01-BUGFIX-01-PRODUCTION-VERIFY.md) · UI **2.65.67** |
 | **Ostatni feature (COST-PIPELINE-01)** | OfferBoq → Bid wire · CTA OfferBoq · L0/L1/L2 — **`c7b608a`** · [`DF`](../architecture/COST-PIPELINE-01-DESIGN-FREEZE.md) · UI **2.65.66** |

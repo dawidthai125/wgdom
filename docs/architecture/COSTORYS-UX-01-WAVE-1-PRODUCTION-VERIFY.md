@@ -5,10 +5,12 @@
 | Pole | Wartość |
 |------|---------|
 | **Oczekiwane UI** | **2.65.69** |
-| **Commit feature** | *(po push)* |
-| **Live `version.json`** | *(po push)* |
-| **PRODUCTION STATUS** | PENDING |
+| **Commit feature** | **`3e57e8d`** |
+| **Live `version.json`** | **2.65.68** / **`765668d`** |
+| **PRODUCTION STATUS** | **DEPLOY PROPAGATING** |
 
 ```text
-WERDYKT: uzupełnić po git push
+RELEASE GO = PASS
+PRODUCTION VERIFIED = NIE
+WERDYKT: RELEASE GO + DEPLOY PROPAGATING
 ```

@@ -14,3 +14,11 @@ UX
 ## Status
 
 BUILD PASS · TEST PASS · RELEASE GO po push
+
+## Production Verify (FAST)
+
+| Pole | Wartość |
+|------|---------|
+| Feature | **`3e57e8d`** |
+| Live | **2.65.68** / `765668d` |
+| Status | **DEPLOY PROPAGATING** |
