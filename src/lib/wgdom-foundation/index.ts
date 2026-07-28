@@ -1,5 +1,7 @@
 /**
- * Publiczny barrel Foundation — FND-01 Global Identifiers COMPLETE.
- * Digesty / events / audit = kolejne pakiety Foundation (poza FND-01).
+ * Publiczny barrel Foundation.
+ * FND-01 Global Identifiers COMPLETE · FND-02 Canonical Digest COMPLETE.
+ * Events / audit = kolejne pakiety Foundation.
  */
 export * from "./id";
+export * from "./digest";
