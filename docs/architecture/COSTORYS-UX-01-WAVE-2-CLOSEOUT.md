@@ -1,7 +1,7 @@
 # COSTORYS-UX-01 WAVE 2 — Closeout
 
-> **STATUS:** IMPLEMENT COMPLETE · tip w PV  
-> **UI:** **2.65.70**  
+> **STATUS:** IMPLEMENT COMPLETE · RELEASE GO · **DEPLOY PROPAGATING**  
+> **UI:** **2.65.70** · commit **`ef122a5`**  
 > **Data:** 2026-07-28
 
 ## Deliverables

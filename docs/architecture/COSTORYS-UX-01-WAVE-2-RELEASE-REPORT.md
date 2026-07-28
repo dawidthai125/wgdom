@@ -25,4 +25,8 @@ Powód: jeden bundle UI Kosztorysy · <15 plików implementacji · build+test PA
 UX
 ```
 
-**WERDYKT:** RELEASE GO (po push) · PRODUCTION STATUS → VERIFY FAST
+| Commit | **`ef122a5`** |
+| Push | `main` PASS |
+| Live version.json | **2.65.69** / `8aaae32` |
+
+**WERDYKT:** RELEASE GO + **DEPLOY PROPAGATING**
