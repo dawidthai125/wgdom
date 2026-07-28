@@ -1,7 +1,7 @@
 # COST-MULTI-02 — CLOSEOUT
 
 > **EPIC:** COST-MULTI-02 Aggregate Bid  
-> **STATUS:** **CLOSED (code)** · tip UI **2.65.75**  
+> **STATUS:** **CLOSED (code)** · tip UI **2.65.75** · commit **`8f4673ce`** · **DEPLOY PROPAGATING**  
 > **Data:** 2026-07-28  
 > **DF:** [`COST-MULTI-02-DESIGN-FREEZE.md`](COST-MULTI-02-DESIGN-FREEZE.md)
 
