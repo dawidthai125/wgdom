@@ -39,6 +39,22 @@ Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE z CORE.
 
 ---
 
+## Foundation Lib (wgdom-foundation) — Phase 0 COMPLETE
+
+| Pole | Wartość |
+|------|---------|
+| Status | **COMPLETE** · FND-01…05 na `origin/main` · tip git **`bed8dd8`** |
+| Kod | `src/lib/wgdom-foundation/` (id · digest · errors · audit · events) |
+| Integracja App | **NIE** — Przetargi / Roboty / Kadry / Kosztorysy **nie** używają jeszcze lib |
+| FND-06 | **BLOCKED** — Observability bez Impl Spec (ADR / Blueprint najpierw) |
+| SSOT | [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
+
+**Nie mylić z:** UI Foundation v1.0 · Work Catalog `FOUNDATION-FREEZE-v1.0.md`.
+
+**Nie:** implementacja FND-06 bez Spec · podłączanie domen bez EPIC · `git add -A` przy commitach Foundation.
+
+---
+
 ## UI Foundation · GDS · Dashboard Body
 
 | Warstwa | Status | Nie rób |

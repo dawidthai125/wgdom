@@ -65,4 +65,7 @@
 □ Nie implementuję „przy okazji” poza briefem
 □ Nie refaktoruję Shared „bo ładniej”
 □ Nie aktualizuję tipów w 10 plikach — tylko 09_PRODUCTION_BASELINE (+ linki)
+□ Foundation Lib: nie FND-06 bez ADR/Blueprint+Spec; nie FND-01…05 bez ACR;
+  nie wiruję domen (Przetargi/Roboty/Payroll) bez osobnego EPIC;
+  nie mylę z UI Foundation — SSOT: WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
 ```

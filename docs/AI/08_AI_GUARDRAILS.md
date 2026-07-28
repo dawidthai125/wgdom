@@ -52,6 +52,10 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 | 28 | **Czytać i „naprawiać” cały `App.tsx`** od zera |
 | 29 | **Zakładać Next.js / SSR** — stack to Vite + React SPA |
 | 30 | **Szybkie „temporary HACK”** w prod bez ticketu i closeout |
+| 31 | **Implementować FND-06** bez ADR / rozszerzenia Blueprint + Impl Spec + Freeze |
+| 32 | **Zmieniać FND-01…05** (`wgdom-foundation`) bez Architecture Review / ACR |
+| 33 | **Podłączać domeny** (Przetargi/Roboty/Payroll/AI-COST) do Foundation Lib bez osobnego EPIC |
+| 34 | **Mylenie** Foundation Lib z UI Foundation / Work Catalog Foundation Freeze |
 
 ---
 
@@ -66,6 +70,7 @@ Gdy wątpliwość → **STOP** → AUDIT / pytanie do Ownera.
 | `tender-ux-tokens.ts` typography | TOKEN FREEZE (wyjątek TWSL z GO) |
 | Theme SSOT Light/Dark | THEME DF |
 | Work Catalog FREEZE | foundation freeze docs |
+| `wgdom-foundation` / FND-* | [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · FND-06 BLOCKED |
 
 ---
 

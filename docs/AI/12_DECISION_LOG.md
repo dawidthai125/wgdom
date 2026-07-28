@@ -269,6 +269,20 @@
 
 ---
 
+## D-23 — Foundation Lib Phase 0 COMPLETE · FND-06 BLOCKED
+
+| | |
+|--|--|
+| **Data** | 2026-07-28 · Phase 0 **COMPLETE** @ `origin/main` tip **`bed8dd8`** |
+| **Powód** | Stabilny kontrakt techniczny (ID · Digest · Error · Audit · Event) przed Snapshot / Observability / wirowaniem domen |
+| **Decyzja** | (1) FND-01…05 w `src/lib/wgdom-foundation/` **COMPLETE** i **pushed**; (2) App / Przetargi / Roboty / Kadry / Kosztorysy **nie** importują jeszcze Foundation; (3) FND-06 Observability **BLOCKED** do ADR lub rozszerzenia Blueprint + Impl Spec + Freeze; (4) proces Spec→Review→Freeze→Impl a/b/c→Release Gate obowiązkowy |
+| **≠** | UI Foundation (D-22) · Work Catalog Foundation Freeze |
+| **OUT** | Broker / queue · Event↔Audit bridge · podłączanie domen „przy okazji” · IMPLEMENT FND-06 bez Spec |
+| **Dlaczego** | Lib jako kontrakt bez blast radius na CORE / UI |
+| **Obowiązuje** | **TAK** · SSOT [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
+
+---
+
 ## Jak dodać decyzję
 
 1. Nowy wpis D-xx z datą, powodem, alternatywami.  

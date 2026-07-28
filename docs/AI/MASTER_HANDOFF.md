@@ -1,8 +1,8 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** WGDOM-AI-COST-02-COST-02-A (**CLOSED**) · FREEZE-01 (baza AI Cost)  
+> **ID:** WGDOM-AI-COST-02-COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
-> **Data:** 2026-07-27  
+> **Data:** 2026-07-28  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
 > **Tip SSOT (numery wersji):** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 
@@ -13,6 +13,9 @@ Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
 AI-COST-02 dalsze slice = BACKLOG (Starting Point + Owner GO)
+Foundation Lib Phase 0 = COMPLETE (FND-01…05 @ origin/main bed8dd8)
+FND-06 = BLOCKED — ADR lub Blueprint extension najpierw
+App NIE używa jeszcze Foundation Lib (Przetargi/Roboty/Kadry/Kosztorysy)
 ════════════════════════════════════════════════════════
 ```
 
@@ -31,6 +34,9 @@ AI-COST-02 dalsze slice = BACKLOG (Starting Point + Owner GO)
 8. CURRENT-TASK.md
 9. FEATURE_IMPLEMENTATION_CHECKLIST.md
 10. IMPLEMENT tylko po Gate PASS + Owner GO gdy wymagane
+
+Gdy temat = Foundation Lib / FND-* / wgdom-foundation:
+  → docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
 
 Gdy temat = AI Cost / oferta / kosztorys AI:
   → docs/architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md
@@ -66,6 +72,25 @@ Gdy temat = AI Cost / oferta / kosztorys AI:
 | **GDS** | **GDS-01 CLOSED** · **MAINT-01 CLOSED** · DS-13 |
 | **CI** | Gate B/C **GREEN** · residual **CI-C-2** (P3) |
 | **Deploy FE** | `git push origin main` → Vercel (**zakaz** `vercel deploy`) |
+| **Foundation Lib Phase 0** | **COMPLETE** · tip git **`bed8dd8`** · FND-01…05 na `origin/main` · [`FOUNDATION-LIB-SSOT`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
+| **FND-06 Observability** | **BLOCKED** — brak Implementation Spec (wymagany ADR / Blueprint §9) |
+
+---
+
+## 1a. Foundation Lib — skrót (nie UI Foundation)
+
+| Pakiet | Commit | Status |
+|--------|--------|--------|
+| FND-01 Identifiers | `ae1ef96` | **COMPLETE** · pushed |
+| FND-02 Digest | `c6b881a` | **COMPLETE** · pushed |
+| FND-03 Errors | `1c435fb` | **COMPLETE** · pushed |
+| FND-04 Audit | `ca5fbf7` | **COMPLETE** · pushed |
+| FND-05 Event | `bed8dd8` | **COMPLETE** · pushed |
+
+**Kod:** `src/lib/wgdom-foundation/` · root export `id`+`digest`+`errors`+`audit`+`events`.  
+**Integracja app:** **NIE** — Przetargi / Roboty / Kadry / Kosztorysy **nie** używają jeszcze tej lib.  
+**SSOT pełny:** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md).  
+**Nie mylić z:** UI Foundation ([`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md)).
 
 ---
 
@@ -75,6 +100,7 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
+| **Foundation Lib Phase 0 (FND-01…05)** | **COMPLETE** · `ae1ef96`…`bed8dd8` @ `origin/main` · [`SSOT`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
 | **AI-COST-02 / COST-02-A** | **CLOSED** · **EPIC COMPLETE** · **PV** · controlled market w S4 · UI **2.65.62** · [`CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **AI-COST-01** (S1–S7 + STAB-01 + FREEZE-01) | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · Bid Proposal = jedyny generator oferty · [`FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`LESSONS`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md) |
 | **AP2 Analiza Przetargów 2.0** (S0–S4) | **CLOSED** (docs/jakość) — wejście do wyceny, nie zastępuje AI-COST |
@@ -119,7 +145,10 @@ Szczegóły: [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) · [`06_RELEAS
 - Nie `vercel deploy` / force push `main` / commit bez prośby Ownera.  
 - Nie startuj nowego EPIC w **STABILIZATION WINDOW** bez Owner GO.  
 - Nie przebudowuj AI-COST-01 (S1–S7 / Bid / preservacja user) bez nowego DF + GO.  
-- Nie startuj **kolejnego** thin slice **AI-COST-02** bez Owner GO + nowego DF (COST-02-A = shipped).
+- Nie startuj **kolejnego** thin slice **AI-COST-02** bez Owner GO + nowego DF (COST-02-A = shipped).  
+- Nie implementuj **FND-06** bez ADR / rozszerzenia Blueprint + Implementation Spec + Freeze.  
+- Nie podłączaj App/Przetargi/Roboty/Payroll do `wgdom-foundation` bez **osobnego EPIC**.  
+- Nie myl **Foundation Lib** z **UI Foundation** / Work Catalog Foundation Freeze.
 
 ---
 
@@ -129,6 +158,7 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 | # | EPIC | Status | Opis | Zależności | Dlaczego następny |
 |---|------|--------|------|------------|-------------------|
+| **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec — najpierw ADR lub Blueprint §9 | Phase 0 **COMPLETE** · [`FOUNDATION-LIB-SSOT`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) | Slot MIB; **zakaz IMPLEMENT** |
 | **0** | **AI-COST-02** (dalsze slice) | BACKLOG · Owner GO | Po COST-02-A: konkurencyjność / predykcja / UX kolejki — nowy DF per slice | COST-02-A **PV** · AI-COST-01 **FROZEN** · [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) | Kontynuacja wyceny; **nie** auto-start |
 | **1** | **DASHBOARD-BODY-S5** — soft rows W08/W09 | BACKLOG · P2 | Polish wierszy Pracuje dziś / Roboty w trakcie | BODY S1–S4 **COMPLETE** | Thin UI |
 | **2** | **DASHBOARD-BODY-S6** — ui-guard body asserts | BACKLOG · P2 | Asercje body GDS | Foundation · S1–S4 | Hardening regresji |

@@ -23,6 +23,7 @@
 
 Appendix (po Entry — nie zamiast Entry):
   · docs/AGENT-CONTINUITY-GUIDE.md
+  · docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md  ← Foundation Lib Phase 0 (FND-01…05 · FND-06 BLOCKED)
   · docs/AGENT-APP-MAP.md
   · docs/PAYROLL-ARCHITECTURE-SSOT.md
   · docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md

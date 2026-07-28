@@ -1,8 +1,24 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-27 (**AI-COST-02 / COST-02-A** · **CLOSED**) · tip SSOT → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-28 (**Foundation Lib Phase 0 COMPLETE** · tip git **`bed8dd8`**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
-> **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+> **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
+> **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ Foundation Lib Phase 0 (wgdom-foundation) — **COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **COMPLETE** · **pushed** `origin/main` |
+| **Tip git** | **`bed8dd8`** (`feat(foundation): implement FND-05 event`) |
+| **Pakiety** | FND-01 `ae1ef96` · FND-02 `c6b881a` · FND-03 `1c435fb` · FND-04 `ca5fbf7` · FND-05 `bed8dd8` |
+| **Kod** | `src/lib/wgdom-foundation/` — root export id+digest+errors+audit+events |
+| **App wiring** | **BRAK** — Przetargi / Roboty / Kadry / Kosztorysy **nie** używają jeszcze Foundation |
+| **SSOT** | [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
+| **Next** | **FND-06 Observability = BLOCKED** — najpierw ADR lub rozszerzenie Blueprint; **zakaz IMPLEMENT** |
+| **Nie mylić z** | UI Foundation · Work Catalog Foundation Freeze |
+
+---
 
 ## ★ AI-COST-02 / COST-02-A — Modele cenowe — **CLOSED**
 

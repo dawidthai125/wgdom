@@ -50,6 +50,10 @@
 | **TWSL** | Tender Workspace Layout (accordion) — gated/WIP |
 | **Autonomous Gate / NG-10** | Ekran przebiegu autonomicznego przed Workspace |
 | **Work Catalog** | Biblioteka Robót v3 KV |
+| **Foundation Lib / wgdom-foundation** | Lib Phase 0: ID·Digest·Error·Audit·Event (`src/lib/wgdom-foundation`) — **nie** UI Foundation |
+| **FND-01…05** | Zamknięte pakiety Foundation Lib na `origin/main` |
+| **FND-06 Observability** | Slot planu — **BLOCKED** do ADR/Blueprint Impl Spec |
+| **UI Foundation** | Chrome/GDS shell (`WGDOM-UI-FOUNDATION-01-*`) — **≠** Foundation Lib |
 | **ZI** | Załącznik / odbiór WM Tauron 2026 |
 | **STABILIZATION WINDOW** | Okres bez nowych epiców bez GO |
 | **Evidence Gate** | Warunek dowodowy przed DF/IMPL (np. ADR Sync) |

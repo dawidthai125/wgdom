@@ -141,7 +141,7 @@ TAK → Czytaj kontrakt Sync Storm / HARDENING closeouty
 ```text
 Czy zmiana = Wg* / Dashboard chrome / body widget / ui-guard?
 
-NIE → §6c
+NIE → §6b2
 TAK → DS-13: tylko Wg* (nie shadcn, nie lokalny Button)
     → Thin slice: DF allowlist · zero Primary w body (T05)
     → Nie ruszaj liczników V3 / dashboard-urgent-today w paint
@@ -149,6 +149,23 @@ TAK → DS-13: tylko Wg* (nie shadcn, nie lokalny Button)
     → TEUX Strategia ≠ global GDS (osobny tor)
     → SSOT: MASTER_HANDOFF · BODY-02-CLOSEOUT · FOUNDATION-REPORT
     → §8
+```
+
+---
+
+## 6b2. Foundation Lib (wgdom-foundation / FND-*)?
+
+```text
+Czy zmiana = src/lib/wgdom-foundation/** lub FND-0x / Observability Foundation?
+
+NIE → §6c
+TAK → Przeczytaj WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
+    → Phase 0 (FND-01…05) = COMPLETE @ origin/main — nie zmieniaj bez ACR
+    → FND-06 Observability = BLOCKED (ADR / Blueprint najpierw) — zakaz IMPLEMENT
+    → Nie podłączaj App/Przetargi/Roboty/Payroll bez osobnego EPIC
+    → Nie myl z UI Foundation (WGDOM-UI-FOUNDATION-01-*)
+    → Proces: Spec → Review → Freeze → Impl a/b/c → Release Gate → commit → push
+    → §8 (tylko po Freeze + Owner GO)
 ```
 
 ---
@@ -219,6 +236,7 @@ TAK → Koduj TYLKO w scope DF/brief
 | Tip wersji | `09_PRODUCTION_BASELINE` |
 | Stan / NEXT | `MASTER_HANDOFF` |
 | UI / GDS / Body | Foundation report · BODY-02 · D-21/D-22 |
+| Foundation Lib / FND-* | `WGDOM-FOUNDATION-LIB-PHASE-0-SSOT` |
 | AI Cost / oferta | FREEZE · SSOT · Lessons · COST-02 Starting Point |
 | Zakazy globalne | `08_AI_GUARDRAILS` · `AI_MEMORY` |
 

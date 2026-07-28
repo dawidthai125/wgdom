@@ -1,9 +1,10 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · AI-COST-01 **FROZEN** · FREEZE-01 · GUARD-02  
-> **Data:** 2026-07-27  
+> **STATUS:** **ACTIVE** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
+> **Data:** 2026-07-28  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+> **Foundation Lib:** [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE
 
 ```text
@@ -12,6 +13,8 @@ STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
 AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
 AI-COST-02 = BACKLOG (Starting Point only)
+Foundation Lib Phase 0 = COMPLETE (FND-01…05)
+FND-06 = BLOCKED · App nie używa jeszcze Foundation Lib
 ══════════════════════════════════════
 ```
 
@@ -37,6 +40,10 @@ Gdy AI Cost / oferta / kosztorys:
   → WGDOM-AI-COST-01-SSOT.md
   → WGDOM-AI-COST-01-LESSONS-LEARNED.md
   → WGDOM-AI-COST-02-STARTING-POINT.md  (tylko po Owner GO na COST-02)
+
+Gdy Foundation Lib / FND-* / wgdom-foundation:
+  → WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
+  → FND-06 = BLOCKED (ADR/Blueprint najpierw)
 ```
 
 **Hasło Ownera „kontynuuj WGDOM”** → najpierw Master Handoff + Entry + Gate, potem Continuity / rules.

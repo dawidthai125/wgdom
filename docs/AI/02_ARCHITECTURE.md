@@ -30,6 +30,22 @@ UI (Views / Panels)
   → Supabase KV store + Storage buckets
 ```
 
+### 2a. Foundation Lib (Phase 0 COMPLETE — obok domeny)
+
+```text
+Docelowo:  Moduły aplikacji → Foundation Lib → Infrastructure
+Dziś:      Moduły → Infrastructure  |  Foundation leży obok (bez wiringu domen)
+```
+
+| Fakt | Wartość |
+|------|---------|
+| Kod | `src/lib/wgdom-foundation/` — id · digest · errors · audit · events |
+| Status | Phase 0 **COMPLETE** @ `origin/main` tip **`bed8dd8`** |
+| Wiring | **BRAK** — domeny jeszcze nie importują Foundation |
+| FND-06 | Observability **BLOCKED** |
+| SSOT | [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
+| ≠ | UI Foundation (GDS chrome) · Work Catalog Foundation Freeze |
+
 ---
 
 ## 3. Supabase / Cloud / Storage

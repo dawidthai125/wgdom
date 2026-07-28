@@ -1,8 +1,8 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** COST-02-A **CLOSED** · FREEZE-01 baza  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** COST-02-A **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
-> **Data:** 2026-07-27
+> **Data:** 2026-07-28
 
 ```text
 ════════════════════════════════════════════════════════
@@ -11,12 +11,15 @@ STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
+Foundation Lib (wgdom-foundation) Phase 0 = COMPLETE (FND-01…05 @ origin/main)
+FND-06 Observability = BLOCKED (brak Impl Spec → ADR/Blueprint)
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**Foundation Lib (ID/Digest/Error/Audit/Event):** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) — **nie** mylić z UI Foundation  
 **AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md)
 
 ---
@@ -52,6 +55,7 @@ AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
 
 | Potrzeba | Dokument |
 |----------|----------|
+| Foundation Lib / FND-* | [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
 | Never break (1 strona) | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) |
 | Boundary FEATURE vs CORE | [`PAYROLL_BOUNDARY_MAP.md`](PAYROLL_BOUNDARY_MAP.md) |
 | Week / ALIGN / ROLLOVER | [`PAYROLL_WEEK_MODEL.md`](PAYROLL_WEEK_MODEL.md) |

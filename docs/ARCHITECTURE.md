@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-26 (**AI pointer**) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-07-28 (**Foundation Lib Phase 0**) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -27,6 +27,25 @@
 5. Krótkie podsumowanie po polsku
 
 Reguły projektu: `.cursor/rules/wgdom-development.mdc`
+
+---
+
+## 1a. Foundation Library (`wgdom-foundation`) — Phase 0 COMPLETE
+
+> **SSOT:** [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
+> **Nie mylić z:** UI Foundation ([`architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md)) · Work Catalog Foundation Freeze.
+
+| | |
+|--|--|
+| **Status** | **COMPLETE** · tip **`bed8dd8`** na `origin/main` |
+| **Pakiety** | FND-01 ID · FND-02 Digest · FND-03 Errors · FND-04 Audit · FND-05 Event |
+| **Kod** | `src/lib/wgdom-foundation/` — root export wszystkich pięciu |
+| **Rola** | Wspólny kontrakt techniczny (identifiers, digests, errors, audit/event records) |
+| **App** | **Nie podłączona** — Przetargi / Roboty / Kadry / Kosztorysy nadal bez importów Foundation jako ścieżki domenowej |
+| **FND-06** | Observability — **BLOCKED** (brak Implementation Spec; wymagany ADR lub Blueprint) |
+| **Docelowo** | Moduły aplikacji → Foundation → Infrastructure |
+
+**Proces zmian Foundation:** Specification → Architecture Review → Freeze → Implementation (a/b/c) → Release Gate → commit (jawny `git add`) → push (Owner GO).
 
 ---
 

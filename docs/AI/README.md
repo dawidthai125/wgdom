@@ -18,6 +18,7 @@ MASTER_HANDOFF → AI_ENTRY → PROJECT_HANDOFF → AI_MEMORY → AI_DECISION_TR
 |------|------|
 | [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) | **★★★ Stan projektu · historia skrót · NEXT EPICS** |
 | [`AI_ENTRY.md`](AI_ENTRY.md) | **★★★ JEDYNY oficjalny entry procesu** |
+| [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) | **★★ Foundation Lib Phase 0** (FND-01…05 · FND-06 BLOCKED) |
 | [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) | **★★★ Hard Gate G1–G9** |
 | [`AI_PAYROLL_SAFETY_MANUAL.md`](AI_PAYROLL_SAFETY_MANUAL.md) | Agregator packu LP |
 | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) | Checklist NIGDY |

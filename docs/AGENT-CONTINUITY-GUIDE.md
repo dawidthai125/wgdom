@@ -2,9 +2,12 @@
 
 > **★★ AI START:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).  
+> **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.  
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-07-28):** **Foundation Lib Phase 0** **COMPLETE** · FND-01…05 na `origin/main` · tip **`bed8dd8`** · docs SSOT [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 Observability BLOCKED** (brak Impl Spec) · **nie** podłączaj domen bez EPIC.
 
 > **★ Domknięcie sesji (2026-07-21):** **TEST-HARNESS-01 H5** **CLOSED** · **`3356349`** · UI **2.65.35** — Biblioteka / Work Catalog KV-only (`kw-wgdom-work-catalog`) · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · **STABILIZATION WINDOW ACTIVE** · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md).
 
