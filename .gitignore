@@ -74,6 +74,9 @@ scripts/prove-phone-undefined-runtime.mjs
 # REPO-HYGIENE-1 — artefakty audytów / tmp / smoke outputs (nie w repo)
 # Uwaga: NIE obejmuje scripts/audit-*, scripts/test-*, scripts/smoke-prod-bundle-*
 audit/
+# FND-04 — wyjątek: foundation Audit package (nie artefakty /audit/)
+!src/lib/wgdom-foundation/audit/
+!src/lib/wgdom-foundation/audit/**
 audit-pilot-docs-ssot*.txt
 test-out*.txt
 .cursor-audit-status.txt

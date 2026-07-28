@@ -1,0 +1,13 @@
+/**
+ * FND-04a — kody błędów Foundation Audit (FOUNDATION-23).
+ */
+
+export const FND_AUDIT_INVALID = "FND_AUDIT_INVALID";
+export const FND_AUDIT_PAYLOAD_INVALID = "FND_AUDIT_PAYLOAD_INVALID";
+export const FND_AUDIT_ID_INVALID = "FND_AUDIT_ID_INVALID";
+
+export const BUILTIN_AUDIT_CODES = [
+  FND_AUDIT_INVALID,
+  FND_AUDIT_PAYLOAD_INVALID,
+  FND_AUDIT_ID_INVALID,
+] as const;
