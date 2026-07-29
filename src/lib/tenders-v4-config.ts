@@ -51,3 +51,36 @@ export function isCostPipeline01Enabled(): boolean {
   }
   return COST_PIPELINE_01_DEFAULT;
 }
+
+/**
+ * COST-BID-GAP-01 / GAP-A — kalibracja direct katalogowego (stawki · UNKNOWN · market REUSE).
+ * Default OFF (baseline tip 2.65.76). R0: localStorage `kw-cost-bid-gap-01-catalog-cal` = `0`/`1`.
+ * SSOT: docs/architecture/COST-BID-GAP-01-DESIGN-FREEZE.md
+ */
+export const COST_BID_GAP_01_CATALOG_CAL_DEFAULT = false;
+
+export const COST_BID_GAP_01_CATALOG_CAL_LS_KEY = "kw-cost-bid-gap-01-catalog-cal";
+
+/** Alias nazwy z DF — ta sama flaga. */
+export const COST_BID_GAP_01_CATALOG_CAL = COST_BID_GAP_01_CATALOG_CAL_DEFAULT;
+
+let costBidGap01CatalogCalForTests: boolean | null = null;
+
+/** Test-only override (null = użyj LS / default). */
+export function forceCostBidGap01CatalogCalForTests(on: boolean | null): void {
+  costBidGap01CatalogCalForTests = on;
+}
+
+export function isCostBidGap01CatalogCalEnabled(): boolean {
+  if (costBidGap01CatalogCalForTests != null) return costBidGap01CatalogCalForTests;
+  if (typeof localStorage !== "undefined") {
+    try {
+      const raw = localStorage.getItem(COST_BID_GAP_01_CATALOG_CAL_LS_KEY);
+      if (raw === "1") return true;
+      if (raw === "0") return false;
+    } catch {
+      /* private mode */
+    }
+  }
+  return COST_BID_GAP_01_CATALOG_CAL_DEFAULT;
+}

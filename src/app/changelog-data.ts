@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-29",
+    version: "2.65.77",
+    label: "Kosztorys — kalibracja wyceny katalogowej (GAP-A)",
+    items: [
+      {
+        type: "improve",
+        text: "Lepsza klasyfikacja pozycji przedmiaru (mniej „nieznanych”) oraz kalibracja stawek katalogowych przy wycenie oferty — bez zmiany sumowania branż (Aggregate).",
+      },
+      {
+        type: "new",
+        text: "Gdy w Bibliotece Robót są ceny rynkowe (marketQuotes), wycena katalogowa może je wykorzystać jako kontrolowany benchmark. Flaga COST_BID_GAP_01_CATALOG_CAL (domyślnie wyłączona do weryfikacji).",
+      },
+    ],
+  },
+  {
+    date: "2026-07-29",
     version: "2.65.76",
     label: "Kosztorys — Uzupełnij odczyty branż (force Heavy)",
     items: [

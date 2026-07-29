@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.77 — COST-BID-GAP-01 GAP-A catalog calibration (2026-07-29)
+
+- **improve:** GAP-A — klasyfikacja UNKNOWN (keywords) + kalibracja stawek katalogowych → wyższy direct upstream Bid
+- **new:** REUSE `marketQuotes` (controlled) jako overlay materiału na ścieżce catalog · flaga `COST_BID_GAP_01_CATALOG_CAL` (default **OFF**)
+- **lib:** `cost-bid-gap-01-catalog-cal.ts` · wire `wgdom-catalog-cost-engine.ts` · test `scripts/test-cost-bid-gap-01-catalog-cal.mjs`
+- **DF:** `docs/architecture/COST-BID-GAP-01-DESIGN-FREEZE.md` · AR PASS
+- **bez zmian:** Aggregate · COST-MULTI · Discovery · parsers · `tenders-bid-calculator.ts` · costModel · Payroll · cloud-sync · AI-first
+
 ## 2.65.76 — Force Heavy Rescan CTA (2026-07-29)
 
 - **new:** CTA „Uzupełnij odczyty branż” + confirm · soft `forceHeavyRescanAt` → `heavyDone=false` · REUSE Heavy E-RUN

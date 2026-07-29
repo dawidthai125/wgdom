@@ -117,7 +117,9 @@ function priceSourceForLine(
   usedFallback: boolean | undefined,
 ): CatalogLinePriceSource {
   if (engineSource === "override") return CATALOG_LINE_PRICE_SOURCE_OVERRIDE;
-  if (engineSource === "catalog" || usedFallback) return CATALOG_LINE_PRICE_SOURCE_CATALOG;
+  if (engineSource === "market" || engineSource === "catalog" || usedFallback) {
+    return CATALOG_LINE_PRICE_SOURCE_CATALOG;
+  }
   return CATALOG_LINE_PRICE_SOURCE_BASE;
 }
 

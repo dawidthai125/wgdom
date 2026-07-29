@@ -1,6 +1,7 @@
 /**
  * P2-G.1A — silnik kosztu direct z WGDOM Cost Catalog (pozycja ATH × stawki).
  * Fundament pod rozszerzenie computeTenderBidProposal() w P2-G.1B.
+ * COST-BID-GAP-01 / GAP-A — opcjonalna kalibracja direct (flaga), bez zmiany Bid tail.
  */
 
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
@@ -19,6 +20,14 @@ import {
 } from "@/lib/wgdom-cost-catalog";
 import { classifyAthLineCategory } from "@/lib/wgdom-ath-classifier";
 import type { TenderPriceOverrideLookup } from "@/lib/tender-price-overrides";
+import { isCostBidGap01CatalogCalEnabled } from "@/lib/tenders-v4-config";
+import {
+  classifyAthLineCategoryGapA,
+  resolveGapACatalogRate,
+} from "@/lib/cost-bid-gap-01-catalog-cal";
+import type { CatalogWork } from "@/lib/work-catalog/types";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
+import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 
 export interface CatalogQuantityRow {
   description: string;
@@ -39,9 +48,11 @@ export interface CatalogRowCost {
   usedFallback?: boolean;
   materialSource?: CatalogPriceSource;
   laborSource?: CatalogPriceSource;
+  /** GAP-A — ref Work Catalog gdy użyto marketQuotes. */
+  marketWorkId?: string;
 }
 
-export type CatalogPriceSource = "base" | "catalog" | "override";
+export type CatalogPriceSource = "base" | "catalog" | "override" | "market";
 
 export interface CatalogDirectCostTotals {
   material: number;
@@ -56,6 +67,13 @@ export interface AggregateCatalogDirectCostResult {
   unknownCount: number;
   classifiedCount: number;
   rowCount: number;
+}
+
+/** Opcje GAP-A (test / wire) — works z Work Catalog; bez I/O w pure path gdy podane. */
+export interface CatalogDirectCostGapAOptions {
+  works?: CatalogWork[] | null;
+  startRegionCode?: string | null;
+  computedAtIso?: string;
 }
 
 function parseQty(s: string | undefined): number {
@@ -96,6 +114,15 @@ function resolveRateForRow(
   return { rate: fb, unit: fb.unit, usedFallback: true };
 }
 
+function tryLoadGapAWorks(): CatalogWork[] {
+  try {
+    const store = loadWorkCatalogStoreLocal();
+    return listActiveWorksForRegion(store, store.activeRegion);
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Koszt pojedynczej pozycji ATH wg katalogu WGDOM.
  */
@@ -104,21 +131,59 @@ export function computeFromCatalogRow(
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
   overrideLookup: TenderPriceOverrideLookup | null = null,
+  gapA?: CatalogDirectCostGapAOptions | null,
 ): CatalogRowCost {
   const quantity = parseQty(row.quantity);
-  // TENDER-P0.1 — ten sam aktywny katalog do keywords (klasyfikacja) i stawek.
-  const category = classifyAthLineCategory(row.description, row.unit, catalog);
-  const { rate, unit, usedFallback } = resolveRateForRow(catalog, category, row.unit);
+  const gapAOn = isCostBidGap01CatalogCalEnabled();
+
+  const category = gapAOn
+    ? classifyAthLineCategoryGapA(row.description, row.unit, catalog)
+    : classifyAthLineCategory(row.description, row.unit, catalog);
 
   const flHourly = fullyLoadedHourly(costModel);
   const laborNormFactor = costModel.laborNormIndexPct / 100;
   const materialIndexFactor = costModel.materialPriceIndexPct / 100;
 
+  let unit: WgdomCostUnit;
+  let materialPlnPerUnit: number;
+  let laborRbhPerUnit: number;
+  let usedFallback: boolean;
+  let materialSource: CatalogPriceSource;
+  let laborSource: CatalogPriceSource;
+  let marketWorkId: string | undefined;
+
+  if (gapAOn) {
+    const works = gapA?.works !== undefined ? gapA.works : tryLoadGapAWorks();
+    const resolved = resolveGapACatalogRate({
+      catalog,
+      category,
+      unitRaw: row.unit,
+      description: row.description,
+      works,
+      hourlyPln: flHourly,
+      startRegionCode: gapA?.startRegionCode ?? null,
+      computedAtIso: gapA?.computedAtIso,
+    });
+    unit = resolved.unit;
+    materialPlnPerUnit = resolved.rate.materialPlnPerUnit;
+    laborRbhPerUnit = resolved.rate.laborRbhPerUnit;
+    usedFallback = resolved.usedFallback;
+    materialSource = resolved.materialSource;
+    marketWorkId = resolved.marketWorkId;
+  } else {
+    const resolved = resolveRateForRow(catalog, category, row.unit);
+    unit = resolved.unit;
+    materialPlnPerUnit = resolved.rate.materialPlnPerUnit;
+    laborRbhPerUnit = resolved.rate.laborRbhPerUnit;
+    usedFallback = resolved.usedFallback;
+    materialSource = usedFallback ? "catalog" : "base";
+  }
+
   const overrideKey = category !== "UNKNOWN" ? `${category}:${unit}` : null;
   const matOverride = overrideKey ? overrideLookup?.material.get(overrideKey) : undefined;
   const labOverride = overrideKey ? overrideLookup?.labor.get(overrideKey) : undefined;
 
-  let laborHours = quantity * rate.laborRbhPerUnit;
+  let laborHours = quantity * laborRbhPerUnit;
   const normalizedUnit = normalizeWgdomCostUnit(row.unit);
   if (normalizedUnit === "rbh") {
     laborHours = quantity;
@@ -126,15 +191,12 @@ export function computeFromCatalogRow(
 
   let materialCost: number;
   let laborCost: number;
-  let materialSource: CatalogPriceSource;
-  let laborSource: CatalogPriceSource;
 
   if (matOverride != null) {
     materialCost = roundPln(quantity * matOverride);
     materialSource = "override";
   } else {
-    materialCost = roundPln(quantity * rate.materialPlnPerUnit * materialIndexFactor);
-    materialSource = usedFallback ? "catalog" : "base";
+    materialCost = roundPln(quantity * materialPlnPerUnit * materialIndexFactor);
   }
 
   if (labOverride != null) {
@@ -146,7 +208,6 @@ export function computeFromCatalogRow(
   }
 
   const directCost = roundPln(materialCost + laborCost);
-
   const unmatched = normalizedUnit != null && normalizedUnit !== unit && !usedFallback;
 
   return {
@@ -161,6 +222,7 @@ export function computeFromCatalogRow(
     usedFallback: usedFallback || category === "UNKNOWN" || undefined,
     materialSource,
     laborSource,
+    marketWorkId,
   };
 }
 
@@ -172,8 +234,11 @@ export function aggregateCatalogDirectCost(
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
   overrideLookup: TenderPriceOverrideLookup | null = null,
+  gapA?: CatalogDirectCostGapAOptions | null,
 ): AggregateCatalogDirectCostResult {
-  const lines = rows.map((row) => computeFromCatalogRow(row, catalog, costModel, overrideLookup));
+  const lines = rows.map((row) =>
+    computeFromCatalogRow(row, catalog, costModel, overrideLookup, gapA),
+  );
 
   let material = 0;
   let laborHours = 0;
