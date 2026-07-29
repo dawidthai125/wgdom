@@ -1,10 +1,34 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-29 (**COST-BID-GAP-01 / GAP-A CLOSED** · tip UI **2.65.77** / **`a061bbd`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-29 (**AI-COST-PARSER-01 P0-RETRY CLOSED** · tip UI **2.65.77** · feature **`e88d689f`** · deploy **`77a2f0f`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ AI-COST-PARSER-01 P0-RETRY — F2 soft-invalidate — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.77** · feature **`e88d689f`** · docs **`77a2f0f2`** |
+| **Closeout** | [`AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](docs/architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
+| **PV** | [`AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md`](docs/architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
+| **DF** | [`AI-COST-PARSER-01-P0-RETRY-DESIGN-FREEZE.md`](docs/architecture/AI-COST-PARSER-01-P0-RETRY-DESIGN-FREEZE.md) |
+| **IN** | `shouldSoftInvalidateOnF2ZipRetry` · `retryDossierParse` → `applyForceHeavyRescanAt` + `retryNonce` |
+| **OUT** | Parsery · discovery rewrite · Bid · Payroll · cloud-sync · nowa pętla Heavy · telemetria A/B/C/D |
+| **Fixture PV** | `08dee178…` — unpack OK · ATH · `kosztorys.ok` |
+| **Następne** | **AI-COST-02-B** (rekomendacja) — Owner GO → AUDIT → DF · **nie** re-open P0-RETRY bez RCA |
+
+## ★ NASTĘPNY EPIC (rekomendacja) — AI-COST-02-B
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **BACKLOG** · **nie startować** bez Owner GO |
+| **Problem** | Po GAP-A: Bid ON ~1,21M vs Owner ~1,6M nadal luka; potrzeba jakości wyceny / explain / kolejki — **obok** freeze AI-COST-01 |
+| **Dlaczego ten** | Naturalny tor po COST-02-A + GAP-A; mniejszy blast niż stack GAP-B |
+| **Start** | Owner GO → AUDIT → DF → Arch Review → IMPLEMENT |
+| **SSOT** | [`WGDOM-AI-COST-02-STARTING-POINT.md`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| **Alternatywy** | Work Catalog P3.3 · residual GAP-B/C · TP200B · HEAVY-PERSIST |
 
 ## ★ COST-BID-GAP-01 / GAP-A — Catalog calibration — **CLOSED**
 
@@ -20,17 +44,6 @@
 | **Następne** | **AI-COST-02-B** (rekomendacja) — Owner GO → AUDIT → DF · **nie** re-open GAP-A bez briefu |
 | **Handoff** | [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
 | **Kandydaci NEXT** | [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
-
-## ★ NASTĘPNY EPIC (rekomendacja) — AI-COST-02-B
-
-| Element | Wartość |
-|---------|---------|
-| **Status** | **BACKLOG** · **nie startować** bez Owner GO |
-| **Problem** | Po GAP-A: Bid ON ~1,21M vs Owner ~1,6M nadal luka; potrzeba jakości wyceny / explain / kolejki — **obok** freeze AI-COST-01 |
-| **Dlaczego ten** | Naturalny tor po COST-02-A + GAP-A; mniejszy blast niż stack GAP-B |
-| **Start** | Owner GO → AUDIT → DF → Arch Review → IMPLEMENT |
-| **SSOT** | [`WGDOM-AI-COST-02-STARTING-POINT.md`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
-| **Alternatywy** | Work Catalog P3.3 · residual GAP-B/C · TP200B · HEAVY-PERSIST |
 
 ## ★ COST-MULTI — Multi Cost → Aggregate Bid → Force Rescan — **CLOSED**
 

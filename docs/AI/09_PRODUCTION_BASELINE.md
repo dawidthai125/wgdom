@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-29 (**COST-BID-GAP-01 / GAP-A CLOSED**) · tip UI **2.65.77** · tip commit **`a061bbd`** · PV **PASS**.
+**Snapshot dokumentacji:** 2026-07-29 (**AI-COST-PARSER-01 P0-RETRY CLOSED**) · tip UI **2.65.77** · deploy tip **`77a2f0f`** · feature **`e88d689f`** · PV **PASS**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.77** (COST-BID-GAP-01 / GAP-A catalog calibration) |
-| **Deploy tip commit (`main` / `version.json`)** | **`a061bbd`** (`a061bbd0`) · **PRODUCTION VERIFIED** |
-| **COST-BID-GAP-01 (GAP-A)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · flaga `COST_BID_GAP_01_CATALOG_CAL` default **OFF** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) · UI **2.65.77** |
+| **UI version (changelog / version.json)** | **2.65.77** (bez bump UI — P0-RETRY na tipie GAP-A) |
+| **Deploy tip commit (`main` / `version.json`)** | **`77a2f0f`** (`77a2f0f2`) · docs FINAL · live `version.json` |
+| **Feature tip (AI-COST-PARSER-01 P0-RETRY)** | **`e88d689f`** · **CLOSED** · **PRODUCTION VERIFIED** · F2 soft-invalidate Ponów → Force Heavy · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
+| **COST-BID-GAP-01 (GAP-A)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · flaga `COST_BID_GAP_01_CATALOG_CAL` default **OFF** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) · feature **`a061bbd`** · UI **2.65.77** |
 | **COST-MULTI (seria)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · [`CLOSEOUT`](../architecture/COST-MULTI-CLOSEOUT.md) · [`RELEASE HISTORY`](../releases/COST-MULTI-EPIC-RELEASE-HISTORY.md) · FINAL PV [`../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md`](../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md) · UI **2.65.74–2.65.76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
@@ -64,7 +65,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.77** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **AI-COST-02-B** |
+| **Status** | **PRODUCTION** tip UI **2.65.77** · deploy **`77a2f0f`** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **AI-COST-02-B** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -85,6 +86,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.77** / deploy **`77a2f0f`** · feature **`e88d689f`** | AI-COST-PARSER-01 P0-RETRY — F2 Ponów soft-invalidate → Force Heavy | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
 | **2.65.77** / **`a061bbd`** | COST-BID-GAP-01 / GAP-A — kalibracja catalog (UNKNOWN · rates · marketQuotes REUSE) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) |
 | **2.65.76** / **`1e18374f`** | Force Heavy Rescan CTA (COST-MULTI tip) | **CLOSED** · FINAL PV · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) |
 | **2.65.64** / **`a39533d`** | TRE-02 Outcome First Experience (default ON · R0 LS=`0`) | **CLOSED** · [`CLOSEOUT`](../architecture/TRE-02-CLOSEOUT.md) |

@@ -82,6 +82,21 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## AI-COST-PARSER-01 P0-RETRY — CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.77** · feature **`e88d689f`** · deploy docs **`77a2f0f`** · PV **PASS** |
+| Slice | F2 „Ponów” przy terminalnym `zipUnpackOk=false` → REUSE `applyForceHeavyRescanAt` + `retryNonce` |
+| Wynik OPS | Fixture `08dee178` — świeży Heavy: unpack OK · ATH · `kosztorys.ok` |
+| NEXT | **AI-COST-02-B** — Owner GO → AUDIT → DF (nie kontynuacja PARSER) |
+
+**Nie:** re-open P0-RETRY bez RCA · nowa pętla Heavy · ręczne nullowanie `parsedAt` poza Force path · parser rewrite „przy Ponów”.
+
+**SSOT:** [`AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md)
+
+---
+
 ## COST-BID-GAP-01 / GAP-A — CLOSED · PRODUCTION VERIFIED
 
 | Pole | Wartość |
@@ -103,7 +118,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Pole | Wartość |
 |------|---------|
 | Status | **CLOSED** · tip UI **2.65.74–2.65.76** · FINAL PV **PASS** |
-| Łańcuch | REGRESSION-01 → 02 → PARSER-01 → MULTI-01 → MULTI-02 → RCA Force Rescan |
+| Łańcuch | REGRESSION-01 → 02 → PARSER-01 → MULTI-01 → MULTI-02 → RCA Force Rescan → **AI-COST-PARSER-01 P0-RETRY** |
 | Architektura | ONE (Discovery) · CostPackage · BranchPackage · Aggregate (Branch winners) · `resolveCostBidInput` → Bid / OfferBoq · Force Heavy Rescan |
 | Polityka | **NIE** `sum(all)` · **TAK** Branch Winners · Feature Flags rollback |
 | NEXT | COST-BID-GAP-01 **CLOSED** (GAP-A) · dalej **AI-COST-02-B** |
@@ -166,6 +181,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | **AI-COST-02 start** | [`../architecture/WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 | **COST-02-A CLOSEOUT** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **COST-02-A RELEASE** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
+| **AI-COST-PARSER-01 P0-RETRY** | [`../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
 | **COST-MULTI CLOSEOUT** | [`../architecture/COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) |
 | **Continuity UPDATE-01** | [`../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
 | **NEXT EPIC candidates** | [`../architecture/NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md) |

@@ -1,6 +1,6 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
+> **STATUS:** **ACTIVE** · AI-COST-PARSER-01 P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
 > **Data:** 2026-07-29  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
@@ -12,7 +12,8 @@
 ══════════════════════════════════════
 STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
-Tip = 2.65.77 / a061bbd (SSOT 09)
+Tip UI = 2.65.77 · Feature = e88d689f · Deploy = 77a2f0f (SSOT 09)
+AI-COST-PARSER-01 P0-RETRY = CLOSED · PRODUCTION VERIFIED
 COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
 COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
@@ -46,6 +47,7 @@ Gdy AI Cost / oferta / kosztorys:
   → WGDOM-AI-COST-01-LESSONS-LEARNED.md
   → WGDOM-AI-COST-02-STARTING-POINT.md  (tylko po Owner GO na COST-02)
   → COST-BID-GAP-01-CLOSEOUT.md + SESSION-HANDOFF-POST-COST-BID-GAP-01.md
+  → AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md  (P0-RETRY CLOSED · nie otwarty)
   → COST-MULTI-CLOSEOUT.md
   → NEXT-EPIC-CANDIDATES.md (AI-COST-02-B)
 
@@ -90,6 +92,7 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-
 
 | Obszar | Status |
 |--------|--------|
+| **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`e88d689f`** |
 | **COST-BID-GAP-01 / GAP-A** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.77** |
 | **COST-MULTI** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
@@ -115,7 +118,7 @@ Pełny snapshot + NEXT → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md). Tip → [`0
 | Smoke read-only | Mixed FEATURE+CORE |
 | Thin UI FEATURE (Boundary PASS) | Usuwanie fence / Domain Gate / second Primary |
 | Czytanie Freeze + Starting Point | **AI-COST-02 IMPLEMENT** / przebudowa S1–S7 |
-| AUDIT/DF dla **AI-COST-02-B** | Re-open **COST-MULTI** / **GAP-A** bez briefu · `sum(all)` · hardcode 1,6M |
+| AUDIT/DF dla **AI-COST-02-B** | Re-open **COST-MULTI** / **GAP-A** / **P0-RETRY** bez briefu · `sum(all)` · hardcode 1,6M |
 | Pytania / mapowanie | Re-open Foundation / BODY / AI-COST-01 freeze bez briefu |
 
 ---

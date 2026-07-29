@@ -4,12 +4,13 @@
 > **MODE:** DOCS ONLY · analiza kandydatów · **bez implementacji / commit / push**  
 > **Data:** 2026-07-29  
 > **Kontekst:** **COST-BID-GAP-01 / GAP-A CLOSED** · **PV** ([`COST-BID-GAP-01-CLOSEOUT.md`](COST-BID-GAP-01-CLOSEOUT.md)) · wcześniej **COST-MULTI CLOSED**  
-> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.77** / **`a061bbd`**  
+> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.77** · feature **`e88d689f`** · deploy **`77a2f0f`**  
 > **Handoff:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Stabilization Window:** **ACTIVE** — każdy kandydat wymaga **Owner GO** (+ AUDIT → DF przed IMPLEMENT)
 
 ```text
 ════════════════════════════════════════════════════════
+C0 AI-COST-PARSER-01 P0-RETRY = CLOSED (e88d689f · PV)
 C1 COST-BID-GAP-01 / GAP-A = CLOSED (2.65.77)
 Rekomendacja NEXT = C2 AI-COST-02-B
 NIE start IMPLEMENT. NIE wybór za Ownera.
@@ -34,6 +35,19 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 ---
 
 ## 1. Kandydaci (Top 5)
+
+### C0 — AI-COST-PARSER-01 P0-RETRY · F2 soft-invalidate — **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.77** · feature **`e88d689f`** |
+| **Zakres shipped** | Soft-invalidate F2 Ponów przy terminalnym ZIP unpack fail → Force Heavy path |
+| **Residual** | Brak — unpack na świeżym Heavy OK; osobny DF unpack **nie** potrzebny |
+| **SSOT** | [`AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md`](AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
+
+**Nie wznawiać** bez nowego RCA. **Usunięty z aktywnych kandydatów NEXT.**
+
+---
 
 ### C1 — COST-BID-GAP-01 · Domknięcie luki Aggregate → wycena Ownera — **CLOSED (GAP-A)**
 
@@ -121,7 +135,7 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 | **HARDENING B1/C/E** | Ważne ops, ale nie kontynuacja toru wyceny; Owner GO osobno |
 | **BODY-S5/S6 · GDS-02** | Thin UI / chrome — niższy wpływ biznesowy oferty |
 | **Payroll nowe** | **NONE** bez nowego GO + Safety Gate |
-| **Re-open COST-MULTI** | **ZAKAZ** bez nowego AUDIT |
+| **Re-open COST-MULTI / P0-RETRY** | **ZAKAZ** bez nowego AUDIT/RCA |
 
 ---
 
@@ -129,6 +143,7 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 
 | Kolejność | Kandydat | Dlaczego teraz |
 |-----------|----------|----------------|
+| **✓** | **C0 AI-COST-PARSER-01 P0-RETRY** | **CLOSED** `e88d689f` |
 | **✓** | **C1 COST-BID-GAP-01 / GAP-A** | **CLOSED** 2.65.77 |
 | **1** | **C2 AI-COST-02-B** | **Rekomendowany NEXT** — jakość/explain obok freeze |
 | **2** | **C3 Work Catalog P3.3** *lub* residual **GAP-B** | Dane vs stack — wybór Ownera |
@@ -152,6 +167,7 @@ Alternatywa (stabilność najpierw):
 
 | ID | Nazwa | Prio | Size | Blast | Startowalność |
 |----|-------|------|------|-------|---------------|
+| C0 | AI-COST-PARSER-01 P0-RETRY | — | — | — | **CLOSED · PV** |
 | C1 | COST-BID-GAP-01 / GAP-A | — | — | — | **CLOSED · PV** |
 | C2 | AI-COST-02-B | **P1** | M | Średni | **NEXT** · GO + DF · Freeze AI-COST-01 |
 | C3 | Work Catalog P3.3 | **P1** | M–L | Średni–wysoki | DF D-A…D-D + GO |
