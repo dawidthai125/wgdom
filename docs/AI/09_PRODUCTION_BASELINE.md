@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.79** |
-| **Deploy tip commit (`main` / `version.json`)** | **`e10a151`** (`e10a1511`) · feature P3.3 · live (docs tip po sync) |
+| **Deploy tip commit (`main` / `version.json`)** | **`5d25350`** (`5d253501`) · docs PV/CLOSEOUT/SSOT · live po sync |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
 | **Feature tip (AI-COST-02-B)** | **`9dc113e7`** · **CLOSED** · **PRODUCTION VERIFIED** · Explain + Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · UI **2.65.78** |
 | **Feature tip (AI-COST-PARSER-01 P0-RETRY)** | **`e88d689f`** · **CLOSED** · **PRODUCTION VERIFIED** · F2 soft-invalidate Ponów → Force Heavy · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) · UI **2.65.77** |

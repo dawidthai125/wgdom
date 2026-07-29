@@ -25,7 +25,7 @@ Feature tip = e10a1511 · UI 2.65.79 · PV PASS
 | **Production Verify** | **PASS** · OFF parity · ON S4–S6 · tip **2.65.79** / **`e10a151`** · [`PV`](WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · evidence `.tmp/pv-work-catalog-p33.json` |
 | **CLOSEOUT** | **CLOSED · FINAL** · [`CLOSEOUT`](WORK-CATALOG-P3.3-CLOSEOUT.md) |
 | **POST RELEASE** | **COMPLETE** · [`POST-RELEASE`](WORK-CATALOG-P3.3-POST-RELEASE.md) |
-| **SSOT SYNC** | **SYNCED** · docs tip (ten commit) · feature tip **`e10a1511`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
+| **SSOT SYNC** | **SYNCED** · docs tip **`5d253501`** · feature tip **`e10a1511`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
 | **Thin allowlista FEATURE** | **POTWIERDZONE** — 17 plików wyłącznie P3.3 (flag · coverage · CSV panel · View · hook · changelog · test · docs AUDIT→OV); **ZERO** Payroll / Bundles / cloud-sync / storage / Bid / AI-COST / Engine lib |
 | **Working tree** | Allowlista P3.3 czysta po docs tip · pełne WT repo **NIE czyste** (historyczne M/?? poza zakresem — nie w commitach P3.3) |
 
