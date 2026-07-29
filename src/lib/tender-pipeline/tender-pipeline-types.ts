@@ -43,6 +43,8 @@ export interface TenderPipelineRuntime {
   dossierParseFailed: boolean;
   parseErrorMessage: string | null;
   retryDossierParse: () => void;
+  /** COST-MULTI-02 Force Rescan — soft invalidate + REUSE Heavy (DF). */
+  forceHeavyRescan: () => void;
   retryNonce: number;
   kosztorysProcessSession: KosztorysProcessSession;
   ownerFinanceProposal: TenderBidProposal | null;

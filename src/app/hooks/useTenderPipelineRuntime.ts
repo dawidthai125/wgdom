@@ -120,6 +120,7 @@ export function useTenderPipelineRuntime(opts: {
     dossierParseFailed,
     parseErrorMessage,
     retryDossierParse: retryHeavyOnly,
+    forceHeavyRescan: forceHeavyRescanOnly,
     retryNonce,
   } = useTenderDossierHeavyLazy({
     item,
@@ -294,6 +295,11 @@ export function useTenderPipelineRuntime(opts: {
     retryHeavyOnly();
   }, [item.id, retryHeavyOnly]);
 
+  const forceHeavyRescan = useCallback(() => {
+    retryTenderPipelinePhase(item.id, "heavy");
+    forceHeavyRescanOnly();
+  }, [item.id, forceHeavyRescanOnly]);
+
   const pipelineTimingSnapshot = useMemo(
     () => buildPipelineTimingSnapshot(item.id, pipelineState),
     [item.id, pipelineState, timeline, dossierBuilding, dossierSaving, pricingReady],
@@ -307,6 +313,7 @@ export function useTenderPipelineRuntime(opts: {
     dossierParseFailed,
     parseErrorMessage,
     retryDossierParse,
+    forceHeavyRescan,
     retryNonce,
     kosztorysProcessSession,
     ownerFinanceProposal,

@@ -634,6 +634,7 @@ export function TenderDetailPage({
               processSession={pipelineRuntime.kosztorysProcessSession}
               retryNonce={pipelineRuntime.retryNonce}
               onRetryParse={pipelineRuntime.retryDossierParse}
+              onForceHeavyRescan={pipelineRuntime.forceHeavyRescan}
               trustAssessment={pipelineRuntime.trustAssessment}
               focusOfferBoq={focusOfferBoq}
               onFocusOfferBoqConsumed={() => setFocusOfferBoq(false)}

@@ -25,6 +25,7 @@ import {
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
 import { collectCostCandidateSourcesFromFilenames } from "@/lib/cost-multi-01";
+import { COST_MULTI_02_FORCE_RESCAN_CTA } from "@/lib/cost-multi-02-force-rescan";
 import { withPipelineTimingStage } from "@/lib/tender-pipeline/tender-pipeline-timing";
 import {
   getDossierArtifactCached,
@@ -182,6 +183,8 @@ export function buildEstimateMissingReason(summary: TenderDossierScanSummary): s
 /** P3-FIX-C + TP200A — ciężkie parsowanie zakończone i parser aktualny. */
 export function tenderDossierHeavyParseDone(dossier: TenderDossier | null | undefined): boolean {
   if (!dossier) return false;
+  // COST-MULTI-02 Force Rescan — soft invalidate gdy flaga ON (DF rollback: OFF = ignore orphan).
+  if (COST_MULTI_02_FORCE_RESCAN_CTA && dossier.forceHeavyRescanAt) return false;
   if (dossier.parserVersion !== CURRENT_PARSER_VERSION) return false;
   if (!dossier.kosztorys?.ok && !dossier.scanSummary?.parsedAt) return false;
   return true;

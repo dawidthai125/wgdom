@@ -12,6 +12,14 @@ import {
   tenderDossierHeavyParseDone,
 } from "@/lib/tender-dossier-pipeline";
 import {
+  applyForceHeavyRescanAt,
+  clearForceHeavyRescanAt,
+  COST_MULTI_02_FORCE_RESCAN_CTA,
+  hasMulti02BranchArtifacts,
+  hasMulti02CostSources,
+  traceForceHeavyRescan,
+} from "@/lib/cost-multi-02-force-rescan";
+import {
   buildHeavyParseDocumentFingerprint,
   buildHeavyParseDocumentSet,
   deriveUnifiedAttachmentGate,
@@ -101,6 +109,8 @@ export function useTenderDossierHeavyLazy(opts: {
   dossierParseFailed: boolean;
   parseErrorMessage: string | null;
   retryDossierParse: () => void;
+  /** COST-MULTI-02 Force Rescan — soft invalidate + retryNonce (DF). */
+  forceHeavyRescan: () => void;
   retryNonce: number;
 } {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
@@ -119,8 +129,48 @@ export function useTenderDossierHeavyLazy(opts: {
   itemRef.current = item;
   /** Generation guard — persist re-render must not invalidate in-flight work. */
   const runGenerationRef = useRef(0);
+  /**
+   * Race guard: onUpdate(force) + retryNonce++ w tym samym ticku — E-RUN może
+   * wystartować zanim React przepchnie forceHeavyRescanAt do item.prop.
+   */
+  const forceRescanAtRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const at = item.tenderDossier?.forceHeavyRescanAt;
+    if (at) forceRescanAtRef.current = at;
+    // Nie czyść ref tylko dlatego, że partial stamp usunął force z dossier —
+    // clear w success/fail E-RUN.
+  }, [item.tenderDossier?.forceHeavyRescanAt]);
 
   const retryDossierParse = useCallback(() => {
+    clearDossierInflightForItem(itemId);
+    setPartialPersistPending(false);
+    setFinalPersistPending(false);
+    setDossierSaving(false);
+    setDossierEnriching(false);
+    setDossierParseFailed(false);
+    setParseErrorMessage(null);
+    setRetryNonce((n) => n + 1);
+  }, [itemId]);
+
+  const forceHeavyRescan = useCallback(() => {
+    if (!COST_MULTI_02_FORCE_RESCAN_CTA) return;
+    const live = itemRef.current;
+    const dossier = live.tenderDossier;
+    if (!dossier) return;
+    const at = new Date().toISOString();
+    forceRescanAtRef.current = at;
+    traceForceHeavyRescan("force_heavy_rescan_start", {
+      tenderId: live.tenderId,
+      itemId: live.id,
+      forceHeavyRescanAt: at,
+      hadSources: hasMulti02CostSources(dossier),
+      hadArtifacts: hasMulti02BranchArtifacts(dossier),
+    });
+    onUpdateRef.current(
+      { tenderDossier: applyForceHeavyRescanAt(dossier, at) },
+      { persist: "local" },
+    );
     clearDossierInflightForItem(itemId);
     setPartialPersistPending(false);
     setFinalPersistPending(false);
@@ -151,6 +201,17 @@ export function useTenderDossierHeavyLazy(opts: {
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
       setFinalPersistPending(false);
       setDossierSaving(false);
+      forceRescanAtRef.current = null;
+      const d = item.tenderDossier;
+      if (d) {
+        traceForceHeavyRescan("force_heavy_rescan_done", {
+          tenderId: item.tenderId,
+          itemId: item.id,
+          ok: true,
+          sourcesN: d.scanSummary?.costCandidateSources?.length ?? 0,
+          artifactsN: d.scanSummary?.branchWinnerArtifacts?.length ?? 0,
+        });
+      }
     }
   }, [
     finalPersistPending,
@@ -158,6 +219,10 @@ export function useTenderDossierHeavyLazy(opts: {
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.kosztorys?.ok,
     item.tenderDossier?.scanSummary?.parsedAt,
+    item.tenderDossier?.forceHeavyRescanAt,
+    item.tenderId,
+    item.id,
+    item.tenderDossier,
   ]);
 
   // Docs-only fingerprint — parserVersion / builtAt MUST NOT be here (Sync Storm).
@@ -178,7 +243,11 @@ export function useTenderDossierHeavyLazy(opts: {
     if (!enabled) return;
 
     const live = itemRef.current;
-    if (tenderDossierHeavyParseDone(live.tenderDossier)) {
+    const forceActive = Boolean(
+      forceRescanAtRef.current
+      || (COST_MULTI_02_FORCE_RESCAN_CTA && live.tenderDossier?.forceHeavyRescanAt),
+    );
+    if (!forceActive && tenderDossierHeavyParseDone(live.tenderDossier)) {
       setPartialPersistPending(false);
       setFinalPersistPending(false);
       setDossierSaving(false);
@@ -207,6 +276,8 @@ export function useTenderDossierHeavyLazy(opts: {
     const snapshotSwz = snapshot.swzAnalysis ?? null;
     const snapshotDossier = snapshot.tenderDossier ?? null;
     const snapshotEstimate = snapshot.ourEstimatePln;
+    // Force: świeży Heavy bez reuse starego scanSummary (DF — wypełnić sources/artifacts).
+    const existingDossierForBuild = forceActive ? null : snapshotDossier;
 
     let cancelled = false;
     const generation = ++runGenerationRef.current;
@@ -223,7 +294,7 @@ export function useTenderDossierHeavyLazy(opts: {
           docs: snapshotDocs,
           noticeHtml: snapshotNoticeHtml,
           existingSwz: snapshotSwz,
-          existingDossier: snapshotDossier,
+          existingDossier: existingDossierForBuild,
           athPreviewEnabled,
           pipelineTimingItemId: itemId,
         });
@@ -275,8 +346,11 @@ export function useTenderDossierHeavyLazy(opts: {
                   parsedAt,
                 },
           };
+          // Clear soft-invalidate on terminal (stamp path also strips force).
+          const cleared = clearForceHeavyRescanAt(terminalDossier);
+          forceRescanAtRef.current = null;
           onUpdateRef.current(
-            { tenderDossier: terminalDossier },
+            { tenderDossier: cleared },
             { persist: "cloud" },
           );
           setFinalPersistPending(true);
@@ -290,7 +364,7 @@ export function useTenderDossierHeavyLazy(opts: {
           docs: snapshotDocs,
           noticeHtml: snapshotNoticeHtml,
           existingSwz: snapshotSwz,
-          existingDossier: snapshotDossier,
+          existingDossier: existingDossierForBuild,
           athPreviewEnabled,
           pipelineTimingItemId: itemId,
           parseSession: costBuilt.parseSession,
@@ -307,6 +381,7 @@ export function useTenderDossierHeavyLazy(opts: {
         if (finalBuilt.ourEstimatePln != null && snapshotEstimate == null) {
           finalPatch.ourEstimatePln = finalBuilt.ourEstimatePln;
         }
+        forceRescanAtRef.current = null;
         setFinalPersistPending(true);
         setDossierSaving(true);
         markPipelineTimingStage(itemId, "heavy.persist_dossier", "start", { detail: "final-cloud" });
@@ -321,6 +396,20 @@ export function useTenderDossierHeavyLazy(opts: {
           tenderId: snapshot.tenderId,
           itemId: snapshot.id,
           message,
+        });
+        // DF §4.4 — wyczyść force; CTA może wrócić gdy fields missing.
+        forceRescanAtRef.current = null;
+        const failDossier = snapshot.tenderDossier;
+        if (failDossier?.forceHeavyRescanAt) {
+          onUpdateRef.current(
+            { tenderDossier: clearForceHeavyRescanAt(failDossier) },
+            { persist: "local" },
+          );
+        }
+        traceForceHeavyRescan("force_heavy_rescan_fail", {
+          tenderId: snapshot.tenderId,
+          itemId: snapshot.id,
+          errorClass: message.slice(0, 120),
         });
       } finally {
         // Only the live generation clears inflight / building flags (avoid clobbering remount).
@@ -357,6 +446,7 @@ export function useTenderDossierHeavyLazy(opts: {
     dossierParseFailed,
     parseErrorMessage,
     retryDossierParse,
+    forceHeavyRescan,
     retryNonce,
   };
 }

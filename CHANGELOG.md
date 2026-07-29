@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.76 — Force Heavy Rescan CTA (2026-07-29)
+
+- **new:** CTA „Uzupełnij odczyty branż” + confirm · soft `forceHeavyRescanAt` → `heavyDone=false` · REUSE Heavy E-RUN
+- **improve:** po reskanie sources/artifacts → MULTI-02 AGGREGATE możliwy · flaga `COST_MULTI_02_FORCE_RESCAN_CTA`
+- **lib:** `cost-multi-02-force-rescan.ts` · test `scripts/test-cost-multi-02-force-rescan.mjs`
+- **DF:** `docs/architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-DESIGN-FREEZE.md`
+- **bez zmian:** Discovery · parsers · Aggregate merge · Bid formulas · OfferBoq · Payroll · cloud-sync.ts
+
 ## 2.65.75 — COST-MULTI-02 Aggregate Bid (2026-07-28)
 
 - **new:** `resolveCostBidInput` SSOT · modes ONE | AGGREGATE | MANUAL_HOLD · merge Branch winners → Bid/OfferBoq

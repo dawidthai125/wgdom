@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-29",
+    version: "2.65.76",
+    label: "Kosztorys — Uzupełnij odczyty branż (force Heavy)",
+    items: [
+      {
+        type: "new",
+        text: "Gdy kosztorys jest gotowy, ale brakuje odczytów branż: przycisk „Uzupełnij odczyty branż” (z potwierdzeniem) uruchamia ponowną analizę dokumentów — bez kasowania głównego pliku ONE.",
+      },
+      {
+        type: "improve",
+        text: "Po uzupełnieniu odczytów wycena Aggregate z MULTI-02 może wejść w życie na przetargach wielobranżowych. Flaga COST_MULTI_02_FORCE_RESCAN_CTA.",
+      },
+    ],
+  },
+  {
     date: "2026-07-28",
     version: "2.65.75",
     label: "COST-MULTI-02 — Aggregate Bid z branż",

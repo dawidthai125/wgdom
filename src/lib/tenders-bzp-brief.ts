@@ -354,6 +354,11 @@ export interface TenderDossier {
   estimatePln?: number | null;
   /** TP200A — wersja parsera dossier; brak = legacy snapshot sprzed PDF recovery. */
   parserVersion?: number;
+  /**
+   * COST-MULTI-02 Force Rescan — soft invalidate Heavy (DF).
+   * Gdy ustawione: tenderDossierHeavyParseDone === false; Heavy REUSE; po sukcesie czyszczone.
+   */
+  forceHeavyRescanAt?: string;
   builtAt: string;
 }
 

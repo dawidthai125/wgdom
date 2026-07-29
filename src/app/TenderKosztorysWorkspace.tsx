@@ -40,6 +40,14 @@ import {
 import { resolveCostPackageFromItem } from "@/lib/cost-multi-01";
 import { CostMultiPackageBanner } from "@/app/kosztorys/CostMultiPackageBanner";
 import {
+  FORCE_HEAVY_RESCAN_CONFIRM,
+  FORCE_HEAVY_RESCAN_CTA_LABEL,
+  shouldShowForceHeavyRescanCta,
+  traceForceHeavyRescan,
+  hasMulti02BranchArtifacts,
+  hasMulti02CostSources,
+} from "@/lib/cost-multi-02-force-rescan";
+import {
   TenderDesktopTable,
   TenderMobileRowCard,
   TenderMobileTableCards,
@@ -196,6 +204,7 @@ export function TenderKosztorysWorkspace({
   processSession,
   retryNonce = 0,
   onRetryParse,
+  onForceHeavyRescan,
   trustAssessment,
   focusOfferBoq = false,
   onFocusOfferBoqConsumed,
@@ -205,6 +214,8 @@ export function TenderKosztorysWorkspace({
   processSession?: KosztorysProcessSession;
   retryNonce?: number;
   onRetryParse?: () => void;
+  /** COST-MULTI-02 Force Rescan — CTA healthy + missing MULTI-02 fields. */
+  onForceHeavyRescan?: () => void;
   trustAssessment: TenderTrustAssessment;
   /** COST-PIPELINE-01 — po CTA Outcome scroll do OfferBoq. */
   focusOfferBoq?: boolean;
@@ -293,6 +304,56 @@ export function TenderKosztorysWorkspace({
     });
   };
 
+  const [forceRescanPending, setForceRescanPending] = useState(false);
+
+  const forceActive = Boolean(item.tenderDossier?.forceHeavyRescanAt);
+  const pipelineBusy =
+    Boolean(processSession?.dossierBuilding) || Boolean(processSession?.dossierSaving);
+  const forceRescanBusy = forceActive || (forceRescanPending && pipelineBusy);
+
+  const showForceHeavyRescanCta = shouldShowForceHeavyRescanCta({
+    item,
+    dossierBuilding: processSession?.dossierBuilding,
+    dossierSaving: processSession?.dossierSaving,
+    forceHandlerAvailable: Boolean(onForceHeavyRescan),
+  });
+
+  const showForceHeavyRescanRow =
+    showForceHeavyRescanCta || forceActive || forceRescanPending;
+
+  useEffect(() => {
+    if (!forceRescanPending) return;
+    if (forceActive || pipelineBusy) return;
+    // Heavy zakończony / przerwany — zdejmij lokalny busy.
+    setForceRescanPending(false);
+  }, [
+    forceRescanPending,
+    forceActive,
+    pipelineBusy,
+    item.tenderDossier?.builtAt,
+  ]);
+
+  const handleForceHeavyRescanClick = () => {
+    if (!onForceHeavyRescan || forceRescanBusy || forceRescanPending) return;
+    const d = item.tenderDossier;
+    traceForceHeavyRescan("force_heavy_rescan_click", {
+      tenderId: item.tenderId,
+      itemId: item.id,
+      hadSources: hasMulti02CostSources(d),
+      hadArtifacts: hasMulti02BranchArtifacts(d),
+    });
+    const ok = window.confirm(
+      `${FORCE_HEAVY_RESCAN_CONFIRM.title}\n\n${FORCE_HEAVY_RESCAN_CONFIRM.body}`,
+    );
+    if (!ok) return;
+    traceForceHeavyRescan("force_heavy_rescan_confirm", {
+      tenderId: item.tenderId,
+      itemId: item.id,
+    });
+    setForceRescanPending(true);
+    onForceHeavyRescan();
+  };
+
   useEffect(() => {
     setEvidenceOpen(defaultEvidenceExpanded(hasOfferBoqSource));
   }, [item.id, hasOfferBoqSource]);
@@ -329,6 +390,30 @@ export function TenderKosztorysWorkspace({
         onRetry={onRetryParse ? handleGuardedRetryParse : undefined}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
+      {showForceHeavyRescanRow && onForceHeavyRescan && (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          data-force-heavy-rescan-row="1"
+          data-force-heavy-busy={forceActive || forceRescanPending ? "1" : "0"}
+        >
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-xs font-semibold text-sky-900 dark:text-sky-200 hover:bg-sky-500/20 disabled:opacity-60 touch-manipulation"
+            onClick={handleForceHeavyRescanClick}
+            disabled={!showForceHeavyRescanCta || forceActive || forceRescanPending}
+            data-force-heavy-rescan="1"
+          >
+            {forceActive || forceRescanPending ? (
+              <>
+                <Loader2 size={14} className="animate-spin" aria-hidden />
+                Trwa uzupełnianie odczytów branż…
+              </>
+            ) : (
+              FORCE_HEAVY_RESCAN_CTA_LABEL
+            )}
+          </button>
+        </div>
+      )}
       {costMultiPackage && <CostMultiPackageBanner pkg={costMultiPackage} item={item} />}
 
       <TenderCostWorkspaceBridge
