@@ -87,6 +87,11 @@ export interface ControlledMarketProviderOptions {
   startRegionCode?: string | null;
   /** ISO — bez Date.now w silniku; domyślnie work.updatedAt w computeMarketAverageForWork. */
   computedAtIso?: string;
+  /**
+   * CENY-MATERIAŁÓW-01 · CM-3 — memo `computeMarketAverageForWork` w obrębie jednego builda.
+   * Bez dodatkowego I/O — tylko cache wyników synchronicznego odczytu lokalnego store.
+   */
+  marketAverageMemo?: Map<string, ReturnType<typeof computeMarketAverageForWork>>;
 }
 
 /**
@@ -110,10 +115,15 @@ export function createControlledMarketPriceProvider(
       const work = byId.get(workId);
       if (!work) return null;
 
-      const avg = computeMarketAverageForWork(work, {
-        context: startRegion ? { startRegionCode: startRegion } : undefined,
-        computedAtIso: opts.computedAtIso,
-      });
+      const memoKey = `${work.id}|${startRegion ?? ""}|${opts.computedAtIso ?? ""}`;
+      let avg = opts.marketAverageMemo?.get(memoKey);
+      if (!avg) {
+        avg = computeMarketAverageForWork(work, {
+          context: startRegion ? { startRegionCode: startRegion } : undefined,
+          computedAtIso: opts.computedAtIso,
+        });
+        opts.marketAverageMemo?.set(memoKey, avg);
+      }
       if (avg.pricePln == null || !(avg.pricePln > 0)) return null;
 
       const split =

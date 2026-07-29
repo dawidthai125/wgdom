@@ -39,6 +39,66 @@ export interface OfferBoqMappingContext {
   /** Kontekst dokumentu (np. nazwa pliku) — do rationale. */
   documentContext?: string | null;
   mappedAt?: string;
+  /**
+   * CENY-MATERIAŁÓW-01 · CM-1 — uplift aliasów (stolarka / oddymianie / SSP).
+   * Tylko za Feature Flag; OFF ⇒ scorowanie tip-parity.
+   */
+  cenyMaterialowUplift?: boolean;
+}
+
+/** Alias boosts — wyłącznie gdy `cenyMaterialowUplift` (CM-1). */
+const CM01_ALIAS_RULES: ReadonlyArray<{
+  lineRe: RegExp;
+  workRe: RegExp;
+  boost: number;
+  label: string;
+}> = [
+  {
+    lineRe: /drzwi|stolark|osciez|przeciwpozar|ei\s*\d{2,3}/,
+    workRe: /drzwi|stolark|przeciwpo|ei\d|montaz.*drzwi/,
+    boost: 28,
+    label: "stolarka/drzwi",
+  },
+  {
+    lineRe: /oddym|klap.*dym|przycisk.*oddym|system.*oddym/,
+    workRe: /oddym|dymow|klap|wentyl|oddymian/,
+    boost: 28,
+    label: "oddymianie",
+  },
+  {
+    lineRe: /czujk|ssp|sygnalizac.*pozar|centrala.*pozar|hydrant/,
+    workRe: /czujk|ssp|pozar|sygnaliz|hydrant|ppoz/,
+    boost: 24,
+    label: "SSP/ppoz",
+  },
+  {
+    lineRe: /okn|stolark.*okien|witryn/,
+    workRe: /okn|stolark|witryn|fasad/,
+    boost: 22,
+    label: "stolarka/okna",
+  },
+];
+
+function applyCm01AliasBoost(opts: {
+  hay: string;
+  work: CatalogWork;
+  score: number;
+  hitPhrases: string[];
+}): { score: number; hitPhrases: string[]; aliasHit: boolean } {
+  const workHay = foldPolishText(
+    [opts.work.namePl, opts.work.descriptionPl ?? "", ...(opts.work.keywords ?? [])].join(" "),
+  );
+  let score = opts.score;
+  const hitPhrases = [...opts.hitPhrases];
+  let aliasHit = false;
+  for (const rule of CM01_ALIAS_RULES) {
+    if (!rule.lineRe.test(opts.hay)) continue;
+    if (!rule.workRe.test(workHay)) continue;
+    score += rule.boost;
+    aliasHit = true;
+    if (hitPhrases.length < 6) hitPhrases.push(rule.label);
+  }
+  return { score, hitPhrases, aliasHit };
 }
 
 interface ScoredWork {
@@ -48,6 +108,8 @@ interface ScoredWork {
   knrHit: boolean;
   unitHit: boolean;
   categoryHit: boolean;
+  /** CM-1 alias hit (tylko przy uplift). */
+  aliasHit?: boolean;
 }
 
 function normalizeKnrKey(raw: string | null | undefined): string {
@@ -90,6 +152,7 @@ function scoreWorkAgainstLine(opts: {
   knrKey: string;
   categoryId: WgdomCostCategoryId;
   work: CatalogWork;
+  cenyMaterialowUplift?: boolean;
 }): ScoredWork {
   const { hay, unitNorm, knrKey, categoryId, work } = opts;
   let score = 0;
@@ -97,6 +160,7 @@ function scoreWorkAgainstLine(opts: {
   let knrHit = false;
   let unitHit = false;
   let categoryHit = false;
+  let aliasHit = false;
 
   if (knrKey) {
     const idKey = normalizeKnrKey(work.id);
@@ -156,7 +220,19 @@ function scoreWorkAgainstLine(opts: {
     }
   }
 
-  return { work, score, hitPhrases, knrHit, unitHit, categoryHit };
+  if (opts.cenyMaterialowUplift) {
+    const boosted = applyCm01AliasBoost({ hay, work, score, hitPhrases });
+    score = boosted.score;
+    hitPhrases.length = 0;
+    hitPhrases.push(...boosted.hitPhrases);
+    aliasHit = boosted.aliasHit;
+    // Soft unit: gdy alias specialty trafił, drobne wsparcie mimo różnicy jm (m2 vs szt).
+    if (aliasHit && unitNorm && !unitHit) {
+      score += 10;
+    }
+  }
+
+  return { work, score, hitPhrases, knrHit, unitHit, categoryHit, aliasHit };
 }
 
 function buildRationale(opts: {
@@ -261,22 +337,32 @@ export function mapOfferBoqLine(
   const categoryId = classifyAthLineCategory(line.description, line.unit, catalog);
   const categoryLabel = categoryLabelPl(categoryId, catalog);
 
+  const uplift = Boolean(ctx.cenyMaterialowUplift);
   const active = (ctx.works ?? []).filter((w) => w.active);
   const scored = active
     .map((work) =>
-      scoreWorkAgainstLine({ hay, unitNorm, knrKey, categoryId, work }),
+      scoreWorkAgainstLine({
+        hay,
+        unitNorm,
+        knrKey,
+        categoryId,
+        work,
+        cenyMaterialowUplift: uplift,
+      }),
     )
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score || a.work.id.localeCompare(b.work.id, "pl"));
 
   const top = scored.slice(0, CANDIDATE_LIMIT);
   // Primary wymaga sygnału semantycznego (KNR / frazy / kategoria+jm) — samo jm nie wystarczy.
+  // CM-1: alias specialty + score≥28 wystarczy (bez obniżania progu tip gdy OFF).
   const primary =
     top[0] &&
     (top[0].knrHit ||
       top[0].hitPhrases.some((p) => !p.startsWith("jm ")) ||
       (top[0].categoryHit && top[0].unitHit) ||
-      top[0].score >= 40)
+      top[0].score >= 40 ||
+      (uplift && top[0].aliasHit && top[0].score >= 28))
       ? top[0]
       : null;
 

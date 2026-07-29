@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-29",
+    version: "2.65.80",
+    label: "Ceny materiałów — uplift WC / marketQuotes (Phase 1)",
+    items: [
+      {
+        type: "new",
+        text: "Opcjonalnie (flaga kw-ceny-materialow-01): lepsze mapowanie stolarki/oddymiania do Biblioteki Robót, KPI udziału originów materiałów oraz podgląd braków marketQuotes. Domyślnie wyłączone.",
+      },
+      {
+        type: "improve",
+        text: "REUSE controlled_market / costSplit / P3.3 — bez zmiany kolejności providerów, bez Bid Calculator, bez Cloud Sync i bez nowych zapytań Supabase.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-29",
     version: "2.65.79",
     label: "Biblioteka Robót — Market Pricing UX (P3.3)",
     items: [

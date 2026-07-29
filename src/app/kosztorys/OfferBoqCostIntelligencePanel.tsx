@@ -25,6 +25,10 @@ import type { OfferBoqValidationRecommendation } from "@/lib/tender-offer-boq-va
 import { evaluateOfferBoqValidation } from "@/lib/tender-offer-boq-validation";
 import { buildOfferBoq02bQueue } from "@/lib/tender-offer-boq-02b-queue";
 import { isAiCost02bExplainQueueEnabled } from "@/lib/ai-cost-02-b-flag";
+import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
+import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
+import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
@@ -969,6 +973,13 @@ export function OfferBoqCostIntelligencePanel({
   );
 
   const cost02bEnabled = isAiCost02bExplainQueueEnabled();
+  const cm01Enabled = isCenyMaterialow01Enabled();
+  const quotesGaps = useMemo(() => {
+    if (!cm01Enabled || !view.available || !view.document) return null;
+    const store = loadWorkCatalogStoreLocal();
+    const works = listActiveWorksForRegion(store, store.activeRegion);
+    return computeOfferBoqQuotesGaps(view.document, works);
+  }, [cm01Enabled, view.available, view.document]);
   const cost02bQueue = useMemo(() => {
     if (!cost02bEnabled || !view.available || !view.document || !view.summary) return null;
     const conf =
@@ -1107,6 +1118,7 @@ export function OfferBoqCostIntelligencePanel({
       data-costorys-ux-wave2="true"
       data-offer-boq-density={density}
       data-ai-cost-02-b={cost02bEnabled ? "1" : undefined}
+      data-ceny-materialow-01={cm01Enabled ? "1" : undefined}
     >
       <OfferBoqStickySummaryBar
         recommendedBidDisplay={recommendedDisplay}
@@ -1119,6 +1131,32 @@ export function OfferBoqCostIntelligencePanel({
         onRetryParse={onRetryParse}
         reparseBusy={Boolean(f2Signals?.dossierBuilding || f2Signals?.dossierSaving || f2Signals?.autoRunning)}
       />
+
+      {cm01Enabled && quotesGaps && quotesGaps.missingQuotesCount > 0 ? (
+        <section
+          className="rounded-lg border border-border bg-background/70 p-3 space-y-1"
+          data-ceny-materialow-01-quotes-gaps
+        >
+          <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+            Braki cen rynkowych (marketQuotes)
+          </h3>
+          <p className={`${TEUX_FONT_META} text-muted-foreground`}>
+            {quotesGaps.missingQuotesCount} z {quotesGaps.matchedWorkCount} zmapowanych robót nie ma
+            ceny w marketQuotes — controlled_market nie trafi. Uzupełnij Quotes w Bibliotece Robót
+            (import CSV P3.3, gdy włączony).
+          </p>
+          <ul className={`${TEUX_FONT_META} text-muted-foreground space-y-0.5`} data-ceny-materialow-01-gaps-list>
+            {quotesGaps.rows.slice(0, 5).map((row) => (
+              <li key={row.workId}>
+                {row.namePl} · {row.matchedLineCount} poz.
+              </li>
+            ))}
+            {quotesGaps.rows.length > 5 ? (
+              <li>… +{quotesGaps.rows.length - 5} kolejnych</li>
+            ) : null}
+          </ul>
+        </section>
+      ) : null}
 
       {cost02bEnabled && cost02bQueue ? (
         <section

@@ -26,6 +26,8 @@ import {
   loadCompanyKnowledgeStoreLocal,
 } from "@/lib/tender-offer-boq-company-knowledge";
 import { createControlledMarketPriceProvider } from "@/lib/tender-offer-boq-controlled-price-source";
+import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
+import type { MarketAverageResult } from "@/lib/work-catalog";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 import {
@@ -767,6 +769,7 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
   const store = loadWorkCatalogStoreLocal();
   const works = listActiveWorksForRegion(store, store.activeRegion);
   const profile = loadCompanyProfileLocal();
+  const cm01 = isCenyMaterialow01Enabled();
 
   let doc = buildOfferBoqFromSnapshot({
     tenderId: opts.item.id,
@@ -777,6 +780,7 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
     works,
     mappedAt: builtAt,
     documentContext: snapshot.sourceFilename,
+    cenyMaterialowUplift: cm01,
   });
   doc = applyOfferBoqCostIntelligence(doc, {
     analyzedAt: builtAt,
@@ -784,6 +788,8 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
   });
   const knowledgeStore = loadCompanyKnowledgeStoreLocal();
   const hourly = fullyLoadedHourly(profile.costModel);
+  /** CM-3: memo wyłącznie w tym buildzie; bez dodatkowego I/O. */
+  const marketAverageMemo = cm01 ? new Map<string, MarketAverageResult>() : undefined;
   doc = applyOfferBoqPricing(doc, {
     works,
     costModel: profile.costModel,
@@ -795,6 +801,7 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
         hourlyPln: hourly,
         startRegionCode: store.activeRegion,
         computedAtIso: builtAt,
+        marketAverageMemo,
       }),
     ],
   });
