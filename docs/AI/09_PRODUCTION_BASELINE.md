@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.80** |
-| **Deploy tip commit (`main` / `version.json`)** | **`d4d0570`** (`d4d05706`) · feature tip live · docs SSOT w tym samym release window |
+| **Deploy tip commit (`main` / `version.json`)** | **`e06ec2f`** (`e06ec2fe`) · docs PV/CLOSEOUT/SSOT · live po sync |
 | **Feature tip (CENY-MATERIAŁÓW-01)** | **`d4d05706`** · **CLOSED** · **PRODUCTION VERIFIED** · mapping uplift · KPI · quotes gaps · memo · flaga `kw-ceny-materialow-01` default **OFF** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · UI **2.65.80** |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
 | **Feature tip (AI-COST-02-B)** | **`9dc113e7`** · **CLOSED** · **PRODUCTION VERIFIED** · Explain + Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · UI **2.65.78** |

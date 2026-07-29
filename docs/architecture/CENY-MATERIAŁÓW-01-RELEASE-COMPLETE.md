@@ -25,7 +25,7 @@ Feature tip = d4d05706 · UI 2.65.80 · PV PASS
 | **Production Verify** | **PASS** · tip **2.65.80** / **`d4d0570`** · bundle flag+attr+uplift+gaps · [`PV`](CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · evidence `.tmp/pv-ceny-materialow-01.json` |
 | **CLOSEOUT** | **CLOSED · FINAL** · [`CLOSEOUT`](CENY-MATERIAŁÓW-01-CLOSEOUT.md) |
 | **POST RELEASE** | **COMPLETE** · [`POST-RELEASE`](CENY-MATERIAŁÓW-01-POST-RELEASE.md) |
-| **SSOT SYNC** | **SYNCED** (ten commit docs) · feature tip **`d4d05706`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
+| **SSOT SYNC** | **SYNCED** · docs tip **`e06ec2fe`** · feature tip **`d4d05706`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
 | **Thin allowlista FEATURE** | **POTWIERDZONE** — 19 plików wyłącznie CM-01; **ZERO** Payroll / Bundles / cloud-sync / Bid / pricing-engine reorder |
 | **Working tree** | Allowlista CM-01 czysta po docs tip · pełne WT repo **NIE czyste** (historyczne M/?? poza zakresem) |
 
