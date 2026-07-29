@@ -25,7 +25,7 @@ Feature tip = 9dc113e7 · UI 2.65.78 · PV PASS
 | **Production Verify** | **PASS** · OFF parity · ON Explain+Queue · tip **2.65.78** / **`9dc113e`** · fixture `08dee178` · [`PV`](AI-COST-02-B-PRODUCTION-VERIFY.md) |
 | **CLOSEOUT** | **CLOSED · FINAL** · [`CLOSEOUT`](AI-COST-02-B-CLOSEOUT.md) |
 | **POST RELEASE** | **COMPLETE** · [`POST-RELEASE`](AI-COST-02-B-POST-RELEASE.md) |
-| **SSOT SYNC** | **SYNCED** (ten tip docs — commit po allowliście SSOT) · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
+| **SSOT SYNC** | **SYNCED** · docs tip **`5a396d25`** · feature tip **`9dc113e7`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
 | **Working tree** | Allowlista AI-COST-02-B **czysta** po docs tip · pełne WT repo **NIE czyste** (historyczne M/?? poza zakresem — nie w commitach 02-B) |
 
 ---
