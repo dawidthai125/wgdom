@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-30",
+    version: "2.65.81",
+    label: "Ceny materiałów — P1-A chodniki i nawierzchnie (WC)",
+    items: [
+      {
+        type: "new",
+        text: "Biblioteka Robót (cloud): 10 robót P1-A chodniki/nawierzchnie z product Quotes (CSV → commitMarketQuotesImport / P3.3). Bez zmian AI-COST, scoringu, Bid ani Cloud Sync CORE.",
+      },
+      {
+        type: "improve",
+        text: "Mapowanie OfferBoq: węższe namePl/keywords/descriptionPl po Owner Verification (D-P1-F / D-P1-F2) — zero known/new false matchy na próbce 18.",
+      },
+    ],
+  },
+  {
     date: "2026-07-29",
     version: "2.65.80",
     label: "Ceny materiałów — uplift WC / marketQuotes (Phase 1)",

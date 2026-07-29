@@ -82,6 +82,17 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-04 P1-A — CLOSED · FEATURE-DATA
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.81** · 10 robót WC + Quotes 10/10 · OV FINAL PASS |
+| IN | chodniki/nawierzchnie · P3.3 CSV import · D-P1-F/F2 keyword patches |
+| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy |
+| NEXT | **P1-B ogrodzenia** — Owner GO → OPS |
+
+**SSOT:** [`CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md)
+
 ## CENY-MATERIAŁÓW-01 — CLOSED · PRODUCTION VERIFIED
 
 | Pole | Wartość |
@@ -90,7 +101,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Flag | `kw-ceny-materialow-01` default **OFF** |
 | IN | CM-0 KPI · CM-1 mapping uplift · CM-2 quotes gaps · CM-3 memo (OfferBoq build) |
 | OUT | tabele/SKU/scraper · reorder providers · Bid · Cloud CORE · GAP-B/1,6M |
-| NEXT | **GAP-B / I3 / TP200B** — Owner GO → DF |
+| NEXT | CM-04 P1-A **CLOSED** · dalej **P1-B** / GAP-B / I3 / TP200B |
 
 **SSOT:** [`CENY-MATERIAŁÓW-01-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md)
 

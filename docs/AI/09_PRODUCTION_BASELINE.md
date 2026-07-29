@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-29 (**CENY-MATERIAŁÓW-01 CLOSED**) · tip UI **2.65.80** · feature **`d4d05706`** · PV **PASS**.
+**Snapshot dokumentacji:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-A CLOSED**) · tip UI **2.65.81** · feature tip _(po commit)_ · PV _(po deploy)_.
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.80** |
-| **Deploy tip commit (`main` / `version.json`)** | **`e06ec2f`** (`e06ec2fe`) · docs PV/CLOSEOUT/SSOT · live po sync |
+| **UI version (changelog / version.json)** | **2.65.81** |
+| **Deploy tip commit (`main` / `version.json`)** | _(uzupełnić po push/PV)_ |
+| **Feature tip (CENY-MATERIAŁÓW-04 P1-A)** | **CLOSED** · **FEATURE-DATA** · 10 robót chodniki/nawierzchnie + Quotes 10/10 · P3.3 import · OV FINAL PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) · UI **2.65.81** |
 | **Feature tip (CENY-MATERIAŁÓW-01)** | **`d4d05706`** · **CLOSED** · **PRODUCTION VERIFIED** · mapping uplift · KPI · quotes gaps · memo · flaga `kw-ceny-materialow-01` default **OFF** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · UI **2.65.80** |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
 | **Feature tip (AI-COST-02-B)** | **`9dc113e7`** · **CLOSED** · **PRODUCTION VERIFIED** · Explain + Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · UI **2.65.78** |
@@ -68,7 +69,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.80** · feature **`d4d05706`** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **GAP-B / I3 / TP200B** |
+| **Status** | **PRODUCTION** tip UI **2.65.81** · CENY-MATERIAŁÓW-04 **P1-A CLOSED** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **P1-B** (Owner GO) / GAP-B / I3 / TP200B |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -89,6 +90,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.81** / _(po commit)_ | CENY-MATERIAŁÓW-04 P1-A — chodniki/nawierzchnie WC + Quotes (FEATURE-DATA) | **CLOSED** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) |
 | **2.65.80** / **`d4d05706`** | CENY-MATERIAŁÓW-01 — mapping uplift WC/marketQuotes (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-01-RELEASE-COMPLETE.md) |
 | **2.65.79** / **`e10a1511`** | WORK-CATALOG-P3.3 — Market Pricing UX S4–S6 (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/WORK-CATALOG-P3.3-RELEASE-COMPLETE.md) |
 | **2.65.78** / **`9dc113e7`** | AI-COST-02-B — Explain + impact queue (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/AI-COST-02-B-RELEASE-COMPLETE.md) |

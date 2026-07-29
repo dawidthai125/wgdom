@@ -1,10 +1,21 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-29 (**CENY-MATERIAŁÓW-01 CLOSED** · tip UI **2.65.80** · feature **`d4d05706`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-A CLOSED** · tip UI **2.65.81**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CENY-MATERIAŁÓW-04 P1-A — chodniki i nawierzchnie — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · FEATURE-DATA · tip UI **2.65.81** · OV FINAL **PASS** |
+| **Closeout** | [`CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) |
+| **PV** | [`CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) |
+| **IN** | 10 robót WC · Quotes 10/10 · CSV→P3.3 · D-P1-F/F2 |
+| **OUT** | AI-COST · scoring · Bid · Cloud CORE |
+| **Następne** | **P1-B** — Owner GO → OPS · **nie** auto-start |
 
 ## ★ CENY-MATERIAŁÓW-01 — mapping uplift WC / marketQuotes — **CLOSED**
 
@@ -17,7 +28,7 @@
 | **IN** | CM-0 KPI · CM-1 mapping · CM-2 quotes gaps · CM-3 memo · flaga `kw-ceny-materialow-01` default **OFF** |
 | **OUT** | tabele/SKU/scraper · reorder · Bid · Cloud CORE · GAP-B/1,6M · Supabase Q |
 | **PV** | tip **2.65.80** / **`d4d0570`** · bundle flag+attr+uplift+gaps |
-| **Następne** | **GAP-B / I3 / TP200B** — Owner GO → DF · **nie** re-open CM-01 bez briefu |
+| **Następne** | P1-A **CLOSED** · dalej **P1-B** / GAP-B / I3 / TP200B |
 
 ## ★ WORK-CATALOG-P3.3 — Market Pricing UX — **CLOSED**
 
