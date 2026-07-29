@@ -82,6 +82,21 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## WORK-CATALOG-P3.3 — CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.79** · feature **`e10a1511`** · PV **PASS** |
+| IN | S4 CSV commit/rollback · S5 coverage Engine · S6 mobile · flaga `kw-wc-p33-market-pricing-ux` default OFF |
+| OUT | MPI · D-C companyPrice · parsers · Bid · AI-COST core · Payroll · cloud-sync · rewrite P3.1/P3.2 |
+| NEXT | **GAP-B / I3 / TP200B** — Owner GO → DF (nie kontynuacja P3.3 bez briefu) |
+
+**Nie:** re-open Phase 1 bez briefu · CTA rynek→companyPrice · MPI przy okazji.
+
+**SSOT:** [`WORK-CATALOG-P3.3-CLOSEOUT.md`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md)
+
+---
+
 ## AI-COST-02-B — CLOSED · PRODUCTION VERIFIED
 
 | Pole | Wartość |
@@ -89,7 +104,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Status | **CLOSED** · tip UI **2.65.78** · feature **`9dc113e7`** · PV **PASS** |
 | IN | Explain RO + impact Queue · flaga `kw-ai-cost-02-b-explain-queue` default OFF · UI-only |
 | OUT | I3 Competitiveness · parsers · Bid calculator · GAP-A · Payroll |
-| NEXT | **Work Catalog P3.3** — Owner GO → DF (nie kontynuacja 02-B bez briefu) |
+| NEXT | WORK-CATALOG-P3.3 **CLOSED** · dalej **GAP-B / I3 / TP200B** |
 
 **Nie:** re-open Phase 1 bez briefu · hardcode 1,6M · zmiana formuły impactScore w validation.
 

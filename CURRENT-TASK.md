@@ -1,10 +1,32 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-29 (**AI-COST-02-B CLOSED** · tip UI **2.65.78** · feature **`9dc113e7`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-29 (**WORK-CATALOG-P3.3 CLOSED** · tip UI **2.65.79** · feature **`e10a1511`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ WORK-CATALOG-P3.3 — Market Pricing UX — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.79** · feature **`e10a1511`** |
+| **Closeout** | [`WORK-CATALOG-P3.3-CLOSEOUT.md`](docs/architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) |
+| **PV** | [`WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md`](docs/architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) |
+| **DF** | [`WORK-CATALOG-P3.3-DESIGN-FREEZE.md`](docs/architecture/WORK-CATALOG-P3.3-DESIGN-FREEZE.md) |
+| **IN** | S4 CSV commit/rollback · S5 coverage Engine · S6 mobile · flaga `kw-wc-p33-market-pricing-ux` default **OFF** |
+| **OUT** | MPI · D-C companyPrice · parsers · Bid · AI-COST core · Payroll · cloud-sync |
+| **PV** | OFF parity · ON S4–S6 · tip **2.65.79** / **`e10a151`** |
+| **Następne** | **GAP-B / I3 / TP200B** (rekomendacja) — Owner GO → DF · **nie** re-open P3.3 bez briefu |
+
+## ★ NASTĘPNY EPIC (rekomendacja) — GAP-B / I3 / TP200B
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **BACKLOG** · **nie startować** bez Owner GO |
+| **Kandydaci** | residual GAP-B/C · AI-COST-02 I3 Competitiveness · TP200B · HEAVY-PERSIST |
+| **Start** | Owner GO → DF → Arch Review → IMPLEMENT |
+| **SSOT** | [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 
 ## ★ AI-COST-02-B — Explain + Queue — **CLOSED**
 
@@ -17,18 +39,7 @@
 | **IN** | Explain RO · impact Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** |
 | **OUT** | I3 Competitiveness · parsers · Bid calculator · GAP-A · Payroll |
 | **Fixture PV** | `08dee178…` — OFF parity · ON Explain+Queue |
-| **Następne** | **Work Catalog P3.3** (rekomendacja) — Owner GO → DF · **nie** re-open 02-B bez briefu |
-
-## ★ NASTĘPNY EPIC (rekomendacja) — Work Catalog P3.3
-
-| Element | Wartość |
-|---------|---------|
-| **Status** | **BACKLOG** · **nie startować** bez Owner GO |
-| **Problem** | Market Pricing UX w Bibliotece Robót — zasilanie cen rynkowych / zaufanie w ofercie |
-| **Dlaczego ten** | Po 02-B: dane rynkowe → lepsza wycena długoterminowo |
-| **Start** | Owner GO → DF D-A…D-D → Arch Review → IMPLEMENT |
-| **SSOT** | [`docs/work-catalog/`](docs/work-catalog/) · [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
-| **Alternatywy** | residual GAP-B/C · AI-COST-02 I3 · TP200B · HEAVY-PERSIST |
+| **Następne** | WORK-CATALOG-P3.3 **CLOSED** · dalej GAP-B / I3 / TP200B · **nie** re-open 02-B bez briefu |
 
 ## ★ AI-COST-PARSER-01 P0-RETRY — F2 soft-invalidate — **CLOSED**
 

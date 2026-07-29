@@ -4,7 +4,7 @@
 > **MODE:** DOCS ONLY · analiza kandydatów · **bez implementacji / commit / push**  
 > **Data:** 2026-07-29  
 > **Kontekst:** **COST-BID-GAP-01 / GAP-A CLOSED** · **PV** ([`COST-BID-GAP-01-CLOSEOUT.md`](COST-BID-GAP-01-CLOSEOUT.md)) · wcześniej **COST-MULTI CLOSED**  
-> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.78** · feature **`9dc113e7`**  
+> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.79** · feature **`e10a1511`**  
 > **Handoff:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Stabilization Window:** **ACTIVE** — każdy kandydat wymaga **Owner GO** (+ AUDIT → DF przed IMPLEMENT)
 
@@ -13,7 +13,8 @@
 C0 AI-COST-PARSER-01 P0-RETRY = CLOSED (e88d689f · PV)
 C1 COST-BID-GAP-01 / GAP-A = CLOSED (2.65.77)
 C2 AI-COST-02-B = CLOSED (9dc113e7 · 2.65.78 · PV)
-Rekomendacja NEXT = C3 Work Catalog P3.3
+C3 WORK-CATALOG-P3.3 = CLOSED (e10a1511 · 2.65.79 · PV)
+Rekomendacja NEXT = GAP-B / I3 / TP200B (Owner wybór)
 NIE start IMPLEMENT. NIE wybór za Ownera.
 ════════════════════════════════════════════════════════
 ```
@@ -76,19 +77,16 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 
 ---
 
-### C3 — WORK-CATALOG-P3.3 · Market Pricing UX — **NEXT**
+### C3 — WORK-CATALOG-P3.3 · Market Pricing UX — **CLOSED**
 
 | Pole | Wartość |
 |------|---------|
-| **Priorytet** | **P1** |
-| **Zakres** | **M–L** |
-| **Problem** | Silnik market average / import (P3.1–P3.2) istnieje; brak domkniętego UX Biblioteki Robót do stosowania i zaufania cen rynkowych w ofercie. |
-| **Wpływ na użytkowników** | Lepsze ceny wejściowe do AI Cost / Bid → mniejsza luka vs Owner; trwała baza wiedzy firmy. |
-| **Zależności** | Design freeze D-A…D-D **pending** · Work Catalog P3.1/P3.2 CLOSED · COST-02-A czyta `marketQuotes` |
-| **Ryzyko** | Średnie–wysokie (UI + persist katalogu); nie mieszać z Payroll. NG-05 MPI nadal **BLOCKED** (legal) — nie zastępować. |
-| **SSOT** | [`docs/work-catalog/`](../work-catalog/) · ROADMAP Planned |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.79** · feature **`e10a1511`** |
+| **Zakres shipped** | S4 CSV commit/rollback · S5 coverage Engine · S6 mobile · flaga `kw-wc-p33-market-pricing-ux` default OFF |
+| **Residual** | D-C rynek→companyPrice = osobny DF · MPI nadal BLOCKED |
+| **SSOT** | [`WORK-CATALOG-P3.3-CLOSEOUT.md`](WORK-CATALOG-P3.3-CLOSEOUT.md) · [`WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md`](WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) |
 
-**Uzasadnienie P1:** zasila C1/C2 danymi; wpływ długoterminowy na wszystkie przetargi.
+**Nie wznawiać Phase 1** bez nowego Owner briefu.
 
 ---
 
@@ -144,20 +142,20 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 | **✓** | **C0 AI-COST-PARSER-01 P0-RETRY** | **CLOSED** `e88d689f` |
 | **✓** | **C1 COST-BID-GAP-01 / GAP-A** | **CLOSED** 2.65.77 |
 | **✓** | **C2 AI-COST-02-B** | **CLOSED** 2.65.78 / `9dc113e7` |
-| **1** | **C3 Work Catalog P3.3** | **Rekomendowany NEXT** — market UX / dane |
-| **2** | residual **GAP-B** *lub* **I3 Competitiveness** | stack vs explain market — wybór Ownera |
-| **3** | **C4 TP200B** | Jakość pozycji → lepszy Aggregate |
-| **4** | **C5 HEAVY-PERSIST-01** | Hardening operacyjny |
+| **✓** | **C3 WORK-CATALOG-P3.3** | **CLOSED** 2.65.79 / `e10a1511` |
+| **1** | residual **GAP-B** *lub* **I3 Competitiveness** | stack vs explain market — wybór Ownera |
+| **2** | **C4 TP200B** | Jakość pozycji → lepszy Aggregate |
+| **3** | **C5 HEAVY-PERSIST-01** | Hardening operacyjny |
 
 ```text
 Rekomendacja domyślna (biznes):
-  C3 → (GAP-B ‖ I3) → C4 → C5
+  (GAP-B ‖ I3) → C4 → C5
 
-Alternatywa (stack najpierw):
-  GAP-B → C3 → C4 → C5
+Alternatywa (jakość pozycji):
+  C4 → GAP-B → C5
 
 Alternatywa (stabilność najpierw):
-  C5 (S) → C3 → …
+  C5 (S) → …
 ```
 
 ---
@@ -169,7 +167,7 @@ Alternatywa (stabilność najpierw):
 | C0 | AI-COST-PARSER-01 P0-RETRY | — | — | — | **CLOSED · PV** |
 | C1 | COST-BID-GAP-01 / GAP-A | — | — | — | **CLOSED · PV** |
 | C2 | AI-COST-02-B | — | — | — | **CLOSED · PV** · 2.65.78 |
-| C3 | Work Catalog P3.3 | **P1** | M–L | Średni–wysoki | **NEXT** · DF D-A…D-D + GO |
+| C3 | WORK-CATALOG-P3.3 | — | — | — | **CLOSED · PV** · 2.65.79 |
 | C4 | TP200B fidelity | **P1/P2** | M | Wysoki (parsery) | Wąski DF + GO |
 | C5 | HEAVY-PERSIST-01 | **P2** | S–M | Sync/coalesce | AUDIT + GO |
 
@@ -185,6 +183,6 @@ Alternatywa (stabilność najpierw):
 
 ---
 
-**DOCS ONLY COMPLETE** · rekomendacja **Work Catalog P3.3** · czekam na wybór Ownera.
+**DOCS ONLY COMPLETE** · C3 P3.3 **CLOSED** · rekomendacja **GAP-B / I3 / TP200B** · czekam na wybór Ownera.
 
 **Handoff (nowe sesje AI):** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md) · Master [`../AI/MASTER_HANDOFF.md`](../AI/MASTER_HANDOFF.md).
