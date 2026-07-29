@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.81** |
-| **Deploy tip commit (`main` / `version.json`)** | **`dc0daea`** (`dc0daea0`) · feature P1-A + SSOT |
+| **Deploy tip commit (`main` / `version.json`)** | **`d0bec33`** (`d0bec336`) · docs PV/CLOSEOUT/SSOT · live po sync |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1-A)** | **`dc0daea0`** · **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · 10 robót chodniki/nawierzchnie + Quotes 10/10 · P3.3 import · OV FINAL PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) · UI **2.65.81** |
 | **Feature tip (CENY-MATERIAŁÓW-01)** | **`d4d05706`** · **CLOSED** · **PRODUCTION VERIFIED** · mapping uplift · KPI · quotes gaps · memo · flaga `kw-ceny-materialow-01` default **OFF** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · UI **2.65.80** |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
