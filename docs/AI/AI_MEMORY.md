@@ -82,6 +82,21 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## AI-COST-02-B — CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.78** · feature **`9dc113e7`** · PV **PASS** |
+| IN | Explain RO + impact Queue · flaga `kw-ai-cost-02-b-explain-queue` default OFF · UI-only |
+| OUT | I3 Competitiveness · parsers · Bid calculator · GAP-A · Payroll |
+| NEXT | **Work Catalog P3.3** — Owner GO → DF (nie kontynuacja 02-B bez briefu) |
+
+**Nie:** re-open Phase 1 bez briefu · hardcode 1,6M · zmiana formuły impactScore w validation.
+
+**SSOT:** [`AI-COST-02-B-CLOSEOUT.md`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`AI-COST-02-B-PRODUCTION-VERIFY.md`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md)
+
+---
+
 ## AI-COST-PARSER-01 P0-RETRY — CLOSED · PRODUCTION VERIFIED
 
 | Pole | Wartość |
@@ -89,7 +104,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Status | **CLOSED** · tip UI **2.65.77** · feature **`e88d689f`** · deploy docs **`77a2f0f`** · PV **PASS** |
 | Slice | F2 „Ponów” przy terminalnym `zipUnpackOk=false` → REUSE `applyForceHeavyRescanAt` + `retryNonce` |
 | Wynik OPS | Fixture `08dee178` — świeży Heavy: unpack OK · ATH · `kosztorys.ok` |
-| NEXT | **AI-COST-02-B** — Owner GO → AUDIT → DF (nie kontynuacja PARSER) |
+| NEXT | **Work Catalog P3.3** (po 02-B CLOSED) — Owner GO → DF |
 
 **Nie:** re-open P0-RETRY bez RCA · nowa pętla Heavy · ręczne nullowanie `parsedAt` poza Force path · parser rewrite „przy Ponów”.
 
@@ -104,7 +119,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Status | **CLOSED** · tip **2.65.77** / **`a061bbd`** · PV **PASS** |
 | Slice | GAP-A: catalog rates · UNKNOWN classifier · marketQuotes REUSE · flaga default **OFF** |
 | Residual | Bid ON ~1,21M vs Owner ~1,6M — **nie** hardcodować; GAP-B/C tylko po DF |
-| NEXT | **AI-COST-02-B** — Owner GO → AUDIT → DF |
+| NEXT | **Work Catalog P3.3** — Owner GO → DF |
 | Handoff | [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
 
 **Nie:** re-open GAP-A bez briefu · drugi kalkulator Bid · Discovery/parsers przy kalibracji.
@@ -121,7 +136,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Łańcuch | REGRESSION-01 → 02 → PARSER-01 → MULTI-01 → MULTI-02 → RCA Force Rescan → **AI-COST-PARSER-01 P0-RETRY** |
 | Architektura | ONE (Discovery) · CostPackage · BranchPackage · Aggregate (Branch winners) · `resolveCostBidInput` → Bid / OfferBoq · Force Heavy Rescan |
 | Polityka | **NIE** `sum(all)` · **TAK** Branch Winners · Feature Flags rollback |
-| NEXT | COST-BID-GAP-01 **CLOSED** (GAP-A) · dalej **AI-COST-02-B** |
+| NEXT | COST-BID-GAP-01 **CLOSED** (GAP-A) · AI-COST-02-B **CLOSED** · dalej **Work Catalog P3.3** |
 | Continuity | [`AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
 
 **Nie:** re-open COST-MULTI bez nowego RCA · Discovery rewrite „dla Aggregate” · bump `parserVersion` jako force · drugi kalkulator Bid · Payroll/`cloud-sync.ts` przy wycenie.
@@ -181,6 +196,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | **AI-COST-02 start** | [`../architecture/WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 | **COST-02-A CLOSEOUT** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **COST-02-A RELEASE** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
+| **AI-COST-02-B** | [`../architecture/AI-COST-02-B-CLOSEOUT.md`](../architecture/AI-COST-02-B-CLOSEOUT.md) |
 | **AI-COST-PARSER-01 P0-RETRY** | [`../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
 | **COST-MULTI CLOSEOUT** | [`../architecture/COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) |
 | **Continuity UPDATE-01** | [`../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |

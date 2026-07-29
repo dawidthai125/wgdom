@@ -1,6 +1,6 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · AI-COST-PARSER-01 P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
+> **STATUS:** **ACTIVE** · AI-COST-02-B **CLOSED · PV** · AI-COST-PARSER-01 P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
 > **Data:** 2026-07-29  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
@@ -12,13 +12,14 @@
 ══════════════════════════════════════
 STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
-Tip UI = 2.65.77 · Feature = e88d689f · Deploy = 77a2f0f (SSOT 09)
+Tip UI = 2.65.78 · Feature = 9dc113e7 (SSOT 09)
+AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-PARSER-01 P0-RETRY = CLOSED · PRODUCTION VERIFIED
 COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
 COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
-AI-COST-02 / COST-02-A = CLOSED · 02-B BACKLOG
-NEXT wycena = AI-COST-02-B (Owner GO → AUDIT → DF)
+AI-COST-02 / COST-02-A = CLOSED · 02-B Phase 1 CLOSED · I3 BACKLOG
+NEXT = Work Catalog P3.3 (Owner GO → DF)
 Foundation Lib Phase 0 = COMPLETE (FND-01…05)
 FND-06 = BLOCKED · App nie używa jeszcze Foundation Lib
 ══════════════════════════════════════
@@ -47,9 +48,10 @@ Gdy AI Cost / oferta / kosztorys:
   → WGDOM-AI-COST-01-LESSONS-LEARNED.md
   → WGDOM-AI-COST-02-STARTING-POINT.md  (tylko po Owner GO na COST-02)
   → COST-BID-GAP-01-CLOSEOUT.md + SESSION-HANDOFF-POST-COST-BID-GAP-01.md
+  → AI-COST-02-B-CLOSEOUT.md  (02-B Phase 1 CLOSED · nie otwarty)
   → AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md  (P0-RETRY CLOSED · nie otwarty)
   → COST-MULTI-CLOSEOUT.md
-  → NEXT-EPIC-CANDIDATES.md (AI-COST-02-B)
+  → NEXT-EPIC-CANDIDATES.md (Work Catalog P3.3)
 
 Gdy Foundation Lib / FND-* / wgdom-foundation:
   → WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
@@ -92,12 +94,13 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-
 
 | Obszar | Status |
 |--------|--------|
+| **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`9dc113e7`** · UI **2.65.78** |
 | **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`e88d689f`** |
 | **COST-BID-GAP-01 / GAP-A** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.77** |
 | **COST-MULTI** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
-| **AI-COST-02 / COST-02-A** | **CLOSED** · **02-B BACKLOG** |
-| **NEXT (wycena)** | **AI-COST-02-B** — Owner GO → AUDIT → DF |
+| **AI-COST-02 / COST-02-A** | **CLOSED** · **02-B Phase 1 CLOSED** · I3 **BACKLOG** |
+| **NEXT** | **Work Catalog P3.3** — Owner GO → DF |
 | Lista Płac Hours-wipe | **CLOSED** |
 | UI Foundation v1.0 | **COMPLETE** |
 | Dashboard Body S1–S4 | **COMPLETE** |
@@ -118,7 +121,7 @@ Pełny snapshot + NEXT → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md). Tip → [`0
 | Smoke read-only | Mixed FEATURE+CORE |
 | Thin UI FEATURE (Boundary PASS) | Usuwanie fence / Domain Gate / second Primary |
 | Czytanie Freeze + Starting Point | **AI-COST-02 IMPLEMENT** / przebudowa S1–S7 |
-| AUDIT/DF dla **AI-COST-02-B** | Re-open **COST-MULTI** / **GAP-A** / **P0-RETRY** bez briefu · `sum(all)` · hardcode 1,6M |
+| AUDIT/DF dla **Work Catalog P3.3** / I3 | Re-open **02-B Phase 1** / **COST-MULTI** / **GAP-A** / **P0-RETRY** bez briefu · `sum(all)` · hardcode 1,6M |
 | Pytania / mapowanie | Re-open Foundation / BODY / AI-COST-01 freeze bez briefu |
 
 ---

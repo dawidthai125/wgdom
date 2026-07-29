@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-29  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,14 +10,14 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip UI = 2.65.77 · Feature tip = e88d689f · Deploy tip = 77a2f0f
-  (SSOT 09 + version.json)
+Tip UI = 2.65.78 · Feature tip = 9dc113e7 (SSOT 09 + version.json)
+AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-PARSER-01 P0-RETRY = CLOSED · PRODUCTION VERIFIED
 COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
 COST-MULTI = EPIC / SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
-NEXT wycena = AI-COST-02-B (Owner GO → AUDIT → DF) — nie auto-start
+NEXT = Work Catalog P3.3 (Owner GO → DF) — nie auto-start
 Handoff sesji = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
 Foundation Lib Phase 0 = COMPLETE (FND-01…05 @ origin/main bed8dd8)
 FND-06 = BLOCKED — ADR lub Blueprint extension najpierw
@@ -50,13 +50,14 @@ Gdy temat = AI Cost / oferta / kosztorys AI:
   → docs/architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md
   → docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md
   → (COST-02-A CLOSED) docs/architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md
+  → (02-B CLOSED) docs/architecture/AI-COST-02-B-CLOSEOUT.md
 
 Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid / F2 Ponów ZIP:
   → docs/architecture/COST-MULTI-CLOSEOUT.md  (SERIES CLOSED)
   → docs/architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md  (P0-RETRY CLOSED · PV)
   → docs/architecture/COST-BID-GAP-01-CLOSEOUT.md  (GAP-A CLOSED · PV)
   → docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md  (handoff cold-start)
-  → docs/architecture/NEXT-EPIC-CANDIDATES.md  (następny: AI-COST-02-B)
+  → docs/architecture/NEXT-EPIC-CANDIDATES.md  (następny: Work Catalog P3.3)
 ```
 **Root README / AGENTS.md** — po Entry, nie zamiast Entry.  
 **DEPRECATED start:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md`.
@@ -70,15 +71,15 @@ Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid /
 | Pole | Wartość |
 |------|---------|
 | **Production URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Production Version (UI)** | **2.65.77** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
-| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · deploy **`77a2f0f`** · feature P0-RETRY **`e88d689f`** |
-| **Ostatni feature (wycena / parser ops)** | **AI-COST-PARSER-01 P0-RETRY** · **`e88d689f`** · UI **2.65.77** · **CLOSED · PV** |
+| **Production Version (UI)** | **2.65.78** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
+| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · feature AI-COST-02-B **`9dc113e7`** |
+| **Ostatni feature (wycena)** | **AI-COST-02-B** · **`9dc113e7`** · UI **2.65.78** · **CLOSED · PV** |
 | **Payroll Hours-wipe baseline** | **2.65.43** @ **`ea1b0a6`** (semantyka D1–D5 ACTIVE) |
 | **Status projektu** | **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE** |
 | **Protected Core** | **GREEN** |
 | **Ostatni EPIC (AI Cost)** | **AI-COST-01** — **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
 | **Freeze / SSOT** | [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · Cold Start [`PASS`](../architecture/WGDOM-AI-COST-01-FREEZE-01-COLD-START-AUDIT.md) |
-| **AI-COST-02** | **COST-02-A CLOSED** · [`CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) · **02-B BACKLOG** · [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| **AI-COST-02** | **COST-02-A CLOSED** · **02-B Phase 1 CLOSED** · [`02-B-CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · I3 **BACKLOG** · [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 | **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PV** · UI **2.65.77** · **`e88d689f`** · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
 | **COST-BID-GAP-01** | **GAP-A CLOSED** · **PV** · UI **2.65.77** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · Handoff [`SESSION-HANDOFF-POST-COST-BID-GAP-01`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
 | **COST-MULTI** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–2.65.76** · [`CLOSEOUT`](../architecture/COST-MULTI-CLOSEOUT.md) · FINAL PV [`../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md`](../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md) |
@@ -115,6 +116,7 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
+| **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.78** · `9dc113e7` · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) |
 | **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.77** · `e88d689f` · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
 | **COST-BID-GAP-01 / GAP-A** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.77** · `a061bbd` · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) |
 | **COST-MULTI** (01 → 02 → Force Rescan) | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–2.65.76** · [`CLOSEOUT`](../architecture/COST-MULTI-CLOSEOUT.md) · FINAL PV PASS |
@@ -163,13 +165,14 @@ Szczegóły: [`03_ENGINEERING_RULES.md`](03_ENGINEERING_RULES.md) · [`06_RELEAS
 - Nie `vercel deploy` / force push `main` / commit bez prośby Ownera.  
 - Nie startuj nowego EPIC w **STABILIZATION WINDOW** bez Owner GO.  
 - Nie przebudowuj AI-COST-01 (S1–S7 / Bid / preservacja user) bez nowego DF + GO.  
-- Nie startuj **kolejnego** thin slice **AI-COST-02** bez Owner GO + nowego DF (COST-02-A = shipped).  
+- Nie startuj **kolejnego** thin slice **AI-COST-02** (I3 / Phase 2) bez Owner GO + nowego DF (02-B Phase 1 = shipped).  
 - Nie implementuj **FND-06** bez ADR / rozszerzenia Blueprint + Implementation Spec + Freeze.  
 - Nie podłączaj App/Przetargi/Roboty/Payroll do `wgdom-foundation` bez **osobnego EPIC**.  
 - Nie myl **Foundation Lib** z **UI Foundation** / Work Catalog Foundation Freeze.
+- **Nie re-open AI-COST-02-B Phase 1** bez nowego briefu — **CLOSED · PV**; flaga default OFF = shipped.
 - **Nie re-open AI-COST-PARSER-01 P0-RETRY** bez nowego RCA — **CLOSED · PV**; soft-invalidate F2 = shipped.
 - **Nie re-open COST-MULTI** (01/02/Force Rescan) bez **nowego RCA** + Owner GO — seria **PRODUCTION VERIFIED**.
-- **Nie re-open COST-BID-GAP-01 / GAP-A** bez nowego briefu — **CLOSED · PV**; residual luka vs ~1,6M = **GAP-B/C** lub **AI-COST-02-B**, nie hardcode.
+- **Nie re-open COST-BID-GAP-01 / GAP-A** bez nowego briefu — **CLOSED · PV**; residual luka vs ~1,6M = **GAP-B/C** lub **I3/02-B Phase 2**, nie hardcode.
 - Nie wprowadzaj `sum(all)` zamiast Branch Winners.
 
 ---
@@ -182,8 +185,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | # | EPIC | Status | Opis | Zależności | Dlaczego następny |
 |---|------|--------|------|------------|-------------------|
 | **C1** | **COST-BID-GAP-01 / GAP-A** | **CLOSED · PV** | Catalog cal · UNKNOWN · market REUSE | — | Shipped **2.65.77** |
-| **C2** | **AI-COST-02-B** | BACKLOG · **P1** · Owner GO | Konkurencyjność / UX kolejki / explain | COST-02-A **PV** · AI-COST-01 **FROZEN** · [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) | **Rekomendowany start** wyceny |
-| **C3** | Work Catalog / P3.3 | BACKLOG · P1 | Market Pricing UX | COST-02-A · DF D-A…D-D | Alternatywa „dane” |
+| **C2** | **AI-COST-02-B** | **CLOSED · PV** | Explain + Queue · flaga OFF | — | Shipped **2.65.78** · `9dc113e7` |
+| **C3** | Work Catalog / P3.3 | BACKLOG · **P1** · Owner GO | Market Pricing UX | COST-02-A · DF D-A…D-D | **Rekomendowany NEXT** |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -193,8 +196,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **5** | **HARDENING-01B1 / C / E** | BACKLOG · Owner GO | Hardening sync | 01A/01D/01B0 **CLOSED** | Sygnały prod |
 | **8** | **Payroll nowe prace** | **NONE** | — | Hours-wipe **CLOSED** | Tylko nowy GO + Gate |
 
-**Rekomendowany pierwszy krok (Przetargi / wycena):** **AI-COST-02-B** — Owner GO → AUDIT → DF.  
-**Alternatywa:** Work Catalog P3.3 *lub* residual GAP-B (stack) po osobnym DF.  
+**Rekomendowany pierwszy krok:** **Work Catalog P3.3** — Owner GO → DF.  
+**Alternatywa:** residual GAP-B (stack) *lub* AI-COST-02 I3 Competitiveness po osobnym DF.  
 **Zawsze:** Entry + Gate.
 
 ---
@@ -225,6 +228,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **AI-COST-01 SSOT** | [`WGDOM-AI-COST-01-SSOT.md`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-01 Lessons** | [`WGDOM-AI-COST-01-LESSONS-LEARNED.md`](../architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md) |
 | **AI-COST-02 start** | [`WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| **AI-COST-02-B CLOSEOUT** | [`AI-COST-02-B-CLOSEOUT.md`](../architecture/AI-COST-02-B-CLOSEOUT.md) |
+| **AI-COST-02-B PV** | [`AI-COST-02-B-PRODUCTION-VERIFY.md`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) |
 | **COST-02-A CLOSEOUT** | [`WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **COST-02-A RELEASE** | [`WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
 | **COST-MULTI CLOSEOUT** | [`COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) |
@@ -241,4 +246,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.77** · feature **`e88d689f`** · deploy **`77a2f0f`** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · COST-02-A **CLOSED** · NEXT **AI-COST-02-B** · tip w `09`
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.78** · feature **`9dc113e7`** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · COST-02-A **CLOSED** · NEXT **Work Catalog P3.3** · tip w `09`
