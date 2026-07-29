@@ -28,6 +28,8 @@ export type UseWorkCatalogResult = {
   activeCount: number;
   tradesOrder: TradeId[];
   regionLabel: string;
+  /** Przeładuj store z LS (np. po commitMarketQuotesImport). */
+  reload: () => void;
   updateCompanyPrice: (workId: string, companyPricePln: number) => Promise<UpdateCompanyPriceResult>;
   updateWorkActive: (workId: string, active: boolean) => Promise<UpdateWorkActiveResult>;
   toggleWorkFavorite: (workId: string, favorite: boolean) => Promise<UpdateWorkFavoriteResult>;
@@ -220,6 +222,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     activeCount: countActiveWorks(works),
     tradesOrder,
     regionLabel: REGION_LABELS_PL[store.activeRegion] ?? store.activeRegion,
+    reload: reloadFromLocal,
     updateCompanyPrice,
     updateWorkActive,
     toggleWorkFavorite,

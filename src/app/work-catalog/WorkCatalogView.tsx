@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Search, Library, X } from "lucide-react";
+import { Search, Library, X, FileSpreadsheet } from "lucide-react";
 import { tradeLabelPl, type TradeId } from "@/lib/work-catalog";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
 import { WorkCatalogWorkRow } from "@/app/work-catalog/WorkCatalogWorkRow";
@@ -23,7 +23,14 @@ import {
 import { computeLibraryCompleteness } from "@/app/work-catalog/work-catalog-completeness";
 import { WorkCatalogCompletenessPanel } from "@/app/work-catalog/WorkCatalogCompletenessPanel";
 import { WorkCatalogBundlesPanel } from "@/app/work-catalog/WorkCatalogBundlesPanel";
+import { WorkCatalogCsvImportPreviewPanel } from "@/app/work-catalog/WorkCatalogCsvImportPreviewPanel";
+import { computeMarketCoverageSummary } from "@/app/work-catalog/work-catalog-market-coverage";
+import { WorkCatalogMarketCoveragePanel } from "@/app/work-catalog/WorkCatalogMarketCoveragePanel";
+import { isWcP33MarketPricingUxEnabled } from "@/lib/wc-p33-flag";
 import { CATALOG_UX_WORK_CATALOG_TAB_LABEL } from "@/lib/tender-catalog-ux-labels";
+import { WgButton, WgField } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_ENTER, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 export type WorkCatalogLayout = "standalone" | "embedded";
 export type WorkCatalogSection = "works" | "bundles";
@@ -55,12 +62,16 @@ type WorkCatalogViewProps = {
 export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps) {
   const isEmbedded = layout === "embedded";
   const [section, setSection] = useState<WorkCatalogSection>("works");
+  const p33Enabled = isWcP33MarketPricingUxEnabled();
+  const [showMarketCsvImport, setShowMarketCsvImport] = useState(false);
 
   const {
+    store,
     works,
     totalCount,
     tradesOrder,
     regionLabel,
+    reload,
     updateCompanyPrice,
     updateWorkActive,
     toggleWorkFavorite,
@@ -89,9 +100,27 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
     [works, tradesOrder],
   );
 
+  const marketCoverage = useMemo(
+    () =>
+      p33Enabled
+        ? computeMarketCoverageSummary(works, store.activeRegion)
+        : null,
+    [p33Enabled, works, store.activeRegion],
+  );
+
+  const workNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const w of works) map.set(w.id, w.namePl);
+    return map;
+  }, [works]);
+
   const handleTradeCompletenessSelect = useCallback((tradeId: TradeId | "all") => {
     setFilters((prev) => ({ ...prev, tradeId }));
   }, []);
+
+  const handleCatalogMutated = useCallback(() => {
+    reload();
+  }, [reload]);
 
   const hasFilters =
     filters.search.trim().length > 0
@@ -180,6 +209,25 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
       ? "pb-36"
       : "pb-4";
 
+  if (p33Enabled && showMarketCsvImport) {
+    return (
+      <div
+        className={
+          isEmbedded
+            ? "min-w-0"
+            : "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
+        }
+        data-wc-p33-flag="1"
+      >
+        <WorkCatalogCsvImportPreviewPanel
+          workNameById={workNameById}
+          onBack={() => setShowMarketCsvImport(false)}
+          onCatalogMutated={handleCatalogMutated}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={
@@ -187,6 +235,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
           ? "min-w-0"
           : "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
       }
+      data-wc-p33-flag={p33Enabled ? "1" : undefined}
     >
       <header className={headerPad}>
         <div className="flex items-start gap-3">
@@ -216,20 +265,46 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
             )}
           </div>
           {section === "works" && totalCount > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                if (bulkEditMode) exitBulkEdit();
-                else setBulkEditMode(true);
-              }}
-              className={`shrink-0 min-h-[44px] rounded-xl px-3 text-sm font-medium ${
-                bulkEditMode
-                  ? "border border-border bg-muted text-foreground"
-                  : "bg-primary text-primary-foreground"
-              }`}
-            >
-              {bulkEditMode ? "Zakończ" : "Edytuj wiele"}
-            </button>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-start">
+              {p33Enabled && (
+                <WgButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (bulkEditMode) exitBulkEdit();
+                    setShowMarketCsvImport(true);
+                  }}
+                  className={cn(
+                    "shrink-0 px-3 text-sm font-medium rounded-xl border border-border",
+                    WG_TOUCH_MIN,
+                    "h-11",
+                    "touch-manipulation",
+                  )}
+                  data-wc-p33-import-entry
+                >
+                  <FileSpreadsheet size={16} className="mr-1.5 shrink-0" aria-hidden />
+                  Import CSV rynku
+                </WgButton>
+              )}
+              <WgButton
+                type="button"
+                variant={bulkEditMode ? "secondary" : "primary"}
+                onClick={() => {
+                  if (bulkEditMode) exitBulkEdit();
+                  else setBulkEditMode(true);
+                }}
+                className={cn(
+                  "shrink-0 px-3 text-sm font-medium rounded-xl",
+                  WG_TOUCH_MIN,
+                  "h-11",
+                  bulkEditMode && "border border-border",
+                  `transition-colors ${WG_DURATION_ENTER}`,
+                  "motion-reduce:transition-none",
+                )}
+              >
+                {bulkEditMode ? "Zakończ" : "Edytuj wiele"}
+              </WgButton>
+            </div>
           )}
         </div>
 
@@ -270,33 +345,42 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
         />
         )}
 
+        {section === "works" && p33Enabled && marketCoverage && (
+          <WorkCatalogMarketCoveragePanel summary={marketCoverage} />
+        )}
+
         {section === "works" && (
         <>
-        <div className="relative mt-3">
-          <Search
-            size={18}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={filters.search}
-            onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-            placeholder="Szukaj robót, słów kluczowych, branży…"
-            className="min-h-[44px] w-full rounded-xl border border-border bg-card py-2 pl-10 pr-10 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label="Szukaj w bibliotece robót"
-          />
-          {filters.search && (
-            <button
-              type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, search: "" }))}
-              className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
-              aria-label="Wyczyść wyszukiwanie"
-            >
-              <X size={18} />
-            </button>
-          )}
-        </div>
+        <WgField
+          type="search"
+          value={filters.search}
+          onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+          placeholder="Szukaj robót, słów kluczowych, branży…"
+          aria-label="Szukaj w bibliotece robót"
+          className="relative mt-3"
+          controlClassName="h-11 min-h-[44px]"
+          leading={
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+          }
+          trailing={
+            filters.search ? (
+              <WgButton
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setFilters((prev) => ({ ...prev, search: "" }))}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 text-muted-foreground hover:bg-muted"
+                aria-label="Wyczyść wyszukiwanie"
+              >
+                <X size={18} />
+              </WgButton>
+            ) : null
+          }
+        />
 
         <p className="mt-2 text-xs font-medium text-muted-foreground" aria-live="polite">
           {counterLine}

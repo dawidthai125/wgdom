@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-29",
+    version: "2.65.79",
+    label: "Biblioteka Robót — Market Pricing UX (P3.3)",
+    items: [
+      {
+        type: "new",
+        text: "Opcjonalnie (flaga kw-wc-p33-market-pricing-ux): import CSV cen rynkowych z zapisem marketQuotes (commit/rollback) oraz panel pokrycia rynku. Domyślnie wyłączone.",
+      },
+      {
+        type: "improve",
+        text: "REUSE silnika P3.1/P3.2 i istniejącego podglądu CSV — bez zmiany ceny firmy, parserów, Bid ani Payroll.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-29",
     version: "2.65.78",
     label: "Kosztorys — Explain + kolejka weryfikacji (AI-COST-02-B)",
     items: [

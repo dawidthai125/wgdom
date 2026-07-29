@@ -4,13 +4,19 @@ import {
   MARKET_ORIGIN_IDS,
   MARKET_ORIGIN_LABELS_PL,
   MARKET_REGION_CODES,
+  captureMarketQuotesSnapshot,
+  commitMarketQuotesImport,
   createSeededMarketWorkMappingStore,
+  loadWorkCatalogStoreLocal,
   marketRegionLabelPl,
   previewMarketCsvImport,
+  restoreMarketQuotesSnapshot,
   type MarketCsvPreviewReport,
   type MarketOriginId,
+  type MarketQuotesRollbackSnapshot,
   type MarketRegionCode,
 } from "@/lib/work-catalog";
+import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 import {
   buildCsvPreviewViewModel,
   csvPreviewStatusLabelPl,
@@ -23,6 +29,8 @@ import {
 type Props = {
   workNameById: ReadonlyMap<string, string>;
   onBack: () => void;
+  /** Po udanym commit / rollback — odśwież listę Biblioteki. */
+  onCatalogMutated?: () => void;
 };
 
 const STATUS_CHIP_CLASS: Record<CsvPreviewDisplayStatus, string> = {
@@ -45,7 +53,28 @@ const SUMMARY_KEYS: {
   { key: "ignored", status: "ignored", label: "Pominięte" },
 ];
 
-export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props) {
+function formatCommitStatusPl(status: string, blocked?: string): string {
+  switch (status) {
+    case "committed":
+      return "Zapisano ceny rynkowe w katalogu.";
+    case "noop":
+      return "Brak zmian do zapisania (import nie zmienił marketQuotes).";
+    case "blocked":
+      return blocked === "legacy_only_blocks_work"
+        ? "Zapis zablokowany — tryb katalogu legacy_only."
+        : "Zapis zablokowany przez tryb katalogu.";
+    case "rolled-back":
+      return "Zapis nieudany — przywrócono poprzedni stan lokalny.";
+    default:
+      return status;
+  }
+}
+
+export function WorkCatalogCsvImportPreviewPanel({
+  workNameById,
+  onBack,
+  onCatalogMutated,
+}: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [csvText, setCsvText] = useState<string | null>(null);
@@ -55,6 +84,11 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
   const [rawReport, setRawReport] = useState<MarketCsvPreviewReport | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
+  const [commitMessage, setCommitMessage] = useState<string | null>(null);
+  const [commitError, setCommitError] = useState<string | null>(null);
+  const [undoSnapshot, setUndoSnapshot] = useState<MarketQuotesRollbackSnapshot | null>(null);
 
   const viewModel = useMemo(() => {
     if (!rawReport) return null;
@@ -71,6 +105,9 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
     setRawReport(null);
     setParseError(null);
     setStatusFilter("all");
+    setCommitMessage(null);
+    setCommitError(null);
+    setUndoSnapshot(null);
 
     if (!file) {
       setFileName(null);
@@ -99,6 +136,9 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
 
     setAnalyzing(true);
     setParseError(null);
+    setCommitMessage(null);
+    setCommitError(null);
+    setUndoSnapshot(null);
 
     try {
       const report = previewMarketCsvImport(csvText, {
@@ -124,24 +164,103 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
     }
   }, [csvText, defaultOrigin, workNameById]);
 
+  /** IC-1: wyłącznie commitMarketQuotesImport — bez bezpośredniego apply. */
+  const handleCommit = useCallback(async () => {
+    if (!rawReport) return;
+    setCommitting(true);
+    setCommitError(null);
+    setCommitMessage(null);
+
+    try {
+      const before = loadWorkCatalogStoreLocal();
+      const snapshot = captureMarketQuotesSnapshot(before);
+      const report = await commitMarketQuotesImport(rawReport, {
+        region: before.activeRegion,
+      });
+
+      setCommitMessage(formatCommitStatusPl(report.status, report.blocked));
+
+      if (report.status === "committed") {
+        setUndoSnapshot(snapshot);
+        onCatalogMutated?.();
+      } else if (report.status === "rolled-back") {
+        setUndoSnapshot(null);
+        onCatalogMutated?.();
+      } else if (report.status === "blocked") {
+        setUndoSnapshot(null);
+        setCommitError(formatCommitStatusPl(report.status, report.blocked));
+        setCommitMessage(null);
+      }
+    } catch {
+      setCommitError("Nie udało się zapisać importu cen rynkowych.");
+      setUndoSnapshot(null);
+    } finally {
+      setCommitting(false);
+    }
+  }, [rawReport, onCatalogMutated]);
+
+  /** Rollback lokalny REUSE P3.2 snapshot + istniejący write-router. */
+  const handleRollback = useCallback(async () => {
+    if (!undoSnapshot) return;
+    setRollingBack(true);
+    setCommitError(null);
+
+    try {
+      const current = loadWorkCatalogStoreLocal();
+      const restored = restoreMarketQuotesSnapshot(current, undoSnapshot);
+      if (!restored.restored) {
+        setCommitError("Nie można cofnąć — uszkodzony lub nieaktualny snapshot.");
+        return;
+      }
+
+      const updatedAtIso = new Date().toISOString();
+      const saveResult = await saveWorkCatalogRouted(restored.store, {
+        updatedAtIso,
+        previousStore: current,
+      });
+
+      if (!saveResult.ok) {
+        setCommitError("Cofnięcie lokalne OK — synchronizacja chmury nie powiodła się.");
+        onCatalogMutated?.();
+        setUndoSnapshot(null);
+        return;
+      }
+      if (!saveResult.saved) {
+        setCommitError("Cofnięcie zablokowane przez tryb katalogu.");
+        return;
+      }
+
+      setCommitMessage("Przywrócono marketQuotes sprzed ostatniego importu.");
+      setUndoSnapshot(null);
+      onCatalogMutated?.();
+    } catch {
+      setCommitError("Nie udało się cofnąć ostatniego importu.");
+    } finally {
+      setRollingBack(false);
+    }
+  }, [undoSnapshot, onCatalogMutated]);
+
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
+    <div
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
+      data-wc-p33-import-panel
+    >
       <header className="shrink-0 border-b border-border px-3 py-3 sm:px-4 md:px-6">
         <div className="flex items-start gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="mt-0.5 flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted"
+            className="mt-0.5 flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground hover:bg-muted touch-manipulation"
             aria-label="Wróć do listy robót"
           >
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0 flex-1">
             <h1 className="text-base font-semibold text-foreground sm:text-lg">
-              Analiza CSV — ceny rynkowe
+              Import CSV — ceny rynkowe
             </h1>
             <p className="text-xs text-muted-foreground sm:text-sm">
-              Tryb podglądu · bez zapisu · bez importu do katalogu
+              Podgląd → zapis marketQuotes · bez zmiany ceny firmy
             </p>
           </div>
         </div>
@@ -214,16 +333,49 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
               type="button"
               onClick={handleAnalyze}
               disabled={!csvText || analyzing}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50 sm:w-auto"
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-sm font-medium text-secondary-foreground disabled:opacity-50 sm:w-auto touch-manipulation"
             >
               <Search size={18} aria-hidden />
               {analyzing ? "Analiza…" : "Analiza"}
             </button>
           </div>
 
+          {viewModel && (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button
+                type="button"
+                onClick={() => void handleCommit()}
+                disabled={committing || rollingBack}
+                className="flex min-h-[44px] w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50 sm:w-auto touch-manipulation"
+                data-wc-p33-commit
+              >
+                {committing ? "Zapisywanie…" : "Zastosuj do katalogu"}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRollback()}
+                disabled={!undoSnapshot || committing || rollingBack}
+                className="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground disabled:opacity-50 sm:w-auto touch-manipulation"
+                data-wc-p33-rollback
+              >
+                {rollingBack ? "Cofanie…" : "Cofnij ostatni import"}
+              </button>
+            </div>
+          )}
+
           {parseError && (
             <p className="mt-3 text-xs text-destructive" role="alert">
               {parseError}
+            </p>
+          )}
+          {commitError && (
+            <p className="mt-3 text-xs text-destructive" role="alert">
+              {commitError}
+            </p>
+          )}
+          {commitMessage && (
+            <p className="mt-3 text-xs text-emerald-800 dark:text-emerald-200" role="status">
+              {commitMessage}
             </p>
           )}
         </div>
@@ -237,7 +389,7 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
             <button
               type="button"
               onClick={() => setStatusFilter("all")}
-              className={`min-h-[36px] rounded-full px-3 text-xs font-medium ${
+              className={`min-h-[44px] rounded-full px-3 text-xs font-medium touch-manipulation ${
                 statusFilter === "all"
                   ? "bg-primary text-primary-foreground"
                   : "border border-border bg-card"
@@ -255,7 +407,7 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
                   type="button"
                   onClick={() => status && setStatusFilter(status)}
                   disabled={!status}
-                  className={`min-h-[36px] rounded-full px-3 text-xs font-medium ${
+                  className={`min-h-[44px] rounded-full px-3 text-xs font-medium touch-manipulation ${
                     selected && status
                       ? "bg-primary text-primary-foreground"
                       : "border border-border bg-card"
@@ -279,9 +431,8 @@ export function WorkCatalogCsvImportPreviewPanel({ workNameById, onBack }: Props
             />
             <p className="text-sm font-medium text-foreground">Wgraj plik CSV i uruchom analizę</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Raport pokaże dopasowania, niską pewność, brak mapowania, odrzucenia i wiersze
-              pominięte przez filtr regionu (domyślnie {marketRegionLabelPl(DEFAULT_CSV_PREVIEW_REGION)}).
-              Dane nie są zapisywane.
+              Najpierw podgląd dopasowań, potem „Zastosuj do katalogu” zapisze marketQuotes
+              (region aktywny katalogu). Cena firmy nie jest zmieniana.
             </p>
           </div>
         ) : tableRows.length === 0 ? (
