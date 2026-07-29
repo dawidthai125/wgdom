@@ -4,12 +4,12 @@
 
 | Meta | Wartość |
 |------|---------|
-| **Ostatnia aktualizacja** | 2026-07-03 |
-| **Commit (HEAD `main`)** | `4c38f4f` |
-| **Production version (UI)** | **v2.63.27** |
-| **Status** | **🔴 P0 PAYROLL CLOUD SYNC INCIDENT ACTIVE (prod DEGRADED)** · STABILIZATION WINDOW ACTIVE · PR-PAY-S6 **CLOSED** · PR-PAY-S7 **S7-1 CLOSED · S7-4A OBSERVATION · S7-5 DESIGN FREEZE APPROVED (IMPLEMENT WAITING)** |
+| **Ostatnia aktualizacja** | 2026-07-29 |
+| **Commit (HEAD `main`)** | patrz [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| **Production version (UI)** | **v2.65.77** (COST-BID-GAP-01 / GAP-A) |
+| **Status** | **COST-BID-GAP-01 CLOSED** · COST-MULTI CLOSED · STABILIZATION WINDOW ACTIVE · Protected Core GREEN |
 
-> **🔴 P0 FREEZE:** nowe EPIC-i wstrzymane do zamknięcia P0 — **WC-P3.3 S4 Preview Mount = ON HOLD**. Dozwolone tylko OBSERVATION PR-PAY-S7/S7-4A + docs. **S7-5 Resurrection Guard: DESIGN FREEZE APPROVED — IMPLEMENT WAITING** (gate: zakończenie obserwacji S7-4A; ETAP 1 = S7-5-1+S7-5-2, ETAP 2 warunkowy).
+> **STABILIZATION WINDOW ACTIVE.** Nowe EPIC-i tylko po Owner GO. Nie re-open COST-MULTI / GAP-A bez briefu.
 
 ---
 
@@ -17,6 +17,12 @@
 
 | Pozycja | Wersja / commit |
 |---------|-----------------|
+| **COST-BID-GAP-01 / GAP-A** — kalibracja catalog (UNKNOWN · rates · marketQuotes) | **CLOSED** 2026-07-29 · UI **2.65.77** · **`a061bbd`** · PV PASS · [`CLOSEOUT`](docs/architecture/COST-BID-GAP-01-CLOSEOUT.md) |
+| **COST-MULTI** — Multi Cost Package → Aggregate Bid → Force Heavy Rescan | **CLOSED** 2026-07-29 · UI **2.65.74–2.65.76** · FINAL PV PASS · [`COST-MULTI-CLOSEOUT`](docs/architecture/COST-MULTI-CLOSEOUT.md) · [`RELEASE HISTORY`](docs/releases/COST-MULTI-EPIC-RELEASE-HISTORY.md) |
+| **GLOBAL-DESIGN-SYSTEM-MAINT-01** — thin post-soak (SOAK-01+03 · DEFER 02/06) | **CLOSED** 2026-07-26 · [`docs/architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md`](docs/architecture/GLOBAL-DESIGN-SYSTEM-MAINT-01-CLOSE-REPORT.md) |
+| **GLOBAL-DESIGN-SYSTEM-01** — global UI SSOT (S0–S4 · Production UI Review · DS-13) | **CLOSED** 2026-07-26 · tip UI **2.65.46** · [`docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md`](docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md) |
+| **LOGIN-UI-01** — premium login + mobile hotfix | **2.65.45–46** · `5f2baf8` / `6df8373` |
+| **PAYROLL Hours-wipe** — D1–D5 | **2.65.41–43** · `ea1b0a6` |
 | **PR‑PAY‑S7‑1** — Cloud Batch Diagnostics (Edge `batch-set`: `app.onError` + try/catch + requestId) | `4c38f4f` |
 | **PR‑PAY‑S6** — Archive Restore Eligibility Guard (eligible archive roster: baner G1 + restore G2) | `d2a3d90` |
 | **PAYROLL P0 Incident** — S1 week guard · S2 tombstones · S3 zero‑hours · S5 settled persistence | `1d5b0b7`→`fd56cf7` |
@@ -61,9 +67,13 @@ Pełny rejestr historyczny: [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HAN
 
 | Pozycja | Warunek startu |
 |---------|----------------|
+| **AI-COST-02-B** — konkurencyjność / jakość wyceny (thin) | **Rekomendowany NEXT** · Owner GO → AUDIT → DF · [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · Handoff [`SESSION-HANDOFF-POST-COST-BID-GAP-01`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
+| **Work Catalog P3.3** — implementacja UI (integracja market pricing) | decyzje design freeze D‑A…D‑D · alternatywa vs 02-B |
+| **COST-BID residual GAP-B/C** | Tylko nowy DF + Owner GO — **nie** re-open GAP-A |
+| **GDS-02** (opcjonalny, wąski) — high-traffic Contacts / GlobalSearch / Directory forms | soak po GDS-01 + **Owner GO** · nie pełny reskin |
 | **NG‑05 MPI‑0** — Market Pricing Intelligence, Data Foundation | AD‑01 (legal) + koniec STABILIZATION + **owner IMPLEMENT command** — obecnie **BLOCKED** ([`docs/NG-05-PROJECT-CLOSEOUT.md`](docs/NG-05-PROJECT-CLOSEOUT.md)) |
-| **Work Catalog P3.3** — implementacja UI (integracja market pricing) | decyzje design freeze D‑A…D‑D |
 | **TP200B** — kosztorys fidelity (`rows` cap) | na polecenie |
+| **HEAVY-PERSIST-01** | AUDIT + Owner GO (LS/KV settle) |
 | **TI‑B3** — CI GitHub Actions gate B/C z orchestratora | na polecenie |
 | **TI‑B1** — ekstrakcja `removeWeekEmployee()` do warstwy lib | na polecenie |
 

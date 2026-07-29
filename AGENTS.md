@@ -21,6 +21,12 @@
  10. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
  11. IMPLEMENT dopiero po Gate + checklist
 
+Po COST-BID-GAP-01 / GAP-A (CLOSED · tip 2.65.77):
+  · docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
+  · docs/architecture/COST-BID-GAP-01-CLOSEOUT.md
+  · docs/architecture/COST-MULTI-CLOSEOUT.md
+  · docs/architecture/NEXT-EPIC-CANDIDATES.md   ← NEXT: AI-COST-02-B
+
 Appendix (po Entry — nie zamiast Entry):
   · docs/AGENT-CONTINUITY-GUIDE.md
   · docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md  ← Foundation Lib Phase 0 (FND-01…05 · FND-06 BLOCKED)
@@ -177,11 +183,11 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.65.35**) |
-| Prod `main` (app) | **v2.65.35** (`fce7b78`) · **PAYROLL-CLOUD-RESURRECTION-01 CLOSED** · Protected Core **GREEN** |
-| Docs tip | **`1addd97`** — TEST-HARNESS-01 H4 **CLOSED** (UI **2.65.35** bez bumpu) |
+| Wersja UI / tip prod | **tylko** [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json` (**nie** hardcoduj tutaj) |
+| Ostatni EPIC (wycena) | **COST-BID-GAP-01 / GAP-A CLOSED · PV** · UI **2.65.77** · [`CLOSEOUT`](docs/architecture/COST-BID-GAP-01-CLOSEOUT.md) · Handoff [`SESSION-HANDOFF-POST-COST-BID-GAP-01`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
+| NEXT (rekomendacja) | **AI-COST-02-B** — Owner GO → AUDIT · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) · [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| Master / Entry | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) · [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
-| Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
 | Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |

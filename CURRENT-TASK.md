@@ -1,9 +1,50 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-28 (**COST-PIPELINE-01** · UI **2.65.66**) · tip UI → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-29 (**COST-BID-GAP-01 / GAP-A CLOSED** · tip UI **2.65.77** / **`a061bbd`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
+> **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ COST-BID-GAP-01 / GAP-A — Catalog calibration — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.77** / **`a061bbd`** |
+| **Closeout** | [`COST-BID-GAP-01-CLOSEOUT.md`](docs/architecture/COST-BID-GAP-01-CLOSEOUT.md) |
+| **PV** | [`COST-BID-GAP-01-PRODUCTION-VERIFY.md`](docs/architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) |
+| **DF** | [`COST-BID-GAP-01-DESIGN-FREEZE.md`](docs/architecture/COST-BID-GAP-01-DESIGN-FREEZE.md) |
+| **IN** | Flaga `COST_BID_GAP_01_CATALOG_CAL` (default **OFF**) · classifier UNKNOWN · stawki · marketQuotes REUSE · upstream direct |
+| **OUT** | Aggregate · MULTI · Discovery · parsers · Bid calculator · costModel · Payroll · hardcode 1,6M |
+| **Rollback** | LS `kw-cost-bid-gap-01-catalog-cal`=`0` / remove |
+| **Następne** | **AI-COST-02-B** (rekomendacja) — Owner GO → AUDIT → DF · **nie** re-open GAP-A bez briefu |
+| **Handoff** | [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
+| **Kandydaci NEXT** | [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
+
+## ★ NASTĘPNY EPIC (rekomendacja) — AI-COST-02-B
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **BACKLOG** · **nie startować** bez Owner GO |
+| **Problem** | Po GAP-A: Bid ON ~1,21M vs Owner ~1,6M nadal luka; potrzeba jakości wyceny / explain / kolejki — **obok** freeze AI-COST-01 |
+| **Dlaczego ten** | Naturalny tor po COST-02-A + GAP-A; mniejszy blast niż stack GAP-B |
+| **Start** | Owner GO → AUDIT → DF → Arch Review → IMPLEMENT |
+| **SSOT** | [`WGDOM-AI-COST-02-STARTING-POINT.md`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| **Alternatywy** | Work Catalog P3.3 · residual GAP-B/C · TP200B · HEAVY-PERSIST |
+
+## ★ COST-MULTI — Multi Cost → Aggregate Bid → Force Rescan — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · FINAL PV **PASS** · UI **2.65.74–2.65.76** |
+| **Closeout** | [`COST-MULTI-CLOSEOUT.md`](docs/architecture/COST-MULTI-CLOSEOUT.md) |
+| **Release history** | [`COST-MULTI-EPIC-RELEASE-HISTORY.md`](docs/releases/COST-MULTI-EPIC-RELEASE-HISTORY.md) |
+| **FINAL PV** | [`RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md`](docs/verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md) |
+| **IN** | CostPackage · Aggregate Bid · Force Heavy Rescan CTA |
+| **OUT** | Discovery rewrite · parsers · Payroll · cloud-sync.ts · auto 1,6M Owner |
+| **Następne** | COST-BID-GAP-01 **CLOSED** (GAP-A) · dalej AI-COST-02-B |
+| **Continuity** | [`AI-CONTINUITY-UPDATE-01-REPORT.md`](docs/architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
+| **Kandydaci NEXT** | [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 
 ## ★ COST-PIPELINE-01 — OfferBoq → Bid wire — **RELEASE**
 

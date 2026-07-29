@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-29 (**Force Heavy Rescan**) · feature UI **2.65.76** · tip commit w §1 · prior MULTI-02 **2.65.75**.
+**Snapshot dokumentacji:** 2026-07-29 (**COST-BID-GAP-01 / GAP-A CLOSED**) · tip UI **2.65.77** · tip commit **`a061bbd`** · PV **PASS**.
 
 ---
 
@@ -26,13 +26,15 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.76** (Force Heavy Rescan) — live może jeszcze **2.65.75** |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`1e18374f`** · **DEPLOY PROPAGATING** |
+| **UI version (changelog / version.json)** | **2.65.77** (COST-BID-GAP-01 / GAP-A catalog calibration) |
+| **Deploy tip commit (`main` / `version.json`)** | **`a061bbd`** (`a061bbd0`) · **PRODUCTION VERIFIED** |
+| **COST-BID-GAP-01 (GAP-A)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · flaga `COST_BID_GAP_01_CATALOG_CAL` default **OFF** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) · UI **2.65.77** |
+| **COST-MULTI (seria)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · [`CLOSEOUT`](../architecture/COST-MULTI-CLOSEOUT.md) · [`RELEASE HISTORY`](../releases/COST-MULTI-EPIC-RELEASE-HISTORY.md) · FINAL PV [`../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md`](../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md) · UI **2.65.74–2.65.76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
-| **Ostatni feature (Force Heavy Rescan)** | CTA „Uzupełnij odczyty branż” · `forceHeavyRescanAt` · REUSE Heavy — **CLOSED (F0–F3 code)** · [`RCA`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY.md) · [`DF`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-DESIGN-FREEZE.md) · [`IMPL`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) · UI **2.65.76** |
-| **Ostatni feature (COST-MULTI-02)** | Aggregate Bid · `resolveCostBidInput` · Branch winners → Bid/OfferBoq — **CLOSED (B0–B3)** · [`DF`](../architecture/COST-MULTI-02-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-MULTI-02-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-MULTI-02-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-MULTI-02-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-MULTI-02-CLOSEOUT.md) · UI **2.65.75** |
-| **Ostatni feature (COST-MULTI-01)** | CostPackage · BranchPackage · SUM_BRANCH_WINNERS / HOLD · UX incomplete ONE — **CLOSED (M1–M3)** · [`AUDIT`](../architecture/COST-MULTI-01-AUDIT.md) · [`DF`](../architecture/COST-MULTI-01-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-MULTI-01-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-MULTI-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-MULTI-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-MULTI-01-CLOSEOUT.md) · UI **2.65.74** |
+| **Ostatni feature (Force Heavy Rescan)** | CTA „Uzupełnij odczyty branż” · `forceHeavyRescanAt` · REUSE Heavy — **CLOSED** · **FINAL PV PASS** · [`RCA`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY.md) · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) · UI **2.65.76** |
+| **Ostatni feature (COST-MULTI-02)** | Aggregate Bid · `resolveCostBidInput` · Branch winners → Bid/OfferBoq — **CLOSED** · [`DF`](../architecture/COST-MULTI-02-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-MULTI-02-CLOSEOUT.md) · UI **2.65.75** |
+| **Ostatni feature (COST-MULTI-01)** | CostPackage · BranchPackage · SUM_BRANCH_WINNERS / HOLD · UX incomplete ONE — **CLOSED** · [`CLOSEOUT`](../architecture/COST-MULTI-01-CLOSEOUT.md) · UI **2.65.74** |
 | **Ostatni feature (COST-PARSER-01)** | ZIP unpack A/B/C · 1× retry · HeavyDone gate — **`076781d`** · **CLOSED (code)** · [`RCA`](../architecture/COST-PARSER-01-HEAVY-PARSE-RCA.md) · [`DF`](../architecture/COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-PARSER-01-ZIP-UNPACK-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-PARSER-01-ZIP-UNPACK-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-PARSER-01-ZIP-UNPACK-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-PARSER-01-ZIP-UNPACK-CLOSEOUT.md) · UI **2.65.73** |
 | **Ostatni feature (COST-REGRESSION-02)** | Discovery ZIP · `archive_candidate` · ZIP-aware F2 copy — **`c5c95ed`** · **CLOSED** · [`DF`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-02-DISCOVERY-ZIP-CLOSEOUT.md) · UI **2.65.72** |
 | **Ostatni feature (COST-REGRESSION-01 EPIC A)** | F2 diagnostyka · macierz copy · CTA Dołącz/Ponów (reuse heavy) — **`0a96744`** · **CLOSED** · **PV** · [`DF`](../architecture/COST-REGRESSION-01-EPIC-A-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-REGRESSION-01-EPIC-A-CLOSEOUT.md) · UI **2.65.71** |
@@ -62,7 +64,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.64** · TRE-02 **CLOSED** · Outcome default ON · TRE-01 **PV** · AI-COST-01 **FROZEN** |
+| **Status** | **PRODUCTION** tip UI **2.65.77** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **AI-COST-02-B** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -83,6 +85,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.77** / **`a061bbd`** | COST-BID-GAP-01 / GAP-A — kalibracja catalog (UNKNOWN · rates · marketQuotes REUSE) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) |
+| **2.65.76** / **`1e18374f`** | Force Heavy Rescan CTA (COST-MULTI tip) | **CLOSED** · FINAL PV · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) |
 | **2.65.64** / **`a39533d`** | TRE-02 Outcome First Experience (default ON · R0 LS=`0`) | **CLOSED** · [`CLOSEOUT`](../architecture/TRE-02-CLOSEOUT.md) |
 | **2.65.63** / **`74ac6a0`** | TRE-01 Slice A Outcome MVP (Offer Run · Bid SSOT · FND spine) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/TRE-01-CLOSEOUT.md) |
 | **2.65.62** / **`1e6fb12`** | AI-COST-02 / COST-02-A Modele cenowe | **CLOSED** · **EPIC COMPLETE** · **PV** · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |

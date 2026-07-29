@@ -170,21 +170,28 @@ TAK → Przeczytaj WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
 
 ---
 
-## 6c. AI Cost / OfferBoq / Bid Proposal?
+## 6c. AI Cost / OfferBoq / Bid Proposal / COST-MULTI?
 
 ```text
 Czy zmiana = tender-offer-boq*, OfferBoq panel, pricing AI,
-company knowledge, validation S7, bid adapter, offer_boq_ai?
+company knowledge, validation S7, bid adapter, offer_boq_ai,
+CostPackage / Aggregate Bid / Force Rescan / resolveCostBidInput?
 
 NIE → §7
 TAK → Najpierw przeczytaj:
+        COST-MULTI-CLOSEOUT.md (+ AI-CONTINUITY-UPDATE-01-REPORT.md)
         WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md
         WGDOM-AI-COST-01-SSOT.md
         WGDOM-AI-COST-01-LESSONS-LEARNED.md
+    → COST-MULTI = CLOSED · PV — NIE re-open bez nowego RCA + Owner GO
+    → COST-BID-GAP-01 / GAP-A = CLOSED · PV (2.65.77) — NIE re-open bez briefu
+    → Residual luka vs ~1,6M / jakość wyceny = AI-COST-02-B (NEXT-EPIC-CANDIDATES) — AUDIT→DF
     → AI-COST-01 = FROZEN — nie przebudowuj S1–S7 / Bid / preservacji user
-    → AI-COST-02? → tylko STARTING-POINT.md + Owner GO + nowy AUDIT→DF
+    → AI-COST-02-B? → tylko STARTING-POINT.md + Owner GO + nowy AUDIT→DF
        (Starting Point ≠ Design Freeze ≠ pozwolenie na kod)
-    → Zakaz: drugi kalkulator oferty · scraper cen · parser rewrite „przy Cost”
+    → Zakaz: sum(all) · drugi kalkulator · Discovery rewrite · parser rewrite „przy Cost” · hardcode 1,6M
+    → SSOT trybu Bid: resolveCostBidInput (cost-multi-02.ts) — nie duplikuj
+    → Handoff: SESSION-HANDOFF-POST-COST-BID-GAP-01.md
     → §8 (gdy GO + DF na nowy slice)
 ```
 
@@ -237,7 +244,7 @@ TAK → Koduj TYLKO w scope DF/brief
 | Stan / NEXT | `MASTER_HANDOFF` |
 | UI / GDS / Body | Foundation report · BODY-02 · D-21/D-22 |
 | Foundation Lib / FND-* | `WGDOM-FOUNDATION-LIB-PHASE-0-SSOT` |
-| AI Cost / oferta | FREEZE · SSOT · Lessons · COST-02 Starting Point |
+| AI Cost / oferta / COST-MULTI | CLOSEOUT MULTI · Continuity UPDATE-01 · FREEZE · SSOT · NEXT-EPIC-CANDIDATES |
 | Zakazy globalne | `08_AI_GUARDRAILS` · `AI_MEMORY` |
 
 ---

@@ -1,9 +1,10 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
-> **Data:** 2026-07-28  
+> **STATUS:** **ACTIVE** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
+> **Data:** 2026-07-29  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+> **Handoff sesji:** [`../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE
 
@@ -11,8 +12,12 @@
 ══════════════════════════════════════
 STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
+Tip = 2.65.77 / a061bbd (SSOT 09)
+COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
+COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
-AI-COST-02 = BACKLOG (Starting Point only)
+AI-COST-02 / COST-02-A = CLOSED · 02-B BACKLOG
+NEXT wycena = AI-COST-02-B (Owner GO → AUDIT → DF)
 Foundation Lib Phase 0 = COMPLETE (FND-01…05)
 FND-06 = BLOCKED · App nie używa jeszcze Foundation Lib
 ══════════════════════════════════════
@@ -40,6 +45,9 @@ Gdy AI Cost / oferta / kosztorys:
   → WGDOM-AI-COST-01-SSOT.md
   → WGDOM-AI-COST-01-LESSONS-LEARNED.md
   → WGDOM-AI-COST-02-STARTING-POINT.md  (tylko po Owner GO na COST-02)
+  → COST-BID-GAP-01-CLOSEOUT.md + SESSION-HANDOFF-POST-COST-BID-GAP-01.md
+  → COST-MULTI-CLOSEOUT.md
+  → NEXT-EPIC-CANDIDATES.md (AI-COST-02-B)
 
 Gdy Foundation Lib / FND-* / wgdom-foundation:
   → WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
@@ -65,6 +73,9 @@ Gdy Foundation Lib / FND-* / wgdom-foundation:
 | **AI-COST-01 SSOT** | `docs/architecture/WGDOM-AI-COST-01-SSOT.md` |
 | **AI-COST-01 Lessons** | `docs/architecture/WGDOM-AI-COST-01-LESSONS-LEARNED.md` |
 | **AI-COST-02 start** | `docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md` |
+| **COST-MULTI closeout** | `docs/architecture/COST-MULTI-CLOSEOUT.md` |
+| **Continuity UPDATE-01** | `docs/architecture/AI-CONTINUITY-UPDATE-01-REPORT.md` |
+| **NEXT EPIC candidates** | `docs/architecture/NEXT-EPIC-CANDIDATES.md` |
 | UI Foundation | `docs/architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md` |
 | Dashboard Body | `docs/architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md` |
 | GDS | `docs/architecture/GLOBAL-DESIGN-SYSTEM-01-EPIC-CLOSE-REPORT.md` |
@@ -79,8 +90,11 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-
 
 | Obszar | Status |
 |--------|--------|
+| **COST-BID-GAP-01 / GAP-A** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.77** |
+| **COST-MULTI** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
-| **AI-COST-02** | **BACKLOG** · Starting Point only |
+| **AI-COST-02 / COST-02-A** | **CLOSED** · **02-B BACKLOG** |
+| **NEXT (wycena)** | **AI-COST-02-B** — Owner GO → AUDIT → DF |
 | Lista Płac Hours-wipe | **CLOSED** |
 | UI Foundation v1.0 | **COMPLETE** |
 | Dashboard Body S1–S4 | **COMPLETE** |
@@ -101,6 +115,7 @@ Pełny snapshot + NEXT → [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md). Tip → [`0
 | Smoke read-only | Mixed FEATURE+CORE |
 | Thin UI FEATURE (Boundary PASS) | Usuwanie fence / Domain Gate / second Primary |
 | Czytanie Freeze + Starting Point | **AI-COST-02 IMPLEMENT** / przebudowa S1–S7 |
+| AUDIT/DF dla **AI-COST-02-B** | Re-open **COST-MULTI** / **GAP-A** bez briefu · `sum(all)` · hardcode 1,6M |
 | Pytania / mapowanie | Re-open Foundation / BODY / AI-COST-01 freeze bez briefu |
 
 ---

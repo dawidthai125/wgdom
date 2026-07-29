@@ -7,6 +7,10 @@
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
 
+> **★ Domknięcie sesji (2026-07-29):** **COST-BID-GAP-01 / GAP-A CLOSED** · tip **2.65.77** / **`a061bbd`** · PV PASS · SSOT [`architecture/COST-BID-GAP-01-CLOSEOUT.md`](architecture/COST-BID-GAP-01-CLOSEOUT.md) · Handoff [`architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) · NEXT **AI-COST-02-B** · **nie** re-open GAP-A bez briefu.
+
+> **★ Domknięcie sesji (2026-07-29):** **COST-MULTI SERIES CLOSED** · UI **2.65.74–2.65.76** · FINAL PV PASS (`08dee335` AGGREGATE Bid 1 061 000) · SSOT [`architecture/COST-MULTI-CLOSEOUT.md`](architecture/COST-MULTI-CLOSEOUT.md) · Continuity [`architecture/AI-CONTINUITY-UPDATE-01-REPORT.md`](architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) · NEXT superseded by GAP-A close → [`architecture/NEXT-EPIC-CANDIDATES.md`](architecture/NEXT-EPIC-CANDIDATES.md) · **nie** wznawiać COST-MULTI bez AUDIT + Owner GO.
+
 > **★ Domknięcie sesji (2026-07-28):** **Foundation Lib Phase 0** **COMPLETE** · FND-01…05 na `origin/main` · tip **`bed8dd8`** · docs SSOT [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 Observability BLOCKED** (brak Impl Spec) · **nie** podłączaj domen bez EPIC.
 
 > **★ Domknięcie sesji (2026-07-21):** **TEST-HARNESS-01 H5** **CLOSED** · **`3356349`** · UI **2.65.35** — Biblioteka / Work Catalog KV-only (`kw-wgdom-work-catalog`) · H0–H5 tooling **RELEASED** · otwarte działania H5 **BRAK** · **STABILIZATION WINDOW ACTIVE** · SSOT [`architecture/TEST-HARNESS-01-H5-CLOSEOUT.md`](architecture/TEST-HARNESS-01-H5-CLOSEOUT.md).

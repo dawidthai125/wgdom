@@ -1,24 +1,32 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** COST-02-A **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · COST-02-A **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
-> **Data:** 2026-07-28
+> **Data:** 2026-07-29
 
 ```text
 ════════════════════════════════════════════════════════
 STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
+Tip = 2.65.77 / a061bbd — SSOT 09 + version.json
+COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
+COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (UI 2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
 Foundation Lib (wgdom-foundation) Phase 0 = COMPLETE (FND-01…05 @ origin/main)
 FND-06 Observability = BLOCKED (brak Impl Spec → ADR/Blueprint)
+NEXT (wycena) = AI-COST-02-B — tylko po Owner GO → AUDIT → DF
+Handoff = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**Handoff po GAP-A:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
+**COST-BID-GAP-01 closeout:** [`COST-BID-GAP-01-CLOSEOUT.md`](../architecture/COST-BID-GAP-01-CLOSEOUT.md)  
+**COST-MULTI closeout:** [`COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) · kandydaci [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)  
 **Foundation Lib (ID/Digest/Error/Audit/Event):** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) — **nie** mylić z UI Foundation  
 **AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md)
 

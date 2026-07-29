@@ -82,6 +82,39 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## COST-BID-GAP-01 / GAP-A — CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip **2.65.77** / **`a061bbd`** · PV **PASS** |
+| Slice | GAP-A: catalog rates · UNKNOWN classifier · marketQuotes REUSE · flaga default **OFF** |
+| Residual | Bid ON ~1,21M vs Owner ~1,6M — **nie** hardcodować; GAP-B/C tylko po DF |
+| NEXT | **AI-COST-02-B** — Owner GO → AUDIT → DF |
+| Handoff | [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
+
+**Nie:** re-open GAP-A bez briefu · drugi kalkulator Bid · Discovery/parsers przy kalibracji.
+
+**SSOT:** [`COST-BID-GAP-01-CLOSEOUT.md`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)
+
+---
+
+## COST-MULTI — SERIES CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.74–2.65.76** · FINAL PV **PASS** |
+| Łańcuch | REGRESSION-01 → 02 → PARSER-01 → MULTI-01 → MULTI-02 → RCA Force Rescan |
+| Architektura | ONE (Discovery) · CostPackage · BranchPackage · Aggregate (Branch winners) · `resolveCostBidInput` → Bid / OfferBoq · Force Heavy Rescan |
+| Polityka | **NIE** `sum(all)` · **TAK** Branch Winners · Feature Flags rollback |
+| NEXT | COST-BID-GAP-01 **CLOSED** (GAP-A) · dalej **AI-COST-02-B** |
+| Continuity | [`AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
+
+**Nie:** re-open COST-MULTI bez nowego RCA · Discovery rewrite „dla Aggregate” · bump `parserVersion` jako force · drugi kalkulator Bid · Payroll/`cloud-sync.ts` przy wycenie.
+
+**SSOT:** [`COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)
+
+---
+
 ## Payroll Critical Rules
 
 - Godziny live → **tylko Domain Push** (nie RS `runCloudSync`).  
@@ -133,6 +166,9 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | **AI-COST-02 start** | [`../architecture/WGDOM-AI-COST-02-STARTING-POINT.md`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
 | **COST-02-A CLOSEOUT** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **COST-02-A RELEASE** | [`../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md`](../architecture/WGDOM-AI-COST-02-COST-02-A-RELEASE-REPORT.md) |
+| **COST-MULTI CLOSEOUT** | [`../architecture/COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) |
+| **Continuity UPDATE-01** | [`../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
+| **NEXT EPIC candidates** | [`../architecture/NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 
 Historyczne DF/RCA = czytaj przy potrzebie; **closeout CLOSED** = prawda statusu.  
 Draft `WGDOM-AI-COST-01-ARCHITECTURE.md` = **SUPERSEDED**.
