@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-29",
+    version: "2.65.78",
+    label: "Kosztorys — Explain + kolejka weryfikacji (AI-COST-02-B)",
+    items: [
+      {
+        type: "new",
+        text: "Opcjonalnie (flaga kw-ai-cost-02-b-explain-queue): kolejka weryfikacji wg wpływu (severity S7 + direct) oraz rozszerzone wyjaśnienie wyceny — origin kwot, dokumenty źródłowe, Top-5 wpływu i założenia silnika. Domyślnie wyłączone.",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian kalkulatora oferty, parserów ani GAP-A — wyłącznie prezentacja REUSE istniejącego OfferBoq / S7.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-29",
     version: "2.65.77",
     label: "Kosztorys — kalibracja wyceny katalogowej (GAP-A)",
     items: [

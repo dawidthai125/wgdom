@@ -19,8 +19,12 @@ import {
   type OfferBoqBidImpactSection,
   type OfferBoqOfferReadinessSection,
   type OfferBoqOfferSummarySection,
+  type OfferBoq02bExplainEnrichment,
 } from "@/lib/tender-offer-boq-explainability";
 import type { OfferBoqValidationRecommendation } from "@/lib/tender-offer-boq-validation";
+import { evaluateOfferBoqValidation } from "@/lib/tender-offer-boq-validation";
+import { buildOfferBoq02bQueue } from "@/lib/tender-offer-boq-02b-queue";
+import { isAiCost02bExplainQueueEnabled } from "@/lib/ai-cost-02-b-flag";
 import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
@@ -92,6 +96,96 @@ function SummaryKpi({ label, value, sub }: { label: string; value: string; sub?:
       <p className="text-base font-bold text-foreground mt-0.5 tabular-nums break-words">{value}</p>
       {sub ? <p className={`${TEUX_FONT_META} text-muted-foreground mt-0.5`}>{sub}</p> : null}
     </div>
+  );
+}
+
+/** AI-COST-02-B — dokumenty · Top-5 · założenia (RO, flag-gated). */
+function Cost02bExplainBlocks({
+  enrichment,
+  onFocusLine,
+}: {
+  enrichment: OfferBoq02bExplainEnrichment;
+  onFocusLine: (lineId: string) => void;
+}) {
+  const d = enrichment.documents;
+  const a = enrichment.assumptions;
+  return (
+    <section className="space-y-3" data-ai-cost-02-b-explain>
+      <section
+        className="rounded-lg border border-border bg-background/60 p-3 space-y-1.5"
+        data-ai-cost-02-b-documents
+      >
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+          Dokumenty źródłowe
+        </h3>
+        <p className={`${TEUX_FONT_BODY} text-foreground`}>
+          {d.sourceFilename ?? "Brak nazwy pliku kosztorysu w dossier."}
+        </p>
+        {d.discoveryLabelPl ? (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{d.discoveryLabelPl}</p>
+        ) : null}
+        {d.candidatesTotal > 0 ? (
+          <ul className={`${TEUX_FONT_META} text-muted-foreground space-y-0.5`}>
+            {d.candidateSourcesSample.map((s) => (
+              <li key={s} className="truncate" title={s}>
+                {s}
+              </li>
+            ))}
+            {d.candidatesTotal > d.candidateSourcesSample.length ? (
+              <li>+{d.candidatesTotal - d.candidateSourcesSample.length} kolejnych…</li>
+            ) : null}
+          </ul>
+        ) : null}
+      </section>
+
+      <section
+        className="rounded-lg border border-border bg-background/60 p-3 space-y-2"
+        data-ai-cost-02-b-top-impact
+      >
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+          Top-5 wpływu na direct
+        </h3>
+        {enrichment.topImpact.length === 0 ? (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>Brak pozycji.</p>
+        ) : (
+          <ul className="space-y-1">
+            {enrichment.topImpact.map((row, idx) => (
+              <li key={row.lineId}>
+                <button
+                  type="button"
+                  className="w-full text-left rounded-md border border-border/70 px-2.5 py-2 min-h-[44px] touch-manipulation hover:bg-secondary/30"
+                  onClick={() => onFocusLine(row.lineId)}
+                  data-ai-cost-02-b-top-impact-item={row.lineId}
+                >
+                  <span className={`${TEUX_FONT_META} text-muted-foreground`}>#{idx + 1}</span>{" "}
+                  <span className="font-mono text-xs">{row.lp}</span>{" "}
+                  <span className={`${TEUX_FONT_CAPTION} text-foreground`}>{row.description}</span>
+                  <span className={`${TEUX_FONT_META} text-muted-foreground block`}>
+                    {row.lineDirectDisplay} · {row.sharePct}% direct
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section
+        className="rounded-lg border border-border bg-background/60 p-3 space-y-1.5"
+        data-ai-cost-02-b-assumptions
+      >
+        <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+          Założenia silnika
+        </h3>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{a.aiDirectOnlyPl}</p>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{a.mappingNotePl}</p>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{a.bidLayerPl}</p>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{a.gapAStatusPl}</p>
+        {a.strategySamplePl ? (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{a.strategySamplePl}</p>
+        ) : null}
+      </section>
+    </section>
   );
 }
 
@@ -516,6 +610,7 @@ function CollapsedComponentRow({
   lineId,
   component,
   editing,
+  showOrigin = false,
   onToggleEdit,
   onPatch,
   onApprove,
@@ -523,6 +618,7 @@ function CollapsedComponentRow({
   lineId: string;
   component: OfferBoqExplainComponentRow;
   editing: boolean;
+  showOrigin?: boolean;
   onToggleEdit: () => void;
   onPatch: (
     lineId: string,
@@ -569,6 +665,15 @@ function CollapsedComponentRow({
           {component.totalDisplay}
         </span>
         <ConfidenceBadge badge={component.confidenceBadge} />
+        {showOrigin ? (
+          <span
+            className={`${TEUX_FONT_META} text-sky-800 dark:text-sky-200 shrink-0 max-w-[9rem] truncate`}
+            data-ai-cost-02-b-origin
+            title={component.sourceLabelPl}
+          >
+            {component.sourceLabelPl}
+          </span>
+        ) : null}
         {component.companyKnowledgeUsed ? (
           <span
             className={`${TEUX_FONT_META} text-teal-800 dark:text-teal-200`}
@@ -615,6 +720,7 @@ function LineExplainCard({
   open,
   density,
   editingComponentId,
+  showOrigin = false,
   onToggle,
   onPatch,
   onApprove,
@@ -624,6 +730,7 @@ function LineExplainCard({
   open: boolean;
   density: OfferBoqDensityMode;
   editingComponentId: string | null;
+  showOrigin?: boolean;
   onToggle: () => void;
   onPatch: (
     lineId: string,
@@ -763,6 +870,7 @@ function LineExplainCard({
                     lineId={line.lineId}
                     component={c}
                     editing={editingComponentId === c.componentId}
+                    showOrigin={showOrigin}
                     onToggleEdit={() => onToggleComponentEdit(c.componentId)}
                     onPatch={onPatch}
                     onApprove={onApprove}
@@ -859,6 +967,36 @@ export function OfferBoqCostIntelligencePanel({
       }),
     [view.lines, reviewOnly, searchQuery, sortKey, sortDir],
   );
+
+  const cost02bEnabled = isAiCost02bExplainQueueEnabled();
+  const cost02bQueue = useMemo(() => {
+    if (!cost02bEnabled || !view.available || !view.document || !view.summary) return null;
+    const conf =
+      view.summary.averageConfidenceBadge.status === "high"
+        ? "high"
+        : view.summary.averageConfidenceBadge.status === "low"
+          ? "low"
+          : "medium";
+    const report = evaluateOfferBoqValidation({
+      doc: view.document,
+      bidProposal: view.bidProposal,
+      averageConfidence: conf,
+      companyKnowledgeHitCount: view.summary.companyKnowledgeHitCount,
+    });
+    return buildOfferBoq02bQueue({
+      issues: report.issues,
+      lines: view.lines,
+    });
+  }, [cost02bEnabled, view]);
+
+  const focusQueueLine = (lineId: string) => {
+    setOpenIds((prev) => ({ ...prev, [lineId]: true }));
+    setDetailsOpen(true);
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-offer-boq-line-id="${CSS.escape(lineId)}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
 
   const handlePatch = (
     lineId: string,
@@ -968,6 +1106,7 @@ export function OfferBoqCostIntelligencePanel({
       data-costorys-ux-wave1="true"
       data-costorys-ux-wave2="true"
       data-offer-boq-density={density}
+      data-ai-cost-02-b={cost02bEnabled ? "1" : undefined}
     >
       <OfferBoqStickySummaryBar
         recommendedBidDisplay={recommendedDisplay}
@@ -980,6 +1119,69 @@ export function OfferBoqCostIntelligencePanel({
         onRetryParse={onRetryParse}
         reparseBusy={Boolean(f2Signals?.dossierBuilding || f2Signals?.dossierSaving || f2Signals?.autoRunning)}
       />
+
+      {cost02bEnabled && cost02bQueue ? (
+        <section
+          className="rounded-lg border border-border bg-background/70 p-3 space-y-2"
+          data-ai-cost-02-b-queue
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>
+              Kolejka weryfikacji (wpływ)
+            </h3>
+            <p
+              className={`${TEUX_FONT_META} text-muted-foreground`}
+              data-ai-cost-02-b-queue-counter
+            >
+              Pozostało {cost02bQueue.remainingCount} / {cost02bQueue.totalReviewLines}
+              {cost02bQueue.resolvedCount > 0
+                ? ` · rozwiązane ${cost02bQueue.resolvedCount}`
+                : ""}
+            </p>
+          </div>
+          {cost02bQueue.items.length === 0 ? (
+            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+              Brak pozycji z sygnałami S7 — kosztorys wygląda na czysty.
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {cost02bQueue.items.slice(0, 12).map((q) => (
+                <li key={q.lineId}>
+                  <button
+                    type="button"
+                    className="w-full text-left rounded-md border border-border/80 bg-secondary/20 px-3 py-2 min-h-[44px] touch-manipulation hover:bg-secondary/40"
+                    onClick={() => focusQueueLine(q.lineId)}
+                    data-ai-cost-02-b-queue-item={q.lineId}
+                  >
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="font-mono text-xs text-muted-foreground">{q.lp}</span>
+                      <span className={`${TEUX_FONT_META} uppercase tracking-wide text-amber-800 dark:text-amber-200`}>
+                        {q.maxSeverity}
+                      </span>
+                      <span className={`${TEUX_FONT_CAPTION} text-foreground line-clamp-1 flex-1 min-w-0`}>
+                        {q.description}
+                      </span>
+                      <span className={`${TEUX_FONT_META} tabular-nums text-muted-foreground shrink-0`}>
+                        {q.issueCount}× ·{" "}
+                        {Number.isFinite(q.lineDirectPln)
+                          ? q.lineDirectPln.toLocaleString("pl-PL", {
+                              maximumFractionDigits: 0,
+                            })
+                          : "—"}{" "}
+                        PLN
+                      </span>
+                    </span>
+                    <span className={`${TEUX_FONT_META} text-muted-foreground block mt-0.5`}>
+                      {q.titlePl}
+                      {q.stillNeedsReview ? "" : " · zweryfikowane"}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <div
         className="flex flex-col gap-2 rounded-lg border border-border bg-background/60 p-2.5"
@@ -1158,6 +1360,10 @@ export function OfferBoqCostIntelligencePanel({
             {view.offerReadiness ? <OfferReadinessSection section={view.offerReadiness} /> : null}
 
             {view.aiQuality ? <AiQualitySection section={view.aiQuality} /> : null}
+
+            {cost02bEnabled && view.cost02b ? (
+              <Cost02bExplainBlocks enrichment={view.cost02b} onFocusLine={focusQueueLine} />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -1186,6 +1392,7 @@ export function OfferBoqCostIntelligencePanel({
               line={line}
               open={Boolean(openIds[line.lineId])}
               density={density}
+              showOrigin={cost02bEnabled}
               editingComponentId={
                 editingKey?.startsWith(`${line.lineId}:`)
                   ? editingKey.slice(line.lineId.length + 1)

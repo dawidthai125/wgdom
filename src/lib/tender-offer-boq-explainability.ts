@@ -42,6 +42,41 @@ import {
 } from "@/lib/tender-offer-boq-validation";
 import type { TenderBidCostLine, TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { formatBidMarginPct } from "@/lib/tender-bid-ux";
+import { isCostBidGap01CatalogCalEnabled } from "@/lib/tenders-v4-config";
+
+/** AI-COST-02-B — Top-K wpływu na direct (RO). */
+export interface OfferBoq02bTopImpactRow {
+  lineId: string;
+  lp: string;
+  description: string;
+  lineDirectPln: number;
+  sharePct: number;
+  lineDirectDisplay: string;
+}
+
+/** AI-COST-02-B — dokumenty źródłowe przedmiaru (RO). */
+export interface OfferBoq02bDocumentSource {
+  sourceFilename: string | null;
+  discoveryLabelPl: string | null;
+  candidateSourcesSample: string[];
+  candidatesTotal: number;
+}
+
+/** AI-COST-02-B — założenia silnika (RO). */
+export interface OfferBoq02bAssumptions {
+  aiDirectOnlyPl: string;
+  mappingNotePl: string;
+  bidLayerPl: string;
+  gapAStatusPl: string;
+  strategySamplePl: string | null;
+}
+
+/** AI-COST-02-B — enrichment Explain (pure; UI gate'owane flagą). */
+export interface OfferBoq02bExplainEnrichment {
+  documents: OfferBoq02bDocumentSource;
+  topImpact: OfferBoq02bTopImpactRow[];
+  assumptions: OfferBoq02bAssumptions;
+}
 
 /** Status wizualny pewności — mapowanie z istniejącego confidence (+ review). */
 export type OfferBoqExplainConfidenceStatus = "high" | "review" | "low";
@@ -102,6 +137,8 @@ export interface OfferBoqExplainLineCard {
   reviewLabelPl: string;
   whyAiDecisionPl: string;
   lineDirectDisplay: string;
+  /** AI-COST-02-B — wartość numeryczna do Top-K / Queue (RO). */
+  lineDirectPln: number | null;
   components: OfferBoqExplainComponentRow[];
 }
 
@@ -190,6 +227,8 @@ export interface OfferBoqExplainabilityView {
   offerReadiness: OfferBoqOfferReadinessSection | null;
   aiQuality: OfferBoqAiQualitySection | null;
   bidProposal: TenderBidProposal | null;
+  /** AI-COST-02-B — dokumenty · Top-5 · założenia (UI tylko gdy flaga ON). */
+  cost02b: OfferBoq02bExplainEnrichment | null;
 }
 
 export function resolveOfferBoqExplainConfidenceBadge(
@@ -213,6 +252,89 @@ function formatQty(n: number): string {
 function formatMoney(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
   return fmtPln(n);
+}
+
+const COST_02B_TOP_K = 5;
+
+/** Pure — Top-5 wpływu + dokumenty + założenia (REUSE dossier / Bid RO / GAP-A status). */
+export function buildOfferBoq02bExplainEnrichment(opts: {
+  lines: OfferBoqExplainLineCard[];
+  item?: TenderPipelineItem | null;
+  sourceFilenameHint?: string | null;
+  bidProposalAvailable?: boolean;
+}): OfferBoq02bExplainEnrichment {
+  const dossier = opts.item?.tenderDossier ?? null;
+  const scan = dossier?.scanSummary as
+    | {
+        costDiscovery?: { found?: boolean; type?: string; source?: string; confidence?: number } | null;
+        costCandidateSources?: string[] | null;
+      }
+    | null
+    | undefined;
+  const sourceFilename =
+    opts.sourceFilenameHint ||
+    dossier?.kosztorys?.sourceFilename ||
+    null;
+  const candidates = Array.isArray(scan?.costCandidateSources)
+    ? scan!.costCandidateSources!.filter((s) => typeof s === "string" && s.trim())
+    : [];
+  const discovery = scan?.costDiscovery;
+  let discoveryLabelPl: string | null = null;
+  if (discovery?.found && discovery.source) {
+    discoveryLabelPl = String(discovery.source);
+  } else if (discovery?.found && discovery.type) {
+    discoveryLabelPl = `Discovery: ${discovery.type}`;
+  }
+
+  const totalDirect = opts.lines.reduce((sum, l) => sum + (l.lineDirectPln ?? 0), 0);
+  const ranked = [...opts.lines]
+    .map((l) => ({
+      lineId: l.lineId,
+      lp: l.lp,
+      description: l.description,
+      lineDirectPln: l.lineDirectPln ?? 0,
+      lineDirectDisplay: l.lineDirectDisplay,
+    }))
+    .sort((a, b) => b.lineDirectPln - a.lineDirectPln)
+    .slice(0, COST_02B_TOP_K)
+    .map((row) => ({
+      ...row,
+      sharePct:
+        totalDirect > 0 && Number.isFinite(row.lineDirectPln)
+          ? Math.round((row.lineDirectPln / totalDirect) * 1000) / 10
+          : 0,
+    }));
+
+  const strategySample =
+    opts.lines.find((l) => l.pricingStrategyLabelPl && l.pricingStrategyLabelPl !== "Do ustalenia")
+      ?.pricingStrategyLabelPl ?? null;
+
+  const gapOn = isCostBidGap01CatalogCalEnabled();
+
+  return {
+    documents: {
+      sourceFilename,
+      discoveryLabelPl,
+      candidateSourcesSample: candidates.slice(0, 5),
+      candidatesTotal: candidates.length,
+    },
+    topImpact: ranked,
+    assumptions: {
+      aiDirectOnlyPl:
+        "Warstwa AI Cost liczy koszt bezpośredni (OfferBoq) — bez Kp, narzutu i marży oferty.",
+      mappingNotePl:
+        "Pewność mapowania i strategia wyceny pochodzą z silników S2–S3; pozycje o niskiej pewności wymagają weryfikacji.",
+      bidLayerPl: opts.bidProposalAvailable
+        ? "Cena ofertowa, Kp i marża pochodzą wyłącznie z Bid Proposal (osobna warstwa L2)."
+        : "Bid Proposal niedostępny dla tego widoku — założenia stacku oferty pojawią się po wyliczeniu L2.",
+      gapAStatusPl: gapOn
+        ? "Kalibracja katalogu (GAP-A): włączona (status odczytu — bez przełącznika w tym panelu)."
+        : "Kalibracja katalogu (GAP-A): wyłączona (baseline tip).",
+      strategySamplePl: strategySample
+        ? `Przykładowa strategia pozycji: ${strategySample}.`
+        : null,
+    },
+  };
 }
 
 function averageConfidenceFromCounts(
@@ -536,6 +658,10 @@ export function presentOfferBoqExplainabilityView(
         unpricedGapPl: buildUnpricedExplainPl(line),
       }),
       lineDirectDisplay: formatMoney(pricing?.aggregates.lineDirectPln ?? line.directCostPln),
+      lineDirectPln: (() => {
+        const n = pricing?.aggregates.lineDirectPln ?? line.directCostPln;
+        return n != null && Number.isFinite(n) ? n : null;
+      })(),
       components: componentRows,
     };
   });
@@ -614,6 +740,12 @@ export function presentOfferBoqExplainabilityView(
     offerReadiness: bidSections.offerReadiness,
     aiQuality: bidSections.aiQuality,
     bidProposal: bidSections.bidProposal,
+    cost02b: buildOfferBoq02bExplainEnrichment({
+      lines,
+      item: bidContext?.item ?? null,
+      sourceFilenameHint: presentationDoc.sourceFilename ?? null,
+      bidProposalAvailable: Boolean(bidSections.offerSummary?.available),
+    }),
   };
 }
 
@@ -737,6 +869,7 @@ export function buildOfferBoqExplainabilityView(opts: {
       offerReadiness: null,
       aiQuality: null,
       bidProposal: null,
+      cost02b: null,
     };
   }
 
