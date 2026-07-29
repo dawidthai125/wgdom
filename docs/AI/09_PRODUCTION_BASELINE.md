@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-A CLOSED**) · tip UI **2.65.81** · feature tip _(po commit)_ · PV _(po deploy)_.
+**Snapshot dokumentacji:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-A CLOSED**) · tip UI **2.65.81** · feature **`dc0daea0`** · PV **PASS**.
 
 ---
 
@@ -27,8 +27,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.81** |
-| **Deploy tip commit (`main` / `version.json`)** | _(uzupełnić po push/PV)_ |
-| **Feature tip (CENY-MATERIAŁÓW-04 P1-A)** | **CLOSED** · **FEATURE-DATA** · 10 robót chodniki/nawierzchnie + Quotes 10/10 · P3.3 import · OV FINAL PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) · UI **2.65.81** |
+| **Deploy tip commit (`main` / `version.json`)** | **`dc0daea`** (`dc0daea0`) · feature P1-A + SSOT |
+| **Feature tip (CENY-MATERIAŁÓW-04 P1-A)** | **`dc0daea0`** · **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · 10 robót chodniki/nawierzchnie + Quotes 10/10 · P3.3 import · OV FINAL PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) · UI **2.65.81** |
 | **Feature tip (CENY-MATERIAŁÓW-01)** | **`d4d05706`** · **CLOSED** · **PRODUCTION VERIFIED** · mapping uplift · KPI · quotes gaps · memo · flaga `kw-ceny-materialow-01` default **OFF** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · UI **2.65.80** |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
 | **Feature tip (AI-COST-02-B)** | **`9dc113e7`** · **CLOSED** · **PRODUCTION VERIFIED** · Explain + Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · UI **2.65.78** |
@@ -90,7 +90,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
-| **2.65.81** / _(po commit)_ | CENY-MATERIAŁÓW-04 P1-A — chodniki/nawierzchnie WC + Quotes (FEATURE-DATA) | **CLOSED** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) |
+| **2.65.81** / **`dc0daea0`** | CENY-MATERIAŁÓW-04 P1-A — chodniki/nawierzchnie WC + Quotes (FEATURE-DATA) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-A-RELEASE-COMPLETE.md) |
 | **2.65.80** / **`d4d05706`** | CENY-MATERIAŁÓW-01 — mapping uplift WC/marketQuotes (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-01-RELEASE-COMPLETE.md) |
 | **2.65.79** / **`e10a1511`** | WORK-CATALOG-P3.3 — Market Pricing UX S4–S6 (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/WORK-CATALOG-P3.3-RELEASE-COMPLETE.md) |
 | **2.65.78** / **`9dc113e7`** | AI-COST-02-B — Explain + impact queue (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/AI-COST-02-B-RELEASE-COMPLETE.md) |

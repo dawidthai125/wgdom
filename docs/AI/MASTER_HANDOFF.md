@@ -119,7 +119,7 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
-| **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** · FEATURE-DATA · UI **2.65.81** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · UI **2.65.81** · `dc0daea0` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) |
 | **CENY-MATERIAŁÓW-01** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.80** · `d4d05706` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) |
 | **WORK-CATALOG-P3.3** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.79** · `e10a1511` · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) |
 | **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.78** · `9dc113e7` · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) |

@@ -2,9 +2,10 @@
 
 > **ID:** CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT  
 > **Data:** 2026-07-30  
-> **STATUS:** **CLOSED · FINAL** (po PV PASS)  
+> **STATUS:** **CLOSED · FINAL** · **PRODUCTION VERIFIED**  
 > **Grupa:** P1-A — Chodniki i nawierzchnie  
-> **UI:** **2.65.81**  
+> **UI:** **2.65.81** · feature **`dc0daea0`**  
+> **PV:** [`PRODUCTION-VERIFY`](CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) · PASS  
 > **OV FINAL:** READY FOR COMMIT · [`FINAL`](CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md)
 
 ## Delivered

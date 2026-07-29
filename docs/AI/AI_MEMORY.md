@@ -86,7 +86,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 | Pole | Wartość |
 |------|---------|
-| Status | **CLOSED** · tip UI **2.65.81** · 10 robót WC + Quotes 10/10 · OV FINAL PASS |
+| Status | **CLOSED** · tip UI **2.65.81** · feature **`dc0daea0`** · PV **PASS** · 10 robót WC + Quotes 10/10 · OV FINAL PASS |
 | IN | chodniki/nawierzchnie · P3.3 CSV import · D-P1-F/F2 keyword patches |
 | OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy |
 | NEXT | **P1-B ogrodzenia** — Owner GO → OPS |
