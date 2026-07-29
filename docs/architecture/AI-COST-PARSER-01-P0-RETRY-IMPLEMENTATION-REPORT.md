@@ -1,9 +1,9 @@
 # AI-COST-PARSER-01 — P0-RETRY · IMPLEMENTATION REPORT
 
 > **ID:** AI-COST-PARSER-01-P0-RETRY-IMPLEMENTATION  
-> **STATUS:** **IMPLEMENT COMPLETE** (kod lokalny) · **COMMIT/PUSH: nie** (brak Owner GO)  
+> **STATUS:** **IMPLEMENT COMPLETE · SHIPPED** · commit **`e88d689f`** · tip **`e88d689`** · PV **PASS**  
 > **Data:** 2026-07-29  
-> **Baseline tip:** **2.65.77** / **`a061bbd`**  
+> **Baseline tip (pre):** **2.65.77** / **`a061bbd`** · **live:** **`e88d689`**  
 > **DF:** [`AI-COST-PARSER-01-P0-RETRY-DESIGN-FREEZE.md`](AI-COST-PARSER-01-P0-RETRY-DESIGN-FREEZE.md)  
 > **Owner GO IMPLEMENTATION:** UDZIELONE
 

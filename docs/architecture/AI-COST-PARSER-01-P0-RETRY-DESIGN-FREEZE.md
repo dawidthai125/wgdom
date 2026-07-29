@@ -2,10 +2,10 @@
 
 > **ID:** AI-COST-PARSER-01-P0-RETRY-DESIGN-FREEZE  
 > **EPIC / slice:** AI-COST-PARSER-01 · **P0-RETRY** (F2 soft-invalidate)  
-> **STATUS:** **DESIGN FREEZE · IMPLEMENTED (lokalnie)** · **COMMIT/PUSH: oczekuje Owner GO** · tip baseline **2.65.77**  
+> **STATUS:** **DESIGN FREEZE · SHIPPED · PV PASS · CLOSED** · tip **2.65.77** / **`e88d689`**  
 > **Data:** 2026-07-29  
 > **Język:** polski  
-> **Baseline tip:** **2.65.77** / **`a061bbd`** — SSOT [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
+> **Baseline tip (pre):** **2.65.77** / **`a061bbd`** · **live tip:** **`e88d689`** — SSOT [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
 > **PLAN:** [`AI-COST-PARSER-01-PLAN.md`](AI-COST-PARSER-01-PLAN.md)  
 > **IMPLEMENT:** [`AI-COST-PARSER-01-P0-RETRY-IMPLEMENTATION-REPORT.md`](AI-COST-PARSER-01-P0-RETRY-IMPLEMENTATION-REPORT.md)  
 > **PV:** [`AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md`](AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md)  
