@@ -19,6 +19,7 @@ import {
   hasMulti02CostSources,
   traceForceHeavyRescan,
 } from "@/lib/cost-multi-02-force-rescan";
+import { shouldSoftInvalidateOnF2ZipRetry } from "@/lib/cost-parser-zip-unpack";
 import {
   buildHeavyParseDocumentFingerprint,
   buildHeavyParseDocumentSet,
@@ -143,6 +144,19 @@ export function useTenderDossierHeavyLazy(opts: {
   }, [item.tenderDossier?.forceHeavyRescanAt]);
 
   const retryDossierParse = useCallback(() => {
+    const live = itemRef.current;
+    const dossier = live.tenderDossier;
+    const docs = buildHeavyParseDocumentSet(live);
+    const heavyDone = tenderDossierHeavyParseDone(dossier);
+    /* AI-COST-PARSER-01 P0-RETRY — REUSE Force soft-invalidate; zero nowej pętli. */
+    if (dossier && shouldSoftInvalidateOnF2ZipRetry(dossier, docs, heavyDone)) {
+      const at = new Date().toISOString();
+      forceRescanAtRef.current = at;
+      onUpdateRef.current(
+        { tenderDossier: applyForceHeavyRescanAt(dossier, at) },
+        { persist: "local" },
+      );
+    }
     clearDossierInflightForItem(itemId);
     setPartialPersistPending(false);
     setFinalPersistPending(false);

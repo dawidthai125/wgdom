@@ -193,6 +193,31 @@ ok("CTA label", FORCE_HEAVY_RESCAN_CTA_LABEL === "Uzupełnij odczyty branż");
   );
 }
 
+// P0-RETRY DF — healthy CTA + wire retry soft-invalidate (bez zmiany kontraktu Force)
+{
+  const item = makeItem(
+    healthyDossier({
+      scanSummary: {
+        costCandidateSources: undefined,
+        branchWinnerArtifacts: undefined,
+      },
+    }),
+  );
+  ok(
+    "P0-RETRY healthy Force CTA unchanged (visible)",
+    shouldShowForceHeavyRescanCta({ item, forceHandlerAvailable: true }) === true,
+  );
+  const heavySrc = readFileSync("src/app/hooks/useTenderDossierHeavyLazy.ts", "utf8");
+  ok(
+    "P0-RETRY retryDossierParse wires shouldSoftInvalidateOnF2ZipRetry",
+    heavySrc.includes("shouldSoftInvalidateOnF2ZipRetry"),
+  );
+  ok(
+    "P0-RETRY retry uses applyForceHeavyRescanAt",
+    /retryDossierParse[\s\S]{0,1200}applyForceHeavyRescanAt/.test(heavySrc),
+  );
+}
+
 console.log("\n=== I1 Soft invalidate → Heavy arm contract ===\n");
 
 {

@@ -1,9 +1,11 @@
 /**
  * COST-PARSER-01 ZIP-UNPACK — stany A/B/C + copy + HeavyDone gate (pure).
  * REUSE CR-02 archive_candidate — bez redefinicji.
+ * P0-RETRY — soft-invalidate F2 Ponów (DF AI-COST-PARSER-01-P0-RETRY).
  */
 
 import { classifyCostDocumentType } from "@/lib/tender-cost-discovery";
+import { is7zFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 
 /** DF §3 — data-cost-parser-zip-state */
 export type CostParserZipState = "unpack_failed" | "no_cost_inner" | "parse_failed";
@@ -91,4 +93,36 @@ export function canStampHeavyParsedAtForZipUnpack(input: {
   if (!input.hasTopLevelZip) return true;
   if (input.zipUnpackOk) return true;
   return input.zipUnpackRetryUsed;
+}
+
+/** Minimalny kształt dossier dla P0-RETRY predykatu (bez importu pipeline — ZERO cyklu). */
+export interface SoftInvalidateF2ZipRetryDossier {
+  scanSummary?: { zipUnpackOk?: boolean | null } | null;
+  kosztorys?: { ok?: boolean } | null;
+  forceHeavyRescanAt?: string;
+}
+
+/**
+ * AI-COST-PARSER-01 P0-RETRY DF §4.1 —
+ * Czy F2 „Ponów” ma ustawić applyForceHeavyRescanAt (REUSE Force path).
+ *
+ * `heavyParseDone` MUSI pochodzić z SSOT `tenderDossierHeavyParseDone(dossier)`
+ * (przekazywane z zewnątrz — unik cyklu importów z tender-dossier-pipeline).
+ */
+export function shouldSoftInvalidateOnF2ZipRetry(
+  dossier: SoftInvalidateF2ZipRetryDossier | null | undefined,
+  docs: ReadonlyArray<{ filename?: string }>,
+  heavyParseDone: boolean,
+): boolean {
+  if (!dossier) return false;
+  const hasArchive = docs.some((d) => {
+    const name = d.filename?.trim() ?? "";
+    return Boolean(name) && (isZipFilename(name) || is7zFilename(name));
+  });
+  if (!hasArchive) return false;
+  if (dossier.scanSummary?.zipUnpackOk !== false) return false;
+  if (!heavyParseDone) return false;
+  if (dossier.kosztorys?.ok === true) return false;
+  if (dossier.forceHeavyRescanAt) return false;
+  return true;
 }
