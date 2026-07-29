@@ -1,10 +1,23 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-29 (**WORK-CATALOG-P3.3 CLOSED** · tip UI **2.65.79** · feature **`e10a1511`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-29 (**CENY-MATERIAŁÓW-01 CLOSED** · tip UI **2.65.80** · feature **`d4d05706`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CENY-MATERIAŁÓW-01 — mapping uplift WC / marketQuotes — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.80** · feature **`d4d05706`** |
+| **Closeout** | [`CENY-MATERIAŁÓW-01-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) |
+| **PV** | [`CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) |
+| **DF** | [`CENY-MATERIAŁÓW-01-DESIGN-FREEZE.md`](docs/architecture/CENY-MATERIAŁÓW-01-DESIGN-FREEZE.md) |
+| **IN** | CM-0 KPI · CM-1 mapping · CM-2 quotes gaps · CM-3 memo · flaga `kw-ceny-materialow-01` default **OFF** |
+| **OUT** | tabele/SKU/scraper · reorder · Bid · Cloud CORE · GAP-B/1,6M · Supabase Q |
+| **PV** | tip **2.65.80** / **`d4d0570`** · bundle flag+attr+uplift+gaps |
+| **Następne** | **GAP-B / I3 / TP200B** — Owner GO → DF · **nie** re-open CM-01 bez briefu |
 
 ## ★ WORK-CATALOG-P3.3 — Market Pricing UX — **CLOSED**
 

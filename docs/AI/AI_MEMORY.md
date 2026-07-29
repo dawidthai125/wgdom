@@ -82,6 +82,18 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-01 — CLOSED · PRODUCTION VERIFIED
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.80** · feature **`d4d05706`** · PV **PASS** |
+| Flag | `kw-ceny-materialow-01` default **OFF** |
+| IN | CM-0 KPI · CM-1 mapping uplift · CM-2 quotes gaps · CM-3 memo (OfferBoq build) |
+| OUT | tabele/SKU/scraper · reorder providers · Bid · Cloud CORE · GAP-B/1,6M |
+| NEXT | WORK-CATALOG-P3.3 **CLOSED** · dalej **GAP-B / I3 / TP200B** |
+
+**SSOT:** [`CENY-MATERIAŁÓW-01-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md)
+
 ## WORK-CATALOG-P3.3 — CLOSED · PRODUCTION VERIFIED
 
 | Pole | Wartość |

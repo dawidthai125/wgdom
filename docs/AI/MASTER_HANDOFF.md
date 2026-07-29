@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-29  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,7 +10,8 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip UI = 2.65.79 · Feature tip = e10a1511 (SSOT 09 + version.json)
+Tip UI = 2.65.80 · Feature tip = d4d05706 (SSOT 09 + version.json)
+CENY-MATERIAŁÓW-01 Phase 1 = CLOSED · PRODUCTION VERIFIED
 WORK-CATALOG-P3.3 Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-PARSER-01 P0-RETRY = CLOSED · PRODUCTION VERIFIED
@@ -72,9 +73,9 @@ Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid /
 | Pole | Wartość |
 |------|---------|
 | **Production URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Production Version (UI)** | **2.65.79** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
-| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · feature WORK-CATALOG-P3.3 **`e10a1511`** |
-| **Ostatni feature (katalog)** | **WORK-CATALOG-P3.3** · **`e10a1511`** · UI **2.65.79** · **CLOSED · PV** |
+| **Production Version (UI)** | **2.65.80** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
+| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · feature CENY-MATERIAŁÓW-01 **`d4d05706`** |
+| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-01** · **`d4d05706`** · UI **2.65.80** · **CLOSED · PV** |
 | **Payroll Hours-wipe baseline** | **2.65.43** @ **`ea1b0a6`** (semantyka D1–D5 ACTIVE) |
 | **Status projektu** | **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE** |
 | **Protected Core** | **GREEN** |
@@ -117,6 +118,7 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
+| **CENY-MATERIAŁÓW-01** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.80** · `d4d05706` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) |
 | **WORK-CATALOG-P3.3** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.79** · `e10a1511` · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) |
 | **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.78** · `9dc113e7` · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) |
 | **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.77** · `e88d689f` · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
@@ -189,6 +191,7 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C1** | **COST-BID-GAP-01 / GAP-A** | **CLOSED · PV** | Catalog cal · UNKNOWN · market REUSE | — | Shipped **2.65.77** |
 | **C2** | **AI-COST-02-B** | **CLOSED · PV** | Explain + Queue · flaga OFF | — | Shipped **2.65.78** · `9dc113e7` |
 | **C3** | **WORK-CATALOG-P3.3** | **CLOSED · PV** | Market Pricing UX S4–S6 · flaga OFF | — | Shipped **2.65.79** · `e10a1511` |
+| **C3b** | **CENY-MATERIAŁÓW-01** | **CLOSED · PV** | Mapping uplift · KPI · gaps · memo · flaga OFF | — | Shipped **2.65.80** · `d4d05706` |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -248,4 +251,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.79** · feature **`e10a1511`** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · COST-02-A **CLOSED** · NEXT **GAP-B / I3 / TP200B** · tip w `09`
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.80** · feature **`d4d05706`** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · COST-02-A **CLOSED** · NEXT **GAP-B / I3 / TP200B** · tip w `09`

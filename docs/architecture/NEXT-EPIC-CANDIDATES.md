@@ -4,7 +4,7 @@
 > **MODE:** DOCS ONLY · analiza kandydatów · **bez implementacji / commit / push**  
 > **Data:** 2026-07-29  
 > **Kontekst:** **COST-BID-GAP-01 / GAP-A CLOSED** · **PV** ([`COST-BID-GAP-01-CLOSEOUT.md`](COST-BID-GAP-01-CLOSEOUT.md)) · wcześniej **COST-MULTI CLOSED**  
-> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.79** · feature **`e10a1511`**  
+> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.80** · feature **`d4d05706`**  
 > **Handoff:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Stabilization Window:** **ACTIVE** — każdy kandydat wymaga **Owner GO** (+ AUDIT → DF przed IMPLEMENT)
 
@@ -14,6 +14,7 @@ C0 AI-COST-PARSER-01 P0-RETRY = CLOSED (e88d689f · PV)
 C1 COST-BID-GAP-01 / GAP-A = CLOSED (2.65.77)
 C2 AI-COST-02-B = CLOSED (9dc113e7 · 2.65.78 · PV)
 C3 WORK-CATALOG-P3.3 = CLOSED (e10a1511 · 2.65.79 · PV)
+C3b CENY-MATERIAŁÓW-01 = CLOSED (d4d05706 · 2.65.80 · PV)
 Rekomendacja NEXT = GAP-B / I3 / TP200B (Owner wybór)
 NIE start IMPLEMENT. NIE wybór za Ownera.
 ════════════════════════════════════════════════════════
@@ -85,6 +86,19 @@ NIE start IMPLEMENT. NIE wybór za Ownera.
 | **Zakres shipped** | S4 CSV commit/rollback · S5 coverage Engine · S6 mobile · flaga `kw-wc-p33-market-pricing-ux` default OFF |
 | **Residual** | D-C rynek→companyPrice = osobny DF · MPI nadal BLOCKED |
 | **SSOT** | [`WORK-CATALOG-P3.3-CLOSEOUT.md`](WORK-CATALOG-P3.3-CLOSEOUT.md) · [`WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md`](WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) |
+
+**Nie wznawiać Phase 1** bez nowego Owner briefu.
+
+---
+
+### C3b — CENY-MATERIAŁÓW-01 · mapping uplift / KPI / quotes gaps — **CLOSED**
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.80** · feature **`d4d05706`** |
+| **Zakres shipped** | CM-0 KPI · CM-1 mapping · CM-2 quotes gaps · CM-3 memo · flaga `kw-ceny-materialow-01` default OFF |
+| **Residual** | KPI controlled_market zależy od Quotes (P3.3 ops) · GAP-B/1,6M = OUT |
+| **SSOT** | [`CENY-MATERIAŁÓW-01-CLOSEOUT.md`](CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md`](CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) |
 
 **Nie wznawiać Phase 1** bez nowego Owner briefu.
 

@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-29 (**WORK-CATALOG-P3.3 CLOSED**) · tip UI **2.65.79** · feature **`e10a1511`** · PV **PASS**.
+**Snapshot dokumentacji:** 2026-07-29 (**CENY-MATERIAŁÓW-01 CLOSED**) · tip UI **2.65.80** · feature **`d4d05706`** · PV **PASS**.
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.79** |
-| **Deploy tip commit (`main` / `version.json`)** | **`5d25350`** (`5d253501`) · docs PV/CLOSEOUT/SSOT · live po sync |
+| **UI version (changelog / version.json)** | **2.65.80** |
+| **Deploy tip commit (`main` / `version.json`)** | **`d4d0570`** (`d4d05706`) · feature tip live · docs SSOT w tym samym release window |
+| **Feature tip (CENY-MATERIAŁÓW-01)** | **`d4d05706`** · **CLOSED** · **PRODUCTION VERIFIED** · mapping uplift · KPI · quotes gaps · memo · flaga `kw-ceny-materialow-01` default **OFF** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · UI **2.65.80** |
 | **Feature tip (WORK-CATALOG-P3.3)** | **`e10a1511`** · **CLOSED** · **PRODUCTION VERIFIED** · Market Pricing UX S4–S6 · flaga `kw-wc-p33-market-pricing-ux` default **OFF** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · UI **2.65.79** |
 | **Feature tip (AI-COST-02-B)** | **`9dc113e7`** · **CLOSED** · **PRODUCTION VERIFIED** · Explain + Queue · flaga `kw-ai-cost-02-b-explain-queue` default **OFF** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · UI **2.65.78** |
 | **Feature tip (AI-COST-PARSER-01 P0-RETRY)** | **`e88d689f`** · **CLOSED** · **PRODUCTION VERIFIED** · F2 soft-invalidate Ponów → Force Heavy · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) · UI **2.65.77** |
@@ -67,7 +68,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.79** · feature **`e10a1511`** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **GAP-B / I3 / TP200B** |
+| **Status** | **PRODUCTION** tip UI **2.65.80** · feature **`d4d05706`** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **GAP-B / I3 / TP200B** |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -88,6 +89,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.80** / **`d4d05706`** | CENY-MATERIAŁÓW-01 — mapping uplift WC/marketQuotes (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-01-RELEASE-COMPLETE.md) |
 | **2.65.79** / **`e10a1511`** | WORK-CATALOG-P3.3 — Market Pricing UX S4–S6 (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) · [`PV`](../architecture/WORK-CATALOG-P3.3-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/WORK-CATALOG-P3.3-RELEASE-COMPLETE.md) |
 | **2.65.78** / **`9dc113e7`** | AI-COST-02-B — Explain + impact queue (flag OFF default) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-02-B-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/AI-COST-02-B-RELEASE-COMPLETE.md) |
 | **2.65.77** / deploy **`77a2f0f`** · feature **`e88d689f`** | AI-COST-PARSER-01 P0-RETRY — F2 Ponów soft-invalidate → Force Heavy | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) · [`PV`](../architecture/AI-COST-PARSER-01-P0-RETRY-PRODUCTION-VERIFY.md) |
