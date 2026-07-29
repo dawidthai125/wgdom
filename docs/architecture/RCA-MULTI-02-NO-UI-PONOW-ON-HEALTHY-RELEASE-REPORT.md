@@ -29,4 +29,5 @@ BUGFIX
 
 ## Production
 
-Po push: VERIFY FAST — jedno `curl version.json`. Live fixture `08dee335` — PV osobny.
+Po push `1e18374f`: VERIFY FAST — jedno `curl version.json` → live jeszcze **2.65.75** → **DEPLOY PROPAGATING**.  
+Live fixture `08dee335` — PV UI po tipie 2.65.76.

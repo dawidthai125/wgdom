@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-28 (**COST-MULTI-02**) · feature UI **2.65.75** · tip commit w §1 · prior MULTI-01 **2.65.74**.
+**Snapshot dokumentacji:** 2026-07-29 (**Force Heavy Rescan**) · feature UI **2.65.76** · tip commit w §1 · prior MULTI-02 **2.65.75**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.75** (COST-MULTI-02) — live może jeszcze **2.65.74** |
-| **Deploy tip commit (`main` / `version.json`)** | Feature **`8f4673ce`** · **DEPLOY PROPAGATING** |
+| **UI version (changelog / version.json)** | **2.65.76** (Force Heavy Rescan) — live może jeszcze **2.65.75** |
+| **Deploy tip commit (`main` / `version.json`)** | Feature **`1e18374f`** · **DEPLOY PROPAGATING** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
 | **AI-COST-02** | **COST-02-A CLOSED** · dalsze obszary **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **Ostatni feature (Force Heavy Rescan)** | CTA „Uzupełnij odczyty branż” · `forceHeavyRescanAt` · REUSE Heavy — **CLOSED (F0–F3 code)** · [`RCA`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY.md) · [`DF`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-DESIGN-FREEZE.md) · [`IMPL`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) · UI **2.65.76** |
 | **Ostatni feature (COST-MULTI-02)** | Aggregate Bid · `resolveCostBidInput` · Branch winners → Bid/OfferBoq — **CLOSED (B0–B3)** · [`DF`](../architecture/COST-MULTI-02-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-MULTI-02-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-MULTI-02-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-MULTI-02-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-MULTI-02-CLOSEOUT.md) · UI **2.65.75** |
 | **Ostatni feature (COST-MULTI-01)** | CostPackage · BranchPackage · SUM_BRANCH_WINNERS / HOLD · UX incomplete ONE — **CLOSED (M1–M3)** · [`AUDIT`](../architecture/COST-MULTI-01-AUDIT.md) · [`DF`](../architecture/COST-MULTI-01-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-MULTI-01-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-MULTI-01-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-MULTI-01-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-MULTI-01-CLOSEOUT.md) · UI **2.65.74** |
 | **Ostatni feature (COST-PARSER-01)** | ZIP unpack A/B/C · 1× retry · HeavyDone gate — **`076781d`** · **CLOSED (code)** · [`RCA`](../architecture/COST-PARSER-01-HEAVY-PARSE-RCA.md) · [`DF`](../architecture/COST-PARSER-01-ZIP-UNPACK-DESIGN-FREEZE.md) · [`IMPL`](../architecture/COST-PARSER-01-ZIP-UNPACK-IMPLEMENTATION-REPORT.md) · [`PV`](../architecture/COST-PARSER-01-ZIP-UNPACK-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/COST-PARSER-01-ZIP-UNPACK-RELEASE-REPORT.md) · [`CLOSEOUT`](../architecture/COST-PARSER-01-ZIP-UNPACK-CLOSEOUT.md) · UI **2.65.73** |
