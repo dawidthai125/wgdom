@@ -82,6 +82,17 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-04 P1-C — CLOSED · FEATURE-DATA
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.83** · feature **`a38d5ad8`** · PV **PASS** · 7 robót WC elewacje/ocieplenia + Quotes 7/7 · OV PASS |
+| IN | ELEWACJE_OCIEPLENIA · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
+| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A · P1-B |
+| NEXT | **P2** — Owner GO |
+
+**SSOT:** [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md)
+
 ## CENY-MATERIAŁÓW-04 P1-B — CLOSED · FEATURE-DATA
 
 | Pole | Wartość |
@@ -89,7 +100,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | **Status** | **CLOSED** · tip UI **2.65.82** · feature **`dca25c96`** · PV **PASS** · 7 robót WC ogrodzenia + Quotes 7/7 · OV PASS |
 | IN | ogrodzenia · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
 | OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A |
-| NEXT | **P1-C** — Owner GO → PLAN |
+| NEXT | **P1-C CLOSED** → **P2** |
 
 **SSOT:** [`CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md)
 

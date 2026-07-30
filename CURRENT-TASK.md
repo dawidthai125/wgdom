@@ -1,10 +1,22 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-B CLOSED** · tip UI **2.65.82**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1-C CLOSED** · tip UI **2.65.83**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CENY-MATERIAŁÓW-04 P1-C — elewacje / ocieplenia — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · tip UI **2.65.83** · feature **`a38d5ad8`** · OV **PASS** |
+| **Closeout** | [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
+| **PV** | [`CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) |
+| **IN** | 7 robót WC · Quotes 7/7 · CSV→P3.3 · OPS token patch |
+| **OUT** | AI-COST · scoring · Bid · Cloud CORE · P1-A · P1-B |
+| **KPI** | CM 73.2% · HE 26.8% · C1 5 · C2 25 · unmatched ELEWACJE 40 125 PLN |
+| **Następne** | **P2** — Owner GO · **nie** auto-start |
 
 ## ★ CENY-MATERIAŁÓW-04 P1-B — ogrodzenia — **CLOSED**
 
@@ -16,7 +28,7 @@
 | **IN** | 7 robót WC · Quotes 7/7 · CSV→P3.3 · OPS token patch |
 | **OUT** | AI-COST · scoring · Bid · Cloud CORE · P1-A |
 | **KPI** | CM 73% · HE 27% · C1 5 · unmatched OGRODZENIA 0 |
-| **Następne** | **P1-C** — Owner GO → PLAN · **nie** auto-start |
+| **Następne** | **P1-C CLOSED** → **P2** |
 
 ## ★ CENY-MATERIAŁÓW-04 P1-A — chodniki i nawierzchnie — **CLOSED**
 
@@ -27,7 +39,7 @@
 | **PV** | [`CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) |
 | **IN** | 10 robót WC · Quotes 10/10 · CSV→P3.3 · D-P1-F/F2 |
 | **OUT** | AI-COST · scoring · Bid · Cloud CORE |
-| **Następne** | **P1-B CLOSED** → **P1-C** |
+| **Następne** | **P1-B CLOSED** · **P1-C CLOSED** → **P2** |
 
 ## ★ CENY-MATERIAŁÓW-01 — mapping uplift WC / marketQuotes — **CLOSED**
 

@@ -4,7 +4,7 @@
 > **MODE:** DOCS ONLY · analiza kandydatów · **bez implementacji / commit / push**  
 > **Data:** 2026-07-29  
 > **Kontekst:** **COST-BID-GAP-01 / GAP-A CLOSED** · **PV** ([`COST-BID-GAP-01-CLOSEOUT.md`](COST-BID-GAP-01-CLOSEOUT.md)) · wcześniej **COST-MULTI CLOSED**  
-> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.82** · CENY-MATERIAŁÓW-04 **P1-B CLOSED**  
+> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.83** · CENY-MATERIAŁÓW-04 **P1-C CLOSED**  
 > **Handoff:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Stabilization Window:** **ACTIVE** — każdy kandydat wymaga **Owner GO** (+ AUDIT → DF przed IMPLEMENT)
 
@@ -17,7 +17,8 @@ C3 WORK-CATALOG-P3.3 = CLOSED (e10a1511 · 2.65.79 · PV)
 C3b CENY-MATERIAŁÓW-01 = CLOSED (d4d05706 · 2.65.80 · PV)
 C3c CENY-MATERIAŁÓW-04 P1-A = CLOSED (2.65.81 · FEATURE-DATA)
 C3d CENY-MATERIAŁÓW-04 P1-B = CLOSED (2.65.82 · FEATURE-DATA)
-Rekomendacja NEXT = P1-C (Owner GO) · GAP-B / I3 / TP200B
+C3e CENY-MATERIAŁÓW-04 P1-C = CLOSED (2.65.83 · FEATURE-DATA)
+Rekomendacja NEXT = P2 (Owner GO) · GAP-B / I3 / TP200B
 NIE start IMPLEMENT. NIE wybór za Ownera.
 ════════════════════════════════════════════════════════
 ```
