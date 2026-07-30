@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.87 — CATALOG-COVERAGE-01 P0a Noise Filter (2026-07-30)
+
+- **new:** `src/lib/catalog-coverage/**` — Noise Filter przed mapowaniem OfferBoq (kalkulacja własna · transport wąski · LP · śmieci)
+- **wire:** thin pre-map w `mapOfferBoqLine` · Core scoringu bez zmian · tag `isNoise`/`noiseKind`
+- **guard:** „Dostawa i montaż” + KNR ≠ noise · zero write Library/Quotes
+- **test:** `npx vite-node scripts/test-catalog-coverage-01-p0a.mjs` · OV `catalog-coverage-01-p0a-owner-verification.mjs`
+- **bez:** Normalizer · Alias · Coverage Score · SMART/MS · seed Library · commit/push
+
 ## 2.65.86 — SMART-PRICING-01 P0 Detect RO (2026-07-30)
 
 - **new:** `src/lib/smart-pricing/**` — Detect braków użytecznej ceny (Quotes-first · conf ≥0.50 · stale ≤180d)

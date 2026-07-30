@@ -308,6 +308,18 @@ export interface OfferBoqLine {
   /** Branża / kategoria robót (label PL) — COST-S2. */
   workCategory: string | null;
   categoryId: string | null;
+  /**
+   * CATALOG-COVERAGE-01 P0a — Noise Filter (ephemeral tag).
+   * true ⇒ pozycja niemateriałowa · Mapper pominięty · brak zapisu Library/Quotes.
+   */
+  isNoise?: boolean;
+  /** Kind Noise Filter (DF §2.1) — tylko gdy isNoise. */
+  noiseKind?:
+    | "kalkulacja_wlasna"
+    | "transport"
+    | "lp_artifact"
+    | "smieci_krotkie"
+    | null;
   knrHint: string | null;
   matchMethod: OfferBoqMatchMethod;
   /** Alias produktowy metody (DoD COST-S2). */
@@ -520,6 +532,8 @@ function structuralLine(opts: {
     catalogWorkId: null,
     workCategory: null,
     categoryId: null,
+    isNoise: false,
+    noiseKind: null,
     knrHint,
     matchMethod: "snapshot",
     matchedBy: "snapshot",

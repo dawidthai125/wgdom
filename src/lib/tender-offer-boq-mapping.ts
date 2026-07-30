@@ -28,6 +28,7 @@ import {
   type OfferBoqMatchMethod,
   type OfferBoqMappingStats,
 } from "@/lib/tender-offer-boq";
+import { prepareOfferBoqLineForMapping } from "@/lib/catalog-coverage/noise-filter";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -325,8 +326,27 @@ function toCandidate(
 /**
  * Mapuje pojedynczą linię OfferBoq (bez wyceny).
  * Nie mutuje input — zwraca nową linię.
+ *
+ * CATALOG-COVERAGE-01 P0a: Noise Filter **przed** scoringiem (thin pre-map).
+ * Product Mapper (= ta funkcja) pozostaje jedynym właścicielem `catalogWorkId`
+ * dla linii eligible; noise → skip scoringu (zero write).
  */
 export function mapOfferBoqLine(
+  line: OfferBoqLine,
+  ctx: OfferBoqMappingContext,
+): OfferBoqLine {
+  const prepared = prepareOfferBoqLineForMapping(line);
+  if (prepared.skipMapper) {
+    return prepared.line;
+  }
+  return mapOfferBoqLineCore(prepared.line, ctx);
+}
+
+/**
+ * Rdzeń Product Mapper (AS-IS scorowanie) — bez Noise Filter.
+ * Eksport testowy / REUSE; produkcyjny tor = `mapOfferBoqLine`.
+ */
+export function mapOfferBoqLineCore(
   line: OfferBoqLine,
   ctx: OfferBoqMappingContext,
 ): OfferBoqLine {
@@ -449,6 +469,8 @@ export function mapOfferBoqLine(
     candidateMatches,
     aiConfidence: matchConfidence,
     aiRationale,
+    isNoise: false,
+    noiseKind: null,
     // Wycena nadal OUT — nie tykać cen
   };
 }

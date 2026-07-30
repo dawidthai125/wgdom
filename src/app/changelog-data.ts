@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.87",
+    label: "Catalog Coverage P0a — Noise Filter",
+    items: [
+      {
+        type: "new",
+        text: "Catalog Coverage (P0a): Noise Filter przed mapowaniem OfferBoq — wyklucza pozycje niemateriałowe (kalkulacja własna, transport, artefakty LP, puste opisy). Bez zapisu do katalogu / Quotes.",
+      },
+      {
+        type: "improve",
+        text: "„Dostawa i montaż …” pozostaje w mapowaniu (nie jest transport-noise). Product Mapper bez zmian scoringu — thin pre-map. FEATURE-DATA only.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.86",
     label: "Smart Pricing P0 — Detect braków cen",
     items: [
