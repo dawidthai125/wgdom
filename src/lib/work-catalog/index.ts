@@ -180,12 +180,15 @@ export {
 
 export {
   MARKET_COVERAGE_VALUES,
+  MARKET_DIY_ORIGIN_IDS,
+  MARKET_DIY_ORIGIN_LABELS_PL,
   MARKET_LEGACY_SEED_ORIGIN_ID,
   MARKET_MIN_CONFIDENCE_DEFAULT,
   MARKET_ORIGIN_IDS,
   MARKET_ORIGIN_LABELS_PL,
   MARKET_QUOTE_ORIGIN_IDS,
   isMarketCoverage,
+  isMarketDiyOriginId,
   isMarketOriginId,
   isMarketQuoteOriginId,
   normalizeMarketCoverage,
@@ -193,6 +196,7 @@ export {
   normalizeWorkMarketQuotes,
   roundMarketPricePln,
   type MarketCoverage,
+  type MarketDiyOriginId,
   type MarketOriginId,
   type MarketQuoteOriginId,
   type MarketSourceSnapshot,

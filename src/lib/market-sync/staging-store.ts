@@ -39,6 +39,12 @@ export function normalizeMarketProduct(raw: unknown): MarketProduct | null {
   const ean = Array.isArray(o.ean)
     ? uniqueEans(o.ean.filter((a): a is string => typeof a === "string"))
     : [];
+  const linkedWorkIds = Array.isArray(o.linkedWorkIds)
+    ? o.linkedWorkIds
+        .filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+        .map((id) => id.trim())
+        .slice(0, 1)
+    : [];
   return {
     id,
     canonicalName,
@@ -47,6 +53,7 @@ export function normalizeMarketProduct(raw: unknown): MarketProduct | null {
     category: typeof o.category === "string" ? o.category : null,
     aliases,
     ean,
+    linkedWorkIds,
     active: o.active !== false,
     createdAt: typeof o.createdAt === "string" ? o.createdAt : nowIso(),
     updatedAt: typeof o.updatedAt === "string" ? o.updatedAt : nowIso(),
@@ -187,17 +194,11 @@ export function createMarketProductDraft(input: {
     category: input.category ?? null,
     aliases: dedupeFolded(input.aliases ?? []),
     ean: uniqueEans(input.ean ?? []),
+    linkedWorkIds: [],
     active: true,
     createdAt: ts,
     updatedAt: ts,
   };
-}
-
-export function assertNoPublishSurfaceInModuleGraph(): {
-  commitImportTouched: boolean;
-} {
-  // Guard dokumentacyjny dla testów OV — runtime nie importuje commit.
-  return { commitImportTouched: false };
 }
 
 export type { ProviderId };

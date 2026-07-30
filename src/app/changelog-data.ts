@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.85",
+    label: "Market Sync P1 — Accept + Publish",
+    items: [
+      {
+        type: "new",
+        text: "Market Sync (P1): Accept/Reject/Defer (staging), link N:1 workId, Guard → Dry Run → Delta → Publish Summary → Kill Switch → commitMarketQuotesImport. Origins leroy/castorama w Quotes; średnia DIY default OFF. Undo single (capture/restore).",
+      },
+      {
+        type: "improve",
+        text: "Kill Switch MARKET_SYNC_PUBLISH_ENABLED default OFF (fail-closed w lib). Idempotencja re-Publish = noop. Bez AI-COST / Cloud Sync CORE / Payroll / drugiego toru Quotes.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.84",
     label: "Market Sync P0 — Preview staging (DIY)",
     items: [

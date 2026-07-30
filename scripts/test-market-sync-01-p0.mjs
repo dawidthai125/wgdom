@@ -137,9 +137,9 @@ const aliasHit = matchProviderQuote(aliasQuote, {
 assert(aliasHit.status === "proposed", "T06 alias proposed");
 assert(aliasHit.matchMethod === "alias" || aliasHit.matchMethod === "mfr_name_unit", "T06 alias method");
 
-console.log("\n=== T07 publish surface guard (static) ===");
+console.log("\n=== T07 publish surface guard (static) — P0 modules bez commit ===");
 const fs = await import("node:fs");
-const libFiles = [
+const p0OnlyFiles = [
   "src/lib/market-sync/types.ts",
   "src/lib/market-sync/normalize.ts",
   "src/lib/market-sync/match.ts",
@@ -147,25 +147,35 @@ const libFiles = [
   "src/lib/market-sync/preview.ts",
   "src/lib/market-sync/staging-store.ts",
   "src/lib/market-sync/pipeline.ts",
-  "src/lib/market-sync/index.ts",
-  "src/app/market-sync/MarketSyncPreviewPanel.tsx",
+  "src/lib/market-sync/accept.ts",
+  "src/lib/market-sync/guard.ts",
+  "src/lib/market-sync/dry-run.ts",
+  "src/lib/market-sync/delta.ts",
+  "src/lib/market-sync/kill-switch.ts",
+  "src/lib/market-sync/publish-summary.ts",
+  "src/lib/market-sync/undo.ts",
 ];
-let commitHits = 0;
-let publishHits = 0;
-for (const rel of libFiles) {
+let commitHitsP0 = 0;
+let applyHits = 0;
+for (const rel of p0OnlyFiles) {
   const text = fs.readFileSync(join(root, rel), "utf8");
   if (
     /import\s*\{[^}]*commitMarketQuotesImport/.test(text) ||
     /commitMarketQuotesImport\s*\(/.test(text)
   ) {
-    commitHits += 1;
+    commitHitsP0 += 1;
   }
-  if (/applyMarketQuotesFromPreview\s*\(/.test(text) || /onAccept\s*=/.test(text)) {
-    publishHits += 1;
+  if (/applyMarketQuotesFromPreview\s*\(/.test(text)) {
+    applyHits += 1;
   }
 }
-assert(commitHits === 0, "T07 zero wywołań/importów commitMarketQuotesImport");
-assert(publishHits === 0, "T07 zero applyMarketQuotesFromPreview / onAccept");
+const publishTs = fs.readFileSync(join(root, "src/lib/market-sync/publish.ts"), "utf8");
+assert(commitHitsP0 === 0, "T07 P0/Accept/Guard bez commitMarketQuotesImport");
+assert(applyHits === 0, "T07 zero applyMarketQuotesFromPreview poza commit path");
+assert(
+  /commitMarketQuotesImport/.test(publishTs),
+  "T07 publish.ts = jedyny tor commitMarketQuotesImport w market-sync",
+);
 
 console.log("\n=== T08 draft product ===");
 const draft = createMarketProductDraft({

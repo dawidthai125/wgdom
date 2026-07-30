@@ -1,6 +1,6 @@
 /**
- * MARKET-SYNC-01 P0 — modele staging (Feature-Data).
- * STOP: Preview only · bez Accept / publish / Quotes / Cloud CORE.
+ * MARKET-SYNC-01 — modele staging (Feature-Data).
+ * P0: Preview · P1: Accept (staging) + Publish via commitMarketQuotesImport.
  */
 
 export type ProviderId =
@@ -16,7 +16,11 @@ export type ProviderQuoteStatus =
   | "proposed"
   | "unmatched"
   | "conflict"
-  | "rejected_row";
+  | "rejected_row"
+  | "accepted"
+  | "rejected"
+  | "deferred"
+  | "published";
 
 export type MatchMethod = "ean" | "provider_sku" | "mfr_name_unit" | "alias" | "manual";
 
@@ -37,6 +41,8 @@ export interface MarketProduct {
   category: MarketProductCategory | string | null;
   aliases: string[];
   ean: string[];
+  /** P1 N:1 — 0 lub 1 workId do Publish. */
+  linkedWorkIds: string[];
   active: boolean;
   createdAt: string;
   updatedAt: string;

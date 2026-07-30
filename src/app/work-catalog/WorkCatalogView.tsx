@@ -304,7 +304,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
                   data-market-sync-p0-entry
                 >
                   <Store size={16} className="mr-1.5 shrink-0" aria-hidden />
-                  Market Sync Preview
+                  Market Sync
                 </WgButton>
               )}
               {p33Enabled && totalCount > 0 && (

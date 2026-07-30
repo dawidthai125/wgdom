@@ -24,16 +24,31 @@ export const MARKET_ORIGIN_LABELS_PL: Record<MarketOriginId, string> = {
 };
 
 /**
+ * MARKET-SYNC-01 P1 — origins DIY (Leroy / Castorama).
+ * Dozwolone w `marketQuotes` · **poza** `MARKET_ORIGIN_IDS` → `enabledOrigins` silnika
+ * średniej pozostaje default OFF (nie włączają się automatycznie do controlled_market).
+ */
+export const MARKET_DIY_ORIGIN_IDS = ["leroy", "castorama"] as const;
+
+export type MarketDiyOriginId = (typeof MARKET_DIY_ORIGIN_IDS)[number];
+
+export const MARKET_DIY_ORIGIN_LABELS_PL: Record<MarketDiyOriginId, string> = {
+  leroy: "Leroy Merlin",
+  castorama: "Castorama",
+};
+
+/**
  * Ukryty origin migracyjny (P3.0 `legacy_seed`) — NIE produktowy.
  * Poza `MARKET_ORIGIN_IDS` (więc poza domyślnym `enabledOrigins` silnika) i poza UI.
  * Nośnik migracji `marketAvgPln` → `marketQuotes` (v3→v4).
  */
 export const MARKET_LEGACY_SEED_ORIGIN_ID = "legacy_seed" as const;
 
-/** Wszystkie klucze origin dopuszczalne w `marketQuotes`: produktowe + legacy migracyjny. */
+/** Wszystkie klucze origin dopuszczalne w `marketQuotes`: produktowe + legacy + DIY. */
 export const MARKET_QUOTE_ORIGIN_IDS = [
   ...MARKET_ORIGIN_IDS,
   MARKET_LEGACY_SEED_ORIGIN_ID,
+  ...MARKET_DIY_ORIGIN_IDS,
 ] as const;
 
 export type MarketQuoteOriginId = (typeof MARKET_QUOTE_ORIGIN_IDS)[number];
@@ -67,7 +82,11 @@ export function isMarketOriginId(value: unknown): value is MarketOriginId {
   return typeof value === "string" && (MARKET_ORIGIN_IDS as readonly string[]).includes(value);
 }
 
-/** Origin produktowy LUB legacy_seed — dopuszczalny jako klucz `marketQuotes`. */
+export function isMarketDiyOriginId(value: unknown): value is MarketDiyOriginId {
+  return typeof value === "string" && (MARKET_DIY_ORIGIN_IDS as readonly string[]).includes(value);
+}
+
+/** Origin produktowy LUB legacy_seed LUB DIY — dopuszczalny jako klucz `marketQuotes`. */
 export function isMarketQuoteOriginId(value: unknown): value is MarketQuoteOriginId {
   return typeof value === "string" && (MARKET_QUOTE_ORIGIN_IDS as readonly string[]).includes(value);
 }
