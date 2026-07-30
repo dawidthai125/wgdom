@@ -41,7 +41,7 @@ NEXT slice = P2 AUDIT — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature / tip deploy** | **`5326cf8c`** (`feat(market-sync): MARKET-SYNC-01 P1 — Accept + Publish (2.65.85)`) |
-| Docs sync tip | patrz git log po CLOSEOUT docs commit |
+| Docs sync tip | **`8e16b89e`** (`docs: MARKET-SYNC-01 P1 CLOSEOUT — tip 2.65.85 / 5326cf8c`) |
 
 ---
 

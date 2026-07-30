@@ -34,9 +34,9 @@ Powód: bundle P1 (≥15 plików lib/UI/test) + łańcuch docs CLOSEOUT/RELEASE.
 | Rola | Hash | Opis |
 |------|------|------|
 | **Feature tip** | **`5326cf8c`** | `feat(market-sync): MARKET-SYNC-01 P1 — Accept + Publish (2.65.85)` |
-| **Docs CLOSEOUT** | *(ten push docs)* | `docs: MARKET-SYNC-01 P1 CLOSEOUT — tip 2.65.85 / 5326cf8c` |
+| **Docs CLOSEOUT** | **`8e16b89e`** | `docs: MARKET-SYNC-01 P1 CLOSEOUT — tip 2.65.85 / 5326cf8c` |
 
-`origin/main` feature tip = **`5326cf8c`**
+`origin/main` docs tip = **`8e16b89e`** · feature tip = **`5326cf8c`**
 
 ---
 
