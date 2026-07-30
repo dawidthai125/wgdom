@@ -43,7 +43,8 @@ NEXT slice = P0d (Library seed) — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature** | **`aebf9d09`** |
-| **Docs tip / CLOSEOUT** | **`21a64a75`** (+ tip PV poniżej) |
+| **Docs tip / CLOSEOUT** | **`21a64a75`** |
+| **Docs tip PV** | **`1273e2b1`** |
 
 ---
 
