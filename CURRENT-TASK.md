@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0b CLOSED** · tip UI **2.65.88** · **`fb58f501`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0c CLOSED** · tip UI **2.65.89** · **`aebf9d09`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CATALOG-COVERAGE-01 P0c — **CLOSED** (Alias Resolver Wave 1)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.89** · feature **`aebf9d09`** · OV **PASS** · **RELEASE GO** · **DEPLOY PROPAGATING** |
+| **SSOT** | [`CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) |
+| **Zakres** | Alias→Product ID · 6 reguł LOW · first match · eligible · Quotes +1 linia (76.4%=) |
+| **OUT** | Wave 2/BIZ/HIGH · Library seed · SMART/MS · P0d |
+| **Następne** | **P0d Library seed** — Owner GO · **nie** auto-start |
 
 ## ★ CATALOG-COVERAGE-01 P0b — **CLOSED** (Normalizer)
 
@@ -13,8 +23,8 @@
 | **Status** | **CLOSED** · tip UI **2.65.88** · feature **`fb58f501`** · OV **PASS** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) |
 | **Zakres** | Normalizer forma ATH (eligible) · KNR/d.x/fi/jm · description UI SSOT · Quotes 76.4%= |
-| **OUT** | Alias · Coverage Score · Library seed · SMART/MS · P0c |
-| **Następne** | **P0c Alias Resolver** — Owner GO · **nie** auto-start |
+| **OUT** | Alias · Coverage Score · Library seed · SMART/MS |
+| **Następne** | **P0c CLOSED** → **P0d** |
 
 ## ★ CATALOG-COVERAGE-01 P0a — **CLOSED** (Noise Filter)
 
@@ -24,7 +34,7 @@
 | **SSOT** | [`CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) |
 | **Zakres** | Noise Filter przed mapOfferBoqLine · tag isNoise · 33/526 TV-01 · eligible coverage 77.5% |
 | **OUT** | Normalizer · Alias · Coverage Score · Library seed · SMART/MS |
-| **Następne** | **P0b CLOSED** → **P0c** |
+| **Następne** | **P0b/P0c CLOSED** → **P0d** |
 
 ## ★ SMART-PRICING-01 P0 — **CLOSED** (Detect & Surface RO)
 

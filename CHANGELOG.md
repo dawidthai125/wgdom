@@ -7,7 +7,8 @@
 - **AR:** `piece_demontaz` = (demontaż|rozebranie) AND (piec|trzon) · bez gołego „piece”
 - **DATA FIRST:** brak work w Library → no-op (5/6 reserved ID do P0d; `piece_demontaz`→`legacy-rozbiorki-m2`)
 - **test:** `scripts/test-catalog-coverage-01-p0c.mjs` · OV `catalog-coverage-01-p0c-owner-verification.mjs`
-- **bez:** Wave 2/BIZ/HIGH · Library write · SMART/MS · commit/push
+- **feature:** **`aebf9d09`** · CLOSEOUT [`docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md)
+- **bez:** Wave 2/BIZ/HIGH · Library write · SMART/MS · P0d auto-start
 
 ## 2.65.88 — CATALOG-COVERAGE-01 P0b Normalizer (2026-07-30)
 

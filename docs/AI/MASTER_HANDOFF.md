@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CATALOG-COVERAGE-01 **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CATALOG-COVERAGE-01 **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,10 +10,12 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip = 09 + version.json (UI 2.65.88 · feature CATALOG-COVERAGE-01 P0b fb58f501)
+Tip = 09 + version.json (UI 2.65.89 · feature CATALOG-COVERAGE-01 P0c aebf9d09)
+CATALOG-COVERAGE-01 P0c = CLOSED (Alias Resolver Wave 1)
+  SSOT = docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md
+  NEXT slice = P0d (Library seed) — tylko po Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0b = CLOSED (Normalizer)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md
-  NEXT slice = P0c (Alias Resolver) — tylko po Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0a = CLOSED (Noise Filter)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md
 SMART-PRICING-01 P0 = CLOSED (Detect Quotes-first RO)
