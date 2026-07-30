@@ -4,7 +4,7 @@
 > **EPIC:** CATALOG-COVERAGE-01 · **Slice:** P0b — Normalizer  
 > **STATUS:** **CLOSED** · **RELEASE GO** · tip UI **2.65.88** · feature **`fb58f501`**  
 > **Data:** 2026-07-30  
-> **Production Verify:** **DEPLOY PROPAGATING** (jedno `version.json` po push: `2.65.87` / `6e9a268`) — szczegóły [`CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md)
+> **Production Verify:** **PRODUCTION VERIFIED** (`2.65.88` / `fb58f50`) — szczegóły [`CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md)
 
 ```text
 ════════════════════════════════════════════════════════
@@ -40,7 +40,7 @@ NEXT slice = P0c (Alias Resolver) — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature** | **`fb58f501`** |
-| **Docs tip / CLOSEOUT** | *(commit docs po sync)* |
+| **Docs tip / CLOSEOUT** | **`ef6a6469`** |
 
 ---
 

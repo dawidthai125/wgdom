@@ -44,8 +44,9 @@ Powód: jeden bundle P0b Normalizer · <15 plików feature · build+test PASS ·
 | | |
 |--|--|
 | Feature commit | **`fb58f501`** |
+| Docs tip | **`ef6a6469`** |
 | Branch | `main` → `origin/main` |
-| Push | **PASS** (`6e9a268e..fb58f501`) |
+| Push | **PASS** (`6e9a268e..fb58f501` feature · `fb58f501..ef6a6469` docs) |
 
 ## RELEASE READINESS
 
@@ -60,7 +61,7 @@ Powód: jeden bundle P0b Normalizer · <15 plików feature · build+test PASS ·
 
 ## PRODUCTION STATUS
 
-**VERIFY FAST** — jedno `curl` zaraz po feature push:
+**VERIFY FAST** — jedno `curl` zaraz po feature push (`fb58f501`):
 
 ```json
 {
@@ -70,14 +71,25 @@ Powód: jeden bundle P0b Normalizer · <15 plików feature · build+test PASS ·
 }
 ```
 
-→ **DEPLOY PROPAGATING** (oczekiwane `2.65.88` / `fb58f501`).  
-**Bez** retry / sleep / polling.
+→ wtedy **DEPLOY PROPAGATING**.
+
+Odczyt przy docs tip push (bez retry-loop feature):
+
+```json
+{
+  "version": "2.65.88",
+  "commit": "fb58f50",
+  "timestamp": "2026-07-30T17:34:52.295Z"
+}
+```
+
+→ **PRODUCTION VERIFIED**
 
 ## WERDYKT
 
 ```text
-RELEASE GO + DEPLOY PROPAGATING
-P0b CLOSED · tip docs 2.65.88 · feature fb58f501
+RELEASE GO + PRODUCTION VERIFIED
+P0b CLOSED · tip UI 2.65.88 · feature fb58f501 · docs ef6a6469
 P0c NIE startowany
 ```
 

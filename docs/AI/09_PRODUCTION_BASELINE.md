@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0b CLOSED**) · tip UI **2.65.88** · feature **`fb58f501`** · **DEPLOY PROPAGATING** (VERIFY FAST).
+**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0b CLOSED**) · tip UI **2.65.88** · feature **`fb58f501`** · **PRODUCTION VERIFIED**.
 
 ---
 
@@ -26,8 +26,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.88** (live może jeszcze pokazywać 2.65.87 — DEPLOY PROPAGATING) |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`fb58f501`** · **DEPLOY PROPAGATING** · [`P0b-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
+| **UI version (changelog / version.json)** | **2.65.88** |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`fb58f501`** · docs tip **`ef6a6469`** · **PRODUCTION VERIFIED** · [`P0b-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0b)** | **CLOSED** · Normalizer · UI **2.65.88** · feature **`fb58f501`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) · NEXT **P0c** Owner GO |
 | **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |
 | **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · NEXT **P1** Owner GO |

@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.88** · feature **`fb58f501`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST) |
+| **Status** | **CLOSED** · tip UI **2.65.88** · feature **`fb58f501`** · OV **PASS** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) |
 | **Zakres** | Normalizer forma ATH (eligible) · KNR/d.x/fi/jm · description UI SSOT · Quotes 76.4%= |
 | **OUT** | Alias · Coverage Score · Library seed · SMART/MS · P0c |
