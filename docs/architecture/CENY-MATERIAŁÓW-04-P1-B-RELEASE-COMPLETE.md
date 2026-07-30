@@ -27,7 +27,7 @@ P1-B CLOSED · READY FOR P1-C
 | **Production Verify** | **PASS** · tip **2.65.82** / **`dca25c9`** · [`PV`](CENY-MATERIAŁÓW-04-P1-B-PRODUCTION-VERIFY.md) · evidence `.tmp/pv-ceny-materialow-04-p1b.json` |
 | **CLOSEOUT** | **CLOSED · FINAL** · [`CLOSEOUT`](CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) |
 | **OV** | **PASS** · READY FOR COMMIT · [`OV`](CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md) |
-| **SSOT SYNC** | **SYNCED** · feature tip **`dca25c96`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
+| **SSOT SYNC** | **SYNCED** · docs tip **`6d11cf9a`** · feature tip **`dca25c96`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
 | **Thin allowlista** | changelog **2.65.82** + docs CM-04/P1-B + SSOT · **ZERO** AI-COST / scoring / Bid / cloud-sync |
 
 ---
