@@ -1,6 +1,6 @@
 /**
  * CATALOG-COVERAGE-01 — public API.
- * P0a: Noise Filter · P0b: Normalizer · P0c: Alias Resolver (Wave 1).
+ * P0a: Noise Filter · P0b: Normalizer · P0c: Alias Resolver · P0d: Negation Guard.
  */
 
 export type {
@@ -40,3 +40,12 @@ export {
   resolveCatalogCoverageAliasStable,
   countCatalogCoverageAliasHits,
 } from "@/lib/catalog-coverage/alias-resolver";
+
+export {
+  CATALOG_COVERAGE_ZAPRAWIANIE_PRODUCT_ID,
+  hasZaprawianieBruzdNegation,
+  hasZaprawianieBruzdPositive,
+  listNegationGuardedForbiddenProductIds,
+  isProductIdForbiddenByNegationGuard,
+  decideCatalogCoverageBindProductId,
+} from "@/lib/catalog-coverage/negation-guard";

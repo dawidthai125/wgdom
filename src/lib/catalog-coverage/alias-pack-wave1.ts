@@ -1,10 +1,13 @@
 /**
- * CATALOG-COVERAGE-01 P0c — Alias Pack Wave 1 (LOW) ONLY.
+ * CATALOG-COVERAGE-01 P0c/P0d — Alias Pack Wave 1 (LOW) ONLY.
  * DF §4 · AR §12 — first match #1→#6 · 1 rule → 1 Product ID.
+ * P0d-A: precision zaprawianie (Negation Guard REUSE) · multiswitch = tylko token.
  *
  * Product ID: bind tylko gdy work istnieje w Library (DATA FIRST).
  * Brak work → Resolver zwraca null (no-op) — bez zapisu Library.
  */
+
+import { hasZaprawianieBruzdPositive } from "@/lib/catalog-coverage/negation-guard";
 
 export type CatalogCoverageAliasRuleId =
   | "zaprawianie_bruzd"
@@ -22,13 +25,14 @@ export interface CatalogCoverageAliasPackRule {
   labelPl: string;
   /**
    * Jedyny Product ID dla reguły.
-   * Reserved `cc-p0c-w1-*` — oczekiwane po seed P0d; do czasu seed = no-op.
+   * Reserved `cc-p0c-w1-*` — SAFE w P0d-B; FULL w P0e.
    * `legacy-rozbiorki-m2` — istnieje w Library (keyword pieców/trzonów).
    */
   productId: string;
   /**
    * Match na fold PL znormalizowanego opisu.
    * piece_demontaz: AR binding — (demontaż|rozebranie) AND (piec|trzon); bez gołego „piece”.
+   * zaprawianie: REUSE Negation Guard (bez „bez zaprawiania bruzd”).
    */
   test: (foldedHay: string) => boolean;
 }
@@ -43,7 +47,8 @@ export const CATALOG_COVERAGE_P0C_WAVE1_PACK: readonly CatalogCoverageAliasPackR
     aliasRuleId: "zaprawianie_bruzd",
     labelPl: "Zaprawianie / zamurowanie bruzd",
     productId: "cc-p0c-w1-zaprawianie-bruzd",
-    test: (h) => /zaprawiani\w*\s+bruzd|zamurowan\w*\s+bruzd/.test(h),
+    // P0d-A: Negation precedes match — shared Guard helper (ZERO DUP regex)
+    test: (h) => hasZaprawianieBruzdPositive(h),
   },
   {
     order: 2,
@@ -70,9 +75,10 @@ export const CATALOG_COVERAGE_P0C_WAVE1_PACK: readonly CatalogCoverageAliasPackR
   {
     order: 5,
     aliasRuleId: "multiswitch_antenowy",
-    labelPl: "Multiswitch / instalacja antenowa RTV-SAT",
+    labelPl: "Multiswitch antenowy",
     productId: "cc-p0c-w1-multiswitch-antenowy",
-    test: (h) => /multiswitch|rtv.?sat|instalacj\w*\s+antenow/.test(h),
+    // P0d-A: tylko token multiswitch — bez gołego rtv.?sat / instalacji antenowej
+    test: (h) => /multiswitch/.test(h),
   },
   {
     order: 6,

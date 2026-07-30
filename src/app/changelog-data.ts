@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.90",
+    label: "Catalog Coverage P0d-A — Precision + SAFE Seed",
+    items: [
+      {
+        type: "fix",
+        text: "Catalog Coverage (P0d-A): Negation Guard — „bez zaprawiania bruzd” nie mapuje się na zaprawianie (Alias i Core). Multiswitch tylko po słowie multiswitch (bez gołego RTV/SAT).",
+      },
+      {
+        type: "new",
+        text: "Biblioteka: seed SAFE — Zawór odpowietrzający + Montaż stop ptaków (z Quotes). FULL (zaprawianie/folia/multiswitch) = osobny etap P0e.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.89",
     label: "Catalog Coverage P0c — Alias Resolver",
     items: [

@@ -31,6 +31,7 @@ import {
 import { prepareOfferBoqLineForMapping } from "@/lib/catalog-coverage/noise-filter";
 import { normalizeOfferBoqDescription } from "@/lib/catalog-coverage/normalize-description";
 import { resolveCatalogCoverageAlias } from "@/lib/catalog-coverage/alias-resolver";
+import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negation-guard";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -333,6 +334,7 @@ function toCandidate(
  *  P0a Noise Filter — skip Mapper dla niemateriałowych
  *  P0b Normalizer — wyłącznie eligible · forma only · Core bez zmian scoringu
  *  P0c Alias Resolver — Wave 1 · Alias→Product ID · przed Core (override gdy bind)
+ *  P0d Negation Guard → Bind Decision → Alias | Core (D-P0d-16…18)
  * Product Mapper (= ten tor) pozostaje jedynym właścicielem `catalogWorkId`.
  */
 export function mapOfferBoqLine(
@@ -358,9 +360,15 @@ export function mapOfferBoqLine(
     works: ctx.works,
   });
 
-  if (alias.resolvedProductId) {
+  // P0d Bind Decision: Guard obowiązuje Alias (nawet gdy Pack/Resolver zwrócił ID)
+  const aliasBindId = decideCatalogCoverageBindProductId(
+    normalizedText,
+    alias.resolvedProductId,
+  );
+
+  if (aliasBindId) {
     const active = (ctx.works ?? []).filter((w) => w.active);
-    const work = active.find((w) => w.id === alias.resolvedProductId) ?? null;
+    const work = active.find((w) => w.id === aliasBindId) ?? null;
     if (work) {
       const catalog = ctx.costCatalog ?? defaultWgdomCostCatalog();
       const categoryId = classifyAthLineCategory(line.description, line.unit, catalog);
@@ -395,9 +403,30 @@ export function mapOfferBoqLine(
     knrHint: prepared.line.knrHint || norm.knrHint,
     unit: (prepared.line.unit || "").trim() || norm.unitHint || prepared.line.unit,
   };
-  const mapped = mapOfferBoqLineCore(forCore, ctx);
+  // P0d: Core nie widzi Product ID zabronionych przez Negation Guard
+  const worksForCore = (ctx.works ?? []).filter(
+    (w) => w?.active !== false && decideCatalogCoverageBindProductId(normalizedText, w.id) === w.id,
+  );
+  const mapped = mapOfferBoqLineCore(forCore, { ...ctx, works: worksForCore });
+  const coreBindId = decideCatalogCoverageBindProductId(
+    normalizedText,
+    mapped.catalogWorkId,
+  );
+  const guardedMapped =
+    coreBindId === mapped.catalogWorkId
+      ? mapped
+      : {
+          ...mapped,
+          catalogWorkId: null,
+          matchMethod: "unmatched" as const,
+          matchedBy: "unmatched" as const,
+          matchConfidence: "low" as const,
+          aiRationale: mapped.aiRationale
+            ? `${mapped.aiRationale} Negation Guard odrzucił kandydat Core.`
+            : "Negation Guard odrzucił kandydat Core.",
+        };
   return {
-    ...mapped,
+    ...guardedMapped,
     // SSOT wyświetlania / oryginału ATH — bez podmiany semantyki w UI
     description: line.description,
     unit: line.unit,

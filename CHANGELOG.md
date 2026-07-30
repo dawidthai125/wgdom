@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.90 — CATALOG-COVERAGE-01 P0d-A Precision + SAFE (2026-07-30)
+
+- **fix:** Negation Guard — „bez zaprawiania bruzd” nie binduje zaprawiania (Alias|Core); multiswitch tylko token `multiswitch` (bez RTV/SAT).
+- **new:** SAFE seed Library + Quotes: zawór odpowietrzający + stop ptaków. FULL reserved = P0e (OUT).
+- Testy: `scripts/test-catalog-coverage-01-p0d-a.mjs` · OPS: `scripts/catalog-coverage-01-p0d-a-ops.mjs`.
+
 ## 2.65.89 — CATALOG-COVERAGE-01 P0c Alias Resolver (2026-07-30)
 
 - **new:** Alias Resolver Wave 1 (6 reguł LOW) — Alias→Product ID · first match · eligible-only
