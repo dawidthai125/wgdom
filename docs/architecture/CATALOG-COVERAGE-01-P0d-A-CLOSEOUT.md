@@ -45,7 +45,8 @@ NEXT slice = P0e (FULL) — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature** | **`b9da6bff`** |
-| **Docs tip / CLOSEOUT** | (commit docs tip — RELEASE REPORT) |
+| **Docs tip / CLOSEOUT** | **`07b1fcc3`** |
+| **Docs tip hash note** | **`8af1ffda`** |
 
 ---
 
