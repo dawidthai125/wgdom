@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.83** |
-| **Deploy tip commit (`main` / `version.json`)** | **`9e141a2`** (`9e141a29`) · docs PV/CLOSEOUT/SSOT · live po sync |
+| **Deploy tip commit (`main` / `version.json`)** | UI tip nadal **`9e141a2`** · docs P2 CLOSE **`54078633`** · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1)** | **COMPLETE** · P0 · P1-A/B/C · tip UI **2.65.83** · feature P1-C **`992023cc`** · PV **PASS** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · KPI CM **73.2%** / HE **26.8%** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1-C)** | **`992023cc`** · **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · 7 robót elewacje/ocieplenia + Quotes 7/7 · P3.3 import · OV PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-C-RELEASE-COMPLETE.md) · UI **2.65.83** |
