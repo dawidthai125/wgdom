@@ -1,7 +1,18 @@
 /**
  * CATALOG-COVERAGE-01 — typy warstw coverage (P0a+).
- * DF: Noise Filter kinds P0 · Normalizer P0b.
+ * DF: Noise Filter kinds P0 · Normalizer P0b · Alias Resolver P0c.
  */
+
+export type {
+  CatalogCoverageAliasRuleId,
+  CatalogCoverageAliasPackRule,
+} from "@/lib/catalog-coverage/alias-pack-wave1";
+
+export type {
+  CatalogCoverageAliasResolveResult,
+  CatalogCoverageAliasResolveOpts,
+} from "@/lib/catalog-coverage/alias-resolver";
+
 
 /** Kinds Noise Filter P0 (DF §2.1) — wyłącznie niemateriałowe. */
 export type CatalogCoverageNoiseKind =

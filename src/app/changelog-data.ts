@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.89",
+    label: "Catalog Coverage P0c — Alias Resolver",
+    items: [
+      {
+        type: "new",
+        text: "Catalog Coverage (P0c): Alias Resolver Wave 1 — deterministyczne Alias→Product ID (6 reguł LOW) po Normalizerze, przed Product Mapperem. Tylko pozycje eligible.",
+      },
+      {
+        type: "improve",
+        text: "Bez zapisu Library/Quotes. Brak work w katalogu = no-op (DATA FIRST). piece_demontaz wymaga demontaż/rozebranie + piec/trzon. FEATURE-DATA only.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.88",
     label: "Catalog Coverage P0b — Normalizer",
     items: [

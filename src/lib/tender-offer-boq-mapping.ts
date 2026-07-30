@@ -30,6 +30,7 @@ import {
 } from "@/lib/tender-offer-boq";
 import { prepareOfferBoqLineForMapping } from "@/lib/catalog-coverage/noise-filter";
 import { normalizeOfferBoqDescription } from "@/lib/catalog-coverage/normalize-description";
+import { resolveCatalogCoverageAlias } from "@/lib/catalog-coverage/alias-resolver";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -331,7 +332,8 @@ function toCandidate(
  * CATALOG-COVERAGE-01:
  *  P0a Noise Filter — skip Mapper dla niemateriałowych
  *  P0b Normalizer — wyłącznie eligible · forma only · Core bez zmian scoringu
- * Product Mapper (= Core) pozostaje jedynym właścicielem `catalogWorkId`.
+ *  P0c Alias Resolver — Wave 1 · Alias→Product ID · przed Core (override gdy bind)
+ * Product Mapper (= ten tor) pozostaje jedynym właścicielem `catalogWorkId`.
  */
 export function mapOfferBoqLine(
   line: OfferBoqLine,
@@ -342,13 +344,54 @@ export function mapOfferBoqLine(
     return {
       ...prepared.line,
       normalizedDescription: null,
+      aliasRuleId: null,
     };
   }
 
   const norm = normalizeOfferBoqDescription(prepared.line.description);
+  const normalizedText = norm.normalizedDescription || prepared.line.description;
+
+  // P0c: po Normalizer · przed Core — eligible only (noise już odfiltrowany)
+  const alias = resolveCatalogCoverageAlias({
+    description: normalizedText,
+    isNoise: false,
+    works: ctx.works,
+  });
+
+  if (alias.resolvedProductId) {
+    const active = (ctx.works ?? []).filter((w) => w.active);
+    const work = active.find((w) => w.id === alias.resolvedProductId) ?? null;
+    if (work) {
+      const catalog = ctx.costCatalog ?? defaultWgdomCostCatalog();
+      const categoryId = classifyAthLineCategory(line.description, line.unit, catalog);
+      const workCategory = workCategoryLabel(work, catalog);
+      return {
+        ...prepared.line,
+        description: line.description,
+        unit: line.unit,
+        knrHint: line.knrHint,
+        isNoise: false,
+        noiseKind: null,
+        normalizedDescription: norm.normalizedDescription,
+        aliasRuleId: alias.aliasRuleId,
+        catalogWorkId: work.id,
+        workCategory,
+        categoryId,
+        matchMethod: "alias",
+        matchedBy: "alias",
+        matchConfidence: "high",
+        candidateMatches: [],
+        aiConfidence: "high",
+        aiRationale: `Alias Resolver (P0c Wave 1): ${alias.labelPl ?? alias.aliasRuleId} → ${work.namePl}.`,
+        costIntelligence: null,
+        linePricing: null,
+      };
+    }
+  }
+
   const forCore: OfferBoqLine = {
     ...prepared.line,
-    description: norm.normalizedDescription || prepared.line.description,
+    description: normalizedText,
     knrHint: prepared.line.knrHint || norm.knrHint,
     unit: (prepared.line.unit || "").trim() || norm.unitHint || prepared.line.unit,
   };
@@ -362,6 +405,7 @@ export function mapOfferBoqLine(
     isNoise: false,
     noiseKind: null,
     normalizedDescription: norm.normalizedDescription,
+    aliasRuleId: alias.matched ? alias.aliasRuleId : null,
   };
 }
 

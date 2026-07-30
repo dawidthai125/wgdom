@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.89 — CATALOG-COVERAGE-01 P0c Alias Resolver (2026-07-30)
+
+- **new:** Alias Resolver Wave 1 (6 reguł LOW) — Alias→Product ID · first match · eligible-only
+- **wire:** Noise → Normalize → **Alias** → Mapper Core · `matchMethod=alias` przy bind
+- **AR:** `piece_demontaz` = (demontaż|rozebranie) AND (piec|trzon) · bez gołego „piece”
+- **DATA FIRST:** brak work w Library → no-op (5/6 reserved ID do P0d; `piece_demontaz`→`legacy-rozbiorki-m2`)
+- **test:** `scripts/test-catalog-coverage-01-p0c.mjs` · OV `catalog-coverage-01-p0c-owner-verification.mjs`
+- **bez:** Wave 2/BIZ/HIGH · Library write · SMART/MS · commit/push
+
 ## 2.65.88 — CATALOG-COVERAGE-01 P0b Normalizer (2026-07-30)
 
 - **new:** `normalizeOfferBoqDescription` — strip ATH (KNR/d.x/krotność) · średnice `fi` · jm · whitespace

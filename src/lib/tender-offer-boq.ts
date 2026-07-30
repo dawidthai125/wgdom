@@ -20,7 +20,9 @@ export type OfferBoqMatchMethod =
   | "ath_seed"
   | "manual"
   | "unmatched"
-  | "snapshot";
+  | "snapshot"
+  /** CATALOG-COVERAGE-01 P0c — Alias Resolver (direct Product ID bind). */
+  | "alias";
 
 /** Produktowy alias metody dopasowania (COST-S2+) — synonim semantyczny `matchMethod`. */
 export type OfferBoqMatchedBy =
@@ -30,7 +32,8 @@ export type OfferBoqMatchedBy =
   | "keyword"
   | "manual"
   | "unmatched"
-  | "snapshot";
+  | "snapshot"
+  | "alias";
 
 export type OfferBoqConfidence = "high" | "medium" | "low";
 
@@ -325,6 +328,11 @@ export interface OfferBoqLine {
    * `description` pozostaje SSOT wyświetlania / oryginału ATH.
    */
   normalizedDescription?: string | null;
+  /**
+   * CATALOG-COVERAGE-01 P0c — trafiona reguła Alias Pack (ephemeral).
+   * Ustawiane gdy Resolver zbindował Product ID.
+   */
+  aliasRuleId?: string | null;
   knrHint: string | null;
   matchMethod: OfferBoqMatchMethod;
   /** Alias produktowy metody (DoD COST-S2). */
@@ -540,6 +548,7 @@ function structuralLine(opts: {
     isNoise: false,
     noiseKind: null,
     normalizedDescription: null,
+    aliasRuleId: null,
     knrHint,
     matchMethod: "snapshot",
     matchedBy: "snapshot",
