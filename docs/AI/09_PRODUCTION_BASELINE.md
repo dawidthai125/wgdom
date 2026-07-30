@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.85** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`5326cf8c`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po push) · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`RELEASE`](../architecture/MARKET-SYNC-01-P1-RELEASE-REPORT.md) |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`5326cf8c`** · docs tip **`9f515e39`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po feature push) · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`RELEASE`](../architecture/MARKET-SYNC-01-P1-RELEASE-REPORT.md) |
 | **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`PV`](../architecture/MARKET-SYNC-01-P1-PRODUCTION-VERIFY.md) |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
