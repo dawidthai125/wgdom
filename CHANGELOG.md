@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.84 — MARKET-SYNC-01 P0 Preview staging (2026-07-30)
+
+- **new:** `src/lib/market-sync/**` — MarketProduct · ProviderQuote · Import CSV · Normalize · Match · Preview
+- **UI:** Super Admin → Biblioteka → **Market Sync Preview** (STOP przed Accept/Publish)
+- **persist:** local-first `kw-market-sync-01-staging` · eksport/import JSON · **bez** Cloud DATA_KEY
+- **test:** `npx vite-node scripts/test-market-sync-01-p0.mjs`
+- **bez:** commitMarketQuotesImport · Quotes write · controlled_market · AI-COST · Cloud CORE · Bid · Payroll · P1
+
 ## docs — CENY-MATERIAŁÓW-04 P2 COMPLETE (2026-07-30)
 
 - **docs:** P2 CLOSE SSOT — ROZBIÓRKI / ELEKTRYKA·GK·HYDRAULIKA / Residual ROZ (K-P2-1 PASS: 16≤18)

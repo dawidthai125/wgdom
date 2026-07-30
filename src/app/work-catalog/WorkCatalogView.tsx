@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
-import { Search, Library, X, FileSpreadsheet } from "lucide-react";
+import { Search, Library, X, FileSpreadsheet, Store } from "lucide-react";
 import { tradeLabelPl, type TradeId } from "@/lib/work-catalog";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
+import { useAdminAccess } from "@/app/admin-access";
+import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { WorkCatalogWorkRow } from "@/app/work-catalog/WorkCatalogWorkRow";
 import { WorkCatalogBulkEditBar } from "@/app/work-catalog/WorkCatalogBulkEditBar";
 import { WorkCatalogBulkPreviewModal } from "@/app/work-catalog/WorkCatalogBulkPreviewModal";
+import { MarketSyncPreviewPanel } from "@/app/market-sync/MarketSyncPreviewPanel";
 import {
   computeBulkPricePreview,
   previewToPriceMap,
@@ -64,6 +67,9 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
   const [section, setSection] = useState<WorkCatalogSection>("works");
   const p33Enabled = isWcP33MarketPricingUxEnabled();
   const [showMarketCsvImport, setShowMarketCsvImport] = useState(false);
+  const [showMarketSyncP0, setShowMarketSyncP0] = useState(false);
+  const { session } = useAdminAccess();
+  const isSuperAdmin = session ? adminIsSuperAdmin(session.role) : false;
 
   const {
     store,
@@ -209,6 +215,21 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
       ? "pb-36"
       : "pb-4";
 
+  if (isSuperAdmin && showMarketSyncP0) {
+    return (
+      <div
+        className={
+          isEmbedded
+            ? "min-w-0"
+            : "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
+        }
+        data-market-sync-p0-host="1"
+      >
+        <MarketSyncPreviewPanel onBack={() => setShowMarketSyncP0(false)} />
+      </div>
+    );
+  }
+
   if (p33Enabled && showMarketCsvImport) {
     return (
       <div
@@ -264,9 +285,29 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
               </>
             )}
           </div>
-          {section === "works" && totalCount > 0 && (
+          {section === "works" && (totalCount > 0 || isSuperAdmin) && (
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-start">
-              {p33Enabled && (
+              {isSuperAdmin && (
+                <WgButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (bulkEditMode) exitBulkEdit();
+                    setShowMarketSyncP0(true);
+                  }}
+                  className={cn(
+                    "shrink-0 px-3 text-sm font-medium rounded-xl border border-border",
+                    WG_TOUCH_MIN,
+                    "h-11",
+                    "touch-manipulation",
+                  )}
+                  data-market-sync-p0-entry
+                >
+                  <Store size={16} className="mr-1.5 shrink-0" aria-hidden />
+                  Market Sync Preview
+                </WgButton>
+              )}
+              {p33Enabled && totalCount > 0 && (
                 <WgButton
                   type="button"
                   variant="secondary"
@@ -286,6 +327,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
                   Import CSV rynku
                 </WgButton>
               )}
+              {totalCount > 0 && (
               <WgButton
                 type="button"
                 variant={bulkEditMode ? "secondary" : "primary"}
@@ -304,6 +346,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
               >
                 {bulkEditMode ? "Zakończ" : "Edytuj wiele"}
               </WgButton>
+              )}
             </div>
           )}
         </div>

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "mp-ceresit-cm11",
+    "canonicalName": "Klej Ceresit CM 11",
+    "manufacturer": "Ceresit",
+    "unit": "szt",
+    "category": "chemia",
+    "aliases": ["Klej Ceresit CM11 25kg", "CM 11 Ceresit"],
+    "ean": ["5901234123457"],
+    "active": true,
+    "createdAt": "2026-07-30T00:00:00.000Z",
+    "updatedAt": "2026-07-30T00:00:00.000Z"
+  },
+  {
+    "id": "mp-gk-125",
+    "canonicalName": "Płyta GK 12.5mm",
+    "manufacturer": "Knauf",
+    "unit": "m2",
+    "category": "suche_zabudowy",
+    "aliases": ["płyta g-k 12,5"],
+    "ean": [],
+    "active": true,
+    "createdAt": "2026-07-30T00:00:00.000Z",
+    "updatedAt": "2026-07-30T00:00:00.000Z"
+  },
+  {
+    "id": "mp-conflict-a",
+    "canonicalName": "Produkt konflikt A",
+    "manufacturer": null,
+    "unit": "szt",
+    "category": "inne",
+    "aliases": [],
+    "ean": ["5909999000001"],
+    "active": true,
+    "createdAt": "2026-07-30T00:00:00.000Z",
+    "updatedAt": "2026-07-30T00:00:00.000Z"
+  },
+  {
+    "id": "mp-conflict-b",
+    "canonicalName": "Produkt konflikt B",
+    "manufacturer": null,
+    "unit": "szt",
+    "category": "inne",
+    "aliases": [],
+    "ean": ["5909999000001"],
+    "active": true,
+    "createdAt": "2026-07-30T00:00:00.000Z",
+    "updatedAt": "2026-07-30T00:00:00.000Z"
+  }
+]

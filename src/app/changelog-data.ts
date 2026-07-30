@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.84",
+    label: "Market Sync P0 — Preview staging (DIY)",
+    items: [
+      {
+        type: "new",
+        text: "Market Sync (P0): model MarketProduct + ProviderQuote, import CSV → Match → Preview (STOP). Super Admin: Biblioteka → Market Sync Preview. Staging wyłącznie local-first (kw-market-sync-01-staging).",
+      },
+      {
+        type: "improve",
+        text: "Bez Accept/Publish · bez commitMarketQuotesImport · bez zapisu Product Quotes / controlled_market / Cloud Sync CORE. Fuzzy OFF. Eksport/import JSON staging + odświeżenie Match.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.83",
     label: "Ceny materiałów — P1-C elewacje / ocieplenia (WC)",
     items: [

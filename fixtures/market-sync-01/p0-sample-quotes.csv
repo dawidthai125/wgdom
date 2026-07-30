@@ -1,0 +1,7 @@
+provider;providerSku;ean;productName;manufacturer;unit;grossPrice;currency
+leroy;LM-1001;5901234123457;Klej Ceresit CM 11;Ceresit;szt;29.99;PLN
+leroy;LM-1002;;Płyta GK 12.5mm;Knauf;m2;18.50;PLN
+castorama;CAS-55;5901234123457;Klej Ceresit CM11 25kg;Ceresit;szt;31.20;PLN
+castorama;CAS-99;;Farba lateksowa biała;;l;45.00;PLN
+obi;OBI-1;;Bez ceny test;;szt;;PLN
+leroy;LM-1001;5901234123457;Klej Ceresit CM 11;Ceresit;szt;32.50;PLN
