@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**SMART-PRICING-01 P0 CLOSED** · tip UI **2.65.86** · **`9ca4a4e5`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0a CLOSED** · tip UI **2.65.87** · **`51a56f0d`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CATALOG-COVERAGE-01 P0a — **CLOSED** (Noise Filter)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.87** · feature **`51a56f0d`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST) |
+| **SSOT** | [`CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) |
+| **Zakres** | Noise Filter przed mapOfferBoqLine · tag isNoise · 33/526 TV-01 · eligible coverage 77.5% |
+| **OUT** | Normalizer · Alias · Coverage Score · Library seed · SMART/MS · P0b |
+| **Następne** | **P0b Normalizer** — Owner GO · **nie** auto-start |
 
 ## ★ SMART-PRICING-01 P0 — **CLOSED** (Detect & Surface RO)
 

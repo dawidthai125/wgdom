@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**SMART-PRICING-01 P0 CLOSED**) · tip UI **2.65.86** · feature **`9ca4a4e5`** · **PRODUCTION VERIFIED**.
+**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0a CLOSED**) · tip UI **2.65.87** · feature **`51a56f0d`** · **DEPLOY PROPAGATING** (VERIFY FAST).
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.86** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`9ca4a4e5`** · docs tip **`15e23789`** · **PRODUCTION VERIFIED** · [`P0-CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) |
+| **UI version (changelog / version.json)** | **2.65.87** (live może jeszcze pokazywać 2.65.86 — DEPLOY PROPAGATING) |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`51a56f0d`** · **DEPLOY PROPAGATING** · [`P0a-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |
+| **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) · NEXT **P0b** Owner GO |
 | **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · NEXT **P1** Owner GO |
 | **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
