@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** MARKET-SYNC-01 **P0 CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,12 +10,15 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip = 09 + version.json (UI 2.65.83 · feature P1-C 992023cc)
+Tip = 09 + version.json (UI 2.65.84 · feature MARKET-SYNC-01 P0 273fb3e0)
+MARKET-SYNC-01 P0 = CLOSED (Model+Preview staging · STOP Accept/Publish)
+  SSOT = docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md
+  NEXT slice = P1 DF (Accept+Publish via commit) — Owner GO
 CENY-MATERIAŁÓW-04 P2 = COMPLETE (P2-A · P2-B · Residual ROZ)
   SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md
 CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
   SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md
-NEXT = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT — tylko po Owner GO
+NEXT (katalog INNE) = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT — tylko po Owner GO
   (AUDIT → PLAN → DESIGN FREEZE · nie auto-start IMPLEMENT)
 CENY-MATERIAŁÓW-01 Phase 1 = CLOSED · PRODUCTION VERIFIED
 WORK-CATALOG-P3.3 Phase 1 = CLOSED · PRODUCTION VERIFIED

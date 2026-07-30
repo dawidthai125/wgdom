@@ -17,9 +17,11 @@ Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE z CORE.
 2. Trwałe dane → **Cloud Sync** (`persistKey` / Domain Push / PWRB) — nie tylko React state / samo LS.  
 3. **STABILIZATION WINDOW** — nowy EPIC tylko po **Owner GO**.  
 4. Commit / push **tylko** na wyraźną prośbę Ownera.  
-5. Nie czytaj `App.tsx` od zera — mapa: [`../AGENT-APP-MAP.md`](../AGENT-APP-MAP.md).
+5. Nie czytaj `App.tsx` od zera — mapa: [`../AGENT-APP-MAP.md`](../AGENT-APP-MAP.md).  
+6. **MARKET-SYNC-01 P0 CLOSED** (2.65.84 · `273fb3e0`) — staging Preview only; P1 = DF+Owner GO; Quotes publish **tylko** `commitMarketQuotesImport`.
 
-**SSOT procesu:** [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`../WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md)
+**SSOT procesu:** [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`../WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md)  
+**MS P0:** [`../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md)
 
 ---
 

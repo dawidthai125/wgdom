@@ -6,6 +6,7 @@
 - **UI:** Super Admin → Biblioteka → **Market Sync Preview** (STOP przed Accept/Publish)
 - **persist:** local-first `kw-market-sync-01-staging` · eksport/import JSON · **bez** Cloud DATA_KEY
 - **test:** `npx vite-node scripts/test-market-sync-01-p0.mjs`
+- **release:** feature **`273fb3e0`** · CLOSEOUT [`docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md`](docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md)
 - **bez:** commitMarketQuotesImport · Quotes write · controlled_market · AI-COST · Cloud CORE · Bid · Payroll · P1
 
 ## docs — CENY-MATERIAŁÓW-04 P2 COMPLETE (2026-07-30)
