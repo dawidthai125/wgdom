@@ -17,11 +17,11 @@ AI-DOCS-SYNC-CENY-MATERIAŁÓW-04 FULLY CLOSED
 
 | Pole | Wartość |
 |------|---------|
-| **Hash (full)** | `f163c105a7d16167b56e370a33d4b33b79d3977b` |
-| **Hash (short)** | **`f163c105`** |
+| **Hash (full)** | `d7eaae8c4007bec574ea9f35abcaeca3b3a75f48` |
+| **Hash (short)** | **`d7eaae8c`** |
 | **Message** | `docs: AI-DOCS-SYNC CENY-MATERIAŁÓW-04 P1 COMPLETE + P2 AUDIT onboarding` |
 | **Branch** | `main` |
-| **Push** | **SUCCESS** · `origin/main` · `5ea80344..f163c105` *(po push)* |
+| **Push** | **SUCCESS** · `origin/main` · `5ea80344..d7eaae8c` |
 | **Allowlista** | wyłącznie dokumenty AI-DOCS-SYNC · **ZERO** src / supabase / scripts |
 
 ---
@@ -34,7 +34,7 @@ AI-DOCS-SYNC-CENY-MATERIAŁÓW-04 FULLY CLOSED
 | AI_ENTRY · MASTER · PROJECT · MEMORY · Decision Tree · AGENTS · CURRENT-TASK · NEXT-EPIC → ten sam start (P1-CLOSEOUT → P2 AUDIT) | **PASS** |
 | Ścieżka: MASTER → AI_ENTRY → P1-CLOSEOUT → Gate → **P2 AUDIT** | **PASS** |
 | Brak sprzecznych „aktualnych” entry P1-A / P1-B | **PASS** (slice = CLOSED + link do P1-CLOSEOUT) |
-| CI | *(po push)* |
+| CI | **Vercel: success** (tip live `d7eaae8`) · GitHub Actions E2E LEGACY / TEST-INFRA / Mobile — pre-existing failure pattern na `main` · **nie blokuje** docs tip (jak P1-C) |
 
 ---
 
@@ -62,7 +62,7 @@ AI-DOCS-SYNC-CENY-MATERIAŁÓW-04 FULLY CLOSED
 | Pole | Wartość |
 |------|---------|
 | **UI tip (feature)** | **2.65.83** · feature P1-C **`992023cc`** — SSOT [`09`](../AI/09_PRODUCTION_BASELINE.md) |
-| **Docs tip** | hash tego commita (po push) · `version.json` po deploy Vercel |
+| **Docs tip** | **`d7eaae8c`** · live `version.json` po deploy Vercel |
 
 ---
 
