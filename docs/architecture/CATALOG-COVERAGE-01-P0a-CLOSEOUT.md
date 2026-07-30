@@ -4,7 +4,7 @@
 > **EPIC:** CATALOG-COVERAGE-01 · **Slice:** P0a — Noise Filter  
 > **STATUS:** **CLOSED** · **RELEASE GO** · tip UI **2.65.87** · feature **`51a56f0d`**  
 > **Data:** 2026-07-30  
-> **Production Verify:** **DEPLOY PROPAGATING** (jedno `version.json` po push: `2.65.86` / `9b6bc19`) — szczegóły [`CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md)
+> **Production Verify:** **PRODUCTION VERIFIED** (`2.65.87` / `51a56f0`) — szczegóły [`CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md)
 
 ```text
 ════════════════════════════════════════════════════════

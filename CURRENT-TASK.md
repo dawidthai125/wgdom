@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.87** · feature **`51a56f0d`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST) |
+| **Status** | **CLOSED** · tip UI **2.65.87** · feature **`51a56f0d`** · OV **PASS** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) |
 | **Zakres** | Noise Filter przed mapOfferBoqLine · tag isNoise · 33/526 TV-01 · eligible coverage 77.5% |
 | **OUT** | Normalizer · Alias · Coverage Score · Library seed · SMART/MS · P0b |

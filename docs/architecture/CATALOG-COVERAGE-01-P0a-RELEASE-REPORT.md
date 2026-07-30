@@ -58,7 +58,7 @@ Powód: jeden bundle P0a Noise Filter · <15 plików feature kodu · build+test 
 
 ## PRODUCTION STATUS
 
-**Jedno** `curl.exe -s https://www.wgdom.fun/version.json` po feature push:
+**VERIFY FAST** — jedno `curl` zaraz po feature push (`51a56f0d`):
 
 ```json
 {
@@ -68,14 +68,25 @@ Powód: jeden bundle P0a Noise Filter · <15 plików feature kodu · build+test 
 }
 ```
 
-**DEPLOY PROPAGATING** (oczekiwane `2.65.87` / `51a56f0` jeszcze nie na tip CDN).  
-**Bez** retry / sleep / polling (VERIFY FAST).
+→ wtedy **DEPLOY PROPAGATING**.
+
+Odczyt przy docs tip push (bez retry-loop feature):
+
+```json
+{
+  "version": "2.65.87",
+  "commit": "51a56f0",
+  "timestamp": "2026-07-30T08:00:12.568Z"
+}
+```
+
+→ **PRODUCTION VERIFIED**
 
 ## WERDYKT
 
 ```text
-RELEASE GO + DEPLOY PROPAGATING
-P0a CLOSED · tip docs 2.65.87 · feature 51a56f0d
+RELEASE GO + PRODUCTION VERIFIED
+P0a CLOSED · tip UI 2.65.87 · feature 51a56f0d · docs 512e6a46 / 43f9d566
 P0b NIE startowany
 ```
 
