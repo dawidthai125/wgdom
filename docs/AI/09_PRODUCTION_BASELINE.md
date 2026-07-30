@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.86** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`9ca4a4e5`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po feature push) · [`P0-CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`9ca4a4e5`** · docs tip **`15e23789`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po feature push) · [`P0-CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) |
 | **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · NEXT **P1** Owner GO |
 | **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |

@@ -39,7 +39,7 @@ NEXT slice = P1 (Evidence+One-shot) — tylko po Owner GO
 | Rola | Hash |
 |------|------|
 | **Feature** | **`9ca4a4e5`** |
-| **Docs CLOSEOUT** | *(ten commit docs)* |
+| **Docs CLOSEOUT** | **`15e23789`** |
 
 ---
 
