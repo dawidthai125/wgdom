@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.88",
+    label: "Catalog Coverage P0b — Normalizer",
+    items: [
+      {
+        type: "new",
+        text: "Catalog Coverage (P0b): Normalizer opisu przed mapowaniem OfferBoq — KNR/d.x/krotność, średnice (fi), jm, format. Tylko pozycje eligible (po Noise Filter).",
+      },
+      {
+        type: "improve",
+        text: "Opis oryginalny ATH bez zmian w UI (SSOT). Scoring Product Mapper bez zmian reguł — thin pre-map. Bez zapisu Library/Quotes. FEATURE-DATA only.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.87",
     label: "Catalog Coverage P0a — Noise Filter",
     items: [

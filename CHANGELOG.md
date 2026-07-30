@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.88 — CATALOG-COVERAGE-01 P0b Normalizer (2026-07-30)
+
+- **new:** `normalizeOfferBoqDescription` — strip ATH (KNR/d.x/krotność) · średnice `fi` · jm · whitespace
+- **wire:** eligible-only po Noise Filter · `description` UI SSOT · Core na normalized
+- **test:** `scripts/test-catalog-coverage-01-p0b.mjs` · OV `catalog-coverage-01-p0b-owner-verification.mjs`
+- **bez:** Alias · Coverage Score · Library seed · SMART/MS · commit/push
+
 ## 2.65.87 — CATALOG-COVERAGE-01 P0a Noise Filter (2026-07-30)
 
 - **new:** `src/lib/catalog-coverage/**` — Noise Filter przed mapowaniem OfferBoq (kalkulacja własna · transport wąski · LP · śmieci)

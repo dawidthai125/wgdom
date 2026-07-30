@@ -29,6 +29,7 @@ import {
   type OfferBoqMappingStats,
 } from "@/lib/tender-offer-boq";
 import { prepareOfferBoqLineForMapping } from "@/lib/catalog-coverage/noise-filter";
+import { normalizeOfferBoqDescription } from "@/lib/catalog-coverage/normalize-description";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -327,9 +328,10 @@ function toCandidate(
  * Mapuje pojedynczą linię OfferBoq (bez wyceny).
  * Nie mutuje input — zwraca nową linię.
  *
- * CATALOG-COVERAGE-01 P0a: Noise Filter **przed** scoringiem (thin pre-map).
- * Product Mapper (= ta funkcja) pozostaje jedynym właścicielem `catalogWorkId`
- * dla linii eligible; noise → skip scoringu (zero write).
+ * CATALOG-COVERAGE-01:
+ *  P0a Noise Filter — skip Mapper dla niemateriałowych
+ *  P0b Normalizer — wyłącznie eligible · forma only · Core bez zmian scoringu
+ * Product Mapper (= Core) pozostaje jedynym właścicielem `catalogWorkId`.
  */
 export function mapOfferBoqLine(
   line: OfferBoqLine,
@@ -337,9 +339,30 @@ export function mapOfferBoqLine(
 ): OfferBoqLine {
   const prepared = prepareOfferBoqLineForMapping(line);
   if (prepared.skipMapper) {
-    return prepared.line;
+    return {
+      ...prepared.line,
+      normalizedDescription: null,
+    };
   }
-  return mapOfferBoqLineCore(prepared.line, ctx);
+
+  const norm = normalizeOfferBoqDescription(prepared.line.description);
+  const forCore: OfferBoqLine = {
+    ...prepared.line,
+    description: norm.normalizedDescription || prepared.line.description,
+    knrHint: prepared.line.knrHint || norm.knrHint,
+    unit: (prepared.line.unit || "").trim() || norm.unitHint || prepared.line.unit,
+  };
+  const mapped = mapOfferBoqLineCore(forCore, ctx);
+  return {
+    ...mapped,
+    // SSOT wyświetlania / oryginału ATH — bez podmiany semantyki w UI
+    description: line.description,
+    unit: line.unit,
+    knrHint: line.knrHint,
+    isNoise: false,
+    noiseKind: null,
+    normalizedDescription: norm.normalizedDescription,
+  };
 }
 
 /**

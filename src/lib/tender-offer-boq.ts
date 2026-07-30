@@ -320,6 +320,11 @@ export interface OfferBoqLine {
     | "lp_artifact"
     | "smieci_krotkie"
     | null;
+  /**
+   * CATALOG-COVERAGE-01 P0b — opis po Normalizerze (ephemeral).
+   * `description` pozostaje SSOT wyświetlania / oryginału ATH.
+   */
+  normalizedDescription?: string | null;
   knrHint: string | null;
   matchMethod: OfferBoqMatchMethod;
   /** Alias produktowy metody (DoD COST-S2). */
@@ -534,6 +539,7 @@ function structuralLine(opts: {
     categoryId: null,
     isNoise: false,
     noiseKind: null,
+    normalizedDescription: null,
     knrHint,
     matchMethod: "snapshot",
     matchedBy: "snapshot",

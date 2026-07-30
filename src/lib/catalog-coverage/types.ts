@@ -1,6 +1,6 @@
 /**
  * CATALOG-COVERAGE-01 — typy warstw coverage (P0a+).
- * DF: Noise Filter kinds P0.
+ * DF: Noise Filter kinds P0 · Normalizer P0b.
  */
 
 /** Kinds Noise Filter P0 (DF §2.1) — wyłącznie niemateriałowe. */
@@ -23,4 +23,27 @@ export interface CatalogCoverageNoiseFilterStats {
   eligibleCount: number;
   noisePct: number;
   byKind: Record<CatalogCoverageNoiseKind, number>;
+}
+
+export interface CatalogCoverageNormalizeResult {
+  /** Opis po standaryzacji formy (ephemeral — bez zapisu). */
+  normalizedDescription: string;
+  /** Czy znormalizowany tekst ≠ wejście po trim. */
+  changed: boolean;
+  /** Wyodrębniony KNR z ATH (hint dla Mappera; nie mutuje SSOT knrHint linii). */
+  knrHint: string | null;
+  /** Jednostka wyciągnięta z tekstu (gdy brak w polu unit). */
+  unitHint: string | null;
+  /** Średnica kanoniczna np. `fi32` (diagnostyka). */
+  diameterHint: string | null;
+}
+
+export interface CatalogCoverageNormalizeStats {
+  lineCount: number;
+  changedCount: number;
+  unchangedCount: number;
+  withKnrHint: number;
+  withUnitHint: number;
+  withDiameterHint: number;
+  changedPct: number;
 }
