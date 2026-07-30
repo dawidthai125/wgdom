@@ -86,7 +86,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 | Pole | Wartość |
 |------|---------|
-| Status | **CLOSED** · tip UI **2.65.82** · PV **PASS** · 7 robót WC ogrodzenia + Quotes 7/7 · OV PASS |
+| **Status** | **CLOSED** · tip UI **2.65.82** · feature **`dca25c96`** · PV **PASS** · 7 robót WC ogrodzenia + Quotes 7/7 · OV PASS |
 | IN | ogrodzenia · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
 | OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A |
 | NEXT | **P1-C** — Owner GO → PLAN |
