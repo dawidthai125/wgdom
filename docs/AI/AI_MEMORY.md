@@ -18,16 +18,18 @@ Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE z CORE.
 3. **STABILIZATION WINDOW** — nowy EPIC tylko po **Owner GO**.  
 4. Commit / push **tylko** na wyraźną prośbę Ownera.  
 5. Nie czytaj `App.tsx` od zera — mapa: [`../AGENT-APP-MAP.md`](../AGENT-APP-MAP.md).  
-6. **CATALOG-COVERAGE-01 P0c CLOSED** (2.65.89 · `aebf9d09`) — Alias Resolver Wave 1; DATA FIRST no-op bez work; P0d = Owner GO.  
-7. **CATALOG-COVERAGE-01 P0b CLOSED** (2.65.88 · `fb58f501`) — Normalizer forma only (eligible); bez Alias/seed.  
-8. **CATALOG-COVERAGE-01 P0a CLOSED** (2.65.87 · `51a56f0d`) — Noise Filter przed mapowaniem; bez Normalizer/Alias/seed.  
-8. **SMART-PRICING-01 P0 CLOSED** (2.65.86 · `9ca4a4e5`) — Detect Quotes-first RO; bez One-shot/Save/Publish; P1 = Owner GO.  
-9. **MARKET-SYNC-01 P1 CLOSED** (2.65.85 · `5326cf8c`) — Accept+Publish via **tylko** `commitMarketQuotesImport`; Kill Switch default OFF; P2 = AUDIT+Owner GO. P0 Preview staging pozostaje.
+6. **CATALOG-COVERAGE-01 P0d-A CLOSED** (2.65.90 · `b9da6bff`) — Precision + SAFE seed; Negation Guard Alias|Core; coverage 76.7%; P0e = Owner GO.
+7. **CATALOG-COVERAGE-01 P0c CLOSED** (2.65.89 · `aebf9d09`) — Alias Resolver Wave 1; DATA FIRST no-op bez work.
+8. **CATALOG-COVERAGE-01 P0b CLOSED** (2.65.88 · `fb58f501`) — Normalizer forma only (eligible); bez Alias/seed.
+9. **CATALOG-COVERAGE-01 P0a CLOSED** (2.65.87 · `51a56f0d`) — Noise Filter przed mapowaniem; bez Normalizer/Alias/seed.
+10. **SMART-PRICING-01 P0 CLOSED** (2.65.86 · `9ca4a4e5`) — Detect Quotes-first RO; bez One-shot/Save/Publish; P1 = Owner GO.  
+11. **MARKET-SYNC-01 P1 CLOSED** (2.65.85 · `5326cf8c`) — Accept+Publish via **tylko** `commitMarketQuotesImport`; Kill Switch default OFF; P2 = AUDIT+Owner GO. P0 Preview staging pozostaje.
 
 **SSOT procesu:** [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) · [`../WORKFLOW-OWNER-GO.md`](../WORKFLOW-OWNER-GO.md)  
-**CC P0c:** [`../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md)  
-**CC P0b:** [`../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md)  
-**CC P0a:** [`../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md)  
+**CC P0d-A:** [`../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md)
+**CC P0c:** [`../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md)
+**CC P0b:** [`../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md)
+**CC P0a:** [`../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md)
 **SMART P0:** [`../architecture/SMART-PRICING-01-P0-CLOSEOUT.md`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md)  
 **MS P1:** [`../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)  
 **MS P0:** [`../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md)

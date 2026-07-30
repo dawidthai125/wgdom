@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CATALOG-COVERAGE-01 **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CATALOG-COVERAGE-01 **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,10 +10,12 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip = 09 + version.json (UI 2.65.89 · feature CATALOG-COVERAGE-01 P0c aebf9d09)
+Tip = 09 + version.json (UI 2.65.90 · feature CATALOG-COVERAGE-01 P0d-A b9da6bff)
+CATALOG-COVERAGE-01 P0d-A = CLOSED (Precision + SAFE seed)
+  SSOT = docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md
+  NEXT slice = P0e (FULL) — tylko po Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0c = CLOSED (Alias Resolver Wave 1)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md
-  NEXT slice = P0d (Library seed) — tylko po Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0b = CLOSED (Normalizer)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md
 CATALOG-COVERAGE-01 P0a = CLOSED (Noise Filter)
@@ -225,8 +227,10 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C3g** | **CENY-MATERIAŁÓW-04 P2** | **COMPLETE** | P2-A/B + Residual ROZ · K-P2-1/2/3 | **P3 AUDIT** Owner GO | [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
 | **C3h** | **MARKET-SYNC-01 P0** | **CLOSED** | Model+Preview staging | — | **2.65.84** · `273fb3e0` |
 | **C3i** | **MARKET-SYNC-01 P1** | **CLOSED** | Accept+Publish · commit only | **P2 AUDIT** Owner GO | **2.65.85** · `5326cf8c` · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) |
-| **C3j** | **MARKET-SYNC-01 P2** | **NEXT** · BACKLOG | (zakres po AUDIT) | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
-| **C3k** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
+| **C3j** | **CATALOG-COVERAGE-01 P0d-A** | **CLOSED** | Precision + SAFE seed | **P0e** Owner GO | **2.65.90** · `b9da6bff` · [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
+| **C3k** | **CATALOG-COVERAGE-01 P0e** | **NEXT** · BACKLOG | FULL Library seed | Owner GO → AUDIT→DF | **nie** auto-start |
+| **C3l** | **MARKET-SYNC-01 P2** | **NEXT** · BACKLOG | (zakres po AUDIT) | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
+| **C3m** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -236,8 +240,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **5** | **HARDENING-01B1 / C / E** | BACKLOG · Owner GO | Hardening sync | 01A/01D/01B0 **CLOSED** | Sygnały prod |
 | **8** | **Payroll nowe prace** | **NONE** | — | Hours-wipe **CLOSED** | Tylko nowy GO + Gate |
 
-**Rekomendowany pierwszy krok:** **MARKET-SYNC-01 P2 AUDIT** *lub* **CENY-MATERIAŁÓW-04 P3 AUDIT** — Owner GO → AUDIT→PLAN→DF.  
-**Alternatywa:** residual GAP-B (stack) *lub* AI-COST-02 I3 Competitiveness po osobnym DF.  
+**Rekomendowany pierwszy krok:** **CATALOG-COVERAGE-01 P0e** *lub* **SMART-PRICING-01 P1** *lub* **MARKET-SYNC-01 P2 AUDIT** — Owner GO.  
+**Alternatywa:** CM-04 P3 AUDIT · residual GAP-B · AI-COST-02 I3 po osobnym DF.  
 **Zawsze:** Entry + Gate.
 
 ---
@@ -288,4 +292,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.85** · MARKET-SYNC-01 **P1 CLOSED** · NEXT **P2 AUDIT** / CM-04 **P3 AUDIT** (Owner GO) · tip w `09` · SSOT P1 [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.90** · CATALOG-COVERAGE-01 **P0d-A CLOSED** · NEXT **P0e** / SMART **P1** / MS **P2 AUDIT** / CM-04 **P3 AUDIT** (Owner GO) · tip w `09` · SSOT [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md)

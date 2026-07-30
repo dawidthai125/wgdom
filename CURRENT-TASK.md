@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0c CLOSED** · tip UI **2.65.89** · **`aebf9d09`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0d-A CLOSED** · tip UI **2.65.90** · **`b9da6bff`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CATALOG-COVERAGE-01 P0d-A — **CLOSED** (Precision + SAFE Seed)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.90** · feature **`b9da6bff`** · OV **PASS** · **RELEASE GO** · **PRODUCTION VERIFIED** |
+| **SSOT** | [`CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
+| **Zakres** | Negation Guard Alias\|Core · multiswitch wąski · SAFE zawór+stop · coverage **76.7%** (+0.3 pp) |
+| **OUT** | P0e FULL · Wave 2/BIZ/HIGH · Fuzzy · SMART/MS rewrite |
+| **Następne** | **P0e FULL** — Owner GO · **nie** auto-start |
 
 ## ★ CATALOG-COVERAGE-01 P0c — **CLOSED** (Alias Resolver Wave 1)
 
@@ -13,8 +23,8 @@
 | **Status** | **CLOSED** · tip UI **2.65.89** · feature **`aebf9d09`** · OV **PASS** · **RELEASE GO** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) |
 | **Zakres** | Alias→Product ID · 6 reguł LOW · first match · eligible · Quotes +1 linia (76.4%=) |
-| **OUT** | Wave 2/BIZ/HIGH · Library seed · SMART/MS · P0d |
-| **Następne** | **P0d Library seed** — Owner GO · **nie** auto-start |
+| **OUT** | Wave 2/BIZ/HIGH · Library seed · SMART/MS |
+| **Następne** | **P0d-A CLOSED** → **P0e** |
 
 ## ★ CATALOG-COVERAGE-01 P0b — **CLOSED** (Normalizer)
 
