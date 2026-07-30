@@ -39,7 +39,7 @@ NEXT slice = P0b (Normalizer) — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature** | **`51a56f0d`** |
-| **Docs tip / CLOSEOUT** | *(ten commit docs — po sync)* |
+| **Docs tip / CLOSEOUT** | **`512e6a46`** |
 
 ---
 

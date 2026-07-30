@@ -41,8 +41,9 @@ Powód: jeden bundle P0a Noise Filter · <15 plików feature kodu · build+test 
 | | |
 |--|--|
 | Feature commit | **`51a56f0d`** |
+| Docs tip | **`512e6a46`** |
 | Branch | `main` → `origin/main` |
-| Push | **PASS** (`9b6bc19d..51a56f0d`) |
+| Push | **PASS** (`9b6bc19d..51a56f0d` feature · `51a56f0d..512e6a46` docs) |
 
 ## RELEASE READINESS
 
