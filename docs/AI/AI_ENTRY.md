@@ -1,6 +1,6 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** MARKET-SYNC-01 **P0 CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
 > **Data:** 2026-07-30
 
@@ -10,9 +10,11 @@ STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
 Tip = wyłącznie docs/AI/09_PRODUCTION_BASELINE.md + version.json
+MARKET-SYNC-01 P1 = CLOSED (2.65.85 · 5326cf8c)
+  → SSOT: docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md
+  → NEXT slice: P2 AUDIT — Owner GO (nie auto-start)
 MARKET-SYNC-01 P0 = CLOSED (2.65.84 · 273fb3e0)
   → SSOT: docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md
-  → NEXT slice: P1 DF — Owner GO (nie auto-start)
 CENY-MATERIAŁÓW-04 P2 = COMPLETE (P2-A · P2-B · Residual ROZ)
   → SSOT: docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md
 CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
@@ -26,6 +28,7 @@ Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**MARKET-SYNC-01 P1 CLOSED:** [`MARKET-SYNC-01-P1-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)  
 **MARKET-SYNC-01 P0 CLOSED:** [`MARKET-SYNC-01-P0-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md)  
 **CM-04 P2 COMPLETE:** [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
 **CM-04 P1 COMPLETE:** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  

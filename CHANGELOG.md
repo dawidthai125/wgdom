@@ -7,6 +7,7 @@
 - **Kill Switch:** `MARKET_SYNC_PUBLISH_ENABLED` default **OFF** (check w lib przed commit)
 - **UI:** Super Admin → Biblioteka → Market Sync (P1)
 - **test:** `npx vite-node scripts/test-market-sync-01-p1.mjs` (+ regresja P0)
+- **feature:** **`5326cf8c`** · CLOSEOUT [`docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md`](docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)
 - **bez:** AI-COST · Cloud Sync CORE · Payroll · drugi tor Quotes · P2
 
 ## 2.65.84 — MARKET-SYNC-01 P0 Preview staging (2026-07-30)

@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** MARKET-SYNC-01 **P0 CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,10 +10,12 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip = 09 + version.json (UI 2.65.84 · feature MARKET-SYNC-01 P0 273fb3e0)
-MARKET-SYNC-01 P0 = CLOSED (Model+Preview staging · STOP Accept/Publish)
+Tip = 09 + version.json (UI 2.65.85 · feature MARKET-SYNC-01 P1 5326cf8c)
+MARKET-SYNC-01 P1 = CLOSED (Accept+Publish via commitMarketQuotesImport)
+  SSOT = docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md
+  NEXT slice = P2 AUDIT — tylko po Owner GO (nie auto-start)
+MARKET-SYNC-01 P0 = CLOSED (Model+Preview staging)
   SSOT = docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md
-  NEXT slice = P1 DF (Accept+Publish via commit) — Owner GO
 CENY-MATERIAŁÓW-04 P2 = COMPLETE (P2-A · P2-B · Residual ROZ)
   SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md
 CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
@@ -211,7 +213,10 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C3e** | **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** | Elewacje/ocieplenia WC + Quotes · OV PASS | **P1 COMPLETE** | Shipped **2.65.83** · FEATURE-DATA |
 | **C3f** | **CENY-MATERIAŁÓW-04 P1** | **COMPLETE** | P0+P1-A/B/C | — | [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **C3g** | **CENY-MATERIAŁÓW-04 P2** | **COMPLETE** | P2-A/B + Residual ROZ · K-P2-1/2/3 | **P3 AUDIT** Owner GO | [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
-| **C3h** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
+| **C3h** | **MARKET-SYNC-01 P0** | **CLOSED** | Model+Preview staging | — | **2.65.84** · `273fb3e0` |
+| **C3i** | **MARKET-SYNC-01 P1** | **CLOSED** | Accept+Publish · commit only | **P2 AUDIT** Owner GO | **2.65.85** · `5326cf8c` · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) |
+| **C3j** | **MARKET-SYNC-01 P2** | **NEXT** · BACKLOG | (zakres po AUDIT) | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
+| **C3k** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -221,7 +226,7 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **5** | **HARDENING-01B1 / C / E** | BACKLOG · Owner GO | Hardening sync | 01A/01D/01B0 **CLOSED** | Sygnały prod |
 | **8** | **Payroll nowe prace** | **NONE** | — | Hours-wipe **CLOSED** | Tylko nowy GO + Gate |
 
-**Rekomendowany pierwszy krok:** residual **GAP-B/C** · **AI-COST-02 I3** · **TP200B** — Owner GO → DF.  
+**Rekomendowany pierwszy krok:** **MARKET-SYNC-01 P2 AUDIT** *lub* **CENY-MATERIAŁÓW-04 P3 AUDIT** — Owner GO → AUDIT→PLAN→DF.  
 **Alternatywa:** residual GAP-B (stack) *lub* AI-COST-02 I3 Competitiveness po osobnym DF.  
 **Zawsze:** Entry + Gate.
 
@@ -273,4 +278,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · NEXT **P3 (INNE) AUDIT** (Owner GO) / GAP-B / I3 / TP200B · tip w `09` · SSOT P2 [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.85** · MARKET-SYNC-01 **P1 CLOSED** · NEXT **P2 AUDIT** / CM-04 **P3 AUDIT** (Owner GO) · tip w `09` · SSOT P1 [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)

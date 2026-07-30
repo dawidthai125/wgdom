@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**MARKET-SYNC-01 P0 CLOSED** · tip UI **2.65.84** · **`273fb3e0`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**MARKET-SYNC-01 P1 CLOSED** · tip UI **2.65.85** · **`5326cf8c`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ MARKET-SYNC-01 P1 — **CLOSED** (Accept + Publish)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.85** · feature **`5326cf8c`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST po push) |
+| **SSOT** | [`MARKET-SYNC-01-P1-CLOSEOUT.md`](docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) |
+| **Zakres** | Accept staging · Guard · Dry Run · Delta · Summary · Kill Switch · `commitMarketQuotesImport` only · Undo single |
+| **OUT** | AI-COST · Cloud CORE · Payroll · drugi tor Quotes · P2 |
+| **Następne** | **P2 AUDIT** — Owner GO · **nie** auto-start |
 
 ## ★ MARKET-SYNC-01 P0 — **CLOSED** (Model + Preview)
 
@@ -12,9 +22,8 @@
 |---------|---------|
 | **Status** | **CLOSED** · tip UI **2.65.84** · feature **`273fb3e0`** · OV **PASS** · PV **PRODUCTION VERIFIED** |
 | **SSOT** | [`MARKET-SYNC-01-P0-CLOSEOUT.md`](docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) |
-| **Zakres** | Staging: MarketProduct · ProviderQuote · Import→Match→Preview STOP · local-first |
-| **OUT** | Accept · Publish · commitMarketQuotesImport · Quotes · Cloud CORE · AI-COST |
-| **Następne** | **P1 DESIGN FREEZE** — Owner GO · **nie** auto-start |
+| **Zakres** | Staging: MarketProduct · ProviderQuote · Import→Match→Preview · local-first |
+| **Następne** | **P1 CLOSED** → **P2 AUDIT** |
 
 ## ★ CENY-MATERIAŁÓW-04 P2 — **COMPLETE** (P2-A · P2-B · Residual ROZ)
 

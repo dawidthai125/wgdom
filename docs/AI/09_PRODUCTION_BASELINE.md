@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**MARKET-SYNC-01 P0 CLOSED**) · tip UI **2.65.84** · feature **`273fb3e0`** · PV FAST = **DEPLOY PROPAGATING** przy pierwszym odczycie.
+**Snapshot dokumentacji:** 2026-07-30 (**MARKET-SYNC-01 P1 CLOSED**) · tip UI **2.65.85** · feature **`5326cf8c`** · PV FAST = **DEPLOY PROPAGATING** przy pierwszym odczycie.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.84** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`273fb3e0`** · docs tip **`7af91305`** · PV **PRODUCTION VERIFIED** (`2.65.84` / `273fb3e`) · [`P0-CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) |
-| **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · STOP przed Accept/Publish · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · [`PV`](../architecture/MARKET-SYNC-01-P0-PRODUCTION-VERIFY.md) · UI **2.65.84** |
+| **UI version (changelog / version.json)** | **2.65.85** |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`5326cf8c`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po push) · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`RELEASE`](../architecture/MARKET-SYNC-01-P1-RELEASE-REPORT.md) |
+| **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`PV`](../architecture/MARKET-SYNC-01-P1-PRODUCTION-VERIFY.md) |
+| **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1)** | **COMPLETE** · P0 · P1-A/B/C · tip UI **2.65.83** · feature P1-C **`992023cc`** · PV **PASS** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · KPI CM **73.2%** / HE **26.8%** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1-C)** | **`992023cc`** · **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · 7 robót elewacje/ocieplenia + Quotes 7/7 · P3.3 import · OV PASS · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-C-RELEASE-COMPLETE.md) · UI **2.65.83** |

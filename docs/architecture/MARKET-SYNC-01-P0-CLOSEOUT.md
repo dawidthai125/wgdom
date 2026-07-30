@@ -70,9 +70,9 @@ AI-COST · Cloud Sync CORE · Bid · Scoring · Parser · Payroll · Product Quo
 | | |
 |--|--|
 | **P0** | **CLOSED** |
-| **P1** | **NIE rozpoczęty** |
-| **Warunek startu P1** | Owner GO → **DESIGN FREEZE P1** (Accept · linkedWorkIds · origins · publish wyłącznie przez `commitMarketQuotesImport`) → AR → GO IMPLEMENT |
-| **Zakaz** | Auto-start P1 · Publish w hotfix bez DF |
+| **P1** | **CLOSED** · tip **2.65.85** · [`MARKET-SYNC-01-P1-CLOSEOUT.md`](MARKET-SYNC-01-P1-CLOSEOUT.md) |
+| **P2** | **NIE rozpoczęty** · AUDIT + Owner GO |
+| **Zakaz** | Auto-start P2 · drugi write path Quotes |
 
 ---
 
