@@ -11,7 +11,7 @@
 CATALOG-COVERAGE-01 P0a = CLOSED
 Noise Filter przed mapOfferBoqLine (niemateriałowe only)
 BEZ Normalizer · Alias · Coverage Score · Library seed · SMART/MS
-NEXT slice = P0b (Normalizer) — tylko po Owner GO (nie auto-start)
+NEXT slice = P0c (Alias Resolver) — tylko po Owner GO (nie auto-start)
 ════════════════════════════════════════════════════════
 ```
 

@@ -1,6 +1,6 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CATALOG-COVERAGE-01 **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CATALOG-COVERAGE-01 **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
 > **Data:** 2026-07-30
 
@@ -10,9 +10,11 @@ STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
 Tip = wyłącznie docs/AI/09_PRODUCTION_BASELINE.md + version.json
+CATALOG-COVERAGE-01 P0b = CLOSED (2.65.88 · fb58f501)
+  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md
+  → NEXT slice: P0c Alias Resolver — Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0a = CLOSED (2.65.87 · 51a56f0d)
   → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md
-  → NEXT slice: P0b Normalizer — Owner GO (nie auto-start)
 SMART-PRICING-01 P0 = CLOSED (2.65.86 · 9ca4a4e5)
   → SSOT: docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md
   → NEXT slice: P1 — Owner GO (nie auto-start)
@@ -34,6 +36,7 @@ Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**CATALOG-COVERAGE-01 P0b CLOSED:** [`CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md)  
 **CATALOG-COVERAGE-01 P0a CLOSED:** [`CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md)  
 **SMART-PRICING-01 P0 CLOSED:** [`SMART-PRICING-01-P0-CLOSEOUT.md`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md)  
 **MARKET-SYNC-01 P1 CLOSED:** [`MARKET-SYNC-01-P1-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)  
