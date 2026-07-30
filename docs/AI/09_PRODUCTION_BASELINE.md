@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0c CLOSED**) · tip UI **2.65.89** · feature **`aebf9d09`** · **DEPLOY PROPAGATING** (VERIFY FAST).
+**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0c CLOSED**) · tip UI **2.65.89** · feature **`aebf9d09`** · **PRODUCTION VERIFIED**.
 
 ---
 
@@ -26,8 +26,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.89** (oczekiwane; live VERIFY FAST może być jeszcze 2.65.88 = DEPLOY PROPAGATING) |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`aebf9d09`** · docs tip **`ea8b7b3b`** · **RELEASE GO** · **DEPLOY PROPAGATING** · [`P0c-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) |
+| **UI version (changelog / version.json)** | **2.65.89** |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`aebf9d09`** · docs tip **`21a64a75`** · **PRODUCTION VERIFIED** · [`P0c-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0c)** | **CLOSED** · Alias Resolver Wave 1 · UI **2.65.89** · feature **`aebf9d09`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) · NEXT **P0d** Owner GO |
 | **Feature tip (CATALOG-COVERAGE-01 P0b)** | **CLOSED** · Normalizer · UI **2.65.88** · feature **`fb58f501`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |

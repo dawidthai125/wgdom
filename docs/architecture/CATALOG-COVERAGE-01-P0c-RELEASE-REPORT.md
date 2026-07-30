@@ -45,10 +45,10 @@ Powód: jeden bundle P0c Alias Resolver Wave 1 · <15 plików feature · build+t
 | | |
 |--|--|
 | Feature commit | **`aebf9d09`** |
-| Docs tip | **`ea8b7b3b`** |
+| Docs tip | **`21a64a75`** |
 | Branch | `main` → `origin/main` |
 | Push feature | **PASS** (`87eeee64..aebf9d09`) |
-| Push docs | **PASS** (`aebf9d09..ea8b7b3b`) |
+| Push docs | **PASS** (`aebf9d09..21a64a75`) |
 
 ## RELEASE READINESS
 
@@ -63,21 +63,23 @@ Powód: jeden bundle P0c Alias Resolver Wave 1 · <15 plików feature · build+t
 
 ## PRODUCTION STATUS
 
-**VERIFY DEPLOY FAST** — jedno `curl` zaraz po feature push (`aebf9d09`):
+**VERIFY DEPLOY FAST** — jedno `curl` zaraz po feature push (`aebf9d09`) — wtedy jeszcze stale.
+
+Odczyt przy docs tip (bez retry-loop):
 
 ```json
 {
-  "version": "2.65.88",
-  "commit": "87eeee6",
-  "timestamp": "2026-07-30T17:39:11.229Z"
+  "version": "2.65.89",
+  "commit": "aebf9d0",
+  "timestamp": "2026-07-30T18:47:04.999Z"
 }
 ```
 
-→ **DEPLOY PROPAGATING** (oczekiwane `2.65.89` / `aebf9d09`).
+→ **PRODUCTION VERIFIED**.
 
 ## WERDYKT
 
-**RELEASE GO** + **DEPLOY PROPAGATING**
+**RELEASE GO** + **PRODUCTION VERIFIED**
 
 ```text
 =====================================

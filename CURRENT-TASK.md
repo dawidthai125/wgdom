@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.89** · feature **`aebf9d09`** · OV **PASS** · **RELEASE GO** · **DEPLOY PROPAGATING** |
+| **Status** | **CLOSED** · tip UI **2.65.89** · feature **`aebf9d09`** · OV **PASS** · **RELEASE GO** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) |
 | **Zakres** | Alias→Product ID · 6 reguł LOW · first match · eligible · Quotes +1 linia (76.4%=) |
 | **OUT** | Wave 2/BIZ/HIGH · Library seed · SMART/MS · P0d |

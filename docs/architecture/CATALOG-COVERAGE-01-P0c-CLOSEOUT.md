@@ -4,7 +4,7 @@
 > **EPIC:** CATALOG-COVERAGE-01 · **Slice:** P0c — Alias Resolver Wave 1  
 > **STATUS:** **CLOSED** · **RELEASE GO** · tip UI **2.65.89** · feature **`aebf9d09`**  
 > **Data:** 2026-07-30  
-> **Production Verify:** **DEPLOY PROPAGATING** (VERIFY FAST zaraz po push — live jeszcze `2.65.88` / `87eeee6`) — szczegóły [`CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md)
+> **Production Verify:** **PRODUCTION VERIFIED** (`2.65.89` / `aebf9d0`) — szczegóły [`CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md`](CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md)
 
 ```text
 ════════════════════════════════════════════════════════
@@ -43,7 +43,7 @@ NEXT slice = P0d (Library seed) — tylko po Owner GO (nie auto-start)
 | Rola | Hash |
 |------|------|
 | **Feature** | **`aebf9d09`** |
-| **Docs tip / CLOSEOUT** | **`ea8b7b3b`** |
+| **Docs tip / CLOSEOUT** | **`21a64a75`** (+ tip PV poniżej) |
 
 ---
 
