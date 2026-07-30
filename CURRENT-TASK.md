@@ -1,10 +1,19 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P1 COMPLETE** · tip UI **2.65.83**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**CENY-MATERIAŁÓW-04 P2 COMPLETE** · tip UI **2.65.83**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CENY-MATERIAŁÓW-04 P2 — **COMPLETE** (P2-A · P2-B · Residual ROZ)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **P2 COMPLETE** · **CLOSED** · FEATURE-DATA WC · K-P2-1/2/3 **PASS** · residual **16≤18** · false **0** |
+| **SSOT** | [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
+| **Amend** | [`RESIDUAL-ROZ-AMEND`](docs/architecture/CENY-MATERIAŁÓW-04-P2-RESIDUAL-ROZ-AMEND-COMPLETE.md) |
+| **Następne** | **P3 (INNE) AUDIT** — Owner GO · AUDIT→PLAN→DF · **nie** auto-start |
 
 ## ★ CENY-MATERIAŁÓW-04 P1 — **COMPLETE** (P0 · P1-A · P1-B · P1-C)
 
@@ -13,7 +22,7 @@
 | **Status** | **P1 COMPLETE** · **PRODUCTION VERIFIED** · tip UI **2.65.83** · feature P1-C **`992023cc`** |
 | **SSOT** | [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **KPI 18** | CM **73.2%** · HE **26.8%** · A **10/10** · B **7/7** · C **7/7** · false **0** |
-| **Następne** | **P2 AUDIT** — Owner GO · **nie** auto-start |
+| **Następne** | **P2 COMPLETE** → **P3 (INNE) AUDIT** |
 
 ## ★ CENY-MATERIAŁÓW-04 P1-C — elewacje / ocieplenia — **CLOSED**
 
@@ -23,7 +32,7 @@
 | **Closeout** | [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
 | **PV** | [`CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) |
 | **IN / OUT / KPI** | → [`P1-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
-| **Następne** | **P1 COMPLETE** → **P2 AUDIT** |
+| **Następne** | **P1 COMPLETE** → **P2 COMPLETE** → **P3 AUDIT** |
 
 ## ★ CENY-MATERIAŁÓW-04 P1-B — ogrodzenia — **CLOSED**
 
@@ -35,7 +44,7 @@
 | **IN** | 7 robót WC · Quotes 7/7 · CSV→P3.3 · OPS token patch |
 | **OUT** | AI-COST · scoring · Bid · Cloud CORE · P1-A |
 | **KPI** | CM 73% · HE 27% · C1 5 · unmatched OGRODZENIA 0 |
-| **Następne** | **P1 COMPLETE** → **P2 AUDIT** |
+| **Następne** | **P1 COMPLETE** → **P2 COMPLETE** → **P3 AUDIT** |
 
 ## ★ CENY-MATERIAŁÓW-04 P1-A — chodniki i nawierzchnie — **CLOSED**
 
@@ -46,7 +55,7 @@
 | **PV** | [`CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-A-PRODUCTION-VERIFY.md) |
 | **IN** | 10 robót WC · Quotes 10/10 · CSV→P3.3 · D-P1-F/F2 |
 | **OUT** | AI-COST · scoring · Bid · Cloud CORE |
-| **Następne** | **P1 COMPLETE** → **P2 AUDIT** |
+| **Następne** | **P1 COMPLETE** → **P2 COMPLETE** → **P3 AUDIT** |
 
 ## ★ CENY-MATERIAŁÓW-01 — mapping uplift WC / marketQuotes — **CLOSED**
 
@@ -74,12 +83,12 @@
 | **PV** | OFF parity · ON S4–S6 · tip **2.65.79** / **`e10a151`** |
 | **Następne** | **GAP-B / I3 / TP200B** (rekomendacja) — Owner GO → DF · **nie** re-open P3.3 bez briefu |
 
-## ★ NASTĘPNY KROK — CENY-MATERIAŁÓW-04 **P2 AUDIT**
+## ★ NASTĘPNY KROK — CENY-MATERIAŁÓW-04 **P3 (INNE) AUDIT**
 
 | Element | Wartość |
 |---------|---------|
 | **Status** | **OCZEKUJE Owner GO** · **nie** auto-start |
-| **Wejście** | [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| **Wejście** | [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
 | **Proces** | Owner GO → **AUDIT** → PLAN → DF → … |
 | **Alternatywy** | GAP-B / I3 / TP200B — [`NEXT-EPIC-CANDIDATES.md`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 

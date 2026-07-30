@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## docs — CENY-MATERIAŁÓW-04 P2 COMPLETE (2026-07-30)
+
+- **docs:** P2 CLOSE SSOT — ROZBIÓRKI / ELEKTRYKA·GK·HYDRAULIKA / Residual ROZ (K-P2-1 PASS: 16≤18)
+- **data:** FEATURE-DATA `kw-wgdom-work-catalog` — EXTEND + NEW `p2a-*`/`p2b-*` + Quotes P3.3 (bez bumpa UI)
+- **KPI:** K-P2-1/2/3 PASS · false 0 · P1 10/7/7 intact · CM ~73.6%
+- **SSOT:** `docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`
+- **NEXT:** P3 (INNE) AUDIT — Owner GO · **bez** auto-start
+- **bez zmian:** AI-COST · scoring · Bid · Cloud CORE · parser · frontend
+
 ## 2.65.77 — COST-BID-GAP-01 GAP-A catalog calibration (2026-07-29)
 
 - **improve:** GAP-A — klasyfikacja UNKNOWN (keywords) + kalibracja stawek katalogowych → wyższy direct upstream Bid

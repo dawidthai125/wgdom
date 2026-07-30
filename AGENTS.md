@@ -21,10 +21,11 @@
  10. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
  11. IMPLEMENT dopiero po Gate + checklist
 
-Po COST-BID-GAP-01 / GAP-A (CLOSED) oraz CENY-MATERIAŁÓW-04 **P1 COMPLETE**:
+Po COST-BID-GAP-01 / GAP-A (CLOSED) oraz CENY-MATERIAŁÓW-04 **P2 COMPLETE**:
   · docs/AI/MASTER_HANDOFF.md                         ← stan · NEXT
-  · docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md ← P1 KPI · lessons · P2 AUDIT
-  · docs/architecture/NEXT-EPIC-CANDIDATES.md           ← NEXT: P2 AUDIT / GAP-B / I3 / TP200B
+  · docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md ← P2 KPI · lessons · P3 AUDIT
+  · docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md ← P1 KPI · lessons
+  · docs/architecture/NEXT-EPIC-CANDIDATES.md           ← NEXT: P3 (INNE) AUDIT / GAP-B / I3 / TP200B
   · docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
   · docs/architecture/COST-BID-GAP-01-CLOSEOUT.md
   · docs/architecture/COST-MULTI-CLOSEOUT.md
@@ -186,8 +187,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI / tip prod | **tylko** [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json` (**nie** hardcoduj tutaj) |
-| Ostatni EPIC (katalog / ceny) | **CENY-MATERIAŁÓW-04 P1 COMPLETE** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · [`P1-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
-| NEXT (rekomendacja) | **CENY-MATERIAŁÓW-04 P2 AUDIT** — Owner GO · [`P1-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
+| Ostatni EPIC (katalog / ceny) | **CENY-MATERIAŁÓW-04 P2 COMPLETE** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · [`P2-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
+| NEXT (rekomendacja) | **CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT** — Owner GO · [`P2-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 | Master / Entry | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) · [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

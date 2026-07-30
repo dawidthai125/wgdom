@@ -179,10 +179,13 @@ computeMarketAverageForWork → controlled_market → OfferBoq
 | 4 | `p2a-rozebranie-okladzin-sciennych-m2` | m2 | ROZBIORKI | okładziny ścienne / glazura ścian (rozbiórka) | **NEW** |
 | 5 | `p2a-demontaz-drzwi-wewn-szt` | szt | ROZBIORKI | demontaż drzwi wewnętrznych | **NEW** — nie stolarka EI / drzwi EI |
 | 6 | `p2a-rozebranie-posadzek-wewn-m2` | m2 | ROZBIORKI | rozebranie posadzek wewnętrznych | **NEW** — ≠ `p1a-rozebranie-kostki/chodnikow` |
+| 7 | `p2a-rozebranie-stropow-drewnianych-m2` | m2 | ROZBIORKI | stropy drewniane · polepa · zasypki · kasetony | **NEW** — Residual ROZ amend (Owner GO K-P2-1) |
+| 8 | `p2a-zerwanie-podloza-m2` | m2 | ROZBIORKI | zerwanie istniejącego podłoża | **NEW** — ≠ posadzki wewn. (#6) · nameTok F2 bez „podłoża”/„warstw” |
+| 9 | `p2a-rozebranie-rynien-rur-spustowych-mb` | mb | ROZBIORKI | rynny / rury spustowe blaszane | **NEW** — ≠ obróbki (#2) · nameTok F2 bez „rury”/„rynny” |
 
 **Min CLOSE P2-A:** ≥ **3** z {#1,#2,#3} aktywne + Quotes 100%.  
-**Target OPS:** wszystkie **6**.  
-**Cap:** ≤ **12** (opc. #7–#8 tylko po Owner triage residual probe — amend listy).
+**Target OPS:** wszystkie **6** (+ residual **#7–#9** po triage K-P2-1).  
+**Cap:** ≤ **12** · residual amend **+3** (aktywne P2-A NEW: **9**).
 
 **OUT NEW (FROZEN):**  
 - jakiekolwiek `p2a-*` dla chodników/kostki/obrzeży/podbudowy → już `p1a-rozebranie-*`  

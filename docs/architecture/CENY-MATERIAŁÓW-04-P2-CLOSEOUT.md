@@ -1,51 +1,117 @@
-# CENY-MATERIAŁÓW-04 P2 — CLOSEOUT (OPS)
+# CENY-MATERIAŁÓW-04 P2 — CLOSEOUT
 
+> **ID:** CENY-MATERIAŁÓW-04-P2-CLOSEOUT  
 > **Data:** 2026-07-30  
-> **Parent:** CENY-MATERIAŁÓW-04 · DESIGN FREEZE + Thin AR + Owner GO  
-> **Slices:** P2-A + P2-B **CLOSED** (cloud WC)  
-> **Klasa:** FEATURE-DATA · **bez** P3 INNE / AI-COST / scoring / Bid / Cloud CORE / parser
+> **STATUS:** **P2 COMPLETE** · **CLOSED** · **Owner GO CLOSE**  
+> **Zakres:** P2-A · P2-B · Residual ROZ amend (K-P2-1) — FEATURE-DATA Work Catalog + Quotes  
+> **Tip UI:** bez bumpa UI (tylko `kw-wgdom-work-catalog`) · SSOT tip [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
+> **Parent EPIC:** [`CENY-MATERIAŁÓW-04-PLAN.md`](CENY-MATERIAŁÓW-04-PLAN.md) · P2 PLAN [`CENY-MATERIAŁÓW-04-P2-PLAN.md`](CENY-MATERIAŁÓW-04-P2-PLAN.md)
 
 ```text
 ════════════════════════════════════════════════════════
-CENY-MATERIAŁÓW-04 P2 SLICE OPS COMPLETE (A+B)
-K-P2-2 PASS · K-P2-3 PASS · K-P2-1 PENDING → P2 EPIC CLOSE NIE
+CENY-MATERIAŁÓW-04 P2 = COMPLETE
+P2-A · P2-B · Residual ROZ CLOSED
+K-P2-1/2/3 PASS · residual ROZ 16 ≤ 18 · false 0
+NEXT = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT — Owner GO
+  (osobny cykl AUDIT → PLAN → DESIGN FREEZE)
 ════════════════════════════════════════════════════════
 ```
 
-**Werdykt:** slice’y P2-A i P2-B **CLOSED** (cloud + OV).  
-**P2 EPIC CLOSE / AC-P2.6:** **NIE** — twardy **K-P2-1** (residual ROZ ≤18 vs baseline 36) nadal **33**. Wymaga Owner triage residual albo amend DF, **bez** P3 INNE.
-## Wykonane
+---
 
-### P2-A — ROZBIÓRKI
-- EXTEND E1–E3
-- NEW 6× `p2a-*` + Quotes 100%
-- False 0 · P1 intact · CM 73.2
-- Residual ROZ: 36→**33** (K-P2-1 target ≤18 — **SOFT PENDING**)
+## 1. Decyzja
 
-### P2-B — ELEKTRYKA / GK / HYDRAULIKA
-- EXTEND E4–E8 (A2–A4)
-- NEW 5× `p2b-*` + Quotes 100% (#6 grzejnik OPC skip)
-- False 0 · trades ELEKTRYKA+SCIANY_GK+HYDRAULIKA
-- GK unmatched 21→**9** · C1 p2b=**16** · CM **73.4**
+| | |
+|--|--|
+| **P2** | **COMPLETE** · **CLOSED** (Owner zatwierdził zamknięcie) |
+| **Parent CM-04** | **NIE** zamknięty — otwarte **P3 (INNE)** i dalsze |
+| **Następny krok** | **P3 AUDIT** — tylko po **Owner GO** · **bez** auto-start IMPLEMENT |
+| **Klasa** | FEATURE-DATA · cloud WC · **bez** zmian frontend / Edge / AI-COST / scoring / Bid / Cloud CORE / parser |
 
-## KPI
+---
 
-| KPI | Status |
+## 2. Co zamknięte (linki SSOT)
+
+| Slice | Status | Closeout / evidence |
+|-------|--------|---------------------|
+| **P2 PLAN → DF → Thin AR** | **CLOSED** | [`P2-PLAN`](CENY-MATERIAŁÓW-04-P2-PLAN.md) · [`DF`](CENY-MATERIAŁÓW-04-P2-DESIGN-FREEZE.md) · [`Thin AR`](CENY-MATERIAŁÓW-04-P2-THIN-ARCHITECTURE-REVIEW-COMPLETE.md) |
+| **P2-A** ROZBIÓRKI | **CLOSED** · OV PASS | [`A-OPS`](CENY-MATERIAŁÓW-04-P2-A-OPS-COMPLETE.md) · [`A-OV`](CENY-MATERIAŁÓW-04-P2-A-OWNER-VERIFICATION-COMPLETE.md) |
+| **P2-B** ELEKTRYKA/GK/HYDRAULIKA | **CLOSED** · OV PASS | [`B-OPS`](CENY-MATERIAŁÓW-04-P2-B-OPS-COMPLETE.md) · [`B-OV`](CENY-MATERIAŁÓW-04-P2-B-OWNER-VERIFICATION-COMPLETE.md) |
+| **Residual ROZ** (grupa A) | **CLOSED** · K-P2-1 PASS | [`TRIAGE`](CENY-MATERIAŁÓW-04-P2-RESIDUAL-ROZ-TRIAGE.md) · [`AMEND`](CENY-MATERIAŁÓW-04-P2-RESIDUAL-ROZ-AMEND-COMPLETE.md) |
+| **Grupa B residual** | **Świadomie unmatched** (szum / misbucket) | nie mapować · nie P3 w tym close |
+
+Evidence runtime: `.tmp/ceny-materialow-04-p2-residual-owner-verification.json` · `.tmp/ceny-materialow-04-p2-gap-probe.json`
+
+---
+
+## 3. KPI końcowe P2
+
+| KPI | Wynik |
 |-----|--------|
-| **K-P2-1** residual ROZ ≤50% vs baseline 36 (≤18) | **PENDING** (33) — depth ROZ nie domknięty w 100%; bez scope creep P3 |
-| **K-P2-2** ≥1 p2a + ≥1 p2b w branżach depth + Quotes 100% | **PASS** |
-| **K-P2-3** brak regresji P1 / CM | **PASS** (P1 10/7/7 · CM↑) |
+| **K-P2-1** residual ROZ ≤50% vs baseline 36 (≤18) | **PASS** — **16** linii · **705 PLN** |
+| **K-P2-2** ≥1 `p2a-*` + ≥1 `p2b-*` + Quotes 100% NEW | **PASS** — P2-A **9** · P2-B **5** · Quotes NEW 100% |
+| **K-P2-3** brak regresji P1 / CM | **PASS** — P1 **10/7/7** · CM avg **73.6%** · HE **26.4%** · false **0** |
 
-## Artefakty docs
-- [`CENY-MATERIAŁÓW-04-P2-A-OPS-COMPLETE.md`](CENY-MATERIAŁÓW-04-P2-A-OPS-COMPLETE.md)
-- [`CENY-MATERIAŁÓW-04-P2-A-OWNER-VERIFICATION-COMPLETE.md`](CENY-MATERIAŁÓW-04-P2-A-OWNER-VERIFICATION-COMPLETE.md)
-- [`CENY-MATERIAŁÓW-04-P2-B-OPS-COMPLETE.md`](CENY-MATERIAŁÓW-04-P2-B-OPS-COMPLETE.md)
-- [`CENY-MATERIAŁÓW-04-P2-B-OWNER-VERIFICATION-COMPLETE.md`](CENY-MATERIAŁÓW-04-P2-B-OWNER-VERIFICATION-COMPLETE.md)
+| Metryka | Wartość |
+|---------|---------|
+| Residual ROZ przed P2-A | **36** |
+| Po P2-A/B | **33** |
+| Po residual amend | **16** |
+| Floor grupy B (świadomy) | ~**14** |
+| known false / new false (OV) | **0 / 0** |
 
-## Cloud
-`kw-wgdom-work-catalog` — zaktualizowany (batch-set) w OPS P2-A i P2-B. **Brak** zmian frontend / Edge code.
+---
 
-## NEXT (poza tym CLOSEOUT)
-- Opcjonalny heal residual ROZ (K-P2-1) — tylko po Owner triage / amend DF  
-- **P3 INNE** — **ZAKAZ** bez nowego Owner GO  
-- Commit/push **docs** ciągłości (ten pakiet)
+## 4. Catalog — skrót shipped
+
+| Warstwa | Zawartość |
+|---------|-----------|
+| EXTEND | E1–E3 · E4–E8 · residual EXTEND ścianki/obróbki/legacy |
+| NEW `p2a-*` | **9** (6 P2-A + 3 residual: stropy · podłoże · rynna/spust) |
+| NEW `p2b-*` | **5** (#6 grzejnik OPC skip) |
+| Quotes | pipeline P3.3 · **100%** na NEW aktywnych |
+| Cloud | `kw-wgdom-work-catalog` (batch-set) |
+
+---
+
+## 5. Pipeline Quotes (bez zmian toru)
+
+```text
+CSV → previewMarketCsvImport → commitMarketQuotesImport
+  → kw-wgdom-work-catalog
+  → OfferBoq match → controlled_market (gdy product Quotes)
+```
+
+REUSE P3.3 · **zakaz** ręcznego `marketQuotes` poza pipeline.
+
+---
+
+## 6. Lessons (kontrakt P2 — nie nowe zasady silnika)
+
+1. **EXTEND FIRST** — pełne frazy; NEW tylko gdy osobna cena / izolacja false.  
+2. **nameTok F2** — unikać krótkich tokenów w `namePl`/`descriptionPl` (`rury`, `warstw`, `nowymi`, `nośnej`, …).  
+3. **Keywords = pełne frazy** — nie gołe stem’y.  
+4. **Grupa B residual** — nie mapować fałszywie (B1 mocowanie „bez rozebrania”, tablice, opaska/ławy, sanit).  
+5. **Nie** poprawiać AI / scoringu / Bid / Cloud CORE, jeśli da się zamknąć WC + Quotes.
+
+---
+
+## 7. OUT (całe P2)
+
+| Obszar | Status |
+|--------|--------|
+| P3 INNE | **nie rozpoczęte** — osobny cykl |
+| AI-COST | **bez zmian kodu** |
+| Scoring / mapping silnik | **bez zmian** |
+| Bid Calculator | **bez zmian** |
+| Cloud Sync CORE | **bez zmian** |
+| Parser / discovery | **bez zmian** |
+
+---
+
+## 8. NEXT
+
+**CENY-MATERIAŁÓW-04 P3 — INNE — AUDIT** (Owner GO → AUDIT → PLAN → DESIGN FREEZE → …).  
+
+**Nie** startować P3 IMPLEMENT bez AUDIT + DF + Owner GO.  
+Alternatywy równoległe: GAP-B / I3 / TP200B — [`NEXT-EPIC-CANDIDATES.md`](NEXT-EPIC-CANDIDATES.md).

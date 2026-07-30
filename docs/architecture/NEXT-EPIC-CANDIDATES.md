@@ -4,8 +4,9 @@
 > **MODE:** DOCS ONLY · analiza kandydatów · **bez implementacji / commit / push**  
 > **Data:** 2026-07-29  
 > **Kontekst:** **COST-BID-GAP-01 / GAP-A CLOSED** · **PV** ([`COST-BID-GAP-01-CLOSEOUT.md`](COST-BID-GAP-01-CLOSEOUT.md)) · wcześniej **COST-MULTI CLOSED**  
-> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.83** · CENY-MATERIAŁÓW-04 **P1 COMPLETE**  
+> **Tip UI:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · **2.65.83** · CENY-MATERIAŁÓW-04 **P2 COMPLETE**  
 > **Handoff:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
+> **P2 SSOT:** [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
 > **P1 SSOT:** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
 > **Stabilization Window:** **ACTIVE** — każdy kandydat wymaga **Owner GO** (+ AUDIT → DF przed IMPLEMENT)
 
@@ -18,7 +19,9 @@ C3 WORK-CATALOG-P3.3 = CLOSED (e10a1511 · 2.65.79 · PV)
 C3b CENY-MATERIAŁÓW-01 = CLOSED (d4d05706 · 2.65.80 · PV)
 C3c–e CENY-MATERIAŁÓW-04 P1-A/B/C = CLOSED (2.65.81–83)
 C3f CENY-MATERIAŁÓW-04 P1 = COMPLETE
-Rekomendacja NEXT = CENY-MATERIAŁÓW-04 P2 AUDIT (Owner GO)
+C3g CENY-MATERIAŁÓW-04 P2 = COMPLETE (K-P2-1/2/3 PASS)
+Rekomendacja NEXT = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT (Owner GO)
+  · cykl: AUDIT → PLAN → DESIGN FREEZE
   · alternatywy: GAP-B / I3 / TP200B
 NIE start IMPLEMENT. NIE wybór za Ownera.
 ════════════════════════════════════════════════════════

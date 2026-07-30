@@ -82,6 +82,20 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-04 P2 — COMPLETE · FEATURE-DATA
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **P2 COMPLETE** · **CLOSED** · FEATURE-DATA WC (bez bumpa UI) |
+| Slices | P2-A · P2-B · Residual ROZ amend |
+| KPI | K-P2-1/2/3 **PASS** · residual ROZ **16≤18** · false **0** · P1 **10/7/7** · CM **73.6%** |
+| Pipeline | CSV → `commitMarketQuotesImport` → WC → `controlled_market` |
+| OUT | P3 INNE (osobny cykl) · AI-COST · scoring · Bid · Cloud CORE · parser |
+| NEXT | **P3 (INNE) AUDIT** — Owner GO → AUDIT→PLAN→DF |
+
+**SSOT:** [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
+Amend: [`RESIDUAL-ROZ-AMEND`](../architecture/CENY-MATERIAŁÓW-04-P2-RESIDUAL-ROZ-AMEND-COMPLETE.md)
+
 ## CENY-MATERIAŁÓW-04 P1 — COMPLETE · FEATURE-DATA
 
 | Pole | Wartość |
@@ -91,7 +105,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | KPI 18 | CM **73.2%** · HE **26.8%** |
 | Pipeline | CSV → `commitMarketQuotesImport` → WC → `controlled_market` |
 | OUT | AI-COST · scoring · providerzy · Bid · Cloud Sync CORE |
-| NEXT | **P2 AUDIT** — Owner GO |
+| NEXT | **P2 COMPLETE** → **P3 (INNE) AUDIT** |
 
 **SSOT (KPI · lessons · OUT · NEXT):** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
 Slice closeouts: [`P1-C`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`P1-B`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`P1-A`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`P0`](../architecture/CENY-MATERIAŁÓW-04-P0-OPS-COMPLETE.md)

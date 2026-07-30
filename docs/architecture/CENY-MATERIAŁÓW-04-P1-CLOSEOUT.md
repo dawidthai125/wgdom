@@ -107,7 +107,7 @@ Szczegóły token safety: DF P1-A/B/C §5.2 (slice docs).
 
 ## 8. NEXT
 
-**CENY-MATERIAŁÓW-04 P2 — AUDIT** (Owner GO → AUDIT → …).  
-Kandydaci równolegli: GAP-B / I3 / TP200B — [`NEXT-EPIC-CANDIDATES.md`](NEXT-EPIC-CANDIDATES.md).
+**CENY-MATERIAŁÓW-04 P2 = COMPLETE** — SSOT [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md).  
 
-**Nie** startować P2 IMPLEMENT bez AUDIT + DF + Owner GO.
+**Następny Parent slice:** **P3 (INNE) AUDIT** — Owner GO → AUDIT → PLAN → DF.  
+Kandydaci równolegli: GAP-B / I3 / TP200B — [`NEXT-EPIC-CANDIDATES.md`](NEXT-EPIC-CANDIDATES.md).

@@ -7,7 +7,7 @@
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
 
-> **★ Domknięcie sesji (2026-07-29):** **COST-BID-GAP-01 / GAP-A CLOSED** · tip **2.65.77** / **`a061bbd`** · PV PASS · SSOT [`architecture/COST-BID-GAP-01-CLOSEOUT.md`](architecture/COST-BID-GAP-01-CLOSEOUT.md) · Handoff [`architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) · NEXT **AI-COST-02-B** · **nie** re-open GAP-A bez briefu.
+> **★ Domknięcie sesji (2026-07-30):** **CENY-MATERIAŁÓW-04 P2 COMPLETE** · K-P2-1/2/3 PASS · residual ROZ **16≤18** · SSOT [`architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** (Owner GO · AUDIT→PLAN→DF) · **nie** auto-start P3.
 
 > **★ Domknięcie sesji (2026-07-29):** **COST-MULTI SERIES CLOSED** · UI **2.65.74–2.65.76** · FINAL PV PASS (`08dee335` AGGREGATE Bid 1 061 000) · SSOT [`architecture/COST-MULTI-CLOSEOUT.md`](architecture/COST-MULTI-CLOSEOUT.md) · Continuity [`architecture/AI-CONTINUITY-UPDATE-01-REPORT.md`](architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) · NEXT superseded by GAP-A close → [`architecture/NEXT-EPIC-CANDIDATES.md`](architecture/NEXT-EPIC-CANDIDATES.md) · **nie** wznawiać COST-MULTI bez AUDIT + Owner GO.
 

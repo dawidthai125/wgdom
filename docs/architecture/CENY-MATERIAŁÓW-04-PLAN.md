@@ -2,21 +2,22 @@
 
 > **ID:** CENY-MATERIAŁÓW-04-PLAN  
 > **Etykieta:** Data Coverage Phase 2 — Quotes fill + WC expansion  
-> **STATUS:** PLAN ONLY · DOCS ONLY  
-> **Data:** 2026-07-29  
-> **MODE:** PLAN · **bez IMPLEMENT / commit / push**  
+> **STATUS:** PLAN (historyczny) · Parent EPIC **ACTIVE** · **P0+P1+P2 COMPLETE** · **P3 OPEN** (AUDIT pending Owner GO)  
+> **Data:** 2026-07-30 (sync closeout P2)  
+> **P2 SSOT:** [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
+> **P1 SSOT:** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
+> **MODE:** docs living · **bez** auto-start P3 IMPLEMENT  
 > **Wejście:** [`CENY-MATERIAŁÓW-03-AUDIT.md`](CENY-MATERIAŁÓW-03-AUDIT.md) · **READY FOR PLAN**  
 > **Zależności CLOSED:** CENY-MATERIAŁÓW-01 · WORK-CATALOG-P3.3 · COST-02-A  
-> **Baseline tip:** UI **2.65.80** — SSOT [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
+> **Baseline tip:** UI **2.65.83** — SSOT [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
 > **Język:** polski
 
 ```text
 ════════════════════════════════════════════════════════
-One Bundle = One Goal (CENY-MATERIAŁÓW-04):
-  Zapełnić marketQuotes + rozszerzyć Work Catalog
-  tak, by istniejący tor controlled_market zaczął trafiać
-  — BEZ zmian AI-COST / providerów / Bid / Cloud CORE
-  — BEZ scraperów / GAP-B / Kp / marży
+Parent CENY-MATERIAŁÓW-04:
+  P0 · P1 · P2 = COMPLETE
+  NEXT = P3 (INNE) AUDIT — Owner GO → AUDIT → PLAN → DF
+  BEZ zmian AI-COST / providerów / Bid / Cloud CORE
 ════════════════════════════════════════════════════════
 ```
 

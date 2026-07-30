@@ -1,9 +1,10 @@
 # WGDOM — Project Handoff (AI sessions)
 
-> **STATUS:** **ACTIVE** · CENY-MATERIAŁÓW-04 **P1 COMPLETE** (P0 · P1-A · P1-B · P1-C) · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · AI-COST-PARSER-01 P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
+> **STATUS:** **ACTIVE** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · AI-COST-PARSER-01 P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED · PV** · AI-COST-01 **FROZEN** · Foundation Lib Phase 0 **COMPLETE**  
 > **Data:** 2026-07-30  
 > **Tip:** patrz [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) — **nie** powielaj numeru tutaj  
 > **Stan + NEXT:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+> **P2 COMPLETE SSOT:** [`../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
 > **P1 COMPLETE SSOT:** [`../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
 > **Handoff sesji:** [`../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
@@ -14,7 +15,8 @@
 STAN = docs/AI/MASTER_HANDOFF.md
 OFICJALNY START = docs/AI/AI_ENTRY.md
 Tip UI = 09_PRODUCTION_BASELINE + version.json
-CENY-MATERIAŁÓW-04 P1 = COMPLETE · READY FOR P2 AUDIT
+CENY-MATERIAŁÓW-04 P2 = COMPLETE · CLOSED
+CENY-MATERIAŁÓW-04 P1 = COMPLETE
 CENY-MATERIAŁÓW-01 Phase 1 = CLOSED · PRODUCTION VERIFIED
 WORK-CATALOG-P3.3 Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
@@ -23,7 +25,7 @@ COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
 COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FIELD READY · FROZEN
 AI-COST-02 / COST-02-A = CLOSED · 02-B Phase 1 CLOSED · I3 BACKLOG
-NEXT = CENY-MATERIAŁÓW-04 P2 AUDIT (Owner GO) · GAP-B / I3 / TP200B
+NEXT = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT (Owner GO) · GAP-B / I3 / TP200B
 Foundation Lib Phase 0 = COMPLETE (FND-01…05)
 FND-06 = BLOCKED · App nie używa jeszcze Foundation Lib
 ══════════════════════════════════════
@@ -84,6 +86,8 @@ Gdy Foundation Lib / FND-* / wgdom-foundation:
 | **AI-COST-02 start** | `docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md` |
 | **COST-MULTI closeout** | `docs/architecture/COST-MULTI-CLOSEOUT.md` |
 | **Continuity UPDATE-01** | `docs/architecture/AI-CONTINUITY-UPDATE-01-REPORT.md` |
+| **CENY-MATERIAŁÓW-04 P2** | `docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md` |
+| **CENY-MATERIAŁÓW-04 P1** | `docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md` |
 | **NEXT EPIC candidates** | `docs/architecture/NEXT-EPIC-CANDIDATES.md` |
 | UI Foundation | `docs/architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md` |
 | Dashboard Body | `docs/architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md` |
@@ -99,6 +103,8 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-
 
 | Obszar | Status |
 |--------|--------|
+| **CENY-MATERIAŁÓW-04 P2** | **COMPLETE** · FEATURE-DATA WC · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1** | **COMPLETE** · tip UI **2.65.83** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **WORK-CATALOG-P3.3** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`e10a1511`** · UI **2.65.79** |
 | **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`9dc113e7`** · UI **2.65.78** |
 | **AI-COST-PARSER-01 P0-RETRY** | **CLOSED** · **PRODUCTION VERIFIED** · feature **`e88d689f`** |
@@ -106,7 +112,7 @@ Historyczne `docs/architecture/PAYROLL-*` — przez INDEX. Draft `WGDOM-AI-COST-
 | **COST-MULTI** | **SERIES CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.74–76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **ARCHITECTURE FROZEN** |
 | **AI-COST-02 / COST-02-A** | **CLOSED** · **02-B Phase 1 CLOSED** · I3 **BACKLOG** |
-| **NEXT** | **GAP-B / I3 / TP200B** — Owner GO → DF |
+| **NEXT** | **CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT** (Owner GO) · GAP-B / I3 / TP200B |
 | Lista Płac Hours-wipe | **CLOSED** |
 | UI Foundation v1.0 | **COMPLETE** |
 | Dashboard Body S1–S4 | **COMPLETE** |

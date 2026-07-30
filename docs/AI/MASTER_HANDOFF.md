@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CENY-MATERIAŁÓW-04 **P1 COMPLETE** · P1-C/B/A (**CLOSED**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -11,9 +11,12 @@
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
 Tip = 09 + version.json (UI 2.65.83 · feature P1-C 992023cc)
+CENY-MATERIAŁÓW-04 P2 = COMPLETE (P2-A · P2-B · Residual ROZ)
+  SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md
 CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
   SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md
-NEXT = CENY-MATERIAŁÓW-04 P2 AUDIT — tylko po Owner GO
+NEXT = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT — tylko po Owner GO
+  (AUDIT → PLAN → DESIGN FREEZE · nie auto-start IMPLEMENT)
 CENY-MATERIAŁÓW-01 Phase 1 = CLOSED · PRODUCTION VERIFIED
 WORK-CATALOG-P3.3 Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
@@ -76,8 +79,8 @@ Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid /
 |------|---------|
 | **Production URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Production Version (UI)** | **2.65.83** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
-| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · **CENY-MATERIAŁÓW-04 P1 COMPLETE** |
-| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-04 P1** · tip UI **2.65.83** · feature P1-C **`992023cc`** · **P1 COMPLETE** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · **CENY-MATERIAŁÓW-04 P2 COMPLETE** (FEATURE-DATA WC) · UI tip **2.65.83** |
+| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-04 P2** · **P2 COMPLETE** · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · P1 tip UI **2.65.83** / **`992023cc`** |
 | **Payroll Hours-wipe baseline** | **2.65.43** @ **`ea1b0a6`** (semantyka D1–D5 ACTIVE) |
 | **Status projektu** | **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE** |
 | **Protected Core** | **GREEN** |
@@ -120,6 +123,7 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
+| **CENY-MATERIAŁÓW-04 P2** (P2-A · P2-B · Residual ROZ) | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · K-P2-1/2/3 PASS · residual **16≤18** · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
 | **CENY-MATERIAŁÓW-04 P1** (P0 · P1-A · P1-B · P1-C) | **COMPLETE** · **PRODUCTION VERIFIED** · UI **2.65.83** · feature P1-C **`992023cc`** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** · FEATURE-DATA · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
 | **CENY-MATERIAŁÓW-04 P1-B** | **CLOSED** · FEATURE-DATA · UI **2.65.82** · `dca25c96` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) |
@@ -202,7 +206,9 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C3c** | **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** | Chodniki/nawierzchnie WC + Quotes · OV FINAL | — | Shipped **2.65.81** · FEATURE-DATA |
 | **C3d** | **CENY-MATERIAŁÓW-04 P1-B** | **CLOSED** | Ogrodzenia WC + Quotes · OV PASS | **P1-C CLOSED** | Shipped **2.65.82** · FEATURE-DATA |
 | **C3e** | **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** | Elewacje/ocieplenia WC + Quotes · OV PASS | **P1 COMPLETE** | Shipped **2.65.83** · FEATURE-DATA |
-| **C3f** | **CENY-MATERIAŁÓW-04 P1** | **COMPLETE** | P0+P1-A/B/C | **P2 AUDIT** Owner GO | [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| **C3f** | **CENY-MATERIAŁÓW-04 P1** | **COMPLETE** | P0+P1-A/B/C | — | [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| **C3g** | **CENY-MATERIAŁÓW-04 P2** | **COMPLETE** | P2-A/B + Residual ROZ · K-P2-1/2/3 | **P3 AUDIT** Owner GO | [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
+| **C3h** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -251,6 +257,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **COST-MULTI CLOSEOUT** | [`COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) |
 | **AI-COST-PARSER-01 P0-RETRY CLOSEOUT** | [`AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md`](../architecture/AI-COST-PARSER-01-P0-RETRY-CLOSEOUT.md) |
 | **COST-BID-GAP-01 CLOSEOUT** | [`COST-BID-GAP-01-CLOSEOUT.md`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P2 CLOSEOUT** | [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1 CLOSEOUT** | [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **Handoff po GAP-A** | [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
 | **Continuity UPDATE-01** | [`AI-CONTINUITY-UPDATE-01-REPORT.md`](../architecture/AI-CONTINUITY-UPDATE-01-REPORT.md) |
 | **NEXT EPIC candidates** | [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md) |
@@ -262,4 +270,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P1 COMPLETE** · NEXT **P2 AUDIT** (Owner GO) / GAP-B / I3 / TP200B · tip w `09` · SSOT P1 [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · NEXT **P3 (INNE) AUDIT** (Owner GO) / GAP-B / I3 / TP200B · tip w `09` · SSOT P2 [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)
