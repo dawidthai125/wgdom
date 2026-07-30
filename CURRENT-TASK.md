@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.84** · feature **`273fb3e0`** · OV **PASS** · PV FAST **DEPLOY PROPAGATING** (pierwszy odczyt) |
+| **Status** | **CLOSED** · tip UI **2.65.84** · feature **`273fb3e0`** · OV **PASS** · PV **PRODUCTION VERIFIED** |
 | **SSOT** | [`MARKET-SYNC-01-P0-CLOSEOUT.md`](docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) |
 | **Zakres** | Staging: MarketProduct · ProviderQuote · Import→Match→Preview STOP · local-first |
 | **OUT** | Accept · Publish · commitMarketQuotesImport · Quotes · Cloud CORE · AI-COST |
