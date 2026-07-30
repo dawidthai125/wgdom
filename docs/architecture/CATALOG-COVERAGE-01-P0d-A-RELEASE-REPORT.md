@@ -46,7 +46,7 @@ Powód: jeden bundle P0d-A Precision+SAFE · <15 plików feature · build+test+O
 | | |
 |--|--|
 | Feature commit | **`b9da6bff`** |
-| Docs tip | (ten release docs commit) |
+| Docs tip | `07b1fcc3` |
 | Branch | `main` → `origin/main` |
 | Push feature | **PASS** (`6ad279fd..b9da6bff`) |
 
