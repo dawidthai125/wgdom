@@ -4,7 +4,8 @@
 
 - **new:** `src/lib/smart-pricing/**` — Detect braków użytecznej ceny (Quotes-first · conf ≥0.50 · stale ≤180d)
 - **UI:** banner + badge pozycji w OfferBoq Cost Intelligence (RO)
-- **test:** `npx vite-node scripts/test-smart-pricing-01-p0.mjs`
+- **test:** `npx vite-node scripts/test-smart-pricing-01-p0.mjs` (58 PASS)
+- **feature:** **`9ca4a4e5`** · CLOSEOUT [`docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md`](docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md)
 - **bez:** One-shot · Evidence · Rank · Save · Publish · commit · MS lookup · Cloud CORE · Payroll · P1
 
 ## 2.65.85 — MARKET-SYNC-01 P1 Accept + Publish (2026-07-30)

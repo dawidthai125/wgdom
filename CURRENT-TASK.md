@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**MARKET-SYNC-01 P1 CLOSED** · tip UI **2.65.85** · **`5326cf8c`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-30 (**SMART-PRICING-01 P0 CLOSED** · tip UI **2.65.86** · **`9ca4a4e5`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ SMART-PRICING-01 P0 — **CLOSED** (Detect & Surface RO)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.86** · feature **`9ca4a4e5`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST po push) |
+| **SSOT** | [`SMART-PRICING-01-P0-CLOSEOUT.md`](docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md) |
+| **Zakres** | Detect Quotes-first · banner/badge OfferBoq · conf≥0.50 · stale≤180d · extension stubs |
+| **OUT** | One-shot · Evidence · Save · Publish · commit · MS lookup · Cloud CORE · Payroll · P1 |
+| **Następne** | **P1** — Owner GO · **nie** auto-start |
 
 ## ★ MARKET-SYNC-01 P1 — **CLOSED** (Accept + Publish)
 

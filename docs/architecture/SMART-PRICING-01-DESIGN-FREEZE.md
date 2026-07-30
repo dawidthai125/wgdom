@@ -2,7 +2,7 @@
 
 > **ID:** SMART-PRICING-01-DESIGN-FREEZE  
 > **EPIC:** **SMART-PRICING-01** — warstwa decyzyjna przy braku ceny w wycenie  
-> **STATUS:** **DESIGN FREEZE · FROZEN** · AR **READY FOR OWNER GO** · **IMPLEMENT P0 COMPLETE** (pre-release) → [`SMART-PRICING-01-IMPLEMENT-P0.md`](SMART-PRICING-01-IMPLEMENT-P0.md) · **P1 ZABLOKOWANY** do Owner GO  
+> **STATUS:** **DESIGN FREEZE · FROZEN** · AR **READY FOR OWNER GO** · **IMPLEMENT P0 CLOSED / RELEASED** → [`SMART-PRICING-01-P0-CLOSEOUT.md`](SMART-PRICING-01-P0-CLOSEOUT.md) · tip **2.65.86** · **`9ca4a4e5`** · **P1 ZABLOKOWANY** do Owner GO  
 > **Data:** 2026-07-30  
 > **Klasa:** FEATURE-DATA · Gate G1–G9 **ALL-NIE**  
 > **Wejście:** PLAN **zaakceptowany** · Owner GO DF · [`SMART-PRICING-01-PLAN.md`](SMART-PRICING-01-PLAN.md) · [`SMART-PRICING-01-AUDIT.md`](SMART-PRICING-01-AUDIT.md)  
@@ -21,7 +21,8 @@ One Bundle = One Goal (SMART-PRICING-01):
   BEZ alt publish · BEZ AI-COST rewrite · BEZ Cloud CORE.
 
 AR: READY FOR OWNER GO
-IMPLEMENT P0: COMPLETE (pre-release) · P1+ zakazany do GO
+IMPLEMENT P0: CLOSED / RELEASED (2.65.86 · 9ca4a4e5)
+P1+ zakazany do Owner GO
 ════════════════════════════════════════════════════════
 ```
 

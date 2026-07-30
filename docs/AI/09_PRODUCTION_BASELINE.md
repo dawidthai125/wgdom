@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**MARKET-SYNC-01 P1 CLOSED**) · tip UI **2.65.85** · feature **`5326cf8c`** · PV FAST = **DEPLOY PROPAGATING** przy pierwszym odczycie.
+**Snapshot dokumentacji:** 2026-07-30 (**SMART-PRICING-01 P0 CLOSED**) · tip UI **2.65.86** · feature **`9ca4a4e5`** · PV FAST = **DEPLOY PROPAGATING** przy pierwszym odczycie.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.85** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`5326cf8c`** · docs tip **`9f515e39`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po feature push) · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`RELEASE`](../architecture/MARKET-SYNC-01-P1-RELEASE-REPORT.md) |
-| **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · [`PV`](../architecture/MARKET-SYNC-01-P1-PRODUCTION-VERIFY.md) |
+| **UI version (changelog / version.json)** | **2.65.86** |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`9ca4a4e5`** · PV **DEPLOY PROPAGATING** (pierwszy odczyt po feature push) · [`P0-CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) |
+| **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · NEXT **P1** Owner GO |
+| **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1)** | **COMPLETE** · P0 · P1-A/B/C · tip UI **2.65.83** · feature P1-C **`992023cc`** · PV **PASS** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · KPI CM **73.2%** / HE **26.8%** |
