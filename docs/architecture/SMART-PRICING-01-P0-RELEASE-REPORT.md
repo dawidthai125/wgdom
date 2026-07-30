@@ -41,22 +41,23 @@ OV — **PASS**
 
 ## PRODUCTION STATUS
 
-**Jedno** `curl` `https://www.wgdom.fun/version.json` (po push feature):
+**Jedno** `curl` po feature push (VERIFY FAST): wtedy jeszcze `2.65.85` → **DEPLOY PROPAGATING**.
+
+Odczyt przy docs tip (bez retry-loop feature):
 
 ```json
 {
-  "version": "2.65.85",
-  "commit": "93962b2",
-  "timestamp": "2026-07-30T06:33:42.714Z"
+  "version": "2.65.86",
+  "commit": "9ca4a4e",
+  "timestamp": "2026-07-30T07:09:07.244Z"
 }
 ```
 
-→ **DEPLOY PROPAGATING** (oczekiwane `2.65.86` / `9ca4a4e5`)  
-**RELEASE GO** nadal OK (VERIFY FAST — bez retry).
+→ **PRODUCTION VERIFIED**
 
 ## WERDYKT
 
-**RELEASE GO** + **DEPLOY PROPAGATING**
+**RELEASE GO** + **PRODUCTION VERIFIED**
 
 ```text
 =====================================

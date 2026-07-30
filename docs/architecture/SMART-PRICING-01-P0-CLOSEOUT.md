@@ -4,7 +4,7 @@
 > **EPIC:** SMART-PRICING-01 · **Slice:** P0 — Detect & Surface RO  
 > **STATUS:** **CLOSED** · **RELEASE GO** · tip UI **2.65.86** · feature **`9ca4a4e5`**  
 > **Data:** 2026-07-30  
-> **Production Verify (FAST):** po feature push = **DEPLOY PROPAGATING** (`2.65.85` / `93962b2`) — szczegóły [`SMART-PRICING-01-P0-RELEASE-REPORT.md`](SMART-PRICING-01-P0-RELEASE-REPORT.md)
+> **Production Verify:** **PRODUCTION VERIFIED** (`2.65.86` / `9ca4a4e`) — szczegóły [`SMART-PRICING-01-P0-RELEASE-REPORT.md`](SMART-PRICING-01-P0-RELEASE-REPORT.md)
 
 ```text
 ════════════════════════════════════════════════════════

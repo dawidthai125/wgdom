@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.86** · feature **`9ca4a4e5`** · OV **PASS** · PV **DEPLOY PROPAGATING** (FAST po push) |
+| **Status** | **CLOSED** · tip UI **2.65.86** · feature **`9ca4a4e5`** · OV **PASS** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`SMART-PRICING-01-P0-CLOSEOUT.md`](docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md) |
 | **Zakres** | Detect Quotes-first · banner/badge OfferBoq · conf≥0.50 · stale≤180d · extension stubs |
 | **OUT** | One-shot · Evidence · Save · Publish · commit · MS lookup · Cloud CORE · Payroll · P1 |
