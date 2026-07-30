@@ -24,10 +24,10 @@ P1-C CLOSED · READY FOR P2
 | **UI version** | **2.65.83** |
 | **Status push** | **SUCCESS** · `origin/main` · `059871d1..deef74fe` |
 | **Status CI** | Vercel tip **live** · GitHub: E2E LEGACY / TEST-INFRA — pre-existing pattern na `main` · nie blokuje FE tip |
-| **Production Verify** | **PASS** · tip **2.65.83** / **`deef74f`** · [`PV`](CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) · evidence `.tmp/pv-ceny-materialow-04-p1c.json` |
+| **Production Verify** | **PASS** · tip **2.65.83** / **`deef74f`** (PV window) · live deploy tip **`9e141a2`** · [`PV`](CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) · evidence `.tmp/pv-ceny-materialow-04-p1c.json` |
 | **CLOSEOUT** | **CLOSED · FINAL** · [`CLOSEOUT`](CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
 | **OV** | **PASS** · READY FOR COMMIT · [`OV`](CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md) |
-| **SSOT SYNC** | **SYNCED** · docs tip **`deef74fe`** · feature tip **`992023cc`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
+| **SSOT SYNC** | **SYNCED** · docs tip **`9e141a29`** · feature tip **`992023cc`** · `09` / MASTER / PROJECT / MEMORY / CURRENT / NEXT |
 | **Thin allowlista** | changelog **2.65.83** + docs CM-04/P1-C + SSOT · **ZERO** AI-COST / scoring / Bid / cloud-sync |
 
 ---
