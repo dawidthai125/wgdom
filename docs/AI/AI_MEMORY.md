@@ -82,6 +82,17 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-04 P1-B — CLOSED · FEATURE-DATA
+
+| Pole | Wartość |
+|------|---------|
+| Status | **CLOSED** · tip UI **2.65.82** · PV **PASS** · 7 robót WC ogrodzenia + Quotes 7/7 · OV PASS |
+| IN | ogrodzenia · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
+| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A |
+| NEXT | **P1-C** — Owner GO → PLAN |
+
+**SSOT:** [`CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md)
+
 ## CENY-MATERIAŁÓW-04 P1-A — CLOSED · FEATURE-DATA
 
 | Pole | Wartość |
@@ -89,7 +100,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Status | **CLOSED** · tip UI **2.65.81** · feature **`dc0daea0`** · PV **PASS** · 10 robót WC + Quotes 10/10 · OV FINAL PASS |
 | IN | chodniki/nawierzchnie · P3.3 CSV import · D-P1-F/F2 keyword patches |
 | OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy |
-| NEXT | **P1-B ogrodzenia** — Owner GO → OPS |
+| NEXT | **P1-B CLOSED** → **P1-C** |
 
 **SSOT:** [`CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md)
 

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.82",
+    label: "Ceny materiałów — P1-B ogrodzenia (WC)",
+    items: [
+      {
+        type: "new",
+        text: "Biblioteka Robót (cloud): 7 robót P1-B ogrodzenia z product Quotes (CSV → commitMarketQuotesImport / P3.3). Bez zmian AI-COST, scoringu, Bid ani Cloud Sync CORE. P1-A nienaruszone.",
+      },
+      {
+        type: "improve",
+        text: "Mapowanie OfferBoq: bezpieczne namePl/descriptionPl + pełne frazy keywords (OPS patch) — zero known/new false matchy; unmatched OGRODZENIA 0 na próbce 18.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.81",
     label: "Ceny materiałów — P1-A chodniki i nawierzchnie (WC)",
     items: [
