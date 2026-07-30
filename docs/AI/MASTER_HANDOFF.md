@@ -1,6 +1,6 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CENY-MATERIAŁÓW-04 **P1-C CLOSED** · P1-B (**CLOSED**) · P1-A (**CLOSED**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CENY-MATERIAŁÓW-04 **P1 COMPLETE** · P1-C/B/A (**CLOSED**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
 > **Data:** 2026-07-30  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
@@ -10,10 +10,10 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip UI = 2.65.83 · Feature tip = CENY-MATERIAŁÓW-04 P1-C (SSOT 09 + version.json)
-CENY-MATERIAŁÓW-04 P1-C = CLOSED · FEATURE-DATA · READY FOR P2
-CENY-MATERIAŁÓW-04 P1-B = CLOSED · FEATURE-DATA
-CENY-MATERIAŁÓW-04 P1-A = CLOSED · FEATURE-DATA
+Tip = 09 + version.json (UI 2.65.83 · feature P1-C 992023cc)
+CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
+  SSOT = docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md
+NEXT = CENY-MATERIAŁÓW-04 P2 AUDIT — tylko po Owner GO
 CENY-MATERIAŁÓW-01 Phase 1 = CLOSED · PRODUCTION VERIFIED
 WORK-CATALOG-P3.3 Phase 1 = CLOSED · PRODUCTION VERIFIED
 AI-COST-02-B Phase 1 = CLOSED · PRODUCTION VERIFIED
@@ -22,7 +22,6 @@ COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
 COST-MULTI = EPIC / SERIES CLOSED · PRODUCTION VERIFIED (2.65.74–76)
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
 AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
-NEXT = P2 (Owner GO) · potem GAP-B / I3 / TP200B — nie auto-start
 Handoff sesji = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
 Foundation Lib Phase 0 = COMPLETE (FND-01…05 @ origin/main bed8dd8)
 FND-06 = BLOCKED — ADR lub Blueprint extension najpierw
@@ -77,8 +76,8 @@ Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid /
 |------|---------|
 | **Production URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Production Version (UI)** | **2.65.83** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
-| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · feature CENY-MATERIAŁÓW-04 **P1-C** |
-| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-04 P1-C** · UI **2.65.83** · **CLOSED** · FEATURE-DATA |
+| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · **CENY-MATERIAŁÓW-04 P1 COMPLETE** |
+| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-04 P1** · tip UI **2.65.83** · feature P1-C **`992023cc`** · **P1 COMPLETE** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **Payroll Hours-wipe baseline** | **2.65.43** @ **`ea1b0a6`** (semantyka D1–D5 ACTIVE) |
 | **Status projektu** | **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE** |
 | **Protected Core** | **GREEN** |
@@ -121,8 +120,11 @@ Nie kopiuj pełnych raportów. Linki = SSOT szczegółów.
 
 | EPIC / seria | Rezultat |
 |--------------|----------|
-| **CENY-MATERIAŁÓW-04 P1-B** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · UI **2.65.82** · `dca25c96` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) |
-| **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · UI **2.65.81** · `dc0daea0` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1** (P0 · P1-A · P1-B · P1-C) | **COMPLETE** · **PRODUCTION VERIFIED** · UI **2.65.83** · feature P1-C **`992023cc`** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** · FEATURE-DATA · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1-B** | **CLOSED** · FEATURE-DATA · UI **2.65.82** · `dca25c96` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** · FEATURE-DATA · UI **2.65.81** · `dc0daea0` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) |
+| **CENY-MATERIAŁÓW-04 P0** | **CLOSED** · OPS Quotes heal · [`P0-OPS`](../architecture/CENY-MATERIAŁÓW-04-P0-OPS-COMPLETE.md) |
 | **CENY-MATERIAŁÓW-01** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.80** · `d4d05706` · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) |
 | **WORK-CATALOG-P3.3** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.79** · `e10a1511` · [`CLOSEOUT`](../architecture/WORK-CATALOG-P3.3-CLOSEOUT.md) |
 | **AI-COST-02-B** | **CLOSED** · **PRODUCTION VERIFIED** · UI **2.65.78** · `9dc113e7` · [`CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) |
@@ -199,7 +201,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C3b** | **CENY-MATERIAŁÓW-01** | **CLOSED · PV** | Mapping uplift · KPI · gaps · memo · flaga OFF | — | Shipped **2.65.80** · `d4d05706` |
 | **C3c** | **CENY-MATERIAŁÓW-04 P1-A** | **CLOSED** | Chodniki/nawierzchnie WC + Quotes · OV FINAL | — | Shipped **2.65.81** · FEATURE-DATA |
 | **C3d** | **CENY-MATERIAŁÓW-04 P1-B** | **CLOSED** | Ogrodzenia WC + Quotes · OV PASS | **P1-C CLOSED** | Shipped **2.65.82** · FEATURE-DATA |
-| **C3e** | **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** | Elewacje/ocieplenia WC + Quotes · OV PASS | **P2** Owner GO | Shipped **2.65.83** · FEATURE-DATA |
+| **C3e** | **CENY-MATERIAŁÓW-04 P1-C** | **CLOSED** | Elewacje/ocieplenia WC + Quotes · OV PASS | **P1 COMPLETE** | Shipped **2.65.83** · FEATURE-DATA |
+| **C3f** | **CENY-MATERIAŁÓW-04 P1** | **COMPLETE** | P0+P1-A/B/C | **P2 AUDIT** Owner GO | [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
 | **C5** | HEAVY-PERSIST-01 | BACKLOG · P2 | LS/KV settle race | MULTI CLOSED | Ops |
 | **F** | **FND-06 Observability** | **BLOCKED** | Brak Impl Spec | Phase 0 **COMPLETE** | **zakaz IMPLEMENT** |
@@ -259,4 +262,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P1-C CLOSED** · P1-B **CLOSED** · P1-A **CLOSED** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · COST-02-A **CLOSED** · NEXT **P2** (Owner GO) / GAP-B / I3 / TP200B · tip w `09`
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P1 COMPLETE** · NEXT **P2 AUDIT** (Owner GO) / GAP-B / I3 / TP200B · tip w `09` · SSOT P1 [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)

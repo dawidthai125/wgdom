@@ -21,11 +21,13 @@
  10. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
  11. IMPLEMENT dopiero po Gate + checklist
 
-Po COST-BID-GAP-01 / GAP-A (CLOSED · tip 2.65.77):
+Po COST-BID-GAP-01 / GAP-A (CLOSED) oraz CENY-MATERIAŁÓW-04 **P1 COMPLETE**:
+  · docs/AI/MASTER_HANDOFF.md                         ← stan · NEXT
+  · docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md ← P1 KPI · lessons · P2 AUDIT
+  · docs/architecture/NEXT-EPIC-CANDIDATES.md           ← NEXT: P2 AUDIT / GAP-B / I3 / TP200B
   · docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
   · docs/architecture/COST-BID-GAP-01-CLOSEOUT.md
   · docs/architecture/COST-MULTI-CLOSEOUT.md
-  · docs/architecture/NEXT-EPIC-CANDIDATES.md   ← NEXT: AI-COST-02-B
 
 Appendix (po Entry — nie zamiast Entry):
   · docs/AGENT-CONTINUITY-GUIDE.md
@@ -184,8 +186,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI / tip prod | **tylko** [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json` (**nie** hardcoduj tutaj) |
-| Ostatni EPIC (wycena) | **COST-BID-GAP-01 / GAP-A CLOSED · PV** · UI **2.65.77** · [`CLOSEOUT`](docs/architecture/COST-BID-GAP-01-CLOSEOUT.md) · Handoff [`SESSION-HANDOFF-POST-COST-BID-GAP-01`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md) |
-| NEXT (rekomendacja) | **AI-COST-02-B** — Owner GO → AUDIT · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) · [`STARTING-POINT`](docs/architecture/WGDOM-AI-COST-02-STARTING-POINT.md) |
+| Ostatni EPIC (katalog / ceny) | **CENY-MATERIAŁÓW-04 P1 COMPLETE** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · [`P1-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
+| NEXT (rekomendacja) | **CENY-MATERIAŁÓW-04 P2 AUDIT** — Owner GO · [`P1-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 | Master / Entry | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) · [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

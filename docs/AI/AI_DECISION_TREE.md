@@ -245,6 +245,7 @@ TAK → Koduj TYLKO w scope DF/brief
 | UI / GDS / Body | Foundation report · BODY-02 · D-21/D-22 |
 | Foundation Lib / FND-* | `WGDOM-FOUNDATION-LIB-PHASE-0-SSOT` |
 | AI Cost / oferta / COST-MULTI | CLOSEOUT MULTI · Continuity UPDATE-01 · FREEZE · SSOT · NEXT-EPIC-CANDIDATES |
+| CENY-MATERIAŁÓW-04 / WC Quotes | `CENY-MATERIAŁÓW-04-P1-CLOSEOUT` · NEXT = **P2 AUDIT** (Owner GO) · OUT: AI-COST/scoring/Bid/Cloud CORE |
 | Zakazy globalne | `08_AI_GUARDRAILS` · `AI_MEMORY` |
 
 ---

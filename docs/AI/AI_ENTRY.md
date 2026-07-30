@@ -1,34 +1,31 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · COST-02-A **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CENY-MATERIAŁÓW-04 **P1 COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
-> **Data:** 2026-07-29
+> **Data:** 2026-07-30
 
 ```text
 ════════════════════════════════════════════════════════
 STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
-Tip = 2.65.77 / a061bbd — SSOT 09 + version.json
-COST-BID-GAP-01 / GAP-A = CLOSED · PRODUCTION VERIFIED
-COST-MULTI = SERIES CLOSED · PRODUCTION VERIFIED (UI 2.65.74–76)
+Tip = wyłącznie docs/AI/09_PRODUCTION_BASELINE.md + version.json
+CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
+  → SSOT: docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md
+NEXT (wycena/katalog) = CENY-MATERIAŁÓW-04 P2 AUDIT — tylko po Owner GO
 AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
-AI-COST-02 / COST-02-A = EPIC COMPLETE · PRODUCTION VERIFIED · CLOSED
-Foundation Lib (wgdom-foundation) Phase 0 = COMPLETE (FND-01…05 @ origin/main)
-FND-06 Observability = BLOCKED (brak Impl Spec → ADR/Blueprint)
-NEXT (wycena) = AI-COST-02-B — tylko po Owner GO → AUDIT → DF
-Handoff = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
+Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**CM-04 P1 COMPLETE:** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
+**Kandydaci NEXT:** [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)  
 **Handoff po GAP-A:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
-**COST-BID-GAP-01 closeout:** [`COST-BID-GAP-01-CLOSEOUT.md`](../architecture/COST-BID-GAP-01-CLOSEOUT.md)  
-**COST-MULTI closeout:** [`COST-MULTI-CLOSEOUT.md`](../architecture/COST-MULTI-CLOSEOUT.md) · kandydaci [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)  
-**Foundation Lib (ID/Digest/Error/Audit/Event):** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) — **nie** mylić z UI Foundation  
-**AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`COST-02-A CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md)
+**Foundation Lib:** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) — **nie** mylić z UI Foundation  
+**AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md)
 
 ---
 
@@ -55,6 +52,8 @@ Handoff = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
 10. → IMPLEMENT (tylko po Gate PASS + Owner GO gdy wymagane)
 ```
 
+**Temat CM-04 / ceny materiałów:** po kroku 0 przeczytaj [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) — **nie** odtwarzaj historii czatu.
+
 **Zakaz skrótów:** pominięcie kroków 3–5 = naruszenie procesu.
 
 ---
@@ -63,6 +62,7 @@ Handoff = docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
 
 | Potrzeba | Dokument |
 |----------|----------|
+| CM-04 P1 / P2 | [`../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 | Foundation Lib / FND-* | [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
 | Never break (1 strona) | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) |
 | Boundary FEATURE vs CORE | [`PAYROLL_BOUNDARY_MAP.md`](PAYROLL_BOUNDARY_MAP.md) |

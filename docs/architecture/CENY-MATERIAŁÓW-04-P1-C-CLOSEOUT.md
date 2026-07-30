@@ -26,9 +26,8 @@ AI-COST · scoring engine · providerzy · Bid Calculator · Cloud Sync CORE —
 
 ## NEXT
 
-**P2** — Owner GO (wg [`P1-PLAN`](CENY-MATERIAŁÓW-04-P1-PLAN.md) / parent CM-04).  
-Opcjonalnie gate **P1 CLOSE** (K-P1-1…3) — poza tym CLOSEOUT.
+**P1 COMPLETE** → **CENY-MATERIAŁÓW-04 P2 AUDIT** (Owner GO) — [`P1-CLOSEOUT`](CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md).
 
 ## Decyzja
 
-**P1-C CLOSED** · **READY FOR P2**
+**P1-C CLOSED** · część **P1 COMPLETE** · **READY FOR P2 AUDIT**

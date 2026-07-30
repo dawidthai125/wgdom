@@ -82,38 +82,46 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 ---
 
+## CENY-MATERIAŁÓW-04 P1 — COMPLETE · FEATURE-DATA
+
+| Pole | Wartość |
+|------|---------|
+| **Status** | **P1 COMPLETE** · tip UI **2.65.83** · feature P1-C **`992023cc`** · PV **PASS** |
+| Slices | P0 · P1-A (10) · P1-B (7) · P1-C (7) — Quotes 100% · known/new false **0** |
+| KPI 18 | CM **73.2%** · HE **26.8%** |
+| Pipeline | CSV → `commitMarketQuotesImport` → WC → `controlled_market` |
+| OUT | AI-COST · scoring · providerzy · Bid · Cloud Sync CORE |
+| NEXT | **P2 AUDIT** — Owner GO |
+
+**SSOT (KPI · lessons · OUT · NEXT):** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
+Slice closeouts: [`P1-C`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`P1-B`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`P1-A`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`P0`](../architecture/CENY-MATERIAŁÓW-04-P0-OPS-COMPLETE.md)
+
 ## CENY-MATERIAŁÓW-04 P1-C — CLOSED · FEATURE-DATA
 
 | Pole | Wartość |
 |------|---------|
 | **Status** | **CLOSED** · tip UI **2.65.83** · feature **`992023cc`** · PV **PASS** · 7 robót WC elewacje/ocieplenia + Quotes 7/7 · OV PASS |
-| IN | ELEWACJE_OCIEPLENIA · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
-| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A · P1-B |
-| NEXT | **P2** — Owner GO |
+| IN / OUT / NEXT | → [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 
-**SSOT:** [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md)
+**SSOT slice:** [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md)
 
 ## CENY-MATERIAŁÓW-04 P1-B — CLOSED · FEATURE-DATA
 
 | Pole | Wartość |
 |------|---------|
 | **Status** | **CLOSED** · tip UI **2.65.82** · feature **`dca25c96`** · PV **PASS** · 7 robót WC ogrodzenia + Quotes 7/7 · OV PASS |
-| IN | ogrodzenia · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
-| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A |
-| NEXT | **P1-C CLOSED** → **P2** |
+| IN / OUT / NEXT | → [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 
-**SSOT:** [`CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-OWNER-VERIFICATION-COMPLETE.md)
+**SSOT slice:** [`CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md)
 
 ## CENY-MATERIAŁÓW-04 P1-A — CLOSED · FEATURE-DATA
 
 | Pole | Wartość |
 |------|---------|
 | Status | **CLOSED** · tip UI **2.65.81** · feature **`dc0daea0`** · PV **PASS** · 10 robót WC + Quotes 10/10 · OV FINAL PASS |
-| IN | chodniki/nawierzchnie · P3.3 CSV import · D-P1-F/F2 keyword patches |
-| OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy |
-| NEXT | **P1-B CLOSED** → **P1-C** |
+| IN / OUT / NEXT | → [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) |
 
-**SSOT:** [`CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md)
+**SSOT slice:** [`CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-A-CLOSEOUT.md) · [`OV FINAL`](../architecture/CENY-MATERIAŁÓW-04-P1-A-OWNER-VERIFICATION-FINAL-COMPLETE.md)
 
 ## CENY-MATERIAŁÓW-01 — CLOSED · PRODUCTION VERIFIED
 
@@ -123,7 +131,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 | Flag | `kw-ceny-materialow-01` default **OFF** |
 | IN | CM-0 KPI · CM-1 mapping uplift · CM-2 quotes gaps · CM-3 memo (OfferBoq build) |
 | OUT | tabele/SKU/scraper · reorder providers · Bid · Cloud CORE · GAP-B/1,6M |
-| NEXT | CM-04 P1-A **CLOSED** · dalej **P1-B** / GAP-B / I3 / TP200B |
+| NEXT | CM-04 **P1 COMPLETE** · dalej **P2 AUDIT** / GAP-B / I3 / TP200B |
 
 **SSOT:** [`CENY-MATERIAŁÓW-01-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-01-CLOSEOUT.md) · [`CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md`](../architecture/CENY-MATERIAŁÓW-01-PRODUCTION-VERIFY.md)
 
