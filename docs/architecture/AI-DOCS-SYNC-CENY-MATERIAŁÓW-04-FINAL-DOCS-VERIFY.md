@@ -18,10 +18,10 @@ AI-DOCS-SYNC-CENY-MATERIAŁÓW-04 FULLY CLOSED
 | Pole | Wartość |
 |------|---------|
 | **Hash (full)** | `d7eaae8c4007bec574ea9f35abcaeca3b3a75f48` |
-| **Hash (short)** | **`d7eaae8c`** |
+| **Hash (short)** | **`d7eaae8c`** (sync) · evidence fill **`5932745c`** |
 | **Message** | `docs: AI-DOCS-SYNC CENY-MATERIAŁÓW-04 P1 COMPLETE + P2 AUDIT onboarding` |
 | **Branch** | `main` |
-| **Push** | **SUCCESS** · `origin/main` · `5ea80344..d7eaae8c` |
+| **Push** | **SUCCESS** · `origin/main` · `5ea80344..5932745c` |
 | **Allowlista** | wyłącznie dokumenty AI-DOCS-SYNC · **ZERO** src / supabase / scripts |
 
 ---
@@ -62,7 +62,7 @@ AI-DOCS-SYNC-CENY-MATERIAŁÓW-04 FULLY CLOSED
 | Pole | Wartość |
 |------|---------|
 | **UI tip (feature)** | **2.65.83** · feature P1-C **`992023cc`** — SSOT [`09`](../AI/09_PRODUCTION_BASELINE.md) |
-| **Docs tip** | **`d7eaae8c`** · live `version.json` po deploy Vercel |
+| **Docs tip** | sync **`d7eaae8c`** · evidence **`5932745c`** · live UI tip **2.65.83** / `version.json` |
 
 ---
 
