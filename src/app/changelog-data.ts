@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-30",
+    version: "2.65.86",
+    label: "Smart Pricing P0 — Detect braków cen",
+    items: [
+      {
+        type: "new",
+        text: "Smart Pricing (P0): wykrywanie braków użytecznej ceny rynkowej w wycenie (Quotes-first). Banner + oznaczenie pozycji bez ceny. Tylko odczyt Product Quotes (conf ≥0.50, ≤180 dni).",
+      },
+      {
+        type: "improve",
+        text: "Bez One-shot / Evidence / Save / Publish / MARKET-SYNC lookup / commitMarketQuotesImport. Punkty rozszerzeń P1–P3 przygotowane (niedostępne). FEATURE-DATA only.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-30",
     version: "2.65.85",
     label: "Market Sync P1 — Accept + Publish",
     items: [

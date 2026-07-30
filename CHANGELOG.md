@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.86 — SMART-PRICING-01 P0 Detect RO (2026-07-30)
+
+- **new:** `src/lib/smart-pricing/**` — Detect braków użytecznej ceny (Quotes-first · conf ≥0.50 · stale ≤180d)
+- **UI:** banner + badge pozycji w OfferBoq Cost Intelligence (RO)
+- **test:** `npx vite-node scripts/test-smart-pricing-01-p0.mjs`
+- **bez:** One-shot · Evidence · Rank · Save · Publish · commit · MS lookup · Cloud CORE · Payroll · P1
+
 ## 2.65.85 — MARKET-SYNC-01 P1 Accept + Publish (2026-07-30)
 
 - **new:** Accept/Reject/Defer (staging) · linkedWorkIds N:1 · Guard · Dry Run · Delta · Publish Summary · Kill Switch · `runMarketSyncPublish` → **tylko** `commitMarketQuotesImport` · Undo single

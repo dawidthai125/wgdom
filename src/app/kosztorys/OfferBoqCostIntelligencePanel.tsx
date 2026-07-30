@@ -30,6 +30,15 @@ import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 import {
+  detectMissingPrices,
+  missingReasonByLineId,
+  type SmartPricingMissingReason,
+} from "@/lib/smart-pricing";
+import {
+  SmartPricingDetectBanner,
+  smartPricingMissingBadgeLabel,
+} from "@/app/smart-pricing/SmartPricingDetectBanner";
+import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
   patchOfferBoqComponentInDocument,
@@ -725,6 +734,7 @@ function LineExplainCard({
   density,
   editingComponentId,
   showOrigin = false,
+  smartPricingMissingReason,
   onToggle,
   onPatch,
   onApprove,
@@ -735,6 +745,7 @@ function LineExplainCard({
   density: OfferBoqDensityMode;
   editingComponentId: string | null;
   showOrigin?: boolean;
+  smartPricingMissingReason?: SmartPricingMissingReason;
   onToggle: () => void;
   onPatch: (
     lineId: string,
@@ -746,6 +757,7 @@ function LineExplainCard({
 }) {
   const [whyAiOpen, setWhyAiOpen] = useState(false);
   const compact = density === "compact";
+  const missingBadge = smartPricingMissingBadgeLabel(smartPricingMissingReason);
 
   return (
     <article
@@ -753,6 +765,7 @@ function LineExplainCard({
       data-offer-boq-line-id={line.lineId}
       data-offer-boq-editable="false"
       data-offer-boq-line-density={density}
+      data-smart-pricing-01-missing={smartPricingMissingReason ?? undefined}
     >
       <button
         type="button"
@@ -780,6 +793,15 @@ function LineExplainCard({
               {line.lineDirectDisplay}
             </span>
             <ConfidenceBadge badge={line.confidenceBadge} />
+            {missingBadge ? (
+              <span
+                className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300 shrink-0`}
+                data-smart-pricing-01-line-badge
+                title={smartPricingMissingReason}
+              >
+                {missingBadge}
+              </span>
+            ) : null}
             {line.requiresUserReview ? (
               <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300 shrink-0`}>
                 rev
@@ -794,6 +816,15 @@ function LineExplainCard({
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs text-muted-foreground">{line.lp}</span>
               <ConfidenceBadge badge={line.confidenceBadge} />
+              {missingBadge ? (
+                <span
+                  className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300`}
+                  data-smart-pricing-01-line-badge
+                  title={smartPricingMissingReason}
+                >
+                  {missingBadge}
+                </span>
+              ) : null}
               {line.requiresUserReview ? (
                 <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300`}>
                   {line.reviewLabelPl}
@@ -980,6 +1011,19 @@ export function OfferBoqCostIntelligencePanel({
     const works = listActiveWorksForRegion(store, store.activeRegion);
     return computeOfferBoqQuotesGaps(view.document, works);
   }, [cm01Enabled, view.available, view.document]);
+  const smartPricingDetect = useMemo(() => {
+    if (!view.available || !view.document) return null;
+    const store = loadWorkCatalogStoreLocal();
+    const works = listActiveWorksForRegion(store, store.activeRegion);
+    return detectMissingPrices(view.document, works, {
+      regionCode: store.activeRegion,
+      computedAtIso: view.document.builtAt || store.updatedAt || "2026-07-30T00:00:00.000Z",
+    });
+  }, [view.available, view.document]);
+  const smartPricingMissingMap = useMemo(
+    () => (smartPricingDetect ? missingReasonByLineId(smartPricingDetect) : null),
+    [smartPricingDetect],
+  );
   const cost02bQueue = useMemo(() => {
     if (!cost02bEnabled || !view.available || !view.document || !view.summary) return null;
     const conf =
@@ -1156,6 +1200,10 @@ export function OfferBoqCostIntelligencePanel({
             ) : null}
           </ul>
         </section>
+      ) : null}
+
+      {smartPricingDetect ? (
+        <SmartPricingDetectBanner summary={smartPricingDetect} onFocusLine={focusQueueLine} />
       ) : null}
 
       {cost02bEnabled && cost02bQueue ? (
@@ -1431,6 +1479,7 @@ export function OfferBoqCostIntelligencePanel({
               open={Boolean(openIds[line.lineId])}
               density={density}
               showOrigin={cost02bEnabled}
+              smartPricingMissingReason={smartPricingMissingMap?.get(line.lineId)}
               editingComponentId={
                 editingKey?.startsWith(`${line.lineId}:`)
                   ? editingKey.slice(line.lineId.length + 1)
