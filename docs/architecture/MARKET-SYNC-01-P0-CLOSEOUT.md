@@ -4,7 +4,7 @@
 > **EPIC:** MARKET-SYNC-01 · **Slice:** P0 — Model + Preview  
 > **STATUS:** **CLOSED** · **RELEASE GO** · tip UI **2.65.84** · feature **`273fb3e0`**  
 > **Data:** 2026-07-30  
-> **Production Verify (FAST):** **DEPLOY PROPAGATING** przy pierwszym odczycie `version.json` (jeszcze 2.65.83 / `ceaf39d`) — **bez** retry/pollingu
+> **Production Verify (FAST):** po feature push = **DEPLOY PROPAGATING**; po docs push odczyt = **PRODUCTION VERIFIED** (`2.65.84` / `273fb3e`) — szczegóły [`MARKET-SYNC-01-P0-PRODUCTION-VERIFY.md`](MARKET-SYNC-01-P0-PRODUCTION-VERIFY.md) · [`MARKET-SYNC-01-P0-RELEASE-REPORT.md`](MARKET-SYNC-01-P0-RELEASE-REPORT.md)
 
 ```text
 ════════════════════════════════════════════════════════
