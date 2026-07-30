@@ -86,7 +86,7 @@ Closeout: Foundation [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT`](../architectur
 
 | Pole | Wartość |
 |------|---------|
-| **Status** | **CLOSED** · tip UI **2.65.83** · feature **`a38d5ad8`** · PV **PASS** · 7 robót WC elewacje/ocieplenia + Quotes 7/7 · OV PASS |
+| **Status** | **CLOSED** · tip UI **2.65.83** · feature **`992023cc`** · PV **PASS** · 7 robót WC elewacje/ocieplenia + Quotes 7/7 · OV PASS |
 | IN | ELEWACJE_OCIEPLENIA · P3.3 CSV import · OPS patch tokenów (równoważne DF §5.3) |
 | OUT | AI-COST · scoring · Bid · Cloud CORE · providerzy · P1-A · P1-B |
 | NEXT | **P2** — Owner GO |

@@ -10,7 +10,7 @@
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · tip UI **2.65.83** · feature **`a38d5ad8`** · OV **PASS** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · FEATURE-DATA · tip UI **2.65.83** · feature **`992023cc`** · OV **PASS** |
 | **Closeout** | [`CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) |
 | **PV** | [`CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md`](docs/architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) |
 | **IN** | 7 robót WC · Quotes 7/7 · CSV→P3.3 · OPS token patch |

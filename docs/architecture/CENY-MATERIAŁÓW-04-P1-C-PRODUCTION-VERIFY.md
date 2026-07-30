@@ -3,8 +3,8 @@
 > **ID:** CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY  
 > **Data:** 2026-07-30  
 > **STATUS:** **PASS · FINAL** (wypełniane po deploy)  
-> **Tip prod:** **2.65.83** / commit **`a38d5ad8`**  
-> **Feature commit:** **`a38d5ad8`**  
+> **Tip prod:** **2.65.83** / commit **`992023cc`**  
+> **Feature commit:** **`992023cc`**  
 > **OV:** [`OWNER-VERIFICATION`](CENY-MATERIAŁÓW-04-P1-C-OWNER-VERIFICATION-COMPLETE.md) · PASS · READY FOR COMMIT  
 > **Evidence:** `.tmp/pv-ceny-materialow-04-p1c.json` · `.tmp/ceny-materialow-04-p1c-owner-verification.json`
 
@@ -21,10 +21,10 @@ known/new false = 0 · KPI no regression · OUT clean
 
 | Check | Wynik |
 |-------|--------|
-| Feature commit | **`a38d5ad8`** `feat(work-catalog): CENY-MATERIAŁÓW-04 P1-C elewacje (2.65.83)` |
+| Feature commit | **`992023cc`** `feat(work-catalog): CENY-MATERIAŁÓW-04 P1-C elewacje (2.65.83)` |
 | Push | **`origin/main`** · SUCCESS |
 | Deploy | Vercel Git Integration · **success** (live tip) |
-| Live tip | `version.json` → `version: 2.65.83` · `commit: a38d5ad8` |
+| Live tip | `version.json` → `version: 2.65.83` · `commit: 992023cc` |
 
 ---
 
