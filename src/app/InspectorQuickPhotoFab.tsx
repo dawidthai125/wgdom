@@ -3,6 +3,9 @@ import { Camera, X } from "lucide-react";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import type { InspectorPhotoLabel } from "@/lib/job-wm";
 import type { InspectorDashboardJob } from "@/lib/inspector-dashboard";
+import { cn } from "@/app/components/ui/utils";
+import { WgButton, WgModalFrame } from "@/app/ui";
+import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 const DEFAULT_LABEL: InspectorPhotoLabel = "in_progress";
 
@@ -50,20 +53,25 @@ export function InspectorQuickPhotoFab({
 
   return (
     <>
-      <button
+      <WgButton
         type="button"
+        variant="primary"
+        size="icon"
         disabled={disabled || busy}
         onClick={() => {
           if (activeJobs.length === 1) startCapture(activeJobs[0].id);
           else setPickerOpen(true);
         }}
-        className="fixed z-40 right-4 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 touch-manipulation"
+        className={cn(
+          "fixed z-40 right-4 w-14 h-14 min-h-14 min-w-14 rounded-full shadow-lg shadow-primary/25",
+          "hover:scale-105 active:scale-95 transition-transform touch-manipulation",
+        )}
         style={{ bottom: "max(5.5rem, calc(env(safe-area-inset-bottom) + 4.5rem))" }}
         aria-label="Szybkie zdjęcie"
         title="Szybkie zdjęcie — wybierz robotę i otwórz aparat"
       >
         <Camera size={24}/>
-      </button>
+      </WgButton>
 
       {cameraJobId && (
         <HiddenFileInput accept="image/*" capture="environment" onPick={handleFile}>
@@ -74,45 +82,53 @@ export function InspectorQuickPhotoFab({
         </HiddenFileInput>
       )}
 
-      {pickerOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4"
-          onClick={() => setPickerOpen(false)}
-        >
-          <div
-            className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[70dvh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
+      <WgModalFrame
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        showHeader={false}
+        variant="sheet"
+        surface="solid"
+        size="md"
+        zIndex={50}
+        aria-label="Wybierz robotę"
+        className="max-h-[70dvh] sm:rounded-2xl"
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+          <p className="text-sm font-semibold">Wybierz robotę</p>
+          <WgButton
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setPickerOpen(false)}
+            className={cn(WG_TOUCH_MIN, "h-11 w-11 rounded-lg hover:bg-secondary")}
+            aria-label="Zamknij"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <p className="text-sm font-semibold">Wybierz robotę</p>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(false)}
-                className="p-2 rounded-lg hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center"
-                aria-label="Zamknij"
-              >
-                <X size={18}/>
-              </button>
-            </div>
-            <div className="overflow-y-auto overscroll-contain divide-y divide-border">
-              {activeJobs.map((job) => (
-                <button
-                  key={job.id}
-                  type="button"
-                  onClick={() => startCapture(job.id)}
-                  className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 min-h-[44px] touch-manipulation"
-                >
-                  <p className="text-sm font-medium truncate">
-                    {job.address || "Bez adresu"}
-                    {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{job.client || "—"}</p>
-                </button>
-              ))}
-            </div>
-          </div>
+            <X size={18}/>
+          </WgButton>
         </div>
-      )}
+        <div className="overflow-y-auto overscroll-contain divide-y divide-border min-h-0">
+          {activeJobs.map((job) => (
+            <WgButton
+              key={job.id}
+              type="button"
+              variant="ghost"
+              onClick={() => startCapture(job.id)}
+              className={cn(
+                WG_TOUCH_MIN,
+                "w-full h-auto rounded-none justify-start text-left px-4 py-3.5 hover:bg-secondary/40 touch-manipulation",
+              )}
+            >
+              <span className="min-w-0 block">
+                <span className="text-sm font-medium truncate block">
+                  {job.address || "Bez adresu"}
+                  {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground truncate block">{job.client || "—"}</span>
+              </span>
+            </WgButton>
+          ))}
+        </div>
+      </WgModalFrame>
     </>
   );
 }

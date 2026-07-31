@@ -10,11 +10,13 @@ import {
 } from "@/lib/recoverable-charges";
 import {
   MAX_BILLING_EVIDENCE_IMAGES,
-  MAX_BILLING_EVIDENCE_PDFS,
   validateBillingEvidenceFile,
 } from "@/lib/billing-evidence-upload";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
+import { cn } from "@/app/components/ui/utils";
+import { WgButton, WgField, WgModalFrame } from "@/app/ui";
+import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 export function InspectorBillingProposalModal({
   job,
@@ -68,6 +70,11 @@ export function InspectorBillingProposalModal({
 
   const addressLabel = jobAddressForRecoverableCharge(job);
   const jobLabel = jobLabelForCharge(job);
+
+  const handleClose = () => {
+    if (uploading) return;
+    onClose();
+  };
 
   const addImages = (files: FileList | null) => {
     if (!files?.length) return;
@@ -136,15 +143,19 @@ export function InspectorBillingProposalModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50"
-      onClick={uploading ? undefined : onClose}
+    <WgModalFrame
+      open
+      onClose={handleClose}
+      showHeader={false}
+      variant="sheet"
+      surface="solid"
+      size="md"
+      zIndex={50}
+      aria-labelledby="billing-proposal-title"
+      className="max-h-[min(92vh,680px)] sm:rounded-2xl"
     >
       <div
-        className="w-full sm:max-w-md bg-card border border-border rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col max-h-[min(92vh,680px)]"
-        role="dialog"
-        aria-labelledby="billing-proposal-title"
-        onClick={(e) => e.stopPropagation()}
+        className="flex flex-col max-h-[min(92vh,680px)] min-h-0"
         data-billing-proposal-modal
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -156,17 +167,20 @@ export function InspectorBillingProposalModal({
               Zgłoszenie trafi do administratora — bez zmiany rejestru do zatwierdzenia
             </p>
           </div>
-          <button
+          <WgButton
             type="button"
-            onClick={onClose}
+            variant="ghost"
+            size="icon"
+            onClick={handleClose}
             disabled={uploading}
-            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Zamknij"
+            className={cn(WG_TOUCH_MIN, "h-11 w-11 rounded-lg hover:bg-secondary")}
           >
             <X size={14} />
-          </button>
+          </WgButton>
         </div>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4 min-h-0">
           <div className="bg-secondary/40 rounded-xl px-3 py-3 space-y-2 text-xs">
             <PresetRow label="Robota" value={jobLabel} />
             {addressLabel && <PresetRow label="Adres" value={addressLabel} />}
@@ -176,66 +190,56 @@ export function InspectorBillingProposalModal({
             )}
           </div>
 
-          <label className="block space-y-1">
-            <span className="text-xs text-muted-foreground">Tytuł (opcjonalnie)</span>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              disabled={uploading}
-              className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm"
-              placeholder="Krótki tytuł pozycji"
-              autoFocus
-              style={{ fontSize: "16px" }}
-            />
-          </label>
+          <WgField
+            label="Tytuł (opcjonalnie)"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={uploading}
+            placeholder="Krótki tytuł pozycji"
+            autoFocus
+            controlClassName="rounded-xl h-auto py-2.5 text-sm"
+            style={{ fontSize: "16px" }}
+          />
 
-          <label className="block space-y-1">
-            <span className="text-xs text-muted-foreground">Opis *</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={uploading}
-              rows={3}
-              className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm resize-y min-h-[4.5rem]"
-              placeholder="Co do odzyskania, za co, kiedy…"
-              style={{ fontSize: "16px" }}
-            />
-            {!validation.ok && validation.error === "missing_description" && (
-              <p className="text-xs text-destructive">{validation.message}</p>
-            )}
-          </label>
+          <WgField
+            control="textarea"
+            label="Opis *"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={uploading}
+            rows={3}
+            placeholder="Co do odzyskania, za co, kiedy…"
+            error={!validation.ok && validation.error === "missing_description" ? validation.message : undefined}
+            controlClassName="rounded-xl text-sm resize-y min-h-[4.5rem]"
+            style={{ fontSize: "16px" }}
+          />
 
-          <label className="block space-y-1">
-            <span className="text-xs text-muted-foreground">Kwota (PLN) *</span>
-            <input
-              type="number"
-              min={0.01}
-              step={0.01}
-              disabled={uploading}
-              value={amount > 0 ? amount : ""}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === "" || raw === "-") {
-                  setAmount(0);
-                  return;
-                }
-                const n = parseFloat(raw);
-                if (!Number.isFinite(n) || n < 0) return;
-                setAmount(n);
-              }}
-              className={`w-full bg-secondary border rounded-xl px-3 py-2.5 text-sm ${
-                !validation.ok && validation.error === "invalid_amount" ? "border-destructive" : "border-border"
-              }`}
-              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px" }}
-            />
-            {!validation.ok && validation.error === "invalid_amount" && (
-              <p className="text-xs text-destructive">{validation.message}</p>
+          <WgField
+            label="Kwota (PLN) *"
+            type="number"
+            min={0.01}
+            step={0.01}
+            disabled={uploading}
+            value={amount > 0 ? amount : ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "" || raw === "-") {
+                setAmount(0);
+                return;
+              }
+              const n = parseFloat(raw);
+              if (!Number.isFinite(n) || n < 0) return;
+              setAmount(n);
+            }}
+            error={!validation.ok && validation.error === "invalid_amount" ? validation.message : undefined}
+            hint={amount > 0 ? fmtRecoverableAmount(amount) : undefined}
+            controlClassName={cn(
+              "rounded-xl h-auto py-2.5 text-sm",
+              !validation.ok && validation.error === "invalid_amount" && "border-destructive",
             )}
-            {amount > 0 && (
-              <p className="text-[10px] text-muted-foreground">{fmtRecoverableAmount(amount)}</p>
-            )}
-          </label>
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px" }}
+          />
 
           <div className="flex flex-wrap gap-2">
             <HiddenFileInput
@@ -244,27 +248,31 @@ export function InspectorBillingProposalModal({
               capture="environment"
               onPick={addImages}
             >
-              {(open) => (
-                <button
+              {(openPicker) => (
+                <WgButton
                   type="button"
-                  onClick={open}
+                  variant="secondary"
+                  size="sm"
+                  onClick={openPicker}
                   disabled={uploading || pendingImages.length >= MAX_BILLING_EVIDENCE_IMAGES}
-                  className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-secondary text-xs font-medium touch-manipulation disabled:opacity-40"
+                  className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs font-medium touch-manipulation")}
                 >
                   <Camera size={12} /> Dodaj zdjęcia
-                </button>
+                </WgButton>
               )}
             </HiddenFileInput>
             <HiddenFileInput accept="application/pdf,.pdf" onPick={addPdf}>
-              {(open) => (
-                <button
+              {(openPicker) => (
+                <WgButton
                   type="button"
-                  onClick={open}
+                  variant="secondary"
+                  size="sm"
+                  onClick={openPicker}
                   disabled={uploading || Boolean(pendingPdf)}
-                  className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-secondary text-xs font-medium touch-manipulation disabled:opacity-40"
+                  className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs font-medium touch-manipulation")}
                 >
                   <FileText size={12} /> Dodaj PDF
-                </button>
+                </WgButton>
               )}
             </HiddenFileInput>
           </div>
@@ -278,30 +286,34 @@ export function InspectorBillingProposalModal({
                     alt=""
                     className="h-14 w-14 object-cover rounded-lg border border-border"
                   />
-                  <button
+                  <WgButton
                     type="button"
+                    variant="destructive"
+                    size="icon"
                     disabled={uploading}
                     onClick={() => setPendingImages((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-destructive text-destructive-foreground min-w-[22px] min-h-[22px] flex items-center justify-center"
+                    className="absolute -top-1.5 -right-1.5 h-[22px] w-[22px] min-h-0 min-w-0 p-0 rounded-full"
                     aria-label="Usuń zdjęcie"
                   >
                     <X size={10} />
-                  </button>
+                  </WgButton>
                 </div>
               ))}
               {pendingPdf && (
                 <div className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-border bg-secondary/50 text-[10px] max-w-[160px]">
                   <FileText size={12} className="shrink-0 text-primary" />
                   <span className="truncate">{pendingPdf.name}</span>
-                  <button
+                  <WgButton
                     type="button"
+                    variant="destructive"
+                    size="icon"
                     disabled={uploading}
                     onClick={() => setPendingPdf(null)}
-                    className="absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-destructive text-destructive-foreground min-w-[22px] min-h-[22px] flex items-center justify-center"
+                    className="absolute -top-1.5 -right-1.5 h-[22px] w-[22px] min-h-0 min-w-0 p-0 rounded-full"
                     aria-label="Usuń PDF"
                   >
                     <X size={10} />
-                  </button>
+                  </WgButton>
                 </div>
               )}
             </div>
@@ -318,26 +330,28 @@ export function InspectorBillingProposalModal({
           className="shrink-0 px-5 py-4 border-t border-border flex gap-2"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
-          <button
+          <WgButton
             type="button"
-            onClick={onClose}
+            variant="outline"
+            onClick={handleClose}
             disabled={uploading}
-            className="flex-1 py-2.5 rounded-xl text-sm border border-border hover:bg-secondary disabled:opacity-40"
+            className="flex-1 h-11 rounded-xl text-sm"
           >
             Anuluj
-          </button>
-          <button
+          </WgButton>
+          <WgButton
             type="button"
+            variant="primary"
             onClick={() => void handleSubmit()}
             disabled={!validation.ok || uploading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 flex items-center justify-center gap-1.5"
+            className="flex-1 h-11 rounded-xl text-sm font-medium gap-1.5"
           >
             {uploading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
             Wyślij do administratora
-          </button>
+          </WgButton>
         </div>
       </div>
-    </div>
+    </WgModalFrame>
   );
 }
 

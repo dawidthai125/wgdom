@@ -1,4 +1,4 @@
-import { lazy, Suspense, type Dispatch, type SetStateAction } from "react";
+import { lazy, Suspense, useEffect, type Dispatch, type SetStateAction } from "react";
 import { X } from "lucide-react";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
@@ -11,6 +11,10 @@ import type { InspectorPhotoLabel } from "@/lib/job-wm";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
+import { cn } from "@/app/components/ui/utils";
+import { WgButton } from "@/app/ui";
+import { WG_TOUCH_MIN, WG_TYPE_BODY } from "@/lib/wg-ui-tokens";
 import { Toaster } from "sonner";
 
 const OperationalNotesView = lazy(() =>
@@ -66,14 +70,41 @@ export function InspectorOverlays({
   onChangeAuditLog,
   onCommitOperationalNotes,
 }: InspectorOverlaysProps) {
+  useModalScrollLock(lightbox != null);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, onCloseLightbox]);
+
   return (
     <>
       {lightbox && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4" onClick={onCloseLightbox}>
-          <button type="button" className="absolute top-4 right-4 p-2 text-white" style={{ top: "max(1rem, env(safe-area-inset-top))" }} onClick={onCloseLightbox}>
+        <div
+          className="fixed inset-0 z-[100] modal-overlay modal-sheet bg-black/90 flex flex-col items-center justify-center p-4"
+          onClick={onCloseLightbox}
+          role="dialog"
+          aria-modal="true"
+        >
+          <WgButton
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(WG_TOUCH_MIN, "absolute right-4 p-2 text-white hover:bg-white/10 h-11 w-11")}
+            style={{ top: "max(1rem, env(safe-area-inset-top))" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCloseLightbox();
+            }}
+            aria-label="Zamknij"
+          >
             <X size={24}/>
-          </button>
-          <p className="text-white text-sm mb-3">{lightbox.label}</p>
+          </WgButton>
+          <p className={cn(WG_TYPE_BODY, "text-white mb-3")}>{lightbox.label}</p>
           <JobPhotoImg src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
         </div>
       )}

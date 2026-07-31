@@ -4,6 +4,9 @@ import {
   ImagePlus, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Calendar, LayoutGrid, Camera, Phone,
   type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/app/components/ui/utils";
+import { WgButton, WgModalFrame } from "@/app/ui";
+import { WG_RADIUS_MD, WG_TOUCH_MIN, WG_TYPE_BODY } from "@/lib/wg-ui-tokens";
 
 /** Dymek pomocy — hover (desktop) lub tap (mobile) */
 export function InspectorHint({
@@ -166,31 +169,34 @@ export function InspectorHelpBanner({ onOpenHelp }: { onOpenHelp: () => void }) 
   if (dismissed) return null;
 
   return (
-    <div className="mx-4 mt-3 mb-1 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+    <div
+      className={cn(
+        "mx-4 mt-3 mb-1 bg-emerald-500/10 border border-emerald-500/25 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0",
+        WG_RADIUS_MD,
+      )}
+    >
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Pierwszy raz tutaj?</p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+        <p className={cn(WG_TYPE_BODY, "text-xs text-muted-foreground mt-0.5 leading-relaxed")}>
           Instrukcja krok po kroku — co gdzie kliknąć i po co. Przy polach są też dymki <HelpCircle size={10} className="inline -mt-0.5"/>.
         </p>
       </div>
       <div className="flex gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={onOpenHelp}
-          className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-600/90"
-        >
+        <WgButton type="button" variant="primary" size="sm" onClick={onOpenHelp} className="h-9 px-3 text-xs font-medium">
           Pokaż instrukcję
-        </button>
-        <button
+        </WgButton>
+        <WgButton
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => {
             try { localStorage.setItem("wg-inspector-help-banner", "1"); } catch { /* ignore */ }
             setDismissed(true);
           }}
-          className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground hover:text-foreground"
+          className="h-9 px-3 text-xs text-muted-foreground"
         >
           Zamknij
-        </button>
+        </WgButton>
       </div>
     </div>
   );
@@ -199,64 +205,70 @@ export function InspectorHelpBanner({ onOpenHelp }: { onOpenHelp: () => void }) 
 export function InspectorHelpModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [openSection, setOpenSection] = useState<string>("start");
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[90] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/60"
-      onClick={onClose}
+    <WgModalFrame
+      open={open}
+      onClose={onClose}
+      showHeader={false}
+      variant="sheet"
+      surface="solid"
+      size="lg"
+      zIndex={90}
+      aria-label="Instrukcja inspektora"
+      className="max-h-[92dvh]"
     >
-      <div
-        className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-emerald-600 dark:text-emerald-400"/>
-            <span className="text-sm font-semibold">Instrukcja inspektora</span>
-          </div>
-          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
-            <X size={16}/>
-          </button>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+        <div className="flex items-center gap-2">
+          <BookOpen size={16} className="text-emerald-600 dark:text-emerald-400"/>
+          <span className="text-sm font-semibold">Instrukcja inspektora</span>
         </div>
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-2">
-          <p className="text-xs text-muted-foreground leading-relaxed pb-2">
-            Wrocławskie Mieszkania — remonty pustostanów. Ten panel służy do kontroli dokumentów, zleceń, kosztorysów i zdjęć. Firma W&G DOM widzi Twoje zmiany od razu w zakładce Roboty.
-          </p>
-          {getInspectorHelpSections().map((s) => {
-            const Icon = s.icon;
-            const isOpen = openSection === s.id;
-            return (
-              <div key={s.id} className="border border-border rounded-xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setOpenSection(isOpen ? "" : s.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/40 transition-colors"
-                >
-                  <Icon size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0"/>
-                  <span className="text-sm font-medium flex-1">{s.title}</span>
-                  {isOpen ? <ChevronUp size={14}/> : <ChevronDown size={14} className="text-muted-foreground"/>}
-                </button>
-                {isOpen && (
-                  <div className="px-4 pb-4 pt-0">
-                    <p className="text-xs text-muted-foreground leading-relaxed pl-7">{s.body}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <div className="px-5 py-4 border-t border-border shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-600/90"
-          >
-            Rozumiem — zamknij
-          </button>
-        </div>
+        <WgButton
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label="Zamknij"
+          className={cn(WG_TOUCH_MIN, "h-11 w-11 rounded-lg hover:bg-secondary")}
+        >
+          <X size={16}/>
+        </WgButton>
       </div>
-    </div>
+      <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-2 min-h-0">
+        <p className="text-xs text-muted-foreground leading-relaxed pb-2">
+          Wrocławskie Mieszkania — remonty pustostanów. Ten panel służy do kontroli dokumentów, zleceń, kosztorysów i zdjęć. Firma W&G DOM widzi Twoje zmiany od razu w zakładce Roboty.
+        </p>
+        {getInspectorHelpSections().map((s) => {
+          const Icon = s.icon;
+          const isOpen = openSection === s.id;
+          return (
+            <div key={s.id} className="border border-border rounded-xl overflow-hidden">
+              <WgButton
+                type="button"
+                variant="ghost"
+                onClick={() => setOpenSection(isOpen ? "" : s.id)}
+                className="w-full h-auto justify-start gap-3 px-4 py-3 rounded-none text-left hover:bg-secondary/40"
+              >
+                <Icon size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0"/>
+                <span className="text-sm font-medium flex-1">{s.title}</span>
+                {isOpen ? <ChevronUp size={14}/> : <ChevronDown size={14} className="text-muted-foreground"/>}
+              </WgButton>
+              {isOpen && (
+                <div className="px-4 pb-4 pt-0">
+                  <p className="text-xs text-muted-foreground leading-relaxed pl-7">{s.body}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div
+        className="px-5 py-4 border-t border-border shrink-0"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
+        <WgButton type="button" variant="emerald" size="lg" onClick={onClose}>
+          Rozumiem — zamknij
+        </WgButton>
+      </div>
+    </WgModalFrame>
   );
 }
