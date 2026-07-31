@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-31",
+    version: "2.65.92",
+    label: "Confidence MVP — Pewność analizy (flaga OFF)",
+    items: [
+      {
+        type: "new",
+        text: "Confidence MVP (AI v2): wskaźnik „Pewność analizy” (0–100 + drivers) obok AI Quality Score (S7). Read-only — nie zmienia wyceny ani oferty.",
+      },
+      {
+        type: "improve",
+        text: "Flaga localStorage kw-confidence-mvp (domyślnie OFF). Włączenie: ustaw '1'. Tip parity gdy wyłączone.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-31",
     version: "2.65.91",
     label: "Catalog Coverage P0e — FULL Library Seed",
     items: [

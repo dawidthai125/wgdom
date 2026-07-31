@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.92 — Confidence MVP — Pewność analizy (flaga OFF) (2026-07-31)
+
+- **new:** wskaźnik „Pewność analizy” (0–100 + drivers) obok AI Quality Score (S7) — RO, bez wpływu na wycenę/ofertę.
+- **improve:** flaga `kw-confidence-mvp` default OFF (`localStorage` = `1` → ON).
+- Testy: `scripts/test-confidence-mvp.mjs`.
+
 ## 2.65.91 — CATALOG-COVERAGE-01 P0e FULL Library Seed (2026-07-31)
 
 - **new:** FULL seed Library + Quotes: zaprawianie bruzd · zabezpieczenie folią (1 ID, BIZ A) · multiswitch antenowy.

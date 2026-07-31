@@ -26,6 +26,15 @@ import { evaluateOfferBoqValidation } from "@/lib/tender-offer-boq-validation";
 import { buildOfferBoq02bQueue } from "@/lib/tender-offer-boq-02b-queue";
 import { isAiCost02bExplainQueueEnabled } from "@/lib/ai-cost-02-b-flag";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
+import {
+  buildConfidenceMvpInput,
+  buildConfidenceReport,
+  isConfidenceMvpEnabled,
+  mapAveragePricingConfidence,
+  shouldRenderConfidenceBadge,
+  type ConfidenceReport,
+} from "@/lib/confidence-engine";
+import { ConfidenceBadge as AnalysisConfidenceBadge } from "@/app/confidence/ConfidenceBadge";
 import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
@@ -332,8 +341,16 @@ function readinessTone(status: OfferBoqOfferReadinessSection["status"]): string 
   return "bg-rose-500/12 text-rose-800 dark:text-rose-300 border-rose-500/30";
 }
 
-function OfferReadinessSection({ section }: { section: OfferBoqOfferReadinessSection }) {
+function OfferReadinessSection({
+  section,
+  confidenceReport,
+}: {
+  section: OfferBoqOfferReadinessSection;
+  /** Confidence MVP — RO badge obok S7; null = flaga OFF / brak. */
+  confidenceReport?: ConfidenceReport | null;
+}) {
   if (!section.available) return null;
+  const showConfidence = shouldRenderConfidenceBadge(true, confidenceReport ?? null);
   return (
     <section
       className="rounded-lg border border-border bg-background/60 p-3 space-y-3"
@@ -351,6 +368,9 @@ function OfferReadinessSection({ section }: { section: OfferBoqOfferReadinessSec
       <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         <SummaryKpi label="Kompletność" value={`${section.completenessPct.toFixed(1)}%`} />
         <SummaryKpi label="AI Quality Score" value={`${section.qualityScore}/100`} />
+        {showConfidence && confidenceReport ? (
+          <AnalysisConfidenceBadge report={confidenceReport} />
+        ) : null}
         <SummaryKpi label="Ostrzeżenia" value={String(section.warningCount)} />
         <SummaryKpi label="Błędy krytyczne" value={String(section.criticalCount)} />
         <SummaryKpi label="Rekomendacje" value={String(section.recommendationCount)} />
@@ -1005,6 +1025,7 @@ export function OfferBoqCostIntelligencePanel({
 
   const cost02bEnabled = isAiCost02bExplainQueueEnabled();
   const cm01Enabled = isCenyMaterialow01Enabled();
+  const confidenceMvpEnabled = isConfidenceMvpEnabled();
   const quotesGaps = useMemo(() => {
     if (!cm01Enabled || !view.available || !view.document) return null;
     const store = loadWorkCatalogStoreLocal();
@@ -1043,6 +1064,29 @@ export function OfferBoqCostIntelligencePanel({
       lines: view.lines,
     });
   }, [cost02bEnabled, view]);
+
+  /** Confidence MVP — RO only; flaga OFF ⇒ null (parity tip). */
+  const confidenceMvpReport = useMemo((): ConfidenceReport | null => {
+    if (!confidenceMvpEnabled || !view.available || !view.document) return null;
+    try {
+      const s7 = view.offerReadiness?.available ? view.offerReadiness.qualityScore : null;
+      const input = buildConfidenceMvpInput({
+        doc: view.document,
+        item,
+        s7QualityScore: s7,
+        averagePricingConfidence: mapAveragePricingConfidence(
+          view.summary?.averageConfidenceBadge.status,
+        ),
+        smart: smartPricingDetect,
+        bidProposal: view.bidProposal,
+        computedAtIso:
+          view.document.builtAt || view.builtAt || "2026-07-31T00:00:00.000Z",
+      });
+      return buildConfidenceReport(input);
+    } catch {
+      return null;
+    }
+  }, [confidenceMvpEnabled, view, item, smartPricingDetect]);
 
   const focusQueueLine = (lineId: string) => {
     setOpenIds((prev) => ({ ...prev, [lineId]: true }));
@@ -1443,7 +1487,12 @@ export function OfferBoqCostIntelligencePanel({
 
             {view.offerSummary ? <OfferSummarySection section={view.offerSummary} /> : null}
 
-            {view.offerReadiness ? <OfferReadinessSection section={view.offerReadiness} /> : null}
+            {view.offerReadiness ? (
+              <OfferReadinessSection
+                section={view.offerReadiness}
+                confidenceReport={confidenceMvpEnabled ? confidenceMvpReport : null}
+              />
+            ) : null}
 
             {view.aiQuality ? <AiQualitySection section={view.aiQuality} /> : null}
 
