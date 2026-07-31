@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-07-31",
+    version: "2.65.91",
+    label: "Catalog Coverage P0e — FULL Library Seed",
+    items: [
+      {
+        type: "new",
+        text: "Catalog Coverage (P0e): seed FULL — zaprawianie/zamurowanie bruzd, zabezpieczenie powierzchni folią (1 ID), multiswitch antenowy — z Quotes. Bez zmian Negation Guard / Alias Pack.",
+      },
+      {
+        type: "improve",
+        text: "Coverage TV-01: odblokowanie reserved Product ID Wave 1 (DATA FIRST). BIZ: jedno Product ID folia (okna/drzwi/podłogi/stolarka).",
+      },
+    ],
+  },
+  {
     date: "2026-07-30",
     version: "2.65.90",
     label: "Catalog Coverage P0d-A — Precision + SAFE Seed",

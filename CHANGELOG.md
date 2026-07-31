@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.91 — CATALOG-COVERAGE-01 P0e FULL Library Seed (2026-07-31)
+
+- **new:** FULL seed Library + Quotes: zaprawianie bruzd · zabezpieczenie folią (1 ID, BIZ A) · multiswitch antenowy.
+- **improve:** DATA FIRST odblokowanie reserved Pack Wave 1 — bez zmian Negation Guard / Alias Precision / SMART / MS.
+- Testy: `scripts/test-catalog-coverage-01-p0e.mjs` · OPS: `scripts/catalog-coverage-01-p0e-ops.mjs`.
+
 ## 2.65.90 — CATALOG-COVERAGE-01 P0d-A Precision + SAFE (2026-07-30)
 
 - **fix:** Negation Guard — „bez zaprawiania bruzd” nie binduje zaprawiania (Alias|Core); multiswitch tylko token `multiswitch` (bez RTV/SAT).
