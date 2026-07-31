@@ -15,6 +15,15 @@ import { JobFilesHub } from "@/app/JobFilesHub";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { WgButton, WgCard, WgEmptyState, WgField, WgKpi } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_RADIUS_SM,
+  WG_TOUCH_MIN,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 
 const CHIP_STYLE: Record<JobFileSummaryChip["key"], string> = {
   zlecenie: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
@@ -31,13 +40,13 @@ function JobFileSummaryBadges({ job }: { job: JobFilesBrowserSource }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-2">
-      <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">
+      <span className={cn("text-[10px] px-2 py-0.5 bg-secondary text-muted-foreground font-medium", WG_RADIUS_SM)}>
         {summary.total} {summary.total === 1 ? "plik" : summary.total < 5 ? "pliki" : "plików"}
       </span>
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${CHIP_STYLE[chip.key]}`}
+          className={cn("text-[10px] px-2 py-0.5 font-medium", WG_RADIUS_SM, CHIP_STYLE[chip.key])}
         >
           {chip.label}
         </span>
@@ -107,7 +116,9 @@ export function JobFilesBrowser({
   };
 
   const maxW = layout === "admin" ? "max-w-4xl" : "max-w-2xl";
-  const titleCls = layout === "admin" ? "text-xl font-bold" : "text-base font-semibold";
+  const titleCls = layout === "admin"
+    ? cn(WG_TYPE_TITLE, "text-xl font-bold")
+    : cn(WG_TYPE_TITLE, "text-base");
   const descCls = layout === "admin" ? "text-sm" : "text-[11px]";
 
   const scrollPad = scrollRef ? "" : "pb-20 sm:pb-6";
@@ -129,42 +140,62 @@ export function JobFilesBrowser({
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-card rounded-xl border border-border px-4 py-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Roboty z plikami</p>
-              <p className="text-lg font-bold text-primary mt-0.5">{jobsWithFiles.length}</p>
-            </div>
-            <div className="bg-card rounded-xl border border-border px-4 py-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie w hubie plików</p>
-              <p className="text-lg font-bold mt-0.5">{totalFiles}</p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input
-              type="text"
-              placeholder="Szukaj adresu, klienta…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+            <WgKpi
+              label="Roboty z plikami"
+              value={String(jobsWithFiles.length)}
+              status="info"
+              className="min-w-0"
+            />
+            <WgKpi
+              label="Łącznie w hubie plików"
+              value={String(totalFiles)}
+              status="neutral"
+              className="min-w-0"
             />
           </div>
 
+          <WgField
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Szukaj adresu, klienta…"
+            aria-label="Szukaj adresu, klienta"
+            className="relative w-full !space-y-0"
+            controlClassName="h-11 min-h-[44px] rounded-xl bg-secondary/50"
+            leading={
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                aria-hidden
+              />
+            }
+          />
+
           {filtered.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <FolderOpen size={40} className="mx-auto opacity-20 mb-3"/>
-              <p className="text-sm">Brak wgranych plików na robotach.</p>
-            </div>
+            <WgEmptyState
+              icon={FolderOpen}
+              title="Brak wgranych plików na robotach."
+            />
           ) : (
             <div className="space-y-3">
               {filtered.map((job) => {
                 const expanded = expandedIds.has(job.id);
                 return (
-                  <div key={job.id} className="bg-card rounded-xl border border-border overflow-hidden">
+                  <WgCard
+                    key={job.id}
+                    elevation="soft"
+                    padding="sm"
+                    radius="md"
+                    className="overflow-hidden !p-0"
+                  >
                     <button
                       type="button"
                       onClick={() => toggleExpanded(job.id)}
-                      className="w-full text-left px-4 sm:px-5 py-4 hover:bg-secondary/30 transition-colors"
+                      className={cn(
+                        "w-full text-left px-4 sm:px-5 py-4 hover:bg-secondary/30 transition-colors",
+                        WG_FOCUS_RING,
+                        WG_DURATION_HOVER,
+                      )}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -179,22 +210,28 @@ export function JobFilesBrowser({
                     {expanded && (
                       <div className="px-4 sm:px-5 pb-4 space-y-4 border-t border-border pt-4">
                         <div className="flex flex-wrap gap-2">
-                          <button
+                          <WgButton
                             type="button"
+                            variant="secondary"
                             disabled={packBusy === job.id}
                             onClick={() => downloadPack(job)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium min-h-[44px] disabled:opacity-50"
+                            className={cn(
+                              WG_TOUCH_MIN,
+                              "h-11 gap-1.5 px-3 text-xs font-medium",
+                              "bg-emerald-600 text-white hover:bg-emerald-600/90 disabled:opacity-50",
+                            )}
                           >
                             <Package size={13}/>
                             {packBusy === job.id ? "Pakowanie…" : "Dokumenty ZIP"}
-                          </button>
-                          <button
+                          </WgButton>
+                          <WgButton
                             type="button"
+                            variant="secondary"
                             onClick={() => onOpenJob(job.id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium min-h-[44px]"
+                            className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs font-medium")}
                           >
                             Otwórz robotę
-                          </button>
+                          </WgButton>
                         </div>
                         <JobFilesHub
                           job={job}
@@ -203,7 +240,7 @@ export function JobFilesBrowser({
                         />
                       </div>
                     )}
-                  </div>
+                  </WgCard>
                 );
               })}
             </div>

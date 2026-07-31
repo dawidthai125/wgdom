@@ -14,6 +14,14 @@ import {
   type JobWmJob,
 } from "@/lib/job-wm";
 import { REQUIRED_DOCS, DOC_LABELS, type DocType } from "@/lib/job-documents";
+import { WgCard, WgEmptyState, WgKpi, type WgKpiStatus } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_RADIUS_SM,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 
 export function WmPortfolioView({
   jobs,
@@ -63,6 +71,14 @@ export function WmPortfolioView({
     });
   }, [wmJobs]);
 
+  const kpiTiles: { label: string; value: number; status: WgKpiStatus }[] = [
+    { label: "Aktywne WM", value: stats.total, status: "info" },
+    { label: "Gotowe do odbioru", value: stats.readyForHandover, status: "ok" },
+    { label: "Bez zlecenia", value: stats.missingZlecenie, status: stats.missingZlecenie > 0 ? "danger" : "neutral" },
+    { label: "Bez kosztorysu", value: stats.missingKosztorys, status: stats.missingKosztorys > 0 ? "danger" : "neutral" },
+    { label: "Termin minął", value: stats.overduePlanned, status: stats.overduePlanned > 0 ? "warn" : "neutral" },
+  ];
+
   const content = (
     <>
           <div className="flex items-start gap-3">
@@ -70,23 +86,27 @@ export function WmPortfolioView({
               <LayoutGrid size={20} className="text-primary"/>
             </div>
             <div>
-              <h2 className="text-base font-semibold">Portfolio WM</h2>
+              <h2 className={cn(WG_TYPE_TITLE, "text-base")}>Portfolio WM</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Wrocławskie Mieszkania — zbiorczy widok remontów pustostanów</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <StatBox label="Aktywne WM" value={stats.total}/>
-            <StatBox label="Gotowe do odbioru" value={stats.readyForHandover} accent="emerald"/>
-            <StatBox label="Bez zlecenia" value={stats.missingZlecenie} accent="red"/>
-            <StatBox label="Bez kosztorysu" value={stats.missingKosztorys} accent="red"/>
-            <StatBox label="Termin minął" value={stats.overduePlanned} accent="amber"/>
+            {kpiTiles.map((tile) => (
+              <WgKpi
+                key={tile.label}
+                label={tile.label}
+                value={String(tile.value)}
+                status={tile.status}
+                className="min-w-0"
+              />
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
             {HANDOVER_STAGES.filter((s) => s !== "handed_over").map((s) => (
               stats.byStage[s] > 0 ? (
-                <span key={s} className={`text-[10px] px-2 py-1 rounded-full font-medium ${stageBadgeClass(s)}`}>
+                <span key={s} className={cn("text-[10px] px-2 py-1 font-medium", WG_RADIUS_SM, stageBadgeClass(s))}>
                   {HANDOVER_STAGE_LABELS[s]}: {stats.byStage[s]}
                 </span>
               ) : null
@@ -94,36 +114,47 @@ export function WmPortfolioView({
           </div>
 
           {stats.missingAnyDoc > 0 && (
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 space-y-2">
+            <WgCard elevation="soft" padding="sm" radius="md" className="border-amber-500/20 bg-amber-500/5 space-y-2">
               <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                 <AlertTriangle size={12}/> Braki dokumentów (ile robót)
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {REQUIRED_DOCS.map((d) => (
                   (missingByDoc[d] ?? 0) > 0 ? (
-                    <span key={d} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">
+                    <span key={d} className={cn("text-[10px] bg-secondary px-2 py-0.5 text-muted-foreground", WG_RADIUS_SM)}>
                       {DOC_LABELS[d]}: {missingByDoc[d]}
                     </span>
                   ) : null
                 ))}
               </div>
-            </div>
+            </WgCard>
           )}
 
           <div className="space-y-2">
             {sorted.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-12">Brak aktywnych robót WM</p>
+              <WgEmptyState
+                icon={LayoutGrid}
+                title="Brak aktywnych robót WM"
+              />
             ) : (
               sorted.map((job) => {
             const stage = inferHandoverStage(job);
             const plan = plannedHandoverStatus(job.plannedHandoverDate || "", stage);
             const missing = REQUIRED_DOCS.filter((d) => !job.documents[d]);
             return (
-              <button
+              <WgCard
                 key={job.id}
+                as="button"
                 type="button"
+                elevation="soft"
+                padding="sm"
+                radius="md"
                 onClick={() => onOpenJob(job.id)}
-                className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-primary/40 transition-colors"
+                className={cn(
+                  "w-full text-left hover:border-primary/40",
+                  `transition-colors ${WG_DURATION_HOVER}`,
+                  WG_FOCUS_RING,
+                )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -132,21 +163,25 @@ export function WmPortfolioView({
                       {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${stageBadgeClass(stage)}`}>
+                      <span className={cn("text-[10px] px-2 py-0.5 font-medium", WG_RADIUS_SM, stageBadgeClass(stage))}>
                         {HANDOVER_STAGE_LABELS[stage]}
                       </span>
                       {job.plannedHandoverDate && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${plan === "overdue" ? "bg-red-500/15 text-red-400" : plan === "soon" ? "bg-amber-500/15 text-amber-400" : "bg-secondary text-muted-foreground"}`}>
+                        <span className={cn(
+                          "text-[10px] px-2 py-0.5",
+                          WG_RADIUS_SM,
+                          plan === "overdue" ? "bg-red-500/15 text-red-400" : plan === "soon" ? "bg-amber-500/15 text-amber-400" : "bg-secondary text-muted-foreground",
+                        )}>
                           Odbiór: {fmtPlannedHandover(job.plannedHandoverDate)}
                         </span>
                       )}
                       {!job.documents.zlecenie && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 flex items-center gap-0.5">
+                        <span className={cn("text-[10px] px-2 py-0.5 bg-red-500/10 text-red-400 flex items-center gap-0.5", WG_RADIUS_SM)}>
                           <FileText size={9}/> brak zlec.
                         </span>
                       )}
                       {!job.documents.kosztorys && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 flex items-center gap-0.5">
+                        <span className={cn("text-[10px] px-2 py-0.5 bg-red-500/10 text-red-400 flex items-center gap-0.5", WG_RADIUS_SM)}>
                           <ClipboardList size={9}/> brak kosz.
                         </span>
                       )}
@@ -164,7 +199,7 @@ export function WmPortfolioView({
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground shrink-0 mt-1"/>
                 </div>
-              </button>
+              </WgCard>
             );
           })
             )}
@@ -186,30 +221,6 @@ export function WmPortfolioView({
           {content}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatBox({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: number;
-  accent?: "emerald" | "red" | "amber";
-}) {
-  const accentCls = accent === "emerald"
-    ? "text-emerald-600 dark:text-emerald-400"
-    : accent === "red"
-      ? "text-red-400"
-      : accent === "amber"
-        ? "text-amber-400"
-        : "text-foreground";
-  return (
-    <div className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={`text-lg font-semibold mt-0.5 ${accentCls}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
     </div>
   );
 }

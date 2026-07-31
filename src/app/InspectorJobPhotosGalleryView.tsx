@@ -1,4 +1,4 @@
-import { useMemo, useState, type RefObject } from "react";
+import { useMemo, useState, useEffect, type RefObject } from "react";
 import {
   Images, Search, ChevronRight, ChevronDown, Camera, MapPin, X,
 } from "lucide-react";
@@ -18,6 +18,17 @@ import {
 } from "@/lib/photo-labels";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
+import { WgButton, WgCard, WgEmptyState, WgField, WgKpi } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_RADIUS_MD,
+  WG_RADIUS_SM,
+  WG_TOUCH_MIN,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 
 interface GalleryEntry {
   job: GalleryJob;
@@ -39,6 +50,16 @@ export function InspectorJobPhotosGalleryView({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = useState<{ photo: GalleryPhoto; job: GalleryJob } | null>(null);
   const failRev = useMediaFailureRevision();
+  useModalScrollLock(lightbox != null);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const entries = useMemo(() => {
     const list: GalleryEntry[] = [];
@@ -90,7 +111,11 @@ export function InspectorJobPhotosGalleryView({
           key={p.id}
           type="button"
           onClick={() => setLightbox({ photo: p, job })}
-          className="group relative aspect-square rounded-xl overflow-hidden bg-secondary ring-1 ring-border/60"
+          className={cn(
+            "group relative aspect-square overflow-hidden bg-secondary ring-1 ring-border/60",
+            WG_RADIUS_MD,
+            WG_FOCUS_RING,
+          )}
         >
           <JobPhotoImg src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-1.5 py-1">
@@ -106,7 +131,7 @@ export function InspectorJobPhotosGalleryView({
       <div ref={scrollRef} className="flex-1 w-full overflow-y-auto overscroll-contain">
         <div className="max-w-2xl mx-auto w-full px-4 py-4 space-y-4" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           <div>
-            <h2 className="text-base font-semibold flex items-center gap-2">
+            <h2 className={cn(WG_TYPE_TITLE, "text-base flex items-center gap-2")}>
               <Images size={18} className="text-primary"/>
               Galeria zdjęć
             </h2>
@@ -116,65 +141,95 @@ export function InspectorJobPhotosGalleryView({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-card rounded-xl border border-border px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">W galerii</p>
-              <p className="text-lg font-bold text-primary mt-0.5">{galleryPhotoCount}</p>
-            </div>
-            <div className="bg-card rounded-xl border border-border px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Roboty</p>
-              <p className="text-lg font-bold mt-0.5">{galleryJobs.length}</p>
-            </div>
-          </div>
-
-          <div className="flex gap-1 p-1 bg-secondary rounded-xl">
-            <button
-              type="button"
-              onClick={() => setTab("gallery")}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium ${tab === "gallery" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-            >
-              Galeria ({galleryJobs.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("archive")}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium ${tab === "archive" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-            >
-              Archiwum ({archiveJobs.length})
-            </button>
-          </div>
-
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input
-              type="text"
-              placeholder="Szukaj adresu, klienta…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+            <WgKpi
+              label="W galerii"
+              value={String(galleryPhotoCount)}
+              status="info"
+              className="min-w-0"
+            />
+            <WgKpi
+              label="Roboty"
+              value={String(galleryJobs.length)}
+              status="neutral"
+              className="min-w-0"
             />
           </div>
 
+          <div className={cn("flex gap-1 p-1 bg-secondary", WG_RADIUS_MD)}>
+            {([
+              { id: "gallery" as const, label: `Galeria (${galleryJobs.length})` },
+              { id: "archive" as const, label: `Archiwum (${archiveJobs.length})` },
+            ]).map((opt) => {
+              const on = tab === opt.id;
+              return (
+                <WgButton
+                  key={opt.id}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setTab(opt.id)}
+                  className={cn(
+                    "flex-1",
+                    WG_TOUCH_MIN,
+                    "h-11 py-2 text-xs font-medium",
+                    `transition-colors ${WG_DURATION_HOVER}`,
+                    WG_FOCUS_RING,
+                    on
+                      ? "bg-card text-foreground shadow-sm hover:bg-card"
+                      : "bg-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </WgButton>
+              );
+            })}
+          </div>
+
+          <WgField
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Szukaj adresu, klienta…"
+            aria-label="Szukaj adresu, klienta"
+            className="relative w-full !space-y-0"
+            controlClassName="h-11 min-h-[44px] rounded-xl bg-secondary/50"
+            leading={
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                aria-hidden
+              />
+            }
+          />
+
           {visible.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Images size={36} className="mx-auto opacity-20 mb-2"/>
-              <p className="text-xs">
-                {tab === "gallery" ? "Brak zaakceptowanych zdjęć w galerii." : "Archiwum jest puste."}
-              </p>
-            </div>
+            <WgEmptyState
+              icon={Images}
+              title={tab === "gallery" ? "Brak zaakceptowanych zdjęć w galerii." : "Archiwum jest puste."}
+            />
           ) : (
             <div className="space-y-3">
               {visible.map(({ job, bucket, photos }) => {
                 const expanded = expandedIds.has(job.id);
                 const daysLeft = bucket === "grace" ? galleryDaysUntilArchive(job) : null;
                 return (
-                  <div key={job.id} className="bg-card rounded-xl border border-border overflow-hidden">
+                  <WgCard
+                    key={job.id}
+                    elevation="soft"
+                    padding="sm"
+                    radius="md"
+                    className="overflow-hidden !p-0"
+                  >
                     <button
                       type="button"
                       onClick={() => toggleExpanded(job.id)}
-                      className="w-full text-left px-4 py-3 hover:bg-secondary/30 transition-colors"
+                      className={cn(
+                        "w-full text-left px-4 py-3 hover:bg-secondary/30 transition-colors",
+                        WG_FOCUS_RING,
+                        WG_DURATION_HOVER,
+                      )}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-secondary shrink-0 ring-1 ring-border">
+                        <div className={cn("w-12 h-12 overflow-hidden bg-secondary shrink-0 ring-1 ring-border", WG_RADIUS_MD)}>
                           {photos[0]?.publicUrl ? (
                             <JobPhotoImg src={photos[0].publicUrl} alt="" className="w-full h-full object-cover"/>
                           ) : (
@@ -190,9 +245,9 @@ export function InspectorJobPhotosGalleryView({
                             {expanded ? <ChevronDown size={16} className="shrink-0"/> : <ChevronRight size={16} className="shrink-0"/>}
                           </div>
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{photos.length} zdj.</span>
+                            <span className={cn("text-[10px] px-2 py-0.5 bg-primary/10 text-primary", WG_RADIUS_SM)}>{photos.length} zdj.</span>
                             {daysLeft !== null && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                              <span className={cn("text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-300", WG_RADIUS_SM)}>
                                 Jeszcze {daysLeft} dni
                               </span>
                             )}
@@ -219,16 +274,17 @@ export function InspectorJobPhotosGalleryView({
                             </div>
                           );
                         })}
-                        <button
+                        <WgButton
                           type="button"
+                          variant="secondary"
                           onClick={() => onOpenJob(job.id)}
-                          className="inline-flex items-center gap-1.5 text-xs text-primary font-medium min-h-[44px] touch-manipulation"
+                          className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 text-xs font-medium")}
                         >
                           <MapPin size={12}/>Otwórz robotę
-                        </button>
+                        </WgButton>
                       </div>
                     )}
-                  </div>
+                  </WgCard>
                 );
               })}
             </div>
@@ -237,11 +293,26 @@ export function InspectorJobPhotosGalleryView({
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90" onClick={() => setLightbox(null)}>
-          <button type="button" className="absolute top-4 right-4 text-white p-2" onClick={() => setLightbox(null)}>
+        <div
+          className="fixed inset-0 z-[100] modal-overlay modal-sheet flex items-center justify-center p-4 bg-black/90"
+          onClick={() => setLightbox(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <WgButton
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox(null);
+            }}
+            aria-label="Zamknij"
+          >
             <X size={24}/>
-          </button>
-          <JobPhotoImg src={lightbox.photo.publicUrl} alt="" className="max-w-full max-h-[85vh] rounded-xl object-contain" onClick={(e) => e.stopPropagation()}/>
+          </WgButton>
+          <JobPhotoImg src={lightbox.photo.publicUrl} alt="" className={cn("max-w-full max-h-[85vh] object-contain", WG_RADIUS_MD)} onClick={(e) => e.stopPropagation()}/>
           <div className="absolute bottom-6 left-4 right-4 text-center pointer-events-none">
             <p className="text-white font-medium text-sm">{jobDisplayTitle(lightbox.job)}</p>
             <p className="text-white/90 text-xs mt-0.5">{PHOTO_LABEL_NAMES[lightbox.photo.label]}</p>
