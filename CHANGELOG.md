@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.93 — Scope Gap MVP — Luki zakresu (flaga OFF) (2026-07-31)
+
+- **new:** panel „Luki zakresu” (`scope-gap-mvp-1`) w OfferBoq Cost Intelligence — RO, zero Bid/AI-COST/Quotes/History.
+- **improve:** flaga `kw-scope-gap-mvp` default OFF (`localStorage` = `1` → ON).
+- Testy: `scripts/test-scope-gap-mvp.mjs`.
+
 ## 2.65.92 — Confidence MVP — Pewność analizy (flaga OFF) (2026-07-31)
 
 - **new:** wskaźnik „Pewność analizy” (0–100 + drivers) obok AI Quality Score (S7) — RO, bez wpływu na wycenę/ofertę.

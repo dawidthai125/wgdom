@@ -35,6 +35,14 @@ import {
   type ConfidenceReport,
 } from "@/lib/confidence-engine";
 import { ConfidenceBadge as AnalysisConfidenceBadge } from "@/app/confidence/ConfidenceBadge";
+import {
+  buildScopeGapMvpInput,
+  buildScopeGapReport,
+  isScopeGapMvpEnabled,
+  shouldRenderScopeGapPanel,
+  type ScopeGapReport,
+} from "@/lib/scope-gap";
+import { ScopeGapWarningsPanel } from "@/app/scope-gap/ScopeGapWarningsPanel";
 import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
@@ -1026,6 +1034,7 @@ export function OfferBoqCostIntelligencePanel({
   const cost02bEnabled = isAiCost02bExplainQueueEnabled();
   const cm01Enabled = isCenyMaterialow01Enabled();
   const confidenceMvpEnabled = isConfidenceMvpEnabled();
+  const scopeGapMvpEnabled = isScopeGapMvpEnabled();
   const quotesGaps = useMemo(() => {
     if (!cm01Enabled || !view.available || !view.document) return null;
     const store = loadWorkCatalogStoreLocal();
@@ -1087,6 +1096,28 @@ export function OfferBoqCostIntelligencePanel({
       return null;
     }
   }, [confidenceMvpEnabled, view, item, smartPricingDetect]);
+
+  /** Scope Gap MVP — RO only; flaga OFF ⇒ null (parity tip). History OUT. */
+  const scopeGapMvpReport = useMemo((): ScopeGapReport | null => {
+    if (!scopeGapMvpEnabled) return null;
+    try {
+      const input = buildScopeGapMvpInput({
+        doc: view.document ?? null,
+        item,
+        smart: smartPricingDetect,
+        computedAtIso:
+          view.document?.builtAt || view.builtAt || "2026-07-31T00:00:00.000Z",
+      });
+      return buildScopeGapReport(input);
+    } catch {
+      return null;
+    }
+  }, [scopeGapMvpEnabled, view, item, smartPricingDetect]);
+
+  const showScopeGapPanel = shouldRenderScopeGapPanel(
+    scopeGapMvpEnabled,
+    scopeGapMvpReport,
+  );
 
   const focusQueueLine = (lineId: string) => {
     setOpenIds((prev) => ({ ...prev, [lineId]: true }));
@@ -1248,6 +1279,10 @@ export function OfferBoqCostIntelligencePanel({
 
       {smartPricingDetect ? (
         <SmartPricingDetectBanner summary={smartPricingDetect} onFocusLine={focusQueueLine} />
+      ) : null}
+
+      {showScopeGapPanel && scopeGapMvpReport ? (
+        <ScopeGapWarningsPanel report={scopeGapMvpReport} />
       ) : null}
 
       {cost02bEnabled && cost02bQueue ? (

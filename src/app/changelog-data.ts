@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-31",
+    version: "2.65.93",
+    label: "Scope Gap MVP — Luki zakresu (flaga OFF)",
+    items: [
+      {
+        type: "new",
+        text: "Scope Gap MVP (AI v2): panel „Luki zakresu” w Kosztorys — ostrzeżenia braków typowych robót względem szablonu inwestycji. Read-only — nie zmienia wyceny ani oferty.",
+      },
+      {
+        type: "improve",
+        text: "Flaga localStorage kw-scope-gap-mvp (domyślnie OFF). Włączenie: ustaw '1'. Tip parity gdy wyłączone. History Engine poza MVP.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-31",
     version: "2.65.92",
     label: "Confidence MVP — Pewność analizy (flaga OFF)",
     items: [
