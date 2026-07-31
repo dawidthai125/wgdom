@@ -42,7 +42,7 @@ NEXT = kandydaci NEXT-EPIC (Owner GO) — nie auto-start
 | Rola | Hash |
 |------|------|
 | **Feature** | **`b69aeaae`** |
-| **Docs tip / CLOSEOUT** | (hash w RELEASE REPORT po docs tip commit) |
+| **Docs tip / CLOSEOUT** | **`006a19f0`** |
 
 ---
 

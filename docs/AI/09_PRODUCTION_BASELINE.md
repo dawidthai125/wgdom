@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.91** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`b69aeaae`** · **PRODUCTION VERIFIED** (`2.65.91` / `b69aeaa`) · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`b69aeaae`** · docs tip **`006a19f0`** · **PRODUCTION VERIFIED** (`2.65.91` / `b69aeaa`) · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0e)** | **CLOSED** · **PRODUCTION VERIFIED** · FULL Library Seed · BIZ A · UI **2.65.91** · feature **`b69aeaae`** · coverage **78.1%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0d-A)** | **CLOSED** · Precision + SAFE seed · UI **2.65.90** · feature **`b9da6bff`** · coverage **76.7%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0d-A-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0c)** | **CLOSED** · Alias Resolver Wave 1 · UI **2.65.89** · feature **`aebf9d09`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) |

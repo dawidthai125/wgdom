@@ -47,9 +47,10 @@ Powód: jeden bundle P0e FULL seed · <15 plików feature · build+test+OV PASS 
 | | |
 |--|--|
 | Feature commit | **`b69aeaae`** |
-| Docs tip | (wypełniony po docs tip commit) |
+| Docs tip | **`006a19f0`** |
 | Branch | `main` → `origin/main` |
 | Push feature | **PASS** (`dd1a5f38..b69aeaae`) |
+| Push docs | **PASS** (`b69aeaae..006a19f0`) |
 
 ## RELEASE READINESS
 
