@@ -3,6 +3,12 @@ import {
   List, LayoutGrid, LayoutDashboard, BookOpen, MessageSquare, FileText, ClipboardList,
   Users, Ruler, ImagePlus, Calendar, Images, FolderOpen, type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/app/components/ui/utils";
+import { WgButton } from "@/app/ui";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+} from "@/lib/wg-ui-tokens";
 
 export type InspectorMainTab = "dashboard" | "jobs" | "gallery" | "files" | "portfolio";
 
@@ -73,11 +79,6 @@ export function InspectorBottomNav({
   onPortfolio: () => void;
   alertCount?: number;
 }) {
-  const tabClass = (on: boolean) =>
-    `flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-h-[48px] text-[9px] font-medium transition-colors touch-manipulation ${
-      on ? "text-primary" : "text-muted-foreground hover:text-foreground"
-    }`;
-
   const handlers: Record<InspectorMainTab, () => void> = {
     dashboard: onDashboard,
     jobs: onJobs,
@@ -88,30 +89,43 @@ export function InspectorBottomNav({
 
   return (
     <nav
-      className="inspector-bottom-nav shrink-0 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+      className="inspector-bottom-nav shrink-0 border-t border-border/60 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
       style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}
       aria-label="Nawigacja inspektora"
     >
       <div className="flex items-stretch max-w-lg mx-auto">
-        {INSPECTOR_MAIN_TAB_DEFS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={handlers[id]}
-            className={tabClass(active === id)}
-            aria-current={active === id ? "page" : undefined}
-          >
-            <span className="relative">
-              <Icon size={18} strokeWidth={active === id ? 2.25 : 2} />
-              {id === "dashboard" && alertCount > 0 && (
-                <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 px-0.5 rounded-full bg-red-600 text-white text-[8px] font-bold flex items-center justify-center">
-                  {alertCount > 9 ? "9+" : alertCount}
-                </span>
+        {INSPECTOR_MAIN_TAB_DEFS.map(({ id, label, icon: Icon }) => {
+          const on = active === id;
+          return (
+            <WgButton
+              key={id}
+              type="button"
+              variant="ghost"
+              onClick={handlers[id]}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 flex-1",
+                "py-1.5 min-h-[48px] h-auto w-auto rounded-none",
+                "text-[9px] font-medium touch-manipulation",
+                `transition-colors ${WG_DURATION_HOVER}`,
+                "motion-reduce:transition-none",
+                WG_FOCUS_RING,
+                "hover:bg-transparent",
+                on ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
-            </span>
-            {label}
-          </button>
-        ))}
+              aria-current={on ? "page" : undefined}
+            >
+              <span className="relative">
+                <Icon size={18} strokeWidth={on ? 2.25 : 2} aria-hidden />
+                {id === "dashboard" && alertCount > 0 && (
+                  <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 px-0.5 rounded-md bg-red-600 text-white text-[8px] font-bold flex items-center justify-center">
+                    {alertCount > 9 ? "9+" : alertCount}
+                  </span>
+                )}
+              </span>
+              {label}
+            </WgButton>
+          );
+        })}
       </div>
     </nav>
   );

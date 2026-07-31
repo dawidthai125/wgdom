@@ -1,6 +1,8 @@
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import { cn } from "@/app/components/ui/utils";
 import { ThemeToggle } from "@/app/theme/ThemeToggle";
+import { WgButton } from "@/app/ui";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   BookOpen,
@@ -11,6 +13,12 @@ import {
   RefreshCw,
   ScrollText,
 } from "lucide-react";
+import {
+  WG_DURATION_ENTER,
+  WG_FOCUS_RING,
+  WG_TOUCH_MIN,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 
 export type InspectorCloudStatus = "idle" | "saving" | "saved" | "error";
 
@@ -32,6 +40,22 @@ export type InspectorCommandLayerProps = {
   onLogout: () => void;
 };
 
+const utilityIconBtn = cn(
+  WG_TOUCH_MIN,
+  "h-11 w-11 shrink-0 rounded-lg",
+  `transition-colors ${WG_DURATION_ENTER}`,
+  "motion-reduce:transition-none",
+);
+
+const utilityTextBtn = cn(
+  WG_TOUCH_MIN,
+  "h-11 w-auto shrink-0 inline-flex items-center justify-center gap-1.5",
+  "px-3 rounded-lg text-xs",
+  "text-muted-foreground hover:text-foreground hover:bg-secondary",
+  `transition-colors ${WG_DURATION_ENTER}`,
+  "motion-reduce:transition-none",
+);
+
 function SyncStatusBadge({
   syncing,
   syncPending,
@@ -47,7 +71,7 @@ function SyncStatusBadge({
 }) {
   if (syncing) {
     return (
-      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
         <RefreshCw size={10} className="animate-spin shrink-0" />
         Odświeżam z chmury…
       </p>
@@ -55,20 +79,25 @@ function SyncStatusBadge({
   }
   if (pushFailed) {
     return (
-      <button
+      <WgButton
         type="button"
+        variant="ghost"
         onClick={onRetry}
-        className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5 touch-manipulation min-h-[28px]"
+        className={cn(
+          "h-auto min-h-[28px] w-auto px-0 py-0.5 justify-start gap-1",
+          "text-xs text-amber-600 dark:text-amber-400 font-normal",
+          "hover:bg-transparent hover:text-amber-700 dark:hover:text-amber-300",
+        )}
         title="Dotknij ikony chmury u góry, aby ponowić wysłanie"
       >
         <CloudOff size={10} className="shrink-0" />
         Czeka na wysłanie — dotknij
-      </button>
+      </WgButton>
     );
   }
   if (syncPending) {
     return (
-      <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+      <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
         <Cloud size={10} className="shrink-0" />
         Zapisywanie…
       </p>
@@ -76,7 +105,7 @@ function SyncStatusBadge({
   }
   return (
     <p
-      className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5"
+      className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5"
       title={
         lastSyncedAt
           ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`
@@ -108,16 +137,19 @@ export function InspectorCommandLayer({
 }: InspectorCommandLayerProps) {
   return (
     <header
-      className="inspector-command-layer z-40 flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0 gap-2"
+      className={cn(
+        "inspector-command-layer z-40 flex items-center justify-between px-4 py-3",
+        "border-b border-border/60 bg-card shrink-0 gap-2",
+      )}
       style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
     >
       <div className="flex items-center gap-2 min-w-0">
         <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold truncate">{primaryLine}</p>
-          <p className="text-[10px] text-muted-foreground font-medium truncate">{secondaryLine}</p>
+          <p className={cn(WG_TYPE_TITLE, "truncate")}>{primaryLine}</p>
+          <p className="text-xs text-muted-foreground font-medium truncate">{secondaryLine}</p>
           {activeTabLabel && (
-            <p className="text-[10px] text-primary/80 font-medium truncate hidden md:block">{activeTabLabel}</p>
+            <p className="text-xs text-primary/80 font-medium truncate hidden md:block">{activeTabLabel}</p>
           )}
           <SyncStatusBadge
             syncing={syncing}
@@ -130,11 +162,16 @@ export function InspectorCommandLayer({
       </div>
       <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
         <CompanyMusicPlayer />
-        <button
+        <WgButton
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={onCloudSyncClick}
           disabled={syncing && !pushFailed}
-          className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${pushFailed ? "hover:bg-secondary cursor-pointer" : syncing ? "cursor-default" : "hover:bg-secondary"}`}
+          className={cn(
+            utilityIconBtn,
+            pushFailed ? "hover:bg-secondary cursor-pointer" : syncing ? "cursor-default" : "hover:bg-secondary",
+          )}
           title={cloudSyncTitle}
           aria-label={cloudSyncTitle}
         >
@@ -142,12 +179,13 @@ export function InspectorCommandLayer({
           {cloudStatus === "saved" && <Cloud size={15} className="text-green-500" />}
           {cloudStatus === "error" && <CloudOff size={15} className="text-destructive" />}
           {cloudStatus === "idle" && <Cloud size={15} className="text-muted-foreground/40" />}
-        </button>
-        <button
+        </WgButton>
+        <WgButton
           type="button"
+          variant="ghost"
           onClick={onRefreshFromCloud}
           disabled={syncing}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary disabled:opacity-50"
+          className={cn(utilityTextBtn, "gap-1 disabled:opacity-50")}
           title={
             lastSyncedAt
               ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`
@@ -156,11 +194,13 @@ export function InspectorCommandLayer({
         >
           <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
           <span className="hidden sm:inline">{syncing ? "…" : "Odśwież"}</span>
-        </button>
-        <button
+        </WgButton>
+        <WgButton
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={onOpenNotes}
-          className="relative p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary"
+          className={cn(utilityIconBtn, "relative hover:bg-secondary")}
           title={
             operationalNotesUnread > 0
               ? `Notatki operacyjne · ${operationalNotesUnread} nieprzeczytanych`
@@ -177,29 +217,37 @@ export function InspectorCommandLayer({
             className={operationalNotesUnread > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}
           />
           {operationalNotesUnread > 0 && (
-            <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
+            <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-md bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
               {operationalNotesUnread > 9 ? "9+" : operationalNotesUnread}
             </span>
           )}
-        </button>
-        <button
+        </WgButton>
+        <WgButton
           type="button"
+          variant="ghost"
           onClick={onOpenHelp}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary px-3 py-2.5 min-h-[44px] rounded-lg"
+          className={cn(utilityTextBtn, "gap-1")}
           title="Instrukcja"
         >
           <BookOpen size={14} />
           <span className="hidden sm:inline">Pomoc</span>
-        </button>
-        <ThemeToggle />
-        <button
+        </WgButton>
+        <ThemeToggle
+          className={cn(
+            utilityIconBtn,
+            "inline-flex items-center justify-center hover:bg-secondary text-muted-foreground hover:text-foreground",
+            WG_FOCUS_RING,
+          )}
+        />
+        <WgButton
           type="button"
+          variant="ghost"
           onClick={onLogout}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary"
+          className={utilityTextBtn}
         >
           <LogOut size={14} />
           Wyloguj
-        </button>
+        </WgButton>
       </div>
     </header>
   );
