@@ -1,3 +1,6 @@
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_ENTER, WG_RADIUS_SM } from "@/lib/wg-ui-tokens";
+
 export function InspectorProgressBar({
   percent,
   className = "",
@@ -15,10 +18,10 @@ export function InspectorProgressBar({
           : "bg-red-500/80";
 
   return (
-    <div className={`flex items-center gap-2 min-w-0 ${className}`}>
-      <div className="flex-1 bg-border rounded-full h-2 overflow-hidden min-w-0">
+    <div className={cn("flex items-center gap-2 min-w-0", className)}>
+      <div className={cn("flex-1 bg-border h-2 overflow-hidden min-w-0", WG_RADIUS_SM)}>
         <div
-          className={`h-2 rounded-full transition-all ${barColor}`}
+          className={cn("h-2 transition-all", WG_DURATION_ENTER, WG_RADIUS_SM, barColor)}
           style={{ width: `${clamped}%` }}
           role="progressbar"
           aria-valuenow={clamped}
@@ -28,7 +31,7 @@ export function InspectorProgressBar({
       </div>
       {showLabel && (
         <span
-          className="text-[10px] text-muted-foreground shrink-0 tabular-nums font-medium"
+          className="text-xs text-muted-foreground shrink-0 tabular-nums font-medium"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           {clamped}%

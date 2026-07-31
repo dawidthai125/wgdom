@@ -3,6 +3,9 @@ import { JobMetaBadges } from "@/app/JobMetaPickers";
 import { JobListPrimaryBadge } from "@/app/JobListStatus";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { InspectorProgressBar } from "@/app/InspectorProgressBar";
+import { WgCard } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_HOVER, WG_FOCUS_RING } from "@/lib/wg-ui-tokens";
 import {
   collectMissingHandoverItems,
   computeInspectionProgress,
@@ -51,12 +54,23 @@ export function InspectorJobCard({
   const lastActivity = getLastInspectorActivity(job);
 
   return (
-    <button
+    <WgCard
+      as="button"
       type="button"
+      elevation="soft"
+      padding="sm"
+      radius="md"
       onClick={onSelect}
-      className={`w-full text-left bg-card border rounded-xl p-4 hover:border-primary/30 transition-colors active:scale-[0.99] touch-manipulation ${
-        hasAdminReply ? "border-violet-500/40 ring-1 ring-violet-500/20" : "border-border"
-      }`}
+      className={cn(
+        "w-full text-left touch-manipulation",
+        `transition-colors ${WG_DURATION_HOVER}`,
+        "motion-reduce:transition-none",
+        "active:scale-[0.99] motion-reduce:active:scale-100",
+        WG_FOCUS_RING,
+        hasAdminReply
+          ? "border-violet-500/40 ring-1 ring-violet-500/20 hover:border-violet-500/50"
+          : "hover:border-primary/30",
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -74,25 +88,25 @@ export function InspectorJobCard({
         <InspectorProgressBar percent={progress.percent}/>
       </div>
 
-      <p className="text-[10px] text-muted-foreground mt-1.5 tabular-nums">
+      <p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
         Dokumenty {progress.docsDone}/{progress.docsTotal}
         {!compact && job.startDate && ` · Start ${fmtDate(job.startDate)}`}
       </p>
 
       {missing.length > 0 && job.status === "in_progress" && (
-        <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1.5 leading-snug">
+        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1.5 leading-snug">
           Brakuje do odbioru: {missing.join(", ")}
         </p>
       )}
 
       {hasAdminReply && (
-        <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium mt-1.5 flex items-center gap-1">
+        <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mt-1.5 flex items-center gap-1">
           <MessageSquare size={10}/> Nowa odpowiedź admina
         </p>
       )}
 
       {lastActivity && !compact && (
-        <p className="text-[10px] text-muted-foreground mt-1.5 truncate" title={lastActivity.text}>
+        <p className="text-xs text-muted-foreground mt-1.5 truncate" title={lastActivity.text}>
           {lastActivity.actor} · {fmtActivityTime(lastActivity.at)} · {lastActivity.text}
         </p>
       )}
@@ -107,12 +121,12 @@ export function InspectorJobCard({
                 ? `Do odzyskania: ${recoverableToRecoverAmount!.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} PLN`
                 : "Pozycje do rozliczenia"
             }
-            className="text-[10px] bg-amber-500/12 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium shrink-0"
+            className="text-xs bg-amber-500/12 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-md font-medium shrink-0"
           >
             💰 {recoverableUnsettledCount}
           </span>
         )}
       </div>
-    </button>
+    </WgCard>
   );
 }

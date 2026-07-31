@@ -8,6 +8,14 @@ import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import type { InspectorJobSection, InspectorMainTab } from "@/app/InspectorNavigation";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
+import { WgButton, WgEmptyState, WgField } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_TOUCH_MIN,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 import type { InspectorDashboardJob } from "@/lib/inspector-dashboard";
 import { sortJobsByInspectionPriority } from "@/lib/inspector-dashboard";
 import type { DocType } from "@/lib/job-documents";
@@ -143,41 +151,61 @@ export function InspectorViewRouter({
     case "jobs":
       return (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
+          <div className="px-4 py-3 space-y-3 border-b border-border/60 bg-card/50 shrink-0">
             <div className="flex items-end justify-between gap-2">
               <div>
-                <h2 className="text-base font-semibold">Roboty WM</h2>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <h2 className={cn(WG_TYPE_TITLE, "text-base")}>Roboty WM</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {filter === "active" ? "Aktywne remonty" : filter === "completed" ? "Zdane klucze" : "Pełna lista"}
                   {" · "}
                   {filteredJobs.length} {filteredJobs.length === 1 ? "adres" : "adresów"}
                 </p>
               </div>
             </div>
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukaj adresu, klienta…"
-                className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 border border-transparent focus:border-primary focus:outline-none"
-              />
-            </div>
+            <WgField
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj adresu, klienta…"
+              aria-label="Szukaj adresu, klienta"
+              className="relative w-full !space-y-0"
+              controlClassName="h-11 min-h-[44px] rounded-xl bg-secondary/50"
+              leading={
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  aria-hidden
+                />
+              }
+            />
             <div className="flex gap-2 items-center">
-              <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
+              <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline">
                 Status
                 <InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista." />
               </span>
-              {(["active", "completed", "all"] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFilter(f)}
-                  className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-xs font-medium transition-colors touch-manipulation ${filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-                >
-                  {f === "active" ? "Aktywne" : f === "completed" ? "Zdane" : "Wszystkie"}
-                </button>
-              ))}
+              {(["active", "completed", "all"] as const).map((f) => {
+                const on = filter === f;
+                return (
+                  <WgButton
+                    key={f}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setFilter(f)}
+                    className={cn(
+                      "flex-1",
+                      WG_TOUCH_MIN,
+                      "h-11 py-2.5 text-xs font-medium",
+                      `transition-colors ${WG_DURATION_HOVER}`,
+                      WG_FOCUS_RING,
+                      on
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "bg-secondary text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {f === "active" ? "Aktywne" : f === "completed" ? "Zdane" : "Wszystkie"}
+                  </WgButton>
+                );
+              })}
             </div>
           </div>
 
@@ -188,11 +216,11 @@ export function InspectorViewRouter({
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filteredJobs.length === 0 ? (
-              <div className="text-center py-16 px-4 space-y-2">
-                <MapPin size={28} className="mx-auto text-muted-foreground/40" />
-                <p className="text-sm font-medium text-muted-foreground">Brak robót w tym filtrze</p>
-                <p className="text-xs text-muted-foreground/80">Zmień filtr na „Wszystkie” lub użyj wyszukiwarki</p>
-              </div>
+              <WgEmptyState
+                icon={MapPin}
+                title="Brak robót w tym filtrze"
+                description="Zmień filtr na „Wszystkie” lub użyj wyszukiwarki"
+              />
             ) : (
               filteredJobs.map((job) => {
                 const rcStats = recoverableStatsByJobId.get(job.id);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, FileText, MessageSquare, ChevronRight, Zap,
   AlertTriangle, CheckCircle2, Calendar, FileWarning, BarChart3, FileDown, Cloud, Circle,
@@ -7,6 +7,15 @@ import {
 import { InspectorJobCard } from "@/app/InspectorJobCard";
 import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import type { InspectorJobSection } from "@/app/InspectorNavigation";
+import { WgButton, WgCard, WgKpi } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_TOUCH_MIN,
+  WG_TYPE_LABEL,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 import {
   buildFileDeliveryAlerts,
   buildMissingDocAlerts,
@@ -147,7 +156,7 @@ export function InspectorDashboard({
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="space-y-2">
-        <h2 className="text-xl font-bold tracking-tight">{inspectorGreeting(displayName)}</h2>
+        <h2 className={cn(WG_TYPE_TITLE, "text-xl font-bold tracking-tight")}>{inspectorGreeting(displayName)}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {allClear
             ? "Wszystko na bieżąco — brak pilnych kontroli na dziś."
@@ -158,44 +167,33 @@ export function InspectorDashboard({
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-        {KPI_TILES.map(({ key, label, icon: Icon }) => {
+        {KPI_TILES.map(({ key, label, icon }) => {
           const value = kpiValues[key];
-          const accent =
-            key === "attention" && value > 0 ? "border-red-500/30 bg-red-500/5"
-              : key === "pendingPhotos" && value > 0 ? "border-amber-500/30 bg-amber-500/5"
-                : key === "active" ? "border-sky-500/25 bg-sky-500/5"
-                  : key === "completed" ? "border-emerald-500/25 bg-emerald-500/5"
-                    : "border-border bg-secondary/40";
-          const valueCls =
-            key === "attention" && value > 0 ? "text-red-500"
-              : key === "pendingPhotos" && value > 0 ? "text-amber-500"
-                : "text-foreground";
+          const status =
+            key === "attention" && value > 0 ? "danger"
+              : key === "pendingPhotos" && value > 0 ? "warn"
+                : key === "active" ? "info"
+                  : key === "completed" ? "ok"
+                    : "neutral";
           return (
-            <div
+            <WgKpi
               key={key}
-              className={`shrink-0 min-w-[7.5rem] rounded-xl border px-3 py-2.5 ${accent}`}
-            >
-              <div className="flex items-center gap-1.5 mb-1">
-                <Icon size={13} className="text-muted-foreground shrink-0"/>
-                <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-              </div>
-              <p
-                className={`text-xl font-semibold tabular-nums ${valueCls}`}
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                {value}
-              </p>
-            </div>
+              label={label}
+              value={String(value)}
+              icon={icon}
+              status={status}
+              className="shrink-0 min-w-[7.5rem]"
+            />
           );
         })}
       </div>
 
       {actionCenter.length > 0 && (
-        <div className="rounded-xl border border-primary/25 bg-primary/5 overflow-hidden">
+        <WgCard elevation="soft" padding="sm" radius="md" className="overflow-hidden !p-0 border-primary/25 bg-primary/5">
           <div className="px-4 py-3 border-b border-primary/15 flex items-center gap-2">
             <Zap size={15} className="text-primary shrink-0"/>
             <p className="text-sm font-semibold">Centrum działań</p>
-            <span className="text-[10px] text-muted-foreground ml-auto">maks. 3</span>
+            <span className="text-xs text-muted-foreground ml-auto">maks. 3</span>
           </div>
           <div className="divide-y divide-border/60">
             {actionCenter.map((item) => (
@@ -207,17 +205,18 @@ export function InspectorDashboard({
                     {item.job.flatNumber && ` m.${item.job.flatNumber}`}
                   </p>
                 </div>
-                <button
+                <WgButton
                   type="button"
+                  variant="primary"
                   onClick={() => handleAction(item)}
-                  className="shrink-0 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation"
+                  className={cn(WG_TOUCH_MIN, "h-11 shrink-0 px-3 text-xs font-medium")}
                 >
                   {item.doc && (item.kind === "missing_file" || item.kind === "missing_doc") ? "Oznacz" : "Otwórz"}
-                </button>
+                </WgButton>
               </div>
             ))}
           </div>
-        </div>
+        </WgCard>
       )}
 
       {todayJobs.length > 0 && (
@@ -232,11 +231,20 @@ export function InspectorDashboard({
               const days = daysUntilHandover(job.plannedHandoverDate || "");
               const stage = inferHandoverStage(job);
               return (
-                <button
+                <WgCard
                   key={job.id}
+                  as="button"
                   type="button"
+                  elevation="soft"
+                  padding="sm"
+                  radius="md"
                   onClick={() => onOpenJob(job.id, "wm")}
-                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors touch-manipulation"
+                  className={cn(
+                    "w-full text-left touch-manipulation",
+                    `transition-colors ${WG_DURATION_HOVER}`,
+                    "hover:border-primary/30",
+                    WG_FOCUS_RING,
+                  )}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -245,7 +253,7 @@ export function InspectorDashboard({
                         {job.address || "Bez adresu"}
                         {job.flatNumber && <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {days === 0 ? "Odbiór dziś" : days != null && days < 0 ? `Termin minął (${Math.abs(days)} dni)` : `Za ${days} dni`}
                         {" · "}{HANDOVER_STAGE_LABELS[stage]}
                       </p>
@@ -253,7 +261,7 @@ export function InspectorDashboard({
                     <ChevronRight size={16} className="text-muted-foreground shrink-0 mt-1"/>
                   </div>
                   <InspectorProgressBar percent={progress.percent} className="mt-2.5"/>
-                </button>
+                </WgCard>
               );
             })}
           </div>
@@ -261,20 +269,22 @@ export function InspectorDashboard({
       )}
 
       {allClear && (
-        <div className="flex items-start gap-2 bg-green-500/10 border border-green-500/25 rounded-xl px-4 py-3 text-sm text-green-700 dark:text-green-300">
-          <CheckCircle2 size={16} className="shrink-0 mt-0.5"/>
-          <p>Wszystko na bieżąco — brak pilnych spraw na pulpicie.</p>
-        </div>
+        <WgCard elevation="soft" padding="sm" radius="md" className="border-green-500/25 bg-green-500/10">
+          <div className="flex items-start gap-2 text-sm text-green-700 dark:text-green-300">
+            <CheckCircle2 size={16} className="shrink-0 mt-0.5"/>
+            <p>Wszystko na bieżąco — brak pilnych spraw na pulpicie.</p>
+          </div>
+        </WgCard>
       )}
 
-      <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <WgCard elevation="soft" padding="sm" radius="md" className="border-emerald-500/20 bg-emerald-500/5 space-y-3">
         <div className="flex items-start gap-2">
           <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
             <BarChart3 size={18} className="text-emerald-600 dark:text-emerald-400"/>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">Twoja robota w tym tygodniu</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Od poniedziałku · wg dziennika aktywności</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Od poniedziałku · wg dziennika aktywności</p>
           </div>
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -285,60 +295,78 @@ export function InspectorDashboard({
           <MiniStat label="Notatki" value={weekStats.notesSent}/>
           <MiniStat label="Etapy" value={weekStats.stageUpdates}/>
         </div>
-      </div>
+      </WgCard>
 
-      <button
+      <WgButton
         type="button"
+        variant="secondary"
         onClick={() => setShowLegacyAlerts((v) => !v)}
-        className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 min-h-[44px] rounded-lg border border-border bg-secondary/30 touch-manipulation"
+        className={cn(
+          "w-full justify-center gap-1.5 text-xs",
+          WG_TOUCH_MIN,
+          "h-11 border border-border bg-secondary/30",
+        )}
       >
         <LayoutDashboard size={13}/>
         {showLegacyAlerts ? "Ukryj szczegółowe alerty" : "Pokaż szczegółowe alerty i filtry"}
-      </button>
+      </WgButton>
 
       {showLegacyAlerts && (
         <>
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-            {FILTER_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => setFilter(opt.id)}
-                className={`shrink-0 px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
-                  filter === opt.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+            {FILTER_OPTIONS.map((opt) => {
+              const on = filter === opt.id;
+              return (
+                <WgButton
+                  key={opt.id}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setFilter(opt.id)}
+                  className={cn(
+                    "shrink-0",
+                    WG_TOUCH_MIN,
+                    "h-11 px-3 text-xs font-medium",
+                    `transition-colors ${WG_DURATION_HOVER}`,
+                    WG_FOCUS_RING,
+                    on
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-secondary text-muted-foreground",
+                  )}
+                >
+                  {opt.label}
+                </WgButton>
+              );
+            })}
           </div>
 
-          <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
+          <WgCard elevation="soft" padding="sm" radius="md" className="bg-secondary/40 space-y-3">
             <div className="flex items-center gap-2">
               <FileDown size={16} className="text-primary shrink-0"/>
               <p className="text-sm font-semibold">Raport PDF</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
+              <WgButton
                 type="button"
+                variant="secondary"
                 disabled={pdfBusy !== null}
                 onClick={handleMonthPdf}
-                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation disabled:opacity-50"
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs")}
               >
                 <FileText size={14}/>
                 {pdfBusy === "month" ? "Generuję…" : `Mój miesiąc (${MONTH_NAMES_PL[reportMonth]})`}
-              </button>
-              <button
+              </WgButton>
+              <WgButton
                 type="button"
+                variant="secondary"
                 disabled={pdfBusy !== null}
                 onClick={handleYearPdf}
-                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-foreground text-xs font-medium border border-border touch-manipulation disabled:opacity-50"
+                className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs border border-border")}
               >
                 <Cloud size={14}/>
                 {pdfBusy === "year" ? "Generuję…" : `Mój rok (${reportYear})`}
-              </button>
+              </WgButton>
             </div>
-          </div>
+          </WgCard>
 
           {showAdmin && adminNotesPending.length > 0 && (
             <AlertSection title={`Odpowiedź od administratora (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Administrator odpisał — sprawdź notatki w sekcji Odbiór WM.">
@@ -433,8 +461,8 @@ function shortDocLabel(doc: QuickMarkDoc): string {
 function MiniStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-background/60 rounded-lg px-2 py-2 border border-border/60 text-center">
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground truncate">{label}</p>
-      <p className="text-base font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
+      <p className={cn(WG_TYPE_LABEL, "truncate normal-case tracking-wider")}>{label}</p>
+      <p className="text-base font-semibold mt-0.5 tabular-nums" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
     </div>
   );
 }
@@ -452,52 +480,61 @@ function DocFileToggle({
 }) {
   const label = DOC_LABELS[doc];
   return (
-    <button
+    <WgButton
       type="button"
+      variant="secondary"
       title={locked ? `${label} — zablokowane` : checked ? `${label} — jest` : `Oznacz: ${label}`}
       onClick={(e) => { e.stopPropagation(); if (!locked) onClick(); }}
-      className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-2 min-h-[44px] rounded-md border transition-all touch-manipulation shrink-0 ${
+      className={cn(
+        "inline-flex items-center gap-1 text-xs font-medium px-2.5",
+        WG_TOUCH_MIN,
+        "h-11 shrink-0",
         locked
-          ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
+          ? "bg-green-500/12 text-green-700 dark:text-green-300 border border-green-500/35 cursor-default"
           : checked
-            ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35"
-            : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
-      }`}
+            ? "bg-green-500/12 text-green-700 dark:text-green-300 border border-green-500/35"
+            : "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/25",
+      )}
     >
       {checked ? <CheckCircle2 size={10}/> : <Circle size={10}/>}
       {label}
-    </button>
+    </WgButton>
   );
 }
 
-function AlertSection({ title, hint, icon: Icon, accent, children }: { title: string; hint: string; icon: typeof FileText; accent: "red" | "violet" | "amber" | "ok"; children: React.ReactNode }) {
+function AlertSection({ title, hint, icon: Icon, accent, children }: { title: string; hint: string; icon: typeof FileText; accent: "red" | "violet" | "amber" | "ok"; children: ReactNode }) {
   const border =
     accent === "violet" ? "border-violet-500/25 bg-violet-500/5"
       : accent === "amber" ? "border-amber-500/25 bg-amber-500/5"
         : accent === "ok" ? "border-green-500/25 bg-green-500/5"
           : "border-red-500/25 bg-red-500/5";
   return (
-    <div className={`rounded-xl border overflow-hidden ${border}`}>
+    <WgCard elevation="soft" padding="sm" radius="md" className={cn("overflow-hidden !p-0", border)}>
       <div className="px-4 py-3 border-b border-border/60 space-y-1">
         <p className="text-sm font-semibold flex items-center gap-1.5"><Icon size={14}/>{title}</p>
-        <p className="text-[11px] text-muted-foreground leading-snug flex items-start gap-1">
+        <p className="text-xs text-muted-foreground leading-snug flex items-start gap-1">
           <AlertTriangle size={11} className="shrink-0 mt-0.5 opacity-70"/>{hint}
         </p>
       </div>
       <div>{children}</div>
-    </div>
+    </WgCard>
   );
 }
 
 function QuickBtn({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
+    <WgButton
       type="button"
+      variant="secondary"
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="text-xs font-semibold px-3 py-2.5 min-h-[44px] rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 touch-manipulation shrink-0 max-w-[140px] truncate"
+      className={cn(
+        WG_TOUCH_MIN,
+        "h-11 px-3 text-xs font-semibold shrink-0 max-w-[140px] truncate",
+        "bg-emerald-600 text-white hover:bg-emerald-600/90",
+      )}
       title={label}
     >
       {label}
-    </button>
+    </WgButton>
   );
 }
