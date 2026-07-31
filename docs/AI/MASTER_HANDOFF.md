@@ -1,8 +1,8 @@
 # WGDOM — MASTER HANDOFF (ChatGPT · Cursor)
 
-> **ID:** CATALOG-COVERAGE-01 **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
+> **ID:** CATALOG-COVERAGE-01 **P0e CLOSED** · **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 (**COMPLETE**) · CENY-MATERIAŁÓW-01 (**CLOSED**) · WORK-CATALOG-P3.3 (**CLOSED**) · AI-COST-02-B (**CLOSED**) · AI-COST-PARSER-01 P0-RETRY (**CLOSED**) · COST-BID-GAP-01 / GAP-A (**CLOSED**) · COST-MULTI (**SERIES CLOSED**) · COST-02-A (**CLOSED**) · Foundation Lib Phase 0 (**COMPLETE**)  
 > **STATUS:** **ACTIVE** · **MASTER HANDOFF nowych sesji**  
-> **Data:** 2026-07-30  
+> **Data:** 2026-07-31  
 > **Zakaz:** implementacja / commit / push bez ścieżki Entry + Gate + Owner GO  
 > **Tip SSOT (numery wersji):** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 
@@ -10,10 +10,12 @@
 ════════════════════════════════════════════════════════
 NOWA SESJA: przeczytaj TEN plik (≤10 min) → AI_ENTRY → Gate
 Nie przeszukuj historii czatu. Nie zgaduj tipu z pamięci.
-Tip = 09 + version.json (UI 2.65.90 · feature CATALOG-COVERAGE-01 P0d-A b9da6bff)
+Tip = 09 + version.json (UI 2.65.91 · feature CATALOG-COVERAGE-01 P0e b69aeaae)
+CATALOG-COVERAGE-01 P0e = CLOSED (FULL Library Seed · BIZ A)
+  SSOT = docs/architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md
+  NEXT = SMART P1 / MS P2 / CM-04 P3 / Wave 2 — tylko po Owner GO
 CATALOG-COVERAGE-01 P0d-A = CLOSED (Precision + SAFE seed)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md
-  NEXT slice = P0e (FULL) — tylko po Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0c = CLOSED (Alias Resolver Wave 1)
   SSOT = docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md
 CATALOG-COVERAGE-01 P0b = CLOSED (Normalizer)
@@ -95,9 +97,9 @@ Gdy temat = wielobranżowy kosztorys / Aggregate Bid / Force Rescan / luka Bid /
 | Pole | Wartość |
 |------|---------|
 | **Production URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Production Version (UI)** | **2.65.83** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
-| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · **CENY-MATERIAŁÓW-04 P2 COMPLETE** (FEATURE-DATA WC) · UI tip **2.65.83** |
-| **Ostatni feature (katalog / ceny)** | **CENY-MATERIAŁÓW-04 P2** · **P2 COMPLETE** · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · P1 tip UI **2.65.83** / **`992023cc`** |
+| **Production Version (UI)** | **2.65.91** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · live `version.json` |
+| **Live deploy** | tip w [`09`](09_PRODUCTION_BASELINE.md) · **CATALOG-COVERAGE-01 P0e CLOSED · PV** · UI tip **2.65.91** / **`b69aeaae`** |
+| **Ostatni feature (katalog / ceny)** | **CATALOG-COVERAGE-01 P0e** · **CLOSED · PV** · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · UI **2.65.91** / **`b69aeaae`** |
 | **Payroll Hours-wipe baseline** | **2.65.43** @ **`ea1b0a6`** (semantyka D1–D5 ACTIVE) |
 | **Status projektu** | **PRODUCTION VERIFIED · GREEN** · **STABILIZATION WINDOW ACTIVE** |
 | **Protected Core** | **GREEN** |
@@ -227,8 +229,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **C3g** | **CENY-MATERIAŁÓW-04 P2** | **COMPLETE** | P2-A/B + Residual ROZ · K-P2-1/2/3 | **P3 AUDIT** Owner GO | [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
 | **C3h** | **MARKET-SYNC-01 P0** | **CLOSED** | Model+Preview staging | — | **2.65.84** · `273fb3e0` |
 | **C3i** | **MARKET-SYNC-01 P1** | **CLOSED** | Accept+Publish · commit only | **P2 AUDIT** Owner GO | **2.65.85** · `5326cf8c` · [`P1-CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) |
-| **C3j** | **CATALOG-COVERAGE-01 P0d-A** | **CLOSED** | Precision + SAFE seed | **P0e** Owner GO | **2.65.90** · `b9da6bff` · [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
-| **C3k** | **CATALOG-COVERAGE-01 P0e** | **NEXT** · BACKLOG | FULL Library seed | Owner GO → AUDIT→DF | **nie** auto-start |
+| **C3j** | **CATALOG-COVERAGE-01 P0d-A** | **CLOSED** | Precision + SAFE seed | — | **2.65.90** · `b9da6bff` · [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
+| **C3k** | **CATALOG-COVERAGE-01 P0e** | **CLOSED** | FULL Library seed · BIZ A | — | **2.65.91** · `b69aeaae` · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) |
 | **C3l** | **MARKET-SYNC-01 P2** | **NEXT** · BACKLOG | (zakres po AUDIT) | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
 | **C3m** | **CENY-MATERIAŁÓW-04 P3 (INNE)** | **NEXT** · BACKLOG | Residual INNE / misbucket | Owner GO → AUDIT→PLAN→DF | **nie** auto-start |
 | **C4** | TP200B | BACKLOG | Fidelity pozycji | wąski DF | Jakość przedmiaru |
@@ -240,8 +242,8 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 | **5** | **HARDENING-01B1 / C / E** | BACKLOG · Owner GO | Hardening sync | 01A/01D/01B0 **CLOSED** | Sygnały prod |
 | **8** | **Payroll nowe prace** | **NONE** | — | Hours-wipe **CLOSED** | Tylko nowy GO + Gate |
 
-**Rekomendowany pierwszy krok:** **CATALOG-COVERAGE-01 P0e** *lub* **SMART-PRICING-01 P1** *lub* **MARKET-SYNC-01 P2 AUDIT** — Owner GO.  
-**Alternatywa:** CM-04 P3 AUDIT · residual GAP-B · AI-COST-02 I3 po osobnym DF.  
+**Rekomendowany pierwszy krok:** **SMART-PRICING-01 P1** *lub* **MARKET-SYNC-01 P2 AUDIT** *lub* **CENY-MATERIAŁÓW-04 P3 AUDIT** — Owner GO.  
+**Alternatywa:** Wave 2 catalog seed · residual GAP-B · AI-COST-02 I3 po osobnym DF.  
 **Zawsze:** Entry + Gate.
 
 ---
@@ -292,4 +294,4 @@ Wszystkie: **status = BACKLOG / opcjonalny** dopóki Owner nie wyda GO. Stabiliz
 
 ---
 
-**MASTER HANDOFF ACTIVE** · tip UI **2.65.90** · CATALOG-COVERAGE-01 **P0d-A CLOSED** · NEXT **P0e** / SMART **P1** / MS **P2 AUDIT** / CM-04 **P3 AUDIT** (Owner GO) · tip w `09` · SSOT [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md)
+**MASTER HANDOFF ACTIVE** · tip UI **2.65.91** · CATALOG-COVERAGE-01 **P0e CLOSED** · NEXT SMART **P1** / MS **P2 AUDIT** / CM-04 **P3 AUDIT** (Owner GO) · tip w `09` · SSOT [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md)

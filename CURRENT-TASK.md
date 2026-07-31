@@ -1,10 +1,20 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-30 (**CATALOG-COVERAGE-01 P0d-A CLOSED** · tip UI **2.65.90** · **`b9da6bff`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-07-31 (**CATALOG-COVERAGE-01 P0e CLOSED** · tip UI **2.65.91** · **`b69aeaae`** · **PRODUCTION VERIFIED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ CATALOG-COVERAGE-01 P0e — **CLOSED** (FULL Library Seed)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip UI **2.65.91** · feature **`b69aeaae`** · OV **PASS** · **RELEASE GO** · **PRODUCTION VERIFIED** |
+| **SSOT** | [`CATALOG-COVERAGE-01-P0e-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) |
+| **Zakres** | FULL seed zaprawianie/folia/multiswitch · BIZ A · coverage **78.1%** (+1.4 pp) · Guard/Pack 0 |
+| **OUT** | Wave 2 · Fuzzy · SMART/MS rewrite · Wariant B folii |
+| **Następne** | **SMART P1** / **MS P2** / **CM-04 P3** — Owner GO · **nie** auto-start |
 
 ## ★ CATALOG-COVERAGE-01 P0d-A — **CLOSED** (Precision + SAFE Seed)
 
@@ -13,8 +23,8 @@
 | **Status** | **CLOSED** · tip UI **2.65.90** · feature **`b9da6bff`** · OV **PASS** · **RELEASE GO** · **PRODUCTION VERIFIED** |
 | **SSOT** | [`CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
 | **Zakres** | Negation Guard Alias\|Core · multiswitch wąski · SAFE zawór+stop · coverage **76.7%** (+0.3 pp) |
-| **OUT** | P0e FULL · Wave 2/BIZ/HIGH · Fuzzy · SMART/MS rewrite |
-| **Następne** | **P0e FULL** — Owner GO · **nie** auto-start |
+| **OUT** | Wave 2/BIZ/HIGH · Fuzzy · SMART/MS rewrite |
+| **Następne** | **P0e CLOSED** → SMART P1 / MS P2 / CM-04 P3 |
 
 ## ★ CATALOG-COVERAGE-01 P0c — **CLOSED** (Alias Resolver Wave 1)
 

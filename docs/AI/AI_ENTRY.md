@@ -1,6 +1,6 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CATALOG-COVERAGE-01 **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CATALOG-COVERAGE-01 **P0e CLOSED** · **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
 > **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
 > **Data:** 2026-07-30
 
@@ -10,9 +10,11 @@ STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
 MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
 Tip = wyłącznie docs/AI/09_PRODUCTION_BASELINE.md + version.json
+CATALOG-COVERAGE-01 P0e = CLOSED (2.65.91 · b69aeaae)
+  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md
+  → NEXT: SMART P1 / MS P2 / CM-04 P3 — Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0d-A = CLOSED (2.65.90 · b9da6bff)
   → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md
-  → NEXT slice: P0e FULL — Owner GO (nie auto-start)
 CATALOG-COVERAGE-01 P0c = CLOSED (2.65.89 · aebf9d09)
   → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md
 CATALOG-COVERAGE-01 P0b = CLOSED (2.65.88 · fb58f501)
@@ -40,6 +42,7 @@ Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
 **Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**CATALOG-COVERAGE-01 P0e CLOSED:** [`CATALOG-COVERAGE-01-P0e-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md)  
 **CATALOG-COVERAGE-01 P0d-A CLOSED:** [`CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md)  
 **CATALOG-COVERAGE-01 P0c CLOSED:** [`CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md)  
 **CATALOG-COVERAGE-01 P0b CLOSED:** [`CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md)  

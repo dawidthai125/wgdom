@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-30 (**CATALOG-COVERAGE-01 P0d-A CLOSED**) · tip UI **2.65.90** · feature **`b9da6bff`** · **PRODUCTION VERIFIED**.
+**Snapshot dokumentacji:** 2026-07-31 (**CATALOG-COVERAGE-01 P0e CLOSED** · **PRODUCTION VERIFIED**) · tip UI **2.65.91** · feature **`b69aeaae`** · live `version.json` = `2.65.91` / `b69aeaa`.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.90** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`b9da6bff`** · **PRODUCTION VERIFIED** · [`P0d-A-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0d-A-RELEASE-REPORT.md) |
-| **Feature tip (CATALOG-COVERAGE-01 P0d-A)** | **CLOSED** · Precision + SAFE seed · UI **2.65.90** · feature **`b9da6bff`** · coverage **76.7%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0d-A-RELEASE-REPORT.md) · NEXT **P0e** Owner GO |
+| **UI version (changelog / version.json)** | **2.65.91** |
+| **Deploy tip commit (`main` / `version.json`)** | feature **`b69aeaae`** · **PRODUCTION VERIFIED** (`2.65.91` / `b69aeaa`) · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
+| **Feature tip (CATALOG-COVERAGE-01 P0e)** | **CLOSED** · **PRODUCTION VERIFIED** · FULL Library Seed · BIZ A · UI **2.65.91** · feature **`b69aeaae`** · coverage **78.1%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
+| **Feature tip (CATALOG-COVERAGE-01 P0d-A)** | **CLOSED** · Precision + SAFE seed · UI **2.65.90** · feature **`b9da6bff`** · coverage **76.7%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0d-A-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0c)** | **CLOSED** · Alias Resolver Wave 1 · UI **2.65.89** · feature **`aebf9d09`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0b)** | **CLOSED** · Normalizer · UI **2.65.88** · feature **`fb58f501`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |
@@ -80,7 +81,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.83** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · CENY-MATERIAŁÓW-01 **CLOSED · PV** · WORK-CATALOG-P3.3 **CLOSED · PV** · AI-COST-02-B **CLOSED · PV** · P0-RETRY **CLOSED · PV** · COST-BID-GAP-01 **CLOSED · PV** · COST-MULTI **CLOSED** · AI-COST-01 **FROZEN** · NEXT **P3 (INNE) AUDIT** (Owner GO) / GAP-B / I3 / TP200B |
+| **Status** | **PRODUCTION** tip UI **2.65.91** · CATALOG-COVERAGE-01 **P0e CLOSED · PV** · P0d-A…P0a **CLOSED** · SMART P0 · MS P1 · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · AI-COST-01 **FROZEN** · NEXT **SMART P1** / **MS P2 AUDIT** / **CM-04 P3 AUDIT** (Owner GO) |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
