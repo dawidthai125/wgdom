@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-07-31",
+    version: "2.65.95",
+    label: "Detekcja dokumentów — przedmiar vs oferta (aliasy + copy)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi: spójne nazewnictwo Doc.D1 Przedmiar · Doc.D2 dokumenty wspierające · Doc.D3 kosztorys ofertowy. Aliasy BOQ / Bill of Quantities / kosztorys ślepy → przedmiar.",
+      },
+      {
+        type: "fix",
+        text: "Komunikaty: brak przedmiaru · PDF wymaga OCR · brak odczytu · brak kosztorysu ofertowego — zamiast mylącego „brak kosztorysu”. Bez zmian AI/Bid/OCR/Confidence/Scope/SMART.",
+      },
+    ],
+  },
+  {
+    date: "2026-07-31",
     version: "2.65.93",
     label: "Scope Gap MVP — Luki zakresu (flaga OFF)",
     items: [

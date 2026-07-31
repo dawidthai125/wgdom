@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.95 — Detekcja dokumentów — przedmiar vs oferta (2026-07-31)
+
+- **improve:** model Doc.D1/D2/D3 + aliasy BOQ / Bill of Quantities / kosztorys ślepy → przedmiar (`doc-detection-alias-1`).
+- **fix:** copy F2/UX — brak przedmiaru · wymaga OCR · brak odczytu · brak kosztorysu ofertowego (`doc-detection-ux-1`).
+- Testy: `scripts/test-doc-detection-ux-alias.mjs` · regresja cost-regression-01/02.
+- Bez AI / Bid / OCR / Confidence / Scope Gap / SMART.
+
 ## 2.65.93 — Scope Gap MVP — Luki zakresu (flaga OFF) (2026-07-31)
 
 - **new:** panel „Luki zakresu” (`scope-gap-mvp-1`) w OfferBoq Cost Intelligence — RO, zero Bid/AI-COST/Quotes/History.

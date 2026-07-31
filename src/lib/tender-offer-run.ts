@@ -9,9 +9,14 @@ import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderTrustAssessment } from "@/lib/tender-trust-layer";
 import { PipelineState } from "@/lib/tender-pipeline/tender-pipeline-types";
 import {
+  isCostRegressionF1,
   resolveCostRegressionF2Presentation,
   type CostRegressionF2UiCopy,
 } from "@/lib/cost-regression-f2";
+import {
+  DOC_DETECTION_UX_D_HINT,
+  DOC_DETECTION_UX_D_LABEL,
+} from "@/lib/doc-detection";
 
 /** Session-only (nie kw-tenders-pipeline). */
 export const TRE_01_OFFER_RUN_ID_LS_PREFIX = "kw-tre-01-offer-run-id:";
@@ -196,6 +201,10 @@ export function deriveOfferRunSnapshot(
     if (f2Copy) {
       phaseLabelPl = f2Copy.phaseLabelPl;
       statusHintPl = f2Copy.hintPl;
+    } else if (item.tenderDossier?.kosztorys?.ok && !isCostRegressionF1(item)) {
+      /** UX_D — Doc.D1 z pozycjami, brak Doc.D3 (kosztorys ofertowy). */
+      phaseLabelPl = DOC_DETECTION_UX_D_LABEL;
+      statusHintPl = DOC_DETECTION_UX_D_HINT;
     } else {
       /** F1 / inne — legacy; Epic A nie nakłada copy F2 (AC-A8). */
       phaseLabelPl = "Brak rekomendowanej ceny";

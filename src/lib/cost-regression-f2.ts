@@ -19,6 +19,25 @@ import {
 } from "@/lib/cost-parser-zip-unpack";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
+import {
+  DOC_D1_PDF_NAME_RE,
+  DOC_DETECTION_UX_A_HINT,
+  DOC_DETECTION_UX_A_LABEL,
+  DOC_DETECTION_UX_B_HINT,
+  DOC_DETECTION_UX_B_LABEL,
+  DOC_DETECTION_UX_C_ARCHIVE_READY_HINT,
+  DOC_DETECTION_UX_C_ARCHIVE_READY_LABEL,
+  DOC_DETECTION_UX_C_CANDIDATE_HINT,
+  DOC_DETECTION_UX_C_CANDIDATE_LABEL,
+  DOC_DETECTION_UX_C_FAILED_HINT,
+  DOC_DETECTION_UX_C_FAILED_LABEL,
+  DOC_DETECTION_UX_C_RUNNING_HINT,
+  DOC_DETECTION_UX_C_RUNNING_LABEL,
+  DOC_DETECTION_UX_C_ZIP_NOT_FOUND_HINT,
+  DOC_DETECTION_UX_C_ZIP_NOT_FOUND_LABEL,
+  DOC_DETECTION_UX_F1_HINT,
+  DOC_DETECTION_UX_F1_LABEL,
+} from "@/lib/doc-detection";
 
 /** Enum discovery UI (Epic A §5.3 · CR-02 REUSE). */
 export type CostRegressionF2DiscoveryStatus =
@@ -51,8 +70,7 @@ export interface CostRegressionF2UiCopyOpts {
   zipState?: CostParserZipState | null;
 }
 
-const PDF_PRZEDMIAR_NAME_RE =
-  /przedmiar|kosztorys|obmiar|ath|norma|stwior|formularz.?cen/i;
+const PDF_PRZEDMIAR_NAME_RE = DOC_D1_PDF_NAME_RE;
 
 /** CR-02 — top-level ZIP/7Z. */
 export function isZipOr7zFilename(name: string): boolean {
@@ -193,9 +211,8 @@ export function resolveCostRegressionF2UiCopy(
     case "no_candidate":
       return withZip({
         discovery,
-        phaseLabelPl: "Brak przedmiaru w dokumentach",
-        hintPl:
-          "Dołącz ATH, XLSX, PDF przedmiaru lub archiwum ZIP z kosztorysem — bez tego nie da się wyliczyć oferty.",
+        phaseLabelPl: DOC_DETECTION_UX_A_LABEL,
+        hintPl: DOC_DETECTION_UX_A_HINT,
         primaryCta: "attach",
         secondaryCta: null,
         archiveCandidate,
@@ -204,9 +221,8 @@ export function resolveCostRegressionF2UiCopy(
       if (archiveOnlyReady) {
         return withZip({
           discovery,
-          phaseLabelPl: "W dokumentach jest archiwum ZIP",
-          hintPl:
-            "Uruchom analizę kosztorysu — system przeszuka ZIP pod kątem ATH/XLSX/PDF. To nie gwarantuje ceny oferty.",
+          phaseLabelPl: DOC_DETECTION_UX_C_ARCHIVE_READY_LABEL,
+          hintPl: DOC_DETECTION_UX_C_ARCHIVE_READY_HINT,
           primaryCta: "reparse",
           secondaryCta: "attach",
           archiveCandidate,
@@ -214,9 +230,8 @@ export function resolveCostRegressionF2UiCopy(
       }
       return withZip({
         discovery,
-        phaseLabelPl: "Brak odczytanego kosztorysu",
-        hintPl:
-          "W dokumentach jest kandydat przedmiaru — uruchom ponownie analizę kosztorysu.",
+        phaseLabelPl: DOC_DETECTION_UX_C_CANDIDATE_LABEL,
+        hintPl: DOC_DETECTION_UX_C_CANDIDATE_HINT,
         primaryCta: "reparse",
         secondaryCta: "attach",
         archiveCandidate,
@@ -224,8 +239,8 @@ export function resolveCostRegressionF2UiCopy(
     case "parse_running":
       return withZip({
         discovery,
-        phaseLabelPl: "Trwa analiza kosztorysu…",
-        hintPl: "Po zakończeniu wycena uruchomi się automatycznie.",
+        phaseLabelPl: DOC_DETECTION_UX_C_RUNNING_LABEL,
+        hintPl: DOC_DETECTION_UX_C_RUNNING_HINT,
         primaryCta: "none",
         secondaryCta: null,
         archiveCandidate,
@@ -246,9 +261,8 @@ export function resolveCostRegressionF2UiCopy(
         /* Legacy CR-02 — brak sygnału zipUnpackOk w starym dossier */
         return withZip({
           discovery,
-          phaseLabelPl: "Nie znaleziono kosztorysu w archiwum ZIP",
-          hintPl:
-            "Heavy przeanalizował załączniki ZIP, ale nie powstał snapshot kosztorysu. Sprawdź zawartość ZIP (ATH/XLSX/PDF) lub dołącz inny plik. To nie awaria kalkulatora oferty.",
+          phaseLabelPl: DOC_DETECTION_UX_C_ZIP_NOT_FOUND_LABEL,
+          hintPl: DOC_DETECTION_UX_C_ZIP_NOT_FOUND_HINT,
           primaryCta: "reparse",
           secondaryCta: "attach",
           archiveCandidate,
@@ -256,9 +270,8 @@ export function resolveCostRegressionF2UiCopy(
       }
       return withZip({
         discovery,
-        phaseLabelPl: "Nie udało się odczytać kosztorysu",
-        hintPl:
-          "Sprawdź plik lub ponów analizę. To nie awaria kalkulatora oferty.",
+        phaseLabelPl: DOC_DETECTION_UX_C_FAILED_LABEL,
+        hintPl: DOC_DETECTION_UX_C_FAILED_HINT,
         primaryCta: "reparse",
         secondaryCta: "attach",
         archiveCandidate,
@@ -270,7 +283,7 @@ export function resolveCostRegressionF2UiCopy(
   }
 }
 
-/** Buduje discovery + copy z kontekstem itemu (CR-02 + COST-PARSER-01). */
+/** Buduje discovery + copy z kontekstem itemu (CR-02 + COST-PARSER-01 + Doc Detection UX). */
 export function resolveCostRegressionF2Presentation(input: {
   item: TenderPipelineItem;
   dossierBuilding?: boolean;
@@ -284,6 +297,8 @@ export function resolveCostRegressionF2Presentation(input: {
   const heavyDone = tenderDossierHeavyParseDone(input.item.tenderDossier);
   const heavyDoneEmpty = heavyDone && !input.item.tenderDossier?.kosztorys?.ok;
   const scan = input.item.tenderDossier?.scanSummary;
+  const k = input.item.tenderDossier?.kosztorys;
+  const pdfCase = k?.pdfPrzedmiarCase ?? scan?.pdfPrzedmiarCase;
   const zipState =
     archiveCandidate && heavyDoneEmpty
       ? resolveCostParserZipState({
@@ -293,6 +308,24 @@ export function resolveCostRegressionF2Presentation(input: {
           kosztorysOk: Boolean(input.item.tenderDossier?.kosztorys?.ok),
         })
       : null;
+
+  // UX_B — CASE 3: wymaga OCR (nigdy UX_A)
+  if (
+    pdfCase === 3
+    && discovery !== "parse_running"
+    && discovery !== "no_candidate"
+  ) {
+    return {
+      discovery,
+      phaseLabelPl: DOC_DETECTION_UX_B_LABEL,
+      hintPl: DOC_DETECTION_UX_B_HINT,
+      primaryCta: discovery === "candidate_ready" || discovery === "parse_failed" ? "reparse" : "none",
+      secondaryCta: "attach",
+      archiveCandidate,
+      zipState,
+    };
+  }
+
   return resolveCostRegressionF2UiCopy(discovery, {
     archiveCandidate,
     heavyDoneEmpty,
@@ -307,9 +340,8 @@ export function resolveCostRegressionF1UiCopy(): {
   hintPl: string;
 } {
   return {
-    phaseLabelPl: "Przedmiar bez pozycji",
-    hintPl:
-      "Plik kosztorysu jest, ale bez pozycji / ilości do wyceny. To nie brak dokumentu.",
+    phaseLabelPl: DOC_DETECTION_UX_F1_LABEL,
+    hintPl: DOC_DETECTION_UX_F1_HINT,
   };
 }
 

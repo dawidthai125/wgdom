@@ -135,11 +135,11 @@ function baseItem(over = {}) {
   assert.ok(!/Brak przedmiaru w dokumentach/.test(ready.phaseLabelPl));
 
   const run = resolveCostRegressionF2UiCopy("parse_running");
-  assert.equal(run.phaseLabelPl, "Trwa analiza kosztorysu…");
+  assert.equal(run.phaseLabelPl, "Trwa odczyt przedmiaru…");
   assert.equal(run.primaryCta, "none");
 
   const fail = resolveCostRegressionF2UiCopy("parse_failed");
-  assert.equal(fail.phaseLabelPl, "Nie udało się odczytać kosztorysu");
+  assert.equal(fail.phaseLabelPl, "Nie udało się odczytać przedmiaru");
   assert.ok(/nie awaria kalkulatora/i.test(fail.hintPl));
   assert.equal(fail.primaryCta, "reparse");
   console.log("PASS AC-A2…A5 copy matrix");
@@ -183,6 +183,41 @@ function baseItem(over = {}) {
   assert.ok(!/Brak przedmiaru w dokumentach/.test(snap.phaseLabelPl));
   assert.equal(snap.phaseLabelPl, "Brak rekomendowanej ceny");
   console.log("PASS AC-A8 F1 not F2 copy");
+}
+
+// --- UX_D — Doc.D1 z pozycjami, brak Bid ---
+{
+  const d1Ok = baseItem({
+    tenderDossier: {
+      builtAt: "2026-07-28",
+      kosztorys: {
+        ok: true,
+        rows: [{ id: "1", name: "poz", quantity: 1, unit: "szt" }],
+        rowCount: 1,
+        sourceFilename: "przedmiar.ath",
+        przedmiar: [],
+        categories: [],
+        warnings: [],
+        parsedAt: "2026-07-28",
+      },
+    },
+  });
+  const snapD = deriveOfferRunSnapshot({
+    pipelineState: PipelineState.Ready,
+    autoRunning: false,
+    dossierBuilding: false,
+    dossierSaving: false,
+    dossierParseFailed: false,
+    parseErrorMessage: null,
+    pricingReadyPartial: false,
+    pricingReadyFinal: true,
+    bidProposal: { ok: false, recommendedBidPln: null },
+    trustAssessment: trust(),
+    discoveryMergedItem: d1Ok,
+  });
+  assert.equal(snapD.costRegressionF2, null);
+  assert.equal(snapD.phaseLabelPl, "Brak kosztorysu ofertowego");
+  console.log("PASS UX_D Doc.D1 ok without bid");
 }
 
 // --- Offer Run F2 replaces legacy label ---

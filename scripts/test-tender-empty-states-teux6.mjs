@@ -60,7 +60,7 @@ ok("platform proceeding link preserved", attachPanel.includes("proceedingUrl"));
 const kosztorys = readSrc("src/app/TenderKosztorysWorkspace.tsx");
 ok("kosztorys uses TenderUxEmptyState", kosztorys.includes("TenderUxEmptyState"));
 ok("kosztorys CTA dokumenty", kosztorys.includes('openTenderDetailV4(navigate, itemId, "dokumenty")'));
-ok("kosztorys title", kosztorys.includes('title="Brak kosztorysu"'));
+ok("kosztorys title", kosztorys.includes("Brak przedmiaru"));
 ok("kosztorys no plain p empty", !kosztorys.includes("KosztorysEmptyMessage"));
 
 ok("tokens frozen", !readSrc("src/lib/tender-ux-tokens.ts").includes("teux6"));

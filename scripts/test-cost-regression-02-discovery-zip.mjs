@@ -158,7 +158,8 @@ function heavyDoneEmptyDossier() {
   const copy = resolveCostRegressionF2Presentation({ item });
   assert.equal(copy?.phaseLabelPl, "Brak przedmiaru w dokumentach");
   assert.equal(copy?.primaryCta, "attach");
-  assert.ok(/archiwum ZIP/i.test(copy?.hintPl ?? ""));
+  assert.ok(/przedmiar|BOQ|ATH|XLSX/i.test(copy?.hintPl ?? ""));
+  assert.ok(!/Brak odczytanego kosztorysu/i.test(copy?.hintPl ?? ""));
   console.log("PASS AC-02-4 zero załączników → no_candidate");
 }
 
@@ -186,7 +187,7 @@ function heavyDoneEmptyDossier() {
   assert.equal(hasArchiveCandidate(item), false);
   const copy = resolveCostRegressionF2Presentation({ item });
   assert.equal(copy?.discovery, "candidate_ready");
-  assert.equal(copy?.phaseLabelPl, "Brak odczytanego kosztorysu");
+  assert.equal(copy?.phaseLabelPl, "Przedmiar wykryty — brak odczytu pozycji");
   assert.equal(copy?.primaryCta, "reparse");
   assert.equal(copy?.archiveCandidate, false);
   console.log("PASS AC-02-6 Epic A ATH bez regresji");
@@ -285,7 +286,7 @@ function heavyDoneEmptyDossier() {
     archiveCandidate: true,
     heavyDoneEmpty: true,
   });
-  assert.ok(/Nie znaleziono kosztorysu w archiwum ZIP/.test(zipFail.phaseLabelPl));
+  assert.ok(/Nie znaleziono przedmiaru w archiwum ZIP/.test(zipFail.phaseLabelPl));
   console.log("PASS copy matrix ZIP spot-check");
 }
 

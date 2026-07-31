@@ -63,7 +63,9 @@ export function classifyDocumentRole(filename: string): DocumentRole {
     return "odpowiedzi_pytania";
   }
   if (/stwior|stwi[^o]|stwi\b/.test(base)) return "stwior";
-  if (/przedmiar/.test(base)) return "przedmiar";
+  if (/przedmiar|\bboq\b|bill[_\s.-]*of[_\s.-]*quantit|kosztorys[_\s.-]*slep|\bslepy\b/.test(base)) {
+    return "przedmiar";
+  }
   if (/obmiar/.test(base)) return "obmiar";
   if (/kosztorys.*ofert|ofertow.*kosztorys/.test(base)) return "kosztorys_ofertowy";
   if (/kosztorys/.test(base) || isKosztorysPreviewExt(base)) return "kosztorys";

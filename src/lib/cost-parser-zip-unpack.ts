@@ -6,6 +6,12 @@
 
 import { classifyCostDocumentType } from "@/lib/tender-cost-discovery";
 import { is7zFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
+import {
+  DOC_DETECTION_UX_C_ZIP_NOT_FOUND_HINT,
+  DOC_DETECTION_UX_C_ZIP_NOT_FOUND_LABEL,
+  DOC_DETECTION_UX_C_ZIP_PARSE_FAILED_HINT,
+  DOC_DETECTION_UX_C_ZIP_PARSE_FAILED_LABEL,
+} from "@/lib/doc-detection";
 
 /** DF §3 — data-cost-parser-zip-state */
 export type CostParserZipState = "unpack_failed" | "no_cost_inner" | "parse_failed";
@@ -64,15 +70,13 @@ export function resolveCostParserZipUiOverlay(state: CostParserZipState): {
       };
     case "no_cost_inner":
       return {
-        phaseLabelPl: "Nie znaleziono kosztorysu w archiwum ZIP",
-        hintPl:
-          "Heavy przeanalizował załączniki ZIP, ale nie wykryto ATH/XLSX/PDF przedmiaru. Sprawdź zawartość lub dołącz inny plik. To nie awaria kalkulatora oferty.",
+        phaseLabelPl: DOC_DETECTION_UX_C_ZIP_NOT_FOUND_LABEL,
+        hintPl: DOC_DETECTION_UX_C_ZIP_NOT_FOUND_HINT,
       };
     case "parse_failed":
       return {
-        phaseLabelPl: "Nie udało się odczytać kosztorysu z archiwum",
-        hintPl:
-          "W ZIP był kandydat kosztowy, ale nie powstał snapshot kosztorysu. Sprawdź plik lub ponów analizę. To nie awaria kalkulatora oferty.",
+        phaseLabelPl: DOC_DETECTION_UX_C_ZIP_PARSE_FAILED_LABEL,
+        hintPl: DOC_DETECTION_UX_C_ZIP_PARSE_FAILED_HINT,
       };
     default: {
       const _e: never = state;

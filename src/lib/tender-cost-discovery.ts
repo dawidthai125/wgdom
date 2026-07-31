@@ -15,6 +15,7 @@ import {
   contentScoreDiscoveryBoost,
   isOfferFormByContent,
 } from "@/lib/tender-cost-content-detection";
+import { hasDocD1CostFilenameHint, isDocD1PdfFilename } from "@/lib/doc-detection";
 
 export type TenderCostDocumentType =
   | "ath"
@@ -31,16 +32,9 @@ export type TenderCostDocumentType =
   | "zip_pdf_przedmiar"
   | "none";
 
-/** P2-H.5A — PDF przedmiar/obmiar/kosztorys lub wzorzec *_PR.pdf (inner ZIP/7Z OK). */
+/** P2-H.5A — PDF przedmiar/obmiar/kosztorys/BOQ/ślepy lub wzorzec *_PR.pdf (inner ZIP/7Z OK). */
 export function isPdfPrzedmiarCostFilename(filename: string): boolean {
-  const base = (filename.split(" → ").pop() ?? filename).toLowerCase();
-  if (!/\.pdf$/i.test(base)) return false;
-  if (/przedmiar\.pdf$/.test(base) || /obmiar\.pdf$/.test(base) || /kosztorys\.pdf$/.test(base)) {
-    return true;
-  }
-  if (/\bprzedmiar\b/.test(base) || /\bobmiar\b/.test(base)) return true;
-  if (/_pr(?:\.pdf$|_| |\d)/i.test(base)) return true;
-  return false;
+  return isDocD1PdfFilename(filename);
 }
 
 export interface TenderCostDiscoveryResult {
@@ -84,7 +78,7 @@ export function isFormalOfferCostFilename(filename: string): boolean {
   if (
     /\bofert/.test(folded)
     && /\.xlsx?$/i.test(folded)
-    && !/koszt|przedm|obmiar/.test(folded)
+    && !/koszt|przedm|obmiar|boq|quantit|slep/.test(folded)
   ) {
     return true;
   }
@@ -128,7 +122,7 @@ export function classifyCostDocumentType(filename: string): {
     return { type: t, confidence: 0.98 };
   }
   if (isXlsxFilename(base)) {
-    const hasCostHint = /koszt|przedm|obmiar/i.test(base);
+    const hasCostHint = hasDocD1CostFilenameHint(base);
     if (inZip && !hasCostHint) {
       return { type: "none", confidence: 0 };
     }
@@ -136,7 +130,7 @@ export function classifyCostDocumentType(filename: string): {
     return { type: t, confidence: hasCostHint ? 0.88 : 0.72 };
   }
   if (isXlsOnlyFilename(base)) {
-    const hasCostHint = /koszt|przedm|obmiar/i.test(base);
+    const hasCostHint = hasDocD1CostFilenameHint(base);
     if (inZip && !hasCostHint) {
       return { type: "none", confidence: 0 };
     }
@@ -145,7 +139,11 @@ export function classifyCostDocumentType(filename: string): {
   }
   if (isPdfPrzedmiarCostFilename(filename)) {
     const t: TenderCostDocumentType = inZip ? "zip_pdf_przedmiar" : "pdf_przedmiar";
-    const conf = /przedmiar|obmiar/i.test(base) ? 0.82 : /kosztorys/i.test(base) ? 0.78 : 0.74;
+    const conf = /przedmiar|obmiar/i.test(base)
+      ? 0.82
+      : /kosztorys|boq|quantit|slep/i.test(base)
+        ? 0.78
+        : 0.74;
     return { type: t, confidence: conf };
   }
   if (isKosztorysPreviewExt(base)) {

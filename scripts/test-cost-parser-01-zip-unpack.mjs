@@ -64,7 +64,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   assert.equal(state, "unpack_failed");
   const overlay = resolveCostParserZipUiOverlay(state);
   assert.equal(overlay.phaseLabelPl, "Nie udało się odczytać archiwum ZIP");
-  assert.ok(!/Nie znaleziono kosztorysu w archiwum ZIP/.test(overlay.phaseLabelPl));
+  assert.ok(!/Nie znaleziono przedmiaru w archiwum ZIP/.test(overlay.phaseLabelPl));
 
   const item = baseItem({
     bzpDocuments: [
@@ -82,7 +82,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   assert.ok(copy);
   assert.equal(copy.zipState, "unpack_failed");
   assert.equal(copy.phaseLabelPl, "Nie udało się odczytać archiwum ZIP");
-  assert.ok(!/Nie znaleziono kosztorysu w archiwum ZIP/.test(copy.phaseLabelPl));
+  assert.ok(!/Nie znaleziono przedmiaru w archiwum ZIP/.test(copy.phaseLabelPl));
   console.log("PASS AC-ZU-1 stan A unpack_failed");
 }
 
@@ -97,7 +97,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   assert.equal(state, "no_cost_inner");
   assert.equal(
     resolveCostParserZipUiOverlay(state).phaseLabelPl,
-    "Nie znaleziono kosztorysu w archiwum ZIP",
+    "Nie znaleziono przedmiaru w archiwum ZIP",
   );
 
   const item = baseItem({
@@ -113,7 +113,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   });
   const copy = resolveCostRegressionF2Presentation({ item });
   assert.equal(copy?.zipState, "no_cost_inner");
-  assert.equal(copy?.phaseLabelPl, "Nie znaleziono kosztorysu w archiwum ZIP");
+  assert.equal(copy?.phaseLabelPl, "Nie znaleziono przedmiaru w archiwum ZIP");
   console.log("PASS AC-ZU-2 stan B no_cost_inner");
 }
 
@@ -128,7 +128,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   assert.equal(state, "parse_failed");
   assert.equal(
     resolveCostParserZipUiOverlay(state).phaseLabelPl,
-    "Nie udało się odczytać kosztorysu z archiwum",
+    "Nie udało się odczytać przedmiaru z archiwum",
   );
 
   const item = baseItem({
@@ -149,7 +149,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   });
   const copy = resolveCostRegressionF2Presentation({ item });
   assert.equal(copy?.zipState, "parse_failed");
-  assert.equal(copy?.phaseLabelPl, "Nie udało się odczytać kosztorysu z archiwum");
+  assert.equal(copy?.phaseLabelPl, "Nie udało się odczytać przedmiaru z archiwum");
   console.log("PASS AC-ZU-3 stan C parse_failed");
 }
 
@@ -230,7 +230,7 @@ function heavyDoneEmptyDossier(scanExtra = {}) {
   delete item.tenderDossier.scanSummary.zipUnpackOk;
   const copy = resolveCostRegressionF2Presentation({ item });
   assert.equal(copy?.zipState ?? null, null);
-  assert.equal(copy?.phaseLabelPl, "Nie znaleziono kosztorysu w archiwum ZIP");
+  assert.equal(copy?.phaseLabelPl, "Nie znaleziono przedmiaru w archiwum ZIP");
   console.log("PASS legacy CR-02 copy when zipUnpackOk missing");
 }
 

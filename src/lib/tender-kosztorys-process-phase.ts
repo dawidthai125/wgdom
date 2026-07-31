@@ -195,7 +195,7 @@ const TECHNICAL_PHASE_COPY: Record<
     tone: "progress",
   },
   e6: {
-    label: "Analiza kosztorysu",
+    label: "Odczyt przedmiaru",
     tone: "progress",
   },
   e7: {
@@ -209,7 +209,7 @@ const TECHNICAL_PHASE_COPY: Record<
     tone: "progress",
   },
   e9: {
-    label: "Kosztorys gotowy",
+    label: "Przedmiar gotowy",
     tone: "success",
   },
   e10: {
@@ -222,7 +222,7 @@ const TECHNICAL_PHASE_COPY: Record<
     tone: "error",
   },
   e12: {
-    label: "Analiza kosztorysu",
+    label: "Odczyt przedmiaru",
     hint: "Proces trwa dłużej niż zwykle — możesz spróbować ponownie.",
     tone: "progress",
   },
@@ -231,7 +231,7 @@ const TECHNICAL_PHASE_COPY: Record<
 const E6_SUB_HINTS: Record<KosztorysE6SubPhase, string> = {
   e6a: "Odczyt archiwów i przygotowanie listy plików.",
   e6b: "Pobieranie plików z platformy zamawiającego.",
-  e6c: "Odczyt pozycji kosztorysowych z załączników.",
+  e6c: "Odczyt pozycji przedmiaru z załączników.",
 };
 
 /** Mapowanie 13 faz technicznych → 8 faz biznesowych (P1). */

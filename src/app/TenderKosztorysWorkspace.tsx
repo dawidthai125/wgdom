@@ -144,7 +144,7 @@ function KosztorysTopCostTable({ rows }: { rows: KosztorysProTopRow[] }) {
 function KosztorysEmptyBlock({
   itemId,
   text,
-  title = "Brak kosztorysu",
+  title = "Brak przedmiaru",
   primaryLabel = "Przejdź do Dokumentów",
   onPrimary,
   secondaryLabel,
@@ -465,7 +465,7 @@ export function TenderKosztorysWorkspace({
         ) : (
           <KosztorysEmptyBlock
             itemId={item.id}
-            title={f2Copy?.phaseLabelPl ?? "Brak kosztorysu"}
+            title={f2Copy?.phaseLabelPl ?? "Brak przedmiaru"}
             text={
               f2Copy
                 ? f2Copy.hintPl

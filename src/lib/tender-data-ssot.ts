@@ -32,6 +32,9 @@ import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderBidPricingMode, TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { getBidSourceLabel } from "@/lib/tender-bid-quality";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import {
+  mapDossierKosztorysPresentation,
+} from "@/lib/doc-detection";
 
 function plnFromKosztorys(k: TenderKosztorysSnapshot | null | undefined): number | null {
   if (!k?.ok) return null;
@@ -293,13 +296,17 @@ export function resolvedCostStatusDisplay(
   const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;
 
   if (status === "FOUND_WITH_VALUE") {
-    return { display: `Kosztorys wyceniony (${docType})` };
+    const pres = mapDossierKosztorysPresentation("FOUND_WITH_VALUE");
+    return {
+      display: `${pres.primaryLabelPl} · ${pres.supportingLabelPl} (${docType})`,
+    };
   }
 
   const rowSuffix = rowCount > 0 ? ` (${rowCount} pozycji)` : "";
+  const presNoPrice = mapDossierKosztorysPresentation("FOUND_NO_VALUE");
   return {
     display: PRZEDMIAR_VALUATION_READY_LABEL,
-    hint: `${KOSZTORYS_NOT_PROVIDED_LABEL}\nPrzedmiar ${docType}${rowSuffix} — zakres robót bez cen jednostkowych.`,
+    hint: `${KOSZTORYS_NOT_PROVIDED_LABEL}\n${presNoPrice.primaryLabelPl} ${docType}${rowSuffix} — zakres robót bez cen jednostkowych.`,
   };
 }
 
