@@ -8,6 +8,8 @@ import { WgButton } from "@/app/ui";
 import {
   WG_DURATION_HOVER,
   WG_FOCUS_RING,
+  WG_RADIUS_SM,
+  WG_TOUCH_MIN,
 } from "@/lib/wg-ui-tokens";
 
 export type InspectorMainTab = "dashboard" | "jobs" | "gallery" | "files" | "portfolio";
@@ -146,15 +148,17 @@ export function InspectorJobSectionNav({
     const warn = id === "docs" || id === "photos";
     return (
       <span
-        className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+        className={cn(
+          "text-[10px] px-1.5 py-0.5 font-semibold",
+          WG_RADIUS_SM,
           active === id
             ? warn
               ? "bg-amber-400/30 text-amber-950"
               : "bg-primary-foreground/20"
             : warn
               ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-              : "bg-background text-muted-foreground"
-        }`}
+              : "bg-background text-muted-foreground",
+        )}
       >
         {n > 9 ? "9+" : n}
       </span>
@@ -163,24 +167,33 @@ export function InspectorJobSectionNav({
 
   return (
     <div className="flex gap-1 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none -mx-1 px-1">
-      {getJobSections().map(({ id, label, icon: Icon }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => onSelect(id)}
-          className={`flex items-center gap-1.5 md:gap-1 px-3 md:px-2.5 py-2 md:py-1.5 min-h-[44px] md:min-h-0 rounded-lg text-xs md:text-[11px] font-medium whitespace-nowrap shrink-0 transition-colors touch-manipulation ${
-            active === id
-              ? id === "files"
-                ? "bg-emerald-600 text-white"
-                : "bg-primary text-primary-foreground"
-              : "bg-secondary text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Icon size={12} />
-          {label}
-          {sectionBadge(id)}
-        </button>
-      ))}
+      {getJobSections().map(({ id, label, icon: Icon }) => {
+        const on = active === id;
+        return (
+          <WgButton
+            key={id}
+            type="button"
+            variant="secondary"
+            onClick={() => onSelect(id)}
+            className={cn(
+              "items-center gap-1.5 md:gap-1 px-3 md:px-2.5 text-xs md:text-[11px] font-medium whitespace-nowrap shrink-0",
+              WG_TOUCH_MIN,
+              "h-11 md:h-auto md:min-h-0 md:py-1.5",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              WG_FOCUS_RING,
+              on
+                ? id === "files"
+                  ? "bg-emerald-600 text-white hover:bg-emerald-600/90"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-secondary text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Icon size={12} />
+            {label}
+            {sectionBadge(id)}
+          </WgButton>
+        );
+      })}
     </div>
   );
 }
@@ -231,15 +244,23 @@ export function InspectorQuickActions({
   return (
     <div className="flex flex-wrap gap-2">
       {items.map(({ section, label, icon: Icon }) => (
-        <button
+        <WgButton
           key={section + label}
           type="button"
+          variant="secondary"
           onClick={() => onSelect(section)}
-          className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/15 transition-colors min-h-[44px] touch-manipulation"
+          className={cn(
+            "gap-1.5 px-3 text-xs font-medium",
+            WG_TOUCH_MIN,
+            "h-11",
+            "bg-primary/10 border border-primary/20 text-primary hover:bg-primary/15",
+            `transition-colors ${WG_DURATION_HOVER}`,
+            WG_FOCUS_RING,
+          )}
         >
           <Icon size={13}/>
           {label}
-        </button>
+        </WgButton>
       ))}
     </div>
   );

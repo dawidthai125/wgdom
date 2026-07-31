@@ -59,6 +59,9 @@ import type { DeliveryPackagePublication } from "@/lib/delivery-package-publicat
 import type { HousingType, StoveType, GasFurnaceStatus } from "@/lib/job-meta";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import type { AdminRole } from "@/lib/admin-auth";
+import { WgButton } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
 
 type DirectoryContact = { name: string; phone: string };
 
@@ -234,19 +237,20 @@ export function InspectorJobWorkspace({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shrink-0">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border/60 shrink-0">
         <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
-          <button
+          <WgButton
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]"
+            className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-2 text-sm text-muted-foreground hover:text-foreground")}
           >
             <ArrowLeft size={16} />
             Wróć do {jobReturnLabel}
-          </button>
+          </WgButton>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-1">
-              <h2 className="text-base font-semibold truncate leading-tight">
+              <h2 className={cn(WG_TYPE_TITLE, "text-base truncate leading-tight")}>
                 {job.address || "Bez adresu"}
                 {job.flatNumber && ` m.${job.flatNumber}`}
               </h2>
@@ -273,7 +277,7 @@ export function InspectorJobWorkspace({
             badges={jobSectionBadges}
             onSelect={onJobSectionChange}
           />
-          <p className="text-[10px] text-muted-foreground px-0.5 pb-1">
+          <p className="text-xs text-muted-foreground px-0.5 pb-1">
             {jobSection === "wm" && "Etap odbioru WM, do rozliczenia, notatki i odpowiedzi od admina"}
             {jobSection === "files" && "Zlecenie, kosztorys i wszystkie pliki — pobierz pojedynczo lub ZIP"}
             {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}

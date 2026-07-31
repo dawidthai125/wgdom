@@ -1,6 +1,9 @@
 import { Camera, ClipboardList, Download } from "lucide-react";
 import type { InspectorHandoverQuickActionId } from "@/lib/inspector-handover-ux";
 import { INSPECTOR_HANDOVER_QUICK_ACTIONS } from "@/lib/inspector-handover-ux";
+import { WgButton } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 const ICONS = {
   download_package: Download,
@@ -26,21 +29,24 @@ export function InspectorHandoverQuickBar({
       {INSPECTOR_HANDOVER_QUICK_ACTIONS.map(({ id, label }) => {
         const Icon = ICONS[id];
         const disabled = id === "download_package" && downloadBusy;
+        const isPrimary = id === "download_package" && packageReady;
         return (
-          <button
+          <WgButton
             key={id}
             type="button"
+            variant={isPrimary ? "primary" : "secondary"}
             disabled={disabled}
             onClick={() => onAction(id)}
-            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-medium min-h-[44px] touch-manipulation transition-colors ${
-              id === "download_package" && packageReady
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground border border-border hover:bg-secondary/80"
-            } disabled:opacity-50`}
+            className={cn(
+              "shrink-0 gap-1.5 px-3 text-xs font-medium",
+              WG_TOUCH_MIN,
+              "h-11",
+              !isPrimary && "border border-border",
+            )}
           >
             <Icon size={14} />
             {id === "download_package" && downloadBusy ? "Pobieranie…" : label}
-          </button>
+          </WgButton>
         );
       })}
     </div>

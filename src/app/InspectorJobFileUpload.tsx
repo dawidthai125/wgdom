@@ -6,6 +6,9 @@ import {
   jobFileUploadAccept,
   jobFileUploadError,
 } from "@/lib/job-documents";
+import { WgButton } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 export function InspectorJobFileUpload({
   kind,
@@ -44,15 +47,21 @@ export function InspectorJobFileUpload({
       }}
     >
       {(open) => (
-        <button
+        <WgButton
           type="button"
+          variant="primary"
           disabled={busy}
           onClick={open}
-          className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 ${className}`}
+          className={cn(
+            "w-full gap-2 text-xs font-medium",
+            WG_TOUCH_MIN,
+            "h-11",
+            className,
+          )}
         >
           <Upload size={14}/>
           {label}
-        </button>
+        </WgButton>
       )}
     </HiddenFileInput>
   );

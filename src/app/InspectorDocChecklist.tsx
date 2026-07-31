@@ -13,6 +13,9 @@ import {
   countRequiredDocsDone,
 } from "@/lib/inspector-dashboard";
 import type { JobWmJob } from "@/lib/job-wm";
+import { WgButton, WgCard } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_RADIUS_SM, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 const GROUPS: { id: string; label: string; docs: readonly DocType[] }[] = [
   { id: "documentation", label: "Dokumentacja", docs: INSPECTOR_DOC_GROUP_DOCUMENTATION },
@@ -31,7 +34,7 @@ export function InspectorDocChecklist({
   const requiredSet = new Set<string>(REQUIRED_DOCS);
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+    <WgCard elevation="soft" padding="sm" radius="lg" className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold flex items-center gap-2">
           <ClipboardList size={15}/>
@@ -39,11 +42,13 @@ export function InspectorDocChecklist({
           <InspectorHint text="Kliknij pole — zaznaczasz że mamy ten dokument. Admin widzi to samo w Robotach."/>
         </p>
         <span
-          className={`text-xs font-bold px-2.5 py-1 rounded-full tabular-nums ${
+          className={cn(
+            "text-xs font-bold px-2.5 py-1 tabular-nums",
+            WG_RADIUS_SM,
             done === total
               ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-              : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-          }`}
+              : "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+          )}
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           {done}/{total}
@@ -60,17 +65,21 @@ export function InspectorDocChecklist({
               const checked = job.documents[doc];
               const required = requiredSet.has(doc);
               return (
-                <button
+                <WgButton
                   key={doc}
                   type="button"
+                  variant="secondary"
                   onClick={() => onToggle(doc)}
-                  className={`flex items-center gap-2 text-left text-xs px-3 py-2.5 rounded-xl border transition-colors min-h-[44px] touch-manipulation ${
+                  className={cn(
+                    "justify-start gap-2 text-left text-xs px-3 h-auto py-2.5 font-normal",
+                    WG_TOUCH_MIN,
+                    "min-h-[44px]",
                     checked
-                      ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
+                      ? "border border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/15"
                       : required
-                        ? "border-amber-500/20 bg-amber-500/5 text-muted-foreground"
-                        : "border-border bg-secondary/30 text-muted-foreground"
-                  }`}
+                        ? "border border-amber-500/20 bg-amber-500/5 text-muted-foreground hover:bg-amber-500/10"
+                        : "border border-border bg-secondary/30 text-muted-foreground",
+                  )}
                 >
                   {checked ? <CheckCircle2 size={14} className="shrink-0"/> : <Circle size={14} className="shrink-0"/>}
                   <span className="leading-tight min-w-0">
@@ -81,7 +90,7 @@ export function InspectorDocChecklist({
                       </span>
                     )}
                   </span>
-                </button>
+                </WgButton>
               );
             })}
           </div>
@@ -93,6 +102,6 @@ export function InspectorDocChecklist({
           Brakuje wymaganych: {REQUIRED_DOCS.filter((d) => !job.documents[d]).map((d) => DOC_LABELS[d]).join(", ")}
         </p>
       )}
-    </div>
+    </WgCard>
   );
 }
