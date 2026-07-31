@@ -2,6 +2,9 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import type { WorkerProgressStepId } from "@/lib/worker-job-progress";
 import { workerProgressScrollTarget } from "@/lib/worker-job-progress";
 import { scrollWorkerProgressSection } from "@/app/WorkerJobProgressFlow";
+import { WgButton, WgCard } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_DURATION_HOVER, WG_FOCUS_RING, WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 const CTA_BY_NEXT: Record<
   Exclude<WorkerProgressStepId, "photos">,
@@ -35,7 +38,12 @@ export function WorkerStepCta({
 
   if (allComplete) {
     return (
-      <div className="bg-green-500/10 border border-green-500/25 rounded-2xl px-4 py-3.5 space-y-1">
+      <WgCard
+        elevation="soft"
+        padding="sm"
+        radius="lg"
+        className="border-green-500/25 bg-green-500/10 space-y-1"
+      >
         <p className="text-sm font-semibold text-green-400 flex items-center gap-2">
           <CheckCircle2 size={16} />
           Dokumentacja robót kompletna
@@ -43,7 +51,7 @@ export function WorkerStepCta({
         <p className="text-xs text-muted-foreground leading-relaxed">
           Zdjęcia, opis prac, wymiary i obrys zostały zapisane. Inspektor może przygotować plan techniczny.
         </p>
-      </div>
+      </WgCard>
     );
   }
 
@@ -53,26 +61,34 @@ export function WorkerStepCta({
   if (!cta) return null;
 
   return (
-    <button
+    <WgButton
       type="button"
+      variant="secondary"
       onClick={() => scrollWorkerProgressSection(workerProgressScrollTarget(nextStep))}
-      className="w-full flex items-center justify-between gap-3 min-h-[48px] px-4 py-3 rounded-2xl border border-primary/30 bg-primary/10 text-left touch-manipulation active:scale-[0.99] transition-all"
+      className={cn(
+        "w-full h-auto min-h-[48px] justify-between gap-3 px-4 py-3 text-left touch-manipulation",
+        "border border-primary/30 bg-primary/10 hover:bg-primary/15",
+        `transition-all ${WG_DURATION_HOVER}`,
+        "active:scale-[0.99] motion-reduce:active:scale-100",
+        WG_FOCUS_RING,
+        WG_TOUCH_MIN,
+      )}
     >
       <div className="min-w-0">
         <p className="text-xs font-medium text-primary">{cta.title}</p>
         <p className="text-sm font-semibold text-foreground">{cta.button}</p>
       </div>
       <ArrowRight size={18} className="text-primary shrink-0" />
-    </button>
+    </WgButton>
   );
 }
 
 export function WorkerEducationBanner() {
   return (
-    <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl px-4 py-3.5">
+    <WgCard elevation="soft" padding="sm" radius="lg" className="border-blue-500/20 bg-blue-500/5">
       <p className="text-xs text-muted-foreground leading-relaxed">
         Dodaj zdjęcia, opis prac, wymiary i obrys. Inspektor przygotuje później plan techniczny.
       </p>
-    </div>
+    </WgCard>
   );
 }

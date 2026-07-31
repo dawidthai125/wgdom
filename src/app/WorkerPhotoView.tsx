@@ -17,6 +17,7 @@ import {
   WG_FOCUS_RING,
   WG_RADIUS_LG,
   WG_TOUCH_MIN,
+  WG_TYPE_LABEL,
   WG_TYPE_TITLE,
 } from "@/lib/wg-ui-tokens";
 import {
@@ -809,10 +810,19 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       <div ref={workerScrollRef} className="flex-1 overflow-y-auto overscroll-contain" data-keyboard-aware style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
         <PullToRefreshIndicator pull={workerPull.pull} refreshing={workerPull.refreshing || payrollLoading || jobsLoading} ready={workerPull.ready}/>
         {selectedJob && (
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2.5">
-            <button type="button" onClick={() => setSelectedJobId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] px-1 -ml-1">
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/60 px-4 py-2.5">
+            <WgButton
+              type="button"
+              variant="ghost"
+              onClick={() => setSelectedJobId(null)}
+              className={cn(
+                "gap-2 text-sm font-medium text-primary h-11 px-1 -ml-1",
+                WG_TOUCH_MIN,
+                WG_FOCUS_RING,
+              )}
+            >
               <ArrowLeft size={16}/>Roboty · Grafik · Wypłata
-            </button>
+            </WgButton>
           </div>
         )}
         {!selectedJob && workerTab === "schedule" ? (
@@ -1164,95 +1174,135 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           </div>
         ) : (
           <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
-            <div className="bg-card border border-border rounded-2xl px-5 py-4">
-              <p className="text-base font-bold">{selectedJob.address||"Bez adresu"}{selectedJob.flatNumber&&` m.${selectedJob.flatNumber}`}</p>
+            <WgCard elevation="soft" padding="md" radius="lg" className="px-5 py-4">
+              <p className={cn(WG_TYPE_TITLE, "text-base font-bold")}>{selectedJob.address||"Bez adresu"}{selectedJob.flatNumber&&` m.${selectedJob.flatNumber}`}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{selectedJob.client||"—"} · Rozpoczęto {fmtDate(selectedJob.startDate)}</p>
-            </div>
+            </WgCard>
 
             <WorkerEducationBanner />
             <WorkerJobProgressFlow steps={workerProgress.steps} />
             <WorkerStepCta allComplete={workerProgress.allComplete} nextStep={workerProgress.nextStep} mode="action" />
 
             {uploading && (
-              <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 flex items-center gap-3">
+              <div className={cn("bg-primary/10 border border-primary/20 px-4 py-3 flex items-center gap-3", WG_RADIUS_LG)}>
                 <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0"/>
                 <p className="text-sm text-primary">
                   Wgrywanie… {uploadedCount}{uploadTotal > 0 ? ` / ${uploadTotal}` : ""} zdjęć
                 </p>
               </div>
             )}
-            {uploadError && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</p>}
+            {uploadError && <p className={cn("text-xs text-destructive bg-destructive/10 px-3 py-2", WG_RADIUS_LG)}>{uploadError}</p>}
 
             <div id="worker-section-photos" className="scroll-mt-4 space-y-5">
-            <div className="bg-card border border-primary/25 rounded-2xl p-4 space-y-4">
+            <WgCard elevation="soft" padding="sm" radius="lg" className="border-primary/25 space-y-4">
               <div>
                 <p className="text-sm font-semibold flex items-center gap-2"><ImagePlus size={16} className="text-primary"/>Galeria — wiele zdjęć</p>
                 <p className="text-xs text-muted-foreground mt-1">Zaznacz wiele zdjęć z telefonu naraz, podejrzyj i wyślij jednym kliknięciem.</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {LABELS.map((lbl) => (
-                  <button key={lbl.value} type="button" onClick={() => setGalleryLabel(lbl.value)}
-                    className={`text-sm px-3 py-2.5 min-h-[44px] rounded-full border transition-colors touch-manipulation ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                  <WgButton
+                    key={lbl.value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setGalleryLabel(lbl.value)}
+                    className={cn(
+                      "rounded-full text-sm px-3 min-h-[44px] h-11 touch-manipulation",
+                      `transition-colors ${WG_DURATION_HOVER}`,
+                      galleryLabel === lbl.value
+                        ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15"
+                        : "text-muted-foreground hover:border-primary/40",
+                    )}
+                  >
                     {lbl.title}
-                  </button>
+                  </WgButton>
                 ))}
               </div>
               <HiddenFileInput multiple onPick={onGalleryPick}>
                 {(open) => (
-                  <button
+                  <WgButton
                     type="button"
+                    variant={galleryPicks.length > 0 ? "secondary" : "primary"}
+                    size="lg"
                     onClick={open}
-                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+                    className={cn(
+                      "w-full gap-2 text-sm font-semibold",
+                      "active:scale-[0.98] motion-reduce:active:scale-100",
+                      `transition-all ${WG_DURATION_HOVER}`,
+                    )}
                   >
                     <ImagePlus size={18}/>
                     Wybierz z galerii ({galleryPicks.length || "wiele"})
-                  </button>
+                  </WgButton>
                 )}
               </HiddenFileInput>
               {galleryPicks.length > 0 && (
                 <div className="space-y-3">
                   <div className="space-y-2">
                     {galleryPicks.map((pick, i) => (
-                      <div key={pick.preview} className="flex gap-2 items-start bg-secondary/40 rounded-xl p-2">
+                      <div key={pick.preview} className={cn("flex gap-2 items-start bg-secondary/40 p-2", WG_RADIUS_LG)}>
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary border border-border shrink-0">
                           <img src={pick.preview} alt="" className="w-full h-full object-cover"/>
                         </div>
-                        <input
+                        <WgField
                           type="text"
                           value={pick.caption}
                           onChange={(e) => setGalleryPicks((prev) => prev.map((p, j) => j === i ? { ...p, caption: e.target.value } : p))}
                           placeholder="Opis zdjęcia (opcjonalnie)"
-                          className="flex-1 bg-background rounded-lg px-2.5 py-2 text-xs border border-border focus:border-primary focus:outline-none"
+                          className="flex-1 !space-y-0"
+                          controlClassName="h-10 bg-background px-2.5 py-2 text-xs rounded-lg"
                         />
                       </div>
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <button type="button" onClick={submitGallery} disabled={uploading}
-                      className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50">
+                    <WgButton
+                      type="button"
+                      variant="primary"
+                      size="lg"
+                      onClick={submitGallery}
+                      disabled={uploading}
+                      className="flex-1 text-sm font-semibold"
+                    >
                       Wyślij {galleryPicks.length} zdjęć
-                    </button>
-                    <button type="button" onClick={clearGallery} disabled={uploading}
-                      className="px-4 py-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-secondary">
+                    </WgButton>
+                    <WgButton
+                      type="button"
+                      variant="outline"
+                      onClick={clearGallery}
+                      disabled={uploading}
+                      className="px-4 h-14 text-sm text-muted-foreground"
+                    >
                       Anuluj
-                    </button>
+                    </WgButton>
                   </div>
                 </div>
               )}
-            </div>
+            </WgCard>
 
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Szybki aparat (pojedynczo)</p>
-              <input
+              <p className={cn(WG_TYPE_LABEL, "mb-2")}>Szybki aparat (pojedynczo)</p>
+              <WgField
                 type="text"
                 value={quickPhotoCaption}
                 onChange={(e) => setQuickPhotoCaption(e.target.value)}
                 placeholder="Opis do następnych zdjęć z aparatu (opcjonalnie)"
-                className="w-full bg-secondary rounded-xl px-3 py-2.5 text-xs border border-transparent focus:border-primary focus:outline-none mb-2"
+                className="mb-2 !space-y-0"
+                controlClassName="h-11 bg-secondary/50 text-xs"
               />
               <div className="space-y-2">
                 {LABELS.map(lbl => (
-                  <label key={lbl.value} className={`flex items-center gap-4 px-4 py-3 rounded-xl border cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] ${lbl.color}`}>
+                  <label
+                    key={lbl.value}
+                    className={cn(
+                      "flex items-center gap-4 px-4 py-3 border cursor-pointer",
+                      `transition-all ${WG_DURATION_HOVER}`,
+                      "hover:opacity-90 active:scale-[0.98] motion-reduce:active:scale-100",
+                      WG_RADIUS_LG,
+                      lbl.color,
+                    )}
+                  >
                     <lbl.icon size={18} className="shrink-0"/>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{lbl.title}</p>
@@ -1270,8 +1320,8 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 <p className="text-sm font-semibold mb-3">Twoje wgrane zdjęcia ({myPhotos.length})</p>
                 <div className="space-y-3">
                   {myPhotos.map(p=>(
-                    <div key={p.id} className="flex gap-3 bg-card border border-border rounded-xl p-3">
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-secondary shrink-0">
+                    <WgCard key={p.id} elevation="soft" padding="sm" radius="md" className="flex gap-3 !p-3">
+                      <div className={cn("w-20 h-20 overflow-hidden bg-secondary shrink-0", WG_RADIUS_LG)}>
                         <JobPhotoImg src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
                       </div>
                       <div className="flex-1 min-w-0 space-y-2">
@@ -1279,18 +1329,19 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                           <span className="text-[10px] text-muted-foreground">
                             {p.label==="before"?"Przed":p.label==="after"?"Po":"W trakcie"} · {fmtDate(p.uploadedAt.slice(0,10))}
                           </span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                          <span className={cn(
+                            "text-[9px] font-bold px-2 py-0.5 rounded-full",
                             p.status==="approved"?"bg-green-500/15 text-green-400"
                             :p.status==="rejected"?"bg-red-500/15 text-red-400"
-                            :"bg-yellow-500/15 text-yellow-400"
-                          }`}>
+                            :"bg-yellow-500/15 text-yellow-400",
+                          )}>
                             {PHOTO_STATUS_LABELS[p.status]}
                           </span>
                         </div>
                         {p.status==="rejected" && p.rejectReason && (
                           <p className="text-[10px] text-red-400/90 italic leading-snug">Powód odrzucenia: {p.rejectReason}</p>
                         )}
-                        <input
+                        <WgField
                           type="text"
                           defaultValue={p.caption || ""}
                           onBlur={(e) => {
@@ -1298,14 +1349,19 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                             if (v !== (p.caption || "")) updateMyPhoto(p.id, { caption: v });
                           }}
                           placeholder="Opis zdjęcia (opcjonalnie)"
-                          className="w-full bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"
+                          className="!space-y-0"
+                          controlClassName="h-9 bg-secondary/50 px-2.5 py-1.5 text-xs rounded-lg"
                         />
-                        <button type="button" onClick={() => deleteMyPhoto(p.id)}
-                          className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 min-h-[44px] px-1 -ml-1">
+                        <WgButton
+                          type="button"
+                          variant="ghost"
+                          onClick={() => deleteMyPhoto(p.id)}
+                          className={cn("text-xs text-muted-foreground hover:text-destructive gap-1.5 px-1 -ml-1 h-11", WG_TOUCH_MIN)}
+                        >
                           <Trash2 size={14}/>Usuń zdjęcie
-                        </button>
+                        </WgButton>
                       </div>
-                    </div>
+                    </WgCard>
                   ))}
                 </div>
               </div>
@@ -1318,7 +1374,16 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 <p className="text-sm font-semibold mb-3">Twoja dokumentacja ({myReports.length})</p>
                 <div className="space-y-2">
                   {[...myReports].reverse().map((r) => (
-                    <div key={r.id} className={`bg-card border rounded-xl px-4 py-3 text-sm ${editingReport?.id === r.id ? "border-violet-500/50" : "border-border"}`}>
+                    <WgCard
+                      key={r.id}
+                      elevation="soft"
+                      padding="sm"
+                      radius="md"
+                      className={cn(
+                        "px-4 py-3 text-sm",
+                        editingReport?.id === r.id ? "border-primary/50" : "",
+                      )}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">{fmtDate(r.submittedAt.slice(0, 10))}{r.updatedAt && " · edyt."}</p>
@@ -1327,25 +1392,37 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                           )}
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <button type="button" onClick={() => setEditingReport(normalizeWorkerReport(r))}
-                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
+                          <WgButton
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingReport(normalizeWorkerReport(r))}
+                            className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            title="Edytuj"
+                          >
                             <Edit2 size={16}/>
-                          </button>
-                          <button type="button" onClick={() => deleteMyReport(r.id)}
-                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
+                          </WgButton>
+                          <WgButton
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteMyReport(r.id)}
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title="Usuń"
+                          >
                             <Trash2 size={16}/>
-                          </button>
+                          </WgButton>
                         </div>
                       </div>
-                    </div>
+                    </WgCard>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
+            <WgCard elevation="soft" padding="sm" radius="lg" className="border-primary/25">
               <p className="text-sm font-semibold flex items-center gap-2 mb-3">
-                <ClipboardList size={16} className="text-violet-400"/>
+                <ClipboardList size={16} className="text-primary"/>
                 {editingReport ? "Edytuj dokumentację" : "Dokumentacja robót"}
               </p>
               <JobReportForm
@@ -1360,7 +1437,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 disabled={uploading}
                 layout="worker"
               />
-            </div>
+            </WgCard>
             </div>
 
             <WorkerStepCta allComplete={workerProgress.allComplete} nextStep={workerProgress.nextStep} mode="complete" />

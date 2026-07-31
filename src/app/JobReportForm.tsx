@@ -6,6 +6,15 @@ import { WorkScopeEditor } from "@/app/WorkScopeEditor";
 import type { RoomDimension, RoomTypeKey, WorkerJobReport } from "@/app/app-domain";
 import { ROOM_TYPE_LABELS, defaultRoom, normalizeWorkerReport, roomDisplayName, roomHasContent, uploadPhoto } from "@/app/app-domain";
 import { getReportWorkScopeText, scopeTextHasContent, scopeTextToWorkItems } from "@/lib/work-scope-text";
+import { WgButton, WgCard, WgField } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_RADIUS_LG,
+  WG_TOUCH_MIN,
+  WG_TYPE_LABEL,
+} from "@/lib/wg-ui-tokens";
 
 export function JobReportForm({
   jobId,
@@ -163,21 +172,23 @@ export function JobReportForm({
   return (
     <div className={isWorker ? "space-y-6" : "space-y-4"}>
       {isEdit && (
-        <div className="flex items-center justify-between gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+        <div className={cn("flex items-center justify-between gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-2", WG_RADIUS_LG)}>
           <p className="text-xs text-amber-400 font-medium">Edycja raportu</p>
           {onCancelEdit && (
-            <button type="button" onClick={resetForm} className="text-xs text-muted-foreground hover:text-foreground">Anuluj</button>
+            <WgButton type="button" variant="ghost" onClick={resetForm} className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground">
+              Anuluj
+            </WgButton>
           )}
         </div>
       )}
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
       {success && (
-        <p className="text-xs text-green-400 bg-green-500/10 rounded-lg px-3 py-2">{isEdit ? "Zmiany zapisane." : "Raport zapisany."}</p>
+        <p className={cn("text-xs text-green-400 bg-green-500/10 px-3 py-2", WG_RADIUS_LG)}>{isEdit ? "Zmiany zapisane." : "Raport zapisany."}</p>
       )}
-      {error && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</p>}
+      {error && <p className={cn("text-xs text-destructive bg-destructive/10 px-3 py-2", WG_RADIUS_LG)}>{error}</p>}
 
       <div id={isWorker ? "worker-section-scope" : undefined} className={isWorker ? "scroll-mt-4" : undefined}>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
+        <p className={cn(WG_TYPE_LABEL, "mb-2")}>Zakres wykonanych prac</p>
         <WorkScopeEditor
           value={scopeText}
           onChange={setScopeText}
@@ -187,37 +198,59 @@ export function JobReportForm({
       </div>
 
       <div id={isWorker ? "worker-section-dimensions" : undefined} className={isWorker ? "scroll-mt-4" : undefined}>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <p className={cn(WG_TYPE_LABEL, "mb-2 flex items-center gap-1.5")}>
           <Ruler size={12}/>Wymiary mieszkania
         </p>
         <div className="flex gap-2 mb-3">
-          <button type="button" onClick={() => setDimMode("manual")}
-            className={`flex-1 rounded-lg border transition-colors touch-manipulation ${
-              isWorker ? "min-h-[48px] text-sm px-3 py-2.5" : "text-xs py-2"
-            } ${dimMode === "manual" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+          <WgButton
+            type="button"
+            variant="outline"
+            onClick={() => setDimMode("manual")}
+            className={cn(
+              "flex-1",
+              isWorker ? "min-h-[48px] h-12 text-sm" : "h-9 text-xs",
+              dimMode === "manual"
+                ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15"
+                : "text-muted-foreground",
+            )}
+          >
             Wpisz wymiary
-          </button>
-          <button type="button" onClick={() => setDimMode("sketch")}
+          </WgButton>
+          <WgButton
+            type="button"
+            variant="outline"
+            onClick={() => setDimMode("sketch")}
             id={isWorker && dimMode !== "sketch" ? "worker-section-sketch" : undefined}
-            className={`flex-1 rounded-lg border transition-colors touch-manipulation ${
-              isWorker ? "min-h-[48px] text-sm px-3 py-2.5" : "text-xs py-2"
-            } ${dimMode === "sketch" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+            className={cn(
+              "flex-1",
+              isWorker ? "min-h-[48px] h-12 text-sm" : "h-9 text-xs",
+              dimMode === "sketch"
+                ? "border-primary/50 bg-primary/10 text-primary hover:bg-primary/15"
+                : "text-muted-foreground",
+            )}
+          >
             Foto rysunku
-          </button>
+          </WgButton>
         </div>
 
         {dimMode === "manual" ? (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-1.5">
               {(["salon", "pokoj", "kuchnia", "korytarz", "lazienka", "toaleta"] as RoomTypeKey[]).map((rt) => (
-                <button key={rt} type="button" onClick={() => addRoom(rt)}
-                  className={
-                    isWorker
-                      ? "text-sm min-h-[44px] px-3 py-2.5 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground touch-manipulation"
-                      : "text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }>
+                <WgButton
+                  key={rt}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addRoom(rt)}
+                  className={cn(
+                    "rounded-full text-muted-foreground hover:border-primary/40 hover:text-foreground touch-manipulation",
+                    isWorker ? "min-h-[44px] h-11 px-3 text-sm" : "h-8 px-2.5 text-[11px]",
+                    WG_FOCUS_RING,
+                  )}
+                >
                   + {ROOM_TYPE_LABELS[rt]}
-                </button>
+                </WgButton>
               ))}
             </div>
             {reportRooms.length === 0 ? (
@@ -231,38 +264,47 @@ export function JobReportForm({
                       ? roomDisplayName(room, pokojIdx++)
                       : roomDisplayName(room, 0);
                     return (
-                      <div key={room.id} className="bg-secondary/40 rounded-xl p-3 space-y-2">
+                      <WgCard key={room.id} elevation="flat" padding="sm" radius="md" className="bg-secondary/40 border-border/40 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium">{label}</p>
-                          <button type="button" onClick={() => setReportRooms((p) => p.filter((r) => r.id !== room.id))} className="text-muted-foreground hover:text-destructive">
+                          <WgButton
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setReportRooms((p) => p.filter((r) => r.id !== room.id))}
+                            className="text-muted-foreground hover:text-destructive"
+                            aria-label="Usuń pomieszczenie"
+                          >
                             <Trash2 size={14}/>
-                          </button>
+                          </WgButton>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           {(["length", "width", "height"] as const).map((field, fi) => (
-                            <div key={field}>
-                              <label className="text-[10px] text-muted-foreground block mb-0.5">{fi === 0 ? "Długość" : fi === 1 ? "Szerokość" : "Wysokość"}</label>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="m"
-                                value={room[field]}
-                                onChange={(e) => updateRoom(room.id, { [field]: e.target.value })}
-                                className={`w-full bg-background rounded-lg font-mono border border-border focus:border-primary focus:outline-none ${
-                                  isWorker ? "px-3 py-3 text-base min-h-[44px]" : "px-2 py-1.5 text-sm"
-                                }`}
-                              />
-                            </div>
+                            <WgField
+                              key={field}
+                              label={fi === 0 ? "Długość" : fi === 1 ? "Szerokość" : "Wysokość"}
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="m"
+                              value={room[field]}
+                              onChange={(e) => updateRoom(room.id, { [field]: e.target.value })}
+                              className="!space-y-0.5"
+                              controlClassName={cn(
+                                "font-mono bg-background",
+                                isWorker ? "h-11 min-h-[44px] px-3 text-base rounded-lg" : "h-9 px-2 py-1.5 text-sm rounded-lg",
+                              )}
+                            />
                           ))}
                         </div>
-                        <input
+                        <WgField
                           type="text"
                           value={room.note || ""}
                           onChange={(e) => updateRoom(room.id, { note: e.target.value })}
                           placeholder="Opis pomieszczenia / uwagi (opcjonalnie)"
-                          className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
+                          className="!space-y-0"
+                          controlClassName="h-9 bg-background px-2.5 py-1.5 text-xs rounded-lg"
                         />
-                      </div>
+                      </WgCard>
                     );
                   });
                 })()}
@@ -274,26 +316,38 @@ export function JobReportForm({
             <div className="grid grid-cols-2 gap-2">
               <HiddenFileInput accept="image/*,.heic,.heif" capture="environment" onPick={onSketchPick}>
                 {(open) => (
-                  <button
+                  <WgButton
                     type="button"
+                    variant="outline"
                     onClick={open}
-                    className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation"
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1.5 h-auto py-3.5 border-dashed text-sm text-muted-foreground",
+                      "hover:border-primary/40 hover:text-foreground",
+                      `transition-colors ${WG_DURATION_HOVER}`,
+                      WG_TOUCH_MIN,
+                    )}
                   >
                     <Camera size={18}/>
                     <span className="text-xs font-medium">Zrób zdjęcie</span>
-                  </button>
+                  </WgButton>
                 )}
               </HiddenFileInput>
               <HiddenFileInput accept="image/*,.heic,.heif" onPick={onSketchPick}>
                 {(open) => (
-                  <button
+                  <WgButton
                     type="button"
+                    variant="outline"
                     onClick={open}
-                    className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation"
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1.5 h-auto py-3.5 border-dashed text-sm text-muted-foreground",
+                      "hover:border-primary/40 hover:text-foreground",
+                      `transition-colors ${WG_DURATION_HOVER}`,
+                      WG_TOUCH_MIN,
+                    )}
                   >
                     <ImagePlus size={18}/>
                     <span className="text-xs font-medium">Z galerii</span>
-                  </button>
+                  </WgButton>
                 )}
               </HiddenFileInput>
             </div>
@@ -301,14 +355,15 @@ export function JobReportForm({
               <p className="text-[11px] text-muted-foreground text-center truncate px-2">{sketchFile.name}</p>
             )}
             {sketchPreview && (
-              <img src={sketchPreview} alt="Podgląd rysunku" className="rounded-xl border border-border max-h-48 w-full object-contain bg-secondary"/>
+              <img src={sketchPreview} alt="Podgląd rysunku" className={cn("border border-border max-h-48 w-full object-contain bg-secondary", WG_RADIUS_LG)}/>
             )}
-            <input
+            <WgField
               type="text"
               value={sketchNote}
               onChange={(e) => setSketchNote(e.target.value)}
               placeholder="Opis rysunku / uwagi (opcjonalnie)"
-              className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+              className="!space-y-0"
+              controlClassName="h-11 bg-secondary/50"
             />
           </div>
         )}
@@ -316,27 +371,36 @@ export function JobReportForm({
 
       <div>
         <div className="flex items-start gap-2 mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 flex-1 pt-1.5">
+          <p className={cn(WG_TYPE_LABEL, "flex items-center gap-1.5 flex-1 pt-1.5")}>
             <StickyNote size={12}/>Wiadomość dla admina
           </p>
           <VoiceNoteButton focusRef={generalNoteRef} hintClassName="max-w-[min(100vw-2rem,280px)]" onResult={(text) => setGeneralNote((p) => (p ? `${p} ${text}` : text))}/>
         </div>
-        <textarea
+        <WgField
+          control="textarea"
           ref={generalNoteRef}
           value={generalNote}
           onChange={(e) => setGeneralNote(e.target.value)}
           placeholder="Coś ważnego do przekazania — opcjonalnie"
           rows={2}
-          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"
+          className="!space-y-0"
+          controlClassName="min-h-[4.5rem] h-auto py-2.5 bg-secondary/50 resize-none"
         />
       </div>
 
-      <button type="button" onClick={handleSubmit} disabled={saving || disabled}
-        className={`w-full rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-600/90 disabled:opacity-50 transition-all touch-manipulation ${
-          isWorker ? "min-h-[52px] py-3.5 text-base" : "py-3.5 text-sm"
-        }`}>
+      <WgButton
+        type="button"
+        variant="primary"
+        size={isWorker ? "lg" : "md"}
+        onClick={handleSubmit}
+        disabled={saving || disabled}
+        className={cn(
+          "w-full",
+          isWorker ? "min-h-[52px] text-base" : "h-11 text-sm",
+        )}
+      >
         {saving ? "Zapisywanie…" : submitLabel}
-      </button>
+      </WgButton>
     </div>
   );
 }
