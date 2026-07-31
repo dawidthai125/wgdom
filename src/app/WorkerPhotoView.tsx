@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import { cn } from "@/app/components/ui/utils";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ThemeToggle } from "@/app/theme/ThemeToggle";
 import { useWorkerPrivacyShield } from "@/app/hooks/useWorkerPrivacyShield";
@@ -7,9 +8,17 @@ import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
+import { WgButton, WgCard, WgEmptyState, WgField } from "@/app/ui";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 import { removePhotoWithTombstone } from "@/lib/job-photos";
 import { appendJobActivity } from "@/lib/job-activity";
+import {
+  WG_DURATION_HOVER,
+  WG_FOCUS_RING,
+  WG_RADIUS_LG,
+  WG_TOUCH_MIN,
+  WG_TYPE_TITLE,
+} from "@/lib/wg-ui-tokens";
 import {
   Camera, Eye, ImagePlus, Lock, LogOut, MapPin, CalendarDays, Wallet,
   HelpCircle, ChevronUp, ChevronDown, CloudOff, ArrowLeft, Search, Receipt,
@@ -283,11 +292,21 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       const statusLabel = resolveWorkerContractStatusLabel(job);
       const dateLabel = resolveWorkerContractDateLabel(job);
       return (
-        <button
+        <WgCard
           key={job.id}
+          as="button"
           type="button"
+          elevation="soft"
+          padding="sm"
+          radius="lg"
           onClick={() => openWorkerJob(job.id)}
-          className="w-full bg-card border border-primary/20 rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"
+          className={cn(
+            "w-full text-left touch-manipulation border-primary/20",
+            `transition-colors ${WG_DURATION_HOVER}`,
+            "hover:border-primary/40 hover:bg-primary/5",
+            "active:scale-[0.99] motion-reduce:active:scale-100",
+            WG_FOCUS_RING,
+          )}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -308,15 +327,25 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
               </span>
             )}
           </div>
-        </button>
+        </WgCard>
       );
     }
     return (
-      <button
+      <WgCard
         key={job.id}
+        as="button"
         type="button"
+        elevation="soft"
+        padding="sm"
+        radius="lg"
         onClick={() => openWorkerJob(job.id)}
-        className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"
+        className={cn(
+          "w-full text-left touch-manipulation",
+          `transition-colors ${WG_DURATION_HOVER}`,
+          "hover:border-primary/40 hover:bg-primary/5",
+          "active:scale-[0.99] motion-reduce:active:scale-100",
+          WG_FOCUS_RING,
+        )}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -338,7 +367,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-2">Rozpoczęto: {fmtDate(job.startDate)}</p>
-      </button>
+      </WgCard>
     );
   };
 
@@ -650,66 +679,103 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   return (
     <div
       className="flex flex-col bg-background text-foreground select-none [-webkit-touch-callout:none]"
-      style={{ fontFamily: "'Inter',sans-serif", height: "100dvh" }}
+      style={{ height: "100dvh" }}
     >
-      <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-card shrink-0" style={{paddingTop:"max(1rem,env(safe-area-inset-top))"}}>
-        <div className="flex items-center gap-3">
+      <div
+        className="flex items-center justify-between px-4 py-4 border-b border-border/60 bg-card shrink-0"
+        style={{ paddingTop: "max(1rem,env(safe-area-inset-top))" }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto object-contain"/>
           <div className="w-px h-5 bg-border"/>
-          <div>
-            <p className="text-xs font-semibold">{workerName}</p>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold truncate">{workerName}</p>
             <p className="text-[10px] text-muted-foreground">Tryb pracownika</p>
           </div>
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
           <ThemeToggle />
-          <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary transition-colors">
+          <WgButton
+            type="button"
+            variant="ghost"
+            onClick={onLogout}
+            className={cn(WG_TOUCH_MIN, "h-11 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground rounded-lg")}
+          >
             <LogOut size={13}/>Wyloguj
-          </button>
+          </WgButton>
         </div>
       </div>
 
       {!selectedJob && (
-        <div className="flex border-b border-border bg-card shrink-0">
-          <button
+        <div className="flex border-b border-border/60 bg-card shrink-0">
+          <WgButton
             type="button"
+            variant="ghost"
             onClick={() => setWorkerTab("jobs")}
             title="Wybierz robotę, wgrywaj zdjęcia i dokumentację robót"
-            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={cn(
+              "flex-1 min-h-[48px] h-12 rounded-none gap-1.5 text-sm font-semibold",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              WG_FOCUS_RING,
+              workerTab === "jobs"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground border-b-2 border-transparent",
+            )}
           >
             <MapPin size={14}/>Roboty
-          </button>
-          <button
+          </WgButton>
+          <WgButton
             type="button"
+            variant="ghost"
             onClick={() => setWorkerTab("schedule")}
             title="Twój grafik na ten tydzień — godziny i adresy robót"
-            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "schedule" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={cn(
+              "flex-1 min-h-[48px] h-12 rounded-none gap-1.5 text-sm font-semibold",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              WG_FOCUS_RING,
+              workerTab === "schedule"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground border-b-2 border-transparent",
+            )}
           >
             <CalendarDays size={14}/>Grafik
-          </button>
-          <button
+          </WgButton>
+          <WgButton
             type="button"
+            variant="ghost"
             onClick={() => setWorkerTab("pay")}
             title="Twoja wypłata w piątek — tylko po logowaniu telefonem i kodem"
-            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={cn(
+              "flex-1 min-h-[48px] h-12 rounded-none gap-1.5 text-sm font-semibold",
+              `transition-colors ${WG_DURATION_HOVER}`,
+              WG_FOCUS_RING,
+              workerTab === "pay"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground border-b-2 border-transparent",
+            )}
           >
             <Wallet size={14}/>Wypłata
-          </button>
+          </WgButton>
         </div>
       )}
 
       {!selectedJob && (
         <div className="mx-4 mt-3 shrink-0">
-          <button
+          <WgButton
             type="button"
+            variant="ghost"
             onClick={() => setWorkerHelpOpen((v) => !v)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-border bg-secondary/30 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className={cn(
+              "w-full h-auto justify-between gap-2 px-3 py-2 rounded-xl border border-border bg-secondary/30",
+              "text-xs text-muted-foreground hover:text-foreground",
+              WG_FOCUS_RING,
+            )}
           >
             <span className="flex items-center gap-1.5"><HelpCircle size={13} className="text-primary shrink-0"/>Co mogę tu zrobić?</span>
             {workerHelpOpen ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-          </button>
+          </WgButton>
           {workerHelpOpen && (
-            <div className="mt-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
+            <div className={cn("mt-1.5 px-3 py-2.5 border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5", WG_RADIUS_LG)}>
               <p><strong className="text-foreground/90">Roboty</strong> — na górze lista <strong>Twoje kontrakty</strong> (gdy admin przypisał Cię do planowej ekipy), poniżej wszystkie roboty w toku. Wybierz robotę → zdjęcia (galeria lub aparat), dokumentacja robót (zakres, wymiary, obrys).</p>
               <p><strong className="text-foreground/90">Grafik</strong> — Twój tydzień Pn–So: godziny z listy płac i adresy z wpisów na robotach.</p>
               <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek, skan paragonu (chemia, paliwo) trafia do kosztów do zwrotu po akceptacji admina.</p>
@@ -722,15 +788,20 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       <PwaInstallBanner compact/>
 
       {(queueCount > 0 || flushingQueue) && (
-        <div className="mx-4 mb-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2 text-xs">
+        <div className={cn("mx-4 mb-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 px-3 py-2 text-xs", WG_RADIUS_LG)}>
           <CloudOff size={13} className="text-amber-400 shrink-0"/>
           <span className="text-amber-400 font-medium">
             {flushingQueue ? "Wysyłanie kolejki…" : `${queueCount} zdjęć w kolejce offline`}
           </span>
           {!flushingQueue && navigator.onLine && (
-            <button type="button" onClick={() => flushQueue()} className="ml-auto text-primary hover:underline shrink-0">
+            <WgButton
+              type="button"
+              variant="ghost"
+              onClick={() => flushQueue()}
+              className="ml-auto h-auto w-auto p-0 text-xs text-primary hover:underline shrink-0"
+            >
               Wyślij teraz
-            </button>
+            </WgButton>
           )}
         </div>
       )}
@@ -1016,7 +1087,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
         ) : !selectedJob ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
             {todayWork.working ? (
-              <div className="bg-primary/10 border border-primary/25 rounded-2xl px-4 py-3.5 space-y-1.5">
+              <div className={cn("bg-primary/10 border border-primary/25 px-4 py-3.5 space-y-1.5", WG_RADIUS_LG)}>
                 <p className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
                   <MapPin size={13}/> Gdzie dziś pracuję?
                 </p>
@@ -1032,29 +1103,40 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 )}
               </div>
             ) : currentWeekEmp && (
-              <div className="bg-secondary/40 border border-border rounded-2xl px-4 py-3 text-xs text-muted-foreground">
+              <div className={cn("bg-secondary/40 border border-border px-4 py-3 text-xs text-muted-foreground", WG_RADIUS_LG)}>
                 <span className="font-medium text-foreground/80">Gdzie dziś pracuję?</span> — brak wpisu na dziś w grafiku i na robotach.
               </div>
             )}
             <div>
-              <p className="text-lg font-bold mb-0.5">Wybierz robotę</p>
+              <p className={cn(WG_TYPE_TITLE, "text-lg mb-0.5")}>Wybierz robotę</p>
               <p className="text-xs text-muted-foreground">Zdjęcia, zakres prac i wymiary mieszkania</p>
             </div>
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-              <input type="text" placeholder="Szukaj adresu lub klienta..." value={search} onChange={e=>setSearch(e.target.value)}
-                className="w-full bg-secondary rounded-xl pl-9 pr-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-            </div>
+            <WgField
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj adresu lub klienta..."
+              aria-label="Szukaj adresu lub klienta"
+              className="relative w-full !space-y-0"
+              controlClassName="h-11 min-h-[44px] rounded-xl bg-secondary/50"
+              leading={
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  aria-hidden
+                />
+              }
+            />
             {jobsLoading ? (
               <div className="flex justify-center py-16">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
               </div>
             ) : activeJobs.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground">
-                <MapPin size={40} className="mx-auto opacity-20 mb-3"/>
-                <p className="text-sm">Brak aktywnych robót</p>
-                <p className="text-xs mt-2 max-w-xs mx-auto">Administrator musi dodać robotę ze statusem „w trakcie” w panelu.</p>
-              </div>
+              <WgEmptyState
+                icon={MapPin}
+                title="Brak aktywnych robót"
+                description="Administrator musi dodać robotę ze statusem „w trakcie” w panelu."
+              />
             ) : (
               <div className="space-y-6">
                 {myContractJobs.length > 0 && (
