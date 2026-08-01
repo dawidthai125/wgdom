@@ -546,3 +546,41 @@ npm run audit:mobile # statyczny audyt mobile
 ## 5. Nie commitować
 
 `_206_app.txt`, `_old_app.txt`, `restore-lista-plac-*.json`, `supabase/.temp/`, `icons/`, `music/` (chyba że celowo).
+
+---
+
+## Cursor Cloud specific instructions
+
+Durable, non-obvious notes for running/testing this repo in a Cursor Cloud VM. Standard
+commands live in `README.md` / `package.json` scripts — this section only captures gotchas.
+
+- **Runtime / package manager:** Node 22 works (CI uses 20). Single Vite app, npm + `package-lock.json`.
+  Startup update script only runs `npm install`. Dev server binds `127.0.0.1:5173`
+  (`npm run dev`), preview `127.0.0.1:4173` (`npm run preview`), both `strictPort`.
+- **`npm run dev` requires the `optimizeDeps.exclude` for `playwright` in `vite.config.ts`.**
+  `src/lib/electrical-schematics/render/svg-raster.ts` has a node-only dynamic `import("playwright")`
+  that reaches the browser graph via `WmPrintSchematicsPanel` → `export-pdf.ts`. Without the exclude,
+  Vite's dev dep optimizer tries to pre-bundle `playwright-core` and crashes on `chromium-bidi`
+  (`Could not resolve "chromium-bidi/lib/cjs/..."`), killing the dev server. The browser never
+  executes that import (canvas rasterizer is used when `document` exists). Do not remove the exclude.
+- **Supabase / cloud sync in dev:** with no real `VITE_SUPABASE_*` keys the app runs fully on
+  `localStorage` (data does not sync across devices). If `VITE_SUPABASE_*` are set to non-real
+  values (e.g. the `ci-gate-b-mock` values CI uses), the UI shows a red banner
+  "Nie udało się wysłać do chmury / Failed to fetch" because cloud pushes fail — the app still
+  works locally. For a clean offline dev run leave `VITE_SUPABASE_*` unset; for the Node test
+  scripts (below) set the dummy `ci-gate-b-mock` values, since `isSupabaseConfigured()` must be true.
+- **Local login:** built-in admin/inspector password hashes are unknown (production hashes in
+  `src/lib/admin-auth.ts`), and worker/test accounts are created in-app. To log in locally, seed
+  `localStorage` — e.g. set `kw-admin-passwords` to `{"dawid":"<sha256 of \"wgdom-admin-account-v1:Dawid:<pass>\">"}`
+  then log in as Dawid with `<pass>`. The Playwright e2e fixtures (`e2e/fixtures/e2e-seed.ts`) show
+  the full seeding pattern for all three roles.
+- **Automated tests:** `npm run test:infra:validate` (manifest), `npm run test:infra -- --gate B --scope payroll|tenders`
+  (vite-node lib+smoke; set the dummy `VITE_SUPABASE_*` first), `npm run test:infra -- --gate C --scope all`
+  (Playwright E2E; orchestrator manages the preview server). E2E needs
+  `npx playwright install chromium` first (browsers are not in the update script).
+- **Known branch drift (not env problems):** on `global-ux-02` UI-refactor branches, a few
+  source-assertion tests fail because markup/tokens moved — e.g. `LIB-TENDER-STRATEGY-TEUX7E`
+  (`scripts/test-tender-strategy-teux7e.mjs`) and parts of the `e2e-happy-path` project
+  (`Dokumentacja` tab / mobile-layout locators). The test runner and app run fine.
+- **Lint/typecheck:** there is no ESLint config. Static checks are `npm run audit:mobile`,
+  `npm run audit:import-cycles`, `npm run audit:pwrb`, plus `npm run build` (and optional `npx tsc --noEmit`).
