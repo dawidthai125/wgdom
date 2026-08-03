@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`18830c1`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · MARKET-SYNC-01 **P2 FULLY CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`18830c1`** · Docs HEAD **`7325c773`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -28,8 +28,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.95** |
 | **Deploy tip commit (`main` / `version.json`)** | **`18830c1`** · full **`18830c118d6f3918ac7f0b2c2e019359510ec70b`** · MARKET-SYNC-01 P2 · live `2026-08-03T07:51:04.952Z` |
-| **Feature tip (MARKET-SYNC-01 P2)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · PriceHistory · Δ% info · Coverage · templates · flaga `kw-market-sync-01-p2` default **OFF** · UI **2.65.95** · **`18830c11`** · P3 **NIE** bez Owner GO |
-| **Feature tip (AI-COST-02 I3)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · Competitiveness RO · linia + summary · CK hint · flaga `kw-ai-cost-02-i3-competitiveness` default **OFF** · UI gate I3∧02-B · UI **2.65.95** · feature **`869b4c52`** · dalsze AI-COST-02 slice = backlog |
+| **Feature tip (MARKET-SYNC-01 P2)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · PriceHistory · Δ% info · Coverage · templates · flaga `kw-market-sync-01-p2` default **OFF** · UI **2.65.95** · **`18830c11`** · tip **`18830c1`** |
+| **Feature tip (MARKET-SYNC-01 P3-A)** | **CLOSED** · mock ingest spine · flaga `kw-market-sync-01-p3` default **OFF** · Legal Gate **OPEN** · single provider `obi` · **bez** bumpa UI · feature/docs **`7325c773`** · [`AUDIT`](../architecture/MARKET-SYNC-01-P3-AUDIT.md) · [`DF`](../architecture/MARKET-SYNC-01-P3-DESIGN-FREEZE.md) · [`OV`](../architecture/MARKET-SYNC-01-P3-OWNER-VERIFICATION.md) · P3-B **NIE** bez Owner GO + Legal |
+| **Feature tip (AI-COST-02 I3)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · Competitiveness RO · linia + summary · CK hint · flaga `kw-ai-cost-02-i3-competitiveness` default **OFF** · UI gate I3∧02-B · UI **2.65.95** · feature **`869b4c52`** · docs CLOSE **`99969f33`** · [`CLOSEOUT`](../architecture/AI-COST-02-I3-CLOSEOUT.md) · dalsze AI-COST-02 slice = backlog |
 | **Feature tip (SMART-PRICING-01 P2)** | **CLOSED** · **PRODUCTION VERIFIED** · MS staging Evidence RO · merge · Rank B1 · flaga `kw-smart-pricing-01-p2` default **OFF** (P2⇒P1) · UI **2.65.95** · **`99c63373`** · [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P2-PRODUCTION-VERIFY.md) · P3 **NIE** bez Owner GO |
 | **Feature tip (SMART-PRICING-01 P1)** | **CLOSED** · **PRODUCTION VERIFIED** · Evidence · Rank · Confidence · One-shot session · Odrzuć · flaga `kw-smart-pricing-01-p1` default **OFF** · UI **2.65.95** · feature **`d8b080e5`** · [`CLOSE`](../architecture/SMART-PRICING-01-P1-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P1-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P1-RELEASE-REPORT.md) |
 | **Feature tip (GLOBAL-UX-02)** | **FULLY CLOSED** · Inspector+Worker → Admin GDS · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** · UI **2.65.95** · feature **`3385d9f`** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · presentation-only · bez bumpa changelog |
@@ -89,7 +90,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.95** / **`18830c1`** · MARKET-SYNC-01 **P2 FULLY CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · SMART-PRICING-01 P0–P2 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · backlog SMART P3 / MS P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
+| **Status** | **PRODUCTION** tip UI **2.65.95** / **`18830c1`** · Docs HEAD **`7325c773`** · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · SMART P0–P2 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · MS P3-B / SMART P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -110,8 +111,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.95** / docs **`7325c773`** | MARKET-SYNC-01 P3-A — mock ingest spine (flag OFF · Legal OPEN) | **CLOSED** · OV · nie tip UI |
+| **2.65.95** / docs **`99969f33`** | AI-COST-02 I3 — CLOSEOUT / PV / RELEASE docs | **FULLY CLOSED** · feature **`869b4c52`** |
 | **2.65.95** / **`18830c1`** | MARKET-SYNC-01 P2 — PriceHistory · Δ% · Coverage (flag OFF) | **FULLY CLOSED** · **PV** · feature **`18830c11`** |
-| **2.65.95** / feature **`869b4c52`** | AI-COST-02 I3 — Competitiveness RO (flag OFF) | **FULLY CLOSED** · **PV** |
 | **2.65.95** / **`99c6337`** | SMART-PRICING-01 P2 — MS staging Evidence · Rank B1 (flag OFF) | **CLOSED** · **PV** · [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P2-PRODUCTION-VERIFY.md) |
 | **2.65.95** / **`d8b080e`** | SMART-PRICING-01 P1 — Evidence · One-shot (flag OFF) | **CLOSED** · **PV** · [`CLOSE`](../architecture/SMART-PRICING-01-P1-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P1-PRODUCTION-VERIFY.md) |
 | **2.65.95** / **`3385d9f`** | GLOBAL-UX-02 — S1–S8 Inspector+Worker chrome (S8 tip) | **FULLY CLOSED** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · S9 DEFERRED |
