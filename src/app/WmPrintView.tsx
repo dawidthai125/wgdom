@@ -21,6 +21,7 @@ import {
   Gauge,
   Library,
   Network,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -33,6 +34,7 @@ import {
 } from "@/app/ElectricalMeasurementNewDialog";
 import { MeasurementCatalogPanel } from "@/app/MeasurementCatalogPanel";
 import { WmPrintSchematicsPanel } from "@/app/WmPrintSchematicsPanel";
+import { WmPrintDrawingsPanel } from "@/app/WmPrintDrawingsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
@@ -105,7 +107,8 @@ import {
   type WmPrintHistoryEntry,
 } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
-import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
+import { getVisibleWmPrintTabs } from "@/lib/wm-print/wm-print-tabs";
+import { isWmRysunki01Enabled } from "@/lib/wm-technical-drawings/flag";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import { filterDetachedElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import { assignRapForJob, assignRapForRegistryKey } from "@/lib/electrical-measurements/registry";
@@ -124,6 +127,7 @@ import {
 } from "@/lib/electrical-measurements/settings";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 import {
   buildDeliveryPackageGenerationFingerprint,
   deliveryPackageStatusLabel,
@@ -135,6 +139,7 @@ import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publicatio
 
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
+  rysunki: Pencil,
   pomiary: Gauge,
   schematy: Network,
   katalog: Library,
@@ -170,6 +175,9 @@ export function WmPrintView({
   electricalSchematics,
   onChangeElectricalSchematics,
   onCommitElectricalSchematics,
+  wmTechnicalDrawings,
+  onChangeWmTechnicalDrawings,
+  onCommitWmTechnicalDrawings,
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
@@ -214,6 +222,9 @@ export function WmPrintView({
   electricalSchematics: SingleLineDiagram[];
   onChangeElectricalSchematics: (next: SingleLineDiagram[]) => void;
   onCommitElectricalSchematics: (next?: SingleLineDiagram[]) => void;
+  wmTechnicalDrawings: WmTechnicalDrawing[];
+  onChangeWmTechnicalDrawings: (next: WmTechnicalDrawing[]) => void;
+  onCommitWmTechnicalDrawings: (next?: WmTechnicalDrawing[]) => void;
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
@@ -296,10 +307,18 @@ export function WmPrintView({
 
   useEffect(() => {
     if (!initialTab && !initialJobId) return;
-    if (initialTab) setTab(initialTab);
+    if (initialTab === "rysunki" && !isWmRysunki01Enabled()) {
+      setTab("odbiory");
+    } else if (initialTab) {
+      setTab(initialTab);
+    }
     if (initialJobId) setSelectedJobId(initialJobId);
     onInitialNavigationConsumed?.();
   }, [initialTab, initialJobId, onInitialNavigationConsumed]);
+
+  useEffect(() => {
+    if (tab === "rysunki" && !isWmRysunki01Enabled()) setTab("odbiory");
+  }, [tab]);
 
   const mobilePomiaryDetailOpen =
     tab === "pomiary" && Boolean(selectedJobId || focusedDetachedMeasurementId);
@@ -874,7 +893,7 @@ export function WmPrintView({
           </p>
         </div>
         <div className="flex flex-wrap gap-1">
-          {WM_PRINT_TABS.map(({ key, label }) => {
+          {getVisibleWmPrintTabs().map(({ key, label }) => {
             const Icon = TAB_ICONS[key];
             return (
             <button
@@ -1203,6 +1222,17 @@ export function WmPrintView({
               </div>
             </div>
           </div>
+        )}
+
+        {tab === "rysunki" && isWmRysunki01Enabled() && (
+          <WmPrintDrawingsPanel
+            jobs={jobs}
+            drawings={wmTechnicalDrawings}
+            onChangeDrawings={onChangeWmTechnicalDrawings}
+            onCommitDrawings={onCommitWmTechnicalDrawings}
+            onRecordWmDrukAudit={onRecordWmDrukAudit}
+            initialJobId={initialJobId}
+          />
         )}
 
         {tab === "schematy" && (

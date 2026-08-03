@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.96 — Odbiory WM — Rysunki P0 (flaga OFF) (2026-08-03)
+
+- **new:** zakładka Rysunki (po Odbiory) — szablony, ściana/tekst, grid/snap, autosave, undo/redo, duplikacja · KV `kw-wm-technical-drawings`.
+- **improve:** flaga `kw-wm-rysunki-01` default OFF (`localStorage` = `1` → ON). PDF/ZIP/drzwi — OUT P0.
+- Testy: `scripts/test-wm-rysunki-01-p0.mjs`.
+
 ## 2.65.95 — Detekcja dokumentów — przedmiar vs oferta (2026-07-31)
 
 - **improve:** model Doc.D1/D2/D3 + aliasy BOQ / Bill of Quantities / kosztorys ślepy → przedmiar (`doc-detection-alias-1`).

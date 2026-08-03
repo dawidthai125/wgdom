@@ -20,6 +20,7 @@ import {
   normalizeElectricalMeasurementRegistryState,
 } from "@/lib/electrical-measurements/registry";
 import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import {
   getDeletedEmployeeLeaveIds,
@@ -46,6 +47,7 @@ export type DeferredAdminHydrationPatch = {
   electricalMeasurementRegistry?: ElectricalMeasurementRegistryState;
   electricalMeasurementSettings?: ElectricalMeasurementSettings;
   electricalSchematics?: SingleLineDiagram[];
+  wmTechnicalDrawings?: WmTechnicalDrawing[];
 };
 
 function readJsonLs(key: string): unknown | null {
@@ -155,6 +157,11 @@ export async function collectDeferredAdminHydrationPatch(): Promise<DeferredAdmi
   const schematicsRaw = readLocalStorageDataKey("kw-electrical-schematics");
   if (Array.isArray(schematicsRaw)) {
     patch.electricalSchematics = schematicsRaw as SingleLineDiagram[];
+  }
+
+  const drawingsRaw = readLocalStorageDataKey("kw-wm-technical-drawings");
+  if (Array.isArray(drawingsRaw)) {
+    patch.wmTechnicalDrawings = drawingsRaw as WmTechnicalDrawing[];
   }
 
   refreshUserClassificationDictionaryCacheFromLocalStorage();

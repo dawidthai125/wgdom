@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-03",
+    version: "2.65.96",
+    label: "Odbiory WM — Rysunki P0 (flaga OFF)",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → zakładka Rysunki (po Odbiory): szkice techniczne powiązane z robotą — szablony, ściana, tekst, siatka/snap, autosave, undo/redo, duplikacja. Sync kw-wm-technical-drawings.",
+      },
+      {
+        type: "improve",
+        text: "Flaga localStorage kw-wm-rysunki-01 (domyślnie OFF). Włączenie: ustaw '1'. PDF/ZIP/drzwi/okna — kolejne slice.",
+      },
+    ],
+  },
+  {
     date: "2026-07-31",
     version: "2.65.95",
     label: "Detekcja dokumentów — przedmiar vs oferta (aliasy + copy)",

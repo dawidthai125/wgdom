@@ -164,6 +164,7 @@ export function adaptJobActivityLog(jobs: AuditHubJob[]): AuditFeedItem[] {
 function wmDrukModuleToTab(module: WmDrukAuditModule): WmPrintTab {
   if (module === "schematics") return "schematy";
   if (module === "katalog") return "katalog";
+  if (module === "drawings") return "rysunki";
   return "pomiary";
 }
 

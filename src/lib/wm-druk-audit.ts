@@ -7,7 +7,7 @@ export const WM_DRUK_AUDIT_LOG_KEY = "kw-wm-druk-audit-log";
 export const WM_DRUK_AUDIT_CAP = 3000;
 const WM_DRUK_AUDIT_IDB_KEY = "audit-ring:kw-wm-druk-audit-log";
 
-export type WmDrukAuditModule = "measurements" | "schematics" | "katalog";
+export type WmDrukAuditModule = "measurements" | "schematics" | "katalog" | "drawings";
 
 export type WmDrukAuditAction =
   | "rap_created"
@@ -20,7 +20,10 @@ export type WmDrukAuditAction =
   | "schematic_deleted"
   | "schematic_duplicated"
   | "pdf_exported"
-  | "measurement_imported";
+  | "measurement_imported"
+  | "drawing_created"
+  | "drawing_deleted"
+  | "drawing_duplicated";
 
 export interface WmDrukAuditEntry {
   id: string;
@@ -35,6 +38,7 @@ export interface WmDrukAuditEntry {
   rapNumber?: string;
   measurementId?: string;
   schematicId?: string;
+  drawingId?: string;
 }
 
 export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = {
@@ -49,9 +53,12 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
   schematic_duplicated: "Duplikacja schematu",
   pdf_exported: "Eksport PDF schematu",
   measurement_imported: "Import z pomiaru",
+  drawing_created: "Utworzono rysunek",
+  drawing_deleted: "Usunięto rysunek",
+  drawing_duplicated: "Duplikacja rysunku",
 };
 
-const VALID_MODULES = new Set<string>(["measurements", "schematics", "katalog"]);
+const VALID_MODULES = new Set<string>(["measurements", "schematics", "katalog", "drawings"]);
 const VALID_ACTIONS = new Set<string>(Object.keys(WM_DRUK_AUDIT_ACTION_LABEL_PL));
 
 /** Callback z warstwy App — zapis + odświeżenie stanu React (bez React w tej bibliotece). */
@@ -68,6 +75,7 @@ export type RecordWmDrukAuditInput = {
   rapNumber?: string;
   measurementId?: string;
   schematicId?: string;
+  drawingId?: string;
   at?: string;
 };
 
@@ -99,6 +107,7 @@ function parseWmDrukAuditEntry(raw: unknown): WmDrukAuditEntry | null {
     rapNumber: r.rapNumber ? String(r.rapNumber) : undefined,
     measurementId: r.measurementId ? String(r.measurementId) : undefined,
     schematicId: r.schematicId ? String(r.schematicId) : undefined,
+    drawingId: r.drawingId ? String(r.drawingId) : undefined,
   };
 }
 
@@ -152,6 +161,7 @@ export function buildWmDrukAuditEntry(input: RecordWmDrukAuditInput): WmDrukAudi
     rapNumber: input.rapNumber,
     measurementId: input.measurementId,
     schematicId: input.schematicId,
+    drawingId: input.drawingId,
   };
 }
 

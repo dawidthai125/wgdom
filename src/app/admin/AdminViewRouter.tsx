@@ -25,6 +25,7 @@ import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -189,6 +190,11 @@ export type AdminViewRouterProps = {
     v: SingleLineDiagram[] | ((prev: SingleLineDiagram[]) => SingleLineDiagram[]),
   ) => void;
   commitElectricalSchematics: (next?: SingleLineDiagram[]) => void;
+  wmTechnicalDrawings: WmTechnicalDrawing[];
+  setWmTechnicalDrawings: (
+    v: WmTechnicalDrawing[] | ((prev: WmTechnicalDrawing[]) => WmTechnicalDrawing[]),
+  ) => void;
+  commitWmTechnicalDrawings: (next?: WmTechnicalDrawing[]) => void;
   pendingWmPrintNav: import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null;
   onInitialWmPrintNavigationConsumed: () => void;
   onOpenWmPrintMeasurements: (jobId: string) => void;
@@ -396,6 +402,9 @@ export function AdminViewRouter({
   electricalSchematics,
   setElectricalSchematics,
   commitElectricalSchematics,
+  wmTechnicalDrawings,
+  setWmTechnicalDrawings,
+  commitWmTechnicalDrawings,
   pendingWmPrintNav,
   onInitialWmPrintNavigationConsumed,
   onOpenWmPrintMeasurements,
@@ -636,6 +645,9 @@ export function AdminViewRouter({
               electricalSchematics={electricalSchematics}
               onChangeElectricalSchematics={setElectricalSchematics}
               onCommitElectricalSchematics={commitElectricalSchematics}
+              wmTechnicalDrawings={wmTechnicalDrawings}
+              onChangeWmTechnicalDrawings={setWmTechnicalDrawings}
+              onCommitWmTechnicalDrawings={commitWmTechnicalDrawings}
               initialTab={pendingWmPrintNav?.tab ?? null}
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}

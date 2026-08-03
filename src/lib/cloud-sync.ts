@@ -57,6 +57,8 @@ import { normalizeElectricalSchematics } from "@/lib/electrical-schematics/norma
 import {
   ELECTRICAL_SCHEMATICS_KEY,
 } from "@/lib/electrical-schematics/types";
+import { mergeWmTechnicalDrawings } from "@/lib/wm-technical-drawings/merge";
+import { WM_TECHNICAL_DRAWINGS_KEY } from "@/lib/wm-technical-drawings/types";
 import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
   ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
@@ -171,6 +173,7 @@ export const DATA_KEYS = [
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
   "kw-electrical-schematics",
+  "kw-wm-technical-drawings",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-classification-dictionary",
@@ -220,6 +223,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
   "kw-electrical-schematics",
+  "kw-wm-technical-drawings",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -2596,6 +2600,8 @@ export function mergeDataKey(
       return mergeElectricalMeasurementSettings(local, cloud);
     case "kw-electrical-schematics":
       return mergeElectricalSchematics(local, cloud);
+    case "kw-wm-technical-drawings":
+      return mergeWmTechnicalDrawings(local, cloud);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -2926,6 +2932,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-electrical-measurements":
     case "kw-electrical-measurement-registry":
     case "kw-electrical-schematics":
+    case "kw-wm-technical-drawings":
       return normalizeArrayValue(value).length + (typeof value === "object" && value && "entries" in value ? recordRichness(value) : 0);
     default:
       return value != null && value !== "" ? 1 : 0;
@@ -2948,6 +2955,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(null);
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) return createEmptyRegistryState();
   if (key === ELECTRICAL_SCHEMATICS_KEY) return [];
+  if (key === WM_TECHNICAL_DRAWINGS_KEY) return [];
   if (key.startsWith("kw-")) return [];
   return {};
 }

@@ -255,6 +255,9 @@ import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measur
 import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
 import { ELECTRICAL_SCHEMATICS_KEY } from "@/lib/electrical-schematics/types";
 import { pushElectricalSchematicsToCloud } from "@/lib/electrical-schematics/sync";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import { WM_TECHNICAL_DRAWINGS_KEY } from "@/lib/wm-technical-drawings/types";
+import { pushWmTechnicalDrawingsToCloud } from "@/lib/wm-technical-drawings/sync";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import { DELIVERY_PACKAGE_PUBLICATIONS_KEY } from "@/lib/delivery-package-publications/types";
 import { pushDeliveryPackagePublicationsToCloud } from "@/lib/delivery-package-publications/publication";
@@ -335,6 +338,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     );
   const [electricalSchematics, setElectricalSchematics] = useLocalStorage<SingleLineDiagram[]>(
     ELECTRICAL_SCHEMATICS_KEY,
+    [],
+  );
+  const [wmTechnicalDrawings, setWmTechnicalDrawings] = useLocalStorage<WmTechnicalDrawing[]>(
+    WM_TECHNICAL_DRAWINGS_KEY,
     [],
   );
   const [view, setView] = useState<View>("dashboard");
@@ -569,6 +576,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       pushElectricalSchematicsToCloud(payload).catch(() => {});
     },
     [electricalSchematics, setElectricalSchematics],
+  );
+
+  const commitWmTechnicalDrawings = useCallback(
+    (next?: WmTechnicalDrawing[]) => {
+      const payload = next ?? wmTechnicalDrawings;
+      if (next !== undefined) {
+        setWmTechnicalDrawings(payload);
+      }
+      bumpAutoSyncSuppress(4500);
+      pushWmTechnicalDrawingsToCloud(payload).catch(() => {});
+    },
+    [wmTechnicalDrawings, setWmTechnicalDrawings],
   );
 
   useEffect(() => {
@@ -1165,6 +1184,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (patch.electricalMeasurementRegistry) setElectricalMeasurementRegistry(patch.electricalMeasurementRegistry);
       if (patch.electricalMeasurementSettings) setElectricalMeasurementSettings(patch.electricalMeasurementSettings);
       if (patch.electricalSchematics) setElectricalSchematics(patch.electricalSchematics);
+      if (patch.wmTechnicalDrawings) setWmTechnicalDrawings(patch.wmTechnicalDrawings);
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
@@ -1184,6 +1204,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setElectricalMeasurementRegistry,
     setElectricalMeasurementSettings,
     setElectricalSchematics,
+    setWmTechnicalDrawings,
   ]);
 
   useRegisterDeferredHydration(applyDeferredHydration);
@@ -1213,7 +1234,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, wmTechnicalDrawings, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -2764,6 +2785,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           electricalSchematics={electricalSchematics}
           setElectricalSchematics={setElectricalSchematics}
           commitElectricalSchematics={commitElectricalSchematics}
+          wmTechnicalDrawings={wmTechnicalDrawings}
+          setWmTechnicalDrawings={setWmTechnicalDrawings}
+          commitWmTechnicalDrawings={commitWmTechnicalDrawings}
           pendingWmPrintNav={pendingWmPrintNav}
           onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
           onOpenWmPrintMeasurements={(jobId) => {
