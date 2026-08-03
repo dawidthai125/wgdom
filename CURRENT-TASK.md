@@ -1,30 +1,37 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-03 (**GLOBAL-UX-02 FULLY CLOSED** · tip UI **2.65.95** / **`3385d9f`** · **SMART-PRICING-01 P1** implement lokalnie) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-03 (**SMART-PRICING-01 P1 CLOSED** · tip UI **2.65.95** / **`d8b080e`** · GLOBAL-UX-02 FULLY CLOSED) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
-> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · **UX-02 CLOSE:** [`docs/architecture/GLOBAL-UX-02-CLOSE.md`](docs/architecture/GLOBAL-UX-02-CLOSE.md)  
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · **P1 CLOSE:** [`docs/architecture/SMART-PRICING-01-P1-CLOSE.md`](docs/architecture/SMART-PRICING-01-P1-CLOSE.md)  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ GLOBAL-UX-02 — **FULLY CLOSED** (live tip)
+## ★ SMART-PRICING-01 P1 — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **FULLY CLOSED** · tip **2.65.95** / **`3385d9f`** · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.95** / **`d8b080e`** · flaga OFF |
+| **SSOT** | [`SMART-PRICING-01-P1-CLOSE.md`](docs/architecture/SMART-PRICING-01-P1-CLOSE.md) |
+| **IN** | Evidence · Rank · Confidence · One-shot session · Odrzuć |
+| **OUT** | MS staging · Save · commit · Cloud · Bid/AI rewrite |
+| **Następne** | **P2** — tylko Owner **GO AUDIT** · **nie** auto-start |
+
+## ★ GLOBAL-UX-02 — **FULLY CLOSED** (prior tip)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **FULLY CLOSED** · tip historyczny **`3385d9f`** · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** |
 | **SSOT** | [`GLOBAL-UX-02-CLOSE.md`](docs/architecture/GLOBAL-UX-02-CLOSE.md) |
 | **Zakres** | Inspector + Worker → Admin GDS · presentation only |
 | **Następne** | **nie** reopen bez Owner GO |
 
-## ★ SMART-PRICING-01 P1 — **IMPLEMENT** (Evidence · One-shot)
+## ★ SMART-PRICING-01 P0 — **CLOSED** (Detect RO)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **IMPLEMENT done** · flaga `kw-smart-pricing-01-p1` default **OFF** · czekaj PV/CLOSE |
-| **IN** | Evidence Quotes RO · Rank · Confidence RO · One-shot session · Odrzuć |
-| **OUT** | MS staging · Save · `commitMarketQuotesImport` · Cloud · Bid/AI rewrite |
-| **SSOT** | [`SMART-PRICING-01-P1-DESIGN-FREEZE.md`](docs/architecture/SMART-PRICING-01-P1-DESIGN-FREEZE.md) · [`SMART-PRICING-01-P1-OWNER-VERIFICATION.md`](docs/architecture/SMART-PRICING-01-P1-OWNER-VERIFICATION.md) |
-| **P0** | **CLOSED** · tip historyczny **2.65.86** / `9ca4a4e5` |
+| **Status** | **CLOSED** · tip historyczny **2.65.86** / `9ca4a4e5` |
+| **SSOT** | [`SMART-PRICING-01-P0-CLOSEOUT.md`](docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md) |
 
 ## ★ CATALOG-COVERAGE-01 — **FULLY CLOSED** (P0a–P0e)
 

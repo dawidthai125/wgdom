@@ -10,7 +10,7 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.65.95 / 3385d9f (GLOBAL-UX-02)
+Tip = 09 + version.json → 2.65.95 / d8b080e (SMART-PRICING-01 P1 CLOSED)
 Tryb = UTRZYMANIE · STABILIZATION WINDOW ACTIVE
 Nowy EPIC = tylko Owner GO → AUDIT najpierw
 ```
@@ -19,10 +19,10 @@ Nowy EPIC = tylko Owner GO → AUDIT najpierw
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE**. Tip produkcji: **UI 2.65.95** / commit **`3385d9f`** (branch **`main`**) — **GLOBAL-UX-02 FULLY CLOSED**.
+W&G DOM jest w trybie **UTRZYMANIE**. Tip produkcji: **UI 2.65.95** / commit **`d8b080e`** (branch **`main`**) — **SMART-PRICING-01 P1 CLOSED**.
 
-Ostatnie zamknięte: **GLOBAL-UX-02** (S1–S8) · AI v2 Confidence / Scope Gap / Document Detection.  
-**SMART-PRICING-01 P1** = Evidence + One-shot (session) · flaga default **OFF** · OUT Save/MS.  
+Ostatnie zamknięte: **SMART P1** (Evidence/One-shot, flaga OFF) · **GLOBAL-UX-02** (S1–S8) · AI v2 Confidence / Scope Gap / Document Detection.  
+**SMART-PRICING-01 P2** = **zakaz** bez Owner GO AUDIT.  
 **Bid Time-Load Guard** = **tylko WIP lokalny** (OV PASS, **nie** na prod).  
 Backlog (MS P2 · CM-04 P3 · Wave 2) **bez** Owner GO = **zakaz IMPLEMENT**.
 
@@ -37,8 +37,8 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **2.65.95** |
-| **Commit** | **`3385d9f`** (full `3385d9f25cfbcb7480ee3e527baafbccb76cc68d`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = GLOBAL-UX-02 S8 |
+| **Commit** | **`d8b080e`** (full `d8b080e53274ce59917a674ffef0c04f914edde2`) |
+| **Status** | **PRODUCTION VERIFIED** · tip = SMART-PRICING-01 P1 |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
 | **Tryb** | **UTRZYMANIE** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
@@ -69,6 +69,7 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
+| **SMART-PRICING-01 P1** | 2.65.95 | `d8b080e` | **CLOSED** | **YES** · flaga OFF |
 | **GLOBAL-UX-02** | 2.65.95 | `3385d9f` | **FULLY CLOSED** | **YES** · S9 DEFERRED |
 | **AI-DOC-DETECTION** | 2.65.95 | `023ac686` | **FULLY CLOSED** | **YES** |
 | Scope Gap MVP | 2.65.93 | `4234617b` | FULLY CLOSED | YES* |
@@ -97,8 +98,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = GLOBAL-UX-02 · **UTRZYMANIE** |
-| **SMART-PRICING-01 P1** | Evidence · Rank · Confidence · One-shot session · Odrzuć · flaga OFF · OUT Save/MS |
+| **Production** | Tip = SMART P1 CLOSED · **UTRZYMANIE** |
+| **SMART-PRICING-01 P2** | **ZAKAZ** bez Owner GO AUDIT |
 | **Backlog (bez GO)** | MS P2 AUDIT · CM-04 P3 (INNE) AUDIT · Catalog Wave 2 · AI v2 P1 Explain/History · GAP-B / I3 / TP200B |
 | **Pierwszy krok po Owner GO** | zawsze **AUDIT** → PLAN → DF → AR → GO → IMPLEMENT |
 
@@ -226,7 +227,7 @@ Rekomendacje (wymagają **Owner GO**):
 | Scope Gap | **FULLY CLOSED** · prod · flaga OFF |
 | Document Detection | **FULLY CLOSED** · UI 2.65.95 · feature `023ac686` |
 | Bid Time-Load Guard | **WIP local** · OV PASS · nie tip |
-| SMART | P0 **CLOSED** · **P1** Evidence/One-shot (flaga OFF) |
+| SMART | P0 **CLOSED** · **P1 CLOSED** · **P2 backlog** |
 | GLOBAL-UX-02 | **FULLY CLOSED** · tip live **`3385d9f`** · S9 DEFERRED |
 | MS (Market Sync) | P0+P1 **CLOSED** · **P2 backlog** |
 | CM (Ceny materiałów) | 01 + 04 P1/P2 **CLOSED** · **P3 AUDIT backlog** |
