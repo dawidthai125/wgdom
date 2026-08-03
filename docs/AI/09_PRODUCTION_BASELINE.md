@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`18830c1`** · Docs HEAD **`7325c773`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.66.02** · **`abe57f9a`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-RYSUNKI-01 P3B CLOSED** · **EPIC CORE COMPLETE** (P0–P3) · P3A+P3B polish **CLOSED** · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -26,8 +26,15 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.95** |
-| **Deploy tip commit (`main` / `version.json`)** | **`18830c1`** · full **`18830c118d6f3918ac7f0b2c2e019359510ec70b`** · MARKET-SYNC-01 P2 · live `2026-08-03T07:51:04.952Z` |
+| **UI version (changelog / version.json)** | **2.66.02** |
+| **Deploy tip commit (`main` / `version.json`)** | **`abe57f9a`** · full **`abe57f9a178255578484ad586b6e85f8e28890eb`** · WM-RYSUNKI-01 P3B · live `2026-08-03T21:21:41.671Z` · tip **`abe57f9`** |
+| **Feature tip (WM-RYSUNKI-01 P3B)** | **CLOSED** · **PRODUCTION VERIFIED** · Ghost `previewWall` · Live Length/Grid · Continuous + ESC · rAF · Ghost OUT PDF/ZIP/JSON · UI **2.66.02** · **`abe57f9a`** · tip **`abe57f9`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-PRODUCTION-VERIFY.md) · [`OV`](../architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-OWNER-VERIFICATION.md) · **P4 NIE** bez Owner GO |
+| **Feature tip (WM-RYSUNKI-01 P3A)** | **CLOSED** · **PRODUCTION VERIFIED** · UX polish: W/G/R · drzwi P/W · gap render-time · wymiar Długość · rozdzielnia · SVG→PDF→ZIP SSOT · UI **2.66.01** · **`20e5c5a3`** · tip **`20e5c5a`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P3A-UX-POLISH-PRODUCTION-VERIFY.md) · [`OV`](../architecture/WM-RYSUNKI-01-P3A-UX-POLISH-OWNER-VERIFICATION.md) · superseded tip by P3B |
+| **Feature tip (WM-RYSUNKI-01 P3)** | **CLOSED** · **PRODUCTION VERIFIED** · ZIP `Rysunki/` · checkbox „Dołącz rysunki” · Final only · reuse `generateDrawingPdf` · manifest/fingerprint additive · fail-loud · `_{shortId}` · audit `drawing_zip_included` · UI **2.66.00** · **`8d4abcc9`** · tip **`8d4abcc`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P3-PRODUCTION-VERIFY.md) · **EPIC CORE COMPLETE** · superseded tip by P3A |
+| **Feature tip (WM-RYSUNKI-01 P2)** | **CLOSED** · **PRODUCTION VERIFIED** · Preview/Download/Print PDF · A4/A3 · portrait/landscape · `jobLabel` + `documentDate` · watermark OUT · audit `drawing_pdf_exported` · UI **2.65.99** · **`4e84f994`** · tip **`4e84f99`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P2-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P2-PRODUCTION-VERIFY.md) · superseded tip by P3 |
+| **Feature tip (WM-RYSUNKI-01 P1B)** | **CLOSED** · **PRODUCTION VERIFIED** · rollout: `AppSettings.wmRysunkiEnabled` default **OFF** · Super Admin ⚙ Moduły · mirror WM Ustawienia · one-shot promote LS→AppSettings · FORCE OFF LS=`0` · bez reload · UI **2.65.98** · **`ad69bcb5`** · tip **`ad69bcb`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P1B-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P1B-PRODUCTION-VERIFY.md) |
+| **Feature tip (WM-RYSUNKI-01 P1)** | **CLOSED** · **PRODUCTION VERIFIED** · toolset: drzwi(+flipH) · okno · wymiar · strzałka · wentylacja · piec · opis pomieszczenia · `symbols/` · `renderSymbol` · rotate 90/180/270 · Final · (legacy LS flag supersedowana przez P1B AppSettings) · KV `kw-wm-technical-drawings` · UI **2.65.97** · **`0b37787d`** · tip **`0b37787`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P1-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P1-PRODUCTION-VERIFY.md) |
+| **Feature tip (WM-RYSUNKI-01 P0)** | **CLOSED** · **PRODUCTION VERIFIED** · Odbiory WM → Rysunki · JSON SSOT · CRUD · wall/text · grid/snap · autosave · undo · flaga OFF · UI **2.65.96** · **`028e4819`** · tip **`028e481`** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P0-CLOSEOUT.md) · [`PV`](../architecture/WM-RYSUNKI-01-P0-PRODUCTION-VERIFY.md) |
 | **Feature tip (MARKET-SYNC-01 P2)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · PriceHistory · Δ% info · Coverage · templates · flaga `kw-market-sync-01-p2` default **OFF** · UI **2.65.95** · **`18830c11`** · tip **`18830c1`** |
 | **Feature tip (MARKET-SYNC-01 P3-A)** | **CLOSED** · mock ingest spine · flaga `kw-market-sync-01-p3` default **OFF** · Legal Gate **OPEN** · single provider `obi` · **bez** bumpa UI · feature/docs **`7325c773`** · [`AUDIT`](../architecture/MARKET-SYNC-01-P3-AUDIT.md) · [`DF`](../architecture/MARKET-SYNC-01-P3-DESIGN-FREEZE.md) · [`OV`](../architecture/MARKET-SYNC-01-P3-OWNER-VERIFICATION.md) · P3-B **NIE** bez Owner GO + Legal |
 | **Feature tip (AI-COST-02 I3)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · Competitiveness RO · linia + summary · CK hint · flaga `kw-ai-cost-02-i3-competitiveness` default **OFF** · UI gate I3∧02-B · UI **2.65.95** · feature **`869b4c52`** · docs CLOSE **`99969f33`** · [`CLOSEOUT`](../architecture/AI-COST-02-I3-CLOSEOUT.md) · dalsze AI-COST-02 slice = backlog |
@@ -90,7 +97,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.95** / **`18830c1`** · Docs HEAD **`7325c773`** · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · SMART P0–P2 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · MS P3-B / SMART P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
+| **Status** | **PRODUCTION** tip UI **2.65.99** / **`4e84f994`** · **WM-RYSUNKI-01 P2 CLOSED** · P1B/P1/P0 CLOSED · MARKET-SYNC-01 **P2 FULLY CLOSED** · **P3-A CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · SMART P0–P2 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · WM P3 / MS P3-B / SMART P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -111,6 +118,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.99** / **`4e84f994`** | WM-RYSUNKI-01 P2 — PDF EXPORT (Preview/Download/Print) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P2-CLOSEOUT.md) |
+| **2.65.98** / **`ad69bcb5`** | WM-RYSUNKI-01 P1B — Feature Rollout AppSettings (default OFF) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P1B-CLOSEOUT.md) |
+| **2.65.97** / **`0b37787d`** | WM-RYSUNKI-01 P1 — toolset symbole (flag OFF) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P1-CLOSEOUT.md) |
+| **2.65.96** / **`028e4819`** | WM-RYSUNKI-01 P0 — Rysunki foundation (flag OFF) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P0-CLOSEOUT.md) |
 | **2.65.95** / docs **`7325c773`** | MARKET-SYNC-01 P3-A — mock ingest spine (flag OFF · Legal OPEN) | **CLOSED** · OV · nie tip UI |
 | **2.65.95** / docs **`99969f33`** | AI-COST-02 I3 — CLOSEOUT / PV / RELEASE docs | **FULLY CLOSED** · feature **`869b4c52`** |
 | **2.65.95** / **`18830c1`** | MARKET-SYNC-01 P2 — PriceHistory · Δ% · Coverage (flag OFF) | **FULLY CLOSED** · **PV** · feature **`18830c11`** |

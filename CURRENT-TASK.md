@@ -1,11 +1,81 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-03 (**MARKET-SYNC-01 P2 FULLY CLOSED** · tip UI **2.65.95** / **`18830c1`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-03 (**WM-RYSUNKI-01 P3B CLOSED** · **EPIC CORE COMPLETE** · tip UI **2.66.02** / **`abe57f9a`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md)  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ WM-RYSUNKI-01 P3B — **CLOSED** (INTERACTIVE DRAWING UX)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.02** / **`abe57f9a`** · Ghost · continuous · ESC · live length/grid |
+| **IN** | `previewWall` Ghost · `wall-preview.ts` · continuous wall · ESC scoped · rAF · Ghost OUT PDF/ZIP/JSON |
+| **OUT** | SHIFT kąty · P4 · CAD · schema 2 · Cloud merge · Payroll · Ghost w export |
+| **SSOT** | [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-OWNER-VERIFICATION.md) |
+| **Następne** | **P4** — tylko Owner **GO AUDIT** · **WAITING FOR NEXT OWNER GO** |
+
+## ★ WM-RYSUNKI-01 P3A — **CLOSED** (UX POLISH)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.01** / **`20e5c5a3`** · W/P/W/R · gap · wymiar Długość |
+| **IN** | wentylacja W · drzwi P/W · gap render-time · popup Długość · rozdzielnia R · SVG→PDF→ZIP SSOT |
+| **OUT** | P4 · punkty · CAD · schema 2 · Cloud merge · Payroll |
+| **SSOT** | [`WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-OWNER-VERIFICATION.md) |
+| **Następne** | **P3B CLOSED** · tip **2.66.02** · **P4** tylko Owner GO AUDIT |
+
+## ★ WM-RYSUNKI-01 P3 — **CLOSED** · **EPIC CORE COMPLETE**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.00** / **`8d4abcc9`** · ZIP `Rysunki/` |
+| **IN** | checkbox „Dołącz rysunki” · Final only · reuse `generateDrawingPdf` · manifest/fingerprint · fail-loud · `_{shortId}` · audit `drawing_zip_included` |
+| **OUT** | nowy ZIP/PDF builder · Cloud drawings merge · Payroll · Points · CAD/DXF |
+| **SSOT** | [`WM-RYSUNKI-01-P3-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3-OWNER-VERIFICATION.md) |
+| **Następne** | **P3A+P3B CLOSED** · tip **2.66.02** · **P4** tylko Owner GO AUDIT |
+
+## ★ WM-RYSUNKI-01 P2 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.65.99** / **`4e84f994`** · Preview/Download/Print PDF |
+| **IN** | A4/A3 · portrait/landscape · `jobLabel` + `documentDate` · `DrawingPdfError` · session bytes · audit `drawing_pdf_exported` |
+| **OUT** | CAD/DXF · watermark rysunków · punkty · Payroll · shared PDF helper |
+| **SSOT** | [`WM-RYSUNKI-01-P2-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P2-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P2-PRODUCTION-VERIFY.md) |
+| **Następne** | **P3 CLOSED** · patrz wyżej |
+
+## ★ WM-RYSUNKI-01 P1B — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.65.98** / **`ad69bcb5`** · `AppSettings.wmRysunkiEnabled` default OFF |
+| **IN** | ⚙ Moduły · mirror WM Ustawienia · one-shot promote · FORCE OFF LS=`0` · bez reload |
+| **OUT** | ZIP · nowe role · nowy DATA_KEY · audit settings |
+| **SSOT** | [`WM-RYSUNKI-01-P1B-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P1B-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P1B-PRODUCTION-VERIFY.md) |
+| **Następne** | **P2 + P3 CLOSED** · patrz wyżej |
+
+## ★ WM-RYSUNKI-01 P1 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.65.97** / **`0b37787d`** · toolset |
+| **IN** | drzwi(+flipH) · okno · wymiar · strzałka · wentylacja · piec · opis pomieszczenia · `symbols/` · rotate 90/180/270 · Final |
+| **OUT** | ZIP · punkty · CAD |
+| **SSOT** | [`WM-RYSUNKI-01-P1-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P1-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P1-PRODUCTION-VERIFY.md) |
+| **Następne** | **P2 + P3 CLOSED** · patrz wyżej |
+
+## ★ WM-RYSUNKI-01 P0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.65.96** / **`028e4819`** · flaga OFF |
+| **IN** | Tab Rysunki · KV `kw-wm-technical-drawings` · CRUD · wall/text · grid/snap · autosave · undo |
+| **OUT** | ZIP shipped w P3 · (historycznie OUT do P3) |
+| **SSOT** | [`WM-RYSUNKI-01-P0-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P0-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P0-PRODUCTION-VERIFY.md) |
+| **Następne** | **P1 + P1B + P2 + P3 CLOSED** · **CORE COMPLETE** |
 
 ## ★ MARKET-SYNC-01 P2 — **FULLY CLOSED**
 

@@ -2,8 +2,8 @@
 
 > **ID:** WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-OWNER-VERIFICATION  
 > **EPIC:** WM-RYSUNKI-01 · **Slice:** **P3B — INTERACTIVE DRAWING UX**  
-> **FAZA:** **OWNER VERIFICATION** → **PASS**  
-> **STATUS:** **OWNER VERIFICATION PASS**  
+> **FAZA:** **OWNER VERIFICATION** → **PASS** · slice **CLOSED**  
+> **STATUS:** **OWNER VERIFICATION PASS** · tip prod **2.66.02** / **`abe57f9a`**  
 > **Wersja changelog:** **2.66.02**  
 > **Data OV:** 2026-08-03  
 > **Wejście:** Owner **GO OWNER VERIFICATION**  
@@ -11,14 +11,16 @@
 > **AUDIT:** [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-AUDIT.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-AUDIT.md) (**ACCEPTED**)  
 > **DF:** [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-DESIGN-FREEZE.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-DESIGN-FREEZE.md) (**FROZEN**)  
 > **AR:** [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-ARCHITECTURE-REVIEW.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-ARCHITECTURE-REVIEW.md) (**PASS WITH MINOR RECOMMENDATIONS**)  
-> **MODE:** VERIFICATION ARCHIVE · **NO COMMIT** · **NO PUSH** (czekaj Owner GO COMMIT)  
+> **CLOSEOUT:** [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) (**CLOSED**)  
+> **PV:** [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-PRODUCTION-VERIFY.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-PRODUCTION-VERIFY.md) (**PRODUCTION VERIFIED**)  
+> **MODE:** VERIFICATION ARCHIVE · tip synced CLOSE  
 > **Język:** polski
 
 ```text
 ════════════════════════════════════════════════════════
 WM-RYSUNKI-01 P3B — OWNER VERIFICATION
 
-STATUS: OWNER VERIFICATION PASS
+STATUS: OWNER VERIFICATION PASS · SLICE CLOSED
 
 1 Ghost po 1. klik + move ...... PASS
 2 Ghost za kursorem (rAF) ...... PASS
@@ -33,10 +35,11 @@ STATUS: OWNER VERIFICATION PASS
 
 P3B 24 · P3A 40 · P3 32 · P2 28 · P1B 32 · P1 44 · P0 33
 changelog 2.66.02 · schemaVersion 1 · library 3 · render 3
+tip prod: 2.66.02 / abe57f9a
 
-COMMIT: NIE
-PUSH: NIE
-NEXT: OWNER GO COMMIT
+COMMIT: DONE (abe57f9a)
+PUSH: DONE · PRODUCTION VERIFIED
+NEXT: WAITING FOR NEXT OWNER GO (P4 NIE)
 ════════════════════════════════════════════════════════
 ```
 
@@ -242,25 +245,24 @@ NEXT: OWNER GO COMMIT
 
 | Pole | Wartość |
 |------|---------|
-| Changelog tip (local) | **2.66.02** |
-| Prod tip (przed release) | **2.66.01** / `20e5c5a3` |
-| Commit P3B | **PENDING** — czekaj **OWNER GO COMMIT** |
-| Push | **NIE** |
+| Changelog tip | **2.66.02** |
+| Prod tip | **2.66.02** / **`abe57f9a`** (live **`abe57f9`**) |
+| Commit P3B | **`abe57f9a178255578484ad586b6e85f8e28890eb`** |
+| Push | **DONE** · **PRODUCTION VERIFIED** |
+| CLOSEOUT | [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md`](./WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) (**CLOSED**) |
 
 ---
 
 ## 8. NEXT
 
 ```text
-STATUS: OWNER VERIFICATION PASS
+STATUS: OWNER VERIFICATION PASS · SLICE CLOSED
 
-NEXT: OWNER GO COMMIT
-  → allowlist §6 only
-  → bez push (osobny GO RELEASE / PUSH)
-
+tip: 2.66.02 / abe57f9a
+WAITING FOR NEXT OWNER GO
 P4 / SHIFT / punkty / CAD: NIE bez nowego Owner GO
 ```
 
 ---
 
-*OV zakończona · PASS · bez commit/push.*
+*OV zakończona · PASS · SLICE CLOSED · tip synced.*
