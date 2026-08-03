@@ -1,0 +1,9 @@
+# AI-COST-02 I3 — CLOSE
+
+> **ID:** AI-COST-02-I3-CLOSE  
+> **STATUS:** **THIN POINTER** → SSOT [`AI-COST-02-I3-CLOSEOUT.md`](./AI-COST-02-I3-CLOSEOUT.md)  
+> **FINAL STATUS:** **FULLY CLOSED** · **PRODUCTION VERIFIED**
+
+Ten plik istnieje dla kompatybilności starych linków.  
+**Źródło prawdy CLOSE:** [`AI-COST-02-I3-CLOSEOUT.md`](./AI-COST-02-I3-CLOSEOUT.md)  
+**PV:** [`AI-COST-02-I3-PRODUCTION-VERIFY.md`](./AI-COST-02-I3-PRODUCTION-VERIFY.md) · **RELEASE:** [`AI-COST-02-I3-RELEASE.md`](./AI-COST-02-I3-RELEASE.md)
