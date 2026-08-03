@@ -1,10 +1,41 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-07-31 (**CATALOG-COVERAGE-01 P0e CLOSED** · tip UI **2.65.91** · **`b69aeaae`** · **PRODUCTION VERIFIED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-03 (**GLOBAL-UX-02 FULLY CLOSED** · tip UI **2.65.95** / **`3385d9f`** · **SMART-PRICING-01 P1** implement lokalnie) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
 
-> **Nowa sesja AI:** [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
+> **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · **UX-02 CLOSE:** [`docs/architecture/GLOBAL-UX-02-CLOSE.md`](docs/architecture/GLOBAL-UX-02-CLOSE.md)  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ GLOBAL-UX-02 — **FULLY CLOSED** (live tip)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **FULLY CLOSED** · tip **2.65.95** / **`3385d9f`** · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** |
+| **SSOT** | [`GLOBAL-UX-02-CLOSE.md`](docs/architecture/GLOBAL-UX-02-CLOSE.md) |
+| **Zakres** | Inspector + Worker → Admin GDS · presentation only |
+| **Następne** | **nie** reopen bez Owner GO |
+
+## ★ SMART-PRICING-01 P1 — **IMPLEMENT** (Evidence · One-shot)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **IMPLEMENT done** · flaga `kw-smart-pricing-01-p1` default **OFF** · czekaj PV/CLOSE |
+| **IN** | Evidence Quotes RO · Rank · Confidence RO · One-shot session · Odrzuć |
+| **OUT** | MS staging · Save · `commitMarketQuotesImport` · Cloud · Bid/AI rewrite |
+| **SSOT** | [`SMART-PRICING-01-P1-DESIGN-FREEZE.md`](docs/architecture/SMART-PRICING-01-P1-DESIGN-FREEZE.md) · [`SMART-PRICING-01-P1-OWNER-VERIFICATION.md`](docs/architecture/SMART-PRICING-01-P1-OWNER-VERIFICATION.md) |
+| **P0** | **CLOSED** · tip historyczny **2.65.86** / `9ca4a4e5` |
+
+## ★ CATALOG-COVERAGE-01 — **FULLY CLOSED** (P0a–P0e)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **FULLY CLOSED** · tip historyczny **2.65.91** · **`b69aeaae`** · Coverage **78.1%** · **PRODUCTION VERIFIED · GREEN** |
+| **SSOT EPIC** | [`CATALOG-COVERAGE-01-EPIC-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-EPIC-CLOSEOUT.md) |
+| **Session** | [`FINAL-AI-HANDOFF.md`](docs/AI/FINAL-AI-HANDOFF.md) · [`AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) |
+| **Pipeline** | Noise → Normalizer → Negation Guard → Alias\|Core → Mapper → Library → AI-COST → SMART |
+| **Tryb** | **UTRZYMANIE** — tip produkcji = **GLOBAL-UX-02** (`3385d9f`), nie Catalog |
+| **Następne** | Backlog: MS P2 · CM-04 P3 · Wave 2 — start od **AUDIT** |
 
 ## ★ CATALOG-COVERAGE-01 P0e — **CLOSED** (FULL Library Seed)
 
@@ -14,7 +45,7 @@
 | **SSOT** | [`CATALOG-COVERAGE-01-P0e-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) |
 | **Zakres** | FULL seed zaprawianie/folia/multiswitch · BIZ A · coverage **78.1%** (+1.4 pp) · Guard/Pack 0 |
 | **OUT** | Wave 2 · Fuzzy · SMART/MS rewrite · Wariant B folii |
-| **Następne** | **SMART P1** / **MS P2** / **CM-04 P3** — Owner GO · **nie** auto-start |
+| **Następne** | EPIC **FULLY CLOSED** → utrzymanie |
 
 ## ★ CATALOG-COVERAGE-01 P0d-A — **CLOSED** (Precision + SAFE Seed)
 
@@ -24,7 +55,7 @@
 | **SSOT** | [`CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) |
 | **Zakres** | Negation Guard Alias\|Core · multiswitch wąski · SAFE zawór+stop · coverage **76.7%** (+0.3 pp) |
 | **OUT** | Wave 2/BIZ/HIGH · Fuzzy · SMART/MS rewrite |
-| **Następne** | **P0e CLOSED** → SMART P1 / MS P2 / CM-04 P3 |
+| **Następne** | **P0e CLOSED** · EPIC **FULLY CLOSED** |
 
 ## ★ CATALOG-COVERAGE-01 P0c — **CLOSED** (Alias Resolver Wave 1)
 

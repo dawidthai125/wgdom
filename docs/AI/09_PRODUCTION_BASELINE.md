@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-07-31 (**CATALOG-COVERAGE-01 P0e CLOSED** · **PRODUCTION VERIFIED**) · tip UI **2.65.91** · feature **`b69aeaae`** · live `version.json` = `2.65.91` / `b69aeaa`.
+**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`3385d9f`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · GLOBAL-UX-02 FULLY CLOSED · tryb **UTRZYMANIE** · SMART-PRICING-01 P1 (kod lokalny / flaga OFF).
 
 ---
 
@@ -26,14 +26,18 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.65.91** |
-| **Deploy tip commit (`main` / `version.json`)** | feature **`b69aeaae`** · docs tip **`006a19f0`** · **PRODUCTION VERIFIED** (`2.65.91` / `b69aeaa`) · [`P0e-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
-| **Feature tip (CATALOG-COVERAGE-01 P0e)** | **CLOSED** · **PRODUCTION VERIFIED** · FULL Library Seed · BIZ A · UI **2.65.91** · feature **`b69aeaae`** · coverage **78.1%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) |
+| **UI version (changelog / version.json)** | **2.65.95** |
+| **Deploy tip commit (`main` / `version.json`)** | **`3385d9f`** · full **`3385d9f25cfbcb7480ee3e527baafbccb76cc68d`** · GLOBAL-UX-02 S8 · [`GLOBAL-UX-02-CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · live `2026-08-03T06:04:47.579Z` |
+| **Feature tip (GLOBAL-UX-02)** | **FULLY CLOSED** · Inspector+Worker → Admin GDS · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** · UI **2.65.95** · **`3385d9f`** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · presentation-only · bez bumpa changelog |
+| **Feature tip (AI-DOC-DETECTION)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · Doc.D1/D2/D3 · aliasy BOQ / Bill of Quantities / ślepy · UX_A–D · UI **2.65.95** · feature **`023ac686`** · [`CLOSE`](../architecture/AI-DOC-DETECTION-CLOSE-01.md) · Residual CI E2E/TEST-INFRA/Mobile — Open (bez naprawy w slice) |
+| **Feature tip (AI v2 · Scope Gap MVP)** | **FULLY CLOSED** · RO „Luki zakresu” · flaga `kw-scope-gap-mvp` default **OFF** · UI **2.65.93** · **`4234617b`** · [`CLOSE`](../architecture/SCOPE-GAP-MVP-CLOSE-01.md) · Residual CI TEUX6/jobs-mobile **UNRELATED / Open** |
+| **Feature tip (AI v2 · Confidence MVP)** | **FULLY CLOSED** · RO „Pewność analizy” · flaga `kw-confidence-mvp` default **OFF** · UI **2.65.92** · **`00a5d873`** · [`CLOSE`](../architecture/CONFIDENCE-MVP-CLOSE-01.md) |
+| **Feature tip (CATALOG-COVERAGE-01 P0e)** | **CLOSED** · **PRODUCTION VERIFIED** · FULL Library Seed · BIZ A · UI **2.65.91** · feature **`b69aeaae`** · coverage **78.1%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0e-RELEASE-REPORT.md) · **EPIC** [`EPIC-CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-EPIC-CLOSEOUT.md) **FULLY CLOSED** |
 | **Feature tip (CATALOG-COVERAGE-01 P0d-A)** | **CLOSED** · Precision + SAFE seed · UI **2.65.90** · feature **`b9da6bff`** · coverage **76.7%** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0d-A-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0c)** | **CLOSED** · Alias Resolver Wave 1 · UI **2.65.89** · feature **`aebf9d09`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0c-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0b)** | **CLOSED** · Normalizer · UI **2.65.88** · feature **`fb58f501`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |
-| **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · NEXT **P1** Owner GO |
+| **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · **P1** Evidence/One-shot (flaga OFF) — kod lokalny / commit tor P1 |
 | **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
@@ -81,7 +85,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.91** · CATALOG-COVERAGE-01 **P0e CLOSED · PV** · P0d-A…P0a **CLOSED** · SMART P0 · MS P1 · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · AI-COST-01 **FROZEN** · NEXT **SMART P1** / **MS P2 AUDIT** / **CM-04 P3 AUDIT** (Owner GO) |
+| **Status** | **PRODUCTION** tip UI **2.65.95** / **`3385d9f`** · GLOBAL-UX-02 **FULLY CLOSED** · CATALOG-COVERAGE-01 **FULLY CLOSED** · tryb **UTRZYMANIE** · SMART-PRICING-01 **P0 CLOSED** · **P1** Evidence/One-shot (flaga `kw-smart-pricing-01-p1` default OFF) · backlog MS P2 / CM-04 P3 / Wave 2 — Owner GO |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -102,6 +106,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.95** / **`3385d9f`** | GLOBAL-UX-02 — S1–S8 Inspector+Worker chrome (S8 tip) | **FULLY CLOSED** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · S9 DEFERRED |
+| **2.65.95** / **`023ac686`** | AI-DOC-DETECTION — Doc.D1/D2/D3 · aliasy · UX_A–D | **FULLY CLOSED** · **PV** · [`CLOSE`](../architecture/AI-DOC-DETECTION-CLOSE-01.md) · [`PV`](../architecture/AI-DOC-DETECTION-PRODUCTION-VERIFY-01.md) |
+| **2.65.93** / **`4234617b`** | Scope Gap MVP — Luki zakresu (flaga OFF) | **FULLY CLOSED** · [`CLOSE`](../architecture/SCOPE-GAP-MVP-CLOSE-01.md) |
 | **docs / P2 CLOSE** | CENY-MATERIAŁÓW-04 P2 COMPLETE — WC FEATURE-DATA · K-P2-1/2/3 PASS | **CLOSED** · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 AUDIT** |
 | **2.65.83** / **`992023cc`** | CENY-MATERIAŁÓW-04 P1-C — elewacje/ocieplenia WC + Quotes · **P1 COMPLETE** | **CLOSED** · **PV** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · [`P1-C-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-C-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-C-RELEASE-COMPLETE.md) |
 | **2.65.82** / **`dca25c96`** | CENY-MATERIAŁÓW-04 P1-B — ogrodzenia WC + Quotes (FEATURE-DATA) | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-B-CLOSEOUT.md) · [`PV`](../architecture/CENY-MATERIAŁÓW-04-P1-B-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/CENY-MATERIAŁÓW-04-P1-B-RELEASE-COMPLETE.md) |
