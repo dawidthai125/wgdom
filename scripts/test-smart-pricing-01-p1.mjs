@@ -202,10 +202,10 @@ assert("L2" in map2, "P1-T06 L2 kept");
 assert("L1" in map1, "P1-T06 input map not mutated");
 assert(fpBefore === productQuotesFingerprint(wMulti, REGION), "P1-T06 Quotes FP still same");
 
-console.log("\n=== P1-T07 extensions P1 ON · P2/P3 OFF ===");
+console.log("\n=== P1-T07 extensions P1+P2 ON · P3 OFF ===");
 assert(isSmartPricingExtensionAvailable("P1_evidence"), "P1-T07 P1_evidence");
 assert(isSmartPricingExtensionAvailable("P1_one_shot"), "P1-T07 P1_one_shot");
-assert(!isSmartPricingExtensionAvailable("P2_ms_staging"), "P1-T07 P2 off");
+assert(isSmartPricingExtensionAvailable("P2_ms_staging"), "P1-T07 P2 on (P2 slice shipped)");
 assert(!isSmartPricingExtensionAvailable("P3_save"), "P1-T07 P3 off");
 const p1 = SMART_PRICING_EXTENSIONS.filter((e) => e.phase.startsWith("P1_"));
 assert(p1.every((e) => e.available === true), "P1-T07 all P1 available");

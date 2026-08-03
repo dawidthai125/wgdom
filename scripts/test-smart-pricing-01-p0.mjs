@@ -170,16 +170,16 @@ assert(
   "T05 other region ≠ useful for preferred",
 );
 
-console.log("\n=== T06 extension points — P1 ON · P2/P3 OFF (P1 slice) ===");
+console.log("\n=== T06 extension points — P1+P2 ON · P3 OFF ===");
 assert(isSmartPricingExtensionAvailable("P1_evidence"), "T06 P1_evidence on");
 assert(isSmartPricingExtensionAvailable("P1_one_shot"), "T06 one_shot on");
-assert(!isSmartPricingExtensionAvailable("P2_ms_staging"), "T06 ms off");
+assert(isSmartPricingExtensionAvailable("P2_ms_staging"), "T06 ms on");
 assert(!isSmartPricingExtensionAvailable("P3_save"), "T06 save off");
 assert(
-  SMART_PRICING_EXTENSIONS.filter((e) => e.phase.startsWith("P2_") || e.phase.startsWith("P3_")).every(
+  SMART_PRICING_EXTENSIONS.filter((e) => e.phase.startsWith("P3_")).every(
     (e) => e.available === false,
   ),
-  "T06 P2/P3 all false",
+  "T06 P3 all false",
 );
 
 console.log("\n=== T07 static: zero write / commit / apply / MS publish in smart-pricing ===");
@@ -196,6 +196,8 @@ const files = [
   "confidence.ts",
   "one-shot.ts",
   "flag.ts",
+  "staging-evidence.ts",
+  "merge.ts",
 ];
 const banned = [
   "commitMarketQuotesImport",
@@ -209,6 +211,7 @@ for (const f of files) {
   for (const b of banned) {
     assert(!src.includes(b), `T07 ${f} bez ${b}`);
   }
+  assert(!src.includes("saveMarketSyncStagingLocal"), `T07 ${f} bez saveMarketSyncStagingLocal`);
 }
 const banner = readFileSync(join(root, "src/app/smart-pricing/SmartPricingDetectBanner.tsx"), "utf8");
 for (const b of banned) {

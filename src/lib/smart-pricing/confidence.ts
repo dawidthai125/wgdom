@@ -1,6 +1,6 @@
 /**
- * SMART-PRICING-01 P1 — Decision Confidence (RO compute).
- * DF-P1-02 · zero persist · reguły DF epicki §6 (bez MS staging w P1).
+ * SMART-PRICING-01 P1/P2 — Decision Confidence (RO compute).
+ * DF-P1-02 · DF-P2-04: staging top → max REVIEW (nie READY).
  */
 
 import {
@@ -27,6 +27,7 @@ export interface ComputeConfidenceOptions {
 /**
  * Pure RO — nie zapisuje nigdzie.
  * Przy konflikcie: MANUAL > REVIEW > READY.
+ * Top `market_sync_staging` ⇒ nie READY (bias REVIEW).
  */
 export function computeDecisionConfidence(
   rankedEvidence: readonly SmartPricingPriceEvidence[],
@@ -36,10 +37,16 @@ export function computeDecisionConfidence(
   if (!rankedEvidence.length) return "MANUAL";
 
   const top = rankedEvidence[0]!;
-  const unitOk = opts.unitOk !== false && !(top.warnings ?? []).some((w) => w.includes("unit mismatch"));
+  const unitOk =
+    opts.unitOk !== false && !(top.warnings ?? []).some((w) => w.includes("unit mismatch"));
 
   if (!unitOk) return "MANUAL";
   if (top.confidence < SMART_PRICING_CONF_REVIEW) return "MANUAL";
+
+  // Staging nigdy nie jest READY (DF-P2-04 / epicki §6).
+  if (top.source === "market_sync_staging") {
+    return "REVIEW";
+  }
 
   let level: SmartPricingDecisionConfidence = "MANUAL";
 

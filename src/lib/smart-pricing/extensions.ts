@@ -18,8 +18,8 @@ export const SMART_PRICING_EXTENSIONS: readonly SmartPricingExtensionPoint[] = [
   },
   {
     phase: "P2_ms_staging",
-    available: false,
-    notePl: "P2 — odczyt RO MARKET-SYNC staging (nie ownership Publish).",
+    available: true,
+    notePl: "P2 — odczyt RO MARKET-SYNC staging → Evidence · merge · Rank B1.",
   },
   {
     phase: "P3_save",

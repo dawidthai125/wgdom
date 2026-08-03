@@ -47,12 +47,15 @@ import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 import {
+  buildEvidenceFromMarketSyncStaging,
   buildEvidenceFromProductQuotes,
   clearOneShotForLine,
   computeDecisionConfidence,
   createOneShotOverlay,
   detectMissingPrices,
   isSmartPricingP1Enabled,
+  isSmartPricingP2Enabled,
+  mergeSmartPricingEvidence,
   missingReasonByLineId,
   rankEvidence,
   type SmartPricingMissingReason,
@@ -64,6 +67,7 @@ import {
 } from "@/app/smart-pricing/SmartPricingDetectBanner";
 import { SmartPricingEvidencePanel } from "@/app/smart-pricing/SmartPricingEvidencePanel";
 import { getWorkById } from "@/lib/work-catalog/catalog-work-utils";
+import { loadMarketSyncStagingLocal } from "@/lib/market-sync/staging-store";
 import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
@@ -1125,6 +1129,7 @@ export function OfferBoqCostIntelligencePanel({
   const confidenceMvpEnabled = isConfidenceMvpEnabled();
   const scopeGapMvpEnabled = isScopeGapMvpEnabled();
   const smartPricingP1Enabled = isSmartPricingP1Enabled();
+  const smartPricingP2Enabled = isSmartPricingP2Enabled();
   const quotesGaps = useMemo(() => {
     if (!cm01Enabled || !view.available || !view.document) return null;
     const store = loadWorkCatalogStoreLocal();
@@ -1239,13 +1244,23 @@ export function OfferBoqCostIntelligencePanel({
     const work = boqLine.catalogWorkId
       ? getWorkById(works, boqLine.catalogWorkId) ?? null
       : null;
-    const raw = buildEvidenceFromProductQuotes(work, {
+    const quotesEvidence = buildEvidenceFromProductQuotes(work, {
       workId: boqLine.catalogWorkId || "unmapped",
       regionCode,
       computedAtIso,
       lineUnit: boqLine.unit ?? null,
     });
-    const ranked = rankEvidence(raw);
+    const stagingEvidence = smartPricingP2Enabled
+      ? buildEvidenceFromMarketSyncStaging(loadMarketSyncStagingLocal(), {
+          workId: boqLine.catalogWorkId || "unmapped",
+          regionCode,
+          lineUnit: boqLine.unit ?? null,
+        })
+      : [];
+    const merged = smartPricingP2Enabled
+      ? mergeSmartPricingEvidence(quotesEvidence, stagingEvidence)
+      : quotesEvidence;
+    const ranked = rankEvidence(merged);
     const unmapped = !boqLine.catalogWorkId;
     const confidence = computeDecisionConfidence(ranked, { unmapped });
     return {
@@ -1257,7 +1272,13 @@ export function OfferBoqCostIntelligencePanel({
       confidence,
       unmapped,
     };
-  }, [smartPricingP1Enabled, p1EvidenceLineId, view.available, view.document]);
+  }, [
+    smartPricingP1Enabled,
+    smartPricingP2Enabled,
+    p1EvidenceLineId,
+    view.available,
+    view.document,
+  ]);
 
   const handlePatch = (
     lineId: string,

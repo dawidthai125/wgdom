@@ -68,8 +68,8 @@ export interface SmartPricingQuoteCellRo {
   rejectReason: SmartPricingMissingReason | null;
 }
 
-/** DF §7.1 — P1: source wyłącznie product_quotes. */
-export type SmartPricingEvidenceSource = "product_quotes";
+/** DF §7.1 — P1: product_quotes · P2: + market_sync_staging. */
+export type SmartPricingEvidenceSource = "product_quotes" | "market_sync_staging";
 
 export type SmartPricingMatchMethod =
   | "ean"

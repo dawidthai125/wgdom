@@ -74,7 +74,10 @@ export function SmartPricingEvidencePanel({
           </h3>
           <p className={`${TEUX_FONT_META} text-muted-foreground`}>
             {lp}. {description.slice(0, 96)}
-            {description.length > 96 ? "…" : ""} · region {regionCode} · Product Quotes RO
+            {description.length > 96 ? "…" : ""} · region {regionCode} · Quotes
+            {evidence.some((e) => e.source === "market_sync_staging")
+              ? " + MS staging RO"
+              : " RO"}
           </p>
         </div>
         <button
@@ -125,10 +128,17 @@ export function SmartPricingEvidencePanel({
                   onClick={() => onSelectEvidence(ev.id)}
                   data-smart-pricing-01-p1-evidence-item={ev.id}
                   data-smart-pricing-01-p1-rank={String(idx + 1)}
+                  data-smart-pricing-01-evidence-source={ev.source}
                 >
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className={`${TEUX_FONT_META} tabular-nums text-muted-foreground`}>
                       #{idx + 1}
+                    </span>
+                    <span
+                      className={`${TEUX_FONT_META} uppercase tracking-wide text-muted-foreground`}
+                      data-smart-pricing-01-source-label
+                    >
+                      {ev.source === "market_sync_staging" ? "MS staging" : "Quotes"}
                     </span>
                     <span className={`${TEUX_FONT_CAPTION} font-medium text-foreground`}>
                       {ev.provider}

@@ -1,6 +1,6 @@
 /**
- * SMART-PRICING-01 P1 — Rank Evidence (sort only).
- * DF-P1-04 · nie mutuje payloadu źródła · O-SP-G default.
+ * SMART-PRICING-01 P1/P2 — Rank Evidence (sort only).
+ * DF-P1-04 · DF-P2-04 B1 · nie mutuje payloadu źródła · O-SP-G default.
  */
 
 import { SMART_PRICING_DEFAULT_PROVIDER_RANK } from "@/lib/smart-pricing/constants";
@@ -19,6 +19,11 @@ export interface RankEvidenceOptions {
 function providerRankIndex(provider: string, rank: readonly string[]): number {
   const i = rank.indexOf(provider);
   return i >= 0 ? i : rank.length + provider.localeCompare("zzzz", "pl");
+}
+
+/** B1: product_quotes przed market_sync_staging przy równym providerze. */
+function sourceRank(source: SmartPricingPriceEvidence["source"]): number {
+  return source === "product_quotes" ? 0 : 1;
 }
 
 function nearTie(a: SmartPricingPriceEvidence, b: SmartPricingPriceEvidence): boolean {
@@ -45,6 +50,10 @@ export function rankEvidence(
     const ra = providerRankIndex(a.provider, providerRank);
     const rb = providerRankIndex(b.provider, providerRank);
     if (ra !== rb) return ra - rb;
+    // DF-P2-04 B1 — przy równym providerze Quotes > staging
+    const sa = sourceRank(a.source);
+    const sb = sourceRank(b.source);
+    if (sa !== sb) return sa - sb;
     if (b.confidence !== a.confidence) return b.confidence - a.confidence;
     const ta = a.acquiredAt || "";
     const tb = b.acquiredAt || "";

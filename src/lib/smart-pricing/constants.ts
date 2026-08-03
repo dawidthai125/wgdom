@@ -24,6 +24,10 @@ export const SMART_PRICING_DEFAULT_PROVIDER_RANK: readonly string[] = [
 export const SMART_PRICING_P1_LS_KEY = "kw-smart-pricing-01-p1";
 export const SMART_PRICING_P1_DEFAULT = false;
 
+/** Feature flag P2 — default OFF (DF-P2-04) · P2⇒P1. */
+export const SMART_PRICING_P2_LS_KEY = "kw-smart-pricing-01-p2";
+export const SMART_PRICING_P2_DEFAULT = false;
+
 /** Confidence thresholds (DF epicki §6). */
 export const SMART_PRICING_CONF_READY_STRONG = 0.85;
 export const SMART_PRICING_CONF_READY = 0.75;

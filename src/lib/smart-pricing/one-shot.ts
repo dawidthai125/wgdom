@@ -31,7 +31,8 @@ export function createOneShotOverlay(
     return null;
   }
   const ev = opts.evidence;
-  if (!(ev.price > 0) || ev.source !== "product_quotes") {
+  if (!(ev.price > 0)) return null;
+  if (ev.source !== "product_quotes" && ev.source !== "market_sync_staging") {
     return null;
   }
   return {
