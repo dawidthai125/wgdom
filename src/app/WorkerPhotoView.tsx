@@ -8,7 +8,7 @@ import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
-import { WgButton, WgCard, WgEmptyState, WgField } from "@/app/ui";
+import { WgButton, WgCard, WgEmptyState, WgField, WgKpi } from "@/app/ui";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 import { removePhotoWithTombstone } from "@/lib/job-photos";
 import { appendJobActivity } from "@/lib/job-activity";
@@ -828,7 +828,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
         {!selectedJob && workerTab === "schedule" ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
             <div>
-              <p className="text-lg font-bold mb-0.5">Twój grafik</p>
+              <p className={cn(WG_TYPE_TITLE, "text-lg mb-0.5")}>Twój grafik</p>
               <p className="text-xs text-muted-foreground">
                 {weekFrom ? `Tydzień ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}` : "Ładowanie…"}
               </p>
@@ -838,23 +838,31 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
               </div>
             ) : !currentWeekEmp ? (
-              <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-2xl px-4">
-                <CalendarDays size={36} className="mx-auto opacity-20 mb-2"/>
-                <p className="text-sm">Brak wpisu w tym tygodniu</p>
-                <p className="text-xs mt-2">Administrator musi dodać Cię do listy płac — wtedy grafik pojawi się tutaj.</p>
-              </div>
+              <WgEmptyState
+                icon={CalendarDays}
+                title="Brak wpisu w tym tygodniu"
+                description="Administrator musi dodać Cię do listy płac — wtedy grafik pojawi się tutaj."
+                className="bg-card border border-border/60 rounded-2xl"
+              />
             ) : (
               <div className="space-y-2">
                 {scheduleColumns.map((col) => {
                   const cell = scheduleCellFor(currentWeekEmp, col.key, col.iso, jobs, []);
                   const isToday = col.iso === todayIsoDate();
                   return (
-                    <div
+                    <WgCard
                       key={col.key}
-                      className={`rounded-2xl border px-4 py-3.5 ${isToday ? "border-primary/40 bg-primary/5" : "border-border bg-card"} ${cell.working ? "" : "opacity-50"}`}
+                      elevation="soft"
+                      padding="sm"
+                      radius="lg"
+                      className={cn(
+                        "px-4 py-3.5",
+                        isToday ? "border-primary/40 bg-primary/5" : "",
+                        cell.working ? "" : "opacity-50",
+                      )}
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className={`text-sm font-semibold ${isToday ? "text-primary" : ""}`}>
+                        <span className={cn("text-sm font-semibold", isToday ? "text-primary" : "")}>
                           {col.shortLabel} · {col.dateLabel}
                           {isToday && <span className="ml-1.5 text-[10px] font-bold text-primary">DZIŚ</span>}
                         </span>
@@ -883,7 +891,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                       ) : (
                         <p className="text-xs text-muted-foreground">Wolne</p>
                       )}
-                    </div>
+                    </WgCard>
                   );
                 })}
               </div>
@@ -891,12 +899,12 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           </div>
         ) : !selectedJob && workerTab === "pay" ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4 worker-pay-sensitive">
-            <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
+            <WgCard elevation="soft" padding="sm" radius="md" className="flex items-start gap-2 bg-amber-500/10 border-amber-500/25 px-3 py-2.5">
               <Lock size={14} className="text-amber-400 shrink-0 mt-0.5"/>
               <p className="text-[11px] text-amber-400/90 leading-relaxed">
                 Kwoty wypłat są poufne. Zakaz zrzutów ekranu i udostępniania. Przy przełączeniu aplikacji dane są ukrywane.
               </p>
-            </div>
+            </WgCard>
 
             {payrollLoading ? (
               <div className="flex justify-center py-16">
@@ -904,53 +912,53 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
               </div>
             ) : (
               <>
-                <div className="bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Wallet size={16} className="text-primary"/>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-primary">Ten tydzień</span>
-                  </div>
-                  {currentPay && weekFrom ? (
-                    <>
-                      <p className="text-3xl font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {fmt(currentPay.netPay)} <span className="text-lg font-normal text-muted-foreground">PLN</span>
+                {currentPay && weekFrom ? (
+                  <WgKpi
+                    label="Ten tydzień"
+                    value={`${fmt(currentPay.netPay)} PLN`}
+                    hint={`Wypłata w piątek · ${fmtDate(fridayPayDate)}`}
+                    icon={Wallet}
+                    status={currentWeekEmp?.settled ? "ok" : "info"}
+                    className="bg-primary/5"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      Tydzień {fmtDate(weekFrom)} – {fmtDate(weekTo)} · {fmtH(currentPay.totalHours)}
+                      {currentPay.rateNum > 0 && ` · ${fmt(currentPay.rateNum)} PLN/h`}
+                    </p>
+                    {currentPay.totalZaliczka > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Zaliczki: −{fmt(currentPay.totalZaliczka)} PLN · brutto {fmt(currentPay.grossPay)} PLN
                       </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Wypłata w piątek · <span className="font-medium text-foreground">{fmtDate(fridayPayDate)}</span>
+                    )}
+                    {currentPay.totalExtraCosts > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Koszty do zwrotu (zaakceptowane): +{fmt(currentPay.totalExtraCosts)} PLN
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Tydzień {fmtDate(weekFrom)} – {fmtDate(weekTo)} · {fmtH(currentPay.totalHours)}
-                        {currentPay.rateNum > 0 && ` · ${fmt(currentPay.rateNum)} PLN/h`}
+                    )}
+                    {pendingExtraCosts.length > 0 && (
+                      <p className="text-xs text-yellow-400/90">
+                        Oczekuje na akceptację: {pendingExtraCosts.length} paragon(ów)
                       </p>
-                      {currentPay.totalZaliczka > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Zaliczki: −{fmt(currentPay.totalZaliczka)} PLN · brutto {fmt(currentPay.grossPay)} PLN
-                        </p>
-                      )}
-                      {currentPay.totalExtraCosts > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Koszty do zwrotu (zaakceptowane): +{fmt(currentPay.totalExtraCosts)} PLN
-                        </p>
-                      )}
-                      {pendingExtraCosts.length > 0 && (
-                        <p className="text-xs text-yellow-400/90 mt-1">
-                          Oczekuje na akceptację: {pendingExtraCosts.length} paragon(ów)
-                        </p>
-                      )}
-                      {currentWeekEmp?.settled && (
-                        <span className="inline-flex items-center gap-1 mt-3 text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400">
-                          <CheckCircle2 size={11}/> Rozliczone
-                        </span>
-                      )}
-                    </>
-                  ) : (
+                    )}
+                    {currentWeekEmp?.settled && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400 w-fit">
+                        <CheckCircle2 size={11}/> Rozliczone
+                      </span>
+                    )}
+                  </WgKpi>
+                ) : (
+                  <WgCard elevation="soft" padding="md" radius="lg" className="border-primary/25 bg-primary/5">
+                    <p className={cn(WG_TYPE_LABEL, "text-primary mb-2 flex items-center gap-2")}>
+                      <Wallet size={14}/>Ten tydzień
+                    </p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       Nie ma Cię jeszcze na liście płac w tym tygodniu. Administrator musi dodać Cię w panelu — wtedy kwota pojawi się tutaj automatycznie.
                     </p>
-                  )}
-                </div>
+                  </WgCard>
+                )}
 
-                <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                  <div className="px-4 py-3.5 border-b border-border">
+                <WgCard elevation="soft" padding="sm" radius="lg" className="overflow-hidden !p-0">
+                  <div className="px-4 py-3.5 border-b border-border/60">
                     <p className="text-sm font-semibold flex items-center gap-2">
                       <Receipt size={15} className="text-primary"/>
                       Paragon / faktura — koszt do zwrotu
@@ -964,25 +972,35 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                       <p className="text-xs text-muted-foreground">Najpierw admin musi dodać Cię do listy płac w tym tygodniu.</p>
                     ) : (
                       <>
-                        <input
+                        <WgField
                           type="text"
                           value={receiptDesc}
                           onChange={(e) => setReceiptDesc(e.target.value)}
                           placeholder="Opis (np. chemia, paliwo)"
-                          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+                          className="!space-y-0"
+                          controlClassName="h-11 bg-secondary/50 text-sm"
                         />
-                        <div className="flex gap-2">
-                          <input
+                        <div className="flex gap-2 items-stretch">
+                          <WgField
                             type="number"
-                            min="0"
-                            step="1"
+                            min={0}
+                            step={1}
                             value={receiptAmount}
                             onChange={(e) => setReceiptAmount(e.target.value)}
                             placeholder="Kwota PLN"
-                            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
-                            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            className="flex-1 !space-y-0"
+                            controlClassName="h-11 bg-secondary/50 text-sm font-mono"
                           />
-                          <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold cursor-pointer shrink-0 ${receiptUploading ? "opacity-50 pointer-events-none" : "hover:bg-primary/90"}`}>
+                          <label
+                            className={cn(
+                              "inline-flex items-center justify-center gap-2 h-11 px-4 shrink-0 cursor-pointer",
+                              "rounded-2xl bg-primary text-primary-foreground text-sm font-semibold",
+                              `transition-all ${WG_DURATION_HOVER}`,
+                              WG_FOCUS_RING,
+                              WG_TOUCH_MIN,
+                              receiptUploading ? "opacity-50 pointer-events-none" : "hover:bg-primary/90",
+                            )}
+                          >
                             {receiptUploading ? (
                               <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"/>
                             ) : (
@@ -1004,12 +1022,12 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                           </label>
                         </div>
                         {receiptError && (
-                          <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{receiptError}</p>
+                          <p className={cn("text-xs text-destructive bg-destructive/10 px-3 py-2", WG_RADIUS_LG)}>{receiptError}</p>
                         )}
                       </>
                     )}
                     {myExtraCosts.length > 0 && (
-                      <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+                      <div className={cn("divide-y divide-border border border-border/60 overflow-hidden", WG_RADIUS_LG)}>
                         {[...approvedExtraCosts, ...pendingExtraCosts, ...rejectedExtraCosts].map((cost) => {
                           const st = extraCostStatus(cost);
                           return (
@@ -1028,11 +1046,12 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                                 <p className="text-sm font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                                   {fmt(parseFloat(cost.amount) || 0)} PLN
                                 </p>
-                                <span className={`inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                <span className={cn(
+                                  "inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full",
                                   st === "approved" ? "bg-green-500/15 text-green-400"
                                   : st === "pending" ? "bg-yellow-500/15 text-yellow-400"
-                                  : "bg-red-500/15 text-red-400"
-                                }`}>
+                                  : "bg-red-500/15 text-red-400",
+                                )}>
                                   {EXTRA_COST_STATUS_LABELS[st]}
                                 </span>
                                 {st === "rejected" && cost.rejectReason && (
@@ -1040,10 +1059,16 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                                 )}
                               </div>
                               {(st === "pending" || st === "rejected") && (
-                                <button type="button" onClick={() => removeMyExtraCost(cost.id)}
-                                  className="p-1.5 text-muted-foreground hover:text-destructive shrink-0">
+                                <WgButton
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeMyExtraCost(cost.id)}
+                                  className="text-muted-foreground hover:text-destructive shrink-0"
+                                  aria-label="Usuń koszt"
+                                >
                                   <Trash2 size={13}/>
-                                </button>
+                                </WgButton>
                               )}
                             </div>
                           );
@@ -1051,27 +1076,36 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                       </div>
                     )}
                   </div>
-                </div>
+                </WgCard>
 
-                <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                  <button
+                <WgCard elevation="soft" padding="sm" radius="lg" className="overflow-hidden !p-0">
+                  <WgButton
                     type="button"
+                    variant="ghost"
                     onClick={() => setShowPayHistory((v) => !v)}
-                    className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-secondary/30 transition-colors"
+                    className={cn(
+                      "w-full h-auto min-h-[48px] px-4 py-3.5 justify-between rounded-none",
+                      `transition-colors ${WG_DURATION_HOVER}`,
+                      "hover:bg-secondary/30",
+                    )}
                   >
                     <div className="flex items-center gap-2">
                       <Archive size={14} className="text-muted-foreground"/>
-                      <span className="text-sm font-semibold">Archiwum wypłat</span>
+                      <span className="text-sm font-semibold text-foreground">Archiwum wypłat</span>
                       {payHistory.length > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{payHistory.length}</span>
                       )}
                     </div>
                     {showPayHistory ? <ChevronUp size={16} className="text-muted-foreground"/> : <ChevronDown size={16} className="text-muted-foreground"/>}
-                  </button>
+                  </WgButton>
                   {showPayHistory && (
-                    <div className="border-t border-border divide-y divide-border">
+                    <div className="border-t border-border/60 divide-y divide-border">
                       {payHistory.length === 0 ? (
-                        <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak zapisanych tygodni w archiwum.</p>
+                        <WgEmptyState
+                          icon={Archive}
+                          title="Brak zapisanych tygodni w archiwum."
+                          className="py-8"
+                        />
                       ) : (
                         payHistory.map((row) => (
                           <div key={row.weekFrom} className="px-4 py-3 flex items-center justify-between gap-3">
@@ -1090,7 +1124,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                       )}
                     </div>
                   )}
-                </div>
+                </WgCard>
               </>
             )}
           </div>
