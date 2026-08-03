@@ -1,5 +1,6 @@
 /**
  * MARKET-SYNC-01 P1 — Preview + Accept (staging) + Publish (commit only).
+ * P2 — History / Coverage / Templates (flag `kw-market-sync-01-p2`).
  */
 
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -33,6 +34,7 @@ import {
   setMarketProductLinkedWorkIds,
   setMarketSyncPublishEnabled,
   undoMarketSyncPublish,
+  isMarketSyncP2Enabled,
   type MarketProduct,
   type MarketSyncPublishSummary,
   type MarketSyncStagingStore,
@@ -47,6 +49,7 @@ import { cn } from "@/app/components/ui/utils";
 import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
+import { MarketSyncP2Panel } from "@/app/market-sync/MarketSyncP2Panel";
 
 type Props = {
   onBack: () => void;
@@ -95,6 +98,7 @@ export function MarketSyncPreviewPanel({ onBack }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const p2Enabled = isMarketSyncP2Enabled();
 
   const persist = useCallback((next: MarketSyncStagingStore, nextPreview: PreviewReport) => {
     saveMarketSyncStagingLocal(next);
@@ -432,9 +436,12 @@ export function MarketSyncPreviewPanel({ onBack }: Props) {
             <p className="text-xs text-muted-foreground">
               Accept = staging · Publish = wyłącznie commitMarketQuotesImport · region{" "}
               {catalogStore.activeRegion}
+              {p2Enabled ? " · P2 History ON" : ""}
             </p>
           </div>
         </div>
+
+        {p2Enabled ? <MarketSyncP2Panel store={store} /> : null}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <WgButton

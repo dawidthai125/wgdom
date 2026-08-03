@@ -1,13 +1,15 @@
 /**
  * MARKET-SYNC-01 P0 — local-first staging store.
- * NIE w DATA_KEYS · NIE cloud-sync · NIE Work Catalog.
+ * P2: soft-add `priceHistory[]` · NIE w DATA_KEYS · NIE cloud-sync · NIE Work Catalog.
  */
 
 import {
   EMPTY_MARKET_SYNC_STAGING,
   MARKET_SYNC_STAGING_STORAGE_KEY,
+  PROVIDER_IDS,
   type MarketProduct,
   type MarketSyncStagingStore,
+  type PriceHistoryEntry,
   type ProviderId,
   type ProviderQuote,
   type SyncRun,
@@ -22,8 +24,37 @@ function isBrowserStorage(): boolean {
   return typeof localStorage !== "undefined";
 }
 
+function normalizePriceHistoryEntry(raw: unknown): PriceHistoryEntry | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const id = typeof o.id === "string" ? o.id.trim() : "";
+  const marketProductId = typeof o.marketProductId === "string" ? o.marketProductId.trim() : "";
+  const providerId = o.providerId;
+  const providerSku = typeof o.providerSku === "string" ? o.providerSku.trim() : "";
+  const pricePln = typeof o.pricePln === "number" ? o.pricePln : Number(o.pricePln);
+  const at = typeof o.at === "string" ? o.at : "";
+  const quoteId = typeof o.quoteId === "string" ? o.quoteId.trim() : "";
+  if (!id || !marketProductId || !providerSku || !at || !quoteId) return null;
+  if (!(pricePln > 0)) return null;
+  if (typeof providerId !== "string" || !(PROVIDER_IDS as readonly string[]).includes(providerId)) {
+    return null;
+  }
+  const sourceKind = o.sourceKind === "manual" ? "manual" : "csv_export";
+  return {
+    id,
+    marketProductId,
+    providerId: providerId as ProviderId,
+    providerSku,
+    pricePln,
+    at,
+    sourceKind,
+    syncRunId: typeof o.syncRunId === "string" ? o.syncRunId : null,
+    quoteId,
+  };
+}
+
 export function createEmptyStagingStore(updatedAt = nowIso()): MarketSyncStagingStore {
-  return { ...EMPTY_MARKET_SYNC_STAGING, updatedAt };
+  return { ...EMPTY_MARKET_SYNC_STAGING, updatedAt, priceHistory: [] };
 }
 
 export function normalizeMarketProduct(raw: unknown): MarketProduct | null {
@@ -41,14 +72,14 @@ export function normalizeMarketProduct(raw: unknown): MarketProduct | null {
     : [];
   const linkedWorkIds = Array.isArray(o.linkedWorkIds)
     ? o.linkedWorkIds
-        .filter((id): id is string => typeof id === "string" && id.trim().length > 0)
-        .map((id) => id.trim())
+        .filter((lid): lid is string => typeof lid === "string" && lid.trim().length > 0)
+        .map((lid) => lid.trim())
         .slice(0, 1)
     : [];
   return {
     id,
     canonicalName,
-    manufacturer: typeof o.manufacturer === "string" ? o.manufacturer : o.manufacturer === null ? null : null,
+    manufacturer: typeof o.manufacturer === "string" ? o.manufacturer : null,
     unit,
     category: typeof o.category === "string" ? o.category : null,
     aliases,
@@ -76,12 +107,18 @@ export function normalizeStagingStore(raw: unknown): MarketSyncStagingStore {
         (r) => r && typeof r === "object" && typeof (r as SyncRun).id === "string",
       )
     : [];
+  const priceHistory = Array.isArray(o.priceHistory)
+    ? o.priceHistory
+        .map(normalizePriceHistoryEntry)
+        .filter((e): e is PriceHistoryEntry => e != null)
+    : [];
   return {
     version: 1,
     updatedAt: typeof o.updatedAt === "string" ? o.updatedAt : nowIso(),
     marketProducts: products,
     providerQuotes: quotes,
     syncRuns,
+    priceHistory,
   };
 }
 
@@ -98,7 +135,12 @@ export function loadMarketSyncStagingLocal(): MarketSyncStagingStore {
 
 export function saveMarketSyncStagingLocal(store: MarketSyncStagingStore): void {
   if (!isBrowserStorage()) return;
-  const next = { ...store, updatedAt: nowIso(), version: 1 as const };
+  const next = {
+    ...store,
+    updatedAt: nowIso(),
+    version: 1 as const,
+    priceHistory: store.priceHistory ?? [],
+  };
   localStorage.setItem(MARKET_SYNC_STAGING_STORAGE_KEY, JSON.stringify(next));
 }
 
@@ -108,7 +150,11 @@ export function clearMarketSyncStagingLocal(): void {
 }
 
 export function exportMarketSyncStagingJson(store: MarketSyncStagingStore): string {
-  return JSON.stringify({ ...store, version: 1 }, null, 2);
+  return JSON.stringify(
+    { ...store, version: 1, priceHistory: store.priceHistory ?? [] },
+    null,
+    2,
+  );
 }
 
 export function importMarketSyncStagingJson(text: string): MarketSyncStagingStore {
@@ -121,7 +167,6 @@ export function mergeMarketProducts(
   incoming: readonly MarketProduct[],
 ): MarketSyncStagingStore {
   const byId = new Map(store.marketProducts.map((p) => [p.id, p]));
-  // EAN uniqueness among active
   const eanOwner = new Map<string, string>();
   for (const p of byId.values()) {
     if (!p.active) continue;

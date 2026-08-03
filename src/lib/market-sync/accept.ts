@@ -1,5 +1,6 @@
 /**
  * MARKET-SYNC-01 P1 — Accept / Reject / Defer + link N:1 (staging only).
+ * P2: append PriceHistory on Accept gdy flaga P2 ON.
  * ZERO zapisu Product Quotes / Work Catalog.
  */
 
@@ -9,6 +10,7 @@ import type {
   ProviderQuote,
   ProviderQuoteStatus,
 } from "@/lib/market-sync/types";
+import { appendPriceHistoryOnAccept } from "@/lib/market-sync/price-history";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -75,14 +77,23 @@ export function decideProviderQuoteStatus(
   }
 
   const nextStatus: ProviderQuoteStatus = decision;
+  const ts = nowIso();
   const nextQuotes = store.providerQuotes.map((q) =>
     q.id === quoteId ? { ...q, status: nextStatus } : q,
   );
-  const next: MarketSyncStagingStore = {
+  let next: MarketSyncStagingStore = {
     ...store,
     providerQuotes: nextQuotes,
-    updatedAt: nowIso(),
+    updatedAt: ts,
   };
+
+  if (decision === "accepted") {
+    const acceptedQuote = nextQuotes.find((q) => q.id === quoteId) ?? null;
+    if (acceptedQuote) {
+      next = appendPriceHistoryOnAccept(next, acceptedQuote, { atIso: ts });
+    }
+  }
+
   return {
     store: next,
     ok: true,

@@ -1,5 +1,5 @@
 /**
- * MARKET-SYNC-01 — public API (Feature-Data staging + P1 Accept/Publish).
+ * MARKET-SYNC-01 — public API (Feature-Data staging + P1 Accept/Publish + P2 History).
  * Jedyny write Quotes: runMarketSyncPublish → commitMarketQuotesImport.
  */
 
@@ -18,3 +18,7 @@ export * from "@/lib/market-sync/delta";
 export * from "@/lib/market-sync/publish-summary";
 export * from "@/lib/market-sync/publish";
 export * from "@/lib/market-sync/undo";
+export * from "@/lib/market-sync/p2-flag";
+export * from "@/lib/market-sync/price-history";
+export * from "@/lib/market-sync/coverage";
+export * from "@/lib/market-sync/provider-templates";

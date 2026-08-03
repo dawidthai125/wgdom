@@ -1,6 +1,6 @@
 /**
  * MARKET-SYNC-01 — modele staging (Feature-Data).
- * P0: Preview · P1: Accept (staging) + Publish via commitMarketQuotesImport.
+ * P0: Preview · P1: Accept + Publish · P2: PriceHistory (staging.priceHistory[]).
  */
 
 export type ProviderId =
@@ -88,6 +88,19 @@ export interface SyncRun {
   rejectedCount?: number;
 }
 
+/** MARKET-SYNC-01 P2 — append-only ring (cap 24 / product×provider). */
+export interface PriceHistoryEntry {
+  id: string;
+  marketProductId: string;
+  providerId: ProviderId;
+  providerSku: string;
+  pricePln: number;
+  at: string;
+  sourceKind: MarketSyncSourceKind;
+  syncRunId: string | null;
+  quoteId: string;
+}
+
 export type PreviewBucketId =
   | "new_product"
   | "price_change"
@@ -104,6 +117,8 @@ export interface MarketSyncStagingStore {
   marketProducts: MarketProduct[];
   providerQuotes: ProviderQuote[];
   syncRuns: SyncRun[];
+  /** P2 — Soft-add; brak w starych snapshotach = []. */
+  priceHistory?: PriceHistoryEntry[];
 }
 
 export const MARKET_SYNC_STAGING_STORAGE_KEY = "kw-market-sync-01-staging";
@@ -123,4 +138,5 @@ export const EMPTY_MARKET_SYNC_STAGING: MarketSyncStagingStore = {
   marketProducts: [],
   providerQuotes: [],
   syncRuns: [],
+  priceHistory: [],
 };
