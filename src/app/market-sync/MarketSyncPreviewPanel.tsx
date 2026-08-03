@@ -35,6 +35,7 @@ import {
   setMarketSyncPublishEnabled,
   undoMarketSyncPublish,
   isMarketSyncP2Enabled,
+  isMarketSyncP3Enabled,
   type MarketProduct,
   type MarketSyncPublishSummary,
   type MarketSyncStagingStore,
@@ -50,6 +51,7 @@ import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { MarketSyncP2Panel } from "@/app/market-sync/MarketSyncP2Panel";
+import { MarketSyncP3Panel } from "@/app/market-sync/MarketSyncP3Panel";
 
 type Props = {
   onBack: () => void;
@@ -99,6 +101,7 @@ export function MarketSyncPreviewPanel({ onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const p2Enabled = isMarketSyncP2Enabled();
+  const p3Enabled = isMarketSyncP3Enabled();
 
   const persist = useCallback((next: MarketSyncStagingStore, nextPreview: PreviewReport) => {
     saveMarketSyncStagingLocal(next);
@@ -437,11 +440,31 @@ export function MarketSyncPreviewPanel({ onBack }: Props) {
               Accept = staging · Publish = wyłącznie commitMarketQuotesImport · region{" "}
               {catalogStore.activeRegion}
               {p2Enabled ? " · P2 History ON" : ""}
+              {p3Enabled ? " · P3 ingest ON" : ""}
             </p>
           </div>
         </div>
 
         {p2Enabled ? <MarketSyncP2Panel store={store} /> : null}
+        {p3Enabled ? (
+          <MarketSyncP3Panel
+            store={store}
+            busy={busy}
+            actorAdminId={session?.id ?? null}
+            onBusy={setBusy}
+            onError={(msg) => {
+              setError(msg);
+              setMessage(null);
+            }}
+            onResult={({ store: next, preview: nextPreview, message: msg }) => {
+              persist(next, nextPreview);
+              setError(null);
+              setMessage(msg);
+              setSummaryReady(false);
+              setSummary(null);
+            }}
+          />
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <WgButton

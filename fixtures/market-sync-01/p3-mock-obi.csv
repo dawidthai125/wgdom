@@ -1,0 +1,3 @@
+provider,providerSku,ean,productName,unit,grossPrice,currency,sourceUrl
+obi,OBI-P3-MOCK-001,5901234123999,P3 mock obi — klej stub,szt,27.50,PLN,
+obi,OBI-P3-MOCK-002,,P3 mock obi — płyta stub,m2,19.90,PLN,

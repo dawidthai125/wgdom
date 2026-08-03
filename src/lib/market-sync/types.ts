@@ -24,7 +24,12 @@ export type ProviderQuoteStatus =
 
 export type MatchMethod = "ean" | "provider_sku" | "mfr_name_unit" | "alias" | "manual";
 
-export type MarketSyncSourceKind = "csv_export" | "manual";
+/** P3: licensed_api | scraper — live tylko po Legal PASS (DF D-P3-10). */
+export type MarketSyncSourceKind =
+  | "csv_export"
+  | "manual"
+  | "licensed_api"
+  | "scraper";
 
 export type MarketProductCategory =
   | "chemia"
