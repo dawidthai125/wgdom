@@ -1,6 +1,6 @@
 /**
- * SMART-PRICING-01 — typy P0 + punkty rozszerzeń P1+ (kontrakt, bez implementacji).
- * Quotes = SSOT · zero write · zero MS ownership.
+ * SMART-PRICING-01 — typy P0 + P1 (Evidence · Confidence · One-shot).
+ * Quotes = SSOT · P1: zero Quotes write · zero Cloud · One-shot session only.
  */
 
 /** Powód braku użytecznej ceny rynkowej (Detect P0). */
@@ -30,11 +30,8 @@ export interface SmartPricingDetectLineResult {
   workNamePl: string | null;
   status: SmartPricingDetectStatus;
   reason: SmartPricingMissingReason | null;
-  /** Region użyty przy Quotes-first (activeRegion wyceny). */
   regionCode: string | null;
-  /** Najlepsza confidence Quotes w regionie (gdy była jakakolwiek komórka). */
   bestConfidence: number | null;
-  /** Najnowszy acquiredAt Quotes w regionie (ISO), gdy dostępny. */
   newestAcquiredAt: string | null;
 }
 
@@ -43,32 +40,23 @@ export interface SmartPricingDetectSummary {
   missingCount: number;
   okCount: number;
   byReason: Record<SmartPricingMissingReason, number>;
-  /** Pozycje ze status=missing (sort: lp). */
   missingLines: SmartPricingDetectLineResult[];
-  /** Wszystkie linie (ok + missing). */
   lines: SmartPricingDetectLineResult[];
   regionCode: string;
-  /** ISO „as of” Detect (deterministyczny — bez Date.now w silniku). */
   computedAtIso: string;
   minConfidence: number;
   staleDays: number;
 }
 
-/** Opcje Detect (Quotes-first). */
 export interface SmartPricingDetectOptions {
-  /** Region SSOT wyceny (domyślnie activeRegion katalogu). */
   regionCode: string;
-  /** ISO — bez Date.now w pure detect. */
   computedAtIso: string;
-  /** DF O-SP-F default 0.50 */
   minConfidence?: number;
-  /** DF O-SP-F default 180 */
   staleDays?: number;
 }
 
 /**
- * Snapshot RO z Product Quotes (P0) — nie jest pełnym Price Evidence (P1).
- * Extension point: P1 zbuduje PriceEvidence z tych pól + matchMethod.
+ * Snapshot RO z Product Quotes (P0) — wejście do Evidence P1.
  */
 export interface SmartPricingQuoteCellRo {
   origin: string;
@@ -80,11 +68,61 @@ export interface SmartPricingQuoteCellRo {
   rejectReason: SmartPricingMissingReason | null;
 }
 
-/** Extension points — kontrakt na P1–P3 (P0: stub / nie wywoływać z UI). */
-export type SmartPricingExtensionPhase = "P1_evidence" | "P1_one_shot" | "P2_ms_staging" | "P3_save";
+/** DF §7.1 — P1: source wyłącznie product_quotes. */
+export type SmartPricingEvidenceSource = "product_quotes";
+
+export type SmartPricingMatchMethod =
+  | "ean"
+  | "provider_sku"
+  | "mfr_name_unit"
+  | "alias"
+  | "manual"
+  | "direct_work_quote";
+
+/** Price Evidence (jeden model — DF-P1-03). */
+export interface SmartPricingPriceEvidence {
+  id: string;
+  source: SmartPricingEvidenceSource;
+  provider: string;
+  price: number;
+  currency: "PLN";
+  acquiredAt: string;
+  confidence: number;
+  matchMethod: SmartPricingMatchMethod;
+  matchDetail: string;
+  region: string | null;
+  workId?: string | null;
+  origin?: string | null;
+  unit?: string | null;
+  warnings?: string[];
+  /** Ref diagnostyczny — bez mutacji źródła. */
+  rawRef?: string | null;
+}
+
+export type SmartPricingDecisionConfidence = "READY" | "REVIEW" | "MANUAL";
+
+/**
+ * One-shot overlay — wyłącznie session/in-memory (DF-P1-01).
+ * Zakaz: LocalStorage · Cloud · Quotes write.
+ */
+export interface SmartPricingOneShotOverlay {
+  lineId: string;
+  tenderId: string | null;
+  evidenceId: string;
+  price: number;
+  currency: "PLN";
+  provider: string;
+  appliedAtIso: string;
+}
+
+export type SmartPricingExtensionPhase =
+  | "P1_evidence"
+  | "P1_one_shot"
+  | "P2_ms_staging"
+  | "P3_save";
 
 export interface SmartPricingExtensionPoint {
   phase: SmartPricingExtensionPhase;
-  available: false;
+  available: boolean;
   notePl: string;
 }

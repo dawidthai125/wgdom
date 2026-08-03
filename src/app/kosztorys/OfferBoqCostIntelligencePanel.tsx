@@ -47,14 +47,23 @@ import { computeOfferBoqQuotesGaps } from "@/lib/offer-boq-quotes-gaps";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 import {
+  buildEvidenceFromProductQuotes,
+  clearOneShotForLine,
+  computeDecisionConfidence,
+  createOneShotOverlay,
   detectMissingPrices,
+  isSmartPricingP1Enabled,
   missingReasonByLineId,
+  rankEvidence,
   type SmartPricingMissingReason,
+  type SmartPricingOneShotOverlay,
 } from "@/lib/smart-pricing";
 import {
   SmartPricingDetectBanner,
   smartPricingMissingBadgeLabel,
 } from "@/app/smart-pricing/SmartPricingDetectBanner";
+import { SmartPricingEvidencePanel } from "@/app/smart-pricing/SmartPricingEvidencePanel";
+import { getWorkById } from "@/lib/work-catalog/catalog-work-utils";
 import {
   approveOfferBoqComponentInDocument,
   OFFER_BOQ_PRICE_ORIGIN_KIND_LABELS_PL,
@@ -763,6 +772,8 @@ function LineExplainCard({
   editingComponentId,
   showOrigin = false,
   smartPricingMissingReason,
+  smartPricingOneShot = null,
+  onOpenSmartPricing,
   onToggle,
   onPatch,
   onApprove,
@@ -774,6 +785,8 @@ function LineExplainCard({
   editingComponentId: string | null;
   showOrigin?: boolean;
   smartPricingMissingReason?: SmartPricingMissingReason;
+  smartPricingOneShot?: SmartPricingOneShotOverlay | null;
+  onOpenSmartPricing?: () => void;
   onToggle: () => void;
   onPatch: (
     lineId: string,
@@ -794,6 +807,7 @@ function LineExplainCard({
       data-offer-boq-editable="false"
       data-offer-boq-line-density={density}
       data-smart-pricing-01-missing={smartPricingMissingReason ?? undefined}
+      data-smart-pricing-01-p1-oneshot-line={smartPricingOneShot ? "1" : undefined}
     >
       <button
         type="button"
@@ -830,6 +844,38 @@ function LineExplainCard({
                 {missingBadge}
               </span>
             ) : null}
+            {smartPricingOneShot ? (
+              <span
+                className={`${TEUX_FONT_META} text-foreground shrink-0`}
+                data-smart-pricing-01-p1-line-oneshot
+              >
+                one-shot {smartPricingOneShot.price.toLocaleString("pl-PL", {
+                  maximumFractionDigits: 2,
+                })}{" "}
+                PLN
+              </span>
+            ) : null}
+            {onOpenSmartPricing && missingBadge ? (
+              <span
+                role="button"
+                tabIndex={0}
+                className={`${TEUX_FONT_META} underline-offset-2 hover:underline text-foreground shrink-0`}
+                data-smart-pricing-01-p1-open
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenSmartPricing();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenSmartPricing();
+                  }
+                }}
+              >
+                Evidence
+              </span>
+            ) : null}
             {line.requiresUserReview ? (
               <span className={`${TEUX_FONT_META} text-amber-700 dark:text-amber-300 shrink-0`}>
                 rev
@@ -851,6 +897,40 @@ function LineExplainCard({
                   title={smartPricingMissingReason}
                 >
                   {missingBadge}
+                </span>
+              ) : null}
+              {smartPricingOneShot ? (
+                <span
+                  className={`${TEUX_FONT_META} text-foreground`}
+                  data-smart-pricing-01-p1-line-oneshot
+                >
+                  One-shot sesji:{" "}
+                  {smartPricingOneShot.price.toLocaleString("pl-PL", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  PLN · {smartPricingOneShot.provider}
+                </span>
+              ) : null}
+              {onOpenSmartPricing && missingBadge ? (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className={`${TEUX_FONT_META} underline-offset-2 hover:underline text-foreground`}
+                  data-smart-pricing-01-p1-open
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenSmartPricing();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onOpenSmartPricing();
+                    }
+                  }}
+                >
+                  Evidence
                 </span>
               ) : null}
               {line.requiresUserReview ? (
@@ -988,6 +1068,12 @@ export function OfferBoqCostIntelligencePanel({
   const [sortKey, setSortKey] = useState<OfferBoqSortKey>("lp");
   const [sortDir, setSortDir] = useState<OfferBoqSortDir>("asc");
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  /** SMART-PRICING-01 P1 — session only (DF-P1-01). */
+  const [p1EvidenceLineId, setP1EvidenceLineId] = useState<string | null>(null);
+  const [p1SelectedEvidenceId, setP1SelectedEvidenceId] = useState<string | null>(null);
+  const [p1OneShots, setP1OneShots] = useState<Record<string, SmartPricingOneShotOverlay>>(
+    {},
+  );
 
   useEffect(() => {
     setDoc(baseline.document);
@@ -999,6 +1085,9 @@ export function OfferBoqCostIntelligencePanel({
     setSortDir("asc");
     setEditingKey(null);
     setDensityUserOverride(false);
+    setP1EvidenceLineId(null);
+    setP1SelectedEvidenceId(null);
+    setP1OneShots({});
     const lineCount = baseline.available ? baseline.lines.length : 0;
     setDensity(defaultOfferBoqDensity(lineCount));
   }, [item.id, pricingCatalogRevision, baseline.builtAt]);
@@ -1035,6 +1124,7 @@ export function OfferBoqCostIntelligencePanel({
   const cm01Enabled = isCenyMaterialow01Enabled();
   const confidenceMvpEnabled = isConfidenceMvpEnabled();
   const scopeGapMvpEnabled = isScopeGapMvpEnabled();
+  const smartPricingP1Enabled = isSmartPricingP1Enabled();
   const quotesGaps = useMemo(() => {
     if (!cm01Enabled || !view.available || !view.document) return null;
     const store = loadWorkCatalogStoreLocal();
@@ -1127,6 +1217,47 @@ export function OfferBoqCostIntelligencePanel({
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   };
+
+  const openSmartPricingEvidence = (lineId: string) => {
+    focusQueueLine(lineId);
+    if (!smartPricingP1Enabled) return;
+    setP1EvidenceLineId(lineId);
+    setP1SelectedEvidenceId(null);
+  };
+
+  const p1EvidenceView = useMemo(() => {
+    if (!smartPricingP1Enabled || !p1EvidenceLineId || !view.available || !view.document) {
+      return null;
+    }
+    const store = loadWorkCatalogStoreLocal();
+    const regionCode = store.activeRegion;
+    const computedAtIso =
+      view.document.builtAt || store.updatedAt || "2026-07-30T00:00:00.000Z";
+    const boqLine = view.document.lines.find((l) => l.lineId === p1EvidenceLineId);
+    if (!boqLine) return null;
+    const works = listActiveWorksForRegion(store, regionCode);
+    const work = boqLine.catalogWorkId
+      ? getWorkById(works, boqLine.catalogWorkId) ?? null
+      : null;
+    const raw = buildEvidenceFromProductQuotes(work, {
+      workId: boqLine.catalogWorkId || "unmapped",
+      regionCode,
+      computedAtIso,
+      lineUnit: boqLine.unit ?? null,
+    });
+    const ranked = rankEvidence(raw);
+    const unmapped = !boqLine.catalogWorkId;
+    const confidence = computeDecisionConfidence(ranked, { unmapped });
+    return {
+      lineId: boqLine.lineId,
+      lp: boqLine.lp,
+      description: boqLine.description,
+      regionCode,
+      evidence: ranked,
+      confidence,
+      unmapped,
+    };
+  }, [smartPricingP1Enabled, p1EvidenceLineId, view.available, view.document]);
 
   const handlePatch = (
     lineId: string,
@@ -1278,7 +1409,50 @@ export function OfferBoqCostIntelligencePanel({
       ) : null}
 
       {smartPricingDetect ? (
-        <SmartPricingDetectBanner summary={smartPricingDetect} onFocusLine={focusQueueLine} />
+        <SmartPricingDetectBanner
+          summary={smartPricingDetect}
+          onFocusLine={smartPricingP1Enabled ? openSmartPricingEvidence : focusQueueLine}
+        />
+      ) : null}
+
+      {p1EvidenceView ? (
+        <SmartPricingEvidencePanel
+          lineId={p1EvidenceView.lineId}
+          lp={p1EvidenceView.lp}
+          description={p1EvidenceView.description}
+          regionCode={p1EvidenceView.regionCode}
+          evidence={p1EvidenceView.evidence}
+          confidence={p1EvidenceView.confidence}
+          selectedEvidenceId={p1SelectedEvidenceId}
+          oneShot={p1OneShots[p1EvidenceView.lineId] ?? null}
+          onSelectEvidence={(id) => setP1SelectedEvidenceId(id)}
+          onOneShot={() => {
+            const ranked = p1EvidenceView.evidence;
+            const ev =
+              (p1SelectedEvidenceId && ranked.find((e) => e.id === p1SelectedEvidenceId)) ||
+              ranked[0];
+            if (!ev) return;
+            const overlay = createOneShotOverlay({
+              lineId: p1EvidenceView.lineId,
+              tenderId: item.id,
+              evidence: ev,
+              appliedAtIso: new Date().toISOString(),
+              confidence: p1EvidenceView.confidence,
+              explicitSelection: Boolean(p1SelectedEvidenceId),
+            });
+            if (!overlay) return;
+            setP1OneShots((prev) => ({ ...prev, [overlay.lineId]: overlay }));
+          }}
+          onReject={() => {
+            setP1OneShots((prev) => clearOneShotForLine(prev, p1EvidenceView.lineId));
+            setP1SelectedEvidenceId(null);
+            setP1EvidenceLineId(null);
+          }}
+          onClose={() => {
+            setP1EvidenceLineId(null);
+            setP1SelectedEvidenceId(null);
+          }}
+        />
       ) : null}
 
       {showScopeGapPanel && scopeGapMvpReport ? (
@@ -1564,6 +1738,12 @@ export function OfferBoqCostIntelligencePanel({
               density={density}
               showOrigin={cost02bEnabled}
               smartPricingMissingReason={smartPricingMissingMap?.get(line.lineId)}
+              smartPricingOneShot={p1OneShots[line.lineId] ?? null}
+              onOpenSmartPricing={
+                smartPricingP1Enabled
+                  ? () => openSmartPricingEvidence(line.lineId)
+                  : undefined
+              }
               editingComponentId={
                 editingKey?.startsWith(`${line.lineId}:`)
                   ? editingKey.slice(line.lineId.length + 1)

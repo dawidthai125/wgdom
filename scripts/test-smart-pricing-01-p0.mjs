@@ -170,16 +170,33 @@ assert(
   "T05 other region ≠ useful for preferred",
 );
 
-console.log("\n=== T06 extension points P1+ unavailable ===");
-assert(SMART_PRICING_EXTENSIONS.every((e) => e.available === false), "T06 all extensions false");
-assert(!isSmartPricingExtensionAvailable("P1_evidence"), "T06 P1_evidence off");
-assert(!isSmartPricingExtensionAvailable("P1_one_shot"), "T06 one_shot off");
+console.log("\n=== T06 extension points — P1 ON · P2/P3 OFF (P1 slice) ===");
+assert(isSmartPricingExtensionAvailable("P1_evidence"), "T06 P1_evidence on");
+assert(isSmartPricingExtensionAvailable("P1_one_shot"), "T06 one_shot on");
 assert(!isSmartPricingExtensionAvailable("P2_ms_staging"), "T06 ms off");
 assert(!isSmartPricingExtensionAvailable("P3_save"), "T06 save off");
+assert(
+  SMART_PRICING_EXTENSIONS.filter((e) => e.phase.startsWith("P2_") || e.phase.startsWith("P3_")).every(
+    (e) => e.available === false,
+  ),
+  "T06 P2/P3 all false",
+);
 
 console.log("\n=== T07 static: zero write / commit / apply / MS publish in smart-pricing ===");
 const spDir = join(root, "src/lib/smart-pricing");
-const files = ["detect.ts", "quotes-read.ts", "extensions.ts", "index.ts", "types.ts", "constants.ts"];
+const files = [
+  "detect.ts",
+  "quotes-read.ts",
+  "extensions.ts",
+  "index.ts",
+  "types.ts",
+  "constants.ts",
+  "evidence.ts",
+  "rank.ts",
+  "confidence.ts",
+  "one-shot.ts",
+  "flag.ts",
+];
 const banned = [
   "commitMarketQuotesImport",
   "applyMarketQuotesFromPreview",

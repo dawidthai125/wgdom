@@ -1,6 +1,6 @@
 /**
- * SMART-PRICING-01 — punkty rozszerzeń P1–P3 (P0: tylko kontrakt).
- * Zakaz wywołań z UI P0 — zapobiega przypadkowemu Evidence/One-shot/Save/MS.
+ * SMART-PRICING-01 — punkty rozszerzeń P1–P3.
+ * P1: Evidence + One-shot available · P2/P3 nadal false.
  */
 
 import type { SmartPricingExtensionPoint } from "@/lib/smart-pricing/types";
@@ -8,13 +8,13 @@ import type { SmartPricingExtensionPoint } from "@/lib/smart-pricing/types";
 export const SMART_PRICING_EXTENSIONS: readonly SmartPricingExtensionPoint[] = [
   {
     phase: "P1_evidence",
-    available: false,
-    notePl: "P1 — Price Evidence + Resolution + Confidence + One-shot (po Owner GO P1).",
+    available: true,
+    notePl: "P1 — Price Evidence + Resolution + Confidence + Odrzuć.",
   },
   {
     phase: "P1_one_shot",
-    available: false,
-    notePl: "P1 — overlay sesji wyceny · zero zapisu Quotes.",
+    available: true,
+    notePl: "P1 — overlay sesji wyceny · zero zapisu Quotes · zero LS.",
   },
   {
     phase: "P2_ms_staging",
@@ -28,7 +28,6 @@ export const SMART_PRICING_EXTENSIONS: readonly SmartPricingExtensionPoint[] = [
   },
 ] as const;
 
-/** P0: zawsze false — brak Evidence/One-shot/Save/MS. */
 export function isSmartPricingExtensionAvailable(
   phase: SmartPricingExtensionPoint["phase"],
 ): boolean {
