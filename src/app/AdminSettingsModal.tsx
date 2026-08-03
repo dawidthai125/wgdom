@@ -11,11 +11,13 @@ import {
   createAdminUser,
   deleteAdminUser,
   adminRoleLabel,
+  adminIsSuperAdmin,
   type AdminAssignableRole,
   type AdminSession,
   type SecurityAuditActor,
 } from "@/lib/admin-auth";
 import { saveAppSettings, type AppSettings } from "@/lib/app-settings";
+import { maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
 import {
   resetTendersPipeline,
   resetTendersKeywords,
@@ -59,6 +61,21 @@ export function AdminSettingsModal({
   const auditActor: SecurityAuditActor | undefined = adminSession
     ? { userId: adminSession.id, displayName: adminSession.displayName }
     : undefined;
+
+  /** MR-P1B-01 — one-shot promote LS→AppSettings przy otwarciu ⚙ (Super Admin). */
+  useEffect(() => {
+    if (!adminSession || !adminIsSuperAdmin(adminSession.role)) return;
+    let cancelled = false;
+    maybePromoteWmRysunki01FromLs(appSettings).then((next) => {
+      if (!cancelled && next) onAppSettingsChange(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // celowo: jeden trigger na mount ⚙
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- promote once per modal open
+  }, []);
+
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useMemo(() => listAdminUsersForManagement(), [refreshKey]);
   const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>({});
@@ -336,6 +353,32 @@ export function AdminSettingsModal({
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
                   Wyłączone domyślnie. Super Administrator zawsze widzi Zmiany w menu.
                   Po włączeniu — Administrator ma dostęp do historii wersji aplikacji.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div className="bg-sky-500/5 border border-sky-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-sky-700 dark:text-sky-300">
+              Moduły
+            </p>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.wmRysunkiEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, wmRysunkiEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Rysunki WM</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Włącz zakładkę Rysunki w Odbiory WM Druk. Domyślnie wyłączone.
+                  Po włączeniu — widoczne dla użytkowników mających dostęp do WM Druk (sync chmura).
+                  Bez przeładowania strony.
                 </p>
               </div>
             </label>

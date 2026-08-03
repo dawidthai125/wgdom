@@ -98,7 +98,7 @@ import { writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
-import { adminCanViewTendersTab, adminCanViewWorkCatalog, adminCanViewInstructions, adminCanViewChanges } from "@/lib/admin-auth";
+import { adminCanViewTendersTab, adminCanViewWorkCatalog, adminCanViewInstructions, adminCanViewChanges, adminIsSuperAdmin } from "@/lib/admin-auth";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -123,6 +123,7 @@ import {
 import { useAdminAccess } from "@/app/admin-access";
 import { syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { syncAppSettingsFromCloud, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
+import { maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
 import {
   mergeTenderDataKey,
   TENDERS_PIPELINE_KEY,
@@ -423,6 +424,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
   }, []);
+
+  /** MR-P1B-01 — one-shot promote LS→AppSettings gdy Super Admin ma sesję. */
+  useEffect(() => {
+    if (!adminSession || !adminIsSuperAdmin(adminSession.role)) return;
+    let cancelled = false;
+    maybePromoteWmRysunki01FromLs(appSettings).then((next) => {
+      if (!cancelled && next) setAppSettings(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trigger: SA login; LS gone after promote
+  }, [adminSession?.id, adminSession?.role]);
 
   useEffect(() => {
     const normalized = normalizeDirectoryTestFlags(directory);
@@ -2854,6 +2868,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onOpenJobInJobs={openJobInJobs}
           onGoToInspector={() => { setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
           appSettings={appSettings}
+          onAppSettingsChange={setAppSettings}
           onOpenTenderFromJobs={(tid) => { setViewReturn({ view: "jobs", label: "Roboty" }); openTenderById(tid); }}
           jobsReturnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); setPendingJobSection(null); } } : undefined}
           inspectorReturnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); } } : undefined}

@@ -254,6 +254,7 @@ export type AdminViewRouterProps = {
   onOpenJobInJobs: (jobId: string, section: import("@/app/JobDetailSectionNav").JobDetailSection) => void;
   onGoToInspector: () => void;
   appSettings: AppSettings;
+  onAppSettingsChange: (next: AppSettings) => void;
   onOpenTenderFromJobs: (tid: string) => void;
   jobsReturnNav: { label: string; onBack: () => void } | undefined;
   inspectorReturnNav: { label: string; onBack: () => void } | undefined;
@@ -354,6 +355,7 @@ export function AdminViewRouter({
   onOpenJobInJobs,
   onGoToInspector,
   appSettings,
+  onAppSettingsChange,
   onOpenTenderFromJobs,
   jobsReturnNav,
   inspectorReturnNav,
@@ -648,6 +650,8 @@ export function AdminViewRouter({
               wmTechnicalDrawings={wmTechnicalDrawings}
               onChangeWmTechnicalDrawings={setWmTechnicalDrawings}
               onCommitWmTechnicalDrawings={commitWmTechnicalDrawings}
+              appSettings={appSettings}
+              onAppSettingsChange={onAppSettingsChange}
               initialTab={pendingWmPrintNav?.tab ?? null}
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}

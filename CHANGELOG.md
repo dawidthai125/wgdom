@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.98 — Odbiory WM — Rysunki P1B rollout (AppSettings) (2026-08-03)
+
+- **new:** `AppSettings.wmRysunkiEnabled` · ⚙ Moduły → Rysunki WM · mirror WM Ustawienia (ten sam SSOT).
+- **improve:** gate FORCE OFF LS=`0` · one-shot promote LS=`1`→AppSettings+remove LS · React bez reload.
+- Testy: `scripts/test-wm-rysunki-01-p1b.mjs` · regresja P0/P1.
+
 ## 2.65.97 — Odbiory WM — Rysunki P1 toolset (flaga OFF) (2026-08-03)
 
 - **new:** drzwi (+ flipH) · okno · wymiar · strzałka · wentylacja · piec · opis pomieszczenia · `symbols/` · rotate 90/180/270 · draft→Final.

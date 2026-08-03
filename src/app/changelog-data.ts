@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.65.98",
+    label: "Odbiory WM — Rysunki P1B rollout (AppSettings)",
+    items: [
+      {
+        type: "new",
+        text: "Rysunki WM: Super Admin ⚙ → Moduły → Rysunki WM oraz mirror w WM → Ustawienia. SSOT: AppSettings.wmRysunkiEnabled (chmura). Domyślnie OFF.",
+      },
+      {
+        type: "improve",
+        text: "One-shot promote z legacy LS kw-wm-rysunki-01=1 → AppSettings (potem LS usuwane). FORCE OFF: LS=0. Toggle bez przeładowania strony. PDF/ZIP/P2 — OUT.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.65.97",
     label: "Odbiory WM — Rysunki P1 toolset (flaga OFF)",
     items: [

@@ -37,6 +37,9 @@ import { WmPrintSchematicsPanel } from "@/app/WmPrintSchematicsPanel";
 import { WmPrintDrawingsPanel } from "@/app/WmPrintDrawingsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
+import { adminIsSuperAdmin } from "@/lib/admin-auth";
+import type { AppSettings } from "@/lib/app-settings";
+import { saveAppSettings } from "@/lib/app-settings";
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
 import { computeWmPrintConfigurationStatus } from "@/lib/wm-print/configuration-status";
@@ -108,7 +111,7 @@ import {
 } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { getVisibleWmPrintTabs } from "@/lib/wm-print/wm-print-tabs";
-import { isWmRysunki01Enabled } from "@/lib/wm-technical-drawings/flag";
+import { isWmRysunki01Enabled, maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import { filterDetachedElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import { assignRapForJob, assignRapForRegistryKey } from "@/lib/electrical-measurements/registry";
@@ -178,6 +181,8 @@ export function WmPrintView({
   wmTechnicalDrawings,
   onChangeWmTechnicalDrawings,
   onCommitWmTechnicalDrawings,
+  appSettings,
+  onAppSettingsChange,
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
@@ -225,6 +230,9 @@ export function WmPrintView({
   wmTechnicalDrawings: WmTechnicalDrawing[];
   onChangeWmTechnicalDrawings: (next: WmTechnicalDrawing[]) => void;
   onCommitWmTechnicalDrawings: (next?: WmTechnicalDrawing[]) => void;
+  /** P1B — AppSettings SSOT dla gate Rysunki + mirror Ustawienia. */
+  appSettings: AppSettings;
+  onAppSettingsChange: (next: AppSettings) => void;
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
@@ -305,20 +313,36 @@ export function WmPrintView({
     setSelectedTemplateIds(createDefaultWmPrintTemplateSelection(templates));
   }, [selectedJobId]);
 
+  const rysunkiEnabled = isWmRysunki01Enabled(appSettings);
+  const canToggleWmRysunki = adminSession != null && adminIsSuperAdmin(adminSession.role);
+
+  /** MR-P1B-01 — one-shot promote gdy SA wchodzi w WM Druk. */
+  useEffect(() => {
+    if (!canToggleWmRysunki) return;
+    let cancelled = false;
+    maybePromoteWmRysunki01FromLs(appSettings).then((next) => {
+      if (!cancelled && next) onAppSettingsChange(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot na mount / SA
+  }, [canToggleWmRysunki]);
+
   useEffect(() => {
     if (!initialTab && !initialJobId) return;
-    if (initialTab === "rysunki" && !isWmRysunki01Enabled()) {
+    if (initialTab === "rysunki" && !isWmRysunki01Enabled(appSettings)) {
       setTab("odbiory");
     } else if (initialTab) {
       setTab(initialTab);
     }
     if (initialJobId) setSelectedJobId(initialJobId);
     onInitialNavigationConsumed?.();
-  }, [initialTab, initialJobId, onInitialNavigationConsumed]);
+  }, [initialTab, initialJobId, onInitialNavigationConsumed, appSettings]);
 
   useEffect(() => {
-    if (tab === "rysunki" && !isWmRysunki01Enabled()) setTab("odbiory");
-  }, [tab]);
+    if (tab === "rysunki" && !isWmRysunki01Enabled(appSettings)) setTab("odbiory");
+  }, [tab, appSettings]);
 
   const mobilePomiaryDetailOpen =
     tab === "pomiary" && Boolean(selectedJobId || focusedDetachedMeasurementId);
@@ -893,7 +917,7 @@ export function WmPrintView({
           </p>
         </div>
         <div className="flex flex-wrap gap-1">
-          {getVisibleWmPrintTabs().map(({ key, label }) => {
+          {getVisibleWmPrintTabs(appSettings).map(({ key, label }) => {
             const Icon = TAB_ICONS[key];
             return (
             <button
@@ -1224,7 +1248,7 @@ export function WmPrintView({
           </div>
         )}
 
-        {tab === "rysunki" && isWmRysunki01Enabled() && (
+        {tab === "rysunki" && rysunkiEnabled && (
           <WmPrintDrawingsPanel
             jobs={jobs}
             drawings={wmTechnicalDrawings}
@@ -1513,6 +1537,37 @@ export function WmPrintView({
 
         {tab === "ustawienia" && (
           <div className="max-w-md space-y-6">
+            <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-4 space-y-3">
+              <h3 className="text-sm font-semibold">Moduły — Rysunki WM</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Mirror ustawień systemowych (⚙ → Moduły). Jedno pole AppSettings — bez osobnej flagi WM.
+              </p>
+              <label
+                className={`flex items-start gap-3 ${canToggleWmRysunki ? "cursor-pointer" : "opacity-70"}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={appSettings.wmRysunkiEnabled}
+                  disabled={!canToggleWmRysunki}
+                  onChange={async (e) => {
+                    if (!canToggleWmRysunki) return;
+                    const next = { ...appSettings, wmRysunkiEnabled: e.target.checked };
+                    onAppSettingsChange(next);
+                    await saveAppSettings(next);
+                  }}
+                  className="mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-medium">Włącz zakładkę Rysunki</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                    {canToggleWmRysunki
+                      ? "Zmiana synchronizuje się w chmurze. Widoczność taba bez przeładowania strony."
+                      : "Tylko Super Admin może zmieniać to ustawienie."}
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Domyślne miasto ({"{{JOB_CITY}}"})</label>

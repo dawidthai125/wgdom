@@ -38,6 +38,11 @@ export interface AppSettings {
   instructionsForAdminEnabled: boolean;
   /** Zakładka Zmiany (changelog) w menu dla roli Administrator (Super Admin zawsze). */
   changesForAdminEnabled: boolean;
+  /**
+   * WM-RYSUNKI-01 P1B — zakładka Rysunki w Odbiory WM Druk.
+   * Domyślnie OFF. Super Admin toggle (⚙ / mirror WM Ustawienia).
+   */
+  wmRysunkiEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -72,6 +77,7 @@ export function defaultAppSettings(): AppSettings {
     workCatalogForAdminEnabled: false,
     instructionsForAdminEnabled: false,
     changesForAdminEnabled: false,
+    wmRysunkiEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -182,6 +188,16 @@ export function mergeChangesForAdminEnabled(
   return local.changesForAdminEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie OFF (WM-RYSUNKI-01 P1B). */
+export function mergeWmRysunkiEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.wmRysunkiEnabled === true) return true;
+  if (remote?.wmRysunkiEnabled === false) return false;
+  return local.wmRysunkiEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -194,6 +210,7 @@ export function loadAppSettingsLocal(): AppSettings {
       workCatalogForAdminEnabled: parsed.workCatalogForAdminEnabled === true,
       instructionsForAdminEnabled: parsed.instructionsForAdminEnabled === true,
       changesForAdminEnabled: parsed.changesForAdminEnabled === true,
+      wmRysunkiEnabled: parsed.wmRysunkiEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -249,6 +266,7 @@ export function mergeAppSettings(
     workCatalogForAdminEnabled: mergeWorkCatalogForAdminEnabled(remote, local),
     instructionsForAdminEnabled: mergeInstructionsForAdminEnabled(remote, local),
     changesForAdminEnabled: mergeChangesForAdminEnabled(remote, local),
+    wmRysunkiEnabled: mergeWmRysunkiEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

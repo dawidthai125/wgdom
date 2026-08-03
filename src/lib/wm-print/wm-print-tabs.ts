@@ -1,4 +1,5 @@
 /** Zakładki modułu WM Druk (EM-UX-001 · EM-P2 katalog · WM-RYSUNKI-01). */
+import type { WmRysunkiGateSettings } from "@/lib/wm-technical-drawings/flag";
 import { isWmRysunki01Enabled } from "@/lib/wm-technical-drawings/flag";
 
 export type WmPrintTab =
@@ -22,9 +23,11 @@ export const WM_PRINT_TABS: { key: WmPrintTab; label: string }[] = [
   { key: "ustawienia", label: "Ustawienia" },
 ];
 
-/** Zakładki widoczne w UI — Rysunki tylko gdy flaga ON (MR-03). */
-export function getVisibleWmPrintTabs(): { key: WmPrintTab; label: string }[] {
-  const rysunkiOn = isWmRysunki01Enabled();
+/** Zakładki widoczne w UI — Rysunki tylko gdy gate ON (P1B: AppSettings SSOT). */
+export function getVisibleWmPrintTabs(
+  settings?: WmRysunkiGateSettings | null,
+): { key: WmPrintTab; label: string }[] {
+  const rysunkiOn = isWmRysunki01Enabled(settings);
   return WM_PRINT_TABS.filter((t) => t.key !== "rysunki" || rysunkiOn);
 }
 

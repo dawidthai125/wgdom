@@ -305,8 +305,8 @@ export function WmPrintDrawingsPanel({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Rysunki techniczne (Odbiory) — szybkie szkice powiązane z robotą. Flaga{" "}
-        <code className="text-[10px]">kw-wm-rysunki-01</code>. PDF/ZIP w późniejszych slice.
+        Rysunki techniczne (Odbiory) — szybkie szkice powiązane z robotą. Włączanie: ⚙ → Moduły →
+        Rysunki WM. PDF/ZIP w późniejszych slice.
       </p>
 
       {filtered.length === 0 ? (
