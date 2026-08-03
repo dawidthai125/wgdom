@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.99 — Odbiory WM — Rysunki P2 PDF export (2026-08-03)
+
+- **new:** Podgląd / Pobierz / Drukuj PDF (SVG→PNG@2×→pdf-lib) · A4/A3 · jobLabel + data
+- **improve:** sesja bytes reuse · bez watermark/ZIP · audit `drawing_pdf_exported`
+
 ## 2.65.98 — Odbiory WM — Rysunki P1B rollout (AppSettings) (2026-08-03)
 
 - **new:** `AppSettings.wmRysunkiEnabled` · ⚙ Moduły → Rysunki WM · mirror WM Ustawienia (ten sam SSOT).

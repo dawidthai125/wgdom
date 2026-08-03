@@ -1,4 +1,4 @@
-/** WM-RYSUNKI-01 P1 — edytor: toolset MVP · rotate 90/180/270 · flipH · autosave. */
+/** WM-RYSUNKI-01 P1+P2 — edytor: toolset · PDF export (Preview/Download/Print). */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,7 +18,12 @@ import {
   Copy,
   FlipHorizontal2,
   RotateCw,
+  FileDown,
+  Eye,
+  Printer,
 } from "lucide-react";
+import { saveAs } from "file-saver";
+import { toast } from "sonner";
 import { DrawingUndoStack } from "@/lib/wm-technical-drawings/undo";
 import { renderDrawingSvg } from "@/lib/wm-technical-drawings/render-svg";
 import { snapCoord } from "@/lib/wm-technical-drawings/normalize";
@@ -29,6 +34,11 @@ import {
   touchDrawing,
 } from "@/lib/wm-technical-drawings/report";
 import {
+  DrawingPdfError,
+  drawingPdfFileName,
+  generateDrawingPdf,
+} from "@/lib/wm-technical-drawings/export-pdf";
+import {
   DRAWING_OBJECTS_SOFT_WARN,
   ROOM_LABEL_DEFAULT_CONTENT,
   ROOM_LABEL_DEFAULT_FONT_SIZE,
@@ -37,6 +47,7 @@ import {
   type DrawingWallObject,
   type WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
+import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
 type Tool =
   | "select"
@@ -88,10 +99,15 @@ export function WmPrintDrawingEditor({
   drawing,
   onChange,
   onAutosave,
+  jobLabel,
+  onRecordWmDrukAudit,
 }: {
   drawing: WmTechnicalDrawing;
   onChange: (next: WmTechnicalDrawing) => void;
   onAutosave: (next: WmTechnicalDrawing) => void;
+  /** D-P2-16 — resolved poza edytorem (nie z global state w lib). */
+  jobLabel: string;
+  onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
 }) {
   const stackRef = useRef<DrawingUndoStack | null>(null);
   if (!stackRef.current || stackRef.current.getCurrent().id !== drawing.id) {
@@ -106,6 +122,7 @@ export function WmPrintDrawingEditor({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [undoTick, setUndoTick] = useState(0);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const svgHostRef = useRef<HTMLDivElement>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragDirtyRef = useRef(false);
@@ -117,6 +134,13 @@ export function WmPrintDrawingEditor({
     orig: DrawingObject;
     snapshot: WmTechnicalDrawing;
   } | null>(null);
+  /** D-P2-18 — sesja Preview→Download→Print; wygasa po zmianie rysunku. */
+  const pdfSessionRef = useRef<{
+    fingerprint: string;
+    bytes: Uint8Array;
+    fileName: string;
+  } | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (drawing.id !== local.id) {
@@ -149,6 +173,10 @@ export function WmPrintDrawingEditor({
   useEffect(() => {
     return () => {
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
     };
   }, []);
 
@@ -172,6 +200,108 @@ export function WmPrintDrawingEditor({
   );
 
   const svgMarkup = useMemo(() => renderDrawingSvg(local, { showGrid: true }), [local]);
+
+  const pdfFingerprint = useMemo(
+    () =>
+      [
+        local.id,
+        local.updatedAt,
+        local.documentDate,
+        local.title,
+        local.page.width,
+        local.page.height,
+        local.page.format,
+        local.page.orientation,
+        local.objects.length,
+        JSON.stringify(local.objects),
+        jobLabel.trim(),
+      ].join("|"),
+    [local, jobLabel],
+  );
+
+  useEffect(() => {
+    if (pdfSessionRef.current && pdfSessionRef.current.fingerprint !== pdfFingerprint) {
+      pdfSessionRef.current = null;
+    }
+  }, [pdfFingerprint]);
+
+  const ensurePdfSession = useCallback(async () => {
+    const label = jobLabel.trim() || "Bez roboty";
+    if (pdfSessionRef.current?.fingerprint === pdfFingerprint) {
+      return pdfSessionRef.current;
+    }
+    const bytes = await generateDrawingPdf(localRef.current, { jobLabel: label });
+    const fileName = drawingPdfFileName(localRef.current, label);
+    const session = { fingerprint: pdfFingerprint, bytes, fileName };
+    pdfSessionRef.current = session;
+    return session;
+  }, [jobLabel, pdfFingerprint]);
+
+  const runPdfAction = useCallback(
+    async (mode: "preview" | "download" | "print") => {
+      if (pdfBusy) return;
+      setPdfBusy(true);
+      try {
+        const session = await ensurePdfSession();
+        const blob = new Blob([session.bytes], { type: "application/pdf" });
+        if (mode === "preview") {
+          if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+          const url = URL.createObjectURL(blob);
+          previewUrlRef.current = url;
+          window.open(url, "_blank", "noopener,noreferrer");
+          toast.success("Podgląd PDF otwarty");
+          return;
+        }
+        if (mode === "download") {
+          saveAs(blob, session.fileName);
+          onRecordWmDrukAudit?.({
+            module: "drawings",
+            action: "drawing_pdf_exported",
+            summary: `Eksport PDF: ${session.fileName}`,
+            detail: jobLabel.trim() || "Bez roboty",
+            drawingId: localRef.current.id,
+            jobId: localRef.current.jobId,
+          });
+          toast.success(`Pobrano ${session.fileName}`);
+          return;
+        }
+        /* print — D-P2-18 reuse bytes */
+        const url = URL.createObjectURL(blob);
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "fixed";
+        iframe.style.right = "0";
+        iframe.style.bottom = "0";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "0";
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch {
+            toast.error("Nie udało się otworzyć okna drukowania");
+          }
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+            iframe.remove();
+          }, 60_000);
+        };
+      } catch (e) {
+        const msg =
+          e instanceof DrawingPdfError
+            ? e.message
+            : e instanceof Error
+              ? e.message
+              : "Błąd eksportu PDF";
+        toast.error(msg);
+      } finally {
+        setPdfBusy(false);
+      }
+    },
+    [ensurePdfSession, jobLabel, onRecordWmDrukAudit, pdfBusy],
+  );
 
   const canUndo = stackRef.current?.canUndo() ?? false;
   const canRedo = stackRef.current?.canRedo() ?? false;
@@ -556,6 +686,37 @@ export function WmPrintDrawingEditor({
         >
           <Magnet size={14} />
         </button>
+        <span className="w-px h-5 bg-border mx-1" />
+        <button
+          type="button"
+          title="Podgląd PDF"
+          disabled={pdfBusy}
+          onClick={() => void runPdfAction("preview")}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+        >
+          <Eye size={14} />
+          <span className="hidden sm:inline">{pdfBusy ? "PDF…" : "Podgląd PDF"}</span>
+        </button>
+        <button
+          type="button"
+          title="Pobierz PDF"
+          disabled={pdfBusy}
+          onClick={() => void runPdfAction("download")}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+        >
+          <FileDown size={14} />
+          <span className="hidden sm:inline">Pobierz PDF</span>
+        </button>
+        <button
+          type="button"
+          title="Drukuj"
+          disabled={pdfBusy}
+          onClick={() => void runPdfAction("print")}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+        >
+          <Printer size={14} />
+          <span className="hidden sm:inline">Drukuj</span>
+        </button>
       </div>
 
       {selectedId && (
@@ -619,8 +780,8 @@ export function WmPrintDrawingEditor({
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · P1
-        toolset
+        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · PDF
+        P2
       </p>
     </div>
   );

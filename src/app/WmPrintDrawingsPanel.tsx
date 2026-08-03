@@ -82,6 +82,12 @@ export function WmPrintDrawingsPanel({
   const selected = selectedId ? getDrawingById(drawings, selectedId) ?? null : null;
   const mobileDetailOpen = Boolean(selectedId);
 
+  const editorJobLabel = useMemo(() => {
+    if (!selected?.jobId) return "Bez roboty";
+    const job = jobs.find((j) => j.id === selected.jobId);
+    return job ? jobDisplayTitle(job) : "Bez roboty";
+  }, [selected, jobs]);
+
   useEffect(() => {
     if (!mobileDetailOpen) return;
     return registerNativeBackHandler(() => {
@@ -231,6 +237,8 @@ export function WmPrintDrawingsPanel({
           drawing={selected}
           onChange={handleEditorChange}
           onAutosave={handleEditorAutosave}
+          jobLabel={editorJobLabel}
+          onRecordWmDrukAudit={onRecordWmDrukAudit}
         />
       </div>
     );
@@ -306,7 +314,7 @@ export function WmPrintDrawingsPanel({
 
       <p className="text-xs text-muted-foreground">
         Rysunki techniczne (Odbiory) — szybkie szkice powiązane z robotą. Włączanie: ⚙ → Moduły →
-        Rysunki WM. PDF/ZIP w późniejszych slice.
+        Rysunki WM. PDF: Podgląd / Pobierz / Drukuj w edytorze. ZIP — osobny slice.
       </p>
 
       {filtered.length === 0 ? (

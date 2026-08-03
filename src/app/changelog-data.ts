@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.65.99",
+    label: "Odbiory WM — Rysunki P2 PDF export",
+    items: [
+      {
+        type: "new",
+        text: "Rysunki WM: Podgląd PDF · Pobierz PDF · Drukuj — jeden generator (SVG→PNG@2×→pdf-lib). A4/A3 portrait/landscape z arkusza. Nagłówek: nazwa roboty + data.",
+      },
+      {
+        type: "improve",
+        text: "Bez watermark/ZIP/CAD. Sesja Preview→Download→Print reuse bytes. SSOT: renderDrawingSvg. Audit drawing_pdf_exported.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.65.98",
     label: "Odbiory WM — Rysunki P1B rollout (AppSettings)",
     items: [
