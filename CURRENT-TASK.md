@@ -1,17 +1,35 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-03 (**SMART-PRICING-01 P2 CLOSED** · tip UI **2.65.95** / **`99c6337`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-03 (**MARKET-SYNC-01 P2 FULLY CLOSED** · tip UI **2.65.95** / **`18830c1`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
-> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · **P2 CLOSE:** [`docs/architecture/SMART-PRICING-01-P2-CLOSE.md`](docs/architecture/SMART-PRICING-01-P2-CLOSE.md)  
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md)  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ SMART-PRICING-01 P2 — **CLOSED**
+## ★ MARKET-SYNC-01 P2 — **FULLY CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.95** / **`99c6337`** · flaga OFF |
+| **Status** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · tip **2.65.95** / **`18830c1`** · feature **`18830c11`** · flaga OFF |
+| **IN** | PriceHistory · Δ% info · Coverage RO · provider templates |
+| **OUT** | scraper · N:M · Cloud · Payroll · history→average engine |
+| **Następne** | **P3** — tylko Owner **GO AUDIT** · **WAITING FOR NEXT OWNER GO** |
+
+## ★ AI-COST-02 I3 — **FULLY CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · tip UI **2.65.95** · feature **`869b4c52`** · flaga OFF |
+| **IN** | Competitiveness RO · linia + summary · CK hint · UI ⇒ 02-B ON |
+| **OUT** | win% · Bid rewrite · Save Quotes · Cloud · Payroll |
+| **Następne** | dalsze AI-COST-02 = backlog · **nie** auto-start |
+
+## ★ SMART-PRICING-01 P2 — **CLOSED** (prior)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **`99c6337`** · flaga OFF |
 | **SSOT** | [`SMART-PRICING-01-P2-CLOSE.md`](docs/architecture/SMART-PRICING-01-P2-CLOSE.md) |
 | **IN** | MS staging Evidence RO · merge · Rank B1 · REUSE P1 UI/One-shot/Odrzuć |
 | **OUT** | Save · commit* · staging write · publish · Cloud · Bid/AI |

@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`99c6337`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · SMART-PRICING-01 **P2 CLOSED** · tryb **UTRZYMANIE**.
+**Snapshot dokumentacji:** 2026-08-03 · tip UI **2.65.95** · **`18830c1`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · MARKET-SYNC-01 **P2 FULLY CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -27,7 +27,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.65.95** |
-| **Deploy tip commit (`main` / `version.json`)** | **`99c6337`** · full **`99c633732a3c6044b46349aa1e2be0d1d5277a65`** · SMART-PRICING-01 P2 · [`SMART-PRICING-01-P2-CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) · live `2026-08-03T07:07:08.179Z` |
+| **Deploy tip commit (`main` / `version.json`)** | **`18830c1`** · full **`18830c118d6f3918ac7f0b2c2e019359510ec70b`** · MARKET-SYNC-01 P2 · live `2026-08-03T07:51:04.952Z` |
+| **Feature tip (MARKET-SYNC-01 P2)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · PriceHistory · Δ% info · Coverage · templates · flaga `kw-market-sync-01-p2` default **OFF** · UI **2.65.95** · **`18830c11`** · P3 **NIE** bez Owner GO |
+| **Feature tip (AI-COST-02 I3)** | **FULLY CLOSED** · **PRODUCTION VERIFIED** · Competitiveness RO · linia + summary · CK hint · flaga `kw-ai-cost-02-i3-competitiveness` default **OFF** · UI gate I3∧02-B · UI **2.65.95** · feature **`869b4c52`** · dalsze AI-COST-02 slice = backlog |
 | **Feature tip (SMART-PRICING-01 P2)** | **CLOSED** · **PRODUCTION VERIFIED** · MS staging Evidence RO · merge · Rank B1 · flaga `kw-smart-pricing-01-p2` default **OFF** (P2⇒P1) · UI **2.65.95** · **`99c63373`** · [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P2-PRODUCTION-VERIFY.md) · P3 **NIE** bez Owner GO |
 | **Feature tip (SMART-PRICING-01 P1)** | **CLOSED** · **PRODUCTION VERIFIED** · Evidence · Rank · Confidence · One-shot session · Odrzuć · flaga `kw-smart-pricing-01-p1` default **OFF** · UI **2.65.95** · feature **`d8b080e5`** · [`CLOSE`](../architecture/SMART-PRICING-01-P1-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P1-PRODUCTION-VERIFY.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P1-RELEASE-REPORT.md) |
 | **Feature tip (GLOBAL-UX-02)** | **FULLY CLOSED** · Inspector+Worker → Admin GDS · S1–S8 COMPLETE · S9 UI-GUARD **DEFERRED** · UI **2.65.95** · feature **`3385d9f`** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · presentation-only · bez bumpa changelog |
@@ -40,7 +42,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Feature tip (CATALOG-COVERAGE-01 P0b)** | **CLOSED** · Normalizer · UI **2.65.88** · feature **`fb58f501`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0b-RELEASE-REPORT.md) |
 | **Feature tip (CATALOG-COVERAGE-01 P0a)** | **CLOSED** · Noise Filter · UI **2.65.87** · feature **`51a56f0d`** · [`CLOSEOUT`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md) · [`RELEASE`](../architecture/CATALOG-COVERAGE-01-P0a-RELEASE-REPORT.md) |
 | **Feature tip (SMART-PRICING-01 P0)** | **CLOSED** · Detect Quotes-first RO · banner/badge OfferBoq · UI **2.65.86** · feature **`9ca4a4e5`** · [`CLOSEOUT`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md) · [`RELEASE`](../architecture/SMART-PRICING-01-P0-RELEASE-REPORT.md) · **P1+P2 CLOSED** |
-| **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** |
+| **Feature tip (MARKET-SYNC-01 P1)** | **CLOSED** · Accept+Publish · Kill Switch · `commitMarketQuotesImport` only · Undo single · UI **2.65.85** · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md) · feature **`5326cf8c`** · **P2 FULLY CLOSED** |
 | **Feature tip (MARKET-SYNC-01 P0)** | **CLOSED** · Model+Preview staging · local-first · [`CLOSEOUT`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md) · UI **2.65.84** · feature **`273fb3e0`** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P2)** | **COMPLETE** · **CLOSED** · FEATURE-DATA WC · P2-A/B + Residual ROZ · K-P2-1/2/3 PASS · residual **16≤18** · false **0** · bez bumpa UI · [`P2-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · NEXT **P3 (INNE) AUDIT** |
 | **Feature tip (CENY-MATERIAŁÓW-04 P1)** | **COMPLETE** · P0 · P1-A/B/C · tip UI **2.65.83** · feature P1-C **`992023cc`** · PV **PASS** · [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md) · KPI CM **73.2%** / HE **26.8%** |
@@ -54,7 +56,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **COST-BID-GAP-01 (GAP-A)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · flaga `COST_BID_GAP_01_CATALOG_CAL` default **OFF** · [`CLOSEOUT`](../architecture/COST-BID-GAP-01-CLOSEOUT.md) · [`PV`](../architecture/COST-BID-GAP-01-PRODUCTION-VERIFY.md) · feature **`a061bbd`** · UI **2.65.77** |
 | **COST-MULTI (seria)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · [`CLOSEOUT`](../architecture/COST-MULTI-CLOSEOUT.md) · [`RELEASE HISTORY`](../releases/COST-MULTI-EPIC-RELEASE-HISTORY.md) · FINAL PV [`../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md`](../verification/RCA-MULTI-02-FINAL-PRODUCTION-VERIFY.md) · UI **2.65.74–2.65.76** |
 | **AI-COST-01** | **EPIC COMPLETE** · **FIELD READY** · **FROZEN** · FREEZE-01 handover — [`ARCHITECTURE-FREEZE`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) |
-| **AI-COST-02** | **COST-02-A CLOSED** · **02-B Phase 1 CLOSED** · I3 / dalsze **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`02-B-CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
+| **AI-COST-02** | **COST-02-A CLOSED** · **02-B Phase 1 CLOSED** · **I3 FULLY CLOSED** (`869b4c52`) · dalsze **BACKLOG** — [`STARTING-POINT`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md) · [`02-B-CLOSEOUT`](../architecture/AI-COST-02-B-CLOSEOUT.md) · [`COST-02-A-CLOSEOUT`](../architecture/WGDOM-AI-COST-02-COST-02-A-CLOSEOUT.md) |
 | **Ostatni feature (Force Heavy Rescan)** | CTA „Uzupełnij odczyty branż” · `forceHeavyRescanAt` · REUSE Heavy — **CLOSED** · **FINAL PV PASS** · [`RCA`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY.md) · [`CLOSEOUT`](../architecture/RCA-MULTI-02-NO-UI-PONOW-ON-HEALTHY-CLOSEOUT.md) · UI **2.65.76** |
 | **Ostatni feature (COST-MULTI-02)** | Aggregate Bid · `resolveCostBidInput` · Branch winners → Bid/OfferBoq — **CLOSED** · [`DF`](../architecture/COST-MULTI-02-DESIGN-FREEZE.md) · [`CLOSEOUT`](../architecture/COST-MULTI-02-CLOSEOUT.md) · UI **2.65.75** |
 | **Ostatni feature (COST-MULTI-01)** | CostPackage · BranchPackage · SUM_BRANCH_WINNERS / HOLD · UX incomplete ONE — **CLOSED** · [`CLOSEOUT`](../architecture/COST-MULTI-01-CLOSEOUT.md) · UI **2.65.74** |
@@ -87,7 +89,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.65.95** / **`99c6337`** · SMART-PRICING-01 **P2 CLOSED** · P1 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · backlog **P3** / MS P2 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
+| **Status** | **PRODUCTION** tip UI **2.65.95** / **`18830c1`** · MARKET-SYNC-01 **P2 FULLY CLOSED** · AI-COST-02 **I3 FULLY CLOSED** · SMART-PRICING-01 P0–P2 CLOSED · GLOBAL-UX-02 **FULLY CLOSED** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · backlog SMART P3 / MS P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -108,6 +110,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.65.95** / **`18830c1`** | MARKET-SYNC-01 P2 — PriceHistory · Δ% · Coverage (flag OFF) | **FULLY CLOSED** · **PV** · feature **`18830c11`** |
+| **2.65.95** / feature **`869b4c52`** | AI-COST-02 I3 — Competitiveness RO (flag OFF) | **FULLY CLOSED** · **PV** |
 | **2.65.95** / **`99c6337`** | SMART-PRICING-01 P2 — MS staging Evidence · Rank B1 (flag OFF) | **CLOSED** · **PV** · [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P2-PRODUCTION-VERIFY.md) |
 | **2.65.95** / **`d8b080e`** | SMART-PRICING-01 P1 — Evidence · One-shot (flag OFF) | **CLOSED** · **PV** · [`CLOSE`](../architecture/SMART-PRICING-01-P1-CLOSE.md) · [`PV`](../architecture/SMART-PRICING-01-P1-PRODUCTION-VERIFY.md) |
 | **2.65.95** / **`3385d9f`** | GLOBAL-UX-02 — S1–S8 Inspector+Worker chrome (S8 tip) | **FULLY CLOSED** · [`CLOSE`](../architecture/GLOBAL-UX-02-CLOSE.md) · S9 DEFERRED |

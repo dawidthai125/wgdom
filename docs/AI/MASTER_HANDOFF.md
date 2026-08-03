@@ -3,12 +3,13 @@
 > **STATUS:** **ACTIVE** · **thin pointer**  
 > **★★ SSOT cold-start:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Data sync:** 2026-08-03 · tip live **`3385d9f`** · [`AI-DOCS-SYNC-MASTER-HANDOFF-01`](../architecture/AI-DOCS-SYNC-MASTER-HANDOFF-01.md)
+> **Data sync:** 2026-08-03 · tip live **`18830c1`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 NOWA SESJA → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.65.95 / 99c6337 (weryfikuj w 09 + version.json)
+Tip prod = 2.65.95 / 18830c1 (weryfikuj w 09 + version.json)
+WAITING FOR NEXT OWNER GO
 ```
 
 ---
@@ -31,11 +32,11 @@ Tip prod = 2.65.95 / 99c6337 (weryfikuj w 09 + version.json)
 
 | Pole | Wartość |
 |------|---------|
-| **Prod tip** | **2.65.95** / **`99c6337`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) |
-| **Ostatni CLOSE** | SMART-PRICING-01 P2 — [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) |
-| **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** |
-| **Active slice** | brak — P3 **tylko** po Owner GO |
-| **Backlog** | SMART P3 · MS P2 · CM-04 P3 · Wave 2 — [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
+| **Prod tip** | **2.65.95** / **`18830c1`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) |
+| **Ostatni CLOSE** | MARKET-SYNC-01 P2 **FULLY CLOSED** · AI-COST-02 I3 **FULLY CLOSED** |
+| **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** · **WAITING FOR NEXT OWNER GO** |
+| **Active slice** | brak — NEXT EPIC = **NONE** · start **tylko** po Owner GO → AUDIT |
+| **Backlog** | SMART P3 · MS P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B — [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 
 Pełny stan (Closed / Flags / Residuals / Startup): **tylko** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md).
 

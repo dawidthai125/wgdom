@@ -9,30 +9,30 @@
 ### 1. Gdzie jesteśmy?
 
 **Utrzymanie.** Stabilization Window **ACTIVE**. Protected Core **GREEN**.  
-Tip produkcji = **SMART-PRICING-01 P2 CLOSED** (flaga OFF). P3 = czekaj Owner GO.
+**WAITING FOR NEXT OWNER GO.** Tip produkcji = **MARKET-SYNC-01 P2 FULLY CLOSED** (flaga OFF).
 
 ### 2. Co jest produkcją?
 
 | | |
 |--|--|
 | **Version** | **2.65.95** |
-| **Commit** | **`99c6337`** |
-| **PV** | **GREEN** (SMART-PRICING-01 P2) |
+| **Commit** | **`18830c1`** |
+| **PV** | **GREEN** (MARKET-SYNC-01 P2) |
 | Tip SSOT | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `version.json` |
 
 ### 3. Co właśnie domknięto (istotne)?
 
-- **SMART-PRICING-01 P2** — MS staging Evidence · merge · Rank B1 · flaga OFF · **CLOSED** · PV  
-- **SMART-PRICING-01 P1** — Evidence · One-shot · flaga OFF · **CLOSED** · PV  
+- **MARKET-SYNC-01 P2** — PriceHistory · Δ% · Coverage · flaga OFF · **FULLY CLOSED** · PV  
+- **AI-COST-02 I3** — Competitiveness RO · flaga OFF · **FULLY CLOSED** · PV  
+- **SMART-PRICING-01 P0–P2** — Detect · Evidence · MS staging · flagi OFF · **CLOSED** · PV  
 - **GLOBAL-UX-02** — Inspector+Worker chrome S1–S8 · **FULLY CLOSED** · S9 DEFERRED  
 - **AI-DOC-DETECTION** — Doc.D1/D2/D3 · aliasy · UX_A–D · **FULLY CLOSED**  
-- AI v2: Confidence + Scope Gap **CLOSED**  
-- CATALOG-COVERAGE-01 **FULLY CLOSED** (78.1%)
+- AI v2: Confidence + Scope Gap **CLOSED** · CATALOG-COVERAGE-01 **FULLY CLOSED** (78.1%)
 
 ### 4. Co jest WIP / NEXT?
 
-- **SMART-PRICING-01 P3** — **zakaz** bez Owner GO AUDIT  
-- Backlog bez GO: MS P2 · CM-04 P3 · Wave 2 → zawsze **AUDIT** po GO  
+- **WAITING FOR NEXT OWNER GO** — NEXT EPIC = **NONE** started  
+- Backlog bez GO: SMART P3 · MS P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B → zawsze **AUDIT** po GO  
 - Bid Time-Load Guard = WIP lokalny (nie tip)
 
 ### 5. Od czego zacząć?

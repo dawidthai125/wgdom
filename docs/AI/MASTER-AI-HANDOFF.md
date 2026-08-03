@@ -6,12 +6,14 @@
 > **Data:** 2026-08-03  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
-> **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**
+> **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**  
+> **Docs sync:** [`PROJECT-DOCS-SYNC-DESIGN-FREEZE.md`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.65.95 / 99c6337 (SMART-PRICING-01 P2 CLOSED)
-Tryb = UTRZYMANIE · STABILIZATION WINDOW ACTIVE
+Tip = 09 + version.json → 2.65.95 / 18830c1 (MARKET-SYNC-01 P2 FULLY CLOSED)
+Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
+STABILIZATION WINDOW ACTIVE
 Nowy EPIC = tylko Owner GO → AUDIT najpierw
 ```
 
@@ -19,12 +21,12 @@ Nowy EPIC = tylko Owner GO → AUDIT najpierw
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE**. Tip produkcji: **UI 2.65.95** / commit **`99c6337`** (branch **`main`**) — **SMART-PRICING-01 P2 CLOSED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip produkcji: **UI 2.65.95** / commit **`18830c1`** (branch **`main`**) — **MARKET-SYNC-01 P2 FULLY CLOSED**.
 
-Ostatnie zamknięte: **SMART P2** (MS staging Evidence, flaga OFF) · **SMART P1** · **GLOBAL-UX-02** (S1–S8).  
-**SMART-PRICING-01 P3** = **zakaz** bez Owner GO AUDIT.  
+Ostatnie zamknięte: **MS P2** (PriceHistory · Δ% · Coverage, flaga OFF) · **AI-COST-02 I3 FULLY CLOSED** (Competitiveness RO) · **SMART P0–P2** · **GLOBAL-UX-02** (S1–S8).  
+**SMART-PRICING-01 P3** / **MARKET-SYNC-01 P3** / **CM-04 P3** / **Wave 2** = **zakaz** bez Owner GO AUDIT.  
 **Bid Time-Load Guard** = **tylko WIP lokalny** (OV PASS, **nie** na prod).  
-Backlog (MS P2 · CM-04 P3 · Wave 2) **bez** Owner GO = **zakaz IMPLEMENT**.
+Backlog **bez** Owner GO = **zakaz IMPLEMENT**. **NEXT EPIC started = NONE**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
 
@@ -37,8 +39,8 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **2.65.95** |
-| **Commit** | **`99c6337`** (full `99c633732a3c6044b46349aa1e2be0d1d5277a65`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = SMART-PRICING-01 P2 |
+| **Commit** | **`18830c1`** (full `18830c118d6f3918ac7f0b2c2e019359510ec70b`) |
+| **Status** | **PRODUCTION VERIFIED** · tip = MARKET-SYNC-01 P2 · **WAITING FOR NEXT OWNER GO** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
 | **Tryb** | **UTRZYMANIE** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
@@ -55,6 +57,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Sync** | `cloud-sync.ts` · Edge `make-server-0afb8820` — **nie** ruszaj CORE bez Owner GO |
 | **Payroll** | SSOT Hours-wipe / carry — Gate G1–G9 przed IMPLEMENT |
 | **AI-COST-01** | **EPIC COMPLETE · FROZEN · FIELD READY** — Bid Proposal = jedyny generator oferty |
+| **AI-COST-02** | COST-02-A · 02-B · **I3 FULLY CLOSED** · dalsze slice = backlog |
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |
 | **Foundation Lib P0** | COMPLETE (FND-01…05) · **FND-06 BLOCKED** · app **nie** podłączona |
 | **Workflow Przetargi** | Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) |
@@ -69,6 +72,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
+| **MARKET-SYNC-01 P2** | 2.65.95 | `18830c11` / tip `18830c1` | **FULLY CLOSED** | **YES** · flaga OFF |
+| **AI-COST-02 I3** | 2.65.95 | `869b4c52` | **FULLY CLOSED** | **YES** · flaga OFF · UI ⇒ 02-B ON |
 | **SMART-PRICING-01 P2** | 2.65.95 | `99c6337` | **CLOSED** | **YES** · flaga OFF · P2⇒P1 |
 | **SMART-PRICING-01 P1** | 2.65.95 | `d8b080e` | **CLOSED** | **YES** · flaga OFF |
 | **GLOBAL-UX-02** | 2.65.95 | `3385d9f` | **FULLY CLOSED** | **YES** · S9 DEFERRED |
@@ -99,9 +104,10 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = SMART P2 CLOSED · **UTRZYMANIE** |
+| **Production** | Tip = MS P2 FULLY CLOSED · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **SMART-PRICING-01 P3** | **ZAKAZ** bez Owner GO AUDIT |
-| **Backlog (bez GO)** | MS P2 AUDIT · CM-04 P3 (INNE) AUDIT · Catalog Wave 2 · AI v2 P1 Explain/History · GAP-B / I3 / TP200B |
+| **MARKET-SYNC-01 P3** | **ZAKAZ** bez Owner GO AUDIT |
+| **Backlog (bez GO)** | CM-04 P3 (INNE) AUDIT · Catalog Wave 2 · GAP-B / TP200B · AI v2 P1 Explain/History |
 | **Pierwszy krok po Owner GO** | zawsze **AUDIT** → PLAN → DF → AR → GO → IMPLEMENT |
 
 Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
@@ -115,7 +121,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 | Item | Stan | Uwagi |
 |------|------|-------|
 | **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · changelog WT może pokazywać **2.65.96** · **nie** na `origin/main` / prod |
-| Docs CLOSE AI-DOC-DETECTION / sync docs | możliwe untracked / modified lokalnie | feature history `023ac686` · **live tip** = `3385d9f` |
+| Docs CLOSE I3 / MS P2 (artefakty) | możliwe untracked lokalnie | **poza** PROJECT DOCS SYNC DF · live tip = `18830c1` |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` |
 
 ---
@@ -124,6 +130,10 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Flaga LS | Default | Status feature | Prod / local |
 |----------|---------|----------------|--------------|
+| `kw-market-sync-01-p2` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) |
+| `kw-ai-cost-02-i3-competitiveness` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) · UI ⇒ 02-B ON |
+| `kw-smart-pricing-01-p2` | **OFF** | CLOSED · shipped | **prod** (OFF) · P2⇒P1 |
+| `kw-smart-pricing-01-p1` | **OFF** | CLOSED · shipped | **prod** (OFF) |
 | `kw-confidence-mvp` | **OFF** | CLOSED · shipped | **prod** (OFF) |
 | `kw-scope-gap-mvp` | **OFF** | CLOSED · shipped | **prod** (OFF) |
 | `kw-bid-time-load-guard` | **OFF** | WIP · nie tip | **local only** |
@@ -139,11 +149,12 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 | ID / temat | Status |
 |------------|--------|
-| CI E2E / TEST-INFRA / Mobile (residual Doc Detection) | **Open** — nie diagnozowano w Doc Detection CLOSE · tip live = `3385d9f` |
+| CI E2E / TEST-INFRA / Mobile (residual Doc Detection) | **Open** — nie diagnozowano w Doc Detection CLOSE |
 | TEUX6 / jobs-mobile (AI v2 Confidence/Scope) | **UNRELATED / Open** (Owner accepted) |
 | FND-06 Observability | **BLOCKED** — brak Implementation Spec |
 | NG-05 | **BLOCKED** (legal) |
 | Persist race COST-MULTI | MONITOR (closeout) |
+| Docs CLOSE I3 / MS P2 untracked | Residual poza DF sync — osobny Owner GO |
 
 ---
 
@@ -155,7 +166,8 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 4. Bid Proposal = jedyny generator oferty (AI-COST FROZEN).  
 5. Catalog pipeline mapowania **FROZEN** · Fuzzy **OFF** · DATA FIRST.  
 6. Commit/push **tylko** na polecenie Ownera · **nie** `git add -A`.  
-7. Stabilization Window: **nie** auto-start EPIC.
+7. Stabilization Window: **nie** auto-start EPIC.  
+8. Stan po fali CLOSE: **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -172,13 +184,14 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 ## Next Recommended Task
 
-**UTRZYMANIE** — brak auto-NEXT.
+**WAITING FOR NEXT OWNER GO** — brak auto-NEXT.
 
-Rekomendacje (wymagają **Owner GO**):
+Rekomendacje (wymagają **Owner GO** → **AUDIT**):
 
-1. **Bid Time-Load Guard** — izolowany GO COMMIT / PUSH (WIP gotowy OV), **albo**  
-2. Backlog **AUDIT**: SMART P1 · MS P2 · CM-04 P3 · Wave 2, **albo**  
-3. Residual CI triage (osobny brief — nie mieszać z FEATURE).
+1. **SMART-PRICING-01 P3** · **MARKET-SYNC-01 P3** · **CM-04 P3** · **Catalog Wave 2**, **albo**  
+2. **GAP-B / TP200B** (alternatywy), **albo**  
+3. **Bid Time-Load Guard** — izolowany GO COMMIT / PUSH (WIP gotowy OV), **albo**  
+4. Residual CI triage (osobny brief — nie mieszać z FEATURE).
 
 ---
 
@@ -186,7 +199,7 @@ Rekomendacje (wymagają **Owner GO**):
 
 ```text
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.65.95 / 18830c1)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
 [ ] Tematyczny CLOSE/DF (jeśli FEATURE)
@@ -228,7 +241,8 @@ Rekomendacje (wymagają **Owner GO**):
 | Scope Gap | **FULLY CLOSED** · prod · flaga OFF |
 | Document Detection | **FULLY CLOSED** · UI 2.65.95 · feature `023ac686` |
 | Bid Time-Load Guard | **WIP local** · OV PASS · nie tip |
-| SMART | P0 **CLOSED** · **P1 CLOSED** · **P2 CLOSED** · **P3 backlog** |
-| GLOBAL-UX-02 | **FULLY CLOSED** · tip live **`3385d9f`** · S9 DEFERRED |
-| MS (Market Sync) | P0+P1 **CLOSED** · **P2 backlog** |
+| SMART | P0–P2 **CLOSED** · **P3 backlog** |
+| GLOBAL-UX-02 | **FULLY CLOSED** · feature **`3385d9f`** · S9 DEFERRED |
+| MS (Market Sync) | P0–P2 **FULLY CLOSED** (P2 tip **`18830c1`**) · **P3 backlog** |
+| AI-COST-02 | 02-A · 02-B · **I3 FULLY CLOSED** · dalsze backlog |
 | CM (Ceny materiałów) | 01 + 04 P1/P2 **CLOSED** · **P3 AUDIT backlog** |
