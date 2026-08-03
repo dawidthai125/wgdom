@@ -25,6 +25,9 @@ import type { OfferBoqValidationRecommendation } from "@/lib/tender-offer-boq-va
 import { evaluateOfferBoqValidation } from "@/lib/tender-offer-boq-validation";
 import { buildOfferBoq02bQueue } from "@/lib/tender-offer-boq-02b-queue";
 import { isAiCost02bExplainQueueEnabled } from "@/lib/ai-cost-02-b-flag";
+import { isAiCost02I3CompetitivenessEnabled } from "@/lib/ai-cost-02-i3-flag";
+import { buildI3CompetitivenessView } from "@/lib/ai-cost-02-i3-competitiveness";
+import { OfferBoqI3CompetitivenessBlock } from "@/app/kosztorys/OfferBoqI3CompetitivenessBlock";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import {
   buildConfidenceMvpInput,
@@ -1125,6 +1128,7 @@ export function OfferBoqCostIntelligencePanel({
   );
 
   const cost02bEnabled = isAiCost02bExplainQueueEnabled();
+  const i3Enabled = isAiCost02I3CompetitivenessEnabled();
   const cm01Enabled = isCenyMaterialow01Enabled();
   const confidenceMvpEnabled = isConfidenceMvpEnabled();
   const scopeGapMvpEnabled = isScopeGapMvpEnabled();
@@ -1168,6 +1172,28 @@ export function OfferBoqCostIntelligencePanel({
       lines: view.lines,
     });
   }, [cost02bEnabled, view]);
+
+  /** AI-COST-02-I3 — UI tylko gdy I3 ON ∧ 02-B ON (DF §7.2). */
+  const i3Competitiveness = useMemo(() => {
+    if (!cost02bEnabled || !i3Enabled || !view.available || !view.document) return null;
+    const store = loadWorkCatalogStoreLocal();
+    const works = listActiveWorksForRegion(store, store.activeRegion);
+    return buildI3CompetitivenessView({
+      doc: view.document,
+      works,
+      builtAt: view.document.builtAt || view.builtAt || "2026-08-03T00:00:00.000Z",
+      startRegionCode: store.activeRegion,
+      computedAtIso: view.document.builtAt || store.updatedAt || "2026-08-03T00:00:00.000Z",
+    });
+  }, [cost02bEnabled, i3Enabled, view]);
+
+  const i3LineMeta = useMemo(() => {
+    const map = new Map<string, { lp: string; description: string }>();
+    for (const line of view.lines) {
+      map.set(line.lineId, { lp: line.lp, description: line.description });
+    }
+    return map;
+  }, [view.lines]);
 
   /** Confidence MVP — RO only; flaga OFF ⇒ null (parity tip). */
   const confidenceMvpReport = useMemo((): ConfidenceReport | null => {
@@ -1728,6 +1754,14 @@ export function OfferBoqCostIntelligencePanel({
 
             {cost02bEnabled && view.cost02b ? (
               <Cost02bExplainBlocks enrichment={view.cost02b} onFocusLine={focusQueueLine} />
+            ) : null}
+
+            {cost02bEnabled && i3Enabled && i3Competitiveness ? (
+              <OfferBoqI3CompetitivenessBlock
+                view={i3Competitiveness}
+                lineMeta={i3LineMeta}
+                onFocusLine={focusQueueLine}
+              />
             ) : null}
           </div>
         ) : null}
