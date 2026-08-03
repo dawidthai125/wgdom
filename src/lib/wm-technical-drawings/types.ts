@@ -4,8 +4,8 @@ export const WM_TECHNICAL_DRAWINGS_KEY = "kw-wm-technical-drawings";
 
 export const DRAWING_SCHEMA_VERSION = 1 as const;
 
-/** Bump przy pierwszym ship biblioteki symboli P1 (DF §3.1). */
-export const DRAWING_SYMBOL_LIBRARY_VERSION = 2 as const;
+/** Bump przy ship biblioteki symboli (P1=2 · P3A=3 — W/P/W/R). */
+export const DRAWING_SYMBOL_LIBRARY_VERSION = 3 as const;
 
 export type DrawingStatus = "draft" | "final";
 
@@ -50,6 +50,12 @@ export const DRAWING_P1_OBJECT_TYPES: DrawingObjectType[] = [
   "arrow",
   "ventilation",
   "gas_boiler",
+];
+
+/** Typy obiektów edytowalne w P3A (P1 + rozdzielnia). */
+export const DRAWING_P3A_OBJECT_TYPES: DrawingObjectType[] = [
+  ...DRAWING_P1_OBJECT_TYPES,
+  "distribution_board",
 ];
 
 export const DRAWING_STATUSES: DrawingStatus[] = ["draft", "final"];
@@ -128,8 +134,9 @@ export interface DrawingWindowObject extends DrawingObjectBase {
   symbolId: string;
 }
 
+/** MR-P3A-04 — stamp union (wentylacja / piec / rozdzielnia). */
 export interface DrawingStampObject extends DrawingObjectBase {
-  type: "ventilation" | "gas_boiler";
+  type: "ventilation" | "gas_boiler" | "distribution_board";
   x: number;
   y: number;
   symbolId: string;
@@ -155,9 +162,9 @@ export interface DrawingArrowObject extends DrawingObjectBase {
   symbolId: string;
 }
 
-/** P4 / forward — bez edycji P1; wallRefId strip. */
+/** P4 / forward — punkty poza edycją P3A; wallRefId strip. */
 export interface DrawingPassthroughObject extends DrawingObjectBase {
-  type: "measurement_point" | "electrical_point" | "distribution_board";
+  type: "measurement_point" | "electrical_point";
   x?: number;
   y?: number;
   label?: string;

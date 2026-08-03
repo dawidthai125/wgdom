@@ -21,6 +21,7 @@ import {
   FileDown,
   Eye,
   Printer,
+  Box,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -38,10 +39,9 @@ import {
   drawingPdfFileName,
   generateDrawingPdf,
 } from "@/lib/wm-technical-drawings/export-pdf";
+import { findNearestWall } from "@/lib/wm-technical-drawings/wall-gap";
 import {
   DRAWING_OBJECTS_SOFT_WARN,
-  ROOM_LABEL_DEFAULT_CONTENT,
-  ROOM_LABEL_DEFAULT_FONT_SIZE,
   TEXT_DEFAULT_FONT_SIZE,
   type DrawingObject,
   type DrawingWallObject,
@@ -49,17 +49,19 @@ import {
 } from "@/lib/wm-technical-drawings/types";
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
+/** P3A toolbar — drzwi = 2 tooly (P/W); bez osobnego „Opis” (MR-P3A-05). */
 type Tool =
   | "select"
   | "wall"
-  | "door"
+  | "door_room"
+  | "door_entrance"
   | "window"
   | "text"
-  | "room_label"
   | "dimension"
   | "arrow"
   | "ventilation"
-  | "gas_boiler";
+  | "gas_boiler"
+  | "distribution_board";
 
 const AUTOSAVE_DEBOUNCE_MS = 1000;
 
@@ -85,8 +87,13 @@ function isPointObj(
     o.type === "door" ||
     o.type === "window" ||
     o.type === "ventilation" ||
-    o.type === "gas_boiler"
+    o.type === "gas_boiler" ||
+    o.type === "distribution_board"
   );
+}
+
+function isDoorTool(t: Tool): boolean {
+  return t === "door_room" || t === "door_entrance";
 }
 
 function isLineObj(
@@ -120,6 +127,7 @@ export function WmPrintDrawingEditor({
   const [tool, setTool] = useState<Tool>("wall");
   const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoverWallId, setHoverWallId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [undoTick, setUndoTick] = useState(0);
   const [pdfBusy, setPdfBusy] = useState(false);
@@ -199,7 +207,14 @@ export function WmPrintDrawingEditor({
     [scheduleAutosave],
   );
 
-  const svgMarkup = useMemo(() => renderDrawingSvg(local, { showGrid: true }), [local]);
+  const svgMarkup = useMemo(
+    () =>
+      renderDrawingSvg(local, {
+        showGrid: true,
+        highlightWallId: isDoorTool(tool) ? hoverWallId : null,
+      }),
+    [local, tool, hoverWallId],
+  );
 
   const pdfFingerprint = useMemo(
     () =>
@@ -345,22 +360,28 @@ export function WmPrintDrawingEditor({
 
   const findSvg = (): SVGSVGElement | null => svgHostRef.current?.querySelector("svg") ?? null;
 
+  /** MR-P3A-03 — wspólne dodanie drzwi z wariantem P/W. */
+  const addDoor = (symbolId: "door-room" | "door-entrance", p: { x: number; y: number }) => {
+    const obj: DrawingObject = {
+      id: crypto.randomUUID(),
+      type: "door",
+      x: p.x,
+      y: p.y,
+      symbolId,
+      flipH: false,
+      rotation: 0,
+    };
+    commit(touchDrawing(local, { objects: [...local.objects, obj] }));
+    setSelectedId(obj.id);
+    setHoverWallId(null);
+  };
+
   const addStamp = (
-    type: "door" | "window" | "ventilation" | "gas_boiler",
+    type: "window" | "ventilation" | "gas_boiler" | "distribution_board",
     p: { x: number; y: number },
   ) => {
     let obj: DrawingObject;
-    if (type === "door") {
-      obj = {
-        id: crypto.randomUUID(),
-        type: "door",
-        x: p.x,
-        y: p.y,
-        symbolId: "door-swing",
-        flipH: false,
-        rotation: 0,
-      };
-    } else if (type === "window") {
+    if (type === "window") {
       obj = {
         id: crypto.randomUUID(),
         type: "window",
@@ -378,13 +399,22 @@ export function WmPrintDrawingEditor({
         symbolId: "vent-grid",
         rotation: 0,
       };
-    } else {
+    } else if (type === "gas_boiler") {
       obj = {
         id: crypto.randomUUID(),
         type: "gas_boiler",
         x: p.x,
         y: p.y,
         symbolId: "gas-boiler",
+        rotation: 0,
+      };
+    } else {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "distribution_board",
+        x: p.x,
+        y: p.y,
+        symbolId: "distribution-board",
         rotation: 0,
       };
     }
@@ -442,7 +472,7 @@ export function WmPrintDrawingEditor({
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
     const p = snap(raw.x, raw.y);
 
-    if (tool === "wall" || tool === "dimension" || tool === "arrow") {
+    if (tool === "wall" || tool === "arrow") {
       if (!lineStart) {
         setLineStart(p);
         return;
@@ -451,23 +481,78 @@ export function WmPrintDrawingEditor({
       return;
     }
 
-    if (tool === "door" || tool === "window" || tool === "ventilation" || tool === "gas_boiler") {
+    /* D-P3A-19 / MR-P3A-07 — primary: klik ściany → popup Długość; secondary: 2-click. */
+    if (tool === "dimension") {
+      const walls = local.objects.filter((o): o is DrawingWallObject => o.type === "wall");
+      const hit = findNearestWall(walls, raw.x, raw.y, 28);
+      if (hit) {
+        setLineStart(null);
+        const rawLabel = window.prompt("Długość", "");
+        if (rawLabel == null) return;
+        const label = rawLabel.trim();
+        if (!label) {
+          toast.error("Podaj długość (np. 420)");
+          return;
+        }
+        if (/^\d+([.,]\d+)?$/.test(label)) {
+          const n = Number(label.replace(",", "."));
+          if (!(n >= 1 && n <= 99999)) {
+            toast.error("Długość: zakres 1…99999");
+            return;
+          }
+        }
+        const w = hit.wall;
+        const obj: DrawingObject = {
+          id: crypto.randomUUID(),
+          type: "dimension",
+          x1: w.x1,
+          y1: w.y1,
+          x2: w.x2,
+          y2: w.y2,
+          label,
+          symbolId: "dimension-line",
+        };
+        commit(touchDrawing(local, { objects: [...local.objects, obj] }));
+        setSelectedId(obj.id);
+        return;
+      }
+      if (!lineStart) {
+        setLineStart(p);
+        return;
+      }
+      finishLine("dimension", lineStart, p);
+      return;
+    }
+
+    if (tool === "door_room") {
+      addDoor("door-room", p);
+      return;
+    }
+    if (tool === "door_entrance") {
+      addDoor("door-entrance", p);
+      return;
+    }
+
+    if (
+      tool === "window" ||
+      tool === "ventilation" ||
+      tool === "gas_boiler" ||
+      tool === "distribution_board"
+    ) {
       addStamp(tool, p);
       return;
     }
 
-    if (tool === "text" || tool === "room_label") {
-      const isRoom = tool === "room_label";
-      const defaultText = isRoom ? ROOM_LABEL_DEFAULT_CONTENT : "Tekst";
-      const content = window.prompt(isRoom ? "Opis pomieszczenia:" : "Tekst na rysunku:", defaultText);
+    if (tool === "text") {
+      const content = window.prompt("Tekst na rysunku:", "Tekst");
       if (content == null) return;
       const textObj: DrawingObject = {
         id: crypto.randomUUID(),
         type: "text",
         x: p.x,
         y: p.y,
-        content: content.trim() || defaultText,
-        fontSize: isRoom ? ROOM_LABEL_DEFAULT_FONT_SIZE : TEXT_DEFAULT_FONT_SIZE,
+        content: content.trim() || "Tekst",
+        fontSize: TEXT_DEFAULT_FONT_SIZE,
         symbolId: "text-label",
       };
       commit(touchDrawing(local, { objects: [...local.objects, textObj] }));
@@ -503,11 +588,22 @@ export function WmPrintDrawingEditor({
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    const drag = dragRef.current;
-    if (!drag) return;
     const svg = findSvg();
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
+
+    /* D-P3A-22 — hover ściany przy wstawianiu drzwi (tylko wizualnie). */
+    if (isDoorTool(tool) && !dragRef.current) {
+      const walls = localRef.current.objects.filter(
+        (o): o is DrawingWallObject => o.type === "wall",
+      );
+      const hit = findNearestWall(walls, raw.x, raw.y, 28);
+      const nextId = hit?.wall.id ?? null;
+      setHoverWallId((prev) => (prev === nextId ? prev : nextId));
+    }
+
+    const drag = dragRef.current;
+    if (!drag) return;
     const p = snap(raw.x, raw.y);
     const dx = p.x - drag.ox;
     const dy = p.y - drag.oy;
@@ -602,6 +698,7 @@ export function WmPrintDrawingEditor({
       onClick={() => {
         setTool(t);
         setLineStart(null);
+        if (!isDoorTool(t)) setHoverWallId(null);
       }}
       className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium ${
         tool === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"
@@ -613,11 +710,17 @@ export function WmPrintDrawingEditor({
   );
 
   const lineHint =
-    tool === "wall" || tool === "dimension" || tool === "arrow"
+    tool === "wall" || tool === "arrow"
       ? lineStart
         ? "Kliknij drugi punkt."
         : "Kliknij pierwszy punkt."
-      : null;
+      : tool === "dimension"
+        ? lineStart
+          ? "Kliknij drugi punkt (wymiar swobodny)."
+          : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
+        : isDoorTool(tool)
+          ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
+          : null;
 
   return (
     <div className="flex flex-col gap-3 min-h-0 h-full">
@@ -642,14 +745,15 @@ export function WmPrintDrawingEditor({
       <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card">
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
-        {toolBtn("door", "Drzwi", <DoorOpen size={14} />)}
+        {toolBtn("door_room", "Drzwi P", <DoorOpen size={14} />)}
+        {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={14} />)}
         {toolBtn("window", "Okno", <Square size={14} />)}
-        {toolBtn("text", "Tekst", <Type size={14} />)}
-        {toolBtn("room_label", "Opis pomieszczenia", <Type size={14} />)}
         {toolBtn("dimension", "Wymiar", <Ruler size={14} />)}
         {toolBtn("arrow", "Strzałka", <MoveRight size={14} />)}
         {toolBtn("ventilation", "Wentylacja", <Wind size={14} />)}
-        {toolBtn("gas_boiler", "Piec gazowy", <Flame size={14} />)}
+        {toolBtn("gas_boiler", "Piec", <Flame size={14} />)}
+        {toolBtn("distribution_board", "Rozdzielnia", <Box size={14} />)}
+        {toolBtn("text", "Tekst", <Type size={14} />)}
         <span className="w-px h-5 bg-border mx-1" />
         <button
           type="button"
@@ -770,7 +874,10 @@ export function WmPrintDrawingEditor({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+        onPointerLeave={() => {
+          setHoverWallId(null);
+          onPointerUp();
+        }}
       >
         <div
           className="inline-block shadow-sm"

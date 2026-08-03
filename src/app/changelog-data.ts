@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.66.01",
+    label: "Odbiory WM — Rysunki P3A UX polish",
+    items: [
+      {
+        type: "improve",
+        text: "Rysunki: wentylacja W · drzwi P/W · rozdzielnia R · luka w ścianie tylko na rysunku · wymiar ze ściany (popup Długość). Ten sam SVG → PDF → ZIP.",
+      },
+      {
+        type: "new",
+        text: "Toolbar: Drzwi P / Drzwi W + Rozdzielnia. Hover ściany przy wstawianiu drzwi (tylko podgląd).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.66.00",
     label: "Odbiory WM — Rysunki P3 w paczce ZIP",
     items: [

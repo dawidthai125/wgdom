@@ -117,7 +117,8 @@ function offsetObject(obj: DrawingObject, dx: number, dy: number): DrawingObject
     obj.type === "door" ||
     obj.type === "window" ||
     obj.type === "ventilation" ||
-    obj.type === "gas_boiler"
+    obj.type === "gas_boiler" ||
+    obj.type === "distribution_board"
   ) {
     return { ...obj, id, x: obj.x + dx, y: obj.y + dy };
   }

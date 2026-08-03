@@ -1,8 +1,10 @@
-/** WM-RYSUNKI-01 P1 — zamknięta biblioteka symboli (D-P1-11: defaultWidth/Height). */
+/** WM-RYSUNKI-01 P1+P3A — zamknięta biblioteka symboli (D-P1-11 · MR-P3A-06). */
 
 export type DrawingSymbolId =
   | "wall-default"
   | "door-swing"
+  | "door-room"
+  | "door-entrance"
   | "window-rect"
   | "vent-grid"
   | "gas-boiler"
@@ -12,7 +14,8 @@ export type DrawingSymbolId =
   | "unknown"
   | "point-measure"
   | "point-electrical"
-  | "board-distribution";
+  | "board-distribution"
+  | "distribution-board";
 
 export interface SymbolViewBox {
   x: number;
@@ -56,16 +59,35 @@ function def(
   };
 }
 
-const DOOR: SymbolDef = def(
-  "door-swing",
-  40,
-  40,
-  [
-    `<line x1="0" y1="20" x2="40" y2="20" stroke="#1e293b" stroke-width="3"/>`,
-    `<path d="M 0 20 A 28 28 0 0 1 28 0" fill="none" stroke="#1e293b" stroke-width="1.5"/>`,
-    `<line x1="0" y1="20" x2="0" y2="0" stroke="#1e293b" stroke-width="2"/>`,
-  ].join(""),
-);
+/**
+ * MR-P3A-06 — wspólny glyph literowy (G / W / R / P).
+ * Styl: prostokąt + okrąg + litera (jak historyczny piec G).
+ */
+export function letterStampPaths(letter: string, w = 36, h = 44): string {
+  const cx = w / 2;
+  const cy = h / 2;
+  const safe = String(letter).slice(0, 1).replace(/[<>&"]/g, "");
+  return [
+    `<rect x="4" y="4" width="${w - 8}" height="${h - 8}" rx="2" fill="none" stroke="#1e293b" stroke-width="2"/>`,
+    `<circle cx="${cx}" cy="${cy}" r="8" fill="none" stroke="#1e293b" stroke-width="1.5"/>`,
+    `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="9" fill="#1e293b" font-family="system-ui,sans-serif">${safe}</text>`,
+  ].join("");
+}
+
+/** Drzwi literowe — mniejszy kwadrat (bez okręgu), czytelne P / W. */
+function doorLetterPaths(letter: string, size = 28): string {
+  const cx = size / 2;
+  const safe = String(letter).slice(0, 1).replace(/[<>&"]/g, "");
+  return [
+    `<rect x="2" y="2" width="${size - 4}" height="${size - 4}" rx="2" fill="none" stroke="#1e293b" stroke-width="2"/>`,
+    `<text x="${cx}" y="${cx + 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#1e293b" font-family="system-ui,sans-serif">${safe}</text>`,
+  ].join("");
+}
+
+const DOOR_ROOM: SymbolDef = def("door-room", 28, 28, doorLetterPaths("P"));
+const DOOR_ENTRANCE: SymbolDef = def("door-entrance", 28, 28, doorLetterPaths("W"));
+/** Legacy id — ten sam glyph co door-room (P); normalize mapuje na door-room. */
+const DOOR_SWING: SymbolDef = def("door-swing", 28, 28, doorLetterPaths("P"));
 
 const WINDOW: SymbolDef = def(
   "window-rect",
@@ -77,28 +99,12 @@ const WINDOW: SymbolDef = def(
   ].join(""),
 );
 
-const VENT: SymbolDef = def(
-  "vent-grid",
-  28,
-  28,
-  [
-    `<rect x="2" y="2" width="24" height="24" fill="none" stroke="#1e293b" stroke-width="1.5"/>`,
-    `<line x1="6" y1="8" x2="22" y2="8" stroke="#64748b" stroke-width="1"/>`,
-    `<line x1="6" y1="14" x2="22" y2="14" stroke="#64748b" stroke-width="1"/>`,
-    `<line x1="6" y1="20" x2="22" y2="20" stroke="#64748b" stroke-width="1"/>`,
-  ].join(""),
-);
+const VENT: SymbolDef = def("vent-grid", 36, 44, letterStampPaths("W"));
 
-const BOILER: SymbolDef = def(
-  "gas-boiler",
-  36,
-  44,
-  [
-    `<rect x="4" y="4" width="28" height="36" rx="2" fill="none" stroke="#1e293b" stroke-width="2"/>`,
-    `<circle cx="18" cy="22" r="8" fill="none" stroke="#1e293b" stroke-width="1.5"/>`,
-    `<text x="18" y="26" text-anchor="middle" font-size="9" fill="#1e293b" font-family="system-ui,sans-serif">G</text>`,
-  ].join(""),
-);
+const BOILER: SymbolDef = def("gas-boiler", 36, 44, letterStampPaths("G"));
+
+const BOARD: SymbolDef = def("board-distribution", 36, 44, letterStampPaths("R"));
+const BOARD_ALT: SymbolDef = def("distribution-board", 36, 44, letterStampPaths("R"));
 
 const ARROW: SymbolDef = def(
   "arrow-straight",
@@ -137,11 +143,12 @@ const TEXT: SymbolDef = def("text-label", 40, 16, ``);
 
 const POINT_M: SymbolDef = def("point-measure", 12, 12, `<circle cx="6" cy="6" r="4" fill="none" stroke="#64748b"/>`);
 const POINT_E: SymbolDef = def("point-electrical", 12, 12, `<circle cx="6" cy="6" r="4" fill="none" stroke="#64748b"/>`);
-const BOARD: SymbolDef = def("board-distribution", 20, 20, `<rect x="2" y="2" width="16" height="16" fill="none" stroke="#64748b"/>`);
 
 const REGISTRY: Record<string, SymbolDef> = {
   "wall-default": WALL,
-  "door-swing": DOOR,
+  "door-swing": DOOR_SWING,
+  "door-room": DOOR_ROOM,
+  "door-entrance": DOOR_ENTRANCE,
   "window-rect": WINDOW,
   "vent-grid": VENT,
   "gas-boiler": BOILER,
@@ -152,6 +159,7 @@ const REGISTRY: Record<string, SymbolDef> = {
   "point-measure": POINT_M,
   "point-electrical": POINT_E,
   "board-distribution": BOARD,
+  "distribution-board": BOARD_ALT,
 };
 
 export function getSymbolDef(symbolId: string | undefined | null): SymbolDef {
@@ -161,4 +169,12 @@ export function getSymbolDef(symbolId: string | undefined | null): SymbolDef {
 
 export function listClosedSymbolIds(): string[] {
   return Object.keys(REGISTRY);
+}
+
+/** Resolve door symbolId for render (legacy door-swing → door-room). */
+export function resolveDoorSymbolId(symbolId: string | undefined | null): string {
+  const s = (symbolId || "").trim();
+  if (!s || s === "door-swing") return "door-room";
+  if (s === "door-room" || s === "door-entrance") return s;
+  return getSymbolDef(s).symbolId === "unknown" ? "door-room" : s;
 }

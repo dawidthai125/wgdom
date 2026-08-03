@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.01 — Odbiory WM — Rysunki P3A UX polish (2026-08-03)
+
+- **improve:** wentylacja **W** · drzwi **P/W** · rozdzielnia **R** · wall gap render-time · wymiar ze ściany (popup Długość)
+- **new:** toolbar Drzwi P / W + Rozdzielnia · hover ściany przy drzwiach (wizualnie)
+- Testy: `scripts/test-wm-rysunki-01-p3a.mjs` · regresja P0–P3
+
 ## 2.66.00 — Odbiory WM — Rysunki P3 w paczce ZIP (2026-08-03)
 
 - **new:** checkbox „Dołącz rysunki” · folder `Rysunki/` · reuse `generateDrawingPdf` · manifest/fingerprint additive

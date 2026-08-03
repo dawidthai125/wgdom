@@ -122,15 +122,23 @@ function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject 
   };
 }
 
+function normalizeDoorSymbolId(raw: string): string {
+  const s = raw.trim();
+  if (!s || s === "door-swing") return "door-room";
+  if (s === "door-room" || s === "door-entrance") return s;
+  return "door-room";
+}
+
 function parseDoor(raw: Record<string, unknown>, id: string): DrawingDoorObject {
   /* MR-P1-06: wallRefId OUT — strip (nie kopiujemy) */
+  /* P3A: legacy door-swing → door-room (P) */
   return {
     id,
     type: "door",
     x: asFiniteNumber(raw.x, 0),
     y: asFiniteNumber(raw.y, 0),
     width: raw.width != null ? asFiniteNumber(raw.width, 40) : undefined,
-    symbolId: asString(raw.symbolId, "door-swing") || "door-swing",
+    symbolId: normalizeDoorSymbolId(asString(raw.symbolId, "door-room")),
     flipH: raw.flipH === true,
     rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
     locked: raw.locked === true,
@@ -155,9 +163,14 @@ function parseWindow(raw: Record<string, unknown>, id: string): DrawingWindowObj
 function parseStamp(
   raw: Record<string, unknown>,
   id: string,
-  type: "ventilation" | "gas_boiler",
+  type: "ventilation" | "gas_boiler" | "distribution_board",
 ): DrawingStampObject {
-  const defaultSym = type === "ventilation" ? "vent-grid" : "gas-boiler";
+  const defaultSym =
+    type === "ventilation"
+      ? "vent-grid"
+      : type === "gas_boiler"
+        ? "gas-boiler"
+        : "distribution-board";
   return {
     id,
     type,
@@ -214,6 +227,7 @@ export function parseDrawingObject(raw: unknown): DrawingObject | null {
   if (type === "window") return parseWindow(r, id);
   if (type === "ventilation") return parseStamp(r, id, "ventilation");
   if (type === "gas_boiler") return parseStamp(r, id, "gas_boiler");
+  if (type === "distribution_board") return parseStamp(r, id, "distribution_board");
   if (type === "dimension") return parseDimension(r, id);
   if (type === "arrow") return parseArrow(r, id);
   return {

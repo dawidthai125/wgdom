@@ -53,8 +53,8 @@ function assert(name, cond) {
 console.log("WM-RYSUNKI-01 P1 — test-wm-rysunki-01-p1\n");
 
 assert("T01 schemaVersion stays 1", DRAWING_SCHEMA_VERSION === 1);
-assert("T02 symbol library version 2", DRAWING_SYMBOL_LIBRARY_VERSION === 2);
-assert("T03 render version 2", DRAWING_RENDER_VERSION === 2);
+assert("T02 symbol library version 3", DRAWING_SYMBOL_LIBRARY_VERSION === 3);
+assert("T03 render version 3", DRAWING_RENDER_VERSION === 3);
 assert("T04 soft warn threshold 300", DRAWING_OBJECTS_SOFT_WARN === 300);
 assert(
   "T05 P1 editable includes arrow+door",
@@ -122,6 +122,7 @@ const doorRaw = parseDrawingObject({
   rotation: 90,
 });
 assert("T16 door flipH kept", doorRaw?.type === "door" && doorRaw.flipH === true);
+assert("T16b legacy door-swing → door-room", doorRaw?.type === "door" && doorRaw.symbolId === "door-room");
 assert("T17 MR-P1-06 wallRefId stripped", doorRaw && !("wallRefId" in doorRaw));
 
 const arrowRaw = parseDrawingObject({
@@ -208,8 +209,8 @@ const withObjs = touchDrawing(blank, {
 });
 
 const svg = renderDrawingSvg(withObjs);
-assert("T19 SVG render version 2", svg.includes('data-render-version="2"'));
-assert("T20 SVG has door flip", svg.includes("door-swing") && svg.includes("scale(-1"));
+assert("T19 SVG render version 3", svg.includes('data-render-version="3"'));
+assert("T20 SVG has door flip", svg.includes("door-room") && svg.includes("scale(-1"));
 assert("T21 SVG has window", svg.includes("window-rect"));
 assert("T22 SVG has vent+boiler", svg.includes("vent-grid") && svg.includes("gas-boiler"));
 assert("T23 SVG has arrow", svg.includes("arrow-straight"));

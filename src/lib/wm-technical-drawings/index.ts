@@ -14,3 +14,4 @@ export * from "@/lib/wm-technical-drawings/symbols";
 export * from "@/lib/wm-technical-drawings/symbols/render-symbol";
 export * from "@/lib/wm-technical-drawings/export-pdf";
 export * from "@/lib/wm-technical-drawings/svg-raster";
+export * from "@/lib/wm-technical-drawings/wall-gap";
