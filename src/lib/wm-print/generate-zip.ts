@@ -34,9 +34,17 @@ import type {
   WmPrintVariableKey,
 } from "@/lib/wm-print/types";
 import { buildWmPrintVariableMap } from "@/lib/wm-print/variables";
+import {
+  listFinalDrawingsForJob,
+  prepareDrawingZipFileEntries,
+  type DrawingZipFileEntry,
+} from "@/lib/wm-technical-drawings/zip-entries";
+import type { DrawingSvgRasterizer } from "@/lib/wm-technical-drawings/export-pdf";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
 export const WM_PRINT_ZIP_FOLDER_ODBIORY = "Odbiory";
 export const WM_PRINT_ZIP_FOLDER_POMIARY = "Pomiary";
+export const WM_PRINT_ZIP_FOLDER_RYSUNKI = "Rysunki";
 
 export interface WmPrintDeliveryZipOptions {
   includeMeasurements: boolean;
@@ -44,6 +52,26 @@ export interface WmPrintDeliveryZipOptions {
   registry?: ElectricalMeasurementRegistryState;
   /** Tylko testy Node — loader szablonów EM DOCX z public/. */
   measurementTemplateLoader?: CatalogZipTemplateLoader;
+  /** P3 — dołącz Final drawings → folder Rysunki/ */
+  includeDrawings?: boolean;
+  drawings?: WmTechnicalDrawing[];
+  /** Wymagany gdy includeDrawings + finals (D-P2-16 / P3). */
+  jobLabel?: string;
+  /** Testy Node — rasterizer PDF. */
+  drawingRasterize?: DrawingSvgRasterizer;
+}
+
+/** D-P3-18 — ZIP append zna wyłącznie filename + Uint8Array. */
+export function appendNamedFilesToZip(
+  zip: JSZip,
+  folder: string,
+  entries: DrawingZipFileEntry[],
+): void {
+  for (const e of entries) {
+    const name = String(e.fileName || "").trim();
+    if (!name || !e.bytes) continue;
+    zip.file(`${folder}/${name}`, e.bytes);
+  }
 }
 
 export function slugWmPrintFileName(name: string): string {
@@ -185,7 +213,7 @@ export async function buildWmPrintDeliveryZipBytes(
   selectedTemplateIds?: string[],
   fetchBytes: WmPrintBytesFetcher = fetchWmPrintFileBytes,
   delivery?: WmPrintDeliveryZipOptions,
-): Promise<{ bytes: Uint8Array; odbiorCount: number; pomiaryCount: number }> {
+): Promise<{ bytes: Uint8Array; odbiorCount: number; pomiaryCount: number; rysunkiCount: number }> {
   const files = await buildWmPrintFilesForJob(job, templates, jobDocs, settings, opts, selectedTemplateIds, fetchBytes);
   if (files.length === 0) {
     throw new Error("Brak dokumentów do wygenerowania");
@@ -220,8 +248,24 @@ export async function buildWmPrintDeliveryZipBytes(
     appendMeasurementIndexFiles(zip, indexRows, WM_PRINT_ZIP_FOLDER_POMIARY);
   }
 
+  let rysunkiCount = 0;
+  const includeDrawings = delivery?.includeDrawings === true;
+  if (includeDrawings) {
+    const finals = listFinalDrawingsForJob(delivery?.drawings ?? [], job.id);
+    if (finals.length > 0) {
+      // D-P3-17/20 — prepare (PDF once) przed generateAsync; throw → cały ZIP FAIL
+      const entries = await prepareDrawingZipFileEntries(finals, delivery?.jobLabel ?? "Bez roboty", {
+        rasterize: delivery?.drawingRasterize,
+      });
+      // D-P3-18 — append tylko filename + bytes
+      appendNamedFilesToZip(zip, WM_PRINT_ZIP_FOLDER_RYSUNKI, entries);
+      rysunkiCount = entries.length;
+    }
+  }
+
+  // D-P3-19/20 — generateAsync dopiero po udanym prepare (brak partial emit)
   const bytes = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
-  return { bytes, odbiorCount: files.length, pomiaryCount };
+  return { bytes, odbiorCount: files.length, pomiaryCount, rysunkiCount };
 }
 
 export async function downloadWmPrintZip(
@@ -232,9 +276,9 @@ export async function downloadWmPrintZip(
   opts: WmPrintGenerateOptions,
   selectedTemplateIds?: string[],
   delivery?: WmPrintDeliveryZipOptions,
-): Promise<{ ok: boolean; error?: string; pomiaryCount?: number }> {
+): Promise<{ ok: boolean; error?: string; pomiaryCount?: number; rysunkiCount?: number }> {
   try {
-    const { bytes, pomiaryCount } = await buildWmPrintDeliveryZipBytes(
+    const { bytes, pomiaryCount, rysunkiCount } = await buildWmPrintDeliveryZipBytes(
       job,
       templates,
       jobDocs,
@@ -249,7 +293,7 @@ export async function downloadWmPrintZip(
     const base = wmPrintZipBaseName(job.address, job.flatNumber);
     const suffix = settings.zipNameSuffix || "ODBIOR_WM";
     saveAs(blob, `${base}_${suffix}.zip`);
-    return { ok: true, pomiaryCount };
+    return { ok: true, pomiaryCount, rysunkiCount };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }

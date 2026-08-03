@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.00 — Odbiory WM — Rysunki P3 w paczce ZIP (2026-08-03)
+
+- **new:** checkbox „Dołącz rysunki” · folder `Rysunki/` · reuse `generateDrawingPdf` · manifest/fingerprint additive
+- **improve:** fail-loud PDF→ZIP · sort Final · `_{shortId}` · audit `drawing_zip_included`
+- Testy: `scripts/test-wm-rysunki-01-p3.mjs` · regresja P0/P1/P1B/P2
+
 ## 2.65.99 — Odbiory WM — Rysunki P2 PDF export (2026-08-03)
 
 - **new:** Podgląd / Pobierz / Drukuj PDF (SVG→PNG@2×→pdf-lib) · A4/A3 · jobLabel + data

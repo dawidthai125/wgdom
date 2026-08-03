@@ -22,6 +22,11 @@ import {
 } from "@/lib/delivery-package-publications/types";
 import { uploadDeliveryPackageZip } from "@/lib/delivery-package-publications/storage";
 import { fetchKeysFromCloud, isSupabaseConfigured, pushKeysToCloud } from "@/lib/cloud-sync";
+import {
+  buildDrawingFingerprintDigests,
+  listFinalDrawingsForJob,
+} from "@/lib/wm-technical-drawings/zip-entries";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -73,11 +78,19 @@ export async function buildDeliveryPackageGenerationFingerprint(input: {
   includeMeasurements: boolean;
   measurements?: ElectricalMeasurement[];
   registry?: ElectricalMeasurementRegistryState;
+  includeDrawings?: boolean;
+  drawings?: WmTechnicalDrawing[];
 }): Promise<{ payload: DeliveryPackageGenerationFingerprint; hash: string }> {
   const measurement =
     input.includeMeasurements && input.measurements && input.registry
       ? getProductionMeasurementForJob(input.measurements, input.registry, input.job.id)
       : null;
+
+  const includeDrawings = input.includeDrawings === true;
+  const finals =
+    includeDrawings && input.drawings
+      ? listFinalDrawingsForJob(input.drawings, input.job.id)
+      : [];
 
   const selected = [...new Set(input.selectedTemplateIds)].sort();
   const enabled = getEnabledWmPrintTemplates(input.templates).filter((t) => selected.includes(t.id));
@@ -109,6 +122,8 @@ export async function buildDeliveryPackageGenerationFingerprint(input: {
     measurementId: measurement?.id ?? null,
     measurementUpdatedAt: measurement?.updatedAt ?? null,
     measurementReportNumber: measurement?.reportNumber ?? null,
+    includeDrawings,
+    drawingDigests: buildDrawingFingerprintDigests(finals),
     dateMode: input.opts.dateMode === "custom" ? "custom" : "today",
     customDateIso,
     jobVariableDigest: jobVariableDigest(input.job, input.settings, input.opts),
@@ -171,12 +186,16 @@ export function applyDeliveryPackagePublication(input: {
   fileSizeBytes: number;
   odbiorFileCount: number;
   pomiaryFileCount: number;
+  rysunkiFileCount?: number;
   includesMeasurements: boolean;
+  includesDrawings?: boolean;
   manifest: DeliveryPackageManifestEntry[];
 }): { nextPublications: DeliveryPackagePublication[]; publication: DeliveryPackagePublication } {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
-  const fileCount = input.odbiorFileCount + input.pomiaryFileCount;
+  const rysunkiFileCount = input.rysunkiFileCount ?? 0;
+  const includesDrawings = input.includesDrawings === true && rysunkiFileCount > 0;
+  const fileCount = input.odbiorFileCount + input.pomiaryFileCount + rysunkiFileCount;
 
   const publication: DeliveryPackagePublication = {
     id,
@@ -194,7 +213,9 @@ export function applyDeliveryPackagePublication(input: {
     fileCount,
     odbiorFileCount: input.odbiorFileCount,
     pomiaryFileCount: input.pomiaryFileCount,
+    rysunkiFileCount,
     includesMeasurements: input.includesMeasurements,
+    includesDrawings,
     manifest: input.manifest,
     status: "ACTIVE",
     createdAt: now,
@@ -223,7 +244,9 @@ export async function publishDeliveryPackageForJob(input: {
   zipBytes: Uint8Array;
   odbiorFileCount: number;
   pomiaryFileCount: number;
+  rysunkiFileCount?: number;
   includesMeasurements: boolean;
+  includesDrawings?: boolean;
   fingerprintHash: string;
   fingerprintPayload: DeliveryPackageGenerationFingerprint;
   manifest: DeliveryPackageManifestEntry[];
@@ -262,7 +285,9 @@ export async function publishDeliveryPackageForJob(input: {
     fileSizeBytes: input.zipBytes.byteLength,
     odbiorFileCount: input.odbiorFileCount,
     pomiaryFileCount: input.pomiaryFileCount,
+    rysunkiFileCount: input.rysunkiFileCount ?? 0,
     includesMeasurements: input.includesMeasurements,
+    includesDrawings: input.includesDrawings === true,
   });
 
   if (countActivePublicationsPerJob(nextPublications, input.job.id) !== 1) {

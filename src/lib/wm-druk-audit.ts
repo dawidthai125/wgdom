@@ -24,7 +24,8 @@ export type WmDrukAuditAction =
   | "drawing_created"
   | "drawing_deleted"
   | "drawing_duplicated"
-  | "drawing_pdf_exported";
+  | "drawing_pdf_exported"
+  | "drawing_zip_included";
 
 export interface WmDrukAuditEntry {
   id: string;
@@ -58,6 +59,7 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
   drawing_deleted: "Usunięto rysunek",
   drawing_duplicated: "Duplikacja rysunku",
   drawing_pdf_exported: "Eksport PDF rysunku",
+  drawing_zip_included: "Rysunki w paczce ZIP",
 };
 
 const VALID_MODULES = new Set<string>(["measurements", "schematics", "katalog", "drawings"]);

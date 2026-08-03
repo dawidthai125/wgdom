@@ -7,6 +7,21 @@ import type {
 
 const VALID_STATUS = new Set<string>(["ACTIVE", "SUPERSEDED", "REVOKED"]);
 
+function parseDrawingDigests(
+  raw: unknown,
+): { id: string; updatedAt: string; status: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((d) => d && typeof d === "object")
+    .map((d) => ({
+      id: String((d as { id: string }).id ?? ""),
+      updatedAt: String((d as { updatedAt: string }).updatedAt ?? ""),
+      status: String((d as { status: string }).status ?? ""),
+    }))
+    .filter((d) => d.id)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
 function parseFingerprint(raw: unknown): DeliveryPackageGenerationFingerprint | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<DeliveryPackageGenerationFingerprint>;
@@ -21,6 +36,8 @@ function parseFingerprint(raw: unknown): DeliveryPackageGenerationFingerprint | 
     measurementId: r.measurementId ? String(r.measurementId) : null,
     measurementUpdatedAt: r.measurementUpdatedAt ? String(r.measurementUpdatedAt) : null,
     measurementReportNumber: r.measurementReportNumber ? String(r.measurementReportNumber) : null,
+    includeDrawings: r.includeDrawings === true,
+    drawingDigests: parseDrawingDigests(r.drawingDigests),
     dateMode: r.dateMode === "custom" ? "custom" : "today",
     customDateIso: r.customDateIso ? String(r.customDateIso) : null,
     jobVariableDigest: String(r.jobVariableDigest ?? ""),
@@ -45,13 +62,18 @@ function parseFingerprint(raw: unknown): DeliveryPackageGenerationFingerprint | 
   };
 }
 
+function parseManifestFolder(raw: unknown): DeliveryPackageManifestEntry["folder"] {
+  if (raw === "Pomiary") return "Pomiary";
+  if (raw === "Rysunki") return "Rysunki";
+  return "Odbiory";
+}
+
 function parseManifestEntry(raw: unknown): DeliveryPackageManifestEntry | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<DeliveryPackageManifestEntry>;
   if (!r.fileName || !r.relativePath) return null;
-  const folder = r.folder === "Pomiary" ? "Pomiary" : "Odbiory";
   return {
-    folder,
+    folder: parseManifestFolder(r.folder),
     fileName: String(r.fileName),
     relativePath: String(r.relativePath),
     displayLabel: String(r.displayLabel ?? r.fileName),
@@ -83,6 +105,12 @@ export function parseDeliveryPackagePublication(raw: unknown): DeliveryPackagePu
   if (!fp || !r.generationFingerprint || !r.storagePath || !r.zipPublicUrl) return null;
 
   const now = new Date().toISOString();
+  const odbiorFileCount = typeof r.odbiorFileCount === "number" ? r.odbiorFileCount : 0;
+  const pomiaryFileCount = typeof r.pomiaryFileCount === "number" ? r.pomiaryFileCount : 0;
+  const rysunkiFileCount = typeof r.rysunkiFileCount === "number" ? r.rysunkiFileCount : 0;
+  const fileCount =
+    typeof r.fileCount === "number" ? r.fileCount : odbiorFileCount + pomiaryFileCount + rysunkiFileCount;
+
   return {
     id: String(r.id),
     jobId: String(r.jobId),
@@ -96,10 +124,12 @@ export function parseDeliveryPackagePublication(raw: unknown): DeliveryPackagePu
     zipPublicUrl: String(r.zipPublicUrl),
     fileName: String(r.fileName ?? "ODBIOR_WM.zip"),
     fileSizeBytes: typeof r.fileSizeBytes === "number" ? r.fileSizeBytes : 0,
-    fileCount: typeof r.fileCount === "number" ? r.fileCount : 0,
-    odbiorFileCount: typeof r.odbiorFileCount === "number" ? r.odbiorFileCount : 0,
-    pomiaryFileCount: typeof r.pomiaryFileCount === "number" ? r.pomiaryFileCount : 0,
+    fileCount,
+    odbiorFileCount,
+    pomiaryFileCount,
+    rysunkiFileCount,
     includesMeasurements: r.includesMeasurements === true,
+    includesDrawings: r.includesDrawings === true,
     manifest: parseManifest(r.manifest),
     status: parseStatus(r.status),
     createdAt: String(r.createdAt ?? r.publishedAt ?? now),

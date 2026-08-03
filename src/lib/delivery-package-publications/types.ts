@@ -6,7 +6,7 @@ export const DELIVERY_PACKAGE_PUBLICATIONS_CAP = 500;
 
 export type DeliveryPackagePublicationStatus = "ACTIVE" | "SUPERSEDED" | "REVOKED";
 
-export type DeliveryPackageManifestFolder = "Odbiory" | "Pomiary";
+export type DeliveryPackageManifestFolder = "Odbiory" | "Pomiary" | "Rysunki";
 
 /** Wpis manifestu — tylko metadane pliku w opublikowanym ZIP (bez regeneracji). */
 export interface DeliveryPackageManifestEntry {
@@ -27,6 +27,9 @@ export interface DeliveryPackageGenerationFingerprint {
   measurementId: string | null;
   measurementUpdatedAt: string | null;
   measurementReportNumber: string | null;
+  /** P3 additive — default false w normalize starych rekordów */
+  includeDrawings: boolean;
+  drawingDigests: { id: string; updatedAt: string; status: string }[];
   dateMode: "today" | "custom";
   customDateIso: string | null;
   /** ZI + zmienne adresu (DATE, JOB_ADDRESS, …) */
@@ -57,7 +60,10 @@ export interface DeliveryPackagePublication {
   fileCount: number;
   odbiorFileCount: number;
   pomiaryFileCount: number;
+  /** P3 additive — default 0 */
+  rysunkiFileCount: number;
   includesMeasurements: boolean;
+  includesDrawings: boolean;
 
   /** Lista plików w opublikowanym ZIP — read-only dla inspektora (P1B). */
   manifest: DeliveryPackageManifestEntry[];

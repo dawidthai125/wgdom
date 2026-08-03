@@ -112,6 +112,7 @@ import {
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { getVisibleWmPrintTabs } from "@/lib/wm-print/wm-print-tabs";
 import { isWmRysunki01Enabled, maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
+import { countFinalDrawingsForJob } from "@/lib/wm-technical-drawings/zip-entries";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import { filterDetachedElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import { assignRapForJob, assignRapForRegistryKey } from "@/lib/electrical-measurements/registry";
@@ -298,10 +299,23 @@ export function WmPrintView({
   );
 
   const [includeMeasurementsInZip, setIncludeMeasurementsInZip] = useState(false);
+  const [includeDrawingsInZip, setIncludeDrawingsInZip] = useState(false);
+
+  const rysunkiEnabled = isWmRysunki01Enabled(appSettings);
+  const canToggleWmRysunki = adminSession != null && adminIsSuperAdmin(adminSession.role);
 
   useEffect(() => {
     setIncludeMeasurementsInZip(activeProductionMeasurement != null);
   }, [selectedJob?.id, activeProductionMeasurement]);
+
+  const finalDrawingsCount = useMemo(() => {
+    if (!selectedJob || !rysunkiEnabled) return 0;
+    return countFinalDrawingsForJob(wmTechnicalDrawings, selectedJob.id);
+  }, [selectedJob, rysunkiEnabled, wmTechnicalDrawings]);
+
+  useEffect(() => {
+    setIncludeDrawingsInZip(rysunkiEnabled && finalDrawingsCount > 0);
+  }, [selectedJob?.id, rysunkiEnabled, finalDrawingsCount]);
 
   const selectionCount = useMemo(
     () => countWmPrintTemplateSelection(templates, selectedTemplateIds),
@@ -312,9 +326,6 @@ export function WmPrintView({
     if (!selectedJobId) return;
     setSelectedTemplateIds(createDefaultWmPrintTemplateSelection(templates));
   }, [selectedJobId]);
-
-  const rysunkiEnabled = isWmRysunki01Enabled(appSettings);
-  const canToggleWmRysunki = adminSession != null && adminIsSuperAdmin(adminSession.role);
 
   /** MR-P1B-01 — one-shot promote gdy SA wchodzi w WM Druk. */
   useEffect(() => {
@@ -656,6 +667,7 @@ export function WmPrintView({
       return;
     }
     setBusy(true);
+    const includeDrawings = rysunkiEnabled && includeDrawingsInZip;
     const res = await downloadWmPrintZip(
       job,
       templates,
@@ -667,16 +679,30 @@ export function WmPrintView({
         includeMeasurements: includeMeasurementsInZip,
         measurements: electricalMeasurements,
         registry: electricalMeasurementRegistry,
+        includeDrawings,
+        drawings: wmTechnicalDrawings,
+        jobLabel: jobDisplayTitle(job),
       },
     );
     setBusy(false);
     if (res.ok) {
       const { userId, userName } = historyActor();
       recordHistory(buildWmPrintHistoryZipEntry(job, userId, userName));
+      if (includeDrawings && (res.rysunkiCount ?? 0) > 0) {
+        onRecordWmDrukAudit?.({
+          actor: userName,
+          actorUserId: userId,
+          module: "drawings",
+          action: "drawing_zip_included",
+          summary: `ZIP Odbiory: ${res.rysunkiCount} rysunek(ów)`,
+          jobId: job.id,
+        });
+      }
+      const parts: string[] = ["Odbiory"];
+      if (res.pomiaryCount && res.pomiaryCount > 0) parts.push(`${res.pomiaryCount} pomiarów`);
+      if (res.rysunkiCount && res.rysunkiCount > 0) parts.push(`${res.rysunkiCount} rysunków`);
       toast.success(
-        res.pomiaryCount && res.pomiaryCount > 0
-          ? `Pobrano paczkę ZIP (Odbiory + ${res.pomiaryCount} pomiarów)`
-          : "Pobrano paczkę ZIP",
+        parts.length > 1 ? `Pobrano paczkę ZIP (${parts.join(" + ")})` : "Pobrano paczkę ZIP",
       );
     } else toast.error(res.error || "Błąd generowania ZIP");
   };
@@ -688,7 +714,8 @@ export function WmPrintView({
     }
     setBusy(true);
     try {
-      const { bytes, odbiorCount, pomiaryCount } = await buildWmPrintDeliveryZipBytes(
+      const includeDrawings = rysunkiEnabled && includeDrawingsInZip;
+      const { bytes, odbiorCount, pomiaryCount, rysunkiCount } = await buildWmPrintDeliveryZipBytes(
         job,
         templates,
         jobDocs,
@@ -700,9 +727,13 @@ export function WmPrintView({
           includeMeasurements: includeMeasurementsInZip,
           measurements: electricalMeasurements,
           registry: electricalMeasurementRegistry,
+          includeDrawings,
+          drawings: wmTechnicalDrawings,
+          jobLabel: jobDisplayTitle(job),
         },
       );
 
+      // D-P3-19 — fingerprint + manifest dopiero po poprawnym ZIP
       const { payload, hash } = await buildDeliveryPackageGenerationFingerprint({
         job,
         templates,
@@ -713,6 +744,8 @@ export function WmPrintView({
         includeMeasurements: includeMeasurementsInZip,
         measurements: electricalMeasurements,
         registry: electricalMeasurementRegistry,
+        includeDrawings,
+        drawings: wmTechnicalDrawings,
       });
 
       const manifest = await buildDeliveryPackageManifestFromZipBytes(bytes);
@@ -725,7 +758,9 @@ export function WmPrintView({
         zipBytes: bytes,
         odbiorFileCount: odbiorCount,
         pomiaryFileCount: pomiaryCount,
+        rysunkiFileCount: rysunkiCount,
         includesMeasurements: includeMeasurementsInZip && pomiaryCount > 0,
+        includesDrawings: includeDrawings && rysunkiCount > 0,
         fingerprintHash: hash,
         fingerprintPayload: payload,
         manifest,
@@ -741,6 +776,16 @@ export function WmPrintView({
       onChangeDeliveryPackagePublications(result.nextPublications);
       onCommitDeliveryPackagePublications(result.nextPublications);
       recordHistory(buildWmPrintHistoryZipEntry(job, userId, userName));
+      if (includeDrawings && rysunkiCount > 0) {
+        onRecordWmDrukAudit?.({
+          actor: userName,
+          actorUserId: userId,
+          module: "drawings",
+          action: "drawing_zip_included",
+          summary: `Publikacja ZIP: ${rysunkiCount} rysunek(ów)`,
+          jobId: job.id,
+        });
+      }
       toast.success(
         `Opublikowano pakiet v${result.publication.zipVersion} dla inspektora (${result.publication.fileCount} plików)`,
       );
@@ -1016,6 +1061,30 @@ export function WmPrintView({
                       )}
                     </span>
                   </label>
+
+                  {rysunkiEnabled && (
+                    <label className="flex items-start gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5"
+                        checked={includeDrawingsInZip}
+                        disabled={finalDrawingsCount === 0 || busy}
+                        onChange={(e) => setIncludeDrawingsInZip(e.target.checked)}
+                      />
+                      <span>
+                        Dołącz rysunki
+                        {finalDrawingsCount > 0 ? (
+                          <span className="block text-xs text-muted-foreground">
+                            {finalDrawingsCount} Final → folder Rysunki/
+                          </span>
+                        ) : (
+                          <span className="block text-xs text-muted-foreground">
+                            Brak rysunków Final dla tej roboty
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  )}
 
                   <div className="flex flex-col gap-2">
                     <button

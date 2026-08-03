@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.66.00",
+    label: "Odbiory WM — Rysunki P3 w paczce ZIP",
+    items: [
+      {
+        type: "new",
+        text: "ZIP Odbiory: checkbox „Dołącz rysunki” → folder Rysunki/ (tylko Final). PDF = generateDrawingPdf (P2). Manifest + fingerprint additive.",
+      },
+      {
+        type: "improve",
+        text: "Fail-loud: błąd PDF blokuje cały ZIP. Nazwy RYSUNEK_… + _{shortId} przy kolizji. Audit drawing_zip_included.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.65.99",
     label: "Odbiory WM — Rysunki P2 PDF export",
     items: [
