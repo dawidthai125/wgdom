@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.65.97",
+    label: "Odbiory WM — Rysunki P1 toolset (flaga OFF)",
+    items: [
+      {
+        type: "new",
+        text: "Rysunki P1: drzwi (obrót + odbicie), okno, wymiar, strzałka, wentylacja, piec, opis pomieszczenia; biblioteka symbols/; obrót 90/180/270°; draft→Final. Sync bez zmian KV.",
+      },
+      {
+        type: "improve",
+        text: "Jeden pipeline renderSymbol → SVG. Soft warn >300 obiektów. PDF/ZIP/punkty — OUT (kolejne slice). Flaga kw-wm-rysunki-01 nadal default OFF.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.65.96",
     label: "Odbiory WM — Rysunki P0 (flaga OFF)",
     items: [

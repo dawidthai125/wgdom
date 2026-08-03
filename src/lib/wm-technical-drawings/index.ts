@@ -1,4 +1,4 @@
-/** WM-RYSUNKI-01 P0 — barrel. */
+/** WM-RYSUNKI-01 — barrel. */
 
 export * from "@/lib/wm-technical-drawings/types";
 export * from "@/lib/wm-technical-drawings/normalize";
@@ -10,3 +10,5 @@ export * from "@/lib/wm-technical-drawings/report";
 export * from "@/lib/wm-technical-drawings/render-svg";
 export * from "@/lib/wm-technical-drawings/undo";
 export * from "@/lib/wm-technical-drawings/labels";
+export * from "@/lib/wm-technical-drawings/symbols";
+export * from "@/lib/wm-technical-drawings/symbols/render-symbol";

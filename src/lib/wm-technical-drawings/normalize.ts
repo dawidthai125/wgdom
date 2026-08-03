@@ -1,4 +1,4 @@
-/** WM-RYSUNKI-01 P0 — normalize + validate (MR-04 schemaVersion policy). */
+/** WM-RYSUNKI-01 P0+P1 — normalize + validate (MR-04 · MR-P1-06). */
 
 import {
   DEFAULT_DRAWING_GRID,
@@ -9,6 +9,11 @@ import {
   DRAWING_SCHEMA_VERSION,
   DRAWING_STATUSES,
   DRAWING_TEMPLATE_IDS,
+  ROOM_LABEL_DEFAULT_FONT_SIZE,
+  TEXT_DEFAULT_FONT_SIZE,
+  type DrawingArrowObject,
+  type DrawingDimensionObject,
+  type DrawingDoorObject,
   type DrawingGrid,
   type DrawingLinkStatus,
   type DrawingObject,
@@ -16,10 +21,12 @@ import {
   type DrawingPage,
   type DrawingPageFormat,
   type DrawingPageOrient,
+  type DrawingStampObject,
   type DrawingStatus,
   type DrawingTemplateId,
   type DrawingTextObject,
   type DrawingWallObject,
+  type DrawingWindowObject,
   type WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
 
@@ -29,6 +36,7 @@ const KNOWN_OBJECT_TYPES = new Set<DrawingObjectType>([
   "window",
   "text",
   "dimension",
+  "arrow",
   "ventilation",
   "gas_boiler",
   "measurement_point",
@@ -83,7 +91,7 @@ export function normalizeDrawingGrid(raw: unknown): DrawingGrid {
   };
 }
 
-function parseWall(raw: Record<string, unknown>, id: string): DrawingWallObject | null {
+function parseWall(raw: Record<string, unknown>, id: string): DrawingWallObject {
   return {
     id,
     type: "wall",
@@ -99,18 +107,97 @@ function parseWall(raw: Record<string, unknown>, id: string): DrawingWallObject 
   };
 }
 
-function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject | null {
+function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject {
   return {
     id,
     type: "text",
     x: asFiniteNumber(raw.x, 0),
     y: asFiniteNumber(raw.y, 0),
     content: asString(raw.content, ""),
-    fontSize: raw.fontSize != null ? asFiniteNumber(raw.fontSize, 14) : undefined,
+    fontSize: raw.fontSize != null ? asFiniteNumber(raw.fontSize, TEXT_DEFAULT_FONT_SIZE) : undefined,
     rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
     locked: raw.locked === true,
     zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
     symbolId: asString(raw.symbolId, "text-label") || "text-label",
+  };
+}
+
+function parseDoor(raw: Record<string, unknown>, id: string): DrawingDoorObject {
+  /* MR-P1-06: wallRefId OUT — strip (nie kopiujemy) */
+  return {
+    id,
+    type: "door",
+    x: asFiniteNumber(raw.x, 0),
+    y: asFiniteNumber(raw.y, 0),
+    width: raw.width != null ? asFiniteNumber(raw.width, 40) : undefined,
+    symbolId: asString(raw.symbolId, "door-swing") || "door-swing",
+    flipH: raw.flipH === true,
+    rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
+    locked: raw.locked === true,
+    zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
+  };
+}
+
+function parseWindow(raw: Record<string, unknown>, id: string): DrawingWindowObject {
+  return {
+    id,
+    type: "window",
+    x: asFiniteNumber(raw.x, 0),
+    y: asFiniteNumber(raw.y, 0),
+    width: raw.width != null ? asFiniteNumber(raw.width, 48) : undefined,
+    symbolId: asString(raw.symbolId, "window-rect") || "window-rect",
+    rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
+    locked: raw.locked === true,
+    zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
+  };
+}
+
+function parseStamp(
+  raw: Record<string, unknown>,
+  id: string,
+  type: "ventilation" | "gas_boiler",
+): DrawingStampObject {
+  const defaultSym = type === "ventilation" ? "vent-grid" : "gas-boiler";
+  return {
+    id,
+    type,
+    x: asFiniteNumber(raw.x, 0),
+    y: asFiniteNumber(raw.y, 0),
+    symbolId: asString(raw.symbolId, defaultSym) || defaultSym,
+    rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
+    locked: raw.locked === true,
+    zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
+  };
+}
+
+function parseDimension(raw: Record<string, unknown>, id: string): DrawingDimensionObject {
+  return {
+    id,
+    type: "dimension",
+    x1: asFiniteNumber(raw.x1, 0),
+    y1: asFiniteNumber(raw.y1, 0),
+    x2: asFiniteNumber(raw.x2, 0),
+    y2: asFiniteNumber(raw.y2, 0),
+    label: raw.label != null ? asString(raw.label) : undefined,
+    symbolId: asString(raw.symbolId, "dimension-line") || "dimension-line",
+    rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
+    locked: raw.locked === true,
+    zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
+  };
+}
+
+function parseArrow(raw: Record<string, unknown>, id: string): DrawingArrowObject {
+  return {
+    id,
+    type: "arrow",
+    x1: asFiniteNumber(raw.x1, 0),
+    y1: asFiniteNumber(raw.y1, 0),
+    x2: asFiniteNumber(raw.x2, 0),
+    y2: asFiniteNumber(raw.y2, 0),
+    symbolId: asString(raw.symbolId, "arrow-straight") || "arrow-straight",
+    rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
+    locked: raw.locked === true,
+    zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
   };
 }
 
@@ -123,32 +210,25 @@ export function parseDrawingObject(raw: unknown): DrawingObject | null {
   if (!KNOWN_OBJECT_TYPES.has(type)) return null;
   if (type === "wall") return parseWall(r, id);
   if (type === "text") return parseText(r, id);
+  if (type === "door") return parseDoor(r, id);
+  if (type === "window") return parseWindow(r, id);
+  if (type === "ventilation") return parseStamp(r, id, "ventilation");
+  if (type === "gas_boiler") return parseStamp(r, id, "gas_boiler");
+  if (type === "dimension") return parseDimension(r, id);
+  if (type === "arrow") return parseArrow(r, id);
   return {
     id,
     type,
     x: r.x != null ? asFiniteNumber(r.x, 0) : undefined,
     y: r.y != null ? asFiniteNumber(r.y, 0) : undefined,
-    x1: r.x1 != null ? asFiniteNumber(r.x1, 0) : undefined,
-    y1: r.y1 != null ? asFiniteNumber(r.y1, 0) : undefined,
-    x2: r.x2 != null ? asFiniteNumber(r.x2, 0) : undefined,
-    y2: r.y2 != null ? asFiniteNumber(r.y2, 0) : undefined,
-    content: r.content != null ? asString(r.content) : undefined,
     label: r.label != null ? asString(r.label) : undefined,
-    width: r.width != null ? asFiniteNumber(r.width, 0) : undefined,
-    fontSize: r.fontSize != null ? asFiniteNumber(r.fontSize, 14) : undefined,
-    thickness: r.thickness != null ? asFiniteNumber(r.thickness, 4) : undefined,
     symbolId: r.symbolId != null ? asString(r.symbolId) : "unknown",
-    wallRefId: r.wallRefId != null ? asString(r.wallRefId) : undefined,
     rotation: r.rotation != null ? asFiniteNumber(r.rotation, 0) : undefined,
     locked: r.locked === true,
     zIndex: r.zIndex != null ? asFiniteNumber(r.zIndex, 0) : undefined,
   };
 }
 
-/**
- * MR-04: nieznany schemaVersion → coerce do 1 (zachowaj objects), nie gub danych.
- * Przyszłe v2: osobna ścieżka migrate po amend DF.
- */
 export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Record<string, unknown>;
@@ -213,7 +293,6 @@ export function normalizeWmTechnicalDrawings(raw: unknown): WmTechnicalDrawing[]
   return out;
 }
 
-/** Save: title non-empty · objects array OK empty · points never required. */
 export function validateDrawingForSave(drawing: WmTechnicalDrawing): { ok: boolean; missing: string[] } {
   const missing: string[] = [];
   if (!drawing.id?.trim()) missing.push("id");
@@ -222,7 +301,6 @@ export function validateDrawingForSave(drawing: WmTechnicalDrawing): { ok: boole
   return { ok: missing.length === 0, missing };
 }
 
-/** Final: title + (jobId linked | address). */
 export function validateDrawingForFinal(drawing: WmTechnicalDrawing): { ok: boolean; missing: string[] } {
   const base = validateDrawingForSave(drawing);
   const missing = [...base.missing];
@@ -236,3 +314,5 @@ export function snapCoord(value: number, step: number, snapEnabled: boolean): nu
   if (!snapEnabled || step <= 0) return value;
   return Math.round(value / step) * step;
 }
+
+export { ROOM_LABEL_DEFAULT_FONT_SIZE, TEXT_DEFAULT_FONT_SIZE };

@@ -1,7 +1,7 @@
-/** WM-RYSUNKI-01 P0 — lista + CRUD + szablony + edytor. */
+/** WM-RYSUNKI-01 P1 — lista + CRUD + szablony + edytor + draft→final. */
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Copy, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Plus, Search, Trash2, CheckCircle2 } from "lucide-react";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
@@ -11,6 +11,7 @@ import { getDrawingById } from "@/lib/wm-technical-drawings/merge";
 import {
   duplicateDrawing,
   removeDrawing,
+  setDrawingFinal,
   upsertDrawing,
 } from "@/lib/wm-technical-drawings/report";
 import {
@@ -23,7 +24,7 @@ import type {
   DrawingTemplateId,
   WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
-import { DRAWING_TEMPLATE_IDS } from "@/lib/wm-technical-drawings/types";
+import { DRAWING_OBJECTS_SOFT_WARN, DRAWING_TEMPLATE_IDS } from "@/lib/wm-technical-drawings/types";
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
 type StatusFilter = "all" | DrawingStatus;
@@ -153,6 +154,22 @@ export function WmPrintDrawingsPanel({
     toast.success("Usunięto rysunek");
   };
 
+  const handleMarkFinal = () => {
+    if (!selected) return;
+    const result = setDrawingFinal(selected);
+    if (!result.ok || !result.drawing) {
+      toast.error(
+        result.missing.includes("jobId_or_address")
+          ? "Final wymaga powiązanej roboty lub adresu."
+          : `Brakuje: ${result.missing.join(", ")}`,
+      );
+      return;
+    }
+    const { drawings: next } = upsertDrawing(drawings, result.drawing);
+    persist(next);
+    toast.success("Oznaczono jako finalny");
+  };
+
   const handleEditorChange = (diagram: WmTechnicalDrawing) => {
     const { drawings: next } = upsertDrawing(drawings, diagram);
     onChangeDrawings(next);
@@ -179,6 +196,15 @@ export function WmPrintDrawingsPanel({
             {DRAWING_STATUS_LABELS[selected.status]}
           </span>
           <div className="ml-auto flex gap-1">
+            {selected.status === "draft" && (
+              <button
+                type="button"
+                onClick={handleMarkFinal}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
+              >
+                <CheckCircle2 size={14} /> Final
+              </button>
+            )}
             <button
               type="button"
               onClick={handleDuplicate}
@@ -195,6 +221,11 @@ export function WmPrintDrawingsPanel({
             </button>
           </div>
         </div>
+        {selected.objects.length > DRAWING_OBJECTS_SOFT_WARN && (
+          <p className="text-[11px] text-amber-700 dark:text-amber-400">
+            Uwaga: {selected.objects.length} obiektów (próg {DRAWING_OBJECTS_SOFT_WARN}).
+          </p>
+        )}
         <WmPrintDrawingEditor
           key={selected.id}
           drawing={selected}

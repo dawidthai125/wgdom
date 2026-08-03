@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.65.97 — Odbiory WM — Rysunki P1 toolset (flaga OFF) (2026-08-03)
+
+- **new:** drzwi (+ flipH) · okno · wymiar · strzałka · wentylacja · piec · opis pomieszczenia · `symbols/` · rotate 90/180/270 · draft→Final.
+- **improve:** `renderSymbol` SSOT · soft warn >300 · flaga `kw-wm-rysunki-01` nadal OFF. PDF/ZIP/punkty OUT.
+- Testy: `scripts/test-wm-rysunki-01-p1.mjs`.
+
 ## 2.65.96 — Odbiory WM — Rysunki P0 (flaga OFF) (2026-08-03)
 
 - **new:** zakładka Rysunki (po Odbiory) — szablony, ściana/tekst, grid/snap, autosave, undo/redo, duplikacja · KV `kw-wm-technical-drawings`.

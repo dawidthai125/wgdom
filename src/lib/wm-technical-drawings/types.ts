@@ -1,10 +1,11 @@
-/** WM-RYSUNKI-01 P0 — typy domeny rysunków technicznych (Odbiory WM). */
+/** WM-RYSUNKI-01 — typy domeny rysunków technicznych (P0+P1). */
 
 export const WM_TECHNICAL_DRAWINGS_KEY = "kw-wm-technical-drawings";
 
 export const DRAWING_SCHEMA_VERSION = 1 as const;
 
-export const DRAWING_SYMBOL_LIBRARY_VERSION = 1 as const;
+/** Bump przy pierwszym ship biblioteki symboli P1 (DF §3.1). */
+export const DRAWING_SYMBOL_LIBRARY_VERSION = 2 as const;
 
 export type DrawingStatus = "draft" | "final";
 
@@ -23,21 +24,33 @@ export type DrawingTemplateId =
   | "distribution_room"
   | "works_sketch";
 
-/** P0: wall | text. Pozostałe w union pod przyszłe slice — normalize P0 zachowuje unknown types jako passthrough? Nie — drop unknown w P0 poza listą P0+P4 reserved. */
 export type DrawingObjectType =
   | "wall"
   | "door"
   | "window"
   | "text"
   | "dimension"
+  | "arrow"
   | "ventilation"
   | "gas_boiler"
   | "measurement_point"
   | "electrical_point"
   | "distribution_board";
 
-/** Typy obiektów obsługiwane w P0 (edycja + render). */
+/** Typy obiektów edytowalne w P0. */
 export const DRAWING_P0_OBJECT_TYPES: DrawingObjectType[] = ["wall", "text"];
+
+/** Typy obiektów edytowalne w P1 (DF). */
+export const DRAWING_P1_OBJECT_TYPES: DrawingObjectType[] = [
+  "wall",
+  "door",
+  "window",
+  "text",
+  "dimension",
+  "arrow",
+  "ventilation",
+  "gas_boiler",
+];
 
 export const DRAWING_STATUSES: DrawingStatus[] = ["draft", "final"];
 
@@ -97,25 +110,69 @@ export interface DrawingTextObject extends DrawingObjectBase {
   symbolId?: string;
 }
 
-/** Obiekty poza P0 — przechowywane przy roundtrip (forward-compat), bez edycji P0. */
-export interface DrawingPassthroughObject extends DrawingObjectBase {
-  type: Exclude<DrawingObjectType, "wall" | "text">;
-  x?: number;
-  y?: number;
-  x1?: number;
-  y1?: number;
-  x2?: number;
-  y2?: number;
-  content?: string;
-  label?: string;
+export interface DrawingDoorObject extends DrawingObjectBase {
+  type: "door";
+  x: number;
+  y: number;
   width?: number;
-  fontSize?: number;
-  thickness?: number;
-  symbolId?: string;
-  wallRefId?: string;
+  symbolId: string;
+  /** Mirror lokalny X (DF). */
+  flipH?: boolean;
 }
 
-export type DrawingObject = DrawingWallObject | DrawingTextObject | DrawingPassthroughObject;
+export interface DrawingWindowObject extends DrawingObjectBase {
+  type: "window";
+  x: number;
+  y: number;
+  width?: number;
+  symbolId: string;
+}
+
+export interface DrawingStampObject extends DrawingObjectBase {
+  type: "ventilation" | "gas_boiler";
+  x: number;
+  y: number;
+  symbolId: string;
+}
+
+export interface DrawingDimensionObject extends DrawingObjectBase {
+  type: "dimension";
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  /** Pusta → auto liczba długości bez jednostki (MR-P1-08). */
+  label?: string;
+  symbolId?: string;
+}
+
+export interface DrawingArrowObject extends DrawingObjectBase {
+  type: "arrow";
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  symbolId: string;
+}
+
+/** P4 / forward — bez edycji P1; wallRefId strip. */
+export interface DrawingPassthroughObject extends DrawingObjectBase {
+  type: "measurement_point" | "electrical_point" | "distribution_board";
+  x?: number;
+  y?: number;
+  label?: string;
+  symbolId?: string;
+}
+
+export type DrawingObject =
+  | DrawingWallObject
+  | DrawingTextObject
+  | DrawingDoorObject
+  | DrawingWindowObject
+  | DrawingStampObject
+  | DrawingDimensionObject
+  | DrawingArrowObject
+  | DrawingPassthroughObject;
 
 export interface WmTechnicalDrawing {
   id: string;
@@ -143,7 +200,6 @@ export interface DrawingDomainReport {
   removed: string[];
 }
 
-/** Rozmiary arkusza (px logiczne ≈ PDF pt) — DF §7.3. */
 export const DRAWING_PAGE_SIZE_PX: Record<
   DrawingPageFormat,
   Record<DrawingPageOrient, { width: number; height: number }>
@@ -165,3 +221,11 @@ export const DEFAULT_DRAWING_GRID: DrawingGrid = {
 };
 
 export const DRAWING_UNDO_STACK_MAX = 50;
+
+/** Soft warn MR-05 / MR-P1-03. */
+export const DRAWING_OBJECTS_SOFT_WARN = 300;
+
+/** Preset „Opis pomieszczenia” (DF). */
+export const ROOM_LABEL_DEFAULT_CONTENT = "Pomieszczenie";
+export const ROOM_LABEL_DEFAULT_FONT_SIZE = 18;
+export const TEXT_DEFAULT_FONT_SIZE = 14;

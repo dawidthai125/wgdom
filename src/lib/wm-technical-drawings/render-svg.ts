@@ -1,8 +1,13 @@
-/** WM-RYSUNKI-01 P0 — render SVG z modelu (SSOT → SVG). Grid tylko w trybie edytora. */
+/** WM-RYSUNKI-01 P1 — render SVG z modelu (SSOT → SVG). AC-P1-08. */
 
 import type { DrawingObject, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import {
+  dimensionAutoLabel,
+  renderSymbol,
+  renderSymbolAlongSegment,
+} from "@/lib/wm-technical-drawings/symbols/render-symbol";
 
-export const DRAWING_RENDER_VERSION = 1;
+export const DRAWING_RENDER_VERSION = 2;
 
 export class DrawingRenderError extends Error {
   constructor(message: string) {
@@ -19,6 +24,7 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** MR-P1-01: wall/text specjalizacja; symbole → renderSymbol. */
 function renderObject(obj: DrawingObject): string {
   if (obj.type === "wall") {
     const t = obj.thickness ?? 4;
@@ -29,7 +35,64 @@ function renderObject(obj: DrawingObject): string {
     const content = esc(obj.content || "");
     return `<text data-id="${esc(obj.id)}" x="${obj.x}" y="${obj.y}" font-size="${size}" fill="#0f172a" font-family="system-ui,sans-serif">${content}</text>`;
   }
-  /* P0: passthrough types — niewidoczne w edytorze (P1+) */
+  if (obj.type === "door") {
+    return renderSymbol({
+      symbolId: obj.symbolId || "door-swing",
+      x: obj.x,
+      y: obj.y,
+      rotationDeg: obj.rotation ?? 0,
+      flipH: obj.flipH === true,
+      width: obj.width,
+      dataId: obj.id,
+    });
+  }
+  if (obj.type === "window") {
+    return renderSymbol({
+      symbolId: obj.symbolId || "window-rect",
+      x: obj.x,
+      y: obj.y,
+      rotationDeg: obj.rotation ?? 0,
+      width: obj.width,
+      dataId: obj.id,
+    });
+  }
+  if (obj.type === "ventilation" || obj.type === "gas_boiler") {
+    return renderSymbol({
+      symbolId: obj.symbolId || (obj.type === "ventilation" ? "vent-grid" : "gas-boiler"),
+      x: obj.x,
+      y: obj.y,
+      rotationDeg: obj.rotation ?? 0,
+      dataId: obj.id,
+    });
+  }
+  if (obj.type === "arrow") {
+    return renderSymbolAlongSegment({
+      symbolId: obj.symbolId || "arrow-straight",
+      x1: obj.x1,
+      y1: obj.y1,
+      x2: obj.x2,
+      y2: obj.y2,
+      dataId: obj.id,
+    });
+  }
+  if (obj.type === "dimension") {
+    const label =
+      obj.label != null && String(obj.label).trim() !== ""
+        ? String(obj.label).trim()
+        : dimensionAutoLabel(obj.x1, obj.y1, obj.x2, obj.y2);
+    const body = renderSymbolAlongSegment({
+      symbolId: obj.symbolId || "dimension-line",
+      x1: obj.x1,
+      y1: obj.y1,
+      x2: obj.x2,
+      y2: obj.y2,
+    });
+    const mx = (obj.x1 + obj.x2) / 2;
+    const my = (obj.y1 + obj.y2) / 2;
+    const labelSvg = `<text data-dim-label="1" x="${mx}" y="${my - 10}" text-anchor="middle" font-size="11" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
+    return `<g data-id="${esc(obj.id)}">${body}${labelSvg}</g>`;
+  }
+  /* P4 — skip */
   return "";
 }
 
@@ -45,14 +108,9 @@ function renderGrid(width: number, height: number, step: number): string {
 }
 
 export interface RenderDrawingSvgOptions {
-  /** Siatka edytora — NIE na PDF (P2). */
   showGrid?: boolean;
 }
 
-/**
- * Buduje SVG string. MR-06: wywołujący powinien memoizować wynik
- * (nie rebuild na każdym pointermove — tylko po commit geometrii).
- */
 export function renderDrawingSvg(
   drawing: WmTechnicalDrawing,
   options: RenderDrawingSvgOptions = {},

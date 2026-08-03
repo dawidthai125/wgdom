@@ -1,4 +1,4 @@
-/** WM-RYSUNKI-01 P0 — edytor: ściana · tekst · grid · snap · undo · autosave. */
+/** WM-RYSUNKI-01 P1 — edytor: toolset MVP · rotate 90/180/270 · flipH · autosave. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -9,14 +9,46 @@ import {
   MousePointer2,
   Grid3x3,
   Magnet,
+  DoorOpen,
+  Square,
+  Wind,
+  Flame,
+  Ruler,
+  MoveRight,
+  Copy,
+  FlipHorizontal2,
+  RotateCw,
 } from "lucide-react";
 import { DrawingUndoStack } from "@/lib/wm-technical-drawings/undo";
 import { renderDrawingSvg } from "@/lib/wm-technical-drawings/render-svg";
 import { snapCoord } from "@/lib/wm-technical-drawings/normalize";
-import { touchDrawing } from "@/lib/wm-technical-drawings/report";
-import type { DrawingObject, DrawingWallObject, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import {
+  duplicateSelectedObjects,
+  rotateObjectBy,
+  toggleDoorFlipH,
+  touchDrawing,
+} from "@/lib/wm-technical-drawings/report";
+import {
+  DRAWING_OBJECTS_SOFT_WARN,
+  ROOM_LABEL_DEFAULT_CONTENT,
+  ROOM_LABEL_DEFAULT_FONT_SIZE,
+  TEXT_DEFAULT_FONT_SIZE,
+  type DrawingObject,
+  type DrawingWallObject,
+  type WmTechnicalDrawing,
+} from "@/lib/wm-technical-drawings/types";
 
-type Tool = "select" | "wall" | "text";
+type Tool =
+  | "select"
+  | "wall"
+  | "door"
+  | "window"
+  | "text"
+  | "room_label"
+  | "dimension"
+  | "arrow"
+  | "ventilation"
+  | "gas_boiler";
 
 const AUTOSAVE_DEBOUNCE_MS = 1000;
 
@@ -32,6 +64,24 @@ function clientToSvgPoint(
   if (!ctm) return { x: 0, y: 0 };
   const loc = pt.matrixTransform(ctm.inverse());
   return { x: loc.x, y: loc.y };
+}
+
+function isPointObj(
+  o: DrawingObject,
+): o is Extract<DrawingObject, { x: number; y: number }> {
+  return (
+    o.type === "text" ||
+    o.type === "door" ||
+    o.type === "window" ||
+    o.type === "ventilation" ||
+    o.type === "gas_boiler"
+  );
+}
+
+function isLineObj(
+  o: DrawingObject,
+): o is Extract<DrawingObject, { x1: number; y1: number; x2: number; y2: number }> {
+  return o.type === "wall" || o.type === "dimension" || o.type === "arrow";
 }
 
 export function WmPrintDrawingEditor({
@@ -52,7 +102,7 @@ export function WmPrintDrawingEditor({
   const localRef = useRef(local);
   localRef.current = local;
   const [tool, setTool] = useState<Tool>("wall");
-  const [wallStart, setWallStart] = useState<{ x: number; y: number } | null>(null);
+  const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [undoTick, setUndoTick] = useState(0);
@@ -61,19 +111,18 @@ export function WmPrintDrawingEditor({
   const dragDirtyRef = useRef(false);
   const dragRef = useRef<{
     id: string;
-    mode: "move-text" | "move-wall";
+    mode: "move-point" | "move-line";
     ox: number;
     oy: number;
     orig: DrawingObject;
     snapshot: WmTechnicalDrawing;
   } | null>(null);
 
-  /* Sync zewnętrzny (lista → ten sam id z nowszym updatedAt) */
   useEffect(() => {
     if (drawing.id !== local.id) {
       stackRef.current = new DrawingUndoStack(drawing);
       setLocal(stackRef.current.getCurrent());
-      setWallStart(null);
+      setLineStart(null);
       setSelectedId(null);
       return;
     }
@@ -81,7 +130,7 @@ export function WmPrintDrawingEditor({
       stackRef.current?.replace(drawing);
       setLocal(stackRef.current!.getCurrent());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- porównanie updatedAt
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawing.id, drawing.updatedAt]);
 
   const scheduleAutosave = useCallback(
@@ -122,10 +171,7 @@ export function WmPrintDrawingEditor({
     [scheduleAutosave],
   );
 
-  const svgMarkup = useMemo(
-    () => renderDrawingSvg(local, { showGrid: true }),
-    [local],
-  );
+  const svgMarkup = useMemo(() => renderDrawingSvg(local, { showGrid: true }), [local]);
 
   const canUndo = stackRef.current?.canUndo() ?? false;
   const canRedo = stackRef.current?.canRedo() ?? false;
@@ -167,8 +213,98 @@ export function WmPrintDrawingEditor({
     y: snapCoord(y, local.grid.step, local.grid.snap),
   });
 
-  const findSvg = (): SVGSVGElement | null =>
-    svgHostRef.current?.querySelector("svg") ?? null;
+  const findSvg = (): SVGSVGElement | null => svgHostRef.current?.querySelector("svg") ?? null;
+
+  const addStamp = (
+    type: "door" | "window" | "ventilation" | "gas_boiler",
+    p: { x: number; y: number },
+  ) => {
+    let obj: DrawingObject;
+    if (type === "door") {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "door",
+        x: p.x,
+        y: p.y,
+        symbolId: "door-swing",
+        flipH: false,
+        rotation: 0,
+      };
+    } else if (type === "window") {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "window",
+        x: p.x,
+        y: p.y,
+        symbolId: "window-rect",
+        rotation: 0,
+      };
+    } else if (type === "ventilation") {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "ventilation",
+        x: p.x,
+        y: p.y,
+        symbolId: "vent-grid",
+        rotation: 0,
+      };
+    } else {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "gas_boiler",
+        x: p.x,
+        y: p.y,
+        symbolId: "gas-boiler",
+        rotation: 0,
+      };
+    }
+    commit(touchDrawing(local, { objects: [...local.objects, obj] }));
+    setSelectedId(obj.id);
+  };
+
+  const finishLine = (
+    type: "wall" | "dimension" | "arrow",
+    start: { x: number; y: number },
+    end: { x: number; y: number },
+  ) => {
+    let obj: DrawingObject;
+    if (type === "wall") {
+      const wall: DrawingWallObject = {
+        id: crypto.randomUUID(),
+        type: "wall",
+        x1: start.x,
+        y1: start.y,
+        x2: end.x,
+        y2: end.y,
+        thickness: 4,
+        symbolId: "wall-default",
+      };
+      obj = wall;
+    } else if (type === "dimension") {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "dimension",
+        x1: start.x,
+        y1: start.y,
+        x2: end.x,
+        y2: end.y,
+        symbolId: "dimension-line",
+      };
+    } else {
+      obj = {
+        id: crypto.randomUUID(),
+        type: "arrow",
+        x1: start.x,
+        y1: start.y,
+        x2: end.x,
+        y2: end.y,
+        symbolId: "arrow-straight",
+      };
+    }
+    commit(touchDrawing(local, { objects: [...local.objects, obj] }));
+    setSelectedId(obj.id);
+    setLineStart(null);
+  };
 
   const onPointerDown = (e: React.PointerEvent) => {
     const svg = findSvg();
@@ -176,72 +312,58 @@ export function WmPrintDrawingEditor({
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
     const p = snap(raw.x, raw.y);
 
-    if (tool === "wall") {
-      if (!wallStart) {
-        setWallStart(p);
+    if (tool === "wall" || tool === "dimension" || tool === "arrow") {
+      if (!lineStart) {
+        setLineStart(p);
         return;
       }
-      const wall: DrawingWallObject = {
-        id: crypto.randomUUID(),
-        type: "wall",
-        x1: wallStart.x,
-        y1: wallStart.y,
-        x2: p.x,
-        y2: p.y,
-        thickness: 4,
-        symbolId: "wall-default",
-      };
-      commit(
-        touchDrawing(local, {
-          objects: [...local.objects, wall],
-        }),
-      );
-      setWallStart(null);
-      setSelectedId(wall.id);
+      finishLine(tool, lineStart, p);
       return;
     }
 
-    if (tool === "text") {
-      const content = window.prompt("Tekst na rysunku:", "Opis");
+    if (tool === "door" || tool === "window" || tool === "ventilation" || tool === "gas_boiler") {
+      addStamp(tool, p);
+      return;
+    }
+
+    if (tool === "text" || tool === "room_label") {
+      const isRoom = tool === "room_label";
+      const defaultText = isRoom ? ROOM_LABEL_DEFAULT_CONTENT : "Tekst";
+      const content = window.prompt(isRoom ? "Opis pomieszczenia:" : "Tekst na rysunku:", defaultText);
       if (content == null) return;
       const textObj: DrawingObject = {
         id: crypto.randomUUID(),
         type: "text",
         x: p.x,
         y: p.y,
-        content: content.trim() || "Tekst",
-        fontSize: 14,
+        content: content.trim() || defaultText,
+        fontSize: isRoom ? ROOM_LABEL_DEFAULT_FONT_SIZE : TEXT_DEFAULT_FONT_SIZE,
         symbolId: "text-label",
       };
-      commit(
-        touchDrawing(local, {
-          objects: [...local.objects, textObj],
-        }),
-      );
+      commit(touchDrawing(local, { objects: [...local.objects, textObj] }));
       setSelectedId(textObj.id);
       return;
     }
 
-    /* select */
     const target = (e.target as Element).closest?.("[data-id]");
     const id = target?.getAttribute("data-id") ?? null;
     setSelectedId(id);
     if (!id) return;
     const obj = local.objects.find((o) => o.id === id);
     if (!obj || obj.locked) return;
-    if (obj.type === "text") {
+    if (isPointObj(obj)) {
       dragRef.current = {
         id,
-        mode: "move-text",
+        mode: "move-point",
         ox: p.x,
         oy: p.y,
         orig: { ...obj },
         snapshot: local,
       };
-    } else if (obj.type === "wall") {
+    } else if (isLineObj(obj)) {
       dragRef.current = {
         id,
-        mode: "move-wall",
+        mode: "move-line",
         ox: p.x,
         oy: p.y,
         orig: { ...obj },
@@ -261,9 +383,9 @@ export function WmPrintDrawingEditor({
     const dy = p.y - drag.oy;
     const orig = drag.orig;
     let nextObj: DrawingObject;
-    if (drag.mode === "move-text" && orig.type === "text") {
+    if (drag.mode === "move-point" && isPointObj(orig)) {
       nextObj = { ...orig, x: orig.x + dx, y: orig.y + dy };
-    } else if (drag.mode === "move-wall" && orig.type === "wall") {
+    } else if (drag.mode === "move-line" && isLineObj(orig)) {
       nextObj = {
         ...orig,
         x1: orig.x1 + dx,
@@ -276,7 +398,6 @@ export function WmPrintDrawingEditor({
     }
     const base = localRef.current;
     const objects = base.objects.map((o) => (o.id === drag.id ? nextObj : o));
-    /* MR-06: podczas drag — replace bez undo per frame */
     dragDirtyRef.current = true;
     applyWithoutUndo(touchDrawing(base, { objects }));
   };
@@ -294,33 +415,55 @@ export function WmPrintDrawingEditor({
 
   const deleteSelected = () => {
     if (!selectedId) return;
-    commit(
-      touchDrawing(local, {
-        objects: local.objects.filter((o) => o.id !== selectedId),
-      }),
-    );
+    commit(touchDrawing(local, { objects: local.objects.filter((o) => o.id !== selectedId) }));
     setSelectedId(null);
   };
 
-  const toggleGrid = () => {
+  const dupSelected = () => {
+    if (!selectedId) return;
+    const { drawing: next, newIds } = duplicateSelectedObjects(local, [selectedId]);
+    commit(next);
+    if (newIds[0]) setSelectedId(newIds[0]);
+  };
+
+  const applyRotate = (delta: 90 | 180 | 270) => {
+    if (!selectedId) return;
+    const obj = local.objects.find((o) => o.id === selectedId);
+    if (!obj || obj.locked) return;
+    const nextObj = rotateObjectBy(obj, delta);
     commit(
       touchDrawing(local, {
-        grid: { ...local.grid, enabled: !local.grid.enabled },
+        objects: local.objects.map((o) => (o.id === selectedId ? nextObj : o)),
       }),
     );
   };
 
-  const toggleSnap = () => {
+  const applyFlip = () => {
+    if (!selectedId) return;
+    const obj = local.objects.find((o) => o.id === selectedId);
+    if (!obj || obj.type !== "door") return;
+    const nextObj = toggleDoorFlipH(obj);
     commit(
       touchDrawing(local, {
-        grid: { ...local.grid, snap: !local.grid.snap },
+        objects: local.objects.map((o) => (o.id === selectedId ? nextObj : o)),
       }),
     );
+  };
+
+  const toggleGrid = () => {
+    commit(touchDrawing(local, { grid: { ...local.grid, enabled: !local.grid.enabled } }));
+  };
+
+  const toggleSnap = () => {
+    commit(touchDrawing(local, { grid: { ...local.grid, snap: !local.grid.snap } }));
   };
 
   const updateTitle = (title: string) => {
     commit(touchDrawing(local, { title: title.slice(0, 120) }));
   };
+
+  const selected = selectedId ? local.objects.find((o) => o.id === selectedId) : null;
+  const softWarn = local.objects.length > DRAWING_OBJECTS_SOFT_WARN;
 
   const toolBtn = (t: Tool, label: string, icon: React.ReactNode) => (
     <button
@@ -328,16 +471,23 @@ export function WmPrintDrawingEditor({
       title={label}
       onClick={() => {
         setTool(t);
-        setWallStart(null);
+        setLineStart(null);
       }}
       className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium ${
         tool === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"
       }`}
     >
       {icon}
-      {label}
+      <span className="hidden sm:inline">{label}</span>
     </button>
   );
+
+  const lineHint =
+    tool === "wall" || tool === "dimension" || tool === "arrow"
+      ? lineStart
+        ? "Kliknij drugi punkt."
+        : "Kliknij pierwszy punkt."
+      : null;
 
   return (
     <div className="flex flex-col gap-3 min-h-0 h-full">
@@ -353,10 +503,23 @@ export function WmPrintDrawingEditor({
         </span>
       </div>
 
+      {softWarn && (
+        <p className="text-[11px] text-amber-700 dark:text-amber-400">
+          Dużo obiektów ({local.objects.length}). Edycja może spowolnić — rozważ uproszczenie szkicu.
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card">
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
+        {toolBtn("door", "Drzwi", <DoorOpen size={14} />)}
+        {toolBtn("window", "Okno", <Square size={14} />)}
         {toolBtn("text", "Tekst", <Type size={14} />)}
+        {toolBtn("room_label", "Opis pomieszczenia", <Type size={14} />)}
+        {toolBtn("dimension", "Wymiar", <Ruler size={14} />)}
+        {toolBtn("arrow", "Strzałka", <MoveRight size={14} />)}
+        {toolBtn("ventilation", "Wentylacja", <Wind size={14} />)}
+        {toolBtn("gas_boiler", "Piec gazowy", <Flame size={14} />)}
         <span className="w-px h-5 bg-border mx-1" />
         <button
           type="button"
@@ -393,22 +556,52 @@ export function WmPrintDrawingEditor({
         >
           <Magnet size={14} />
         </button>
-        {selectedId && (
+      </div>
+
+      {selectedId && (
+        <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card">
+          <span className="text-[11px] text-muted-foreground px-1">Obrót</span>
+          {([90, 180, 270] as const).map((deg) => (
+            <button
+              key={deg}
+              type="button"
+              title={`Obróć ${deg}°`}
+              onClick={() => applyRotate(deg)}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
+            >
+              <RotateCw size={12} />
+              {deg}°
+            </button>
+          ))}
+          {selected?.type === "door" && (
+            <button
+              type="button"
+              title="Odbij drzwi (flipH)"
+              onClick={applyFlip}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
+            >
+              <FlipHorizontal2 size={12} /> Odbij
+            </button>
+          )}
+          <button
+            type="button"
+            title="Duplikuj zaznaczenie"
+            onClick={dupSelected}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
+          >
+            <Copy size={12} /> Duplikuj
+          </button>
           <button
             type="button"
             onClick={deleteSelected}
             className="ml-auto text-xs text-destructive hover:underline px-2"
           >
-            Usuń zaznaczenie
+            Usuń
           </button>
-        )}
-      </div>
-
-      {tool === "wall" && (
-        <p className="text-[11px] text-muted-foreground">
-          {wallStart ? "Kliknij drugi punkt ściany." : "Kliknij pierwszy punkt ściany."}
-        </p>
+        </div>
       )}
+
+      {lineHint && <p className="text-[11px] text-muted-foreground">{lineHint}</p>}
 
       <div
         ref={svgHostRef}
@@ -426,8 +619,8 @@ export function WmPrintDrawingEditor({
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · P0:
-        ściana + tekst
+        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · P1
+        toolset
       </p>
     </div>
   );
