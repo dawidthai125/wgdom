@@ -8,7 +8,7 @@
 ```text
 NOWA SESJA → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.65.95 / d8b080e (weryfikuj w 09 + version.json)
+Tip prod = 2.65.95 / 99c6337 (weryfikuj w 09 + version.json)
 ```
 
 ---
@@ -31,11 +31,11 @@ Tip prod = 2.65.95 / d8b080e (weryfikuj w 09 + version.json)
 
 | Pole | Wartość |
 |------|---------|
-| **Prod tip** | **2.65.95** / **`d8b080e`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) |
-| **Ostatni CLOSE** | SMART-PRICING-01 P1 — [`CLOSE`](../architecture/SMART-PRICING-01-P1-CLOSE.md) |
+| **Prod tip** | **2.65.95** / **`99c6337`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) |
+| **Ostatni CLOSE** | SMART-PRICING-01 P2 — [`CLOSE`](../architecture/SMART-PRICING-01-P2-CLOSE.md) |
 | **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** |
-| **Active slice** | brak — P2 **tylko** po Owner GO |
-| **Backlog** | SMART P2 · MS P2 · CM-04 P3 · Wave 2 — [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
+| **Active slice** | brak — P3 **tylko** po Owner GO |
+| **Backlog** | SMART P3 · MS P2 · CM-04 P3 · Wave 2 — [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 
 Pełny stan (Closed / Flags / Residuals / Startup): **tylko** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md).
 
