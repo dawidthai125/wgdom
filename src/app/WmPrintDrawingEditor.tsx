@@ -41,6 +41,10 @@ import {
 } from "@/lib/wm-technical-drawings/export-pdf";
 import { findNearestWall } from "@/lib/wm-technical-drawings/wall-gap";
 import {
+  isWallPreviewTooShort,
+  wallPreviewMetrics,
+} from "@/lib/wm-technical-drawings/wall-preview";
+import {
   DRAWING_OBJECTS_SOFT_WARN,
   TEXT_DEFAULT_FONT_SIZE,
   type DrawingObject,
@@ -126,6 +130,8 @@ export function WmPrintDrawingEditor({
   localRef.current = local;
   const [tool, setTool] = useState<Tool>("wall");
   const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
+  /** P3B — koniec Ghost (snapped); UI only. */
+  const [previewEnd, setPreviewEnd] = useState<{ x: number; y: number } | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoverWallId, setHoverWallId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
@@ -134,6 +140,8 @@ export function WmPrintDrawingEditor({
   const svgHostRef = useRef<HTMLDivElement>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragDirtyRef = useRef(false);
+  const previewRafRef = useRef<number | null>(null);
+  const pendingPreviewEndRef = useRef<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{
     id: string;
     mode: "move-point" | "move-line";
@@ -155,6 +163,7 @@ export function WmPrintDrawingEditor({
       stackRef.current = new DrawingUndoStack(drawing);
       setLocal(stackRef.current.getCurrent());
       setLineStart(null);
+      setPreviewEnd(null);
       setSelectedId(null);
       return;
     }
@@ -164,6 +173,22 @@ export function WmPrintDrawingEditor({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawing.id, drawing.updatedAt]);
+
+  const clearWallPreview = useCallback(() => {
+    setLineStart(null);
+    setPreviewEnd(null);
+    pendingPreviewEndRef.current = null;
+    if (previewRafRef.current != null) {
+      cancelAnimationFrame(previewRafRef.current);
+      previewRafRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewRafRef.current != null) cancelAnimationFrame(previewRafRef.current);
+    };
+  }, []);
 
   const scheduleAutosave = useCallback(
     (next: WmTechnicalDrawing) => {
@@ -207,14 +232,29 @@ export function WmPrintDrawingEditor({
     [scheduleAutosave],
   );
 
-  const svgMarkup = useMemo(
-    () =>
-      renderDrawingSvg(local, {
-        showGrid: true,
-        highlightWallId: isDoorTool(tool) ? hoverWallId : null,
-      }),
-    [local, tool, hoverWallId],
-  );
+  const svgMarkup = useMemo(() => {
+    const previewWall =
+      tool === "wall" && lineStart && previewEnd
+        ? {
+            x1: lineStart.x,
+            y1: lineStart.y,
+            x2: previewEnd.x,
+            y2: previewEnd.y,
+            lengthLabel: wallPreviewMetrics(
+              lineStart.x,
+              lineStart.y,
+              previewEnd.x,
+              previewEnd.y,
+              local.grid.step,
+            ).lengthLabel,
+          }
+        : null;
+    return renderDrawingSvg(local, {
+      showGrid: true,
+      highlightWallId: isDoorTool(tool) ? hoverWallId : null,
+      previewWall,
+    });
+  }, [local, tool, hoverWallId, lineStart, previewEnd]);
 
   const pdfFingerprint = useMemo(
     () =>
@@ -340,6 +380,12 @@ export function WmPrintDrawingEditor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      /* MR-P3B-03 — Escape tylko wall + aktywny lineStart. */
+      if (e.key === "Escape" && tool === "wall" && lineStart) {
+        e.preventDefault();
+        clearWallPreview();
+        return;
+      }
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
         e.preventDefault();
@@ -427,6 +473,14 @@ export function WmPrintDrawingEditor({
     start: { x: number; y: number },
     end: { x: number; y: number },
   ) => {
+    /* D-P3B-12 — reject zero-length wall. */
+    if (type === "wall") {
+      const { lengthPx } = wallPreviewMetrics(start.x, start.y, end.x, end.y);
+      if (isWallPreviewTooShort(lengthPx)) {
+        toast.error("Ściana zbyt krótka — kliknij drugi punkt dalej.");
+        return;
+      }
+    }
     let obj: DrawingObject;
     if (type === "wall") {
       const wall: DrawingWallObject = {
@@ -463,7 +517,14 @@ export function WmPrintDrawingEditor({
     }
     commit(touchDrawing(local, { objects: [...local.objects, obj] }));
     setSelectedId(obj.id);
-    setLineStart(null);
+    /* MR-P3B-02 — continuous tylko wall; arrow/dimension → clear. */
+    if (type === "wall") {
+      setLineStart(end);
+      setPreviewEnd(null);
+      pendingPreviewEndRef.current = null;
+    } else {
+      clearWallPreview();
+    }
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -475,6 +536,7 @@ export function WmPrintDrawingEditor({
     if (tool === "wall" || tool === "arrow") {
       if (!lineStart) {
         setLineStart(p);
+        setPreviewEnd(null);
         return;
       }
       finishLine(tool, lineStart, p);
@@ -602,6 +664,19 @@ export function WmPrintDrawingEditor({
       setHoverWallId((prev) => (prev === nextId ? prev : nextId));
     }
 
+    /* MR-P3B-06 — Ghost preview rAF throttle (tylko wall + lineStart). */
+    if (tool === "wall" && lineStart && !dragRef.current) {
+      const p = snap(raw.x, raw.y);
+      pendingPreviewEndRef.current = p;
+      if (previewRafRef.current == null) {
+        previewRafRef.current = requestAnimationFrame(() => {
+          previewRafRef.current = null;
+          const next = pendingPreviewEndRef.current;
+          if (next) setPreviewEnd(next);
+        });
+      }
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
     const p = snap(raw.x, raw.y);
@@ -697,7 +772,7 @@ export function WmPrintDrawingEditor({
       title={label}
       onClick={() => {
         setTool(t);
-        setLineStart(null);
+        clearWallPreview();
         if (!isDoorTool(t)) setHoverWallId(null);
       }}
       className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium ${
@@ -710,17 +785,21 @@ export function WmPrintDrawingEditor({
   );
 
   const lineHint =
-    tool === "wall" || tool === "arrow"
+    tool === "wall"
       ? lineStart
-        ? "Kliknij drugi punkt."
-        : "Kliknij pierwszy punkt."
-      : tool === "dimension"
+        ? "Kliknij drugi punkt · Esc = koniec rysowania ścian."
+        : "Kliknij pierwszy punkt ściany."
+      : tool === "arrow"
         ? lineStart
-          ? "Kliknij drugi punkt (wymiar swobodny)."
-          : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
-        : isDoorTool(tool)
-          ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
-          : null;
+          ? "Kliknij drugi punkt."
+          : "Kliknij pierwszy punkt."
+        : tool === "dimension"
+          ? lineStart
+            ? "Kliknij drugi punkt (wymiar swobodny)."
+            : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
+          : isDoorTool(tool)
+            ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
+            : null;
 
   return (
     <div className="flex flex-col gap-3 min-h-0 h-full">

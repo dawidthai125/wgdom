@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.02 — Odbiory WM — Rysunki P3B Interactive Drawing UX (2026-08-03)
+
+- **new:** Ghost Line ściany (`previewWall`) · live długość px / kratki · continuous od last point · Esc kończy
+- **improve:** podgląd tylko edytor (PDF/ZIP/JSON OUT) · rAF throttle · reject L&lt;1 · ten sam `renderDrawingSvg`
+- Testy: `scripts/test-wm-rysunki-01-p3b.mjs` · regresja P0–P3A
+
 ## 2.66.01 — Odbiory WM — Rysunki P3A UX polish (2026-08-03)
 
 - **improve:** wentylacja **W** · drzwi **P/W** · rozdzielnia **R** · wall gap render-time · wymiar ze ściany (popup Długość)

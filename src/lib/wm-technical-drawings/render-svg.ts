@@ -143,10 +143,39 @@ function renderGrid(width: number, height: number, step: number): string {
   return `<g data-grid="1">${lines.join("")}</g>`;
 }
 
+/** MR-P3B-05 — Ghost stroke (≠ wall #1e293b · ≠ door hover #38bdf8). */
+export const DRAWING_GHOST_WALL_STROKE = "#f59e0b";
+
+export interface PreviewWallOption {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  /** UI-only label (px / kratki) — nie z modelu. */
+  lengthLabel?: string;
+}
+
 export interface RenderDrawingSvgOptions {
   showGrid?: boolean;
   /** D-P3A-22 — podświetlenie ściany (tylko preview edytora). */
   highlightWallId?: string | null;
+  /** D-P3B-01 — Ghost Line ściany (tylko edytor · PDF/ZIP OUT). */
+  previewWall?: PreviewWallOption | null;
+}
+
+function renderGhostWall(preview: PreviewWallOption): string {
+  const mx = (preview.x1 + preview.x2) / 2;
+  const my = (preview.y1 + preview.y2) / 2;
+  const line =
+    `<line data-ghost-wall="1" x1="${preview.x1}" y1="${preview.y1}" x2="${preview.x2}" y2="${preview.y2}" ` +
+    `stroke="${DRAWING_GHOST_WALL_STROKE}" stroke-width="3" stroke-opacity="0.9" ` +
+    `stroke-dasharray="6 4" stroke-linecap="round" />`;
+  const label =
+    preview.lengthLabel != null && String(preview.lengthLabel).trim() !== ""
+      ? `<text data-ghost-label="1" x="${mx}" y="${my - 10}" text-anchor="middle" font-size="11" ` +
+        `fill="${DRAWING_GHOST_WALL_STROKE}" font-family="system-ui,sans-serif">${esc(String(preview.lengthLabel).trim())}</text>`
+      : "";
+  return `<g data-ghost-wall-group="1">${line}${label}</g>`;
 }
 
 export function renderDrawingSvg(
@@ -173,11 +202,13 @@ export function renderDrawingSvg(
         `stroke="#38bdf8" stroke-width="${(wall.thickness ?? 4) + 6}" stroke-opacity="0.35" stroke-linecap="square" />`;
     }
   }
+  const ghost =
+    options.previewWall != null ? renderGhostWall(options.previewWall) : "";
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" data-render-version="${DRAWING_RENDER_VERSION}">` +
     `<rect width="100%" height="100%" fill="#ffffff"/>` +
     gridSvg +
-    `<g data-objects="1">${highlight}${body}</g>` +
+    `<g data-objects="1">${highlight}${body}${ghost}</g>` +
     `</svg>`
   );
 }

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-03",
+    version: "2.66.02",
+    label: "Odbiory WM — Rysunki P3B podgląd ścian",
+    items: [
+      {
+        type: "new",
+        text: "Rysunki: Ghost Line przy rysowaniu ściany (podgląd + długość px / kratki). Ciągłe rysowanie od ostatniego punktu · Esc kończy. Podgląd tylko w edytorze — nie w PDF/ZIP/JSON.",
+      },
+      {
+        type: "improve",
+        text: "Ściana: odrzut zbyt krótkiego odcinka. Snap bez zmian. Ten sam renderDrawingSvg → PDF → ZIP.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-03",
     version: "2.66.01",
     label: "Odbiory WM — Rysunki P3A UX polish",
     items: [
