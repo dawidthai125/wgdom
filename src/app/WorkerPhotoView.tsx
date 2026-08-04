@@ -5,7 +5,7 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ThemeToggle } from "@/app/theme/ThemeToggle";
 import { useWorkerPrivacyShield } from "@/app/hooks/useWorkerPrivacyShield";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
-import { HiddenFileInput } from "@/app/HiddenFileInput";
+import { HiddenFileInput, IMAGE_ACCEPT } from "@/app/HiddenFileInput";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import { WgButton, WgCard, WgEmptyState, WgField, WgKpi } from "@/app/ui";
@@ -979,46 +979,74 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                           className="!space-y-0"
                           controlClassName="h-11 bg-secondary/50 text-sm"
                         />
+                        <WgField
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={receiptAmount}
+                          onChange={(e) => setReceiptAmount(e.target.value)}
+                          placeholder="Kwota PLN"
+                          className="!space-y-0"
+                          controlClassName="h-11 bg-secondary/50 text-sm font-mono"
+                        />
                         <div className="flex gap-2 items-stretch">
-                          <WgField
-                            type="number"
-                            min={0}
-                            step={1}
-                            value={receiptAmount}
-                            onChange={(e) => setReceiptAmount(e.target.value)}
-                            placeholder="Kwota PLN"
-                            className="flex-1 !space-y-0"
-                            controlClassName="h-11 bg-secondary/50 text-sm font-mono"
-                          />
-                          <label
-                            className={cn(
-                              "inline-flex items-center justify-center gap-2 h-11 px-4 shrink-0 cursor-pointer",
-                              "rounded-2xl bg-primary text-primary-foreground text-sm font-semibold",
-                              `transition-all ${WG_DURATION_HOVER}`,
-                              WG_FOCUS_RING,
-                              WG_TOUCH_MIN,
-                              receiptUploading ? "opacity-50 pointer-events-none" : "hover:bg-primary/90",
-                            )}
+                          <HiddenFileInput
+                            accept={IMAGE_ACCEPT}
+                            capture="environment"
+                            onPick={(files) => {
+                              const f = files?.[0];
+                              if (f) void submitReceipt(f);
+                            }}
                           >
-                            {receiptUploading ? (
-                              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"/>
-                            ) : (
-                              <Camera size={16}/>
+                            {(open) => (
+                              <WgButton
+                                type="button"
+                                variant="primary"
+                                onClick={open}
+                                disabled={receiptUploading}
+                                className={cn(
+                                  "flex-1 gap-2 h-11 rounded-2xl text-sm font-semibold",
+                                  WG_TOUCH_MIN,
+                                  receiptUploading && "opacity-50",
+                                )}
+                              >
+                                {receiptUploading ? (
+                                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"/>
+                                ) : (
+                                  <Camera size={16}/>
+                                )}
+                                Aparat
+                              </WgButton>
                             )}
-                            Skan
-                            <input
-                              type="file"
-                              accept="image/*,application/pdf"
-                              capture="environment"
-                              className="sr-only"
-                              disabled={receiptUploading}
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) submitReceipt(f);
-                                e.target.value = "";
-                              }}
-                            />
-                          </label>
+                          </HiddenFileInput>
+                          <HiddenFileInput
+                            accept="image/*,application/pdf,.pdf"
+                            onPick={(files) => {
+                              const f = files?.[0];
+                              if (f) void submitReceipt(f);
+                            }}
+                          >
+                            {(open) => (
+                              <WgButton
+                                type="button"
+                                variant="secondary"
+                                onClick={open}
+                                disabled={receiptUploading}
+                                className={cn(
+                                  "flex-1 gap-2 h-11 rounded-2xl text-sm font-semibold",
+                                  WG_TOUCH_MIN,
+                                  receiptUploading && "opacity-50",
+                                )}
+                              >
+                                {receiptUploading ? (
+                                  <div className="w-4 h-4 border-2 border-foreground border-t-transparent rounded-full animate-spin"/>
+                                ) : (
+                                  <Receipt size={16}/>
+                                )}
+                                Plik/PDF
+                              </WgButton>
+                            )}
+                          </HiddenFileInput>
                         </div>
                         {receiptError && (
                           <p className={cn("text-xs text-destructive bg-destructive/10 px-3 py-2", WG_RADIUS_LG)}>{receiptError}</p>
@@ -1315,35 +1343,50 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
             </WgCard>
 
             <div>
-              <p className={cn(WG_TYPE_LABEL, "mb-2")}>Szybki aparat (pojedynczo)</p>
+              <p className={cn(WG_TYPE_LABEL, "mb-2")}>Szybki aparat (1 zdjęcie)</p>
               <WgField
                 type="text"
                 value={quickPhotoCaption}
                 onChange={(e) => setQuickPhotoCaption(e.target.value)}
-                placeholder="Opis do następnych zdjęć z aparatu (opcjonalnie)"
+                placeholder="Opis do następnego zdjęcia z aparatu (opcjonalnie)"
                 className="mb-2 !space-y-0"
                 controlClassName="h-11 bg-secondary/50 text-xs"
               />
               <div className="space-y-2">
-                {LABELS.map(lbl => (
-                  <label
+                {LABELS.map((lbl) => (
+                  <HiddenFileInput
                     key={lbl.value}
-                    className={cn(
-                      "flex items-center gap-4 px-4 py-3 border cursor-pointer",
-                      `transition-all ${WG_DURATION_HOVER}`,
-                      "hover:opacity-90 active:scale-[0.98] motion-reduce:active:scale-100",
-                      WG_RADIUS_LG,
-                      lbl.color,
-                    )}
+                    accept={IMAGE_ACCEPT}
+                    capture="environment"
+                    onPick={(files) => {
+                      void handleFiles(files, lbl.value);
+                    }}
                   >
-                    <lbl.icon size={18} className="shrink-0"/>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{lbl.title}</p>
-                    </div>
-                    <input type="file" accept="image/*" multiple capture="environment" className="sr-only"
-                      onChange={e=>{handleFiles(e.target.files, lbl.value); e.target.value = "";}}/>
-                    <Camera size={16} className="shrink-0 opacity-60"/>
-                  </label>
+                    {(open) => (
+                      <button
+                        type="button"
+                        onClick={open}
+                        disabled={uploading}
+                        className={cn(
+                          "flex w-full items-center gap-4 px-4 py-3 border text-left min-h-[44px]",
+                          `transition-all ${WG_DURATION_HOVER}`,
+                          "hover:opacity-90 active:scale-[0.98] motion-reduce:active:scale-100",
+                          WG_RADIUS_LG,
+                          WG_TOUCH_MIN,
+                          WG_FOCUS_RING,
+                          uploading ? "opacity-50 pointer-events-none" : "",
+                          lbl.color,
+                        )}
+                      >
+                        <lbl.icon size={18} className="shrink-0"/>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{lbl.title}</p>
+                          <p className="text-[10px] opacity-70">1 zdjęcie z aparatu</p>
+                        </div>
+                        <Camera size={16} className="shrink-0 opacity-60"/>
+                      </button>
+                    )}
+                  </HiddenFileInput>
                 ))}
               </div>
             </div>

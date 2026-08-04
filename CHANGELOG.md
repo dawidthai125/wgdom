@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.07 — Worker — aparat i paragon mobile P1a (2026-08-04)
+
+- **fix:** Aparat job = HiddenFileInput `capture` single (bez `multiple`); galeria multi bez zmian; paragon Aparat | Plik/PDF; suppress privacy via HFI; Inspector/Cloud/Payroll/viewport OUT.
+
 ## 2.66.06 — Worker + Inspektor — viewport mobile P0 (2026-08-04)
 
 - **fix:** Shell Worker/Inspector = `var(--app-height, 100dvh)` (REUSE admin visualViewport); jeden height owner; Suspense fallback height+max-height; upload/capture/Cloud OUT.

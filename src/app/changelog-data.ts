@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.07",
+    label: "Worker — aparat i paragon mobile P1a",
+    items: [
+      {
+        type: "fix",
+        text: "Panel pracownika: aparat = 1 zdjęcie (bez multi+capture), galeria bez zmian; paragon osobno Aparat i Plik/PDF; wybór pliku przez HiddenFileInput (privacy shield nie zasłania pickera).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.06",
     label: "Worker + Inspektor — viewport mobile P0",
     items: [
