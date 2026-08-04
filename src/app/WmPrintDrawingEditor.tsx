@@ -517,14 +517,8 @@ export function WmPrintDrawingEditor({
     }
     commit(touchDrawing(local, { objects: [...local.objects, obj] }));
     setSelectedId(obj.id);
-    /* MR-P3B-02 — continuous tylko wall; arrow/dimension → clear. */
-    if (type === "wall") {
-      setLineStart(end);
-      setPreviewEnd(null);
-      pendingPreviewEndRef.current = null;
-    } else {
-      clearWallPreview();
-    }
+    /* D-P3B1-01 / MR-P3B1-01 — po SUCCESS idle preview (wall: STOP chain; arrow/dimension jak P3B). */
+    clearWallPreview();
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -787,7 +781,7 @@ export function WmPrintDrawingEditor({
   const lineHint =
     tool === "wall"
       ? lineStart
-        ? "Kliknij drugi punkt · Esc = koniec rysowania ścian."
+        ? "Kliknij drugi punkt · Esc anuluje podgląd."
         : "Kliknij pierwszy punkt ściany."
       : tool === "arrow"
         ? lineStart

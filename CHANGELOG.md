@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.03 — Odbiory WM — Rysunki P3B.1 Continuous Drawing UX Fix (2026-08-04)
+
+- **fix:** Po utworzeniu ściany Ghost znika; narzędzie Ściana zostaje. Kolejna ściana dopiero po nowym pierwszym kliknięciu (bez auto-łańcucha od ostatniego punktu).
+
 ## 2.66.02 — Odbiory WM — Rysunki P3B Interactive Drawing UX (2026-08-03)
 
 - **new:** Ghost Line ściany (`previewWall`) · live długość px / kratki · continuous od last point · Esc kończy

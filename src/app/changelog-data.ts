@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-04",
+    version: "2.66.03",
+    label: "Odbiory WM — Rysunki P3B.1 UX ścian",
+    items: [
+      {
+        type: "fix",
+        text: "Rysunki: po utworzeniu ściany podgląd Ghost znika — narzędzie Ściana zostaje aktywne. Kolejna ściana dopiero po nowym pierwszym kliknięciu (bez auto-łańcucha).",
+      },
+    ],
+  },
+  {
     date: "2026-08-03",
     version: "2.66.02",
     label: "Odbiory WM — Rysunki P3B podgląd ścian",
