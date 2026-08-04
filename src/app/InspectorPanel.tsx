@@ -627,7 +627,7 @@ export function InspectorPanel({
     : "Inspektor WM · W&G DOM";
 
   return (
-    <div className="relative h-[100dvh]">
+    <div className="relative min-h-0">
       <InspectorShell
         jobDetailOpen={Boolean(selectedJob)}
         commandLayer={

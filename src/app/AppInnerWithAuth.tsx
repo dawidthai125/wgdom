@@ -116,7 +116,19 @@ export function AppInnerWithAuth() {
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
   if (appMode === "inspector" && inspectorSession) {
     return (
-      <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center bg-background"><p className="text-sm text-muted-foreground">Ładowanie panelu inspektora…</p></div>}>
+      <Suspense
+        fallback={
+          <div
+            className="inspector-shell flex items-center justify-center bg-background"
+            style={{
+              height: "var(--app-height, 100dvh)",
+              maxHeight: "var(--app-height, 100dvh)",
+            }}
+          >
+            <p className="text-sm text-muted-foreground">Ładowanie panelu inspektora…</p>
+          </div>
+        }
+      >
         <InspectorPanel session={inspectorSession} onLogout={logout}/>
       </Suspense>
     );

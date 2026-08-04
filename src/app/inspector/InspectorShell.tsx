@@ -19,7 +19,7 @@ export function InspectorShell({
   jobDetailOpen,
 }: InspectorShellProps) {
   return (
-    <div className="inspector-shell relative flex flex-col bg-background text-foreground h-[100dvh]">
+    <div className="inspector-shell relative flex flex-col bg-background text-foreground">
       {commandLayer}
       {beforeWorkspace}
       <div className="flex flex-1 min-h-0 overflow-hidden">

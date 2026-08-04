@@ -7,6 +7,15 @@
   min-height: 0;
 }
 
+/* WIM-P0 — Worker + Inspector: ten sam kontrakt viewport co Admin (DFC-WIM-P0-03) */
+.worker-shell,
+.inspector-shell {
+  height: var(--app-height, 100dvh);
+  max-height: var(--app-height, 100dvh);
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* SSOT scroll kontener widoku — TND-L-02 / MOBILE-P0-S1 */
 .mobile-view-scroll {
   flex: 1 1 0%;
@@ -27,6 +36,16 @@
     min-height: 0;
   }
 
+  .worker-shell,
+  .inspector-shell {
+    box-sizing: border-box;
+    padding-top: var(--app-viewport-offset-top, 0px);
+    height: var(--app-height, 100svh);
+    max-height: var(--app-height, 100svh);
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .admin-topbar {
     position: sticky;
     top: 0;
@@ -35,6 +54,7 @@
 }
 
 @media (min-width: 768px) and (max-height: 820px) {
+  /* UI-01C — kompresja pionowa; poziomy padding (DF-14) zostaje z Tailwind */
   .admin-sidebar-nav button {
     padding-top: 0.375rem;
     padding-bottom: 0.375rem;

@@ -679,8 +679,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
 
   return (
     <div
-      className="flex flex-col bg-background text-foreground select-none [-webkit-touch-callout:none]"
-      style={{ height: "100dvh" }}
+      className="worker-shell flex flex-col bg-background text-foreground select-none [-webkit-touch-callout:none]"
     >
       <div
         className="flex items-center justify-between px-4 py-4 border-b border-border/60 bg-card shrink-0"
@@ -807,7 +806,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
         </div>
       )}
 
-      <div ref={workerScrollRef} className="flex-1 overflow-y-auto overscroll-contain" data-keyboard-aware style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+      <div ref={workerScrollRef} className="mobile-view-scroll" data-keyboard-aware style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
         <PullToRefreshIndicator pull={workerPull.pull} refreshing={workerPull.refreshing || payrollLoading || jobsLoading} ready={workerPull.ready}/>
         {selectedJob && (
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/60 px-4 py-2.5">

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.06",
+    label: "Worker + Inspektor — viewport mobile P0",
+    items: [
+      {
+        type: "fix",
+        text: "Panel pracownika i inspektora: wysokość shell z visualViewport (--app-height), jak admin — mniej uciętego dolnego chrome na Safari/Android; bez zmian upload/capture/Cloud.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.05",
     label: "Odbiory WM — Rysunki mobile P1",
     items: [

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.06 — Worker + Inspektor — viewport mobile P0 (2026-08-04)
+
+- **fix:** Shell Worker/Inspector = `var(--app-height, 100dvh)` (REUSE admin visualViewport); jeden height owner; Suspense fallback height+max-height; upload/capture/Cloud OUT.
+
 ## 2.66.05 — Odbiory WM — Rysunki MOBILE-P1 (2026-08-04)
 
 - **improve:** Hit edit-only (`mode` edit|export) · chrome 44×44 · toolbar scroll · modal Tekst/Długość · create sheet viewport-safe; PDF/Cloud/JSON/Ghost OUT.
