@@ -1230,7 +1230,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     wmPrintSeedCheckedRef.current = true;
     void (async () => {
       const result = await maybeExecuteWmPrintSeed();
-      if (!result.seeded) return;
+      const shouldPersist = result.seeded || result.ostMappingMigratedCount > 0;
+      if (!shouldPersist) return;
       setWmPrintTemplates(result.templates);
       bumpAutoSyncSuppress(4500);
       pushWmPrintToCloud(

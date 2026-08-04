@@ -5,6 +5,7 @@ import {
 } from "@/lib/cloud-sync";
 import { createWmPrintSeedTemplates } from "@/lib/wm-print/default-templates";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
+import { migrateOstPdfFieldMapping } from "@/lib/wm-print/ost-pdf-field-mapping-migration";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import {
   dedupeWmPrintTemplatesByName,
@@ -207,6 +208,8 @@ export async function pushWmPrintToCloud(
 export type WmPrintSeedResult = {
   seeded: boolean;
   templates: WmPrintTemplate[];
+  /** WM-DRUK-OST-MAPPING-MIGRATION-01 — ile slotów OST dostało pdfFieldMapping */
+  ostMappingMigratedCount: number;
 };
 
 /** Bootstrap seed — tylko gdy local i cloud są puste (P0 anti-pollution). */
@@ -232,12 +235,18 @@ export async function maybeExecuteWmPrintSeed(): Promise<WmPrintSeedResult> {
       localCount: localTemplates.length,
       cloudCount: cloudTemplates.length,
     });
-    return { seeded: false, templates: localTemplates.length > 0 ? localTemplates : cloudTemplates };
+    const base = localTemplates.length > 0 ? localTemplates : cloudTemplates;
+    const { templates, migratedCount } = migrateOstPdfFieldMapping(base);
+    if (migratedCount > 0) {
+      console.info("WM PRINT OST MAPPING MIGRATION", { migratedCount });
+    }
+    return { seeded: false, templates, ostMappingMigratedCount: migratedCount };
   }
 
   const seeded = createWmPrintSeedTemplates();
   console.info("WM PRINT SEED EXECUTED", { count: seeded.length });
-  return { seeded: true, templates: seeded };
+  const { templates, migratedCount } = migrateOstPdfFieldMapping(seeded);
+  return { seeded: true, templates, ostMappingMigratedCount: migratedCount };
 }
 
 export async function syncWmPrintFromCloud(): Promise<{
@@ -275,7 +284,11 @@ export async function syncWmPrintFromCloud(): Promise<{
   saveDeletedWmPrintTemplateIds(delTpl);
   saveDeletedWmPrintJobDocIds(delDoc);
 
-  const templates = mergeWmPrintTemplates(localTemplates, cloud?.[0], delTpl);
+  const mergedTemplates = mergeWmPrintTemplates(localTemplates, cloud?.[0], delTpl);
+  const { templates, migratedCount } = migrateOstPdfFieldMapping(mergedTemplates);
+  if (migratedCount > 0) {
+    console.info("WM PRINT OST MAPPING MIGRATION", { migratedCount, via: "syncWmPrintFromCloud" });
+  }
   const jobDocs = mergeWmPrintJobDocuments(localDocs, cloud?.[1], delDoc);
   const settings = mergeWmPrintSettings(localSettings, normalizeWmPrintSettings(cloud?.[2]));
   const localHistory = normalizeWmPrintHistory(
@@ -287,6 +300,10 @@ export async function syncWmPrintFromCloud(): Promise<{
     [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY, WM_PRINT_HISTORY_KEY],
     [templates, jobDocs, settings, history],
   );
+
+  if (migratedCount > 0) {
+    await pushWmPrintToCloud(templates, jobDocs, settings, delTpl, delDoc, history);
+  }
 
   return { templates, jobDocs, settings, history };
 }

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.09 — WM Druk — migracja mapowania OST (2026-08-04)
+
+- **fix:** historyczne sloty OST bez `pdfFieldMapping` → SSOT `WM_PRINT_OST_PDF_FIELD_MAPPING` przy bootstrap/sync (push tylko gdy `migratedCount > 0`); generator bez zmian
+
 ## 2.66.08 — Odbiory WM — formularz OST (2026-08-04)
 
 - **new:** slot OST (`pdf_form`) w pipeline WM Druk — aliasy BUILDING/APARTMENT w `pdfFieldMapping`; upload-only

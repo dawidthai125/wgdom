@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.09",
+    label: "WM Druk — migracja mapowania OST",
+    items: [
+      {
+        type: "fix",
+        text: "WM Druk: historyczne sloty OST bez pdfFieldMapping dostają mapowanie adresu (JOB_STREET/BUILDING/APARTMENT) przy starcie/sync — bez zmian generatora PDF.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.08",
     label: "Odbiory WM — formularz OST",
     items: [
