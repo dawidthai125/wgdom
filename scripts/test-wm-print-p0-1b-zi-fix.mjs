@@ -72,7 +72,9 @@ const legacyKvMapping = {
   "Numer lokalu": "JOB_APARTMENT",
 };
 
-const out = await generatePdfFormFromTemplate(templateBytes, vars, legacyKvMapping);
+const out = await generatePdfFormFromTemplate(templateBytes, vars, legacyKvMapping, {
+  legacyZiFieldFill: true,
+});
 
 let loaded;
 try {

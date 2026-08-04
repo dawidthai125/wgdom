@@ -106,7 +106,7 @@ const vars = buildWmPrintVariableMap(JOB, DEFAULT_WM_PRINT_SETTINGS, {
   customDate: new Date("2026-06-15T12:00:00"),
 });
 
-const out = await generatePdfFormFromTemplate(templateBytes, vars);
+const out = await generatePdfFormFromTemplate(templateBytes, vars, undefined, { legacyZiFieldFill: true });
 writeFileSync(join(AUDIT, "zi-p0-2a-smoke-sepa-83-7.pdf"), out);
 
 const latin = Buffer.from(out).toString("latin1");

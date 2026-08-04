@@ -37,7 +37,7 @@ function ok(c, m) {
 console.log("P0.1E — ZI Edge cover fix\n");
 
 const template = new Uint8Array(await (await fetch(PROD_ZI_URL)).arrayBuffer());
-const out = await generatePdfFormFromTemplate(template, vars);
+const out = await generatePdfFormFromTemplate(template, vars, undefined, { legacyZiFieldFill: true });
 writeFileSync(join(OUT, "07-p01e-edge-cover-sepa-83-7.pdf"), out);
 
 const doc = await PDFDocument.load(out, { ignoreEncryption: true });

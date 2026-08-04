@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.08",
+    label: "Odbiory WM — formularz OST",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk: slot OST (pdf_form) — wypełnienie adresu jak ZI w pipeline ZIP/download; aliasy BUILDING/APARTMENT tylko w mapowaniu pól; upload szablonu WM-Druk-OST.pdf w ustawieniach szablonów.",
+      },
+      {
+        type: "fix",
+        text: "pdf_form (nie-ZI): wypełnianie wyłącznie z mapowania szablonu — bez legacy mapy/indeksów LiveCycle ZI (OST bezpieczny).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.07",
     label: "Worker — aparat i paragon mobile P1a",
     items: [

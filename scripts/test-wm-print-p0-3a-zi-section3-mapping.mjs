@@ -80,7 +80,9 @@ const legacyKv = {
   "form1[0].Page1[0].nazwisko[1]": "JOB_APARTMENT",
 };
 
-const out = await generatePdfFormFromTemplate(templateBytes, vars, legacyKv);
+const out = await generatePdfFormFromTemplate(templateBytes, vars, legacyKv, {
+  legacyZiFieldFill: true,
+});
 writeFileSync(join(AUDIT, "zi-p0-3a-smoke-sepa-83-7.pdf"), out);
 
 const latin = Buffer.from(out).toString("latin1");
@@ -102,7 +104,8 @@ for (const i of legacyIdx) {
 }
 
 const s3 = await pdfjsSection3Fields(out);
-assert(s3.every((f) => f && f.rect[1] > 130 && f.rect[1] < 165), "pdf.js §3 pola @ y≈142");
+assert(s3.every((f) => !f || f.rect[1] < 100 || f.rect[1] > 200), "P0.3F — brak §3 widgetów @ y≈142 w /Annots");
+assert(doc.getForm().getFields().length >= 50, `P0.3F — AcroForm zachowany (${doc.getForm().getFields().length} pól)`);
 assert(latin.includes(EXPECT.building), `output zawiera budynek (${EXPECT.building})`);
 assert(latin.includes(`(${EXPECT.apartment})`) || latin.includes(` ${EXPECT.apartment}`), `output zawiera lokal (${EXPECT.apartment})`);
 assert(

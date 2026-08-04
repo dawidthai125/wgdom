@@ -206,10 +206,19 @@ export function fillZiPdfFieldsWithLog(
   return log;
 }
 
+export type FillPdfFormFieldMappingOptions = {
+  /**
+   * Legacy LiveCycle ZI — fallback po indeksach PDFTextField 22/23/24.
+   * Default false (OST / mapping-only — AR-DECISION-01).
+   */
+  useZiIndexFallback?: boolean;
+};
+
 function fillPdfFormFieldMapping(
   form: ReturnType<PDFDocument["getForm"]>,
   mapping: Record<string, WmPrintVariableKey>,
   vars: Record<WmPrintVariableKey, string>,
+  options?: FillPdfFormFieldMappingOptions,
 ): Set<WmPrintVariableKey> {
   const filled = new Set<WmPrintVariableKey>();
   form.updateFieldAppearances = () => {};
@@ -220,12 +229,14 @@ function fillPdfFormFieldMapping(
     if (executed) filled.add(varKey);
   }
 
-  for (const [varKey, idx] of Object.entries(WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX)) {
-    if (filled.has(varKey as WmPrintVariableKey)) continue;
-    const field = typeof idx === "number" ? getZiTextFieldByIndex(form, idx) : null;
-    if (!field) continue;
-    field.setText(vars[varKey as WmPrintVariableKey] ?? "");
-    filled.add(varKey as WmPrintVariableKey);
+  if (options?.useZiIndexFallback === true) {
+    for (const [varKey, idx] of Object.entries(WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX)) {
+      if (filled.has(varKey as WmPrintVariableKey)) continue;
+      const field = typeof idx === "number" ? getZiTextFieldByIndex(form, idx) : null;
+      if (!field) continue;
+      field.setText(vars[varKey as WmPrintVariableKey] ?? "");
+      filled.add(varKey as WmPrintVariableKey);
+    }
   }
 
   return filled;
@@ -372,30 +383,40 @@ async function finalizeZiHybridForm(
   }
 }
 
+export type GeneratePdfFormFromTemplateOptions = {
+  /**
+   * Legacy LiveCycle ZI: merge `WM_PRINT_ZI_PDF_FIELD_MAP` + index fallback 22–24 + hybrid finalize.
+   * Default **false** — OST / non-ZI używa wyłącznie `pdfFieldMapping` (AR-DECISION-01).
+   * Prod ZI: `generatePdfZiTauron2026()` — nie ta funkcja.
+   */
+  legacyZiFieldFill?: boolean;
+};
+
 /**
- * @deprecated Legacy LiveCycle pdf_form. Prod: tylko ZI → `generatePdfZiTauron2026()`.
- * Gałąź w `generate-zip.ts` martwa w KV (brak pdf_form poza ZI).
+ * Wypełnia AcroForm wg `fieldMapping` → `WmPrintVariableKey`.
+ * Domyślnie mapping-only (OST). Legacy ZI LiveCycle: `legacyZiFieldFill: true`.
  */
 export async function generatePdfFormFromTemplate(
   templateBytes: Uint8Array,
   vars: Record<WmPrintVariableKey, string>,
   fieldMapping?: Partial<Record<string, WmPrintVariableKey>>,
+  options?: GeneratePdfFormFromTemplateOptions,
 ): Promise<Uint8Array> {
+  const legacy = options?.legacyZiFieldFill === true;
   const formType = detectWmPrintPdfFormType(templateBytes);
   const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
   const kvMapping = Object.fromEntries(
     Object.entries(fieldMapping ?? {}).filter(([name]) => !WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES.has(name)),
   );
-  /** Legacy KV może mieć stare klucze — SSOT mapowania ZI §3 wygrywa. */
-  const mapping: Record<string, WmPrintVariableKey> = {
-    ...kvMapping,
-    ...WM_PRINT_ZI_PDF_FIELD_MAP,
-  };
+  /** OST / default: wyłącznie pdfFieldMapping. Legacy: SSOT map ZI LiveCycle nadpisuje KV. */
+  const mapping: Record<string, WmPrintVariableKey> = legacy
+    ? { ...kvMapping, ...WM_PRINT_ZI_PDF_FIELD_MAP }
+    : { ...kvMapping };
 
   const form = pdfDoc.getForm();
-  fillPdfFormFieldMapping(form, mapping, vars);
+  fillPdfFormFieldMapping(form, mapping, vars, { useZiIndexFallback: legacy });
 
-  if (formType === "hybrid" || formType === "xfa") {
+  if (legacy && (formType === "hybrid" || formType === "xfa")) {
     await finalizeZiHybridForm(pdfDoc, form, vars);
     stripSection3WidgetAnnots(pdfDoc, form);
   } else {

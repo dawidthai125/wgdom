@@ -110,7 +110,7 @@ export async function generateFromTemplateBytes(
       }
       return generatePdfZiTauron2026(sourceBytes, vars);
     }
-    /** Martwa gałąź prod (KV: jedyny pdf_form = ZI). Zachowana dla bezpieczeństwa API. */
+    /** Non-ZI pdf_form (OST): mapping-only via generatePdfFormFromTemplate — bez legacy ZI map/index. */
     return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
   }
   if (type === "pdf") {

@@ -79,7 +79,7 @@ for (const row of diag.afterSave) {
 
 assert(diag.placeholdersInOutput["{{JOB_STREET}}"] === 0, "brak {{JOB_STREET}} w bajtach");
 
-const out = await generatePdfFormFromTemplate(templateBytes, vars);
+const out = await generatePdfFormFromTemplate(templateBytes, vars, undefined, { legacyZiFieldFill: true });
 await PDFDocument.load(out, { ignoreEncryption: true });
 assert(out.length > templateBytes.length, "output większy od szablonu (font /AP)");
 assert(true, "generatePdfFormFromTemplate P0.1D: PDF ładuje się");

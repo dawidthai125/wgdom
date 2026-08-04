@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.08 — Odbiory WM — formularz OST (2026-08-04)
+
+- **new:** slot OST (`pdf_form`) w pipeline WM Druk — aliasy BUILDING/APARTMENT w `pdfFieldMapping`; upload-only
+- **fix:** non-ZI `generatePdfFormFromTemplate` = mapping-only (bez LiveCycle ZI map/index)
+
 ## 2.66.07 — Worker — aparat i paragon mobile P1a (2026-08-04)
 
 - **fix:** Aparat job = HiddenFileInput `capture` single (bez `multiple`); galeria multi bez zmian; paragon Aparat | Plik/PDF; suppress privacy via HFI; Inspector/Cloud/Payroll/viewport OUT.

@@ -36,7 +36,7 @@ function ok(c, m) {
 console.log("P0.1D — ZI visual /AP fix\n");
 
 const template = new Uint8Array(await (await fetch(PROD_ZI_URL)).arrayBuffer());
-const out = await generatePdfFormFromTemplate(template, vars);
+const out = await generatePdfFormFromTemplate(template, vars, undefined, { legacyZiFieldFill: true });
 writeFileSync(join(OUT, "06-p01d-ap-fix-sepa-83-7.pdf"), out);
 
 const doc = await PDFDocument.load(out, { ignoreEncryption: true });
