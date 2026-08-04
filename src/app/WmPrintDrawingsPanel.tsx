@@ -1,8 +1,10 @@
-/** WM-RYSUNKI-01 P1 — lista + CRUD + szablony + edytor + draft→final. */
+/** WM-RYSUNKI-01 P1 + MOBILE-01 P0 — lista + CRUD + edytor (FS portal <md). */
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, Copy, Plus, Search, Trash2, CheckCircle2 } from "lucide-react";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
+import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
@@ -28,6 +30,22 @@ import { DRAWING_OBJECTS_SOFT_WARN, DRAWING_TEMPLATE_IDS } from "@/lib/wm-techni
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
 type StatusFilter = "all" | DrawingStatus;
+
+const MD_MAX = "(max-width: 767px)";
+
+function useIsMobileMd(): boolean {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(MD_MAX).matches : false,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(MD_MAX);
+    const onChange = () => setIsMobile(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isMobile;
+}
 
 function matchesSearch(d: WmTechnicalDrawing, q: string): boolean {
   if (!q) return true;
@@ -61,6 +79,7 @@ export function WmPrintDrawingsPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [createJobId, setCreateJobId] = useState<string>(initialJobId ?? "");
+  const isMobile = useIsMobileMd();
 
   useEffect(() => {
     if (initialJobId) setCreateJobId(initialJobId);
@@ -80,7 +99,8 @@ export function WmPrintDrawingsPanel({
   }, [sorted, search, statusFilter]);
 
   const selected = selectedId ? getDrawingById(drawings, selectedId) ?? null : null;
-  const mobileDetailOpen = Boolean(selectedId);
+  const mobileFsOpen = Boolean(selected && isMobile);
+  useModalScrollLock(mobileFsOpen);
 
   const editorJobLabel = useMemo(() => {
     if (!selected?.jobId) return "Bez roboty";
@@ -89,17 +109,19 @@ export function WmPrintDrawingsPanel({
   }, [selected, jobs]);
 
   useEffect(() => {
-    if (!mobileDetailOpen) return;
+    if (!selectedId) return;
     return registerNativeBackHandler(() => {
       setSelectedId(null);
       return true;
     });
-  }, [mobileDetailOpen]);
+  }, [selectedId]);
 
   const persist = (next: WmTechnicalDrawing[]) => {
     onChangeDrawings(next);
     onCommitDrawings(next);
   };
+
+  const closeEditor = () => setSelectedId(null);
 
   const createFromTemplate = (templateId: DrawingTemplateId) => {
     const job = createJobId ? jobs.find((j) => j.id === createJobId) : undefined;
@@ -187,59 +209,102 @@ export function WmPrintDrawingsPanel({
     onCommitDrawings(next);
   };
 
+  const editorChrome = selected ? (
+    <div className="flex flex-wrap items-center gap-2 shrink-0">
+      <button
+        type="button"
+        onClick={closeEditor}
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft size={16} /> Lista
+      </button>
+      <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusBadgeClass(selected.status)}`}>
+        {DRAWING_STATUS_LABELS[selected.status]}
+      </span>
+      <div className="ml-auto flex gap-1">
+        {selected.status === "draft" && (
+          <button
+            type="button"
+            onClick={handleMarkFinal}
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
+          >
+            <CheckCircle2 size={14} /> Final
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleDuplicate}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
+        >
+          <Copy size={14} /> Duplikuj
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 size={14} /> Usuń
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  const editorBody = selected ? (
+    <>
+      {selected.objects.length > DRAWING_OBJECTS_SOFT_WARN && (
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 shrink-0">
+          Uwaga: {selected.objects.length} obiektów (próg {DRAWING_OBJECTS_SOFT_WARN}).
+        </p>
+      )}
+      <WmPrintDrawingEditor
+        key={selected.id}
+        drawing={selected}
+        onChange={handleEditorChange}
+        onAutosave={handleEditorAutosave}
+        jobLabel={editorJobLabel}
+        onRecordWmDrukAudit={onRecordWmDrukAudit}
+        mobileFullscreen={mobileFsOpen}
+      />
+    </>
+  ) : null;
+
+  /* D-M0-01 / D-M0-13 — mobile FS via portal. */
+  if (selected && isMobile && typeof document !== "undefined") {
+    return (
+      <>
+        <p className="text-sm text-muted-foreground py-6 text-center">Edycja rysunku (pełny ekran)…</p>
+        {createPortal(
+          <div
+            data-testid="wm-drawing-fs"
+            className="fixed inset-0 z-50 modal-overlay modal-lightbox flex flex-col bg-background overscroll-none"
+            style={{
+              height: "var(--app-height, 100dvh)",
+              maxHeight: "var(--app-height, 100dvh)",
+              paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+              paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
+              paddingLeft: "max(0.5rem, env(safe-area-inset-left))",
+              paddingRight: "max(0.5rem, env(safe-area-inset-right))",
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edytor rysunku"
+          >
+            <div className="flex flex-col gap-2 min-h-0 flex-1 px-1">
+              {editorChrome}
+              <div className="flex flex-col gap-2 min-h-0 flex-1">{editorBody}</div>
+            </div>
+          </div>,
+          document.body,
+        )}
+      </>
+    );
+  }
+
   if (selected) {
     return (
       <div className="flex flex-col gap-3 min-h-[70vh]">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedId(null)}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft size={16} /> Lista
-          </button>
-          <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusBadgeClass(selected.status)}`}>
-            {DRAWING_STATUS_LABELS[selected.status]}
-          </span>
-          <div className="ml-auto flex gap-1">
-            {selected.status === "draft" && (
-              <button
-                type="button"
-                onClick={handleMarkFinal}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
-              >
-                <CheckCircle2 size={14} /> Final
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleDuplicate}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
-            >
-              <Copy size={14} /> Duplikuj
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 size={14} /> Usuń
-            </button>
-          </div>
-        </div>
-        {selected.objects.length > DRAWING_OBJECTS_SOFT_WARN && (
-          <p className="text-[11px] text-amber-700 dark:text-amber-400">
-            Uwaga: {selected.objects.length} obiektów (próg {DRAWING_OBJECTS_SOFT_WARN}).
-          </p>
-        )}
-        <WmPrintDrawingEditor
-          key={selected.id}
-          drawing={selected}
-          onChange={handleEditorChange}
-          onAutosave={handleEditorAutosave}
-          jobLabel={editorJobLabel}
-          onRecordWmDrukAudit={onRecordWmDrukAudit}
-        />
+        {editorChrome}
+        {editorBody}
       </div>
     );
   }

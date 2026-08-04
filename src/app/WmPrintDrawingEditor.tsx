@@ -22,6 +22,9 @@ import {
   Eye,
   Printer,
   Box,
+  ZoomIn,
+  ZoomOut,
+  LocateFixed,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -44,6 +47,13 @@ import {
   isWallPreviewTooShort,
   wallPreviewMetrics,
 } from "@/lib/wm-technical-drawings/wall-preview";
+import {
+  clampDrawingPan,
+  clampDrawingZoom,
+  DRAWING_ZOOM_DEFAULT,
+  nextZoomIn,
+  nextZoomOut,
+} from "@/lib/wm-technical-drawings/drawing-viewport";
 import {
   DRAWING_OBJECTS_SOFT_WARN,
   TEXT_DEFAULT_FONT_SIZE,
@@ -112,6 +122,8 @@ export function WmPrintDrawingEditor({
   onAutosave,
   jobLabel,
   onRecordWmDrukAudit,
+  /** WM-RYSUNKI-MOBILE-01 P0 — layout FS: overflow-hidden + app pan (nie page scroll). */
+  mobileFullscreen = false,
 }: {
   drawing: WmTechnicalDrawing;
   onChange: (next: WmTechnicalDrawing) => void;
@@ -119,6 +131,7 @@ export function WmPrintDrawingEditor({
   /** D-P2-16 — resolved poza edytorem (nie z global state w lib). */
   jobLabel: string;
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
+  mobileFullscreen?: boolean;
 }) {
   const stackRef = useRef<DrawingUndoStack | null>(null);
   if (!stackRef.current || stackRef.current.getCurrent().id !== drawing.id) {
@@ -137,11 +150,25 @@ export function WmPrintDrawingEditor({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [undoTick, setUndoTick] = useState(0);
   const [pdfBusy, setPdfBusy] = useState(false);
+  /** D-M0-16 — ephemeral zoom/pan (nie JSON). */
+  const [viewScale, setViewScale] = useState(DRAWING_ZOOM_DEFAULT);
+  const [viewPan, setViewPan] = useState({ x: 0, y: 0 });
+  const viewScaleRef = useRef(viewScale);
+  const viewPanRef = useRef(viewPan);
+  viewScaleRef.current = viewScale;
+  viewPanRef.current = viewPan;
   const svgHostRef = useRef<HTMLDivElement>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragDirtyRef = useRef(false);
   const previewRafRef = useRef<number | null>(null);
   const pendingPreviewEndRef = useRef<{ x: number; y: number } | null>(null);
+  const captureActiveRef = useRef(false);
+  const panRef = useRef<{
+    ox: number;
+    oy: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
   const dragRef = useRef<{
     id: string;
     mode: "move-point" | "move-line";
@@ -165,6 +192,8 @@ export function WmPrintDrawingEditor({
       setLineStart(null);
       setPreviewEnd(null);
       setSelectedId(null);
+      setViewScale(DRAWING_ZOOM_DEFAULT);
+      setViewPan({ x: 0, y: 0 });
       return;
     }
     if (drawing.updatedAt > local.updatedAt) {
@@ -521,11 +550,20 @@ export function WmPrintDrawingEditor({
     clearWallPreview();
   };
 
-  const onPointerDown = (e: React.PointerEvent) => {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const svg = findSvg();
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
     const p = snap(raw.x, raw.y);
+
+    const beginCapture = () => {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        captureActiveRef.current = true;
+      } catch {
+        captureActiveRef.current = false;
+      }
+    };
 
     if (tool === "wall" || tool === "arrow") {
       if (!lineStart) {
@@ -619,7 +657,21 @@ export function WmPrintDrawingEditor({
     const target = (e.target as Element).closest?.("[data-id]");
     const id = target?.getAttribute("data-id") ?? null;
     setSelectedId(id);
-    if (!id) return;
+
+    if (!id) {
+      /* D-M0-08 — pan na pustym tle (select). */
+      if (tool === "select") {
+        panRef.current = {
+          ox: e.clientX,
+          oy: e.clientY,
+          origX: viewPanRef.current.x,
+          origY: viewPanRef.current.y,
+        };
+        beginCapture();
+      }
+      return;
+    }
+
     const obj = local.objects.find((o) => o.id === id);
     if (!obj || obj.locked) return;
     if (isPointObj(obj)) {
@@ -631,6 +683,7 @@ export function WmPrintDrawingEditor({
         orig: { ...obj },
         snapshot: local,
       };
+      beginCapture();
     } else if (isLineObj(obj)) {
       dragRef.current = {
         id,
@@ -640,10 +693,23 @@ export function WmPrintDrawingEditor({
         orig: { ...obj },
         snapshot: local,
       };
+      beginCapture();
     }
   };
 
-  const onPointerMove = (e: React.PointerEvent) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    if (pan) {
+      const host = svgHostRef.current;
+      const w = host?.clientWidth ?? 320;
+      const h = host?.clientHeight ?? 280;
+      const scale = viewScaleRef.current;
+      const nx = clampDrawingPan(pan.origX + (e.clientX - pan.ox), w, scale);
+      const ny = clampDrawingPan(pan.origY + (e.clientY - pan.oy), h, scale);
+      setViewPan({ x: nx, y: ny });
+      return;
+    }
+
     const svg = findSvg();
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
@@ -697,16 +763,56 @@ export function WmPrintDrawingEditor({
     applyWithoutUndo(touchDrawing(base, { objects }));
   };
 
-  const onPointerUp = () => {
+  const endPointerGesture = (e?: React.PointerEvent<HTMLDivElement>) => {
+    if (panRef.current) {
+      panRef.current = null;
+    }
     const drag = dragRef.current;
-    if (!drag) return;
-    dragRef.current = null;
-    if (!dragDirtyRef.current) return;
-    dragDirtyRef.current = false;
-    const final = localRef.current;
-    stackRef.current!.replace(drag.snapshot);
-    commit(final);
+    if (drag) {
+      dragRef.current = null;
+      if (dragDirtyRef.current) {
+        dragDirtyRef.current = false;
+        const final = localRef.current;
+        stackRef.current!.replace(drag.snapshot);
+        commit(final);
+      } else {
+        dragDirtyRef.current = false;
+      }
+    }
+    if (e && captureActiveRef.current) {
+      try {
+        if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    captureActiveRef.current = false;
   };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    endPointerGesture(e);
+  };
+
+  const onPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    /* D-M0-06 — cancel = ten sam end co up (commit dirty drag / drop pan). */
+    endPointerGesture(e);
+  };
+
+  const onPointerLeave = () => {
+    /* D-M0-07 — leave NIE kończy drag gdy capture; tylko hover cleanup. */
+    setHoverWallId(null);
+  };
+
+  const resetView = () => {
+    setViewScale(DRAWING_ZOOM_DEFAULT);
+    setViewPan({ x: 0, y: 0 });
+  };
+
+  const zoomIn = () => setViewScale((z) => nextZoomIn(z));
+  const zoomOut = () => setViewScale((z) => nextZoomOut(z));
+
 
   const deleteSelected = () => {
     if (!selectedId) return;
@@ -796,8 +902,8 @@ export function WmPrintDrawingEditor({
             : null;
 
   return (
-    <div className="flex flex-col gap-3 min-h-0 h-full">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className={`flex flex-col gap-3 min-h-0 ${mobileFullscreen ? "h-full flex-1" : "h-full"}`}>
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
         <input
           className="flex-1 min-w-[12rem] rounded-md border border-border bg-background px-2 py-1.5 text-sm"
           value={local.title}
@@ -810,12 +916,12 @@ export function WmPrintDrawingEditor({
       </div>
 
       {softWarn && (
-        <p className="text-[11px] text-amber-700 dark:text-amber-400">
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 shrink-0">
           Dużo obiektów ({local.objects.length}). Edycja może spowolnić — rozważ uproszczenie szkicu.
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card">
+      <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card shrink-0">
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
         {toolBtn("door_room", "Drzwi P", <DoorOpen size={14} />)}
@@ -866,6 +972,34 @@ export function WmPrintDrawingEditor({
         <span className="w-px h-5 bg-border mx-1" />
         <button
           type="button"
+          title="Pomniejsz"
+          onClick={zoomOut}
+          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
+        >
+          <ZoomOut size={14} />
+        </button>
+        <button
+          type="button"
+          title="Powiększ"
+          onClick={zoomIn}
+          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
+        >
+          <ZoomIn size={14} />
+        </button>
+        <button
+          type="button"
+          title="Reset widoku"
+          onClick={resetView}
+          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
+        >
+          <LocateFixed size={14} />
+        </button>
+        <span className="text-[10px] text-muted-foreground tabular-nums px-1">
+          {Math.round(clampDrawingZoom(viewScale) * 100)}%
+        </span>
+        <span className="w-px h-5 bg-border mx-1" />
+        <button
+          type="button"
           title="Podgląd PDF"
           disabled={pdfBusy}
           onClick={() => void runPdfAction("preview")}
@@ -897,7 +1031,7 @@ export function WmPrintDrawingEditor({
       </div>
 
       {selectedId && (
-        <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card">
+        <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card shrink-0">
           <span className="text-[11px] text-muted-foreground px-1">Obrót</span>
           {([90, 180, 270] as const).map((deg) => (
             <button
@@ -939,29 +1073,33 @@ export function WmPrintDrawingEditor({
         </div>
       )}
 
-      {lineHint && <p className="text-[11px] text-muted-foreground">{lineHint}</p>}
+      {lineHint && <p className="text-[11px] text-muted-foreground shrink-0">{lineHint}</p>}
 
       <div
         ref={svgHostRef}
-        className="flex-1 min-h-[280px] overflow-auto rounded-xl border border-border bg-slate-100 dark:bg-slate-900/40 p-2"
+        className={`wm-drawing-surface flex-1 min-h-[280px] rounded-xl border border-border bg-slate-100 dark:bg-slate-900/40 p-2 ${
+          mobileFullscreen ? "overflow-hidden" : "overflow-auto"
+        }`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerLeave={() => {
-          setHoverWallId(null);
-          onPointerUp();
-        }}
+        onPointerCancel={onPointerCancel}
+        onPointerLeave={onPointerLeave}
       >
         <div
-          className="inline-block shadow-sm"
+          className="inline-block shadow-sm origin-top-left"
+          style={{
+            transform: `translate(${viewPan.x}px, ${viewPan.y}px) scale(${clampDrawingZoom(viewScale)})`,
+          }}
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: svgMarkup }}
         />
       </div>
 
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-[11px] text-muted-foreground shrink-0">
         Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · PDF
         P2
+        {mobileFullscreen ? " · Widok: przeciągnij tło (Wybierz) · ± zoom" : ""}
       </p>
     </div>
   );

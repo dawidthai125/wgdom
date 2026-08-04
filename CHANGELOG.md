@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.04 — Odbiory WM — Rysunki MOBILE-P0 (2026-08-04)
+
+- **improve:** Telefon — pełnoekranowy edytor Rysunków (`createPortal`), lock scrolla, zoom ± / Reset, pan widoku; bez zmiany Ghost/PDF/Cloud/JSON.
+
 ## 2.66.03 — Odbiory WM — Rysunki P3B.1 Continuous Drawing UX Fix (2026-08-04)
 
 - **fix:** Po utworzeniu ściany Ghost znika; narzędzie Ściana zostaje. Kolejna ściana dopiero po nowym pierwszym kliknięciu (bez auto-łańcucha od ostatniego punktu).

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.04",
+    label: "Odbiory WM — Rysunki mobile P0",
+    items: [
+      {
+        type: "improve",
+        text: "Rysunki na telefonie: pełnoekranowy edytor (portal), blokada scrolla tła, zoom ± / Reset oraz przeciąganie widoku — bez konfliktu z gestem rysowania.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.03",
     label: "Odbiory WM — Rysunki P3B.1 UX ścian",
     items: [

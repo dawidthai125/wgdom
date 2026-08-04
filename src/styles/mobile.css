@@ -131,6 +131,13 @@
   max-height: none;
 }
 
+/* WM-RYSUNKI-MOBILE-01 P0 — drawing surface owns gestures (D-M0-04) */
+.wm-drawing-surface {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* Tablet portrait — bottom sheets until md (768px) */
 @media (max-width: 767px) {
   .modal-sheet {
