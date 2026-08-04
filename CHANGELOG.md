@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.05 — Odbiory WM — Rysunki MOBILE-P1 (2026-08-04)
+
+- **improve:** Hit edit-only (`mode` edit|export) · chrome 44×44 · toolbar scroll · modal Tekst/Długość · create sheet viewport-safe; PDF/Cloud/JSON/Ghost OUT.
+
 ## 2.66.04 — Odbiory WM — Rysunki MOBILE-P0 (2026-08-04)
 
 - **improve:** Telefon — pełnoekranowy edytor Rysunków (`createPortal`), lock scrolla, zoom ± / Reset, pan widoku; bez zmiany Ghost/PDF/Cloud/JSON.

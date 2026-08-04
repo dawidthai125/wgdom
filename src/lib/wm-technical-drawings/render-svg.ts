@@ -155,12 +155,54 @@ export interface PreviewWallOption {
   lengthLabel?: string;
 }
 
+/** D-M1-02 / DFC-P1-01 — default export = fail-safe (PDF/ZIP). */
+export type DrawingRenderMode = "edit" | "export";
+
+/** D-M1-01 / D-M1-08 — pad hit w SVG user units (nie px ekranu). */
+export const DRAWING_HIT_LINE_WIDTH_SVG = 24;
+export const DRAWING_HIT_POINT_RADIUS_SVG = 22;
+
 export interface RenderDrawingSvgOptions {
   showGrid?: boolean;
+  /**
+   * D-M1-02 — hit overlays tylko `"edit"`.
+   * Default / omit / `"export"` = bez hit (PDF/ZIP safe).
+   */
+  mode?: DrawingRenderMode;
   /** D-P3A-22 — podświetlenie ściany (tylko preview edytora). */
   highlightWallId?: string | null;
   /** D-P3B-01 — Ghost Line ściany (tylko edytor · PDF/ZIP OUT). */
   previewWall?: PreviewWallOption | null;
+}
+
+function renderEditHitOverlays(objects: DrawingObject[]): string {
+  const parts: string[] = [];
+  for (const obj of objects) {
+    const id = esc(obj.id);
+    if (obj.type === "wall" || obj.type === "dimension" || obj.type === "arrow") {
+      parts.push(
+        `<line data-id="${id}" data-hit="1" x1="${obj.x1}" y1="${obj.y1}" x2="${obj.x2}" y2="${obj.y2}" ` +
+          `stroke="transparent" stroke-width="${DRAWING_HIT_LINE_WIDTH_SVG}" stroke-linecap="round" ` +
+          `pointer-events="stroke" />`,
+      );
+      continue;
+    }
+    if (
+      obj.type === "text" ||
+      obj.type === "door" ||
+      obj.type === "window" ||
+      obj.type === "ventilation" ||
+      obj.type === "gas_boiler" ||
+      obj.type === "distribution_board"
+    ) {
+      parts.push(
+        `<circle data-id="${id}" data-hit="1" cx="${obj.x}" cy="${obj.y}" r="${DRAWING_HIT_POINT_RADIUS_SVG}" ` +
+          `fill="transparent" pointer-events="all" />`,
+      );
+    }
+  }
+  if (!parts.length) return "";
+  return `<g data-hit-layer="1">${parts.join("")}</g>`;
 }
 
 function renderGhostWall(preview: PreviewWallOption): string {
@@ -187,12 +229,14 @@ export function renderDrawingSvg(
   if (!(w > 0 && h > 0)) {
     throw new DrawingRenderError("Invalid page size");
   }
+  /* DFC-P1-01 — anything other than explicit "edit" ⇒ export (no hits). */
+  const isEdit = options.mode === "edit";
   const showGrid = options.showGrid === true && drawing.grid.enabled;
   const gridSvg = showGrid ? renderGrid(w, h, Math.max(1, drawing.grid.step)) : "";
   const doors = drawing.objects.filter((o): o is DrawingDoorObject => o.type === "door");
   const body = drawing.objects.map((obj) => renderObject(obj, doors)).filter(Boolean).join("");
   let highlight = "";
-  if (options.highlightWallId) {
+  if (isEdit && options.highlightWallId) {
     const wall = drawing.objects.find(
       (o): o is DrawingWallObject => o.type === "wall" && o.id === options.highlightWallId,
     );
@@ -203,12 +247,14 @@ export function renderDrawingSvg(
     }
   }
   const ghost =
-    options.previewWall != null ? renderGhostWall(options.previewWall) : "";
+    isEdit && options.previewWall != null ? renderGhostWall(options.previewWall) : "";
+  const hits = isEdit ? renderEditHitOverlays(drawing.objects) : "";
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" data-render-version="${DRAWING_RENDER_VERSION}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" data-render-version="${DRAWING_RENDER_VERSION}" data-render-mode="${isEdit ? "edit" : "export"}">` +
     `<rect width="100%" height="100%" fill="#ffffff"/>` +
     gridSvg +
     `<g data-objects="1">${highlight}${body}${ghost}</g>` +
+    hits +
     `</svg>`
   );
 }

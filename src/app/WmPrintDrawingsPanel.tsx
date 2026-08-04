@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Copy, Plus, Search, Trash2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Copy, Plus, Search, Trash2, CheckCircle2, X } from "lucide-react";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { toast } from "sonner";
@@ -214,19 +214,21 @@ export function WmPrintDrawingsPanel({
       <button
         type="button"
         onClick={closeEditor}
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="touch-target gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
+        aria-label="Lista rysunków"
       >
         <ArrowLeft size={16} /> Lista
       </button>
       <span className={`text-[11px] px-2 py-0.5 rounded-full ${statusBadgeClass(selected.status)}`}>
         {DRAWING_STATUS_LABELS[selected.status]}
       </span>
-      <div className="ml-auto flex gap-1">
+      <div className="ml-auto flex flex-wrap gap-1">
         {selected.status === "draft" && (
           <button
             type="button"
             onClick={handleMarkFinal}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
+            className="touch-target gap-1 px-2 rounded-md text-xs border border-border hover:bg-secondary"
+            aria-label="Oznacz jako Final"
           >
             <CheckCircle2 size={14} /> Final
           </button>
@@ -234,14 +236,16 @@ export function WmPrintDrawingsPanel({
         <button
           type="button"
           onClick={handleDuplicate}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border hover:bg-secondary"
+          className="touch-target gap-1 px-2 rounded-md text-xs border border-border hover:bg-secondary"
+          aria-label="Duplikuj rysunek"
         >
           <Copy size={14} /> Duplikuj
         </button>
         <button
           type="button"
           onClick={handleDelete}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs border border-border text-destructive hover:bg-destructive/10"
+          className="touch-target gap-1 px-2 rounded-md text-xs border border-border text-destructive hover:bg-destructive/10"
+          aria-label="Usuń rysunek"
         >
           <Trash2 size={14} /> Usuń
         </button>
@@ -340,40 +344,69 @@ export function WmPrintDrawingsPanel({
           <button
             type="button"
             onClick={() => setShowCreateMenu((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground"
+            className="touch-target gap-1.5 px-3 rounded-lg text-sm font-medium bg-primary text-primary-foreground"
+            aria-expanded={showCreateMenu}
+            aria-haspopup="dialog"
           >
             <Plus size={16} /> Nowy rysunek
           </button>
-          {showCreateMenu && (
-            <div className="absolute right-0 z-20 mt-1 w-72 rounded-xl border border-border bg-card shadow-lg p-3 space-y-2">
-              <label className="text-[11px] text-muted-foreground">Robota (wymagana)</label>
-              <select
-                className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
-                value={createJobId}
-                onChange={(e) => setCreateJobId(e.target.value)}
+          {/* D-M1-07 — viewport-safe sheet + outside close (nie goły absolute poza ekran). */}
+          {showCreateMenu &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-3"
+                role="presentation"
+                onClick={() => setShowCreateMenu(false)}
               >
-                <option value="">— wybierz —</option>
-                {jobs.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {jobDisplayTitle(j)}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[11px] text-muted-foreground">Szablon</p>
-              <div className="max-h-56 overflow-y-auto space-y-1">
-                {DRAWING_TEMPLATE_IDS.map((tid) => (
-                  <button
-                    key={tid}
-                    type="button"
-                    onClick={() => createFromTemplate(tid)}
-                    className="w-full text-left px-2 py-1.5 rounded-md text-sm hover:bg-secondary"
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Nowy rysunek"
+                  className="w-full max-w-sm rounded-xl border border-border bg-card shadow-lg p-3 space-y-2 mb-[env(safe-area-inset-bottom)] max-h-[min(80dvh,32rem)] overflow-y-auto"
+                  onClick={(ev) => ev.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium">Nowy rysunek</p>
+                    <button
+                      type="button"
+                      className="touch-target rounded-md text-muted-foreground hover:bg-secondary"
+                      aria-label="Zamknij"
+                      onClick={() => setShowCreateMenu(false)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <label className="text-[11px] text-muted-foreground">Robota (wymagana)</label>
+                  <select
+                    className="w-full min-h-[44px] rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                    value={createJobId}
+                    onChange={(e) => setCreateJobId(e.target.value)}
                   >
-                    {drawingTemplateLabel(tid)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    <option value="">— wybierz —</option>
+                    {jobs.map((j) => (
+                      <option key={j.id} value={j.id}>
+                        {jobDisplayTitle(j)}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-muted-foreground">Szablon</p>
+                  <div className="max-h-56 overflow-y-auto space-y-1">
+                    {DRAWING_TEMPLATE_IDS.map((tid) => (
+                      <button
+                        key={tid}
+                        type="button"
+                        onClick={() => createFromTemplate(tid)}
+                        className="touch-target w-full justify-start text-left px-2 rounded-md text-sm hover:bg-secondary"
+                      >
+                        {drawingTemplateLabel(tid)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
 

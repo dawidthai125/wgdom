@@ -82,6 +82,7 @@ const svgPdfLike = renderDrawingSvg(withWall, { showGrid: false });
 assert("T15 PDF-like no ghost", !svgPdfLike.includes("data-ghost-wall"));
 
 const svgGhost = renderDrawingSvg(withWall, {
+  mode: "edit",
   showGrid: true,
   previewWall: {
     x1: 100,

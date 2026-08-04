@@ -105,6 +105,7 @@ const svgIdle = renderDrawingSvg(withWall);
 assert("T11 idle SVG no ghost", !svgIdle.includes("data-ghost-wall"));
 
 const svgGhost = renderDrawingSvg(withWall, {
+  mode: "edit",
   previewWall: {
     x1: 100,
     y1: 0,
@@ -114,6 +115,19 @@ const svgGhost = renderDrawingSvg(withWall, {
   },
 });
 assert("T12 mid-draw ghost still works", svgGhost.includes("data-ghost-wall"));
+
+/* DFC-P1-01 — ghost OUT export even if previewWall passed */
+const svgGhostExport = renderDrawingSvg(withWall, {
+  mode: "export",
+  previewWall: {
+    x1: 100,
+    y1: 0,
+    x2: 180,
+    y2: 0,
+    lengthLabel: "80 px",
+  },
+});
+assert("T12b ghost OUT export", !svgGhostExport.includes("data-ghost-wall"));
 
 const two = touchDrawing(withWall, {
   objects: [

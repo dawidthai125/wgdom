@@ -95,7 +95,8 @@ export async function generateDrawingPdf(
     throw new DrawingPdfError("Nieprawidłowy rozmiar strony rysunku");
   }
 
-  const svg = renderDrawingSvg(drawing, { showGrid: false });
+  /* D-M1-02 / DFC-P1-01 — jawny export (default i tak fail-safe). */
+  const svg = renderDrawingSvg(drawing, { showGrid: false, mode: "export" });
   if (svg.includes('data-grid="1"')) {
     throw new DrawingPdfError("Internal: siatka nie może trafić do PDF");
   }

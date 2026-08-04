@@ -5,8 +5,9 @@
 > **EPIC:** WM-RYSUNKI-MOBILE-01 — Mobile usability (Rysunki / Odbiory WM)  
 > **FAZA:** **DESIGN FREEZE**  
 > **MODE:** DESIGN FREEZE ARCHIVE · DOCS ONLY · **NO IMPLEMENT** do Owner GO IMPLEMENT · **NO COMMIT** · **NO PUSH**  
-> **Data freeze:** 2026-08-04 · **thin amend AR:** 2026-08-04 (D-M0-13…16)  
-> **Wejście:** Owner **GO DESIGN FREEZE** · AUDIT **COMPLETE** · AR **COMPLETE**  
+> **Data freeze:** 2026-08-04 · **thin amend AR:** 2026-08-04 (D-M0-13…16) · **thin amend P1:** 2026-08-04 (D-M1-08 · AC-M1-03/07 · slice DF)  
+> **Slice DF MOBILE-P1:** [`WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md`](./WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md) (**FROZEN**)  
+> **Wejście:** Owner **GO DESIGN FREEZE** · AUDIT **COMPLETE** · AR **COMPLETE** · P1 AUDIT **PASS** · P1 DF **FROZEN**  
 > **Parent AUDIT:** [`WM-RYSUNKI-MOBILE-01-AUDIT.md`](./WM-RYSUNKI-MOBILE-01-AUDIT.md) (**AUDIT COMPLETE**)  
 > **Architecture Review:** [`WM-RYSUNKI-MOBILE-01-ARCHITECTURE-REVIEW.md`](./WM-RYSUNKI-MOBILE-01-ARCHITECTURE-REVIEW.md)  
 > **Parent EPIC tip:** WM-RYSUNKI-01 P0–P3B.1 **CLOSED** · UI **2.66.03** / **`77f18b78`** · [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
@@ -117,12 +118,13 @@ Wynik: FEATURE mobile UX only
 | ID | Temat | Decyzja FROZEN |
 |----|-------|----------------|
 | **D-M1-01** | Touch hitboxes | Invisible hit geometry **edit-only** (`data-hit` / stroke szeroki transparent) dla wall · dimension · arrow · door/window/stamps. |
-| **D-M1-02** | Edit vs export SVG | Hit overlays **TYLKO** `mode: "edit"`. Export PDF/ZIP = `mode: "export"` **bez** hit (jak Ghost OUT). |
+| **D-M1-02** | Edit vs export SVG | Hit overlays **TYLKO** `mode: "edit"`. **Default mode = `"export"`** (fail-safe). Export PDF/ZIP = `mode: "export"` **bez** hit (jak Ghost OUT). SSOT slice: [`P1-DESIGN-FREEZE`](./WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md) · AR: [`P1-ARCHITECTURE-REVIEW`](./WM-RYSUNKI-MOBILE-01-P1-ARCHITECTURE-REVIEW.md) |
 | **D-M1-03** | Min touch target UI | Controles chrome ≥ **44×44 CSS px** (`touch-target` / `min-h-[44px]`) — Lista · Final · Duplikuj · Usuń · tool buttons · selection actions. |
 | **D-M1-04** | Toolbar mobile | Mobile: większe cele · czytelne `title`/`aria-label` · dopuszczalny horizontal scroll toolbar **ALBO** 2-row wrap — **bez** ucinania narzędzi. |
 | **D-M1-05** | Selection toolbar | Te same reguły 44px · Usuń/Duplikuj/Obrót reachability. |
 | **D-M1-06** | `window.prompt` OUT | Wymiar „Długość” + Tekst → **inline field lub thin modal** w edytorze. **Zakaz** `window.prompt` w ścieżce Rysunki. |
 | **D-M1-07** | Create menu | Mobile: menu tworzenia **nie ucięte** · outside-click/close · safe-area · prefer bottom-sheet/anchored w viewport (nie goły `absolute` poza ekran). |
+| **D-M1-08** | Hit @ P0 zoom *(P1 DF)* | Hit-test względem aktualnego viewportu (CTM + ephemeral zoom/pan) · użyteczność przy zoom≠1 · **zero** wpływu na export SVG/PDF/ZIP · SSOT slice: [`WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md`](./WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md) |
 
 ### 2.3 IN — MOBILE-P2
 
@@ -228,10 +230,11 @@ GHOST / wall STOP               — bez zmian semantyki
 |----|-----------|
 | **AC-M1-01** | Selekcja ściany/wymiaru/strzałki palcem możliwa (edit hit) |
 | **AC-M1-02** | PDF/ZIP/export **bez** widocznych hit overlays |
-| **AC-M1-03** | Tool / Lista / Final / selection actions ≥ 44×44 |
+| **AC-M1-03** | Tool / Lista / Final / selection / **zoom ± / Reset** ≥ 44×44 |
 | **AC-M1-04** | Zero `window.prompt` w flow wymiar/tekst |
 | **AC-M1-05** | Create menu w pełni w viewport + zamknięcie outside/back |
 | **AC-M1-06** | Desktop tool flow PASS (P3A wymiar/tekst nowym UI) |
+| **AC-M1-07** | Selekcja przy zoom ≠ 1 (P0) PASS — D-M1-08 |
 
 ### 5.3 MOBILE-P2
 

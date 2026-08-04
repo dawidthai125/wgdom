@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-04",
+    version: "2.66.05",
+    label: "Odbiory WM — Rysunki mobile P1",
+    items: [
+      {
+        type: "improve",
+        text: "Rysunki na telefonie: większe cele dotyku (hit edit-only + przyciski 44×44), pasek narzędzi przewijany, modal zamiast promptu (tekst/wymiar), menu Nowy rysunek w viewport — bez zmiany PDF/Cloud/JSON.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-04",
     version: "2.66.04",
     label: "Odbiory WM — Rysunki mobile P0",
     items: [

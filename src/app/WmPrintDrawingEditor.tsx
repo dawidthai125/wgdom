@@ -153,10 +153,16 @@ export function WmPrintDrawingEditor({
   /** D-M0-16 — ephemeral zoom/pan (nie JSON). */
   const [viewScale, setViewScale] = useState(DRAWING_ZOOM_DEFAULT);
   const [viewPan, setViewPan] = useState({ x: 0, y: 0 });
+  /** D-M1-06 — zamiast window.prompt. */
+  const [inputDialog, setInputDialog] = useState<
+    | { kind: "text"; x: number; y: number; value: string }
+    | { kind: "dimension"; wallId: string; x1: number; y1: number; x2: number; y2: number; value: string }
+    | null
+  >(null);
   const viewScaleRef = useRef(viewScale);
   const viewPanRef = useRef(viewPan);
-  viewScaleRef.current = viewScale;
   viewPanRef.current = viewPan;
+  viewScaleRef.current = viewScale;
   const svgHostRef = useRef<HTMLDivElement>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragDirtyRef = useRef(false);
@@ -279,6 +285,7 @@ export function WmPrintDrawingEditor({
           }
         : null;
     return renderDrawingSvg(local, {
+      mode: "edit",
       showGrid: true,
       highlightWallId: isDoorTool(tool) ? hoverWallId : null,
       previewWall,
@@ -581,33 +588,16 @@ export function WmPrintDrawingEditor({
       const hit = findNearestWall(walls, raw.x, raw.y, 28);
       if (hit) {
         setLineStart(null);
-        const rawLabel = window.prompt("Długość", "");
-        if (rawLabel == null) return;
-        const label = rawLabel.trim();
-        if (!label) {
-          toast.error("Podaj długość (np. 420)");
-          return;
-        }
-        if (/^\d+([.,]\d+)?$/.test(label)) {
-          const n = Number(label.replace(",", "."));
-          if (!(n >= 1 && n <= 99999)) {
-            toast.error("Długość: zakres 1…99999");
-            return;
-          }
-        }
         const w = hit.wall;
-        const obj: DrawingObject = {
-          id: crypto.randomUUID(),
-          type: "dimension",
+        setInputDialog({
+          kind: "dimension",
+          wallId: w.id,
           x1: w.x1,
           y1: w.y1,
           x2: w.x2,
           y2: w.y2,
-          label,
-          symbolId: "dimension-line",
-        };
-        commit(touchDrawing(local, { objects: [...local.objects, obj] }));
-        setSelectedId(obj.id);
+          value: "",
+        });
         return;
       }
       if (!lineStart) {
@@ -638,19 +628,7 @@ export function WmPrintDrawingEditor({
     }
 
     if (tool === "text") {
-      const content = window.prompt("Tekst na rysunku:", "Tekst");
-      if (content == null) return;
-      const textObj: DrawingObject = {
-        id: crypto.randomUUID(),
-        type: "text",
-        x: p.x,
-        y: p.y,
-        content: content.trim() || "Tekst",
-        fontSize: TEXT_DEFAULT_FONT_SIZE,
-        symbolId: "text-label",
-      };
-      commit(touchDrawing(local, { objects: [...local.objects, textObj] }));
-      setSelectedId(textObj.id);
+      setInputDialog({ kind: "text", x: p.x, y: p.y, value: "Tekst" });
       return;
     }
 
@@ -866,16 +844,23 @@ export function WmPrintDrawingEditor({
   const selected = selectedId ? local.objects.find((o) => o.id === selectedId) : null;
   const softWarn = local.objects.length > DRAWING_OBJECTS_SOFT_WARN;
 
+  /** D-M1-03 — REUSE `.touch-target` (≥44×44). */
+  const chromeIcon =
+    "touch-target shrink-0 p-0 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40";
+  const chromeAction =
+    "touch-target shrink-0 gap-1 px-2 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40";
+
   const toolBtn = (t: Tool, label: string, icon: React.ReactNode) => (
     <button
       type="button"
       title={label}
+      aria-label={label}
       onClick={() => {
         setTool(t);
         clearWallPreview();
         if (!isDoorTool(t)) setHoverWallId(null);
       }}
-      className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium ${
+      className={`touch-target shrink-0 gap-1 px-2 rounded-md text-xs font-medium ${
         tool === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"
       }`}
     >
@@ -883,6 +868,51 @@ export function WmPrintDrawingEditor({
       <span className="hidden sm:inline">{label}</span>
     </button>
   );
+
+  const confirmInputDialog = () => {
+    if (!inputDialog) return;
+    if (inputDialog.kind === "text") {
+      const content = inputDialog.value.trim() || "Tekst";
+      const textObj: DrawingObject = {
+        id: crypto.randomUUID(),
+        type: "text",
+        x: inputDialog.x,
+        y: inputDialog.y,
+        content,
+        fontSize: TEXT_DEFAULT_FONT_SIZE,
+        symbolId: "text-label",
+      };
+      commit(touchDrawing(local, { objects: [...local.objects, textObj] }));
+      setSelectedId(textObj.id);
+      setInputDialog(null);
+      return;
+    }
+    const label = inputDialog.value.trim();
+    if (!label) {
+      toast.error("Podaj długość (np. 420)");
+      return;
+    }
+    if (/^\d+([.,]\d+)?$/.test(label)) {
+      const n = Number(label.replace(",", "."));
+      if (!(n >= 1 && n <= 99999)) {
+        toast.error("Długość: zakres 1…99999");
+        return;
+      }
+    }
+    const obj: DrawingObject = {
+      id: crypto.randomUUID(),
+      type: "dimension",
+      x1: inputDialog.x1,
+      y1: inputDialog.y1,
+      x2: inputDialog.x2,
+      y2: inputDialog.y2,
+      label,
+      symbolId: "dimension-line",
+    };
+    commit(touchDrawing(local, { objects: [...local.objects, obj] }));
+    setSelectedId(obj.id);
+    setInputDialog(null);
+  };
 
   const lineHint =
     tool === "wall"
@@ -921,7 +951,16 @@ export function WmPrintDrawingEditor({
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card shrink-0">
+      {/* D-M1-04 — mobile FS: horizontal scroll; desktop: wrap */}
+      <div
+        className={`border border-border rounded-lg p-1 bg-card shrink-0 ${
+          mobileFullscreen
+            ? "flex flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain"
+            : "flex flex-wrap items-center gap-1"
+        }`}
+        role="toolbar"
+        aria-label="Narzędzia rysunku"
+      >
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
         {toolBtn("door_room", "Drzwi P", <DoorOpen size={14} />)}
@@ -933,77 +972,53 @@ export function WmPrintDrawingEditor({
         {toolBtn("gas_boiler", "Piec", <Flame size={14} />)}
         {toolBtn("distribution_board", "Rozdzielnia", <Box size={14} />)}
         {toolBtn("text", "Tekst", <Type size={14} />)}
-        <span className="w-px h-5 bg-border mx-1" />
-        <button
-          type="button"
-          title="Cofnij"
-          disabled={!canUndo}
-          onClick={handleUndo}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40"
-        >
+        <span className="w-px h-5 bg-border mx-1 shrink-0" />
+        <button type="button" title="Cofnij" aria-label="Cofnij" disabled={!canUndo} onClick={handleUndo} className={chromeIcon}>
           <Undo2 size={14} />
         </button>
-        <button
-          type="button"
-          title="Ponów"
-          disabled={!canRedo}
-          onClick={handleRedo}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40"
-        >
+        <button type="button" title="Ponów" aria-label="Ponów" disabled={!canRedo} onClick={handleRedo} className={chromeIcon}>
           <Redo2 size={14} />
         </button>
-        <span className="w-px h-5 bg-border mx-1" />
+        <span className="w-px h-5 bg-border mx-1 shrink-0" />
         <button
           type="button"
           title="Siatka"
+          aria-label="Siatka"
           onClick={toggleGrid}
-          className={`p-1.5 rounded-md ${local.grid.enabled ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
+          className={`${chromeIcon} ${local.grid.enabled ? "bg-primary/15 text-primary" : ""}`}
         >
           <Grid3x3 size={14} />
         </button>
         <button
           type="button"
           title="Snap"
+          aria-label="Snap"
           onClick={toggleSnap}
-          className={`p-1.5 rounded-md ${local.grid.snap ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
+          className={`${chromeIcon} ${local.grid.snap ? "bg-primary/15 text-primary" : ""}`}
         >
           <Magnet size={14} />
         </button>
-        <span className="w-px h-5 bg-border mx-1" />
-        <button
-          type="button"
-          title="Pomniejsz"
-          onClick={zoomOut}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
-        >
+        <span className="w-px h-5 bg-border mx-1 shrink-0" />
+        <button type="button" title="Pomniejsz" aria-label="Pomniejsz" onClick={zoomOut} className={chromeIcon}>
           <ZoomOut size={14} />
         </button>
-        <button
-          type="button"
-          title="Powiększ"
-          onClick={zoomIn}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
-        >
+        <button type="button" title="Powiększ" aria-label="Powiększ" onClick={zoomIn} className={chromeIcon}>
           <ZoomIn size={14} />
         </button>
-        <button
-          type="button"
-          title="Reset widoku"
-          onClick={resetView}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary"
-        >
+        <button type="button" title="Reset widoku" aria-label="Reset widoku" onClick={resetView} className={chromeIcon}>
           <LocateFixed size={14} />
         </button>
-        <span className="text-[10px] text-muted-foreground tabular-nums px-1">
+        <span className="text-[10px] text-muted-foreground tabular-nums px-1 shrink-0">
           {Math.round(clampDrawingZoom(viewScale) * 100)}%
         </span>
-        <span className="w-px h-5 bg-border mx-1" />
+        <span className="w-px h-5 bg-border mx-1 shrink-0" />
         <button
           type="button"
           title="Podgląd PDF"
+          aria-label="Podgląd PDF"
           disabled={pdfBusy}
           onClick={() => void runPdfAction("preview")}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+          className={chromeAction}
         >
           <Eye size={14} />
           <span className="hidden sm:inline">{pdfBusy ? "PDF…" : "Podgląd PDF"}</span>
@@ -1011,9 +1026,10 @@ export function WmPrintDrawingEditor({
         <button
           type="button"
           title="Pobierz PDF"
+          aria-label="Pobierz PDF"
           disabled={pdfBusy}
           onClick={() => void runPdfAction("download")}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+          className={chromeAction}
         >
           <FileDown size={14} />
           <span className="hidden sm:inline">Pobierz PDF</span>
@@ -1021,9 +1037,10 @@ export function WmPrintDrawingEditor({
         <button
           type="button"
           title="Drukuj"
+          aria-label="Drukuj"
           disabled={pdfBusy}
           onClick={() => void runPdfAction("print")}
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40"
+          className={chromeAction}
         >
           <Printer size={14} />
           <span className="hidden sm:inline">Drukuj</span>
@@ -1031,42 +1048,43 @@ export function WmPrintDrawingEditor({
       </div>
 
       {selectedId && (
-        <div className="flex flex-wrap items-center gap-1 border border-border rounded-lg p-1 bg-card shrink-0">
-          <span className="text-[11px] text-muted-foreground px-1">Obrót</span>
+        <div
+          className={`border border-border rounded-lg p-1 bg-card shrink-0 ${
+            mobileFullscreen
+              ? "flex flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain"
+              : "flex flex-wrap items-center gap-1"
+          }`}
+          role="toolbar"
+          aria-label="Zaznaczenie"
+        >
+          <span className="text-[11px] text-muted-foreground px-1 shrink-0">Obrót</span>
           {([90, 180, 270] as const).map((deg) => (
             <button
               key={deg}
               type="button"
               title={`Obróć ${deg}°`}
+              aria-label={`Obróć ${deg}°`}
               onClick={() => applyRotate(deg)}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
+              className={chromeAction}
             >
               <RotateCw size={12} />
               {deg}°
             </button>
           ))}
           {selected?.type === "door" && (
-            <button
-              type="button"
-              title="Odbij drzwi (flipH)"
-              onClick={applyFlip}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
-            >
+            <button type="button" title="Odbij drzwi (flipH)" aria-label="Odbij drzwi" onClick={applyFlip} className={chromeAction}>
               <FlipHorizontal2 size={12} /> Odbij
             </button>
           )}
-          <button
-            type="button"
-            title="Duplikuj zaznaczenie"
-            onClick={dupSelected}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-secondary"
-          >
+          <button type="button" title="Duplikuj zaznaczenie" aria-label="Duplikuj" onClick={dupSelected} className={chromeAction}>
             <Copy size={12} /> Duplikuj
           </button>
           <button
             type="button"
+            title="Usuń"
+            aria-label="Usuń"
             onClick={deleteSelected}
-            className="ml-auto text-xs text-destructive hover:underline px-2"
+            className={`${chromeAction} ml-auto text-destructive`}
           >
             Usuń
           </button>
@@ -1074,6 +1092,59 @@ export function WmPrintDrawingEditor({
       )}
 
       {lineHint && <p className="text-[11px] text-muted-foreground shrink-0">{lineHint}</p>}
+
+      {/* D-M1-06 — thin modal zamiast window.prompt */}
+      {inputDialog && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-3"
+          role="dialog"
+          aria-modal="true"
+          aria-label={inputDialog.kind === "text" ? "Tekst na rysunku" : "Długość wymiaru"}
+          onClick={() => setInputDialog(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg space-y-3 mb-[env(safe-area-inset-bottom)]"
+            onClick={(ev) => ev.stopPropagation()}
+          >
+            <p className="text-sm font-medium">
+              {inputDialog.kind === "text" ? "Tekst na rysunku" : "Długość"}
+            </p>
+            <input
+              autoFocus
+              className="w-full min-h-[44px] rounded-md border border-border bg-background px-3 text-sm"
+              value={inputDialog.value}
+              onChange={(e) =>
+                setInputDialog((prev) => (prev ? { ...prev, value: e.target.value } : prev))
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  confirmInputDialog();
+                }
+                if (e.key === "Escape") setInputDialog(null);
+              }}
+              placeholder={inputDialog.kind === "text" ? "Tekst…" : "np. 420"}
+              aria-label={inputDialog.kind === "text" ? "Treść tekstu" : "Długość"}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                className="touch-target px-3 rounded-md text-sm border border-border hover:bg-secondary"
+                onClick={() => setInputDialog(null)}
+              >
+                Anuluj
+              </button>
+              <button
+                type="button"
+                className="touch-target px-3 rounded-md text-sm bg-primary text-primary-foreground"
+                onClick={confirmInputDialog}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         ref={svgHostRef}

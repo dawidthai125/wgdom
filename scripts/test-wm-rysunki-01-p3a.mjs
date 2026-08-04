@@ -254,7 +254,11 @@ const doorEnt = parseDrawingObject({
 });
 assert("T38 door type stays door for W", doorEnt?.type === "door" && doorEnt.symbolId === "door-entrance");
 
-const svgHover = renderDrawingSvg(withGap, { showGrid: false, highlightWallId: "w1" });
+const svgHover = renderDrawingSvg(withGap, {
+  mode: "edit",
+  showGrid: false,
+  highlightWallId: "w1",
+});
 assert("T39 hover wall visual only", svgHover.includes('data-wall-hover="1"'));
 
 assert("T40 entrance in SVG", (() => {
