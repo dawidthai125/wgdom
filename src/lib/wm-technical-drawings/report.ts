@@ -107,7 +107,7 @@ export function duplicateDrawing(source: WmTechnicalDrawing): WmTechnicalDrawing
     deletedByUserId: undefined,
     deletedByRole: undefined,
     editLock: null,
-    workflowStatus: source.origin === "worker" || source.domain === "job_sketch" ? "worker_draft" : "accepted",
+    workflowStatus: source.origin === "worker" || source.domain === "job_sketch" ? "worker_draft" : "resolved",
     domain: source.domain === "job_sketch" ? "job_sketch" : source.domain ?? "reception",
     photoIds: [...(source.photoIds ?? [])],
   };

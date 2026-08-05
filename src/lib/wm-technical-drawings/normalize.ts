@@ -38,6 +38,7 @@ import {
   type SketchComment,
   type SketchEditLock,
   type SketchOrigin,
+  type SketchPlacement,
   type SketchRevisionMeta,
   type SketchWorkflowStatus,
   type WmTechnicalDrawing,
@@ -420,7 +421,11 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
   } else if (origin === "worker" || domain === "job_sketch") {
     workflowStatus = "worker_draft";
   } else {
-    workflowStatus = status === "final" ? "accepted" : "accepted";
+    workflowStatus = "resolved";
+  }
+  // WM-DOKUMENTACJA-SZKICE-02 — legacy Accept / final_source → resolved
+  if (workflowStatus === "accepted" || workflowStatus === "final_source") {
+    workflowStatus = "resolved";
   }
 
   const revisionNumberRaw = asFiniteNumber(r.revisionNumber, 1);
@@ -428,6 +433,32 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
 
   const deletedAtRaw = asString(r.deletedAt).trim();
   const deletedAt = deletedAtRaw ? deletedAtRaw : r.deletedAt === null ? null : undefined;
+  const softDeleted = Boolean(deletedAt);
+
+  let placement: SketchPlacement | undefined;
+  const rawPlacement = r.placement;
+  if (rawPlacement && typeof rawPlacement === "object") {
+    const p = rawPlacement as Record<string, unknown>;
+    placement = {
+      documentation: p.documentation === true,
+      reception: p.reception === true,
+    };
+  } else if (domain === "job_sketch" && workflowStatus === "resolved" && !softDeleted) {
+    // Legacy resolved/accepted bez placement → docs-only (nie wycieka do A2)
+    placement = { documentation: true, reception: false };
+  }
+  // Napraw illegal false/false bez soft-delete
+  if (placement && !placement.documentation && !placement.reception && !softDeleted) {
+    placement = { documentation: true, reception: false };
+  }
+
+  const receptionDrawingIdRaw = asString(r.receptionDrawingId).trim();
+  const receptionDrawingId = receptionDrawingIdRaw
+    ? receptionDrawingIdRaw
+    : r.receptionDrawingId === null
+      ? null
+      : undefined;
+  const sourceSketchId = asString(r.sourceSketchId).trim() || undefined;
 
   return {
     id,
@@ -463,6 +494,9 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
     deletedByRole: asString(r.deletedByRole).trim() || undefined,
     editLock: parseEditLock(r.editLock),
     comments: parseComments(r.comments),
+    placement,
+    receptionDrawingId,
+    sourceSketchId,
   };
 }
 

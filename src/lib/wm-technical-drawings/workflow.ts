@@ -1,6 +1,8 @@
 /** WM-WORKER-SKETCH-01 P0 — create / submit / soft-delete / L0 expectedRevision. */
-/** WM-DOKUMENTACJA-SZKICE-01 P0 — needs_changes / accept / resubmit (bez Promote). */
+/** WM-DOKUMENTACJA-SZKICE-01 P0 — needs_changes / resubmit. */
+/** WM-DOKUMENTACJA-SZKICE-02 — acceptJobSketch deprecated → applyJobSketchPlacement. */
 
+import { applyJobSketchPlacement } from "@/lib/wm-technical-drawings/placement";
 import { isDrawingSoftDeleted, parseWmTechnicalDrawing } from "@/lib/wm-technical-drawings/normalize";
 import { touchDrawing, upsertDrawing } from "@/lib/wm-technical-drawings/report";
 import { buildDrawingFromTemplate } from "@/lib/wm-technical-drawings/templates";
@@ -291,7 +293,7 @@ export function markJobSketchNeedsChanges(
   };
 }
 
-/** submitted | in_review → accepted (Admin ONLY). */
+/** submitted | in_review → resolved + docs-only (DEPRECATED — use applyJobSketchPlacement). */
 export function acceptJobSketch(
   drawing: WmTechnicalDrawing,
   input: {
@@ -301,46 +303,18 @@ export function acceptJobSketch(
     actorRole: SketchActorRole;
   },
 ): SketchWorkflowResult {
-  if (isDrawingSoftDeleted(drawing)) {
-    return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
-  }
-  const domainErr = assertJobSketch(drawing);
-  if (domainErr) return domainErr;
-  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
-  if (stale) return stale;
-  if (input.actorRole !== "admin" && input.actorRole !== "super_admin") {
-    return { ok: false, reason: "forbidden", message: "Accept tylko dla Administratora." };
-  }
-  if (drawing.workflowStatus !== "submitted" && drawing.workflowStatus !== "in_review") {
+  const result = applyJobSketchPlacement([drawing], drawing, {
+    ...input,
+    placement: { documentation: true, reception: false },
+  });
+  if (!result.ok) {
     return {
       ok: false,
-      reason: "invalid_state",
-      message: "Zaakceptować można tylko szkic przesłany do weryfikacji.",
+      reason: result.reason === "invalid_placement" ? "invalid_state" : result.reason,
+      message: result.message,
     };
   }
-
-  const nextRev = drawing.revisionNumber + 1;
-  const now = new Date().toISOString();
-  const meta: SketchRevisionMeta = {
-    revisionNumber: nextRev,
-    at: now,
-    byUserId: input.actorUserId,
-    byRole: input.actorRole,
-    byName: input.actorName,
-    action: "accept",
-  };
-  return {
-    ok: true,
-    drawing: touchDrawing(drawing, {
-      workflowStatus: "accepted",
-      status: "draft",
-      revisionNumber: nextRev,
-      revisionMeta: appendMeta(drawing, meta),
-      lastEditedByUserId: input.actorUserId,
-      lastEditedByRole: input.actorRole,
-      editLock: null,
-    }),
-  };
+  return { ok: true, drawing: result.sketch };
 }
 
 /** A3 — soft-delete; Worker tylko własny worker_draft nigdy nie submitted. */

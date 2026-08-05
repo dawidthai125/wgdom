@@ -49,7 +49,7 @@ const legacy = parseWmTechnicalDrawing({
   grid: { enabled: true, step: 10, snap: true },
 });
 ok("legacy origin wm_druk", legacy?.origin === "wm_druk");
-ok("legacy workflow accepted", legacy?.workflowStatus === "accepted");
+ok("legacy workflow accepted→resolved", legacy?.workflowStatus === "resolved");
 ok("legacy revision 1", legacy?.revisionNumber === 1);
 ok("legacy photoIds []", Array.isArray(legacy?.photoIds) && legacy.photoIds.length === 0);
 ok("legacy visible in Rysunki", legacy && isDrawingVisibleInRysunkiTab(legacy));

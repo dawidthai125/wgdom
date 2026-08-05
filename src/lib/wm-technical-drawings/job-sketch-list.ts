@@ -1,18 +1,21 @@
 /** WM-DOKUMENTACJA-SZKICE-01 P0 — filtry ACL · sort · pending badge (domena A). */
+/** WM-DOKUMENTACJA-SZKICE-02 — placement.documentation filter dla resolved. */
 
+import { isJobSketchVisibleInDokumentacja } from "@/lib/wm-technical-drawings/placement";
 import { isDrawingSoftDeleted, isJobSketch } from "@/lib/wm-technical-drawings/normalize";
 import type { SketchWorkflowStatus, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
 export type JobSketchViewerRole = "worker" | "inspector" | "admin" | "super_admin" | "moderator";
 
-/** DF sort: submitted → needs_changes → accepted → worker_draft → final_source */
+/** DF sort: submitted → needs_changes → resolved → worker_draft */
 const WORKFLOW_SORT_RANK: Record<SketchWorkflowStatus, number> = {
   submitted: 0,
   in_review: 1,
   needs_changes: 2,
+  resolved: 3,
   accepted: 3,
+  final_source: 3,
   worker_draft: 4,
-  final_source: 5,
 };
 
 export function jobSketchWorkflowSortRank(status: SketchWorkflowStatus): number {
@@ -40,6 +43,7 @@ export function filterJobSketchesForDokumentacja(
 
   return drawings
     .filter((d) => d.jobId === jobId && isJobSketch(d) && !isDrawingSoftDeleted(d))
+    .filter((d) => isJobSketchVisibleInDokumentacja(d))
     .filter((d) => {
       if (!isWorker) return true;
       if (!opts.viewerUserId) return false;
@@ -49,10 +53,9 @@ export function filterJobSketchesForDokumentacja(
 }
 
 /**
- * Attention / pending (DF-DASH-05 · P2a).
+ * Attention / pending (DF-DASH-05 · P2a · -02).
  * IN: submitted · needs_changes · in_review
- * OUT: accepted · worker_draft · final_source
- * (resubmit → status submitted — liczy się jako submitted)
+ * OUT: resolved · worker_draft · (legacy accepted/final_source → resolved)
  */
 export function isJobSketchAttentionStatus(status: SketchWorkflowStatus): boolean {
   return status === "submitted" || status === "needs_changes" || status === "in_review";
@@ -72,7 +75,12 @@ export function countPendingJobSketches(
   ).length;
 }
 
+/** @deprecated Accept usunięte — alias publikacji Admin. */
 export function canAcceptJobSketch(role: JobSketchViewerRole): boolean {
+  return canPublishJobSketch(role);
+}
+
+export function canPublishJobSketch(role: JobSketchViewerRole): boolean {
   return role === "admin" || role === "super_admin";
 }
 

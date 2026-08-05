@@ -9,14 +9,23 @@ export const DRAWING_SYMBOL_LIBRARY_VERSION = 3 as const;
 
 export type DrawingStatus = "draft" | "final";
 
-/** WM-WORKER-SKETCH-01 / WM-DOKUMENTACJA-SZKICE-01 — oś procesu (≠ DrawingStatus paczki). */
+/** WM-WORKER-SKETCH-01 / WM-DOKUMENTACJA-SZKICE-01 / -02 — oś procesu (≠ DrawingStatus paczki). */
 export type SketchWorkflowStatus =
   | "worker_draft"
   | "submitted"
   | "in_review"
   | "needs_changes"
+  | "resolved"
+  /** @deprecated legacy — normalize → resolved */
   | "accepted"
+  /** @deprecated legacy — normalize → resolved */
   | "final_source";
+
+/** WM-DOKUMENTACJA-SZKICE-02 — miejsce życia Job Sketch (SSOT lokalizacji). */
+export interface SketchPlacement {
+  documentation: boolean;
+  reception: boolean;
+}
 
 /** DOMENA A vs B — jeden store, dwie semantyki. */
 export type DrawingDomain = "job_sketch" | "reception";
@@ -31,6 +40,7 @@ export type SketchRevisionAction =
   | "needs_changes"
   | "resubmit"
   | "accept"
+  | "resolve"
   | "promote"
   | "demote"
   | "review_open"
@@ -126,6 +136,7 @@ export const SKETCH_WORKFLOW_STATUSES: SketchWorkflowStatus[] = [
   "submitted",
   "in_review",
   "needs_changes",
+  "resolved",
   "accepted",
   "final_source",
 ];
@@ -142,6 +153,7 @@ export const SKETCH_REVISION_ACTIONS: SketchRevisionAction[] = [
   "needs_changes",
   "resubmit",
   "accept",
+  "resolve",
   "promote",
   "demote",
   "review_open",
@@ -309,6 +321,12 @@ export interface WmTechnicalDrawing {
   deletedByRole?: string;
   editLock?: SketchEditLock | null;
   comments?: SketchComment[];
+  /** WM-DOKUMENTACJA-SZKICE-02 — lokalizacja (Job Sketch). */
+  placement?: SketchPlacement;
+  /** Job Sketch → Reception Drawing (1:1). */
+  receptionDrawingId?: string | null;
+  /** Reception Drawing → Job Sketch (1:1). */
+  sourceSketchId?: string;
 }
 
 export interface DrawingDomainReport {

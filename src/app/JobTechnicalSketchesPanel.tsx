@@ -1,8 +1,8 @@
-/** WM-DOKUMENTACJA-SZKICE-01 P0 — Dokumentacja Robót → Szkice Techniczne (Admin / Inspector). */
+/** WM-DOKUMENTACJA-SZKICE-01 P0 + -02 Publication Workflow — Dokumentacja → Szkice Techniczne. */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Check, Pencil, Plus, RotateCcw } from "lucide-react";
+import { ArrowLeft, FileText, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { WmPrintDrawingEditor } from "@/app/WmPrintDrawingEditor";
 import { WgButton, WgCard } from "@/app/ui";
@@ -10,12 +10,13 @@ import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { recordWmDrukAudit } from "@/lib/wm-druk-audit";
 import {
-  canAcceptJobSketch,
   canMarkNeedsChanges,
+  canPublishJobSketch,
   countPendingJobSketches,
   filterJobSketchesForDokumentacja,
   type JobSketchViewerRole,
 } from "@/lib/wm-technical-drawings/job-sketch-list";
+import { applyJobSketchPlacement } from "@/lib/wm-technical-drawings/placement";
 import { getDrawingById } from "@/lib/wm-technical-drawings/merge";
 import { SKETCH_WORKFLOW_STATUS_LABELS } from "@/lib/wm-technical-drawings/labels";
 import {
@@ -24,12 +25,12 @@ import {
   readWmTechnicalDrawingsFromLocalStorage,
 } from "@/lib/wm-technical-drawings/sync";
 import {
-  acceptJobSketch,
   createJobSketch,
   markJobSketchNeedsChanges,
+  softDeleteDrawing,
   upsertSketchInList,
 } from "@/lib/wm-technical-drawings/workflow";
-import type { SketchActorRole, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import type { SketchActorRole, SketchPlacement, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 import { loadAppSettingsLocal } from "@/lib/app-settings";
 import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
 
@@ -223,15 +224,49 @@ export function JobTechnicalSketchesPanel({
     }
   };
 
-  const handleAccept = async () => {
-    if (!selected || !canAcceptJobSketch(viewerRole)) return;
+  const handlePublish = async (placement: SketchPlacement, label: string) => {
+    if (!selected || !canPublishJobSketch(viewerRole)) return;
     setBusy(true);
     try {
-      const result = acceptJobSketch(selected, {
+      const result = applyJobSketchPlacement(drawings, selected, {
         expectedRevisionNumber: selected.revisionNumber,
         actorUserId: viewerUserId,
         actorName: viewerName,
         actorRole,
+        placement,
+      });
+      if (!result.ok) {
+        toast.error(result.message);
+        if (result.reason === "stale_revision") await refresh();
+        return;
+      }
+      await persist(result.drawings);
+      setSelectedId(null);
+      void recordWmDrukAudit({
+        module: "drawings",
+        action: "sketch_published",
+        actor: viewerName,
+        actorUserId: viewerUserId,
+        summary: `${label}: ${result.sketch.title}`,
+        drawingId: result.sketch.id,
+        jobId,
+      });
+      toast.success(label);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selected || !canPublishJobSketch(viewerRole)) return;
+    if (!window.confirm("Usunąć szkic? Zniknie z Dokumentacji i Pulpitu.")) return;
+    setBusy(true);
+    try {
+      const result = softDeleteDrawing(selected, {
+        expectedRevisionNumber: selected.revisionNumber,
+        userId: viewerUserId,
+        role: actorRole,
+        name: viewerName,
       });
       if (!result.ok) {
         toast.error(result.message);
@@ -243,14 +278,14 @@ export function JobTechnicalSketchesPanel({
       setSelectedId(null);
       void recordWmDrukAudit({
         module: "drawings",
-        action: "sketch_accepted",
+        action: "sketch_soft_deleted",
         actor: viewerName,
         actorUserId: viewerUserId,
-        summary: `Zaakceptowano: ${result.drawing.title}`,
-        drawingId: result.drawing.id,
+        summary: `Usunięto szkic: ${selected.title}`,
+        drawingId: selected.id,
         jobId,
       });
-      toast.success("Zaakceptowano szkic");
+      toast.success("Usunięto szkic");
     } finally {
       setBusy(false);
     }
@@ -258,14 +293,26 @@ export function JobTechnicalSketchesPanel({
 
   if (!enabled) return null;
 
+  const decisionOpen =
+    selected &&
+    (selected.workflowStatus === "submitted" ||
+      selected.workflowStatus === "in_review" ||
+      selected.workflowStatus === "resolved");
   const showNeeds =
     selected &&
     canMarkNeedsChanges(viewerRole) &&
     (selected.workflowStatus === "submitted" || selected.workflowStatus === "in_review");
-  const showAccept =
+  const showPublish =
     selected &&
-    canAcceptJobSketch(viewerRole) &&
-    (selected.workflowStatus === "submitted" || selected.workflowStatus === "in_review");
+    canPublishJobSketch(viewerRole) &&
+    decisionOpen;
+  const showDeleteAdmin =
+    selected &&
+    canPublishJobSketch(viewerRole) &&
+    (selected.workflowStatus === "submitted" ||
+      selected.workflowStatus === "in_review" ||
+      selected.workflowStatus === "resolved" ||
+      selected.workflowStatus === "needs_changes");
 
   const panel = (
     <WgCard elevation="soft" padding="sm" radius="lg" className="border-violet-500/25 space-y-3 mt-4">
@@ -361,16 +408,79 @@ export function JobTechnicalSketchesPanel({
             disabled={busy}
             onClick={() => void handleNeedsChanges()}
             className="touch-target shrink-0"
+            data-testid="job-sketch-needs-changes"
           >
             <RotateCcw size={14} /> Do poprawy
           </WgButton>
         )}
-        {showAccept && (
-          <WgButton type="button" size="sm" disabled={busy} onClick={() => void handleAccept()} className="touch-target shrink-0">
-            <Check size={14} /> Accept
+        {showDeleteAdmin && (
+          <WgButton
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => void handleDelete()}
+            className="touch-target shrink-0 text-rose-600"
+            data-testid="job-sketch-delete"
+          >
+            <Trash2 size={14} /> Usuń
           </WgButton>
         )}
       </div>
+      {showPublish && (
+        <div
+          className="flex flex-wrap gap-2 px-3 py-2 border-b border-border shrink-0 bg-muted/30"
+          data-testid="job-sketch-publish-actions"
+        >
+          <WgButton
+            type="button"
+            size="sm"
+            disabled={busy}
+            variant="secondary"
+            className="touch-target"
+            data-testid="job-sketch-publish-docs"
+            onClick={() =>
+              void handlePublish(
+                { documentation: true, reception: false },
+                "Zapisano w Dokumentacji",
+              )
+            }
+          >
+            <FileText size={14} /> Dokumentacja
+          </WgButton>
+          <WgButton
+            type="button"
+            size="sm"
+            disabled={busy}
+            variant="secondary"
+            className="touch-target"
+            data-testid="job-sketch-publish-reception"
+            onClick={() =>
+              void handlePublish(
+                { documentation: false, reception: true },
+                "Dodano do Odbiorów",
+              )
+            }
+          >
+            Odbiory
+          </WgButton>
+          <WgButton
+            type="button"
+            size="sm"
+            disabled={busy}
+            className="touch-target"
+            data-testid="job-sketch-publish-both"
+            onClick={() =>
+              void handlePublish(
+                { documentation: true, reception: true },
+                "Dokumentacja + Odbiory",
+              )
+            }
+          >
+            Dokumentacja + Odbiory
+          </WgButton>
+        </div>
+      )}
       <div className="flex-1 min-h-0 overflow-hidden p-2">
         <WmPrintDrawingEditor
           key={selected.id}

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.16",
+    label: "Szkice — Publication Workflow (placement)",
+    items: [
+      {
+        type: "new",
+        text: "Dokumentacja→Szkice: zamiast Accept decyzje Admin — Do poprawy · Usuń · Dokumentacja · Odbiory · Dokumentacja+Odbiory (placement). Promote-copy 1:1 do Odbiorów bez zmiany A2. Pulpit zamyka sprawę po decyzji. Inspektor bez publikacji.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.15",
     label: "Pulpit — Szkice Techniczne (P2a)",
     items: [

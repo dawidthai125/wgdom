@@ -31,6 +31,7 @@ export type WmDrukAuditAction =
   | "sketch_resubmitted"
   | "sketch_needs_changes"
   | "sketch_accepted"
+  | "sketch_published"
   | "sketch_soft_deleted";
 
 export interface WmDrukAuditEntry {
@@ -71,6 +72,7 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
   sketch_resubmitted: "Ponownie przesłano szkic",
   sketch_needs_changes: "Szkic odesłany do poprawy",
   sketch_accepted: "Zaakceptowano szkic techniczny",
+  sketch_published: "Opublikowano szkic (placement)",
   sketch_soft_deleted: "Usunięto szkic (soft)",
 };
 

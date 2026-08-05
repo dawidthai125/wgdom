@@ -134,7 +134,8 @@ const drawings = [
 ok("attention submitted", isJobSketchAttentionStatus("submitted"));
 ok("attention needs_changes", isJobSketchAttentionStatus("needs_changes"));
 ok("draft OUT", !isJobSketchAttentionStatus("worker_draft"));
-ok("accepted OUT", !isJobSketchAttentionStatus("accepted"));
+ok("resolved OUT", !isJobSketchAttentionStatus("resolved"));
+ok("accepted OUT (legacy)", !isJobSketchAttentionStatus("accepted"));
 
 const pendingA = countPendingJobSketches(drawings, "job-a", { viewerRole: "admin" });
 ok("pending job-a = submitted+needs_changes (2)", pendingA === 2);
@@ -162,8 +163,10 @@ ok("job-b NORMAL", adminGroups[1].priority === "NORMAL");
 ok("job-a attentionCount 2", adminGroups[0].attentionCount === 2);
 ok("no draft in rows", adminGroups.every((g) => g.sketches.every((s) => s.kind !== "worker_draft")));
 ok(
-  "no accepted in rows",
-  adminGroups.every((g) => g.sketches.every((s) => s.workflowStatus !== "accepted")),
+  "no resolved/accepted in rows",
+  adminGroups.every((g) =>
+    g.sketches.every((s) => s.workflowStatus !== "resolved" && s.workflowStatus !== "accepted"),
+  ),
 );
 ok("actorName present", adminGroups[0].sketches.every((s) => s.actorName && s.actorName !== ""));
 ok("actorRole present", adminGroups[0].sketches.every((s) => s.actorRole && s.actorRole !== ""));
@@ -218,6 +221,6 @@ ok("resubmit still pending count", countPendingJobSketches([resub.drawing], "job
 // A2 regression
 ok("A2 hides submitted", !isDrawingVisibleInRysunkiTab(w1s.drawing));
 ok("A2 hides needs_changes", !isDrawingVisibleInRysunkiTab(w2nc.drawing));
-ok("A2 hides accepted sketch", !isDrawingVisibleInRysunkiTab(accepted.drawing));
+ok("A2 hides resolved sketch", !isDrawingVisibleInRysunkiTab(accepted.drawing));
 
 console.log(`\nOK ${passed} assertions`);

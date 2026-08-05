@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.16 — Szkice — Publication Workflow placement (2026-08-05)
+
+- **new:** Admin decyzje zamiast Accept — Usuń · Dokumentacja · Odbiory · Both (`placement`); promote-copy 1:1; Dashboard OUT po decyzji; A2 NO TOUCH
+
 ## 2.66.15 — Pulpit — Szkice Techniczne P2a (2026-08-05)
 
 - **new:** Pulpit Admin/Inspektor — sekcja Szkice Techniczne (job-centric): pending submitted+needs_changes · deep-link Dokumentacja · flaga OFF ukrywa; A2 NO TOUCH

@@ -89,7 +89,7 @@ ok("resubmit ok", resub.ok === true);
 if (!resub.ok) throw new Error("resub");
 ok("resubmit → submitted", resub.drawing.workflowStatus === "submitted");
 
-// Admin accept
+// Admin accept (deprecated → resolved + docs-only)
 const accepted = acceptJobSketch(resub.drawing, {
   expectedRevisionNumber: resub.drawing.revisionNumber,
   actorUserId: "a1",
@@ -98,9 +98,10 @@ const accepted = acceptJobSketch(resub.drawing, {
 });
 ok("admin accept", accepted.ok === true);
 if (!accepted.ok) throw new Error("accept");
-ok("accepted wf", accepted.drawing.workflowStatus === "accepted");
+ok("accepted wf → resolved", accepted.drawing.workflowStatus === "resolved");
 ok("accept keeps draft status", accepted.drawing.status === "draft");
-ok("A2 still hides accepted sketch", !isDrawingVisibleInRysunkiTab(accepted.drawing));
+ok("A2 still hides resolved sketch", !isDrawingVisibleInRysunkiTab(accepted.drawing));
+ok("placement docs-only", accepted.drawing.placement?.documentation === true && accepted.drawing.placement?.reception === false);
 
 // ACL list
 const other = createWorkerSketch({
@@ -143,7 +144,7 @@ const draft2 = createWorkerSketch({
 if (!draft2.ok) throw new Error("d2");
 const sorted = [draft2.drawing, accepted.drawing, resub.drawing].sort(compareJobSketchesForList);
 ok("sort submitted first", sorted[0].workflowStatus === "submitted");
-ok("sort accepted before draft", sorted[1].workflowStatus === "accepted");
+ok("sort resolved before draft", sorted[1].workflowStatus === "resolved");
 ok("sort draft last", sorted[2].workflowStatus === "worker_draft");
 
 // Pending badge
@@ -158,7 +159,7 @@ const reception = parseWmTechnicalDrawing({
   domain: "reception",
   origin: "admin",
   status: "draft",
-  workflowStatus: "accepted",
+  workflowStatus: "resolved",
 });
 ok("reception draft in A2", reception && isDrawingVisibleInRysunkiTab(reception));
 ok(

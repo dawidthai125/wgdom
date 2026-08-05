@@ -12,6 +12,7 @@ export const SKETCH_WORKFLOW_STATUS_LABELS: Record<SketchWorkflowStatus, string>
   submitted: "Przesłany",
   in_review: "W weryfikacji",
   needs_changes: "Do poprawy",
-  accepted: "Zaakceptowany",
-  final_source: "Źródło rysunku odbiorowego",
+  resolved: "Rozstrzygnięty",
+  accepted: "Rozstrzygnięty",
+  final_source: "Rozstrzygnięty",
 };
