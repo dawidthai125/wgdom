@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.13",
+    label: "Szkice — rysowanie Mobile First (P1)",
+    items: [
+      {
+        type: "improve",
+        text: "Rysunki / Szkice: ściana i strzałka — przeciągnij i puść (jeden gest na telefonie i desktopie); Ghost podczas gestu; Snap = siatka · kąt 45° · punkty końcowe.",
+      },
+      {
+        type: "improve",
+        text: "Szkice pracownika: Mobile Chrome (duże przyciski, bez PDF/zoom) + elementy drzwi/okno/wentylacja/rozdzielnia/piec (oprócz ściany i tekstu).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.12",
     label: "Szkice pracownika — fundament P0",
     items: [

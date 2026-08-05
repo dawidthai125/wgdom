@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.13 — Szkice — rysowanie Mobile First P1 (2026-08-05)
+
+- **improve:** ściana/strzałka — drag-release (Ghost mid-gesture); Snap endpoint→angle→grid
+- **improve:** Worker Szkice — Mobile Chrome + drzwi/okno/wentylacja/rozdzielnia/piec
+
 ## 2.66.12 — Szkice pracownika — fundament P0 (2026-08-05)
 
 - **new:** Worker Dokumentacja → Szkice (flaga `wmWorkerSketchEnabled` default OFF); create/submit/soft-delete; REUSE `kw-wm-technical-drawings`

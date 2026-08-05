@@ -24,7 +24,17 @@ import {
 } from "@/lib/wm-technical-drawings/workflow";
 import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
-const WORKER_P0_TOOLS = ["select", "wall", "text"] as const;
+const WORKER_P1_TOOLS = [
+  "select",
+  "wall",
+  "door_room",
+  "door_entrance",
+  "window",
+  "ventilation",
+  "gas_boiler",
+  "distribution_board",
+  "text",
+] as const;
 
 export function WorkerJobSketchesSection({
   jobId,
@@ -206,7 +216,7 @@ export function WorkerJobSketchesSection({
             Szkice
           </p>
           <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-            Edytowalny szkic techniczny (ściana / tekst). To nie jest foto Obrys.
+            Edytowalny szkic techniczny (ściana, drzwi, okno, symbole). To nie jest foto Obrys.
           </p>
         </div>
         <WgButton
@@ -302,7 +312,7 @@ export function WorkerJobSketchesSection({
           onAutosave={(d) => void handleAutosave(d)}
           jobLabel={jobAddress || "Robota"}
           mobileFullscreen
-          allowedTools={[...WORKER_P0_TOOLS]}
+          allowedTools={[...WORKER_P1_TOOLS]}
         />
       </div>
       {!canEditSelected && (

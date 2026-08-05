@@ -17,3 +17,4 @@ export * from "@/lib/wm-technical-drawings/export-pdf";
 export * from "@/lib/wm-technical-drawings/svg-raster";
 export * from "@/lib/wm-technical-drawings/wall-gap";
 export * from "@/lib/wm-technical-drawings/wall-preview";
+export * from "@/lib/wm-technical-drawings/snap-draw";

@@ -30,7 +30,6 @@ import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { DrawingUndoStack } from "@/lib/wm-technical-drawings/undo";
 import { renderDrawingSvg } from "@/lib/wm-technical-drawings/render-svg";
-import { snapCoord } from "@/lib/wm-technical-drawings/normalize";
 import {
   duplicateSelectedObjects,
   rotateObjectBy,
@@ -47,6 +46,11 @@ import {
   isWallPreviewTooShort,
   wallPreviewMetrics,
 } from "@/lib/wm-technical-drawings/wall-preview";
+import {
+  collectWallEndpoints,
+  snapDrawEnd,
+  snapDrawStart,
+} from "@/lib/wm-technical-drawings/snap-draw";
 import {
   clampDrawingPan,
   clampDrawingZoom,
@@ -124,7 +128,7 @@ export function WmPrintDrawingEditor({
   onRecordWmDrukAudit,
   /** WM-RYSUNKI-MOBILE-01 P0 — layout FS: overflow-hidden + app pan (nie page scroll). */
   mobileFullscreen = false,
-  /** WM-WORKER-SKETCH-01 P0 — ogranicz toolbar (np. select|wall|text). */
+  /** WM-WORKER-SKETCH-01 — allowlist narzędzi (P1: ściana/drzwi/okno/…). */
   allowedTools,
 }: {
   drawing: WmTechnicalDrawing;
@@ -133,6 +137,7 @@ export function WmPrintDrawingEditor({
   /** D-P2-16 — resolved poza edytorem (nie z global state w lib). */
   jobLabel: string;
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
+  /** Mobile Chrome (layout only) — NIE zmienia gestu Drawing Engine. */
   mobileFullscreen?: boolean;
   allowedTools?: Tool[];
 }) {
@@ -186,6 +191,11 @@ export function WmPrintDrawingEditor({
     orig: DrawingObject;
     snapshot: WmTechnicalDrawing;
   } | null>(null);
+  /** P1 — wall/arrow: press → drag → release (jeden SM · ZERO two-click). */
+  const lineDrawRef = useRef<{
+    type: "wall" | "arrow";
+    start: { x: number; y: number };
+  } | null>(null);
   /** D-P2-18 — sesja Preview→Download→Print; wygasa po zmianie rysunku. */
   const pdfSessionRef = useRef<{
     fingerprint: string;
@@ -216,6 +226,7 @@ export function WmPrintDrawingEditor({
     setLineStart(null);
     setPreviewEnd(null);
     pendingPreviewEndRef.current = null;
+    lineDrawRef.current = null;
     if (previewRafRef.current != null) {
       cancelAnimationFrame(previewRafRef.current);
       previewRafRef.current = null;
@@ -419,8 +430,8 @@ export function WmPrintDrawingEditor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      /* MR-P3B-03 — Escape tylko wall + aktywny lineStart. */
-      if (e.key === "Escape" && tool === "wall" && lineStart) {
+      /* Esc anuluje Ghost wall/arrow mid-draw (P1 drag-release). */
+      if (e.key === "Escape" && lineStart && (tool === "wall" || tool === "arrow")) {
         e.preventDefault();
         clearWallPreview();
         return;
@@ -438,10 +449,14 @@ export function WmPrintDrawingEditor({
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const snap = (x: number, y: number) => ({
-    x: snapCoord(x, local.grid.step, local.grid.snap),
-    y: snapCoord(y, local.grid.step, local.grid.snap),
+  const snapOpts = () => ({
+    snapEnabled: local.grid.snap,
+    step: local.grid.step,
+    endpoints: collectWallEndpoints(local.objects),
   });
+
+  /** Place (stamps/select): Endpoint→Grid gdy Snap ON (bez kąta). */
+  const snapPlace = (x: number, y: number) => snapDrawStart({ x, y }, snapOpts());
 
   const findSvg = (): SVGSVGElement | null => svgHostRef.current?.querySelector("svg") ?? null;
 
@@ -512,11 +527,12 @@ export function WmPrintDrawingEditor({
     start: { x: number; y: number },
     end: { x: number; y: number },
   ) => {
-    /* D-P3B-12 — reject zero-length wall. */
+    /* D-P3B-12 — reject zero-length wall; P1: clear Ghost po reject. */
     if (type === "wall") {
       const { lengthPx } = wallPreviewMetrics(start.x, start.y, end.x, end.y);
       if (isWallPreviewTooShort(lengthPx)) {
-        toast.error("Ściana zbyt krótka — kliknij drugi punkt dalej.");
+        toast.error("Ściana zbyt krótka — przeciągnij dalej i puść.");
+        clearWallPreview();
         return;
       }
     }
@@ -564,7 +580,6 @@ export function WmPrintDrawingEditor({
     const svg = findSvg();
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
-    const p = snap(raw.x, raw.y);
 
     const beginCapture = () => {
       try {
@@ -575,15 +590,17 @@ export function WmPrintDrawingEditor({
       }
     };
 
+    /* P1 — wall/arrow: press → drag → release (ZERO two-click). */
     if (tool === "wall" || tool === "arrow") {
-      if (!lineStart) {
-        setLineStart(p);
-        setPreviewEnd(null);
-        return;
-      }
-      finishLine(tool, lineStart, p);
+      const start = snapDrawStart(raw, snapOpts());
+      setLineStart(start);
+      setPreviewEnd(null);
+      lineDrawRef.current = { type: tool, start };
+      beginCapture();
       return;
     }
+
+    const p = snapPlace(raw.x, raw.y);
 
     /* D-P3A-19 / MR-P3A-07 — primary: klik ściany → popup Długość; secondary: 2-click. */
     if (tool === "dimension") {
@@ -695,6 +712,21 @@ export function WmPrintDrawingEditor({
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
 
+    /* P1 — Ghost preview podczas drag wall/arrow. */
+    const lineDraw = lineDrawRef.current;
+    if (lineDraw && !dragRef.current) {
+      const p = snapDrawEnd(raw, lineDraw.start, snapOpts());
+      pendingPreviewEndRef.current = p;
+      if (previewRafRef.current == null) {
+        previewRafRef.current = requestAnimationFrame(() => {
+          previewRafRef.current = null;
+          const next = pendingPreviewEndRef.current;
+          if (next) setPreviewEnd(next);
+        });
+      }
+      return;
+    }
+
     /* D-P3A-22 — hover ściany przy wstawianiu drzwi (tylko wizualnie). */
     if (isDoorTool(tool) && !dragRef.current) {
       const walls = localRef.current.objects.filter(
@@ -705,22 +737,9 @@ export function WmPrintDrawingEditor({
       setHoverWallId((prev) => (prev === nextId ? prev : nextId));
     }
 
-    /* MR-P3B-06 — Ghost preview rAF throttle (tylko wall + lineStart). */
-    if (tool === "wall" && lineStart && !dragRef.current) {
-      const p = snap(raw.x, raw.y);
-      pendingPreviewEndRef.current = p;
-      if (previewRafRef.current == null) {
-        previewRafRef.current = requestAnimationFrame(() => {
-          previewRafRef.current = null;
-          const next = pendingPreviewEndRef.current;
-          if (next) setPreviewEnd(next);
-        });
-      }
-    }
-
     const drag = dragRef.current;
     if (!drag) return;
-    const p = snap(raw.x, raw.y);
+    const p = snapPlace(raw.x, raw.y);
     const dx = p.x - drag.ox;
     const dy = p.y - drag.oy;
     const orig = drag.orig;
@@ -742,6 +761,23 @@ export function WmPrintDrawingEditor({
     const objects = base.objects.map((o) => (o.id === drag.id ? nextObj : o));
     dragDirtyRef.current = true;
     applyWithoutUndo(touchDrawing(base, { objects }));
+  };
+
+  const completeLineDraw = (e: React.PointerEvent<HTMLDivElement>) => {
+    const g = lineDrawRef.current;
+    if (!g) return;
+    lineDrawRef.current = null;
+    const svg = findSvg();
+    if (!svg) {
+      clearWallPreview();
+      return;
+    }
+    const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
+    const end =
+      pendingPreviewEndRef.current ??
+      previewEnd ??
+      snapDrawEnd(raw, g.start, snapOpts());
+    finishLine(g.type, g.start, end);
   };
 
   const endPointerGesture = (e?: React.PointerEvent<HTMLDivElement>) => {
@@ -773,11 +809,16 @@ export function WmPrintDrawingEditor({
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (lineDrawRef.current) {
+      completeLineDraw(e);
+    }
     endPointerGesture(e);
   };
 
   const onPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
-    /* D-M0-06 — cancel = ten sam end co up (commit dirty drag / drop pan). */
+    if (lineDrawRef.current) {
+      clearWallPreview();
+    }
     endPointerGesture(e);
   };
 
@@ -847,11 +888,30 @@ export function WmPrintDrawingEditor({
   const selected = selectedId ? local.objects.find((o) => o.id === selectedId) : null;
   const softWarn = local.objects.length > DRAWING_OBJECTS_SOFT_WARN;
 
-  /** D-M1-03 — REUSE `.touch-target` (≥44×44). */
-  const chromeIcon =
-    "touch-target shrink-0 p-0 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40";
-  const chromeAction =
-    "touch-target shrink-0 gap-1 px-2 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40";
+  const lineHint =
+    tool === "wall"
+      ? lineStart
+        ? "Przeciągnij i puść · Esc anuluje podgląd."
+        : "Przytrzymaj i przeciągnij, aby narysować ścianę."
+      : tool === "arrow"
+        ? lineStart
+          ? "Przeciągnij i puść · Esc anuluje."
+          : "Przytrzymaj i przeciągnij strzałkę."
+        : tool === "dimension"
+          ? lineStart
+            ? "Kliknij drugi punkt (wymiar swobodny)."
+            : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
+          : isDoorTool(tool)
+            ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
+            : null;
+
+  /** Mobile Chrome: duże cele; Desktop: kompakt jak dotychczas. */
+  const chromeIcon = mobileFullscreen
+    ? "touch-target min-h-11 min-w-11 shrink-0 p-0 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40 inline-flex items-center justify-center"
+    : "touch-target shrink-0 p-0 rounded-md text-muted-foreground hover:bg-secondary disabled:opacity-40";
+  const chromeAction = mobileFullscreen
+    ? "touch-target min-h-11 shrink-0 gap-1 px-3 rounded-md text-xs font-medium text-muted-foreground hover:bg-secondary disabled:opacity-40 inline-flex items-center justify-center"
+    : "touch-target shrink-0 gap-1 px-2 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40";
 
   const toolAllowed = (t: Tool) => !allowedTools || allowedTools.includes(t);
 
@@ -867,12 +927,12 @@ export function WmPrintDrawingEditor({
         clearWallPreview();
         if (!isDoorTool(t)) setHoverWallId(null);
       }}
-      className={`touch-target shrink-0 gap-1 px-2 rounded-md text-xs font-medium ${
+      className={`${mobileFullscreen ? "touch-target min-h-11 min-w-[4.5rem] flex-col gap-0.5 px-2 py-1" : "touch-target shrink-0 gap-1 px-2"} rounded-md text-xs font-medium inline-flex items-center justify-center ${
         tool === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"
       }`}
     >
       {icon}
-      <span className="hidden sm:inline">{label}</span>
+      <span className={mobileFullscreen ? "text-[10px] leading-tight" : "hidden sm:inline"}>{label}</span>
     </button>
     );
   };
@@ -922,23 +982,6 @@ export function WmPrintDrawingEditor({
     setInputDialog(null);
   };
 
-  const lineHint =
-    tool === "wall"
-      ? lineStart
-        ? "Kliknij drugi punkt · Esc anuluje podgląd."
-        : "Kliknij pierwszy punkt ściany."
-      : tool === "arrow"
-        ? lineStart
-          ? "Kliknij drugi punkt."
-          : "Kliknij pierwszy punkt."
-        : tool === "dimension"
-          ? lineStart
-            ? "Kliknij drugi punkt (wymiar swobodny)."
-            : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
-          : isDoorTool(tool)
-            ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
-            : null;
-
   return (
     <div className={`flex flex-col gap-3 min-h-0 ${mobileFullscreen ? "h-full flex-1" : "h-full"}`}>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -959,13 +1002,59 @@ export function WmPrintDrawingEditor({
         </p>
       )}
 
-      {/* D-M1-04 — mobile FS: horizontal scroll; desktop: wrap */}
+      {/* P1 Mobile Chrome vs Desktop — tylko UI; gest Drawing Engine wspólny */}
+      {mobileFullscreen ? (
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <div
+            className="border border-border rounded-lg p-1 bg-card flex flex-wrap items-stretch gap-1"
+            role="toolbar"
+            aria-label="Narzędzia główne"
+          >
+            {toolBtn("wall", "Ściana", <Minus size={18} />)}
+            {toolBtn("text", "Tekst", <Type size={18} />)}
+            {toolBtn("select", "Zaznacz", <MousePointer2 size={18} />)}
+            <button type="button" title="Cofnij" aria-label="Cofnij" disabled={!canUndo} onClick={handleUndo} className={chromeIcon}>
+              <Undo2 size={18} />
+            </button>
+            <button type="button" title="Ponów" aria-label="Ponów" disabled={!canRedo} onClick={handleRedo} className={chromeIcon}>
+              <Redo2 size={18} />
+            </button>
+            <button
+              type="button"
+              title="Snap (siatka · kąt · punkty)"
+              aria-label="Snap"
+              onClick={toggleSnap}
+              className={`${chromeIcon} ${local.grid.snap ? "bg-primary/15 text-primary" : ""}`}
+            >
+              <Magnet size={18} />
+            </button>
+            <button
+              type="button"
+              title="Siatka"
+              aria-label="Siatka"
+              onClick={toggleGrid}
+              className={`${chromeIcon} ${local.grid.enabled ? "bg-primary/15 text-primary" : ""}`}
+            >
+              <Grid3x3 size={18} />
+            </button>
+          </div>
+          <div
+            className="border border-border rounded-lg p-1 bg-card flex flex-wrap items-stretch gap-1"
+            role="toolbar"
+            aria-label="Elementy"
+          >
+            {toolBtn("wall", "Ściana", <Minus size={18} />)}
+            {toolBtn("door_room", "Drzwi P", <DoorOpen size={18} />)}
+            {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={18} />)}
+            {toolBtn("window", "Okno", <Square size={18} />)}
+            {toolBtn("ventilation", "Wentyl.", <Wind size={18} />)}
+            {toolBtn("distribution_board", "Rozdz.", <Box size={18} />)}
+            {toolBtn("gas_boiler", "Piec", <Flame size={18} />)}
+          </div>
+        </div>
+      ) : (
       <div
-        className={`border border-border rounded-lg p-1 bg-card shrink-0 ${
-          mobileFullscreen
-            ? "flex flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain"
-            : "flex flex-wrap items-center gap-1"
-        }`}
+        className="border border-border rounded-lg p-1 bg-card shrink-0 flex flex-wrap items-center gap-1"
         role="toolbar"
         aria-label="Narzędzia rysunku"
       >
@@ -999,7 +1088,7 @@ export function WmPrintDrawingEditor({
         </button>
         <button
           type="button"
-          title="Snap"
+          title="Snap (siatka · kąt · punkty)"
           aria-label="Snap"
           onClick={toggleSnap}
           className={`${chromeIcon} ${local.grid.snap ? "bg-primary/15 text-primary" : ""}`}
@@ -1054,6 +1143,7 @@ export function WmPrintDrawingEditor({
           <span className="hidden sm:inline">Drukuj</span>
         </button>
       </div>
+      )}
 
       {selectedId && (
         <div
@@ -1157,8 +1247,9 @@ export function WmPrintDrawingEditor({
       <div
         ref={svgHostRef}
         className={`wm-drawing-surface flex-1 min-h-[280px] rounded-xl border border-border bg-slate-100 dark:bg-slate-900/40 p-2 ${
-          mobileFullscreen ? "overflow-hidden" : "overflow-auto"
+          mobileFullscreen ? "overflow-hidden touch-none" : "overflow-auto"
         }`}
+        style={mobileFullscreen ? { touchAction: "none" } : undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -1176,9 +1267,8 @@ export function WmPrintDrawingEditor({
       </div>
 
       <p className="text-[11px] text-muted-foreground shrink-0">
-        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length} · PDF
-        P2
-        {mobileFullscreen ? " · Widok: przeciągnij tło (Wybierz) · ± zoom" : ""}
+        Format {local.page.format} {local.page.orientation} · obiektów {local.objects.length}
+        {mobileFullscreen ? " · Ściana: przeciągnij i puść" : " · PDF P2"}
       </p>
     </div>
   );
