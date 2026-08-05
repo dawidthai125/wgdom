@@ -11,21 +11,21 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.14 / 0afeb82d (WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED)
+Tip = 09 + version.json → 2.66.15 / e9598c99 (WM-DOKUMENTACJA-SZKICE-01 P0+P2a CLOSED · PRODUCTION VERIFIED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
-Promote P1 / WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
+Promote P1 / P2b / WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.14** / commit **`0afeb82d`** — **WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED** · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.15** / commit **`e9598c99`** — **WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED · P2a CLOSED** · **PRODUCTION VERIFIED**.
 
-Ostatnie zamknięte: **WM-DOKUMENTACJA-SZKICE-01 P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **WM-DOKUMENTACJA-SZKICE-01 P2a** · **P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
@@ -39,9 +39,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.14** |
-| **Commit** | **`0afeb82d`** (full `0afeb82d88fa1b0bce27c27aefb5457ab17d7f3a`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = **WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED** · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.15** |
+| **Commit** | **`e9598c99`** (full `e9598c99ed6670685ded9445a40b99e6445a8c51`) |
+| **Status** | **PRODUCTION VERIFIED** · tip = **WM-DOKUMENTACJA-SZKICE-01 P0+P2a CLOSED** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -75,7 +75,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
-| **WM-DOKUMENTACJA-SZKICE-01 P0** | **2.66.14** tip | **`0afeb82d`** | **P0 CLOSED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · Admin Accept · A2 NO TOUCH · No Promote | **YES** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
+| **WM-DOKUMENTACJA-SZKICE-01 P2a** | **2.66.15** tip | **`e9598c99`** | **P2a CLOSED** · Dashboard Szkice Techniczne (job-centric) · HIGH→NORMAL · Jobs→Dokumentacja→drawingId · A2 NO TOUCH | **YES** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) |
+| **WM-DOKUMENTACJA-SZKICE-01 P0** | **2.66.14** | **`0afeb82d`** | **P0 CLOSED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · Admin Accept · A2 NO TOUCH · No Promote | **YES** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
 | **WM-WORKER-SKETCH-01** | **2.66.13** · P0 **2.66.12** | P1 **`4f99a279`** · P0 **`3c9d6f90`** | **EPIC CLOSED** · P0+P1 CLOSED · Worker Docs→Szkice · drag-release · snap · flag OFF | **YES** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
 | **WM-DRUK-OST-APPEARANCE-01** | 2.66.11 | `4d33361e` | **CLOSED** · OST `/AP` adresu | **YES** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-APPEARANCE-01-CLOSEOUT.md) |
 | **WM-DRUK-OST-AUTO-GENERATE-01** | 2.66.10 | `82dc1017` | **CLOSED** · S2 Hard Ensure OST w ZIP | **YES** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) |
@@ -126,9 +127,9 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED** · **2.66.14** / **`0afeb82d`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **WM-DOKUMENTACJA-SZKICE-01 P0+P2a CLOSED** · **2.66.15** / **`e9598c99`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
-| **WM-DOKUMENTACJA-SZKICE-01** | **P0 CLOSED** · Promote P1 **WAITING** Owner GO · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
+| **WM-DOKUMENTACJA-SZKICE-01** | **P0 CLOSED** · **P2a CLOSED** · Promote P1 / P2b **WAITING** Owner GO · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
 | **WM-WORKER-SKETCH-01** | **EPIC CLOSED** · **P0 CLOSED** · **P1 CLOSED** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
 | **WM-DRUK-OST** | **01 + MIGRATION + AUTO-GENERATE S2 + APPEARANCE CLOSED** · AcroForm PASS · **OST-03 DO NOT IMPLEMENT** |
 | **WORKER-INSPECTOR-MOBILE-01** | **WIM-P0+P1a CLOSED** · **WIM-P1b WAITING** — tylko Owner GO → AUDIT |
@@ -146,7 +147,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.14** WM-DOKUMENTACJA-SZKICE-01 P0) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.15** WM-DOKUMENTACJA-SZKICE-01 P2a) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---
@@ -156,7 +157,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 | Flaga LS | Default | Status feature | Prod / local |
 |----------|---------|----------------|--------------|
 | `kw-wm-rysunki-01` | **OFF** (LS fallback) | P0+P1+P1B+P2+P3+P3A+P3B+P3B.1 **CLOSED** · CORE COMPLETE · SSOT = `AppSettings.wmRysunkiEnabled` default OFF | **prod** (OFF) |
-| `wmWorkerSketchEnabled` (AppSettings) | **OFF** | **WM-WORKER-SKETCH-01 CLOSED** + **DOKUMENTACJA-SZKICE P0 CLOSED** · Worker/Admin/Inspector Szkice | **prod** (OFF) |
+| `wmWorkerSketchEnabled` (AppSettings) | **OFF** | **WM-WORKER-SKETCH-01 CLOSED** + **DOKUMENTACJA-SZKICE P0+P2a CLOSED** · Worker/Admin/Inspector Szkice + Dashboard | **prod** (OFF) |
 | `kw-market-sync-01-p3` | **OFF** | P3-A **CLOSED** · shipped mock | **prod** (OFF) · Legal Gate **OPEN** |
 | `kw-market-sync-01-p2` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) |
 | `kw-ai-cost-02-i3-competitiveness` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) · UI ⇒ 02-B ON |
@@ -218,7 +219,7 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 **WAITING FOR NEXT OWNER GO** — ACTIVE EPIC = **NONE** · brak auto-NEXT.
 
-Rekomendacje (wymagają **Owner GO** → **AUDIT**): WM-DOKUMENTACJA-SZKICE Promote P1 · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT.
+Rekomendacje (wymagają **Owner GO** → **AUDIT**): WM-DOKUMENTACJA-SZKICE Promote P1 · P2b · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT.
 
 **Zakaz:** auto-start **OST-03** · XFA · cache filled · WIM-P1b · MOBILE-P2 bez GO.
 
@@ -228,7 +229,7 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**): WM-DOKUMENTACJA-SZKICE Prom
 
 ```text
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.14 / 0afeb82d gdy CDN OK)
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.15 / e9598c99 gdy CDN OK)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
 [ ] Owner GO gdy wymagane
@@ -249,7 +250,7 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**): WM-DOKUMENTACJA-SZKICE Prom
    · AI v2         → AI-V2-P0-BASELINE-UPDATE-01
    · Catalog       → CATALOG-COVERAGE-01-EPIC-CLOSEOUT
    · Worker/Inspector mobile → WORKER-INSPECTOR-MOBILE-01-WIM-P1a-CLOSEOUT (tip) + WIM-P0-CLOSEOUT
-   · Dokumentacja Szkice → WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT (P0 CLOSED · tip 2.66.14)
+   · Dokumentacja Szkice → WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT (P2a tip) + P0-CLOSEOUT (P0 CLOSED)
    · Worker Sketch → WM-WORKER-SKETCH-01-EPIC-CLOSEOUT (P0+P1 CLOSED · tip hist. 2.66.13)
    · WM Rysunki   → WM-RYSUNKI-MOBILE-01-P0-CLOSEOUT (MOBILE-P0 CLOSED) + WM-RYSUNKI-01-P3B1-… (desktop CORE · P4 backlog)
    · Bid Guard WIP → AI-V2-P0.1-* (tylko local)
@@ -277,7 +278,7 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**): WM-DOKUMENTACJA-SZKICE Prom
 | SMART | P0–P2 **CLOSED** · **P3 backlog** |
 | GLOBAL-UX-02 | **FULLY CLOSED** · feature **`3385d9f`** · S9 DEFERRED |
 | MS (Market Sync) | P0–P2 **FULLY CLOSED** (P2 tip **`18830c1`**) · **P3-A CLOSED** (`7325c773`) · P3 EPIC **WAITING** (P3-B · Legal OPEN) |
-| **WM-DOKUMENTACJA-SZKICE-01** | **P0 CLOSED** · tip **`0afeb82d`** / **2.66.14** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) · Promote P1 WAITING |
+| **WM-DOKUMENTACJA-SZKICE-01** | **P0+P2a CLOSED** · tip **`e9598c99`** / **2.66.15** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) · Promote P1 WAITING |
 | **WM-WORKER-SKETCH-01** | **EPIC CLOSED** · tip hist. **`4f99a279`** / **2.66.13** · P0 **`3c9d6f90`** / **2.66.12** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
 | **WM-RYSUNKI-MOBILE-01** | **MOBILE-P0+P1 CLOSED** · tip historyczny **`59f09c1c`** / **2.66.05** · **MOBILE-P2 WAITING** |
 | **WORKER-INSPECTOR-MOBILE-01** | **WIM-P0+P1a CLOSED** · tip historyczny **`3df0d24a`** / **2.66.07** · **WIM-P1b WAITING** |
