@@ -10,7 +10,12 @@ import {
   generatePdfZiTauron2026,
 } from "@/lib/wm-print/generate-pdf-zi-tauron2026";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
-import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles, dedupeWmPrintTemplatesByName } from "@/lib/wm-print/templates";
+import {
+  getEnabledWmPrintTemplates,
+  getWmPrintTemplateFiles,
+  dedupeWmPrintTemplatesByName,
+  mergeActiveOstIntoWmPrintTemplatePool,
+} from "@/lib/wm-print/templates";
 import { fetchWmPrintFileBytes } from "@/lib/wm-print/upload";
 import type {
   ElectricalMeasurement,
@@ -144,9 +149,11 @@ export async function buildWmPrintFilesForJob(
 ): Promise<WmPrintGeneratedFile[]> {
   const vars = buildWmPrintVariableMap(job, settings, opts);
   const enabled = dedupeWmPrintTemplatesByName(getEnabledWmPrintTemplates(templates));
-  const pool = selectedTemplateIds?.length
+  const selectedPool = selectedTemplateIds?.length
     ? enabled.filter((t) => selectedTemplateIds.includes(t.id))
     : enabled;
+  /** S2 Hard Ensure — ACTIVE OST zawsze w poolu ZIP (on-the-fly fill, bez Storage). */
+  const pool = mergeActiveOstIntoWmPrintTemplatePool(enabled, selectedPool);
 
   const files: WmPrintGeneratedFile[] = [];
   const jobDocList = getWmPrintJobDocumentsForJob(jobDocs, job.id);

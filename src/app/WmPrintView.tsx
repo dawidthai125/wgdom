@@ -69,6 +69,7 @@ import {
   countWmPrintTemplateFiles,
   deleteWmPrintTemplateLogical,
   getWmPrintTemplateFiles,
+  isActiveWmPrintOstTemplate,
   isWmPrintPdfFileName,
   isWmPrintTemplateUploadFileAccepted,
   removeWmPrintTemplateFile,
@@ -83,6 +84,7 @@ import {
   countWmPrintTemplateSelection,
   createDefaultWmPrintTemplateSelection,
   deselectAllWmPrintTemplates,
+  ensureActiveOstInWmPrintTemplateSelection,
   selectAllWmPrintTemplates,
   toggleWmPrintTemplateSelection,
 } from "@/lib/wm-print/template-selection";
@@ -326,6 +328,11 @@ export function WmPrintView({
     if (!selectedJobId) return;
     setSelectedTemplateIds(createDefaultWmPrintTemplateSelection(templates));
   }, [selectedJobId]);
+
+  /** S2 — ACTIVE OST zawsze w selekcji (checkbox locked). */
+  useEffect(() => {
+    setSelectedTemplateIds((prev) => ensureActiveOstInWmPrintTemplateSelection(templates, prev));
+  }, [templates]);
 
   /** MR-P1B-01 — one-shot promote gdy SA wchodzi w WM Druk. */
   useEffect(() => {
@@ -936,7 +943,7 @@ export function WmPrintView({
   };
 
   const toggleTemplateSelection = (id: string) => {
-    setSelectedTemplateIds((prev) => toggleWmPrintTemplateSelection(prev, id));
+    setSelectedTemplateIds((prev) => toggleWmPrintTemplateSelection(prev, id, templates));
   };
 
   const moveTemplate = (id: string, dir: -1 | 1) => {
@@ -1156,7 +1163,7 @@ export function WmPrintView({
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedTemplateIds(deselectAllWmPrintTemplates())}
+                        onClick={() => setSelectedTemplateIds(deselectAllWmPrintTemplates(templates))}
                         className="text-[10px] px-2 py-1 rounded border border-border hover:bg-secondary"
                       >
                         Odznacz wszystko
@@ -1167,7 +1174,8 @@ export function WmPrintView({
                         .filter((t) => t.enabled)
                         .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((t) => {
-                          const checked = selectedTemplateIds.has(t.id);
+                          const ostLocked = isActiveWmPrintOstTemplate(t);
+                          const checked = ostLocked || selectedTemplateIds.has(t.id);
                           const groupFiles = getWmPrintTemplateFiles(t);
                           const jobDocsForSlot = selectedJobDocs.filter((d) => d.templateId === t.id);
                           const fileCount =
@@ -1178,10 +1186,21 @@ export function WmPrintView({
                                 <input
                                   type="checkbox"
                                   checked={checked}
+                                  disabled={ostLocked}
+                                  title={
+                                    ostLocked
+                                      ? "OST (pdf_form) zawsze dołączany do paczki ZIP"
+                                      : undefined
+                                  }
                                   onChange={() => toggleTemplateSelection(t.id)}
                                 />
                                 <span className="flex-1 truncate font-medium">
                                   {t.name} ({fileCount})
+                                  {ostLocked ? (
+                                    <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                                      · zawsze w ZIP
+                                    </span>
+                                  ) : null}
                                 </span>
                                 {t.kind === "job_upload" && (
                                   <button

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.10 — WM Druk — OST zawsze w paczce ZIP (2026-08-05)
+
+- **improve:** ACTIVE OST (`pdf_form` + plik) → Hard Ensure S2 w `buildWmPrintFilesForJob` / fingerprint publish; fill on-the-fly (bez Storage filled); checkbox OST locked
+
 ## 2.66.09 — WM Druk — migracja mapowania OST (2026-08-04)
 
 - **fix:** historyczne sloty OST bez `pdfFieldMapping` → SSOT `WM_PRINT_OST_PDF_FIELD_MAPPING` przy bootstrap/sync (push tylko gdy `migratedCount > 0`); generator bez zmian

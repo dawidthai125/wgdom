@@ -3,7 +3,11 @@ import { REQUIRED_DOCS } from "@/lib/job-documents";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState } from "@/lib/electrical-measurements/types";
 import { getProductionMeasurementForJob } from "@/lib/electrical-measurements/measurement-catalog";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
-import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
+import {
+  getEnabledWmPrintTemplates,
+  getWmPrintTemplateFiles,
+  mergeActiveOstIntoWmPrintTemplatePool,
+} from "@/lib/wm-print/templates";
 import type {
   WmPrintGenerateOptions,
   WmPrintJobDocument,
@@ -93,9 +97,12 @@ export async function buildDeliveryPackageGenerationFingerprint(input: {
       : [];
 
   const selected = [...new Set(input.selectedTemplateIds)].sort();
-  const enabled = getEnabledWmPrintTemplates(input.templates).filter((t) => selected.includes(t.id));
+  const enabledAll = getEnabledWmPrintTemplates(input.templates);
+  const selectedOnly = enabledAll.filter((t) => selected.includes(t.id));
+  /** S2 Hard Ensure — fingerprint parity z buildWmPrintFilesForJob (ACTIVE OST zawsze). */
+  const forDigest = mergeActiveOstIntoWmPrintTemplatePool(enabledAll, selectedOnly);
   const templateFileDigests: { templateId: string; fileId: string }[] = [];
-  for (const t of enabled) {
+  for (const t of forDigest) {
     if (t.kind === "job_upload") continue;
     for (const tf of getWmPrintTemplateFiles(t)) {
       templateFileDigests.push({ templateId: t.id, fileId: tf.id });

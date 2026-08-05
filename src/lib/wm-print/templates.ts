@@ -113,6 +113,40 @@ export function getEnabledWmPrintTemplates(templates: WmPrintTemplate[]): WmPrin
   return templates.filter((t) => t.enabled).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+/**
+ * WM-DRUK-OST-AUTO-GENERATE-01 S2 — ACTIVE OST:
+ * name OST ∧ pdf_form ∧ enabled ∧ files[] niepuste.
+ */
+export function isActiveWmPrintOstTemplate(t: WmPrintTemplate): boolean {
+  return (
+    String(t.name || "").trim() === "OST" &&
+    t.type === "pdf_form" &&
+    t.enabled !== false &&
+    countWmPrintTemplateFiles(t) > 0
+  );
+}
+
+/** Znajdź ACTIVE OST wśród szablonów (po dedupe po nazwie — preferuj listę enabled). */
+export function findActiveWmPrintOstTemplate(
+  templates: WmPrintTemplate[],
+): WmPrintTemplate | undefined {
+  return templates.find(isActiveWmPrintOstTemplate);
+}
+
+/**
+ * S2 Hard Ensure — dołącz ACTIVE OST do poolu ZIP niezależnie od selectedTemplateIds.
+ * REUSE: bez duplikatu gdy już w pool.
+ */
+export function mergeActiveOstIntoWmPrintTemplatePool(
+  enabled: WmPrintTemplate[],
+  pool: WmPrintTemplate[],
+): WmPrintTemplate[] {
+  const ost = findActiveWmPrintOstTemplate(enabled);
+  if (!ost) return pool;
+  if (pool.some((t) => t.id === ost.id)) return pool;
+  return [...pool, ost].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
 export function createWmPrintTemplate(
   templates: WmPrintTemplate[],
   input: { name: string; kind: WmPrintTemplate["kind"]; type?: WmPrintTemplateType },

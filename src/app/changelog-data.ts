@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-05",
+    version: "2.66.10",
+    label: "WM Druk — OST zawsze w paczce ZIP",
+    items: [
+      {
+        type: "improve",
+        text: "Odbiory WM: aktywny formularz OST (pdf_form z wgranym plikiem) jest zawsze generowany on-the-fly i dołączany do ZIP Odbiory/ — niezależnie od odznaczenia; bez zapisu filled PDF.",
+      },
+    ],
+  },
+  {
     date: "2026-08-04",
     version: "2.66.09",
     label: "WM Druk — migracja mapowania OST",
