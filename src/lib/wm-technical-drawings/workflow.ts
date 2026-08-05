@@ -1,9 +1,12 @@
 /** WM-WORKER-SKETCH-01 P0 — create / submit / soft-delete / L0 expectedRevision. */
+/** WM-DOKUMENTACJA-SZKICE-01 P0 — needs_changes / accept / resubmit (bez Promote). */
 
 import { isDrawingSoftDeleted, parseWmTechnicalDrawing } from "@/lib/wm-technical-drawings/normalize";
 import { touchDrawing, upsertDrawing } from "@/lib/wm-technical-drawings/report";
 import { buildDrawingFromTemplate } from "@/lib/wm-technical-drawings/templates";
 import type {
+  SketchActorRole,
+  SketchOrigin,
   SketchRevisionMeta,
   WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
@@ -49,12 +52,46 @@ export function assertExpectedRevision(
   return null;
 }
 
+function assertJobSketch(drawing: WmTechnicalDrawing): SketchWorkflowResult | null {
+  if (drawing.domain !== "job_sketch") {
+    return {
+      ok: false,
+      reason: "forbidden",
+      message: "To nie jest szkic techniczny Dokumentacji.",
+    };
+  }
+  return null;
+}
+
 export function createWorkerSketch(input: {
   jobId: string;
   address?: string;
   title?: string;
   workerUserId: string;
   workerName: string;
+  templateId?: "blank" | "works_sketch" | "floor_plan_apartment";
+}): SketchWorkflowResult {
+  return createJobSketch({
+    jobId: input.jobId,
+    address: input.address,
+    title: input.title,
+    actorUserId: input.workerUserId,
+    actorName: input.workerName,
+    actorRole: "worker",
+    origin: "worker",
+    templateId: input.templateId,
+  });
+}
+
+/** Admin / Inspector — własny szkic w Dokumentacji (domena A). */
+export function createJobSketch(input: {
+  jobId: string;
+  address?: string;
+  title?: string;
+  actorUserId: string;
+  actorName: string;
+  actorRole: SketchActorRole;
+  origin: Extract<SketchOrigin, "worker" | "inspector" | "admin">;
   templateId?: "blank" | "works_sketch" | "floor_plan_apartment";
 }): SketchWorkflowResult {
   const jobId = input.jobId.trim();
@@ -69,23 +106,24 @@ export function createWorkerSketch(input: {
   const meta: SketchRevisionMeta = {
     revisionNumber: 1,
     at: now,
-    byUserId: input.workerUserId,
-    byRole: "worker",
-    byName: input.workerName,
+    byUserId: input.actorUserId,
+    byRole: input.actorRole,
+    byName: input.actorName,
     action: "create",
   };
   const next = parseWmTechnicalDrawing({
     ...base,
-    origin: "worker",
+    domain: "job_sketch",
+    origin: input.origin,
     workflowStatus: "worker_draft",
     status: "draft",
     revisionNumber: 1,
     revisionMeta: [meta],
-    createdByUserId: input.workerUserId,
-    createdByRole: "worker",
-    createdByName: input.workerName,
-    lastEditedByUserId: input.workerUserId,
-    lastEditedByRole: "worker",
+    createdByUserId: input.actorUserId,
+    createdByRole: input.actorRole,
+    createdByName: input.actorName,
+    lastEditedByUserId: input.actorUserId,
+    lastEditedByRole: input.actorRole,
     photoIds: [],
     deletedAt: null,
     editLock: null,
@@ -96,7 +134,7 @@ export function createWorkerSketch(input: {
   return { ok: true, drawing: next };
 }
 
-/** P0: worker_draft → submitted (needs_changes = P1). */
+/** P0: worker_draft → submitted */
 export function submitWorkerSketch(
   drawing: WmTechnicalDrawing,
   input: {
@@ -108,6 +146,8 @@ export function submitWorkerSketch(
   if (isDrawingSoftDeleted(drawing)) {
     return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
   }
+  const domainErr = assertJobSketch(drawing);
+  if (domainErr) return domainErr;
   const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
   if (stale) return stale;
   if (drawing.origin !== "worker") {
@@ -138,10 +178,166 @@ export function submitWorkerSketch(
     ok: true,
     drawing: touchDrawing(drawing, {
       workflowStatus: "submitted",
+      status: "draft",
       revisionNumber: nextRev,
       revisionMeta: appendMeta(drawing, meta),
       lastEditedByUserId: input.workerUserId,
       lastEditedByRole: "worker",
+      editLock: null,
+    }),
+  };
+}
+
+/** needs_changes → submitted (Worker resubmit). */
+export function resubmitWorkerSketch(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    workerUserId: string;
+    workerName: string;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
+  }
+  const domainErr = assertJobSketch(drawing);
+  if (domainErr) return domainErr;
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (drawing.createdByUserId && drawing.createdByUserId !== input.workerUserId) {
+    return { ok: false, reason: "forbidden", message: "Możesz ponownie przesłać tylko własny szkic." };
+  }
+  if (drawing.workflowStatus !== "needs_changes") {
+    return {
+      ok: false,
+      reason: "invalid_state",
+      message: "Ponowne przesłanie tylko ze statusu „Do poprawy”.",
+    };
+  }
+
+  const nextRev = drawing.revisionNumber + 1;
+  const now = new Date().toISOString();
+  const meta: SketchRevisionMeta = {
+    revisionNumber: nextRev,
+    at: now,
+    byUserId: input.workerUserId,
+    byRole: "worker",
+    byName: input.workerName,
+    action: "resubmit",
+  };
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      workflowStatus: "submitted",
+      status: "draft",
+      revisionNumber: nextRev,
+      revisionMeta: appendMeta(drawing, meta),
+      lastEditedByUserId: input.workerUserId,
+      lastEditedByRole: "worker",
+      editLock: null,
+    }),
+  };
+}
+
+/** submitted → needs_changes (Inspector | Admin). */
+export function markJobSketchNeedsChanges(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    actorUserId: string;
+    actorName: string;
+    actorRole: SketchActorRole;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
+  }
+  const domainErr = assertJobSketch(drawing);
+  if (domainErr) return domainErr;
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (input.actorRole !== "inspector" && input.actorRole !== "admin" && input.actorRole !== "super_admin") {
+    return { ok: false, reason: "forbidden", message: "Brak uprawnień do odesłania szkicu." };
+  }
+  if (drawing.workflowStatus !== "submitted" && drawing.workflowStatus !== "in_review") {
+    return {
+      ok: false,
+      reason: "invalid_state",
+      message: "Odesłać można tylko szkic przesłany do weryfikacji.",
+    };
+  }
+
+  const nextRev = drawing.revisionNumber + 1;
+  const now = new Date().toISOString();
+  const meta: SketchRevisionMeta = {
+    revisionNumber: nextRev,
+    at: now,
+    byUserId: input.actorUserId,
+    byRole: input.actorRole,
+    byName: input.actorName,
+    action: "needs_changes",
+  };
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      workflowStatus: "needs_changes",
+      status: "draft",
+      revisionNumber: nextRev,
+      revisionMeta: appendMeta(drawing, meta),
+      lastEditedByUserId: input.actorUserId,
+      lastEditedByRole: input.actorRole,
+      editLock: null,
+    }),
+  };
+}
+
+/** submitted | in_review → accepted (Admin ONLY). */
+export function acceptJobSketch(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    actorUserId: string;
+    actorName: string;
+    actorRole: SketchActorRole;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
+  }
+  const domainErr = assertJobSketch(drawing);
+  if (domainErr) return domainErr;
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (input.actorRole !== "admin" && input.actorRole !== "super_admin") {
+    return { ok: false, reason: "forbidden", message: "Accept tylko dla Administratora." };
+  }
+  if (drawing.workflowStatus !== "submitted" && drawing.workflowStatus !== "in_review") {
+    return {
+      ok: false,
+      reason: "invalid_state",
+      message: "Zaakceptować można tylko szkic przesłany do weryfikacji.",
+    };
+  }
+
+  const nextRev = drawing.revisionNumber + 1;
+  const now = new Date().toISOString();
+  const meta: SketchRevisionMeta = {
+    revisionNumber: nextRev,
+    at: now,
+    byUserId: input.actorUserId,
+    byRole: input.actorRole,
+    byName: input.actorName,
+    action: "accept",
+  };
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      workflowStatus: "accepted",
+      status: "draft",
+      revisionNumber: nextRev,
+      revisionMeta: appendMeta(drawing, meta),
+      lastEditedByUserId: input.actorUserId,
+      lastEditedByRole: input.actorRole,
       editLock: null,
     }),
   };
@@ -161,7 +357,7 @@ export function softDeleteWorkerSketch(
   }
   const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
   if (stale) return stale;
-  if (drawing.origin !== "worker") {
+  if (drawing.origin !== "worker" && drawing.domain !== "job_sketch") {
     return { ok: false, reason: "forbidden", message: "To nie jest szkic pracownika." };
   }
   if (drawing.workflowStatus !== "worker_draft" || hasSubmitInHistory(drawing)) {

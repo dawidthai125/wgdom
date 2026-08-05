@@ -8,6 +8,7 @@ export * from "@/lib/wm-technical-drawings/flag";
 export * from "@/lib/wm-technical-drawings/templates";
 export * from "@/lib/wm-technical-drawings/report";
 export * from "@/lib/wm-technical-drawings/workflow";
+export * from "@/lib/wm-technical-drawings/job-sketch-list";
 export * from "@/lib/wm-technical-drawings/render-svg";
 export * from "@/lib/wm-technical-drawings/undo";
 export * from "@/lib/wm-technical-drawings/labels";

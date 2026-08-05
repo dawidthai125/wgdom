@@ -60,6 +60,7 @@ import type { HousingType, StoveType, GasFurnaceStatus } from "@/lib/job-meta";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import type { AdminRole } from "@/lib/admin-auth";
 import { WgButton } from "@/app/ui";
+import { JobTechnicalSketchesPanel } from "@/app/JobTechnicalSketchesPanel";
 import { cn } from "@/app/components/ui/utils";
 import { WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
 
@@ -133,6 +134,8 @@ export type InspectorJobWorkspaceProps = {
   jobSection: InspectorJobSection;
   jobReturnLabel: string;
   displayName: string;
+  /** Id konta inspektora (ACL szkiców). */
+  inspectorUserId?: string;
   msg: string;
   onClose: () => void;
   onJobSectionChange: (section: InspectorJobSection) => void;
@@ -201,6 +204,7 @@ export function InspectorJobWorkspace({
   jobSection,
   jobReturnLabel,
   displayName,
+  inspectorUserId,
   msg,
   onClose,
   onJobSectionChange,
@@ -601,6 +605,7 @@ export function InspectorJobWorkspace({
         )}
 
         {jobSection === "reports" && (
+          <div className="space-y-4">
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <p className="text-sm font-semibold flex items-center gap-2">
@@ -696,6 +701,14 @@ export function InspectorJobWorkspace({
                   })}
               </div>
             )}
+          </div>
+          <JobTechnicalSketchesPanel
+            jobId={job.id}
+            jobAddress={job.address || ""}
+            viewerRole="inspector"
+            viewerUserId={inspectorUserId || displayName}
+            viewerName={displayName}
+          />
           </div>
         )}
 

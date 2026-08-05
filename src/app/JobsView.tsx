@@ -49,6 +49,7 @@ import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { JobWorkerReportsPanel } from "@/app/JobWorkerReportsPanel";
+import { JobTechnicalSketchesPanel } from "@/app/JobTechnicalSketchesPanel";
 import { JobPhotoGallery } from "@/app/JobPhotoGallery";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { filterAvailablePhotos, isMediaAttachmentAvailable } from "@/lib/media-filter";
@@ -2927,6 +2928,7 @@ export function JobsView({
             )}
 
             {detailSection === "reports" && (
+            <>
             <JobWorkerReportsPanel
               jobId={selectedJob.id}
               job={selectedJob}
@@ -2943,6 +2945,20 @@ export function JobsView({
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
               }, { type: "report_delete", text: "Usunięto dokumentację" })}
             />
+            <JobTechnicalSketchesPanel
+              jobId={selectedJob.id}
+              jobAddress={selectedJob.address || ""}
+              viewerRole={
+                adminSession?.role === "super_admin"
+                  ? "super_admin"
+                  : adminSession?.role === "moderator"
+                    ? "moderator"
+                    : "admin"
+              }
+              viewerUserId={adminSession?.id || "admin"}
+              viewerName={adminSession?.displayName || "Administrator"}
+            />
+            </>
             )}
 
           </div>

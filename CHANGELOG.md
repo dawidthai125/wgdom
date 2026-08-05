@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.14 — Dokumentacja — Szkice Techniczne review P0 (2026-08-05)
+
+- **new:** Dokumentacja robót → Szkice Techniczne (Admin/Inspektor): Needs Changes · Accept (Admin) · Worker resubmit · badge pending · sort workflow; A2/Rysunki NO TOUCH
+
 ## 2.66.13 — Szkice — rysowanie Mobile First P1 (2026-08-05)
 
 - **improve:** ściana/strzałka — drag-release (Ghost mid-gesture); Snap endpoint→angle→grid

@@ -9,13 +9,17 @@ export const DRAWING_SYMBOL_LIBRARY_VERSION = 3 as const;
 
 export type DrawingStatus = "draft" | "final";
 
-/** WM-WORKER-SKETCH-01 — oś procesu (≠ DrawingStatus paczki). */
+/** WM-WORKER-SKETCH-01 / WM-DOKUMENTACJA-SZKICE-01 — oś procesu (≠ DrawingStatus paczki). */
 export type SketchWorkflowStatus =
   | "worker_draft"
   | "submitted"
   | "in_review"
   | "needs_changes"
-  | "accepted";
+  | "accepted"
+  | "final_source";
+
+/** DOMENA A vs B — jeden store, dwie semantyki. */
+export type DrawingDomain = "job_sketch" | "reception";
 
 export type SketchOrigin = "worker" | "inspector" | "admin" | "wm_druk";
 
@@ -123,7 +127,10 @@ export const SKETCH_WORKFLOW_STATUSES: SketchWorkflowStatus[] = [
   "in_review",
   "needs_changes",
   "accepted",
+  "final_source",
 ];
+
+export const DRAWING_DOMAINS: DrawingDomain[] = ["job_sketch", "reception"];
 
 export const SKETCH_ORIGINS: SketchOrigin[] = ["worker", "inspector", "admin", "wm_druk"];
 
@@ -285,7 +292,8 @@ export interface WmTechnicalDrawing {
   renderVersion?: number;
   createdAt: string;
   updatedAt: string;
-  /** WM-WORKER-SKETCH-01 — additive (normalize defaults). */
+  /** WM-WORKER-SKETCH-01 / WM-DOKUMENTACJA-SZKICE-01 — additive (normalize defaults). */
+  domain: DrawingDomain;
   origin: SketchOrigin;
   workflowStatus: SketchWorkflowStatus;
   revisionNumber: number;

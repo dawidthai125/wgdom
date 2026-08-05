@@ -1,8 +1,8 @@
-/** WM-WORKER-SKETCH-01 / WM-DOKUMENTACJA-SZKICE-01 P0 — Dokumentacja → Szkice Techniczne (Worker). */
+/** WM-DOKUMENTACJA-SZKICE-01 P0 — Dokumentacja Robót → Szkice Techniczne (Admin / Inspector). */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Pencil, Plus, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Pencil, Plus, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { WmPrintDrawingEditor } from "@/app/WmPrintDrawingEditor";
 import { WgButton, WgCard } from "@/app/ui";
@@ -10,9 +10,11 @@ import { registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { recordWmDrukAudit } from "@/lib/wm-druk-audit";
 import {
-  canWorkerEditJobSketch,
+  canAcceptJobSketch,
+  canMarkNeedsChanges,
   countPendingJobSketches,
   filterJobSketchesForDokumentacja,
+  type JobSketchViewerRole,
 } from "@/lib/wm-technical-drawings/job-sketch-list";
 import { getDrawingById } from "@/lib/wm-technical-drawings/merge";
 import { SKETCH_WORKFLOW_STATUS_LABELS } from "@/lib/wm-technical-drawings/labels";
@@ -22,15 +24,16 @@ import {
   readWmTechnicalDrawingsFromLocalStorage,
 } from "@/lib/wm-technical-drawings/sync";
 import {
-  createWorkerSketch,
-  resubmitWorkerSketch,
-  softDeleteWorkerSketch,
-  submitWorkerSketch,
+  acceptJobSketch,
+  createJobSketch,
+  markJobSketchNeedsChanges,
   upsertSketchInList,
 } from "@/lib/wm-technical-drawings/workflow";
-import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import type { SketchActorRole, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import { loadAppSettingsLocal } from "@/lib/app-settings";
+import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
 
-const WORKER_P1_TOOLS = [
+const REVIEWER_TOOLS = [
   "select",
   "wall",
   "door_room",
@@ -42,19 +45,31 @@ const WORKER_P1_TOOLS = [
   "text",
 ] as const;
 
-export function WorkerJobSketchesSection({
+function toSketchRole(role: JobSketchViewerRole): SketchActorRole {
+  if (role === "super_admin") return "super_admin";
+  if (role === "inspector") return "inspector";
+  if (role === "moderator") return "moderator";
+  return "admin";
+}
+
+function toOrigin(role: JobSketchViewerRole): "inspector" | "admin" {
+  return role === "inspector" ? "inspector" : "admin";
+}
+
+export function JobTechnicalSketchesPanel({
   jobId,
   jobAddress,
-  workerId,
-  workerName,
-  enabled,
+  viewerRole,
+  viewerUserId,
+  viewerName,
 }: {
   jobId: string;
   jobAddress: string;
-  workerId: string;
-  workerName: string;
-  enabled: boolean;
+  viewerRole: JobSketchViewerRole;
+  viewerUserId: string;
+  viewerName: string;
 }) {
+  const enabled = isWmWorkerSketchEnabled(loadAppSettingsLocal());
   const [drawings, setDrawings] = useState<WmTechnicalDrawing[]>(() =>
     readWmTechnicalDrawingsFromLocalStorage(),
   );
@@ -77,28 +92,31 @@ export function WorkerJobSketchesSection({
     void refresh();
   }, [enabled, jobId, refresh]);
 
-  const mySketches = useMemo(
+  const list = useMemo(
     () =>
       filterJobSketchesForDokumentacja(drawings, jobId, {
-        viewerRole: "worker",
-        viewerUserId: workerId,
+        viewerRole,
+        viewerUserId,
       }),
-    [drawings, jobId, workerId],
+    [drawings, jobId, viewerRole, viewerUserId],
   );
 
   const pending = useMemo(
     () =>
       countPendingJobSketches(drawings, jobId, {
-        viewerRole: "worker",
-        viewerUserId: workerId,
+        viewerRole,
+        viewerUserId,
       }),
-    [drawings, jobId, workerId],
+    [drawings, jobId, viewerRole, viewerUserId],
   );
 
   const selected = selectedId ? getDrawingById(drawings, selectedId) ?? null : null;
-  const canEditSelected = selected ? canWorkerEditJobSketch(selected, workerId) : false;
-  const canSubmit = selected?.workflowStatus === "worker_draft" && canEditSelected;
-  const canResubmit = selected?.workflowStatus === "needs_changes" && canEditSelected;
+  const canEdit =
+    selected &&
+    selected.domain === "job_sketch" &&
+    (viewerRole === "inspector" ||
+      viewerRole === "admin" ||
+      viewerRole === "super_admin");
 
   useModalScrollLock(Boolean(selected));
 
@@ -115,14 +133,18 @@ export function WorkerJobSketchesSection({
     await pushWmTechnicalDrawingsToCloud(next);
   };
 
+  const actorRole = toSketchRole(viewerRole);
+
   const handleCreate = async () => {
     setBusy(true);
     try {
-      const result = createWorkerSketch({
+      const result = createJobSketch({
         jobId,
         address: jobAddress,
-        workerUserId: workerId,
-        workerName,
+        actorUserId: viewerUserId,
+        actorName: viewerName,
+        actorRole,
+        origin: toOrigin(viewerRole),
         templateId: "works_sketch",
       });
       if (!result.ok) {
@@ -135,37 +157,38 @@ export function WorkerJobSketchesSection({
       void recordWmDrukAudit({
         module: "drawings",
         action: "sketch_created",
-        actor: workerName,
-        actorUserId: workerId,
-        summary: `Szkic: ${result.drawing.title}`,
+        actor: viewerName,
+        actorUserId: viewerUserId,
+        summary: `Szkic techniczny: ${result.drawing.title}`,
         drawingId: result.drawing.id,
         jobId,
       });
-      toast.success("Utworzono szkic");
+      toast.success("Utworzono szkic techniczny");
     } finally {
       setBusy(false);
     }
   };
 
   const handleEditorChange = (nextDrawing: WmTechnicalDrawing) => {
-    if (!canEditSelected) return;
+    if (!canEdit) return;
     setDrawings((prev) => upsertSketchInList(prev, nextDrawing));
   };
 
   const handleAutosave = async (nextDrawing: WmTechnicalDrawing) => {
-    if (!canEditSelected) return;
+    if (!canEdit) return;
     const next = upsertSketchInList(drawings, nextDrawing);
     await persist(next);
   };
 
-  const handleSubmit = async () => {
-    if (!selected) return;
+  const handleNeedsChanges = async () => {
+    if (!selected || !canMarkNeedsChanges(viewerRole)) return;
     setBusy(true);
     try {
-      const result = submitWorkerSketch(selected, {
+      const result = markJobSketchNeedsChanges(selected, {
         expectedRevisionNumber: selected.revisionNumber,
-        workerUserId: workerId,
-        workerName,
+        actorUserId: viewerUserId,
+        actorName: viewerName,
+        actorRole,
       });
       if (!result.ok) {
         toast.error(result.message);
@@ -177,27 +200,28 @@ export function WorkerJobSketchesSection({
       setSelectedId(null);
       void recordWmDrukAudit({
         module: "drawings",
-        action: "sketch_submitted",
-        actor: workerName,
-        actorUserId: workerId,
-        summary: `Przesłano: ${result.drawing.title}`,
+        action: "sketch_needs_changes",
+        actor: viewerName,
+        actorUserId: viewerUserId,
+        summary: `Do poprawy: ${result.drawing.title}`,
         drawingId: result.drawing.id,
         jobId,
       });
-      toast.success("Przesłano do weryfikacji");
+      toast.success("Odesłano do poprawy");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleResubmit = async () => {
-    if (!selected) return;
+  const handleAccept = async () => {
+    if (!selected || !canAcceptJobSketch(viewerRole)) return;
     setBusy(true);
     try {
-      const result = resubmitWorkerSketch(selected, {
+      const result = acceptJobSketch(selected, {
         expectedRevisionNumber: selected.revisionNumber,
-        workerUserId: workerId,
-        workerName,
+        actorUserId: viewerUserId,
+        actorName: viewerName,
+        actorRole,
       });
       if (!result.ok) {
         toast.error(result.message);
@@ -209,46 +233,14 @@ export function WorkerJobSketchesSection({
       setSelectedId(null);
       void recordWmDrukAudit({
         module: "drawings",
-        action: "sketch_resubmitted",
-        actor: workerName,
-        actorUserId: workerId,
-        summary: `Ponownie przesłano: ${result.drawing.title}`,
+        action: "sketch_accepted",
+        actor: viewerName,
+        actorUserId: viewerUserId,
+        summary: `Zaakceptowano: ${result.drawing.title}`,
         drawingId: result.drawing.id,
         jobId,
       });
-      toast.success("Ponownie przesłano do weryfikacji");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleDelete = async (drawing: WmTechnicalDrawing) => {
-    if (!window.confirm(`Usunąć szkic „${drawing.title}”?`)) return;
-    setBusy(true);
-    try {
-      const result = softDeleteWorkerSketch(drawing, {
-        expectedRevisionNumber: drawing.revisionNumber,
-        workerUserId: workerId,
-        workerName,
-      });
-      if (!result.ok) {
-        toast.error(result.message);
-        if (result.reason === "stale_revision") await refresh();
-        return;
-      }
-      const next = upsertSketchInList(drawings, result.drawing);
-      await persist(next);
-      if (selectedId === drawing.id) setSelectedId(null);
-      void recordWmDrukAudit({
-        module: "drawings",
-        action: "sketch_soft_deleted",
-        actor: workerName,
-        actorUserId: workerId,
-        summary: `Usunięto szkic: ${drawing.title}`,
-        drawingId: drawing.id,
-        jobId,
-      });
-      toast.success("Usunięto szkic");
+      toast.success("Zaakceptowano szkic");
     } finally {
       setBusy(false);
     }
@@ -256,8 +248,17 @@ export function WorkerJobSketchesSection({
 
   if (!enabled) return null;
 
-  const listUi = (
-    <WgCard elevation="soft" padding="sm" radius="lg" className="border-violet-500/25 space-y-3">
+  const showNeeds =
+    selected &&
+    canMarkNeedsChanges(viewerRole) &&
+    (selected.workflowStatus === "submitted" || selected.workflowStatus === "in_review");
+  const showAccept =
+    selected &&
+    canAcceptJobSketch(viewerRole) &&
+    (selected.workflowStatus === "submitted" || selected.workflowStatus === "in_review");
+
+  const panel = (
+    <WgCard elevation="soft" padding="sm" radius="lg" className="border-violet-500/25 space-y-3 mt-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-semibold flex items-center gap-2 flex-wrap">
@@ -265,7 +266,7 @@ export function WorkerJobSketchesSection({
             Szkice Techniczne
             {pending > 0 && (
               <span
-                data-testid="worker-sketch-pending-badge"
+                data-testid="job-sketch-pending-badge"
                 className="bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full"
               >
                 {pending} oczekuje
@@ -273,7 +274,7 @@ export function WorkerJobSketchesSection({
             )}
           </p>
           <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-            Edytowalny szkic techniczny (ściana, drzwi, okno, symbole). To nie jest foto Obrys.
+            Szkice z Dokumentacji robót (≠ Odbiory WM → Rysunki).
           </p>
         </div>
         <WgButton
@@ -289,52 +290,38 @@ export function WorkerJobSketchesSection({
 
       {loading ? (
         <p className="text-xs text-muted-foreground py-2">Ładowanie szkiców…</p>
-      ) : mySketches.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">Brak szkiców przy tej robocie.</p>
+      ) : list.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-2">Brak szkiców technicznych przy tej robocie.</p>
       ) : (
         <ul className="space-y-2">
-          {mySketches.map((d) => {
-            const editable = canWorkerEditJobSketch(d, workerId) && d.workflowStatus === "worker_draft";
-            return (
-              <li key={d.id}>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2">
-                  <button
-                    type="button"
-                    className="min-w-0 flex-1 text-left touch-target"
-                    onClick={() => setSelectedId(d.id)}
-                  >
-                    <p className="text-sm font-medium truncate">{d.title}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {SKETCH_WORKFLOW_STATUS_LABELS[d.workflowStatus]} · rev {d.revisionNumber}
-                    </p>
-                  </button>
-                  {editable && (
-                    <WgButton
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      disabled={busy}
-                      title="Usuń"
-                      onClick={() => void handleDelete(d)}
-                      className="text-muted-foreground hover:text-destructive shrink-0"
-                    >
-                      <Trash2 size={16} />
-                    </WgButton>
-                  )}
+          {list.map((d) => (
+            <li key={d.id}>
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-left touch-target hover:bg-secondary/50"
+                onClick={() => setSelectedId(d.id)}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{d.title}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {SKETCH_WORKFLOW_STATUS_LABELS[d.workflowStatus]}
+                    {d.createdByName ? ` · ${d.createdByName}` : ""}
+                    {` · rev ${d.revisionNumber}`}
+                  </p>
                 </div>
-              </li>
-            );
-          })}
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </WgCard>
   );
 
-  if (!selected || typeof document === "undefined") return listUi;
+  if (!selected || typeof document === "undefined") return panel;
 
   const editorPortal = createPortal(
     <div
-      data-testid="worker-sketch-fs"
+      data-testid="job-sketch-review-fs"
       className="fixed inset-0 z-50 modal-overlay flex flex-col bg-background overscroll-none"
       style={{
         height: "var(--app-height, 100dvh)",
@@ -345,7 +332,7 @@ export function WorkerJobSketchesSection({
         paddingRight: "max(0.5rem, env(safe-area-inset-right))",
       }}
     >
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0 flex-wrap">
         <WgButton type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="touch-target">
           <ArrowLeft size={16} /> Lista
         </WgButton>
@@ -353,16 +340,24 @@ export function WorkerJobSketchesSection({
           <p className="text-sm font-medium truncate">{selected.title}</p>
           <p className="text-[10px] text-muted-foreground">
             {SKETCH_WORKFLOW_STATUS_LABELS[selected.workflowStatus]} · rev {selected.revisionNumber}
+            {selected.createdByName ? ` · ${selected.createdByName}` : ""}
           </p>
         </div>
-        {canSubmit && (
-          <WgButton type="button" size="sm" disabled={busy} onClick={() => void handleSubmit()} className="touch-target shrink-0">
-            <Send size={14} /> Prześlij
+        {showNeeds && (
+          <WgButton
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => void handleNeedsChanges()}
+            className="touch-target shrink-0"
+          >
+            <RotateCcw size={14} /> Do poprawy
           </WgButton>
         )}
-        {canResubmit && (
-          <WgButton type="button" size="sm" disabled={busy} onClick={() => void handleResubmit()} className="touch-target shrink-0">
-            <Send size={14} /> Prześlij ponownie
+        {showAccept && (
+          <WgButton type="button" size="sm" disabled={busy} onClick={() => void handleAccept()} className="touch-target shrink-0">
+            <Check size={14} /> Accept
           </WgButton>
         )}
       </div>
@@ -374,21 +369,16 @@ export function WorkerJobSketchesSection({
           onAutosave={(d) => void handleAutosave(d)}
           jobLabel={jobAddress || "Robota"}
           mobileFullscreen
-          allowedTools={[...WORKER_P1_TOOLS]}
+          allowedTools={[...REVIEWER_TOOLS]}
         />
       </div>
-      {!canEditSelected && (
-        <p className="text-[11px] text-muted-foreground text-center px-3 pb-2 shrink-0">
-          Podgląd — szkic w weryfikacji (edycja po „Do poprawy”).
-        </p>
-      )}
     </div>,
     document.body,
   );
 
   return (
     <>
-      {listUi}
+      {panel}
       {editorPortal}
     </>
   );

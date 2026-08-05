@@ -28,6 +28,9 @@ export type WmDrukAuditAction =
   | "drawing_zip_included"
   | "sketch_created"
   | "sketch_submitted"
+  | "sketch_resubmitted"
+  | "sketch_needs_changes"
+  | "sketch_accepted"
   | "sketch_soft_deleted";
 
 export interface WmDrukAuditEntry {
@@ -65,6 +68,9 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
   drawing_zip_included: "Rysunki w paczce ZIP",
   sketch_created: "Utworzono szkic pracownika",
   sketch_submitted: "Przesłano szkic do weryfikacji",
+  sketch_resubmitted: "Ponownie przesłano szkic",
+  sketch_needs_changes: "Szkic odesłany do poprawy",
+  sketch_accepted: "Zaakceptowano szkic techniczny",
   sketch_soft_deleted: "Usunięto szkic (soft)",
 };
 

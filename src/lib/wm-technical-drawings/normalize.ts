@@ -9,6 +9,7 @@ import {
   DRAWING_SCHEMA_VERSION,
   DRAWING_STATUSES,
   DRAWING_TEMPLATE_IDS,
+  DRAWING_DOMAINS,
   ROOM_LABEL_DEFAULT_FONT_SIZE,
   SKETCH_COMMENTS_CAP,
   SKETCH_ORIGINS,
@@ -19,6 +20,7 @@ import {
   TEXT_DEFAULT_FONT_SIZE,
   type DrawingArrowObject,
   type DrawingDimensionObject,
+  type DrawingDomain,
   type DrawingDoorObject,
   type DrawingGrid,
   type DrawingLinkStatus,
@@ -351,12 +353,29 @@ export function isDrawingSoftDeleted(drawing: Pick<WmTechnicalDrawing, "deletedA
   return Boolean(drawing.deletedAt && String(drawing.deletedAt).trim());
 }
 
-/** A2 — domyślna lista Odbiory → Rysunki. */
+/** A2 — domyślna lista Odbiory → Rysunki. NO TOUCH (WM-DOKUMENTACJA-SZKICE-01). */
 export function isDrawingVisibleInRysunkiTab(drawing: WmTechnicalDrawing): boolean {
   if (isDrawingSoftDeleted(drawing)) return false;
   if (drawing.status === "final") return true;
   if (drawing.origin === "worker") return false;
   return drawing.origin === "wm_druk" || drawing.origin === "admin" || drawing.origin === "inspector";
+}
+
+/** Heurystyka legacy → domain (DF). */
+export function resolveDrawingDomain(raw: {
+  domain?: unknown;
+  origin?: SketchOrigin;
+  status?: DrawingStatus;
+}): DrawingDomain {
+  if (DRAWING_DOMAINS.includes(raw.domain as DrawingDomain)) {
+    return raw.domain as DrawingDomain;
+  }
+  if (raw.origin === "worker") return "job_sketch";
+  return "reception";
+}
+
+export function isJobSketch(drawing: Pick<WmTechnicalDrawing, "domain">): boolean {
+  return drawing.domain === "job_sketch";
 }
 
 export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null {
@@ -393,10 +412,12 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
     ? (r.origin as SketchOrigin)
     : "wm_druk";
 
+  const domain = resolveDrawingDomain({ domain: r.domain, origin, status });
+
   let workflowStatus: SketchWorkflowStatus;
   if (SKETCH_WORKFLOW_STATUSES.includes(r.workflowStatus as SketchWorkflowStatus)) {
     workflowStatus = r.workflowStatus as SketchWorkflowStatus;
-  } else if (origin === "worker") {
+  } else if (origin === "worker" || domain === "job_sketch") {
     workflowStatus = "worker_draft";
   } else {
     workflowStatus = status === "final" ? "accepted" : "accepted";
@@ -413,7 +434,7 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
     schemaVersion: DRAWING_SCHEMA_VERSION,
     title,
     templateId,
-    status,
+    status: domain === "job_sketch" && status === "final" ? "draft" : status,
     jobId,
     linkStatus,
     address: asString(r.address).trim() || undefined,
@@ -426,6 +447,7 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
     renderVersion: r.renderVersion != null ? asFiniteNumber(r.renderVersion, 0) : undefined,
     createdAt,
     updatedAt,
+    domain,
     origin,
     workflowStatus,
     revisionNumber,

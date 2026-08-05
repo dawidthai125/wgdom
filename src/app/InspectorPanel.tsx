@@ -702,6 +702,7 @@ export function InspectorPanel({
           jobSection={jobSection}
           jobReturnLabel={jobReturnNav?.label ?? "listy robót"}
           displayName={displayName}
+          inspectorUserId={inspectorId}
           msg={msg}
           onClose={closeJob}
           onJobSectionChange={scrollToJobSection}

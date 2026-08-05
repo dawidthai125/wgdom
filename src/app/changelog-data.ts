@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.14",
+    label: "Dokumentacja — Szkice Techniczne (review P0)",
+    items: [
+      {
+        type: "new",
+        text: "Dokumentacja robót → Szkice Techniczne (Admin/Inspektor): lista szkiców job, Needs Changes, Accept (tylko Admin); Worker: resubmit po „Do poprawy”; badge oczekujących; sort submitted→needs_changes→accepted→draft. Odbiory→Rysunki bez zmian (A2).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.13",
     label: "Szkice — rysowanie Mobile First (P1)",
     items: [

@@ -25,14 +25,14 @@ export function filterDrawingsForJob(drawings: WmTechnicalDrawing[], jobId: stri
     .sort((a, b) => b.documentDate.localeCompare(a.documentDate) || b.updatedAt.localeCompare(a.updatedAt));
 }
 
-/** Docs → Szkice (Worker) — origin worker, active. */
+/** Docs → Szkice (Worker) — origin worker / domain job_sketch, active. */
 export function filterWorkerSketchesForJob(
   drawings: WmTechnicalDrawing[],
   jobId: string,
   workerUserId?: string,
 ): WmTechnicalDrawing[] {
   return filterDrawingsForJob(drawings, jobId)
-    .filter((d) => d.origin === "worker")
+    .filter((d) => d.domain === "job_sketch" || d.origin === "worker")
     .filter((d) => !workerUserId || !d.createdByUserId || d.createdByUserId === workerUserId)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
