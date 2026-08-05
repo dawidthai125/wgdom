@@ -171,6 +171,8 @@ export type InspectorJobWorkspaceProps = {
   onStageSuggestionChange: (value: { jobId: string; stage: JobHandoverStage } | null) => void;
   scrollRef: RefObject<HTMLDivElement | null>;
   pull: { pull: number; refreshing: boolean; ready: boolean };
+  initialSketchDrawingId?: string | null;
+  onInitialSketchDrawingConsumed?: () => void;
 };
 
 function fmtDate(iso: string): string {
@@ -235,6 +237,8 @@ export function InspectorJobWorkspace({
   onStageSuggestionChange,
   scrollRef,
   pull,
+  initialSketchDrawingId = null,
+  onInitialSketchDrawingConsumed,
 }: InspectorJobWorkspaceProps) {
   const [showBillingProposalModal, setShowBillingProposalModal] = useState(false);
   const [openReportId, setOpenReportId] = useState<string | null>(null);
@@ -708,6 +712,8 @@ export function InspectorJobWorkspace({
             viewerRole="inspector"
             viewerUserId={inspectorUserId || displayName}
             viewerName={displayName}
+            initialDrawingId={initialSketchDrawingId}
+            onInitialDrawingConsumed={onInitialSketchDrawingConsumed}
           />
           </div>
         )}

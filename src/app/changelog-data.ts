@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.15",
+    label: "Pulpit — Szkice Techniczne (P2a)",
+    items: [
+      {
+        type: "new",
+        text: "Pulpit Admin/Inspektor: sekcja Szkice Techniczne (job-centric) — oczekujące submitted/needs_changes, autor+rola+czas, Otwórz → Dokumentacja (nie Odbiory→Rysunki). Flaga Szkice pracownika OFF = ukryte. Badge panelu = ten sam licznik attention.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.14",
     label: "Dokumentacja — Szkice Techniczne (review P0)",
     items: [

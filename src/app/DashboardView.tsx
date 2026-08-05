@@ -60,6 +60,7 @@ import {
   type UrgentCategoryId,
 } from "@/lib/dashboard-urgent-today";
 import { DashboardPilneUwagiSection } from "@/app/DashboardPilneUwagiSection";
+import { DashboardJobSketchesSection } from "@/app/DashboardJobSketchesSection";
 import { DashboardOperationalNotesWidget } from "@/app/DashboardOperationalNotesWidget";
 import {
   canShowOperationalNotesDashboardWidget,
@@ -70,6 +71,14 @@ import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-st
 import { WgButton, WgCard, WgEmptyState, WgKpi } from "@/app/ui";
 import { WG_FOCUS_RING, WG_TOUCH_MIN, WG_TYPE_TITLE } from "@/lib/wg-ui-tokens";
 import { cn } from "@/app/components/ui/utils";
+import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
+import {
+  buildJobSketchDashboardGroups,
+  countJobSketchDashboardPendingTotal,
+} from "@/lib/wm-technical-drawings/job-sketch-dashboard";
+import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
+import { loadAppSettingsLocal } from "@/lib/app-settings";
+import type { JobSketchViewerRole } from "@/lib/wm-technical-drawings/job-sketch-list";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
@@ -77,6 +86,7 @@ export function DashboardView({
   recoverableCharges = [],
   operationalNotes = [],
   operationalNotesReadState = [],
+  wmTechnicalDrawings = [],
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
   onOpenTenders,
   onOpenTender,
@@ -96,7 +106,14 @@ export function DashboardView({
   recoverableCharges?: RecoverableCharge[];
   operationalNotes?: OperationalNote[];
   operationalNotesReadState?: OperationalNoteReadReceipt[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges" | "operationalnotes", jobId?: string, payrollEmpId?: string, jobSection?: JobDetailSection) => void;
+  wmTechnicalDrawings?: WmTechnicalDrawing[];
+  onNavigate: (
+    v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges" | "operationalnotes",
+    jobId?: string,
+    payrollEmpId?: string,
+    jobSection?: JobDetailSection,
+    drawingId?: string,
+  ) => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
   adminUserId?: string;
   alertsSeenTick: number;
@@ -118,6 +135,27 @@ export function DashboardView({
   const createdByName = adminSession?.displayName || "Administrator";
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const showOperationalNotesWidget = canShowOperationalNotesDashboardWidget(adminSession);
+
+  const sketchesEnabled = isWmWorkerSketchEnabled(loadAppSettingsLocal());
+  const sketchViewerRole: JobSketchViewerRole =
+    adminSession?.role === "super_admin"
+      ? "super_admin"
+      : adminSession?.role === "moderator"
+        ? "moderator"
+        : "admin";
+
+  const jobSketchGroups = useMemo(() => {
+    if (!sketchesEnabled) return [];
+    return buildJobSketchDashboardGroups(jobs, wmTechnicalDrawings, {
+      viewerRole: sketchViewerRole,
+      viewerUserId: adminSession?.id || adminUserId,
+    });
+  }, [sketchesEnabled, jobs, wmTechnicalDrawings, sketchViewerRole, adminSession?.id, adminUserId]);
+
+  const jobSketchPendingTotal = useMemo(
+    () => countJobSketchDashboardPendingTotal(jobSketchGroups),
+    [jobSketchGroups],
+  );
   const operationalNotesSummary = useMemo(
     () => computeOperationalNotesDashboardSummary(operationalNotes, operationalNotesReadState, adminSession),
     [operationalNotes, operationalNotesReadState, adminSession],
@@ -761,6 +799,13 @@ export function DashboardView({
             )}
           </WgCard>
         )}
+
+        <DashboardJobSketchesSection
+          groups={jobSketchGroups}
+          pendingTotal={jobSketchPendingTotal}
+          onOpenSketch={(jobId, drawingId) => onNavigate("jobs", jobId, undefined, "reports", drawingId)}
+          onOpenJob={(jobId) => onNavigate("jobs", jobId, undefined, "reports")}
+        />
 
         <DashboardPilneUwagiSection
           urgentTodayTotal={urgentToday.urgentTodayTotal}

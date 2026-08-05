@@ -35,6 +35,15 @@ import { inferHandoverStage, plannedHandoverStatus, HANDOVER_STAGE_LABELS } from
 import { inspectorGreeting, statsForWeek, MONTH_NAMES_PL } from "@/lib/inspector-activity-stats";
 import { downloadInspectorMonthReportPdf, downloadInspectorYearReportPdf } from "@/lib/inspector-report-pdf";
 import { toast } from "sonner";
+import { DashboardJobSketchesSection } from "@/app/DashboardJobSketchesSection";
+import {
+  buildJobSketchDashboardGroups,
+  countJobSketchDashboardPendingTotal,
+} from "@/lib/wm-technical-drawings/job-sketch-dashboard";
+import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
+import { readWmTechnicalDrawingsFromLocalStorage } from "@/lib/wm-technical-drawings/sync";
+import { loadAppSettingsLocal } from "@/lib/app-settings";
+import type { InspectorMainTab } from "@/app/InspectorNavigation";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -67,12 +76,29 @@ export function InspectorDashboard({
   jobs: InspectorDashboardJob[];
   displayName: string;
   adminNotesPending: InspectorDashboardJob[];
-  onOpenJob: (jobId: string, section?: InspectorJobSection) => void;
+  onOpenJob: (jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab, drawingId?: string) => void;
   onMarkDoc: (jobId: string, doc: QuickMarkDoc) => void;
 }) {
   const [filter, setFilter] = useState<DashboardFilter>("all");
   const [pdfBusy, setPdfBusy] = useState<"month" | "year" | null>(null);
   const [showLegacyAlerts, setShowLegacyAlerts] = useState(false);
+
+  const sketchesEnabled = isWmWorkerSketchEnabled(loadAppSettingsLocal());
+  const wmTechnicalDrawings = useMemo(
+    () => (sketchesEnabled ? readWmTechnicalDrawingsFromLocalStorage() : []),
+    [sketchesEnabled, jobs],
+  );
+  const jobSketchGroups = useMemo(() => {
+    if (!sketchesEnabled) return [];
+    return buildJobSketchDashboardGroups(jobs, wmTechnicalDrawings, {
+      viewerRole: "inspector",
+      viewerUserId: displayName,
+    });
+  }, [sketchesEnabled, jobs, wmTechnicalDrawings, displayName]);
+  const jobSketchPendingTotal = useMemo(
+    () => countJobSketchDashboardPendingTotal(jobSketchGroups),
+    [jobSketchGroups],
+  );
 
   const kpi = useMemo(
     () => computeInspectorKpiStats(jobs, adminNotesPending),
@@ -187,6 +213,13 @@ export function InspectorDashboard({
           );
         })}
       </div>
+
+      <DashboardJobSketchesSection
+        groups={jobSketchGroups}
+        pendingTotal={jobSketchPendingTotal}
+        onOpenSketch={(jobId, drawingId) => onOpenJob(jobId, "reports", "dashboard", drawingId)}
+        onOpenJob={(jobId) => onOpenJob(jobId, "reports", "dashboard")}
+      />
 
       {actionCenter.length > 0 && (
         <WgCard elevation="soft" padding="sm" radius="md" className="overflow-hidden !p-0 border-primary/25 bg-primary/5">

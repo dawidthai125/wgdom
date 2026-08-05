@@ -209,6 +209,7 @@ export type AdminViewRouterProps = {
     jobId?: string,
     payrollEmpId?: string,
     jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
+    drawingId?: string,
   ) => void;
   onFixJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   setWeekFrom: (v: string) => void;
@@ -250,6 +251,7 @@ export type AdminViewRouterProps = {
   deleteJobsByIds: (ids: string[]) => Promise<void>;
   pendingJobId: string | null;
   pendingJobSection: import("@/app/JobDetailSectionNav").JobDetailSection | null;
+  pendingDrawingId: string | null;
   onInitialJobConsumed: () => void;
   onOpenJobInJobs: (jobId: string, section: import("@/app/JobDetailSectionNav").JobDetailSection) => void;
   onGoToInspector: () => void;
@@ -351,6 +353,7 @@ export function AdminViewRouter({
   deleteJobsByIds,
   pendingJobId,
   pendingJobSection,
+  pendingDrawingId,
   onInitialJobConsumed,
   onOpenJobInJobs,
   onGoToInspector,
@@ -444,6 +447,7 @@ export function AdminViewRouter({
       recoverableCharges={recoverableCharges}
       operationalNotes={operationalNotes}
       operationalNotesReadState={operationalNotesReadState}
+      wmTechnicalDrawings={wmTechnicalDrawings}
       onNavigate={handleNavigate}
       onFixJobs={onFixJobs}
       adminUserId={adminSession?.id}
@@ -593,6 +597,7 @@ export function AdminViewRouter({
               onManageContacts={() => onSetView("contacts")}
               initialJobId={pendingJobId}
               initialJobSection={pendingJobSection}
+              initialDrawingId={pendingDrawingId}
               onInitialJobConsumed={onInitialJobConsumed}
               weekEmployees={productionWeekEmployees}
               weekFrom={weekFrom}

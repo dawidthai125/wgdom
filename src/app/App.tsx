@@ -350,6 +350,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const navigate = useNavigate();
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
+  const [pendingDrawingId, setPendingDrawingId] = useState<string | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
   const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
@@ -2556,6 +2557,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     jobId?: string,
     payrollEmpId?: string,
     jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
+    drawingId?: string,
   ) => {
     const dest = v as View;
     const returnLabels: Partial<Record<View, string>> = {
@@ -2578,6 +2580,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (jobId && dest === "jobs") {
       setPendingJobId(jobId);
       setPendingJobSection(jobSection ?? "summary");
+      setPendingDrawingId(drawingId?.trim() ? drawingId : null);
     }
     if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
     setView(dest);
@@ -2865,7 +2868,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           deleteJobsByIds={deleteJobsByIds}
           pendingJobId={pendingJobId}
           pendingJobSection={pendingJobSection}
-          onInitialJobConsumed={() => { setPendingJobId(null); setPendingJobSection(null); }}
+          pendingDrawingId={pendingDrawingId}
+          onInitialJobConsumed={() => {
+            setPendingJobId(null);
+            setPendingJobSection(null);
+            setPendingDrawingId(null);
+          }}
           onOpenJobInJobs={openJobInJobs}
           onGoToInspector={() => { setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
           appSettings={appSettings}

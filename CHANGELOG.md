@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.15 — Pulpit — Szkice Techniczne P2a (2026-08-05)
+
+- **new:** Pulpit Admin/Inspektor — sekcja Szkice Techniczne (job-centric): pending submitted+needs_changes · deep-link Dokumentacja · flaga OFF ukrywa; A2 NO TOUCH
+
 ## 2.66.14 — Dokumentacja — Szkice Techniczne review P0 (2026-08-05)
 
 - **new:** Dokumentacja robót → Szkice Techniczne (Admin/Inspektor): Needs Changes · Accept (Admin) · Worker resubmit · badge pending · sort workflow; A2/Rysunki NO TOUCH

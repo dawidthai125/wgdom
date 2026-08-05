@@ -31,7 +31,7 @@ export type InspectorViewRouterProps = {
   recoverableCharges: RecoverableCharge[];
   athPreviewEnabled: boolean;
   onPullRefresh: () => void | Promise<void>;
-  onOpenJob: (jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab) => void;
+  onOpenJob: (jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab, drawingId?: string) => void;
   onMarkDoc: (jobId: string, doc: DocType) => void;
 };
 

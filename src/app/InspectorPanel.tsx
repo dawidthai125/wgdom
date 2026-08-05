@@ -95,6 +95,7 @@ export function InspectorPanel({
   const inspectorId = session.id;
   const displayName = session.displayName;
   const [msg, setMsg] = useState("");
+  const [pendingSketchDrawingId, setPendingSketchDrawingId] = useState<string | null>(null);
   const {
     jobsAll,
     directory,
@@ -188,7 +189,7 @@ export function InspectorPanel({
     markInspectorJobNotesSeen(inspectorId).then(() => setNotesSeenTick((t) => t + 1)).catch(() => {});
   };
 
-  const openJob = useCallback((jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab) => {
+  const openJob = useCallback((jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab, drawingId?: string) => {
     const job = jobsAll.find((j) => j.id === jobId);
     if (!job || !isJobVisibleToInspector(job, inspectorId)) {
       toast.error("Brak dostępu do tej roboty.");
@@ -200,6 +201,7 @@ export function InspectorPanel({
     setMsg("");
     if (section) setJobSection(section);
     else setJobSection("wm");
+    setPendingSketchDrawingId(drawingId?.trim() ? drawingId : null);
     if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
   }, [jobsAll, inspectorId, adminNotesPending, mainTab]);
 
@@ -733,6 +735,8 @@ export function InspectorPanel({
           onStageSuggestionChange={setStageSuggestion}
           scrollRef={jobScrollRef}
           pull={jobPull}
+          initialSketchDrawingId={pendingSketchDrawingId}
+          onInitialSketchDrawingConsumed={() => setPendingSketchDrawingId(null)}
         />
 ) : (
         <InspectorViewRouter

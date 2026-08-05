@@ -48,7 +48,17 @@ export function filterJobSketchesForDokumentacja(
     .sort(compareJobSketchesForList);
 }
 
-/** Badge Pending — liczba submitted (+ in_review) widoczna dla roli. */
+/**
+ * Attention / pending (DF-DASH-05 · P2a).
+ * IN: submitted · needs_changes · in_review
+ * OUT: accepted · worker_draft · final_source
+ * (resubmit → status submitted — liczy się jako submitted)
+ */
+export function isJobSketchAttentionStatus(status: SketchWorkflowStatus): boolean {
+  return status === "submitted" || status === "needs_changes" || status === "in_review";
+}
+
+/** Badge + Dashboard — jeden SSOT (ZERO DUPLICATE). */
 export function countPendingJobSketches(
   drawings: WmTechnicalDrawing[],
   jobId: string,
@@ -57,8 +67,8 @@ export function countPendingJobSketches(
     viewerUserId?: string;
   },
 ): number {
-  return filterJobSketchesForDokumentacja(drawings, jobId, opts).filter(
-    (d) => d.workflowStatus === "submitted" || d.workflowStatus === "in_review",
+  return filterJobSketchesForDokumentacja(drawings, jobId, opts).filter((d) =>
+    isJobSketchAttentionStatus(d.workflowStatus),
   ).length;
 }
 

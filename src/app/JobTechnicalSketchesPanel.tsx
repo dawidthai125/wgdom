@@ -62,12 +62,16 @@ export function JobTechnicalSketchesPanel({
   viewerRole,
   viewerUserId,
   viewerName,
+  initialDrawingId = null,
+  onInitialDrawingConsumed,
 }: {
   jobId: string;
   jobAddress: string;
   viewerRole: JobSketchViewerRole;
   viewerUserId: string;
   viewerName: string;
+  initialDrawingId?: string | null;
+  onInitialDrawingConsumed?: () => void;
 }) {
   const enabled = isWmWorkerSketchEnabled(loadAppSettingsLocal());
   const [drawings, setDrawings] = useState<WmTechnicalDrawing[]>(() =>
@@ -91,6 +95,12 @@ export function JobTechnicalSketchesPanel({
     if (!enabled) return;
     void refresh();
   }, [enabled, jobId, refresh]);
+
+  useEffect(() => {
+    if (!initialDrawingId) return;
+    setSelectedId(initialDrawingId);
+    onInitialDrawingConsumed?.();
+  }, [initialDrawingId, onInitialDrawingConsumed]);
 
   const list = useMemo(
     () =>

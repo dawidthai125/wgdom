@@ -609,6 +609,7 @@ export function JobsView({
   onManageContacts,
   initialJobId,
   initialJobSection,
+  initialDrawingId,
   onInitialJobConsumed,
   weekEmployees,
   weekFrom,
@@ -638,6 +639,7 @@ export function JobsView({
   onManageContacts: () => void;
   initialJobId?: string | null;
   initialJobSection?: JobDetailSection | null;
+  initialDrawingId?: string | null;
   onInitialJobConsumed?: () => void;
   weekEmployees: WeekEmployee[];
   weekFrom: string;
@@ -710,14 +712,17 @@ export function JobsView({
   const [photoUploadLabel, setPhotoUploadLabel] = useState<PhotoEntry["label"]>("progress");
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
+  const [pendingSketchDrawingId, setPendingSketchDrawingId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!initialJobId) return;
     if (jobs.some((j) => j.id === initialJobId)) {
       setSelectedJobId(initialJobId);
       if (initialJobSection) setDetailSection(initialJobSection);
+      if (initialDrawingId) setPendingSketchDrawingId(initialDrawingId);
     }
     onInitialJobConsumed?.();
-  }, [initialJobId, initialJobSection, jobs, onInitialJobConsumed]);
+  }, [initialJobId, initialJobSection, initialDrawingId, jobs, onInitialJobConsumed]);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -2957,6 +2962,8 @@ export function JobsView({
               }
               viewerUserId={adminSession?.id || "admin"}
               viewerName={adminSession?.displayName || "Administrator"}
+              initialDrawingId={pendingSketchDrawingId}
+              onInitialDrawingConsumed={() => setPendingSketchDrawingId(null)}
             />
             </>
             )}
