@@ -11,7 +11,7 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.16 / 377e279f (WM-DOKUMENTACJA-SZKICE-02 CLOSED · PRODUCTION VERIFIED)
+Tip = 09 + version.json → 2.66.17 / e871fed6 (WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED · PRODUCTION VERIFIED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 STABILIZATION WINDOW ACTIVE
@@ -23,9 +23,9 @@ WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.16** / commit **`377e279f`** — **WM-DOKUMENTACJA-SZKICE-02 CLOSED** · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.17** / commit **`e871fed6`** — **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **PRODUCTION VERIFIED**.
 
-Ostatnie zamknięte: **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
@@ -39,9 +39,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.16** |
-| **Commit** | **`377e279f`** (full `377e279f5ab600dae7ef36ea31620c7d847926b8`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = **WM-DOKUMENTACJA-SZKICE-02 CLOSED** · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.17** |
+| **Commit** | **`e871fed6`** (full `e871fed698aa4cb3c46e02eaa289a4a594866c20`) |
+| **Status** | **PRODUCTION VERIFIED** · tip = **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -75,7 +75,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
-| **WM-DOKUMENTACJA-SZKICE-02** | **2.66.16** tip | **`377e279f`** | **EPIC CLOSED** · Publication Workflow · `placement` · `resolved` · Promote-copy 1:1 · A2 NO TOUCH | **YES** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
+| **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **2.66.17** tip | **`e871fed6`** | **EPIC CLOSED** · draft↔final · unsetDrawingFinal · Model A delete · ACL session · audit | **YES** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
+| **WM-DOKUMENTACJA-SZKICE-02** | **2.66.16** | **`377e279f`** | **EPIC CLOSED** · Publication Workflow · `placement` · `resolved` · Promote-copy 1:1 · A2 NO TOUCH | **YES** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01 P2a** | **2.66.15** | **`e9598c99`** | **P2a CLOSED** · Dashboard Szkice Techniczne (job-centric) · HIGH→NORMAL · Jobs→Dokumentacja→drawingId · A2 NO TOUCH | **YES** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01 P0** | **2.66.14** | **`0afeb82d`** | **P0 CLOSED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · (Accept superseded by -02) · A2 NO TOUCH | **YES** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
 | **WM-WORKER-SKETCH-01** | **2.66.13** · P0 **2.66.12** | P1 **`4f99a279`** · P0 **`3c9d6f90`** | **EPIC CLOSED** · P0+P1 CLOSED · Worker Docs→Szkice · drag-release · snap · flag OFF | **YES** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
@@ -128,8 +129,9 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **WM-DOKUMENTACJA-SZKICE-02 CLOSED** · **2.66.16** / **`377e279f`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **2.66.17** / **`e871fed6`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
+| **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **EPIC CLOSED** · Final undo · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-02** | **EPIC CLOSED** · Publication Workflow · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01** | **P0 CLOSED** · **P2a CLOSED** · tip hist. · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
 | **WM-WORKER-SKETCH-01** | **EPIC CLOSED** · **P0 CLOSED** · **P1 CLOSED** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
@@ -149,7 +151,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.16** WM-DOKUMENTACJA-SZKICE-02) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.17** WM-ODBIORY-RYSUNKI-FINAL-UNDO-01) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---
