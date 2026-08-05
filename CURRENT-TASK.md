@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.11** / **`4d33361e`** · APPEARANCE-01) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.13** / **`4f99a279`** · **WM-WORKER-SKETCH-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
@@ -11,10 +11,20 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.11** / **`4d33361e`** · RELEASE GO · CDN może DEPLOY PROPAGATING |
-| CLOSED | **WM-DRUK-OST-APPEARANCE-01** · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
+| Production tip | **2.66.13** / **`4f99a279`** · **PRODUCTION VERIFIED** |
+| CLOSED | **WM-WORKER-SKETCH-01** (P0+P1) · APPEARANCE-01 · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
 | **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA |
+| **NEXT** | **WAITING FOR NEXT OWNER GO** |
+
+## ★ WM-WORKER-SKETCH-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.13** / **`4f99a279`** |
+| **P0** | **CLOSED** · **2.66.12** / **`3c9d6f90`** · schema · sync · Docs→Szkice · flag OFF |
+| **P1** | **CLOSED** · **2.66.13** / **`4f99a279`** · drag-release · snap · Mobile Chrome |
+| **SSOT** | [`EPIC-CLOSEOUT`](docs/architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
 | **NEXT** | **WAITING FOR NEXT OWNER GO** |
 
 ## ★ WM-DRUK-OST-APPEARANCE-01 — **CLOSED**

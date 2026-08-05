@@ -3,12 +3,12 @@
 > **STATUS:** **ACTIVE** · **thin pointer**  
 > **★★ SSOT cold-start:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Data sync:** 2026-08-05 · tip prod **2.66.10** / **`82dc1017`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
+> **Data sync:** 2026-08-05 · tip prod **2.66.13** / **`4f99a279`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 NOWA SESJA → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.66.10 / 82dc1017 (weryfikuj w 09 + version.json)
+Tip prod = 2.66.13 / 4f99a279 (weryfikuj w 09 + version.json)
 WAITING FOR NEXT OWNER GO
 DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF
 ```
@@ -33,8 +33,8 @@ DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF
 
 | Pole | Wartość |
 |------|---------|
-| **Prod tip** | **2.66.10** / **`82dc1017`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) |
-| **Ostatni CLOSE** | **WM-DRUK-OST-AUTO-GENERATE-01 S2 CLOSED** |
+| **Prod tip** | **2.66.13** / **`4f99a279`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · **PRODUCTION VERIFIED** |
+| **Ostatni CLOSE** | **WM-WORKER-SKETCH-01 CLOSED** (P0+P1) |
 | **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** · **WAITING FOR NEXT OWNER GO** |
 | **Active slice** | brak — NEXT EPIC = **NONE** |
 | **Backlog** | WIM-P1b · MOBILE-P2 · WM P4 · MS P3-B · SMART P3 — [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
@@ -47,6 +47,8 @@ Pełny stan: **tylko** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md).
 
 | Temat | Dokument |
 |-------|----------|
+| Worker Sketch EPIC | [`WM-WORKER-SKETCH-01-EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
+| OST appearance | [`APPEARANCE-01-CLOSEOUT`](../architecture/WM-DRUK-OST-APPEARANCE-01-CLOSEOUT.md) |
 | OST auto ZIP S2 | [`AUTO-GENERATE-01-CLOSEOUT`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) |
 | OST migration | [`MAPPING-MIGRATION-01-CLOSEOUT`](../architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-CLOSEOUT.md) |
 | OST-01 | [`WM-DRUK-OST-01-CLOSEOUT`](../architecture/WM-DRUK-OST-01-CLOSEOUT.md) |

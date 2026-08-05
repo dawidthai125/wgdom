@@ -1,58 +1,30 @@
 # AI ENTRY — oficjalny start sesji (WGDOM)
 
-> **ID:** AI-DOCS-PAYROLL-GUARD-02 · **MASTER:** CATALOG-COVERAGE-01 **P0e CLOSED** · **P0d-A CLOSED** · **P0c CLOSED** · **P0b CLOSED** · **P0a CLOSED** · SMART-PRICING-01 **P0 CLOSED** · MARKET-SYNC-01 **P1 CLOSED** · P0 **CLOSED** · CENY-MATERIAŁÓW-04 **P2 COMPLETE** · P1 **COMPLETE** · COST-BID-GAP-01 **CLOSED** · COST-MULTI **CLOSED** · Foundation Lib Phase 0 **COMPLETE**  
-> **STATUS:** **ACTIVE** · **JEDYNY oficjalny punkt wejścia dla AI**  
-> **Data:** 2026-07-30
+> **ID:** AI-DOCS-PAYROLL-GUARD-02 · tip / stan → [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
+> **STATUS:** **ACTIVE** · **proces** Entry (AUDIT→…→CLOSE) · **UTRZYMANIE**  
+> **Data:** 2026-07-31
 
 ```text
 ════════════════════════════════════════════════════════
 STOP. Nie zaczynaj IMPLEMENT od CURRENT-TASK, Continuity,
     losowego PAYROLL-*, ani historii czatu.
-MASTER_HANDOFF (stan) → ten plik → Safety Gate → dopiero kod.
+Cold start: MASTER-AI-HANDOFF → AI_QUICK_START → ten plik → Gate.
 Tip = wyłącznie docs/AI/09_PRODUCTION_BASELINE.md + version.json
-CATALOG-COVERAGE-01 P0e = CLOSED (2.65.91 · b69aeaae)
-  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md
-  → NEXT: SMART P1 / MS P2 / CM-04 P3 — Owner GO (nie auto-start)
-CATALOG-COVERAGE-01 P0d-A = CLOSED (2.65.90 · b9da6bff)
-  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md
-CATALOG-COVERAGE-01 P0c = CLOSED (2.65.89 · aebf9d09)
-  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md
-CATALOG-COVERAGE-01 P0b = CLOSED (2.65.88 · fb58f501)
-  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md
-CATALOG-COVERAGE-01 P0a = CLOSED (2.65.87 · 51a56f0d)
-  → SSOT: docs/architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md
-SMART-PRICING-01 P0 = CLOSED (2.65.86 · 9ca4a4e5)
-  → SSOT: docs/architecture/SMART-PRICING-01-P0-CLOSEOUT.md
-  → NEXT slice: P1 — Owner GO (nie auto-start)
-MARKET-SYNC-01 P1 = CLOSED (2.65.85 · 5326cf8c)
-  → SSOT: docs/architecture/MARKET-SYNC-01-P1-CLOSEOUT.md
-  → NEXT slice: P2 AUDIT — Owner GO (nie auto-start)
-MARKET-SYNC-01 P0 = CLOSED (2.65.84 · 273fb3e0)
-  → SSOT: docs/architecture/MARKET-SYNC-01-P0-CLOSEOUT.md
-CENY-MATERIAŁÓW-04 P2 = COMPLETE (P2-A · P2-B · Residual ROZ)
-  → SSOT: docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md
-CENY-MATERIAŁÓW-04 P1 = COMPLETE (P0 · P1-A · P1-B · P1-C)
-  → SSOT: docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md
-NEXT (wycena/katalog INNE) = CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT — tylko po Owner GO
-AI-COST-01 = EPIC COMPLETE · FROZEN · FIELD READY
-Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
+Stan projektu = docs/AI/MASTER-AI-HANDOFF.md (SSOT)
+Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 ════════════════════════════════════════════════════════
 ```
 
 **Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 
-**Stan projektu / NEXT EPICS (bez historii czatu):** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
-**CATALOG-COVERAGE-01 P0e CLOSED:** [`CATALOG-COVERAGE-01-P0e-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0e-CLOSEOUT.md)  
-**CATALOG-COVERAGE-01 P0d-A CLOSED:** [`CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0d-A-CLOSEOUT.md)  
-**CATALOG-COVERAGE-01 P0c CLOSED:** [`CATALOG-COVERAGE-01-P0c-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0c-CLOSEOUT.md)  
-**CATALOG-COVERAGE-01 P0b CLOSED:** [`CATALOG-COVERAGE-01-P0b-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0b-CLOSEOUT.md)  
-**CATALOG-COVERAGE-01 P0a CLOSED:** [`CATALOG-COVERAGE-01-P0a-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-P0a-CLOSEOUT.md)  
-**SMART-PRICING-01 P0 CLOSED:** [`SMART-PRICING-01-P0-CLOSEOUT.md`](../architecture/SMART-PRICING-01-P0-CLOSEOUT.md)  
-**MARKET-SYNC-01 P1 CLOSED:** [`MARKET-SYNC-01-P1-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P1-CLOSEOUT.md)  
-**MARKET-SYNC-01 P0 CLOSED:** [`MARKET-SYNC-01-P0-CLOSEOUT.md`](../architecture/MARKET-SYNC-01-P0-CLOSEOUT.md)  
-**CM-04 P2 COMPLETE:** [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md)  
-**CM-04 P1 COMPLETE:** [`CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
+**★★ Stan / WIP / flagi / NEXT:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
+**Quick Start (1 strona):** [`AI_QUICK_START.md`](AI_QUICK_START.md)  
+**Thin pointer:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
+**Tip:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
 **Kandydaci NEXT:** [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)  
+**Doc Detection CLOSED:** [`AI-DOC-DETECTION-CLOSE-01.md`](../architecture/AI-DOC-DETECTION-CLOSE-01.md)  
+**Catalog EPIC CLOSED:** [`CATALOG-COVERAGE-01-EPIC-CLOSEOUT.md`](../architecture/CATALOG-COVERAGE-01-EPIC-CLOSEOUT.md)  
+**Session archive (Catalog):** [`FINAL-AI-HANDOFF.md`](FINAL-AI-HANDOFF.md) — historyczny close Catalog; **nie** zastępuje MASTER-AI-HANDOFF  
 **Handoff po GAP-A:** [`SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 **Foundation Lib:** [`WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) — **nie** mylić z UI Foundation  
 **AI Cost (gdy temat wyceny/oferty):** [`WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md`](../architecture/WGDOM-AI-COST-01-ARCHITECTURE-FREEZE.md) · [`SSOT`](../architecture/WGDOM-AI-COST-01-SSOT.md) · [`AI-COST-02 Starting Point`](../architecture/WGDOM-AI-COST-02-STARTING-POINT.md)
@@ -69,22 +41,23 @@ Foundation Lib Phase 0 = COMPLETE (FND-01…05) · FND-06 BLOCKED
 ## 1. Obowiązkowa ścieżka czytania (kolejność)
 
 ```text
-0. MASTER_HANDOFF.md                    ← stan · baseline · NEXT (≤10 min)
-1. AI_ENTRY.md                          ← JESTEŚ TUTAJ
-2. PROJECT_HANDOFF.md                   ← zasady startu
-3. AI_MEMORY.md                         ← pamięć ≤5 min
-4. AI_DECISION_TREE.md                  ← routing decyzji
-5. PAYROLL_SAFETY_GATE.md               ← ★ GATE — odpowiedz TAK/NIE
-6. AI_PAYROLL_SAFETY_MANUAL.md          ← pack LP (gdy Gate wymaga)
-7. 02_ARCHITECTURE.md  lub  docs/ARCHITECTURE.md  (tematycznie)
-8. CURRENT-TASK.md                      ← dopiero tu: status sesji Ownera
-9. FEATURE_IMPLEMENTATION_CHECKLIST.md  ← przed KAŻDYM IMPLEMENT
-10. → IMPLEMENT (tylko po Gate PASS + Owner GO gdy wymagane)
+0. MASTER-AI-HANDOFF.md              ← ★★ stan świata (SSOT)
+0b. AI_QUICK_START.md                ← 1 strona
+1. AI_ENTRY.md                       ← JESTEŚ TUTAJ (proces)
+2. 09_PRODUCTION_BASELINE.md + version.json
+3. PROJECT_HANDOFF.md                ← zasady startu
+4. AI_MEMORY.md                      ← pamięć ≤5 min
+5. AI_DECISION_TREE.md               ← routing decyzji
+6. PAYROLL_SAFETY_GATE.md            ← ★ GATE — odpowiedz TAK/NIE
+7. AI_PAYROLL_SAFETY_MANUAL.md       ← pack LP (gdy Gate wymaga)
+8. ARCHITECTURE / tematyczny CLOSE   ← gdy FEATURE
+9. CURRENT-TASK.md                   ← status sesji Ownera
+10. FEATURE_IMPLEMENTATION_CHECKLIST.md
+11. → IMPLEMENT (tylko po Gate PASS + Owner GO gdy wymagane)
 ```
 
-**Temat CM-04 / ceny materiałów:** po kroku 0 przeczytaj [`CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) (+ P1 [`P1-CLOSEOUT`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)) — **nie** odtwarzaj historii czatu.
-
-**Zakaz skrótów:** pominięcie kroków 3–5 = naruszenie procesu.
+**MASTER_HANDOFF.md** = thin pointer → MASTER-AI-HANDOFF.  
+**FINAL-AI-HANDOFF.md** = archiwum sesji Catalog — **nie** tip bieżący.
 
 ---
 

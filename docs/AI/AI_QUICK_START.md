@@ -9,21 +9,21 @@
 ### 1. Gdzie jesteśmy?
 
 **Utrzymanie.** Stabilization Window **ACTIVE**. Protected Core **GREEN**.  
-**WAITING FOR NEXT OWNER GO.** Tip = **AUTO-GENERATE-01 S2 CLOSED** · OST AcroForm PASS · MAPPING/OST-01/WIM-P1a CLOSED.
+**WAITING FOR NEXT OWNER GO.** Tip = **WM-WORKER-SKETCH-01 CLOSED** (P0+P1) · **PRODUCTION VERIFIED**.
 
 ### 2. Co jest produkcją?
 
 | | |
 |--|--|
-| **Version** | **2.66.10** |
-| **Commit** | **`82dc1017`** |
-| **PV** | RELEASE GO · CDN może DEPLOY PROPAGATING |
+| **Version** | **2.66.13** |
+| **Commit** | **`4f99a279`** |
+| **PV** | **PRODUCTION VERIFIED** |
 | Tip SSOT | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `version.json` |
 
 ### 3. Co właśnie domknięto (istotne)?
 
-- **WM-DRUK-OST-AUTO-GENERATE-01** — S2 Hard Ensure · OST zawsze w ZIP · **CLOSED** · `82dc1017`  
-- **MAPPING-MIGRATION-01** · **OST-01** · **WIM-P1a** · AcroForm OST PASS  
+- **WM-WORKER-SKETCH-01** — P0+P1 · Worker Docs→Szkice · drag-release · **CLOSED** · `4f99a279` · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md)  
+- **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING** · **OST-01** · **WIM-P1a** · AcroForm PASS  
 
 ### 4. Co jest WIP / NEXT?
 
