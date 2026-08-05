@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-05 · tip UI **2.66.10** · **`82dc1017`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-DRUK-OST-AUTO-GENERATE-01 CLOSED** (S2 Hard Ensure) · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · WIM-P1a CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**Snapshot dokumentacji:** 2026-08-05 · tip UI **2.66.11** · **`4d33361e`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-DRUK-OST-APPEARANCE-01 CLOSED** · AUTO-GENERATE-01 CLOSED · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -26,8 +26,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.10** |
-| **Deploy tip commit (`main` / `version.json`)** | **`82dc1017`** · full **`82dc10178b6334d4dcd2674759b408ef7e2a5867`** · WM-DRUK-OST-AUTO-GENERATE-01 · tip **`82dc101`** · live CDN może lagować (DEPLOY PROPAGATING) |
+| **UI version (changelog / version.json)** | **2.66.11** |
+| **Deploy tip commit (`main` / `version.json`)** | **`4d33361e`** · full **`4d33361e7ece1e1d81a616e9cb4228d009035988`** · WM-DRUK-OST-APPEARANCE-01 · tip **`4d33361`** · live CDN może lagować (DEPLOY PROPAGATING) |
+| **Feature tip (WM-DRUK-OST-APPEARANCE-01)** | **CLOSED** · OST `/AP` dla JOB_STREET·BUILDING·APARTMENT · NeedAppearances unchanged · UI **2.66.11** · **`4d33361e`** · tip **`4d33361`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-APPEARANCE-01-CLOSEOUT.md) · [`OV`](../architecture/WM-DRUK-OST-APPEARANCE-01-OWNER-VERIFY.md) · [`PLAN`](../architecture/WM-DRUK-OST-APPEARANCE-01-PLAN.md) |
 | **Feature tip (WM-DRUK-OST-AUTO-GENERATE-01)** | **CLOSED** · **S2 Hard Ensure** · ACTIVE OST zawsze w ZIP Odbiory/ on-the-fly · bez Storage filled · UI **2.66.10** · **`82dc1017`** · tip **`82dc101`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) · [`PV`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-PRODUCTION-VERIFY.md) · [`DF`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-DESIGN-FREEZE.md) |
 | **Feature tip (WM-DRUK-OST-MAPPING-MIGRATION-01)** | **CLOSED** · **PRODUCTION VERIFIED** · migracja `pdfFieldMapping` OST · UI **2.66.09** · **`56069cce`** · tip **`56069cc`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-CLOSEOUT.md) · superseded tip UI by AUTO-GENERATE-01 |
 | **Feature tip (WM-DRUK-OST-01)** | **CLOSED** · **PRODUCTION VERIFIED** · slot OST `pdf_form` · upload-only · mapping-only · UI **2.66.08** · **`949333ed`** · tip **`949333e`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-01-CLOSEOUT.md) · superseded tip UI by MAPPING-MIGRATION-01 |

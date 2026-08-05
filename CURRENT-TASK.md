@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.10** / **`82dc1017`** · AUTO-GENERATE-01 S2) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.11** / **`4d33361e`** · APPEARANCE-01) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
@@ -11,11 +11,20 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.10** / **`82dc1017`** · RELEASE GO · CDN może DEPLOY PROPAGATING |
-| CLOSED | **WM-DRUK-OST-AUTO-GENERATE-01 S2** · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
-| AcroForm OST | **PASS** (pdf-lib · setText · save · round-trip) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF |
+| Production tip | **2.66.11** / **`4d33361e`** · RELEASE GO · CDN może DEPLOY PROPAGATING |
+| CLOSED | **WM-DRUK-OST-APPEARANCE-01** · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
+| AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA |
 | **NEXT** | **WAITING FOR NEXT OWNER GO** |
+
+## ★ WM-DRUK-OST-APPEARANCE-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip **2.66.11** / **`4d33361e`** |
+| **IN** | `/AP` Noto dla JOB_STREET·BUILDING·APARTMENT · noop form AP do save |
+| **OUT** | NeedAppearances · ZI · EM · full-form updateAppearances |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WM-DRUK-OST-APPEARANCE-01-CLOSEOUT.md) · [`OV`](docs/architecture/WM-DRUK-OST-APPEARANCE-01-OWNER-VERIFY.md) |
 
 ## ★ WM-DRUK-OST-AUTO-GENERATE-01 — **CLOSED**
 

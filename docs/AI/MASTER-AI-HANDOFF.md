@@ -11,7 +11,7 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.10 / 82dc1017 (AUTO-GENERATE-01 S2 CLOSED)
+Tip = 09 + version.json → 2.66.11 / 4d33361e (APPEARANCE-01 CLOSED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
@@ -22,9 +22,9 @@ WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.10** / commit **`82dc1017`** — **WM-DRUK-OST-AUTO-GENERATE-01 CLOSED** (S2 Hard Ensure: ACTIVE OST zawsze w ZIP on-the-fly). Live CDN może być **DEPLOY PROPAGATING** względem `version.json`.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.11** / commit **`4d33361e`** — **WM-DRUK-OST-APPEARANCE-01 CLOSED** (OST `/AP` adresu widoczny w Chrome). Live CDN może być **DEPLOY PROPAGATING** względem `version.json`.
 
-Ostatnie zamknięte: **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
