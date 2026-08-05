@@ -1,21 +1,110 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-03 (**WM-RYSUNKI-01 P3B CLOSED** · **EPIC CORE COMPLETE** · tip UI **2.66.02** / **`abe57f9a`**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.10** / **`82dc1017`** · AUTO-GENERATE-01 S2) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
-> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md)  
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ SESSION STATUS — **CLOSED** · **WAITING FOR NEXT OWNER GO**
+
+| | |
+|--|--|
+| Production tip | **2.66.10** / **`82dc1017`** · RELEASE GO · CDN może DEPLOY PROPAGATING |
+| CLOSED | **WM-DRUK-OST-AUTO-GENERATE-01 S2** · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
+| AcroForm OST | **PASS** (pdf-lib · setText · save · round-trip) |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF |
+| **NEXT** | **WAITING FOR NEXT OWNER GO** |
+
+## ★ WM-DRUK-OST-AUTO-GENERATE-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · tip **2.66.10** / **`82dc1017`** · S2 Hard Ensure |
+| **IN** | ACTIVE OST zawsze w ZIP Odbiory/ on-the-fly · checkbox locked |
+| **OUT** | nowy generator · Storage filled · cache · pdf-lib rewrite |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) · [`PV`](docs/architecture/WM-DRUK-OST-AUTO-GENERATE-01-PRODUCTION-VERIFY.md) · [`DF`](docs/architecture/WM-DRUK-OST-AUTO-GENERATE-01-DESIGN-FREEZE.md) |
+
+## ★ WM-DRUK-OST-MAPPING-MIGRATION-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.09** / **`56069cce`** |
+| **IN** | `migrateOstPdfFieldMapping` · bootstrap + sync · push gdy migratedCount > 0 |
+| **OUT** | generator · pdf-lib · ZI · Storage rewrite |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-CLOSEOUT.md) · [`PV`](docs/architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-PRODUCTION-VERIFY.md) |
+| **Następne** | tip UI supersedowany przez **AUTO-GENERATE-01** |
+
+## ★ WM-DRUK-OST-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.08** / **`949333ed`** · OST `pdf_form` · thin guard · upload-only |
+| **IN** | Slot OST · `generatePdfFormFromTemplate` · aliasy BUILDING/APARTMENT w `pdfFieldMapping` · smoke OST |
+| **OUT** | Tauron ZI · DOCX · EM · schematy · nowe SSOT keys · `resolveOst*` · content-stream replace |
+| **SSOT** | [`WM-DRUK-OST-01-CLOSEOUT.md`](docs/architecture/WM-DRUK-OST-01-CLOSEOUT.md) · [`PV`](docs/architecture/WM-DRUK-OST-01-PRODUCTION-VERIFY.md) · [`DF`](docs/architecture/WM-DRUK-OST-01-DESIGN-FREEZE.md) · [`AR`](docs/architecture/WM-DRUK-OST-01-ARCHITECTURE-REVIEW.md) |
+| **Następne** | tip UI supersedowany przez **MAPPING-MIGRATION-01** |
+
+## ★ WORKER-INSPECTOR-MOBILE-01 WIM-P1a — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.07** / **`3df0d24a`** · Capture & Privacy Worker |
+| **IN** | Aparat = HFI `capture` single (×3 LABELS) · Galeria multi KEEP · Paragon Aparat\|Plik/PDF · suppress via HFI |
+| **OUT** | Inspector · lightbox · chrome · viewport · Cloud · Payroll · HFI/privacy rewrite |
+| **SSOT** | [`WORKER-INSPECTOR-MOBILE-01-WIM-P1a-CLOSEOUT.md`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P1a-CLOSEOUT.md) · [`PV`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P1a-PRODUCTION-VERIFY.md) · [`DF`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P1a-DESIGN-FREEZE.md) · [`AR`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P1a-ARCHITECTURE-REVIEW.md) |
+| **Następne** | tip UI supersedowany przez **WM-DRUK-OST-01** · **WIM-P1b** tylko Owner **GO AUDIT** |
+
+## ★ WORKER-INSPECTOR-MOBILE-01 WIM-P0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.06** / **`1f04f559`** · Single Mobile Viewport Contract |
+| **IN** | `.worker-shell` / `.inspector-shell` = `var(--app-height, 100dvh)` · jeden height owner · Suspense height+maxHeight · REUSE `app-viewport.ts` |
+| **OUT** | Capture · lightbox · toolbar · privacy redesign · Cloud · Payroll · AI |
+| **SSOT** | [`WORKER-INSPECTOR-MOBILE-01-WIM-P0-CLOSEOUT.md`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P0-CLOSEOUT.md) · [`PV`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P0-PRODUCTION-VERIFY.md) · [`Device OV`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P0-DEVICE-OWNER-VERIFICATION.md) · [`DF`](docs/architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P0-DESIGN-FREEZE.md) |
+| **Następne** | tip UI supersedowany przez **WIM-P1a** · EPIC **WAITING FOR NEXT OWNER GO** |
+
+## ★ WM-RYSUNKI-MOBILE-01 MOBILE-P1 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.05** / **`59f09c1c`** · hit edit-only · 44×44 · modal · create sheet |
+| **IN** | `mode` edit/export (default export) · `data-hit` · `.touch-target` · toolbar scroll · selection · modal Tekst/Długość · create portal sheet · CTM REUSE |
+| **OUT** | JSON · Cloud · PDF/ZIP semantics · Ghost/P3B.1 · Payroll · landscape P2 |
+| **SSOT** | [`WM-RYSUNKI-MOBILE-01-P1-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-MOBILE-01-P1-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-MOBILE-01-P1-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-MOBILE-01-P1-OWNER-VERIFICATION.md) · [`P1-DF`](docs/architecture/WM-RYSUNKI-MOBILE-01-P1-DESIGN-FREEZE.md) |
+| **Następne** | tip UI supersedowany przez **WIM-P0** · **MOBILE-P2** tylko Owner GO AUDIT (osobny epic) |
+
+## ★ WM-RYSUNKI-MOBILE-01 MOBILE-P0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.04** / **`13ca099b`** · portal FS `<md` · gesture contract |
+| **IN** | `createPortal(document.body)` · scroll lock · touch-action · capture/cancel · leave≠end · zoom/pan/reset · safe-area / `--app-height` |
+| **OUT** | Hit overlays · 44px · prompt/create menu · PDF/ZIP · Cloud · JSON · Ghost/P3B.1 · landscape P2 |
+| **SSOT** | [`WM-RYSUNKI-MOBILE-01-P0-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-MOBILE-01-P0-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-MOBILE-01-P0-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-MOBILE-01-P0-OWNER-VERIFICATION.md) · [`DF`](docs/architecture/WM-RYSUNKI-MOBILE-01-DESIGN-FREEZE.md) |
+| **Następne** | tip UI supersedowany przez **MOBILE-P1** · **MOBILE-P2** tylko Owner GO AUDIT |
+
+## ★ WM-RYSUNKI-01 P3B.1 — **CLOSED** (CONTINUOUS DRAWING UX FIX)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.03** / **`77f18b78`** · STOP po wall · tool sticky |
+| **IN** | `clearWallPreview()` po wall SUCCESS · Ghost/Length/Grid OFF · nowa ściana = nowy 1. klik · Guide/hint |
+| **OUT** | JSON · schema · PDF · ZIP · Cloud · Undo · AppSettings · P4 · auto-łańcuch `setLineStart(end)` |
+| **SSOT** | [`WM-RYSUNKI-01-P3B1-CONTINUOUS-DRAWING-UX-FIX-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3B1-CONTINUOUS-DRAWING-UX-FIX-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3B1-CONTINUOUS-DRAWING-UX-FIX-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3B1-CONTINUOUS-DRAWING-UX-FIX-OWNER-VERIFICATION.md) |
+| **Następne** | tip UI supersedowany przez **MOBILE-P0** · **P4** tylko Owner GO AUDIT |
 
 ## ★ WM-RYSUNKI-01 P3B — **CLOSED** (INTERACTIVE DRAWING UX)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.02** / **`abe57f9a`** · Ghost · continuous · ESC · live length/grid |
-| **IN** | `previewWall` Ghost · `wall-preview.ts` · continuous wall · ESC scoped · rAF · Ghost OUT PDF/ZIP/JSON |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip historyczny **2.66.02** / **`abe57f9a`** · Ghost · (chain SUPERSEDED by P3B.1) |
+| **IN** | `previewWall` Ghost · `wall-preview.ts` · ESC scoped · rAF · Ghost OUT PDF/ZIP/JSON |
 | **OUT** | SHIFT kąty · P4 · CAD · schema 2 · Cloud merge · Payroll · Ghost w export |
 | **SSOT** | [`WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-OWNER-VERIFICATION.md) |
-| **Następne** | **P4** — tylko Owner **GO AUDIT** · **WAITING FOR NEXT OWNER GO** |
+| **Następne** | **P3B.1 CLOSED** · tip **2.66.03** · **P4** tylko Owner GO AUDIT |
 
 ## ★ WM-RYSUNKI-01 P3A — **CLOSED** (UX POLISH)
 
@@ -25,7 +114,7 @@
 | **IN** | wentylacja W · drzwi P/W · gap render-time · popup Długość · rozdzielnia R · SVG→PDF→ZIP SSOT |
 | **OUT** | P4 · punkty · CAD · schema 2 · Cloud merge · Payroll |
 | **SSOT** | [`WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3A-UX-POLISH-OWNER-VERIFICATION.md) |
-| **Następne** | **P3B CLOSED** · tip **2.66.02** · **P4** tylko Owner GO AUDIT |
+| **Następne** | **P3B+P3B.1 CLOSED** · tip **2.66.03** · **P4** tylko Owner GO AUDIT |
 
 ## ★ WM-RYSUNKI-01 P3 — **CLOSED** · **EPIC CORE COMPLETE**
 
@@ -35,7 +124,7 @@
 | **IN** | checkbox „Dołącz rysunki” · Final only · reuse `generateDrawingPdf` · manifest/fingerprint · fail-loud · `_{shortId}` · audit `drawing_zip_included` |
 | **OUT** | nowy ZIP/PDF builder · Cloud drawings merge · Payroll · Points · CAD/DXF |
 | **SSOT** | [`WM-RYSUNKI-01-P3-CLOSEOUT.md`](docs/architecture/WM-RYSUNKI-01-P3-CLOSEOUT.md) · [`PV`](docs/architecture/WM-RYSUNKI-01-P3-PRODUCTION-VERIFY.md) · [`OV`](docs/architecture/WM-RYSUNKI-01-P3-OWNER-VERIFICATION.md) |
-| **Następne** | **P3A+P3B CLOSED** · tip **2.66.02** · **P4** tylko Owner GO AUDIT |
+| **Następne** | **P3A+P3B+P3B.1 CLOSED** · tip **2.66.03** · **P4** tylko Owner GO AUDIT |
 
 ## ★ WM-RYSUNKI-01 P2 — **CLOSED**
 

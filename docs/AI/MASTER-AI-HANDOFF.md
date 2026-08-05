@@ -3,7 +3,7 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-03  
+> **Data:** 2026-08-04  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
 > **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**  
@@ -11,24 +11,22 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.02 / abe57f9a (WM-RYSUNKI-01 P3B CLOSED · EPIC CORE COMPLETE)
+Tip = 09 + version.json → 2.66.10 / 82dc1017 (AUTO-GENERATE-01 S2 CLOSED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 STABILIZATION WINDOW ACTIVE
-Nowy EPIC / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
+DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
+WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip produkcji: **UI 2.66.02** / commit **`abe57f9a`** (branch **`main`**) — **WM-RYSUNKI-01 P3B CLOSED** · **EPIC CORE COMPLETE** (P0–P3) · polish P3A+P3B · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.10** / commit **`82dc1017`** — **WM-DRUK-OST-AUTO-GENERATE-01 CLOSED** (S2 Hard Ensure: ACTIVE OST zawsze w ZIP on-the-fly). Live CDN może być **DEPLOY PROPAGATING** względem `version.json`.
 
-Ostatnie zamknięte: **WM-RYSUNKI-01 P3B** (interactive Ghost · `abe57f9a`) · **P3A** · **P3** (ZIP · CORE) · **P2** · **P1B** · **P1** · **P0** · **AI-COST-02 I3 FULLY CLOSED** · **MARKET-SYNC-01 P3-A CLOSED** · **MS P2** · **SMART P0–P2** · **GLOBAL-UX-02**.  
-**WM-RYSUNKI-01 P4** = **BACKLOG** — **zakaz** bez Owner GO → AUDIT.  
-**MARKET-SYNC-01 P3** (EPIC) = **WAITING** — P3-B / live **tylko** po Owner GO → AUDIT → DF (Legal Gate nadal **OPEN**).  
-**SMART-PRICING-01 P3** / **CM-04 P3** / **Wave 2** = **zakaz** bez Owner GO AUDIT.  
-**Bid Time-Load Guard** = **tylko WIP lokalny** (OV PASS, **nie** na prod).  
-Backlog **bez** Owner GO = **zakaz IMPLEMENT**. **NEXT EPIC started = NONE**.
+Ostatnie zamknięte: **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+**OST-03 / XFA / cache filled = zakaz.**  
+Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
 
@@ -40,9 +38,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.02** |
-| **Commit** | **`abe57f9a`** (full `abe57f9a178255578484ad586b6e85f8e28890eb`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = **WM-RYSUNKI-01 P3B CLOSED** · **EPIC CORE COMPLETE** · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.10** |
+| **Commit** | **`82dc1017`** (full `82dc10178b6334d4dcd2674759b408ef7e2a5867`) |
+| **Status** | tip = **AUTO-GENERATE-01 CLOSED** · **WAITING FOR NEXT OWNER GO** · CDN może lagować |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
 | **Tryb** | **UTRZYMANIE** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
@@ -74,7 +72,15 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
-| **WM-RYSUNKI-01 P3B** | 2.66.02 | `abe57f9a` | **CLOSED** · interactive Ghost | **YES** · Ghost · continuous · ESC · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) |
+| **WM-DRUK-OST-AUTO-GENERATE-01** | 2.66.10 | `82dc1017` | **CLOSED** · S2 Hard Ensure OST w ZIP | **RELEASE GO** · CDN propagating · [`CLOSEOUT`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) |
+| **WM-DRUK-OST-MAPPING-MIGRATION-01** | 2.66.09 | `56069cce` | **CLOSED** · migrate OST pdfFieldMapping | **YES** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-CLOSEOUT.md) |
+| **WM-DRUK-OST-01** | 2.66.08 | `949333ed` | **CLOSED** · OST pdf_form · thin guard · upload-only | **YES** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-01-CLOSEOUT.md) |
+| **WORKER-INSPECTOR-MOBILE-01 WIM-P1a** | 2.66.07 | `3df0d24a` | **CLOSED** · Capture & Privacy Worker | **YES** · [`CLOSEOUT`](../architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P1a-CLOSEOUT.md) |
+| **WORKER-INSPECTOR-MOBILE-01 WIM-P0** | 2.66.06 | `1f04f559` | **CLOSED** · viewport SSOT Worker+Inspector | **YES** · [`CLOSEOUT`](../architecture/WORKER-INSPECTOR-MOBILE-01-WIM-P0-CLOSEOUT.md) |
+| **WM-RYSUNKI-MOBILE-01 MOBILE-P1** | 2.66.05 | `59f09c1c` | **CLOSED** · hit · 44px · modal · create | **YES** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-MOBILE-01-P1-CLOSEOUT.md) |
+| **WM-RYSUNKI-MOBILE-01 MOBILE-P0** | 2.66.04 | `13ca099b` | **CLOSED** · portal FS · gesty | **YES** · [`CLOSEOUT`](../architecture/WM-RYSUNKI-MOBILE-01-P0-CLOSEOUT.md) |
+| **WM-RYSUNKI-01 P3B.1** | 2.66.03 | `77f18b78` | **CLOSED** · continuous UX fix | **YES** · STOP po wall · tool sticky · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3B1-CONTINUOUS-DRAWING-UX-FIX-CLOSEOUT.md) |
+| **WM-RYSUNKI-01 P3B** | 2.66.02 | `abe57f9a` | **CLOSED** · interactive Ghost | **YES** · Ghost · continuous (SUPERSEDED by P3B.1) · ESC · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT.md) |
 | **WM-RYSUNKI-01 P3A** | 2.66.01 | `20e5c5a3` | **CLOSED** · polish po CORE | **YES** · UX W/P/W/R · gap · wymiar · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3A-UX-POLISH-CLOSEOUT.md) |
 | **WM-RYSUNKI-01 P3** | 2.66.00 | `8d4abcc9` | **CLOSED** · **EPIC CORE COMPLETE** | **YES** · ZIP Rysunki · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P3-CLOSEOUT.md) |
 | **WM-RYSUNKI-01 P2** | 2.65.99 | `4e84f994` | **CLOSED** | **YES** · PDF export · [`CLOSEOUT`](../architecture/WM-RYSUNKI-01-P2-CLOSEOUT.md) |
@@ -114,11 +120,11 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **WM-RYSUNKI-01 P3B CLOSED** · **2.66.02** / **`abe57f9a`** · **EPIC CORE COMPLETE** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
-| **WM-RYSUNKI-01** | **P0+P1+P1B+P2+P3+P3A+P3B CLOSED** · **CORE COMPLETE** · **P4 BACKLOG** — tylko Owner GO → AUDIT |
-| **MARKET-SYNC-01 P3** | **P3-A CLOSED** · EPIC **WAITING** — P3-B/live **tylko** Owner GO → AUDIT → DF (Legal **OPEN**) |
-| **SMART-PRICING-01 P3** | **ZAKAZ** bez Owner GO AUDIT |
-| **Backlog (bez GO)** | CM-04 P3 (INNE) AUDIT · Catalog Wave 2 · GAP-B / TP200B · AI v2 P1 Explain/History |
+| **Production** | Tip = **AUTO-GENERATE-01 CLOSED** · **2.66.10** / **`82dc1017`** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **WM-DRUK-OST** | **01 + MIGRATION + AUTO-GENERATE S2 CLOSED** · AcroForm PASS · **OST-03 DO NOT IMPLEMENT** |
+| **WORKER-INSPECTOR-MOBILE-01** | **WIM-P0+P1a CLOSED** · **WIM-P1b WAITING** — tylko Owner GO → AUDIT |
+| **WM-RYSUNKI-MOBILE-01** | **MOBILE-P0+P1 CLOSED** · **MOBILE-P2 WAITING** |
+| **WM-RYSUNKI-01** | **CORE COMPLETE** · **P4 BACKLOG** |
 | **Pierwszy krok po Owner GO** | zawsze **AUDIT** → PLAN → DF → AR → GO → IMPLEMENT |
 
 Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
@@ -131,7 +137,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.02** Rysunki P3B) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.10** AUTO-GENERATE-01) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---
@@ -140,7 +146,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Flaga LS | Default | Status feature | Prod / local |
 |----------|---------|----------------|--------------|
-| `kw-wm-rysunki-01` | **OFF** (LS fallback) | P0+P1+P1B+P2+P3+P3A+P3B **CLOSED** · CORE COMPLETE · SSOT = `AppSettings.wmRysunkiEnabled` default OFF | **prod** (OFF) |
+| `kw-wm-rysunki-01` | **OFF** (LS fallback) | P0+P1+P1B+P2+P3+P3A+P3B+P3B.1 **CLOSED** · CORE COMPLETE · SSOT = `AppSettings.wmRysunkiEnabled` default OFF | **prod** (OFF) |
 | `kw-market-sync-01-p3` | **OFF** | P3-A **CLOSED** · shipped mock | **prod** (OFF) · Legal Gate **OPEN** |
 | `kw-market-sync-01-p2` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) |
 | `kw-ai-cost-02-i3-competitiveness` | **OFF** | FULLY CLOSED · shipped | **prod** (OFF) · UI ⇒ 02-B ON |
@@ -161,6 +167,7 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 | ID / temat | Status |
 |------------|--------|
+| **OST PDF fill round-trip** | **KNOWN LIMIT** — LiveCycle/XFA/Encrypt · pdf-lib unsupported · fix = **ACROFORM-01** (nowy PDF) · **nie** OST-03 |
 | CI E2E / TEST-INFRA / Mobile (residual Doc Detection) | **Open** — nie diagnozowano w Doc Detection CLOSE |
 | TEUX6 / jobs-mobile (AI v2 Confidence/Scope) | **UNRELATED / Open** (Owner accepted) |
 | FND-06 Observability | **BLOCKED** — brak Implementation Spec |
@@ -180,7 +187,8 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 6. Commit/push **tylko** na polecenie Ownera · **nie** `git add -A`.  
 7. Stabilization Window: **nie** auto-start EPIC.  
 8. Stan po fali CLOSE: **WAITING FOR NEXT OWNER GO**.  
-9. MS P3-B: Owner GO → AUDIT → DF → … · Legal PASS wymagany dla live.
+9. MS P3-B: Owner GO → AUDIT → DF → … · Legal PASS wymagany dla live.  
+10. **OST:** nie patchować LiveCycle/XFA przez pdf-lib · **ACROFORM-01** = nowy formularz · **OST-03 DO NOT IMPLEMENT**.
 
 ---
 
@@ -191,6 +199,7 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 - **NO** `vercel deploy` / force-push `main`.  
 - **NO** podłączania app do `wgdom-foundation` bez osobnego EPIC.  
 - **NO** przebudowy AI-COST-01 / merge payroll bez nowego DF + GO.  
+- **NO** WM-DRUK-OST-03 / XFA parser / obejść pdf-lib.  
 - Working tree często brudny — stage **jawny** allowlist.
 
 ---
@@ -199,14 +208,9 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 **WAITING FOR NEXT OWNER GO** — brak auto-NEXT.
 
-Rekomendacje (wymagają **Owner GO** → **AUDIT**):
+Rekomendacje (wymagają **Owner GO** → **AUDIT**): WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT.
 
-1. **WM-RYSUNKI-01 P4** (punkty — wg EPIC DF) · **MARKET-SYNC-01 P3-B** · **SMART P3** · **CM-04 P3** · **Catalog Wave 2**, **albo**  
-2. **GAP-B / TP200B** (alternatywy), **albo**  
-3. **Bid Time-Load Guard** — izolowany GO COMMIT / PUSH (WIP gotowy OV), **albo**  
-4. Residual CI triage (osobny brief — nie mieszać z FEATURE).
-
-**Zakaz:** auto-start P4 Rysunki · P3-B · live bez Legal PASS.
+**Zakaz:** auto-start **OST-03** · XFA · cache filled · WIM-P1b · MOBILE-P2 bez GO.
 
 ---
 
@@ -214,10 +218,9 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**):
 
 ```text
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.02 / abe57f9a)
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.10 / 82dc1017 gdy CDN OK)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
-[ ] Tematyczny CLOSE/DF (jeśli FEATURE)
 [ ] Owner GO gdy wymagane
 [ ] Nie czytaj historii czatu / nie zgaduj tipu
 ```
@@ -235,7 +238,8 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**):
    · Doc Detection → AI-DOC-DETECTION-CLOSE-01
    · AI v2         → AI-V2-P0-BASELINE-UPDATE-01
    · Catalog       → CATALOG-COVERAGE-01-EPIC-CLOSEOUT
-   · WM Rysunki   → WM-RYSUNKI-01-P3B-INTERACTIVE-DRAWING-CLOSEOUT (P0–P3 CORE · P3A+P3B CLOSED · P4 backlog)
+   · Worker/Inspector mobile → WORKER-INSPECTOR-MOBILE-01-WIM-P1a-CLOSEOUT (tip) + WIM-P0-CLOSEOUT
+   · WM Rysunki   → WM-RYSUNKI-MOBILE-01-P0-CLOSEOUT (MOBILE-P0 CLOSED) + WM-RYSUNKI-01-P3B1-… (desktop CORE · P4 backlog)
    · Bid Guard WIP → AI-V2-P0.1-* (tylko local)
    · MS P3        → MARKET-SYNC-01-P3-AUDIT / DF / OV (P3-A CLOSED)
    · NEXT backlog  → NEXT-EPIC-CANDIDATES
@@ -261,6 +265,8 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**):
 | SMART | P0–P2 **CLOSED** · **P3 backlog** |
 | GLOBAL-UX-02 | **FULLY CLOSED** · feature **`3385d9f`** · S9 DEFERRED |
 | MS (Market Sync) | P0–P2 **FULLY CLOSED** (P2 tip **`18830c1`**) · **P3-A CLOSED** (`7325c773`) · P3 EPIC **WAITING** (P3-B · Legal OPEN) |
-| **WM-RYSUNKI-01** | **P0+P1+P1B+P2+P3+P3A+P3B CLOSED** · **EPIC CORE COMPLETE** · tip **`abe57f9a`** / **2.66.02** · Ghost interactive · UX polish · ZIP Rysunki · AppSettings OFF · **P4 BACKLOG** |
+| **WM-RYSUNKI-MOBILE-01** | **MOBILE-P0+P1 CLOSED** · tip historyczny **`59f09c1c`** / **2.66.05** · **MOBILE-P2 WAITING** |
+| **WORKER-INSPECTOR-MOBILE-01** | **WIM-P0 CLOSED** · tip **`1f04f559`** / **2.66.06** · viewport SSOT · **WIM-P1a WAITING** |
+| **WM-RYSUNKI-01** | **P0+P1+P1B+P2+P3+P3A+P3B+P3B.1 CLOSED** · **EPIC CORE COMPLETE** · tip historyczny **`77f18b78`** / **2.66.03** · continuous UX fix · Ghost · UX polish · ZIP Rysunki · AppSettings OFF · **P4 BACKLOG** |
 | AI-COST-02 | 02-A · 02-B · **I3 FULLY CLOSED** · dalsze backlog |
 | CM (Ceny materiałów) | 01 + 04 P1/P2 **CLOSED** · **P3 AUDIT backlog** |
