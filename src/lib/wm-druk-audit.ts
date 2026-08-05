@@ -26,6 +26,8 @@ export type WmDrukAuditAction =
   | "drawing_duplicated"
   | "drawing_pdf_exported"
   | "drawing_zip_included"
+  | "drawing_finalized"
+  | "drawing_unfinalized"
   | "sketch_created"
   | "sketch_submitted"
   | "sketch_resubmitted"
@@ -67,6 +69,8 @@ export const WM_DRUK_AUDIT_ACTION_LABEL_PL: Record<WmDrukAuditAction, string> = 
   drawing_duplicated: "Duplikacja rysunku",
   drawing_pdf_exported: "Eksport PDF rysunku",
   drawing_zip_included: "Rysunki w paczce ZIP",
+  drawing_finalized: "Oznaczono rysunek jako Finalny",
+  drawing_unfinalized: "Oznaczono rysunek jako Roboczy",
   sketch_created: "Utworzono szkic pracownika",
   sketch_submitted: "Przesłano szkic do weryfikacji",
   sketch_resubmitted: "Ponownie przesłano szkic",

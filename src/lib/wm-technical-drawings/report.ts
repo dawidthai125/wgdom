@@ -1,6 +1,10 @@
 /** WM-RYSUNKI-01 — CRUD / upsert / hard-delete / duplicate (MR-02) · P1 dup elementów. */
 
-import { parseWmTechnicalDrawing, validateDrawingForFinal } from "@/lib/wm-technical-drawings/normalize";
+import {
+  isDrawingSoftDeleted,
+  parseWmTechnicalDrawing,
+  validateDrawingForFinal,
+} from "@/lib/wm-technical-drawings/normalize";
 import type { DrawingDomainReport, DrawingObject, WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
 export function emptyDrawingDomainReport(): DrawingDomainReport {
@@ -169,6 +173,20 @@ export function setDrawingFinal(drawing: WmTechnicalDrawing): {
     ok: true,
     missing: [],
     drawing: touchDrawing(drawing, { status: "final" }),
+  };
+}
+
+/** WM-ODBIORY-RYSUNKI-FINAL-UNDO-01: final → draft. Tylko DrawingStatus — bez placement/workflow/Publication. */
+export function unsetDrawingFinal(drawing: WmTechnicalDrawing): {
+  ok: boolean;
+  drawing?: WmTechnicalDrawing;
+  reason?: "not_final" | "soft_deleted";
+} {
+  if (isDrawingSoftDeleted(drawing)) return { ok: false, reason: "soft_deleted" };
+  if (drawing.status !== "final") return { ok: false, reason: "not_final" };
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, { status: "draft" }),
   };
 }
 

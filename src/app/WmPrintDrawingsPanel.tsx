@@ -8,11 +8,13 @@ import { useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
+import type { AdminSession } from "@/lib/admin-auth";
 import { WmPrintDrawingEditor } from "@/app/WmPrintDrawingEditor";
 import { getDrawingById, filterDrawingsForRysunkiTab } from "@/lib/wm-technical-drawings/merge";
 import {
   duplicateDrawing,
   setDrawingFinal,
+  unsetDrawingFinal,
   upsertDrawing,
 } from "@/lib/wm-technical-drawings/report";
 import { softDeleteDrawing } from "@/lib/wm-technical-drawings/workflow";
@@ -66,6 +68,7 @@ export function WmPrintDrawingsPanel({
   onCommitDrawings,
   onRecordWmDrukAudit,
   initialJobId,
+  adminSession,
 }: {
   jobs: Job[];
   drawings: WmTechnicalDrawing[];
@@ -73,6 +76,7 @@ export function WmPrintDrawingsPanel({
   onCommitDrawings: (next?: WmTechnicalDrawing[]) => void;
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
   initialJobId?: string | null;
+  adminSession?: AdminSession | null;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -166,9 +170,9 @@ export function WmPrintDrawingsPanel({
     if (!window.confirm(`Usunąć rysunek „${selected.title}”?`)) return;
     const result = softDeleteDrawing(selected, {
       expectedRevisionNumber: selected.revisionNumber,
-      userId: "admin",
-      role: "admin",
-      name: "Administrator",
+      userId: adminSession?.id ?? "unknown",
+      role: adminSession?.role ?? "admin",
+      name: adminSession?.displayName ?? "Administrator",
     });
     if (!result.ok) {
       toast.error(result.message);
@@ -202,7 +206,37 @@ export function WmPrintDrawingsPanel({
     }
     const { drawings: next } = upsertDrawing(drawings, result.drawing);
     persist(next);
-    toast.success("Oznaczono jako finalny");
+    onRecordWmDrukAudit?.({
+      module: "drawings",
+      action: "drawing_finalized",
+      summary: `Finalny: ${selected.title}`,
+      drawingId: selected.id,
+      jobId: selected.jobId,
+    });
+    toast.success("Oznaczono jako Finalny");
+  };
+
+  const handleUnsetFinal = () => {
+    if (!selected) return;
+    const result = unsetDrawingFinal(selected);
+    if (!result.ok || !result.drawing) {
+      toast.error(
+        result.reason === "soft_deleted"
+          ? "Rysunek został usunięty."
+          : "Rysunek nie jest Finalny.",
+      );
+      return;
+    }
+    const { drawings: next } = upsertDrawing(drawings, result.drawing);
+    persist(next);
+    onRecordWmDrukAudit?.({
+      module: "drawings",
+      action: "drawing_unfinalized",
+      summary: `Roboczy: ${selected.title}`,
+      drawingId: selected.id,
+      jobId: selected.jobId,
+    });
+    toast.success("Oznaczono jako Roboczy");
   };
 
   const handleEditorChange = (diagram: WmTechnicalDrawing) => {
@@ -230,14 +264,23 @@ export function WmPrintDrawingsPanel({
         {DRAWING_STATUS_LABELS[selected.status]}
       </span>
       <div className="ml-auto flex flex-wrap gap-1">
-        {selected.status === "draft" && (
+        {selected.status === "draft" ? (
           <button
             type="button"
             onClick={handleMarkFinal}
             className="touch-target gap-1 px-2 rounded-md text-xs border border-border hover:bg-secondary"
-            aria-label="Oznacz jako Final"
+            aria-label="Oznacz jako Finalny"
           >
-            <CheckCircle2 size={14} /> Final
+            <CheckCircle2 size={14} /> {DRAWING_STATUS_LABELS.final}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleUnsetFinal}
+            className="touch-target gap-1 px-2 rounded-md text-xs border border-border hover:bg-secondary"
+            aria-label="Oznacz jako Roboczy"
+          >
+            {DRAWING_STATUS_LABELS.draft}
           </button>
         )}
         <button

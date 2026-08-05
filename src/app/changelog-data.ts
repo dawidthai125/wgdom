@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.17",
+    label: "Rysunki — cofnięcie Finalnego",
+    items: [
+      {
+        type: "fix",
+        text: "Odbiory→Rysunki: status Finalny↔Roboczy (toggle). Usunięcie Finalnego wymaga najpierw Roboczy (komunikat bez „demote”). Soft-delete używa roli z sesji admina.",
+      },
+      {
+        type: "improve",
+        text: "Audit WM Druk: drawing_finalized · drawing_unfinalized. ZIP Odbiory przelicza listę Final po cofnięciu statusu.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.16",
     label: "Szkice — Publication Workflow (placement)",
     items: [

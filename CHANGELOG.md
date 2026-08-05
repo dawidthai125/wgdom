@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.17 — Rysunki — cofnięcie Finalnego (2026-08-05)
+
+- **fix:** Odbiory→Rysunki — toggle Finalny↔Roboczy (`unsetDrawingFinal`); delete Final wymaga Roboczy; ACL soft-delete z `adminSession`
+- **improve:** audit `drawing_finalized` / `drawing_unfinalized`; ZIP live count po demote
+
 ## 2.66.16 — Szkice — Publication Workflow placement (2026-08-05)
 
 - **new:** Admin decyzje zamiast Accept — Usuń · Dokumentacja · Odbiory · Both (`placement`); promote-copy 1:1; Dashboard OUT po decyzji; A2 NO TOUCH

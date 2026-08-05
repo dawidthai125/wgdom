@@ -378,7 +378,7 @@ export function softDeleteDrawing(
     return {
       ok: false,
       reason: "forbidden",
-      message: "Finalny rysunek: najpierw demote albo soft-delete SA.",
+      message: "Najpierw oznacz rysunek jako Roboczy.",
     };
   }
   const now = new Date().toISOString();

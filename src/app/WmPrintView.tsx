@@ -1344,6 +1344,7 @@ export function WmPrintView({
             onCommitDrawings={onCommitWmTechnicalDrawings}
             onRecordWmDrukAudit={onRecordWmDrukAudit}
             initialJobId={initialJobId}
+            adminSession={adminSession}
           />
         )}
 
