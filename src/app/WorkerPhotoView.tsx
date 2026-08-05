@@ -74,6 +74,7 @@ import {
   resolveWorkerContractDateLabel,
 } from "@/app/app-domain";
 import { JobReportForm } from "@/app/JobReportForm";
+import { WorkerJobSketchesSection } from "@/app/WorkerJobSketchesSection";
 import { WorkerJobProgressFlow } from "@/app/WorkerJobProgressFlow";
 import { WorkerEducationBanner, WorkerStepCta } from "@/app/WorkerStepCta";
 import { computeWorkerJobProgress } from "@/lib/worker-job-progress";
@@ -83,6 +84,9 @@ import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } fro
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
+import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
+import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
+import type { AppSettings } from "@/lib/app-settings";
 
 export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: string; workerId: string; onLogout: () => void }) {
   const [jobs, setJobsLocal] = useLocalStorage<Job[]>("kw-jobs", []);
@@ -112,6 +116,14 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   const [receiptUploading, setReceiptUploading] = useState(false);
   const [receiptError, setReceiptError] = useState("");
   const privacyShield = useWorkerPrivacyShield(true);
+  const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
+  const sketchesEnabled = isWmWorkerSketchEnabled(appSettings);
+
+  useEffect(() => {
+    syncAppSettingsFromCloud()
+      .then((s) => setAppSettings(s))
+      .catch(() => {});
+  }, []);
 
   const currentWeekEmp = useMemo(
     () => findWeekEmployeeForWorker(weekEmployees, workerId, workerName),
@@ -1445,6 +1457,13 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
             </div>
 
             <div id="worker-section-documentation" className="scroll-mt-4 space-y-4">
+            <WorkerJobSketchesSection
+              jobId={selectedJob.id}
+              jobAddress={selectedJob.address || ""}
+              workerId={workerId}
+              workerName={workerName}
+              enabled={sketchesEnabled}
+            />
             {myReports.length > 0 && (
               <div>
                 <p className="text-sm font-semibold mb-3">Twoja dokumentacja ({myReports.length})</p>

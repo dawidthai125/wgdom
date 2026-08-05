@@ -48,7 +48,9 @@ export function listFinalDrawingsForJob(
   drawings: WmTechnicalDrawing[],
   jobId: string,
 ): WmTechnicalDrawing[] {
-  const finals = filterDrawingsForJob(drawings, jobId).filter((d) => d.status === "final");
+  const finals = filterDrawingsForJob(drawings, jobId).filter(
+    (d) => d.status === "final" && !d.deletedAt,
+  );
   return sortFinalDrawingsForZip(finals);
 }
 

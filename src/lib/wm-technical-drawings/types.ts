@@ -9,6 +9,63 @@ export const DRAWING_SYMBOL_LIBRARY_VERSION = 3 as const;
 
 export type DrawingStatus = "draft" | "final";
 
+/** WM-WORKER-SKETCH-01 — oś procesu (≠ DrawingStatus paczki). */
+export type SketchWorkflowStatus =
+  | "worker_draft"
+  | "submitted"
+  | "in_review"
+  | "needs_changes"
+  | "accepted";
+
+export type SketchOrigin = "worker" | "inspector" | "admin" | "wm_druk";
+
+export type SketchRevisionAction =
+  | "create"
+  | "autosave_checkpoint"
+  | "submit"
+  | "review_save"
+  | "needs_changes"
+  | "resubmit"
+  | "accept"
+  | "promote"
+  | "demote"
+  | "review_open"
+  | "undelete";
+
+export type SketchActorRole = "worker" | "inspector" | "admin" | "super_admin" | "moderator";
+
+export interface SketchRevisionMeta {
+  revisionNumber: number;
+  at: string;
+  byUserId: string;
+  byRole: string;
+  byName?: string;
+  action: SketchRevisionAction;
+}
+
+export interface SketchEditLock {
+  holderUserId: string;
+  holderRole: string;
+  holderName: string;
+  deviceId?: string;
+  acquiredAt: string;
+  expiresAt: string;
+}
+
+export interface SketchComment {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  authorUserId: string;
+  authorRole: string;
+  authorName: string;
+  createdAt: string;
+  resolvedAt?: string;
+  resolvedByUserId?: string;
+  anchorObjectId?: string;
+}
+
 export type DrawingLinkStatus = "linked" | "detached" | "manual";
 
 export type DrawingPageFormat = "A4" | "A3";
@@ -60,7 +117,36 @@ export const DRAWING_P3A_OBJECT_TYPES: DrawingObjectType[] = [
 
 export const DRAWING_STATUSES: DrawingStatus[] = ["draft", "final"];
 
+export const SKETCH_WORKFLOW_STATUSES: SketchWorkflowStatus[] = [
+  "worker_draft",
+  "submitted",
+  "in_review",
+  "needs_changes",
+  "accepted",
+];
+
+export const SKETCH_ORIGINS: SketchOrigin[] = ["worker", "inspector", "admin", "wm_druk"];
+
+export const SKETCH_REVISION_ACTIONS: SketchRevisionAction[] = [
+  "create",
+  "autosave_checkpoint",
+  "submit",
+  "review_save",
+  "needs_changes",
+  "resubmit",
+  "accept",
+  "promote",
+  "demote",
+  "review_open",
+  "undelete",
+];
+
 export const DRAWING_LINK_STATUSES: DrawingLinkStatus[] = ["linked", "detached", "manual"];
+
+/** Soft-warn / caps — WM-WORKER-SKETCH-01. */
+export const SKETCH_REVISION_META_CAP = 20;
+export const SKETCH_PHOTO_IDS_CAP = 12;
+export const SKETCH_COMMENTS_CAP = 50;
 
 export const DRAWING_PAGE_FORMATS: DrawingPageFormat[] = ["A4", "A3"];
 
@@ -199,6 +285,22 @@ export interface WmTechnicalDrawing {
   renderVersion?: number;
   createdAt: string;
   updatedAt: string;
+  /** WM-WORKER-SKETCH-01 — additive (normalize defaults). */
+  origin: SketchOrigin;
+  workflowStatus: SketchWorkflowStatus;
+  revisionNumber: number;
+  revisionMeta?: SketchRevisionMeta[];
+  createdByUserId?: string;
+  createdByRole?: SketchActorRole | string;
+  createdByName?: string;
+  lastEditedByUserId?: string;
+  lastEditedByRole?: string;
+  photoIds: string[];
+  deletedAt?: string | null;
+  deletedByUserId?: string;
+  deletedByRole?: string;
+  editLock?: SketchEditLock | null;
+  comments?: SketchComment[];
 }
 
 export interface DrawingDomainReport {

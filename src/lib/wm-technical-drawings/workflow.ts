@@ -1,0 +1,233 @@
+/** WM-WORKER-SKETCH-01 P0 — create / submit / soft-delete / L0 expectedRevision. */
+
+import { isDrawingSoftDeleted, parseWmTechnicalDrawing } from "@/lib/wm-technical-drawings/normalize";
+import { touchDrawing, upsertDrawing } from "@/lib/wm-technical-drawings/report";
+import { buildDrawingFromTemplate } from "@/lib/wm-technical-drawings/templates";
+import type {
+  SketchRevisionMeta,
+  WmTechnicalDrawing,
+} from "@/lib/wm-technical-drawings/types";
+import { SKETCH_REVISION_META_CAP } from "@/lib/wm-technical-drawings/types";
+
+export type SketchWorkflowError =
+  | "stale_revision"
+  | "invalid_state"
+  | "forbidden"
+  | "soft_deleted"
+  | "missing_job";
+
+export type SketchWorkflowResult =
+  | { ok: true; drawing: WmTechnicalDrawing }
+  | { ok: false; reason: SketchWorkflowError; message: string };
+
+function appendMeta(
+  drawing: WmTechnicalDrawing,
+  meta: SketchRevisionMeta,
+): SketchRevisionMeta[] {
+  const prev = [...(drawing.revisionMeta ?? []), meta];
+  if (prev.length <= SKETCH_REVISION_META_CAP) return prev;
+  return prev.slice(prev.length - SKETCH_REVISION_META_CAP);
+}
+
+function hasSubmitInHistory(drawing: WmTechnicalDrawing): boolean {
+  return (drawing.revisionMeta ?? []).some(
+    (m) => m.action === "submit" || m.action === "resubmit",
+  );
+}
+
+export function assertExpectedRevision(
+  drawing: WmTechnicalDrawing,
+  expectedRevisionNumber: number,
+): SketchWorkflowResult | null {
+  if (drawing.revisionNumber !== expectedRevisionNumber) {
+    return {
+      ok: false,
+      reason: "stale_revision",
+      message: "Szkic został zmieniony na innym urządzeniu — odśwież listę.",
+    };
+  }
+  return null;
+}
+
+export function createWorkerSketch(input: {
+  jobId: string;
+  address?: string;
+  title?: string;
+  workerUserId: string;
+  workerName: string;
+  templateId?: "blank" | "works_sketch" | "floor_plan_apartment";
+}): SketchWorkflowResult {
+  const jobId = input.jobId.trim();
+  if (!jobId) return { ok: false, reason: "missing_job", message: "Brak roboty." };
+
+  const base = buildDrawingFromTemplate(input.templateId ?? "works_sketch", {
+    jobId,
+    address: input.address,
+    title: input.title,
+  });
+  const now = new Date().toISOString();
+  const meta: SketchRevisionMeta = {
+    revisionNumber: 1,
+    at: now,
+    byUserId: input.workerUserId,
+    byRole: "worker",
+    byName: input.workerName,
+    action: "create",
+  };
+  const next = parseWmTechnicalDrawing({
+    ...base,
+    origin: "worker",
+    workflowStatus: "worker_draft",
+    status: "draft",
+    revisionNumber: 1,
+    revisionMeta: [meta],
+    createdByUserId: input.workerUserId,
+    createdByRole: "worker",
+    createdByName: input.workerName,
+    lastEditedByUserId: input.workerUserId,
+    lastEditedByRole: "worker",
+    photoIds: [],
+    deletedAt: null,
+    editLock: null,
+    comments: [],
+    updatedAt: now,
+  });
+  if (!next) return { ok: false, reason: "invalid_state", message: "Nie udało się utworzyć szkicu." };
+  return { ok: true, drawing: next };
+}
+
+/** P0: worker_draft → submitted (needs_changes = P1). */
+export function submitWorkerSketch(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    workerUserId: string;
+    workerName: string;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Szkic został usunięty." };
+  }
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (drawing.origin !== "worker") {
+    return { ok: false, reason: "forbidden", message: "To nie jest szkic pracownika." };
+  }
+  if (drawing.workflowStatus !== "worker_draft") {
+    return {
+      ok: false,
+      reason: "invalid_state",
+      message: "Można przesłać tylko szkic w statusie roboczym.",
+    };
+  }
+  if (drawing.createdByUserId && drawing.createdByUserId !== input.workerUserId) {
+    return { ok: false, reason: "forbidden", message: "Możesz przesłać tylko własny szkic." };
+  }
+
+  const nextRev = drawing.revisionNumber + 1;
+  const now = new Date().toISOString();
+  const meta: SketchRevisionMeta = {
+    revisionNumber: nextRev,
+    at: now,
+    byUserId: input.workerUserId,
+    byRole: "worker",
+    byName: input.workerName,
+    action: "submit",
+  };
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      workflowStatus: "submitted",
+      revisionNumber: nextRev,
+      revisionMeta: appendMeta(drawing, meta),
+      lastEditedByUserId: input.workerUserId,
+      lastEditedByRole: "worker",
+      editLock: null,
+    }),
+  };
+}
+
+/** A3 — soft-delete; Worker tylko własny worker_draft nigdy nie submitted. */
+export function softDeleteWorkerSketch(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    workerUserId: string;
+    workerName: string;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Szkic już usunięty." };
+  }
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (drawing.origin !== "worker") {
+    return { ok: false, reason: "forbidden", message: "To nie jest szkic pracownika." };
+  }
+  if (drawing.workflowStatus !== "worker_draft" || hasSubmitInHistory(drawing)) {
+    return {
+      ok: false,
+      reason: "forbidden",
+      message: "Usunąć można tylko własny szkic roboczy przed przesłaniem.",
+    };
+  }
+  if (drawing.createdByUserId && drawing.createdByUserId !== input.workerUserId) {
+    return { ok: false, reason: "forbidden", message: "Możesz usunąć tylko własny szkic." };
+  }
+
+  const now = new Date().toISOString();
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      deletedAt: now,
+      deletedByUserId: input.workerUserId,
+      deletedByRole: "worker",
+      editLock: null,
+      lastEditedByUserId: input.workerUserId,
+      lastEditedByRole: "worker",
+    }),
+  };
+}
+
+/** Admin/SA soft-delete (A3) — non-final; nie hard-remove. */
+export function softDeleteDrawing(
+  drawing: WmTechnicalDrawing,
+  input: {
+    expectedRevisionNumber: number;
+    userId: string;
+    role: string;
+    name?: string;
+  },
+): SketchWorkflowResult {
+  if (isDrawingSoftDeleted(drawing)) {
+    return { ok: false, reason: "soft_deleted", message: "Już usunięty." };
+  }
+  const stale = assertExpectedRevision(drawing, input.expectedRevisionNumber);
+  if (stale) return stale;
+  if (drawing.status === "final" && input.role !== "super_admin") {
+    return {
+      ok: false,
+      reason: "forbidden",
+      message: "Finalny rysunek: najpierw demote albo soft-delete SA.",
+    };
+  }
+  const now = new Date().toISOString();
+  return {
+    ok: true,
+    drawing: touchDrawing(drawing, {
+      deletedAt: now,
+      deletedByUserId: input.userId,
+      deletedByRole: input.role,
+      editLock: null,
+      lastEditedByUserId: input.userId,
+      lastEditedByRole: input.role,
+    }),
+  };
+}
+
+export function upsertSketchInList(
+  drawings: WmTechnicalDrawing[],
+  drawing: WmTechnicalDrawing,
+): WmTechnicalDrawing[] {
+  return upsertDrawing(drawings, drawing).drawings;
+}

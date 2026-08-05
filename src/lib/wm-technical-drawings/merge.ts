@@ -1,6 +1,11 @@
-/** WM-RYSUNKI-01 P0 — LWW merge per id (wzorzec Schematy). MR-02: hard-remove (brak tombstone). */
+/** WM-RYSUNKI-01 P0 — LWW merge per id (wzorzec Schematy). */
+/** WM-WORKER-SKETCH-01: soft-delete via deletedAt — prefer softDelete* helpers. */
 
-import { normalizeWmTechnicalDrawings } from "@/lib/wm-technical-drawings/normalize";
+import {
+  isDrawingSoftDeleted,
+  isDrawingVisibleInRysunkiTab,
+  normalizeWmTechnicalDrawings,
+} from "@/lib/wm-technical-drawings/normalize";
 import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 
 export function mergeWmTechnicalDrawings(local: unknown, cloud: unknown): WmTechnicalDrawing[] {
@@ -16,8 +21,27 @@ export function mergeWmTechnicalDrawings(local: unknown, cloud: unknown): WmTech
 export function filterDrawingsForJob(drawings: WmTechnicalDrawing[], jobId: string): WmTechnicalDrawing[] {
   if (!jobId) return [];
   return drawings
-    .filter((d) => d.jobId === jobId)
+    .filter((d) => d.jobId === jobId && !isDrawingSoftDeleted(d))
     .sort((a, b) => b.documentDate.localeCompare(a.documentDate) || b.updatedAt.localeCompare(a.updatedAt));
+}
+
+/** Docs → Szkice (Worker) — origin worker, active. */
+export function filterWorkerSketchesForJob(
+  drawings: WmTechnicalDrawing[],
+  jobId: string,
+  workerUserId?: string,
+): WmTechnicalDrawing[] {
+  return filterDrawingsForJob(drawings, jobId)
+    .filter((d) => d.origin === "worker")
+    .filter((d) => !workerUserId || !d.createdByUserId || d.createdByUserId === workerUserId)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+/** A2 — lista Odbiory → Rysunki. */
+export function filterDrawingsForRysunkiTab(drawings: WmTechnicalDrawing[]): WmTechnicalDrawing[] {
+  return drawings
+    .filter(isDrawingVisibleInRysunkiTab)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export function getDrawingById(

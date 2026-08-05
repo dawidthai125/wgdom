@@ -43,6 +43,11 @@ export interface AppSettings {
    * Domyślnie OFF. Super Admin toggle (⚙ / mirror WM Ustawienia).
    */
   wmRysunkiEnabled: boolean;
+  /**
+   * WM-WORKER-SKETCH-01 — Dokumentacja → Szkice (Worker).
+   * Domyślnie OFF. Niezależne od wmRysunkiEnabled.
+   */
+  wmWorkerSketchEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -78,6 +83,7 @@ export function defaultAppSettings(): AppSettings {
     instructionsForAdminEnabled: false,
     changesForAdminEnabled: false,
     wmRysunkiEnabled: false,
+    wmWorkerSketchEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -198,6 +204,16 @@ export function mergeWmRysunkiEnabled(
   return local.wmRysunkiEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie OFF (WM-WORKER-SKETCH-01). */
+export function mergeWmWorkerSketchEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.wmWorkerSketchEnabled === true) return true;
+  if (remote?.wmWorkerSketchEnabled === false) return false;
+  return local.wmWorkerSketchEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -211,6 +227,7 @@ export function loadAppSettingsLocal(): AppSettings {
       instructionsForAdminEnabled: parsed.instructionsForAdminEnabled === true,
       changesForAdminEnabled: parsed.changesForAdminEnabled === true,
       wmRysunkiEnabled: parsed.wmRysunkiEnabled === true,
+      wmWorkerSketchEnabled: parsed.wmWorkerSketchEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -267,6 +284,7 @@ export function mergeAppSettings(
     instructionsForAdminEnabled: mergeInstructionsForAdminEnabled(remote, local),
     changesForAdminEnabled: mergeChangesForAdminEnabled(remote, local),
     wmRysunkiEnabled: mergeWmRysunkiEnabled(remote, local),
+    wmWorkerSketchEnabled: mergeWmWorkerSketchEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

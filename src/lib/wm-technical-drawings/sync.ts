@@ -20,6 +20,24 @@ export async function pushWmTechnicalDrawingsToCloud(drawings: WmTechnicalDrawin
   await pushKeysToCloud([WM_TECHNICAL_DRAWINGS_KEY], [normalized]);
 }
 
+/** Worker/Inspector shell — fetch + LWW merge + LS write (S1: nie rusza payroll keys). */
+export async function fetchMergeWmTechnicalDrawingsFromCloud(): Promise<WmTechnicalDrawing[]> {
+  const local = readWmTechnicalDrawingsFromLocalStorage();
+  try {
+    const { fetchKeysFromCloud } = await import("@/lib/cloud-sync");
+    const [cloud] = await fetchKeysFromCloud([WM_TECHNICAL_DRAWINGS_KEY]);
+    const merged = mergeWmTechnicalDrawings(local, cloud);
+    try {
+      localStorage.setItem(WM_TECHNICAL_DRAWINGS_KEY, JSON.stringify(merged));
+    } catch {
+      /* ignore quota */
+    }
+    return merged;
+  } catch {
+    return local;
+  }
+}
+
 export function readWmTechnicalDrawingsFromLocalStorage(): WmTechnicalDrawing[] {
   try {
     const raw = localStorage.getItem(WM_TECHNICAL_DRAWINGS_KEY);

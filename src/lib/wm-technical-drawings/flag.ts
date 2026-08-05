@@ -13,12 +13,18 @@ export const WM_RYSUNKI_01_DEFAULT = false;
 export const WM_RYSUNKI_01_LS_KEY = "kw-wm-rysunki-01";
 
 let wmRysunki01ForTests: boolean | null = null;
+let wmWorkerSketchForTests: boolean | null = null;
 
 export function forceWmRysunki01ForTests(on: boolean | null): void {
   wmRysunki01ForTests = on;
 }
 
+export function forceWmWorkerSketchForTests(on: boolean | null): void {
+  wmWorkerSketchForTests = on;
+}
+
 export type WmRysunkiGateSettings = Pick<AppSettings, "wmRysunkiEnabled">;
+export type WmWorkerSketchGateSettings = Pick<AppSettings, "wmWorkerSketchEnabled">;
 
 function readLsRaw(): string | null {
   if (typeof localStorage === "undefined") return null;
@@ -94,6 +100,13 @@ export async function maybePromoteWmRysunki01FromLs(
   }
   clearWmRysunki01LsLegacyOn();
   return next;
+}
+
+/** WM-WORKER-SKETCH-01 — Docs → Szkice. Default OFF. Niezależne od wmRysunkiEnabled. */
+export function isWmWorkerSketchEnabled(settings?: WmWorkerSketchGateSettings | null): boolean {
+  if (wmWorkerSketchForTests != null) return wmWorkerSketchForTests;
+  if (settings != null) return settings.wmWorkerSketchEnabled === true;
+  return loadAppSettingsLocal().wmWorkerSketchEnabled === true;
 }
 
 /** Sync helper — gdy brak React state, odczyt z LS AppSettings (nie preferowane w UI). */

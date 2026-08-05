@@ -101,6 +101,14 @@ export function duplicateDrawing(source: WmTechnicalDrawing): WmTechnicalDrawing
     renderVersion: undefined,
     createdAt: now,
     updatedAt: now,
+    revisionNumber: 1,
+    revisionMeta: undefined,
+    deletedAt: null,
+    deletedByUserId: undefined,
+    deletedByRole: undefined,
+    editLock: null,
+    workflowStatus: source.origin === "worker" ? "worker_draft" : "accepted",
+    photoIds: [...(source.photoIds ?? [])],
   };
   const parsed = parseWmTechnicalDrawing(copy);
   if (!parsed) throw new Error("duplicateDrawing: normalize failed");

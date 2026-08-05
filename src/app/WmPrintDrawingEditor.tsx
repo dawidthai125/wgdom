@@ -124,6 +124,8 @@ export function WmPrintDrawingEditor({
   onRecordWmDrukAudit,
   /** WM-RYSUNKI-MOBILE-01 P0 — layout FS: overflow-hidden + app pan (nie page scroll). */
   mobileFullscreen = false,
+  /** WM-WORKER-SKETCH-01 P0 — ogranicz toolbar (np. select|wall|text). */
+  allowedTools,
 }: {
   drawing: WmTechnicalDrawing;
   onChange: (next: WmTechnicalDrawing) => void;
@@ -132,6 +134,7 @@ export function WmPrintDrawingEditor({
   jobLabel: string;
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
   mobileFullscreen?: boolean;
+  allowedTools?: Tool[];
 }) {
   const stackRef = useRef<DrawingUndoStack | null>(null);
   if (!stackRef.current || stackRef.current.getCurrent().id !== drawing.id) {
@@ -850,7 +853,11 @@ export function WmPrintDrawingEditor({
   const chromeAction =
     "touch-target shrink-0 gap-1 px-2 rounded-md text-xs text-muted-foreground hover:bg-secondary disabled:opacity-40";
 
-  const toolBtn = (t: Tool, label: string, icon: React.ReactNode) => (
+  const toolAllowed = (t: Tool) => !allowedTools || allowedTools.includes(t);
+
+  const toolBtn = (t: Tool, label: string, icon: React.ReactNode) => {
+    if (!toolAllowed(t)) return null;
+    return (
     <button
       type="button"
       title={label}
@@ -867,7 +874,8 @@ export function WmPrintDrawingEditor({
       {icon}
       <span className="hidden sm:inline">{label}</span>
     </button>
-  );
+    );
+  };
 
   const confirmInputDialog = () => {
     if (!inputDialog) return;

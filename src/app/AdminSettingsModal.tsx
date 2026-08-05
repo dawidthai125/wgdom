@@ -382,6 +382,25 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.wmWorkerSketchEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, wmWorkerSketchEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Szkice pracownika</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  WM-WORKER-SKETCH-01: sekcja Szkice w Dokumentacji panelu pracownika (mobile).
+                  Domyślnie wyłączone. Niezależne od Rysunki WM. Sync chmura (AppSettings).
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

@@ -10,6 +10,12 @@ import {
   DRAWING_STATUSES,
   DRAWING_TEMPLATE_IDS,
   ROOM_LABEL_DEFAULT_FONT_SIZE,
+  SKETCH_COMMENTS_CAP,
+  SKETCH_ORIGINS,
+  SKETCH_PHOTO_IDS_CAP,
+  SKETCH_REVISION_ACTIONS,
+  SKETCH_REVISION_META_CAP,
+  SKETCH_WORKFLOW_STATUSES,
   TEXT_DEFAULT_FONT_SIZE,
   type DrawingArrowObject,
   type DrawingDimensionObject,
@@ -27,6 +33,11 @@ import {
   type DrawingTextObject,
   type DrawingWallObject,
   type DrawingWindowObject,
+  type SketchComment,
+  type SketchEditLock,
+  type SketchOrigin,
+  type SketchRevisionMeta,
+  type SketchWorkflowStatus,
   type WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
 
@@ -243,6 +254,111 @@ export function parseDrawingObject(raw: unknown): DrawingObject | null {
   };
 }
 
+function parseRevisionMeta(raw: unknown): SketchRevisionMeta | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const revisionNumber = asFiniteNumber(r.revisionNumber, 0);
+  const action = asString(r.action) as SketchRevisionMeta["action"];
+  if (revisionNumber < 1 || !SKETCH_REVISION_ACTIONS.includes(action)) return null;
+  const byUserId = asString(r.byUserId).trim();
+  if (!byUserId) return null;
+  return {
+    revisionNumber,
+    at: asString(r.at) || new Date().toISOString(),
+    byUserId,
+    byRole: asString(r.byRole).trim() || "unknown",
+    byName: asString(r.byName).trim() || undefined,
+    action,
+  };
+}
+
+function parseRevisionMetaList(raw: unknown): SketchRevisionMeta[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: SketchRevisionMeta[] = [];
+  for (const item of raw) {
+    const parsed = parseRevisionMeta(item);
+    if (parsed) out.push(parsed);
+    if (out.length >= SKETCH_REVISION_META_CAP) break;
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+function parsePhotoIds(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    const id = asString(item).trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= SKETCH_PHOTO_IDS_CAP) break;
+  }
+  return out;
+}
+
+function parseEditLock(raw: unknown): SketchEditLock | null | undefined {
+  if (raw == null) return raw === null ? null : undefined;
+  if (typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const holderUserId = asString(r.holderUserId).trim();
+  const expiresAt = asString(r.expiresAt).trim();
+  if (!holderUserId || !expiresAt) return null;
+  return {
+    holderUserId,
+    holderRole: asString(r.holderRole).trim() || "unknown",
+    holderName: asString(r.holderName).trim() || holderUserId,
+    deviceId: asString(r.deviceId).trim() || undefined,
+    acquiredAt: asString(r.acquiredAt) || expiresAt,
+    expiresAt,
+  };
+}
+
+function parseComment(raw: unknown): SketchComment | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const id = asString(r.id).trim();
+  const text = asString(r.text).trim().slice(0, 500);
+  const authorUserId = asString(r.authorUserId).trim();
+  if (!id || !text || !authorUserId) return null;
+  return {
+    id,
+    x: asFiniteNumber(r.x, 0),
+    y: asFiniteNumber(r.y, 0),
+    text,
+    authorUserId,
+    authorRole: asString(r.authorRole).trim() || "unknown",
+    authorName: asString(r.authorName).trim() || authorUserId,
+    createdAt: asString(r.createdAt) || new Date().toISOString(),
+    resolvedAt: asString(r.resolvedAt).trim() || undefined,
+    resolvedByUserId: asString(r.resolvedByUserId).trim() || undefined,
+    anchorObjectId: asString(r.anchorObjectId).trim() || undefined,
+  };
+}
+
+function parseComments(raw: unknown): SketchComment[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: SketchComment[] = [];
+  for (const item of raw) {
+    const parsed = parseComment(item);
+    if (parsed) out.push(parsed);
+    if (out.length >= SKETCH_COMMENTS_CAP) break;
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+export function isDrawingSoftDeleted(drawing: Pick<WmTechnicalDrawing, "deletedAt">): boolean {
+  return Boolean(drawing.deletedAt && String(drawing.deletedAt).trim());
+}
+
+/** A2 — domyślna lista Odbiory → Rysunki. */
+export function isDrawingVisibleInRysunkiTab(drawing: WmTechnicalDrawing): boolean {
+  if (isDrawingSoftDeleted(drawing)) return false;
+  if (drawing.status === "final") return true;
+  if (drawing.origin === "worker") return false;
+  return drawing.origin === "wm_druk" || drawing.origin === "admin" || drawing.origin === "inspector";
+}
+
 export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Record<string, unknown>;
@@ -273,6 +389,25 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
   const updatedAt = asString(r.updatedAt) || createdAt;
   const jobId = asString(r.jobId).trim() || undefined;
 
+  const origin = SKETCH_ORIGINS.includes(r.origin as SketchOrigin)
+    ? (r.origin as SketchOrigin)
+    : "wm_druk";
+
+  let workflowStatus: SketchWorkflowStatus;
+  if (SKETCH_WORKFLOW_STATUSES.includes(r.workflowStatus as SketchWorkflowStatus)) {
+    workflowStatus = r.workflowStatus as SketchWorkflowStatus;
+  } else if (origin === "worker") {
+    workflowStatus = "worker_draft";
+  } else {
+    workflowStatus = status === "final" ? "accepted" : "accepted";
+  }
+
+  const revisionNumberRaw = asFiniteNumber(r.revisionNumber, 1);
+  const revisionNumber = revisionNumberRaw >= 1 ? Math.floor(revisionNumberRaw) : 1;
+
+  const deletedAtRaw = asString(r.deletedAt).trim();
+  const deletedAt = deletedAtRaw ? deletedAtRaw : r.deletedAt === null ? null : undefined;
+
   return {
     id,
     schemaVersion: DRAWING_SCHEMA_VERSION,
@@ -291,6 +426,21 @@ export function parseWmTechnicalDrawing(raw: unknown): WmTechnicalDrawing | null
     renderVersion: r.renderVersion != null ? asFiniteNumber(r.renderVersion, 0) : undefined,
     createdAt,
     updatedAt,
+    origin,
+    workflowStatus,
+    revisionNumber,
+    revisionMeta: parseRevisionMetaList(r.revisionMeta),
+    createdByUserId: asString(r.createdByUserId).trim() || undefined,
+    createdByRole: asString(r.createdByRole).trim() || undefined,
+    createdByName: asString(r.createdByName).trim() || undefined,
+    lastEditedByUserId: asString(r.lastEditedByUserId).trim() || undefined,
+    lastEditedByRole: asString(r.lastEditedByRole).trim() || undefined,
+    photoIds: parsePhotoIds(r.photoIds),
+    deletedAt,
+    deletedByUserId: asString(r.deletedByUserId).trim() || undefined,
+    deletedByRole: asString(r.deletedByRole).trim() || undefined,
+    editLock: parseEditLock(r.editLock),
+    comments: parseComments(r.comments),
   };
 }
 

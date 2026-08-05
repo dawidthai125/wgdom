@@ -9,13 +9,13 @@ import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { WmPrintDrawingEditor } from "@/app/WmPrintDrawingEditor";
-import { getDrawingById } from "@/lib/wm-technical-drawings/merge";
+import { getDrawingById, filterDrawingsForRysunkiTab } from "@/lib/wm-technical-drawings/merge";
 import {
   duplicateDrawing,
-  removeDrawing,
   setDrawingFinal,
   upsertDrawing,
 } from "@/lib/wm-technical-drawings/report";
+import { softDeleteDrawing } from "@/lib/wm-technical-drawings/workflow";
 import {
   buildDrawingFromTemplate,
   drawingTemplateLabel,
@@ -85,10 +85,7 @@ export function WmPrintDrawingsPanel({
     if (initialJobId) setCreateJobId(initialJobId);
   }, [initialJobId]);
 
-  const sorted = useMemo(
-    () => [...drawings].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-    [drawings],
-  );
+  const sorted = useMemo(() => filterDrawingsForRysunkiTab(drawings), [drawings]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -167,9 +164,19 @@ export function WmPrintDrawingsPanel({
   const handleDelete = () => {
     if (!selected) return;
     if (!window.confirm(`Usunąć rysunek „${selected.title}”?`)) return;
+    const result = softDeleteDrawing(selected, {
+      expectedRevisionNumber: selected.revisionNumber,
+      userId: "admin",
+      role: "admin",
+      name: "Administrator",
+    });
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
     const deletedId = selected.id;
     const deletedJobId = selected.jobId;
-    const { drawings: next } = removeDrawing(drawings, deletedId);
+    const { drawings: next } = upsertDrawing(drawings, result.drawing);
     persist(next);
     setSelectedId(null);
     onRecordWmDrukAudit?.({

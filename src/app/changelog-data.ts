@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.12",
+    label: "Szkice pracownika — fundament P0",
+    items: [
+      {
+        type: "new",
+        text: "Panel pracownika → Dokumentacja → Szkice (flaga Super Admin ⚙ Moduły → Szkice pracownika, domyślnie OFF): tworzenie/edycja ściana+tekst, przesłanie do weryfikacji, soft-delete; ten sam silnik co Rysunki WM (kw-wm-technical-drawings).",
+      },
+      {
+        type: "improve",
+        text: "Rysunki WM: lista Odbiory→Rysunki ukrywa szkice robocze pracownika (non-final); usuwanie = soft-delete (anti-resurrection LWW).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.11",
     label: "WM Druk — OST widoczny adres w PDF",
     items: [

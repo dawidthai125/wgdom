@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.12 — Szkice pracownika — fundament P0 (2026-08-05)
+
+- **new:** Worker Dokumentacja → Szkice (flaga `wmWorkerSketchEnabled` default OFF); create/submit/soft-delete; REUSE `kw-wm-technical-drawings`
+- **improve:** Rysunki tab ukrywa worker non-final; soft-delete zamiast hard-remove
+
 ## 2.66.11 — WM Druk — OST widoczny adres w PDF (2026-08-05)
 
 - fix: OST — przebudowa `/AP` dla JOB_STREET · BUILDING · APARTMENT po fill (Chrome PDF Viewer)
