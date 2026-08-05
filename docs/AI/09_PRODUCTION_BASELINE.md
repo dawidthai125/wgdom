@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-05 · tip UI **2.66.13** · **`4f99a279`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-WORKER-SKETCH-01 CLOSED** (P0+P1) · APPEARANCE-01 CLOSED · AUTO-GENERATE-01 CLOSED · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**Snapshot dokumentacji:** 2026-08-05 · tip UI **2.66.14** · **`0afeb82d`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-DOKUMENTACJA-SZKICE-01 P0 CLOSED** · WM-WORKER-SKETCH-01 CLOSED (P0+P1) · APPEARANCE-01 CLOSED · AUTO-GENERATE-01 CLOSED · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.13** |
-| **Deploy tip commit (`main` / `version.json`)** | **`4f99a279`** · full **`4f99a27967edaeed10316d133dc0121ba44548a0`** · WM-WORKER-SKETCH-01 P1 · tip **`4f99a27`** · **PRODUCTION VERIFIED** |
-| **Feature tip (WM-WORKER-SKETCH-01)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · **P0 CLOSED** (2.66.12 / `3c9d6f90`) · **P1 CLOSED** (2.66.13 / `4f99a279`) · Worker Docs→Szkice · flaga `wmWorkerSketchEnabled` default OFF · Single Store `kw-wm-technical-drawings` · drag-release wall/arrow · Mobile Chrome · Snap endpoint→angle→grid · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
+| **UI version (changelog / version.json)** | **2.66.14** |
+| **Deploy tip commit (`main` / `version.json`)** | **`0afeb82d`** · full **`0afeb82d88fa1b0bce27c27aefb5457ab17d7f3a`** · WM-DOKUMENTACJA-SZKICE-01 P0 · tip **`0afeb82`** · **PRODUCTION VERIFIED** |
+| **Feature tip (WM-DOKUMENTACJA-SZKICE-01 P0)** | **P0 CLOSED** · **PRODUCTION VERIFIED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · Admin Accept · A2 NO TOUCH · No Promote · UI **2.66.14** · **`0afeb82d`** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) · Promote = backlog Owner GO |
+| **Feature tip (WM-WORKER-SKETCH-01)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · **P0 CLOSED** (2.66.12 / `3c9d6f90`) · **P1 CLOSED** (2.66.13 / `4f99a279`) · Worker Docs→Szkice · flaga `wmWorkerSketchEnabled` default OFF · Single Store `kw-wm-technical-drawings` · drag-release wall/arrow · Mobile Chrome · Snap endpoint→angle→grid · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) · superseded tip UI by WM-DOKUMENTACJA-SZKICE-01 P0 |
 | **Feature tip (WM-DRUK-OST-APPEARANCE-01)** | **CLOSED** · OST `/AP` dla JOB_STREET·BUILDING·APARTMENT · NeedAppearances unchanged · UI **2.66.11** · **`4d33361e`** · tip **`4d33361`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-APPEARANCE-01-CLOSEOUT.md) · [`OV`](../architecture/WM-DRUK-OST-APPEARANCE-01-OWNER-VERIFY.md) · [`PLAN`](../architecture/WM-DRUK-OST-APPEARANCE-01-PLAN.md) · superseded tip UI by WM-WORKER-SKETCH-01 |
 | **Feature tip (WM-DRUK-OST-AUTO-GENERATE-01)** | **CLOSED** · **S2 Hard Ensure** · ACTIVE OST zawsze w ZIP Odbiory/ on-the-fly · bez Storage filled · UI **2.66.10** · **`82dc1017`** · tip **`82dc101`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-CLOSEOUT.md) · [`PV`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-PRODUCTION-VERIFY.md) · [`DF`](../architecture/WM-DRUK-OST-AUTO-GENERATE-01-DESIGN-FREEZE.md) |
 | **Feature tip (WM-DRUK-OST-MAPPING-MIGRATION-01)** | **CLOSED** · **PRODUCTION VERIFIED** · migracja `pdfFieldMapping` OST · UI **2.66.09** · **`56069cce`** · tip **`56069cc`** · [`CLOSEOUT`](../architecture/WM-DRUK-OST-MAPPING-MIGRATION-01-CLOSEOUT.md) · superseded tip UI by AUTO-GENERATE-01 |
