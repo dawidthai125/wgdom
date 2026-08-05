@@ -21,6 +21,7 @@ Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 **Quick Start (1 strona):** [`AI_QUICK_START.md`](AI_QUICK_START.md)  
 **Thin pointer:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
 **Tip:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
+**Dokumentacja Szkice -02 Publication CLOSED:** [`WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md)  
 **Dokumentacja Szkice P2a CLOSED:** [`WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md)  
 **Dokumentacja Szkice P0 CLOSED:** [`WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md)  
 **Kandydaci NEXT:** [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md)  
