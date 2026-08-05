@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-05",
+    version: "2.66.11",
+    label: "WM Druk — OST widoczny adres w PDF",
+    items: [
+      {
+        type: "fix",
+        text: "Odbiory WM: po wypełnieniu OST przebudowywane jest appearance (/AP) pól JOB_STREET, BUILDING i APARTMENT — adres widoczny w Chrome PDF Viewer (wcześniej tylko /V).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-05",
     version: "2.66.10",
     label: "WM Druk — OST zawsze w paczce ZIP",
     items: [

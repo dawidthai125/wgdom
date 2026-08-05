@@ -214,6 +214,12 @@ export type FillPdfFormFieldMappingOptions = {
   useZiIndexFallback?: boolean;
 };
 
+/**
+ * OST AcroForm — pola adresu, których /AP przebudowujemy po fill (WM-DRUK-OST-APPEARANCE-01).
+ * Nie obejmuje commonforms_* (np. Wrocław) ani całego formularza.
+ */
+export const WM_PRINT_OST_APPEARANCE_FIELD_NAMES = ["JOB_STREET", "BUILDING", "APARTMENT"] as const;
+
 function fillPdfFormFieldMapping(
   form: ReturnType<PDFDocument["getForm"]>,
   mapping: Record<string, WmPrintVariableKey>,
@@ -221,6 +227,11 @@ function fillPdfFormFieldMapping(
   options?: FillPdfFormFieldMappingOptions,
 ): Set<WmPrintVariableKey> {
   const filled = new Set<WmPrintVariableKey>();
+  /**
+   * Noop zostaje do save() — pdf-lib przy save woła form.updateFieldAppearances()
+   * i Helvetica wywala się na „ł” (Wrocław). OST przebudowuje AP tylko przez
+   * field.updateAppearances(font) na 3 polach (applyOstAddressFieldAppearances).
+   */
   form.updateFieldAppearances = () => {};
 
   for (const [name, varKey] of Object.entries(mapping)) {
@@ -240,6 +251,25 @@ function fillPdfFormFieldMapping(
   }
 
   return filled;
+}
+
+/**
+ * Przebuduj /AP wyłącznie dla JOB_STREET · BUILDING · APARTMENT.
+ * Nie przywraca form.updateFieldAppearances (noop chroni save przed WinAnsi).
+ */
+async function applyOstAddressFieldAppearances(
+  form: ReturnType<PDFDocument["getForm"]>,
+  pdfDoc: PDFDocument,
+): Promise<void> {
+  pdfDoc.registerFontkit(fontkit);
+  const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
+  for (const name of WM_PRINT_OST_APPEARANCE_FIELD_NAMES) {
+    try {
+      form.getTextField(name).updateAppearances(font);
+    } catch {
+      /* pole nieobecne w szablonie — pomijamy */
+    }
+  }
 }
 
 function pdfPageForWidget(
@@ -419,13 +449,15 @@ export async function generatePdfFormFromTemplate(
   if (legacy && (formType === "hybrid" || formType === "xfa")) {
     await finalizeZiHybridForm(pdfDoc, form, vars);
     stripSection3WidgetAnnots(pdfDoc, form);
-  } else {
+  } else if (!legacy) {
+    /**
+     * OST / non-ZI pdf_form — WM-DRUK-OST-APPEARANCE-01:
+     * tylko JOB_STREET · BUILDING · APARTMENT (nie cały form, nie NeedAppearances).
+     */
     try {
-      pdfDoc.registerFontkit(fontkit);
-      const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
-      form.updateFieldAppearances(font);
+      await applyOstAddressFieldAppearances(form, pdfDoc);
     } catch {
-      /* czysty AcroForm bez czcionki — /V wystarczy */
+      /* brak fontkit/font — /V zostaje; test appearance fail-loud */
     }
   }
 

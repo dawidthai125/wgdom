@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.11 — WM Druk — OST widoczny adres w PDF (2026-08-05)
+
+- fix: OST — przebudowa `/AP` dla JOB_STREET · BUILDING · APARTMENT po fill (Chrome PDF Viewer)
+
 ## 2.66.10 — WM Druk — OST zawsze w paczce ZIP (2026-08-05)
 
 - **improve:** ACTIVE OST (`pdf_form` + plik) → Hard Ensure S2 w `buildWmPrintFilesForJob` / fingerprint publish; fill on-the-fly (bez Storage filled); checkbox OST locked
