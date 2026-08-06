@@ -51,7 +51,6 @@ import {
   resolveV4EmbedLegacyWorkspace,
   TENDER_DETAIL_DECYZJA_WS_QUERY,
   TENDER_DETAIL_V4_DEFAULT_TAB,
-  TENDERS_LIST_PATH,
   type DecyzjaV4EmbedWorkspace,
   type TenderDetailV4TabId,
 } from "@/lib/tender-detail-routes-v4";
@@ -60,6 +59,7 @@ import {
   TENDER_WORKFLOW_HUB_EMBED_WORKSPACE,
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
+import { leaveTenderDetailToModule } from "@/lib/tender-module-nav-sheet";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -79,8 +79,12 @@ export function TenderDetailPage({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { snapshot, profileVersion, pricingCatalogRevision } = useTendersContext();
+  const { snapshot, profileVersion, pricingCatalogRevision, setActiveTab } = useTendersContext();
   const { pipeline } = snapshot;
+
+  const handleLeaveToModule = useCallback(() => {
+    leaveTenderDetailToModule(navigate, setActiveTab);
+  }, [navigate, setActiveTab]);
 
   const parsedDetail = useMemo(
     () => parseTenderDetailPath(location.pathname),
@@ -159,10 +163,10 @@ export function TenderDetailPage({
 
   useEffect(() => {
     return registerNativeBackHandler(() => {
-      navigate(TENDERS_LIST_PATH);
+      handleLeaveToModule();
       return true;
     });
-  }, [navigate]);
+  }, [handleLeaveToModule]);
 
   const onUpdateItem = useCallback(
     (patch: Partial<TenderPipelineItem>, opts?: { persist?: "local" | "cloud" }) =>
@@ -521,7 +525,7 @@ export function TenderDetailPage({
         <button
           type="button"
           className="inline-flex items-center gap-2 text-sm text-primary font-medium"
-          onClick={() => navigate(TENDERS_LIST_PATH)}
+          onClick={handleLeaveToModule}
         >
           <ArrowLeft size={16} />
           Powrót do listy
@@ -539,7 +543,7 @@ export function TenderDetailPage({
     return (
       <TenderRecommendationOutcomeView
         result={tre01Recommendation}
-        onBack={() => navigate(TENDERS_LIST_PATH)}
+        onBack={handleLeaveToModule}
         onShowCostEstimate={handleTre01ShowCostEstimate}
         onOpenHub={handleTre01OpenHub}
         onAttachPrzedmiar={handleTre01AttachPrzedmiar}
@@ -570,7 +574,7 @@ export function TenderDetailPage({
       pipelineRuntime={pipelineRuntime}
       intelligenceCtx={przetargCommand.intelligenceCtx}
       pricingCatalogRevision={pricingCatalogRevision}
-      onBack={() => navigate(TENDERS_LIST_PATH)}
+      onBack={handleLeaveToModule}
       onReveal={() => {
         scrollRootRef.current?.scrollTo({ top: 0, behavior: "instant" });
       }}
@@ -589,7 +593,7 @@ export function TenderDetailPage({
         compactKosztorysChrome={compactKosztorysChrome}
         decyzjaWorkspace={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
         canViewWorkCatalog={canViewWorkCatalog}
-        onBack={() => navigate(TENDERS_LIST_PATH)}
+        onBack={handleLeaveToModule}
         onTabChange={handleTabChange}
         onDecyzjaWorkspaceChange={activeTab === "decyzja" ? handleDecyzjaWorkspaceChange : undefined}
         przetargCommandSlot={workspaceCommandSlot}
@@ -647,7 +651,7 @@ export function TenderDetailPage({
               allItems={pipeline.items}
               pipelineRuntime={pipelineRuntime}
               onUpdate={bindTenderPipelineOnUpdate(pipeline.updateItem, item.id)}
-              onRemove={() => void pipeline.removeItem(item.id).then(() => navigate(TENDERS_LIST_PATH))}
+              onRemove={() => void pipeline.removeItem(item.id).then(() => handleLeaveToModule())}
               athPreviewEnabled={athPreviewEnabled}
               profileVersion={profileVersion}
               onOpenJob={onOpenJob}

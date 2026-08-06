@@ -4,6 +4,11 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { TenderCostWorkspaceBridge } from "@/app/TenderCostWorkspaceBridge";
 import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
+import { TENDERS_LIST_PATH } from "@/lib/tender-detail-routes-v4";
+import {
+  openTendersAtCompanySection,
+  openTendersAtWorkCatalogTab,
+} from "@/lib/tenders-module-nav";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { TENDER_BID_DISCLAIMER } from "@/lib/tender-bid-quality";
@@ -190,18 +195,22 @@ export function TenderBidProposalPanel({
   }, [catalogLinePricing]);
 
   const openWorkCatalog = useCallback(() => {
-    tendersCtx?.setActiveTab("workcatalog");
-  }, [tendersCtx]);
+    openTendersAtWorkCatalogTab();
+    tendersCtx?.setActiveTab("company");
+    navigate(TENDERS_LIST_PATH);
+  }, [tendersCtx, navigate]);
 
   const openClassificationDict = useCallback(() => {
-    tendersCtx?.setActiveTab("profile");
+    openTendersAtCompanySection("profile");
+    tendersCtx?.setActiveTab("company");
+    navigate(TENDERS_LIST_PATH);
     window.setTimeout(() => {
       document.getElementById(PROFILE_SECTION_IDS.classificationDictionary)?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }, 120);
-  }, [tendersCtx]);
+  }, [tendersCtx, navigate]);
 
   const classification = useMemo(() => {
     if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;

@@ -11,7 +11,7 @@ import {
   CATALOG_UX_SOURCE_LABEL,
   CATALOG_UX_WORK_CATALOG_TAB_LABEL,
 } from "../src/lib/tender-catalog-ux-labels.ts";
-import { TENDERS_MODULE_LABELS } from "../src/lib/tenders-module-labels.ts";
+import { TENDERS_MODULE_LABELS, TENDERS_COMPANY_SECTION_LABELS } from "../src/lib/tenders-module-labels.ts";
 import { getBidSourceLabel } from "../src/lib/tender-bid-quality.ts";
 import {
   CATALOG_LINE_PRICE_SOURCE_BASE,
@@ -55,9 +55,10 @@ assert("CATALOG_UX_WORK_CATALOG_TAB_LABEL", CATALOG_UX_WORK_CATALOG_TAB_LABEL ==
 assert("CATALOG_UX_PRICING_SETTINGS_TAB_LABEL", CATALOG_UX_PRICING_SETTINGS_TAB_LABEL === "Ustawienia wyceny");
 assert("CATALOG_UX_OVERRIDE_LABEL", CATALOG_UX_OVERRIDE_LABEL === "Override");
 
-// --- Module labels wired to SSOT ---
-assert("tabs.workcatalog", TENDERS_MODULE_LABELS.tabs.workcatalog === CATALOG_UX_WORK_CATALOG_TAB_LABEL);
-assert("tabs.pricebase", TENDERS_MODULE_LABELS.tabs.pricebase === CATALOG_UX_PRICING_SETTINGS_TAB_LABEL);
+// --- Module labels IA v2 + company sections ---
+assert("tabs.company Firma", TENDERS_MODULE_LABELS.tabs.company === "Firma");
+assert("section workcatalog", TENDERS_COMPANY_SECTION_LABELS.workcatalog === CATALOG_UX_WORK_CATALOG_TAB_LABEL);
+assert("section pricebase", TENDERS_COMPANY_SECTION_LABELS.pricebase === CATALOG_UX_PRICING_SETTINGS_TAB_LABEL);
 
 // --- Lib display ---
 assert("getBidSourceLabel catalog", getBidSourceLabel("catalog") === CATALOG_UX_SOURCE_LABEL);
@@ -102,7 +103,7 @@ if (forbiddenHits.length > 0) {
 
 // --- Navigation wiring ---
 const bidPanel = readFileSync(join(appRoot, "TenderBidProposalPanel.tsx"), "utf8");
-assert("openWorkCatalog → workcatalog", bidPanel.includes('setActiveTab("workcatalog")'));
+assert("openWorkCatalog → company", bidPanel.includes('setActiveTab("company")') && bidPanel.includes("openTendersAtWorkCatalogTab"));
 assert("onOpenWorkCatalog prop", bidPanel.includes("onOpenWorkCatalog"));
 
 const lineSection = readFileSync(join(appRoot, "TenderCatalogLinePricingSection.tsx"), "utf8");
@@ -110,7 +111,8 @@ assert("CTA Biblioteka Robót", lineSection.includes("Przejdź do {CATALOG_UX_WO
 assert("no onOpenPriceBase", !lineSection.includes("onOpenPriceBase"));
 
 const appTsx = readFileSync(join(appRoot, "App.tsx"), "utf8");
-assert("App uses TENDERS_MODULE_LABELS", appTsx.includes("TENDERS_MODULE_LABELS.tabs.workcatalog"));
+assert("App uses company section labels", appTsx.includes("TENDERS_COMPANY_SECTION_LABELS.workcatalog"));
+assert("App entry Przegląd", appTsx.includes("openTendersAtReviewTab"));
 
 // --- Preview SSOT (#5C-3B) ---
 const priceBasePanel = readFileSync(join(appRoot, "TenderPriceBasePanel.tsx"), "utf8");

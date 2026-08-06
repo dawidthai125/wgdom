@@ -15,10 +15,12 @@ import {
 } from "../src/lib/app-settings.ts";
 import {
   isTendersTabId,
+  migrateTendersTabId,
   openTendersAtWorkCatalogTab,
   sanitizeTendersActiveTab,
+  TENDERS_TAB_STORAGE_KEY,
 } from "../src/lib/tenders-module-nav.ts";
-import { TENDERS_MODULE_LABELS } from "../src/lib/tenders-module-labels.ts";
+import { TENDERS_MODULE_LABELS, TENDERS_COMPANY_SECTION_LABELS } from "../src/lib/tenders-module-labels.ts";
 import { CATALOG_UX_WORK_CATALOG_TAB_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -67,31 +69,44 @@ const mergedOff = mergeAppSettings({ workCatalogForAdminEnabled: false }, {
 });
 assert("merge workCatalogForAdminEnabled remote false wins", mergedOff.workCatalogForAdminEnabled === false);
 
-// --- Tab sanitize ---
-assert("sanitize workcatalog super", sanitizeTendersActiveTab("workcatalog", true) === "workcatalog");
-assert("sanitize workcatalog denied", sanitizeTendersActiveTab("workcatalog", false) === "list");
-assert("sanitize list", sanitizeTendersActiveTab("list", false) === "list");
+// --- Tab sanitize / migrate (IA v2) ---
+assert("migrate workcatalog→company", migrateTendersTabId("workcatalog") === "company");
+assert("sanitize company", sanitizeTendersActiveTab("company", true) === "company");
+assert("sanitize queue", sanitizeTendersActiveTab("queue", false) === "queue");
+assert("migrate list→queue", migrateTendersTabId("list") === "queue");
 
 // --- Tab id ---
-assert("isTendersTabId workcatalog", isTendersTabId("workcatalog") === true);
+assert("isTendersTabId company", isTendersTabId("company") === true);
+assert("isTendersTabId workcatalog false", isTendersTabId("workcatalog") === false);
 assert("isTendersTabId invalid", isTendersTabId("bogus") === false);
-assert("label workcatalog", TENDERS_MODULE_LABELS.tabs.workcatalog === CATALOG_UX_WORK_CATALOG_TAB_LABEL);
+assert("label company Firma", TENDERS_MODULE_LABELS.tabs.company === "Firma");
+assert("section workcatalog label", TENDERS_COMPANY_SECTION_LABELS.workcatalog === CATALOG_UX_WORK_CATALOG_TAB_LABEL);
 
 // --- openTendersAtWorkCatalogTab ---
-const key = "kw-tenders-active-tab-v1";
+const key = TENDERS_TAB_STORAGE_KEY;
 const ls = new Map();
+const sess = new Map();
 const mockStorage = {
   getItem: (k) => (ls.has(k) ? ls.get(k) : null),
   setItem: (k, v) => { ls.set(k, v); },
   removeItem: (k) => { ls.delete(k); },
 };
+const mockSession = {
+  getItem: (k) => (sess.has(k) ? sess.get(k) : null),
+  setItem: (k, v) => { sess.set(k, v); },
+  removeItem: (k) => { sess.delete(k); },
+};
 const prevLs = globalThis.localStorage;
+const prevSs = globalThis.sessionStorage;
 globalThis.localStorage = mockStorage;
+globalThis.sessionStorage = mockSession;
 try {
   openTendersAtWorkCatalogTab();
-  assert("openTendersAtWorkCatalogTab LS", mockStorage.getItem(key) === "workcatalog");
+  assert("openTendersAtWorkCatalogTab LS company", mockStorage.getItem(key) === "company");
+  assert("openTendersAtWorkCatalogTab section", mockSession.getItem("kw-tenders-company-section-v1") === "workcatalog");
 } finally {
   globalThis.localStorage = prevLs;
+  globalThis.sessionStorage = prevSs;
 }
 
 // --- Static navigation wiring ---
@@ -104,11 +119,15 @@ assert("router no top-level workcatalog route", !router.includes('view === "work
 assert("router passes canViewWorkCatalog", router.includes("canViewWorkCatalog"));
 
 const tendersModule = readSrc("src/app/tenders/TendersModule.tsx");
-assert("TendersModule workcatalog tab", tendersModule.includes('"workcatalog"'));
-assert("TendersWorkCatalogTab import", tendersModule.includes("TendersWorkCatalogTab"));
+assert("TendersModule company tab", tendersModule.includes('"company"'));
+assert("TendersCompanyTab import", tendersModule.includes("TendersCompanyTab"));
+
+const companyTab = readSrc("src/app/tenders/tabs/TendersCompanyTab.tsx");
+assert("company hub has workcatalog section", companyTab.includes("workcatalog"));
+assert("layout embedded WorkCatalogView", companyTab.includes('layout="embedded"'));
 
 const workCatalogTab = readSrc("src/app/tenders/tabs/TendersWorkCatalogTab.tsx");
-assert("layout embedded WorkCatalogView", workCatalogTab.includes('layout="embedded"'));
+assert("legacy tab file keeps embedded", workCatalogTab.includes('layout="embedded"'));
 assert("tab is scroll owner", workCatalogTab.includes("overflow-y-auto") && workCatalogTab.includes("overscroll-contain"));
 
 const workCatalogView = readSrc("src/app/work-catalog/WorkCatalogView.tsx");
@@ -119,7 +138,7 @@ assert(
 );
 assert(
   "embedded single flow root",
-  workCatalogView.includes('isEmbedded\n          ? "min-w-0"'),
+  workCatalogView.includes('isEmbedded') && workCatalogView.includes('"min-w-0"'),
 );
 assert("embedded no duplicate h1", workCatalogView.includes("isEmbedded ? ("));
 

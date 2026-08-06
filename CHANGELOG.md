@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.19 — Przetargi — start zawsze Przegląd (2026-08-06)
+
+- **fix:** Menu → Przetargi zawsze otwiera Przegląd (nie last tab z LS)
+
+## 2.66.18 — Przetargi — Workspace v2 P0 (2026-08-06)
+
+- **improve:** 4 top-level — Przegląd · Kolejka · Mapa · Firma; Pulpit/Strategia → Przegląd; Biblioteka w Firmie
+- **fix:** detal bez Global Module Nav (wszystkie breakpointy); Powrót = AC-RETURN (przywrócenie kontekstu)
+
 ## 2.66.17 — Rysunki — cofnięcie Finalnego (2026-08-05)
 
 - **fix:** Odbiory→Rysunki — toggle Finalny↔Roboczy (`unsetDrawingFinal`); delete Final wymaga Roboczy; ACL soft-delete z `adminSession`

@@ -66,7 +66,7 @@ ok("monitoring banner passes item.id", banner.includes("onOpenStrategy(item.id)"
 console.log("\n6. Strategia focus card");
 ok("TenderStrategyFocusCard", focus.includes("data-tender-strategy-focus"));
 ok("strategy content focus", strategy.includes("TenderStrategyFocusCard") && strategy.includes("strategyFocusTenderId"));
-ok("module V4 return path", module.includes("buildTenderDetailPath(tenderId, \"przetarg\")"));
+ok("module V4 return path", module.includes("openTenderDetailFromModule") && module.includes('"przetarg"'));
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
 if (fail > 0) process.exit(1);

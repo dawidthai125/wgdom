@@ -72,7 +72,7 @@ export function TendersSettingsTab() {
         </p>
         <button
           type="button"
-          onClick={() => setActiveTab("list")}
+          onClick={() => setActiveTab("queue")}
           className="mt-2 text-[11px] text-primary hover:underline"
         >
           Odświeżanie listy — zakładka Lista → „Odśwież z BZP”

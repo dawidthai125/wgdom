@@ -1,7 +1,7 @@
 import { Tags } from "lucide-react";
 import { TenderPriceBasePanel } from "@/app/TenderPriceBasePanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
+import { CATALOG_UX_PRICING_SETTINGS_TAB_LABEL } from "@/lib/tender-catalog-ux-labels";
 
 export function TendersPriceBaseTab() {
   const { bumpProfileVersion } = useTendersContext();
@@ -13,7 +13,7 @@ export function TendersPriceBaseTab() {
     >
       <div className="flex items-center gap-2">
         <Tags size={16} className="text-primary" />
-        <h2 className="text-sm font-semibold">{TENDERS_MODULE_LABELS.tabs.pricebase}</h2>
+        <h2 className="text-sm font-semibold">{CATALOG_UX_PRICING_SETTINGS_TAB_LABEL}</h2>
       </div>
       <TenderPriceBasePanel onSaved={() => bumpProfileVersion()} />
     </div>

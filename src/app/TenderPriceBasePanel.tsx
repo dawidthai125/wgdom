@@ -36,7 +36,9 @@ import {
 } from "@/lib/catalog-rate-history";
 import { buildMaterialRateHistoryView } from "@/lib/material-history";
 import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
-import { saveTendersActiveTab } from "@/lib/tenders-module-nav";
+import {
+  openTendersAtWorkCatalogTab,
+} from "@/lib/tenders-module-nav";
 
 const READ_ONLY_INPUT_CLASS =
   "w-full max-w-[88px] rounded px-1.5 py-1 border border-border/50 font-mono bg-muted/40 text-muted-foreground cursor-not-allowed opacity-90";
@@ -169,8 +171,8 @@ export function TenderPriceBasePanel({
   }, [profile, onSaved]);
 
   const goToWorkCatalog = useCallback(() => {
-    saveTendersActiveTab("workcatalog");
-    tendersCtx?.setActiveTab("workcatalog");
+    openTendersAtWorkCatalogTab();
+    tendersCtx?.setActiveTab("company");
   }, [tendersCtx]);
 
   if (loading) {

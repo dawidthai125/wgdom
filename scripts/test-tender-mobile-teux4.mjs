@@ -30,9 +30,10 @@ function readSrc(rel) {
 
 console.log("=== TEUX-4 TENDER MOBILE ===\n");
 
-ok("module nav tab order has list+strategy", TENDER_MODULE_NAV_SHEET_TAB_ORDER.includes("list") && TENDER_MODULE_NAV_SHEET_TAB_ORDER.includes("strategy"));
-ok("filter hides workcatalog when ACL off", !filterTenderModuleNavTabs(false).includes("workcatalog"));
-ok("filter shows workcatalog when ACL on", filterTenderModuleNavTabs(true).includes("workcatalog"));
+ok("module nav tab order has review+queue", TENDER_MODULE_NAV_SHEET_TAB_ORDER.includes("review") && TENDER_MODULE_NAV_SHEET_TAB_ORDER.includes("queue"));
+ok("filter has no workcatalog top-level", !filterTenderModuleNavTabs(false).includes("workcatalog"));
+ok("filter has company hub", filterTenderModuleNavTabs(true).includes("company"));
+ok("filter always 4 tabs", filterTenderModuleNavTabs(true).length === 4);
 
 const navLib = readSrc("src/lib/tender-module-nav-sheet.ts");
 ok("navigate leaves detail URL first", navLib.includes("navigate(TENDERS_LIST_PATH)"));

@@ -1,23 +1,30 @@
-import {
-  CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
-  CATALOG_UX_WORK_CATALOG_TAB_LABEL,
-} from "@/lib/tender-catalog-ux-labels";
+/**
+ * NG-TENDERS-WORKSPACE-01 — etykiety top-level modułu Przetargi (IA v2).
+ * Top-level max 4: Przegląd · Kolejka · Mapa · Firma.
+ */
 
-/** Etykiety modułu Przetargi (moduł Przetargi — Strategia). */
+/** Etykiety modułu Przetargi — Workspace Architecture v2. */
 export const TENDERS_MODULE_LABELS = {
   moduleTitle: "Przetargi",
-  strategyView: "Analiza przetargów",
-  classicView: "Lista przetargów",
+  strategyView: "Przegląd przetargów",
+  classicView: "Kolejka przetargów",
   loading: "Ładowanie przetargów…",
   tabs: {
-    list: "Lista",
-    strategy: "Strategia",
+    review: "Przegląd",
+    queue: "Kolejka",
     map: "Mapa",
-    profile: "Profil firmy",
-    workcatalog: CATALOG_UX_WORK_CATALOG_TAB_LABEL,
-    pricebase: CATALOG_UX_PRICING_SETTINGS_TAB_LABEL,
-    settings: "Ustawienia",
+    company: "Firma",
   },
 } as const;
 
 export type TendersTabId = keyof typeof TENDERS_MODULE_LABELS.tabs;
+
+/** Sekcje hubu Firma (nie top-level). */
+export const TENDERS_COMPANY_SECTION_LABELS = {
+  profile: "Profil firmy",
+  workcatalog: "Biblioteka Robót",
+  pricebase: "Ustawienia wyceny",
+  settings: "Ustawienia",
+} as const;
+
+export type TendersCompanySectionId = keyof typeof TENDERS_COMPANY_SECTION_LABELS;

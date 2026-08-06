@@ -1,11 +1,8 @@
 import {
   Building2,
   LayoutGrid,
-  Library,
   List,
   MapPin,
-  Settings2,
-  Tags,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -18,13 +15,10 @@ import {
 } from "@/lib/tender-ux-tokens";
 
 const TAB_ICONS: Record<TendersTabId, LucideIcon> = {
-  list: List,
-  strategy: LayoutGrid,
+  review: LayoutGrid,
+  queue: List,
   map: MapPin,
-  profile: Building2,
-  workcatalog: Library,
-  pricebase: Tags,
-  settings: Settings2,
+  company: Building2,
 };
 
 export function TenderModuleNavSheet({

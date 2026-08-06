@@ -14,21 +14,15 @@ import {
 import type { TendersProviderInput } from "@/app/tenders/context/tenders-strategy-snapshot";
 import { useTendersStrategySnapshot } from "@/app/tenders/context/useTendersStrategySnapshot";
 import type { TendersTabId } from "@/lib/tenders-module-labels";
-import { TENDERS_TAB_STORAGE_KEY } from "@/lib/tenders-module-nav";
 import {
-  isTendersTabId,
+  resolveStoredTendersActiveTab,
   sanitizeTendersActiveTab,
   saveTendersActiveTab,
+  TENDERS_CANONICAL_START_EVENT,
 } from "@/lib/tenders-module-nav";
 
 function loadActiveTab(canViewWorkCatalog: boolean): TendersTabId {
-  try {
-    const raw = localStorage.getItem(TENDERS_TAB_STORAGE_KEY);
-    if (isTendersTabId(raw)) {
-      return sanitizeTendersActiveTab(raw, canViewWorkCatalog);
-    }
-  } catch { /* ignore */ }
-  return "list";
+  return resolveStoredTendersActiveTab(canViewWorkCatalog);
 }
 
 export function TendersProvider({
@@ -86,32 +80,36 @@ export function TendersProvider({
     const next = sanitizeTendersActiveTab(tab, canViewWorkCatalog);
     setActiveTabState(next);
     saveTendersActiveTab(next);
-    if (next !== "strategy") {
+    if (next !== "review") {
       setStrategyFocusTenderId(null);
     }
   }, [canViewWorkCatalog]);
+
+  /** P0.1 — Menu/Pulpit: kanoniczny start Przegląd także gdy Provider już zamontowany. */
+  useEffect(() => {
+    const onCanonicalStart = () => {
+      setActiveTabState("review");
+      saveTendersActiveTab("review");
+    };
+    window.addEventListener(TENDERS_CANONICAL_START_EVENT, onCanonicalStart);
+    return () => window.removeEventListener(TENDERS_CANONICAL_START_EVENT, onCanonicalStart);
+  }, []);
 
   const clearStrategyFocus = useCallback(() => {
     setStrategyFocusTenderId(null);
   }, []);
 
-  useEffect(() => {
-    if (activeTab === "workcatalog" && !canViewWorkCatalog) {
-      setActiveTabState("list");
-      saveTendersActiveTab("list");
-    }
-  }, [activeTab, canViewWorkCatalog]);
-
   const openTenderInList = useCallback((tenderId: string) => {
     setListExpandedId(tenderId);
-    setActiveTabState("list");
-    saveTendersActiveTab("list");
+    setActiveTabState("queue");
+    saveTendersActiveTab("queue");
   }, []);
 
+  /** Entry Remap: Strategia → Przegląd (+ opcjonalny focus). */
   const openTendersStrategy = useCallback((tenderId?: string) => {
     setStrategyFocusTenderId(tenderId ?? null);
-    setActiveTabState("strategy");
-    saveTendersActiveTab("strategy");
+    setActiveTabState("review");
+    saveTendersActiveTab("review");
   }, []);
 
   const value = useMemo(

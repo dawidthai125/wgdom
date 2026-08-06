@@ -48,7 +48,7 @@ ok("mapa title markers", mapPanel.includes("Brak markerów we Wrocławiu"));
 ok("mapa CTA prop", mapPanel.includes("onGoToList"));
 
 const mapTab = readSrc("src/app/tenders/tabs/TendersMapTab.tsx");
-ok("map tab wires onGoToList", mapTab.includes('setActiveTab("list")'));
+ok("map tab wires onGoToList", mapTab.includes('setActiveTab("queue")'));
 
 const attachPanel = readSrc("src/app/TenderAttachmentsPanel.tsx");
 ok("platform empty uses TenderUxEmptyState", attachPanel.includes("TenderUxEmptyState"));

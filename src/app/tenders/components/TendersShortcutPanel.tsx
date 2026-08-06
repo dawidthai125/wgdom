@@ -90,7 +90,7 @@ export function TendersShortcutPanel({
       <div className="pb-3 border-b border-border/50">
         <h2 className="text-sm font-semibold text-foreground">{SHORTCUT_TITLE}</h2>
         <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-          3 sygnały operacyjne — monitoring, zmiany i Q&A w {TENDERS_MODULE_LABELS.tabs.strategy}
+          3 sygnały operacyjne — monitoring, zmiany i Q&A w {TENDERS_MODULE_LABELS.tabs.review}
         </p>
       </div>
 
@@ -134,7 +134,7 @@ export function TendersShortcutPanel({
           onClick={handleOpenStrategy}
           className={cn(WG_TOUCH_MIN, "w-full h-11 gap-2 text-sm font-semibold")}
         >
-          Przetargi → {TENDERS_MODULE_LABELS.tabs.strategy}
+          Przetargi → {TENDERS_MODULE_LABELS.tabs.review}
           <ChevronRight size={16} />
         </WgButton>
       </div>

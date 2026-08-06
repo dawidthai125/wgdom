@@ -2,17 +2,17 @@ import { MapPin } from "lucide-react";
 import { useNavigate } from "react-router";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
+import { openTenderDetailFromModule } from "@/lib/tender-module-nav-sheet";
 import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
 
 export function TendersMapTab() {
   const navigate = useNavigate();
-  const { snapshot, openTenderInList, setActiveTab } = useTendersContext();
+  const { snapshot, openTenderInList, setActiveTab, activeTab } = useTendersContext();
   const { pipeline } = snapshot;
 
   const handleSelect = (tenderId: string) => {
     if (TENDERS_V4_ROUTING) {
-      openTenderDetailV4(navigate, tenderId, "przetarg");
+      openTenderDetailFromModule(navigate, tenderId, activeTab, "przetarg");
       return;
     }
     openTenderInList(tenderId);
@@ -34,7 +34,7 @@ export function TendersMapTab() {
         items={pipeline.items}
         selectedId={null}
         onSelect={handleSelect}
-        onGoToList={() => setActiveTab("list")}
+        onGoToList={() => setActiveTab("queue")}
       />
     </div>
   );

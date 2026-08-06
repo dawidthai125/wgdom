@@ -47,6 +47,7 @@ import type { TenderWorkflowOperatorActionBarProps } from "@/app/TenderWorkflowO
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import { TENDERS_LIST_PATH } from "@/lib/tender-detail-routes-v4";
+import { clearTendersReturnContext } from "@/lib/tenders-module-nav";
 import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import { loadOwnerDecisions } from "@/lib/tenders-strategy-owner-decisions";
 import { loadCompanyQualificationProfileLocal } from "@/lib/company-qualification-profile";
@@ -176,6 +177,7 @@ export function TenderDetailPanel({
 
   const handleOpenTendersStrategy = useCallback((tenderId: string) => {
     tendersCtx?.openTendersStrategy(tenderId);
+    clearTendersReturnContext();
     navigate(TENDERS_LIST_PATH);
   }, [tendersCtx, navigate]);
 

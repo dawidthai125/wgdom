@@ -11,6 +11,32 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-06",
+    version: "2.66.19",
+    label: "Przetargi — start zawsze Przegląd",
+    items: [
+      {
+        type: "fix",
+        text: "Menu → Przetargi zawsze otwiera Przegląd (nie ostatnią zakładkę). DESIGN FREEZE kanoniczny start.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-06",
+    version: "2.66.18",
+    label: "Przetargi — Workspace v2 (P0)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi: 4 zakładki — Przegląd · Kolejka · Mapa · Firma. Pulpit i dawna Strategia otwierają Przegląd; Biblioteka Robót w Firmie.",
+      },
+      {
+        type: "fix",
+        text: "Detal przetargu: bez paska zakładek modułu (wszystkie ekrany). Powrót przywraca poprzedni kontekst (Przegląd/Kolejka/…).",
+      },
+    ],
+  },
+  {
     date: "2026-08-05",
     version: "2.66.17",
     label: "Rysunki — cofnięcie Finalnego",

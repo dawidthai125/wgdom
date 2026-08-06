@@ -5,7 +5,6 @@ import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
 import { AdminViewRouter } from "@/app/admin/AdminViewRouter";
 import { AdminMobileNav } from "@/app/admin/AdminMobileNav";
 import { buildAdminNavItems, splitMobileNav, isNavItemActive, type View } from "@/app/admin/admin-nav";
-import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { ContactsView } from "@/app/ContactsView";
 import { DirectoryView } from "@/app/DirectoryView";
 import { ArchiveView } from "@/app/ArchiveView";
@@ -196,7 +195,8 @@ import {
   withPayrollWeekEmployeesWriteSource,
 } from "@/lib/payroll-week-employees-write-trace";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
-import { openTendersAtStrategyTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
+import { openTendersAtReviewTab, openTendersAtWorkCatalogTab } from "@/lib/tenders-module-nav";
+import { TENDERS_COMPANY_SECTION_LABELS } from "@/lib/tenders-module-labels";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { reconcileModalScrollLock, useModalScrollLock } from "@/lib/modal-scroll-lock";
 import { Toaster } from "@/app/components/ui/sonner";
@@ -2541,7 +2541,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       guide: "Instrukcja",
       changelog: "Zmiany",
       tenders: "Przetargi",
-      workcatalog: TENDERS_MODULE_LABELS.tabs.workcatalog,
+      workcatalog: TENDERS_COMPANY_SECTION_LABELS.workcatalog,
     };
     if (view !== "jobs") {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
@@ -2570,7 +2570,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       jobs: "Roboty",
       operationalnotes: "Notatki operacyjne",
       audit: "Audit Hub",
-      workcatalog: TENDERS_MODULE_LABELS.tabs.workcatalog,
+      workcatalog: TENDERS_COMPANY_SECTION_LABELS.workcatalog,
     };
     if ((dest === "jobs" || dest === "inspector") && view !== dest) {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
@@ -2594,10 +2594,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     reconcileModalScrollLock();
     if (TENDERS_V4_ROUTING) {
       if (v === "tenders") {
+        openTendersAtReviewTab();
         navigate(TENDERS_LIST_PATH);
       } else if (isTenderV4Path(location.pathname)) {
         navigate("/");
       }
+    } else if (v === "tenders") {
+      openTendersAtReviewTab();
     }
   }, [navigate, location.pathname]);
 
@@ -2818,13 +2821,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
           onOpenSms={() => setShowSmsModal(true)}
           onOpenTenders={() => {
+            openTendersAtReviewTab();
             if (TENDERS_V4_ROUTING) {
               navigate(TENDERS_LIST_PATH);
-              setView("tenders");
-            } else {
-              openTendersAtStrategyTab();
-              setView("tenders");
             }
+            setView("tenders");
           }}
           onOpenTender={openTenderById}
           handleNavigate={handleNavigate}

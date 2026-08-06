@@ -45,10 +45,12 @@ console.log("\n2. decyzjaWorkspace — query SSOT");
 ok("decyzjaWs z location.search", page.includes("location.search"));
 ok("parseDecyzjaWorkspaceQuery", page.includes("parseDecyzjaWorkspaceQuery"));
 
-console.log("\n3. TendersModule — activeTab sync");
-ok("saveTendersActiveTab import", module.includes("saveTendersActiveTab"));
-ok("v4Detail → setActiveTab list", module.includes('setActiveTab("list")'));
+console.log("\n3. TendersModule — detail shell");
+ok("openTenderDetailFromModule", module.includes("openTenderDetailFromModule"));
+ok("hideModuleChrome when v4Detail", module.includes("hideModuleChrome") && module.includes("v4Detail"));
+ok("brak force setActiveTab list on detail", !module.includes('setActiveTab("list")'));
 ok("brak tab={v4Detail.tab}", !module.includes("tab={v4Detail.tab}"));
+ok("leaveTenderDetailToModule in DetailPage", page.includes("leaveTenderDetailToModule"));
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
 if (fail > 0) process.exit(1);

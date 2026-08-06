@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TendersView } from "@/app/TendersView";
-import { openTenderDetailV4 } from "@/lib/tender-detail-nav";
+import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { openTenderDetailFromModule } from "@/lib/tender-module-nav-sheet";
 
 export function TendersListPage({
   showTestBadge = false,
@@ -15,6 +16,7 @@ export function TendersListPage({
   athPreviewEnabled?: boolean;
 }) {
   const navigate = useNavigate();
+  const { activeTab } = useTendersContext();
 
   return (
     <TendersView
@@ -24,7 +26,7 @@ export function TendersListPage({
       onCreateJobFromTender={onCreateJobFromTender}
       onOpenJob={onOpenJob}
       athPreviewEnabled={athPreviewEnabled}
-      onItemNavigate={(id) => openTenderDetailV4(navigate, id)}
+      onItemNavigate={(id) => openTenderDetailFromModule(navigate, id, activeTab)}
     />
   );
 }
