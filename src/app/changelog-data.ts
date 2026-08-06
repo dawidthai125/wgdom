@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-06",
+    version: "2.66.20",
+    label: "Koszt — Knowledge Engine A0+A1",
+    items: [
+      {
+        type: "new",
+        text: "NG-TENDERS-COST-KNOWLEDGE-01 Thin Slice: KPI Harness (RO) + Library Fill seed + Quotes REUSE (feature tip 9c0901d6).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-06",
     version: "2.66.19",
     label: "Przetargi — start zawsze Przegląd",
     items: [

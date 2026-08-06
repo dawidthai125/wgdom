@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.20 — Koszt — Knowledge Engine A0+A1 (2026-08-06)
+
+- **new:** NG-TENDERS-COST-KNOWLEDGE-01 Thin Slice — KPI Harness (RO) + Library Fill seed + Quotes REUSE (feature tip `9c0901d6`)
+
 ## 2.66.19 — Przetargi — start zawsze Przegląd (2026-08-06)
 
 - **fix:** Menu → Przetargi zawsze otwiera Przegląd (nie last tab z LS)
