@@ -36,6 +36,7 @@ import {
   isPdfPrzedmiarCostFilename,
   type TenderCostDiscoveryResult,
 } from "@/lib/tender-cost-discovery";
+import { classifyFilenamePriority } from "@/lib/document-intelligence";
 import { filterCostCandidateFilenames } from "@/lib/cost-multi-01-package";
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
@@ -550,7 +551,11 @@ function shouldReplaceBestKosztorys(
   return false;
 }
 
-/** P2-E.1B — kosztorys zawsze parsowany (standalone ATH + inner ZIP ATH). */
+/**
+ * P2-E.1B — kosztorys zawsze parsowany (standalone ATH + inner ZIP ATH).
+ * NG-TENDERS-DOCUMENT-INTELLIGENCE-01 Phase A — Filename Priority boost PDFs
+ * enter cost parse queue (filename NEVER rejects; DI decides parse inside parser).
+ */
 function pickCostParseCandidates(
   all: TenderDocCandidate[],
   costDiscovery: TenderCostDiscoveryResult | null,
@@ -571,6 +576,16 @@ function pickCostParseCandidates(
     }
     if (isPdfPrzedmiarCostFilename(c.filename)) {
       out.set(candidateKey(c), c);
+    }
+    // COND-8: boost / annex quantity cues → candidate (DI may still recommend none)
+    if (isPdfFilename(base)) {
+      const pri = classifyFilenamePriority(c.filename).priority;
+      const annexCue = /za[łl][aą]cznik|wykaz|zakres\s+rzeczowo|rzeczowo[\s-]*finansow/i.test(
+        c.filename,
+      );
+      if (pri === "boost" || annexCue) {
+        out.set(candidateKey(c), c);
+      }
     }
   }
   return [...out.values()];

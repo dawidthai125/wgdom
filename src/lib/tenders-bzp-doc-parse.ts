@@ -26,6 +26,11 @@ import { isPdfPrzedmiarCostFilename } from "@/lib/tender-cost-discovery";
 import { scoreCostDocumentFromXlsxBytes, isOfferFormXlsxBytes } from "@/lib/tender-cost-content-detection";
 import { pdfPrzedmiarHeuristicToPreview } from "@/lib/pdf-przedmiar-heuristic";
 import { recordTenderPdfExtract, recordTenderZipLoad } from "@/lib/tender-pipeline-metrics";
+import {
+  analyzeDocumentIntelligence,
+  shouldForcePdfPrzedmiarParse,
+  type DocumentIntelligenceResult,
+} from "@/lib/document-intelligence";
 
 export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
 export {
@@ -456,9 +461,22 @@ export function parseXlsxToKosztorys(bytes: Uint8Array, filename: string): AthPr
   }
 }
 
+export type ParseDocumentToKosztorysOpts = {
+  /** COND-1 — DI Pass-7 already selected pdf_przedmiar (or Owner force). */
+  forcePdfPrzedmiar?: boolean;
+  /** Optional precomputed DI; when omitted, Phase A runs DI on extracted PDF text. */
+  documentIntelligence?: DocumentIntelligenceResult | null;
+};
+
+/**
+ * NG-TENDERS-DOCUMENT-INTELLIGENCE-01 Phase A:
+ * Filename NEVER rejects PDF parse — Doc.D1 still fast-path; otherwise DI Pass-7 may allow
+ * REUSE of pdfPrzedmiarHeuristicToPreview (no parser rewrite).
+ */
 export async function parseDocumentToKosztorys(
   bytes: Uint8Array,
   filename: string,
+  opts?: ParseDocumentToKosztorysOpts,
 ): Promise<AthPreviewResult | null> {
   if (isKosztorysPreviewExt(filename)) {
     return parseKosztorysBytes(bytes, filename);
@@ -466,10 +484,31 @@ export async function parseDocumentToKosztorys(
   if (isXlsxFilename(filename)) {
     return parseXlsxToKosztorys(bytes, filename);
   }
-  if (isPdfPrzedmiarCostFilename(filename)) {
-    const { text, likelyScan, noTextLayer, extractError } = await extractPdfText(bytes);
-    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan, noTextLayer, extractError });
+  if (!isPdfFilename(filename)) {
+    return null;
   }
+
+  const { text, likelyScan, noTextLayer, extractError } = await extractPdfText(bytes);
+  const previewOpts = { likelyScan, noTextLayer, extractError };
+
+  if (isPdfPrzedmiarCostFilename(filename) || opts?.forcePdfPrzedmiar === true) {
+    return pdfPrzedmiarHeuristicToPreview(text, filename, previewOpts);
+  }
+
+  const di =
+    opts?.documentIntelligence ??
+    analyzeDocumentIntelligence({
+      filename,
+      fullText: text,
+      isPdf: true,
+      hasTextLayer: noTextLayer ? false : text.trim().length > 0,
+      byteLength: bytes.byteLength,
+    });
+
+  if (shouldForcePdfPrzedmiarParse(di)) {
+    return pdfPrzedmiarHeuristicToPreview(text, filename, previewOpts);
+  }
+
   return null;
 }
 
