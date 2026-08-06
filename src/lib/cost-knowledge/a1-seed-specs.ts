@@ -4,6 +4,11 @@
  * Pure data — ops script applies via WC store + commitMarketQuotesImport.
  */
 
+import {
+  COST_KNOWLEDGE_BANNED_BARE_TOKENS,
+  assertKeywordHygieneSpec,
+} from "@/lib/cost-knowledge/keyword-hygiene";
+
 export interface CostKnowledgeA1WorkSpec {
   id: string;
   tradeId: string;
@@ -75,43 +80,9 @@ export const COST_KNOWLEDGE_A1_SEED_WORKS: readonly CostKnowledgeA1WorkSpec[] = 
 
 export const COST_KNOWLEDGE_A1_SEED_IDS = COST_KNOWLEDGE_A1_SEED_WORKS.map((w) => w.id);
 
-/** Bare tokens forbidden as sole keyword (false-map). */
-export const COST_KNOWLEDGE_A1_BANNED_BARE = [
-  "winidur",
-  "gzyms",
-  "impregnacja",
-  "piec",
-  "kołki",
-  "kolki",
-  "rura",
-  "folia",
-  "bruzd",
-] as const;
+/** @deprecated Prefer COST_KNOWLEDGE_BANNED_BARE_TOKENS — kept for CK-01 test imports. */
+export const COST_KNOWLEDGE_A1_BANNED_BARE = COST_KNOWLEDGE_BANNED_BARE_TOKENS;
 
 export function assertCostKnowledgeA1KeywordHygiene(spec: CostKnowledgeA1WorkSpec): void {
-  for (const kw of spec.keywords) {
-    const fold = kw
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "");
-    const tokens = fold.split(/\s+/).filter(Boolean);
-    if (tokens.length < 2) {
-      throw new Error(`A1 hygiene: keyword must be multi-word: "${kw}" (${spec.id})`);
-    }
-  }
-  // Name/description: no standalone banned bare token (mapper scores name tokens ≥4 chars).
-  const surface = `${spec.namePl} ${spec.descriptionPl}`
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "");
-  const surfaceTokens = new Set(surface.split(/[^a-z0-9]+/).filter((t) => t.length >= 4));
-  for (const bare of COST_KNOWLEDGE_A1_BANNED_BARE) {
-    const bareFold = bare
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "");
-    if (surfaceTokens.has(bareFold)) {
-      throw new Error(`A1 hygiene: banned bare token in name/description: "${bare}" (${spec.id})`);
-    }
-  }
+  assertKeywordHygieneSpec(spec);
 }
