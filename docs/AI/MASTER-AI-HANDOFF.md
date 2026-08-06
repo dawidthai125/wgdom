@@ -3,7 +3,7 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-05  
+> **Data:** 2026-08-06  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
 > **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**  
@@ -11,7 +11,7 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.17 / e871fed6 (WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED · PRODUCTION VERIFIED)
+Tip = 09 + version.json → 2.66.19 / 182dd9af (NG-TENDERS-WORKSPACE-01 CLOSED · PRODUCTION VERIFIED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 STABILIZATION WINDOW ACTIVE
@@ -23,9 +23,9 @@ WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.17** / commit **`e871fed6`** — **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.19** / commit **`182dd9af`** — **NG-TENDERS-WORKSPACE-01 CLOSED** · **PRODUCTION VERIFIED**.
 
-Ostatnie zamknięte: **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
@@ -39,9 +39,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.17** |
-| **Commit** | **`e871fed6`** (full `e871fed698aa4cb3c46e02eaa289a4a594866c20`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.19** |
+| **Commit** | **`182dd9af`** (full `182dd9af446e83e8e773f53689333698f81ac4a9`) |
+| **Status** | **PRODUCTION VERIFIED** · tip = **NG-TENDERS-WORKSPACE-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -63,7 +63,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **AI-COST-02** | COST-02-A · 02-B · **I3 FULLY CLOSED** · dalsze slice = backlog |
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |
 | **Foundation Lib P0** | COMPLETE (FND-01…05) · **FND-06 BLOCKED** · app **nie** podłączona |
-| **Workflow Przetargi** | Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) |
+| **Workflow Przetargi** | Workspace v2 · Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) · [`NG-TENDERS-WORKSPACE-01-CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 
 Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) · [`AGENTS.md`](../../AGENTS.md) (proces, nie tip).
 
@@ -75,7 +75,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
-| **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **2.66.17** tip | **`e871fed6`** | **EPIC CLOSED** · draft↔final · unsetDrawingFinal · Model A delete · ACL session · audit | **YES** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
+| **NG-TENDERS-WORKSPACE-01** | **2.66.19** tip | **`182dd9af`** | **EPIC CLOSED** · Workspace v2 · Przegląd start · 4 tabs · AC-RETURN · Firma Hub · hide module nav | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
+| **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **2.66.17** | **`e871fed6`** | **EPIC CLOSED** · draft↔final · unsetDrawingFinal · Model A delete · ACL session · audit | **YES** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-02** | **2.66.16** | **`377e279f`** | **EPIC CLOSED** · Publication Workflow · `placement` · `resolved` · Promote-copy 1:1 · A2 NO TOUCH | **YES** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01 P2a** | **2.66.15** | **`e9598c99`** | **P2a CLOSED** · Dashboard Szkice Techniczne (job-centric) · HIGH→NORMAL · Jobs→Dokumentacja→drawingId · A2 NO TOUCH | **YES** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01 P0** | **2.66.14** | **`0afeb82d`** | **P0 CLOSED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · (Accept superseded by -02) · A2 NO TOUCH | **YES** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
@@ -129,8 +130,9 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **2.66.17** / **`e871fed6`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **NG-TENDERS-WORKSPACE-01 CLOSED** · **2.66.19** / **`182dd9af`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
+| **NG-TENDERS-WORKSPACE-01** | **EPIC CLOSED** · Workspace Architecture v2 · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **EPIC CLOSED** · Final undo · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-02** | **EPIC CLOSED** · Publication Workflow · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01** | **P0 CLOSED** · **P2a CLOSED** · tip hist. · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
@@ -151,7 +153,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.17** WM-ODBIORY-RYSUNKI-FINAL-UNDO-01) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.19** NG-TENDERS-WORKSPACE-01) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---
@@ -183,6 +185,8 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 | ID / temat | Status |
 |------------|--------|
 | **OST PDF fill round-trip** | **KNOWN LIMIT** — LiveCycle/XFA/Encrypt · pdf-lib unsupported · fix = **ACROFORM-01** (nowy PDF) · **nie** OST-03 |
+| **CI TEST-INFRA TEUX7E** (NG-TENDERS residual) | **Open** — Gate B `LIB-TENDER-STRATEGY-TEUX7E` · **NOT PART OF** NG-TENDERS-WORKSPACE-01 · pre-existed |
+| **CI Mobile Smoke / Legacy Happy Path** (Jobs · Dokumentacja) | **Open** — **NOT PART OF** NG-TENDERS-WORKSPACE-01 · pre-existed |
 | CI E2E / TEST-INFRA / Mobile (residual Doc Detection) | **Open** — nie diagnozowano w Doc Detection CLOSE |
 | TEUX6 / jobs-mobile (AI v2 Confidence/Scope) | **UNRELATED / Open** (Owner accepted) |
 | FND-06 Observability | **BLOCKED** — brak Implementation Spec |
@@ -233,7 +237,7 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**): WIM-P1b · MOBILE-P2 · P4 
 
 ```text
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.16 / 377e279f gdy CDN OK)
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.19 / 182dd9af gdy CDN OK)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
 [ ] Owner GO gdy wymagane

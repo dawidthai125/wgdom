@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-05 (**SESSION CLOSED** · tip UI **2.66.17** / **`e871fed6`** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.19** / **`182dd9af`** · **NG-TENDERS-WORKSPACE-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
@@ -11,13 +11,25 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.17** / **`e871fed6`** · **PRODUCTION VERIFIED** |
+| Production tip | **2.66.19** / **`182dd9af`** · **PRODUCTION VERIFIED** |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** (P0+P1) · APPEARANCE-01 · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
+| CLOSED | **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** (P0+P1) · APPEARANCE-01 · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
 | **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA |
 | **NEXT** | **WAITING FOR NEXT OWNER GO** |
-| **Known Residuals (NIE część FINAL-UNDO-01)** | TEST-INFRA Gates FAIL (legacy) · E2E Happy Path FAIL (legacy) · Mobile Smoke był w toku podczas PV |
+| **Known Residuals (NIE część NG-TENDERS-WORKSPACE-01)** | TEST-INFRA TEUX7E · Mobile Smoke Jobs/Dokumentacja · Legacy Happy Path — **NOT PART OF THIS EPIC** |
+
+
+## ★ NG-TENDERS-WORKSPACE-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.19** / **`182dd9af`** |
+| **IN** | Workspace Architecture v2 · Przegląd = start · 4 top-level · AC-RETURN · Firma Hub · hide module nav · P0.1 |
+| **OUT** | Cloud · Payroll · Edge · Pipeline · Parser · Publication · KV |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
+| **Residuals** | TEUX7E / Mobile Dokumentacja / Legacy Happy Path — **NOT PART OF THIS EPIC** |
+| **NEXT** | **WAITING FOR NEXT OWNER GO** |
 
 ## ★ WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 — **CLOSED**
 

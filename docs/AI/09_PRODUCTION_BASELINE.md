@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-05 · tip UI **2.66.17** · **`e871fed6`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **PRODUCTION VERIFIED** · WM-DOKUMENTACJA-SZKICE-02 CLOSED · WM-DOKUMENTACJA-SZKICE-01 P0+P2a CLOSED · WM-WORKER-SKETCH-01 CLOSED (P0+P1) · APPEARANCE-01 CLOSED · AUTO-GENERATE-01 CLOSED · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**Snapshot dokumentacji:** 2026-08-06 · tip UI **2.66.19** · **`182dd9af`** · cold-start SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · **NG-TENDERS-WORKSPACE-01 CLOSED** · **PRODUCTION VERIFIED** · WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED · WM-DOKUMENTACJA-SZKICE-02 CLOSED · WM-DOKUMENTACJA-SZKICE-01 P0+P2a CLOSED · WM-WORKER-SKETCH-01 CLOSED (P0+P1) · APPEARANCE-01 CLOSED · AUTO-GENERATE-01 CLOSED · MAPPING-MIGRATION-01 CLOSED · OST-01 CLOSED · AcroForm OST PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.17** |
-| **Deploy tip commit (`main` / `version.json`)** | **`e871fed6`** · full **`e871fed698aa4cb3c46e02eaa289a4a594866c20`** · WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 · tip **`e871fed`** · **PRODUCTION VERIFIED** |
-| **Feature tip (WM-ODBIORY-RYSUNKI-FINAL-UNDO-01)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · `DrawingStatus` draft↔final · `unsetDrawingFinal` · toggle Finalny↔Roboczy · Model A soft-delete · ACL `adminSession` · audit finalized/unfinalized · UI **2.66.17** · **`e871fed6`** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
+| **UI version (changelog / version.json)** | **2.66.19** |
+| **Deploy tip commit (`main` / `version.json`)** | **`182dd9af`** · full **`182dd9af446e83e8e773f53689333698f81ac4a9`** · NG-TENDERS-WORKSPACE-01 · tip **`182dd9a`** · **PRODUCTION VERIFIED** |
+| **Feature tip (NG-TENDERS-WORKSPACE-01)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · Workspace Architecture v2 · Przegląd = start · 4 top-level · AC-RETURN · Firma Hub · hide module nav w detal · UI **2.66.19** · **`182dd9af`** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) · Residual CI TEUX7E / Mobile Dokumentacja / Legacy Happy Path — **NOT PART OF THIS EPIC** |
+| **Feature tip (WM-ODBIORY-RYSUNKI-FINAL-UNDO-01)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · `DrawingStatus` draft↔final · `unsetDrawingFinal` · toggle Finalny↔Roboczy · Model A soft-delete · ACL `adminSession` · audit finalized/unfinalized · UI **2.66.17** · **`e871fed6`** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) · tip UI supersedowany przez NG-TENDERS-WORKSPACE-01 |
 | **Feature tip (WM-DOKUMENTACJA-SZKICE-02)** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · Publication Workflow · `placement` · `resolved` · Promote-copy 1:1 · A2 NO TOUCH · UI **2.66.16** · **`377e279f`** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) · tip UI supersedowany przez FINAL-UNDO-01 |
 | **Feature tip (WM-DOKUMENTACJA-SZKICE-01 P2a)** | **P2a CLOSED** · **PRODUCTION VERIFIED** · Dashboard Szkice Techniczne (job-centric) · HIGH→NORMAL · deep-link Jobs→Dokumentacja→drawingId · A2 NO TOUCH · UI **2.66.15** · **`e9598c99`** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) · tip UI supersedowany przez -02 |
 | **Feature tip (WM-DOKUMENTACJA-SZKICE-01 P0)** | **P0 CLOSED** · **PRODUCTION VERIFIED** · Dokumentacja→Szkice Techniczne · Needs Changes · Resubmit · (Accept superseded by -02) · A2 NO TOUCH · UI **2.66.14** · **`0afeb82d`** · [`P0-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P0-CLOSEOUT.md) |
@@ -111,7 +112,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | **Ostatni feature (AP2-S0)** | Semantyka przedmiaru — [`AP2-S0-RELEASE`](../architecture/WGDOM-ANALIZA-PRZETARGOW-2.0-AP2-S0-RELEASE-REPORT.md) · **`2c1ef53`** |
 | **Ostatni feature (Dashboard Body S4)** | **`bd0f239`** — Przetargi skrót → GDS |
 | **Feature baseline Lista Płac (Hours-wipe)** | UI **2.65.43** · **`ea1b0a6`** — semantyka D1–D5 ACTIVE |
-| **Status** | **PRODUCTION** tip UI **2.66.17** / **`e871fed6`** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 CLOSED** · **PRODUCTION VERIFIED** · WM-DOKUMENTACJA-SZKICE-02 CLOSED · -01 P0+P2a CLOSED · WM-WORKER-SKETCH-01 CLOSED · APPEARANCE-01 · AUTO-GENERATE-01 · MAPPING · OST-01 · WIM-P1a · AcroForm PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · WIM-P1b / MOBILE-P2 / WM P4 / MS P3-B / SMART P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
+| **Status** | **PRODUCTION** tip UI **2.66.19** / **`182dd9af`** · **NG-TENDERS-WORKSPACE-01 CLOSED** · **PRODUCTION VERIFIED** · FINAL-UNDO-01 CLOSED · WM-DOKUMENTACJA-SZKICE-02 CLOSED · -01 P0+P2a CLOSED · WM-WORKER-SKETCH-01 CLOSED · APPEARANCE-01 · AUTO-GENERATE-01 · MAPPING · OST-01 · WIM-P1a · AcroForm PASS · **OST-03 DO NOT IMPLEMENT** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** · WIM-P1b / MOBILE-P2 / WM P4 / MS P3-B / SMART P3 / CM-04 P3 / Wave 2 — **tylko** Owner GO |
 | **Dashboard Body (S1–S4)** | **COMPLETE** · [`WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md`](../architecture/WGDOM-DASHBOARD-BODY-02-CLOSEOUT.md) |
 | **UI Foundation v1.0** | **COMPLETE** · [`WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md`](../architecture/WGDOM-UI-FOUNDATION-01-FOUNDATION-REPORT.md) |
 | **Payroll Hours-wipe EPIC** | **CLOSED** · [`PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](../architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md) |
@@ -132,6 +133,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.66.19** / **`182dd9af`** | NG-TENDERS-WORKSPACE-01 — Workspace Architecture v2 · Przegląd start · 4 tabs · AC-RETURN · Firma Hub | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **2.66.17** / **`e871fed6`** | WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 — Finalny↔Roboczy · unsetDrawingFinal | **CLOSED** · **PV** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **2.66.16** / **`377e279f`** | WM-DOKUMENTACJA-SZKICE-02 — Publication Workflow placement | **CLOSED** · **PV** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **2.66.13** / **`4f99a279`** | WM-WORKER-SKETCH-01 P1 — Mobile Draw UX (drag-release · snap · chrome) | **CLOSED** · **PV** · [`EPIC-CLOSEOUT`](../architecture/WM-WORKER-SKETCH-01-EPIC-CLOSEOUT.md) |
