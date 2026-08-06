@@ -11,21 +11,22 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.19 / 182dd9af (NG-TENDERS-WORKSPACE-01 CLOSED · PRODUCTION VERIFIED)
+Tip = 09 + version.json → 2.66.20 / f2b0fa1e (NG-TENDERS-COST-KNOWLEDGE-01 CLOSED · PRODUCTION VERIFIED)
+Feature tip A0+A1 = 9c0901d6
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
-WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
+A2/A3/Learning · WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.19** / commit **`182dd9af`** — **NG-TENDERS-WORKSPACE-01 CLOSED** · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.20** / commit **`f2b0fa1e`** — **NG-TENDERS-COST-KNOWLEDGE-01 CLOSED** · **PRODUCTION VERIFIED** (feature **`9c0901d6`**).
 
-Ostatnie zamknięte: **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **NG-TENDERS-COST-KNOWLEDGE-01** (A0+A1) · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
@@ -39,9 +40,10 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.19** |
-| **Commit** | **`182dd9af`** (full `182dd9af446e83e8e773f53689333698f81ac4a9`) |
-| **Status** | **PRODUCTION VERIFIED** · tip = **NG-TENDERS-WORKSPACE-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.20** |
+| **Commit** | **`f2b0fa1e`** (full `f2b0fa1eba67ce4b41ca304e9a7b54ae499653ff`) |
+| **Feature tip** | **`9c0901d6`** — A0+A1 cost-knowledge |
+| **Status** | **PRODUCTION VERIFIED** · tip = **NG-TENDERS-COST-KNOWLEDGE-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -64,6 +66,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |
 | **Foundation Lib P0** | COMPLETE (FND-01…05) · **FND-06 BLOCKED** · app **nie** podłączona |
 | **Workflow Przetargi** | Workspace v2 · Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) · [`NG-TENDERS-WORKSPACE-01-CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
+| **Cost Knowledge** | Thin Slice A0+A1 — [`cost-knowledge/`](../../src/lib/cost-knowledge/) · [`NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
 
 Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) · [`AGENTS.md`](../../AGENTS.md) (proces, nie tip).
 
@@ -75,7 +78,8 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
-| **NG-TENDERS-WORKSPACE-01** | **2.66.19** tip | **`182dd9af`** | **EPIC CLOSED** · Workspace v2 · Przegląd start · 4 tabs · AC-RETURN · Firma Hub · hide module nav | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
+| **NG-TENDERS-COST-KNOWLEDGE-01** | **2.66.20** tip | feature **`9c0901d6`** · docs **`f2b0fa1e`** | **EPIC CLOSED** · A0 KPI Harness RO · A1 Library Fill + Quotes REUSE | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
+| **NG-TENDERS-WORKSPACE-01** | **2.66.19** | **`182dd9af`** | **EPIC CLOSED** · Workspace v2 · Przegląd start · 4 tabs · AC-RETURN · Firma Hub · hide module nav | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **2.66.17** | **`e871fed6`** | **EPIC CLOSED** · draft↔final · unsetDrawingFinal · Model A delete · ACL session · audit | **YES** · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-02** | **2.66.16** | **`377e279f`** | **EPIC CLOSED** · Publication Workflow · `placement` · `resolved` · Promote-copy 1:1 · A2 NO TOUCH | **YES** · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-01 P2a** | **2.66.15** | **`e9598c99`** | **P2a CLOSED** · Dashboard Szkice Techniczne (job-centric) · HIGH→NORMAL · Jobs→Dokumentacja→drawingId · A2 NO TOUCH | **YES** · [`P2a-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-01-P2a-CLOSEOUT.md) |
@@ -130,8 +134,9 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **NG-TENDERS-WORKSPACE-01 CLOSED** · **2.66.19** / **`182dd9af`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **NG-TENDERS-COST-KNOWLEDGE-01 CLOSED** · **2.66.20** / **`f2b0fa1e`** · feature **`9c0901d6`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
+| **NG-TENDERS-COST-KNOWLEDGE-01** | **EPIC CLOSED** · A0+A1 · [`CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
 | **NG-TENDERS-WORKSPACE-01** | **EPIC CLOSED** · Workspace Architecture v2 · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **EPIC CLOSED** · Final undo · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
 | **WM-DOKUMENTACJA-SZKICE-02** | **EPIC CLOSED** · Publication Workflow · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md) |
@@ -153,7 +158,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.19** NG-TENDERS-WORKSPACE-01) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.20** NG-TENDERS-COST-KNOWLEDGE-01) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---

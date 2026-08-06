@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.19** / **`182dd9af`** · **NG-TENDERS-WORKSPACE-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.20** / **`f2b0fa1e`** · feature **`9c0901d6`** · **NG-TENDERS-COST-KNOWLEDGE-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
@@ -11,25 +11,36 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.19** / **`182dd9af`** · **PRODUCTION VERIFIED** |
+| Production tip | **2.66.20** / **`f2b0fa1e`** · feature **`9c0901d6`** · **PRODUCTION VERIFIED** |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** (P0+P1) · APPEARANCE-01 · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
+| CLOSED | **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** (P0+P1) · APPEARANCE-01 · AUTO-GENERATE-01 S2 · MAPPING-MIGRATION-01 · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
 | **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA |
 | **NEXT** | **WAITING FOR NEXT OWNER GO** |
-| **Known Residuals (NIE część NG-TENDERS-WORKSPACE-01)** | TEST-INFRA TEUX7E · Mobile Smoke Jobs/Dokumentacja · Legacy Happy Path — **NOT PART OF THIS EPIC** |
+| **Known Residuals (NIE część COST-KNOWLEDGE-01)** | TEST-INFRA TEUX7E · Mobile Smoke Jobs/Dokumentacja · Legacy Happy Path · backlog A2/A3/Learning — **NOT PART OF THIS EPIC** |
 
+
+## ★ NG-TENDERS-COST-KNOWLEDGE-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.20** / docs **`f2b0fa1e`** · feature **`9c0901d6`** |
+| **IN** | A0 KPI Harness RO · TV-01 buckets · Overall Confidence · A1 Library Fill · Quotes REUSE · false-map hygiene |
+| **OUT** | Learning · A2 Match · A3 Quotes Depth · Bid/AI-COST rewrite · Cloud CORE · Payroll · Edge · Workspace |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
+| **Residuals** | TEUX7E / Mobile / Legacy E2E · A2/A3/Learning backlog — **NOT PART OF THIS EPIC** |
+| **NEXT** | **WAITING FOR NEXT OWNER GO** |
 
 ## ★ NG-TENDERS-WORKSPACE-01 — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.19** / **`182dd9af`** |
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip hist. **2.66.19** / **`182dd9af`** |
 | **IN** | Workspace Architecture v2 · Przegląd = start · 4 top-level · AC-RETURN · Firma Hub · hide module nav · P0.1 |
 | **OUT** | Cloud · Payroll · Edge · Pipeline · Parser · Publication · KV |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **Residuals** | TEUX7E / Mobile Dokumentacja / Legacy Happy Path — **NOT PART OF THIS EPIC** |
-| **NEXT** | **WAITING FOR NEXT OWNER GO** |
+| **NEXT** | tip UI supersedowany przez **COST-KNOWLEDGE-01** |
 
 ## ★ WM-ODBIORY-RYSUNKI-FINAL-UNDO-01 — **CLOSED**
 
