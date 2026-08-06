@@ -11,23 +11,24 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip = 09 + version.json → 2.66.20 / 8202d990 (NG-TENDERS-KNOWLEDGE-FOUNDATION-01 CLOSED · PRODUCTION VERIFIED)
-Feature tip Foundation TS-A0+A1 = 8202d990
+Tip = 09 + version.json → 2.66.20 / d9bb4c57 (NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 B0 CLOSED · PRODUCTION VERIFIED)
+Feature tip Technology-First B0 = d9bb4c57
+Prior FOUNDATION TS-A0+A1 = 8202d990 (CLOSED)
 Prior COST-KNOWLEDGE A0+A1 = 9c0901d6 (CLOSED)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
-Packs/BOM / A2/A3/Learning · WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
+Wire Pack→CI/UI / A2/A3/Learning · WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.20** / commit **`8202d990`** — **NG-TENDERS-KNOWLEDGE-FOUNDATION-01 CLOSED** · **PRODUCTION VERIFIED**.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.20** / commit **`d9bb4c57`** — **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 CLOSED** (Phase B0) · **PRODUCTION VERIFIED**.
 
-Ostatnie zamknięte: **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte: **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0 pure-lib) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
@@ -42,9 +43,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **2.66.20** |
-| **Commit** | **`8202d990`** (full `8202d990268bbef3cb359c680bba3bcdf8fbb1e5`) |
-| **Feature tip** | **`8202d990`** — Foundation TS-A0+A1 CLOSED · prior CK-01 **`9c0901d6`** CLOSED |
-| **Status** | **PRODUCTION VERIFIED** · tip = **NG-TENDERS-KNOWLEDGE-FOUNDATION-01 CLOSED** · **WAITING FOR NEXT OWNER GO** |
+| **Commit** | **`d9bb4c57`** (full `d9bb4c579f316529a5fb995d80cf77066b10c175`) |
+| **Feature tip** | **`d9bb4c57`** — Technology-First B0 CLOSED · prior KF-01 **`8202d990`** · CK-01 **`9c0901d6`** CLOSED |
+| **Status** | **PRODUCTION VERIFIED** · tip = **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 CLOSED** (B0) · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -68,6 +69,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Foundation Lib P0** | COMPLETE (FND-01…05) · **FND-06 BLOCKED** · app **nie** podłączona |
 | **Workflow Przetargi** | Workspace v2 · Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) · [`NG-TENDERS-WORKSPACE-01-CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **Cost Knowledge** | CK-01 A0+A1 CLOSED · Foundation TS-A0+A1 (Decision/C1/Health) — [`cost-knowledge/`](../../src/lib/cost-knowledge/) · [`FOUNDATION-CLOSEOUT`](../architecture/NG-TENDERS-KNOWLEDGE-FOUNDATION-01-CLOSEOUT.md) · [`CK-01-CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
+| **Technology Foundation** | B0 CLOSED — Pack/Capability/Plan/BOM pure-lib — [`technology-foundation/`](../../src/lib/technology-foundation/) · [`TF-CLOSEOUT`](../architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 
 Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) · [`AGENTS.md`](../../AGENTS.md) (proces, nie tip).
 
@@ -79,6 +81,7 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
+| **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** | **2.66.20** tip | **`d9bb4c57`** | **EPIC CLOSED** · Phase B0 pure-lib · Pack/Plan/BOM · COND-TF-1…10 | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 | **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** | **2.66.20** tip | **`8202d990`** | **EPIC CLOSED** · TS-A0 Decision/C1/Health · TS-A1 Library/Match FEATURE-DATA · COND-1…6 | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-KNOWLEDGE-FOUNDATION-01-CLOSEOUT.md) |
 | **NG-TENDERS-COST-KNOWLEDGE-01** | **2.66.20** tip | feature **`9c0901d6`** · docs **`f2b0fa1e`** | **EPIC CLOSED** · A0 KPI Harness RO · A1 Library Fill + Quotes REUSE | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
 | **NG-TENDERS-WORKSPACE-01** | **2.66.19** | **`182dd9af`** | **EPIC CLOSED** · Workspace v2 · Przegląd start · 4 tabs · AC-RETURN · Firma Hub · hide module nav | **YES** · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
@@ -136,8 +139,9 @@ Szczegóły living: [`ARCHITECTURE.md`](../ARCHITECTURE.md) · [`PROJECT-GUIDE.m
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **NG-TENDERS-KNOWLEDGE-FOUNDATION-01 CLOSED** · **2.66.20** / **`8202d990`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 CLOSED** (B0) · **2.66.20** / **`d9bb4c57`** · **PRODUCTION VERIFIED** · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
+| **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** | **EPIC CLOSED** · Phase B0 · [`CLOSEOUT`](../architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 | **NG-TENDERS-COST-KNOWLEDGE-01** | **EPIC CLOSED** · A0+A1 · [`CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
 | **NG-TENDERS-WORKSPACE-01** | **EPIC CLOSED** · Workspace Architecture v2 · [`CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
 | **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** | **EPIC CLOSED** · Final undo · [`CLOSEOUT`](../architecture/WM-ODBIORY-RYSUNKI-FINAL-UNDO-01-CLOSEOUT.md) |
@@ -160,7 +164,7 @@ Kandydaci: [`NEXT-EPIC-CANDIDATES.md`](../architecture/NEXT-EPIC-CANDIDATES.md).
 
 | Item | Stan | Uwagi |
 |------|------|-------|
-| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.20** / **`8202d990`** FOUNDATION-01) |
+| **Bid Time-Load Guard MVP** | WIP lokalny · OV **PASS – READY FOR GO COMMIT** | Flaga `kw-bid-time-load-guard` default OFF · **nie** tip prod (tip = **2.66.20** / **`d9bb4c57`** TF-B0) |
 | Inne WT (storage, theme, supabase, `.tmp-*`) | szum / obce WIP | **nie** `git add -A` · **nie** mieszać z docs sync |
 
 ---
@@ -192,8 +196,9 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 | ID / temat | Status |
 |------------|--------|
 | **OST PDF fill round-trip** | **KNOWN LIMIT** — LiveCycle/XFA/Encrypt · pdf-lib unsupported · fix = **ACROFORM-01** (nowy PDF) · **nie** OST-03 |
-| **CI TEST-INFRA TEUX7E** (NG-TENDERS residual) | **Open** — Gate B `LIB-TENDER-STRATEGY-TEUX7E` · **NOT PART OF** NG-TENDERS-WORKSPACE-01 · pre-existed |
-| **CI Mobile Smoke / Legacy Happy Path** (Jobs · Dokumentacja) | **Open** — **NOT PART OF** NG-TENDERS-WORKSPACE-01 · pre-existed |
+| **CI TEST-INFRA TEUX7E** (NG-TENDERS residual) | **Open** — Gate B `LIB-TENDER-STRATEGY-TEUX7E` · **NOT PART OF** TECHNOLOGY-FIRST B0 · pre-existed |
+| **CI Mobile Smoke / Legacy Happy Path** (Jobs · Dokumentacja) | **Open** — **NOT PART OF** TECHNOLOGY-FIRST B0 · pre-existed |
+| **GHA check-runs na tip B0** | **KNOWN RESIDUAL** — 0 runs · Vercel success · **NOT PART OF THIS EPIC** |
 | CI E2E / TEST-INFRA / Mobile (residual Doc Detection) | **Open** — nie diagnozowano w Doc Detection CLOSE |
 | TEUX6 / jobs-mobile (AI v2 Confidence/Scope) | **UNRELATED / Open** (Owner accepted) |
 | FND-06 Observability | **BLOCKED** — brak Implementation Spec |
@@ -234,7 +239,7 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 **WAITING FOR NEXT OWNER GO** — ACTIVE EPIC = **NONE** · brak auto-NEXT.
 
-Rekomendacje (wymagają **Owner GO** → **AUDIT**): WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT.
+Rekomendacje (wymagają **Owner GO** → **AUDIT**): Wire Pack→CI/UI · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT.
 
 **Zakaz:** auto-start **OST-03** · XFA · cache filled · WIM-P1b · MOBILE-P2 bez GO.
 
@@ -244,7 +249,7 @@ Rekomendacje (wymagają **Owner GO** → **AUDIT**): WIM-P1b · MOBILE-P2 · P4 
 
 ```text
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.19 / 182dd9af gdy CDN OK)
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.20 / d9bb4c57 gdy CDN OK)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
 [ ] Owner GO gdy wymagane

@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.20** / **`8202d990`** · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01 CLOSED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.20** / **`d9bb4c57`** · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 CLOSED** Phase B0) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
@@ -11,25 +11,36 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.20** / **`8202d990`** · **PRODUCTION VERIFIED** |
+| Production tip | **2.66.20** / **`d9bb4c57`** · **PRODUCTION VERIFIED** |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
+| CLOSED | **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Packs/BOM bez AUDIT |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Wire Pack→CI/UI bez AUDIT |
 | **NEXT** | **WAITING FOR NEXT OWNER GO** |
-| **Known Residuals (NIE część FOUNDATION-01)** | TI-B3 Gate B tenders · Legacy Happy Path E2E · Mobile Smoke (pending/historyczny) — **NOT PART OF THIS EPIC** |
+| **Known Residuals (NIE część TECHNOLOGY-FIRST B0)** | GHA none · TI-B3 Gate B tenders · Legacy Happy Path E2E · Mobile Smoke — **NOT PART OF THIS EPIC** |
 
+
+## ★ NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 — **CLOSED** (Phase B0)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **Phase B0** · **PRODUCTION VERIFIED** · tip **2.66.20** / **`d9bb4c57`** |
+| **IN** | Capability registry · Definition · Pack schema · Lifecycle · Immutable versioning · ExecutionPlan derived · WorkBundle · BOM · Structural+Business validation · Decision RO · fixtures ETICS+kostka · Unit 53 · Harness · Boundary · B0-16 · COND-TF-1…10 |
+| **OUT** | AI-COST · Bid · OfferBoq · Payroll · Cloud · Edge · Routing · UI · KV · LS · CI/Catalog wire |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
+| **Residuals** | GHA none / TI-B3 / Legacy E2E / Mobile Smoke — **NOT PART OF THIS EPIC** |
+| **NEXT** | **WAITING FOR NEXT OWNER GO** |
 
 ## ★ NG-TENDERS-KNOWLEDGE-FOUNDATION-01 — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.20** / **`8202d990`** |
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · tip hist. **2.66.20** / **`8202d990`** (supersedowany deploy przez TF-B0) |
 | **IN** | TS-A0 Decision Policy · Confidence Gate · RULE-C1 · Health RO · TS-A1 Library/Match Depth FEATURE-DATA · hygiene · false-map · COND-1…6 kontrakty |
 | **OUT** | BOM · Packs content · C2–C7 · Learning write · Graph · Bid/AI-COST · Cloud · Payroll · Edge · UI Health |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-KNOWLEDGE-FOUNDATION-01-CLOSEOUT.md) |
 | **Residuals** | TI-B3 / Legacy E2E / Mobile Smoke — **NOT PART OF THIS EPIC** |
-| **NEXT** | **WAITING FOR NEXT OWNER GO** |
+| **NEXT** | tip deploy supersedowany przez **TECHNOLOGY-FIRST B0** |
 
 ## ★ NG-TENDERS-COST-KNOWLEDGE-01 — **CLOSED**
 
