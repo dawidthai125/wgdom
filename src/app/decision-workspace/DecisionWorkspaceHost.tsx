@@ -1,10 +1,16 @@
 /**
- * DECISION-WORKSPACE-01 — Host: Session → Validation cache → VM → Surface.
- * localDecision in-memory only · zero persist · zero Session/Chief BC.
+ * DECISION-WORKSPACE-01 + DECISION-PERSIST-01 —
+ * Session → Validation cache → VM → Surface · persist wire (Host only).
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAdminAccess } from "@/app/admin-access";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
+import {
+  buildValidationSnapshot,
+  hydrateDecision,
+  recordDecision,
+} from "@/lib/decision-persist";
 import {
   buildDecisionWorkspaceViewModel,
   clearValidationCache,
@@ -18,10 +24,14 @@ import { DecisionWorkspaceSurface } from "./DecisionWorkspaceSurface";
 
 export function DecisionWorkspaceHost({
   session,
+  tenderId = "",
 }: {
   session: ChiefSessionOutput;
+  /** DECISION-PERSIST-01 — prop drill from Hub (item.id). */
+  tenderId?: string;
 }) {
   const flagEnabled = isDecisionWorkspaceEnabled();
+  const { session: adminSession } = useAdminAccess();
   const [localDecision, setLocalDecision] = useState<DecydentLocalDecision | null>(
     null,
   );
@@ -31,16 +41,28 @@ export function DecisionWorkspaceHost({
   const [toastPl, setToastPl] = useState<string | null>(null);
 
   const caseId = session.caseId;
+  const dossierFinishedAt = session.dossier?.finishedAt ?? "";
 
   useEffect(() => {
-    setLocalDecision(null);
     setSelectedScenarioStrategy(null);
     setToastPl(null);
+    if (
+      flagEnabled &&
+      tenderId &&
+      caseId &&
+      dossierFinishedAt
+    ) {
+      setLocalDecision(
+        hydrateDecision(tenderId, caseId, dossierFinishedAt),
+      );
+    } else {
+      setLocalDecision(null);
+    }
     return () => {
       if (caseId) dropValidationCacheForCase(caseId);
       else clearValidationCache();
     };
-  }, [caseId]);
+  }, [caseId, dossierFinishedAt, tenderId, flagEnabled]);
 
   const { validation, validationFailed } = useMemo(() => {
     if (!flagEnabled) {
@@ -79,23 +101,74 @@ export function DecisionWorkspaceHost({
       }
 
       const id = session.caseId ?? session.dossier?.caseId ?? "";
+      const finishedAt = session.dossier?.finishedAt ?? "";
+      const scenario =
+        action === "approve" ? selectedScenarioStrategy : null;
       const next: DecydentLocalDecision = {
         action,
-        scenarioStrategy:
-          action === "approve" ? selectedScenarioStrategy : null,
+        scenarioStrategy: scenario,
         decidedAt: new Date().toISOString(),
         caseId: id,
       };
-      setLocalDecision(next);
+
+      const snapshot = buildValidationSnapshot(validation);
+      const actor = {
+        userId: adminSession?.id?.trim() || "unknown",
+        ...(adminSession?.displayName?.trim()
+          ? { displayName: adminSession.displayName.trim() }
+          : {}),
+      };
+
+      let persisted = false;
+      if (tenderId && id && finishedAt && snapshot) {
+        const recorded = recordDecision({
+          tenderId,
+          caseId: id,
+          action,
+          scenario,
+          actor,
+          dossierFinishedAt: finishedAt,
+          validationSnapshot: snapshot,
+        });
+        if (recorded) {
+          persisted = true;
+          setLocalDecision({
+            action: recorded.action,
+            scenarioStrategy: recorded.scenario,
+            decidedAt: recorded.createdAt,
+            caseId: recorded.caseId,
+          });
+        }
+      }
+
+      if (!persisted) {
+        setLocalDecision(next);
+        setToastPl(
+          tenderId && id && finishedAt
+            ? "Nie udało się zapisać lokalnie (limit pamięci?) — decyzja tylko w sesji"
+            : "Decyzja lokalna (brak danych do zapisu) — tylko w sesji",
+        );
+        return;
+      }
+
       setToastPl(
         action === "approve"
-          ? "Decyzja lokalna: zatwierdzono (bez zapisu)"
+          ? "Decyzja zapisana lokalnie: zatwierdzono"
           : action === "reject"
-            ? "Decyzja lokalna: odrzucono (bez zapisu)"
-            : "Decyzja lokalna: do przeglądu (bez zapisu)",
+            ? "Decyzja zapisana lokalnie: odrzucono"
+            : "Decyzja zapisana lokalnie: do przeglądu",
       );
     },
-    [session.caseId, session.dossier?.caseId, selectedScenarioStrategy],
+    [
+      session.caseId,
+      session.dossier?.caseId,
+      session.dossier?.finishedAt,
+      selectedScenarioStrategy,
+      validation,
+      adminSession?.id,
+      adminSession?.displayName,
+      tenderId,
+    ],
   );
 
   if (!flagEnabled || vm.uiPhase === "hidden") return null;

@@ -139,7 +139,10 @@ export function TenderWorkflowHubPanel({
             />
           )}
           {chiefSessionForDecision != null && (
-            <DecisionWorkspaceHost session={chiefSessionForDecision} />
+            <DecisionWorkspaceHost
+              session={chiefSessionForDecision}
+              tenderId={item.id}
+            />
           )}
         </>
       )}
@@ -152,7 +155,10 @@ export function TenderWorkflowHubPanel({
       )}
 
       {!commandLayerActive && chiefSessionForDecision != null && (
-        <DecisionWorkspaceHost session={chiefSessionForDecision} />
+        <DecisionWorkspaceHost
+          session={chiefSessionForDecision}
+          tenderId={item.id}
+        />
       )}
 
       <details
