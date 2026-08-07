@@ -7,6 +7,7 @@ import {
   buildGlobalContentHash,
   canonicalizeNormCode,
 } from "./canonical-id";
+import { normalizeAliasList } from "./identity-ops";
 import { evaluateLegalGate, type LegalGateRejectCode } from "./legal-gate";
 import {
   validateLifecycleFields,
@@ -124,6 +125,7 @@ export function validateGlobalKnowledgeImportCandidate(
     namePl: candidate.namePl.trim(),
     unit: candidate.unit ?? null,
     normCode,
+    aliases: normalizeAliasList(candidate.aliases ?? []),
     lifecycle,
     supersededBy: candidate.supersededBy ?? null,
     confidence,

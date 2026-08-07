@@ -1,20 +1,27 @@
 /**
- * GLOBAL-KNOWLEDGE-E1A — public API (foundation only).
+ * GLOBAL-KNOWLEDGE — public API (E1A foundation + E1B Identity import).
  * Nie podłączone do Resolver / AI-COST / Bid / Work Catalog.
+ *
+ * AR-C2: publiczne mutacje = commitControlledImport · softDelete · legalWipe.
+ * persistGlobalKnowledgeStoreLocal NIE jest eksportowane (internal saveLocal).
  */
 
 export {
+  GLOBAL_KNOWLEDGE_E1B_FLAG_KEY,
   GLOBAL_KNOWLEDGE_SCHEMA_VERSION,
   GLOBAL_KNOWLEDGE_STORAGE_KEY,
   type GlobalKnowledgeAllowedUse,
   type GlobalKnowledgeConfidence,
   type GlobalKnowledgeEntry,
   type GlobalKnowledgeEntryKind,
+  type GlobalKnowledgeImportBatchMeta,
   type GlobalKnowledgeImportCandidate,
+  type GlobalKnowledgeLegalWipeOpts,
   type GlobalKnowledgeLicenceRecord,
   type GlobalKnowledgeLifecycle,
   type GlobalKnowledgeOriginId,
   type GlobalKnowledgeProvenance,
+  type GlobalKnowledgeSoftDeleteMeta,
   type GlobalKnowledgeStore,
 } from "./types";
 
@@ -62,3 +69,41 @@ export {
   type ImportValidationCode,
   type ImportValidationResult,
 } from "./import-validation";
+
+export {
+  GLOBAL_KNOWLEDGE_E1B_DEFAULT,
+  GLOBAL_KNOWLEDGE_E1B_LS_KEY,
+  forceGlobalKnowledgeE1bForTests,
+  isGlobalKnowledgeE1bEnabled,
+  mayPersistGlobalKnowledgeE1b,
+} from "./flag";
+
+export {
+  listUsableIdentity,
+  lookupByAlias,
+  normalizeAliasList,
+} from "./identity-ops";
+
+export {
+  applyCollisionPolicy,
+  findEntryByGlobalId,
+  type CollisionAction,
+  type CollisionRejectCode,
+  type CollisionResult,
+} from "./collision";
+
+export {
+  commitControlledImport,
+  type CommitCandidateResult,
+  type CommitControlledImportResult,
+  type CommitRejectCode,
+} from "./commit-import";
+
+export {
+  legalWipeGlobalKnowledgeEntries,
+  softDeleteGlobalKnowledgeEntry,
+  type LegalWipeCode,
+  type LegalWipeResult,
+  type SoftDeleteCode,
+  type SoftDeleteResult,
+} from "./mutations";

@@ -1,8 +1,9 @@
 /**
- * GLOBAL-KNOWLEDGE-E1A — Empty Global Identity Store + normalize (pure).
- * Domyślnie pusty → NO-OP względem Resolvera / AI-COST / Bid / WC.
+ * GLOBAL-KNOWLEDGE — Empty Identity Store + normalize + internal persist.
+ * E1B: saveLocal = persistGlobalKnowledgeStoreLocal — NIE eksportować z index (AR-C2).
  */
 
+import { normalizeAliasList, listUsableIdentity } from "./identity-ops";
 import { createOwnerManualLicence } from "./legal-gate";
 import { isGlobalKnowledgeLifecycle } from "./lifecycle";
 import {
@@ -77,6 +78,7 @@ function normalizeEntry(raw: unknown): GlobalKnowledgeEntry | null {
     namePl,
     unit: o.unit == null ? null : asString(o.unit),
     normCode: o.normCode == null ? null : asString(o.normCode),
+    aliases: normalizeAliasList(o.aliases),
     lifecycle,
     supersededBy: o.supersededBy == null ? null : asString(o.supersededBy),
     confidence,
@@ -130,12 +132,12 @@ export function isGlobalKnowledgeStoreEmpty(store: GlobalKnowledgeStore): boolea
 }
 
 /**
- * NO-OP guard — true gdy brak entries (Resolver/AI-COST nie powinny czytać Global).
- * Licencje mogą istnieć (E1A seed Owner) bez wpływu na wycenę.
+ * NO-OP guard — true gdy brak usable Identity (ACTIVE|DEPRECATED).
+ * Licencje / OBSOLETE mogą istnieć bez wpływu na wycenę.
  */
 export function isGlobalKnowledgeNoOp(store: GlobalKnowledgeStore | null | undefined): boolean {
   if (!store) return true;
-  return isGlobalKnowledgeStoreEmpty(store);
+  return listUsableIdentity(store).length === 0;
 }
 
 export function normalizeGlobalKnowledgeStore(raw: unknown): GlobalKnowledgeStore {
@@ -160,7 +162,7 @@ export function normalizeGlobalKnowledgeStore(raw: unknown): GlobalKnowledgeStor
   };
 }
 
-/** Opcjonalny odczyt LS — nie używany przez App w E1A (NO-OP). */
+/** Opcjonalny odczyt LS — nie używany przez App w E1B (NO-OP wyceny). */
 export function loadGlobalKnowledgeStoreLocal(): GlobalKnowledgeStore {
   if (typeof localStorage === "undefined") return createEmptyGlobalKnowledgeStore();
   try {
@@ -170,4 +172,20 @@ export function loadGlobalKnowledgeStoreLocal(): GlobalKnowledgeStore {
   } catch {
     return createEmptyGlobalKnowledgeStore();
   }
+}
+
+/** Bump contentVersion przy mutacji (additive schemaVersion=1). */
+export function bumpContentVersion(prev: string, nowIso: string): string {
+  const base = String(prev || "").trim() || "0.0.0-empty";
+  return `1.e1b.${base.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 24)}.${nowIso}`;
+}
+
+/**
+ * Internal saveLocal (AR-C2) — NIE re-eksportować z public index.
+ * Normalize before write.
+ */
+export function persistGlobalKnowledgeStoreLocal(store: GlobalKnowledgeStore): void {
+  if (typeof localStorage === "undefined") return;
+  const next = normalizeGlobalKnowledgeStore(store);
+  localStorage.setItem(GLOBAL_KNOWLEDGE_STORAGE_KEY, JSON.stringify(next));
 }

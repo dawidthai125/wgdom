@@ -1,13 +1,17 @@
 /**
- * GLOBAL-KNOWLEDGE-E1A — foundation types (DF GLOBAL-KNOWLEDGE-01).
- * Pure model: Legal · Provenance · Versioning · Identity · Lifecycle.
- * Brak cen · Link Table · Graph · KNR ingest w tym slice.
+ * GLOBAL-KNOWLEDGE — foundation types (DF GLOBAL-KNOWLEDGE-01 + E1B additive).
+ * Pure model: Legal · Provenance · Versioning · Identity · Lifecycle · Aliases.
+ * Brak cen · Link Table · Graph · KNR→WC ingest (E3 OUT).
+ * schemaVersion = 1 (additive only).
  */
 
 export const GLOBAL_KNOWLEDGE_SCHEMA_VERSION = 1 as const;
 
-/** localStorage key — E1A: store istnieje, App nie wczytuje → NO-OP runtime. */
+/** localStorage key — App nie wczytuje w E1B → NO-OP wyceny. */
 export const GLOBAL_KNOWLEDGE_STORAGE_KEY = "kw-global-knowledge";
+
+/** Feature flag LS key — default OFF (DF E1B / AR-C3). */
+export const GLOBAL_KNOWLEDGE_E1B_FLAG_KEY = "kw-global-knowledge-e1b";
 
 export type GlobalKnowledgeEntryKind =
   | "norm"
@@ -65,6 +69,8 @@ export interface GlobalKnowledgeEntry {
   namePl: string;
   unit?: string | null;
   normCode?: string | null;
+  /** E1B additive — synonimy Identity (fold + dedupe). */
+  aliases: string[];
   lifecycle: GlobalKnowledgeLifecycle;
   /** Wymagane gdy lifecycle === SUPERSEDED. */
   supersededBy?: string | null;
@@ -83,12 +89,13 @@ export interface GlobalKnowledgeStore {
   updatedAt: string | null;
 }
 
-/** Payload kandydat na import — walidacja bez side-effect (E1A). */
+/** Payload kandydat na import — walidacja bez side-effect (E1A) / commit (E1B). */
 export interface GlobalKnowledgeImportCandidate {
   kind: GlobalKnowledgeEntryKind;
   namePl: string;
   unit?: string | null;
   normCode?: string | null;
+  aliases?: string[] | null;
   revision?: string;
   validFrom?: string;
   validTo?: string | null;
@@ -103,4 +110,28 @@ export interface GlobalKnowledgeImportCandidate {
     importedBy: string;
     allowedUse: GlobalKnowledgeAllowedUse[];
   };
+}
+
+/** Meta batchu kontrolowanego importu (E1B). */
+export interface GlobalKnowledgeImportBatchMeta {
+  importedBy: string;
+  sourceFilename?: string | null;
+  nowIso?: string;
+  /** Test harness only — omija flag OFF dla unit tests (nie runtime prod). */
+  forcePersistForTests?: boolean;
+}
+
+export interface GlobalKnowledgeSoftDeleteMeta {
+  actor: string;
+  nowIso?: string;
+  forcePersistForTests?: boolean;
+}
+
+export interface GlobalKnowledgeLegalWipeOpts {
+  /** Wymagany non-empty — bez silent wipe (DF). */
+  confirmToken: string;
+  actor: string;
+  notes: string;
+  nowIso?: string;
+  forcePersistForTests?: boolean;
 }
