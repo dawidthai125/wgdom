@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.22 — Katalog — Alias Wave 2 MED (2026-08-07)
+
+- **improve:** CATALOG-WAVE-2 — 8 wąskich aliasów TOP100 + seed Library/Quotes; cel TV-01 Quotes ≥82%; AI-COST/Bid/S4 NO TOUCH
+
 ## 2.66.21 — Przetargi — luki zakresu Stage A (2026-08-07)
 
 - **improve:** SCOPE-COMPLETENESS-01 Stage A (RO) — `scope-completeness-a1`, głębsze tokeny, cap 12; flaga `kw-scope-gap-mvp` default OFF; bez wpływu na wycenę/ofertę

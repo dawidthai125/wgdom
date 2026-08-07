@@ -31,6 +31,10 @@ import {
 import { prepareOfferBoqLineForMapping } from "@/lib/catalog-coverage/noise-filter";
 import { normalizeOfferBoqDescription } from "@/lib/catalog-coverage/normalize-description";
 import { resolveCatalogCoverageAlias } from "@/lib/catalog-coverage/alias-resolver";
+import {
+  isCatalogWave2OutBizHay,
+  isCatalogWave2ProductId,
+} from "@/lib/catalog-coverage/alias-pack-wave2";
 import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negation-guard";
 
 const CANDIDATE_LIMIT = 4;
@@ -333,7 +337,7 @@ function toCandidate(
  * CATALOG-COVERAGE-01:
  *  P0a Noise Filter — skip Mapper dla niemateriałowych
  *  P0b Normalizer — wyłącznie eligible · forma only · Core bez zmian scoringu
- *  P0c Alias Resolver — Wave 1 · Alias→Product ID · przed Core (override gdy bind)
+ *  P0c Alias Resolver — Wave1→Wave2 · Alias→Product ID · przed Core (override gdy bind)
  *  P0d Negation Guard → Bind Decision → Alias | Core (D-P0d-16…18)
  * Product Mapper (= ten tor) pozostaje jedynym właścicielem `catalogWorkId`.
  */
@@ -360,11 +364,17 @@ export function mapOfferBoqLine(
     works: ctx.works,
   });
 
-  // P0d Bind Decision: Guard obowiązuje Alias (nawet gdy Pack/Resolver zwrócił ID)
-  const aliasBindId = decideCatalogCoverageBindProductId(
+  const foldedNorm = foldPolishText(normalizedText);
+  const outBizHay = isCatalogWave2OutBizHay(foldedNorm);
+
+  // P0d Bind Decision + Wave2 OUT-BIZ: Guard obowiązuje Alias
+  let aliasBindId = decideCatalogCoverageBindProductId(
     normalizedText,
     alias.resolvedProductId,
   );
+  if (aliasBindId && isCatalogWave2ProductId(aliasBindId) && outBizHay) {
+    aliasBindId = null;
+  }
 
   if (aliasBindId) {
     const active = (ctx.works ?? []).filter((w) => w.active);
@@ -390,7 +400,7 @@ export function mapOfferBoqLine(
         matchConfidence: "high",
         candidateMatches: [],
         aiConfidence: "high",
-        aiRationale: `Alias Resolver (P0c Wave 1): ${alias.labelPl ?? alias.aliasRuleId} → ${work.namePl}.`,
+        aiRationale: `Alias Resolver: ${alias.labelPl ?? alias.aliasRuleId} → ${work.namePl}.`,
         costIntelligence: null,
         linePricing: null,
       };
@@ -404,14 +414,24 @@ export function mapOfferBoqLine(
     unit: (prepared.line.unit || "").trim() || norm.unitHint || prepared.line.unit,
   };
   // P0d: Core nie widzi Product ID zabronionych przez Negation Guard
+  // CATALOG-WAVE-2: cc-w2-* wyłącznie przez Alias (0 Core FP / OUT-BIZ)
   const worksForCore = (ctx.works ?? []).filter(
-    (w) => w?.active !== false && decideCatalogCoverageBindProductId(normalizedText, w.id) === w.id,
+    (w) =>
+      w?.active !== false &&
+      !isCatalogWave2ProductId(w.id) &&
+      decideCatalogCoverageBindProductId(normalizedText, w.id) === w.id,
   );
   const mapped = mapOfferBoqLineCore(forCore, { ...ctx, works: worksForCore });
-  const coreBindId = decideCatalogCoverageBindProductId(
+  let coreBindId = decideCatalogCoverageBindProductId(
     normalizedText,
     mapped.catalogWorkId,
   );
+  if (coreBindId && isCatalogWave2ProductId(coreBindId)) {
+    coreBindId = null;
+  }
+  if (coreBindId && outBizHay && isCatalogWave2ProductId(coreBindId)) {
+    coreBindId = null;
+  }
   const guardedMapped =
     coreBindId === mapped.catalogWorkId
       ? mapped
@@ -422,8 +442,8 @@ export function mapOfferBoqLine(
           matchedBy: "unmatched" as const,
           matchConfidence: "low" as const,
           aiRationale: mapped.aiRationale
-            ? `${mapped.aiRationale} Negation Guard odrzucił kandydat Core.`
-            : "Negation Guard odrzucił kandydat Core.",
+            ? `${mapped.aiRationale} Negation Guard / Wave2 Alias-only odrzucił kandydat Core.`
+            : "Negation Guard / Wave2 Alias-only odrzucił kandydat Core.",
         };
   return {
     ...guardedMapped,
@@ -434,7 +454,7 @@ export function mapOfferBoqLine(
     isNoise: false,
     noiseKind: null,
     normalizedDescription: norm.normalizedDescription,
-    aliasRuleId: alias.matched ? alias.aliasRuleId : null,
+    aliasRuleId: alias.matched && !outBizHay ? alias.aliasRuleId : null,
   };
 }
 

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-07",
+    version: "2.66.22",
+    label: "Katalog — Alias Wave 2 MED",
+    items: [
+      {
+        type: "improve",
+        text: "CATALOG-WAVE-2: 8 wąskich aliasów TOP100 (przebijanie, mocowanie aparatów, osprzęt, wykwity, oczyszczenie, GK, zawór odcinający, wnęki) + seed Library/Quotes. Cel TV-01 Quotes ≥82%. Bez AI-COST / Bid / S4.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-07",
     version: "2.66.21",
     label: "Przetargi — luki zakresu Stage A",
     items: [

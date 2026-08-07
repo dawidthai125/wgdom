@@ -1,31 +1,35 @@
 /**
- * CATALOG-COVERAGE-01 P0c — Alias Resolver (pure / ephemeral).
- * DF: Alias → Product ID · deterministyczny · first match · eligible only.
- * Zakaz: zapis Library/Quotes · heurystyki · AI · rankingi · Wave 2/BIZ/HIGH.
+ * CATALOG-COVERAGE — Alias Resolver (pure / ephemeral).
+ * Wave1 then Wave2 (DF CATALOG-WAVE-2) · DATA FIRST · Quotes gate.
  */
 
 import { foldPolishText } from "@/lib/wgdom-ath-classifier";
 import {
   CATALOG_COVERAGE_P0C_WAVE1_PACK,
   type CatalogCoverageAliasPackRule,
-  type CatalogCoverageAliasRuleId,
 } from "@/lib/catalog-coverage/alias-pack-wave1";
+import {
+  buildCatalogCoverageAliasPackCombined,
+  CATALOG_COVERAGE_WAVE2_PACK,
+} from "@/lib/catalog-coverage/alias-pack-wave2";
 import type { CatalogWork } from "@/lib/work-catalog/types";
 
 export interface CatalogCoverageAliasResolveResult {
   /** Trafienie Pack (tekst) — niezależnie od istnienia work. */
   matched: boolean;
-  aliasRuleId: CatalogCoverageAliasRuleId | null;
+  aliasRuleId: string | null;
   /** Product ID z Pack (1:1) — null gdy brak match. */
   packProductId: string | null;
   /**
-   * Product ID do bindu Mappera — tylko gdy work aktywny istnieje w Library.
-   * DATA FIRST: brak work ⇒ null (no-op).
+   * Product ID do bindu Mappera — tylko gdy work aktywny + useful Quotes.
+   * DATA FIRST + Quotes gate: brak work/Quotes ⇒ null (no-op).
    */
   resolvedProductId: string | null;
   labelPl: string | null;
   /** Diagnostyka: match tekstowy, ale brak work w Library. */
   missingWork: boolean;
+  /** Diagnostyka: work jest, ale brak useful Quotes. */
+  missingQuotes: boolean;
 }
 
 export interface CatalogCoverageAliasResolveOpts {
@@ -35,8 +39,13 @@ export interface CatalogCoverageAliasResolveOpts {
   isNoise?: boolean;
   /** Aktywne roboty z Library (odczyt) — do weryfikacji Product ID. */
   works?: readonly CatalogWork[] | null;
-  /** Override Pack (testy) — domyślnie Wave 1 SSOT. */
+  /** Override Pack (testy) — domyślnie Wave1+Wave2. */
   pack?: readonly CatalogCoverageAliasPackRule[];
+  /**
+   * DF Wave2 Quotes gate. Default true.
+   * false = tylko DATA FIRST (istnienie work) — legacy testy.
+   */
+  requireQuotes?: boolean;
 }
 
 const EMPTY: CatalogCoverageAliasResolveResult = {
@@ -46,7 +55,13 @@ const EMPTY: CatalogCoverageAliasResolveResult = {
   resolvedProductId: null,
   labelPl: null,
   missingWork: false,
+  missingQuotes: false,
 };
+
+export const CATALOG_COVERAGE_ALIAS_PACK_DEFAULT = buildCatalogCoverageAliasPackCombined(
+  CATALOG_COVERAGE_P0C_WAVE1_PACK,
+  CATALOG_COVERAGE_WAVE2_PACK,
+);
 
 function indexActiveWorks(
   works: readonly CatalogWork[] | null | undefined,
@@ -59,6 +74,26 @@ function indexActiveWorks(
   return map;
 }
 
+/** Useful Product Quotes (controlled_market / any origin with price&gt;0). */
+export function catalogWorkHasUsefulQuotes(work: CatalogWork | null | undefined): boolean {
+  const mq = work?.marketQuotes;
+  if (!mq || typeof mq !== "object" || Array.isArray(mq)) return false;
+  for (const byR of Object.values(mq)) {
+    if (!byR || typeof byR !== "object" || Array.isArray(byR)) continue;
+    for (const s of Object.values(byR as Record<string, unknown>)) {
+      if (
+        s &&
+        typeof s === "object" &&
+        typeof (s as { price?: unknown }).price === "number" &&
+        ((s as { price: number }).price as number) > 0
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Deterministyczny Alias Resolver — first match w kolejności Pack.
  * Pure · idempotentny · bez I/O / zapisu.
@@ -68,7 +103,8 @@ export function resolveCatalogCoverageAlias(
 ): CatalogCoverageAliasResolveResult {
   if (opts.isNoise) return { ...EMPTY };
 
-  const pack = opts.pack ?? CATALOG_COVERAGE_P0C_WAVE1_PACK;
+  const pack = opts.pack ?? CATALOG_COVERAGE_ALIAS_PACK_DEFAULT;
+  const requireQuotes = opts.requireQuotes !== false;
   const folded = foldPolishText(opts.description || "");
   if (!folded) return { ...EMPTY };
 
@@ -76,14 +112,17 @@ export function resolveCatalogCoverageAlias(
   for (const rule of pack) {
     if (rule.test(folded)) {
       hit = rule;
-      break; // first match wins — bez rankingu
+      break;
     }
   }
   if (!hit) return { ...EMPTY };
 
   const byId = indexActiveWorks(opts.works);
   const work = byId.get(hit.productId) ?? null;
-  const resolvedProductId = work ? hit.productId : null;
+  const missingWork = !work;
+  const missingQuotes = !!work && !catalogWorkHasUsefulQuotes(work);
+  const resolvedProductId =
+    work && (!requireQuotes || catalogWorkHasUsefulQuotes(work)) ? hit.productId : null;
 
   return {
     matched: true,
@@ -91,7 +130,8 @@ export function resolveCatalogCoverageAlias(
     packProductId: hit.productId,
     resolvedProductId,
     labelPl: hit.labelPl,
-    missingWork: !work,
+    missingWork,
+    missingQuotes,
   };
 }
 
@@ -115,12 +155,12 @@ export function resolveCatalogCoverageAliasStable(
 }
 
 /**
- * Diagnostyka overlap: ile reguł Pack trafia w ten sam hay (powinno być ≤1 na Wave 1).
+ * Diagnostyka overlap: ile reguł Pack trafia w ten sam hay.
  * Nie używane w torze mapowania — tylko testy / OV.
  */
 export function countCatalogCoverageAliasHits(
   description: string,
-  pack: readonly CatalogCoverageAliasPackRule[] = CATALOG_COVERAGE_P0C_WAVE1_PACK,
+  pack: readonly CatalogCoverageAliasPackRule[] = CATALOG_COVERAGE_ALIAS_PACK_DEFAULT,
 ): number {
   const folded = foldPolishText(description || "");
   let n = 0;

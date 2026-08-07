@@ -80,7 +80,10 @@ function fakeWork(id, namePl = id) {
     tradeId: "INNE",
     keywords: [],
     companyPricePln: 10,
-    marketQuotes: {},
+    // Quotes gate (CATALOG-WAVE-2): empty {} ⇒ brak bind
+    marketQuotes: {
+      wgdom: { wroclaw: { price: 10, updatedAt: "2026-07-30T00:00:00.000Z", confidence: 0.9 } },
+    },
     updatedAt: "2026-07-30T00:00:00.000Z",
     freshnessStatus: "ok",
     favorite: false,
@@ -172,6 +175,22 @@ const missing = resolveCatalogCoverageAlias({
   works: [],
 });
 assert(missing.matched && missing.missingWork && !missing.resolvedProductId, "match tekstowy, brak work → null");
+
+console.log("\n5b. Quotes gate — work bez Quotes → null");
+const noQuotesWork = { ...fakeWork("cc-p0c-w1-zaprawianie-bruzd"), marketQuotes: {} };
+const noQ = resolveCatalogCoverageAlias({
+  description: "Zaprawianie bruzd",
+  works: [noQuotesWork],
+});
+assert(noQ.matched && noQ.missingQuotes && !noQ.resolvedProductId, "match + work, brak Quotes → null");
+assert(
+  resolveCatalogCoverageAlias({
+    description: "Zaprawianie bruzd",
+    works: [noQuotesWork],
+    requireQuotes: false,
+  }).resolvedProductId === "cc-p0c-w1-zaprawianie-bruzd",
+  "requireQuotes:false → bind mimo pustych Quotes",
+);
 
 console.log("\n6. Determinizm / idempotencja");
 for (const [desc] of samples) {

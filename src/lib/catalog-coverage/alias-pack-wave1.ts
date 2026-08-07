@@ -20,7 +20,8 @@ export type CatalogCoverageAliasRuleId =
 export interface CatalogCoverageAliasPackRule {
   /** Kolejność ewaluacji = indeks w WAVE1_PACK (first match wins). */
   order: number;
-  aliasRuleId: CatalogCoverageAliasRuleId;
+  /** Wave1: CatalogCoverageAliasRuleId · Wave2+: string (DF CATALOG-WAVE-2). */
+  aliasRuleId: CatalogCoverageAliasRuleId | string;
   /** Opis semantyki (dokumentacja / rationale). */
   labelPl: string;
   /**
