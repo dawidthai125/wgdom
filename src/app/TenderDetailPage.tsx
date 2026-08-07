@@ -12,6 +12,7 @@ import { TenderRecommendationOutcomeView } from "@/app/tenders/outcome/TenderRec
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
 import { useChiefOrchestratorSession } from "@/app/hooks/useChiefOrchestratorSession";
+import { buildChiefDossierViewModel, type ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
@@ -210,13 +211,18 @@ export function TenderDetailPage({
     pipelineRuntime,
   });
 
-  /** WIRE-CHIEF-SESSION-01 — Session only (flag default OFF · brak UI dossier). */
-  useChiefOrchestratorSession({
-    enabled: isChiefOrchestratorSessionEnabled() && Boolean(item),
+  /** WIRE-CHIEF-SESSION-01 + UI-DOSSIER-01 — Session · surface RO gdy flag ON. */
+  const chiefSessionEnabled = isChiefOrchestratorSessionEnabled();
+  const chiefSession = useChiefOrchestratorSession({
+    enabled: chiefSessionEnabled && Boolean(item),
     item: item ?? null,
     pricingReadyPartial: pipelineRuntime.pricingReadyPartial,
     pricingReadyFinal: pipelineRuntime.pricingReadyFinal,
   });
+  const chiefDossierVm: ChiefDossierViewModel | null = useMemo(() => {
+    if (!chiefSessionEnabled) return null;
+    return buildChiefDossierViewModel(chiefSession);
+  }, [chiefSessionEnabled, chiefSession]);
 
   const showTre01Outcome =
     tre01SliceA &&
@@ -675,6 +681,7 @@ export function TenderDetailPage({
               onEmbedV4TabNavigate={handleTabChange}
               onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
               onOperatorActionBarChange={setOperatorActionBar}
+              chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
             />
           )}
         </div>

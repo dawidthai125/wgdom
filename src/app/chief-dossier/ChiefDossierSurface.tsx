@@ -1,0 +1,73 @@
+/**
+ * WIRE-CHIEF-UI-DOSSIER-01 — READ ONLY surface.
+ * Jedyny input: ChiefDossierViewModel (z Session output).
+ */
+
+import { TEUX_FONT_BODY, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
+import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import { ChiefBlockersPanel, ChiefLoopReturnBadge } from "./ChiefBlockersPanel";
+import { ChiefExpertTraceList } from "./ChiefExpertTraceCard";
+import { ChiefOfferRecommendation } from "./ChiefOfferRecommendation";
+import { ChiefSessionStatusBar } from "./ChiefSessionStatusBar";
+import { ChiefTaskTimeline } from "./ChiefTaskTimeline";
+
+const EMPTY_PHASES = new Set([
+  "no_case",
+  "not_ready",
+  "cancelled",
+  "error",
+  "checking",
+  "running",
+]);
+
+export function ChiefDossierSurface({ vm }: { vm: ChiefDossierViewModel }) {
+  const isEmptyish = EMPTY_PHASES.has(vm.uiPhase);
+
+  return (
+    <section
+      id="chief-dossier-surface"
+      data-chief-dossier-surface
+      data-chief-ui-phase={vm.uiPhase}
+      className="rounded-xl border border-border bg-card overflow-hidden"
+    >
+      <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30">
+        <h2 className={`${TEUX_SECTION_TITLE} text-foreground`}>{vm.titlePl}</h2>
+        <p className="text-[10px] text-muted-foreground mt-0.5">{vm.subtitlePl}</p>
+      </div>
+
+      <div className="px-4 py-3 space-y-3">
+        <ChiefSessionStatusBar vm={vm} />
+
+        {isEmptyish && vm.emptyMessagePl && (
+          <p className={`${TEUX_FONT_BODY} text-muted-foreground`} data-chief-empty-message>
+            {vm.emptyMessagePl}
+          </p>
+        )}
+
+        {vm.showOffer && vm.primaryRecommendation && (
+          <ChiefOfferRecommendation
+            primaryRecommendation={vm.primaryRecommendation}
+            scenarios={vm.scenarios}
+            decisionMakerPayload={vm.decisionMakerPayload}
+            offerHandoffPayload={vm.offerHandoffPayload}
+          />
+        )}
+
+        {vm.showBlockers && <ChiefBlockersPanel blockersPl={vm.blockersPl} />}
+
+        {vm.showLoopReturn && (
+          <ChiefLoopReturnBadge
+            loopCount={vm.loopCount}
+            returnToMaterialExpert={vm.returnToMaterialExpert}
+            requiresReanalysis={vm.requiresReanalysis}
+            orchestrationNotesPl={vm.orchestrationNotesPl}
+          />
+        )}
+
+        {vm.showTimeline && <ChiefTaskTimeline rows={vm.taskRows} />}
+
+        {vm.showTraces && <ChiefExpertTraceList slots={vm.traceSlots} />}
+      </div>
+    </section>
+  );
+}

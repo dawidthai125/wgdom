@@ -41,6 +41,7 @@ import { TenderOfferSection } from "@/app/TenderOfferSection";
 import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderDecisionView } from "@/app/TenderDecisionView";
+import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderWorkflowOperatorSection } from "@/app/TenderWorkflowOperatorSection";
 import type { TenderWorkflowOperatorActionBarProps } from "@/app/TenderWorkflowOperatorActionBar";
@@ -101,6 +102,7 @@ export function TenderDetailPanel({
   onEmbedV4TabNavigate,
   onPriceOverridesChanged,
   onOperatorActionBarChange,
+  chiefDossierVm = null,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -130,6 +132,8 @@ export function TenderDetailPanel({
   onPriceOverridesChanged?: () => void;
   /** NG-03.3 — Operator Action Bar w TenderDetailPage (niezależny od Command Layer). */
   onOperatorActionBarChange?: (props: TenderWorkflowOperatorActionBarProps | null) => void;
+  /** WIRE-CHIEF-UI-DOSSIER-01 — RO ViewModel (null = flag OFF / no surface). */
+  chiefDossierVm?: ChiefDossierViewModel | null;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -685,6 +689,7 @@ export function TenderDetailPanel({
               trustAssessment={trustAssessment}
               commandLayerActive={embedV4CommandLayerActive}
               onOpenStrategy={tendersCtx ? handleOpenTendersStrategy : undefined}
+              chiefDossierVm={chiefDossierVm}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}

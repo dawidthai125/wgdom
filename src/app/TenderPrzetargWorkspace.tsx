@@ -26,6 +26,7 @@ import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { buildTenderPortfolioPositionView } from "@/lib/tender-strategy-ux";
 import { TenderPortfolioPositionPanel } from "@/app/tenders/strategy/components/TenderPortfolioPositionPanel";
+import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 
 const PARTICIPATION_PREVIEW_LINES = 3;
 
@@ -74,6 +75,7 @@ export function TenderPrzetargWorkspace({
   trustAssessment,
   commandLayerActive = false,
   onOpenStrategy,
+  chiefDossierVm = null,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -98,6 +100,8 @@ export function TenderPrzetargWorkspace({
   commandLayerActive?: boolean;
   /** NG-03.6 — bridge Przetarg → Strategia z kontekstem tenderId. */
   onOpenStrategy?: (tenderId: string) => void;
+  /** WIRE-CHIEF-UI-DOSSIER-01 — RO dossier under intelligence hub. */
+  chiefDossierVm?: ChiefDossierViewModel | null;
 }) {
   const tendersCtx = useTendersContextOptional();
   const portfolioPosition = useMemo(() => {
@@ -136,6 +140,7 @@ export function TenderPrzetargWorkspace({
         analyzing={analyzing}
         trustAssessment={trustAssessment}
         commandLayerActive={commandLayerActive}
+        chiefDossierVm={chiefDossierVm}
       />
 
       {portfolioPosition && handleOpenStrategy && (

@@ -26,6 +26,8 @@ import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 import { TrustBanner } from "@/app/tenders/trust/TrustBanner";
 import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { shouldRenderHubTrustBanner } from "@/lib/tender-trust-ui";
+import { ChiefDossierSurface } from "@/app/chief-dossier";
+import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -44,6 +46,7 @@ export function TenderWorkflowHubPanel({
   analyzing,
   trustAssessment,
   commandLayerActive = false,
+  chiefDossierVm = null,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -65,6 +68,8 @@ export function TenderWorkflowHubPanel({
   analyzing?: boolean;
   /** NG-03.2 — Trust/Strip/CTA w Command Layer (TenderDetailPage). */
   commandLayerActive?: boolean;
+  /** WIRE-CHIEF-UI-DOSSIER-01 — sibling POD #tender-intelligence-hub. */
+  chiefDossierVm?: ChiefDossierViewModel | null;
 }) {
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
@@ -118,7 +123,12 @@ export function TenderWorkflowHubPanel({
             intelligenceCtx={intelligenceCtx}
             onNavigateCostTab={(tab) => onNavigateTab(tab)}
           />
+          {chiefDossierVm != null && <ChiefDossierSurface vm={chiefDossierVm} />}
         </>
+      )}
+
+      {!commandLayerActive && chiefDossierVm != null && (
+        <ChiefDossierSurface vm={chiefDossierVm} />
       )}
 
       <details
