@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-07",
+    version: "2.66.21",
+    label: "Przetargi — luki zakresu Stage A",
+    items: [
+      {
+        type: "improve",
+        text: "SCOPE-COMPLETENESS-01 Stage A (RO): silnik scope-completeness-a1, głębsze tokeny luk zakresu, cap 12. Flaga kw-scope-gap-mvp domyślnie OFF — nie zmienia wyceny ani oferty.",
+      },
+    ],
+  },
+  {
     date: "2026-08-06",
     version: "2.66.20",
     label: "Koszt — Knowledge Engine A0+A1",

@@ -1,0 +1,9 @@
+{
+  "id": "01-pustostan-all-gaps",
+  "investmentTemplate": "pustostan_remont",
+  "presentTextBlob": "Remont pustostanu — malowanie ścian, posadzki laminowane",
+  "swzTextBlob": null,
+  "lineCount": 6,
+  "labeledMissing": ["WASTE_DISPOSAL", "PREP_WORKS", "PROTECTION", "MEASUREMENTS"],
+  "labeledAbsent": []
+}

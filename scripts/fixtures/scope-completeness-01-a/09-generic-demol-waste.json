@@ -1,0 +1,9 @@
+{
+  "id": "09-generic-demol-waste",
+  "investmentTemplate": "generic_unknown",
+  "presentTextBlob": "Rozbiórka ścianek działowych w lokalu",
+  "swzTextBlob": null,
+  "lineCount": 3,
+  "labeledMissing": ["WASTE_DISPOSAL"],
+  "labeledAbsent": []
+}

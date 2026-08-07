@@ -1,0 +1,9 @@
+{
+  "id": "04-elewacja-scaffolding-gap",
+  "investmentTemplate": "elewacja",
+  "presentTextBlob": "Docieplenie elewacji styropianem, tynk",
+  "swzTextBlob": null,
+  "lineCount": 4,
+  "labeledMissing": ["SCAFFOLDING", "PROTECTION", "WASTE_DISPOSAL", "TRAFFIC_ORG"],
+  "labeledAbsent": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "10-pustostan-swz-high",
+  "investmentTemplate": "pustostan_remont",
+  "presentTextBlob": "Remont pustostanu — malowanie",
+  "swzTextBlob": "Zamawiający wymaga wywozu gruzu i utylizacji odpadów",
+  "lineCount": 3,
+  "labeledMissing": ["WASTE_DISPOSAL", "PREP_WORKS", "PROTECTION", "MEASUREMENTS"],
+  "labeledAbsent": []
+}

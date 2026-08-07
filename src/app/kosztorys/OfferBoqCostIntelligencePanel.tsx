@@ -1218,14 +1218,13 @@ export function OfferBoqCostIntelligencePanel({
     }
   }, [confidenceMvpEnabled, view, item, smartPricingDetect]);
 
-  /** Scope Gap MVP — RO only; flaga OFF ⇒ null (parity tip). History OUT. */
+  /** Scope Completeness Stage A — RO only; flaga OFF ⇒ null (parity tip). smartMissing REMOVED. */
   const scopeGapMvpReport = useMemo((): ScopeGapReport | null => {
     if (!scopeGapMvpEnabled) return null;
     try {
       const input = buildScopeGapMvpInput({
         doc: view.document ?? null,
         item,
-        smart: smartPricingDetect,
         computedAtIso:
           view.document?.builtAt || view.builtAt || "2026-07-31T00:00:00.000Z",
       });
@@ -1233,7 +1232,7 @@ export function OfferBoqCostIntelligencePanel({
     } catch {
       return null;
     }
-  }, [scopeGapMvpEnabled, view, item, smartPricingDetect]);
+  }, [scopeGapMvpEnabled, view, item]);
 
   const showScopeGapPanel = shouldRenderScopeGapPanel(
     scopeGapMvpEnabled,

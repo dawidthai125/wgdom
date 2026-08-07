@@ -1,0 +1,9 @@
+{
+  "id": "05-elewacja-scaffold-present",
+  "investmentTemplate": "elewacja",
+  "presentTextBlob": "Rusztowanie elewacyjne, tynk, styropian",
+  "swzTextBlob": null,
+  "lineCount": 3,
+  "labeledMissing": ["PROTECTION", "WASTE_DISPOSAL", "TRAFFIC_ORG"],
+  "labeledAbsent": ["SCAFFOLDING"]
+}

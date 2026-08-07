@@ -1,12 +1,12 @@
 /**
- * Scope Gap MVP — zbieranie wejścia RO z OfferBoq / item (call-only).
- * Zero mutacji dokumentu / Bid / Quotes / History.
+ * Scope Gap / Completeness — zbieranie wejścia RO z OfferBoq / item (call-only).
+ * DF Stage A: smartMissingLineIds REMOVED (wariant B).
+ * Zero mutacji dokumentu / Bid / Quotes / S4.
  */
 
 import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import type { SmartPricingDetectSummary } from "@/lib/smart-pricing/types";
 import { resolveInvestmentTemplate } from "./rules-mvp-1";
 import type { ScopeGapMvpInput } from "./types";
 
@@ -45,17 +45,9 @@ export function buildSwzTextBlob(swz: TenderSwzAnalysis | null | undefined): str
   return joined.length > 0 ? joined : null;
 }
 
-export function smartMissingLineIdsFromDetect(
-  smart: SmartPricingDetectSummary | null | undefined,
-): string[] | null {
-  if (!smart?.missingLines?.length) return null;
-  return smart.missingLines.map((m) => m.lineId);
-}
-
 export function buildScopeGapMvpInput(opts: {
   doc: OfferBoqDocument | null | undefined;
   item: Pick<TenderPipelineItem, "title" | "priorityBuyerLabel" | "swzAnalysis">;
-  smart: SmartPricingDetectSummary | null;
   computedAtIso: string;
 }): ScopeGapMvpInput {
   const doc = opts.doc;
@@ -78,7 +70,6 @@ export function buildScopeGapMvpInput(opts: {
     hasOfferBoqLines: lineCount > 0,
     lineCount,
     swzTextBlob: buildSwzTextBlob(opts.item.swzAnalysis ?? null),
-    smartMissingLineIds: smartMissingLineIdsFromDetect(opts.smart),
     computedAtIso: opts.computedAtIso,
   };
 }

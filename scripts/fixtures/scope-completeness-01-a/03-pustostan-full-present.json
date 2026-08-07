@@ -1,0 +1,9 @@
+{
+  "id": "03-pustostan-full-present",
+  "investmentTemplate": "pustostan_remont",
+  "presentTextBlob": "Wywóz gruzu, demontaż drzwi, zabezpieczenie folią, pomiary instalacji, malowanie",
+  "swzTextBlob": null,
+  "lineCount": 8,
+  "labeledMissing": [],
+  "labeledAbsent": ["WASTE_DISPOSAL", "PREP_WORKS", "PROTECTION", "MEASUREMENTS"]
+}

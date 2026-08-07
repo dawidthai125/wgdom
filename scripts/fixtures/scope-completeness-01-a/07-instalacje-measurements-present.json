@@ -1,0 +1,9 @@
+{
+  "id": "07-instalacje-measurements-present",
+  "investmentTemplate": "instalacje",
+  "presentTextBlob": "Pomiary ochronne RCD, demontaż starej instalacji, nowe przewody",
+  "swzTextBlob": null,
+  "lineCount": 4,
+  "labeledMissing": [],
+  "labeledAbsent": ["MEASUREMENTS", "PREP_WORKS"]
+}

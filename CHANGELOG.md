@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.21 — Przetargi — luki zakresu Stage A (2026-08-07)
+
+- **improve:** SCOPE-COMPLETENESS-01 Stage A (RO) — `scope-completeness-a1`, głębsze tokeny, cap 12; flaga `kw-scope-gap-mvp` default OFF; bez wpływu na wycenę/ofertę
+
 ## 2.66.20 — Koszt — Knowledge Engine A0+A1 (2026-08-06)
 
 - **new:** NG-TENDERS-COST-KNOWLEDGE-01 Thin Slice — KPI Harness (RO) + Library Fill seed + Quotes REUSE (feature tip `9c0901d6`)

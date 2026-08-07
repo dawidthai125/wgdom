@@ -1,0 +1,9 @@
+{
+  "id": "06-instalacje-measurements-gap",
+  "investmentTemplate": "instalacje",
+  "presentTextBlob": "Wymiana instalacji elektrycznej — okablowanie YDY",
+  "swzTextBlob": null,
+  "lineCount": 5,
+  "labeledMissing": ["MEASUREMENTS", "PREP_WORKS"],
+  "labeledAbsent": []
+}

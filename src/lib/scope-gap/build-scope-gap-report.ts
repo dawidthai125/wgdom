@@ -1,27 +1,40 @@
 /**
- * Scope Gap MVP — pure builder (RO). engineVersion = scope-gap-mvp-1.
- * DF: SCOPE-GAP-MVP-THIN-DESIGN-FREEZE-01.
- * Zero mutacji Bid / AI-COST / Quotes / History.
+ * SCOPE-COMPLETENESS-01 Stage A — pure builder (RO).
+ * Prod emit: scope-completeness-a1 · cap 12.
+ * Compat: buildScopeGapReportMvp1 → scope-gap-mvp-1 · cap 8.
+ * Zero mutacji Bid / AI-COST / Quotes / S4.
  */
 
 import {
+  expectedCodesForTemplateA1,
+  isCodePresentInBlobA1,
+  rationaleForGapA1,
+  SCOPE_GAP_A1_LABEL_PL,
+  severityForGapA1,
+} from "./rules-a1";
+import {
   expectedCodesForTemplate,
   isCodePresentInBlob,
-  normalizeScopeGapText,
   rationaleForGap,
   SCOPE_GAP_LABEL_PL,
   severityForGap,
+  normalizeScopeGapText,
 } from "./rules-mvp-1";
 import {
+  SCOPE_COMPLETENESS_A1_EMPTY_WARNINGS_PL,
+  SCOPE_COMPLETENESS_A1_ENGINE_VERSION,
+  SCOPE_COMPLETENESS_A1_WARNINGS_CAP,
   SCOPE_GAP_MVP_DISCLAIMER_PL,
   SCOPE_GAP_MVP_EMPTY_WARNINGS_PL,
   SCOPE_GAP_MVP_ENGINE_VERSION,
+  SCOPE_GAP_MVP_WARNINGS_CAP,
+  type ScopeGapEngineVersion,
+  type ScopeGapInvestmentTemplate,
   type ScopeGapMvpInput,
   type ScopeGapReport,
+  type ScopeGapRuleCode,
   type ScopeGapWarning,
 } from "./types";
-
-const WARNINGS_CAP = 8;
 
 const SEVERITY_RANK: Record<ScopeGapWarning["severity"], number> = {
   high: 0,
@@ -29,11 +42,60 @@ const SEVERITY_RANK: Record<ScopeGapWarning["severity"], number> = {
   info: 2,
 };
 
-function emptyUnavailable(reason: string, computedAt: string, template: ScopeGapMvpInput["investmentTemplate"]): ScopeGapReport {
+type RulesPack = {
+  engineVersion: ScopeGapEngineVersion;
+  cap: number;
+  emptyPl: string;
+  expected: (
+    template: ScopeGapInvestmentTemplate,
+    presentNormalized: string,
+  ) => readonly ScopeGapRuleCode[];
+  isPresent: (code: ScopeGapRuleCode, blobNormalized: string) => boolean;
+  severity: (opts: {
+    template: ScopeGapInvestmentTemplate;
+    code: ScopeGapRuleCode;
+    swzHit: boolean;
+  }) => { severity: ScopeGapWarning["severity"]; confidence: number };
+  rationale: (opts: {
+    code: ScopeGapRuleCode;
+    template: ScopeGapInvestmentTemplate;
+    swzHit: boolean;
+  }) => string;
+  label: Record<ScopeGapRuleCode, string>;
+};
+
+const PACK_A1: RulesPack = {
+  engineVersion: SCOPE_COMPLETENESS_A1_ENGINE_VERSION,
+  cap: SCOPE_COMPLETENESS_A1_WARNINGS_CAP,
+  emptyPl: SCOPE_COMPLETENESS_A1_EMPTY_WARNINGS_PL,
+  expected: expectedCodesForTemplateA1,
+  isPresent: isCodePresentInBlobA1,
+  severity: severityForGapA1,
+  rationale: rationaleForGapA1,
+  label: SCOPE_GAP_A1_LABEL_PL,
+};
+
+const PACK_MVP1: RulesPack = {
+  engineVersion: SCOPE_GAP_MVP_ENGINE_VERSION,
+  cap: SCOPE_GAP_MVP_WARNINGS_CAP,
+  emptyPl: SCOPE_GAP_MVP_EMPTY_WARNINGS_PL,
+  expected: expectedCodesForTemplate,
+  isPresent: isCodePresentInBlob,
+  severity: severityForGap,
+  rationale: rationaleForGap,
+  label: SCOPE_GAP_LABEL_PL,
+};
+
+function emptyUnavailable(
+  reason: string,
+  computedAt: string,
+  template: ScopeGapInvestmentTemplate,
+  engineVersion: ScopeGapEngineVersion,
+): ScopeGapReport {
   return {
     available: false,
     emptyReasonPl: reason,
-    engineVersion: SCOPE_GAP_MVP_ENGINE_VERSION,
+    engineVersion,
     investmentTemplate: template,
     warnings: [],
     disclaimerPl: SCOPE_GAP_MVP_DISCLAIMER_PL,
@@ -41,11 +103,7 @@ function emptyUnavailable(reason: string, computedAt: string, template: ScopeGap
   };
 }
 
-/**
- * Buduje raport luk zakresu — pure, fail-soft.
- * Fail-soft pustego OfferBoq: available=false + emptyReason (Decision IMPL).
- */
-export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
+function buildWithPack(input: ScopeGapMvpInput, pack: RulesPack): ScopeGapReport {
   const computedAt = input.computedAtIso || "1970-01-01T00:00:00.000Z";
   const template = input.investmentTemplate;
 
@@ -55,6 +113,7 @@ export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
         "Brak pozycji OfferBoq — luki zakresu niedostępne.",
         computedAt,
         template,
+        pack.engineVersion,
       );
     }
 
@@ -64,24 +123,24 @@ export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
         ? normalizeScopeGapText(input.swzTextBlob)
         : "";
 
-    const expected = expectedCodesForTemplate(template, athNorm);
+    const expected = pack.expected(template, athNorm);
     const warnings: ScopeGapWarning[] = [];
 
     for (const code of expected) {
-      const athPresent = isCodePresentInBlob(code, athNorm);
+      const athPresent = pack.isPresent(code, athNorm);
       if (athPresent) continue;
 
-      const swzHit = swzNorm ? isCodePresentInBlob(code, swzNorm) : false;
-      const { severity, confidence } = severityForGap({ template, code, swzHit });
+      const swzHit = swzNorm ? pack.isPresent(code, swzNorm) : false;
+      const { severity, confidence } = pack.severity({ template, code, swzHit });
       const sources: ScopeGapWarning["sources"] = swzHit ? ["rule", "swz"] : ["rule"];
 
       warnings.push({
         id: `scope_gap:${code}`,
         code,
-        labelPl: SCOPE_GAP_LABEL_PL[code],
+        labelPl: pack.label[code],
         severity,
         confidence,
-        rationalePl: rationaleForGap({ code, template, swzHit }),
+        rationalePl: pack.rationale({ code, template, swzHit }),
         evidencePresentPl: athPresent
           ? "Wykryto w przedmiarze"
           : swzHit
@@ -90,7 +149,7 @@ export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
         sources,
       });
 
-      if (warnings.length >= WARNINGS_CAP) break;
+      if (warnings.length >= pack.cap) break;
     }
 
     warnings.sort((a, b) => {
@@ -99,12 +158,12 @@ export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
       return a.code.localeCompare(b.code);
     });
 
-    const capped = warnings.slice(0, WARNINGS_CAP);
+    const capped = warnings.slice(0, pack.cap);
 
     return {
       available: true,
-      emptyReasonPl: capped.length === 0 ? SCOPE_GAP_MVP_EMPTY_WARNINGS_PL : null,
-      engineVersion: SCOPE_GAP_MVP_ENGINE_VERSION,
+      emptyReasonPl: capped.length === 0 ? pack.emptyPl : null,
+      engineVersion: pack.engineVersion,
       investmentTemplate: template,
       warnings: capped,
       disclaimerPl: SCOPE_GAP_MVP_DISCLAIMER_PL,
@@ -115,6 +174,17 @@ export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
       "Błąd obliczania luk zakresu (fail-soft).",
       computedAt,
       template,
+      pack.engineVersion,
     );
   }
+}
+
+/** Prod Stage A — engine scope-completeness-a1 · cap 12. */
+export function buildScopeGapReport(input: ScopeGapMvpInput): ScopeGapReport {
+  return buildWithPack(input, PACK_A1);
+}
+
+/** Compat / regresja MVP — engine scope-gap-mvp-1 · cap 8. */
+export function buildScopeGapReportMvp1(input: ScopeGapMvpInput): ScopeGapReport {
+  return buildWithPack(input, PACK_MVP1);
 }

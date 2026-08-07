@@ -1,0 +1,9 @@
+{
+  "id": "08-generic-no-demol",
+  "investmentTemplate": "generic_unknown",
+  "presentTextBlob": "Dostawa materiałów biurowych i sprzętu IT",
+  "swzTextBlob": null,
+  "lineCount": 2,
+  "labeledMissing": [],
+  "labeledAbsent": ["WASTE_DISPOSAL", "SCAFFOLDING", "TRAFFIC_ORG"]
+}

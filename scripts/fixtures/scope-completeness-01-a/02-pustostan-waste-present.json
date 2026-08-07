@@ -1,0 +1,9 @@
+{
+  "id": "02-pustostan-waste-present",
+  "investmentTemplate": "pustostan_remont",
+  "presentTextBlob": "Remont — wywóz gruzu kontenerem, malowanie, posadzki",
+  "swzTextBlob": null,
+  "lineCount": 5,
+  "labeledMissing": ["PREP_WORKS", "PROTECTION", "MEASUREMENTS"],
+  "labeledAbsent": ["WASTE_DISPOSAL"]
+}

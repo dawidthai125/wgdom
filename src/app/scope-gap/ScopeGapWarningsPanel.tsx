@@ -1,6 +1,6 @@
 /**
- * Scope Gap MVP — panel „Luki zakresu” (RO UI).
- * DF: SCOPE-GAP-MVP-THIN-DESIGN-FREEZE-01.
+ * Scope Completeness Stage A — panel „Luki zakresu” (RO UI).
+ * DF: SCOPE-COMPLETENESS-01-STAGE-A · flag REUSE kw-scope-gap-mvp.
  * Flaga OFF: parent nie montuje.
  */
 
@@ -37,6 +37,7 @@ export function ScopeGapWarningsPanel({ report }: { report: ScopeGapReport }) {
         className="rounded-lg border border-dashed border-border bg-background/70 p-3 space-y-1"
         data-scope-gap-mvp-panel
         data-scope-gap-mvp-available="0"
+        data-scope-gap-engine={report.engineVersion}
       >
         <h3 className={`${TEUX_FONT_CAPTION} font-semibold text-foreground`}>Luki zakresu</h3>
         <p className={`${TEUX_FONT_META} text-muted-foreground`}>
@@ -58,6 +59,7 @@ export function ScopeGapWarningsPanel({ report }: { report: ScopeGapReport }) {
       data-scope-gap-mvp-available="1"
       data-scope-gap-mvp-count={String(count)}
       data-scope-gap-mvp-template={report.investmentTemplate}
+      data-scope-gap-engine={report.engineVersion}
     >
       <button
         type="button"
@@ -87,7 +89,7 @@ export function ScopeGapWarningsPanel({ report }: { report: ScopeGapReport }) {
               className={`${TEUX_FONT_CAPTION} text-muted-foreground`}
               data-scope-gap-mvp-empty
             >
-              {report.emptyReasonPl ?? "Brak typowych ostrzeżeń zakresu (MVP)"}
+              {report.emptyReasonPl ?? "Brak typowych ostrzeżeń zakresu"}
             </p>
           ) : (
             <ul className="space-y-1.5" data-scope-gap-mvp-list>
