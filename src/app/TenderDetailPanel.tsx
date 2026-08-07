@@ -103,6 +103,7 @@ export function TenderDetailPanel({
   onPriceOverridesChanged,
   onOperatorActionBarChange,
   chiefDossierVm = null,
+  chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -134,6 +135,8 @@ export function TenderDetailPanel({
   onOperatorActionBarChange?: (props: TenderWorkflowOperatorActionBarProps | null) => void;
   /** WIRE-CHIEF-UI-DOSSIER-01 — RO ViewModel (null = flag OFF / no surface). */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** DECISION-WORKSPACE-01 — Session output for Decision Host (null = off tab). */
+  chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -690,6 +693,7 @@ export function TenderDetailPanel({
               commandLayerActive={embedV4CommandLayerActive}
               onOpenStrategy={tendersCtx ? handleOpenTendersStrategy : undefined}
               chiefDossierVm={chiefDossierVm}
+              chiefSessionForDecision={chiefSessionForDecision}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}

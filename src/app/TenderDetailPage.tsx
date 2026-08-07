@@ -13,6 +13,7 @@ import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
 import { useChiefOrchestratorSession } from "@/app/hooks/useChiefOrchestratorSession";
 import { buildChiefDossierViewModel, type ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
@@ -223,6 +224,10 @@ export function TenderDetailPage({
     if (!chiefSessionEnabled) return null;
     return buildChiefDossierViewModel(chiefSession);
   }, [chiefSessionEnabled, chiefSession]);
+
+  /** DECISION-WORKSPACE-01 — Session RO → Host (flag gate wewnątrz). */
+  const chiefSessionForDecision: ChiefSessionOutput | null =
+    activeTab === "przetarg" ? chiefSession : null;
 
   const showTre01Outcome =
     tre01SliceA &&
@@ -682,6 +687,7 @@ export function TenderDetailPage({
               onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
               onOperatorActionBarChange={setOperatorActionBar}
               chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
+              chiefSessionForDecision={chiefSessionForDecision}
             />
           )}
         </div>

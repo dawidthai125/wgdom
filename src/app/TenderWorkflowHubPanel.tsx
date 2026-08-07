@@ -28,6 +28,8 @@ import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { shouldRenderHubTrustBanner } from "@/lib/tender-trust-ui";
 import { ChiefDossierSurface } from "@/app/chief-dossier";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import { DecisionWorkspaceHost } from "@/app/decision-workspace";
+import type { ChiefSessionOutput } from "@/lib/chief-session";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -47,6 +49,7 @@ export function TenderWorkflowHubPanel({
   trustAssessment,
   commandLayerActive = false,
   chiefDossierVm = null,
+  chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -70,6 +73,8 @@ export function TenderWorkflowHubPanel({
   commandLayerActive?: boolean;
   /** WIRE-CHIEF-UI-DOSSIER-01 — sibling POD #tender-intelligence-hub. */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
+  chiefSessionForDecision?: ChiefSessionOutput | null;
 }) {
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
@@ -124,11 +129,18 @@ export function TenderWorkflowHubPanel({
             onNavigateCostTab={(tab) => onNavigateTab(tab)}
           />
           {chiefDossierVm != null && <ChiefDossierSurface vm={chiefDossierVm} />}
+          {chiefSessionForDecision != null && (
+            <DecisionWorkspaceHost session={chiefSessionForDecision} />
+          )}
         </>
       )}
 
       {!commandLayerActive && chiefDossierVm != null && (
         <ChiefDossierSurface vm={chiefDossierVm} />
+      )}
+
+      {!commandLayerActive && chiefSessionForDecision != null && (
+        <DecisionWorkspaceHost session={chiefSessionForDecision} />
       )}
 
       <details

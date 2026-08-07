@@ -76,6 +76,7 @@ export function TenderPrzetargWorkspace({
   commandLayerActive = false,
   onOpenStrategy,
   chiefDossierVm = null,
+  chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -102,6 +103,8 @@ export function TenderPrzetargWorkspace({
   onOpenStrategy?: (tenderId: string) => void;
   /** WIRE-CHIEF-UI-DOSSIER-01 — RO dossier under intelligence hub. */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** DECISION-WORKSPACE-01 — Session → Decision Host. */
+  chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {
   const tendersCtx = useTendersContextOptional();
   const portfolioPosition = useMemo(() => {
@@ -141,6 +144,7 @@ export function TenderPrzetargWorkspace({
         trustAssessment={trustAssessment}
         commandLayerActive={commandLayerActive}
         chiefDossierVm={chiefDossierVm}
+        chiefSessionForDecision={chiefSessionForDecision}
       />
 
       {portfolioPosition && handleOpenStrategy && (
