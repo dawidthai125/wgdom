@@ -36,6 +36,12 @@ import {
   UNKNOWN_PRICE_SOURCE,
 } from "@/lib/tender-offer-boq";
 import { recordOfferBoqAiQualityTelemetry } from "@/lib/tender-offer-boq-ai-quality-telemetry";
+import {
+  lookupToKnowledgeCandidate,
+  resolveKnowledgePrice,
+  toKnowledgeEngineExplainMeta,
+  type KnowledgeEngineExplainMeta,
+} from "@/lib/knowledge-engine";
 
 export interface OfferBoqPriceLookupRequest {
   category: OfferBoqPricedComponentCategory;
@@ -68,6 +74,8 @@ export interface OfferBoqPriceLookupResult {
     originCount: number;
     legacyFallbackUsed: boolean;
   };
+  /** KE-E1 — Explain Resolvera (opcjonalne). */
+  knowledgeEngine?: KnowledgeEngineExplainMeta;
 }
 
 /** Interfejs źródła ceny — rozszerzalny (katalog, model firmy, przyszłe feedy). */
@@ -471,20 +479,69 @@ function resolvePrice(
   req: OfferBoqPriceLookupRequest,
   providers: OfferBoqPriceSourceProvider[],
 ): OfferBoqPriceLookupResult {
+  const nowIso = new Date().toISOString();
+  const hits: OfferBoqPriceLookupResult[] = [];
   for (const p of providers) {
     const hit = p.lookup(req);
-    if (hit) return hit;
+    if (hit) hits.push(hit);
   }
+
+  const emptyExplain = (): KnowledgeEngineExplainMeta =>
+    toKnowledgeEngineExplainMeta(
+      resolveKnowledgePrice({
+        candidates: [],
+        nowIso,
+      }),
+    );
+
+  if (hits.length === 0) {
+    return {
+      unitPricePln: null,
+      origin: {
+        kind: "unknown",
+        labelPl: "Brak źródła ceny",
+      },
+      confidence: "low",
+      rationale:
+        "Nie znaleziono ceny w Bibliotece Robót, stawkach kategorii, modelu firmy ani heurystyce. " +
+        "Uzupełnij cenę ręcznie albo dodaj pozycję do katalogu — bez tego koszt bezpośredni będzie zaniżony.",
+      knowledgeEngine: emptyExplain(),
+    };
+  }
+
+  const candidates = hits
+    .map((hit, chainIndex) => lookupToKnowledgeCandidate(hit, chainIndex, nowIso))
+    .filter((c): c is NonNullable<typeof c> => c != null);
+
+  const resolved = resolveKnowledgePrice({
+    candidates,
+    isOut: false,
+    nowIso,
+  });
+  const knowledgeEngine = toKnowledgeEngineExplainMeta(resolved);
+
+  // Wybór = kandydat o selectedChainIndex (łańcuch wśród eligible)
+  let selected: OfferBoqPriceLookupResult | null = null;
+  if (
+    resolved.selectedChainIndex != null &&
+    resolved.selectedChainIndex >= 0 &&
+    resolved.selectedChainIndex < hits.length
+  ) {
+    selected = hits[resolved.selectedChainIndex] ?? null;
+  }
+  // Fallback: pierwszy hit (nie powinno być potrzebne przy eligible)
+  if (!selected) {
+    selected = hits[0]!;
+  }
+
+  const rationale =
+    selected.rationale +
+    (knowledgeEngine.explain ? ` · KE: ${knowledgeEngine.explain}` : "");
+
   return {
-    unitPricePln: null,
-    origin: {
-      kind: "unknown",
-      labelPl: "Brak źródła ceny",
-    },
-    confidence: "low",
-    rationale:
-      "Nie znaleziono ceny w Bibliotece Robót, stawkach kategorii, modelu firmy ani heurystyce. " +
-      "Uzupełnij cenę ręcznie albo dodaj pozycję do katalogu — bez tego koszt bezpośredni będzie zaniżony.",
+    ...selected,
+    rationale,
+    knowledgeEngine,
   };
 }
 
@@ -608,6 +665,7 @@ export function priceOfferBoqLine(
       unitPricePln == null ||
       lookup.origin.kind === "heuristic_estimate" ||
       lookup.origin.kind === "unknown" ||
+      Boolean(lookup.knowledgeEngine?.reviewRequired) ||
       (lookup.origin.kind === "controlled_market" &&
         (lookup.confidence === "low" || Boolean(lookup.controlledMarket?.legacyFallbackUsed)));
 
@@ -667,6 +725,7 @@ export function priceOfferBoqLine(
       pricingComponentKind: spec.pricingComponentKind,
       companyKnowledgeHint,
       controlledMarketHint,
+      knowledgeEngine: lookup.knowledgeEngine,
     };
   });
 

@@ -189,6 +189,8 @@ export interface OfferBoqPricedComponent {
   companyKnowledgeHint?: OfferBoqCompanyKnowledgeHint;
   /** COST-02-A — transparentność kontrolowanego benchmarku rynkowego. */
   controlledMarketHint?: OfferBoqControlledMarketHint;
+  /** KE-E1 — Explain metadata Knowledge Engine (Resolver v0). */
+  knowledgeEngine?: import("@/lib/knowledge-engine").KnowledgeEngineExplainMeta;
   /**
    * STAB-01 — propozycja AI po reprice, gdy obowiązuje decyzja użytkownika.
    * Nie zmienia unitPricePln / totalPln — użytkownik decyduje o przyjęciu.
