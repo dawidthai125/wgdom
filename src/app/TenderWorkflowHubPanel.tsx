@@ -28,6 +28,7 @@ import { TrustChipRow } from "@/app/tenders/trust/TrustChipRow";
 import { shouldRenderHubTrustBanner } from "@/lib/tender-trust-ui";
 import { ChiefDossierSurface } from "@/app/chief-dossier";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 import { DecisionWorkspaceHost } from "@/app/decision-workspace";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 
@@ -49,6 +50,7 @@ export function TenderWorkflowHubPanel({
   trustAssessment,
   commandLayerActive = false,
   chiefDossierVm = null,
+  expertWorkspaceVm = null,
   chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
@@ -73,6 +75,8 @@ export function TenderWorkflowHubPanel({
   commandLayerActive?: boolean;
   /** WIRE-CHIEF-UI-DOSSIER-01 — sibling POD #tender-intelligence-hub. */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** WIRE-EXPERTS-UI-01 — Expert Details under Trace (Slot A). */
+  expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
   chiefSessionForDecision?: ChiefSessionOutput | null;
 }) {
@@ -128,7 +132,12 @@ export function TenderWorkflowHubPanel({
             intelligenceCtx={intelligenceCtx}
             onNavigateCostTab={(tab) => onNavigateTab(tab)}
           />
-          {chiefDossierVm != null && <ChiefDossierSurface vm={chiefDossierVm} />}
+          {chiefDossierVm != null && (
+            <ChiefDossierSurface
+              vm={chiefDossierVm}
+              expertWorkspaceVm={expertWorkspaceVm}
+            />
+          )}
           {chiefSessionForDecision != null && (
             <DecisionWorkspaceHost session={chiefSessionForDecision} />
           )}
@@ -136,7 +145,10 @@ export function TenderWorkflowHubPanel({
       )}
 
       {!commandLayerActive && chiefDossierVm != null && (
-        <ChiefDossierSurface vm={chiefDossierVm} />
+        <ChiefDossierSurface
+          vm={chiefDossierVm}
+          expertWorkspaceVm={expertWorkspaceVm}
+        />
       )}
 
       {!commandLayerActive && chiefSessionForDecision != null && (

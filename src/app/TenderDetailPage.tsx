@@ -13,6 +13,10 @@ import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
 import { useChiefOrchestratorSession } from "@/app/hooks/useChiefOrchestratorSession";
 import { buildChiefDossierViewModel, type ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import {
+  buildExpertWorkspaceViewModel,
+  type ExpertWorkspaceViewModel,
+} from "@/lib/expert-workspace-ui";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
@@ -224,6 +228,15 @@ export function TenderDetailPage({
     if (!chiefSessionEnabled) return null;
     return buildChiefDossierViewModel(chiefSession);
   }, [chiefSessionEnabled, chiefSession]);
+
+  /** WIRE-EXPERTS-UI-01 — Slot A Details VM (Session flag only · no new flag). */
+  const expertWorkspaceVm: ExpertWorkspaceViewModel | null = useMemo(() => {
+    if (!chiefSessionEnabled) return null;
+    return buildExpertWorkspaceViewModel({
+      dossier: chiefSession.dossier,
+      dossierUiPhase: chiefDossierVm?.uiPhase ?? null,
+    });
+  }, [chiefSessionEnabled, chiefSession.dossier, chiefDossierVm?.uiPhase]);
 
   /** DECISION-WORKSPACE-01 — Session RO → Host (flag gate wewnątrz). */
   const chiefSessionForDecision: ChiefSessionOutput | null =
@@ -687,6 +700,7 @@ export function TenderDetailPage({
               onPriceOverridesChanged={() => setPricingRevision((v) => v + 1)}
               onOperatorActionBarChange={setOperatorActionBar}
               chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
+              expertWorkspaceVm={activeTab === "przetarg" ? expertWorkspaceVm : null}
               chiefSessionForDecision={chiefSessionForDecision}
             />
           )}

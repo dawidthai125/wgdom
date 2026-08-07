@@ -27,6 +27,7 @@ import { useTendersContextOptional } from "@/app/tenders/context/TendersContext"
 import { buildTenderPortfolioPositionView } from "@/lib/tender-strategy-ux";
 import { TenderPortfolioPositionPanel } from "@/app/tenders/strategy/components/TenderPortfolioPositionPanel";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 
 const PARTICIPATION_PREVIEW_LINES = 3;
 
@@ -76,6 +77,7 @@ export function TenderPrzetargWorkspace({
   commandLayerActive = false,
   onOpenStrategy,
   chiefDossierVm = null,
+  expertWorkspaceVm = null,
   chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
@@ -103,6 +105,8 @@ export function TenderPrzetargWorkspace({
   onOpenStrategy?: (tenderId: string) => void;
   /** WIRE-CHIEF-UI-DOSSIER-01 — RO dossier under intelligence hub. */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** WIRE-EXPERTS-UI-01 — Expert Details VM (Slot A). */
+  expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DECISION-WORKSPACE-01 — Session → Decision Host. */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {
@@ -144,6 +148,7 @@ export function TenderPrzetargWorkspace({
         trustAssessment={trustAssessment}
         commandLayerActive={commandLayerActive}
         chiefDossierVm={chiefDossierVm}
+        expertWorkspaceVm={expertWorkspaceVm}
         chiefSessionForDecision={chiefSessionForDecision}
       />
 

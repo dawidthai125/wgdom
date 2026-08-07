@@ -5,6 +5,8 @@
 
 import { TEUX_FONT_BODY, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
+import { ExpertWorkspaceSurface } from "@/app/expert-workspace";
 import { ChiefBlockersPanel, ChiefLoopReturnBadge } from "./ChiefBlockersPanel";
 import { ChiefExpertTraceList } from "./ChiefExpertTraceCard";
 import { ChiefOfferRecommendation } from "./ChiefOfferRecommendation";
@@ -20,7 +22,14 @@ const EMPTY_PHASES = new Set([
   "running",
 ]);
 
-export function ChiefDossierSurface({ vm }: { vm: ChiefDossierViewModel }) {
+export function ChiefDossierSurface({
+  vm,
+  expertWorkspaceVm = null,
+}: {
+  vm: ChiefDossierViewModel;
+  /** WIRE-EXPERTS-UI-01 — Slot A under Trace. */
+  expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
+}) {
   const isEmptyish = EMPTY_PHASES.has(vm.uiPhase);
 
   return (
@@ -67,6 +76,10 @@ export function ChiefDossierSurface({ vm }: { vm: ChiefDossierViewModel }) {
         {vm.showTimeline && <ChiefTaskTimeline rows={vm.taskRows} />}
 
         {vm.showTraces && <ChiefExpertTraceList slots={vm.traceSlots} />}
+
+        {expertWorkspaceVm != null && (
+          <ExpertWorkspaceSurface vm={expertWorkspaceVm} />
+        )}
       </div>
     </section>
   );

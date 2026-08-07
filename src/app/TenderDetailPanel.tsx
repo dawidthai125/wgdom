@@ -42,6 +42,7 @@ import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderDecisionView } from "@/app/TenderDecisionView";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
+import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderWorkflowOperatorSection } from "@/app/TenderWorkflowOperatorSection";
 import type { TenderWorkflowOperatorActionBarProps } from "@/app/TenderWorkflowOperatorActionBar";
@@ -103,6 +104,7 @@ export function TenderDetailPanel({
   onPriceOverridesChanged,
   onOperatorActionBarChange,
   chiefDossierVm = null,
+  expertWorkspaceVm = null,
   chiefSessionForDecision = null,
 }: {
   item: TenderPipelineItem;
@@ -135,6 +137,8 @@ export function TenderDetailPanel({
   onOperatorActionBarChange?: (props: TenderWorkflowOperatorActionBarProps | null) => void;
   /** WIRE-CHIEF-UI-DOSSIER-01 — RO ViewModel (null = flag OFF / no surface). */
   chiefDossierVm?: ChiefDossierViewModel | null;
+  /** WIRE-EXPERTS-UI-01 — Expert Details VM (Slot A). */
+  expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DECISION-WORKSPACE-01 — Session output for Decision Host (null = off tab). */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {
@@ -693,6 +697,7 @@ export function TenderDetailPanel({
               commandLayerActive={embedV4CommandLayerActive}
               onOpenStrategy={tendersCtx ? handleOpenTendersStrategy : undefined}
               chiefDossierVm={chiefDossierVm}
+              expertWorkspaceVm={expertWorkspaceVm}
               chiefSessionForDecision={chiefSessionForDecision}
               operatorSection={(
                 <TenderWorkflowOperatorSection
