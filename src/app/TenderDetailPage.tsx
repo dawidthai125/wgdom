@@ -11,7 +11,9 @@ import { TenderAutonomousGate } from "@/app/tenders/autonomous/TenderAutonomousG
 import { TenderRecommendationOutcomeView } from "@/app/tenders/outcome/TenderRecommendationOutcomeView";
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
+import { useChiefOrchestratorSession } from "@/app/hooks/useChiefOrchestratorSession";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
+import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
 import {
   TenderWorkflowOperatorActionBar,
@@ -206,6 +208,14 @@ export function TenderDetailPage({
     enabled: tre01SliceA && Boolean(item),
     tenderPipelineItemId: item?.id ?? tenderId,
     pipelineRuntime,
+  });
+
+  /** WIRE-CHIEF-SESSION-01 — Session only (flag default OFF · brak UI dossier). */
+  useChiefOrchestratorSession({
+    enabled: isChiefOrchestratorSessionEnabled() && Boolean(item),
+    item: item ?? null,
+    pricingReadyPartial: pipelineRuntime.pricingReadyPartial,
+    pricingReadyFinal: pipelineRuntime.pricingReadyFinal,
   });
 
   const showTre01Outcome =
