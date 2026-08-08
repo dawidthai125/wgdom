@@ -10,7 +10,7 @@
 ### CO TO JEST WGDOM?
 
 Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / **`85f4db14`** · **PRODUCTION VERIFIED**.
+Prod: https://www.wgdom.fun · tip: **2.66.22** / **`ebae3d2e`** · **PRODUCTION VERIFIED**.
 
 ### JAK DZIAŁA PRZETARG?
 
@@ -45,19 +45,19 @@ Bid Proposal · TRE-01 · TenderDecisionView · `kw-tender-decisions` · Intelli
 
 ### CO JEST ZAMKNIĘTE?
 
-**S0** orphan · **S1** module · **S2** Dual Outcome · **S3** Align Pricing · **S4** Hub UX · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  
+**S0** orphan · **S1** module · **S2** Dual Outcome · **S3** Align Pricing · **S4** Hub UX · **S5** Tab Decyzja→DW · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  
 ACTIVE EPIC = **NONE**.
 
 ### CO JEST NEXT?
 
-**TENDER-MODERNIZATION-01 / S5** — Tab Decyzja → Decision Workspace.  
+**TENDER-MODERNIZATION-01 / S6** — Persist / store bridge.  
 **WAITING FOR OWNER GO** → start **AUDIT**.
 
 ### CZEGO NIE WOLNO DOTYKAĆ?
 
 8 LOCK: Expert · Chief · Session · Validation · Adapters · TF · OfferBoq · Bid domain.  
-OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S5+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.  
-WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S4.
+OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S6+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.
+WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S5.
 
 ### Od czego zacząć?
 

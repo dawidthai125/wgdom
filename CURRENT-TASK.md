@@ -1,11 +1,11 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 / S4 CLOSED** · tip UI **2.66.22** / **`85f4db14`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT **TM-01 S5** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 / S5 CLOSED** · tip UI **2.66.22** / **`ebae3d2e`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT **TM-01 S6** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
 > **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw COLD-START + MASTER + DF.  
-> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S4 · nie stage bez GO.  
+> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
@@ -13,25 +13,36 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.22** / **`85f4db14`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome (S2)+Align Pricing (S3)+Hub UX (S4) · Hub ANALIZA→…→DECYZJA · Intelligence recovery · Offer primary @ Expert ON · NO PRIMARY @ Offer null · Bid legacy @ Expert OFF · DW PRIMARY when Expert-effective · staff Przetargi module gate · S0 orphan cleanup |
+| Production tip | **2.66.22** / **`ebae3d2e`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome (S2)+Align Pricing (S3)+Hub UX (S4)+Tab Decyzja→DW (S5) · Decyzja overview DW PRIMARY @ Expert ON · DecisionView recovery · Hub DW KEEP · Offer primary @ Expert ON · NO PRIMARY @ Offer null · Bid legacy @ Expert OFF · staff Przetargi module gate · S0 orphan cleanup |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **TENDER-MODERNIZATION-01 / S4** · **TENDER-MODERNIZATION-01 / S3** · **TENDER-MODERNIZATION-01 / S2** · **TENDER-MODULE-ENABLEMENT-01** (S1) · **TENDER-MODERNIZATION-01 / S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
+| CLOSED | **TENDER-MODERNIZATION-01 / S5** · **TENDER-MODERNIZATION-01 / S4** · **TENDER-MODERNIZATION-01 / S3** · **TENDER-MODERNIZATION-01 / S2** · **TENDER-MODULE-ENABLEMENT-01** (S1) · **TENDER-MODERNIZATION-01 / S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · auto-start TM-01 S5+ · S3-D · S8 Bid retirement · global ON `tendersTabForStaffEnabled` |
-| **NEXT** | **TENDER-MODERNIZATION-01 / S5** — Tab Decyzja → DW — **WAITING FOR OWNER GO** |
-| **Known Residuals (NIE część S4)** | TM-01 S5–S8 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · auto-start TM-01 S6+ · S3-D · S8 Bid retirement · global ON `tendersTabForStaffEnabled` |
+| **NEXT** | **TENDER-MODERNIZATION-01 / S6** — Persist → legacy bridge — **WAITING FOR OWNER GO** |
+| **Known Residuals (NIE część S5)** | TM-01 S6–S8 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` |
 
+
+## ★ TENDER-MODERNIZATION-01 / S5 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S5 CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.22** / **`ebae3d2e`** |
+| **IN** | Tab Decyzja overview → DW Host PRIMARY @ Expert ON · DecisionView recovery · Hub DW KEEP · CTA home decyzja · harness 27 |
+| **OUT** | 8 LOCK BC · store migration · S6–S8 · DecisionView hard delete · new flag |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S5-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S5-PRODUCTION-VERIFY.md) |
+| **Residuals** | S6–S8 — **tylko Owner GO** |
+| **NEXT** | **TENDER-MODERNIZATION-01 / S6** — **WAITING FOR OWNER GO** |
 
 ## ★ TENDER-MODERNIZATION-01 / S4 — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **S4 CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.22** / **`85f4db14`** |
+| **Status** | **S4 CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`85f4db14`** · tip deploy supersedowany przez TM-01 S5 |
 | **IN** | Hub hierarchy ANALIZA→…→DECYZJA · Intelligence recovery · CL „Hub przetargu” · primary PLN Hub headline · Chief Trace→EW→Offer · DW Validation→Rec→Findings→Actions · secondary PLN chrome · harness 37 |
 | **OUT** | 8 LOCK BC · Strategy rewrite · TRE delete · S5–S8 · third PLN/engine · new flag |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S4-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S4-PRODUCTION-VERIFY.md) |
-| **Residuals** | S5–S8 — **tylko Owner GO** |
-| **NEXT** | **TENDER-MODERNIZATION-01 / S5** — **WAITING FOR OWNER GO** |
+| **Residuals** | — (S5 CLOSED) |
+| **NEXT** | superseded by S5 |
 
 ## ★ TENDER-MODERNIZATION-01 / S3 — **CLOSED**
 

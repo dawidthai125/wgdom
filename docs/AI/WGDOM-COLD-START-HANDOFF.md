@@ -18,7 +18,7 @@ WGDOM COLD START
 | | |
 |--|--|
 | **Version** | **2.66.22** |
-| **Commit** | **`85f4db14`** (`85f4db142589ff794e285364625a89edd691b9f5`) |
+| **Commit** | **`ebae3d2e`** (`ebae3d2e1cde4c008f356b9b9ff81eb58c33a0a2`) |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **PV** | **PRODUCTION VERIFIED · GREEN** |
@@ -35,7 +35,7 @@ WGDOM COLD START
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **WAITING** | **NEXT OWNER GO** |
-| **Tip feature** | **TENDER-MODERNIZATION-01 / S4 CLOSED** |
+| **Tip feature** | **TENDER-MODERNIZATION-01 / S5 CLOSED** |
 
 | Slice | Status |
 |-------|--------|
@@ -43,8 +43,9 @@ WGDOM COLD START
 | **S1** | **CLOSED** · `eed3ba0e` |
 | **S2** | **CLOSED** · `1888d05f` |
 | **S3** | **CLOSED** · `ec8a5044` |
-| **S4** | **CLOSED** · **`85f4db14`** |
-| **S5–S8** | **OPEN** |
+| **S4** | **CLOSED** · `85f4db14` |
+| **S5** | **CLOSED** · **`ebae3d2e`** |
+| **S6–S8** | **OPEN** |
 
 ---
 
@@ -150,9 +151,9 @@ SSOT: [`../architecture/TENDER-LEGACY-DEPRECATION-MAP.md`](../architecture/TENDE
 | S1 | Module enablement | **CLOSED** |
 | S2 | Dual Outcome / DW primary | **CLOSED** |
 | S3 | Align Pricing | **CLOSED** |
-| **S4** | **Hub UX** ANALIZA→EKSPERCI→WALIDACJA→REKOMENDACJA→DECYZJA | **NEXT** |
-| S5 | Tab Decyzja → DW | OPEN |
-| S6 | Persist / store bridge | OPEN |
+| S4 | Hub UX ANALIZA→…→DECYZJA | **CLOSED** |
+| **S5** | **Tab Decyzja → DW** | **CLOSED** |
+| **S6** | **Persist / store bridge** | **NEXT** |
 | S7 | TRE-01 deprecation | OPEN |
 | S8 | Hard REMOVE / Bid retirement | OPEN |
 
@@ -164,8 +165,8 @@ DF: [`../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](../architecture
 ## NEXT OWNER GO
 
 ```text
-TENDER-MODERNIZATION-01 / S5
-→ Tab Decyzja → Decision Workspace
+TENDER-MODERNIZATION-01 / S6
+→ Persist / store bridge
 → tylko Owner GO
 → start = AUDIT (nie PLAN / DF / IMPLEMENT bez GO)
 ```
@@ -176,7 +177,7 @@ TENDER-MODERNIZATION-01 / S5
 
 | Item | Stan |
 |------|------|
-| **`src/app/hooks/useTenderOfferRun.ts`** | **LOCAL WIP / M** · **NIE** część S4 · **nie** stage bez osobnego Owner GO |
+| **`src/app/hooks/useTenderOfferRun.ts`** | **LOCAL WIP / M** · **NIE** część S5 · **nie** stage bez osobnego Owner GO |
 | Bid Time-Load Guard | lokalny WIP · nie tip |
 
 ---
@@ -200,7 +201,7 @@ TENDER-MODERNIZATION-01 / S5
 
 - OST-03 · XFA · cache filled PDF · `vercel deploy` · `git add -A`  
 - Payroll CORE / merge bez Gate G1–G9  
-- Auto-start S5–S8 · S3-D · Bid retirement · global ON `tendersTabForStaffEnabled`  
+- Auto-start S6–S8 · S3-D · Bid retirement · global ON `tendersTabForStaffEnabled`  
 - Third PLN · Approve→GO przed S6 · hard REMOVE przed S8  
 - Cloud Persist / Audit Hub bez AUDIT + Owner GO  
 - `useTenderOfferRun.ts` bez osobnego Owner GO  
@@ -242,4 +243,4 @@ Stabilization: **nie** auto-start EPIC.
 
 ## NEXT ACTION
 
-**S5 — WAITING FOR OWNER GO** (Tab Decyzja → Decision Workspace · AUDIT first)
+**S6 — WAITING FOR OWNER GO** (Persist / store bridge · AUDIT first)
