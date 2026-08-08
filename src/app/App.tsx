@@ -2588,6 +2588,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [view]);
 
   const goToView = useCallback((v: View) => {
+    if (v === "tenders" && !canViewTendersNav) {
+      setViewReturn(null);
+      setView("dashboard");
+      setMobileMoreOpen(false);
+      reconcileModalScrollLock();
+      if (TENDERS_V4_ROUTING && isTenderV4Path(location.pathname)) navigate("/");
+      return;
+    }
     setViewReturn(null);
     setView(v);
     setMobileMoreOpen(false);
@@ -2602,16 +2610,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } else if (v === "tenders") {
       openTendersAtReviewTab();
     }
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, canViewTendersNav]);
 
   const openTenderById = useCallback((tid: string) => {
+    if (!canViewTendersNav) {
+      setView("dashboard");
+      if (TENDERS_V4_ROUTING && isTenderV4Path(location.pathname)) navigate("/");
+      return;
+    }
     setView("tenders");
     if (TENDERS_V4_ROUTING) {
       navigate(buildTenderDetailPath(tid, "przetarg"));
     } else {
       setPendingTenderId(tid);
     }
-  }, [navigate]);
+  }, [navigate, location.pathname, canViewTendersNav]);
 
   const handleAuditHubDeepLink = useCallback((deepLink: AuditFeedDeepLink) => {
     const nav = resolveAuditHubNavigation(deepLink);
@@ -2663,8 +2676,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [view, canViewTendersNav, canViewWorkCatalog]);
 
   useEffect(() => {
-    if (view === "tenders" && !canViewTendersNav) setView("dashboard");
-  }, [view, canViewTendersNav]);
+    if (view !== "tenders" || canViewTendersNav) return;
+    setView("dashboard");
+    if (TENDERS_V4_ROUTING && isTenderV4Path(location.pathname)) navigate("/");
+  }, [view, canViewTendersNav, location.pathname, navigate]);
 
   useEffect(() => {
     if (view === "guide" && !canViewInstructions) setView("dashboard");
@@ -2680,10 +2695,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     if (!TENDERS_V4_ROUTING) return;
-    if (isTenderV4Path(location.pathname)) {
+    if (!isTenderV4Path(location.pathname)) return;
+    if (canViewTendersNav) {
       setView("tenders");
+      return;
     }
-  }, [location.pathname]);
+    setView("dashboard");
+    navigate("/");
+  }, [location.pathname, canViewTendersNav, navigate]);
 
   useEffect(() => {
     const pending = consumePendingDeepLink();
@@ -2821,6 +2840,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
           onOpenSms={() => setShowSmsModal(true)}
           onOpenTenders={() => {
+            if (!canViewTendersNav) {
+              setView("dashboard");
+              return;
+            }
             openTendersAtReviewTab();
             if (TENDERS_V4_ROUTING) {
               navigate(TENDERS_LIST_PATH);

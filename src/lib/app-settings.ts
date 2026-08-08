@@ -30,7 +30,12 @@ export function mergeCatalogWriteMode(
 export interface AppSettings {
   /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie włączone. */
   athPreviewEnabled: boolean;
-  /** Zakładka Przetargi w menu dla Administratora i Moderatora (Super Admin zawsze widzi). */
+  /**
+   * TENDER-MODULE-ENABLEMENT-01 — master gate całego modułu Przetargi dla Admin/Moderator.
+   * Super Admin zawsze widzi i może wejść (niezależnie od flagi).
+   * Domyślnie OFF (bezpieczny default = obecne zachowanie prod).
+   * REUSE: nie tworzyć drugiej flagi / LS / Expert Session gate.
+   */
   tendersTabForStaffEnabled: boolean;
   /** Biblioteka Robót w Przetargach dla roli Administrator (Super Admin zawsze; moderator/inspektor — nie). */
   workCatalogForAdminEnabled: boolean;

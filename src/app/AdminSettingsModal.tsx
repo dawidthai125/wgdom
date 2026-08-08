@@ -302,25 +302,6 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={appSettings.tendersTabForStaffEnabled}
-                onChange={async (e) => {
-                  const next = { ...appSettings, tendersTabForStaffEnabled: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-              />
-              <div>
-                <p className="text-sm font-medium">Zakładka Przetargi dla administratorów i moderatorów</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Super Administrator zawsze widzi Przetargi w menu.
-                  Po włączeniu — Administrator i Moderator też mają dostęp do pipeline BZP (wspólna chmura).
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
                 checked={appSettings.instructionsForAdminEnabled}
                 onChange={async (e) => {
                   const next = { ...appSettings, instructionsForAdminEnabled: e.target.checked };
@@ -362,6 +343,26 @@ export function AdminSettingsModal({
             <p className="text-xs font-semibold uppercase tracking-wider text-sky-700 dark:text-sky-300">
               Moduły
             </p>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.tendersTabForStaffEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, tendersTabForStaffEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Przetargi</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Włącz cały moduł Przetargi dla Administratora i Moderatora. Domyślnie wyłączone.
+                  Super Administrator zawsze widzi i może wejść do Przetargów (żeby włączyć moduł ponownie).
+                  Sync chmura (AppSettings). Bez zmiany uprawnień wewnątrz modułu.
+                </p>
+              </div>
+            </label>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
