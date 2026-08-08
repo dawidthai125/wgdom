@@ -61,11 +61,14 @@ ok("trust neutral contrast boost", trust.includes("text-foreground/85"));
 const decyzja = readSrc("src/app/TenderDecyzjaSubTabBar.tsx");
 ok("decyzja TEUX_FONT_CAPTION", decyzja.includes("TEUX_FONT_CAPTION"));
 ok("decyzja no text-[11px]", !decyzja.includes("text-[11px]"));
+ok("decyzja role=tab on subtabs", decyzja.includes('role="tab"'));
+ok("decyzja maps SUB_TAB_ORDER", decyzja.includes("DECYZJA_V4_SUB_TAB_ORDER.map"));
+ok("decyzja tablist aria-label", decyzja.includes('aria-label="Sekcje decyzji"'));
 
-const shortcuts = readSrc("src/app/TenderOverviewShortcuts.tsx");
-ok("shortcuts TEUX_FONT_CAPTION", shortcuts.includes("TEUX_FONT_CAPTION"));
-ok("shortcuts no text-[10px]", !shortcuts.includes("text-[10px]"));
-ok("shortcuts aria-label on buttons", (shortcuts.match(/aria-label=/g) || []).length >= 3);
+/** OverviewShortcuts orphan — TEUX contracts live on DecisionView (Decyzja SSOT). */
+const decisionView = readSrc("src/app/TenderDecisionView.tsx");
+ok("decision TEUX_FONT_CAPTION", decisionView.includes("TEUX_FONT_CAPTION"));
+ok("decision no text-[10px]", !decisionView.includes("text-[10px]"));
 
 ok("tokens frozen — no teux7c edits", !readSrc("src/lib/tender-ux-tokens.ts").includes("teux7c"));
 

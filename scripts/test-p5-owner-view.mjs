@@ -12,7 +12,7 @@ import {
   buildOwnerRiskTermRows,
   scoreTenderForOwnerView,
 } from "../src/lib/tender-owner-view-ux.ts";
-import { resolvedCostStatusDisplay } from "../src/lib/tender-data-ssot.ts";
+import { resolvedCostStatusDisplay, PRZEDMIAR_VALUATION_READY_LABEL } from "../src/lib/tender-data-ssot.ts";
 import { loadGrowthMode } from "../src/lib/tenders-strategy-growth-mode.ts";
 import { loadCompanyProfileLocal } from "../src/lib/tenders-bzp-company.ts";
 import { aggregateMarketKpi } from "../src/lib/tenders-strategy-kpi.ts";
@@ -67,22 +67,22 @@ function scoringContext(items) {
 
 console.log("\n=== P5 Owner View + P5.1 Recovery ===\n");
 
-console.log("\n1. UI wiring (V3.1 Intelligence / EPIC A Hub)");
+console.log("\n1. UI wiring (V3.1 Intelligence / EPIC A Hub — DecisionView SSOT)");
 const panelSrc = readSrc("src/app/TenderDetailPanel.tsx");
-const ownerSrc = readSrc("src/app/TenderOwnerView.tsx");
 const decisionSrc = readSrc("src/app/TenderDecisionView.tsx");
 const hubSrc = readSrc("src/app/TenderWorkflowHubSections.tsx");
 assert(panelSrc.includes("TenderDecisionView"), "TenderDetailPanel uses TenderDecisionView on Decyzja");
 assert(panelSrc.includes("TenderPrzetargWorkspace"), "TenderDetailPanel Workflow Hub on Przetarg");
 assert(panelSrc.includes("buildTenderIntelligenceContext"), "panel builds intelligence context");
 assert(panelSrc.includes("scoringContext"), "panel uses scoringContext SSOT");
-assert(ownerSrc.includes("TenderDecisionView"), "Owner view delegates to DecisionView");
+assert(!panelSrc.includes("TenderOwnerView"), "panel: no TenderOwnerView consumer");
 assert(decisionSrc.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Decision view section copy (Decyzja)");
+assert(decisionSrc.includes("intelligenceCtx"), "Decision view intelligenceCtx prop");
 assert(hubSrc.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Hub blockers section copy (Przetarg)");
 assert(hubSrc.includes("WorkflowHubPrepStatusDisplay"), "prep status on Workflow Hub");
 assert(hubSrc.includes("statusLine"), "positions status line on hub");
-assert(!ownerSrc.includes("<details"), "no collapsed Więcej on Decyzja");
-assert(!ownerSrc.includes("OwnerNextSteps"), "OwnerNextSteps removed");
+assert(!decisionSrc.includes("<details"), "no collapsed Więcej on Decyzja (DecisionView)");
+assert(!decisionSrc.includes("OwnerNextSteps"), "OwnerNextSteps absent from DecisionView");
 assert(!panelSrc.includes("TenderOverviewShortcuts"), "overview shortcuts removed from main");
 
 console.log("\n2. Decision labels");
@@ -146,19 +146,32 @@ assert(missing.statusLine === resolvedCostStatusDisplay(baseItem()).display, "mi
 
 const przedmiar = buildOwnerPositionsFileView(przedmiarItem);
 assert(przedmiar.state === "przedmiar", "FOUND_NO_VALUE → przedmiar");
-assert(przedmiar.statusLine.includes("Przedmiar"), "P5.1 przedmiar full SSOT line");
-assert(przedmiar.statusLine.includes("221"), "P5.1 przedmiar row count in SSOT line");
+assert(przedmiar.rowCount === 221, "P5.1 przedmiar row count on view model");
+assert(
+  przedmiar.statusLine === resolvedCostStatusDisplay(przedmiarItem).display,
+  "P5.1 przedmiar statusLine = SSOT display",
+);
+assert(
+  przedmiar.statusLine === PRZEDMIAR_VALUATION_READY_LABEL ||
+    przedmiar.statusLine.toLowerCase().includes("przedmiar"),
+  "P5.1 przedmiar statusLine signals przedmiar/wycena ready",
+);
 assert(przedmiar.hint != null, "P5.1 przedmiar SSOT hint");
 assert(przedmiar.ctaLabel === "Otwórz przedmiar" || przedmiar.ctaLabel === null, "przedmiar CTA");
 
-const kosztorys = buildOwnerPositionsFileView(baseItem({
+const kosztorysItem = baseItem({
   tenderDossier: {
     kosztorys: { ok: true, rowCount: 50, totalValue: "100 000", currency: "PLN", sourceFilename: "k.ath" },
     builtAt: new Date().toISOString(),
   },
-}));
+});
+const kosztorys = buildOwnerPositionsFileView(kosztorysItem);
 assert(kosztorys.state === "kosztorys", "FOUND_WITH_VALUE → kosztorys");
-assert(kosztorys.statusLine.includes("Kosztorys wyceniony"), "P5.1 kosztorys full SSOT line");
+assert(
+  kosztorys.statusLine === resolvedCostStatusDisplay(kosztorysItem).display,
+  "P5.1 kosztorys statusLine = SSOT display",
+);
+assert(kosztorys.statusLine.length > 0, "P5.1 kosztorys statusLine non-empty");
 
 const awaiting = buildOwnerPositionsFileView(baseItem({
   bzpDocuments: [{ filename: "swz.zip", downloadUrl: "https://x" }],

@@ -134,17 +134,21 @@ assert(detailSrc.includes("TenderDecisionView"), "P5 decision view on overview")
 assert(detailSrc.includes("TENDER_WORKFLOW_HUB_EMBED_WORKSPACE"), "EPIC A workflow hub embed");
 assert(detailSrc.includes("TenderPrzetargWorkspace"), "EPIC A przetarg workspace");
 assert(!detailSrc.includes("ownerMoreContext"), "no duplicated workflow strip on Decyzja");
-assert(!detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts moved out of main");
+assert(!detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts not mounted in DetailPanel");
+assert(!detailSrc.includes("TenderOwnerView"), "OwnerView not mounted in DetailPanel");
 assert(!detailSrc.includes("TenderQualificationSection"), "no inline qualification accordion");
 assert(bidPrepSrc.includes("onNavigateWorkspace"), "BidPrep workspace nav prop");
 assert(bidPrepSrc.includes("overviewMode"), "BidPrep overview mode prop");
 assert(bidPrepSrc.includes("bidPrepTileToWorkspace"), "BidPrep uses tile map");
 assert(tabBarSrc.includes('role="tablist"'), "tab bar a11y");
 
-console.log("\n9. New components");
-assert(readSrc("src/app/TenderOverviewShortcuts.tsx").includes("onNavigate"), "OverviewShortcuts");
+console.log("\n9. Workspace components (live surfaces)");
 assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderAttachmentsPanel"), "DocumentsWorkspace");
 assert(readSrc("src/app/TenderQualificationWorkspace.tsx").includes("TenderParticipationPanel"), "QualificationWorkspace");
+assert(
+  readSrc("src/app/TenderQualificationWorkspace.tsx").includes("computeWadiumInfo"),
+  "QualificationWorkspace hosts wadium (replaces OverviewShortcuts chips)",
+);
 
 console.log("\n10. UX.1C — friendly titles");
 assert(
