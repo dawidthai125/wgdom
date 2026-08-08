@@ -4,15 +4,16 @@
 > **★★ Cold-start:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ SSOT cold-start:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Data sync:** 2026-08-08 · tip prod **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
+> **Data sync:** 2026-08-08 · tip prod **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 NOWA SESJA → docs/AI/WGDOM-COLD-START-HANDOFF.md
           → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.66.22 / 9231cc6b (weryfikuj w 09 + version.json)
+Tip prod = 2.66.22 / df6c104a (weryfikuj w 09 + version.json; closeout tip supersedes)
 Feature tip TENDER-MODERNIZATION-01 / S7 = 617f0cb5
-Docs tip TENDER-MODERNIZATION-01 / S8 HOLD = 9231cc6b
+Docs tip TENDER-MODERNIZATION-01 / S9 EPIC CLOSE = df6c104a
+Prior docs tip TENDER-MODERNIZATION-01 / S8 HOLD = 9231cc6b
 Prior TM-01 S6 Persist→legacy bridge = cb91027d
 Prior TM-01 S4 Hub UX = 85f4db14 (historyczny tip)
 Prior TM-01 S3 Align Pricing = ec8a5044 (historyczny tip)
@@ -28,12 +29,12 @@ Prior WIRE-CHIEF-SESSION-01 = 5b9fd741
 Prior WIRE-CHIEF-RO-ADAPTERS-01 = 0c310355
 Prior CHIEF-ORCHESTRATOR-P0 = 06cc7a6b
 Prior EXPERTS-P0 = 58872663
-Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + S6 + S7 + S8 HOLD complete
-S0–S8 = CLOSED · S8 = HOLD · S9 = NOT STARTED
+Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + S6 + S7 + S8 HOLD + S9 EPIC CLOSE complete
+TM-01 = EPIC CLOSED · S0–S9 = CLOSED · S8 = HOLD · S9 = C0
 WAITING FOR NEXT OWNER GO
-NEXT = S9 · tylko Owner GO → AUDIT
+NEXT = residual C1–C6 / new epic · tylko Owner GO → AUDIT · NIE invent S10
 TM-01 MASTER = docs/architecture/TENDER-MODERNIZATION-01-MASTER.md
-DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF / global ON tendersTabForStaffEnabled / S3-D / hard REMOVE / Bid retirement
+DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF / global ON tendersTabForStaffEnabled / S3-D / hard REMOVE / Bid retirement / invent S10
 WIP: src/app/hooks/useTenderOfferRun.ts = LOCAL M · nie tip
 ```
 
@@ -61,12 +62,12 @@ WIP: src/app/hooks/useTenderOfferRun.ts = LOCAL M · nie tip
 
 | Pole | Wartość |
 |------|---------|
-| **Prod tip** | **2.66.22** / **`617f0cb5`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · **PRODUCTION VERIFIED** |
-| **Feature tip** | **`617f0cb5`** — TM-01 S7 TRE Hub-first CLOSED · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 **`85f4db14`** · S3 **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
-| **Ostatni CLOSE** | **TM-01 S6 CLOSED** · Persist-first → GO/NO-GO/HOLD mirror · scoringBundle REUSE · S4/S5 KEEP · baseline Experts+Chief+…+S5+S6 complete |
+| **Prod tip** | **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · **PRODUCTION VERIFIED** · **TM-01 EPIC CLOSED** |
+| **Feature tip** | **`617f0cb5`** — TM-01 S7 TRE Hub-first CLOSED · S9 docs **`df6c104a`** · S8 HOLD **`9231cc6b`** · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 **`85f4db14`** · S3 **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
+| **Ostatni CLOSE** | **TM-01 EPIC CLOSED (S9 C0)** · S8 HOLD · S7 Hub-first · baseline Experts+Chief+…+S9 complete |
 | **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** · **WAITING FOR NEXT OWNER GO** |
 | **Active slice** | brak — ACTIVE EPIC = **NONE** |
-| **NEXT** | **TENDER-MODERNIZATION-01 / S8** — tylko Owner GO → AUDIT · [`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`TM-01 DF`](../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md) · [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
+| **NEXT** | residual **C1–C6** / new epic — tylko Owner GO → AUDIT · **NIE** invent S10 · [`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 
 Pełny stan: **tylko** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md).
 
@@ -78,10 +79,5 @@ Pełny stan: **tylko** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · cold-st
 |-------|------|
 | Cold-start | [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) |
 | Tip produkcji | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
-| TM-01 MASTER S0–S8 | [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) |
-| Expert AI architecture | [`../architecture/EXPERT-AI-ARCHITECTURE.md`](../architecture/EXPERT-AI-ARCHITECTURE.md) |
-| Pricing SSOT | [`../architecture/TENDER-PRICING-SSOT.md`](../architecture/TENDER-PRICING-SSOT.md) |
-| Decision architecture | [`../architecture/DECISION-ARCHITECTURE.md`](../architecture/DECISION-ARCHITECTURE.md) |
-| Legacy deprecation map | [`../architecture/TENDER-LEGACY-DEPRECATION-MAP.md`](../architecture/TENDER-LEGACY-DEPRECATION-MAP.md) |
-| S5 CLOSEOUT / PV | [`../architecture/TENDER-MODERNIZATION-01-S5-CLOSEOUT.md`](../architecture/TENDER-MODERNIZATION-01-S5-CLOSEOUT.md) · [`../architecture/TENDER-MODERNIZATION-01-S5-PRODUCTION-VERIFY.md`](../architecture/TENDER-MODERNIZATION-01-S5-PRODUCTION-VERIFY.md) |
-| Proces / Gate | [`AI_ENTRY.md`](AI_ENTRY.md) · [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) |
+| TM-01 MASTER | [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) |
+| S9 CLOSEOUT | [`../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) |

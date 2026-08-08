@@ -10,7 +10,7 @@
 ### CO TO JEST WGDOM?
 
 Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED**.
+Prod: https://www.wgdom.fun · tip: **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED** · **TM-01 EPIC CLOSED**.
 
 ### JAK DZIAŁA PRZETARG?
 
@@ -45,19 +45,19 @@ Bid Proposal · TRE-01 · TenderDecisionView · `kw-tender-decisions` · Intelli
 
 ### CO JEST ZAMKNIĘTE?
 
-**S0** orphan · **S1** module · **S2** Dual Outcome · **S3** Align Pricing · **S4** Hub UX · **S5** Tab Decyzja→DW · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  
+**S0–S9** · **TM-01 EPIC CLOSED** · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  
 ACTIVE EPIC = **NONE**.
 
 ### CO JEST NEXT?
 
-**S9** — **NOT STARTED** — tylko Owner GO → AUDIT.
-**WAITING FOR OWNER GO** → start **AUDIT**.
+**UTRZYMANIE** — residual **C1–C6** / new epic — tylko Owner GO → AUDIT.  
+**NIE** invent S10.
 
 ### CZEGO NIE WOLNO DOTYKAĆ?
 
 8 LOCK: Expert · Chief · Session · Validation · Adapters · TF · OfferBoq · Bid domain.  
-OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S9+ / S3-D / Bid retirement / hard REMOVE / global ON Przetargi / cloud Persist bez GO.
-WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S5.
+OST-03 / XFA / `git add -A` / `vercel deploy` / invent S10 / S3-D / Bid retirement / hard REMOVE / global ON Przetargi / cloud Persist bez GO.
+WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie tip.
 
 ### Od czego zacząć?
 

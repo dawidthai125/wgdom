@@ -1,29 +1,30 @@
 # IMPLEMENT — TENDER-MODERNIZATION-01 / S9 (C0 EPIC CLOSE · DOCS-ONLY)
 
-> **STATUS:** **IMPLEMENT COMPLETE** · **WAITING FOR OWNER GO → COMMIT**  
+> **STATUS:** **IMPLEMENT COMPLETE** · **COMMITTED** · **PRODUCTION VERIFIED** · **S9 CLOSED** · **TM-01 EPIC CLOSED**  
 > **ID:** TENDER-MODERNIZATION-01-S9-IMPLEMENT  
 > **EPIC / SLICE:** TENDER-MODERNIZATION-01 · **S9 — EPIC CLOSE**  
 > **TRYB:** **C0 — EPIC CLOSE / DOCS-ONLY** · **ZERO functional code**  
 > **Data:** 2026-08-08  
-> **Baseline tip:** UI **2.66.22** · feature **`617f0cb5`** · docs tip **`1e02872c`** · `origin/main` **`1e02872c`** · HEAD **`1e02872c`**  
+> **Baseline tip:** UI **2.66.22** · feature **`617f0cb5`** · S9 docs **`df6c104a`** · PV PASS  
 > **AUDIT:** [`TENDER-MODERNIZATION-01-S9-AUDIT.md`](TENDER-MODERNIZATION-01-S9-AUDIT.md) (**COMPLETE**)  
 > **PLAN:** [`TENDER-MODERNIZATION-01-S9-PLAN.md`](TENDER-MODERNIZATION-01-S9-PLAN.md) (**COMPLETE** · C0)  
 > **DF:** [`TENDER-MODERNIZATION-01-S9-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-S9-DESIGN-FREEZE.md) (**COMPLETE** · C0 LOCKED)  
+> **PV:** [`TENDER-MODERNIZATION-01-S9-PRODUCTION-VERIFY.md`](TENDER-MODERNIZATION-01-S9-PRODUCTION-VERIFY.md) (**PASS**)  
+> **CLOSEOUT:** [`TENDER-MODERNIZATION-01-S9-CLOSEOUT.md`](TENDER-MODERNIZATION-01-S9-CLOSEOUT.md)  
 > **WIP OUT:** `src/app/hooks/useTenderOfferRun.ts` — lokalne **M** (TRACE) · **NO TOUCH / NO STAGE**
 
 ```text
 ════════════════════════════════════════════════════════
-S9 IMPLEMENT — C0 EPIC CLOSE / DOCS-ONLY
+S9 IMPLEMENT — C0 EPIC CLOSE / DOCS-ONLY — CLOSED
 
 FUNCTIONAL CODE CHANGES = ZERO
 S8 HOLD REMOVE = UNCHANGED
 4 symbols = KEEP/HOLD
 C1 = DEFERRED · C2–C6 = BLOCKED
 Feature tip remains 617f0cb5
+Docs tip = df6c104a (+ final closeout tip)
 
-STATUS: IMPLEMENT COMPLETE
-WAIT: OWNER GO → COMMIT (docs allowlist)
-      (PV / CLOSEOUT / tip SSOT after COMMIT — not this stage)
+STATUS: PRODUCTION VERIFIED · TM-01 EPIC CLOSED
 ════════════════════════════════════════════════════════
 ```
 

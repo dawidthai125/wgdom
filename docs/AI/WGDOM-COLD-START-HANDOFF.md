@@ -18,7 +18,7 @@ WGDOM COLD START
 | | |
 |--|--|
 | **Version** | **2.66.22** |
-| **Commit** | **`9231cc6b`** (docs) · feature **`617f0cb5`** |
+| **Commit** | **`df6c104a`** (S9 docs) · feature **`617f0cb5`** · final closeout tip supersedes after pack |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **PV** | **PRODUCTION VERIFIED · GREEN** |
@@ -35,7 +35,7 @@ WGDOM COLD START
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **WAITING** | **NEXT OWNER GO** |
-| **Tip feature** | **TENDER-MODERNIZATION-01 / S8 CLOSED (HOLD)** · feature tip S7 **`617f0cb5`** |
+| **Tip feature** | **TENDER-MODERNIZATION-01 EPIC CLOSED** · feature tip S7 **`617f0cb5`** · S9 docs **`df6c104a`** |
 
 | Slice | Status |
 |-------|--------|
@@ -48,7 +48,8 @@ WGDOM COLD START
 | **S6** | **CLOSED** · **`cb91027d`** |
 | **S7** | **CLOSED** · **`617f0cb5`** |
 | **S8** | **CLOSED** · **HOLD** · **`9231cc6b`** |
-| **S9** | **NOT STARTED** |
+| **S9** | **CLOSED** · **C0** · **`df6c104a`** |
+| **TM-01** | **EPIC CLOSED** |
 
 ---
 
@@ -140,13 +141,14 @@ SSOT: [`../architecture/DECISION-ARCHITECTURE.md`](../architecture/DECISION-ARCH
 
 ## LEGACY MAP
 
-Żywe systemy **nie** są REMOVE. Bid / TRE / DecisionView / `kw-tender-decisions` / Strategy = KEEP lub MIGRATE według slice.
+Żywe systemy **nie** są REMOVE. Bid / TRE / DecisionView / `kw-tender-decisions` / Strategy = KEEP lub MIGRATE według slice.  
+**S8 HOLD REMOVE** pozostaje w mocy — hard REMOVE tylko nowy Owner GO → AUDIT.
 
 SSOT: [`../architecture/TENDER-LEGACY-DEPRECATION-MAP.md`](../architecture/TENDER-LEGACY-DEPRECATION-MAP.md).
 
 ---
 
-## S0–S8
+## S0–S9
 
 | Slice | Cel | Status |
 |-------|-----|--------|
@@ -159,9 +161,10 @@ SSOT: [`../architecture/TENDER-LEGACY-DEPRECATION-MAP.md`](../architecture/TENDE
 | **S6** | **Persist / store bridge** | **CLOSED** |
 | **S7** | **TRE Hub-first** | **CLOSED** |
 | **S8** | **HOLD REMOVE** | **CLOSED** · ZERO code |
-| **S9** | *(poza S0–S8 map)* | **NOT STARTED** |
+| **S9** | **EPIC CLOSE (C0 docs)** | **CLOSED** · ZERO code |
 
 MASTER: [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md).  
+CLOSEOUT: [`../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md).  
 DF: [`../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md).
 
 ---
@@ -169,10 +172,11 @@ DF: [`../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](../architecture
 ## NEXT OWNER GO
 
 ```text
-S9
-→ NOT STARTED
+UTRZYMANIE
+→ residual C1–C6 / new epic
 → tylko Owner GO
-→ start = AUDIT (nie PLAN / DF / IMPLEMENT bez GO)
+→ start = AUDIT
+→ NIE invent S10 / reopen TM-01 REMOVE
 ```
 
 ---
@@ -181,70 +185,29 @@ S9
 
 | Item | Stan |
 |------|------|
-| **`src/app/hooks/useTenderOfferRun.ts`** | **LOCAL WIP / M** · **NIE** część S5 · **nie** stage bez osobnego Owner GO |
-| Bid Time-Load Guard | lokalny WIP · nie tip |
+| **`src/app/hooks/useTenderOfferRun.ts`** | **LOCAL WIP / M** · **NIE** część tipu · **nie** stage bez osobnego Owner GO |
 
 ---
 
-## 8 LOCK
+## DO NOT
 
-**NO TOUCH** bez jawnego scope Owner:
-
-1. Expert BC  
-2. Chief  
-3. Session  
-4. Validation  
-5. Adapters  
-6. Technology / TF  
-7. OfferBoq / Bid domain calc  
-8. Domain calculation  
+- invent S10 / auto reopen TM-01 REMOVE
+- hard REMOVE DecisionView / TRE / Offer Run / Bid / OfferBoq
+- third PLN / third engine / third store
+- WM-DRUK-OST-03 · XFA · cache filled PDF
+- `git add -A` · stage local WIP `useTenderOfferRun.ts`
+- global ON `tendersTabForStaffEnabled` bez GO
 
 ---
 
-## DO NOT TOUCH
-
-- OST-03 · XFA · cache filled PDF · `vercel deploy` · `git add -A`  
-- Payroll CORE / merge bez Gate G1–G9  
-- Auto-start S9 · S3-D · Bid retirement · hard REMOVE · global ON `tendersTabForStaffEnabled`  
-- Third PLN · blind DELETE surfaces  
-- Cloud Persist / Audit Hub bez AUDIT + Owner GO  
-- `useTenderOfferRun.ts` bez osobnego Owner GO  
-
----
-
-## WORKFLOW
+## START PATH
 
 ```text
-AUDIT → PLAN → DESIGN FREEZE → OWNER GO → IMPLEMENT
-  → OWNER VERIFY → COMMIT → PUSH → PRODUCTION VERIFY → CLOSEOUT
+1. TEN plik
+2. MASTER-AI-HANDOFF.md
+3. 09_PRODUCTION_BASELINE.md + version.json
+4. TENDER-MODERNIZATION-01-MASTER.md · S9-CLOSEOUT
+5. AI_ENTRY + PAYROLL_SAFETY_GATE (przed IMPLEMENT)
 ```
 
-Commit/push **tylko** na jawne polecenie Ownera.  
-Stabilization: **nie** auto-start EPIC.
-
----
-
-## FILES TO READ FIRST
-
-```text
-1. docs/AI/WGDOM-COLD-START-HANDOFF.md     ← JESTEŚ TUTAJ
-2. docs/AI/MASTER-AI-HANDOFF.md
-3. docs/AI/MASTER_HANDOFF.md              (thin pointer)
-4. docs/AI/AI_QUICK_START.md
-5. docs/AI/09_PRODUCTION_BASELINE.md + version.json
-6. docs/architecture/TENDER-MODERNIZATION-01-MASTER.md
-7. docs/architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md
-8. docs/architecture/EXPERT-AI-ARCHITECTURE.md
-9. docs/architecture/TENDER-PRICING-SSOT.md
-10. docs/architecture/DECISION-ARCHITECTURE.md
-11. docs/architecture/TENDER-LEGACY-DEPRECATION-MAP.md
-12. docs/AI/AI_ENTRY.md + PAYROLL_SAFETY_GATE.md (przed kodem)
-```
-
-**Zakaz cold-start:** zaczynać IMPLEMENT od samego `CURRENT-TASK.md`.
-
----
-
-## NEXT ACTION
-
-**S9 — NOT STARTED — WAITING FOR OWNER GO** (AUDIT first)
+Pełny SSOT: [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md).
