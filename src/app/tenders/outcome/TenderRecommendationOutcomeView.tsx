@@ -90,6 +90,12 @@ export function TenderRecommendationOutcomeView({
             <p className={`text-xs uppercase tracking-wide text-muted-foreground mb-2 ${TEUX_FONT_CAPTION}`}>
               Rekomendowana cena oferty
             </p>
+            <p
+              className={`text-[10px] text-muted-foreground mb-3 ${TEUX_FONT_CAPTION}`}
+              data-s2-tre-demote-note
+            >
+              Rekomendacja ceny / procesu — nie decyzja Decydenta
+            </p>
             {showPrice ? (
               <p
                 className={`text-4xl sm:text-5xl font-semibold tabular-nums tracking-tight ${TEUX_FONT_DISPLAY}`}

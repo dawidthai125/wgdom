@@ -15,11 +15,14 @@ import {
   buildDecisionWorkspaceViewModel,
   clearValidationCache,
   dropValidationCacheForCase,
-  isDecisionWorkspaceEnabled,
   resolveValidationForDossier,
   type DecydentActionId,
   type DecydentLocalDecision,
 } from "@/lib/decision-workspace-ui";
+import {
+  isDecisionWorkspaceStackEnabled,
+  resolveTenderExpertEffective,
+} from "@/lib/tender-expert-effective";
 import { DecisionWorkspaceSurface } from "./DecisionWorkspaceSurface";
 
 export function DecisionWorkspaceHost({
@@ -30,8 +33,10 @@ export function DecisionWorkspaceHost({
   /** DECISION-PERSIST-01 — prop drill from Hub (item.id). */
   tenderId?: string;
 }) {
-  const flagEnabled = isDecisionWorkspaceEnabled();
   const { session: adminSession } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(adminSession?.role);
+  /** S2 — Expert ON ⇒ DW stack ON unless kill-switch (kw-decision-workspace / isDecisionWorkspaceEnabled). */
+  const flagEnabled = isDecisionWorkspaceStackEnabled(expertEffective);
   const [localDecision, setLocalDecision] = useState<DecydentLocalDecision | null>(
     null,
   );
@@ -174,7 +179,7 @@ export function DecisionWorkspaceHost({
   if (!flagEnabled || vm.uiPhase === "hidden") return null;
 
   return (
-    <div className="space-y-2" data-decision-workspace-host>
+    <div className="space-y-2" data-decision-workspace-host data-s2-dw-primary="1">
       <DecisionWorkspaceSurface
         vm={vm}
         selectedScenarioStrategy={selectedScenarioStrategy}

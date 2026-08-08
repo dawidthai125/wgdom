@@ -17,10 +17,14 @@ function decisionTone(decision: TenderDecision, active: boolean): string {
 export function TenderOwnerDecisionButtons({
   current,
   onSelect,
+  hidden = false,
 }: {
   current: TenderDecision | null;
   onSelect: (d: TenderDecision) => void;
+  /** S2 — hide when Expert-effective (legacy non-PRIMARY). */
+  hidden?: boolean;
 }) {
+  if (hidden) return null;
   const options: TenderDecision[] = ["GO", "HOLD", "NO-GO"];
   return (
     <div className="flex flex-wrap gap-1.5" data-tender-decision-buttons>

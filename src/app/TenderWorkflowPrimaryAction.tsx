@@ -13,6 +13,7 @@ import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { useAdminAccess } from "@/app/admin-access";
 import { resolvePrimaryActionDisabledReason, buildWorkspacePrimaryActionContextLabel } from "@/lib/tender-command-layer-ux";
 import {
   buildWorkflowPrimaryActionResolveInput,
@@ -22,6 +23,7 @@ import {
   legacyWorkspaceTabToV4Navigate,
   workspaceV2PrefersKosztorysTab,
 } from "@/lib/tender-workspace-v2-ux";
+import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
 
 export function TenderWorkflowPrimaryAction({
   item,
@@ -60,6 +62,8 @@ export function TenderWorkflowPrimaryAction({
   activeTab?: TenderDetailV4TabId;
 }) {
   const { ownerDecisions } = useTendersContext();
+  const { session } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(session?.role);
 
   const view = buildWorkflowPrimaryActionView({
     resolveInput: buildWorkflowPrimaryActionResolveInput({
@@ -97,6 +101,18 @@ export function TenderWorkflowPrimaryAction({
 
     const action = view.nextAction;
     if (action.ownerDecision) {
+      // S2 — Expert ON: HIDE legacy GO commit · focus Decision Workspace PRIMARY
+      if (expertEffective) {
+        const el =
+          document.getElementById("decision-workspace-surface") ??
+          document.querySelector("[data-decision-workspace-host]");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+        onNavigateTab("przetarg");
+        return;
+      }
       ownerDecisions.setOwnerDecision(intelligenceCtx.scoringBundle, action.ownerDecision);
       return;
     }
@@ -118,7 +134,11 @@ export function TenderWorkflowPrimaryAction({
 
   // MFS-01: mobile command-layer CTA — krótki busy label (logika busy bez zmian).
   const displayButtonLabel =
-    commandLayerChrome && view.busy ? "Przetwarzam…" : view.buttonLabel;
+    commandLayerChrome && view.busy
+      ? "Przetwarzam…"
+      : expertEffective && view.nextAction.ownerDecision
+        ? "Przejdź do Decyzji Decydenta"
+        : view.buttonLabel;
 
   return (
     <div
@@ -130,6 +150,7 @@ export function TenderWorkflowPrimaryAction({
       data-tender-workflow-primary-action
       data-tender-primary-action-chrome={commandLayerChrome ? "command-layer" : "content"}
       data-mfs01-cta-compact={commandLayerChrome ? "true" : undefined}
+      data-s2-suppress-owner-commit={expertEffective && view.nextAction.ownerDecision ? "1" : "0"}
     >
       <div
         className={

@@ -86,6 +86,7 @@ export function BestOpportunityCard({
   onCreateJobFromTender,
   onOpenJob,
   liteDefault = false,
+  legacyDecisionDemoted = false,
 }: {
   bundle: TenderScoringBundle | null;
   ownerRecord?: OwnerTenderDecisionRecord | null;
@@ -95,12 +96,21 @@ export function BestOpportunityCard({
   onOpenJob?: (jobId: string) => void;
   /** UX.2S — domyślnie skrót, pełna analiza po rozwinięciu. */
   liteDefault?: boolean;
+  /** S2 — Expert ON: demote „Moja decyzja” · hide write via omit onSetDecision. */
+  legacyDecisionDemoted?: boolean;
 }) {
   const [showFullAnalysis, setShowFullAnalysis] = useState(!liteDefault);
   const lite = buildBestOpportunityLite(bundle, ownerRecord);
+  const ownerDecisionLabel = legacyDecisionDemoted
+    ? "Lejek / compatibility (legacy)"
+    : "Moja decyzja";
 
   return (
-    <section className="rounded-xl border border-border bg-card overflow-hidden" data-testid="strategy-best-opportunity">
+    <section
+      className="rounded-xl border border-border bg-card overflow-hidden"
+      data-testid="strategy-best-opportunity"
+      data-s2-strategy-decision={legacyDecisionDemoted ? "demoted" : "legacy"}
+    >
       <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {liteDefault ? <Star size={16} className="text-amber-500" /> : <Target size={16} className="text-primary" />}
@@ -146,7 +156,7 @@ export function BestOpportunityCard({
                 <dd className="font-medium">{lite.systemDecisionLabel} · {lite.score} pkt</dd>
               </div>
               <div className="flex gap-x-1.5 sm:col-span-2">
-                <dt className="text-muted-foreground shrink-0">Moja decyzja:</dt>
+                <dt className="text-muted-foreground shrink-0">{ownerDecisionLabel}:</dt>
                 <dd className="font-medium">{lite.ownerDecisionLabel ?? "— brak —"}</dd>
               </div>
             </dl>
@@ -271,6 +281,25 @@ export function BestOpportunityCard({
                 {ownerRecord && ownerRecord.decision !== bundle.decision && (
                   <p className="text-[10px] text-amber-700 dark:text-amber-400">
                     Rozbieżność z rekomendacją systemu ({DECISION_LABEL_PL[bundle.decision]})
+                  </p>
+                )}
+              </div>
+            )}
+
+            {legacyDecisionDemoted && !onSetDecision && (
+              <div
+                className="rounded-xl border border-border bg-secondary/20 px-3 py-3 space-y-1"
+                data-s2-strategy-legacy-ro
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {ownerDecisionLabel}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  PRIMARY decyzja człowieka: Decision Workspace. Zapis GO/HOLD/NO-GO z tej karty wyłączony.
+                </p>
+                {ownerRecord && (
+                  <p className="text-xs font-medium">
+                    Ostatni zapis lejka: {DECISION_LABEL_PL[ownerRecord.decision]}
                   </p>
                 )}
               </div>

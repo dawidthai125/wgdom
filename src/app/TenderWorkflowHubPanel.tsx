@@ -31,6 +31,8 @@ import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 import { DecisionWorkspaceHost } from "@/app/decision-workspace";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
+import { useAdminAccess } from "@/app/admin-access";
+import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -80,11 +82,18 @@ export function TenderWorkflowHubPanel({
   /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
   chiefSessionForDecision?: ChiefSessionOutput | null;
 }) {
+  const { session } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(session?.role);
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
 
   return (
-    <div className="space-y-4" data-tender-workflow-hub>
+    <div
+      className="space-y-4"
+      data-tender-workflow-hub
+      data-s2-expert-effective={expertEffective ? "1" : "0"}
+      data-s2-dw-primary={expertEffective ? "1" : "0"}
+    >
       {!commandLayerActive && (
         <>
           {shouldRenderHubTrustBanner(trustAssessment) && (
@@ -159,6 +168,15 @@ export function TenderWorkflowHubPanel({
           session={chiefSessionForDecision}
           tenderId={item.id}
         />
+      )}
+
+      {expertEffective && (
+        <p
+          className="text-[10px] text-muted-foreground px-1"
+          data-s2-hub-hierarchy-cue
+        >
+          PRIMARY decyzja człowieka: Decision Workspace · legacy GO/HOLD = compatibility
+        </p>
       )}
 
       <details

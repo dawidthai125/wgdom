@@ -19,8 +19,12 @@ import {
 } from "@/lib/expert-workspace-ui";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
-import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
+import { useAdminAccess } from "@/app/admin-access";
+import {
+  isChiefSessionStackEnabled,
+  resolveTenderExpertEffective,
+} from "@/lib/tender-expert-effective";
 import {
   TenderWorkflowOperatorActionBar,
   type TenderWorkflowOperatorActionBarProps,
@@ -216,8 +220,10 @@ export function TenderDetailPage({
     pipelineRuntime,
   });
 
-  /** WIRE-CHIEF-SESSION-01 + UI-DOSSIER-01 — Session · surface RO gdy flag ON. */
-  const chiefSessionEnabled = isChiefOrchestratorSessionEnabled();
+  /** S2 — Session/DW stack: Expert-effective ⇒ ON unless LS kill; Expert OFF ⇒ legacy flag. */
+  const { session: adminSession } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(adminSession?.role);
+  const chiefSessionEnabled = isChiefSessionStackEnabled(expertEffective);
   const chiefSession = useChiefOrchestratorSession({
     enabled: chiefSessionEnabled && Boolean(item),
     item: item ?? null,
@@ -229,7 +235,7 @@ export function TenderDetailPage({
     return buildChiefDossierViewModel(chiefSession);
   }, [chiefSessionEnabled, chiefSession]);
 
-  /** WIRE-EXPERTS-UI-01 — Slot A Details VM (Session flag only · no new flag). */
+  /** WIRE-EXPERTS-UI-01 — Slot A Details VM (Session stack from S2 helper). */
   const expertWorkspaceVm: ExpertWorkspaceViewModel | null = useMemo(() => {
     if (!chiefSessionEnabled) return null;
     return buildExpertWorkspaceViewModel({

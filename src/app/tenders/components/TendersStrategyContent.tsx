@@ -36,6 +36,8 @@ import {
 } from "@/lib/tender-strategy-ux";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
+import { useAdminAccess } from "@/app/admin-access";
+import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
 
 export function TendersStrategyContent({
   showHeader = true,
@@ -59,6 +61,8 @@ export function TendersStrategyContent({
 }) {
   const { snapshot, ownerDecisions, strategyFocusTenderId, clearStrategyFocus } = useTendersContext();
   const tendersUi = useTendersContextOptional();
+  const { session } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(session?.role);
 
   const handleOpenTender = onOpenTender ?? tendersUi?.openTenderInList;
 
@@ -237,11 +241,12 @@ export function TendersStrategyContent({
             <BestOpportunityCard
               bundle={bestOpportunity}
               ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
-              onSetDecision={handleSetDecision}
+              onSetDecision={expertEffective ? undefined : handleSetDecision}
               onOpenTender={handleOpenTender}
               onCreateJobFromTender={handleCreateJobFromTenderItem}
               onOpenJob={openLinkedJob}
               liteDefault={false}
+              legacyDecisionDemoted={expertEffective}
             />
           </StrategyGuidanceSection>
 

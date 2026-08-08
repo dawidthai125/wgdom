@@ -1,12 +1,14 @@
 /**
  * EPIC A — zakładka Decyzja: wyłącznie werdykt systemu, kontekst, ekonomia i decyzja właściciela.
  * Bez workflow hub (postęp, blokery, operator) — te elementy są na Przetargu.
+ * S2 — Expert-effective: owner buttons HIDE · system verdict DEMOTE.
  */
 
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ExecutiveSummaryCard } from "@/app/ExecutiveSummaryCard";
 import { TenderOwnerDecisionButtons } from "@/app/TenderOwnerDecisionButtons";
+import { useAdminAccess } from "@/app/admin-access";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { OwnerFinanceView } from "@/lib/tender-owner-view-ux";
@@ -17,16 +19,34 @@ import {
 } from "@/lib/tender-owner-language-pl";
 import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
 import { TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
+import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
 
-function DecisionVerdictSection({ ctx }: { ctx: TenderIntelligenceContext }) {
+function DecisionVerdictSection({
+  ctx,
+  demoteSystem,
+}: {
+  ctx: TenderIntelligenceContext;
+  demoteSystem: boolean;
+}) {
   const { overlay } = ctx;
 
   return (
-    <section className="rounded-xl border-2 border-primary/30 bg-card overflow-hidden shadow-sm">
+    <section
+      className="rounded-xl border-2 border-primary/30 bg-card overflow-hidden shadow-sm"
+      data-tender-decision-verdict={demoteSystem ? "demoted" : "legacy"}
+    >
       <div className="px-4 py-3 border-b border-border/60 bg-primary/5">
         <p className={TEUX_SECTION_TITLE}>
           {TENDER_INTELLIGENCE_SECTION_COPY.verdict}
         </p>
+        {demoteSystem && (
+          <p
+            className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-1`}
+            data-s2-intelligence-recommendation-badge
+          >
+            Rekomendacja systemu — nie decyzja Decydenta
+          </p>
+        )}
       </div>
       <div className="px-4 py-4 space-y-3">
         <p className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -123,7 +143,13 @@ function DecisionFinanceDisplay({ finance }: { finance: OwnerFinanceView }) {
   );
 }
 
-function OwnerDecisionRecordSection({ ctx }: { ctx: TenderIntelligenceContext }) {
+function OwnerDecisionRecordSection({
+  ctx,
+  expertEffective,
+}: {
+  ctx: TenderIntelligenceContext;
+  expertEffective: boolean;
+}) {
   const { ownerDecisions } = useTendersContext();
   const record = ownerDecisions.store.byId[ctx.item.id] ?? null;
 
@@ -131,29 +157,55 @@ function OwnerDecisionRecordSection({ ctx }: { ctx: TenderIntelligenceContext })
     <section
       className="rounded-xl border border-primary/35 bg-card overflow-hidden shadow-sm"
       data-tender-decision-view="owner-record"
+      data-s2-owner-decision={expertEffective ? "demoted" : "legacy-primary"}
     >
       <div className="px-3 py-2 border-b border-border/60 bg-primary/5">
         <p className={TEUX_SECTION_TITLE}>
-          {TENDER_OWNER_VIEW_COPY.decisionSection}
+          {expertEffective
+            ? "Compatibility / lejek (legacy)"
+            : TENDER_OWNER_VIEW_COPY.decisionSection}
         </p>
       </div>
       <div className="px-4 py-4 space-y-3">
-        <p className="text-xs text-muted-foreground">
-          Zapisz decyzję biznesową właściciela — niezależnie od rekomendacji systemu na Przetargu.
-        </p>
-        <TenderOwnerDecisionButtons
-          current={record?.decision ?? null}
-          onSelect={(decision) => {
-            ownerDecisions.setOwnerDecision(ctx.scoringBundle, decision);
-            toast.success(`Zapisano: ${DECISION_LABEL_PL[decision]}`);
-          }}
-        />
-        {record && (
-          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
-            Ostatnia decyzja: {DECISION_LABEL_PL[record.decision]}
-            {" · "}
-            {new Date(record.updatedAt).toLocaleString("pl-PL")}
-          </p>
+        {expertEffective ? (
+          <>
+            <p className="text-xs text-muted-foreground">
+              PRIMARY decyzja człowieka: Decision Workspace na zakładce Przetarg.
+              Poniżej tylko historyczny zapis lejka — bez nowych zapisów GO/HOLD/NO-GO.
+            </p>
+            <TenderOwnerDecisionButtons
+              current={record?.decision ?? null}
+              hidden
+              onSelect={() => {}}
+            />
+            {record && (
+              <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-s2-legacy-record-ro>
+                Ostatni zapis legacy: {DECISION_LABEL_PL[record.decision]}
+                {" · "}
+                {new Date(record.updatedAt).toLocaleString("pl-PL")}
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">
+              Zapisz decyzję biznesową właściciela — niezależnie od rekomendacji systemu na Przetargu.
+            </p>
+            <TenderOwnerDecisionButtons
+              current={record?.decision ?? null}
+              onSelect={(decision) => {
+                ownerDecisions.setOwnerDecision(ctx.scoringBundle, decision);
+                toast.success(`Zapisano: ${DECISION_LABEL_PL[decision]}`);
+              }}
+            />
+            {record && (
+              <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+                Ostatnia decyzja: {DECISION_LABEL_PL[record.decision]}
+                {" · "}
+                {new Date(record.updatedAt).toLocaleString("pl-PL")}
+              </p>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -165,12 +217,22 @@ export function TenderDecisionView({
 }: {
   intelligenceCtx: TenderIntelligenceContext;
 }) {
+  const { session } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(session?.role);
+
   return (
-    <div className="space-y-3" data-tender-decision-view>
-      <DecisionVerdictSection ctx={intelligenceCtx} />
+    <div
+      className="space-y-3"
+      data-tender-decision-view
+      data-s2-expert-effective={expertEffective ? "1" : "0"}
+    >
+      <DecisionVerdictSection ctx={intelligenceCtx} demoteSystem={expertEffective} />
       <DecisionAboutSection ctx={intelligenceCtx} />
       <DecisionFinanceDisplay finance={intelligenceCtx.finance} />
-      <OwnerDecisionRecordSection ctx={intelligenceCtx} />
+      <OwnerDecisionRecordSection
+        ctx={intelligenceCtx}
+        expertEffective={expertEffective}
+      />
     </div>
   );
 }

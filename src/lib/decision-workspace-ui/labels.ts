@@ -7,10 +7,10 @@ import type { ValidationVerdict } from "@/lib/validation-expert";
 
 export const DECISION_WORKSPACE_TITLE_PL = "Decyzja Decydenta";
 export const DECISION_WORKSPACE_SUBTITLE_PL =
-  "Pakiet RO + decyzja lokalna — bez zapisu";
+  "PRIMARY decyzja człowieka (Expert-effective) — zapis lokalny Persist";
 
 export const TRE01_NOTE_PL =
-  "TRE-01 / Decyzja Bid — osobny tor (zakładka Decyzja)";
+  "TRE-01 = rekomendacja ceny / procesu — nie decyzja Decydenta";
 
 export function labelVerdictPl(verdict: ValidationVerdict | null): string | null {
   if (!verdict) return null;
