@@ -1,7 +1,8 @@
 /**
- * EPIC A — zakładka Decyzja: wyłącznie werdykt systemu, kontekst, ekonomia i decyzja właściciela.
+ * EPIC A — zakładka Decyzja: werdykt systemu, kontekst, ekonomia i decyzja właściciela.
  * Bez workflow hub (postęp, blokery, operator) — te elementy są na Przetargu.
  * S2 — Expert-effective: owner buttons HIDE · system verdict DEMOTE.
+ * S5 — Expert ON: DecisionView = recovery/fallback; PRIMARY = Decision Workspace na Decyzja.
  */
 
 import { AlertTriangle } from "lucide-react";
@@ -170,8 +171,9 @@ function OwnerDecisionRecordSection({
         {expertEffective ? (
           <>
             <p className="text-xs text-muted-foreground">
-              PRIMARY decyzja człowieka: Decision Workspace na zakładce Przetarg.
-              Poniżej tylko historyczny zapis lejka — bez nowych zapisów GO/HOLD/NO-GO.
+              PRIMARY decyzja człowieka: Decision Workspace na zakładce Decyzja.
+              Hub = kontekst procesu. Poniżej tylko historyczny zapis lejka — bez
+              nowych zapisów GO/HOLD/NO-GO.
             </p>
             <TenderOwnerDecisionButtons
               current={record?.decision ?? null}
@@ -225,6 +227,7 @@ export function TenderDecisionView({
       className="space-y-3"
       data-tender-decision-view
       data-s2-expert-effective={expertEffective ? "1" : "0"}
+      data-s5-decision-fallback={expertEffective ? "1" : undefined}
     >
       <DecisionVerdictSection ctx={intelligenceCtx} demoteSystem={expertEffective} />
       <DecisionAboutSection ctx={intelligenceCtx} />

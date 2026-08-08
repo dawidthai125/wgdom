@@ -244,9 +244,12 @@ export function TenderDetailPage({
     });
   }, [chiefSessionEnabled, chiefSession.dossier, chiefDossierVm?.uiPhase]);
 
-  /** DECISION-WORKSPACE-01 — Session RO → Host (flag gate wewnątrz). */
+  /** DECISION-WORKSPACE-01 / TM-01 S5 — Session → Host on Hub OR Decyzja overview. */
   const chiefSessionForDecision: ChiefSessionOutput | null =
-    activeTab === "przetarg" ? chiefSession : null;
+    activeTab === "przetarg" ||
+    (activeTab === "decyzja" && decyzjaWorkspace === "overview")
+      ? chiefSession
+      : null;
 
   const showTre01Outcome =
     tre01SliceA &&

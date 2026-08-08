@@ -41,6 +41,7 @@ import { TenderOfferSection } from "@/app/TenderOfferSection";
 import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderDecisionView } from "@/app/TenderDecisionView";
+import { DecisionWorkspaceHost } from "@/app/decision-workspace";
 import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
@@ -743,7 +744,14 @@ export function TenderDetailPanel({
       )}
 
       {effectiveWorkspace === "overview" && (
-        <div className="space-y-3">
+        <div className="space-y-3" data-s5-decyzja-overview="1">
+          {/* TM-01 S5 — DW Host PRIMARY (Expert ON) above DecisionView fallback */}
+          {chiefSessionForDecision != null && (
+            <DecisionWorkspaceHost
+              session={chiefSessionForDecision}
+              tenderId={item.id}
+            />
+          )}
           {intelligenceCtx ? (
             <TenderDecisionView intelligenceCtx={intelligenceCtx} />
           ) : (

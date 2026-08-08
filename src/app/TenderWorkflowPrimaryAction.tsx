@@ -101,7 +101,7 @@ export function TenderWorkflowPrimaryAction({
 
     const action = view.nextAction;
     if (action.ownerDecision) {
-      // S2 — Expert ON: HIDE legacy GO commit · focus Decision Workspace PRIMARY
+      // S2/S5 — Expert ON: HIDE legacy GO · scroll DW if in DOM · else home = Decyzja
       if (expertEffective) {
         const el =
           document.getElementById("decision-workspace-surface") ??
@@ -110,7 +110,8 @@ export function TenderWorkflowPrimaryAction({
           el.scrollIntoView({ behavior: "smooth", block: "start" });
           return;
         }
-        onNavigateTab("przetarg");
+        // TM-01 S5 — dedicated Decydent home = Decyzja overview (NOT przetarg)
+        onNavigateTab("decyzja");
         return;
       }
       ownerDecisions.setOwnerDecision(intelligenceCtx.scoringBundle, action.ownerDecision);
