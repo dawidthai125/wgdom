@@ -8,41 +8,31 @@
 
 ```text
 ★ AI / nowa sesja — TYLKO TA ŚCIEŻKA:
-  0. docs/AI/MASTER_HANDOFF.md                   ← stan · NEXT · zakazy
-  1. docs/AI/AI_ENTRY.md                         ← oficjalny START procesu
-  2. docs/AI/PROJECT_HANDOFF.md
-  3. docs/AI/AI_MEMORY.md
-  4. docs/AI/AI_DECISION_TREE.md
-  5. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
-  6. docs/AI/AI_PAYROLL_SAFETY_MANUAL.md         ← gdy Gate ≥1 TAK
-  7. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
-  8. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT
-  9. CURRENT-TASK.md                             ← status Ownera
- 10. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
- 11. IMPLEMENT dopiero po Gate + checklist
+  0. docs/AI/WGDOM-COLD-START-HANDOFF.md         ← ★★ cold-start (praktyczny)
+  1. docs/AI/MASTER-AI-HANDOFF.md                ← ★★ stan · WIP · flagi · NEXT (SSOT)
+  2. docs/AI/AI_QUICK_START.md                   ← 1 strona
+  3. docs/AI/AI_ENTRY.md                         ← oficjalny START procesu
+  4. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
+  5. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT (+ version.json)
+  6. docs/AI/MASTER_HANDOFF.md                   ← thin pointer → MASTER-AI-HANDOFF
+  7. docs/architecture/TENDER-MODERNIZATION-01-MASTER.md ← TM-01 S0–S8
+  8. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
+  9. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
+ 10. IMPLEMENT dopiero po Gate + checklist (+ Owner GO gdy wymagane)
 
-Po COST-BID-GAP-01 / GAP-A (CLOSED) oraz CENY-MATERIAŁÓW-04 **P2 COMPLETE**:
-  · docs/AI/MASTER_HANDOFF.md                         ← stan · NEXT
-  · docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md ← P2 KPI · lessons · P3 AUDIT
-  · docs/architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md ← P1 KPI · lessons
-  · docs/architecture/NEXT-EPIC-CANDIDATES.md           ← NEXT: P3 (INNE) AUDIT / GAP-B / I3 / TP200B
-  · docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md
-  · docs/architecture/COST-BID-GAP-01-CLOSEOUT.md
-  · docs/architecture/COST-MULTI-CLOSEOUT.md
+TRYB = UTRZYMANIE · tip = 09 (2.66.22 / 85f4db14 · TENDER-MODERNIZATION-01 / S4 CLOSED · Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX complete)
+ · NEXT = TENDER-MODERNIZATION-01 / S5 tylko Owner GO → AUDIT
+ · nie auto-start SMART P1 / MS P2 / CM-04 P3 / Wave 2 / Bid Guard / Cloud Decision Persist / TM-01 S5+ / S3-D / Bid retirement / global ON Przetargi
+ · FINAL-AI-HANDOFF = archiwum Catalog (nie cold-start)
+ · cold-start ≠ CURRENT-TASK alone
 
 Appendix (po Entry — nie zamiast Entry):
-  · docs/AGENT-CONTINUITY-GUIDE.md
-  · docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md  ← Foundation Lib Phase 0 (FND-01…05 · FND-06 BLOCKED)
-  · docs/AGENT-APP-MAP.md
-  · docs/PAYROLL-ARCHITECTURE-SSOT.md
-  · docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md
-  · docs/WORKFLOW-OWNER-GO.md · docs/WORKFLOW-RELEASE-DEPLOY.md
-  · docs/ARCHITECTURE.md · PROJECT-GUIDE.md
-  · docs/AI/PAYROLL_* · recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md
-  · pozostałe handoffy tematyczne — §1 poniżej
+  · docs/architecture/NEXT-EPIC-CANDIDATES.md
+  · docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
+  · docs/ARCHITECTURE.md · PROJECT-GUIDE.md · docs/PAYROLL-ARCHITECTURE-SSOT.md
 ```
 
-**DEPRECATED entry:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → `docs/AI/AI_ENTRY.md` (+ `MASTER_HANDOFF`).
+**DEPRECATED entry:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md` → `docs/AI/MASTER-AI-HANDOFF.md` + `docs/AI/AI_ENTRY.md`.
 
 ### WAŻNE
 
@@ -187,9 +177,9 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI / tip prod | **tylko** [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json` (**nie** hardcoduj tutaj) |
-| Ostatni EPIC (katalog / ceny) | **CENY-MATERIAŁÓW-04 P2 COMPLETE** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · [`P2-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) |
-| NEXT (rekomendacja) | **CENY-MATERIAŁÓW-04 P3 (INNE) AUDIT** — Owner GO · [`P2-CLOSEOUT`](docs/architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
-| Master / Entry | [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) · [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) |
+| Ostatni EPIC | **TENDER-MODERNIZATION-01 / S4 CLOSED** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) (**2.66.22** / **`85f4db14`**) · [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S4-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S4-PRODUCTION-VERIFY.md) · prior S3 Align Pricing **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
+| NEXT (rekomendacja) | **UTRZYMANIE** — **TM-01 S5** tylko Owner GO · Cloud persist / Audit Hub / SMART / MS / CM-04 / Expert AI enablement / TM-01 S5+ / S3-D / Bid retirement / global ON Przetargi **bez** Owner GO · start od **AUDIT** · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
+| Master / Entry | [`MASTER-AI-HANDOFF`](docs/AI/MASTER-AI-HANDOFF.md) · [`AI_QUICK_START`](docs/AI/AI_QUICK_START.md) · [`AI_ENTRY`](docs/AI/AI_ENTRY.md) · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |

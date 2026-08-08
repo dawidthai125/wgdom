@@ -1,43 +1,70 @@
 # AI QUICK START — WGDOM (1 strona)
 
-> **Dla:** nowego ChatGPT / Cursor Agent  
-> **Data:** 2026-08-05 · **STATUS:** **ACTIVE**  
+> **Dla:** nowego ChatGPT / Cursor Agent **bez historii**  
+> **Data:** 2026-08-08 · **STATUS:** **ACTIVE**  
+> **★★ Cold-start (najpierw):** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ Pełny SSOT:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)
 
 ---
 
-### 1. Gdzie jesteśmy?
+### CO TO JEST WGDOM?
 
-**Utrzymanie.** Stabilization Window **ACTIVE**. Protected Core **GREEN**.  
-**WAITING FOR NEXT OWNER GO.** Tip = **WM-DOKUMENTACJA-SZKICE-02 CLOSED** · **PRODUCTION VERIFIED**.
+Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
+Prod: https://www.wgdom.fun · tip: **2.66.22** / **`85f4db14`** · **PRODUCTION VERIFIED**.
 
-### 2. Co jest produkcją?
+### JAK DZIAŁA PRZETARG?
 
-| | |
-|--|--|
-| **Version** | **2.66.16** |
-| **Commit** | **`377e279f`** |
-| **PV** | **PRODUCTION VERIFIED** |
-| Tip SSOT | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `version.json` |
+Moduł Przetargi (Workspace v2 + Hub). Główny cel: **jeden inteligentny kosztorysant / Expert AI** — nie kolejne niezależne analizy.
 
-### 3. Co właśnie domknięto (istotne)?
+### CO TO SĄ EXPERTS?
 
-- **WM-DOKUMENTACJA-SZKICE-02** — Publication Workflow · placement · resolved · promote 1:1 · **CLOSED** · `377e279f` · [`PUBLICATION-CLOSEOUT`](../architecture/WM-DOKUMENTACJA-SZKICE-02-PUBLICATION-CLOSEOUT.md)  
-- **WM-DOKUMENTACJA-SZKICE-01 P2a/P0** — Dashboard + review ACL · CLOSED  
-- **WM-WORKER-SKETCH-01** — P0+P1 · CLOSED · `4f99a279`  
-- **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING** · **OST-01** · **WIM-P1a** · AcroForm PASS  
+```text
+OfferBoq → EE → ME → PE → Cost → Offer
+  → Chief → Session → Dossier → Expert Workspace (5 paneli RO)
+  → Validation → Decision Workspace → Decision Persist
+```
 
-### 4. Co jest WIP / NEXT?
+Expert-effective = dostęp Staff do Przetargi (`tendersTabForStaffEnabled`) — **bez** osobnej flagi Expert AI.
 
-- **WAITING FOR NEXT OWNER GO**  
-- **Zakaz:** OST-03 · XFA · cache filled PDF  
-- WIM-P1b · MOBILE-P2 · P4 · MS P3-B — tylko Owner GO → AUDIT  
+### CO JEST PRIMARY?
 
-### 5. Od czego zacząć?
+| | PRIMARY |
+|--|---------|
+| Decyzja człowieka (Expert ON) | **Decision Workspace** |
+| PLN (Expert ON + Offer) | **`Offer.offerPricePln`** |
+| PLN (Expert ON + Offer null) | **NO PRIMARY** |
+| PLN (Expert OFF) | **`Bid.recommendedBidPln`** |
+| `OfferBoq.directPln` | **COST** (nie oferta) |
 
-1. [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
-2. [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) + `version.json`  
-3. [`AI_ENTRY.md`](AI_ENTRY.md) · Gate  
-4. Owner GO → AUDIT  
+**NO THIRD PLN.**
 
-**Zakaz:** `git add -A` · `vercel deploy` · IMPLEMENT bez GO.
+### CO JEST LEGACY?
+
+Bid Proposal · TRE-01 · TenderDecisionView · `kw-tender-decisions` · Intelligence Hub (nie SSOT decyzji).  
+**KEEP / MIGRATE** — **REMOVE** dopiero po audit + S8 + Owner GO.
+
+### CO JEST ZAMKNIĘTE?
+
+**S0** orphan · **S1** module · **S2** Dual Outcome · **S3** Align Pricing · **S4** Hub UX · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  
+ACTIVE EPIC = **NONE**.
+
+### CO JEST NEXT?
+
+**TENDER-MODERNIZATION-01 / S5** — Tab Decyzja → Decision Workspace.  
+**WAITING FOR OWNER GO** → start **AUDIT**.
+
+### CZEGO NIE WOLNO DOTYKAĆ?
+
+8 LOCK: Expert · Chief · Session · Validation · Adapters · TF · OfferBoq · Bid domain.  
+OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S5+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.  
+WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S4.
+
+### Od czego zacząć?
+
+1. [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
+2. [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
+3. [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF  
+4. [`AI_ENTRY.md`](AI_ENTRY.md) · Gate — **przed** kodem  
+5. Owner GO przed każdym IMPLEMENT  
+
+**Zakaz:** IMPLEMENT z samego `CURRENT-TASK.md`.

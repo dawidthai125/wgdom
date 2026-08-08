@@ -1,9 +1,11 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-06 (**SESSION CLOSED** · tip UI **2.66.20** / **`d9bb4c57`** · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 CLOSED** Phase B0) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 / S4 CLOSED** · tip UI **2.66.22** / **`85f4db14`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT **TM-01 S5** · **STABILIZATION WINDOW ACTIVE**
 
-> **Nowa sesja AI:** [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
-> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`FINAL-SESSION-HANDOFF-CURSOR.md`](docs/AI/FINAL-SESSION-HANDOFF-CURSOR.md)  
+> **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
+> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw COLD-START + MASTER + DF.  
+> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S4 · nie stage bez GO.  
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
@@ -11,25 +13,179 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.20** / **`d9bb4c57`** · **PRODUCTION VERIFIED** |
+| Production tip | **2.66.22** / **`85f4db14`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome (S2)+Align Pricing (S3)+Hub UX (S4) · Hub ANALIZA→…→DECYZJA · Intelligence recovery · Offer primary @ Expert ON · NO PRIMARY @ Offer null · Bid legacy @ Expert OFF · DW PRIMARY when Expert-effective · staff Przetargi module gate · S0 orphan cleanup |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
+| CLOSED | **TENDER-MODERNIZATION-01 / S4** · **TENDER-MODERNIZATION-01 / S3** · **TENDER-MODERNIZATION-01 / S2** · **TENDER-MODULE-ENABLEMENT-01** (S1) · **TENDER-MODERNIZATION-01 / S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Wire Pack→CI/UI bez AUDIT |
-| **NEXT** | **WAITING FOR NEXT OWNER GO** |
-| **Known Residuals (NIE część TECHNOLOGY-FIRST B0)** | GHA none · TI-B3 Gate B tenders · Legacy Happy Path E2E · Mobile Smoke — **NOT PART OF THIS EPIC** |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · auto-start TM-01 S5+ · S3-D · S8 Bid retirement · global ON `tendersTabForStaffEnabled` |
+| **NEXT** | **TENDER-MODERNIZATION-01 / S5** — Tab Decyzja → DW — **WAITING FOR OWNER GO** |
+| **Known Residuals (NIE część S4)** | TM-01 S5–S8 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` |
 
+
+## ★ TENDER-MODERNIZATION-01 / S4 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S4 CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.22** / **`85f4db14`** |
+| **IN** | Hub hierarchy ANALIZA→…→DECYZJA · Intelligence recovery · CL „Hub przetargu” · primary PLN Hub headline · Chief Trace→EW→Offer · DW Validation→Rec→Findings→Actions · secondary PLN chrome · harness 37 |
+| **OUT** | 8 LOCK BC · Strategy rewrite · TRE delete · S5–S8 · third PLN/engine · new flag |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S4-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S4-PRODUCTION-VERIFY.md) |
+| **Residuals** | S5–S8 — **tylko Owner GO** |
+| **NEXT** | **TENDER-MODERNIZATION-01 / S5** — **WAITING FOR OWNER GO** |
+
+## ★ TENDER-MODERNIZATION-01 / S3 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S3 CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`ec8a5044`** · tip deploy supersedowany przez TM-01 S4 |
+| **IN** | Offer primary @ Expert ON · NO PRIMARY @ Offer null · Bid legacy @ Expert OFF · parity harness · TRE fallback FIXED · ONE PRIMARY PLN · badges · **NO** third PLN |
+| **OUT** | S3-D · S8 Bid retirement · Bid/Offer/OfferBoq formula · store schema · Expert/Chief/Session/Validation BC |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S3-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S3-PRODUCTION-VERIFY.md) |
+| **Residuals** | — (S4 CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **TENDER-MODERNIZATION-01 / S4** |
+
+## ★ TENDER-MODERNIZATION-01 / S2 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S2 CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`1888d05f`** · tip deploy supersedowany przez TM-01 S3 |
+| **IN** | Expert-effective = `adminCanViewTendersTab` · DW PRIMARY · legacy HIDE/DEMOTE · Session/DW stack wire · harness AC-S2 · **NO** Approve→GO map |
+| **OUT** | S5 Tab Decyzja · S6 Persist bridge · S7 TRE deprecate · S8 hard REMOVE · Expert/Chief/Session/Validation BC · store schema · `expertAiDecydentEnabled` |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S2-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S2-PRODUCTION-VERIFY.md) |
+| **Residuals** | — (S3 CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **TENDER-MODERNIZATION-01 / S3** |
+
+## ★ TENDER-MODULE-ENABLEMENT-01 — **CLOSED** (S1)
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`eed3ba0e`** · tip deploy supersedowany przez TM-01 S2 |
+| **IN** | AppSettings REUSE `tendersTabForStaffEnabled` · default OFF · Super Admin bypass · Admin/Moderator ON/OFF · ⚙ Moduły → Przetargi · direct route guard · harness 29 |
+| **OUT** | Expert/Chief/Session/Validation/DW/Persist/Bid/OfferBoq/TF · nowa flaga Expert AI · default change · global ON |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODULE-ENABLEMENT-01-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODULE-ENABLEMENT-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | — (= Expert-effective gate dla S2) |
+| **NEXT** | tip deploy supersedowany przez **TENDER-MODERNIZATION-01 / S2** |
+
+## ★ TENDER-MODERNIZATION-01 / S0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S0 CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`5beb082a`** · tip deploy supersedowany · EPIC TM-01 **nie** CLOSED (S3–S8 OPEN) |
+| **IN** | S0b harness migration (5) · delete `TenderOwnerView` · `TenderOverviewShortcuts` · `CommandCenterContext` (disk) · re-grep · 8 LOCK |
+| **OUT** | Expert/Chief/Session/Validation/DW/Persist/Bid/OfferBoq/TRE-01 · nowe flagi · UI bump |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S0-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S0-PRODUCTION-VERIFY.md) |
+| **Residuals** | S3–S8 — **tylko Owner GO** |
+| **NEXT** | tip deploy supersedowany przez **TENDER-MODULE-ENABLEMENT-01** / **S2** |
+
+## ★ DECISION-PERSIST-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · hist. tip **`adde246a`** · tip deploy supersedowany przez TM-01 S0 |
+| **IN** | BC `decision-persist` · `kw-decision-persist-v1` append-only · `recordDecision` / `hydrateDecision` / `listDecisionHistory` · Host wire · flag REUSE · validationSnapshot 3 pola |
+| **OUT** | Expert/Chief/Validation/Session/Adapters/TF BC · OfferBoq · Bid · cloud sync · update/delete/lastModified |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/DECISION-PERSIST-01-CLOSEOUT.md) · [`PV`](docs/architecture/DECISION-PERSIST-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | Cloud persist / Audit Hub — **tylko Owner GO → AUDIT** |
+| **NEXT** | tip deploy supersedowany przez **TENDER-MODERNIZATION-01 / S0** |
+
+## ★ WIRE-EXPERTS-UI-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · historyczny tip **`4ae26fe7`** · tip deploy supersedowany przez Decision Persist |
+| **IN** | Expert Workspace RO · Slot A pod Trace · Session flag only · VM passthrough `dossier.experts.*` · EE→ME→PE→Cost→Offer · zero CTA/analyze*/mutacji |
+| **OUT** | Expert/Chief/Session/Validation/Adapters/TF BC · OfferBoq · Bid · Decision Actions · nowa flaga |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WIRE-EXPERTS-UI-01-CLOSEOUT.md) · [`PV`](docs/architecture/WIRE-EXPERTS-UI-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | (Decision Persist CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **DECISION-PERSIST-01** |
+
+## ★ DECISION-WORKSPACE-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`baa4b403`** · tip deploy supersedowany przez Decision Persist |
+| **IN** | Decision Workspace UI · VM-only · Validation cache ≤1× · Recommendation/Findings RO · Actions Approve/Reject/Needs Review/Return · Dual Outcome · flag `kw-decision-workspace` OFF · sibling POD Dossier · persist = DECISION-PERSIST-01 |
+| **OUT** | Expert/Chief/Session/Validation-rules/Adapters/TF BC · OfferBoq · Bid · mutacja dossier |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/DECISION-WORKSPACE-01-CLOSEOUT.md) · [`PV`](docs/architecture/DECISION-WORKSPACE-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | (Decision Persist CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **DECISION-PERSIST-01** |
+
+## ★ VALIDATION-EXPERT-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`5fa2746d`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | pure-lib `validation-expert` · `analyzeValidationFromDossier` · Finding Hard/Soft · C1–C8 · Q1–Q6 · verdict · Trace |
+| **OUT** | Expert/Chief/Session/UI/Adapters/TF BC · OfferBoq · Bid · analyze* · auto-GO |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/VALIDATION-EXPERT-01-CLOSEOUT.md) · [`PV`](docs/architecture/VALIDATION-EXPERT-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | Decision persist — **tylko Owner GO → AUDIT** |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
+
+## ★ WIRE-CHIEF-UI-DOSSIER-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`ce0b70c0`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | READ ONLY surface · thin ViewModel · sibling POD hub · Trace/Timeline/Offer · flag OFF ⇒ no DOM |
+| **OUT** | Expert/Chief/Session/Adapters/TF BC · OfferBoq write · Bid · live progress · persist |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WIRE-CHIEF-UI-DOSSIER-01-CLOSEOUT.md) · [`PV`](docs/architecture/WIRE-CHIEF-UI-DOSSIER-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | (Expert Workspace UI CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
+
+## ★ WIRE-CHIEF-SESSION-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`5b9fd741`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | `chief-session` engine · `useChiefOrchestratorSession` · REUSE adapters + `runChiefOrchestrator` · flag OFF · cancel/stale/double-run · dossier in-memory |
+| **OUT** | Expert/Chief/Adapter/TF BC · KV · OfferBoq write · persist |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WIRE-CHIEF-SESSION-01-CLOSEOUT.md) · [`PV`](docs/architecture/WIRE-CHIEF-SESSION-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | (UI Dossier CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
+
+## ★ WIRE-CHIEF-RO-ADAPTERS-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`0c310355`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | pure-lib `chief-wire-adapters` · OfferBoq/Catalog/CompanyCost/OfferStrategy RO · `assembleChiefWireRuntimeRo` · readyForChiefInput |
+| **OUT** | Chief.run · expert analyze* · React/UI · OfferBoq write · Expert/TF/Chief BC |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/WIRE-CHIEF-RO-ADAPTERS-01-CLOSEOUT.md) · [`PV`](docs/architecture/WIRE-CHIEF-RO-ADAPTERS-01-PRODUCTION-VERIFY.md) |
+| **Residuals** | (UI Dossier CLOSED) |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
+
+## ★ CHIEF-ORCHESTRATOR-P0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`06cc7a6b`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | Case→Task · gates G-EE/G-ME/G-COST/G-OFFER · LOOP PE→ME N=1 · dossier Decydent · REUSE Experts public API |
+| **OUT** | logika domenowa · UI · Finding · deep import expertów · zmiana EE/ME/PE/Cost/Offer |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/CHIEF-ORCHESTRATOR-P0-CLOSEOUT.md) · [`PV`](docs/architecture/CHIEF-ORCHESTRATOR-P0-PRODUCTION-VERIFY.md) |
+| **Residuals** | (Validation Expert CLOSED) · dalsze trigger przetarg — **tylko Owner GO → AUDIT** |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
+
+## ★ EXPERTS-P0 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **EPIC CLOSED** · **PRODUCTION VERIFIED** · feature **`58872663`** · tip deploy supersedowany przez Expert Workspace UI |
+| **IN** | Execution · Materials · Pricing (Market) · Cost (Real) · Offer · Trace contracts · handoff Cost→Offer · sygnał Decydent · scenariusze agresywny/rekomendowany/bezpieczny |
+| **OUT** | UI · OfferBoq write · Bid calculator identity · Real Cost recompute w Offer · EE/ME/PE jako źródła calc Offer |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/EXPERTS-P0-CLOSEOUT.md) · [`PV`](docs/architecture/EXPERTS-P0-PRODUCTION-VERIFY.md) |
+| **Residuals** | Decision persist — **tylko Owner GO → AUDIT** |
+| **NEXT** | tip deploy supersedowany przez **WIRE-EXPERTS-UI-01** |
 
 ## ★ NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01 — **CLOSED** (Phase B0)
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **EPIC CLOSED** · **Phase B0** · **PRODUCTION VERIFIED** · tip **2.66.20** / **`d9bb4c57`** |
+| **Status** | **EPIC CLOSED** · **Phase B0** · **PRODUCTION VERIFIED** · tip hist. **2.66.20** / **`d9bb4c57`** (supersedowany deploy przez EXPERTS→Chief→Adapters→Session→Validation) |
 | **IN** | Capability registry · Definition · Pack schema · Lifecycle · Immutable versioning · ExecutionPlan derived · WorkBundle · BOM · Structural+Business validation · Decision RO · fixtures ETICS+kostka · Unit 53 · Harness · Boundary · B0-16 · COND-TF-1…10 |
 | **OUT** | AI-COST · Bid · OfferBoq · Payroll · Cloud · Edge · Routing · UI · KV · LS · CI/Catalog wire |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 | **Residuals** | GHA none / TI-B3 / Legacy E2E / Mobile Smoke — **NOT PART OF THIS EPIC** |
-| **NEXT** | **WAITING FOR NEXT OWNER GO** |
+| **NEXT** | tip deploy supersedowany przez **DECISION-WORKSPACE-01** |
 
 ## ★ NG-TENDERS-KNOWLEDGE-FOUNDATION-01 — **CLOSED**
 
