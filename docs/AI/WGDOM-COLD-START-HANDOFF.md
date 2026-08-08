@@ -18,7 +18,7 @@ WGDOM COLD START
 | | |
 |--|--|
 | **Version** | **2.66.22** |
-| **Commit** | **`617f0cb5`** (`617f0cb57a9ac6f384d8ca9d129c738d4d56ec99`) |
+| **Commit** | **`9231cc6b`** (docs) · feature **`617f0cb5`** |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **PV** | **PRODUCTION VERIFIED · GREEN** |
@@ -35,7 +35,7 @@ WGDOM COLD START
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **WAITING** | **NEXT OWNER GO** |
-| **Tip feature** | **TENDER-MODERNIZATION-01 / S7 CLOSED** |
+| **Tip feature** | **TENDER-MODERNIZATION-01 / S8 CLOSED (HOLD)** · feature tip S7 **`617f0cb5`** |
 
 | Slice | Status |
 |-------|--------|
@@ -47,7 +47,8 @@ WGDOM COLD START
 | **S5** | **CLOSED** · `ebae3d2e` |
 | **S6** | **CLOSED** · **`cb91027d`** |
 | **S7** | **CLOSED** · **`617f0cb5`** |
-| **S8** | **OPEN** |
+| **S8** | **CLOSED** · **HOLD** · **`9231cc6b`** |
+| **S9** | **NOT STARTED** |
 
 ---
 
@@ -157,7 +158,8 @@ SSOT: [`../architecture/TENDER-LEGACY-DEPRECATION-MAP.md`](../architecture/TENDE
 | **S5** | **Tab Decyzja → DW** | **CLOSED** |
 | **S6** | **Persist / store bridge** | **CLOSED** |
 | **S7** | **TRE Hub-first** | **CLOSED** |
-| **S8** | Hard REMOVE / Bid retirement | **NEXT** |
+| **S8** | **HOLD REMOVE** | **CLOSED** · ZERO code |
+| **S9** | *(poza S0–S8 map)* | **NOT STARTED** |
 
 MASTER: [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md).  
 DF: [`../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md).
@@ -167,8 +169,8 @@ DF: [`../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](../architecture
 ## NEXT OWNER GO
 
 ```text
-TENDER-MODERNIZATION-01 / S8
-→ hard REMOVE / Bid retirement
+S9
+→ NOT STARTED
 → tylko Owner GO
 → start = AUDIT (nie PLAN / DF / IMPLEMENT bez GO)
 ```
@@ -203,8 +205,8 @@ TENDER-MODERNIZATION-01 / S8
 
 - OST-03 · XFA · cache filled PDF · `vercel deploy` · `git add -A`  
 - Payroll CORE / merge bez Gate G1–G9  
-- Auto-start S8 · S3-D · Bid retirement · global ON `tendersTabForStaffEnabled`  
-- Third PLN · hard REMOVE przed S8  
+- Auto-start S9 · S3-D · Bid retirement · hard REMOVE · global ON `tendersTabForStaffEnabled`  
+- Third PLN · blind DELETE surfaces  
 - Cloud Persist / Audit Hub bez AUDIT + Owner GO  
 - `useTenderOfferRun.ts` bez osobnego Owner GO  
 
@@ -245,4 +247,4 @@ Stabilization: **nie** auto-start EPIC.
 
 ## NEXT ACTION
 
-**S8 — WAITING FOR OWNER GO** (hard REMOVE / Bid retirement · AUDIT first)
+**S9 — NOT STARTED — WAITING FOR OWNER GO** (AUDIT first)

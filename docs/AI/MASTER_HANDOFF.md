@@ -4,14 +4,15 @@
 > **★★ Cold-start:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ SSOT cold-start:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Data sync:** 2026-08-08 · tip prod **2.66.22** / **`617f0cb5`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
+> **Data sync:** 2026-08-08 · tip prod **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 NOWA SESJA → docs/AI/WGDOM-COLD-START-HANDOFF.md
           → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.66.22 / 617f0cb5 (weryfikuj w 09 + version.json)
+Tip prod = 2.66.22 / 9231cc6b (weryfikuj w 09 + version.json)
 Feature tip TENDER-MODERNIZATION-01 / S7 = 617f0cb5
+Docs tip TENDER-MODERNIZATION-01 / S8 HOLD = 9231cc6b
 Prior TM-01 S6 Persist→legacy bridge = cb91027d
 Prior TM-01 S4 Hub UX = 85f4db14 (historyczny tip)
 Prior TM-01 S3 Align Pricing = ec8a5044 (historyczny tip)
@@ -27,13 +28,13 @@ Prior WIRE-CHIEF-SESSION-01 = 5b9fd741
 Prior WIRE-CHIEF-RO-ADAPTERS-01 = 0c310355
 Prior CHIEF-ORCHESTRATOR-P0 = 06cc7a6b
 Prior EXPERTS-P0 = 58872663
-Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) complete
-S0–S7 = CLOSED · S8 = OPEN
+Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + S6 + S7 + S8 HOLD complete
+S0–S8 = CLOSED · S8 = HOLD · S9 = NOT STARTED
 WAITING FOR NEXT OWNER GO
-NEXT = TENDER-MODERNIZATION-01 / S8 · tylko Owner GO → AUDIT
+NEXT = S9 · tylko Owner GO → AUDIT
 TM-01 MASTER = docs/architecture/TENDER-MODERNIZATION-01-MASTER.md
-DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF / global ON tendersTabForStaffEnabled / S3-D / S8 Bid retirement
-WIP: src/app/hooks/useTenderOfferRun.ts = LOCAL M · nie S5
+DO NOT: WM-DRUK-OST-03 / XFA / cache filled PDF / global ON tendersTabForStaffEnabled / S3-D / hard REMOVE / Bid retirement
+WIP: src/app/hooks/useTenderOfferRun.ts = LOCAL M · nie tip
 ```
 
 ---

@@ -10,7 +10,7 @@
 ### CO TO JEST WGDOM?
 
 Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / **`617f0cb5`** · **PRODUCTION VERIFIED**.
+Prod: https://www.wgdom.fun · tip: **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED**.
 
 ### JAK DZIAŁA PRZETARG?
 
@@ -41,7 +41,7 @@ Expert-effective = dostęp Staff do Przetargi (`tendersTabForStaffEnabled`) — 
 ### CO JEST LEGACY?
 
 Bid Proposal · TRE-01 · TenderDecisionView · `kw-tender-decisions` · Intelligence Hub (nie SSOT decyzji).  
-**KEEP / MIGRATE** — **REMOVE** dopiero po audit + S8 + Owner GO.
+**KEEP / MIGRATE** — **REMOVE** dopiero po audit + absolute L8 + Owner GO (S8 = HOLD).
 
 ### CO JEST ZAMKNIĘTE?
 
@@ -50,13 +50,13 @@ ACTIVE EPIC = **NONE**.
 
 ### CO JEST NEXT?
 
-**TENDER-MODERNIZATION-01 / S8** — hard REMOVE / Bid retirement.  
+**S9** — **NOT STARTED** — tylko Owner GO → AUDIT.
 **WAITING FOR OWNER GO** → start **AUDIT**.
 
 ### CZEGO NIE WOLNO DOTYKAĆ?
 
 8 LOCK: Expert · Chief · Session · Validation · Adapters · TF · OfferBoq · Bid domain.  
-OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S8+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.
+OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S9+ / S3-D / Bid retirement / hard REMOVE / global ON Przetargi / cloud Persist bez GO.
 WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S5.
 
 ### Od czego zacząć?

@@ -2,9 +2,9 @@
 
 > **STATUS:** **ACTIVE EPIC ROADMAP** · tip slice **S7 CLOSED** · EPIC as whole **NOT CLOSED**  
 > **ID:** TENDER-MODERNIZATION-01-MASTER  
-> **Production tip:** **2.66.22** / **`617f0cb5`** · **PRODUCTION VERIFIED**  
-> **TRYB:** **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**  
-> **NEXT:** **S8 hard REMOVE / Bid retirement** — tylko Owner GO → AUDIT  
+> **Production tip:** **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED**
+> **TRYB:** **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**
+> **NEXT:** **S9** — **NOT STARTED** — tylko Owner GO → AUDIT
 > **DF SSOT:** [`TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)  
 > **Cold-start:** [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md) · [`../AI/MASTER-AI-HANDOFF.md`](../AI/MASTER-AI-HANDOFF.md)  
 > **Data:** 2026-08-08
@@ -12,7 +12,7 @@
 ```text
 GOAL: jeden spójny inteligentny kosztorysant / Expert AI w module PRZETARGI
 Order LOCKED: S0→S1→S2→S3→S4→S5→S6→S7→S8
-S0–S7 = CLOSED · S8 = OPEN (Owner GO)
+S0–S8 = CLOSED · S8 = HOLD REMOVE (ZERO code) · S9 = NOT STARTED
 NO parallel engines · NO big-bang remove · REUSE FIRST
 ```
 
@@ -56,8 +56,8 @@ OfferBoq
 | **S4** | Hub UX | **CLOSED** | `85f4db14` |
 | **S5** | Tab Decyzja → DW | **CLOSED** | **`ebae3d2e`** |
 | **S6** | Decision Persist / store bridge | **CLOSED** | **`cb91027d`** (hist.) |
-| **S7** | TRE-01 deprecation | **CLOSED** | **`617f0cb5`** (tip) |
-| **S8** | Hard REMOVE / Bid retirement | **OPEN** · **NEXT** | — |
+| **S7** | TRE-01 deprecation | **CLOSED** | **`617f0cb5`** (feature tip) |
+| **S8** | Hard REMOVE / Bid retirement | **CLOSED** · **HOLD** | **`9231cc6b`** (docs tip) |
 
 ---
 
@@ -187,7 +187,7 @@ OfferBoq
 | **DEPENDENCIES** | S1–S6 AC PASS |
 | **LOCKS** | no hard delete engines · HubPanel CTA ZERO · hook file NO TOUCH |
 | **ROLLBACK** | revert `617f0cb5` |
-| **NEXT** | **S8 hard REMOVE / Bid retirement** |
+| **NEXT** | superseded by S8 HOLD |
 | **AC** | AC-S7-1…10 PASS |
 | **SSOT** | [`S7-CLOSEOUT`](TENDER-MODERNIZATION-01-S7-CLOSEOUT.md) · [`S7-PV`](TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) · [`S7-DF`](TENDER-MODERNIZATION-01-S7-DESIGN-FREEZE.md) |
 
@@ -197,14 +197,16 @@ OfferBoq
 
 | | |
 |--|--|
-| **STATUS** | **OPEN** · **NEXT** · WAITING FOR OWNER GO → AUDIT |
-| **CEL** | Mikro-REMOVE po L8 gates · opcjonalnie Bid retire (tylko po S3-D + GO) |
-| **CO ZROBIONO** | — |
-| **CO NIE ZROBIONO** | Intelligence UI · DecisionView · legacy store · obsolete flags · Bid retire |
-| **DEPENDENCIES** | S7 + **L8 per item** + osobny Owner GO |
-| **LOCKS** | zero live consumers · allowlist-only · never force-push |
-| **ROLLBACK** | revert mikro-commit |
-| **NEXT** | EPIC TM-01 CLOSE (gdy Owner) |
+| **STATUS** | **CLOSED** · **HOLD REMOVE** · **PRODUCTION VERIFIED** · tip **`9231cc6b`** |
+| **CEL** | Consumer audit + świadomy HOLD (nie forced cleanup) |
+| **CO ZROBIONO** | AUDIT/PLAN/DF/IMPLEMENT · OPTION A HOLD · ZERO functional code · PV PASS |
+| **CO NIE ZROBIONO** | hard DELETE surfaces · OPTION B micro · S3-D · Strategy migrate · absolute L8 symbol REMOVE |
+| **DEPENDENCIES** | S7 + Owner GO HOLD |
+| **LOCKS** | NO hard REMOVE · NO invent code · `useTenderOfferRun` NO TOUCH |
+| **ROLLBACK** | revert docs tip |
+| **NEXT** | **S9** NOT STARTED · Owner GO → AUDIT · EPIC CLOSE tylko osobny GO |
+| **AC** | AC-S8 HOLD PASS |
+| **SSOT** | [`S8-CLOSEOUT`](TENDER-MODERNIZATION-01-S8-CLOSEOUT.md) · [`S8-PV`](TENDER-MODERNIZATION-01-S8-PRODUCTION-VERIFY.md) · [`S8-DF`](TENDER-MODERNIZATION-01-S8-DESIGN-FREEZE.md) |
 
 ---
 

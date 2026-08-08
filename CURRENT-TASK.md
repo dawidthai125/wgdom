@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 / S7 CLOSED** · tip UI **2.66.22** / **`617f0cb5`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT **TM-01 S8** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 / S8 CLOSED HOLD** · tip UI **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT **S9** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
@@ -13,14 +13,25 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.22** / **`617f0cb5`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+…+S5+S6+S7 · Hub-first · Expert ON never auto Outcome · DetailPage recovery CTA · Persist-first KEEP · Decyzja DW PRIMARY @ Expert ON · Hub DW KEEP · Offer primary @ Expert ON · staff Przetargi module gate · S0 orphan cleanup |
+| Production tip | **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+…+S5+S6+S7+S8 HOLD · Hub-first · Expert ON never auto Outcome · DetailPage recovery CTA · Persist-first KEEP · Decyzja DW PRIMARY @ Expert ON · Hub DW KEEP · Offer primary @ Expert ON · staff Przetargi module gate · S0 orphan cleanup |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **TENDER-MODERNIZATION-01 / S7** · **TENDER-MODERNIZATION-01 / S6** · **TENDER-MODERNIZATION-01 / S5** · **TENDER-MODERNIZATION-01 / S4** · **TENDER-MODERNIZATION-01 / S3** · **TENDER-MODERNIZATION-01 / S2** · **TENDER-MODULE-ENABLEMENT-01** (S1) · **TENDER-MODERNIZATION-01 / S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
+| CLOSED | **TENDER-MODERNIZATION-01 / S8 HOLD** · **TENDER-MODERNIZATION-01 / S7** · **TENDER-MODERNIZATION-01 / S6** · **TENDER-MODERNIZATION-01 / S5** · **TENDER-MODERNIZATION-01 / S4** · **TENDER-MODERNIZATION-01 / S3** · **TENDER-MODERNIZATION-01 / S2** · **TENDER-MODULE-ENABLEMENT-01** (S1) · **TENDER-MODERNIZATION-01 / S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · auto-start TM-01 S8+ · S3-D · Bid retirement · global ON `tendersTabForStaffEnabled` |
-| **NEXT** | **TENDER-MODERNIZATION-01 / S8** — hard REMOVE — **WAITING FOR OWNER GO** |
-| **Known Residuals (NIE część S7)** | TM-01 S8 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` |
+| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · auto-start S9+ · S3-D · Bid retirement · hard REMOVE · global ON `tendersTabForStaffEnabled` |
+| **NEXT** | **S9** — **NOT STARTED** — **WAITING FOR OWNER GO** |
+| **Known Residuals (NIE część S8)** | S9 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` · L8 REMOVE residual |
 
+
+## ★ TENDER-MODERNIZATION-01 / S8 — HOLD REMOVE — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **S8 CLOSED HOLD** · **PRODUCTION VERIFIED** · tip **2.66.22** / docs **`9231cc6b`** · feature **`617f0cb5`** |
+| **IN** | OPTION A HOLD · ZERO functional code · consumer audit · PV PASS |
+| **OUT** | hard DELETE · OPTION B micro · S3-D · invent code · `useTenderOfferRun.ts` |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S8-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S8-PRODUCTION-VERIFY.md) |
+| **Residuals** | L8 REMOVE / S3-D / EPIC CLOSE — **tylko Owner GO** |
+| **NEXT** | **S9** — **NOT STARTED** — **WAITING FOR OWNER GO** |
 
 ## ★ TENDER-MODERNIZATION-01 / S7 — TRE Hub-first — **CLOSED**
 
@@ -28,10 +39,10 @@
 |---------|---------|
 | **Status** | **S7 CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.22** / **`617f0cb5`** |
 | **IN** | `TRE_01_SLICE_A_DEFAULT=false` · Expert ON Hub-first · DetailPage recovery CTA · Expert OFF LS=`1` R0 · harness 30 |
-| **OUT** | hard delete TRE engines · HubPanel CTA · `useTenderOfferRun.ts` · S8 · DecisionView delete · S6 rewrite |
+| **OUT** | hard delete TRE engines · HubPanel CTA · `useTenderOfferRun.ts` · DecisionView delete · S6 rewrite |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S7-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) |
-| **Residuals** | S8 — **tylko Owner GO** |
-| **NEXT** | **TENDER-MODERNIZATION-01 / S8** — **WAITING FOR OWNER GO** |
+| **Residuals** | superseded by S8 HOLD |
+| **NEXT** | superseded by S8 |
 
 ## ★ TENDER-MODERNIZATION-01 / S5 — **CLOSED**
 

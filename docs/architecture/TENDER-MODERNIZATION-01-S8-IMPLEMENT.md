@@ -1,15 +1,10 @@
 # IMPLEMENT — TENDER-MODERNIZATION-01 / S8 (HOLD REMOVE)
 
-> **STATUS:** **IMPLEMENT COMPLETE** · **WAITING FOR OWNER GO → COMMIT**  
-> **ID:** TENDER-MODERNIZATION-01-S8-IMPLEMENT  
-> **EPIC / SLICE:** TENDER-MODERNIZATION-01 · **S8 — Hard REMOVE / Bid retirement**  
-> **TRYB:** **OPTION A — HOLD REMOVE** · **ZERO functional code**  
-> **Data:** 2026-08-08  
-> **Baseline tip:** UI **2.66.22** · feature **`617f0cb5`** · docs tip **`df395eed`** · `origin/main` **`df395eed`** · HEAD **`df395eed`**  
-> **AUDIT:** [`TENDER-MODERNIZATION-01-S8-AUDIT.md`](TENDER-MODERNIZATION-01-S8-AUDIT.md) (**COMPLETE**)  
-> **PLAN:** [`TENDER-MODERNIZATION-01-S8-PLAN.md`](TENDER-MODERNIZATION-01-S8-PLAN.md) (**COMPLETE**)  
-> **DF:** [`TENDER-MODERNIZATION-01-S8-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-S8-DESIGN-FREEZE.md) (**COMPLETE** · HOLD)  
-> **WIP OUT:** `src/app/hooks/useTenderOfferRun.ts` — lokalne **M** (TRACE) · **NO TOUCH / NO STAGE**
+> **STATUS:** **IMPLEMENT COMPLETE** · **PRODUCTION VERIFIED** · tip **`9231cc6b`**  
+> **Baseline tip:** UI **2.66.22** · docs S8 **`9231cc6b`** · feature S7 **`617f0cb5`**  
+> **DF:** [`TENDER-MODERNIZATION-01-S8-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-S8-DESIGN-FREEZE.md)  
+> **PV / CLOSEOUT:** [`S8-PV`](TENDER-MODERNIZATION-01-S8-PRODUCTION-VERIFY.md) · [`S8-CLOSEOUT`](TENDER-MODERNIZATION-01-S8-CLOSEOUT.md)  
+> **WIP OUT:** `src/app/hooks/useTenderOfferRun.ts` — **nie** w tip
 
 ```text
 ════════════════════════════════════════════════════════
