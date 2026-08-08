@@ -15,6 +15,14 @@ import {
   TEUX_FONT_DISPLAY,
   TEUX_FONT_HEADLINE,
 } from "@/lib/tender-ux-tokens";
+import { useAdminAccess } from "@/app/admin-access";
+import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { resolveAuthoritativeOfferPln } from "@/lib/tender-offer-pln-authority";
+import {
+  BID_PLN_SOURCE_BADGE_PL,
+  OFFER_BID_MISMATCH_BADGE_PL,
+  OFFER_PLN_SOURCE_BADGE_PL,
+} from "@/lib/decision-workspace-ui";
 
 const STATUS_TONE: Record<TenderRecommendationResult["qualityStatus"], string> = {
   ready: "text-emerald-700 dark:text-emerald-300",
@@ -32,6 +40,8 @@ export function TenderRecommendationOutcomeView({
   onAttachPrzedmiar,
   onRetryParse,
   reparseBusy = false,
+  /** S3 — Offer Expert PLN when session available (badge/primary only). */
+  offerPricePln = null,
 }: {
   result: TenderRecommendationResult;
   onBack: () => void;
@@ -40,10 +50,27 @@ export function TenderRecommendationOutcomeView({
   onAttachPrzedmiar?: () => void;
   onRetryParse?: () => void;
   reparseBusy?: boolean;
+  offerPricePln?: number | null;
 }) {
-  const priceLabel = formatRecommendedOfferPln(result.recommendedOfferPln);
-  const showPrice =
-    result.hasBidRecommendation && result.recommendedOfferPln != null;
+  const { session } = useAdminAccess();
+  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const auth = resolveAuthoritativeOfferPln({
+    expertEffective,
+    offerPricePln,
+    recommendedBidPln: result.recommendedOfferPln,
+  });
+  // S3 DF: Expert ON + Offer null → NO PRIMARY (Hub parity). Never Bid→primary fallback.
+  const displayPln = auth.primaryPln;
+  const priceLabel = formatRecommendedOfferPln(displayPln);
+  const showPrice = displayPln != null && auth.source !== "none";
+  const noPrimaryOffer =
+    expertEffective && auth.source === "none" && auth.primaryPln == null;
+  const sourceBadge =
+    auth.source === "offer_expert"
+      ? OFFER_PLN_SOURCE_BADGE_PL
+      : auth.source === "bid_legacy"
+        ? BID_PLN_SOURCE_BADGE_PL
+        : null;
   const f2 = result.costRegressionF2;
   const showAttach =
     Boolean(onAttachPrzedmiar) &&
@@ -59,6 +86,8 @@ export function TenderRecommendationOutcomeView({
       data-tre-01-outcome
       data-tre-01-quality={result.qualityStatus}
       data-tre-01-has-price={showPrice ? "1" : "0"}
+      data-s3-primary-source={auth.source}
+      data-s3-tre-no-primary={noPrimaryOffer ? "1" : "0"}
       data-cost-regression-f2={f2 ? "1" : "0"}
       data-cost-regression-discovery={f2?.discovery ?? undefined}
       data-cost-regression-archive={f2?.archiveCandidate ? "1" : undefined}
@@ -90,6 +119,14 @@ export function TenderRecommendationOutcomeView({
             <p className={`text-xs uppercase tracking-wide text-muted-foreground mb-2 ${TEUX_FONT_CAPTION}`}>
               Rekomendowana cena oferty
             </p>
+            {sourceBadge && (
+              <p
+                className={`text-[10px] text-muted-foreground mb-1 ${TEUX_FONT_CAPTION}`}
+                data-s3-tre-source-badge
+              >
+                {sourceBadge}
+              </p>
+            )}
             <p
               className={`text-[10px] text-muted-foreground mb-3 ${TEUX_FONT_CAPTION}`}
               data-s2-tre-demote-note
@@ -99,13 +136,38 @@ export function TenderRecommendationOutcomeView({
             {showPrice ? (
               <p
                 className={`text-4xl sm:text-5xl font-semibold tabular-nums tracking-tight ${TEUX_FONT_DISPLAY}`}
-                data-tre-01-recommended-pln={String(result.recommendedOfferPln)}
+                data-tre-01-recommended-pln={String(displayPln)}
+                data-s3-tre-primary-pln={String(displayPln)}
               >
                 {priceLabel}
               </p>
             ) : (
-              <p className={`text-2xl sm:text-3xl font-semibold ${TEUX_FONT_HEADLINE} ${STATUS_TONE[result.qualityStatus]}`}>
+              <p
+                className={`text-2xl sm:text-3xl font-semibold ${TEUX_FONT_HEADLINE} ${STATUS_TONE[result.qualityStatus]}`}
+                data-s3-tre-no-primary-headline={noPrimaryOffer ? "1" : undefined}
+              >
                 {result.runPhaseLabelPl}
+              </p>
+            )}
+            {expertEffective &&
+              !noPrimaryOffer &&
+              auth.secondaryBidPln != null &&
+              auth.primaryPln != null &&
+              auth.secondaryBidPln !== auth.primaryPln && (
+                <p
+                  className={`text-[10px] text-muted-foreground mt-2 ${TEUX_FONT_CAPTION}`}
+                  data-s3-tre-bid-secondary
+                >
+                  {BID_PLN_SOURCE_BADGE_PL}:{" "}
+                  {formatRecommendedOfferPln(auth.secondaryBidPln)}
+                </p>
+              )}
+            {auth.mismatch && (
+              <p
+                className={`text-[10px] text-amber-700 dark:text-amber-300 mt-1 ${TEUX_FONT_CAPTION}`}
+                data-s3-tre-mismatch
+              >
+                {OFFER_BID_MISMATCH_BADGE_PL}
               </p>
             )}
           </div>

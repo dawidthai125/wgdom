@@ -12,6 +12,13 @@ export const DECISION_WORKSPACE_SUBTITLE_PL =
 export const TRE01_NOTE_PL =
   "TRE-01 = rekomendacja ceny / procesu — nie decyzja Decydenta";
 
+/** TENDER-MODERNIZATION-01 / S3 — canonical PLN source badges (CREATE ONCE · REUSE). */
+export const OFFER_PLN_SOURCE_BADGE_PL = "OFFER — cena ofertowa eksperta";
+export const BID_PLN_SOURCE_BADGE_PL = "BID — propozycja legacy";
+export const COST_OFFERBOQ_DIRECT_BADGE_PL = "KOSZT — OfferBoq direct";
+export const OFFER_BID_MISMATCH_BADGE_PL =
+  "Rozjazd Bid↔Offer — sprawdź szczegół";
+
 export function labelVerdictPl(verdict: ValidationVerdict | null): string | null {
   if (!verdict) return null;
   switch (verdict) {

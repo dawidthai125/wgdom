@@ -583,6 +583,9 @@ export function TenderDetailPage({
     return (
       <TenderRecommendationOutcomeView
         result={tre01Recommendation}
+        offerPricePln={
+          chiefSession.dossier?.primaryRecommendation?.offerPricePln ?? null
+        }
         onBack={handleLeaveToModule}
         onShowCostEstimate={handleTre01ShowCostEstimate}
         onOpenHub={handleTre01OpenHub}

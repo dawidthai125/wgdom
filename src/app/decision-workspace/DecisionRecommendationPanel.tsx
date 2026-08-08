@@ -1,6 +1,7 @@
 import { TEUX_FONT_BODY, TEUX_FONT_CAPTION, TEUX_FONT_MONO, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 import type { OfferPrimaryRecommendation, OfferScenario } from "@/lib/offer-expert";
 import type { DecisionWorkspaceViewModel } from "@/lib/decision-workspace-ui";
+import { OFFER_PLN_SOURCE_BADGE_PL } from "@/lib/decision-workspace-ui";
 import { formatPlnDisplay } from "./formatPln";
 
 function BreakdownRows({
@@ -72,12 +73,21 @@ export function DecisionRecommendationPanel({
     >
       <div>
         <p className={TEUX_SECTION_TITLE}>Rekomendacja Oferty</p>
+        <p
+          className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}
+          data-s3-offer-source-badge
+        >
+          {OFFER_PLN_SOURCE_BADGE_PL}
+        </p>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
           Strategia: {primary.strategy} · nie jest to Twoja decyzja
         </p>
       </div>
 
-      <p className={`text-xl font-bold ${TEUX_FONT_MONO}`}>
+      <p
+        className={`text-xl font-bold ${TEUX_FONT_MONO}`}
+        data-s3-dw-primary-pln={String(primary.offerPricePln)}
+      >
         {formatPlnDisplay(primary.offerPricePln)}
       </p>
       {primary.summaryPl && <p className={TEUX_FONT_BODY}>{primary.summaryPl}</p>}

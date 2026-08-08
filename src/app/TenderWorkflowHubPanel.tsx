@@ -33,6 +33,13 @@ import { DecisionWorkspaceHost } from "@/app/decision-workspace";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { useAdminAccess } from "@/app/admin-access";
 import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { resolveAuthoritativeOfferPln } from "@/lib/tender-offer-pln-authority";
+import {
+  BID_PLN_SOURCE_BADGE_PL,
+  OFFER_BID_MISMATCH_BADGE_PL,
+  OFFER_PLN_SOURCE_BADGE_PL,
+} from "@/lib/decision-workspace-ui";
+import { formatRecommendedOfferPln } from "@/lib/tender-recommendation-result";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -87,13 +94,63 @@ export function TenderWorkflowHubPanel({
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
 
+  const offerPricePln =
+    chiefSessionForDecision?.dossier?.primaryRecommendation?.offerPricePln ??
+    null;
+  const bidPln = ownerFinanceProposal?.recommendedBidPln ?? null;
+  const authPln = resolveAuthoritativeOfferPln({
+    expertEffective,
+    offerPricePln,
+    recommendedBidPln: bidPln,
+  });
+  const primaryBadge =
+    authPln.source === "offer_expert"
+      ? OFFER_PLN_SOURCE_BADGE_PL
+      : authPln.source === "bid_legacy"
+        ? BID_PLN_SOURCE_BADGE_PL
+        : null;
+
   return (
     <div
       className="space-y-4"
       data-tender-workflow-hub
       data-s2-expert-effective={expertEffective ? "1" : "0"}
       data-s2-dw-primary={expertEffective ? "1" : "0"}
+      data-s3-primary-source={authPln.source}
+      data-s3-mismatch={authPln.mismatch ? "1" : "0"}
     >
+      {authPln.primaryPln != null && primaryBadge && (
+        <div
+          className="rounded-lg border border-border/70 bg-card px-3 py-2 space-y-1"
+          data-s3-primary-pln-headline
+        >
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            {primaryBadge}
+          </p>
+          <p className="text-xl font-semibold tabular-nums">
+            {formatRecommendedOfferPln(authPln.primaryPln)}
+          </p>
+          {expertEffective &&
+            authPln.secondaryBidPln != null &&
+            authPln.secondaryBidPln !== authPln.primaryPln && (
+              <p
+                className="text-[10px] text-muted-foreground"
+                data-s3-bid-secondary
+              >
+                {BID_PLN_SOURCE_BADGE_PL}:{" "}
+                {formatRecommendedOfferPln(authPln.secondaryBidPln)}
+              </p>
+            )}
+          {authPln.mismatch && (
+            <p
+              className="text-[10px] text-amber-700 dark:text-amber-300"
+              data-s3-mismatch-badge
+            >
+              {OFFER_BID_MISMATCH_BADGE_PL}
+            </p>
+          )}
+        </div>
+      )}
       {!commandLayerActive && (
         <>
           {shouldRenderHubTrustBanner(trustAssessment) && (
