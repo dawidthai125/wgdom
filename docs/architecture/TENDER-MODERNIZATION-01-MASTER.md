@@ -1,10 +1,10 @@
 # TENDER-MODERNIZATION-01 — MASTER (S0–S8)
 
-> **STATUS:** **ACTIVE EPIC ROADMAP** · tip slice **S5 CLOSED** · EPIC as whole **NOT CLOSED**  
+> **STATUS:** **ACTIVE EPIC ROADMAP** · tip slice **S6 CLOSED** · EPIC as whole **NOT CLOSED**  
 > **ID:** TENDER-MODERNIZATION-01-MASTER  
-> **Production tip:** **2.66.22** / **`ebae3d2e`** · **PRODUCTION VERIFIED**  
+> **Production tip:** **2.66.22** / **`cb91027d`** · **PRODUCTION VERIFIED**  
 > **TRYB:** **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**  
-> **NEXT:** **S6 Persist / store bridge** — tylko Owner GO → AUDIT  
+> **NEXT:** **S7 TRE-01 deprecation** — tylko Owner GO → AUDIT  
 > **DF SSOT:** [`TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)  
 > **Cold-start:** [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md) · [`../AI/MASTER-AI-HANDOFF.md`](../AI/MASTER-AI-HANDOFF.md)  
 > **Data:** 2026-08-08
@@ -12,7 +12,7 @@
 ```text
 GOAL: jeden spójny inteligentny kosztorysant / Expert AI w module PRZETARGI
 Order LOCKED: S0→S1→S2→S3→S4→S5→S6→S7→S8
-S0–S5 = CLOSED · S6–S8 = OPEN (Owner GO)
+S0–S6 = CLOSED · S7–S8 = OPEN (Owner GO)
 NO parallel engines · NO big-bang remove · REUSE FIRST
 ```
 
@@ -54,9 +54,9 @@ OfferBoq
 | **S2** | Dual Outcome | **CLOSED** | `1888d05f` |
 | **S3** | Align Pricing | **CLOSED** | **`ec8a5044`** (hist.) |
 | **S4** | Hub UX | **CLOSED** | `85f4db14` |
-| **S5** | Tab Decyzja → DW | **CLOSED** | **`ebae3d2e`** (tip) |
-| **S6** | Decision Persist / store bridge | **OPEN** · **NEXT** | — |
-| **S7** | TRE-01 deprecation | **OPEN** | — |
+| **S5** | Tab Decyzja → DW | **CLOSED** | **`ebae3d2e`** |
+| **S6** | Decision Persist / store bridge | **CLOSED** | **`cb91027d`** (tip) |
+| **S7** | TRE-01 deprecation | **OPEN** · **NEXT** | — |
 | **S8** | Hard REMOVE / Bid retirement | **OPEN** | — |
 
 ---
@@ -150,11 +150,11 @@ OfferBoq
 | **STATUS** | **CLOSED** · **PRODUCTION VERIFIED** |
 | **CEL** | Tab Decyzja = Decision Workspace gdy Expert ON · parity DecisionView |
 | **CO ZROBIONO** | mount DW overview · Hub DW KEEP · CTA home decyzja · fallback DecisionView |
-| **CO NIE ZROBIONO** | hard delete DecisionView · store migration (S6) |
+| **CO NIE ZROBIONO** | hard delete DecisionView · (store bridge = S6 CLOSED) |
 | **DEPENDENCIES** | S4 |
-| **LOCKS** | no hard delete DecisionView · no store migration (S6) |
+| **LOCKS** | no hard delete DecisionView |
 | **ROLLBACK** | revert `ebae3d2e` |
-| **NEXT** | **S6 Persist / store bridge** |
+| **NEXT** | superseded by S6 |
 | **AC** | AC-S5-1…4 PASS |
 | **SSOT** | [`S5-CLOSEOUT`](TENDER-MODERNIZATION-01-S5-CLOSEOUT.md) · [`S5-PV`](TENDER-MODERNIZATION-01-S5-PRODUCTION-VERIFY.md) · [`S5-DF`](TENDER-MODERNIZATION-01-S5-DESIGN-FREEZE.md) |
 
@@ -164,14 +164,16 @@ OfferBoq
 
 | | |
 |--|--|
-| **STATUS** | **OPEN** · **NEXT** · WAITING FOR OWNER GO → AUDIT |
+| **STATUS** | **CLOSED** · **PRODUCTION VERIFIED** |
 | **CEL** | Persist = primary write · bridge → `kw-tender-decisions` projection dla Strategy |
-| **CO ZROBIONO** | Persist P0 local append-only (**DECISION-PERSIST-01 CLOSED**) — **bez** bridge |
-| **CO NIE ZROBIONO** | thin bridge · Strategy API rewrite · cloud Persist · third store · REMOVE legacy |
+| **CO ZROBIONO** | `mapPersistActionToLegacyOwnerDecision` · Host Persist-first → `setOwnerDecision` · scoringBundle REUSE · harness 28 |
+| **CO NIE ZROBIONO** | Strategy rewrite · cloud Persist · third store · REMOVE legacy · DecisionView delete |
 | **DEPENDENCIES** | S5 |
-| **LOCKS** | ZERO third store · NO cloud in TM-01 · mapping approve→GO / reject→NO-GO / needs_review→HOLD |
-| **ROLLBACK** | bridge OFF → independent stores |
-| **NEXT** | S7 |
+| **LOCKS** | ZERO third store · NO cloud in TM-01 · mapping approve→GO / reject→NO-GO / needs_review→HOLD · Persist API NO TOUCH |
+| **ROLLBACK** | revert `cb91027d` |
+| **NEXT** | **S7 TRE-01 deprecation** |
+| **AC** | AC-S6-1…8 PASS |
+| **SSOT** | [`S6-CLOSEOUT`](TENDER-MODERNIZATION-01-S6-CLOSEOUT.md) · [`S6-PV`](TENDER-MODERNIZATION-01-S6-PRODUCTION-VERIFY.md) · [`S6-DF`](TENDER-MODERNIZATION-01-S6-DESIGN-FREEZE.md) |
 
 ---
 
@@ -179,8 +181,7 @@ OfferBoq
 
 | | |
 |--|--|
-| **STATUS** | **OPEN** |
-| **CEL** | TRE-01 Outcome ≠ primary landing · Hub-first Expert |
+| **STATUS** | **OPEN** · **NEXT** · WAITING FOR OWNER GO → AUDIT |
 | **CO ZROBIONO** | — |
 | **CO NIE ZROBIONO** | Outcome primary OFF / recovery · hard delete Offer/Bid engines (**OUT**) |
 | **DEPENDENCIES** | S1–S6 AC PASS |
