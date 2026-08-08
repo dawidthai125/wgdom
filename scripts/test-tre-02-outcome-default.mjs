@@ -1,5 +1,6 @@
 /**
- * TRE-02 — Outcome First: default ON + R0 (LS=0 → Hub-first).
+ * TRE-02 / TM-01 S7 — Outcome flag: default OFF (Hub-first) + LS R0.
+ * S7 DF: TRE_01_SLICE_A_DEFAULT = false · LS=1 = Outcome ON (Expert OFF compat).
  * Run: npx vite-node scripts/test-tre-02-outcome-default.mjs
  */
 import {
@@ -21,7 +22,7 @@ function assert(name, cond) {
   }
 }
 
-assert("T2-F1 default ON", TRE_01_SLICE_A_DEFAULT === true);
+assert("T2-F1 default OFF (S7 Hub-first)", TRE_01_SLICE_A_DEFAULT === false);
 assert("T2-F2 LS key unchanged", TRE_01_SLICE_A_LS_KEY === "kw-tre-01-slice-a");
 
 /** Memory LS mock (Node — R0). */
@@ -39,16 +40,16 @@ globalThis.localStorage = {
 };
 
 mem.clear();
-assert("T2-F3 no LS → mirrors default ON", isTre01SliceAEnabled() === true);
+assert("T2-F3 no LS → mirrors default OFF", isTre01SliceAEnabled() === false);
 
 mem.set(TRE_01_SLICE_A_LS_KEY, "0");
 assert("T2-R0 LS=0 → Hub-first OFF", isTre01SliceAEnabled() === false);
 
 mem.set(TRE_01_SLICE_A_LS_KEY, "1");
-assert("T2-F4 LS=1 → Outcome ON", isTre01SliceAEnabled() === true);
+assert("T2-F4 LS=1 → Outcome ON (Expert OFF compat)", isTre01SliceAEnabled() === true);
 
 mem.delete(TRE_01_SLICE_A_LS_KEY);
-assert("T2-R0b removeItem → default ON", isTre01SliceAEnabled() === true);
+assert("T2-R0b removeItem → default OFF", isTre01SliceAEnabled() === false);
 
 console.log(`\nTRE-02 Outcome default: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

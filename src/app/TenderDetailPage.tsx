@@ -203,26 +203,33 @@ export function TenderDetailPage({
     pricingCatalogRevision,
   });
 
-  /** TRE-01 Slice A — Outcome-first (flaga); Hub = recovery. */
+  /**
+   * TM-01 S7 — Hub-first default; Expert ON never auto Outcome.
+   * Recovery Outcome only via explicit DetailPage CTA (`tre01RecoveryOutcome`).
+   */
   const tre01SliceA = isTre01SliceAEnabled();
   const [tre01ForceWorkspace, setTre01ForceWorkspace] = useState(false);
+  const [tre01RecoveryOutcome, setTre01RecoveryOutcome] = useState(false);
   /** COST-PIPELINE-01 — CTA „Pokaż pełny kosztorys” → focus OfferBoq (nie ATH). */
   const [focusOfferBoq, setFocusOfferBoq] = useState(false);
-
-  useEffect(() => {
-    setTre01ForceWorkspace(false);
-    setFocusOfferBoq(false);
-  }, [tenderId]);
-
-  const { recommendation: tre01Recommendation } = useTenderOfferRun({
-    enabled: tre01SliceA && Boolean(item),
-    tenderPipelineItemId: item?.id ?? tenderId,
-    pipelineRuntime,
-  });
 
   /** S2 — Session/DW stack: Expert-effective ⇒ ON unless LS kill; Expert OFF ⇒ legacy flag. */
   const { session: adminSession } = useAdminAccess();
   const expertEffective = resolveTenderExpertEffective(adminSession?.role);
+
+  useEffect(() => {
+    setTre01ForceWorkspace(false);
+    setTre01RecoveryOutcome(false);
+    setFocusOfferBoq(false);
+  }, [tenderId]);
+
+  /** S7 — Offer Run: flag OR recovery (hook file untouched; DetailPage `enabled` only). */
+  const { recommendation: tre01Recommendation } = useTenderOfferRun({
+    enabled: (tre01SliceA || tre01RecoveryOutcome) && Boolean(item),
+    tenderPipelineItemId: item?.id ?? tenderId,
+    pipelineRuntime,
+  });
+
   const chiefSessionEnabled = isChiefSessionStackEnabled(expertEffective);
   const chiefSession = useChiefOrchestratorSession({
     enabled: chiefSessionEnabled && Boolean(item),
@@ -251,24 +258,42 @@ export function TenderDetailPage({
       ? chiefSession
       : null;
 
+  /** S7 DF — Expert ON: CTA recovery only; Expert OFF: flag/LS Outcome-first R0. */
   const showTre01Outcome =
-    tre01SliceA &&
     Boolean(item) &&
+    activeTab === "przetarg" &&
     !tre01ForceWorkspace &&
-    activeTab === "przetarg";
+    ((expertEffective && tre01RecoveryOutcome) ||
+      (!expertEffective && tre01SliceA));
+
+  const showTre01RecoveryCta =
+    expertEffective &&
+    activeTab === "przetarg" &&
+    Boolean(item) &&
+    !showTre01Outcome;
 
   const handleTre01ShowCostEstimate = useCallback(() => {
+    setTre01RecoveryOutcome(false);
     setTre01ForceWorkspace(true);
     setFocusOfferBoq(true);
     handleTabChange("kosztorys");
   }, [handleTabChange]);
 
   const handleTre01OpenHub = useCallback(() => {
-    setTre01ForceWorkspace(true);
+    setTre01RecoveryOutcome(false);
+    // Expert OFF: keep Outcome suppressed while flag ON. Expert ON: Hub + CTA again.
+    setTre01ForceWorkspace(!expertEffective);
+    handleTabChange("przetarg");
+  }, [handleTabChange, expertEffective]);
+
+  const handleTre01RecoveryOutcome = useCallback(() => {
+    setTre01RecoveryOutcome(true);
+    setTre01ForceWorkspace(false);
     handleTabChange("przetarg");
   }, [handleTabChange]);
 
   const handleTre01AttachPrzedmiar = useCallback(() => {
+    setTre01RecoveryOutcome(false);
     setTre01ForceWorkspace(true);
     handleTabChange("dokumenty");
   }, [handleTabChange]);
@@ -285,6 +310,7 @@ export function TenderDetailPage({
       retry: pipelineRuntime.retryDossierParse,
     });
     if (started) {
+      setTre01RecoveryOutcome(false);
       setTre01ForceWorkspace(true);
       handleTabChange("kosztorys");
     }
@@ -584,7 +610,7 @@ export function TenderDetailPage({
 
   /** TRE-01: Outcome MVP bez Autonomous theater (DF §5 — nie blokować Outcome). */
   if (showTre01Outcome && tre01Recommendation) {
-    return (
+    const outcome = (
       <TenderRecommendationOutcomeView
         result={tre01Recommendation}
         offerPricePln={
@@ -602,6 +628,10 @@ export function TenderDetailPage({
         }
       />
     );
+    if (expertEffective && tre01RecoveryOutcome) {
+      return <div data-s7-tre-recovery="1">{outcome}</div>;
+    }
+    return outcome;
   }
 
   if (showTre01Outcome && !tre01Recommendation) {
@@ -609,6 +639,9 @@ export function TenderDetailPage({
       <div
         className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground text-sm"
         data-tre-01-outcome-loading
+        {...(expertEffective && tre01RecoveryOutcome
+          ? { "data-s7-tre-recovery": "1" }
+          : {})}
       >
         Trwa wyliczanie…
       </div>
@@ -632,6 +665,7 @@ export function TenderDetailPage({
       data-tender-id={item.id}
       data-tender-tab={activeTab}
       data-tender-ws={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
+      data-s7-hub-first="1"
     >
       <TenderDetailCommandLayer
         item={item}
@@ -677,6 +711,19 @@ export function TenderDetailPage({
             gateStatus={pipelineRuntime.attachmentGateStatus}
             gateReason={pipelineRuntime.attachmentGateReason}
           />
+
+          {showTre01RecoveryCta && (
+            <div className="mb-3 flex justify-end">
+              <button
+                type="button"
+                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                data-s7-tre-recovery-cta="1"
+                onClick={handleTre01RecoveryOutcome}
+              >
+                Rekomendowana cena
+              </button>
+            </div>
+          )}
 
           {activeTab === "kosztorys" && (
             <TenderKosztorysWorkspace

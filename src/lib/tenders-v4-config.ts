@@ -7,12 +7,12 @@
 export const TENDERS_V4_ROUTING = true;
 
 /**
- * TRE-01 / TRE-02 — Outcome-first default (Offer Run + Recommendation Result).
- * TRE-02 DF: default ON (Outcome First Experience).
- * R0 rollback: localStorage `kw-tre-01-slice-a` = `0` → Hub-first (bez redeployu silników).
+ * TRE-01 / TM-01 S7 — Hub-first default (Offer Run + Recommendation Result KEEP).
+ * S7 DF: default OFF. Expert ON never auto Outcome (DetailPage hard gate).
+ * Expert OFF + LS=`1` → Outcome-first R0 compatibility (bez redeployu).
  * Override: `1` = ON · `0` = OFF · brak klucza → default tip.
  */
-export const TRE_01_SLICE_A_DEFAULT = true;
+export const TRE_01_SLICE_A_DEFAULT = false;
 
 export const TRE_01_SLICE_A_LS_KEY = "kw-tre-01-slice-a";
 
