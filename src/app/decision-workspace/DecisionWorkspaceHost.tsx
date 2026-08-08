@@ -1,16 +1,19 @@
 /**
  * DECISION-WORKSPACE-01 + DECISION-PERSIST-01 —
  * Session → Validation cache → VM → Surface · persist wire (Host only).
+ * TM-01 S6 — Persist-first · legacy projection via setOwnerDecision.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdminAccess } from "@/app/admin-access";
+import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import {
   buildValidationSnapshot,
   hydrateDecision,
   recordDecision,
 } from "@/lib/decision-persist";
+import { mapPersistActionToLegacyOwnerDecision } from "@/lib/decision-persist-legacy-bridge";
 import {
   buildDecisionWorkspaceViewModel,
   clearValidationCache,
@@ -23,17 +26,23 @@ import {
   isDecisionWorkspaceStackEnabled,
   resolveTenderExpertEffective,
 } from "@/lib/tender-expert-effective";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
 import { DecisionWorkspaceSurface } from "./DecisionWorkspaceSurface";
 
 export function DecisionWorkspaceHost({
   session,
   tenderId = "",
+  scoringBundle = null,
 }: {
   session: ChiefSessionOutput;
   /** DECISION-PERSIST-01 — prop drill from Hub (item.id). */
   tenderId?: string;
+  /** TM-01 S6 — REUSE intelligenceCtx.scoringBundle (no re-score). */
+  scoringBundle?: TenderScoringBundle | null;
 }) {
   const { session: adminSession } = useAdminAccess();
+  const { ownerDecisions } = useTendersContext();
+  const setOwnerDecision = ownerDecisions.setOwnerDecision;
   const expertEffective = resolveTenderExpertEffective(adminSession?.role);
   /** S2 — Expert ON ⇒ DW stack ON unless kill-switch (kw-decision-workspace / isDecisionWorkspaceEnabled). */
   const flagEnabled = isDecisionWorkspaceStackEnabled(expertEffective);
@@ -124,6 +133,7 @@ export function DecisionWorkspaceHost({
           : {}),
       };
 
+      // TM-01 S6 — Persist FIRST · ZERO legacy mirror on Persist fail
       let persisted = false;
       if (tenderId && id && finishedAt && snapshot) {
         const recorded = recordDecision({
@@ -156,13 +166,35 @@ export function DecisionWorkspaceHost({
         return;
       }
 
-      setToastPl(
+      const persistOkLabel =
         action === "approve"
           ? "Decyzja zapisana lokalnie: zatwierdzono"
           : action === "reject"
             ? "Decyzja zapisana lokalnie: odrzucono"
-            : "Decyzja zapisana lokalnie: do przeglądu",
-      );
+            : "Decyzja zapisana lokalnie: do przeglądu";
+
+      // Missing / mismatched scoringBundle → Persist SUCCESS · legacy SKIP
+      if (!scoringBundle) {
+        setToastPl(`${persistOkLabel} · lejek niedostępny (brak scoringu)`);
+        return;
+      }
+      if (scoringBundle.item.id !== tenderId) {
+        setToastPl(`${persistOkLabel} · lejek pominięty (rozjazd id)`);
+        return;
+      }
+
+      const mapped = mapPersistActionToLegacyOwnerDecision(action);
+      if (mapped == null) {
+        setToastPl(`${persistOkLabel} · lejek pominięty`);
+        return;
+      }
+
+      try {
+        setOwnerDecision(scoringBundle, mapped);
+        setToastPl(`${persistOkLabel} · lejek zaktualizowany`);
+      } catch {
+        setToastPl(`${persistOkLabel} · lejek nie zapisany (błąd projekcji)`);
+      }
     },
     [
       session.caseId,
@@ -173,6 +205,8 @@ export function DecisionWorkspaceHost({
       adminSession?.id,
       adminSession?.displayName,
       tenderId,
+      scoringBundle,
+      setOwnerDecision,
     ],
   );
 

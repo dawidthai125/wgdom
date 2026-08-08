@@ -139,9 +139,10 @@ assert(
   ownerStore.includes("kw-tender-decisions"),
 );
 assert(
-  "A7 no bridge module string in allowlist sources",
-  !panel.includes("decision-persist-legacy-bridge") &&
-    !detail.includes("decision-persist-legacy-bridge") &&
+  "A7 Host imports Persist→legacy map; Persist API still no legacy key (S6)",
+  host.includes("mapPersistActionToLegacyOwnerDecision") &&
+    host.includes("decision-persist-legacy-bridge") &&
+    !persistApi.includes("kw-tender-decisions") &&
     !primary.includes("Approve→GO"),
 );
 

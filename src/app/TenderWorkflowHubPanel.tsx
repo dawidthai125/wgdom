@@ -224,6 +224,7 @@ export function TenderWorkflowHubPanel({
         <DecisionWorkspaceHost
           session={chiefSessionForDecision}
           tenderId={item.id}
+          scoringBundle={intelligenceCtx.scoringBundle}
         />
       )}
 

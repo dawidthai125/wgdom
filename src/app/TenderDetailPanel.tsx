@@ -750,6 +750,7 @@ export function TenderDetailPanel({
             <DecisionWorkspaceHost
               session={chiefSessionForDecision}
               tenderId={item.id}
+              scoringBundle={intelligenceCtx?.scoringBundle ?? null}
             />
           )}
           {intelligenceCtx ? (

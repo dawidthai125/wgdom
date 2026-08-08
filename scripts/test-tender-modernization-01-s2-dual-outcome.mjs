@@ -220,9 +220,14 @@ assert(
   TENDER_DECISIONS_STORAGE_KEY === "kw-tender-decisions",
 );
 
-// Host onAction → recordDecision only (no setOwnerDecision)
+// Host onAction → Persist-first · may mirror via setOwnerDecision after SUCCESS (S6)
 assert("Host calls recordDecision", host.includes("recordDecision"));
-assert("Host does not call setOwnerDecision", !host.includes("setOwnerDecision"));
+assert(
+  "Host may call setOwnerDecision only Persist-first (S6)",
+  host.includes("setOwnerDecision") &&
+    host.indexOf("recordDecision({") < host.indexOf("setOwnerDecision(") &&
+    /if\s*\(\s*!persisted\s*\)[\s\S]*?return[\s\S]*?setOwnerDecision/.test(host),
+);
 
 // --- AC-S2-1…5 (source + helper) ---
 assert(
@@ -246,10 +251,12 @@ assert(
     isTenderExpertEffective("super_admin", off) === true,
 );
 assert(
-  "AC-S2-5 no Persist→legacy bridge in Host/Primary",
-  !host.includes("kw-tender-decisions") &&
-    !primary.includes("approve") &&
-    !/Approve\s*→\s*GO|approve.*setOwnerDecision/i.test(host),
+  "AC-S2-5 Persist API/store no legacy bridge; Host may project after Persist (S6)",
+  !persistApi.includes("kw-tender-decisions") &&
+    !persistStore.includes("kw-tender-decisions") &&
+    !persistApi.includes("setOwnerDecision") &&
+    host.includes("decision-persist-legacy-bridge") &&
+    /if \(expertEffective\)[\s\S]*decision-workspace-surface[\s\S]*return/.test(primary),
 );
 
 // Forbidden flag anywhere in allowlist touchpoints
