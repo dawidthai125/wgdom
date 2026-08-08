@@ -1,8 +1,9 @@
 # IMPLEMENT — TENDER-MODERNIZATION-01 / S7 (TRE Hub-first / primary OFF)
 
-> **STATUS:** **IMPLEMENT COMPLETE** · czekaj **Owner GO → COMMIT**  
-> **Baseline tip:** UI **2.66.22** · feature S6 **`cb91027d`** · docs tip **`8de8e339`**  
+> **STATUS:** **IMPLEMENT COMPLETE** · **PRODUCTION VERIFIED** · tip **`617f0cb5`**  
+> **Baseline tip:** UI **2.66.22** · feature S7 **`617f0cb5`** · prior S6 **`cb91027d`**  
 > **DF:** [`TENDER-MODERNIZATION-01-S7-DESIGN-FREEZE.md`](TENDER-MODERNIZATION-01-S7-DESIGN-FREEZE.md)  
+> **PV / CLOSEOUT:** [`S7-PV`](TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) · [`S7-CLOSEOUT`](TENDER-MODERNIZATION-01-S7-CLOSEOUT.md)  
 > **WIP OUT:** `src/app/hooks/useTenderOfferRun.ts` — **nie** w tip
 
 ## Delivered (allowlist)

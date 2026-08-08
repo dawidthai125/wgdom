@@ -10,7 +10,7 @@
 ### CO TO JEST WGDOM?
 
 Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / **`cb91027d`** · **PRODUCTION VERIFIED**.
+Prod: https://www.wgdom.fun · tip: **2.66.22** / **`617f0cb5`** · **PRODUCTION VERIFIED**.
 
 ### JAK DZIAŁA PRZETARG?
 
@@ -50,13 +50,13 @@ ACTIVE EPIC = **NONE**.
 
 ### CO JEST NEXT?
 
-**TENDER-MODERNIZATION-01 / S7** — TRE-01 deprecation.  
+**TENDER-MODERNIZATION-01 / S8** — hard REMOVE / Bid retirement.  
 **WAITING FOR OWNER GO** → start **AUDIT**.
 
 ### CZEGO NIE WOLNO DOTYKAĆ?
 
 8 LOCK: Expert · Chief · Session · Validation · Adapters · TF · OfferBoq · Bid domain.  
-OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S7+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.
+OST-03 / XFA / `git add -A` / `vercel deploy` / auto-start S8+ / S3-D / Bid retirement / global ON Przetargi / cloud Persist bez GO.
 WIP: **`src/app/hooks/useTenderOfferRun.ts`** — local M, nie S5.
 
 ### Od czego zacząć?

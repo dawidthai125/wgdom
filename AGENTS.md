@@ -20,9 +20,9 @@
   9. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
  10. IMPLEMENT dopiero po Gate + checklist (+ Owner GO gdy wymagane)
 
-TRYB = UTRZYMANIE · tip = 09 (2.66.22 / cb91027d · TENDER-MODERNIZATION-01 / S6 CLOSED · Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge complete)
- · NEXT = TENDER-MODERNIZATION-01 / S7 tylko Owner GO → AUDIT
- · nie auto-start SMART P1 / MS P2 / CM-04 P3 / Wave 2 / Bid Guard / Cloud Decision Persist / TM-01 S7+ / S3-D / Bid retirement / global ON Przetargi
+TRYB = UTRZYMANIE · tip = 09 (2.66.22 / 617f0cb5 · TENDER-MODERNIZATION-01 / S7 CLOSED · Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first complete)
+ · NEXT = TENDER-MODERNIZATION-01 / S8 tylko Owner GO → AUDIT
+ · nie auto-start SMART P1 / MS P2 / CM-04 P3 / Wave 2 / Bid Guard / Cloud Decision Persist / TM-01 S8+ / S3-D / Bid retirement / global ON Przetargi
  · FINAL-AI-HANDOFF = archiwum Catalog (nie cold-start)
  · cold-start ≠ CURRENT-TASK alone
 
@@ -177,8 +177,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI / tip prod | **tylko** [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json` (**nie** hardcoduj tutaj) |
-| Ostatni EPIC | **TENDER-MODERNIZATION-01 / S6 CLOSED** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) (**2.66.22** / **`cb91027d`**) · [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S6-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S6-PRODUCTION-VERIFY.md) · prior S5 **`ebae3d2e`** · S4 Hub UX **`85f4db14`** · S3 Align Pricing **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
-| NEXT (rekomendacja) | **UTRZYMANIE** — **TM-01 S7** tylko Owner GO · Cloud persist / Audit Hub / SMART / MS / CM-04 / Expert AI enablement / TM-01 S7+ / S3-D / Bid retirement / global ON Przetargi **bez** Owner GO · start od **AUDIT** · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
+| Ostatni EPIC | **TENDER-MODERNIZATION-01 / S7 CLOSED** · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) (**2.66.22** / **`617f0cb5`**) · [`CLOSEOUT`](docs/architecture/TENDER-MODERNIZATION-01-S7-CLOSEOUT.md) · [`PV`](docs/architecture/TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) · prior S6 **`cb91027d`** · prior S5 **`ebae3d2e`** · S4 Hub UX **`85f4db14`** · S3 Align Pricing **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
+| NEXT (rekomendacja) | **UTRZYMANIE** — **TM-01 S8** tylko Owner GO · Cloud persist / Audit Hub / SMART / MS / CM-04 / Expert AI enablement / TM-01 S8+ / S3-D / Bid retirement / global ON Przetargi **bez** Owner GO · start od **AUDIT** · [`NEXT-EPIC-CANDIDATES`](docs/architecture/NEXT-EPIC-CANDIDATES.md) |
 | Master / Entry | [`MASTER-AI-HANDOFF`](docs/AI/MASTER-AI-HANDOFF.md) · [`AI_QUICK_START`](docs/AI/AI_QUICK_START.md) · [`AI_ENTRY`](docs/AI/AI_ENTRY.md) · tip [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
