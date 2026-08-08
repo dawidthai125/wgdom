@@ -210,7 +210,9 @@ export function DecisionWorkspaceHost({
     ],
   );
 
-  if (!flagEnabled || vm.uiPhase === "hidden") return null;
+  if (!flagEnabled || vm.uiPhase === "hidden" || vm.uiPhase === "no_dossier") {
+    return null;
+  }
 
   return (
     <div className="space-y-2" data-decision-workspace-host data-s2-dw-primary="1">

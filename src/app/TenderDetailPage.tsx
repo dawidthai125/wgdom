@@ -18,6 +18,7 @@ import {
   type ExpertWorkspaceViewModel,
 } from "@/lib/expert-workspace-ui";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
+import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
 import { useAdminAccess } from "@/app/admin-access";
@@ -251,10 +252,11 @@ export function TenderDetailPage({
     });
   }, [chiefSessionEnabled, chiefSession.dossier, chiefDossierVm?.uiPhase]);
 
-  /** DECISION-WORKSPACE-01 / TM-01 S5 — Session → Host on Hub OR Decyzja overview. */
+  /** DECISION-WORKSPACE-01 / TM-01 S5 / ENABLEMENT-01 — Session effective ON only. */
   const chiefSessionForDecision: ChiefSessionOutput | null =
-    activeTab === "przetarg" ||
-    (activeTab === "decyzja" && decyzjaWorkspace === "overview")
+    isChiefOrchestratorSessionEnabled() &&
+    (activeTab === "przetarg" ||
+      (activeTab === "decyzja" && decyzjaWorkspace === "overview"))
       ? chiefSession
       : null;
 

@@ -402,6 +402,25 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.expertAiDecydentEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, expertAiDecydentEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-expert-ai-decydent-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">Expert AI · Przebieg i Decydent</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Domyślnie wyłączone. Po włączeniu: orkiestracja Expertów, Dossier, Decision Workspace i lokalny zapis decyzji w Przetargach. Kill-switch: localStorage klucz = 0.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
