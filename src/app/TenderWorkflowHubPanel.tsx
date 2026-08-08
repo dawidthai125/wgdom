@@ -82,7 +82,7 @@ export function TenderWorkflowHubPanel({
   analyzing?: boolean;
   /** NG-03.2 — Trust/Strip/CTA w Command Layer (TenderDetailPage). */
   commandLayerActive?: boolean;
-  /** WIRE-CHIEF-UI-DOSSIER-01 — sibling POD #tender-intelligence-hub. */
+  /** WIRE-CHIEF-UI-DOSSIER-01 — sibling POD (S4: after ANALIZA). */
   chiefDossierVm?: ChiefDossierViewModel | null;
   /** WIRE-EXPERTS-UI-01 — Expert Details under Trace (Slot A). */
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
@@ -110,10 +110,20 @@ export function TenderWorkflowHubPanel({
         ? BID_PLN_SOURCE_BADGE_PL
         : null;
 
+  const insightsRecovery = (
+    <TenderWorkspaceV2InsightsCompact
+      item={item}
+      swz={swz}
+      intelligenceCtx={intelligenceCtx}
+      onNavigateCostTab={(tab) => onNavigateTab(tab)}
+    />
+  );
+
   return (
     <div
       className="space-y-4"
       data-tender-workflow-hub
+      data-s4-hub-hierarchy="1"
       data-s2-expert-effective={expertEffective ? "1" : "0"}
       data-s2-dw-primary={expertEffective ? "1" : "0"}
       data-s3-primary-source={authPln.source}
@@ -123,6 +133,7 @@ export function TenderWorkflowHubPanel({
         <div
           className="rounded-lg border border-border/70 bg-card px-3 py-2 space-y-1"
           data-s3-primary-pln-headline
+          data-s4-primary-pln="1"
         >
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
             {primaryBadge}
@@ -189,38 +200,27 @@ export function TenderWorkflowHubPanel({
         </>
       )}
 
-      {commandLayerActive && (
-        <>
-          <TenderWorkspaceV2ProgressCompact item={item} swz={swz} />
-          <TenderWorkspaceV2InsightsCompact
-            item={item}
-            swz={swz}
-            intelligenceCtx={intelligenceCtx}
-            onNavigateCostTab={(tab) => onNavigateTab(tab)}
+      {/* S4 — ANALIZA → EKSPERCI → WALIDACJA/REKOMENDACJA/DECYZJA (DW) · Intelligence = recovery */}
+      <div data-s4-step="analiza">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 mb-1.5">
+          Analiza
+        </p>
+        <TenderWorkspaceV2ProgressCompact item={item} swz={swz} />
+      </div>
+
+      {chiefDossierVm != null && (
+        <div data-s4-step="eksperci">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 mb-1.5">
+            Eksperci
+          </p>
+          <ChiefDossierSurface
+            vm={chiefDossierVm}
+            expertWorkspaceVm={expertWorkspaceVm}
           />
-          {chiefDossierVm != null && (
-            <ChiefDossierSurface
-              vm={chiefDossierVm}
-              expertWorkspaceVm={expertWorkspaceVm}
-            />
-          )}
-          {chiefSessionForDecision != null && (
-            <DecisionWorkspaceHost
-              session={chiefSessionForDecision}
-              tenderId={item.id}
-            />
-          )}
-        </>
+        </div>
       )}
 
-      {!commandLayerActive && chiefDossierVm != null && (
-        <ChiefDossierSurface
-          vm={chiefDossierVm}
-          expertWorkspaceVm={expertWorkspaceVm}
-        />
-      )}
-
-      {!commandLayerActive && chiefSessionForDecision != null && (
+      {chiefSessionForDecision != null && (
         <DecisionWorkspaceHost
           session={chiefSessionForDecision}
           tenderId={item.id}
@@ -232,7 +232,8 @@ export function TenderWorkflowHubPanel({
           className="text-[10px] text-muted-foreground px-1"
           data-s2-hub-hierarchy-cue
         >
-          PRIMARY decyzja człowieka: Decision Workspace · legacy GO/HOLD = compatibility
+          PRIMARY decyzja człowieka: Decision Workspace · Hub: Analiza → Eksperci →
+          Walidacja → Rekomendacja → Decyzja · legacy GO/HOLD = compatibility
         </p>
       )}
 
@@ -240,26 +241,27 @@ export function TenderWorkflowHubPanel({
         id="tender-progress-accordion"
         className="rounded-xl border border-border bg-card overflow-hidden group"
         data-tender-progress-accordion
+        data-s4-recovery="1"
         open={progressDefaultOpen}
       >
         <summary className="px-4 py-2.5 min-h-[44px] cursor-pointer list-none flex items-center justify-between gap-2 bg-secondary/30 border-b border-transparent group-open:border-border/60 transition-colors duration-150 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30">
           <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-            Szczegóły postępu
+            Szczegóły / Intelligence (recovery)
           </span>
           <span className="text-[10px] text-muted-foreground" aria-hidden>rozwiń</span>
         </summary>
         <div className="px-4 py-3 space-y-4">
-          {commandLayerActive && (
-            <TenderAnalysisStatusStrip
-              item={item}
-              swz={swz}
-              bidProposal={ownerFinanceProposal}
-              dossierBuilding={dossierBuilding}
-              dossierSaving={dossierSaving}
-              autoRunning={autoRunning}
-              kosztorysSession={kosztorysSession}
-            />
-          )}
+          {insightsRecovery}
+
+          <TenderAnalysisStatusStrip
+            item={item}
+            swz={swz}
+            bidProposal={ownerFinanceProposal}
+            dossierBuilding={dossierBuilding}
+            dossierSaving={dossierSaving}
+            autoRunning={autoRunning}
+            kosztorysSession={kosztorysSession}
+          />
 
           <TenderWorkspaceV2Panel
             item={item}
@@ -267,15 +269,13 @@ export function TenderWorkflowHubPanel({
             intelligenceCtx={intelligenceCtx}
             onNavigateTab={onNavigateTab}
             hubDensity={commandLayerActive}
-            skipProgressSection={commandLayerActive}
-            skipInsightsSection={commandLayerActive}
+            skipProgressSection
+            skipInsightsSection
           />
 
           <WorkflowHubBlockersSection ctx={intelligenceCtx} />
 
-          {commandLayerActive && (
-            <TenderWorkspaceV2ChecklistCompact item={item} swz={swz} />
-          )}
+          <TenderWorkspaceV2ChecklistCompact item={item} swz={swz} />
 
           <WorkflowHubPositionsFileDisplay
             view={intelligenceCtx.positions}

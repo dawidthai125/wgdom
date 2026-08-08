@@ -133,6 +133,7 @@ export function TenderWorkflowPrimaryAction({
   };
 
   // MFS-01: mobile command-layer CTA — krótki busy label (logika busy bez zmian).
+  // S4: Expert ON + ownerDecision → Decyzja Decydenta (DW PRIMARY · Hub hierarchy).
   const displayButtonLabel =
     commandLayerChrome && view.busy
       ? "Przetwarzam…"
@@ -151,6 +152,7 @@ export function TenderWorkflowPrimaryAction({
       data-tender-primary-action-chrome={commandLayerChrome ? "command-layer" : "content"}
       data-mfs01-cta-compact={commandLayerChrome ? "true" : undefined}
       data-s2-suppress-owner-commit={expertEffective && view.nextAction.ownerDecision ? "1" : "0"}
+      data-s4-cta-to-decision={expertEffective && view.nextAction.ownerDecision ? "1" : "0"}
     >
       <div
         className={

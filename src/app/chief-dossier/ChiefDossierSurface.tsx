@@ -44,22 +44,13 @@ export function ChiefDossierSurface({
         <p className="text-[10px] text-muted-foreground mt-0.5">{vm.subtitlePl}</p>
       </div>
 
-      <div className="px-4 py-3 space-y-3">
+      <div className="px-4 py-3 space-y-3" data-s4-chief-order="trace-ew-offer">
         <ChiefSessionStatusBar vm={vm} />
 
         {isEmptyish && vm.emptyMessagePl && (
           <p className={`${TEUX_FONT_BODY} text-muted-foreground`} data-chief-empty-message>
             {vm.emptyMessagePl}
           </p>
-        )}
-
-        {vm.showOffer && vm.primaryRecommendation && (
-          <ChiefOfferRecommendation
-            primaryRecommendation={vm.primaryRecommendation}
-            scenarios={vm.scenarios}
-            decisionMakerPayload={vm.decisionMakerPayload}
-            offerHandoffPayload={vm.offerHandoffPayload}
-          />
         )}
 
         {vm.showBlockers && <ChiefBlockersPanel blockersPl={vm.blockersPl} />}
@@ -75,10 +66,22 @@ export function ChiefDossierSurface({
 
         {vm.showTimeline && <ChiefTaskTimeline rows={vm.taskRows} />}
 
+        {/* S4 LOCKED: Trace → Expert Workspace → Offer Recommendation */}
         {vm.showTraces && <ChiefExpertTraceList slots={vm.traceSlots} />}
 
         {expertWorkspaceVm != null && (
           <ExpertWorkspaceSurface vm={expertWorkspaceVm} />
+        )}
+
+        {vm.showOffer && vm.primaryRecommendation && (
+          <div data-s4-step="rekomendacja">
+            <ChiefOfferRecommendation
+              primaryRecommendation={vm.primaryRecommendation}
+              scenarios={vm.scenarios}
+              decisionMakerPayload={vm.decisionMakerPayload}
+              offerHandoffPayload={vm.offerHandoffPayload}
+            />
+          </div>
         )}
       </div>
     </section>

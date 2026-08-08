@@ -163,7 +163,9 @@ export function TenderWorkspaceV2InsightsCompact({
       className="rounded-xl border border-border bg-card overflow-hidden"
     >
       <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30">
-        <h2 className={`${TEUX_SECTION_TITLE} text-foreground`}>Podsumowanie oferty</h2>
+        <h2 className={`${TEUX_SECTION_TITLE} text-foreground`}>
+          Alerty / Intelligence (recovery)
+        </h2>
       </div>
       <div className="px-4 py-3 space-y-2">
         {visibleInsights.length > 0 ? (

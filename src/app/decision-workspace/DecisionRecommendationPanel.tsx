@@ -68,8 +68,10 @@ export function DecisionRecommendationPanel({
 
   return (
     <section
-      className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 space-y-3"
+      className="rounded-lg border border-border/60 bg-secondary/10 px-3 py-3 space-y-3"
       data-decision-recommendation-panel
+      data-s4-step="rekomendacja"
+      data-s4-pln-chrome="secondary"
     >
       <div>
         <p className={TEUX_SECTION_TITLE}>Rekomendacja Oferty</p>
@@ -80,12 +82,12 @@ export function DecisionRecommendationPanel({
           {OFFER_PLN_SOURCE_BADGE_PL}
         </p>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
-          Strategia: {primary.strategy} · nie jest to Twoja decyzja
+          Strategia: {primary.strategy} · nie jest to Twoja decyzja · kwota primary w Hub
         </p>
       </div>
 
       <p
-        className={`text-xl font-bold ${TEUX_FONT_MONO}`}
+        className={`text-base font-semibold tabular-nums ${TEUX_FONT_MONO}`}
         data-s3-dw-primary-pln={String(primary.offerPricePln)}
       >
         {formatPlnDisplay(primary.offerPricePln)}

@@ -51,14 +51,19 @@ export function DecisionWorkspaceSurface({
           </p>
         )}
 
-        <DecisionValidationSummary vm={vm} />
+        {/* S4 LOCKED: Validation → Recommendation → Findings → Actions */}
+        <div data-s4-step="walidacja">
+          <DecisionValidationSummary vm={vm} />
+        </div>
         <DecisionRecommendationPanel
           vm={vm}
           selectedScenarioStrategy={selectedScenarioStrategy}
           onSelectScenario={onSelectScenario}
         />
         <DecisionFindingsPanel vm={vm} />
-        <DecisionActionsBar vm={vm} onAction={onAction} />
+        <div data-s4-step="decyzja">
+          <DecisionActionsBar vm={vm} onAction={onAction} />
+        </div>
       </div>
     </section>
   );

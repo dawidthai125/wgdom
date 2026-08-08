@@ -41,17 +41,18 @@ export function ChiefOfferRecommendation({
 }) {
   return (
     <section
-      className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 space-y-3"
+      className="rounded-lg border border-border/60 bg-secondary/10 px-3 py-3 space-y-3"
       data-chief-offer-recommendation
+      data-s4-pln-chrome="secondary"
     >
       <div>
         <p className={TEUX_SECTION_TITLE}>Rekomendacja Oferty</p>
         <p className={`${TEUX_FONT_CAPTION} text-muted-foreground mt-0.5`}>
-          Strategia: {primaryRecommendation.strategy}
+          Strategia: {primaryRecommendation.strategy} · kwota w Hub (primary)
         </p>
       </div>
 
-      <p className={`text-xl font-bold ${TEUX_FONT_MONO}`}>
+      <p className={`text-base font-semibold tabular-nums ${TEUX_FONT_MONO}`}>
         {formatPlnDisplay(primaryRecommendation.offerPricePln)}
       </p>
       {primaryRecommendation.summaryPl && (

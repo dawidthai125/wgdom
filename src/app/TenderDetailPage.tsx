@@ -332,10 +332,10 @@ export function TenderDetailPage({
   const prevCostTabRef = useRef<TenderDetailV4TabId>(activeTab);
   const scrollSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [pendingIntelligenceScroll, setPendingIntelligenceScroll] = useState(false);
+  const [pendingHubScroll, setPendingHubScroll] = useState(false);
 
-  const scrollToIntelligenceHub = useCallback((behavior: ScrollBehavior = "smooth") => {
-    const hub = document.getElementById("tender-intelligence-hub");
+  const scrollToWorkflowHub = useCallback((behavior: ScrollBehavior = "smooth") => {
+    const hub = document.querySelector("[data-tender-workflow-hub]");
     const root = scrollRootRef.current;
     if (!hub || !root) return;
     const hubTop = hub.getBoundingClientRect().top;
@@ -346,16 +346,16 @@ export function TenderDetailPage({
 
   const handleIntelligenceShortcutClick = useCallback(() => {
     if (activeTab !== "przetarg") {
-      setPendingIntelligenceScroll(true);
+      setPendingHubScroll(true);
       handleTabChange("przetarg");
       return;
     }
-    scrollToIntelligenceHub();
-  }, [activeTab, handleTabChange, scrollToIntelligenceHub]);
+    scrollToWorkflowHub();
+  }, [activeTab, handleTabChange, scrollToWorkflowHub]);
 
   useEffect(() => {
-    if (activeTab !== "przetarg" || !pendingIntelligenceScroll) return;
-    setPendingIntelligenceScroll(false);
+    if (activeTab !== "przetarg" || !pendingHubScroll) return;
+    setPendingHubScroll(false);
 
     let cancelled = false;
     let frames = 0;
@@ -363,10 +363,10 @@ export function TenderDetailPage({
 
     const tick = () => {
       if (cancelled) return;
-      const hub = document.getElementById("tender-intelligence-hub");
+      const hub = document.querySelector("[data-tender-workflow-hub]");
       const root = scrollRootRef.current;
       if (hub && root) {
-        scrollToIntelligenceHub("instant");
+        scrollToWorkflowHub("instant");
         const hubRect = hub.getBoundingClientRect();
         const rootRect = root.getBoundingClientRect();
         const intersects = hubRect.bottom > rootRect.top && hubRect.top < rootRect.bottom;
@@ -380,7 +380,7 @@ export function TenderDetailPage({
     return () => {
       cancelled = true;
     };
-  }, [activeTab, pendingIntelligenceScroll, scrollToIntelligenceHub]);
+  }, [activeTab, pendingHubScroll, scrollToWorkflowHub]);
 
   const suggestedCostTab = useMemo(
     () => resolveSuggestedCostV4Tab(bootstrapItem),
@@ -507,6 +507,7 @@ export function TenderDetailPage({
             type="button"
             onClick={handleIntelligenceShortcutClick}
             className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 py-1 min-h-11 lg:min-h-8 ${TEUX_FONT_CAPTION} font-semibold text-foreground touch-manipulation hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40`}
+            data-tender-hub-shortcut
             data-tender-intelligence-shortcut
           >
             {buildIntelligenceHubShortcutLabel()}

@@ -43,9 +43,12 @@ export function buildProcessStripYouAreHereLabel(stageLabel: string): string {
   return `Tu jesteś — ${stageLabel}`;
 }
 
-/** NG-08-03 — Intelligence hub shortcut w Command Layer (WF-03a). */
+/**
+ * NG-08-03 / TM-01 S4 — Hub shortcut w Command Layer.
+ * Label ≠ „Podsumowanie oferty” (nie SSOT procesu). Scroll → [data-tender-workflow-hub].
+ */
 export function buildIntelligenceHubShortcutLabel(): string {
-  return "Podsumowanie oferty";
+  return "Hub przetargu";
 }
 
 /** NG-08-05 — sugerowany pierwszy tab kosztowy (WF-05 · RC-01). */
