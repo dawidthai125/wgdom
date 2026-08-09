@@ -29,6 +29,11 @@ export function useChiefOrchestratorSession(opts: {
   /** Auto-start gdy ready (default true). */
   autoStart?: boolean;
   maxReturnLoops?: number;
+  /**
+   * DEMAND-RESEARCH-01 S0 — bump po Quotes ACCEPT → re-assemble Chief (Cost refresh).
+   * Nie remount / nie full reload.
+   */
+  refreshNonce?: number;
 }): ChiefSessionOutput {
   const {
     enabled,
@@ -37,6 +42,7 @@ export function useChiefOrchestratorSession(opts: {
     pricingReadyFinal = false,
     autoStart = true,
     maxReturnLoops,
+    refreshNonce = 0,
   } = opts;
 
   const engineRef = useRef(
@@ -64,8 +70,8 @@ export function useChiefOrchestratorSession(opts: {
       item.updatedAt ??
       "";
     const pv = item.tenderDossier?.parserVersion ?? "";
-    return `${item.id}|${dossierTs}|${pv}|${pricingReady ? "1" : "0"}`;
-  }, [item, pricingReady]);
+    return `${item.id}|${dossierTs}|${pv}|${pricingReady ? "1" : "0"}|rn:${refreshNonce}`;
+  }, [item, pricingReady, refreshNonce]);
 
   useEffect(() => {
     const engine = engineRef.current;

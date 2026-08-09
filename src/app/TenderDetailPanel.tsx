@@ -107,6 +107,7 @@ export function TenderDetailPanel({
   chiefDossierVm = null,
   expertWorkspaceVm = null,
   chiefSessionForDecision = null,
+  onPriceResearchAccepted,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -142,6 +143,8 @@ export function TenderDetailPanel({
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DECISION-WORKSPACE-01 — Session output for Decision Host (null = off tab). */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
+  /** DEMAND-RESEARCH-01 S0 — Chief Cost refresh po manual Quotes ACCEPT. */
+  onPriceResearchAccepted?: () => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -700,6 +703,7 @@ export function TenderDetailPanel({
               chiefDossierVm={chiefDossierVm}
               expertWorkspaceVm={expertWorkspaceVm}
               chiefSessionForDecision={chiefSessionForDecision}
+              onPriceResearchAccepted={onPriceResearchAccepted}
               operatorSection={(
                 <TenderWorkflowOperatorSection
                   item={item}

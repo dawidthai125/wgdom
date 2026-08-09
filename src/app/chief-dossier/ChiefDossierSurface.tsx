@@ -25,10 +25,14 @@ const EMPTY_PHASES = new Set([
 export function ChiefDossierSurface({
   vm,
   expertWorkspaceVm = null,
+  tenderId = null,
+  onPriceResearchAccepted,
 }: {
   vm: ChiefDossierViewModel;
   /** WIRE-EXPERTS-UI-01 — Slot A under Trace. */
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
+  tenderId?: string | null;
+  onPriceResearchAccepted?: () => void;
 }) {
   const isEmptyish = EMPTY_PHASES.has(vm.uiPhase);
 
@@ -70,7 +74,11 @@ export function ChiefDossierSurface({
         {vm.showTraces && <ChiefExpertTraceList slots={vm.traceSlots} />}
 
         {expertWorkspaceVm != null && (
-          <ExpertWorkspaceSurface vm={expertWorkspaceVm} />
+          <ExpertWorkspaceSurface
+            vm={expertWorkspaceVm}
+            tenderId={tenderId}
+            onPriceResearchAccepted={onPriceResearchAccepted}
+          />
         )}
 
         {vm.showOffer && vm.primaryRecommendation && (

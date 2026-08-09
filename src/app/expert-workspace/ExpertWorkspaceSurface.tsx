@@ -1,8 +1,6 @@
 /**
- * WIRE-EXPERTS-UI-01 — READ ONLY surface.
- * Jedyny input render: ExpertWorkspaceViewModel.
+ * WIRE-EXPERTS-UI-01 — READ ONLY surface + DEMAND-RESEARCH-01 S0 CTA na Cost.
  * Kolejność LOCKED: EE → ME → PE → Cost → Offer.
- * Zero CTA — brak akcji decyzyjnych / ponownego uruchomienia.
  */
 
 import { TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
@@ -15,8 +13,12 @@ import { PricingDetailsPanel } from "./PricingDetailsPanel";
 
 export function ExpertWorkspaceSurface({
   vm,
+  tenderId = null,
+  onPriceResearchAccepted,
 }: {
   vm: ExpertWorkspaceViewModel;
+  tenderId?: string | null;
+  onPriceResearchAccepted?: () => void;
 }) {
   if (vm.uiPhase === "hidden") return null;
 
@@ -41,7 +43,11 @@ export function ExpertWorkspaceSurface({
           <ExecutionDetailsPanel view={vm.execution} />
           <MaterialsDetailsPanel view={vm.materials} />
           <PricingDetailsPanel view={vm.pricing} />
-          <CostDetailsPanel view={vm.cost} />
+          <CostDetailsPanel
+            view={vm.cost}
+            tenderId={tenderId}
+            onPriceResearchAccepted={onPriceResearchAccepted}
+          />
           <OfferDetailsPanel view={vm.offer} />
         </div>
       </details>

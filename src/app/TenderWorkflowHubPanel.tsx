@@ -66,6 +66,7 @@ export function TenderWorkflowHubPanel({
   chiefDossierVm = null,
   expertWorkspaceVm = null,
   chiefSessionForDecision = null,
+  onPriceResearchAccepted,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -93,6 +94,8 @@ export function TenderWorkflowHubPanel({
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
   chiefSessionForDecision?: ChiefSessionOutput | null;
+  /** DEMAND-RESEARCH-01 S0 — po Quotes ACCEPT → Chief Cost refresh. */
+  onPriceResearchAccepted?: () => void;
 }) {
   const expertEffective = isExpertAiRuntimeEffective();
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
@@ -230,6 +233,8 @@ export function TenderWorkflowHubPanel({
           <ChiefDossierSurface
             vm={chiefDossierVm}
             expertWorkspaceVm={expertWorkspaceVm}
+            tenderId={item.id}
+            onPriceResearchAccepted={onPriceResearchAccepted}
           />
         </div>
       )}

@@ -230,11 +230,13 @@ export function TenderDetailPage({
   });
 
   const chiefSessionEnabled = isChiefSessionStackEnabled(expertEffective);
+  const [chiefRefreshNonce, setChiefRefreshNonce] = useState(0);
   const chiefSession = useChiefOrchestratorSession({
     enabled: chiefSessionEnabled && Boolean(item),
     item: item ?? null,
     pricingReadyPartial: pipelineRuntime.pricingReadyPartial,
     pricingReadyFinal: pipelineRuntime.pricingReadyFinal,
+    refreshNonce: chiefRefreshNonce,
   });
   const chiefDossierVm: ChiefDossierViewModel | null = useMemo(() => {
     if (!chiefSessionEnabled) return null;
@@ -762,6 +764,7 @@ export function TenderDetailPage({
               chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
               expertWorkspaceVm={activeTab === "przetarg" ? expertWorkspaceVm : null}
               chiefSessionForDecision={chiefSessionForDecision}
+              onPriceResearchAccepted={() => setChiefRefreshNonce((n) => n + 1)}
             />
           )}
         </div>

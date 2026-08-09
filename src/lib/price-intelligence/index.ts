@@ -59,6 +59,34 @@ export {
   type RecordPriceDemandsResult,
 } from "./demand-record";
 
+/* —— DEMAND-RESEARCH-01 S0: manual market research —— */
+export type {
+  ManualPriceResearchFormInput,
+  ManualPriceResearchValidationError,
+  ManualResearchProviderId,
+  PriceCandidate,
+  PriceCandidateSourceType,
+} from "./price-candidate-types";
+
+export {
+  MANUAL_RESEARCH_PROVIDER_LABELS_PL,
+  acceptManualMarketPriceResearch,
+  acceptManualMarketPriceResearchPure,
+  buildManualMarketQuotesPreview,
+  buildPriceCandidateFromManualInput,
+  manualProviderSourceLabel,
+  mapManualProviderToQuoteOrigin,
+  validateManualPriceResearchInput,
+  type AcceptManualMarketPriceResearchOpts,
+  type AcceptManualMarketPriceResearchResult,
+} from "./manual-price-research";
+
+export {
+  isDemandResearchableS0,
+  listActiveMarketLayerDemands,
+  resolveMarketLayerForDemand,
+} from "./demand-resolve-layer";
+
 /* —— PROVIDERS-01 P0: faktury → COMPANY PURCHASE —— */
 export type {
   InvoiceLineStatus,

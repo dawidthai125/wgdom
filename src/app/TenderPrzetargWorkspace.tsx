@@ -79,6 +79,7 @@ export function TenderPrzetargWorkspace({
   chiefDossierVm = null,
   expertWorkspaceVm = null,
   chiefSessionForDecision = null,
+  onPriceResearchAccepted,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -107,6 +108,8 @@ export function TenderPrzetargWorkspace({
   chiefDossierVm?: ChiefDossierViewModel | null;
   /** WIRE-EXPERTS-UI-01 — Expert Details VM (Slot A). */
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
+  /** DEMAND-RESEARCH-01 S0 — Chief Cost refresh po manual Quotes ACCEPT. */
+  onPriceResearchAccepted?: () => void;
   /** DECISION-WORKSPACE-01 — Session → Decision Host. */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {
@@ -150,6 +153,7 @@ export function TenderPrzetargWorkspace({
         chiefDossierVm={chiefDossierVm}
         expertWorkspaceVm={expertWorkspaceVm}
         chiefSessionForDecision={chiefSessionForDecision}
+        onPriceResearchAccepted={onPriceResearchAccepted}
       />
 
       {portfolioPosition && handleOpenStrategy && (
