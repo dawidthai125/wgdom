@@ -1,5 +1,5 @@
 /**
- * PRICE-INTELLIGENCE-01 P3.1 — public API.
+ * PRICE-INTELLIGENCE-01 + PROVIDERS-01 P0 — public API.
  */
 
 export {
@@ -58,3 +58,63 @@ export {
   savePriceDemandStoreLocal,
   type RecordPriceDemandsResult,
 } from "./demand-record";
+
+/* —— PROVIDERS-01 P0: faktury → COMPANY PURCHASE —— */
+export type {
+  InvoiceLineStatus,
+  InvoiceRejectReason,
+  RawInvoiceLineInput,
+  ParsedInvoiceLine,
+  RejectedInvoiceLine,
+  ParseInvoiceLineResult,
+  NormalizedInvoiceProduct,
+  InvoicePriceProvenance,
+  InvoicePriceObservation,
+  InvoiceMapStatus,
+  InvoiceMaterialMapping,
+  MappedInvoicePurchaseCandidate,
+  InvoiceProductPriceHistory,
+} from "./invoice-types";
+
+export {
+  normalizeInvoiceUnit,
+  resolveEffectiveNetUnitPrice,
+  parseInvoiceLine,
+  parseInvoiceLines,
+} from "./invoice-parse";
+
+export {
+  buildSupplierKey,
+  buildNormalizedProductName,
+  buildProductIdentityKey,
+  inferManufacturerIfExplicit,
+  normalizeInvoiceProduct,
+} from "./invoice-normalize";
+
+export {
+  buildInvoiceObservationId,
+  observationFromParsedLine,
+  buildInvoiceProductPriceHistory,
+  buildAllInvoiceProductHistories,
+} from "./invoice-history";
+
+export {
+  mapInvoiceProductToMaterial,
+  buildMappedPurchaseCandidate,
+  buildMappedPurchaseCandidates,
+  INVOICE_ETICS_APPROVED_MATERIAL_KEYS,
+  type InvoiceEticsApprovedMaterialKey,
+} from "./invoice-etics-map";
+
+export {
+  COMPANY_PURCHASE_INVOICE_ORIGIN_LABEL,
+  acceptInvoicePurchaseCandidates,
+  acceptInvoicePurchaseCandidatesLocal,
+  invoiceAcceptWritesMarketQuotes,
+  type AcceptInvoicePurchaseResult,
+} from "./invoice-accept-purchase";
+
+export {
+  processInvoiceCompanyPurchaseBatch,
+  type InvoiceCompanyPurchaseBatchResult,
+} from "./invoice-pipeline";
