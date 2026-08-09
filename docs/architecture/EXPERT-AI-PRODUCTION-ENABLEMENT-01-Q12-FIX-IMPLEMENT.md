@@ -1,9 +1,11 @@
 # EXPERT-AI-PRODUCTION-ENABLEMENT-01 — Q12 FIX IMPLEMENT (thin)
 
-> **STATUS:** IMPLEMENT complete · waiting **OWNER VERIFY** (browser Q12) → **OWNER GO → COMMIT**  
+> **STATUS:** **SHIPPED** · feature **`4ba06032`** · prod **`4ba0603`** · **Q12 PV PASS**  
 > **Date:** 2026-08-09  
-> **Baseline tip:** `29a48fb3` · UI **2.66.22**  
-> **SSOT DF:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-DESIGN-FREEZE.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-DESIGN-FREEZE.md)
+> **Baseline tip (pre-fix):** `29a48fb3` · UI **2.66.22**  
+> **SSOT DF:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-DESIGN-FREEZE.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-DESIGN-FREEZE.md)  
+> **PV:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md)  
+> **CLOSEOUT:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md)
 
 ## One-liner
 
@@ -37,6 +39,12 @@ nowIso     = stableCaseStamp  → engine.start → dossier.finishedAt
 
 Persist API · DecisionWorkspaceHost · Chief BC · adapters · Experts · `useTenderOfferRun.ts` (LOCAL M protected).
 
-## NEXT
+## Shipped / PV
 
-OWNER browser Q12 re-test → OWNER GO → COMMIT · **no** push/deploy/CLOSEOUT until Owner says so.
+| Gate | Status |
+|------|--------|
+| COMMIT feature | **`4ba06032`** |
+| PUSH / prod | **`4ba0603`** · UI **2.66.22** |
+| Q12 write + reload hydrate | **PASS** |
+| Content invalidation live | **NOT TESTED** |
+| Epic CLOSEOUT | [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md) |

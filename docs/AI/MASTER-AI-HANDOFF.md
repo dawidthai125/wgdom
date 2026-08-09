@@ -3,7 +3,7 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-08  
+> **Data:** 2026-08-09  
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
@@ -14,9 +14,10 @@
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
 START = WGDOM-COLD-START-HANDOFF → TEN plik → 09 + version.json
-Tip = 09 + version.json → 2.66.22 / df6c104a (TENDER-MODERNIZATION-01 EPIC CLOSED · S9 C0 · PRODUCTION VERIFIED)
+Tip = 09 + version.json → 2.66.22 / 4ba06032 (EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED · Q12 FIX VERIFIED · PRODUCTION VERIFIED)
+Feature tip Enablement + Q12 Case identity = 4ba06032
+Prior docs tip TM-01 S9 EPIC CLOSE = df6c104a
 Feature tip TM-01 S7 TRE Hub-first = 617f0cb5
-Docs tip TM-01 S9 EPIC CLOSE = df6c104a (+ final closeout tip after this pack)
 Prior docs tip TM-01 S8 HOLD REMOVE = 9231cc6b
 Prior TM-01 S6 Persist→legacy bridge = cb91027d
 Prior TM-01 S5 Tab Decyzja→DW = ebae3d2e (CLOSED · historyczny tip)
@@ -37,15 +38,16 @@ Prior EXPERTS-P0 = 58872663 (CLOSED)
 Prior Technology-First B0 = d9bb4c57 (CLOSED)
 Prior FOUNDATION TS-A0+A1 = 8202d990 (CLOSED)
 Prior COST-KNOWLEDGE A0+A1 = 9c0901d6 (CLOSED)
-Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE complete
+Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Expert AI Production Enablement + Q12 Case identity stable
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 TM-01 = EPIC CLOSED · S0–S9 = CLOSED · S8 = HOLD REMOVE · S9 = C0 docs-only (ZERO code)
+EXPERT-AI-PRODUCTION-ENABLEMENT-01 = CLOSED · Q12 PV PASS · content invalidation NOT TESTED
 NEXT = residual C1–C6 / new epic · tylko Owner GO → AUDIT · NIE invent S10
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
 Cloud persist / Audit Hub / Wire Pack→CI/UI / A2/A3/Learning · WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
-Expert AI enablement / S3-D / Bid retirement / hard REMOVE / reopen TM-01 = tylko Owner GO
+S3-D / Bid retirement / hard REMOVE / reopen TM-01 / Bid Time-Load Guard izolowany COMMIT / useTenderOfferRun WIP = tylko Owner GO
 ```
 
 ---
@@ -175,6 +177,7 @@ Expert · Chief · Session · Validation · Adapters · Technology/TF · OfferBo
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
+| **EXPERT-AI-PRODUCTION-ENABLEMENT-01 / Q12** | **2.66.22** tip | **`4ba06032`** | **EPIC CLOSED** · master gate `expertAiDecydentEnabled` · Q12 `stableCaseStamp` Case identity · Persist UNCHANGED · content invalidation **NOT TESTED** · S2 44/45 PRE-EXISTING OUT | **YES** · [`CLOSEOUT`](../architecture/EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md) · [`Q12 PV`](../architecture/EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md) |
 | **TENDER-MODERNIZATION-01 / S8** | **2.66.22** tip | **`9231cc6b`** | **S8 CLOSED HOLD** · ZERO functional code · NO hard REMOVE · surfaces KEEP · 4 symbols KEEP · feature tip remains **`617f0cb5`** · EPIC residual ≠ auto-CLOSED | **YES** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S8-CLOSEOUT.md) · [`PV`](../architecture/TENDER-MODERNIZATION-01-S8-PRODUCTION-VERIFY.md) |
 | **TENDER-MODERNIZATION-01 / S7** | **2.66.22** tip | **`617f0cb5`** | **S7 CLOSED** · Hub-first DEFAULT=false · Expert ON never auto Outcome · DetailPage recovery CTA · Expert OFF LS=1 R0 · HubPanel CTA ZERO · Outcome/OfferRun/Bid/OfferBoq/S6 KEEP · tip deploy supersedowany przez S8 docs | **YES** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S7-CLOSEOUT.md) · [`PV`](../architecture/TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) |
 | **TENDER-MODERNIZATION-01 / S6** | **2.66.22** tip hist. | **`cb91027d`** | **S6 CLOSED** · Persist-first → map → `setOwnerDecision` · approve→GO · reject→NO-GO · needs_review→HOLD · scoringBundle REUSE · ZERO mirror on Persist FAIL · tip supersedowany przez S7 | **YES** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S6-CLOSEOUT.md) · [`PV`](../architecture/TENDER-MODERNIZATION-01-S6-PRODUCTION-VERIFY.md) |
@@ -373,7 +376,8 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 **Rekomendacja #1:** **UTRZYMANIE** — residual **C1–C6** / new epic — **tylko Owner GO** → **AUDIT** ([`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`COLD-START`](WGDOM-COLD-START-HANDOFF.md)). **NIE** invent S10.
 
-Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/MIGRATE · S3-D · Bid retirement · hard REMOVE after L8 · EXPERT-AI-PRODUCTION-ENABLEMENT-01 · Cloud Decision Persist / Audit Hub · Wire Pack→CI/UI · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT · `useTenderOfferRun` WIP.
+Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/MIGRATE · S3-D · Bid retirement · hard REMOVE after L8 · Cloud Decision Persist / Audit Hub · Wire Pack→CI/UI · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT · `useTenderOfferRun` WIP · S2 DetailPage raw Session call (pre-existing 44/45).
+
 
 **Zakaz:** auto-start **OST-03** · XFA · cache filled · WIM-P1b · MOBILE-P2 · invent S10 · Expert AI enablement bez GO · global ON `tendersTabForStaffEnabled`.
 

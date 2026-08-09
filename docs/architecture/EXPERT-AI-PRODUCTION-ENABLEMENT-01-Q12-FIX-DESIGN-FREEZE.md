@@ -1,12 +1,15 @@
 # EXPERT-AI-PRODUCTION-ENABLEMENT-01 — Q12 FIX DESIGN FREEZE
 
-> **STATUS:** **DESIGN FREEZE** · **LOCKED** · IMPLEMENT shipped (waiting Owner Q12 re-verify + COMMIT)  
+> **STATUS:** **DESIGN FREEZE LOCKED** · **SHIPPED** · **Q12 PV PASS** · see CLOSEOUT  
 > **ID:** EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-DF  
 > **Date:** 2026-08-09  
-> **Baseline prod:** UI **2.66.22** / tip **`29a48fb3`**  
+> **Baseline pre-fix:** UI **2.66.22** / tip **`29a48fb3`**  
+> **Shipped tip:** UI **2.66.22** / **`4ba06032`** (`4ba0603`)  
 > **RCA:** CONFIRMED — Session wall-clock remint of Case identity  
 > **Direction:** **OPTION A** — stabilize existing Case identity (Persist contract unchanged)  
-> **IMPLEMENT thin:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-IMPLEMENT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-IMPLEMENT.md)
+> **IMPLEMENT:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-IMPLEMENT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-IMPLEMENT.md)  
+> **PV:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md)  
+> **CLOSEOUT:** [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md)
 
 ```text
 ════════════════════════════════════════════════════════
@@ -34,8 +37,9 @@ NO third store · NO relaxed hydrate · NO useTenderOfferRun touch
 | Gate | Status |
 |------|--------|
 | OWNER GO → DESIGN FREEZE | **ISSUED** |
-| OWNER GO → IMPLEMENT | **ISSUED** · code in working tree (no commit yet) |
-| OWNER GO → COMMIT | **PENDING** |
+| OWNER GO → IMPLEMENT | **ISSUED** |
+| OWNER GO → COMMIT / PUSH / PV | **DONE** · feature **`4ba06032`** · Q12 **PASS** |
+| OWNER GO → CLOSEOUT docs | **IN PROGRESS** (docs-only) |
 
 ---
 
@@ -299,10 +303,10 @@ git revert <fix-commit>
 
 ```text
 DESIGN FREEZE COMPLETE / LOCKED
+IMPLEMENT + COMMIT + PUSH + Q12 PV = PASS (4ba06032)
 
-IMPLEMENT shipped (working tree) — see Q12-FIX-IMPLEMENT.md
-
-STOP — no COMMIT until Owner Q12 browser re-verify + OWNER GO → COMMIT
+Content invalidation live = NOT TESTED
+S2 44/45 = PRE-EXISTING on 29a48fb3 · OUT
 ```
 
-CLOSEOUT remains **BLOCKED** until Owner Q12 re-verify PASS + COMMIT/PUSH/PV.
+Epic CLOSEOUT: [`EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md`](EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md).
