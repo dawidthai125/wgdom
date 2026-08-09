@@ -14,8 +14,9 @@
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
 START = WGDOM-COLD-START-HANDOFF → TEN plik → 09 + version.json
-Tip = 09 + version.json → 2.66.22 / 1902daa7 (EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED · PRODUCTION VERIFIED)
-Feature tip P0 Dual-Enablement = 1902daa7
+Tip = 09 + version.json → 2.66.22 / ae426ad6 (INTELIGENTNY-KOSZTORYSANT-UX CLOSED · PRODUCTION VERIFIED)
+Feature tip Inteligentny Kosztorysant UX = ae426ad6
+Prior feature P0 Dual-Enablement = 1902daa7
 Prior feature Enablement + Q12 Case identity = 4ba06032
 Prior docs tip Enablement closeout = f5f598c5
 Prior docs tip TM-01 S9 EPIC CLOSE = df6c104a
@@ -40,9 +41,10 @@ Prior EXPERTS-P0 = 58872663 (CLOSED)
 Prior Technology-First B0 = d9bb4c57 (CLOSED)
 Prior FOUNDATION TS-A0+A1 = 8202d990 (CLOSED)
 Prior COST-KNOWLEDGE A0+A1 = 9c0901d6 (CLOSED)
-Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Expert AI Production Enablement + Q12 Case identity stable + P0 Dual-Enablement (M=ACCESS · D=RUNTIME)
+Baseline = Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX (branding + Expert Conversation)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
+INTELIGENTNY-KOSZTORYSANT-UX = CLOSED · PV PASS · tip ae426ad6
 TM-01 = EPIC CLOSED · S0–S9 = CLOSED · S8 = HOLD REMOVE · S9 = C0 docs-only (ZERO code)
 EXPERT-AI-PRODUCTION-ENABLEMENT-01 = CLOSED · Q12 PV PASS · content invalidation NOT TESTED
 EXPERT-AI-P0-DUAL-ENABLEMENT = CLOSED · PV PASS · M≠runtime · D≠access gate
@@ -57,7 +59,7 @@ S3-D / Bid retirement / hard REMOVE / reopen TM-01 / Bid Time-Load Guard izolowa
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.22** / feature tip **`1902daa7`** — **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · **S9 C0 CLOSED** · **S8 HOLD REMOVE CLOSED** · **S7–S0 CLOSED** · **DECISION-PERSIST-01 CLOSED** · **WIRE-EXPERTS-UI-01 CLOSED** · **DECISION-WORKSPACE-01 CLOSED** · **VALIDATION-EXPERT-01 CLOSED** · **WIRE-CHIEF-UI-DOSSIER-01 CLOSED** · **WIRE-CHIEF-SESSION-01 CLOSED** · **WIRE-CHIEF-RO-ADAPTERS-01 CLOSED** · **CHIEF-ORCHESTRATOR-P0 CLOSED** · **EXPERTS-P0 CLOSED** · **PRODUCTION VERIFIED**. Baseline: **Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Enablement + Q12 + P0 Dual-Enablement (M=ACCESS · D=RUNTIME) complete** · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · staff Przetargi module gate · S0 orphan cleanup.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.22** / deploy tip **`ae426ad6`** — **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · prior **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · **S9–S0 CLOSED** · **DECISION-PERSIST-01 CLOSED** · … · **EXPERTS-P0 CLOSED** · **PRODUCTION VERIFIED**. Baseline: **Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX (branding + Expert Conversation) complete** · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · D default **OFF** · staff Przetargi module gate · S0 orphan cleanup.
 
 Ostatnie zamknięte: **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** (EE→ME→PE→Cost→Offer) · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  

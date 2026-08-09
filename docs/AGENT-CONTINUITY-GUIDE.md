@@ -1,7 +1,7 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).  
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip **2.66.22** / **`ae426ad6`** · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).  
 > **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)  
 > **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.  
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
@@ -10,6 +10,8 @@
 > Najpierw czyta: [`WGDOM-COLD-START-HANDOFF`](AI/WGDOM-COLD-START-HANDOFF.md) · [`MASTER-AI-HANDOFF`](AI/MASTER-AI-HANDOFF.md) · [`MASTER_HANDOFF`](AI/MASTER_HANDOFF.md) · [`AI_QUICK_START`](AI/AI_QUICK_START.md) · [`TENDER-MODERNIZATION-01-MASTER`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · aktualny **DESIGN-FREEZE** slice/epicu · dopiero potem Entry + Gate + Owner GO.
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-08-09):** **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · tip UI **2.66.22** / **`ae426ad6`** · branding + Expert Conversation presentation-only · Trace/EW/DW KEEP · no new flag/store/engine/PLN · Persist/Q12 KEEP · D default OFF · PV WM tender `08deec8a…` · harness 47 · SSOT [`architecture/INTELIGENTNY-KOSZTORYSANT-UX-CLOSEOUT.md`](architecture/INTELIGENTNY-KOSZTORYSANT-UX-CLOSEOUT.md) · [`PV`](architecture/INTELIGENTNY-KOSZTORYSANT-UX-PRODUCTION-VERIFY.md) · ACTIVE EPIC = **NONE** · NEXT **WAITING FOR NEXT OWNER GO** · **NIE** invent S10.
 
 > **★ Domknięcie sesji (2026-08-08):** **DOCUMENTATION HANDOFF PACK** · cold-start [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) · TM-01 MASTER · EXPERT-AI · PRICING · LEGACY · DECISION architecture docs · tip **2.66.22** / **`ec8a5044`** · S0–S3 CLOSED · NEXT S4 · WIP `useTenderOfferRun.ts` preserved.
 

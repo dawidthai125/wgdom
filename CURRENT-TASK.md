@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-09 (**EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · tip UI **2.66.22** / **`1902daa7`** · M=ACCESS · D=RUNTIME · PV PASS · prior Q12 **`4ba06032`** · TM-01 EPIC CLOSED) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT residual **C1–C6** / new epic · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-09 (**INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · tip UI **2.66.22** / **`ae426ad6`** · branding + Expert Conversation PV PASS · prior P0 **`1902daa7`** · prior Q12 **`4ba06032`** · TM-01 EPIC CLOSED) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT residual **C1–C6** / new epic · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
@@ -13,14 +13,25 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.22** / **`1902daa7`** · **PRODUCTION VERIFIED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · M=ACCESS · D=RUNTIME · Bid PRIMARY @ D OFF · Offer/NO PRIMARY @ D ON · prior Enablement/Q12 · baseline Experts+Chief+…+S9 · Hub-first · Persist-first KEEP · staff Przetargi module gate · **TM-01 EPIC CLOSED** |
+| Production tip | **2.66.22** / **`ae426ad6`** · **PRODUCTION VERIFIED** · **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · branding + Expert Conversation · prior **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · M=ACCESS · D=RUNTIME · D default OFF · Bid PRIMARY @ D OFF · Offer/NO PRIMARY @ D ON · prior Enablement/Q12 · baseline Experts+Chief+…+S9 · Hub-first · Persist-first KEEP · staff Przetargi module gate · **TM-01 EPIC CLOSED** |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
+| CLOSED | **INTELIGENTNY-KOSZTORYSANT-UX** · **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
 | **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · invent S10 · S3-D · Bid retirement · hard REMOVE · global ON `tendersTabForStaffEnabled` |
 | **NEXT** | **UTRZYMANIE** — residual **C1–C6** / new epic — **WAITING FOR OWNER GO** · **NIE** invent S10 |
 | **Known Residuals (NIE część tipu)** | C1–C6 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` · L8 REMOVE residual |
 
+
+## ★ INTELIGENTNY-KOSZTORYSANT-UX — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED** · tip **2.66.22** / **`ae426ad6`** |
+| **IN** | Hub branding · author credit · Expert Conversation thin VM · presentation timing · Trace/EW/DW KEEP |
+| **OUT** | new flag/store/engine/PLN · Cloud Persist · S10 · protected WIP |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/INTELIGENTNY-KOSZTORYSANT-UX-CLOSEOUT.md) · [`PV`](docs/architecture/INTELIGENTNY-KOSZTORYSANT-UX-PRODUCTION-VERIFY.md) |
+| **PV tender** | `08deec8a-1574-3f3b-ebd1-650001689893` · pustostany ZZK · ATH · OfferBoq 70 · estimate 264400 |
+| **NEXT** | **UTRZYMANIE** — **WAITING FOR OWNER GO** · **NIE** invent S10 |
 
 ## ★ TENDER-MODERNIZATION-01 / S9 — EPIC CLOSE (C0) — **CLOSED**
 

@@ -18,7 +18,7 @@ WGDOM COLD START
 | | |
 |--|--|
 | **Version** | **2.66.22** |
-| **Commit** | **`1902daa7`** (P0 Dual-Enablement) · prior Q12 **`4ba06032`** · prior S9 docs **`df6c104a`** · feature hist. **`617f0cb5`** |
+| **Commit** | **`ae426ad6`** (Inteligentny Kosztorysant UX) · prior P0 **`1902daa7`** · prior Q12 **`4ba06032`** · prior S9 docs **`df6c104a`** · feature hist. **`617f0cb5`** |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **PV** | **PRODUCTION VERIFIED · GREEN** |
@@ -35,10 +35,11 @@ WGDOM COLD START
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **WAITING** | **NEXT OWNER GO** |
-| **Tip feature** | **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 EPIC CLOSED |
+| **Tip feature** | **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **`ae426ad6`** · prior P0 Dual-Enablement **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 EPIC CLOSED |
 
 | Slice | Status |
 |-------|--------|
+| **Inteligentny Kosztorysant UX** | **CLOSED** · **`ae426ad6`** · branding + Expert Conversation · PV PASS |
 | **P0 Dual-Enablement** | **CLOSED** · **`1902daa7`** · M=ACCESS · D=RUNTIME · PV PASS |
 | **Enablement + Q12** | **CLOSED** · **`4ba06032`** |
 | **S0** | **CLOSED** · `5beb082a` |
