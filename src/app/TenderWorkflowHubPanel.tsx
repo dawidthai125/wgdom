@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -39,6 +40,11 @@ import {
   OFFER_PLN_SOURCE_BADGE_PL,
 } from "@/lib/decision-workspace-ui";
 import { formatRecommendedOfferPln } from "@/lib/tender-recommendation-result";
+import { buildExpertConversationViewModel } from "@/lib/expert-conversation-ui";
+import {
+  ExpertConversationSurface,
+  InteligentnyKosztorysantBrand,
+} from "@/app/expert-conversation";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -91,6 +97,11 @@ export function TenderWorkflowHubPanel({
   const expertEffective = isExpertAiRuntimeEffective();
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
+
+  const conversationVm = useMemo(
+    () => buildExpertConversationViewModel(chiefDossierVm),
+    [chiefDossierVm],
+  );
 
   const offerPricePln =
     chiefSessionForDecision?.dossier?.primaryRecommendation?.offerPricePln ??
@@ -198,6 +209,9 @@ export function TenderWorkflowHubPanel({
         </>
       )}
 
+      {/* Inteligentny Kosztorysant — Hub branding (tender detail only) */}
+      <InteligentnyKosztorysantBrand />
+
       {/* S4 — ANALIZA → EKSPERCI → WALIDACJA/REKOMENDACJA/DECYZJA (DW) · Intelligence = recovery */}
       <div data-s4-step="analiza">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 mb-1.5">
@@ -207,10 +221,12 @@ export function TenderWorkflowHubPanel({
       </div>
 
       {chiefDossierVm != null && (
-        <div data-s4-step="eksperci">
+        <div data-s4-step="eksperci" className="space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 mb-1.5">
             Eksperci
           </p>
+          {/* Presentation layer over Trace — D/Session gated via chiefDossierVm */}
+          <ExpertConversationSurface vm={conversationVm} />
           <ChiefDossierSurface
             vm={chiefDossierVm}
             expertWorkspaceVm={expertWorkspaceVm}

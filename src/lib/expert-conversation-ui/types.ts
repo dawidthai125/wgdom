@@ -1,0 +1,53 @@
+/**
+ * Inteligentny Kosztorysant UX — presentational conversation types.
+ * Thin only · ZERO domain / Expert / Chief / Persist BC.
+ */
+
+import type { ChiefDossierIconKey } from "@/lib/chief-dossier-ui";
+
+export type ExpertConversationStepKind =
+  | "chief_start"
+  | "execution"
+  | "materials"
+  | "pricing"
+  | "cost"
+  | "offer"
+  | "chief_final";
+
+export type ExpertConversationStepStatus =
+  | "pending"
+  | "active"
+  | "done"
+  | "blocked"
+  | "skipped";
+
+export interface ExpertConversationStepView {
+  id: ExpertConversationStepKind;
+  actorLabelPl: string;
+  status: ExpertConversationStepStatus;
+  statusLabelPl: string;
+  /** Primary line — from Trace `co` or Chief status (never invented). */
+  messagePl: string;
+  /** Optional secondary — Trace `dlaczego` / failReason (may be empty). */
+  detailPl: string | null;
+  /** Offer PRIMARY PLN display when available (existing field only). */
+  offerPricePln: number | null;
+  offerPriceDisplayPl: string | null;
+  iconKey: ChiefDossierIconKey;
+  /** Presentation pacing weight (chars of message). */
+  messageWeight: number;
+}
+
+export interface ExpertConversationViewModel {
+  /** False ⇒ Surface returns null (Session/Dossier not in Hub). */
+  visible: boolean;
+  titlePl: string;
+  subtitlePl: string;
+  uiPhase: string;
+  caseIdShort: string | null;
+  steps: ExpertConversationStepView[];
+  /** True when Validation/DW may be the next human focus. */
+  readyForDecision: boolean;
+  /** True when any step is blocked/failed. */
+  hasBlocked: boolean;
+}
