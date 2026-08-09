@@ -1,26 +1,14 @@
 /**
  * CompanyCostRo — projekcja pól z profilu firmy + company knowledge.
  * READ ONLY · bez kalkulatora Real Cost / Bid.
+ * PRICE-INTELLIGENCE-01 P1 — Purchase keyed by BOM materialKey (nie entryId).
  */
 
 import type { CompanyCostRo } from "@/lib/cost-expert";
 import { loadCompanyKnowledgeStoreLocal } from "@/lib/tender-offer-boq-company-knowledge";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import { projectPurchaseByMaterialKey } from "./purchase-by-material-key";
 import type { BuildChiefCompanyCostRoResult, ChiefWireAdapterGap } from "./types";
-
-function projectPurchaseByMaterialKey(): CompanyCostRo["purchaseByMaterialKey"] {
-  const store = loadCompanyKnowledgeStoreLocal();
-  const out: Record<string, { unitPricePln: number; labelPl?: string }> = {};
-  for (const entry of store.entries) {
-    const price = entry.lastUnitPricePln ?? entry.avgUnitPricePln;
-    if (typeof price !== "number" || !Number.isFinite(price)) continue;
-    out[entry.entryId] = {
-      unitPricePln: price,
-      labelPl: entry.namePl,
-    };
-  }
-  return Object.freeze(out);
-}
 
 export function buildChiefCompanyCostRo(): BuildChiefCompanyCostRoResult {
   const gaps: ChiefWireAdapterGap[] = [];
@@ -56,12 +44,14 @@ export function buildChiefCompanyCostRo(): BuildChiefCompanyCostRoResult {
     severity: "info",
   });
 
-  const purchaseByMaterialKey = projectPurchaseByMaterialKey();
+  const store = loadCompanyKnowledgeStoreLocal();
+  const purchaseByMaterialKey = projectPurchaseByMaterialKey(store);
   if (Object.keys(purchaseByMaterialKey).length === 0) {
     gaps.push({
       code: "COMPANY_PURCHASE_EMPTY",
       field: "company.purchaseByMaterialKey",
-      messagePl: "Brak cen purchase w company knowledge (pusta mapa).",
+      messagePl:
+        "PRICE DATA MISSING — brak cen Purchase zmapowanych na materialKey (company knowledge).",
       severity: "warn",
     });
   }

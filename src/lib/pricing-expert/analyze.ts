@@ -15,6 +15,7 @@ import { buildPricingExpertContract } from "./interpret";
 import {
   buildMaterialMarketMapIndex,
   mapMaterialToMarketWork,
+  resolveMaterialMarketCoverage,
 } from "./material-market-map";
 import type { MaterialMarketMapEntry, PricingExpertAnalysisResult } from "./types";
 
@@ -60,8 +61,15 @@ export function analyzeMarketPricingFromMaterials(
   }
 
   const lines = (materials.lines ?? []).map((line) => {
-    const map = mapMaterialToMarketWork(line.materialKey, mapIndex);
-    const work = map ? opts.catalog.worksById.get(map.workId) ?? null : null;
+    const mapEntry = mapMaterialToMarketWork(line.materialKey, mapIndex);
+    const resolved = resolveMaterialMarketCoverage(
+      line.materialKey,
+      opts.catalog.worksById,
+      mapIndex,
+    );
+    // Brak Quotes → map bez work (NO FALSE PRICE); zachowaj mapEntry dla diagnostyki mappedWorkId
+    const map = resolved?.map ?? mapEntry;
+    const work = resolved?.work ?? null;
     return analyzeMaterialMarketLine({
       materialKey: line.materialKey,
       namePl: line.namePl,

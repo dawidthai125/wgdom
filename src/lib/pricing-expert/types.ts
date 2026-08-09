@@ -24,7 +24,13 @@ export interface PricingExpertBlocker {
 /** Mapowanie materiał → pozycja katalogu z marketQuotes (cienka warstwa). */
 export interface MaterialMarketMapEntry {
   materialKey: string;
+  /** Preferowany workId (seed / test / alias). */
   workId: string;
+  /**
+   * PRICE-INTELLIGENCE-01 P2 — dodatkowe realne catalogWorkId do coverage
+   * (gdy workId seed ≠ produkcyjny katalog).
+   */
+  candidateWorkIds?: readonly string[];
   /** Opcjonalnie klucz PriceHistory (REUSE staging). */
   marketProductId?: string;
   labelPl: string;

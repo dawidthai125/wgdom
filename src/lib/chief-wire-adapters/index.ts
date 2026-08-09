@@ -16,5 +16,9 @@ export type {
 export { assembleChiefWireRuntimeRo } from "./assemble";
 export { buildChiefPricingOptionsRo } from "./catalog";
 export { buildChiefCompanyCostRo } from "./company-cost";
+export {
+  collectMaterialPurchaseAliases,
+  projectPurchaseByMaterialKey,
+} from "./purchase-by-material-key";
 export { buildChiefOfferBoqRo } from "./offer-boq";
 export { buildChiefOfferStrategyParamsRo } from "./offer-strategy";

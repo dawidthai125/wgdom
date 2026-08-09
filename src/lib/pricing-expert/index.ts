@@ -20,6 +20,7 @@ export {
   DEFAULT_MATERIAL_MARKET_MAP,
   buildMaterialMarketMapIndex,
   mapMaterialToMarketWork,
+  resolveMaterialMarketCoverage,
 } from "./material-market-map";
 
 export { deriveMarketQuoteFreshness, worstFreshness } from "./market-freshness";

@@ -18,6 +18,7 @@ import {
   OFFER_BOQ_COMPANY_KNOWLEDGE_SCHEMA_VERSION,
   OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY,
   buildCompanyKnowledgeEntryId,
+  buildCompanyKnowledgeNameKey,
 } from "../src/lib/tender-offer-boq-company-knowledge.ts";
 import {
   TENDERS_COMPANY_PROFILE_KEY,
@@ -178,15 +179,14 @@ assert.ok(company.gaps.some((g) => g.code === "COMPANY_EQUIPMENT_RATES_UNMAPPED"
 assert.ok(company.gaps.some((g) => g.code === "COMPANY_PURCHASE_EMPTY"));
 ok("T5 Company labour+kp mapping + gaps");
 
-// ——— T6: Company purchase from knowledge ———
-const entryId = buildCompanyKnowledgeEntryId("Farba", "material", "l");
+// ——— T6: Company purchase from knowledge keyed by materialKey (P1) ———
 seedKnowledge([
   {
-    entryId,
-    namePl: "Farba",
-    nameKey: "farba",
+    entryId: buildCompanyKnowledgeEntryId("Płyta EPS grafit", "material", "m2"),
+    namePl: "Płyta EPS grafit",
+    nameKey: buildCompanyKnowledgeNameKey("Płyta EPS grafit"),
     category: "material",
-    unit: "l",
+    unit: "m2",
     occurrenceCount: 1,
     approvedCount: 1,
     changedCount: 0,
@@ -200,10 +200,10 @@ seedKnowledge([
   },
 ]);
 const companyPurch = buildChiefCompanyCostRo();
-assert.equal(companyPurch.company.purchaseByMaterialKey[entryId]?.unitPricePln, 12.5);
-assert.equal(companyPurch.company.purchaseByMaterialKey[entryId]?.labelPl, "Farba");
+assert.equal(companyPurch.company.purchaseByMaterialKey["mat.eps_graph"]?.unitPricePln, 12.5);
+assert.equal(companyPurch.company.purchaseByMaterialKey["mat.eps_graph"]?.labelPl, "Płyta EPS grafit");
 assert.ok(!companyPurch.gaps.some((g) => g.code === "COMPANY_PURCHASE_EMPTY"));
-ok("T6 purchaseByMaterialKey from knowledge entryId");
+ok("T6 purchaseByMaterialKey from knowledge materialKey (P1)");
 
 // ——— T7: OfferStrategy defaults ———
 const strat = buildChiefOfferStrategyParamsRo();

@@ -87,12 +87,13 @@ export function validateCostExpertInputs(opts: {
     if (missingPurchase.length === bomMats.length) {
       blockers.push({
         code: "COST_NO_PURCHASE",
-        messagePl: "Brak cen Purchase dla wszystkich materiałów BOM.",
+        messagePl:
+          "PRICE DATA MISSING — brak wiarygodnych danych cenowych Purchase dla wszystkich materiałów BOM.",
       });
     } else if (missingPurchase.length > 0) {
       blockers.push({
         code: "COST_PARTIAL_PURCHASE",
-        messagePl: `Brak Purchase dla ${missingPurchase.length} materiałów — Real Cost niekompletny.`,
+        messagePl: `PRICE DATA MISSING — brak Purchase dla ${missingPurchase.length} materiałów BOM — Real Cost niekompletny.`,
       });
     }
   }
