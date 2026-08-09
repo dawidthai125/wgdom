@@ -149,6 +149,44 @@ export function normalizeCompanyKnowledgeStore(raw: unknown): CompanyKnowledgeSt
   };
 }
 
+export function defaultCompanyKnowledgeStoreForPersist(): CompanyKnowledgeStore {
+  return emptyStore();
+}
+
+/** Cloud merge — union po entryId; preferuj wpis z ceną + nowszym lastUsedAt. */
+export function mergeCompanyKnowledgeStore(local: unknown, cloud: unknown): CompanyKnowledgeStore {
+  const left = normalizeCompanyKnowledgeStore(local);
+  const right = normalizeCompanyKnowledgeStore(cloud);
+  const byId = new Map<string, CompanyKnowledgeEntry>();
+
+  const prefer = (a: CompanyKnowledgeEntry, b: CompanyKnowledgeEntry): CompanyKnowledgeEntry => {
+    const priceA = a.lastUnitPricePln ?? a.avgUnitPricePln;
+    const priceB = b.lastUnitPricePln ?? b.avgUnitPricePln;
+    const hasA = typeof priceA === "number" && priceA > 0;
+    const hasB = typeof priceB === "number" && priceB > 0;
+    if (hasA && !hasB) return a;
+    if (hasB && !hasA) return b;
+    const ta = Date.parse(a.lastUsedAt || "") || 0;
+    const tb = Date.parse(b.lastUsedAt || "") || 0;
+    if (ta !== tb) return ta >= tb ? a : b;
+    return (a.occurrenceCount || 0) >= (b.occurrenceCount || 0) ? a : b;
+  };
+
+  for (const e of right.entries) byId.set(e.entryId, e);
+  for (const e of left.entries) {
+    const prev = byId.get(e.entryId);
+    byId.set(e.entryId, prev ? prefer(e, prev) : e);
+  }
+
+  const leftTs = Date.parse(left.updatedAt || "") || 0;
+  const rightTs = Date.parse(right.updatedAt || "") || 0;
+  return normalizeCompanyKnowledgeStore({
+    schemaVersion: OFFER_BOQ_COMPANY_KNOWLEDGE_SCHEMA_VERSION,
+    updatedAt: leftTs >= rightTs ? left.updatedAt : right.updatedAt,
+    entries: [...byId.values()],
+  });
+}
+
 export function loadCompanyKnowledgeStoreLocal(): CompanyKnowledgeStore {
   try {
     if (typeof localStorage === "undefined") return emptyStore();

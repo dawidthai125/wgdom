@@ -148,36 +148,42 @@ assert.ok(boqOk.offerBoq.lines.length > 0, "lines expected");
 assert.equal(boqOk.gaps.length, 0);
 ok(`T2 OfferBoq lines=${boqOk.offerBoq.lines.length}`);
 
-// ——— T3: Catalog worksById ———
+// ——— T3: Catalog worksById (+ P3.1 ETICS seed) ———
 seedCatalog([makeWork("cw.a"), makeWork("cw.b", false), makeWork("cw.c")]);
 const cat = buildChiefPricingOptionsRo();
 assert.ok(cat.pricing != null);
-assert.equal(cat.pricing.catalog.worksById.size, 2);
+assert.equal(cat.pricing.catalog.worksById.size, 6); // 2 seeded active + 4 P3.1 ETICS
+assert.ok(cat.pricing.catalog.worksById.has("cw.etics.boards"));
+assert.ok(cat.pricing.catalog.worksById.has("cw.etics.substrate"));
+assert.ok(cat.pricing.catalog.worksById.has("cw.etics.render"));
 assert.equal(cat.source, "kw-wgdom-work-catalog");
 assert.equal(cat.pricing.priceHistory, undefined);
 assert.equal(cat.pricing.materialMap, undefined);
-ok("T3 Catalog active worksById size=2");
+ok("T3 Catalog active worksById includes seed + P3.1 ETICS");
 
-// ——— T4: Catalog empty ———
+// ——— T4: Catalog empty LS → P3.1 still seeds ETICS Quotes ———
 seedCatalog([]);
 const catEmpty = buildChiefPricingOptionsRo();
 assert.ok(catEmpty.pricing != null);
-assert.equal(catEmpty.pricing.catalog.worksById.size, 0);
-assert.ok(catEmpty.gaps.some((g) => g.code === "CATALOG_EMPTY"));
-ok("T4 Catalog empty → CATALOG_EMPTY info");
+assert.equal(catEmpty.pricing.catalog.worksById.size, 4);
+assert.ok(catEmpty.pricing.catalog.worksById.has("cw.etics.mesh"));
+assert.ok(!catEmpty.gaps.some((g) => g.code === "CATALOG_EMPTY"));
+ok("T4 Catalog empty LS → P3.1 ETICS Quotes seed (4)");
 
-// ——— T5: Company labour + kp ———
+// ——— T5: Company labour + kp (+ P3.1 ETICS seed when knowledge empty) ———
 seedProfile({ avgGrossHourlyPln: 60, kpPct: 20 });
 seedKnowledge([]);
 const company = buildChiefCompanyCostRo();
 assert.equal(company.company.defaultLaborPlnPerHour, 60);
 assert.equal(company.company.auxiliaryPctOfDirect, 0.2);
 assert.equal(company.company.internalOverheadPct, 0);
-assert.deepEqual(company.company.equipmentRateByKey, {});
+assert.equal(company.company.equipmentRateByKey["eq.scaffold"]?.unitPricePln, 8);
+assert.equal(company.company.equipmentRateByKey["eq.mixer"]?.unitPricePln, 120);
 assert.ok(company.gaps.some((g) => g.code === "COMPANY_INTERNAL_OVERHEAD_UNMAPPED"));
-assert.ok(company.gaps.some((g) => g.code === "COMPANY_EQUIPMENT_RATES_UNMAPPED"));
-assert.ok(company.gaps.some((g) => g.code === "COMPANY_PURCHASE_EMPTY"));
-ok("T5 Company labour+kp mapping + gaps");
+assert.ok(company.gaps.some((g) => g.code === "COMPANY_EQUIPMENT_P31_ETICS"));
+assert.ok(company.company.purchaseByMaterialKey["mat.eps_graph"]?.unitPricePln > 0);
+assert.ok(!company.gaps.some((g) => g.code === "COMPANY_PURCHASE_EMPTY"));
+ok("T5 Company labour+kp + P3.1 ETICS Purchase/equipment seed");
 
 // ——— T6: Company purchase from knowledge keyed by materialKey (P1) ———
 seedKnowledge([

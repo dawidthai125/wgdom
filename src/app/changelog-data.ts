@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-09",
+    version: "2.66.23",
+    label: "Price Intelligence — WGDOM approved ETICS",
+    items: [
+      {
+        type: "improve",
+        text: "PRICE-INTELLIGENCE-01 P3.1: zatwierdzone ceny WGDOM (4× ETICS) w marketQuotes + Purchase company knowledge; mirror kw-offer-boq-company-knowledge w DATA_KEYS. Bez SQL Price DB / zewnętrznych providerów / scrapingu.",
+      },
+    ],
+  },
+  {
     date: "2026-08-07",
     version: "2.66.22",
     label: "Katalog — Alias Wave 2 MED",

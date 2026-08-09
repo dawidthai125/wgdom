@@ -130,6 +130,12 @@ import {
   normalizeWorkCatalogStore,
 } from "@/lib/work-catalog/work-catalog-store";
 import {
+  OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY,
+  defaultCompanyKnowledgeStoreForPersist,
+  mergeCompanyKnowledgeStore,
+  normalizeCompanyKnowledgeStore,
+} from "@/lib/tender-offer-boq-company-knowledge";
+import {
   payrollTraceBumpRosterRevision,
   payrollTraceCreateBootstrapPushId,
   payrollTraceCreateMergeTraceId,
@@ -184,6 +190,8 @@ export const DATA_KEYS = [
   "kw-wgdom-cost-catalog-history",
   "kw-wgdom-work-catalog",
   "kw-wgdom-work-bundles",
+  /** P3.1 — company knowledge mirror (Purchase / OfferBoq learning). */
+  "kw-offer-boq-company-knowledge",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -211,6 +219,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wgdom-cost-catalog-history",
   "kw-wgdom-work-catalog",
   "kw-wgdom-work-bundles",
+  "kw-offer-boq-company-knowledge",
   "kw-contacts",
   "kw-recoverable-charges",
   "kw-operational-notes",
@@ -2622,6 +2631,8 @@ export function mergeDataKey(
       return mergeWorkCatalogStore(local, cloud);
     case "kw-wgdom-work-bundles":
       return mergeWorkBundleStore(local, cloud);
+    case "kw-offer-boq-company-knowledge":
+      return mergeCompanyKnowledgeStore(local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
@@ -2948,6 +2959,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === WGDOM_COST_CATALOG_KEY) return defaultWgdomCostCatalogStore();
   if (key === WORK_CATALOG_STORAGE_KEY) return defaultWorkCatalogStoreForPersist();
   if (key === WORK_BUNDLE_STORAGE_KEY) return defaultWorkBundleStore();
+  if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return defaultCompanyKnowledgeStoreForPersist();
   if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) return defaultUserClassificationDictionaryStore();
   if (key === TENDERS_CUSTOM_KEYWORDS_KEY) {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
@@ -2975,6 +2987,7 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   }
   if (key === WORK_CATALOG_STORAGE_KEY) return normalizeWorkCatalogStore(coerced);
   if (key === WORK_BUNDLE_STORAGE_KEY) return normalizeWorkBundleStore(coerced);
+  if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return normalizeCompanyKnowledgeStore(coerced);
   return coerced;
 }
 

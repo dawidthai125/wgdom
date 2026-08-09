@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.23 — Price Intelligence — WGDOM approved ETICS (2026-08-09)
+
+- **improve:** PRICE-INTELLIGENCE-01 P3.1 — WGDOM approved Quotes + Purchase (4× ETICS); `kw-offer-boq-company-knowledge` w DATA_KEYS; bez SQL Price DB / zewnętrznych providerów
+
 ## 2.66.22 — Katalog — Alias Wave 2 MED (2026-08-07)
 
 - **improve:** CATALOG-WAVE-2 — 8 wąskich aliasów TOP100 + seed Library/Quotes; cel TV-01 Quotes ≥82%; AI-COST/Bid/S4 NO TOUCH

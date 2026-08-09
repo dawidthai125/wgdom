@@ -2,16 +2,21 @@
  * CompanyCostRo — projekcja pól z profilu firmy + company knowledge.
  * READ ONLY · bez kalkulatora Real Cost / Bid.
  * PRICE-INTELLIGENCE-01 P1 — Purchase keyed by BOM materialKey (nie entryId).
+ * P3.1 — ensure WGDOM approved Purchase + ETICS equipment rates.
  */
 
 import type { CompanyCostRo } from "@/lib/cost-expert";
-import { loadCompanyKnowledgeStoreLocal } from "@/lib/tender-offer-boq-company-knowledge";
+import {
+  buildPi31EquipmentRateByKey,
+  ensurePi31EticsApprovedDataLocal,
+} from "@/lib/price-intelligence";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { projectPurchaseByMaterialKey } from "./purchase-by-material-key";
 import type { BuildChiefCompanyCostRoResult, ChiefWireAdapterGap } from "./types";
 
 export function buildChiefCompanyCostRo(): BuildChiefCompanyCostRoResult {
   const gaps: ChiefWireAdapterGap[] = [];
+  const ensured = ensurePi31EticsApprovedDataLocal({ pushCloud: true });
   const profile = loadCompanyProfileLocal();
   const cm = profile.costModel;
 
@@ -37,14 +42,7 @@ export function buildChiefCompanyCostRo(): BuildChiefCompanyCostRoResult {
     severity: "info",
   });
 
-  gaps.push({
-    code: "COMPANY_EQUIPMENT_RATES_UNMAPPED",
-    field: "company.equipmentRateByKey",
-    messagePl: "Brak źródła stawek sprzętu — equipmentRateByKey = {}.",
-    severity: "info",
-  });
-
-  const store = loadCompanyKnowledgeStoreLocal();
+  const store = ensured.knowledgeStore;
   const purchaseByMaterialKey = projectPurchaseByMaterialKey(store);
   if (Object.keys(purchaseByMaterialKey).length === 0) {
     gaps.push({
@@ -56,12 +54,21 @@ export function buildChiefCompanyCostRo(): BuildChiefCompanyCostRoResult {
     });
   }
 
+  const equipmentRateByKey = buildPi31EquipmentRateByKey();
+  gaps.push({
+    code: "COMPANY_EQUIPMENT_P31_ETICS",
+    field: "company.equipmentRateByKey",
+    messagePl:
+      "P3.1 — stawki sprzętu ETICS (eq.scaffold / eq.mixer) z WGDOM approved seed (nie live external).",
+    severity: "info",
+  });
+
   const company: CompanyCostRo = Object.freeze({
     purchaseByMaterialKey,
     defaultLaborPlnPerHour,
     auxiliaryPctOfDirect,
     internalOverheadPct: 0,
-    equipmentRateByKey: Object.freeze({}),
+    equipmentRateByKey,
   });
 
   return {
