@@ -4,13 +4,15 @@
 > **★★ Cold-start:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ SSOT cold-start:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Data sync:** 2026-08-08 · tip prod **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
+> **Data sync:** 2026-08-09 · tip prod **2.66.22** / **`1902daa7`** · [`PROJECT-DOCS-SYNC-DESIGN-FREEZE`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 
 ```text
 NOWA SESJA → docs/AI/WGDOM-COLD-START-HANDOFF.md
           → docs/AI/MASTER-AI-HANDOFF.md
 Nie czytaj historii czatu. Nie zgaduj tipu.
-Tip prod = 2.66.22 / df6c104a (weryfikuj w 09 + version.json; closeout tip supersedes)
+Tip prod = 2.66.22 / 1902daa7 (weryfikuj w 09 + version.json; closeout tip supersedes)
+Feature tip EXPERT-AI-P0-DUAL-ENABLEMENT = 1902daa7
+Prior Enablement / Q12 = 4ba06032
 Feature tip TENDER-MODERNIZATION-01 / S7 = 617f0cb5
 Docs tip TENDER-MODERNIZATION-01 / S9 EPIC CLOSE = df6c104a
 Prior docs tip TENDER-MODERNIZATION-01 / S8 HOLD = 9231cc6b
@@ -62,8 +64,8 @@ WIP: src/app/hooks/useTenderOfferRun.ts = LOCAL M · nie tip
 
 | Pole | Wartość |
 |------|---------|
-| **Prod tip** | **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · **PRODUCTION VERIFIED** · **TM-01 EPIC CLOSED** |
-| **Feature tip** | **`617f0cb5`** — TM-01 S7 TRE Hub-first CLOSED · S9 docs **`df6c104a`** · S8 HOLD **`9231cc6b`** · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 **`85f4db14`** · S3 **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
+| **Prod tip** | **2.66.22** / **`1902daa7`** — SSOT [`09`](09_PRODUCTION_BASELINE.md) · **PRODUCTION VERIFIED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **TM-01 EPIC CLOSED** |
+| **Feature tip** | **`1902daa7`** — P0 Dual-Enablement CLOSED · prior Q12 **`4ba06032`** · TM-01 S7 **`617f0cb5`** · S9 docs **`df6c104a`** · S8 HOLD **`9231cc6b`** · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 **`85f4db14`** · S3 **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
 | **Ostatni CLOSE** | **TM-01 EPIC CLOSED (S9 C0)** · S8 HOLD · S7 Hub-first · baseline Experts+Chief+…+S9 complete |
 | **Tryb** | **UTRZYMANIE** · STABILIZATION **ACTIVE** · **WAITING FOR NEXT OWNER GO** |
 | **Active slice** | brak — ACTIVE EPIC = **NONE** |

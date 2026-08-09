@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-08 (**TENDER-MODERNIZATION-01 EPIC CLOSED** · tip UI **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE complete) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT residual **C1–C6** / new epic · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-09 (**EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · tip UI **2.66.22** / **`1902daa7`** · M=ACCESS · D=RUNTIME · PV PASS · prior Q12 **`4ba06032`** · TM-01 EPIC CLOSED) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT residual **C1–C6** / new epic · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
@@ -13,7 +13,7 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+…+S5+S6+S7+S8 HOLD+S9 CLOSE · Hub-first · Expert ON never auto Outcome · DetailPage recovery CTA · Persist-first KEEP · Decyzja DW PRIMARY @ Expert ON · Hub DW KEEP · Offer primary @ Expert ON · staff Przetargi module gate · S0 orphan cleanup · **TM-01 EPIC CLOSED** |
+| Production tip | **2.66.22** / **`1902daa7`** · **PRODUCTION VERIFIED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · M=ACCESS · D=RUNTIME · Bid PRIMARY @ D OFF · Offer/NO PRIMARY @ D ON · prior Enablement/Q12 · baseline Experts+Chief+…+S9 · Hub-first · Persist-first KEEP · staff Przetargi module gate · **TM-01 EPIC CLOSED** |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
 | CLOSED | **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
 | AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |

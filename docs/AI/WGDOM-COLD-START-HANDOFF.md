@@ -2,7 +2,7 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-08  
+> **Data:** 2026-08-09  
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 
 ```text
@@ -18,7 +18,7 @@ WGDOM COLD START
 | | |
 |--|--|
 | **Version** | **2.66.22** |
-| **Commit** | **`df6c104a`** (S9 docs) · feature **`617f0cb5`** · final closeout tip supersedes after pack |
+| **Commit** | **`1902daa7`** (P0 Dual-Enablement) · prior Q12 **`4ba06032`** · prior S9 docs **`df6c104a`** · feature hist. **`617f0cb5`** |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **PV** | **PRODUCTION VERIFIED · GREEN** |
@@ -35,10 +35,12 @@ WGDOM COLD START
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **WAITING** | **NEXT OWNER GO** |
-| **Tip feature** | **TENDER-MODERNIZATION-01 EPIC CLOSED** · feature tip S7 **`617f0cb5`** · S9 docs **`df6c104a`** |
+| **Tip feature** | **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 EPIC CLOSED |
 
 | Slice | Status |
 |-------|--------|
+| **P0 Dual-Enablement** | **CLOSED** · **`1902daa7`** · M=ACCESS · D=RUNTIME · PV PASS |
+| **Enablement + Q12** | **CLOSED** · **`4ba06032`** |
 | **S0** | **CLOSED** · `5beb082a` |
 | **S1** | **CLOSED** · `eed3ba0e` |
 | **S2** | **CLOSED** · `1888d05f` |
@@ -73,9 +75,11 @@ PARITY → MIGRATION → DEPRECATION → CONSUMER AUDIT → REMOVE
 
 App: React/Vite · UI `src/app/` · Przetargi `TendersModule` · Sync `cloud-sync.ts` · Edge `make-server-0afb8820`.
 
-**Expert-effective** = dostęp do Przetargi (`tendersTabForStaffEnabled` / `adminCanViewTendersTab`) — **bez** osobnej flagi Expert AI.
+**M = ACCESS** = `isTenderExpertEffective` / `adminCanViewTendersTab` (module) — **nie** runtime.  
+**D = RUNTIME** = `expertAiDecydentEnabled` → Session/Decision · `isExpertAiRuntimeEffective()` thin alias.  
+Dual Outcome / Offer PLN / stacks follow **D**, not raw **M**. F1 M=1 D=0 ⇒ Bid PRIMARY.
 
-Szczegóły: [`../architecture/EXPERT-AI-ARCHITECTURE.md`](../architecture/EXPERT-AI-ARCHITECTURE.md).
+SSOT P0: [`../architecture/EXPERT-AI-P0-DUAL-ENABLEMENT-CLOSEOUT.md`](../architecture/EXPERT-AI-P0-DUAL-ENABLEMENT-CLOSEOUT.md) · architektura: [`../architecture/EXPERT-AI-ARCHITECTURE.md`](../architecture/EXPERT-AI-ARCHITECTURE.md).
 
 ---
 
@@ -112,9 +116,9 @@ OfferBoq
 
 | Stan | PRIMARY |
 |------|---------|
-| Expert ON + Offer | Offer |
-| Expert ON + Offer null | **NO PRIMARY** |
-| Expert OFF | Bid |
+| **Runtime D ON** + Offer | Offer |
+| **Runtime D ON** + Offer null | **NO PRIMARY** |
+| **Runtime D OFF** (np. F1 M=1 D=0) | Bid |
 
 **NO THIRD PLN.**
 

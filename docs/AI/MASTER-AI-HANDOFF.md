@@ -14,8 +14,10 @@
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu.
 START = WGDOM-COLD-START-HANDOFF → TEN plik → 09 + version.json
-Tip = 09 + version.json → 2.66.22 / 4ba06032 (EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED · Q12 FIX VERIFIED · PRODUCTION VERIFIED)
-Feature tip Enablement + Q12 Case identity = 4ba06032
+Tip = 09 + version.json → 2.66.22 / 1902daa7 (EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED · PRODUCTION VERIFIED)
+Feature tip P0 Dual-Enablement = 1902daa7
+Prior feature Enablement + Q12 Case identity = 4ba06032
+Prior docs tip Enablement closeout = f5f598c5
 Prior docs tip TM-01 S9 EPIC CLOSE = df6c104a
 Feature tip TM-01 S7 TRE Hub-first = 617f0cb5
 Prior docs tip TM-01 S8 HOLD REMOVE = 9231cc6b
@@ -38,11 +40,12 @@ Prior EXPERTS-P0 = 58872663 (CLOSED)
 Prior Technology-First B0 = d9bb4c57 (CLOSED)
 Prior FOUNDATION TS-A0+A1 = 8202d990 (CLOSED)
 Prior COST-KNOWLEDGE A0+A1 = 9c0901d6 (CLOSED)
-Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Expert AI Production Enablement + Q12 Case identity stable
+Baseline = Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Expert AI Production Enablement + Q12 Case identity stable + P0 Dual-Enablement (M=ACCESS · D=RUNTIME)
 Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
 ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
 TM-01 = EPIC CLOSED · S0–S9 = CLOSED · S8 = HOLD REMOVE · S9 = C0 docs-only (ZERO code)
 EXPERT-AI-PRODUCTION-ENABLEMENT-01 = CLOSED · Q12 PV PASS · content invalidation NOT TESTED
+EXPERT-AI-P0-DUAL-ENABLEMENT = CLOSED · PV PASS · M≠runtime · D≠access gate
 NEXT = residual C1–C6 / new epic · tylko Owner GO → AUDIT · NIE invent S10
 STABILIZATION WINDOW ACTIVE
 DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
@@ -54,7 +57,7 @@ S3-D / Bid retirement / hard REMOVE / reopen TM-01 / Bid Time-Load Guard izolowa
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.22** / docs tip **`df6c104a`** · feature tip **`617f0cb5`** — **TENDER-MODERNIZATION-01 EPIC CLOSED** · **S9 C0 CLOSED** · **S8 HOLD REMOVE CLOSED** · **S7–S0 CLOSED** · **DECISION-PERSIST-01 CLOSED** · **WIRE-EXPERTS-UI-01 CLOSED** · **DECISION-WORKSPACE-01 CLOSED** · **VALIDATION-EXPERT-01 CLOSED** · **WIRE-CHIEF-UI-DOSSIER-01 CLOSED** · **WIRE-CHIEF-SESSION-01 CLOSED** · **WIRE-CHIEF-RO-ADAPTERS-01 CLOSED** · **CHIEF-ORCHESTRATOR-P0 CLOSED** · **EXPERTS-P0 CLOSED** · **PRODUCTION VERIFIED**. Baseline: **Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE complete** · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ Expert ON · DecisionView recovery · Hub DW KEEP · Offer primary when Expert ON · NO PRIMARY when Offer null · Bid legacy when Expert OFF · staff Przetargi module gate · S0 orphan cleanup.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main`: **UI 2.66.22** / feature tip **`1902daa7`** — **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · **S9 C0 CLOSED** · **S8 HOLD REMOVE CLOSED** · **S7–S0 CLOSED** · **DECISION-PERSIST-01 CLOSED** · **WIRE-EXPERTS-UI-01 CLOSED** · **DECISION-WORKSPACE-01 CLOSED** · **VALIDATION-EXPERT-01 CLOSED** · **WIRE-CHIEF-UI-DOSSIER-01 CLOSED** · **WIRE-CHIEF-SESSION-01 CLOSED** · **WIRE-CHIEF-RO-ADAPTERS-01 CLOSED** · **CHIEF-ORCHESTRATOR-P0 CLOSED** · **EXPERTS-P0 CLOSED** · **PRODUCTION VERIFIED**. Baseline: **Experts P0 + Chief + Wire Adapters RO + Session + UI Dossier + Validation Expert + Decision Workspace + Expert Workspace UI + Decision Persist + Module Enablement + Dual Outcome (S2) + Align Pricing (S3) + Hub UX (S4) + Tab Decyzja→DW (S5) + Persist→legacy bridge (S6) + TRE Hub-first (S7) + S8 HOLD + S9 EPIC CLOSE + Enablement + Q12 + P0 Dual-Enablement (M=ACCESS · D=RUNTIME) complete** · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · staff Przetargi module gate · S0 orphan cleanup.
 
 Ostatnie zamknięte: **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** (EE→ME→PE→Cost→Offer) · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
@@ -72,9 +75,9 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **2.66.22** |
-| **Commit** | **`df6c104a`** (docs tip S9) · feature **`617f0cb5`** · final closeout tip supersedes after pack |
-| **Feature tip** | **`617f0cb5`** — TM-01 S7 TRE Hub-first CLOSED · S9 EPIC CLOSE docs **`df6c104a`** · S8 HOLD **`9231cc6b`** · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 Hub UX **`85f4db14`** · S3 Align Pricing **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
-| **Status** | **PRODUCTION VERIFIED** · tip = **TM-01 EPIC CLOSED (S9 C0)** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE · **WAITING FOR NEXT OWNER GO** |
+| **Commit** | **`1902daa7`** · feature tip P0 Dual-Enablement · prior Q12 **`4ba06032`** · prior S9 docs **`df6c104a`** · prior S7 **`617f0cb5`** |
+| **Feature tip** | **`1902daa7`** — EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED · prior Enablement/Q12 **`4ba06032`** · TM-01 S7 TRE Hub-first **`617f0cb5`** · S9 EPIC CLOSE docs **`df6c104a`** · S8 HOLD **`9231cc6b`** · prior S6 **`cb91027d`** · S5 **`ebae3d2e`** · S4 Hub UX **`85f4db14`** · S3 Align Pricing **`ec8a5044`** · S2 Dual Outcome **`1888d05f`** · Module Enablement (S1) **`eed3ba0e`** · TM-01 S0 **`5beb082a`** · Decision Persist **`adde246a`** · Expert Workspace UI **`4ae26fe7`** · Decision Workspace **`baa4b403`** · Validation **`5fa2746d`** · UI Dossier **`ce0b70c0`** · Session **`5b9fd741`** · Adapters **`0c310355`** · Chief **`06cc7a6b`** · EXPERTS-P0 **`58872663`** |
+| **Status** | **PRODUCTION VERIFIED** · tip = **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE+Enablement+Q12+P0 Dual-Enablement · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -177,6 +180,7 @@ Expert · Chief · Session · Validation · Adapters · Technology/TF · OfferBo
 
 | Nazwa | Wersja | Commit | Status | PV |
 |-------|--------|--------|--------|-----|
+| **EXPERT-AI-P0-DUAL-ENABLEMENT** | **2.66.22** tip | **`1902daa7`** | **P0 CLOSED** · M=ACCESS · D=RUNTIME · F1 Bid PRIMARY · no third flag/store/engine · useTenderOfferRun OUT · bid WIP OUT | **YES** · [`CLOSEOUT`](../architecture/EXPERT-AI-P0-DUAL-ENABLEMENT-CLOSEOUT.md) · [`PV`](../architecture/EXPERT-AI-P0-DUAL-ENABLEMENT-PRODUCTION-VERIFY.md) |
 | **EXPERT-AI-PRODUCTION-ENABLEMENT-01 / Q12** | **2.66.22** tip | **`4ba06032`** | **EPIC CLOSED** · master gate `expertAiDecydentEnabled` · Q12 `stableCaseStamp` Case identity · Persist UNCHANGED · content invalidation **NOT TESTED** · S2 44/45 PRE-EXISTING OUT | **YES** · [`CLOSEOUT`](../architecture/EXPERT-AI-PRODUCTION-ENABLEMENT-01-CLOSEOUT.md) · [`Q12 PV`](../architecture/EXPERT-AI-PRODUCTION-ENABLEMENT-01-Q12-FIX-PRODUCTION-VERIFY.md) |
 | **TENDER-MODERNIZATION-01 / S8** | **2.66.22** tip | **`9231cc6b`** | **S8 CLOSED HOLD** · ZERO functional code · NO hard REMOVE · surfaces KEEP · 4 symbols KEEP · feature tip remains **`617f0cb5`** · EPIC residual ≠ auto-CLOSED | **YES** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S8-CLOSEOUT.md) · [`PV`](../architecture/TENDER-MODERNIZATION-01-S8-PRODUCTION-VERIFY.md) |
 | **TENDER-MODERNIZATION-01 / S7** | **2.66.22** tip | **`617f0cb5`** | **S7 CLOSED** · Hub-first DEFAULT=false · Expert ON never auto Outcome · DetailPage recovery CTA · Expert OFF LS=1 R0 · HubPanel CTA ZERO · Outcome/OfferRun/Bid/OfferBoq/S6 KEEP · tip deploy supersedowany przez S8 docs | **YES** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S7-CLOSEOUT.md) · [`PV`](../architecture/TENDER-MODERNIZATION-01-S7-PRODUCTION-VERIFY.md) |
@@ -254,7 +258,7 @@ Expert · Chief · Session · Validation · Adapters · Technology/TF · OfferBo
 
 | Warstwa | Stan |
 |---------|------|
-| **Production** | Tip = **TM-01 EPIC CLOSED (S9 C0)** · **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE · Decyzja overview DW PRIMARY @ Expert ON · DecisionView recovery · Hub DW KEEP · Offer primary @ Expert ON · NO PRIMARY @ Offer null · Bid legacy @ Expert OFF · DW PRIMARY when Expert-effective · staff Przetargi module gate · S0 orphan cleanup · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
+| **Production** | Tip = **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **2.66.22** / **`1902daa7`** · **PRODUCTION VERIFIED** · baseline Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE+Enablement+Q12+P0 Dual-Enablement · M=ACCESS · D=RUNTIME · Bid PRIMARY @ D OFF · Offer/NO PRIMARY @ D ON · Hub-first · Persist-first · staff Przetargi module gate · **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** | **EPIC CLOSED** · Phase B0 · [`CLOSEOUT`](../architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 | **NG-TENDERS-COST-KNOWLEDGE-01** | **EPIC CLOSED** · A0+A1 · [`CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
@@ -388,7 +392,7 @@ Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/
 ```text
 [ ] WGDOM-COLD-START-HANDOFF
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
-[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.22 / df6c104a* gdy CDN OK; closeout tip supersedes)
+[ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.22 / 1902daa* gdy CDN OK; closeout tip supersedes)
 [ ] TM-01-MASTER + S9-CLOSEOUT (EPIC CLOSED · residual C1–C6 tylko Owner GO)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)

@@ -10,7 +10,7 @@
 ### CO TO JEST WGDOM?
 
 Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / docs **`df6c104a`** · feature **`617f0cb5`** · **PRODUCTION VERIFIED** · **TM-01 EPIC CLOSED**.
+Prod: https://www.wgdom.fun · tip: **2.66.22** / **`1902daa7`** · **PRODUCTION VERIFIED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **TM-01 EPIC CLOSED**.
 
 ### JAK DZIAŁA PRZETARG?
 
