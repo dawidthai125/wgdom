@@ -1,13 +1,22 @@
 /**
- * P0 — mapowanie faktur → materialKey (tylko zatwierdzone ETICS).
- * Bez masowego auto-map · gładź ≠ mat.render · ambiguous → NEEDS_REVIEW.
+ * PROVIDERS-01 P0/P1 — mapowanie faktur → materialKey.
+ * Hierarchy: approved dictionary → P0 deterministic ETICS fallback → review/unmatched.
+ * Bez fuzzy / LLM · dictionary przed regex · gładź ≠ mat.render.
  */
 
 import { foldPolishText } from "@/lib/wgdom-ath-classifier";
 import { PI31_APPROVED_MATERIALS } from "./etics-approved-seed";
+import {
+  getInvoiceApprovedMapEntries,
+  lookupInvoiceApprovedMap,
+  type InvoiceApprovedMapEntry,
+} from "./invoice-approved-map";
+import {
+  applyInvoiceUnitConversion,
+  MAPETHERM_SZT_25KG_CONVERSION_ID,
+} from "./invoice-unit-conversion";
 import type {
   InvoiceMaterialMapping,
-  InvoicePriceObservation,
   MappedInvoicePurchaseCandidate,
   NormalizedInvoiceProduct,
   ParsedInvoiceLine,
@@ -24,38 +33,94 @@ function mapped(
   purchaseUnitPricePln: number,
   purchaseQuantity: number,
   reasonPl: string,
+  purchaseNamePl?: string,
+  purchaseUnit?: string,
 ): InvoiceMaterialMapping {
   const spec = tfSpec(materialKey);
-  if (!spec) {
-    return { status: "needs_review", reasonPl: `Brak spec TF dla ${materialKey}` };
+  const namePl = purchaseNamePl ?? spec?.namePl;
+  const unit = purchaseUnit ?? spec?.unit;
+  if (!namePl || !unit) {
+    return { status: "needs_review", reasonPl: `Brak spec TF/dict dla ${materialKey}` };
   }
   return {
     status: "mapped",
     materialKey,
-    purchaseNamePl: spec.namePl,
-    purchaseUnit: spec.unit,
+    purchaseNamePl: namePl,
+    purchaseUnit: unit,
     purchaseUnitPricePln,
     purchaseQuantity,
     reasonPl,
   };
 }
 
-/**
- * Deterministyczne reguły ETICS (AUDIT PASS).
- * mat.render — tylko exact approved (nazwa TF / jawny tynk mineralny), NIE gładź.
- */
-export function mapInvoiceProductToMaterial(
+function mappingFromApprovedEntry(
+  entry: InvoiceApprovedMapEntry,
   product: NormalizedInvoiceProduct,
-  opts?: { netUnitPrice: number; quantity: number },
+  price: number,
+  qty: number,
+): InvoiceMaterialMapping {
+  if (entry.conversionId) {
+    const conv = applyInvoiceUnitConversion({
+      conversionId: entry.conversionId,
+      fromUnit: product.unitKey,
+      toUnit: entry.purchaseUnit,
+      quantity: qty,
+      netUnitPrice: price,
+      normalizedName: product.normalizedName,
+    });
+    if (!conv.ok) {
+      return {
+        status: "needs_review",
+        materialKey: entry.materialKey,
+        reasonPl: conv.reasonPl,
+      };
+    }
+    return mapped(
+      entry.materialKey,
+      conv.netUnitPrice,
+      conv.quantity,
+      `P1 approved dict + conversion ${entry.conversionId}`,
+      entry.purchaseNamePl,
+      entry.purchaseUnit,
+    );
+  }
+
+  if (product.unitKey !== entry.purchaseUnit) {
+    return {
+      status: "needs_review",
+      materialKey: entry.materialKey,
+      reasonPl: `Approved dict: jednostka faktury «${product.unitKey}» ≠ purchase «${entry.purchaseUnit}» bez conversion`,
+    };
+  }
+
+  return mapped(
+    entry.materialKey,
+    price,
+    qty,
+    `P1 approved dict · ${entry.provenance}`,
+    entry.purchaseNamePl,
+    entry.purchaseUnit,
+  );
+}
+
+/** P0 deterministic ETICS fallback (po dictionary). Bez || true. */
+function mapEticsFallback(
+  product: NormalizedInvoiceProduct,
+  price: number,
+  qty: number,
 ): InvoiceMaterialMapping {
   const name = product.normalizedName;
   const unit = product.unitKey;
-  const price = opts?.netUnitPrice ?? 0;
-  const qty = opts?.quantity ?? 0;
-
   const hits: Array<{ key: string; map: InvoiceMaterialMapping }> = [];
 
-  // --- EPS grafit fasada 0,033 ---
+  const isGladz = /\bgladz/.test(name) || /\bgipsow/.test(name);
+  if (isGladz) {
+    return {
+      status: "unmatched",
+      reasonPl: "Gładź / gips ≠ mat.render — brak auto-mapowania",
+    };
+  }
+
   const isEps =
     /\beps\b/.test(name) &&
     /\bgrafit/.test(name) &&
@@ -64,7 +129,7 @@ export function mapInvoiceProductToMaterial(
     if (unit === "m2") {
       hits.push({
         key: "mat.eps_graph",
-        map: mapped("mat.eps_graph", price, qty, "AUDIT: EPS grafit fasada → mat.eps_graph"),
+        map: mapped("mat.eps_graph", price, qty, "P0 fallback: EPS grafit fasada → mat.eps_graph"),
       });
     } else {
       hits.push({
@@ -78,7 +143,6 @@ export function mapInvoiceProductToMaterial(
     }
   }
 
-  // --- Siatka podtynkowa 165 / REDNET ---
   const isMesh =
     /\bsiatka\b/.test(name) &&
     (/\bpodt/.test(name) || /\brednet\b/.test(name) || /\b165\b/.test(name));
@@ -86,7 +150,7 @@ export function mapInvoiceProductToMaterial(
     if (unit === "m2") {
       hits.push({
         key: "mat.mesh",
-        map: mapped("mat.mesh", price, qty, "AUDIT: siatka podtynkowa/REDNET 165 → mat.mesh"),
+        map: mapped("mat.mesh", price, qty, "P0 fallback: siatka podtynkowa/REDNET 165 → mat.mesh"),
       });
     } else {
       hits.push({
@@ -108,31 +172,42 @@ export function mapInvoiceProductToMaterial(
     });
   }
 
-  // --- MAPEI Mapetherm do siatki ---
-  const isMapetherm =
-    /\bmapetherm\b/.test(name) || (/\bmapei\b/.test(name) && /\bmapetherm\b/.test(name));
-  const mapethermGlue =
-    isMapetherm && (/\bsiatk/.test(name) || /\bdo siatki/.test(name) || /\bklej/.test(name) || true);
-  // Mapetherm brand on invoice lines for ETICS glue — require mapetherm token
-  if (isMapetherm && mapethermGlue) {
+  // Mapetherm — wymaga tokenu mapetherm (nie mapei alone, nie || true)
+  if (/\bmapetherm\b/.test(name)) {
     if (unit === "kg") {
       hits.push({
         key: "mat.glue_etics",
-        map: mapped("mat.glue_etics", price, qty, "AUDIT: MAPETHERM → mat.glue_etics (kg)"),
+        map: mapped("mat.glue_etics", price, qty, "P0 fallback: MAPETHERM → mat.glue_etics (kg)"),
       });
-    } else if (unit === "szt" && /\b25\b/.test(name) && /\bkg\b/.test(name)) {
-      // Worek 25 kg → Purchase kg
-      const perKg = Math.round((price / 25) * 100) / 100;
-      const qtyKg = Math.round(qty * 25 * 100) / 100;
-      hits.push({
-        key: "mat.glue_etics",
-        map: mapped(
-          "mat.glue_etics",
-          perKg,
-          qtyKg,
-          "AUDIT: MAPETHERM 25 kg/szt → mat.glue_etics (konwersja szt→kg)",
-        ),
+    } else if (unit === "szt") {
+      const conv = applyInvoiceUnitConversion({
+        conversionId: MAPETHERM_SZT_25KG_CONVERSION_ID,
+        fromUnit: "szt",
+        toUnit: "kg",
+        quantity: qty,
+        netUnitPrice: price,
+        normalizedName: name,
       });
+      if (conv.ok) {
+        hits.push({
+          key: "mat.glue_etics",
+          map: mapped(
+            "mat.glue_etics",
+            conv.netUnitPrice,
+            conv.quantity,
+            "P0 fallback: MAPETHERM szt→kg factor 25",
+          ),
+        });
+      } else {
+        hits.push({
+          key: "mat.glue_etics",
+          map: {
+            status: "needs_review",
+            materialKey: "mat.glue_etics",
+            reasonPl: conv.reasonPl,
+          },
+        });
+      }
     } else {
       hits.push({
         key: "mat.glue_etics",
@@ -145,24 +220,15 @@ export function mapInvoiceProductToMaterial(
     }
   }
 
-  // --- mat.render: TYLKO exact approved ---
   const exactRender =
     name === foldPolishText("Tynk mineralny") ||
     name === "tynk mineralny" ||
-    (/\btynk\b/.test(name) && /\bmineraln/.test(name) && !/\bgladz/.test(name) && !/\bgładz/.test(name));
-  const isGladz = /\bgladz/.test(name) || /\bgipsow/.test(name);
-  if (isGladz) {
-    // explicit non-mapping
-    return {
-      status: "unmatched",
-      reasonPl: "Gładź / gips ≠ mat.render — brak auto-mapowania",
-    };
-  }
+    (/\btynk\b/.test(name) && /\bmineraln/.test(name));
   if (exactRender && /\btynk\b/.test(name) && /\bmineraln/.test(name)) {
     if (unit === "kg") {
       hits.push({
         key: "mat.render",
-        map: mapped("mat.render", price, qty, "Exact approved: tynk mineralny → mat.render"),
+        map: mapped("mat.render", price, qty, "P0 fallback: exact tynk mineralny → mat.render"),
       });
     } else {
       hits.push({
@@ -194,29 +260,59 @@ export function mapInvoiceProductToMaterial(
   };
 }
 
+export interface MapInvoiceProductOpts {
+  netUnitPrice: number;
+  quantity: number;
+  /** Opcjonalny override dict (testy); domyślnie getInvoiceApprovedMapEntries(). */
+  approvedEntries?: readonly InvoiceApprovedMapEntry[];
+}
+
+/**
+ * Hierarchy: 1–3 dictionary → 4 ETICS fallback → 5 review/unmatched.
+ */
+export function mapInvoiceProductToMaterial(
+  product: NormalizedInvoiceProduct,
+  opts?: MapInvoiceProductOpts,
+): InvoiceMaterialMapping {
+  const price = opts?.netUnitPrice ?? 0;
+  const qty = opts?.quantity ?? 0;
+  const entries = opts?.approvedEntries ?? getInvoiceApprovedMapEntries();
+
+  const approved = lookupInvoiceApprovedMap(product, entries);
+  if (approved) {
+    return mappingFromApprovedEntry(approved, product, price, qty);
+  }
+
+  return mapEticsFallback(product, price, qty);
+}
+
 export function buildMappedPurchaseCandidate(
   line: ParsedInvoiceLine,
+  approvedEntries?: readonly InvoiceApprovedMapEntry[],
 ): MappedInvoicePurchaseCandidate {
   const product = normalizeInvoiceProduct(line);
   const observation = observationFromParsedLine(line, product);
   const mapping = mapInvoiceProductToMaterial(product, {
     netUnitPrice: line.netUnitPrice,
     quantity: line.quantity,
+    approvedEntries,
   });
   return { observation, product, mapping, parsed: line };
 }
 
 export function buildMappedPurchaseCandidates(
   lines: readonly ParsedInvoiceLine[],
+  approvedEntries?: readonly InvoiceApprovedMapEntry[],
 ): MappedInvoicePurchaseCandidate[] {
-  return lines.map(buildMappedPurchaseCandidate);
+  return lines.map((line) => buildMappedPurchaseCandidate(line, approvedEntries));
 }
 
-/** Słownik rozszerzalny — P0: tylko klucze ETICS (bez masowego auto). */
+/** Allowlista materialKey — fallback ETICS (bez masowego auto). */
 export const INVOICE_ETICS_APPROVED_MATERIAL_KEYS = [
   "mat.eps_graph",
   "mat.mesh",
   "mat.glue_etics",
+  "mat.render",
 ] as const;
 
 export type InvoiceEticsApprovedMaterialKey =

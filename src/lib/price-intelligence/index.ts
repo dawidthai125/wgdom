@@ -104,6 +104,7 @@ export {
   buildMappedPurchaseCandidates,
   INVOICE_ETICS_APPROVED_MATERIAL_KEYS,
   type InvoiceEticsApprovedMaterialKey,
+  type MapInvoiceProductOpts,
 } from "./invoice-etics-map";
 
 export {
@@ -118,3 +119,29 @@ export {
   processInvoiceCompanyPurchaseBatch,
   type InvoiceCompanyPurchaseBatchResult,
 } from "./invoice-pipeline";
+
+/* —— PROVIDERS-01 P1a: approved dictionary + conversions —— */
+export type { InvoiceApprovedMapEntry, InvoiceApprovedMapStatus } from "./invoice-approved-map";
+
+export {
+  INVOICE_APPROVED_MAP_ENTRIES,
+  forceInvoiceApprovedMapForTests,
+  getInvoiceApprovedMapEntries,
+  lookupInvoiceApprovedMap,
+  matchApprovedBySupplierCode,
+  matchApprovedByEan,
+  matchApprovedBySupplierNameUnit,
+  invoiceApprovedMapUsesFuzzyOrLlm,
+} from "./invoice-approved-map";
+
+export type {
+  InvoiceApprovedConversion,
+  ApplyInvoiceConversionResult,
+} from "./invoice-unit-conversion";
+
+export {
+  MAPETHERM_SZT_25KG_CONVERSION_ID,
+  INVOICE_APPROVED_CONVERSIONS,
+  getInvoiceApprovedConversion,
+  applyInvoiceUnitConversion,
+} from "./invoice-unit-conversion";
