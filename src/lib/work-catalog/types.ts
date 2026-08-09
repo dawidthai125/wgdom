@@ -9,7 +9,8 @@ import type {
   WgdomCostUnit,
 } from "@/lib/wgdom-cost-catalog";
 import type { TradeId } from "@/lib/work-catalog/trades";
-import type { WorkMarketQuotes } from "@/lib/work-catalog/market-sources";
+import type { MarketCoverage, MarketQuoteOriginId, WorkMarketQuotes } from "@/lib/work-catalog/market-sources";
+import type { MarketRegionCode } from "@/lib/work-catalog/market-regions";
 
 export const WORK_CATALOG_SCHEMA_VERSION = 4 as const;
 export const WORK_BUNDLE_SCHEMA_VERSION = 3 as const;
@@ -29,6 +30,20 @@ export interface WorkCostSplit {
   laborRatio: number;
 }
 
+/**
+ * DEMAND-RESEARCH-01 S1-A — append-only ring (LAST pozostaje w marketQuotes).
+ * Cap 24 per workId|origin|region — egzekwowany w price-memory helpers.
+ */
+export interface MarketQuoteHistoryEntry {
+  workId: string;
+  price: number;
+  origin: MarketQuoteOriginId;
+  regionCode: MarketRegionCode;
+  updatedAt: string;
+  confidence: number;
+  coverage: MarketCoverage;
+}
+
 /** Pojedyncza pozycja Biblioteki — „Robota” w języku produktu. */
 export interface CatalogWork {
   id: string;
@@ -46,6 +61,8 @@ export interface CatalogWork {
   suggestedPricePln?: number;
   /** P3.1 — wiele źródeł ceny rynkowej (origin→region→snapshot). SSOT rynku od v4. */
   marketQuotes?: WorkMarketQuotes;
+  /** S1-A — historia zaakceptowanych Quotes (opcjonalna, bez backfill). */
+  marketQuoteHistory?: MarketQuoteHistoryEntry[];
   updatedAt: string;
   freshnessStatus: WorkFreshnessStatus;
   descriptionPl?: string;

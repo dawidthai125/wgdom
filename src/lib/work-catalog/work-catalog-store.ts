@@ -6,14 +6,18 @@
 import type { WgdomCostCategoryId, WgdomCostRegion, WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import {
   MARKET_LEGACY_SEED_ORIGIN_ID,
+  isMarketCoverage,
+  isMarketQuoteOriginId,
   normalizeWorkMarketQuotes,
   type WorkMarketQuotes,
 } from "@/lib/work-catalog/market-sources";
+import { isMarketRegionCode } from "@/lib/work-catalog/market-regions";
 import { isTradeId, TRADE_IDS, type TradeId } from "@/lib/work-catalog/trades";
 import { defaultWorkCatalogStore } from "@/lib/work-catalog/work-catalog-migrate";
 import {
   WORK_CATALOG_SCHEMA_VERSION,
   type CatalogWork,
+  type MarketQuoteHistoryEntry,
   type WorkCatalogRegionSlice,
   type WorkCatalogSource,
   type WorkCatalogStore,
@@ -70,6 +74,39 @@ function normalizeCostSplit(raw: unknown): WorkCostSplit | undefined {
     materialRatio: Math.max(0, material),
     laborRatio: Math.max(0, labor),
   };
+}
+
+/** S1-A — opcjonalny ring historii Quotes (fail-soft, bez backfill). */
+function normalizeMarketQuoteHistoryField(
+  raw: unknown,
+  workId: string,
+): MarketQuoteHistoryEntry[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const out: MarketQuoteHistoryEntry[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== "object") continue;
+    const e = row as Partial<MarketQuoteHistoryEntry>;
+    const origin = isMarketQuoteOriginId(e.origin) ? e.origin : null;
+    const regionCode = isMarketRegionCode(e.regionCode) ? e.regionCode : null;
+    const coverage = isMarketCoverage(e.coverage) ? e.coverage : null;
+    const price = Number(e.price);
+    const confidence = Number(e.confidence);
+    const updatedAt = typeof e.updatedAt === "string" ? e.updatedAt.trim() : "";
+    const wid = typeof e.workId === "string" && e.workId.trim() ? e.workId.trim() : workId;
+    if (!origin || !regionCode || !coverage || !updatedAt) continue;
+    if (!Number.isFinite(price) || !(price > 0)) continue;
+    if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) continue;
+    out.push({
+      workId: wid,
+      price,
+      origin,
+      regionCode,
+      updatedAt,
+      confidence,
+      coverage,
+    });
+  }
+  return out.length > 0 ? out : undefined;
 }
 
 /**
@@ -135,6 +172,10 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
       ? Number(work.suggestedPricePln)
       : undefined,
     marketQuotes: deriveMarketQuotes(work.marketQuotes, marketAvgPln, workUpdatedAt),
+    marketQuoteHistory: normalizeMarketQuoteHistoryField(
+      (work as { marketQuoteHistory?: unknown }).marketQuoteHistory,
+      work.id.trim(),
+    ),
     updatedAt: workUpdatedAt,
     freshnessStatus: isValidFreshness(work.freshnessStatus) ? work.freshnessStatus : "missing",
     descriptionPl:

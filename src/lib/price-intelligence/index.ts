@@ -87,6 +87,35 @@ export {
   resolveMarketLayerForDemand,
 } from "./demand-resolve-layer";
 
+/* —— DEMAND-RESEARCH-01 S1-A: PRICE MEMORY —— */
+export {
+  MARKET_QUOTE_HISTORY_CAP,
+  appendMarketQuoteHistoryEntry,
+  archivePreviousQuotesIntoHistory,
+  buildManualResearchBrief,
+  catalogSliceForRegion,
+  collectPreviousQuoteCellsForPreview,
+  derivePriceMemoryFreshnessUx,
+  isMarketQuoteHistoryDuplicate,
+  listMarketQuoteHistoryForCell,
+  lookupPriceMemory,
+  mapConfidenceToUxLabel,
+  marketQuoteOriginLabelPl,
+  normalizeMarketQuoteHistory,
+  priceMemoryFreshnessLabelPl,
+  readQuoteCell,
+  snapshotToHistoryEntry,
+  useExistingMarketPrice,
+  useExistingMarketPricePure,
+  type PriceMemoryConfidenceLabel,
+  type PriceMemoryFreshnessUx,
+  type PriceMemoryHit,
+  type PriceMemoryLookupInput,
+  type PriceMemoryLookupResult,
+  type PreviousQuoteCell,
+  type ResearchBrief,
+} from "./price-memory";
+
 /* —— PROVIDERS-01 P0: faktury → COMPANY PURCHASE —— */
 export type {
   InvoiceLineStatus,

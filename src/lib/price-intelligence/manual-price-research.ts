@@ -16,11 +16,21 @@ import {
   type MarketSourceSnapshot,
 } from "@/lib/work-catalog/market-sources";
 import type { WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
+import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
+import {
+  loadWorkCatalogStoreLocal,
+  saveWorkCatalogStoreLocal,
+} from "@/lib/work-catalog/work-catalog-store";
+import { loadWorkCatalogStore } from "@/lib/work-catalog/work-catalog-sync";
 import {
   loadPriceDemandStoreLocal,
   savePriceDemandStoreLocal,
 } from "./demand-record";
 import { resolveMarketLayerForDemand } from "./demand-resolve-layer";
+import {
+  archivePreviousQuotesIntoHistory,
+  collectPreviousQuoteCellsForPreview,
+} from "./price-memory";
 import type {
   ManualPriceResearchFormInput,
   ManualPriceResearchValidationError,
@@ -242,13 +252,14 @@ export interface AcceptManualMarketPriceResearchResult {
   commit: CommitMarketQuotesReport | null;
   demandResolved: boolean;
   demandChanged: boolean;
+  historyAppended: number;
   wroteCompanyKnowledge: false;
   wrotePurchase: false;
   error?: string;
 }
 
 /**
- * OWNER ACCEPT → commitMarketQuotesImport → per-layer MARKET resolve.
+ * OWNER ACCEPT → commitMarketQuotesImport → A2 history (previous LAST) → MARKET resolve.
  * NIE invoice · NIE company knowledge · NIE Purchase.
  */
 export async function acceptManualMarketPriceResearch(
@@ -257,6 +268,21 @@ export async function acceptManualMarketPriceResearch(
   const { candidate } = opts;
   const preview = buildManualMarketQuotesPreview(candidate);
   const region = resolveCatalogSlice(candidate.region);
+  const deps: CommitMarketQuotesDeps = {
+    load: loadWorkCatalogStore,
+    save: saveWorkCatalogRouted,
+    loadLocal: loadWorkCatalogStoreLocal,
+    saveLocal: saveWorkCatalogStoreLocal,
+    ...(opts.commitOptions?.deps ?? {}),
+  };
+
+  let previousCells: ReturnType<typeof collectPreviousQuoteCellsForPreview> = [];
+  try {
+    const preStore = await deps.load();
+    previousCells = collectPreviousQuoteCellsForPreview(preStore, preview.matched, region);
+  } catch {
+    previousCells = [];
+  }
 
   let commit: CommitMarketQuotesReport;
   try {
@@ -271,6 +297,7 @@ export async function acceptManualMarketPriceResearch(
       commit: null,
       demandResolved: false,
       demandChanged: false,
+      historyAppended: 0,
       wroteCompanyKnowledge: false,
       wrotePurchase: false,
       error: e instanceof Error ? e.message : "commit_failed",
@@ -284,10 +311,32 @@ export async function acceptManualMarketPriceResearch(
       commit,
       demandResolved: false,
       demandChanged: false,
+      historyAppended: 0,
       wroteCompanyKnowledge: false,
       wrotePurchase: false,
       error: commit.reason ?? commit.status,
     };
+  }
+
+  let historyAppended = 0;
+  if (previousCells.length > 0 && commit.status === "committed") {
+    try {
+      const postStore = deps.loadLocal();
+      const archived = archivePreviousQuotesIntoHistory(postStore, previousCells, region);
+      if (archived.appended > 0) {
+        historyAppended = archived.appended;
+        await deps.save(
+          archived.store,
+          {
+            updatedAtIso: opts.commitOptions?.updatedAtIso ?? candidate.retrievedAt,
+            previousStore: postStore,
+          },
+          undefined,
+        );
+      }
+    } catch {
+      historyAppended = 0;
+    }
   }
 
   let demandResolved = false;
@@ -312,6 +361,7 @@ export async function acceptManualMarketPriceResearch(
     commit,
     demandResolved,
     demandChanged,
+    historyAppended,
     wroteCompanyKnowledge: false,
     wrotePurchase: false,
   };
@@ -329,6 +379,14 @@ export async function acceptManualMarketPriceResearchPure(opts: {
 > {
   const preview = buildManualMarketQuotesPreview(opts.candidate);
   const region = resolveCatalogSlice(opts.candidate.region);
+  const deps = opts.commitOptions?.deps;
+
+  let previousCells: ReturnType<typeof collectPreviousQuoteCellsForPreview> = [];
+  if (deps?.load) {
+    const preStore = await deps.load();
+    previousCells = collectPreviousQuoteCellsForPreview(preStore, preview.matched, region);
+  }
+
   const commit = await commitMarketQuotesImport(preview, {
     region,
     updatedAtIso: opts.commitOptions?.updatedAtIso ?? opts.candidate.retrievedAt,
@@ -341,12 +399,27 @@ export async function acceptManualMarketPriceResearchPure(opts: {
       commit,
       demandResolved: false,
       demandChanged: false,
+      historyAppended: 0,
       wroteCompanyKnowledge: false,
       wrotePurchase: false,
       error: commit.reason ?? commit.status,
       nextDemandStore: opts.demandStore,
     };
   }
+
+  let historyAppended = 0;
+  if (previousCells.length > 0 && commit.status === "committed" && deps?.loadLocal && deps?.save) {
+    const postStore = deps.loadLocal();
+    const archived = archivePreviousQuotesIntoHistory(postStore, previousCells, region);
+    if (archived.appended > 0) {
+      historyAppended = archived.appended;
+      await deps.save(archived.store, {
+        updatedAtIso: opts.commitOptions?.updatedAtIso ?? opts.candidate.retrievedAt,
+        previousStore: postStore,
+      });
+    }
+  }
+
   const result = resolveMarketLayerForDemand(opts.demandStore, {
     materialKey: opts.candidate.materialKey,
     catalogWorkId: opts.candidate.catalogWorkId,
@@ -358,6 +431,7 @@ export async function acceptManualMarketPriceResearchPure(opts: {
     commit,
     demandResolved: result.resolved > 0,
     demandChanged: result.changed,
+    historyAppended,
     wroteCompanyKnowledge: false,
     wrotePurchase: false,
     nextDemandStore: result.store,

@@ -1,5 +1,5 @@
 /**
- * DEMAND-RESEARCH-01 S0 — Manual Price Research panel (staging → preview → ACCEPT).
+ * DEMAND-RESEARCH-01 S0/S1-A — Manual Price Research panel (staging → preview → ACCEPT).
  * UX pattern: Market Sync preview (EDIT / REJECT / ACCEPT) · 0 external fetch.
  */
 
@@ -8,6 +8,7 @@ import type { PriceDemandRecord } from "@/lib/price-intelligence";
 import {
   MANUAL_RESEARCH_PROVIDER_LABELS_PL,
   acceptManualMarketPriceResearch,
+  buildManualResearchBrief,
   buildPriceCandidateFromManualInput,
   isDemandResearchableS0,
   manualProviderSourceLabel,
@@ -16,6 +17,7 @@ import {
   type PriceCandidate,
 } from "@/lib/price-intelligence";
 import { TEUX_FONT_BODY, TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 
 type Phase = "form" | "preview";
 
@@ -55,6 +57,17 @@ export function DemandPriceResearchPanel({
   const [errorPl, setErrorPl] = useState<string | null>(null);
   const [candidate, setCandidate] = useState<PriceCandidate | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const researchBrief = useMemo(() => {
+    const catalog = loadWorkCatalogStoreLocal();
+    const workId = demand.catalogWorkId;
+    const work = workId
+      ? [...catalog.catalogs.wroclaw.works, ...catalog.catalogs.dolnyslask.works].find(
+          (w) => w.id === workId,
+        )
+      : null;
+    return buildManualResearchBrief(demand, work);
+  }, [demand]);
 
   const originLabel = useMemo(() => {
     const origin = mapManualProviderToQuoteOrigin(provider);
@@ -161,6 +174,26 @@ export function DemandPriceResearchPanel({
         <button type="button" className={btnGhost} onClick={onClose}>
           Zamknij
         </button>
+      </div>
+
+      <div
+        className="rounded-md border border-border/50 bg-muted/30 p-2 space-y-0.5"
+        data-research-brief
+      >
+        <p className={`${TEUX_FONT_CAPTION} font-medium`}>Brief research</p>
+        <p className={TEUX_FONT_BODY}>Nazwa: {researchBrief.normalizedName}</p>
+        <p className={TEUX_FONT_BODY}>materialKey: {researchBrief.materialKey}</p>
+        <p className={TEUX_FONT_BODY}>
+          catalogWorkId: {researchBrief.catalogWorkId ?? "—"}
+        </p>
+        <p className={TEUX_FONT_BODY}>
+          Jednostka: {researchBrief.unit || "—"} · Region: {researchBrief.region}
+        </p>
+        {researchBrief.tradeLabelPl && (
+          <p className={TEUX_FONT_BODY}>Trade: {researchBrief.tradeLabelPl}</p>
+        )}
+        <p className={TEUX_FONT_BODY}>Warstwa: {researchBrief.missingLayer}</p>
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{researchBrief.hintPl}</p>
       </div>
 
       {!researchable && (
