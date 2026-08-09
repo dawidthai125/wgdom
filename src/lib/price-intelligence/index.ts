@@ -21,3 +21,40 @@ export {
 } from "./apply-etics-approved-seed";
 
 export { ensurePi31EticsApprovedDataLocal, type EnsurePi31Result } from "./ensure-etics-approved-seed";
+
+export {
+  PRICE_DEMAND_SCHEMA_VERSION,
+  PRICE_DEMAND_STORAGE_KEY,
+  type PriceDemandCandidate,
+  type PriceDemandMissingLayer,
+  type PriceDemandPriority,
+  type PriceDemandRecord,
+  type PriceDemandStatus,
+  type PriceDemandStore,
+} from "./demand-types";
+
+export {
+  buildPriceDemandFamilyKey,
+  buildPriceDemandId,
+  computePriceDemandPriority,
+  defaultPriceDemandStoreForPersist,
+  listActivePriceDemands,
+  mergePriceDemandStore,
+  normalizeDemandName,
+  normalizePriceDemandStore,
+  resolvePriceDemandsForMaterials,
+  upsertPriceDemandCandidates,
+} from "./demand-queue";
+
+export {
+  collectPriceDemandCandidates,
+  collectResolvedMaterialKeys,
+  computeMissingLayer,
+} from "./demand-collect";
+
+export {
+  loadPriceDemandStoreLocal,
+  recordPriceDemandsFromExperts,
+  savePriceDemandStoreLocal,
+  type RecordPriceDemandsResult,
+} from "./demand-record";

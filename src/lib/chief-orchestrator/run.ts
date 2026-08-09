@@ -10,7 +10,9 @@ import {
 } from "@/lib/execution-expert";
 import { analyzeMaterialsFromExecution } from "@/lib/material-expert";
 import { analyzeOfferFromCost, defaultOfferStrategyParams } from "@/lib/offer-expert";
+import { recordPriceDemandsFromExperts } from "@/lib/price-intelligence/demand-record";
 import { analyzeMarketPricingFromMaterials } from "@/lib/pricing-expert";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { assembleDecydentDossier } from "./dossier";
 import {
   gateCost,
@@ -261,6 +263,32 @@ export function runChiefOrchestrator(
       pricing: experts.pricing!,
       company: input.company,
     });
+    // P3.2 — PRICE DATA MISSING → demand queue (fail-soft · 0 external · non-blocking)
+    try {
+      const tenderId =
+        "tenderId" in input.offerBoq && typeof input.offerBoq.tenderId === "string"
+          ? input.offerBoq.tenderId
+          : input.caseId;
+      let region = "wroclaw";
+      try {
+        region = loadWorkCatalogStoreLocal().activeRegion || "wroclaw";
+      } catch {
+        /* soft */
+      }
+      recordPriceDemandsFromExperts({
+        execution: experts.execution!,
+        pricing: experts.pricing!,
+        company: input.company,
+        context: {
+          tenderId,
+          region,
+          requestedAt: isoNow(input.nowIso),
+        },
+        pushCloud: true,
+      });
+    } catch {
+      /* soft — never block Cost */
+    }
     const g = gateCost(experts.cost);
     notes.push(g.reasonPl);
     if (!g.pass) {
