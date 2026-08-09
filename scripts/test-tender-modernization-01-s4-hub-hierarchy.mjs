@@ -10,7 +10,12 @@ import { fileURLToPath } from "node:url";
 import { buildIntelligenceHubShortcutLabel } from "../src/lib/tender-command-layer-ux.ts";
 import {
   resolveAuthoritativeOfferPln,
+  resolveAuthoritativeOfferPlnForRole,
 } from "../src/lib/tender-offer-pln-authority.ts";
+import {
+  forceExpertAiRuntimeEffectiveForTests,
+} from "../src/lib/tender-expert-effective.ts";
+import { defaultAppSettings } from "../src/lib/app-settings.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -193,6 +198,32 @@ const offBid = resolveAuthoritativeOfferPln({
 });
 assert("S3 Expert OFF Bid primary", offBid.source === "bid_legacy" && offBid.primaryPln === 90_000);
 
+{
+  forceExpertAiRuntimeEffectiveForTests(false);
+  const forRoleOff = resolveAuthoritativeOfferPlnForRole({
+    role: "super_admin",
+    settings: defaultAppSettings(),
+    offerPricePln: 100_000,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "P0 ForRole D=0 Bid primary despite super_admin M",
+    forRoleOff.source === "bid_legacy" && forRoleOff.primaryPln === 90_000,
+  );
+  forceExpertAiRuntimeEffectiveForTests(true);
+  const forRoleOn = resolveAuthoritativeOfferPlnForRole({
+    role: "super_admin",
+    settings: defaultAppSettings(),
+    offerPricePln: 100_000,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "P0 ForRole D=1 Offer primary",
+    forRoleOn.source === "offer_expert" && forRoleOn.primaryPln === 100_000,
+  );
+  forceExpertAiRuntimeEffectiveForTests(null);
+}
+
 // --- Guardrails ---
 assert("NO NEW FLAG kw-tm01-s4", !hub.includes("kw-tm01-s4") && !detail.includes("kw-tm01-s4"));
 assert(
@@ -202,6 +233,11 @@ assert(
 assert(
   "Hub still uses resolveAuthoritativeOfferPln",
   hub.includes("resolveAuthoritativeOfferPln"),
+);
+assert(
+  "Hub keys PLN on isExpertAiRuntimeEffective",
+  hub.includes("isExpertAiRuntimeEffective") &&
+    !hub.includes("resolveTenderExpertEffective"),
 );
 
 console.log(`\n=== S4 RESULT: ${pass} PASS / ${fail} FAIL ===`);

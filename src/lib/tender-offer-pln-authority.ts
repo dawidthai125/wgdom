@@ -1,9 +1,10 @@
 /**
  * TENDER-MODERNIZATION-01 / S3 — authoritative OFFER PLN presentation helper.
- * Thin only · NO third PLN SSOT · NO Bid/Offer formula · REUSE Expert-effective.
+ * Thin only · NO third PLN SSOT · NO Bid/Offer formula.
+ * P0: expertEffective arg = Expert AI RUNTIME (D Session), not module ACCESS (M).
  */
 
-import { isTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 import type { AdminRole } from "@/lib/admin-auth";
 import type { AppSettings } from "@/lib/app-settings";
 
@@ -117,8 +118,9 @@ export function classifyOfferBidParity(input: {
 }
 
 /**
- * Expert ON → Offer primary; Expert OFF → Bid primary.
+ * Expert AI runtime ON → Offer primary; runtime OFF → Bid primary.
  * Does not invent a third PLN — selects among existing values.
+ * `expertEffective` = D Session runtime (P0), not module access.
  */
 export function resolveAuthoritativeOfferPln(input: {
   expertEffective: boolean;
@@ -163,8 +165,10 @@ export function resolveAuthoritativeOfferPlnForRole(input: {
   offerPricePln?: number | null;
   recommendedBidPln?: number | null;
 }): AuthoritativeOfferPlnResult {
+  void input.role;
+  void input.settings;
   return resolveAuthoritativeOfferPln({
-    expertEffective: isTenderExpertEffective(input.role, input.settings),
+    expertEffective: isExpertAiRuntimeEffective(),
     offerPricePln: input.offerPricePln,
     recommendedBidPln: input.recommendedBidPln,
   });

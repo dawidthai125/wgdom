@@ -10,18 +10,27 @@ import { fileURLToPath } from "node:url";
 import {
   forceChiefSessionStackForTests,
   forceDecisionWorkspaceStackForTests,
+  forceExpertAiRuntimeEffectiveForTests,
   forceTenderExpertEffectiveForTests,
   isChiefSessionStackEnabled,
   isDecisionWorkspaceStackEnabled,
+  isExpertAiRuntimeEffective,
   isTenderExpertDwKillActive,
   isTenderExpertEffective,
   resolveTenderExpertEffective,
 } from "../src/lib/tender-expert-effective.ts";
 import { adminCanViewTendersTab } from "../src/lib/admin-auth.ts";
 import { defaultAppSettings } from "../src/lib/app-settings.ts";
-import { CHIEF_ORCHESTRATOR_SESSION_LS_KEY } from "../src/lib/chief-session/index.ts";
+import {
+  CHIEF_ORCHESTRATOR_SESSION_LS_KEY,
+  forceChiefOrchestratorSessionForTests,
+} from "../src/lib/chief-session/index.ts";
 import { DECISION_WORKSPACE_LS_KEY } from "../src/lib/decision-workspace-ui/index.ts";
 import { TENDER_DECISIONS_STORAGE_KEY } from "../src/lib/tenders-strategy-owner-decisions.ts";
+import {
+  resolveAuthoritativeOfferPln,
+  resolveAuthoritativeOfferPlnForRole,
+} from "../src/lib/tender-offer-pln-authority.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -47,6 +56,8 @@ function resetForces() {
   forceTenderExpertEffectiveForTests(null);
   forceChiefSessionStackForTests(null);
   forceDecisionWorkspaceStackForTests(null);
+  forceExpertAiRuntimeEffectiveForTests(null);
+  forceChiefOrchestratorSessionForTests(null);
 }
 
 console.log("=== TENDER-MODERNIZATION-01 / S2 Dual Outcome ===\n");
@@ -94,15 +105,28 @@ assert(
   );
 }
 
-// Stack: Expert ON ⇒ Session/DW ON unless kill
+// Stack: P0 — M alone must NOT force Session/DW ON; stack := D Session/Decision flags
 {
   resetForces();
   forceTenderExpertEffectiveForTests(true);
-  assert("stack Session ON when Expert ON", isChiefSessionStackEnabled(true) === true);
-  assert("stack DW ON when Expert ON", isDecisionWorkspaceStackEnabled(true) === true);
+  forceChiefOrchestratorSessionForTests(false);
+  assert(
+    "P0 M=1 D=0 Session stack OFF (no M short-circuit)",
+    isChiefSessionStackEnabled(true) === false,
+  );
+  assert(
+    "P0 M=1 D=0 DW stack OFF",
+    isDecisionWorkspaceStackEnabled(true) === false,
+  );
+  forceChiefOrchestratorSessionForTests(true);
+  assert(
+    "P0 D=1 Session stack ON",
+    isChiefSessionStackEnabled(false) === true,
+  );
+  resetForces();
 }
 
-// Kill-switch Q13b
+// Kill-switch Q13b + DwKill = runtime ON && DW OFF
 {
   const prevSession = globalThis.localStorage?.getItem?.(CHIEF_ORCHESTRATOR_SESSION_LS_KEY);
   const prevDw = globalThis.localStorage?.getItem?.(DECISION_WORKSPACE_LS_KEY);
@@ -113,17 +137,27 @@ assert(
     }
     resetForces();
     assert(
-      "Q13b DW kill when Expert ON",
+      "Q13b DW kill LS 0",
       isDecisionWorkspaceStackEnabled(true) === false,
     );
     assert(
-      "Q13b Session kill when Expert ON",
+      "Q13b Session kill LS 0",
       isChiefSessionStackEnabled(true) === false,
     );
     assert(
-      "Q13b kill active helper",
-      isTenderExpertDwKillActive(true) === true,
+      "Q13b DwKill inactive when Session also killed",
+      isTenderExpertDwKillActive(true) === false,
     );
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(CHIEF_ORCHESTRATOR_SESSION_LS_KEY, "1");
+      localStorage.setItem(DECISION_WORKSPACE_LS_KEY, "0");
+    }
+    resetForces();
+    assert(
+      "DwKill active when Session ON + DW LS 0",
+      isTenderExpertDwKillActive() === true,
+    );
+    assert("runtime ON via LS Session 1", isExpertAiRuntimeEffective() === true);
   } finally {
     if (typeof localStorage !== "undefined") {
       if (prevDw == null) localStorage.removeItem(DECISION_WORKSPACE_LS_KEY);
@@ -135,15 +169,68 @@ assert(
   }
 }
 
-// Expert OFF stack → legacy flags (force Expert OFF)
+// Expert OFF stack → Session/Decision flags (boolean)
 {
   resetForces();
   forceTenderExpertEffectiveForTests(false);
-  // Without LS force, Expert OFF uses legacy is*Enabled — tip default typically false
+  forceChiefOrchestratorSessionForTests(false);
   const sessionOff = isChiefSessionStackEnabled(false);
   const dwOff = isDecisionWorkspaceStackEnabled(false);
-  assert("Expert OFF Session uses legacy path (boolean)", typeof sessionOff === "boolean");
-  assert("Expert OFF DW uses legacy path (boolean)", typeof dwOff === "boolean");
+  assert("D=0 Session stack false", sessionOff === false);
+  assert("D=0 DW stack false", dwOff === false);
+  resetForces();
+}
+
+// P0 truth table PLN / runtime alias
+{
+  resetForces();
+  forceExpertAiRuntimeEffectiveForTests(false);
+  const t10 = resolveAuthoritativeOfferPln({
+    expertEffective: isExpertAiRuntimeEffective(),
+    offerPricePln: 100_000,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "AC-P0-F2 T10 Bid primary",
+    t10.source === "bid_legacy" && t10.primaryPln === 90_000,
+  );
+  const t10role = resolveAuthoritativeOfferPlnForRole({
+    role: "super_admin",
+    settings: off,
+    offerPricePln: 100_000,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "AC-P0 ForRole uses runtime not M (T10)",
+    t10role.source === "bid_legacy" && t10role.primaryPln === 90_000,
+  );
+
+  forceExpertAiRuntimeEffectiveForTests(true);
+  const t11 = resolveAuthoritativeOfferPln({
+    expertEffective: isExpertAiRuntimeEffective(),
+    offerPricePln: 100_000,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "AC-P0-F4 T11 Offer primary",
+    t11.source === "offer_expert" && t11.primaryPln === 100_000,
+  );
+  const t11null = resolveAuthoritativeOfferPln({
+    expertEffective: true,
+    offerPricePln: null,
+    recommendedBidPln: 90_000,
+  });
+  assert(
+    "AC-P0-F5 T11 Offer null NO PRIMARY",
+    t11null.source === "none" && t11null.primaryPln == null,
+  );
+  assert(
+    "AC-P0-F6 M still true with D=0 force",
+    (() => {
+      forceExpertAiRuntimeEffectiveForTests(false);
+      return isTenderExpertEffective("super_admin", off) === true;
+    })(),
+  );
   resetForces();
 }
 
@@ -161,16 +248,25 @@ const persistStore = readSrc("src/lib/decision-persist/store.ts");
 const ownerStore = readSrc("src/lib/tenders-strategy-owner-decisions.ts");
 
 assert("DetailPage uses isChiefSessionStackEnabled", detail.includes("isChiefSessionStackEnabled"));
-assert("DetailPage uses resolveTenderExpertEffective", detail.includes("resolveTenderExpertEffective"));
 assert(
-  "DetailPage no raw isChiefOrchestratorSessionEnabled()",
-  !detail.includes("isChiefOrchestratorSessionEnabled()"),
+  "DetailPage uses isExpertAiRuntimeEffective",
+  detail.includes("isExpertAiRuntimeEffective"),
 );
-
+assert(
+  "DetailPage Dual Outcome not keyed on resolveTenderExpertEffective",
+  !detail.includes("resolveTenderExpertEffective"),
+);
+assert(
+  "PrimaryAction uses isExpertAiRuntimeEffective",
+  primary.includes("isExpertAiRuntimeEffective"),
+);
+assert(
+  "PrimaryAction not keyed on resolveTenderExpertEffective",
+  !primary.includes("resolveTenderExpertEffective"),
+);
 assert("Hub data-s2-dw-primary", hub.includes("data-s2-dw-primary"));
 assert("Hub hierarchy cue", hub.includes("data-s2-hub-hierarchy-cue"));
-
-assert("PrimaryAction Expert gate", primary.includes("resolveTenderExpertEffective"));
+assert("Hub uses isExpertAiRuntimeEffective", hub.includes("isExpertAiRuntimeEffective"));
 assert(
   "PrimaryAction suppresses setOwnerDecision when Expert ON",
   /if \(expertEffective\)[\s\S]*decision-workspace-surface[\s\S]*return/.test(primary),

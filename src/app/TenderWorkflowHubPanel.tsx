@@ -31,8 +31,7 @@ import type { ChiefDossierViewModel } from "@/lib/chief-dossier-ui";
 import type { ExpertWorkspaceViewModel } from "@/lib/expert-workspace-ui";
 import { DecisionWorkspaceHost } from "@/app/decision-workspace";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
-import { useAdminAccess } from "@/app/admin-access";
-import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 import { resolveAuthoritativeOfferPln } from "@/lib/tender-offer-pln-authority";
 import {
   BID_PLN_SOURCE_BADGE_PL,
@@ -89,8 +88,7 @@ export function TenderWorkflowHubPanel({
   /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
   chiefSessionForDecision?: ChiefSessionOutput | null;
 }) {
-  const { session } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const expertEffective = isExpertAiRuntimeEffective();
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
 

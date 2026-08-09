@@ -156,8 +156,8 @@ assert(
   host.includes("isDecisionWorkspaceStackEnabled"),
 );
 assert(
-  "DetailPage still uses resolveTenderExpertEffective",
-  detail.includes("resolveTenderExpertEffective"),
+  "DetailPage still uses isExpertAiRuntimeEffective",
+  detail.includes("isExpertAiRuntimeEffective"),
 );
 
 // Soft: persist store file readable (no accidental delete)

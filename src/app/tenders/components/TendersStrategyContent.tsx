@@ -36,8 +36,7 @@ import {
 } from "@/lib/tender-strategy-ux";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
-import { useAdminAccess } from "@/app/admin-access";
-import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 
 export function TendersStrategyContent({
   showHeader = true,
@@ -61,8 +60,7 @@ export function TendersStrategyContent({
 }) {
   const { snapshot, ownerDecisions, strategyFocusTenderId, clearStrategyFocus } = useTendersContext();
   const tendersUi = useTendersContextOptional();
-  const { session } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const expertEffective = isExpertAiRuntimeEffective();
 
   const handleOpenTender = onOpenTender ?? tendersUi?.openTenderInList;
 

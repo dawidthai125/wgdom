@@ -24,7 +24,6 @@ import {
 } from "@/lib/decision-workspace-ui";
 import {
   isDecisionWorkspaceStackEnabled,
-  resolveTenderExpertEffective,
 } from "@/lib/tender-expert-effective";
 import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
 import { DecisionWorkspaceSurface } from "./DecisionWorkspaceSurface";
@@ -43,9 +42,8 @@ export function DecisionWorkspaceHost({
   const { session: adminSession } = useAdminAccess();
   const { ownerDecisions } = useTendersContext();
   const setOwnerDecision = ownerDecisions.setOwnerDecision;
-  const expertEffective = resolveTenderExpertEffective(adminSession?.role);
-  /** S2 — Expert ON ⇒ DW stack ON unless kill-switch (kw-decision-workspace / isDecisionWorkspaceEnabled). */
-  const flagEnabled = isDecisionWorkspaceStackEnabled(expertEffective);
+  /** P0 — DW stack := isDecisionWorkspaceEnabled via isDecisionWorkspaceStackEnabled (coupled to D Session); ignores module access. */
+  const flagEnabled = isDecisionWorkspaceStackEnabled();
   const [localDecision, setLocalDecision] = useState<DecydentLocalDecision | null>(
     null,
   );

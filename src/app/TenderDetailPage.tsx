@@ -21,10 +21,9 @@ import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
 import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
-import { useAdminAccess } from "@/app/admin-access";
 import {
   isChiefSessionStackEnabled,
-  resolveTenderExpertEffective,
+  isExpertAiRuntimeEffective,
 } from "@/lib/tender-expert-effective";
 import {
   TenderWorkflowOperatorActionBar,
@@ -214,9 +213,8 @@ export function TenderDetailPage({
   /** COST-PIPELINE-01 — CTA „Pokaż pełny kosztorys” → focus OfferBoq (nie ATH). */
   const [focusOfferBoq, setFocusOfferBoq] = useState(false);
 
-  /** S2 — Session/DW stack: Expert-effective ⇒ ON unless LS kill; Expert OFF ⇒ legacy flag. */
-  const { session: adminSession } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(adminSession?.role);
+  /** P0 — Dual Outcome / TRE / stack cues follow D Session runtime (not module access). */
+  const expertEffective = isExpertAiRuntimeEffective();
 
   useEffect(() => {
     setTre01ForceWorkspace(false);

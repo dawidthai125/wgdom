@@ -1,6 +1,11 @@
 /**
- * TENDER-MODERNIZATION-01 / S2 — Expert-effective = Module effective.
- * REUSE adminCanViewTendersTab · NO NEW FLAG · LS = kill-switch only.
+ * TENDER-MODERNIZATION-01 / S2 + EXPERT-AI-P0-DUAL-ENABLEMENT
+ *
+ * AXIS-M: isTenderExpertEffective = module ACCESS only (adminCanViewTendersTab).
+ * AXIS-D: AppSettings Decydent master → Session/Decision runtime.
+ *
+ * Presentation / Dual Outcome / Offer PLN / stacks follow D Session —
+ * NEVER raw M alone (P0 DF).
  */
 
 import {
@@ -11,14 +16,8 @@ import {
   loadAppSettingsLocal,
   type AppSettings,
 } from "@/lib/app-settings";
-import {
-  CHIEF_ORCHESTRATOR_SESSION_LS_KEY,
-  isChiefOrchestratorSessionEnabled,
-} from "@/lib/chief-session";
-import {
-  DECISION_WORKSPACE_LS_KEY,
-  isDecisionWorkspaceEnabled,
-} from "@/lib/decision-workspace-ui";
+import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
+import { isDecisionWorkspaceEnabled } from "@/lib/decision-workspace-ui";
 
 export type TenderExpertEffectiveSettings = {
   tendersTabForStaffEnabled?: boolean;
@@ -27,8 +26,9 @@ export type TenderExpertEffectiveSettings = {
 let expertEffectiveForTests: boolean | null = null;
 let chiefStackForTests: boolean | null = null;
 let dwStackForTests: boolean | null = null;
+let runtimeEffectiveForTests: boolean | null = null;
 
-/** Test-only override (null = compute). */
+/** Test-only override (null = compute). ACCESS axis only. */
 export function forceTenderExpertEffectiveForTests(on: boolean | null): void {
   expertEffectiveForTests = on;
 }
@@ -43,8 +43,13 @@ export function forceDecisionWorkspaceStackForTests(on: boolean | null): void {
   dwStackForTests = on;
 }
 
+/** Test-only Expert AI runtime override (null = Session flag). */
+export function forceExpertAiRuntimeEffectiveForTests(on: boolean | null): void {
+  runtimeEffectiveForTests = on;
+}
+
 /**
- * Production Expert-effective = Module access (S1 gate).
+ * AXIS-M — module access (S1). Does NOT imply Chief/Decydent runtime.
  */
 export function isTenderExpertEffective(
   role: AdminRole | null | undefined,
@@ -55,56 +60,45 @@ export function isTenderExpertEffective(
   return adminCanViewTendersTab(role, settings);
 }
 
-/** Convenience: role + local AppSettings. */
+/** Convenience: ACCESS + local AppSettings. */
 export function resolveTenderExpertEffective(
   role: AdminRole | null | undefined,
 ): boolean {
   return isTenderExpertEffective(role, loadAppSettingsLocal());
 }
 
-type KillMode = "force_off" | "force_on" | "unset";
-
-function readKillMode(lsKey: string): KillMode {
-  if (typeof localStorage === "undefined") return "unset";
-  try {
-    const raw = localStorage.getItem(lsKey);
-    if (raw === "0") return "force_off";
-    if (raw === "1") return "force_on";
-  } catch {
-    /* private mode */
-  }
-  return "unset";
+/**
+ * AXIS-D Session — Expert AI runtime active (thin alias).
+ * = isChiefOrchestratorSessionEnabled() · no new storage.
+ */
+export function isExpertAiRuntimeEffective(): boolean {
+  if (runtimeEffectiveForTests != null) return runtimeEffectiveForTests;
+  return isChiefOrchestratorSessionEnabled();
 }
 
 /**
  * Chief Session stack visibility.
- * Expert ON → ON unless LS kill "0".
- * Expert OFF → legacy isChiefOrchestratorSessionEnabled() (tip default OFF).
+ * P0: delegates to D Session flag (LS already inside). Ignores M.
+ * `_accessEffective` retained for call-site API stability only.
  */
-export function isChiefSessionStackEnabled(expertEffective: boolean): boolean {
+export function isChiefSessionStackEnabled(_accessEffective?: boolean): boolean {
   if (chiefStackForTests != null) return chiefStackForTests;
-  const kill = readKillMode(CHIEF_ORCHESTRATOR_SESSION_LS_KEY);
-  if (kill === "force_off") return false;
-  if (kill === "force_on") return true;
-  if (expertEffective) return true;
   return isChiefOrchestratorSessionEnabled();
 }
 
 /**
  * Decision Workspace stack visibility.
- * Expert ON → ON unless LS kill "0".
- * Expert OFF → legacy isDecisionWorkspaceEnabled() (tip default OFF).
+ * P0: delegates to D Decision flag (coupling + LS inside). Ignores M.
  */
-export function isDecisionWorkspaceStackEnabled(expertEffective: boolean): boolean {
+export function isDecisionWorkspaceStackEnabled(_accessEffective?: boolean): boolean {
   if (dwStackForTests != null) return dwStackForTests;
-  const kill = readKillMode(DECISION_WORKSPACE_LS_KEY);
-  if (kill === "force_off") return false;
-  if (kill === "force_on") return true;
-  if (expertEffective) return true;
   return isDecisionWorkspaceEnabled();
 }
 
-/** True when Expert ON but DW stack killed — legacy human CTAs stay non-PRIMARY. */
-export function isTenderExpertDwKillActive(expertEffective: boolean): boolean {
-  return expertEffective && !isDecisionWorkspaceStackEnabled(expertEffective);
+/**
+ * True when Expert AI runtime ON but DW stack killed (Decision LS "0").
+ * Legacy human CTAs stay non-PRIMARY.
+ */
+export function isTenderExpertDwKillActive(_accessEffective?: boolean): boolean {
+  return isExpertAiRuntimeEffective() && !isDecisionWorkspaceStackEnabled();
 }

@@ -13,7 +13,6 @@ import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { useAdminAccess } from "@/app/admin-access";
 import { resolvePrimaryActionDisabledReason, buildWorkspacePrimaryActionContextLabel } from "@/lib/tender-command-layer-ux";
 import {
   buildWorkflowPrimaryActionResolveInput,
@@ -23,7 +22,7 @@ import {
   legacyWorkspaceTabToV4Navigate,
   workspaceV2PrefersKosztorysTab,
 } from "@/lib/tender-workspace-v2-ux";
-import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 
 export function TenderWorkflowPrimaryAction({
   item,
@@ -62,8 +61,7 @@ export function TenderWorkflowPrimaryAction({
   activeTab?: TenderDetailV4TabId;
 }) {
   const { ownerDecisions } = useTendersContext();
-  const { session } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const expertEffective = isExpertAiRuntimeEffective();
 
   const view = buildWorkflowPrimaryActionView({
     resolveInput: buildWorkflowPrimaryActionResolveInput({

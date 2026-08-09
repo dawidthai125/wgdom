@@ -15,8 +15,7 @@ import {
   TEUX_FONT_DISPLAY,
   TEUX_FONT_HEADLINE,
 } from "@/lib/tender-ux-tokens";
-import { useAdminAccess } from "@/app/admin-access";
-import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 import { resolveAuthoritativeOfferPln } from "@/lib/tender-offer-pln-authority";
 import {
   BID_PLN_SOURCE_BADGE_PL,
@@ -52,8 +51,7 @@ export function TenderRecommendationOutcomeView({
   reparseBusy?: boolean;
   offerPricePln?: number | null;
 }) {
-  const { session } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const expertEffective = isExpertAiRuntimeEffective();
   const auth = resolveAuthoritativeOfferPln({
     expertEffective,
     offerPricePln,

@@ -9,7 +9,6 @@ import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ExecutiveSummaryCard } from "@/app/ExecutiveSummaryCard";
 import { TenderOwnerDecisionButtons } from "@/app/TenderOwnerDecisionButtons";
-import { useAdminAccess } from "@/app/admin-access";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { OwnerFinanceView } from "@/lib/tender-owner-view-ux";
@@ -20,7 +19,7 @@ import {
 } from "@/lib/tender-owner-language-pl";
 import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
 import { TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
-import { resolveTenderExpertEffective } from "@/lib/tender-expert-effective";
+import { isExpertAiRuntimeEffective } from "@/lib/tender-expert-effective";
 
 function DecisionVerdictSection({
   ctx,
@@ -219,8 +218,7 @@ export function TenderDecisionView({
 }: {
   intelligenceCtx: TenderIntelligenceContext;
 }) {
-  const { session } = useAdminAccess();
-  const expertEffective = resolveTenderExpertEffective(session?.role);
+  const expertEffective = isExpertAiRuntimeEffective();
 
   return (
     <div
