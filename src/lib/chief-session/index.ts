@@ -17,6 +17,7 @@ export {
 export {
   buildChiefSessionCaseId,
   buildChiefSessionFingerprint,
+  resolveStableCaseStamp,
 } from "./case-id";
 
 export type {

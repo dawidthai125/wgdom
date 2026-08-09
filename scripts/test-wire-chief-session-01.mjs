@@ -14,8 +14,14 @@ import {
   createChiefSessionEngine,
   forceChiefOrchestratorSessionForTests,
   isChiefOrchestratorSessionEnabled,
+  resolveStableCaseStamp,
 } from "../src/lib/chief-session/index.ts";
 import { runChiefOrchestrator } from "../src/lib/chief-orchestrator/index.ts";
+import {
+  DECISION_PERSIST_LS_KEY,
+  hydrateDecision,
+  recordDecision,
+} from "../src/lib/decision-persist/index.ts";
 import { defaultExecutionExpertBusinessProfile } from "../src/lib/execution-expert/index.ts";
 import { DEFAULT_MATERIAL_MARKET_MAP } from "../src/lib/pricing-expert/index.ts";
 import {
@@ -27,6 +33,21 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
+
+/** Minimal LS polyfill for Node (Persist AC-F3/F5). */
+if (typeof globalThis.localStorage === "undefined") {
+  const mem = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+    setItem: (k, v) => {
+      mem.set(String(k), String(v));
+    },
+    removeItem: (k) => {
+      mem.delete(String(k));
+    },
+    clear: () => mem.clear(),
+  };
+}
 
 let passed = 0;
 function ok(name, cond = true) {
@@ -209,21 +230,67 @@ forceChiefOrchestratorSessionForTests(false);
 ok("flag force OFF", isChiefOrchestratorSessionEnabled() === false);
 forceChiefOrchestratorSessionForTests(null);
 
-console.log("\n=== caseId / fingerprint ===\n");
+console.log("\n=== caseId / fingerprint (Q12 FIX DF) ===\n");
 ok(
   "caseId shape",
   buildChiefSessionCaseId({ tenderPipelineItemId: "abc", fingerprint: "1|x" }) ===
     "chief:abc:1|x",
 );
 ok(
-  "fingerprint stable",
-  buildChiefSessionFingerprint({
-    offerBoqLineCount: 2,
-    recomputeToken: "t",
-    builtAt: "b",
-    parserVersion: 3,
-  }) === "2|t|b|3",
+  "stableCaseStamp prefers parsedAt",
+  resolveStableCaseStamp({
+    kosztorysParsedAt: "2026-08-01T10:00:00.000Z",
+    tenderDossierBuiltAt: "2026-08-01T09:00:00.000Z",
+    recomputeToken: "tok",
+    parserVersionNum: 3,
+  }) === "2026-08-01T10:00:00.000Z",
 );
+ok(
+  "stableCaseStamp falls back to builtAt",
+  resolveStableCaseStamp({
+    kosztorysParsedAt: null,
+    tenderDossierBuiltAt: "2026-08-01T09:00:00.000Z",
+    recomputeToken: "tok",
+    parserVersionNum: 3,
+  }) === "2026-08-01T09:00:00.000Z",
+);
+ok(
+  "stableCaseStamp content fallback",
+  resolveStableCaseStamp({
+    kosztorysParsedAt: null,
+    tenderDossierBuiltAt: null,
+    recomputeToken: "tokA",
+    parserVersionNum: 7,
+  }) === "content:tokA|pv:7",
+);
+ok(
+  "fingerprint Q12 composition",
+  buildChiefSessionFingerprint({
+    recomputeToken: "t",
+    parserVersionNum: 3,
+    stableCaseStamp: "stamp",
+  }) === "t|3|stamp",
+);
+
+/** Pure identity helper mirroring Session DF (no wall-clock). */
+function sessionIdentity(opts) {
+  const stableCaseStamp = resolveStableCaseStamp({
+    kosztorysParsedAt: opts.parsedAt ?? null,
+    tenderDossierBuiltAt: opts.builtAt ?? null,
+    recomputeToken: opts.recomputeToken ?? null,
+    parserVersionNum: opts.parserVersionNum ?? null,
+  });
+  const fingerprint = buildChiefSessionFingerprint({
+    recomputeToken: opts.recomputeToken ?? null,
+    parserVersionNum: opts.parserVersionNum ?? null,
+    stableCaseStamp,
+  });
+  const caseId = buildChiefSessionCaseId({
+    tenderPipelineItemId: opts.itemId,
+    fingerprint,
+  });
+  return { stableCaseStamp, fingerprint, caseId };
+}
 
 console.log("\n=== Happy path ===\n");
 resetTf();
@@ -512,6 +579,104 @@ console.log("\n=== LOCK — no Expert/Chief/TF/Adapter BC edits in this EPIC ===
   ok("session no analyzeMaterials", !engineSrc.includes("analyzeMaterialsFromExecution"));
   ok("session no OfferBoq write", !engineSrc.includes("saveOfferBoq"));
   ok("session REUSE runChiefOrchestrator", engineSrc.includes("runChiefOrchestrator"));
+}
+
+console.log("\n=== Q12 FIX — identity reload + invalidate (AC-F1…F5) ===\n");
+{
+  const base = {
+    itemId: "t-q12",
+    parsedAt: "2026-08-01T10:00:00.000Z",
+    builtAt: "2026-08-01T09:00:00.000Z",
+    recomputeToken: "tok-stable",
+    parserVersionNum: 5,
+  };
+  const pass1 = sessionIdentity(base);
+  const pass2 = sessionIdentity(base);
+  ok("AC-F1 same content → same caseId (reload)", pass1.caseId === pass2.caseId);
+  ok(
+    "AC-F1 caseId embeds fingerprint",
+    pass1.caseId === `chief:t-q12:${pass1.fingerprint}`,
+  );
+  ok(
+    "AC-F2 stamp stable across reload",
+    pass1.stableCaseStamp === pass2.stableCaseStamp &&
+      pass1.stableCaseStamp === "2026-08-01T10:00:00.000Z",
+  );
+
+  resetTf();
+  const engineA = createChiefSessionEngine({ isEnabled: () => true });
+  engineA.start({
+    runtimeRo: readyRuntimeRo(),
+    caseId: pass1.caseId,
+    pricingReady: true,
+    maxReturnLoops: 0,
+    nowIso: pass1.stableCaseStamp,
+  });
+  await flushMicrotasks();
+  const fin1 = engineA.getSnapshot().dossier?.finishedAt;
+
+  const engineB = createChiefSessionEngine({ isEnabled: () => true });
+  engineB.start({
+    runtimeRo: readyRuntimeRo(),
+    caseId: pass2.caseId,
+    pricingReady: true,
+    maxReturnLoops: 0,
+    nowIso: pass2.stableCaseStamp,
+  });
+  await flushMicrotasks();
+  const fin2 = engineB.getSnapshot().dossier?.finishedAt;
+  ok(
+    "AC-F2 same content → same dossier.finishedAt (reload)",
+    fin1 === fin2 && fin1 === pass1.stableCaseStamp,
+  );
+
+  localStorage.removeItem(DECISION_PERSIST_LS_KEY);
+  const persisted = recordDecision({
+    tenderId: "t-q12",
+    caseId: pass1.caseId,
+    action: "needs_review",
+    scenario: null,
+    actor: { userId: "dawid", displayName: "Dawid" },
+    dossierFinishedAt: pass1.stableCaseStamp,
+    validationSnapshot: { verdict: "validated", hardCount: 0, softCount: 0 },
+  });
+  ok("AC-F3 Persist write needs_review", persisted != null && persisted.action === "needs_review");
+  const hydrated = hydrateDecision(
+    "t-q12",
+    pass2.caseId,
+    pass2.stableCaseStamp,
+  );
+  ok(
+    "AC-F3 reload identity → hydrate needs_review",
+    hydrated != null &&
+      hydrated.id === persisted.id &&
+      hydrated.action === "needs_review",
+  );
+
+  const changed = sessionIdentity({
+    ...base,
+    recomputeToken: "tok-CHANGED",
+  });
+  ok("AC-F4 real content change → new caseId", changed.caseId !== pass1.caseId);
+  ok(
+    "AC-F4 fingerprint includes new token",
+    changed.fingerprint.startsWith("tok-CHANGED|"),
+  );
+  const hydrateAfterChange = hydrateDecision(
+    "t-q12",
+    changed.caseId,
+    changed.stableCaseStamp,
+  );
+  ok(
+    "AC-F5 old decision does NOT hydrate after content change",
+    hydrateAfterChange == null,
+  );
+  // updatedAt churn must not affect identity when stamps/token unchanged
+  const afterUpdatedAtChurn = sessionIdentity(base);
+  ok(
+    "updatedAt OUT — identity unchanged",
+    afterUpdatedAtChurn.caseId === pass1.caseId,
+  );
 }
 
 console.log("\n=== Regression smoke: real Chief still works ===\n");

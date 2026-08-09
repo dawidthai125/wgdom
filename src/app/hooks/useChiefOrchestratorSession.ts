@@ -2,6 +2,9 @@
  * WIRE-CHIEF-SESSION-01 — cienki hook Session.
  * Obserwuje item + readiness · REUSE assembleChiefWireRuntimeRo + engine.
  * Dossier tylko in-memory · bez UI · bez persist.
+ *
+ * Q12 FIX DF — Case identity content-stable across reloads
+ * (stableCaseStamp → builtAtIso + fingerprint + nowIso).
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +16,7 @@ import {
   createChiefSessionEngine,
   idleChiefSessionOutput,
   isChiefOrchestratorSessionEnabled,
+  resolveStableCaseStamp,
   type ChiefSessionOutput,
 } from "@/lib/chief-session";
 
@@ -78,17 +82,46 @@ export function useChiefOrchestratorSession(opts: {
       return;
     }
 
-    const runtimeRo = assembleChiefWireRuntimeRo({ item });
+    const parserVersionNum =
+      typeof item.tenderDossier?.parserVersion === "number" &&
+      Number.isFinite(item.tenderDossier.parserVersion)
+        ? item.tenderDossier.parserVersion
+        : null;
+
+    // Provisional stamp for first assemble (item SSOT or content:0|pv:N).
+    // Token-aware fallback stamp computed after assemble when item stamps absent.
+    const provisionalStamp = resolveStableCaseStamp({
+      kosztorysParsedAt: item.tenderDossier?.kosztorys?.parsedAt ?? null,
+      tenderDossierBuiltAt: item.tenderDossier?.builtAt ?? null,
+      recomputeToken: "0",
+      parserVersionNum,
+    });
+
+    let runtimeRo = assembleChiefWireRuntimeRo({
+      item,
+      builtAtIso: provisionalStamp,
+    });
+
+    const recomputeToken = runtimeRo.offerBoq?.recomputeToken ?? null;
+
+    const stableCaseStamp = resolveStableCaseStamp({
+      kosztorysParsedAt: item.tenderDossier?.kosztorys?.parsedAt ?? null,
+      tenderDossierBuiltAt: item.tenderDossier?.builtAt ?? null,
+      recomputeToken,
+      parserVersionNum,
+    });
+
+    if (stableCaseStamp !== provisionalStamp) {
+      runtimeRo = assembleChiefWireRuntimeRo({
+        item,
+        builtAtIso: stableCaseStamp,
+      });
+    }
+
     const fingerprint = buildChiefSessionFingerprint({
-      offerBoqLineCount: runtimeRo.offerBoq?.lines.length ?? 0,
-      recomputeToken: runtimeRo.offerBoq?.recomputeToken ?? null,
-      builtAt: runtimeRo.offerBoq?.builtAt ?? null,
-      parserVersion:
-        item.tenderDossier?.parserVersion ??
-        item.tenderDossier?.kosztorys?.parsedAt ??
-        item.tenderDossier?.builtAt ??
-        item.updatedAt ??
-        null,
+      recomputeToken: runtimeRo.offerBoq?.recomputeToken ?? recomputeToken,
+      parserVersionNum,
+      stableCaseStamp,
     });
     const caseId = buildChiefSessionCaseId({
       tenderPipelineItemId: item.id,
@@ -109,6 +142,7 @@ export function useChiefOrchestratorSession(opts: {
       runtimeRo,
       caseId,
       pricingReady,
+      nowIso: stableCaseStamp,
       maxReturnLoops,
     });
     setSnap(engine.getSnapshot());
