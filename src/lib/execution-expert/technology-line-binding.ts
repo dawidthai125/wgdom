@@ -1,7 +1,8 @@
 /**
- * TECHNOLOGY-LINE-BINDING-01 — BOQ line → CostItemFamily → TechnologyPack binding.
- * REUSE TechnologyPack + projectBom · ZERO invented norms · unbound ≠ fake pack.
- * 01B: painting → economy white pack + resolvePaintCoats.
+ * TECHNOLOGY-LINE-BINDING-01 + TECHNOLOGY-DECOMPOSITION-01
+ * BOQ → Decomposition → TechUnit[] → Family → Pack → Recipe → partial BOM → merge
+ * 01B: painting coats → economy white pack.
+ * Provenance P-meta: sourceLineIds[] / techUnitIds[] on BOM lines.
  */
 
 import {
@@ -17,16 +18,28 @@ import {
   canPackFeedProductionBom,
   filterPackRecipeForCoats,
   type GeneratedBom,
+  type GeneratedBomEquipmentLine,
+  type GeneratedBomLabourLine,
+  type GeneratedBomMaterialLine,
   type TechnologyPack,
 } from "@/lib/technology-foundation";
 import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
-import { classifyCostItemFamily, type CostItemFamily } from "./cost-item-family";
+import type { CostItemFamily } from "./cost-item-family";
 import {
   isOfferBoqLineEligibleForExecution,
   offerBoqLineToBoqContextLine,
   type OfferBoqLineLike,
 } from "./offer-boq-adapter";
-import { resolvePaintCoats, type PaintCoats } from "./paint-coats";
+import type { PaintCoats } from "./paint-coats";
+import {
+  aggregateLineStatus,
+  decomposeOfferBoqLine,
+  techUnitFamilyToCostItemFamily,
+  type LineAggregateStatus,
+  type LineDecompositionResult,
+  type TechUnit,
+  type TechUnitStatus,
+} from "./technology-decomposition";
 import type { ExecutionPackSelection } from "./types";
 
 export type TechnologyBindStatus =
@@ -40,6 +53,10 @@ export type TechnologyBindStatus =
 export interface TechnologyLineBinding {
   tenderId: string;
   lineId: string;
+  /** TECH-DECOMP-01 — one binding per TechUnit when decomposed. */
+  techUnitId?: string;
+  techUnitStatus?: TechUnitStatus;
+  lineAggregateStatus?: LineAggregateStatus;
   costItemFamily: CostItemFamily;
   packId: string | null;
   packVersion: string | null;
@@ -49,15 +66,16 @@ export interface TechnologyLineBinding {
   unit: string;
   /** 01B — resolved paint coats when family=painting and bound. */
   coats?: PaintCoats;
+  decompositionReason?: string;
 }
 
 export interface TechnologyLineBindingResult {
   bindings: TechnologyLineBinding[];
-  /** Bound lines only — packs resolved. */
+  techUnits: TechUnit[];
+  lineDecompositions: LineDecompositionResult[];
   boundCount: number;
   unboundCount: number;
   mergedBom: GeneratedBom | null;
-  /** Primary pack for legacy selection/contract (most bound lines). */
   primaryPack: TechnologyPack | null;
   selection: ExecutionPackSelection | null;
 }
@@ -88,105 +106,168 @@ function bindStatusForUnboundFamily(family: CostItemFamily): TechnologyBindStatu
   return "unbound";
 }
 
+function unionIds(a: string[] | undefined, b: string[] | undefined): string[] | undefined {
+  const set = new Set<string>([...(a || []), ...(b || [])]);
+  if (set.size === 0) return undefined;
+  return [...set].sort();
+}
+
+/** Stamp P-meta provenance onto a partial BOM (mutates copies). */
+export function annotateBomProvenance(
+  bom: GeneratedBom,
+  sourceLineId: string,
+  techUnitId: string,
+): GeneratedBom {
+  const stamp = <T extends { sourceLineIds?: string[]; techUnitIds?: string[] }>(row: T): T => ({
+    ...row,
+    sourceLineIds: unionIds(row.sourceLineIds, [sourceLineId]),
+    techUnitIds: unionIds(row.techUnitIds, [techUnitId]),
+  });
+  return {
+    ...bom,
+    materials: bom.materials.map((m) => stamp(m)),
+    equipment: bom.equipment.map((e) => stamp(e)),
+    labour: bom.labour.map((l) => stamp(l)),
+  };
+}
+
 /**
- * Build per-line technology bindings (hybrid model D).
- * Families without an ACTIVE pack → UNBOUND (no guessing).
- * Painting requires resolvePaintCoats ∈ {1,2}.
+ * Resolve TechUnit → binding (pack/recipe). Updates unit.status + recipeBinding in place copy.
  */
-export function buildTechnologyLineBindings(
-  doc: Pick<OfferBoqDocument, "lines" | "tenderId"> | { lines?: OfferBoqLineLike[]; tenderId?: string },
-): TechnologyLineBinding[] {
-  ensureFixtures();
-  const tenderId =
-    "tenderId" in doc && typeof doc.tenderId === "string" ? doc.tenderId : "";
-  const lines = (doc.lines ?? []).filter(isOfferBoqLineEligibleForExecution);
-  const out: TechnologyLineBinding[] = [];
+function bindTechUnit(
+  tenderId: string,
+  unit: TechUnit,
+  lineAggregateStatus: LineAggregateStatus,
+): { binding: TechnologyLineBinding; unit: TechUnit } {
+  const costItemFamily = techUnitFamilyToCostItemFamily(unit.family);
+  const quantity = unit.quantityInput.quantity;
+  const unitStr = unit.quantityInput.unit;
+  const packIdWanted = familyToPackId(costItemFamily);
 
-  for (const line of lines) {
-    const family = classifyCostItemFamily(line);
-    const lineId = String(line.lineId || "").trim() || "line";
-    const quantity = Number(line.quantity) || 0;
-    const unit = String(line.unit || "").trim();
-    const packIdWanted = familyToPackId(family);
+  const base = {
+    tenderId,
+    lineId: unit.sourceLineId,
+    techUnitId: unit.techUnitId,
+    lineAggregateStatus,
+    costItemFamily,
+    quantity,
+    unit: unitStr,
+    decompositionReason: unit.decompositionReason,
+  };
 
-    if (!packIdWanted) {
-      out.push({
-        tenderId,
-        lineId,
-        costItemFamily: family,
+  // Forced PARAMETER_REQUIRED from decomposition (coats / thickness / circuit)
+  if (unit.status === "PARAMETER_REQUIRED") {
+    const u: TechUnit = { ...unit, status: "PARAMETER_REQUIRED", recipeBinding: null };
+    return {
+      unit: u,
+      binding: {
+        ...base,
+        techUnitStatus: "PARAMETER_REQUIRED",
         packId: null,
         packVersion: null,
-        bindStatus: bindStatusForUnboundFamily(family),
-        matchReasonsPl: [`CostItemFamily=${family} — brak ACTIVE TechnologyPack`],
-        quantity,
-        unit,
-      });
-      continue;
-    }
+        bindStatus: "unbound",
+        matchReasonsPl: [
+          `TechUnit ${unit.family} — PARAMETER_REQUIRED`,
+          unit.decompositionReason,
+        ],
+        ...(unit.parameters?.coats != null ? { coats: unit.parameters.coats } : {}),
+      },
+    };
+  }
 
-    let coats: PaintCoats | undefined;
-    if (family === "painting") {
-      const resolved = resolvePaintCoats(line);
-      if (resolved == null) {
-        out.push({
-          tenderId,
-          lineId,
-          costItemFamily: family,
+  if (!packIdWanted) {
+    const bindStatus = bindStatusForUnboundFamily(costItemFamily);
+    const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+    return {
+      unit: u,
+      binding: {
+        ...base,
+        techUnitStatus: "UNBOUND",
+        packId: null,
+        packVersion: null,
+        bindStatus,
+        matchReasonsPl: [
+          `TechUnit family=${unit.family} → CostItemFamily=${costItemFamily} — brak ACTIVE TechnologyPack`,
+          unit.decompositionReason,
+        ],
+      },
+    };
+  }
+
+  let coats: PaintCoats | undefined = unit.parameters?.coats;
+  if (costItemFamily === "painting") {
+    if (coats !== 1 && coats !== 2) {
+      const u: TechUnit = { ...unit, status: "PARAMETER_REQUIRED", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          techUnitStatus: "PARAMETER_REQUIRED",
           packId: null,
           packVersion: null,
           bindStatus: "unbound",
           matchReasonsPl: [
-            "CostItemFamily=painting — nie udało się ustalić 1/2 warstw (UNBOUND)",
+            "painting — nie udało się ustalić 1/2 warstw (PARAMETER_REQUIRED)",
+            unit.decompositionReason,
           ],
-          quantity,
-          unit,
-        });
-        continue;
-      }
-      coats = resolved;
+        },
+      };
     }
+  }
 
-    const pack = latestActivePack(packIdWanted);
-    if (!pack) {
-      out.push({
-        tenderId,
-        lineId,
-        costItemFamily: family,
+  const pack = latestActivePack(packIdWanted);
+  if (!pack) {
+    const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+    return {
+      unit: u,
+      binding: {
+        ...base,
+        techUnitStatus: "UNBOUND",
         packId: null,
         packVersion: null,
         bindStatus: "unbound",
-        matchReasonsPl: [`Pack ${packIdWanted} niedostępny w registry`],
-        quantity,
-        unit,
-      });
-      continue;
-    }
+        matchReasonsPl: [`Pack ${packIdWanted} niedostępny`],
+        ...(coats != null ? { coats } : {}),
+      },
+    };
+  }
 
-    out.push({
-      tenderId,
-      lineId,
-      costItemFamily: family,
+  const u: TechUnit = {
+    ...unit,
+    status: "BOUND",
+    recipeBinding: { packId: pack.packId, packVersion: pack.packVersion },
+    ...(coats != null ? { parameters: { ...unit.parameters, coats } } : {}),
+  };
+
+  return {
+    unit: u,
+    binding: {
+      ...base,
+      techUnitStatus: "BOUND",
       packId: pack.packId,
       packVersion: pack.packVersion,
       bindStatus: "bound",
       matchReasonsPl: [
-        `CostItemFamily=${family}`,
+        `TechUnit=${unit.family}`,
         `TechnologyPack=${pack.packId}@${pack.packVersion}`,
+        unit.decompositionReason,
         ...(coats != null ? [`coats=${coats}`] : []),
       ],
-      quantity,
-      unit,
       ...(coats != null ? { coats } : {}),
-    });
-  }
-
-  return out;
+    },
+  };
 }
 
 /**
- * Line-scoped projectBom then merge by materialKey / labourKey / equipmentKey.
- * Unbound lines contribute nothing.
+ * Build per-TechUnit technology bindings (Architecture B).
+ * Atomic lines → N=1. Compound → N≥2. Unresolved units stay visible (no guess).
  */
+export function buildTechnologyLineBindings(
+  doc: Pick<OfferBoqDocument, "lines" | "tenderId"> | { lines?: OfferBoqLineLike[]; tenderId?: string },
+): TechnologyLineBinding[] {
+  return analyzeTechnologyLineBindings(doc).bindings;
+}
+
 export function projectAndMergeBomFromBindings(
   doc: Pick<OfferBoqDocument, "lines"> | { lines?: OfferBoqLineLike[] },
   bindings: readonly TechnologyLineBinding[],
@@ -217,7 +298,13 @@ export function projectAndMergeBomFromBindings(
 
     const ctx = { lines: [offerBoqLineToBoqContextLine(line)] };
     const plan = deriveExecutionPlan(packForBom, ctx);
-    partials.push(projectProductionBom(packForBom, plan, ctx));
+    let partial = projectProductionBom(packForBom, plan, ctx);
+    if (b.techUnitId) {
+      partial = annotateBomProvenance(partial, b.lineId, b.techUnitId);
+    } else {
+      partial = annotateBomProvenance(partial, b.lineId, `legacy:${b.lineId}`);
+    }
+    partials.push(partial);
   }
 
   return mergeGeneratedBoms(partials);
@@ -226,18 +313,9 @@ export function projectAndMergeBomFromBindings(
 export function mergeGeneratedBoms(boms: readonly GeneratedBom[]): GeneratedBom | null {
   if (boms.length === 0) return null;
 
-  const materials = new Map<
-    string,
-    { materialKey: string; namePl: string; unit: string; quantity: number; bomLineId: string }
-  >();
-  const equipment = new Map<
-    string,
-    { equipmentKey: string; namePl: string; unit: string; quantity: number; bomLineId: string }
-  >();
-  const labour = new Map<
-    string,
-    { labourKey: string; namePl: string; hours: number; bomLineId: string }
-  >();
+  const materials = new Map<string, GeneratedBomMaterialLine>();
+  const equipment = new Map<string, GeneratedBomEquipmentLine>();
+  const labour = new Map<string, GeneratedBomLabourLine>();
 
   for (const bom of boms) {
     for (const m of bom.materials) {
@@ -246,6 +324,8 @@ export function mergeGeneratedBoms(boms: readonly GeneratedBom[]): GeneratedBom 
         materials.set(m.materialKey, { ...m });
       } else {
         prev.quantity = Number((prev.quantity + m.quantity).toFixed(6));
+        prev.sourceLineIds = unionIds(prev.sourceLineIds, m.sourceLineIds);
+        prev.techUnitIds = unionIds(prev.techUnitIds, m.techUnitIds);
       }
     }
     for (const e of bom.equipment) {
@@ -254,6 +334,8 @@ export function mergeGeneratedBoms(boms: readonly GeneratedBom[]): GeneratedBom 
         equipment.set(e.equipmentKey, { ...e });
       } else {
         prev.quantity = Number((prev.quantity + e.quantity).toFixed(6));
+        prev.sourceLineIds = unionIds(prev.sourceLineIds, e.sourceLineIds);
+        prev.techUnitIds = unionIds(prev.techUnitIds, e.techUnitIds);
       }
     }
     for (const l of bom.labour) {
@@ -262,6 +344,8 @@ export function mergeGeneratedBoms(boms: readonly GeneratedBom[]): GeneratedBom 
         labour.set(l.labourKey, { ...l });
       } else {
         prev.hours = Number((prev.hours + l.hours).toFixed(6));
+        prev.sourceLineIds = unionIds(prev.sourceLineIds, l.sourceLineIds);
+        prev.techUnitIds = unionIds(prev.techUnitIds, l.techUnitIds);
       }
     }
   }
@@ -307,9 +391,13 @@ function selectionFromBindings(
   primary: TechnologyPack | null,
 ): ExecutionPackSelection | null {
   if (!primary) return null;
-  const matchedLineIds = bindings
-    .filter((b) => b.bindStatus === "bound" && b.packId === primary.packId)
-    .map((b) => b.lineId);
+  const matchedLineIds = [
+    ...new Set(
+      bindings
+        .filter((b) => b.bindStatus === "bound" && b.packId === primary.packId)
+        .map((b) => b.lineId),
+    ),
+  ];
   const reasons = [
     ...new Set(
       bindings
@@ -322,18 +410,56 @@ function selectionFromBindings(
     packVersion: primary.packVersion,
     namePl: primary.namePl,
     score: matchedLineIds.length * 100,
-    matchReasonsPl: reasons.length ? reasons : ["TECHNOLOGY-LINE-BINDING-01"],
+    matchReasonsPl: reasons.length ? reasons : ["TECHNOLOGY-DECOMPOSITION-01"],
     matchedLineIds,
   };
 }
 
 /**
- * Full binding + merged BOM for Execution Expert.
+ * Full decomposition + binding + merged BOM for Execution Expert.
  */
 export function analyzeTechnologyLineBindings(
   doc: Pick<OfferBoqDocument, "lines" | "tenderId"> | { lines?: OfferBoqLineLike[]; tenderId?: string },
 ): TechnologyLineBindingResult {
-  const bindings = buildTechnologyLineBindings(doc);
+  ensureFixtures();
+  const tenderId =
+    "tenderId" in doc && typeof doc.tenderId === "string" ? doc.tenderId : "";
+  const lines = (doc.lines ?? []).filter(isOfferBoqLineEligibleForExecution);
+
+  const bindings: TechnologyLineBinding[] = [];
+  const techUnits: TechUnit[] = [];
+  const lineDecompositions: LineDecompositionResult[] = [];
+
+  for (const line of lines) {
+    const decomp = decomposeOfferBoqLine(line);
+    const resolvedUnits: TechUnit[] = [];
+    const lineBindings: TechnologyLineBinding[] = [];
+
+    for (const unit of decomp.units) {
+      const { binding, unit: resolved } = bindTechUnit(
+        tenderId,
+        unit,
+        decomp.lineStatus,
+      );
+      resolvedUnits.push(resolved);
+      lineBindings.push(binding);
+    }
+
+    // Recompute aggregate after recipe binding
+    const lineStatus = aggregateLineStatus(resolvedUnits);
+    for (const b of lineBindings) {
+      b.lineAggregateStatus = lineStatus;
+    }
+
+    lineDecompositions.push({
+      ...decomp,
+      units: resolvedUnits,
+      lineStatus,
+    });
+    techUnits.push(...resolvedUnits);
+    bindings.push(...lineBindings);
+  }
+
   const boundCount = bindings.filter((b) => b.bindStatus === "bound").length;
   const unboundCount = bindings.length - boundCount;
   const mergedBom = projectAndMergeBomFromBindings(doc, bindings);
@@ -342,6 +468,8 @@ export function analyzeTechnologyLineBindings(
 
   return {
     bindings,
+    techUnits,
+    lineDecompositions,
     boundCount,
     unboundCount,
     mergedBom,

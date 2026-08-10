@@ -196,12 +196,20 @@ export interface GeneratedWorkBundle {
   steps: GeneratedWorkBundleStep[];
 }
 
+/** TECHNOLOGY-DECOMPOSITION-01 — P-meta provenance on BOM lines (optional). */
+export interface BomLineProvenance {
+  sourceLineIds?: string[];
+  techUnitIds?: string[];
+}
+
 export interface GeneratedBomMaterialLine {
   bomLineId: string;
   materialKey: string;
   namePl: string;
   unit: string;
   quantity: number;
+  sourceLineIds?: string[];
+  techUnitIds?: string[];
 }
 
 export interface GeneratedBomEquipmentLine {
@@ -210,6 +218,8 @@ export interface GeneratedBomEquipmentLine {
   namePl: string;
   unit: string;
   quantity: number;
+  sourceLineIds?: string[];
+  techUnitIds?: string[];
 }
 
 export interface GeneratedBomLabourLine {
@@ -218,6 +228,8 @@ export interface GeneratedBomLabourLine {
   namePl: string;
   /** Hours total — never PLN. */
   hours: number;
+  sourceLineIds?: string[];
+  techUnitIds?: string[];
 }
 
 export interface GeneratedBom {

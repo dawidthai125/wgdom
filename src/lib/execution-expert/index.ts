@@ -39,7 +39,22 @@ export {
   type PaintCoats,
 } from "./paint-coats";
 export {
+  aggregateLineStatus,
+  decomposeOfferBoqLine,
+  techUnitFamilyToCostItemFamily,
+  type LineAggregateStatus,
+  type LineDecompositionResult,
+  type TechUnit,
+  type TechUnitFamily,
+  type TechUnitParameters,
+  type TechUnitQuantityInput,
+  type TechUnitRecipeBinding,
+  type TechUnitRole,
+  type TechUnitStatus,
+} from "./technology-decomposition";
+export {
   analyzeTechnologyLineBindings,
+  annotateBomProvenance,
   buildTechnologyLineBindings,
   mergeGeneratedBoms,
   projectAndMergeBomFromBindings,
