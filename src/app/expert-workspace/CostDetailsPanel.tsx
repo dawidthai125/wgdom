@@ -111,11 +111,21 @@ export function CostDetailsPanel({
 
   const marketDemands = useMemo(() => {
     if (!view.hasResult) return [] as PriceDemandRecord[];
-    const keys = view.materialLines.map((l) => l.materialKey).filter(Boolean);
     const store = loadPriceDemandStoreLocal();
+    const tid = typeof tenderId === "string" ? tenderId.trim() : "";
+    /**
+     * S5 — tender-scoped visibility:
+     * gdy znamy tenderId, NIE filtruj po BOM materialKeys (S3/S4 alias Demands
+     * poza BOM były wycinane). Union = wszystkie aktywne market-layer Demands
+     * tego tendera (BOM + alias OfferBoq).
+     * Bez tenderId: zachowaj legacy filtr BOM keys.
+     */
+    if (tid) {
+      return listActiveMarketLayerDemands(store, { tenderId: tid });
+    }
+    const keys = view.materialLines.map((l) => l.materialKey).filter(Boolean);
     return listActiveMarketLayerDemands(store, {
       materialKeys: keys.length > 0 ? keys : undefined,
-      tenderId,
     });
   }, [view.hasResult, view.materialLines, tenderId, researchDemand, reuseBusyId]);
 
