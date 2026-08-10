@@ -11,6 +11,7 @@ import {
 import { analyzeMaterialsFromExecution } from "@/lib/material-expert";
 import { analyzeOfferFromCost, defaultOfferStrategyParams } from "@/lib/offer-expert";
 import { recordPriceDemandsFromExperts } from "@/lib/price-intelligence/demand-record";
+import { extractExactAliasLinesFromOfferBoq } from "@/lib/price-intelligence/offer-boq-exact-alias-lines";
 import { analyzeMarketPricingFromMaterials } from "@/lib/pricing-expert";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { assembleDecydentDossier } from "./dossier";
@@ -283,6 +284,8 @@ export function runChiefOrchestrator(
           tenderId,
           region,
           requestedAt: isoNow(input.nowIso),
+          // S3 — OfferBoq description+unit → exact identity (MISS = no Demand guess)
+          exactAliasLines: extractExactAliasLinesFromOfferBoq(input.offerBoq),
         },
         pushCloud: true,
       });

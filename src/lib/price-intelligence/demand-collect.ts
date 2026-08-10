@@ -17,10 +17,15 @@ export interface CollectPriceDemandContext {
   region?: string | null;
   requestedAt?: string;
   /**
-   * S2-C — optional exact name+unit lines (Owner-approved aliases only via resolve).
+   * S2-C/S3 — optional exact name+unit lines (Owner-approved aliases only via resolve).
+   * S3: OfferBoq → extractExactAliasLinesFromOfferBoq → tu.
    * Nie zgaduje — MISS gdy brak exact alias.
    */
-  exactAliasLines?: readonly { namePl: string; unit: string }[];
+  exactAliasLines?: readonly {
+    namePl: string;
+    unit: string;
+    catalogWorkId?: string | null;
+  }[];
 }
 
 export function computeMissingLayer(opts: {
@@ -110,6 +115,7 @@ export function collectPriceDemandCandidates(opts: {
     const identity = resolveDemandProductIdentityExact({
       namePl: line.namePl,
       unit: line.unit,
+      catalogWorkId: line.catalogWorkId ?? null,
     });
     if (!identity) continue;
     const purchaseOk =
