@@ -10,6 +10,7 @@ import type {
   TechnologyDecisionKind,
   TechnologyPack,
 } from "@/lib/technology-foundation";
+import type { TechnologyLineBinding } from "./technology-line-binding";
 
 /** Pewność kompetencji (Transparent Reasoning). */
 export type ExecutionExpertConfidence = "high" | "medium" | "low";
@@ -69,8 +70,13 @@ export interface ExecutionExpertAnalysisResult {
   bundle: GeneratedWorkBundle | null;
   bom: GeneratedBom | null;
   gapsAndRisks: ExecutionGapOrRisk[];
-  /** Pack użyty (referencja odczytowa). */
+  /** Pack użyty (referencja odczytowa) — primary bound pack (LINE-BINDING-01). */
   pack: TechnologyPack | null;
+  /**
+   * TECHNOLOGY-LINE-BINDING-01 — per-line bindings (hybrid CostItemFamily → Pack).
+   * Optional for backward-compatible callers.
+   */
+  lineBindings?: TechnologyLineBinding[];
 }
 
 /** Minimalny profil firmy do walidacji biznesowej TF (REUSE BusinessProfileFixture). */

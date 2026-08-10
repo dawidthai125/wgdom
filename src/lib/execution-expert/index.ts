@@ -30,3 +30,16 @@ export {
   analyzeExecutionFromOfferBoq,
   defaultExecutionExpertBusinessProfile,
 } from "./analyze";
+export {
+  classifyCostItemFamily,
+  type CostItemFamily,
+} from "./cost-item-family";
+export {
+  analyzeTechnologyLineBindings,
+  buildTechnologyLineBindings,
+  mergeGeneratedBoms,
+  projectAndMergeBomFromBindings,
+  type TechnologyBindStatus,
+  type TechnologyLineBinding,
+  type TechnologyLineBindingResult,
+} from "./technology-line-binding";
