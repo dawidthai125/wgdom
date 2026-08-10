@@ -9,6 +9,7 @@
 import {
   composeBomId,
   deriveExecutionPlan,
+  FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID,
   FIXTURE_ETICS_PACK_ID,
   FIXTURE_KOSTKA_PACK_ID,
   FIXTURE_PAINTING_ECONOMY_PACK_ID,
@@ -19,6 +20,7 @@ import {
   seedB0Fixtures,
   canPackFeedProductionBom,
   filterPackRecipeForCoats,
+  filterPackRecipeForMaterialKey,
   type GeneratedBom,
   type GeneratedBomEquipmentLine,
   type GeneratedBomLabourLine,
@@ -27,6 +29,7 @@ import {
 } from "@/lib/technology-foundation";
 import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
 import type { CostItemFamily } from "./cost-item-family";
+import { resolveEconomyElectricalCableV1 } from "./electrical-circuit-spec";
 import {
   isOfferBoqLineEligibleForExecution,
   offerBoqLineToBoqContextLine,
@@ -69,6 +72,10 @@ export interface TechnologyLineBinding {
   unit: string;
   /** 01B — resolved paint coats when family=painting and bound. */
   coats?: PaintCoats;
+  /** ECONOMY-ELECTRICAL-CABLE-V1 — resolved commodity cable key when bound. */
+  materialKey?: string;
+  /** Normalized circuitSpec when electrical V1 mapped. */
+  circuitSpecNormalized?: string;
   decompositionReason?: string;
 }
 
@@ -95,11 +102,12 @@ function latestActivePack(packId: string): TechnologyPack | null {
   return active.sort((a, b) => b.packVersion.localeCompare(a.packVersion))[0] ?? null;
 }
 
-function familyToPackId(family: CostItemFamily): string | null {
+function familyToPackId(family: CostItemFamily | string): string | null {
   if (family === "etics_envelope") return FIXTURE_ETICS_PACK_ID;
   if (family === "paving_cubes") return FIXTURE_KOSTKA_PACK_ID;
   if (family === "painting") return FIXTURE_PAINTING_ECONOMY_PACK_ID;
   if (family === "priming") return FIXTURE_PRIMING_ECONOMY_PACK_ID;
+  if (family === "electrical_cable_lay") return FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID;
   return null;
 }
 
@@ -144,10 +152,12 @@ function bindTechUnit(
   lineAggregateStatus: LineAggregateStatus,
   sourceLine: OfferBoqLineLike,
 ): { binding: TechnologyLineBinding; unit: TechUnit } {
-  const costItemFamily = techUnitFamilyToCostItemFamily(unit.family);
+  const costItemFamily =
+    unit.family === "electrical_cable_lay"
+      ? "electrical_cable_lay"
+      : techUnitFamilyToCostItemFamily(unit.family);
   const quantity = unit.quantityInput.quantity;
   const unitStr = unit.quantityInput.unit;
-  const packIdWanted = familyToPackId(costItemFamily);
 
   const base = {
     tenderId,
@@ -159,6 +169,95 @@ function bindTechUnit(
     unit: unitStr,
     decompositionReason: unit.decompositionReason,
   };
+
+  // ECONOMY-ELECTRICAL-CABLE-V1 — identity from BOQ wording (may override PARAMETER_REQUIRED)
+  if (unit.family === "electrical_cable_lay") {
+    const resolved = resolveEconomyElectricalCableV1({
+      description: sourceLine.description,
+      normalizedDescription: sourceLine.normalizedDescription,
+      catalogWorkId: sourceLine.catalogWorkId,
+      runtimeCircuitSpec: unit.parameters?.circuitSpec ?? null,
+    });
+
+    if (resolved.kind === "mapped_v1" && resolved.materialKey && resolved.normalizedCircuitSpec) {
+      const pack = latestActivePack(FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID);
+      if (!pack) {
+        const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+        return {
+          unit: u,
+          binding: {
+            ...base,
+            techUnitStatus: "UNBOUND",
+            packId: null,
+            packVersion: null,
+            bindStatus: "unbound",
+            matchReasonsPl: [`Pack ${FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID} niedostępny`],
+          },
+        };
+      }
+      const u: TechUnit = {
+        ...unit,
+        status: "BOUND",
+        recipeBinding: { packId: pack.packId, packVersion: pack.packVersion },
+        parameters: {
+          ...unit.parameters,
+          circuitSpec: resolved.normalizedCircuitSpec,
+        },
+      };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          techUnitStatus: "BOUND",
+          packId: pack.packId,
+          packVersion: pack.packVersion,
+          bindStatus: "bound",
+          materialKey: resolved.materialKey,
+          circuitSpecNormalized: resolved.normalizedCircuitSpec,
+          matchReasonsPl: [
+            `TechUnit=electrical_cable_lay`,
+            `TechnologyPack=${pack.packId}@${pack.packVersion}`,
+            resolved.reasonPl,
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+
+    if (resolved.kind === "out_of_scope" || resolved.kind === "deferred") {
+      const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          techUnitStatus: "UNBOUND",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [resolved.reasonPl, unit.decompositionReason],
+        },
+      };
+    }
+
+    // parameter_required / incomplete
+    const u: TechUnit = { ...unit, status: "PARAMETER_REQUIRED", recipeBinding: null };
+    return {
+      unit: u,
+      binding: {
+        ...base,
+        techUnitStatus: "PARAMETER_REQUIRED",
+        packId: null,
+        packVersion: null,
+        bindStatus: "unbound",
+        matchReasonsPl: [
+          resolved.reasonPl || "electrical — PARAMETER_REQUIRED",
+          unit.decompositionReason,
+        ],
+      },
+    };
+  }
+
+  const packIdWanted = familyToPackId(costItemFamily);
 
   // Forced PARAMETER_REQUIRED from decomposition (coats / thickness / circuit)
   if (unit.status === "PARAMETER_REQUIRED") {
@@ -319,11 +418,17 @@ export function projectAndMergeBomFromBindings(
     const line = lineById.get(b.lineId);
     if (!line) continue;
 
-    const packForBom = filterPackRecipeForCoats(pack, b.coats ?? null);
+    const packForBom = filterPackRecipeForMaterialKey(
+      filterPackRecipeForCoats(pack, b.coats ?? null),
+      b.materialKey,
+    );
     if (
       packForBom.materials.length === 0 &&
       pack.materials.some((m) => m.coats === 1 || m.coats === 2)
     ) {
+      continue;
+    }
+    if (b.materialKey && packForBom.materials.length === 0) {
       continue;
     }
 

@@ -299,6 +299,34 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
     marketProductId: "mp.wlacznik",
     labelPl: "Włącznik światła",
   },
+  {
+    materialKey: "mat.przewod_ydy_3x1_5",
+    workId: "cw.product.przewod_ydy_3x1_5",
+    candidateWorkIds: ["cw.product.przewod_ydy_3x1_5"],
+    marketProductId: "mp.przewod_ydy_3x1_5",
+    labelPl: "Przewód YDY 3×1,5 mm²",
+  },
+  {
+    materialKey: "mat.przewod_ydyzo_3x1_5",
+    workId: "cw.product.przewod_ydyzo_3x1_5",
+    candidateWorkIds: ["cw.product.przewod_ydyzo_3x1_5"],
+    marketProductId: "mp.przewod_ydyzo_3x1_5",
+    labelPl: "Przewód YDYżo 3×1,5 mm²",
+  },
+  {
+    materialKey: "mat.przewod_ydyzo_3x2_5",
+    workId: "cw.product.przewod_ydyzo_3x2_5",
+    candidateWorkIds: ["cw.product.przewod_ydyzo_3x2_5"],
+    marketProductId: "mp.przewod_ydyzo_3x2_5",
+    labelPl: "Przewód YDYżo 3×2,5 mm²",
+  },
+  {
+    materialKey: "mat.przewod_ydyzo_5x6",
+    workId: "cw.product.przewod_ydyzo_5x6",
+    candidateWorkIds: ["cw.product.przewod_ydyzo_5x6"],
+    marketProductId: "mp.przewod_ydyzo_5x6",
+    labelPl: "Przewód YDYżo 5×6 mm²",
+  },
 ];
 
 /**
@@ -554,6 +582,54 @@ const MATERIAL_COVERAGE_ALIASES_CORE: readonly MaterialCoverageAlias[] = [
     unit: "szt",
     materialKey: "mat.wlacznik",
     evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Przewód YDY 3×1,5 mm²",
+    unit: "m",
+    materialKey: "mat.przewod_ydy_3x1_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK",
+  },
+  {
+    namePl: "Przewód YDY 3×1,5 mm²",
+    unit: "mb",
+    materialKey: "mat.przewod_ydy_3x1_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK (mb≡m)",
+  },
+  {
+    namePl: "Przewód YDYżo 3×1,5 mm²",
+    unit: "m",
+    materialKey: "mat.przewod_ydyzo_3x1_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK",
+  },
+  {
+    namePl: "Przewód YDYżo 3×1,5 mm²",
+    unit: "mb",
+    materialKey: "mat.przewod_ydyzo_3x1_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK (mb≡m)",
+  },
+  {
+    namePl: "Przewód YDYżo 3×2,5 mm²",
+    unit: "m",
+    materialKey: "mat.przewod_ydyzo_3x2_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK",
+  },
+  {
+    namePl: "Przewód YDYżo 3×2,5 mm²",
+    unit: "mb",
+    materialKey: "mat.przewod_ydyzo_3x2_5",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK (mb≡m)",
+  },
+  {
+    namePl: "Przewód YDYżo 5×6 mm²",
+    unit: "m",
+    materialKey: "mat.przewod_ydyzo_5x6",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK",
+  },
+  {
+    namePl: "Przewód YDYżo 5×6 mm²",
+    unit: "mb",
+    materialKey: "mat.przewod_ydyzo_5x6",
+    evidence: "ECONOMY-ELECTRICAL-CABLE-V1 Owner LOCK (mb≡m)",
   },
 ];
 

@@ -4,6 +4,7 @@
 
 import { seedBaselineCapabilities } from "./definition-registry";
 import { getPack, registerPack } from "./pack-registry";
+import { seedElectricalCableEconomyV1 } from "./electrical-cable-economy-v1";
 import { seedPaintingEconomyWhiteV1 } from "./painting-economy-white-v1";
 import { seedPrimingEconomyInteriorV1 } from "./priming-economy-interior-v1";
 import { withLegacyFixtureProvenance } from "./recipe-provenance";
@@ -25,6 +26,14 @@ export {
   primingEconomyInteriorPackV1,
   seedPrimingEconomyInteriorV1,
 } from "./priming-economy-interior-v1";
+export {
+  ELECTRICAL_CABLE_ECONOMY_QTY_FACTOR,
+  ELECTRICAL_CABLE_ECONOMY_V1_APPROVED_AT,
+  ELECTRICAL_CABLE_ECONOMY_V1_SOURCE_REF,
+  FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID,
+  electricalCableEconomyPackV1,
+  seedElectricalCableEconomyV1,
+} from "./electrical-cable-economy-v1";
 
 export function eticsPackV1(): TechnologyPack {
   return {
@@ -246,6 +255,7 @@ export function seedB0Fixtures(): {
   kostka: TechnologyPack;
   painting: TechnologyPack;
   priming: TechnologyPack;
+  electrical: TechnologyPack;
 } {
   seedBaselineCapabilities();
   registerDefinition({
@@ -265,7 +275,8 @@ export function seedB0Fixtures(): {
   const kostka = getOrRegisterPack(kostkaRaw);
   const painting = seedPaintingEconomyWhiteV1();
   const priming = seedPrimingEconomyInteriorV1();
-  return { etics, kostka, painting, priming };
+  const electrical = seedElectricalCableEconomyV1();
+  return { etics, kostka, painting, priming, electrical };
 }
 
 function getOrRegisterPack(raw: TechnologyPack): TechnologyPack {

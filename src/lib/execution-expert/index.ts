@@ -43,6 +43,16 @@ export {
   type PrimingEconomyV1Eligibility,
 } from "./priming-eligibility";
 export {
+  ECONOMY_ELECTRICAL_CABLE_V1_KEYS,
+  ECONOMY_ELECTRICAL_CIRCUIT_TO_KEY,
+  materialKeyForNormalizedCircuitSpec,
+  normalizeElectricalCircuitSpec,
+  resolveEconomyElectricalCableV1,
+  type EconomyElectricalCableResolve,
+  type EconomyElectricalCableResolveKind,
+  type EconomyElectricalCableV1Key,
+} from "./electrical-circuit-spec";
+export {
   aggregateLineStatus,
   decomposeOfferBoqLine,
   techUnitFamilyToCostItemFamily,

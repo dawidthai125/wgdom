@@ -115,20 +115,30 @@ export {
   FIXTURE_KOSTKA_PACK_ID,
   FIXTURE_PAINTING_ECONOMY_PACK_ID,
   FIXTURE_PRIMING_ECONOMY_PACK_ID,
+  FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID,
   kostkaBoqContext,
   kostkaPackV1,
   PAINTING_ECONOMY_FACTOR_1_COAT,
   PAINTING_ECONOMY_FACTOR_2_COATS,
   PRIMING_ECONOMY_FACTOR_1_COAT,
+  ELECTRICAL_CABLE_ECONOMY_QTY_FACTOR,
   paintingEconomyWhitePackV1,
   primingEconomyInteriorPackV1,
+  electricalCableEconomyPackV1,
   seedB0Fixtures,
   seedPaintingEconomyWhiteV1,
   seedPrimingEconomyInteriorV1,
+  seedElectricalCableEconomyV1,
 } from "./fixtures";
 
 export { filterPackRecipeForCoats } from "./pack-recipe-coats";
 export type { PaintCoats as TfPaintCoats } from "./pack-recipe-coats";
+export { filterPackRecipeForMaterialKey } from "./pack-recipe-material-key";
+
+export {
+  ELECTRICAL_CABLE_ECONOMY_V1_APPROVED_AT,
+  ELECTRICAL_CABLE_ECONOMY_V1_SOURCE_REF,
+} from "./electrical-cable-economy-v1";
 
 export {
   PAINTING_ECONOMY_V1_APPROVED_AT,
