@@ -1,16 +1,57 @@
 /**
- * Technology Pack schema — TF-1 price forbid + normalize.
+ * Technology Pack schema — TF-1 price forbid + normalize + 01A provenance pass-through.
  */
 
 import { assertNoPriceTokens } from "./identity";
-import type { TechnologyPack, TechnologyPackLifecycle } from "./types";
+import { normalizeRecipeProvenance } from "./recipe-provenance";
+import type {
+  PackEquipmentRecipeLine,
+  PackLabourRecipeLine,
+  PackMaterialRecipeLine,
+  TechnologyPack,
+  TechnologyPackLifecycle,
+} from "./types";
 
 const LIFECYCLES: readonly TechnologyPackLifecycle[] = [
   "DRAFT",
+  "REVIEW",
+  "APPROVED",
   "ACTIVE",
   "DEPRECATED",
   "ARCHIVED",
 ];
+
+function normalizeMaterial(m: PackMaterialRecipeLine): PackMaterialRecipeLine {
+  const p = normalizeRecipeProvenance(m);
+  return {
+    materialKey: String(m.materialKey || "").trim(),
+    namePl: String(m.namePl || m.materialKey),
+    unit: String(m.unit || "").trim(),
+    qtyFactor: Number(m.qtyFactor),
+    ...p,
+  };
+}
+
+function normalizeEquipment(e: PackEquipmentRecipeLine): PackEquipmentRecipeLine {
+  const p = normalizeRecipeProvenance(e);
+  return {
+    equipmentKey: String(e.equipmentKey || "").trim(),
+    namePl: String(e.namePl || e.equipmentKey),
+    unit: String(e.unit || "").trim(),
+    qtyFactor: Number(e.qtyFactor),
+    ...p,
+  };
+}
+
+function normalizeLabour(l: PackLabourRecipeLine): PackLabourRecipeLine {
+  const p = normalizeRecipeProvenance(l);
+  return {
+    labourKey: String(l.labourKey || "").trim(),
+    namePl: String(l.namePl || l.labourKey),
+    hoursPerUnit: Number(l.hoursPerUnit),
+    ...p,
+  };
+}
 
 export function normalizeTechnologyPack(raw: TechnologyPack): TechnologyPack {
   assertNoPriceTokens(raw, "TechnologyPack");
@@ -54,9 +95,9 @@ export function normalizeTechnologyPack(raw: TechnologyPack): TechnologyPack {
     stages,
     steps,
     dependencies: [...(raw.dependencies ?? [])],
-    materials: [...(raw.materials ?? [])],
-    equipment: [...(raw.equipment ?? [])],
-    labour: [...(raw.labour ?? [])],
+    materials: (raw.materials ?? []).map(normalizeMaterial),
+    equipment: (raw.equipment ?? []).map(normalizeEquipment),
+    labour: (raw.labour ?? []).map(normalizeLabour),
     regulatory: [...(raw.regulatory ?? [])],
   };
 }

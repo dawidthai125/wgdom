@@ -4,6 +4,7 @@
 
 import { seedBaselineCapabilities } from "./definition-registry";
 import { getPack, registerPack } from "./pack-registry";
+import { withLegacyFixtureProvenance } from "./recipe-provenance";
 import { registerDefinition } from "./technology-definition";
 import type { BoqContext, TechnologyPack } from "./types";
 
@@ -67,51 +68,51 @@ export function eticsPackV1(): TechnologyPack {
       { predecessorStepId: "step.mesh", successorStepId: "step.render" },
     ],
     materials: [
-      {
+      withLegacyFixtureProvenance({
         materialKey: "mat.eps_graph",
         namePl: "Płyta EPS grafit",
         unit: "m2",
         qtyFactor: 1.05,
-      },
-      {
+      }),
+      withLegacyFixtureProvenance({
         materialKey: "mat.glue_etics",
         namePl: "Klej do ETICS",
         unit: "kg",
         qtyFactor: 4.5,
-      },
-      {
+      }),
+      withLegacyFixtureProvenance({
         materialKey: "mat.mesh",
         namePl: "Siatka zbrojąca",
         unit: "m2",
         qtyFactor: 1.1,
-      },
-      {
+      }),
+      withLegacyFixtureProvenance({
         materialKey: "mat.render",
         namePl: "Tynk mineralny",
         unit: "kg",
         qtyFactor: 2.5,
-      },
+      }),
     ],
     equipment: [
-      {
+      withLegacyFixtureProvenance({
         equipmentKey: "eq.scaffold",
         namePl: "Rusztowanie elewacyjne",
         unit: "m2",
         qtyFactor: 1,
-      },
-      {
+      }),
+      withLegacyFixtureProvenance({
         equipmentKey: "eq.mixer",
         namePl: "Mieszarka",
         unit: "szt",
         qtyFactor: 0.01,
-      },
+      }),
     ],
     labour: [
-      {
+      withLegacyFixtureProvenance({
         labourKey: "lab.etics.crew",
         namePl: "Brygada ETICS",
         hoursPerUnit: 1.2,
-      },
+      }),
     ],
     regulatory: [
       {
@@ -166,33 +167,33 @@ export function kostkaPackV1(): TechnologyPack {
       { predecessorStepId: "step.base", successorStepId: "step.lay_cubes" },
     ],
     materials: [
-      {
+      withLegacyFixtureProvenance({
         materialKey: "mat.cubes_beton",
         namePl: "Kostka betonowa",
         unit: "m2",
         qtyFactor: 1.03,
-      },
-      {
+      }),
+      withLegacyFixtureProvenance({
         materialKey: "mat.sand",
         namePl: "Piasek podsypkowy",
         unit: "m3",
         qtyFactor: 0.05,
-      },
+      }),
     ],
     equipment: [
-      {
+      withLegacyFixtureProvenance({
         equipmentKey: "eq.compactor",
         namePl: "Zagęszczarka",
         unit: "szt",
         qtyFactor: 0.02,
-      },
+      }),
     ],
     labour: [
-      {
+      withLegacyFixtureProvenance({
         labourKey: "lab.paving.crew",
         namePl: "Brygada brukarska",
         hoursPerUnit: 0.8,
-      },
+      }),
     ],
     regulatory: [],
   };

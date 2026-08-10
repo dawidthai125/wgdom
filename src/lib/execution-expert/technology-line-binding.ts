@@ -10,8 +10,9 @@ import {
   FIXTURE_KOSTKA_PACK_ID,
   getPack,
   listAllPacks,
-  projectBom,
+  projectProductionBom,
   seedB0Fixtures,
+  canPackFeedProductionBom,
   type GeneratedBom,
   type TechnologyPack,
 } from "@/lib/technology-foundation";
@@ -61,7 +62,7 @@ function ensureFixtures(): void {
 
 function latestActivePack(packId: string): TechnologyPack | null {
   const active = listAllPacks().filter(
-    (p) => p.packId === packId && p.lifecycle === "ACTIVE",
+    (p) => p.packId === packId && p.lifecycle === "ACTIVE" && canPackFeedProductionBom(p),
   );
   if (active.length === 0) return null;
   return active.sort((a, b) => b.packVersion.localeCompare(a.packVersion))[0] ?? null;
@@ -170,13 +171,13 @@ export function projectAndMergeBomFromBindings(
   for (const b of bindings) {
     if (b.bindStatus !== "bound" || !b.packId || !b.packVersion) continue;
     const pack = getPack(b.packId, b.packVersion);
-    if (!pack) continue;
+    if (!pack || !canPackFeedProductionBom(pack)) continue;
     const line = lineById.get(b.lineId);
     if (!line) continue;
 
     const ctx = { lines: [offerBoqLineToBoqContextLine(line)] };
     const plan = deriveExecutionPlan(pack, ctx);
-    partials.push(projectBom(pack, plan, ctx));
+    partials.push(projectProductionBom(pack, plan, ctx));
   }
 
   return mergeGeneratedBoms(partials);

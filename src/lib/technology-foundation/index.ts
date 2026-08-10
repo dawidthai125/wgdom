@@ -12,6 +12,7 @@ export type {
   ExecutionPlanStep,
   ExplainIssue,
   ExplainLayer,
+  FactorSourceKind,
   GeneratedBom,
   GeneratedBomEquipmentLine,
   GeneratedBomLabourLine,
@@ -25,6 +26,7 @@ export type {
   PackRegulatoryRef,
   PackStageTemplate,
   PackStepTemplate,
+  RecipeFactorProvenance,
   TechnologyCapability,
   TechnologyDecisionKind,
   TechnologyDecisionResult,
@@ -32,6 +34,7 @@ export type {
   TechnologyPack,
   TechnologyPackLifecycle,
   ValidationResult,
+  WastePolicy,
 } from "./types";
 
 export {
@@ -87,10 +90,23 @@ export {
 
 export { deriveExecutionPlan } from "./execution-plan";
 export { projectWorkBundle } from "./project-work-bundle";
-export { projectBom } from "./project-bom";
+export { projectBom, projectProductionBom } from "./project-bom";
 export { validateStructural } from "./validate-structural";
 export { validateBusiness } from "./validate-business";
 export { decideTechnologyPack } from "./decision-hooks";
+
+export {
+  assertPackMayFeedProductionBom,
+  canPackFeedProductionBom,
+  canPromoteToActive,
+  canPromoteToApproved,
+  isRecipeLineProductionReady,
+  isTrustedFactorSourceKind,
+  normalizeRecipeProvenance,
+  packHasOnlyFixtureLegacyFactors,
+  validateRecipeProvenance,
+  withLegacyFixtureProvenance,
+} from "./recipe-provenance";
 
 export {
   eticsBoqContext,

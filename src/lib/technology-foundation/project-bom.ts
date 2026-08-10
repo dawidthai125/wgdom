@@ -1,8 +1,10 @@
 /**
  * Generated BOM — Materials | Equipment | Labour (PLAN-R3). Never PLN (TF-1).
+ * TECHNOLOGY-RECIPE-CONSUMPTION-01A: production path gated by provenance.
  */
 
 import { composeBomId, composeBomLineId } from "./identity";
+import { assertPackMayFeedProductionBom } from "./recipe-provenance";
 import type {
   BoqContext,
   ExecutionPlan,
@@ -16,6 +18,10 @@ function primaryBoqQty(ctx: BoqContext): number {
   return lines.reduce((acc, l) => acc + (Number(l.quantity) || 0), 0) || 1;
 }
 
+/**
+ * Pure qty derivation (tests / inspection). Does not enforce production gate.
+ * Formula: derivedQty = boqQty × qtyFactor
+ */
 export function projectBom(
   pack: TechnologyPack,
   plan: ExecutionPlan,
@@ -55,4 +61,16 @@ export function projectBom(
     equipment,
     labour,
   };
+}
+
+/**
+ * Production BOM — ACTIVE + production-ready provenance required.
+ */
+export function projectProductionBom(
+  pack: TechnologyPack,
+  plan: ExecutionPlan,
+  ctx: BoqContext,
+): GeneratedBom {
+  assertPackMayFeedProductionBom(pack);
+  return projectBom(pack, plan, ctx);
 }

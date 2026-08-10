@@ -6,7 +6,25 @@
 
 export const TECHNOLOGY_FOUNDATION_SCHEMA_VERSION = 1 as const;
 
-export type TechnologyPackLifecycle = "DRAFT" | "ACTIVE" | "DEPRECATED" | "ARCHIVED";
+/**
+ * Pack lifecycle — TECHNOLOGY-RECIPE-CONSUMPTION-01A.
+ * Production BOM: ACTIVE only (with recipe provenance gate).
+ * Trusted path: DRAFT → REVIEW → APPROVED → ACTIVE.
+ * Legacy fixtures may promote DRAFT → ACTIVE only when all factors are fixture_legacy.
+ */
+export type TechnologyPackLifecycle =
+  | "DRAFT"
+  | "REVIEW"
+  | "APPROVED"
+  | "ACTIVE"
+  | "DEPRECATED"
+  | "ARCHIVED";
+
+/** Provenance of qtyFactor / hoursPerUnit — 01A. */
+export type FactorSourceKind = "fixture_legacy" | "owner_approved" | "norm_ref";
+
+/** v1: waste baked into factor — no separate % engine. */
+export type WastePolicy = "included_in_factor" | "none";
 
 export type ExplainLayer = "structural" | "business" | "decision";
 
@@ -35,7 +53,22 @@ export interface PackDependencyRule {
   successorStepId: string;
 }
 
-export interface PackMaterialRecipeLine {
+/** Shared provenance for recipe factors (TECHNOLOGY-RECIPE-CONSUMPTION-01A). */
+export interface RecipeFactorProvenance {
+  /**
+   * fixture_legacy = grandfathered B0 factors (not newly certified).
+   * owner_approved | norm_ref = trusted — require factorSourceRef + factorApprovedAt.
+   */
+  factorSourceKind?: FactorSourceKind;
+  /** Document / catalog / Owner sheet ref — required for owner_approved | norm_ref. */
+  factorSourceRef?: string;
+  /** ISO timestamp of Owner approval — required for owner_approved | norm_ref. */
+  factorApprovedAt?: string;
+  /** v1 default intent: waste included inside qtyFactor. */
+  wastePolicy?: WastePolicy;
+}
+
+export interface PackMaterialRecipeLine extends RecipeFactorProvenance {
   materialKey: string;
   namePl: string;
   unit: string;
@@ -43,7 +76,7 @@ export interface PackMaterialRecipeLine {
   qtyFactor: number;
 }
 
-export interface PackEquipmentRecipeLine {
+export interface PackEquipmentRecipeLine extends RecipeFactorProvenance {
   equipmentKey: string;
   namePl: string;
   unit: string;
@@ -51,7 +84,7 @@ export interface PackEquipmentRecipeLine {
 }
 
 /** Labour norms only — NEVER PLN rates (TF-1). */
-export interface PackLabourRecipeLine {
+export interface PackLabourRecipeLine extends RecipeFactorProvenance {
   labourKey: string;
   namePl: string;
   /** Hours per BOQ unit. */
