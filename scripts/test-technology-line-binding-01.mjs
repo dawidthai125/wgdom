@@ -133,7 +133,7 @@ resetTf();
   eq("2 pack", binds[0].packId, FIXTURE_KOSTKA_PACK_ID);
 }
 
-// 3 Painting → family painting · UNBOUND · NO material derivation
+// 3 Painting with coats → BOUND · litres (01B) · ambiguous stays UNBOUND
 {
   const line = baseLine({
     lineId: "P1",
@@ -145,14 +145,25 @@ resetTf();
   eq("3 family painting", classifyCostItemFamily(line), "painting");
   const doc = baseDoc([line]);
   const result = analyzeTechnologyLineBindings(doc);
-  eq("3 unbound status", result.bindings[0].bindStatus, "unbound");
-  eq("3 no pack", result.bindings[0].packId, null);
-  eq("3 no merged bom", result.mergedBom, null);
-  eq("3 boundCount 0", result.boundCount, 0);
+  eq("3 bound status", result.bindings[0].bindStatus, "bound");
+  eq("3 coats 2", result.bindings[0].coats, 2);
+  eq("3 pack painting", result.bindings[0].packId, "pack.painting.economy_interior_white_v1");
+  const paint = result.mergedBom.materials.find((m) => m.materialKey === "mat.farba_lateksowa_wewnetrzna");
+  eq("3 litres 83.3335", paint.quantity, 83.3335);
+  const amb = analyzeTechnologyLineBindings(
+    baseDoc([
+      baseLine({
+        lineId: "P2",
+        description: "Malowanie ścian farbami emulsyjnymi",
+        catalogWorkId: null,
+        quantity: 500,
+        unit: "m2",
+      }),
+    ]),
+  );
+  eq("3 ambiguous unbound", amb.bindings[0].bindStatus, "unbound");
   const exec = analyzeExecutionFromOfferBoq(doc, defaultExecutionExpertBusinessProfile());
-  eq("3 exec bom null", exec.bom, null);
-  eq("3 exec selection null", exec.selection, null);
-  ok("3 no paint material invented", !(exec.bom?.materials || []).some((m) => /farba|paint/i.test(m.materialKey)));
+  ok("3 exec bom paint", exec.bom?.materials.some((m) => m.materialKey === "mat.farba_lateksowa_wewnetrzna"));
 }
 
 // 4 Unknown → UNBOUND
@@ -188,13 +199,13 @@ resetTf();
     }),
   ]);
   const result = analyzeTechnologyLineBindings(doc);
-  eq("5 boundCount", result.boundCount, 2);
-  eq("5 unboundCount", result.unboundCount, 1);
+  eq("5 boundCount", result.boundCount, 3);
+  eq("5 unboundCount", result.unboundCount, 0);
   ok("5 merged bom", result.mergedBom != null);
   const mats = result.mergedBom.materials.map((m) => m.materialKey);
   ok("5 has etics mat", mats.includes("mat.eps_graph"));
   ok("5 has paving mat", mats.includes("mat.cubes_beton"));
-  ok("5 no paint mat", !mats.some((k) => /farba|paint/i.test(k)));
+  ok("5 has paint mat", mats.includes("mat.farba_lateksowa_wewnetrzna"));
   const exec = analyzeExecutionFromOfferBoq(doc, defaultExecutionExpertBusinessProfile());
   ok("5 exec bom", exec.bom && exec.bom.materials.length >= 2);
   ok("5 lineBindings", (exec.lineBindings || []).length === 3);

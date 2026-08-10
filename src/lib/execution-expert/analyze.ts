@@ -35,6 +35,7 @@ export function defaultExecutionExpertBusinessProfile(): ExecutionExpertBusiness
       "cap.substrate_prep",
       "cap.finishing_coat",
       "cap.paving_cubes",
+      "cap.interior_painting",
     ],
     availableEquipmentKeys: ["eq.scaffold", "eq.mixer", "eq.compactor"],
   };

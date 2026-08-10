@@ -4,12 +4,20 @@
 
 import { seedBaselineCapabilities } from "./definition-registry";
 import { getPack, registerPack } from "./pack-registry";
+import { seedPaintingEconomyWhiteV1 } from "./painting-economy-white-v1";
 import { withLegacyFixtureProvenance } from "./recipe-provenance";
 import { registerDefinition } from "./technology-definition";
 import type { BoqContext, TechnologyPack } from "./types";
 
 export const FIXTURE_ETICS_PACK_ID = "pack.etics.external_wall";
 export const FIXTURE_KOSTKA_PACK_ID = "pack.paving.concrete_cubes";
+export {
+  FIXTURE_PAINTING_ECONOMY_PACK_ID,
+  PAINTING_ECONOMY_FACTOR_1_COAT,
+  PAINTING_ECONOMY_FACTOR_2_COATS,
+  paintingEconomyWhitePackV1,
+  seedPaintingEconomyWhiteV1,
+} from "./painting-economy-white-v1";
 
 export function eticsPackV1(): TechnologyPack {
   return {
@@ -225,10 +233,11 @@ export function kostkaBoqContext(qtyM2 = 50): BoqContext {
   };
 }
 
-/** Seed capabilities, definitions, and both fixture packs (register once). */
+/** Seed capabilities, definitions, and fixture packs (register once). */
 export function seedB0Fixtures(): {
   etics: TechnologyPack;
   kostka: TechnologyPack;
+  painting: TechnologyPack;
 } {
   seedBaselineCapabilities();
   registerDefinition({
@@ -246,7 +255,8 @@ export function seedB0Fixtures(): {
   const kostkaRaw = kostkaPackV1();
   const etics = getOrRegisterPack(eticsRaw);
   const kostka = getOrRegisterPack(kostkaRaw);
-  return { etics, kostka };
+  const painting = seedPaintingEconomyWhiteV1();
+  return { etics, kostka, painting };
 }
 
 function getOrRegisterPack(raw: TechnologyPack): TechnologyPack {

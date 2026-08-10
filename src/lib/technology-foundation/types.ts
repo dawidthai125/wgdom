@@ -74,6 +74,12 @@ export interface PackMaterialRecipeLine extends RecipeFactorProvenance {
   unit: string;
   /** Quantity factor relative to BOQ qty (e.g. m2 of wall). */
   qtyFactor: number;
+  /**
+   * TECHNOLOGY-RECIPE-CONSUMPTION-01B — paint coats selector.
+   * When set, projection keeps only lines matching resolved coats.
+   * Legacy lines omit this field (always applicable).
+   */
+  coats?: 1 | 2;
 }
 
 export interface PackEquipmentRecipeLine extends RecipeFactorProvenance {

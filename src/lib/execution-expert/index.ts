@@ -35,6 +35,10 @@ export {
   type CostItemFamily,
 } from "./cost-item-family";
 export {
+  resolvePaintCoats,
+  type PaintCoats,
+} from "./paint-coats";
+export {
   analyzeTechnologyLineBindings,
   buildTechnologyLineBindings,
   mergeGeneratedBoms,

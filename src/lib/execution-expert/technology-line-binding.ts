@@ -1,6 +1,7 @@
 /**
  * TECHNOLOGY-LINE-BINDING-01 — BOQ line → CostItemFamily → TechnologyPack binding.
  * REUSE TechnologyPack + projectBom · ZERO invented norms · unbound ≠ fake pack.
+ * 01B: painting → economy white pack + resolvePaintCoats.
  */
 
 import {
@@ -8,11 +9,13 @@ import {
   deriveExecutionPlan,
   FIXTURE_ETICS_PACK_ID,
   FIXTURE_KOSTKA_PACK_ID,
+  FIXTURE_PAINTING_ECONOMY_PACK_ID,
   getPack,
   listAllPacks,
   projectProductionBom,
   seedB0Fixtures,
   canPackFeedProductionBom,
+  filterPackRecipeForCoats,
   type GeneratedBom,
   type TechnologyPack,
 } from "@/lib/technology-foundation";
@@ -23,6 +26,7 @@ import {
   offerBoqLineToBoqContextLine,
   type OfferBoqLineLike,
 } from "./offer-boq-adapter";
+import { resolvePaintCoats, type PaintCoats } from "./paint-coats";
 import type { ExecutionPackSelection } from "./types";
 
 export type TechnologyBindStatus =
@@ -43,6 +47,8 @@ export interface TechnologyLineBinding {
   matchReasonsPl: string[];
   quantity: number;
   unit: string;
+  /** 01B — resolved paint coats when family=painting and bound. */
+  coats?: PaintCoats;
 }
 
 export interface TechnologyLineBindingResult {
@@ -71,6 +77,7 @@ function latestActivePack(packId: string): TechnologyPack | null {
 function familyToPackId(family: CostItemFamily): string | null {
   if (family === "etics_envelope") return FIXTURE_ETICS_PACK_ID;
   if (family === "paving_cubes") return FIXTURE_KOSTKA_PACK_ID;
+  if (family === "painting") return FIXTURE_PAINTING_ECONOMY_PACK_ID;
   return null;
 }
 
@@ -84,6 +91,7 @@ function bindStatusForUnboundFamily(family: CostItemFamily): TechnologyBindStatu
 /**
  * Build per-line technology bindings (hybrid model D).
  * Families without an ACTIVE pack → UNBOUND (no guessing).
+ * Painting requires resolvePaintCoats ∈ {1,2}.
  */
 export function buildTechnologyLineBindings(
   doc: Pick<OfferBoqDocument, "lines" | "tenderId"> | { lines?: OfferBoqLineLike[]; tenderId?: string },
@@ -116,6 +124,28 @@ export function buildTechnologyLineBindings(
       continue;
     }
 
+    let coats: PaintCoats | undefined;
+    if (family === "painting") {
+      const resolved = resolvePaintCoats(line);
+      if (resolved == null) {
+        out.push({
+          tenderId,
+          lineId,
+          costItemFamily: family,
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "CostItemFamily=painting — nie udało się ustalić 1/2 warstw (UNBOUND)",
+          ],
+          quantity,
+          unit,
+        });
+        continue;
+      }
+      coats = resolved;
+    }
+
     const pack = latestActivePack(packIdWanted);
     if (!pack) {
       out.push({
@@ -142,9 +172,11 @@ export function buildTechnologyLineBindings(
       matchReasonsPl: [
         `CostItemFamily=${family}`,
         `TechnologyPack=${pack.packId}@${pack.packVersion}`,
+        ...(coats != null ? [`coats=${coats}`] : []),
       ],
       quantity,
       unit,
+      ...(coats != null ? { coats } : {}),
     });
   }
 
@@ -175,9 +207,17 @@ export function projectAndMergeBomFromBindings(
     const line = lineById.get(b.lineId);
     if (!line) continue;
 
+    const packForBom = filterPackRecipeForCoats(pack, b.coats ?? null);
+    if (
+      packForBom.materials.length === 0 &&
+      pack.materials.some((m) => m.coats === 1 || m.coats === 2)
+    ) {
+      continue;
+    }
+
     const ctx = { lines: [offerBoqLineToBoqContextLine(line)] };
-    const plan = deriveExecutionPlan(pack, ctx);
-    partials.push(projectProductionBom(pack, plan, ctx));
+    const plan = deriveExecutionPlan(packForBom, ctx);
+    partials.push(projectProductionBom(packForBom, plan, ctx));
   }
 
   return mergeGeneratedBoms(partials);

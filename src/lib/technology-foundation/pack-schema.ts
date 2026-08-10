@@ -23,11 +23,13 @@ const LIFECYCLES: readonly TechnologyPackLifecycle[] = [
 
 function normalizeMaterial(m: PackMaterialRecipeLine): PackMaterialRecipeLine {
   const p = normalizeRecipeProvenance(m);
+  const coats = m.coats === 1 || m.coats === 2 ? m.coats : undefined;
   return {
     materialKey: String(m.materialKey || "").trim(),
     namePl: String(m.namePl || m.materialKey),
     unit: String(m.unit || "").trim(),
     qtyFactor: Number(m.qtyFactor),
+    ...(coats != null ? { coats } : {}),
     ...p,
   };
 }

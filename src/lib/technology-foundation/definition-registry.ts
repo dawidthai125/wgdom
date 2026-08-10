@@ -61,6 +61,10 @@ export function seedBaselineCapabilities(): void {
       capabilityId: "cap.finishing_coat",
       namePl: "Warstwa wykończeniowa elewacji",
     },
+    {
+      capabilityId: "cap.interior_painting",
+      namePl: "Malowanie wnętrz (emulsja/lateks)",
+    },
   ];
   for (const s of seeds) registerCapability(s);
 }

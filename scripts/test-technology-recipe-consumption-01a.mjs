@@ -370,7 +370,7 @@ resetTf();
   eq("14 no bom", binds.mergedBom, null);
 }
 
-// 15–16 painting UNBOUND · no invented factor
+// 15–16 painting BOUND via 01B pack · factors live in painting-economy-white-v1 (not fixtures.ts)
 {
   eq(
     "15 family painting",
@@ -393,13 +393,11 @@ resetTf();
     }),
   ]);
   const exec = analyzeExecutionFromOfferBoq(doc, defaultExecutionExpertBusinessProfile());
-  eq("15 unbound selection", exec.selection, null);
-  eq("15 bom null", exec.bom, null);
-  ok("16 no paint liters", !(exec.bom?.materials || []).some((m) => /farba|paint/i.test(m.materialKey)));
-  const packs = [
-    ...fs.readFileSync("src/lib/technology-foundation/fixtures.ts", "utf8"),
-  ].join("");
-  ok("16 no painting pack in fixtures", !/pack\.painting|malowanie.*qtyFactor/i.test(packs));
+  eq("15 painting pack", exec.selection?.packId, "pack.painting.economy_interior_white_v1");
+  const paint = exec.bom?.materials.find((m) => m.materialKey === "mat.farba_lateksowa_wewnetrzna");
+  eq("15 litres 83.3335", paint?.quantity, 83.3335);
+  ok("16 reuses existing materialKey", paint?.materialKey === "mat.farba_lateksowa_wewnetrzna");
+  ok("16 no painting pack invent norms in fixtures.ts", !/0\.083333|0\.166667/.test(fs.readFileSync("src/lib/technology-foundation/fixtures.ts", "utf8")));
 }
 
 resetTf();
@@ -470,9 +468,15 @@ resetTf();
     }),
   ]);
   const r = analyzeTechnologyLineBindings(doc);
-  eq("27 boundCount", r.boundCount, 2);
-  eq("27 unboundCount", r.unboundCount, 1);
+  eq("27 boundCount", r.boundCount, 3);
+  eq("27 unboundCount", r.unboundCount, 0);
   ok("27 merged", r.mergedBom != null);
+  ok(
+    "27 paint litres",
+    r.mergedBom.materials.some(
+      (m) => m.materialKey === "mat.farba_lateksowa_wewnetrzna" && m.quantity === 33.3334,
+    ),
+  );
 }
 
 // DRAFT→ACTIVE grandfather for fixture_legacy still works

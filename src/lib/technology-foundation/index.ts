@@ -113,10 +113,23 @@ export {
   eticsPackV1,
   FIXTURE_ETICS_PACK_ID,
   FIXTURE_KOSTKA_PACK_ID,
+  FIXTURE_PAINTING_ECONOMY_PACK_ID,
   kostkaBoqContext,
   kostkaPackV1,
+  PAINTING_ECONOMY_FACTOR_1_COAT,
+  PAINTING_ECONOMY_FACTOR_2_COATS,
+  paintingEconomyWhitePackV1,
   seedB0Fixtures,
+  seedPaintingEconomyWhiteV1,
 } from "./fixtures";
+
+export { filterPackRecipeForCoats } from "./pack-recipe-coats";
+export type { PaintCoats as TfPaintCoats } from "./pack-recipe-coats";
+
+export {
+  PAINTING_ECONOMY_V1_APPROVED_AT,
+  PAINTING_ECONOMY_V1_SOURCE_REF,
+} from "./painting-economy-white-v1";
 
 export { runTechnologyFoundationPipeline } from "./pipeline";
 export type { TechnologyFoundationPipelineResult } from "./pipeline";
