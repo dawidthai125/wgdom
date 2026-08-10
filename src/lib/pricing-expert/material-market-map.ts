@@ -302,8 +302,9 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
 ];
 
 /**
- * Exact alias: fold(name)+unit → materialKey (S2-B).
- * Tylko jawne etykiety z mapy / wariantów — ZERO synonimów semantycznych.
+ * Exact alias: fold(name)+unit → materialKey (S2-B / S2-C / S4).
+ * Tylko jawne etykiety Owner-approved — ZERO fuzzy / substring / LLM.
+ * S4: dokładne brzmienia realnego BOQ → istniejący materialKey (bez nowych produktów).
  */
 export interface MaterialCoverageAlias {
   /** Już znormalizowana nazwa (foldPolishText) LUB raw — normalizujemy przy lookup. */
@@ -314,8 +315,8 @@ export interface MaterialCoverageAlias {
   evidence: string;
 }
 
-/** Exact aliases for APPROVED / ADDED map entries only. */
-export const DEFAULT_MATERIAL_COVERAGE_ALIASES: readonly MaterialCoverageAlias[] = [
+/** Exact aliases for APPROVED / ADDED map entries only (S2-B + S2-C canonical). */
+const MATERIAL_COVERAGE_ALIASES_CORE: readonly MaterialCoverageAlias[] = [
   {
     namePl: "Płyta EPS grafit (rynek)",
     unit: "m2",
@@ -554,6 +555,227 @@ export const DEFAULT_MATERIAL_COVERAGE_ALIASES: readonly MaterialCoverageAlias[]
     materialKey: "mat.wlacznik",
     evidence: "S2-C Owner LOCK",
   },
+];
+
+/**
+ * S4 — Owner-approved exact aliases for real ATH/przedmiar wording.
+ * Identity only · no new materialKey · no labor · no bare ambiguous tokens.
+ */
+export const S4_OWNER_APPROVED_EXACT_ALIASES: readonly MaterialCoverageAlias[] = [
+  {
+    namePl: "Umywalka ceramiczna",
+    unit: "szt",
+    materialKey: "mat.umywalka",
+    evidence: "S4 Owner GO example",
+  },
+  {
+    namePl: "WC kompakt",
+    unit: "szt",
+    materialKey: "mat.wc_compact",
+    evidence: "S4 Owner GO real BOQ wording",
+  },
+  {
+    namePl: "Kompakt WC ceramiczny",
+    unit: "szt",
+    materialKey: "mat.wc_compact",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Miska WC kompaktowa",
+    unit: "szt",
+    materialKey: "mat.wc_compact",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Bateria umywalkowa stojąca",
+    unit: "szt",
+    materialKey: "mat.bateria_umywalkowa",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Bateria natryskowa",
+    unit: "szt",
+    materialKey: "mat.bateria_prysznicowa",
+    evidence: "S4 Owner GO synonym natryskowa=prysznicowa",
+  },
+  {
+    namePl: "Kabina prysznicowa narożna",
+    unit: "szt",
+    materialKey: "mat.kabina_prysznicowa",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Brodzik akrylowy",
+    unit: "szt",
+    materialKey: "mat.brodzik",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Odpływ liniowy podłogowy",
+    unit: "szt",
+    materialKey: "mat.odplyw_liniowy",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Syfon do umywalki",
+    unit: "szt",
+    materialKey: "mat.syfon_umywalkowy",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Stelaż podtynkowy WC",
+    unit: "szt",
+    materialKey: "mat.stelaz_wc",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Płytki ceramiczne ścienne",
+    unit: "m2",
+    materialKey: "mat.plytki_scienne",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Płytki ceramiczne podłogowe",
+    unit: "m2",
+    materialKey: "mat.plytki_podlogowe",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Klej do płytek ceramicznych",
+    unit: "kg",
+    materialKey: "mat.klej_plytki",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Fuga do płytek",
+    unit: "kg",
+    materialKey: "mat.fuga",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Silikon sanitarny biały",
+    unit: "szt",
+    materialKey: "mat.silikon_sanitarny",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Hydroizolacja łazienkowa",
+    unit: "m2",
+    materialKey: "mat.hydroizolacja",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Panele laminowane",
+    unit: "m2",
+    materialKey: "mat.panel_laminowany",
+    evidence: "S4 Owner GO plural wording",
+  },
+  {
+    namePl: "Panel podłogowy laminowany",
+    unit: "m2",
+    materialKey: "mat.panel_laminowany",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Skrzydło drzwiowe wewnętrzne",
+    unit: "szt",
+    materialKey: "mat.skrzydlo_drzwiowe",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Ościeżnica drzwiowa",
+    unit: "szt",
+    materialKey: "mat.oscieznica",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Klamka drzwiowa",
+    unit: "szt",
+    materialKey: "mat.klamka",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Zamek drzwiowy",
+    unit: "szt",
+    materialKey: "mat.zamek",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Farba lateksowa",
+    unit: "l",
+    materialKey: "mat.farba_lateksowa_wewnetrzna",
+    evidence: "S4 Owner GO — sole paint product in map",
+  },
+  {
+    namePl: "Farba lateksowa biała",
+    unit: "l",
+    materialKey: "mat.farba_lateksowa_wewnetrzna",
+    evidence: "S4 Owner GO + market-sync fixture wording",
+  },
+  {
+    namePl: "Grunt uniwersalny",
+    unit: "l",
+    materialKey: "mat.grunt",
+    evidence: "S4 Owner GO — sole grunt product in map",
+  },
+  {
+    namePl: "Gładź gipsowa finiszowa",
+    unit: "kg",
+    materialKey: "mat.gladz_gipsowa",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Płyta gipsowo-kartonowa",
+    unit: "m2",
+    materialKey: "mat.plyta_gk",
+    evidence: "S4 Owner GO full product name",
+  },
+  {
+    namePl: "Gniazdo podtynkowe",
+    unit: "szt",
+    materialKey: "mat.gniazdo",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Włącznik światła pojedynczy",
+    unit: "szt",
+    materialKey: "mat.wlacznik",
+    evidence: "S4 Owner GO",
+  },
+  {
+    namePl: "Styropian grafitowy",
+    unit: "m2",
+    materialKey: "mat.eps_graph",
+    evidence: "S4 Owner GO ETICS BOQ wording",
+  },
+  {
+    namePl: "EPS grafit",
+    unit: "m2",
+    materialKey: "mat.eps_graph",
+    evidence: "S4 Owner GO",
+  },
+];
+
+/** Full exact alias dictionary = S2-B/S2-C core + S4 Owner expansions. */
+export const DEFAULT_MATERIAL_COVERAGE_ALIASES: readonly MaterialCoverageAlias[] = [
+  ...MATERIAL_COVERAGE_ALIASES_CORE,
+  ...S4_OWNER_APPROVED_EXACT_ALIASES,
+];
+
+/**
+ * S4 rejected / ambiguous — must stay MISS (dokumentacja).
+ */
+export const S4_REJECTED_ALIASES: readonly { labelPl: string; reasonPl: string }[] = [
+  { labelPl: "WC", reasonPl: "Bare token — FORBIDDEN without explicit LOCK" },
+  { labelPl: "Montaż WC", reasonPl: "Labor ≠ product" },
+  { labelPl: "Montaż umywalki", reasonPl: "Labor ≠ product" },
+  { labelPl: "bateria", reasonPl: "Ambiguous umywalkowa vs prysznicowa" },
+  { labelPl: "wanna 170x70", reasonPl: "Wanna OUT · dimension → model FORBIDDEN" },
+  { labelPl: "Farba", reasonPl: "Bare token — ambiguous product class" },
+  { labelPl: "Klej", reasonPl: "Ambiguous klej_plytki vs glue_etics" },
+  { labelPl: "Płytki", reasonPl: "Ambiguous ścienne vs podłogowe" },
+  { labelPl: "Gruntowanie podłoża", reasonPl: "Labor wording — not product alias" },
+  { labelPl: "Drzwi", reasonPl: "Ambiguous skrzydło/ościeżnica/komplet" },
 ];
 
 /**
