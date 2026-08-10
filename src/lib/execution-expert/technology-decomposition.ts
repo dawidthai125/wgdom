@@ -95,10 +95,39 @@ function foldPl(s: string): string {
     .trim();
 }
 
-function lineText(line: OfferBoqLineLike): string {
-  return foldPl(
-    `${line.normalizedDescription || ""} ${line.description || ""} ${line.catalogWorkId || ""}`,
-  );
+/** Join non-empty parts, keeping one copy per foldPl equality (order preserved). */
+function uniqueFoldJoin(parts: Array<string | null | undefined>): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of parts) {
+    const raw = String(part || "").trim();
+    if (!raw) continue;
+    const key = foldPl(raw);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out.join(" ");
+}
+
+/**
+ * Classification input — may include catalogWorkId (cues).
+ * TECH-DECOMP-THICKNESS-DOUBLE-SUM-01 S2.
+ */
+function classificationText(line: OfferBoqLineLike): string {
+  return uniqueFoldJoin([
+    line.normalizedDescription,
+    line.description,
+    line.catalogWorkId,
+  ]);
+}
+
+/**
+ * Thickness extraction input — NEVER catalogWorkId.
+ * TECH-DECOMP-THICKNESS-DOUBLE-SUM-01 S2.
+ */
+function thicknessText(line: OfferBoqLineLike): string {
+  return uniqueFoldJoin([line.normalizedDescription, line.description]);
 }
 
 /** Strip purpose clause so "pod malowanie" does not count as PAINTING (R3). */
@@ -185,18 +214,24 @@ function hasProductInstallPair(d: string): boolean {
   return product && install;
 }
 
-function extractThicknessMm(d: string): number | undefined {
+/**
+ * Extract thicknessMm from thicknessText; addon/same-line gate uses classifyText.
+ * NON-ADDON: nums[0]. ADDON/SAME-LINE: sum(unique(mm tokens)).
+ * TECH-DECOMP-THICKNESS-DOUBLE-SUM-01 S1.
+ */
+function extractThicknessMm(thicknessD: string, classifyD: string): number | undefined {
   const nums: number[] = [];
   const re = /(\d+(?:[.,]\d+)?)\s*mm/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(d)) !== null) {
+  while ((m = re.exec(thicknessD)) !== null) {
     const n = Number(String(m[1]).replace(",", "."));
     if (Number.isFinite(n)) nums.push(n);
   }
   if (nums.length === 0) return undefined;
-  // base + addon on same line → sum (Example 3)
-  if (nums.length >= 2 && hasScreed(d) && hasScreedThicknessAddon(d)) {
-    return Math.round(nums.reduce((a, b) => a + b, 0));
+  // base + addon on same line → sum unique mm (keep 20+10→30; collapse dup tokens)
+  if (hasScreed(classifyD) && hasScreedThicknessAddon(classifyD)) {
+    const unique = [...new Set(nums)];
+    return Math.round(unique.reduce((a, b) => a + b, 0));
   }
   return Math.round(nums[0]!);
 }
@@ -275,7 +310,8 @@ type DraftUnit = {
  */
 export function decomposeOfferBoqLine(line: OfferBoqLineLike): LineDecompositionResult {
   const sourceLineId = String(line.lineId || "").trim() || "line";
-  const d = lineText(line);
+  const d = classificationText(line);
+  const thickD = thicknessText(line);
   const q = qtyInput(line);
   const drafts: DraftUnit[] = [];
 
@@ -351,8 +387,8 @@ export function decomposeOfferBoqLine(line: OfferBoqLineLike): LineDecomposition
       forceStatus: coats == null ? "PARAMETER_REQUIRED" : undefined,
     });
   }
-  if (hasScreed(d) || (hasScreedThicknessAddon(d) && /\bmm\b/.test(d))) {
-    const thicknessMm = extractThicknessMm(d);
+  if (hasScreed(d) || (hasScreedThicknessAddon(d) && /\bmm\b/.test(thickD))) {
+    const thicknessMm = extractThicknessMm(thickD, d);
     drafts.push({
       family: "screed_leveling",
       reason: hasScreedThicknessAddon(d)

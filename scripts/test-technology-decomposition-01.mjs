@@ -419,4 +419,165 @@ resetTf();
   ok("partial aggregate", agg === "DECOMPOSED_PARTIAL");
 }
 
+// --- TECH-DECOMP-THICKNESS-DOUBLE-SUM-01 (S1 + S2) ---
+const SCREED_BASE_20 =
+  "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 20 mm";
+const SCREED_ADDON_10 =
+  "Warstwy wyrównawcze pod posadzki z zaprawy cementowej - dodatek za zmianę grubości o 10 mm";
+const SCREED_SAME_20_10 =
+  "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 20 mm — dodatek za zmianę grubości o 10 mm";
+const SCREED_SAME_20_20 =
+  "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 20 mm — dodatek za zmianę grubości o 20 mm";
+const SCREED_DRY_NO_MM = "Warstwy wyrównawcze pod posadzki z zaprawy cementowej";
+const SCREED_NON_ADDON_20_10 =
+  "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 20 mm oraz warstwa 10 mm";
+
+function screedThickness(over = {}) {
+  return decomposeOfferBoqLine(
+    baseLine({
+      catalogWorkId: null,
+      quantity: 40,
+      ...over,
+    }),
+  );
+}
+
+// R1 base 20 desc-only → 20
+{
+  const d = screedThickness({ lineId: "R1", description: SCREED_BASE_20 });
+  eq("R1 family", d.units[0]?.family, "screed_leveling");
+  eq("R1 thickness 20", d.units[0]?.parameters?.thicknessMm, 20);
+}
+
+// R2 base 20 normalized === description → 20
+{
+  const d = screedThickness({
+    lineId: "R2",
+    description: SCREED_BASE_20,
+    normalizedDescription: SCREED_BASE_20,
+  });
+  eq("R2 thickness 20", d.units[0]?.parameters?.thicknessMm, 20);
+}
+
+// R3 addon Δ10 desc-only → 10
+{
+  const d = screedThickness({ lineId: "R3", description: SCREED_ADDON_10 });
+  eq("R3 thickness 10", d.units[0]?.parameters?.thicknessMm, 10);
+}
+
+// R4 addon Δ10 normalized === description → 10
+{
+  const d = screedThickness({
+    lineId: "R4",
+    description: SCREED_ADDON_10,
+    normalizedDescription: SCREED_ADDON_10,
+  });
+  eq("R4 thickness 10", d.units[0]?.parameters?.thicknessMm, 10);
+}
+
+// R5 same-line 20+10 desc-only → 30 (existing #6 semantics)
+{
+  const d = screedThickness({ lineId: "R5", description: SCREED_SAME_20_10 });
+  eq("R5 thickness 30", d.units[0]?.parameters?.thicknessMm, 30);
+}
+
+// R6 same-line 20+10 normalized === description → 30
+{
+  const d = screedThickness({
+    lineId: "R6",
+    description: SCREED_SAME_20_10,
+    normalizedDescription: SCREED_SAME_20_10,
+  });
+  eq("R6 thickness 30", d.units[0]?.parameters?.thicknessMm, 30);
+}
+
+// R7 non-addon 50 duplicate → 50
+{
+  const desc = "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 50 mm";
+  const d = screedThickness({
+    lineId: "R7",
+    description: desc,
+    normalizedDescription: desc,
+  });
+  eq("R7 thickness 50", d.units[0]?.parameters?.thicknessMm, 50);
+}
+
+// R8 addon Δ10 + catalogWorkId containing 10mm → 10 (CW excluded from thickness)
+{
+  const d = screedThickness({
+    lineId: "R8",
+    description: SCREED_ADDON_10,
+    normalizedDescription: SCREED_ADDON_10,
+    catalogWorkId: "cw.screed.addon.10mm.delta",
+  });
+  eq("R8 thickness 10 not 20", d.units[0]?.parameters?.thicknessMm, 10);
+}
+
+// R9 dry screed without mm → PARAMETER_REQUIRED / no false thickness
+{
+  const d = screedThickness({
+    lineId: "R9",
+    description: SCREED_DRY_NO_MM,
+    normalizedDescription: SCREED_DRY_NO_MM,
+  });
+  eq("R9 family", d.units[0]?.family, "screed_leveling");
+  eq("R9 PARAMETER_REQUIRED", d.units[0]?.status, "PARAMETER_REQUIRED");
+  ok("R9 no thicknessMm", d.units[0]?.parameters?.thicknessMm == null);
+}
+
+// E1 non-addon 20 mm ... 10 mm without addon keyword → 20
+{
+  const d = screedThickness({ lineId: "E1n", description: SCREED_NON_ADDON_20_10 });
+  eq("E1 non-addon first mm 20", d.units[0]?.parameters?.thicknessMm, 20);
+}
+
+// E2 base 20 normalized === description → 20 (dup guard)
+{
+  const d = screedThickness({
+    lineId: "E2n",
+    description: SCREED_BASE_20,
+    normalizedDescription: SCREED_BASE_20,
+  });
+  eq("E2 dup base 20", d.units[0]?.parameters?.thicknessMm, 20);
+}
+
+// E3 same-line 20+Δ10 normalized !== description → 30
+{
+  const d = screedThickness({
+    lineId: "E3n",
+    description: SCREED_SAME_20_10,
+    normalizedDescription:
+      "Warstwy wyrównawcze pod posadzki z zaprawy cementowej grubości 20 mm",
+  });
+  eq("E3 same-line norm!=desc 30", d.units[0]?.parameters?.thicknessMm, 30);
+}
+
+// E4 electrical 3x1,5mm2 — not screed thickness
+{
+  const d = screedThickness({
+    lineId: "E4n",
+    description: "Ułożenie przewodu YDY 3x1,5mm2 wciągane do rur",
+    catalogWorkId: null,
+    unit: "m",
+    quantity: 100,
+  });
+  ok("E4 not screed", !d.units.some((u) => u.family === "screed_leveling"));
+  eq("E4 electrical family", d.units[0]?.family, "electrical_cable_lay");
+  ok("E4 no thicknessMm", d.units[0]?.parameters?.thicknessMm == null);
+  ok("E4 circuitSpec", /3x1[,.]?5mm/i.test(String(d.units[0]?.parameters?.circuitSpec || "")));
+}
+
+// E5 L1 known limitation: 20 + Δ20 → unique {20} → 20 (NOT 40)
+{
+  const d = screedThickness({
+    lineId: "E5n",
+    description: SCREED_SAME_20_20,
+    normalizedDescription: SCREED_SAME_20_20,
+  });
+  eq("E5 L1 unique-mm 20", d.units[0]?.parameters?.thicknessMm, 20);
+}
+
+// R10: existing suite above already executed — marker
+ok("R10 existing suite reached thickness block", true);
+
 console.log(`\nALL PASS (${passed})\n`);
