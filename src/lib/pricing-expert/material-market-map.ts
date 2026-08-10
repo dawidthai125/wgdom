@@ -272,6 +272,13 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
     labelPl: "Grunt podłoża",
   },
   {
+    materialKey: "mat.jastrych_cementowy",
+    workId: "cw.product.jastrych_cementowy",
+    candidateWorkIds: ["cw.product.jastrych_cementowy"],
+    marketProductId: "mp.jastrych_cementowy",
+    labelPl: "Jastrych / posadzka cementowa",
+  },
+  {
     materialKey: "mat.gladz_gipsowa",
     workId: "cw.product.gladz_gipsowa",
     candidateWorkIds: ["cw.product.gladz_gipsowa"],
@@ -564,6 +571,12 @@ const MATERIAL_COVERAGE_ALIASES_CORE: readonly MaterialCoverageAlias[] = [
     evidence: "S2-C Owner LOCK",
   },
   { namePl: "Grunt podłoża", unit: "l", materialKey: "mat.grunt", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Jastrych / posadzka cementowa",
+    unit: "kg",
+    materialKey: "mat.jastrych_cementowy",
+    evidence: "ECONOMY_WET_CEMENT_SCREED_V1 Owner LOCK",
+  },
   {
     namePl: "Gładź gipsowa",
     unit: "kg",

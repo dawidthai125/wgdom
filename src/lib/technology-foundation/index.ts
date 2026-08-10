@@ -150,5 +150,17 @@ export {
   PRIMING_ECONOMY_V1_SOURCE_REF,
 } from "./priming-economy-interior-v1";
 
+export {
+  FIXTURE_SCREED_ECONOMY_WET_CEMENT_PACK_ID,
+  SCREED_ECONOMY_WET_CEMENT_MATERIAL_KEY,
+  SCREED_ECONOMY_WET_CEMENT_QTY_FACTOR,
+  SCREED_ECONOMY_WET_CEMENT_THICKNESS_MAX_MM,
+  SCREED_ECONOMY_WET_CEMENT_THICKNESS_MIN_MM,
+  SCREED_ECONOMY_WET_CEMENT_V1_APPROVED_AT,
+  SCREED_ECONOMY_WET_CEMENT_V1_SOURCE_REF,
+  screedEconomyWetCementPackV1,
+  seedScreedEconomyWetCementV1,
+} from "./screed-economy-wet-cement-v1";
+
 export { runTechnologyFoundationPipeline } from "./pipeline";
 export type { TechnologyFoundationPipelineResult } from "./pipeline";

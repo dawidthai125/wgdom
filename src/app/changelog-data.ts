@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-10",
+    version: "2.66.24",
+    label: "Kosztorys — mokry jastrych cementowy V1",
+    items: [
+      {
+        type: "new",
+        text: "ECONOMY_WET_CEMENT_SCREED_V1: Atlas POSTAR 10 · 2.0 kg/m²/mm · mat.jastrych_cementowy · eligibility wet-only · qty = area × thickness × 2.0 (Option A). Bez dry/samopoziom/anhydryt.",
+      },
+    ],
+  },
+  {
     date: "2026-08-09",
     version: "2.66.23",
     label: "Price Intelligence — WGDOM approved ETICS",

@@ -14,10 +14,12 @@ import {
   FIXTURE_KOSTKA_PACK_ID,
   FIXTURE_PAINTING_ECONOMY_PACK_ID,
   FIXTURE_PRIMING_ECONOMY_PACK_ID,
+  FIXTURE_SCREED_ECONOMY_WET_CEMENT_PACK_ID,
   getPack,
   listAllPacks,
   projectProductionBom,
   seedB0Fixtures,
+  seedScreedEconomyWetCementV1,
   canPackFeedProductionBom,
   filterPackRecipeForCoats,
   filterPackRecipeForMaterialKey,
@@ -37,6 +39,7 @@ import {
 } from "./offer-boq-adapter";
 import type { PaintCoats } from "./paint-coats";
 import { resolvePrimingEconomyV1Eligibility } from "./priming-eligibility";
+import { resolveWetCementScreedEconomyV1Eligibility } from "./screed-eligibility";
 import {
   aggregateLineStatus,
   decomposeOfferBoqLine,
@@ -76,6 +79,8 @@ export interface TechnologyLineBinding {
   materialKey?: string;
   /** Normalized circuitSpec when electrical V1 mapped. */
   circuitSpecNormalized?: string;
+  /** ECONOMY_WET_CEMENT_SCREED_V1 — thickness for bind-time effective qtyFactor. */
+  thicknessMm?: number;
   decompositionReason?: string;
 }
 
@@ -92,6 +97,18 @@ export interface TechnologyLineBindingResult {
 
 function ensureFixtures(): void {
   seedB0Fixtures();
+  seedScreedEconomyWetCementV1();
+}
+
+/** Option A: pack qtyFactor=2.0 → effective = 2.0 × thicknessMm (projectBom unchanged). */
+function applyScreedEffectiveQtyFactor(pack: TechnologyPack, thicknessMm: number): TechnologyPack {
+  return {
+    ...pack,
+    materials: pack.materials.map((m) => ({
+      ...m,
+      qtyFactor: Number((m.qtyFactor * thicknessMm).toFixed(6)),
+    })),
+  };
 }
 
 function latestActivePack(packId: string): TechnologyPack | null {
@@ -108,6 +125,7 @@ function familyToPackId(family: CostItemFamily | string): string | null {
   if (family === "painting") return FIXTURE_PAINTING_ECONOMY_PACK_ID;
   if (family === "priming") return FIXTURE_PRIMING_ECONOMY_PACK_ID;
   if (family === "electrical_cable_lay") return FIXTURE_ELECTRICAL_CABLE_ECONOMY_PACK_ID;
+  if (family === "screed_leveling") return FIXTURE_SCREED_ECONOMY_WET_CEMENT_PACK_ID;
   return null;
 }
 
@@ -320,6 +338,50 @@ function bindTechUnit(
     }
   }
 
+  // ECONOMY_WET_CEMENT_SCREED_V1 — family alone is NOT enough
+  if (costItemFamily === "screed_leveling" || unit.family === "screed_leveling") {
+    const elig = resolveWetCementScreedEconomyV1Eligibility(
+      sourceLine,
+      unit.parameters?.thicknessMm,
+    );
+    if (elig === "unbound") {
+      const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          costItemFamily: "screed_leveling",
+          techUnitStatus: "UNBOUND",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "screed — poza ECONOMY_WET_CEMENT_SCREED_V1 (UNBOUND)",
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+    if (elig === "parameter_required") {
+      const u: TechUnit = { ...unit, status: "PARAMETER_REQUIRED", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          costItemFamily: "screed_leveling",
+          techUnitStatus: "PARAMETER_REQUIRED",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "screed — brak / niejednoznaczna grubość (PARAMETER_REQUIRED)",
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+  }
+
   let coats: PaintCoats | undefined = unit.parameters?.coats;
   if (costItemFamily === "painting") {
     if (coats !== 1 && coats !== 2) {
@@ -362,6 +424,11 @@ function bindTechUnit(
     };
   }
 
+  const thicknessMm =
+    costItemFamily === "screed_leveling" || unit.family === "screed_leveling"
+      ? unit.parameters?.thicknessMm
+      : undefined;
+
   const u: TechUnit = {
     ...unit,
     status: "BOUND",
@@ -382,8 +449,10 @@ function bindTechUnit(
         `TechnologyPack=${pack.packId}@${pack.packVersion}`,
         unit.decompositionReason,
         ...(coats != null ? [`coats=${coats}`] : []),
+        ...(thicknessMm != null ? [`thicknessMm=${thicknessMm}`] : []),
       ],
       ...(coats != null ? { coats } : {}),
+      ...(thicknessMm != null ? { thicknessMm } : {}),
     },
   };
 }
@@ -418,7 +487,7 @@ export function projectAndMergeBomFromBindings(
     const line = lineById.get(b.lineId);
     if (!line) continue;
 
-    const packForBom = filterPackRecipeForMaterialKey(
+    let packForBom = filterPackRecipeForMaterialKey(
       filterPackRecipeForCoats(pack, b.coats ?? null),
       b.materialKey,
     );
@@ -430,6 +499,15 @@ export function projectAndMergeBomFromBindings(
     }
     if (b.materialKey && packForBom.materials.length === 0) {
       continue;
+    }
+
+    // SCREED Option A — effectiveQtyFactor = 2.0 × thicknessMm (no project-bom.ts change)
+    if (
+      b.packId === FIXTURE_SCREED_ECONOMY_WET_CEMENT_PACK_ID &&
+      b.thicknessMm != null &&
+      Number.isFinite(b.thicknessMm)
+    ) {
+      packForBom = applyScreedEffectiveQtyFactor(packForBom, b.thicknessMm);
     }
 
     const ctx = { lines: [offerBoqLineToBoqContextLine(line)] };

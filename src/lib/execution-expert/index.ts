@@ -43,6 +43,10 @@ export {
   type PrimingEconomyV1Eligibility,
 } from "./priming-eligibility";
 export {
+  resolveWetCementScreedEconomyV1Eligibility,
+  type WetCementScreedEconomyV1Eligibility,
+} from "./screed-eligibility";
+export {
   ECONOMY_ELECTRICAL_CABLE_V1_KEYS,
   ECONOMY_ELECTRICAL_CIRCUIT_TO_KEY,
   materialKeyForNormalizedCircuitSpec,

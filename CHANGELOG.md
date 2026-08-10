@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.24 — Kosztorys — mokry jastrych cementowy V1 (2026-08-10)
+
+- **new:** ECONOMY_WET_CEMENT_SCREED_V1 — Atlas POSTAR 10 · 2.0 kg/m²/mm · `mat.jastrych_cementowy` · wet eligibility · qty = area × thickness × 2.0 (Option A); dry/samopoziom/anhydryt OUT
+
 ## 2.66.23 — Price Intelligence — WGDOM approved ETICS (2026-08-09)
 
 - **improve:** PRICE-INTELLIGENCE-01 P3.1 — WGDOM approved Quotes + Purchase (4× ETICS); `kw-offer-boq-company-knowledge` w DATA_KEYS; bez SQL Price DB / zewnętrznych providerów
