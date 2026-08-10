@@ -129,6 +129,25 @@ export {
   type ResearchIntelligenceBrief,
 } from "./research-intelligence";
 
+/* —— DEMAND-RESEARCH-01 S2-B: coverage dictionary re-exports —— */
+export {
+  DEFAULT_MATERIAL_COVERAGE_ALIASES,
+  DEFAULT_MATERIAL_MARKET_MAP,
+  WGDOM_COVERAGE_CANDIDATES,
+  WGDOM_COVERAGE_REJECTED,
+  buildMaterialMarketMapIndex,
+  lookupMaterialKeyByExactAlias,
+  mapMaterialToMarketWork,
+  materialCoverageUsesFuzzyMatching,
+  materialCoverageWritesMarketQuotes,
+  materialCoverageWritesPurchase,
+  resolveMaterialCoverageExact,
+  suggestResearchLookupPathHint,
+  type MaterialCoverageAlias,
+  type ResearchLookupPathStep,
+  type WgdomCoverageCandidate,
+} from "@/lib/pricing-expert/material-market-map";
+
 /* —— PROVIDERS-01 P0: faktury → COMPANY PURCHASE —— */
 export type {
   InvoiceLineStatus,
