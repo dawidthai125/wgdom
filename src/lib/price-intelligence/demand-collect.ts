@@ -1,17 +1,26 @@
 /**
  * PRICE-INTELLIGENCE-01 P3.2 — collect PRICE DATA MISSING candidates (pure).
+ * S2-C: resolveMaterialCoverageExact / product CatalogWork wiring · ZERO fuzzy.
  */
 
 import type { CompanyCostRo } from "@/lib/cost-expert";
 import type { ExecutionExpertAnalysisResult } from "@/lib/execution-expert";
 import type { PricingExpertAnalysisResult } from "@/lib/pricing-expert";
-import { mapMaterialToMarketWork } from "@/lib/pricing-expert/material-market-map";
+import {
+  mapMaterialToMarketWork,
+  resolveDemandProductIdentityExact,
+} from "@/lib/pricing-expert/material-market-map";
 import type { PriceDemandCandidate, PriceDemandMissingLayer } from "./demand-types";
 
 export interface CollectPriceDemandContext {
   tenderId?: string | null;
   region?: string | null;
   requestedAt?: string;
+  /**
+   * S2-C — optional exact name+unit lines (Owner-approved aliases only via resolve).
+   * Nie zgaduje — MISS gdy brak exact alias.
+   */
+  exactAliasLines?: readonly { namePl: string; unit: string }[];
 }
 
 export function computeMissingLayer(opts: {
@@ -24,8 +33,20 @@ export function computeMissingLayer(opts: {
   return "MARKET_QUOTE_MISSING";
 }
 
+function pushCandidate(
+  out: PriceDemandCandidate[],
+  seen: Set<string>,
+  cand: PriceDemandCandidate,
+): void {
+  const key = cand.materialKey.trim();
+  if (!key || seen.has(key)) return;
+  seen.add(key);
+  out.push(cand);
+}
+
 /**
  * Z BOM + Purchase RO + PE lines → dedupe candidates (1 per materialKey w tym wywołaniu).
+ * S2-C: product identity via resolveDemandProductIdentityExact.
  */
 export function collectPriceDemandCandidates(opts: {
   execution: ExecutionExpertAnalysisResult;
@@ -45,6 +66,8 @@ export function collectPriceDemandCandidates(opts: {
   for (const l of opts.pricing.lines) keys.add(l.materialKey);
 
   const out: PriceDemandCandidate[] = [];
+  const seen = new Set<string>();
+
   for (const materialKey of keys) {
     const bom = bomMats.find((m) => m.materialKey === materialKey);
     const pe = peByKey.get(materialKey);
@@ -54,17 +77,24 @@ export function collectPriceDemandCandidates(opts: {
     const missingLayer = computeMissingLayer({ purchaseOk, marketOk });
     if (!missingLayer) continue;
 
+    const identity = resolveDemandProductIdentityExact({
+      materialKey,
+      namePl: pe?.namePl || bom?.namePl || null,
+      unit: pe?.unit || bom?.unit || null,
+    });
     const map = mapMaterialToMarketWork(materialKey);
     const catalogWorkId =
+      identity?.catalogWorkId ??
       pe?.mappedWorkId ??
       map?.candidateWorkIds?.[0] ??
       map?.workId ??
       null;
-    const namePl = pe?.namePl || bom?.namePl || map?.labelPl || materialKey;
+    const namePl =
+      identity?.labelPl || pe?.namePl || bom?.namePl || map?.labelPl || materialKey;
     const unit = pe?.unit || bom?.unit || "";
 
-    out.push({
-      materialKey,
+    pushCandidate(out, seen, {
+      materialKey: identity?.materialKey ?? materialKey,
       catalogWorkId,
       namePl,
       unit,
@@ -75,6 +105,32 @@ export function collectPriceDemandCandidates(opts: {
       reason: "PRICE DATA MISSING",
     });
   }
+
+  for (const line of opts.context?.exactAliasLines ?? []) {
+    const identity = resolveDemandProductIdentityExact({
+      namePl: line.namePl,
+      unit: line.unit,
+    });
+    if (!identity) continue;
+    const purchaseOk =
+      (opts.company.purchaseByMaterialKey[identity.materialKey]?.unitPricePln ?? 0) > 0;
+    const pe = peByKey.get(identity.materialKey);
+    const marketOk = pe?.marketPricePln != null && pe.marketPricePln > 0;
+    const missingLayer = computeMissingLayer({ purchaseOk, marketOk });
+    if (!missingLayer) continue;
+    pushCandidate(out, seen, {
+      materialKey: identity.materialKey,
+      catalogWorkId: identity.catalogWorkId,
+      namePl: identity.labelPl,
+      unit: line.unit,
+      region,
+      missingLayer,
+      tenderId,
+      requestedAt,
+      reason: "PRICE DATA MISSING",
+    });
+  }
+
   return out;
 }
 

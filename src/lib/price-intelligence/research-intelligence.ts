@@ -6,6 +6,8 @@
 
 import {
   mapMaterialToMarketWork,
+  preferProductCatalogWorkId,
+  resolveDemandProductIdentityExact,
   type MaterialMarketMapEntry,
 } from "@/lib/pricing-expert/material-market-map";
 import {
@@ -88,8 +90,16 @@ export function resolveExactCatalogWork(opts: {
   }
 
   if (mk) {
+    const identity = resolveDemandProductIdentityExact({ materialKey: mk });
+    if (identity) {
+      const w = opts.worksById.get(identity.catalogWorkId);
+      if (w) return { workId: identity.catalogWorkId, work: w, via: "materialKey" };
+    }
     const map = mapMaterialToMarketWork(mk);
     if (map) {
+      const preferred = preferProductCatalogWorkId(map);
+      const prefWork = opts.worksById.get(preferred);
+      if (prefWork) return { workId: preferred, work: prefWork, via: "materialKey" };
       for (const id of map.candidateWorkIds ?? []) {
         const w = opts.worksById.get(id);
         if (w) return { workId: id, work: w, via: "materialKey" };

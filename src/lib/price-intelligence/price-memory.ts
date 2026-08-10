@@ -8,7 +8,8 @@ import {
 } from "@/lib/pricing-expert/market-freshness";
 import {
   mapMaterialToMarketWork,
-  type MaterialMarketMapEntry,
+  preferProductCatalogWorkId,
+  resolveDemandProductIdentityExact,
 } from "@/lib/pricing-expert/material-market-map";
 import { resolveMarketLayerForDemand } from "./demand-resolve-layer";
 import {
@@ -195,14 +196,28 @@ function resolveWorkId(
   }
 
   if (mk) {
+    const identity = resolveDemandProductIdentityExact({ materialKey: mk });
+    if (identity) {
+      const w = input.worksById.get(identity.catalogWorkId);
+      if (workHasQuoteCell(w)) {
+        return { workId: identity.catalogWorkId, materialKey: identity.materialKey };
+      }
+      if (input.worksById.has(identity.catalogWorkId)) {
+        return { workId: identity.catalogWorkId, materialKey: identity.materialKey };
+      }
+    }
     const map = mapMaterialToMarketWork(mk);
     if (map) {
+      const preferred = preferProductCatalogWorkId(map);
+      const pref = input.worksById.get(preferred);
+      if (workHasQuoteCell(pref)) return { workId: preferred, materialKey: mk };
       for (const id of map.candidateWorkIds ?? []) {
         const w = input.worksById.get(id);
         if (workHasQuoteCell(w)) return { workId: id, materialKey: mk };
       }
       const w = input.worksById.get(map.workId);
       if (workHasQuoteCell(w)) return { workId: map.workId, materialKey: mk };
+      if (input.worksById.has(preferred)) return { workId: preferred, materialKey: mk };
       if (input.worksById.has(map.workId)) return { workId: map.workId, materialKey: mk };
     }
   }

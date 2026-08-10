@@ -698,3 +698,159 @@ works:
     unit: szt
     keywords: [niesklasyfikowana, fallback, pozostale]
     active: true
+  - id: cw.product.wc_compact
+    tradeId: LAZIENKA
+    name: "Kompakt WC"
+    unit: szt
+    keywords: [wc, kompakt, lazienka, produkt]
+    active: true
+  - id: cw.product.umywalka
+    tradeId: LAZIENKA
+    name: "Umywalka"
+    unit: szt
+    keywords: [umywalka, lazienka, produkt]
+    active: true
+  - id: cw.product.bateria_umywalkowa
+    tradeId: LAZIENKA
+    name: "Bateria umywalkowa"
+    unit: szt
+    keywords: [bateria, umywalkowa, lazienka, produkt]
+    active: true
+  - id: cw.product.bateria_prysznicowa
+    tradeId: LAZIENKA
+    name: "Bateria prysznicowa"
+    unit: szt
+    keywords: [bateria, prysznicowa, lazienka, produkt]
+    active: true
+  - id: cw.product.kabina_prysznicowa
+    tradeId: LAZIENKA
+    name: "Kabina prysznicowa"
+    unit: szt
+    keywords: [kabina, prysznic, lazienka, produkt]
+    active: true
+  - id: cw.product.brodzik
+    tradeId: LAZIENKA
+    name: "Brodzik"
+    unit: szt
+    keywords: [brodzik, lazienka, produkt]
+    active: true
+  - id: cw.product.odplyw_liniowy
+    tradeId: LAZIENKA
+    name: "Odpływ liniowy"
+    unit: szt
+    keywords: [odplyw, liniowy, lazienka, produkt]
+    active: true
+  - id: cw.product.syfon_umywalkowy
+    tradeId: LAZIENKA
+    name: "Syfon umywalkowy"
+    unit: szt
+    keywords: [syfon, umywalka, lazienka, produkt]
+    active: true
+  - id: cw.product.stelaz_wc
+    tradeId: LAZIENKA
+    name: "Stelaż WC podtynkowy"
+    unit: szt
+    keywords: [stelaz, wc, podtynkowy, lazienka, produkt]
+    active: true
+  - id: cw.product.plytki_scienne
+    tradeId: LAZIENKA
+    name: "Płytki ścienne"
+    unit: m2
+    keywords: [plytki, scienne, lazienka, produkt]
+    active: true
+  - id: cw.product.plytki_podlogowe
+    tradeId: PODLOGI
+    name: "Płytki podłogowe"
+    unit: m2
+    keywords: [plytki, podlogowe, produkt]
+    active: true
+  - id: cw.product.klej_plytki
+    tradeId: PODLOGI
+    name: "Klej do płytek"
+    unit: kg
+    keywords: [klej, plytki, produkt]
+    active: true
+  - id: cw.product.fuga
+    tradeId: PODLOGI
+    name: "Fuga"
+    unit: kg
+    keywords: [fuga, plytki, produkt]
+    active: true
+  - id: cw.product.silikon_sanitarny
+    tradeId: LAZIENKA
+    name: "Silikon sanitarny"
+    unit: szt
+    keywords: [silikon, sanitarny, lazienka, produkt]
+    active: true
+  - id: cw.product.hydroizolacja
+    tradeId: LAZIENKA
+    name: "Hydroizolacja pod płytki"
+    unit: m2
+    keywords: [hydroizolacja, plytki, lazienka, produkt]
+    active: true
+  - id: cw.product.panel_laminowany
+    tradeId: PODLOGI
+    name: "Panel laminowany"
+    unit: m2
+    keywords: [panel, laminowany, podloga, produkt]
+    active: true
+  - id: cw.product.skrzydlo_drzwiowe
+    tradeId: DRZWI
+    name: "Skrzydło drzwiowe"
+    unit: szt
+    keywords: [skrzydlo, drzwi, produkt]
+    active: true
+  - id: cw.product.oscieznica
+    tradeId: DRZWI
+    name: "Ościeżnica"
+    unit: szt
+    keywords: [oscieznica, drzwi, produkt]
+    active: true
+  - id: cw.product.klamka
+    tradeId: DRZWI
+    name: "Klamka"
+    unit: szt
+    keywords: [klamka, drzwi, produkt]
+    active: true
+  - id: cw.product.zamek
+    tradeId: DRZWI
+    name: "Zamek"
+    unit: szt
+    keywords: [zamek, drzwi, produkt]
+    active: true
+  - id: cw.product.farba_lateksowa_wewnetrzna
+    tradeId: MALOWANIE
+    name: "Farba lateksowa wewnętrzna"
+    unit: l
+    keywords: [farba, lateksowa, wewnetrzna, produkt]
+    active: true
+  - id: cw.product.grunt
+    tradeId: MALOWANIE
+    name: "Grunt podłoża"
+    unit: l
+    keywords: [grunt, podloze, produkt]
+    active: true
+  - id: cw.product.gladz_gipsowa
+    tradeId: SCIANY_GK
+    name: "Gładź gipsowa"
+    unit: kg
+    keywords: [gladz, gipsowa, produkt]
+    active: true
+  - id: cw.product.plyta_gk
+    tradeId: SCIANY_GK
+    name: "Płyta GK"
+    unit: m2
+    keywords: [plyta, gk, produkt]
+    active: true
+  - id: cw.product.gniazdo
+    tradeId: ELEKTRYKA
+    name: "Gniazdo wtyczkowe"
+    unit: szt
+    keywords: [gniazdo, wtyczkowe, elektryka, produkt]
+    active: true
+  - id: cw.product.wlacznik
+    tradeId: ELEKTRYKA
+    name: "Włącznik światła (produkt)"
+    unit: szt
+    keywords: [wlacznik, swiatlo, elektryka, produkt]
+    active: true

@@ -116,6 +116,189 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
     marketProductId: "mp.sand",
     labelPl: "Piasek podsypkowy (rynek)",
   },
+  /* —— S2-C Bathroom + Core Finish Product Pack (Owner LOCK) —— */
+  {
+    materialKey: "mat.wc_compact",
+    workId: "cw.product.wc_compact",
+    candidateWorkIds: ["cw.product.wc_compact"],
+    marketProductId: "mp.wc_compact",
+    labelPl: "Kompakt WC",
+  },
+  {
+    materialKey: "mat.umywalka",
+    workId: "cw.product.umywalka",
+    candidateWorkIds: ["cw.product.umywalka"],
+    marketProductId: "mp.umywalka",
+    labelPl: "Umywalka",
+  },
+  {
+    materialKey: "mat.bateria_umywalkowa",
+    workId: "cw.product.bateria_umywalkowa",
+    candidateWorkIds: ["cw.product.bateria_umywalkowa"],
+    marketProductId: "mp.bateria_umywalkowa",
+    labelPl: "Bateria umywalkowa",
+  },
+  {
+    materialKey: "mat.bateria_prysznicowa",
+    workId: "cw.product.bateria_prysznicowa",
+    candidateWorkIds: ["cw.product.bateria_prysznicowa"],
+    marketProductId: "mp.bateria_prysznicowa",
+    labelPl: "Bateria prysznicowa",
+  },
+  {
+    materialKey: "mat.kabina_prysznicowa",
+    workId: "cw.product.kabina_prysznicowa",
+    candidateWorkIds: ["cw.product.kabina_prysznicowa"],
+    marketProductId: "mp.kabina_prysznicowa",
+    labelPl: "Kabina prysznicowa",
+  },
+  {
+    materialKey: "mat.brodzik",
+    workId: "cw.product.brodzik",
+    candidateWorkIds: ["cw.product.brodzik"],
+    marketProductId: "mp.brodzik",
+    labelPl: "Brodzik",
+  },
+  {
+    materialKey: "mat.odplyw_liniowy",
+    workId: "cw.product.odplyw_liniowy",
+    candidateWorkIds: ["cw.product.odplyw_liniowy"],
+    marketProductId: "mp.odplyw_liniowy",
+    labelPl: "Odpływ liniowy",
+  },
+  {
+    materialKey: "mat.syfon_umywalkowy",
+    workId: "cw.product.syfon_umywalkowy",
+    candidateWorkIds: ["cw.product.syfon_umywalkowy"],
+    marketProductId: "mp.syfon_umywalkowy",
+    labelPl: "Syfon umywalkowy",
+  },
+  {
+    materialKey: "mat.stelaz_wc",
+    workId: "cw.product.stelaz_wc",
+    candidateWorkIds: ["cw.product.stelaz_wc"],
+    marketProductId: "mp.stelaz_wc",
+    labelPl: "Stelaż WC podtynkowy",
+  },
+  {
+    materialKey: "mat.plytki_scienne",
+    workId: "cw.product.plytki_scienne",
+    candidateWorkIds: ["cw.product.plytki_scienne"],
+    marketProductId: "mp.plytki_scienne",
+    labelPl: "Płytki ścienne",
+  },
+  {
+    materialKey: "mat.plytki_podlogowe",
+    workId: "cw.product.plytki_podlogowe",
+    candidateWorkIds: ["cw.product.plytki_podlogowe"],
+    marketProductId: "mp.plytki_podlogowe",
+    labelPl: "Płytki podłogowe",
+  },
+  {
+    materialKey: "mat.klej_plytki",
+    workId: "cw.product.klej_plytki",
+    candidateWorkIds: ["cw.product.klej_plytki"],
+    marketProductId: "mp.klej_plytki",
+    labelPl: "Klej do płytek",
+  },
+  {
+    materialKey: "mat.fuga",
+    workId: "cw.product.fuga",
+    candidateWorkIds: ["cw.product.fuga"],
+    marketProductId: "mp.fuga",
+    labelPl: "Fuga",
+  },
+  {
+    materialKey: "mat.silikon_sanitarny",
+    workId: "cw.product.silikon_sanitarny",
+    candidateWorkIds: ["cw.product.silikon_sanitarny"],
+    marketProductId: "mp.silikon_sanitarny",
+    labelPl: "Silikon sanitarny",
+  },
+  {
+    materialKey: "mat.hydroizolacja",
+    workId: "cw.product.hydroizolacja",
+    candidateWorkIds: ["cw.product.hydroizolacja"],
+    marketProductId: "mp.hydroizolacja",
+    labelPl: "Hydroizolacja pod płytki",
+  },
+  {
+    materialKey: "mat.panel_laminowany",
+    workId: "cw.product.panel_laminowany",
+    candidateWorkIds: ["cw.product.panel_laminowany"],
+    marketProductId: "mp.panel_laminowany",
+    labelPl: "Panel laminowany",
+  },
+  {
+    materialKey: "mat.skrzydlo_drzwiowe",
+    workId: "cw.product.skrzydlo_drzwiowe",
+    candidateWorkIds: ["cw.product.skrzydlo_drzwiowe"],
+    marketProductId: "mp.skrzydlo_drzwiowe",
+    labelPl: "Skrzydło drzwiowe",
+  },
+  {
+    materialKey: "mat.oscieznica",
+    workId: "cw.product.oscieznica",
+    candidateWorkIds: ["cw.product.oscieznica"],
+    marketProductId: "mp.oscieznica",
+    labelPl: "Ościeżnica",
+  },
+  {
+    materialKey: "mat.klamka",
+    workId: "cw.product.klamka",
+    candidateWorkIds: ["cw.product.klamka"],
+    marketProductId: "mp.klamka",
+    labelPl: "Klamka",
+  },
+  {
+    materialKey: "mat.zamek",
+    workId: "cw.product.zamek",
+    candidateWorkIds: ["cw.product.zamek"],
+    marketProductId: "mp.zamek",
+    labelPl: "Zamek",
+  },
+  {
+    materialKey: "mat.farba_lateksowa_wewnetrzna",
+    workId: "cw.product.farba_lateksowa_wewnetrzna",
+    candidateWorkIds: ["cw.product.farba_lateksowa_wewnetrzna"],
+    marketProductId: "mp.farba_lateksowa_wewnetrzna",
+    labelPl: "Farba lateksowa wewnętrzna",
+  },
+  {
+    materialKey: "mat.grunt",
+    workId: "cw.product.grunt",
+    candidateWorkIds: ["cw.product.grunt"],
+    marketProductId: "mp.grunt",
+    labelPl: "Grunt podłoża",
+  },
+  {
+    materialKey: "mat.gladz_gipsowa",
+    workId: "cw.product.gladz_gipsowa",
+    candidateWorkIds: ["cw.product.gladz_gipsowa"],
+    marketProductId: "mp.gladz_gipsowa",
+    labelPl: "Gładź gipsowa",
+  },
+  {
+    materialKey: "mat.plyta_gk",
+    workId: "cw.product.plyta_gk",
+    candidateWorkIds: ["cw.product.plyta_gk"],
+    marketProductId: "mp.plyta_gk",
+    labelPl: "Płyta GK",
+  },
+  {
+    materialKey: "mat.gniazdo",
+    workId: "cw.product.gniazdo",
+    candidateWorkIds: ["cw.product.gniazdo"],
+    marketProductId: "mp.gniazdo",
+    labelPl: "Gniazdo wtyczkowe",
+  },
+  {
+    materialKey: "mat.wlacznik",
+    workId: "cw.product.wlacznik",
+    candidateWorkIds: ["cw.product.wlacznik"],
+    marketProductId: "mp.wlacznik",
+    labelPl: "Włącznik światła",
+  },
 ];
 
 /**
@@ -259,6 +442,118 @@ export const DEFAULT_MATERIAL_COVERAGE_ALIASES: readonly MaterialCoverageAlias[]
     materialKey: "mat.sand",
     evidence: "technology-foundation/fixtures.ts",
   },
+  /* S2-C Owner LOCK — exact canonical only */
+  { namePl: "Kompakt WC", unit: "szt", materialKey: "mat.wc_compact", evidence: "S2-C Owner LOCK" },
+  { namePl: "Umywalka", unit: "szt", materialKey: "mat.umywalka", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Bateria umywalkowa",
+    unit: "szt",
+    materialKey: "mat.bateria_umywalkowa",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Bateria prysznicowa",
+    unit: "szt",
+    materialKey: "mat.bateria_prysznicowa",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Kabina prysznicowa",
+    unit: "szt",
+    materialKey: "mat.kabina_prysznicowa",
+    evidence: "S2-C Owner LOCK",
+  },
+  { namePl: "Brodzik", unit: "szt", materialKey: "mat.brodzik", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Odpływ liniowy",
+    unit: "szt",
+    materialKey: "mat.odplyw_liniowy",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Syfon umywalkowy",
+    unit: "szt",
+    materialKey: "mat.syfon_umywalkowy",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Stelaż WC podtynkowy",
+    unit: "szt",
+    materialKey: "mat.stelaz_wc",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Płytki ścienne",
+    unit: "m2",
+    materialKey: "mat.plytki_scienne",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Płytki podłogowe",
+    unit: "m2",
+    materialKey: "mat.plytki_podlogowe",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Klej do płytek",
+    unit: "kg",
+    materialKey: "mat.klej_plytki",
+    evidence: "S2-C Owner LOCK",
+  },
+  { namePl: "Fuga", unit: "kg", materialKey: "mat.fuga", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Silikon sanitarny",
+    unit: "szt",
+    materialKey: "mat.silikon_sanitarny",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Hydroizolacja pod płytki",
+    unit: "m2",
+    materialKey: "mat.hydroizolacja",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Panel laminowany",
+    unit: "m2",
+    materialKey: "mat.panel_laminowany",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Skrzydło drzwiowe",
+    unit: "szt",
+    materialKey: "mat.skrzydlo_drzwiowe",
+    evidence: "S2-C Owner LOCK",
+  },
+  { namePl: "Ościeżnica", unit: "szt", materialKey: "mat.oscieznica", evidence: "S2-C Owner LOCK" },
+  { namePl: "Klamka", unit: "szt", materialKey: "mat.klamka", evidence: "S2-C Owner LOCK" },
+  { namePl: "Zamek", unit: "szt", materialKey: "mat.zamek", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Farba lateksowa wewnętrzna",
+    unit: "l",
+    materialKey: "mat.farba_lateksowa_wewnetrzna",
+    evidence: "S2-C Owner LOCK",
+  },
+  { namePl: "Grunt podłoża", unit: "l", materialKey: "mat.grunt", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Gładź gipsowa",
+    unit: "kg",
+    materialKey: "mat.gladz_gipsowa",
+    evidence: "S2-C Owner LOCK",
+  },
+  { namePl: "Płyta GK", unit: "m2", materialKey: "mat.plyta_gk", evidence: "S2-C Owner LOCK" },
+  {
+    namePl: "Gniazdo wtyczkowe",
+    unit: "szt",
+    materialKey: "mat.gniazdo",
+    evidence: "S2-C Owner LOCK",
+  },
+  {
+    namePl: "Włącznik światła",
+    unit: "szt",
+    materialKey: "mat.wlacznik",
+    evidence: "S2-C Owner LOCK",
+  },
 ];
 
 /**
@@ -278,74 +573,26 @@ export interface WgdomCoverageCandidate {
 export const WGDOM_COVERAGE_CANDIDATES: readonly WgdomCoverageCandidate[] = [
   {
     area: "LAZIENKA/SANITARNE",
-    seedCatalogWorkId: "montaz-wc-szt",
-    seedNameHintPl: "Montaż WC",
-    proposedMaterialKey: "mat.wc_fixture",
-    reasonPl: "Seed = LABOR montaż · brak mat.* produktu WC · nie mapować montaż→cena produktu",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "LAZIENKA/SANITARNE",
-    seedCatalogWorkId: "montaz-umywalki-szt",
-    seedNameHintPl: "Montaż umywalki",
-    proposedMaterialKey: "mat.umywalka",
-    reasonPl: "Seed LABOR · brak materialKey produktu",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "LAZIENKA/SANITARNE",
     seedCatalogWorkId: "montaz-brodzika-szt",
-    seedNameHintPl: "Montaż brodzika lub wanny",
-    proposedMaterialKey: "mat.wanna_or_brodzik",
-    reasonPl: "Ambiguous wanna vs brodzik · FORBIDDEN zgadywanie modelu/wymiaru",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "LAZIENKA/SANITARNE",
-    seedCatalogWorkId: "bateria-umywalkowa-szt",
-    seedNameHintPl: "Montaż baterii umywalkowej",
-    proposedMaterialKey: "mat.bateria_umywalkowa",
-    reasonPl: "Seed LABOR/montaż · brak mat.*",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "LAZIENKA/SANITARNE",
-    seedCatalogWorkId: "kabina-prysznicowa-szt",
-    seedNameHintPl: "Montaż kabiny prysznicowej",
-    proposedMaterialKey: "mat.kabina_prysznicowa",
-    reasonPl: "Seed LABOR · brak mat.* produktu",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "DRZWI",
-    seedCatalogWorkId: "skrzydlo-drzwiowe-szt",
-    seedNameHintPl: "Montaż skrzydła drzwiowego",
-    proposedMaterialKey: "mat.skrzydlo_drzwiowe",
-    reasonPl: "Seed LABOR · brak mat.* skrzydła",
+    seedNameHintPl: "Montaż brodzika lub wanny (labor — wanna OUT S2-C)",
+    proposedMaterialKey: "mat.wanna",
+    reasonPl: "Wanna = OUT/HOLD · labor seed nadal bez product Quotes",
     status: "CANDIDATE_OWNER_REVIEW",
   },
   {
     area: "PODLOGI",
-    seedCatalogWorkId: "panel-laminowany-m2",
-    seedNameHintPl: "Układanie paneli laminowanych",
-    proposedMaterialKey: "mat.panel_laminowany",
-    reasonPl: "Seed = układanie (labor) · brak mat.* paneli jako produktu",
-    status: "CANDIDATE_OWNER_REVIEW",
-  },
-  {
-    area: "PODLOGI",
-    seedCatalogWorkId: "plytki-podlogowe-m2",
-    seedNameHintPl: "Układanie płytek podłogowych",
-    proposedMaterialKey: "mat.plytki_podlogowe",
-    reasonPl: "Seed labor · brak mat.* płytek",
+    seedCatalogWorkId: "listwy-przypodlogowe-mb",
+    seedNameHintPl: "Montaż listew przypodłogowych",
+    proposedMaterialKey: "mat.listwa_przypodlogowa",
+    reasonPl: "OUT / v1.1 S2-C",
     status: "CANDIDATE_OWNER_REVIEW",
   },
   {
     area: "ELEKTRYKA",
-    seedCatalogWorkId: "punkt-gniazda-szt",
-    seedNameHintPl: "Punkt gniazda wtyczkowego",
-    proposedMaterialKey: "mat.gniazdo",
-    reasonPl: "Seed punkt instalacji · brak mat.* osprzętu",
+    seedCatalogWorkId: "puszka-podtynkowa-szt",
+    seedNameHintPl: "Puszka podtynkowa",
+    proposedMaterialKey: "mat.puszka_podtynkowa",
+    reasonPl: "OUT / v1.1 S2-C",
     status: "CANDIDATE_OWNER_REVIEW",
   },
   {
@@ -353,7 +600,7 @@ export const WGDOM_COVERAGE_CANDIDATES: readonly WgdomCoverageCandidate[] = [
     seedCatalogWorkId: "ck-a1-rura-winidur",
     seedNameHintPl: "Montaż instalacji rurowej Winidurowej",
     proposedMaterialKey: "mat.rura_winidur",
-    reasonPl: "Cost-knowledge A1 labor seed · brak mat.* w market map",
+    reasonPl: "Cost-knowledge A1 labor · OUT S2-C product pack",
     status: "CANDIDATE_OWNER_REVIEW",
   },
 ];
@@ -368,14 +615,64 @@ export const WGDOM_COVERAGE_REJECTED: readonly {
     reasonPl: "FORBIDDEN synonim/wymiar bez Owner-approved exact mapping",
   },
   {
-    labelPl: "WC → konkretny kompakt",
-    reasonPl: "FORBIDDEN semantic guessing",
+    labelPl: "WC → Kompakt WC",
+    reasonPl: "FORBIDDEN semantic guessing — tylko exact «Kompakt WC»",
+  },
+  {
+    labelPl: "Bateria → bateria umywalkowa/prysznicowa",
+    reasonPl: "FORBIDDEN — wymaga exact typu",
+  },
+  {
+    labelPl: "Klej → Klej do płytek / Klej ETICS",
+    reasonPl: "FORBIDDEN — osobne exact identity",
+  },
+  {
+    labelPl: "Brodzik ↔ Wanna",
+    reasonPl: "FORBIDDEN cross-map",
   },
   {
     labelPl: "Mapowanie montaż-* CatalogWork → marketQuotes produktu",
     reasonPl: "Labor ≠ product MARKET reference",
   },
 ];
+
+/** S2-C — product CatalogWork id prefix. */
+export const PRODUCT_CATALOG_WORK_PREFIX = "cw.product.";
+
+export function isProductCatalogWorkId(catalogWorkId: string): boolean {
+  return String(catalogWorkId || "").trim().startsWith(PRODUCT_CATALOG_WORK_PREFIX);
+}
+
+/** Labor seed IDs must never host product Quotes (S2-C safety). */
+export const LABOR_CATALOG_WORK_BLOCKLIST: readonly string[] = [
+  "montaz-wc-szt",
+  "montaz-umywalki-szt",
+  "montaz-brodzika-szt",
+  "bateria-umywalkowa-szt",
+  "bateria-prysznicowa-szt",
+  "kabina-prysznicowa-szt",
+  "odplyw-liniowy-szt",
+  "plytki-scienne-lazienka-m2",
+  "plytki-podlogowe-m2",
+  "plytki-podlogowe-lazienka-m2",
+  "panel-laminowany-m2",
+  "silikonowanie-lazienka-mb",
+  "hydroizolacja-lazienka-m2",
+  "skrzydlo-drzwiowe-szt",
+  "oscieznica-szt",
+  "zamek-klamka-szt",
+  "gruntowanie-podloza-m2",
+  "gladz-gipsowa-scian-m2",
+  "gladz-gipsowa-sufit-m2",
+  "plyta-gk-sciana-m2",
+  "punkt-gniazda-szt",
+  "wlacznik-szt",
+  "malowanie-lateksowe-m2",
+];
+
+export function isLaborCatalogWorkBlockedForProductQuotes(catalogWorkId: string): boolean {
+  return LABOR_CATALOG_WORK_BLOCKLIST.includes(String(catalogWorkId || "").trim());
+}
 
 export type ResearchLookupPathStep =
   | "purchase"
@@ -438,7 +735,7 @@ export function mapMaterialToMarketWork(
 }
 
 /**
- * Identity helper S2-B: materialKey exact OR exact name+unit alias → map entry.
+ * Identity helper S2-B/S2-C: materialKey exact OR exact name+unit alias → map entry.
  * Soft / fuzzy = never.
  */
 export function resolveMaterialCoverageExact(opts: {
@@ -464,6 +761,87 @@ export function resolveMaterialCoverageExact(opts: {
   );
   if (!aliasKey) return null;
   return mapIndex.get(aliasKey) ?? null;
+}
+
+/** Prefer cw.product.* as Demand/S0 catalogWorkId when present in map entry. */
+export function preferProductCatalogWorkId(entry: MaterialMarketMapEntry): string {
+  for (const id of entry.candidateWorkIds ?? []) {
+    if (isProductCatalogWorkId(id)) return id;
+  }
+  if (isProductCatalogWorkId(entry.workId)) return entry.workId;
+  return entry.candidateWorkIds?.[0] ?? entry.workId;
+}
+
+/**
+ * Reverse exact: cw.product.* → materialKey (1:1 from map · bez drugiego SSOT).
+ * Gdy wiele materialKey mapuje na ten sam workId (ETICS variants) — pierwszy w mapie.
+ */
+export function lookupMaterialKeyByCatalogWorkId(
+  catalogWorkId: string,
+  entries: readonly MaterialMarketMapEntry[] = DEFAULT_MATERIAL_MARKET_MAP,
+): string | null {
+  const id = String(catalogWorkId || "").trim();
+  if (!id) return null;
+  for (const e of entries) {
+    if (e.workId === id) return e.materialKey;
+    if ((e.candidateWorkIds ?? []).includes(id)) return e.materialKey;
+  }
+  return null;
+}
+
+/**
+ * Demand identity: materialKey and/or exact alias → product catalogWorkId.
+ * Labor blocklist IDs never returned as product host.
+ */
+export function resolveDemandProductIdentityExact(opts: {
+  materialKey?: string | null;
+  namePl?: string | null;
+  unit?: string | null;
+  catalogWorkId?: string | null;
+}): {
+  materialKey: string;
+  catalogWorkId: string;
+  labelPl: string;
+  via: "materialKey" | "alias" | "catalogWorkId";
+} | null {
+  const forcedCw = typeof opts.catalogWorkId === "string" ? opts.catalogWorkId.trim() : "";
+  if (forcedCw && isLaborCatalogWorkBlockedForProductQuotes(forcedCw)) {
+    return null;
+  }
+
+  const coverage = resolveMaterialCoverageExact({
+    materialKey: opts.materialKey,
+    namePl: opts.namePl,
+    unit: opts.unit,
+  });
+  if (coverage) {
+    const catalogWorkId = preferProductCatalogWorkId(coverage);
+    if (isLaborCatalogWorkBlockedForProductQuotes(catalogWorkId)) return null;
+    const via =
+      opts.materialKey?.trim() && coverage.materialKey === opts.materialKey.trim()
+        ? "materialKey"
+        : "alias";
+    return {
+      materialKey: coverage.materialKey,
+      catalogWorkId,
+      labelPl: coverage.labelPl,
+      via,
+    };
+  }
+
+  if (forcedCw && isProductCatalogWorkId(forcedCw)) {
+    const mk = lookupMaterialKeyByCatalogWorkId(forcedCw);
+    if (!mk) return null;
+    const entry = mapMaterialToMarketWork(mk);
+    return {
+      materialKey: mk,
+      catalogWorkId: forcedCw,
+      labelPl: entry?.labelPl ?? mk,
+      via: "catalogWorkId",
+    };
+  }
+
+  return null;
 }
 
 function workHasMarketQuotes(work: CatalogWork | null | undefined): work is CatalogWork {

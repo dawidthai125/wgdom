@@ -21,7 +21,8 @@ export type WgdomCostCategoryId =
   | "WYPOSAZENIE"
   | "UNKNOWN";
 
-export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl";
+/** S2-C: +kg / +l — product CatalogWork (klej, fuga, farba, grunt, gładź). */
+export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl" | "kg" | "l";
 
 export type WgdomCostRegion = "wroclaw" | "dolnyslask";
 
@@ -312,6 +313,8 @@ export function normalizeWgdomCostUnit(raw: string | undefined | null): WgdomCos
   if (/^(szt|szt\.|kpl|kompl)$/.test(u)) return "szt";
   if (/^(rbh|r[\s-]?bh|r[\s-]?g|h|godz|m[gh]|rob(?:\.|-)?g(?:\.|-)?h)$/.test(u)) return "rbh";
   if (/^(m3|m³)$/.test(u)) return "m3";
+  if (/^(kg|kgs|kilogram|kilogramy)$/.test(u)) return "kg";
+  if (/^(l|ltr|litr|litry|liters?)$/.test(u)) return "l";
   return null;
 }
 
