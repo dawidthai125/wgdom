@@ -116,6 +116,19 @@ export {
   type ResearchBrief,
 } from "./price-memory";
 
+/* —— DEMAND-RESEARCH-01 S2-A: Research Intelligence Brief —— */
+export {
+  buildResearchIntelligenceBrief,
+  deriveTradeOriginHint,
+  researchIntelligenceCreatesPriceFromBoq,
+  researchIntelligenceFillsMarketFromPurchase,
+  researchIntelligencePriorityImplemented,
+  researchIntelligenceUsesSoftLabelOverlap,
+  resolveExactCatalogWork,
+  type BuildResearchIntelligenceInput,
+  type ResearchIntelligenceBrief,
+} from "./research-intelligence";
+
 /* —— PROVIDERS-01 P0: faktury → COMPANY PURCHASE —— */
 export type {
   InvoiceLineStatus,

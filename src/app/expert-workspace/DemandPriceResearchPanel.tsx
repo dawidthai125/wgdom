@@ -10,6 +10,7 @@ import {
   acceptManualMarketPriceResearch,
   buildManualResearchBrief,
   buildPriceCandidateFromManualInput,
+  buildResearchIntelligenceBrief,
   isDemandResearchableS0,
   manualProviderSourceLabel,
   mapManualProviderToQuoteOrigin,
@@ -67,6 +68,17 @@ export function DemandPriceResearchPanel({
         )
       : null;
     return buildManualResearchBrief(demand, work);
+  }, [demand]);
+
+  const intelBrief = useMemo(() => {
+    const catalog = loadWorkCatalogStoreLocal();
+    const worksById = new Map(
+      [...catalog.catalogs.wroclaw.works, ...catalog.catalogs.dolnyslask.works].map((w) => [
+        w.id,
+        w,
+      ]),
+    );
+    return buildResearchIntelligenceBrief({ demand, worksById });
   }, [demand]);
 
   const originLabel = useMemo(() => {
@@ -174,6 +186,43 @@ export function DemandPriceResearchPanel({
         <button type="button" className={btnGhost} onClick={onClose}>
           Zamknij
         </button>
+      </div>
+
+      <div
+        className="rounded-md border border-sky-500/30 bg-sky-500/5 p-2 space-y-0.5"
+        data-research-intelligence-brief
+        data-typical-wgdom={intelBrief.typicalWgdom ? "1" : "0"}
+      >
+        {intelBrief.typicalWgdom && (
+          <p className={`${TEUX_FONT_CAPTION} font-medium`}>TYPOWA POZYCJA WGDOM</p>
+        )}
+        {intelBrief.tradeLabelPl && (
+          <p className={TEUX_FONT_BODY} data-intel-trade>
+            Trade: {intelBrief.tradeLabelPl}
+          </p>
+        )}
+        {intelBrief.materialLabelPl && (
+          <p className={TEUX_FONT_BODY} data-intel-material>
+            Material: {intelBrief.materialLabelPl}
+          </p>
+        )}
+        <p className={TEUX_FONT_BODY} data-intel-occurrences>
+          Wystąpienia: {intelBrief.occurrenceCount}
+        </p>
+        <p className={TEUX_FONT_BODY} data-intel-tenders>
+          Przetargi: {intelBrief.tenderCount}
+        </p>
+        {intelBrief.lastOriginLabelPl && (
+          <p className={TEUX_FONT_BODY} data-intel-origin>
+            Ostatnie źródło: {intelBrief.lastOriginLabelPl}
+          </p>
+        )}
+        {intelBrief.freshnessLabelPl && (
+          <p className={TEUX_FONT_BODY} data-intel-freshness>
+            Freshness: {intelBrief.freshnessLabelPl}
+          </p>
+        )}
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>{intelBrief.guidancePl}</p>
       </div>
 
       <div

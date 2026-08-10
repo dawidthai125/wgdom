@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { CostDetailsView } from "@/lib/expert-workspace-ui";
 import { EXPERT_PANEL_ORDER_LABELS_PL } from "@/lib/expert-workspace-ui";
 import {
+  buildResearchIntelligenceBrief,
   isDemandResearchableS0,
   listActiveMarketLayerDemands,
   loadPriceDemandStoreLocal,
@@ -11,6 +12,7 @@ import {
   type PriceDemandRecord,
   type PriceMemoryHit,
   type PriceMemoryLookupResult,
+  type ResearchIntelligenceBrief,
 } from "@/lib/price-intelligence";
 import { TEUX_FONT_BODY, TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
@@ -32,6 +34,64 @@ function blockerLooksLikePriceMissing(text: string): boolean {
 function formatHitDate(iso: string): string {
   if (!iso) return "—";
   return iso.includes("T") ? iso.slice(0, 10) : iso.slice(0, 10);
+}
+
+function ResearchIntelBlock({ brief }: { brief: ResearchIntelligenceBrief }) {
+  return (
+    <div
+      className="rounded-md border border-sky-500/30 bg-sky-500/5 p-2 space-y-0.5"
+      data-research-intelligence-brief
+      data-typical-wgdom={brief.typicalWgdom ? "1" : "0"}
+      data-memory-status={brief.memoryStatus}
+    >
+      {brief.typicalWgdom && (
+        <p className={`${TEUX_FONT_CAPTION} font-medium text-foreground`} data-typical-wgdom-label>
+          TYPOWA POZYCJA WGDOM
+        </p>
+      )}
+      {brief.tradeLabelPl && (
+        <p className={TEUX_FONT_BODY} data-intel-trade>
+          Trade: {brief.tradeLabelPl}
+        </p>
+      )}
+      {brief.materialLabelPl && (
+        <p className={TEUX_FONT_BODY} data-intel-material>
+          Material: {brief.materialLabelPl}
+        </p>
+      )}
+      <p className={TEUX_FONT_BODY} data-intel-occurrences>
+        Wystąpienia: {brief.occurrenceCount}
+      </p>
+      <p className={TEUX_FONT_BODY} data-intel-tenders>
+        Przetargi: {brief.tenderCount}
+      </p>
+      {brief.lastOriginLabelPl && (
+        <p className={TEUX_FONT_BODY} data-intel-origin>
+          Ostatnie źródło: {brief.lastOriginLabelPl}
+          {brief.lastOrigin ? ` (${brief.lastOrigin})` : ""}
+        </p>
+      )}
+      {brief.preferredOriginHintLabelPl &&
+        brief.preferredOriginHint !== brief.lastOrigin && (
+          <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-intel-origin-pref>
+            Preferowane źródło (hint): {brief.preferredOriginHintLabelPl}
+          </p>
+        )}
+      {brief.tradeOriginHintLabelPl && (
+        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-intel-trade-origin-hint>
+          Hint branży (nie cena): często {brief.tradeOriginHintLabelPl}
+        </p>
+      )}
+      {brief.freshnessLabelPl && (
+        <p className={TEUX_FONT_BODY} data-intel-freshness>
+          Freshness: {brief.freshnessLabelPl}
+        </p>
+      )}
+      <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-intel-guidance>
+        {brief.guidancePl}
+      </p>
+    </div>
+  );
 }
 
 export function CostDetailsPanel({
@@ -59,16 +119,19 @@ export function CostDetailsPanel({
     });
   }, [view.hasResult, view.materialLines, tenderId, researchDemand, reuseBusyId]);
 
-  const memoryByDemandId = useMemo(() => {
-    const map = new Map<string, PriceMemoryLookupResult>();
-    if (!view.hasResult || marketDemands.length === 0) return map;
+  const worksById = useMemo(() => {
     const catalog = loadWorkCatalogStoreLocal();
-    const worksById = new Map(
+    return new Map(
       [...catalog.catalogs.wroclaw.works, ...catalog.catalogs.dolnyslask.works].map((w) => [
         w.id,
         w,
       ]),
     );
+  }, [view.hasResult, marketDemands, researchDemand, reuseBusyId]);
+
+  const memoryByDemandId = useMemo(() => {
+    const map = new Map<string, PriceMemoryLookupResult>();
+    if (!view.hasResult || marketDemands.length === 0) return map;
     for (const d of marketDemands) {
       map.set(
         d.demandId,
@@ -81,7 +144,23 @@ export function CostDetailsPanel({
       );
     }
     return map;
-  }, [view.hasResult, marketDemands, researchDemand, reuseBusyId]);
+  }, [view.hasResult, marketDemands, worksById]);
+
+  const intelByDemandId = useMemo(() => {
+    const map = new Map<string, ResearchIntelligenceBrief>();
+    if (!view.hasResult || marketDemands.length === 0) return map;
+    for (const d of marketDemands) {
+      map.set(
+        d.demandId,
+        buildResearchIntelligenceBrief({
+          demand: d,
+          worksById,
+          memoryLookup: memoryByDemandId.get(d.demandId) ?? null,
+        }),
+      );
+    }
+    return map;
+  }, [view.hasResult, marketDemands, worksById, memoryByDemandId]);
 
   const showFindPriceCta =
     view.hasResult &&
@@ -153,6 +232,7 @@ export function CostDetailsPanel({
                   {marketDemands.map((d) => {
                     const mem = memoryByDemandId.get(d.demandId);
                     const hit = mem?.status === "HIT" ? mem.hit : null;
+                    const intel = intelByDemandId.get(d.demandId);
                     return (
                       <li
                         key={d.demandId}
@@ -164,10 +244,14 @@ export function CostDetailsPanel({
                           {d.normalizedName || d.materialKey} · {d.missingLayer}
                           {!isDemandResearchableS0(d) ? " · brak catalogWorkId" : ""}
                         </span>
+                        {intel && <ResearchIntelBlock brief={intel} />}
                         {hit ? (
                           <div className="space-y-1.5" data-price-memory-hit>
                             <p className={`${TEUX_FONT_CAPTION} font-medium text-foreground`}>
                               ZNALEZIONO ZAPISANĄ CENĘ
+                            </p>
+                            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
+                              {intel?.ctaCheckSavedPl ?? "Sprawdź zapisaną cenę"}
                             </p>
                             <p className={TEUX_FONT_BODY} data-memory-price>
                               Cena: {formatPlnDisplay(hit.price)}
@@ -209,7 +293,10 @@ export function CostDetailsPanel({
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="space-y-1.5">
+                            <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`} data-miss-cta-label>
+                              {intel?.ctaFindPricePl ?? "Brak zapisanej ceny — znajdź cenę"}
+                            </p>
                             <button
                               type="button"
                               className="min-h-[44px] px-3 rounded-md bg-primary text-primary-foreground text-sm touch-manipulation disabled:opacity-50"
