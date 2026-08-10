@@ -5,6 +5,7 @@
 import { seedBaselineCapabilities } from "./definition-registry";
 import { getPack, registerPack } from "./pack-registry";
 import { seedPaintingEconomyWhiteV1 } from "./painting-economy-white-v1";
+import { seedPrimingEconomyInteriorV1 } from "./priming-economy-interior-v1";
 import { withLegacyFixtureProvenance } from "./recipe-provenance";
 import { registerDefinition } from "./technology-definition";
 import type { BoqContext, TechnologyPack } from "./types";
@@ -18,6 +19,12 @@ export {
   paintingEconomyWhitePackV1,
   seedPaintingEconomyWhiteV1,
 } from "./painting-economy-white-v1";
+export {
+  FIXTURE_PRIMING_ECONOMY_PACK_ID,
+  PRIMING_ECONOMY_FACTOR_1_COAT,
+  primingEconomyInteriorPackV1,
+  seedPrimingEconomyInteriorV1,
+} from "./priming-economy-interior-v1";
 
 export function eticsPackV1(): TechnologyPack {
   return {
@@ -238,6 +245,7 @@ export function seedB0Fixtures(): {
   etics: TechnologyPack;
   kostka: TechnologyPack;
   painting: TechnologyPack;
+  priming: TechnologyPack;
 } {
   seedBaselineCapabilities();
   registerDefinition({
@@ -256,7 +264,8 @@ export function seedB0Fixtures(): {
   const etics = getOrRegisterPack(eticsRaw);
   const kostka = getOrRegisterPack(kostkaRaw);
   const painting = seedPaintingEconomyWhiteV1();
-  return { etics, kostka, painting };
+  const priming = seedPrimingEconomyInteriorV1();
+  return { etics, kostka, painting, priming };
 }
 
 function getOrRegisterPack(raw: TechnologyPack): TechnologyPack {

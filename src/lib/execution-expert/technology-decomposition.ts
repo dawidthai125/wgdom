@@ -140,6 +140,8 @@ function hasExplicitPainting(d: string): boolean {
 }
 
 function hasExplicitPriming(d: string): boolean {
+  // „bez gruntowania” = painting-only — not a priming TechUnit (PRIMING-01)
+  if (/\bbez\s+gruntowan/.test(d)) return false;
   return /\bgruntowan/.test(d);
 }
 

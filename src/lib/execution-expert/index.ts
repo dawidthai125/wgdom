@@ -39,6 +39,10 @@ export {
   type PaintCoats,
 } from "./paint-coats";
 export {
+  resolvePrimingEconomyV1Eligibility,
+  type PrimingEconomyV1Eligibility,
+} from "./priming-eligibility";
+export {
   aggregateLineStatus,
   decomposeOfferBoqLine,
   techUnitFamilyToCostItemFamily,

@@ -30,13 +30,28 @@ function lineText(line: OfferBoqLineLike): string {
 }
 
 /**
+ * Strip priming coat clauses so „dwukrotne malowanie … z jednokrotnym gruntowaniem”
+ * does not cancel paint coats (PRIMING-01 compound TechUnits).
+ */
+function textWithoutPrimingCoatClauses(text: string): string {
+  return text
+    .replace(/z\s+jednokrotnym\s+gruntowan[a-z]*/g, " ")
+    .replace(/z\s+dwukrotnym\s+gruntowan[a-z]*/g, " ")
+    .replace(/wraz\s+z\s+(jednokrotnym\s+|dwukrotnym\s+)?gruntowan[a-z]*/g, " ")
+    .replace(/jednokrotnym\s+gruntowan[a-z]*/g, " ")
+    .replace(/dwukrotnym\s+gruntowan[a-z]*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Resolve paint coats from BOQ wording only.
  * 2: dwukrotne / 2-krotne / 2x / 2 x
  * 1: jednokrotne / 1-krotne / 1x / 1 x
  * else: null (UNBOUND)
  */
 export function resolvePaintCoats(line: OfferBoqLineLike): PaintCoats | null {
-  const text = lineText(line);
+  const text = textWithoutPrimingCoatClauses(lineText(line));
   if (!text) return null;
 
   const has2 =

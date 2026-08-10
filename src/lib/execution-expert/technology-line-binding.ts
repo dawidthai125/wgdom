@@ -2,6 +2,7 @@
  * TECHNOLOGY-LINE-BINDING-01 + TECHNOLOGY-DECOMPOSITION-01
  * BOQ → Decomposition → TechUnit[] → Family → Pack → Recipe → partial BOM → merge
  * 01B: painting coats → economy white pack.
+ * PRIMING-01: priming eligibility → economy interior primer pack.
  * Provenance P-meta: sourceLineIds[] / techUnitIds[] on BOM lines.
  */
 
@@ -11,6 +12,7 @@ import {
   FIXTURE_ETICS_PACK_ID,
   FIXTURE_KOSTKA_PACK_ID,
   FIXTURE_PAINTING_ECONOMY_PACK_ID,
+  FIXTURE_PRIMING_ECONOMY_PACK_ID,
   getPack,
   listAllPacks,
   projectProductionBom,
@@ -31,6 +33,7 @@ import {
   type OfferBoqLineLike,
 } from "./offer-boq-adapter";
 import type { PaintCoats } from "./paint-coats";
+import { resolvePrimingEconomyV1Eligibility } from "./priming-eligibility";
 import {
   aggregateLineStatus,
   decomposeOfferBoqLine,
@@ -96,6 +99,7 @@ function familyToPackId(family: CostItemFamily): string | null {
   if (family === "etics_envelope") return FIXTURE_ETICS_PACK_ID;
   if (family === "paving_cubes") return FIXTURE_KOSTKA_PACK_ID;
   if (family === "painting") return FIXTURE_PAINTING_ECONOMY_PACK_ID;
+  if (family === "priming") return FIXTURE_PRIMING_ECONOMY_PACK_ID;
   return null;
 }
 
@@ -138,6 +142,7 @@ function bindTechUnit(
   tenderId: string,
   unit: TechUnit,
   lineAggregateStatus: LineAggregateStatus,
+  sourceLine: OfferBoqLineLike,
 ): { binding: TechnologyLineBinding; unit: TechUnit } {
   const costItemFamily = techUnitFamilyToCostItemFamily(unit.family);
   const quantity = unit.quantityInput.quantity;
@@ -194,6 +199,28 @@ function bindTechUnit(
     };
   }
 
+  // PRIMING-01 — economy latex primer only (no “every gruntowanie → mat.grunt”)
+  if (costItemFamily === "priming" || unit.family === "priming") {
+    if (resolvePrimingEconomyV1Eligibility(sourceLine) !== "eligible") {
+      const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          costItemFamily: "priming",
+          techUnitStatus: "UNBOUND",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "priming — poza ECONOMY_INTERIOR_PRIMER_V1 (UNBOUND)",
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+  }
+
   let coats: PaintCoats | undefined = unit.parameters?.coats;
   if (costItemFamily === "painting") {
     if (coats !== 1 && coats !== 2) {
@@ -213,6 +240,10 @@ function bindTechUnit(
         },
       };
     }
+  }
+
+  if (costItemFamily === "priming" || unit.family === "priming") {
+    coats = 1;
   }
 
   const pack = latestActivePack(packIdWanted);
@@ -440,6 +471,7 @@ export function analyzeTechnologyLineBindings(
         tenderId,
         unit,
         decomp.lineStatus,
+        line,
       );
       resolvedUnits.push(resolved);
       lineBindings.push(binding);
