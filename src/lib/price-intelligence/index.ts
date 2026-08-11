@@ -150,6 +150,41 @@ export {
   unitsCompatible,
 } from "./market-material-research-provider";
 
+/* —— MARKET-MATERIAL-RESEARCH-02: provider factory + guards —— */
+export {
+  MMR_02_CIRCUIT_FAILURES,
+  MMR_02_CIRCUIT_WINDOW_MS,
+  MMR_02_DISCONNECTED_PROVIDER_ID,
+  MMR_02_MAX_RETRY,
+  MMR_02_PACKAGE_UNITS,
+  MMR_02_PRIMARY_SOURCE_STATUS,
+  MMR_02_RATE_LIMIT_PER_MIN,
+  MMR_02_TIMEOUT_MS,
+  type Mmr02PrimarySourceStatus,
+} from "./market-material-research-02-config";
+
+export {
+  createProviderLoadGuardState,
+  isCircuitOpen,
+  recordProviderFailure,
+  recordProviderSuccess,
+  wouldExceedRateLimit,
+  wrapProviderWithLoadGuards,
+  type ProviderLoadGuardState,
+} from "./market-material-research-02-guards";
+
+export {
+  createMmr02DisconnectedProvider,
+  createMmr02ShopStubs,
+  isMmr02LiveHttpEligible,
+  resolveMmr02Phase2Provider,
+  validateResearchCandidate,
+  type Mmr02DisconnectReason,
+  type ResearchCandidateValidationDraft,
+  type ResolveMmr02Phase2ProviderOpts,
+  type ResolveMmr02Phase2ProviderResult,
+} from "./market-material-research-02-provider";
+
 export {
   MMR_DEFAULT_COOLDOWN_MS,
   MMR_DEFAULT_LEASE_MS,

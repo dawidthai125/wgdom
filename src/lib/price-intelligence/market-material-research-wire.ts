@@ -41,11 +41,12 @@ import {
   MMR_MAX_ACTIVE_CLAIMS_PER_PASS,
   orchestrateMaterialResearch,
 } from "./market-material-research-orchestrate";
-import { createMockManualResearchProvider } from "./market-material-research-provider";
+import { resolveMmr02Phase2Provider } from "./market-material-research-02-provider";
 import type {
   MaterialCacheUsability,
   MaterialResearchCooldownMap,
   MaterialResearchLeasePort,
+  MaterialResearchProvider,
   NeededMaterialLine,
 } from "./market-material-research-types";
 import type { PriceCandidate } from "./price-candidate-types";
@@ -421,7 +422,11 @@ export interface Phase2ExecuteResult {
 }
 
 /**
- * PHASE 2 — Owner CTA only. Claim Stage A + mock provider → CANDIDATE (never auto-accept).
+ * PHASE 2 — Owner CTA only. Claim Stage A + provider → CANDIDATE (never auto-accept).
+ *
+ * MARKET-MATERIAL-RESEARCH-02: default provider = Legal/D1-gated factory
+ * (DISCONNECTED while Legal OPEN or D1 UNKNOWN — ZERO live HTTP).
+ * Harness may pass `provider` or `mockPriceNet` / `useMockForTests`.
  */
 export async function executeMaterialResearchPhase2(opts: {
   demand: PriceDemandRecord;
@@ -430,7 +435,12 @@ export async function executeMaterialResearchPhase2(opts: {
   worksById?: ReadonlyMap<string, CatalogWork>;
   cooldown?: MaterialResearchCooldownMap;
   nowMs?: number;
+  /** Harness-only mock price — selects mock provider (not production default). */
   mockPriceNet?: number;
+  /** Harness-only — force mock provider without inventing production PLN. */
+  useMockForTests?: boolean;
+  /** Explicit provider override (tests / future inject). */
+  provider?: MaterialResearchProvider;
   leaseMs?: number;
 }): Promise<Phase2ExecuteResult> {
   const nowMs = opts.nowMs ?? Date.now();
@@ -475,6 +485,14 @@ export async function executeMaterialResearchPhase2(opts: {
     tenderId: opts.demand.tenderIds[0] ?? null,
   };
 
+  const resolved =
+    opts.provider ??
+    resolveMmr02Phase2Provider({
+      nowMs,
+      useMockForTests: opts.useMockForTests,
+      mockPriceNet: opts.mockPriceNet,
+    }).provider;
+
   const orch = await orchestrateMaterialResearch({
     lines: [line],
     worksById,
@@ -484,7 +502,7 @@ export async function executeMaterialResearchPhase2(opts: {
       demands: [opts.demand],
     }),
     lease: opts.lease,
-    provider: createMockManualResearchProvider({ mockPriceNet: opts.mockPriceNet }),
+    provider: resolved,
     claimantId: opts.claimantId,
     nowMs,
     cooldown,
