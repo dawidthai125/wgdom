@@ -1,6 +1,6 @@
 # PRICE-MEMORY-CATALOG-02 — IMPLEMENTATION CLOSEOUT
 
-> **STATUS:** **IMPLEMENTATION COMPLETE** · awaiting Production Verify after push  
+> **STATUS:** **IMPLEMENTATION COMPLETE** · feature tip **`9a2c3563`** · Production Verify after `version.json`  
 > **DATA:** 2026-08-11  
 > **UI:** **2.66.29**  
 > **PRIOR:** PRICE-MEMORY-CATALOG-01 CLOSED · AUDIT/PLAN CATALOG-02  
@@ -105,7 +105,7 @@ CatalogWork z marketQuotes
 
 | Krok | Wartość |
 |------|---------|
-| Commit | `fix(price-memory): separate material catalog from labor` |
+| Commit | **`9a2c3563`** — `fix(price-memory): separate material catalog from labor` |
 | Push | `origin/main` |
 | UI | **2.66.29** |
 | Production | po `version.json` — VERIFY / PROPAGATING |
