@@ -21,7 +21,8 @@ export interface PriceCandidate {
   ean?: string;
   providerSku?: string;
   retrievedAt: string;
-  provenance: "manual_owner";
+  /** manual_owner = Owner-entered · mock_test = Stage B TEST/MOCK (never prod seed). */
+  provenance: "manual_owner" | "mock_test";
   notes?: string;
   materialKey: string;
   catalogWorkId: string;

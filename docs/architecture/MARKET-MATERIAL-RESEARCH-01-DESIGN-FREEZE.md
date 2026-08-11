@@ -2,15 +2,18 @@
 
 > **Epic:** Demand-driven market price research → WGDOM Price Memory (load-minimized)  
 > **ID:** `MARKET-MATERIAL-RESEARCH-01`  
-> **Status:** **DESIGN FREEZE COMPLETE** · **Hard SF lease (STAGE A) = CODE IMPLEMENTED** · **COMMIT / PUSH / PRODUCTION = WAITING OWNER GO** · Slice 1 orchestration = **NOT STARTED**  
+> **Status:** **DESIGN FREEZE COMPLETE** · **Hard SF Stage A = PRODUCTION VERIFIED GREEN** (`a3c7da0f`) · **Stage B orchestration = CODE IMPLEMENTED (awaiting Owner GO COMMIT)**  
 > **Date:** 2026-08-11  
-> **Baseline tip:** **`acd87695`** · UI tip SSOT = [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
+> **Baseline tip:** **`a3c7da0f`** (Hard SF) · UI tip SSOT = [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
 > **PRICE-PATH-01:** **GREEN** · PRICE DATA = **PRICE_GAP** where no Owner-approved data  
 > **SOURCE AUDIT:** [`MARKET-MATERIAL-RESEARCH-01-SOURCE-AUDIT.md`](./MARKET-MATERIAL-RESEARCH-01-SOURCE-AUDIT.md) · **COMPLETE**  
 > **Owner GO DESIGN FREEZE:** **YES** — 2026-08-11  
 > **Owner GO AMEND (Hard SF Edge allowlist):** **YES** — 2026-08-11  
+> **Owner GO Stage A COMMIT/PUSH/PV:** **YES** — GREEN  
+> **Owner GO Stage B IMPLEMENT:** **YES** — 2026-08-11  
 > **Hard SF files:** `research-job-lease.ts` · routes in `index.tsx` · `scripts/test-market-material-research-01-hard-sf.mjs`  
-> **Next gate:** **OWNER GO COMMIT** (Hard SF) → potem **OWNER GO** Slice 1 orchestration (oraz **Legal PASS** przed live HTTP)
+> **Stage B files:** `market-material-research-*.ts` · `scripts/test-market-material-research-01.mjs`  
+> **Next gate:** **OWNER GO COMMIT** (Stage B) · Legal PASS przed live HTTP
 
 ```text
 OWNER LOCKED PRODUCT PRINCIPLE

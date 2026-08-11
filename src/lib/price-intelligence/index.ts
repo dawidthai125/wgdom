@@ -109,6 +109,56 @@ export {
   type AcceptManualMarketPriceResearchResult,
 } from "./manual-price-research";
 
+/* —— MARKET-MATERIAL-RESEARCH-01 Stage B: orchestration —— */
+export type {
+  AcceptResearchCandidateResult,
+  DedupedMaterialNeed,
+  MaterialCacheDecision,
+  MaterialCacheUsability,
+  MaterialResearchAction,
+  MaterialResearchCooldownMap,
+  MaterialResearchJobPhase,
+  MaterialResearchJobView,
+  MaterialResearchLeasePort,
+  MaterialResearchLineResult,
+  MaterialResearchOrchestrationResult,
+  MaterialResearchProvider,
+  MaterialResearchProviderInput,
+  MaterialResearchProviderResult,
+  NeededMaterialLine,
+} from "./market-material-research-types";
+
+export {
+  MMR_DEFAULT_SOURCE_SCOPE,
+  buildMaterialResearchJobId,
+  dedupeNeededMaterialKeys,
+} from "./market-material-research-identity";
+
+export {
+  classifyPriceMemoryUsability,
+  evaluateMaterialCache,
+  isCooldownActive,
+  setCooldown,
+} from "./market-material-research-cache";
+
+export {
+  MMR_MOCK_MARKER,
+  MMR_MOCK_PROVIDER_ID,
+  createDisconnectedLiveProviderStub,
+  createMockManualResearchProvider,
+  normalizeResearchUnit,
+  unitsCompatible,
+} from "./market-material-research-provider";
+
+export {
+  MMR_DEFAULT_COOLDOWN_MS,
+  MMR_DEFAULT_LEASE_MS,
+  MMR_MAX_ACTIVE_CLAIMS_PER_PASS,
+  acceptMaterialResearchCandidate,
+  orchestrateMaterialResearch,
+  type OrchestrateMaterialResearchOpts,
+} from "./market-material-research-orchestrate";
+
 export {
   isDemandResearchableS0,
   listActiveMarketLayerDemands,
