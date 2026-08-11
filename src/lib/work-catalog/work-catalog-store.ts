@@ -17,6 +17,8 @@ import { defaultWorkCatalogStore } from "@/lib/work-catalog/work-catalog-migrate
 import {
   WORK_CATALOG_SCHEMA_VERSION,
   type CatalogWork,
+  type CommercialPricing,
+  type CommercialPricingSource,
   type MarketQuoteHistoryEntry,
   type WorkCatalogRegionSlice,
   type WorkCatalogSource,
@@ -143,6 +145,27 @@ function deriveMarketQuotes(
   return undefined;
 }
 
+const VALID_COMMERCIAL_SOURCES: CommercialPricingSource[] = ["default", "owner"];
+
+/** C1 — preserve commercialPricing through load/save/normalize/sync. */
+export function normalizeCommercialPricing(raw: unknown): CommercialPricing | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const cp = raw as Partial<CommercialPricing>;
+  const marginPct = Number(cp.marginPct);
+  if (!Number.isFinite(marginPct)) return undefined;
+  const updatedAt =
+    typeof cp.updatedAt === "string" && cp.updatedAt.trim() ? cp.updatedAt.trim() : "";
+  if (!updatedAt) return undefined;
+  const source = VALID_COMMERCIAL_SOURCES.includes(cp.source as CommercialPricingSource)
+    ? (cp.source as CommercialPricingSource)
+    : "owner";
+  return {
+    marginPct: Math.max(0, Math.min(1000, marginPct)),
+    updatedAt,
+    source,
+  };
+}
+
 function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogWork | null {
   if (!raw || typeof raw !== "object") return null;
   const work = raw as Partial<CatalogWork>;
@@ -158,6 +181,9 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
   const marketAvgPln = Number.isFinite(Number(work.marketAvgPln))
     ? Number(work.marketAvgPln)
     : undefined;
+  const commercialPricing = normalizeCommercialPricing(
+    (work as { commercialPricing?: unknown }).commercialPricing,
+  );
 
   return {
     id: work.id.trim(),
@@ -176,6 +202,7 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
       (work as { marketQuoteHistory?: unknown }).marketQuoteHistory,
       work.id.trim(),
     ),
+    ...(commercialPricing ? { commercialPricing } : {}),
     updatedAt: workUpdatedAt,
     freshnessStatus: isValidFreshness(work.freshnessStatus) ? work.freshnessStatus : "missing",
     descriptionPl:

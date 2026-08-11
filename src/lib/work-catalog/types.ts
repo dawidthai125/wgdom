@@ -31,6 +31,18 @@ export interface WorkCostSplit {
 }
 
 /**
+ * PRICE-MEMORY-CATALOG-01 — handlowa marża WGDOM nad Price Memory (additive).
+ * Brak pola = UNSET (nie inventuj default z Bid minMarginPct).
+ */
+export type CommercialPricingSource = "default" | "owner";
+
+export interface CommercialPricing {
+  marginPct: number;
+  updatedAt: string;
+  source: CommercialPricingSource;
+}
+
+/**
  * DEMAND-RESEARCH-01 S1-A — append-only ring (LAST pozostaje w marketQuotes).
  * Cap 24 per workId|origin|region — egzekwowany w price-memory helpers.
  */
@@ -63,6 +75,11 @@ export interface CatalogWork {
   marketQuotes?: WorkMarketQuotes;
   /** S1-A — historia zaakceptowanych Quotes (opcjonalna, bez backfill). */
   marketQuoteHistory?: MarketQuoteHistoryEntry[];
+  /**
+   * PRICE-MEMORY-CATALOG-01 — marża handlowa (additive).
+   * NIE mylić z companyPricePln ani TenderCompanyCostModel.minMarginPct.
+   */
+  commercialPricing?: CommercialPricing;
   updatedAt: string;
   freshnessStatus: WorkFreshnessStatus;
   descriptionPl?: string;

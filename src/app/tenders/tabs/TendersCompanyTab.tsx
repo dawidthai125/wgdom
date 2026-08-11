@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Library, Settings2, Tags } from "lucide-react";
+import { Building2, Library, Settings2, Tag, Tags } from "lucide-react";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderPriceBasePanel } from "@/app/TenderPriceBasePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { WorkCatalogView } from "@/app/work-catalog/WorkCatalogView";
+import { OurPriceCatalogPanel } from "@/app/price-catalog/OurPriceCatalogPanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   TENDERS_COMPANY_SECTION_LABELS,
@@ -27,6 +28,7 @@ import {
 const SECTION_ORDER: TendersCompanySectionId[] = [
   "profile",
   "workcatalog",
+  "pricecatalog",
   "pricebase",
   "settings",
 ];
@@ -45,25 +47,42 @@ export function TendersCompanyTab({
   const modes = Object.keys(GROWTH_MODE_LABELS) as GrowthMode[];
 
   const visibleSections = useMemo(
-    () => SECTION_ORDER.filter((id) => id !== "workcatalog" || canViewWorkCatalog),
+    () =>
+      SECTION_ORDER.filter(
+        (id) =>
+          (id !== "workcatalog" && id !== "pricecatalog") || canViewWorkCatalog,
+      ),
     [canViewWorkCatalog],
   );
 
   const [section, setSectionState] = useState<TendersCompanySectionId>(() => {
     const loaded = loadTendersCompanySection();
-    if (loaded === "workcatalog" && !canViewWorkCatalog) return "profile";
+    if (
+      (loaded === "workcatalog" || loaded === "pricecatalog") &&
+      !canViewWorkCatalog
+    ) {
+      return "profile";
+    }
     return loaded;
   });
 
   useEffect(() => {
-    if (section === "workcatalog" && !canViewWorkCatalog) {
+    if (
+      (section === "workcatalog" || section === "pricecatalog") &&
+      !canViewWorkCatalog
+    ) {
       setSectionState("profile");
       saveTendersCompanySection("profile");
     }
   }, [section, canViewWorkCatalog]);
 
   const setSection = (next: TendersCompanySectionId) => {
-    if (next === "workcatalog" && !canViewWorkCatalog) return;
+    if (
+      (next === "workcatalog" || next === "pricecatalog") &&
+      !canViewWorkCatalog
+    ) {
+      return;
+    }
     setSectionState(next);
     saveTendersCompanySection(next);
   };
@@ -78,25 +97,15 @@ export function TendersCompanyTab({
           <Building2 size={16} className="text-primary" />
           <h2 className="text-sm font-semibold">{TENDERS_MODULE_LABELS.tabs.company}</h2>
         </div>
-        <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
-          Konfiguracja firmy i wyceny — poza codzienną kolejką przetargów.
-        </p>
-        <div
-          className="flex flex-wrap gap-1.5"
-          role="tablist"
-          aria-label="Sekcje Firmy"
-        >
+        <div className="flex flex-wrap gap-1.5">
           {visibleSections.map((id) => {
             const selected = section === id;
             return (
               <button
                 key={id}
                 type="button"
-                role="tab"
-                aria-selected={selected}
-                data-tenders-company-section={id}
                 onClick={() => setSection(id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-lg border text-xs font-medium ${TEUX_TRANSITION_FAST} ${
+                className={`${TEUX_FONT_CAPTION} ${TEUX_TRANSITION_FAST} inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border min-h-[40px] ${
                   selected
                     ? "border-primary/40 bg-primary/10 text-primary"
                     : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
@@ -104,6 +113,7 @@ export function TendersCompanyTab({
               >
                 {id === "profile" && <Building2 size={13} aria-hidden />}
                 {id === "workcatalog" && <Library size={13} aria-hidden />}
+                {id === "pricecatalog" && <Tag size={13} aria-hidden />}
                 {id === "pricebase" && <Tags size={13} aria-hidden />}
                 {id === "settings" && <Settings2 size={13} aria-hidden />}
                 {TENDERS_COMPANY_SECTION_LABELS[id]}
@@ -130,6 +140,12 @@ export function TendersCompanyTab({
         {section === "workcatalog" && canViewWorkCatalog && (
           <div className="min-h-0">
             <WorkCatalogView layout="embedded" />
+          </div>
+        )}
+
+        {section === "pricecatalog" && canViewWorkCatalog && (
+          <div className="min-h-0">
+            <OurPriceCatalogPanel />
           </div>
         )}
 

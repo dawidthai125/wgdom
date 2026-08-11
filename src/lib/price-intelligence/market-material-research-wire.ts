@@ -442,12 +442,17 @@ export async function executeMaterialResearchPhase2(opts: {
   /** Explicit provider override (tests / future inject). */
   provider?: MaterialResearchProvider;
   leaseMs?: number;
+  /**
+   * PRICE-MEMORY-CATALOG-01 C4 — Owner force refresh even when CURRENT.
+   * Does NOT auto-Accept (C5).
+   */
+  forceRefresh?: boolean;
 }): Promise<Phase2ExecuteResult> {
   const nowMs = opts.nowMs ?? Date.now();
   const cooldown = opts.cooldown ?? sessionCooldown;
   const worksById = opts.worksById ?? loadCatalogWorksById();
 
-  // Cache gate first — never research CURRENT
+  // Cache gate first — never research CURRENT (unless Owner forceRefresh)
   const cache = evaluateMaterialCache({
     materialKey: opts.demand.materialKey,
     catalogWorkId: opts.demand.catalogWorkId,
@@ -455,7 +460,7 @@ export async function executeMaterialResearchPhase2(opts: {
     worksById,
     nowMs,
   });
-  if (cache.usability === "CURRENT") {
+  if (cache.usability === "CURRENT" && !opts.forceRefresh) {
     return {
       ok: false,
       acquired: false,
@@ -510,6 +515,7 @@ export async function executeMaterialResearchPhase2(opts: {
     leaseMs: opts.leaseMs ?? MMR_DEFAULT_LEASE_MS,
     executeResearch: true,
     maxActiveClaims: MMR_MAX_ACTIVE_CLAIMS_PER_PASS,
+    forceRefresh: opts.forceRefresh === true,
   });
 
   // Persist cooldown mutations into session map

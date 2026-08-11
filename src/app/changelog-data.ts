@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.28",
+    label: "Nasz katalog cen — warstwa handlowa Price Memory",
+    items: [
+      {
+        type: "new",
+        text: "PRICE-MEMORY-CATALOG-01: Firma → Nasz katalog cen — lista Price Memory, marża commercialPricing, globalna min (MAX), cena z marżą derived, force refresh ONE materialKey (także CURRENT) → Accept → commit. Bez drugiej bazy cen / full catalogue / wire Bid.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.27",
     label: "Real Source — selective live DIY adapters",
     items: [

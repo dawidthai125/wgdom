@@ -66,6 +66,12 @@ export interface OrchestrateMaterialResearchOpts {
   /** When true, claim lease + run provider for DEMAND keys. Default true. */
   executeResearch?: boolean;
   maxActiveClaims?: number;
+  /**
+   * PRICE-MEMORY-CATALOG-01 C4 — Owner force refresh.
+   * When true, CURRENT keys still enter research (bypass REUSE gate).
+   * Default false — preserves PRICE MEMORY FIRST for all other callers.
+   */
+  forceRefresh?: boolean;
 }
 
 function emptyCooldown(): MaterialResearchCooldownMap {
@@ -106,7 +112,7 @@ export async function orchestrateMaterialResearch(
       nowMs,
     });
 
-    if (cache.usability === "CURRENT") {
+    if (cache.usability === "CURRENT" && !opts.forceRefresh) {
       reusedCurrent += 1;
       decisions.push({
         materialKey: need.materialKey,
@@ -122,6 +128,7 @@ export async function orchestrateMaterialResearch(
     }
 
     // STALE | MISSING → demand (market layer)
+    // C4 forceRefresh: CURRENT also enters demand + research
     const upsert = upsertPriceDemandCandidates(demandStore, [
       {
         materialKey: need.materialKey,
@@ -133,9 +140,11 @@ export async function orchestrateMaterialResearch(
         tenderId: need.tenderIds[0] ?? null,
         requestedAt: nowIso,
         reason:
-          cache.usability === "STALE"
-            ? "MARKET PRICE STALE — refresh demand"
-            : "MARKET PRICE MISSING",
+          opts.forceRefresh && cache.usability === "CURRENT"
+            ? "OWNER FORCE REFRESH — CURRENT bypass"
+            : cache.usability === "STALE"
+              ? "MARKET PRICE STALE — refresh demand"
+              : "MARKET PRICE MISSING",
       },
     ]);
     demandStore = upsert.store;

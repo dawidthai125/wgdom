@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.28 — Nasz katalog cen — warstwa handlowa Price Memory (2026-08-11)
+
+- **new:** PRICE-MEMORY-CATALOG-01 — Firma → Nasz katalog cen · `commercialPricing` · global MAX margin · sell derived · force refresh ONE key (także CURRENT) → Accept → commit · bez drugiej bazy / full catalogue / Bid wire
+
 ## 2.66.27 — Real Source — selective live DIY adapters (2026-08-11)
 
 - **new:** LIVE-ADAPTERS-08 — thin Leroy/Castorama/OBI · MISSING/STALE only · direct+regular · average · Edge `mmr-diy-selective-lookup` · CURRENT→REUSE 0 HTTP · no catalogue harvest

@@ -20,6 +20,10 @@ import { patchWorkActiveInStore } from "@/app/work-catalog/work-catalog-active";
 import { patchWorkFavoriteInStore } from "@/app/work-catalog/work-catalog-favorite";
 import { patchBulkCompanyPricesInStore } from "@/app/work-catalog/work-catalog-bulk-price";
 import { patchWorkCompanyPriceInStore } from "@/app/work-catalog/work-catalog-price";
+import {
+  applyGlobalCommercialMarginFloorToStore,
+  patchWorkCommercialPricing,
+} from "@/lib/price-intelligence/our-price-catalog";
 
 export type UseWorkCatalogResult = {
   store: WorkCatalogStore;
@@ -35,6 +39,14 @@ export type UseWorkCatalogResult = {
   toggleWorkFavorite: (workId: string, favorite: boolean) => Promise<UpdateWorkFavoriteResult>;
   updateBulkCompanyPrices: (
     priceByWorkId: Record<string, number>,
+  ) => Promise<UpdateBulkCompanyPricesResult>;
+  updateCommercialMargin: (
+    workId: string,
+    marginPct: number,
+  ) => Promise<UpdateCompanyPriceResult>;
+  applyGlobalCommercialMarginFloor: (
+    workIds: readonly string[],
+    globalMarginPct: number,
   ) => Promise<UpdateBulkCompanyPricesResult>;
 };
 
@@ -215,6 +227,70 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     [store, notifyPricingCatalogChanged],
   );
 
+  const updateCommercialMargin = useCallback(
+    async (workId: string, marginPct: number): Promise<UpdateCompanyPriceResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const next = patchWorkCommercialPricing(store, workId, marginPct, updatedAtIso, "owner");
+      if (!next) {
+        return { ok: false, message: "Nie znaleziono pozycji w aktywnym regionie" };
+      }
+      setStore(next);
+      try {
+        const result = await saveWorkCatalogRouted(next, { updatedAtIso, previousStore: store });
+        if (!result.ok || !result.saved) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+        notifyPricingCatalogChanged();
+        return { ok: true };
+      } catch {
+        return {
+          ok: false,
+          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+        };
+      }
+    },
+    [store, notifyPricingCatalogChanged],
+  );
+
+  const applyGlobalCommercialMarginFloorFn = useCallback(
+    async (
+      workIds: readonly string[],
+      globalMarginPct: number,
+    ): Promise<UpdateBulkCompanyPricesResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const next = applyGlobalCommercialMarginFloorToStore(
+        store,
+        workIds,
+        globalMarginPct,
+        updatedAtIso,
+      );
+      if (next === store) {
+        return { ok: true, updatedIds: [] };
+      }
+      setStore(next);
+      try {
+        const saveResult = await saveWorkCatalogRouted(next, { updatedAtIso, previousStore: store });
+        if (!saveResult.ok || !saveResult.saved) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+        notifyPricingCatalogChanged();
+        return { ok: true, updatedIds: [...workIds] };
+      } catch {
+        return {
+          ok: false,
+          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+        };
+      }
+    },
+    [store, notifyPricingCatalogChanged],
+  );
+
   return {
     store,
     works,
@@ -227,5 +303,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     updateWorkActive,
     toggleWorkFavorite,
     updateBulkCompanyPrices,
+    updateCommercialMargin,
+    applyGlobalCommercialMarginFloor: applyGlobalCommercialMarginFloorFn,
   };
 }
