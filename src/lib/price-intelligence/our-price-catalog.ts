@@ -1,9 +1,15 @@
 /**
- * PRICE-MEMORY-CATALOG-01 — handlowa warstwa nad Price Memory (pure helpers).
+ * PRICE-MEMORY-CATALOG-01/02 — handlowa warstwa nad Price Memory (pure helpers).
  * ZERO live HTTP · ZERO second price DB · base = lookupPriceMemory.
+ * CATALOG-02: MATERIAL ONLY — identity first · no blind CatalogWork catch-all.
  */
 
-import { DEFAULT_MATERIAL_MARKET_MAP, resolveDemandProductIdentityExact } from "@/lib/pricing-expert/material-market-map";
+import {
+  DEFAULT_MATERIAL_MARKET_MAP,
+  isLaborCatalogWorkBlockedForProductQuotes,
+  isProductCatalogWorkId,
+  resolveDemandProductIdentityExact,
+} from "@/lib/pricing-expert/material-market-map";
 import { roundMarketPricePln } from "@/lib/work-catalog/market-sources";
 import type {
   CatalogWork,
@@ -17,7 +23,7 @@ import {
   invoicePurchaseMaterialKeyFromWorkId,
   isInvoicePurchaseCatalogWorkId,
 } from "./invoice-purchase-host";
-import { lookupPriceMemory, type PriceMemoryHit } from "./price-memory";
+import type { PriceMemoryHit } from "./price-memory";
 
 export const OUR_PRICE_CATALOG_PAGE_SIZE = 100;
 
@@ -190,19 +196,54 @@ export function computeSourceCoverage(work: CatalogWork | null | undefined): Our
   };
 }
 
+/**
+ * MATERIAL catalog host gate (CATALOG-02).
+ * Reuses product / invoice / wc.market prefixes + identity-backed host.
+ * NEVER classifies by companyPricePln or unit alone.
+ */
+export function isOurPriceCatalogMaterialHost(
+  workId: string,
+  identityCatalogWorkId?: string | null,
+): boolean {
+  const id = String(workId || "").trim();
+  if (!id) return false;
+  if (isLaborCatalogWorkBlockedForProductQuotes(id)) return false;
+  if (isProductCatalogWorkId(id)) return true;
+  if (isInvoicePurchaseCatalogWorkId(id)) return true;
+  if (id.startsWith("wc.market.")) return true;
+  // Identity-backed host (map prefer / seed ETICS material host e.g. cw.etics.substrate).
+  if (identityCatalogWorkId && id === identityCatalogWorkId) return true;
+  return false;
+}
+
+/**
+ * Candidate materialKeys only — never every CatalogWork id.
+ * Sources: DEFAULT_MATERIAL_MARKET_MAP · mat.inv.* from invoice hosts · mat.* keywords · identity from eligible hosts.
+ */
 function collectCandidateMaterialKeys(store: WorkCatalogStore): string[] {
   const keys = new Set<string>();
   for (const entry of DEFAULT_MATERIAL_MARKET_MAP) {
-    if (entry.materialKey) keys.add(entry.materialKey);
+    if (entry.materialKey?.startsWith("mat.")) keys.add(entry.materialKey);
   }
   const slice = getRegionSlice(store);
   for (const work of slice?.works ?? []) {
+    if (isLaborCatalogWorkBlockedForProductQuotes(work.id)) continue;
     const inv = invoicePurchaseMaterialKeyFromWorkId(work.id);
-    if (inv) keys.add(inv);
+    if (inv) {
+      keys.add(inv);
+      continue;
+    }
     const fromKw = (work.keywords ?? []).find((k) => k.startsWith("mat."));
     if (fromKw) keys.add(fromKw);
-    const idExact = resolveDemandProductIdentityExact({ catalogWorkId: work.id });
-    if (idExact) keys.add(idExact.materialKey);
+    // Only pull identity materialKey when host is already a known material host
+    // (not blind: every CatalogWork → identity).
+    if (
+      isProductCatalogWorkId(work.id) ||
+      work.id.startsWith("wc.market.")
+    ) {
+      const idExact = resolveDemandProductIdentityExact({ catalogWorkId: work.id });
+      if (idExact?.materialKey?.startsWith("mat.")) keys.add(idExact.materialKey);
+    }
   }
   return [...keys];
 }
@@ -238,6 +279,8 @@ function rowFromHit(
 
 /**
  * Build catalog rows from existing Price Memory only (ZERO HTTP).
+ * MATERIAL ONLY (CATALOG-02): materialKey → identity → reject LABOR → lookup → HIT → row.
+ * No CatalogWork → marketQuotes → blind catalogWorkId catch-all.
  * Dedup by workId — one commercial host row per Price Memory work.
  */
 export function buildOurPriceCatalogRows(opts: {
@@ -253,6 +296,12 @@ export function buildOurPriceCatalogRows(opts: {
   const byWork = new Map<string, OurPriceCatalogRow>();
 
   for (const materialKey of keys) {
+    if (!materialKey.startsWith("mat.")) continue;
+
+    const identity = resolveDemandProductIdentityExact({ materialKey });
+    if (!identity) continue;
+    if (isLaborCatalogWorkBlockedForProductQuotes(identity.catalogWorkId)) continue;
+
     const cache = evaluateMaterialCache({
       materialKey,
       worksById,
@@ -260,37 +309,26 @@ export function buildOurPriceCatalogRows(opts: {
       region: opts.store.activeRegion,
     });
     if (cache.usability === "MISSING" || !cache.hit) continue;
-    const work = worksById.get(cache.hit.workId);
+
+    const hitWorkId = cache.hit.workId;
+    if (!isOurPriceCatalogMaterialHost(hitWorkId, identity.catalogWorkId)) continue;
+    if (isLaborCatalogWorkBlockedForProductQuotes(hitWorkId)) continue;
+
+    const work = worksById.get(hitWorkId);
     if (!work) continue;
     if (byWork.has(work.id)) continue;
-    byWork.set(work.id, rowFromHit(cache.hit, work, cache.usability));
-  }
 
-  // Catch hosts with quotes not reachable via collected keys
-  for (const work of slice?.works ?? []) {
-    if (byWork.has(work.id)) continue;
-    if (!work.marketQuotes || Object.keys(work.marketQuotes).length === 0) continue;
-    const identity = resolveDemandProductIdentityExact({ catalogWorkId: work.id });
-    const materialKey =
-      identity?.materialKey ??
-      invoicePurchaseMaterialKeyFromWorkId(work.id) ??
-      work.id;
-    const lookup = lookupPriceMemory({
-      materialKey,
-      catalogWorkId: work.id,
-      worksById,
-      nowMs,
-      region: opts.store.activeRegion,
-    });
-    if (lookup.status !== "HIT") continue;
-    const cache = evaluateMaterialCache({
-      materialKey,
-      catalogWorkId: work.id,
-      worksById,
-      nowMs,
-      region: opts.store.activeRegion,
-    });
-    byWork.set(work.id, rowFromHit(lookup.hit, work, cache.usability));
+    byWork.set(
+      work.id,
+      rowFromHit(
+        {
+          ...cache.hit,
+          materialKey: identity.materialKey,
+        },
+        work,
+        cache.usability,
+      ),
+    );
   }
 
   let rows = [...byWork.values()].sort((a, b) =>

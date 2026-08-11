@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.29",
+    label: "Nasz katalog cen — tylko materiały",
+    items: [
+      {
+        type: "fix",
+        text: "PRICE-MEMORY-CATALOG-02: Firma → Nasz katalog cen pokazuje wyłącznie materiały (materialKey → identity → Price Memory). Usunięto catch-all CatalogWork→Quotes. Robocizna / montaż / pakiety robót poza katalogiem. Bez zmian Price Memory / companyPricePln / Bid.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.28",
     label: "Nasz katalog cen — warstwa handlowa Price Memory",
     items: [

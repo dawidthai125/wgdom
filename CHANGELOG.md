@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.29 — Nasz katalog cen — tylko materiały (2026-08-11)
+
+- **fix:** PRICE-MEMORY-CATALOG-02 — katalog MATERIAL ONLY · identity → Price Memory · bez catch-all CatalogWork/Quotes · labor poza katalogiem
+
 ## 2.66.28 — Nasz katalog cen — warstwa handlowa Price Memory (2026-08-11)
 
 - **new:** PRICE-MEMORY-CATALOG-01 — Firma → Nasz katalog cen · `commercialPricing` · global MAX margin · sell derived · force refresh ONE key (także CURRENT) → Accept → commit · bez drugiej bazy / full catalogue / Bid wire

@@ -442,6 +442,7 @@ export {
   computePriceChangeFromHistory,
   computeSellPricePln,
   computeSourceCoverage,
+  isOurPriceCatalogMaterialHost,
   paginateOurPriceCatalogRows,
   patchWorkCommercialPricing,
   resolveMarginPct,
