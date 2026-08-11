@@ -1,6 +1,6 @@
 # REAL-SOURCE-OWNER-LEGAL-PASS-07 — CLOSEOUT
 
-> **STATUS:** **CLOSED** · feature tip **`a703d25d`** · Deploy: **PASS** · PRODUCTION VERIFIED: patrz `version.json`  
+> **STATUS:** **CLOSED** · feature tip **`a703d25d`** · Deploy: **PASS** · **PRODUCTION VERIFIED** (`version.json` **2.66.26** / **`a703d25`**)  
 > **DATA:** 2026-08-11  
 > **WERSJA:** **2.66.26**  
 > **FEATURE COMMIT:** **`a703d25d`** · full **`a703d25d720d2c069b93d42310ec77cc1261371b`**  
@@ -80,7 +80,8 @@ Evidence: **PRIVATE OWNER EVIDENCE · NOT STORED IN REPOSITORY**
 | Tip docs push | **`a703d25d..e19397b3`** · **PASS** |
 | Tip commit | **`e19397b3`** |
 | First `version.json` curl (feature) | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** |
-| Second `version.json` curl (tip) | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** (VERIFY FAST — bez poll) |
+| Second `version.json` curl (tip) | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** (VERIFY FAST) |
+| Later curl (post-propagate) | **2.66.26** / **`a703d25`** → **PRODUCTION VERIFIED** |
 
 ---
 
