@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.32",
+    label: "Nasz Katalog Robót — fundament OUR RATE (P0)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-CATALOG-REBUILD-01 P0: model OUR RATE na kw-wgdom-work-catalog (workId+unit), normalize C1, lookup cache-first ZERO HTTP, Owner edit bez companyPricePln, historia 24, freshness 90 dni, research BLOCKED. companyPricePln = TECHNICAL LEGACY FIELD (bez seed/fallback). Bid/Offer/Price Memory UNCHANGED. UI katalogu = P1.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.31",
     label: "Nasz katalog cen — czytelne etykiety PL",
     items: [

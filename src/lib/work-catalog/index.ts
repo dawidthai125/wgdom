@@ -356,3 +356,65 @@ export {
   type CommitMarketQuotesReport,
   type CommitMarketQuotesStatus,
 } from "@/lib/work-catalog/commit-market-quotes";
+
+// ─── WORK-CATALOG-REBUILD-01 P0 — Nasz Katalog Robót (OUR RATE) ─────────────
+
+export {
+  OUR_WORK_RATE_HISTORY_CAP,
+  WORK_RATE_FRESHNESS_LABELS_PL,
+  WORK_RATE_REGION_FALLBACK_CHAIN,
+  WORK_RATE_REGION_SCOPE_LABELS_PL,
+  WORK_RATE_REGION_SCOPES,
+  buildWorkRateIdentityKey,
+  type OurWorkRate,
+  type OurWorkRateHistoryEntry,
+  type WorkRateFreshnessStatus,
+  type WorkRateHistoryKind,
+  type WorkRateIdentity,
+  type WorkRateRegionScope,
+  type WorkRateSourceType,
+} from "@/lib/work-catalog/work-rate-types";
+
+export {
+  WORK_RATE_LEGAL_GATE,
+  isWorkRateLegalPass,
+  isWorkRateResearchAllowed,
+  type WorkRateLegalGateStatus,
+} from "@/lib/work-catalog/work-rate-legal";
+
+export {
+  WORK_RATE_FRESHNESS_STALE_AFTER_DAYS,
+  deriveOurWorkRateFreshness,
+  isOurRatePresent,
+  workRateFreshnessLabelPl,
+  workRateFreshnessStaleAfterMs,
+} from "@/lib/work-catalog/work-rate-freshness";
+
+export {
+  appendOurWorkRateHistory,
+  capOurWorkRateHistory,
+  normalizeOurWorkRate,
+  normalizeOurWorkRateHistory,
+  normalizeOurWorkRateHistoryEntry,
+} from "@/lib/work-catalog/work-rate-normalize";
+
+export {
+  lookupWorkRate,
+  type LookupWorkRateHit,
+  type LookupWorkRateMiss,
+  type LookupWorkRateResult,
+} from "@/lib/work-catalog/work-rate-lookup";
+
+export {
+  patchOurWorkRateInStore,
+  type PatchOurWorkRateInput,
+  type PatchOurWorkRateResult,
+} from "@/lib/work-catalog/work-rate-patch";
+
+export {
+  isWorkRateFullCatalogueResearchImplemented,
+  isWorkRateKbPlAdapterImplemented,
+  requestWorkRateResearch,
+  type WorkRateResearchRequest,
+  type WorkRateResearchResult,
+} from "@/lib/work-catalog/work-rate-research-stub";

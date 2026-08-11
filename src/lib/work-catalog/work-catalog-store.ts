@@ -26,6 +26,7 @@ import {
   type WorkCostSplit,
   type WorkFreshnessStatus,
 } from "@/lib/work-catalog/types";
+import { normalizeOurWorkRate } from "@/lib/work-catalog/work-rate-normalize";
 
 export const WORK_CATALOG_STORAGE_KEY = "kw-wgdom-work-catalog";
 
@@ -184,9 +185,15 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
   const commercialPricing = normalizeCommercialPricing(
     (work as { commercialPricing?: unknown }).commercialPricing,
   );
+  const workId = work.id.trim();
+  const ourWorkRate = normalizeOurWorkRate(
+    (work as { ourWorkRate?: unknown }).ourWorkRate,
+    workId,
+    work.unit,
+  );
 
   return {
-    id: work.id.trim(),
+    id: workId,
     tradeId: work.tradeId,
     namePl: work.namePl.trim(),
     unit: work.unit,
@@ -200,9 +207,10 @@ function normalizeCatalogWork(raw: unknown, fallbackUpdatedAt: string): CatalogW
     marketQuotes: deriveMarketQuotes(work.marketQuotes, marketAvgPln, workUpdatedAt),
     marketQuoteHistory: normalizeMarketQuoteHistoryField(
       (work as { marketQuoteHistory?: unknown }).marketQuoteHistory,
-      work.id.trim(),
+      workId,
     ),
     ...(commercialPricing ? { commercialPricing } : {}),
+    ...(ourWorkRate ? { ourWorkRate } : {}),
     updatedAt: workUpdatedAt,
     freshnessStatus: isValidFreshness(work.freshnessStatus) ? work.freshnessStatus : "missing",
     descriptionPl:

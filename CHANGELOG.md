@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.32 — Nasz Katalog Robót — fundament OUR RATE P0 (2026-08-11)
+
+- **new:** WORK-CATALOG-REBUILD-01 P0 — OUR RATE na `kw-wgdom-work-catalog` · identity workId+unit · C1 normalize · lookup ZERO HTTP · Owner edit bez seed `companyPricePln` · research BLOCKED · Bid/Offer/PM UNCHANGED
+
 ## 2.66.31 — Nasz katalog cen — czytelne etykiety PL (2026-08-11)
 
 - **improve:** PRICE-MEMORY-CATALOG-03 UI polish — AKTUALNA / PRZETERMINOWANA / BRAK CENY · filtry i podsumowanie PL · logika bez zmian

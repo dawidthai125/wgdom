@@ -11,6 +11,7 @@ import type {
 import type { TradeId } from "@/lib/work-catalog/trades";
 import type { MarketCoverage, MarketQuoteOriginId, WorkMarketQuotes } from "@/lib/work-catalog/market-sources";
 import type { MarketRegionCode } from "@/lib/work-catalog/market-regions";
+import type { OurWorkRate } from "@/lib/work-catalog/work-rate-types";
 
 export const WORK_CATALOG_SCHEMA_VERSION = 4 as const;
 export const WORK_BUNDLE_SCHEMA_VERSION = 3 as const;
@@ -80,6 +81,13 @@ export interface CatalogWork {
    * NIE mylić z companyPricePln ani TenderCompanyCostModel.minMarginPct.
    */
   commercialPricing?: CommercialPricing;
+  /**
+   * WORK-CATALOG-REBUILD-01 — Nasz Katalog Robót (OUR RATE).
+   * Additive SSOT stawki robocizny (workId + unit).
+   * companyPricePln = TECHNICAL LEGACY FIELD — NIE źródło / fallback / seed OUR RATE.
+   * Brak pola ⇒ BRAK STAWKI (C-EMPTY).
+   */
+  ourWorkRate?: OurWorkRate;
   updatedAt: string;
   freshnessStatus: WorkFreshnessStatus;
   descriptionPl?: string;
