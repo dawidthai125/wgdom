@@ -1,8 +1,8 @@
 /**
  * MARKET-MATERIAL-RESEARCH-02 — provider factory harness (P1–P19 + regressions).
  *
- * Production path = DISCONNECTED (ADAPTER_NOT_IMPLEMENTED after Legal PASS + D1 VERIFIED)
- * · ZERO live HTTP · ZERO invent PLN.
+ * Production path = DIY selective (OK_DIY_SELECTIVE) after Legal PASS + D1 VERIFIED
+ * · harness uses diyLookup=null to keep ZERO live HTTP · ZERO invent PLN.
  *
  * npx vite-node scripts/test-market-material-research-02.mjs
  */
@@ -18,6 +18,7 @@ import {
   MMR_02_RATE_LIMIT_PER_MIN,
   MMR_02_TIMEOUT_MS,
   acceptMaterialResearchCandidate,
+  createNullDiySelectiveLookup,
   createProviderLoadGuardState,
   dedupeNeededMaterialKeys,
   evaluateMaterialCache,
@@ -244,17 +245,18 @@ eq("C4 circuit failures", MMR_02_CIRCUIT_FAILURES, 3);
   if (!out.ok) eq("P2 error", out.error, "D1_PRIMARY_SOURCE_UNKNOWN");
 }
 
-// ─── P3 Legal PASS + D1 VERIFIED → still no adapter / zero HTTP ──────────────
+// ─── P3 Legal PASS + D1 VERIFIED → DIY selective (null lookup · zero HTTP) ───
 {
   const before = fetchCalls;
-  const r = resolveMmr02Phase2Provider();
-  eq("P3 reason NO_ADAPTER", r.reason, "OK_DISCONNECTED_NO_ADAPTER");
-  eq("P3 connected", r.connected, false);
+  const r = resolveMmr02Phase2Provider({
+    diyLookup: createNullDiySelectiveLookup(),
+  });
+  eq("P3 reason DIY", r.reason, "OK_DIY_SELECTIVE");
+  eq("P3 connected", r.connected, true);
   eq("P3 liveHttpEligible", r.liveHttpEligible, true);
-  eq("P3 disconnect error id", r.provider.id, MMR_02_DISCONNECTED_PROVIDER_ID);
   const gap = await r.provider.research(researchInput());
   eq("P3 research ok", gap.ok, false);
-  if (!gap.ok) eq("P3 adapter gap", gap.error, "ADAPTER_NOT_IMPLEMENTED");
+  if (!gap.ok) eq("P3 adapter gap", gap.error, "PRICE_GAP");
   resetMaterialResearchSessionCooldownForTests();
   const phase2 = await executeMaterialResearchPhase2({
     demand: missingDemand(),
@@ -262,13 +264,14 @@ eq("C4 circuit failures", MMR_02_CIRCUIT_FAILURES, 3);
     lease: leasePort(createMemoryAtomicResearchJobStore()),
     worksById: worksMap(baseCatalog(null)),
     nowMs: T_NOW,
+    provider: r.provider,
   });
   ok("P3 phase2 fail-soft", phase2.ok === false);
   eq("P3 HTTP delta", fetchCalls - before, 0);
   ok(
     "P3 error disconnected-ish",
-    phase2.error === "provider_not_connected" ||
-      phase2.error === "ADAPTER_NOT_IMPLEMENTED" ||
+    phase2.error === "PRICE_GAP" ||
+      phase2.error === "provider_not_connected" ||
       phase2.error === "FAILED",
     { error: phase2.error },
   );

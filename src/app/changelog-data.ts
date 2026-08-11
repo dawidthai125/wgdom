@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.27",
+    label: "Real Source — selective live DIY adapters",
+    items: [
+      {
+        type: "new",
+        text: "LIVE-ADAPTERS-08: cienkie adaptery Leroy/Castorama/OBI — research tylko MISSING/STALE materialKey; direct+regular; średnia; Edge proxy mmr-diy-selective-lookup; CURRENT→REUSE 0 HTTP; bez katalogu/scrape masowego.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.26",
     label: "Real Source — Owner Legal PASS (LM/Casto/OBI)",
     items: [

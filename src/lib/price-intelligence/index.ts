@@ -186,6 +186,34 @@ export {
 } from "./market-material-research-02-provider";
 
 export {
+  buildDiySelectiveRequestUrl,
+  identityMatchesQuery,
+  isDiySelectiveUrlAllowed,
+  parseDiyShopHtml,
+  DIY_SELECTIVE_ALLOWED_HOSTS,
+} from "./diy-shop-html-parse";
+
+export {
+  createEdgeDiySelectiveLookup,
+  createFixtureDiySelectiveLookup,
+  createNullDiySelectiveLookup,
+} from "./diy-selective-lookup-client";
+
+export {
+  createSelectiveDiyTrioResearchProvider,
+  MMR_DIY_SELECTIVE_PROVIDER_ID,
+} from "./mmr-selective-diy-provider";
+
+export type {
+  DiyParsedOffer,
+  DiySelectiveLookupPort,
+  DiySelectiveLookupRequest,
+  DiySelectiveLookupResult,
+  DiySelectiveRawPage,
+  DiyShopProviderId,
+} from "./diy-selective-lookup-types";
+
+export {
   MMR_DEFAULT_COOLDOWN_MS,
   MMR_DEFAULT_LEASE_MS,
   MMR_MAX_ACTIVE_CLAIMS_PER_PASS,

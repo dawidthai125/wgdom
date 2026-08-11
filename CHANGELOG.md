@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.27 — Real Source — selective live DIY adapters (2026-08-11)
+
+- **new:** LIVE-ADAPTERS-08 — thin Leroy/Castorama/OBI · MISSING/STALE only · direct+regular · average · Edge `mmr-diy-selective-lookup` · CURRENT→REUSE 0 HTTP · no catalogue harvest
+
 ## 2.66.26 — Real Source — Owner Legal PASS LM/Casto/OBI (2026-08-11)
 
 - **improve:** `MARKET_SYNC_P3_LEGAL_GATE=PASS` · `MMR_02_PRIMARY_SOURCE_STATUS=VERIFIED` (Owner Attestation); `liveHttpEligible=true`; live adapters **ADAPTER_NOT_IMPLEMENTED** do GO IMPLEMENT; prywatne dowody poza repo

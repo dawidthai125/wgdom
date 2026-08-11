@@ -4670,4 +4670,96 @@ app.post("/make-server-0afb8820/research-job-release", async (c) => {
   }
 });
 
+/** REAL-SOURCE-LIVE-ADAPTERS-08 — selective DIY product page fetch (ONE URL · allowlist · no catalogue). */
+const MMR_DIY_ALLOWED_HOSTS = new Set([
+  "www.leroymerlin.pl",
+  "leroymerlin.pl",
+  "www.castorama.pl",
+  "castorama.pl",
+  "www.obi.pl",
+  "obi.pl",
+]);
+
+function mmrDiyBuildSelectiveUrl(provider: string, query: string, sku?: string, ean?: string): string | null {
+  const term = String(sku || ean || query || "").trim().slice(0, 120);
+  if (term.length < 2) return null;
+  const enc = encodeURIComponent(term);
+  if (provider === "leroy") return `https://www.leroymerlin.pl/search?q=${enc}`;
+  if (provider === "castorama") return `https://www.castorama.pl/search?term=${enc}`;
+  if (provider === "obi") return `https://www.obi.pl/search/${enc}`;
+  return null;
+}
+
+function mmrDiyHostAllowed(urlStr: string): boolean {
+  try {
+    const u = new URL(urlStr);
+    return u.protocol === "https:" && MMR_DIY_ALLOWED_HOSTS.has(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+app.post("/make-server-0afb8820/mmr-diy-selective-lookup", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const provider = String(body.provider || "").trim();
+    const query = String(body.query || "").trim();
+    const materialKey = String(body.materialKey || "").trim();
+    const sku = String(body.sku || "").trim() || undefined;
+    const ean = String(body.ean || "").trim() || undefined;
+    if (!materialKey) {
+      return c.json({ ok: false, error: "missing_materialKey" }, 400);
+    }
+    if (provider !== "leroy" && provider !== "castorama" && provider !== "obi") {
+      return c.json({ ok: false, error: "invalid_provider" }, 400);
+    }
+    const requestUrl = mmrDiyBuildSelectiveUrl(provider, query, sku, ean);
+    if (!requestUrl || !mmrDiyHostAllowed(requestUrl)) {
+      return c.json({ ok: false, error: "url_not_allowed" }, 400);
+    }
+    const res = await fetch(requestUrl, {
+      headers: {
+        "User-Agent": "WGDOM/2.66.27 mmr-diy-selective",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(12_000),
+    });
+    const finalUrl = String(res.url || requestUrl);
+    if (!mmrDiyHostAllowed(finalUrl)) {
+      return c.json({ ok: false, error: "redirect_host_rejected" }, 502);
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (!res.ok) {
+      return c.json({ ok: false, error: `upstream_${res.status}` }, 502);
+    }
+    if (!ct.includes("html") && !ct.includes("text") && !ct.includes("json")) {
+      return c.json({ ok: false, error: "unexpected_content_type" }, 502);
+    }
+    let text = await res.text();
+    // Bound body — never pull whole catalogues into memory.
+    if (text.length > 400_000) text = text.slice(0, 400_000);
+    if (text.length < 40) {
+      return c.json({ ok: false, error: "empty_body" }, 502);
+    }
+    return c.json({
+      ok: true,
+      page: {
+        provider,
+        requestUrl,
+        finalUrl,
+        status: res.status,
+        bodyText: text,
+        fetchedAtIso: new Date().toISOString(),
+      },
+    });
+  } catch (e) {
+    console.error("mmr-diy-selective-lookup:", e);
+    return c.json(
+      { ok: false, error: e instanceof Error ? e.message : "lookup_error" },
+      500,
+    );
+  }
+});
+
 Deno.serve(app.fetch);

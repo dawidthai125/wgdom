@@ -1,8 +1,8 @@
 /**
  * MARKET-MATERIAL-RESEARCH-02 — production provider factory + candidate validation.
  *
- * Legal PASS + D1 VERIFIED (OWNER-LEGAL-PASS-07) → liveHttpEligible:true
- * but production still ADAPTER_NOT_IMPLEMENTED until Owner GO IMPLEMENT.
+ * Legal PASS + D1 VERIFIED → liveHttpEligible.
+ * REAL-SOURCE-LIVE-ADAPTERS-08: selective DIY trio (Leroy/Castorama/OBI) when eligible.
  * Shared Legal Gate: isMarketSyncP3LegalPass() — do NOT create a second gate.
  * Mock remains harness-only (useMockForTests / mockPriceNet / explicit provider).
  */
@@ -31,6 +31,9 @@ import type {
   MaterialResearchProviderInput,
   MaterialResearchProviderResult,
 } from "./market-material-research-types";
+import type { DiySelectiveLookupPort } from "./diy-selective-lookup-types";
+import { createEdgeDiySelectiveLookup } from "./diy-selective-lookup-client";
+import { createSelectiveDiyTrioResearchProvider } from "./mmr-selective-diy-provider";
 
 export type Mmr02DisconnectReason =
   | "D1_PRIMARY_SOURCE_UNKNOWN"
@@ -46,18 +49,26 @@ export type ResolveMmr02Phase2ProviderOpts = {
   /** Overrides — test only; must not mutate MARKET_SYNC_P3_LEGAL_GATE. */
   legalPassOverride?: boolean;
   primaryStatusOverride?: Mmr02PrimarySourceStatus;
-  /** If set, wrap this inner (test probe). Never a live shop client in -02. */
+  /** If set, wrap this inner (test probe). */
   probeInner?: MaterialResearchProvider;
   guardState?: ProviderLoadGuardState;
+  /**
+   * DIY selective lookup port (REAL-SOURCE-LIVE-ADAPTERS-08).
+   * Tests: fixture/null · Production default: Edge proxy.
+   */
+  diyLookup?: DiySelectiveLookupPort;
 };
 
 export type ResolveMmr02Phase2ProviderResult = {
   provider: MaterialResearchProvider;
-  /** True only when Legal PASS AND D1 != UNKNOWN. Still no live HTTP until adapter exists. */
   liveHttpEligible: boolean;
   connected: boolean;
-  reason: Mmr02DisconnectReason | "MOCK_TEST" | "PROBE" | "OK_DISCONNECTED_NO_ADAPTER";
-  /** Always 0 in -02 production path — no fetch registered. */
+  reason:
+    | Mmr02DisconnectReason
+    | "MOCK_TEST"
+    | "PROBE"
+    | "OK_DISCONNECTED_NO_ADAPTER"
+    | "OK_DIY_SELECTIVE";
   httpFetchCount: number;
   guardState: ProviderLoadGuardState;
 };
@@ -152,9 +163,8 @@ export function validateResearchCandidate(opts: {
 /**
  * Resolve Phase-2 provider for production / harness.
  *
- * Production default: DISCONNECTED (Legal OPEN / D1 UNKNOWN / no adapter).
- * Harness: useMockForTests / mockPriceNet → mock (Stage B semantics).
- * Probe: optional connected test double wrapped with C4 guards — still ZERO real shop HTTP.
+ * Production (Legal PASS + D1 VERIFIED): selective DIY trio (LIVE-ADAPTERS-08).
+ * Harness: useMockForTests / mockPriceNet / diyLookup override / probeInner.
  */
 export function resolveMmr02Phase2Provider(
   opts?: ResolveMmr02Phase2ProviderOpts,
@@ -203,9 +213,7 @@ export function resolveMmr02Phase2Provider(
     };
   }
 
-  // Legal PASS + D1 VERIFIED — still no live retailer adapter until Owner GO IMPLEMENT.
   if (opts?.probeInner) {
-    // Test probe only — may be connected; wrap with C4; never register global fetch.
     const wrapped = wrapProviderWithLoadGuards(opts.probeInner, {
       state: guardState,
       nowMs: () => opts.nowMs ?? Date.now(),
@@ -220,13 +228,19 @@ export function resolveMmr02Phase2Provider(
     };
   }
 
-  const provider = createMmr02DisconnectedProvider("ADAPTER_NOT_IMPLEMENTED");
+  // LIVE-ADAPTERS-08 — selective LM/Casto/OBI (ONE materialKey · never catalogue).
+  const lookup = opts?.diyLookup ?? createEdgeDiySelectiveLookup();
+  const diy = createSelectiveDiyTrioResearchProvider({ lookup });
+  const wrapped = wrapProviderWithLoadGuards(diy, {
+    state: guardState,
+    nowMs: () => opts?.nowMs ?? Date.now(),
+  });
   return {
-    provider,
+    provider: wrapped,
     liveHttpEligible,
-    connected: false,
-    reason: "OK_DISCONNECTED_NO_ADAPTER",
-    httpFetchCount: 0,
+    connected: wrapped.connected,
+    reason: "OK_DIY_SELECTIVE",
+    httpFetchCount: guardState.httpFetchCount,
     guardState,
   };
 }

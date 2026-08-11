@@ -13,6 +13,7 @@ import { MARKET_SYNC_P3_LEGAL_GATE, isMarketSyncP3LegalPass } from "../src/lib/m
 import {
   MMR_02_PRIMARY_SOURCE_STATUS,
   averageQualifyingRegularMarketPrices,
+  createNullDiySelectiveLookup,
   dedupeNeededMaterialKeys,
   evaluateMaterialCache,
   executeMaterialResearchPhase2,
@@ -301,10 +302,12 @@ const unknown = qualifyMarketResearchObservation({
 });
 eq("T10 unknown priceType GAP", unknown.ok, false);
 
-const prodProvider = resolveMmr02Phase2Provider();
-ok("T10 production provider disconnected", prodProvider.connected === false);
+const prodProvider = resolveMmr02Phase2Provider({
+  diyLookup: createNullDiySelectiveLookup(),
+});
+ok("T10 production provider connected (DIY selective)", prodProvider.connected === true);
 ok("T10 liveHttpEligible true", prodProvider.liveHttpEligible === true);
-eq("T10 reason NO_ADAPTER", prodProvider.reason, "OK_DISCONNECTED_NO_ADAPTER");
+eq("T10 reason DIY", prodProvider.reason, "OK_DIY_SELECTIVE");
 eq("T10 httpFetchCount 0", prodProvider.httpFetchCount, 0);
 
 ok("no unexpected fetch overall", fetchCalls === 0, { fetchCalls });
@@ -332,7 +335,7 @@ console.log(
       d1: MMR_02_PRIMARY_SOURCE_STATUS,
       researchLive: false,
       liveHttpEligible: true,
-      adapter: "ADAPTER_NOT_IMPLEMENTED",
+      adapter: "OK_DIY_SELECTIVE",
     },
     null,
     2,
