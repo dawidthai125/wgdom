@@ -160,6 +160,18 @@ export {
 } from "./market-material-research-orchestrate";
 
 export {
+  buildNeededMaterialLinesFromExperts,
+  createEdgeResearchLeasePort,
+  enqueueMaterialResearchPhase1,
+  executeMaterialResearchPhase2,
+  getMaterialResearchSessionCooldown,
+  loadCatalogWorksById,
+  resetMaterialResearchSessionCooldownForTests,
+  type Phase1EnqueueResult,
+  type Phase2ExecuteResult,
+} from "./market-material-research-wire";
+
+export {
   isDemandResearchableS0,
   listActiveMarketLayerDemands,
   resolveMarketLayerForDemand,

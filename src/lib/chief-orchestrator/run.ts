@@ -10,8 +10,8 @@ import {
 } from "@/lib/execution-expert";
 import { analyzeMaterialsFromExecution } from "@/lib/material-expert";
 import { analyzeOfferFromCost, defaultOfferStrategyParams } from "@/lib/offer-expert";
-import { recordPriceDemandsFromExperts } from "@/lib/price-intelligence/demand-record";
 import { extractExactAliasLinesFromOfferBoq } from "@/lib/price-intelligence/offer-boq-exact-alias-lines";
+import { enqueueMaterialResearchPhase1 } from "@/lib/price-intelligence/market-material-research-wire";
 import { analyzeMarketPricingFromMaterials } from "@/lib/pricing-expert";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import { assembleDecydentDossier } from "./dossier";
@@ -276,7 +276,9 @@ export function runChiefOrchestrator(
       } catch {
         /* soft */
       }
-      recordPriceDemandsFromExperts({
+      // MARKET-MATERIAL-RESEARCH-01 B1 PHASE 1 — cache-first enqueue only
+      // (CURRENT=REUSE · STALE/MISSING=DEMAND · ZERO provider · ZERO lease)
+      enqueueMaterialResearchPhase1({
         execution: experts.execution!,
         pricing: experts.pricing!,
         company: input.company,

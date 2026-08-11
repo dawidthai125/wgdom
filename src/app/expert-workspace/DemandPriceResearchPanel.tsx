@@ -11,7 +11,10 @@ import {
   buildManualResearchBrief,
   buildPriceCandidateFromManualInput,
   buildResearchIntelligenceBrief,
+  createEdgeResearchLeasePort,
+  executeMaterialResearchPhase2,
   isDemandResearchableS0,
+  loadCatalogWorksById,
   manualProviderSourceLabel,
   mapManualProviderToQuoteOrigin,
   type ManualResearchProviderId,
@@ -136,6 +139,45 @@ export function DemandPriceResearchPanel({
     }
     setCandidate(built.candidate);
     setPhase("preview");
+  }
+
+  /** B1 PHASE 2 — Owner CTA: Stage A Hard SF + mock provider → CANDIDATE (never auto-accept). */
+  async function handleExecuteMockResearch(): Promise<void> {
+    if (!researchable || busy) return;
+    setBusy(true);
+    setErrorPl(null);
+    try {
+      const claimantId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? `owner_${crypto.randomUUID()}`
+          : `owner_${Date.now()}`;
+      const result = await executeMaterialResearchPhase2({
+        demand,
+        claimantId,
+        lease: createEdgeResearchLeasePort(),
+        worksById: loadCatalogWorksById(),
+      });
+      if (!result.ok || !result.candidate) {
+        const map: Record<string, string> = {
+          cooldown_active: "Cooldown aktywny — spróbuj za chwilę.",
+          held_by_other: "Research już w toku (Hard Single-Flight) — poczekaj.",
+          current_reuse_no_research: "Cena CURRENT — research zbędny (REUSE).",
+          supabase_not_configured: "Brak konfiguracji Stage A lease.",
+        };
+        setErrorPl(
+          map[result.error || ""] ||
+            result.error ||
+            "Research (mock) nie powiódł się.",
+        );
+        return;
+      }
+      setCandidate(result.candidate);
+      setPhase("preview");
+    } catch (e) {
+      setErrorPl(e instanceof Error ? e.message : "Research error");
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleReject(): void {
@@ -330,10 +372,24 @@ export function DemandPriceResearchPanel({
             </p>
           )}
           <div className="flex flex-wrap gap-2 pt-1">
-            <button type="button" className={btnPrimary} onClick={handlePreview} disabled={!researchable}>
-              Podgląd
+            <button
+              type="button"
+              className={btnPrimary}
+              onClick={() => void handleExecuteMockResearch()}
+              disabled={!researchable || busy}
+              data-mmr-phase2-execute
+            >
+              {busy ? "Research…" : "Uruchom research (mock)"}
             </button>
-            <button type="button" className={btnGhost} onClick={onClose}>
+            <button
+              type="button"
+              className={btnGhost}
+              onClick={handlePreview}
+              disabled={!researchable || busy}
+            >
+              Podgląd (ręcznie)
+            </button>
+            <button type="button" className={btnGhost} onClick={onClose} disabled={busy}>
               Anuluj
             </button>
           </div>
