@@ -39,6 +39,7 @@ import {
 } from "./offer-boq-adapter";
 import type { PaintCoats } from "./paint-coats";
 import { resolvePrimingEconomyV1Eligibility } from "./priming-eligibility";
+import { resolvePaintingEconomyV1Eligibility } from "./painting-eligibility";
 import { resolveWetCementScreedEconomyV1Eligibility } from "./screed-eligibility";
 import {
   aggregateLineStatus,
@@ -375,6 +376,47 @@ function bindTechUnit(
           bindStatus: "unbound",
           matchReasonsPl: [
             "screed — brak / niejednoznaczna grubość (PARAMETER_REQUIRED)",
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+  }
+
+  // PAINTING-SCOPE-HARDEN-01 — economy white only (before coats / latestActivePack)
+  if (costItemFamily === "painting" || unit.family === "painting") {
+    const elig = resolvePaintingEconomyV1Eligibility(sourceLine);
+    if (elig === "unbound") {
+      const u: TechUnit = { ...unit, status: "UNBOUND", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          costItemFamily: "painting",
+          techUnitStatus: "UNBOUND",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "painting — poza ECONOMY_INTERIOR_WHITE_PAINT_V1 (UNBOUND)",
+            unit.decompositionReason,
+          ],
+        },
+      };
+    }
+    if (elig === "parameter_required") {
+      const u: TechUnit = { ...unit, status: "PARAMETER_REQUIRED", recipeBinding: null };
+      return {
+        unit: u,
+        binding: {
+          ...base,
+          costItemFamily: "painting",
+          techUnitStatus: "PARAMETER_REQUIRED",
+          packId: null,
+          packVersion: null,
+          bindStatus: "unbound",
+          matchReasonsPl: [
+            "painting — brak jednoznacznych warstw 1/2 (PARAMETER_REQUIRED)",
             unit.decompositionReason,
           ],
         },

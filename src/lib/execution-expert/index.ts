@@ -43,6 +43,10 @@ export {
   type PrimingEconomyV1Eligibility,
 } from "./priming-eligibility";
 export {
+  resolvePaintingEconomyV1Eligibility,
+  type PaintingEconomyV1Eligibility,
+} from "./painting-eligibility";
+export {
   resolveWetCementScreedEconomyV1Eligibility,
   type WetCementScreedEconomyV1Eligibility,
 } from "./screed-eligibility";
