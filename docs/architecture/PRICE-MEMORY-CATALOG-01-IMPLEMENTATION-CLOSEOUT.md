@@ -125,14 +125,12 @@ CLICK → ONE materialKey → forceRefresh (także CURRENT)
 
 ## 10. Deploy status
 
-Uzupełniane po push:
-
 | Pole | Wartość |
 |------|---------|
-| COMMIT | _(po push)_ |
-| PUSH | _(po push)_ |
-| version.json | _(po verify)_ |
-| PRODUCTION | DEPLOY PROPAGATING / VERIFIED |
+| COMMIT | **`0984de94`** · `feat(price-memory): add commercial price catalog` |
+| PUSH | **PASS** · `main` · HEAD = origin/main |
+| version.json (single check) | **2.66.27** / **`5eef2dc`** (poprzedni tip) |
+| PRODUCTION | **DEPLOY PROPAGATING** — oczekiwany tip **2.66.28** / **`0984de94`** |
 
 ---
 
