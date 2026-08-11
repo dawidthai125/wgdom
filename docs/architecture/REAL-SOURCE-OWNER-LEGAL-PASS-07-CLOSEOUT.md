@@ -77,7 +77,10 @@ Evidence: **PRIVATE OWNER EVIDENCE · NOT STORED IN REPOSITORY**
 | Feature push | **`5bf42364..a703d25d`** · **PASS** · `HEAD = origin/main` |
 | Trigger | Vercel Git Integration |
 | Adapters | **NOT IMPLEMENTED** (celowe) |
-| First `version.json` curl | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** (oczekiwane FAST) |
+| Tip docs push | **`a703d25d..e19397b3`** · **PASS** |
+| Tip commit | **`e19397b3`** |
+| First `version.json` curl (feature) | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** |
+| Second `version.json` curl (tip) | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** (VERIFY FAST — bez poll) |
 
 ---
 
