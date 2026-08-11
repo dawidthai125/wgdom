@@ -2,7 +2,7 @@
 
 > **STATUS:** **IMPLEMENTATION COMPLETE** · awaiting Production Verify  
 > **DATA:** 2026-08-11  
-> **UI:** **2.66.30**  
+> **UI:** **2.66.30** · feature commit **`b713d971`**  
 > **PRIOR:** AUDIT + PLAN [`PRICE-MEMORY-CATALOG-03-4-VS-372-PLAN.md`](./PRICE-MEMORY-CATALOG-03-4-VS-372-PLAN.md)  
 > **BASELINE prior:** 2.66.29 / CATALOG-02 VERIFIED  
 > **Harness:** `scripts/test-price-memory-catalog-03.mjs` → **35 PASS / 0 FAIL**

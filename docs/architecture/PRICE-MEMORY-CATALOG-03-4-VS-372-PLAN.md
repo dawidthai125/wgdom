@@ -4,7 +4,7 @@
 > **DATA:** 2026-08-11  
 > **PRIOR AUDIT:** [`PRICE-MEMORY-CATALOG-03-4-VS-372-AUDIT.md`](./PRICE-MEMORY-CATALOG-03-4-VS-372-AUDIT.md) · **VERDICT = E (B+C)**  
 > **BASELINE prior:** UI **2.66.29** · live **`be718b4`** · CATALOG-02 **PRODUCTION VERIFIED · GREEN**  
-> **IMPL UI:** **2.66.30** · harness **35 PASS** · awaiting Production Verify
+> **IMPL UI:** **2.66.30** · feature **`b713d971`** · harness **35 PASS** · awaiting Production Verify
 
 ---
 
