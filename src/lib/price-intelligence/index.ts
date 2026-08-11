@@ -22,6 +22,34 @@ export {
 
 export { ensurePi31EticsApprovedDataLocal, type EnsurePi31Result } from "./ensure-etics-approved-seed";
 
+/* —— PRICE-PATH-01: economy product hosts (structure only · ZERO invent PLN) —— */
+export {
+  ECONOMY_PRODUCT_HOSTS_ENSURED_AT,
+  ECONOMY_PRODUCT_HOST_SPECS,
+  assertEconomyProductHostsMapAligned,
+  economyProductHostByMaterialKey,
+  type EconomyProductHostSpec,
+} from "./economy-product-hosts-seed";
+
+export {
+  applyEconomyOwnerApprovedPrices,
+  applyEconomyProductHostsToWorkCatalog,
+  type ApplyEconomyApprovedResult,
+  type ApplyEconomyHostsCatalogResult,
+  type EconomyOwnerApprovedPriceInput,
+} from "./apply-economy-product-hosts";
+
+export {
+  ensureEconomyProductHostsLocal,
+  type EnsureEconomyProductHostsResult,
+} from "./ensure-economy-product-hosts";
+
+export {
+  resolveEconomyMaterialPricePath,
+  type EconomyPricePathLine,
+  type EconomyPricePathStatus,
+} from "./resolve-economy-price-path";
+
 export {
   PRICE_DEMAND_SCHEMA_VERSION,
   PRICE_DEMAND_STORAGE_KEY,

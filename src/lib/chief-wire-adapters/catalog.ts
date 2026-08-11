@@ -2,10 +2,14 @@
  * Catalog → PricingExpertCatalogRo.worksById.
  * READ ONLY · REUSE work-catalog loaders + indexWorksById.
  * P3.1 — ensure WGDOM approved ETICS Quotes before RO projection.
+ * PRICE-PATH-01 — ensure economy product hosts (structure only · no invent PLN).
  */
 
 import type { AnalyzeMarketPricingOptions } from "@/lib/pricing-expert";
-import { ensurePi31EticsApprovedDataLocal } from "@/lib/price-intelligence";
+import {
+  ensureEconomyProductHostsLocal,
+  ensurePi31EticsApprovedDataLocal,
+} from "@/lib/price-intelligence";
 import {
   indexWorksById,
   listActiveWorksForRegion,
@@ -15,7 +19,9 @@ import type { BuildChiefPricingOptionsRoResult, ChiefWireAdapterGap } from "./ty
 export function buildChiefPricingOptionsRo(): BuildChiefPricingOptionsRoResult {
   const gaps: ChiefWireAdapterGap[] = [];
   try {
-    const ensured = ensurePi31EticsApprovedDataLocal({ pushCloud: true });
+    ensurePi31EticsApprovedDataLocal({ pushCloud: true });
+    // PRICE-PATH-01 — structure-only hosts (no invent PLN)
+    const ensured = ensureEconomyProductHostsLocal({ pushCloud: true });
     const store = ensured.catalogStore;
     const works = listActiveWorksForRegion(store, store.activeRegion);
     const worksById = indexWorksById(works);
