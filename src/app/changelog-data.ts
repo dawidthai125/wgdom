@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.31",
+    label: "Nasz katalog cen — czytelne etykiety PL",
+    items: [
+      {
+        type: "improve",
+        text: "PRICE-MEMORY-CATALOG-03 UI polish: AKTUALNA / PRZETERMINOWANA / BRAK CENY zamiast CURRENT/STALE/MISSING. Filtry, podsumowanie, kolumny i komunikaty po polsku. Logika Price Memory bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.30",
     label: "Nasz katalog cen — 372 materiałów + status Price Memory",
     items: [

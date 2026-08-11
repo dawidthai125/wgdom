@@ -2,6 +2,7 @@
  * PRICE-MEMORY-CATALOG-01/03 — Firma → Nasz katalog cen.
  * Material candidates + Price Memory status · commercial margin · force refresh ONE key.
  * ZERO HTTP on open · seed ensure pushCloud=false.
+ * UI polish: PL labels only — technical enums stay in data layer.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -19,6 +20,7 @@ import {
   forceResearchMaterialMarketPrice,
   paginateOurPriceCatalogRows,
   resetMaterialResearchSessionCooldownForTests,
+  type MaterialCacheUsability,
   type OurPriceCatalogFreshnessFilter,
   type OurPriceCatalogRow,
   type PriceCandidate,
@@ -44,25 +46,88 @@ function formatObservedAt(iso: string): string {
   });
 }
 
-function formatPriceChange(row: OurPriceCatalogRow): string {
-  if (row.priceChange.status === "UNKNOWN") return "UNKNOWN";
+/** User-facing freshness — enums CURRENT/STALE/MISSING stay in data. */
+function freshnessLabelPl(freshness: MaterialCacheUsability): string {
+  switch (freshness) {
+    case "CURRENT":
+      return "AKTUALNA";
+    case "STALE":
+      return "PRZETERMINOWANA";
+    case "MISSING":
+      return "BRAK CENY";
+    default:
+      return "NIEZNANA";
+  }
+}
+
+function freshnessToneClass(freshness: MaterialCacheUsability): string {
+  switch (freshness) {
+    case "CURRENT":
+      return "text-emerald-700 dark:text-emerald-400";
+    case "STALE":
+      return "text-orange-700 dark:text-orange-400";
+    case "MISSING":
+      return "text-destructive";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function freshnessDot(freshness: MaterialCacheUsability): string {
+  switch (freshness) {
+    case "CURRENT":
+      return "🟢";
+    case "STALE":
+      return "🟠";
+    case "MISSING":
+      return "🔴";
+    default:
+      return "⚪";
+  }
+}
+
+function formatPriceChangeLines(row: OurPriceCatalogRow): {
+  primary: string;
+  secondary?: string;
+  tone: "up" | "down" | "flat" | "unknown";
+} {
+  if (row.priceChange.status === "UNKNOWN") {
+    return { primary: "Brak danych porównawczych", tone: "unknown" };
+  }
   const d = row.priceChange.deltaPln ?? 0;
   const p = row.priceChange.deltaPct ?? 0;
-  const arrow =
-    row.priceChange.direction === "up"
-      ? "↑"
-      : row.priceChange.direction === "down"
-        ? "↓"
-        : "→";
   const sign = d > 0 ? "+" : "";
-  return `${sign}${d.toLocaleString("pl-PL", { maximumFractionDigits: 2 })} zł (${sign}${p.toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%) ${arrow}`;
+  const pln = `${sign}${d.toLocaleString("pl-PL", { maximumFractionDigits: 2 })} zł`;
+  const pct = `${sign}${p.toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%`;
+  const tone =
+    row.priceChange.direction === "up"
+      ? "up"
+      : row.priceChange.direction === "down"
+        ? "down"
+        : "flat";
+  return { primary: pln, secondary: pct, tone };
+}
+
+function formatSourceLabel(row: OurPriceCatalogRow): string {
+  const origins = row.sourceCoverage.origins.filter(Boolean);
+  if (origins.length === 0) return "—";
+  return origins.join(", ");
+}
+
+function originHistoryLabel(origin: string): string {
+  const o = String(origin || "").trim().toLowerCase();
+  if (o === "wgdom") return "Zakup / WGDOM";
+  if (o === "leroy" || o === "leroymerlin") return "Leroy Merlin";
+  if (o === "castorama") return "Castorama";
+  if (o === "obi") return "OBI";
+  return origin || "—";
 }
 
 const FRESHNESS_FILTERS: { id: OurPriceCatalogFreshnessFilter; label: string }[] = [
   { id: "ALL", label: "Wszystkie" },
-  { id: "CURRENT", label: "CURRENT" },
-  { id: "STALE", label: "STALE" },
-  { id: "MISSING", label: "MISSING" },
+  { id: "CURRENT", label: "Aktualne" },
+  { id: "STALE", label: "Przeterminowane" },
+  { id: "MISSING", label: "Brak ceny" },
 ];
 
 export function OurPriceCatalogPanel() {
@@ -96,6 +161,36 @@ export function OurPriceCatalogPanel() {
     reload();
     setSeedReady(true);
   }, [reload]);
+
+  const allRows = useMemo(
+    () =>
+      seedReady
+        ? buildOurPriceCatalogRows({
+            store,
+            search: "",
+            freshnessFilter: "ALL",
+          })
+        : [],
+    [store, seedReady],
+  );
+
+  const summary = useMemo(() => {
+    let current = 0;
+    let stale = 0;
+    let missing = 0;
+    for (const r of allRows) {
+      if (r.freshness === "CURRENT") current += 1;
+      else if (r.freshness === "STALE") stale += 1;
+      else if (r.freshness === "MISSING") missing += 1;
+    }
+    return {
+      total: allRows.length,
+      current,
+      stale,
+      missing,
+      labor: 0,
+    };
+  }, [allRows]);
 
   const rows = useMemo(
     () =>
@@ -164,14 +259,18 @@ export function OurPriceCatalogPanel() {
       if (!result.ok || !result.candidate) {
         setErrorPl(
           result.error === "current_reuse_no_research"
-            ? "CURRENT — research zablokowany (brak force)."
-            : result.error || "Research nie powiódł się.",
+            ? "Aktualizacja zablokowana — cena jest już uznana za aktualną. Spróbuj ponownie z wymuszeniem."
+            : result.error === "rate_limited" || result.error === "cooldown"
+              ? "Odczekaj chwilę przed kolejną aktualizacją tego materiału."
+              : "Nie udało się pobrać ceny rynkowej. Spróbuj ponownie.",
         );
         return;
       }
       setPendingAccept({ row, candidate: result.candidate });
     } catch (e) {
-      setErrorPl(e instanceof Error ? e.message : "Research error");
+      setErrorPl(
+        e instanceof Error ? e.message : "Nie udało się pobrać ceny rynkowej.",
+      );
     } finally {
       setBusyKey(null);
     }
@@ -187,13 +286,13 @@ export function OurPriceCatalogPanel() {
         expectedUnit: pendingAccept.row.unit,
       });
       if (!accepted.ok || !accepted.persisted) {
-        setErrorPl(accepted.error || "Accept / commit nie powiódł się.");
+        setErrorPl(accepted.error || "Nie udało się zapisać nowej ceny.");
         return;
       }
       setPendingAccept(null);
       reload();
     } catch (e) {
-      setErrorPl(e instanceof Error ? e.message : "Accept error");
+      setErrorPl(e instanceof Error ? e.message : "Nie udało się zapisać nowej ceny.");
     } finally {
       setBusyKey(null);
     }
@@ -206,37 +305,19 @@ export function OurPriceCatalogPanel() {
           <Tag size={16} className="text-primary mt-0.5 shrink-0" aria-hidden />
           <div>
             <h3 className="text-sm font-semibold">Nasz katalog cen</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Nasz katalog materiałów — Status Price Memory (CURRENT / STALE / MISSING).
-              Marża WGDOM osobno. Bez live HTTP przy otwarciu.
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              Nasz katalog materiałów — aktualność cen: AKTUALNA / PRZETERMINOWANA / BRAK
+              CENY. Marża WGDOM jest ustawiana osobno.
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+              Ceny są przechowywane w Pamięci Cen i mogą zostać ręcznie zaktualizowane dla
+              wybranego materiału.
             </p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:items-end flex-wrap">
-          <label className="flex-1 min-w-[12rem] space-y-1">
-            <span className="text-[11px] text-muted-foreground">Szukaj</span>
-            <div className="relative">
-              <Search
-                size={14}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <input
-                className={cn(
-                  "w-full rounded-md border border-border bg-background pl-8 pr-3 text-sm",
-                  WG_TOUCH_MIN,
-                )}
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Materiał / materialKey…"
-              />
-            </div>
-          </label>
-
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 order-2 sm:order-1">
             {FRESHNESS_FILTERS.map((f) => (
               <button
                 key={f.id}
@@ -245,6 +326,8 @@ export function OurPriceCatalogPanel() {
                   setFreshnessFilter(f.id);
                   setPage(1);
                 }}
+                aria-pressed={freshnessFilter === f.id}
+                aria-label={`Filtr: ${f.label}`}
                 className={cn(
                   "px-2.5 py-1.5 rounded-lg text-[11px] font-medium border min-h-[40px]",
                   freshnessFilter === f.id
@@ -256,6 +339,30 @@ export function OurPriceCatalogPanel() {
               </button>
             ))}
           </div>
+
+          <label className="flex-1 min-w-[12rem] space-y-1 order-1 sm:order-2">
+            <span className="text-[11px] text-muted-foreground">Wyszukiwarka</span>
+            <div className="relative">
+              <Search
+                size={14}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <input
+                className={cn(
+                  "w-full rounded-md border border-border bg-background pl-8 pr-3 text-sm",
+                  WG_TOUCH_MIN,
+                )}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Wpisz nazwę materiału lub klucz materiału..."
+                aria-label="Wyszukaj materiał"
+              />
+            </div>
+          </label>
         </div>
 
         {isSuperAdmin && (
@@ -285,11 +392,11 @@ export function OurPriceCatalogPanel() {
             data-price-catalog-accept
           >
             <p className="text-xs font-medium">
-              Accept nowej ceny rynkowej — {pendingAccept.row.namePl}
+              Potwierdź nową cenę rynkową — {pendingAccept.row.namePl}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              Kandydat: {formatPln(pendingAccept.candidate.priceNet)} · marża bez zmian ·
-              zapis tylko przez Accept → commitMarketQuotesImport
+              Propozycja: {formatPln(pendingAccept.candidate.priceNet)}. Marża handlowa bez
+              zmian. Zapis dopiero po potwierdzeniu.
             </p>
             <div className="flex flex-wrap gap-2">
               <WgButton
@@ -297,7 +404,7 @@ export function OurPriceCatalogPanel() {
                 onClick={() => void onAcceptPending()}
                 disabled={busyKey === pendingAccept.row.workId}
               >
-                Accept i zapisz
+                Zapisz nową cenę
               </WgButton>
               <WgButton
                 type="button"
@@ -313,25 +420,26 @@ export function OurPriceCatalogPanel() {
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[720px]">
+          <table className="w-full text-left text-xs min-w-[860px]">
             <thead className="bg-secondary/40 text-muted-foreground">
               <tr>
-                <th className="px-2 py-2 font-medium">#</th>
+                <th className="px-2 py-2 font-medium">Lp.</th>
                 <th className="px-2 py-2 font-medium">Materiał</th>
-                <th className="px-2 py-2 font-medium">J.</th>
+                <th className="px-2 py-2 font-medium">Jedn.</th>
                 <th className="px-2 py-2 font-medium">Cena bazowa</th>
-                <th className="px-2 py-2 font-medium">Marża</th>
-                <th className="px-2 py-2 font-medium">Z marżą</th>
-                <th className="px-2 py-2 font-medium">Fresh</th>
-                <th className="px-2 py-2 font-medium">Obserwacja</th>
+                <th className="px-2 py-2 font-medium">Aktualność</th>
+                <th className="px-2 py-2 font-medium">Data / godzina</th>
                 <th className="px-2 py-2 font-medium">Zmiana</th>
-                <th className="px-2 py-2 font-medium">Źródła</th>
+                <th className="px-2 py-2 font-medium">Marża</th>
+                <th className="px-2 py-2 font-medium">Cena z marżą</th>
+                <th className="px-2 py-2 font-medium">Źródło</th>
                 <th className="px-2 py-2 font-medium">Akcja</th>
               </tr>
             </thead>
             <tbody>
               {pageData.items.map((row, i) => {
                 const absIndex = (pageData.page - 1) * pageData.pageSize + i + 1;
+                const change = formatPriceChangeLines(row);
                 return (
                   <tr
                     key={row.workId}
@@ -347,6 +455,8 @@ export function OurPriceCatalogPanel() {
                         onClick={() =>
                           setExpandedId((id) => (id === row.workId ? null : row.workId))
                         }
+                        aria-expanded={expandedId === row.workId}
+                        aria-label={`Szczegóły: ${row.namePl}`}
                       >
                         {row.namePl}
                       </button>
@@ -355,17 +465,22 @@ export function OurPriceCatalogPanel() {
                       </div>
                       {expandedId === row.workId && (
                         <div className="mt-1 text-[10px] text-muted-foreground space-y-0.5">
-                          <div>Obserwacja: {formatObservedAt(row.priceObservedAt)}</div>
                           <div>
-                            Marża updatedAt:{" "}
+                            Data ceny:{" "}
+                            {row.priceObservedAt
+                              ? formatObservedAt(row.priceObservedAt)
+                              : "—"}
+                          </div>
+                          <div>
+                            Marża zaktualizowana:{" "}
                             {row.commercialPricing?.updatedAt
                               ? formatObservedAt(row.commercialPricing.updatedAt)
                               : "—"}
                           </div>
                           {(row.history ?? []).slice(-5).reverse().map((h, hi) => (
                             <div key={`${h.updatedAt}-${hi}`}>
-                              hist {formatObservedAt(h.updatedAt)} · {formatPln(h.price)} ·{" "}
-                              {h.origin}
+                              Historia {formatObservedAt(h.updatedAt)} · {formatPln(h.price)} ·{" "}
+                              {originHistoryLabel(h.origin)}
                             </div>
                           ))}
                         </div>
@@ -378,6 +493,36 @@ export function OurPriceCatalogPanel() {
                       ) : (
                         formatPln(row.basePrice)
                       )}
+                    </td>
+                    <td className="px-2 py-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 font-medium whitespace-nowrap",
+                          freshnessToneClass(row.freshness),
+                        )}
+                        title={freshnessLabelPl(row.freshness)}
+                      >
+                        <span aria-hidden>{freshnessDot(row.freshness)}</span>
+                        {freshnessLabelPl(row.freshness)}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      {row.priceObservedAt
+                        ? formatObservedAt(row.priceObservedAt)
+                        : "—"}
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap text-[10px]">
+                      <div
+                        className={cn(
+                          change.tone === "up" &&
+                            "text-emerald-700 dark:text-emerald-400",
+                          change.tone === "down" && "text-destructive",
+                          change.tone === "unknown" && "text-muted-foreground",
+                        )}
+                      >
+                        <div>{change.primary}</div>
+                        {change.secondary != null && <div>{change.secondary}</div>}
+                      </div>
                     </td>
                     <td className="px-2 py-2">
                       {isSuperAdmin ? (
@@ -403,6 +548,7 @@ export function OurPriceCatalogPanel() {
                             type="button"
                             className="text-[10px] text-primary underline min-h-[36px] px-1"
                             onClick={() => void onSaveMargin(row)}
+                            aria-label={`Zapisz marżę: ${row.namePl}`}
                           >
                             OK
                           </button>
@@ -423,28 +569,7 @@ export function OurPriceCatalogPanel() {
                       )}
                     </td>
                     <td className="px-2 py-2">
-                      <span
-                        className={cn(
-                          row.freshness === "MISSING" && "text-amber-700 dark:text-amber-400",
-                          row.freshness === "STALE" && "text-orange-700 dark:text-orange-400",
-                        )}
-                      >
-                        {row.freshness}
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      {row.priceObservedAt
-                        ? formatObservedAt(row.priceObservedAt)
-                        : "—"}
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-[10px]">
-                      {formatPriceChange(row)}
-                    </td>
-                    <td className="px-2 py-2">
-                      <span className="font-mono">{row.sourceCoverage.label}</span>
-                      <div className="text-[10px] text-muted-foreground">
-                        {row.sourceCoverage.origins.join(", ") || "—"}
-                      </div>
+                      <span className="text-[11px]">{formatSourceLabel(row)}</span>
                     </td>
                     <td className="px-2 py-2">
                       {isSuperAdmin && (
@@ -458,12 +583,13 @@ export function OurPriceCatalogPanel() {
                           onClick={() => void onForceRefresh(row)}
                           title={
                             row.freshness === "MISSING"
-                              ? "Aktualizuj cenę rynkową (MISSING)"
-                              : "Wymusza research nawet dla CURRENT"
+                              ? "Pobierz cenę rynkową dla tego materiału"
+                              : "Odśwież cenę rynkową dla tego materiału"
                           }
+                          aria-label={`Aktualizuj cenę: ${row.namePl}`}
                         >
                           <RefreshCw size={12} aria-hidden />
-                          {row.freshness === "MISSING" ? "Aktualizuj cenę rynkową" : "Aktualizuj"}
+                          Aktualizuj
                         </button>
                       )}
                     </td>
@@ -481,28 +607,48 @@ export function OurPriceCatalogPanel() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border text-[11px] text-muted-foreground">
-          <span>
-            {pageData.total} pozycji · strona {pageData.page}/{pageData.totalPages} ·{" "}
-            {OUR_PRICE_CATALOG_PAGE_SIZE}/strona
-          </span>
-          <div className="flex gap-1">
-            <WgButton
-              type="button"
-              variant="secondary"
-              disabled={pageData.page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Poprzednia
-            </WgButton>
-            <WgButton
-              type="button"
-              variant="secondary"
-              disabled={pageData.page >= pageData.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Następna
-            </WgButton>
+        <div className="space-y-2 px-3 py-3 border-t border-border text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>
+              Łącznie materiałów:{" "}
+              <span className="font-medium text-foreground">{summary.total}</span>
+            </span>
+            <span className="text-emerald-700 dark:text-emerald-400">
+              🟢 Aktualne: {summary.current}
+            </span>
+            <span className="text-orange-700 dark:text-orange-400">
+              🟠 Przeterminowane: {summary.stale}
+            </span>
+            <span className="text-destructive">🔴 Brak ceny: {summary.missing}</span>
+            <span title="Robocizna nie jest pozycją tego katalogu materiałów">
+              ⚪ Robocizna: {summary.labor}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <span>
+              Widok: {pageData.total} · strona {pageData.page} z {pageData.totalPages} ·{" "}
+              {OUR_PRICE_CATALOG_PAGE_SIZE} na stronę
+            </span>
+            <div className="flex gap-1">
+              <WgButton
+                type="button"
+                variant="secondary"
+                disabled={pageData.page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="Poprzednia strona"
+              >
+                Poprzednia
+              </WgButton>
+              <WgButton
+                type="button"
+                variant="secondary"
+                disabled={pageData.page >= pageData.totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                aria-label="Następna strona"
+              >
+                Następna
+              </WgButton>
+            </div>
           </div>
         </div>
       </div>

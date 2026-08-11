@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.31 — Nasz katalog cen — czytelne etykiety PL (2026-08-11)
+
+- **improve:** PRICE-MEMORY-CATALOG-03 UI polish — AKTUALNA / PRZETERMINOWANA / BRAK CENY · filtry i podsumowanie PL · logika bez zmian
+
 ## 2.66.30 — Nasz katalog cen — 372 materiałów + status Price Memory (2026-08-11)
 
 - **fix:** PRICE-MEMORY-CATALOG-03 — katalog = materiały (seed 372) + CURRENT/STALE/MISSING · ensure lokalny · ZERO HTTP on open
