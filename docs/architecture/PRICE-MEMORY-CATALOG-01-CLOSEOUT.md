@@ -11,10 +11,12 @@ PRICE-MEMORY-CATALOG-01
 IMPLEMENTATION:     COMPLETE
 FEATURE COMMIT:     0984de94
 DOCS TIP (prior):   ad02808a
+PV DOCS TIP:        3a5d59cf
 PRODUCTION:         VERIFIED
 VERSION:            2.66.28
-LIVE COMMIT:        0984de9
-                    (version.json — feature tip deploy)
+LIVE COMMIT:        ad02808
+                    (version.json po redeploy docs tip;
+                     first PV check: 0984de9 — ten sam tip UI)
 
 PRICE MEMORY:       PASS
 COMMERCIAL MARGIN:  PASS
