@@ -108,7 +108,7 @@ P1 — Firma → Nasz Katalog Robót (UI PL)
 | Pole | Wartość |
 |------|---------|
 | **COMMIT** | `dc9647af` |
-| **PUSH** | PASS (`origin/main`) |
-| **PRODUCTION** | DEPLOY PROPAGATING (verify FAST) |
+| **PUSH** | PASS (`dc9647af` + tip `eb1b75ec`) |
+| **PRODUCTION** | DEPLOY PROPAGATING (`version.json` nadal 2.66.31) |
 
 ---
