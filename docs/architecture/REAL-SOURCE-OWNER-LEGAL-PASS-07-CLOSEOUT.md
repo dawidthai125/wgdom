@@ -1,9 +1,9 @@
 # REAL-SOURCE-OWNER-LEGAL-PASS-07 — CLOSEOUT
 
-> **STATUS:** **CLOSED** · **PRODUCTION VERIFIED** (po tip)  
+> **STATUS:** **CLOSED** · feature tip **`a703d25d`** · Deploy: **PASS** · PRODUCTION VERIFIED: patrz `version.json`  
 > **DATA:** 2026-08-11  
 > **WERSJA:** **2.66.26**  
-> **FEATURE COMMIT:** *(uzupełnione po push)*  
+> **FEATURE COMMIT:** **`a703d25d`** · full **`a703d25d720d2c069b93d42310ec77cc1261371b`**  
 > **PRIVATE EVIDENCE:** HELD BY OWNER · **NOT STORED IN REPOSITORY**
 
 ---
@@ -74,8 +74,10 @@ Evidence: **PRIVATE OWNER EVIDENCE · NOT STORED IN REPOSITORY**
 | | |
 |--|--|
 | Branch | `main` |
-| Trigger | `git push origin main` (Vercel Git Integration) |
+| Feature push | **`5bf42364..a703d25d`** · **PASS** · `HEAD = origin/main` |
+| Trigger | Vercel Git Integration |
 | Adapters | **NOT IMPLEMENTED** (celowe) |
+| First `version.json` curl | **2.66.25** / `5bf4236` → **DEPLOY PROPAGATING** (oczekiwane FAST) |
 
 ---
 
