@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.26 — Real Source — Owner Legal PASS LM/Casto/OBI (2026-08-11)
+
+- **improve:** `MARKET_SYNC_P3_LEGAL_GATE=PASS` · `MMR_02_PRIMARY_SOURCE_STATUS=VERIFIED` (Owner Attestation); `liveHttpEligible=true`; live adapters **ADAPTER_NOT_IMPLEMENTED** do GO IMPLEMENT; prywatne dowody poza repo
+
 ## 2.66.25 — Price Memory — seed faktur Zygmunt (2026-08-11)
 
 - **new:** HISTORICAL PURCHASE seed (faktury Zygmunt) → Price Memory `marketQuotes.wgdom` + historia; 372 materialKey; cache-first REUSE; live research **BLOCKED** (Legal OPEN / D1 UNKNOWN)

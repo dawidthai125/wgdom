@@ -425,7 +425,7 @@ export interface Phase2ExecuteResult {
  * PHASE 2 — Owner CTA only. Claim Stage A + provider → CANDIDATE (never auto-accept).
  *
  * MARKET-MATERIAL-RESEARCH-02: default provider = Legal/D1-gated factory
- * (DISCONNECTED while Legal OPEN or D1 UNKNOWN — ZERO live HTTP).
+ * (DISCONNECTED while Legal OPEN / D1 UNKNOWN / ADAPTER_NOT_IMPLEMENTED — ZERO live HTTP).
  * Harness may pass `provider` or `mockPriceNet` / `useMockForTests`.
  */
 export async function executeMaterialResearchPhase2(opts: {

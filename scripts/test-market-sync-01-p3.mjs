@@ -54,8 +54,8 @@ assert(MARKET_SYNC_P3_DEFAULT === false, "flag default OFF");
 assert(MARKET_SYNC_P3_LS_KEY === "kw-market-sync-01-p3", "LS key");
 assert(isMarketSyncP3Enabled() === false, "enabled=false by default");
 assert(MARKET_SYNC_P3_DEFAULT_PROVIDER === "obi", "single provider = obi");
-assert(MARKET_SYNC_P3_LEGAL_GATE === "OPEN", "Legal Gate OPEN");
-assert(isMarketSyncP3LegalPass() === false, "Legal PASS = false");
+assert(MARKET_SYNC_P3_LEGAL_GATE === "PASS", "Legal Gate PASS (OWNER-LEGAL-PASS-07)");
+assert(isMarketSyncP3LegalPass() === true, "Legal PASS = true");
 
 {
   const store = createEmptyStagingStore(T0);
@@ -77,7 +77,7 @@ assert(isMarketSyncP3Enabled() === true, "force ON");
     sourceKind: "licensed_api",
     allowLiveNetwork: true,
   });
-  assert(live != null && live.ok === false, "live + Legal OPEN → refuse");
+  assert(live == null, "live + Legal PASS → refuseLive returns null (gate cleared)");
 }
 
 {
@@ -87,8 +87,9 @@ assert(isMarketSyncP3Enabled() === true, "force ON");
     nowIso: T0,
     newId,
   });
-  assert(liveRun.ok === false, "run live → FAIL");
-  assert(liveRun.store.providerQuotes.length === 0, "live → 0 quotes");
+  // Legal PASS clears gate; P3 still uses mock adapter only (no network client).
+  assert(liveRun.ok === true, "run allowLive + Legal PASS → mock ingest OK (no HTTP client)");
+  assert(liveRun.store.providerQuotes.length > 0, "mock quotes staged");
 }
 
 {

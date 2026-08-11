@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.26",
+    label: "Real Source — Owner Legal PASS (LM/Casto/OBI)",
+    items: [
+      {
+        type: "improve",
+        text: "Legal Gate PASS + D1 VERIFIED (Owner Attestation Leroy/Castorama/OBI) — selective research uprawniony; liveHttpEligible=true; adaptery sklepów nadal ADAPTER_NOT_IMPLEMENTED (wymaga GO IMPLEMENT). Dowody prywatne Ownera — nie w repo.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.25",
     label: "Price Memory — seed faktur Zygmunt",
     items: [

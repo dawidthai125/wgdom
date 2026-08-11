@@ -1,7 +1,8 @@
 /**
  * MARKET-MATERIAL-RESEARCH-02 — provider factory harness (P1–P19 + regressions).
  *
- * Production path = DISCONNECTED (D1 UNKNOWN · Legal OPEN) · ZERO live HTTP · ZERO invent PLN.
+ * Production path = DISCONNECTED (ADAPTER_NOT_IMPLEMENTED after Legal PASS + D1 VERIFIED)
+ * · ZERO live HTTP · ZERO invent PLN.
  *
  * npx vite-node scripts/test-market-material-research-02.mjs
  */
@@ -184,11 +185,11 @@ function researchInput() {
   };
 }
 
-// ─── Baseline Legal / D1 ────────────────────────────────────────────────────
-eq("LEGAL gate OPEN", MARKET_SYNC_P3_LEGAL_GATE, "OPEN");
-eq("LEGAL isPass false", isMarketSyncP3LegalPass(), false);
-eq("D1 PRIMARY UNKNOWN", MMR_02_PRIMARY_SOURCE_STATUS, "UNKNOWN");
-eq("liveHttpEligible default false", isMmr02LiveHttpEligible(), false);
+// ─── Baseline Legal / D1 (OWNER-LEGAL-PASS-07) ───────────────────────────────
+eq("LEGAL gate PASS", MARKET_SYNC_P3_LEGAL_GATE, "PASS");
+eq("LEGAL isPass true", isMarketSyncP3LegalPass(), true);
+eq("D1 PRIMARY VERIFIED", MMR_02_PRIMARY_SOURCE_STATUS, "VERIFIED");
+eq("liveHttpEligible default true", isMmr02LiveHttpEligible(), true);
 eq("C4 rate", MMR_02_RATE_LIMIT_PER_MIN, 6);
 eq("C4 timeout", MMR_02_TIMEOUT_MS, 12_000);
 eq("C4 retry", MMR_02_MAX_RETRY, 1);
@@ -243,12 +244,17 @@ eq("C4 circuit failures", MMR_02_CIRCUIT_FAILURES, 3);
   if (!out.ok) eq("P2 error", out.error, "D1_PRIMARY_SOURCE_UNKNOWN");
 }
 
-// ─── P3 Legal OPEN → zero HTTP ──────────────────────────────────────────────
+// ─── P3 Legal PASS + D1 VERIFIED → still no adapter / zero HTTP ──────────────
 {
   const before = fetchCalls;
   const r = resolveMmr02Phase2Provider();
-  eq("P3 reason LEGAL", r.reason, "LEGAL_GATE_OPEN");
+  eq("P3 reason NO_ADAPTER", r.reason, "OK_DISCONNECTED_NO_ADAPTER");
   eq("P3 connected", r.connected, false);
+  eq("P3 liveHttpEligible", r.liveHttpEligible, true);
+  eq("P3 disconnect error id", r.provider.id, MMR_02_DISCONNECTED_PROVIDER_ID);
+  const gap = await r.provider.research(researchInput());
+  eq("P3 research ok", gap.ok, false);
+  if (!gap.ok) eq("P3 adapter gap", gap.error, "ADAPTER_NOT_IMPLEMENTED");
   resetMaterialResearchSessionCooldownForTests();
   const phase2 = await executeMaterialResearchPhase2({
     demand: missingDemand(),
@@ -262,7 +268,7 @@ eq("C4 circuit failures", MMR_02_CIRCUIT_FAILURES, 3);
   ok(
     "P3 error disconnected-ish",
     phase2.error === "provider_not_connected" ||
-      phase2.error === "LEGAL_GATE_OPEN" ||
+      phase2.error === "ADAPTER_NOT_IMPLEMENTED" ||
       phase2.error === "FAILED",
     { error: phase2.error },
   );

@@ -1,6 +1,6 @@
 /**
  * MARKET-SYNC-01 P3 — thin CTA mock ingest (flag-gated).
- * Legal Gate OPEN · live blocked · bez auto-publish / cron.
+ * Legal Gate PASS (OWNER-LEGAL-PASS-07) · live HTTP adapter brak · mock only · bez cron.
  */
 
 import {
@@ -68,7 +68,7 @@ export function MarketSyncP3Panel({
         <h3 className="text-sm font-semibold text-foreground">P3 — Ingest (mock)</h3>
         <p className="text-xs text-muted-foreground">
           Jedyny adapter: mock · provider <strong>{MARKET_SYNC_P3_DEFAULT_PROVIDER}</strong> ·
-          Legal Gate <strong>{MARKET_SYNC_P3_LEGAL_GATE}</strong> — live zablokowane · bez
+          Legal Gate <strong>{MARKET_SYNC_P3_LEGAL_GATE}</strong> — live HTTP adapter brak · bez
           auto-publish · bez cron
         </p>
       </div>

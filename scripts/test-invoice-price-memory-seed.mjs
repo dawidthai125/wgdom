@@ -1,6 +1,6 @@
 /**
  * Invoice Price Memory seed + cache-first research boundary harness.
- * TEST 1–10 (Owner) · Legal Gate OPEN / D1 UNKNOWN → ZERO live HTTP.
+ * TEST 1–10 (Owner) · Legal PASS / D1 VERIFIED → liveHttpEligible · ZERO live HTTP (no adapter).
  *
  * npx vite-node scripts/test-invoice-price-memory-seed.mjs
  */
@@ -89,10 +89,10 @@ const fixturePath = join(
 );
 const fixture = normalizeZygmuntInvoiceSeedFixture(JSON.parse(readFileSync(fixturePath, "utf8")));
 
-ok("LEGAL gate OPEN", MARKET_SYNC_P3_LEGAL_GATE === "OPEN");
-ok("LEGAL pass false", isMarketSyncP3LegalPass() === false);
-eq("D1 UNKNOWN", MMR_02_PRIMARY_SOURCE_STATUS, "UNKNOWN");
-ok("live HTTP not eligible", isMmr02LiveHttpEligible() === false);
+ok("LEGAL gate PASS", MARKET_SYNC_P3_LEGAL_GATE === "PASS");
+ok("LEGAL pass true", isMarketSyncP3LegalPass() === true);
+eq("D1 VERIFIED", MMR_02_PRIMARY_SOURCE_STATUS, "VERIFIED");
+ok("live HTTP eligible (no adapter yet)", isMmr02LiveHttpEligible() === true);
 
 const seed = seedInvoiceLinesToPriceMemory(emptyCatalog(), fixture.lines);
 
@@ -303,7 +303,8 @@ eq("T10 unknown priceType GAP", unknown.ok, false);
 
 const prodProvider = resolveMmr02Phase2Provider();
 ok("T10 production provider disconnected", prodProvider.connected === false);
-ok("T10 liveHttpEligible false", prodProvider.liveHttpEligible === false);
+ok("T10 liveHttpEligible true", prodProvider.liveHttpEligible === true);
+eq("T10 reason NO_ADAPTER", prodProvider.reason, "OK_DISCONNECTED_NO_ADAPTER");
 eq("T10 httpFetchCount 0", prodProvider.httpFetchCount, 0);
 
 ok("no unexpected fetch overall", fetchCalls === 0, { fetchCalls });
@@ -330,6 +331,8 @@ console.log(
       legalGate: MARKET_SYNC_P3_LEGAL_GATE,
       d1: MMR_02_PRIMARY_SOURCE_STATUS,
       researchLive: false,
+      liveHttpEligible: true,
+      adapter: "ADAPTER_NOT_IMPLEMENTED",
     },
     null,
     2,

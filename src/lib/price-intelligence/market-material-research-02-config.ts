@@ -1,11 +1,13 @@
 /**
  * MARKET-MATERIAL-RESEARCH-02 — config / D1 source status (thin).
  *
- * D1 PRIMARY SOURCE = UNKNOWN until Owner verification.
- * connected:true is FORBIDDEN while Legal OPEN or D1 UNKNOWN (AR C1).
+ * D1 PRIMARY SOURCE = VERIFIED after Owner Attestation
+ * (REAL-SOURCE-OWNER-LEGAL-PASS-07 · PRIVATE OWNER EVIDENCE NOT IN REPO).
+ * Primary DIY coverage: leroy · castorama · obi (selective MISSING/STALE only).
+ * connected:true still FORBIDDEN until live adapters + Owner GO IMPLEMENT (AR C1).
  */
 
-export const MMR_02_PRIMARY_SOURCE_STATUS = "UNKNOWN" as const;
+export const MMR_02_PRIMARY_SOURCE_STATUS = "VERIFIED" as const;
 
 export type Mmr02PrimarySourceStatus = "UNKNOWN" | "VERIFIED";
 

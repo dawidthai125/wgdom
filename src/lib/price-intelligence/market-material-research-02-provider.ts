@@ -1,7 +1,8 @@
 /**
  * MARKET-MATERIAL-RESEARCH-02 — production provider factory + candidate validation.
  *
- * D1 = UNKNOWN · Legal Gate = OPEN → connected:false · ZERO live shop HTTP.
+ * Legal PASS + D1 VERIFIED (OWNER-LEGAL-PASS-07) → liveHttpEligible:true
+ * but production still ADAPTER_NOT_IMPLEMENTED until Owner GO IMPLEMENT.
  * Shared Legal Gate: isMarketSyncP3LegalPass() — do NOT create a second gate.
  * Mock remains harness-only (useMockForTests / mockPriceNet / explicit provider).
  */
@@ -92,7 +93,7 @@ export function createMmr02DisconnectedProvider(
   };
 }
 
-/** Shop stubs remain disconnected (Leroy / Castorama / OBI) — never activate while D1 UNKNOWN. */
+/** Shop stubs remain disconnected until thin live adapters (Owner GO IMPLEMENT). */
 export function createMmr02ShopStubs(): MaterialResearchProvider[] {
   return [
     createDisconnectedLiveProviderStub("leroy"),
@@ -151,7 +152,7 @@ export function validateResearchCandidate(opts: {
 /**
  * Resolve Phase-2 provider for production / harness.
  *
- * Production default: DISCONNECTED (Legal OPEN or D1 UNKNOWN or no adapter).
+ * Production default: DISCONNECTED (Legal OPEN / D1 UNKNOWN / no adapter).
  * Harness: useMockForTests / mockPriceNet → mock (Stage B semantics).
  * Probe: optional connected test double wrapped with C4 guards — still ZERO real shop HTTP.
  */
@@ -202,7 +203,7 @@ export function resolveMmr02Phase2Provider(
     };
   }
 
-  // Legal PASS + D1 VERIFIED — still no live retailer adapter in -02 (do not invent API).
+  // Legal PASS + D1 VERIFIED — still no live retailer adapter until Owner GO IMPLEMENT.
   if (opts?.probeInner) {
     // Test probe only — may be connected; wrap with C4; never register global fetch.
     const wrapped = wrapProviderWithLoadGuards(opts.probeInner, {
