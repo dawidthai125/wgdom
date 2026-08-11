@@ -57,7 +57,7 @@ BUILD: PASS
 
 | Pole | Wartość |
 |------|---------|
-| **COMMIT** | `d3e63507` |
+| **COMMIT** | `dc9647af` |
 | **PUSH** | *(po `git push origin main`)* |
 | **PRODUCTION** | DEPLOY PROPAGATING / VERIFIED (po `version.json`) |
 
@@ -107,8 +107,8 @@ P1 — Firma → Nasz Katalog Robót (UI PL)
 
 | Pole | Wartość |
 |------|---------|
-| **COMMIT** | `d3e63507` |
-| **PUSH** | PASS (po push) |
-| **PRODUCTION** | po verify FAST |
+| **COMMIT** | `dc9647af` |
+| **PUSH** | PASS (`origin/main`) |
+| **PRODUCTION** | DEPLOY PROPAGATING (verify FAST) |
 
 ---
