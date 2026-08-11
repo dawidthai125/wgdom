@@ -366,3 +366,54 @@ export {
   getInvoiceApprovedConversion,
   applyInvoiceUnitConversion,
 } from "./invoice-unit-conversion";
+
+/* —— Invoice → Price Memory seed (HISTORICAL PURCHASE) —— */
+export {
+  INVOICE_PURCHASE_MATERIAL_PREFIX,
+  INVOICE_PURCHASE_WORK_PREFIX,
+  stableInvoiceSlugHash,
+  slugifyInvoiceProductCode,
+  isInvoicePurchaseMaterialKey,
+  isInvoicePurchaseCatalogWorkId,
+  invoicePurchaseWorkIdFromMaterialKey,
+  invoicePurchaseMaterialKeyFromWorkId,
+  toInvoiceCatalogWorkUnit,
+  resolveInvoicePurchaseHost,
+  buildInvoicePurchaseMapEntry,
+  type InvoicePurchaseHostResolution,
+} from "./invoice-purchase-host";
+
+export {
+  seedInvoiceLinesToPriceMemory,
+  normalizeZygmuntInvoiceSeedFixture,
+  type InvoicePriceMemorySeedObservation,
+  type InvoicePriceMemorySeedReport,
+  type ZygmuntInvoiceSeedFixtureFile,
+} from "./invoice-price-memory-seed";
+
+export {
+  qualifyMarketResearchObservation,
+  averageQualifyingRegularMarketPrices,
+  type MarketResearchPriceType,
+  type MarketResearchSellerKind,
+  type QualifyingMarketObservationInput,
+  type QualifyMarketObservationResult,
+  type MarketRegularAverageResult,
+} from "./market-research-qualify";
+
+export {
+  applyZygmuntInvoicePurchaseSeedToWorkCatalog,
+  type ApplyZygmuntInvoicePurchaseSeedResult,
+} from "./apply-zygmunt-invoice-purchase-seed";
+
+export {
+  ensureZygmuntInvoicePurchaseSeedLocal,
+  type EnsureZygmuntInvoicePurchaseSeedResult,
+} from "./ensure-zygmunt-invoice-purchase-seed";
+
+export {
+  ZYGMUNT_INVOICE_PURCHASE_SEED,
+  ZYGMUNT_INVOICE_PURCHASE_SEED_META,
+  ZYGMUNT_INVOICE_PURCHASE_SEED_GENERATED_AT,
+  type ZygmuntInvoicePurchaseSeedRow,
+} from "./zygmunt-invoice-purchase-seed-data";

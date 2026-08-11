@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-11",
+    version: "2.66.25",
+    label: "Price Memory — seed faktur Zygmunt",
+    items: [
+      {
+        type: "new",
+        text: "HISTORICAL PURCHASE seed z faktur Zygmunt → Price Memory (marketQuotes.wgdom + historia); 372 materialKey; cache-first REUSE; research live nadal zablokowany (Legal OPEN / D1 UNKNOWN). Bez scrapingu LM/Casto/OBI.",
+      },
+    ],
+  },
+  {
     date: "2026-08-10",
     version: "2.66.24",
     label: "Kosztorys — mokry jastrych cementowy V1",

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.25 — Price Memory — seed faktur Zygmunt (2026-08-11)
+
+- **new:** HISTORICAL PURCHASE seed (faktury Zygmunt) → Price Memory `marketQuotes.wgdom` + historia; 372 materialKey; cache-first REUSE; live research **BLOCKED** (Legal OPEN / D1 UNKNOWN)
+
 ## 2.66.24 — Kosztorys — mokry jastrych cementowy V1 (2026-08-10)
 
 - **new:** ECONOMY_WET_CEMENT_SCREED_V1 — Atlas POSTAR 10 · 2.0 kg/m²/mm · `mat.jastrych_cementowy` · wet eligibility · qty = area × thickness × 2.0 (Option A); dry/samopoziom/anhydryt OUT

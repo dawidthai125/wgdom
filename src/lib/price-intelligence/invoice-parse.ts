@@ -42,7 +42,20 @@ export function normalizeInvoiceUnit(unit: string): string {
   if (u === "m2" || u === "m²" || u === "mkw" || u === "sqm") return "m2";
   if (u === "m3" || u === "m³" || u === "m3") return "m3";
   if (u === "kg" || u === "kilogram" || u === "kilogramy") return "kg";
-  if (u === "szt" || u === "sztuka" || u === "sztuki" || u === "op" || u === "opak") return "szt";
+  if (
+    u === "szt" ||
+    u === "sztuka" ||
+    u === "sztuki" ||
+    u === "op" ||
+    u === "opak" ||
+    u === "wor" ||
+    u === "worek" ||
+    u === "para" ||
+    u === "pary"
+  ) {
+    return "szt";
+  }
+  if (u === "kpl" || u === "komplet") return "kpl";
   if (u === "mb" || u === "m" || u === "mbiezacym") return "mb";
   if (u === "l" || u === "ltr" || u === "litr") return "l";
   return u || "";

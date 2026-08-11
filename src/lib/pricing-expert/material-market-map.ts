@@ -1103,6 +1103,7 @@ export function lookupMaterialKeyByCatalogWorkId(
 /**
  * Demand identity: materialKey and/or exact alias → product catalogWorkId.
  * Labor blocklist IDs never returned as product host.
+ * Invoice purchase hosts: mat.inv.* ↔ cw.inv.* (exact convention, no fuzzy).
  */
 export function resolveDemandProductIdentityExact(opts: {
   materialKey?: string | null;
@@ -1118,6 +1119,30 @@ export function resolveDemandProductIdentityExact(opts: {
   const forcedCw = typeof opts.catalogWorkId === "string" ? opts.catalogWorkId.trim() : "";
   if (forcedCw && isLaborCatalogWorkBlockedForProductQuotes(forcedCw)) {
     return null;
+  }
+
+  const mkRaw = typeof opts.materialKey === "string" ? opts.materialKey.trim() : "";
+  if (mkRaw.startsWith("mat.inv.")) {
+    const slug = mkRaw.slice("mat.inv.".length);
+    if (slug) {
+      return {
+        materialKey: mkRaw,
+        catalogWorkId: `cw.inv.${slug}`,
+        labelPl: mkRaw,
+        via: "materialKey",
+      };
+    }
+  }
+  if (forcedCw.startsWith("cw.inv.")) {
+    const slug = forcedCw.slice("cw.inv.".length);
+    if (slug) {
+      return {
+        materialKey: `mat.inv.${slug}`,
+        catalogWorkId: forcedCw,
+        labelPl: `mat.inv.${slug}`,
+        via: "catalogWorkId",
+      };
+    }
   }
 
   const coverage = resolveMaterialCoverageExact({
