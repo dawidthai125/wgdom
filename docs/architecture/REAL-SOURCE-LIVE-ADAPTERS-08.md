@@ -1,10 +1,12 @@
 # REAL-SOURCE-LIVE-ADAPTERS-08 — Selective Live Material Research
 
-> **STATUS:** IMPLEMENT COMPLETE · awaiting COMMIT / PUSH / PRODUCTION VERIFY  
+> **STATUS:** **CLOSED** · **PRODUCTION VERIFIED · GREEN**  
 > **DATA:** 2026-08-11  
 > **UI:** **2.66.27**  
 > **EPIC:** thin live adapters Leroy Merlin · Castorama · OBI  
-> **PRIOR:** [`REAL-SOURCE-OWNER-LEGAL-PASS-07`](REAL-SOURCE-OWNER-LEGAL-PASS-07.md) · Legal Gate **PASS** · D1 **VERIFIED**
+> **FEATURE:** **`be136f2d`** · live tip **`a50c87a`**  
+> **PRIOR:** [`REAL-SOURCE-OWNER-LEGAL-PASS-07`](REAL-SOURCE-OWNER-LEGAL-PASS-07.md) · Legal Gate **PASS** · D1 **VERIFIED**  
+> **PV / CLOSEOUT:** [`REAL-SOURCE-LIVE-ADAPTERS-08-PRODUCTION-VERIFY.md`](REAL-SOURCE-LIVE-ADAPTERS-08-PRODUCTION-VERIFY.md) · [`REAL-SOURCE-LIVE-ADAPTERS-08-CLOSEOUT.md`](REAL-SOURCE-LIVE-ADAPTERS-08-CLOSEOUT.md)
 
 ---
 
@@ -122,4 +124,4 @@ docs/AI/09_PRODUCTION_BASELINE.md                   # tip po PV
 
 ## 8. NEXT
 
-BUILD → COMMIT (allowlist) → PUSH `main` → VERIFY FAST `version.json` **2.66.27** · Edge deploy via GH Action → CLOSEOUT.
+**CLOSED / PRODUCTION VERIFIED.** Tryb **UTRZYMANIE** · residual C1–C6 / new epic tylko Owner GO · **NIE** invent S10 · **NIE** masowy scrape.
