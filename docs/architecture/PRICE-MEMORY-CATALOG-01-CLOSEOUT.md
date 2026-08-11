@@ -1,31 +1,61 @@
 # PRICE-MEMORY-CATALOG-01 — CLOSEOUT
 
 > **DATA:** 2026-08-11  
-> **UI oczekiwany:** **2.66.28** · commit **`0984de94`**
+> **STATUS:** **CLOSED** · **PRODUCTION VERIFIED** · **GREEN**
 
 ```text
+==================================================
+PRICE-MEMORY-CATALOG-01
+==================================================
+
 IMPLEMENTATION:     COMPLETE
-TESTS:              PASS (harness 45 · seed 38 · LIVE-08 42 · MMR-02 73)
-BUILD:              PASS
-COMMIT:             0984de94 — feat(price-memory): add commercial price catalog
-PUSH:               PASS (main · HEAD = origin/main)
-PRODUCTION:         DEPLOY PROPAGATING
-                    (version.json single-check: 2.66.27 / 5eef2dc — poprzedni tip)
+FEATURE COMMIT:     0984de94
+DOCS TIP (prior):   ad02808a
+PRODUCTION:         VERIFIED
+VERSION:            2.66.28
+LIVE COMMIT:        0984de9
+                    (version.json — feature tip deploy)
 
 PRICE MEMORY:       PASS
 COMMERCIAL MARGIN:  PASS
 GLOBAL MARGIN:      PASS (MAX)
 SELL PRICE:         PASS (derived)
 TIMESTAMP:          PASS (priceObservedAt ≠ commercialPricing.updatedAt)
-PRICE CHANGE:       PASS (UNKNOWN gdy brak previous · C6)
-MANUAL REFRESH:     PASS
+PRICE CHANGE:       PASS
+MANUAL REFRESH:     PASS (UI + forceRefresh + Accept→commit wired)
 C1 NORMALIZE:       PASS
 C3 DEFAULT:         PASS (UNSET · nie Bid minMargin)
 C4 FORCE CURRENT:   PASS
-C5 ACCEPT:          PASS (Accept → commitMarketQuotesImport)
+C5 ACCEPT:          PASS
+C6 UNKNOWN:         PASS
 FULL CATALOGUE:     ZERO
 SECOND PRICE DB:    ZERO
+OPEN CATALOG HTTP:  ZERO
 REGRESSIONS:        PASS
+
+BUNDLE (live):      PASS
+  pricecatalog · Nasz katalog cen · commercialPricing
+  data-our-price-catalog · forceRefresh · Aktualizuj
+  commitMarketQuotesImport · TendersModule chunk
+
+PRE-DEPLOY TESTS (unchanged):
+  PRICE-MEMORY-CATALOG harness: 45 PASS
+  BUILD: PASS
+  INVOICE SEED: 38 PASS
+  LIVE-ADAPTERS-08: 42 PASS
+  MMR-02: 73 PASS
+
+NEXT: WAIT FOR OWNER NEXT GO
 ```
 
-Szczegóły: [`PRICE-MEMORY-CATALOG-01-IMPLEMENTATION-CLOSEOUT.md`](./PRICE-MEMORY-CATALOG-01-IMPLEMENTATION-CLOSEOUT.md)
+## Production Verify evidence
+
+| Check | Wynik |
+|-------|-------|
+| `https://www.wgdom.fun/version.json` | **2.66.28** / **`0984de9`** |
+| HEAD vs live | live = feature tip **`0984de9`**; docs tip `ad02808a` był post-push closeout |
+| Live bundle markers | **PASS** (`TendersModule-CNk9Lcfd.js` + `app-core` + `index`) |
+| Live research przy PV | **NIE uruchamiany** (zakaz masowego / zbędnego research) |
+
+Szczegóły implementacji: [`PRICE-MEMORY-CATALOG-01-IMPLEMENTATION-CLOSEOUT.md`](./PRICE-MEMORY-CATALOG-01-IMPLEMENTATION-CLOSEOUT.md)  
+Baseline tip: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)

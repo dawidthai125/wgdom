@@ -127,10 +127,12 @@ CLICK → ONE materialKey → forceRefresh (także CURRENT)
 
 | Pole | Wartość |
 |------|---------|
-| COMMIT | **`0984de94`** · `feat(price-memory): add commercial price catalog` |
-| PUSH | **PASS** · `main` · HEAD = origin/main |
-| version.json (single check) | **2.66.27** / **`5eef2dc`** (poprzedni tip) |
-| PRODUCTION | **DEPLOY PROPAGATING** — oczekiwany tip **2.66.28** / **`0984de94`** |
+| COMMIT (feature) | **`0984de94`** · `feat(price-memory): add commercial price catalog` |
+| DOCS tip (propagating closeout) | **`ad02808a`** |
+| PUSH | **PASS** · `main` |
+| version.json | **2.66.28** / **`0984de9`** |
+| PRODUCTION | **VERIFIED · GREEN** |
+| Live bundle | **PASS** — `pricecatalog` · Nasz katalog cen · `commercialPricing` · `forceRefresh` · Accept/commit |
 
 ---
 
