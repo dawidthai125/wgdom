@@ -465,6 +465,10 @@ export {
 } from "./ensure-zygmunt-invoice-purchase-seed";
 
 export {
+  ensureOurPriceCatalogMaterialPurchaseSeed,
+} from "./ensure-our-price-catalog-material-seed";
+
+export {
   ZYGMUNT_INVOICE_PURCHASE_SEED,
   ZYGMUNT_INVOICE_PURCHASE_SEED_META,
   ZYGMUNT_INVOICE_PURCHASE_SEED_GENERATED_AT,

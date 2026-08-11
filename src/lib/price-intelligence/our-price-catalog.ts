@@ -1,7 +1,8 @@
 /**
- * PRICE-MEMORY-CATALOG-01/02 — handlowa warstwa nad Price Memory (pure helpers).
+ * PRICE-MEMORY-CATALOG-01/02/03 — handlowa warstwa nad Price Memory (pure helpers).
  * ZERO live HTTP · ZERO second price DB · base = lookupPriceMemory.
  * CATALOG-02: MATERIAL ONLY — identity first · no blind CatalogWork catch-all.
+ * CATALOG-03: Material Candidate = visibility · Price Memory = CURRENT|STALE|MISSING.
  */
 
 import {
@@ -24,6 +25,7 @@ import {
   isInvoicePurchaseCatalogWorkId,
 } from "./invoice-purchase-host";
 import type { PriceMemoryHit } from "./price-memory";
+import { ZYGMUNT_INVOICE_PURCHASE_SEED } from "./zygmunt-invoice-purchase-seed-data";
 
 export const OUR_PRICE_CATALOG_PAGE_SIZE = 100;
 
@@ -51,7 +53,8 @@ export interface OurPriceCatalogRow {
   materialKey: string;
   namePl: string;
   unit: string;
-  basePrice: number;
+  /** null when Price Memory MISSING — do not invent. */
+  basePrice: number | null;
   priceObservedAt: string;
   freshness: MaterialCacheUsability;
   marginPct: number | null;
@@ -65,10 +68,10 @@ export interface OurPriceCatalogRow {
 }
 
 export function computeSellPricePln(
-  basePrice: number,
+  basePrice: number | null | undefined,
   marginPct: number | null | undefined,
 ): number | null {
-  if (!Number.isFinite(basePrice) || !(basePrice > 0)) return null;
+  if (basePrice == null || !Number.isFinite(basePrice) || !(basePrice > 0)) return null;
   if (marginPct == null || !Number.isFinite(marginPct)) return null;
   return roundMarketPricePln(basePrice * (1 + marginPct / 100));
 }
@@ -91,11 +94,11 @@ export function applyGlobalMarginFloor(
 }
 
 export function computePriceChangeFromHistory(
-  currentPrice: number,
+  currentPrice: number | null | undefined,
   history: CatalogWork["marketQuoteHistory"] | undefined,
   priceObservedAt: string,
 ): OurPriceChange {
-  if (!Number.isFinite(currentPrice) || !(currentPrice > 0)) {
+  if (currentPrice == null || !Number.isFinite(currentPrice) || !(currentPrice > 0)) {
     return {
       status: "UNKNOWN",
       deltaPln: null,
@@ -107,7 +110,6 @@ export function computePriceChangeFromHistory(
   const entries = [...(history ?? [])].sort((a, b) =>
     b.updatedAt.localeCompare(a.updatedAt),
   );
-  // Prefer previous observation older than current LAST timestamp
   let previous: number | null = null;
   for (const e of entries) {
     if (!(e.price > 0)) continue;
@@ -116,7 +118,6 @@ export function computePriceChangeFromHistory(
     previous = e.price;
     break;
   }
-  // Fallback: last history entry that differs from current
   if (previous == null) {
     for (const e of entries) {
       if (!(e.price > 0)) continue;
@@ -180,7 +181,6 @@ export function computeSourceCoverage(work: CatalogWork | null | undefined): Our
   }
   const invoiceHost = isInvoicePurchaseCatalogWorkId(work?.id ?? "");
   const hasDiyShop = present.includes("leroy") || present.includes("castorama");
-  // Invoice purchase → honest observed/observed. DIY market → trio (OBI→wgdom slot).
   const expectedFinal = invoiceHost
     ? Math.max(present.length, 1)
     : hasDiyShop || present.includes("wgdom")
@@ -211,17 +211,19 @@ export function isOurPriceCatalogMaterialHost(
   if (isProductCatalogWorkId(id)) return true;
   if (isInvoicePurchaseCatalogWorkId(id)) return true;
   if (id.startsWith("wc.market.")) return true;
-  // Identity-backed host (map prefer / seed ETICS material host e.g. cw.etics.substrate).
   if (identityCatalogWorkId && id === identityCatalogWorkId) return true;
   return false;
 }
 
 /**
- * Candidate materialKeys only — never every CatalogWork id.
- * Sources: DEFAULT_MATERIAL_MARKET_MAP · mat.inv.* from invoice hosts · mat.* keywords · identity from eligible hosts.
+ * Material candidates — NOT Price Memory HIT list.
+ * Sources: Zygmunt seed keys · DEFAULT_MATERIAL_MARKET_MAP · store inv/product/wc.market.
  */
 function collectCandidateMaterialKeys(store: WorkCatalogStore): string[] {
   const keys = new Set<string>();
+  for (const row of ZYGMUNT_INVOICE_PURCHASE_SEED) {
+    if (row.materialKey?.startsWith("mat.")) keys.add(row.materialKey);
+  }
   for (const entry of DEFAULT_MATERIAL_MARKET_MAP) {
     if (entry.materialKey?.startsWith("mat.")) keys.add(entry.materialKey);
   }
@@ -235,12 +237,7 @@ function collectCandidateMaterialKeys(store: WorkCatalogStore): string[] {
     }
     const fromKw = (work.keywords ?? []).find((k) => k.startsWith("mat."));
     if (fromKw) keys.add(fromKw);
-    // Only pull identity materialKey when host is already a known material host
-    // (not blind: every CatalogWork → identity).
-    if (
-      isProductCatalogWorkId(work.id) ||
-      work.id.startsWith("wc.market.")
-    ) {
+    if (isProductCatalogWorkId(work.id) || work.id.startsWith("wc.market.")) {
       const idExact = resolveDemandProductIdentityExact({ catalogWorkId: work.id });
       if (idExact?.materialKey?.startsWith("mat.")) keys.add(idExact.materialKey);
     }
@@ -252,11 +249,12 @@ function rowFromHit(
   hit: PriceMemoryHit,
   work: CatalogWork,
   freshness: MaterialCacheUsability,
+  materialKey: string,
 ): OurPriceCatalogRow {
   const marginPct = resolveMarginPct(work);
   return {
     workId: hit.workId,
-    materialKey: hit.materialKey ?? work.id,
+    materialKey,
     namePl: work.namePl,
     unit: work.unit,
     basePrice: hit.price,
@@ -277,11 +275,40 @@ function rowFromHit(
   };
 }
 
+function rowFromMissing(
+  work: CatalogWork,
+  materialKey: string,
+): OurPriceCatalogRow {
+  const marginPct = resolveMarginPct(work);
+  return {
+    workId: work.id,
+    materialKey,
+    namePl: work.namePl,
+    unit: work.unit,
+    basePrice: null,
+    priceObservedAt: "",
+    freshness: "MISSING",
+    marginPct,
+    marginUnset: marginPct == null,
+    sellPrice: null,
+    commercialPricing: work.commercialPricing,
+    priceChange: {
+      status: "UNKNOWN",
+      deltaPln: null,
+      deltaPct: null,
+      direction: null,
+      previousPrice: null,
+    },
+    sourceCoverage: computeSourceCoverage(work),
+    history: work.marketQuoteHistory,
+    companyPricePln: work.companyPricePln,
+  };
+}
+
 /**
- * Build catalog rows from existing Price Memory only (ZERO HTTP).
- * MATERIAL ONLY (CATALOG-02): materialKey → identity → reject LABOR → lookup → HIT → row.
- * No CatalogWork → marketQuotes → blind catalogWorkId catch-all.
- * Dedup by workId — one commercial host row per Price Memory work.
+ * Build catalog rows: Material Candidate → identity → labor reject → Memory status.
+ * ZERO HTTP. MISSING rows stay visible when host exists in store (no invent host).
+ * Dedup by workId — one row per commercial host.
  */
 export function buildOurPriceCatalogRows(opts: {
   store: WorkCatalogStore;
@@ -301,6 +328,9 @@ export function buildOurPriceCatalogRows(opts: {
     const identity = resolveDemandProductIdentityExact({ materialKey });
     if (!identity) continue;
     if (isLaborCatalogWorkBlockedForProductQuotes(identity.catalogWorkId)) continue;
+    if (!isOurPriceCatalogMaterialHost(identity.catalogWorkId, identity.catalogWorkId)) {
+      continue;
+    }
 
     const cache = evaluateMaterialCache({
       materialKey,
@@ -308,27 +338,29 @@ export function buildOurPriceCatalogRows(opts: {
       nowMs,
       region: opts.store.activeRegion,
     });
-    if (cache.usability === "MISSING" || !cache.hit) continue;
 
-    const hitWorkId = cache.hit.workId;
-    if (!isOurPriceCatalogMaterialHost(hitWorkId, identity.catalogWorkId)) continue;
-    if (isLaborCatalogWorkBlockedForProductQuotes(hitWorkId)) continue;
+    if (cache.usability !== "MISSING" && cache.hit) {
+      const hitWorkId = cache.hit.workId;
+      if (!isOurPriceCatalogMaterialHost(hitWorkId, identity.catalogWorkId)) continue;
+      if (isLaborCatalogWorkBlockedForProductQuotes(hitWorkId)) continue;
+      const work = worksById.get(hitWorkId);
+      if (!work) continue;
+      if (byWork.has(work.id)) continue;
+      byWork.set(
+        work.id,
+        rowFromHit(cache.hit, work, cache.usability, identity.materialKey),
+      );
+      continue;
+    }
 
-    const work = worksById.get(hitWorkId);
+    // MISSING: host must already exist in store (seed/ensure) — no invent CatalogWork.
+    const missingHostId = identity.catalogWorkId;
+    if (!isOurPriceCatalogMaterialHost(missingHostId, identity.catalogWorkId)) continue;
+    if (isLaborCatalogWorkBlockedForProductQuotes(missingHostId)) continue;
+    const work = worksById.get(missingHostId);
     if (!work) continue;
     if (byWork.has(work.id)) continue;
-
-    byWork.set(
-      work.id,
-      rowFromHit(
-        {
-          ...cache.hit,
-          materialKey: identity.materialKey,
-        },
-        work,
-        cache.usability,
-      ),
-    );
+    byWork.set(work.id, rowFromMissing(work, identity.materialKey));
   }
 
   let rows = [...byWork.values()].sort((a, b) =>

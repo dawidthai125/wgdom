@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.30 — Nasz katalog cen — 372 materiałów + status Price Memory (2026-08-11)
+
+- **fix:** PRICE-MEMORY-CATALOG-03 — katalog = materiały (seed 372) + CURRENT/STALE/MISSING · ensure lokalny · ZERO HTTP on open
+
 ## 2.66.29 — Nasz katalog cen — tylko materiały (2026-08-11)
 
 - **fix:** PRICE-MEMORY-CATALOG-02 — katalog MATERIAL ONLY · identity → Price Memory · bez catch-all CatalogWork/Quotes · labor poza katalogiem

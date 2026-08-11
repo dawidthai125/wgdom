@@ -8,8 +8,8 @@
 import type { AnalyzeMarketPricingOptions } from "@/lib/pricing-expert";
 import {
   ensureEconomyProductHostsLocal,
+  ensureOurPriceCatalogMaterialPurchaseSeed,
   ensurePi31EticsApprovedDataLocal,
-  ensureZygmuntInvoicePurchaseSeedLocal,
 } from "@/lib/price-intelligence";
 import {
   indexWorksById,
@@ -21,8 +21,8 @@ export function buildChiefPricingOptionsRo(): BuildChiefPricingOptionsRoResult {
   const gaps: ChiefWireAdapterGap[] = [];
   try {
     ensurePi31EticsApprovedDataLocal({ pushCloud: true });
-    // HISTORICAL PURCHASE seed (Zygmunt invoices) → Price Memory wgdom
-    ensureZygmuntInvoicePurchaseSeedLocal({ pushCloud: true });
+    // HISTORICAL PURCHASE seed — shared thin entry (CATALOG-03 A+D)
+    ensureOurPriceCatalogMaterialPurchaseSeed({ pushCloud: true });
     // PRICE-PATH-01 — structure-only hosts (no invent PLN)
     const ensured = ensureEconomyProductHostsLocal({ pushCloud: true });
     const store = ensured.catalogStore;

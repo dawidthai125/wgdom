@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-11",
+    version: "2.66.30",
+    label: "Nasz katalog cen — 372 materiałów + status Price Memory",
+    items: [
+      {
+        type: "fix",
+        text: "PRICE-MEMORY-CATALOG-03: Firma → Nasz katalog = lista materiałów (seed 372), nie tylko HIT. Status CURRENT/STALE/MISSING. Ensure Zygmunt lokalnie (pushCloud=false). ZERO HTTP przy otwarciu. Labor nadal poza katalogiem.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-11",
     version: "2.66.29",
     label: "Nasz katalog cen — tylko materiały",
     items: [

@@ -1,9 +1,10 @@
 /**
- * PRICE-MEMORY-CATALOG-01 — Firma → Nasz katalog cen.
- * READ Price Memory · commercial margin · force refresh ONE key · ZERO HTTP on open.
+ * PRICE-MEMORY-CATALOG-01/03 — Firma → Nasz katalog cen.
+ * Material candidates + Price Memory status · commercial margin · force refresh ONE key.
+ * ZERO HTTP on open · seed ensure pushCloud=false.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, Search, Tag } from "lucide-react";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
 import { useAdminAccess } from "@/app/admin-access";
@@ -14,6 +15,7 @@ import {
   acceptForceRefreshCandidate,
   buildOurPriceCatalogRows,
   createEdgeResearchLeasePort,
+  ensureOurPriceCatalogMaterialPurchaseSeed,
   forceResearchMaterialMarketPrice,
   paginateOurPriceCatalogRows,
   resetMaterialResearchSessionCooldownForTests,
@@ -86,15 +88,25 @@ export function OurPriceCatalogPanel() {
   const [errorPl, setErrorPl] = useState<string | null>(null);
   const [marginDraft, setMarginDraft] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [seedReady, setSeedReady] = useState(false);
+
+  // CATALOG-03: local purchase seed · pushCloud=false · ZERO live HTTP
+  useEffect(() => {
+    ensureOurPriceCatalogMaterialPurchaseSeed({ pushCloud: false });
+    reload();
+    setSeedReady(true);
+  }, [reload]);
 
   const rows = useMemo(
     () =>
-      buildOurPriceCatalogRows({
-        store,
-        search,
-        freshnessFilter,
-      }),
-    [store, search, freshnessFilter],
+      seedReady
+        ? buildOurPriceCatalogRows({
+            store,
+            search,
+            freshnessFilter,
+          })
+        : [],
+    [store, search, freshnessFilter, seedReady],
   );
 
   const pageData = useMemo(
@@ -195,7 +207,7 @@ export function OurPriceCatalogPanel() {
           <div>
             <h3 className="text-sm font-semibold">Nasz katalog cen</h3>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Warstwa handlowa nad Price Memory — cena bazowa tylko z rynku / faktur.
+              Nasz katalog materiałów — Status Price Memory (CURRENT / STALE / MISSING).
               Marża WGDOM osobno. Bez live HTTP przy otwarciu.
             </p>
           </div>
@@ -360,7 +372,13 @@ export function OurPriceCatalogPanel() {
                       )}
                     </td>
                     <td className="px-2 py-2">{row.unit || "—"}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">{formatPln(row.basePrice)}</td>
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      {row.basePrice == null ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        formatPln(row.basePrice)
+                      )}
+                    </td>
                     <td className="px-2 py-2">
                       {isSuperAdmin ? (
                         <div className="flex items-center gap-1">
@@ -396,15 +414,28 @@ export function OurPriceCatalogPanel() {
                       )}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      {row.sellPrice == null ? (
+                      {row.basePrice == null ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : row.sellPrice == null ? (
                         <span className="text-muted-foreground">Brak marży</span>
                       ) : (
                         formatPln(row.sellPrice)
                       )}
                     </td>
-                    <td className="px-2 py-2">{row.freshness}</td>
+                    <td className="px-2 py-2">
+                      <span
+                        className={cn(
+                          row.freshness === "MISSING" && "text-amber-700 dark:text-amber-400",
+                          row.freshness === "STALE" && "text-orange-700 dark:text-orange-400",
+                        )}
+                      >
+                        {row.freshness}
+                      </span>
+                    </td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      {formatObservedAt(row.priceObservedAt)}
+                      {row.priceObservedAt
+                        ? formatObservedAt(row.priceObservedAt)
+                        : "—"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap text-[10px]">
                       {formatPriceChange(row)}
@@ -425,10 +456,14 @@ export function OurPriceCatalogPanel() {
                           )}
                           disabled={busyKey === row.workId}
                           onClick={() => void onForceRefresh(row)}
-                          title="Wymusza research nawet dla CURRENT"
+                          title={
+                            row.freshness === "MISSING"
+                              ? "Aktualizuj cenę rynkową (MISSING)"
+                              : "Wymusza research nawet dla CURRENT"
+                          }
                         >
                           <RefreshCw size={12} aria-hidden />
-                          Aktualizuj
+                          {row.freshness === "MISSING" ? "Aktualizuj cenę rynkową" : "Aktualizuj"}
                         </button>
                       )}
                     </td>
@@ -438,7 +473,7 @@ export function OurPriceCatalogPanel() {
               {pageData.items.length === 0 && (
                 <tr>
                   <td colSpan={11} className="px-3 py-8 text-center text-muted-foreground">
-                    Brak rekordów Price Memory dla bieżącego filtra.
+                    Brak materiałów dla bieżącego filtra.
                   </td>
                 </tr>
               )}
