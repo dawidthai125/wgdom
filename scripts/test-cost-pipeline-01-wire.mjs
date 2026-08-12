@@ -62,14 +62,14 @@ assert.ok(doc);
 assert.ok((doc.totals.directPln ?? 0) > 0);
 
 // CP3 — runtime Bid z OfferBoq (L2), pricingMode offer_boq_ai
-const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.ok(runtime);
 assert.equal(runtime.usedOfferBoqDirect, true);
 assert.equal(runtime.proposal.pricingMode, "offer_boq_ai");
 assert.ok(runtime.proposal.recommendedBidPln != null && runtime.proposal.recommendedBidPln > 0);
 
 // CP4 — Outcome PLN ≡ explainability Bid (ta sama ścieżka L1→L2)
-const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT });
+const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.equal(view.available, true);
 assert.equal(view.bidProposal?.pricingMode, "offer_boq_ai");
 assert.equal(view.bidProposal?.recommendedBidPln, runtime.proposal.recommendedBidPln);
@@ -94,6 +94,7 @@ assert.notEqual(runtime.proposal.pricingMode, "catalog");
 const emptyRuntime = computeRuntimeBidFromOfferBoq({
   item: { id: "empty", tenderDossier: { kosztorys: null } },
   builtAt: FIXED_AT,
+  positionCostCutover: false,
 });
 assert.equal(emptyRuntime, null);
 

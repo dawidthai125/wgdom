@@ -44,7 +44,7 @@ const item = {
   },
 };
 
-const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT });
+const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.equal(view.available, true);
 assert.ok(view.document);
 assert.ok(view.bidImpact?.available);

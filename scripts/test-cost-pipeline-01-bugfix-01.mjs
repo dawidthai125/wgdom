@@ -64,6 +64,7 @@ const emptyItem = {
   const runtime = computeRuntimeBidFromOfferBoq({
     item: richItem,
     builtAt: FIXED_AT,
+    positionCostCutover: false,
   });
   assert.ok(runtime, "BF1 setup: OfferBoq runtime musi istnieć");
   const proposal = resolveTenderPricingAutoProposal({
@@ -71,6 +72,7 @@ const emptyItem = {
     swz: richItem.tenderDossier.swz,
     priceOverrides: [],
     costPipeline01Enabled: true,
+    positionCostCutover: false,
   });
   assert.ok(proposal);
   assert.equal(proposal.pricingMode, "offer_boq_ai");
@@ -85,6 +87,7 @@ const emptyItem = {
   const runtimeNull = computeRuntimeBidFromOfferBoq({
     item: emptyItem,
     builtAt: FIXED_AT,
+    positionCostCutover: false,
   });
   assert.equal(runtimeNull, null, "BF2 setup: OfferBoq null");
 

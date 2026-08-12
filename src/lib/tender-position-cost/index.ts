@@ -1,6 +1,6 @@
 /**
  * TENDER-BOQ-PRICING-REBUILD-01 — Position Cost public API.
- * F0: pure engine · F1: OUR RATE · F2: material SELL · F3: BOM · F4: OfferBoq shadow.
+ * F0: pure engine · F1: OUR RATE · F2: material SELL · F3: BOM · F4: OfferBoq shadow · F5: Bid cutover.
  */
 
 export type {
@@ -75,3 +75,21 @@ export {
   computeShadowPositionCostsForOfferBoq,
   resolveWorkIdentityFromOfferBoqLine,
 } from "@/lib/tender-position-cost/boq-shadow-adapter";
+
+export type {
+  BidCutoverGateResult,
+  ComputeBidFromPositionCostInput,
+  LegacyVsPositionCostBidCompare,
+  PositionCostBidDirectBuild,
+  PositionCostCutoverOpts,
+} from "@/lib/tender-position-cost/bid-position-cost-cutover";
+
+export {
+  BID_POSITION_COST_CUTOVER_SCHEMA_VERSION,
+  buildOfferBoqDirectFromPositionCost,
+  buildPositionCostBidDirect,
+  compareLegacyVsPositionCostBid,
+  computeBidProposalFromPositionCost,
+  computePositionCostShadowAndGate,
+  evaluateBidCutoverGate,
+} from "@/lib/tender-position-cost/bid-position-cost-cutover";

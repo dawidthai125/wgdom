@@ -543,6 +543,14 @@ export function presentOfferBoqExplainabilityView(
     item: TenderPipelineItem;
     minProjectDays?: number;
     maxConcurrentProjects?: number;
+    /**
+     * F5 Bid cutover. Default **true** — Position Cost → Bid.
+     * `false` = legacy OfferBoq totals (regresja S6 / do Fazy 6).
+     */
+    positionCostCutover?: boolean;
+    /** Override nowMs for deterministic tests. */
+    positionCostNowMs?: number;
+    paintCoats?: 1 | 2 | null;
   },
 ): OfferBoqExplainabilityView {
   const at = builtAt ?? doc.builtAt;
@@ -713,6 +721,7 @@ export function presentOfferBoqExplainabilityView(
   if (bidContext) {
     const profile = loadCompanyProfileLocal();
     const dossier = bidContext.item.tenderDossier;
+    const cutoverEnabled = bidContext.positionCostCutover !== false;
     const integration = integrateOfferBoqWithBidProposal({
       doc: normalized,
       kosztorys: dossier?.kosztorys,
@@ -723,6 +732,15 @@ export function presentOfferBoqExplainabilityView(
       maxConcurrentProjects:
         bidContext.maxConcurrentProjects ?? profile.maxConcurrentProjects,
       builtAt: at,
+      positionCostCutover: cutoverEnabled
+        ? {
+            store: loadWorkCatalogStoreLocal(),
+            nowMs:
+              bidContext.positionCostNowMs ??
+              (Number.isFinite(Date.parse(at)) ? Date.parse(at) : Date.now()),
+            paintCoats: bidContext.paintCoats ?? 2,
+          }
+        : null,
     });
     bidSections = buildOfferBoqBidViewSections({ integration });
     if (integration) {
@@ -823,6 +841,10 @@ export function computeRuntimeBidFromOfferBoq(opts: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
   builtAt?: string;
+  /** F5 — default true. */
+  positionCostCutover?: boolean;
+  positionCostNowMs?: number;
+  paintCoats?: 1 | 2 | null;
 }): RuntimeOfferBoqBidResult | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
   const doc = buildOfferBoqDocumentForPipelineItem({ item: opts.item, builtAt });
@@ -831,6 +853,7 @@ export function computeRuntimeBidFromOfferBoq(opts: {
   const profile = loadCompanyProfileLocal();
   const dossier = opts.item.tenderDossier;
   const kosztorysForBid = resolveKosztorysSnapshotForPricing(opts.item);
+  const cutoverEnabled = opts.positionCostCutover !== false;
   const integration = integrateOfferBoqWithBidProposal({
     doc,
     kosztorys: kosztorysForBid,
@@ -840,10 +863,35 @@ export function computeRuntimeBidFromOfferBoq(opts: {
     minProjectDays: profile.minProjectDays,
     maxConcurrentProjects: profile.maxConcurrentProjects,
     builtAt,
+    positionCostCutover: cutoverEnabled
+      ? {
+          store: loadWorkCatalogStoreLocal(),
+          nowMs:
+            opts.positionCostNowMs ??
+            (Number.isFinite(Date.parse(builtAt)) ? Date.parse(builtAt) : Date.now()),
+          paintCoats: opts.paintCoats ?? 2,
+        }
+      : null,
   });
   if (!integration) return null;
   if (integration.proposal.pricingMode !== "offer_boq_ai") return null;
-  if (!(integration.proposal.recommendedBidPln != null && integration.proposal.recommendedBidPln > 0)) {
+
+  // F5 cutover: zawsze zwróć wynik (w tym ok:false / GAP) — ZERO silent catalog fallback.
+  if (cutoverEnabled) {
+    return {
+      document: integration.documentWithTotals,
+      proposal: integration.proposal,
+      usedOfferBoqDirect: true,
+    };
+  }
+
+  // Legacy OfferBoq→Bid: tylko pozytywna rekomendacja.
+  if (
+    !(
+      integration.proposal.recommendedBidPln != null &&
+      integration.proposal.recommendedBidPln > 0
+    )
+  ) {
     return null;
   }
 
@@ -860,6 +908,10 @@ export function computeRuntimeBidFromOfferBoq(opts: {
 export function buildOfferBoqExplainabilityView(opts: {
   item: TenderPipelineItem;
   builtAt?: string;
+  /** F5 — default true. false = legacy Bid direct (regresja). */
+  positionCostCutover?: boolean;
+  positionCostNowMs?: number;
+  paintCoats?: 1 | 2 | null;
 }): OfferBoqExplainabilityView {
   const builtAt = opts.builtAt ?? new Date().toISOString();
   const doc = buildOfferBoqDocumentForPipelineItem(opts);
@@ -880,5 +932,10 @@ export function buildOfferBoqExplainabilityView(opts: {
     };
   }
 
-  return presentOfferBoqExplainabilityView(doc, builtAt, { item: opts.item });
+  return presentOfferBoqExplainabilityView(doc, builtAt, {
+    item: opts.item,
+    positionCostCutover: opts.positionCostCutover,
+    positionCostNowMs: opts.positionCostNowMs,
+    paintCoats: opts.paintCoats,
+  });
 }

@@ -19,6 +19,10 @@ import type {
   OfferBoqTotals,
 } from "@/lib/tender-offer-boq";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import {
+  computeBidProposalFromPositionCost,
+  type PositionCostCutoverOpts,
+} from "@/lib/tender-position-cost/bid-position-cost-cutover";
 
 export type OfferBoqBidAuditStepId =
   | "ai_cost"
@@ -257,6 +261,10 @@ export function buildOfferBoqBidAuditTrail(opts: {
 
 /**
  * Pełna integracja: adapter → computeTenderBidProposal → merge totals + audit trail.
+ *
+ * F5: gdy `positionCostCutover` podane → NEW path (Position Cost → Bid).
+ * Gate FAIL → ok:false + GAP · ZERO legacy fallback w trybie cutover.
+ * Bez `positionCostCutover` → LEGACY OfferBoq totals (zachowane do F6 / regresji).
  */
 export function integrateOfferBoqWithBidProposal(opts: {
   doc: OfferBoqDocument;
@@ -267,8 +275,91 @@ export function integrateOfferBoqWithBidProposal(opts: {
   minProjectDays?: number;
   maxConcurrentProjects?: number;
   builtAt?: string;
+  /** F5 Bid cutover — OUR RATE + BOM + Price Memory → Position Cost → Bid stack. */
+  positionCostCutover?: PositionCostCutoverOpts | null;
 }): OfferBoqBidIntegrationResult | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
+
+  if (opts.positionCostCutover) {
+    const cut = computeBidProposalFromPositionCost({
+      doc: opts.doc,
+      kosztorys: opts.kosztorys,
+      swz: opts.swz,
+      fit: opts.fit,
+      costModel: opts.costModel,
+      minProjectDays: opts.minProjectDays,
+      maxConcurrentProjects: opts.maxConcurrentProjects,
+      builtAt,
+      cutover: opts.positionCostCutover,
+    });
+
+    const payload: OfferBoqBidAdapterPayload = cut.directInput
+      ? {
+          directInput: cut.directInput,
+          averageConfidence: cut.directInput.averageConfidence,
+          companyKnowledgeHitCount: cut.directInput.companyKnowledgeHitCount,
+          componentCount: cut.directInput.componentCount,
+          pricedComponentCount: cut.directInput.pricedComponentCount,
+          builtAt,
+        }
+      : {
+          directInput: {
+            directPln: 0,
+            materialsPln: 0,
+            laborPln: 0,
+            equipmentPln: 0,
+            transportPln: 0,
+            auxiliaryPln: 0,
+            componentCount: cut.gate.billableLineCount,
+            pricedComponentCount: cut.gate.completeLineCount,
+            averageConfidence: "low",
+            companyKnowledgeHitCount: 0,
+            sourceLabelPl: "Position Cost cutover — GATE FAIL",
+          },
+          averageConfidence: "low",
+          companyKnowledgeHitCount: 0,
+          componentCount: cut.gate.billableLineCount,
+          pricedComponentCount: cut.gate.completeLineCount,
+          builtAt,
+        };
+
+    const auditTrail = cut.directInput
+      ? buildOfferBoqBidAuditTrail({ payload, proposal: cut.proposal })
+      : ([
+          {
+            id: "ai_cost",
+            labelPl: "Position Cost Engine (F5)",
+            detailPl: cut.proposal.warnings.join(" · ") || "CUTOVER GATE FAIL",
+            valueDisplay: null,
+          },
+          {
+            id: "adapter",
+            labelPl: "Cutover GATE",
+            detailPl: cut.gate.reasonsPl.join(" · ") || "FAIL",
+            valueDisplay: "FAIL",
+          },
+          {
+            id: "bid_proposal",
+            labelPl: "Bid Proposal",
+            detailPl: "Brak recommendedBid — jawne GAP Position Cost.",
+            valueDisplay: null,
+          },
+          {
+            id: "result",
+            labelPl: "Wynik",
+            detailPl: "ZERO legacy fallback · uzupełnij OUR RATE / BOM / Price Memory.",
+            valueDisplay: null,
+          },
+        ] satisfies OfferBoqBidAuditStep[]);
+
+    return {
+      proposal: cut.proposal,
+      payload,
+      auditTrail,
+      documentWithTotals: mergeOfferBoqBidProposalIntoDocument(opts.doc, cut.proposal),
+    };
+  }
+
   const payload = buildOfferBoqBidAdapterPayload(opts.doc, builtAt);
   if (!payload) return null;
 

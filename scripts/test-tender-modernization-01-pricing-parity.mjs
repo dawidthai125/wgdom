@@ -349,7 +349,7 @@ const rows = [];
 // 1. normal tender — Bid from CP01 path + Offer from Expert P0 path (dual engines)
 {
   const item = cp01Item();
-  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
   const bid = runtime?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
   const cls = classifyOfferBidParity({
@@ -378,7 +378,7 @@ const rows = [];
 // 2. minimum price floor — Bid floor vs Offer primary = variant (EXPECTED)
 {
   const item = cp01Item();
-  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
   const floor = runtime?.proposal?.floorBidPln ?? null;
   const rec = runtime?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
@@ -472,7 +472,7 @@ const rows = [];
 // 5. company pricing stack — Bid company model vs Offer 12%/5%
 {
   const item = cp01Item();
-  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
   const profile = loadCompanyProfileLocal();
   const bid = runtime?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
@@ -502,8 +502,8 @@ const rows = [];
 {
   const itemHi = cp01Item({ priceWeightPct: 90, estimatedValuePln: 40000 });
   const itemLo = cp01Item({ priceWeightPct: 40, estimatedValuePln: 40000 });
-  const hi = computeRuntimeBidFromOfferBoq({ item: itemHi, builtAt: FIXED_AT });
-  const lo = computeRuntimeBidFromOfferBoq({ item: itemLo, builtAt: FIXED_AT });
+  const hi = computeRuntimeBidFromOfferBoq({ item: itemHi, builtAt: FIXED_AT, positionCostCutover: false });
+  const lo = computeRuntimeBidFromOfferBoq({ item: itemLo, builtAt: FIXED_AT, positionCostCutover: false });
   const bidHi = hi?.proposal?.recommendedBidPln ?? null;
   const bidLo = lo?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
@@ -543,7 +543,7 @@ const rows = [];
 // 7. SWZ constraint — estimatedValue present on Bid path
 {
   const item = cp01Item({ estimatedValuePln: 35000, priceWeightPct: 85 });
-  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
   const bid = runtime?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
   const cls = classifyOfferBidParity({
@@ -573,6 +573,7 @@ const rows = [];
   const empty = computeRuntimeBidFromOfferBoq({
     item: { id: "empty", tenderDossier: { kosztorys: null } },
     builtAt: FIXED_AT,
+    positionCostCutover: false,
   });
   const cls = classifyOfferBidParity({
     recommendedBidPln: empty?.proposal?.recommendedBidPln ?? null,
@@ -681,7 +682,7 @@ const rows = [];
 // ourEstimate column (canonical apply path) — Decision override semantics
 {
   const item = cp01Item({ ourEstimatePln: 99999 });
-  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT });
+  const runtime = computeRuntimeBidFromOfferBoq({ item, builtAt: FIXED_AT, positionCostCutover: false });
   const bid = runtime?.proposal?.recommendedBidPln ?? null;
   const { offerPricePln } = computeCanonicalOfferPricePln();
   const cls = classifyOfferBidParity({

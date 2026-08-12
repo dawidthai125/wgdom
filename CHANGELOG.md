@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.42 — Position Cost Bid cutover Faza 5 (2026-08-12)
+
+- OfferBoq → Position Cost → Bid stack (Kp/profit/minMargin UNCHANGED) · gate · ZERO companyPrice · ZERO HTTP
+
 ## 2.66.41 — Position Cost BOQ shadow Faza 4 (2026-08-12)
 
 - OfferBoq → work identity → OUR RATE + BOM + SELL → Position Cost (SHADOW) · ZERO Bid cutover · ZERO HTTP

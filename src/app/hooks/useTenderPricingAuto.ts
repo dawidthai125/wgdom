@@ -61,6 +61,8 @@ export function resolveTenderPricingAutoProposal(opts: {
   priceOverrides: TenderPriceOverrideEntry[];
   /** Test override; domyślnie flaga tip. */
   costPipeline01Enabled?: boolean;
+  /** F5 — default true w runtime. Testy legacy: false. */
+  positionCostCutover?: boolean;
 }): TenderBidProposal | null {
   const costPipelineOn =
     opts.costPipeline01Enabled ?? isCostPipeline01Enabled();
@@ -69,6 +71,7 @@ export function resolveTenderPricingAutoProposal(opts: {
     const runtime = computeRuntimeBidFromOfferBoq({
       item: opts.item,
       swz: opts.swz ?? null,
+      positionCostCutover: opts.positionCostCutover,
     });
     if (runtime) {
       return runtime.proposal;

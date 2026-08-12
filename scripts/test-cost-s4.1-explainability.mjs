@@ -28,7 +28,7 @@ const emptyItem = {
   id: "t-empty",
   tenderDossier: { kosztorys: null },
 };
-const empty = buildOfferBoqExplainabilityView({ item: emptyItem, builtAt: FIXED_AT });
+const empty = buildOfferBoqExplainabilityView({ item: emptyItem, builtAt: FIXED_AT, positionCostCutover: false });
 assert.equal(empty.available, false);
 assert.ok(empty.emptyReasonPl);
 
@@ -62,7 +62,7 @@ const item = {
   },
 };
 
-const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT });
+const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.equal(view.available, true);
 assert.ok(view.summary);
 assert.equal(view.summary.lineCount, 2);

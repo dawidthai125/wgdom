@@ -206,7 +206,7 @@ const item = {
   id: "tid-s51-view",
   tenderDossier: { kosztorys: snapshot },
 };
-const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT });
+const view = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.equal(view.available, true);
 assert.ok(view.summary);
 assert.ok(typeof view.summary.companyKnowledgeHitCount === "number");

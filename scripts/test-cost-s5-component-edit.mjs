@@ -36,7 +36,7 @@ const item = {
   },
 };
 
-const baseline = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT });
+const baseline = buildOfferBoqExplainabilityView({ item, builtAt: FIXED_AT, positionCostCutover: false });
 assert.ok(baseline.document);
 assert.ok(baseline.summary);
 assert.equal(baseline.summary.aiOnlyCount >= 1, true);
