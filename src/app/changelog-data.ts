@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.37",
+    label: "Position Cost Engine (Faza 0) — pure lib",
+    items: [
+      {
+        type: "new",
+        text: "TENDER-BOQ-PRICING-REBUILD-01 FAZA 0: pure Position Cost Engine (labor OUR RATE × qty + Σ material SELL × qty). ZERO HTTP · bez Bid/Offer/Price Memory/Work Rate lookup · bez companyPricePln. F1+ nie w tym releasie.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.36",
     label: "Stawki robót — parser realnych cenników",
     items: [

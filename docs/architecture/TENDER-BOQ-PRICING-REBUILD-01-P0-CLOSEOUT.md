@@ -1,0 +1,54 @@
+# TENDER-BOQ-PRICING-REBUILD-01 — FAZA 0 CLOSEOUT
+
+> **DATA:** 2026-08-12  
+> **UI:** **2.66.37**
+
+```text
+TENDER-BOQ-PRICING-REBUILD-01 FAZA 0
+
+IMPLEMENTATION: COMPLETE
+POSITION COST ENGINE: PASS
+PURE: PASS
+LABOR: PASS
+MATERIAL: PASS
+MULTI-MATERIAL CONTRACT: PASS (0..N math only · bez BOM)
+COMPANYPRICEPLN LEAK: ZERO
+BID: UNCHANGED
+OFFER: UNCHANGED
+PRICE MEMORY: UNCHANGED
+WORK RATE MEMORY: UNCHANGED
+HTTP: 0
+RESEARCH: 0
+BUILD: PASS
+TESTS: 46 PASS / 0 FAIL (P0) · Bid/Offer/PM/WorkRate P0+P1 PASS
+COMMIT: (po push — uzupełnij SHA)
+PUSH: (po push)
+PRODUCTION: DEPLOY PROPAGATING (do potwierdzenia version.json 2.66.37)
+NEXT: FAZA 1 — ONLY AFTER OWNER GO
+```
+
+## Zakres
+
+Pure `computePositionCost` w `src/lib/tender-position-cost/`.
+
+## Poza zakresem
+
+F1 OUR RATE lookup · F2 materialKey/PM · F3 BOM · F4 BOQ · F5 Bid cutover.
+
+## Dokumentacja
+
+- [`TENDER-BOQ-PRICING-REBUILD-01-P0-POSITION-COST-ENGINE.md`](./TENDER-BOQ-PRICING-REBUILD-01-P0-POSITION-COST-ENGINE.md)
+- DF / ARCH / PLAN / AUDIT — bez zmiany semantyki biznesowej
+
+## Conditions
+
+| ID | F0 |
+|----|-----|
+| C-PCE-1 | PASS |
+| C-CPLN-1 | PASS |
+| C-STALE-1 | default blokada STALE (do Owner) |
+| C-AUX-1 | OUT |
+
+## STOP
+
+Czekaj na **OWNER GO FAZA 1**.

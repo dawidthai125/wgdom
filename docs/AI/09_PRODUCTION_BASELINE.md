@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.36** · **WORK-RATE-REAL-WORLD-VALIDATION-03** · **PRODUCTION VERIFIED · GREEN** · prior P2 **2.66.35** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = STOP**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.37** · **TENDER-BOQ-PRICING-REBUILD-01 FAZA 0** · prior RW-03 **2.66.36** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = FAZA 1 tylko Owner GO**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.36** |
-| **Deploy tip commit (`main` / `version.json`)** | **`73b8323`** · feature **`a834ed48`** · docs tip **`c744b4d3`** · prior P2 **`fcd65f43`** / UI **2.66.35** |
-| **Feature tip (WORK-RATE-REAL-WORLD-VALIDATION-03)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · parser tabel · kanoniczne URL · KB/Extradom/CR PASS · SCCOT RATE_GAP · selective ONE · CACHE-FIRST · Owner Accept → OUR RATE · UI **2.66.36** · feature **`a834ed48`** · live **`73b8323`** · [`DOC`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03.md) · [`PV`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03-PRODUCTION-VERIFY.md) · NEXT **STOP** |
+| **UI version (changelog / version.json)** | **2.66.37** (live may lag until deploy) |
+| **Deploy tip commit (`main` / `version.json`)** | *(po push Fazy 0)* · prior tip **`64dffab6`** / UI **2.66.36** PV GREEN |
+| **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 0)** | **COMPLETE** · pure Position Cost Engine · ZERO Bid/Offer/PM/WorkRate wire · UI **2.66.37** · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-P0-POSITION-COST-ENGINE.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-P0-CLOSEOUT.md) · NEXT **FAZA 1 Owner GO** |
+| **Feature tip (WORK-RATE-REAL-WORLD-VALIDATION-03)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · parser tabel · kanoniczne URL · KB/Extradom/CR PASS · SCCOT RATE_GAP · selective ONE · CACHE-FIRST · Owner Accept → OUR RATE · UI **2.66.36** · feature **`a834ed48`** · live **`73b8323`** · [`DOC`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03.md) · [`PV`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03-PRODUCTION-VERIFY.md) · tip supersedowany przez BOQ F0 |
 | **Feature tip (WORK-RATE-SELECTIVE-RESEARCH-02)** | **COMPLETE** · ONE work · 4 źródła · qualify · mediana · Owner Accept · Edge · tip supersedowany przez RW-03 · UI **2.66.35** · feature **`fcd65f43`** · [`DOC`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02.md) · [`CLOSEOUT`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02-CLOSEOUT.md) |
 | **Feature tip (WORK-RATE LEGAL ENABLEMENT)** | **PASS** · `WORK_RATE_LEGAL_GATE` · KB.pl / SCCOT / Extradom / CennikRemontow.pl **VERIFIED** · tip supersedowany przez P2 research · feature **`c7370015`** · UI **2.66.34** · [`PASS`](../architecture/WORK-RATE-OWNER-LEGAL-PASS.md) · [`CLOSEOUT`](../architecture/WORK-RATE-LEGAL-PASS-CLOSEOUT.md) |
 | **Feature tip (WORK-CATALOG-REBUILD-01 P1)** | **COMPLETE** · Firma → Nasz Katalog Robót UI · OUR RATE PL · Owner Edit · historia · filtry · ZERO HTTP · UI **2.66.33** · feature **`a2ceeef6`** · tip supersedowany przez Legal PASS · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P1-IMPLEMENTATION-CLOSEOUT.md) |
@@ -169,6 +170,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.66.37** / FAZA 0 Position Cost | TENDER-BOQ-PRICING-REBUILD-01 — pure engine | **COMPLETE** · deploy pending · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-P0-POSITION-COST-ENGINE.md) |
 | **2.66.36** / live **`73b8323`** · feature **`a834ed48`** | WORK-RATE-REAL-WORLD-VALIDATION-03 — parser tabel · canonical URL · selective research | **CLOSED** · **PV GREEN** · [`PV`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03-PRODUCTION-VERIFY.md) |
 | **2.66.22** / **`ec8a5044`** | TENDER-MODERNIZATION-01 / S3 — Align Pricing · Offer primary / NO PRIMARY / Bid legacy | **S3 CLOSED** · **PV** · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S3-CLOSEOUT.md) |
 | **2.66.22** / hist. **`1888d05f`** | TENDER-MODERNIZATION-01 / S2 — Dual Outcome · DW PRIMARY when Expert-effective | **S2 CLOSED** · **PV** · tip supersedowany · [`CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S2-CLOSEOUT.md) |

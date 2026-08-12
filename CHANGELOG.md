@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.37 — Position Cost Engine Faza 0 (2026-08-12)
+
+- Pure `computePositionCost` — labor OUR RATE × qty + Σ material SELL × qty · ZERO Bid/Offer/PM wire
+
 ## 2.66.36 — Stawki robót — parser realnych cenników (2026-08-12)
 
 - **fix:** WORK-RATE-REAL-WORLD-VALIDATION-03 — parser tabel + kanoniczne URL · SCCOT minimum/package REJECT · selective ONE work
