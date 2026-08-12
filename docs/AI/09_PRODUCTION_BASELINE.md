@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.43** · **C-MODE-1a FALLBACK REMOVAL** · **PRODUCTION VERIFIED · GREEN** · prior F5 **2.66.42** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = OWNER REVIEW · nie P7 auto**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.43** · **C-MODE-1a FALLBACK REMOVAL** · **PRODUCTION VERIFIED · GREEN** · TENDER-BOQ F0–F6 **CLOSED** · prior F5 **2.66.42** · continuity [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`…-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = OWNER REVIEW · GAP Equipment/Transport/Aux · nie P7 auto**.
 
 ---
 

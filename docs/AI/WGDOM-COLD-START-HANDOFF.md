@@ -3,7 +3,9 @@
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
 > **Data:** 2026-08-09  
-> **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
+> **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
+> **Tender pricing (F0–F6 + C-MODE-1a):** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) — tip **zawsze z 09** (nie hardcoduj tutaj)  
+> **Data:** 2026-08-09 · *(tabela CURRENT BASELINE poniżej może być historyczna — **tip = 09**)*
 
 ```text
 ════════════════════════════════════════════════════════
