@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Library, Settings2, Tag, Tags } from "lucide-react";
+import { Building2, Hammer, Library, Settings2, Tag, Tags } from "lucide-react";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderPriceBasePanel } from "@/app/TenderPriceBasePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { WorkCatalogView } from "@/app/work-catalog/WorkCatalogView";
 import { OurPriceCatalogPanel } from "@/app/price-catalog/OurPriceCatalogPanel";
+import { OurWorkRateCatalogPanel } from "@/app/work-rate-catalog/OurWorkRateCatalogPanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   TENDERS_COMPANY_SECTION_LABELS,
@@ -28,10 +29,17 @@ import {
 const SECTION_ORDER: TendersCompanySectionId[] = [
   "profile",
   "workcatalog",
+  "workratecatalog",
   "pricecatalog",
   "pricebase",
   "settings",
 ];
+
+const CATALOG_SECTIONS = new Set<TendersCompanySectionId>([
+  "workcatalog",
+  "workratecatalog",
+  "pricecatalog",
+]);
 
 /**
  * NG-TENDERS-WORKSPACE-01 — hub Firma (Configuration + Admin).
@@ -49,38 +57,28 @@ export function TendersCompanyTab({
   const visibleSections = useMemo(
     () =>
       SECTION_ORDER.filter(
-        (id) =>
-          (id !== "workcatalog" && id !== "pricecatalog") || canViewWorkCatalog,
+        (id) => !CATALOG_SECTIONS.has(id) || canViewWorkCatalog,
       ),
     [canViewWorkCatalog],
   );
 
   const [section, setSectionState] = useState<TendersCompanySectionId>(() => {
     const loaded = loadTendersCompanySection();
-    if (
-      (loaded === "workcatalog" || loaded === "pricecatalog") &&
-      !canViewWorkCatalog
-    ) {
+    if (CATALOG_SECTIONS.has(loaded) && !canViewWorkCatalog) {
       return "profile";
     }
     return loaded;
   });
 
   useEffect(() => {
-    if (
-      (section === "workcatalog" || section === "pricecatalog") &&
-      !canViewWorkCatalog
-    ) {
+    if (CATALOG_SECTIONS.has(section) && !canViewWorkCatalog) {
       setSectionState("profile");
       saveTendersCompanySection("profile");
     }
   }, [section, canViewWorkCatalog]);
 
   const setSection = (next: TendersCompanySectionId) => {
-    if (
-      (next === "workcatalog" || next === "pricecatalog") &&
-      !canViewWorkCatalog
-    ) {
+    if (CATALOG_SECTIONS.has(next) && !canViewWorkCatalog) {
       return;
     }
     setSectionState(next);
@@ -113,6 +111,7 @@ export function TendersCompanyTab({
               >
                 {id === "profile" && <Building2 size={13} aria-hidden />}
                 {id === "workcatalog" && <Library size={13} aria-hidden />}
+                {id === "workratecatalog" && <Hammer size={13} aria-hidden />}
                 {id === "pricecatalog" && <Tag size={13} aria-hidden />}
                 {id === "pricebase" && <Tags size={13} aria-hidden />}
                 {id === "settings" && <Settings2 size={13} aria-hidden />}
@@ -140,6 +139,12 @@ export function TendersCompanyTab({
         {section === "workcatalog" && canViewWorkCatalog && (
           <div className="min-h-0">
             <WorkCatalogView layout="embedded" />
+          </div>
+        )}
+
+        {section === "workratecatalog" && canViewWorkCatalog && (
+          <div className="min-h-0">
+            <OurWorkRateCatalogPanel />
           </div>
         )}
 

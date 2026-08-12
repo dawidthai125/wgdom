@@ -23,6 +23,7 @@ export type TendersTabId = keyof typeof TENDERS_MODULE_LABELS.tabs;
 export const TENDERS_COMPANY_SECTION_LABELS = {
   profile: "Profil firmy",
   workcatalog: "Biblioteka Robót",
+  workratecatalog: "Nasz Katalog Robót",
   pricecatalog: "Nasz katalog cen",
   pricebase: "Ustawienia wyceny",
   settings: "Ustawienia",

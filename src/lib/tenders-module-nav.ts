@@ -26,6 +26,7 @@ const LEGACY_TAB_TO_V2: Record<string, TendersTabId> = {
   map: "map",
   profile: "company",
   workcatalog: "company",
+  workratecatalog: "company",
   pricecatalog: "company",
   pricebase: "company",
   settings: "company",
@@ -37,6 +38,7 @@ const LEGACY_TAB_TO_V2: Record<string, TendersTabId> = {
 const LEGACY_TO_COMPANY_SECTION: Record<string, TendersCompanySectionId> = {
   profile: "profile",
   workcatalog: "workcatalog",
+  workratecatalog: "workratecatalog",
   pricecatalog: "pricecatalog",
   pricebase: "pricebase",
   settings: "settings",
@@ -45,6 +47,7 @@ const LEGACY_TO_COMPANY_SECTION: Record<string, TendersCompanySectionId> = {
 const COMPANY_SECTIONS: readonly TendersCompanySectionId[] = [
   "profile",
   "workcatalog",
+  "workratecatalog",
   "pricecatalog",
   "pricebase",
   "settings",

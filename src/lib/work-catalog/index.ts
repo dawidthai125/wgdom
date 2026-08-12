@@ -418,3 +418,19 @@ export {
   type WorkRateResearchRequest,
   type WorkRateResearchResult,
 } from "@/lib/work-catalog/work-rate-research-stub";
+
+export {
+  OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
+  buildOurWorkRateCatalogRows,
+  computeOurWorkRatePriceChange,
+  formatOurWorkRateObservedAtPl,
+  formatOurWorkRatePln,
+  ourWorkRateCatalogUiUsesPolishLabelsOnly,
+  summarizeOurWorkRateCatalogRows,
+  workRateSourceTypeLabelPl,
+  workRateUnitLabelPl,
+  type OurWorkRateCatalogFreshnessFilter,
+  type OurWorkRateCatalogRow,
+  type OurWorkRateCatalogSummary,
+  type OurWorkRatePriceChange,
+} from "@/lib/work-catalog/our-work-rate-catalog";

@@ -1,0 +1,502 @@
+/**
+ * WORK-CATALOG-REBUILD-01 P1 — Firma → Nasz Katalog Robót.
+ * OUR RATE only · ZERO HTTP on open · companyPricePln never as rate.
+ */
+
+import { useMemo, useState } from "react";
+import { Hammer, History, Pencil, Search, X } from "lucide-react";
+import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
+import {
+  OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
+  buildOurWorkRateCatalogRows,
+  formatOurWorkRateObservedAtPl,
+  formatOurWorkRatePln,
+  summarizeOurWorkRateCatalogRows,
+  workRateSourceTypeLabelPl,
+  type OurWorkRateCatalogFreshnessFilter,
+  type OurWorkRateCatalogRow,
+} from "@/lib/work-catalog/our-work-rate-catalog";
+import {
+  WORK_RATE_REGION_SCOPE_LABELS_PL,
+  type WorkRateRegionScope,
+} from "@/lib/work-catalog/work-rate-types";
+import { WgButton, WgField } from "@/app/ui";
+import { cn } from "@/app/components/ui/utils";
+import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
+
+function freshnessToneClass(freshness: OurWorkRateCatalogRow["freshness"]): string {
+  switch (freshness) {
+    case "CURRENT":
+      return "text-emerald-700 dark:text-emerald-400";
+    case "STALE":
+      return "text-orange-700 dark:text-orange-400";
+    case "MISSING":
+      return "text-destructive";
+    default:
+      return "text-muted-foreground";
+  }
+}
+
+function changeToneClass(label: string, status: "KNOWN" | "UNKNOWN"): string {
+  if (status === "UNKNOWN") return "text-muted-foreground";
+  if (label.startsWith("+")) return "text-emerald-700 dark:text-emerald-400";
+  if (label.startsWith("-")) return "text-destructive";
+  return "text-muted-foreground";
+}
+
+export function OurWorkRateCatalogPanel() {
+  const { store, reload, updateOurWorkRate } = useWorkCatalog();
+  const [search, setSearch] = useState("");
+  const [freshnessFilter, setFreshnessFilter] =
+    useState<OurWorkRateCatalogFreshnessFilter>("ALL");
+  const [editing, setEditing] = useState<OurWorkRateCatalogRow | null>(null);
+  const [draftRate, setDraftRate] = useState("");
+  const [draftRegion, setDraftRegion] = useState<WorkRateRegionScope>("WROCLAW");
+  const [historyRow, setHistoryRow] = useState<OurWorkRateCatalogRow | null>(null);
+  const [errorPl, setErrorPl] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  // ZERO HTTP — tylko lokalny store (reload bez sieci).
+  const allRows = useMemo(
+    () =>
+      buildOurWorkRateCatalogRows({
+        store,
+        search: "",
+        freshnessFilter: "ALL",
+        activeOnly: true,
+      }),
+    [store],
+  );
+
+  const summary = useMemo(() => summarizeOurWorkRateCatalogRows(allRows), [allRows]);
+
+  const rows = useMemo(
+    () =>
+      buildOurWorkRateCatalogRows({
+        store,
+        search,
+        freshnessFilter,
+        activeOnly: true,
+      }),
+    [store, search, freshnessFilter],
+  );
+
+  function openEdit(row: OurWorkRateCatalogRow): void {
+    setErrorPl(null);
+    setEditing(row);
+    setDraftRate(
+      row.ourRatePln != null && row.ourRatePln > 0
+        ? String(row.ourRatePln).replace(".", ",")
+        : "",
+    );
+    setDraftRegion(row.regionScope ?? "WROCLAW");
+  }
+
+  async function onSaveEdit(): Promise<void> {
+    if (!editing || busyId) return;
+    const normalized = draftRate.trim().replace(",", ".");
+    const value = Number(normalized);
+    if (!Number.isFinite(value) || !(value > 0)) {
+      setErrorPl("Podaj stawkę większą od zera (np. 55,00).");
+      return;
+    }
+    setBusyId(editing.workId);
+    setErrorPl(null);
+    try {
+      const res = await updateOurWorkRate({
+        workId: editing.workId,
+        unit: editing.unit,
+        ourRatePln: Math.round(value * 100) / 100,
+        regionScope: draftRegion,
+      });
+      if (!res.ok) {
+        setErrorPl(res.message);
+        return;
+      }
+      setEditing(null);
+      reload();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div className="space-y-3" data-our-work-rate-catalog>
+      <div className="rounded-xl border border-border bg-card p-3 sm:p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <Hammer size={16} className="text-primary mt-0.5 shrink-0" aria-hidden />
+          <div>
+            <h3 className="text-sm font-semibold">Nasz Katalog Robót</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              Aktualne stawki robocizny (OUR RATE) dla robót z Biblioteki. Status: AKTUALNA /
+              PRZETERMINOWANA / BRAK STAWKI. Nie miesza się z cenami materiałów ani starą ceną
+              firmy.
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"
+          data-work-rate-catalog-summary
+        >
+          <div className="rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2">
+            <div className="text-muted-foreground">Wszystkie roboty</div>
+            <div className="text-sm font-semibold tabular-nums">{summary.total}</div>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2">
+            <div className="text-muted-foreground">Aktualne</div>
+            <div className="text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
+              {summary.current}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2">
+            <div className="text-muted-foreground">Przeterminowane</div>
+            <div className="text-sm font-semibold tabular-nums text-orange-700 dark:text-orange-400">
+              {summary.stale}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2">
+            <div className="text-muted-foreground">Brak stawki</div>
+            <div className="text-sm font-semibold tabular-nums text-destructive">
+              {summary.missing}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-end flex-wrap">
+          <div className="flex flex-wrap gap-1.5 order-2 sm:order-1">
+            {OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFreshnessFilter(f.id)}
+                aria-pressed={freshnessFilter === f.id}
+                aria-label={`Filtr: ${f.label}`}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-lg text-[11px] font-medium border min-h-[40px]",
+                  freshnessFilter === f.id
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-secondary/30 text-muted-foreground",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <label className="flex-1 min-w-[12rem] space-y-1 order-1 sm:order-2">
+            <span className="text-[11px] text-muted-foreground">Wyszukiwarka</span>
+            <div className="relative">
+              <Search
+                size={14}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <input
+                className={cn(
+                  "w-full rounded-md border border-border bg-background pl-8 pr-3 text-sm",
+                  WG_TOUCH_MIN,
+                )}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Wpisz nazwę roboty…"
+                aria-label="Wyszukaj robotę"
+              />
+            </div>
+          </label>
+        </div>
+
+        {errorPl && (
+          <p className="text-xs text-destructive" role="alert">
+            {errorPl}
+          </p>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs min-w-[720px]">
+            <thead className="bg-secondary/40 text-muted-foreground">
+              <tr>
+                <th className="px-2 py-2 font-medium">Robota</th>
+                <th className="px-2 py-2 font-medium">Jednostka</th>
+                <th className="px-2 py-2 font-medium">Nasza stawka</th>
+                <th className="px-2 py-2 font-medium">Status</th>
+                <th className="px-2 py-2 font-medium">Ostatnia aktualizacja</th>
+                <th className="px-2 py-2 font-medium">Źródło</th>
+                <th className="px-2 py-2 font-medium">Region</th>
+                <th className="px-2 py-2 font-medium">Zmiana</th>
+                <th className="px-2 py-2 font-medium">Akcja</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr
+                  key={row.identityKey}
+                  className="border-t border-border/60 align-top hover:bg-secondary/20"
+                  data-work-rate-row={row.workId}
+                  data-freshness={row.freshness}
+                  data-our-rate={row.ourRatePln ?? ""}
+                >
+                  <td className="px-2 py-2 font-medium text-foreground">{row.namePl}</td>
+                  <td className="px-2 py-2 tabular-nums">{row.unitLabelPl}</td>
+                  <td className="px-2 py-2 tabular-nums font-semibold">
+                    {formatOurWorkRatePln(row.ourRatePln)}
+                  </td>
+                  <td className={cn("px-2 py-2 font-medium", freshnessToneClass(row.freshness))}>
+                    {row.freshnessLabelPl}
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap">{row.observedAtLabelPl}</td>
+                  <td className="px-2 py-2">{row.sourceLabelPl}</td>
+                  <td className="px-2 py-2">{row.regionLabelPl}</td>
+                  <td
+                    className={cn(
+                      "px-2 py-2",
+                      changeToneClass(row.priceChange.labelPl, row.priceChange.status),
+                    )}
+                  >
+                    {row.priceChange.labelPl}
+                  </td>
+                  <td className="px-2 py-2">
+                    <div className="flex flex-wrap gap-1">
+                      <WgButton
+                        type="button"
+                        variant="secondary"
+                        className="!min-h-[36px] !px-2 !text-[11px]"
+                        onClick={() => openEdit(row)}
+                      >
+                        <Pencil size={12} aria-hidden />
+                        Edytuj stawkę
+                      </WgButton>
+                      <WgButton
+                        type="button"
+                        variant="ghost"
+                        className="!min-h-[36px] !px-2 !text-[11px]"
+                        onClick={() => setHistoryRow(row)}
+                        disabled={row.history.length === 0}
+                      >
+                        <History size={12} aria-hidden />
+                        Historia
+                      </WgButton>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="px-3 py-8 text-center text-muted-foreground">
+                    Brak robót spełniających kryteria.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile cards — bez poziomego scrolla */}
+      <div className="md:hidden space-y-2" data-work-rate-catalog-mobile>
+        {rows.map((row) => (
+          <article
+            key={row.identityKey}
+            className="rounded-xl border border-border bg-card p-3 space-y-2"
+            data-work-rate-row={row.workId}
+            data-freshness={row.freshness}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <h4 className="text-sm font-semibold leading-snug">{row.namePl}</h4>
+              <span className={cn("text-[11px] font-medium shrink-0", freshnessToneClass(row.freshness))}>
+                {row.freshnessLabelPl}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+              <div>
+                <span className="text-muted-foreground">Jednostka</span>
+                <div className="font-medium">{row.unitLabelPl}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Nasza stawka</span>
+                <div className="font-semibold tabular-nums text-sm">
+                  {formatOurWorkRatePln(row.ourRatePln)}
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Data</span>
+                <div>{row.observedAtLabelPl}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Źródło</span>
+                <div>{row.sourceLabelPl}</div>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Zmiana</span>
+                <div className={changeToneClass(row.priceChange.labelPl, row.priceChange.status)}>
+                  {row.priceChange.labelPl}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <WgButton type="button" variant="secondary" onClick={() => openEdit(row)}>
+                <Pencil size={13} aria-hidden />
+                Edytuj stawkę
+              </WgButton>
+              <WgButton
+                type="button"
+                variant="ghost"
+                onClick={() => setHistoryRow(row)}
+                disabled={row.history.length === 0}
+              >
+                <History size={13} aria-hidden />
+                Historia
+              </WgButton>
+            </div>
+          </article>
+        ))}
+        {rows.length === 0 && (
+          <p className="text-center text-xs text-muted-foreground py-8">
+            Brak robót spełniających kryteria.
+          </p>
+        )}
+      </div>
+
+      {editing && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-3"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edytuj stawkę"
+          data-work-rate-edit-modal
+        >
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-4 space-y-3 shadow-lg">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h4 className="text-sm font-semibold">Edytuj stawkę</h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {editing.namePl} · {editing.unitLabelPl}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="p-2 rounded-lg hover:bg-secondary/60"
+                aria-label="Zamknij"
+                onClick={() => setEditing(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <WgField
+              label={`Nasza stawka (zł / ${editing.unitLabelPl})`}
+              value={draftRate}
+              onChange={(e) => setDraftRate(e.target.value)}
+              inputMode="decimal"
+              autoFocus
+            />
+            <label className="block space-y-1 text-[11px]">
+              <span className="text-muted-foreground">Region obserwacji</span>
+              <select
+                className={cn(
+                  "w-full rounded-md border border-border bg-background px-3 text-sm",
+                  WG_TOUCH_MIN,
+                )}
+                value={draftRegion}
+                onChange={(e) => setDraftRegion(e.target.value as WorkRateRegionScope)}
+              >
+                {(Object.keys(WORK_RATE_REGION_SCOPE_LABELS_PL) as WorkRateRegionScope[]).map(
+                  (code) => (
+                    <option key={code} value={code}>
+                      {WORK_RATE_REGION_SCOPE_LABELS_PL[code]}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+            <p className="text-[11px] text-muted-foreground">
+              Zapis trafia wyłącznie do Nasz Katalog Robót (OUR RATE). Stara cena firmy nie jest
+              zmieniana.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <WgButton
+                type="button"
+                onClick={() => void onSaveEdit()}
+                disabled={busyId === editing.workId}
+              >
+                Zapisz stawkę
+              </WgButton>
+              <WgButton type="button" variant="secondary" onClick={() => setEditing(null)}>
+                Anuluj
+              </WgButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {historyRow && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-3"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Historia stawek"
+          data-work-rate-history-modal
+        >
+          <div className="w-full max-w-lg rounded-xl border border-border bg-card p-4 space-y-3 shadow-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-start justify-between gap-2 shrink-0">
+              <div>
+                <h4 className="text-sm font-semibold">Historia</h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {historyRow.namePl} · {historyRow.unitLabelPl} · max 24 wpisy
+                </p>
+              </div>
+              <button
+                type="button"
+                className="p-2 rounded-lg hover:bg-secondary/60"
+                aria-label="Zamknij"
+                onClick={() => setHistoryRow(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="overflow-y-auto min-h-0 space-y-1.5 text-xs">
+              {[...historyRow.history].reverse().map((h, idx) => (
+                <div
+                  key={`${h.observedAt}-${idx}`}
+                  className="rounded-lg border border-border/60 px-2.5 py-2 flex flex-wrap gap-x-3 gap-y-1"
+                >
+                  <span className="font-semibold tabular-nums">
+                    {formatOurWorkRatePln(h.ratePln)}
+                  </span>
+                  <span>{workRateSourceTypeLabelPl(h.sourceType)}</span>
+                  <span>{WORK_RATE_REGION_SCOPE_LABELS_PL[h.regionScope]}</span>
+                  <span className="text-muted-foreground">
+                    {formatOurWorkRateObservedAtPl(h.observedAt)}
+                  </span>
+                  {h.changePln != null && Number.isFinite(h.changePln) && (
+                    <span
+                      className={changeToneClass(
+                        `${h.changePln > 0 ? "+" : ""}${h.changePln}`,
+                        "KNOWN",
+                      )}
+                    >
+                      {h.changePln > 0 ? "+" : ""}
+                      {h.changePln.toLocaleString("pl-PL", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      zł
+                    </span>
+                  )}
+                </div>
+              ))}
+              {historyRow.history.length === 0 && (
+                <p className="text-muted-foreground text-center py-6">Brak historii stawek.</p>
+              )}
+            </div>
+            <WgButton type="button" variant="secondary" onClick={() => setHistoryRow(null)}>
+              Zamknij
+            </WgButton>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

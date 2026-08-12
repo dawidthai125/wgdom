@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.33 — Nasz Katalog Robót — UI Firma P1 (2026-08-12)
+
+- **new:** WORK-CATALOG-REBUILD-01 P1 — Firma → Nasz Katalog Robót · OUR RATE UI · Owner Edit · historia · filtry PL · bez seed companyPricePln · research BLOCKED
+
 ## 2.66.32 — Nasz Katalog Robót — fundament OUR RATE P0 (2026-08-11)
 
 - **new:** WORK-CATALOG-REBUILD-01 P0 — OUR RATE na `kw-wgdom-work-catalog` · identity workId+unit · C1 normalize · lookup ZERO HTTP · Owner edit bez seed `companyPricePln` · research BLOCKED · Bid/Offer/PM UNCHANGED

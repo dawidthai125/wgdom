@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-12",
+    version: "2.66.33",
+    label: "Nasz Katalog Robót — UI Firma (P1)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-CATALOG-REBUILD-01 P1: Firma → Nasz Katalog Robót — lista z Biblioteki, OUR RATE (AKTUALNA/PRZETERMINOWANA/BRAK STAWKI), Owner Edit, historia, filtry. Bez companyPricePln jako ceny, ZERO HTTP, research BLOCKED. Bid/Offer/Price Memory UNCHANGED.",
+      },
+    ],
+  },
+  {
     date: "2026-08-11",
     version: "2.66.32",
     label: "Nasz Katalog Robót — fundament OUR RATE (P0)",

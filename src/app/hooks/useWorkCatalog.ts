@@ -24,6 +24,9 @@ import {
   applyGlobalCommercialMarginFloorToStore,
   patchWorkCommercialPricing,
 } from "@/lib/price-intelligence/our-price-catalog";
+import { patchOurWorkRateInStore } from "@/lib/work-catalog/work-rate-patch";
+import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
+import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 
 export type UseWorkCatalogResult = {
   store: WorkCatalogStore;
@@ -48,6 +51,15 @@ export type UseWorkCatalogResult = {
     workIds: readonly string[],
     globalMarginPct: number,
   ) => Promise<UpdateBulkCompanyPricesResult>;
+  /** WORK-CATALOG-REBUILD-01 — Owner edit OUR RATE (nie companyPricePln). */
+  updateOurWorkRate: (input: UpdateOurWorkRateInput) => Promise<UpdateCompanyPriceResult>;
+};
+
+export type UpdateOurWorkRateInput = {
+  workId: string;
+  unit: WgdomCostUnit;
+  ourRatePln: number;
+  regionScope?: WorkRateRegionScope;
 };
 
 export type UpdateCompanyPriceResult =
@@ -291,6 +303,53 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     [store, notifyPricingCatalogChanged],
   );
 
+  const updateOurWorkRate = useCallback(
+    async (input: UpdateOurWorkRateInput): Promise<UpdateCompanyPriceResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const patched = patchOurWorkRateInStore(store, {
+        workId: input.workId,
+        unit: input.unit,
+        ourRatePln: input.ourRatePln,
+        sourceType: "OWNER",
+        regionScope: input.regionScope ?? "WROCLAW",
+        observedAt: updatedAtIso,
+        updatedAt: updatedAtIso,
+      });
+      if (!patched.ok) {
+        const msg =
+          patched.reason === "UNIT_MISMATCH"
+            ? "Jednostka nie zgadza się z definicją roboty"
+            : patched.reason === "WORK_NOT_FOUND"
+              ? "Nie znaleziono roboty w katalogu"
+              : patched.reason === "INVALID_RATE"
+                ? "Nieprawidłowa stawka"
+                : "Nie udało się zapisać stawki";
+        return { ok: false, message: msg };
+      }
+      setStore(patched.store);
+      try {
+        const result = await saveWorkCatalogRouted(patched.store, {
+          updatedAtIso,
+          previousStore: store,
+        });
+        if (!result.ok || !result.saved) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+        notifyPricingCatalogChanged();
+        return { ok: true };
+      } catch {
+        return {
+          ok: false,
+          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+        };
+      }
+    },
+    [store, notifyPricingCatalogChanged],
+  );
+
   return {
     store,
     works,
@@ -305,5 +364,6 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     updateBulkCompanyPrices,
     updateCommercialMargin,
     applyGlobalCommercialMarginFloor: applyGlobalCommercialMarginFloorFn,
+    updateOurWorkRate,
   };
 }
