@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.41 — Position Cost BOQ shadow Faza 4 (2026-08-12)
+
+- OfferBoq → work identity → OUR RATE + BOM + SELL → Position Cost (SHADOW) · ZERO Bid cutover · ZERO HTTP
+
 ## 2.66.40 — Position Cost BOM / Technology Faza 3 (2026-08-12)
 
 - workId → TechnologyPack/`projectBom` → SELL + OUR RATE → Position Cost · C-BOM-1…5 · bez invent norm

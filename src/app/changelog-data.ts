@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.41",
+    label: "Position Cost — BOQ shadow (Faza 4)",
+    items: [
+      {
+        type: "new",
+        text: "TENDER-BOQ-PRICING-REBUILD-01 FAZA 4: OfferBoq/przedmiar → work identity → OUR RATE + BOM + Price Memory SELL → Position Cost (SHADOW). Bez cutover Bid/Offer · jawne GAP · ZERO companyPricePln · ZERO HTTP. F5 tylko Owner GO.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.40",
     label: "Position Cost — BOM / Technology (Faza 3)",
     items: [

@@ -1,6 +1,6 @@
 /**
  * TENDER-BOQ-PRICING-REBUILD-01 — Position Cost public API.
- * F0: pure engine · F1: OUR RATE · F2: material SELL · F3: BOM/Technology.
+ * F0: pure engine · F1: OUR RATE · F2: material SELL · F3: BOM · F4: OfferBoq shadow.
  */
 
 export type {
@@ -58,3 +58,20 @@ export {
   findActiveTechnologyPacksForWorkId,
   resolveTechnologyBomForWork,
 } from "@/lib/tender-position-cost/bom-technology-adapter";
+
+export type {
+  ComputeShadowBoqPositionCostsInput,
+  ComputeShadowPositionCostForLineInput,
+  ShadowBoqPositionCostResult,
+  ShadowGapCode,
+  ShadowPositionCostLineResult,
+  ShadowWorkIdentityResolve,
+  ShadowWorkIdentityStatus,
+} from "@/lib/tender-position-cost/boq-shadow-adapter";
+
+export {
+  SHADOW_POSITION_COST_SCHEMA_VERSION,
+  computeShadowPositionCostForOfferBoqLine,
+  computeShadowPositionCostsForOfferBoq,
+  resolveWorkIdentityFromOfferBoqLine,
+} from "@/lib/tender-position-cost/boq-shadow-adapter";
