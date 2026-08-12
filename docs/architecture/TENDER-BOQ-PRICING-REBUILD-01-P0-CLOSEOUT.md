@@ -21,9 +21,9 @@ HTTP: 0
 RESEARCH: 0
 BUILD: PASS
 TESTS: 46 PASS / 0 FAIL (P0) · Bid/Offer/PM/WorkRate P0+P1 PASS
-COMMIT: (po push — uzupełnij SHA)
-PUSH: (po push)
-PRODUCTION: DEPLOY PROPAGATING (do potwierdzenia version.json 2.66.37)
+COMMIT: bf4e1beb
+PUSH: PASS
+PRODUCTION: DEPLOY PROPAGATING (live still 2.66.36 / 64dffab — oczekiwane 2.66.37 / bf4e1beb)
 NEXT: FAZA 1 — ONLY AFTER OWNER GO
 ```
 
