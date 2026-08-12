@@ -70,15 +70,21 @@ function dimSvg(x1, y1, x2, y2, label, mode = "edit") {
 /* --- A --- */
 const svgH = dimSvg(0, 100, 200, 100, "110 cm");
 ok("T-A1 horizontal label no rotate", svgH.includes('data-dim-label="1"') && !svgH.includes("rotate(-90"));
-ok("T-A1b horizontal still offset", svgH.includes('y="116"') && svgH.includes('x="100"'));
+ok("T-A1b horizontal still offset", svgH.includes('y="128"') && svgH.includes('x="100"'));
 
 const svgV = dimSvg(50, 0, 50, 200, "1,10 m");
 ok("T-A2 vertical -90", svgV.includes("rotate(-90"));
 const canV = canonicalizeSegmentForDimensionOffset({ x1: 50, y1: 0, x2: 50, y2: 200 });
-const lx = canV.mx + canV.nx * DRAWING_DIMENSION_NORMAL_OFFSET;
-const ly = canV.my + canV.ny * DRAWING_DIMENSION_NORMAL_OFFSET;
+/* UX-02: label at labelOff=28 (16+f(14)); line stays at normalOffset 16 */
+const labelOffDefault = 28;
+const lx = canV.mx + canV.nx * labelOffDefault;
+const ly = canV.my + canV.ny * labelOffDefault;
 ok("T-A3 vertical centered about mid+offset", svgV.includes(`rotate(-90 ${lx} ${ly})`));
-ok("T-A4 vertical offset from wall (nx=-1)", Math.abs(lx - 34) < 0.01 && Math.abs(ly - 100) < 0.01);
+ok(
+  "T-A4 vertical offset from wall (nx=-1)",
+  Math.abs(canV.mx + canV.nx * DRAWING_DIMENSION_NORMAL_OFFSET - 34) < 0.01 &&
+    Math.abs(canV.my + canV.ny * DRAWING_DIMENSION_NORMAL_OFFSET - 100) < 0.01,
+);
 
 const svgDiag = dimSvg(0, 0, 80, 60, "diag");
 ok("T-A5 diagonal no -90", svgDiag.includes(">diag</text>") && !svgDiag.includes("rotate(-90"));

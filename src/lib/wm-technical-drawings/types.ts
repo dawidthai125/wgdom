@@ -257,6 +257,11 @@ export interface DrawingDimensionObject extends DrawingObjectBase {
   y2: number;
   /** Pusta → auto liczba długości bez jednostki (MR-P1-08). */
   label?: string;
+  /**
+   * WM-RYSUNKI-DIMENSION-LABEL-FONT-UX-02 — label font (12/14/18/24).
+   * Missing → render default 14 (schemaVersion stays 1).
+   */
+  fontSize?: number;
   symbolId?: string;
 }
 

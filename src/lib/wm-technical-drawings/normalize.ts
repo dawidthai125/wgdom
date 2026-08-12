@@ -205,7 +205,16 @@ function parseStamp(
   };
 }
 
+/** Dimension label font — missing/invalid → omit (renderer default 14). */
+function parseOptionalDimensionFontSize(raw: unknown): number | undefined {
+  if (raw == null) return undefined;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  return n;
+}
+
 function parseDimension(raw: Record<string, unknown>, id: string): DrawingDimensionObject {
+  const fontSize = parseOptionalDimensionFontSize(raw.fontSize);
   return {
     id,
     type: "dimension",
@@ -214,6 +223,7 @@ function parseDimension(raw: Record<string, unknown>, id: string): DrawingDimens
     x2: asFiniteNumber(raw.x2, 0),
     y2: asFiniteNumber(raw.y2, 0),
     label: raw.label != null ? asString(raw.label) : undefined,
+    ...(fontSize != null ? { fontSize } : {}),
     symbolId: asString(raw.symbolId, "dimension-line") || "dimension-line",
     rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
     locked: raw.locked === true,

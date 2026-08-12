@@ -21,9 +21,33 @@ import {
 /** P3A: wall-gap = 3 · DIMENSIONS-RECTANGLE-UX-01 offset/font = 4. */
 export const DRAWING_RENDER_VERSION = 4;
 
-/** D-DIM-02 / D-DIM-04 — frozen Owner GO. */
+/** D-DIM-02 / D-DIM-04 — frozen Owner GO · D-LF-01/05. */
 export const DRAWING_DIMENSION_FONT_SIZE = 14;
 export const DRAWING_DIMENSION_NORMAL_OFFSET = 16;
+/** D-LF-05 — UI / session allowlist. */
+export const DRAWING_DIMENSION_FONT_SIZES = [12, 14, 18, 24] as const;
+export type DrawingDimensionFontSize = (typeof DRAWING_DIMENSION_FONT_SIZES)[number];
+
+/** Resolve label font — missing/invalid → 14 (D-LF-04). */
+export function resolveDimensionFontSize(fontSize?: number): number {
+  return Number.isFinite(fontSize) && (fontSize as number) > 0
+    ? (fontSize as number)
+    : DRAWING_DIMENSION_FONT_SIZE;
+}
+
+/**
+ * D-LF-02 — extra offset beyond line (font-aware).
+ * Clears half-glyph with dominant-baseline=middle; grows 12→24.
+ */
+export function dimensionLabelExtraOffset(fontSize?: number): number {
+  const s = resolveDimensionFontSize(fontSize);
+  return Math.ceil(s * 0.55 + 4);
+}
+
+/** Absolute label offset from wall mid along normal: 16 + f(fontSize). */
+export function dimensionLabelOffset(fontSize?: number): number {
+  return DRAWING_DIMENSION_NORMAL_OFFSET + dimensionLabelExtraOffset(fontSize);
+}
 
 export class DrawingRenderError extends Error {
   constructor(message: string) {
@@ -129,23 +153,27 @@ function renderObject(obj: DrawingObject, doors: DrawingDoorObject[]): string {
       x2: obj.x2,
       y2: obj.y2,
     });
-    const off = DRAWING_DIMENSION_NORMAL_OFFSET;
+    /* D-LF-01 — line ONLY at normalOffset 16. */
+    const lineOff = DRAWING_DIMENSION_NORMAL_OFFSET;
+    const fontSize = resolveDimensionFontSize(obj.fontSize);
+    /* D-LF-02 — label further along same normal: 16 + f(fontSize). */
+    const labelOff = dimensionLabelOffset(fontSize);
     const body = renderSymbolAlongSegment({
       symbolId: obj.symbolId || "dimension-line",
       x1: can.x1,
       y1: can.y1,
       x2: can.x2,
       y2: can.y2,
-      normalOffset: off,
+      normalOffset: lineOff,
     });
-    const lx = can.mx + can.nx * off;
-    const ly = can.my + can.ny * off;
+    const lx = can.mx + can.nx * labelOff;
+    const ly = can.my + can.ny * labelOff;
     /* Vertical (|dx|<|dy| after canonicalize): label rotate EXACTLY -90° about (lx,ly). */
     const isVertical = Math.abs(can.x2 - can.x1) < Math.abs(can.y2 - can.y1);
     const rotateAttr = isVertical ? ` transform="rotate(-90 ${lx} ${ly})"` : "";
     const labelSvg =
       `<text data-dim-label="1" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle"${rotateAttr} ` +
-      `font-size="${DRAWING_DIMENSION_FONT_SIZE}" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
+      `font-size="${fontSize}" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
     return `<g data-id="${esc(obj.id)}">${body}${labelSvg}</g>`;
   }
   /* P4 punkty — skip */

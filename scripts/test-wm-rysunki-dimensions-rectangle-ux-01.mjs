@@ -81,13 +81,13 @@ function dimSvg(x1, y1, x2, y2, label) {
 const svgH = dimSvg(0, 100, 200, 100, "110 cm");
 ok("T-D1 horizontal render version 4", svgH.includes('data-render-version="4"'));
 ok("T-D1 label not at my-10 mid", !svgH.includes('y="90"') || svgH.includes('data-dim-label'));
-/* H: mid (100,100), n~(0,1), label at (100, 116) */
-ok("T-D1 label offset below", svgH.includes('y="116"') && svgH.includes('x="100"'));
+/* H: mid (100,100), n~(0,1), line@16 → translate(100,116); labelOff@14=28 → (100, 128) */
+ok("T-D1 label offset below", svgH.includes('y="128"') && svgH.includes('x="100"'));
 ok("T-D4 body uses normalOffset (translate away from mid)", svgH.includes("translate(100 116)") || svgH.includes("translate(100.0 116"));
 
 const svgV = dimSvg(50, 0, 50, 200, "220 cm");
-/* V canonical top→bottom, n~(-1,0), mid (50,100), label (34,100) */
-ok("T-D2 vertical label left", svgV.includes('x="34"') && svgV.includes('y="100"'));
+/* V canonical top→bottom, n~(-1,0), mid (50,100), labelOff@14=28 → (22,100) */
+ok("T-D2 vertical label left", svgV.includes('x="22"') && svgV.includes('y="100"'));
 
 const svgDiag = dimSvg(0, 0, 80, 60, "diag");
 ok("T-D3 diagonal has dim label", svgDiag.includes('data-dim-label="1"') && svgDiag.includes(">diag</text>"));

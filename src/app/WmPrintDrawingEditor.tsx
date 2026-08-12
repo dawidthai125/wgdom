@@ -33,7 +33,11 @@ import {
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { DrawingUndoStack } from "@/lib/wm-technical-drawings/undo";
-import { renderDrawingSvg } from "@/lib/wm-technical-drawings/render-svg";
+import {
+  DRAWING_DIMENSION_FONT_SIZE,
+  DRAWING_DIMENSION_FONT_SIZES,
+  renderDrawingSvg,
+} from "@/lib/wm-technical-drawings/render-svg";
 import {
   duplicateSelectedObjects,
   rotateObjectBy,
@@ -186,6 +190,8 @@ export function WmPrintDrawingEditor({
   const [tool, setTool] = useState<Tool>("wall");
   /** Session only — D-UNIT-02 · default cm. */
   const [dimensionUnit, setDimensionUnit] = useState<DimensionUnit>("cm");
+  /** Session only — D-LF-05/06 · independent of textFontSize. */
+  const [dimensionFontSize, setDimensionFontSize] = useState(DRAWING_DIMENSION_FONT_SIZE);
   /** Session only — D-TEXT-05/06 · applies to NEW text only. */
   const [textFontSize, setTextFontSize] = useState(TEXT_DEFAULT_FONT_SIZE);
   const [textBold, setTextBold] = useState(false);
@@ -703,6 +709,7 @@ export function WmPrintDrawingEditor({
         y1: start.y,
         x2: end.x,
         y2: end.y,
+        fontSize: dimensionFontSize,
         symbolId: "dimension-line",
       };
     } else {
@@ -1132,6 +1139,29 @@ export function WmPrintDrawingEditor({
   };
 
   const selected = selectedId ? local.objects.find((o) => o.id === selectedId) : null;
+  const selectedDimension = selected?.type === "dimension" ? selected : null;
+  const showDimensionFontUi = tool === "dimension" || selectedDimension != null;
+  const dimensionFontControlValue =
+    selectedDimension != null
+      ? Number.isFinite(selectedDimension.fontSize) && (selectedDimension.fontSize as number) > 0
+        ? (selectedDimension.fontSize as number)
+        : DRAWING_DIMENSION_FONT_SIZE
+      : dimensionFontSize;
+
+  const applyDimensionFontSize = (size: number) => {
+    if (!(DRAWING_DIMENSION_FONT_SIZES as readonly number[]).includes(size)) return;
+    setDimensionFontSize(size);
+    if (!selectedDimension) return;
+    const id = selectedDimension.id;
+    commit(
+      touchDrawing(local, {
+        objects: local.objects.map((o) =>
+          o.id === id && o.type === "dimension" ? { ...o, fontSize: size } : o,
+        ),
+      }),
+    );
+  };
+
   const softWarn = local.objects.length > DRAWING_OBJECTS_SOFT_WARN;
 
   const lineHint =
@@ -1248,6 +1278,7 @@ export function WmPrintDrawingEditor({
       x2: inputDialog.x2,
       y2: inputDialog.y2,
       label,
+      fontSize: dimensionFontSize,
       symbolId: "dimension-line",
     };
     commit(touchDrawing(local, { objects: [...local.objects, obj] }));
@@ -1463,6 +1494,31 @@ export function WmPrintDrawingEditor({
           <span className="hidden sm:inline">Jako zdjęcie</span>
         </button>
       </div>
+      )}
+
+      {showDimensionFontUi && (
+        <div
+          className="border border-border rounded-lg p-1 bg-card shrink-0 flex flex-wrap items-center gap-1"
+          role="toolbar"
+          aria-label="Rozmiar czcionki wymiaru"
+        >
+          <span className="text-[11px] text-muted-foreground px-1 shrink-0">Rozmiar czcionki wymiaru</span>
+          {DRAWING_DIMENSION_FONT_SIZES.map((n) => (
+            <button
+              key={n}
+              type="button"
+              title={`Rozmiar ${n}`}
+              aria-label={`Rozmiar czcionki wymiaru ${n}`}
+              aria-pressed={dimensionFontControlValue === n}
+              onClick={() => applyDimensionFontSize(n)}
+              className={`${chromeAction} min-w-[2.25rem] justify-center tabular-nums ${
+                dimensionFontControlValue === n ? "bg-primary/15 text-primary" : ""
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       )}
 
       {selectedId && (
