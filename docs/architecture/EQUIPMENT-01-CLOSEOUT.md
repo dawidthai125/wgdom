@@ -51,10 +51,12 @@ REAL SOURCE / LEGAL ENABLEMENT = FOLLOW-UP / NOT STARTED.
 UnresolvedEquipmentPriceProvider = contract przygotowany;
   NIE jest używany jako źródło ceny produkcyjnej (tree-shake OK;
   Bid path = GAP, nie wycena).
-TRANSPORT-01 = NIE START (tylko Owner GO).
+TRANSPORT-01 MODEL-1A = CLOSED (contract-only) · MODEL-1B = NOT STARTED / FOLLOW-UP.
+TRANSPORT PRICING = NOT IMPLEMENTED.
+REAL SOURCE / LEGAL = UNKNOWN / MISSING.
 ```
 
-**Nie** oznaczaj Equipment pricing jako CLOSED.
+**Nie** oznaczaj Equipment pricing jako CLOSED. **Nie** oznaczaj Transport Bid pricing jako CLOSED.
 
 ---
 
@@ -100,9 +102,10 @@ F0–F6 · F6 ATH · C-MODE-1a · Cloud Sync · Payroll · WM-RYSUNKI — **bez*
 
 ## 6. NEXT (tylko Owner GO)
 
-1. **TRANSPORT** domain contract/gap — AUDIT first · **NIE** auto-start.
+1. **TRANSPORT-01 MODEL-1B** — identity/F5 gap — **NOT STARTED** · **NIE** auto-start.
 2. **Auxiliary** — OUT do osobnego GO.
 3. **Equipment REAL SOURCE / LEGAL ENABLEMENT** — FOLLOW-UP · **NIE** auto-start.
 4. **Equipment pricing** — dopiero po REAL SOURCE · **NIE** invent ceny.
 
 **ACTIVE EPIC = NONE** · tryb **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**.
+**TRANSPORT-01 MODEL-1A** = **CLOSED** — [`TRANSPORT-01-CLOSEOUT.md`](./TRANSPORT-01-CLOSEOUT.md).

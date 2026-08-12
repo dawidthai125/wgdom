@@ -18,19 +18,22 @@ Szczegóły = architecture handoff (link poniżej).
 |--|--|
 | **Epic (BOQ)** | TENDER-BOQ-PRICING-REBUILD-01 F0–F6 + C-MODE-1a |
 | **F0–F6 / C-MODE-1a** | **CLOSED** · **GREEN** |
-| **EQUIPMENT-01** | **CLOSED** · CONTRACT/GAP ONLY · tip **09** (`8e4f394`) |
-| **Production tip** | patrz **09** (2.66.43 / `8e4f394`) |
-| **NEXT** | Owner GO · **TRANSPORT/AUX** AUDIT lub **Equipment REAL SOURCE** · **NIE** auto · pricing Equipment **NOT IMPLEMENTED** |
+| **TRANSPORT-01 MODEL-1A** | **CLOSED** · CONTRACT ONLY · tip **09** (`a41854c`) |
+| **EQUIPMENT-01** | **CLOSED** · CONTRACT/GAP ONLY · hist. **`8e4f3943`** |
+| **MODEL-1B** | **NOT STARTED / FOLLOW-UP** |
+| **Production tip** | patrz **09** (2.66.43 / `a41854c`) |
+| **NEXT** | Owner GO · **MODEL-1B** / Aux / REAL SOURCE (Transport lub Equipment) · **NIE** auto · pricing Transport/Equipment **NOT IMPLEMENTED** |
 
 ---
 
 ## Gdzie czytać (kolejność)
 
 1. [`09_PRODUCTION_BASELINE.md`](./09_PRODUCTION_BASELINE.md) — tip live
-2. [`../architecture/EQUIPMENT-01-CLOSEOUT.md`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · [`../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md`](../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md)
-3. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) — **★★ pełny handoff BOQ**
-4. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md)
-5. C-MODE-1a Decision + PV · DF / F0–F6 closeouty w `docs/architecture/TENDER-BOQ-PRICING-REBUILD-01-*.md`
+2. [`../architecture/TRANSPORT-01-CLOSEOUT.md`](../architecture/TRANSPORT-01-CLOSEOUT.md) · [`../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md`](../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md)
+3. [`../architecture/EQUIPMENT-01-CLOSEOUT.md`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · [`../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md`](../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md)
+4. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) — **★★ pełny handoff BOQ**
+5. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md)
+6. C-MODE-1a Decision + PV · DF / F0–F6 closeouty w `docs/architecture/TENDER-BOQ-PRICING-REBUILD-01-*.md`
 
 ---
 
@@ -46,7 +49,10 @@ BOM = SSOT składu
 ATH = SEPARATE INPUT (struktura)
 HTTP / research w Bid = 0
 Equipment contract/GAP = CLOSED (EQUIPMENT-01) · pricing = NOT IMPLEMENTED
-Transport / Auxiliary / Equipment REAL SOURCE = tylko Owner GO → AUDIT first
+Transport MODEL-1A contract = CLOSED · pricing = NOT IMPLEMENTED · MODEL-1B = NOT STARTED
+Noise ≠ Bid Transport · orphan noiseKind=transport = AUXILIARY_GAP (nie transport_line)
+85 PLN / ath / catalog / companyPrice = FORBIDDEN as new Bid auto
+Transport / Auxiliary / REAL SOURCE / LEGAL = tylko Owner GO → AUDIT first
 P7 / ATH rebuild = tylko Owner GO → AUDIT first
 ```
 
