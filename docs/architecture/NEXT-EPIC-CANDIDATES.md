@@ -19,6 +19,10 @@
 
 ```text
 ════════════════════════════════════════════════════════
+CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 = CLOSED (914c0095 · Edge PV · GH 31635032340)
+  FOLLOW-UP / OWNER GO REQUIRED (NIE auto-start):
+  Fat-key reduction — kw-tenders-pipeline ≈ 3.37 MB solo oversized
+  SSOT: CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md
 C0 AI-COST-PARSER-01 P0-RETRY = CLOSED (e88d689f · PV)
 C1 COST-BID-GAP-01 / GAP-A = CLOSED (2.65.77)
 C2 AI-COST-02-B = CLOSED (9dc113e7 · 2.65.78 · PV)

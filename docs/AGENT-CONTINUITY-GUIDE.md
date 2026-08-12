@@ -11,6 +11,8 @@
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
 
+> **★ Domknięcie sesji (2026-08-12):** **CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 CLOSED** · **PRODUCTION VERIFIED · GREEN** · Edge **`914c0095`** · GH Actions **`31635032340`** · chunked mset 450KB/12 · drawings frequency separation · Payroll **16/16 GREEN** · `statement_timeout` UNCHANGED · residual fat-key `kw-tenders-pipeline` **ACCEPTED / FOLLOW-UP** · SSOT [`architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md`](architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md) · [`PV`](architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-PRODUCTION-VERIFY.md) · ACTIVE EPIC = **NONE** · **NIE** auto-start fat-key / Payroll redesign.
+
 > **★ Domknięcie sesji (2026-08-09):** **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · tip UI **2.66.22** / **`ae426ad6`** · branding + Expert Conversation presentation-only · Trace/EW/DW KEEP · no new flag/store/engine/PLN · Persist/Q12 KEEP · D default OFF · PV WM tender `08deec8a…` · harness 47 · SSOT [`architecture/INTELIGENTNY-KOSZTORYSANT-UX-CLOSEOUT.md`](architecture/INTELIGENTNY-KOSZTORYSANT-UX-CLOSEOUT.md) · [`PV`](architecture/INTELIGENTNY-KOSZTORYSANT-UX-PRODUCTION-VERIFY.md) · ACTIVE EPIC = **NONE** · NEXT **WAITING FOR NEXT OWNER GO** · **NIE** invent S10.
 
 > **★ Domknięcie sesji (2026-08-08):** **DOCUMENTATION HANDOFF PACK** · cold-start [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) · TM-01 MASTER · EXPERT-AI · PRICING · LEGACY · DECISION architecture docs · tip **2.66.22** / **`ec8a5044`** · S0–S3 CLOSED · NEXT S4 · WIP `useTenderOfferRun.ts` preserved.
