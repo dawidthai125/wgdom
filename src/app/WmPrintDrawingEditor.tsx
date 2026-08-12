@@ -26,6 +26,7 @@ import {
   ZoomIn,
   ZoomOut,
   LocateFixed,
+  Eraser,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -86,6 +87,7 @@ type Tool =
   | "door_entrance"
   | "window"
   | "text"
+  | "eraser"
   | "dimension"
   | "arrow"
   | "ventilation"
@@ -163,6 +165,9 @@ export function WmPrintDrawingEditor({
   const [tool, setTool] = useState<Tool>("wall");
   /** Session only — D-UNIT-02 · default cm. */
   const [dimensionUnit, setDimensionUnit] = useState<DimensionUnit>("cm");
+  /** Session only — D-TEXT-05/06 · applies to NEW text only. */
+  const [textFontSize, setTextFontSize] = useState(TEXT_DEFAULT_FONT_SIZE);
+  const [textBold, setTextBold] = useState(false);
   const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
   /** P3B — koniec Ghost (snapped); UI only. */
   const [previewEnd, setPreviewEnd] = useState<{ x: number; y: number } | null>(null);
@@ -720,6 +725,19 @@ export function WmPrintDrawingEditor({
       return;
     }
 
+    /* WM-RYSUNKI-TEXT-ERASER-UX-01 — one click ≤ one object · skip locked · stay eraser. */
+    if (tool === "eraser") {
+      const target = (e.target as Element).closest?.("[data-id]");
+      const id = target?.getAttribute("data-id") ?? null;
+      if (!id) return;
+      const obj = local.objects.find((o) => o.id === id);
+      if (!obj) return;
+      if (obj.locked === true) return;
+      commit(touchDrawing(local, { objects: local.objects.filter((o) => o.id !== id) }));
+      if (selectedId === id) setSelectedId(null);
+      return;
+    }
+
     const target = (e.target as Element).closest?.("[data-id]");
     const id = target?.getAttribute("data-id") ?? null;
     setSelectedId(id);
@@ -996,7 +1014,11 @@ export function WmPrintDrawingEditor({
               : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
             : isDoorTool(tool)
               ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
-              : null;
+              : tool === "eraser"
+                ? "Kliknij obiekt, aby usunąć (zablokowane pomijane)."
+                : tool === "text"
+                  ? "Kliknij, aby wstawić tekst."
+                  : null;
 
   /** Mobile Chrome: duże cele; Desktop: kompakt jak dotychczas. */
   const chromeIcon = mobileFullscreen
@@ -1034,18 +1056,21 @@ export function WmPrintDrawingEditor({
     if (!inputDialog) return;
     if (inputDialog.kind === "text") {
       const content = inputDialog.value.trim() || "Tekst";
+      const size = Number.isFinite(textFontSize) && textFontSize > 0 ? textFontSize : TEXT_DEFAULT_FONT_SIZE;
       const textObj: DrawingObject = {
         id: crypto.randomUUID(),
         type: "text",
         x: inputDialog.x,
         y: inputDialog.y,
         content,
-        fontSize: TEXT_DEFAULT_FONT_SIZE,
+        fontSize: size,
+        ...(textBold ? { fontWeight: "bold" as const } : {}),
         symbolId: "text-label",
       };
       commit(touchDrawing(local, { objects: [...local.objects, textObj] }));
       setSelectedId(textObj.id);
       setInputDialog(null);
+      /* D-TEXT-08 — tool remains "text" (do not setTool). */
       return;
     }
     const labelRaw = inputDialog.value.trim();
@@ -1118,6 +1143,7 @@ export function WmPrintDrawingEditor({
             {toolBtn("wall", "Ściana", <Minus size={18} />)}
             {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={18} />)}
             {toolBtn("text", "Tekst", <Type size={18} />)}
+            {toolBtn("eraser", "Gumka", <Eraser size={18} />)}
             {toolBtn("select", "Zaznacz", <MousePointer2 size={18} />)}
             <button type="button" title="Cofnij" aria-label="Cofnij" disabled={!canUndo} onClick={handleUndo} className={chromeIcon}>
               <Undo2 size={18} />
@@ -1177,6 +1203,7 @@ export function WmPrintDrawingEditor({
         {toolBtn("gas_boiler", "Piec", <Flame size={14} />)}
         {toolBtn("distribution_board", "Rozdzielnia", <Box size={14} />)}
         {toolBtn("text", "Tekst", <Type size={14} />)}
+        {toolBtn("eraser", "Gumka", <Eraser size={14} />)}
         <span className="w-px h-5 bg-border mx-1 shrink-0" />
         <button type="button" title="Cofnij" aria-label="Cofnij" disabled={!canUndo} onClick={handleUndo} className={chromeIcon}>
           <Undo2 size={14} />
@@ -1334,6 +1361,34 @@ export function WmPrintDrawingEditor({
                     onChange={() => setDimensionUnit("m")}
                   />
                   m
+                </label>
+              </div>
+            )}
+            {inputDialog.kind === "text" && (
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <label className="inline-flex items-center gap-2">
+                  <span className="text-muted-foreground">Rozmiar</span>
+                  <select
+                    className="min-h-[44px] rounded-md border border-border bg-background px-2"
+                    value={textFontSize}
+                    onChange={(e) => setTextFontSize(Number(e.target.value) || TEXT_DEFAULT_FONT_SIZE)}
+                    aria-label="Rozmiar czcionki"
+                  >
+                    {[12, 14, 18, 24].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="inline-flex items-center gap-2 touch-target cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={textBold}
+                    onChange={(e) => setTextBold(e.target.checked)}
+                    aria-label="Pogrubienie"
+                  />
+                  Pogrubienie
                 </label>
               </div>
             )}

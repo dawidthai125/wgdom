@@ -218,6 +218,8 @@ export interface DrawingTextObject extends DrawingObjectBase {
   y: number;
   content: string;
   fontSize?: number;
+  /** WM-RYSUNKI-TEXT-ERASER-UX-01 — omit / missing → render normal. */
+  fontWeight?: "normal" | "bold";
   symbolId?: string;
 }
 

@@ -67,7 +67,9 @@ function renderObject(obj: DrawingObject, doors: DrawingDoorObject[]): string {
   if (obj.type === "text") {
     const size = obj.fontSize ?? 14;
     const content = esc(obj.content || "");
-    return `<text data-id="${esc(obj.id)}" x="${obj.x}" y="${obj.y}" font-size="${size}" fill="#0f172a" font-family="system-ui,sans-serif">${content}</text>`;
+    /* bold only when explicit; omit font-weight when normal/missing (D-TEXT-10). */
+    const weightAttr = obj.fontWeight === "bold" ? ' font-weight="bold"' : "";
+    return `<text data-id="${esc(obj.id)}" x="${obj.x}" y="${obj.y}" font-size="${size}"${weightAttr} fill="#0f172a" font-family="system-ui,sans-serif">${content}</text>`;
   }
   if (obj.type === "door") {
     return renderSymbol({

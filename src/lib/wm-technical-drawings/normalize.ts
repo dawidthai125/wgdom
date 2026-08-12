@@ -121,7 +121,14 @@ function parseWall(raw: Record<string, unknown>, id: string): DrawingWallObject 
   };
 }
 
+/** "bold" keep · "normal"/invalid/missing → omit (render default normal). */
+function parseTextFontWeight(raw: unknown): "bold" | undefined {
+  if (raw === "bold") return "bold";
+  return undefined;
+}
+
 function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject {
+  const fontWeight = parseTextFontWeight(raw.fontWeight);
   return {
     id,
     type: "text",
@@ -129,6 +136,7 @@ function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject 
     y: asFiniteNumber(raw.y, 0),
     content: asString(raw.content, ""),
     fontSize: raw.fontSize != null ? asFiniteNumber(raw.fontSize, TEXT_DEFAULT_FONT_SIZE) : undefined,
+    ...(fontWeight ? { fontWeight } : {}),
     rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
     locked: raw.locked === true,
     zIndex: raw.zIndex != null ? asFiniteNumber(raw.zIndex, 0) : undefined,
