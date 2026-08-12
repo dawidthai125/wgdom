@@ -287,16 +287,17 @@ ok("T07b TTL ms", workRateFreshnessStaleAfterMs() === 90 * 24 * 60 * 60 * 1000);
 {
   const fetchBefore = fetchCalls;
   const res = requestWorkRateResearch({ workId: WORK_ID, unit: UNIT, regionScope: "WROCLAW" });
-  eq("T20 research NOT_IMPLEMENTED (Legal PASS, brak adaptera)", res.status, "NOT_IMPLEMENTED");
-  if (res.status === "NOT_IMPLEMENTED") {
-    eq("T20b reason ADAPTER_ABSENT", res.reason, "ADAPTER_ABSENT");
+  eq("T20 research READY (Legal PASS, selective async)", res.status, "READY");
+  if (res.status === "READY") {
+    eq("T20b reason SELECTIVE_ASYNC", res.reason, "SELECTIVE_ASYNC");
     eq("T20c selectiveAuthorized", res.selectiveAuthorized, true);
     eq("T20d fullCatalogueForbidden", res.fullCatalogueForbidden, true);
+    eq("T20e adaptersImplemented", res.adaptersImplemented, true);
   }
   eq("T21 gate PASS", WORK_RATE_LEGAL_GATE, "PASS");
   ok("T21b material gate untouched", MARKET_SYNC_P3_LEGAL_GATE === "PASS" || MARKET_SYNC_P3_LEGAL_GATE === "OPEN" || MARKET_SYNC_P3_LEGAL_GATE === "FAIL");
   eq("T21c MARKET_SYNC_P3_LEGAL_GATE unchanged PASS", MARKET_SYNC_P3_LEGAL_GATE, "PASS");
-  eq("T22 KB adapter absent", isWorkRateKbPlAdapterImplemented(), false);
+  eq("T22 KB adapter implemented", isWorkRateKbPlAdapterImplemented(), true);
   eq("T23 full catalogue absent", isWorkRateFullCatalogueResearchImplemented(), false);
   eq("T19b research zero HTTP", fetchCalls, fetchBefore);
 }

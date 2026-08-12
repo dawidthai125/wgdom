@@ -4762,4 +4762,101 @@ app.post("/make-server-0afb8820/mmr-diy-selective-lookup", async (c) => {
   }
 });
 
+/** WORK-RATE-SELECTIVE-RESEARCH-02 — selective work rate page fetch (ONE URL · allowlist · no catalogue). */
+const WORK_RATE_ALLOWED_HOSTS = new Set([
+  "kb.pl",
+  "www.kb.pl",
+  "sccot.pl",
+  "www.sccot.pl",
+  "extradom.pl",
+  "www.extradom.pl",
+  "cennikremontow.pl",
+  "www.cennikremontow.pl",
+]);
+
+function workRateBuildSelectiveUrl(sourceId: string, query: string): string | null {
+  const term = String(query || "").trim().slice(0, 120);
+  if (term.length < 2) return null;
+  const enc = encodeURIComponent(term);
+  if (sourceId === "kb_pl") return `https://kb.pl/?s=${enc}`;
+  if (sourceId === "sccot") return `https://sccot.pl/?s=${enc}`;
+  if (sourceId === "extradom") return `https://www.extradom.pl/szukaj?q=${enc}`;
+  if (sourceId === "cennikremontow_pl") return `https://cennikremontow.pl/?s=${enc}`;
+  return null;
+}
+
+function workRateHostAllowed(urlStr: string): boolean {
+  try {
+    const u = new URL(urlStr);
+    return u.protocol === "https:" && WORK_RATE_ALLOWED_HOSTS.has(u.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+app.post("/make-server-0afb8820/work-rate-selective-lookup", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const sourceId = String(body.sourceId || "").trim();
+    const query = String(body.query || "").trim();
+    const workId = String(body.workId || "").trim();
+    if (!workId) {
+      return c.json({ ok: false, error: "missing_workId" }, 400);
+    }
+    if (
+      sourceId !== "kb_pl" &&
+      sourceId !== "sccot" &&
+      sourceId !== "extradom" &&
+      sourceId !== "cennikremontow_pl"
+    ) {
+      return c.json({ ok: false, error: "invalid_sourceId" }, 400);
+    }
+    const requestUrl = workRateBuildSelectiveUrl(sourceId, query);
+    if (!requestUrl || !workRateHostAllowed(requestUrl)) {
+      return c.json({ ok: false, error: "url_not_allowed" }, 400);
+    }
+    const res = await fetch(requestUrl, {
+      headers: {
+        "User-Agent": "WGDOM/2.66.35 work-rate-selective",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(12_000),
+    });
+    const finalUrl = String(res.url || requestUrl);
+    if (!workRateHostAllowed(finalUrl)) {
+      return c.json({ ok: false, error: "redirect_host_rejected" }, 502);
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (!res.ok) {
+      return c.json({ ok: false, error: `upstream_${res.status}` }, 502);
+    }
+    if (!ct.includes("html") && !ct.includes("text") && !ct.includes("json")) {
+      return c.json({ ok: false, error: "unexpected_content_type" }, 502);
+    }
+    let text = await res.text();
+    if (text.length > 400_000) text = text.slice(0, 400_000);
+    if (text.length < 40) {
+      return c.json({ ok: false, error: "empty_body" }, 502);
+    }
+    return c.json({
+      ok: true,
+      page: {
+        sourceId,
+        requestUrl,
+        finalUrl,
+        status: res.status,
+        bodyText: text,
+        fetchedAtIso: new Date().toISOString(),
+      },
+    });
+  } catch (e) {
+    console.error("work-rate-selective-lookup:", e);
+    return c.json(
+      { ok: false, error: e instanceof Error ? e.message : "lookup_error" },
+      500,
+    );
+  }
+});
+
 Deno.serve(app.fetch);

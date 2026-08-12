@@ -322,7 +322,7 @@ eq("T25d MISSING→BRAK STAWKI", workRateFreshnessLabelPl("MISSING"), "BRAK STAW
   eq("T17 zero HTTP open", fetchCalls, before);
   eq("T18 zero HTTP MISSING", fetchCalls, before);
   const res = requestWorkRateResearch({ workId: WORK_ID, unit: UNIT });
-  eq("T19 research NOT_IMPLEMENTED", res.status, "NOT_IMPLEMENTED");
+  eq("T19 research READY", res.status, "READY");
   eq("T20 gate PASS", WORK_RATE_LEGAL_GATE, "PASS");
   eq("T20b material gate PASS", MARKET_SYNC_P3_LEGAL_GATE, "PASS");
   eq("T17b still zero HTTP", fetchCalls, before);
@@ -338,6 +338,8 @@ eq("T25d MISSING→BRAK STAWKI", workRateFreshnessLabelPl("MISSING"), "BRAK STAW
   ok("T24b no CURRENT in UI string literal for user", !/["']CURRENT["']/.test(panel) || /data-freshness=\{row\.freshness\}/.test(panel));
   ok("T25e AKTUALNA in panel", /AKTUALNA/.test(panel));
   ok("T25f BRAK STAWKI in panel", /BRAK STAWKI/.test(panel));
+  ok("T25g research ONE CTA", /Aktualizuj stawkę rynkową/.test(panel));
+  ok("T25h pending Accept", /data-work-rate-pending-accept/.test(panel));
   ok("T06c no companyPrice as display rate", !/companyPricePln\s*\?\s*/.test(panel));
   ok("T06d no fallback ??= companyPrice", !/ourRate.*companyPricePln|companyPricePln.*ourRate/.test(panel));
 

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.35",
+    label: "Stawki robót — selective research rynkowy (P2)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-RATE-SELECTIVE-RESEARCH-02: Aktualizuj stawkę rynkową dla jednej roboty (KB.pl / SCCOT / Extradom / CennikRemontow.pl) → kwalifikacja labor-only → mediana → Owner Accept → OUR RATE. CACHE-FIRST, bez full catalogue, bez auto-zapisu. Bid/Offer/Price Memory/companyPricePln UNCHANGED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.34",
     label: "Stawki robót — Legal PASS (Owner)",
     items: [

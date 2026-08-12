@@ -24,7 +24,14 @@ import {
   applyGlobalCommercialMarginFloorToStore,
   patchWorkCommercialPricing,
 } from "@/lib/price-intelligence/our-price-catalog";
+import { acceptWorkRateResearchCandidate } from "@/lib/work-catalog/work-rate-accept";
 import { patchOurWorkRateInStore } from "@/lib/work-catalog/work-rate-patch";
+import {
+  runSelectiveWorkRateResearch,
+  type RunSelectiveWorkRateResearchResult,
+  type WorkRateResearchCandidate,
+} from "@/lib/work-catalog/work-rate-research";
+import type { WorkRateSelectiveLookupPort } from "@/lib/work-catalog/work-rate-selective-lookup-types";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 
@@ -53,6 +60,22 @@ export type UseWorkCatalogResult = {
   ) => Promise<UpdateBulkCompanyPricesResult>;
   /** WORK-CATALOG-REBUILD-01 — Owner edit OUR RATE (nie companyPricePln). */
   updateOurWorkRate: (input: UpdateOurWorkRateInput) => Promise<UpdateCompanyPriceResult>;
+  /** P2 — selective research ONE work (cache-first · candidate · bez auto OUR RATE). */
+  researchOurWorkRate: (input: ResearchOurWorkRateInput) => Promise<RunSelectiveWorkRateResearchResult>;
+  /** P2 — Owner Accept kandydata research. */
+  acceptOurWorkRateResearch: (
+    candidate: WorkRateResearchCandidate,
+  ) => Promise<UpdateCompanyPriceResult>;
+};
+
+export type ResearchOurWorkRateInput = {
+  workId: string;
+  unit: WgdomCostUnit;
+  namePl: string;
+  forceRefresh?: boolean;
+  bypassCooldown?: boolean;
+  /** Testy / DI — produkcja = Edge. */
+  lookupPort?: WorkRateSelectiveLookupPort;
 };
 
 export type UpdateOurWorkRateInput = {
@@ -350,6 +373,65 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     [store, notifyPricingCatalogChanged],
   );
 
+  const researchOurWorkRate = useCallback(
+    async (input: ResearchOurWorkRateInput): Promise<RunSelectiveWorkRateResearchResult> => {
+      return runSelectiveWorkRateResearch({
+        store,
+        workId: input.workId,
+        unit: input.unit,
+        namePl: input.namePl,
+        forceRefresh: input.forceRefresh,
+        bypassCooldown: input.bypassCooldown ?? true,
+        lookupPort: input.lookupPort,
+      });
+    },
+    [store],
+  );
+
+  const acceptOurWorkRateResearch = useCallback(
+    async (candidate: WorkRateResearchCandidate): Promise<UpdateCompanyPriceResult> => {
+      const updatedAtIso = new Date().toISOString();
+      const accepted = acceptWorkRateResearchCandidate({
+        store,
+        candidate,
+        observedAt: updatedAtIso,
+        updatedAt: updatedAtIso,
+      });
+      if (!accepted.ok) {
+        return {
+          ok: false,
+          message:
+            accepted.reason === "UNIT_MISMATCH"
+              ? "Jednostka nie zgadza się z definicją roboty"
+              : accepted.reason === "WORK_NOT_FOUND"
+                ? "Nie znaleziono roboty w katalogu"
+                : "Nie udało się zapisać stawki z research",
+        };
+      }
+      setStore(accepted.store);
+      try {
+        const result = await saveWorkCatalogRouted(accepted.store, {
+          updatedAtIso,
+          previousStore: store,
+        });
+        if (!result.ok || !result.saved) {
+          return {
+            ok: false,
+            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          };
+        }
+        notifyPricingCatalogChanged();
+        return { ok: true };
+      } catch {
+        return {
+          ok: false,
+          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+        };
+      }
+    },
+    [store, notifyPricingCatalogChanged],
+  );
+
   return {
     store,
     works,
@@ -365,5 +447,7 @@ export function useWorkCatalog(): UseWorkCatalogResult {
     updateCommercialMargin,
     applyGlobalCommercialMarginFloor: applyGlobalCommercialMarginFloorFn,
     updateOurWorkRate,
+    researchOurWorkRate,
+    acceptOurWorkRateResearch,
   };
 }

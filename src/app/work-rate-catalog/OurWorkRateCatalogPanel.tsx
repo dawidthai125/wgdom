@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Hammer, History, Pencil, Search, X } from "lucide-react";
+import { Hammer, History, Pencil, RefreshCw, Search, X } from "lucide-react";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
 import {
   OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
@@ -20,6 +20,8 @@ import {
   WORK_RATE_REGION_SCOPE_LABELS_PL,
   type WorkRateRegionScope,
 } from "@/lib/work-catalog/work-rate-types";
+import type { WorkRateResearchCandidate } from "@/lib/work-catalog/work-rate-research";
+import { WORK_RATE_AUTHORIZED_SOURCES } from "@/lib/work-catalog/work-rate-legal";
 import { WgButton, WgField } from "@/app/ui";
 import { cn } from "@/app/components/ui/utils";
 import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
@@ -45,7 +47,8 @@ function changeToneClass(label: string, status: "KNOWN" | "UNKNOWN"): string {
 }
 
 export function OurWorkRateCatalogPanel() {
-  const { store, reload, updateOurWorkRate } = useWorkCatalog();
+  const { store, reload, updateOurWorkRate, researchOurWorkRate, acceptOurWorkRateResearch } =
+    useWorkCatalog();
   const [search, setSearch] = useState("");
   const [freshnessFilter, setFreshnessFilter] =
     useState<OurWorkRateCatalogFreshnessFilter>("ALL");
@@ -53,7 +56,12 @@ export function OurWorkRateCatalogPanel() {
   const [draftRate, setDraftRate] = useState("");
   const [draftRegion, setDraftRegion] = useState<WorkRateRegionScope>("WROCLAW");
   const [historyRow, setHistoryRow] = useState<OurWorkRateCatalogRow | null>(null);
+  const [pendingAccept, setPendingAccept] = useState<{
+    row: OurWorkRateCatalogRow;
+    candidate: WorkRateResearchCandidate;
+  } | null>(null);
   const [errorPl, setErrorPl] = useState<string | null>(null);
+  const [infoPl, setInfoPl] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // ZERO HTTP — tylko lokalny store (reload bez sieci).
@@ -120,6 +128,107 @@ export function OurWorkRateCatalogPanel() {
     }
   }
 
+  async function onResearchMarket(row: OurWorkRateCatalogRow): Promise<void> {
+    if (busyId) return;
+    setBusyId(row.workId);
+    setErrorPl(null);
+    setInfoPl(null);
+    try {
+      const res = await researchOurWorkRate({
+        workId: row.workId,
+        unit: row.unit,
+        namePl: row.namePl,
+        forceRefresh: true,
+        bypassCooldown: true,
+      });
+      if (res.status === "BLOCKED") {
+        setErrorPl("Research zablokowany (Legal Gate).");
+        return;
+      }
+      if (res.status === "REUSE") {
+        setInfoPl(res.messagePl);
+        return;
+      }
+      if (res.status === "COOLDOWN") {
+        setInfoPl(res.messagePl);
+        return;
+      }
+      if (res.status === "GAP") {
+        setErrorPl(res.messagePl);
+        setPendingAccept(null);
+        return;
+      }
+      if (res.status === "CANDIDATE") {
+        setPendingAccept({ row, candidate: res.candidate });
+        setInfoPl(
+          `Propozycja rynkowa (mediana z ${res.candidate.sampleSize} obserwacji): ${formatOurWorkRatePln(res.candidate.suggestedRatePln)}. Potwierdź Accept.`,
+        );
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function onAcceptResearch(): Promise<void> {
+    if (!pendingAccept || busyId) return;
+    setBusyId(pendingAccept.row.workId);
+    setErrorPl(null);
+    try {
+      const res = await acceptOurWorkRateResearch(pendingAccept.candidate);
+      if (!res.ok) {
+        setErrorPl(res.message);
+        return;
+      }
+      setPendingAccept(null);
+      setInfoPl("Zapisano OUR RATE po Owner Accept.");
+      reload();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function sourceNamePl(sourceId: string): string {
+    return WORK_RATE_AUTHORIZED_SOURCES.find((s) => s.id === sourceId)?.namePl ?? sourceId;
+  }
+
+  function RowActions({ row }: { row: OurWorkRateCatalogRow }) {
+    return (
+      <div className="flex flex-wrap gap-1">
+        <WgButton
+          type="button"
+          variant="secondary"
+          className="!min-h-[36px] !px-2 !text-[11px]"
+          onClick={() => openEdit(row)}
+        >
+          <Pencil size={12} aria-hidden />
+          Edytuj stawkę
+        </WgButton>
+        <WgButton
+          type="button"
+          variant="secondary"
+          className="!min-h-[36px] !px-2 !text-[11px]"
+          onClick={() => void onResearchMarket(row)}
+          disabled={busyId === row.workId}
+          aria-label={`Aktualizuj stawkę rynkową: ${row.namePl}`}
+          data-work-rate-research-one
+        >
+          <RefreshCw size={12} aria-hidden />
+          Aktualizuj stawkę rynkową
+        </WgButton>
+        <WgButton
+          type="button"
+          variant="ghost"
+          className="!min-h-[36px] !px-2 !text-[11px]"
+          onClick={() => setHistoryRow(row)}
+          disabled={row.history.length === 0}
+        >
+          <History size={12} aria-hidden />
+          Historia
+        </WgButton>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3" data-our-work-rate-catalog>
       <div className="rounded-xl border border-border bg-card p-3 sm:p-4 space-y-3">
@@ -129,8 +238,8 @@ export function OurWorkRateCatalogPanel() {
             <h3 className="text-sm font-semibold">Nasz Katalog Robót</h3>
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
               Aktualne stawki robocizny (OUR RATE) dla robót z Biblioteki. Status: AKTUALNA /
-              PRZETERMINOWANA / BRAK STAWKI. Nie miesza się z cenami materiałów ani starą ceną
-              firmy.
+              PRZETERMINOWANA / BRAK STAWKI. Research rynkowy: tylko jedna robota na raz (po
+              potwierdzeniu Ownera). Nie miesza się z cenami materiałów ani starą ceną firmy.
             </p>
           </div>
         </div>
@@ -211,6 +320,59 @@ export function OurWorkRateCatalogPanel() {
             {errorPl}
           </p>
         )}
+        {infoPl && !errorPl && (
+          <p className="text-xs text-muted-foreground" role="status">
+            {infoPl}
+          </p>
+        )}
+        {pendingAccept && (
+          <div
+            className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 space-y-2"
+            data-work-rate-pending-accept
+          >
+            <div className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+              Potwierdź stawkę rynkową — {pendingAccept.row.namePl}
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Jednostka: {pendingAccept.row.unitLabelPl} · Region:{" "}
+              {WORK_RATE_REGION_SCOPE_LABELS_PL[pendingAccept.candidate.regionScope]} · Mediana:{" "}
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatOurWorkRatePln(pendingAccept.candidate.suggestedRatePln)}
+              </span>
+              {pendingAccept.candidate.previousOurRatePln != null && (
+                <>
+                  {" "}
+                  · Poprzednia OUR RATE:{" "}
+                  {formatOurWorkRatePln(pendingAccept.candidate.previousOurRatePln)}
+                </>
+              )}
+            </p>
+            <ul className="text-[11px] space-y-1">
+              {pendingAccept.candidate.observations.map((o, i) => (
+                <li key={`${o.sourceId}-${i}`}>
+                  {sourceNamePl(o.sourceId)}: {formatOurWorkRatePln(o.ratePln)} ·{" "}
+                  {WORK_RATE_REGION_SCOPE_LABELS_PL[o.regionScope]} · labor-only
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-2">
+              <WgButton
+                type="button"
+                onClick={() => void onAcceptResearch()}
+                disabled={busyId === pendingAccept.row.workId}
+              >
+                Zapisz OUR RATE (Accept)
+              </WgButton>
+              <WgButton
+                type="button"
+                variant="secondary"
+                onClick={() => setPendingAccept(null)}
+              >
+                Odrzuć
+              </WgButton>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Desktop table */}
@@ -259,27 +421,7 @@ export function OurWorkRateCatalogPanel() {
                     {row.priceChange.labelPl}
                   </td>
                   <td className="px-2 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      <WgButton
-                        type="button"
-                        variant="secondary"
-                        className="!min-h-[36px] !px-2 !text-[11px]"
-                        onClick={() => openEdit(row)}
-                      >
-                        <Pencil size={12} aria-hidden />
-                        Edytuj stawkę
-                      </WgButton>
-                      <WgButton
-                        type="button"
-                        variant="ghost"
-                        className="!min-h-[36px] !px-2 !text-[11px]"
-                        onClick={() => setHistoryRow(row)}
-                        disabled={row.history.length === 0}
-                      >
-                        <History size={12} aria-hidden />
-                        Historia
-                      </WgButton>
-                    </div>
+                    <RowActions row={row} />
                   </td>
                 </tr>
               ))}
@@ -337,19 +479,7 @@ export function OurWorkRateCatalogPanel() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              <WgButton type="button" variant="secondary" onClick={() => openEdit(row)}>
-                <Pencil size={13} aria-hidden />
-                Edytuj stawkę
-              </WgButton>
-              <WgButton
-                type="button"
-                variant="ghost"
-                onClick={() => setHistoryRow(row)}
-                disabled={row.history.length === 0}
-              >
-                <History size={13} aria-hidden />
-                Historia
-              </WgButton>
+              <RowActions row={row} />
             </div>
           </article>
         ))}

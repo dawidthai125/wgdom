@@ -285,13 +285,13 @@ PRZED:  zewnętrznym źródłem
 | Reuse `MARKET_SYNC_P3_LEGAL_GATE` | **FORBIDDEN** |
 | Źródła VERIFIED | KB.pl · SCCOT · Extradom · CennikRemontow.pl |
 | Selective research (legal) | **AUTHORIZED** |
-| Live adapters / HTTP | **NOT IMPLEMENTED** do Owner GO P2 |
+| Live adapters / HTTP | **P2 SELECTIVE** — ONE work · Edge allowlist · Owner Accept |
 | Full catalogue | **FORBIDDEN** |
-| Owner ręczny OUR RATE | **DOZWOLONY** (także przed P2) |
+| Owner ręczny OUR RATE | **DOZWOLONY** (także przed/obok research) |
 
-SSOT: [`WORK-RATE-OWNER-LEGAL-PASS.md`](./WORK-RATE-OWNER-LEGAL-PASS.md) · historyczny: [`WORK-RATE-REAL-SOURCE-LEGAL.md`](./WORK-RATE-REAL-SOURCE-LEGAL.md).
+SSOT: [`WORK-RATE-OWNER-LEGAL-PASS.md`](./WORK-RATE-OWNER-LEGAL-PASS.md) · P2: [`WORK-RATE-SELECTIVE-RESEARCH-02.md`](./WORK-RATE-SELECTIVE-RESEARCH-02.md) · historyczny: [`WORK-RATE-REAL-SOURCE-LEGAL.md`](./WORK-RATE-REAL-SOURCE-LEGAL.md).
 
-Legal PASS ≠ live research — adaptery dopiero po osobnym OWNER GO P2.
+Legal PASS + P2 selective ≠ full catalogue. Bid/Offer wire = osobny etap.
 
 ---
 

@@ -1,7 +1,7 @@
 /**
- * WORK-RATE research BOUNDARY — stub.
- * Legal PASS ≠ live HTTP. Adaptery = NOT IMPLEMENTED do OWNER GO P2.
- * ZERO HTTP · ZERO full catalogue.
+ * WORK-RATE research BOUNDARY — sync probe + adapter flags.
+ * Live research = async runSelectiveWorkRateResearch (P2).
+ * FULL CATALOGUE nadal FORBIDDEN · ZERO HTTP w sync probe.
  */
 
 import {
@@ -24,17 +24,18 @@ export type WorkRateResearchResult =
       gate: typeof WORK_RATE_LEGAL_GATE;
     }
   | {
-      status: "NOT_IMPLEMENTED";
-      reason: "ADAPTER_ABSENT";
+      status: "READY";
+      reason: "SELECTIVE_ASYNC";
       gate: typeof WORK_RATE_LEGAL_GATE;
       selectiveAuthorized: true;
       fullCatalogueForbidden: true;
+      adaptersImplemented: true;
     };
 
 /**
- * Publiczny entry research robót.
+ * Sync probe — nie wykonuje HTTP.
  * gate ≠ PASS → BLOCKED.
- * gate PASS → NOT_IMPLEMENTED (brak adaptera; ZERO sieci).
+ * gate PASS → READY (użyj runSelectiveWorkRateResearch).
  */
 export function requestWorkRateResearch(
   _request: WorkRateResearchRequest,
@@ -47,17 +48,18 @@ export function requestWorkRateResearch(
     };
   }
   return {
-    status: "NOT_IMPLEMENTED",
-    reason: "ADAPTER_ABSENT",
+    status: "READY",
+    reason: "SELECTIVE_ASYNC",
     gate: WORK_RATE_LEGAL_GATE,
     selectiveAuthorized: true,
     fullCatalogueForbidden: isWorkRateFullCatalogueForbidden(),
+    adaptersImplemented: true,
   };
 }
 
-/** Brak adaptera KB.pl / pozostałych źródeł robót — P2 dopiero po GO. */
+/** Selective adapters wired (Edge + parse + orchestrate). Live HTML = fail-soft. */
 export function isWorkRateKbPlAdapterImplemented(): boolean {
-  return false;
+  return true;
 }
 
 export function isWorkRateFullCatalogueResearchImplemented(): boolean {

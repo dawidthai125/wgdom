@@ -427,6 +427,68 @@ export {
 } from "@/lib/work-catalog/work-rate-research-stub";
 
 export {
+  calculateRepresentativeWorkRate,
+  isWorkRateMinForbiddenAsRepresentative,
+  normalizeWorkRateUnitToken,
+  qualifyWorkRateObservation,
+  workRateUnitsCompatible,
+  type QualifyWorkRateObservationResult,
+  type WorkRateQualifiedObservation,
+  type WorkRateQualifyRejectReason,
+  type WorkRateRepresentativeResult,
+} from "@/lib/work-catalog/work-rate-qualify";
+
+export {
+  WORK_RATE_ALLOWED_HOSTS,
+  buildWorkRateFixtureHtml,
+  buildWorkRateSelectiveRequestUrl,
+  isWorkRateSelectiveUrlAllowed,
+  parseWorkRateOffersFromHtml,
+} from "@/lib/work-catalog/work-rate-source-html-parse";
+
+export {
+  createEdgeWorkRateSelectiveLookup,
+  createFixtureWorkRateSelectiveLookup,
+  createNullWorkRateSelectiveLookup,
+} from "@/lib/work-catalog/work-rate-selective-lookup-client";
+
+export type {
+  WorkRateParsedOffer,
+  WorkRateSelectiveLookupPort,
+  WorkRateSelectiveLookupRequest,
+  WorkRateSelectiveLookupResult,
+  WorkRateSelectiveRawPage,
+  WorkRateSourceId,
+} from "@/lib/work-catalog/work-rate-selective-lookup-types";
+
+export {
+  WORK_RATE_RESEARCH_COOLDOWN_MS,
+  clearWorkRateResearchAntiStormState,
+  dedupeWorkRateResearchTargets,
+  isWorkRateResearchInCooldown,
+  isWorkRateResearchInFlight,
+  markWorkRateResearchCooldown,
+  runWorkRateResearchSingleFlight,
+  workRateResearchIdentityKey,
+} from "@/lib/work-catalog/work-rate-research-cooldown";
+
+export {
+  WORK_RATE_RESEARCH_SOURCE_ORDER,
+  getDefaultWorkRateLookupPort,
+  getNullWorkRateLookupPort,
+  runSelectiveWorkRateResearch,
+  type RunSelectiveWorkRateResearchInput,
+  type RunSelectiveWorkRateResearchResult,
+  type WorkRateResearchCandidate,
+  type WorkRateResearchRejectRow,
+} from "@/lib/work-catalog/work-rate-research";
+
+export {
+  acceptWorkRateResearchCandidate,
+  type AcceptWorkRateResearchResult,
+} from "@/lib/work-catalog/work-rate-accept";
+
+export {
   OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
   buildOurWorkRateCatalogRows,
   computeOurWorkRatePriceChange,

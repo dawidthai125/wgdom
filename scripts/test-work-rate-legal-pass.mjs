@@ -66,8 +66,8 @@ eq("CennikRemontow verified", isWorkRateSourceVerified("cennikremontow_pl"), tru
 
 const before = fetchCalls;
 const res = requestWorkRateResearch({ workId: "cw.paint.walls", unit: "m2" });
-eq("research NOT_IMPLEMENTED", res.status, "NOT_IMPLEMENTED");
-eq("adapter KB absent", isWorkRateKbPlAdapterImplemented(), false);
+eq("research READY", res.status, "READY");
+eq("adapter KB implemented", isWorkRateKbPlAdapterImplemented(), true);
 eq("full catalogue impl absent", isWorkRateFullCatalogueResearchImplemented(), false);
 eq("zero HTTP", fetchCalls, before);
 
