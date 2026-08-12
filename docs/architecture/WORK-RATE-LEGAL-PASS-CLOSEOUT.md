@@ -74,6 +74,6 @@ Zero live research robót · zero HTTP w stubie.
 
 | Pole | Wartość |
 |------|---------|
-| **COMMIT** | **`c7370015`** |
-| **PUSH** | *(po push)* |
+| **COMMIT** | **`c7370015`** (feature) · tip docs **`654c0e05`** |
+| **PUSH** | **PASS** (`origin/main`) |
 | **PRODUCTION** | DEPLOY PROPAGATING |
