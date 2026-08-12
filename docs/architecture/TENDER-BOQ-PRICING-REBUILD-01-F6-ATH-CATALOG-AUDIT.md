@@ -22,13 +22,13 @@ HTTP = 0 · RESEARCH = 0
 | Obszar | Werdykt |
 |--------|---------|
 | **ATH jako przedmiar (opis/jm/qty)** | **KEEP AS SEPARATE INPUT** |
-| **ATH jako cena Bid (`ath_priced`)** | **KEEP AS LEGACY** (krótki horyzont) · rekomendacja **DEPRECATE** dopiero po **Owner GO C-MODE-1** |
+| **ATH jako cena Bid (`ath_priced`)** | **C-MODE-1a ACCEPTED** · **NO BID SSOT · NO FALLBACK** (F5 path) |
 | **ATH price → OUR RATE** | **FORBIDDEN** · **GAP** (nie labor-only; mixed investor) |
-| **Legacy catalog Bid (`catalog`)** | **AUDITED** · soft-deprecate później · nadal fallback bez OfferBoq |
+| **Legacy catalog Bid (`catalog`)** | **C-MODE-1a** · **NO BID SSOT** · KEEP TECHNICALLY · P7 soft-deprecate osobno |
 | **`companyPricePln`** | **KEEP** jako pole techniczne · **ZERO** w new Bid (F5) |
 | **Offer line pricing (providers)** | **UNCHANGED** · nadal czyta `companyPricePln` (osobny tor UI) |
 | **F5 Bid / Position Cost / OUR RATE / PM** | **UNCHANGED** · brak BLOCKER-a |
-| **Implementacja F6** | **STOP po AUDIT** — decyzja semantyczna C-MODE-1 = Owner |
+| **Owner Decision** | [`…-OWNER-DECISION-C-MODE-1A.md`](./TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md) · **LOCKED** |
 
 ---
 
@@ -262,13 +262,15 @@ IMPLEMENTATION F6:             NONE
 
 ---
 
-## 13. Następny krok (tylko Owner GO)
+## 13. Następny krok
 
-Propozycje do decyzji:
+**C-MODE-1a ACCEPTED** (2026-08-12).
 
-1. **C-MODE-1a:** przy OfferBoq cutover PASS — nigdy nie używać `ath_priced` / `catalog` jako Bid SSOT (fallback = GAP).  
-2. **C-MODE-1b:** zostawić `ath_priced`/`catalog` do osobnego P7.  
-3. **Offer cutover** (osobny epic): Offer line pricing → Position Cost (wtedy dopiero soft-off `createWorkCatalogPriceProvider`).  
-4. **Przywrócenie `pd` KNR** do snapshot (quality) — bez ceny.
+Opcjonalnie (osobny GO, nie auto):
 
-**STOP. Nie startuj F7.**
+1. Thin: `useTenderPricingAuto` OfferBoq-null → GAP (wyłączyć catalog fallback).  
+2. **Offer cutover** (osobny epic): Offer line pricing → Position Cost.  
+3. **Przywrócenie `pd` KNR** do snapshot (quality) — bez ceny.  
+4. **P7** soft-deprecate legacy — tylko Owner GO.
+
+**STOP. Nie startuj P7 / F7 automatycznie.**

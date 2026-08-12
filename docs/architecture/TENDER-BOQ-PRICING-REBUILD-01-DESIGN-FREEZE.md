@@ -537,13 +537,15 @@ FORBIDDEN:
 | Cache-first · zero research w Bid | **LOCKED** |
 | REUSE identity (work + material) | **LOCKED** |
 | Kolejność faz 0→6 | **LOCKED** |
+| **C-MODE-1a** — nowy Bid SSOT = F5; `ath_priced`/`catalog`/`companyPricePln` = **NO FALLBACK** | **LOCKED** (2026-08-12) · [`…-OWNER-DECISION-C-MODE-1A.md`](./TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md) |
 
 ### 20.2 Nadal wymagają Ownera (przed/przy implementacji)
 
 1. **STALE w koszcie:** czy wartość STALE wolno wliczać do `laborCost`/`materialCost` z flagą, czy STALE = zawsze `null` cost (tylko status)?  
 2. **Brak `commercialPricing.marginPct`:** blokada sell (`null`) vs `sell = base` (margin 0)?  
 3. **Pilot coverage przed Fazą 5:** jaki minimalny zestaw przetargów / % linii COMPLETE?  
-4. **Po Fazie 5:** tryby `ath_priced` / `catalog` — wyłączyć od razu, czy legacy do Fazy 6?
+4. ~~**Po Fazie 5:** tryby `ath_priced` / `catalog`~~ → **CLOSED: C-MODE-1a** (F5 path NO FALLBACK · ATH KEEP INPUT · legacy KEEP TECHNICAL · soft-deprecate = P7 osobny GO).  
+   *Debt:* `useTenderPricingAuto` przy OfferBoq `null` nadal woła catalog — **nie** auto-fix; osobny thin GO.
 
 *(Normy uniwersalne poza BOM = poza epikiem — nie pytamy o invent.)*
 

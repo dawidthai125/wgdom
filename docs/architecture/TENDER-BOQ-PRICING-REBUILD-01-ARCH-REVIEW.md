@@ -217,9 +217,19 @@ Adaptery Fazy 1–2 = synchroniczny odczyt cache — zgodne z purity engine (HTT
 | `ath_priced` = stary tor do cutover | **PASS** |
 | ATH nie nadpisuje OUR RATE / PM | **PASS** |
 
-### CONDITION C-MODE-1
+### CONDITION C-MODE-1 → **C-MODE-1a ACCEPTED** (2026-08-12)
 
-Po Fazie 5: polityka `ath_priced` / `catalog` vs wyłącznie new path — **Owner Decision** (już w DF §20.2).
+| Element | Werdykt |
+|---------|---------|
+| Nowy Bid SSOT | **F5** Position Cost pipeline |
+| `ath_priced` / `catalog` | **NO BID SSOT · NO FALLBACK** (F5 path) |
+| `companyPricePln` | **NO NEW BID SOURCE** |
+| ATH struktura | **KEEP AS SEPARATE INPUT** |
+| Legacy catalog / pole | **KEEP TECHNICALLY** · P7 osobno |
+| F5 cutover (OfferBoq present) | **ZERO FALLBACK** · GAP explicit |
+| Product debt | `useTenderPricingAuto` OfferBoq-null → catalog — **DOCUMENTED · NOT FIXED** |
+
+SSOT: [`TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md`](./TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md).
 
 ---
 
@@ -238,7 +248,7 @@ Po Fazie 5: polityka `ath_priced` / `catalog` vs wyłącznie new path — **Owne
 | **C-STORE-1** | Persist/normalize additive OfferBoq fields | Faza 4 |
 | **C-LWW-1** | Świadomość LWW store-level WC · bez redesign sync | dokumentacja + testy |
 | **C-COV-1** | Coverage gate przed Bid cutover (Owner próg) | Faza 5 |
-| **C-MODE-1** | Polityka ath/catalog po cutover | Faza 5/6 |
+| **C-MODE-1** | **C-MODE-1a ACCEPTED** — F5 SSOT · no ath/catalog/companyPrice fallback | CLOSED (debt: auto pricing OfferBoq-null) |
 
 **Żaden CONDITION nie jest BLOCKER-em startu Fazy 0** po Owner GO IMPLEMENT.
 
@@ -270,7 +280,7 @@ Po Fazie 5: polityka `ath_priced` / `catalog` vs wyłącznie new path — **Owne
 1. **C-STALE-1:** STALE — wliczać z flagą czy cost = null?  
 2. **C-MARGIN-1:** brak `commercialPricing.marginPct` — blokada vs sell=base?  
 3. **C-COV-1:** minimalny coverage / pilot przed Fazą 5?  
-4. **C-MODE-1:** po cutover — wyłączyć `ath_priced`/`catalog` od razu czy do Fazy 6?  
+4. ~~**C-MODE-1**~~ → **CLOSED C-MODE-1a** (2026-08-12).  
 5. **C-AUX-1:** equipment/transport/auxiliary — 0 w new path, osobne komponenty później, czy tymczasowo legacy providers poza Position Cost?
 
 ---
