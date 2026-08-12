@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.39",
+    label: "Position Cost — materiał SELL (Faza 2)",
+    items: [
+      {
+        type: "new",
+        text: "TENDER-BOQ-PRICING-REBUILD-01 FAZA 2: materialKey → Price Memory → commercialPricing → computeSellPricePln → Position Cost. C-MID-1 · C-PRICE-1 · C-MARGIN-1 · bez BOM · ZERO Bid/Offer cutover · ZERO HTTP. F3+ nie w tym releasie.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.38",
     label: "Position Cost — OUR RATE (Faza 1)",
     items: [

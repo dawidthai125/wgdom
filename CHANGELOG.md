@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.39 — Position Cost materiał SELL Faza 2 (2026-08-12)
+
+- materialKey → Price Memory → sell (`computeSellPricePln`) → Position Cost · bez BOM · ZERO Bid/Offer cutover
+
 ## 2.66.38 — Position Cost OUR RATE Faza 1 (2026-08-12)
 
 - Nasz Katalog Robót → `lookupWorkRate` → `computePositionCost` · C-EMPTY / C-CPLN-1 · ZERO Bid/Offer/PM cutover
