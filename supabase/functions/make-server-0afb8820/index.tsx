@@ -791,7 +791,18 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       return !rosterKeys.has(mergeKey);
     }).slice(-500);
   }
-  await kv.mset(keys, safeValues);
+  // EDGE write layer only — merge/tombstone/LWW already applied to safeValues above.
+  // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · chunked mset (fail-fast).
+  const msetMeta = await kv.mset(keys, safeValues, {
+    onChunk: (info) => {
+      console.log(
+        `[batch-set] requestId=${requestId} chunk=${info.index + 1}/${info.total} ms=${info.ms} estimatedBytes=${info.estimatedBytes} soloOversized=${info.soloOversized}`,
+      );
+    },
+  });
+  console.log(
+    `[batch-set] requestId=${requestId} OK chunkCount=${msetMeta.chunkCount} estimatedBytes=${msetMeta.estimatedBytes} chunkMs=${JSON.stringify(msetMeta.chunkMs)} soloOversizedKeys=${JSON.stringify(msetMeta.soloOversizedKeys)}`,
+  );
   try {
     await saveDailyFullBackup(keys, safeValues);
   } catch (e) {

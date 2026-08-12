@@ -1271,10 +1271,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [setWmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
 
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
+  // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · B: wmTechnicalDrawings → domain push only
+  // (commitWmTechnicalDrawings → pushWmTechnicalDrawingsToCloud). Do NOT schedule full RS here.
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, wmTechnicalDrawings, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
