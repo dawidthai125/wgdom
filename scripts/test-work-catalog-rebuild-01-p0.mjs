@@ -283,14 +283,18 @@ ok("T07b TTL ms", workRateFreshnessStaleAfterMs() === 90 * 24 * 60 * 60 * 1000);
   eq("T18c still empty", store.catalogs.wroclaw.works[0].ourWorkRate, undefined);
 }
 
-// ——— research BLOCKED / legal / KB absent ———
+// ——— research Legal PASS · adapter absent · ZERO HTTP ———
 {
   const fetchBefore = fetchCalls;
   const res = requestWorkRateResearch({ workId: WORK_ID, unit: UNIT, regionScope: "WROCLAW" });
-  eq("T20 research BLOCKED", res.status, "BLOCKED");
-  eq("T21 gate BLOCKED", WORK_RATE_LEGAL_GATE, "BLOCKED");
+  eq("T20 research NOT_IMPLEMENTED (Legal PASS, brak adaptera)", res.status, "NOT_IMPLEMENTED");
+  if (res.status === "NOT_IMPLEMENTED") {
+    eq("T20b reason ADAPTER_ABSENT", res.reason, "ADAPTER_ABSENT");
+    eq("T20c selectiveAuthorized", res.selectiveAuthorized, true);
+    eq("T20d fullCatalogueForbidden", res.fullCatalogueForbidden, true);
+  }
+  eq("T21 gate PASS", WORK_RATE_LEGAL_GATE, "PASS");
   ok("T21b material gate untouched", MARKET_SYNC_P3_LEGAL_GATE === "PASS" || MARKET_SYNC_P3_LEGAL_GATE === "OPEN" || MARKET_SYNC_P3_LEGAL_GATE === "FAIL");
-  // capture exact material gate value for regression — must equal pre-P0 constant PASS
   eq("T21c MARKET_SYNC_P3_LEGAL_GATE unchanged PASS", MARKET_SYNC_P3_LEGAL_GATE, "PASS");
   eq("T22 KB adapter absent", isWorkRateKbPlAdapterImplemented(), false);
   eq("T23 full catalogue absent", isWorkRateFullCatalogueResearchImplemented(), false);

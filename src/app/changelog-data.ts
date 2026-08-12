@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.34",
+    label: "Stawki robót — Legal PASS (Owner)",
+    items: [
+      {
+        type: "improve",
+        text: "WORK_RATE_LEGAL_GATE = PASS (Owner Attestation): KB.pl, SCCOT, Extradom, CennikRemontow.pl VERIFIED. Selective research authorized · full catalogue FORBIDDEN · dowody prywatne poza repo. Brak adapterów/live HTTP (P2 osobno). Material Legal Gate UNCHANGED. Bid/Offer/companyPricePln/Price Memory ZERO TOUCH.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.33",
     label: "Nasz Katalog Robót — UI Firma (P1)",
     items: [

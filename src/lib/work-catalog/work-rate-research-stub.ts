@@ -1,9 +1,14 @@
 /**
- * WORK-CATALOG-REBUILD-01 P0 — research BOUNDARY (stub BLOCKED).
- * ZERO HTTP · ZERO KB.pl adapter · ZERO full catalogue.
+ * WORK-RATE research BOUNDARY — stub.
+ * Legal PASS ≠ live HTTP. Adaptery = NOT IMPLEMENTED do OWNER GO P2.
+ * ZERO HTTP · ZERO full catalogue.
  */
 
-import { WORK_RATE_LEGAL_GATE, isWorkRateResearchAllowed } from "@/lib/work-catalog/work-rate-legal";
+import {
+  WORK_RATE_LEGAL_GATE,
+  isWorkRateFullCatalogueForbidden,
+  isWorkRateResearchAllowed,
+} from "@/lib/work-catalog/work-rate-legal";
 import type { WorkRateIdentity, WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
 
 export type WorkRateResearchRequest = {
@@ -21,11 +26,15 @@ export type WorkRateResearchResult =
   | {
       status: "NOT_IMPLEMENTED";
       reason: "ADAPTER_ABSENT";
+      gate: typeof WORK_RATE_LEGAL_GATE;
+      selectiveAuthorized: true;
+      fullCatalogueForbidden: true;
     };
 
 /**
- * Jedyny publiczny entry research robót w P0.
- * Zawsze BLOCKED gdy gate ≠ PASS; nigdy nie wykonuje sieci.
+ * Publiczny entry research robót.
+ * gate ≠ PASS → BLOCKED.
+ * gate PASS → NOT_IMPLEMENTED (brak adaptera; ZERO sieci).
  */
 export function requestWorkRateResearch(
   _request: WorkRateResearchRequest,
@@ -40,10 +49,13 @@ export function requestWorkRateResearch(
   return {
     status: "NOT_IMPLEMENTED",
     reason: "ADAPTER_ABSENT",
+    gate: WORK_RATE_LEGAL_GATE,
+    selectiveAuthorized: true,
+    fullCatalogueForbidden: isWorkRateFullCatalogueForbidden(),
   };
 }
 
-/** P0: brak adaptera KB.pl dla stawek robót (osobna domena od marketQuotes materials). */
+/** Brak adaptera KB.pl / pozostałych źródeł robót — P2 dopiero po GO. */
 export function isWorkRateKbPlAdapterImplemented(): boolean {
   return false;
 }

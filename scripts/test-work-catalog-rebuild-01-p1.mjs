@@ -322,8 +322,8 @@ eq("T25d MISSING→BRAK STAWKI", workRateFreshnessLabelPl("MISSING"), "BRAK STAW
   eq("T17 zero HTTP open", fetchCalls, before);
   eq("T18 zero HTTP MISSING", fetchCalls, before);
   const res = requestWorkRateResearch({ workId: WORK_ID, unit: UNIT });
-  eq("T19 research BLOCKED", res.status, "BLOCKED");
-  eq("T20 gate BLOCKED", WORK_RATE_LEGAL_GATE, "BLOCKED");
+  eq("T19 research NOT_IMPLEMENTED", res.status, "NOT_IMPLEMENTED");
+  eq("T20 gate PASS", WORK_RATE_LEGAL_GATE, "PASS");
   eq("T20b material gate PASS", MARKET_SYNC_P3_LEGAL_GATE, "PASS");
   eq("T17b still zero HTTP", fetchCalls, before);
 }

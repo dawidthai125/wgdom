@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.33** · **WORK-CATALOG-REBUILD-01 P1** · Firma → Nasz Katalog Robót UI · prior P0 **2.66.32** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = STOP (Owner GO P2/Legal)**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.34** · **WORK-RATE LEGAL PASS** · prior P1 **2.66.33** · prior P0 **2.66.32** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = STOP (Owner GO P2 SELECTIVE RESEARCH)**.
 
 ---
 
@@ -26,10 +26,11 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.33** (live may lag until deploy) |
-| **Deploy tip commit (`main` / `version.json`)** | **`a2ceeef6`** · prior P0 **`dc9647af`** / UI **2.66.32** |
-| **Feature tip (WORK-CATALOG-REBUILD-01 P1)** | **COMPLETE** · Firma → Nasz Katalog Robót UI · OUR RATE PL · Owner Edit · historia · filtry · ZERO HTTP · research BLOCKED · UI **2.66.33** · feature **`a2ceeef6`** · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P1-IMPLEMENTATION-CLOSEOUT.md) · NEXT **STOP** (P2/Legal/Bid tylko Owner GO) |
-| **Feature tip (WORK-CATALOG-REBUILD-01 P0)** | **COMPLETE** · OUR RATE na `kw-wgdom-work-catalog` · identity workId+unit · C1 · C-EMPTY/C-NO-SEED · lookup ZERO HTTP · research BLOCKED · Bid/Offer/PM UNCHANGED · UI **2.66.32** · feature **`dc9647af`** · tip supersedowany przez P1 · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P0-IMPLEMENTATION-CLOSEOUT.md) · [`DF`](../architecture/WORK-CATALOG-REBUILD-01-DESIGN-FREEZE.md) |
+| **UI version (changelog / version.json)** | **2.66.34** (live may lag until deploy) |
+| **Deploy tip commit (`main` / `version.json`)** | *(po push Legal PASS)* · prior P1 **`a2ceeef6`** / UI **2.66.33** · prior P0 **`dc9647af`** / UI **2.66.32** |
+| **Feature tip (WORK-RATE LEGAL ENABLEMENT)** | **PASS** · `WORK_RATE_LEGAL_GATE` · KB.pl / SCCOT / Extradom / CennikRemontow.pl **VERIFIED** (Owner Attestation) · PRIVATE EVIDENCE NOT IN REPO · selective authorized · full catalogue FORBIDDEN · adapters **NOT IMPLEMENTED** · material gate UNCHANGED · UI **2.66.34** · [`PASS`](../architecture/WORK-RATE-OWNER-LEGAL-PASS.md) · [`CLOSEOUT`](../architecture/WORK-RATE-LEGAL-PASS-CLOSEOUT.md) · NEXT **STOP** (P2 tylko Owner GO) |
+| **Feature tip (WORK-CATALOG-REBUILD-01 P1)** | **COMPLETE** · Firma → Nasz Katalog Robót UI · OUR RATE PL · Owner Edit · historia · filtry · ZERO HTTP · UI **2.66.33** · feature **`a2ceeef6`** · tip supersedowany przez Legal PASS · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P1-IMPLEMENTATION-CLOSEOUT.md) |
+| **Feature tip (WORK-CATALOG-REBUILD-01 P0)** | **COMPLETE** · OUR RATE na `kw-wgdom-work-catalog` · identity workId+unit · C1 · C-EMPTY/C-NO-SEED · lookup ZERO HTTP · Bid/Offer/PM UNCHANGED · UI **2.66.32** · feature **`dc9647af`** · tip supersedowany przez P1 · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P0-IMPLEMENTATION-CLOSEOUT.md) · [`DF`](../architecture/WORK-CATALOG-REBUILD-01-DESIGN-FREEZE.md) |
 | **Feature tip (PRICE-MEMORY-CATALOG-03)** | **IMPL + UI POLISH** · awaiting Production Verify · 372 materials · PL labels · tip supersedowany przez WORK-CATALOG-REBUILD-01 · polish **`f6d265e5`** · feature **`b713d971`** · [`UI CLOSEOUT`](../architecture/PRICE-MEMORY-CATALOG-03-UI-POLISH-CLOSEOUT.md) · [`IMPL`](../architecture/PRICE-MEMORY-CATALOG-03-IMPLEMENTATION-CLOSEOUT.md) |
 | **Feature tip (PRICE-MEMORY-CATALOG-02)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · MATERIAL ONLY · identity-first builder · labor catch-all removed · 372 keys PASS · harness 36 · ZERO HTTP on open · UI **2.66.29** · feature **`9a2c3563`** · live **`be718b4`** · tip supersedowany przez CATALOG-03 · [`PV`](../architecture/PRICE-MEMORY-CATALOG-02-PRODUCTION-VERIFY.md) · [`IMPL`](../architecture/PRICE-MEMORY-CATALOG-02-IMPLEMENTATION-CLOSEOUT.md) · [`PLAN`](../architecture/PRICE-MEMORY-CATALOG-02-MATERIAL-LABOR-SEPARATION-PLAN.md) |
 | **Feature tip (PRICE-MEMORY-CATALOG-01)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · Firma → Nasz katalog cen · `commercialPricing` · global MAX margin · sell derived · force refresh ONE key (C4 CURRENT) → Accept → commit · ZERO open HTTP · ZERO second price DB · harness 45 · UI **2.66.28** · feature **`0984de94`** · tip supersedowany przez CATALOG-02 · [`CLOSEOUT`](../architecture/PRICE-MEMORY-CATALOG-01-CLOSEOUT.md) · [`IMPL`](../architecture/PRICE-MEMORY-CATALOG-01-IMPLEMENTATION-CLOSEOUT.md) |

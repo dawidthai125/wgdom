@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.34 — Stawki robót — Legal PASS Owner (2026-08-12)
+
+- **improve:** `WORK_RATE_LEGAL_GATE` = PASS · KB.pl / SCCOT / Extradom / CennikRemontow.pl VERIFIED (Owner Attestation) · selective only · full catalogue FORBIDDEN · bez adapterów/live HTTP · material gate UNCHANGED
+
 ## 2.66.33 — Nasz Katalog Robót — UI Firma P1 (2026-08-12)
 
 - **new:** WORK-CATALOG-REBUILD-01 P1 — Firma → Nasz Katalog Robót · OUR RATE UI · Owner Edit · historia · filtry PL · bez seed companyPricePln · research BLOCKED

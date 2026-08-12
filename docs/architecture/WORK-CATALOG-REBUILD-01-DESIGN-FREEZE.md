@@ -281,15 +281,17 @@ PRZED:  zewnętrznym źródłem
 | Element | LOCK |
 |---------|------|
 | Osobny gate | **`WORK_RATE_LEGAL_GATE`** |
+| Status gate (2026-08-12) | **PASS** — Owner Attestation |
 | Reuse `MARKET_SYNC_P3_LEGAL_GATE` | **FORBIDDEN** |
-| KB.pl | **REVIEW / UNKNOWN** |
-| Live research do PASS | **BLOCKED** |
-| Flip gate w tym DF | **NIE** |
-| Owner ręczny OUR RATE przy BLOCKED | **DOZWOLONY** |
+| Źródła VERIFIED | KB.pl · SCCOT · Extradom · CennikRemontow.pl |
+| Selective research (legal) | **AUTHORIZED** |
+| Live adapters / HTTP | **NOT IMPLEMENTED** do Owner GO P2 |
+| Full catalogue | **FORBIDDEN** |
+| Owner ręczny OUR RATE | **DOZWOLONY** (także przed P2) |
 
-Szczegóły: [`WORK-RATE-REAL-SOURCE-LEGAL.md`](./WORK-RATE-REAL-SOURCE-LEGAL.md).
+SSOT: [`WORK-RATE-OWNER-LEGAL-PASS.md`](./WORK-RATE-OWNER-LEGAL-PASS.md) · historyczny: [`WORK-RATE-REAL-SOURCE-LEGAL.md`](./WORK-RATE-REAL-SOURCE-LEGAL.md).
 
-Do Legal PASS: brak adaptera live · brak scrapingu „na próbę”.
+Legal PASS ≠ live research — adaptery dopiero po osobnym OWNER GO P2.
 
 ---
 

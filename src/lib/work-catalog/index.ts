@@ -376,10 +376,17 @@ export {
 } from "@/lib/work-catalog/work-rate-types";
 
 export {
+  WORK_RATE_AUTHORIZED_SOURCES,
   WORK_RATE_LEGAL_GATE,
+  isWorkRateFullCatalogueForbidden,
   isWorkRateLegalPass,
   isWorkRateResearchAllowed,
+  isWorkRateSelectiveResearchAuthorized,
+  isWorkRateSourceVerified,
+  type WorkRateAuthorizedSource,
+  type WorkRateAuthorizedSourceId,
   type WorkRateLegalGateStatus,
+  type WorkRateSourceAttestationStatus,
 } from "@/lib/work-catalog/work-rate-legal";
 
 export {
