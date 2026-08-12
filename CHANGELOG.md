@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.40 — Position Cost BOM / Technology Faza 3 (2026-08-12)
+
+- workId → TechnologyPack/`projectBom` → SELL + OUR RATE → Position Cost · C-BOM-1…5 · bez invent norm
+
 ## 2.66.39 — Position Cost materiał SELL Faza 2 (2026-08-12)
 
 - materialKey → Price Memory → sell (`computeSellPricePln`) → Position Cost · bez BOM · ZERO Bid/Offer cutover

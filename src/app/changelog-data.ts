@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.40",
+    label: "Position Cost — BOM / Technology (Faza 3)",
+    items: [
+      {
+        type: "new",
+        text: "TENDER-BOQ-PRICING-REBUILD-01 FAZA 3: workId → TechnologyPack/BOM (qtyFactor×qty) → Price Memory SELL + OUR RATE → Position Cost. C-BOM-1…5 · bez invent norm · ZERO Bid/Offer cutover · ZERO HTTP. F4+ nie w tym releasie.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.39",
     label: "Position Cost — materiał SELL (Faza 2)",
     items: [

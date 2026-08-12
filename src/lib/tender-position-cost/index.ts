@@ -1,6 +1,6 @@
 /**
  * TENDER-BOQ-PRICING-REBUILD-01 — Position Cost public API.
- * F0: pure engine · F1: OUR RATE labor adapter · F2: materialKey → Price Memory → SELL.
+ * F0: pure engine · F1: OUR RATE · F2: material SELL · F3: BOM/Technology.
  */
 
 export type {
@@ -44,3 +44,17 @@ export {
   resolveMaterialInputFromPriceMemory,
   resolveMaterialsInputFromPriceMemory,
 } from "@/lib/tender-position-cost/material-sell-adapter";
+
+export type {
+  BomComponentResolved,
+  BomTechnologyResolve,
+  BomTechnologyStatus,
+  ComputePositionCostWithBomInput,
+  ComputePositionCostWithBomResult,
+} from "@/lib/tender-position-cost/bom-technology-adapter";
+
+export {
+  computePositionCostWithBomTechnology,
+  findActiveTechnologyPacksForWorkId,
+  resolveTechnologyBomForWork,
+} from "@/lib/tender-position-cost/bom-technology-adapter";
