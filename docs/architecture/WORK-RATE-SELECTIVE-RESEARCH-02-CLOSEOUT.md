@@ -28,7 +28,7 @@ MATERIAL PRICE MEMORY: UNCHANGED
 
 TESTS: P2 54 · P0 99 · P1 62 · Legal 17 · PM C01/02/03 · LIVE-08 · MMR-02 · invoice · Bid · BUILD PASS
 BUILD: PASS
-COMMIT: (po push)
+COMMIT: fcd65f43
 PUSH: (po push)
 PRODUCTION: DEPLOY PROPAGATING
 
@@ -65,7 +65,7 @@ NEXT: STOP — czekaj na Owner GO (nie P3 / nie Bid)
 
 | Pole | Wartość |
 |------|---------|
-| **COMMIT** | *(po push)* |
+| **COMMIT** | **`fcd65f43`** |
 | **PUSH** | *(po push)* |
 | **UI** | **2.66.35** |
 | **PRODUCTION** | DEPLOY PROPAGATING |
