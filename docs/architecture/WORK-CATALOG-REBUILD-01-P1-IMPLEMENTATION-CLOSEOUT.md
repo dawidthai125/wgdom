@@ -74,6 +74,6 @@ STOP — osobny OWNER GO dla P2 / Legal Enablement / KB.pl / Bid
 
 | Pole | Wartość |
 |------|---------|
-| **COMMIT** | *(po push)* |
-| **PUSH** | *(po push)* |
-| **PRODUCTION** | DEPLOY PROPAGATING / VERIFIED |
+| **COMMIT** | `a2ceeef6` |
+| **PUSH** | PASS (`origin/main`) |
+| **PRODUCTION** | DEPLOY PROPAGATING (`version.json` jeszcze 2.66.32) |
