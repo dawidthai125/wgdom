@@ -42,6 +42,7 @@ export type ShadowWorkIdentityStatus =
   | "AMBIGUOUS"
   | "INVALID_UNIT"
   | "NOISE_SKIP"
+  | "EQUIPMENT_GAP"
   | "AUXILIARY_GAP";
 
 export type ShadowGapCode =
@@ -56,6 +57,7 @@ export type ShadowGapCode =
   | "BRAK_CENY_MATERIALU"
   | "PRZETERMINOWANA_CENA_MATERIALU"
   | "BRAK_KONWERSJI_JEDNOSTEK"
+  | "EQUIPMENT_OUT_OF_SCOPE"
   | "AUXILIARY_OUT_OF_SCOPE"
   | "POMINIETO_NOISE"
   | "NIEPRAWIDLOWA_ILOSC";
@@ -72,7 +74,8 @@ const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   BRAK_CENY_MATERIALU: "BRAK CENY MATERIAŁU",
   PRZETERMINOWANA_CENA_MATERIALU: "PRZETERMINOWANA CENA MATERIAŁU",
   BRAK_KONWERSJI_JEDNOSTEK: "BRAK KONWERSJI JEDNOSTEK",
-  AUXILIARY_OUT_OF_SCOPE: "EQUIPMENT / TRANSPORT / AUXILIARY — OUT OF SCOPE",
+  EQUIPMENT_OUT_OF_SCOPE: "EQUIPMENT — OUT OF SCOPE (brak REAL SOURCE Bid)",
+  AUXILIARY_OUT_OF_SCOPE: "TRANSPORT / AUXILIARY — OUT OF SCOPE",
   POMINIETO_NOISE: "POZYCJA NOISE — POMINIĘTA",
   NIEPRAWIDLOWA_ILOSC: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
 };
@@ -172,7 +175,21 @@ export function resolveWorkIdentityFromOfferBoqLine(
 
   const kind = line.costIntelligence?.lineKind;
   const noiseKind = line.noiseKind;
-  if (kind === "Equipment" || noiseKind === "transport") {
+  // EQUIPMENT-01: Equipment ≠ Transport ≠ Auxiliary (D-EQ-01) — osobny GAP, nie AUXILIARY_GAP.
+  if (kind === "Equipment") {
+    pushGap(gaps, "EQUIPMENT_OUT_OF_SCOPE");
+    return {
+      status: "EQUIPMENT_GAP",
+      statusLabelPl: GAP_LABEL_PL.EQUIPMENT_OUT_OF_SCOPE,
+      workId: null,
+      unit,
+      unitRaw,
+      matchMethod: line.matchMethod ?? null,
+      matchConfidence: line.matchConfidence ?? null,
+      gaps,
+    };
+  }
+  if (noiseKind === "transport") {
     pushGap(gaps, "AUXILIARY_OUT_OF_SCOPE");
     return {
       status: "AUXILIARY_GAP",
@@ -340,7 +357,11 @@ export function computeShadowPositionCostForOfferBoqLine(
     positionComplete: false,
   };
 
-  if (identity.status === "NOISE_SKIP" || identity.status === "AUXILIARY_GAP") {
+  if (
+    identity.status === "NOISE_SKIP" ||
+    identity.status === "EQUIPMENT_GAP" ||
+    identity.status === "AUXILIARY_GAP"
+  ) {
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }

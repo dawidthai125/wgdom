@@ -576,8 +576,9 @@ const cutover = { store: goodStore, nowMs: NOW, paintCoats: 2 };
     paintCoats: 2,
   });
   const gate = evaluateBidCutoverGate(shadow);
-  ok("TX AUX gate FAIL", !gate.pass);
-  ok("TX AUX count", gate.auxiliaryGapCount >= 1);
+  ok("TX EQ gate FAIL", !gate.pass);
+  ok("TX EQ equipmentGapCount", gate.equipmentGapCount >= 1);
+  ok("TX EQ not AUXILIARY_GAP count", gate.auxiliaryGapCount === 0);
 }
 
 // ——— F0 pure preserved ———

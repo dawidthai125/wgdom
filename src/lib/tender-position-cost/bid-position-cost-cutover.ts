@@ -35,6 +35,9 @@ export type BidCutoverGateResult = {
   completeLineCount: number;
   gapLineCount: number;
   skippedNoiseCount: number;
+  /** EQUIPMENT-01: Equipment lines (≠ Transport/Auxiliary). */
+  equipmentGapCount: number;
+  /** Transport / other auxiliary — C-AUX-1. */
   auxiliaryGapCount: number;
   reasonsPl: string[];
   gapCodes: ShadowGapCode[];
@@ -118,6 +121,7 @@ export function evaluateBidCutoverGate(
   let completeLineCount = 0;
   let gapLineCount = 0;
   let skippedNoiseCount = 0;
+  let equipmentGapCount = 0;
   let auxiliaryGapCount = 0;
 
   for (const line of shadow.lines) {
@@ -126,12 +130,21 @@ export function evaluateBidCutoverGate(
       continue;
     }
     billableLineCount += 1;
+    if (line.identity.status === "EQUIPMENT_GAP") {
+      equipmentGapCount += 1;
+      gapLineCount += 1;
+      collectLineGaps(line, gapCodes);
+      reasonsPl.push(
+        `Linia ${line.lp || line.lineId}: EQUIPMENT — OUT OF SCOPE (brak REAL SOURCE Bid)`,
+      );
+      continue;
+    }
     if (line.identity.status === "AUXILIARY_GAP") {
       auxiliaryGapCount += 1;
       gapLineCount += 1;
       collectLineGaps(line, gapCodes);
       reasonsPl.push(
-        `Linia ${line.lp || line.lineId}: EQUIPMENT / TRANSPORT / AUXILIARY — OUT OF SCOPE`,
+        `Linia ${line.lp || line.lineId}: TRANSPORT / AUXILIARY — OUT OF SCOPE`,
       );
       continue;
     }
@@ -155,6 +168,7 @@ export function evaluateBidCutoverGate(
     billableLineCount > 0 &&
     gapLineCount === 0 &&
     completeLineCount === billableLineCount &&
+    equipmentGapCount === 0 &&
     auxiliaryGapCount === 0 &&
     shadow.aggregates.totalPositionCostPln != null &&
     shadow.aggregates.totalPositionCostPln > 0;
@@ -169,6 +183,7 @@ export function evaluateBidCutoverGate(
     completeLineCount,
     gapLineCount,
     skippedNoiseCount,
+    equipmentGapCount,
     auxiliaryGapCount,
     reasonsPl,
     gapCodes,

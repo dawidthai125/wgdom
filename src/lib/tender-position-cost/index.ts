@@ -60,6 +60,21 @@ export {
 } from "@/lib/tender-position-cost/bom-technology-adapter";
 
 export type {
+  EquipmentComponentResult,
+  EquipmentPriceConfidence,
+  EquipmentPriceProvenance,
+  EquipmentPriceProvider,
+  EquipmentPriceProviderRequest,
+  EquipmentPriceProviderResult,
+  EquipmentRateStatus,
+} from "@/lib/tender-position-cost/equipment-contract";
+
+export {
+  buildEquipmentComponentResult,
+  createUnresolvedEquipmentPriceProvider,
+} from "@/lib/tender-position-cost/equipment-contract";
+
+export type {
   ComputeShadowBoqPositionCostsInput,
   ComputeShadowPositionCostForLineInput,
   ShadowBoqPositionCostResult,
