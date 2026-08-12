@@ -4775,13 +4775,21 @@ const WORK_RATE_ALLOWED_HOSTS = new Set([
 ]);
 
 function workRateBuildSelectiveUrl(sourceId: string, query: string): string | null {
-  const term = String(query || "").trim().slice(0, 120);
+  const term = String(query || "").trim();
   if (term.length < 2) return null;
-  const enc = encodeURIComponent(term);
-  if (sourceId === "kb_pl") return `https://kb.pl/?s=${enc}`;
-  if (sourceId === "sccot") return `https://sccot.pl/?s=${enc}`;
-  if (sourceId === "extradom") return `https://www.extradom.pl/szukaj?q=${enc}`;
-  if (sourceId === "cennikremontow_pl") return `https://cennikremontow.pl/?s=${enc}`;
+  // Kanoniczne cenniki (Owner) — 1 URL / źródło; query służy do match w client parserze.
+  if (sourceId === "kb_pl") {
+    return "https://kb.pl/cenniki/miejskie/remonty-mieszkan/wroclaw/";
+  }
+  if (sourceId === "sccot") {
+    return "https://sccot.pl/dobra-robota/cennik-uslug-budowlanych-i-remontowych/";
+  }
+  if (sourceId === "extradom") {
+    return "https://www.extradom.pl/porady/artykul-cennik-uslug-budowlanych";
+  }
+  if (sourceId === "cennikremontow_pl") {
+    return "https://cennikremontow.pl/wroclaw-remonty-cennik/";
+  }
   return null;
 }
 

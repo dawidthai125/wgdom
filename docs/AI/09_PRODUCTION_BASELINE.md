@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.35** · **WORK-RATE-SELECTIVE-RESEARCH-02** · prior Legal **2.66.34** · prior P1 **2.66.33** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = STOP (Owner GO — nie P3/Bid)**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.36** · **WORK-RATE-REAL-WORLD-VALIDATION-03** · prior P2 **2.66.35** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = STOP**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.35** (live may lag until deploy) |
-| **Deploy tip commit (`main` / `version.json`)** | **`fcd65f43`** · prior Legal **`c7370015`** / UI **2.66.34** · prior P1 **`a2ceeef6`** / UI **2.66.33** |
-| **Feature tip (WORK-RATE-SELECTIVE-RESEARCH-02)** | **COMPLETE** · ONE work · 4 źródła · qualify labor-only · mediana · Owner Accept · Edge allowlist · anti-storm · ZERO full catalogue · UI **2.66.35** · feature **`fcd65f43`** · [`DOC`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02.md) · [`CLOSEOUT`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02-CLOSEOUT.md) · NEXT **STOP** |
+| **UI version (changelog / version.json)** | **2.66.36** (live may lag until deploy) |
+| **Deploy tip commit (`main` / `version.json`)** | *(po push RW-03)* · prior P2 **`fcd65f43`** / UI **2.66.35** |
+| **Feature tip (WORK-RATE-REAL-WORLD-VALIDATION-03)** | **COMPLETE** · parser tabel realnych cenników · kanoniczne URL · KB/Extradom/CR PASS · SCCOT RATE_GAP (minimum/package) · UI **2.66.36** · [`DOC`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03.md) · NEXT **STOP** |
+| **Feature tip (WORK-RATE-SELECTIVE-RESEARCH-02)** | **COMPLETE** · ONE work · 4 źródła · qualify · mediana · Owner Accept · Edge · tip supersedowany przez RW-03 · UI **2.66.35** · feature **`fcd65f43`** · [`DOC`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02.md) · [`CLOSEOUT`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02-CLOSEOUT.md) |
 | **Feature tip (WORK-RATE LEGAL ENABLEMENT)** | **PASS** · `WORK_RATE_LEGAL_GATE` · KB.pl / SCCOT / Extradom / CennikRemontow.pl **VERIFIED** · tip supersedowany przez P2 research · feature **`c7370015`** · UI **2.66.34** · [`PASS`](../architecture/WORK-RATE-OWNER-LEGAL-PASS.md) · [`CLOSEOUT`](../architecture/WORK-RATE-LEGAL-PASS-CLOSEOUT.md) |
 | **Feature tip (WORK-CATALOG-REBUILD-01 P1)** | **COMPLETE** · Firma → Nasz Katalog Robót UI · OUR RATE PL · Owner Edit · historia · filtry · ZERO HTTP · UI **2.66.33** · feature **`a2ceeef6`** · tip supersedowany przez Legal PASS · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P1-IMPLEMENTATION-CLOSEOUT.md) |
 | **Feature tip (WORK-CATALOG-REBUILD-01 P0)** | **COMPLETE** · OUR RATE na `kw-wgdom-work-catalog` · identity workId+unit · C1 · C-EMPTY/C-NO-SEED · lookup ZERO HTTP · Bid/Offer/PM UNCHANGED · UI **2.66.32** · feature **`dc9647af`** · tip supersedowany przez P1 · [`CLOSEOUT`](../architecture/WORK-CATALOG-REBUILD-01-P0-IMPLEMENTATION-CLOSEOUT.md) · [`DF`](../architecture/WORK-CATALOG-REBUILD-01-DESIGN-FREEZE.md) |

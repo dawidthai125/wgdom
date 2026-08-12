@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.36 — Stawki robót — parser realnych cenników (2026-08-12)
+
+- **fix:** WORK-RATE-REAL-WORLD-VALIDATION-03 — parser tabel + kanoniczne URL · SCCOT minimum/package REJECT · selective ONE work
+
 ## 2.66.35 — Stawki robót — selective research P2 (2026-08-12)
 
 - **new:** WORK-RATE-SELECTIVE-RESEARCH-02 — ONE work · 4 źródła · qualify · mediana · Owner Accept · Edge allowlist · anti-storm · ZERO full catalogue · Bid/Offer/PM UNCHANGED

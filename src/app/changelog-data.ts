@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.36",
+    label: "Stawki robót — parser realnych cenników",
+    items: [
+      {
+        type: "fix",
+        text: "WORK-RATE-REAL-WORLD-VALIDATION-03: parser tabel KB.pl / Extradom / CennikRemontow + kanoniczne URL cenników. SCCOT ceny „od …” i pakiety pokoi → REJECT. Selective ONE work · bez full catalogue. Bid/Offer/Price Memory UNCHANGED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.35",
     label: "Stawki robót — selective research rynkowy (P2)",
     items: [

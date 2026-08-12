@@ -440,9 +440,11 @@ export {
 
 export {
   WORK_RATE_ALLOWED_HOSTS,
+  WORK_RATE_CANONICAL_CENNIK_URL,
   buildWorkRateFixtureHtml,
   buildWorkRateSelectiveRequestUrl,
   isWorkRateSelectiveUrlAllowed,
+  namesLooselyMatch,
   parseWorkRateOffersFromHtml,
 } from "@/lib/work-catalog/work-rate-source-html-parse";
 
