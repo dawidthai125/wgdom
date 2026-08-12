@@ -1,15 +1,16 @@
 # TENDER-BOQ-PRICING-REBUILD-01 — AI / CURSOR CONTINUITY HANDOFF
 
-> **STATUS:** **ACTIVE** · SESSION CLOSED 2026-08-12  
-> **DLA:** przyszły ChatGPT · przyszły Cursor · kolejny Owner GO  
-> **Tip numeryczny:** wyłącznie [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Thin pointer AI:** [`docs/AI/10_TENDER_PRICING_CONTINUITY.md`](../AI/10_TENDER_PRICING_CONTINUITY.md)  
+> **STATUS:** **ACTIVE** · SESSION CLOSED 2026-08-12
+> **DLA:** przyszły ChatGPT · przyszły Cursor · kolejny Owner GO
+> **Tip numeryczny:** wyłącznie [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
+> **Thin pointer AI:** [`docs/AI/10_TENDER_PRICING_CONTINUITY.md`](../AI/10_TENDER_PRICING_CONTINUITY.md)
 > **Session closeout:** [`TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md`](./TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md)
 
 ```text
 NIE zgaduj tipu · NIE odtwarzaj F0–F6 · NIE cofaj C-MODE-1a
-NIE startuj P7 / Equipment / ATH rebuild / legacy cleanup bez Owner GO
-NEXT FUNCTIONAL GAP = EQUIPMENT / TRANSPORT / AUXILIARY (AUDIT first)
+EQUIPMENT-01 CONTRACT/GAP = CLOSED · pricing = NOT IMPLEMENTED
+NIE startuj TRANSPORT / Aux pricing / Equipment REAL SOURCE / P7 / ATH bez Owner GO
+NEXT = Owner GO → AUDIT (Transport lub Equipment REAL SOURCE) — NIE auto
 ```
 
 ---
@@ -19,14 +20,15 @@ NEXT FUNCTIONAL GAP = EQUIPMENT / TRANSPORT / AUXILIARY (AUDIT first)
 | Pole | Wartość |
 |------|---------|
 | **UI / version.json** | **2.66.43** |
-| **LIVE COMMIT** | **`d92aef0`** |
-| **Feature SHA (C-MODE-1a)** | **`d92aef0a`** |
+| **LIVE COMMIT** | **`8e4f394`** |
+| **Feature SHA (EQUIPMENT-01)** | **`8e4f3943`** |
 | **STATUS** | **PRODUCTION VERIFIED · GREEN** |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
-| **PV** | [`…-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md) |
+| **EQUIPMENT-01** | [`EQUIPMENT-01-CLOSEOUT.md`](./EQUIPMENT-01-CLOSEOUT.md) · [`EQUIPMENT-01-PRODUCTION-VERIFY.md`](./EQUIPMENT-01-PRODUCTION-VERIFY.md) |
+| **C-MODE-1a PV** | [`…-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md) |
 
-Prior F5 Bid cutover: UI **2.66.42** · feature **`3995c9af`** · PV GREEN.
+Prior C-MODE-1a: feature **`d92aef0a`**. Prior F5: UI **2.66.42** · **`3995c9af`**.
 
 ---
 
@@ -55,8 +57,8 @@ costPipeline ON + OfferBoq === null
   → NIE ath_priced · NIE catalog · NIE companyPricePln
 ```
 
-Plik: `src/app/hooks/useTenderPricingAuto.ts` · `resolveTenderPricingAutoProposal`.  
-Doc: [`…-FALLBACK-REMOVAL.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md).  
+Plik: `src/app/hooks/useTenderPricingAuto.ts` · `resolveTenderPricingAutoProposal`.
+Doc: [`…-FALLBACK-REMOVAL.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md).
 `computeCatalogBidProposalForPricingAuto` = **KEEP TECHNICAL** (pipeline OFF / P7) — **nie** wołać z path ON.
 
 ---
@@ -75,8 +77,8 @@ computeTenderBidProposal  → Bid stack (Kp · profit · minMargin)
 recommendedBidPln         → FINAL BID
 ```
 
-**ATH** = SEPARATE INPUT (qty/unit/description → OfferBoq → F5).  
-**ATH PLN / `ath_priced`** ≠ Bid SSOT · ≠ OUR RATE.  
+**ATH** = SEPARATE INPUT (qty/unit/description → OfferBoq → F5).
+**ATH PLN / `ath_priced`** ≠ Bid SSOT · ≠ OUR RATE.
 **Legacy catalog / `companyPricePln`** = TECHNICAL ONLY · ZERO new Bid source.
 
 ---
@@ -96,10 +98,10 @@ recommendedBidPln         → FINAL BID
 
 ## 6–10. Material · Work · BOM · Position Cost · Bid
 
-**Material:** MATERIAL ONLY · `materialKey` · CURRENT/STALE/MISSING · C01 45 · C02 36 · C03 31 · ~372 keys.  
-**Work:** OUR RATE · selective research · `WORK_RATE_LEGAL_GATE=PASS` · KB/SCCOT/Extradom/CennikRemontow · FULL CATALOGUE FORBIDDEN · cache-first · Owner Accept.  
-**BOM:** multi-material tylko z Technology · brak BOM = GAP.  
-**Position Cost:** pure `computePositionCost` · labor + materials 0..N.  
+**Material:** MATERIAL ONLY · `materialKey` · CURRENT/STALE/MISSING · C01 45 · C02 36 · C03 31 · ~372 keys.
+**Work:** OUR RATE · selective research · `WORK_RATE_LEGAL_GATE=PASS` · KB/SCCOT/Extradom/CennikRemontow · FULL CATALOGUE FORBIDDEN · cache-first · Owner Accept.
+**BOM:** multi-material tylko z Technology · brak BOM = GAP.
+**Position Cost:** pure `computePositionCost` · labor + materials 0..N.
 **Bid:** F5 pipeline · stack Kp/profit/minMargin **UNCHANGED**.
 
 ---
@@ -144,16 +146,16 @@ F6 audit: [`…-F6-ATH-CATALOG-AUDIT.md`](./TENDER-BOQ-PRICING-REBUILD-01-F6-ATH
 
 ## 18. Zamknięte (ten epic)
 
-F0–F6 · C-MODE-1a · Bid cutover PV · fallback removal PV.  
+F0–F6 · C-MODE-1a · Bid cutover PV · fallback removal PV.
 Powiązane CLOSED (kontekst): WORK-CATALOG-REBUILD P0/P1 · PRICE-MEMORY C01–C03 · WORK-RATE legal/P2/RW-03.
 
 ---
 
 ## 19. Pozostałe GAP-y (NIE COMPLETE)
 
-1. **EQUIPMENT / TRANSPORT / AUXILIARY** — najważniejszy funkcjonalny GAP (F4/F5: GAP · nie invent · nie labor · nie material · nie companyPrice). Najpierw AUDIT→MODEL→PLAN→DF→ARCH→Owner GO.  
-2. **ATH modernization** — pd/KNR identity · labor-only semantics · materialKey — **nie blocker F5** · nie start bez GO.  
-3. **Legacy cleanup / P7** — usuwanie pól/adapterów — **NOT STARTED** · dependency audit first.  
+1. **EQUIPMENT / TRANSPORT / AUXILIARY** — najważniejszy funkcjonalny GAP (F4/F5: GAP · nie invent · nie labor · nie material · nie companyPrice). Najpierw AUDIT→MODEL→PLAN→DF→ARCH→Owner GO.
+2. **ATH modernization** — pd/KNR identity · labor-only semantics · materialKey — **nie blocker F5** · nie start bez GO.
+3. **Legacy cleanup / P7** — usuwanie pól/adapterów — **NOT STARTED** · dependency audit first.
 4. **Real BOQ coverage audit** — GAP > invent.
 
 ---
@@ -172,13 +174,13 @@ NIE auto-start legacy delete
 
 ## 21. Zakazy (HARD)
 
-- Drugi Price Memory / Work Rate Memory / BOM / pricing engine  
-- `companyPricePln` jako cena / fallback / seed / migracja → OUR RATE  
-- ATH price → OUR RATE / Bid fallback  
-- Catalog jako Bid fallback (path ON)  
-- Invent ceny / norm / materiałów / identity  
-- Full catalogue / auto research / HTTP w Bid  
-- Zmiana F5 / PM / Work Rate / Kp/profit/minMargin bez Owner GO  
+- Drugi Price Memory / Work Rate Memory / BOM / pricing engine
+- `companyPricePln` jako cena / fallback / seed / migracja → OUR RATE
+- ATH price → OUR RATE / Bid fallback
+- Catalog jako Bid fallback (path ON)
+- Invent ceny / norm / materiałów / identity
+- Full catalogue / auto research / HTTP w Bid
+- Zmiana F5 / PM / Work Rate / Kp/profit/minMargin bez Owner GO
 
 ---
 
@@ -189,7 +191,7 @@ AUDIT → (opcjonalnie PLAN) → DESIGN FREEZE → ARCH REVIEW → OWNER GO → 
 → harness 0 FAIL → build → commit → push → VERIFY FAST version.json → PV GREEN
 ```
 
-Payroll / sync / Edge: Gate [`PAYROLL_SAFETY_GATE.md`](../AI/PAYROLL_SAFETY_GATE.md) gdy dotyczy.  
+Payroll / sync / Edge: Gate [`PAYROLL_SAFETY_GATE.md`](../AI/PAYROLL_SAFETY_GATE.md) gdy dotyczy.
 Tip: **tylko 09** — nie hardcoduj wersji w regułach Cursor.
 
 ---

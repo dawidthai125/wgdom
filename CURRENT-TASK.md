@@ -1,25 +1,35 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-09 (**INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · tip UI **2.66.22** / **`ae426ad6`** · branding + Expert Conversation PV PASS · prior P0 **`1902daa7`** · prior Q12 **`4ba06032`** · TM-01 EPIC CLOSED) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** · NEXT residual **C1–C6** / new epic · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-12 (**EQUIPMENT-01 CONTRACT-ONLY CLOSED** · tip UI **2.66.43** / **`8e4f394`** · feature **`8e4f3943`** · PV GREEN · Equipment GAP / F5 FAIL · pricing **NOT IMPLEMENTED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/EQUIPMENT-01-CLOSEOUT.md`](docs/architecture/EQUIPMENT-01-CLOSEOUT.md) · **WAITING FOR NEXT OWNER GO** · **NIE** auto TRANSPORT / REAL SOURCE · **STABILIZATION WINDOW ACTIVE**
 
-> **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.  
-> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)  
-> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw COLD-START + MASTER + DF.  
-> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO.  
-> **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
+> **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+> **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
+> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw COLD-START + MASTER + DF.
+> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO.
+> **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
 ## ★ SESSION STATUS — **CLOSED** · **WAITING FOR NEXT OWNER GO**
 
 | | |
 |--|--|
-| Production tip | **2.66.22** / **`ae426ad6`** · **PRODUCTION VERIFIED** · **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · branding + Expert Conversation · prior **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · M=ACCESS · D=RUNTIME · D default OFF · Bid PRIMARY @ D OFF · Offer/NO PRIMARY @ D ON · prior Enablement/Q12 · baseline Experts+Chief+…+S9 · Hub-first · Persist-first KEEP · staff Przetargi module gate · **TM-01 EPIC CLOSED** |
+| Production tip | **2.66.43** / **`8e4f394`** · **PRODUCTION VERIFIED** · **EQUIPMENT-01 CONTRACT-ONLY CLOSED** · prior C-MODE-1a / F0–F6 **CLOSED** · CLOUD-SYNC batch-set recovery **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED | **INTELIGENTNY-KOSZTORYSANT-UX** · **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** · **TECHNOLOGY-FIRST-01 B0** · **FOUNDATION-01** · **COST-KNOWLEDGE-01** · **WORKSPACE-01** · **FINAL-UNDO-01** · **SZKICE-02** · **-01 P0+P2a** · **WM-WORKER-SKETCH-01** · APPEARANCE · AUTO-GENERATE · MAPPING · OST-01 · WIM-P1a |
-| AcroForm OST | **PASS** · `/V`+`/AP` adresu (Chrome) |
-| **DO NOT** | WM-DRUK-OST-03 · XFA · cache filled PDF · NeedAppearances bez RCA · Cloud Decision Persist bez AUDIT · invent S10 · S3-D · Bid retirement · hard REMOVE · global ON `tendersTabForStaffEnabled` |
-| **NEXT** | **UTRZYMANIE** — residual **C1–C6** / new epic — **WAITING FOR OWNER GO** · **NIE** invent S10 |
-| **Known Residuals (NIE część tipu)** | C1–C6 · Expert AI enablement · Cloud KV/sync · Audit Hub · GHA none · TI-B3 · Legacy E2E · local WIP `useTenderOfferRun.ts` · L8 REMOVE residual |
+| CLOSED (ostatnie) | **EQUIPMENT-01** · CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · C-MODE-1a · TENDER-BOQ F0–F6 · INTELIGENTNY-KOSZTORYSANT-UX · TM-01 S0–S9 · … (pełna lista historyczna poniżej) |
+| **DO NOT** | invent Equipment **pricing** · auto TRANSPORT-01 · auto REAL SOURCE/LEGAL · reopen F0–F6/C-MODE · PayrollView WIP · WM-DRUK-OST-03 · invent S10 |
+| **NEXT** | **UTRZYMANIE** — Transport/Aux **AUDIT** lub Equipment **REAL SOURCE** — **tylko Owner GO** · **NIE** auto |
+| **Known Residuals** | Equipment pricing **NOT IMPLEMENTED** · Transport/Aux OUT · REAL SOURCE FOLLOW-UP · fat-key `kw-tenders-pipeline` · C1–C6 · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ EQUIPMENT-01 — CONTRACT-ONLY — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`8e4f394`** · feature **`8e4f3943`** |
+| **IN** | `EQUIPMENT_GAP` · `equipmentGapCount` · F5 FAIL · Unresolved contract (nie źródło ceny prod) |
+| **OUT** | Equipment **pricing** · REAL SOURCE · Transport/Aux impl · schema bump · migracje |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/EQUIPMENT-01-CLOSEOUT.md) · [`PV`](docs/architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md) |
+| **Payroll** | 16/16 PASS · `PayrollView.tsx` **nie** w release · browser smoke **NOT RUN** |
+| **NEXT** | **WAITING FOR OWNER GO** · **NIE** auto TRANSPORT / REAL SOURCE |
 
 
 ## ★ INTELIGENTNY-KOSZTORYSANT-UX — **CLOSED**
@@ -1253,7 +1263,7 @@
 | **Runbook** | [`docs/architecture/WGDOM-HARDENING-01B0-RUNBOOK.md`](docs/architecture/WGDOM-HARDENING-01B0-RUNBOOK.md) |
 | **Next HARDENING** | EPIC **B1 / E / C** — tylko po Owner GO |
 
-> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.  
+> **STABILIZATION WINDOW ACTIVE** · Protected Core **GREEN** · Sync Storm P0 **INTACT**.
 > **Nie** startuj EPIC B1/C/E / ARCH-02F / N2 bez jawnego Owner GO.
 
 ---
@@ -1730,7 +1740,7 @@
 
 ## NG-09 — Inspector Workspace Modernization · **COMPLETE (5/5 CLOSED)**
 
-> **SSOT epic:** [`docs/architecture/NG-09-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-09-EPIC-CLOSE-REPORT.md)  
+> **SSOT epic:** [`docs/architecture/NG-09-EPIC-CLOSE-REPORT.md`](docs/architecture/NG-09-EPIC-CLOSE-REPORT.md)
 > **SSOT closeout:** [`docs/architecture/NG-09-01-CLOSEOUT.md`](docs/architecture/NG-09-01-CLOSEOUT.md) · [`docs/architecture/NG-09-02-CLOSEOUT.md`](docs/architecture/NG-09-02-CLOSEOUT.md) · [`docs/architecture/NG-09-03-CLOSEOUT.md`](docs/architecture/NG-09-03-CLOSEOUT.md) · [`docs/architecture/NG-09-04-CLOSEOUT.md`](docs/architecture/NG-09-04-CLOSEOUT.md) · [`docs/architecture/NG-09-05-CLOSEOUT.md`](docs/architecture/NG-09-05-CLOSEOUT.md)
 
 | Slice | Wersja | Status |
@@ -2248,8 +2258,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 | **B3.1** | `pushPayrollWeekAfterRollover` → guard roster (R3) | **CLOSED** | **2.63.19** (`91d02de`) |
 | **B3.2** | Usunięcie `payrollRosterPushRef` (cleanup) | **CLOSED** | **2.63.20** (`6afd9fd`) |
 
-**Closeout serii:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
-**SSOT B3:** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md)  
+**Closeout serii:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)
+**SSOT B3:** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-B3-GUARD-PHASE2-DESIGN-FREEZE.md)
 **SSOT B3.1:** AUDIT + DESIGN FREEZE B3.1 (2026-07-01) · prod **2.63.19** (`91d02de`)
 
 **Łańcuch Guard Phase:** **2.63.18** R1/R2 · **2.63.19** R3 rollover · **2.63.20** ref cleanup · **PRODUCTION VERIFIED**
@@ -2270,8 +2280,8 @@ Szczegóły slice'ów: commity w tabeli parent powyżej · docs `docs/architectu
 | **B6** | Edge Parity — merge `directoryId` vs UUID | **CLOSED** | **2.63.23** (`d670892`) |
 | **RB** | Restore Banner false positive (`payrollMetrics`) | **CLOSED** | **2.63.24** (`727e6c4`) |
 
-**SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)  
-**SSOT Guard Phase closeout:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
+**SSOT Etap 2 (B1+B2):** [`docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md`](docs/PAYROLL-CLOUD-RECOVERY-ETAP2-DESIGN-FREEZE.md)
+**SSOT Guard Phase closeout:** [`docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md`](docs/PAYROLL-GUARD-PHASE-CLOSEOUT.md)
 **SSOT B4 closeout:** [`docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](docs/PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md)
 
 **Łańcuch prod (skład):** **2.63.15** roster UNION · **2.63.16** guard LP Przydziały · **2.63.17** B1+B2 · **2.63.18–20** Guard Phase B3/B3.1/B3.2 · **2.63.21** B4 · **2.63.22** B5 · **2.63.23** B6 · **2.63.24** RB — **PRODUCTION VERIFIED**

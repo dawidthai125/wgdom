@@ -1,15 +1,17 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip **2.66.22** / **`ae426ad6`** · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).  
-> **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)  
-> **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.  
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip **2.66.43** / **`8e4f394`** · **EQUIPMENT-01 CLOSED** · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)
+> **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
 
 > **★ ZASADA COLD-START (LOCKED):** Nowy agent **nie** zaczyna implementacji na podstawie samego [`CURRENT-TASK.md`](../CURRENT-TASK.md).  
 > Najpierw czyta: [`WGDOM-COLD-START-HANDOFF`](AI/WGDOM-COLD-START-HANDOFF.md) · [`MASTER-AI-HANDOFF`](AI/MASTER-AI-HANDOFF.md) · [`MASTER_HANDOFF`](AI/MASTER_HANDOFF.md) · [`AI_QUICK_START`](AI/AI_QUICK_START.md) · [`TENDER-MODERNIZATION-01-MASTER`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · aktualny **DESIGN-FREEZE** slice/epicu · dopiero potem Entry + Gate + Owner GO.
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie sesji (2026-08-12):** **EQUIPMENT-01 CONTRACT-ONLY CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip UI **2.66.43** / **`8e4f394`** · feature **`8e4f3943`** · Equipment `EQUIPMENT_GAP` · F5 `equipmentGapCount` FAIL · ZERO cena/REAL SOURCE · pricing **NOT IMPLEMENTED** · Payroll **16/16** · `PayrollView` **nie** w release · SSOT [`architecture/EQUIPMENT-01-CLOSEOUT.md`](architecture/EQUIPMENT-01-CLOSEOUT.md) · [`PV`](architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md) · ACTIVE EPIC = **NONE** · **NIE** auto TRANSPORT / REAL SOURCE.
 
 > **★ Domknięcie sesji (2026-08-12):** **CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 CLOSED** · **PRODUCTION VERIFIED · GREEN** · Edge **`914c0095`** · GH Actions **`31635032340`** · chunked mset 450KB/12 · drawings frequency separation · Payroll **16/16 GREEN** · `statement_timeout` UNCHANGED · residual fat-key `kw-tenders-pipeline` **ACCEPTED / FOLLOW-UP** · SSOT [`architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md`](architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md) · [`PV`](architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-PRODUCTION-VERIFY.md) · ACTIVE EPIC = **NONE** · **NIE** auto-start fat-key / Payroll redesign.
 

@@ -1,11 +1,11 @@
 # 09 — Production Baseline (WGDOM)
 
-> **★★ TIP SSOT — JEDYNE miejsce w docs z numerem wersji tipu dla AI.**  
-> Inne pliki **linkują tutaj** — **nie** powielają UI version / commit tip.  
-> **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
+> **★★ TIP SSOT — JEDYNE miejsce w docs z numerem wersji tipu dla AI.**
+> Inne pliki **linkują tutaj** — **nie** powielają UI version / commit tip.
+> **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.43** · **C-MODE-1a FALLBACK REMOVAL** · **PRODUCTION VERIFIED · GREEN** · TENDER-BOQ F0–F6 **CLOSED** · prior F5 **2.66.42** · continuity [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`…-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = OWNER REVIEW · GAP Equipment/Transport/Aux · nie P7 auto**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.43** · live **`8e4f394`** · **EQUIPMENT-01 CONTRACT-ONLY CLOSED** · **PRODUCTION VERIFIED · GREEN** · C-MODE-1a + TENDER-BOQ F0–F6 **CLOSED** · continuity [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`EQUIPMENT-01-CLOSEOUT.md`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = OWNER GO · Transport/Aux AUDIT lub Equipment REAL SOURCE — nie auto**.
 
 ---
 
@@ -27,9 +27,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.66.43** |
-| **Deploy tip commit (`main` / `version.json`)** | **live `d92aef0`** · feature **`d92aef0a`** · prior F5 **`3995c9af`** / tip docs **`1e7aced`** |
-| **Edge tip (CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · chunked mset 450KB/12 · drawings ↛ full RS · Payroll 16/16 GREEN · `statement_timeout` UNCHANGED · Edge **`914c0095`** · GH **`31635032340`** · residual `kw-tenders-pipeline` solo ~3.37 MB **ACCEPTED** · UI tip **nie** bumpowany (Vercel nie był krokiem epiku) · [`CLOSEOUT`](../architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md) · [`PV`](../architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-PRODUCTION-VERIFY.md) · FOLLOW-UP fat-key **tylko Owner GO** |
-| **Feature tip (C-MODE-1a FALLBACK REMOVAL)** | **COMPLETE** · **PRODUCTION VERIFIED · GREEN** · OfferBoq null → GAP · ZERO ath/catalog/companyPrice auto fallback · F5 UNCHANGED · UI **2.66.43** · feature/live **`d92aef0a`/`d92aef0`** · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md) · [`PV`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md) · [`DECISION`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md) · NEXT **OWNER REVIEW · nie P7** |
+| **Deploy tip commit (`main` / `version.json`)** | **live `8e4f394`** · feature **`8e4f3943`** · prior CLOUD-SYNC Edge **`914c0095`** · prior C-MODE docs tip **`40d2b499`** / feature hist. **`d92aef0a`** |
+| **Feature tip (EQUIPMENT-01 CONTRACT-ONLY)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · Equipment ≠ Transport/Aux · `EQUIPMENT_GAP` · `equipmentGapCount` → F5 FAIL · ZERO cena / REAL SOURCE · UNRESOLVED ≠ 0 PLN · UI **2.66.43** · feature/live **`8e4f3943`/`8e4f394`** · [`CLOSEOUT`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · [`PV`](../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md) · residual **Equipment pricing NOT IMPLEMENTED** · REAL SOURCE **FOLLOW-UP** · **NIE** auto TRANSPORT-01 |
+| **Edge tip (CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · chunked mset 450KB/12 · drawings ↛ full RS · Payroll 16/16 GREEN · `statement_timeout` UNCHANGED · Edge **`914c0095`** · GH **`31635032340`** · residual `kw-tenders-pipeline` solo ~3.37 MB **ACCEPTED** · [`CLOSEOUT`](../architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-CLOSEOUT.md) · [`PV`](../architecture/CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01-PRODUCTION-VERIFY.md) · FOLLOW-UP fat-key **tylko Owner GO** |
+| **Feature tip (C-MODE-1a FALLBACK REMOVAL)** | **COMPLETE** · **PRODUCTION VERIFIED · GREEN** · OfferBoq null → GAP · ZERO ath/catalog/companyPrice auto fallback · F5 UNCHANGED · UI **2.66.43** · feature hist. **`d92aef0a`** · tip supersedowany przez EQUIPMENT-01 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md) · [`PV`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL-PRODUCTION-VERIFY.md) · [`DECISION`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-OWNER-DECISION-C-MODE-1A.md) |
 | **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 5)** | **COMPLETE** · **PRODUCTION VERIFIED · GREEN** · Position Cost → Bid cutover · UI **2.66.42** · feature **`3995c9af`** · live **`1e7aced`** · tip supersedowany przez C-MODE-1a removal · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F5-BID-CUTOVER.md) · [`PV`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F5-PRODUCTION-VERIFY.md) |
 | **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 4)** | **COMPLETE** · OfferBoq → shadow Position Cost · work identity + OUR RATE + BOM + SELL · ZERO Bid cutover · ZERO companyPricePln · ZERO HTTP · UI **2.66.41** · feature **`f7d48aad`** · tip supersedowany przez F5 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F4-BOQ-INTEGRATION.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F4-CLOSEOUT.md) |
 | **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 3)** | **COMPLETE** · workId → Technology BOM → SELL + OUR RATE → Position Cost · C-BOM-1…5 · ZERO invent · ZERO Bid cutover · UI **2.66.40** · feature **`7ab67c4b`** · tip supersedowany przez F4 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F3-BOM-TECHNOLOGY.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F3-CLOSEOUT.md) · NEXT **FAZA 5 Owner GO** |
@@ -293,9 +294,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 ## 5. Procedura bump tip (release)
 
-1. Zaktualizuj **§1** (UI + commit z `version.json` po deploy).  
-2. Dopisz wiersz w **§2**.  
-3. **Nie** edytuj tipów w `AI_ENTRY`, `AGENTS` START, Continuity banner, cursor rules — tylko link do tego pliku.  
+1. Zaktualizuj **§1** (UI + commit z `version.json` po deploy).
+2. Dopisz wiersz w **§2**.
+3. **Nie** edytuj tipów w `AI_ENTRY`, `AGENTS` START, Continuity banner, cursor rules — tylko link do tego pliku.
 4. Opcjonalnie jedna linia w `PROJECT_HANDOFF.md` („patrz 09”).
 
 ---
