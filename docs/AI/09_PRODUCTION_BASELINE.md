@@ -27,7 +27,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.66.36** (live may lag until deploy) |
-| **Deploy tip commit (`main` / `version.json`)** | *(po push RW-03)* · prior P2 **`fcd65f43`** / UI **2.66.35** |
+| **Deploy tip commit (`main` / `version.json`)** | **`a834ed48`** · prior P2 **`fcd65f43`** / UI **2.66.35** |
 | **Feature tip (WORK-RATE-REAL-WORLD-VALIDATION-03)** | **COMPLETE** · parser tabel realnych cenników · kanoniczne URL · KB/Extradom/CR PASS · SCCOT RATE_GAP (minimum/package) · UI **2.66.36** · [`DOC`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03.md) · NEXT **STOP** |
 | **Feature tip (WORK-RATE-SELECTIVE-RESEARCH-02)** | **COMPLETE** · ONE work · 4 źródła · qualify · mediana · Owner Accept · Edge · tip supersedowany przez RW-03 · UI **2.66.35** · feature **`fcd65f43`** · [`DOC`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02.md) · [`CLOSEOUT`](../architecture/WORK-RATE-SELECTIVE-RESEARCH-02-CLOSEOUT.md) |
 | **Feature tip (WORK-RATE LEGAL ENABLEMENT)** | **PASS** · `WORK_RATE_LEGAL_GATE` · KB.pl / SCCOT / Extradom / CennikRemontow.pl **VERIFIED** · tip supersedowany przez P2 research · feature **`c7370015`** · UI **2.66.34** · [`PASS`](../architecture/WORK-RATE-OWNER-LEGAL-PASS.md) · [`CLOSEOUT`](../architecture/WORK-RATE-LEGAL-PASS-CLOSEOUT.md) |
