@@ -103,3 +103,61 @@ export function renderSymbolAlongSegment(opts: {
 export function dimensionAutoLabel(x1: number, y1: number, x2: number, y2: number): string {
   return String(Math.round(Math.hypot(x2 - x1, y2 - y1)));
 }
+
+export interface DimensionSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+/**
+ * WM-RYSUNKI-DIMENSIONS-RECTANGLE-UX-01 D-DIM-03
+ * Render-only canonicalize — NIE mutuje JSON.
+ * |dx| >= |dy| → x1 <= x2; else y1 <= y2.
+ * Normal LEFT-OF-TRAVEL: nx=-dy/len, ny=dx/len.
+ */
+export function canonicalizeSegmentForDimensionOffset(seg: DimensionSegment): {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  mx: number;
+  my: number;
+  nx: number;
+  ny: number;
+  len: number;
+} {
+  let { x1, y1, x2, y2 } = seg;
+  const dx0 = x2 - x1;
+  const dy0 = y2 - y1;
+  if (Math.abs(dx0) >= Math.abs(dy0)) {
+    if (x1 > x2) {
+      x1 = seg.x2;
+      y1 = seg.y2;
+      x2 = seg.x1;
+      y2 = seg.y1;
+    }
+  } else if (y1 > y2) {
+    x1 = seg.x2;
+    y1 = seg.y2;
+    x2 = seg.x1;
+    y2 = seg.y1;
+  }
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len;
+  const ny = dx / len;
+  return {
+    x1,
+    y1,
+    x2,
+    y2,
+    mx: (x1 + x2) / 2,
+    my: (y1 + y2) / 2,
+    nx,
+    ny,
+    len,
+  };
+}

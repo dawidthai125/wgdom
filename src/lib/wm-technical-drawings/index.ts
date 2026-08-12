@@ -21,3 +21,5 @@ export * from "@/lib/wm-technical-drawings/svg-raster";
 export * from "@/lib/wm-technical-drawings/wall-gap";
 export * from "@/lib/wm-technical-drawings/wall-preview";
 export * from "@/lib/wm-technical-drawings/snap-draw";
+export * from "@/lib/wm-technical-drawings/rectangle-walls";
+export * from "@/lib/wm-technical-drawings/dimension-label-format";

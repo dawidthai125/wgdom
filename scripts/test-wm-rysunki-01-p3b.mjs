@@ -36,7 +36,7 @@ console.log("WM-RYSUNKI-01 P3B — test-wm-rysunki-01-p3b\n");
 
 assert("T01 schemaVersion stays 1", DRAWING_SCHEMA_VERSION === 1);
 assert("T02 symbol library unchanged 3", DRAWING_SYMBOL_LIBRARY_VERSION === 3);
-assert("T03 render version unchanged 3", DRAWING_RENDER_VERSION === 3);
+assert("T03 render version 4 (DIM-RECT UX)", DRAWING_RENDER_VERSION === 4);
 assert("T04 ghost stroke #f59e0b", DRAWING_GHOST_WALL_STROKE === "#f59e0b");
 
 const m = wallPreviewMetrics(0, 0, 120, 0, 10);

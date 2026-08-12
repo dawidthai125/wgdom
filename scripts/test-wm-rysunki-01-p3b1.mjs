@@ -37,7 +37,7 @@ console.log("WM-RYSUNKI-01 P3B.1 — test-wm-rysunki-01-p3b1\n");
 
 assert("T01 schemaVersion 1", DRAWING_SCHEMA_VERSION === 1);
 assert("T02 library 3", DRAWING_SYMBOL_LIBRARY_VERSION === 3);
-assert("T03 render 3", DRAWING_RENDER_VERSION === 3);
+assert("T03 render 4", DRAWING_RENDER_VERSION === 4);
 
 const editorSrc = readFileSync(join(root, "src/app/WmPrintDrawingEditor.tsx"), "utf8");
 

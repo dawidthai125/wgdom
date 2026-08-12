@@ -69,7 +69,12 @@ assert("T25 changelog 2.66.04", cl.includes('version: "2.66.04"'));
 
 /* Ghost / P3B.1 regression markers still present */
 assert("T26 clearWallPreview still used", editor.includes("clearWallPreview"));
-assert("T27 finishLine wall path", editor.includes('finishLine("wall"') || editor.includes("finishLine(tool, lineStart"));
+assert(
+  "T27 finishLine wall path",
+  editor.includes("finishLine(g.type") ||
+    editor.includes('finishLine("wall"') ||
+    editor.includes("finishLine(tool, lineStart"),
+);
 
 console.log(`\n${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

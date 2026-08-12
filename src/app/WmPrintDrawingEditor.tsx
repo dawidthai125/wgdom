@@ -11,6 +11,7 @@ import {
   Magnet,
   DoorOpen,
   Square,
+  RectangleHorizontal,
   Wind,
   Flame,
   Ruler,
@@ -47,6 +48,15 @@ import {
   wallPreviewMetrics,
 } from "@/lib/wm-technical-drawings/wall-preview";
 import {
+  applyRectangleSquareConstraint,
+  buildRectangleWalls,
+  isRectangleAreaTooSmall,
+} from "@/lib/wm-technical-drawings/rectangle-walls";
+import {
+  buildDimensionOwnerLabel,
+  type DimensionUnit,
+} from "@/lib/wm-technical-drawings/dimension-label-format";
+import {
   collectWallEndpoints,
   snapDrawEnd,
   snapDrawStart,
@@ -71,6 +81,7 @@ import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 type Tool =
   | "select"
   | "wall"
+  | "rectangle"
   | "door_room"
   | "door_entrance"
   | "window"
@@ -150,6 +161,8 @@ export function WmPrintDrawingEditor({
   const localRef = useRef(local);
   localRef.current = local;
   const [tool, setTool] = useState<Tool>("wall");
+  /** Session only — D-UNIT-02 · default cm. */
+  const [dimensionUnit, setDimensionUnit] = useState<DimensionUnit>("cm");
   const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
   /** P3B — koniec Ghost (snapped); UI only. */
   const [previewEnd, setPreviewEnd] = useState<{ x: number; y: number } | null>(null);
@@ -191,11 +204,13 @@ export function WmPrintDrawingEditor({
     orig: DrawingObject;
     snapshot: WmTechnicalDrawing;
   } | null>(null);
-  /** P1 — wall/arrow: press → drag → release (jeden SM · ZERO two-click). */
+  /** P1 — wall/arrow/rectangle: press → drag → release (jeden SM · ZERO two-click). */
   const lineDrawRef = useRef<{
-    type: "wall" | "arrow";
+    type: "wall" | "arrow" | "rectangle";
     start: { x: number; y: number };
   } | null>(null);
+  /** Desktop Shift square — tylko tool rectangle. */
+  const rectShiftRef = useRef(false);
   /** D-P2-18 — sesja Preview→Download→Print; wygasa po zmianie rysunku. */
   const pdfSessionRef = useRef<{
     fingerprint: string;
@@ -227,6 +242,7 @@ export function WmPrintDrawingEditor({
     setPreviewEnd(null);
     pendingPreviewEndRef.current = null;
     lineDrawRef.current = null;
+    rectShiftRef.current = false;
     if (previewRafRef.current != null) {
       cancelAnimationFrame(previewRafRef.current);
       previewRafRef.current = null;
@@ -298,13 +314,27 @@ export function WmPrintDrawingEditor({
             ).lengthLabel,
           }
         : null;
+    let previewRectangle: { x1: number; y1: number; x2: number; y2: number } | null = null;
+    if (tool === "rectangle" && lineStart && previewEnd) {
+      let x1 = lineStart.x;
+      let y1 = lineStart.y;
+      let x2 = previewEnd.x;
+      let y2 = previewEnd.y;
+      if (rectShiftRef.current && !mobileFullscreen) {
+        const sq = applyRectangleSquareConstraint(x1, y1, x2, y2);
+        x2 = sq.x2;
+        y2 = sq.y2;
+      }
+      previewRectangle = { x1, y1, x2, y2 };
+    }
     return renderDrawingSvg(local, {
       mode: "edit",
       showGrid: true,
       highlightWallId: isDoorTool(tool) ? hoverWallId : null,
       previewWall,
+      previewRectangle,
     });
-  }, [local, tool, hoverWallId, lineStart, previewEnd]);
+  }, [local, tool, hoverWallId, lineStart, previewEnd, mobileFullscreen]);
 
   const pdfFingerprint = useMemo(
     () =>
@@ -431,7 +461,11 @@ export function WmPrintDrawingEditor({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       /* Esc anuluje Ghost wall/arrow mid-draw (P1 drag-release). */
-      if (e.key === "Escape" && lineStart && (tool === "wall" || tool === "arrow")) {
+      if (
+        e.key === "Escape" &&
+        lineStart &&
+        (tool === "wall" || tool === "arrow" || tool === "rectangle")
+      ) {
         e.preventDefault();
         clearWallPreview();
         return;
@@ -576,6 +610,29 @@ export function WmPrintDrawingEditor({
     clearWallPreview();
   };
 
+  const finishRectangle = (start: { x: number; y: number }, end: { x: number; y: number }, square: boolean) => {
+    let x1 = start.x;
+    let y1 = start.y;
+    let x2 = end.x;
+    let y2 = end.y;
+    if (square && !mobileFullscreen) {
+      const sq = applyRectangleSquareConstraint(x1, y1, x2, y2);
+      x2 = sq.x2;
+      y2 = sq.y2;
+    }
+    if (isRectangleAreaTooSmall(x1, y1, x2, y2)) {
+      toast.error("Prostokąt zbyt mały — przeciągnij dalej i puść.");
+      clearWallPreview();
+      rectShiftRef.current = false;
+      return;
+    }
+    const walls = buildRectangleWalls(x1, y1, x2, y2);
+    commit(touchDrawing(local, { objects: [...local.objects, ...walls] }));
+    setSelectedId(walls[0]?.id ?? null);
+    clearWallPreview();
+    rectShiftRef.current = false;
+  };
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const svg = findSvg();
     if (!svg) return;
@@ -596,6 +653,17 @@ export function WmPrintDrawingEditor({
       setLineStart(start);
       setPreviewEnd(null);
       lineDrawRef.current = { type: tool, start };
+      beginCapture();
+      return;
+    }
+
+    /* Prostokąt — corner A → ghost → 4 walls. */
+    if (tool === "rectangle") {
+      const start = snapDrawStart(raw, snapOpts());
+      setLineStart(start);
+      setPreviewEnd(null);
+      rectShiftRef.current = !mobileFullscreen && e.shiftKey;
+      lineDrawRef.current = { type: "rectangle", start };
       beginCapture();
       return;
     }
@@ -712,11 +780,18 @@ export function WmPrintDrawingEditor({
     if (!svg) return;
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
 
-    /* P1 — Ghost preview podczas drag wall/arrow. */
+    /* P1 — Ghost preview podczas drag wall/arrow/rectangle. */
     const lineDraw = lineDrawRef.current;
     if (lineDraw && !dragRef.current) {
-      const p = snapDrawEnd(raw, lineDraw.start, snapOpts());
-      pendingPreviewEndRef.current = p;
+      if (lineDraw.type === "rectangle") {
+        rectShiftRef.current = !mobileFullscreen && e.shiftKey;
+        /* Corner B: Endpoint→Grid (bez angle snap — axis-aligned rect). */
+        const end = snapDrawStart(raw, snapOpts());
+        pendingPreviewEndRef.current = end;
+      } else {
+        const p = snapDrawEnd(raw, lineDraw.start, snapOpts());
+        pendingPreviewEndRef.current = p;
+      }
       if (previewRafRef.current == null) {
         previewRafRef.current = requestAnimationFrame(() => {
           previewRafRef.current = null;
@@ -770,9 +845,19 @@ export function WmPrintDrawingEditor({
     const svg = findSvg();
     if (!svg) {
       clearWallPreview();
+      rectShiftRef.current = false;
       return;
     }
     const raw = clientToSvgPoint(svg, e.clientX, e.clientY);
+    if (g.type === "rectangle") {
+      const end =
+        pendingPreviewEndRef.current ??
+        previewEnd ??
+        snapDrawStart(raw, snapOpts());
+      const square = !mobileFullscreen && (e.shiftKey || rectShiftRef.current);
+      finishRectangle(g.start, end, square);
+      return;
+    }
     const end =
       pendingPreviewEndRef.current ??
       previewEnd ??
@@ -893,17 +978,25 @@ export function WmPrintDrawingEditor({
       ? lineStart
         ? "Przeciągnij i puść · Esc anuluje podgląd."
         : "Przytrzymaj i przeciągnij, aby narysować ścianę."
-      : tool === "arrow"
+      : tool === "rectangle"
         ? lineStart
-          ? "Przeciągnij i puść · Esc anuluje."
-          : "Przytrzymaj i przeciągnij strzałkę."
-        : tool === "dimension"
+          ? mobileFullscreen
+            ? "Przeciągnij i puść · Esc anuluje."
+            : "Przeciągnij i puść · Shift = kwadrat · Esc anuluje."
+          : mobileFullscreen
+            ? "Przytrzymaj i przeciągnij prostokąt (4 ściany)."
+            : "Przytrzymaj i przeciągnij prostokąt · Shift = kwadrat."
+        : tool === "arrow"
           ? lineStart
-            ? "Kliknij drugi punkt (wymiar swobodny)."
-            : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
-          : isDoorTool(tool)
-            ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
-            : null;
+            ? "Przeciągnij i puść · Esc anuluje."
+            : "Przytrzymaj i przeciągnij strzałkę."
+          : tool === "dimension"
+            ? lineStart
+              ? "Kliknij drugi punkt (wymiar swobodny)."
+              : "Kliknij ścianę (popup Długość) albo pierwszy punkt."
+            : isDoorTool(tool)
+              ? "Kliknij, aby wstawić drzwi (podświetlenie ściany = tylko podgląd)."
+              : null;
 
   /** Mobile Chrome: duże cele; Desktop: kompakt jak dotychczas. */
   const chromeIcon = mobileFullscreen
@@ -955,17 +1048,29 @@ export function WmPrintDrawingEditor({
       setInputDialog(null);
       return;
     }
-    const label = inputDialog.value.trim();
-    if (!label) {
+    const labelRaw = inputDialog.value.trim();
+    if (!labelRaw) {
       toast.error("Podaj długość (np. 420)");
       return;
     }
-    if (/^\d+([.,]\d+)?$/.test(label)) {
-      const n = Number(label.replace(",", "."));
-      if (!(n >= 1 && n <= 99999)) {
-        toast.error("Długość: zakres 1…99999");
-        return;
-      }
+    /* Numeric → format z session unit; non-numeric → keep as typed (T-U3). */
+    let label = labelRaw;
+    const built = buildDimensionOwnerLabel(labelRaw, dimensionUnit);
+    if (built.ok) {
+      label = built.label;
+    } else if (built.reason === "out_of_range") {
+      toast.error(
+        dimensionUnit === "cm"
+          ? "Długość cm: zakres 1…99999"
+          : "Długość m: zakres 0,01…999",
+      );
+      return;
+    } else if (built.reason === "nonnumeric") {
+      /* keep free-text label as-is */
+      label = labelRaw;
+    } else {
+      toast.error("Podaj długość (np. 420)");
+      return;
     }
     const obj: DrawingObject = {
       id: crypto.randomUUID(),
@@ -1011,6 +1116,7 @@ export function WmPrintDrawingEditor({
             aria-label="Narzędzia główne"
           >
             {toolBtn("wall", "Ściana", <Minus size={18} />)}
+            {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={18} />)}
             {toolBtn("text", "Tekst", <Type size={18} />)}
             {toolBtn("select", "Zaznacz", <MousePointer2 size={18} />)}
             <button type="button" title="Cofnij" aria-label="Cofnij" disabled={!canUndo} onClick={handleUndo} className={chromeIcon}>
@@ -1044,6 +1150,7 @@ export function WmPrintDrawingEditor({
             aria-label="Elementy"
           >
             {toolBtn("wall", "Ściana", <Minus size={18} />)}
+            {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={18} />)}
             {toolBtn("door_room", "Drzwi P", <DoorOpen size={18} />)}
             {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={18} />)}
             {toolBtn("window", "Okno", <Square size={18} />)}
@@ -1060,6 +1167,7 @@ export function WmPrintDrawingEditor({
       >
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
+        {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={14} />)}
         {toolBtn("door_room", "Drzwi P", <DoorOpen size={14} />)}
         {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={14} />)}
         {toolBtn("window", "Okno", <Square size={14} />)}
@@ -1207,6 +1315,28 @@ export function WmPrintDrawingEditor({
             <p className="text-sm font-medium">
               {inputDialog.kind === "text" ? "Tekst na rysunku" : "Długość"}
             </p>
+            {inputDialog.kind === "dimension" && (
+              <div className="flex gap-4 text-sm" role="radiogroup" aria-label="Jednostka wymiaru">
+                <label className="inline-flex items-center gap-2 touch-target cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dimension-unit"
+                    checked={dimensionUnit === "cm"}
+                    onChange={() => setDimensionUnit("cm")}
+                  />
+                  cm
+                </label>
+                <label className="inline-flex items-center gap-2 touch-target cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dimension-unit"
+                    checked={dimensionUnit === "m"}
+                    onChange={() => setDimensionUnit("m")}
+                  />
+                  m
+                </label>
+              </div>
+            )}
             <input
               autoFocus
               className="w-full min-h-[44px] rounded-md border border-border bg-background px-3 text-sm"
@@ -1221,7 +1351,13 @@ export function WmPrintDrawingEditor({
                 }
                 if (e.key === "Escape") setInputDialog(null);
               }}
-              placeholder={inputDialog.kind === "text" ? "Tekst…" : "np. 420"}
+              placeholder={
+                inputDialog.kind === "text"
+                  ? "Tekst…"
+                  : dimensionUnit === "m"
+                    ? "np. 1,10"
+                    : "np. 110"
+              }
               aria-label={inputDialog.kind === "text" ? "Treść tekstu" : "Długość"}
             />
             <div className="flex gap-2 justify-end">

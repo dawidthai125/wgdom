@@ -54,7 +54,7 @@ console.log("WM-RYSUNKI-01 P1 — test-wm-rysunki-01-p1\n");
 
 assert("T01 schemaVersion stays 1", DRAWING_SCHEMA_VERSION === 1);
 assert("T02 symbol library version 3", DRAWING_SYMBOL_LIBRARY_VERSION === 3);
-assert("T03 render version 3", DRAWING_RENDER_VERSION === 3);
+assert("T03 render version 4", DRAWING_RENDER_VERSION === 4);
 assert("T04 soft warn threshold 300", DRAWING_OBJECTS_SOFT_WARN === 300);
 assert(
   "T05 P1 editable includes arrow+door",
@@ -209,7 +209,7 @@ const withObjs = touchDrawing(blank, {
 });
 
 const svg = renderDrawingSvg(withObjs);
-assert("T19 SVG render version 3", svg.includes('data-render-version="3"'));
+assert("T19 SVG render version 4", svg.includes('data-render-version="4"'));
 assert("T20 SVG has door flip", svg.includes("door-room") && svg.includes("scale(-1"));
 assert("T21 SVG has window", svg.includes("window-rect"));
 assert("T22 SVG has vent+boiler", svg.includes("vent-grid") && svg.includes("gas-boiler"));

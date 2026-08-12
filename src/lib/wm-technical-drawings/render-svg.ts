@@ -7,6 +7,7 @@ import type {
   WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
 import {
+  canonicalizeSegmentForDimensionOffset,
   dimensionAutoLabel,
   renderSymbol,
   renderSymbolAlongSegment,
@@ -17,8 +18,12 @@ import {
   wallSegmentsAfterGaps,
 } from "@/lib/wm-technical-drawings/wall-gap";
 
-/** P3A: wall-gap zmienia output SVG. */
-export const DRAWING_RENDER_VERSION = 3;
+/** P3A: wall-gap = 3 · DIMENSIONS-RECTANGLE-UX-01 offset/font = 4. */
+export const DRAWING_RENDER_VERSION = 4;
+
+/** D-DIM-02 / D-DIM-04 — frozen Owner GO. */
+export const DRAWING_DIMENSION_FONT_SIZE = 14;
+export const DRAWING_DIMENSION_NORMAL_OFFSET = 16;
 
 export class DrawingRenderError extends Error {
   constructor(message: string) {
@@ -116,16 +121,26 @@ function renderObject(obj: DrawingObject, doors: DrawingDoorObject[]): string {
       obj.label != null && String(obj.label).trim() !== ""
         ? String(obj.label).trim()
         : dimensionAutoLabel(obj.x1, obj.y1, obj.x2, obj.y2);
-    const body = renderSymbolAlongSegment({
-      symbolId: obj.symbolId || "dimension-line",
+    const can = canonicalizeSegmentForDimensionOffset({
       x1: obj.x1,
       y1: obj.y1,
       x2: obj.x2,
       y2: obj.y2,
     });
-    const mx = (obj.x1 + obj.x2) / 2;
-    const my = (obj.y1 + obj.y2) / 2;
-    const labelSvg = `<text data-dim-label="1" x="${mx}" y="${my - 10}" text-anchor="middle" font-size="11" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
+    const off = DRAWING_DIMENSION_NORMAL_OFFSET;
+    const body = renderSymbolAlongSegment({
+      symbolId: obj.symbolId || "dimension-line",
+      x1: can.x1,
+      y1: can.y1,
+      x2: can.x2,
+      y2: can.y2,
+      normalOffset: off,
+    });
+    const lx = can.mx + can.nx * off;
+    const ly = can.my + can.ny * off;
+    const labelSvg =
+      `<text data-dim-label="1" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" ` +
+      `font-size="${DRAWING_DIMENSION_FONT_SIZE}" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
     return `<g data-id="${esc(obj.id)}">${body}${labelSvg}</g>`;
   }
   /* P4 punkty — skip */
@@ -155,6 +170,14 @@ export interface PreviewWallOption {
   lengthLabel?: string;
 }
 
+/** DIMENSIONS-RECTANGLE-UX-01 — Ghost prostokąt (edit-only). */
+export interface PreviewRectangleOption {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
 /** D-M1-02 / DFC-P1-01 — default export = fail-safe (PDF/ZIP). */
 export type DrawingRenderMode = "edit" | "export";
 
@@ -173,6 +196,8 @@ export interface RenderDrawingSvgOptions {
   highlightWallId?: string | null;
   /** D-P3B-01 — Ghost Line ściany (tylko edytor · PDF/ZIP OUT). */
   previewWall?: PreviewWallOption | null;
+  /** Ghost prostokąt (tylko edytor · PDF/ZIP OUT). */
+  previewRectangle?: PreviewRectangleOption | null;
 }
 
 function renderEditHitOverlays(objects: DrawingObject[]): string {
@@ -220,6 +245,24 @@ function renderGhostWall(preview: PreviewWallOption): string {
   return `<g data-ghost-wall-group="1">${line}${label}</g>`;
 }
 
+function renderGhostRectangle(preview: PreviewRectangleOption): string {
+  const x1 = preview.x1;
+  const y1 = preview.y1;
+  const x2 = preview.x2;
+  const y2 = preview.y2;
+  const mk = (a: number, b: number, c: number, d: number) =>
+    `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${DRAWING_GHOST_WALL_STROKE}" ` +
+    `stroke-width="3" stroke-opacity="0.9" stroke-dasharray="6 4" stroke-linecap="round" />`;
+  return (
+    `<g data-ghost-rectangle="1">` +
+    mk(x1, y1, x2, y1) +
+    mk(x2, y1, x2, y2) +
+    mk(x2, y2, x1, y2) +
+    mk(x1, y2, x1, y1) +
+    `</g>`
+  );
+}
+
 export function renderDrawingSvg(
   drawing: WmTechnicalDrawing,
   options: RenderDrawingSvgOptions = {},
@@ -248,12 +291,16 @@ export function renderDrawingSvg(
   }
   const ghost =
     isEdit && options.previewWall != null ? renderGhostWall(options.previewWall) : "";
+  const ghostRect =
+    isEdit && options.previewRectangle != null
+      ? renderGhostRectangle(options.previewRectangle)
+      : "";
   const hits = isEdit ? renderEditHitOverlays(drawing.objects) : "";
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" data-render-version="${DRAWING_RENDER_VERSION}" data-render-mode="${isEdit ? "edit" : "export"}">` +
     `<rect width="100%" height="100%" fill="#ffffff"/>` +
     gridSvg +
-    `<g data-objects="1">${highlight}${body}${ghost}</g>` +
+    `<g data-objects="1">${highlight}${body}${ghost}${ghostRect}</g>` +
     hits +
     `</svg>`
   );

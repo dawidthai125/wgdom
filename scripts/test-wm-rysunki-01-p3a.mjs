@@ -48,7 +48,7 @@ console.log("WM-RYSUNKI-01 P3A — test-wm-rysunki-01-p3a\n");
 
 assert("T01 schemaVersion stays 1", DRAWING_SCHEMA_VERSION === 1);
 assert("T02 symbol library version 3", DRAWING_SYMBOL_LIBRARY_VERSION === 3);
-assert("T03 render version 3", DRAWING_RENDER_VERSION === 3);
+assert("T03 render version 4", DRAWING_RENDER_VERSION === 4);
 assert(
   "T04 P3A editable includes distribution_board",
   DRAWING_P3A_OBJECT_TYPES.includes("distribution_board") &&
@@ -177,7 +177,7 @@ const withGap = touchDrawing(blank, {
 });
 
 const svg = renderDrawingSvg(withGap, { showGrid: false });
-assert("T23 SVG render-version 3", svg.includes('data-render-version="3"'));
+assert("T23 SVG render-version 4", svg.includes('data-render-version="4"'));
 assert("T24 SVG vent W", svg.includes(">W</text>") && svg.includes('data-symbol="vent-grid"'));
 assert("T25 SVG boiler G", svg.includes('data-symbol="gas-boiler"') && svg.includes(">G</text>"));
 assert("T26 SVG board R", svg.includes('data-symbol="distribution-board"') && svg.includes(">R</text>"));
