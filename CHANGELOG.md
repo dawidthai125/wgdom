@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.43 — C-MODE-1a fallback removal (2026-08-12)
+
+- OfferBoq null → GAP (bez ath_priced / catalog / companyPricePln) · F5 UNCHANGED · ATH KEEP INPUT
+
 ## 2.66.42 — Position Cost Bid cutover Faza 5 (2026-08-12)
 
 - OfferBoq → Position Cost → Bid stack (Kp/profit/minMargin UNCHANGED) · gate · ZERO companyPrice · ZERO HTTP

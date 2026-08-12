@@ -1,6 +1,8 @@
 /**
- * COST-PIPELINE-01-BUGFIX-01 — OfferBoq first · catalog fallback · both null
+ * COST-PIPELINE-01-BUGFIX-01 — OfferBoq first · C-MODE-1a OfferBoq null → GAP
  * Run: npx vite-node scripts/test-cost-pipeline-01-bugfix-01.mjs
+ *
+ * Historycznie BF2 = catalog fallback. Po C-MODE-1a: OfferBoq null → null (GAP).
  */
 import assert from "node:assert/strict";
 import { resolveTenderPricingAutoProposal } from "../src/app/hooks/useTenderPricingAuto.ts";
@@ -82,7 +84,7 @@ const emptyItem = {
   });
 }
 
-// BF2 — OfferBoq NULL → catalog path (obiekt proposal, nie early null)
+// BF2 — OfferBoq NULL → GAP (C-MODE-1a: ZERO catalog / ath_priced fallback)
 {
   const runtimeNull = computeRuntimeBidFromOfferBoq({
     item: emptyItem,
@@ -96,36 +98,19 @@ const emptyItem = {
     priceOverrides: [],
     costPipeline01Enabled: true,
   });
-  // Przed BUGFIX: early `return null` bez catalog.
-  // Po BUGFIX: zawsze wynik computeCatalog… (obiekt).
-  assert.ok(proposal !== null, "BF2: catalog fallback musi zwrócić proposal (nie early null)");
-  assert.equal(typeof proposal, "object");
-  assert.ok(
-    proposal.pricingMode === "catalog" ||
-      proposal.pricingMode === null ||
-      proposal.ok === false,
-  );
-  console.log("PASS BF2 OfferBoq null → catalog path", {
-    pricingMode: proposal.pricingMode,
-    ok: proposal.ok,
-    recommendedBidPln: proposal.recommendedBidPln,
-  });
+  assert.equal(proposal, null, "BF2: OfferBoq null → GAP null (nie catalog)");
+  console.log("PASS BF2 OfferBoq null → GAP");
 }
 
-// BF3 — oba bez ceny → brak recommendedBidPln > 0
+// BF3 — OfferBoq null → brak recommendedBidPln (GAP)
 {
   const proposal = resolveTenderPricingAutoProposal({
     item: emptyItem,
     priceOverrides: [],
     costPipeline01Enabled: true,
   });
-  assert.ok(proposal);
-  const pln = proposal.recommendedBidPln;
-  assert.ok(pln == null || !(pln > 0), "BF3: brak rekomendowanej ceny");
-  console.log("PASS BF3 both paths no price", {
-    ok: proposal.ok,
-    pricingMode: proposal.pricingMode,
-  });
+  assert.equal(proposal, null, "BF3: GAP null");
+  console.log("PASS BF3 OfferBoq null → no recommended price");
 }
 
 // BF4 — flaga OFF → wyłącznie catalog

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.43",
+    label: "C-MODE-1a — usunięcie legacy Bid fallback",
+    items: [
+      {
+        type: "fix",
+        text: "C-MODE-1a: OfferBoq null → jawny GAP (bez ath_priced / catalog / companyPricePln). F5 Position Cost UNCHANGED · ATH KEEP INPUT · legacy catalog KEEP TECHNICAL.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.42",
     label: "Position Cost — Bid cutover (Faza 5)",
     items: [

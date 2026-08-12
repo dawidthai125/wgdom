@@ -114,28 +114,22 @@ Jeżeli C-MODE wymagałby zmiany F5 → **STOP**.
 
 `companyPricePln` / ATH PLN / catalog rates **nie** zasilają `offerBoqDirect` F5.
 
-### 6.2 Produktowe wiring — **ZNALEZIONY FALLBACK** (NIE NAPRAWIONY)
+### 6.2 Produktowe wiring — **FALLBACK REMOVED** (2026-08-12)
 
 | Pole | Wartość |
 |------|---------|
 | **Plik** | `src/app/hooks/useTenderPricingAuto.ts` |
 | **Funkcja** | `resolveTenderPricingAutoProposal` |
-| **Warunek** | `costPipelineOn` ∧ `computeRuntimeBidFromOfferBoq(...) === null` (brak OfferBoq / brak linii) |
-| **Obecne zachowanie** | `return computeCatalogBidProposalForPricingAuto(...)` → `computeTenderBidProposal` bez `offerBoqDirect` → `ath_priced` **lub** `catalog` |
-| **Ryzyko** | Narusza kontrakt C-MODE-1a pkt **1, 2, 12** gdy Bid Outcome budowany bez OfferBoq (fallback „bezpieczny” z BUGFIX-01) |
-| **Rekomendacja** | Osobny **OWNER GO** (thin): przy braku OfferBoq → `null` / jawny GAP · **nie** `ath_priced`/`catalog`. **Nie** robić w tej sesji (zakaz auto-fix · nie P7 · nie Offer rebuild). |
-
-**Inne ścieżki legacy (KEEP TECHNICAL, poza aktywnym F5 SSOT):**
-
-- `tenders-bid-calculator.ts` — enumy `ath_priced` / `catalog` nadal w API (legacy / testy).  
-- `createWorkCatalogPriceProvider` — Offer **line** UI (nie Bid F5 SSOT) — OUT of scope C-MODE-1a cutover.  
-- Biblioteka `companyPricePln` — KEEP TECHNICAL.
+| **Było** | OfferBoq null → `computeCatalogBidProposalForPricingAuto` → `ath_priced`/`catalog` |
+| **Jest** | OfferBoq null → **`null` (GAP)** |
+| **Doc** | [`…-C-MODE-1A-FALLBACK-REMOVAL.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md) |
 
 ```text
-F5 PATH FALLBACK:     ZERO
-PRODUCT WIRING FALLBACK: 1 (useTenderPricingAuto · OfferBoq null) — DOCUMENTED · NOT FIXED
+F5 PATH FALLBACK:          ZERO
+PRODUCT WIRING FALLBACK:   ZERO (C-MODE-1a removal)
 ```
 
+`computeCatalogBidProposalForPricingAuto` pozostaje **KEEP TECHNICAL** (costPipeline OFF / P7).
 ---
 
 ## 7. Test kontraktowy
@@ -154,8 +148,7 @@ Nie P7 · nie przebudowa Offer · nie usuwanie ATH / catalog / `companyPricePln`
 
 ```text
 OWNER REVIEW
-→ opcjonalny thin GO: wyłączenie catalog fallback w useTenderPricingAuto (OfferBoq null → GAP)
-→ P7 / soft-deprecate = osobno
+→ P7 / soft-deprecate legacy = osobno
 NIE auto-start P7
 ```
 

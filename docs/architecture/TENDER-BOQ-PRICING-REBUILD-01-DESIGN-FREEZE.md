@@ -545,7 +545,7 @@ FORBIDDEN:
 2. **Brak `commercialPricing.marginPct`:** blokada sell (`null`) vs `sell = base` (margin 0)?  
 3. **Pilot coverage przed Fazą 5:** jaki minimalny zestaw przetargów / % linii COMPLETE?  
 4. ~~**Po Fazie 5:** tryby `ath_priced` / `catalog`~~ → **CLOSED: C-MODE-1a** (F5 path NO FALLBACK · ATH KEEP INPUT · legacy KEEP TECHNICAL · soft-deprecate = P7 osobny GO).  
-   *Debt:* `useTenderPricingAuto` przy OfferBoq `null` nadal woła catalog — **nie** auto-fix; osobny thin GO.
+   *Product wiring:* OfferBoq null → GAP — **REMOVED** 2026-08-12 · [`…-FALLBACK-REMOVAL.md`](./TENDER-BOQ-PRICING-REBUILD-01-C-MODE-1A-FALLBACK-REMOVAL.md).
 
 *(Normy uniwersalne poza BOM = poza epikiem — nie pytamy o invent.)*
 

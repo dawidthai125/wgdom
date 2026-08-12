@@ -146,8 +146,9 @@ const costModel = defaultCostModelFromPayroll();
   );
   const auto = read("src/app/hooks/useTenderPricingAuto.ts");
   ok(
-    "T17 catalog fallback still present",
-    /computeCatalogBidProposalForPricingAuto/.test(auto),
+    "T17 catalog helper KEEP · auto path ZERO fallback",
+    /computeCatalogBidProposalForPricingAuto/.test(auto) &&
+      /OfferBoq null[\s\S]{0,120}return null/.test(auto),
   );
 }
 

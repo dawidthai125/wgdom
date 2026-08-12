@@ -2,7 +2,7 @@
  * NG-02 P0-D — auto pricing po heavy parse.
  * NG11-Q5 — early pricing po partialDossierReady + recompute po metadata merge.
  * COST-PIPELINE-01 — OfferBoq (L1) → Bid (L2) jako SSOT Outcome (flaga R0).
- * COST-PIPELINE-01-BUGFIX-01 — OfferBoq first, catalog fallback gdy OfferBoq null.
+ * C-MODE-1a — OfferBoq null → GAP (ZERO ath_priced / catalog / companyPrice fallback).
  * COST-MULTI-02 — Bid/OfferBoq input via resolveKosztorysSnapshotForPricing.
  */
 
@@ -23,7 +23,10 @@ import { computeRuntimeBidFromOfferBoq } from "@/lib/tender-offer-boq-explainabi
 import { isCostPipeline01Enabled } from "@/lib/tenders-v4-config";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 
-/** Legacy catalog Bid — REUSE path sprzed COST-PIPELINE-01 wire. */
+/**
+ * Legacy catalog Bid — KEEP TECHNICALLY (costPipeline OFF / regresje / P7).
+ * C-MODE-1a: NIE wołać z resolveTenderPricingAutoProposal gdy pipeline ON.
+ */
 export function computeCatalogBidProposalForPricingAuto(opts: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
@@ -48,10 +51,12 @@ export function computeCatalogBidProposalForPricingAuto(opts: {
 }
 
 /**
- * COST-PIPELINE-01-BUGFIX-01 — wybór Bid:
- * 1) OfferBoq → Bid (sukces)
- * 2) inaczej catalog Bid
- * 3) catalog też bez ceny → proposal null/ok:false (Outcome: Brak rekomendowanej ceny)
+ * C-MODE-1a — wybór Bid (nowy tor):
+ * 1) OfferBoq → F5 Position Cost → Bid (w tym ok:false / GAP)
+ * 2) OfferBoq unavailable → null (jawny GAP)
+ *
+ * ZERO: ath_priced / catalog / companyPricePln jako fallback nowego Bid.
+ * costPipeline OFF → legacy catalog (osobna flaga, nie C-MODE cutover path).
  *
  * Pure — testowalne bez React.
  */
@@ -76,12 +81,8 @@ export function resolveTenderPricingAutoProposal(opts: {
     if (runtime) {
       return runtime.proposal;
     }
-    // BUGFIX-01: bezpieczny fallback — catalog, gdy OfferBoq niedostępny.
-    return computeCatalogBidProposalForPricingAuto({
-      item: opts.item,
-      swz: opts.swz,
-      priceOverrides: opts.priceOverrides,
-    });
+    // C-MODE-1a: OfferBoq null → GAP · NIE ath_priced / catalog / companyPricePln.
+    return null;
   }
 
   return computeCatalogBidProposalForPricingAuto({

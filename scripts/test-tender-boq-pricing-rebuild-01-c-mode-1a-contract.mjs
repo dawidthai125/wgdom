@@ -462,9 +462,12 @@ resetTf();
   ok("DOC C-MODE-1a exists", /C-MODE-1a ACCEPTED/.test(decision));
   const auto = read("src/app/hooks/useTenderPricingAuto.ts");
   ok(
-    "KNOWN DEBT: OfferBoq-null → catalog fallback still present (not fixed)",
-    /computeCatalogBidProposalForPricingAuto/.test(auto) &&
-      /BUGFIX-01: bezpieczny fallback/.test(auto),
+    "C-MODE-1a: OfferBoq null → return null (fallback removed)",
+    /OfferBoq null[\s\S]{0,120}return null/.test(auto),
+  );
+  ok(
+    "Legacy catalog helper KEEP TECHNICAL",
+    /export function computeCatalogBidProposalForPricingAuto/.test(auto),
   );
   const cut = read("src/lib/tender-position-cost/bid-position-cost-cutover.ts");
   ok(
