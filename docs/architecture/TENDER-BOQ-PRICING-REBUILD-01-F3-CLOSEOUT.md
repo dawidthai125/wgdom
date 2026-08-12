@@ -28,9 +28,9 @@ OFFER: UNCHANGED
 HTTP: 0
 RESEARCH: 0
 BUILD: PASS
-TESTS: (F3 harness) · F0–F2 · PM · WorkRate · LIVE · MMR · Bid · Offer
-COMMIT: (po commit)
-PUSH: (po push)
+TESTS: 41 PASS / 0 FAIL (F3) · F0–F2 · PM C01–03 · WorkRate · LIVE-08 · MMR-02 · invoice · Bid · Offer · Technology DECOMP
+COMMIT: 7ab67c4b
+PUSH: PASS
 PRODUCTION: DEPLOY PROPAGATING
 NEXT: FAZA 4 — BOQ INTEGRATION — ONLY AFTER OWNER GO
 ```

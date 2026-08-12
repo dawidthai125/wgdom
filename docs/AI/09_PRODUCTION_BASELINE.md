@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.  
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.39** · **TENDER-BOQ-PRICING-REBUILD-01 FAZA 2** · prior F1 **2.66.38** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = FAZA 3 tylko Owner GO**.
+**Snapshot dokumentacji:** 2026-08-12 · tip UI **2.66.40** · **TENDER-BOQ-PRICING-REBUILD-01 FAZA 3** · prior F2 **2.66.39** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · SSOT [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tryb **UTRZYMANIE** · **NEXT = FAZA 4 tylko Owner GO**.
 
 ---
 
@@ -26,9 +26,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.39** (live may lag until deploy) |
-| **Deploy tip commit (`main` / `version.json`)** | **`98207d3d`** · prior F1 **`bec3c56e`** / UI **2.66.38** |
-| **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 2)** | **COMPLETE** · materialKey → Price Memory → SELL → Position Cost · C-MID-1 · C-PRICE-1 · C-MARGIN-1 · bez BOM · ZERO Bid/Offer cutover · UI **2.66.39** · feature **`98207d3d`** · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F2-MATERIAL-INTEGRATION.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F2-CLOSEOUT.md) · PRODUCTION **DEPLOY PROPAGATING** · NEXT **FAZA 3 Owner GO** |
+| **UI version (changelog / version.json)** | **2.66.40** (live may lag until deploy) |
+| **Deploy tip commit (`main` / `version.json`)** | **`7ab67c4b`** · prior F2 **`98207d3d`** / UI **2.66.39** |
+| **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 3)** | **COMPLETE** · workId → Technology BOM → SELL + OUR RATE → Position Cost · C-BOM-1…5 · ZERO invent · ZERO Bid cutover · UI **2.66.40** · feature **`7ab67c4b`** · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F3-BOM-TECHNOLOGY.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F3-CLOSEOUT.md) · PRODUCTION **DEPLOY PROPAGATING** · NEXT **FAZA 4 Owner GO** |
+| **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 2)** | **COMPLETE** · materialKey → Price Memory → SELL → Position Cost · C-MID-1 · C-PRICE-1 · C-MARGIN-1 · bez BOM · ZERO Bid/Offer cutover · UI **2.66.39** · feature **`98207d3d`** · tip supersedowany przez F3 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F2-MATERIAL-INTEGRATION.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F2-CLOSEOUT.md) |
 | **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 1)** | **COMPLETE** · OUR RATE → Position Cost · REUSE `lookupWorkRate` · C-EMPTY · C-CPLN-1 · ZERO Bid/Offer/PM cutover · ZERO HTTP/research · UI **2.66.38** · feature **`bec3c56e`** · tip supersedowany przez F2 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F1-OUR-RATE-INTEGRATION.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-F1-CLOSEOUT.md) |
 | **Feature tip (TENDER-BOQ-PRICING-REBUILD-01 FAZA 0)** | **COMPLETE** · pure Position Cost Engine · ZERO Bid/Offer/PM/WorkRate wire · UI **2.66.37** · feature **`bf4e1beb`** · tip supersedowany przez F1 · [`DOC`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-P0-POSITION-COST-ENGINE.md) · [`CLOSEOUT`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-P0-CLOSEOUT.md) |
 | **Feature tip (WORK-RATE-REAL-WORLD-VALIDATION-03)** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · parser tabel · kanoniczne URL · KB/Extradom/CR PASS · SCCOT RATE_GAP · selective ONE · CACHE-FIRST · Owner Accept → OUR RATE · UI **2.66.36** · feature **`a834ed48`** · live **`73b8323`** · [`DOC`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03.md) · [`PV`](../architecture/WORK-RATE-REAL-WORLD-VALIDATION-03-PRODUCTION-VERIFY.md) · tip supersedowany przez BOQ F0 |
