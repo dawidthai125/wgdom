@@ -75,6 +75,22 @@ export {
 } from "@/lib/tender-position-cost/equipment-contract";
 
 export type {
+  TransportComponentResult,
+  TransportPriceConfidence,
+  TransportPriceProvenance,
+  TransportPriceProvider,
+  TransportPriceProviderRequest,
+  TransportPriceProviderResult,
+  TransportRateStatus,
+  TransportSourceClass,
+} from "@/lib/tender-position-cost/transport-contract";
+
+export {
+  buildTransportComponentResult,
+  createUnresolvedTransportPriceProvider,
+} from "@/lib/tender-position-cost/transport-contract";
+
+export type {
   ComputeShadowBoqPositionCostsInput,
   ComputeShadowPositionCostForLineInput,
   ShadowBoqPositionCostResult,
