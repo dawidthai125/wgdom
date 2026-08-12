@@ -19,6 +19,10 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIX = path.join(__dirname, "..", ".tmp-work-rate-rw-03");
+if (!fs.existsSync(path.join(FIX, "kb.html"))) {
+  console.log("SKIP RW-03 — brak lokalnych HTML w .tmp-work-rate-rw-03 (pobierz źródła lokalnie przed audytem).");
+  process.exit(0);
+}
 
 let passed = 0;
 let failed = 0;
