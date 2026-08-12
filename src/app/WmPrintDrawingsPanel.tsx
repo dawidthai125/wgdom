@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
-import { WmPrintDrawingEditor } from "@/app/WmPrintDrawingEditor";
+import { WmPrintDrawingEditor, type DrawingJobPatch } from "@/app/WmPrintDrawingEditor";
 import { getDrawingById, filterDrawingsForRysunkiTab } from "@/lib/wm-technical-drawings/merge";
 import {
   duplicateDrawing,
@@ -69,6 +69,7 @@ export function WmPrintDrawingsPanel({
   onRecordWmDrukAudit,
   initialJobId,
   adminSession,
+  onPatchJob,
 }: {
   jobs: Job[];
   drawings: WmTechnicalDrawing[];
@@ -77,6 +78,7 @@ export function WmPrintDrawingsPanel({
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
   initialJobId?: string | null;
   adminSession?: AdminSession | null;
+  onPatchJob?: (jobId: string, patch: DrawingJobPatch) => void;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -318,6 +320,8 @@ export function WmPrintDrawingsPanel({
         jobLabel={editorJobLabel}
         onRecordWmDrukAudit={onRecordWmDrukAudit}
         mobileFullscreen={mobileFsOpen}
+        onPatchJob={onPatchJob}
+        uploadedBy={adminSession?.displayName || "Administrator"}
       />
     </>
   ) : null;

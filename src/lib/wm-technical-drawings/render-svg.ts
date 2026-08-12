@@ -140,8 +140,11 @@ function renderObject(obj: DrawingObject, doors: DrawingDoorObject[]): string {
     });
     const lx = can.mx + can.nx * off;
     const ly = can.my + can.ny * off;
+    /* Vertical (|dx|<|dy| after canonicalize): label rotate EXACTLY -90° about (lx,ly). */
+    const isVertical = Math.abs(can.x2 - can.x1) < Math.abs(can.y2 - can.y1);
+    const rotateAttr = isVertical ? ` transform="rotate(-90 ${lx} ${ly})"` : "";
     const labelSvg =
-      `<text data-dim-label="1" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" ` +
+      `<text data-dim-label="1" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle"${rotateAttr} ` +
       `font-size="${DRAWING_DIMENSION_FONT_SIZE}" fill="#334155" font-family="system-ui,sans-serif">${esc(label)}</text>`;
     return `<g data-id="${esc(obj.id)}">${body}${labelSvg}</g>`;
   }
@@ -200,9 +203,16 @@ export interface RenderDrawingSvgOptions {
   previewWall?: PreviewWallOption | null;
   /** Ghost prostokąt (tylko edytor · PDF/ZIP OUT). */
   previewRectangle?: PreviewRectangleOption | null;
+  /** Edit-only: dimension endpoint handles when this id is selected. */
+  selectedObjectId?: string | null;
 }
 
-function renderEditHitOverlays(objects: DrawingObject[]): string {
+export const DRAWING_DIM_HANDLE_RADIUS_SVG = 10;
+
+function renderEditHitOverlays(
+  objects: DrawingObject[],
+  selectedObjectId?: string | null,
+): string {
   const parts: string[] = [];
   for (const obj of objects) {
     const id = esc(obj.id);
@@ -212,6 +222,21 @@ function renderEditHitOverlays(objects: DrawingObject[]): string {
           `stroke="transparent" stroke-width="${DRAWING_HIT_LINE_WIDTH_SVG}" stroke-linecap="round" ` +
           `pointer-events="stroke" />`,
       );
+      if (
+        obj.type === "dimension" &&
+        selectedObjectId &&
+        obj.id === selectedObjectId
+      ) {
+        const r = DRAWING_DIM_HANDLE_RADIUS_SVG;
+        parts.push(
+          `<circle data-id="${id}" data-dim-handle="start" cx="${obj.x1}" cy="${obj.y1}" r="${r}" ` +
+            `fill="#38bdf8" fill-opacity="0.85" stroke="#0ea5e9" stroke-width="1.5" pointer-events="all" />`,
+        );
+        parts.push(
+          `<circle data-id="${id}" data-dim-handle="end" cx="${obj.x2}" cy="${obj.y2}" r="${r}" ` +
+            `fill="#38bdf8" fill-opacity="0.85" stroke="#0ea5e9" stroke-width="1.5" pointer-events="all" />`,
+        );
+      }
       continue;
     }
     if (
@@ -297,7 +322,7 @@ export function renderDrawingSvg(
     isEdit && options.previewRectangle != null
       ? renderGhostRectangle(options.previewRectangle)
       : "";
-  const hits = isEdit ? renderEditHitOverlays(drawing.objects) : "";
+  const hits = isEdit ? renderEditHitOverlays(drawing.objects, options.selectedObjectId) : "";
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" data-render-version="${DRAWING_RENDER_VERSION}" data-render-mode="${isEdit ? "edit" : "export"}">` +
     `<rect width="100%" height="100%" fill="#ffffff"/>` +

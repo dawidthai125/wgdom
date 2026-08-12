@@ -191,6 +191,7 @@ export function WmPrintView({
   onInitialNavigationConsumed,
   onOpenJobInJobs,
   onRecordWmDrukAudit,
+  onPatchJob,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
@@ -241,6 +242,7 @@ export function WmPrintView({
   onInitialNavigationConsumed?: () => void;
   onOpenJobInJobs?: (jobId: string) => void;
   onRecordWmDrukAudit?: OnRecordWmDrukAuditFn;
+  onPatchJob?: (jobId: string, patch: import("@/app/WmPrintDrawingEditor").DrawingJobPatch) => void;
 }) {
   const [tab, setTab] = useState<WmPrintTab>("odbiory");
   const [filter, setFilter] = useState<WmPrintJobFilter>("all");
@@ -1345,6 +1347,7 @@ export function WmPrintView({
             onRecordWmDrukAudit={onRecordWmDrukAudit}
             initialJobId={initialJobId}
             adminSession={adminSession}
+            onPatchJob={onPatchJob}
           />
         )}
 

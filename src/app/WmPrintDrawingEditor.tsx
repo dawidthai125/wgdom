@@ -27,6 +27,8 @@ import {
   ZoomOut,
   LocateFixed,
   Eraser,
+  ImagePlus,
+  Paperclip,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -58,6 +60,11 @@ import {
   type DimensionUnit,
 } from "@/lib/wm-technical-drawings/dimension-label-format";
 import {
+  constrainDimensionEndpointDrag,
+  type DimensionEndpointWhich,
+} from "@/lib/wm-technical-drawings/dimension-range";
+import { rasterizeDrawingSvgToPng } from "@/lib/wm-technical-drawings/svg-raster";
+import {
   collectWallEndpoints,
   snapDrawEnd,
   snapDrawStart,
@@ -76,8 +83,17 @@ import {
   type DrawingWallObject,
   type WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
+import { uploadJobAttachment } from "@/lib/job-attachment-upload";
+import type { JobAttachment } from "@/lib/job-attachments";
+import { uploadPhoto, type PhotoEntry } from "@/app/app-domain";
 import type { OnRecordWmDrukAuditFn } from "@/lib/wm-druk-audit";
 
+export type DrawingJobPatch = {
+  /** Append one attachment (PDF copy). */
+  appendAttachment?: JobAttachment;
+  /** Append one photo (PNG copy). */
+  appendPhoto?: PhotoEntry;
+};
 /** P3A toolbar — drzwi = 2 tooly (P/W); bez osobnego „Opis” (MR-P3A-05). */
 type Tool =
   | "select"
@@ -143,6 +159,9 @@ export function WmPrintDrawingEditor({
   mobileFullscreen = false,
   /** WM-WORKER-SKETCH-01 — allowlist narzędzi (P1: ściana/drzwi/okno/…). */
   allowedTools,
+  /** DIMENSION-RANGE-JOB-EXPORT — thin jobs mutate (attachments / photos only). */
+  onPatchJob,
+  uploadedBy = "Administrator",
 }: {
   drawing: WmTechnicalDrawing;
   onChange: (next: WmTechnicalDrawing) => void;
@@ -153,6 +172,8 @@ export function WmPrintDrawingEditor({
   /** Mobile Chrome (layout only) — NIE zmienia gestu Drawing Engine. */
   mobileFullscreen?: boolean;
   allowedTools?: Tool[];
+  onPatchJob?: (jobId: string, patch: DrawingJobPatch) => void;
+  uploadedBy?: string;
 }) {
   const stackRef = useRef<DrawingUndoStack | null>(null);
   if (!stackRef.current || stackRef.current.getCurrent().id !== drawing.id) {
@@ -203,12 +224,14 @@ export function WmPrintDrawingEditor({
   } | null>(null);
   const dragRef = useRef<{
     id: string;
-    mode: "move-point" | "move-line";
+    mode: "move-point" | "move-line" | "dim-handle";
+    which?: DimensionEndpointWhich;
     ox: number;
     oy: number;
     orig: DrawingObject;
     snapshot: WmTechnicalDrawing;
   } | null>(null);
+  const [jobExportBusy, setJobExportBusy] = useState(false);
   /** P1 — wall/arrow/rectangle: press → drag → release (jeden SM · ZERO two-click). */
   const lineDrawRef = useRef<{
     type: "wall" | "arrow" | "rectangle";
@@ -338,8 +361,9 @@ export function WmPrintDrawingEditor({
       highlightWallId: isDoorTool(tool) ? hoverWallId : null,
       previewWall,
       previewRectangle,
+      selectedObjectId: selectedId,
     });
-  }, [local, tool, hoverWallId, lineStart, previewEnd, mobileFullscreen]);
+  }, [local, tool, hoverWallId, lineStart, previewEnd, mobileFullscreen, selectedId]);
 
   const pdfFingerprint = useMemo(
     () =>
@@ -442,6 +466,89 @@ export function WmPrintDrawingEditor({
     },
     [ensurePdfSession, jobLabel, onRecordWmDrukAudit, pdfBusy],
   );
+
+  const savePdfToJobFiles = useCallback(async () => {
+    if (jobExportBusy) return;
+    const jobId = String(localRef.current.jobId || "").trim();
+    if (!jobId) {
+      toast.error("Brak przypisanej roboty — nie można zapisać.");
+      return;
+    }
+    if (!onPatchJob) {
+      toast.error("Brak połączenia z zapisem roboty.");
+      return;
+    }
+    setJobExportBusy(true);
+    try {
+      const session = await ensurePdfSession();
+      const file = new File([session.bytes], session.fileName, { type: "application/pdf" });
+      const { attachment, error } = await uploadJobAttachment(jobId, file, uploadedBy);
+      if (!attachment || error) {
+        toast.error(error || "Nie udało się zapisać PDF do plików roboty.");
+        return;
+      }
+      onPatchJob(jobId, { appendAttachment: attachment });
+      toast.success("Zapisano PDF do plików roboty.");
+      onRecordWmDrukAudit?.({
+        module: "drawings",
+        action: "drawing_pdf_exported",
+        summary: `PDF → pliki roboty: ${localRef.current.title}`,
+        detail: session.fileName,
+        drawingId: localRef.current.id,
+        jobId,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd zapisu PDF");
+    } finally {
+      setJobExportBusy(false);
+    }
+  }, [ensurePdfSession, jobExportBusy, onPatchJob, onRecordWmDrukAudit, uploadedBy]);
+
+  const savePngToJobPhotos = useCallback(async () => {
+    if (jobExportBusy) return;
+    const jobId = String(localRef.current.jobId || "").trim();
+    if (!jobId) {
+      toast.error("Brak przypisanej roboty — nie można zapisać.");
+      return;
+    }
+    if (!onPatchJob) {
+      toast.error("Brak połączenia z zapisem roboty.");
+      return;
+    }
+    setJobExportBusy(true);
+    try {
+      const d = localRef.current;
+      const svg = renderDrawingSvg(d, { mode: "export", showGrid: false });
+      if (svg.includes("data-dim-handle") || svg.includes("data-ghost") || svg.includes('data-hit="1"')) {
+        toast.error("Internal: UI overlays w PNG");
+        return;
+      }
+      const pngBytes = await rasterizeDrawingSvgToPng(svg, d.page.width, d.page.height);
+      const safeTitle = (d.title || "rysunek").replace(/[^\w.\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]+/gi, "_").slice(0, 40);
+      const fileName = `RYSUNEK_${safeTitle}.png`;
+      const file = new File([new Blob([pngBytes])], fileName, { type: "image/png" });
+      const caption = `Rysunek: ${d.title || "bez tytułu"}`;
+      const { entry, error } = await uploadPhoto(jobId, file, "progress", uploadedBy, caption);
+      if (!entry || error) {
+        toast.error(error || "Nie udało się zapisać PNG do zdjęć roboty.");
+        return;
+      }
+      onPatchJob(jobId, { appendPhoto: entry });
+      toast.success("Zapisano PNG do zdjęć roboty.");
+      onRecordWmDrukAudit?.({
+        module: "drawings",
+        action: "drawing_pdf_exported",
+        summary: `PNG → zdjęcia roboty: ${d.title}`,
+        detail: fileName,
+        drawingId: d.id,
+        jobId,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd zapisu PNG");
+    } finally {
+      setJobExportBusy(false);
+    }
+  }, [jobExportBusy, onPatchJob, onRecordWmDrukAudit, uploadedBy]);
 
   const canUndo = stackRef.current?.canUndo() ?? false;
   const canRedo = stackRef.current?.canRedo() ?? false;
@@ -738,6 +845,30 @@ export function WmPrintDrawingEditor({
       return;
     }
 
+    /* Dimension endpoint handle — before body select/move-line. */
+    const handleEl = (e.target as Element).closest?.("[data-dim-handle]");
+    if (handleEl) {
+      const id = handleEl.getAttribute("data-id");
+      const which = handleEl.getAttribute("data-dim-handle") as DimensionEndpointWhich | null;
+      if (id && (which === "start" || which === "end")) {
+        const obj = local.objects.find((o) => o.id === id);
+        if (obj && obj.type === "dimension" && !obj.locked) {
+          setSelectedId(id);
+          dragRef.current = {
+            id,
+            mode: "dim-handle",
+            which,
+            ox: raw.x,
+            oy: raw.y,
+            orig: { ...obj },
+            snapshot: local,
+          };
+          beginCapture();
+          return;
+        }
+      }
+    }
+
     const target = (e.target as Element).closest?.("[data-id]");
     const id = target?.getAttribute("data-id") ?? null;
     setSelectedId(id);
@@ -837,7 +968,19 @@ export function WmPrintDrawingEditor({
     const dy = p.y - drag.oy;
     const orig = drag.orig;
     let nextObj: DrawingObject;
-    if (drag.mode === "move-point" && isPointObj(orig)) {
+    if (drag.mode === "dim-handle" && orig.type === "dimension" && drag.which) {
+      const walls = localRef.current.objects.filter(
+        (o): o is DrawingWallObject => o.type === "wall",
+      );
+      const nextCoords = constrainDimensionEndpointDrag({
+        dim: { x1: orig.x1, y1: orig.y1, x2: orig.x2, y2: orig.y2 },
+        which: drag.which,
+        pointer: raw,
+        walls,
+      });
+      if (!nextCoords) return;
+      nextObj = { ...orig, ...nextCoords };
+    } else if (drag.mode === "move-point" && isPointObj(orig)) {
       nextObj = { ...orig, x: orig.x + dx, y: orig.y + dy };
     } else if (drag.mode === "move-line" && isLineObj(orig)) {
       nextObj = {
@@ -1169,6 +1312,26 @@ export function WmPrintDrawingEditor({
             >
               <Grid3x3 size={18} />
             </button>
+            <button
+              type="button"
+              title="Zapisz do plików roboty"
+              aria-label="Zapisz do plików roboty"
+              disabled={pdfBusy || jobExportBusy}
+              onClick={() => void savePdfToJobFiles()}
+              className={chromeIcon}
+            >
+              <Paperclip size={18} />
+            </button>
+            <button
+              type="button"
+              title="Zapisz jako zdjęcie"
+              aria-label="Zapisz jako zdjęcie"
+              disabled={pdfBusy || jobExportBusy}
+              onClick={() => void savePngToJobPhotos()}
+              className={chromeIcon}
+            >
+              <ImagePlus size={18} />
+            </button>
           </div>
           <div
             className="border border-border rounded-lg p-1 bg-card flex flex-wrap items-stretch gap-1"
@@ -1276,6 +1439,28 @@ export function WmPrintDrawingEditor({
         >
           <Printer size={14} />
           <span className="hidden sm:inline">Drukuj</span>
+        </button>
+        <button
+          type="button"
+          title="Zapisz do plików roboty"
+          aria-label="Zapisz do plików roboty"
+          disabled={pdfBusy || jobExportBusy}
+          onClick={() => void savePdfToJobFiles()}
+          className={chromeAction}
+        >
+          <Paperclip size={14} />
+          <span className="hidden sm:inline">{jobExportBusy ? "Zapis…" : "Do plików"}</span>
+        </button>
+        <button
+          type="button"
+          title="Zapisz jako zdjęcie"
+          aria-label="Zapisz jako zdjęcie"
+          disabled={pdfBusy || jobExportBusy}
+          onClick={() => void savePngToJobPhotos()}
+          className={chromeAction}
+        >
+          <ImagePlus size={14} />
+          <span className="hidden sm:inline">Jako zdjęcie</span>
         </button>
       </div>
       )}

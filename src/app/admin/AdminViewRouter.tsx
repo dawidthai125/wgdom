@@ -195,6 +195,7 @@ export type AdminViewRouterProps = {
     v: WmTechnicalDrawing[] | ((prev: WmTechnicalDrawing[]) => WmTechnicalDrawing[]),
   ) => void;
   commitWmTechnicalDrawings: (next?: WmTechnicalDrawing[]) => void;
+  onPatchJobFromDrawingExport?: (jobId: string, patch: import("@/app/WmPrintDrawingEditor").DrawingJobPatch) => void;
   pendingWmPrintNav: import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null;
   onInitialWmPrintNavigationConsumed: () => void;
   onOpenWmPrintMeasurements: (jobId: string) => void;
@@ -410,6 +411,7 @@ export function AdminViewRouter({
   wmTechnicalDrawings,
   setWmTechnicalDrawings,
   commitWmTechnicalDrawings,
+  onPatchJobFromDrawingExport,
   pendingWmPrintNav,
   onInitialWmPrintNavigationConsumed,
   onOpenWmPrintMeasurements,
@@ -662,6 +664,7 @@ export function AdminViewRouter({
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}
               onOpenJobInJobs={(jobId) => onOpenJobInJobs(jobId, "summary")}
               onRecordWmDrukAudit={onRecordWmDrukAudit}
+              onPatchJob={onPatchJobFromDrawingExport}
             />
           </Suspense>
         </ViewErrorBoundary>

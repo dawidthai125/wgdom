@@ -605,6 +605,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [wmTechnicalDrawings, setWmTechnicalDrawings],
   );
 
+  /** WM-RYSUNKI job export — mutate only attachments / photos. */
+  const patchJobFromDrawingExport = useCallback(
+    (jobId: string, patch: import("@/app/WmPrintDrawingEditor").DrawingJobPatch) => {
+      const id = String(jobId || "").trim();
+      if (!id) return;
+      setJobs((prev) =>
+        prev.map((j) => {
+          if (j.id !== id) return j;
+          let next = j;
+          if (patch.appendAttachment) {
+            const prevAtt = Array.isArray(j.jobAttachments) ? j.jobAttachments : [];
+            next = { ...next, jobAttachments: [...prevAtt, patch.appendAttachment] };
+          }
+          if (patch.appendPhoto) {
+            const prevPhotos = Array.isArray(j.photos) ? j.photos : [];
+            next = { ...next, photos: [...prevPhotos, patch.appendPhoto] };
+          }
+          return next;
+        }),
+      );
+    },
+    [setJobs],
+  );
+
   useEffect(() => {
     if (Array.isArray(electricalMeasurementRegistry)) {
       const normalized = normalizeElectricalMeasurementRegistryState(electricalMeasurementRegistry);
@@ -2828,6 +2852,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           wmTechnicalDrawings={wmTechnicalDrawings}
           setWmTechnicalDrawings={setWmTechnicalDrawings}
           commitWmTechnicalDrawings={commitWmTechnicalDrawings}
+          onPatchJobFromDrawingExport={patchJobFromDrawingExport}
           pendingWmPrintNav={pendingWmPrintNav}
           onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
           onOpenWmPrintMeasurements={(jobId) => {
