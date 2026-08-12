@@ -1,0 +1,57 @@
+# TENDER-BOQ-PRICING-REBUILD-01 — FAZA 1 CLOSEOUT
+
+> **DATA:** 2026-08-12  
+> **UI:** **2.66.38**
+
+```text
+TENDER-BOQ-PRICING-REBUILD-01 FAZA 1
+
+IMPLEMENTATION: COMPLETE
+OUR RATE: PASS
+CURRENT: PASS
+STALE: PASS
+MISSING: PASS
+C-EMPTY: PASS
+C-CPLN-1: PASS
+IDENTITY: PASS
+POSITION COST ENGINE: UNCHANGED
+COMPANYPRICEPLN: ZERO
+PRICE MEMORY: UNCHANGED
+BID: UNCHANGED
+OFFER: UNCHANGED
+HTTP: 0
+RESEARCH: 0
+BUILD: PASS
+TESTS: 36 PASS / 0 FAIL (F1) · F0 46 · WorkRate P0/P1 · PM C01–03 · LIVE-08 · MMR-02 · invoice · Bid · Offer
+COMMIT: (uzupełnij po commit)
+PUSH: (uzupełnij)
+PRODUCTION: DEPLOY PROPAGATING
+NEXT: FAZA 2 — ONLY AFTER OWNER GO
+```
+
+## Zakres
+
+Adapter OUR RATE → `PositionLaborInput` → `computePositionCost` (lookup **przed** pure engine).
+
+## Poza zakresem
+
+F2 materialKey/PM · F3 BOM · F4 BOQ · F5 Bid cutover · research.
+
+## Dokumentacja
+
+- [`TENDER-BOQ-PRICING-REBUILD-01-F1-OUR-RATE-INTEGRATION.md`](./TENDER-BOQ-PRICING-REBUILD-01-F1-OUR-RATE-INTEGRATION.md)
+- F0 engine: bez zmiany kontraktu matematycznego
+
+## Conditions
+
+| ID | F1 |
+|----|-----|
+| C-PCE-1 | PASS |
+| C-CPLN-1 | PASS |
+| C-EMPTY | PASS |
+| C-STALE-1 | PASS (blokada) |
+| C-WID-1 | PASS |
+
+## STOP
+
+Czekaj na **OWNER GO FAZA 2**.

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-12",
+    version: "2.66.38",
+    label: "Position Cost — OUR RATE (Faza 1)",
+    items: [
+      {
+        type: "new",
+        text: "TENDER-BOQ-PRICING-REBUILD-01 FAZA 1: Nasz Katalog Robót → lookupWorkRate (CURRENT/STALE/MISSING) → computePositionCost. C-EMPTY · C-CPLN-1 · ZERO HTTP/research · bez Bid/Offer/Price Memory cutover. F2+ nie w tym releasie.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-12",
     version: "2.66.37",
     label: "Position Cost Engine (Faza 0) — pure lib",
     items: [

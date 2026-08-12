@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.38 — Position Cost OUR RATE Faza 1 (2026-08-12)
+
+- Nasz Katalog Robót → `lookupWorkRate` → `computePositionCost` · C-EMPTY / C-CPLN-1 · ZERO Bid/Offer/PM cutover
+
 ## 2.66.37 — Position Cost Engine Faza 0 (2026-08-12)
 
 - Pure `computePositionCost` — labor OUR RATE × qty + Σ material SELL × qty · ZERO Bid/Offer/PM wire
