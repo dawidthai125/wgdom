@@ -22,6 +22,13 @@ export interface AthPreviewRow {
   categoryLp?: string;
   /** Wiersze przedmiaru / obmiaru powiązane z pozycją (sekcja [PRZEDMIAR]). */
   przedmiar?: AthPreviewPrzedmiarLine[];
+  /**
+   * MULTI-BOQ-NORMA-KALK P0 — optional parse provenance (not OfferBoq required).
+   * Marker Norma PRO „kalk. własna” folded into parent work row.
+   */
+  pricingBasis?: "kalk_wlasna" | null;
+  pricingBasisRaw?: string;
+  pricingBasisSourceIndex?: number;
 }
 
 export interface AthPreviewCategory {

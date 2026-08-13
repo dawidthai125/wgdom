@@ -87,7 +87,10 @@ async function main() {
   assert(`rows >= ${MIN_ROWS}`, rows.length >= MIN_ROWS);
   assert("TP198BC rows >= 120", rows.length >= 120);
   assert("TP198BC delta >= 5", rows.length - TP198BC_BEFORE_ROWS >= 5);
-  assert("has kalk. własna row", rows.some((r) => /kalk/i.test(r.code)));
+  assert(
+    "has kalk. własna row",
+    rows.some((r) => /kalk/i.test(r.code) || r.pricingBasis === "kalk_wlasna"),
+  );
   assert("heuristic rows >= MIN", rows.length >= MIN_ROWS);
   assert("pdfPrzedmiarCase 1", heuristic.uxCase === 1);
   assert("has KNR-W row", rows.some((r) => r.code.includes("KNR-W")));

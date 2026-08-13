@@ -218,9 +218,13 @@ const kalkAfterKnr = parsePdfPrzedmiarLine(
 );
 assert(
   "TP198B-1 KNR + kalk. własna",
-  kalkAfterKnr?.code.toLowerCase().includes("kalk") &&
-    kalkAfterKnr?.unit === "m3" &&
-    kalkAfterKnr?.quantity === "1",
+  Boolean(
+    kalkAfterKnr &&
+      /KNR/i.test(kalkAfterKnr.code) &&
+      kalkAfterKnr.pricingBasis === "kalk_wlasna" &&
+      kalkAfterKnr.unit === "m3" &&
+      (kalkAfterKnr.quantity === "1" || kalkAfterKnr.quantity === "1.00"),
+  ),
 );
 
 // TP198C — WM aliasy j.m. → szt

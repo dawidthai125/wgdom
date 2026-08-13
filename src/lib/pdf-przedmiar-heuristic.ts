@@ -246,7 +246,7 @@ export function rejoinPdfBoqHyphens(text: string): string {
     .replace(/\b([a-ząćęłńóśźż]{2,})\s+-\s+([a-ząćęłńóśźż]{2,})\b/gi, "$1-$2");
 }
 
-/** TP201C-B — LP z wiersza wyżej + d.X.Y kalk. własna. */
+/** TP201C-B + NORMA-KALK DF-05 — LP + opis + d.X.Y kalk. własna (zachowaj parent description). */
 function applyLpLookaheadKalk(layoutRows: string[]): string[] {
   const out: string[] = [];
   for (const raw of layoutRows) {
@@ -256,7 +256,8 @@ function applyLpLookaheadKalk(layoutRows: string[]): string[] {
       const prev = out[out.length - 1]!;
       const lpDesc = prev.match(PDF_BOQ_LP_DESC_ROW_RE);
       if (lpDesc && !PDF_BOQ_LINE_START_RE.test(prev)) {
-        out[out.length - 1] = `${lpDesc[1]} ${row}`;
+        // DF-05: keep full parent description — do not replace with LP-only.
+        out[out.length - 1] = `${prev} ${row}`;
         continue;
       }
     }
@@ -476,7 +477,9 @@ function resolveUnitQuantityAtMatch(
   let quantity = "";
   const afterUnit = trimmed.slice(unitMatch.index + unitMatch[0].length);
   const qtyAfterUnit = afterUnit.match(/^\s*([\d]+(?:[.,]\d+)?)/);
-  if (qtyAfterUnit) quantity = parseQuantityToken(qtyAfterUnit[1]);
+  if (qtyAfterUnit) {
+    quantity = parseQuantityToken(qtyAfterUnit[1]);
+  }
   if (!quantity) {
     const tail = trimmed.slice(unitMatch.index);
     const endQty = tail.match(/([\d]+(?:[.,]\d+)?)\s*$/);
@@ -484,10 +487,30 @@ function resolveUnitQuantityAtMatch(
   }
   if (!quantity) return null;
 
+  // DF-16-A — quantity must not be the XX suffix of table code NNNN-XX (e.g. 0419-04 → 04).
+  // DF-16-B/D/H — rejecting the token MUST NOT drop the parent: keep unit + quantity "".
+  if (quantityLooksLikeTableCodeSuffix(trimmed, quantity)) {
+    const later = afterUnit.match(/^\s*\d{3,4}-\d{2}\s+([\d]+(?:[.,]\d+)?)/);
+    if (later) {
+      const q2 = parseQuantityToken(later[1]);
+      if (q2 && !quantityLooksLikeTableCodeSuffix(trimmed, q2)) {
+        return { unit, quantity: q2, unitStart: unitMatch.index, unitMatch };
+      }
+    }
+    return { unit, quantity: "", unitStart: unitMatch.index, unitMatch };
+  }
+
   return { unit, quantity, unitStart: unitMatch.index, unitMatch };
 }
 
-function extractUnitAndQuantity(trimmed: string): {
+/** DF-16 — „04” z „0419-04” nie jest ilością pozycji. */
+function quantityLooksLikeTableCodeSuffix(trimmed: string, quantity: string): boolean {
+  const bare = String(quantity).trim();
+  if (!/^\d{1,2}$/.test(bare)) return false;
+  return new RegExp(`\\b\\d{3,4}-${bare}\\b`).test(trimmed);
+}
+
+function extractUnitAndQuantityRaw(trimmed: string): {
   unit: string;
   quantity: string;
   unitStart: number;
@@ -505,8 +528,112 @@ function extractUnitAndQuantity(trimmed: string): {
   const lastIdx = matches[matches.length - 1]!.index ?? 0;
   // TP201B-B — długi złączony wiersz: ostatnia j.m. (unika „pi- m 2” w środku opisu).
   const pickLast = trimmed.length >= 80 && lastIdx - firstIdx >= 30;
-  const chosen = pickLast ? matches[matches.length - 1]! : matches[0]!;
-  return resolveUnitQuantityAtMatch(trimmed, chosen);
+  const ordered = pickLast
+    ? [...matches].reverse()
+    : matches;
+  for (const m of ordered) {
+    const resolved = resolveUnitQuantityAtMatch(trimmed, m);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function extractUnitAndQuantity(trimmed: string): {
+  unit: string;
+  quantity: string;
+  unitStart: number;
+  unitMatch: RegExpMatchArray;
+} | null {
+  // NORMA-KALK — prefer unit+qty AFTER kalk marker (real obmiar), not table-code digits before it.
+  const kalkMatch = trimmed.match(KALK_WLASNA_RE);
+  if (kalkMatch && kalkMatch.index != null) {
+    const afterStart = kalkMatch.index + kalkMatch[0].length;
+    const after = trimmed.slice(afterStart);
+    const uqAfter = extractUnitAndQuantityRaw(after);
+    if (uqAfter) {
+      return {
+        ...uqAfter,
+        unitStart: afterStart + uqAfter.unitStart,
+      };
+    }
+  }
+  return extractUnitAndQuantityRaw(trimmed);
+}
+
+/** Marker-only / basis segment (no KNR work body) — candidate to fold into parent. */
+function isKalkBasisSegment(seg: string): boolean {
+  const t = normalizeSegmentLine(seg);
+  if (!KALK_WLASNA_RE.test(t)) return false;
+  if (KNR_IN_LINE.test(t)) return false;
+  if (PDF_BOQ_LP_ACTION_START_RE.test(t) && !KALK_BOQ_ANCHOR_RE.test(t)) return false;
+  return true;
+}
+
+/** Parent KNR/action awaiting qty from following kalk basis row. */
+function isIncompleteParentSegment(seg: string): boolean {
+  const t = normalizeSegmentLine(seg);
+  if (KALK_WLASNA_RE.test(t)) return false;
+  if (!/^(\d+(?:\.\d+)*)\s+/.test(t)) return false;
+  if (!KNR_IN_LINE.test(t) && !PDF_BOQ_LP_ACTION_START_RE.test(t)) return false;
+  const uq = extractUnitAndQuantity(t);
+  // DF-16-D/H — unit with unresolved qty ("") is still incomplete (may fold with later kalk).
+  return uq === null || !String(uq.quantity ?? "").trim();
+}
+
+/** Solo Norma: `LP + opis` bez KNR (np. kontener) — qty zwykle na wierszu kalk. */
+function isLpDescParentSegment(seg: string): boolean {
+  const t = normalizeSegmentLine(seg);
+  if (KALK_WLASNA_RE.test(t)) return false;
+  if (KNR_IN_LINE.test(t) || PDF_BOQ_LP_ACTION_START_RE.test(t)) return false;
+  if (!PDF_BOQ_LP_DESC_ROW_RE.test(t)) return false;
+  return extractUnitAndQuantity(t) === null;
+}
+
+function shouldFoldParentWithFollowingKalk(cur: string, next: string): boolean {
+  if (!isKalkBasisSegment(next)) return false;
+  const t = normalizeSegmentLine(cur);
+  if (KALK_WLASNA_RE.test(t)) return false;
+  if (!/^(\d+(?:\.\d+)*)\s+/.test(t)) return false;
+  if (isLpDescParentSegment(cur)) return true;
+  if (!KNR_IN_LINE.test(t) && !PDF_BOQ_LP_ACTION_START_RE.test(t)) return false;
+  // Incomplete parent OR complete KNR that may carry table-code qty (DF-16) before kalk.
+  return true;
+}
+
+/**
+ * NORMA-KALK P0 — fold `parent KNR/action` + `kalk. własna` + qty into one segment.
+ * Orphan kalk (no parent) → warning, not emitted as cost segment (DF-15).
+ */
+export function foldKalkBasisSegments(segments: string[]): {
+  segments: string[];
+  warnings: string[];
+} {
+  const out: string[] = [];
+  const warnings: string[] = [];
+  for (let i = 0; i < segments.length; i += 1) {
+    const cur = segments[i]!;
+    const next = i + 1 < segments.length ? segments[i + 1]! : null;
+
+    if (next && shouldFoldParentWithFollowingKalk(cur, next)) {
+      out.push(`${cur} ${next}`);
+      i += 1;
+      continue;
+    }
+
+    if (isKalkBasisSegment(cur)) {
+      const t = normalizeSegmentLine(cur);
+      const hasLp = /^(\d+(?:\.\d+)*)\s+/.test(t);
+      // Solo LP+kalk(+desc|qty) stays — real position with basis.
+      // Marker without LP and without parent fold → orphan.
+      if (!hasLp) {
+        warnings.push(`ORPHAN_KALK_BASIS:segment=${i}`);
+        continue;
+      }
+    }
+
+    out.push(cur);
+  }
+  return { segments: out, warnings };
 }
 
 /** M5 — pozycja kalk. własna / kalkulacja własna / wycena własna (bez KNR). */
@@ -514,21 +641,47 @@ function parseKalkWlasnaPrzedmiarLine(trimmed: string): AthPreviewRow | null {
   if (!KALK_WLASNA_RE.test(trimmed)) return null;
   if (KALK_SWZ_FALSE_POSITIVE_RE.test(trimmed)) return null;
   // TP198B — kalk. własna po kotwicy KNR (bez Lp./d.X.Y na początku segmentu).
-  if (!KALK_BOQ_ANCHOR_RE.test(trimmed) && !KNR_IN_LINE.test(trimmed)) return null;
+  // NORMA-KALK — also allow LP + parent description + … + kalk + qty (solo fold).
+  const hasLeadingLp = /^(\d+(?:\.\d+)*)\s+/.test(trimmed);
+  if (
+    !KALK_BOQ_ANCHOR_RE.test(trimmed) &&
+    !KNR_IN_LINE.test(trimmed) &&
+    !hasLeadingLp
+  ) {
+    return null;
+  }
 
   const lpMatch = trimmed.match(/^(\d+(?:\.\d+)*)\s+/);
   const lp = lpMatch?.[1] ?? "";
 
   const kalkMatch = trimmed.match(KALK_WLASNA_RE);
   if (!kalkMatch || kalkMatch.index == null) return null;
-  const code = "kalk. własna";
+  const rawMarker = kalkMatch[0];
 
   const uq = extractUnitAndQuantity(trimmed);
   if (!uq) return null;
 
   const kalkEnd = kalkMatch.index + kalkMatch[0].length;
-  let description = trimmed.slice(kalkEnd, uq.unitStart).trim();
-  description = description.replace(/^[-–—]\s*/, "").trim();
+  let description = "";
+
+  // DF-05 — prefer parent description BEFORE marker (solo: LP + opis + d.X.Y kalk).
+  const beforeRaw = trimmed
+    .slice(lpMatch?.[0]?.length ?? 0, kalkMatch.index)
+    .replace(/\bd\.\d+\.\d+\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const beforeClean = beforeRaw
+    .replace(/\b(?:szt|kpl|mb|m2|m3)\.?\s*$/i, "")
+    .replace(/^[-–—]\s*/, "")
+    .trim();
+  if (beforeClean.length >= 4 && !PDF_BOQ_MARKER_ONLY_DESC_RE.test(beforeClean)) {
+    description = beforeClean;
+  }
+
+  if (description.length < 4) {
+    description = trimmed.slice(kalkEnd, uq.unitStart).trim();
+    description = description.replace(/^[-–—]\s*/, "").trim();
+  }
   if (description.length < 4) {
     const dsec = trimmed.match(/\bd\.\d+\.\d+\b/)?.[0];
     if (dsec) {
@@ -540,7 +693,12 @@ function parseKalkWlasnaPrzedmiarLine(trimmed: string): AthPreviewRow | null {
     }
   }
   if (description.length < 4) {
-    description = trimmed.slice((lpMatch?.[0]?.length ?? 0), uq.unitStart).replace(code, "").trim();
+    description = trimmed
+      .slice((lpMatch?.[0]?.length ?? 0), uq.unitStart)
+      .replace(KALK_WLASNA_RE, "")
+      .replace(/\bd\.\d+\.\d+\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
   if (description.length < 4) description = "Kalkulacja własna";
   // TP201D M5 — marker-only dotyczy ścieżki KNR; kalk nie odrzucaj przy d.X.Y + liczba
@@ -548,13 +706,70 @@ function parseKalkWlasnaPrzedmiarLine(trimmed: string): AthPreviewRow | null {
 
   return {
     lp: lp || "",
-    code,
+    code: "kalk. własna",
     description: description.slice(0, 240),
     unit: uq.unit,
     quantity: uq.quantity,
     unitPrice: "",
     total: "",
     category: "UNKNOWN",
+    pricingBasis: "kalk_wlasna",
+    pricingBasisRaw: rawMarker,
+  };
+}
+
+/**
+ * NORMA-KALK — KNR + marker kalk. własna w jednym segmencie (po fold).
+ * code = KNR (nie „kalk. własna” jako robota); pricingBasis zachowuje marker.
+ */
+function parseKnrWithKalkBasisLine(trimmed: string): AthPreviewRow | null {
+  if (!KALK_WLASNA_RE.test(trimmed) || !KNR_IN_LINE.test(trimmed)) return null;
+  if (KALK_SWZ_FALSE_POSITIVE_RE.test(trimmed)) return null;
+
+  const kalkMatch = trimmed.match(KALK_WLASNA_RE);
+  if (!kalkMatch || kalkMatch.index == null) return null;
+  const knrSpan = extractKnrCodeSpan(trimmed);
+  if (!knrSpan) return null;
+
+  const uq = extractUnitAndQuantity(trimmed);
+  if (!uq) return null;
+
+  const lpMatch = trimmed.match(/^(\d+(?:\.\d+)*)\s+/);
+  const lp = lpMatch?.[1] ?? "";
+  const rawMarker = kalkMatch[0];
+  const kalkStart = kalkMatch.index;
+  const kalkEnd = kalkStart + rawMarker.length;
+
+  let description = "";
+  const afterKalk = trimmed
+    .slice(kalkEnd, uq.unitStart)
+    .replace(/^[-–—]\s*/, "")
+    .trim();
+  if (afterKalk.length >= 4 && !PDF_BOQ_MARKER_ONLY_DESC_RE.test(afterKalk)) {
+    description = afterKalk;
+  } else {
+    description = trimmed
+      .slice(knrSpan.codeEnd, kalkStart)
+      .replace(/^[-–—]\s*/, "")
+      .replace(/\bd\.\d+\.\d+\b/gi, " ")
+      .replace(/\b\d{3,4}-\d{2}\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  if (description.length < 4) return null;
+  if (PDF_BOQ_MARKER_ONLY_DESC_RE.test(description)) return null;
+
+  return {
+    lp: lp || "",
+    code: knrSpan.code,
+    description: description.slice(0, 240),
+    unit: uq.unit,
+    quantity: uq.quantity,
+    unitPrice: "",
+    total: "",
+    category: "UNKNOWN",
+    pricingBasis: "kalk_wlasna",
+    pricingBasisRaw: rawMarker,
   };
 }
 
@@ -604,6 +819,11 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
   );
   if (trimmed.length < 12 || HEADER_NOISE.test(trimmed)) return null;
 
+  // NORMA-KALK — KNR + kalk basis first (folded parent), then pure kalk / action / KNR.
+  if (KALK_WLASNA_RE.test(trimmed) && KNR_IN_LINE.test(trimmed)) {
+    const knrKalk = parseKnrWithKalkBasisLine(trimmed);
+    if (knrKalk) return knrKalk;
+  }
   if (KALK_WLASNA_RE.test(trimmed)) {
     const kalkRow = parseKalkWlasnaPrzedmiarLine(trimmed);
     if (kalkRow) return kalkRow;
@@ -664,19 +884,40 @@ function assignRowLpFromSegment(row: AthPreviewRow, segment: string): void {
   if (lp) row.lp = lp;
 }
 
-export function extractPdfPrzedmiarRows(text: string): AthPreviewRow[] {
-  const segments = splitPdfBoqText(text);
+function isKalkBasisRow(row: AthPreviewRow): boolean {
+  return row.pricingBasis === "kalk_wlasna" || /kalk\.?\s*własn/i.test(row.code || "");
+}
+
+export function extractPdfPrzedmiarRows(
+  text: string,
+  opts?: { warnings?: string[] },
+): AthPreviewRow[] {
+  const splitSegs = splitPdfBoqText(text);
+  const folded = foldKalkBasisSegments(splitSegs);
+  if (opts?.warnings) opts.warnings.push(...folded.warnings);
+
   const rows: AthPreviewRow[] = [];
   const seen = new Set<string>();
 
-  for (const line of segments) {
+  for (let segmentIndex = 0; segmentIndex < folded.segments.length; segmentIndex += 1) {
+    const line = folded.segments[segmentIndex]!;
     const row = parsePdfPrzedmiarLine(line);
     if (!row) continue;
     assignRowLpFromSegment(row, line);
+    if (row.pricingBasis === "kalk_wlasna" && row.pricingBasisSourceIndex == null) {
+      row.pricingBasisSourceIndex = segmentIndex;
+    }
     const key = pdfPrzedmiarRowDedupKey(row);
     if (seen.has(key)) continue;
     seen.add(key);
-    if (!row.lp) row.lp = String(rows.length + 1);
+    // DF-04 — never invent synthetic LP for marker / incomplete kalk rows.
+    if (!row.lp) {
+      if (isKalkBasisRow(row)) {
+        opts?.warnings?.push(`ORPHAN_KALK_BASIS:empty_lp:segment=${segmentIndex}`);
+        continue;
+      }
+      row.lp = String(rows.length + 1);
+    }
     rows.push(row);
     if (rows.length >= 500) break;
   }
@@ -732,7 +973,7 @@ export function parsePdfPrzedmiarHeuristic(
     return { uxCase: 2, rows: [], signals, signalCount, warnings };
   }
 
-  const rows = extractPdfPrzedmiarRows(text);
+  const rows = extractPdfPrzedmiarRows(text, { warnings });
   if (rows.length > 0) {
     warnings.push(PDF_PRZEDMIAR_UX_LINES[1]);
     return { uxCase: 1, rows, signals, signalCount, warnings };
