@@ -31,7 +31,12 @@ import {
   markBzpSyncedAt,
   computePipelineFunnel,
   removeTenderFromPipeline,
+  type ImportTenderRequest,
 } from "@/lib/tenders-bzp";
+import {
+  buildPinnedPipelineItem,
+  mergePinnedIntoPipeline,
+} from "@/lib/tender-ingest";
 import { loadCustomKeywordsLocal } from "@/lib/tenders-bzp-learn";
 import {
   getPipelineCacheGeneration,
@@ -260,6 +265,26 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     }
   }, [items, runBzpMerge]);
 
+  /** INGEST-01 — Owner pin / fixture import (no auto-create from filename). */
+  const importPinnedTender = useCallback(async (req: ImportTenderRequest) => {
+    const pinned = buildPinnedPipelineItem(req);
+    return new Promise<TenderPipelineItem>((resolve, reject) => {
+      setItems((prev) => {
+        const next = mergePinnedIntoPipeline(prev, pinned);
+        void persistTenderPipelineImmediate(next)
+          .then(() => {
+            toast.success(`Zaimportowano przetarg: ${pinned.title.slice(0, 60)}`);
+            resolve(pinned);
+          })
+          .catch(() => {
+            toast.error("Nie udało się zapisać zaimportowanego przetargu");
+            reject(new Error("IMPORT_PERSIST_FAILED"));
+          });
+        return next;
+      });
+    });
+  }, []);
+
   /**
    * P3-AUDIT-001-FIX-A — functional update; bez stale closure na items.
    * TENDERS-SYNC-STORM-P0 — opts.persist: local = LS only; cloud = coalesce (force);
@@ -444,6 +469,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     setBulkStatus,
     persist,
     refreshFromBzp,
+    importPinnedTender,
     updateItem,
     removeItem,
     resyncKeywords,

@@ -54,7 +54,16 @@ export interface UnifiedAttachmentGate {
 }
 
 const EXTERNAL_DOC_INDEX_BASE = 10_000;
+/** AUTO external only — Owner ingest path must NOT silent-truncate (INGEST-01 DF D5/D10). */
 const EXTERNAL_DOC_PARSE_MAX = 6;
+
+function isOwnerRequestedIngestPath(item: TenderPipelineItem): boolean {
+  return (
+    item.ingestMode === "owner_requested"
+    || item.ingestMode === "fixture_pin"
+    || item.retention === "pinned"
+  );
+}
 
 export function attachmentOriginPlatform(origin: AttachmentOrigin): string {
   return origin;
@@ -121,9 +130,12 @@ function buildHeavyParseAttachmentRefs(item: TenderPipelineItem): UnifiedAttachm
     refs.push(mapBzpRef(doc));
   }
 
-  const externalFiles = [...(item.externalDocDiscovery?.files ?? [])]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, EXTERNAL_DOC_PARSE_MAX);
+  const externalSorted = [...(item.externalDocDiscovery?.files ?? [])]
+    .sort((a, b) => b.score - a.score);
+  // AUTO: existing top-N / max6. OWNER REQUESTED: no silent truncation.
+  const externalFiles = isOwnerRequestedIngestPath(item)
+    ? externalSorted
+    : externalSorted.slice(0, EXTERNAL_DOC_PARSE_MAX);
 
   externalFiles.forEach((file, i) => {
     const url = file.publicUrl?.trim();

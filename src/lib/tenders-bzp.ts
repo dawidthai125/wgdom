@@ -149,7 +149,24 @@ export interface TenderPipelineItem {
   changeMonitor?: import("@/lib/tender-change-monitor").TenderChangeMonitorState | null;
   /** P2-D.2 — snapshot Q&A + historia odpowiedzi. */
   qaMonitor?: import("@/lib/tender-qa-monitor").TenderQaMonitorState | null;
+  /** INGEST-01 — OCDS id (pin / fixture); additive, default BZP PL02 unchanged. */
+  ocdsId?: string;
+  /** INGEST-01 — owner_requested | fixture_pin (auto BZP path leaves unset). */
+  ingestMode?: import("@/lib/tender-ingest/types").TenderIngestMode;
+  /** INGEST-01 — pinned survives pruneExpiredUntouched. */
+  retention?: import("@/lib/tender-ingest/types").TenderIngestRetention;
+  /** INGEST-01 — BIP / source URLs declared by Owner. */
+  sourceUrls?: string[];
 }
+
+/** INGEST-01 — re-export pin helpers (additive; no PL02 change). */
+export {
+  buildPinnedPipelineItem,
+  mergePinnedIntoPipeline,
+  isPinnedRetentionItem,
+  resolvePinnedTenderItemId,
+} from "@/lib/tender-ingest/pin";
+export type { ImportTenderRequest } from "@/lib/tender-ingest/types";
 
 export interface TenderEstimateSnapshot {
   pln: number;
@@ -400,6 +417,8 @@ export function isActionableTender(item: TenderPipelineItem, now = new Date()): 
 /** Usuwa z pipeline zamknięte ogłoszenia, których nikt nie oznaczył. */
 export function pruneExpiredUntouched(items: TenderPipelineItem[]): TenderPipelineItem[] {
   return items.filter((i) => {
+    // INGEST-01 — historical/fixture pin must survive prune (DF D2).
+    if (i.retention === "pinned" || i.ingestMode === "fixture_pin") return true;
     if (isTenderOpenForOffers(i.submittingOffersDate)) return true;
     return i.status !== "new" && i.status !== "seen";
   });
@@ -886,6 +905,21 @@ export async function uploadTenderFile(
     publicUrl: data.publicUrl,
     uploadedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * INGEST-01 — multi PDF/ZIP cloud upload helper (no silent truncation).
+ * Registry retention is separate (`ingestOwnerBrowserFiles`); this only stores bytes remotely.
+ */
+export async function uploadTenderFiles(
+  tenderItemId: string,
+  files: File[],
+): Promise<TenderUploadedFile[]> {
+  const out: TenderUploadedFile[] = [];
+  for (const file of files) {
+    out.push(await uploadTenderFile(tenderItemId, file));
+  }
+  return out;
 }
 
 export interface TenderJobDraft {

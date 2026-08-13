@@ -28,6 +28,7 @@ import { TenderListFilterFab } from "@/app/tenders/list/TenderListFilterFab";
 import { TenderListFilterSheet } from "@/app/tenders/list/TenderListFilterSheet";
 import { TenderListFiltersPanel } from "@/app/tenders/list/TenderListFiltersPanel";
 import { TenderListKpiDashboard } from "@/app/tenders/list/TenderListKpiDashboard";
+import { TenderIngestImportPanel } from "@/app/tenders/TenderIngestImportPanel";
 import { buildTenderListCardViewModel } from "@/app/tenders/list/tender-list-card-model";
 import {
   applyFavoritePreset,
@@ -536,6 +537,11 @@ export function TendersView({
 
         <div className="max-w-7xl mx-auto w-full">
         <div className="px-4 sm:px-6 py-1.5 space-y-1.5">
+        <TenderIngestImportPanel
+          onImport={(req) => pipeline.importPinnedTender(req)}
+          activeItem={expandedId ? pipeline.items.find((i) => i.id === expandedId) ?? null : null}
+          onUpdateItem={(id, patch) => pipeline.updateItem(id, patch)}
+        />
         {/* V4 — Rząd 1: wyszukiwarka, status (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
         <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-1.5 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">
           <div className="flex flex-wrap gap-2 items-center">

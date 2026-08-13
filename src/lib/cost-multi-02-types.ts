@@ -25,6 +25,8 @@ export interface CostBidInputDecision {
 /** Artefakt addycyjny z heavy — pełny snapshot per sparsowany kosztorys. */
 export interface CostBranchArtifact {
   filename: string;
+  /** INGEST-01 — stable document identity (prefer over filename). */
+  documentId?: string;
   branch?: BranchCode;
   snapshot: TenderKosztorysSnapshot;
 }

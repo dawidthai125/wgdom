@@ -19,10 +19,11 @@ export function buildArtifactPoolFromItem(
   const arts = readCostBranchArtifacts(item);
   return arts.map((a, i) => {
     const filename = String(a.filename ?? "").trim();
-    const documentId = filename; // document identity default = filename string (NOT dwellingId)
+    // INGEST-01 — prefer explicit documentId; filename fallback for legacy artifacts.
+    const documentId = String(a.documentId ?? "").trim() || filename;
     return {
       documentId,
-      artifactId: `art:${i}:${filename}`,
+      artifactId: `art:${i}:${documentId || filename}`,
       filename,
       branchHint: a.branch ?? inferBranchHint(filename),
       snapshot: a.snapshot,

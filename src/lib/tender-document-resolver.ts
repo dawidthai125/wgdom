@@ -77,6 +77,8 @@ async function loadDocParse(): Promise<DocParseModule> {
 export interface TenderDocCandidate {
   documentIndex: number;
   filename: string;
+  /** INGEST-01 — explicit document identity when available (BZP / owner registry). */
+  documentId?: string;
   zipInnerPath?: string;
   score: number;
   downloadUrl?: string;
@@ -197,14 +199,18 @@ function recordCostParseArtifact(
   session: TenderDossierParseSession,
   filename: string,
   snapshot: TenderKosztorysSnapshot,
+  documentId?: string,
 ): void {
   if (!snapshot.ok) return;
   session.costParseArtifacts ??= [];
   const entry = {
     filename,
+    ...(documentId ? { documentId } : {}),
     snapshot,
   };
-  const i = session.costParseArtifacts.findIndex((a) => a.filename === filename);
+  const i = session.costParseArtifacts.findIndex((a) =>
+    (documentId && a.documentId === documentId) || a.filename === filename,
+  );
   if (i >= 0) session.costParseArtifacts[i] = entry;
   else session.costParseArtifacts.push(entry);
 }
@@ -606,6 +612,7 @@ export async function buildTenderDocCandidates(
     candidates.push({
       documentIndex: doc.index,
       filename: doc.filename,
+      documentId: doc.documentId || undefined,
       score,
       downloadUrl: dl,
       platform: doc.platform,
@@ -1273,7 +1280,7 @@ function applyCostCandidateParseToSession(
   session.parsedCount += 1;
   if (parsed.kosztorys?.ok) {
     // COST-MULTI-02 — zachowaj snapshot per kandydat (nie tylko bestKosztorys / ONE).
-    recordCostParseArtifact(session, cand.filename, parsed.kosztorys);
+    recordCostParseArtifact(session, cand.filename, parsed.kosztorys, cand.documentId);
     if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery, {
       allowTotalValueFill: true,
     })) {
@@ -1308,7 +1315,7 @@ function applyMetadataCandidateParseToSession(
   });
 
   if (parsed.kosztorys?.ok) {
-    recordCostParseArtifact(session, cand.filename, parsed.kosztorys);
+    recordCostParseArtifact(session, cand.filename, parsed.kosztorys, cand.documentId);
     if (shouldReplaceBestKosztorys(session.bestKosztorys, parsed.kosztorys, cand.filename, session.costDiscovery)) {
       session.bestKosztorys = parsed.kosztorys;
       session.sourceDocumentIndex = parsed.sourceDocumentIndex;
