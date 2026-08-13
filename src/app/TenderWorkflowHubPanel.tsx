@@ -45,6 +45,7 @@ import {
   ExpertConversationSurface,
   InteligentnyKosztorysantBrand,
 } from "@/app/expert-conversation";
+import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
 
 export function TenderWorkflowHubPanel({
   item,
@@ -230,6 +231,10 @@ export function TenderWorkflowHubPanel({
           </p>
           {/* Presentation layer over Trace — D/Session gated via chiefDossierVm */}
           <ExpertConversationSurface vm={conversationVm} />
+          <OwnerRateInputCard
+            tenderId={item.id}
+            onAccepted={onPriceResearchAccepted}
+          />
           <ChiefDossierSurface
             vm={chiefDossierVm}
             expertWorkspaceVm={expertWorkspaceVm}

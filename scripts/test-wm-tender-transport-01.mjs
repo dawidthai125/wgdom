@@ -191,9 +191,26 @@ const EQUIPMENT_SRC = readFileSync(
 
 // ——— T15–T18 locked production files unchanged vs HEAD ———
 {
+  // GO-1 Equipment Bid may touch shadow/cutover — Transport MODEL-1B still NOT wired.
+  // Assert Transport identity remains absent in those files (content lock), not git-clean.
+  const shadowSrc = readFileSync(
+    join(ROOT, "src/lib/tender-position-cost/boq-shadow-adapter.ts"),
+    "utf8",
+  );
+  const cutoverSrc = readFileSync(
+    join(ROOT, "src/lib/tender-position-cost/bid-position-cost-cutover.ts"),
+    "utf8",
+  );
+  ok(
+    "T16 shadow no TRANSPORT_GAP / transportGapCount",
+    !/\bTRANSPORT_GAP\b/.test(shadowSrc) && !/\btransportGapCount\b/.test(shadowSrc),
+  );
+  ok(
+    "T16 cutover no TRANSPORT_GAP / transportGapCount",
+    !/\bTRANSPORT_GAP\b/.test(cutoverSrc) && !/\btransportGapCount\b/.test(cutoverSrc),
+  );
+
   const lockedClean = [
-    "src/lib/tender-position-cost/boq-shadow-adapter.ts",
-    "src/lib/tender-position-cost/bid-position-cost-cutover.ts",
     "src/lib/tender-position-cost/equipment-contract.ts",
     "src/lib/tender-offer-boq.ts",
     "src/lib/tender-offer-boq-pricing-engine.ts",

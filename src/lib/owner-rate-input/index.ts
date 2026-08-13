@@ -1,6 +1,6 @@
 /**
- * OWNER-INPUT-01 — tender-scoped Owner Rate Input (public barrel).
- * Cloud Sync OFF · no Bid providers · no F5 wire.
+ * OWNER-INPUT-01 + Bid bridge (GO-1 Equipment) — tender-scoped Owner Rate Input.
+ * Cloud Sync OFF · REAL SOURCE OUT.
  */
 
 export {
@@ -75,3 +75,19 @@ export {
   getOwnerRateQuestion,
   listOwnerInputsForTender,
 } from "./api";
+
+export {
+  normalizeOwnerRateUnit,
+  areOwnerRateUnitsCompatible,
+} from "./units";
+
+export {
+  findOwnerInputForLine,
+  ensureOwnerRateQuestionForGap,
+} from "./bridge";
+
+export type {
+  FindOwnerInputForLineArgs,
+  EnsureOwnerRateQuestionForGapInput,
+  EnsureOwnerRateQuestionForGapResult,
+} from "./bridge";

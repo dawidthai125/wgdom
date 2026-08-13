@@ -2,7 +2,8 @@
  * TENDER-BOQ-PRICING-REBUILD-01 FAZA 4 — OfferBoq → shadow Position Cost (PARALLEL).
  *
  * REUSE: OfferBoq line identity · F1 OUR RATE · F3 BOM · F2 Price Memory · F0 engine
- * ZERO Bid cutover · ZERO mutacji OfferBoq pricing · ZERO companyPricePln · ZERO HTTP/research
+ * ZERO Bid cutover · ZERO mutacji OfferBoq pricing · ZERO HTTP/research
+ * (no company catalog sell-price invent on this path)
  *
  * Wynik = osobny kontrakt shadow — nie nadpisuje linePricing ani pól Bid/Offer.
  */
@@ -33,6 +34,9 @@ import type {
   PositionCostResult,
   PositionMaterialInput,
 } from "@/lib/tender-position-cost/types";
+import type { EquipmentComponentResult } from "@/lib/tender-position-cost/equipment-contract";
+import { ensureOwnerRateQuestionForGap } from "@/lib/owner-rate-input";
+import { resolveEquipmentFromOwnerInput } from "@/lib/tender-position-cost/owner-input-equipment-provider";
 
 export const SHADOW_POSITION_COST_SCHEMA_VERSION = 1 as const;
 
@@ -43,6 +47,7 @@ export type ShadowWorkIdentityStatus =
   | "INVALID_UNIT"
   | "NOISE_SKIP"
   | "EQUIPMENT_GAP"
+  | "EQUIPMENT_RESOLVED"
   | "AUXILIARY_GAP";
 
 export type ShadowGapCode =
@@ -58,6 +63,7 @@ export type ShadowGapCode =
   | "PRZETERMINOWANA_CENA_MATERIALU"
   | "BRAK_KONWERSJI_JEDNOSTEK"
   | "EQUIPMENT_OUT_OF_SCOPE"
+  | "EQUIPMENT_OWNER_INPUT_INVALID"
   | "AUXILIARY_OUT_OF_SCOPE"
   | "POMINIETO_NOISE"
   | "NIEPRAWIDLOWA_ILOSC";
@@ -74,7 +80,8 @@ const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   BRAK_CENY_MATERIALU: "BRAK CENY MATERIAŁU",
   PRZETERMINOWANA_CENA_MATERIALU: "PRZETERMINOWANA CENA MATERIAŁU",
   BRAK_KONWERSJI_JEDNOSTEK: "BRAK KONWERSJI JEDNOSTEK",
-  EQUIPMENT_OUT_OF_SCOPE: "EQUIPMENT — OUT OF SCOPE (brak REAL SOURCE Bid)",
+  EQUIPMENT_OUT_OF_SCOPE: "EQUIPMENT — brak Owner Input (GAP)",
+  EQUIPMENT_OWNER_INPUT_INVALID: "EQUIPMENT — Owner Input INVALID (jednostka/stawka)",
   AUXILIARY_OUT_OF_SCOPE: "TRANSPORT / AUXILIARY — OUT OF SCOPE",
   POMINIETO_NOISE: "POZYCJA NOISE — POMINIĘTA",
   NIEPRAWIDLOWA_ILOSC: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
@@ -116,6 +123,8 @@ export type ShadowPositionCostLineResult = {
   /** Odczyt legacy (tylko raport Δ) — NIE używany w kalkulacji shadow. */
   legacyLineTotalPln: number | null;
   positionComplete: boolean;
+  /** GO-1 — Owner Input Equipment resolution (null when not Equipment / unresolved). */
+  equipment: EquipmentComponentResult | null;
 };
 
 export type ShadowBoqPositionCostResult = {
@@ -129,6 +138,8 @@ export type ShadowBoqPositionCostResult = {
     skippedNoiseCount: number;
     laborCostPln: number | null;
     materialCostPln: number | null;
+    /** SUM(resolved equipment totals) — 0 only when no Equipment lines resolved. */
+    equipmentCostPln: number;
     totalPositionCostPln: number | null;
   };
 };
@@ -323,6 +334,13 @@ export type ComputeShadowPositionCostForLineInput = {
   paintCoats?: 1 | 2 | null;
   packs?: readonly TechnologyPack[];
   targetMaterialUnit?: string | null;
+  /**
+   * GO-1 — tenderId for Owner Input Equipment resolution.
+   * Absent → Equipment stays EQUIPMENT_GAP (EQUIPMENT-01 contract).
+   */
+  tenderId?: string | null;
+  /** When true (default if tenderId set), ensure Owner Rate Question on Equipment GAP. */
+  ensureOwnerQuestions?: boolean;
 };
 
 /**
@@ -355,13 +373,81 @@ export function computeShadowPositionCostForOfferBoqLine(
         ? line.lineTotalPln
         : null,
     positionComplete: false,
+    equipment: null,
   };
 
-  if (
-    identity.status === "NOISE_SKIP" ||
-    identity.status === "EQUIPMENT_GAP" ||
-    identity.status === "AUXILIARY_GAP"
-  ) {
+  if (identity.status === "NOISE_SKIP" || identity.status === "AUXILIARY_GAP") {
+    base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+    return base;
+  }
+
+  // GO-1 — Equipment: Owner Input resolve (tender-scoped) · else GAP + ensure Q
+  if (identity.status === "EQUIPMENT_GAP") {
+    const tenderId = String(input.tenderId ?? "").trim();
+    if (!tenderId) {
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+
+    const namePl = String(line.description ?? "").trim() || "Sprzęt";
+    const qty =
+      typeof line.quantity === "number" && Number.isFinite(line.quantity)
+        ? line.quantity
+        : null;
+    const unit = String(line.unit ?? "").trim() || null;
+
+    if (
+      input.ensureOwnerQuestions !== false &&
+      qty != null &&
+      qty > 0 &&
+      unit
+    ) {
+      ensureOwnerRateQuestionForGap({
+        tenderId,
+        domain: "equipment",
+        lineRef: line.lineId,
+        evidenceSummaryPl: `Linia sprzętowa OfferBoq (${line.lp || line.lineId}): ${namePl} — brak stawki Owner Input.`,
+        askedByRole: "chief",
+        equipment: {
+          namePl,
+          quantity: qty,
+          unit,
+        },
+      });
+    }
+
+    const equipment = resolveEquipmentFromOwnerInput({
+      tenderId,
+      lineId: line.lineId,
+      namePl,
+      quantity: qty,
+      unit,
+    });
+    base.equipment = equipment;
+
+    if (equipment.rateStatus === "RESOLVED" && equipment.totalPln != null) {
+      // Clear EQUIPMENT_OUT_OF_SCOPE — resolved via owner_input
+      base.gaps = gaps.filter((g) => g !== "EQUIPMENT_OUT_OF_SCOPE");
+      base.identity = {
+        ...identity,
+        status: "EQUIPMENT_RESOLVED",
+        statusLabelPl: "EQUIPMENT — Owner Input RESOLVED",
+        gaps: base.gaps.slice(),
+      };
+      base.positionComplete = true;
+      base.gapLabelsPl = base.gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+
+    if (equipment.rateStatus === "INVALID") {
+      pushGap(gaps, "EQUIPMENT_OWNER_INPUT_INVALID");
+      base.gaps = gaps;
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+
+    // UNRESOLVED — keep EQUIPMENT_GAP
+    base.gaps = gaps;
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }
@@ -438,6 +524,8 @@ export type ComputeShadowBoqPositionCostsInput = {
   paintCoats?: 1 | 2 | null;
   packs?: readonly TechnologyPack[];
   targetMaterialUnit?: string | null;
+  tenderId?: string | null;
+  ensureOwnerQuestions?: boolean;
 };
 
 /**
@@ -454,6 +542,8 @@ export function computeShadowPositionCostsForOfferBoq(
       paintCoats: input.paintCoats,
       packs: input.packs,
       targetMaterialUnit: input.targetMaterialUnit,
+      tenderId: input.tenderId,
+      ensureOwnerQuestions: input.ensureOwnerQuestions,
     }),
   );
 
@@ -463,12 +553,23 @@ export function computeShadowPositionCostsForOfferBoq(
   let laborSum = 0;
   let materialSum = 0;
   let totalSum = 0;
+  let equipmentSum = 0;
   let allCompleteForAgg = true;
   let anyCost = false;
 
   for (const row of lines) {
     if (row.identity.status === "NOISE_SKIP") {
       skippedNoiseCount += 1;
+      continue;
+    }
+    if (
+      row.identity.status === "EQUIPMENT_RESOLVED" &&
+      row.equipment?.rateStatus === "RESOLVED" &&
+      row.equipment.totalPln != null
+    ) {
+      completeLineCount += 1;
+      equipmentSum += row.equipment.totalPln;
+      anyCost = true;
       continue;
     }
     if (row.positionComplete && row.position) {
@@ -491,6 +592,14 @@ export function computeShadowPositionCostsForOfferBoq(
   }
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
+  const equipmentCostPln = round2(equipmentSum);
+  const laborMatTotal =
+    allCompleteForAgg && completeLineCount > 0 ? round2(totalSum) : null;
+  // Include equipment in total when all billable lines complete.
+  const totalPositionCostPln =
+    allCompleteForAgg && completeLineCount > 0
+      ? round2((laborMatTotal ?? 0) + equipmentCostPln)
+      : null;
 
   return {
     schemaVersion: SHADOW_POSITION_COST_SCHEMA_VERSION,
@@ -504,8 +613,8 @@ export function computeShadowPositionCostsForOfferBoq(
       laborCostPln: anyCost && allCompleteForAgg ? round2(laborSum) : anyCost ? round2(laborSum) : null,
       materialCostPln:
         anyCost && allCompleteForAgg ? round2(materialSum) : anyCost ? round2(materialSum) : null,
-      totalPositionCostPln:
-        allCompleteForAgg && completeLineCount > 0 ? round2(totalSum) : null,
+      equipmentCostPln,
+      totalPositionCostPln,
     },
   };
 }

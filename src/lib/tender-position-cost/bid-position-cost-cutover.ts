@@ -63,6 +63,9 @@ export type PositionCostCutoverOpts = {
   paintCoats?: 1 | 2 | null;
   packs?: readonly TechnologyPack[];
   targetMaterialUnit?: string | null;
+  /** GO-1 — override; default = OfferBoqDocument.tenderId */
+  tenderId?: string | null;
+  ensureOwnerQuestions?: boolean;
 };
 
 export type LegacyVsPositionCostBidCompare = {
@@ -135,7 +138,24 @@ export function evaluateBidCutoverGate(
       gapLineCount += 1;
       collectLineGaps(line, gapCodes);
       reasonsPl.push(
-        `Linia ${line.lp || line.lineId}: EQUIPMENT — OUT OF SCOPE (brak REAL SOURCE Bid)`,
+        `Linia ${line.lp || line.lineId}: EQUIPMENT — brak Owner Input (GAP)`,
+      );
+      continue;
+    }
+    if (line.identity.status === "EQUIPMENT_RESOLVED") {
+      if (
+        line.positionComplete &&
+        line.equipment?.rateStatus === "RESOLVED" &&
+        line.equipment.totalPln != null
+      ) {
+        completeLineCount += 1;
+        continue;
+      }
+      equipmentGapCount += 1;
+      gapLineCount += 1;
+      collectLineGaps(line, gapCodes);
+      reasonsPl.push(
+        `Linia ${line.lp || line.lineId}: EQUIPMENT — Owner Input niekompletny`,
       );
       continue;
     }
@@ -191,7 +211,8 @@ export function evaluateBidCutoverGate(
 }
 
 /**
- * equipment/transport/auxiliary = 0 (C-AUX-1).
+ * equipmentPln = SUM(resolved Owner Input equipment) · transport/auxiliary = 0 (GO-1).
+ * GO-2 will wire transportPln separately.
  */
 export function buildOfferBoqDirectFromPositionCost(
   shadow: ShadowBoqPositionCostResult,
@@ -200,28 +221,39 @@ export function buildOfferBoqDirectFromPositionCost(
   if (!gate.pass) return null;
   const materialsPln = shadow.aggregates.materialCostPln ?? 0;
   const laborPln = shadow.aggregates.laborCostPln ?? 0;
-  const directPln = shadow.aggregates.totalPositionCostPln;
-  if (directPln == null || !(directPln > 0)) return null;
+  const equipmentPln = roundPln(shadow.aggregates.equipmentCostPln ?? 0);
+  const transportPln = 0;
+  const auxiliaryPln = 0;
+  const directPln = roundPln(materialsPln + laborPln + equipmentPln + transportPln + auxiliaryPln);
+  if (!(directPln > 0)) return null;
+
+  const hasOwnerEquipment = equipmentPln > 0;
+  const sourceLabelPl = hasOwnerEquipment
+    ? "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL + Owner Input Equipment (F5 cutover)"
+    : "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL (F5 cutover)";
 
   return {
-    directPln: roundPln(directPln),
+    directPln,
     materialsPln: roundPln(materialsPln),
     laborPln: roundPln(laborPln),
-    equipmentPln: 0,
-    transportPln: 0,
-    auxiliaryPln: 0,
+    equipmentPln,
+    transportPln,
+    auxiliaryPln,
     componentCount: gate.billableLineCount,
     pricedComponentCount: gate.completeLineCount,
     averageConfidence: "high",
     companyKnowledgeHitCount: 0,
-    sourceLabelPl:
-      "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL (F5 cutover)",
+    sourceLabelPl,
   };
 }
 
 export function computePositionCostShadowAndGate(
-  opts: PositionCostCutoverOpts & { doc: Pick<OfferBoqDocument, "lines"> },
+  opts: PositionCostCutoverOpts & { doc: Pick<OfferBoqDocument, "lines" | "tenderId"> },
 ): { shadow: ShadowBoqPositionCostResult; gate: BidCutoverGateResult } {
+  const tenderId =
+    String(opts.tenderId ?? "").trim() ||
+    String((opts.doc as { tenderId?: string }).tenderId ?? "").trim() ||
+    null;
   const shadow = computeShadowPositionCostsForOfferBoq({
     doc: opts.doc,
     store: opts.store,
@@ -229,12 +261,14 @@ export function computePositionCostShadowAndGate(
     paintCoats: opts.paintCoats,
     packs: opts.packs,
     targetMaterialUnit: opts.targetMaterialUnit,
+    tenderId,
+    ensureOwnerQuestions: opts.ensureOwnerQuestions,
   });
   return { shadow, gate: evaluateBidCutoverGate(shadow) };
 }
 
 export function buildPositionCostBidDirect(
-  opts: PositionCostCutoverOpts & { doc: Pick<OfferBoqDocument, "lines"> },
+  opts: PositionCostCutoverOpts & { doc: Pick<OfferBoqDocument, "lines" | "tenderId"> },
 ): PositionCostBidDirectBuild {
   const { shadow, gate } = computePositionCostShadowAndGate(opts);
   const directInput = buildOfferBoqDirectFromPositionCost(shadow, gate);

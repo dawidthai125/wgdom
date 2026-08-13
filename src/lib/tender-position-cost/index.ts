@@ -74,6 +74,13 @@ export {
   createUnresolvedEquipmentPriceProvider,
 } from "@/lib/tender-position-cost/equipment-contract";
 
+export type { OwnerInputEquipmentProviderOpts } from "@/lib/tender-position-cost/owner-input-equipment-provider";
+
+export {
+  createOwnerInputEquipmentPriceProvider,
+  resolveEquipmentFromOwnerInput,
+} from "@/lib/tender-position-cost/owner-input-equipment-provider";
+
 export type {
   TransportComponentResult,
   TransportPriceConfidence,
