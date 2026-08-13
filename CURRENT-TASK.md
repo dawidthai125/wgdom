@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**MULTI-BOQ-01 CLOSED** · tip UI **2.66.43** / **`669d287`** · feature **`669d2872`** · PV GREEN · dwelling-scoped multi-BOQ) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/MULTI-BOQ-01-CLOSEOUT.md`](docs/architecture/MULTI-BOQ-01-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER TEST** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**INGEST-01 CLOSED** · tip UI **2.66.43** / **`d1b2e7c`** · feature **`d1b2e7ca`** · deploy **`5889699457`** · PV GREEN · lossless Owner ingest) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/INGEST-01-CLOSEOUT.md`](docs/architecture/INGEST-01-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · FULL BIP **NOT VERIFIED** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -13,23 +13,34 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`669d287`** · **PRODUCTION VERIFIED** · **MULTI-BOQ-01 CLOSED** · prior MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
-| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (MULTI-BOQ content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
-| CLOSED (ostatnie) | **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · … |
-| **DO NOT** | invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 · claim LIVE REAL TENDER TEST done |
-| **NEXT** | **LIVE REAL TENDER TEST** — docs COMMIT+PUSH first · potem real tender (1 tender → N mieszkań → multi-BOQ → Bid) · REAL SOURCE tylko Owner GO · **NIE** auto |
-| **Known Residuals** | LIVE REAL TENDER TEST **NOT RUN** · prior real tender ingest **BLOCKED** · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| Production tip | **2.66.43** / **`d1b2e7c`** · deploy **`5889699457`** · **PRODUCTION VERIFIED** · **INGEST-01 CLOSED** · prior MULTI-BOQ-01 / MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (INGEST content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
+| CLOSED (ostatnie) | **INGEST-01** · **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · COST-MULTI · … |
+| **DO NOT** | invent PLN · missing→0 · claim FULL BIP / LIVE REAL TENDER complete · invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 |
+| **NEXT** | **LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** — docs COMMIT+PUSH first · potem full package → Owner dwellings → map → parse → Multi-BOQ → gaps → F5 → PackageGate → Bid · **NIE** auto |
+| **Known Residuals** | FULL BIP **NOT VERIFIED** · live costing/F5/PackageGate/Bid **NOT RUN** · expected dwelling count **UNKNOWN** · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ INGEST-01 — Lossless Owner tender ingest — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`d1b2e7c`** · feature **`d1b2e7ca`** (`d1b2e7ca82149b9db7e78cd69712b5615901e5cf`) · deploy **`5889699457`** success |
+| **IN** | Owner/fixture pin → registry `documentId`+`contentHash` → ZIP children → lossless N→N · artifact `documentId` → Multi-BOQ pool · harness **17/0** · LOCAL Połczyn **54/54** |
+| **OUT** | Cloud / DATA_KEYS · new Bid/F5/PackageGate/OfferBoq schema · silent top-N Owner · invent dwellings/PLN · FULL BIP claim |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/INGEST-01-CLOSEOUT.md) · [`PV`](docs/architecture/INGEST-01-PRODUCTION-VERIFY.md) |
+| **Payroll** | B4 **13/0** prior · `PayrollView.tsx` **nie** w release |
+| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER RETEST — POŁCZYN** |
 
 ## ★ MULTI-BOQ-01 — Dwelling-scoped multi-BOQ — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`669d287`** · feature **`669d2872`** (`669d2872117f5724e756d19e9f4aedfea34cb48d`) |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`669d2872`** · tip supersedowany przez INGEST-01 |
 | **IN** | Owner map → `resolveDwellingCostSnapshotForPricing` → `composeDwellingOfferBoq` → OfferBoq v5 + `lineProvenance` → `attachComposedBoqToDwelling` → F5_D → PackageGate → SUM → Bid · harness **50/0** |
 | **OUT** | Cloud Sync · DATA_KEYS · schema bump · second Bid · BEST_SINGLE as dwelling BOQ · invent 0 PLN · F0–F6 redesign · Equipment/Transport contract change |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/MULTI-BOQ-01-CLOSEOUT.md) · [`PV`](docs/architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md) |
 | **Payroll** | B4 **13/0** @ PV · battery **NOT RUN** @ MULTI-BOQ PV · `PayrollView.tsx` **nie** w release |
-| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER TEST** |
+| **NEXT** | superseded tip by INGEST-01 · LIVE REAL TENDER RETEST |
 
 ## ★ MULTI-DWELLING-01 — Package costing — **CLOSED**
 
