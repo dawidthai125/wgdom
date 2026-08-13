@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**OWNER-INPUT-BID GO-1 CLOSED** · tip UI **2.66.43** / **`83d2ccb`** · feature **`83d2ccb5`** · PV GREEN · Equipment Owner Input E2E · epic **NOT fully closed**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md) · **WAITING FOR NEXT OWNER GO** · **NIE** auto GO-2 / MODEL-1B / REAL SOURCE · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**OWNER-INPUT-BID MODEL-1B CLOSED** · tip UI **2.66.43** / **`f9324eb`** · feature **`f9324eb6`** · PV GREEN · Transport Bid Candidate + Owner Input E2E · epic **NOT fully closed**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -9,28 +9,40 @@
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ SESSION STATUS — **CLOSED** · **WAITING FOR NEXT OWNER GO**
+## ★ SESSION STATUS — **CLOSED** · **WAITING FOR OWNER GO (docs commit)**
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`83d2ccb`** · **PRODUCTION VERIFIED** · **OWNER-INPUT-BID GO-1 CLOSED** · prior OWNER-INPUT-01 / TRANSPORT-01 MODEL-1A / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · CLOUD-SYNC batch-set recovery **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
-| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (GO-1 slice CLOSED · epic OWNER-INPUT-BID **NOT** fully closed) |
-| CLOSED (ostatnie) | **OWNER-INPUT-BID GO-1** · OWNER-INPUT-01 · TRANSPORT-01 MODEL-1A · EQUIPMENT-01 · CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · C-MODE-1a · TENDER-BOQ F0–F6 · INTELIGENTNY-KOSZTORYSANT-UX · TM-01 S0–S9 · … (pełna lista historyczna poniżej) |
-| **DO NOT** | invent Transport **MODEL-1B** / GO-2 · auto REAL SOURCE/LEGAL · reopen F0–F6/C-MODE · PayrollView WIP · WM-DRUK-OST-03 · invent S10 |
-| **NEXT** | **UTRZYMANIE** — **GO-2 Transport Owner Input / MODEL-1B** / REAL SOURCE — **tylko Owner GO** · **NIE** auto |
-| **Known Residuals** | Epic OWNER-INPUT-BID **NOT fully closed** · Transport MODEL-1B **NOT STARTED** · Equipment REAL SOURCE **NOT IMPLEMENTED** · fat-key `kw-tenders-pipeline` · C1–C6 · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| Production tip | **2.66.43** / **`f9324eb`** · **PRODUCTION VERIFIED** · **OWNER-INPUT-BID MODEL-1B CLOSED** · prior GO-1 / OWNER-INPUT-01 / TRANSPORT-01 MODEL-1A / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (MODEL-1B content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
+| CLOSED (ostatnie) | **OWNER-INPUT-BID MODEL-1B** · GO-1 · OWNER-INPUT-01 · TRANSPORT-01 MODEL-1A · EQUIPMENT-01 · … |
+| **DO NOT** | invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 |
+| **NEXT** | **UTRZYMANIE** — docs COMMIT+PUSH · potem residual **REAL SOURCE** — **tylko Owner GO** · **NIE** auto |
+| **Known Residuals** | Epic OWNER-INPUT-BID **NOT fully closed** · REAL SOURCE **NOT IMPLEMENTED** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ OWNER-INPUT-BID MODEL-1B — Transport Bid Candidate E2E — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`f9324eb`** · feature **`f9324eb6`** · GH **`5883644658`** |
+| **IN** | Mark store A1 · `owner_input_transport` · shadow TRANSPORT_* · F5 `transportGapCount`/`transportPln` · Hub mark/unmark · REUSE OI · harness 64 |
+| **OUT** | auto-identity · REAL SOURCE · Cloud Sync · OfferBoq Transport kind · fallbacks 0/85/ATH/catalog/companyPrice/Expert |
+| **Epic** | OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01 · **NOT fully closed** (REAL SOURCE residual) |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md) · [`PV`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-PRODUCTION-VERIFY.md) |
+| **Payroll** | B4 **13/13** · battery **16/16 scripts** · `PayrollView.tsx` **nie** w release |
+| **NEXT** | Owner GO docs COMMIT+PUSH · potem REAL SOURCE tylko na GO |
 
 ## ★ OWNER-INPUT-BID GO-1 — Equipment Owner Input E2E — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`83d2ccb`** · feature **`83d2ccb5`** · Vercel **`dpl_8QQsQ6oPEVUREeCuVTTi7YVdvbiB`** · GH **`5882767405`** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`83d2ccb5`** · tip deploy supersedowany przez MODEL-1B |
 | **IN** | Bridge + units · `OwnerInputEquipmentProvider` · shadow GAP/RESOLVED · F5 `equipmentPln` · Hub `OwnerRateInputCard` · REUSE `kw-owner-rate-input-v1` · harness 62 |
-| **OUT** | Transport MODEL-1B · `TRANSPORT_GAP` · Cloud Sync OI · REAL SOURCE · fallbacks 0/85/45/ATH/catalog/companyPrice/PI31/Expert |
-| **Epic** | OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01 · **NOT fully closed** (GO-2 remains) |
+| **OUT** | (Transport wiring **done in MODEL-1B**) · Cloud Sync OI · REAL SOURCE · fallbacks |
+| **Epic** | OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01 · **NOT fully closed** |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md) · [`PV`](docs/architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-PRODUCTION-VERIFY.md) |
 | **Payroll** | B4 **13/13** · battery **16/16 scripts** · `PayrollView.tsx` **nie** w release |
-| **NEXT** | **WAITING FOR OWNER GO** · GO-2 / MODEL-1B · **NIE** auto |
+| **NEXT** | superseded by MODEL-1B for tip · residual REAL SOURCE |
 
 ## ★ OWNER-INPUT-01 — **CLOSED**
 
@@ -38,7 +50,7 @@
 |---------|---------|
 | **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`3642de23`** · tip deploy supersedowany przez GO-1 |
 | **IN** | `kw-owner-rate-input-v1` · append-only events · tender-scoped · noise/utyl gates · harness 115 |
-| **OUT** | Cloud Sync · REAL SOURCE · MODEL-1B · (UI/provider/F5 **done in GO-1**) |
+| **OUT** | Cloud Sync · REAL SOURCE · (UI/provider/F5 **done in GO-1/MODEL-1B**) |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/OWNER-INPUT-01-CLOSEOUT.md) · [`PV`](docs/architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md) |
 | **Payroll** | B4 **13/13** · battery **16/16 scripts** · `PayrollView.tsx` **nie** w release |
 | **NEXT** | superseded by GO-1 · residual GO-2 |
@@ -49,10 +61,10 @@
 |---------|---------|
 | **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`a41854c3`** · tip deploy supersedowany przez GO-1 |
 | **IN** | `transport-contract.ts` · Unresolved provider · re-export · harness 75 |
-| **OUT** | MODEL-1B · `TRANSPORT_GAP` · `transportGapCount` · shadow/F5 · OfferBoq Transport kind · pricing · REAL SOURCE · Legal |
+| **OUT** | (MODEL-1B wires shadow/F5 via explicit mark) · OfferBoq Transport kind · REAL SOURCE · Legal |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/TRANSPORT-01-CLOSEOUT.md) · [`PV`](docs/architecture/TRANSPORT-01-PRODUCTION-VERIFY.md) |
 | **Payroll** | 16/16 scripts PASS · `PayrollView.tsx` **nie** w release |
-| **NEXT** | MODEL-1B **NOT STARTED** · **NIE** auto |
+| **NEXT** | MODEL-1B **CLOSED** · tip `f9324eb6` |
 
 ## ★ EQUIPMENT-01 — CONTRACT-ONLY — **CLOSED**
 

@@ -128,12 +128,11 @@ ONLY source = Owner Input
 | Item | Status |
 |------|--------|
 | TRANSPORT-01 MODEL-1A | **CLOSED** |
-| MODEL-1B | **NOT STARTED** |
-| `TRANSPORT_GAP` / `transportGapCount` | **ABSENT** |
-| `transport-bid-identity.ts` | **ABSENT** |
-| Transport provider / shadow / F5 wiring | **ABSENT** |
+| MODEL-1B | **CLOSED** · see [`MODEL-1B-CLOSEOUT`](./OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md) |
+| `TRANSPORT_GAP` / `transportGapCount` | **PRESENT** (MODEL-1B · explicit mark only) |
+| Transport provider / shadow / F5 wiring | **PRESENT** (Owner Input only) |
 | `OfferBoqLineKind.Transport` | **ABSENT** |
-| `transportPln` resolution | **NOT** (cutover still 0) |
+| `transportPln` resolution | **Owner Input SUM** (MODEL-1B) |
 
 ---
 
@@ -154,7 +153,7 @@ ONLY source = Owner Input
 | `scripts/test-wm-tender-transport-01.mjs` | harness content-lock only |
 
 **Feature SHA:** `83d2ccb5cb074507ec1d11e470216dd644e789d7`
-**Exclude:** `PayrollView.tsx` · Cloud Sync · Edge · OfferBoq schema · Transport MODEL-1B · REAL SOURCE
+**Exclude:** `PayrollView.tsx` · Cloud Sync · Edge · OfferBoq schema · REAL SOURCE
 
 ---
 
@@ -179,15 +178,16 @@ ONLY source = Owner Input
 
 ## 9. Residual / NEXT (tylko Owner GO)
 
-1. **GO-2** — Transport identity MODEL-1B (explicit `bid_candidate` mark) + Transport Owner Input resolution + `transportGapCount` / `transportPln`
+1. **MODEL-1B** — **CLOSED** · tip `f9324eb6` · [`MODEL-1B-CLOSEOUT`](./OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md)
 2. **REAL SOURCE** — OUT until osobny epic
 3. **Cloud Sync OI** — FORBIDDEN until Owner GO
 
-**NIE** auto-start GO-2 / MODEL-1B.
+**NIE** auto-start REAL SOURCE / Cloud Sync OI.
 
 ---
 
 ## 10. Verdict
 
 **GO-1 CLOSED · PRODUCTION VERIFIED · GREEN**
-**Epic OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01 — NOT fully closed**
+**MODEL-1B CLOSED · PRODUCTION VERIFIED · GREEN** (supersedes Transport residual of GO-1)
+**Epic OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01 — NOT fully closed** (REAL SOURCE residual)
