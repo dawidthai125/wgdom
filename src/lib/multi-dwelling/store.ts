@@ -63,6 +63,8 @@ function normalizePackage(raw: unknown): TenderPackage | null {
           .map((id) => String(id ?? "").trim())
           .filter(Boolean),
         offerBoq: u.offerBoq ?? null,
+        costSnapshot: u.costSnapshot ?? null,
+        lineProvenance: u.lineProvenance ?? null,
         costMulti: u.costMulti ?? null,
         f5Gate: u.f5Gate ?? null,
         subtotals: u.subtotals ?? null,
@@ -252,18 +254,33 @@ export function mapDocumentToDwelling(opts: {
     return { ok: false, reason: "DWELLING_NOT_FOUND" };
   }
   // Remap: remove document from any previous dwelling source lists.
+  // DF-MB-01 rebind → invalidate costing for affected dwellings.
+  const prevDwelling = pkg.documentToDwelling?.[documentId];
+  const affected = new Set<string>([dwellingId]);
+  if (prevDwelling) affected.add(normalizeDwellingId(prevDwelling));
+
   pkg.dwellings = pkg.dwellings.map((d) => {
     const did = normalizeDwellingId(d.dwellingId);
     const nextIds = (d.sourceDocumentIds ?? []).filter((id) => id !== documentId);
+    let next = d;
     if (did === dwellingId) {
       const ids = new Set(nextIds);
       ids.add(documentId);
-      return { ...d, sourceDocumentIds: [...ids] };
+      next = { ...d, sourceDocumentIds: [...ids] };
+    } else if (nextIds.length !== (d.sourceDocumentIds ?? []).length) {
+      next = { ...d, sourceDocumentIds: nextIds };
     }
-    if (nextIds.length !== (d.sourceDocumentIds ?? []).length) {
-      return { ...d, sourceDocumentIds: nextIds };
+    if (affected.has(did)) {
+      next = {
+        ...next,
+        offerBoq: null,
+        f5Gate: null,
+        subtotals: null,
+        costSnapshot: null,
+        lineProvenance: null,
+      };
     }
-    return d;
+    return next;
   });
   pkg.documentToDwelling = { ...pkg.documentToDwelling, [documentId]: dwellingId };
   const saved = upsertTenderPackage(pkg);

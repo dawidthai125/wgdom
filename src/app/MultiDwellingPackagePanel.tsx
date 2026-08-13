@@ -4,7 +4,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  attachOfferBoqToDwelling,
   confirmDwelling,
   enableMultiDwellingMode,
   evaluateTenderPackage,
@@ -12,13 +11,11 @@ import {
   hintDwellingCountFromDocumentIds,
   mapDocumentToDwelling,
   setExpectedDwellingCount,
-  stampDwellingLineIdsOnOfferBoq,
   type TenderPackage,
 } from "@/lib/multi-dwelling";
-import { buildOfferBoqFromSnapshot } from "@/lib/tender-offer-boq";
+import { attachComposedBoqToDwelling } from "@/lib/multi-boq";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { normalizeWorkCatalogStore } from "@/lib/work-catalog";
-import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 
 function formatPln(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -321,33 +318,30 @@ export function MultiDwellingPackagePanel({
             className="text-xs px-2 py-1.5 rounded border border-border hover:bg-secondary/40"
             data-multi-dwelling-attach-boq
             onClick={() => {
-              const snap = resolveKosztorysSnapshotForPricing(item);
-              const baseDoc = buildOfferBoqFromSnapshot({
-                tenderId,
-                snapshot: snap,
-              });
-              if (!(baseDoc.lines?.length > 0)) {
-                setMsg("Brak OfferBoq do przypisania (snapshot pusty) — MISSING ≠ 0.");
-                return;
-              }
-              const multiDoc = stampDwellingLineIdsOnOfferBoq(
-                baseDoc,
-                selectedDwellingId,
-              );
-              const r = attachOfferBoqToDwelling({
+              // MULTI-BOQ-01: dwelling-scoped artifacts → compose → attach.
+              // FORBIDDEN: tender-level resolveKosztorysSnapshotForPricing as BOQ source.
+              const r = attachComposedBoqToDwelling({
                 tenderId,
                 dwellingId: selectedDwellingId,
-                offerBoq: multiDoc,
+                item,
               });
               if (!r.ok) {
-                setMsg(`Attach BOQ FAIL: ${r.reason}`);
+                setMsg(
+                  `Attach BOQ FAIL: ${r.reason}` +
+                    (r.snapshot
+                      ? ` [${r.snapshot.completeness}] ${r.snapshot.warnings.slice(0, 2).join("; ")}`
+                      : ""),
+                );
                 return;
               }
-              setMsg(`Przypisano OfferBoq do ${selectedDwellingId}`);
+              setMsg(
+                `Przypisano OfferBoq do ${selectedDwellingId} ` +
+                  `(${r.snapshot.sourceDocumentIds.length} dok., ${r.snapshot.lines.length} poz.)`,
+              );
               refresh();
             }}
           >
-            Przypisz bieżący przedmiar do mieszkania
+            Przypisz przedmiary mieszkania (MULTI-BOQ)
           </button>
           <button
             type="button"

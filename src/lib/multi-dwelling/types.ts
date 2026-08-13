@@ -5,6 +5,10 @@
 import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
 import type { BidCutoverGateResult } from "@/lib/tender-position-cost/bid-position-cost-cutover";
 import { MULTI_DWELLING_PACKAGE_SCHEMA_VERSION } from "@/lib/multi-dwelling/constants";
+import type {
+  DwellingCostSnapshot,
+  DwellingLineProvenance,
+} from "@/lib/multi-boq/types";
 
 export type TenderPackageMode = "legacy_single" | "multi";
 
@@ -35,6 +39,10 @@ export type DwellingCostUnit = {
   sourceDocumentIds: string[];
   /** null until Owner maps documents and BOQ is attached. */
   offerBoq: OfferBoqDocument | null;
+  /** MULTI-BOQ-01 — canonical dwelling snapshot (not tender dossier.kosztorys). */
+  costSnapshot?: DwellingCostSnapshot | null;
+  /** MULTI-BOQ-01 — provenance side-map keyed by OfferBoq lineId (schema v5 untouched). */
+  lineProvenance?: Record<string, DwellingLineProvenance> | null;
   costMulti?: DwellingCostMultiRef | null;
   f5Gate: BidCutoverGateResult | null;
   subtotals: DwellingSubtotals | null;
