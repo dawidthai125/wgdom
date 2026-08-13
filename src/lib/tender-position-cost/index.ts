@@ -81,6 +81,38 @@ export {
   resolveEquipmentFromOwnerInput,
 } from "@/lib/tender-position-cost/owner-input-equipment-provider";
 
+export type { OwnerInputTransportProviderOpts } from "@/lib/tender-position-cost/owner-input-transport-provider";
+
+export {
+  createOwnerInputTransportPriceProvider,
+  resolveTransportFromOwnerInput,
+} from "@/lib/tender-position-cost/owner-input-transport-provider";
+
+export type {
+  MarkTransportBidCandidateFailureReason,
+  MarkTransportBidCandidateInput,
+  MarkTransportBidCandidateResult,
+  TransportBidCandidateGuard,
+  TransportBidCandidateMarkedByRole,
+  TransportBidCandidateRecord,
+  TransportBidCandidateStore,
+  UnmarkTransportBidCandidateInput,
+  UnmarkTransportBidCandidateResult,
+} from "@/lib/tender-position-cost/transport-bid-candidate";
+
+export {
+  TRANSPORT_BID_CANDIDATE_LS_KEY,
+  TRANSPORT_BID_CANDIDATE_SCHEMA_VERSION,
+  clearTransportBidCandidateStore,
+  emptyTransportBidCandidateStore,
+  isTransportBidCandidate,
+  isTransportUtylizacjaLine,
+  listTransportBidCandidates,
+  loadTransportBidCandidateStore,
+  markTransportBidCandidate,
+  unmarkTransportBidCandidate,
+} from "@/lib/tender-position-cost/transport-bid-candidate";
+
 export type {
   TransportComponentResult,
   TransportPriceConfidence,

@@ -35,8 +35,14 @@ import type {
   PositionMaterialInput,
 } from "@/lib/tender-position-cost/types";
 import type { EquipmentComponentResult } from "@/lib/tender-position-cost/equipment-contract";
+import type { TransportComponentResult } from "@/lib/tender-position-cost/transport-contract";
 import { ensureOwnerRateQuestionForGap } from "@/lib/owner-rate-input";
 import { resolveEquipmentFromOwnerInput } from "@/lib/tender-position-cost/owner-input-equipment-provider";
+import { resolveTransportFromOwnerInput } from "@/lib/tender-position-cost/owner-input-transport-provider";
+import {
+  isTransportBidCandidate,
+  isTransportUtylizacjaLine,
+} from "@/lib/tender-position-cost/transport-bid-candidate";
 
 export const SHADOW_POSITION_COST_SCHEMA_VERSION = 1 as const;
 
@@ -48,6 +54,8 @@ export type ShadowWorkIdentityStatus =
   | "NOISE_SKIP"
   | "EQUIPMENT_GAP"
   | "EQUIPMENT_RESOLVED"
+  | "TRANSPORT_GAP"
+  | "TRANSPORT_RESOLVED"
   | "AUXILIARY_GAP";
 
 export type ShadowGapCode =
@@ -64,6 +72,8 @@ export type ShadowGapCode =
   | "BRAK_KONWERSJI_JEDNOSTEK"
   | "EQUIPMENT_OUT_OF_SCOPE"
   | "EQUIPMENT_OWNER_INPUT_INVALID"
+  | "TRANSPORT_OUT_OF_SCOPE"
+  | "TRANSPORT_OWNER_INPUT_INVALID"
   | "AUXILIARY_OUT_OF_SCOPE"
   | "POMINIETO_NOISE"
   | "NIEPRAWIDLOWA_ILOSC";
@@ -82,6 +92,8 @@ const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   BRAK_KONWERSJI_JEDNOSTEK: "BRAK KONWERSJI JEDNOSTEK",
   EQUIPMENT_OUT_OF_SCOPE: "EQUIPMENT — brak Owner Input (GAP)",
   EQUIPMENT_OWNER_INPUT_INVALID: "EQUIPMENT — Owner Input INVALID (jednostka/stawka)",
+  TRANSPORT_OUT_OF_SCOPE: "TRANSPORT — brak Owner Input (GAP)",
+  TRANSPORT_OWNER_INPUT_INVALID: "TRANSPORT — Owner Input INVALID (jednostka/stawka)",
   AUXILIARY_OUT_OF_SCOPE: "TRANSPORT / AUXILIARY — OUT OF SCOPE",
   POMINIETO_NOISE: "POZYCJA NOISE — POMINIĘTA",
   NIEPRAWIDLOWA_ILOSC: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
@@ -125,6 +137,8 @@ export type ShadowPositionCostLineResult = {
   positionComplete: boolean;
   /** GO-1 — Owner Input Equipment resolution (null when not Equipment / unresolved). */
   equipment: EquipmentComponentResult | null;
+  /** MODEL-1B — Owner Input Transport (null when not bid_candidate / unresolved). */
+  transport: TransportComponentResult | null;
 };
 
 export type ShadowBoqPositionCostResult = {
@@ -140,6 +154,8 @@ export type ShadowBoqPositionCostResult = {
     materialCostPln: number | null;
     /** SUM(resolved equipment totals) — 0 only when no Equipment lines resolved. */
     equipmentCostPln: number;
+    /** SUM(resolved transport totals) — 0 when no Bid Transport resolved. */
+    transportCostPln: number;
     totalPositionCostPln: number | null;
   };
 };
@@ -335,11 +351,11 @@ export type ComputeShadowPositionCostForLineInput = {
   packs?: readonly TechnologyPack[];
   targetMaterialUnit?: string | null;
   /**
-   * GO-1 — tenderId for Owner Input Equipment resolution.
-   * Absent → Equipment stays EQUIPMENT_GAP (EQUIPMENT-01 contract).
+   * GO-1 / MODEL-1B — tenderId for Owner Input Equipment / Transport resolution.
+   * Absent → Equipment stays EQUIPMENT_GAP; Transport mark ignored without tenderId.
    */
   tenderId?: string | null;
-  /** When true (default if tenderId set), ensure Owner Rate Question on Equipment GAP. */
+  /** When true (default if tenderId set), ensure Owner Rate Question on Equipment/Transport GAP. */
   ensureOwnerQuestions?: boolean;
 };
 
@@ -374,14 +390,16 @@ export function computeShadowPositionCostForOfferBoqLine(
         : null,
     positionComplete: false,
     equipment: null,
+    transport: null,
   };
 
-  if (identity.status === "NOISE_SKIP" || identity.status === "AUXILIARY_GAP") {
+  // 1) Noise — NEVER Owner Question / Bid Transport
+  if (identity.status === "NOISE_SKIP") {
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }
 
-  // GO-1 — Equipment: Owner Input resolve (tender-scoped) · else GAP + ensure Q
+  // 2) GO-1 — Equipment: Owner Input resolve (tender-scoped) · else GAP + ensure Q
   if (identity.status === "EQUIPMENT_GAP") {
     const tenderId = String(input.tenderId ?? "").trim();
     if (!tenderId) {
@@ -448,6 +466,100 @@ export function computeShadowPositionCostForOfferBoqLine(
 
     // UNRESOLVED — keep EQUIPMENT_GAP
     base.gaps = gaps;
+    base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+    return base;
+  }
+
+  // 3) MODEL-1B — explicit bid_candidate only (never description / noise / CI)
+  //    Utylizacja category → skip Bid Transport (fall through / AUX semantics).
+  {
+    const tenderId = String(input.tenderId ?? "").trim();
+    if (
+      tenderId &&
+      isTransportBidCandidate(tenderId, line.lineId) &&
+      !isTransportUtylizacjaLine(line)
+    ) {
+      const namePl = String(line.description ?? "").trim() || "Transport";
+      const qty =
+        typeof line.quantity === "number" && Number.isFinite(line.quantity)
+          ? line.quantity
+          : null;
+      const unit = String(line.unit ?? "").trim() || null;
+
+      pushGap(gaps, "TRANSPORT_OUT_OF_SCOPE");
+      base.identity = {
+        status: "TRANSPORT_GAP",
+        statusLabelPl: GAP_LABEL_PL.TRANSPORT_OUT_OF_SCOPE,
+        workId: null,
+        unit: identity.unit,
+        unitRaw: identity.unitRaw,
+        matchMethod: line.matchMethod ?? null,
+        matchConfidence: line.matchConfidence ?? null,
+        gaps: gaps.slice(),
+      };
+
+      if (
+        input.ensureOwnerQuestions !== false &&
+        qty != null &&
+        qty > 0 &&
+        unit
+      ) {
+        ensureOwnerRateQuestionForGap({
+          tenderId,
+          domain: "transport",
+          lineRef: line.lineId,
+          evidenceSummaryPl: `Linia Bid Transport (${line.lp || line.lineId}): ${namePl} — brak stawki Owner Input.`,
+          askedByRole: "chief",
+          transport: {
+            namePl,
+            quantity: qty,
+            unit,
+          },
+        });
+      }
+
+      const transport = resolveTransportFromOwnerInput({
+        tenderId,
+        lineId: line.lineId,
+        namePl,
+        quantity: qty,
+        unit,
+      });
+      base.transport = transport;
+
+      if (transport.rateStatus === "RESOLVED" && transport.totalPln != null) {
+        base.gaps = gaps.filter((g) => g !== "TRANSPORT_OUT_OF_SCOPE");
+        base.identity = {
+          ...base.identity,
+          status: "TRANSPORT_RESOLVED",
+          statusLabelPl: "TRANSPORT — Owner Input RESOLVED",
+          gaps: base.gaps.slice(),
+        };
+        base.positionComplete = true;
+        base.gapLabelsPl = base.gaps.map((g) => GAP_LABEL_PL[g]);
+        return base;
+      }
+
+      if (transport.rateStatus === "INVALID") {
+        pushGap(gaps, "TRANSPORT_OWNER_INPUT_INVALID");
+        base.gaps = gaps;
+        base.identity = {
+          ...base.identity,
+          gaps: gaps.slice(),
+        };
+        base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+        return base;
+      }
+
+      // UNRESOLVED — keep TRANSPORT_GAP
+      base.gaps = gaps;
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+  }
+
+  // 4) orphan noiseKind=transport → AUXILIARY_GAP (NOT Bid Transport)
+  if (identity.status === "AUXILIARY_GAP") {
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }
@@ -554,6 +666,7 @@ export function computeShadowPositionCostsForOfferBoq(
   let materialSum = 0;
   let totalSum = 0;
   let equipmentSum = 0;
+  let transportSum = 0;
   let allCompleteForAgg = true;
   let anyCost = false;
 
@@ -569,6 +682,16 @@ export function computeShadowPositionCostsForOfferBoq(
     ) {
       completeLineCount += 1;
       equipmentSum += row.equipment.totalPln;
+      anyCost = true;
+      continue;
+    }
+    if (
+      row.identity.status === "TRANSPORT_RESOLVED" &&
+      row.transport?.rateStatus === "RESOLVED" &&
+      row.transport.totalPln != null
+    ) {
+      completeLineCount += 1;
+      transportSum += row.transport.totalPln;
       anyCost = true;
       continue;
     }
@@ -593,12 +716,13 @@ export function computeShadowPositionCostsForOfferBoq(
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const equipmentCostPln = round2(equipmentSum);
+  const transportCostPln = round2(transportSum);
   const laborMatTotal =
     allCompleteForAgg && completeLineCount > 0 ? round2(totalSum) : null;
-  // Include equipment in total when all billable lines complete.
+  // Include equipment + transport in total when all billable lines complete.
   const totalPositionCostPln =
     allCompleteForAgg && completeLineCount > 0
-      ? round2((laborMatTotal ?? 0) + equipmentCostPln)
+      ? round2((laborMatTotal ?? 0) + equipmentCostPln + transportCostPln)
       : null;
 
   return {
@@ -614,6 +738,7 @@ export function computeShadowPositionCostsForOfferBoq(
       materialCostPln:
         anyCost && allCompleteForAgg ? round2(materialSum) : anyCost ? round2(materialSum) : null,
       equipmentCostPln,
+      transportCostPln,
       totalPositionCostPln,
     },
   };

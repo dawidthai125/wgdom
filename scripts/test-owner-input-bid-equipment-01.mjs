@@ -453,8 +453,18 @@ eq("TFETCH", fetchCalls, 0);
     join(ROOT, "src/lib/tender-position-cost/bid-position-cost-cutover.ts"),
     "utf8",
   );
-  ok("LOCK no transportGapCount", !/transportGapCount/.test(cutover));
-  ok("LOCK no TRANSPORT_GAP", !/TRANSPORT_GAP/.test(cutover));
+  // MODEL-1B supersedes pre-Transport freeze: transportGapCount / TRANSPORT_GAP MAY exist.
+  // Equipment GO-1 semantics remain: separate equipmentGapCount; gate still requires === 0.
+  ok(
+    "LOCK MODEL-1B transportGapCount may exist; Equipment gate separate (equipmentGapCount===0)",
+    /transportGapCount/.test(cutover) &&
+      /equipmentGapCount/.test(cutover) &&
+      /equipmentGapCount\s*===\s*0/.test(cutover),
+  );
+  ok(
+    "LOCK MODEL-1B TRANSPORT_GAP may exist; EQUIPMENT_GAP path preserved",
+    /TRANSPORT_GAP/.test(cutover) && /EQUIPMENT_GAP/.test(cutover),
+  );
   const hub = readFileSync(join(ROOT, "src/app/TenderWorkflowHubPanel.tsx"), "utf8");
   ok("UI wired OwnerRateInputCard", /OwnerRateInputCard/.test(hub));
   ok("UI refresh hook", /onAccepted=\{onPriceResearchAccepted\}/.test(hub));

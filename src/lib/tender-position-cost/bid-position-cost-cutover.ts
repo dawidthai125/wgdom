@@ -35,8 +35,10 @@ export type BidCutoverGateResult = {
   completeLineCount: number;
   gapLineCount: number;
   skippedNoiseCount: number;
-  /** EQUIPMENT-01: Equipment lines (≠ Transport/Auxiliary). */
+  /** EQUIPMENT-01 / GO-1: Equipment lines (≠ Transport/Auxiliary). */
   equipmentGapCount: number;
+  /** MODEL-1B: Bid Transport gaps (explicit bid_candidate only). */
+  transportGapCount: number;
   /** Transport / other auxiliary — C-AUX-1. */
   auxiliaryGapCount: number;
   reasonsPl: string[];
@@ -125,6 +127,7 @@ export function evaluateBidCutoverGate(
   let gapLineCount = 0;
   let skippedNoiseCount = 0;
   let equipmentGapCount = 0;
+  let transportGapCount = 0;
   let auxiliaryGapCount = 0;
 
   for (const line of shadow.lines) {
@@ -159,6 +162,32 @@ export function evaluateBidCutoverGate(
       );
       continue;
     }
+    if (line.identity.status === "TRANSPORT_GAP") {
+      transportGapCount += 1;
+      gapLineCount += 1;
+      collectLineGaps(line, gapCodes);
+      reasonsPl.push(
+        `Linia ${line.lp || line.lineId}: TRANSPORT — brak Owner Input (GAP)`,
+      );
+      continue;
+    }
+    if (line.identity.status === "TRANSPORT_RESOLVED") {
+      if (
+        line.positionComplete &&
+        line.transport?.rateStatus === "RESOLVED" &&
+        line.transport.totalPln != null
+      ) {
+        completeLineCount += 1;
+        continue;
+      }
+      transportGapCount += 1;
+      gapLineCount += 1;
+      collectLineGaps(line, gapCodes);
+      reasonsPl.push(
+        `Linia ${line.lp || line.lineId}: TRANSPORT — Owner Input niekompletny`,
+      );
+      continue;
+    }
     if (line.identity.status === "AUXILIARY_GAP") {
       auxiliaryGapCount += 1;
       gapLineCount += 1;
@@ -189,6 +218,7 @@ export function evaluateBidCutoverGate(
     gapLineCount === 0 &&
     completeLineCount === billableLineCount &&
     equipmentGapCount === 0 &&
+    transportGapCount === 0 &&
     auxiliaryGapCount === 0 &&
     shadow.aggregates.totalPositionCostPln != null &&
     shadow.aggregates.totalPositionCostPln > 0;
@@ -204,6 +234,7 @@ export function evaluateBidCutoverGate(
     gapLineCount,
     skippedNoiseCount,
     equipmentGapCount,
+    transportGapCount,
     auxiliaryGapCount,
     reasonsPl,
     gapCodes,
@@ -211,8 +242,7 @@ export function evaluateBidCutoverGate(
 }
 
 /**
- * equipmentPln = SUM(resolved Owner Input equipment) · transport/auxiliary = 0 (GO-1).
- * GO-2 will wire transportPln separately.
+ * equipmentPln / transportPln = SUM(resolved Owner Input) · auxiliary = 0 (C-AUX-1).
  */
 export function buildOfferBoqDirectFromPositionCost(
   shadow: ShadowBoqPositionCostResult,
@@ -222,15 +252,25 @@ export function buildOfferBoqDirectFromPositionCost(
   const materialsPln = shadow.aggregates.materialCostPln ?? 0;
   const laborPln = shadow.aggregates.laborCostPln ?? 0;
   const equipmentPln = roundPln(shadow.aggregates.equipmentCostPln ?? 0);
-  const transportPln = 0;
+  const transportPln = roundPln(shadow.aggregates.transportCostPln ?? 0);
   const auxiliaryPln = 0;
   const directPln = roundPln(materialsPln + laborPln + equipmentPln + transportPln + auxiliaryPln);
   if (!(directPln > 0)) return null;
 
   const hasOwnerEquipment = equipmentPln > 0;
-  const sourceLabelPl = hasOwnerEquipment
-    ? "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL + Owner Input Equipment (F5 cutover)"
-    : "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL (F5 cutover)";
+  const hasOwnerTransport = transportPln > 0;
+  let sourceLabelPl =
+    "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL (F5 cutover)";
+  if (hasOwnerEquipment && hasOwnerTransport) {
+    sourceLabelPl =
+      "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL + Owner Input Equipment + Transport (F5 cutover)";
+  } else if (hasOwnerEquipment) {
+    sourceLabelPl =
+      "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL + Owner Input Equipment (F5 cutover)";
+  } else if (hasOwnerTransport) {
+    sourceLabelPl =
+      "Position Cost Engine — OUR RATE + Technology/BOM + Price Memory SELL + Owner Input Transport (F5 cutover)";
+  }
 
   return {
     directPln,

@@ -1,5 +1,5 @@
 /**
- * OWNER-INPUT-BID GO-1 — minimal Owner Rate card (Hub/DW).
+ * OWNER-INPUT-BID — Owner Rate card (Hub/DW) for Equipment + Transport.
  * Submit → submitOwnerRateAnswer · refresh via onAccepted callback.
  */
 
@@ -36,6 +36,10 @@ function answerUnit(item: OwnerRateInputListItem): string {
   return p.transport.unit?.trim() || "j.m.";
 }
 
+function domainLabel(item: OwnerRateInputListItem): string {
+  return item.question.domain === "transport" ? "Transport" : "Equipment";
+}
+
 export function OwnerRateInputCard({
   tenderId,
   onAccepted,
@@ -52,7 +56,15 @@ export function OwnerRateInputCard({
   const openItems = useMemo(() => {
     void bump;
     if (!tid) return [] as OwnerRateInputListItem[];
-    return listOwnerInputsForTender({ tenderId: tid, domain: "equipment" }).filter(
+    const equipment = listOwnerInputsForTender({
+      tenderId: tid,
+      domain: "equipment",
+    });
+    const transport = listOwnerInputsForTender({
+      tenderId: tid,
+      domain: "transport",
+    });
+    return [...equipment, ...transport].filter(
       (i) => i.question.status !== "cancelled",
     );
   }, [tid, bump]);
@@ -64,6 +76,7 @@ export function OwnerRateInputCard({
       {openItems.map((item) => {
         const qid = item.question.questionId;
         const unit = answerUnit(item);
+        const domain = domainLabel(item);
         return (
           <section
             key={qid}
@@ -77,7 +90,7 @@ export function OwnerRateInputCard({
                 Owner Rate Required
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Domain: Equipment · potrzebujemy aktualnej stawki właściciela
+                Domain: {domain} · potrzebujemy aktualnej stawki właściciela
               </p>
             </div>
             <div className="px-4 py-3 space-y-2 text-[12px]">

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -46,6 +46,130 @@ import {
   InteligentnyKosztorysantBrand,
 } from "@/app/expert-conversation";
 import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
+import {
+  listTransportBidCandidates,
+  markTransportBidCandidate,
+  unmarkTransportBidCandidate,
+} from "@/lib/tender-position-cost/transport-bid-candidate";
+
+/** A1 — explicit Bid Transport mark (tenderId + lineId). Not auto-detection. */
+function TransportBidCandidateMarkPanel({
+  tenderId,
+  onChanged,
+}: {
+  tenderId: string;
+  onChanged?: () => void;
+}) {
+  const tid = String(tenderId ?? "").trim();
+  const [lineIdDraft, setLineIdDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [bump, setBump] = useState(0);
+
+  const marked = useMemo(() => {
+    void bump;
+    if (!tid) return [];
+    return listTransportBidCandidates(tid);
+  }, [tid, bump]);
+
+  if (!tid) return null;
+
+  return (
+    <section
+      className="rounded-xl border border-border bg-card overflow-hidden"
+      data-transport-bid-candidate-panel
+    >
+      <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+          Bid Transport
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Jawne oznaczenie linii (lineId) — nie wykrywanie automatyczne
+        </p>
+      </div>
+      <div className="px-4 py-3 space-y-2 text-[12px]">
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 min-w-[10rem] flex-1">
+            <span className="text-[10px] uppercase text-muted-foreground">
+              OfferBoq lineId
+            </span>
+            <input
+              type="text"
+              className="h-9 rounded-md border border-border bg-background px-2"
+              value={lineIdDraft}
+              onChange={(e) => setLineIdDraft(e.target.value)}
+              placeholder="np. L-12"
+              data-transport-bid-line-id
+            />
+          </label>
+          <button
+            type="button"
+            className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-[11px] font-semibold"
+            data-transport-bid-mark
+            onClick={() => {
+              const lineId = lineIdDraft.trim();
+              const result = markTransportBidCandidate({
+                tenderId: tid,
+                lineId,
+                markedByRole: "admin",
+              });
+              if (!result.ok) {
+                setError(result.reason);
+                return;
+              }
+              setError(null);
+              setLineIdDraft("");
+              setBump((n) => n + 1);
+              onChanged?.();
+            }}
+          >
+            Oznacz jako Bid Transport
+          </button>
+        </div>
+        {error && (
+          <p className="text-[11px] text-destructive" data-transport-bid-error>
+            {error}
+          </p>
+        )}
+        {marked.length > 0 && (
+          <ul className="space-y-1.5 pt-1" data-transport-bid-list>
+            {marked.map((r) => (
+              <li
+                key={`${r.tenderId}:${r.lineId}`}
+                className="flex items-center justify-between gap-2 rounded-md border border-border/60 px-2 py-1.5"
+                data-transport-bid-row
+                data-line-id={r.lineId}
+              >
+                <span className="font-medium tabular-nums">
+                  Bid Transport · {r.lineId}
+                </span>
+                <button
+                  type="button"
+                  className="h-8 px-2 rounded-md border border-border text-[11px]"
+                  data-transport-bid-unmark
+                  onClick={() => {
+                    unmarkTransportBidCandidate({
+                      tenderId: tid,
+                      lineId: r.lineId,
+                    });
+                    setBump((n) => n + 1);
+                    onChanged?.();
+                  }}
+                >
+                  Usuń oznaczenie Bid Transport
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {marked.length === 0 && (
+          <p className="text-[11px] text-muted-foreground">
+            Brak oznaczonych linii Bid Transport w tym przetargu.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export function TenderWorkflowHubPanel({
   item,
@@ -231,6 +355,10 @@ export function TenderWorkflowHubPanel({
           </p>
           {/* Presentation layer over Trace — D/Session gated via chiefDossierVm */}
           <ExpertConversationSurface vm={conversationVm} />
+          <TransportBidCandidateMarkPanel
+            tenderId={item.id}
+            onChanged={onPriceResearchAccepted}
+          />
           <OwnerRateInputCard
             tenderId={item.id}
             onAccepted={onPriceResearchAccepted}
