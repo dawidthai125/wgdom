@@ -1,24 +1,34 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**MULTI-BOQ-NORMA-KALK P0 CLOSED** · tip UI **2.66.43** / **`dec7335`** · feature **`dec73351`** · deploy **`5892250601`** · PV GREEN · Norma kalk + DF-16) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · F5 / Final Bid **NOT VERIFIED GREEN** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**SESSION CLOSED** · full Wrocław tender handoff) · tip UI **2.66.43** / runtime **`dec73351`** / live **`dec7335`** · deploy **`5892250601`** · docs tip → `git log -1` · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · F5 / Final Bid **NOT VERIFIED GREEN** · **STABILIZATION WINDOW ACTIVE**
 
-> **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+> **Nowa sesja AI:** [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) → [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
-> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw COLD-START + MASTER + DF.
-> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO.
+> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw SESSION-HANDOFF + COLD-START + MASTER + DF.
+> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO · `PayrollView.tsx` OUT.
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ SESSION STATUS — **CLOSED** · **WAITING FOR OWNER GO (docs commit)**
+## ★ SESSION STATUS — **CLOSED** · **WAITING FOR NEXT OWNER GO**
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`dec7335`** · deploy **`5892250601`** · **PRODUCTION VERIFIED** · **MULTI-BOQ-NORMA-KALK P0 CLOSED** · prior INGEST-01 / MULTI-BOQ-01 / MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
-| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (NORMA-KALK P0 content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
-| CLOSED (ostatnie) | **MULTI-BOQ-NORMA-KALK P0** · **INGEST-01** · **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · COST-MULTI · … |
-| **DO NOT** | invent PLN · claim F5/Final Bid GREEN · invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 · fix D02 LP22 without Owner GO |
-| **NEXT** | **LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** — docs COMMIT+PUSH first · potem full package → Owner dwellings → map → parse → Multi-BOQ → gaps → F5 → PackageGate → Bid · **NIE** auto |
-| **Known Residuals** | F5 / costing / Final Bid **NOT VERIFIED GREEN** · FULL BIP Połczyn **NOT VERIFIED** · D02 LP22 OUT OF P0 · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| Production RUNTIME | **2.66.43** / **`dec73351`** (`dec7335`) · deploy **`5892250601`** · **nie** mylić z docs-only SHA |
+| Docs tip | najnowszy commit docs na `main` (session handoff) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| ACTIVE EPIC / IMPLEMENT | **NONE** |
+| CLOSED (sesja) | **MULTI-BOQ-NORMA-KALK P0** · **INGEST-01** · **MULTI-BOQ-01** · **MULTI-DWELLING-01** · … |
+| **DO NOT** | invent PLN · claim F5/Bid GREEN · Połczyn as target · fix D02 LP22 bez DF · PayrollView · Cloud Sync OI · invent S10 |
+| **NEXT** | **Wrocław REAL TENDER AUDIT ONLY** — WM → ZZK → MOPS → uczelnie · pustostany / single lub paczka lokali · referencja **WM/TP/239/2026/G** · potem RCA→PLAN→DF→GO · **NIE** auto IMPLEMENT |
+| **Known Residuals** | **D02 LP22** CONFLICT (OUT OF P0) · REAL SOURCE **NOT VERIFIED** · F5 / PackageGate / Final Bid **NOT GREEN** (real tender) · Cloud Sync OI **FORBIDDEN** · WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ SESSION HANDOFF — 2026-08-13 Wrocław continuity
+
+| Element | Wartość |
+|---------|---------|
+| **SSOT** | [`SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) |
+| **Operational targets** | WM · ZZK · MOPS · uczelnie (opcjonalnie) |
+| **Połczyn** | fixture INGEST only · **NOT TARGET** |
+| **Reference tender** | WM/TP/239/2026/G · OCDS `ocds-148610-191b0d4e-…` · BZP 2026/BZP 00377489 · D01–D04 |
 
 ## ★ MULTI-BOQ-NORMA-KALK P0 — Norma kalk + DF-16 — **CLOSED**
 
@@ -29,18 +39,18 @@
 | **OUT** | F5 unlock · REAL SOURCE · PackageGate ALLOW · Final Bid · invent PLN · D02 LP22 · OfferBoq schema bump · Cloud/DATA_KEYS · Payroll |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md) · [`PV`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-PRODUCTION-VERIFY.md) |
 | **Payroll** | `PayrollView.tsx` **nie** w release |
-| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER RETEST — POŁCZYN** |
+| **NEXT** | superseded by session handoff · **Wrocław REAL TENDER AUDIT** |
 
 ## ★ INGEST-01 — Lossless Owner tender ingest — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
 | **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`d1b2e7ca`** · tip supersedowany przez NORMA-KALK P0 · GH hist. **`5889699457`** |
-| **IN** | Owner/fixture pin → registry `documentId`+`contentHash` → ZIP children → lossless N→N · artifact `documentId` → Multi-BOQ pool · harness **17/0** · LOCAL Połczyn **54/54** |
-| **OUT** | Cloud / DATA_KEYS · new Bid/F5/PackageGate/OfferBoq schema · silent top-N Owner · invent dwellings/PLN · FULL BIP claim |
+| **IN** | Owner/fixture pin → registry `documentId`+`contentHash` → ZIP children → lossless N→N · artifact `documentId` → Multi-BOQ pool · harness **17/0** · LOCAL Połczyn fixture **54/54** (architektura only) |
+| **OUT** | Cloud / DATA_KEYS · new Bid/F5/PackageGate/OfferBoq schema · silent top-N Owner · invent dwellings/PLN · Połczyn as business target |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/INGEST-01-CLOSEOUT.md) · [`PV`](docs/architecture/INGEST-01-PRODUCTION-VERIFY.md) |
 | **Payroll** | B4 **13/0** prior · `PayrollView.tsx` **nie** w release |
-| **NEXT** | superseded tip by NORMA-KALK P0 · LIVE REAL TENDER RETEST — POŁCZYN |
+| **NEXT** | **Wrocław REAL TENDER AUDIT** · Połczyn **NOT TARGET** |
 
 ## ★ MULTI-BOQ-01 — Dwelling-scoped multi-BOQ — **CLOSED**
 
