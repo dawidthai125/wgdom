@@ -2,7 +2,10 @@
  * TRANSPORT MODEL-1B — explicit Bid Transport candidate marks (A1).
  * localStorage only · ZERO Cloud Sync / DATA_KEYS / OfferBoq mutation.
  * Identity only — NOT a price (price = Owner Input owner_input).
+ * MULTI-DWELLING-01: scope tenderId + dwellingId + lineId (legacy dwelling = DEFAULT).
  */
+
+import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
 
 export const TRANSPORT_BID_CANDIDATE_LS_KEY = "kw-transport-bid-candidate-v1";
 
@@ -18,6 +21,8 @@ export type TransportBidCandidateMarkedByRole =
 export type TransportBidCandidateRecord = {
   tenderId: string;
   lineId: string;
+  /** MULTI-DWELLING-01 — optional; absent ⇒ DEFAULT_DWELLING_ID on match. */
+  dwellingId?: string;
   domain: "transport";
   identityKind: "transport_line";
   sourceClass: "bid_candidate";
@@ -40,6 +45,7 @@ export type TransportBidCandidateGuard = {
 export type MarkTransportBidCandidateInput = {
   tenderId: string;
   lineId: string;
+  dwellingId?: string | null;
   markedAt?: string;
   markedByRole?: TransportBidCandidateMarkedByRole;
   /** Optional — reject noise transport / utylizacja when provided. */
@@ -60,6 +66,7 @@ export type MarkTransportBidCandidateResult =
 export type UnmarkTransportBidCandidateInput = {
   tenderId: string;
   lineId: string;
+  dwellingId?: string | null;
 };
 
 export type UnmarkTransportBidCandidateResult =
@@ -75,6 +82,7 @@ function isRecord(raw: unknown): raw is TransportBidCandidateRecord {
   const r = raw as Partial<TransportBidCandidateRecord>;
   if (typeof r.tenderId !== "string" || !r.tenderId.trim()) return false;
   if (typeof r.lineId !== "string" || !r.lineId.trim()) return false;
+  if (r.dwellingId != null && typeof r.dwellingId !== "string") return false;
   if (r.domain !== "transport") return false;
   if (r.identityKind !== "transport_line") return false;
   if (r.sourceClass !== "bid_candidate") return false;
@@ -93,13 +101,29 @@ function normalizeStore(raw: unknown): TransportBidCandidateStore {
     records: s.records.filter(isRecord).map((r) => ({
       tenderId: r.tenderId.trim(),
       lineId: r.lineId.trim(),
-      domain: "transport",
-      identityKind: "transport_line",
-      sourceClass: "bid_candidate",
+      ...(r.dwellingId?.trim()
+        ? { dwellingId: normalizeDwellingId(r.dwellingId) }
+        : {}),
+      domain: "transport" as const,
+      identityKind: "transport_line" as const,
+      sourceClass: "bid_candidate" as const,
       markedAt: r.markedAt,
       ...(r.markedByRole ? { markedByRole: r.markedByRole } : {}),
     })),
   };
+}
+
+function recordMatches(
+  r: TransportBidCandidateRecord,
+  tenderId: string,
+  lineId: string,
+  dwellingId: string,
+): boolean {
+  return (
+    r.tenderId === tenderId &&
+    r.lineId === lineId &&
+    normalizeDwellingId(r.dwellingId) === dwellingId
+  );
 }
 
 export function loadTransportBidCandidateStore(): TransportBidCandidateStore {
@@ -141,7 +165,6 @@ function evaluateMarkGuard(
     return "NOISE_TRANSPORT";
   }
   if (guard.isNoise === true) {
-    // Any noise line is not Bid Transport logistics.
     return "NOISE_TRANSPORT";
   }
   const cat = String(guard.categoryId ?? "").trim().toUpperCase();
@@ -157,19 +180,32 @@ function evaluateMarkGuard(
   return null;
 }
 
-export function isTransportBidCandidate(tenderId: string, lineId: string): boolean {
+export function isTransportBidCandidate(
+  tenderId: string,
+  lineId: string,
+  dwellingId?: string | null,
+): boolean {
   const tid = String(tenderId ?? "").trim();
   const lid = String(lineId ?? "").trim();
+  const did = normalizeDwellingId(dwellingId);
   if (!tid || !lid) return false;
-  return loadTransportBidCandidateStore().records.some(
-    (r) => r.tenderId === tid && r.lineId === lid,
+  return loadTransportBidCandidateStore().records.some((r) =>
+    recordMatches(r, tid, lid, did),
   );
 }
 
-export function listTransportBidCandidates(tenderId: string): TransportBidCandidateRecord[] {
+export function listTransportBidCandidates(
+  tenderId: string,
+  dwellingId?: string | null,
+): TransportBidCandidateRecord[] {
   const tid = String(tenderId ?? "").trim();
   if (!tid) return [];
-  return loadTransportBidCandidateStore().records.filter((r) => r.tenderId === tid);
+  const records = loadTransportBidCandidateStore().records.filter(
+    (r) => r.tenderId === tid,
+  );
+  if (dwellingId === undefined) return records;
+  const did = normalizeDwellingId(dwellingId);
+  return records.filter((r) => normalizeDwellingId(r.dwellingId) === did);
 }
 
 export function markTransportBidCandidate(
@@ -177,6 +213,7 @@ export function markTransportBidCandidate(
 ): MarkTransportBidCandidateResult {
   const tenderId = String(input.tenderId ?? "").trim();
   const lineId = String(input.lineId ?? "").trim();
+  const dwellingId = normalizeDwellingId(input.dwellingId);
   if (!tenderId) return { ok: false, reason: "MISSING_TENDER_ID" };
   if (!lineId) return { ok: false, reason: "MISSING_LINE_ID" };
 
@@ -184,18 +221,28 @@ export function markTransportBidCandidate(
   if (guardFail) return { ok: false, reason: guardFail };
 
   const store = loadTransportBidCandidateStore();
-  const idx = store.records.findIndex(
-    (r) => r.tenderId === tenderId && r.lineId === lineId,
+  const idx = store.records.findIndex((r) =>
+    recordMatches(r, tenderId, lineId, dwellingId),
   );
+  const persistDwelling =
+    input.dwellingId != null && String(input.dwellingId).trim()
+      ? dwellingId
+      : undefined;
   const record: TransportBidCandidateRecord = {
     tenderId,
     lineId,
+    ...(persistDwelling ? { dwellingId: persistDwelling } : {}),
     domain: "transport",
     identityKind: "transport_line",
     sourceClass: "bid_candidate",
     markedAt: input.markedAt ?? new Date().toISOString(),
     ...(input.markedByRole ? { markedByRole: input.markedByRole } : {}),
   };
+
+  // When multi passes dwellingId explicitly, always persist it (incl. default).
+  if (input.dwellingId != null && String(input.dwellingId).trim()) {
+    record.dwellingId = dwellingId;
+  }
 
   if (idx >= 0) {
     store.records[idx] = record;
@@ -217,12 +264,13 @@ export function unmarkTransportBidCandidate(
 ): UnmarkTransportBidCandidateResult {
   const tenderId = String(input.tenderId ?? "").trim();
   const lineId = String(input.lineId ?? "").trim();
+  const dwellingId = normalizeDwellingId(input.dwellingId);
   if (!tenderId) return { ok: false, reason: "MISSING_TENDER_ID" };
   if (!lineId) return { ok: false, reason: "MISSING_LINE_ID" };
 
   const store = loadTransportBidCandidateStore();
   const next = store.records.filter(
-    (r) => !(r.tenderId === tenderId && r.lineId === lineId),
+    (r) => !recordMatches(r, tenderId, lineId, dwellingId),
   );
   const removed = next.length !== store.records.length;
   if (!removed) return { ok: true, removed: false };

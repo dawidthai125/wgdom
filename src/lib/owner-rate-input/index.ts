@@ -6,6 +6,7 @@
 export {
   OWNER_RATE_INPUT_LS_KEY,
   OWNER_RATE_INPUT_SCHEMA_VERSION,
+  DEFAULT_DWELLING_ID,
 } from "./types";
 
 export type {

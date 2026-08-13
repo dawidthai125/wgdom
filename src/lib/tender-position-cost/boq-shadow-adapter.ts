@@ -355,6 +355,8 @@ export type ComputeShadowPositionCostForLineInput = {
    * Absent → Equipment stays EQUIPMENT_GAP; Transport mark ignored without tenderId.
    */
   tenderId?: string | null;
+  /** MULTI-DWELLING-01 — optional dwelling scope (DEFAULT when absent). */
+  dwellingId?: string | null;
   /** When true (default if tenderId set), ensure Owner Rate Question on Equipment/Transport GAP. */
   ensureOwnerQuestions?: boolean;
 };
@@ -424,6 +426,7 @@ export function computeShadowPositionCostForOfferBoqLine(
         tenderId,
         domain: "equipment",
         lineRef: line.lineId,
+        dwellingId: input.dwellingId,
         evidenceSummaryPl: `Linia sprzętowa OfferBoq (${line.lp || line.lineId}): ${namePl} — brak stawki Owner Input.`,
         askedByRole: "chief",
         equipment: {
@@ -440,6 +443,7 @@ export function computeShadowPositionCostForOfferBoqLine(
       namePl,
       quantity: qty,
       unit,
+      dwellingId: input.dwellingId,
     });
     base.equipment = equipment;
 
@@ -476,7 +480,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     const tenderId = String(input.tenderId ?? "").trim();
     if (
       tenderId &&
-      isTransportBidCandidate(tenderId, line.lineId) &&
+      isTransportBidCandidate(tenderId, line.lineId, input.dwellingId) &&
       !isTransportUtylizacjaLine(line)
     ) {
       const namePl = String(line.description ?? "").trim() || "Transport";
@@ -508,6 +512,7 @@ export function computeShadowPositionCostForOfferBoqLine(
           tenderId,
           domain: "transport",
           lineRef: line.lineId,
+          dwellingId: input.dwellingId,
           evidenceSummaryPl: `Linia Bid Transport (${line.lp || line.lineId}): ${namePl} — brak stawki Owner Input.`,
           askedByRole: "chief",
           transport: {
@@ -524,6 +529,7 @@ export function computeShadowPositionCostForOfferBoqLine(
         namePl,
         quantity: qty,
         unit,
+        dwellingId: input.dwellingId,
       });
       base.transport = transport;
 
@@ -637,6 +643,7 @@ export type ComputeShadowBoqPositionCostsInput = {
   packs?: readonly TechnologyPack[];
   targetMaterialUnit?: string | null;
   tenderId?: string | null;
+  dwellingId?: string | null;
   ensureOwnerQuestions?: boolean;
 };
 
@@ -655,6 +662,7 @@ export function computeShadowPositionCostsForOfferBoq(
       packs: input.packs,
       targetMaterialUnit: input.targetMaterialUnit,
       tenderId: input.tenderId,
+      dwellingId: input.dwellingId,
       ensureOwnerQuestions: input.ensureOwnerQuestions,
     }),
   );

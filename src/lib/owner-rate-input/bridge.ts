@@ -1,8 +1,10 @@
 /**
- * OWNER-INPUT Bid — common ensure/dedupe bridge (GO-1 Equipment; Transport-ready domain param).
+ * OWNER-INPUT Bid — common ensure/dedupe bridge (GO-1 Equipment; Transport; MULTI-DWELLING).
  * REUSE createOwnerRateQuestion / listOwnerInputsForTender — ZERO second Q system.
+ * Dedupe key: tenderId + dwellingId + domain + lineRef (legacy dwelling = DEFAULT).
  */
 
+import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
 import { createOwnerRateQuestion } from "./api";
 import { listOwnerInputsForTender } from "./api";
 import type {
@@ -22,10 +24,12 @@ export type FindOwnerInputForLineArgs = {
   tenderId: string;
   domain: OwnerRateDomain;
   lineRef: string;
+  /** MULTI-DWELLING-01 — optional; absent ⇒ DEFAULT_DWELLING_ID. */
+  dwellingId?: string | null;
 };
 
 /**
- * Current non-cancelled question for tender+domain+lineRef (open or answered).
+ * Current non-cancelled question for tender+dwelling+domain+lineRef.
  * Prefer answered/open over cancelled. If multiple, prefer answered then newest askedAt.
  */
 export function findOwnerInputForLine(
@@ -33,13 +37,15 @@ export function findOwnerInputForLine(
 ): OwnerRateInputListItem | null {
   const tenderId = String(args.tenderId ?? "").trim();
   const lineRef = String(args.lineRef ?? "").trim();
+  const dwellingId = normalizeDwellingId(args.dwellingId);
   if (!tenderId || !lineRef) return null;
   if (args.domain !== "equipment" && args.domain !== "transport") return null;
 
   const list = listOwnerInputsForTender({ tenderId, domain: args.domain }).filter(
     (item) =>
       item.question.status !== "cancelled" &&
-      String(item.question.lineRef ?? "").trim() === lineRef,
+      String(item.question.lineRef ?? "").trim() === lineRef &&
+      normalizeDwellingId(item.question.dwellingId) === dwellingId,
   );
   if (!list.length) return null;
 
@@ -58,6 +64,7 @@ export type EnsureOwnerRateQuestionForGapInput = {
   lineRef: string;
   evidenceSummaryPl: string;
   askedByRole: OwnerRateAskedByRole;
+  dwellingId?: string | null;
   equipment?: OwnerRateEquipmentPayload;
   transport?: OwnerRateTransportPayload;
   promptPl?: string;
@@ -76,7 +83,7 @@ export type EnsureOwnerRateQuestionForGapResult =
   | { ok: false; reason: CreateOwnerRateQuestionFailureReason | "MISSING_LINE_REF" };
 
 /**
- * Dedupe key: tenderId + domain + lineRef.
+ * Dedupe key: tenderId + dwellingId + domain + lineRef.
  * Existing open/answered → REUSE (created=false). Else createOwnerRateQuestion.
  */
 export function ensureOwnerRateQuestionForGap(
@@ -84,6 +91,7 @@ export function ensureOwnerRateQuestionForGap(
 ): EnsureOwnerRateQuestionForGapResult {
   const tenderId = String(input.tenderId ?? "").trim();
   const lineRef = String(input.lineRef ?? "").trim();
+  const dwellingId = normalizeDwellingId(input.dwellingId);
   if (!tenderId) return { ok: false, reason: "MISSING_TENDER_ID" };
   if (!lineRef) return { ok: false, reason: "MISSING_LINE_REF" };
 
@@ -91,6 +99,7 @@ export function ensureOwnerRateQuestionForGap(
     tenderId,
     domain: input.domain,
     lineRef,
+    dwellingId,
   });
   if (existing) {
     return {
@@ -107,6 +116,7 @@ export function ensureOwnerRateQuestionForGap(
     evidenceSummaryPl: input.evidenceSummaryPl,
     askedByRole: input.askedByRole,
     lineRef,
+    dwellingId,
     equipment: input.equipment,
     transport: input.transport,
     promptPl: input.promptPl,

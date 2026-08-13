@@ -46,6 +46,7 @@ import {
   InteligentnyKosztorysantBrand,
 } from "@/app/expert-conversation";
 import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
+import { MultiDwellingPackagePanel } from "@/app/MultiDwellingPackagePanel";
 import {
   listTransportBidCandidates,
   markTransportBidCandidate,
@@ -339,6 +340,8 @@ export function TenderWorkflowHubPanel({
 
       {/* Inteligentny Kosztorysant — Hub branding (tender detail only) */}
       <InteligentnyKosztorysantBrand />
+
+      <MultiDwellingPackagePanel item={item} />
 
       {/* S4 — ANALIZA → EKSPERCI → WALIDACJA/REKOMENDACJA/DECYZJA (DW) · Intelligence = recovery */}
       <div data-s4-step="analiza">

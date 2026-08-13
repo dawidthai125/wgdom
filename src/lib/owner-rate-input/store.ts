@@ -75,6 +75,7 @@ function isEvent(raw: unknown): raw is OwnerRateEvent {
     if (typeof q.askedAt !== "string" || !q.askedAt) return false;
     if (typeof q.createdAt !== "string" || !q.createdAt) return false;
     if (q.lineRef != null && typeof q.lineRef !== "string") return false;
+    if (q.dwellingId != null && typeof q.dwellingId !== "string") return false;
     return isPayload(q.payload);
   }
 
@@ -116,6 +117,7 @@ interface OwnerRateQuestionOpenedLike {
   askedAt: string;
   createdAt: string;
   lineRef?: string;
+  dwellingId?: string;
   payload: unknown;
 }
 

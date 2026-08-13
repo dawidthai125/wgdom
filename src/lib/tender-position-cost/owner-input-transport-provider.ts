@@ -19,6 +19,8 @@ import { buildTransportComponentResult } from "@/lib/tender-position-cost/transp
 export type OwnerInputTransportProviderOpts = {
   /** REQUIRED — OI is tender_only. */
   tenderId: string;
+  /** MULTI-DWELLING-01 — optional; absent ⇒ DEFAULT_DWELLING_ID. */
+  dwellingId?: string | null;
 };
 
 function unresolved(reasonPl: string): TransportPriceProviderResult {
@@ -49,6 +51,7 @@ export function createOwnerInputTransportPriceProvider(
   opts: OwnerInputTransportProviderOpts,
 ): TransportPriceProvider {
   const tenderId = String(opts.tenderId ?? "").trim();
+  const dwellingId = opts.dwellingId;
   return {
     id: "owner_input_transport",
     labelPl: "Owner Input — stawka transportu (tender-scoped)",
@@ -65,6 +68,7 @@ export function createOwnerInputTransportPriceProvider(
         tenderId,
         domain: "transport",
         lineRef: lineId,
+        dwellingId,
       });
       if (!item || item.question.status === "cancelled") {
         return unresolved(
@@ -121,9 +125,11 @@ export function resolveTransportFromOwnerInput(opts: {
   quantity: number | null;
   unit: string | null;
   transportKind?: string | null;
+  dwellingId?: string | null;
 }): TransportComponentResult {
   const provider = createOwnerInputTransportPriceProvider({
     tenderId: opts.tenderId,
+    dwellingId: opts.dwellingId,
   });
   return buildTransportComponentResult({
     lineId: opts.lineId,

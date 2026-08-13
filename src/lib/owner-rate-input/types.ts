@@ -7,6 +7,12 @@ export const OWNER_RATE_INPUT_LS_KEY = "kw-owner-rate-input-v1";
 
 export const OWNER_RATE_INPUT_SCHEMA_VERSION = 1 as const;
 
+/**
+ * MULTI-DWELLING-01 — absent dwellingId on legacy events normalizes to this.
+ * Re-exported from multi-dwelling for a single SSOT string.
+ */
+export { DEFAULT_DWELLING_ID } from "@/lib/multi-dwelling/constants";
+
 export type OwnerRateDomain = "equipment" | "transport";
 
 export type OwnerRateQuestionStatus = "open" | "answered" | "cancelled";
@@ -67,6 +73,8 @@ export interface OwnerRateQuestionOpenedEvent {
   askedAt: string;
   createdAt: string;
   lineRef?: string;
+  /** MULTI-DWELLING-01 — optional; absent ⇒ DEFAULT_DWELLING_ID on read. */
+  dwellingId?: string;
   payload: OwnerRatePayload;
   schemaVersion: typeof OWNER_RATE_INPUT_SCHEMA_VERSION;
 }
@@ -120,6 +128,8 @@ export interface OwnerRateQuestionView {
   askedAt: string;
   createdAt: string;
   lineRef?: string;
+  /** Normalized dwelling scope (DEFAULT_DWELLING_ID when legacy). */
+  dwellingId?: string;
   payload: OwnerRatePayload;
 }
 
@@ -146,6 +156,8 @@ export interface CreateOwnerRateQuestionInput {
   evidenceSummaryPl: string;
   askedByRole: OwnerRateAskedByRole;
   lineRef?: string;
+  /** MULTI-DWELLING-01 — optional dwelling scope. */
+  dwellingId?: string;
   /** Domain payload fields (without outer discriminant). */
   equipment?: OwnerRateEquipmentPayload;
   transport?: OwnerRateTransportPayload;

@@ -10,6 +10,7 @@ import {
   loadOwnerRateInputStore,
   saveOwnerRateInputStore,
 } from "./store";
+import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
 import {
   OWNER_RATE_INPUT_SCHEMA_VERSION,
   type CancelOwnerRateQuestionInput,
@@ -158,6 +159,7 @@ function toQuestionView(
     askedAt: opened.askedAt,
     createdAt: opened.createdAt,
     ...(opened.lineRef ? { lineRef: opened.lineRef } : {}),
+    dwellingId: normalizeDwellingId(opened.dwellingId),
     payload: opened.payload,
   };
 }
@@ -243,6 +245,7 @@ export function createOwnerRateQuestion(
   const now = input.askedAt?.trim() || new Date().toISOString();
   const questionId = newId("orq");
 
+  const dwellingRaw = trimReq(input.dwellingId);
   const event: OwnerRateQuestionOpenedEvent = {
     kind: "question_opened",
     questionId,
@@ -254,6 +257,8 @@ export function createOwnerRateQuestion(
     askedAt: now,
     createdAt: now,
     ...(trimReq(input.lineRef) ? { lineRef: trimReq(input.lineRef) } : {}),
+    // Persist only when caller provided scope (legacy omits → DEFAULT on read).
+    ...(dwellingRaw ? { dwellingId: normalizeDwellingId(dwellingRaw) } : {}),
     payload,
     schemaVersion: OWNER_RATE_INPUT_SCHEMA_VERSION,
   };

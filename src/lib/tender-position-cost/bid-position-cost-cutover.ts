@@ -67,6 +67,8 @@ export type PositionCostCutoverOpts = {
   targetMaterialUnit?: string | null;
   /** GO-1 — override; default = OfferBoqDocument.tenderId */
   tenderId?: string | null;
+  /** MULTI-DWELLING-01 — optional dwelling scope */
+  dwellingId?: string | null;
   ensureOwnerQuestions?: boolean;
 };
 
@@ -302,6 +304,7 @@ export function computePositionCostShadowAndGate(
     packs: opts.packs,
     targetMaterialUnit: opts.targetMaterialUnit,
     tenderId,
+    dwellingId: opts.dwellingId,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
   });
   return { shadow, gate: evaluateBidCutoverGate(shadow) };

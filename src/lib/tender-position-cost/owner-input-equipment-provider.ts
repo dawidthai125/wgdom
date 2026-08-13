@@ -19,6 +19,8 @@ import type { EquipmentComponentResult } from "@/lib/tender-position-cost/equipm
 export type OwnerInputEquipmentProviderOpts = {
   /** REQUIRED — OI is tender_only. */
   tenderId: string;
+  /** MULTI-DWELLING-01 — optional; absent ⇒ DEFAULT_DWELLING_ID. */
+  dwellingId?: string | null;
 };
 
 function unresolved(reasonPl: string): EquipmentPriceProviderResult {
@@ -49,6 +51,7 @@ export function createOwnerInputEquipmentPriceProvider(
   opts: OwnerInputEquipmentProviderOpts,
 ): EquipmentPriceProvider {
   const tenderId = String(opts.tenderId ?? "").trim();
+  const dwellingId = opts.dwellingId;
   return {
     id: "owner_input_equipment",
     labelPl: "Owner Input — stawka sprzętu (tender-scoped)",
@@ -65,6 +68,7 @@ export function createOwnerInputEquipmentPriceProvider(
         tenderId,
         domain: "equipment",
         lineRef: lineId,
+        dwellingId,
       });
       if (!item || item.question.status === "cancelled") {
         return unresolved(
@@ -120,9 +124,11 @@ export function resolveEquipmentFromOwnerInput(opts: {
   quantity: number | null;
   unit: string | null;
   equipmentKey?: string | null;
+  dwellingId?: string | null;
 }): EquipmentComponentResult {
   const provider = createOwnerInputEquipmentPriceProvider({
     tenderId: opts.tenderId,
+    dwellingId: opts.dwellingId,
   });
   return buildEquipmentComponentResult({
     lineId: opts.lineId,
