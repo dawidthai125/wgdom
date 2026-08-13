@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-12 (**TRANSPORT-01 MODEL-1A CONTRACT-ONLY CLOSED** · tip UI **2.66.43** / **`a41854c`** · feature **`a41854c3`** · PV GREEN · pricing **NOT IMPLEMENTED** · MODEL-1B **NOT STARTED**) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/TRANSPORT-01-CLOSEOUT.md`](docs/architecture/TRANSPORT-01-CLOSEOUT.md) · **WAITING FOR NEXT OWNER GO** · **NIE** auto MODEL-1B / REAL SOURCE · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**OWNER-INPUT-01 CLOSED** · tip UI **2.66.43** / **`3642de2`** · feature **`3642de23`** · PV GREEN · localStorage-only · ZERO Cloud Sync / UI / provider / F5) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/OWNER-INPUT-01-CLOSEOUT.md`](docs/architecture/OWNER-INPUT-01-CLOSEOUT.md) · **WAITING FOR NEXT OWNER GO** · **NIE** auto UX/provider/F5 / MODEL-1B / REAL SOURCE · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -13,33 +13,44 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`a41854c`** · **PRODUCTION VERIFIED** · **TRANSPORT-01 MODEL-1A CLOSED** · prior EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · CLOUD-SYNC batch-set recovery **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| Production tip | **2.66.43** / **`3642de2`** · **PRODUCTION VERIFIED** · **OWNER-INPUT-01 CLOSED** · prior TRANSPORT-01 MODEL-1A / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · CLOUD-SYNC batch-set recovery **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
 | ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** |
-| CLOSED (ostatnie) | **TRANSPORT-01 MODEL-1A** · EQUIPMENT-01 · CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · C-MODE-1a · TENDER-BOQ F0–F6 · INTELIGENTNY-KOSZTORYSANT-UX · TM-01 S0–S9 · … (pełna lista historyczna poniżej) |
-| **DO NOT** | invent Transport/Equipment **pricing** · auto MODEL-1B · auto REAL SOURCE/LEGAL · reopen F0–F6/C-MODE · PayrollView WIP · WM-DRUK-OST-03 · invent S10 |
-| **NEXT** | **UTRZYMANIE** — MODEL-1B / Aux / REAL SOURCE — **tylko Owner GO** · **NIE** auto |
-| **Known Residuals** | Transport pricing **NOT IMPLEMENTED** · MODEL-1B **NOT STARTED** · Equipment pricing **NOT IMPLEMENTED** · REAL SOURCE UNKNOWN · fat-key `kw-tenders-pipeline` · C1–C6 · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| CLOSED (ostatnie) | **OWNER-INPUT-01** · TRANSPORT-01 MODEL-1A · EQUIPMENT-01 · CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · C-MODE-1a · TENDER-BOQ F0–F6 · INTELIGENTNY-KOSZTORYSANT-UX · TM-01 S0–S9 · … (pełna lista historyczna poniżej) |
+| **DO NOT** | invent Transport/Equipment **pricing** · auto MODEL-1B · auto REAL SOURCE/LEGAL · auto Owner Input UX/provider/F5 · reopen F0–F6/C-MODE · PayrollView WIP · WM-DRUK-OST-03 · invent S10 |
+| **NEXT** | **UTRZYMANIE** — OWNER-INPUT-02 UX / provider / F5 / MODEL-1B / REAL SOURCE — **tylko Owner GO** · **NIE** auto |
+| **Known Residuals** | Owner Input **≠** REAL SOURCE · no UI yet · Transport pricing **NOT IMPLEMENTED** · MODEL-1B **NOT STARTED** · Equipment pricing **NOT IMPLEMENTED** · REAL SOURCE UNKNOWN · fat-key `kw-tenders-pipeline` · C1–C6 · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ OWNER-INPUT-01 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`3642de2`** · feature **`3642de23`** · deploy **`5881679218`** |
+| **IN** | `kw-owner-rate-input-v1` · append-only events · tender-scoped · noise/utyl gates · harness 115 |
+| **OUT** | Cloud Sync · UI · Equipment/Transport providers · F5 wire · REAL SOURCE · MODEL-1B |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/OWNER-INPUT-01-CLOSEOUT.md) · [`PV`](docs/architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md) |
+| **Payroll** | B4 **13/13** · battery **16/16 scripts** · `PayrollView.tsx` **nie** w release |
+| **NEXT** | **WAITING FOR OWNER GO** · UX/provider/F5 **FOLLOW-UP** · **NIE** auto |
 
 ## ★ TRANSPORT-01 MODEL-1A — CONTRACT-ONLY — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`a41854c`** · feature **`a41854c3`** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`a41854c3`** · tip deploy supersedowany przez OWNER-INPUT-01 |
 | **IN** | `transport-contract.ts` · Unresolved provider · re-export · harness 75 |
 | **OUT** | MODEL-1B · `TRANSPORT_GAP` · `transportGapCount` · shadow/F5 · OfferBoq Transport kind · pricing · REAL SOURCE · Legal |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/TRANSPORT-01-CLOSEOUT.md) · [`PV`](docs/architecture/TRANSPORT-01-PRODUCTION-VERIFY.md) |
-| **Payroll** | 16/16 PASS · `PayrollView.tsx` **nie** w release |
-| **NEXT** | **WAITING FOR OWNER GO** · MODEL-1B **NOT STARTED** · **NIE** auto |
+| **Payroll** | 16/16 scripts PASS · `PayrollView.tsx` **nie** w release |
+| **NEXT** | MODEL-1B **NOT STARTED** · **NIE** auto |
 
 ## ★ EQUIPMENT-01 — CONTRACT-ONLY — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`8e4f3943`** · tip deploy supersedowany przez TRANSPORT-01 MODEL-1A |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`8e4f3943`** · tip deploy supersedowany przez OWNER-INPUT-01 |
 | **IN** | `EQUIPMENT_GAP` · `equipmentGapCount` · F5 FAIL · Unresolved contract (nie źródło ceny prod) |
 | **OUT** | Equipment **pricing** · REAL SOURCE · schema bump · migracje |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/EQUIPMENT-01-CLOSEOUT.md) · [`PV`](docs/architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md) |
-| **Payroll** | 16/16 PASS · `PayrollView.tsx` **nie** w release · browser smoke **NOT RUN** |
+| **Payroll** | 16/16 scripts PASS · `PayrollView.tsx` **nie** w release · browser smoke **NOT RUN** |
 | **NEXT** | REAL SOURCE / pricing — **FOLLOW-UP** · **NIE** auto |
 
 
