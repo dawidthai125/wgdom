@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**MULTI-DWELLING-01 CLOSED** · tip UI **2.66.43** / **`0f1a52f`** · feature **`0f1a52f4`** · PV GREEN · Package + document mapping · PackageGate) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/MULTI-DWELLING-01-CLOSEOUT.md`](docs/architecture/MULTI-DWELLING-01-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**MULTI-BOQ-01 CLOSED** · tip UI **2.66.43** / **`669d287`** · feature **`669d2872`** · PV GREEN · dwelling-scoped multi-BOQ) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/MULTI-BOQ-01-CLOSEOUT.md`](docs/architecture/MULTI-BOQ-01-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER TEST** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -13,23 +13,34 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`0f1a52f`** · **PRODUCTION VERIFIED** · **MULTI-DWELLING-01 CLOSED** · prior MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
-| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (MULTI-DWELLING content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
-| CLOSED (ostatnie) | **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · … |
-| **DO NOT** | invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 |
-| **NEXT** | **UTRZYMANIE** — docs COMMIT+PUSH · potem residual **REAL SOURCE** — **tylko Owner GO** · **NIE** auto |
-| **Known Residuals** | REAL SOURCE **NOT IMPLEMENTED** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| Production tip | **2.66.43** / **`669d287`** · **PRODUCTION VERIFIED** · **MULTI-BOQ-01 CLOSED** · prior MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (MULTI-BOQ content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
+| CLOSED (ostatnie) | **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · … |
+| **DO NOT** | invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 · claim LIVE REAL TENDER TEST done |
+| **NEXT** | **LIVE REAL TENDER TEST** — docs COMMIT+PUSH first · potem real tender (1 tender → N mieszkań → multi-BOQ → Bid) · REAL SOURCE tylko Owner GO · **NIE** auto |
+| **Known Residuals** | LIVE REAL TENDER TEST **NOT RUN** · prior real tender ingest **BLOCKED** · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ MULTI-BOQ-01 — Dwelling-scoped multi-BOQ — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`669d287`** · feature **`669d2872`** (`669d2872117f5724e756d19e9f4aedfea34cb48d`) |
+| **IN** | Owner map → `resolveDwellingCostSnapshotForPricing` → `composeDwellingOfferBoq` → OfferBoq v5 + `lineProvenance` → `attachComposedBoqToDwelling` → F5_D → PackageGate → SUM → Bid · harness **50/0** |
+| **OUT** | Cloud Sync · DATA_KEYS · schema bump · second Bid · BEST_SINGLE as dwelling BOQ · invent 0 PLN · F0–F6 redesign · Equipment/Transport contract change |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/MULTI-BOQ-01-CLOSEOUT.md) · [`PV`](docs/architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md) |
+| **Payroll** | B4 **13/0** @ PV · battery **NOT RUN** @ MULTI-BOQ PV · `PayrollView.tsx` **nie** w release |
+| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER TEST** |
 
 ## ★ MULTI-DWELLING-01 — Package costing — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`0f1a52f`** · feature **`0f1a52f4`** · GH **`5885523509`** |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`0f1a52f4`** · tip supersedowany przez MULTI-BOQ-01 · GH hist. **`5885523509`** |
 | **IN** | Package · N dwelling · Owner document mapping · PackageGate · aggregate → Bid · LS `kw-multi-dwelling-package-v1` · Hub panel · harness **72/0** |
 | **OUT** | Cloud Sync · DATA_KEYS · schema bump · second Bid engine · auto dwelling from filename/AI · F0–F6 redesign |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/MULTI-DWELLING-01-CLOSEOUT.md) · [`PV`](docs/architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md) |
-| **Payroll** | B4 **13/13** · battery **16/16 scripts** · `PayrollView.tsx` **nie** w release |
-| **NEXT** | Owner GO docs COMMIT+PUSH · potem REAL SOURCE tylko na GO |
+| **Payroll** | B4 **13/13** · battery **16/16 scripts** (prior tip) · `PayrollView.tsx` **nie** w release |
+| **NEXT** | superseded tip by MULTI-BOQ-01 · LIVE REAL TENDER TEST |
 
 ## ★ OWNER-INPUT-BID MODEL-1B — Transport Bid Candidate E2E — **CLOSED**
 
