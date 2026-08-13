@@ -1,6 +1,6 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**INGEST-01 CLOSED** · tip UI **2.66.43** / **`d1b2e7c`** · feature **`d1b2e7ca`** · deploy **`5889699457`** · PV GREEN · lossless Owner ingest) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/INGEST-01-CLOSEOUT.md`](docs/architecture/INGEST-01-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · FULL BIP **NOT VERIFIED** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-13 (**MULTI-BOQ-NORMA-KALK P0 CLOSED** · tip UI **2.66.43** / **`dec7335`** · feature **`dec73351`** · deploy **`5892250601`** · PV GREEN · Norma kalk + DF-16) · tip → [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · closeout [`docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md) · **WAITING FOR OWNER GO COMMIT+PUSH docs** · **NEXT = LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · F5 / Final Bid **NOT VERIFIED GREEN** · **NIE** auto REAL SOURCE / Cloud Sync OI · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -13,23 +13,34 @@
 
 | | |
 |--|--|
-| Production tip | **2.66.43** / **`d1b2e7c`** · deploy **`5889699457`** · **PRODUCTION VERIFIED** · **INGEST-01 CLOSED** · prior MULTI-BOQ-01 / MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
-| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (INGEST content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
-| CLOSED (ostatnie) | **INGEST-01** · **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · COST-MULTI · … |
-| **DO NOT** | invent PLN · missing→0 · claim FULL BIP / LIVE REAL TENDER complete · invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 |
+| Production tip | **2.66.43** / **`dec7335`** · deploy **`5892250601`** · **PRODUCTION VERIFIED** · **MULTI-BOQ-NORMA-KALK P0 CLOSED** · prior INGEST-01 / MULTI-BOQ-01 / MULTI-DWELLING-01 / MODEL-1B / GO-1 / OWNER-INPUT-01 / TRANSPORT-01 / EQUIPMENT-01 / C-MODE-1a / F0–F6 **CLOSED** · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) |
+| ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT | **NONE** (NORMA-KALK P0 content CLOSED · **docs close** awaiting Owner GO COMMIT+PUSH) |
+| CLOSED (ostatnie) | **MULTI-BOQ-NORMA-KALK P0** · **INGEST-01** · **MULTI-BOQ-01** · **MULTI-DWELLING-01** · MODEL-1B · GO-1 · OWNER-INPUT-01 · COST-MULTI · … |
+| **DO NOT** | invent PLN · claim F5/Final Bid GREEN · invent REAL SOURCE · Cloud Sync OI · reopen F0–F6/C-MODE · PayrollView WIP · invent S10 · fix D02 LP22 without Owner GO |
 | **NEXT** | **LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** — docs COMMIT+PUSH first · potem full package → Owner dwellings → map → parse → Multi-BOQ → gaps → F5 → PackageGate → Bid · **NIE** auto |
-| **Known Residuals** | FULL BIP **NOT VERIFIED** · live costing/F5/PackageGate/Bid **NOT RUN** · expected dwelling count **UNKNOWN** · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+| **Known Residuals** | F5 / costing / Final Bid **NOT VERIFIED GREEN** · FULL BIP Połczyn **NOT VERIFIED** · D02 LP22 OUT OF P0 · REAL SOURCE **NOT IMPLEMENTED / UNKNOWN** · Cloud Sync OI **FORBIDDEN** · fat-key `kw-tenders-pipeline` · local WIP `PayrollView.tsx` / `useTenderOfferRun.ts` |
+
+## ★ MULTI-BOQ-NORMA-KALK P0 — Norma kalk + DF-16 — **CLOSED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`dec7335`** · feature **`dec73351`** (`dec73351edc0a9814ac92b745a10c6f35aaa2b9e`) · deploy **`5892250601`** success |
+| **IN** | kalk fold → `pricingBasis=kalk_wlasna` · DF-16-A…H · LP32 `quantity=""` · WM/TP/239 D01–D04 · harness **42/0** · merge UNCHANGED |
+| **OUT** | F5 unlock · REAL SOURCE · PackageGate ALLOW · Final Bid · invent PLN · D02 LP22 · OfferBoq schema bump · Cloud/DATA_KEYS · Payroll |
+| **SSOT** | [`CLOSEOUT`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md) · [`PV`](docs/architecture/MULTI-BOQ-NORMA-KALK-P0-PRODUCTION-VERIFY.md) |
+| **Payroll** | `PayrollView.tsx` **nie** w release |
+| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER RETEST — POŁCZYN** |
 
 ## ★ INGEST-01 — Lossless Owner tender ingest — **CLOSED**
 
 | Element | Wartość |
 |---------|---------|
-| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip **2.66.43** / **`d1b2e7c`** · feature **`d1b2e7ca`** (`d1b2e7ca82149b9db7e78cd69712b5615901e5cf`) · deploy **`5889699457`** success |
+| **Status** | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · tip hist. **`d1b2e7ca`** · tip supersedowany przez NORMA-KALK P0 · GH hist. **`5889699457`** |
 | **IN** | Owner/fixture pin → registry `documentId`+`contentHash` → ZIP children → lossless N→N · artifact `documentId` → Multi-BOQ pool · harness **17/0** · LOCAL Połczyn **54/54** |
 | **OUT** | Cloud / DATA_KEYS · new Bid/F5/PackageGate/OfferBoq schema · silent top-N Owner · invent dwellings/PLN · FULL BIP claim |
 | **SSOT** | [`CLOSEOUT`](docs/architecture/INGEST-01-CLOSEOUT.md) · [`PV`](docs/architecture/INGEST-01-PRODUCTION-VERIFY.md) |
 | **Payroll** | B4 **13/0** prior · `PayrollView.tsx` **nie** w release |
-| **NEXT** | Owner GO docs COMMIT+PUSH · potem **LIVE REAL TENDER RETEST — POŁCZYN** |
+| **NEXT** | superseded tip by NORMA-KALK P0 · LIVE REAL TENDER RETEST — POŁCZYN |
 
 ## ★ MULTI-BOQ-01 — Dwelling-scoped multi-BOQ — **CLOSED**
 

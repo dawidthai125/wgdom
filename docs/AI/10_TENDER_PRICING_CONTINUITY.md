@@ -18,7 +18,8 @@ Szczegóły = architecture handoff (link poniżej).
 |--|--|
 | **Epic (BOQ)** | TENDER-BOQ-PRICING-REBUILD-01 F0–F6 + C-MODE-1a |
 | **F0–F6 / C-MODE-1a** | **CLOSED** · **GREEN** |
-| **INGEST-01** | **CLOSED** · Owner/fixture lossless ingest → registry → ZIP children → artifact `documentId` → Multi-BOQ pool · tip **09** (`d1b2e7c` / deploy `5889699457`) · LOCAL Połczyn **54/54** · FULL BIP **NOT VERIFIED** |
+| **MULTI-BOQ-NORMA-KALK P0** | **CLOSED** · Norma kalk fold + DF-16 incomplete KNR · tip **09** (`dec7335` / deploy `5892250601`) · WM/TP/239 D01–D04 · F5/Bid **NOT GREEN** |
+| **INGEST-01** | **CLOSED** · Owner/fixture lossless ingest → registry → ZIP children → artifact `documentId` → Multi-BOQ pool · hist. **`d1b2e7ca`** · LOCAL Połczyn **54/54** · FULL BIP **NOT VERIFIED** |
 | **MULTI-BOQ-01** | **CLOSED** · Owner map → dwelling resolve → compose → OfferBoq v5 → attach → F5_D → PackageGate → SUM → Bid · hist. **`669d2872`** |
 | **MULTI-DWELLING-01** | **CLOSED** · Package · N dwelling · document mapping HARD · PackageGate · hist. **`0f1a52f4`** |
 | **OWNER-INPUT-BID MODEL-1B** | **CLOSED** · Transport mark → OI → F5 · hist. **`f9324eb6`** |
@@ -27,26 +28,28 @@ Szczegóły = architecture handoff (link poniżej).
 | **TRANSPORT-01 MODEL-1A** | **CLOSED** · CONTRACT ONLY · hist. **`a41854c3`** |
 | **EQUIPMENT-01** | **CLOSED** · CONTRACT/GAP · GO-1 wires Owner Input resolve |
 | **COST-MULTI** | **CLOSED** · branch ≠ dwelling |
-| **REAL SOURCE / Cloud Sync OI** | **NOT IMPLEMENTED / UNKNOWN** · **NOT** part of INGEST |
-| **Production tip** | patrz **09** (2.66.43 / `d1b2e7c`) |
-| **NEXT** | **LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · docs COMMIT+PUSH · REAL SOURCE **NIE** auto |
+| **REAL SOURCE / Cloud Sync OI** | **NOT IMPLEMENTED / UNKNOWN** |
+| **F5 / costing / Final Bid** | **NOT VERIFIED GREEN** (next unresolved product layer) |
+| **Production tip** | patrz **09** (2.66.43 / `dec7335`) |
+| **NEXT** | **LIVE REAL TENDER RETEST — POŁCZYN-ZDRÓJ** · REAL SOURCE **NIE** auto |
 
 ---
 
 ## Gdzie czytać (kolejność)
 
 1. [`09_PRODUCTION_BASELINE.md`](./09_PRODUCTION_BASELINE.md) — tip live
-2. [`../architecture/INGEST-01-CLOSEOUT.md`](../architecture/INGEST-01-CLOSEOUT.md) · [`../architecture/INGEST-01-PRODUCTION-VERIFY.md`](../architecture/INGEST-01-PRODUCTION-VERIFY.md)
-3. [`../architecture/MULTI-BOQ-01-CLOSEOUT.md`](../architecture/MULTI-BOQ-01-CLOSEOUT.md) · [`../architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md`](../architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md)
-4. [`../architecture/MULTI-DWELLING-01-CLOSEOUT.md`](../architecture/MULTI-DWELLING-01-CLOSEOUT.md) · [`../architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md`](../architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md)
-5. [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-PRODUCTION-VERIFY.md)
-6. [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-PRODUCTION-VERIFY.md)
-7. [`../architecture/OWNER-INPUT-01-CLOSEOUT.md`](../architecture/OWNER-INPUT-01-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md)
-8. [`../architecture/TRANSPORT-01-CLOSEOUT.md`](../architecture/TRANSPORT-01-CLOSEOUT.md) · [`../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md`](../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md)
-9. [`../architecture/EQUIPMENT-01-CLOSEOUT.md`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · [`../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md`](../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md)
-10. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) — **★★ pełny handoff BOQ**
-11. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md)
-12. C-MODE-1a Decision + PV · DF / F0–F6 closeouty w `docs/architecture/TENDER-BOQ-PRICING-REBUILD-01-*.md`
+2. [`../architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md`](../architecture/MULTI-BOQ-NORMA-KALK-P0-CLOSEOUT.md) · [`../architecture/MULTI-BOQ-NORMA-KALK-P0-PRODUCTION-VERIFY.md`](../architecture/MULTI-BOQ-NORMA-KALK-P0-PRODUCTION-VERIFY.md)
+3. [`../architecture/INGEST-01-CLOSEOUT.md`](../architecture/INGEST-01-CLOSEOUT.md) · [`../architecture/INGEST-01-PRODUCTION-VERIFY.md`](../architecture/INGEST-01-PRODUCTION-VERIFY.md)
+4. [`../architecture/MULTI-BOQ-01-CLOSEOUT.md`](../architecture/MULTI-BOQ-01-CLOSEOUT.md) · [`../architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md`](../architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md)
+5. [`../architecture/MULTI-DWELLING-01-CLOSEOUT.md`](../architecture/MULTI-DWELLING-01-CLOSEOUT.md) · [`../architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md`](../architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md)
+6. [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-MODEL-1B-PRODUCTION-VERIFY.md)
+7. [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-BID-EQUIPMENT-TRANSPORT-01-GO1-PRODUCTION-VERIFY.md)
+8. [`../architecture/OWNER-INPUT-01-CLOSEOUT.md`](../architecture/OWNER-INPUT-01-CLOSEOUT.md) · [`../architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md`](../architecture/OWNER-INPUT-01-PRODUCTION-VERIFY.md)
+9. [`../architecture/TRANSPORT-01-CLOSEOUT.md`](../architecture/TRANSPORT-01-CLOSEOUT.md) · [`../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md`](../architecture/TRANSPORT-01-PRODUCTION-VERIFY.md)
+10. [`../architecture/EQUIPMENT-01-CLOSEOUT.md`](../architecture/EQUIPMENT-01-CLOSEOUT.md) · [`../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md`](../architecture/EQUIPMENT-01-PRODUCTION-VERIFY.md)
+11. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md) — **★★ pełny handoff BOQ**
+12. [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-SESSION-CLOSEOUT.md)
+13. C-MODE-1a Decision + PV · DF / F0–F6 closeouty w `docs/architecture/TENDER-BOQ-PRICING-REBUILD-01-*.md`
 
 ---
 
@@ -67,11 +70,12 @@ Transport MODEL-1A contract = CLOSED
 Transport MODEL-1B = CLOSED · explicit bid_candidate mark only · OI price only
 MULTI-DWELLING-01 = CLOSED · PackageGate + Owner document mapping HARD · local LS only
 MULTI-BOQ-01 = CLOSED · dwelling-scoped compose · provenance side-map · legacy_single KEEP · schema v5
+MULTI-BOQ-NORMA-KALK P0 = CLOSED · kalk fold + DF-16 quantity="" · merge UNCHANGED · F5/Bid NOT GREEN
 INGEST-01 = CLOSED · UPSTREAM lossless Owner/fixture pin+registry+ZIP children · artifact documentId · LS-only · NOT Bid/F5/PackageGate engine
 Noise ≠ Bid Transport · orphan noiseKind=transport = AUXILIARY_GAP (nie Bid Transport)
 0/85/45 / ath / catalog / companyPrice / PI31 / Expert = FORBIDDEN as Equipment/Transport fill
 REAL SOURCE / LEGAL / Cloud Sync OI = tylko Owner GO → AUDIT first
-LIVE REAL TENDER RETEST (POŁCZYN) = NEXT (nie wykonany · FULL BIP NOT VERIFIED)
+LIVE REAL TENDER RETEST (POŁCZYN) = NEXT (nie wykonany · FULL BIP / F5–Bid NOT VERIFIED GREEN)
 P7 / ATH rebuild = tylko Owner GO → AUDIT first
 ```
 
