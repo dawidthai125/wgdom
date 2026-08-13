@@ -56,8 +56,19 @@ export type {
 export {
   computePositionCostWithBomTechnology,
   findActiveTechnologyPacksForWorkId,
+  resolveLaborOnlyBomForWork,
   resolveTechnologyBomForWork,
 } from "@/lib/tender-position-cost/bom-technology-adapter";
+
+export {
+  OWNER_APPROVED_LABOR_ONLY_WORK_IDS,
+  OWNER_MATERIALS_REQUIRED_WORK_IDS,
+  OWNER_WAVE1_UNIT_HOLD_WORK_IDS,
+  isExplicitLaborOnlyWork,
+  isMaterialsRequiredWork,
+} from "@/lib/tender-position-cost/labor-only-classification";
+
+export type { LaborOnlyClassifyOpts } from "@/lib/tender-position-cost/labor-only-classification";
 
 export type {
   EquipmentComponentResult,

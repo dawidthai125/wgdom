@@ -42,7 +42,9 @@ export type BomTechnologyStatus =
   | "INVALID_COMPONENT"
   | "INVALID_POSITION_QUANTITY"
   | "EMPTY_RECIPE"
-  | "UNIT_CONVERSION_GAP";
+  | "UNIT_CONVERSION_GAP"
+  /** OUR-RATE-BOM-COVERAGE-01 — explicit Owner LABOR_ONLY (≠ MISSING_BOM). */
+  | "LABOR_ONLY";
 
 export type BomComponentResolved = {
   materialKey: string;
@@ -80,7 +82,29 @@ const STATUS_LABEL: Record<BomTechnologyStatus, string> = {
   INVALID_POSITION_QUANTITY: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
   EMPTY_RECIPE: "BRAK NORMY MATERIAŁOWEJ",
   UNIT_CONVERSION_GAP: "BRAK KONWERSJI JEDNOSTEK",
+  LABOR_ONLY: "LABOR ONLY — BOM NIE WYMAGANY (Owner)",
 };
+
+/**
+ * Explicit LABOR_ONLY resolve — materials[] empty · no TechnologyPack required.
+ * NEVER use for MISSING_BOM inference.
+ */
+export function resolveLaborOnlyBomForWork(opts: {
+  workId: string;
+  unit: string;
+  positionQuantity: number;
+}): BomTechnologyResolve {
+  const workId = String(opts.workId ?? "").trim();
+  const unit = String(opts.unit ?? "").trim();
+  const qty = opts.positionQuantity;
+  if (!workId) {
+    return emptyBom("NO_IDENTITY", "", unit, Number.isFinite(qty) ? qty : 0);
+  }
+  return {
+    ...emptyBom("LABOR_ONLY", workId, unit, Number.isFinite(qty) ? qty : 0),
+    statusLabelPl: STATUS_LABEL.LABOR_ONLY,
+  };
+}
 
 function foldUnit(u: string): string {
   return String(u || "")

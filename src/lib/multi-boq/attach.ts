@@ -1,5 +1,6 @@
 /**
  * MULTI-BOQ-01 — attach composed OfferBoq + provenance side-map to dwelling.
+ * MULTI-BOQ-WORK-IDENTITY-01 — after compose, REUSE Product Mapper before attach.
  */
 
 import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
@@ -10,6 +11,7 @@ import {
 } from "@/lib/multi-dwelling/store";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { composeDwellingOfferBoq } from "@/lib/multi-boq/compose";
+import { mapComposedDwellingOfferBoq } from "@/lib/multi-boq/map-composed-offer-boq";
 import { resolveDwellingCostSnapshotForPricing } from "@/lib/multi-boq/resolve";
 import type {
   DwellingCostArtifactRef,
@@ -17,6 +19,7 @@ import type {
   DwellingLineProvenance,
 } from "@/lib/multi-boq/types";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import type { CatalogWork } from "@/lib/work-catalog/types";
 
 export function invalidateDwellingCosting(opts: {
   tenderId: string;
@@ -47,7 +50,8 @@ export function invalidateDwellingCosting(opts: {
 }
 
 /**
- * Multi attach path: resolve dwelling snapshot → compose → attach.
+ * Multi attach path: resolve → compose → Product Mapper → attach.
+ * CONFLICT / empty snapshot fails at compose — Mapper is NOT invoked (D02 HOLD).
  * Does NOT use resolveKosztorysSnapshotForPricing.
  */
 export function attachComposedBoqToDwelling(opts: {
@@ -56,6 +60,9 @@ export function attachComposedBoqToDwelling(opts: {
   item?: TenderPipelineItem | null;
   artifacts?: DwellingCostArtifactRef[];
   package?: TenderPackage | null;
+  /** Optional Work Catalog inject (tests) — default: local store active works. */
+  works?: CatalogWork[];
+  mappedAt?: string;
 }): {
   ok: true;
   package: TenderPackage;
@@ -81,10 +88,18 @@ export function attachComposedBoqToDwelling(opts: {
     return { ok: false, reason: composed.reason, snapshot };
   }
 
+  // MULTI-BOQ-WORK-IDENTITY-01 — structural → mapOfferBoqDocument (REUSE)
+  const mappedDoc = mapComposedDwellingOfferBoq({
+    document: composed.document,
+    works: opts.works,
+    mappedAt: opts.mappedAt,
+    documentContext: `multi_boq:${dwellingId}`,
+  });
+
   const attached = attachOfferBoqToDwelling({
     tenderId: tid,
     dwellingId,
-    offerBoq: composed.document,
+    offerBoq: mappedDoc,
   });
   if (!attached.ok) {
     return { ok: false, reason: attached.reason, snapshot };

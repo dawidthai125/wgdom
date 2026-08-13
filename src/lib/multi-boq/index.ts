@@ -43,6 +43,11 @@ export { resolveDwellingCostSnapshotForPricing } from "@/lib/multi-boq/resolve";
 export { composeDwellingOfferBoq } from "@/lib/multi-boq/compose";
 
 export {
+  mapComposedDwellingOfferBoq,
+  type MapComposedDwellingOfferBoqInput,
+} from "@/lib/multi-boq/map-composed-offer-boq";
+
+export {
   attachComposedBoqToDwelling,
   invalidateDwellingCosting,
 } from "@/lib/multi-boq/attach";

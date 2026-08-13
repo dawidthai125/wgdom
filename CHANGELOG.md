@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.44 — Multi-BOQ work identity + LABOR_ONLY F5 wire (2026-08-13)
+
+- MULTI-BOQ-WORK-IDENTITY-01: compose → mapOfferBoqDocument → trusted catalogWorkId → F5
+- LABOR_ONLY (Owner allowlist) → materials[] puste · MISSING_BOM ≠ labor-only · Wave 1 materials = pending norms / GAP
+
 ## 2.66.43 — C-MODE-1a fallback removal (2026-08-12)
 
 - OfferBoq null → GAP (bez ath_priced / catalog / companyPricePln) · F5 UNCHANGED · ATH KEEP INPUT

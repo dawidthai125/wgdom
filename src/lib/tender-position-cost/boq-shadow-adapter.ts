@@ -18,9 +18,11 @@ import { normalizeWgdomCostUnit, type WgdomCostUnit } from "@/lib/wgdom-cost-cat
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import { computePositionCost } from "@/lib/tender-position-cost/engine";
 import {
+  resolveLaborOnlyBomForWork,
   resolveTechnologyBomForWork,
   type BomTechnologyResolve,
 } from "@/lib/tender-position-cost/bom-technology-adapter";
+import { isExplicitLaborOnlyWork } from "@/lib/tender-position-cost/labor-only-classification";
 import {
   resolveLaborInputFromOurWorkRate,
   type OurRateLaborResolve,
@@ -329,6 +331,8 @@ function collectMaterialGaps(
 }
 
 function collectBomGaps(bom: BomTechnologyResolve, gaps: ShadowGapCode[]): void {
+  // LABOR_ONLY — explicit Owner path · NEVER treat as MISSING_BOM
+  if (bom.status === "LABOR_ONLY") return;
   if (bom.status === "MISSING_BOM" || bom.status === "AMBIGUOUS_BOM") {
     pushGap(gaps, "BRAK_TECHNOLOGII_BOM");
   }
@@ -359,6 +363,11 @@ export type ComputeShadowPositionCostForLineInput = {
   dwellingId?: string | null;
   /** When true (default if tenderId set), ensure Owner Rate Question on Equipment/Transport GAP. */
   ensureOwnerQuestions?: boolean;
+  /**
+   * OUR-RATE-BOM-COVERAGE-01 — extra Owner-approved LABOR_ONLY workIds for this run.
+   * NEVER inferred from MISSING_BOM.
+   */
+  laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /**
@@ -594,28 +603,44 @@ export function computeShadowPositionCostForOfferBoqLine(
     pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
   }
 
-  const bom = resolveTechnologyBomForWork({
-    workId,
-    unit,
-    positionQuantity: line.quantity,
-    paintCoats: input.paintCoats,
-    packs: input.packs,
-    targetMaterialUnit: input.targetMaterialUnit,
+  // OUR-RATE-BOM-COVERAGE-01 — explicit LABOR_ONLY thin wire (F0 materials=[] contract)
+  const laborOnly = isExplicitLaborOnlyWork(workId, {
+    extraLaborOnlyWorkIds: input.laborOnlyWorkIds,
   });
-  base.bom = bom;
-  collectBomGaps(bom, gaps);
 
   let materialsResolved: MaterialSellResolve[] = [];
   let materials: PositionMaterialInput[];
 
-  if (bom.status === "OK") {
-    materialsResolved = bom.materialSpecs.map((spec) =>
-      resolveMaterialInputFromPriceMemory(store, spec, nowMs),
-    );
-    materials = materialsResolved.map((m) => m.material);
-    collectMaterialGaps(materialsResolved, gaps);
+  if (laborOnly) {
+    const bom = resolveLaborOnlyBomForWork({
+      workId,
+      unit,
+      positionQuantity: line.quantity,
+    });
+    base.bom = bom;
+    // materials[] empty → engine labor-only · materialCost = 0 · no BOM gap
+    materials = [];
   } else {
-    materials = [noBomMaterialPlaceholder()];
+    const bom = resolveTechnologyBomForWork({
+      workId,
+      unit,
+      positionQuantity: line.quantity,
+      paintCoats: input.paintCoats,
+      packs: input.packs,
+      targetMaterialUnit: input.targetMaterialUnit,
+    });
+    base.bom = bom;
+    collectBomGaps(bom, gaps);
+
+    if (bom.status === "OK") {
+      materialsResolved = bom.materialSpecs.map((spec) =>
+        resolveMaterialInputFromPriceMemory(store, spec, nowMs),
+      );
+      materials = materialsResolved.map((m) => m.material);
+      collectMaterialGaps(materialsResolved, gaps);
+    } else {
+      materials = [noBomMaterialPlaceholder()];
+    }
   }
 
   base.materialsResolved = materialsResolved;
@@ -645,6 +670,8 @@ export type ComputeShadowBoqPositionCostsInput = {
   tenderId?: string | null;
   dwellingId?: string | null;
   ensureOwnerQuestions?: boolean;
+  /** Extra Owner-approved LABOR_ONLY workIds (explicit only). */
+  laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /**
@@ -657,6 +684,7 @@ export function computeShadowPositionCostsForOfferBoq(
     computeShadowPositionCostForOfferBoqLine({
       line,
       store: input.store,
+      laborOnlyWorkIds: input.laborOnlyWorkIds,
       nowMs: input.nowMs,
       paintCoats: input.paintCoats,
       packs: input.packs,

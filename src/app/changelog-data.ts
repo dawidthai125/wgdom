@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-13",
+    version: "2.66.44",
+    label: "Multi-BOQ work identity + LABOR_ONLY F5 wire",
+    items: [
+      {
+        type: "new",
+        text: "MULTI-BOQ-WORK-IDENTITY-01: Multi-BOQ compose → mapOfferBoqDocument → trusted catalogWorkId → F5 (bez nowego matchera). OUR-RATE-BOM-COVERAGE-01: jawne LABOR_ONLY (Owner allowlist) → materials[] puste · BOM nie wymagany · MISSING_BOM ≠ labor-only. Wave 1 MATERIALS_REQUIRED = pending Owner normy / GAP. companyPricePln ≠ OUR RATE.",
+      },
+    ],
+  },
+  {
     date: "2026-08-12",
     version: "2.66.43",
     label: "C-MODE-1a — usunięcie legacy Bid fallback",
