@@ -140,10 +140,14 @@ const ALLOWED_HOSTS = ["kb.pl", "cennikremontow.pl", "sccot.pl", "extradom.pl"];
   ok("T2 plaster does not drop grooves from source top-2", listWorkRatePass2CategoryKeysForSource("kb_pl").includes("grooves"));
 }
 
-// ——— T3 MAX remains 2 ———
+// ——— T3 MAX remains 2 (per-work fetch budget) ———
 {
   eq("T3 MAX constant", WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE, 2);
-  eq("T3 kb keys capped", listWorkRatePass2CategoryKeysForSource("kb_pl").length, 2);
+  eq("T3 kb inventory size", listWorkRatePass2CategoryKeysForSource("kb_pl").length, 2);
+  ok(
+    "T3 CR inventory may exceed MAX (painting+electrical+plumbing)",
+    listWorkRatePass2CategoryKeysForSource("cennikremontow_pl").length >= 3,
+  );
   // Even if work prefs many, work list capped by MAX
   const keys = listWorkRatePass2CategoryKeysForWork({
     workId: "x",
@@ -151,6 +155,75 @@ const ALLOWED_HOSTS = ["kb.pl", "cennikremontow.pl", "sccot.pl", "extradom.pl"];
     sourceId: "kb_pl",
   });
   ok("T3 work keys <= MAX", keys.length <= WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE);
+}
+
+// ——— T3b IR Wave-1 CR electrical / plumbing discovery (Owner A1/A2) ———
+{
+  const ELEC_URL = "https://cennikremontow.pl/instalacje-elektryczne-cennik";
+  const PLUMB_URL =
+    "https://cennikremontow.pl/instalacje-wodno-kanalizacyjno-gazowe-cennik";
+  eq(
+    "T3b resolve CR electrical",
+    resolveWorkRatePass2Url("cennikremontow_pl", "electrical"),
+    ELEC_URL,
+  );
+  eq(
+    "T3b resolve CR plumbing",
+    resolveWorkRatePass2Url("cennikremontow_pl", "plumbing"),
+    PLUMB_URL,
+  );
+  eq(
+    "T3b tablica family",
+    resolveWorkRateWorkFamily({
+      workId: "p2b-tablica-rozdzielcza-mieszkaniowa-szt",
+      namePl: "Tablica rozdzielcza mieszkaniowa",
+    }),
+    "electrical",
+  );
+  eq(
+    "T3b podejscie family",
+    resolveWorkRateWorkFamily({
+      workId: "p2b-podejscie-wod-kan-mb",
+      namePl: "Podejście wodociągowo-kanalizacyjne łączone",
+    }),
+    "plumbing",
+  );
+  const tablicaKeys = listWorkRatePass2CategoryKeysForWork({
+    workId: "p2b-tablica-rozdzielcza-mieszkaniowa-szt",
+    namePl: "Tablica rozdzielcza mieszkaniowa",
+    sourceId: "cennikremontow_pl",
+  });
+  ok("T3b tablica → electrical HIT", tablicaKeys.includes("electrical"));
+  eq("T3b tablica work keys length 1", tablicaKeys.length, 1);
+  const podejscieKeys = listWorkRatePass2CategoryKeysForWork({
+    workId: "p2b-podejscie-wod-kan-mb",
+    namePl: "Podejście wodociągowo-kanalizacyjne łączone",
+    sourceId: "cennikremontow_pl",
+  });
+  ok("T3b podejscie → plumbing HIT", podejscieKeys.includes("plumbing"));
+  const wykwityKeys = listWorkRatePass2CategoryKeysForWork({
+    workId: "cc-w2-wykwity-zacieki",
+    namePl: "Skasowanie wykwitów / zacieków",
+    sourceId: "cennikremontow_pl",
+  });
+  eq("T3b wykwity PASS2 empty (repairs HOLD)", wykwityKeys.length, 0);
+  eq(
+    "T3b repairs NOT allowlisted",
+    resolveWorkRatePass2Url("cennikremontow_pl", "repairs"),
+    null,
+  );
+  const elecLookup = resolveWorkRateSelectiveLookupRequest({
+    sourceId: "cennikremontow_pl",
+    query: "Tablica rozdzielcza mieszkaniowa",
+    categoryKey: "electrical",
+  });
+  ok("T3b electrical lookup ok", elecLookup.ok === true && elecLookup.url === ELEC_URL);
+  const plumbLookup = resolveWorkRateSelectiveLookupRequest({
+    sourceId: "cennikremontow_pl",
+    query: "Podejście wodociągowo-kanalizacyjne łączone",
+    categoryKey: "plumbing",
+  });
+  ok("T3b plumbing lookup ok", plumbLookup.ok === true && plumbLookup.url === PLUMB_URL);
 }
 
 // ——— T4 no new host ———

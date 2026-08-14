@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.59",
+    label: "PASS2 CR discovery amendment (local)",
+    items: [
+      {
+        type: "improve",
+        text: "IE-LABOR IR Wave-1 PASS2/CR DISCOVERY AMENDMENT (local, undeployed): CennikRemontow PASS2 electrical→instalacje-elektryczne-cennik (Tablica) · plumbing→instalacje-wodno-kanalizacyjno-gazowe-cennik (Podejście) · family routing tablica/podejście · Edge allowlist mirror · Wykwity HOLD (no repairs PASS2) · ZERO new hosts/mappings/aliases · ZERO Accept / OUR RATE / margin · SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.58",
     label: "IE Labor Selective Research Identity-Ready Wave-1 (local)",
     items: [

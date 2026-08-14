@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.59 — PASS2 CR discovery amendment (local · 2026-08-14)
+
+**Scope:** Owner A1/A2 CR PASS2 discovery · **ZERO COMMIT** do osobnego Owner GO.
+
+- CR `electrical` → `instalacje-elektryczne-cennik` (Tablica)
+- CR `plumbing` → `instalacje-wodno-kanalizacyjno-gazowe-cennik` (Podejście)
+- Family routing tablica/podejście · Edge allowlist mirror · Wykwity HOLD
+- ZERO new hosts/mappings/aliases · ZERO Accept / OUR RATE / margin
+- Tests: `scripts/test-ie-labor-pass2-cr-discovery-amendment.mjs` · `test-work-rate-pass2-allowlist-wave-1.mjs`
+
 ## 2.66.58 — IE Labor Selective Research Identity-Ready Wave-1 (local · 2026-08-14)
 
 **Scope:** jeden batch research dla 3 LABOR identity-ready · **ZERO COMMIT** do osobnego Owner GO.

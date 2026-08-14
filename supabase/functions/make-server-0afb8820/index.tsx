@@ -4810,7 +4810,9 @@ function workRateBuildSelectiveUrl(sourceId: string, query: string): string | nu
 
 /**
  * PASS2 Owner category allowlist — mirrors WORK_RATE_PASS2_CATEGORY_ALLOWLIST (src).
- * WR-PASS2-ALLOWLIST-WAVE-1 Option D: kb grooves+plaster · CR painting · MAX=2.
+ * WR-PASS2-ALLOWLIST-WAVE-1 Option D: kb grooves+plaster · CR painting · MAX=2 per work.
+ * IE-LABOR IR Wave-1 CR DISCOVERY AMENDMENT (Owner A1/A2):
+ *   CR electrical · CR plumbing (KEEP-4 only · no repairs / no new hosts).
  * Key: `${sourceId}::${categoryKey}` → https URL on allowlisted host only.
  */
 const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({
@@ -4819,6 +4821,10 @@ const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({
   "kb_pl::plaster":
     "https://kb.pl/cenniki/uslugi/cennik-gladzi-gipsowej-i-szpachlowania-scian-w-calej-polsce/",
   "cennikremontow_pl::painting": "https://cennikremontow.pl/malowanie-cennik",
+  "cennikremontow_pl::electrical":
+    "https://cennikremontow.pl/instalacje-elektryczne-cennik",
+  "cennikremontow_pl::plumbing":
+    "https://cennikremontow.pl/instalacje-wodno-kanalizacyjno-gazowe-cennik",
 });
 
 function workRateHostAllowed(urlStr: string): boolean {

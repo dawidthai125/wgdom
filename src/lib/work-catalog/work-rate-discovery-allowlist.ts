@@ -22,6 +22,8 @@ export type WorkRateCategoryKey =
   | "repairs"
   | "grooves"
   | "sealing_protection"
+  | "electrical"
+  | "plumbing"
   | "unknown";
 
 export type WorkRateWorkFamily =
@@ -46,11 +48,14 @@ export type WorkRatePass2AllowlistEntry = {
 
 /**
  * Production PASS2 allowlist — Owner-curated only.
- * WR-PASS2-ALLOWLIST-WAVE-1 (Option D · MAX=2):
+ * WR-PASS2-ALLOWLIST-WAVE-1 (Option D · MAX=2 per work fetch):
  *   kb_pl: grooves (KEEP, first) → plaster L1 (second)
  *   cennikremontow_pl: painting P1
+ * IE-LABOR IR Wave-1 PASS2 / CR DISCOVERY AMENDMENT (Owner A1/A2):
+ *   cennikremontow_pl: electrical → instalacje-elektryczne-cennik (Tablica)
+ *   cennikremontow_pl: plumbing → instalacje-wodno-kanalizacyjno-gazowe-cennik (Podejście)
  * KB-BRUZDY-POLICY-01: grooves synonym „szpachlowanie bruzd po kablach” unchanged.
- * repairs / sealing_protection / KB painting / L2–L3 DEFERRED (SOURCE GAP OPEN).
+ * repairs / sealing_protection / KB painting / L2–L3 / Wykwity PASS2 DEFERRED (SOURCE GAP OPEN).
  */
 export const WORK_RATE_PASS2_CATEGORY_ALLOWLIST: readonly WorkRatePass2AllowlistEntry[] =
   Object.freeze([
@@ -68,6 +73,16 @@ export const WORK_RATE_PASS2_CATEGORY_ALLOWLIST: readonly WorkRatePass2Allowlist
       sourceId: "cennikremontow_pl",
       categoryKey: "painting",
       url: "https://cennikremontow.pl/malowanie-cennik",
+    },
+    {
+      sourceId: "cennikremontow_pl",
+      categoryKey: "electrical",
+      url: "https://cennikremontow.pl/instalacje-elektryczne-cennik",
+    },
+    {
+      sourceId: "cennikremontow_pl",
+      categoryKey: "plumbing",
+      url: "https://cennikremontow.pl/instalacje-wodno-kanalizacyjno-gazowe-cennik",
     },
   ]);
 
@@ -105,6 +120,11 @@ export function resolveWorkRatePass2Url(
   return row.url;
 }
 
+/**
+ * Inventory of allowlisted category keys for a source (no MAX truncate).
+ * MAX applies only when selecting keys for a concrete work fetch
+ * (`listWorkRatePass2CategoryKeysForWork`).
+ */
 export function listWorkRatePass2CategoryKeysForSource(
   sourceId: WorkRateAuthorizedSourceId,
 ): string[] {
@@ -115,7 +135,6 @@ export function listWorkRatePass2CategoryKeysForSource(
     if (seen.has(e.categoryKey)) continue;
     seen.add(e.categoryKey);
     keys.push(e.categoryKey);
-    if (keys.length >= WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE) break;
   }
   return keys;
 }
@@ -131,8 +150,8 @@ const FAMILY_TO_CATEGORY: Record<WorkRateWorkFamily, readonly string[]> = {
   repairs: ["repairs"],
   demolition: ["repairs"],
   masonry: ["masonry_plaster"],
-  electrical: [],
-  plumbing: [],
+  electrical: ["electrical"],
+  plumbing: ["plumbing"],
   unknown: [],
 };
 
@@ -162,8 +181,22 @@ export function resolveWorkRateWorkFamily(input: {
     return "sealing_protection";
   if (/wykuc|demontaz|kucie/.test(blob)) return "demolition";
   if (/murars|murowan/.test(blob)) return "masonry";
+  // IR Wave-1 Tablica / electrical specialty (Owner A1) — before generic elektr.
+  if (
+    /p2b-tablica|tablica\s*rozdziel|rozdzielcz|skrzynk\w*\s*rozdziel/.test(blob)
+  ) {
+    return "electrical";
+  }
   if (/elektr/.test(blob)) return "electrical";
-  if (/hydraul|wod.-kan/.test(blob)) return "plumbing";
+  // IR Wave-1 Podejście / plumbing specialty (Owner A2).
+  if (
+    /p2b-podejscie|podejsc\w*|wod.?kan|wodociagowo.?kanaliz|wodno.?kanaliz/.test(
+      blob,
+    )
+  ) {
+    return "plumbing";
+  }
+  if (/hydraul/.test(blob)) return "plumbing";
   return "unknown";
 }
 
