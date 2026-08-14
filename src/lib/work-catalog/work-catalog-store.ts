@@ -13,6 +13,7 @@ import {
 } from "@/lib/work-catalog/market-sources";
 import { isMarketRegionCode } from "@/lib/work-catalog/market-regions";
 import { isTradeId, TRADE_IDS, type TradeId } from "@/lib/work-catalog/trades";
+import { preferAuthoritativeWorkCatalog } from "@/lib/work-catalog/work-catalog-authority";
 import { defaultWorkCatalogStore } from "@/lib/work-catalog/work-catalog-migrate";
 import {
   WORK_CATALOG_SCHEMA_VERSION,
@@ -330,11 +331,15 @@ export function normalizeWorkCatalogStore(raw: unknown): WorkCatalogStore {
 
 /**
  * Merge LWW (D5) — porównanie `updatedAt` na poziomie całego store.
- * Bez synchronizacji chmury; używane przez warstwę cloud-sync w P1.11.
+ * WORK-CATALOG-MIGRATION-SAFETY-01 — empty / `legacy-*`-only MUST NOT win over
+ * an authoritative catalog even with a newer `updatedAt`.
  */
 export function mergeWorkCatalogStore(local: unknown, cloud: unknown): WorkCatalogStore {
   const left = normalizeWorkCatalogStore(local);
   const right = normalizeWorkCatalogStore(cloud);
+  const authoritative = preferAuthoritativeWorkCatalog(left, right);
+  if (authoritative) return authoritative;
+
   const leftTs = parseUpdatedAtMs(left.updatedAt);
   const rightTs = parseUpdatedAtMs(right.updatedAt);
 

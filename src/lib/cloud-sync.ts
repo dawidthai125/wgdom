@@ -2843,7 +2843,10 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
     }
 
     const { finalizeWorkCatalogAfterDeferredMerge } = await import("@/lib/work-catalog-bootstrap");
-    await finalizeWorkCatalogAfterDeferredMerge();
+    const workCatalogIdx = keys.indexOf(WORK_CATALOG_STORAGE_KEY);
+    await finalizeWorkCatalogAfterDeferredMerge({
+      cloud: workCatalogIdx >= 0 ? cloudValues[workCatalogIdx] : undefined,
+    });
 
     if (keys.includes(OPERATIONAL_NOTES_KEY)) {
       await pullOperationalNotesAuxFromCloud();

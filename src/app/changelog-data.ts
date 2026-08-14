@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.51",
+    label: "Work catalog migration safety (local)",
+    items: [
+      {
+        type: "fix",
+        text: "WORK-CATALOG-MIGRATION-SAFETY-01 — pusta sesja / 34× legacy-* NIE nadpisuje authoritative Work Catalog (merge + persist + bootstrap). Brak twardego 460. Legalna migracja tylko gdy chmura pusta. Marża/OUR RATE/Accept UNCHANGED. SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.50",
     label: "Catalog UI unification (local)",
     items: [

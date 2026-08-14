@@ -196,6 +196,48 @@ const callsBefore = persistCalls.length;
 await finalizeWorkCatalogAfterDeferredMerge();
 assert(persistCalls.length > callsBefore, "B8 persistKey batch-set after migrate");
 
+// SAFETY-01 — cloud catalog present → skip migrate even when local empty
+reset();
+seedLegacy();
+saveWorkCatalogStoreLocal(defaultWorkCatalogStore(MIGRATED_AT));
+const cloudFull = {
+  ...createEmptyWorkCatalogStore("2026-08-13T19:03:25.349Z"),
+  catalogs: {
+    wroclaw: {
+      region: "wroclaw",
+      updatedAt: "2026-08-13T19:03:25.349Z",
+      works: [
+        {
+          id: "cc-p0c-w1-zaprawianie-bruzd",
+          tradeId: "PRZYGOTOWANIE",
+          namePl: "Zaprawianie / zamurowanie bruzd",
+          unit: "mb",
+          companyPricePln: 35,
+          updatedAt: "2026-08-13T19:03:25.349Z",
+          freshnessStatus: "ok",
+          keywords: [],
+          active: true,
+          favorite: false,
+          usageCount: 0,
+          source: "custom",
+        },
+      ],
+    },
+    dolnyslask: createEmptyWorkCatalogStore("2026-08-13T19:03:25.349Z").catalogs.dolnyslask,
+  },
+  updatedAt: "2026-08-13T19:03:25.349Z",
+};
+const callsBeforeCloud = persistCalls.length;
+const cloudSkip = await finalizeWorkCatalogAfterDeferredMerge({ cloud: cloudFull });
+assert(cloudSkip.migrated === false, "SAFETY-01 cloud present not migrated");
+assertEq(cloudSkip.decision.reason, "cloud_catalog_present", "SAFETY-01 skip cloud_catalog_present");
+assertEq(persistCalls.length, callsBeforeCloud, "SAFETY-01 no persist when cloud present");
+assertEq(
+  loadWorkCatalogStoreLocal().catalogs.wroclaw.works[0]?.id,
+  "cc-p0c-w1-zaprawianie-bruzd",
+  "SAFETY-01 rehydrate LS from cloud",
+);
+
 // Guard SSOT — legacy rates required
 reset();
 seedLegacy();

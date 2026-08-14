@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.51 — Work catalog migration safety (local · 2026-08-14)
+
+**Scope:** lokalna implementacja · **ZERO COMMIT** do osobnego Owner GO.
+
+- Guard: empty / `legacy-*`-only store nie wygrywa LWW ani persist nad katalogiem z nie-synthetic ID
+- `finalizeWorkCatalogAfterDeferredMerge` dostaje snapshot cloud z deferred bootstrap
+- Legalna migracja P1.5 tylko gdy chmura pusta · marża/OUR RATE/Accept bez zmian
+- SOURCE GAP **OPEN** · W2 **BLOCKED**
+
 ## 2.66.50 — Catalog UI unification (local · 2026-08-14)
 
 **Scope:** lokalna implementacja (undeployed) · **ZERO COMMIT** do osobnego Owner GO.

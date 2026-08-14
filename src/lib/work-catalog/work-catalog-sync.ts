@@ -4,6 +4,12 @@
  */
 
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
+import {
+  WorkCatalogDestructivePersistError,
+  isDestructiveWorkCatalogReplace,
+  isEmptyWorkCatalogStore,
+  isLegacySyntheticOnlyStore,
+} from "@/lib/work-catalog/work-catalog-authority";
 import type { WorkBundleStore, WorkCatalogStore } from "@/lib/work-catalog/types";
 import {
   WORK_BUNDLE_STORAGE_KEY,
@@ -58,6 +64,36 @@ export async function loadWorkCatalogStore(): Promise<WorkCatalogStore> {
   }
 }
 
+type CloudWorkCatalogBaseline =
+  | { status: "present"; store: WorkCatalogStore }
+  | { status: "missing" }
+  | { status: "unknown" };
+
+async function loadCloudWorkCatalogBaseline(): Promise<CloudWorkCatalogBaseline> {
+  try {
+    const [cloud] = await fetchKeysFromCloud([WORK_CATALOG_STORAGE_KEY]);
+    if (cloud == null) return { status: "missing" };
+    return { status: "present", store: normalizeWorkCatalogStore(cloud) };
+  } catch {
+    return { status: "unknown" };
+  }
+}
+
+function assertWorkCatalogPersistAllowed(next: WorkCatalogStore, local: WorkCatalogStore, cloud: CloudWorkCatalogBaseline): void {
+  if (cloud.status === "present" && isDestructiveWorkCatalogReplace(next, cloud.store)) {
+    throw new WorkCatalogDestructivePersistError();
+  }
+  if (
+    cloud.status === "unknown"
+    && (isLegacySyntheticOnlyStore(next) || isEmptyWorkCatalogStore(next))
+  ) {
+    throw new WorkCatalogDestructivePersistError();
+  }
+  if (isDestructiveWorkCatalogReplace(next, local)) {
+    throw new WorkCatalogDestructivePersistError();
+  }
+}
+
 /** Zapis localStorage + `persistKey` (batch-set przez cloud-sync). */
 export async function saveWorkCatalogStore(
   store: WorkCatalogStore,
@@ -65,6 +101,9 @@ export async function saveWorkCatalogStore(
 ): Promise<void> {
   const updatedAt = options.updatedAtIso ?? store.updatedAt;
   const next = normalizeWorkCatalogStore({ ...store, updatedAt });
+  const cloud = await loadCloudWorkCatalogBaseline();
+  const local = loadWorkCatalogStoreLocal();
+  assertWorkCatalogPersistAllowed(next, local, cloud);
   saveWorkCatalogStoreLocal(next, { updatedAtIso: next.updatedAt });
   await persistKey(WORK_CATALOG_STORAGE_KEY, next);
 }

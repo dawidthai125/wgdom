@@ -119,6 +119,18 @@ export {
   type SaveWorkCatalogStoreLocalOptions,
 } from "@/lib/work-catalog/work-catalog-store";
 
+export {
+  LEGACY_SYNTHETIC_WORK_ID_PREFIX,
+  WorkCatalogDestructivePersistError,
+  isAuthoritativeWorkCatalogStore,
+  isDestructiveWorkCatalogReplace,
+  isEmptyWorkCatalogStore,
+  isLegacySyntheticOnlyStore,
+  isLegacySyntheticWorkId,
+  listAllCatalogWorks,
+  preferAuthoritativeWorkCatalog,
+} from "@/lib/work-catalog/work-catalog-authority";
+
 // ─── P1.8 — WorkBundleStore persist ────────────────────────────────────────
 
 export {

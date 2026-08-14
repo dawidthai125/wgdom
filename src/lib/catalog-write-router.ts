@@ -12,6 +12,7 @@ import {
 } from "@/lib/app-settings";
 import { appendWorkCatalogRateHistoryIfChanged } from "@/lib/catalog-rate-history";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
+import { WorkCatalogDestructivePersistError } from "@/lib/work-catalog/work-catalog-authority";
 import {
   saveWorkCatalogStore,
   type SaveWorkCatalogStoreCloudOptions,
@@ -20,7 +21,7 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 
 export type { CatalogWriteMode };
 
-export type CatalogWriteBlockReason = "legacy_only_blocks_work";
+export type CatalogWriteBlockReason = "legacy_only_blocks_work" | "destructive_catalog_replace";
 
 export type RoutedSaveResult =
   | { ok: true; saved: true }
@@ -61,6 +62,10 @@ export async function saveWorkCatalogRouted(
     }
     return { ok: true, saved: true };
   } catch (error) {
+    if (error instanceof WorkCatalogDestructivePersistError) {
+      console.warn("CATALOG WRITE ROUTER", { blocked: error.code });
+      return { ok: true, saved: false, blocked: error.code };
+    }
     return { ok: false, error };
   }
 }
