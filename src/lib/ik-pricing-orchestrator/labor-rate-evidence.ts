@@ -63,6 +63,16 @@ export type LaborRateEvidencePack = {
     rateSource: "candidate.suggestedRatePln";
     observationsSource: "candidate.observations";
     companyPricePlnExcluded: true;
+    /** Discovery metadata only — never invents rate. */
+    discovery?: {
+      synonymUsed: string | null;
+      discoveryMethods: Array<"PASS1_CANONICAL" | "PASS2_CATEGORY">;
+      observationProvenance: Array<{
+        sourceId: string;
+        discoveredUrl: string;
+        discoveryMethod: "PASS1_CANONICAL" | "PASS2_CATEGORY" | "UNKNOWN";
+      }>;
+    };
   };
   builtAt: string;
   httpFetchCount: number | null;
@@ -143,6 +153,14 @@ export function buildLaborRateEvidencePack(
 
   const builtAt = ctx?.builtAt?.trim() || new Date().toISOString();
 
+  const methods = Array.isArray(candidate.discoveryMethods)
+    ? candidate.discoveryMethods
+    : [];
+  const primaryMethod: "PASS1_CANONICAL" | "PASS2_CATEGORY" | "UNKNOWN" =
+    methods.includes("PASS2_CATEGORY") && methods.includes("PASS1_CANONICAL")
+      ? "PASS1_CANONICAL"
+      : methods[0] ?? "UNKNOWN";
+
   return {
     workId: candidate.workId,
     namePl: candidate.namePl,
@@ -166,6 +184,15 @@ export function buildLaborRateEvidencePack(
       rateSource: "candidate.suggestedRatePln",
       observationsSource: "candidate.observations",
       companyPricePlnExcluded: true,
+      discovery: {
+        synonymUsed: candidate.synonymUsed ?? null,
+        discoveryMethods: [...methods],
+        observationProvenance: observations.map((o) => ({
+          sourceId: o.sourceId,
+          discoveredUrl: o.sourceUrl,
+          discoveryMethod: primaryMethod,
+        })),
+      },
     },
     builtAt,
     httpFetchCount:

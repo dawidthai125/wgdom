@@ -1,9 +1,12 @@
 /**
- * WORK-RATE-SELECTIVE-RESEARCH-02 — selective lookup ports (Edge + fixtures).
- * NEVER catalogue · ONE URL · allowlisted hosts only · client nie podaje URL.
+ * WORK-RATE-SELECTIVE-RESEARCH-02 / DISCOVERY-01 — selective lookup ports.
+ * NEVER catalogue · ONE URL per call · allowlisted hosts only · client nie podaje URL.
  */
 
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
+import {
+  resolveWorkRatePass2Url,
+} from "@/lib/work-catalog/work-rate-discovery-allowlist";
 import {
   buildWorkRateSelectiveRequestUrl,
   isWorkRateSelectiveUrlAllowed,
@@ -24,17 +27,44 @@ export function createNullWorkRateSelectiveLookup(): WorkRateSelectiveLookupPort
   };
 }
 
+function fixtureKey(sourceId: WorkRateSourceId, categoryKey?: string | null): string {
+  const cat = String(categoryKey || "").trim();
+  if (cat && cat !== "default") return `${sourceId}::${cat}`;
+  return sourceId;
+}
+
 export function createFixtureWorkRateSelectiveLookup(
-  fixtures: Partial<Record<WorkRateSourceId, { html: string; finalUrl?: string }>>,
+  fixtures: Partial<
+    Record<string, { html: string; finalUrl?: string; requestUrl?: string }>
+  >,
 ): WorkRateSelectiveLookupPort {
   return {
     async lookup(req: WorkRateSelectiveLookupRequest): Promise<WorkRateSelectiveLookupResult> {
-      const fx = fixtures[req.sourceId];
+      const cat = String(req.categoryKey || "").trim();
+      if (cat && cat !== "default") {
+        const pass2 = resolveWorkRatePass2Url(req.sourceId, cat);
+        if (!pass2) {
+          return {
+            ok: false,
+            error: "unknown_category_key",
+            httpFetchCount: 0,
+            rateGap: true,
+          };
+        }
+      }
+      const key = fixtureKey(req.sourceId, req.categoryKey);
+      const fx = fixtures[key] ?? (cat ? undefined : fixtures[req.sourceId]);
       if (!fx?.html) {
         return { ok: false, error: "FIXTURE_MISS", httpFetchCount: 0, rateGap: true };
       }
       const requestUrl =
-        buildWorkRateSelectiveRequestUrl({ sourceId: req.sourceId, query: req.query }) ||
+        fx.requestUrl ||
+        (cat && cat !== "default"
+          ? resolveWorkRatePass2Url(req.sourceId, cat)
+          : buildWorkRateSelectiveRequestUrl({
+              sourceId: req.sourceId,
+              query: req.query,
+            })) ||
         `https://kb.pl/?s=fixture`;
       const page: WorkRateSelectiveRawPage = {
         sourceId: req.sourceId,
@@ -50,7 +80,8 @@ export function createFixtureWorkRateSelectiveLookup(
 }
 
 /**
- * Production: Edge proxy buduje URL z sourceId+query (anti-SSRF).
+ * Production: Edge proxy buduje URL z sourceId (+ optional categoryKey) — anti-SSRF.
+ * Arbitrary `url` in body is rejected by Edge.
  */
 export function createEdgeWorkRateSelectiveLookup(opts?: {
   fetchImpl?: typeof fetch;
@@ -67,24 +98,41 @@ export function createEdgeWorkRateSelectiveLookup(opts?: {
       if (query.length < 2) {
         return { ok: false, error: "EMPTY_QUERY", httpFetchCount: 0, rateGap: true };
       }
-      const preview = buildWorkRateSelectiveRequestUrl({
-        sourceId: req.sourceId,
-        query,
-      });
-      if (!preview || !isWorkRateSelectiveUrlAllowed(preview)) {
-        return { ok: false, error: "URL_NOT_ALLOWED", httpFetchCount: 0, rateGap: true };
+      const categoryKey = String(req.categoryKey || "").trim() || null;
+      if (categoryKey && categoryKey !== "default") {
+        const pass2 = resolveWorkRatePass2Url(req.sourceId, categoryKey);
+        if (!pass2 || !isWorkRateSelectiveUrlAllowed(pass2)) {
+          return {
+            ok: false,
+            error: "unknown_category_key",
+            httpFetchCount: 0,
+            rateGap: true,
+          };
+        }
+      } else {
+        const preview = buildWorkRateSelectiveRequestUrl({
+          sourceId: req.sourceId,
+          query,
+        });
+        if (!preview || !isWorkRateSelectiveUrlAllowed(preview)) {
+          return { ok: false, error: "URL_NOT_ALLOWED", httpFetchCount: 0, rateGap: true };
+        }
       }
       try {
+        const body: Record<string, unknown> = {
+          sourceId: req.sourceId,
+          query,
+          workId: req.workId,
+          unit: req.unit,
+          regionScope: req.regionScope,
+        };
+        if (categoryKey && categoryKey !== "default") {
+          body.categoryKey = categoryKey;
+        }
         const res = await fetchImpl(`${base}/work-rate-selective-lookup`, {
           method: "POST",
           headers: { ...API_HEADERS, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sourceId: req.sourceId,
-            query,
-            workId: req.workId,
-            unit: req.unit,
-            regionScope: req.regionScope,
-          }),
+          body: JSON.stringify(body),
           signal: AbortSignal.timeout(14_000),
         });
         const data = (await res.json().catch(() => ({}))) as {

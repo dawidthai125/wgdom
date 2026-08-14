@@ -51,7 +51,8 @@ globalThis.localStorage = {
   clear: () => {},
 };
 
-const NOW = Date.parse("2026-08-12T10:00:00.000Z");
+/** NOW must be ≥ wall-clock Accept timestamps (accept uses new Date()). */
+const NOW = Date.parse("2026-08-20T10:00:00.000Z");
 const T = "2026-08-12T09:00:00.000Z";
 
 function loadHtml(name) {

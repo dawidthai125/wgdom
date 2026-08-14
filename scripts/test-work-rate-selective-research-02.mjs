@@ -64,8 +64,9 @@ globalThis.fetch = async () => {
   throw new Error("UNEXPECTED_LIVE_FETCH");
 };
 
-const NOW = Date.parse("2026-08-12T10:00:00.000Z");
-const T_FRESH = "2026-08-11T12:00:00.000Z";
+/** NOW must be ≥ wall-clock Accept timestamps (accept uses new Date()). */
+const NOW = Date.parse("2026-08-20T10:00:00.000Z");
+const T_FRESH = "2026-08-14T12:00:00.000Z";
 const T_STALE = "2026-04-01T12:00:00.000Z";
 const WORK_ID = "cw.paint.walls";
 const UNIT = "m2";

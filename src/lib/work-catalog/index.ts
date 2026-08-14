@@ -483,7 +483,33 @@ export {
   type RunSelectiveWorkRateResearchResult,
   type WorkRateResearchCandidate,
   type WorkRateResearchRejectRow,
+  type WorkRateResearchTelemetryCode,
+  type WorkRateResearchTelemetryRow,
 } from "@/lib/work-catalog/work-rate-research";
+
+export {
+  WORK_RATE_PASS2_CATEGORY_ALLOWLIST,
+  WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE,
+  getWorkRatePass2Allowlist,
+  isWorkRatePass2AllowlistEmpty,
+  listWorkRatePass2CategoryKeysForSource,
+  listWorkRatePass2CategoryKeysForWork,
+  normalizeWorkRateDiscoveryUrl,
+  resolveWorkRatePass1CanonicalUrl,
+  resolveWorkRatePass2Url,
+  resolveWorkRateSelectiveLookupRequest,
+  resolveWorkRateWorkFamily,
+  setWorkRatePass2AllowlistForTests,
+  type WorkRateCategoryKey,
+  type WorkRatePass2AllowlistEntry,
+  type WorkRateWorkFamily,
+} from "@/lib/work-catalog/work-rate-discovery-allowlist";
+
+export {
+  WORK_RATE_OWNER_SYNONYMS,
+  detectWorkRateSynonymUsed,
+  listWorkRateMatchNamesPl,
+} from "@/lib/work-catalog/work-rate-synonyms";
 
 export {
   acceptWorkRateResearchCandidate,

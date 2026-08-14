@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-14",
+    version: "2.66.46",
+    label: "Work Rate Research Discovery-01 INFRA PASS2 (local)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-RATE-RESEARCH-DISCOVERY-01 INFRA PASS2 (local, undeployed): Owner-curated category URL allowlist plumbing — client→sourceId+categoryKey (nigdy URL) · Edge resolve · PASS1 canonical zachowany · pusta allowlista = PASS1 only · synonimy Owner-only (match) · telemetry NO_PAGE_HIT/PARSE_EMPTY/… · Evidence provenance · ZERO invent PLN · ZERO niche claim (wykwity/bruzdy/folia = SOURCE GAP OPEN) · F5/qualify/Accept/OUR RATE UNCHANGED.",
+      },
+    ],
+  },
+  {
     date: "2026-08-13",
     version: "2.66.45",
     label: "IK E2E wire W0–W2 + Labor Expert Recommendation (local)",

@@ -16,7 +16,13 @@ export interface WorkRateSelectiveLookupRequest {
   workId: string;
   unit: WgdomCostUnit;
   regionScope?: WorkRateRegionScope;
-  /** Hard bound — zawsze 1 URL. */
+  /**
+   * PASS2: Owner category key. Edge resolves URL from allowlist.
+   * Absent / "default" ⇒ PASS1 canonical.
+   * Client MUST NOT send `url`.
+   */
+  categoryKey?: string | null;
+  /** Hard bound — zawsze 1 URL per lookup call. */
   maxUrls?: 1;
 }
 

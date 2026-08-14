@@ -4773,7 +4773,11 @@ app.post("/make-server-0afb8820/mmr-diy-selective-lookup", async (c) => {
   }
 });
 
-/** WORK-RATE-SELECTIVE-RESEARCH-02 — selective work rate page fetch (ONE URL · allowlist · no catalogue). */
+/**
+ * WORK-RATE-SELECTIVE-RESEARCH-02 + DISCOVERY-01 PASS2 —
+ * selective work rate page fetch (ONE URL · allowlist · no catalogue).
+ * Client MUST NOT send free-form `url` — only sourceId + optional categoryKey.
+ */
 const WORK_RATE_ALLOWED_HOSTS = new Set([
   "kb.pl",
   "www.kb.pl",
@@ -4785,10 +4789,10 @@ const WORK_RATE_ALLOWED_HOSTS = new Set([
   "www.cennikremontow.pl",
 ]);
 
+/** PASS1 canonical — mirrors WORK_RATE_CANONICAL_CENNIK_URL (src). */
 function workRateBuildSelectiveUrl(sourceId: string, query: string): string | null {
   const term = String(query || "").trim();
   if (term.length < 2) return null;
-  // Kanoniczne cenniki (Owner) — 1 URL / źródło; query służy do match w client parserze.
   if (sourceId === "kb_pl") {
     return "https://kb.pl/cenniki/miejskie/remonty-mieszkan/wroclaw/";
   }
@@ -4804,6 +4808,13 @@ function workRateBuildSelectiveUrl(sourceId: string, query: string): string | nu
   return null;
 }
 
+/**
+ * PASS2 Owner category allowlist — EMPTY (SOURCE GAP).
+ * Mirrors WORK_RATE_PASS2_CATEGORY_ALLOWLIST (src). No niche fake URLs.
+ * Key: `${sourceId}::${categoryKey}` → https URL on allowlisted host only.
+ */
+const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({});
+
 function workRateHostAllowed(urlStr: string): boolean {
   try {
     const u = new URL(urlStr);
@@ -4813,30 +4824,77 @@ function workRateHostAllowed(urlStr: string): boolean {
   }
 }
 
+/** Edge resolve — mirrors resolveWorkRateSelectiveLookupRequest (src). */
+function workRateResolveSelectiveLookupUrl(body: Record<string, unknown>): {
+  ok: true;
+  sourceId: string;
+  requestUrl: string;
+  discoveryMethod: "PASS1_CANONICAL" | "PASS2_CATEGORY";
+  categoryKey: string | null;
+} | { ok: false; error: string } {
+  if (Object.prototype.hasOwnProperty.call(body, "url")) {
+    return { ok: false, error: "arbitrary_url_forbidden" };
+  }
+  const sourceId = String(body.sourceId || "").trim();
+  if (
+    sourceId !== "kb_pl" &&
+    sourceId !== "sccot" &&
+    sourceId !== "extradom" &&
+    sourceId !== "cennikremontow_pl"
+  ) {
+    return { ok: false, error: "invalid_sourceId" };
+  }
+  const query = String(body.query || "").trim();
+  if (query.length < 2) {
+    return { ok: false, error: "empty_query" };
+  }
+  const categoryKeyRaw = String(body.categoryKey ?? "").trim();
+  const categoryKey =
+    categoryKeyRaw && categoryKeyRaw !== "default" ? categoryKeyRaw : null;
+
+  if (categoryKey) {
+    const mapKey = `${sourceId}::${categoryKey}`;
+    const pass2 = WORK_RATE_PASS2_CATEGORY_URLS[mapKey];
+    if (!pass2 || !workRateHostAllowed(pass2)) {
+      return { ok: false, error: "unknown_category_key" };
+    }
+    return {
+      ok: true,
+      sourceId,
+      requestUrl: pass2,
+      discoveryMethod: "PASS2_CATEGORY",
+      categoryKey,
+    };
+  }
+
+  const pass1 = workRateBuildSelectiveUrl(sourceId, query);
+  if (!pass1 || !workRateHostAllowed(pass1)) {
+    return { ok: false, error: "url_not_allowed" };
+  }
+  return {
+    ok: true,
+    sourceId,
+    requestUrl: pass1,
+    discoveryMethod: "PASS1_CANONICAL",
+    categoryKey: null,
+  };
+}
+
 app.post("/make-server-0afb8820/work-rate-selective-lookup", async (c) => {
   try {
-    const body = await c.req.json().catch(() => ({}));
-    const sourceId = String(body.sourceId || "").trim();
-    const query = String(body.query || "").trim();
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
     const workId = String(body.workId || "").trim();
     if (!workId) {
       return c.json({ ok: false, error: "missing_workId" }, 400);
     }
-    if (
-      sourceId !== "kb_pl" &&
-      sourceId !== "sccot" &&
-      sourceId !== "extradom" &&
-      sourceId !== "cennikremontow_pl"
-    ) {
-      return c.json({ ok: false, error: "invalid_sourceId" }, 400);
+    const resolved = workRateResolveSelectiveLookupUrl(body);
+    if (!resolved.ok) {
+      return c.json({ ok: false, error: resolved.error }, 400);
     }
-    const requestUrl = workRateBuildSelectiveUrl(sourceId, query);
-    if (!requestUrl || !workRateHostAllowed(requestUrl)) {
-      return c.json({ ok: false, error: "url_not_allowed" }, 400);
-    }
+    const { sourceId, requestUrl, discoveryMethod, categoryKey } = resolved;
     const res = await fetch(requestUrl, {
       headers: {
-        "User-Agent": "WGDOM/2.66.35 work-rate-selective",
+        "User-Agent": "WGDOM/2.66.46 work-rate-selective",
         Accept: "text/html,application/xhtml+xml",
       },
       redirect: "follow",
@@ -4867,6 +4925,8 @@ app.post("/make-server-0afb8820/work-rate-selective-lookup", async (c) => {
         status: res.status,
         bodyText: text,
         fetchedAtIso: new Date().toISOString(),
+        discoveryMethod,
+        categoryKey,
       },
     });
   } catch (e) {

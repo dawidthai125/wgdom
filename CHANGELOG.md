@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.46 — Work Rate Research Discovery-01 INFRA PASS2 (local · 2026-08-14)
+
+**Scope:** lokalna implementacja (undeployed) · **ZERO COMMIT** do osobnego Owner GO.
+
+- **PASS2 plumbing:** Owner-curated category URL allowlist · client → `sourceId`+`categoryKey` (nigdy URL) · Edge resolve · PASS1 canonical bez zmian
+- **Pusta allowlista** = PASS1 only · SOURCE GAP (wykwity/bruzdy/folia) **OPEN** · niche **NOT CLAIMED**
+- Synonimy Owner-only (match) · telemetry · Evidence provenance · F5/qualify/Accept/OUR RATE **UNCHANGED**
+
 ## 2.66.45 — IK E2E wire W0–W2 + Labor Expert Recommendation (local · 2026-08-13)
 
 **Scope:** lokalna implementacja (undeployed) · **nie** tip produkcyjny. Prod tip pozostaje **2.66.44** / `a245293` do osobnego Owner GO: commit → push → verify.

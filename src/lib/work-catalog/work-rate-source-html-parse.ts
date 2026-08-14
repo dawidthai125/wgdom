@@ -42,8 +42,9 @@ export function isWorkRateSelectiveUrlAllowed(urlStr: string): boolean {
 }
 
 /**
- * Selective lookup URL: kanoniczna strona cennika źródła.
+ * Selective lookup URL: kanoniczna strona cennika źródła (PASS1).
  * `query` jest wymagane semantycznie (match w parserze), nie buduje ścieżki kategorii.
+ * PASS2: use resolveWorkRatePass2Url(sourceId, categoryKey) — never client URL.
  */
 export function buildWorkRateSelectiveRequestUrl(input: {
   sourceId: WorkRateSourceId;
@@ -108,6 +109,18 @@ export function namesLooselyMatch(expected: string, found: string): boolean {
   if (!firstOk) return false;
   const hit = tokens.filter((t) => bWords.some((w) => w === t || w.startsWith(t))).length;
   return hit >= Math.ceil(tokens.length * 0.6);
+}
+
+/** Match expected OR any Owner alternate name — same algorithm, no threshold loosen. */
+export function namesLooselyMatchAny(
+  expectedNames: readonly string[],
+  found: string,
+): { ok: true; matchedAs: string } | { ok: false } {
+  for (const exp of expectedNames) {
+    if (!exp) continue;
+    if (namesLooselyMatch(exp, found)) return { ok: true, matchedAs: exp };
+  }
+  return { ok: false };
 }
 
 function decodeHtmlEntities(s: string): string {
@@ -316,10 +329,15 @@ function parseOffersFromTables(input: {
   sourceId: WorkRateSourceId;
   sourceUrl: string;
   expectedNamePl: string;
+  expectedNamesPl?: readonly string[];
   observedAt: string;
 }): WorkRateParsedOffer[] {
   const region = regionFromSourceUrl(input.sourceUrl, input.sourceId);
   const out: WorkRateParsedOffer[] = [];
+  const expectedNames =
+    input.expectedNamesPl && input.expectedNamesPl.length > 0
+      ? input.expectedNamesPl
+      : [input.expectedNamePl];
   // Scal m<sup>2</sup> zanim rozbijemy komórki (KB.pl).
   const html = input.html
     .replace(/m\s*<sup>\s*2\s*<\/sup>/gi, "m2")
@@ -345,7 +363,8 @@ function parseOffersFromTables(input: {
     if (merged.length < 2) continue;
     const cand = parseTableRowCandidate(merged);
     if (!cand) continue;
-    if (!namesLooselyMatch(input.expectedNamePl, cand.name)) continue;
+    const match = namesLooselyMatchAny(expectedNames, cand.name);
+    if (!match.ok) continue;
 
     out.push({
       sourceId: input.sourceId,
@@ -372,10 +391,15 @@ function parseOffersFromMarkers(input: {
   sourceId: WorkRateSourceId;
   sourceUrl: string;
   expectedNamePl: string;
+  expectedNamesPl?: readonly string[];
   observedAt: string;
 }): WorkRateParsedOffer[] {
   const blocks = input.html.split(/data-wgdom-work-rate/i).slice(1);
   const out: WorkRateParsedOffer[] = [];
+  const expectedNames =
+    input.expectedNamesPl && input.expectedNamesPl.length > 0
+      ? input.expectedNamesPl
+      : [input.expectedNamePl];
 
   for (const block of blocks) {
     const chunk = block.slice(0, 800);
@@ -404,7 +428,7 @@ function parseOffersFromMarkers(input: {
     const identityMatched =
       identityAttr != null
         ? identityAttr.toLowerCase() === "true" || identityAttr === "1"
-        : namesLooselyMatch(input.expectedNamePl, name);
+        : namesLooselyMatchAny(expectedNames, name).ok;
 
     out.push({
       sourceId: input.sourceId,
@@ -428,7 +452,7 @@ function parseOffersFromMarkers(input: {
 
 /**
  * Parse offers: markery fixture LUB tabele realnych cenników.
- * Zwraca tylko pozycje dopasowane do expectedNamePl (selective).
+ * Zwraca tylko pozycje dopasowane do expectedNamePl / alternateNames (selective).
  */
 export function parseWorkRateOffersFromHtml(input: {
   sourceId: WorkRateSourceId;
@@ -436,14 +460,23 @@ export function parseWorkRateOffersFromHtml(input: {
   sourceUrl: string;
   expectedNamePl: string;
   expectedUnit: WgdomCostUnit;
+  /** Owner synonyms / alternate match names — same loose match, no invent. */
+  alternateNamesPl?: readonly string[] | null;
   observedAt?: string;
 }): WorkRateParsedOffer[] {
   const observedAt = input.observedAt || new Date().toISOString();
+  const expectedNamesPl = [
+    input.expectedNamePl,
+    ...((input.alternateNamesPl || []).filter(
+      (n) => n && n.trim() && n.trim() !== input.expectedNamePl,
+    ) as string[]),
+  ];
   const fromMarkers = parseOffersFromMarkers({
     html: input.html,
     sourceId: input.sourceId,
     sourceUrl: input.sourceUrl,
     expectedNamePl: input.expectedNamePl,
+    expectedNamesPl,
     observedAt,
   });
   if (fromMarkers.length > 0) return fromMarkers;
@@ -453,6 +486,7 @@ export function parseWorkRateOffersFromHtml(input: {
     sourceId: input.sourceId,
     sourceUrl: input.sourceUrl,
     expectedNamePl: input.expectedNamePl,
+    expectedNamesPl,
     observedAt,
   });
 }
