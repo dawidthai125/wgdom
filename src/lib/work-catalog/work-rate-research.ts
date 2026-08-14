@@ -40,6 +40,10 @@ import {
   listWorkRateMatchNamesPl,
 } from "@/lib/work-catalog/work-rate-synonyms";
 import {
+  listExactIdentityAliasesForWork,
+  matchLaborIdentityMappingForWork,
+} from "@/lib/work-catalog/work-rate-identity-mapping";
+import {
   classifyWorkRateEvidenceScopeTag,
   isWorkRateEvidenceScopeAllowed,
   listAllowedWorkRateEvidenceScopeTags,
@@ -267,10 +271,16 @@ async function researchOneWorkInner(
   const matchNames = listWorkRateMatchNamesPl(input.namePl);
   const alternateNames = matchNames.slice(1);
   let synonymUsed: string | null = null;
+  let identityMappingUsed: string | null = null;
   const discoveryMethods = new Set<"PASS1_CANONICAL" | "PASS2_CATEGORY">();
   const allowedScopes = listAllowedWorkRateEvidenceScopeTags({
     workId: input.workId,
     namePl: input.namePl,
+  });
+  // WR-LABOR-IDENTITY-MAPPING-01 — exact aliases for this work (identity gate · A path separate)
+  const exactIdentityAliases = listExactIdentityAliasesForWork({
+    workId: input.workId,
+    catalogUnit: input.unit,
   });
 
   async function ingestPage(opts: {
@@ -334,6 +344,7 @@ async function researchOneWorkInner(
       expectedNamePl: input.namePl,
       expectedUnit: input.unit,
       alternateNamesPl: alternateNames,
+      exactIdentityAliasesPl: exactIdentityAliases,
       observedAt: lookupRes.page.fetchedAtIso,
     });
 
@@ -356,7 +367,63 @@ async function researchOneWorkInner(
     }
 
     for (const offer of offers) {
-      // D1: scopeTag AFTER identity (parser) · BEFORE qualify / median
+      // Preserve labor/material flags — mapping must not mutate (A4).
+      const laborOnlyFlag = Boolean(offer.laborOnly);
+      const includesMaterialFlag = Boolean(offer.includesMaterial);
+      const regionEcho = offer.regionScope;
+
+      // Identity mapping gate (A9) — material policy / unit / ambiguity; then D1 scope.
+      const mapHit = matchLaborIdentityMappingForWork({
+        workId: input.workId,
+        catalogUnit: input.unit,
+        observedName: offer.workNamePl,
+        observedUnit: String(offer.unit || ""),
+        sourceId: opts.sourceId,
+        laborOnly: laborOnlyFlag,
+        includesMaterial: includesMaterialFlag,
+        regionScope: regionEcho,
+      });
+      if (mapHit.status === "BLOCKED") {
+        telemetry.push({
+          code: "IDENTITY_REJECT",
+          sourceId: opts.sourceId,
+          categoryKey: opts.categoryKey,
+          url: pageUrl,
+          discoveryMethod: opts.discoveryMethod,
+          messagePl: mapHit.messagePl,
+        });
+        rejects.push({
+          sourceId: opts.sourceId,
+          reason: `identity_mapping:${mapHit.reason}`,
+          messagePl: mapHit.messagePl,
+          categoryKey: opts.categoryKey,
+          telemetryCode: "IDENTITY_REJECT",
+        });
+        continue;
+      }
+      if (mapHit.status === "AMBIGUOUS") {
+        telemetry.push({
+          code: "IDENTITY_REJECT",
+          sourceId: opts.sourceId,
+          categoryKey: opts.categoryKey,
+          url: pageUrl,
+          discoveryMethod: opts.discoveryMethod,
+          messagePl: "Ambiguous identity mapping — no auto match.",
+        });
+        rejects.push({
+          sourceId: opts.sourceId,
+          reason: "identity_mapping:ambiguous",
+          messagePl: "Ambiguous identity mapping — UNMATCHED.",
+          categoryKey: opts.categoryKey,
+          telemetryCode: "IDENTITY_REJECT",
+        });
+        continue;
+      }
+      if (mapHit.status === "HIT" && !identityMappingUsed) {
+        identityMappingUsed = mapHit.matchedAlias;
+      }
+
+      // D1: scopeTag AFTER identity · BEFORE qualify / median · must not bypass (A5)
       const scopeTag = classifyWorkRateEvidenceScopeTag(offer.workNamePl);
       if (!isWorkRateEvidenceScopeAllowed(scopeTag, allowedScopes)) {
         telemetry.push({
@@ -378,7 +445,12 @@ async function researchOneWorkInner(
       }
 
       const q = qualifyWorkRateObservation({
-        offer,
+        offer: {
+          ...offer,
+          laborOnly: laborOnlyFlag,
+          includesMaterial: includesMaterialFlag,
+          regionScope: regionEcho,
+        },
         expectedWorkId: input.workId,
         expectedUnit: input.unit,
       });
@@ -579,7 +651,7 @@ async function researchOneWorkInner(
       observations: rep.observations,
       previousOurRatePln,
       previousFreshness,
-      synonymUsed,
+      synonymUsed: synonymUsed || identityMappingUsed,
       discoveryMethods: [...discoveryMethods],
     },
     rejects,

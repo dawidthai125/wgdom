@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.55",
+    label: "Labor identity mapping (local)",
+    items: [
+      {
+        type: "new",
+        text: "WR-LABOR-IDENTITY-MAPPING-01 (local, undeployed): Hybrid C identity gate · exact_normalized · catalogUnit+observedUnit · legacy buckets FORBIDDEN · alias cap 12 · ambiguity→UNMATCHED · REUSE D1 synonyms/scope · ZERO Evidence populate / Catalog / Accept / OUR RATE / hosts / PASS2 / qualify / median · SOURCE GAP OPEN · NICHE NOT CLAIMED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.54",
     label: "Labor source evidence DB (local)",
     items: [

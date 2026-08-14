@@ -38,6 +38,7 @@ const PRICE_KINDS: readonly LaborSourceEvidencePriceKind[] = [
 const IDENTITY: readonly LaborSourceEvidenceIdentityMethod[] = [
   "exact_name",
   "owner_synonym",
+  "owner_identity_mapping",
   "names_loosely",
   "unmatched",
 ];

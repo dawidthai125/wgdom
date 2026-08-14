@@ -133,6 +133,21 @@ export function namesLooselyMatchAny(
   return { ok: false };
 }
 
+/** WR-LABOR-IDENTITY-MAPPING-01 — exact_normalized only (no fuzzy / no threshold change). */
+export function namesExactNormalizedMatch(a: string, b: string): boolean {
+  const norm = (s: string) =>
+    String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .replace(/\s+/g, " ");
+  const na = norm(a);
+  const nb = norm(b);
+  return Boolean(na) && na === nb;
+}
+
 function decodeHtmlEntities(s: string): string {
   return s
     .replace(/&nbsp;/gi, " ")
@@ -396,6 +411,8 @@ function parseOffersFromTables(input: {
   sourceUrl: string;
   expectedNamePl: string;
   expectedNamesPl?: readonly string[];
+  /** Identity-mapping exact aliases (A1) — checked before loose match. */
+  exactIdentityAliasesPl?: readonly string[];
   observedAt: string;
 }): WorkRateParsedOffer[] {
   const region = regionFromSourceUrl(input.sourceUrl, input.sourceId);
@@ -429,7 +446,13 @@ function parseOffersFromTables(input: {
     if (merged.length < 2) continue;
     const cand = parseTableRowCandidate(merged);
     if (!cand) continue;
-    const match = namesLooselyMatchAny(expectedNames, cand.name);
+    const exactAliases = input.exactIdentityAliasesPl || [];
+    const exactHit =
+      exactAliases.length > 0 &&
+      exactAliases.some((a) => namesExactNormalizedMatch(a, cand.name));
+    const match = exactHit
+      ? { ok: true as const, matchedAs: cand.name }
+      : namesLooselyMatchAny(expectedNames, cand.name);
     if (!match.ok) continue;
 
     out.push({
@@ -461,6 +484,7 @@ function parseOffersFromMarkers(input: {
   sourceUrl: string;
   expectedNamePl: string;
   expectedNamesPl?: readonly string[];
+  exactIdentityAliasesPl?: readonly string[];
   observedAt: string;
 }): WorkRateParsedOffer[] {
   const blocks = input.html.split(/data-wgdom-work-rate/i).slice(1);
@@ -469,6 +493,7 @@ function parseOffersFromMarkers(input: {
     input.expectedNamesPl && input.expectedNamesPl.length > 0
       ? input.expectedNamesPl
       : [input.expectedNamePl];
+  const exactAliases = input.exactIdentityAliasesPl || [];
 
   for (const block of blocks) {
     const chunk = block.slice(0, 800);
@@ -494,10 +519,15 @@ function parseOffersFromMarkers(input: {
     const rate = Number(String(rateRaw || "").replace(",", "."));
     if (!Number.isFinite(rate) || !(rate > 0) || !name) continue;
 
+    const exactHit =
+      exactAliases.length > 0 &&
+      exactAliases.some((a) => namesExactNormalizedMatch(a, name));
     const identityMatched =
       identityAttr != null
         ? identityAttr.toLowerCase() === "true" || identityAttr === "1"
-        : namesLooselyMatchAny(expectedNames, name).ok;
+        : exactHit
+          ? true
+          : namesLooselyMatchAny(expectedNames, name).ok;
 
     out.push({
       sourceId: input.sourceId,
@@ -524,7 +554,7 @@ function parseOffersFromMarkers(input: {
 
 /**
  * Parse offers: markery fixture LUB tabele realnych cenników.
- * Zwraca tylko pozycje dopasowane do expectedNamePl / alternateNames (selective).
+ * Zwraca tylko pozycje dopasowane do expectedNamePl / alternateNames / exact identity aliases.
  */
 export function parseWorkRateOffersFromHtml(input: {
   sourceId: WorkRateSourceId;
@@ -534,6 +564,11 @@ export function parseWorkRateOffersFromHtml(input: {
   expectedUnit: WgdomCostUnit;
   /** Owner synonyms / alternate match names — same loose match, no invent. */
   alternateNamesPl?: readonly string[] | null;
+  /**
+   * WR-LABOR-IDENTITY-MAPPING-01 — exact_normalized aliases for this workId.
+   * Checked before D1 loose match; does not loosen namesLooselyMatch.
+   */
+  exactIdentityAliasesPl?: readonly string[] | null;
   observedAt?: string;
 }): WorkRateParsedOffer[] {
   const observedAt = input.observedAt || new Date().toISOString();
@@ -543,15 +578,21 @@ export function parseWorkRateOffersFromHtml(input: {
       (n) => n && n.trim() && n.trim() !== input.expectedNamePl,
     ) as string[]),
   ];
+  const exactIdentityAliasesPl = (input.exactIdentityAliasesPl || []).filter(
+    (n) => n && String(n).trim(),
+  );
   const fromMarkers = parseOffersFromMarkers({
     html: input.html,
     sourceId: input.sourceId,
     sourceUrl: input.sourceUrl,
     expectedNamePl: input.expectedNamePl,
     expectedNamesPl,
+    exactIdentityAliasesPl,
     observedAt,
   });
-  if (fromMarkers.length > 0) return fromMarkers;
+  // Markers may include non-matching rows (identityMatched=false) — filter selective.
+  const matchedMarkers = fromMarkers.filter((o) => o.identityMatched);
+  if (matchedMarkers.length > 0) return matchedMarkers;
 
   return parseOffersFromTables({
     html: input.html,
@@ -559,6 +600,7 @@ export function parseWorkRateOffersFromHtml(input: {
     sourceUrl: input.sourceUrl,
     expectedNamePl: input.expectedNamePl,
     expectedNamesPl,
+    exactIdentityAliasesPl,
     observedAt,
   });
 }

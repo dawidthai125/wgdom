@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.55 — Labor identity mapping (local · 2026-08-14)
+
+**Scope:** lokalna implementacja Hybrid C identity gate · **ZERO COMMIT** do osobnego Owner GO.
+
+- `work-rate-identity-mapping.ts` · exact_normalized · catalogUnit + observedUnit
+- Legacy buckets FORBIDDEN · alias cap 12 · ambiguity → UNMATCHED
+- Call-site: PARSE → IDENTITY MAPPING → D1 synonyms → scope → qualify
+- REUSE OWNER_SYNONYMS + D1 scopeTag · ZERO Evidence populate / hosts / PASS2 / median
+- SOURCE GAP **OPEN** · NICHE **NOT CLAIMED** · coverage ~14–18/89 = PROJECTION only
+
 ## 2.66.54 — Labor source evidence DB (local · 2026-08-14)
 
 **Scope:** lokalna implementacja Evidence SSOT · **ZERO COMMIT** do osobnego Owner GO.

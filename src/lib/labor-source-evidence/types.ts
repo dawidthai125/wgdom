@@ -29,6 +29,7 @@ export type LaborSourceEvidencePriceKind = "point" | "range" | "from_floor" | "u
 export type LaborSourceEvidenceIdentityMethod =
   | "exact_name"
   | "owner_synonym"
+  | "owner_identity_mapping"
   | "names_loosely"
   | "unmatched";
 

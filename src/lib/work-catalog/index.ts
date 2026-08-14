@@ -457,6 +457,7 @@ export {
   buildWorkRateSelectiveRequestUrl,
   isWorkRateSelectiveUrlAllowed,
   namesLooselyMatch,
+  namesExactNormalizedMatch,
   parseWorkRateOffersFromHtml,
 } from "@/lib/work-catalog/work-rate-source-html-parse";
 
@@ -522,6 +523,27 @@ export {
   detectWorkRateSynonymUsed,
   listWorkRateMatchNamesPl,
 } from "@/lib/work-catalog/work-rate-synonyms";
+
+export {
+  LABOR_IDENTITY_MAPPING_MATCH_MODE,
+  LABOR_IDENTITY_MAPPING_MAX_ALIASES,
+  LABOR_IDENTITY_MAPPING_TABLE_VERSION,
+  WORK_RATE_IDENTITY_MAPPINGS,
+  buildLaborIdentityMappingFixture,
+  isForbiddenLegacyBucketWorkId,
+  laborIdentityNamesExactNormalizedMatch,
+  listExactIdentityAliasesForWork,
+  listWorkRateIdentityMappings,
+  matchLaborIdentityMappingForWork,
+  normalizeLaborIdentityName,
+  resolveLaborIdentityMapping,
+  setWorkRateIdentityMappingsForTests,
+  unitsCompatibleExact,
+  validateLaborIdentityMappingRegistry,
+  validateLaborIdentityMappingRow,
+  type LaborIdentityMappingRow,
+  type LaborIdentityResolveResult,
+} from "@/lib/work-catalog/work-rate-identity-mapping";
 
 export {
   classifyWorkRateEvidenceScopeTag,
