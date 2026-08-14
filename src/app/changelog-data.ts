@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.48",
+    label: "Labor commercial margin UI (local)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-RATE KB-BRUZDY — Nasz Katalog Robót: per-work Marża WGDOM (%) (REUSE commercialPricing / updateCommercialMargin). UNKNOWN do Owner Zapisz · bez seed/auto-margin/global floor labor · companyPrice ≠ marża · Accept/OUR RATE UNCHANGED · SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.47",
     label: "Work Rate KB Bruzdy Policy-01 (local)",
     items: [

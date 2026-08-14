@@ -1,11 +1,14 @@
 /**
  * WORK-CATALOG-REBUILD-01 P1 — Firma → Nasz Katalog Robót.
- * OUR RATE only · ZERO HTTP on open · companyPricePln never as rate.
+ * OUR RATE + commercialPricing.marginPct (REUSE material engine) · ZERO HTTP on open ·
+ * companyPricePln never as rate / margin.
  */
 
 import { useMemo, useState } from "react";
 import { Hammer, History, Pencil, RefreshCw, Search, X } from "lucide-react";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
+import { useAdminAccess } from "@/app/admin-access";
+import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import {
   OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
   buildOurWorkRateCatalogRows,
@@ -47,8 +50,16 @@ function changeToneClass(label: string, status: "KNOWN" | "UNKNOWN"): string {
 }
 
 export function OurWorkRateCatalogPanel() {
-  const { store, reload, updateOurWorkRate, researchOurWorkRate, acceptOurWorkRateResearch } =
-    useWorkCatalog();
+  const { session } = useAdminAccess();
+  const isSuperAdmin = session ? adminIsSuperAdmin(session.role) : false;
+  const {
+    store,
+    reload,
+    updateOurWorkRate,
+    updateCommercialMargin,
+    researchOurWorkRate,
+    acceptOurWorkRateResearch,
+  } = useWorkCatalog();
   const [search, setSearch] = useState("");
   const [freshnessFilter, setFreshnessFilter] =
     useState<OurWorkRateCatalogFreshnessFilter>("ALL");
@@ -60,6 +71,7 @@ export function OurWorkRateCatalogPanel() {
     row: OurWorkRateCatalogRow;
     candidate: WorkRateResearchCandidate;
   } | null>(null);
+  const [marginDraft, setMarginDraft] = useState<Record<string, string>>({});
   const [errorPl, setErrorPl] = useState<string | null>(null);
   const [infoPl, setInfoPl] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -98,6 +110,85 @@ export function OurWorkRateCatalogPanel() {
         : "",
     );
     setDraftRegion(row.regionScope ?? "WROCLAW");
+  }
+
+  /** REUSE material commercial margin validation + updateCommercialMargin — no seed/default. */
+  async function onSaveMargin(row: OurWorkRateCatalogRow): Promise<void> {
+    if (busyId) return;
+    const raw = marginDraft[row.workId] ?? (row.marginUnset ? "" : String(row.marginPct ?? ""));
+    const n = Number(String(raw).replace(",", "."));
+    if (!Number.isFinite(n) || n < 0) {
+      setErrorPl("Nieprawidłowa marża.");
+      return;
+    }
+    setBusyId(row.workId);
+    setErrorPl(null);
+    setInfoPl(null);
+    try {
+      const res = await updateCommercialMargin(row.workId, n);
+      if (!res.ok) {
+        setErrorPl(res.message);
+        return;
+      }
+      setMarginDraft((d) => {
+        const next = { ...d };
+        delete next[row.workId];
+        return next;
+      });
+      setInfoPl(`Zapisano marżę WGDOM ${n}% dla: ${row.namePl}.`);
+      reload();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function MarginControl({ row }: { row: OurWorkRateCatalogRow }) {
+    if (!isSuperAdmin) {
+      return row.marginUnset ? (
+        <span className="text-muted-foreground" data-work-rate-margin-unset>
+          Brak marży
+        </span>
+      ) : (
+        <span data-work-rate-margin-value={`${row.marginPct}`}>
+          {row.marginPct}%
+        </span>
+      );
+    }
+    return (
+      <div
+        className="flex flex-wrap items-center gap-1"
+        data-work-rate-margin-editor
+        data-work-id={row.workId}
+      >
+        <input
+          className="w-14 rounded border border-border bg-background px-1 py-1 text-xs min-h-[36px]"
+          value={
+            marginDraft[row.workId] ?? (row.marginUnset ? "" : String(row.marginPct))
+          }
+          placeholder="—"
+          onChange={(e) =>
+            setMarginDraft((d) => ({
+              ...d,
+              [row.workId]: e.target.value,
+            }))
+          }
+          inputMode="decimal"
+          aria-label={`Marża WGDOM ${row.namePl}`}
+          data-work-rate-margin-input
+        />
+        <span className="text-muted-foreground">%</span>
+        <button
+          type="button"
+          className="text-[10px] text-primary underline min-h-[36px] px-1"
+          onClick={() => void onSaveMargin(row)}
+          disabled={busyId === row.workId}
+          aria-label={`Zapisz marżę WGDOM: ${row.namePl}`}
+          data-work-rate-margin-save
+        >
+          Zapisz
+        </button>
+      </div>
+    );
   }
 
   async function onSaveEdit(): Promise<void> {
@@ -238,8 +329,10 @@ export function OurWorkRateCatalogPanel() {
             <h3 className="text-sm font-semibold">Nasz Katalog Robót</h3>
             <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
               Aktualne stawki robocizny (OUR RATE) dla robót z Biblioteki. Status: AKTUALNA /
-              PRZETERMINOWANA / BRAK STAWKI. Research rynkowy: tylko jedna robota na raz (po
-              potwierdzeniu Ownera). Nie miesza się z cenami materiałów ani starą ceną firmy.
+              PRZETERMINOWANA / BRAK STAWKI. Marża WGDOM (%) — ta sama warstwa handlowa co w
+              katalogu materiałów; wymagana przed Candidate z research. Research rynkowy: jedna
+              robota na raz (po potwierdzeniu Ownera). Nie miesza się z cenami materiałów ani
+              starą ceną firmy.
             </p>
           </div>
         </div>
@@ -378,12 +471,13 @@ export function OurWorkRateCatalogPanel() {
       {/* Desktop table */}
       <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[720px]">
+          <table className="w-full text-left text-xs min-w-[820px]">
             <thead className="bg-secondary/40 text-muted-foreground">
               <tr>
                 <th className="px-2 py-2 font-medium">Robota</th>
                 <th className="px-2 py-2 font-medium">Jednostka</th>
                 <th className="px-2 py-2 font-medium">Nasza stawka</th>
+                <th className="px-2 py-2 font-medium">Marża WGDOM</th>
                 <th className="px-2 py-2 font-medium">Status</th>
                 <th className="px-2 py-2 font-medium">Ostatnia aktualizacja</th>
                 <th className="px-2 py-2 font-medium">Źródło</th>
@@ -400,11 +494,16 @@ export function OurWorkRateCatalogPanel() {
                   data-work-rate-row={row.workId}
                   data-freshness={row.freshness}
                   data-our-rate={row.ourRatePln ?? ""}
+                  data-margin-unset={row.marginUnset ? "1" : "0"}
+                  data-margin-pct={row.marginPct ?? ""}
                 >
                   <td className="px-2 py-2 font-medium text-foreground">{row.namePl}</td>
                   <td className="px-2 py-2 tabular-nums">{row.unitLabelPl}</td>
                   <td className="px-2 py-2 tabular-nums font-semibold">
                     {formatOurWorkRatePln(row.ourRatePln)}
+                  </td>
+                  <td className="px-2 py-2">
+                    <MarginControl row={row} />
                   </td>
                   <td className={cn("px-2 py-2 font-medium", freshnessToneClass(row.freshness))}>
                     {row.freshnessLabelPl}
@@ -427,7 +526,7 @@ export function OurWorkRateCatalogPanel() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-3 py-8 text-center text-muted-foreground">
                     Brak robót spełniających kryteria.
                   </td>
                 </tr>
@@ -461,6 +560,12 @@ export function OurWorkRateCatalogPanel() {
                 <span className="text-muted-foreground">Nasza stawka</span>
                 <div className="font-semibold tabular-nums text-sm">
                   {formatOurWorkRatePln(row.ourRatePln)}
+                </div>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Marża WGDOM (%)</span>
+                <div className="pt-0.5">
+                  <MarginControl row={row} />
                 </div>
               </div>
               <div>

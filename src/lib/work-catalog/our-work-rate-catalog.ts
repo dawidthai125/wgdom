@@ -18,8 +18,9 @@ import {
   type WorkRateRegionScope,
   type WorkRateSourceType,
 } from "@/lib/work-catalog/work-rate-types";
-import type { CatalogWork, WorkCatalogStore } from "@/lib/work-catalog/types";
+import type { CatalogWork, CommercialPricing, WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import { resolveMarginPct } from "@/lib/price-intelligence/our-price-catalog";
 
 export type OurWorkRateCatalogFreshnessFilter =
   | "ALL"
@@ -52,6 +53,13 @@ export type OurWorkRateCatalogRow = {
   regionLabelPl: string;
   priceChange: OurWorkRatePriceChange;
   history: OurWorkRateHistoryEntry[];
+  /**
+   * WGDOM commercial margin (REUSE material commercialPricing).
+   * null / marginUnset = UNKNOWN — never invent default from companyPrice / Bid.
+   */
+  marginPct: number | null;
+  marginUnset: boolean;
+  commercialPricing: CommercialPricing | undefined;
   /** TECHNICAL LEGACY — tylko do asercji testowych; UI NIE pokazuje jako stawki. */
   companyPricePlnLegacy: number;
 };
@@ -159,6 +167,7 @@ function buildRow(work: CatalogWork, nowMs: number): OurWorkRateCatalogRow {
   const rate = work.ourWorkRate;
   const freshness = deriveOurWorkRateFreshness(rate, nowMs);
   const hasRate = freshness !== "MISSING" && rate != null && rate.ourRatePln > 0;
+  const marginPct = resolveMarginPct(work);
 
   return {
     workId: work.id,
@@ -183,6 +192,9 @@ function buildRow(work: CatalogWork, nowMs: number): OurWorkRateCatalogRow {
         : "—",
     priceChange: computeOurWorkRatePriceChange(hasRate ? rate : undefined),
     history: hasRate ? [...(rate!.history ?? [])] : [],
+    marginPct,
+    marginUnset: marginPct == null,
+    commercialPricing: work.commercialPricing,
     companyPricePlnLegacy: work.companyPricePln,
   };
 }
