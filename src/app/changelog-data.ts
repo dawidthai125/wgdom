@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.54",
+    label: "Labor source evidence DB (local)",
+    items: [
+      {
+        type: "new",
+        text: "WR-SOURCE-EVIDENCE-DB-01 (local, undeployed): osobny SSOT kw-wgdom-labor-source-evidence · schema+provenance+dedupeKey · union-by-dedupeKey · etag/CAS · caps 8000/80/2000/200 · UNMATCHED STORE · REUSE D1 identity/scope · ZERO UI/hosts/import/Accept/OUR RATE/margin/Work Catalog mutate · SOURCE GAP OPEN · NICHE NOT CLAIMED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.53",
     label: "Labor evidence quality D1 (local)",
     items: [

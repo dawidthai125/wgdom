@@ -129,6 +129,12 @@ import {
   mergeWorkCatalogStore,
   normalizeWorkCatalogStore,
 } from "@/lib/work-catalog/work-catalog-store";
+import { mergeLaborSourceEvidenceDataKey } from "@/lib/labor-source-evidence";
+import {
+  LABOR_SOURCE_EVIDENCE_STORAGE_KEY,
+  emptyLaborSourceEvidenceStore,
+  normalizeLaborSourceEvidenceStore,
+} from "@/lib/labor-source-evidence";
 import {
   OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY,
   defaultCompanyKnowledgeStoreForPersist,
@@ -196,6 +202,8 @@ export const DATA_KEYS = [
   "kw-wgdom-cost-catalog-history",
   "kw-wgdom-work-catalog",
   "kw-wgdom-work-bundles",
+  /** WR-SOURCE-EVIDENCE-DB-01 — labor market observations (≠ OUR RATE / catalog). */
+  "kw-wgdom-labor-source-evidence",
   /** P3.1 — company knowledge mirror (Purchase / OfferBoq learning). */
   "kw-offer-boq-company-knowledge",
   /** P3.2 — PRICE DATA MISSING demand queue (dedup blob). */
@@ -227,6 +235,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wgdom-cost-catalog-history",
   "kw-wgdom-work-catalog",
   "kw-wgdom-work-bundles",
+  "kw-wgdom-labor-source-evidence",
   "kw-offer-boq-company-knowledge",
   "kw-price-intelligence-demand",
   "kw-contacts",
@@ -2640,6 +2649,8 @@ export function mergeDataKey(
       return mergeWorkCatalogStore(local, cloud);
     case "kw-wgdom-work-bundles":
       return mergeWorkBundleStore(local, cloud);
+    case "kw-wgdom-labor-source-evidence":
+      return mergeLaborSourceEvidenceDataKey(local, cloud);
     case "kw-offer-boq-company-knowledge":
       return mergeCompanyKnowledgeStore(local, cloud);
     case "kw-price-intelligence-demand":
@@ -2973,6 +2984,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === WGDOM_COST_CATALOG_KEY) return defaultWgdomCostCatalogStore();
   if (key === WORK_CATALOG_STORAGE_KEY) return defaultWorkCatalogStoreForPersist();
   if (key === WORK_BUNDLE_STORAGE_KEY) return defaultWorkBundleStore();
+  if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return emptyLaborSourceEvidenceStore();
   if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return defaultCompanyKnowledgeStoreForPersist();
   if (key === PRICE_DEMAND_STORAGE_KEY) return defaultPriceDemandStoreForPersist();
   if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) return defaultUserClassificationDictionaryStore();
@@ -3002,6 +3014,7 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   }
   if (key === WORK_CATALOG_STORAGE_KEY) return normalizeWorkCatalogStore(coerced);
   if (key === WORK_BUNDLE_STORAGE_KEY) return normalizeWorkBundleStore(coerced);
+  if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return normalizeLaborSourceEvidenceStore(coerced);
   if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return normalizeCompanyKnowledgeStore(coerced);
   if (key === PRICE_DEMAND_STORAGE_KEY) return normalizePriceDemandStore(coerced);
   return coerced;

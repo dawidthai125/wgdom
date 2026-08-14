@@ -1,5 +1,17 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.54 — Labor source evidence DB (local · 2026-08-14)
+
+**Scope:** lokalna implementacja Evidence SSOT · **ZERO COMMIT** do osobnego Owner GO.
+
+- Storage: `kw-wgdom-labor-source-evidence` (≠ Work Catalog)
+- Schema + provenance + deterministic `dedupeKey` · range remains min/max
+- Merge: union-by-dedupeKey + empty-guard · etag/CAS optimistic concurrency
+- Caps: global 8000 · per-work 80 · per-source 2000 · per-batch 200 (jawny reject, zero silent wipe)
+- UNMATCHED STORE · ZERO auto CatalogWork/Candidate/Accept/OUR RATE
+- REUSE D1 identity/scope · KEEP-4 hosts · D-IMPORT EMPTY · D-UI DEFER
+- SOURCE GAP **OPEN** · NICHE **NOT CLAIMED**
+
 ## 2.66.53 — Labor evidence quality D1 (local · 2026-08-14)
 
 **Scope:** lokalna implementacja D1 · **ZERO COMMIT** do osobnego Owner GO.
