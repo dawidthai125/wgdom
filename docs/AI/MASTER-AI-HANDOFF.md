@@ -3,58 +3,22 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-09  
+> **Data:** 2026-08-14  
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
+> **★★ IK Master (NO REBUILD):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
 > **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**  
 > **TM-01 MASTER:** [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md)  
 > **Docs sync:** [`PROJECT-DOCS-SYNC-DESIGN-FREEZE.md`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)  
-> **Uwaga tip:** bloki `2.66.22` poniżej = snapshot historyczny cold-start — **aktualny tip tylko w 09**
+> **Uwaga tip:** bloki historyczne poniżej mogą mieć stare numery — **aktualny tip tylko w 09**
 
 ```text
-Nie czytaj historii czatu. Nie zgaduj tipu.
-START = WGDOM-COLD-START-HANDOFF → TEN plik → 09 + version.json
-Tip = 09 + version.json → 2.66.22 / ae426ad6 (INTELIGENTNY-KOSZTORYSANT-UX CLOSED · PRODUCTION VERIFIED)
-Feature tip Inteligentny Kosztorysant UX = ae426ad6
-Prior feature P0 Dual-Enablement = 1902daa7
-Prior feature Enablement + Q12 Case identity = 4ba06032
-Prior docs tip Enablement closeout = f5f598c5
-Prior docs tip TM-01 S9 EPIC CLOSE = df6c104a
-Feature tip TM-01 S7 TRE Hub-first = 617f0cb5
-Prior docs tip TM-01 S8 HOLD REMOVE = 9231cc6b
-Prior TM-01 S6 Persist→legacy bridge = cb91027d
-Prior TM-01 S5 Tab Decyzja→DW = ebae3d2e (CLOSED · historyczny tip)
-Prior TM-01 S4 Hub UX = 85f4db14 (CLOSED · historyczny tip)
-Prior TM-01 S3 Align Pricing = ec8a5044 (CLOSED · historyczny tip)
-Prior TM-01 S2 Dual Outcome = 1888d05f (CLOSED · historyczny tip)
-Prior TENDER-MODULE-ENABLEMENT-01 (S1) = eed3ba0e (CLOSED · historyczny tip)
-Prior TENDER-MODERNIZATION-01 / S0 = 5beb082a (CLOSED · historyczny tip)
-Prior DECISION-PERSIST-01 = adde246a (CLOSED · historyczny tip)
-Prior WIRE-EXPERTS-UI-01 = 4ae26fe7 (CLOSED · historyczny tip)
-Prior DECISION-WORKSPACE-01 = baa4b403 (CLOSED · historyczny tip)
-Prior VALIDATION-EXPERT-01 = 5fa2746d (CLOSED)
-Prior WIRE-CHIEF-UI-DOSSIER-01 = ce0b70c0 (CLOSED)
-Prior WIRE-CHIEF-SESSION-01 = 5b9fd741 (CLOSED)
-Prior WIRE-CHIEF-RO-ADAPTERS-01 = 0c310355 (CLOSED)
-Prior CHIEF-ORCHESTRATOR-P0 = 06cc7a6b (CLOSED)
-Prior EXPERTS-P0 = 58872663 (CLOSED)
-Prior Technology-First B0 = d9bb4c57 (CLOSED)
-Prior FOUNDATION TS-A0+A1 = 8202d990 (CLOSED)
-Prior COST-KNOWLEDGE A0+A1 = 9c0901d6 (CLOSED)
-Baseline = Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX (branding + Expert Conversation)
-Tryb = UTRZYMANIE · WAITING FOR NEXT OWNER GO
-ACTIVE EPIC / IMPLEMENT / RELEASE / COMMIT = NONE
-INTELIGENTNY-KOSZTORYSANT-UX = CLOSED · PV PASS · tip ae426ad6
-TM-01 = EPIC CLOSED · S0–S9 = CLOSED · S8 = HOLD REMOVE · S9 = C0 docs-only (ZERO code)
-EXPERT-AI-PRODUCTION-ENABLEMENT-01 = CLOSED · Q12 PV PASS · content invalidation NOT TESTED
-EXPERT-AI-P0-DUAL-ENABLEMENT = CLOSED · PV PASS · M≠runtime · D≠access gate
-NEXT = residual C1–C6 / new epic · tylko Owner GO → AUDIT · NIE invent S10
-STABILIZATION WINDOW ACTIVE
-DO NOT IMPLEMENT: WM-DRUK-OST-03 · XFA · obejścia pdf-lib · cache filled PDF
-Cloud persist / Audit Hub / Wire Pack→CI/UI / A2/A3/Learning · WIM-P1b / MOBILE-P2 / P4 Rysunki / P3-B = tylko Owner GO → AUDIT najpierw
-S3-D / Bid retirement / hard REMOVE / reopen TM-01 / Bid Time-Load Guard izolowany COMMIT / useTenderOfferRun WIP = tylko Owner GO
+Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
+START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → TEN plik → 09 + version.json
+Tip = 09 + version.json (snapshot docs: 2.66.59 / 9bcc558)
+ACTIVE EPIC / IMPLEMENT = NONE bez Owner GO
 ```
 
 ---

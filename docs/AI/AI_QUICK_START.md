@@ -1,20 +1,27 @@
 # AI QUICK START — WGDOM (1 strona)
 
 > **Dla:** nowego ChatGPT / Cursor Agent **bez historii**  
-> **Data:** 2026-08-08 · **STATUS:** **ACTIVE**  
+> **Data:** 2026-08-14 · **STATUS:** **ACTIVE**  
 > **★★ Cold-start (najpierw):** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
-> **★★ Pełny SSOT:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)
+> **★★ IK NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)  
+> **★★ Pełny SSOT projektu:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md) · tip [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
 
 ---
 
 ### CO TO JEST WGDOM?
 
-Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**.  
-Prod: https://www.wgdom.fun · tip: **2.66.22** / **`1902daa7`** · **PRODUCTION VERIFIED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** · **TM-01 EPIC CLOSED**.
+Aplikacja operacyjna **W&G DOM** (React/Vite) — roboty, lista płac, WM Druk, **Przetargi**, Inteligentny Kosztorysant.  
+Prod: https://www.wgdom.fun · tip: **tylko 09 + version.json** (nie hardcoduj).
+
+### HARD RULE
+
+**Nie buduj od nowa** TendersModule / Work Catalog / Evidence / OUR RATE / Accept / F5 / PDF.  
+**Search → Reuse.** Patrz Reuse Map.
 
 ### JAK DZIAŁA PRZETARG?
 
-Moduł Przetargi (Workspace v2 + Hub). Główny cel: **jeden inteligentny kosztorysant / Expert AI** — nie kolejne niezależne analizy.
+Istniejący moduł `TendersModule` (Workspace + Hub + Expert Conversation).  
+IK = **orchestrator** nad pipeline — nie drugi moduł Przetargów.
 
 ### CO TO SĄ EXPERTS?
 

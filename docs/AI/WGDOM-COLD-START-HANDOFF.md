@@ -2,14 +2,17 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-09  
+> **Data:** 2026-08-14  
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
+> **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
 > **Tender pricing (F0–F6 + C-MODE-1a):** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) — tip **zawsze z 09** (nie hardcoduj tutaj)  
-> **Data:** 2026-08-09 · *(tabela CURRENT BASELINE poniżej może być historyczna — **tip = 09**)*
+> *(tabele historyczne poniżej mogą mieć stare numery — **tip = 09 + version.json**)*
 
 ```text
 ════════════════════════════════════════════════════════
 WGDOM COLD START
+NIE BUDUJ PRZETARGÓW / IK / CATALOG / PRICING OD NOWA.
+SEARCH BEFORE CREATE.
 ════════════════════════════════════════════════════════
 ```
 
@@ -19,11 +22,11 @@ WGDOM COLD START
 
 | | |
 |--|--|
-| **Version** | **2.66.22** |
-| **Commit** | **`ae426ad6`** (Inteligentny Kosztorysant UX) · prior P0 **`1902daa7`** · prior Q12 **`4ba06032`** · prior S9 docs **`df6c104a`** · feature hist. **`617f0cb5`** |
+| **Version** | **czytaj 09 + version.json** (snapshot docs: **2.66.59**) |
+| **Commit** | **czytaj 09** (snapshot: **`9bcc558`** · PASS2 CR · Tablica OUR RATE Accept VERIFIED) |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
-| **PV** | **PRODUCTION VERIFIED · GREEN** |
+| **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
 | **Protected Core** | **GREEN** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
 

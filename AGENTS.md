@@ -9,24 +9,31 @@
 ```text
 ★ AI / nowa sesja — TYLKO TA ŚCIEŻKA:
   0. docs/AI/WGDOM-COLD-START-HANDOFF.md         ← ★★ cold-start (praktyczny)
-  1. docs/AI/MASTER-AI-HANDOFF.md                ← ★★ stan · WIP · flagi · NEXT (SSOT)
-  2. docs/AI/AI_QUICK_START.md                   ← 1 strona
-  3. docs/AI/AI_ENTRY.md                         ← oficjalny START procesu
-  4. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
-  5. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT (+ version.json)
-  6. docs/AI/MASTER_HANDOFF.md                   ← thin pointer → MASTER-AI-HANDOFF
-  7. docs/architecture/TENDER-MODERNIZATION-01-MASTER.md ← TM-01 S0–S8
-  8. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
-  9. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
- 10. IMPLEMENT dopiero po Gate + checklist (+ Owner GO gdy wymagane)
+  1. docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md ← ★★ IK / costing NO REBUILD
+  2. docs/architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md ← cold-start ChatGPT+Cursor
+  3. docs/architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md ← istniejące pliki (nie twórz duplikatów)
+  4. docs/AI/MASTER-AI-HANDOFF.md                ← stan · WIP · flagi · NEXT
+  5. docs/AI/AI_QUICK_START.md                   ← 1 strona
+  6. docs/AI/AI_ENTRY.md                         ← oficjalny START procesu
+  7. docs/AI/PAYROLL_SAFETY_GATE.md              ← HARD GATE (G1–G9)
+  8. Tip: docs/AI/09_PRODUCTION_BASELINE.md      ← JEDYNY tip SSOT (+ version.json)
+  9. docs/AI/MASTER_HANDOFF.md                   ← thin pointer → MASTER-AI-HANDOFF
+ 10. docs/architecture/TENDER-MODERNIZATION-01-MASTER.md ← TM-01 S0–S9 CLOSED
+ 11. docs/AI/FEATURE_IMPLEMENTATION_CHECKLIST.md
+ 12. AGENTS.md (ten plik)                        ← JAK pracować / zakazy
+ 13. IMPLEMENT dopiero po Gate + checklist (+ Owner GO gdy wymagane)
 
-TRYB = UTRZYMANIE · tip = 09 (2.66.22 / 1902daa7 · EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED · Enablement+Q12 · TENDER-MODERNIZATION-01 EPIC CLOSED · S9 C0 · Experts+Chief+Adapters+Session+UI Dossier+Validation+Decision Workspace+Expert Workspace UI+Decision Persist+Module Enablement+Dual Outcome+Align Pricing+Hub UX+Tab Decyzja→DW+Persist bridge+TRE Hub-first+S8 HOLD+S9 CLOSE+Enablement+Q12+P0 Dual-Enablement complete)
- · NEXT = residual C1–C6 / new epic · tylko Owner GO → AUDIT · NIE invent S10
+HARD: NIE buduj nowego TendersModule / Work Catalog / Evidence / OUR RATE / Accept / F5 / PDF engine.
+SEARCH BEFORE CREATE. Tip = 09 (live version.json) — nie hardcoduj tutaj.
+TRYB = UTRZYMANIE · NEXT = tylko Owner GO → AUDIT · NIE invent S10
  · nie auto-start SMART P1 / MS P2 / CM-04 P3 / Wave 2 / Bid Guard / Cloud Decision Persist / invent S10 / S3-D / Bid retirement / hard REMOVE / global ON Przetargi
  · FINAL-AI-HANDOFF = archiwum Catalog (nie cold-start)
  · cold-start ≠ CURRENT-TASK alone
 
 Appendix (po Entry — nie zamiast Entry):
+  · docs/architecture/INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md
+  · docs/architecture/INTELLIGENT-ESTIMATOR-DATA-FLOW.md
+  · docs/architecture/INTELLIGENT-ESTIMATOR-ARCHITECTURE.md
   · docs/architecture/NEXT-EPIC-CANDIDATES.md
   · docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md
   · docs/ARCHITECTURE.md · PROJECT-GUIDE.md · docs/PAYROLL-ARCHITECTURE-SSOT.md
