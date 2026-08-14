@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.45 — IK E2E wire W0–W2 + Labor Expert Recommendation (local · 2026-08-13)
+
+**Scope:** lokalna implementacja (undeployed) · **nie** tip produkcyjny. Prod tip pozostaje **2.66.44** / `a245293` do osobnego Owner GO: commit → push → verify.
+
+- **W0:** po Owner Accept — dual bump `pricingCatalogRevision` + `chiefRefreshNonce` → invalidacja Bid/F5 + Chief (bez zmiany F5)
+- **W1:** `inventoryIkGapsFromShadow` — labor jobs z `BRAK_STAWKI_ROBOT` (identity OK)
+- **W2:** Hub panel — selective labor research → Candidate → Owner Accept → `ourWorkRate` persist → recompute → PASS 2 REUSE (HTTP 0)
+- **IK-LABOR-EXPERT-REC-01:** Evidence Pack + RO recommendation (stance / confidence / findings · provenance · delta vs previous) · anti-invent · `companyPrice` excluded · `expertMayWrite/Accept=false` · `aiAutoAccept=false` · Owner = jedyna Accept authority · Accept path UNCHANGED
+- **Testy lokalne:** W0 / W1 / W2 two-pass / REC T1–T14 · F5 / mapper / qualify / accept engine **UNCHANGED**
+- **Pending:** live E2E CANDIDATE proof (research-data coverage / GAP na niszowych robotach) — nie twierdzić PV / deploy
+
 ## 2.66.44 — Multi-BOQ work identity + LABOR_ONLY F5 wire (2026-08-13)
 
 - MULTI-BOQ-WORK-IDENTITY-01: compose → mapOfferBoqDocument → trusted catalogWorkId → F5

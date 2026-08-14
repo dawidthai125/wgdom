@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-13",
+    version: "2.66.45",
+    label: "IK E2E wire W0–W2 + Labor Expert Recommendation (local)",
+    items: [
+      {
+        type: "new",
+        text: "INTELLIGENT-COST-ESTIMATOR-E2E-WIRE-01 W0–W2 (local, undeployed): po Owner Accept dual bump (pricingCatalogRevision + chiefRefreshNonce) → F5 recompute; gap inventory BRAK_STAWKI_ROBOT; Hub selective research → Candidate → Owner Accept → ourWorkRate → CURRENT REUSE. F5/mapper/qualify/accept engine UNCHANGED · ZERO companyPrice→OUR RATE · materiały W3 później · live CANDIDATE proof nadal pending (research-data coverage).",
+      },
+      {
+        type: "new",
+        text: "IK-LABOR-EXPERT-REC-01 (local): Labor Rate Evidence Pack + RO expert recommendation (stance/confidence/findings · provenance · delta vs previous OUR RATE). Anti-invent: candidateRatePln = suggestedRatePln only · companyPrice excluded · expertMayWrite/Accept=false · aiAutoAccept=false · Owner = jedyna Accept authority · istniejący Accept path bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-13",
     version: "2.66.44",
     label: "Multi-BOQ work identity + LABOR_ONLY F5 wire",
     items: [

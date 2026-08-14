@@ -45,6 +45,7 @@ import {
   ExpertConversationSurface,
   InteligentnyKosztorysantBrand,
 } from "@/app/expert-conversation";
+import { IkLaborGapResearchPanel } from "@/app/ik-pricing/IkLaborGapResearchPanel";
 import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
 import { MultiDwellingPackagePanel } from "@/app/MultiDwellingPackagePanel";
 import {
@@ -340,6 +341,12 @@ export function TenderWorkflowHubPanel({
 
       {/* Inteligentny Kosztorysant — Hub branding (tender detail only) */}
       <InteligentnyKosztorysantBrand />
+
+      {/* IK-E2E-WIRE-01 W2 — labor gap → research → Owner Accept → recompute */}
+      <IkLaborGapResearchPanel
+        item={item}
+        onPriceResearchAccepted={onPriceResearchAccepted}
+      />
 
       <MultiDwellingPackagePanel item={item} />
 

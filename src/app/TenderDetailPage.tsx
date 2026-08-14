@@ -72,6 +72,7 @@ import {
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
 import { leaveTenderDetailToModule } from "@/lib/tender-module-nav-sheet";
+import { notifyIkPricingAccepted } from "@/lib/ik-pricing-orchestrator";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -91,7 +92,13 @@ export function TenderDetailPage({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { snapshot, profileVersion, pricingCatalogRevision, setActiveTab } = useTendersContext();
+  const {
+    snapshot,
+    profileVersion,
+    pricingCatalogRevision,
+    bumpPricingCatalogRevision,
+    setActiveTab,
+  } = useTendersContext();
   const { pipeline } = snapshot;
 
   const handleLeaveToModule = useCallback(() => {
@@ -764,7 +771,13 @@ export function TenderDetailPage({
               chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
               expertWorkspaceVm={activeTab === "przetarg" ? expertWorkspaceVm : null}
               chiefSessionForDecision={chiefSessionForDecision}
-              onPriceResearchAccepted={() => setChiefRefreshNonce((n) => n + 1)}
+              onPriceResearchAccepted={() => {
+                // IK-E2E-WIRE-01 W0: dual bump after Accept persist (Bid/F5 + Chief).
+                notifyIkPricingAccepted({
+                  bumpPricingCatalogRevision,
+                  bumpChiefRefresh: () => setChiefRefreshNonce((n) => n + 1),
+                });
+              }}
             />
           )}
         </div>
