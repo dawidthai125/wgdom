@@ -21,6 +21,7 @@ import {
 import type { CatalogWork, CommercialPricing, WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import {
+  computeSellPricePln,
   isOurPriceCatalogMaterialHost,
   resolveMarginPct,
 } from "@/lib/price-intelligence/our-price-catalog";
@@ -62,6 +63,11 @@ export type OurWorkRateCatalogRow = {
    */
   marginPct: number | null;
   marginUnset: boolean;
+  /**
+   * Derived sell = computeSellPricePln(ourRate, marginPct).
+   * NEVER written to OUR RATE / companyPricePln.
+   */
+  sellPricePln: number | null;
   commercialPricing: CommercialPricing | undefined;
   /** TECHNICAL LEGACY — tylko do asercji testowych; UI NIE pokazuje jako stawki. */
   companyPricePlnLegacy: number;
@@ -197,6 +203,7 @@ function buildRow(work: CatalogWork, nowMs: number): OurWorkRateCatalogRow {
     history: hasRate ? [...(rate!.history ?? [])] : [],
     marginPct,
     marginUnset: marginPct == null,
+    sellPricePln: computeSellPricePln(hasRate ? rate!.ourRatePln : null, marginPct),
     commercialPricing: work.commercialPricing,
     companyPricePlnLegacy: work.companyPricePln,
   };
@@ -240,6 +247,7 @@ export function buildOurWorkRateCatalogRows(
 
   let works = listWorksForRegion(input.store);
   if (activeOnly) works = works.filter((w) => w.active);
+  works = works.filter((w) => !isOurPriceCatalogMaterialHost(w.id));
 
   const rows: OurWorkRateCatalogRow[] = [];
   for (const work of works) {
@@ -285,9 +293,12 @@ export function parseOwnerCommercialMarginPctInput(raw: string): number | null {
 export function listLaborWorkIdsForCommercialMarginFloor(
   store: WorkCatalogStore,
 ): string[] {
-  return listWorksForRegion(store)
-    .filter((w) => w.active && !isOurPriceCatalogMaterialHost(w.id))
-    .map((w) => w.id);
+  return buildOurWorkRateCatalogRows({
+    store,
+    search: "",
+    freshnessFilter: "ALL",
+    activeOnly: true,
+  }).map((r) => r.workId);
 }
 
 /** Sanity: etykiety PL nie zawierają surowych enumów w UI copy. */

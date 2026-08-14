@@ -385,6 +385,20 @@ export function buildOurPriceCatalogRows(opts: {
   return rows;
 }
 
+/**
+ * Unfiltered material catalog workIds (search="" · freshness ALL).
+ * Catalog-scope global floor — NOT current filter/page rows.map.
+ */
+export function listMaterialWorkIdsForCommercialMarginFloor(
+  store: WorkCatalogStore,
+): string[] {
+  return buildOurPriceCatalogRows({
+    store,
+    search: "",
+    freshnessFilter: "ALL",
+  }).map((r) => r.workId);
+}
+
 export function paginateOurPriceCatalogRows<T>(
   rows: readonly T[],
   page: number,

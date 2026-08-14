@@ -443,6 +443,7 @@ export {
   computeSellPricePln,
   computeSourceCoverage,
   isOurPriceCatalogMaterialHost,
+  listMaterialWorkIdsForCommercialMarginFloor,
   paginateOurPriceCatalogRows,
   patchWorkCommercialPricing,
   resolveMarginPct,

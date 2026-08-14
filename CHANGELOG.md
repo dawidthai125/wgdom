@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.50 — Catalog UI unification (local · 2026-08-14)
+
+**Scope:** lokalna implementacja (undeployed) · **ZERO COMMIT** do osobnego Owner GO.
+
+- Nasz Katalog Robót = chrome Nasz katalog cen (pager 100, footer, tabela + scroll)
+- Shared: CommercialMarginEditor / GlobalBar / FreshnessToolbar / CatalogPager
+- Labor dataset = active ∧ NOT material host · global ≠ filtered rows.map
+- Stawka z marżą derived (`computeSellPricePln`) · ≠ OUR RATE
+- Materiały: Zapisz + catalog-scope material IDs · seed/PM/Accept UNCHANGED
+- SOURCE GAP **OPEN** · bez konfiguracji marży / W2 / Accept
+
 ## 2.66.49 — Labor global minimum margin (local · 2026-08-14)
 
 **Scope:** lokalna implementacja (undeployed) · **ZERO COMMIT** do osobnego Owner GO.

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.50",
+    label: "Catalog UI unification (local)",
+    items: [
+      {
+        type: "improve",
+        text: "WORK-RATE-CATALOG-UI-UNIFICATION-01 — Nasz Katalog Robót: ten sam chrome co Nasz katalog cen (filtry/search/pager 100/tabela/footer/marża Zapisz). Shared CommercialMarginEditor + GlobalBar. Labor rows = active ∧ ¬materialHost. Global labor IDs = cały dataset (nie rows.map). Stawka z marżą = computeSellPricePln (derived, ≠ OUR RATE). Materiały: ten sam editor/parser + listMaterialWorkIdsForCommercialMarginFloor. Bez seed marży / Accept / W2. SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.49",
     label: "Labor global minimum margin (local)",
     items: [

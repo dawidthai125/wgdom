@@ -20,7 +20,11 @@ import {
   applyGlobalCommercialMarginFloorToStore,
   applyGlobalMarginFloor,
   buildOurPriceCatalogRows,
+  computeSellPricePln,
   isOurPriceCatalogMaterialHost,
+  listMaterialWorkIdsForCommercialMarginFloor,
+  OUR_PRICE_CATALOG_PAGE_SIZE,
+  paginateOurPriceCatalogRows,
   patchWorkCommercialPricing,
   resolveMarginPct,
 } from "../src/lib/price-intelligence/our-price-catalog.ts";
@@ -159,6 +163,10 @@ function makeStore(works) {
     join(ROOT, "src/app/work-rate-catalog/OurWorkRateCatalogPanel.tsx"),
     "utf8",
   );
+  const editorSrc = readFileSync(
+    join(ROOT, "src/app/catalog-shared/CommercialMarginEditor.tsx"),
+    "utf8",
+  );
   ok(
     "T8 margin save uses updateCommercialMargin only",
     /updateCommercialMargin\(row\.workId/.test(panelSrc) &&
@@ -166,15 +174,17 @@ function makeStore(works) {
   );
   const saveMarginBlock = panelSrc.slice(
     panelSrc.indexOf("async function onSaveMargin"),
-    panelSrc.indexOf("function MarginControl"),
+    panelSrc.indexOf("async function onApplyGlobalLaborMargin"),
   );
   ok(
     "T8 onSaveMargin does not call accept/updateOurWorkRate",
     saveMarginBlock.length > 0 &&
       !/acceptOurWorkRateResearch/.test(saveMarginBlock) &&
       !/updateOurWorkRate/.test(saveMarginBlock) &&
+      !/researchOurWorkRate/.test(saveMarginBlock) &&
       /updateCommercialMargin/.test(saveMarginBlock),
   );
+  ok("T8 shared editor Zapisz", /Zapisz/.test(editorSrc) && /parseOwnerCommercialMarginPctInput/.test(editorSrc));
 }
 
 // ——— T9 material margin behavior / host gate unchanged ———
@@ -222,11 +232,14 @@ function makeStore(works) {
     18,
   );
   // labor row still listed in work-rate catalog; material path does not invent labor margin
-  const laborRow = buildOurWorkRateCatalogRows({ store, nowMs: NOW }).find(
-    (r) => r.workId === WORK_ID,
-  );
+  const laborRows = buildOurWorkRateCatalogRows({ store, nowMs: NOW });
+  const laborRow = laborRows.find((r) => r.workId === WORK_ID);
   eq("T9 labor still unset in work-rate rows", laborRow?.marginUnset, true);
-  void buildOurPriceCatalogRows; // imported for API surface stability
+  ok(
+    "T9 material host excluded from labor rows",
+    !laborRows.some((r) => r.workId === "cw.product.demo-mat"),
+  );
+  void buildOurPriceCatalogRows;
 }
 
 // ——— T10 UI wiring + per-work + labor global floor (MAX, labor IDs only) ———
@@ -239,11 +252,20 @@ function makeStore(works) {
     join(ROOT, "src/app/price-catalog/OurPriceCatalogPanel.tsx"),
     "utf8",
   );
+  const editorSrc = readFileSync(
+    join(ROOT, "src/app/catalog-shared/CommercialMarginEditor.tsx"),
+    "utf8",
+  );
+  const globalBarSrc = readFileSync(
+    join(ROOT, "src/app/catalog-shared/CommercialMarginGlobalBar.tsx"),
+    "utf8",
+  );
   ok("T10 Marża WGDOM label", /Marża WGDOM/.test(panelSrc));
-  ok("T10 margin editor marker", /data-work-rate-margin-editor/.test(panelSrc));
-  ok("T10 Zapisz button", /data-work-rate-margin-save/.test(panelSrc));
+  ok("T10 shared editor used", /CommercialMarginEditor/.test(panelSrc));
+  ok("T10 margin editor marker", /data-work-rate-margin-editor/.test(editorSrc));
+  ok("T10 Zapisz button", /data-work-rate-margin-save/.test(editorSrc));
   ok("T10 updateCommercialMargin wired", /updateCommercialMargin/.test(panelSrc));
-  ok("T15 per-work editor remains", /data-work-rate-margin-save/.test(panelSrc));
+  ok("T15 per-work editor remains", /data-work-rate-margin-save/.test(editorSrc));
   ok(
     "T10 labor global floor wired",
     /applyGlobalCommercialMarginFloor/.test(panelSrc) &&
@@ -255,13 +277,20 @@ function makeStore(works) {
   );
   ok(
     "T10 labor label MIN for all works",
-    /Minimalna marża dla wszystkich robót/.test(panelSrc),
+    /Minimalna marża dla wszystkich robót/.test(panelSrc) ||
+      /Minimalna marża dla wszystkich robót/.test(globalBarSrc),
   );
   ok("T10 labor Zastosuj", /onApplyGlobalLaborMargin/.test(panelSrc));
   ok(
     "T10 material panel still has global floor",
     /applyGlobalCommercialMarginFloor/.test(pricePanel) &&
+      /listMaterialWorkIdsForCommercialMarginFloor/.test(pricePanel) &&
       /Minimalna marża dla wszystkich \(%\)/.test(pricePanel),
+  );
+  ok(
+    "T10 material does not import labor research",
+    !/researchOurWorkRate/.test(pricePanel) &&
+      !/acceptOurWorkRateResearch/.test(pricePanel),
   );
   ok(
     "T10 Accept path still present separately",
@@ -276,7 +305,7 @@ function makeStore(works) {
   );
   const globalBlock = panelSrc.slice(
     panelSrc.indexOf("async function onApplyGlobalLaborMargin"),
-    panelSrc.indexOf("function MarginControl"),
+    panelSrc.indexOf("async function onSaveEdit"),
   );
   ok(
     "T18 no research/Candidate/Accept in global apply",
@@ -286,6 +315,8 @@ function makeStore(works) {
       !/updateOurWorkRate/.test(globalBlock) &&
       /applyGlobalCommercialMarginFloor/.test(globalBlock),
   );
+  ok("U21 Super Admin gates labor global", /\{isSuperAdmin && \(/.test(panelSrc));
+  ok("U21 Super Admin gates material global", /\{isSuperAdmin && \(/.test(pricePanel));
 }
 
 {
@@ -410,5 +441,113 @@ function makeStore(works) {
   eq("G9 clamp UNSET 2000→1000", resolveMarginPct(store.catalogs.wroclaw.works[0]), 1000);
 }
 
+{
+  const missing = buildOurWorkRateCatalogRows({ store: makeStore([makeLaborWork()]), nowMs: NOW })[0];
+  eq("U19/U20 null OUR RATE => no sell", missing.sellPricePln, null);
+  eq("U18 UNSET empty before Owner", missing.marginUnset, true);
+
+  let store = makeStore([
+    makeLaborWork({
+      ourWorkRate: {
+        workId: WORK_ID,
+        ourRatePln: 40,
+        unit: "mb",
+        sourceType: "OWNER",
+        regionScope: "WROCLAW",
+        observedAt: T0,
+        updatedAt: T0,
+        history: [],
+      },
+    }),
+  ]);
+  let row = buildOurWorkRateCatalogRows({ store, nowMs: NOW })[0];
+  eq("U20 rate without margin => no sell", row.sellPricePln, null);
+  store = patchWorkCommercialPricing(store, WORK_ID, 20, "2026-08-14T12:00:00.000Z", "owner");
+  row = buildOurWorkRateCatalogRows({ store, nowMs: NOW })[0];
+  eq("U19 sell derived", row.sellPricePln, computeSellPricePln(40, 20));
+  eq("U19 not written as OUR RATE", row.ourRatePln, 40);
+}
+
+{
+  const ids = [];
+  for (let i = 0; i < 101; i += 1) {
+    ids.push(
+      makeLaborWork({
+        id: `labor-page-${i}`,
+        namePl: `Robota ${String(i).padStart(3, "0")}`,
+      }),
+    );
+  }
+  const store = makeStore(ids);
+  const rows = buildOurWorkRateCatalogRows({ store, nowMs: NOW });
+  eq("U24 page size const", OUR_PRICE_CATALOG_PAGE_SIZE, 100);
+  const page1 = paginateOurPriceCatalogRows(rows, 1, OUR_PRICE_CATALOG_PAGE_SIZE);
+  const page2 = paginateOurPriceCatalogRows(rows, 2, OUR_PRICE_CATALOG_PAGE_SIZE);
+  eq("U24 page1 length", page1.items.length, 100);
+  eq("U24 page2 length", page2.items.length, 1);
+  eq("U24 totalPages", page1.totalPages, 2);
+}
+
+{
+  const panelSrc = readFileSync(
+    join(ROOT, "src/app/work-rate-catalog/OurWorkRateCatalogPanel.tsx"),
+    "utf8",
+  );
+  const pricePanel = readFileSync(
+    join(ROOT, "src/app/price-catalog/OurPriceCatalogPanel.tsx"),
+    "utf8",
+  );
+  ok("U24 labor paginate helper", /paginateOurPriceCatalogRows/.test(panelSrc));
+  ok("U25 labor search resets page", /setSearch\(raw\);[\s\S]*setPage\(1\)/.test(panelSrc));
+  ok("U25 labor filter resets page", /setFreshnessFilter\(id\);[\s\S]*setPage\(1\)/.test(panelSrc));
+  ok("U26 empty state", /Brak robót spełniających kryteria/.test(panelSrc));
+  ok("U27 error alert", /role="alert"/.test(panelSrc));
+  ok("U28 no labor-only mobile cards", !/data-work-rate-catalog-mobile/.test(panelSrc));
+  ok("U28 table overflow chrome", /overflow-x-auto/.test(panelSrc) && /min-w-\[860px\]/.test(panelSrc));
+  ok("U28 no hidden md table", !/hidden md:block/.test(panelSrc));
+  ok("U29 labor catalog hook", /data-our-work-rate-catalog/.test(panelSrc));
+  ok("U29 material catalog hook", /data-our-price-catalog/.test(pricePanel));
+  ok("U22 material seed unchanged", /ensureOurPriceCatalogMaterialPurchaseSeed/.test(pricePanel));
+  ok("U22 material force refresh unchanged", /forceResearchMaterialMarketPrice/.test(pricePanel));
+  ok("U22 labor has no material seed", !/ensureOurPriceCatalogMaterialPurchaseSeed/.test(panelSrc));
+  ok("U23 material global uses catalog-scope IDs", /listMaterialWorkIdsForCommercialMarginFloor/.test(pricePanel));
+  ok(
+    "U23 material global not filtered rows.map",
+    !/const ids = rows\.map\(\(r\) => r\.workId\)/.test(pricePanel),
+  );
+}
+
+{
+  const store = makeStore([
+    makeLaborWork(),
+    {
+      id: "cw.product.demo-mat",
+      tradeId: "ELEKTRYKA",
+      namePl: "Demo materiał",
+      unit: "szt",
+      companyPricePln: 10,
+      marketQuotes: {},
+      marketQuoteHistory: [],
+      commercialPricing: { marginPct: 12, updatedAt: T0, source: "owner" },
+      updatedAt: T0,
+      freshnessStatus: "ok",
+      keywords: ["mat.demo"],
+      active: true,
+      favorite: false,
+      usageCount: 0,
+      source: "custom",
+    },
+  ]);
+  const laborIds = listLaborWorkIdsForCommercialMarginFloor(store);
+  const materialIds = listMaterialWorkIdsForCommercialMarginFloor(store);
+  ok("U3 labor IDs = active labor", laborIds.includes(WORK_ID) && laborIds.length === 1);
+  ok("U4 labor IDs exclude material", !laborIds.includes("cw.product.demo-mat"));
+  ok(
+    "U1/U4 datasets disjoint",
+    laborIds.every((id) => !materialIds.includes(id)),
+  );
+}
+
 console.log(`\n${passed} PASS / ${failed} FAIL`);
 if (failed > 0) process.exit(1);
+

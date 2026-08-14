@@ -6,11 +6,12 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Search, Tag } from "lucide-react";
+import { RefreshCw, Tag } from "lucide-react";
 import { useWorkCatalog } from "@/app/hooks/useWorkCatalog";
 import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { indexWorksById, getRegionSlice } from "@/lib/work-catalog";
+import { parseOwnerCommercialMarginPctInput } from "@/lib/work-catalog/our-work-rate-catalog";
 import {
   OUR_PRICE_CATALOG_PAGE_SIZE,
   acceptForceRefreshCandidate,
@@ -18,6 +19,7 @@ import {
   createEdgeResearchLeasePort,
   ensureOurPriceCatalogMaterialPurchaseSeed,
   forceResearchMaterialMarketPrice,
+  listMaterialWorkIdsForCommercialMarginFloor,
   paginateOurPriceCatalogRows,
   resetMaterialResearchSessionCooldownForTests,
   type MaterialCacheUsability,
@@ -25,25 +27,21 @@ import {
   type OurPriceCatalogRow,
   type PriceCandidate,
 } from "@/lib/price-intelligence";
-import { WgButton, WgField } from "@/app/ui";
+import {
+  CatalogFreshnessToolbar,
+  CatalogPager,
+  CommercialMarginEditor,
+  CommercialMarginGlobalBar,
+  catalogFreshnessDot,
+  catalogFreshnessToneClass,
+  formatCatalogDateTimePl,
+} from "@/app/catalog-shared";
+import { WgButton } from "@/app/ui";
 import { cn } from "@/app/components/ui/utils";
-import { WG_TOUCH_MIN } from "@/lib/wg-ui-tokens";
 
 function formatPln(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return "—";
   return `${n.toLocaleString("pl-PL", { maximumFractionDigits: 2 })} zł`;
-}
-
-function formatObservedAt(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return "—";
-  return new Date(t).toLocaleString("pl-PL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 /** User-facing freshness — enums CURRENT/STALE/MISSING stay in data. */
@@ -57,32 +55,6 @@ function freshnessLabelPl(freshness: MaterialCacheUsability): string {
       return "BRAK CENY";
     default:
       return "NIEZNANA";
-  }
-}
-
-function freshnessToneClass(freshness: MaterialCacheUsability): string {
-  switch (freshness) {
-    case "CURRENT":
-      return "text-emerald-700 dark:text-emerald-400";
-    case "STALE":
-      return "text-orange-700 dark:text-orange-400";
-    case "MISSING":
-      return "text-destructive";
-    default:
-      return "text-muted-foreground";
-  }
-}
-
-function freshnessDot(freshness: MaterialCacheUsability): string {
-  switch (freshness) {
-    case "CURRENT":
-      return "🟢";
-    case "STALE":
-      return "🟠";
-    case "MISSING":
-      return "🔴";
-    default:
-      return "⚪";
   }
 }
 
@@ -151,6 +123,7 @@ export function OurPriceCatalogPanel() {
     candidate: PriceCandidate;
   } | null>(null);
   const [errorPl, setErrorPl] = useState<string | null>(null);
+  const [infoPl, setInfoPl] = useState<string | null>(null);
   const [marginDraft, setMarginDraft] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [seedReady, setSeedReady] = useState(false);
@@ -209,28 +182,49 @@ export function OurPriceCatalogPanel() {
     [rows, page],
   );
 
-  async function onSaveMargin(row: OurPriceCatalogRow): Promise<void> {
+  async function onSaveMargin(workId: string): Promise<void> {
+    const row =
+      rows.find((r) => r.workId === workId) ?? allRows.find((r) => r.workId === workId);
+    if (!row) return;
     const raw = marginDraft[row.workId] ?? String(row.marginPct ?? "");
-    const n = Number(String(raw).replace(",", "."));
-    if (!Number.isFinite(n) || n < 0) {
+    const n = parseOwnerCommercialMarginPctInput(raw);
+    if (n == null) {
       setErrorPl("Nieprawidłowa marża.");
       return;
     }
     setErrorPl(null);
+    setInfoPl(null);
     const res = await updateCommercialMargin(row.workId, n);
     if (!res.ok) setErrorPl(res.message);
+    else {
+      setInfoPl(`Zapisano marżę WGDOM ${n}% dla: ${row.namePl}.`);
+      reload();
+    }
   }
 
   async function onApplyGlobal(): Promise<void> {
-    const n = Number(String(globalMargin).replace(",", "."));
-    if (!Number.isFinite(n) || n < 0) {
+    if (busyKey) return;
+    const n = parseOwnerCommercialMarginPctInput(globalMargin);
+    if (n == null) {
       setErrorPl("Podaj poprawną minimalną marżę %.");
       return;
     }
     setErrorPl(null);
-    const ids = rows.map((r) => r.workId);
-    const res = await applyGlobalCommercialMarginFloor(ids, n);
-    if (!res.ok) setErrorPl(res.message);
+    setInfoPl(null);
+    const ids = listMaterialWorkIdsForCommercialMarginFloor(store);
+    setBusyKey("__global_material_margin__");
+    try {
+      const res = await applyGlobalCommercialMarginFloor(ids, n);
+      if (!res.ok) setErrorPl(res.message);
+      else {
+        setInfoPl(
+          `Zastosowano minimalną marżę ${n}% dla ${ids.length} materiałów (MAX z istniejącą).`,
+        );
+        reload();
+      }
+    } finally {
+      setBusyKey(null);
+    }
   }
 
   async function onForceRefresh(row: OurPriceCatalogRow): Promise<void> {
@@ -316,73 +310,41 @@ export function OurPriceCatalogPanel() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-end flex-wrap">
-          <div className="flex flex-wrap gap-1.5 order-2 sm:order-1">
-            {FRESHNESS_FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => {
-                  setFreshnessFilter(f.id);
-                  setPage(1);
-                }}
-                aria-pressed={freshnessFilter === f.id}
-                aria-label={`Filtr: ${f.label}`}
-                className={cn(
-                  "px-2.5 py-1.5 rounded-lg text-[11px] font-medium border min-h-[40px]",
-                  freshnessFilter === f.id
-                    ? "border-primary bg-primary/15 text-primary"
-                    : "border-border bg-secondary/30 text-muted-foreground",
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <label className="flex-1 min-w-[12rem] space-y-1 order-1 sm:order-2">
-            <span className="text-[11px] text-muted-foreground">Wyszukiwarka</span>
-            <div className="relative">
-              <Search
-                size={14}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <input
-                className={cn(
-                  "w-full rounded-md border border-border bg-background pl-8 pr-3 text-sm",
-                  WG_TOUCH_MIN,
-                )}
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Wpisz nazwę materiału lub klucz materiału..."
-                aria-label="Wyszukaj materiał"
-              />
-            </div>
-          </label>
-        </div>
+        <CatalogFreshnessToolbar
+          filters={FRESHNESS_FILTERS}
+          selected={freshnessFilter}
+          onSelect={(id) => {
+            setFreshnessFilter(id);
+            setPage(1);
+          }}
+          search={search}
+          onSearch={(raw) => {
+            setSearch(raw);
+            setPage(1);
+          }}
+          searchPlaceholder="Wpisz nazwę materiału lub klucz materiału..."
+          searchAriaLabel="Wyszukaj materiał"
+        />
 
         {isSuperAdmin && (
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-end border-t border-border/60 pt-3">
-            <WgField
-              label="Minimalna marża dla wszystkich (%)"
-              value={globalMargin}
-              onChange={(e) => setGlobalMargin(e.target.value)}
-              inputMode="decimal"
-              className="sm:max-w-[14rem]"
-            />
-            <WgButton type="button" variant="secondary" onClick={() => void onApplyGlobal()}>
-              Zastosuj
-            </WgButton>
-          </div>
+          <CommercialMarginGlobalBar
+            label="Minimalna marża dla wszystkich (%)"
+            value={globalMargin}
+            onChange={setGlobalMargin}
+            onApply={() => void onApplyGlobal()}
+            busy={busyKey === "__global_material_margin__"}
+            dataPrefix="price-catalog"
+          />
         )}
 
         {errorPl && (
           <p className="text-xs text-destructive" role="alert">
             {errorPl}
+          </p>
+        )}
+        {infoPl && !errorPl && (
+          <p className="text-xs text-muted-foreground" role="status">
+            {infoPl}
           </p>
         )}
 
@@ -468,18 +430,18 @@ export function OurPriceCatalogPanel() {
                           <div>
                             Data ceny:{" "}
                             {row.priceObservedAt
-                              ? formatObservedAt(row.priceObservedAt)
+                              ? formatCatalogDateTimePl(row.priceObservedAt)
                               : "—"}
                           </div>
                           <div>
                             Marża zaktualizowana:{" "}
                             {row.commercialPricing?.updatedAt
-                              ? formatObservedAt(row.commercialPricing.updatedAt)
+                              ? formatCatalogDateTimePl(row.commercialPricing.updatedAt)
                               : "—"}
                           </div>
                           {(row.history ?? []).slice(-5).reverse().map((h, hi) => (
                             <div key={`${h.updatedAt}-${hi}`}>
-                              Historia {formatObservedAt(h.updatedAt)} · {formatPln(h.price)} ·{" "}
+                              Historia {formatCatalogDateTimePl(h.updatedAt)} · {formatPln(h.price)} ·{" "}
                               {originHistoryLabel(h.origin)}
                             </div>
                           ))}
@@ -498,17 +460,17 @@ export function OurPriceCatalogPanel() {
                       <span
                         className={cn(
                           "inline-flex items-center gap-1 font-medium whitespace-nowrap",
-                          freshnessToneClass(row.freshness),
+                          catalogFreshnessToneClass(row.freshness),
                         )}
                         title={freshnessLabelPl(row.freshness)}
                       >
-                        <span aria-hidden>{freshnessDot(row.freshness)}</span>
+                        <span aria-hidden>{catalogFreshnessDot(row.freshness)}</span>
                         {freshnessLabelPl(row.freshness)}
                       </span>
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       {row.priceObservedAt
-                        ? formatObservedAt(row.priceObservedAt)
+                        ? formatCatalogDateTimePl(row.priceObservedAt)
                         : "—"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap text-[10px]">
@@ -525,39 +487,21 @@ export function OurPriceCatalogPanel() {
                       </div>
                     </td>
                     <td className="px-2 py-2">
-                      {isSuperAdmin ? (
-                        <div className="flex items-center gap-1">
-                          <input
-                            className="w-14 rounded border border-border bg-background px-1 py-1 text-xs min-h-[36px]"
-                            value={
-                              marginDraft[row.workId] ??
-                              (row.marginUnset ? "" : String(row.marginPct))
-                            }
-                            placeholder="—"
-                            onChange={(e) =>
-                              setMarginDraft((d) => ({
-                                ...d,
-                                [row.workId]: e.target.value,
-                              }))
-                            }
-                            inputMode="decimal"
-                            aria-label={`Marża ${row.namePl}`}
-                          />
-                          <span className="text-muted-foreground">%</span>
-                          <button
-                            type="button"
-                            className="text-[10px] text-primary underline min-h-[36px] px-1"
-                            onClick={() => void onSaveMargin(row)}
-                            aria-label={`Zapisz marżę: ${row.namePl}`}
-                          >
-                            OK
-                          </button>
-                        </div>
-                      ) : row.marginUnset ? (
-                        <span className="text-muted-foreground">Brak marży</span>
-                      ) : (
-                        `${row.marginPct}%`
-                      )}
+                      <CommercialMarginEditor
+                        namePl={row.namePl}
+                        workId={row.workId}
+                        marginPct={row.marginPct}
+                        marginUnset={row.marginUnset}
+                        draft={marginDraft[row.workId]}
+                        onDraftChange={(id, raw) =>
+                          setMarginDraft((d) => ({ ...d, [id]: raw }))
+                        }
+                        onSave={(id) => void onSaveMargin(id)}
+                        onInvalid={() => setErrorPl("Nieprawidłowa marża.")}
+                        isSuperAdmin={isSuperAdmin}
+                        busy={busyKey === row.workId}
+                        dataPrefix="price-catalog"
+                      />
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       {row.basePrice == null ? (
@@ -607,7 +551,14 @@ export function OurPriceCatalogPanel() {
           </table>
         </div>
 
-        <div className="space-y-2 px-3 py-3 border-t border-border text-[11px] text-muted-foreground">
+        <CatalogPager
+          page={pageData.page}
+          totalPages={pageData.totalPages}
+          total={pageData.total}
+          pageSize={OUR_PRICE_CATALOG_PAGE_SIZE}
+          onPrev={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => p + 1)}
+        >
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             <span>
               Łącznie materiałów:{" "}
@@ -624,33 +575,7 @@ export function OurPriceCatalogPanel() {
               ⚪ Robocizna: {summary.labor}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span>
-              Widok: {pageData.total} · strona {pageData.page} z {pageData.totalPages} ·{" "}
-              {OUR_PRICE_CATALOG_PAGE_SIZE} na stronę
-            </span>
-            <div className="flex gap-1">
-              <WgButton
-                type="button"
-                variant="secondary"
-                disabled={pageData.page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="Poprzednia strona"
-              >
-                Poprzednia
-              </WgButton>
-              <WgButton
-                type="button"
-                variant="secondary"
-                disabled={pageData.page >= pageData.totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                aria-label="Następna strona"
-              >
-                Następna
-              </WgButton>
-            </div>
-          </div>
-        </div>
+        </CatalogPager>
       </div>
     </div>
   );

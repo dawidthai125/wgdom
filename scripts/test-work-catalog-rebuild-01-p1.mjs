@@ -334,7 +334,12 @@ eq("T25d MISSING→BRAK STAWKI", workRateFreshnessLabelPl("MISSING"), "BRAK STAW
     join(ROOT, "src/app/work-rate-catalog/OurWorkRateCatalogPanel.tsx"),
     "utf8",
   );
-  ok("T24 mobile cards", /data-work-rate-catalog-mobile/.test(panel));
+  ok(
+    "T24 catalog table chrome (materials pattern, no labor-only mobile cards)",
+    /overflow-x-auto/.test(panel) &&
+      /min-w-\[860px\]/.test(panel) &&
+      !/data-work-rate-catalog-mobile/.test(panel),
+  );
   ok("T24b no CURRENT in UI string literal for user", !/["']CURRENT["']/.test(panel) || /data-freshness=\{row\.freshness\}/.test(panel));
   ok("T25e AKTUALNA in panel", /AKTUALNA/.test(panel));
   ok("T25f BRAK STAWKI in panel", /BRAK STAWKI/.test(panel));
