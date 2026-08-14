@@ -1,8 +1,8 @@
 # IK-MIGRATION-01 P2.75 — Dwelling / address mapping
 
-> **STATUS:** PARTIAL (infrastructure COMPLETE · live Owner map REQUIRED)  
+> **STATUS:** SUPERSEDED by P2.75-B COMPLETE — see [`IK-MIGRATION-01-P2.75-B-OWNER-MAP-READY.md`](./IK-MIGRATION-01-P2.75-B-OWNER-MAP-READY.md)  
 > **Date:** 2026-08-15  
-> **Tip:** 2.66.63  
+> **Tip:** 2.66.64  
 > **Real tender:** `08def45d-ead6-5db8-962b-120001d33d37`
 
 ## Audit (reuse — no duplicate system)

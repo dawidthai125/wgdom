@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.64 — IK P2.75-B Owner dwelling map → Master BOQ READY (2026-08-15)
+
+**Scope:** jawna Owner `documentToDwelling` na realnym ZZK → Master BOQ READY (harness).
+
+- Owner map: Kotlarska / Nasturcjowa / Ptasia / Żernicka + `common_wentylacja`
+- RAW 484 → extractable 444 → composed 430 (KEEP ONE 14 + raw-skip explained)
+- UNEXPLAINED LOSS/DUP = 0
+- Branch hint el/budowlany; EXCLUDE_EMPTY_PARSE; LP sanitize
+- `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Probe: `scripts/probe-ik-migration-01-p275b-owner-map.mjs --apply`
+
 ## 2.66.63 — IK P2.75 dwelling mapping (2026-08-15)
 
 **Scope:** kontrolowana mapa document→lokal (REUSE multi-dwelling) + integralność linii Master BOQ.

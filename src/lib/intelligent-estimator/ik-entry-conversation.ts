@@ -409,7 +409,7 @@ export function buildIkEntryConversationViewModel(
     steps.push(
       step({
         id: "validation",
-        event: integrity.ok ? "LINE_INTEGRITY_OK" : "LINE_INTEGRITY_FAIL",
+        event: integrity.ok ? "LINE_INTEGRITY_VALIDATED" : "LINE_INTEGRITY_FAIL",
         status: integrity.ok ? "done" : "hold",
         messagePl: integrity.ok
           ? `${integrity.sourceLineCount} pozycji źródłowych zachowuje przypisanie (composed=${integrity.composedLineCount}).`
@@ -425,9 +425,9 @@ export function buildIkEntryConversationViewModel(
     steps.push(
       step({
         id: "boq_status",
-        event: "BOQ_READY",
+        event: "MASTER_BOQ_READY",
         status: "done",
-        messagePl: `Master BOQ gotowy do przekazania ekspertom — ${master.lineCount} pozycji.`,
+        messagePl: `Master BOQ gotowy do klasyfikacji — ${master.lineCount} pozycji.`,
         detailPl: [
           `schema=v${master.schemaVersion ?? "?"}`,
           `sources=${master.sourceCount}`,

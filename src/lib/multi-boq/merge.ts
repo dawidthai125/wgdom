@@ -36,6 +36,19 @@ type RawSourceLine = {
   athTotalPln: number | null;
 };
 
+function sanitizeSourceLp(raw: string | undefined, indexInSourceDoc: number): string {
+  const t = String(raw ?? "").trim();
+  // Corrupt XML/ATH LP (markup leaked into lp) → stable positional identity (no invent content).
+  if (
+    !t
+    || t.length > 48
+    || /[<>]|<\/|\bOpis\b|\bJednostka|\bPKatalog\b|\bPNumer\b|\bWaluta\b/i.test(t)
+  ) {
+    return String(indexInSourceDoc + 1);
+  }
+  return t;
+}
+
 function extractRawLines(
   ref: DwellingCostArtifactRef,
 ): RawSourceLine[] {
@@ -53,9 +66,10 @@ function extractRawLines(
     athTotal: number | null,
   ) => {
     const desc = String(description ?? "").trim();
-    const sourceLineKey = buildSourceLineKey(lp, desc, indexInSourceDoc);
+    const safeLp = sanitizeSourceLp(lp, indexInSourceDoc);
+    const sourceLineKey = buildSourceLineKey(safeLp, desc, indexInSourceDoc);
     const contentHash = foldContentHash([
-      String(lp ?? "").trim(),
+      safeLp,
       desc.slice(0, 200),
       String(unit ?? "").trim(),
       String(quantityRaw ?? "").trim(),
@@ -64,7 +78,7 @@ function extractRawLines(
       sourceDocumentId: ref.documentId,
       sourceArtifactId: ref.artifactId,
       indexInSourceDoc,
-      lp: String(lp ?? "").trim(),
+      lp: safeLp,
       description: desc || "(bez opisu)",
       unit: String(unit ?? "").trim(),
       quantityRaw: String(quantityRaw ?? ""),
@@ -206,6 +220,17 @@ export function mergeDwellingArtifactLines(
   });
 
   return { lines: collapsed, warnings, completeness: "ready" };
+}
+
+/** Raw extractable line count (same path as merge) — for Master BOQ integrity. */
+export function countExtractableLinesFromArtifacts(
+  artifacts: DwellingCostArtifactRef[],
+): number {
+  let n = 0;
+  for (const ref of artifacts) {
+    n += extractRawLines(ref).length;
+  }
+  return n;
 }
 
 export function snapshotHasUsableLines(snapshot: TenderKosztorysSnapshot | null | undefined): boolean {

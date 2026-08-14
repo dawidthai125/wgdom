@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.64",
+    label: "IK P2.75-B Owner dwelling map → Master BOQ READY",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P2.75-B: jawna Owner map (documentToDwelling) na ZZK pustostany → compose wszystkich lokali + integralność linii. Hint filename ≠ SSOT. Wentylacja = common dwelling. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+      {
+        type: "fix",
+        text: "Branch hint: budowlany/el; puste parse EXCLUDE (nie HOLD całego lokalu); LP markup → sanitize; raw vs extractable explained gdy integrity OK.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.63",
     label: "IK P2.75 dwelling mapping (Owner documentToDwelling)",
     items: [

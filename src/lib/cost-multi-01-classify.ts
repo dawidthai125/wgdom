@@ -37,8 +37,16 @@ export function stableCostDocumentId(input: CostDocumentInput): string {
 /** DF §5.2 — heurystyka nazwy → BranchCode. */
 export function inferBranchHint(filename: string): BranchCode {
   const h = fold(costDocumentDisplayBase(filename));
-  if (/budowlana|ogolnobudowl|konstrukcy/.test(h)) return "construction";
-  if (/elektrycz|elektro|teletech/.test(h)) return "electrical";
+  // budowlany / budowlane / -bud. (ATH naming) before "lokal" finishes catch-all
+  if (/budowlan|ogolnobudowl|konstrukcy|(?:^|[^a-z0-9])bud(?:[.\s_-]|$)/.test(h)) {
+    return "construction";
+  }
+  // elektryczne / elektro / token "el" (… lok.14 - el - zp / 13-el._p)
+  if (
+    /elektrycz|elektro|teletech|(?:^|[^a-z0-9])el(?:[^a-z0-9]|$)/.test(h)
+  ) {
+    return "electrical";
+  }
   if (/sanitar|hydraul|wod[.\s-]?kan|wodkan/.test(h)) return "sanitary";
   if (/hydrant|ppoz|ppoż|tryskacz/.test(h)) return "fire";
   if (/wentyl|klimatyz|\bhvac\b/.test(h)) return "hvac";

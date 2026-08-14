@@ -9,6 +9,7 @@
  */
 
 import type { DwellingCostArtifactRef } from "@/lib/multi-boq";
+import { countExtractableLinesFromArtifacts } from "@/lib/multi-boq/merge";
 import {
   confirmDwelling,
   enableMultiDwellingMode,
@@ -368,15 +369,5 @@ export function countKeepOneCollapsedFromWarnings(warnings: string[]): number {
 export function countSourceLinesInArtifacts(
   artifacts: DwellingCostArtifactRef[],
 ): number {
-  let n = 0;
-  for (const a of artifacts) {
-    const rows = a.snapshot?.rows;
-    if (Array.isArray(rows) && rows.length > 0) {
-      n += rows.length;
-      continue;
-    }
-    const cq = a.snapshot?.catalogQuantities;
-    if (Array.isArray(cq)) n += cq.length;
-  }
-  return n;
+  return countExtractableLinesFromArtifacts(artifacts);
 }

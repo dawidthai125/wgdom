@@ -580,7 +580,21 @@ export function runIkDocumentExpert(opts: {
   );
 
   if (detectedRowCount > extractedCount && extractedCount > 0) {
-    gaps.push(`EXTRACT_SHORTFALL expected=${detectedRowCount} extracted=${extractedCount}`);
+    // Multi + Owner map + integrity OK: raw rowCount may include empty LP/opis rows
+    // that merge skips — explained, not EXTRACT_SHORTFALL.
+    if (
+      mode === "multi"
+      && dwellingMapping.allMapped
+      && lineIntegrity.ok
+      && sourceLineCount > 0
+      && detectedRowCount >= sourceLineCount
+    ) {
+      reasons.push(
+        `RAW_ROW_SKIP_EXPLAINED raw=${detectedRowCount} extractable=${sourceLineCount} composed=${composedLineCount} — puste LP/opis pominięte; lineIntegrity OK`,
+      );
+    } else {
+      gaps.push(`EXTRACT_SHORTFALL expected=${detectedRowCount} extracted=${extractedCount}`);
+    }
   }
   if (przedmiary.some((p) => p.unreadable)) gaps.push("UNREADABLE_SOURCE");
   if (costDocuments.some((d) => !d.kosztorysParseSupported && d.isPrzedmiar)) {
@@ -604,6 +618,7 @@ export function runIkDocumentExpert(opts: {
   const composeBlocking = dwellingUnits.some((d) => !d.composeOk);
   const integrityBlocking =
     mode === "multi" && dwellingMapping.allMapped && !lineIntegrity.ok;
+  const rawSkipExplained = reasons.some((r) => r.startsWith("RAW_ROW_SKIP_EXPLAINED"));
 
   let status: IkDocumentExpertStatus = "pending";
   if (!discoverySettled && documents.length === 0) {
@@ -632,7 +647,7 @@ export function runIkDocumentExpert(opts: {
     || validation.missingQuantity
     || validation.missingUnit
     || validation.missingDescription
-    || detectedRowCount > extractedCount
+    || (detectedRowCount > extractedCount && !rawSkipExplained)
   ) {
     status = "partial";
     reasons.push("PARTIAL_EXTRACTION_GAPS");
@@ -640,7 +655,7 @@ export function runIkDocumentExpert(opts: {
     validCount > 0
     && (
       (mode === "legacy_single" && offerBoq)
-      || (mode === "multi" && dwellingMapping.allMapped && composedLineCount > 0 && !composeBlocking)
+      || (mode === "multi" && dwellingMapping.allMapped && composedLineCount > 0 && !composeBlocking && lineIntegrity.ok)
     )
   ) {
     status = "ready";

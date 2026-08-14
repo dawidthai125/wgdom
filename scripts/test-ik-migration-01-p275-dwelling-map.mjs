@@ -308,14 +308,14 @@ assert(
 );
 assert(
   "EC no false BOQ_READY without map",
-  !vmMiss.steps.some((s) => s.event === "BOQ_READY"),
+  !vmMiss.steps.some((s) => s.event === "BOQ_READY" || s.event === "MASTER_BOQ_READY"),
 );
 const vmMapped = buildIkEntryConversationViewModel(mapItem, {
   package: applied.ok ? applied.package : null,
 });
 assert(
   "EC map complete when Owner applied",
-  vmMapped.steps.some((s) => s.event === "DWELLING_MAP_COMPLETE" || s.event === "BOQ_READY"),
+  vmMapped.steps.some((s) => s.event === "DWELLING_MAP_COMPLETE" || s.event === "MASTER_BOQ_READY" || s.event === "BOQ_READY"),
 );
 
 // --- reject invent: documentId === dwellingId ---

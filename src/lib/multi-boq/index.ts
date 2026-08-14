@@ -35,6 +35,7 @@ export { buildDwellingDocumentSet } from "@/lib/multi-boq/document-set";
 
 export {
   mergeDwellingArtifactLines,
+  countExtractableLinesFromArtifacts,
   snapshotHasUsableLines,
 } from "@/lib/multi-boq/merge";
 

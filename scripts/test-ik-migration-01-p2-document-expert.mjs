@@ -339,7 +339,7 @@ assert("unreadable HOLD or PARTIAL", unreadR.status === "hold" || unreadR.status
 const vm = buildIkEntryConversationViewModel(one);
 assert("EC visible", vm.visible === true);
 assert("EC has COST_DOCUMENTS or PRZEDMIARY", vm.steps.some((s) => s.event === "COST_DOCUMENTS_IDENTIFIED" || s.event === "PRZEDMIARY_DISCOVERED"));
-assert("EC BOQ_READY on one", vm.steps.some((s) => s.event === "BOQ_READY"));
+assert("EC BOQ_READY on one", vm.steps.some((s) => s.event === "BOQ_READY" || s.event === "MASTER_BOQ_READY"));
 assert("EC all sourceRef", vm.steps.every((s) => Boolean(s.sourceRef?.tenderId)));
 const blob = vm.steps.map((s) => s.messagePl).join(" ").toLowerCase();
 assert("EC no fake labor/material", FORBIDDEN.every((s) => !blob.includes(s)));

@@ -96,13 +96,15 @@ export function resolveDwellingCostSnapshotForPricing(opts: {
     }
 
     // Owner-mapped + has usable snapshot → cost eligible even if weak filename class.
+    // Empty parse (0 lines) on a mapped cost file: EXCLUDE + continue — do not HOLD
+    // the whole dwelling (other branch artifacts may still compose). No invented lines.
     if (!snapshotHasUsableLines(art.snapshot)) {
       if (!isCostEligibleFilename(art.filename)) {
         warnings.push(`EXCLUDE_NO_COST_LINES:${documentId}`);
         continue;
       }
-      warnings.push(`MISSING_ARTIFACT_LINES:${documentId}`);
-      return emptySnap(tid, dwellingId, "hold", warnings);
+      warnings.push(`EXCLUDE_EMPTY_PARSE:${documentId}`);
+      continue;
     }
 
     selected.push(art);
