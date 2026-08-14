@@ -39,6 +39,14 @@ import { inferBranchHint } from "@/lib/cost-multi-01-classify";
 import type { BranchCode } from "@/lib/cost-multi-01-types";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import {
+  assessDwellingMappingCoverage,
+  computeCompositionLineIntegrity,
+  countKeepOneCollapsedFromWarnings,
+  countSourceLinesInArtifacts,
+  type IkDwellingMappingAssessment,
+  type IkLineIntegrityReport,
+} from "./ik-dwelling-mapping";
 
 export type IkDocumentExpertStatus = "ready" | "partial" | "hold" | "gap" | "pending";
 
@@ -70,6 +78,15 @@ export interface IkPrzedmiarSource {
   unreadable: boolean;
 }
 
+export interface IkDwellingComposeUnit {
+  dwellingId: string;
+  labelPl: string;
+  sourceDocumentIds: string[];
+  lineCount: number;
+  composeOk: boolean;
+  completeness: string | null;
+}
+
 export interface IkDocumentExpertReport {
   tenderId: string;
   discoverySettled: boolean;
@@ -92,10 +109,16 @@ export interface IkDocumentExpertReport {
     duplicateSuspicion: number;
     reasons: string[];
   };
+  dwellingMapping: IkDwellingMappingAssessment;
+  lineIntegrity: IkLineIntegrityReport;
+  dwellings: IkDwellingComposeUnit[];
   masterBoq: {
     mode: "legacy_single" | "multi";
     schemaVersion: number | null;
     lineCount: number;
+    /** Sum of composed lines across dwellings (Master integrity). */
+    composedLineCount: number;
+    sourceLineCount: number;
     dwellingCount: number;
     branchCount: number;
     sourceCount: number;
@@ -390,20 +413,39 @@ export function runIkDocumentExpert(opts: {
   let lineProvenance: Record<string, DwellingLineProvenance> | null = null;
   let mode: "legacy_single" | "multi" = "legacy_single";
   let dwellingCount = 0;
+  const dwellingUnits: IkDwellingComposeUnit[] = [];
+  let composedLineCount = 0;
+  let keepOneCollapsed = 0;
+  const allComposedLines: OfferBoqLine[] = [];
+
+  const dwellingMapping = assessDwellingMappingCoverage({ artifacts: pool, package: pkg });
+  for (const r of dwellingMapping.reasons) {
+    if (!reasons.includes(r)) reasons.push(r);
+  }
 
   const mappedDwellings = pkg?.mode === "multi"
     ? (pkg.dwellings ?? []).filter((d) => (d.sourceDocumentIds?.length ?? 0) > 0)
     : [];
 
-  if (mappedDwellings.length > 0) {
+  if (mappedDwellings.length > 0 && dwellingMapping.allMapped) {
     mode = "multi";
     dwellingCount = mappedDwellings.length;
     const composedDocs: OfferBoqDocument[] = [];
     const mergedProv: Record<string, DwellingLineProvenance> = {};
     for (const unit of mappedDwellings) {
+      const labelPl = unit.labelPl || unit.dwellingId;
       if (unit.offerBoq && (unit.offerBoq.lines?.length ?? 0) > 0) {
         composedDocs.push(unit.offerBoq);
+        allComposedLines.push(...(unit.offerBoq.lines ?? []));
         if (unit.lineProvenance) Object.assign(mergedProv, unit.lineProvenance);
+        dwellingUnits.push({
+          dwellingId: unit.dwellingId,
+          labelPl,
+          sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+          lineCount: unit.offerBoq.lines?.length ?? 0,
+          composeOk: true,
+          completeness: "ready",
+        });
         continue;
       }
       const snap = resolveDwellingCostSnapshotForPricing({
@@ -413,31 +455,67 @@ export function runIkDocumentExpert(opts: {
         artifacts: pool,
         package: pkg,
       });
+      keepOneCollapsed += countKeepOneCollapsedFromWarnings(snap.warnings ?? []);
       const composed = composeDwellingOfferBoq({ snapshot: snap });
       if (composed.ok) {
         composedDocs.push(composed.document);
+        allComposedLines.push(...(composed.document.lines ?? []));
         Object.assign(mergedProv, composed.lineProvenance);
+        dwellingUnits.push({
+          dwellingId: unit.dwellingId,
+          labelPl,
+          sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+          lineCount: composed.document.lines?.length ?? 0,
+          composeOk: true,
+          completeness: snap.completeness,
+        });
       } else {
         reasons.push(`DWELLING_${unit.dwellingId}:${composed.reason}`);
         if (snap.completeness === "conflict") reasons.push("CONFLICT_HOLD");
+        dwellingUnits.push({
+          dwellingId: unit.dwellingId,
+          labelPl,
+          sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+          lineCount: 0,
+          composeOk: false,
+          completeness: snap.completeness,
+        });
       }
     }
+    composedLineCount = allComposedLines.length;
     if (composedDocs.length >= 1) {
+      // Keep first dwelling OfferBoq for legacy consumers; Master lineCount = sum.
       offerBoq = composedDocs[0]!;
       lineProvenance = Object.keys(mergedProv).length ? mergedProv : null;
       if (composedDocs.length > 1) {
         reasons.push(
-          `MULTI_DWELLING_KEEP_STRUCTURE dwellings=${composedDocs.length} — nie spłaszczam tożsamości lokali.`,
+          `MULTI_DWELLING_KEEP_STRUCTURE dwellings=${composedDocs.length} composedLines=${composedLineCount} — nie spłaszczam tożsamości lokali.`,
         );
       }
     }
-  } else if (pool.length > 1) {
-    const merged = mergeDwellingArtifactLines(pool);
-    if (merged.completeness === "conflict") reasons.push("CONFLICT_HOLD");
-    reasons.push("MULTI_SOURCE_NO_DWELLING_MAP — wiele przedmiarów bez mapy adresów.");
+  } else if (mappedDwellings.length > 0 && !dwellingMapping.allMapped) {
+    // Partial Owner map — do not compose incomplete package as READY.
+    mode = "multi";
+    dwellingCount = mappedDwellings.length;
+    reasons.push(
+      "PARTIAL_OWNER_MAP — mapa niepełna; brak kompletnego Master BOQ multi-dwelling.",
+    );
     const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
     if (primary) {
       offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: primary });
+      composedLineCount = offerBoq.lines?.length ?? 0;
+    }
+  } else if (pool.length > 1) {
+    const merged = mergeDwellingArtifactLines(pool);
+    keepOneCollapsed += countKeepOneCollapsedFromWarnings(merged.warnings);
+    if (merged.completeness === "conflict") reasons.push("CONFLICT_HOLD");
+    if (!reasons.some((r) => r.includes("MULTI_SOURCE_NO_DWELLING_MAP"))) {
+      reasons.push("MULTI_SOURCE_NO_DWELLING_MAP — wiele przedmiarów bez mapy adresów.");
+    }
+    const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
+    if (primary) {
+      offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: primary });
+      composedLineCount = offerBoq.lines?.length ?? 0;
     }
   } else {
     const snap = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
@@ -445,6 +523,7 @@ export function runIkDocumentExpert(opts: {
       offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: snap });
       if (pool[0]) {
         const one = mergeDwellingArtifactLines([pool[0]]);
+        keepOneCollapsed += countKeepOneCollapsedFromWarnings(one.warnings);
         if (one.completeness === "ready" && one.lines.length > 0) {
           const composed = composeDwellingOfferBoq({
             snapshot: {
@@ -460,16 +539,40 @@ export function runIkDocumentExpert(opts: {
           if (composed.ok) {
             offerBoq = composed.document;
             lineProvenance = composed.lineProvenance;
+            allComposedLines.push(...(composed.document.lines ?? []));
           }
         }
       }
+      composedLineCount = offerBoq?.lines?.length ?? 0;
     }
   }
 
-  const lines = offerBoq?.lines ?? [];
+  const sourceLineCount = countSourceLinesInArtifacts(pool);
+  const lineIntegrity = computeCompositionLineIntegrity({
+    sourceLineCount,
+    composedLineCount: mode === "multi" && dwellingMapping.allMapped
+      ? composedLineCount
+      : sourceLineCount, // without complete map: do not claim unexplained loss vs partial primary
+    keepOneCollapsedRawLines:
+      mode === "multi" && dwellingMapping.allMapped ? keepOneCollapsed : 0,
+  });
+  // When multi map complete, integrity compares source↔composed; surface failures.
+  if (mode === "multi" && dwellingMapping.allMapped && !lineIntegrity.ok) {
+    for (const r of lineIntegrity.reasons) {
+      if (!reasons.includes(r)) reasons.push(r);
+    }
+  }
+
+  const linesForValidation =
+    mode === "multi" && dwellingMapping.allMapped && allComposedLines.length > 0
+      ? allComposedLines
+      : (offerBoq?.lines ?? []);
+  const lines = linesForValidation;
   const detectedRowCount = przedmiary.reduce((s, p) => s + p.detectedRowCount, 0)
     || (item.tenderDossier?.kosztorys?.rowCount ?? 0);
-  const extractedCount = przedmiary.reduce((s, p) => s + p.extractedCount, 0) || lines.length;
+  const extractedCount = przedmiary.reduce((s, p) => s + p.extractedCount, 0)
+    || sourceLineCount
+    || lines.length;
   const validCount = przedmiary.reduce((s, p) => s + p.validCount, 0)
     || lines.filter((l) => isValidLine(l)).length;
   const extractionExecuted = Boolean(
@@ -493,7 +596,14 @@ export function runIkDocumentExpert(opts: {
   const branches = new Set(
     przedmiary.map((p) => p.branchHint).filter((b) => b && b !== "unknown"),
   );
-  const sourceCount = Math.max(przedmiary.length, costDocuments.length);
+  const sourceCount = Math.max(przedmiary.length, costDocuments.length, pool.length);
+
+  const multiMapBlocking =
+    pool.length > 1
+    && (!dwellingMapping.allMapped || reasons.some((r) => r.includes("MULTI_SOURCE_NO_DWELLING_MAP")));
+  const composeBlocking = dwellingUnits.some((d) => !d.composeOk);
+  const integrityBlocking =
+    mode === "multi" && dwellingMapping.allMapped && !lineIntegrity.ok;
 
   let status: IkDocumentExpertStatus = "pending";
   if (!discoverySettled && documents.length === 0) {
@@ -510,6 +620,10 @@ export function runIkDocumentExpert(opts: {
     reasons.push("HOLD_UNREADABLE_DOCUMENT");
   } else if (reasons.some((r) => r.includes("CONFLICT"))) {
     status = "hold";
+  } else if (integrityBlocking) {
+    status = "hold";
+  } else if (multiMapBlocking || composeBlocking) {
+    status = "partial";
   } else if (extractedCount === 0) {
     status = "partial";
     reasons.push("PARTIAL_NO_EXTRACTION — kandydaci kosztowi bez linii w runtime.");
@@ -522,11 +636,22 @@ export function runIkDocumentExpert(opts: {
   ) {
     status = "partial";
     reasons.push("PARTIAL_EXTRACTION_GAPS");
-  } else if (validCount > 0 && offerBoq) {
+  } else if (
+    validCount > 0
+    && (
+      (mode === "legacy_single" && offerBoq)
+      || (mode === "multi" && dwellingMapping.allMapped && composedLineCount > 0 && !composeBlocking)
+    )
+  ) {
     status = "ready";
   } else {
     status = "partial";
   }
+
+  const masterLineCount =
+    mode === "multi" && dwellingMapping.allMapped
+      ? composedLineCount
+      : (offerBoq?.lines?.length ?? 0);
 
   return {
     tenderId,
@@ -543,11 +668,16 @@ export function runIkDocumentExpert(opts: {
       gaps,
     },
     validation,
+    dwellingMapping,
+    lineIntegrity,
+    dwellings: dwellingUnits,
     masterBoq: {
       mode,
       schemaVersion: offerBoq?.schemaVersion ?? (offerBoq ? OFFER_BOQ_SCHEMA_VERSION : null),
-      lineCount: lines.length,
-      dwellingCount: dwellingCount || (mode === "legacy_single" && lines.length ? 1 : 0),
+      lineCount: masterLineCount,
+      composedLineCount,
+      sourceLineCount,
+      dwellingCount: dwellingCount || (mode === "legacy_single" && masterLineCount ? 1 : 0),
       branchCount: branches.size,
       sourceCount,
       hasLineProvenance: Boolean(lineProvenance && Object.keys(lineProvenance).length > 0),

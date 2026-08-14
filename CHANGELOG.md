@@ -1,5 +1,18 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.63 — IK P2.75 dwelling mapping (2026-08-15)
+
+**Scope:** kontrolowana mapa document→lokal (REUSE multi-dwelling) + integralność linii Master BOQ.
+
+- REUSE: `documentToDwelling`, `mapDocumentToDwelling`, `composeDwellingOfferBoq`, PackageGate
+- Filename/street = **evidence only** — zero silent SSOT
+- Multi-source bez Owner map → **PARTIAL/HOLD** (nie READY)
+- `applyExplicitOwnerDwellingMap` — tylko jawne decyzje Owner
+- Hub: `costDocumentIds` z `branchWinnerArtifacts` do panelu Multi-Dwelling
+- Flaga `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `npx vite-node scripts/test-ik-migration-01-p275-dwelling-map.mjs`
+- Live ZZK: **PARTIAL** do potwierdzenia mapy Owner w Hub (nie invent z nazw plików)
+
 ## 2.66.62 — IK P2.5 NG-02 ingest bridge (2026-08-15)
 
 **Scope:** istniejący NG-02 heavy → rzeczywiste linie BOQ dla Document Expert.

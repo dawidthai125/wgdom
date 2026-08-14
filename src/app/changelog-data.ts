@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.63",
+    label: "IK P2.75 dwelling mapping (Owner documentToDwelling)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P2.75: MULTI-BOQ → dwelling REUSE documentToDwelling (Owner). Filename = evidence only, never silent SSOT. Multi-source bez mapy → PARTIAL/HOLD (nie READY). Integralność linii + KEEP ONE. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.62",
     label: "IK P2.5 NG-02 ingest bridge (real BOQ extraction)",
     items: [

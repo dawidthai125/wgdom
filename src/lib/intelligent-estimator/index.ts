@@ -64,3 +64,21 @@ export type {
   IkNg02IngestPhase,
   IkZipInnerEntryEvidence,
 } from "./ik-ng02-ingest-bridge";
+
+export {
+  assessDwellingMappingCoverage,
+  applyExplicitOwnerDwellingMap,
+  buildDwellingMappingCandidates,
+  computeCompositionLineIntegrity,
+  countKeepOneCollapsedFromWarnings,
+  countSourceLinesInArtifacts,
+} from "./ik-dwelling-mapping";
+export type {
+  IkApplyOwnerMapResult,
+  IkDwellingMappingAssessment,
+  IkDwellingMappingCandidate,
+  IkDwellingMappingCandidateKind,
+  IkExplicitOwnerDwelling,
+  IkExplicitOwnerMapping,
+  IkLineIntegrityReport,
+} from "./ik-dwelling-mapping";

@@ -348,7 +348,12 @@ export function TenderWorkflowHubPanel({
         onPriceResearchAccepted={onPriceResearchAccepted}
       />
 
-      <MultiDwellingPackagePanel item={item} />
+      <MultiDwellingPackagePanel
+        item={item}
+        costDocumentIds={(item.tenderDossier?.scanSummary?.branchWinnerArtifacts ?? [])
+          .map((a) => String(a.documentId ?? a.filename ?? "").trim())
+          .filter(Boolean)}
+      />
 
       {/* S4 — ANALIZA → EKSPERCI → WALIDACJA/REKOMENDACJA/DECYZJA (DW) · Intelligence = recovery */}
       <div data-s4-step="analiza">

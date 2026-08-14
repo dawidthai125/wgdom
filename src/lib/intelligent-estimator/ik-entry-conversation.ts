@@ -362,6 +362,64 @@ export function buildIkEntryConversationViewModel(
     );
   }
 
+  const map = report.dwellingMapping;
+  if (map.artifactCount > 1 || map.ownerMapRequired || map.allMapped) {
+    const mapStatus: ExpertConversationStepStatus = map.allMapped
+      ? "done"
+      : map.ownerMapRequired
+        ? "partial"
+        : "pending";
+    steps.push(
+      step({
+        id: "validation",
+        event: map.allMapped ? "DWELLING_MAP_COMPLETE" : "DWELLING_MAP_REQUIRED",
+        status: mapStatus,
+        messagePl: map.allMapped
+          ? `Przypisałem artefakty do ${map.dwellings.length || report.masterBoq.dwellingCount} lokali (Owner map).`
+          : `Wymagana mapa Owner document→lokal — ${map.unmappedCount}/${map.artifactCount} bez mapowania.`,
+        detailPl: [
+          `mapped=${map.mappedCount}`,
+          `unmapped=${map.unmappedCount}`,
+          map.sharedCandidateCount ? `shared_candidates=${map.sharedCandidateCount}` : null,
+          map.ambiguousCount ? `ambiguous=${map.ambiguousCount}` : null,
+          "filename≠SSOT",
+          ...map.reasons.slice(0, 3),
+        ].filter(Boolean).join(" · "),
+        sourceRef: tenderRef({
+          dwellingMapping: {
+            artifactCount: map.artifactCount,
+            mappedCount: map.mappedCount,
+            unmappedCount: map.unmappedCount,
+            allMapped: map.allMapped,
+            sharedCandidateCount: map.sharedCandidateCount,
+            coverage: map.coverage.map((c) => ({
+              documentId: c.documentId,
+              mapped: c.mapped,
+              dwellingId: c.dwellingId,
+              kind: c.kind,
+            })),
+          },
+        }, "document"),
+      }),
+    );
+  }
+
+  const integrity = report.lineIntegrity;
+  if (map.allMapped && report.extraction.extractedCount > 0) {
+    steps.push(
+      step({
+        id: "validation",
+        event: integrity.ok ? "LINE_INTEGRITY_OK" : "LINE_INTEGRITY_FAIL",
+        status: integrity.ok ? "done" : "hold",
+        messagePl: integrity.ok
+          ? `${integrity.sourceLineCount} pozycji źródłowych zachowuje przypisanie (composed=${integrity.composedLineCount}).`
+          : `Integralność linii: unexplained loss=${integrity.unexplainedLoss}, dup=${integrity.unexplainedDuplication}.`,
+        detailPl: integrity.reasons.join("; ") || null,
+        sourceRef: tenderRef({ lineIntegrity: integrity }, "extraction"),
+      }),
+    );
+  }
+
   const master = report.masterBoq;
   if (master.readyForExperts) {
     steps.push(
