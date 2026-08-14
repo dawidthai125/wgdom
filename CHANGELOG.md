@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.52 — PASS2 Allowlist Wave-1 (local · 2026-08-14)
+
+**Scope:** lokalna implementacja · **ZERO COMMIT** do osobnego Owner GO.
+
+- Option D: `kb_pl` grooves KEEP + plaster L1 · `cennikremontow_pl` painting P1 · **MAX=2**
+- Synonym „szpachlowanie bruzd po kablach” KEEP · repairs/sealing DEFER · ZERO new hosts
+- Edge mirror PASS2 map parity · F5/qualify/median/Accept/OUR RATE/margin UNCHANGED
+- SOURCE GAP **OPEN** · NICHE **NOT CLAIMED**
+
 ## 2.66.51 — Work catalog migration safety (local · 2026-08-14)
 
 **Scope:** lokalna implementacja · **ZERO COMMIT** do osobnego Owner GO.

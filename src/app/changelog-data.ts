@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.52",
+    label: "PASS2 Allowlist Wave-1 (local)",
+    items: [
+      {
+        type: "new",
+        text: "WR-PASS2-ALLOWLIST-WAVE-1 Option D (local, undeployed): kb_pl grooves KEEP + plaster L1 · cennikremontow painting P1 · MAX=2 · synonym „szpachlowanie bruzd po kablach” KEEP · repairs/sealing DEFER · ZERO new hosts · F5/qualify/median/Accept/OUR RATE/margin UNCHANGED · SOURCE GAP OPEN · NICHE NOT CLAIMED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.51",
     label: "Work catalog migration safety (local)",
     items: [

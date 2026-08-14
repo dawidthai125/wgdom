@@ -571,13 +571,15 @@ setWorkRatePass2AllowlistForTests(null);
 // ——— T18 W2 regression pointer (smoke selective candidate) ———
 {
   clearWorkRateResearchAntiStormState();
+  // Accept stamps observedAt with wall-clock Date.now(); frozen NOW must not be in the past.
+  const nowMs = Math.max(NOW, Date.now());
   const store = makeStore([makeWork()]);
   const res = await runSelectiveWorkRateResearch({
     store,
     workId: WORK_ID,
     unit: UNIT,
     namePl: NAME,
-    nowMs: NOW,
+    nowMs,
     lookupPort: fourPass1Fixtures(),
     bypassCooldown: true,
   });
@@ -589,14 +591,14 @@ setWorkRatePass2AllowlistForTests(null);
     });
     eq("T18 Accept", accepted.ok, true);
     if (accepted.ok) {
-      const hit = lookupWorkRate(accepted.store, WORK_ID, UNIT, NOW);
+      const hit = lookupWorkRate(accepted.store, WORK_ID, UNIT, nowMs);
       eq("T18 OUR RATE CURRENT", hit.status, "CURRENT");
       const reuse = await runSelectiveWorkRateResearch({
         store: accepted.store,
         workId: WORK_ID,
         unit: UNIT,
         namePl: NAME,
-        nowMs: NOW,
+        nowMs,
         lookupPort: fourPass1Fixtures(),
       });
       eq("T18 REUSE", reuse.status, "REUSE");

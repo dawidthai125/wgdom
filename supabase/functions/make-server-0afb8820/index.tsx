@@ -4810,12 +4810,15 @@ function workRateBuildSelectiveUrl(sourceId: string, query: string): string | nu
 
 /**
  * PASS2 Owner category allowlist — mirrors WORK_RATE_PASS2_CATEGORY_ALLOWLIST (src).
- * KB-BRUZDY-POLICY-01: grooves → KB national repairs page.
+ * WR-PASS2-ALLOWLIST-WAVE-1 Option D: kb grooves+plaster · CR painting · MAX=2.
  * Key: `${sourceId}::${categoryKey}` → https URL on allowlisted host only.
  */
 const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({
   "kb_pl::grooves":
     "https://kb.pl/cenniki/uslugi/cennik-naprawy-ubytkow-w-scianie-i-suficie-aktualne-ceny/",
+  "kb_pl::plaster":
+    "https://kb.pl/cenniki/uslugi/cennik-gladzi-gipsowej-i-szpachlowania-scian-w-calej-polsce/",
+  "cennikremontow_pl::painting": "https://cennikremontow.pl/malowanie-cennik",
 });
 
 function workRateHostAllowed(urlStr: string): boolean {

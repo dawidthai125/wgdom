@@ -46,8 +46,11 @@ export type WorkRatePass2AllowlistEntry = {
 
 /**
  * Production PASS2 allowlist — Owner-curated only.
- * KB-BRUZDY-POLICY-01: KB national repairs page for grooves (zaprawianie / szpachlowanie bruzd).
- * Wykwity / folia remain unlisted (SOURCE GAP OPEN for those niches).
+ * WR-PASS2-ALLOWLIST-WAVE-1 (Option D · MAX=2):
+ *   kb_pl: grooves (KEEP, first) → plaster L1 (second)
+ *   cennikremontow_pl: painting P1
+ * KB-BRUZDY-POLICY-01: grooves synonym „szpachlowanie bruzd po kablach” unchanged.
+ * repairs / sealing_protection / KB painting / L2–L3 DEFERRED (SOURCE GAP OPEN).
  */
 export const WORK_RATE_PASS2_CATEGORY_ALLOWLIST: readonly WorkRatePass2AllowlistEntry[] =
   Object.freeze([
@@ -56,9 +59,19 @@ export const WORK_RATE_PASS2_CATEGORY_ALLOWLIST: readonly WorkRatePass2Allowlist
       categoryKey: "grooves",
       url: "https://kb.pl/cenniki/uslugi/cennik-naprawy-ubytkow-w-scianie-i-suficie-aktualne-ceny/",
     },
+    {
+      sourceId: "kb_pl",
+      categoryKey: "plaster",
+      url: "https://kb.pl/cenniki/uslugi/cennik-gladzi-gipsowej-i-szpachlowania-scian-w-calej-polsce/",
+    },
+    {
+      sourceId: "cennikremontow_pl",
+      categoryKey: "painting",
+      url: "https://cennikremontow.pl/malowanie-cennik",
+    },
   ]);
 
-/** Max extra category pages per source after PASS1 (deterministic budget). */
+/** Max extra category pages per source after PASS1 (deterministic budget). Wave-1 KEEP = 2. */
 export const WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE = 2 as const;
 
 let allowlistOverride: readonly WorkRatePass2AllowlistEntry[] | null = null;
