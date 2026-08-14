@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.58",
+    label: "IE Labor Selective Research Identity-Ready Wave-1 (local)",
+    items: [
+      {
+        type: "new",
+        text: "IE-LABOR-SELECTIVE-RESEARCH-IDENTITY-READY-WAVE-1 (local, undeployed): jeden batch 3 LABOR (Tablica · Podejście · Wykwity) · A1 preflight→FETCH→PARSE→IDENTITY→SCOPE→QUALIFY · A2 partial UNION APPEND Evidence · A3 Wave-1 exact_normalized / D1 synonym · KEEP-4 only · ZERO Accept / OUR RATE / margin / Catalog mutate / new hosts / new mappings · SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.57",
     label: "Intelligent Estimator Classification Gate (local)",
     items: [

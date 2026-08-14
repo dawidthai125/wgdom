@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.58 — IE Labor Selective Research Identity-Ready Wave-1 (local · 2026-08-14)
+
+**Scope:** jeden batch research dla 3 LABOR identity-ready · **ZERO COMMIT** do osobnego Owner GO.
+
+- Targets: Tablica · Podejście · Wykwity (`runIeLaborSelectiveResearchIdentityReadyWave1`)
+- A1 preflight ≠ FETCH→PARSE→IDENTITY→SCOPE→QUALIFY · A2 partial UNION APPEND · A3 Wave-1 / D1
+- KEEP-4 only · Evidence SSOT optional persist · ZERO Accept / OUR RATE / margin / Catalog mutate
+- Test: `scripts/test-ie-labor-selective-research-identity-ready-wave-1.mjs`
+
 ## 2.66.57 — Intelligent Estimator Classification Gate (local · 2026-08-14)
 
 **Scope:** centralna bramka `classifyEstimatorPricingPlane` · **ZERO COMMIT** do osobnego Owner GO.

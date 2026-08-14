@@ -553,6 +553,22 @@ export {
 } from "@/lib/work-catalog/work-rate-evidence-scope";
 
 export {
+  IE_LABOR_IR_WAVE1_EPIC_ID,
+  IE_LABOR_IR_WAVE1_FORBIDDEN_CANDIDATE_HOSTS,
+  IE_LABOR_IR_WAVE1_KEEP4_SOURCE_IDS,
+  IE_LABOR_IR_WAVE1_TARGETS,
+  buildEvidenceFromQualifiedObservation,
+  isIeLaborIrWave1CandidateHostForbidden,
+  isIeLaborIrWave1Keep4SourceId,
+  preflightIeLaborIrWave1Target,
+  runIeLaborSelectiveResearchIdentityReadyWave1,
+  type IeLaborIrWave1BatchResult,
+  type IeLaborIrWave1PreflightResult,
+  type IeLaborIrWave1TargetDef,
+  type IeLaborIrWave1TargetOutcome,
+} from "@/lib/work-catalog/ie-labor-selective-research-identity-ready-wave-1";
+
+export {
   acceptWorkRateResearchCandidate,
   type AcceptWorkRateResearchResult,
 } from "@/lib/work-catalog/work-rate-accept";
