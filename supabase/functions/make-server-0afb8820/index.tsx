@@ -4809,11 +4809,14 @@ function workRateBuildSelectiveUrl(sourceId: string, query: string): string | nu
 }
 
 /**
- * PASS2 Owner category allowlist — EMPTY (SOURCE GAP).
- * Mirrors WORK_RATE_PASS2_CATEGORY_ALLOWLIST (src). No niche fake URLs.
+ * PASS2 Owner category allowlist — mirrors WORK_RATE_PASS2_CATEGORY_ALLOWLIST (src).
+ * KB-BRUZDY-POLICY-01: grooves → KB national repairs page.
  * Key: `${sourceId}::${categoryKey}` → https URL on allowlisted host only.
  */
-const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({});
+const WORK_RATE_PASS2_CATEGORY_URLS: Record<string, string> = Object.freeze({
+  "kb_pl::grooves":
+    "https://kb.pl/cenniki/uslugi/cennik-naprawy-ubytkow-w-scianie-i-suficie-aktualne-ceny/",
+});
 
 function workRateHostAllowed(urlStr: string): boolean {
   try {

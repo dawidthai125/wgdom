@@ -45,11 +45,18 @@ export type WorkRatePass2AllowlistEntry = {
 };
 
 /**
- * Production PASS2 allowlist — EMPTY until Owner approves non-niche URLs.
- * Niche (wykwity/bruzdy/folia) MUST NOT be inserted without Source Audit PASS.
+ * Production PASS2 allowlist — Owner-curated only.
+ * KB-BRUZDY-POLICY-01: KB national repairs page for grooves (zaprawianie / szpachlowanie bruzd).
+ * Wykwity / folia remain unlisted (SOURCE GAP OPEN for those niches).
  */
 export const WORK_RATE_PASS2_CATEGORY_ALLOWLIST: readonly WorkRatePass2AllowlistEntry[] =
-  Object.freeze([]);
+  Object.freeze([
+    {
+      sourceId: "kb_pl",
+      categoryKey: "grooves",
+      url: "https://kb.pl/cenniki/uslugi/cennik-naprawy-ubytkow-w-scianie-i-suficie-aktualne-ceny/",
+    },
+  ]);
 
 /** Max extra category pages per source after PASS1 (deterministic budget). */
 export const WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE = 2 as const;
@@ -126,12 +133,18 @@ export function resolveWorkRateWorkFamily(input: {
     .replace(/\p{M}/gu, "");
   if (/malow|paint|farba/.test(blob)) return "painting";
   if (/grunt/.test(blob)) return "priming";
+  // Grooves before plaster — "szpachlowanie bruzd…" must not route as plaster.
+  if (
+    /zapraw\w*\s*bruz|zamurow\w*\s*bruz|uzupeln\w*\s*bruz|uzupełn\w*\s*bruz|szpachlow\w*\s*bruz|zaprawianie-bruzd/.test(
+      blob,
+    )
+  ) {
+    return "grooves";
+  }
+  if (/kucie\w*\s*bruz|bruzd\w*\s*beton/.test(blob)) return "grooves";
   if (/glad|gladz|szpachl|tynk/.test(blob)) return "plaster";
   if (/panel|podlog|cyklin/.test(blob)) return "flooring";
   if (/wykwit|zaciek/.test(blob)) return "repairs";
-  if (/zapraw.*bruz|zamurow.*bruz|uzupeln.*bruz|uzupełn.*bruz/.test(blob))
-    return "grooves";
-  if (/kucie.*bruz|bruzd.*beton/.test(blob)) return "grooves";
   if (/foli|zabezpiecz.*okien|zabezpiecz.*stolark|oslon.*okien/.test(blob))
     return "sealing_protection";
   if (/wykuc|demontaz|kucie/.test(blob)) return "demolition";

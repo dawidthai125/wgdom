@@ -52,6 +52,16 @@ export function IkLaborCandidateReviewCard({
     ),
   ].join(", ");
   const ratePln = recommendation?.candidateRatePln ?? candidate.suggestedRatePln;
+  const marketBase =
+    recommendation?.evidence?.marketBaseRatePln ?? candidate.marketBaseRatePln;
+  const marginPct =
+    recommendation?.evidence?.wgdomMarginPct ?? candidate.wgdomMarginPct;
+  const sourceMin =
+    recommendation?.evidence?.sourceMinPln ?? candidate.sourceMinPln;
+  const sourceMax =
+    recommendation?.evidence?.sourceMaxPln ?? candidate.sourceMaxPln;
+  const widthClaim =
+    recommendation?.evidence?.widthClaim ?? candidate.widthClaim ?? "NOT_SPECIFIED";
   const sampleSize = pack?.sampleSize ?? candidate.sampleSize;
   const regionalSample = pack?.regionalSampleCount ?? sampleSize;
   const lowSample = pack?.lowSample ?? candidate.lowSample;
@@ -65,6 +75,8 @@ export function IkLaborCandidateReviewCard({
   const stance = recommendation?.stance ?? null;
   const confidence = recommendation?.confidence ?? null;
   const findings = recommendation?.findings ?? [];
+  const countryLabel =
+    candidate.regionScope === "POLSKA" ? "NATIONAL / POLSKA" : regionLabel;
 
   return (
     <div
@@ -82,7 +94,22 @@ export function IkLaborCandidateReviewCard({
         Rekomendacja eksperta — tylko informacyjna. Zapis wyłącznie po Owner Accept.
       </p>
       <dl className={`${TEUX_FONT_BODY} grid grid-cols-2 gap-x-3 gap-y-1`}>
-        <dt className="text-muted-foreground">Stawka (evidence)</dt>
+        <dt className="text-muted-foreground">Cena źródłowa</dt>
+        <dd className="tabular-nums" data-ik-labor-source-range>
+          {sourceMin != null && sourceMax != null
+            ? `${sourceMin}–${sourceMax} PLN/${candidate.unit}`
+            : "— (punkt / brak range)"}
+        </dd>
+        <dt className="text-muted-foreground">Bazowa cena rynkowa</dt>
+        <dd className="tabular-nums" data-ik-labor-market-base>
+          {marketBase != null ? `${marketBase} PLN/${candidate.unit}` : "—"}
+          <span className="text-muted-foreground font-normal"> · DERIVED</span>
+        </dd>
+        <dt className="text-muted-foreground">Marża WGDOM</dt>
+        <dd className="tabular-nums" data-ik-labor-margin>
+          {marginPct != null ? `${marginPct}%` : "—"}
+        </dd>
+        <dt className="text-muted-foreground">Proponowana cena WGDOM</dt>
         <dd className="tabular-nums font-semibold" data-ik-labor-candidate-rate>
           {ratePln} PLN/{candidate.unit}
         </dd>
@@ -101,13 +128,15 @@ export function IkLaborCandidateReviewCard({
         <dt className="text-muted-foreground">Jednostka</dt>
         <dd data-ik-labor-candidate-unit>{candidate.unit}</dd>
         <dt className="text-muted-foreground">Region</dt>
-        <dd data-ik-labor-candidate-region>{regionLabel}</dd>
+        <dd data-ik-labor-candidate-region>{countryLabel}</dd>
+        <dt className="text-muted-foreground">Szerokość (KNR)</dt>
+        <dd data-ik-labor-width-claim>{widthClaim}</dd>
         <dt className="text-muted-foreground">Źródła</dt>
         <dd data-ik-labor-candidate-source>{sources || "—"}</dd>
         <dt className="text-muted-foreground">Sample</dt>
         <dd data-ik-labor-candidate-sample>
           n={sampleSize} · regional={regionalSample}
-          {lowSample ? " · lowSample" : ""}
+          {lowSample ? " · LOW SAMPLE" : ""}
         </dd>
         <dt className="text-muted-foreground">Poprzednia OUR RATE</dt>
         <dd data-ik-labor-candidate-previous>

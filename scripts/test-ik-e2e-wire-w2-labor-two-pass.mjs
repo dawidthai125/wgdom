@@ -73,7 +73,7 @@ function makeWork(overrides = {}) {
     companyPricePln: 35,
     marketQuotes: {},
     marketQuoteHistory: [],
-    commercialPricing: { marginPct: 15, updatedAt: T_FRESH, source: "owner" },
+    commercialPricing: { marginPct: 0, updatedAt: T_FRESH, source: "owner" },
     updatedAt: T_FRESH,
     freshnessStatus: "ok",
     keywords: ["bruzd"],

@@ -54,12 +54,24 @@ function makeCandidate(overrides = {}) {
   ];
   const rates = observations.map((o) => o.ratePln).sort((a, b) => a - b);
   const mid = rates[Math.floor(rates.length / 2)];
+  const marketBase = overrides.marketBaseRatePln ?? mid;
+  const margin = overrides.wgdomMarginPct ?? 0;
+  const proposed =
+    overrides.proposedOurRatePln ??
+    Math.round(marketBase * (1 + margin / 100) * 100) / 100;
   return {
     workId: "cc-ik-labor-rec-test",
     unit: "m2",
     namePl: "Test malowanie ścian",
-    suggestedRatePln: mid,
+    suggestedRatePln: proposed,
+    marketBaseRatePln: marketBase,
+    wgdomMarginPct: margin,
+    proposedOurRatePln: proposed,
+    sourceMinPln: null,
+    sourceMaxPln: null,
     regionScope: "WROCLAW",
+    countryScope: "POLSKA",
+    widthClaim: "NOT_SPECIFIED",
     sampleSize: observations.length,
     lowSample: observations.length < 3,
     observations,
@@ -67,7 +79,10 @@ function makeCandidate(overrides = {}) {
     previousFreshness: "MISSING",
     ...overrides,
     observations: overrides.observations ?? observations,
-    suggestedRatePln: overrides.suggestedRatePln ?? mid,
+    marketBaseRatePln: overrides.marketBaseRatePln ?? marketBase,
+    wgdomMarginPct: overrides.wgdomMarginPct ?? margin,
+    proposedOurRatePln: overrides.proposedOurRatePln ?? proposed,
+    suggestedRatePln: overrides.suggestedRatePln ?? proposed,
     sampleSize: overrides.sampleSize ?? (overrides.observations ?? observations).length,
     lowSample:
       overrides.lowSample ??

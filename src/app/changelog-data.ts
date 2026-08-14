@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.47",
+    label: "Work Rate KB Bruzdy Policy-01 (local)",
+    items: [
+      {
+        type: "new",
+        text: "WORK-RATE-RESEARCH-KB-BRUZDY-POLICY-01 (local, undeployed): Owner synonym „szpachlowanie bruzd po kablach” · PASS2 KB national repairs URL (grooves) · range 15–25 → marketBase 20 (DERIVED) · REUSE commercialPricing/computeSellPricePln → proposed OUR RATE · NATIONAL/POLSKA (bez silent WROCLAW) · Evidence 3-warstwy · UI Owner review · width NOT_SPECIFIED · SOURCE GAP OPEN do PV · F5/qualify/median/Accept boundary UNCHANGED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.46",
     label: "Work Rate Research Discovery-01 INFRA PASS2 (local)",
     items: [

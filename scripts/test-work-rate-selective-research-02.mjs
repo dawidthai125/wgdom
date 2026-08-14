@@ -102,7 +102,7 @@ function makeWork(overrides = {}) {
         coverage: "full",
       },
     ],
-    commercialPricing: { marginPct: 15, updatedAt: T_FRESH, source: "owner" },
+    commercialPricing: { marginPct: 0, updatedAt: T_FRESH, source: "owner" },
     updatedAt: T_FRESH,
     freshnessStatus: "ok",
     keywords: ["malowanie"],

@@ -28,6 +28,7 @@ export type WorkRateQualifyRejectReason =
 export type WorkRateQualifiedObservation = {
   sourceId: WorkRateSourceId;
   workNamePl: string;
+  /** Market-base PLN (point or range midpoint) — NOT OUR RATE. */
   ratePln: number;
   unit: WgdomCostUnit;
   regionScope: WorkRateRegionScope;
@@ -35,6 +36,9 @@ export type WorkRateQualifiedObservation = {
   sourceUrl: string;
   observedAt: string;
   netGross: "netto" | "brutto" | "unknown";
+  sourceMinPln?: number | null;
+  sourceMaxPln?: number | null;
+  marketBaseKind?: "point" | "range_midpoint";
 };
 
 export type QualifyWorkRateObservationResult =
@@ -144,6 +148,9 @@ export function qualifyWorkRateObservation(input: {
       sourceUrl: offer.sourceUrl,
       observedAt: offer.observedAt,
       netGross: offer.netGross,
+      sourceMinPln: offer.sourceMinPln ?? null,
+      sourceMaxPln: offer.sourceMaxPln ?? null,
+      marketBaseKind: offer.marketBaseKind ?? "point",
     },
   };
 }

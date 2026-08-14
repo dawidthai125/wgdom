@@ -68,7 +68,7 @@ function makeWork(overrides = {}) {
     companyPricePln: 35,
     marketQuotes: {},
     marketQuoteHistory: [],
-    commercialPricing: { marginPct: 15, updatedAt: T_FRESH, source: "owner" },
+    commercialPricing: { marginPct: 0, updatedAt: T_FRESH, source: "owner" },
     updatedAt: T_FRESH,
     freshnessStatus: "ok",
     keywords: ["malowanie"],
@@ -120,6 +120,7 @@ setWorkRatePass2AllowlistForTests(null);
 // ——— T1 PASS1 baseline ———
 {
   clearWorkRateResearchAntiStormState();
+  setWorkRatePass2AllowlistForTests([]);
   const before = fetchCalls;
   const store = makeStore([makeWork()]);
   const res = await runSelectiveWorkRateResearch({
@@ -133,11 +134,13 @@ setWorkRatePass2AllowlistForTests(null);
   });
   eq("T1 CANDIDATE", res.status, "CANDIDATE");
   if (res.status === "CANDIDATE") {
-    eq("T1 median 39", res.candidate.suggestedRatePln, 39);
+    eq("T1 marketBase 39", res.candidate.marketBaseRatePln, 39);
+    eq("T1 proposed=base @0%", res.candidate.suggestedRatePln, 39);
     eq("T1 sample 4", res.candidate.sampleSize, 4);
   }
   eq("T1 no live fetch", fetchCalls, before);
-  ok("T1 empty allowlist", isWorkRatePass2AllowlistEmpty());
+  ok("T1 empty allowlist override", isWorkRatePass2AllowlistEmpty());
+  setWorkRatePass2AllowlistForTests(null);
 }
 
 // ——— T2 empty allowlist = PASS1 only ———

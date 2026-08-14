@@ -52,6 +52,10 @@ export interface WorkRateSelectiveLookupPort {
 export interface WorkRateParsedOffer {
   sourceId: WorkRateSourceId;
   workNamePl: string;
+  /**
+   * Market-base rate for qualify/median (point or range midpoint).
+   * NEVER conflate with OUR RATE / proposed.
+   */
   ratePln: number;
   currency: "PLN";
   unit: string;
@@ -64,4 +68,9 @@ export interface WorkRateParsedOffer {
   sourceUrl: string;
   identityMatched: boolean;
   observedAt: string;
+  /** SOURCE-DERIVED range bounds when host published od–do / a–b. */
+  sourceMinPln?: number | null;
+  sourceMaxPln?: number | null;
+  /** How ratePln was obtained from source. */
+  marketBaseKind?: "point" | "range_midpoint";
 }

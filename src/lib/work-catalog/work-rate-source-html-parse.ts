@@ -69,10 +69,20 @@ function parseRegionToken(raw: string | undefined): WorkRateRegionScope {
   return "POLSKA";
 }
 
-function regionFromSourceUrl(sourceUrl: string, sourceId: WorkRateSourceId): WorkRateRegionScope {
+function regionFromSourceUrl(sourceUrl: string, _sourceId: WorkRateSourceId): WorkRateRegionScope {
   const low = sourceUrl.toLowerCase();
-  if (low.includes("wroclaw")) return "WROCLAW";
-  if (sourceId === "kb_pl" || sourceId === "cennikremontow_pl") return "WROCLAW";
+  // Only URL location tokens — never hardcode sourceId → WROCLAW (KB national ≠ Wrocław).
+  if (low.includes("wroclaw") || low.includes("wroc%c5%82aw") || low.includes("wrocÅ‚aw")) {
+    return "WROCLAW";
+  }
+  if (
+    low.includes("dolny") ||
+    low.includes("dolnoslask") ||
+    low.includes("dolno%c5%9blask") ||
+    low.includes("dolnyslask")
+  ) {
+    return "DOLNY_SLASK";
+  }
   return "POLSKA";
 }
 
@@ -184,12 +194,17 @@ type RawRowCandidate = {
   laborOnly: boolean;
   netGross: WorkRateParsedOffer["netGross"];
   detail: string;
+  sourceMinPln: number | null;
+  sourceMaxPln: number | null;
+  marketBaseKind: "point" | "range_midpoint";
 };
 
 function parsePriceCell(cell: string): {
   ratePln: number | null;
   isMinimum: boolean;
   isRange: boolean;
+  sourceMinPln: number | null;
+  sourceMaxPln: number | null;
 } {
   const t = cell.replace(/\s+/g, " ").trim();
   const isMinimum = /^od\s+/i.test(t) || /\bod\s+\d/i.test(t);
@@ -199,17 +214,37 @@ function parsePriceCell(cell: string): {
     const a = Number(range[1]!.replace(",", "."));
     const b = Number(range[2]!.replace(",", "."));
     if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0) {
-      return { ratePln: Math.round(((a + b) / 2) * 100) / 100, isMinimum, isRange: true };
+      const lo = Math.min(a, b);
+      const hi = Math.max(a, b);
+      return {
+        ratePln: Math.round(((lo + hi) / 2) * 100) / 100,
+        isMinimum,
+        isRange: true,
+        sourceMinPln: lo,
+        sourceMaxPln: hi,
+      };
     }
   }
   const single = t.match(/(\d+[.,]\d+|\d+)/);
   if (single) {
     const n = Number(single[1]!.replace(",", "."));
     if (Number.isFinite(n) && n > 0) {
-      return { ratePln: n, isMinimum, isRange: false };
+      return {
+        ratePln: n,
+        isMinimum,
+        isRange: false,
+        sourceMinPln: null,
+        sourceMaxPln: null,
+      };
     }
   }
-  return { ratePln: null, isMinimum, isRange: false };
+  return {
+    ratePln: null,
+    isMinimum,
+    isRange: false,
+    sourceMinPln: null,
+    sourceMaxPln: null,
+  };
 }
 
 function extractUnitFromCells(cells: string[]): string {
@@ -254,10 +289,13 @@ function parseTableRowCandidate(cells: string[]): RawRowCandidate | null {
       const a = parsePriceCell(cells[1]!);
       const b = parsePriceCell(cells[2]!);
       if (a.ratePln != null && b.ratePln != null) {
-        const ratePln = Math.round(((a.ratePln + b.ratePln) / 2) * 100) / 100;
+        const lo = Math.min(a.ratePln, b.ratePln);
+        const hi = Math.max(a.ratePln, b.ratePln);
+        const ratePln = Math.round(((lo + hi) / 2) * 100) / 100;
         const detail = cells.slice(4).join(" ") || "";
         const includesMaterial = descriptionImpliesMaterial(name + " " + detail);
         const laborOnly = descriptionLaborOnlyHint(name + " " + detail) || !includesMaterial;
+        const isRangePair = Math.abs(lo - hi) > 1e-9;
         return {
           name,
           ratePln,
@@ -267,6 +305,9 @@ function parseTableRowCandidate(cells: string[]): RawRowCandidate | null {
           laborOnly: laborOnly && !includesMaterial,
           netGross: "unknown",
           detail,
+          sourceMinPln: isRangePair ? lo : null,
+          sourceMaxPln: isRangePair ? hi : null,
+          marketBaseKind: isRangePair ? "range_midpoint" : "point",
         };
       }
     }
@@ -290,17 +331,39 @@ function parseTableRowCandidate(cells: string[]): RawRowCandidate | null {
       laborOnly: false,
       netGross: "unknown",
       detail: cells.slice(1).join(" "),
+      sourceMinPln: null,
+      sourceMaxPln: null,
+      marketBaseKind: "point",
     };
   }
   if (!unit) return null;
 
   let ratePln: number;
   let isMinimum = parsedPrices.some((p) => p.isMinimum);
+  let sourceMinPln: number | null = null;
+  let sourceMaxPln: number | null = null;
+  let marketBaseKind: "point" | "range_midpoint" = "point";
+
   if (parsedPrices.length >= 2 && !parsedPrices[0]!.isRange) {
-    ratePln = Math.round(((parsedPrices[0]!.ratePln! + parsedPrices[1]!.ratePln!) / 2) * 100) / 100;
+    const a = parsedPrices[0]!.ratePln!;
+    const b = parsedPrices[1]!.ratePln!;
+    const lo = Math.min(a, b);
+    const hi = Math.max(a, b);
+    ratePln = Math.round(((lo + hi) / 2) * 100) / 100;
+    if (Math.abs(lo - hi) > 1e-9) {
+      sourceMinPln = lo;
+      sourceMaxPln = hi;
+      marketBaseKind = "range_midpoint";
+    }
   } else {
-    ratePln = parsedPrices[0]!.ratePln!;
-    isMinimum = isMinimum || parsedPrices[0]!.isMinimum;
+    const p0 = parsedPrices[0]!;
+    ratePln = p0.ratePln!;
+    isMinimum = isMinimum || p0.isMinimum;
+    if (p0.isRange && p0.sourceMinPln != null && p0.sourceMaxPln != null) {
+      sourceMinPln = p0.sourceMinPln;
+      sourceMaxPln = p0.sourceMaxPln;
+      marketBaseKind = "range_midpoint";
+    }
   }
 
   const detail = cells.slice(1).join(" ");
@@ -321,6 +384,9 @@ function parseTableRowCandidate(cells: string[]): RawRowCandidate | null {
     laborOnly,
     netGross: "unknown",
     detail,
+    sourceMinPln,
+    sourceMaxPln,
+    marketBaseKind,
   };
 }
 
@@ -381,6 +447,9 @@ function parseOffersFromTables(input: {
       sourceUrl: input.sourceUrl,
       identityMatched: true,
       observedAt: input.observedAt,
+      sourceMinPln: cand.sourceMinPln,
+      sourceMaxPln: cand.sourceMaxPln,
+      marketBaseKind: cand.marketBaseKind,
     });
   }
   return out;
@@ -445,6 +514,9 @@ function parseOffersFromMarkers(input: {
       sourceUrl: input.sourceUrl,
       identityMatched,
       observedAt: input.observedAt,
+      sourceMinPln: null,
+      sourceMaxPln: null,
+      marketBaseKind: "point",
     });
   }
   return out;

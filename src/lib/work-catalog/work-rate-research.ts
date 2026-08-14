@@ -39,6 +39,11 @@ import {
   detectWorkRateSynonymUsed,
   listWorkRateMatchNamesPl,
 } from "@/lib/work-catalog/work-rate-synonyms";
+import {
+  computeProposedWorkRatePln,
+  type WorkRateWidthClaim,
+} from "@/lib/work-catalog/work-rate-market-base";
+import { resolveMarginPct } from "@/lib/price-intelligence/our-price-catalog";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
 
@@ -87,8 +92,24 @@ export type WorkRateResearchCandidate = {
   workId: string;
   unit: WgdomCostUnit;
   namePl: string;
+  /**
+   * BC Accept field = proposed OUR RATE (after WGDOM margin).
+   * NOT the raw source midpoint alone.
+   */
   suggestedRatePln: number;
+  /** Median of qualified market-base observations (research-derived). */
+  marketBaseRatePln: number;
+  /** Owner commercial margin used for proposal (REUSE commercialPricing). */
+  wgdomMarginPct: number;
+  /** marketBase × (1+margin/100) — equals suggestedRatePln. */
+  proposedOurRatePln: number;
+  /** Aggregated SOURCE range across observations (when present). */
+  sourceMinPln: number | null;
+  sourceMaxPln: number | null;
+  /** NATIONAL evidence uses POLSKA; never silent WROCLAW relabel. */
   regionScope: WorkRateRegionScope;
+  countryScope: "POLSKA";
+  widthClaim: WorkRateWidthClaim;
   sampleSize: number;
   lowSample: boolean;
   observations: WorkRateQualifiedObservation[];
@@ -462,9 +483,49 @@ async function researchOneWorkInner(
     };
   }
 
+  // Resolve work for commercial margin (REUSE material commercialPricing).
+  const catalogWork = lookupWorkInStore(input.store, input.workId);
+  const marginPct = resolveMarginPct(catalogWork);
+  const marketBaseRatePln = rep.medianPln;
+  const proposedOurRatePln = computeProposedWorkRatePln(marketBaseRatePln, marginPct);
+  if (proposedOurRatePln == null || marginPct == null) {
+    telemetry.push({
+      code: "GAP",
+      messagePl: "WGDOM commercialPricing.marginPct UNSET — cannot propose OUR RATE.",
+    });
+    return {
+      status: "GAP",
+      rejects,
+      httpFetchCount,
+      previousOurRatePln,
+      previousFreshness,
+      messagePl:
+        "Brak marży WGDOM (commercialPricing.marginPct) — ustaw marżę przed Candidate.",
+      fullCatalogueForbidden: true,
+      telemetry,
+    };
+  }
+
+  let sourceMinPln: number | null = null;
+  let sourceMaxPln: number | null = null;
+  for (const o of rep.observations) {
+    if (o.sourceMinPln != null && Number.isFinite(o.sourceMinPln)) {
+      sourceMinPln =
+        sourceMinPln == null
+          ? o.sourceMinPln
+          : Math.min(sourceMinPln, o.sourceMinPln);
+    }
+    if (o.sourceMaxPln != null && Number.isFinite(o.sourceMaxPln)) {
+      sourceMaxPln =
+        sourceMaxPln == null
+          ? o.sourceMaxPln
+          : Math.max(sourceMaxPln, o.sourceMaxPln);
+    }
+  }
+
   telemetry.push({
     code: "CANDIDATE",
-    messagePl: `sample=${rep.sampleSize}`,
+    messagePl: `sample=${rep.sampleSize}; base=${marketBaseRatePln}; margin=${marginPct}; proposed=${proposedOurRatePln}`,
   });
 
   return {
@@ -473,8 +534,15 @@ async function researchOneWorkInner(
       workId: input.workId,
       unit: input.unit,
       namePl: input.namePl,
-      suggestedRatePln: rep.medianPln,
+      suggestedRatePln: proposedOurRatePln,
+      marketBaseRatePln,
+      wgdomMarginPct: marginPct,
+      proposedOurRatePln,
+      sourceMinPln,
+      sourceMaxPln,
       regionScope: rep.regionScope,
+      countryScope: "POLSKA",
+      widthClaim: "NOT_SPECIFIED",
       sampleSize: rep.sampleSize,
       lowSample: rep.lowSample,
       observations: rep.observations,
@@ -488,6 +556,15 @@ async function researchOneWorkInner(
     fullCatalogueForbidden: isWorkRateFullCatalogueForbidden() as true,
     telemetry,
   };
+}
+
+function lookupWorkInStore(store: WorkCatalogStore, workId: string) {
+  const id = workId.trim();
+  for (const region of ["wroclaw", "dolnyslask"] as const) {
+    const work = store.catalogs[region].works.find((w) => w.id === id);
+    if (work) return work;
+  }
+  return null;
 }
 
 /**

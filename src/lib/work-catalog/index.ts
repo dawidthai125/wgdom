@@ -517,6 +517,15 @@ export {
 } from "@/lib/work-catalog/work-rate-accept";
 
 export {
+  computeProposedWorkRatePln,
+  computeWorkRateMarketBaseFromPoint,
+  computeWorkRateMarketBaseFromRange,
+  isCompanyPriceForbiddenAsWorkRateBase,
+  type WorkRatePriceDerivationKind,
+  type WorkRateWidthClaim,
+} from "@/lib/work-catalog/work-rate-market-base";
+
+export {
   OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS,
   buildOurWorkRateCatalogRows,
   computeOurWorkRatePriceChange,

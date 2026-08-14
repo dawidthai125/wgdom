@@ -1,8 +1,9 @@
 /**
- * IK-LABOR-EXPERT-REC-01 — RO Evidence Pack over WorkRateResearchCandidate.
+ * IK-LABOR-EXPERT-REC-01 + KB-BRUZDY-POLICY-01 — RO Evidence Pack.
  *
  * ZERO invent PLN · ZERO companyPrice · ZERO Accept/write.
- * candidateRatePln MUST equal candidate.suggestedRatePln.
+ * candidateRatePln MUST equal candidate.suggestedRatePln (= proposed OUR RATE).
+ * SOURCE RANGE ≠ MARKET BASE ≠ PROPOSED OUR RATE.
  */
 
 import type {
@@ -12,6 +13,7 @@ import type {
 import type { WorkRateQualifiedObservation } from "@/lib/work-catalog/work-rate-qualify";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
+import type { WorkRateWidthClaim } from "@/lib/work-catalog/work-rate-market-base";
 
 export const LABOR_RATE_REPRESENTATIVE_METHOD =
   "median_qualified_by_region_fallback" as const;
@@ -20,6 +22,7 @@ export type LaborRateEvidenceObservation = {
   sourceId: string;
   sourceType: "RESEARCH_CANONICAL";
   sourceUrl: string;
+  /** Market-base observation (point or range midpoint) — NOT OUR RATE. */
   ratePln: number;
   unit: WgdomCostUnit;
   regionScope: WorkRateRegionScope;
@@ -27,6 +30,9 @@ export type LaborRateEvidenceObservation = {
   laborOnly: true;
   netGross: "netto" | "brutto" | "unknown";
   workNamePlObserved: string;
+  sourceMinPln: number | null;
+  sourceMaxPln: number | null;
+  marketBaseKind: "point" | "range_midpoint" | null;
 };
 
 export type LaborRateEvidenceContext = {
@@ -45,8 +51,15 @@ export type LaborRateEvidencePack = {
   unit: WgdomCostUnit;
   currency: "PLN";
   requestedRegionScope: WorkRateRegionScope;
-  /** MUST === candidate.suggestedRatePln — never invent. */
+  countryScope: "POLSKA";
+  /** MUST === candidate.suggestedRatePln (= proposed OUR RATE) — never invent. */
   candidateRatePln: number;
+  marketBaseRatePln: number;
+  wgdomMarginPct: number;
+  proposedOurRatePln: number;
+  sourceMinPln: number | null;
+  sourceMaxPln: number | null;
+  widthClaim: WorkRateWidthClaim;
   representativeMethod: typeof LABOR_RATE_REPRESENTATIVE_METHOD;
   sampleSize: number;
   regionalSampleCount: number;
@@ -63,7 +76,12 @@ export type LaborRateEvidencePack = {
     rateSource: "candidate.suggestedRatePln";
     observationsSource: "candidate.observations";
     companyPricePlnExcluded: true;
-    /** Discovery metadata only — never invents rate. */
+    layers: {
+      sourceRange: "SOURCE-DERIVED";
+      marketBase: "DERIVED";
+      marginAndProposed: "COMMERCIAL";
+      ourRateAfterAccept: "ACCEPTED";
+    };
     discovery?: {
       synonymUsed: string | null;
       discoveryMethods: Array<"PASS1_CANONICAL" | "PASS2_CATEGORY">;
@@ -77,7 +95,6 @@ export type LaborRateEvidencePack = {
   builtAt: string;
   httpFetchCount: number | null;
   companyPricePlnExcluded: true;
-  /** Optional BOQ passthrough — NOT F5 re-resolve. */
   tenderId: string | null;
   lineId: string | null;
   lp: string | null;
@@ -101,6 +118,9 @@ function mapObs(o: WorkRateQualifiedObservation): LaborRateEvidenceObservation {
     laborOnly: true,
     netGross: o.netGross,
     workNamePlObserved: o.workNamePl,
+    sourceMinPln: o.sourceMinPln ?? null,
+    sourceMaxPln: o.sourceMaxPln ?? null,
+    marketBaseKind: o.marketBaseKind ?? null,
   };
 }
 
@@ -118,12 +138,25 @@ export function buildLaborRateEvidencePack(
   const suggested = Number(candidate.suggestedRatePln);
   if (!Number.isFinite(suggested) || !(suggested > 0)) return null;
 
+  const marketBase = Number(candidate.marketBaseRatePln);
+  const proposed = Number(candidate.proposedOurRatePln);
+  const margin = Number(candidate.wgdomMarginPct);
+  if (
+    !Number.isFinite(marketBase) ||
+    !(marketBase > 0) ||
+    !Number.isFinite(proposed) ||
+    !(proposed > 0) ||
+    !Number.isFinite(margin)
+  ) {
+    return null;
+  }
+  if (suggested !== proposed) return null;
+
   const observations = Array.isArray(candidate.observations)
     ? candidate.observations
     : [];
   if (observations.length === 0) return null;
 
-  // Fail closed: any non-labor-only in qualified list is contract breach
   if (observations.some((o) => o.laborOnly !== true)) return null;
 
   const rejectRows = [...(rejects ?? [])];
@@ -143,8 +176,7 @@ export function buildLaborRateEvidencePack(
   ).length;
 
   const prev = candidate.previousOurRatePln;
-  const hasPrev =
-    prev != null && Number.isFinite(prev) && prev > 0;
+  const hasPrev = prev != null && Number.isFinite(prev) && prev > 0;
   const deltaPln = hasPrev ? round2(suggested - (prev as number)) : null;
   const deltaPct =
     hasPrev && (prev as number) > 0
@@ -167,7 +199,14 @@ export function buildLaborRateEvidencePack(
     unit: candidate.unit,
     currency: "PLN",
     requestedRegionScope: region,
+    countryScope: candidate.countryScope ?? "POLSKA",
     candidateRatePln: suggested,
+    marketBaseRatePln: marketBase,
+    wgdomMarginPct: margin,
+    proposedOurRatePln: proposed,
+    sourceMinPln: candidate.sourceMinPln ?? null,
+    sourceMaxPln: candidate.sourceMaxPln ?? null,
+    widthClaim: candidate.widthClaim ?? "NOT_SPECIFIED",
     representativeMethod: LABOR_RATE_REPRESENTATIVE_METHOD,
     sampleSize: candidate.sampleSize,
     regionalSampleCount,
@@ -184,6 +223,12 @@ export function buildLaborRateEvidencePack(
       rateSource: "candidate.suggestedRatePln",
       observationsSource: "candidate.observations",
       companyPricePlnExcluded: true,
+      layers: {
+        sourceRange: "SOURCE-DERIVED",
+        marketBase: "DERIVED",
+        marginAndProposed: "COMMERCIAL",
+        ourRateAfterAccept: "ACCEPTED",
+      },
       discovery: {
         synonymUsed: candidate.synonymUsed ?? null,
         discoveryMethods: [...methods],

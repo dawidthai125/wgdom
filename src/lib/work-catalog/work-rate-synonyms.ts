@@ -91,6 +91,14 @@ export const WORK_RATE_OWNER_SYNONYMS: readonly WorkRateOwnerSynonymRow[] =
       allowedForMatching: true,
     },
     {
+      /** KB-BRUZDY-POLICY-01 — Owner-approved exact alias (match only). */
+      canonicalWorkFamily: "grooves",
+      canonicalConcept: "zaprawianie bruzd",
+      synonym: "szpachlowanie bruzd po kablach",
+      allowedForDiscovery: true,
+      allowedForMatching: true,
+    },
+    {
       canonicalWorkFamily: "sealing_protection",
       canonicalConcept: "zabezpieczenie okien folią",
       synonym: "zabezpieczenie folią",
