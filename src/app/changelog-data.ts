@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.49",
+    label: "Labor global minimum margin (local)",
+    items: [
+      {
+        type: "new",
+        text: "Nasz Katalog Robót — Super Admin: Minimalna marża dla wszystkich robót (MAX z per-work, REUSE applyGlobalCommercialMarginFloor). Tylko aktywne labor IDs (bez material host). Bez seed / Bid / OUR RATE / Accept. 2.66.48 per-work UNCHANGED. SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.48",
     label: "Labor commercial margin UI (local)",
     items: [

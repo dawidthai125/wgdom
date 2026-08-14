@@ -1,12 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
-## 2.66.48 — Labor commercial margin UI (local · 2026-08-14)
+## 2.66.49 — Labor global minimum margin (local · 2026-08-14)
 
 **Scope:** lokalna implementacja (undeployed) · **ZERO COMMIT** do osobnego Owner GO.
 
-- Nasz Katalog Robót: per-work **Marża WGDOM (%)** · REUSE `commercialPricing` / `updateCommercialMargin`
-- UNKNOWN do Owner Zapisz · bez seed / auto-margin / global floor labor
-- companyPrice ≠ marża · Accept / OUR RATE **UNCHANGED** · SOURCE GAP **OPEN**
+- Super Admin: **Minimalna marża dla wszystkich robót (%)** · MAX(existing, global) · REUSE material floor
+- Tylko aktywne labor IDs · bez material host · bez seed kontroli `cc-p0c-w1-zaprawianie-bruzd`
+- Per-work Marża WGDOM UNCHANGED · SOURCE GAP **OPEN**
+
+## 2.66.48 — Labor commercial margin UI (prod · 2026-08-14)
+
+- Nasz Katalog Robót: per-work **Marża WGDOM (%)** · REUSE `commercialPricing` / `updateCommercialMargin` · tip **`61ea8135`**
 
 ## 2.66.47 — Work Rate KB Bruzdy Policy-01 (prod · 2026-08-14)
 

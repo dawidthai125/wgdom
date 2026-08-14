@@ -12,9 +12,13 @@ import { fileURLToPath } from "node:url";
 import {
   buildOurWorkRateCatalogRows,
   computeProposedWorkRatePln,
+  listLaborWorkIdsForCommercialMarginFloor,
   normalizeWorkCatalogStore,
+  parseOwnerCommercialMarginPctInput,
 } from "../src/lib/work-catalog/index.ts";
 import {
+  applyGlobalCommercialMarginFloorToStore,
+  applyGlobalMarginFloor,
   buildOurPriceCatalogRows,
   isOurPriceCatalogMaterialHost,
   patchWorkCommercialPricing,
@@ -225,7 +229,7 @@ function makeStore(works) {
   void buildOurPriceCatalogRows; // imported for API surface stability
 }
 
-// ——— T10 UI wiring + locks + no global labor floor ———
+// ——— T10 UI wiring + per-work + labor global floor (MAX, labor IDs only) ———
 {
   const panelSrc = readFileSync(
     join(ROOT, "src/app/work-rate-catalog/OurWorkRateCatalogPanel.tsx"),
@@ -239,19 +243,171 @@ function makeStore(works) {
   ok("T10 margin editor marker", /data-work-rate-margin-editor/.test(panelSrc));
   ok("T10 Zapisz button", /data-work-rate-margin-save/.test(panelSrc));
   ok("T10 updateCommercialMargin wired", /updateCommercialMargin/.test(panelSrc));
+  ok("T15 per-work editor remains", /data-work-rate-margin-save/.test(panelSrc));
   ok(
-    "T10 no applyGlobalCommercialMarginFloor in labor panel",
-    !/applyGlobalCommercialMarginFloor/.test(panelSrc),
+    "T10 labor global floor wired",
+    /applyGlobalCommercialMarginFloor/.test(panelSrc) &&
+      /listLaborWorkIdsForCommercialMarginFloor/.test(panelSrc),
   );
   ok(
+    "T10 labor global does not use rows.map workId",
+    !/onApplyGlobalLaborMargin[\s\S]*?rows\.map\(\(r\) => r\.workId\)/.test(panelSrc),
+  );
+  ok(
+    "T10 labor label MIN for all works",
+    /Minimalna marża dla wszystkich robót/.test(panelSrc),
+  );
+  ok("T10 labor Zastosuj", /onApplyGlobalLaborMargin/.test(panelSrc));
+  ok(
     "T10 material panel still has global floor",
-    /applyGlobalCommercialMarginFloor/.test(pricePanel),
+    /applyGlobalCommercialMarginFloor/.test(pricePanel) &&
+      /Minimalna marża dla wszystkich \(%\)/.test(pricePanel),
   );
   ok(
     "T10 Accept path still present separately",
     /acceptOurWorkRateResearch/.test(panelSrc) &&
       /Zapisz OUR RATE \(Accept\)/.test(panelSrc),
   );
+  ok(
+    "T18 global apply does not call research/accept",
+    /async function onApplyGlobalLaborMargin[\s\S]*?finally \{[\s\S]*?setBusyId\(null\);/.test(
+      panelSrc,
+    ),
+  );
+  const globalBlock = panelSrc.slice(
+    panelSrc.indexOf("async function onApplyGlobalLaborMargin"),
+    panelSrc.indexOf("function MarginControl"),
+  );
+  ok(
+    "T18 no research/Candidate/Accept in global apply",
+    globalBlock.length > 0 &&
+      !/researchOurWorkRate/.test(globalBlock) &&
+      !/acceptOurWorkRateResearch/.test(globalBlock) &&
+      !/updateOurWorkRate/.test(globalBlock) &&
+      /applyGlobalCommercialMarginFloor/.test(globalBlock),
+  );
+}
+
+{
+  eq("G1 UNSET+20", applyGlobalMarginFloor(null, 20), 20);
+  eq("G2 10+20", applyGlobalMarginFloor(10, 20), 20);
+  eq("G3 20+20", applyGlobalMarginFloor(20, 20), 20);
+  eq("G4 25+20", applyGlobalMarginFloor(25, 20), 25);
+  eq("G5 30+20", applyGlobalMarginFloor(30, 20), 30);
+  eq("G6 existing+0", applyGlobalMarginFloor(10, 0), 10);
+  eq("G6b UNSET+0", applyGlobalMarginFloor(null, 0), 0);
+}
+
+{
+  eq("G7 negative reject", parseOwnerCommercialMarginPctInput("-1"), null);
+  eq("G8 non-number reject", parseOwnerCommercialMarginPctInput("abc"), null);
+  eq("G8 empty → 0 (same as material Number(''))", parseOwnerCommercialMarginPctInput(""), 0);
+  eq("G8 inf reject", parseOwnerCommercialMarginPctInput("Infinity"), null);
+  eq("G valid 20", parseOwnerCommercialMarginPctInput("20"), 20);
+  eq("G valid comma", parseOwnerCommercialMarginPctInput("20,5"), 20.5);
+}
+
+{
+  let store = makeStore([
+    makeLaborWork({ id: WORK_ID, companyPricePln: 35 }),
+    makeLaborWork({
+      id: "labor-hi",
+      namePl: "High",
+      commercialPricing: { marginPct: 25, updatedAt: T0, source: "owner" },
+      companyPricePln: 99,
+      ourWorkRate: {
+        workId: "labor-hi",
+        ourRatePln: 40,
+        unit: "mb",
+        sourceType: "OWNER",
+        regionScope: "WROCLAW",
+        observedAt: T0,
+        updatedAt: T0,
+        history: [],
+      },
+    }),
+    makeLaborWork({
+      id: "labor-lo",
+      namePl: "Low",
+      commercialPricing: { marginPct: 10, updatedAt: T0, source: "owner" },
+    }),
+    makeLaborWork({ id: "labor-inactive", namePl: "Off", active: false }),
+    {
+      id: "cw.product.demo-mat",
+      tradeId: "ELEKTRYKA",
+      namePl: "Demo materiał",
+      unit: "szt",
+      companyPricePln: 10,
+      marketQuotes: {},
+      marketQuoteHistory: [],
+      commercialPricing: { marginPct: 12, updatedAt: T0, source: "owner" },
+      updatedAt: T0,
+      freshnessStatus: "ok",
+      keywords: ["mat.demo"],
+      active: true,
+      favorite: false,
+      usageCount: 0,
+      source: "custom",
+    },
+  ]);
+
+  const ids = listLaborWorkIdsForCommercialMarginFloor(store);
+  ok("G11 material excluded", !ids.includes("cw.product.demo-mat"));
+  ok("G11 control labor included", ids.includes(WORK_ID));
+  ok("G17 inactive excluded", !ids.includes("labor-inactive"));
+  ok("G16 only labor", ids.every((id) => !isOurPriceCatalogMaterialHost(id)));
+
+  const beforeMat = resolveMarginPct(
+    store.catalogs.wroclaw.works.find((w) => w.id === "cw.product.demo-mat"),
+  );
+  const beforeHiRate = store.catalogs.wroclaw.works.find((w) => w.id === "labor-hi")
+    ?.ourWorkRate?.ourRatePln;
+  const beforeHiCompany = store.catalogs.wroclaw.works.find((w) => w.id === "labor-hi")
+    ?.companyPricePln;
+
+  store = applyGlobalCommercialMarginFloorToStore(store, ids, 20, "2026-08-14T12:00:00.000Z");
+  const byId = (id) => store.catalogs.wroclaw.works.find((w) => w.id === id);
+
+  eq("G1 store UNSET→20", resolveMarginPct(byId(WORK_ID)), 20);
+  eq("G2 store 10→20", resolveMarginPct(byId("labor-lo")), 20);
+  eq("G4 store 25 stays", resolveMarginPct(byId("labor-hi")), 25);
+  eq("G12 material unchanged", resolveMarginPct(byId("cw.product.demo-mat")), beforeMat);
+  eq("G13 companyPrice labor-hi", byId("labor-hi")?.companyPricePln, beforeHiCompany);
+  eq("G13 companyPrice control", byId(WORK_ID)?.companyPricePln, 35);
+  eq("G14 OUR RATE unchanged", byId("labor-hi")?.ourWorkRate?.ourRatePln, beforeHiRate);
+  eq("G17 inactive still unset", resolveMarginPct(byId("labor-inactive")), null);
+
+  const tsBefore = byId("labor-hi")?.commercialPricing?.updatedAt;
+  store = applyGlobalCommercialMarginFloorToStore(store, ids, 20, "2026-08-14T13:00:00.000Z");
+  eq("G10 idempotent high ts", byId("labor-hi")?.commercialPricing?.updatedAt, tsBefore);
+  eq("G10 idempotent control still 20", resolveMarginPct(byId(WORK_ID)), 20);
+}
+
+{
+  let store = makeStore([
+    makeLaborWork({
+      commercialPricing: { marginPct: 50, updatedAt: T0, source: "owner" },
+    }),
+  ]);
+  store = applyGlobalCommercialMarginFloorToStore(
+    store,
+    [WORK_ID],
+    2000,
+    "2026-08-14T12:00:00.000Z",
+  );
+  eq(
+    "G9 clamp MAX then 0…1000 → 1000",
+    resolveMarginPct(store.catalogs.wroclaw.works[0]),
+    1000,
+  );
+  store = makeStore([makeLaborWork()]);
+  store = applyGlobalCommercialMarginFloorToStore(
+    store,
+    [WORK_ID],
+    2000,
+    "2026-08-14T12:00:00.000Z",
+  );
+  eq("G9 clamp UNSET 2000→1000", resolveMarginPct(store.catalogs.wroclaw.works[0]), 1000);
 }
 
 console.log(`\n${passed} PASS / ${failed} FAIL`);

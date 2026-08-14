@@ -14,6 +14,8 @@ import {
   buildOurWorkRateCatalogRows,
   formatOurWorkRateObservedAtPl,
   formatOurWorkRatePln,
+  listLaborWorkIdsForCommercialMarginFloor,
+  parseOwnerCommercialMarginPctInput,
   summarizeOurWorkRateCatalogRows,
   workRateSourceTypeLabelPl,
   type OurWorkRateCatalogFreshnessFilter,
@@ -57,6 +59,7 @@ export function OurWorkRateCatalogPanel() {
     reload,
     updateOurWorkRate,
     updateCommercialMargin,
+    applyGlobalCommercialMarginFloor,
     researchOurWorkRate,
     acceptOurWorkRateResearch,
   } = useWorkCatalog();
@@ -72,6 +75,7 @@ export function OurWorkRateCatalogPanel() {
     candidate: WorkRateResearchCandidate;
   } | null>(null);
   const [marginDraft, setMarginDraft] = useState<Record<string, string>>({});
+  const [globalLaborMargin, setGlobalLaborMargin] = useState("");
   const [errorPl, setErrorPl] = useState<string | null>(null);
   const [infoPl, setInfoPl] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -116,8 +120,8 @@ export function OurWorkRateCatalogPanel() {
   async function onSaveMargin(row: OurWorkRateCatalogRow): Promise<void> {
     if (busyId) return;
     const raw = marginDraft[row.workId] ?? (row.marginUnset ? "" : String(row.marginPct ?? ""));
-    const n = Number(String(raw).replace(",", "."));
-    if (!Number.isFinite(n) || n < 0) {
+    const n = parseOwnerCommercialMarginPctInput(raw);
+    if (n == null) {
       setErrorPl("Nieprawidłowa marża.");
       return;
     }
@@ -136,6 +140,31 @@ export function OurWorkRateCatalogPanel() {
         return next;
       });
       setInfoPl(`Zapisano marżę WGDOM ${n}% dla: ${row.namePl}.`);
+      reload();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /** REUSE applyGlobalCommercialMarginFloor — labor IDs only · MAX · no seed. */
+  async function onApplyGlobalLaborMargin(): Promise<void> {
+    if (busyId) return;
+    const n = parseOwnerCommercialMarginPctInput(globalLaborMargin);
+    if (n == null) {
+      setErrorPl("Podaj poprawną minimalną marżę %.");
+      return;
+    }
+    const ids = listLaborWorkIdsForCommercialMarginFloor(store);
+    setBusyId("__global_labor_margin__");
+    setErrorPl(null);
+    setInfoPl(null);
+    try {
+      const res = await applyGlobalCommercialMarginFloor(ids, n);
+      if (!res.ok) {
+        setErrorPl(res.message);
+        return;
+      }
+      setInfoPl(`Zastosowano minimalną marżę ${n}% dla ${ids.length} robót (MAX z istniejącą).`);
       reload();
     } finally {
       setBusyId(null);
@@ -407,6 +436,30 @@ export function OurWorkRateCatalogPanel() {
             </div>
           </label>
         </div>
+
+        {isSuperAdmin && (
+          <div
+            className="flex flex-col sm:flex-row gap-2 sm:items-end border-t border-border/60 pt-3"
+            data-work-rate-global-margin
+          >
+            <WgField
+              label="Minimalna marża dla wszystkich robót (%)"
+              value={globalLaborMargin}
+              onChange={(e) => setGlobalLaborMargin(e.target.value)}
+              inputMode="decimal"
+              className="sm:max-w-[18rem]"
+            />
+            <WgButton
+              type="button"
+              variant="secondary"
+              onClick={() => void onApplyGlobalLaborMargin()}
+              disabled={busyId === "__global_labor_margin__"}
+              data-work-rate-global-margin-apply
+            >
+              Zastosuj
+            </WgButton>
+          </div>
+        )}
 
         {errorPl && (
           <p className="text-xs text-destructive" role="alert">

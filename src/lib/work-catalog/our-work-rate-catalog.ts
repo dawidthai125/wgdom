@@ -20,7 +20,10 @@ import {
 } from "@/lib/work-catalog/work-rate-types";
 import type { CatalogWork, CommercialPricing, WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
-import { resolveMarginPct } from "@/lib/price-intelligence/our-price-catalog";
+import {
+  isOurPriceCatalogMaterialHost,
+  resolveMarginPct,
+} from "@/lib/price-intelligence/our-price-catalog";
 
 export type OurWorkRateCatalogFreshnessFilter =
   | "ALL"
@@ -265,6 +268,27 @@ export const OUR_WORK_RATE_CATALOG_FRESHNESS_FILTERS: {
   { id: "STALE", label: "Przeterminowane" },
   { id: "MISSING", label: "Brak stawki" },
 ];
+
+/**
+ * Same validation as Nasz katalog cen (finite, >= 0). Clamp 0…1000 is in patchWorkCommercialPricing.
+ */
+export function parseOwnerCommercialMarginPctInput(raw: string): number | null {
+  const n = Number(String(raw).replace(",", "."));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+/**
+ * Active labor CatalogWork IDs for global MIN floor.
+ * Excludes material hosts (SSOT: isOurPriceCatalogMaterialHost). Inactive skipped.
+ */
+export function listLaborWorkIdsForCommercialMarginFloor(
+  store: WorkCatalogStore,
+): string[] {
+  return listWorksForRegion(store)
+    .filter((w) => w.active && !isOurPriceCatalogMaterialHost(w.id))
+    .map((w) => w.id);
+}
 
 /** Sanity: etykiety PL nie zawierają surowych enumów w UI copy. */
 export function ourWorkRateCatalogUiUsesPolishLabelsOnly(): boolean {
