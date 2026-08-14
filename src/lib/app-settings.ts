@@ -59,6 +59,12 @@ export interface AppSettings {
    * Legacy LS Session/Decision = kill-switch / OV only (nie master).
    */
   expertAiDecydentEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P1 — first-screen Inteligentnego Kosztorysanta na /przetarg.
+   * Domyślnie OFF → NG-10 Autonomous Gate 1:1.
+   * NIE jest globalnym D (`expertAiDecydentEnabled`). Dual Outcome / Offer PLN bez zmian.
+   */
+  ikEntryEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -96,6 +102,7 @@ export function defaultAppSettings(): AppSettings {
     wmRysunkiEnabled: false,
     wmWorkerSketchEnabled: false,
     expertAiDecydentEnabled: false,
+    ikEntryEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -236,6 +243,16 @@ export function mergeExpertAiDecydentEnabled(
   return local.expertAiDecydentEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie OFF (IK-MIGRATION-01 P1). Niezależne od D. */
+export function mergeIkEntryEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikEntryEnabled === true) return true;
+  if (remote?.ikEntryEnabled === false) return false;
+  return local.ikEntryEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -251,6 +268,7 @@ export function loadAppSettingsLocal(): AppSettings {
       wmRysunkiEnabled: parsed.wmRysunkiEnabled === true,
       wmWorkerSketchEnabled: parsed.wmWorkerSketchEnabled === true,
       expertAiDecydentEnabled: parsed.expertAiDecydentEnabled === true,
+      ikEntryEnabled: parsed.ikEntryEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -309,6 +327,7 @@ export function mergeAppSettings(
     wmRysunkiEnabled: mergeWmRysunkiEnabled(remote, local),
     wmWorkerSketchEnabled: mergeWmWorkerSketchEnabled(remote, local),
     expertAiDecydentEnabled: mergeExpertAiDecydentEnabled(remote, local),
+    ikEntryEnabled: mergeIkEntryEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

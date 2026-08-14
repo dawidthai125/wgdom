@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-15",
+    version: "2.66.60",
+    label: "IK Entry Shell P1 (NG-10 controlled replacement)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P1: flaga ikEntryEnabled (AppSettings, default OFF, niezależna od Expert AI / D). /przetarg OFF = NG-10 1:1; ON = IkEntryHost + ExpertConversationSurface z faktami pipeline (dokumenty / SWZ / BOQ status). ZERO delete NG-10. ZERO research / F5 / ATH writer. Produkcja: flaga OFF.",
+      },
+    ],
+  },
+  {
     date: "2026-08-14",
     version: "2.66.59",
     label: "PASS2 CR discovery amendment (local)",

@@ -12,14 +12,33 @@ export type ExpertConversationStepKind =
   | "pricing"
   | "cost"
   | "offer"
-  | "chief_final";
+  | "chief_final"
+  | "documents"
+  | "swz"
+  | "boq_status";
 
 export type ExpertConversationStepStatus =
   | "pending"
   | "active"
   | "done"
   | "blocked"
-  | "skipped";
+  | "skipped"
+  | "hold"
+  | "partial"
+  | "gap";
+
+export type ExpertConversationSourceRefKind =
+  | "document"
+  | "extraction"
+  | "boq_ready"
+  | "hold";
+
+export interface ExpertConversationSourceRef {
+  kind: ExpertConversationSourceRefKind;
+  tenderId: string;
+  documentId?: string;
+  artifact: Record<string, unknown>;
+}
 
 export interface ExpertConversationStepView {
   id: ExpertConversationStepKind;
@@ -30,12 +49,16 @@ export interface ExpertConversationStepView {
   messagePl: string;
   /** Optional secondary — Trace `dlaczego` / failReason (may be empty). */
   detailPl: string | null;
+  /** Runtime event id when the step is a pipeline fact (IK entry). */
+  event?: string;
   /** Offer PRIMARY PLN display when available (existing field only). */
   offerPricePln: number | null;
   offerPriceDisplayPl: string | null;
   iconKey: ChiefDossierIconKey;
   /** Presentation pacing weight (chars of message). */
   messageWeight: number;
+  /** Real runtime source — required for IK document facts. */
+  sourceRef?: ExpertConversationSourceRef | null;
 }
 
 export interface ExpertConversationViewModel {

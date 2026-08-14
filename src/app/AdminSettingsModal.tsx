@@ -421,6 +421,26 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikEntryEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikEntryEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-entry-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">Inteligentny Kosztorysant · wejście IK</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P1. Domyślnie wyłączone — /przetarg zostaje przy NG-10.
+                  Niezależne od Expert AI · Przebieg i Decydent. Produkcja: zostaw wyłączone.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

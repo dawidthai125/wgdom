@@ -47,6 +47,8 @@ UI Przetargi (TendersModule · Detail · Hub · Kosztorys · Expert Conversation
 
 UX docelowy: Messenger-like **presentation** nad istniejącym pipeline — **nie** nowy chat engine / store.
 
+**NG-10 Autonomous Run** = stary first-screen (projekcja pipeline). Controlled replacement: [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md). **Nie** rozwijać NG-10 jako IK.
+
 ---
 
 ## 3. Documents / BOQ

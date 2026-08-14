@@ -28,8 +28,13 @@ export const EXPERT_CONVERSATION_ACTOR_COST_PL = "Cost Expert";
 
 export const EXPERT_CONVERSATION_ACTOR_OFFER_PL = "Offer Expert";
 
+export const EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL = "Document Expert";
+
+export const EXPERT_CONVERSATION_SUBTITLE_IK_PL =
+  "Fakty z dokumentacji przetargu — bez udawania wyceny";
+
 export function labelConversationStatusPl(
-  status: "pending" | "active" | "done" | "blocked" | "skipped",
+  status: "pending" | "active" | "done" | "blocked" | "skipped" | "hold" | "partial" | "gap",
 ): string {
   switch (status) {
     case "pending":
@@ -42,6 +47,12 @@ export function labelConversationStatusPl(
       return "Zablokowane";
     case "skipped":
       return "Pominięte";
+    case "hold":
+      return "HOLD";
+    case "partial":
+      return "PARTIAL";
+    case "gap":
+      return "GAP";
     default:
       return status;
   }

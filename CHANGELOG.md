@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.60 — IK Entry Shell P1 (2026-08-15)
+
+**Scope:** kontrolowane wejście Inteligentnego Kosztorysanta za `ikEntryEnabled` (default OFF).
+
+- `/przetarg` OFF → NG-10 Autonomous Gate **1:1**
+- ON → `IkEntryHost` + istniejący `ExpertConversationSurface` (fakty pipeline, `sourceRef`)
+- Flaga **≠** `expertAiDecydentEnabled` (D / Dual Outcome bez zmian)
+- NG-10 **RETAINED** (rollback)
+- Test: `npx vite-node scripts/test-ik-migration-01-p1-entry.mjs`
+
 ## 2.66.59 — PASS2 CR discovery amendment (local · 2026-08-14)
 
 **Scope:** Owner A1/A2 CR PASS2 discovery · **ZERO COMMIT** do osobnego Owner GO.

@@ -73,6 +73,11 @@ import {
 } from "@/lib/tender-workspace-ux";
 import { leaveTenderDetailToModule } from "@/lib/tender-module-nav-sheet";
 import { notifyIkPricingAccepted } from "@/lib/ik-pricing-orchestrator";
+import {
+  isIkEntryEnabled,
+  resolveIkDetailFirstScreen,
+} from "@/lib/intelligent-estimator/ik-entry-flag";
+import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -222,6 +227,9 @@ export function TenderDetailPage({
 
   /** P0 — Dual Outcome / TRE / stack cues follow D Session runtime (not module access). */
   const expertEffective = isExpertAiRuntimeEffective();
+  /** IK-MIGRATION-01 P1 — independent of D. Default OFF = NG-10. */
+  const ikEntryOn = isIkEntryEnabled();
+  const ikFirstScreen = resolveIkDetailFirstScreen(ikEntryOn);
 
   useEffect(() => {
     setTre01ForceWorkspace(false);
@@ -617,8 +625,9 @@ export function TenderDetailPage({
     return null;
   }
 
-  /** TRE-01: Outcome MVP bez Autonomous theater (DF §5 — nie blokować Outcome). */
-  if (showTre01Outcome && tre01Recommendation) {
+  /** TRE-01: Outcome MVP bez Autonomous theater (DF §5 — nie blokować Outcome).
+   * IK-MIGRATION-01 P1: gdy IK entry ON, nie early-return TRE zamiast IK host. */
+  if (ikFirstScreen === "ng10_gate" && showTre01Outcome && tre01Recommendation) {
     const outcome = (
       <TenderRecommendationOutcomeView
         result={tre01Recommendation}
@@ -643,7 +652,7 @@ export function TenderDetailPage({
     return outcome;
   }
 
-  if (showTre01Outcome && !tre01Recommendation) {
+  if (ikFirstScreen === "ng10_gate" && showTre01Outcome && !tre01Recommendation) {
     return (
       <div
         className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground text-sm"
@@ -657,17 +666,7 @@ export function TenderDetailPage({
     );
   }
 
-  return (
-    <TenderAutonomousGate
-      item={item}
-      pipelineRuntime={pipelineRuntime}
-      intelligenceCtx={przetargCommand.intelligenceCtx}
-      pricingCatalogRevision={pricingCatalogRevision}
-      onBack={handleLeaveToModule}
-      onReveal={() => {
-        scrollRootRef.current?.scrollTo({ top: 0, behavior: "instant" });
-      }}
-    >
+  const detailWorkspace = (
     <div
       className="flex-1 min-h-0 flex flex-col overflow-hidden"
       data-tender-detail-v4
@@ -675,6 +674,8 @@ export function TenderDetailPage({
       data-tender-tab={activeTab}
       data-tender-ws={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
       data-s7-hub-first="1"
+      data-ik-entry-enabled={ikEntryOn ? "1" : "0"}
+      data-ik-first-screen={ikFirstScreen}
     >
       <TenderDetailCommandLayer
         item={item}
@@ -720,6 +721,8 @@ export function TenderDetailPage({
             gateStatus={pipelineRuntime.attachmentGateStatus}
             gateReason={pipelineRuntime.attachmentGateReason}
           />
+
+          {ikEntryOn && activeTab === "przetarg" && <IkEntryHost item={item} />}
 
           {showTre01RecoveryCta && (
             <div className="mb-3 flex justify-end">
@@ -794,6 +797,24 @@ export function TenderDetailPage({
         )}
       </div>
     </div>
+  );
+
+  if (ikFirstScreen === "ik_entry") {
+    return detailWorkspace;
+  }
+
+  return (
+    <TenderAutonomousGate
+      item={item}
+      pipelineRuntime={pipelineRuntime}
+      intelligenceCtx={przetargCommand.intelligenceCtx}
+      pricingCatalogRevision={pricingCatalogRevision}
+      onBack={handleLeaveToModule}
+      onReveal={() => {
+        scrollRootRef.current?.scrollTo({ top: 0, behavior: "instant" });
+      }}
+    >
+      {detailWorkspace}
     </TenderAutonomousGate>
   );
 }

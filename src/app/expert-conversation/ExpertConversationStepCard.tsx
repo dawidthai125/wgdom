@@ -15,6 +15,10 @@ function statusClass(status: ExpertConversationStepView["status"]): string {
       return "border-border/50 bg-background/40";
     case "blocked":
       return "border-destructive/40 bg-destructive/5";
+    case "hold":
+    case "partial":
+    case "gap":
+      return "border-amber-500/40 bg-amber-500/5";
     case "skipped":
       return "border-border/40 bg-muted/20 opacity-80";
     default:
@@ -61,6 +65,9 @@ export function ExpertConversationStepCard({
       data-expert-conversation-step={step.id}
       data-expert-conversation-status={step.status}
       data-expert-conversation-current={isCurrent ? "1" : "0"}
+      data-expert-conversation-event={step.event ?? undefined}
+      data-expert-conversation-source-kind={step.sourceRef?.kind}
+      data-expert-conversation-source-tender={step.sourceRef?.tenderId}
       aria-current={isCurrent ? "step" : undefined}
     >
       <div className="flex items-start gap-2 min-h-[40px]">

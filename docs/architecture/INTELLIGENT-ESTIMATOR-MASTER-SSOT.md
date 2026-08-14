@@ -74,6 +74,7 @@ GŁÓWNY IK (Chief / orchestration / UX Expert Conversation)
 | Tip UI/commit | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | Cold-start projekt | [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md) |
 | Entry procesu | [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll |
+| **IK-MIGRATION-01 P0** | [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — NG-10 → IK controlled replacement · **ZERO IMPLEMENT bez Owner GO P1** |
 
 **Historyczne (nie tip):** [`INTELLIGENT-ESTIMATOR-CONTINUITY-HANDOFF.md`](./INTELLIGENT-ESTIMATOR-CONTINUITY-HANDOFF.md) — Technology Foundation slices (paint/primer/cable) · **tip = 09**, nie ten plik.
 
@@ -162,13 +163,15 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | Podejście | HOLD · UNIT_EQUIVALENCE **UNPROVEN** (pkt vs mb) |
 | Wykwity | SOURCE GAP REAL |
 | ACTIVE EPIC IMPLEMENT | **NONE** bez Owner GO |
+| **IK-MIGRATION-01** | **P1 COMPLETE** · `ikEntryEnabled` default **OFF** · NG-10 retained · IMPLEMENT P2+ blocked until Owner GO |
 
 ---
 
 ## 9. NEXT
 
 Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.  
-Kandydaci: residual C1–C6 · osobny labor item (nie auto Podejście) · docs release.  
-**NIE** invent S10 / drugiego TenderModule / auto-Accept.
+**IK-MIGRATION-01:** P0 frozen — następny **GO P1** (entry shell, flaga OFF) albo **AUDIT-02** live BOQ `08def45d`.  
+Kandydaci poza IK: residual C1–C6 · osobny labor item (nie auto Podejście).  
+**NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10.
 
 **STOP.**

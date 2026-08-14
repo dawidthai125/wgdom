@@ -28,7 +28,8 @@ SEARCH → REUSE → AUDIT → Owner GO → IMPLEMENT.
 4. [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md)  
 5. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`  
 6. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll  
-7. [`../WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) (gdy UI Przetargu)
+7. [`../WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) (gdy UI Przetargu)  
+8. [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — NG-10 replacement · **no IMPLEMENT without Owner GO P1**
 
 ### First action
 
@@ -81,8 +82,8 @@ Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** · Wykwity **SOURCE GAP**
 
 ## E. Current EPIC
 
-**NONE** active IMPLEMENT without Owner GO.  
-Last tip feature area: PASS2 CR + Tablica Accept (data verified).
+**IK-MIGRATION-01 P1 COMPLETE** — `ikEntryEnabled` default OFF · NG-10 rollback path · next **GO P2** (Document Expert) only.  
+Last tip feature area: PASS2 CR + Tablica Accept (data verified). NG-10 is **not** target IK.
 
 ---
 
@@ -90,6 +91,7 @@ Last tip feature area: PASS2 CR + Tablica Accept (data verified).
 
 Only after Owner GO → AUDIT:
 
+- IK-MIGRATION-01 **P1** only after Owner GO (entry shell, flag default OFF)  
 - Next labor identity/Evidence item (not Podejście without unit proof)  
 - Residual C1–C6 / TM follow-ups (no invent S10)  
 - Material coverage / real tender Wrocław audit streams  
@@ -109,6 +111,8 @@ Only after Owner GO → AUDIT:
 ❌ git add -A
 ❌ vercel deploy
 ❌ Commit src / .tmp / unrelated WIP in docs GO
+❌ REMOVE NG-10 before P9+P10 Owner GO
+❌ expertAiDecydentEnabled ON as IK cutover
 ```
 
 ---

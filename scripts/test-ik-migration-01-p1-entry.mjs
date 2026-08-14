@@ -1,0 +1,316 @@
+/**
+ * IK-MIGRATION-01 P1 — IK Entry Shell.
+ * Run: npx vite-node scripts/test-ik-migration-01-p1-entry.mjs
+ */
+import { readFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  defaultAppSettings,
+  mergeAppSettings,
+  mergeIkEntryEnabled,
+  mergeExpertAiDecydentEnabled,
+  APP_SETTINGS_KEY,
+} from "../src/lib/app-settings.ts";
+import {
+  forceIkEntryEnabledForTests,
+  isIkEntryEnabled,
+  resolveIkDetailFirstScreen,
+} from "../src/lib/intelligent-estimator/ik-entry-flag.ts";
+import { collectIkEntryPipelineFacts } from "../src/lib/intelligent-estimator/ik-entry-pipeline-facts.ts";
+import { buildIkEntryConversationViewModel } from "../src/lib/intelligent-estimator/ik-entry-conversation.ts";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, "..");
+
+function readSrc(rel) {
+  return readFileSync(join(root, rel), "utf8");
+}
+
+let pass = 0;
+let fail = 0;
+
+function assert(name, cond) {
+  if (cond) {
+    pass++;
+    console.log("PASS", name);
+  } else {
+    fail++;
+    console.log("FAIL", name);
+  }
+}
+
+const mem = new Map();
+globalThis.localStorage = {
+  getItem(k) {
+    return mem.has(k) ? mem.get(k) : null;
+  },
+  setItem(k, v) {
+    mem.set(String(k), String(v));
+  },
+  removeItem(k) {
+    mem.delete(k);
+  },
+  clear() {
+    mem.clear();
+  },
+};
+
+function reset() {
+  mem.clear();
+  forceIkEntryEnabledForTests(null);
+}
+
+function setSettings(patch) {
+  const base = defaultAppSettings();
+  mem.set(APP_SETTINGS_KEY, JSON.stringify({ ...base, ...patch }));
+}
+
+function baseItem(overrides = {}) {
+  return {
+    id: "08def45d-ead6-5db8-962b-120001d33d37",
+    tenderId: "08def45d-ead6-5db8-962b-120001d33d37",
+    noticeNumber: "2026/BZP 00376804",
+    title: "ZZK pustostany",
+    status: "seen",
+    updatedAt: new Date().toISOString(),
+    bzpDocuments: [],
+    ...overrides,
+  };
+}
+
+const FORBIDDEN = [
+  "wyliczono materiały",
+  "wyliczono robociznę",
+  "wyliczam materiały",
+  "wyliczenie materiałów",
+  "oceniam opłacalność",
+  "kosztorys gotowy",
+  "materiały wyliczone",
+];
+
+function blobOf(vm) {
+  return vm.steps.map((s) => `${s.messagePl} ${s.detailPl ?? ""}`).join("\n").toLowerCase();
+}
+
+console.log("=== IK-MIGRATION-01 P1 ENTRY ===\n");
+
+reset();
+const d = defaultAppSettings();
+assert("A default ikEntryEnabled false", d.ikEntryEnabled === false);
+assert("A default D false (unchanged)", d.expertAiDecydentEnabled === false);
+assert("A isIkEntryEnabled default false", isIkEntryEnabled() === false);
+assert(
+  "A first screen default ng10_gate",
+  resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ng10_gate",
+);
+assert(
+  "A resolve OFF → ng10_gate",
+  resolveIkDetailFirstScreen(false) === "ng10_gate",
+);
+
+reset();
+setSettings({ ikEntryEnabled: true });
+assert("B AppSettings ON → isIkEntryEnabled", isIkEntryEnabled() === true);
+assert(
+  "B first screen ik_entry",
+  resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ik_entry",
+);
+
+forceIkEntryEnabledForTests(true);
+assert("B force ON", isIkEntryEnabled() === true);
+forceIkEntryEnabledForTests(false);
+assert("B force OFF beats LS ON", isIkEntryEnabled() === false);
+forceIkEntryEnabledForTests(null);
+
+assert(
+  "B merge remote ON",
+  mergeIkEntryEnabled({ ikEntryEnabled: true }, d) === true,
+);
+assert(
+  "B merge remote OFF beats local ON",
+  mergeIkEntryEnabled({ ikEntryEnabled: false }, { ...d, ikEntryEnabled: true }) === false,
+);
+assert(
+  "B mergeAppSettings preserves IK field",
+  mergeAppSettings({ ikEntryEnabled: true }, d).ikEntryEnabled === true,
+);
+assert(
+  "B mergeAppSettings D independent when only IK set",
+  mergeAppSettings({ ikEntryEnabled: true }, d).expertAiDecydentEnabled === false,
+);
+
+reset();
+setSettings({ expertAiDecydentEnabled: true, ikEntryEnabled: false });
+assert("C D ON does not enable IK", isIkEntryEnabled() === false);
+assert(
+  "C D merge ON leaves IK default",
+  mergeExpertAiDecydentEnabled({ expertAiDecydentEnabled: true }, d) === true
+    && mergeIkEntryEnabled({ expertAiDecydentEnabled: true }, d) === false,
+);
+assert(
+  "C merge D ON does not flip IK",
+  mergeAppSettings({ expertAiDecydentEnabled: true }, d).ikEntryEnabled === false,
+);
+
+const emptyItem = baseItem({
+  documentsFetchedAt: "2026-08-01T00:00:00.000Z",
+  tenderDossier: null,
+  swzAnalysis: null,
+});
+const emptyFacts = collectIkEntryPipelineFacts(emptyItem);
+assert("D BOQ=0 rowCount", emptyFacts.boqRowCount === 0);
+assert("D BOQ not_ready", emptyFacts.boqReadiness === "not_ready");
+const emptyVm = buildIkEntryConversationViewModel(emptyItem);
+assert("D EC visible", emptyVm.visible === true);
+assert("D uses ExpertConversation VM steps", emptyVm.steps.length >= 3);
+const boqStep = emptyVm.steps.find((s) => s.id === "boq_status");
+assert("D BOQ step exists", Boolean(boqStep));
+assert(
+  "D BOQ status partial",
+  boqStep?.status === "partial" && /boq not ready|partial/i.test(`${boqStep?.messagePl} ${boqStep?.statusLabelPl}`),
+);
+const emptyBlob = blobOf(emptyVm);
+assert(
+  "D no fake costing copy",
+  FORBIDDEN.every((s) => !emptyBlob.includes(s)),
+);
+
+const docsItem = baseItem({
+  bzpDocuments: [
+    {
+      index: 0,
+      documentId: "doc-swz-1",
+      filename: "SWZ.pdf",
+      contentType: "application/pdf",
+      downloadUrl: "https://example.test/swz.pdf",
+      isSwzHint: true,
+    },
+    {
+      index: 1,
+      documentId: "doc-ath-2",
+      filename: "przedmiar.ath",
+      contentType: "application/octet-stream",
+      downloadUrl: "https://example.test/p.ath",
+      isSwzHint: false,
+    },
+  ],
+  swzAnalysis: { implementationDays: 30 },
+  tenderDossier: {
+    kosztorys: {
+      ok: true,
+      sourceFilename: "przedmiar.ath",
+      rowCount: 0,
+      rows: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: "2026-08-01T00:00:00.000Z",
+    },
+    brief: { fields: [], additionalNotes: [], builtAt: "2026-08-01T00:00:00.000Z" },
+    builtAt: "2026-08-01T00:00:00.000Z",
+  },
+});
+const docsVm = buildIkEntryConversationViewModel(docsItem);
+const docStep = docsVm.steps.find((s) => s.id === "documents");
+const swzStep = docsVm.steps.find((s) => s.id === "swz");
+const boqZero = docsVm.steps.find((s) => s.id === "boq_status");
+assert("E documents fact sourceRef", Boolean(docStep?.sourceRef?.tenderId) && docStep?.sourceRef?.kind === "document");
+assert("E documents event", docStep?.event === "DOCUMENTS_DISCOVERED");
+assert("E SWZ sourceRef", Boolean(swzStep?.sourceRef?.tenderId));
+assert("E BOQ=0 still PARTIAL", boqZero?.status === "partial");
+assert("E all IK steps have sourceRef", docsVm.steps.every((s) => Boolean(s.sourceRef?.tenderId)));
+assert(
+  "E no fake labor/material",
+  FORBIDDEN.every((s) => !blobOf(docsVm).includes(s)),
+);
+
+const readyItem = baseItem({
+  bzpDocuments: [
+    {
+      index: 0,
+      documentId: "doc-ready",
+      filename: "boq.xlsx",
+      contentType: "application/vnd.ms-excel",
+      downloadUrl: "https://example.test/boq.xlsx",
+      isSwzHint: false,
+    },
+  ],
+  tenderDossier: {
+    kosztorys: {
+      ok: true,
+      sourceFilename: "boq.xlsx",
+      rowCount: 12,
+      rows: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: "2026-08-01T00:00:00.000Z",
+    },
+    brief: { fields: [], additionalNotes: [], builtAt: "2026-08-01T00:00:00.000Z" },
+    builtAt: "2026-08-01T00:00:00.000Z",
+  },
+});
+const readyVm = buildIkEntryConversationViewModel(readyItem);
+const readyBoq = readyVm.steps.find((s) => s.id === "boq_status");
+assert("E BOQ ready rowCount 12", readyBoq?.status === "done" && /12/.test(readyBoq?.messagePl ?? ""));
+assert("E BOQ sourceRef artifact rowCount", readyBoq?.sourceRef?.artifact?.rowCount === 12);
+
+const detailSrc = readSrc("src/app/TenderDetailPage.tsx");
+assert("F DetailPage still imports TenderAutonomousGate", /TenderAutonomousGate/.test(detailSrc));
+assert("F DetailPage uses resolveIkDetailFirstScreen", /resolveIkDetailFirstScreen/.test(detailSrc));
+assert("F DetailPage mounts IkEntryHost", /IkEntryHost/.test(detailSrc));
+assert(
+  "F OFF path still wraps Gate",
+  /ikFirstScreen === "ik_entry"/.test(detailSrc) && /<TenderAutonomousGate/.test(detailSrc),
+);
+assert("F Dual Outcome helper untouched in DetailPage (expertEffective kept)", /isExpertAiRuntimeEffective/.test(detailSrc));
+
+const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
+assert("F IkEntryHost reuses ExpertConversationSurface", /ExpertConversationSurface/.test(hostSrc));
+assert("F IkEntryHost has data-ik-entry-host", /data-ik-entry-host/.test(hostSrc));
+
+const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
+assert(
+  "C flag module does not read D",
+  !/expertAiDecydentEnabled/.test(flagSrc) && !/isExpertAiRuntimeEffective/.test(flagSrc),
+);
+
+const convSrc = readSrc("src/lib/intelligent-estimator/ik-entry-conversation.ts");
+assert(
+  "F IK conversation does not use NG-10 labels",
+  !/AUTONOMOUS_TIMELINE_STEP_LABELS/.test(convSrc)
+    && !/AUTONOMOUS_AI_AGENT_LABELS/.test(convSrc)
+    && !/TenderAutonomousRunScreen/.test(convSrc),
+);
+
+const ng10Files = [
+  "src/app/tenders/autonomous/TenderAutonomousGate.tsx",
+  "src/app/tenders/autonomous/TenderAutonomousRunScreen.tsx",
+  "src/app/tenders/autonomous/TenderAutonomousRunFaq.tsx",
+  "src/app/tenders/autonomous/TenderAutonomousOutcomeScreen.tsx",
+  "src/lib/tender-autonomous-run-phase.ts",
+  "src/lib/tender-autonomous-run-timeline.ts",
+  "src/lib/tender-autonomous-run-ux.ts",
+  "src/lib/tender-autonomous-run-status.ts",
+  "src/lib/tender-autonomous-run-transition.ts",
+  "src/lib/tender-autonomous-run-gate-exit.ts",
+  "src/lib/tender-autonomous-run-fingerprint.ts",
+  "src/lib/tender-autonomous-run-outcome.ts",
+  "scripts/test-tender-autonomous-run-phase.mjs",
+];
+assert(
+  "F NG-10 files retained",
+  ng10Files.every((rel) => existsSync(join(root, rel))),
+);
+
+const settingsSrc = readSrc("src/lib/app-settings.ts");
+assert("F AppSettings has ikEntryEnabled", /ikEntryEnabled: boolean/.test(settingsSrc));
+assert("F Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+
+const noAthWriter = !/serializeAth|writeAth|exportAthFile/.test(convSrc)
+  && !/serializeAth|writeAth/.test(hostSrc);
+assert("F no ATH writer in P1 files", noAthWriter);
+
+console.log(`\n${pass} PASS / ${fail} FAIL`);
+if (fail > 0) process.exit(1);

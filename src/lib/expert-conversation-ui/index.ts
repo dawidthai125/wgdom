@@ -3,6 +3,8 @@ export type {
   ExpertConversationStepStatus,
   ExpertConversationStepView,
   ExpertConversationViewModel,
+  ExpertConversationSourceRef,
+  ExpertConversationSourceRefKind,
 } from "./types";
 
 export {
@@ -10,6 +12,7 @@ export {
   INTELIGENTNY_KOSZTORYSANT_AUTHOR_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   EXPERT_CONVERSATION_SUBTITLE_PL,
+  EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_SKIP_PL,
   EXPERT_CONVERSATION_CONTINUE_PL,
   EXPERT_CONVERSATION_ACTOR_CHIEF_PL,
@@ -18,6 +21,7 @@ export {
   EXPERT_CONVERSATION_ACTOR_PE_PL,
   EXPERT_CONVERSATION_ACTOR_COST_PL,
   EXPERT_CONVERSATION_ACTOR_OFFER_PL,
+  EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
   labelConversationStatusPl,
 } from "./labels";
 

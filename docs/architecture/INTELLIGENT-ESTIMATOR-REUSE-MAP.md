@@ -43,6 +43,12 @@
 | Cloud sync | `src/lib/cloud-sync.ts` | KV merge/push | persistKey · fetchKeys | whole app | Supabase KV | CORE LOCK | No casual change |
 | companyPricePln | `CatalogWork.companyPricePln` | Legacy mixed price field | — | old bid/offer paths | catalog | LEGACY TECHNICAL | **≠ OUR RATE** · no auto-migrate |
 | Command Center | `docs/archive/command-center/` | Historical | — | — | — | SUPERSEDED | Do not resurrect |
+| NG-10 Autonomous | `src/app/tenders/autonomous/*` · `src/lib/tender-autonomous-run-*.ts` | Old first-screen theater | Gate/Run/timeline | TenderDetailPage | LS `kw-tender-autonomous-run-v1:` | KEEP TEMPORARY (P1–P9) | **DO NOT extend as IK** · decommission map P10 |
+| Multi-dwelling / Multi-BOQ | `src/lib/multi-dwelling/*` · `src/lib/multi-boq/*` | N adresów × N przedmiarów · SUM | PackageGate · compose · `lineProvenance` | Hub panel | `kw-multi-dwelling-package-v1` | PRODUCTION | **DO NOT DUPLICATE** |
+| Ingest | `src/lib/tender-ingest/*` | Lossless docs → artifact pool | registry · contentHash | Multi-BOQ | LS ingest | PRODUCTION | Upstream only |
+| Bid PDF | `src/lib/tender-bid-package-pdf.ts` | Oferta PDF | `exportTenderBidPackagePdf` | DetailPanel | — | PRODUCTION | REUSE · no new PDF engine |
+| ATH parse / preview PDF | `src/lib/ath-parser.ts` · `ath-kosztorys-pdf.ts` | NORMA input + preview | `parseKosztorysBytes` | Kosztorys UI | — | PRODUCTION | **No ATH writer in repo** |
+| IK orchestrator W2 | `src/lib/ik-pricing-orchestrator/*` | Gaps + labor bridge above F5 | `inventoryIkGapsFromShadow` · `runIkLaborGapResearch` | Hub panel | none | PRODUCTION | Extend here — no v2 package |
 
 ---
 

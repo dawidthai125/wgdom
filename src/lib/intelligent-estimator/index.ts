@@ -21,3 +21,23 @@ export {
   ESTIMATOR_OWNER_CLASSIFICATION_MAP,
   getOwnerClassificationPlane,
 } from "./owner-classification-map";
+
+export {
+  forceIkEntryEnabledForTests,
+  isIkEntryEnabled,
+  resolveIkDetailFirstScreen,
+} from "./ik-entry-flag";
+export type { IkDetailFirstScreen } from "./ik-entry-flag";
+
+export {
+  collectIkEntryPipelineFacts,
+} from "./ik-entry-pipeline-facts";
+export type {
+  IkBoqReadiness,
+  IkEntryPipelineFacts,
+  IkEntrySourceRef,
+} from "./ik-entry-pipeline-facts";
+
+export {
+  buildIkEntryConversationViewModel,
+} from "./ik-entry-conversation";
