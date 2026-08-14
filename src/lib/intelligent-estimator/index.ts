@@ -52,6 +52,7 @@ export type {
   IkDocumentExpertReport,
   IkDocumentExpertStatus,
   IkInventoryDocument,
+  IkMasterBoqLineRef,
   IkPrzedmiarSource,
 } from "./ik-document-expert";
 
@@ -82,3 +83,12 @@ export type {
   IkExplicitOwnerMapping,
   IkLineIntegrityReport,
 } from "./ik-dwelling-mapping";
+
+export { runIkMasterBoqClassification } from "./ik-classification";
+export type {
+  IkClassificationCounts,
+  IkClassificationHandoff,
+  IkClassificationReport,
+  IkClassifiedMasterLine,
+  IkIdentityStatus,
+} from "./ik-classification";

@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.65 — IK P3 Classification Gate (2026-08-15)
+
+**Scope:** Master BOQ READY → `classifyEstimatorPricingPlane` (A1) → plane + expert handoff.
+
+- REUSE Classification Gate · ZERO invent z `namePl`
+- Taxonomy: LABOR / MATERIAL / COMPOUND(BOTH HOLD) / UNKNOWN(UNRESOLVED)
+- EC: CLASSIFICATION_* facts · `sourceRef.kind=classification`
+- Live ZZK: 430 linii 1:1 · bez research / wyceny / auto-Accept
+- `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `scripts/test-ik-migration-01-p3-classification.mjs` · probe live
+
 ## 2.66.64 — IK P2.75-B Owner dwelling map → Master BOQ READY (2026-08-15)
 
 **Scope:** jawna Owner `documentToDwelling` na realnym ZZK → Master BOQ READY (harness).

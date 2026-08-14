@@ -81,7 +81,7 @@ P1 Gate B = **subset** (Document facts only). Nie twierdzić P1 = pełny E2E.
 | **P1** | IK host ON; EC z pipeline facts; OFF = NG-10; brak fałszywego costing | ładny chat |
 | **P2** | lista dokumentów, cost docs, przedmiary, row counts, PARTIAL jeśli extraction nie full · harness `test-ik-migration-01-p2-document-expert.mjs` · live `08def45d` honest GAP/PARTIAL (nie mock BOQ) | „dokumenty znalezione” bez liczb |
 | **P2.5** | NG-02 `buildTenderDossierHeavy` → ZIP inner → ATH/XLS/PDF → dossier → extraction > 0 · harness `test-ik-migration-01-p25-ingest.mjs` | UI-only / mock lines |
-| **P3** | per linia plane + identity status + HOLD COMPOUND/UNKNOWN | Gate zaimportowany, nieużyty |
+| **P3** | per linia plane + identity status + HOLD COMPOUND/UNKNOWN · harness `test-ik-migration-01-p3-classification.mjs` · live `08def45d` 430=430 UNKNOWN(A1) OK · EC CLASSIFICATION_* | Gate zaimportowany, nieużyty |
 | **P4** | `runChiefOrchestrator` result (tasks/blocked) bez zmiany Dual Outcome | dossier UI bez `enabled` |
 | **P5** | CURRENT reuse 0 HTTP **lub** candidate + Accept → OUR RATE persist | sam scanGaps click leftover |
 | **P6** | PM HIT reuse **lub** DIY oferta (produkt, cena, URL) → persist | „Wyliczam materiały” z Bid.ok |

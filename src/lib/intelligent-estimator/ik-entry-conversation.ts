@@ -23,6 +23,7 @@ import {
   type IkDocumentExpertReport,
   type IkDocumentExpertStatus,
 } from "./ik-document-expert";
+import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-classification";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 
@@ -36,6 +37,8 @@ export interface IkEntryConversationOpts {
     dossierEnriching?: boolean;
     heavyDone?: boolean;
   } | null;
+  /** P3 — precomputed classification (optional; otherwise run when Master BOQ READY). */
+  classification?: IkClassificationReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -83,7 +86,7 @@ export function buildIkEntryConversationViewModel(
   const opts: IkEntryConversationOpts =
     pkgOrOpts
     && typeof pkgOrOpts === "object"
-    && ("package" in pkgOrOpts || "ingest" in pkgOrOpts || "pipelineIngest" in pkgOrOpts)
+    && ("package" in pkgOrOpts || "ingest" in pkgOrOpts || "pipelineIngest" in pkgOrOpts || "classification" in pkgOrOpts)
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
   const pkg = opts.package ?? null;
@@ -472,6 +475,128 @@ export function buildIkEntryConversationViewModel(
           status: report.status,
           reasons: report.reasons,
         }, report.status === "gap" ? "hold" : "extraction"),
+      }),
+    );
+  }
+
+  // P3 — Classification Gate (only when Master BOQ READY; ZERO research/pricing claims).
+  if (master.readyForExperts) {
+    const classification: IkClassificationReport =
+      opts.classification
+      ?? runIkMasterBoqClassification({ item, package: pkg, expert: report });
+
+    steps.push(
+      step({
+        id: "classification",
+        event: "CLASSIFICATION_STARTED",
+        status: "done",
+        messagePl: `Klasyfikacja Master BOQ — wejście ${classification.inputLineCount} pozycji.`,
+        detailPl: "classifyEstimatorPricingPlane (A1) · ZERO research · ZERO wyceny",
+        sourceRef: tenderRef({
+          inputLineCount: classification.inputLineCount,
+          masterReady: true,
+        }, "classification"),
+      }),
+    );
+
+    const c = classification.counts;
+    steps.push(
+      step({
+        id: "classification",
+        event: "CLASSIFICATION_COMPLETED",
+        status: classification.reconciliation.ok ? "done" : "hold",
+        messagePl: classification.reconciliation.ok
+          ? `Klasyfikacja zakończona — ${classification.outputLineCount} linii (1:1).`
+          : `Klasyfikacja PARTIAL — reconcilacja nie zgadza się (loss/dup).`,
+        detailPl: [
+          `LABOR=${c.LABOR}`,
+          `MATERIAL=${c.MATERIAL}`,
+          `COMPOUND(BOTH)=${c.COMPOUND}`,
+          `UNKNOWN(UNRESOLVED)=${c.UNKNOWN}`,
+          `recon=${classification.reconciliation.ok ? "PASS" : "FAIL"}`,
+        ].join(" · "),
+        sourceRef: tenderRef({
+          outputLineCount: classification.outputLineCount,
+          counts: c,
+          reconciliation: classification.reconciliation,
+          researchExecuted: classification.researchExecuted,
+          pricingExecuted: classification.pricingExecuted,
+          autoAcceptExecuted: classification.autoAcceptExecuted,
+        }, "classification"),
+      }),
+    );
+
+    if (c.LABOR > 0) {
+      steps.push(
+        step({
+          id: "classification",
+          event: "LABOR_LINES_IDENTIFIED",
+          status: "done",
+          messagePl: `Labor: ${c.LABOR} pozycji z plane LABOR (gotowe do eksperta — bez research).`,
+          detailPl: `handoff=LABOR_READY_FOR_EXPERT · identity=Owner seed only`,
+          sourceRef: tenderRef({ laborCount: c.LABOR, plane: "LABOR" }, "classification"),
+        }),
+      );
+    }
+    if (c.MATERIAL > 0) {
+      steps.push(
+        step({
+          id: "classification",
+          event: "MATERIAL_LINES_IDENTIFIED",
+          status: "done",
+          messagePl: `Materiał: ${c.MATERIAL} pozycji z plane MATERIAL (gotowe do eksperta — bez research).`,
+          detailPl: `handoff=MATERIAL_READY_FOR_EXPERT · identity=Owner seed / mat.* only`,
+          sourceRef: tenderRef({ materialCount: c.MATERIAL, plane: "MATERIAL" }, "classification"),
+        }),
+      );
+    }
+    if (c.UNKNOWN > 0 || c.COMPOUND > 0) {
+      steps.push(
+        step({
+          id: "classification",
+          event: "UNRESOLVED_LINES",
+          status: c.UNKNOWN === classification.outputLineCount && c.LABOR === 0 && c.MATERIAL === 0
+            ? "partial"
+            : "done",
+          messagePl: `Nierozstrzygnięte / HOLD: UNKNOWN=${c.UNKNOWN}, COMPOUND(BOTH HOLD)=${c.COMPOUND}.`,
+          detailPl: "A1: brak invent z namePl — UNRESOLVED lepsze niż błędna plane",
+          sourceRef: tenderRef({
+            unknownCount: c.UNKNOWN,
+            compoundCount: c.COMPOUND,
+          }, "classification"),
+        }),
+      );
+    }
+
+    steps.push(
+      step({
+        id: "classification",
+        event: "CLASSIFICATION_STATUS",
+        status: classification.status === "ready" && classification.reconciliation.ok
+          ? "done"
+          : classification.status === "blocked"
+            ? "hold"
+            : "partial",
+        messagePl: `Status klasyfikacji: ${classification.status.toUpperCase()}.`,
+        detailPl: [
+          `dwelling=${classification.dwellingPreservation ? "OK" : "FAIL"}`,
+          `branch=${classification.branchPreservation ? "OK" : "FAIL"}`,
+          `provenance=${classification.provenancePreservation ? "OK" : "FAIL"}`,
+          `qty/unit=${classification.quantityUnitPreservation ? "OK" : "FAIL"}`,
+          "research=NO",
+          "pricing=NO",
+          "autoAccept=NO",
+        ].join(" · "),
+        sourceRef: tenderRef({
+          status: classification.status,
+          dwellingPreservation: classification.dwellingPreservation,
+          branchPreservation: classification.branchPreservation,
+          provenancePreservation: classification.provenancePreservation,
+          quantityUnitPreservation: classification.quantityUnitPreservation,
+          researchExecuted: false,
+          pricingExecuted: false,
+          autoAcceptExecuted: false,
+        }, "classification"),
       }),
     );
   }

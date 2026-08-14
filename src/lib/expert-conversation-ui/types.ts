@@ -20,7 +20,8 @@ export type ExpertConversationStepKind =
   | "ingest"
   | "extraction"
   | "validation"
-  | "boq_status";
+  | "boq_status"
+  | "classification";
 
 export type ExpertConversationStepStatus =
   | "pending"
@@ -36,7 +37,8 @@ export type ExpertConversationSourceRefKind =
   | "document"
   | "extraction"
   | "boq_ready"
-  | "hold";
+  | "hold"
+  | "classification";
 
 export interface ExpertConversationSourceRef {
   kind: ExpertConversationSourceRefKind;

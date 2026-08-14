@@ -87,6 +87,13 @@ export interface IkDwellingComposeUnit {
   completeness: string | null;
 }
 
+/** Flat Master BOQ line with dwelling identity — input for Classification Gate (P3). */
+export interface IkMasterBoqLineRef {
+  dwellingId: string;
+  line: OfferBoqLine;
+  provenance: DwellingLineProvenance | null;
+}
+
 export interface IkDocumentExpertReport {
   tenderId: string;
   discoverySettled: boolean;
@@ -130,6 +137,8 @@ export interface IkDocumentExpertReport {
   reasons: string[];
   offerBoq: OfferBoqDocument | null;
   lineProvenance: Record<string, DwellingLineProvenance> | null;
+  /** All composed Master lines with dwellingId (1:1 with masterBoq.lineCount when READY). */
+  masterBoqLines: IkMasterBoqLineRef[];
 }
 
 const COST_ROLES = new Set<DocumentRole>([
@@ -417,6 +426,22 @@ export function runIkDocumentExpert(opts: {
   let composedLineCount = 0;
   let keepOneCollapsed = 0;
   const allComposedLines: OfferBoqLine[] = [];
+  const masterBoqLines: IkMasterBoqLineRef[] = [];
+
+  const pushMasterLines = (
+    dwellingId: string,
+    lines: OfferBoqLine[],
+    prov: Record<string, DwellingLineProvenance> | null | undefined,
+  ) => {
+    for (const line of lines) {
+      allComposedLines.push(line);
+      masterBoqLines.push({
+        dwellingId,
+        line,
+        provenance: prov?.[line.lineId] ?? null,
+      });
+    }
+  };
 
   const dwellingMapping = assessDwellingMappingCoverage({ artifacts: pool, package: pkg });
   for (const r of dwellingMapping.reasons) {
@@ -436,8 +461,8 @@ export function runIkDocumentExpert(opts: {
       const labelPl = unit.labelPl || unit.dwellingId;
       if (unit.offerBoq && (unit.offerBoq.lines?.length ?? 0) > 0) {
         composedDocs.push(unit.offerBoq);
-        allComposedLines.push(...(unit.offerBoq.lines ?? []));
         if (unit.lineProvenance) Object.assign(mergedProv, unit.lineProvenance);
+        pushMasterLines(unit.dwellingId, unit.offerBoq.lines ?? [], unit.lineProvenance);
         dwellingUnits.push({
           dwellingId: unit.dwellingId,
           labelPl,
@@ -459,8 +484,8 @@ export function runIkDocumentExpert(opts: {
       const composed = composeDwellingOfferBoq({ snapshot: snap });
       if (composed.ok) {
         composedDocs.push(composed.document);
-        allComposedLines.push(...(composed.document.lines ?? []));
         Object.assign(mergedProv, composed.lineProvenance);
+        pushMasterLines(unit.dwellingId, composed.document.lines ?? [], composed.lineProvenance);
         dwellingUnits.push({
           dwellingId: unit.dwellingId,
           labelPl,
@@ -539,11 +564,15 @@ export function runIkDocumentExpert(opts: {
           if (composed.ok) {
             offerBoq = composed.document;
             lineProvenance = composed.lineProvenance;
-            allComposedLines.push(...(composed.document.lines ?? []));
+            pushMasterLines("legacy_single", composed.document.lines ?? [], composed.lineProvenance);
           }
         }
       }
       composedLineCount = offerBoq?.lines?.length ?? 0;
+      if (masterBoqLines.length === 0 && offerBoq?.lines?.length) {
+        // Snapshot-only path without compose provenance — still 1:1 for classification input.
+        pushMasterLines("legacy_single", offerBoq.lines, null);
+      }
     }
   }
 
@@ -703,5 +732,6 @@ export function runIkDocumentExpert(opts: {
     reasons,
     offerBoq,
     lineProvenance,
+    masterBoqLines,
   };
 }

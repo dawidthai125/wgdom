@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.65",
+    label: "IK P3 Classification Gate (Master BOQ → plane)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P3: Classification Gate na Master BOQ (classifyEstimatorPricingPlane A1) — plane LABOR/MATERIAL/COMPOUND/UNKNOWN, handoff do ekspertów bez research/wyceny. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.64",
     label: "IK P2.75-B Owner dwelling map → Master BOQ READY",
     items: [
