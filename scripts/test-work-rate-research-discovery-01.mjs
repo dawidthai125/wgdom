@@ -52,11 +52,16 @@ globalThis.fetch = async () => {
   throw new Error("UNEXPECTED_LIVE_FETCH");
 };
 
-const NOW = Date.parse("2026-08-14T10:00:00.000Z");
-const T_FRESH = "2026-08-13T12:00:00.000Z";
-const WORK_ID = "cw.paint.walls";
+/** Align with selective-research-02 (Accept freshness vs wall-clock). */
+const NOW = Date.parse("2026-08-20T10:00:00.000Z");
+const T_FRESH = "2026-08-14T12:00:00.000Z";
+/** Owner Classification Gate LABOR seed (A1) — unmapped ids → UNKNOWN → research BLOCKED. */
+const WORK_ID = "legacy-malowanie-m2";
 const UNIT = "m2";
 const NAME = "Malowanie ścian dwukrotne";
+/** Owner LABOR seed for wykwity (unmapped cw.repairs.efflorescence → BLOCKED). */
+const WYKWITY_ID = "cc-w2-wykwity-zacieki";
+const WYKWITY_NAME = "Skasowanie wykwitów i zacieków";
 const PASS2_URL = "https://kb.pl/cenniki/kategorie/malowanie/";
 
 function makeWork(overrides = {}) {
@@ -411,7 +416,7 @@ setWorkRatePass2AllowlistForTests(null);
 // ——— T15 synonym alone ≠ Candidate ———
 {
   clearWorkRateResearchAntiStormState();
-  const names = listWorkRateMatchNamesPl("Skasowanie wykwitów i zacieków");
+  const names = listWorkRateMatchNamesPl(WYKWITY_NAME);
   ok("T15 has synonyms", names.length > 1);
   const emptyPort = createFixtureWorkRateSelectiveLookup({
     kb_pl: { html: "<html><body>nic</body></html>" },
@@ -421,16 +426,16 @@ setWorkRatePass2AllowlistForTests(null);
   });
   const store = makeStore([
     makeWork({
-      id: "cw.repairs.efflorescence",
-      namePl: "Skasowanie wykwitów i zacieków",
+      id: WYKWITY_ID,
+      namePl: WYKWITY_NAME,
       unit: "m2",
     }),
   ]);
   const res = await runSelectiveWorkRateResearch({
     store,
-    workId: "cw.repairs.efflorescence",
+    workId: WYKWITY_ID,
     unit: "m2",
-    namePl: "Skasowanie wykwitów i zacieków",
+    namePl: WYKWITY_NAME,
     nowMs: NOW,
     lookupPort: emptyPort,
     bypassCooldown: true,
@@ -449,15 +454,15 @@ setWorkRatePass2AllowlistForTests(null);
       includesMaterial: true,
     }),
     sourceUrl: "https://kb.pl/?s=x",
-    expectedNamePl: "Skasowanie wykwitów i zacieków",
+    expectedNamePl: WYKWITY_NAME,
     expectedUnit: "m2",
-    alternateNamesPl: listWorkRateMatchNamesPl("Skasowanie wykwitów i zacieków").slice(1),
+    alternateNamesPl: listWorkRateMatchNamesPl(WYKWITY_NAME).slice(1),
   })[0];
   ok("T16 parsed via synonym", Boolean(offer));
   if (offer) {
     const q = qualifyWorkRateObservation({
       offer,
-      expectedWorkId: "cw.repairs.efflorescence",
+      expectedWorkId: WYKWITY_ID,
       expectedUnit: "m2",
     });
     eq("T16 L+M still reject", q.ok, false);

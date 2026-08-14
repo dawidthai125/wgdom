@@ -20,6 +20,7 @@ import {
   type Phase2ExecuteResult,
 } from "./market-material-research-wire";
 import type { PriceCandidate } from "./price-candidate-types";
+import { assertMaterialResearchAllowed } from "@/lib/intelligent-estimator";
 
 export const OUR_PRICE_CATALOG_MAX_SHOPS_PER_KEY = 3;
 
@@ -50,6 +51,26 @@ export async function forceResearchMaterialMarketPrice(
   const materialKey = String(opts.materialKey || "").trim();
   const nowMs = opts.nowMs ?? Date.now();
   const nowIso = new Date(nowMs).toISOString();
+
+  // A3 — Classification Gate at catalog refresh entry
+  const matGate = assertMaterialResearchAllowed({
+    materialKey,
+    catalogWorkId: opts.catalogWorkId,
+    namePl: opts.namePl,
+    unit: opts.unit,
+  });
+  if (!matGate.ok) {
+    return {
+      ok: false,
+      acquired: false,
+      candidate: null,
+      autoAccepted: false,
+      error: `classification_gate:${matGate.classify.plane}`,
+      materialKeysRequested: [materialKey],
+      maxShops: OUR_PRICE_CATALOG_MAX_SHOPS_PER_KEY,
+    };
+  }
+
   const demandId = buildPriceDemandId({
     materialKey,
     catalogWorkId: opts.catalogWorkId ?? null,

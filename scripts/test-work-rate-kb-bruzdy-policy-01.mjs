@@ -224,7 +224,7 @@ function makeStore(works) {
   void wOffers;
 }
 
-// ——— T10 width ———
+// ——— T10 width / Classification Gate (Owner COMPOUND → research BLOCKED) ———
 {
   clearWorkRateResearchAntiStormState();
   const port = createFixtureWorkRateSelectiveLookup({
@@ -246,31 +246,11 @@ function makeStore(works) {
     bypassCooldown: true,
   });
   eq("T10 family grooves", resolveWorkRateWorkFamily({ workId: WORK_ID, namePl: NAME }), "grooves");
-  eq("T10 CANDIDATE", res.status, "CANDIDATE");
-  if (res.status === "CANDIDATE") {
-    eq("T10 width NOT_SPECIFIED", res.candidate.widthClaim, "NOT_SPECIFIED");
-    eq("T10 marketBase 20", res.candidate.marketBaseRatePln, 20);
-    eq("T10 proposed 24", res.candidate.proposedOurRatePln, 24);
-    eq("T10 suggested=proposed", res.candidate.suggestedRatePln, 24);
-    eq("T10 sourceMin", res.candidate.sourceMinPln, 15);
-    eq("T10 sourceMax", res.candidate.sourceMaxPln, 25);
-    eq("T10 region POLSKA", res.candidate.regionScope, "POLSKA");
-    eq("T10 country POLSKA", res.candidate.countryScope, "POLSKA");
-    eq("T11 sample 1", res.candidate.sampleSize, 1);
-    ok("T11 lowSample", res.candidate.lowSample === true);
-    ok(
-      "T1 synonym used",
-      res.candidate.synonymUsed === ALIAS ||
-        res.candidate.observations[0]?.workNamePl.toLowerCase().includes("szpachlowanie"),
-    );
-
-    const pack = buildLaborRateEvidencePack(res.candidate, res.rejects);
-    ok("T10 evidence pack", pack != null);
-    eq("T8 evidence marketBase DERIVED layer", pack?.provenance.layers.marketBase, "DERIVED");
-    eq("T7 evidence sourceMin", pack?.sourceMinPln, 15);
-    eq("T6 evidence proposed", pack?.proposedOurRatePln, 24);
-    eq("T6 evidence candidateRate", pack?.candidateRatePln, 24);
-  }
+  // Owner Classification Gate: cc-p0c-w1-zaprawianie-bruzd = COMPOUND → HOLD (A1/A2)
+  eq("T10 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
+  eq("T10 reason CLASSIFICATION_GATE", res.status === "BLOCKED" ? res.reason : null, "CLASSIFICATION_GATE");
+  eq("T10 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
+  eq("T10 httpFetchCount 0", res.httpFetchCount, 0);
   eq("T10 no live fetch", fetchCalls, 0);
 }
 
@@ -282,17 +262,14 @@ function makeStore(works) {
   ok("T12 companyPrice ≠ proposed", computeProposedWorkRatePln(20, 20) !== 35);
 }
 
-// ——— T13 Expert RO flags (static contract via evidence/rec types) ———
+// ——— T13 Expert RO flags — COMPOUND research BLOCKED (no candidate path) ———
 {
-  const { analyzeLaborRateCandidate } = await import(
-    "../src/lib/ik-pricing-orchestrator/labor-rate-expert-rec.ts"
-  );
-  const store = makeStore([makeWork()]);
   clearWorkRateResearchAntiStormState();
   const port = createFixtureWorkRateSelectiveLookup({
     "kb_pl::grooves": { html: KB_HTML, requestUrl: KB_URL, finalUrl: KB_URL },
     kb_pl: { html: "<html></html>" },
   });
+  const store = makeStore([makeWork()]);
   const res = await runSelectiveWorkRateResearch({
     store,
     workId: WORK_ID,
@@ -302,21 +279,17 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
-  if (res.status === "CANDIDATE") {
-    const pack = buildLaborRateEvidencePack(res.candidate, res.rejects);
-    const rec = analyzeLaborRateCandidate({
-      pack,
-      sourceCandidate: res.candidate,
-    });
-    eq("T13 expertMayWrite false", rec.expertMayWrite, false);
-    eq("T13 expertMayAccept false", rec.expertMayAccept, false);
-    eq("T13 aiAutoAccept false", rec.aiAutoAccept, false);
-  } else {
-    ok("T13 CANDIDATE required", false, res);
-  }
+  eq("T13 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
+  eq("T13 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
+  // Static contract: expert flags remain false when no write path
+  const { analyzeLaborRateCandidate } = await import(
+    "../src/lib/ik-pricing-orchestrator/labor-rate-expert-rec.ts"
+  );
+  void analyzeLaborRateCandidate;
+  ok("T13 expert write path unreachable under COMPOUND hold", res.status === "BLOCKED");
 }
 
-// ——— T14 Owner Accept only write ———
+// ——— T14 Owner Accept only write — COMPOUND → no research → no OUR RATE ———
 {
   clearWorkRateResearchAntiStormState();
   const store = makeStore([makeWork()]);
@@ -333,30 +306,8 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
+  eq("T14 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
   ok("T14 research does not write OUR RATE", !store.catalogs.wroclaw.works[0].ourWorkRate);
-  if (res.status === "CANDIDATE") {
-    const accepted = acceptWorkRateResearchCandidate({
-      store,
-      candidate: res.candidate,
-      observedAt: T_FRESH,
-      updatedAt: T_FRESH,
-    });
-    eq("T14 Accept ok", accepted.ok, true);
-    if (accepted.ok) {
-      eq(
-        "T14 OUR RATE = proposed 24",
-        accepted.store.catalogs.wroclaw.works.find((w) => w.id === WORK_ID)
-          ?.ourWorkRate?.ourRatePln,
-        24,
-      );
-      eq(
-        "T14 companyPrice untouched",
-        accepted.store.catalogs.wroclaw.works.find((w) => w.id === WORK_ID)
-          ?.companyPricePln,
-        35,
-      );
-    }
-  }
 }
 
 // ——— T15 / T16 URL / category ———
@@ -417,13 +368,14 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
-  eq("T17 GAP", res.status, "GAP");
+  eq("T17 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
+  eq("T17 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
 }
 
-// ——— T18 PASS1 regression painting ———
+// ——— T18 PASS1 regression painting (Owner LABOR seed) ———
 {
   clearWorkRateResearchAntiStormState();
-  const paintId = "cw.paint.walls";
+  const paintId = "legacy-malowanie-m2";
   const paintName = "Malowanie ścian dwukrotne";
   const paintWork = {
     ...makeWork({

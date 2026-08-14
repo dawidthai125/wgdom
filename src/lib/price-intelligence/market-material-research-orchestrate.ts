@@ -42,6 +42,7 @@ import type {
 import { acceptManualMarketPriceResearchPure } from "./manual-price-research";
 import type { PriceCandidate } from "./price-candidate-types";
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
+import { assertMaterialResearchAllowed } from "@/lib/intelligent-estimator";
 
 /** Short failure cooldown — blocks request storm (not PE 90d window). */
 export const MMR_DEFAULT_COOLDOWN_MS = 60_000;
@@ -104,6 +105,28 @@ export async function orchestrateMaterialResearch(
   let candidatesReady = 0;
 
   for (const need of unique) {
+    // A3 — Classification Gate before cache/research (mat.* allowed; labor workId blocked)
+    const matGate = assertMaterialResearchAllowed({
+      materialKey: need.materialKey,
+      catalogWorkId: need.catalogWorkId,
+      namePl: need.namePl,
+      unit: need.unit,
+    });
+    if (!matGate.ok) {
+      jobsHeld += 1;
+      decisions.push({
+        materialKey: need.materialKey,
+        usability: "MISSING",
+        action: "CLASSIFICATION_HOLD",
+        researchJobId: null,
+        demand: null,
+        job: null,
+        reusedHit: null,
+        externalResearchAttempted: false,
+      });
+      continue;
+    }
+
     const cache = evaluateMaterialCache({
       materialKey: need.materialKey,
       catalogWorkId: need.catalogWorkId,

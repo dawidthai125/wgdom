@@ -79,7 +79,8 @@ const realFixtures = createFixtureWorkRateSelectiveLookup({
 });
 
 const WORKS = [
-  { workId: "cw.paint.walls", namePl: "Malowanie ścian", unit: "m2" },
+  /** Owner Classification Gate LABOR seed (A1) — unmapped cw.* → UNKNOWN → research BLOCKED. */
+  { workId: "legacy-malowanie-m2", namePl: "Malowanie ścian", unit: "m2" },
   { workId: "cw.primer.walls", namePl: "Gruntowanie ścian", unit: "m2" },
   { workId: "cw.skim.coat", namePl: "Gładź gipsowa", unit: "m2" },
   { workId: "cw.panels.floor", namePl: "Układanie paneli podłogowych", unit: "m2" },

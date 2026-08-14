@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.57",
+    label: "Intelligent Estimator Classification Gate (local)",
+    items: [
+      {
+        type: "new",
+        text: "INTELLIGENT-ESTIMATOR-CLASSIFICATION-GATE (local, undeployed): SSOT classifyEstimatorPricingPlane · Owner map 29 LABOR / 24 MATERIAL / 6 COMPOUND / 30 UNKNOWN · miss→UNKNOWN · A2 hard guard w runSelectiveWorkRateResearch · A3 material research guards (wire/orchestrate/refresh) · A4 BRAK_STAWKI_ROBOT tylko LABOR · A5 bez Material Catalog KV · ZERO Evidence populate / Catalog write / Accept / OUR RATE / margin / hosts / PASS2 · SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.56",
     label: "Labor identity Wave-1 mappings (local)",
     items: [

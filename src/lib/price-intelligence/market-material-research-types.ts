@@ -18,7 +18,8 @@ export type MaterialResearchAction =
   | "CANDIDATE_READY"
   | "FAILED"
   | "UNIT_REJECT"
-  | "PRICE_GAP";
+  | "PRICE_GAP"
+  | "CLASSIFICATION_HOLD";
 
 /** Research job lifecycle (orchestration view — lease is Stage A). */
 export type MaterialResearchJobPhase =

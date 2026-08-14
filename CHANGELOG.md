@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.57 — Intelligent Estimator Classification Gate (local · 2026-08-14)
+
+**Scope:** centralna bramka `classifyEstimatorPricingPlane` · **ZERO COMMIT** do osobnego Owner GO.
+
+- Owner map code-frozen **29 / 24 / 6 / 30** · miss → **UNKNOWN** · ZERO heurystyk
+- A2: hard guard w `runSelectiveWorkRateResearch` (plane=LABOR)
+- A3: guards na wire / orchestrate / refresh (plane=MATERIAL; `mat.*` OK)
+- A4: `BRAK_STAWKI_ROBOT` tylko LABOR
+- A5: bez Material Catalog KV — Price Memory + DIY
+- ZERO Evidence populate / Catalog write / Accept / OUR RATE / margin / hosts / PASS2
+
 ## 2.66.56 — Labor identity Wave-1 mappings (local · 2026-08-14)
 
 **Scope:** 2 Owner-approved registry rows · **ZERO COMMIT** do osobnego Owner GO.

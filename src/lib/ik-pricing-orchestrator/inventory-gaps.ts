@@ -11,6 +11,7 @@ import type {
   ShadowPositionCostLineResult,
 } from "@/lib/tender-position-cost/boq-shadow-adapter";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import { isLaborGapJobAllowed } from "@/lib/intelligent-estimator";
 import {
   buildIkLaborDedupeKey,
   buildIkMaterialDedupeKey,
@@ -112,6 +113,8 @@ function maybePushLabor(
   const workId = trim(line.identity.workId ?? "");
   const unit = line.identity.unit;
   if (!workId || !unit) return;
+  // A4 — BRAK_STAWKI_ROBOT jobs only when Classification Gate plane === LABOR
+  if (!isLaborGapJobAllowed(workId)) return;
   // STALE is a separate gap — never auto-job from STALE alone (DF / W2)
   if (line.gaps.includes("PRZETERMINOWANA_STAWKA_ROBOT") && line.ourRate?.status === "STALE") {
     // If BOTH missing and stale somehow — still only invent when MISSING path;

@@ -68,7 +68,8 @@ globalThis.fetch = async () => {
 const NOW = Date.parse("2026-08-20T10:00:00.000Z");
 const T_FRESH = "2026-08-14T12:00:00.000Z";
 const T_STALE = "2026-04-01T12:00:00.000Z";
-const WORK_ID = "cw.paint.walls";
+/** Owner Classification Gate LABOR seed (A1) — unmapped ids → UNKNOWN → research BLOCKED. */
+const WORK_ID = "legacy-malowanie-m2";
 const UNIT = "m2";
 const NAME = "Malowanie ścian dwukrotne";
 

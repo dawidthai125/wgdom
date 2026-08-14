@@ -35,6 +35,7 @@ import {
 } from "./demand-types";
 import { evaluateMaterialCache, isCooldownActive, setCooldown } from "./market-material-research-cache";
 import { dedupeNeededMaterialKeys } from "./market-material-research-identity";
+import { assertMaterialResearchAllowed } from "@/lib/intelligent-estimator";
 import {
   MMR_DEFAULT_COOLDOWN_MS,
   MMR_DEFAULT_LEASE_MS,
@@ -146,7 +147,7 @@ export interface Phase1EnqueueResult extends RecordPriceDemandsResult {
   decisions: Array<{
     materialKey: string;
     usability: MaterialCacheUsability;
-    action: "REUSE" | "DEMAND" | "PURCHASE_ONLY";
+    action: "REUSE" | "DEMAND" | "PURCHASE_ONLY" | "CLASSIFICATION_HOLD";
   }>;
 }
 
@@ -226,6 +227,22 @@ export function enqueueMaterialResearchPhase1(opts: {
     let resolved = 0;
 
     for (const need of unique) {
+      // A3 — Classification Gate before demand enqueue
+      const matGate = assertMaterialResearchAllowed({
+        materialKey: need.materialKey,
+        catalogWorkId: need.catalogWorkId || null,
+        namePl: need.namePl,
+        unit: need.unit,
+      });
+      if (!matGate.ok) {
+        decisions.push({
+          materialKey: need.materialKey,
+          usability: "MISSING",
+          action: "CLASSIFICATION_HOLD",
+        });
+        continue;
+      }
+
       const cache = evaluateMaterialCache({
         materialKey: need.materialKey,
         catalogWorkId: need.catalogWorkId || null,
@@ -451,6 +468,23 @@ export async function executeMaterialResearchPhase2(opts: {
   const nowMs = opts.nowMs ?? Date.now();
   const cooldown = opts.cooldown ?? sessionCooldown;
   const worksById = opts.worksById ?? loadCatalogWorksById();
+
+  // A3 — Classification Gate BEFORE cache / lease / provider
+  const matGate = assertMaterialResearchAllowed({
+    materialKey: opts.demand.materialKey,
+    catalogWorkId: opts.demand.catalogWorkId,
+    namePl: opts.demand.normalizedName,
+    unit: opts.demand.unit,
+  });
+  if (!matGate.ok) {
+    return {
+      ok: false,
+      acquired: false,
+      candidate: null,
+      autoAccepted: false,
+      error: `classification_gate:${matGate.classify.plane}`,
+    };
+  }
 
   // Cache gate first — never research CURRENT (unless Owner forceRefresh)
   const cache = evaluateMaterialCache({

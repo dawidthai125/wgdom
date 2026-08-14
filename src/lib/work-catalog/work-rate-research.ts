@@ -55,6 +55,11 @@ import {
 import { resolveMarginPct } from "@/lib/price-intelligence/our-price-catalog";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
+import {
+  assertLaborResearchAllowed,
+  type EstimatorClassifyResult,
+  type EstimatorPricingPlane,
+} from "@/lib/intelligent-estimator";
 
 export const WORK_RATE_RESEARCH_SOURCE_ORDER: readonly WorkRateAuthorizedSourceId[] = [
   "kb_pl",
@@ -146,9 +151,12 @@ export type RunSelectiveWorkRateResearchInput = {
 export type RunSelectiveWorkRateResearchResult =
   | {
       status: "BLOCKED";
-      reason: "WORK_RATE_LEGAL_GATE";
-      gate: typeof WORK_RATE_LEGAL_GATE;
+      reason: "WORK_RATE_LEGAL_GATE" | "CLASSIFICATION_GATE";
+      gate?: typeof WORK_RATE_LEGAL_GATE;
+      plane?: EstimatorPricingPlane;
+      classify?: EstimatorClassifyResult;
       httpFetchCount: 0;
+      messagePl?: string;
       telemetry: WorkRateResearchTelemetryRow[];
     }
   | {
@@ -217,6 +225,28 @@ async function researchOneWorkInner(
   input: RunSelectiveWorkRateResearchInput,
 ): Promise<RunSelectiveWorkRateResearchResult> {
   const telemetry: WorkRateResearchTelemetryRow[] = [];
+
+  // A2 — Classification Gate BEFORE legal gate / lookup / HTTP (covers useWorkCatalog bypass).
+  const laborGate = assertLaborResearchAllowed({
+    workId: input.workId,
+    namePl: input.namePl,
+    unit: input.unit,
+  });
+  if (!laborGate.ok) {
+    telemetry.push({
+      code: "NO_SOURCE",
+      messagePl: `Classification Gate blocks labor research (plane=${laborGate.classify.plane}).`,
+    });
+    return {
+      status: "BLOCKED",
+      reason: "CLASSIFICATION_GATE",
+      plane: laborGate.classify.plane,
+      classify: laborGate.classify,
+      httpFetchCount: 0,
+      messagePl: `Labor research zablokowany — plane=${laborGate.classify.plane} (wymagane LABOR).`,
+      telemetry,
+    };
+  }
 
   if (!isWorkRateResearchAllowed()) {
     telemetry.push({ code: "NO_SOURCE", messagePl: "Legal gate blocks research." });
