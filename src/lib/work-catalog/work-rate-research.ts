@@ -40,6 +40,11 @@ import {
   listWorkRateMatchNamesPl,
 } from "@/lib/work-catalog/work-rate-synonyms";
 import {
+  classifyWorkRateEvidenceScopeTag,
+  isWorkRateEvidenceScopeAllowed,
+  listAllowedWorkRateEvidenceScopeTags,
+} from "@/lib/work-catalog/work-rate-evidence-scope";
+import {
   computeProposedWorkRatePln,
   type WorkRateWidthClaim,
 } from "@/lib/work-catalog/work-rate-market-base";
@@ -66,6 +71,7 @@ export type WorkRateResearchTelemetryCode =
   | "PACKAGE_REJECT"
   | "QUALIFY_REJECT"
   | "QUALIFIED"
+  | "SCOPE_REJECT"
   | "COOLDOWN"
   | "CANDIDATE"
   | "GAP"
@@ -262,6 +268,10 @@ async function researchOneWorkInner(
   const alternateNames = matchNames.slice(1);
   let synonymUsed: string | null = null;
   const discoveryMethods = new Set<"PASS1_CANONICAL" | "PASS2_CATEGORY">();
+  const allowedScopes = listAllowedWorkRateEvidenceScopeTags({
+    workId: input.workId,
+    namePl: input.namePl,
+  });
 
   async function ingestPage(opts: {
     sourceId: WorkRateAuthorizedSourceId;
@@ -346,6 +356,27 @@ async function researchOneWorkInner(
     }
 
     for (const offer of offers) {
+      // D1: scopeTag AFTER identity (parser) · BEFORE qualify / median
+      const scopeTag = classifyWorkRateEvidenceScopeTag(offer.workNamePl);
+      if (!isWorkRateEvidenceScopeAllowed(scopeTag, allowedScopes)) {
+        telemetry.push({
+          code: "SCOPE_REJECT",
+          sourceId: opts.sourceId,
+          categoryKey: opts.categoryKey,
+          url: pageUrl,
+          discoveryMethod: opts.discoveryMethod,
+          messagePl: `Evidence scope „${scopeTag}” poza primary pool.`,
+        });
+        rejects.push({
+          sourceId: opts.sourceId,
+          reason: `scope_reject:${scopeTag}`,
+          messagePl: `Zakres evidence „${scopeTag}” nie wchodzi do primary pool.`,
+          categoryKey: opts.categoryKey,
+          telemetryCode: "SCOPE_REJECT",
+        });
+        continue;
+      }
+
       const q = qualifyWorkRateObservation({
         offer,
         expectedWorkId: input.workId,

@@ -524,6 +524,13 @@ export {
 } from "@/lib/work-catalog/work-rate-synonyms";
 
 export {
+  classifyWorkRateEvidenceScopeTag,
+  isWorkRateEvidenceScopeAllowed,
+  listAllowedWorkRateEvidenceScopeTags,
+  type WorkRateEvidenceScopeTag,
+} from "@/lib/work-catalog/work-rate-evidence-scope";
+
+export {
   acceptWorkRateResearchCandidate,
   type AcceptWorkRateResearchResult,
 } from "@/lib/work-catalog/work-rate-accept";

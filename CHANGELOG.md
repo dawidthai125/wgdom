@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.53 — Labor evidence quality D1 (local · 2026-08-14)
+
+**Scope:** lokalna implementacja D1 · **ZERO COMMIT** do osobnego Owner GO.
+
+- Plaster: Owner synonyms `Gładzenie ścian` / `Gładź gipsowa` → primary `gladzenie_scian`
+- Painting: `scopeTag` walls_ceilings przed qualify/median · joinery/artistic SCOPE_REJECT (bez price cap)
+- Grooves KEEP · NATIONAL legal · C catalog split **DEFERRED**
+- F5/mapper/qualify/median formulas/PASS2 MAX/hosts/Accept/OUR RATE/margin UNCHANGED
+- SOURCE GAP **OPEN** · NICHE **NOT CLAIMED**
+
 ## 2.66.52 — PASS2 Allowlist Wave-1 (local · 2026-08-14)
 
 **Scope:** lokalna implementacja · **ZERO COMMIT** do osobnego Owner GO.

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.53",
+    label: "Labor evidence quality D1 (local)",
+    items: [
+      {
+        type: "improve",
+        text: "WR-LABOR-EVIDENCE-QUALITY-01 D1 (local, undeployed): plaster gladzenie_scian Owner synonyms · painting walls_ceilings scopeTag przed medianą · grooves KEEP · ZERO threshold/qualify/median rewrite · ZERO Accept/OUR RATE/margin/PASS2 MAX/hosts · C catalog split DEFERRED · SOURCE GAP OPEN · NICHE NOT CLAIMED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.52",
     label: "PASS2 Allowlist Wave-1 (local)",
     items: [

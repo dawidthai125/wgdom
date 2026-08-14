@@ -127,6 +127,25 @@ export const WORK_RATE_OWNER_SYNONYMS: readonly WorkRateOwnerSynonymRow[] =
       allowedForMatching: true,
     },
     // Note: bare "folia" omitted — high false-positive risk (insulation / underfloor).
+    /**
+     * WR-LABOR-EVIDENCE-QUALITY-01 D1 — plaster primary identity `gladzenie_scian`.
+     * Exact labor-only aliases only · NOT bare fuzzy · NOT auto-eq of every tynk/szpachla row.
+     * canonicalConcept ties to catalog bucket "Gładzie / tynki" for listWorkRateMatchNamesPl.
+     */
+    {
+      canonicalWorkFamily: "plaster",
+      canonicalConcept: "Gładzie / tynki",
+      synonym: "Gładzenie ścian",
+      allowedForDiscovery: true,
+      allowedForMatching: true,
+    },
+    {
+      canonicalWorkFamily: "plaster",
+      canonicalConcept: "Gładzie / tynki",
+      synonym: "Gładź gipsowa",
+      allowedForDiscovery: true,
+      allowedForMatching: true,
+    },
   ]);
 
 function norm(s: string): string {
