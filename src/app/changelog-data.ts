@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.61",
+    label: "IK Document Expert P2 (Master BOQ orchestration)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P2: Document Expert — discovery ról dokumentów → identyfikacja kosztorysów/przedmiarów → extraction/walidacja → Master BOQ (OfferBoq v5 + multi-boq compose + lineProvenance). HOLD/PARTIAL tylko przy realnej luce danych. ZERO Labor/Material research, ZERO ATH writer, ZERO delete NG-10. Flaga ikEntryEnabled default OFF.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.60",
     label: "IK Entry Shell P1 (NG-10 controlled replacement)",
     items: [

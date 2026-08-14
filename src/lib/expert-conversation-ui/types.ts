@@ -15,6 +15,10 @@ export type ExpertConversationStepKind =
   | "chief_final"
   | "documents"
   | "swz"
+  | "cost_docs"
+  | "przedmiary"
+  | "extraction"
+  | "validation"
   | "boq_status";
 
 export type ExpertConversationStepStatus =

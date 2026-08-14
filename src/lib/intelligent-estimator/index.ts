@@ -41,3 +41,15 @@ export type {
 export {
   buildIkEntryConversationViewModel,
 } from "./ik-entry-conversation";
+
+export {
+  inventoryIkDocuments,
+  runIkDocumentExpert,
+  przedmiarBranchLabelPl,
+} from "./ik-document-expert";
+export type {
+  IkDocumentExpertReport,
+  IkDocumentExpertStatus,
+  IkInventoryDocument,
+  IkPrzedmiarSource,
+} from "./ik-document-expert";

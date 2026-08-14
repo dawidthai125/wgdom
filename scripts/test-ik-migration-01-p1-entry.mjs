@@ -167,8 +167,9 @@ assert("D uses ExpertConversation VM steps", emptyVm.steps.length >= 3);
 const boqStep = emptyVm.steps.find((s) => s.id === "boq_status");
 assert("D BOQ step exists", Boolean(boqStep));
 assert(
-  "D BOQ status partial",
-  boqStep?.status === "partial" && /boq not ready|partial/i.test(`${boqStep?.messagePl} ${boqStep?.statusLabelPl}`),
+  "D BOQ status not ready",
+  (boqStep?.status === "partial" || boqStep?.status === "gap")
+    && /boq not ready|partial|gap/i.test(`${boqStep?.messagePl} ${boqStep?.statusLabelPl}`),
 );
 const emptyBlob = blobOf(emptyVm);
 assert(
@@ -253,8 +254,14 @@ const readyItem = baseItem({
 });
 const readyVm = buildIkEntryConversationViewModel(readyItem);
 const readyBoq = readyVm.steps.find((s) => s.id === "boq_status");
-assert("E BOQ ready rowCount 12", readyBoq?.status === "done" && /12/.test(readyBoq?.messagePl ?? ""));
-assert("E BOQ sourceRef artifact rowCount", readyBoq?.sourceRef?.artifact?.rowCount === 12);
+assert(
+  "E BOQ declared rowCount 12 without extracted lines is PARTIAL",
+  readyBoq?.status === "partial" && /boq not ready|partial/i.test(`${readyBoq?.messagePl} ${readyBoq?.statusLabelPl}`),
+);
+assert(
+  "E BOQ sourceRef detectedRowCount 12",
+  readyBoq?.sourceRef?.artifact?.detectedRowCount === 12,
+);
 
 const detailSrc = readSrc("src/app/TenderDetailPage.tsx");
 assert("F DetailPage still imports TenderAutonomousGate", /TenderAutonomousGate/.test(detailSrc));

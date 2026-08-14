@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.61 — IK Document Expert P2 (2026-08-15)
+
+**Scope:** Document Expert jako pierwszy etap IK — discovery → przedmiary → extraction → Master BOQ.
+
+- REUSE: role dokumentów, cost discovery, FILE_TYPE_SUPPORT, OfferBoq v5, multi-boq compose, lineProvenance, PackageGate (in-memory)
+- Expert Conversation: fakty COST_DOCUMENTS / PRZEDMIARY / BOQ_EXTRACTED / BOQ_READY|PARTIAL|HOLD (`sourceRef`)
+- Flaga `ikEntryEnabled` nadal default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `npx vite-node scripts/test-ik-migration-01-p2-document-expert.mjs`
+
 ## 2.66.60 — IK Entry Shell P1 (2026-08-15)
 
 **Scope:** kontrolowane wejście Inteligentnego Kosztorysanta za `ikEntryEnabled` (default OFF).

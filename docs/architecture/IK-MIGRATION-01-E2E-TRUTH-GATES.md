@@ -79,7 +79,7 @@ P1 Gate B = **subset** (Document facts only). Nie twierdzić P1 = pełny E2E.
 | Faza | Musi wykazać (evidence) | NIE wystarczy |
 |------|-------------------------|---------------|
 | **P1** | IK host ON; EC z pipeline facts; OFF = NG-10; brak fałszywego costing | ładny chat |
-| **P2** | lista dokumentów, cost docs, przedmiary, row counts, PARTIAL jeśli extraction nie full | „dokumenty znalezione” bez liczb |
+| **P2** | lista dokumentów, cost docs, przedmiary, row counts, PARTIAL jeśli extraction nie full · harness `test-ik-migration-01-p2-document-expert.mjs` · live `08def45d` honest GAP/PARTIAL (nie mock BOQ) | „dokumenty znalezione” bez liczb |
 | **P3** | per linia plane + identity status + HOLD COMPOUND/UNKNOWN | Gate zaimportowany, nieużyty |
 | **P4** | `runChiefOrchestrator` result (tasks/blocked) bez zmiany Dual Outcome | dossier UI bez `enabled` |
 | **P5** | CURRENT reuse 0 HTTP **lub** candidate + Accept → OUR RATE persist | sam scanGaps click leftover |
