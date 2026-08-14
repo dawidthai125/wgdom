@@ -166,11 +166,75 @@ export function unitsCompatibleExact(
 }
 
 /**
- * Production registry v1 — empty until Owner-approved concrete alias rows
- * (candidates in Design Freeze were research-only, not approved mappings).
+ * Production registry — Owner-approved concrete aliases only
+ * (WR-LABOR-IDENTITY-MAPPING-WAVE-1 Closeout · APPROVE = tablica + podejście).
+ * HOLD rows (oprawa / zawór / gniazdo / white / …) must NOT appear here.
  */
 export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
-  Object.freeze([]);
+  Object.freeze([
+    {
+      mappingId: "lim-w1-tablica-rozdzielcza-cr",
+      version: 1,
+      workId: "p2b-tablica-rozdzielcza-mieszkaniowa-szt",
+      sourceId: "cennikremontow_pl",
+      categoryKey: "electrical",
+      matchMode: LABOR_IDENTITY_MAPPING_MATCH_MODE,
+      observedNameAliases: Object.freeze(["Montaż skrzynki rozdzielczej"]),
+      catalogUnit: "szt",
+      observedUnit: "szt",
+      laborOnlyRequired: true,
+      includesMaterialPolicy: "reject",
+      allowedScopeTags: null,
+      regionPolicy: {
+        prefer: Object.freeze(["WROCLAW", "REGIONAL", "POLSKA"] as const),
+        allowNational: true,
+      },
+      confidence: "HIGH",
+      ownerApproval: true,
+      active: true,
+      provenance: {
+        approvedBy: "owner",
+        approvedAt: "2026-08-14T17:06:00.000Z",
+        evidenceUrls: Object.freeze([
+          "https://cennikremontow.pl/instalacje-elektryczne-cennik",
+        ]),
+        notesPl:
+          "WAVE-1 APPROVE — skrzynka rozdzielcza ≡ tablica rozdzielcza mieszkaniowa (exact_normalized).",
+      },
+    },
+    {
+      mappingId: "lim-w1-podejscie-wod-kan-cr",
+      version: 1,
+      workId: "p2b-podejscie-wod-kan-mb",
+      sourceId: "cennikremontow_pl",
+      categoryKey: "plumbing",
+      matchMode: LABOR_IDENTITY_MAPPING_MATCH_MODE,
+      observedNameAliases: Object.freeze([
+        "Wykonanie podejścia wodno - kanalizacyjnego plastik i miedź",
+      ]),
+      catalogUnit: "mb",
+      observedUnit: "mb",
+      laborOnlyRequired: true,
+      includesMaterialPolicy: "reject",
+      allowedScopeTags: null,
+      regionPolicy: {
+        prefer: Object.freeze(["WROCLAW", "REGIONAL", "POLSKA"] as const),
+        allowNational: true,
+      },
+      confidence: "HIGH",
+      ownerApproval: true,
+      active: true,
+      provenance: {
+        approvedBy: "owner",
+        approvedAt: "2026-08-14T17:06:00.000Z",
+        evidenceUrls: Object.freeze([
+          "https://cennikremontow.pl/instalacje-wodno-kanalizacyjno-gazowe-cennik",
+        ]),
+        notesPl:
+          "WAVE-1 APPROVE — podejście wod-kan operation-to-operation (exact_normalized · mb).",
+      },
+    },
+  ]);
 
 let mappingsForTests: readonly LaborIdentityMappingRow[] | null = null;
 

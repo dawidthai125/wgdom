@@ -479,16 +479,31 @@ setWorkRateIdentityMappingsForTests(null);
   );
 }
 
-// Production registry empty + match mode lock
+// Production registry Wave-1 (exactly 2 Owner-approved) + match mode lock
 {
   setWorkRateIdentityMappingsForTests(null);
+  const ids = WORK_RATE_IDENTITY_MAPPINGS.map((r) => r.mappingId).sort();
   ok(
-    "PROD registry empty (no silent seed)",
-    WORK_RATE_IDENTITY_MAPPINGS.length === 0 &&
-      listExactIdentityAliasesForWork({
-        workId: WORK_OPRAWA,
-        catalogUnit: "szt",
-      }).length === 0,
+    "PROD registry Wave-1 exactly 2 approved",
+    WORK_RATE_IDENTITY_MAPPINGS.length === 2 &&
+      ids[0] === "lim-w1-podejscie-wod-kan-cr" &&
+      ids[1] === "lim-w1-tablica-rozdzielcza-cr",
+    ids,
+  );
+  ok(
+    "PROD registry has no Oprawa / HOLD seeds",
+    listExactIdentityAliasesForWork({
+      workId: WORK_OPRAWA,
+      catalogUnit: "szt",
+    }).length === 0,
+  );
+  ok(
+    "PROD tablica alias present",
+    listExactIdentityAliasesForWork({
+      workId: WORK_TABLICA,
+      catalogUnit: "szt",
+      sourceId: "cennikremontow_pl",
+    }).includes("Montaż skrzynki rozdzielczej"),
   );
   ok(
     "OWNER_SYNONYMS still present (A path)",

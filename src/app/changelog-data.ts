@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-14",
+    version: "2.66.56",
+    label: "Labor identity Wave-1 mappings (local)",
+    items: [
+      {
+        type: "new",
+        text: "WR-LABOR-IDENTITY-MAPPING-WAVE-1 (local, undeployed): 2 Owner-approved exact_normalized mappings — Tablica←Montaż skrzynki rozdzielczej · Podejście←Wykonanie podejścia wodno-kanalizacyjnego (CR) · HOLD: oprawa/zawór/gniazdo/wyłącznik/white/demolition/waste · ZERO Evidence populate / Catalog / Accept / OUR RATE / hosts / PASS2 · SOURCE GAP OPEN.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-14",
     version: "2.66.55",
     label: "Labor identity mapping (local)",
     items: [

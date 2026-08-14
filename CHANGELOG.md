@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.56 — Labor identity Wave-1 mappings (local · 2026-08-14)
+
+**Scope:** 2 Owner-approved registry rows · **ZERO COMMIT** do osobnego Owner GO.
+
+- Tablica ← `Montaż skrzynki rozdzielczej` (CR · szt)
+- Podejście ← `Wykonanie podejścia wodno - kanalizacyjnego…` (CR · mb)
+- HOLD: oprawa / zawór / gniazdo / wyłącznik / white / demolition / waste
+- ZERO Evidence populate / Catalog / Accept / OUR RATE / hosts / PASS2
+
 ## 2.66.55 — Labor identity mapping (local · 2026-08-14)
 
 **Scope:** lokalna implementacja Hybrid C identity gate · **ZERO COMMIT** do osobnego Owner GO.
