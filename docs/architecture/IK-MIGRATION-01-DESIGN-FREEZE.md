@@ -1,7 +1,7 @@
 # IK-MIGRATION-01 — DESIGN FREEZE (P0)
 
 > **ID:** `IK-MIGRATION-01-DESIGN-FREEZE`  
-> **STATUS:** **P0 FROZEN** · **P1 COMPLETE** · **P2 COMPLETE** (Document Expert · flag default OFF · NG-10 retained)  
+> **STATUS:** **P0 FROZEN** · **P1 COMPLETE** · **P2 COMPLETE** · **P2.5 COMPLETE** (NG-02 ingest bridge · flag default OFF · NG-10 retained)  
 > **Data:** 2026-08-15  
 > **Master IK:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md)  
 > **Audit:** IK-REAL-TENDER-AUDIT-01 (chat 2026-08-15)  
@@ -135,6 +135,7 @@ Chief session przy IK-entry: P4 DF implementacyjny — `useChiefOrchestratorSess
 | **P0** | Ten freeze | C KEEP |
 | **P1** | IK entry shell + EC z faktami pipeline (discovery/parse) | C KEEP default |
 | **P2** | Document Expert: discovery → przedmiary → extraction truth · **COMPLETE** | C KEEP |
+| **P2.5** | Existing NG-02 heavy → dossier lines for Document Expert · **COMPLETE** | C KEEP |
 | **P3** | Classification + identity na liniach | C |
 | **P4** | Chief scoped start (T1–T6) bez Dual Outcome | C |
 | **P5** | Labor E2E auto (REUSE W2 bridge) | C |

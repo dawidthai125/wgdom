@@ -41,6 +41,7 @@ export type {
 export {
   buildIkEntryConversationViewModel,
 } from "./ik-entry-conversation";
+export type { IkEntryConversationOpts } from "./ik-entry-conversation";
 
 export {
   inventoryIkDocuments,
@@ -53,3 +54,13 @@ export type {
   IkInventoryDocument,
   IkPrzedmiarSource,
 } from "./ik-document-expert";
+
+export {
+  needsIkNg02Ingest,
+  runIkNg02IngestBridge,
+} from "./ik-ng02-ingest-bridge";
+export type {
+  IkNg02IngestBridgeResult,
+  IkNg02IngestPhase,
+  IkZipInnerEntryEvidence,
+} from "./ik-ng02-ingest-bridge";

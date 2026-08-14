@@ -1,24 +1,154 @@
 /**
- * IK-MIGRATION-01 P1 — first-screen host.
- * REUSE ExpertConversationSurface. ZERO NG-10. ZERO new chat store.
+ * IK-MIGRATION-01 P1/P2.5 — first-screen host.
+ * REUSE ExpertConversationSurface + NG-02 heavy via ik-ng02-ingest-bridge.
+ * ZERO NG-10. ZERO new chat store. ZERO new parser.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
+import {
+  needsIkNg02Ingest,
+  runIkNg02IngestBridge,
+  type IkNg02IngestBridgeResult,
+} from "@/lib/intelligent-estimator/ik-ng02-ingest-bridge";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
+import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
-export function IkEntryHost({ item }: { item: TenderPipelineItem }) {
+export function IkEntryHost({
+  item,
+  onUpdate,
+  pipelineIngest,
+  athPreviewEnabled = true,
+}: {
+  item: TenderPipelineItem;
+  onUpdate?: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
+  pipelineIngest?: {
+    dossierBuilding?: boolean;
+    dossierEnriching?: boolean;
+    heavyDone?: boolean;
+  } | null;
+  athPreviewEnabled?: boolean;
+}) {
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
+  const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
+  const [bridgeBusy, setBridgeBusy] = useState(false);
+  const attemptedRef = useRef<string | null>(null);
+
+  const effectiveItem = ingest?.mergedItem ?? item;
+
+  useEffect(() => {
+    const key = item.id || item.tenderId || "";
+    if (!key) return;
+    if (pipelineIngest?.dossierBuilding || pipelineIngest?.dossierEnriching) return;
+    if (!needsIkNg02Ingest(item)) return;
+    if (attemptedRef.current === key) return;
+    if (!onUpdate) return;
+
+    let cancelled = false;
+    setBridgeBusy(true);
+    void (async () => {
+      // Prefer existing useTenderDossierHeavyLazy when it starts within grace window.
+      if (pipelineIngest) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (cancelled) return;
+        if (pipelineIngest.dossierBuilding || pipelineIngest.dossierEnriching) {
+          setBridgeBusy(false);
+          return;
+        }
+        if (!needsIkNg02Ingest(item)) {
+          setBridgeBusy(false);
+          return;
+        }
+      }
+      if (attemptedRef.current === key) {
+        setBridgeBusy(false);
+        return;
+      }
+      attemptedRef.current = key;
+      try {
+        const result = await runIkNg02IngestBridge({
+          item,
+          package: pkg,
+          athPreviewEnabled,
+          ensureDocuments: (item.bzpDocuments?.length ?? 0) === 0,
+        });
+        if (cancelled) return;
+        setIngest(result);
+        if (result.itemPatch) {
+          onUpdate(result.itemPatch, { persist: "local" });
+          if (result.extractedLineCount > 0) {
+            onUpdate(result.itemPatch, { persist: "cloud" });
+          }
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setIngest({
+          phase: "blocked",
+          started: true,
+          completed: false,
+          tenderId: key,
+          documentsUsed: item.bzpDocuments?.length ?? 0,
+          zipEvidence: [],
+          parsersReused: ["buildTenderDossierHeavy"],
+          artifactCount: 0,
+          extractedLineCount: 0,
+          primarySourceFilename: null,
+          reasons: [`BRIDGE_THROW:${(err as Error)?.message || String(err)}`],
+          itemPatch: null,
+          mergedItem: item,
+          expert: runIkDocumentExpert({ item, package: pkg }),
+        });
+      } finally {
+        if (!cancelled) setBridgeBusy(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    item,
+    pkg,
+    onUpdate,
+    athPreviewEnabled,
+    pipelineIngest,
+    pipelineIngest?.dossierBuilding,
+    pipelineIngest?.dossierEnriching,
+  ]);
+
   const report = useMemo(
-    () => runIkDocumentExpert({ item, package: pkg }),
-    [item, pkg],
+    () => ingest?.expert ?? runIkDocumentExpert({ item: effectiveItem, package: pkg }),
+    [ingest, effectiveItem, pkg],
   );
   const vm = useMemo(
-    () => buildIkEntryConversationViewModel(item, pkg),
-    [item, pkg],
+    () =>
+      buildIkEntryConversationViewModel(effectiveItem, {
+        package: pkg,
+        ingest: ingest
+          ?? (bridgeBusy
+            ? {
+                phase: "started",
+                started: true,
+                completed: false,
+                tenderId: item.id,
+                documentsUsed: item.bzpDocuments?.length ?? 0,
+                zipEvidence: [],
+                parsersReused: ["buildTenderDossierHeavy"],
+                artifactCount: 0,
+                extractedLineCount: 0,
+                primarySourceFilename: null,
+                reasons: ["INGEST_STARTED"],
+                itemPatch: null,
+                mergedItem: item,
+                expert: report,
+              }
+            : null),
+        pipelineIngest,
+      }),
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest],
   );
 
   return (
@@ -30,6 +160,8 @@ export function IkEntryHost({ item }: { item: TenderPipelineItem }) {
       data-ik-cost-doc-count={String(report.costDocuments.length)}
       data-ik-przedmiar-count={String(report.przedmiary.length)}
       data-ik-master-ready={report.masterBoq.readyForExperts ? "1" : "0"}
+      data-ik-extracted-lines={String(report.extraction.extractedCount)}
+      data-ik-ingest-phase={ingest?.phase ?? (bridgeBusy ? "started" : "idle")}
     >
       <ExpertConversationSurface vm={vm} />
     </div>

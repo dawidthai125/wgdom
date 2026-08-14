@@ -722,7 +722,18 @@ export function TenderDetailPage({
             gateReason={pipelineRuntime.attachmentGateReason}
           />
 
-          {ikEntryOn && activeTab === "przetarg" && <IkEntryHost item={item} />}
+          {ikEntryOn && activeTab === "przetarg" && (
+            <IkEntryHost
+              item={item}
+              onUpdate={onUpdateItem}
+              athPreviewEnabled={athPreviewEnabled}
+              pipelineIngest={{
+                dossierBuilding: pipelineRuntime.dossierBuilding,
+                dossierEnriching: pipelineRuntime.dossierEnriching,
+                heavyDone: pipelineRuntime.pricingReadyFinal || pipelineRuntime.pricingReadyPartial,
+              }}
+            />
+          )}
 
           {showTre01RecoveryCta && (
             <div className="mb-3 flex justify-end">

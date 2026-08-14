@@ -17,6 +17,7 @@ export type ExpertConversationStepKind =
   | "swz"
   | "cost_docs"
   | "przedmiary"
+  | "ingest"
   | "extraction"
   | "validation"
   | "boq_status";

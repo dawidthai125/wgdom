@@ -23,7 +23,20 @@ import {
   type IkDocumentExpertReport,
   type IkDocumentExpertStatus,
 } from "./ik-document-expert";
+import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
+
+export interface IkEntryConversationOpts {
+  package?: TenderPackage | null;
+  /** P2.5 — facts from existing NG-02 heavy bridge (optional). */
+  ingest?: IkNg02IngestBridgeResult | null;
+  /** Pipeline heavy flags from useTenderPipelineRuntime (optional). */
+  pipelineIngest?: {
+    dossierBuilding?: boolean;
+    dossierEnriching?: boolean;
+    heavyDone?: boolean;
+  } | null;
+}
 
 function messageWeight(text: string): number {
   return text.trim().length;
@@ -65,10 +78,19 @@ function step(opts: {
 
 export function buildIkEntryConversationViewModel(
   item: TenderPipelineItem,
-  pkg?: TenderPackage | null,
+  pkgOrOpts?: TenderPackage | null | IkEntryConversationOpts,
 ): ExpertConversationViewModel {
+  const opts: IkEntryConversationOpts =
+    pkgOrOpts
+    && typeof pkgOrOpts === "object"
+    && ("package" in pkgOrOpts || "ingest" in pkgOrOpts || "pipelineIngest" in pkgOrOpts)
+      ? pkgOrOpts
+      : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
+  const pkg = opts.package ?? null;
   const facts = collectIkEntryPipelineFacts(item);
-  const report: IkDocumentExpertReport = runIkDocumentExpert({ item, package: pkg });
+  const report: IkDocumentExpertReport =
+    opts.ingest?.expert
+    ?? runIkDocumentExpert({ item, package: pkg });
   const steps: ExpertConversationStepView[] = [];
   const tenderRef = (extra: Record<string, unknown>, kind: ExpertConversationSourceRef["kind"] = "document"): ExpertConversationSourceRef => ({
     kind,
@@ -192,7 +214,109 @@ export function buildIkEntryConversationViewModel(
     );
   }
 
-  if (report.extraction.executed) {
+  const ingest = opts.ingest;
+  const pipe = opts.pipelineIngest;
+  if (ingest?.started && !ingest.completed && ingest.phase !== "blocked") {
+    steps.push(
+      step({
+        id: "ingest",
+        event: "INGEST_STARTED",
+        status: "active",
+        messagePl: "Uruchamiam istniejący NG-02 heavy parse (ZIP → ATH/XLS/PDF).",
+        detailPl: `docs=${ingest.documentsUsed}`,
+        sourceRef: tenderRef({
+          phase: ingest.phase,
+          documentsUsed: ingest.documentsUsed,
+          zipEvidence: ingest.zipEvidence,
+        }, "extraction"),
+      }),
+    );
+  } else if (pipe?.dossierBuilding || pipe?.dossierEnriching) {
+    steps.push(
+      step({
+        id: "ingest",
+        event: "INGEST_STARTED",
+        status: "active",
+        messagePl: pipe.dossierEnriching
+          ? "NG-02: wzbogacanie dossier (metadata)."
+          : "NG-02: heavy parse w toku.",
+        detailPl: null,
+        sourceRef: tenderRef({
+          dossierBuilding: Boolean(pipe.dossierBuilding),
+          dossierEnriching: Boolean(pipe.dossierEnriching),
+        }, "extraction"),
+      }),
+    );
+  }
+
+  if (ingest?.completed || (ingest?.started && ingest.extractedLineCount > 0)) {
+    steps.push(
+      step({
+        id: "ingest",
+        event: "INGEST_COMPLETED",
+        status: ingest.extractedLineCount > 0 ? "done" : "partial",
+        messagePl: ingest.extractedLineCount > 0
+          ? `NG-02 ingest zakończony — ${ingest.extractedLineCount} pozycji z parsera.`
+          : "NG-02 ingest zakończony bez linii — BLOCKED.",
+        detailPl: [
+          ingest.primarySourceFilename ? `primary=${ingest.primarySourceFilename}` : null,
+          `artifacts=${ingest.artifactCount}`,
+          ...ingest.zipEvidence.map((z) => `${z.zipFilename}: inner=${z.innerCount}`),
+          ...ingest.reasons.slice(0, 3),
+        ].filter(Boolean).join(" · "),
+        sourceRef: tenderRef({
+          extractedLineCount: ingest.extractedLineCount,
+          artifactCount: ingest.artifactCount,
+          zipEvidence: ingest.zipEvidence,
+          parsersReused: ingest.parsersReused,
+          reasons: ingest.reasons,
+        }, "extraction"),
+      }),
+    );
+    if (ingest.artifactCount > 0 || ingest.extractedLineCount > 0) {
+      steps.push(
+        step({
+          id: "extraction",
+          event: "COST_DOCUMENTS_PARSED",
+          status: "done",
+          messagePl: `Sparsowano artefakty kosztowe (${ingest.artifactCount} źródeł).`,
+          detailPl: ingest.parsersReused.join(", "),
+          sourceRef: tenderRef({
+            artifactCount: ingest.artifactCount,
+            parsersReused: ingest.parsersReused,
+          }, "extraction"),
+        }),
+      );
+      if (ingest.extractedLineCount > 0) {
+        steps.push(
+          step({
+            id: "extraction",
+            event: "PRZEDMIAR_EXTRACTED",
+            status: "done",
+            messagePl: `Przedmiar wyodrębniony: ${ingest.extractedLineCount} pozycji z istniejących parserów.`,
+            detailPl: ingest.primarySourceFilename,
+            sourceRef: tenderRef({
+              extractedLineCount: ingest.extractedLineCount,
+              primarySourceFilename: ingest.primarySourceFilename,
+            }, "extraction"),
+          }),
+        );
+      }
+    }
+  } else if (ingest?.phase === "blocked" && ingest.started) {
+    steps.push(
+      step({
+        id: "ingest",
+        event: "INGEST_COMPLETED",
+        status: "gap",
+        messagePl: "NG-02 ingest nie zwrócił linii BOQ.",
+        detailPl: ingest.reasons.join("; "),
+        sourceRef: tenderRef({ reasons: ingest.reasons, zipEvidence: ingest.zipEvidence }, "hold"),
+      }),
+    );
+  }
+
+  if (report.extraction.executed && !steps.some((s) => s.event === "PRZEDMIAR_EXTRACTED")) {
     steps.push(
       step({
         id: "extraction",

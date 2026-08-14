@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.62 — IK P2.5 NG-02 ingest bridge (2026-08-15)
+
+**Scope:** istniejący NG-02 heavy → rzeczywiste linie BOQ dla Document Expert.
+
+- REUSE: `buildTenderDossierHeavy`, ZIP catalog, ATH/XLS/PDF parsers, OfferBoq v5
+- `IkEntryHost` wywołuje mostek gdy dossier puste (po grace dla pipeline heavy)
+- Expert Conversation: `INGEST_STARTED` / `INGEST_COMPLETED` / `PRZEDMIAR_EXTRACTED`
+- Flaga `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `npx vite-node scripts/test-ik-migration-01-p25-ingest.mjs`
+
 ## 2.66.61 — IK Document Expert P2 (2026-08-15)
 
 **Scope:** Document Expert jako pierwszy etap IK — discovery → przedmiary → extraction → Master BOQ.

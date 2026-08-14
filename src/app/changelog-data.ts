@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.62",
+    label: "IK P2.5 NG-02 ingest bridge (real BOQ extraction)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P2.5: mostek na istniejący NG-02 heavy (buildTenderDossierHeavy) — ZIP→ATH/XLS/PDF→dossier→Document Expert. Na realnym ZZK pustostany extraction > 0. ZERO nowego parsera / ATH writer / research. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.61",
     label: "IK Document Expert P2 (Master BOQ orchestration)",
     items: [
