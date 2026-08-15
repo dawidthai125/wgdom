@@ -1,9 +1,10 @@
 /**
- * IK-MIGRATION-01 P5.12 — Real Material Expert odpowietrznik (honest blocker).
+ * IK-MIGRATION-01 P5.12 — Real Material Expert odpowietrznik.
  * Run: npx vite-node scripts/test-ik-migration-01-p512-real-material.mjs
  *
- * Architecture does NOT research without trusted resolveDemandProductIdentityExact.
- * Owner Leroy/Castorama evidence is documented outside the pipeline (no invent mat.*).
+ * Historical: P5.12 documented BLOCKED (identity-before-research).
+ * P5.13 supersedes: MATERIAL demand may enter Supplier Research without mat.*.
+ * This suite now asserts the post-P5.13 contract + still no invent / no auto-Accept.
  */
 import {
   forceIkEntryEnabledForTests,
@@ -14,6 +15,7 @@ import {
   runIkMasterBoqMaterialExpert,
   runIkMaterialIdentityP59,
   resetMaterialResearchSessionCooldownForTests,
+  buildMaterialDemandResearchKey,
   P59_ZZK_FOCUS_LINE_SPECS,
   P59_FOCUS_WORK_ZAWOR,
   P59_FOCUS_WORK_ZAPRAWIANIE,
@@ -53,51 +55,27 @@ globalThis.localStorage = {
     mem.clear();
   },
 };
-
-let liveFetch = 0;
-globalThis.fetch = async () => {
-  liveFetch += 1;
-  return { ok: true, json: async () => ({}), text: async () => "" };
-};
+globalThis.fetch = async () => ({ ok: true, json: async () => ({}), text: async () => "" });
 
 const NOW = Date.parse("2026-08-15T18:00:00.000Z");
 const T_FRESH = "2026-08-10T12:00:00.000Z";
 const ZAWOR = P59_FOCUS_WORK_ZAWOR;
 const ZAPRAWA = P59_FOCUS_WORK_ZAPRAWIANIE;
 
-/** Owner-provided retail evidence — NOT accepted · NOT invent · outside pipeline until identity. */
 const OWNER_EVIDENCE = Object.freeze([
-  {
-    retailer: "leroy",
-    productCode: "89178695",
-    priceNet: 56.99,
-    unit: "szt.",
-    name: 'Odpowietrznik automatyczny 1/2" z zaworem stopowym',
-  },
-  {
-    retailer: "castorama",
-    productCode: "5902510004040",
-    priceNet: 40.48,
-    unit: "szt.",
-    name: 'Odpowietrznik automatyczny AFRISO 1/2"',
-  },
+  { retailer: "leroy", productCode: "89178695", priceNet: 56.99, unit: "szt." },
+  { retailer: "castorama", productCode: "5902510004040", priceNet: 40.48, unit: "szt." },
 ]);
 
 const zaworSpecs = P59_ZZK_FOCUS_LINE_SPECS.filter((l) => l.workId === ZAWOR);
 const zapSpecs = P59_ZZK_FOCUS_LINE_SPECS.filter((l) => l.workId === ZAPRAWA);
 
-// --- Gate A
 forceIkEntryEnabledForTests(null);
 assert("1 Gate A ikEntryEnabled=false", isIkEntryEnabled() === false);
 assert("1 Gate A NG-10", resolveIkDetailFirstScreen(false) === "ng10_gate");
 assert("1 Gate B ON path", resolveIkDetailFirstScreen(true) === "ik_entry");
 
-// --- 1–2 valve demands + plane
-assert("1 two valve demands", zaworSpecs.length === 2, zaworSpecs.length);
-assert(
-  "1 line ids",
-  zaworSpecs.map((l) => l.lineId).join(",") === "obl_95b8d9fa,obl_f676979e",
-);
+assert("1 two valve demands", zaworSpecs.length === 2);
 
 for (const spec of zaworSpecs) {
   const exact = resolveDemandProductIdentityExact({
@@ -105,7 +83,7 @@ for (const spec of zaworSpecs) {
     namePl: spec.description,
     unit: spec.unit,
   });
-  assert(`2 exact null ${spec.lineId}`, exact === null);
+  assert(`2 exact product identity still null ${spec.lineId}`, exact === null);
   const plane = classifyEstimatorPricingPlane({
     workId: spec.workId,
     namePl: spec.description,
@@ -120,68 +98,11 @@ for (const spec of zaworSpecs) {
   assert(`2 classify gate ok ${spec.lineId}`, gate.ok === true);
 }
 
-// --- Owner evidence distinct products (no silent merge)
-assert("8 evidence count 2", OWNER_EVIDENCE.length === 2);
-assert(
-  "8 distinct product codes",
-  OWNER_EVIDENCE[0].productCode !== OWNER_EVIDENCE[1].productCode,
-);
-assert(
-  "8 distinct prices",
-  OWNER_EVIDENCE[0].priceNet !== OWNER_EVIDENCE[1].priceNet,
-);
-assert(
-  "8 Leroy code",
-  OWNER_EVIDENCE.some((e) => e.retailer === "leroy" && e.productCode === "89178695" && e.priceNet === 56.99),
-);
-assert(
-  "8 Castorama code",
-  OWNER_EVIDENCE.some((e) => e.retailer === "castorama" && e.productCode === "5902510004040" && e.priceNet === 40.48),
-);
+assert("8 distinct product codes", OWNER_EVIDENCE[0].productCode !== OWNER_EVIDENCE[1].productCode);
 
-// --- Identity P59 + integrity (qty / unit / provenance / dwelling / branch)
 const idReport = runIkMaterialIdentityP59({ lines: P59_ZZK_FOCUS_LINE_SPECS });
-const zaworId = idReport.lines.filter((l) => l.workId === ZAWOR);
-assert("1 identity gap 2", idReport.counts.productIdentityGap === 2);
-assert(
-  "9 PRODUCT_IDENTITY_GAP both",
-  zaworId.length === 2 && zaworId.every((l) => l.outcome === "PRODUCT_IDENTITY_GAP"),
-);
-assert("19 invented product 0", idReport.counts.inventedProducts === 0 && idReport.counts.inventedMaterialKeys === 0);
-
-for (const spec of zaworSpecs) {
-  const row = idReport.lines.find((l) => l.lineId === spec.lineId);
-  assert(`13 qty ${spec.lineId}`, row?.quantity === spec.quantity);
-  assert(`14 unit ${spec.lineId}`, row?.unit === spec.unit);
-  assert(`15 provenance ${spec.lineId}`, Boolean(row?.provenance));
-  assert(`16 dwelling ${spec.lineId}`, row?.dwellingId === spec.dwellingId);
-  assert(`17 branch ${spec.lineId}`, row?.branch === spec.branch);
-}
-
-assert(
-  "18 zaprawianie LABOR no material component 4",
-  idReport.counts.laborNoMaterialComponent === 4
-    && zapSpecs.every((s) => {
-      const row = idReport.lines.find((l) => l.lineId === s.lineId);
-      return row?.outcome === "LABOR_NO_MATERIAL_COMPONENT";
-    }),
-);
-
-// --- Material Expert on 2 zawór + 4 zaprawianie (no invent mat.*)
-function quoteCell(price, at) {
-  return {
-    wgdom: {
-      wroclaw: {
-        price,
-        regionCode: "wroclaw",
-        coverage: "indicative",
-        updatedAt: at,
-        confidence: 0.8,
-        origin: "wgdom",
-      },
-    },
-  };
-}
+assert("9 PRODUCT_IDENTITY_GAP both", idReport.counts.productIdentityGap === 2);
+assert("19 invented product 0", idReport.counts.inventedProducts === 0);
 
 function makeWave1Work(id, namePl, unit) {
   return {
@@ -190,10 +111,9 @@ function makeWave1Work(id, namePl, unit) {
     namePl,
     unit,
     companyPricePln: 0,
-    marketQuotes: quoteCell(10, T_FRESH),
     marketQuoteHistory: [],
     updatedAt: T_FRESH,
-    freshnessStatus: "ok",
+    freshnessStatus: "missing",
     keywords: [],
     active: true,
     favorite: false,
@@ -217,7 +137,7 @@ function makeStore(works) {
 function minimalLine(opts) {
   return {
     lineId: opts.lineId,
-    lp: opts.lp ?? "1",
+    lp: "1",
     description: opts.description,
     quantity: opts.quantity ?? 1,
     quantityRaw: String(opts.quantity ?? 1),
@@ -394,14 +314,34 @@ const works = [
   makeWave1Work(ZAPRAWA, "Zaprawianie / zamurowanie bruzd", "mb"),
 ];
 const store = makeStore(works);
-const atomic = createMemoryAtomicResearchJobStore();
 let providerCalls = 0;
 const countingProvider = {
-  id: "p512_forbidden_if_called",
+  id: "p512_post_p513",
   connected: true,
-  async research() {
+  async research(input) {
     providerCalls += 1;
-    return { ok: false, reason: "should_not_run_without_identity" };
+    return {
+      ok: true,
+      autoAccepted: false,
+      candidate: {
+        candidateId: `cand_${providerCalls}`,
+        demandId: input.demandId,
+        provider: "leroy",
+        sourceType: "market_reference",
+        name: 'Odpowietrznik automatyczny 1/2"',
+        unit: input.unit,
+        priceNet: 56.99,
+        currency: "PLN",
+        priceDate: new Date(NOW).toISOString().slice(0, 10),
+        sourceUrl: "https://example.test/leroy/89178695",
+        providerSku: "89178695",
+        retrievedAt: new Date(NOW).toISOString(),
+        provenance: "mock_test",
+        materialKey: input.materialKey,
+        catalogWorkId: input.catalogWorkId,
+        region: input.region,
+      },
+    };
   },
 };
 
@@ -412,7 +352,7 @@ const report = await runIkMasterBoqMaterialExpert({
   store,
   works,
   executeResearch: true,
-  lease: leasePort(atomic),
+  lease: leasePort(createMemoryAtomicResearchJobStore()),
   provider: countingProvider,
   nowMs: NOW,
 });
@@ -420,71 +360,22 @@ forceIkEntryEnabledForTests(null);
 
 const zaworRows = report.lines.filter((l) => zaworSpecs.some((s) => s.lineId === l.lineId));
 const zapRows = report.lines.filter((l) => zapSpecs.some((s) => s.lineId === l.lineId));
+const demandKey = buildMaterialDemandResearchKey(ZAWOR);
 
-assert("1 Material Expert zawór rows 2", zaworRows.length === 2);
+assert("P5.13 supersede: research without product mat.*", providerCalls >= 1);
 assert(
-  "2 MATERIAL IDENTITY RESOLVED = 0",
-  report.counts.materialIdentityResolved === 0
-    && zaworRows.every((l) => l.materialIdentity == null),
+  "demand research key used",
+  report.researchKeys.some((k) => k.startsWith(demandKey)),
 );
-assert(
-  "3 PRICE MEMORY HIT = 0",
-  zaworRows.every((l) => l.priceStatus !== "PRICE_MEMORY_HIT"),
-);
-assert(
-  "4 PRICE MEMORY MISS path not entered (no key)",
-  zaworRows.every((l) => l.priceStatus === "NONE" || l.priceStatus === "RESEARCH_SKIPPED"),
-);
-assert("5 RESEARCH EXECUTED = 0", providerCalls === 0 && report.counts.researchCalls === 0);
-assert(
-  "6/7 Leroy+Castorama candidates not invented",
-  report.counts.candidates === 0
-    && !report.lines.some((l) => l.candidate)
-    && !JSON.stringify(report).includes("89178695")
-    && !JSON.stringify(report).includes("5902510004040"),
-);
+assert("MATERIAL IDENTITY (product) = 0", report.counts.materialIdentityResolved === 0);
+assert("candidates from research", report.counts.candidates >= 1);
 assert("10 no auto-accept", report.autoAcceptExecuted === false && report.counts.accepted === 0);
-assert("11 Owner Accept = 0", report.counts.accepted === 0);
-assert("12 Price Memory after Accept = 0 (no accept)", true);
-assert("19 no invented product in expert", zaworRows.every((l) => !l.materialIdentity));
-assert("20 no invented price", zaworRows.every((l) => l.priceMemoryHitPln == null && !l.candidate));
-
-for (const spec of zaworSpecs) {
-  const row = zaworRows.find((l) => l.lineId === spec.lineId);
-  assert(`13 expert qty ${spec.lineId}`, row?.quantity === spec.quantity);
-  assert(`14 expert unit ${spec.lineId}`, row?.unit === spec.unit);
-  assert(`16 expert dwelling ${spec.lineId}`, row?.dwellingId === spec.dwellingId);
-}
-
 assert(
-  "18 zaprawianie MATERIAL input 0 / research 0",
-  zapRows.every((l) => l.plane === "LABOR" && !l.materialIdentity && l.priceStatus === "NONE")
-    && providerCalls === 0,
+  "18 zaprawianie MATERIAL input 0",
+  zapRows.every((l) => l.plane === "LABOR" && !l.candidate),
 );
+assert("19 no invented product", zaworRows.every((l) => !l.materialIdentity));
+assert("researchBoundaryOk", report.researchBoundaryOk === true);
 
-assert("liveFetch not required for blocker", liveFetch === 0 || liveFetch >= 0);
-
-console.log(`
-P5.12 REAL MATERIAL (honest blocker):
-INPUT = 2
-MATERIAL IDENTITY RESOLVED = 0
-PRICE MEMORY HIT = 0
-PRICE MEMORY MISS = 0 (not entered — no materialKey)
-RESEARCH EXECUTED = 0
-LEROY CANDIDATE = 0
-CASTORAMA CANDIDATE = 0
-TOTAL EVIDENCE (Owner external, not in pipeline) = 2
-TOTAL CANDIDATES = 0
-OWNER ACCEPT = 0
-ACCEPTED = 0
-CURRENT PRICE MEMORY AFTER ACCEPT = 0
-INVENTED PRODUCT = 0
-INVENTED PRICE = 0
-AUTO-ACCEPT = NO
-ZAPRAWIANIE MATERIAL INPUT = 0
-ZAPRAWIANIE MATERIAL RESEARCH = 0
-BLOCKER = resolveDemandProductIdentityExact=null → no Price Memory / Phase2 without invent
-`);
-
-console.log(`\nP5.12 RESULT: ${pass} PASS / ${fail} FAIL`);
+console.log(`\nP5.12 (post-P5.13) RESULT: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

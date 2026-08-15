@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.75",
+    label: "IK P5.13 Material research entry",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5.13: Material Demand (MATERIAL + Work Identity) może wejść w Supplier Research bez pre-existing mat.* — klucz demand.work.<workId> · Price Memory po Accept na catalogWorkId. ZERO invent mat.*/auto-Accept · zaprawianie LABOR bez zmian. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.74",
     label: "IK P5.11 Zaprawianie COMPOUND→LABOR",
     items: [

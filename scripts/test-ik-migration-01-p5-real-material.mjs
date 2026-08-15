@@ -440,9 +440,18 @@ const slice = summarizeIkMaterialForFocusLines(report, focusIds);
 
 assert("A focus input 4", slice.focusInput === 4 && slice.coverageOk);
 assert(
-  "O zawór MATERIAL without mat.* → NO_MATERIAL_COMPONENT",
-  slice.noMaterialComponent >= 1
-  && report.lines.some((l) => l.lineId === "L-zawor" && !l.materialIdentity && l.plane === "MATERIAL"),
+  "O zawór MATERIAL without mat.* → P5.13 demand Price Memory / research (not invent)",
+  report.lines.some((l) =>
+    l.lineId === "L-zawor"
+    && !l.materialIdentity
+    && l.plane === "MATERIAL"
+    && (
+      l.priceStatus === "PRICE_MEMORY_HIT"
+      || l.priceStatus === "PRICE_MEMORY_MISS"
+      || l.priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+      || l.priceStatus === "RESEARCH_GAP"
+    ),
+  ),
 );
 assert(
   "O2 zaprawianie LABOR skipped by Material Expert (P5.11)",

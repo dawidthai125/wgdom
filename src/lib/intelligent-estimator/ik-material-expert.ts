@@ -4,10 +4,13 @@
  * Path (REUSE only):
  *   Master BOQ line
  *   → mapOfferBoqLine (Product Mapper)
- *   → resolveDemandProductIdentityExact (trusted material identity · 0 soft invent)
+ *   → resolveDemandProductIdentityExact (trusted product identity · 0 soft invent)
  *   → classifyEstimatorPricingPlane (A1) — line bucket only
  *   → evaluateMaterialCache / lookupPriceMemory (HIT → reuse)
+ *      · with product identity: materialKey + catalogWorkId
+ *      · P5.13 demand path: catalogWorkId only (empty materialKey — no fabricate mat.*)
  *   → executeMaterialResearchPhase2 (MISS only · never auto-Accept)
+ *      · product identity key OR demand.work.<workId> coordination key
  *   → Candidate → Owner Accept REQUIRED → Price Memory (Accept separate)
  *
  * ZERO invent product/SKU/price from namePl alone · ZERO Labor rewrite · ZERO F5/Bid.
@@ -188,7 +191,7 @@ function bucketFrom(
   }
 }
 
-/** Research only when trusted material identity + not LABOR plane + not NON_COST. */
+/** Research when trusted product identity + not LABOR plane + not NON_COST. */
 function researchEligible(
   materialIdentity: IkMaterialIdentity | null,
   bucket: IkMaterialBucket,
@@ -198,6 +201,34 @@ function researchEligible(
   if (bucket === "NON_COST") return false;
   if (plane === "LABOR" || bucket === "LABOR") return false;
   return true;
+}
+
+/**
+ * P5.13 — Material Demand research without pre-existing product materialKey.
+ * Coordination key only (`demand.work.<workId>`) — NOT a product invent.
+ */
+export const MATERIAL_DEMAND_RESEARCH_KEY_PREFIX = "demand.work." as const;
+
+export function buildMaterialDemandResearchKey(workId: string): string {
+  const id = String(workId || "").trim();
+  return id ? `${MATERIAL_DEMAND_RESEARCH_KEY_PREFIX}${id}` : "";
+}
+
+export function isMaterialDemandResearchKey(key: string | null | undefined): boolean {
+  return String(key || "").startsWith(MATERIAL_DEMAND_RESEARCH_KEY_PREFIX);
+}
+
+/** MATERIAL plane + trusted Work Identity — Supplier Research entry (no mat.* required). */
+function demandResearchEligible(
+  workId: string | null,
+  bucket: IkMaterialBucket,
+  plane: EstimatorPricingPlane,
+): boolean {
+  if (!workId?.trim()) return false;
+  if (bucket === "NON_COST") return false;
+  if (plane === "LABOR" || bucket === "LABOR") return false;
+  // P5.13 scope: MATERIAL demand only (COMPOUND still requires product identity / TechnologyPack).
+  return plane === "MATERIAL" && bucket === "MATERIAL";
 }
 
 function emptyCounts(input: number): IkMaterialExpertCounts {
@@ -256,7 +287,10 @@ function buildDemand(opts: {
 
 /**
  * Material Expert pass over READY Master BOQ.
- * Research only for trusted material identity + Price Memory MISS (deduped by materialKey|region).
+ * Research when:
+ *   (A) trusted product identity + Price Memory MISS, OR
+ *   (B) P5.13 Material Demand (MATERIAL plane + workId, no mat.*) + no CURRENT work quotes
+ * Dedup: materialKey|region or demand.work.<workId>|region. Never auto-Accept.
  */
 export async function runIkMasterBoqMaterialExpert(opts: {
   item: TenderPipelineItem;
@@ -383,6 +417,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     let cacheDecision: MaterialCacheDecision | null = null;
 
     if (materialIdentity && researchEligible(materialIdentity, bucket, classify.plane)) {
+      // (A) Existing product-identity path — unchanged.
       cacheDecision = evaluateMaterialCache({
         materialKey: materialIdentity.materialKey,
         catalogWorkId: materialIdentity.catalogWorkId,
@@ -405,6 +440,45 @@ export async function runIkMasterBoqMaterialExpert(opts: {
               materialKey: materialIdentity.materialKey,
               catalogWorkId: materialIdentity.catalogWorkId,
               namePl: materialIdentity.labelPl || structural.description,
+              unit: structural.unit,
+              lineIds: [structural.lineId],
+              dwellingId: ref.dwellingId,
+            });
+          }
+        } else {
+          priceStatus = "RESEARCH_SKIPPED";
+        }
+      }
+    } else if (
+      !materialIdentity
+      && workId
+      && demandResearchEligible(workId, bucket, classify.plane)
+    ) {
+      // (B) P5.13 — Material Demand without product materialKey.
+      // Price Memory by catalogWorkId only (no fabricated mat.*). CURRENT → HIT; else research.
+      cacheDecision = evaluateMaterialCache({
+        materialKey: "",
+        catalogWorkId: workId,
+        region,
+        worksById,
+        nowMs,
+      });
+      if (cacheDecision.usability === "CURRENT") {
+        priceStatus = "PRICE_MEMORY_HIT";
+        priceMemoryHitPln = cacheDecision.hit?.price ?? null;
+      } else {
+        priceStatus = "PRICE_MEMORY_MISS";
+        const demandKey = buildMaterialDemandResearchKey(workId);
+        researchKey = `${demandKey}|${region}`;
+        if (executeResearch) {
+          const existing = pendingByKey.get(researchKey);
+          if (existing) {
+            existing.lineIds.push(structural.lineId);
+          } else {
+            pendingByKey.set(researchKey, {
+              materialKey: demandKey,
+              catalogWorkId: workId,
+              namePl: structural.description,
               unit: structural.unit,
               lineIds: [structural.lineId],
               dwellingId: ref.dwellingId,
@@ -505,15 +579,22 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     row.priceStatus = "RESEARCH_GAP";
   }
 
-  // Boundary: no research without trusted material identity / on LABOR / UNKNOWN without identity
+  // Boundary: product-identity research OR P5.13 demand.work research on MATERIAL only.
+  // Forbid LABOR research · forbid UNKNOWN invent · forbid non-demand research without identity.
   for (const row of lines) {
     if (
       !row.materialIdentity
       && row.researchKey
       && researchByKey.has(row.researchKey)
     ) {
-      researchBoundaryOk = false;
-      reasons.push(`RESEARCH_WITHOUT_MATERIAL_IDENTITY line=${row.lineId}`);
+      const demandOk =
+        isMaterialDemandResearchKey(row.researchKey.split("|")[0] ?? "")
+        && row.plane === "MATERIAL"
+        && row.bucket === "MATERIAL";
+      if (!demandOk) {
+        researchBoundaryOk = false;
+        reasons.push(`RESEARCH_WITHOUT_MATERIAL_IDENTITY line=${row.lineId}`);
+      }
     }
     if (
       (row.bucket === "LABOR" || row.plane === "LABOR")
@@ -778,6 +859,24 @@ export function summarizeIkMaterialForFocusLines(
         } else {
           coverage = "OTHER";
         }
+      } else if (
+        // P5.13 — demand research / work-anchored Price Memory without product mat.*
+        row.priceStatus === "PRICE_MEMORY_HIT"
+      ) {
+        coverage = "PRICE_MEMORY_HIT";
+        priceMemoryHit += 1;
+      } else if (
+        row.priceStatus === "PRICE_MEMORY_MISS"
+        || row.priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+        || row.priceStatus === "RESEARCH_GAP"
+        || row.priceStatus === "RESEARCH_BLOCKED"
+        || row.priceStatus === "RESEARCH_COOLDOWN"
+        || row.priceStatus === "RESEARCH_SKIPPED"
+        || row.priceStatus === "RESEARCH_HELD"
+        || Boolean(row.researchKey)
+      ) {
+        coverage = "PRICE_MEMORY_MISS_PATH";
+        priceMemoryMissPath += 1;
       } else {
         coverage = "NO_MATERIAL_COMPONENT";
         noMaterialComponent += 1;

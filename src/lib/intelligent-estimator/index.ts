@@ -113,6 +113,9 @@ export {
   acceptIkMaterialResearchCandidate,
   resetMaterialResearchSessionCooldownForTests,
   summarizeIkMaterialForFocusLines,
+  buildMaterialDemandResearchKey,
+  isMaterialDemandResearchKey,
+  MATERIAL_DEMAND_RESEARCH_KEY_PREFIX,
 } from "./ik-material-expert";
 export type {
   IkMaterialBucket,

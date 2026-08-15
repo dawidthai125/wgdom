@@ -9,9 +9,11 @@
 ```text
 Master BOQ line
 → mapOfferBoqLine (Product Mapper)
-→ resolveDemandProductIdentityExact (trusted material identity)
+→ resolveDemandProductIdentityExact (product identity · optional)
 → evaluateMaterialCache / Price Memory (HIT → reuse)
+   · product identity OR work-anchored catalogWorkId (P5.13)
 → executeMaterialResearchPhase2 (MISS only · never auto-Accept)
+   · materialKey|region OR demand.work.<workId>|region
 → Candidate → Owner Accept REQUIRED → Price Memory persist
 ```
 
@@ -28,14 +30,14 @@ Master BOQ line
 
 ## Research boundary
 
-Research **only** when:
+Research when:
 
-- trusted material identity (`resolveDemandProductIdentityExact`)
-- plane ≠ LABOR
-- Price Memory **MISSING** (not CURRENT)
-- deduped by `materialKey|region`
+- **(A)** trusted product identity (`resolveDemandProductIdentityExact`) + Price Memory MISS, **or**
+- **(B)** P5.13 Material Demand: plane MATERIAL + Work Identity + no product mat.* → coordination key `demand.work.<workId>` → Supplier Research (never auto-Accept)
 
-**Forbidden:** research for UNKNOWN without identity · invent SKU from namePl · auto-Accept.
+Also: plane ≠ LABOR · Price Memory **MISSING** (not CURRENT) · deduped by research key|region.
+
+**Forbidden:** invent SKU/brand/price from namePl · research on LABOR · Material Expert V2 · auto-Accept.
 
 ## Counts (line coverage)
 
@@ -47,15 +49,13 @@ Sum must equal input (430 on live ZZK).
 
 ## Live tender
 
-`08def45d-ead6-5db8-962b-120001d33d37` — may truthfully show **0** material identities (no invent). Harness proves HIT / MISS→research→Accept→second lookup.
+`08def45d-ead6-5db8-962b-120001d33d37` — may truthfully show **0** product material identities (no invent). Harness proves HIT / MISS→research→Accept→second lookup.
 
-## P5.12 (2026-08-15) — odpowietrznik REAL STOP
+## P5.12 / P5.13 (2026-08-15) — odpowietrznik
 
-Focus 2 × `cc-p0c-w1-zawor-odpowietrzajacy`: Work plane MATERIAL OK, but
-`resolveDemandProductIdentityExact = null` → existing Material Expert cannot run
-Price Memory / Phase2 without inventing `mat.*`. Owner Leroy/Castorama evidence
-stays outside the pipeline until Owner-approved identity. See
-[`IK-MIGRATION-01-P5.12-REAL-MATERIAL-ODPOWIETRZNIK.md`](./IK-MIGRATION-01-P5.12-REAL-MATERIAL-ODPOWIETRZNIK.md).
+P5.12 documented identity-before-research **BLOCKED**. P5.13 Owner GO opens demand→research
+without inventing `mat.*`. See
+[`IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md`](./IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md).
 
 ## Tests
 

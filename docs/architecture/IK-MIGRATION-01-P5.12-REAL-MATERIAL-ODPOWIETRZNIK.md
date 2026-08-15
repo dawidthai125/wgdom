@@ -1,8 +1,10 @@
 # IK-MIGRATION-01 P5.12 — Real Material Expert (odpowietrznik 1/2")
 
-**Status:** **BLOCKED** (honest architecture STOP · Owner GO received · **no invent**)  
+**Status:** **SUPERSEDED by P5.13** (research entry without pre-existing product materialKey)  
+**Historical status:** **BLOCKED** (honest architecture STOP under P5.12 no-invent brief)  
 **Date:** 2026-08-15  
-**Baseline tip:** 2.66.74 · commit `276909d4` (P5.11)  
+**Baseline tip:** 2.66.74 · commit `276909d4` (P5.11) · blocker docs `cab5810f`  
+**Supersede:** [`IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md`](./IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md)  
 **Real tender:** `08def45d-ead6-5db8-962b-120001d33d37` · Master BOQ 430  
 **Focus:** 2 × `cc-p0c-w1-zawor-odpowietrzajacy` (`obl_95b8d9fa` kotlarska · `obl_f676979e` ptasia)
 
@@ -24,12 +26,10 @@
 | Work plane | `classifyEstimatorPricingPlane` | **MATERIAL** · `allowMaterialResearch=true` |
 | Classification research gate | `assertMaterialResearchAllowed({ catalogWorkId })` | **ok:true** (plane MATERIAL) |
 | Product identity | `resolveDemandProductIdentityExact({ catalogWorkId: cc-p0c-w1-zawor-odpowietrzajacy, namePl, unit })` | **`null`** |
-| Material Expert | `runIkMasterBoqMaterialExpert` | `materialIdentity=null` → **no** `evaluateMaterialCache` · **no** Phase2 |
-| Price Memory | `evaluateMaterialCache` | never called (no `materialKey`) |
-| Research | `executeMaterialResearchPhase2` | contract requires `PriceDemandRecord.materialKey` |
-| Accept | `acceptMaterialResearchCandidate` | not reached (correct — no auto-Accept) |
+| Material Expert (P5.12) | `runIkMasterBoqMaterialExpert` | `materialIdentity=null` → **no** research (old contract) |
+| Material Expert (P5.13+) | same | demand path → Phase2 with `demand.work.<workId>` |
 
-## Exact blocker (STOP)
+## Exact blocker (P5.12 STOP — historical)
 
 ```text
 Work Identity MATERIAL plane = OK
@@ -39,49 +39,11 @@ resolveDemandProductIdentityExact = null
 → researchEligible = false
 → Price Memory / Phase2 cannot run
 
-Existing architecture does NOT support description-only / workId-only
-material research without a trusted product/material identity.
-
-Creating mat.* or cw.product.* (or S4 aliases) = invent under this brief
-→ FORBIDDEN.
-
-Owner Leroy / Castorama evidence cannot enter the existing pipeline
-until a trusted demand identity exists (Owner-approved identity first).
-
-Material Expert V2 = OUT OF SCOPE → STOP.
+P5.12 forbade invent mat.* → STOP.
+P5.13 Owner GO: move prerequisite — demand → research → Accept → Price Memory.
 ```
-
-P5 doc SSOT (`IK-MIGRATION-01-P5-MATERIAL-EXPERT.md`): research **only** when trusted
-`resolveDemandProductIdentityExact` succeeds. Live ZZK may truthfully show **0**
-material identities — **no invent**.
-
-## What was NOT done (correct under brief)
-
-- No new `mat.*` / `cw.product.*` / Product Mapper aliases.
-- No call to `acceptMaterialResearchCandidate`.
-- No Price Memory write from research.
-- No zaprawianie material component / research.
-- No P4 Labor changes.
-- No Material Expert V2.
-
-## Gate B interpretation
-
-Gate B allows: trusted CURRENT hit **OR** research **OR** **honest blocker**.
-
-This package documents **honest blocker** = **Gate B PASS** for P5.12 under the
-no-invent constraint. Residual: Owner must approve a **trusted material identity**
-(or a separate epic that changes the research contract) before Leroy/Castorama
-candidates can be produced by the existing Material Expert.
-
-## Residual for Owner
-
-1. Review / Accept **4 Labor** zaprawianie candidates @ 20 PLN/mb (P4-REAL / P5.11).
-2. Decide identity path for 2 × odpowietrznik (Owner-approved `mat.*` + product + aliases)
-   **before** re-running Material Expert research with retail evidence.
-3. **P6** Position Cost / Bid — only after verified Labor + Material coverage.
 
 ## Related
 
-- P5.8 audit: `IK-MIGRATION-01-P5.8-MATERIAL-IDENTITY-WAVE1-AUDIT.md`
-- P5.9 identity: `IK-MIGRATION-01-P5.9-IDENTITY-OWNER-NORM.md` · `PRODUCT_IDENTITY_GAP`
+- P5.13 entry: `IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md`
 - P5.11 zaprawianie LABOR: `IK-MIGRATION-01-P5.11-ZAPRAWIANIE-LABOR.md`

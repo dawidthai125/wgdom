@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.75 — IK P5.13 Material research entry (2026-08-15)
+
+**Scope:** Smallest Material Expert extension — Supplier Research without pre-existing product `mat.*`.
+
+- Material Demand (MATERIAL plane + Work Identity) → `demand.work.<workId>` → Phase2 → Candidate → Owner Accept → Price Memory on `catalogWorkId`
+- Existing mat.* HIT/MISS paths unchanged · zaprawianie LABOR locked · ZERO invent / auto-Accept
+- `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p513-material-research-entry.mjs` · Docs: `docs/architecture/IK-MIGRATION-01-P5.13-MATERIAL-RESEARCH-ENTRY.md`
+
 ## 2.66.74 — IK P5.11 Zaprawianie COMPOUND→LABOR (2026-08-15)
 
 **Scope:** Owner GO — reclassify `cc-p0c-w1-zaprawianie-bruzd` to LABOR; drop MATERIALS_REQUIRED/Wave1 pending for this workId only.
