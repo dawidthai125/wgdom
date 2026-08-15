@@ -3,7 +3,7 @@
  * Run: npx vite-node scripts/test-ik-migration-01-p5-real-material.mjs
  *
  * Live Gate B: scripts/probe-ik-migration-01-p5-real-material.mjs
- * ZZK focus 6 (2 MATERIAL + 4 COMPOUND) → NO_MATERIAL_COMPONENT (no invent mat.*)
+ * ZZK focus: 2 MATERIAL + zaprawianie LABOR (P5.11) + paint lines
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -320,7 +320,7 @@ function readyExpert(lines) {
 forceIkEntryEnabledForTests(null);
 assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings()) === false);
 assert("Gate A ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
-assert("O Wave1 zaprawianie PENDING (no invent mat)", isWave1MaterialsRequiredPending(ZAPRAWA) === true);
+assert("O Wave1 zaprawianie NOT pending (P5.11 LABOR)", isWave1MaterialsRequiredPending(ZAPRAWA) === false);
 
 const focusLines = [
   {
@@ -440,9 +440,14 @@ const slice = summarizeIkMaterialForFocusLines(report, focusIds);
 
 assert("A focus input 4", slice.focusInput === 4 && slice.coverageOk);
 assert(
-  "O compound / MATERIAL without mat.* → NO_MATERIAL_COMPONENT",
+  "O zawór MATERIAL without mat.* → NO_MATERIAL_COMPONENT",
   slice.noMaterialComponent >= 1
-  && report.lines.some((l) => l.lineId === "L-zap" && !l.materialIdentity && l.plane === "COMPOUND"),
+  && report.lines.some((l) => l.lineId === "L-zawor" && !l.materialIdentity && l.plane === "MATERIAL"),
+);
+assert(
+  "O2 zaprawianie LABOR skipped by Material Expert (P5.11)",
+  report.lines.some((l) => l.lineId === "L-zap" && l.plane === "LABOR" && !l.materialIdentity)
+  && (slice.byCoverage.LABOR_SKIPPED ?? 0) >= 1,
 );
 assert(
   "P no invent materialKey on zawor work id",

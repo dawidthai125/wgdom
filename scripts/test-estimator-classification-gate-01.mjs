@@ -32,18 +32,18 @@ for (const [id, plane] of Object.entries(ESTIMATOR_OWNER_CLASSIFICATION_MAP)) {
 }
 
 ok(
-  "counts frozen 29/24/6/30",
-  ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.LABOR === 29 &&
+  "counts frozen 30/24/5/30",
+  ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.LABOR === 30 &&
     ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.MATERIAL === 24 &&
-    ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.COMPOUND === 6 &&
+    ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.COMPOUND === 5 &&
     ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.UNKNOWN === 30 &&
     Object.keys(ESTIMATOR_OWNER_CLASSIFICATION_MAP).length === 89,
   ESTIMATOR_OWNER_CLASSIFICATION_COUNTS,
 );
 
-ok("map LABOR count", byPlane.LABOR.length === 29, byPlane.LABOR.length);
+ok("map LABOR count", byPlane.LABOR.length === 30, byPlane.LABOR.length);
 ok("map MATERIAL count", byPlane.MATERIAL.length === 24, byPlane.MATERIAL.length);
-ok("map COMPOUND count", byPlane.COMPOUND.length === 6, byPlane.COMPOUND.length);
+ok("map COMPOUND count", byPlane.COMPOUND.length === 5, byPlane.COMPOUND.length);
 ok("map UNKNOWN count", byPlane.UNKNOWN.length === 30, byPlane.UNKNOWN.length);
 
 let laborOk = true;
@@ -51,7 +51,7 @@ for (const id of byPlane.LABOR) {
   const c = classifyEstimatorPricingPlane({ workId: id });
   if (c.plane !== "LABOR" || !c.allowLaborResearch || c.hold) laborOk = false;
 }
-ok("1 all 29 LABOR → LABOR + labor path", laborOk);
+ok("1 all 30 LABOR → LABOR + labor path", laborOk);
 
 let materialOk = true;
 for (const id of byPlane.MATERIAL) {
@@ -74,7 +74,7 @@ for (const id of byPlane.COMPOUND) {
     compoundOk = false;
   }
 }
-ok("3 all 6 COMPOUND → COMPOUND HOLD", compoundOk);
+ok("3 all 5 COMPOUND → COMPOUND HOLD", compoundOk);
 
 let unknownOk = true;
 for (const id of byPlane.UNKNOWN) {

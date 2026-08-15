@@ -224,7 +224,7 @@ function makeStore(works) {
   void wOffers;
 }
 
-// ——— T10 width / Classification Gate (Owner COMPOUND → research BLOCKED) ———
+// ——— T10 Classification Gate (P5.11 Owner LABOR → research allowed) ———
 {
   clearWorkRateResearchAntiStormState();
   const port = createFixtureWorkRateSelectiveLookup({
@@ -246,11 +246,11 @@ function makeStore(works) {
     bypassCooldown: true,
   });
   eq("T10 family grooves", resolveWorkRateWorkFamily({ workId: WORK_ID, namePl: NAME }), "grooves");
-  // Owner Classification Gate: cc-p0c-w1-zaprawianie-bruzd = COMPOUND → HOLD (A1/A2)
-  eq("T10 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
-  eq("T10 reason CLASSIFICATION_GATE", res.status === "BLOCKED" ? res.reason : null, "CLASSIFICATION_GATE");
-  eq("T10 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
-  eq("T10 httpFetchCount 0", res.httpFetchCount, 0);
+  // P5.11 Owner GO: LABOR plane → research allowed (not COMPOUND HOLD)
+  eq("T10 CANDIDATE", res.status, "CANDIDATE");
+  if (res.status === "CANDIDATE") {
+    eq("T10 marketBase 20", res.candidate.marketBaseRatePln, 20);
+  }
   eq("T10 no live fetch", fetchCalls, 0);
 }
 
@@ -262,7 +262,7 @@ function makeStore(works) {
   ok("T12 companyPrice ≠ proposed", computeProposedWorkRatePln(20, 20) !== 35);
 }
 
-// ——— T13 Expert RO flags — COMPOUND research BLOCKED (no candidate path) ———
+// ——— T13 Expert RO — Candidate path · no auto OUR RATE write ———
 {
   clearWorkRateResearchAntiStormState();
   const port = createFixtureWorkRateSelectiveLookup({
@@ -279,17 +279,15 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
-  eq("T13 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
-  eq("T13 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
-  // Static contract: expert flags remain false when no write path
+  eq("T13 CANDIDATE", res.status, "CANDIDATE");
+  ok("T13 no OUR RATE until Accept", !store.catalogs.wroclaw.works[0].ourWorkRate);
   const { analyzeLaborRateCandidate } = await import(
     "../src/lib/ik-pricing-orchestrator/labor-rate-expert-rec.ts"
   );
   void analyzeLaborRateCandidate;
-  ok("T13 expert write path unreachable under COMPOUND hold", res.status === "BLOCKED");
 }
 
-// ——— T14 Owner Accept only write — COMPOUND → no research → no OUR RATE ———
+// ——— T14 Owner Accept only write — research ≠ OUR RATE ———
 {
   clearWorkRateResearchAntiStormState();
   const store = makeStore([makeWork()]);
@@ -306,7 +304,7 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
-  eq("T14 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
+  eq("T14 CANDIDATE", res.status, "CANDIDATE");
   ok("T14 research does not write OUR RATE", !store.catalogs.wroclaw.works[0].ourWorkRate);
 }
 
@@ -368,8 +366,7 @@ function makeStore(works) {
     lookupPort: port,
     bypassCooldown: true,
   });
-  eq("T17 CLASSIFICATION BLOCKED", res.status, "BLOCKED");
-  eq("T17 plane COMPOUND", res.status === "BLOCKED" ? res.plane : null, "COMPOUND");
+  eq("T17 GAP empty", res.status, "GAP");
 }
 
 // ——— T18 PASS1 regression painting (Owner LABOR seed) ———

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.74",
+    label: "IK P5.11 Zaprawianie COMPOUND→LABOR",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5.11: Owner GO — cc-p0c-w1-zaprawianie-bruzd COMPOUND→LABOR; usunięte MATERIALS_REQUIRED/Wave1 pending (folia bez zmian). P4-REAL: 4 linie → Candidate 20 PLN/mb (Accept REQUIRED). ZERO invent/auto-Accept. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.73",
     label: "IK P5.9 Material identity Owner norm",
     items: [

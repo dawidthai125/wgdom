@@ -1,16 +1,17 @@
 /**
  * INTELLIGENT-ESTIMATOR-CLASSIFICATION-GATE — Owner FINAL map (code-frozen).
  * Source: INTELLIGENT-ESTIMATOR-LABOR-MATERIAL-FLOW-OWNER-DECISION-CLOSEOUT
- * Counts: LABOR 29 · MATERIAL 24 · COMPOUND 6 · UNKNOWN 30 · total 89
+ * Counts: LABOR 30 · MATERIAL 24 · COMPOUND 5 · UNKNOWN 30 · total 89
  * A1: ZERO heuristics · ZERO remap · ZERO expand · miss → UNKNOWN
+ * P5.11 Owner GO: cc-p0c-w1-zaprawianie-bruzd COMPOUND → LABOR (no explicit material component).
  */
 
 import type { EstimatorPricingPlane } from "./classification-types";
 
 export const ESTIMATOR_OWNER_CLASSIFICATION_COUNTS = Object.freeze({
-  LABOR: 29,
+  LABOR: 30,
   MATERIAL: 24,
-  COMPOUND: 6,
+  COMPOUND: 5,
   UNKNOWN: 30,
   TOTAL: 89,
 });
@@ -21,7 +22,7 @@ export const ESTIMATOR_OWNER_CLASSIFICATION_MAP: Readonly<
   "cc-p0c-w1-multiswitch-antenowy": "MATERIAL",
   "cc-p0c-w1-stop-ptakow": "MATERIAL",
   "cc-p0c-w1-zabezpieczenie-folia": "COMPOUND",
-  "cc-p0c-w1-zaprawianie-bruzd": "COMPOUND",
+  "cc-p0c-w1-zaprawianie-bruzd": "LABOR",
   "cc-p0c-w1-zawor-odpowietrzajacy": "MATERIAL",
   "cc-w2-mocowanie-aparatow": "LABOR",
   "cc-w2-oczyszczenie-podloza": "LABOR",

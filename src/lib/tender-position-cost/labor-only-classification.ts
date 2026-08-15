@@ -12,10 +12,12 @@ export const OWNER_APPROVED_LABOR_ONLY_WORK_IDS: ReadonlySet<string> = new Set([
   "cc-w2-mocowanie-aparatow",
 ]);
 
-/** MATERIALS_REQUIRED — BOM mandatory; norms pending Owner (no invent). */
+/**
+ * MATERIALS_REQUIRED — BOM mandatory; norms pending Owner (no invent).
+ * P5.11: zaprawianie-bruzd removed (Owner GO → LABOR; no TechnologyPack / mat.*).
+ */
 export const OWNER_MATERIALS_REQUIRED_WORK_IDS: ReadonlySet<string> = new Set([
   "cc-p0c-w1-zabezpieczenie-folia",
-  "cc-p0c-w1-zaprawianie-bruzd",
 ]);
 
 /** Unit mismatch HOLD — not LABOR_ONLY until Owner unit RCA. */

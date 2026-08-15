@@ -1,11 +1,9 @@
 /**
  * OUR-RATE-BOM-COVERAGE-01 Wave 1 — MATERIALS_REQUIRED packs.
  *
- * Owner GO: folia + zaprawianie-bruzd require TechnologyPack + BOM.
+ * Owner GO (historical): folia requires TechnologyPack + BOM.
+ * P5.11 Owner GO: cc-p0c-w1-zaprawianie-bruzd → LABOR (removed from pending).
  * NO invent norms — without Owner-approved qtyFactor → GAP (no pack registered).
- *
- * P5.9: investigated TechnologyPack path — repo has NO trusted materialKey+qtyFactor
- * for these workIds (TECHNOLOGY-RECIPE DF · Owner norm catalog absent). Packs stay [].
  *
  * Do NOT add to seedB0Fixtures (fixtures ≠ production coverage).
  */
@@ -38,15 +36,6 @@ export const WAVE1_MATERIALS_REQUIRED_PENDING: readonly Wave1MaterialsRequiredPe
       status: "PENDING_OWNER_NORM",
       reasonPl:
         "Brak Owner-approved normy zużycia folii (m2 BOQ → materialKey). Bez invent qtyFactor → BOM GAP.",
-      missing: ["materialKey", "qtyFactor"],
-    },
-    {
-      workId: "cc-p0c-w1-zaprawianie-bruzd",
-      namePl: "Zaprawianie / zamurowanie bruzd",
-      unit: "mb",
-      status: "PENDING_OWNER_NORM",
-      reasonPl:
-        "Brak Owner-approved normy zaprawy (mb BOQ → materialKey). Bez invent qtyFactor → BOM GAP.",
       missing: ["materialKey", "qtyFactor"],
     },
   ] as const;

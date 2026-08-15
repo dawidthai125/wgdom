@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.74 — IK P5.11 Zaprawianie COMPOUND→LABOR (2026-08-15)
+
+**Scope:** Owner GO — reclassify `cc-p0c-w1-zaprawianie-bruzd` to LABOR; drop MATERIALS_REQUIRED/Wave1 pending for this workId only.
+
+- Owner seed map + counts 30/24/5/30 · folia MATERIALS_REQUIRED retained
+- P4-REAL ZZK: 4 lines LABOR · Candidate 20 PLN/mb (KB) · Accept REQUIRED · ZERO auto
+- P5: material input 0 for these lines · ZERO invent mat.*
+- `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p511-zaprawianie-labor.mjs` · Docs: `docs/architecture/IK-MIGRATION-01-P5.11-ZAPRAWIANIE-LABOR.md`
+
 ## 2.66.73 — IK P5.9 Material identity Owner norm (2026-08-15)
 
 **Scope:** Identity-only classification of ZZK focus 6 material blockers (no invent).

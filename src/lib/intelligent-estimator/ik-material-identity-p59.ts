@@ -22,12 +22,14 @@ import {
 import { findActiveTechnologyPacksForWorkId } from "@/lib/tender-position-cost/bom-technology-adapter";
 import { ESTIMATOR_OWNER_CLASSIFICATION_MAP } from "@/lib/intelligent-estimator/owner-classification-map";
 
-/** P5.9 success outcomes (honest — not forced identity). */
+/** P5.9/P5.11 success outcomes (honest — not forced identity). */
 export type IkMaterialIdentityP59Outcome =
   | "TRUSTED_MATERIAL_IDENTITY"
   | "OWNER_REVIEW_REQUIRED"
   | "PENDING_OWNER_NORM"
-  | "PRODUCT_IDENTITY_GAP";
+  | "PRODUCT_IDENTITY_GAP"
+  /** P5.11: pricing plane LABOR — not a material opportunity. */
+  | "LABOR_NO_MATERIAL_COMPONENT";
 
 export type IkMaterialIdentityP59Resolved = {
   materialKey: string;
@@ -75,6 +77,7 @@ export type IkMaterialIdentityP59Counts = {
   ownerReviewRequired: number;
   pendingOwnerNorm: number;
   productIdentityGap: number;
+  laborNoMaterialComponent: number;
   technologyPackBefore: number;
   technologyPackAfter: number;
   inventedMaterialKeys: 0;
@@ -162,10 +165,23 @@ export function classifyIkMaterialIdentityP59(opts: {
     ? ESTIMATOR_OWNER_CLASSIFICATION_MAP[workId] ?? null
     : null;
 
+  // P5.11: LABOR plane is not a material opportunity (no invent mat.* from work name).
+  if (plane === "LABOR") {
+    return {
+      outcome: "LABOR_NO_MATERIAL_COMPONENT",
+      materialIdentity: null,
+      technologyPackIds: packIds,
+      missing: [],
+      reasonPl:
+        "Owner pricing plane LABOR — Material Expert input = 0 (service/robocizna, not material).",
+      provenance: "owner-classification-map:LABOR",
+    };
+  }
+
   if (
     workId === P59_FOCUS_WORK_ZAWOR ||
     plane === "MATERIAL" ||
-    plane === "BOTH"
+    plane === "COMPOUND"
   ) {
     return {
       outcome: "PRODUCT_IDENTITY_GAP",
@@ -173,7 +189,7 @@ export function classifyIkMaterialIdentityP59(opts: {
       technologyPackIds: packIds,
       missing: [],
       reasonPl:
-        "Work Identity / MATERIAL plane exists, but no existing mat.* or cw.product.* in Product Mapper (no invent product).",
+        "Work Identity / MATERIAL|COMPOUND plane exists, but no existing mat.* or cw.product.* in Product Mapper (no invent product).",
       provenance: "material-market-map:PRODUCT_IDENTITY_GAP",
     };
   }
@@ -230,10 +246,12 @@ export function runIkMaterialIdentityP59(opts: {
   let ownerReviewRequired = 0;
   let pendingOwnerNorm = 0;
   let productIdentityGap = 0;
+  let laborNoMaterialComponent = 0;
   for (const row of lines) {
     if (row.outcome === "TRUSTED_MATERIAL_IDENTITY") trustedMaterialIdentity += 1;
     else if (row.outcome === "OWNER_REVIEW_REQUIRED") ownerReviewRequired += 1;
     else if (row.outcome === "PENDING_OWNER_NORM") pendingOwnerNorm += 1;
+    else if (row.outcome === "LABOR_NO_MATERIAL_COMPONENT") laborNoMaterialComponent += 1;
     else productIdentityGap += 1;
   }
 
@@ -243,6 +261,7 @@ export function runIkMaterialIdentityP59(opts: {
     ownerReviewRequired,
     pendingOwnerNorm,
     productIdentityGap,
+    laborNoMaterialComponent,
     technologyPackBefore,
     technologyPackAfter,
     inventedMaterialKeys: 0,

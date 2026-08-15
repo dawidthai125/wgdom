@@ -72,36 +72,32 @@ assert(
   findActiveTechnologyPacksForWorkId(P59_FOCUS_WORK_ZAPRAWIANIE, []).length === 0,
 );
 
-// --- B/C provenance of missing fields
-const zapRow = getWave1MaterialsRequiredPendingRow(P59_FOCUS_WORK_ZAPRAWIANIE);
-assert("B zaprawianie pending row exists", Boolean(zapRow));
+// --- B/C provenance of missing fields (folia remains pending; zaprawianie P5.11 out)
+const foliaRow = getWave1MaterialsRequiredPendingRow("cc-p0c-w1-zabezpieczenie-folia");
+assert("B folia pending row exists", Boolean(foliaRow));
 assert(
   "B missing includes materialKey",
-  zapRow?.missing.includes("materialKey") === true,
-  zapRow?.missing,
+  foliaRow?.missing.includes("materialKey") === true,
+  foliaRow?.missing,
 );
 assert(
   "C missing includes qtyFactor",
-  zapRow?.missing.includes("qtyFactor") === true,
-  zapRow?.missing,
+  foliaRow?.missing.includes("qtyFactor") === true,
+  foliaRow?.missing,
 );
 assert(
-  "B/C pending list still contains zaprawianie",
-  WAVE1_MATERIALS_REQUIRED_PENDING.some((r) => r.workId === P59_FOCUS_WORK_ZAPRAWIANIE),
+  "B/C pending list does NOT contain zaprawianie (P5.11)",
+  !WAVE1_MATERIALS_REQUIRED_PENDING.some((r) => r.workId === P59_FOCUS_WORK_ZAPRAWIANIE),
 );
 
-// --- D no invented norm (classifier does not invent)
+// --- D no invented norm · P5.11 LABOR plane
 const zapClass = classifyIkMaterialIdentityP59({
   workId: P59_FOCUS_WORK_ZAPRAWIANIE,
   namePl: "Zaprawianie bruzd o szer. do 100 mm",
   unit: "m",
 });
-assert("D zaprawianie PENDING_OWNER_NORM", zapClass.outcome === "PENDING_OWNER_NORM");
+assert("D zaprawianie LABOR_NO_MATERIAL_COMPONENT", zapClass.outcome === "LABOR_NO_MATERIAL_COMPONENT");
 assert("D no materialIdentity invented", zapClass.materialIdentity === null);
-assert(
-  "D missing both fields",
-  zapClass.missing.includes("materialKey") && zapClass.missing.includes("qtyFactor"),
-);
 
 // --- E existing product mapping (paint proves path works)
 const paintExact = resolveDemandProductIdentityExact({
@@ -135,8 +131,9 @@ assert("G no invented product", zaworClass.materialIdentity === null);
 const report = runIkMaterialIdentityP59({ lines: P59_ZZK_FOCUS_LINE_SPECS });
 assert("H/I focus input = 6", report.counts.inputLineCount === 6);
 assert("H trusted = 0", report.counts.trustedMaterialIdentity === 0);
-assert("I pending = 4", report.counts.pendingOwnerNorm === 4);
+assert("I pending = 0 (zaprawianie out)", report.counts.pendingOwnerNorm === 0);
 assert("I product gap = 2", report.counts.productIdentityGap === 2);
+assert("I labor no material = 4", report.counts.laborNoMaterialComponent === 4);
 assert("I owner review = 0", report.counts.ownerReviewRequired === 0);
 assert("H status PARTIAL", report.status === "PARTIAL");
 
@@ -144,8 +141,8 @@ const zaworLines = report.lines.filter((l) => l.workId === P59_FOCUS_WORK_ZAWOR)
 const zapLines = report.lines.filter((l) => l.workId === P59_FOCUS_WORK_ZAPRAWIANIE);
 assert("I zawór 2/2 GAP", zaworLines.length === 2 && zaworLines.every((l) => l.outcome === "PRODUCT_IDENTITY_GAP"));
 assert(
-  "I zaprawianie 4/4 PENDING",
-  zapLines.length === 4 && zapLines.every((l) => l.outcome === "PENDING_OWNER_NORM"),
+  "I zaprawianie 4/4 LABOR_NO_MATERIAL",
+  zapLines.length === 4 && zapLines.every((l) => l.outcome === "LABOR_NO_MATERIAL_COMPONENT"),
 );
 
 // --- J/K/L/M/N integrity
@@ -172,7 +169,7 @@ assert("A packs after = 0", report.counts.technologyPackAfter === 0);
 assert("fetch not used for identity", liveFetch === 0);
 
 // Wave1 helper
-assert("isWave1 pending zaprawianie", isWave1MaterialsRequiredPending(P59_FOCUS_WORK_ZAPRAWIANIE));
+assert("isWave1 pending zaprawianie false", isWave1MaterialsRequiredPending(P59_FOCUS_WORK_ZAPRAWIANIE) === false);
 assert("isWave1 not zawór", isWave1MaterialsRequiredPending(P59_FOCUS_WORK_ZAWOR) === false);
 
 // Gate A — NG-10
@@ -192,8 +189,8 @@ const item = {
 const vm = buildIkEntryConversationViewModel(item, { materialIdentityP59: report });
 const events = vm.steps.map((s) => s.event);
 assert(
-  "EC MATERIAL_IDENTITY_GAP",
-  events.includes("MATERIAL_IDENTITY_GAP"),
+  "EC MATERIAL_IDENTITY_GAP absent for zaprawianie LABOR",
+  !events.includes("MATERIAL_IDENTITY_GAP"),
   events.filter((e) => e.includes("MATERIAL") || e.includes("OWNER")),
 );
 assert(
