@@ -49,6 +49,14 @@ Sum must equal input (430 on live ZZK).
 
 `08def45d-ead6-5db8-962b-120001d33d37` — may truthfully show **0** material identities (no invent). Harness proves HIT / MISS→research→Accept→second lookup.
 
+## P5.12 (2026-08-15) — odpowietrznik REAL STOP
+
+Focus 2 × `cc-p0c-w1-zawor-odpowietrzajacy`: Work plane MATERIAL OK, but
+`resolveDemandProductIdentityExact = null` → existing Material Expert cannot run
+Price Memory / Phase2 without inventing `mat.*`. Owner Leroy/Castorama evidence
+stays outside the pipeline until Owner-approved identity. See
+[`IK-MIGRATION-01-P5.12-REAL-MATERIAL-ODPOWIETRZNIK.md`](./IK-MIGRATION-01-P5.12-REAL-MATERIAL-ODPOWIETRZNIK.md).
+
 ## Tests
 
 - `npx vite-node scripts/test-ik-migration-01-p5-material-expert.mjs`
