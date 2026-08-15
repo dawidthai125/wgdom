@@ -21,7 +21,8 @@ export type ExpertConversationStepKind =
   | "extraction"
   | "validation"
   | "boq_status"
-  | "classification";
+  | "classification"
+  | "labor";
 
 export type ExpertConversationStepStatus =
   | "pending"
@@ -38,7 +39,12 @@ export type ExpertConversationSourceRefKind =
   | "extraction"
   | "boq_ready"
   | "hold"
-  | "classification";
+  | "classification"
+  | "identity"
+  | "labor_lookup"
+  | "labor_research"
+  | "evidence"
+  | "candidate";
 
 export interface ExpertConversationSourceRef {
   kind: ExpertConversationSourceRefKind;

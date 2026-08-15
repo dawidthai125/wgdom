@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.66 — IK P4 Labor Expert (2026-08-15)
+
+**Scope:** Work Identity → OUR RATE CURRENT/MISS → selective Labor Research.
+
+- REUSE: `mapOfferBoqLine` · `resolveWorkIdentityFromOfferBoqLine` · `lookupWorkRate` · `runIkLaborGapResearch`
+- Research tylko LABOR + trusted identity + MISS (dedupe workId|unit)
+- ZERO auto-Accept · ZERO Material · ZERO F5/Bid
+- EC: WORK_IDENTITY_* / LABOR_* facts
+- `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `scripts/test-ik-migration-01-p4-labor-expert.mjs`
+
 ## 2.66.65 — IK P3 Classification Gate (2026-08-15)
 
 **Scope:** Master BOQ READY → `classifyEstimatorPricingPlane` (A1) → plane + expert handoff.

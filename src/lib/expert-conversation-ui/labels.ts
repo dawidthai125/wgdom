@@ -30,6 +30,9 @@ export const EXPERT_CONVERSATION_ACTOR_OFFER_PL = "Offer Expert";
 
 export const EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL = "Document Expert";
 
+/** IK-MIGRATION-01 P4 — Labor Expert conversation actor. */
+export const EXPERT_CONVERSATION_ACTOR_LABOR_PL = "Labor Expert";
+
 export const EXPERT_CONVERSATION_SUBTITLE_IK_PL =
   "Fakty z dokumentacji przetargu — bez udawania wyceny";
 

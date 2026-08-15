@@ -1,7 +1,7 @@
 /**
- * IK-MIGRATION-01 P1/P2.5 — first-screen host.
- * REUSE ExpertConversationSurface + NG-02 heavy via ik-ng02-ingest-bridge.
- * ZERO NG-10. ZERO new chat store. ZERO new parser.
+ * IK-MIGRATION-01 P1/P2.5/P3/P4 — first-screen host.
+ * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor Expert.
+ * ZERO NG-10. ZERO new chat store. ZERO auto-Accept.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -14,6 +14,10 @@ import {
   runIkNg02IngestBridge,
   type IkNg02IngestBridgeResult,
 } from "@/lib/intelligent-estimator/ik-ng02-ingest-bridge";
+import {
+  runIkMasterBoqLaborExpert,
+  type IkLaborExpertReport,
+} from "@/lib/intelligent-estimator/ik-labor-expert";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
@@ -35,7 +39,9 @@ export function IkEntryHost({
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
+  const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
   const attemptedRef = useRef<string | null>(null);
+  const laborAttemptedRef = useRef<string | null>(null);
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
@@ -123,6 +129,36 @@ export function IkEntryHost({
     () => ingest?.expert ?? runIkDocumentExpert({ item: effectiveItem, package: pkg }),
     [ingest, effectiveItem, pkg],
   );
+
+  // P4 — Labor Expert when Master BOQ READY (identity → CURRENT/MISS → research only if justified).
+  useEffect(() => {
+    const key = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!key || !report.masterBoq.readyForExperts) {
+      setLabor(null);
+      return;
+    }
+    const laborKey = `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}`;
+    if (laborAttemptedRef.current === laborKey) return;
+    laborAttemptedRef.current = laborKey;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await runIkMasterBoqLaborExpert({
+          item: effectiveItem,
+          package: pkg,
+          expert: report,
+          executeResearch: true,
+        });
+        if (!cancelled) setLabor(result);
+      } catch {
+        if (!cancelled) setLabor(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveItem, pkg, report]);
+
   const vm = useMemo(
     () =>
       buildIkEntryConversationViewModel(effectiveItem, {
@@ -147,8 +183,9 @@ export function IkEntryHost({
               }
             : null),
         pipelineIngest,
+        labor,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor],
   );
 
   return (
@@ -162,6 +199,9 @@ export function IkEntryHost({
       data-ik-master-ready={report.masterBoq.readyForExperts ? "1" : "0"}
       data-ik-extracted-lines={String(report.extraction.extractedCount)}
       data-ik-ingest-phase={ingest?.phase ?? (bridgeBusy ? "started" : "idle")}
+      data-ik-labor-status={labor?.status ?? "pending"}
+      data-ik-labor-resolved={String(labor?.counts.workIdentityResolved ?? 0)}
+      data-ik-labor-research={String(labor?.counts.researchCalls ?? 0)}
     >
       <ExpertConversationSurface vm={vm} />
     </div>

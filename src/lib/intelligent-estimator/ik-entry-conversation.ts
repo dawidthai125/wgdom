@@ -12,6 +12,7 @@ import type {
 } from "@/lib/expert-conversation-ui";
 import {
   EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
+  EXPERT_CONVERSATION_ACTOR_LABOR_PL,
   EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   labelConversationStatusPl,
@@ -24,6 +25,7 @@ import {
   type IkDocumentExpertStatus,
 } from "./ik-document-expert";
 import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-classification";
+import type { IkLaborExpertReport } from "./ik-labor-expert";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 
@@ -39,6 +41,8 @@ export interface IkEntryConversationOpts {
   } | null;
   /** P3 — precomputed classification (optional; otherwise run when Master BOQ READY). */
   classification?: IkClassificationReport | null;
+  /** P4 — Labor Expert report (async; pass when ready — never invent). */
+  labor?: IkLaborExpertReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -62,10 +66,11 @@ function step(opts: {
   messagePl: string;
   detailPl: string | null;
   sourceRef: ExpertConversationSourceRef;
+  actorLabelPl?: string;
 }): ExpertConversationStepView {
   return {
     id: opts.id,
-    actorLabelPl: EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
+    actorLabelPl: opts.actorLabelPl ?? EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
     status: opts.status,
     statusLabelPl: labelConversationStatusPl(opts.status),
     messagePl: opts.messagePl,
@@ -86,7 +91,13 @@ export function buildIkEntryConversationViewModel(
   const opts: IkEntryConversationOpts =
     pkgOrOpts
     && typeof pkgOrOpts === "object"
-    && ("package" in pkgOrOpts || "ingest" in pkgOrOpts || "pipelineIngest" in pkgOrOpts || "classification" in pkgOrOpts)
+    && (
+      "package" in pkgOrOpts
+      || "ingest" in pkgOrOpts
+      || "pipelineIngest" in pkgOrOpts
+      || "classification" in pkgOrOpts
+      || "labor" in pkgOrOpts
+    )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
   const pkg = opts.package ?? null;
@@ -599,6 +610,151 @@ export function buildIkEntryConversationViewModel(
         }, "classification"),
       }),
     );
+  }
+
+  // P4 — Labor Expert (only when report provided — async path; ZERO invent).
+  const labor = opts.labor ?? null;
+  if (labor && labor.counts.inputLineCount > 0) {
+    const lc = labor.counts;
+    const laborStep = (
+      event: string,
+      status: ExpertConversationStepStatus,
+      messagePl: string,
+      detailPl: string | null,
+      kind: ExpertConversationSourceRef["kind"],
+      artifact: Record<string, unknown>,
+    ) =>
+      step({
+        id: "labor",
+        event,
+        status,
+        messagePl,
+        detailPl,
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_LABOR_PL,
+        sourceRef: tenderRef(artifact, kind),
+      });
+
+    if (lc.workIdentityResolved > 0) {
+      steps.push(
+        laborStep(
+          "WORK_IDENTITY_RESOLVED",
+          "done",
+          `Work identity: ${lc.workIdentityResolved}/${lc.outputLineCount} pozycji (Product Mapper + trusted match).`,
+          `labor=${lc.labor} · nonLabor=${lc.nonLabor} · both=${lc.both} · unresolved=${lc.unresolved}`,
+          "identity",
+          {
+            workIdentityResolved: lc.workIdentityResolved,
+            labor: lc.labor,
+            nonLabor: lc.nonLabor,
+            both: lc.both,
+            unresolved: lc.unresolved,
+            nonCost: lc.nonCost,
+          },
+        ),
+      );
+    }
+
+    if (lc.currentOurRateHit > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_CURRENT_HIT",
+          "done",
+          `OUR RATE CURRENT: ${lc.currentOurRateHit} (REUSE, bez research).`,
+          "lookupWorkRate → CURRENT",
+          "labor_lookup",
+          { currentOurRateHit: lc.currentOurRateHit },
+        ),
+      );
+    }
+
+    if (lc.ourRateMiss > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_RATE_MISS",
+          "partial",
+          `OUR RATE MISS: ${lc.ourRateMiss} pozycji labor bez aktualnej stawki.`,
+          `researchCalls=${lc.researchCalls} (dedupe workId|unit)`,
+          "labor_lookup",
+          { ourRateMiss: lc.ourRateMiss, researchCalls: lc.researchCalls },
+        ),
+      );
+    }
+
+    if (lc.researchCalls > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_RESEARCH_STARTED",
+          "done",
+          `Labor research: ${lc.researchCalls} unikalnych workId|unit (tylko LABOR + MISS).`,
+          "runIkLaborGapResearch · ZERO research dla UNRESOLVED",
+          "labor_research",
+          { researchKeys: labor.researchKeys, researchCalls: lc.researchCalls },
+        ),
+      );
+    }
+
+    if (lc.evidenceCandidates > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_EVIDENCE_FOUND",
+          "done",
+          `Evidence / candidate: ${lc.evidenceCandidates}.`,
+          "selective research → WorkRateResearchCandidate",
+          "evidence",
+          { evidenceCandidates: lc.evidenceCandidates },
+        ),
+      );
+      steps.push(
+        laborStep(
+          "LABOR_CANDIDATE_READY",
+          "done",
+          `Kandydaci gotowi: ${lc.evidenceCandidates}.`,
+          null,
+          "candidate",
+          { candidates: lc.evidenceCandidates },
+        ),
+      );
+      steps.push(
+        laborStep(
+          "LABOR_OWNER_ACCEPT_REQUIRED",
+          "partial",
+          `Owner Accept wymagany: ${lc.ownerAcceptRequired} (ZERO auto-Accept).`,
+          "acceptIkLaborResearchAndNotify — nie uruchomiony w P4",
+          "candidate",
+          {
+            ownerAcceptRequired: lc.ownerAcceptRequired,
+            acceptedOurRate: lc.acceptedOurRate,
+            autoAcceptExecuted: false,
+          },
+        ),
+      );
+    }
+
+    if (lc.acceptedOurRate > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_RATE_ACCEPTED",
+          "done",
+          `Zaakceptowane OUR RATE: ${lc.acceptedOurRate}.`,
+          null,
+          "candidate",
+          { acceptedOurRate: lc.acceptedOurRate },
+        ),
+      );
+    }
+
+    if (lc.unresolved > 0) {
+      steps.push(
+        laborStep(
+          "LABOR_UNRESOLVED",
+          "partial",
+          `Nadal UNRESOLVED: ${lc.unresolved} (brak trusted work identity lub plane UNKNOWN).`,
+          "nie wymuszam LABOR · nie research",
+          "identity",
+          { unresolved: lc.unresolved },
+        ),
+      );
+    }
   }
 
   return {

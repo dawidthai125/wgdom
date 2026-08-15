@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.66",
+    label: "IK P4 Labor Expert (identity → CURRENT / research)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P4: Labor Expert — mapOfferBoqLine → work identity → classify A1 → lookupWorkRate → runIkLaborGapResearch tylko LABOR+MISS. ZERO auto-Accept / Material / F5. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.65",
     label: "IK P3 Classification Gate (Master BOQ → plane)",
     items: [

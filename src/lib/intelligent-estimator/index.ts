@@ -92,3 +92,16 @@ export type {
   IkClassifiedMasterLine,
   IkIdentityStatus,
 } from "./ik-classification";
+
+export {
+  runIkMasterBoqLaborExpert,
+  mapAndResolveWorkIdentityForLine,
+  normalizeUnitForLaborLookup,
+} from "./ik-labor-expert";
+export type {
+  IkLaborBucket,
+  IkLaborExpertCounts,
+  IkLaborExpertLineResult,
+  IkLaborExpertReport,
+  IkLaborRateStatus,
+} from "./ik-labor-expert";
