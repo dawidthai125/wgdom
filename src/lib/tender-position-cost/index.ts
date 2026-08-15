@@ -70,6 +70,20 @@ export {
 
 export type { LaborOnlyClassifyOpts } from "@/lib/tender-position-cost/labor-only-classification";
 
+export {
+  OWNER_APPROVED_MATERIAL_SUPPLY_WORK_IDS,
+  isExplicitMaterialSupplyWork,
+} from "@/lib/tender-position-cost/material-supply-classification";
+
+export type { MaterialSupplyClassifyOpts } from "@/lib/tender-position-cost/material-supply-classification";
+
+export type {
+  CatalogWorkQuotesSellResolve,
+  CatalogWorkQuotesSellStatus,
+} from "@/lib/tender-position-cost/catalog-work-quotes-sell-adapter";
+
+export { resolveMaterialSellFromCatalogWorkQuotes } from "@/lib/tender-position-cost/catalog-work-quotes-sell-adapter";
+
 export type {
   EquipmentComponentResult,
   EquipmentPriceConfidence,

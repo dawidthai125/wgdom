@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.76",
+    label: "IK P5.16-B Commercial pricing contract",
+    items: [
+      {
+        type: "fix",
+        text: "IK-MIGRATION-01 P5.16-B (Owner GO): Labor C1 — Accept zapisuje marketBase jako OUR RATE; SELL = computeSellPricePln w resolveLaborInputFromOurWorkRate (bez double margin). Zaprawianie → OWNER_APPROVED_LABOR_ONLY. Zawór → MATERIAL_SUPPLY thin Work-Quotes→SELL (bez invent mat.*/BOM). ikEntryEnabled OFF · NG-10 RETAINED · F5/Bid/PDF UNCHANGED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.75",
     label: "IK P5.13 Material research entry",
     items: [

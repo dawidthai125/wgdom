@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.76 — IK P5.16-B Commercial pricing contract (2026-08-15)
+
+**Scope:** Owner GO — Labor C1 + zaprawianie LABOR_ONLY + zawór Work-Quotes→SELL thin bridge.
+
+- Accept research → OUR RATE = `marketBaseRatePln` (BASE); SELL derived in `resolveLaborInputFromOurWorkRate` via `computeSellPricePln`
+- `cc-p0c-w1-zaprawianie-bruzd` → `OWNER_APPROVED_LABOR_ONLY_WORK_IDS`
+- `cc-p0c-w1-zawor-odpowietrzajacy` → MATERIAL_SUPPLY `resolveMaterialSellFromCatalogWorkQuotes` (no invent mat.*)
+- `ikEntryEnabled` OFF · NG-10 RETAINED · no F5/Bid/PDF rewrite
+- Test: `scripts/test-ik-migration-01-p516b-commercial-pricing.mjs`
+
 ## 2.66.75 — IK P5.13 Material research entry (2026-08-15)
 
 **Scope:** Smallest Material Expert extension — Supplier Research without pre-existing product `mat.*`.

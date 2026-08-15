@@ -24,10 +24,15 @@ import {
   type BomTechnologyResolve,
 } from "@/lib/tender-position-cost/bom-technology-adapter";
 import { isExplicitLaborOnlyWork } from "@/lib/tender-position-cost/labor-only-classification";
+import { isExplicitMaterialSupplyWork } from "@/lib/tender-position-cost/material-supply-classification";
 import {
   resolveLaborInputFromOurWorkRate,
   type OurRateLaborResolve,
 } from "@/lib/tender-position-cost/our-rate-labor-adapter";
+import {
+  resolveMaterialSellFromCatalogWorkQuotes,
+  type CatalogWorkQuotesSellResolve,
+} from "@/lib/tender-position-cost/catalog-work-quotes-sell-adapter";
 import {
   resolveMaterialInputFromPriceMemory,
   type MaterialSellResolve,
@@ -35,6 +40,7 @@ import {
 import type {
   PositionCostInput,
   PositionCostResult,
+  PositionLaborInput,
   PositionMaterialInput,
 } from "@/lib/tender-position-cost/types";
 import type { EquipmentComponentResult } from "@/lib/tender-position-cost/equipment-contract";
@@ -143,7 +149,7 @@ export type ShadowPositionCostLineResult = {
   gapLabelsPl: string[];
   bom: BomTechnologyResolve | null;
   ourRate: OurRateLaborResolve | null;
-  materialsResolved: MaterialSellResolve[];
+  materialsResolved: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve>;
   position: PositionCostResult | null;
   engineInput: PositionCostInput | null;
   /** Odczyt legacy (tylko raport Δ) — NIE używany w kalkulacji shadow. */
@@ -358,11 +364,13 @@ function noBomMaterialPlaceholder(): PositionMaterialInput {
 }
 
 function collectMaterialGaps(
-  materials: MaterialSellResolve[],
+  materials: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve>,
   gaps: ShadowGapCode[],
 ): void {
   for (const m of materials) {
-    if (m.status === "NO_KEY") pushGap(gaps, "BRAK_MATERIAL_KEY");
+    if (m.status === "NO_KEY" || m.status === "NO_WORK") {
+      pushGap(gaps, "BRAK_MATERIAL_KEY");
+    }
     if (m.status === "MISSING") pushGap(gaps, "BRAK_CENY_MATERIALU");
     if (m.status === "STALE") pushGap(gaps, "PRZETERMINOWANA_CENA_MATERIALU");
   }
@@ -406,6 +414,8 @@ export type ComputeShadowPositionCostForLineInput = {
    * NEVER inferred from MISSING_BOM.
    */
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
+  materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /**
@@ -632,24 +642,42 @@ export function computeShadowPositionCostForOfferBoqLine(
   const workId = identity.workId;
   const unit = identity.unit;
 
-  const ourRate = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
-  base.ourRate = ourRate;
-  if (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY") {
-    pushGap(gaps, "BRAK_STAWKI_ROBOT");
-  }
-  if (ourRate.status === "STALE") {
-    pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
-  }
-
-  // OUR-RATE-BOM-COVERAGE-01 — explicit LABOR_ONLY thin wire (F0 materials=[] contract)
   const laborOnly = isExplicitLaborOnlyWork(workId, {
     extraLaborOnlyWorkIds: input.laborOnlyWorkIds,
   });
+  const materialSupply = isExplicitMaterialSupplyWork(workId, {
+    extraMaterialSupplyWorkIds: input.materialSupplyWorkIds,
+  });
 
-  let materialsResolved: MaterialSellResolve[] = [];
+  let materialsResolved: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve> = [];
   let materials: PositionMaterialInput[];
+  let laborInput: PositionLaborInput | null = null;
+  let ourRate: OurRateLaborResolve | null = null;
 
-  if (laborOnly) {
+  if (materialSupply) {
+    // P5.16-B: Work Quotes → SELL · labor=null · ZERO invent mat.*/BOM
+    base.ourRate = null;
+    base.bom = null;
+    const sell = resolveMaterialSellFromCatalogWorkQuotes(
+      store,
+      workId,
+      line.quantity,
+      unit,
+      nowMs,
+    );
+    materialsResolved = [sell];
+    materials = [sell.material];
+    collectMaterialGaps(materialsResolved, gaps);
+    laborInput = null;
+  } else if (laborOnly) {
+    ourRate = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
+    base.ourRate = ourRate;
+    if (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY") {
+      pushGap(gaps, "BRAK_STAWKI_ROBOT");
+    }
+    if (ourRate.status === "STALE") {
+      pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
+    }
     const bom = resolveLaborOnlyBomForWork({
       workId,
       unit,
@@ -658,7 +686,16 @@ export function computeShadowPositionCostForOfferBoqLine(
     base.bom = bom;
     // materials[] empty → engine labor-only · materialCost = 0 · no BOM gap
     materials = [];
+    laborInput = ourRate.labor;
   } else {
+    ourRate = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
+    base.ourRate = ourRate;
+    if (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY") {
+      pushGap(gaps, "BRAK_STAWKI_ROBOT");
+    }
+    if (ourRate.status === "STALE") {
+      pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
+    }
     const bom = resolveTechnologyBomForWork({
       workId,
       unit,
@@ -679,6 +716,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     } else {
       materials = [noBomMaterialPlaceholder()];
     }
+    laborInput = ourRate.labor;
   }
 
   base.materialsResolved = materialsResolved;
@@ -686,7 +724,7 @@ export function computeShadowPositionCostForOfferBoqLine(
   const engineInput: PositionCostInput = {
     quantity: line.quantity,
     unit,
-    labor: ourRate.labor,
+    labor: laborInput,
     materials,
   };
   const position = computePositionCost(engineInput);
@@ -710,6 +748,8 @@ export type ComputeShadowBoqPositionCostsInput = {
   ensureOwnerQuestions?: boolean;
   /** Extra Owner-approved LABOR_ONLY workIds (explicit only). */
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
+  materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /**
@@ -723,6 +763,7 @@ export function computeShadowPositionCostsForOfferBoq(
       line,
       store: input.store,
       laborOnlyWorkIds: input.laborOnlyWorkIds,
+      materialSupplyWorkIds: input.materialSupplyWorkIds,
       nowMs: input.nowMs,
       paintCoats: input.paintCoats,
       packs: input.packs,

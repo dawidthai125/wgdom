@@ -3,8 +3,16 @@
  *
  * REUSE `lookupWorkRate` · ZERO HTTP · ZERO research · C-CPLN-1 (brak legacy company price)
  * Engine pozostaje pure — ten adapter robi lookup PRZED `computePositionCost`.
+ *
+ * P5.16-B C1: stored OUR RATE = BASE · Position Cost labor rate = SELL
+ * (computeSellPricePln + resolveMarginPct — no second margin engine).
  */
 
+import {
+  computeSellPricePln,
+  resolveMarginPct,
+} from "@/lib/price-intelligence/our-price-catalog";
+import { getWorkByIdFromStore } from "@/lib/work-catalog/catalog-work-utils";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import {
@@ -28,13 +36,17 @@ export type OurRateLaborResolve = {
   workId: string;
   unit: WgdomCostUnit | string;
   identityKey: string;
-  /** Wartość OUR RATE gdy obecna (także przy STALE — engine i tak nie wlicza STALE). */
+  /** Stored OUR RATE (BASE) when present — also STALE. */
   ourRatePln: number | null;
+  /** commercialPricing.marginPct (null = unset → SELL GAP). */
+  marginPct: number | null;
+  /** Derived SELL for Position Cost (null when BASE or margin missing). */
+  sellPricePln: number | null;
   sourceType: string | null;
   regionScope: string | null;
   observedAt: string | null;
   updatedAt: string | null;
-  /** Gotowy input labor dla `computePositionCost` (nigdy null). */
+  /** Gotowy input labor dla `computePositionCost` — ourRatePln = SELL. */
   labor: PositionLaborInput;
   /** Surowy wynik lookup (null gdy NO_IDENTITY przed lookup). */
   lookup: LookupWorkRateResult | null;
@@ -47,9 +59,21 @@ const STATUS_LABEL: Record<OurRateLaborResolveStatus, string> = {
   NO_IDENTITY: "BRAK TOŻSAMOŚCI ROBOTY",
 };
 
+function resolveLaborSell(
+  store: WorkCatalogStore,
+  workId: string,
+  baseRatePln: number,
+): { marginPct: number | null; sellPricePln: number | null } {
+  const work = getWorkByIdFromStore(store, workId);
+  const marginPct = resolveMarginPct(work);
+  const sellPricePln = computeSellPricePln(baseRatePln, marginPct);
+  return { marginPct, sellPricePln };
+}
+
 /**
  * Mapuje Nasz Katalog Robót → PositionLaborInput.
  * C-CPLN-1: bez legacy company price · NIE research · NIE HTTP.
+ * P5.16-B: labor.ourRatePln = SELL; resolve.ourRatePln = BASE.
  */
 export function resolveLaborInputFromOurWorkRate(
   store: WorkCatalogStore,
@@ -66,6 +90,8 @@ export function resolveLaborInputFromOurWorkRate(
       unit,
       identityKey: buildWorkRateIdentityKey("", unit),
       ourRatePln: null,
+      marginPct: null,
+      sellPricePln: null,
       sourceType: null,
       regionScope: null,
       observedAt: null,
@@ -85,6 +111,8 @@ export function resolveLaborInputFromOurWorkRate(
       unit: lookup.unit,
       identityKey: lookup.identityKey,
       ourRatePln: null,
+      marginPct: resolveMarginPct(getWorkByIdFromStore(store, lookup.workId)),
+      sellPricePln: null,
       sourceType: null,
       regionScope: null,
       observedAt: null,
@@ -94,6 +122,12 @@ export function resolveLaborInputFromOurWorkRate(
     };
   }
 
+  const { marginPct, sellPricePln } = resolveLaborSell(
+    store,
+    lookup.workId,
+    lookup.ourRatePln,
+  );
+
   if (lookup.status === "STALE") {
     return {
       status: "STALE",
@@ -102,16 +136,18 @@ export function resolveLaborInputFromOurWorkRate(
       unit: lookup.unit,
       identityKey: lookup.identityKey,
       ourRatePln: lookup.ourRatePln,
+      marginPct,
+      sellPricePln,
       sourceType: lookup.sourceType,
       regionScope: lookup.regionScope,
       observedAt: lookup.observedAt,
       updatedAt: lookup.updatedAt,
-      labor: { status: "STALE", ourRatePln: lookup.ourRatePln },
+      labor: { status: "STALE", ourRatePln: sellPricePln },
       lookup,
     };
   }
 
-  // CURRENT
+  // CURRENT — engine needs SELL; margin unset → sell null → BRAK_OUR_RATE (truthful GAP)
   return {
     status: "CURRENT",
     statusLabelPl: lookup.statusLabelPl,
@@ -119,11 +155,13 @@ export function resolveLaborInputFromOurWorkRate(
     unit: lookup.unit,
     identityKey: lookup.identityKey,
     ourRatePln: lookup.ourRatePln,
+    marginPct,
+    sellPricePln,
     sourceType: lookup.sourceType,
     regionScope: lookup.regionScope,
     observedAt: lookup.observedAt,
     updatedAt: lookup.updatedAt,
-    labor: { status: "CURRENT", ourRatePln: lookup.ourRatePln },
+    labor: { status: "CURRENT", ourRatePln: sellPricePln },
     lookup,
   };
 }

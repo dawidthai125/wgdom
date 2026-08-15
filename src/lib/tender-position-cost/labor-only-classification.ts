@@ -10,6 +10,8 @@ export const OWNER_APPROVED_LABOR_ONLY_WORK_IDS: ReadonlySet<string> = new Set([
   "cc-w2-przygotowanie-osprzet",
   "cc-w2-przebijanie-otworow",
   "cc-w2-mocowanie-aparatow",
+  /** P5.16-B / P5.11 closeout — LABOR only · no TechnologyPack / mat.* / BOM. */
+  "cc-p0c-w1-zaprawianie-bruzd",
 ]);
 
 /**

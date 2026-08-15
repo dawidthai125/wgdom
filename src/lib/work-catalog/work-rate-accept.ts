@@ -25,7 +25,9 @@ function roundRatePln(value: number): number {
 }
 
 /**
- * Accept: SOURCE history (obserwacje) + OUR (ACCEPT / mediana).
+ * Accept: SOURCE history (obserwacje) + OUR (ACCEPT).
+ * P5.16-B C1: OUR RATE storage = market BASE (marketBaseRatePln), never proposed SELL.
+ * proposedOurRatePln / suggestedRatePln remain display-only on the candidate.
  */
 export function acceptWorkRateResearchCandidate(input: {
   store: WorkCatalogStore;
@@ -33,8 +35,8 @@ export function acceptWorkRateResearchCandidate(input: {
   observedAt?: string;
   updatedAt?: string;
 }): AcceptWorkRateResearchResult {
-  const suggested = Number(input.candidate.suggestedRatePln);
-  if (!Number.isFinite(suggested) || !(suggested > 0)) {
+  const marketBase = Number(input.candidate.marketBaseRatePln);
+  if (!Number.isFinite(marketBase) || !(marketBase > 0)) {
     return { ok: false, reason: "INVALID_CANDIDATE" };
   }
   const observedAt = input.observedAt?.trim() || new Date().toISOString();
@@ -79,7 +81,7 @@ export function acceptWorkRateResearchCandidate(input: {
     previous && Number.isFinite(previous.ourRatePln) && previous.ourRatePln > 0
       ? previous.ourRatePln
       : undefined;
-  const ourRatePln = roundRatePln(suggested);
+  const ourRatePln = roundRatePln(marketBase);
   const changePln =
     prevPln != null ? roundRatePln(ourRatePln - prevPln) : undefined;
 

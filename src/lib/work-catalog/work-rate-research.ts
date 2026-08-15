@@ -108,15 +108,15 @@ export type WorkRateResearchCandidate = {
   unit: WgdomCostUnit;
   namePl: string;
   /**
-   * BC Accept field = proposed OUR RATE (after WGDOM margin).
-   * NOT the raw source midpoint alone.
+   * Display-only proposed SELL (= proposedOurRatePln).
+   * P5.16-B: Accept MUST store marketBaseRatePln — never this field as OUR RATE.
    */
   suggestedRatePln: number;
-  /** Median of qualified market-base observations (research-derived). */
+  /** Median of qualified market-base observations — Accept SSOT (BASE). */
   marketBaseRatePln: number;
   /** Owner commercial margin used for proposal (REUSE commercialPricing). */
   wgdomMarginPct: number;
-  /** marketBase × (1+margin/100) — equals suggestedRatePln. */
+  /** marketBase × (1+margin/100) — display SELL only; equals suggestedRatePln. */
   proposedOurRatePln: number;
   /** Aggregated SOURCE range across observations (when present). */
   sourceMinPln: number | null;
