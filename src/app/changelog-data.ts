@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.67",
+    label: "IK P5 Material Expert (identity → Price Memory / research)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P5: Material Expert — resolveDemandProductIdentityExact → evaluateMaterialCache → executeMaterialResearchPhase2 tylko identity+MISS. ZERO auto-Accept / invent z namePl / F5. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.66",
     label: "IK P4 Labor Expert (identity → CURRENT / research)",
     items: [

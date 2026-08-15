@@ -22,7 +22,8 @@ export type ExpertConversationStepKind =
   | "validation"
   | "boq_status"
   | "classification"
-  | "labor";
+  | "labor"
+  | "material";
 
 export type ExpertConversationStepStatus =
   | "pending"
@@ -43,6 +44,8 @@ export type ExpertConversationSourceRefKind =
   | "identity"
   | "labor_lookup"
   | "labor_research"
+  | "material_lookup"
+  | "material_research"
   | "evidence"
   | "candidate";
 

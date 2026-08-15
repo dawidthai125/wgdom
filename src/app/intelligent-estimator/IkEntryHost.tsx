@@ -1,6 +1,6 @@
 /**
- * IK-MIGRATION-01 P1/P2.5/P3/P4 — first-screen host.
- * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor Expert.
+ * IK-MIGRATION-01 P1/P2.5/P3/P4/P5 — first-screen host.
+ * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor + Material Expert.
  * ZERO NG-10. ZERO new chat store. ZERO auto-Accept.
  */
 
@@ -18,6 +18,10 @@ import {
   runIkMasterBoqLaborExpert,
   type IkLaborExpertReport,
 } from "@/lib/intelligent-estimator/ik-labor-expert";
+import {
+  runIkMasterBoqMaterialExpert,
+  type IkMaterialExpertReport,
+} from "@/lib/intelligent-estimator/ik-material-expert";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
@@ -40,8 +44,10 @@ export function IkEntryHost({
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
   const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
+  const [material, setMaterial] = useState<IkMaterialExpertReport | null>(null);
   const attemptedRef = useRef<string | null>(null);
   const laborAttemptedRef = useRef<string | null>(null);
+  const materialAttemptedRef = useRef<string | null>(null);
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
@@ -159,6 +165,35 @@ export function IkEntryHost({
     };
   }, [effectiveItem, pkg, report]);
 
+  // P5 — Material Expert when Master BOQ READY (identity → PM HIT/MISS → research only if justified).
+  useEffect(() => {
+    const key = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!key || !report.masterBoq.readyForExperts) {
+      setMaterial(null);
+      return;
+    }
+    const materialKey = `${key}|mat|${report.masterBoq.lineCount}|${report.masterBoqLines.length}`;
+    if (materialAttemptedRef.current === materialKey) return;
+    materialAttemptedRef.current = materialKey;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await runIkMasterBoqMaterialExpert({
+          item: effectiveItem,
+          package: pkg,
+          expert: report,
+          executeResearch: true,
+        });
+        if (!cancelled) setMaterial(result);
+      } catch {
+        if (!cancelled) setMaterial(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveItem, pkg, report]);
+
   const vm = useMemo(
     () =>
       buildIkEntryConversationViewModel(effectiveItem, {
@@ -184,8 +219,9 @@ export function IkEntryHost({
             : null),
         pipelineIngest,
         labor,
+        material,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material],
   );
 
   return (
@@ -202,6 +238,10 @@ export function IkEntryHost({
       data-ik-labor-status={labor?.status ?? "pending"}
       data-ik-labor-resolved={String(labor?.counts.workIdentityResolved ?? 0)}
       data-ik-labor-research={String(labor?.counts.researchCalls ?? 0)}
+      data-ik-material-status={material?.status ?? "pending"}
+      data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
+      data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
+      data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
     >
       <ExpertConversationSurface vm={vm} />
     </div>

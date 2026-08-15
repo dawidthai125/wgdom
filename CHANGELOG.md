@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.67 — IK P5 Material Expert (2026-08-15)
+
+**Scope:** Material Identity → Price Memory HIT/MISS → Phase2 research → Owner Accept.
+
+- REUSE: `resolveDemandProductIdentityExact` · `evaluateMaterialCache` · `executeMaterialResearchPhase2` · `acceptMaterialResearchCandidate`
+- Research tylko trusted material identity + PM MISS (dedupe materialKey|region)
+- ZERO auto-Accept · ZERO invent z namePl · ZERO Labor rewrite · ZERO F5/Bid
+- EC: MATERIAL_* facts · second lookup HIT mandatory in harness
+- `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `scripts/test-ik-migration-01-p5-material-expert.mjs`
+
 ## 2.66.66 — IK P4 Labor Expert (2026-08-15)
 
 **Scope:** Work Identity → OUR RATE CURRENT/MISS → selective Labor Research.

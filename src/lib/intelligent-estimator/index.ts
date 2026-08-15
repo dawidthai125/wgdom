@@ -105,3 +105,17 @@ export type {
   IkLaborExpertReport,
   IkLaborRateStatus,
 } from "./ik-labor-expert";
+
+export {
+  runIkMasterBoqMaterialExpert,
+  acceptIkMaterialResearchCandidate,
+  resetMaterialResearchSessionCooldownForTests,
+} from "./ik-material-expert";
+export type {
+  IkMaterialBucket,
+  IkMaterialExpertCounts,
+  IkMaterialExpertLineResult,
+  IkMaterialExpertReport,
+  IkMaterialIdentity,
+  IkMaterialPriceStatus,
+} from "./ik-material-expert";

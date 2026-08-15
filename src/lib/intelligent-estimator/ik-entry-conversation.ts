@@ -13,6 +13,7 @@ import type {
 import {
   EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
   EXPERT_CONVERSATION_ACTOR_LABOR_PL,
+  EXPERT_CONVERSATION_ACTOR_MATERIAL_PL,
   EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   labelConversationStatusPl,
@@ -26,6 +27,7 @@ import {
 } from "./ik-document-expert";
 import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-classification";
 import type { IkLaborExpertReport } from "./ik-labor-expert";
+import type { IkMaterialExpertReport } from "./ik-material-expert";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 
@@ -43,6 +45,8 @@ export interface IkEntryConversationOpts {
   classification?: IkClassificationReport | null;
   /** P4 — Labor Expert report (async; pass when ready — never invent). */
   labor?: IkLaborExpertReport | null;
+  /** P5 — Material Expert report (async; pass when ready — never invent). */
+  material?: IkMaterialExpertReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -95,8 +99,9 @@ export function buildIkEntryConversationViewModel(
       "package" in pkgOrOpts
       || "ingest" in pkgOrOpts
       || "pipelineIngest" in pkgOrOpts
-      || "classification" in pkgOrOpts
+      ||       "classification" in pkgOrOpts
       || "labor" in pkgOrOpts
+      || "material" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -752,6 +757,164 @@ export function buildIkEntryConversationViewModel(
           "nie wymuszam LABOR · nie research",
           "identity",
           { unresolved: lc.unresolved },
+        ),
+      );
+    }
+  }
+
+  // P5 — Material Expert (only when report provided — async path; ZERO invent).
+  const material = opts.material ?? null;
+  if (material && material.counts.inputLineCount > 0) {
+    const mc = material.counts;
+    const materialStep = (
+      event: string,
+      status: ExpertConversationStepStatus,
+      messagePl: string,
+      detailPl: string | null,
+      kind: ExpertConversationSourceRef["kind"],
+      artifact: Record<string, unknown>,
+    ) =>
+      step({
+        id: "material",
+        event,
+        status,
+        messagePl,
+        detailPl,
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_MATERIAL_PL,
+        sourceRef: tenderRef(artifact, kind),
+      });
+
+    if (mc.materialIdentityResolved > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_IDENTITY_RESOLVED",
+          "done",
+          `Material identity: ${mc.materialIdentityResolved}/${mc.outputLineCount} (exact map / alias · 0 invent).`,
+          `material=${mc.material} · labor=${mc.labor} · both=${mc.both} · unresolved=${mc.unresolved}`,
+          "identity",
+          {
+            materialIdentityResolved: mc.materialIdentityResolved,
+            material: mc.material,
+            labor: mc.labor,
+            both: mc.both,
+            unresolved: mc.unresolved,
+            nonCost: mc.nonCost,
+          },
+        ),
+      );
+    }
+
+    if (mc.priceMemoryHit > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_PRICE_MEMORY_HIT",
+          "done",
+          `Price Memory HIT: ${mc.priceMemoryHit} (REUSE, bez research).`,
+          "evaluateMaterialCache → CURRENT",
+          "material_lookup",
+          { priceMemoryHit: mc.priceMemoryHit },
+        ),
+      );
+    }
+
+    if (mc.priceMemoryMiss > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_PRICE_MEMORY_MISS",
+          "partial",
+          `Price Memory MISS: ${mc.priceMemoryMiss} (tylko trusted material identity).`,
+          `researchCalls=${mc.researchCalls} (dedupe materialKey|region)`,
+          "material_lookup",
+          { priceMemoryMiss: mc.priceMemoryMiss, researchCalls: mc.researchCalls },
+        ),
+      );
+    }
+
+    if (mc.researchCalls > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_RESEARCH_STARTED",
+          "done",
+          `Material research: ${mc.researchCalls} unikalnych materialKey|region (tylko identity + MISS).`,
+          "executeMaterialResearchPhase2 · ZERO research dla UNKNOWN",
+          "material_research",
+          { researchKeys: material.researchKeys, researchCalls: mc.researchCalls },
+        ),
+      );
+    }
+
+    if (mc.concreteProducts > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_PRODUCT_FOUND",
+          "done",
+          `Konkretny produkt / źródło: ${mc.concreteProducts}.`,
+          "Phase2 candidate · real provider/mock_test harness",
+          "evidence",
+          { concreteProducts: mc.concreteProducts },
+        ),
+      );
+    }
+
+    if (mc.evidence > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_EVIDENCE_FOUND",
+          "done",
+          `Evidence: ${mc.evidence}.`,
+          "PriceCandidate provenance",
+          "evidence",
+          { evidence: mc.evidence },
+        ),
+      );
+      steps.push(
+        materialStep(
+          "MATERIAL_CANDIDATE_READY",
+          "done",
+          `Kandydaci cenowi: ${mc.candidates}.`,
+          "CANDIDATE ≠ ACCEPTED",
+          "candidate",
+          { candidates: mc.candidates },
+        ),
+      );
+      steps.push(
+        materialStep(
+          "MATERIAL_OWNER_ACCEPT_REQUIRED",
+          "partial",
+          `Owner Accept wymagany: ${mc.ownerAcceptRequired} (ZERO auto-Accept).`,
+          "acceptIkMaterialResearchCandidate — nie uruchomiony automatycznie",
+          "candidate",
+          {
+            ownerAcceptRequired: mc.ownerAcceptRequired,
+            accepted: mc.accepted,
+            autoAcceptExecuted: false,
+          },
+        ),
+      );
+    }
+
+    if (mc.accepted > 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_PRICE_ACCEPTED",
+          "done",
+          `Zaakceptowane ceny materiałów: ${mc.accepted}.`,
+          "Price Memory persist po Owner Accept",
+          "candidate",
+          { accepted: mc.accepted },
+        ),
+      );
+    }
+
+    if (mc.unresolved > 0 && mc.materialIdentityResolved === 0) {
+      steps.push(
+        materialStep(
+          "MATERIAL_UNRESOLVED",
+          "partial",
+          `Material UNRESOLVED: ${mc.unresolved} (brak trusted material identity — bez research).`,
+          "nie zgaduję produktu z namePl",
+          "identity",
+          { unresolved: mc.unresolved, materialIdentityResolved: mc.materialIdentityResolved },
         ),
       );
     }
