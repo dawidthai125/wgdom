@@ -97,6 +97,7 @@ export {
   runIkMasterBoqLaborExpert,
   mapAndResolveWorkIdentityForLine,
   normalizeUnitForLaborLookup,
+  summarizeIkLaborForTrustedWorkLines,
 } from "./ik-labor-expert";
 export type {
   IkLaborBucket,
@@ -104,6 +105,7 @@ export type {
   IkLaborExpertLineResult,
   IkLaborExpertReport,
   IkLaborRateStatus,
+  IkTrustedWorkLaborSummary,
 } from "./ik-labor-expert";
 
 export {

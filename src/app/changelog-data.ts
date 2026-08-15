@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.71",
+    label: "IK P4-REAL Labor Expert (44 trusted Work)",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P4-REAL: Labor Expert na 44 trusted Work (ZZK) — CURRENT HIT/MISS, research tylko LABOR+MISS, ZERO invent/auto-Accept. Live: 31 HIT · 7 GAP · 0 candidates. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.70",
     label: "IK P5.7 Owner unit compatibility (otw./aparat ↔ szt)",
     items: [

@@ -582,3 +582,93 @@ export function mapAndResolveWorkIdentityForLine(
 export function normalizeUnitForLaborLookup(unit: string): WgdomCostUnit | null {
   return normalizeWgdomCostUnit(unit);
 }
+
+/** P4-REAL — slice Labor Expert report to trusted Work Identity lineIds (no re-run). */
+export type IkTrustedWorkLaborSummary = {
+  trustedWorkInput: number;
+  laborEligible: number;
+  nonLaborOrCompound: number;
+  currentOurRateHit: number;
+  ourRateMissPath: number;
+  researchGap: number;
+  candidateOwnerAcceptRequired: number;
+  researchKeysOnTrusted: string[];
+  orphanRates: number;
+  coverageOk: boolean;
+  byPlane: Record<string, number>;
+  byBucket: Record<string, number>;
+  byRateStatus: Record<string, number>;
+  lines: IkLaborExpertLineResult[];
+};
+
+export function summarizeIkLaborForTrustedWorkLines(
+  labor: IkLaborExpertReport,
+  trustedLineIds: Iterable<string>,
+): IkTrustedWorkLaborSummary {
+  const idSet = new Set([...trustedLineIds].map(String));
+  const lines = labor.lines.filter((l) => idSet.has(l.lineId));
+  const byPlane: Record<string, number> = {};
+  const byBucket: Record<string, number> = {};
+  const byRateStatus: Record<string, number> = {};
+  let laborEligible = 0;
+  let nonLaborOrCompound = 0;
+  let currentOurRateHit = 0;
+  let ourRateMissPath = 0;
+  let researchGap = 0;
+  let candidateOwnerAcceptRequired = 0;
+  let orphanRates = 0;
+  const researchKeys = new Set<string>();
+
+  for (const row of lines) {
+    byPlane[row.plane] = (byPlane[row.plane] || 0) + 1;
+    byBucket[row.bucket] = (byBucket[row.bucket] || 0) + 1;
+    byRateStatus[row.rateStatus] = (byRateStatus[row.rateStatus] || 0) + 1;
+    if (row.bucket === "LABOR") laborEligible += 1;
+    else nonLaborOrCompound += 1;
+    if (row.rateStatus === "CURRENT_HIT") currentOurRateHit += 1;
+    if (
+      row.rateStatus === "MISS"
+      || row.rateStatus === "STALE_TREATED_AS_MISS"
+      || row.rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+      || row.rateStatus === "RESEARCH_GAP"
+      || row.rateStatus === "RESEARCH_BLOCKED"
+      || row.rateStatus === "RESEARCH_COOLDOWN"
+      || row.rateStatus === "RESEARCH_SKIPPED"
+    ) {
+      ourRateMissPath += 1;
+    }
+    if (row.rateStatus === "RESEARCH_GAP") researchGap += 1;
+    if (row.rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED" && row.candidate) {
+      candidateOwnerAcceptRequired += 1;
+    }
+    if (row.researchKey) researchKeys.add(row.researchKey);
+    // Gate C: rate without CURRENT or accepted candidate path = orphan (P4 never auto-accepts).
+    if (
+      row.ourRatePln != null
+      && row.rateStatus !== "CURRENT_HIT"
+      && row.rateStatus !== "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+      && row.rateStatus !== "STALE_TREATED_AS_MISS"
+    ) {
+      orphanRates += 1;
+    }
+  }
+
+  const coverageOk = lines.length === idSet.size;
+
+  return {
+    trustedWorkInput: lines.length,
+    laborEligible,
+    nonLaborOrCompound,
+    currentOurRateHit,
+    ourRateMissPath,
+    researchGap,
+    candidateOwnerAcceptRequired,
+    researchKeysOnTrusted: [...researchKeys].sort(),
+    orphanRates,
+    coverageOk,
+    byPlane,
+    byBucket,
+    byRateStatus,
+    lines,
+  };
+}

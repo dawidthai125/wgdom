@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.71 — IK P4-REAL Labor Expert on 44 trusted Work (2026-08-15)
+
+**Scope:** Real Labor Expert runtime on ZZK trusted Work identities (P4-REAL).
+
+- REUSE `runIkMasterBoqLaborExpert` · `lookupWorkRate` · `runIkLaborGapResearch` · Owner Accept only
+- Live: TRUSTED WORK **44** · CURRENT HIT **31** · RESEARCH_GAP **7** · research keys **2** · candidates **0** · Accept **0**
+- ZERO invent / auto-Accept · Material Expert untouched · Position Cost / F5 / Bid out of scope
+- `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p4-real-labor.mjs` · Docs: `docs/architecture/IK-MIGRATION-01-P4-REAL-LABOR.md`
+
 ## 2.66.70 — IK P5.7 Owner unit compatibility (2026-08-15)
 
 **Scope:** Owner-approved local unit compatibility for 2 Wave2 Work IDs only.
