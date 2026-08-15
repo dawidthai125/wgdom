@@ -1015,6 +1015,59 @@ export function buildIkEntryConversationViewModel(
       );
     }
 
+    const seed = identityCoverage.wave2SeedAudit;
+    steps.push(
+      idStep(
+        "IDENTITY_SEED_COMPLETED",
+        seed.seedEligibleMissingWork === 0 && seed.duplicateWorkIds.length === 0
+          ? "done"
+          : "partial",
+        seed.seedEligibleMissingWork === 0
+          ? `Wave 2 seed: brak nowych entries (seedCreated=0) · W2 w katalogu ${seed.wave2IdsPresentInCatalog}/${seed.wave2IdsExpected}.`
+          : `Wave 2 seed: ${seed.seedEligibleMissingWork} Pack hits bez work — OWNER_REVIEW (bez auto-seed).`,
+        `source=${seed.source} · no fake works · Quotes OPS = existing catalog-wave-2-ops`,
+        "identity_coverage",
+        {
+          seedCreated: seed.seedCreated,
+          seedEligibleMissingWork: seed.seedEligibleMissingWork,
+          alreadyPresentProductIds: seed.alreadyPresentProductIds,
+          wave2IdsPresentInCatalog: seed.wave2IdsPresentInCatalog,
+          invalidUnitAliasHits: seed.invalidUnitAliasHits,
+          duplicateWorkIds: seed.duplicateWorkIds,
+        },
+      ),
+    );
+
+    if (ic.trustedWorkIdentity > 0) {
+      steps.push(
+        idStep(
+          "WORK_IDENTITY_COVERAGE_CHANGED",
+          "done",
+          `Trusted Work Identity po Wave 2 catalog: ${ic.trustedWorkIdentity}.`,
+          "REUSE existing Work Catalog · alias→TRUSTED_MATCH only when unit OK",
+          "identity",
+          {
+            trustedWorkIdentity: ic.trustedWorkIdentity,
+            identityGap: ic.identityGap,
+            source: seed.source,
+          },
+        ),
+      );
+    }
+
+    if (seed.invalidUnitAliasHits > 0) {
+      steps.push(
+        idStep(
+          "OWNER_REVIEW_REQUIRED",
+          "partial",
+          `Owner review: ${seed.invalidUnitAliasHits} Pack hits z INVALID_UNIT (np. otw./aparat ≠ szt).`,
+          "nie auto-map unit · nie invent work",
+          "identity_coverage",
+          { invalidUnitAliasHits: seed.invalidUnitAliasHits },
+        ),
+      );
+    }
+
     if (ic.identityGap > 0 || ic.unresolved > 0) {
       steps.push(
         idStep(
@@ -1041,7 +1094,7 @@ export function buildIkEntryConversationViewModel(
         "IDENTITY_COVERAGE_COMPLETED",
         identityCoverage.reconciliation.ok ? "done" : "partial",
         `Coverage: work=${ic.trustedWorkIdentity} · material=${ic.trustedMaterialIdentity} · alias=${ic.approvedAlias} · gap=${ic.identityGap}.`,
-        `lineCoverage=${identityCoverage.reconciliation.ok ? "PASS" : "FAIL"} · pricing=NO · research=NO · invent=NO`,
+        `lineCoverage=${identityCoverage.reconciliation.ok ? "PASS" : "FAIL"} · pricing=NO · research=NO · invent=NO · seedCreated=${seed.seedCreated}`,
         "identity_coverage",
         {
           ...ic.byStatus,
@@ -1050,6 +1103,7 @@ export function buildIkEntryConversationViewModel(
           researchExecuted: false,
           autoAcceptExecuted: false,
           identityInvention: false,
+          seedCreated: seed.seedCreated,
         },
       ),
     );

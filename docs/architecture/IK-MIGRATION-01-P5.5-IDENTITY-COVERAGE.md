@@ -45,4 +45,6 @@ Master BOQ (430)
 
 ## Expected live outcome
 
-ZZK `08def45d…` may remain **0 trusted** Work/Material identities — **truthful** when Alias Pack misses wording and/or Quotes gate blocks bind. P5.5 closes **PARTIAL** if coverage insufficient for P6.
+ZZK `08def45d…` with **empty** Work Catalog LS may show **0 trusted** — **truthful probe**.  
+With **prod** `kw-wgdom-work-catalog` (Wave 2 already seeded): see **P5.6** — TRUSTED WORK **34**, residual INVALID_UNIT / AMBIGUOUS / GAP.  
+P5.5 closes **PARTIAL** if coverage insufficient for P6; Wave 2 seed verification → [`IK-MIGRATION-01-P5.6-WORK-IDENTITY-WAVE2-SEED.md`](./IK-MIGRATION-01-P5.6-WORK-IDENTITY-WAVE2-SEED.md).

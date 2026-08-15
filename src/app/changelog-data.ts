@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.69",
+    label: "IK P5.6 Wave 2 Work Identity seed audit",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5.6: Wave 2 seed audit — prod Work Catalog już ma 8/8 W2 + Quotes; ZERO nowych fake works. Coverage z katalogiem: TRUSTED WORK 34 (vs 0 przy pustym LS). INVALID_UNIT (otw./aparat) = OWNER_REVIEW. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.68",
     label: "IK P5.5 Identity Coverage (audit · ZERO invent)",
     items: [

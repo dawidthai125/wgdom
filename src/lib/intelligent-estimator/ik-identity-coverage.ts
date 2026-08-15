@@ -1,5 +1,6 @@
 /**
  * IK-MIGRATION-01 P5.5 — Real Identity Coverage (Work + Material).
+ * P5.6 — Wave 2 seed audit attached (`wave2SeedAudit`, seedCreated always 0).
  *
  * AUDIT / DIAGNOSTIC only:
  *   Master BOQ line
@@ -11,6 +12,7 @@
  *
  * ZERO invent from namePl · ZERO fuzzy auto-trust · ZERO pricing · ZERO research · ZERO Accept.
  * Does NOT mutate Master BOQ · Does NOT change mapOfferBoqLine Quotes gate.
+ * Does NOT write Work Catalog (Wave 2 seed = existing OPS / prod KV only).
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -31,6 +33,7 @@ import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import { resolveDemandProductIdentityExact } from "@/lib/pricing-expert/material-market-map";
 import { resolveCatalogCoverageAlias } from "@/lib/catalog-coverage/alias-resolver";
 import { normalizeOfferBoqDescription } from "@/lib/catalog-coverage/normalize-description";
+import { CATALOG_WAVE2_PRODUCT_ID_SET } from "@/lib/catalog-coverage/alias-pack-wave2";
 import {
   resolveLaborIdentityMapping,
   type LaborIdentityResolveResult,
@@ -111,6 +114,21 @@ export type IkIdentityCoverageCounts = {
   byStatus: Record<IkIdentityCoverageStatus, number>;
 };
 
+/**
+ * P5.6 — Wave 2 seed audit (read-only). Never invents Work Catalog entries.
+ * `seedCreated` is always 0 in coverage (writes only via existing OPS allowlist).
+ */
+export type IkWave2SeedAudit = {
+  seedEligibleMissingWork: number;
+  seedCreated: 0;
+  alreadyPresentProductIds: string[];
+  invalidUnitAliasHits: number;
+  wave2IdsPresentInCatalog: number;
+  wave2IdsExpected: number;
+  source: "existing_work_catalog" | "catalog_empty_or_partial";
+  duplicateWorkIds: string[];
+};
+
 export type IkIdentityCoverageReport = {
   tenderId: string;
   status: "ready" | "blocked" | "partial";
@@ -137,6 +155,8 @@ export type IkIdentityCoverageReport = {
     reasonPl: string;
   }>;
   reasons: string[];
+  /** P5.6 Wave 2 seed audit — no fake works. */
+  wave2SeedAudit: IkWave2SeedAudit;
 };
 
 function emptyByStatus(): Record<IkIdentityCoverageStatus, number> {
@@ -165,6 +185,66 @@ function emptyCounts(input: number): IkIdentityCoverageCounts {
     identityGap: 0,
     unresolved: 0,
     byStatus: emptyByStatus(),
+  };
+}
+
+function emptyWave2SeedAudit(): IkWave2SeedAudit {
+  return {
+    seedEligibleMissingWork: 0,
+    seedCreated: 0,
+    alreadyPresentProductIds: [],
+    invalidUnitAliasHits: 0,
+    wave2IdsPresentInCatalog: 0,
+    wave2IdsExpected: CATALOG_WAVE2_PRODUCT_ID_SET.size,
+    source: "catalog_empty_or_partial",
+    duplicateWorkIds: [],
+  };
+}
+
+function buildWave2SeedAudit(
+  works: CatalogWork[],
+  lines: IkIdentityCoverageLineResult[],
+): IkWave2SeedAudit {
+  const seen = new Set<string>();
+  const duplicateWorkIds: string[] = [];
+  for (const w of works) {
+    if (seen.has(w.id)) duplicateWorkIds.push(w.id);
+    else seen.add(w.id);
+  }
+  const wave2Present = [...CATALOG_WAVE2_PRODUCT_ID_SET].filter((id) =>
+    works.some((w) => w.id === id && w.active !== false),
+  );
+  const alreadyPresent = new Set<string>();
+  let seedEligibleMissingWork = 0;
+  let invalidUnitAliasHits = 0;
+  for (const row of lines) {
+    if (!row.approvedAliasHit || !row.aliasPackProductId) continue;
+    const pid = row.aliasPackProductId;
+    if (row.aliasMissingWork) {
+      if (CATALOG_WAVE2_PRODUCT_ID_SET.has(pid)) seedEligibleMissingWork += 1;
+    } else {
+      alreadyPresent.add(pid);
+    }
+    if (
+      row.workIdentity.status === "INVALID_UNIT"
+      && row.mapperCatalogWorkId
+      && !row.trustedWorkIdentity
+    ) {
+      invalidUnitAliasHits += 1;
+    }
+  }
+  return {
+    seedEligibleMissingWork,
+    seedCreated: 0,
+    alreadyPresentProductIds: [...alreadyPresent].sort(),
+    invalidUnitAliasHits,
+    wave2IdsPresentInCatalog: wave2Present.length,
+    wave2IdsExpected: CATALOG_WAVE2_PRODUCT_ID_SET.size,
+    source:
+      wave2Present.length === CATALOG_WAVE2_PRODUCT_ID_SET.size
+        ? "existing_work_catalog"
+        : "catalog_empty_or_partial",
+    duplicateWorkIds,
   };
 }
 
@@ -249,6 +329,7 @@ export function runIkMasterBoqIdentityCoverage(opts: {
       lines: [],
       unresolvedExamples: [],
       reasons: ["MASTER_BOQ_NOT_READY", ...expert.reasons.slice(0, 4)],
+      wave2SeedAudit: emptyWave2SeedAudit(),
     };
   }
 
@@ -514,6 +595,8 @@ export function runIkMasterBoqIdentityCoverage(opts: {
         ? "ready"
         : "partial";
 
+  const wave2SeedAudit = buildWave2SeedAudit(works, lines);
+
   return {
     tenderId,
     status: reportStatus,
@@ -534,5 +617,6 @@ export function runIkMasterBoqIdentityCoverage(opts: {
     lines,
     unresolvedExamples,
     reasons,
+    wave2SeedAudit,
   };
 }

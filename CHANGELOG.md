@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.69 — IK P5.6 Wave 2 Work Identity seed audit (2026-08-15)
+
+**Scope:** Controlled Wave 2 seed **audit** — no fake Work Catalog entries.
+
+- Prod KV: W2 **8/8** + Quotes already present · SEED CREATED **0**
+- Live ZZK: TRUSTED WORK **34** (empty-LS P5.5 was **0**) · IDENTITY GAP **85** · 10× INVALID_UNIT Owner review
+- EC: IDENTITY_SEED_COMPLETED · WORK_IDENTITY_COVERAGE_CHANGED · OWNER_REVIEW_REQUIRED
+- `ikEntryEnabled` default **OFF** · NG-10 **RETAINED** · ATH writer **GAP**
+- Test: `scripts/test-ik-migration-01-p56-wave2-seed.mjs`
+- Docs: `docs/architecture/IK-MIGRATION-01-P5.6-WORK-IDENTITY-WAVE2-SEED.md`
+
 ## 2.66.68 — IK P5.5 Identity Coverage (2026-08-15)
 
 **Scope:** Real Master BOQ identity audit (Work + Material) — ZERO invent / pricing / research.
