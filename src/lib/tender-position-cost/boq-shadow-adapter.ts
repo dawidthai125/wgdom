@@ -15,6 +15,7 @@ import type {
 } from "@/lib/tender-offer-boq";
 import type { TechnologyPack } from "@/lib/technology-foundation";
 import { normalizeWgdomCostUnit, type WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import { resolveOwnerWorkUnitCompatibility } from "@/lib/catalog-coverage/owner-unit-compatibility";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import { computePositionCost } from "@/lib/tender-position-cost/engine";
 import {
@@ -114,10 +115,21 @@ export type ShadowWorkIdentityResolve = {
   statusLabelPl: string;
   workId: string | null;
   unit: WgdomCostUnit | null;
+  /** Original BOQ unit string — never rewritten by Owner unit compatibility. */
   unitRaw: string;
   matchMethod: OfferBoqMatchMethod | null;
   matchConfidence: string | null;
   gaps: ShadowGapCode[];
+  /**
+   * P5.7 — Owner-approved local unit compatibility (allowlisted Work IDs only).
+   * Present when source unit is not a WgdomCostUnit but Owner accepted catalog unit.
+   */
+  ownerUnitCompatibility?: {
+    groupId: string;
+    sourceUnitRaw: string;
+    catalogUnit: WgdomCostUnit;
+    decision: "ACCEPT_EXISTING_WORK_AND_UNIT_COMPATIBILITY";
+  } | null;
 };
 
 export type ShadowPositionCostLineResult = {
@@ -186,7 +198,26 @@ export function resolveWorkIdentityFromOfferBoqLine(
 ): ShadowWorkIdentityResolve {
   const gaps: ShadowGapCode[] = [];
   const unitRaw = String(line.unit ?? "").trim();
-  const unit = normalizeWgdomCostUnit(unitRaw);
+  let unit = normalizeWgdomCostUnit(unitRaw);
+  let ownerUnitCompatibility: ShadowWorkIdentityResolve["ownerUnitCompatibility"] = null;
+
+  const workIdBound = String(line.catalogWorkId ?? "").trim() || null;
+  // P5.7 — local Owner unit compatibility BEFORE INVALID_UNIT (not global normalize).
+  if (!unit && workIdBound) {
+    const compat = resolveOwnerWorkUnitCompatibility({
+      workId: workIdBound,
+      sourceUnitRaw: unitRaw,
+    });
+    if (compat.ok) {
+      unit = compat.catalogUnit;
+      ownerUnitCompatibility = {
+        groupId: compat.groupId,
+        sourceUnitRaw: compat.sourceUnitRaw,
+        catalogUnit: compat.catalogUnit,
+        decision: compat.decision,
+      };
+    }
+  }
 
   if (line.isNoise) {
     pushGap(gaps, "POMINIETO_NOISE");
@@ -199,6 +230,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: line.matchMethod ?? null,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
 
@@ -216,6 +248,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: line.matchMethod ?? null,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
   if (noiseKind === "transport") {
@@ -229,6 +262,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: line.matchMethod ?? null,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
 
@@ -243,10 +277,11 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: line.matchMethod ?? null,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
 
-  const workId = String(line.catalogWorkId ?? "").trim() || null;
+  const workId = workIdBound;
   const method = line.matchMethod;
 
   // Competing candidates (różne workId) przy nie-high exact → AMBIGUOUS
@@ -274,6 +309,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: method,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
 
@@ -294,6 +330,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
       matchMethod: method,
       matchConfidence: line.matchConfidence ?? null,
       gaps,
+      ownerUnitCompatibility: null,
     };
   }
 
@@ -306,6 +343,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
     matchMethod: method,
     matchConfidence: line.matchConfidence ?? null,
     gaps: [],
+    ownerUnitCompatibility,
   };
 }
 

@@ -1068,6 +1068,35 @@ export function buildIkEntryConversationViewModel(
       );
     }
 
+    if (seed.unitCompatibilityConfirmed > 0) {
+      const confirmedLines = identityCoverage.lines
+        .filter((l) => l.ownerUnitCompatibilityConfirmed)
+        .slice(0, 12)
+        .map((l) => ({
+          lineId: l.lineId,
+          dwellingId: l.dwellingId,
+          sourceUnit: l.unit,
+          catalogUnit: l.workIdentity.ownerUnitCompatibility?.catalogUnit ?? null,
+          workId: l.workIdentity.workId,
+          groupId: l.ownerUnitCompatibilityGroupId,
+          quantity: l.quantity,
+        }));
+      steps.push(
+        idStep(
+          "UNIT_COMPATIBILITY_CONFIRMED",
+          "done",
+          `Owner unit compatibility: ${seed.unitCompatibilityConfirmed} linii (G1 otw.↔szt / G2 aparat↔szt).`,
+          "qty unchanged · sourceUnit preserved · nie PRICE ACCEPTED",
+          "identity_coverage",
+          {
+            unitCompatibilityConfirmed: seed.unitCompatibilityConfirmed,
+            pricingAccepted: false,
+            lines: confirmedLines,
+          },
+        ),
+      );
+    }
+
     if (ic.identityGap > 0 || ic.unresolved > 0) {
       steps.push(
         idStep(

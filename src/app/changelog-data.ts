@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.70",
+    label: "IK P5.7 Owner unit compatibility (otw./aparat ↔ szt)",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5.7: Owner GO — lokalna kompatybilność jednostek dla 2 Work ID (otw.↔szt / aparat↔szt). Bez globalnego normalizeWgdomCostUnit. TRUSTED WORK 34→44 na ZZK. Qty/sourceUnit zachowane. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.69",
     label: "IK P5.6 Wave 2 Work Identity seed audit",
     items: [

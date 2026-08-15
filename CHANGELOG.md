@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.70 — IK P5.7 Owner unit compatibility (2026-08-15)
+
+**Scope:** Owner-approved local unit compatibility for 2 Wave2 Work IDs only.
+
+- G1 `otw.`↔`szt` → `cc-w2-przebijanie-otworow` · G2 `aparat`↔`szt` → `cc-w2-przygotowanie-osprzet`
+- **NOT** global `normalizeWgdomCostUnit` · **NOT** PDF `WM_UNIT_ALIAS_TO_SZT` as identity SSOT
+- Live ZZK: TRUSTED WORK **34→44** · qty/sourceUnit preserved · no pricing
+- EC: `UNIT_COMPATIBILITY_CONFIRMED` · `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p57-unit-semantics.mjs`
+
 ## 2.66.69 — IK P5.6 Wave 2 Work Identity seed audit (2026-08-15)
 
 **Scope:** Controlled Wave 2 seed **audit** — no fake Work Catalog entries.

@@ -94,6 +94,9 @@ export type IkIdentityCoverageLineResult = {
   laborIdentityRegistry: LaborIdentityResolveResult["status"] | null;
   laborIdentityWorkId: string | null;
   ownerMappingPossible: boolean;
+  /** P5.7 — Owner unit compatibility confirmed for this line (allowlisted Work). */
+  ownerUnitCompatibilityConfirmed: boolean;
+  ownerUnitCompatibilityGroupId: string | null;
   status: IkIdentityCoverageStatus;
   reasonPl: string;
   mappingSource: string | null;
@@ -123,6 +126,8 @@ export type IkWave2SeedAudit = {
   seedCreated: 0;
   alreadyPresentProductIds: string[];
   invalidUnitAliasHits: number;
+  /** P5.7 — Pack + Owner unit compatibility → trusted. */
+  unitCompatibilityConfirmed: number;
   wave2IdsPresentInCatalog: number;
   wave2IdsExpected: number;
   source: "existing_work_catalog" | "catalog_empty_or_partial";
@@ -194,6 +199,7 @@ function emptyWave2SeedAudit(): IkWave2SeedAudit {
     seedCreated: 0,
     alreadyPresentProductIds: [],
     invalidUnitAliasHits: 0,
+    unitCompatibilityConfirmed: 0,
     wave2IdsPresentInCatalog: 0,
     wave2IdsExpected: CATALOG_WAVE2_PRODUCT_ID_SET.size,
     source: "catalog_empty_or_partial",
@@ -217,7 +223,9 @@ function buildWave2SeedAudit(
   const alreadyPresent = new Set<string>();
   let seedEligibleMissingWork = 0;
   let invalidUnitAliasHits = 0;
+  let unitCompatibilityConfirmed = 0;
   for (const row of lines) {
+    if (row.ownerUnitCompatibilityConfirmed) unitCompatibilityConfirmed += 1;
     if (!row.approvedAliasHit || !row.aliasPackProductId) continue;
     const pid = row.aliasPackProductId;
     if (row.aliasMissingWork) {
@@ -238,6 +246,7 @@ function buildWave2SeedAudit(
     seedCreated: 0,
     alreadyPresentProductIds: [...alreadyPresent].sort(),
     invalidUnitAliasHits,
+    unitCompatibilityConfirmed,
     wave2IdsPresentInCatalog: wave2Present.length,
     wave2IdsExpected: CATALOG_WAVE2_PRODUCT_ID_SET.size,
     source:
@@ -496,6 +505,8 @@ export function runIkMasterBoqIdentityCoverage(opts: {
       laborIdentityRegistry: laborReg.status,
       laborIdentityWorkId: laborReg.status === "HIT" ? laborReg.workId : null,
       ownerMappingPossible,
+      ownerUnitCompatibilityConfirmed: Boolean(workIdentity.ownerUnitCompatibility),
+      ownerUnitCompatibilityGroupId: workIdentity.ownerUnitCompatibility?.groupId ?? null,
       status,
       reasonPl,
       mappingSource,

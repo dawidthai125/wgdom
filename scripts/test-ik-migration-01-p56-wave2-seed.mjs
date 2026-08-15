@@ -322,15 +322,17 @@ assert(
   byId["L-moc"],
 );
 assert(
-  "seeded: przebijanie APPROVED_ALIAS + INVALID_UNIT (otw.≠szt)",
+  "seeded: przebijanie TRUSTED via Owner unit compat (otw.↔szt)",
   byId["L-przeb"]?.approvedAliasHit === true
-  && byId["L-przeb"]?.trustedWorkIdentity === false
-  && byId["L-przeb"]?.workIdentity?.status === "INVALID_UNIT",
+  && byId["L-przeb"]?.trustedWorkIdentity === true
+  && byId["L-przeb"]?.unit === "otw."
+  && byId["L-przeb"]?.workIdentity?.unit === "szt"
+  && byId["L-przeb"]?.ownerUnitCompatibilityConfirmed === true,
   byId["L-przeb"],
 );
 assert(
-  "seeded: invalidUnitAliasHits >= 1",
-  seeded.wave2SeedAudit.invalidUnitAliasHits >= 1,
+  "seeded: invalidUnitAliasHits == 0 after Owner GO",
+  seeded.wave2SeedAudit.invalidUnitAliasHits === 0,
   seeded.wave2SeedAudit,
 );
 assert("seeded: gap remains honest", byId["L-gap"]?.status === "IDENTITY_GAP");
@@ -368,7 +370,14 @@ const vm = buildIkEntryConversationViewModel(item, {
 const events = vm.steps.map((s) => s.event).filter(Boolean);
 assert("EC IDENTITY_SEED_COMPLETED", events.includes("IDENTITY_SEED_COMPLETED"));
 assert("EC WORK_IDENTITY_COVERAGE_CHANGED", events.includes("WORK_IDENTITY_COVERAGE_CHANGED"));
-assert("EC OWNER_REVIEW_REQUIRED", events.includes("OWNER_REVIEW_REQUIRED"));
+assert(
+  "EC UNIT_COMPATIBILITY_CONFIRMED (P5.7)",
+  events.includes("UNIT_COMPATIBILITY_CONFIRMED"),
+);
+assert(
+  "EC no OWNER_REVIEW for resolved unit",
+  !events.includes("OWNER_REVIEW_REQUIRED"),
+);
 assert(
   "EC sourceRef on identity steps",
   vm.steps.filter((s) => s.id === "identity_coverage").every((s) => s.sourceRef?.tenderId),

@@ -63,3 +63,15 @@ export {
   isProductIdForbiddenByNegationGuard,
   decideCatalogCoverageBindProductId,
 } from "@/lib/catalog-coverage/negation-guard";
+
+export {
+  OWNER_UNIT_COMPATIBILITY_RULES,
+  foldOwnerUnitToken,
+  resolveOwnerWorkUnitCompatibility,
+} from "@/lib/catalog-coverage/owner-unit-compatibility";
+export type {
+  OwnerUnitCompatibilityGroupId,
+  OwnerUnitCompatibilityHit,
+  OwnerUnitCompatibilityMiss,
+  OwnerUnitCompatibilityDecision,
+} from "@/lib/catalog-coverage/owner-unit-compatibility";
