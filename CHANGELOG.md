@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.73 — IK P5.9 Material identity Owner norm (2026-08-15)
+
+**Scope:** Identity-only classification of ZZK focus 6 material blockers (no invent).
+
+- Wave1 zaprawianie ×4 → **PENDING_OWNER_NORM** (missing materialKey+qtyFactor · packs **0**)
+- Zawór ×2 → **PRODUCT_IDENTITY_GAP** (Work Identity without mat.*/cw.product.*)
+- Classifier `ik-material-identity-p59.ts` · EC identity GAP facts · ZERO pricing/research/Accept
+- `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p59-material-identity.mjs` · Docs: `docs/architecture/IK-MIGRATION-01-P5.9-MATERIAL-IDENTITY-OWNER-NORM.md`
+
 ## 2.66.72 — IK P5-REAL Material Expert (ZZK focus) (2026-08-15)
 
 **Scope:** Real Material Expert on ZZK P4 focus lines (2 MATERIAL + 4 COMPOUND).

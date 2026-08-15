@@ -135,3 +135,19 @@ export type {
   IkIdentityCoverageStatus,
   IkWave2SeedAudit,
 } from "./ik-identity-coverage";
+
+export {
+  classifyIkMaterialIdentityP59,
+  runIkMaterialIdentityP59,
+  P59_FOCUS_WORK_ZAWOR,
+  P59_FOCUS_WORK_ZAPRAWIANIE,
+  P59_ZZK_FOCUS_LINE_SPECS,
+} from "./ik-material-identity-p59";
+export type {
+  IkMaterialIdentityP59Counts,
+  IkMaterialIdentityP59LineInput,
+  IkMaterialIdentityP59LineResult,
+  IkMaterialIdentityP59Outcome,
+  IkMaterialIdentityP59Report,
+  IkMaterialIdentityP59Resolved,
+} from "./ik-material-identity-p59";

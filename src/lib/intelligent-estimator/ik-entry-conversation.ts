@@ -30,6 +30,7 @@ import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-
 import type { IkLaborExpertReport } from "./ik-labor-expert";
 import type { IkMaterialExpertReport } from "./ik-material-expert";
 import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
+import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 
@@ -51,6 +52,8 @@ export interface IkEntryConversationOpts {
   material?: IkMaterialExpertReport | null;
   /** P5.5 — Identity Coverage audit (sync; never invent). */
   identityCoverage?: IkIdentityCoverageReport | null;
+  /** P5.9 — Material identity blockers (identity only · no pricing). */
+  materialIdentityP59?: IkMaterialIdentityP59Report | null;
 }
 
 function messageWeight(text: string): number {
@@ -107,6 +110,7 @@ export function buildIkEntryConversationViewModel(
       ||       "labor" in pkgOrOpts
       || "material" in pkgOrOpts
       || "identityCoverage" in pkgOrOpts
+      || "materialIdentityP59" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -920,6 +924,84 @@ export function buildIkEntryConversationViewModel(
           "nie zgaduję produktu z namePl",
           "identity",
           { unresolved: mc.unresolved, materialIdentityResolved: mc.materialIdentityResolved },
+        ),
+      );
+    }
+  }
+
+  // P5.9 — Material identity blockers (IDENTITY ONLY · ZERO pricing / research / invent).
+  const materialIdentityP59 = opts.materialIdentityP59 ?? null;
+  if (materialIdentityP59 && materialIdentityP59.counts.inputLineCount > 0) {
+    const pc = materialIdentityP59.counts;
+    const p59Step = (
+      event: string,
+      status: ExpertConversationStepStatus,
+      messagePl: string,
+      detailPl: string | null,
+      artifact: Record<string, unknown>,
+    ) =>
+      step({
+        id: "material",
+        event,
+        status,
+        messagePl,
+        detailPl,
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_MATERIAL_PL,
+        sourceRef: tenderRef(artifact, "identity"),
+      });
+
+    if (pc.trustedMaterialIdentity > 0) {
+      steps.push(
+        p59Step(
+          "MATERIAL_IDENTITY_RESOLVED",
+          "done",
+          `P5.9 trusted material identity: ${pc.trustedMaterialIdentity}/${pc.inputLineCount}.`,
+          "existing Product Mapper / Wave1 pack only · 0 invent",
+          {
+            trustedMaterialIdentity: pc.trustedMaterialIdentity,
+            technologyPackAfter: pc.technologyPackAfter,
+          },
+        ),
+      );
+    }
+    if (pc.pendingOwnerNorm > 0) {
+      steps.push(
+        p59Step(
+          "MATERIAL_IDENTITY_GAP",
+          "partial",
+          `P5.9 PENDING_OWNER_NORM: ${pc.pendingOwnerNorm} (brak materialKey + qtyFactor).`,
+          "Wave1 MATERIALS_REQUIRED — bez invent normy · TechnologyPack nie zarejestrowany",
+          {
+            pendingOwnerNorm: pc.pendingOwnerNorm,
+            missing: ["materialKey", "qtyFactor"],
+            inventedMaterialKeys: 0,
+            inventedQtyFactors: 0,
+          },
+        ),
+      );
+    }
+    if (pc.productIdentityGap > 0) {
+      steps.push(
+        p59Step(
+          "OWNER_MATERIAL_MAPPING_REQUIRED",
+          "partial",
+          `P5.9 PRODUCT_IDENTITY_GAP: ${pc.productIdentityGap} (Work bez mat.*/cw.product.*).`,
+          "bez invent produktu · bez Castorama/LM/OBI",
+          {
+            productIdentityGap: pc.productIdentityGap,
+            inventedProducts: 0,
+          },
+        ),
+      );
+    }
+    if (pc.ownerReviewRequired > 0) {
+      steps.push(
+        p59Step(
+          "OWNER_MATERIAL_MAPPING_REQUIRED",
+          "hold",
+          `P5.9 OWNER_REVIEW_REQUIRED: ${pc.ownerReviewRequired} (ambiguous — no silent pick).`,
+          "Owner must choose among existing mappings",
+          { ownerReviewRequired: pc.ownerReviewRequired },
         ),
       );
     }

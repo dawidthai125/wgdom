@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.73",
+    label: "IK P5.9 Material identity Owner norm",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5.9: identity-only — Wave1 zaprawianie pozostaje PENDING_OWNER_NORM (brak materialKey+qtyFactor; 0 packs). Zawór = PRODUCT_IDENTITY_GAP (brak mat.*/cw.product.*). ZERO invent/pricing/research. Harness A–Q. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.72",
     label: "IK P5-REAL Material Expert (ZZK focus)",
     items: [
