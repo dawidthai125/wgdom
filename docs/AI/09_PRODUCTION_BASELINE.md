@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-15 · tip UI **2.66.76** · commit **(po push)** · **IK P5.16-B Commercial pricing** · prior P5.13 Material research entry · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
+**Snapshot dokumentacji:** 2026-08-15 · tip UI **2.66.76** · commit **`0945b708`** · **IK P5.16-B Commercial pricing** · prior P5.13 Material research entry · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
 
 ---
 
@@ -28,7 +28,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **UI version (changelog / version.json)** | **2.66.76** |
-| **Deploy tip commit (`main` / `version.json`)** | **(po push)** · IK-MIGRATION-01 **P5.16-B** Commercial pricing (Labor C1 · zaprawianie LABOR_ONLY · zawór Work-Quotes→SELL) · prior P5.13 **`e4c92dd2`** · P5.11 **`276909d4`** |
+| **Deploy tip commit (`main` / `version.json`)** | **`0945b708`** · IK-MIGRATION-01 **P5.16-B** Commercial pricing (Labor C1 · zaprawianie LABOR_ONLY · zawór Work-Quotes→SELL) · prior P5.13 **`e4c92dd2`** · P5.11 **`276909d4`** |
 | **Feature tip (IE Labor · Tablica OUR RATE)** | **DATA VERIFIED** · Evidence 67/rev3/`r3-a8226101` · Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** (pkt≠mb) · Wykwity **SOURCE GAP** · Catalog 460/34/426 · [`IE PRODUCTION BASELINE`](../architecture/INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md) · [`ACCEPT REVIEW`](../architecture/IE-LABOR-EVIDENCE-TABLICA-OUR-RATE-ACCEPT-REVIEW.md) |
 | **Feature tip (IK Master Continuity docs)** | **ACTIVE** · [`MASTER SSOT`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`AI CONTINUITY`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · **NO REBUILD** Przetargi/Catalog/Pricing |
 | **Session tip (2026-08-13 Wrocław continuity)** | **SESSION CLOSED** · handoff [`SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](../architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · operational targets **WM → ZZK → MOPS → uczelnie** · **Połczyn NOT TARGET** · reference **WM/TP/239/2026/G** · F5/PackageGate/Bid/REAL SOURCE **NOT GREEN** globally · D02 LP22 residual OPEN · **NIE** auto IMPLEMENT |
