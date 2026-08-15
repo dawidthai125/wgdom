@@ -14,6 +14,7 @@ import {
   EXPERT_CONVERSATION_ACTOR_DOCUMENT_PL,
   EXPERT_CONVERSATION_ACTOR_LABOR_PL,
   EXPERT_CONVERSATION_ACTOR_MATERIAL_PL,
+  EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
   EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   labelConversationStatusPl,
@@ -28,6 +29,7 @@ import {
 import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-classification";
 import type { IkLaborExpertReport } from "./ik-labor-expert";
 import type { IkMaterialExpertReport } from "./ik-material-expert";
+import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 
@@ -47,6 +49,8 @@ export interface IkEntryConversationOpts {
   labor?: IkLaborExpertReport | null;
   /** P5 — Material Expert report (async; pass when ready — never invent). */
   material?: IkMaterialExpertReport | null;
+  /** P5.5 — Identity Coverage audit (sync; never invent). */
+  identityCoverage?: IkIdentityCoverageReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -100,8 +104,9 @@ export function buildIkEntryConversationViewModel(
       || "ingest" in pkgOrOpts
       || "pipelineIngest" in pkgOrOpts
       ||       "classification" in pkgOrOpts
-      || "labor" in pkgOrOpts
+      ||       "labor" in pkgOrOpts
       || "material" in pkgOrOpts
+      || "identityCoverage" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -918,6 +923,136 @@ export function buildIkEntryConversationViewModel(
         ),
       );
     }
+  }
+
+  // P5.5 — Identity Coverage (audit only · ZERO invent / pricing / research).
+  const identityCoverage = opts.identityCoverage ?? null;
+  if (identityCoverage && identityCoverage.counts.inputLineCount > 0) {
+    const ic = identityCoverage.counts;
+    const idStep = (
+      event: string,
+      status: ExpertConversationStepStatus,
+      messagePl: string,
+      detailPl: string | null,
+      kind: ExpertConversationSourceRef["kind"],
+      artifact: Record<string, unknown>,
+    ) =>
+      step({
+        id: "identity_coverage",
+        event,
+        status,
+        messagePl,
+        detailPl,
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
+        sourceRef: tenderRef(artifact, kind),
+      });
+
+    steps.push(
+      idStep(
+        "IDENTITY_COVERAGE_STARTED",
+        "done",
+        `Identity Coverage: ${ic.outputLineCount} linii Master BOQ (audit only).`,
+        "REUSE Product Mapper · Alias Pack · Material exact · ZERO invent",
+        "identity_coverage",
+        {
+          inputLineCount: ic.inputLineCount,
+          outputLineCount: ic.outputLineCount,
+          pricingExecuted: false,
+          researchExecuted: false,
+        },
+      ),
+    );
+
+    if (ic.trustedWorkIdentity > 0) {
+      steps.push(
+        idStep(
+          "WORK_IDENTITY_FOUND",
+          "done",
+          `Trusted Work Identity: ${ic.trustedWorkIdentity}.`,
+          "Product Mapper TRUSTED_MATCH only",
+          "identity",
+          { trustedWorkIdentity: ic.trustedWorkIdentity },
+        ),
+      );
+    }
+
+    if (ic.trustedMaterialIdentity > 0) {
+      steps.push(
+        idStep(
+          "MATERIAL_IDENTITY_FOUND",
+          "done",
+          `Trusted Material Identity: ${ic.trustedMaterialIdentity}.`,
+          "resolveDemandProductIdentityExact only",
+          "identity",
+          { trustedMaterialIdentity: ic.trustedMaterialIdentity },
+        ),
+      );
+    }
+
+    if (ic.approvedAlias > 0) {
+      steps.push(
+        idStep(
+          "IDENTITY_REUSE_HIT",
+          "partial",
+          `Approved Alias Pack trafień: ${ic.approvedAlias} (tekst; bind zależy od Quotes/work).`,
+          "Catalog Coverage Alias · Owner-approved rules",
+          "identity_coverage",
+          { approvedAlias: ic.approvedAlias, ownerMappingPossible: ic.ownerMappingPossible },
+        ),
+      );
+    }
+
+    if (ic.ownerMappingPossible > 0) {
+      steps.push(
+        idStep(
+          "IDENTITY_MAPPING_REQUIRED",
+          "partial",
+          `Owner mapping możliwy: ${ic.ownerMappingPossible} (Pack hit · brak work/Quotes).`,
+          "nie auto-bind · nie invent",
+          "identity_coverage",
+          { ownerMappingPossible: ic.ownerMappingPossible },
+        ),
+      );
+    }
+
+    if (ic.identityGap > 0 || ic.unresolved > 0) {
+      steps.push(
+        idStep(
+          "IDENTITY_GAP",
+          "partial",
+          `Identity GAP: ${ic.identityGap} · UNRESOLVED (bez trusted): ${ic.unresolved}.`,
+          identityCoverage.unresolvedExamples
+            .slice(0, 3)
+            .map((e) => `${e.lineId}: ${e.description.slice(0, 48)}`)
+            .join(" · ") || "brak trusted path",
+          "identity_coverage",
+          {
+            identityGap: ic.identityGap,
+            unresolved: ic.unresolved,
+            ambiguous: ic.ambiguous,
+            examples: identityCoverage.unresolvedExamples.slice(0, 5),
+          },
+        ),
+      );
+    }
+
+    steps.push(
+      idStep(
+        "IDENTITY_COVERAGE_COMPLETED",
+        identityCoverage.reconciliation.ok ? "done" : "partial",
+        `Coverage: work=${ic.trustedWorkIdentity} · material=${ic.trustedMaterialIdentity} · alias=${ic.approvedAlias} · gap=${ic.identityGap}.`,
+        `lineCoverage=${identityCoverage.reconciliation.ok ? "PASS" : "FAIL"} · pricing=NO · research=NO · invent=NO`,
+        "identity_coverage",
+        {
+          ...ic.byStatus,
+          reconciliationOk: identityCoverage.reconciliation.ok,
+          pricingExecuted: false,
+          researchExecuted: false,
+          autoAcceptExecuted: false,
+          identityInvention: false,
+        },
+      ),
+    );
   }
 
   return {

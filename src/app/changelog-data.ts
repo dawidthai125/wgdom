@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.68",
+    label: "IK P5.5 Identity Coverage (audit · ZERO invent)",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P5.5: Identity Coverage audit na Master BOQ — Product Mapper + Alias Pack + Material exact. ZERO invent/fuzzy/pricing/research. Flaga ikEntryEnabled default OFF. NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.67",
     label: "IK P5 Material Expert (identity → Price Memory / research)",
     items: [

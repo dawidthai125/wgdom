@@ -119,3 +119,13 @@ export type {
   IkMaterialIdentity,
   IkMaterialPriceStatus,
 } from "./ik-material-expert";
+
+export {
+  runIkMasterBoqIdentityCoverage,
+} from "./ik-identity-coverage";
+export type {
+  IkIdentityCoverageCounts,
+  IkIdentityCoverageLineResult,
+  IkIdentityCoverageReport,
+  IkIdentityCoverageStatus,
+} from "./ik-identity-coverage";

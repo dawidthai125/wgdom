@@ -1,7 +1,7 @@
 /**
- * IK-MIGRATION-01 P1/P2.5/P3/P4/P5 — first-screen host.
- * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor + Material Expert.
- * ZERO NG-10. ZERO new chat store. ZERO auto-Accept.
+ * IK-MIGRATION-01 P1/P2.5/P3/P4/P5/P5.5 — first-screen host.
+ * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor + Material + Identity Coverage.
+ * ZERO NG-10. ZERO new chat store. ZERO auto-Accept. ZERO invent identity.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +22,10 @@ import {
   runIkMasterBoqMaterialExpert,
   type IkMaterialExpertReport,
 } from "@/lib/intelligent-estimator/ik-material-expert";
+import {
+  runIkMasterBoqIdentityCoverage,
+  type IkIdentityCoverageReport,
+} from "@/lib/intelligent-estimator/ik-identity-coverage";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
@@ -136,6 +140,16 @@ export function IkEntryHost({
     [ingest, effectiveItem, pkg],
   );
 
+  // P5.5 — Identity Coverage (sync audit · ZERO invent / pricing / research).
+  const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
+    if (!report.masterBoq.readyForExperts) return null;
+    return runIkMasterBoqIdentityCoverage({
+      item: effectiveItem,
+      package: pkg,
+      expert: report,
+    });
+  }, [effectiveItem, pkg, report]);
+
   // P4 — Labor Expert when Master BOQ READY (identity → CURRENT/MISS → research only if justified).
   useEffect(() => {
     const key = effectiveItem.id || effectiveItem.tenderId || "";
@@ -220,8 +234,9 @@ export function IkEntryHost({
         pipelineIngest,
         labor,
         material,
+        identityCoverage,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage],
   );
 
   return (
@@ -242,6 +257,11 @@ export function IkEntryHost({
       data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
       data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
       data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
+      data-ik-identity-status={identityCoverage?.status ?? "pending"}
+      data-ik-identity-work={String(identityCoverage?.counts.trustedWorkIdentity ?? 0)}
+      data-ik-identity-material={String(identityCoverage?.counts.trustedMaterialIdentity ?? 0)}
+      data-ik-identity-alias={String(identityCoverage?.counts.approvedAlias ?? 0)}
+      data-ik-identity-gap={String(identityCoverage?.counts.identityGap ?? 0)}
     >
       <ExpertConversationSurface vm={vm} />
     </div>

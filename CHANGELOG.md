@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.68 — IK P5.5 Identity Coverage (2026-08-15)
+
+**Scope:** Real Master BOQ identity audit (Work + Material) — ZERO invent / pricing / research.
+
+- REUSE: `mapOfferBoqLine` · Alias Pack · `resolveDemandProductIdentityExact` · labor identity registry (diagnostic)
+- Quotes gate Mapper **unchanged** · Owner mapping possible = Pack hit + missing work/Quotes
+- EC: IDENTITY_* facts · `ikEntryEnabled` default **OFF** · NG-10 **RETAINED**
+- Test: `scripts/test-ik-migration-01-p55-identity-coverage.mjs`
+
 ## 2.66.67 — IK P5 Material Expert (2026-08-15)
 
 **Scope:** Material Identity → Price Memory HIT/MISS → Phase2 research → Owner Accept.
