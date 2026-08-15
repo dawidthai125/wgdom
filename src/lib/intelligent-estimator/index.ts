@@ -112,6 +112,7 @@ export {
   runIkMasterBoqMaterialExpert,
   acceptIkMaterialResearchCandidate,
   resetMaterialResearchSessionCooldownForTests,
+  summarizeIkMaterialForFocusLines,
 } from "./ik-material-expert";
 export type {
   IkMaterialBucket,
@@ -120,6 +121,8 @@ export type {
   IkMaterialExpertReport,
   IkMaterialIdentity,
   IkMaterialPriceStatus,
+  IkMaterialFocusCoverageStatus,
+  IkTrustedMaterialFocusSummary,
 } from "./ik-material-expert";
 
 export {

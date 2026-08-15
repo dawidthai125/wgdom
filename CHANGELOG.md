@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.72 — IK P5-REAL Material Expert (ZZK focus) (2026-08-15)
+
+**Scope:** Real Material Expert on ZZK P4 focus lines (2 MATERIAL + 4 COMPOUND).
+
+- REUSE `runIkMasterBoqMaterialExpert` · `resolveDemandProductIdentityExact` · Price Memory · Phase2 · Owner Accept
+- Focus live: IDENTITY **0** · NO_MATERIAL_COMPONENT **6** (Wave1 PENDING / no mat.* — ZERO invent)
+- Full BOQ incidental: identity 6 · HIT 5 · MISS 1 · research 1 · candidates 0
+- `ikEntryEnabled` OFF · NG-10 RETAINED · ATH writer GAP
+- Test: `scripts/test-ik-migration-01-p5-real-material.mjs` · Docs: `docs/architecture/IK-MIGRATION-01-P5-REAL-MATERIAL.md`
+
 ## 2.66.71 — IK P4-REAL Labor Expert on 44 trusted Work (2026-08-15)
 
 **Scope:** Real Labor Expert runtime on ZZK trusted Work identities (P4-REAL).

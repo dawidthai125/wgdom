@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-15",
+    version: "2.66.72",
+    label: "IK P5-REAL Material Expert (ZZK focus)",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P5-REAL: Material Expert na ZZK — focus 2 MATERIAL + 4 COMPOUND → NO_MATERIAL_COMPONENT (brak mat.*, Wave1 PENDING). ZERO invent/auto-Accept. Harness: Accept + second Price Memory HIT. ikEntryEnabled OFF · NG-10 RETAINED.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-15",
     version: "2.66.71",
     label: "IK P4-REAL Labor Expert (44 trusted Work)",
     items: [

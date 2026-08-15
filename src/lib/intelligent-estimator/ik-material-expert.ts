@@ -696,5 +696,136 @@ export async function acceptIkMaterialResearchCandidate(opts: {
   });
 }
 
+/**
+ * P5-REAL — slice Material Expert report to focus lineIds (MATERIAL + COMPOUND check).
+ * COMPOUND without trusted mat.* identity → NO_MATERIAL_COMPONENT (existing Wave1 PENDING_OWNER_NORM).
+ * Does not invent materialKey / SKU / price.
+ */
+export type IkMaterialFocusCoverageStatus =
+  | "PRICE_MEMORY_HIT"
+  | "PRICE_MEMORY_MISS_PATH"
+  | "NO_MATERIAL_COMPONENT"
+  | "LABOR_SKIPPED"
+  | "OTHER";
+
+export type IkTrustedMaterialFocusSummary = {
+  focusInput: number;
+  materialPlaneInput: number;
+  compoundPlaneInput: number;
+  totalMaterialExpertInput: number;
+  materialIdentityResolved: number;
+  priceMemoryHit: number;
+  priceMemoryMissPath: number;
+  noMaterialComponent: number;
+  researchKeysOnFocus: string[];
+  candidates: number;
+  orphanPrices: number;
+  coverageOk: boolean;
+  byPlane: Record<string, number>;
+  byBucket: Record<string, number>;
+  byPriceStatus: Record<string, number>;
+  byCoverage: Record<string, number>;
+  lines: IkMaterialExpertLineResult[];
+};
+
+export function summarizeIkMaterialForFocusLines(
+  material: IkMaterialExpertReport,
+  focusLineIds: Iterable<string>,
+): IkTrustedMaterialFocusSummary {
+  const idSet = new Set([...focusLineIds].map(String));
+  const lines = material.lines.filter((l) => idSet.has(l.lineId));
+  const byPlane: Record<string, number> = {};
+  const byBucket: Record<string, number> = {};
+  const byPriceStatus: Record<string, number> = {};
+  const byCoverage: Record<string, number> = {};
+  let materialPlaneInput = 0;
+  let compoundPlaneInput = 0;
+  let materialIdentityResolved = 0;
+  let priceMemoryHit = 0;
+  let priceMemoryMissPath = 0;
+  let noMaterialComponent = 0;
+  let candidates = 0;
+  let orphanPrices = 0;
+  const researchKeys = new Set<string>();
+
+  for (const row of lines) {
+    byPlane[row.plane] = (byPlane[row.plane] || 0) + 1;
+    byBucket[row.bucket] = (byBucket[row.bucket] || 0) + 1;
+    byPriceStatus[row.priceStatus] = (byPriceStatus[row.priceStatus] || 0) + 1;
+
+    let coverage: IkMaterialFocusCoverageStatus = "OTHER";
+    if (row.plane === "LABOR" || row.bucket === "LABOR") {
+      coverage = "LABOR_SKIPPED";
+    } else if (row.plane === "MATERIAL" || row.plane === "COMPOUND") {
+      if (row.plane === "MATERIAL") materialPlaneInput += 1;
+      if (row.plane === "COMPOUND") compoundPlaneInput += 1;
+      if (row.materialIdentity) {
+        materialIdentityResolved += 1;
+        if (row.priceStatus === "PRICE_MEMORY_HIT") {
+          coverage = "PRICE_MEMORY_HIT";
+          priceMemoryHit += 1;
+        } else if (
+          row.priceStatus === "PRICE_MEMORY_MISS"
+          || row.priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+          || row.priceStatus === "RESEARCH_GAP"
+          || row.priceStatus === "RESEARCH_BLOCKED"
+          || row.priceStatus === "RESEARCH_COOLDOWN"
+          || row.priceStatus === "RESEARCH_SKIPPED"
+          || row.priceStatus === "RESEARCH_HELD"
+        ) {
+          coverage = "PRICE_MEMORY_MISS_PATH";
+          priceMemoryMissPath += 1;
+        } else {
+          coverage = "OTHER";
+        }
+      } else {
+        coverage = "NO_MATERIAL_COMPONENT";
+        noMaterialComponent += 1;
+      }
+    }
+
+    byCoverage[coverage] = (byCoverage[coverage] || 0) + 1;
+    if (row.researchKey) researchKeys.add(row.researchKey);
+    if (row.priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED" && row.candidate) {
+      candidates += 1;
+    }
+    // Gate C: price without HIT or candidate path = orphan
+    if (
+      row.priceMemoryHitPln != null
+      && row.priceStatus !== "PRICE_MEMORY_HIT"
+      && row.priceStatus !== "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+    ) {
+      orphanPrices += 1;
+    }
+  }
+
+  const totalMaterialExpertInput = materialPlaneInput + compoundPlaneInput;
+  const accounted =
+    priceMemoryHit + priceMemoryMissPath + noMaterialComponent
+    + (byCoverage.LABOR_SKIPPED || 0)
+    + (byCoverage.OTHER || 0);
+  const coverageOk = lines.length === idSet.size && accounted === lines.length;
+
+  return {
+    focusInput: lines.length,
+    materialPlaneInput,
+    compoundPlaneInput,
+    totalMaterialExpertInput,
+    materialIdentityResolved,
+    priceMemoryHit,
+    priceMemoryMissPath,
+    noMaterialComponent,
+    researchKeysOnFocus: [...researchKeys].sort(),
+    candidates,
+    orphanPrices,
+    coverageOk,
+    byPlane,
+    byBucket,
+    byPriceStatus,
+    byCoverage,
+    lines,
+  };
+}
+
 /** Test-only cooldown reset — re-export for harness. */
 export { resetMaterialResearchSessionCooldownForTests };
