@@ -1,13 +1,27 @@
 {
   "id": "IK-MIGRATION-01-P3-PRODUCTION-VERIFY",
   "date": "2026-08-16",
-  "verdict": "PRODUCTION_VERIFIED_BUNDLE_PUSH",
-  "liveTip": "DEPLOY_PROPAGATING",
+  "verdict": "PRODUCTION_VERIFIED",
+  "propagation": "PASS",
   "uiVersionExpected": "2.66.80",
   "implCommit": "350e81e6",
-  "liveOneShot": {
-    "version": "2.66.79",
-    "commit": "a449f0f"
+  "tipDocsCommit": "ad6273bf",
+  "live": {
+    "version": "2.66.80",
+    "commit": "ad6273b",
+    "commitFull": "ad6273bf",
+    "timestamp": "2026-08-16T09:53:11.052Z",
+    "url": "https://www.wgdom.fun/version.json"
+  },
+  "ancestor": {
+    "implIsAncestorOfLive": true,
+    "commitsAfterImpl": ["ad6273bf"],
+    "notes": "docs-only descendant tip+PV"
+  },
+  "assets": {
+    "index": "index-CWu3lFp2.js",
+    "appCore": "app-core-BwcWtJCy.js",
+    "tendersModule": "TendersModule-fDoMdYYI.js"
   },
   "levers": {
     "IDENTITY_COVERAGE": "DEFAULT_OFF",
@@ -15,16 +29,23 @@
     "RUN_RATE_EXPERTS": "OFF",
     "AUTO_INGEST": "DEFAULT_OFF_UNCHANGED"
   },
-  "localBundle": {
-    "ikIdentityCoverageEnabledDefault": "!1",
-    "toggle": "data-ik-identity-coverage-toggle",
-    "hostMarker": "data-ik-p3-identity-coverage",
-    "runtimeGate": "ikIdentityCoverageEnabled===!0"
-  },
-  "controlledOn": "NOT_EXERCISED",
-  "mobile": {
-    "emulation": "PASS",
-    "physical": "NOT_VERIFIED"
+  "checks": {
+    "ikOffNg10": "PASS",
+    "ikOnAutoOffEntryShell": "PASS",
+    "ikOnAutoOnP2Path": "PASS_BUNDLE_SETTINGS_NOT_EXERCISED",
+    "p3Classification": "PASS",
+    "p3Identity": "PASS",
+    "identityCoverageOff": "PASS",
+    "identityCoverageOnControlled": "NOT_EXERCISED",
+    "researchBoundary": "PASS",
+    "provenance": "PASS",
+    "unitSafety": "PASS",
+    "p526Regression": "PASS",
+    "catalogWorkLock": 471,
+    "testsP3": "87/87",
+    "build": "PASS",
+    "mobileEmulation": "PASS",
+    "mobilePhysical": "NOT_VERIFIED"
   },
   "p4": "NOT_STARTED",
   "stop": "READY_FOR_P4_OWNER_GO"

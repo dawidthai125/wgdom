@@ -2,12 +2,19 @@
   "id": "IK-MIGRATION-01-P3-IMPLEMENTATION-CLOSEOUT",
   "date": "2026-08-16",
   "ownerGo": true,
+  "implCommit": "350e81e6",
+  "tipDocsCommit": "ad6273bf",
+  "live": {
+    "version": "2.66.80",
+    "commit": "ad6273b"
+  },
   "status": {
     "plan": "PASS",
     "implementation": "PASS",
     "test": "PASS",
     "build": "PASS",
-    "productionVerify": "PASS"
+    "productionVerify": "PASS",
+    "verdict": "PRODUCTION_VERIFIED"
   },
   "uiVersion": "2.66.80",
   "levers": {
@@ -23,35 +30,10 @@
   },
   "tests": {
     "p3_implementation": "87/87",
-    "p3_classification": "35/35",
     "p0": "52/52",
     "p1": "61/61",
     "p2_implementation": "65/65",
-    "p25": "22/22",
-    "p526": "30/30",
-    "p526e": "21/21",
-    "p527": "39/39",
-    "p531": "35/35",
-    "p532": "30/30",
-    "pass2_wave1": "85/85",
-    "rw03": "16/16",
     "build": "PASS"
   },
-  "shipped": [
-    "AppSettings.ikIdentityCoverageEnabled",
-    "isIkIdentityCoverageEnabled / isIkP3IdentityCoverageActive",
-    "IkEntryHost runtime identityCoverageOn gate",
-    "Admin data-ik-identity-coverage-toggle",
-    "REUSE runIkMasterBoqClassification + runIkMasterBoqIdentityCoverage"
-  ],
-  "stop": "READY_FOR_P4_OWNER_GO",
-  "forbidden": [
-    "auto_P4",
-    "research",
-    "Accept",
-    "CatalogWork_write",
-    "F5",
-    "Bid",
-    "P5.33"
-  ]
+  "stop": "READY_FOR_P4_OWNER_GO"
 }

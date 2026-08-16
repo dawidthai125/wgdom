@@ -17,24 +17,45 @@ P3 PLAN = PASS
 P3 IMPLEMENTATION = PASS
 TEST = PASS
 BUILD = PASS
-PRODUCTION VERIFY = PASS (bundle + defaults + push)
-LIVE TIP one-shot = DEPLOY_PROPAGATING (still 2.66.79 / a449f0f → expect 2.66.80 / 350e81e6)
+PRODUCTION VERIFY = PASS (PRODUCTION VERIFIED)
 
-IMPL = 350e81e6
-PUSH = PASS
+LIVE = 2.66.80 / ad6273b
+EXPECTED IMPL = 350e81e6 · ANCESTOR_OF_LIVE = YES
+PUSH = PASS (`350e81e6` + tip `ad6273bf`)
 
 IDENTITY_COVERAGE = DEFAULT OFF
 EXECUTE_RESEARCH = OFF
 RUN_RATE_EXPERTS = OFF
 AUTO_INGEST = unchanged (P2 lever, default OFF)
 
-P5.26 = UNCHANGED · CatalogWork 471 lock
+IK OFF → NG-10 = PASS
+IK ON + AUTO OFF → Entry Shell = PASS (bundle)
+IK ON + AUTO ON → Documents→BOQ path = PASS (bundle; settings NOT_EXERCISED)
+P3 Classification / Identity = PASS
+IDENTITY_COVERAGE ON controlled = NOT_EXERCISED
+
+P5.26 = UNCHANGED · CatalogWork 471
 P4 = NOT STARTED
 READY FOR P4 OWNER GO
 STOP — no auto P4 · no research · no Accept · no CatalogWork · no F5/Bid · no P5.33
 ```
 
 **PV SSOT:** [`IK-MIGRATION-01-P3-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P3-PRODUCTION-VERIFY.md) · `.tmp/p3-production-verify.json`
+
+---
+
+## Production Verify (final)
+
+| Check | Result |
+|-------|--------|
+| Propagation | **PASS** — live left `2.66.79`/`a449f0f` |
+| Live `version.json` | **2.66.80** / **`ad6273b`** |
+| Contains `350e81e6` | **YES** (ancestor) |
+| IDENTITY_COVERAGE default OFF | **PASS** (`ikIdentityCoverageEnabled:!1`) |
+| IK OFF / NG-10 | **PASS** |
+| Controlled prod IDENTITY ON | **NOT_EXERCISED** (path verified in bundle) |
+| Research duo OFF | **PASS** |
+| P5.26 unchanged | **PASS** · CatalogWork **471** |
 
 ---
 
