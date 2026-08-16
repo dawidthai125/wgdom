@@ -2,8 +2,16 @@
   "id": "IK-MIGRATION-01-P5-PRODUCTION-VERIFY",
   "date": "2026-08-16",
   "mode": "VERIFY_ONLY",
-  "verdict": "PENDING_PUSH",
-  "uiVersionExpected": "2.66.82",
+  "implCommit": "d5a7fa5c",
+  "verdict": "DEPLOY_PROPAGATING",
+  "live": {
+    "version": "2.66.81",
+    "commit": "1aa1a47"
+  },
+  "expected": {
+    "uiVersion": "2.66.82",
+    "implCommit": "d5a7fa5c"
+  },
   "levers": {
     "ikLaborE2eEnabled": "DEFAULT_OFF",
     "ikLaborResearchEnabled": "DEFAULT_OFF",
@@ -11,5 +19,6 @@
   },
   "p526CatalogWork": 471,
   "p6": "NOT_STARTED",
-  "mobilePhysical": "NOT_VERIFIED"
+  "mobilePhysical": "NOT_VERIFIED",
+  "finalProductionVerified": false
 }
