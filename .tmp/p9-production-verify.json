@@ -3,10 +3,13 @@
   "date": "2026-08-16",
   "expectedUi": "2.66.86",
   "mode": "ONE_SHOT_NO_POLLING",
-  "status": "PENDING_AFTER_PUSH",
-  "live": null,
-  "implCommit": null,
-  "verdict": null,
+  "implCommit": "80c7c26b",
+  "live": {
+    "version": "2.66.85",
+    "commit": "32dd5c3",
+    "timestamp": "2026-08-16T17:41:28.441Z"
+  },
+  "verdict": "DEPLOY_PROPAGATING",
   "controlledOwnerVerify": "NOT_EXERCISED",
   "ikP9Lever": false,
   "research": 0,
