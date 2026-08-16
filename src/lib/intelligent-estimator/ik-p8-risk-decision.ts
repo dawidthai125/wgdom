@@ -1,0 +1,252 @@
+/**
+ * IK-MIGRATION-01 P8 — Risk → Validation → Chief Decision → DW → EC seam.
+ *
+ * REUSE ONLY:
+ *  - applyTenderIntelligenceOverlay
+ *  - analyzeValidationFromDossier
+ *  - buildDecisionWorkspaceViewModel
+ *  - scoreTenderForOwnerView / buildOwnerDecisionView
+ *  - P4 ChiefSessionOutput (optional — no invent dossier)
+ *
+ * HARD LOCK: RESEARCH=0 · HTTP=0 · CatalogWork WRITE=0 · Price Memory WRITE=0
+ * NO auto Owner Accept · NO flip expertAiDecydentEnabled / ikChiefWiringEnabled
+ */
+
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import {
+  buildOwnerDecisionView,
+  scoreTenderForOwnerView,
+} from "@/lib/tender-owner-view-ux";
+import {
+  applyTenderIntelligenceOverlay,
+  type TenderIntelligenceOverlay,
+} from "@/lib/tender-intelligence-overlay";
+import type { StrategicScoreContext } from "@/lib/tenders-strategy-strategic-score";
+import type { CompanyHealthResult } from "@/lib/tenders-strategy-health";
+import { healthWeightsForMode } from "@/lib/tenders-strategy-growth-mode";
+import {
+  analyzeValidationFromDossier,
+  type ValidationExpertAnalysisResult,
+  type ValidationVerdict,
+} from "@/lib/validation-expert";
+import {
+  buildDecisionWorkspaceViewModel,
+} from "@/lib/decision-workspace-ui";
+import type { DecisionWorkspaceViewModel } from "@/lib/decision-workspace-ui";
+import {
+  idleChiefSessionOutput,
+  type ChiefSessionOutput,
+} from "@/lib/chief-session";
+import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
+
+export const IK_P8_RISK_DECISION_SCHEMA_VERSION = 1 as const;
+
+export type IkP8RiskDecisionStatus =
+  | "ready"
+  | "partial"
+  | "gap"
+  | "blocked"
+  | "hold"
+  | "needs_review";
+
+export type IkP8RiskDecisionReport = {
+  schemaVersion: typeof IK_P8_RISK_DECISION_SCHEMA_VERSION;
+  status: IkP8RiskDecisionStatus;
+  tenderId: string;
+  /** Always false — P8 hard lock. */
+  researchExecuted: false;
+  /** Always 0 — P8 hard lock. */
+  httpCalls: 0;
+  catalogWorkWrite: false;
+  priceMemoryWrite: false;
+  /** Always false — Chief Decision ≠ Owner Accept. */
+  autoAcceptExecuted: false;
+  /** P8 ON must never flip Dual Outcome D. */
+  expertAiDecydentFlipped: false;
+  /** P8 ON must never mutate P4 lever. */
+  ikChiefWiringMutated: false;
+  overlay: TenderIntelligenceOverlay | null;
+  displayDecision: "GO" | "HOLD" | "NO-GO" | null;
+  downgradeRule: string | null;
+  validationVerdict: ValidationVerdict | null;
+  validation: ValidationExpertAnalysisResult | null;
+  chiefAvailable: boolean;
+  chiefCaseId: string | null;
+  chiefStatus: string | null;
+  decisionWorkspace: DecisionWorkspaceViewModel | null;
+  dwUiPhase: string | null;
+  canApprove: boolean;
+  canReject: boolean;
+  ownerDecisionRecorded: boolean;
+  reasonsPl: string[];
+  provenance: {
+    sourceRefKind: "evidence" | "hold";
+    bidFromP7: boolean;
+    riskSource: "tender_intelligence_overlay";
+    validationSource: "validation_expert" | "chief_unavailable";
+    decisionSource: "decision_workspace_vm";
+  };
+};
+
+function stubHealth(): CompanyHealthResult {
+  const weights = healthWeightsForMode("balanced");
+  return {
+    index: 60,
+    label: "stable",
+    dimensions: { O: 60, Z: 60, F: 60, R: 60, D: 60 },
+    recommendation: "IK P8 — minimal strategic context (local profile only).",
+    weights,
+    suggestedGrowthMode: "balanced",
+    freeSlots: 1,
+    overloadIndex: 0,
+  };
+}
+
+function buildLocalScoringContext(item: TenderPipelineItem): StrategicScoreContext {
+  const profile = loadCompanyProfileLocal();
+  return {
+    health: stubHealth(),
+    growthMode: "balanced",
+    jobs: [],
+    items: [item],
+    profile,
+  };
+}
+
+function mapStatus(opts: {
+  displayDecision: "GO" | "HOLD" | "NO-GO" | null;
+  validationVerdict: ValidationVerdict | null;
+  chiefAvailable: boolean;
+}): IkP8RiskDecisionStatus {
+  if (opts.displayDecision === "NO-GO") return "blocked";
+  if (opts.validationVerdict === "blocked") return "blocked";
+  if (opts.validationVerdict === "needs_review") return "needs_review";
+  if (!opts.chiefAvailable) return "hold";
+  if (opts.displayDecision === "HOLD") return "hold";
+  if (opts.validationVerdict === "validated" && opts.displayDecision === "GO") {
+    return "ready";
+  }
+  if (opts.displayDecision === "GO" && opts.validationVerdict == null) {
+    return "partial";
+  }
+  return "partial";
+}
+
+/**
+ * Pure P8 seam — READ Bid (P7 optional) · REUSE overlay / validation / DW VM.
+ * Never calls Labor/Material experts · never research · never Accept · never flips D.
+ */
+export function runIkP8RiskDecision(opts: {
+  item: TenderPipelineItem;
+  /** P7 Bid proposal — preferred; null → overlay O4 HOLD path when raw GO. */
+  bidProposal?: TenderBidProposal | null;
+  /** Optional full P7 report (status provenance companion). */
+  p7?: IkP7PositionCostBidReport | null;
+  /** P4 Chief session — REUSE; null ⇒ Validation HOLD (no invent dossier). */
+  chiefSession?: ChiefSessionOutput | null;
+  scoringContext?: StrategicScoreContext | null;
+}): IkP8RiskDecisionReport {
+  const tenderId = String(opts.item.id || opts.item.tenderId || "").trim();
+  const bidProposal =
+    opts.bidProposal
+    ?? opts.p7?.proposal
+    ?? null;
+  const session = opts.chiefSession ?? null;
+  const dossier = session?.dossier ?? null;
+  const chiefAvailable = dossier != null && Boolean(session?.caseId || dossier.caseId);
+
+  const baseLocks = {
+    researchExecuted: false as const,
+    httpCalls: 0 as const,
+    catalogWorkWrite: false as const,
+    priceMemoryWrite: false as const,
+    autoAcceptExecuted: false as const,
+    expertAiDecydentFlipped: false as const,
+    ikChiefWiringMutated: false as const,
+  };
+
+  const scoringContext = opts.scoringContext ?? buildLocalScoringContext(opts.item);
+  const scoringBundle = scoreTenderForOwnerView(opts.item, scoringContext);
+  const decisionView = buildOwnerDecisionView(scoringBundle);
+  const overlay = applyTenderIntelligenceOverlay({
+    bundle: scoringBundle,
+    decisionView,
+    ownerFinanceProposal: bidProposal,
+    item: opts.item,
+  });
+
+  let validation: ValidationExpertAnalysisResult | null = null;
+  let validationVerdict: ValidationVerdict | null = null;
+  let validationSource: "validation_expert" | "chief_unavailable" = "chief_unavailable";
+
+  if (dossier) {
+    validation = analyzeValidationFromDossier(dossier);
+    validationVerdict = validation.verdict;
+    validationSource = "validation_expert";
+  }
+
+  const sessionForDw: ChiefSessionOutput = session
+    ?? idleChiefSessionOutput({
+      status: "idle",
+      dossier: null,
+      caseId: null,
+      readyForDecision: false,
+      error: chiefAvailable ? null : "CHIEF_UNAVAILABLE",
+    });
+
+  // IK-scoped DW VM: flagEnabled=true under P8 gate — does NOT flip D / classic DW LS.
+  const decisionWorkspace = buildDecisionWorkspaceViewModel({
+    session: sessionForDw,
+    validation,
+    localDecision: null,
+    flagEnabled: true,
+  });
+
+  const status = mapStatus({
+    displayDecision: overlay.displayDecision,
+    validationVerdict,
+    chiefAvailable,
+  });
+
+  const reasonsPl: string[] = [
+    ...overlay.reasons.slice(0, 6),
+    ...(validation?.report.summaryPl ? [validation.report.summaryPl] : []),
+    ...(!chiefAvailable ? ["Chief niedostępny — Validation HOLD (bez invent dossier)."] : []),
+    ...(opts.p7 && (opts.p7.status === "gap" || opts.p7.status === "blocked")
+      ? [`P7 Bid context: ${opts.p7.status}`]
+      : []),
+  ];
+
+  const sourceRefKind: "evidence" | "hold" =
+    status === "ready" || status === "partial" ? "evidence" : "hold";
+
+  return {
+    schemaVersion: IK_P8_RISK_DECISION_SCHEMA_VERSION,
+    status,
+    tenderId,
+    ...baseLocks,
+    overlay,
+    displayDecision: overlay.displayDecision,
+    downgradeRule: overlay.downgradeRule,
+    validationVerdict,
+    validation,
+    chiefAvailable,
+    chiefCaseId: session?.caseId ?? dossier?.caseId ?? null,
+    chiefStatus: session?.status ?? null,
+    decisionWorkspace,
+    dwUiPhase: decisionWorkspace.uiPhase,
+    canApprove: decisionWorkspace.canApprove === true,
+    canReject: decisionWorkspace.canReject === true,
+    ownerDecisionRecorded: decisionWorkspace.localDecision != null,
+    reasonsPl,
+    provenance: {
+      sourceRefKind,
+      bidFromP7: bidProposal != null && (opts.p7 != null || opts.bidProposal != null),
+      riskSource: "tender_intelligence_overlay",
+      validationSource,
+      decisionSource: "decision_workspace_vm",
+    },
+  };
+}

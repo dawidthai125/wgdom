@@ -744,6 +744,7 @@ export function TenderDetailPage({
               item={item}
               onUpdate={onUpdateItem}
               athPreviewEnabled={athPreviewEnabled}
+              chiefSession={chiefSessionEnabled ? chiefSession : null}
               pipelineIngest={{
                 dossierBuilding: pipelineRuntime.dossierBuilding,
                 dossierEnriching: pipelineRuntime.dossierEnriching,

@@ -1,5 +1,5 @@
 /**
- * IK-MIGRATION-01 P1–P7 — first-screen + controlled P2–P7 flags.
+ * IK-MIGRATION-01 P1–P8 — first-screen + controlled P2–P8 flags.
  * SSOT: AppSettings (kw-app-settings). Defaults OFF.
  * Independent of Decydent / Dual Outcome master (D).
  */
@@ -42,6 +42,11 @@ export type IkP7F5E2eEligibilityInput = {
   ikF5E2eEnabled: boolean;
 };
 
+export type IkP8RiskDecisionE2eEligibilityInput = {
+  ikEntryEnabled: boolean;
+  ikRiskDecisionE2eEnabled: boolean;
+};
+
 let ikEntryForTests: boolean | null = null;
 let ikAutoIngestForTests: boolean | null = null;
 let ikIdentityCoverageForTests: boolean | null = null;
@@ -51,6 +56,7 @@ let ikLaborResearchForTests: boolean | null = null;
 let ikMaterialE2eForTests: boolean | null = null;
 let ikMaterialResearchForTests: boolean | null = null;
 let ikF5E2eForTests: boolean | null = null;
+let ikRiskDecisionE2eForTests: boolean | null = null;
 
 /** Test-only override (null = AppSettings). */
 export function forceIkEntryEnabledForTests(on: boolean | null): void {
@@ -95,6 +101,11 @@ export function forceIkMaterialResearchForTests(on: boolean | null): void {
 /** Test-only override for P7 F5/Bid E2E (null = AppSettings). */
 export function forceIkF5E2eForTests(on: boolean | null): void {
   ikF5E2eForTests = on;
+}
+
+/** Test-only override for P8 Risk/Decision E2E (null = AppSettings). */
+export function forceIkRiskDecisionE2eForTests(on: boolean | null): void {
+  ikRiskDecisionE2eForTests = on;
 }
 
 export function isIkEntryEnabled(): boolean {
@@ -295,6 +306,33 @@ export function isIkP7F5E2eActive(): boolean {
   return resolveIkP7F5E2eActive({
     ikEntryEnabled: isIkEntryEnabled(),
     ikF5E2eEnabled: isIkF5E2eEnabled(),
+  });
+}
+
+/**
+ * P8 Risk → Validation → Chief → DW preference. Default OFF.
+ * Does NOT enable research · Does NOT Accept · Does NOT flip D / P4–P7.
+ */
+export function isIkRiskDecisionE2eEnabled(): boolean {
+  if (ikRiskDecisionE2eForTests != null) return ikRiskDecisionE2eForTests;
+  return loadAppSettingsLocal().ikRiskDecisionE2eEnabled === true;
+}
+
+/** Pure P8 eligibility (flags only). */
+export function resolveIkP8RiskDecisionE2eActive(
+  input: IkP8RiskDecisionE2eEligibilityInput,
+): boolean {
+  return input.ikEntryEnabled === true && input.ikRiskDecisionE2eEnabled === true;
+}
+
+/**
+ * P8 active seam: IK Entry ON ∧ Risk/Decision E2E ON.
+ * RESEARCH/HTTP stay 0 · D stays UNCHANGED.
+ */
+export function isIkP8RiskDecisionE2eActive(): boolean {
+  return resolveIkP8RiskDecisionE2eActive({
+    ikEntryEnabled: isIkEntryEnabled(),
+    ikRiskDecisionE2eEnabled: isIkRiskDecisionE2eEnabled(),
   });
 }
 

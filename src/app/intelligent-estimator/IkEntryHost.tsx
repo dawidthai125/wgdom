@@ -1,6 +1,7 @@
 /**
  * IK-MIGRATION-01 P1 shell + P2 Documents→BOQ + P3 classification/identity
- * + P5 Labor E2E + P6 Material E2E + P7 Position Cost → F5 → Bid → SUM.
+ * + P5 Labor E2E + P6 Material E2E + P7 Position Cost → F5 → Bid → SUM
+ * + P8 Risk → Validation → Chief → DW → EC.
  *
  * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
  * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
@@ -11,9 +12,10 @@
  * P6: Material E2E when isIkP6MaterialE2eActive(); MODE B research only when
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
  * P7: F5/Bid when isIkP7F5E2eActive(); RESEARCH=0 · HTTP=0 always (no research lever).
+ * P8: Risk/Decision when isIkP8RiskDecisionE2eActive(); RESEARCH=0 · HTTP=0 · no D flip.
  *
  * Shared RUN_RATE_EXPERTS stays false (never arms Material via shared sentinel).
- * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — not labor/material experts.
+ * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — passed in as optional session.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -43,6 +45,10 @@ import {
   type IkP7PositionCostBidReport,
 } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import {
+  runIkP8RiskDecision,
+  type IkP8RiskDecisionReport,
+} from "@/lib/intelligent-estimator/ik-p8-risk-decision";
+import {
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
   isIkP5LaborE2eActive,
@@ -50,9 +56,11 @@ import {
   isIkP6MaterialE2eActive,
   isIkP6MaterialExecuteResearchActive,
   isIkP7F5E2eActive,
+  isIkP8RiskDecisionE2eActive,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
+import type { ChiefSessionOutput } from "@/lib/chief-session";
 
 /**
  * Compile-time default sentinels — runtime levers use AppSettings.
@@ -72,6 +80,8 @@ export function IkEntryHost({
   onUpdate,
   pipelineIngest,
   athPreviewEnabled = true,
+  /** P4 Chief session REUSE — optional; P8 Validation HOLD when null. */
+  chiefSession = null,
 }: {
   item: TenderPipelineItem;
   onUpdate?: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
@@ -81,6 +91,7 @@ export function IkEntryHost({
     heavyDone?: boolean;
   } | null;
   athPreviewEnabled?: boolean;
+  chiefSession?: ChiefSessionOutput | null;
 }) {
   const autoIngestOn = isIkAutoIngestEnabled() === true;
   const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
@@ -89,6 +100,7 @@ export function IkEntryHost({
   const p6MaterialOn = isIkP6MaterialE2eActive() === true;
   const p6ResearchOn = isIkP6MaterialExecuteResearchActive() === true;
   const p7F5On = isIkP7F5E2eActive() === true;
+  const p8RiskOn = isIkP8RiskDecisionE2eActive() === true;
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
@@ -282,6 +294,17 @@ export function IkEntryHost({
     });
   }, [p7F5On, effectiveItem, pkg, report]);
 
+  // P8 Risk → Validation → Chief → DW → EC — REUSE engines · RESEARCH=0 · no D flip · no Accept.
+  const riskDecision = useMemo((): IkP8RiskDecisionReport | null => {
+    if (!p8RiskOn) return null;
+    return runIkP8RiskDecision({
+      item: effectiveItem,
+      p7: positionCostBid,
+      bidProposal: positionCostBid?.proposal ?? null,
+      chiefSession,
+    });
+  }, [p8RiskOn, effectiveItem, positionCostBid, chiefSession]);
+
   const vm = useMemo(
     () =>
       buildIkEntryConversationViewModel(effectiveItem, {
@@ -310,8 +333,9 @@ export function IkEntryHost({
         material,
         identityCoverage,
         positionCostBid,
+        riskDecision,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision],
   );
 
   return (
@@ -328,6 +352,7 @@ export function IkEntryHost({
       data-ik-p6-material-e2e={p6MaterialOn ? "1" : "0"}
       data-ik-p6-material-research={p6ResearchOn ? "1" : "0"}
       data-ik-p7-f5-e2e={p7F5On ? "1" : "0"}
+      data-ik-p8-risk-decision-e2e={p8RiskOn ? "1" : "0"}
       data-ik-entry-identity-coverage={identityCoverageOn ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
@@ -357,6 +382,14 @@ export function IkEntryHost({
       data-ik-p7-bid-ok={positionCostBid?.bidOk ? "1" : "0"}
       data-ik-p7-research={String(positionCostBid?.researchExecuted ?? 0)}
       data-ik-p7-http={String(positionCostBid?.httpCalls ?? 0)}
+      data-ik-p8-status={
+        p8RiskOn ? (riskDecision?.status ?? "pending") : "shell_skipped"
+      }
+      data-ik-p8-decision={riskDecision?.displayDecision ?? ""}
+      data-ik-p8-validation={riskDecision?.validationVerdict ?? ""}
+      data-ik-p8-research={String(riskDecision?.researchExecuted ?? 0)}
+      data-ik-p8-http={String(riskDecision?.httpCalls ?? 0)}
+      data-ik-p8-auto-accept={String(riskDecision?.autoAcceptExecuted ?? 0)}
       data-ik-identity-status={
         identityCoverageOn ? (identityCoverage?.status ?? "pending") : "shell_skipped"
       }

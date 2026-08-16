@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.85",
+    label: "IK-MIGRATION-01 P8 Risk → Decision",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P8 (Owner GO): Risk overlay → Validation → P4 Chief → Decision Workspace → EC pod IK — ikRiskDecisionE2eEnabled (default OFF). REUSE tender-intelligence-overlay / validation-expert / buildDecisionWorkspaceViewModel / P4 Chief. RESEARCH=0 · HTTP=0 · CatalogWork 471 UNTOUCHED · zero auto-Accept · IK≠D. Prod: P8 OFF. STOP — bez auto P9.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.84",
     label: "IK-MIGRATION-01 P7 Position Cost → Bid",
     items: [

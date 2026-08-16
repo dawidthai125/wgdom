@@ -17,6 +17,7 @@ import {
   EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
   EXPERT_CONVERSATION_ACTOR_COST_PL,
   EXPERT_CONVERSATION_ACTOR_OFFER_PL,
+  EXPERT_CONVERSATION_ACTOR_CHIEF_PL,
   EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   labelConversationStatusPl,
@@ -34,6 +35,7 @@ import type { IkMaterialExpertReport } from "./ik-material-expert";
 import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
+import type { IkP8RiskDecisionReport } from "./ik-p8-risk-decision";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
@@ -60,6 +62,8 @@ export interface IkEntryConversationOpts {
   materialIdentityP59?: IkMaterialIdentityP59Report | null;
   /** P7 — Position Cost → F5 → Bid → SUM (REUSE engines; never invent). */
   positionCostBid?: IkP7PositionCostBidReport | null;
+  /** P8 — Risk → Validation → Chief → DW (REUSE engines; never invent / Accept). */
+  riskDecision?: IkP8RiskDecisionReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -118,6 +122,7 @@ export function buildIkEntryConversationViewModel(
       || "identityCoverage" in pkgOrOpts
       || "materialIdentityP59" in pkgOrOpts
       || "positionCostBid" in pkgOrOpts
+      || "riskDecision" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -1321,6 +1326,137 @@ export function buildIkEntryConversationViewModel(
           researchExecuted: false,
           httpCalls: 0,
         }, p7.bidOk ? "evidence" : "hold"),
+      }),
+    );
+  }
+
+  // P8 — Risk → Validation → Chief → DW (only when report provided; ZERO invent / research / Accept).
+  const p8 = opts.riskDecision ?? null;
+  if (p8) {
+    const p8Status = ((): ExpertConversationStepStatus => {
+      switch (p8.status) {
+        case "ready": return "done";
+        case "partial": return "partial";
+        case "gap": return "gap";
+        case "blocked": return "blocked";
+        case "needs_review": return "hold";
+        default: return "hold";
+      }
+    })();
+    const riskStatus: ExpertConversationStepStatus =
+      p8.displayDecision === "NO-GO"
+        ? "blocked"
+        : p8.displayDecision === "HOLD"
+          ? "hold"
+          : p8.displayDecision === "GO"
+            ? "done"
+            : "hold";
+    const valStatus: ExpertConversationStepStatus =
+      p8.validationVerdict === "blocked"
+        ? "blocked"
+        : p8.validationVerdict === "needs_review"
+          ? "hold"
+          : p8.validationVerdict === "validated"
+            ? "done"
+            : "hold";
+
+    steps.push(
+      step({
+        id: "chief_start",
+        event: "RISK_OVERLAY",
+        status: riskStatus,
+        messagePl: p8.displayDecision
+          ? `Risk overlay: ${p8.displayDecision} (${p8.overlay?.displayLabel ?? "—"}) · rule=${p8.downgradeRule ?? "none"}.`
+          : `Risk overlay: brak displayDecision.`,
+        detailPl: [
+          `confidence=${p8.overlay?.confidence ?? "—"}`,
+          `research=${p8.researchExecuted}`,
+          `http=${p8.httpCalls}`,
+          p8.reasonsPl.slice(0, 2).join(" · ") || null,
+        ].filter(Boolean).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_CHIEF_PL,
+        sourceRef: tenderRef({
+          displayDecision: p8.displayDecision,
+          downgradeRule: p8.downgradeRule,
+          confidence: p8.overlay?.confidence ?? null,
+          researchExecuted: false,
+          httpCalls: 0,
+          riskSource: p8.provenance.riskSource,
+        }, riskStatus === "done" ? "evidence" : "hold"),
+      }),
+    );
+
+    steps.push(
+      step({
+        id: "validation",
+        event: "VALIDATION_EXPERT",
+        status: valStatus,
+        messagePl: p8.validationVerdict
+          ? `Validation: ${p8.validationVerdict} · hard=${p8.validation?.report.hardCount ?? 0} · soft=${p8.validation?.report.softCount ?? 0}.`
+          : `Validation: HOLD — Chief niedostępny (bez invent dossier).`,
+        detailPl: p8.validation?.report.summaryPl
+          ?? (p8.chiefAvailable ? null : "CHIEF_UNAVAILABLE"),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_CHIEF_PL,
+        sourceRef: tenderRef({
+          validationVerdict: p8.validationVerdict,
+          chiefAvailable: p8.chiefAvailable,
+          validationSource: p8.provenance.validationSource,
+          researchExecuted: false,
+          autoAcceptExecuted: false,
+        }, valStatus === "done" ? "evidence" : "hold"),
+      }),
+    );
+
+    steps.push(
+      step({
+        id: "chief_final",
+        event: "CHIEF_DECISION_CONTEXT",
+        status: p8.chiefAvailable ? (p8Status === "blocked" ? "blocked" : "done") : "hold",
+        messagePl: p8.chiefAvailable
+          ? `Chief context: case=${p8.chiefCaseId ?? "—"} · status=${p8.chiefStatus ?? "—"} (P4 REUSE · ≠ Owner Accept).`
+          : `Chief context: niedostępny — P8 nie inventuje dossier / nie flipuje D.`,
+        detailPl: [
+          `expertAiDecydentFlipped=${p8.expertAiDecydentFlipped}`,
+          `ikChiefWiringMutated=${p8.ikChiefWiringMutated}`,
+          `autoAccept=${p8.autoAcceptExecuted}`,
+        ].join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_CHIEF_PL,
+        sourceRef: tenderRef({
+          chiefAvailable: p8.chiefAvailable,
+          chiefCaseId: p8.chiefCaseId,
+          chiefStatus: p8.chiefStatus,
+          autoAcceptExecuted: false,
+        }, p8.chiefAvailable ? "evidence" : "hold"),
+      }),
+    );
+
+    steps.push(
+      step({
+        id: "offer",
+        event: "DECISION_WORKSPACE",
+        status: p8.decisionWorkspace?.uiPhase === "ready_for_decision"
+          ? "done"
+          : p8.canApprove
+            ? "done"
+            : (p8Status === "blocked" ? "blocked" : "hold"),
+        messagePl: p8.decisionWorkspace
+          ? `Decision Workspace: phase=${p8.dwUiPhase} · canApprove=${p8.canApprove} · canReject=${p8.canReject} (Owner-only Persist).`
+          : `Decision Workspace: brak VM.`,
+        detailPl: [
+          `ownerDecisionRecorded=${p8.ownerDecisionRecorded}`,
+          `catalogWrite=${p8.catalogWorkWrite}`,
+          `pmWrite=${p8.priceMemoryWrite}`,
+          p8.decisionWorkspace?.disabledReasonPl ?? null,
+        ].filter(Boolean).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_OFFER_PL,
+        sourceRef: tenderRef({
+          dwUiPhase: p8.dwUiPhase,
+          canApprove: p8.canApprove,
+          canReject: p8.canReject,
+          ownerDecisionRecorded: p8.ownerDecisionRecorded,
+          autoAcceptExecuted: false,
+          decisionSource: p8.provenance.decisionSource,
+        }, p8.provenance.sourceRefKind),
       }),
     );
   }

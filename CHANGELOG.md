@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.85 — IK-MIGRATION-01 P8 Risk → Decision (2026-08-16)
+
+- **P8 Owner GO:** Risk → Validation → Chief → DW → EC under IK (`ikRiskDecisionE2eEnabled`, default **OFF**)
+- REUSE: `applyTenderIntelligenceOverlay` · `analyzeValidationFromDossier` · DW VM · P4 Chief session
+- RESEARCH=0 · HTTP=0 · CatalogWork **471** UNTOUCHED · zero auto-Accept · IK≠D
+- **STOP:** no auto P9 · controlled ON NOT_EXERCISED
+
 ## 2.66.84 — IK-MIGRATION-01 P7 Position Cost → Bid (2026-08-16)
 
 - **P7 Owner GO:** Position Cost → F5 → Bid → SUM → EC under IK (`ikF5E2eEnabled`, default **OFF**)

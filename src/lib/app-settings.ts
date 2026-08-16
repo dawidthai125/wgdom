@@ -107,6 +107,12 @@ export interface AppSettings {
    * Does NOT mutate CatalogWork / Price Memory · Does NOT flip P4–P6 levers.
    */
   ikF5E2eEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P8 — Risk → Validation → Chief → DW → EC under IK.
+   * Default OFF. Single E2E lever. Does NOT enable research/HTTP/Accept.
+   * Does NOT flip Dual Outcome (D) · Does NOT mutate P4–P7 levers · Does NOT write CatalogWork/PM.
+   */
+  ikRiskDecisionE2eEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -153,6 +159,7 @@ export function defaultAppSettings(): AppSettings {
     ikMaterialE2eEnabled: false,
     ikMaterialResearchEnabled: false,
     ikF5E2eEnabled: false,
+    ikRiskDecisionE2eEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -383,6 +390,16 @@ export function mergeIkF5E2eEnabled(
   return local.ikF5E2eEnabled === true;
 }
 
+/** P8 Risk/Decision E2E — independent of Dual Outcome (D) and research levers. */
+export function mergeIkRiskDecisionE2eEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikRiskDecisionE2eEnabled === true) return true;
+  if (remote?.ikRiskDecisionE2eEnabled === false) return false;
+  return local.ikRiskDecisionE2eEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -407,6 +424,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikMaterialE2eEnabled: parsed.ikMaterialE2eEnabled === true,
       ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
       ikF5E2eEnabled: parsed.ikF5E2eEnabled === true,
+      ikRiskDecisionE2eEnabled: parsed.ikRiskDecisionE2eEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -474,6 +492,7 @@ export function mergeAppSettings(
     ikMaterialE2eEnabled: mergeIkMaterialE2eEnabled(remote, local),
     ikMaterialResearchEnabled: mergeIkMaterialResearchEnabled(remote, local),
     ikF5E2eEnabled: mergeIkF5E2eEnabled(remote, local),
+    ikRiskDecisionE2eEnabled: mergeIkRiskDecisionE2eEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),
