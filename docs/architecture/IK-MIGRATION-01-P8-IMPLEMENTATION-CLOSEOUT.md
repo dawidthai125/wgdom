@@ -12,10 +12,11 @@
 ## FINAL STATUS
 
 ```text
-P8 IMPLEMENTATION = PASS
+P8 IMPLEMENTATION = PASS · commit **`1f980aa0`** (origin/main)
 TEST = PASS (67 PASS / 0 FAIL + Validation + DW + P4 reuse)
 BUILD = PASS
-COMMIT / PUSH / LIVE = see PRODUCTION-VERIFY + tip 09
+PUSH = PASS
+PRODUCTION VERIFY = **DEPLOY_PROPAGATING** (one-shot live still 2.66.84 / e2fe30d)
 
 UI = 2.66.85 (changelog)
 ikRiskDecisionE2eEnabled = DEFAULT OFF

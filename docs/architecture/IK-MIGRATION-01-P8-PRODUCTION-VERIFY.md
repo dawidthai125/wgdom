@@ -12,16 +12,19 @@
 | Field | Value |
 |-------|-------|
 | Expected UI | **2.66.85** |
-| Prior baseline | 2.66.84 / `e291340` |
-| Live `version.json` | *(filled after push)* |
-| Verdict | *(PASS / DEPLOY_PROPAGATING)* |
+| Impl commit | **`1f980aa0`** |
+| Prior baseline | 2.66.84 / `e291340` (feature) · tip docs `e2fe30d` |
+| Live `version.json` (one-shot) | **2.66.84** / **`e2fe30d`** |
+| Verdict | **DEPLOY_PROPAGATING** |
+
+Push `origin/main` = PASS (`e2fe30dc..1f980aa0`). Live still prior tip — **do not** claim PRODUCTION VERIFIED until live shows **2.66.85** / descendant of **`1f980aa0`**.
 
 ---
 
-## Production locks
+## Production locks (code on main)
 
-| Check | Expected |
-|-------|----------|
+| Check | Expected / Status |
+|-------|-------------------|
 | `ikRiskDecisionE2eEnabled` | DEFAULT **OFF** |
 | Controlled ON | **NOT_EXERCISED** |
 | RESEARCH | 0 |
@@ -33,21 +36,24 @@
 
 ---
 
-## Bundle markers (post-deploy)
+## Bundle markers (when live = 2.66.85)
 
 Expect in Tenders / app-core chunks:
 
 - `ikRiskDecisionE2eEnabled`
 - `runIkP8RiskDecision` / `RISK_OVERLAY` / `VALIDATION_EXPERT` / `DECISION_WORKSPACE`
-- `ikRiskDecisionE2eEnabled:!1` or equivalent default-false encode
+- default-false encode for lever
 
 ---
 
 ## FINAL
 
 ```text
-P8 = PRODUCTION VERIFIED / LOCKED  (when live matches tip)
+PUSH = PASS
+LIVE = DEPLOY_PROPAGATING (one-shot still 2.66.84 / e2fe30d)
+P8 on main = IMPLEMENTED (1f980aa0) · DEFAULT OFF
+P8 PRODUCTION VERIFIED / LOCKED = PENDING live tip
 P9 = NOT STARTED
 P5.33 = DO NOT CREATE
-STOP.
+STOP — no polling.
 ```
