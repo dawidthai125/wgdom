@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.87",
+    label: "IK-MIGRATION-01 P10 NG-10 → IK first-screen",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P10 (Owner GO): NG-10 Autonomous Gate/Run/Outcome DECOMMISSION. /przetarg first-screen = IkEntryHost (ikEntryEnabled default ON). TRE-01: auto Outcome-first SUPERSEDED — Recovery CTA dla Expert ON oraz Expert OFF+sliceA; Outcome tylko po CTA. IK≠D · CatalogWork 471 UNTOUCHED · ZERO nowych silników. Test: test-ik-migration-01-p10-implementation.mjs (A10).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.86",
     label: "IK-MIGRATION-01 P9 Owner Verify",
     items: [

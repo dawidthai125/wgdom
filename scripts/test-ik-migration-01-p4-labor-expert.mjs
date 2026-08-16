@@ -442,8 +442,8 @@ assert("non-labor or unresolved for zawór (no force LABOR)",
   matRow && (matRow.bucket === "NON_LABOR" || matRow.bucket === "UNRESOLVED"), matRow);
 
 forceIkEntryEnabledForTests(null);
-assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+assert("Gate A OFF", defaultAppSettings().ikEntryEnabled === true);
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(defaultAppSettings()) === "ik_entry");
 
 forceIkEntryEnabledForTests(true);
 const vm = buildIkEntryConversationViewModel(item, {

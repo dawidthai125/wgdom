@@ -92,16 +92,17 @@ console.log("=== IK-MIGRATION-01 P0 IMPLEMENTATION ===\n");
 
 // --- A: ikEntryEnabled OFF → no regression ---
 reset();
-assert("A default ikEntryEnabled false", defaultAppSettings().ikEntryEnabled === false);
+assert("A default ikEntryEnabled true (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert("A default D false", defaultAppSettings().expertAiDecydentEnabled === false);
-assert("A isIkEntryEnabled OFF", isIkEntryEnabled() === false);
-assert("A first screen ng10_gate", resolveIkDetailFirstScreen(false) === "ng10_gate");
+forceIkEntryEnabledForTests(false);
+assert("A isIkEntryEnabled forced OFF", isIkEntryEnabled() === false);
+assert("A first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 
 const detailSrc = readSrc("src/app/TenderDetailPage.tsx");
-assert("A DetailPage still imports TenderAutonomousGate", /TenderAutonomousGate/.test(detailSrc));
+assert("A DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 assert(
-  "A OFF path wraps Gate when not ik_entry",
-  /if \(ikFirstScreen === "ik_entry"\)[\s\S]*return detailWorkspace;[\s\S]*TenderAutonomousGate/.test(detailSrc),
+  "A always returns detailWorkspace (no Gate)",
+  /return detailWorkspace/.test(detailSrc) && !/TenderAutonomousGate/.test(detailSrc),
 );
 
 // --- B: IK ON → entry available ---
@@ -209,7 +210,7 @@ assert(
   doneSteps.every((s) => canPresentAsVerifiedFact(s)),
 );
 
-// --- F: NG-10 retained when IK OFF ---
+// --- F: NG-10 removed; IK flag remains ---
 assert("F AppSettings has ikEntryEnabled", /ikEntryEnabled: boolean/.test(readSrc("src/lib/app-settings.ts")));
 assert("F Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 const ng10Files = [
@@ -219,18 +220,19 @@ const ng10Files = [
   "src/lib/tender-autonomous-run-status.ts",
 ];
 assert(
-  "F NG-10 core files retained",
-  ng10Files.every((rel) => existsSync(join(root, rel))),
+  "F NG-10 core files removed",
+  ng10Files.every((rel) => !existsSync(join(root, rel))),
 );
 reset();
-assert("F OFF → ng10_gate first screen", resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ng10_gate");
+forceIkEntryEnabledForTests(false);
+assert("F OFF → ik_entry first screen class", resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ik_entry");
 
 // --- G: Chief ≠ D ---
 const dOnIkOff = mergeAppSettings(
-  { expertAiDecydentEnabled: true },
+  { expertAiDecydentEnabled: true, ikEntryEnabled: false },
   defaultAppSettings(),
 );
-assert("G D ON does not enable IK", dOnIkOff.ikEntryEnabled === false);
+assert("G D ON does not force IK", dOnIkOff.ikEntryEnabled === false);
 assert("G D ON sets D", dOnIkOff.expertAiDecydentEnabled === true);
 assert(
   "G mergeExpertAiDecydentEnabled independent",

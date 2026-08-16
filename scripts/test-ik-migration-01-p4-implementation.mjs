@@ -74,14 +74,15 @@ const laborSrc = readSrc("src/lib/intelligent-estimator/ik-labor-expert.ts");
 reset();
 assert("default ikChiefWiringEnabled OFF", defaultAppSettings().ikChiefWiringEnabled === false);
 assert("default D OFF", defaultAppSettings().expertAiDecydentEnabled === false);
-assert("A IK OFF", isIkEntryEnabled() === false);
+forceIkEntryEnabledForTests(false);
+assert("A IK forced OFF", isIkEntryEnabled() === false);
 assert("A P4 preference OFF", isIkP4ChiefWiringPreferenceActive() === false);
 assert("A resolve eligible false", resolveIkP4ChiefEligible({
   ikEntryEnabled: false,
   ikChiefWiringEnabled: true,
   pricingReady: true,
 }) === false);
-assert("A first screen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("A first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 
 // --- B: IK ON + P4 OFF ---
 reset();

@@ -316,7 +316,7 @@ function readyExpert(lines) {
 // --- Gate A
 forceIkEntryEnabledForTests(null);
 assert("Gate A OFF", isIkEntryEnabled() === false);
-assert("Gate A NG-10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 
 // --- Helpers
 const demandKey = buildMaterialDemandResearchKey(ZAWOR);

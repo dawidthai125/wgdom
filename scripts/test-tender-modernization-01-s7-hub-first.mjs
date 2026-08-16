@@ -1,6 +1,8 @@
 /**
  * TENDER-MODERNIZATION-01 / S7 — TRE Hub-first / primary OFF harness.
  * DF: docs/architecture/TENDER-MODERNIZATION-01-S7-DESIGN-FREEZE.md
+ * P10 supersede: auto Outcome-first (Expert OFF + sliceA → Outcome) → recovery-driven only.
+ * Expert OFF + sliceA → Recovery CTA (not Outcome). Helpers: resolveTre01ShowOutcome / resolveTre01ShowRecoveryCta.
  *
  * Run: npx vite-node scripts/test-tender-modernization-01-s7-hub-first.mjs
  */
@@ -69,19 +71,23 @@ assert("AC-S7-1 LS=1 → flag ON (Expert OFF compat)", isTre01SliceAEnabled() ==
 mem.set(TRE_01_SLICE_A_LS_KEY, "0");
 assert("AC-S7-1 LS=0 → OFF", isTre01SliceAEnabled() === false);
 
-// --- AC-S7-2 ---
+// --- AC-S7-2 (P10: Outcome recovery-driven; sliceA = CTA parity, not Outcome) ---
 assert(
-  "AC-S7-2 showTre01Outcome uses expertEffective",
-  detail.includes("expertEffective") && detail.includes("showTre01Outcome"),
+  "AC-S7-2 showTre01Outcome via resolveTre01ShowOutcome",
+  detail.includes("resolveTre01ShowOutcome") && detail.includes("showTre01Outcome"),
 );
 assert(
-  "AC-S7-2 Expert path requires tre01RecoveryOutcome",
-  /expertEffective\s*&&\s*tre01RecoveryOutcome/.test(detail) ||
-    /\(expertEffective\s*&&\s*tre01RecoveryOutcome\)/.test(detail),
+  "AC-S7-2 Outcome requires tre01RecoveryOutcome (not expert alone)",
+  /recoveryOutcome:\s*tre01RecoveryOutcome/.test(detail),
 );
 assert(
-  "AC-S7-2 Expert OFF path uses tre01SliceA",
-  /!expertEffective\s*&&\s*tre01SliceA/.test(detail),
+  "AC-S7-2 Expert OFF + sliceA → Recovery CTA (not Outcome)",
+  detail.includes("resolveTre01ShowRecoveryCta") &&
+    /tre01SliceA/.test(detail) &&
+    config.includes("resolveTre01ShowRecoveryCta") &&
+    /opts\.expertEffective\s*===\s*true\s*\|\|\s*opts\.tre01SliceA\s*===\s*true/.test(
+      config,
+    ),
 );
 assert(
   "AC-S7-2 tre01RecoveryOutcome state present",
@@ -89,7 +95,7 @@ assert(
     detail.includes("setTre01RecoveryOutcome"),
 );
 
-// --- AC-S7-3 Expert ON never auto Outcome without recovery ---
+// --- AC-S7-3 P10 — never auto Outcome; recovery only ---
 {
   const showBlock = detail.match(
     /const showTre01Outcome\s*=\s*([\s\S]*?);/,
@@ -97,15 +103,25 @@ assert(
   assert("AC-S7-3 showTre01Outcome block found", Boolean(showBlock));
   const body = showBlock?.[1] ?? "";
   assert(
-    "AC-S7-3 Expert ON requires recovery (not flag alone)",
-    body.includes("tre01RecoveryOutcome") &&
-      /expertEffective\s*&&\s*tre01RecoveryOutcome/.test(body) &&
-      /!expertEffective\s*&&\s*tre01SliceA/.test(body) &&
+    "AC-S7-3 Outcome recovery-driven (resolveTre01ShowOutcome)",
+    /resolveTre01ShowOutcome\s*\(/.test(body) &&
+      /recoveryOutcome:\s*tre01RecoveryOutcome/.test(body) &&
+      !/tre01SliceA/.test(body) &&
       !/\(\s*expertEffective\s*&&\s*tre01SliceA\s*\)/.test(body),
   );
   assert(
-    "AC-S7-3 hard gate: Expert ON + slice alone insufficient",
-    /expertEffective\s*&&\s*tre01RecoveryOutcome/.test(body),
+    "AC-S7-3 hard gate: sliceA alone insufficient for Outcome",
+    /recoveryOutcome:\s*tre01RecoveryOutcome/.test(body) &&
+      !/!expertEffective\s*&&\s*tre01SliceA/.test(body),
+  );
+  assert(
+    "AC-S7-3 config Outcome ignores expert/sliceA",
+    /function resolveTre01ShowOutcome[\s\S]*?recoveryOutcome\s*===\s*true/.test(
+      config,
+    ) &&
+      !/function resolveTre01ShowOutcome[\s\S]*?expertEffective[\s\S]*?\{/.test(
+        config.split("export function resolveTre01ShowRecoveryCta")[0] ?? "",
+      ),
   );
 }
 

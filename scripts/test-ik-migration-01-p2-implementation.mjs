@@ -112,13 +112,14 @@ const bridgeSrc = readSrc("src/lib/intelligent-estimator/ik-ng02-ingest-bridge.t
 
 // --- Defaults / settings ---
 reset();
-assert("default ikEntryEnabled OFF", defaultAppSettings().ikEntryEnabled === false);
+assert("default ikEntryEnabled ON (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert("default ikAutoIngestEnabled OFF", defaultAppSettings().ikAutoIngestEnabled === false);
-assert("A isIkEntryEnabled false", isIkEntryEnabled() === false);
+forceIkEntryEnabledForTests(false);
+assert("A isIkEntryEnabled forced false", isIkEntryEnabled() === false);
 assert("A isIkAutoIngestEnabled false", isIkAutoIngestEnabled() === false);
 assert("A isIkP2DocumentsBoqActive false", isIkP2DocumentsBoqActive() === false);
-assert("A first screen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
-assert("A DetailPage retains Gate", /TenderAutonomousGate/.test(detailSrc));
+assert("A first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
+assert("A DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 
 // --- B: IK ON + AUTO OFF ---
 reset();

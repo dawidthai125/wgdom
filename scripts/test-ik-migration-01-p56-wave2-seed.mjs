@@ -224,14 +224,17 @@ function readyExpert(lines) {
 
 const item = { id: "t-p56", tenderId: "t-p56", title: "P5.6 harness" };
 
-forceIkEntryEnabledForTests(null);
-assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+forceIkEntryEnabledForTests(false);
+assert("Gate A OFF", isIkEntryEnabled() === false);
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
-  "Gate A DetailPage NG-10",
-  /resolveIkDetailFirstScreen|ng10_gate|TenderAutonomous/.test(
+  "Gate A DetailPage NG-10 absent",
+  /resolveIkDetailFirstScreen/.test(
     readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8"),
-  ),
+  ) &&
+    !/TenderAutonomousGate/.test(
+      readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8"),
+    ),
 );
 
 const fixtureLines = [

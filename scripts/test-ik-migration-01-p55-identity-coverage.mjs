@@ -223,14 +223,17 @@ function readyExpert(lines) {
 
 const item = { id: "t-p55", tenderId: "t-p55", title: "P5.5 harness" };
 
-forceIkEntryEnabledForTests(null);
-assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+forceIkEntryEnabledForTests(false);
+assert("Gate A OFF", isIkEntryEnabled() === false);
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
-  "Gate A DetailPage NG-10",
-  /resolveIkDetailFirstScreen|ng10_gate|TenderAutonomous/.test(
+  "Gate A DetailPage NG-10 absent",
+  /resolveIkDetailFirstScreen/.test(
     readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8"),
-  ),
+  ) &&
+    !/TenderAutonomousGate/.test(
+      readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8"),
+    ),
 );
 
 // Works: labor with quotes + paint product with quotes + wave2 alias target without quotes (Owner mapping)

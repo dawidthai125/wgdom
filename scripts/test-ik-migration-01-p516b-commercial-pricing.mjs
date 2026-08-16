@@ -98,9 +98,9 @@ function storeWithWorks(works) {
 }
 
 forceIkEntryEnabledForTests(null);
-eq("Gate A ikEntryEnabled OFF", isIkEntryEnabled(), false);
-eq("Gate A default settings OFF", defaultAppSettings().ikEntryEnabled, false);
-eq("Gate A NG-10", resolveIkDetailFirstScreen(false), "ng10_gate");
+eq("Gate A ikEntryEnabled ON (P10)", isIkEntryEnabled(), false);
+eq("Gate A default settings ON (P10)", defaultAppSettings().ikEntryEnabled, false);
+eq("Gate A ik_entry", resolveIkDetailFirstScreen(false), "ik_entry");
 
 eq("M BASE100 m0 → SELL100", computeSellPricePln(100, 0), 100);
 eq("M BASE100 m20 → SELL120", computeSellPricePln(100, 20), 120);

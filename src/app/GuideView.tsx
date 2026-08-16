@@ -442,35 +442,20 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
     {
       id:"ng10-autonomous-agent",
       icon:Sparkles,
-      title:"Autonomous Agent",
-      subtitle:"Ekran analizy przed wejściem do Workspace",
+      title:"Inteligentny Kosztorysant (wejście)",
+      subtitle:"First-screen /przetarg — bez Autonomous Gate",
       content:(
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">
-            Przy pierwszym wejściu w przetarg (lub gdy dane się zmieniły — fingerprint w localStorage) aplikacja pokazuje
-            pełnoekranowy <strong>Autonomous Agent</strong>: analiza pipeline w tle, potem ekran rekomendacji GO/HOLD/NO-GO,
-            a dopiero potem Workspace (zakładki V4). Gate nie wraca do analizy w tej samej sesji po wejściu do Workspace.
+            Od wersji <strong>2.66.87</strong> (IK-MIGRATION-01 P10) usunięto pełnoekranowy{" "}
+            <strong>Autonomous Agent (NG-10)</strong>. Po otwarciu przetargu od razu widzisz Workspace V4
+            oraz panel <strong>Inteligentnego Kosztorysanta</strong> (gdy włączony w ustawieniach Super Admin).
           </p>
-          <div className="space-y-3">
-            {[
-              {q:"Timeline (Postęp analizy)", a:"12 kroków pipeline (pobieranie dokumentów → rekomendacja) w 5 makrogrupach: Dokumenty, Załączniki, Analiza, Wycena, Rekomendacja. Na desktopie pełna lista po lewej; na mobile zwijany panel „Postęp analizy” z badge aktywnej makrogrupy. Tylko jeden krok jest aktywny (●) w danym momencie."},
-              {q:"Dziennik analizy (Activity Log)", a:"Chronologiczna lista pracy agentów AI — osiągnięcia (✓), komunikaty live (●) i statusy. Nowe wpisy przewijają się automatycznie. To pełny feed pipeline, nie tylko końcowe podsumowanie."},
-              {q:"Status kontekstowy (Dynamic Status)", a:"Osobny pasek pod głównym komunikatem wyjaśnia „dlaczego teraz” — np. wolne pobieranie z BZP, brak załączników, przetwarzanie PDF, wycena katalogowa lub wstępna ocena opłacalności bez pełnego kosztorysu. Zastępuje alarmujący stary komunikat ETA."},
-              {q:"Limit czasu ~2 minuty (Timeout)", a:"Po 30 s od startu analizy pojawia się pasek postępu do maks. ~2 minut (150 s). Od 2 min przed końcem widzisz komunikat, że za chwilę przedstawiona zostanie rekomendacja z dostępnych danych. Po 150 s system przechodzi do rekomendacji częściowej, jeśli pełna analiza nie zdążyła się zakończyć."},
-              {q:"Analiza częściowa (Partial Analysis)", a:"Gdy system ma wstępną decyzję HOLD/NO-GO przed pełnym zakończeniem pipeline, lub gdy upłynie limit 150 s — zobaczysz krótki ekran „Analiza częściowa gotowa” z chipem powodu (limit czasu, brak załączników, dokumenty w toku, wycena w toku), podsumowaniem ostatnich osiągnięć i snapshotem postępu. Na ekranie rekomendacji: banner analizy częściowej i ewentualny watchout przy timeout lub trwającym pobieraniu dokumentów."},
-              {q:"FAQ podczas analizy", a:"Sekcja „Dlaczego analiza może potrwać dłużej?” (5 pytań: BZP, brak załączników, duży przedmiar, wycena, limit ~2 min) — domyślnie zwinięta; po 45 s otwiera się automatycznie. Ton informacyjny, bez sugerowania awarii systemu."},
-              {q:"Przejście do rekomendacji", a:"Po zakończeniu (lub częściowym zakończeniu) analizy: „✓ Analiza zakończona” lub „Analiza częściowa gotowa” + „Przygotowuję prezentację wyników…”, potem ekran rekomendacji z CTA „Otwórz analizę przetargu”. Po kliknięciu CTA fingerprint zapisuje się w localStorage — przy kolejnym wejściu bez zmiany danych Agent się nie powtarza."},
-            ].map((item,i)=>(
-              <div key={i} className="border border-border rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-secondary/30">
-                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
-                </div>
-                <div className="px-4 py-3">
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Rekomendacja TRE (cena) nie otwiera się automatycznie jako pierwszy ekran — dostępna jest przez
+            przycisk odzyskania rekomendacji (Expert ON albo Expert OFF z flagą sliceA). Decydent (D) jest
+            niezależny od wejścia IK.
+          </p>
         </div>
       ),
     },

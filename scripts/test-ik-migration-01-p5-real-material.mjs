@@ -318,8 +318,8 @@ function readyExpert(lines) {
 }
 
 forceIkEntryEnabledForTests(null);
-assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+assert("Gate A OFF", defaultAppSettings().ikEntryEnabled === true);
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(defaultAppSettings()) === "ik_entry");
 assert("O Wave1 zaprawianie NOT pending (P5.11 LABOR)", isWave1MaterialsRequiredPending(ZAPRAWA) === false);
 
 const focusLines = [

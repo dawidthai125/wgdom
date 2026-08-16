@@ -72,7 +72,7 @@ const zapSpecs = P59_ZZK_FOCUS_LINE_SPECS.filter((l) => l.workId === ZAPRAWA);
 
 forceIkEntryEnabledForTests(null);
 assert("1 Gate A ikEntryEnabled=false", isIkEntryEnabled() === false);
-assert("1 Gate A NG-10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("1 Gate A ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert("1 Gate B ON path", resolveIkDetailFirstScreen(true) === "ik_entry");
 
 assert("1 two valve demands", zaworSpecs.length === 2);

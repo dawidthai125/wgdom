@@ -9,14 +9,14 @@ export const TENDERS_V4_ROUTING = true;
 /**
  * TRE-01 / TM-01 S7 — Hub-first default (Offer Run + Recommendation Result KEEP).
  * S7 DF: default OFF. Expert ON never auto Outcome (DetailPage hard gate).
- * Expert OFF + LS=`1` → Outcome-first R0 compatibility (bez redeployu).
- * Override: `1` = ON · `0` = OFF · brak klucza → default tip.
+ * IK-MIGRATION-01 P10: auto Outcome-first SUPERSEDED — Outcome only after Recovery CTA
+ * (Expert ON, or Expert OFF + sliceA LS). Override: `1` = ON · `0` = OFF · brak → default.
  */
 export const TRE_01_SLICE_A_DEFAULT = false;
 
 export const TRE_01_SLICE_A_LS_KEY = "kw-tre-01-slice-a";
 
-/** Czy Outcome MVP jest defaultem po otwarciu detalu przetargu. */
+/** Czy sliceA LS/OV jest aktywny (CTA parity Expert OFF — nie auto Outcome-first). */
 export function isTre01SliceAEnabled(): boolean {
   if (typeof localStorage !== "undefined") {
     try {
@@ -28,6 +28,40 @@ export function isTre01SliceAEnabled(): boolean {
     }
   }
   return TRE_01_SLICE_A_DEFAULT;
+}
+
+/** P10 — Outcome full-page only after user-initiated recovery (not auto sliceA). */
+export function resolveTre01ShowOutcome(opts: {
+  hasItem: boolean;
+  activeTabPrzetarg: boolean;
+  forceWorkspace: boolean;
+  recoveryOutcome: boolean;
+}): boolean {
+  return (
+    opts.hasItem === true &&
+    opts.activeTabPrzetarg === true &&
+    opts.forceWorkspace !== true &&
+    opts.recoveryOutcome === true
+  );
+}
+
+/**
+ * P10 A10 — Recovery CTA: Expert ON, or Expert OFF + sliceA.
+ * Marker in UI: `data-s7-tre-recovery-cta`.
+ */
+export function resolveTre01ShowRecoveryCta(opts: {
+  expertEffective: boolean;
+  tre01SliceA: boolean;
+  hasItem: boolean;
+  activeTabPrzetarg: boolean;
+  showOutcome: boolean;
+}): boolean {
+  return (
+    (opts.expertEffective === true || opts.tre01SliceA === true) &&
+    opts.activeTabPrzetarg === true &&
+    opts.hasItem === true &&
+    opts.showOutcome !== true
+  );
 }
 
 /**

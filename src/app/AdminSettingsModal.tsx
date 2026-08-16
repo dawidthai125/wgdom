@@ -436,8 +436,8 @@ export function AdminSettingsModal({
               <div>
                 <p className="text-sm font-medium">Inteligentny Kosztorysant · wejście IK</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P1. Domyślnie wyłączone — /przetarg zostaje przy NG-10.
-                  Niezależne od Expert AI · Przebieg i Decydent. Produkcja: zostaw wyłączone.
+                  IK-MIGRATION-01 P10. Domyślnie włączone — /przetarg = IkEntryHost (NG-10 Gate usunięty).
+                  Wyłączenie = workspace bez hosta IK (bez powrotu do NG-10). Niezależne od Expert AI · Decydent.
                 </p>
               </div>
             </label>

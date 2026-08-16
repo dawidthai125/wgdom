@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.87 — IK-MIGRATION-01 P10 NG-10 → IK first-screen (2026-08-16)
+
+- **P10 Owner GO:** NG-10 Gate/Run/Outcome removed · IK (`IkEntryHost`) = first-screen
+- `ikEntryEnabled` default **ON** · TRE Outcome only after Recovery CTA (Expert ON | Expert OFF+sliceA)
+- CatalogWork **471** untouched · D unchanged · LIB-NG10 retired
+- Test: `npx vite-node scripts/test-ik-migration-01-p10-implementation.mjs`
+
 ## 2.66.86 — IK-MIGRATION-01 P9 Owner Verify (2026-08-16)
 
 - **P9 Owner GO:** Gate A → Gate B → Owner Verify on live `08def45d-…`

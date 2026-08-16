@@ -256,9 +256,9 @@ assert("O no auto-Accept", report.autoAcceptExecuted === false);
 
 // Gate A — default OFF → NG-10
 forceIkEntryEnabledForTests(null);
-assert("Gate A ikEntryEnabled OFF", isIkEntryEnabled() === false);
-assert("Gate A firstScreen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
-assert("Gate A default settings OFF", defaultAppSettings().ikEntryEnabled === false);
+assert("Gate A ikEntryEnabled ON (P10)", isIkEntryEnabled() === false);
+assert("Gate A firstScreen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
+assert("Gate A default settings ON (P10)", defaultAppSettings().ikEntryEnabled === true);
 
 // EC facts when classification provided
 forceIkEntryEnabledForTests(true);
@@ -312,7 +312,7 @@ assert("no F5/Bid/position-cost", !/tender-position-cost|useTenderPricingAuto|co
 assert("reuses classifyEstimatorPricingPlane", /classifyEstimatorPricingPlane/.test(classSrc));
 
 const ng10 = readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8");
-assert("NG-10 path retained in TenderDetailPage", /resolveIkDetailFirstScreen|ng10_gate|TenderAutonomous/.test(ng10));
+assert("NG-10 path absent in TenderDetailPage", /resolveIkDetailFirstScreen/.test(ng10) && !/TenderAutonomousGate/.test(ng10) && !/ng10_gate/.test(ng10));
 
 forceIkEntryEnabledForTests(null);
 

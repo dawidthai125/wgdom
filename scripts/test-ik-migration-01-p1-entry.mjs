@@ -97,16 +97,16 @@ console.log("=== IK-MIGRATION-01 P1 ENTRY ===\n");
 
 reset();
 const d = defaultAppSettings();
-assert("A default ikEntryEnabled false", d.ikEntryEnabled === false);
+assert("A default ikEntryEnabled true (P10)", d.ikEntryEnabled === true);
 assert("A default D false (unchanged)", d.expertAiDecydentEnabled === false);
-assert("A isIkEntryEnabled default false", isIkEntryEnabled() === false);
+assert("A isIkEntryEnabled default true (P10)", isIkEntryEnabled() === true);
 assert(
-  "A first screen default ng10_gate",
-  resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ng10_gate",
+  "A first screen default ik_entry",
+  resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ik_entry",
 );
 assert(
-  "A resolve OFF → ng10_gate",
-  resolveIkDetailFirstScreen(false) === "ng10_gate",
+  "A resolve OFF → ik_entry",
+  resolveIkDetailFirstScreen(false) === "ik_entry",
 );
 
 reset();
@@ -144,13 +144,13 @@ reset();
 setSettings({ expertAiDecydentEnabled: true, ikEntryEnabled: false });
 assert("C D ON does not enable IK", isIkEntryEnabled() === false);
 assert(
-  "C D merge ON leaves IK default",
+  "C D merge ON leaves IK from local (no flip)",
   mergeExpertAiDecydentEnabled({ expertAiDecydentEnabled: true }, d) === true
-    && mergeIkEntryEnabled({ expertAiDecydentEnabled: true }, d) === false,
+    && mergeIkEntryEnabled({ expertAiDecydentEnabled: true }, { ...d, ikEntryEnabled: false }) === false,
 );
 assert(
   "C merge D ON does not flip IK",
-  mergeAppSettings({ expertAiDecydentEnabled: true }, d).ikEntryEnabled === false,
+  mergeAppSettings({ expertAiDecydentEnabled: true, ikEntryEnabled: false }, d).ikEntryEnabled === false,
 );
 
 const emptyItem = baseItem({
@@ -264,12 +264,12 @@ assert(
 );
 
 const detailSrc = readSrc("src/app/TenderDetailPage.tsx");
-assert("F DetailPage still imports TenderAutonomousGate", /TenderAutonomousGate/.test(detailSrc));
+assert("F DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 assert("F DetailPage uses resolveIkDetailFirstScreen", /resolveIkDetailFirstScreen/.test(detailSrc));
 assert("F DetailPage mounts IkEntryHost", /IkEntryHost/.test(detailSrc));
 assert(
-  "F OFF path still wraps Gate",
-  /ikFirstScreen === "ik_entry"/.test(detailSrc) && /<TenderAutonomousGate/.test(detailSrc),
+  "F IK host present · Gate absent (P10)",
+  /IkEntryHost/.test(detailSrc) && !/TenderAutonomousGate/.test(detailSrc),
 );
 assert("F Dual Outcome helper untouched in DetailPage (expertEffective kept)", /isExpertAiRuntimeEffective/.test(detailSrc));
 
@@ -339,10 +339,7 @@ const ng10Files = [
   "src/lib/tender-autonomous-run-outcome.ts",
   "scripts/test-tender-autonomous-run-phase.mjs",
 ];
-assert(
-  "F NG-10 files retained",
-  ng10Files.every((rel) => existsSync(join(root, rel))),
-);
+assert("F NG-10 files removed", ng10Files.every((rel) => !existsSync(join(root, rel))));
 
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 assert("F AppSettings has ikEntryEnabled", /ikEntryEnabled: boolean/.test(settingsSrc));

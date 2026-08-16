@@ -32,7 +32,7 @@ function assert(name, cond, extra) {
 
 forceIkEntryEnabledForTests(null);
 assert("Gate A OFF", isIkEntryEnabled() === false);
-assert("Gate A NG-10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("Gate A ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 
 // UI wiring: acceptIkMaterialResearchCandidate must remain lib-only (no IkEntry Accept).
 const ikEntry = readFileSync(join(root, "src/app/intelligent-estimator/IkEntryHost.tsx"), "utf8");

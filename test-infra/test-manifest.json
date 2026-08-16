@@ -69,7 +69,6 @@
         "LIB-TENDER-COPY-TEUX7D",
         "LIB-TENDER-STRATEGY-TEUX7E",
         "LIB-TENDER-HOSTED-DEPRECATION-TEUX7F",
-        "LIB-NG10-01",
         "SMOKE-TEUX-NG06",
         "LIB-JOBS-LIST-OPS-20-MIN",
         "SMOKE-TENDERS-NG01-04",
@@ -187,8 +186,8 @@
       "testIds": ["LIB-TENDER-HOSTED-DEPRECATION-TEUX7F"]
     },
     "lib-ng10-autonomous-run": {
-      "description": "NG-10-03 — Autonomous Run derive (fingerprint, phase, ETA, outcome)",
-      "testIds": ["LIB-NG10-01"]
+      "description": "NG-10 Autonomous Run — RETIRED (IK-MIGRATION-01 P10 decommission)",
+      "testIds": []
     },
     "smoke-teux": {
       "description": "NG-06-TEUX-7z — Epic closeout smoke agregat TEUX-1…7f (12 child)",
@@ -1107,7 +1106,8 @@
       "mandatory": "conditional",
       "condition": "scope:tenders",
       "owner": "Przetargi",
-      "status": "active"
+      "status": "retired",
+      "retiredReason": "IK-MIGRATION-01 P10 — NG-10 decommission; suite deleted"
     },
     {
       "id": "SMOKE-TEUX-NG06",

@@ -6,7 +6,8 @@
 
 import { loadAppSettingsLocal } from "@/lib/app-settings";
 
-export type IkDetailFirstScreen = "ng10_gate" | "ik_entry";
+/** P10 — NG-10 first-screen removed; sole first-screen class is IK entry. */
+export type IkDetailFirstScreen = "ik_entry";
 
 export type IkP4BoqGateStatus =
   | "ready"
@@ -336,8 +337,12 @@ export function isIkP8RiskDecisionE2eActive(): boolean {
   });
 }
 
+/**
+ * P10 — always IK first-screen class (NG-10 Gate absent).
+ * `ikEntryEnabled` still gates IkEntryHost mount; does not revive NG-10.
+ */
 export function resolveIkDetailFirstScreen(
-  ikEntryEnabled: boolean,
+  _ikEntryEnabled?: boolean,
 ): IkDetailFirstScreen {
-  return ikEntryEnabled === true ? "ik_entry" : "ng10_gate";
+  return "ik_entry";
 }

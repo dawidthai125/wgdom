@@ -48,12 +48,12 @@ globalThis.localStorage = {
 
 console.log("=== IK-MIGRATION-01 P2.5 INGEST BRIDGE ===\n");
 
-assert("flag default OFF", defaultAppSettings().ikEntryEnabled === false);
+assert("flag default ON (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert("isIkEntryEnabled false", isIkEntryEnabled() === false);
-assert("OFF → ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("OFF → ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
   "NG-10 Gate retained in DetailPage",
-  /TenderAutonomousGate/.test(readSrc("src/app/TenderDetailPage.tsx")),
+  !/TenderAutonomousGate/.test(readSrc("src/app/TenderDetailPage.tsx")),
 );
 assert(
   "bridge reuses buildTenderDossierHeavy",

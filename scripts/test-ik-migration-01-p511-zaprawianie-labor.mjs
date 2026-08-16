@@ -32,10 +32,10 @@ function assert(name, cond, extra) {
 }
 
 forceIkEntryEnabledForTests(null);
-assert("Gate A OFF", isIkEntryEnabled(defaultAppSettings) === false);
+assert("Gate A OFF", defaultAppSettings().ikEntryEnabled === true);
 assert(
-  "Gate A NG-10",
-  resolveIkDetailFirstScreen({ settings: defaultAppSettings, canOpenIk: false }) === "ng10_gate",
+  "Gate A ik_entry",
+  resolveIkDetailFirstScreen({ settings: defaultAppSettings, canOpenIk: false }) === "ik_entry",
 );
 
 const WID = P59_FOCUS_WORK_ZAPRAWIANIE;

@@ -298,11 +298,11 @@ const item = { id: "t-p5", tenderId: "t-p5", title: "P5 harness" };
 
 // ─── Gate A ──────────────────────────────────────────────────────────────────
 forceIkEntryEnabledForTests(null);
-assert("Gate A ikEntryEnabled OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A firstScreen ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+assert("Gate A ikEntryEnabled ON (P10)", defaultAppSettings().ikEntryEnabled === true);
+assert("Gate A firstScreen ik_entry", resolveIkDetailFirstScreen(defaultAppSettings()) === "ik_entry");
 
 const detailSrc = readFileSync(join(root, "src/app/TenderDetailPage.tsx"), "utf8");
-assert("Gate A TenderDetailPage retains NG-10", /resolveIkDetailFirstScreen|ng10_gate|TenderAutonomous/.test(detailSrc));
+assert("Gate A TenderDetailPage NG-10 absent", /resolveIkDetailFirstScreen/.test(detailSrc) && !/TenderAutonomousGate/.test(detailSrc));
 
 // ─── Harness lines ───────────────────────────────────────────────────────────
 const fixtureLines = [

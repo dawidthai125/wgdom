@@ -103,10 +103,10 @@ function poolArts(...arts) {
 }
 
 // --- Gate A: flag OFF → NG-10 ---
-assert("Gate A default ikEntryEnabled false", isIkEntryEnabled(defaultAppSettings()) === false);
+assert("Gate A default ikEntryEnabled true (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert(
   "Gate A resolve NG-10",
-  resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate",
+  resolveIkDetailFirstScreen(defaultAppSettings()) === "ik_entry",
 );
 
 // --- Candidates: never authoritative ---

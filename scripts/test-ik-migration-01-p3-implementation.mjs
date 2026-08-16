@@ -262,12 +262,13 @@ const item = {
   updatedAt: "2026-08-16T00:00:00.000Z",
 };
 
-// --- A: IK OFF → NG-10 ---
+// --- A: IK OFF (forced) — first-screen class still ik_entry (P10) ---
 reset();
-assert("A default ikEntry OFF", defaultAppSettings().ikEntryEnabled === false);
-assert("A isIkEntryEnabled false", isIkEntryEnabled() === false);
-assert("A first screen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
-assert("A DetailPage retains Gate", /TenderAutonomousGate/.test(detailSrc));
+assert("A default ikEntry ON (P10)", defaultAppSettings().ikEntryEnabled === true);
+forceIkEntryEnabledForTests(false);
+assert("A isIkEntryEnabled forced false", isIkEntryEnabled() === false);
+assert("A first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
+assert("A DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 
 // --- B: IK ON + AUTO OFF → Entry Shell ---
 reset();

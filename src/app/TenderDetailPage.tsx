@@ -7,7 +7,6 @@ import {
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
-import { TenderAutonomousGate } from "@/app/tenders/autonomous/TenderAutonomousGate";
 import { TenderRecommendationOutcomeView } from "@/app/tenders/outcome/TenderRecommendationOutcomeView";
 import { TenderDetailCommandLayer } from "@/app/TenderDetailCommandLayer";
 import { useTenderOfferRun } from "@/app/hooks/useTenderOfferRun";
@@ -19,7 +18,7 @@ import {
 } from "@/lib/expert-workspace-ui";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import { isChiefOrchestratorSessionEnabled } from "@/lib/chief-session";
-import { isTre01SliceAEnabled } from "@/lib/tenders-v4-config";
+import { isTre01SliceAEnabled, resolveTre01ShowOutcome, resolveTre01ShowRecoveryCta } from "@/lib/tenders-v4-config";
 import { triggerCostRegressionF2Reparse } from "@/lib/cost-regression-f2";
 import {
   isChiefSessionStackEnabled,
@@ -231,7 +230,7 @@ export function TenderDetailPage({
 
   /** P0 — Dual Outcome / TRE / stack cues follow D Session runtime (not module access). */
   const expertEffective = isExpertAiRuntimeEffective();
-  /** IK-MIGRATION-01 P1 — independent of D. Default OFF = NG-10. */
+  /** IK-MIGRATION-01 P1/P10 — independent of D. Default ON = IK first-screen (NG-10 removed). */
   const ikEntryOn = isIkEntryEnabled();
   const ikFirstScreen = resolveIkDetailFirstScreen(ikEntryOn);
 
@@ -290,19 +289,21 @@ export function TenderDetailPage({
       ? chiefSession
       : null;
 
-  /** S7 DF — Expert ON: CTA recovery only; Expert OFF: flag/LS Outcome-first R0. */
-  const showTre01Outcome =
-    Boolean(item) &&
-    activeTab === "przetarg" &&
-    !tre01ForceWorkspace &&
-    ((expertEffective && tre01RecoveryOutcome) ||
-      (!expertEffective && tre01SliceA));
+  /** S7 + P10 — Outcome only after Recovery CTA (not auto Outcome-first). */
+  const showTre01Outcome = resolveTre01ShowOutcome({
+    hasItem: Boolean(item),
+    activeTabPrzetarg: activeTab === "przetarg",
+    forceWorkspace: tre01ForceWorkspace,
+    recoveryOutcome: tre01RecoveryOutcome,
+  });
 
-  const showTre01RecoveryCta =
-    expertEffective &&
-    activeTab === "przetarg" &&
-    Boolean(item) &&
-    !showTre01Outcome;
+  const showTre01RecoveryCta = resolveTre01ShowRecoveryCta({
+    expertEffective,
+    tre01SliceA,
+    hasItem: Boolean(item),
+    activeTabPrzetarg: activeTab === "przetarg",
+    showOutcome: showTre01Outcome,
+  });
 
   const handleTre01ShowCostEstimate = useCallback(() => {
     setTre01RecoveryOutcome(false);
@@ -640,9 +641,8 @@ export function TenderDetailPage({
     return null;
   }
 
-  /** TRE-01: Outcome MVP bez Autonomous theater (DF §5 — nie blokować Outcome).
-   * IK-MIGRATION-01 P1: gdy IK entry ON, nie early-return TRE zamiast IK host. */
-  if (ikFirstScreen === "ng10_gate" && showTre01Outcome && tre01Recommendation) {
+  /** TRE-01 P10: user-initiated Outcome only (auto Outcome-first SUPERSEDED). */
+  if (showTre01Outcome && tre01Recommendation) {
     const outcome = (
       <TenderRecommendationOutcomeView
         result={tre01Recommendation}
@@ -661,20 +661,15 @@ export function TenderDetailPage({
         }
       />
     );
-    if (expertEffective && tre01RecoveryOutcome) {
-      return <div data-s7-tre-recovery="1">{outcome}</div>;
-    }
-    return outcome;
+    return <div data-s7-tre-recovery="1">{outcome}</div>;
   }
 
-  if (ikFirstScreen === "ng10_gate" && showTre01Outcome && !tre01Recommendation) {
+  if (showTre01Outcome && !tre01Recommendation) {
     return (
       <div
         className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground text-sm"
         data-tre-01-outcome-loading
-        {...(expertEffective && tre01RecoveryOutcome
-          ? { "data-s7-tre-recovery": "1" }
-          : {})}
+        data-s7-tre-recovery="1"
       >
         Trwa wyliczanie…
       </div>
@@ -835,22 +830,5 @@ export function TenderDetailPage({
     </div>
   );
 
-  if (ikFirstScreen === "ik_entry") {
-    return detailWorkspace;
-  }
-
-  return (
-    <TenderAutonomousGate
-      item={item}
-      pipelineRuntime={pipelineRuntime}
-      intelligenceCtx={przetargCommand.intelligenceCtx}
-      pricingCatalogRevision={pricingCatalogRevision}
-      onBack={handleLeaveToModule}
-      onReveal={() => {
-        scrollRootRef.current?.scrollTo({ top: 0, behavior: "instant" });
-      }}
-    >
-      {detailWorkspace}
-    </TenderAutonomousGate>
-  );
+  return detailWorkspace;
 }

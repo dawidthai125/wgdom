@@ -174,10 +174,10 @@ assert("isWave1 not zawór", isWave1MaterialsRequiredPending(P59_FOCUS_WORK_ZAWO
 
 // Gate A — NG-10
 forceIkEntryEnabledForTests(null);
-assert("Gate A ikEntryEnabled false", isIkEntryEnabled(defaultAppSettings) === false);
+assert("Gate A ikEntryEnabled true (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert(
-  "Gate A NG-10",
-  resolveIkDetailFirstScreen({ settings: defaultAppSettings, canOpenIk: false }) === "ng10_gate",
+  "Gate A ik_entry",
+  resolveIkDetailFirstScreen({ settings: defaultAppSettings, canOpenIk: false }) === "ik_entry",
 );
 
 // EC facts (identity only)

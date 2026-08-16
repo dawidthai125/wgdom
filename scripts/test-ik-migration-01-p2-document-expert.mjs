@@ -106,12 +106,12 @@ const FORBIDDEN = [
 
 console.log("=== IK-MIGRATION-01 P2 DOCUMENT EXPERT ===\n");
 
-assert("flag default still OFF", defaultAppSettings().ikEntryEnabled === false);
+assert("flag default ON (P10)", defaultAppSettings().ikEntryEnabled === true);
 assert("isIkEntryEnabled default false", isIkEntryEnabled() === false);
-assert("OFF first screen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("OFF first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
   "NG-10 Gate still in DetailPage",
-  /TenderAutonomousGate/.test(readSrc("src/app/TenderDetailPage.tsx")),
+  !/TenderAutonomousGate/.test(readSrc("src/app/TenderDetailPage.tsx")),
 );
 assert(
   "no ATH writer in expert",

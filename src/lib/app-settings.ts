@@ -60,8 +60,8 @@ export interface AppSettings {
    */
   expertAiDecydentEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P1 — first-screen Inteligentnego Kosztorysanta na /przetarg.
-   * Domyślnie OFF → NG-10 Autonomous Gate 1:1.
+   * IK-MIGRATION-01 P1/P10 — first-screen Inteligentnego Kosztorysanta na /przetarg.
+   * P10 default ON → IkEntryHost (NG-10 Gate removed). OFF = workspace without host (no NG-10 fallback).
    * NIE jest globalnym D (`expertAiDecydentEnabled`). Dual Outcome / Offer PLN bez zmian.
    */
   ikEntryEnabled: boolean;
@@ -150,7 +150,7 @@ export function defaultAppSettings(): AppSettings {
     wmRysunkiEnabled: false,
     wmWorkerSketchEnabled: false,
     expertAiDecydentEnabled: false,
-    ikEntryEnabled: false,
+    ikEntryEnabled: true,
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
     ikChiefWiringEnabled: false,
