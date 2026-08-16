@@ -5,8 +5,9 @@
   "p2Implementation": "PASS",
   "test": "PASS",
   "build": "PASS",
-  "productionVerify": "PENDING_AFTER_PUSH",
+  "productionVerify": "PENDING_LIVE_VERSION_JSON",
   "uiVersion": "2.66.79",
+  "commit": "aa4c0edf",
   "autoIngestDefault": false,
   "runtimeGate": "isIkAutoIngestEnabled",
   "researchGuards": {

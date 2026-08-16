@@ -17,7 +17,7 @@ P2 PLAN = PASS
 P2 IMPLEMENTATION = PASS
 TEST = PASS
 BUILD = PASS
-PRODUCTION VERIFY = (see live version.json after push)
+PRODUCTION VERIFY = (see live version.json — expect 2.66.79 / aa4c0ed)
 
 AUTO_INGEST:
   DEFAULT OFF (AppSettings.ikAutoIngestEnabled)
