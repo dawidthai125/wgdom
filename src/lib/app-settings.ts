@@ -81,6 +81,16 @@ export interface AppSettings {
    * Does NOT enable Labor/Material research.
    */
   ikChiefWiringEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P5 — Labor E2E under IK (MODE A: CURRENT + internal-first).
+   * Default OFF. Does NOT enable Material (P6) · Does NOT flip Chief (P4) · Does NOT flip D.
+   */
+  ikLaborE2eEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P5 — selective Labor HTTP research (MODE B).
+   * Default OFF. Requires ikLaborE2eEnabled. Does NOT imply Material research.
+   */
+  ikLaborResearchEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -122,6 +132,8 @@ export function defaultAppSettings(): AppSettings {
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
     ikChiefWiringEnabled: false,
+    ikLaborE2eEnabled: false,
+    ikLaborResearchEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -302,6 +314,26 @@ export function mergeIkChiefWiringEnabled(
   return local.ikChiefWiringEnabled === true;
 }
 
+/** P5 Labor E2E — independent of Chief (P4) and Dual Outcome (D). */
+export function mergeIkLaborE2eEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikLaborE2eEnabled === true) return true;
+  if (remote?.ikLaborE2eEnabled === false) return false;
+  return local.ikLaborE2eEnabled === true;
+}
+
+/** P5 Labor selective research — requires Labor E2E; never arms Material. */
+export function mergeIkLaborResearchEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikLaborResearchEnabled === true) return true;
+  if (remote?.ikLaborResearchEnabled === false) return false;
+  return local.ikLaborResearchEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -321,6 +353,8 @@ export function loadAppSettingsLocal(): AppSettings {
       ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       ikIdentityCoverageEnabled: parsed.ikIdentityCoverageEnabled === true,
       ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
+      ikLaborE2eEnabled: parsed.ikLaborE2eEnabled === true,
+      ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -383,6 +417,8 @@ export function mergeAppSettings(
     ikAutoIngestEnabled: mergeIkAutoIngestEnabled(remote, local),
     ikIdentityCoverageEnabled: mergeIkIdentityCoverageEnabled(remote, local),
     ikChiefWiringEnabled: mergeIkChiefWiringEnabled(remote, local),
+    ikLaborE2eEnabled: mergeIkLaborE2eEnabled(remote, local),
+    ikLaborResearchEnabled: mergeIkLaborResearchEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

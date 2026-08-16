@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.82",
+    label: "IK-MIGRATION-01 P5 Labor E2E",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P5 (Owner GO): Labor E2E pod IK — ikLaborE2eEnabled / ikLaborResearchEnabled (default OFF). MODE A = CURRENT + internal-first (0 HTTP). MODE B = selective research tylko przy executeResearch===true + budget 24/4. REUSE P5.26-E matcher. Zero auto-Accept · Material=P6 · F5=P7. Prod: P5 OFF. STOP — bez auto P6.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.81",
     label: "IK-MIGRATION-01 P4 Chief Wiring",
     items: [

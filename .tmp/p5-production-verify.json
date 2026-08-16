@@ -1,0 +1,15 @@
+{
+  "id": "IK-MIGRATION-01-P5-PRODUCTION-VERIFY",
+  "date": "2026-08-16",
+  "mode": "VERIFY_ONLY",
+  "verdict": "PENDING_PUSH",
+  "uiVersionExpected": "2.66.82",
+  "levers": {
+    "ikLaborE2eEnabled": "DEFAULT_OFF",
+    "ikLaborResearchEnabled": "DEFAULT_OFF",
+    "controlledOn": "NOT_EXERCISED"
+  },
+  "p526CatalogWork": 471,
+  "p6": "NOT_STARTED",
+  "mobilePhysical": "NOT_VERIFIED"
+}

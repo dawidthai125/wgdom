@@ -1,0 +1,22 @@
+{
+  "id": "IK-MIGRATION-01-P5-IMPLEMENTATION-CLOSEOUT",
+  "date": "2026-08-16",
+  "ownerGo": true,
+  "status": {
+    "plan": "PASS",
+    "implementation": "PASS",
+    "test": "PASS",
+    "build": "PASS",
+    "productionVerify": "PENDING_PUSH"
+  },
+  "uiVersion": "2.66.82",
+  "levers": {
+    "ikLaborE2eEnabled": "DEFAULT_OFF",
+    "ikLaborResearchEnabled": "DEFAULT_OFF",
+    "executeResearch": "===_true_MODE_B_ONLY"
+  },
+  "tests": { "p5": "44/44", "build": "PASS" },
+  "p526CatalogWork": 471,
+  "p6": "NOT_STARTED",
+  "stop": "READY_FOR_PV_AFTER_PUSH"
+}

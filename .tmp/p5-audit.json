@@ -1,0 +1,88 @@
+{
+  "id": "IK-MIGRATION-01-P5-AUDIT",
+  "date": "2026-08-16",
+  "mode": "AUDIT_ONLY",
+  "ownerGo": true,
+  "integrity": {
+    "CODE": 0,
+    "RESEARCH": 0,
+    "HTTP": 0,
+    "ACCEPT": 0,
+    "CREATE": 0,
+    "BIND": 0,
+    "WRITE": 0,
+    "EDGE_DEPLOY": 0,
+    "COMMIT": 0,
+    "PUSH": 0,
+    "P5_PLAN_CREATED": false
+  },
+  "baseline": {
+    "P0": "PRODUCTION_VERIFIED",
+    "P1": "PRODUCTION_VERIFIED",
+    "P2": "PRODUCTION_VERIFIED",
+    "P3": "PRODUCTION_VERIFIED",
+    "P4": "PRODUCTION_VERIFIED_LOCKED",
+    "P4_impl": "d38f97cd",
+    "P4_live": { "version": "2.66.81", "commit": "5276083" },
+    "P4_tests": "58/58",
+    "P5_26": {
+      "status": "LOCKED",
+      "commit": "1d41f619",
+      "catalogWork": 471,
+      "review9": "frozen"
+    },
+    "P5_33": "DO_NOT_CREATE"
+  },
+  "formalScope": {
+    "P5": "LABOR_E2E",
+    "P6": "MATERIAL_E2E",
+    "P7": "POSITION_COST_BID",
+    "pipeline": [
+      "INPUT",
+      "CURRENT_MISS",
+      "internal_first",
+      "research_eligibility",
+      "selective_research",
+      "candidate",
+      "Owner_Review",
+      "Accept",
+      "CatalogWork",
+      "Bind",
+      "Write",
+      "VERIFY",
+      "STOP"
+    ]
+  },
+  "p4ToP5Seam": {
+    "primaryInput": "Master_BOQ_READY_plus_P3_identity_classify",
+    "chiefSessionAsPrimaryDto": false,
+    "costBlockedImpliesResearch": false,
+    "autoStartFromP4": false,
+    "reuseApi": "runIkMasterBoqLaborExpert"
+  },
+  "hostToday": {
+    "RUN_RATE_EXPERTS": false,
+    "EXECUTE_RESEARCH": false,
+    "laborExpertDefaultExecuteResearch": true,
+    "note": "Host forces false; API default true is P0 risk for PLAN"
+  },
+  "gaps": [
+    "Formal P5 under IK not enabled",
+    "internal-first not wired into runIkMasterBoqLaborExpert",
+    "Shared RUN_RATE_EXPERTS would also arm Material (P6)",
+    "Stale Truth Gates / P4-LABOR naming debt",
+    "PARSER_EMPTY residual from P5.32-G"
+  ],
+  "p526Reuse": {
+    "catalogWork": 471,
+    "mutateAccepted": false,
+    "reuseMatcher": true,
+    "reuseCategoryKeys": true,
+    "rerunCampaign": false
+  },
+  "formalStatus": "READY_FOR_PLAN",
+  "chatgptEscalation": false,
+  "escalationNote": "Phase numbering conflict already Owner-resolved 2026-08-16; Truth Gates stale only",
+  "stop": "AWAIT_OWNER_GO_FOR_P5_PLAN",
+  "p5": "NOT_STARTED"
+}

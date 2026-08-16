@@ -175,7 +175,8 @@ assert("U DetailPage does not import tender-pricing-auto for P4", !/tender-prici
 assert("V no Bid proposal invent in DetailPage", !/computeTenderBidProposal/.test(detailSrc));
 
 // Labor default research risk documented — P4 must not call it
-assert("labor API default executeResearch !== false exists (risk)", /executeResearch\s*=\s*opts\.executeResearch\s*!==\s*false/.test(laborSrc));
+assert("labor API executeResearch requires === true (P5 hardened)", /executeResearch\s*=\s*opts\.executeResearch\s*===\s*true/.test(laborSrc));
+assert("labor API no longer uses !== false default", !/executeResearch\s*=\s*opts\.executeResearch\s*!==\s*false/.test(laborSrc));
 assert("P4 path does not import ik-labor-expert in DetailPage", !/ik-labor-expert/.test(detailSrc));
 
 // --- Force overrides ---

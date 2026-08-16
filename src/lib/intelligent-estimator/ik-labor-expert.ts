@@ -1,5 +1,6 @@
 /**
- * IK-MIGRATION-01 P4 — Labor Expert orchestration over Master BOQ.
+ * IK-MIGRATION-01 P5 — Labor Expert orchestration over Master BOQ
+ * (library historically labeled P4 — formal phase = Labor E2E).
  *
  * Path (REUSE only):
  *   Master BOQ line
@@ -7,9 +8,11 @@
  *   → resolveWorkIdentityFromOfferBoqLine
  *   → classifyEstimatorPricingPlane (A1)
  *   → lookupWorkRate (CURRENT / MISS)
- *   → runIkLaborGapResearch (MISS only · validated LABOR identity)
+ *   → lookupInternalFirst (MISS · P5.26-E REUSE)
+ *   → runIkLaborGapResearch (MISS + NO_INTERNAL_MATCH · executeResearch === true only)
  *
  * ZERO auto-Accept · ZERO Material · ZERO F5/Bid · ZERO invent identity from namePl alone.
+ * P0: executeResearch requires explicit `=== true` (never `!== false` / undefined).
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -46,6 +49,13 @@ import {
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
 import type { DwellingLineProvenance } from "@/lib/multi-boq/types";
+import { lookupInternalFirst } from "./internal-first-semantic-match";
+import { buildInternalFirstIndexFromCatalogWorks } from "./ik-p5-internal-first-index";
+import {
+  IkP5ResearchBudget,
+  wrapLookupPortWithIkP5Budget,
+} from "./ik-p5-labor-budget";
+import { getDefaultWorkRateLookupPort } from "@/lib/work-catalog/work-rate-research";
 
 export type IkLaborBucket =
   | "LABOR"
@@ -59,6 +69,9 @@ export type IkLaborRateStatus =
   | "CURRENT_HIT"
   | "MISS"
   | "STALE_TREATED_AS_MISS"
+  | "INTERNAL_EXACT_HIT"
+  | "INTERNAL_SEMANTIC_HIT"
+  | "INTERNAL_REVIEW"
   | "CANDIDATE_OWNER_ACCEPT_REQUIRED"
   | "RESEARCH_GAP"
   | "RESEARCH_BLOCKED"
@@ -89,6 +102,10 @@ export type IkLaborExpertLineResult = {
   ourRatePln: number | null;
   researchKey: string | null;
   candidate: WorkRateResearchCandidate | null;
+  /** P5 internal-first outcome (when run). */
+  internalFirstOutcome?: string | null;
+  internalFirstConfidence?: string | null;
+  internalFirstMatchId?: string | null;
 };
 
 export type IkLaborExpertCounts = {
@@ -106,6 +123,10 @@ export type IkLaborExpertCounts = {
   evidenceCandidates: number;
   ownerAcceptRequired: number;
   acceptedOurRate: number;
+  internalExactHits: number;
+  internalSemanticHits: number;
+  internalReview: number;
+  researchHttpFetches: number;
 };
 
 export type IkLaborExpertReport = {
@@ -178,12 +199,17 @@ function emptyCounts(input: number): IkLaborExpertCounts {
     evidenceCandidates: 0,
     ownerAcceptRequired: 0,
     acceptedOurRate: 0,
+    internalExactHits: 0,
+    internalSemanticHits: 0,
+    internalReview: 0,
+    researchHttpFetches: 0,
   };
 }
 
 /**
  * Labor Expert pass over READY Master BOQ.
- * Research only for LABOR + trusted identity + OUR RATE MISS (deduped by workId|unit).
+ * Research only for LABOR + trusted identity + OUR RATE MISS + NO_INTERNAL_MATCH
+ * when executeResearch === true (explicit).
  */
 export async function runIkMasterBoqLaborExpert(opts: {
   item: TenderPipelineItem;
@@ -191,8 +217,13 @@ export async function runIkMasterBoqLaborExpert(opts: {
   expert?: IkDocumentExpertReport | null;
   store?: WorkCatalogStore;
   works?: CatalogWork[];
-  /** Default true — HTTP/fixture research for MISS only. */
+  /**
+   * P5 hardening: research runs ONLY when `=== true`.
+   * Default / undefined / false → no HTTP (never `!== false`).
+   */
   executeResearch?: boolean;
+  /** Default true — REUSE P5.26-E lookupInternalFirst on MISS. */
+  enableInternalFirst?: boolean;
   lookupPort?: WorkRateSelectiveLookupPort;
   nowMs?: number;
   forceRefresh?: boolean;
@@ -204,11 +235,13 @@ export async function runIkMasterBoqLaborExpert(opts: {
     opts.expert
     ?? runIkDocumentExpert({ item, package: opts.package ?? null });
   const nowMs = opts.nowMs ?? Date.now();
-  const executeResearch = opts.executeResearch !== false;
+  const executeResearch = opts.executeResearch === true;
+  const enableInternalFirst = opts.enableInternalFirst !== false;
   const autoAcceptExecuted = false as const;
   const pricingExecuted = false as const;
   const materialResearchExecuted = false as const;
   const reasons: string[] = [];
+  const researchBudget = new IkP5ResearchBudget();
 
   if (!expert.masterBoq.readyForExperts) {
     return {
@@ -237,6 +270,9 @@ export async function runIkMasterBoqLaborExpert(opts: {
   const store = opts.store ?? loadWorkCatalogStoreLocal();
   const works =
     opts.works ?? listActiveWorksForRegion(store, store.activeRegion);
+  const internalIndex = enableInternalFirst
+    ? buildInternalFirstIndexFromCatalogWorks(works)
+    : [];
   const mapCtx: OfferBoqMappingContext = {
     works,
     mappedAt: new Date(nowMs).toISOString(),
@@ -284,6 +320,9 @@ export async function runIkMasterBoqLaborExpert(opts: {
     let rateStatus: IkLaborRateStatus = "NONE";
     let ourRatePln: number | null = null;
     let researchKey: string | null = null;
+    let internalFirstOutcome: string | null = null;
+    let internalFirstConfidence: string | null = null;
+    let internalFirstMatchId: string | null = null;
 
     if (bucket === "LABOR" && workId && identity.unit) {
       const looked = lookupWorkRate(store, workId, identity.unit, nowMs);
@@ -294,7 +333,49 @@ export async function runIkMasterBoqLaborExpert(opts: {
         rateStatus = looked.status === "STALE" ? "STALE_TREATED_AS_MISS" : "MISS";
         ourRatePln = looked.status === "STALE" ? looked.ourRatePln : null;
         researchKey = `${workId}|${identity.unit}`;
-        if (executeResearch) {
+
+        if (enableInternalFirst && internalIndex.length > 0) {
+          const planeDomain =
+            classify.plane === "COMPOUND" ? "LABOR_MATERIAL_PACKAGE" : classify.plane;
+          const internal = lookupInternalFirst({
+            description: mapped.description || structural.description,
+            unit: identity.unit,
+            sourceDomain: planeDomain === "UNKNOWN" ? "LABOR" : planeDomain,
+            index: internalIndex,
+          });
+          internalFirstOutcome = internal.outcome;
+          internalFirstConfidence = internal.confidence;
+          internalFirstMatchId = internal.match?.id ?? null;
+
+          if (
+            internal.outcome === "INTERNAL_EXACT_HIT"
+            && internal.match?.base != null
+            && internal.match.base > 0
+          ) {
+            rateStatus = "INTERNAL_EXACT_HIT";
+            ourRatePln = internal.match.base;
+            researchKey = null;
+          } else if (
+            internal.outcome === "INTERNAL_SEMANTIC_HIT"
+            && internal.match?.base != null
+            && internal.match.base > 0
+            && (internal.confidence === "HIGH" || internal.confidence === "MEDIUM")
+          ) {
+            rateStatus = "INTERNAL_SEMANTIC_HIT";
+            ourRatePln = internal.match.base;
+            researchKey = null;
+          } else if (
+            internal.confidence === "MEDIUM"
+            && internal.match
+            && internal.note.includes("without Owner Knowledge")
+          ) {
+            // Ambiguous semantic — Owner REVIEW, no auto research invent
+            rateStatus = "INTERNAL_REVIEW";
+            researchKey = null;
+          }
+        }
+
+        if (researchKey && executeResearch) {
           const existing = pendingByKey.get(researchKey);
           if (existing) {
             existing.lineIds.push(structural.lineId);
@@ -307,8 +388,11 @@ export async function runIkMasterBoqLaborExpert(opts: {
               dwellingId: ref.dwellingId,
             });
           }
-        } else {
-          rateStatus = "RESEARCH_SKIPPED";
+        } else if (researchKey && !executeResearch) {
+          rateStatus =
+            rateStatus === "MISS" || rateStatus === "STALE_TREATED_AS_MISS"
+              ? "RESEARCH_SKIPPED"
+              : rateStatus;
         }
       }
     }
@@ -336,15 +420,38 @@ export async function runIkMasterBoqLaborExpert(opts: {
       ourRatePln,
       researchKey,
       candidate: null,
+      internalFirstOutcome,
+      internalFirstConfidence,
+      internalFirstMatchId,
     });
   }
 
   const researchKeys: string[] = [];
   const researchByKey = new Map<string, RunIkLaborGapResearchResult>();
   let researchBoundaryOk = true;
+  const basePort = opts.lookupPort ?? (executeResearch ? getDefaultWorkRateLookupPort() : undefined);
+  const lookupPort =
+    executeResearch && basePort
+      ? wrapLookupPortWithIkP5Budget(basePort, researchBudget)
+      : opts.lookupPort;
 
   for (const [key, job] of pendingByKey) {
     // Boundary: never research UNKNOWN / non-LABOR — pending map only has LABOR+MISS.
+    if (!researchBudget.canFetch(key, 1)) {
+      researchKeys.push(key);
+      researchByKey.set(key, {
+        status: "GAP",
+        rejects: [],
+        httpFetchCount: 0,
+        previousOurRatePln: null,
+        previousFreshness: "MISSING",
+        messagePl: "Limit HTTP P5 wyczerpany — GAP (bez invent).",
+        fullCatalogueForbidden: true,
+        telemetry: [],
+      });
+      reasons.push(`RESEARCH_BUDGET_STOP key=${key}`);
+      continue;
+    }
     researchKeys.push(key);
     const lineId = job.lineIds[0]!;
     const result = await runIkLaborGapResearch({
@@ -367,7 +474,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       },
       store,
       nowMs,
-      lookupPort: opts.lookupPort,
+      lookupPort,
       forceRefresh: opts.forceRefresh,
       bypassCooldown: opts.bypassCooldown,
     });
@@ -459,6 +566,9 @@ export async function runIkMasterBoqLaborExpert(opts: {
         counts.unresolved += 1;
     }
     if (row.rateStatus === "CURRENT_HIT") counts.currentOurRateHit += 1;
+    if (row.rateStatus === "INTERNAL_EXACT_HIT") counts.internalExactHits += 1;
+    if (row.rateStatus === "INTERNAL_SEMANTIC_HIT") counts.internalSemanticHits += 1;
+    if (row.rateStatus === "INTERNAL_REVIEW") counts.internalReview += 1;
     if (
       row.rateStatus === "MISS"
       || row.rateStatus === "STALE_TREATED_AS_MISS"
@@ -467,6 +577,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       || row.rateStatus === "RESEARCH_BLOCKED"
       || row.rateStatus === "RESEARCH_COOLDOWN"
       || row.rateStatus === "RESEARCH_SKIPPED"
+      || row.rateStatus === "INTERNAL_REVIEW"
     ) {
       counts.ourRateMiss += 1;
     }
@@ -476,7 +587,8 @@ export async function runIkMasterBoqLaborExpert(opts: {
     }
   }
   counts.researchCalls = researchKeys.length;
-  counts.acceptedOurRate = 0; // P4 never auto-Accept
+  counts.researchHttpFetches = researchBudget.runHttpCount;
+  counts.acceptedOurRate = 0; // never auto-Accept
 
   const bucketSum =
     counts.labor

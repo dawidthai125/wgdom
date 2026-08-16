@@ -501,6 +501,46 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikLaborE2eEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikLaborE2eEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-labor-e2e-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · LABOR E2E (P5 · MODE A)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P5. Domyślnie OFF. CURRENT + internal-first + Owner Knowledge —
+                  bez HTTP research, bez Material (P6), bez F5/Bid. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikLaborResearchEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikLaborResearchEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-labor-research-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · LABOR RESEARCH (P5 · MODE B)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Selective Labor HTTP tylko gdy Labor E2E ON. Budget 24/run · 4/work · 0 blind retry.
+                  Zero auto-Accept. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

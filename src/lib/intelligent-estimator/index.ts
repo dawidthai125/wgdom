@@ -27,18 +27,38 @@ export {
   forceIkAutoIngestForTests,
   forceIkIdentityCoverageForTests,
   forceIkChiefWiringForTests,
+  forceIkLaborE2eForTests,
+  forceIkLaborResearchForTests,
   isIkEntryEnabled,
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
   isIkChiefWiringEnabled,
+  isIkLaborE2eEnabled,
+  isIkLaborResearchEnabled,
   isIkP2DocumentsBoqActive,
   isIkP3IdentityCoverageActive,
   isIkP4ChiefWiringPreferenceActive,
   isIkP4ChiefSessionEligible,
   resolveIkP4ChiefEligible,
+  isIkP5LaborE2eActive,
+  isIkP5LaborExecuteResearchActive,
+  resolveIkP5LaborExecuteResearch,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
-export type { IkDetailFirstScreen, IkP4ChiefEligibilityInput, IkP4BoqGateStatus } from "./ik-entry-flag";
+export type {
+  IkDetailFirstScreen,
+  IkP4ChiefEligibilityInput,
+  IkP4BoqGateStatus,
+  IkP5LaborExecuteResearchInput,
+} from "./ik-entry-flag";
+
+export {
+  IK_P5_MAX_HTTP_PER_RUN,
+  IK_P5_MAX_HTTP_PER_WORK,
+  IkP5ResearchBudget,
+  wrapLookupPortWithIkP5Budget,
+} from "./ik-p5-labor-budget";
+export { buildInternalFirstIndexFromCatalogWorks } from "./ik-p5-internal-first-index";
 
 export {
   IK_CONVERSATION_SOURCE_REF_KINDS,

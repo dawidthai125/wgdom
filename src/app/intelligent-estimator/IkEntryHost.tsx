@@ -1,13 +1,14 @@
 /**
- * IK-MIGRATION-01 P1 shell + P2 Documents→BOQ + P3 classification/identity.
+ * IK-MIGRATION-01 P1 shell + P2 Documents→BOQ + P3 classification/identity + P5 Labor E2E.
  *
  * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
  * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
  * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
  *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
+ * P5: Labor E2E when isIkP5LaborE2eActive(); MODE B research only when
+ *     isIkP5LaborExecuteResearchActive() (explicit executeResearch === true).
  *
- * EXECUTE_RESEARCH / RUN_RATE_EXPERTS stay hard OFF (P5/P6).
- * IDENTITY_COVERAGE ON ≠ research ON.
+ * Material experts remain hard OFF (P6). Shared RUN_RATE_EXPERTS stays false.
  * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — not labor/material experts.
  */
 
@@ -36,18 +37,23 @@ import {
 import {
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
+  isIkP5LaborE2eActive,
+  isIkP5LaborExecuteResearchActive,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
 /**
- * Compile-time default sentinels — runtime AUTO_INGEST / IDENTITY_COVERAGE use AppSettings.
+ * Compile-time default sentinels — runtime levers use AppSettings.
  */
 export const IK_ENTRY_SHELL_AUTO_INGEST = false;
 export const IK_ENTRY_SHELL_EXECUTE_RESEARCH = false;
 /** Default sentinel — runtime: isIkIdentityCoverageEnabled(). */
 export const IK_ENTRY_SHELL_IDENTITY_COVERAGE = false;
-/** Labor/material experts. OFF until P4/P5 Owner GO. */
+/**
+ * Legacy shared experts sentinel — MUST stay false so Material (P6) is not armed.
+ * Labor uses ikLaborE2eEnabled / ikLaborResearchEnabled instead.
+ */
 export const IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false;
 
 export function IkEntryHost({
@@ -67,6 +73,8 @@ export function IkEntryHost({
 }) {
   const autoIngestOn = isIkAutoIngestEnabled() === true;
   const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
+  const p5LaborOn = isIkP5LaborE2eActive() === true;
+  const p5ResearchOn = isIkP5LaborExecuteResearchActive() === true;
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
@@ -179,9 +187,9 @@ export function IkEntryHost({
       expert: report,
     });
   }, [identityCoverageOn, effectiveItem, pkg, report]);
-  // Labor expert — gated; when enabled, research still forced OFF in P1 shell.
+  // P5 Labor E2E — Labor-specific levers (≠ Material / ≠ shared RUN_RATE_EXPERTS).
   useEffect(() => {
-    if (!IK_ENTRY_SHELL_RUN_RATE_EXPERTS) {
+    if (!p5LaborOn) {
       setLabor(null);
       return;
     }
@@ -190,7 +198,7 @@ export function IkEntryHost({
       setLabor(null);
       return;
     }
-    const laborKey = `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}`;
+    const laborKey = `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p5ResearchOn ? "B" : "A"}`;
     if (laborAttemptedRef.current === laborKey) return;
     laborAttemptedRef.current = laborKey;
     let cancelled = false;
@@ -200,7 +208,8 @@ export function IkEntryHost({
           item: effectiveItem,
           package: pkg,
           expert: report,
-          executeResearch: IK_ENTRY_SHELL_EXECUTE_RESEARCH,
+          executeResearch: p5ResearchOn === true,
+          enableInternalFirst: true,
         });
         if (!cancelled) setLabor(result);
       } catch {
@@ -210,9 +219,9 @@ export function IkEntryHost({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, report]);
+  }, [effectiveItem, pkg, report, p5LaborOn, p5ResearchOn]);
 
-  // Material expert — gated; research OFF in P1 shell.
+  // Material expert — P6 · hard OFF via IK_ENTRY_SHELL_RUN_RATE_EXPERTS.
   useEffect(() => {
     if (!IK_ENTRY_SHELL_RUN_RATE_EXPERTS) {
       setMaterial(null);
@@ -282,9 +291,11 @@ export function IkEntryHost({
       data-ik-entry-host="1"
       data-ik-entry-shell="1"
       data-ik-entry-auto-ingest={autoIngestOn ? "1" : "0"}
-      data-ik-entry-execute-research={IK_ENTRY_SHELL_EXECUTE_RESEARCH ? "1" : "0"}
+      data-ik-entry-execute-research={p5ResearchOn ? "1" : "0"}
       data-ik-p2-documents-boq={autoIngestOn ? "1" : "0"}
       data-ik-p3-identity-coverage={identityCoverageOn ? "1" : "0"}
+      data-ik-p5-labor-e2e={p5LaborOn ? "1" : "0"}
+      data-ik-p5-labor-research={p5ResearchOn ? "1" : "0"}
       data-ik-entry-identity-coverage={identityCoverageOn ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
@@ -298,7 +309,7 @@ export function IkEntryHost({
           : "shell"
       }
       data-ik-labor-status={
-        IK_ENTRY_SHELL_RUN_RATE_EXPERTS ? (labor?.status ?? "pending") : "shell_skipped"
+        p5LaborOn ? (labor?.status ?? "pending") : "shell_skipped"
       }
       data-ik-labor-resolved={String(labor?.counts.workIdentityResolved ?? 0)}
       data-ik-labor-research={String(labor?.counts.researchCalls ?? 0)}

@@ -1,0 +1,64 @@
+{
+  "id": "IK-MIGRATION-01-P5-PLAN-DESIGN-FREEZE",
+  "date": "2026-08-16",
+  "status": "COMPLETE",
+  "readyFor": "P5_OWNER_GO",
+  "mode": "DOCS_ONLY",
+  "integrity": {
+    "CODE": 0,
+    "RESEARCH": 0,
+    "HTTP": 0,
+    "ACCEPT": 0,
+    "CREATE": 0,
+    "BIND": 0,
+    "WRITE": 0,
+    "COMMIT": 0,
+    "PUSH": 0
+  },
+  "formal": {
+    "P4": "CHIEF_WIRING_LOCKED",
+    "P5": "LABOR_E2E",
+    "P6": "MATERIAL_E2E",
+    "P7": "POSITION_COST_BID"
+  },
+  "baseline": {
+    "P4_impl": "d38f97cd",
+    "P4_live": "2.66.81/5276083",
+    "P5_26_catalogWork": 471,
+    "P5_33": "DO_NOT_CREATE"
+  },
+  "levers": {
+    "ikLaborE2eEnabled": { "default": false },
+    "ikLaborResearchEnabled": { "default": false },
+    "executeResearchRule": "=== true only under MODE_B",
+    "forbidDefaultTrue": true,
+    "forbidSharedRunRateExpertsArmingMaterial": true
+  },
+  "modes": {
+    "A": "INTERNAL_ONLY_ZERO_HTTP",
+    "B": "SELECTIVE_RESEARCH_EXPLICIT"
+  },
+  "seam": {
+    "input": "Master_BOQ_READY_plus_P3",
+    "chiefSessionPrimary": false,
+    "costBlockedImpliesResearch": false,
+    "autoStartFromP4": false
+  },
+  "budget": {
+    "maxHttpPerRun": 24,
+    "maxHttpPerWork": 4,
+    "blindRetry": 0,
+    "networkRetryMax": 1
+  },
+  "locks": {
+    "categoryKeys": ["flooring", "repairs_wall", "repairs_opening", "joinery_finish"],
+    "p526": "UNTOUCHED_471",
+    "diyShopsLabor": "FORBIDDEN",
+    "autoAccept": false
+  },
+  "implementation": "NOT_STARTED",
+  "research": "NOT_STARTED",
+  "accept": "NOT_STARTED",
+  "chatgptEscalation": false,
+  "stop": "AWAIT_OWNER_GO_IMPLEMENT"
+}

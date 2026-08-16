@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.82 — IK-MIGRATION-01 P5 Labor E2E (2026-08-16)
+
+- **P5 Owner GO:** Labor E2E under IK (`ikLaborE2eEnabled` / `ikLaborResearchEnabled`, default **OFF**)
+- MODE A: CURRENT + internal-first (0 HTTP) · MODE B: selective research (`executeResearch === true` only)
+- Budget: **24** HTTP/run · **4**/work · **0** blind retry · REUSE P5.26-E matcher
+- Zero auto-Accept · Material = P6 · F5 = P7 · P5.26 **471** lock
+- **STOP:** no auto P6
+
 ## 2.66.81 — IK-MIGRATION-01 P4 Chief Wiring (2026-08-16)
 
 - **P4 Owner GO:** Chief Wiring under IK (`ikChiefWiringEnabled`, default **OFF**)

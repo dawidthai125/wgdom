@@ -1,5 +1,5 @@
 /**
- * IK-MIGRATION-01 P1/P2/P3/P4 — first-screen + controlled P2–P4 flags.
+ * IK-MIGRATION-01 P1–P5 — first-screen + controlled P2–P5 flags.
  * SSOT: AppSettings (kw-app-settings). Defaults OFF.
  * Independent of Decydent / Dual Outcome master (D).
  */
@@ -25,10 +25,18 @@ export type IkP4ChiefEligibilityInput = {
   boqStatus?: IkP4BoqGateStatus;
 };
 
+export type IkP5LaborExecuteResearchInput = {
+  ikEntryEnabled: boolean;
+  ikLaborE2eEnabled: boolean;
+  ikLaborResearchEnabled: boolean;
+};
+
 let ikEntryForTests: boolean | null = null;
 let ikAutoIngestForTests: boolean | null = null;
 let ikIdentityCoverageForTests: boolean | null = null;
 let ikChiefWiringForTests: boolean | null = null;
+let ikLaborE2eForTests: boolean | null = null;
+let ikLaborResearchForTests: boolean | null = null;
 
 /** Test-only override (null = AppSettings). */
 export function forceIkEntryEnabledForTests(on: boolean | null): void {
@@ -48,6 +56,16 @@ export function forceIkIdentityCoverageForTests(on: boolean | null): void {
 /** Test-only override for P4 Chief Wiring (null = AppSettings). */
 export function forceIkChiefWiringForTests(on: boolean | null): void {
   ikChiefWiringForTests = on;
+}
+
+/** Test-only override for P5 Labor E2E (null = AppSettings). */
+export function forceIkLaborE2eForTests(on: boolean | null): void {
+  ikLaborE2eForTests = on;
+}
+
+/** Test-only override for P5 Labor research (null = AppSettings). */
+export function forceIkLaborResearchForTests(on: boolean | null): void {
+  ikLaborResearchForTests = on;
 }
 
 export function isIkEntryEnabled(): boolean {
@@ -81,6 +99,24 @@ export function isIkIdentityCoverageEnabled(): boolean {
 export function isIkChiefWiringEnabled(): boolean {
   if (ikChiefWiringForTests != null) return ikChiefWiringForTests;
   return loadAppSettingsLocal().ikChiefWiringEnabled === true;
+}
+
+/**
+ * P5 Labor E2E preference (MODE A capable). Default OFF.
+ * Does NOT enable Material · Does NOT flip Chief · Does NOT flip D.
+ */
+export function isIkLaborE2eEnabled(): boolean {
+  if (ikLaborE2eForTests != null) return ikLaborE2eForTests;
+  return loadAppSettingsLocal().ikLaborE2eEnabled === true;
+}
+
+/**
+ * P5 Labor selective research preference (MODE B). Default OFF.
+ * Alone does NOT run Labor — requires Labor E2E + IK Entry.
+ */
+export function isIkLaborResearchEnabled(): boolean {
+  if (ikLaborResearchForTests != null) return ikLaborResearchForTests;
+  return loadAppSettingsLocal().ikLaborResearchEnabled === true;
 }
 
 /**
@@ -131,6 +167,34 @@ export function isIkP4ChiefSessionEligible(opts: {
     ikChiefWiringEnabled: isIkChiefWiringEnabled(),
     pricingReady: opts.pricingReady === true,
     boqStatus: opts.boqStatus,
+  });
+}
+
+/** P5 MODE A active: IK ON ∧ Labor E2E ON. */
+export function isIkP5LaborE2eActive(): boolean {
+  return isIkEntryEnabled() === true && isIkLaborE2eEnabled() === true;
+}
+
+/**
+ * Pure P5 MODE B research permission (flags only).
+ * MUST be `=== true` on all three — never undefined→research.
+ */
+export function resolveIkP5LaborExecuteResearch(
+  input: IkP5LaborExecuteResearchInput,
+): boolean {
+  return (
+    input.ikEntryEnabled === true
+    && input.ikLaborE2eEnabled === true
+    && input.ikLaborResearchEnabled === true
+  );
+}
+
+/** Runtime: explicit MODE B executeResearch flag for Labor Expert call site. */
+export function isIkP5LaborExecuteResearchActive(): boolean {
+  return resolveIkP5LaborExecuteResearch({
+    ikEntryEnabled: isIkEntryEnabled(),
+    ikLaborE2eEnabled: isIkLaborE2eEnabled(),
+    ikLaborResearchEnabled: isIkLaborResearchEnabled(),
   });
 }
 
