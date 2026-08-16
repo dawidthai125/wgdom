@@ -16,7 +16,7 @@ P8 IMPLEMENTATION = PASS · commit **`1f980aa0`** (origin/main)
 TEST = PASS (67 PASS / 0 FAIL + Validation + DW + P4 reuse)
 BUILD = PASS
 PUSH = PASS
-PRODUCTION VERIFY = **DEPLOY_PROPAGATING** (one-shot live still 2.66.84 / e2fe30d)
+PRODUCTION VERIFY = **PRODUCTION VERIFIED / LOCKED** (live **2.66.85** / **`6f58c8e`** · `1f980aa0` ⊂ live)
 
 UI = 2.66.85 (changelog)
 ikRiskDecisionE2eEnabled = DEFAULT OFF
