@@ -1,24 +1,111 @@
 {
   "id": "IK-MIGRATION-01-P5-PRODUCTION-VERIFY",
   "date": "2026-08-16",
-  "mode": "VERIFY_ONLY",
+  "mode": "FINAL_PRODUCTION_VERIFY_ONE_SHOT",
+  "verdict": "PRODUCTION_VERIFIED_LOCKED",
   "implCommit": "d5a7fa5c",
-  "verdict": "DEPLOY_PROPAGATING",
   "live": {
-    "version": "2.66.81",
-    "commit": "1aa1a47"
+    "version": "2.66.82",
+    "commit": "5fc3ae9",
+    "fullCommit": "5fc3ae9f",
+    "timestampUtc": "2026-08-16T12:21:59.672Z",
+    "assets": {
+      "index": "index-OVA0Xh_s.js",
+      "appCore": "app-core--pIs2i2n.js",
+      "tendersModule": "TendersModule-DyanaIlX.js"
+    }
   },
   "expected": {
     "uiVersion": "2.66.82",
     "implCommit": "d5a7fa5c"
   },
+  "ancestorContains": {
+    "implIsAncestorOfLive": true,
+    "mergeBaseExit": 0,
+    "between": ["5fc3ae9f docs tip only"]
+  },
+  "propagation": "LIVE_MATCH",
   "levers": {
     "ikLaborE2eEnabled": "DEFAULT_OFF",
     "ikLaborResearchEnabled": "DEFAULT_OFF",
-    "controlledOn": "NOT_EXERCISED"
+    "bundleEvidence": {
+      "ikLaborE2eEnabled:!1": true,
+      "ikLaborResearchEnabled:!1": true,
+      "ikChiefWiringEnabled:!1": true,
+      "ikEntryEnabled:!1": true
+    },
+    "productionFinish": {
+      "p5E2e": "OFF",
+      "p5Research": "OFF"
+    }
   },
-  "p526CatalogWork": 471,
+  "modeA": "NOT_EXERCISED",
+  "modeB": "NOT_EXERCISED",
+  "executeResearchGuard": {
+    "labor": "=== true only",
+    "hostWire": "researchFlag === true",
+    "legacyLaborNotEqualsFalse": "REMOVED",
+    "materialDemandNotEqualsFalse": "OUT_OF_P5_SHELL_SKIPPED",
+    "result": "PASS"
+  },
+  "httpBudget": {
+    "maxPerRun": 24,
+    "maxPerWork": 4,
+    "blindRetry": 0,
+    "liveGuard": "BUDGET_EXCEEDED",
+    "result": "PASS"
+  },
+  "internalFirst": {
+    "enableInternalFirst": true,
+    "reuseP526E": true,
+    "matcherDuplication": false,
+    "result": "PASS"
+  },
+  "researchFailure": "PASS_GAP_SEMANTICS",
+  "categoryRouting": {
+    "keys": ["flooring", "repairs_wall", "repairs_opening", "joinery_finish"],
+    "p533": false,
+    "result": "PASS"
+  },
+  "accept": {
+    "autoAccept": false,
+    "researchToAccept": false,
+    "exercised": 0,
+    "result": "PASS"
+  },
+  "catalogWork": {
+    "p526Baseline": 471,
+    "writesInPv": 0,
+    "result": "PASS_UNTOUCHED"
+  },
+  "p4": {
+    "ikChiefWiringEnabled": "DEFAULT_OFF",
+    "result": "UNCHANGED"
+  },
+  "p3": "UNCHANGED",
+  "p2": "UNCHANGED",
   "p6": "NOT_STARTED",
-  "mobilePhysical": "NOT_VERIFIED",
-  "finalProductionVerified": false
+  "material": {
+    "runRateExperts": false,
+    "statusMarker": "shell_skipped",
+    "result": "OFF"
+  },
+  "f5": "UNTOUCHED",
+  "bid": "UNTOUCHED",
+  "provenance": "PASS",
+  "unitSafety": "PASS",
+  "tests": {
+    "p5": "44/44",
+    "regressionEmbedded": "PASS",
+    "result": "PASS"
+  },
+  "build": "PASS",
+  "mobile": {
+    "bundle": "MARKERS_PRESENT",
+    "physical": "NOT_VERIFIED"
+  },
+  "finalProductionVerified": true,
+  "locked": true,
+  "stop": true,
+  "chatgptEscalation": null
 }

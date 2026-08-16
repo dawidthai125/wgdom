@@ -14,22 +14,27 @@
 ```text
 P5 PLAN = PASS
 P5 IMPLEMENTATION = PASS · commit d5a7fa5c (origin/main)
-TEST = PASS
+TEST = PASS · 44/44
 BUILD = PASS
-PRODUCTION VERIFY = DEPLOY_PROPAGATING (live tip still 2.66.81 / 1aa1a47)
+PRODUCTION VERIFY = PRODUCTION VERIFIED / LOCKED
+
+LIVE = 2.66.82 / 5fc3ae9
+CONTAINS IMPL = YES (d5a7fa5c ancestor of tip)
+Controlled MODE A/B = NOT_EXERCISED
+MOBILE PHYSICAL = NOT VERIFIED
 
 FORMAL: P5 = Labor E2E · P6 = Material · P7 = F5/Bid
 ikLaborE2eEnabled = DEFAULT OFF
 ikLaborResearchEnabled = DEFAULT OFF
 executeResearch = === true only (MODE B)
-Material / RUN_RATE_EXPERTS = OFF
-P5.26 CatalogWork 471 = UNTOUCHED
+Material / RUN_RATE_EXPERTS = OFF · shell_skipped
+P5.26 CatalogWork 471 = UNTOUCHED / LOCKED
 P6 = NOT STARTED
-READY FOR final PV when tip = 2.66.82 / contains d5a7fa5c
 STOP — no auto P6 · no Material · no F5/Bid · no P5.33
 ```
 
 **Impl SHA:** **`d5a7fa5c`**  
+**Live tip SHA:** **`5fc3ae9`**  
 **PV SSOT:** [`IK-MIGRATION-01-P5-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P5-PRODUCTION-VERIFY.md)
 
 ---
