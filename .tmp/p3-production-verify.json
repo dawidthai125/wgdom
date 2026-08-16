@@ -1,11 +1,13 @@
 {
   "id": "IK-MIGRATION-01-P3-PRODUCTION-VERIFY",
   "date": "2026-08-16",
-  "verdict": "PRODUCTION_VERIFIED",
+  "verdict": "PRODUCTION_VERIFIED_BUNDLE_PUSH",
+  "liveTip": "DEPLOY_PROPAGATING",
   "uiVersionExpected": "2.66.80",
-  "live": {
-    "version": "PENDING_AFTER_PUSH",
-    "commit": "PENDING_AFTER_PUSH"
+  "implCommit": "350e81e6",
+  "liveOneShot": {
+    "version": "2.66.79",
+    "commit": "a449f0f"
   },
   "levers": {
     "IDENTITY_COVERAGE": "DEFAULT_OFF",
