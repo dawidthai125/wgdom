@@ -2,21 +2,24 @@
   "id": "IK-MIGRATION-01-P4-PRODUCTION-VERIFY",
   "date": "2026-08-16",
   "mode": "VERIFY_ONLY",
+  "verdict": "PRODUCTION_VERIFIED",
   "implCommit": "d38f97cd",
-  "verdict": "DEPLOY_PROPAGATING",
+  "tipCommit": "5276083b",
   "live": {
-    "version": "2.66.80",
-    "commit": "a3ffa8e",
-    "timestamp": "2026-08-16T11:36:00.738Z",
-    "bundle": "assets/index-JaYTzN3a.js",
-    "ikChiefWiringEnabledCount": 0,
-    "dataIkP4ChiefWiringCount": 0,
-    "ui26681Count": 0
+    "version": "2.66.81",
+    "commit": "5276083",
+    "timestamp": "2026-08-16T11:54:07.477Z",
+    "assets": {
+      "index": "assets/index-HwRJskQC.js",
+      "appCore": "assets/app-core-Chbu9hHJ.js",
+      "tendersModule": "assets/TendersModule-CurGoDcn.js"
+    },
+    "ikChiefWiringEnabledDefaultOff": true,
+    "ikEntryEnabledDefaultOff": true,
+    "dataIkP4ChiefWiring": true,
+    "executeResearchAttr": "0"
   },
-  "expected": {
-    "uiVersion": "2.66.81",
-    "implCommit": "d38f97cd"
-  },
+  "ancestorContainsImpl": true,
   "levers": {
     "ikChiefWiringEnabled": "DEFAULT_OFF",
     "controlledOn": "NOT_EXERCISED",
@@ -24,7 +27,21 @@
     "RUN_RATE_EXPERTS": "OFF",
     "ikNeqD": true
   },
-  "p5": "NOT_STARTED",
+  "checks": {
+    "ikOffNg10": "PASS",
+    "p4Off": "PASS",
+    "p4OnControlled": "NOT_EXERCISED",
+    "dSeparation": "PASS",
+    "researchBoundary": "PASS",
+    "acceptWrite": "PASS",
+    "truth": "PASS",
+    "p526Catalog471": "PASS",
+    "p3Unchanged": "PASS"
+  },
+  "tests": {
+    "p4": "58/58"
+  },
   "mobilePhysical": "NOT_VERIFIED",
-  "finalProductionVerified": false
+  "p5": "NOT_STARTED",
+  "readyFor": "P5_OWNER_GO"
 }
