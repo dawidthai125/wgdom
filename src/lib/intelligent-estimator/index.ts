@@ -29,12 +29,16 @@ export {
   forceIkChiefWiringForTests,
   forceIkLaborE2eForTests,
   forceIkLaborResearchForTests,
+  forceIkMaterialE2eForTests,
+  forceIkMaterialResearchForTests,
   isIkEntryEnabled,
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
   isIkChiefWiringEnabled,
   isIkLaborE2eEnabled,
   isIkLaborResearchEnabled,
+  isIkMaterialE2eEnabled,
+  isIkMaterialResearchEnabled,
   isIkP2DocumentsBoqActive,
   isIkP3IdentityCoverageActive,
   isIkP4ChiefWiringPreferenceActive,
@@ -43,6 +47,9 @@ export {
   isIkP5LaborE2eActive,
   isIkP5LaborExecuteResearchActive,
   resolveIkP5LaborExecuteResearch,
+  isIkP6MaterialE2eActive,
+  isIkP6MaterialExecuteResearchActive,
+  resolveIkP6MaterialExecuteResearch,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
 export type {
@@ -50,6 +57,7 @@ export type {
   IkP4ChiefEligibilityInput,
   IkP4BoqGateStatus,
   IkP5LaborExecuteResearchInput,
+  IkP6MaterialExecuteResearchInput,
 } from "./ik-entry-flag";
 
 export {
@@ -58,6 +66,12 @@ export {
   IkP5ResearchBudget,
   wrapLookupPortWithIkP5Budget,
 } from "./ik-p5-labor-budget";
+export {
+  IK_P6_MAX_ACTIVE_CLAIMS_PER_PASS,
+  IK_P6_MAX_SHOP_HTTP_PER_RUN,
+  IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE,
+  IkP6MaterialBudget,
+} from "./ik-p6-material-budget";
 export { buildInternalFirstIndexFromCatalogWorks } from "./ik-p5-internal-first-index";
 
 export {

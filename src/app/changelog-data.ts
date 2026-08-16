@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.83",
+    label: "IK-MIGRATION-01 P6 Material E2E",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P6 (Owner GO): Material E2E pod IK — ikMaterialE2eEnabled / ikMaterialResearchEnabled (default OFF). MODE A = Price Memory + identity (0 HTTP). MODE B = selective DIY tylko przy executeResearch===true + budget MMR-02 (≤8 claims / ≤24 shop HTTP). Accept → Price Memory. Zero auto-Accept · CatalogWork 471 UNTOUCHED · F5=P7. Prod: P6 OFF. STOP — bez auto P7.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.82",
     label: "IK-MIGRATION-01 P5 Labor E2E",
     items: [

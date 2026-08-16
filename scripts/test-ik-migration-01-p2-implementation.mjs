@@ -148,7 +148,10 @@ assert("D EXECUTE_RESEARCH false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/
 assert("E RUN_RATE_EXPERTS false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
 assert("F IDENTITY_COVERAGE compile default false", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
 assert("D no executeResearch: true", !/executeResearch:\s*true/.test(hostSrc));
-assert("D research wired to shell const", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
+assert("D research uses explicit P5/P6 mode flags",
+  /executeResearch:\s*p5ResearchOn === true/.test(hostSrc)
+  && /executeResearch:\s*p6ResearchOn === true/.test(hostSrc));
+assert("D EXECUTE_RESEARCH shell const remains false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 
 // --- Host wiring (P2) ---
 assert("Host uses isIkAutoIngestEnabled", /isIkAutoIngestEnabled/.test(hostSrc));

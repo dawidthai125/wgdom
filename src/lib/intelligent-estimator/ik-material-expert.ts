@@ -1,5 +1,5 @@
 /**
- * IK-MIGRATION-01 P5 — Material Expert orchestration over Master BOQ.
+ * IK-MIGRATION-01 P6 — Material Expert orchestration over Master BOQ.
  *
  * Path (REUSE only):
  *   Master BOQ line
@@ -9,10 +9,11 @@
  *   → evaluateMaterialCache / lookupPriceMemory (HIT → reuse)
  *      · with product identity: materialKey + catalogWorkId
  *      · P5.13 demand path: catalogWorkId only (empty materialKey — no fabricate mat.*)
- *   → executeMaterialResearchPhase2 (MISS only · never auto-Accept)
+ *   → executeMaterialResearchPhase2 (MISS only · executeResearch === true only · never auto-Accept)
  *      · product identity key OR demand.work.<workId> coordination key
  *   → Candidate → Owner Accept REQUIRED → Price Memory (Accept separate)
  *
+ * P0: executeResearch requires explicit `=== true` (never `!== false` / undefined).
  * ZERO invent product/SKU/price from namePl alone · ZERO Labor rewrite · ZERO F5/Bid.
  */
 
@@ -61,6 +62,10 @@ import {
   runIkDocumentExpert,
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
+import {
+  IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE,
+  IkP6MaterialBudget,
+} from "./ik-p6-material-budget";
 import type { DwellingLineProvenance } from "@/lib/multi-boq/types";
 
 export type IkMaterialBucket =
@@ -298,7 +303,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   expert?: IkDocumentExpertReport | null;
   store?: WorkCatalogStore;
   works?: CatalogWork[];
-  /** Default true — Phase2 for MISS only. */
+  /** Default false — Phase2 only when executeResearch === true (P6 MODE B). */
   executeResearch?: boolean;
   lease?: MaterialResearchLeasePort;
   provider?: MaterialResearchProvider;
@@ -316,7 +321,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   const nowMs = opts.nowMs ?? Date.now();
   const nowIso = new Date(nowMs).toISOString();
   const region = opts.region || "wroclaw";
-  const executeResearch = opts.executeResearch !== false;
+  const executeResearch = opts.executeResearch === true;
   const autoAcceptExecuted = false as const;
   const pricingExecuted = false as const;
   const laborResearchExecuted = false as const;
@@ -522,9 +527,22 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   const researchByKey = new Map<string, Phase2ExecuteResult>();
   let researchBoundaryOk = true;
   const lease = opts.lease ?? createEdgeResearchLeasePort();
+  const budget = new IkP6MaterialBudget();
 
   for (const [key, job] of pendingByKey) {
     researchKeys.push(key);
+    if (!budget.canClaim(IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE)) {
+      const reason = budget.denyReason(IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE) ?? "CLAIM_CEILING";
+      researchByKey.set(key, {
+        ok: false,
+        acquired: false,
+        candidate: null,
+        autoAccepted: false,
+        error: `BUDGET_EXCEEDED:${reason}`,
+      });
+      reasons.push(`BUDGET_EXCEEDED key=${key} reason=${reason}`);
+      continue;
+    }
     const demand = buildDemand({
       materialKey: job.materialKey,
       catalogWorkId: job.catalogWorkId,
@@ -536,7 +554,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     });
     const result = await executeMaterialResearchPhase2({
       demand,
-      claimantId: `ik-p5-${tenderId.slice(0, 8) || "t"}`,
+      claimantId: `ik-p6-${tenderId.slice(0, 8) || "t"}`,
       lease,
       worksById,
       nowMs,
@@ -545,6 +563,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
       useMockForTests: opts.useMockForTests,
       forceRefresh: opts.forceRefresh,
     });
+    budget.recordClaim(IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE);
     researchByKey.set(key, result);
   }
 

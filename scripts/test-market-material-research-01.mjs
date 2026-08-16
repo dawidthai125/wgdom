@@ -222,6 +222,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const store = baseCatalog(null);
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -245,6 +246,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const atomic = createMemoryAtomicResearchJobStore();
   const lines = Array.from({ length: 20 }, (_, i) => paintLine({ lineId: `L${i}` }));
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines,
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -268,6 +270,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const results = await Promise.all(
     Array.from({ length: 10 }, (_, i) =>
       orchestrateMaterialResearch({
+    executeResearch: true,
         lines: [paintLine({ tenderId: `t-${i}` })],
         worksById: worksMap(store),
         demandStore: normalizePriceDemandStore(null),
@@ -290,6 +293,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const store = baseCatalog({ paint: { price: 45, updatedAt: T_FRESH } });
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -318,6 +322,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   eq("T5 usability STALE", cache.usability, "STALE");
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -348,6 +353,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const store = baseCatalog(null);
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [
       paintLine(),
       {
@@ -381,6 +387,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const store = baseCatalog(null);
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -409,6 +416,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const deps = memoryCatalogDeps(catalog);
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(deps.get()),
     demandStore: normalizePriceDemandStore(null),
@@ -443,6 +451,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const catalog = baseCatalog({ paint: { price: 33.3, updatedAt: T_FRESH } });
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine({ tenderId: "tender-2" })],
     worksById: worksMap(catalog),
     demandStore: normalizePriceDemandStore(null),
@@ -462,6 +471,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const atomic = createMemoryAtomicResearchJobStore();
   const provider = createMockManualResearchProvider({ fail: true, failError: "mock_fail" });
   const r1 = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),
@@ -474,6 +484,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   eq("T11 first FAILED", r1.decisions[0].action, "FAILED");
   // same cooldown map — second pass must skip
   const r2 = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine()],
     worksById: worksMap(store),
     demandStore: r1.demandStore,
@@ -493,6 +504,7 @@ console.log("=== MARKET-MATERIAL-RESEARCH-01 STAGE B ===\n");
   const store = baseCatalog(null);
   const atomic = createMemoryAtomicResearchJobStore();
   const r = await orchestrateMaterialResearch({
+    executeResearch: true,
     lines: [paintLine({ unit: "l" })],
     worksById: worksMap(store),
     demandStore: normalizePriceDemandStore(null),

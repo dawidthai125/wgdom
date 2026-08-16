@@ -1,0 +1,142 @@
+{
+  "id": "IK-MIGRATION-01-P6-AUDIT",
+  "date": "2026-08-16",
+  "mode": "AUDIT_ONLY",
+  "ownerGo": true,
+  "execution": {
+    "code": 0,
+    "research": 0,
+    "http": 0,
+    "accept": 0,
+    "create": 0,
+    "bind": 0,
+    "write": 0,
+    "commit": 0,
+    "push": 0
+  },
+  "baseline": {
+    "p5": "PRODUCTION_VERIFIED_LOCKED",
+    "p5Impl": "d5a7fa5c",
+    "live": { "version": "2.66.82", "commit": "5fc3ae9" },
+    "p526CatalogWork": 471,
+    "p526": "LOCKED_UNTOUCHED",
+    "p4": "PRODUCTION_VERIFIED_LOCKED",
+    "p3": "PRODUCTION_VERIFIED_LOCKED",
+    "p2": "PRODUCTION_VERIFIED_LOCKED",
+    "p533": "DO_NOT_CREATE",
+    "p6": "NOT_STARTED",
+    "p7": "NOT_STARTED"
+  },
+  "formalScope": {
+    "p6": "MATERIAL_E2E",
+    "df": "IK-MIGRATION-01-DESIGN-FREEZE §5 REUSE Phase2 + IkMaterialGapJob",
+    "in": [
+      "Price Memory CURRENT reuse",
+      "MISS selective DIY research",
+      "Candidate",
+      "Owner Accept → Price Memory",
+      "provenance / unit / GAP"
+    ],
+    "out": [
+      "Labor P5",
+      "Chief P4",
+      "F5 Bid P7",
+      "P5.26 reopen",
+      "P5.31/32 labor keys",
+      "P5.33",
+      "auto-Accept",
+      "invent prices"
+    ]
+  },
+  "seamP5toP6": {
+    "requiresMasterBoqReady": true,
+    "requiresP3Classification": true,
+    "requiresLaborReport": false,
+    "requiresP5Accept": false,
+    "requiresLaborResearchSuccess": false,
+    "domainsSeparate": true
+  },
+  "domain": {
+    "planes": ["LABOR", "MATERIAL", "COMPOUND", "UNKNOWN"],
+    "materialBuckets": ["MATERIAL", "LABOR", "BOTH", "UNRESOLVED", "NON_COST"],
+    "packageAutoMaterial": false,
+    "laborEqualsMaterial": false
+  },
+  "stack": [
+    { "component": "runIkMasterBoqMaterialExpert", "class": "ALREADY_AVAILABLE" },
+    { "component": "IkEntryHost Material wire", "class": "NOT_CONNECTED" },
+    { "component": "Phase2 + DIY Edge", "class": "ALREADY_AVAILABLE" },
+    { "component": "accept → Price Memory", "class": "ALREADY_AVAILABLE" },
+    { "component": "IkMaterialGapJob", "class": "ALREADY_AVAILABLE_PARTIAL_HOST" },
+    { "component": "ikMaterial* levers", "class": "MISSING" },
+    { "component": "executeResearch === true guard", "class": "UNSAFE" },
+    { "component": "P5.26-E labor matcher for material", "class": "UNSAFE_ASSUMPTION" },
+    { "component": "legacy src/lib/material-expert", "class": "LEGACY" },
+    { "component": "formal P6 named test suite", "class": "MISSING" }
+  ],
+  "levers": {
+    "ikLaborE2eEnabled": "DEFAULT_OFF_LABOR_ONLY",
+    "ikLaborResearchEnabled": "DEFAULT_OFF_LABOR_ONLY",
+    "IK_ENTRY_SHELL_RUN_RATE_EXPERTS": false,
+    "IK_ENTRY_SHELL_EXECUTE_RESEARCH": false,
+    "dedicatedMaterialLever": "MISSING_REQUIRED_FOR_PLAN",
+    "unsafeIfSharedRunRateFlipped": true
+  },
+  "researchSafety": {
+    "materialExpertDefault": "executeResearch !== false",
+    "orchestrateDefault": "executeResearch !== false",
+    "severity": "P0_SAFETY_BLOCKER",
+    "liveArmed": false
+  },
+  "sources": [
+    { "id": "price_memory", "role": "CURRENT_REUSE" },
+    { "id": "leroy", "role": "selective_diy", "allowlist": true },
+    { "id": "castorama", "role": "selective_diy", "allowlist": true },
+    { "id": "obi", "role": "selective_diy", "allowlist": true }
+  ],
+  "categoryRouting": {
+    "laborKeys": "OUT_OF_P6",
+    "materialModel": "materialKey + shop provider",
+    "newKeys": "DO_NOT_CREATE",
+    "parityBlocker": false
+  },
+  "p532Lessons": "INHERIT_FOR_PLAN_MAP_TO_MATERIAL_TAXONOMY",
+  "internalFirst": {
+    "laborMatcherReuse": false,
+    "materialInternal": "Price Memory CURRENT"
+  },
+  "catalogWork": {
+    "baseline": 471,
+    "materialAcceptTarget": "PRICE_MEMORY_QUOTES",
+    "laborOurRateUntouched": true
+  },
+  "budget": {
+    "doNotAssumeLabor24_4": true,
+    "mmr02": {
+      "ratePerMin": 6,
+      "timeoutMs": 12000,
+      "maxRetry": 1,
+      "circuitFailures": 3,
+      "circuitWindowMs": 300000,
+      "maxActiveClaimsPerPass": 8,
+      "cooldownMs": 60000
+    },
+    "p6NamedWrap": "MISSING_DESIGN_DECISION_FOR_PLAN"
+  },
+  "accept": {
+    "autoAccept": false,
+    "ownerApi": "acceptIkMaterialResearchCandidate",
+    "autoAcceptGuard": "AUTO_ACCEPT_FORBIDDEN"
+  },
+  "production": {
+    "p5E2e": "OFF",
+    "p5Research": "OFF",
+    "materialP6": "OFF_NOT_STARTED",
+    "materialStatusMarker": "shell_skipped"
+  },
+  "mobilePhysical": "NOT_VERIFIED",
+  "chatgptEscalation": null,
+  "verdict": "READY_FOR_PLAN",
+  "stop": true,
+  "doNotAutoStartPlan": true
+}

@@ -529,6 +529,7 @@ ok("identity reject paint", !identityMatchesQuery("Farba lateksowa biała", "WC 
   ];
   const [ra, rb] = await Promise.all([
     orchestrateMaterialResearch({
+    executeResearch: true,
       lines,
       worksById: worksMap(catalog),
       provider,
@@ -538,6 +539,7 @@ ok("identity reject paint", !identityMatchesQuery("Farba lateksowa biała", "WC 
       demandStore: normalizePriceDemandStore({ schemaVersion: 1, updatedAt: new Date(T_NOW).toISOString(), demands: [] }),
     }),
     orchestrateMaterialResearch({
+    executeResearch: true,
       lines,
       worksById: worksMap(catalog),
       provider,

@@ -92,7 +92,7 @@ export async function orchestrateMaterialResearch(
   const cooldownMs = opts.cooldownMs ?? MMR_DEFAULT_COOLDOWN_MS;
   const leaseMs = opts.leaseMs ?? MMR_DEFAULT_LEASE_MS;
   const sourceScope = opts.sourceScope ?? MMR_DEFAULT_SOURCE_SCOPE;
-  const execute = opts.executeResearch !== false;
+  const execute = opts.executeResearch === true;
   const maxClaims = opts.maxActiveClaims ?? MMR_MAX_ACTIVE_CLAIMS_PER_PASS;
 
   const unique = dedupeNeededMaterialKeys(opts.lines);

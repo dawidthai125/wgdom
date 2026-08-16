@@ -1,0 +1,125 @@
+{
+  "id": "IK-MIGRATION-01-P6-PLAN-DESIGN-FREEZE",
+  "date": "2026-08-16",
+  "mode": "PLAN_DESIGN_FREEZE_ONLY",
+  "status": "COMPLETE_READY_FOR_P6_OWNER_GO",
+  "execution": {
+    "code": 0,
+    "research": 0,
+    "http": 0,
+    "accept": 0,
+    "create": 0,
+    "bind": 0,
+    "write": 0,
+    "commit": 0,
+    "push": 0
+  },
+  "baseline": {
+    "p0_p5": "PRODUCTION_VERIFIED_LOCKED",
+    "p5Impl": "d5a7fa5c",
+    "live": { "version": "2.66.82", "commit": "5fc3ae9" },
+    "p526CatalogWork": 471,
+    "p533": "DO_NOT_CREATE",
+    "p6Audit": "READY_FOR_PLAN",
+    "p6UnderIk": "NOT_STARTED",
+    "p7": "NOT_STARTED"
+  },
+  "formalScope": "MATERIAL_E2E",
+  "reuse": [
+    "runIkMasterBoqMaterialExpert",
+    "executeMaterialResearchPhase2",
+    "DIY LM/Casto/OBI Edge",
+    "acceptIkMaterialResearchCandidate",
+    "Price Memory / Market Quotes",
+    "IkMaterialGapJob",
+    "resolveDemandProductIdentityExact",
+    "evaluateMaterialCache"
+  ],
+  "outOfScope": [
+    "Labor P5",
+    "Chief P4",
+    "F5 Bid P7",
+    "CatalogWork OUR RATE mutation",
+    "P5.26 reopen",
+    "P5.31/32 labor keys",
+    "P5.33",
+    "matcher V2",
+    "second Price Memory"
+  ],
+  "seamP5toP6": {
+    "requiresMasterBoq": true,
+    "requiresP3": true,
+    "requiresLaborReport": false,
+    "requiresP5Accept": false,
+    "requiresLaborResearchSuccess": false,
+    "laborGapBlocksMaterial": false
+  },
+  "levers": {
+    "ikMaterialE2eEnabled": { "default": false, "storage": "AppSettings" },
+    "ikMaterialResearchEnabled": { "default": false, "storage": "AppSettings" },
+    "reuseIkLaborLevers": false,
+    "reuseSharedRunRateExperts": false,
+    "naming": "NEW_MINIMAL_MIRROR_LABOR"
+  },
+  "modes": {
+    "A": "MEMORY_IDENTITY_0_HTTP",
+    "B": "SELECTIVE_DIY_RESEARCH"
+  },
+  "executeResearchGuard": {
+    "rule": "=== true only under MODE_B",
+    "undefined": false,
+    "killNotEqualsFalse": true,
+    "p0BlockerAddressed": true
+  },
+  "identity": {
+    "authoritative": [
+      "resolveDemandProductIdentityExact",
+      "mapOfferBoqLine",
+      "classifyEstimatorPricingPlane",
+      "demand.work path P5.13"
+    ],
+    "laborP526EMatcher": "DO_NOT_REUSE"
+  },
+  "sources": ["price_memory", "leroy", "castorama", "obi"],
+  "categoryRouting": {
+    "laborKeys": "LOCKED_OUT",
+    "materialModel": "materialKey + shop provider",
+    "newKeys": "FORBIDDEN",
+    "parityBlocker": false
+  },
+  "budget": {
+    "doNotCopyLabor24_4AsSsot": true,
+    "primary": "MMR_02",
+    "ratePerMin": 6,
+    "timeoutMs": 12000,
+    "maxRetry": 1,
+    "blindRetry": 0,
+    "circuitFailures": 3,
+    "circuitWindowMs": 300000,
+    "maxActiveClaimsPerPass": 8,
+    "cooldownMs": 60000,
+    "shopsPerKey": 3,
+    "urlsPerShop": 1,
+    "derivedSessionMaxShopHttp": 24
+  },
+  "accept": {
+    "autoAccept": false,
+    "writeTarget": "PRICE_MEMORY_QUOTES",
+    "catalogWorkOurRate": "FORBIDDEN"
+  },
+  "catalogWork": {
+    "baseline": 471,
+    "lock": true,
+    "allowedUse": "catalogWorkId identity / demand.work coordination only"
+  },
+  "boundaries": {
+    "p4": "LOCKED",
+    "p5": "LOCKED_NO_MUTATE",
+    "p7": "NOT_STARTED_NO_AUTO"
+  },
+  "rollback": "levers OFF → P2-P5 unchanged",
+  "chatgptEscalation": null,
+  "implementation": "NOT_STARTED",
+  "stop": true,
+  "doNotAutoImplement": true
+}

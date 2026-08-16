@@ -471,7 +471,10 @@ assert("T EC has identity or classification facts", vmCov.steps.some((s) =>
 
 // --- U: ON does not research ---
 assert("U no executeResearch true", !/executeResearch:\s*true/.test(hostSrc));
-assert("U research wired to OFF const", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
+assert("U research uses explicit P5/P6 mode flags (not undefined default)",
+  /executeResearch:\s*p5ResearchOn === true/.test(hostSrc)
+  && /executeResearch:\s*p6ResearchOn === true/.test(hostSrc));
+assert("U EXECUTE_RESEARCH shell const remains false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert("U coverage ON ≠ EXECUTE_RESEARCH in flag doc", /Does NOT enable research/.test(flagSrc));
 
 // --- V–Z: no HTTP / Accept / CatalogWrite / F5 / Bid ---

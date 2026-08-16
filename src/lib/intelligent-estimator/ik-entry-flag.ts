@@ -1,5 +1,5 @@
 /**
- * IK-MIGRATION-01 P1–P5 — first-screen + controlled P2–P5 flags.
+ * IK-MIGRATION-01 P1–P6 — first-screen + controlled P2–P6 flags.
  * SSOT: AppSettings (kw-app-settings). Defaults OFF.
  * Independent of Decydent / Dual Outcome master (D).
  */
@@ -31,12 +31,20 @@ export type IkP5LaborExecuteResearchInput = {
   ikLaborResearchEnabled: boolean;
 };
 
+export type IkP6MaterialExecuteResearchInput = {
+  ikEntryEnabled: boolean;
+  ikMaterialE2eEnabled: boolean;
+  ikMaterialResearchEnabled: boolean;
+};
+
 let ikEntryForTests: boolean | null = null;
 let ikAutoIngestForTests: boolean | null = null;
 let ikIdentityCoverageForTests: boolean | null = null;
 let ikChiefWiringForTests: boolean | null = null;
 let ikLaborE2eForTests: boolean | null = null;
 let ikLaborResearchForTests: boolean | null = null;
+let ikMaterialE2eForTests: boolean | null = null;
+let ikMaterialResearchForTests: boolean | null = null;
 
 /** Test-only override (null = AppSettings). */
 export function forceIkEntryEnabledForTests(on: boolean | null): void {
@@ -66,6 +74,16 @@ export function forceIkLaborE2eForTests(on: boolean | null): void {
 /** Test-only override for P5 Labor research (null = AppSettings). */
 export function forceIkLaborResearchForTests(on: boolean | null): void {
   ikLaborResearchForTests = on;
+}
+
+/** Test-only override for P6 Material E2E (null = AppSettings). */
+export function forceIkMaterialE2eForTests(on: boolean | null): void {
+  ikMaterialE2eForTests = on;
+}
+
+/** Test-only override for P6 Material research (null = AppSettings). */
+export function forceIkMaterialResearchForTests(on: boolean | null): void {
+  ikMaterialResearchForTests = on;
 }
 
 export function isIkEntryEnabled(): boolean {
@@ -195,6 +213,52 @@ export function isIkP5LaborExecuteResearchActive(): boolean {
     ikEntryEnabled: isIkEntryEnabled(),
     ikLaborE2eEnabled: isIkLaborE2eEnabled(),
     ikLaborResearchEnabled: isIkLaborResearchEnabled(),
+  });
+}
+
+/**
+ * P6 Material E2E preference (MODE A capable). Default OFF.
+ * Does NOT enable Labor · Does NOT flip Chief · Does NOT flip D.
+ */
+export function isIkMaterialE2eEnabled(): boolean {
+  if (ikMaterialE2eForTests != null) return ikMaterialE2eForTests;
+  return loadAppSettingsLocal().ikMaterialE2eEnabled === true;
+}
+
+/**
+ * P6 Material selective research preference (MODE B). Default OFF.
+ * Alone does NOT run Material — requires Material E2E + IK Entry.
+ */
+export function isIkMaterialResearchEnabled(): boolean {
+  if (ikMaterialResearchForTests != null) return ikMaterialResearchForTests;
+  return loadAppSettingsLocal().ikMaterialResearchEnabled === true;
+}
+
+/** P6 MODE A active: IK ON ∧ Material E2E ON. */
+export function isIkP6MaterialE2eActive(): boolean {
+  return isIkEntryEnabled() === true && isIkMaterialE2eEnabled() === true;
+}
+
+/**
+ * Pure P6 MODE B research permission (flags only).
+ * MUST be `=== true` on all three — never undefined→research.
+ */
+export function resolveIkP6MaterialExecuteResearch(
+  input: IkP6MaterialExecuteResearchInput,
+): boolean {
+  return (
+    input.ikEntryEnabled === true
+    && input.ikMaterialE2eEnabled === true
+    && input.ikMaterialResearchEnabled === true
+  );
+}
+
+/** Runtime: explicit MODE B executeResearch flag for Material Expert call site. */
+export function isIkP6MaterialExecuteResearchActive(): boolean {
+  return resolveIkP6MaterialExecuteResearch({
+    ikEntryEnabled: isIkEntryEnabled(),
+    ikMaterialE2eEnabled: isIkMaterialE2eEnabled(),
+    ikMaterialResearchEnabled: isIkMaterialResearchEnabled(),
   });
 }
 

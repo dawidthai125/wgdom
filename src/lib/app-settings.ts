@@ -91,6 +91,16 @@ export interface AppSettings {
    * Default OFF. Requires ikLaborE2eEnabled. Does NOT imply Material research.
    */
   ikLaborResearchEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P6 — Material E2E under IK (MODE A: Price Memory + identity).
+   * Default OFF. Does NOT enable Labor (P5) · Does NOT flip Chief (P4) · Does NOT flip D.
+   */
+  ikMaterialE2eEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P6 — selective Material DIY HTTP research (MODE B).
+   * Default OFF. Requires ikMaterialE2eEnabled. Does NOT imply Labor research.
+   */
+  ikMaterialResearchEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -134,6 +144,8 @@ export function defaultAppSettings(): AppSettings {
     ikChiefWiringEnabled: false,
     ikLaborE2eEnabled: false,
     ikLaborResearchEnabled: false,
+    ikMaterialE2eEnabled: false,
+    ikMaterialResearchEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -334,6 +346,26 @@ export function mergeIkLaborResearchEnabled(
   return local.ikLaborResearchEnabled === true;
 }
 
+/** P6 Material E2E — independent of Labor (P5), Chief (P4), Dual Outcome (D). */
+export function mergeIkMaterialE2eEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikMaterialE2eEnabled === true) return true;
+  if (remote?.ikMaterialE2eEnabled === false) return false;
+  return local.ikMaterialE2eEnabled === true;
+}
+
+/** P6 Material selective research — requires Material E2E; never arms Labor. */
+export function mergeIkMaterialResearchEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikMaterialResearchEnabled === true) return true;
+  if (remote?.ikMaterialResearchEnabled === false) return false;
+  return local.ikMaterialResearchEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -355,6 +387,8 @@ export function loadAppSettingsLocal(): AppSettings {
       ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
       ikLaborE2eEnabled: parsed.ikLaborE2eEnabled === true,
       ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
+      ikMaterialE2eEnabled: parsed.ikMaterialE2eEnabled === true,
+      ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -419,6 +453,8 @@ export function mergeAppSettings(
     ikChiefWiringEnabled: mergeIkChiefWiringEnabled(remote, local),
     ikLaborE2eEnabled: mergeIkLaborE2eEnabled(remote, local),
     ikLaborResearchEnabled: mergeIkLaborResearchEnabled(remote, local),
+    ikMaterialE2eEnabled: mergeIkMaterialE2eEnabled(remote, local),
+    ikMaterialResearchEnabled: mergeIkMaterialResearchEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

@@ -1,0 +1,19 @@
+{
+  "id": "IK-MIGRATION-01-P6-IMPLEMENTATION-CLOSEOUT",
+  "date": "2026-08-16",
+  "mode": "IMPLEMENTATION",
+  "plan": "PASS",
+  "implementation": "PASS",
+  "tests": { "p6": "46/46", "nested": "PASS" },
+  "build": "PASS",
+  "uiVersion": "2.66.83",
+  "levers": {
+    "ikMaterialE2eEnabled": "DEFAULT_OFF",
+    "ikMaterialResearchEnabled": "DEFAULT_OFF"
+  },
+  "executeResearchGuard": "=== true only MODE B",
+  "acceptTarget": "PRICE_MEMORY",
+  "catalogWork": 471,
+  "p7": "NOT_STARTED",
+  "mobilePhysical": "NOT_VERIFIED"
+}

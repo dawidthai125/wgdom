@@ -541,6 +541,46 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikMaterialE2eEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikMaterialE2eEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-material-e2e-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · MATERIAL E2E (P6 · MODE A)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P6. Domyślnie OFF. Price Memory + identity —
+                  bez HTTP DIY, bez Labor (P5), bez F5/Bid. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikMaterialResearchEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikMaterialResearchEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-material-research-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · MATERIAL RESEARCH (P6 · MODE B)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Selective DIY (LM/Casto/OBI) tylko gdy Material E2E ON. Budget MMR-02 · ≤24 shop HTTP/run.
+                  Zero auto-Accept · zapis tylko Price Memory. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

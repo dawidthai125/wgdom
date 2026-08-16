@@ -281,7 +281,10 @@ assert("R1 IK_ENTRY_SHELL_EXECUTE_RESEARCH = false", /IK_ENTRY_SHELL_EXECUTE_RES
 assert("R1 IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
 assert("R1 IK_ENTRY_SHELL_IDENTITY_COVERAGE = false (compile default)", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
 assert("R1 no executeResearch: true literal", !/executeResearch:\s*true/.test(hostSrc));
-assert("R1 research uses shell guard", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
+assert("R1 research uses explicit P5/P6 mode flags",
+  /executeResearch:\s*p5ResearchOn === true/.test(hostSrc)
+  && /executeResearch:\s*p6ResearchOn === true/.test(hostSrc));
+assert("R1 EXECUTE_RESEARCH shell const remains false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert(
   "R1 auto-ingest runtime gate (P2)",
   /isIkAutoIngestEnabled/.test(hostSrc) && /if\s*\(\s*!autoIngestOn\s*\)/.test(hostSrc),
