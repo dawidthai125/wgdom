@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.83 — IK-MIGRATION-01 P6 Material E2E (2026-08-16)
+
+- **P6 Owner GO:** Material E2E under IK (`ikMaterialE2eEnabled` / `ikMaterialResearchEnabled`, default **OFF**)
+- MODE A: Price Memory + identity (0 HTTP) · MODE B: selective DIY (`executeResearch === true` only)
+- Budget: MMR-02 · ≤8 claims/pass · ≤24 shop HTTP/run · Accept → Price Memory
+- Zero auto-Accept · CatalogWork **471** lock · F5 = P7
+- **STOP:** no auto P7
+
 ## 2.66.82 — IK-MIGRATION-01 P5 Labor E2E (2026-08-16)
 
 - **P5 Owner GO:** Labor E2E under IK (`ikLaborE2eEnabled` / `ikLaborResearchEnabled`, default **OFF**)
