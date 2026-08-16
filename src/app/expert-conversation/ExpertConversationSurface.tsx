@@ -131,6 +131,7 @@ export function ExpertConversationSurface({
       data-expert-conversation-skipped={skipped ? "1" : "0"}
       className="rounded-xl border border-border bg-card overflow-hidden"
       aria-label={vm.titlePl}
+      data-ik-mobile-ready="1"
     >
       <div className="px-4 py-2.5 border-b border-border/60 bg-secondary/30 flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
@@ -143,7 +144,7 @@ export function ExpertConversationSurface({
           {!fullyRevealed && (
             <button
               type="button"
-              className="text-[11px] font-medium text-primary underline-offset-4 hover:underline min-h-[36px] px-2 touch-manipulation"
+              className="text-[11px] font-medium text-primary underline-offset-4 hover:underline min-h-[44px] px-2 touch-manipulation"
               data-expert-conversation-skip
               onClick={revealAll}
             >
@@ -152,7 +153,7 @@ export function ExpertConversationSurface({
           )}
           <button
             type="button"
-            className="text-[11px] font-medium rounded-md border border-border bg-background px-2.5 min-h-[36px] touch-manipulation hover:bg-secondary/40"
+            className="text-[11px] font-medium rounded-md border border-border bg-background px-2.5 min-h-[44px] touch-manipulation hover:bg-secondary/40"
             data-expert-conversation-continue
             onClick={() => {
               revealAll();

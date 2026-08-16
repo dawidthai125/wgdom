@@ -33,6 +33,7 @@ import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
+import { enforceIkConversationTruth } from "./ik-conversation-event";
 
 export interface IkEntryConversationOpts {
   package?: TenderPackage | null;
@@ -1220,14 +1221,15 @@ export function buildIkEntryConversationViewModel(
     );
   }
 
+  const truthSteps = enforceIkConversationTruth(steps);
   return {
     visible: true,
     titlePl: EXPERT_CONVERSATION_TITLE_PL,
     subtitlePl: EXPERT_CONVERSATION_SUBTITLE_IK_PL,
     uiPhase: "ik_entry",
     caseIdShort: (report.tenderId || facts.tenderId).slice(0, 8) || null,
-    steps,
+    steps: truthSteps,
     readyForDecision: false,
-    hasBlocked: steps.some((s) => s.status === "blocked" || s.status === "hold"),
+    hasBlocked: truthSteps.some((s) => s.status === "blocked" || s.status === "hold"),
   };
 }

@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-16",
+    version: "2.66.77",
+    label: "IK-MIGRATION-01 P0 Design Freeze implementation",
+    items: [
+      {
+        type: "improve",
+        text: "IK-MIGRATION-01 P0 (Owner GO): kontrakt IkConversationEvent + AD-IK-M05 (sourceRef wymagany dla faktu zweryfikowanego; enforce done→hold bez sourceRef). REUSE ikEntryEnabled OFF / DetailPage seam / ExpertConversationSurface. Touch EC 44px. Chief ≠ D. NG-10 retained. Test: test-ik-migration-01-p0-implementation.mjs. STOP — bez auto P1.",
+      },
+    ],
+  },
+  {
     date: "2026-08-15",
     version: "2.66.76",
     label: "IK P5.16-B Commercial pricing contract",

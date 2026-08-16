@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.77 — IK-MIGRATION-01 P0 Design Freeze implementation (2026-08-16)
+
+**Scope:** Owner GO — implement approved P0 Design Freeze (REUSE + Truth contract).
+
+- `IkConversationEvent` + `canPresentAsVerifiedFact` / `enforceIkConversationTruth` (AD-IK-M05)
+- REUSE: `ikEntryEnabled` default OFF · TenderDetailPage seam · IkEntryHost · ExpertConversationSurface · NG-10 Gate
+- Mobile: EC controls `min-h-[44px]` + `data-ik-mobile-ready`
+- Test: `scripts/test-ik-migration-01-p0-implementation.mjs` (A–H)
+- **STOP** — no auto P1 · no research/Accept · no NG-10 removal
+
 ## 2.66.76 — IK P5.16-B Commercial pricing contract (2026-08-15)
 
 **Scope:** Owner GO — Labor C1 + zaprawianie LABOR_ONLY + zawór Work-Quotes→SELL thin bridge.

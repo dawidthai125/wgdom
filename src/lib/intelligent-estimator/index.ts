@@ -30,6 +30,21 @@ export {
 export type { IkDetailFirstScreen } from "./ik-entry-flag";
 
 export {
+  IK_CONVERSATION_SOURCE_REF_KINDS,
+  canPresentAsVerifiedFact,
+  enforceIkConversationTruth,
+  hasValidIkSourceRef,
+  isAllowedIkSourceRefKind,
+  toIkConversationEvent,
+} from "./ik-conversation-event";
+export type {
+  IkConversationEvent,
+  IkConversationEventActor,
+  IkConversationEventStatus,
+  IkConversationSourceRefKind,
+} from "./ik-conversation-event";
+
+export {
   collectIkEntryPipelineFacts,
 } from "./ik-entry-pipeline-facts";
 export type {
