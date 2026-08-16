@@ -13,10 +13,10 @@
 
 ```text
 P6 PLAN = PASS
-P6 IMPLEMENTATION = PASS
-TEST = PASS · 46/46 (+ nested regressions)
+P6 IMPLEMENTATION = PASS · commit ee8f2cd9 (origin/main)
+TEST = PASS · 46/46
 BUILD = PASS
-PRODUCTION VERIFY = see PV doc (one-shot after push)
+PRODUCTION VERIFY = DEPLOY_PROPAGATING (live tip still 2.66.82 / 5fc3ae9)
 
 FORMAL: P6 = Material E2E · P7 = F5/Bid
 ikMaterialE2eEnabled = DEFAULT OFF
@@ -24,10 +24,11 @@ ikMaterialResearchEnabled = DEFAULT OFF
 executeResearch = === true only (MODE B)
 Accept → Price Memory · CatalogWork 471 UNTOUCHED
 P7 = NOT STARTED
+READY FOR final PV when tip = 2.66.83 / contains ee8f2cd9
 STOP — no auto P7 · no F5/Bid · no P5.33
 ```
 
-**Impl SHA:** *(set at commit)*  
+**Impl SHA:** **`ee8f2cd9`**  
 **PV SSOT:** [`IK-MIGRATION-01-P6-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P6-PRODUCTION-VERIFY.md)
 
 ---

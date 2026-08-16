@@ -2,10 +2,13 @@
   "id": "IK-MIGRATION-01-P6-IMPLEMENTATION-CLOSEOUT",
   "date": "2026-08-16",
   "mode": "IMPLEMENTATION",
+  "implCommit": "ee8f2cd9",
   "plan": "PASS",
   "implementation": "PASS",
   "tests": { "p6": "46/46", "nested": "PASS" },
   "build": "PASS",
+  "push": "PASS",
+  "pv": "DEPLOY_PROPAGATING",
   "uiVersion": "2.66.83",
   "levers": {
     "ikMaterialE2eEnabled": "DEFAULT_OFF",

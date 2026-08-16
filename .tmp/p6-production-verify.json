@@ -2,9 +2,15 @@
   "id": "IK-MIGRATION-01-P6-PRODUCTION-VERIFY",
   "date": "2026-08-16",
   "mode": "VERIFY_ONLY",
-  "verdict": "PENDING_PUSH_ONE_SHOT",
+  "implCommit": "ee8f2cd9",
+  "verdict": "DEPLOY_PROPAGATING",
+  "live": {
+    "version": "2.66.82",
+    "commit": "5fc3ae9"
+  },
   "expected": {
-    "uiVersion": "2.66.83"
+    "uiVersion": "2.66.83",
+    "implCommit": "ee8f2cd9"
   },
   "levers": {
     "ikMaterialE2eEnabled": "DEFAULT_OFF",
