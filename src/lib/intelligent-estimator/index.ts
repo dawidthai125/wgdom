@@ -24,7 +24,10 @@ export {
 
 export {
   forceIkEntryEnabledForTests,
+  forceIkAutoIngestForTests,
   isIkEntryEnabled,
+  isIkAutoIngestEnabled,
+  isIkP2DocumentsBoqActive,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
 export type { IkDetailFirstScreen } from "./ik-entry-flag";

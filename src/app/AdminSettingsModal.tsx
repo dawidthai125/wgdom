@@ -441,6 +441,26 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikAutoIngestEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikAutoIngestEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-auto-ingest-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · AUTO_INGEST (Documents → BOQ)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P2. Domyślnie OFF. Działa tylko gdy wejście IK jest włączone.
+                  Nie włącza researchu robocizny/materiałów. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

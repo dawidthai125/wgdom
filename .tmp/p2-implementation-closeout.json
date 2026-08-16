@@ -1,0 +1,49 @@
+{
+  "id": "IK-MIGRATION-01-P2-IMPLEMENTATION-CLOSEOUT",
+  "date": "2026-08-16",
+  "p2Plan": "PASS",
+  "p2Implementation": "PASS",
+  "test": "PASS",
+  "build": "PASS",
+  "productionVerify": "PENDING_AFTER_PUSH",
+  "uiVersion": "2.66.79",
+  "autoIngestDefault": false,
+  "runtimeGate": "isIkAutoIngestEnabled",
+  "researchGuards": {
+    "EXECUTE_RESEARCH": false,
+    "RUN_RATE_EXPERTS": false,
+    "IDENTITY_COVERAGE": false
+  },
+  "reuse": [
+    "ik-document-expert",
+    "ik-ng02-ingest-bridge",
+    "OfferBoq v5",
+    "multi-boq",
+    "buildTenderDossierHeavy"
+  ],
+  "noCreate": [
+    "DocumentParserV2",
+    "OfferBoqV2",
+    "MasterBoqV2",
+    "P5.33"
+  ],
+  "tests": {
+    "p2Implementation": "61/61",
+    "p1": "57/57",
+    "p0": "52/52",
+    "p2DocumentExpert": "41/41",
+    "p25": "22/22",
+    "p514": "20/20",
+    "p526": "30/30",
+    "p527": "39/39",
+    "p531": "35/35",
+    "p532": "30/30",
+    "pass2": "85/85",
+    "rw03": "16/16",
+    "build": "PASS"
+  },
+  "p3": "NOT_STARTED",
+  "p526Rates": "UNCHANGED",
+  "next": "READY_FOR_P3_OWNER_GO",
+  "stop": true
+}

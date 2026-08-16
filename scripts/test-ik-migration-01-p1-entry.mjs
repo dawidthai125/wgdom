@@ -276,13 +276,18 @@ assert("F Dual Outcome helper untouched in DetailPage (expertEffective kept)", /
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
 assert("F IkEntryHost reuses ExpertConversationSurface", /ExpertConversationSurface/.test(hostSrc));
 assert("F IkEntryHost has data-ik-entry-host", /data-ik-entry-host/.test(hostSrc));
-assert("R1 IK_ENTRY_SHELL_AUTO_INGEST = false", /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_AUTO_INGEST = false (compile default)", /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(hostSrc));
 assert("R1 IK_ENTRY_SHELL_EXECUTE_RESEARCH = false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert("R1 IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_IDENTITY_COVERAGE = false", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
 assert("R1 no executeResearch: true literal", !/executeResearch:\s*true/.test(hostSrc));
 assert("R1 research uses shell guard", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
-assert("R1 auto-ingest gated", /if\s*\(\s*!IK_ENTRY_SHELL_AUTO_INGEST\s*\)\s*return/.test(hostSrc));
+assert(
+  "R1 auto-ingest runtime gate (P2)",
+  /isIkAutoIngestEnabled/.test(hostSrc) && /if\s*\(\s*!autoIngestOn\s*\)/.test(hostSrc),
+);
 assert("R1 data-ik-entry-shell", /data-ik-entry-shell/.test(hostSrc));
+assert("R1 data-ik-p2-documents-boq marker", /data-ik-p2-documents-boq/.test(hostSrc));
 
 // Permissions — toggle Super Admin only (app-scoped flag after ON = DF).
 const topbarSrc = readSrc("src/app/admin/AdminTopbar.tsx");
@@ -291,8 +296,10 @@ assert(
   /adminIsSuperAdmin\(adminSession\.role\)/.test(topbarSrc)
     && /onOpenAdminSettings/.test(topbarSrc),
 );
-assert("C Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
-
+const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
+assert("C Admin IK toggle present", /data-ik-entry-toggle/.test(adminSrc));
+assert("C Admin AUTO_INGEST toggle present", /data-ik-auto-ingest-toggle/.test(adminSrc));
+assert("C default ikAutoIngestEnabled OFF", defaultAppSettings().ikAutoIngestEnabled === false);
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 assert(
   "C flag module does not read D",

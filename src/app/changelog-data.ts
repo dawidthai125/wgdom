@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.79",
+    label: "IK-MIGRATION-01 P2 Documents→BOQ controlled AUTO_INGEST",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P2 (Owner GO): kontrolowany AUTO_INGEST (AppSettings.ikAutoIngestEnabled, default OFF). IK ON ∧ AUTO ON → NG-02 ingest → Document Expert → OfferBoq/Master BOQ (READY|PARTIAL|HOLD|GAP). IK ON samo = Entry Shell. EXECUTE_RESEARCH/RUN_RATE_EXPERTS/IDENTITY_COVERAGE pozostają OFF. REUSE — zero V2. Prod: AUTO OFF. STOP — bez auto P3.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.78",
     label: "IK-MIGRATION-01 P1 entry shell harden",
     items: [

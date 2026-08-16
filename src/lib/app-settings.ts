@@ -65,6 +65,11 @@ export interface AppSettings {
    * NIE jest globalnym D (`expertAiDecydentEnabled`). Dual Outcome / Offer PLN bez zmian.
    */
   ikEntryEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P2 — controlled Documents→BOQ auto-ingest under IkEntryHost.
+   * Default OFF. Requires ikEntryEnabled ON to take effect. Does NOT enable research/experts.
+   */
+  ikAutoIngestEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -103,6 +108,7 @@ export function defaultAppSettings(): AppSettings {
     wmWorkerSketchEnabled: false,
     expertAiDecydentEnabled: false,
     ikEntryEnabled: false,
+    ikAutoIngestEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -253,6 +259,16 @@ export function mergeIkEntryEnabled(
   return local.ikEntryEnabled === true;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie OFF (IK-MIGRATION-01 P2). Nie włącza research. */
+export function mergeIkAutoIngestEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikAutoIngestEnabled === true) return true;
+  if (remote?.ikAutoIngestEnabled === false) return false;
+  return local.ikAutoIngestEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -269,6 +285,7 @@ export function loadAppSettingsLocal(): AppSettings {
       wmWorkerSketchEnabled: parsed.wmWorkerSketchEnabled === true,
       expertAiDecydentEnabled: parsed.expertAiDecydentEnabled === true,
       ikEntryEnabled: parsed.ikEntryEnabled === true,
+      ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -328,6 +345,7 @@ export function mergeAppSettings(
     wmWorkerSketchEnabled: mergeWmWorkerSketchEnabled(remote, local),
     expertAiDecydentEnabled: mergeExpertAiDecydentEnabled(remote, local),
     ikEntryEnabled: mergeIkEntryEnabled(remote, local),
+    ikAutoIngestEnabled: mergeIkAutoIngestEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

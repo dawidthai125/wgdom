@@ -68,10 +68,14 @@ assert(
   /onUpdate/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
 );
 assert(
-  "Host AUTO_INGEST default false (P1 shell)",
+  "Host AUTO_INGEST compile default false",
   /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(
     readSrc("src/app/intelligent-estimator/IkEntryHost.tsx"),
   ),
+);
+assert(
+  "Host AUTO_INGEST runtime via isIkAutoIngestEnabled",
+  /isIkAutoIngestEnabled/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
 );
 assert(
   "DetailPage passes onUpdate to Host",

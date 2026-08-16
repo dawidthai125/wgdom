@@ -1,11 +1,11 @@
 /**
- * IK-MIGRATION-01 P1 — IK Entry Shell host (hardened).
+ * IK-MIGRATION-01 P1 shell + P2 controlled Documents→BOQ.
  *
- * Design Freeze §6 IN: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
- * OUT of automatic P1 path: NG-02 auto-ingest cloud writes · labor/material HTTP research · Accept · F5 · D.
+ * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
+ * P2: when isIkAutoIngestEnabled() (AppSettings, default OFF) → NG-02 ingest bridge → Document Expert.
  *
- * Extended expert code remains behind explicit shell guards (default OFF).
- * Flip only with Owner GO for P2.5 / P5+ — do not invent a second host.
+ * EXECUTE_RESEARCH / RUN_RATE_EXPERTS / IDENTITY_COVERAGE stay hard OFF (P3+).
+ * IK ON alone does NOT run Documents→BOQ.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,19 +30,19 @@ import {
   runIkMasterBoqIdentityCoverage,
   type IkIdentityCoverageReport,
 } from "@/lib/intelligent-estimator/ik-identity-coverage";
+import { isIkAutoIngestEnabled } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
 /**
- * P1 Entry Shell guards — default OFF (R1 harden).
- * AUTO_INGEST: P2.5 bridge + possible local/cloud itemPatch.
- * EXECUTE_RESEARCH: labor selective HTTP + material Phase2 orchestration.
+ * Compile-time default sentinel — production preference is AppSettings.ikAutoIngestEnabled (default OFF).
+ * Runtime gate: isIkAutoIngestEnabled().
  */
 export const IK_ENTRY_SHELL_AUTO_INGEST = false;
 export const IK_ENTRY_SHELL_EXECUTE_RESEARCH = false;
-/** Sync identity audit (no HTTP). OFF in P1 shell — P3/P5.5 Owner GO. */
+/** Sync identity audit (no HTTP). OFF until P3 Owner GO. */
 export const IK_ENTRY_SHELL_IDENTITY_COVERAGE = false;
-/** Labor/material expert reports without research (lookup-only). OFF in P1 shell. */
+/** Labor/material experts. OFF until P4/P5 Owner GO. */
 export const IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false;
 
 export function IkEntryHost({
@@ -60,6 +60,7 @@ export function IkEntryHost({
   } | null;
   athPreviewEnabled?: boolean;
 }) {
+  const autoIngestOn = isIkAutoIngestEnabled() === true;
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
@@ -71,9 +72,13 @@ export function IkEntryHost({
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
-  // P2.5 ingest — gated OFF for P1 shell (no fetch / no cloud write).
+  // P2 Documents→BOQ — only when AppSettings.ikAutoIngestEnabled (default OFF).
   useEffect(() => {
-    if (!IK_ENTRY_SHELL_AUTO_INGEST) return;
+    if (!autoIngestOn) {
+      setIngest(null);
+      setBridgeBusy(false);
+      return;
+    }
     const key = item.id || item.tenderId || "";
     if (!key) return;
     if (pipelineIngest?.dossierBuilding || pipelineIngest?.dossierEnriching) return;
@@ -143,6 +148,7 @@ export function IkEntryHost({
       cancelled = true;
     };
   }, [
+    autoIngestOn,
     item,
     pkg,
     onUpdate,
@@ -269,8 +275,9 @@ export function IkEntryHost({
       className="mb-4"
       data-ik-entry-host="1"
       data-ik-entry-shell="1"
-      data-ik-entry-auto-ingest={IK_ENTRY_SHELL_AUTO_INGEST ? "1" : "0"}
+      data-ik-entry-auto-ingest={autoIngestOn ? "1" : "0"}
       data-ik-entry-execute-research={IK_ENTRY_SHELL_EXECUTE_RESEARCH ? "1" : "0"}
+      data-ik-p2-documents-boq={autoIngestOn ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
       data-ik-cost-doc-count={String(report.costDocuments.length)}
@@ -278,7 +285,7 @@ export function IkEntryHost({
       data-ik-master-ready={report.masterBoq.readyForExperts ? "1" : "0"}
       data-ik-extracted-lines={String(report.extraction.extractedCount)}
       data-ik-ingest-phase={
-        IK_ENTRY_SHELL_AUTO_INGEST
+        autoIngestOn
           ? (ingest?.phase ?? (bridgeBusy ? "started" : "idle"))
           : "shell"
       }

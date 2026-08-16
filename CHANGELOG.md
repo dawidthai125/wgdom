@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.79 — IK-MIGRATION-01 P2 Documents→BOQ controlled AUTO_INGEST (2026-08-16)
+
+**Scope:** Owner GO — P2 controlled Documents→BOQ under IK (REUSE).
+
+- `AppSettings.ikAutoIngestEnabled` default **OFF** · Super Admin toggle
+- `IkEntryHost`: runtime `isIkAutoIngestEnabled()` → NG-02 bridge → Document Expert
+- IK ON alone = Entry Shell · research/experts/identity remain OFF
+- Tests: `test-ik-migration-01-p2-implementation.mjs` · P0/P1/P2.5 regression
+- **STOP** — no auto P3 · prod AUTO OFF
+
 ## 2.66.78 — IK-MIGRATION-01 P1 entry shell harden (2026-08-16)
 
 **Scope:** Owner GO — P1 Entry Shell harden (R1).
