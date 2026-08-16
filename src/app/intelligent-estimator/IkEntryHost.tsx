@@ -1,7 +1,11 @@
 /**
- * IK-MIGRATION-01 P1/P2.5/P3/P4/P5/P5.5 — first-screen host.
- * REUSE ExpertConversationSurface + NG-02 heavy + Classification + Labor + Material + Identity Coverage.
- * ZERO NG-10. ZERO new chat store. ZERO auto-Accept. ZERO invent identity.
+ * IK-MIGRATION-01 P1 — IK Entry Shell host (hardened).
+ *
+ * Design Freeze §6 IN: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
+ * OUT of automatic P1 path: NG-02 auto-ingest cloud writes · labor/material HTTP research · Accept · F5 · D.
+ *
+ * Extended expert code remains behind explicit shell guards (default OFF).
+ * Flip only with Owner GO for P2.5 / P5+ — do not invent a second host.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -29,6 +33,18 @@ import {
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
+/**
+ * P1 Entry Shell guards — default OFF (R1 harden).
+ * AUTO_INGEST: P2.5 bridge + possible local/cloud itemPatch.
+ * EXECUTE_RESEARCH: labor selective HTTP + material Phase2 orchestration.
+ */
+export const IK_ENTRY_SHELL_AUTO_INGEST = false;
+export const IK_ENTRY_SHELL_EXECUTE_RESEARCH = false;
+/** Sync identity audit (no HTTP). OFF in P1 shell — P3/P5.5 Owner GO. */
+export const IK_ENTRY_SHELL_IDENTITY_COVERAGE = false;
+/** Labor/material expert reports without research (lookup-only). OFF in P1 shell. */
+export const IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false;
+
 export function IkEntryHost({
   item,
   onUpdate,
@@ -55,7 +71,9 @@ export function IkEntryHost({
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
+  // P2.5 ingest — gated OFF for P1 shell (no fetch / no cloud write).
   useEffect(() => {
+    if (!IK_ENTRY_SHELL_AUTO_INGEST) return;
     const key = item.id || item.tenderId || "";
     if (!key) return;
     if (pipelineIngest?.dossierBuilding || pipelineIngest?.dossierEnriching) return;
@@ -66,7 +84,6 @@ export function IkEntryHost({
     let cancelled = false;
     setBridgeBusy(true);
     void (async () => {
-      // Prefer existing useTenderDossierHeavyLazy when it starts within grace window.
       if (pipelineIngest) {
         await new Promise((r) => setTimeout(r, 1500));
         if (cancelled) return;
@@ -140,8 +157,8 @@ export function IkEntryHost({
     [ingest, effectiveItem, pkg],
   );
 
-  // P5.5 — Identity Coverage (sync audit · ZERO invent / pricing / research).
   const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
+    if (!IK_ENTRY_SHELL_IDENTITY_COVERAGE) return null;
     if (!report.masterBoq.readyForExperts) return null;
     return runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
@@ -150,8 +167,12 @@ export function IkEntryHost({
     });
   }, [effectiveItem, pkg, report]);
 
-  // P4 — Labor Expert when Master BOQ READY (identity → CURRENT/MISS → research only if justified).
+  // Labor expert — gated; when enabled, research still forced OFF in P1 shell.
   useEffect(() => {
+    if (!IK_ENTRY_SHELL_RUN_RATE_EXPERTS) {
+      setLabor(null);
+      return;
+    }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
     if (!key || !report.masterBoq.readyForExperts) {
       setLabor(null);
@@ -167,7 +188,7 @@ export function IkEntryHost({
           item: effectiveItem,
           package: pkg,
           expert: report,
-          executeResearch: true,
+          executeResearch: IK_ENTRY_SHELL_EXECUTE_RESEARCH,
         });
         if (!cancelled) setLabor(result);
       } catch {
@@ -179,8 +200,12 @@ export function IkEntryHost({
     };
   }, [effectiveItem, pkg, report]);
 
-  // P5 — Material Expert when Master BOQ READY (identity → PM HIT/MISS → research only if justified).
+  // Material expert — gated; research OFF in P1 shell.
   useEffect(() => {
+    if (!IK_ENTRY_SHELL_RUN_RATE_EXPERTS) {
+      setMaterial(null);
+      return;
+    }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
     if (!key || !report.masterBoq.readyForExperts) {
       setMaterial(null);
@@ -196,7 +221,7 @@ export function IkEntryHost({
           item: effectiveItem,
           package: pkg,
           expert: report,
-          executeResearch: true,
+          executeResearch: IK_ENTRY_SHELL_EXECUTE_RESEARCH,
         });
         if (!cancelled) setMaterial(result);
       } catch {
@@ -243,21 +268,32 @@ export function IkEntryHost({
     <div
       className="mb-4"
       data-ik-entry-host="1"
+      data-ik-entry-shell="1"
+      data-ik-entry-auto-ingest={IK_ENTRY_SHELL_AUTO_INGEST ? "1" : "0"}
+      data-ik-entry-execute-research={IK_ENTRY_SHELL_EXECUTE_RESEARCH ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
       data-ik-cost-doc-count={String(report.costDocuments.length)}
       data-ik-przedmiar-count={String(report.przedmiary.length)}
       data-ik-master-ready={report.masterBoq.readyForExperts ? "1" : "0"}
       data-ik-extracted-lines={String(report.extraction.extractedCount)}
-      data-ik-ingest-phase={ingest?.phase ?? (bridgeBusy ? "started" : "idle")}
-      data-ik-labor-status={labor?.status ?? "pending"}
+      data-ik-ingest-phase={
+        IK_ENTRY_SHELL_AUTO_INGEST
+          ? (ingest?.phase ?? (bridgeBusy ? "started" : "idle"))
+          : "shell"
+      }
+      data-ik-labor-status={
+        IK_ENTRY_SHELL_RUN_RATE_EXPERTS ? (labor?.status ?? "pending") : "shell_skipped"
+      }
       data-ik-labor-resolved={String(labor?.counts.workIdentityResolved ?? 0)}
       data-ik-labor-research={String(labor?.counts.researchCalls ?? 0)}
-      data-ik-material-status={material?.status ?? "pending"}
+      data-ik-material-status={
+        IK_ENTRY_SHELL_RUN_RATE_EXPERTS ? (material?.status ?? "pending") : "shell_skipped"
+      }
       data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
       data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
       data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
-      data-ik-identity-status={identityCoverage?.status ?? "pending"}
+      data-ik-identity-status={identityCoverage?.status ?? "shell_skipped"}
       data-ik-identity-work={String(identityCoverage?.counts.trustedWorkIdentity ?? 0)}
       data-ik-identity-material={String(identityCoverage?.counts.trustedMaterialIdentity ?? 0)}
       data-ik-identity-alias={String(identityCoverage?.counts.approvedAlias ?? 0)}

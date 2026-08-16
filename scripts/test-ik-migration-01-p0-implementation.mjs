@@ -112,6 +112,18 @@ assert("B first screen ik_entry", resolveIkDetailFirstScreen(true) === "ik_entry
 assert("B DetailPage mounts IkEntryHost", /IkEntryHost/.test(detailSrc));
 assert("B DetailPage uses resolveIkDetailFirstScreen", /resolveIkDetailFirstScreen/.test(detailSrc));
 assert("B IkEntryHost reuses ExpertConversationSurface", /ExpertConversationSurface/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")));
+assert(
+  "B R1 shell research OFF",
+  /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(
+    readSrc("src/app/intelligent-estimator/IkEntryHost.tsx"),
+  ),
+);
+assert(
+  "B R1 shell auto-ingest OFF",
+  /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(
+    readSrc("src/app/intelligent-estimator/IkEntryHost.tsx"),
+  ),
+);
 
 // --- C: IK ON does not auto-enable D ---
 reset();

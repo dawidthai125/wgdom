@@ -64,8 +64,14 @@ assert(
   !/serializeAth|writeAth|exportAthFile/.test(readSrc("src/lib/intelligent-estimator/ik-ng02-ingest-bridge.ts")),
 );
 assert(
-  "Host wires onUpdate",
+  "Host wires onUpdate (API; gated by AUTO_INGEST)",
   /onUpdate/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
+);
+assert(
+  "Host AUTO_INGEST default false (P1 shell)",
+  /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(
+    readSrc("src/app/intelligent-estimator/IkEntryHost.tsx"),
+  ),
 );
 assert(
   "DetailPage passes onUpdate to Host",

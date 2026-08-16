@@ -276,6 +276,22 @@ assert("F Dual Outcome helper untouched in DetailPage (expertEffective kept)", /
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
 assert("F IkEntryHost reuses ExpertConversationSurface", /ExpertConversationSurface/.test(hostSrc));
 assert("F IkEntryHost has data-ik-entry-host", /data-ik-entry-host/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_AUTO_INGEST = false", /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_EXECUTE_RESEARCH = false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
+assert("R1 no executeResearch: true literal", !/executeResearch:\s*true/.test(hostSrc));
+assert("R1 research uses shell guard", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
+assert("R1 auto-ingest gated", /if\s*\(\s*!IK_ENTRY_SHELL_AUTO_INGEST\s*\)\s*return/.test(hostSrc));
+assert("R1 data-ik-entry-shell", /data-ik-entry-shell/.test(hostSrc));
+
+// Permissions — toggle Super Admin only (app-scoped flag after ON = DF).
+const topbarSrc = readSrc("src/app/admin/AdminTopbar.tsx");
+assert(
+  "C settings gear Super Admin only",
+  /adminIsSuperAdmin\(adminSession\.role\)/.test(topbarSrc)
+    && /onOpenAdminSettings/.test(topbarSrc),
+);
+assert("C Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 assert(

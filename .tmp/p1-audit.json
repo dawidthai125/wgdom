@@ -1,0 +1,61 @@
+{
+  "id": "IK-MIGRATION-01-P1-AUDIT",
+  "date": "2026-08-16",
+  "mode": "AUDIT_ONLY",
+  "ownerGo": true,
+  "status": "ALREADY_IMPLEMENTED",
+  "p1FormalScopeConfirmed": true,
+  "chatgptEscalation": false,
+  "baseline": {
+    "liveVersion": "2.66.77",
+    "liveTip": "07f490e1",
+    "p0Impl": "b004b08e",
+    "p0Pv": "PASS",
+    "ikOnProduction": "NOT_EXERCISED",
+    "physicalMobile": "NOT_AVAILABLE"
+  },
+  "formalSources": [
+    "docs/architecture/IK-MIGRATION-01-DESIGN-FREEZE.md#6",
+    "docs/architecture/IK-MIGRATION-01-P0-DESIGN-FREEZE.md",
+    "docs/architecture/IK-MIGRATION-01-EXPERT-CONVERSATION-CONTRACT.md",
+    "docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md",
+    "scripts/test-ik-migration-01-p1-entry.mjs"
+  ],
+  "p1Objective": "IK Entry Shell: TenderDetailPage seam + IkEntryHost + ExpertConversationSurface behind ikEntryEnabled OFF default; pipeline-fact EC VM; NG-10 fallback",
+  "alreadyImplemented": [
+    "ikEntryEnabled default false",
+    "Super Admin toggle",
+    "TenderDetailPage OFF→Gate ON→IkEntryHost",
+    "ExpertConversationSurface reuse",
+    "ik-entry-conversation VM + P0 truth enforce",
+    "test-ik-migration-01-p1-entry.mjs",
+    "Chief≠D (chief on expertEffective)"
+  ],
+  "missingForGreenfield": [],
+  "residuals": [
+    "formal P1 closeout / controlled ON PV",
+    "test matrix C unauthorized",
+    "physical mobile QA",
+    "IkEntryHost scope creep beyond P1 OUT (research when ON)"
+  ],
+  "risks": [
+    { "id": "R1", "sev": "P1-HIGH", "summary": "IkEntryHost executeResearch when IK ON" },
+    { "id": "R2", "sev": "P2", "summary": "app-wide flag" },
+    { "id": "R5", "sev": "P2", "summary": "IK ON prod not exercised" }
+  ],
+  "outOfScope": ["P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P5.26-REVIEW-9", "P5.33"],
+  "execution": {
+    "research": 0,
+    "http": 0,
+    "accept": 0,
+    "create": 0,
+    "bind": 0,
+    "write": 0,
+    "code": 0,
+    "edge": 0,
+    "commit": 0,
+    "push": 0
+  },
+  "next": "OWNER_DECISION_NOT_AUTO_PLAN",
+  "stop": true
+}

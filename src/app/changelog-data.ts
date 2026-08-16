@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.78",
+    label: "IK-MIGRATION-01 P1 entry shell harden",
+    items: [
+      {
+        type: "fix",
+        text: "IK-MIGRATION-01 P1 (Owner GO): R1 harden — IkEntryHost Entry Shell: AUTO_INGEST/EXECUTE_RESEARCH/RUN_RATE_EXPERTS/IDENTITY_COVERAGE default OFF. IK ON = EC + pipeline facts only (bez HTTP research, bez cloud ingest write). ikEntryEnabled OFF = NG-10 UNCHANGED. Chief ≠ D. Plumbing P2.5/P5 zachowany za guardami.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.77",
     label: "IK-MIGRATION-01 P0 Design Freeze implementation",
     items: [

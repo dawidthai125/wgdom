@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.78 — IK-MIGRATION-01 P1 entry shell harden (2026-08-16)
+
+**Scope:** Owner GO — P1 Entry Shell harden (R1).
+
+- `IkEntryHost`: `IK_ENTRY_SHELL_AUTO_INGEST` / `EXECUTE_RESEARCH` / `RUN_RATE_EXPERTS` / `IDENTITY_COVERAGE` = **false**
+- IK ON = EC + Document Expert pipeline facts only (no HTTP research, no cloud ingest write)
+- Plumbing P2.5/P5 retained behind guards · `ikEntryEnabled` OFF = NG-10 unchanged
+- Tests: P1 R1 guards · P0 · P2.5/P5.14 string updates
+
 ## 2.66.77 — IK-MIGRATION-01 P0 Design Freeze implementation (2026-08-16)
 
 **Scope:** Owner GO — implement approved P0 Design Freeze (REUSE + Truth contract).

@@ -1,0 +1,56 @@
+{
+  "id": "IK-MIGRATION-01-P0-PRODUCTION-VERIFY",
+  "date": "2026-08-16",
+  "mode": "VERIFY_ONLY",
+  "ownerGo": true,
+  "status": "PASS",
+  "blockedByPropagation": false,
+  "expectedImplCommit": "b004b08e",
+  "expectedImplMessage": "IK-MIGRATION-01: implement P0 design freeze",
+  "previousProd": "e2733550",
+  "live": {
+    "version": "2.66.77",
+    "commit": "07f490e",
+    "commitFull": "07f490e1",
+    "timestamp": "2026-08-16T08:53:21.089Z",
+    "strictEqualsExpectedImpl": false,
+    "expectedImplIsAncestor": true,
+    "tipOnlyDeltaAfterImpl": true,
+    "tipCommitMessage": "docs: tip 2.66.77 commit SHA for P0 baseline"
+  },
+  "gates": {
+    "applicationSmoke": "PASS",
+    "ikOff": "PASS",
+    "ng10Fallback": "PASS",
+    "chiefNeD": "PASS",
+    "truthContract": "PASS",
+    "p526Regression": "PASS_UNTOUCHED",
+    "p527_p531_p532Regression": "PASS_UNTOUCHED",
+    "runtimeInteractiveLogin": "NOT_EXERCISED",
+    "ikOnProductionPath": "NOT_EXERCISED",
+    "mobilePhysicalDevice": "NOT_VERIFIED",
+    "mobileBundleMarkers": "PASS"
+  },
+  "bundleEvidence": {
+    "tendersModule": "TendersModule-DMlrCtwg.js",
+    "markers": [
+      "data-ik-entry-enabled",
+      "data-ik-entry-host",
+      "data-ik-mobile-ready",
+      "data-ik-first-screen",
+      "ng10_gate",
+      "ik_entry",
+      "data-tender-autonomous-run",
+      "data-expert-conversation-surface",
+      "Brak sourceRef",
+      "min-h-[44px]",
+      "ikEntryEnabled:!1"
+    ]
+  },
+  "localContractTests": "50/50",
+  "codeChanges": 0,
+  "commit": 0,
+  "push": 0,
+  "next": "READY_FOR_P1_OWNER_GO",
+  "stop": true
+}
