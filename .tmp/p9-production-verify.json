@@ -5,11 +5,22 @@
   "mode": "ONE_SHOT_NO_POLLING",
   "implCommit": "80c7c26b",
   "live": {
-    "version": "2.66.85",
-    "commit": "32dd5c3",
-    "timestamp": "2026-08-16T17:41:28.441Z"
+    "version": "2.66.86",
+    "commit": "80c7c26",
+    "timestamp": "2026-08-16T18:55:15.222Z"
   },
-  "verdict": "DEPLOY_PROPAGATING",
+  "verdict": "PRODUCTION_VERIFIED_LOCKED",
+  "bundle": {
+    "assets": [
+      "index-B3KF0r4J.js",
+      "app-core-DUM5lIj0.js",
+      "TendersModule-WxOvldbD.js"
+    ],
+    "p9Markers": "PASS",
+    "ikP9Lever": "ABSENT",
+    "p8Locked": "PASS",
+    "p7p6p5LeversPresent": "PASS"
+  },
   "controlledOwnerVerify": "NOT_EXERCISED",
   "ikP9Lever": false,
   "research": 0,

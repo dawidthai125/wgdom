@@ -1,0 +1,36 @@
+{
+  "hits": {
+    "data-ik-p9-owner-verify": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "data-ik-p9-target": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "gate_a,gate_b,owner_verify": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "08def45d-ead6-5db8-962b-120001d33d37": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "data-ik-p8-auto-accept": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "data-ik-p8-research": [
+      "TendersModule-WxOvldbD.js"
+    ],
+    "ikRiskDecisionE2eEnabled": [
+      "TendersModule-WxOvldbD.js",
+      "app-core-DUM5lIj0.js",
+      "index-B3KF0r4J.js"
+    ]
+  },
+  "miss": [
+    "ikP9Enabled",
+    "ikOwnerVerifyEnabled",
+    "IkP9OwnerVerify",
+    "runIkP9OwnerVerify",
+    "IK_P9_TARGET_TENDER_ID",
+    "evaluateIkP9GateA",
+    "evaluateIkP9GateB"
+  ]
+}
