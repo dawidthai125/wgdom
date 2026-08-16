@@ -15,6 +15,8 @@ import {
   EXPERT_CONVERSATION_ACTOR_LABOR_PL,
   EXPERT_CONVERSATION_ACTOR_MATERIAL_PL,
   EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
+  EXPERT_CONVERSATION_ACTOR_COST_PL,
+  EXPERT_CONVERSATION_ACTOR_OFFER_PL,
   EXPERT_CONVERSATION_SUBTITLE_IK_PL,
   EXPERT_CONVERSATION_TITLE_PL,
   labelConversationStatusPl,
@@ -31,6 +33,7 @@ import type { IkLaborExpertReport } from "./ik-labor-expert";
 import type { IkMaterialExpertReport } from "./ik-material-expert";
 import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
+import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
@@ -47,14 +50,16 @@ export interface IkEntryConversationOpts {
   } | null;
   /** P3 — precomputed classification (optional; otherwise run when Master BOQ READY). */
   classification?: IkClassificationReport | null;
-  /** P4 — Labor Expert report (async; pass when ready — never invent). */
+  /** P5 — Labor Expert report (async; pass when ready — never invent). */
   labor?: IkLaborExpertReport | null;
-  /** P5 — Material Expert report (async; pass when ready — never invent). */
+  /** P6 — Material Expert report (async; pass when ready — never invent). */
   material?: IkMaterialExpertReport | null;
   /** P5.5 — Identity Coverage audit (sync; never invent). */
   identityCoverage?: IkIdentityCoverageReport | null;
   /** P5.9 — Material identity blockers (identity only · no pricing). */
   materialIdentityP59?: IkMaterialIdentityP59Report | null;
+  /** P7 — Position Cost → F5 → Bid → SUM (REUSE engines; never invent). */
+  positionCostBid?: IkP7PositionCostBidReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -112,6 +117,7 @@ export function buildIkEntryConversationViewModel(
       || "material" in pkgOrOpts
       || "identityCoverage" in pkgOrOpts
       || "materialIdentityP59" in pkgOrOpts
+      || "positionCostBid" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -1218,6 +1224,104 @@ export function buildIkEntryConversationViewModel(
           seedCreated: seed.seedCreated,
         },
       ),
+    );
+  }
+
+  // P7 — Position Cost → F5 → Bid → SUM (only when report provided; ZERO invent / research).
+  const p7 = opts.positionCostBid ?? null;
+  if (p7) {
+    const p7Status = ((): ExpertConversationStepStatus => {
+      switch (p7.status) {
+        case "ready": return "done";
+        case "partial": return "partial";
+        case "gap": return "gap";
+        case "blocked": return "blocked";
+        default: return "hold";
+      }
+    })();
+    const srcKind = p7.provenance.sourceRefKind;
+    const costArtifact: Record<string, unknown> = {
+      mode: p7.mode,
+      cutoverGatePass: p7.cutoverGatePass,
+      packageGatePass: p7.packageGatePass,
+      billableLineCount: p7.billableLineCount,
+      completeLineCount: p7.completeLineCount,
+      gapLineCount: p7.gapLineCount,
+      laborCostPln: p7.laborCostPln,
+      materialCostPln: p7.materialCostPln,
+      directPln: p7.directPln,
+      rateSources: p7.provenance.rateSources,
+      researchExecuted: p7.researchExecuted,
+      httpCalls: p7.httpCalls,
+      catalogWorkWrite: p7.catalogWorkWrite,
+      priceMemoryWrite: p7.priceMemoryWrite,
+      gapCodes: p7.gapCodes.slice(0, 12),
+    };
+
+    steps.push(
+      step({
+        id: "cost",
+        event: "POSITION_COST_F5",
+        status: p7Status,
+        messagePl: p7.cutoverGatePass
+          ? `Position Cost (F5): COMPLETE ${p7.completeLineCount}/${p7.billableLineCount} · labor=${p7.laborCostPln ?? "—"} · mat=${p7.materialCostPln ?? "—"} PLN.`
+          : `Position Cost (F5): GAP/BLOCK — complete ${p7.completeLineCount}/${p7.billableLineCount} · gaps=${p7.gapLineCount}.`,
+        detailPl: [
+          `mode=${p7.mode}`,
+          `research=${p7.researchExecuted}`,
+          `http=${p7.httpCalls}`,
+          `rates=${p7.provenance.rateSources.join("+")}`,
+          p7.reasonsPl.slice(0, 2).join(" · ") || null,
+        ].filter(Boolean).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_COST_PL,
+        sourceRef: tenderRef(costArtifact, srcKind),
+      }),
+    );
+
+    if (p7.provenance.packageSumUsed) {
+      steps.push(
+        step({
+          id: "pricing",
+          event: "PACKAGE_SUM",
+          status: p7.packageGatePass === true ? "done" : "blocked",
+          messagePl: p7.packageGatePass === true
+            ? `PackageGate PASS · SUM dwellings = package direct ${p7.directPln ?? "—"} PLN.`
+            : `PackageGate BLOCK — Final Bid zablokowany (MISSING ≠ 0 PLN).`,
+          detailPl: p7.packageGate?.reasonsPl?.slice(0, 3).join(" · ") ?? null,
+          actorLabelPl: EXPERT_CONVERSATION_ACTOR_COST_PL,
+          sourceRef: tenderRef({
+            packageGatePass: p7.packageGatePass,
+            packageSumUsed: true,
+            directPln: p7.directPln,
+            researchExecuted: false,
+          }, p7.packageGatePass === true ? "evidence" : "hold"),
+        }),
+      );
+    }
+
+    steps.push(
+      step({
+        id: "offer",
+        event: "BID_PROPOSAL",
+        status: p7.bidOk && p7.recommendedBidPln != null ? "done" : (p7Status === "gap" ? "gap" : "hold"),
+        messagePl: p7.bidOk && p7.recommendedBidPln != null
+          ? `Bid (REUSE computeTenderBidProposal): rekomendowana ${p7.recommendedBidPln.toLocaleString("pl-PL")} PLN.`
+          : `Bid: brak recommendedBid (cutover/PackageGate FAIL — ZERO invent).`,
+        detailPl: [
+          `bidOk=${p7.bidOk}`,
+          `catalogWrite=${p7.catalogWorkWrite}`,
+          `pmWrite=${p7.priceMemoryWrite}`,
+          p7.proposal?.sourceLabelPl ?? null,
+        ].filter(Boolean).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_OFFER_PL,
+        sourceRef: tenderRef({
+          recommendedBidPln: p7.recommendedBidPln,
+          bidOk: p7.bidOk,
+          directPln: p7.directPln,
+          researchExecuted: false,
+          httpCalls: 0,
+        }, p7.bidOk ? "evidence" : "hold"),
+      }),
     );
   }
 

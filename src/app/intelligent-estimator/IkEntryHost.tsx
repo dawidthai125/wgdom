@@ -1,6 +1,6 @@
 /**
  * IK-MIGRATION-01 P1 shell + P2 Documents→BOQ + P3 classification/identity
- * + P5 Labor E2E + P6 Material E2E.
+ * + P5 Labor E2E + P6 Material E2E + P7 Position Cost → F5 → Bid → SUM.
  *
  * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
  * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
@@ -10,6 +10,7 @@
  *     isIkP5LaborExecuteResearchActive() (explicit executeResearch === true).
  * P6: Material E2E when isIkP6MaterialE2eActive(); MODE B research only when
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
+ * P7: F5/Bid when isIkP7F5E2eActive(); RESEARCH=0 · HTTP=0 always (no research lever).
  *
  * Shared RUN_RATE_EXPERTS stays false (never arms Material via shared sentinel).
  * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — not labor/material experts.
@@ -38,12 +39,17 @@ import {
   type IkIdentityCoverageReport,
 } from "@/lib/intelligent-estimator/ik-identity-coverage";
 import {
+  runIkP7PositionCostBid,
+  type IkP7PositionCostBidReport,
+} from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
+import {
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
   isIkP5LaborE2eActive,
   isIkP5LaborExecuteResearchActive,
   isIkP6MaterialE2eActive,
   isIkP6MaterialExecuteResearchActive,
+  isIkP7F5E2eActive,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
@@ -82,6 +88,7 @@ export function IkEntryHost({
   const p5ResearchOn = isIkP5LaborExecuteResearchActive() === true;
   const p6MaterialOn = isIkP6MaterialE2eActive() === true;
   const p6ResearchOn = isIkP6MaterialExecuteResearchActive() === true;
+  const p7F5On = isIkP7F5E2eActive() === true;
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
@@ -194,6 +201,7 @@ export function IkEntryHost({
       expert: report,
     });
   }, [identityCoverageOn, effectiveItem, pkg, report]);
+
   // P5 Labor E2E — Labor-specific levers (≠ Material / ≠ shared RUN_RATE_EXPERTS).
   useEffect(() => {
     if (!p5LaborOn) {
@@ -261,6 +269,19 @@ export function IkEntryHost({
     };
   }, [effectiveItem, pkg, report, p6MaterialOn, p6ResearchOn]);
 
+  // P7 Position Cost → F5 → Bid → SUM — sync REUSE engines · RESEARCH=0 · no Accept writes.
+  const positionCostBid = useMemo((): IkP7PositionCostBidReport | null => {
+    if (!p7F5On) return null;
+    if (!report.masterBoq.readyForExperts && !(report.offerBoq?.lines?.length)) {
+      return null;
+    }
+    return runIkP7PositionCostBid({
+      item: effectiveItem,
+      expert: report,
+      package: pkg,
+    });
+  }, [p7F5On, effectiveItem, pkg, report]);
+
   const vm = useMemo(
     () =>
       buildIkEntryConversationViewModel(effectiveItem, {
@@ -288,8 +309,9 @@ export function IkEntryHost({
         labor,
         material,
         identityCoverage,
+        positionCostBid,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid],
   );
 
   return (
@@ -305,6 +327,7 @@ export function IkEntryHost({
       data-ik-p5-labor-research={p5ResearchOn ? "1" : "0"}
       data-ik-p6-material-e2e={p6MaterialOn ? "1" : "0"}
       data-ik-p6-material-research={p6ResearchOn ? "1" : "0"}
+      data-ik-p7-f5-e2e={p7F5On ? "1" : "0"}
       data-ik-entry-identity-coverage={identityCoverageOn ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
@@ -328,6 +351,12 @@ export function IkEntryHost({
       data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
       data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
       data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
+      data-ik-p7-status={
+        p7F5On ? (positionCostBid?.status ?? "pending") : "shell_skipped"
+      }
+      data-ik-p7-bid-ok={positionCostBid?.bidOk ? "1" : "0"}
+      data-ik-p7-research={String(positionCostBid?.researchExecuted ?? 0)}
+      data-ik-p7-http={String(positionCostBid?.httpCalls ?? 0)}
       data-ik-identity-status={
         identityCoverageOn ? (identityCoverage?.status ?? "pending") : "shell_skipped"
       }

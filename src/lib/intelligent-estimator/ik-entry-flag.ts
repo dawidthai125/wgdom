@@ -1,5 +1,5 @@
 /**
- * IK-MIGRATION-01 P1–P6 — first-screen + controlled P2–P6 flags.
+ * IK-MIGRATION-01 P1–P7 — first-screen + controlled P2–P7 flags.
  * SSOT: AppSettings (kw-app-settings). Defaults OFF.
  * Independent of Decydent / Dual Outcome master (D).
  */
@@ -37,6 +37,11 @@ export type IkP6MaterialExecuteResearchInput = {
   ikMaterialResearchEnabled: boolean;
 };
 
+export type IkP7F5E2eEligibilityInput = {
+  ikEntryEnabled: boolean;
+  ikF5E2eEnabled: boolean;
+};
+
 let ikEntryForTests: boolean | null = null;
 let ikAutoIngestForTests: boolean | null = null;
 let ikIdentityCoverageForTests: boolean | null = null;
@@ -45,6 +50,7 @@ let ikLaborE2eForTests: boolean | null = null;
 let ikLaborResearchForTests: boolean | null = null;
 let ikMaterialE2eForTests: boolean | null = null;
 let ikMaterialResearchForTests: boolean | null = null;
+let ikF5E2eForTests: boolean | null = null;
 
 /** Test-only override (null = AppSettings). */
 export function forceIkEntryEnabledForTests(on: boolean | null): void {
@@ -84,6 +90,11 @@ export function forceIkMaterialE2eForTests(on: boolean | null): void {
 /** Test-only override for P6 Material research (null = AppSettings). */
 export function forceIkMaterialResearchForTests(on: boolean | null): void {
   ikMaterialResearchForTests = on;
+}
+
+/** Test-only override for P7 F5/Bid E2E (null = AppSettings). */
+export function forceIkF5E2eForTests(on: boolean | null): void {
+  ikF5E2eForTests = on;
 }
 
 export function isIkEntryEnabled(): boolean {
@@ -259,6 +270,31 @@ export function isIkP6MaterialExecuteResearchActive(): boolean {
     ikEntryEnabled: isIkEntryEnabled(),
     ikMaterialE2eEnabled: isIkMaterialE2eEnabled(),
     ikMaterialResearchEnabled: isIkMaterialResearchEnabled(),
+  });
+}
+
+/**
+ * P7 Position Cost → F5 → Bid preference. Default OFF.
+ * Does NOT enable research · Does NOT Accept · Does NOT flip P4–P6.
+ */
+export function isIkF5E2eEnabled(): boolean {
+  if (ikF5E2eForTests != null) return ikF5E2eForTests;
+  return loadAppSettingsLocal().ikF5E2eEnabled === true;
+}
+
+/** Pure P7 eligibility (flags only). */
+export function resolveIkP7F5E2eActive(input: IkP7F5E2eEligibilityInput): boolean {
+  return input.ikEntryEnabled === true && input.ikF5E2eEnabled === true;
+}
+
+/**
+ * P7 active seam: IK Entry ON ∧ F5 E2E ON.
+ * RESEARCH stays 0 even when active (no research lever).
+ */
+export function isIkP7F5E2eActive(): boolean {
+  return resolveIkP7F5E2eActive({
+    ikEntryEnabled: isIkEntryEnabled(),
+    ikF5E2eEnabled: isIkF5E2eEnabled(),
   });
 }
 

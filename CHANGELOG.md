@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.84 — IK-MIGRATION-01 P7 Position Cost → Bid (2026-08-16)
+
+- **P7 Owner GO:** Position Cost → F5 → Bid → SUM → EC under IK (`ikF5E2eEnabled`, default **OFF**)
+- REUSE: `boq-shadow-adapter` · `bid-position-cost-cutover` · `computeTenderBidProposal` · PackageGate · `aggregatePackageDirect`
+- RESEARCH=0 · HTTP=0 · CatalogWork **471** READ · Price Memory READ · zero Accept
+- **STOP:** no auto P8 · controlled ON NOT_EXERCISED
+
 ## 2.66.83 — IK-MIGRATION-01 P6 Material E2E (2026-08-16)
 
 - **P6 Owner GO:** Material E2E under IK (`ikMaterialE2eEnabled` / `ikMaterialResearchEnabled`, default **OFF**)

@@ -101,6 +101,12 @@ export interface AppSettings {
    * Default OFF. Requires ikMaterialE2eEnabled. Does NOT imply Labor research.
    */
   ikMaterialResearchEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P7 — Position Cost → F5 → Bid → SUM → EC under IK.
+   * Default OFF. Single E2E lever. Does NOT enable research/HTTP/Accept.
+   * Does NOT mutate CatalogWork / Price Memory · Does NOT flip P4–P6 levers.
+   */
+  ikF5E2eEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -146,6 +152,7 @@ export function defaultAppSettings(): AppSettings {
     ikLaborResearchEnabled: false,
     ikMaterialE2eEnabled: false,
     ikMaterialResearchEnabled: false,
+    ikF5E2eEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -366,6 +373,16 @@ export function mergeIkMaterialResearchEnabled(
   return local.ikMaterialResearchEnabled === true;
 }
 
+/** P7 F5/Bid E2E — independent of Labor/Material research and Dual Outcome (D). */
+export function mergeIkF5E2eEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikF5E2eEnabled === true) return true;
+  if (remote?.ikF5E2eEnabled === false) return false;
+  return local.ikF5E2eEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -389,6 +406,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
       ikMaterialE2eEnabled: parsed.ikMaterialE2eEnabled === true,
       ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
+      ikF5E2eEnabled: parsed.ikF5E2eEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -455,6 +473,7 @@ export function mergeAppSettings(
     ikLaborResearchEnabled: mergeIkLaborResearchEnabled(remote, local),
     ikMaterialE2eEnabled: mergeIkMaterialE2eEnabled(remote, local),
     ikMaterialResearchEnabled: mergeIkMaterialResearchEnabled(remote, local),
+    ikF5E2eEnabled: mergeIkF5E2eEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.84",
+    label: "IK-MIGRATION-01 P7 Position Cost → Bid",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P7 (Owner GO): Position Cost → F5 cutover → Bid → SUM → EC pod IK — ikF5E2eEnabled (default OFF). REUSE boq-shadow-adapter / bid-position-cost-cutover / computeTenderBidProposal / PackageGate / aggregatePackageDirect. RESEARCH=0 · HTTP=0 · CatalogWork 471 READ · Price Memory READ · zero Accept. Prod: P7 OFF. STOP — bez auto P8.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.83",
     label: "IK-MIGRATION-01 P6 Material E2E",
     items: [

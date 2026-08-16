@@ -581,6 +581,26 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikF5E2eEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikF5E2eEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-f5-e2e-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · F5 / BID E2E (P7)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P7. Domyślnie OFF. Position Cost → F5 cutover → Bid → SUM → EC.
+                  Bez research/HTTP, bez Accept, bez zapisu CatalogWork/Price Memory. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
