@@ -2,14 +2,19 @@
   "id": "IK-MIGRATION-01-P4-IMPLEMENTATION-CLOSEOUT",
   "date": "2026-08-16",
   "ownerGo": true,
+  "implCommit": "d38f97cd",
   "status": {
     "plan": "PASS",
     "implementation": "PASS",
     "test": "PASS",
     "build": "PASS",
-    "productionVerify": "PENDING_PUSH"
+    "productionVerify": "DEPLOY_PROPAGATING"
   },
   "uiVersion": "2.66.81",
+  "liveOneShot": {
+    "version": "2.66.80",
+    "commit": "a3ffa8e"
+  },
   "formal": {
     "P4": "CHIEF_WIRING",
     "P5": "LABOR_E2E",
@@ -30,5 +35,5 @@
     "build": "PASS"
   },
   "p5": "NOT_STARTED",
-  "stop": "READY_FOR_P5_OWNER_GO"
+  "stop": "READY_FOR_FINAL_PV_WHEN_TIP_PROPAGATES"
 }

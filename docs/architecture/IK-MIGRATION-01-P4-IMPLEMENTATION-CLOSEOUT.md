@@ -13,10 +13,10 @@
 
 ```text
 P4 PLAN = PASS
-P4 IMPLEMENTATION = PASS
+P4 IMPLEMENTATION = PASS · commit d38f97cd (origin/main)
 TEST = PASS
 BUILD = PASS
-PRODUCTION VERIFY = PASS (see PV doc)
+PRODUCTION VERIFY = DEPLOY_PROPAGATING (live tip still 2.66.80 / a3ffa8e)
 
 FORMAL: P4 = Chief Wiring · P5 = Labor · P6 = Material
 P4 Chief enable = DEFAULT OFF
@@ -26,10 +26,11 @@ RUN_RATE_EXPERTS = OFF
 
 P5.26 = UNCHANGED · CatalogWork 471
 P5 = NOT STARTED
-READY FOR P5 OWNER GO
+READY FOR final PV when tip = 2.66.81 / contains d38f97cd
 STOP — no auto P5 · no Labor · no research · no Accept · no F5/Bid · no P5.33
 ```
 
+**Impl SHA:** **`d38f97cd`**  
 **PV SSOT:** [`IK-MIGRATION-01-P4-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P4-PRODUCTION-VERIFY.md)
 
 ---

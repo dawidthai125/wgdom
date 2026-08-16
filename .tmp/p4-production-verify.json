@@ -1,0 +1,30 @@
+{
+  "id": "IK-MIGRATION-01-P4-PRODUCTION-VERIFY",
+  "date": "2026-08-16",
+  "mode": "VERIFY_ONLY",
+  "implCommit": "d38f97cd",
+  "verdict": "DEPLOY_PROPAGATING",
+  "live": {
+    "version": "2.66.80",
+    "commit": "a3ffa8e",
+    "timestamp": "2026-08-16T11:36:00.738Z",
+    "bundle": "assets/index-JaYTzN3a.js",
+    "ikChiefWiringEnabledCount": 0,
+    "dataIkP4ChiefWiringCount": 0,
+    "ui26681Count": 0
+  },
+  "expected": {
+    "uiVersion": "2.66.81",
+    "implCommit": "d38f97cd"
+  },
+  "levers": {
+    "ikChiefWiringEnabled": "DEFAULT_OFF",
+    "controlledOn": "NOT_EXERCISED",
+    "EXECUTE_RESEARCH": "OFF",
+    "RUN_RATE_EXPERTS": "OFF",
+    "ikNeqD": true
+  },
+  "p5": "NOT_STARTED",
+  "mobilePhysical": "NOT_VERIFIED",
+  "finalProductionVerified": false
+}
