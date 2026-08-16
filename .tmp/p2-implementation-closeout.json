@@ -5,12 +5,14 @@
   "p2Implementation": "PASS",
   "test": "PASS",
   "build": "PASS",
-  "productionVerify": "DEPLOY_PROPAGATING",
-  "liveVersionAtVerify": { "version": "2.66.78", "commit": "13ba1f7" },
-  "expectedLive": { "version": "2.66.79", "commit": "aa4c0ed" },
+  "productionVerify": "PASS",
+  "productionVerified": true,
+  "liveVersionAtVerify": { "version": "2.66.79", "commit": "f0ba43d" },
+  "expectedLive": { "version": "2.66.79", "implCommit": "aa4c0edf" },
   "uiVersion": "2.66.79",
   "commit": "aa4c0edf",
   "tipDocsCommit": "2c162f0e",
+  "liveTipCommit": "f0ba43d8",
   "push": "PASS",
   "autoIngestDefault": false,
   "runtimeGate": "isIkAutoIngestEnabled",
@@ -47,8 +49,10 @@
     "rw03": "16/16",
     "build": "PASS"
   },
+  "catalogWork": 471,
   "p3": "NOT_STARTED",
   "p526Rates": "UNCHANGED",
+  "pvDoc": "docs/architecture/IK-MIGRATION-01-P2-PRODUCTION-VERIFY.md",
   "next": "READY_FOR_P3_OWNER_GO",
   "stop": true
 }

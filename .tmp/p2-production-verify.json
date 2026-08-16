@@ -1,0 +1,92 @@
+{
+  "id": "IK-MIGRATION-01-P2-PRODUCTION-VERIFY",
+  "date": "2026-08-16",
+  "mode": "VERIFY_ONLY",
+  "ownerGo": true,
+  "status": "PRODUCTION_VERIFIED",
+  "blockedByPropagation": false,
+  "expectedImplCommit": "aa4c0edf",
+  "expectedImplMessage": "IK-MIGRATION-01: implement P2 document to BOQ flow",
+  "expectedVersion": "2.66.79",
+  "live": {
+    "version": "2.66.79",
+    "commit": "f0ba43d",
+    "commitFull": "f0ba43d8",
+    "timestamp": "2026-08-16T09:33:40.565Z",
+    "strictEqualsExpectedImpl": false,
+    "expectedImplIsAncestor": true,
+    "tipOnlyDeltaAfterImpl": true,
+    "tipCommitsAfterImpl": [
+      "2c162f0e docs: tip 2.66.79 commit SHA for P2 baseline",
+      "f0ba43d8 docs: P2 closeout PV DEPLOY_PROPAGATING note"
+    ]
+  },
+  "previousPropagating": {
+    "version": "2.66.78",
+    "commit": "13ba1f7",
+    "cleared": true
+  },
+  "defaults": {
+    "ikEntryEnabled": false,
+    "ikAutoIngestEnabled": false
+  },
+  "gates": {
+    "propagation": "PASS",
+    "ikOffNg10": "PASS",
+    "ikOnAutoOffShell": "PASS_BUNDLE",
+    "ikOnAutoOnDocumentsBoq": "PASS_BUNDLE_PATH",
+    "ikOnProdSettingsMutation": "NOT_EXERCISED",
+    "autoIngestRollback": "N_A_NEVER_ON",
+    "readyPartialHoldGap": "PASS",
+    "provenanceSourceRef": "PASS",
+    "unitSafety": "PASS",
+    "researchExpertsIdentityOff": "PASS",
+    "noAcceptCatalogF5Bid": "PASS",
+    "p526Regression": "PASS_UNTOUCHED",
+    "p527_p531_p532": "PASS_UNTOUCHED",
+    "catalogWork": 471,
+    "testsBaseline": "PASS",
+    "build": "PASS",
+    "mobilePhysical": "NOT_VERIFIED",
+    "mobileBundle": "PASS"
+  },
+  "bundleEvidence": {
+    "index": "index-Cyi8XrGB.js",
+    "tendersModule": "TendersModule-BVv9xIpu.js",
+    "markers": [
+      "ikEntryEnabled:!1",
+      "ikAutoIngestEnabled:!1",
+      "data-ik-entry-toggle",
+      "data-ik-auto-ingest-toggle",
+      "data-ik-entry-host",
+      "data-ik-entry-shell",
+      "data-ik-p2-documents-boq",
+      "data-ik-entry-execute-research:0",
+      "data-ik-labor-status:shell_skipped",
+      "data-ik-ingest-phase shell when OFF",
+      "ng10_gate",
+      "ik_entry",
+      "ikAutoIngestEnabled===!0",
+      "buildTenderDossierHeavy",
+      "min-h-[44px]",
+      "data-ik-mobile-ready"
+    ]
+  },
+  "tests": {
+    "p2Implementation": "61/61",
+    "p1": "57/57",
+    "p0": "52/52",
+    "p2_p25": "PASS",
+    "p526": "30/30",
+    "p527": "39/39",
+    "p531": "35/35",
+    "p532": "30/30",
+    "pass2": "85/85",
+    "rw03": "16/16",
+    "build": "PASS"
+  },
+  "codeChanges": 0,
+  "p3": "NOT_STARTED",
+  "next": "READY_FOR_P3_OWNER_GO",
+  "stop": true
+}

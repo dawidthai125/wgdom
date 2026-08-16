@@ -17,27 +17,40 @@ P2 PLAN = PASS
 P2 IMPLEMENTATION = PASS
 TEST = PASS
 BUILD = PASS
-PRODUCTION VERIFY = DEPLOY_PROPAGATING (live still 2.66.78 / 13ba1f7; expect 2.66.79 / aa4c0ed)
-PUSH = PASS (`aa4c0edf` + tip `2c162f0e`)
-AUTO_INGEST DEFAULT OFF = PASS (code + tests; prod settings not flipped ON)
+PRODUCTION VERIFY = PASS (PRODUCTION VERIFIED)
+
+LIVE = 2.66.79 / f0ba43d
+EXPECTED IMPL = aa4c0edf · ANCESTOR_OF_LIVE = YES
+PUSH = PASS (`aa4c0edf` + tip `2c162f0e` + note `f0ba43d8`)
+
+AUTO_INGEST DEFAULT OFF = PASS
+IK DEFAULT OFF = PASS
+IK OFF → NG-10 = PASS
+IK ON + AUTO OFF → Entry Shell = PASS (bundle)
+IK ON + AUTO ON → Documents→BOQ path = PASS (bundle; settings NOT_EXERCISED)
+
+P5.26 = UNCHANGED · CatalogWork 471
+P3 = NOT STARTED
 READY FOR P3 OWNER GO
 STOP — no auto P3 · no research · no P5.33
 ```
 
+**PV SSOT:** [`IK-MIGRATION-01-P2-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P2-PRODUCTION-VERIFY.md) · `.tmp/p2-production-verify.json`
+
 ---
 
-## Production Verify (one-shot)
+## Production Verify (final)
 
 | Check | Result |
 |-------|--------|
-| Push `main` | **PASS** |
-| Live `version.json` (one fetch) | **DEPLOY PROPAGATING** — `2.66.78` / `13ba1f7` |
-| Expected tip | **2.66.79** / `aa4c0ed` |
-| AUTO_INGEST default OFF | **PASS** (AppSettings + host gate; Super Admin toggle only) |
+| Propagation | **PASS** — live left `2.66.78`/`13ba1f7` |
+| Live `version.json` | **2.66.79** / **`f0ba43d`** |
+| Contains `aa4c0edf` | **YES** |
+| AUTO_INGEST default OFF | **PASS** (`ikAutoIngestEnabled:!1`) |
+| IK OFF / NG-10 | **PASS** |
+| Controlled prod AUTO ON | **NOT_EXERCISED** (path verified in bundle) |
 | Research trio OFF | **PASS** |
-| P5.26 unchanged | **PASS** (30/30) |
-| Controlled prod AUTO ON | **NOT_EXERCISED** (safety — leave OFF) |
-
+| P5.26 unchanged | **PASS** |
 ---
 
 ## What shipped
