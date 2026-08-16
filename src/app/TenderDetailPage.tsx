@@ -80,6 +80,8 @@ import {
   resolveIkDetailFirstScreen,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
+import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
+import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -693,6 +695,7 @@ export function TenderDetailPage({
       data-ik-p4-chief-eligible={p4ChiefEligible ? "1" : "0"}
       data-ik-p4-chief-via-d={dChiefEnabled ? "1" : "0"}
       data-ik-p4-pricing-ready={pricingReady ? "1" : "0"}
+      data-ik-p9-target={item && isIkP9TargetTender(item.id) ? "1" : "0"}
     >
       <TenderDetailCommandLayer
         item={item}
@@ -738,6 +741,10 @@ export function TenderDetailPage({
             gateStatus={pipelineRuntime.attachmentGateStatus}
             gateReason={pipelineRuntime.attachmentGateReason}
           />
+
+          {item && activeTab === "przetarg" && (
+            <IkP9OwnerVerifyMarker tenderId={item.id} />
+          )}
 
           {ikEntryOn && activeTab === "przetarg" && (
             <IkEntryHost

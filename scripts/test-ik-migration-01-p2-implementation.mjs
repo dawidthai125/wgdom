@@ -309,9 +309,17 @@ assert(
 );
 
 // --- No research/Accept in P2 host path ---
-assert("P2 host does not call Accept", !/acceptCatalog|autoAccept|AcceptCandidate/.test(hostSrc));
+// P8 LOCKED telemetry (`data-ik-p8-auto-accept` / `autoAcceptExecuted`) reports accept=0 —
+// that is NOT an Accept invocation. Probe real call/API forms only (Option 1 / P9 Owner GO).
+const hostAcceptProbe = hostSrc
+  .replace(/data-ik-p8-auto-accept/g, "")
+  .replace(/autoAcceptExecuted/g, "");
+assert(
+  "P2 host does not call Accept",
+  !/acceptCatalog|AcceptCandidate/.test(hostAcceptProbe) &&
+    !/\bautoAccept\s*\(/.test(hostAcceptProbe),
+);
 assert("P2 host rate experts gated OFF", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
-
 // --- Rollback constant ---
 assert("rollback path: AUTO false → shell phase", /ingest-phase[\s\S]*shell|:\s*"shell"/.test(hostSrc));
 

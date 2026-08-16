@@ -480,7 +480,16 @@ assert("U coverage ON ≠ EXECUTE_RESEARCH in flag doc", /Does NOT enable resear
 // --- V–Z: no HTTP / Accept / CatalogWrite / F5 / Bid ---
 assert("V no Castorama/Leroy HTTP in class", !/castorama|leroy|obi\.pl|work-rate-research/i.test(classSrc));
 assert("V no pricing HTTP in coverage", !/castorama|leroymerlin|fetch\(|http\.get/i.test(covSrc));
-assert("W no Accept in host P3 path", !/acceptCatalog|autoAccept|AcceptCandidate/.test(hostSrc));
+// P8 LOCKED telemetry (`data-ik-p8-auto-accept` / `autoAcceptExecuted`) ≠ Accept call
+// (Option B / P9 Owner GO — same hostAcceptProbe class as P2).
+const hostAcceptProbe = hostSrc
+  .replace(/data-ik-p8-auto-accept/g, "")
+  .replace(/autoAcceptExecuted/g, "");
+assert(
+  "W no Accept in host P3 path",
+  !/acceptCatalog|AcceptCandidate/.test(hostAcceptProbe) &&
+    !/\bautoAccept\s*\(/.test(hostAcceptProbe),
+);
 assert("W class autoAcceptExecuted type false", /autoAcceptExecuted:\s*false/.test(classSrc));
 assert("X no CatalogWork write in class/cov", !/createCatalogWork|writeCatalogWork|bindCatalogWork\s*\(/.test(classSrc + covSrc));
 assert("X seedCreated always 0 comment", /seedCreated:\s*0/.test(covSrc));

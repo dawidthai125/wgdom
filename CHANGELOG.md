@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.86 — IK-MIGRATION-01 P9 Owner Verify (2026-08-16)
+
+- **P9 Owner GO:** Gate A → Gate B → Owner Verify on live `08def45d-…`
+- REUSE Truth Gates · **no** `ikP9*` lever · D snapshot/diff = 0
+- RESEARCH=0 · ACCEPT=0 · CatalogWork **471** UNTOUCHED · marker UI only
+- **STOP:** no auto P10 · controlled Owner Verify = manual
+
 ## 2.66.85 — IK-MIGRATION-01 P8 Risk → Decision (2026-08-16)
 
 - **P8 Owner GO:** Risk → Validation → Chief → DW → EC under IK (`ikRiskDecisionE2eEnabled`, default **OFF**)

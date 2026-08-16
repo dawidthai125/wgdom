@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.86",
+    label: "IK-MIGRATION-01 P9 Owner Verify",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P9 (Owner GO): Owner Verify live tender 08def45d… — Gate A → Gate B → Owner Verify. REUSE Truth Gates. BRAK ikP9* lever. D snapshot/diff=0 · RESEARCH=0 · ACCEPT=0 · CatalogWork 471 UNTOUCHED. Marker UI na Tender Detail. Controlled Owner Verify = ręczny. STOP — bez auto P10.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.85",
     label: "IK-MIGRATION-01 P8 Risk → Decision",
     items: [
