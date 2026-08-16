@@ -1,13 +1,8 @@
 {
   "id": "IK-MIGRATION-01-P1-CLOSEOUT",
   "date": "2026-08-16",
-  "p1Status": "PRODUCTION_VERIFIED_PENDING_PUSH",
+  "p1Status": "PRODUCTION_VERIFIED",
   "r1Verdict": "MINIMAL_FIXED",
-  "r1Before": {
-    "autoIngest": true,
-    "executeResearch": true,
-    "cloudWritePossible": true
-  },
   "r1After": {
     "IK_ENTRY_SHELL_AUTO_INGEST": false,
     "IK_ENTRY_SHELL_EXECUTE_RESEARCH": false,
@@ -15,6 +10,8 @@
     "IK_ENTRY_SHELL_IDENTITY_COVERAGE": false
   },
   "uiVersion": "2.66.78",
+  "commit": "ebab4a9f",
+  "push": "PASS",
   "tests": {
     "p0": "52/52",
     "p1": "53/53",
@@ -30,8 +27,6 @@
     "rw03": "16/16",
     "build": "PASS"
   },
-  "commit": null,
-  "push": "PENDING",
   "next": "READY_FOR_P2_OWNER_GO",
   "stop": true
 }

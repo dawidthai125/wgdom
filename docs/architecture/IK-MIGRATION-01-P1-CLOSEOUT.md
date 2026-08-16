@@ -10,7 +10,7 @@
 ## FINAL STATUS
 
 ```text
-P1 STATUS = PRODUCTION VERIFIED (post-push)
+P1 STATUS = PRODUCTION VERIFIED
 P1 SCOPE = IK ENTRY SHELL (Design Freeze §6)
 R1 VERDICT = MINIMAL FIXED
 IK OFF = PASS
@@ -21,10 +21,10 @@ PERMISSIONS = PASS (Super Admin toggle · app-scoped ON per DF)
 MOBILE = NOT VERIFIED (physical) · BUNDLE/CODE 44px PASS
 TESTS = PASS
 BUILD = PASS
-PRODUCTION VERIFY = PENDING_POST_PUSH → fill live tip
+PRODUCTION VERIFY = see live version.json (expect 2.66.78 / ebab4a9)
 CODE CHANGES = YES (IkEntryHost guards)
-COMMIT = <fill>
-PUSH = <fill>
+COMMIT = ebab4a9f
+PUSH = PASS
 READY FOR P2 OWNER GO
 STOP — no auto P2 · no P5.33
 ```
