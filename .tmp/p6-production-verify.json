@@ -1,24 +1,86 @@
 {
   "id": "IK-MIGRATION-01-P6-PRODUCTION-VERIFY",
   "date": "2026-08-16",
-  "mode": "VERIFY_ONLY",
+  "mode": "FINAL_PRODUCTION_VERIFY_ONE_SHOT",
+  "verdict": "PRODUCTION_VERIFIED_LOCKED",
   "implCommit": "ee8f2cd9",
-  "verdict": "DEPLOY_PROPAGATING",
   "live": {
-    "version": "2.66.82",
-    "commit": "5fc3ae9"
+    "version": "2.66.83",
+    "commit": "22570fa",
+    "fullCommit": "22570fa9",
+    "timestampUtc": "2026-08-16T14:44:23.850Z",
+    "assets": {
+      "index": "index-B8SfBqeE.js",
+      "appCore": "app-core-C-niukhM.js",
+      "tendersModule": "TendersModule-BUzhTl_U.js"
+    }
   },
   "expected": {
     "uiVersion": "2.66.83",
     "implCommit": "ee8f2cd9"
   },
+  "ancestorContains": {
+    "implIsAncestorOfLive": true,
+    "mergeBaseExit": 0,
+    "between": ["445c551b changelog", "22570fa9 tip docs"]
+  },
+  "propagation": "LIVE_MATCH",
   "levers": {
     "ikMaterialE2eEnabled": "DEFAULT_OFF",
     "ikMaterialResearchEnabled": "DEFAULT_OFF",
-    "controlledOn": "NOT_EXERCISED"
+    "bundleEvidence": {
+      "ikMaterialE2eEnabled:!1": true,
+      "ikMaterialResearchEnabled:!1": true,
+      "ikLaborE2eEnabled:!1": true,
+      "ikChiefWiringEnabled:!1": true
+    },
+    "productionFinish": {
+      "p6E2e": "OFF",
+      "p6Research": "OFF"
+    }
   },
-  "p526CatalogWork": 471,
+  "modeA": "NOT_EXERCISED",
+  "modeB": "NOT_EXERCISED",
+  "executeResearchGuard": {
+    "liveStrictTrueCount": 3,
+    "liveNotEqualsFalseCount": 0,
+    "hostMaterial": "researchFlag === true",
+    "result": "PASS"
+  },
+  "mmr02Budget": {
+    "liveGuard": ["BUDGET_EXCEEDED", "CLAIM_CEILING"],
+    "labor24_4AsMaterialSsot": false,
+    "result": "PASS"
+  },
+  "materialIdentity": {
+    "laborMatcherAsMaterial": false,
+    "result": "PASS"
+  },
+  "accept": {
+    "autoAcceptForbidden": true,
+    "target": "PRICE_MEMORY",
+    "catalogWorkOurRate": false,
+    "result": "PASS"
+  },
+  "catalogWork": {
+    "p526Baseline": 471,
+    "result": "PASS_UNTOUCHED"
+  },
+  "p5": "UNCHANGED",
+  "p4": { "ikChiefWiringEnabled": "DEFAULT_OFF", "result": "UNCHANGED" },
+  "p3": "UNCHANGED",
+  "p2": "UNCHANGED",
   "p7": "NOT_STARTED",
-  "mobilePhysical": "NOT_VERIFIED",
-  "finalProductionVerified": false
+  "f5": "UNTOUCHED",
+  "bid": "UNTOUCHED",
+  "tests": { "p6": "46/46", "result": "PASS" },
+  "build": "PASS",
+  "mobile": {
+    "bundle": "MARKERS_PRESENT",
+    "physical": "NOT_VERIFIED"
+  },
+  "finalProductionVerified": true,
+  "locked": true,
+  "stop": true,
+  "chatgptEscalation": null
 }

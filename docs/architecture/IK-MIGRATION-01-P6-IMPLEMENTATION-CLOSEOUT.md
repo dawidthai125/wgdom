@@ -16,19 +16,24 @@ P6 PLAN = PASS
 P6 IMPLEMENTATION = PASS · commit ee8f2cd9 (origin/main)
 TEST = PASS · 46/46
 BUILD = PASS
-PRODUCTION VERIFY = DEPLOY_PROPAGATING (live tip still 2.66.82 / 5fc3ae9)
+PRODUCTION VERIFY = PRODUCTION VERIFIED / LOCKED
+
+LIVE = 2.66.83 / 22570fa
+CONTAINS IMPL = YES (ee8f2cd9 ancestor of tip)
+Controlled MODE A/B = NOT_EXERCISED
+MOBILE PHYSICAL = NOT VERIFIED
 
 FORMAL: P6 = Material E2E · P7 = F5/Bid
 ikMaterialE2eEnabled = DEFAULT OFF
 ikMaterialResearchEnabled = DEFAULT OFF
 executeResearch = === true only (MODE B)
-Accept → Price Memory · CatalogWork 471 UNTOUCHED
+Accept → Price Memory · CatalogWork 471 UNTOUCHED / LOCKED
 P7 = NOT STARTED
-READY FOR final PV when tip = 2.66.83 / contains ee8f2cd9
 STOP — no auto P7 · no F5/Bid · no P5.33
 ```
 
 **Impl SHA:** **`ee8f2cd9`**  
+**Live tip SHA:** **`22570fa`**  
 **PV SSOT:** [`IK-MIGRATION-01-P6-PRODUCTION-VERIFY.md`](./IK-MIGRATION-01-P6-PRODUCTION-VERIFY.md)
 
 ---
