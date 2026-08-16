@@ -17,23 +17,26 @@ P2 PLAN = PASS
 P2 IMPLEMENTATION = PASS
 TEST = PASS
 BUILD = PASS
-PRODUCTION VERIFY = (see live version.json — expect 2.66.79 / aa4c0ed)
-
-AUTO_INGEST:
-  DEFAULT OFF (AppSettings.ikAutoIngestEnabled)
-  RUNTIME GATE = isIkAutoIngestEnabled()
-  IK ON alone ≠ Documents→BOQ
-
-P2:
-  Documents → discovery → extraction → OfferBoq/Master BOQ = PASS (REUSE)
-
-P3:
-  NOT STARTED
-
-P5.26 rates = UNCHANGED
-P5.33 = NOT CREATED
-STOP — READY FOR P3 OWNER GO
+PRODUCTION VERIFY = DEPLOY_PROPAGATING (live still 2.66.78 / 13ba1f7; expect 2.66.79 / aa4c0ed)
+PUSH = PASS (`aa4c0edf` + tip `2c162f0e`)
+AUTO_INGEST DEFAULT OFF = PASS (code + tests; prod settings not flipped ON)
+READY FOR P3 OWNER GO
+STOP — no auto P3 · no research · no P5.33
 ```
+
+---
+
+## Production Verify (one-shot)
+
+| Check | Result |
+|-------|--------|
+| Push `main` | **PASS** |
+| Live `version.json` (one fetch) | **DEPLOY PROPAGATING** — `2.66.78` / `13ba1f7` |
+| Expected tip | **2.66.79** / `aa4c0ed` |
+| AUTO_INGEST default OFF | **PASS** (AppSettings + host gate; Super Admin toggle only) |
+| Research trio OFF | **PASS** |
+| P5.26 unchanged | **PASS** (30/30) |
+| Controlled prod AUTO ON | **NOT_EXERCISED** (safety — leave OFF) |
 
 ---
 
