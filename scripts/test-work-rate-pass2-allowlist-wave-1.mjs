@@ -46,10 +46,13 @@ const ALLOWED_HOSTS = ["kb.pl", "cennikremontow.pl", "sccot.pl", "extradom.pl"];
 // ——— T0 grooves regression ———
 {
   const kbKeys = listWorkRatePass2CategoryKeysForSource("kb_pl");
-  eq("T0 kb top-2 length", kbKeys.length, 2);
+  eq("T0 kb inventory size (P5.31)", kbKeys.length, 5);
   eq("T0 grooves first", kbKeys[0], "grooves");
-  ok("T0 grooves in top-2", kbKeys.includes("grooves"));
+  ok("T0 grooves in inventory", kbKeys.includes("grooves"));
   eq("T0 plaster second", kbKeys[1], "plaster");
+  ok("T0 flooring in inventory", kbKeys.includes("flooring"));
+  ok("T0 repairs_wall in inventory", kbKeys.includes("repairs_wall"));
+  ok("T0 repairs_opening in inventory", kbKeys.includes("repairs_opening"));
   eq("T0 resolve grooves", resolveWorkRatePass2Url("kb_pl", "grooves"), GROOVES_URL);
   ok(
     "T0 allowlist order grooves before plaster",
@@ -143,10 +146,10 @@ const ALLOWED_HOSTS = ["kb.pl", "cennikremontow.pl", "sccot.pl", "extradom.pl"];
 // ——— T3 MAX remains 2 (per-work fetch budget) ———
 {
   eq("T3 MAX constant", WORK_RATE_PASS2_MAX_PAGES_PER_SOURCE, 2);
-  eq("T3 kb inventory size", listWorkRatePass2CategoryKeysForSource("kb_pl").length, 2);
+  eq("T3 kb inventory size (P5.31)", listWorkRatePass2CategoryKeysForSource("kb_pl").length, 5);
   ok(
-    "T3 CR inventory may exceed MAX (painting+electrical+plumbing)",
-    listWorkRatePass2CategoryKeysForSource("cennikremontow_pl").length >= 3,
+    "T3 CR inventory may exceed MAX (painting+electrical+plumbing+joinery)",
+    listWorkRatePass2CategoryKeysForSource("cennikremontow_pl").length >= 4,
   );
   // Even if work prefs many, work list capped by MAX
   const keys = listWorkRatePass2CategoryKeysForWork({

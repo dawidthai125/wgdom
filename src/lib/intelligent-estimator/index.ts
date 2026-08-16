@@ -154,3 +154,51 @@ export type {
   IkMaterialIdentityP59Report,
   IkMaterialIdentityP59Resolved,
 } from "./ik-material-identity-p59";
+
+/** P5.25-FIX — INTERNAL-FIRST domain gate + semantic reuse (no pricing engine). */
+export type { InternalFirstPriceDomain, DomainCompatResult } from "./internal-first-domain";
+export {
+  domainsCompatibleForFinalPriceReuse,
+  normalizeInternalFirstDomain,
+  internalFirstSearchLayers,
+  domainToLayerLabel,
+} from "./internal-first-domain";
+export {
+  softInternalFirstText,
+  tokensInternalFirst,
+  mapInternalFirstUnit,
+  unitsCompatibleInternalFirst,
+  extractActionStems,
+  actionContextCompatible,
+  INTERNAL_FIRST_ACTION_STEMS,
+} from "./internal-first-text";
+export type { ActionContextCompat } from "./internal-first-text";
+export {
+  scoreInternalFirstSemantic,
+  lookupInternalFirst,
+  wouldRejectCrossDomainPriceReuse,
+} from "./internal-first-semantic-match";
+export type {
+  InternalFirstCatalogRow,
+  InternalFirstLookupResult,
+  InternalFirstMatchConfidence,
+  SemanticScoreResult,
+} from "./internal-first-semantic-match";
+export {
+  hostObjectSafetyGate,
+  P526E_MONTAZ_GRZEJNIKA_WORK_ID,
+  P526E_MALOWANIE_EMULSJA_WORK_ID,
+  P526E_WYKUCIE_BRUZD_WORK_ID,
+  P526E_ZAPRAWIANIE_BRUZD_WORK_ID,
+} from "./internal-first-host-safety";
+export type { HostObjectSafetyResult } from "./internal-first-host-safety";
+export {
+  buildInternalFirstResearchKey,
+  InternalFirstResearchKeyDedupe,
+} from "./internal-first-research-key";
+export type { RetainedResearchCandidate } from "./internal-first-research-key";
+export {
+  classifySourceHealthError,
+  InternalFirstSourceHealthTracker,
+} from "./internal-first-source-health";
+export type { SourceHealthErrorKind, SourceHealthState } from "./internal-first-source-health";
