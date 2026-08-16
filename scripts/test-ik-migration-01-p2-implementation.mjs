@@ -146,7 +146,7 @@ assert("C IK OFF kills P2 even if AUTO forced", isIkP2DocumentsBoqActive() === f
 // --- D/E/F: research / experts / identity stay OFF ---
 assert("D EXECUTE_RESEARCH false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert("E RUN_RATE_EXPERTS false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
-assert("F IDENTITY_COVERAGE false", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
+assert("F IDENTITY_COVERAGE compile default false", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
 assert("D no executeResearch: true", !/executeResearch:\s*true/.test(hostSrc));
 assert("D research wired to shell const", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
 
@@ -163,6 +163,11 @@ assert("Settings field ikAutoIngestEnabled", /ikAutoIngestEnabled/.test(settings
 assert("mergeIkAutoIngestEnabled present", /mergeIkAutoIngestEnabled/.test(settingsSrc));
 assert("flag isIkP2DocumentsBoqActive", /isIkP2DocumentsBoqActive/.test(flagSrc));
 assert("flag independent of D", !/expertAiDecydentEnabled/.test(flagSrc));
+// P3 lever present but default OFF (P2 must not flip research via coverage)
+assert("P3 Host uses isIkIdentityCoverageEnabled", /isIkIdentityCoverageEnabled/.test(hostSrc));
+assert("P3 Host gates coverage on identityCoverageOn", /if\s*\(\s*!identityCoverageOn\s*\)/.test(hostSrc));
+assert("P3 Admin IDENTITY toggle", /data-ik-identity-coverage-toggle/.test(adminSrc));
+assert("P3 default ikIdentityCoverageEnabled OFF", defaultAppSettings().ikIdentityCoverageEnabled === false);
 
 // --- No V2 engines ---
 assert("no DocumentParserV2", !/DocumentParserV2/.test(hostSrc + expertSrc + bridgeSrc));

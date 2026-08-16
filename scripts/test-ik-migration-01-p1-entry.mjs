@@ -279,15 +279,20 @@ assert("F IkEntryHost has data-ik-entry-host", /data-ik-entry-host/.test(hostSrc
 assert("R1 IK_ENTRY_SHELL_AUTO_INGEST = false (compile default)", /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(hostSrc));
 assert("R1 IK_ENTRY_SHELL_EXECUTE_RESEARCH = false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert("R1 IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false", /IK_ENTRY_SHELL_RUN_RATE_EXPERTS\s*=\s*false/.test(hostSrc));
-assert("R1 IK_ENTRY_SHELL_IDENTITY_COVERAGE = false", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
+assert("R1 IK_ENTRY_SHELL_IDENTITY_COVERAGE = false (compile default)", /IK_ENTRY_SHELL_IDENTITY_COVERAGE\s*=\s*false/.test(hostSrc));
 assert("R1 no executeResearch: true literal", !/executeResearch:\s*true/.test(hostSrc));
 assert("R1 research uses shell guard", /executeResearch:\s*IK_ENTRY_SHELL_EXECUTE_RESEARCH/.test(hostSrc));
 assert(
   "R1 auto-ingest runtime gate (P2)",
   /isIkAutoIngestEnabled/.test(hostSrc) && /if\s*\(\s*!autoIngestOn\s*\)/.test(hostSrc),
 );
+assert(
+  "R1 identity coverage runtime gate (P3)",
+  /isIkIdentityCoverageEnabled/.test(hostSrc) && /if\s*\(\s*!identityCoverageOn\s*\)/.test(hostSrc),
+);
 assert("R1 data-ik-entry-shell", /data-ik-entry-shell/.test(hostSrc));
 assert("R1 data-ik-p2-documents-boq marker", /data-ik-p2-documents-boq/.test(hostSrc));
+assert("R1 data-ik-p3-identity-coverage marker", /data-ik-p3-identity-coverage/.test(hostSrc));
 
 // Permissions — toggle Super Admin only (app-scoped flag after ON = DF).
 const topbarSrc = readSrc("src/app/admin/AdminTopbar.tsx");
@@ -299,7 +304,9 @@ assert(
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
 assert("C Admin IK toggle present", /data-ik-entry-toggle/.test(adminSrc));
 assert("C Admin AUTO_INGEST toggle present", /data-ik-auto-ingest-toggle/.test(adminSrc));
+assert("C Admin IDENTITY_COVERAGE toggle present", /data-ik-identity-coverage-toggle/.test(adminSrc));
 assert("C default ikAutoIngestEnabled OFF", defaultAppSettings().ikAutoIngestEnabled === false);
+assert("C default ikIdentityCoverageEnabled OFF", defaultAppSettings().ikIdentityCoverageEnabled === false);
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 assert(
   "C flag module does not read D",

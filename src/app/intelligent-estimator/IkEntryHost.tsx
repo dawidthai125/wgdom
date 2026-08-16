@@ -1,11 +1,13 @@
 /**
- * IK-MIGRATION-01 P1 shell + P2 controlled Documents→BOQ.
+ * IK-MIGRATION-01 P1 shell + P2 Documents→BOQ + P3 classification/identity.
  *
  * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
- * P2: when isIkAutoIngestEnabled() (AppSettings, default OFF) → NG-02 ingest bridge → Document Expert.
+ * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
+ * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
+ *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
  *
- * EXECUTE_RESEARCH / RUN_RATE_EXPERTS / IDENTITY_COVERAGE stay hard OFF (P3+).
- * IK ON alone does NOT run Documents→BOQ.
+ * EXECUTE_RESEARCH / RUN_RATE_EXPERTS stay hard OFF (P4/P5).
+ * IDENTITY_COVERAGE ON ≠ research ON.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,17 +32,19 @@ import {
   runIkMasterBoqIdentityCoverage,
   type IkIdentityCoverageReport,
 } from "@/lib/intelligent-estimator/ik-identity-coverage";
-import { isIkAutoIngestEnabled } from "@/lib/intelligent-estimator/ik-entry-flag";
+import {
+  isIkAutoIngestEnabled,
+  isIkIdentityCoverageEnabled,
+} from "@/lib/intelligent-estimator/ik-entry-flag";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 
 /**
- * Compile-time default sentinel — production preference is AppSettings.ikAutoIngestEnabled (default OFF).
- * Runtime gate: isIkAutoIngestEnabled().
+ * Compile-time default sentinels — runtime AUTO_INGEST / IDENTITY_COVERAGE use AppSettings.
  */
 export const IK_ENTRY_SHELL_AUTO_INGEST = false;
 export const IK_ENTRY_SHELL_EXECUTE_RESEARCH = false;
-/** Sync identity audit (no HTTP). OFF until P3 Owner GO. */
+/** Default sentinel — runtime: isIkIdentityCoverageEnabled(). */
 export const IK_ENTRY_SHELL_IDENTITY_COVERAGE = false;
 /** Labor/material experts. OFF until P4/P5 Owner GO. */
 export const IK_ENTRY_SHELL_RUN_RATE_EXPERTS = false;
@@ -61,6 +65,7 @@ export function IkEntryHost({
   athPreviewEnabled?: boolean;
 }) {
   const autoIngestOn = isIkAutoIngestEnabled() === true;
+  const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
   const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
@@ -163,16 +168,16 @@ export function IkEntryHost({
     [ingest, effectiveItem, pkg],
   );
 
+  // P3 Identity Coverage — AppSettings lever (default OFF). Sync diagnostic · 0 HTTP research.
   const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
-    if (!IK_ENTRY_SHELL_IDENTITY_COVERAGE) return null;
+    if (!identityCoverageOn) return null;
     if (!report.masterBoq.readyForExperts) return null;
     return runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
       package: pkg,
       expert: report,
     });
-  }, [effectiveItem, pkg, report]);
-
+  }, [identityCoverageOn, effectiveItem, pkg, report]);
   // Labor expert — gated; when enabled, research still forced OFF in P1 shell.
   useEffect(() => {
     if (!IK_ENTRY_SHELL_RUN_RATE_EXPERTS) {
@@ -278,6 +283,8 @@ export function IkEntryHost({
       data-ik-entry-auto-ingest={autoIngestOn ? "1" : "0"}
       data-ik-entry-execute-research={IK_ENTRY_SHELL_EXECUTE_RESEARCH ? "1" : "0"}
       data-ik-p2-documents-boq={autoIngestOn ? "1" : "0"}
+      data-ik-p3-identity-coverage={identityCoverageOn ? "1" : "0"}
+      data-ik-entry-identity-coverage={identityCoverageOn ? "1" : "0"}
       data-ik-entry-tender-id={item.id}
       data-ik-entry-boq-status={report.masterBoq.status}
       data-ik-cost-doc-count={String(report.costDocuments.length)}
@@ -300,7 +307,9 @@ export function IkEntryHost({
       data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
       data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
       data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
-      data-ik-identity-status={identityCoverage?.status ?? "shell_skipped"}
+      data-ik-identity-status={
+        identityCoverageOn ? (identityCoverage?.status ?? "pending") : "shell_skipped"
+      }
       data-ik-identity-work={String(identityCoverage?.counts.trustedWorkIdentity ?? 0)}
       data-ik-identity-material={String(identityCoverage?.counts.trustedMaterialIdentity ?? 0)}
       data-ik-identity-alias={String(identityCoverage?.counts.approvedAlias ?? 0)}

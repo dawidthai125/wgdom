@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.80 — IK-MIGRATION-01 P3 Classification + Identity (2026-08-16)
+
+- **P3 Owner GO:** A1 Classification → Identity → handoff → **STOP**
+- **Lever:** `ikIdentityCoverageEnabled` (default **OFF**); ON ≠ research / Accept / CatalogWrite
+- **EXECUTE_RESEARCH / RUN_RATE_EXPERTS:** remain **OFF**
+- **REUSE:** `classification-gate` · `ik-classification` · `ik-identity-coverage`
+- **STOP:** no auto P4
+
 ## 2.66.79 — IK-MIGRATION-01 P2 Documents→BOQ controlled AUTO_INGEST (2026-08-16)
 
 **Scope:** Owner GO — P2 controlled Documents→BOQ under IK (REUSE).

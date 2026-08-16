@@ -1,0 +1,82 @@
+{
+  "id": "IK-MIGRATION-01-P3-AUDIT",
+  "date": "2026-08-16",
+  "mode": "AUDIT_ONLY",
+  "ownerGo": true,
+  "status": "READY_FOR_PLAN",
+  "chatgptEscalation": false,
+  "formalScopeConfirmed": true,
+  "formalScope": "Classification + identity on Master BOQ lines (DF §5)",
+  "baseline": {
+    "p2Live": { "version": "2.66.79", "commit": "f0ba43d" },
+    "p2Impl": "aa4c0edf",
+    "p2Docs": "a449f0f3",
+    "autoIngestDefault": false,
+    "executeResearch": false,
+    "runRateExperts": false,
+    "identityCoverage": false
+  },
+  "formalSources": [
+    "docs/architecture/IK-MIGRATION-01-DESIGN-FREEZE.md#5",
+    "docs/architecture/IK-MIGRATION-01-P2-PLAN-DESIGN-FREEZE.md#12",
+    "docs/architecture/IK-MIGRATION-01-P3-CLASSIFICATION-GATE.md",
+    "docs/architecture/IK-MIGRATION-01-P5.5-IDENTITY-COVERAGE.md",
+    "docs/architecture/IK-MIGRATION-01-P2-PRODUCTION-VERIFY.md"
+  ],
+  "p3Objective": "READY/PARTIAL Master BOQ → A1 classification + identity status/coverage → expert handoff flags; no research/Accept/F5/Bid",
+  "alreadyAvailable": [
+    "classification-gate.ts classifyEstimatorPricingPlane",
+    "ik-classification.ts runIkMasterBoqClassification",
+    "ik-identity-coverage.ts runIkMasterBoqIdentityCoverage",
+    "internal-first-semantic-match / domain / host-safety",
+    "P5.26-E matcher safety",
+    "P5.27/31/32 category allowlists",
+    "test-ik-migration-01-p3-classification.mjs",
+    "test-ik-migration-01-p55-identity-coverage.mjs"
+  ],
+  "notAlreadyImplementedUnderControlledIkP3": [
+    "No P3 PLAN+DESIGN FREEZE in current Owner GO series",
+    "IDENTITY_COVERAGE host guard OFF",
+    "EC auto-runs classification when Master BOQ READY without explicit P3 lever",
+    "Internal-first not yet policy-wired as formal P3 enablement"
+  ],
+  "p2ToP3Seam": {
+    "in": ["READY", "PARTIAL_subset"],
+    "stop": ["HOLD", "GAP", "PARSER_EMPTY_as_price_miss"]
+  },
+  "guardsMustStayOff": [
+    "EXECUTE_RESEARCH",
+    "RUN_RATE_EXPERTS"
+  ],
+  "candidateP3Lever": "IK_ENTRY_SHELL_IDENTITY_COVERAGE (and/or EC classify policy)",
+  "p526Locked": true,
+  "catalogWork": 471,
+  "risksTop": ["R-P3-01", "R-P3-02", "R-P3-03", "R-P3-04", "R-P3-08"],
+  "outOfScope": [
+    "P3 IMPLEMENT",
+    "P4",
+    "P5 research",
+    "Accept",
+    "CatalogWork",
+    "F5",
+    "Bid",
+    "P5.26-REVIEW-9",
+    "P5.33",
+    "Classification V2"
+  ],
+  "execution": {
+    "research": 0,
+    "http": 0,
+    "accept": 0,
+    "create": 0,
+    "bind": 0,
+    "write": 0,
+    "code": 0,
+    "edge": 0,
+    "commit": 0,
+    "push": 0
+  },
+  "next": "P3_PLAN_DESIGN_FREEZE_COMPLETE_SEE_DOC",
+  "planDoc": "docs/architecture/IK-MIGRATION-01-P3-PLAN-DESIGN-FREEZE.md",
+  "stop": true
+}

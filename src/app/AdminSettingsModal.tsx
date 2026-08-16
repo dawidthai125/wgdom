@@ -461,6 +461,26 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikIdentityCoverageEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikIdentityCoverageEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-identity-coverage-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · IDENTITY_COVERAGE (P3)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P3. Domyślnie OFF. Identity Coverage na Master BOQ READY —
+                  bez researchu HTTP, bez Accept, bez CatalogWork. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

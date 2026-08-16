@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.80",
+    label: "IK-MIGRATION-01 P3 Classification + Identity",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P3 (Owner GO): A1 Classification → Identity → handoff → STOP. Jedyny lever IDENTITY_COVERAGE (AppSettings.ikIdentityCoverageEnabled, default OFF). P2 READY → klasyfikacja sync (0 HTTP). Coverage ON = diagnostyka identity bez research/Accept/CatalogWrite/F5/Bid. EXECUTE_RESEARCH i RUN_RATE_EXPERTS pozostają OFF. REUSE classification-gate + ik-identity-coverage. Prod: coverage OFF. STOP — bez auto P4.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.79",
     label: "IK-MIGRATION-01 P2 Documents→BOQ controlled AUTO_INGEST",
     items: [

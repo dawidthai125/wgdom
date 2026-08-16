@@ -256,8 +256,9 @@ assert("O no auto-Accept", report.autoAcceptExecuted === false);
 
 // Gate A — default OFF → NG-10
 forceIkEntryEnabledForTests(null);
-assert("Gate A ikEntryEnabled OFF", isIkEntryEnabled(defaultAppSettings()) === false);
-assert("Gate A firstScreen ng10", resolveIkDetailFirstScreen(defaultAppSettings()) === "ng10_gate");
+assert("Gate A ikEntryEnabled OFF", isIkEntryEnabled() === false);
+assert("Gate A firstScreen ng10", resolveIkDetailFirstScreen(false) === "ng10_gate");
+assert("Gate A default settings OFF", defaultAppSettings().ikEntryEnabled === false);
 
 // EC facts when classification provided
 forceIkEntryEnabledForTests(true);

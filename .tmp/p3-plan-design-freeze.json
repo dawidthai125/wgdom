@@ -1,0 +1,126 @@
+{
+  "id": "IK-MIGRATION-01-P3-PLAN-DESIGN-FREEZE",
+  "date": "2026-08-16",
+  "mode": "PLAN_DESIGN_FREEZE_ONLY",
+  "status": "COMPLETE",
+  "readyForOwnerGo": true,
+  "chatgptEscalation": false,
+  "baseline": {
+    "p0": "PRODUCTION_VERIFIED",
+    "p1": "ebab4a9f",
+    "p2Impl": "aa4c0edf",
+    "p2PvDocs": "a449f0f3",
+    "p3Audit": "READY_FOR_PLAN",
+    "p526": "1d41f619",
+    "catalogWork": 471,
+    "autoIngestDefault": false,
+    "executeResearch": false,
+    "runRateExperts": false,
+    "identityCoverageDefault": false
+  },
+  "ssotReuse": [
+    "docs/architecture/IK-MIGRATION-01-DESIGN-FREEZE.md#5",
+    "docs/architecture/IK-MIGRATION-01-P3-AUDIT.md",
+    "docs/architecture/IK-MIGRATION-01-P2-PLAN-DESIGN-FREEZE.md",
+    "docs/architecture/IK-MIGRATION-01-P3-CLASSIFICATION-GATE.md",
+    "docs/architecture/IK-MIGRATION-01-P5.5-IDENTITY-COVERAGE.md"
+  ],
+  "ad": [
+    "AD-IK-P3-01",
+    "AD-IK-P3-02",
+    "AD-IK-P3-03",
+    "AD-IK-P3-04",
+    "AD-IK-P3-05",
+    "AD-IK-P3-06",
+    "AD-IK-P3-07",
+    "AD-IK-P3-08",
+    "AD-IK-P3-09",
+    "AD-IK-P3-10",
+    "AD-IK-P3-11",
+    "AD-IK-P3-12",
+    "AD-IK-P3-13",
+    "AD-IK-P3-14",
+    "AD-IK-P3-15"
+  ],
+  "onlyGuardAllowedToFlip": "IK_ENTRY_SHELL_IDENTITY_COVERAGE",
+  "guardsMustStayOff": [
+    "IK_ENTRY_SHELL_EXECUTE_RESEARCH",
+    "IK_ENTRY_SHELL_RUN_RATE_EXPERTS"
+  ],
+  "p2GuardUnchanged": "AUTO_INGEST_DEFAULT_OFF",
+  "classification": {
+    "engine": "classifyEstimatorPricingPlane",
+    "orchestration": "runIkMasterBoqClassification",
+    "planes": ["LABOR", "MATERIAL", "COMPOUND", "UNKNOWN"],
+    "handoff": [
+      "LABOR_READY_FOR_EXPERT",
+      "MATERIAL_READY_FOR_EXPERT",
+      "BOTH_HOLD",
+      "UNRESOLVED"
+    ],
+    "allowResearchBitsAreNotGo": true,
+    "http": false,
+    "newFlag": false
+  },
+  "identity": {
+    "thin": "identityStatus on classified lines",
+    "coverage": "runIkMasterBoqIdentityCoverage behind IDENTITY_COVERAGE",
+    "internalFirstReuse": true,
+    "noMatchIsNotMarketAbsence": true,
+    "reviewIsNotAccept": true
+  },
+  "inputEligibility": {
+    "READY": "IN",
+    "PARTIAL": "SUBSET_ONLY",
+    "HOLD": "STOP",
+    "GAP": "STOP"
+  },
+  "categoryKeys": {
+    "create": false,
+    "locked": ["flooring", "repairs_wall", "repairs_opening", "joinery_finish"]
+  },
+  "implementationPhases": [
+    "A_reuse_classification",
+    "B_controlled_trigger",
+    "C_identity_seam",
+    "D_identity_coverage_guard",
+    "E_handoff_flags",
+    "F_tests",
+    "G_production_verify"
+  ],
+  "ownerDecisions": {
+    "1_classificationTrigger": "IK ON + Master BOQ READY/eligible PARTIAL; no new classify AppSettings",
+    "2_identityCoverageTrigger": "sole P3 IMPLEMENT lever; default OFF; ON != research",
+    "3_readyPartial": "READY in; PARTIAL subset; HOLD/GAP STOP",
+    "4_identityOutput": "existing thin + coverage enums",
+    "5_review": "REVIEW != ACCEPT",
+    "6_noMatch": "!= market absence / RESEARCH_FAILED",
+    "7_categoryKeys": "no create; P5.31/32 locked",
+    "8_p4p5Handoff": "output only; no auto execution"
+  },
+  "outOfScope": [
+    "IMPLEMENT",
+    "research",
+    "Accept",
+    "CatalogWork",
+    "F5",
+    "Bid",
+    "P4",
+    "P5.33",
+    "Classification V2"
+  ],
+  "execution": {
+    "code": 0,
+    "research": 0,
+    "http": 0,
+    "accept": 0,
+    "create": 0,
+    "bind": 0,
+    "write": 0,
+    "edge": 0,
+    "commit": 0,
+    "push": 0
+  },
+  "next": "READY_FOR_P3_OWNER_GO",
+  "stop": true
+}
