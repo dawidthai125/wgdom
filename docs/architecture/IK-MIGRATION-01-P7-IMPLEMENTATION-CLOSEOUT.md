@@ -12,14 +12,13 @@
 ## FINAL STATUS
 
 ```text
-P7 PLAN = PASS
-P7 IMPLEMENTATION = PASS
-TEST = PASS (scripts/test-ik-migration-01-p7-implementation.mjs + P6 chain regression)
+P7 IMPLEMENTATION = PASS · commit **`e291340e`** (origin/main)
+TEST = PASS (P7 script + P6 chain regression)
 BUILD = PASS
-PUSH = (see commit SHA below)
-PRODUCTION VERIFY = see IK-MIGRATION-01-P7-PRODUCTION-VERIFY.md
+PUSH = PASS
+PRODUCTION VERIFY = **DEPLOY_PROPAGATING** (one-shot live still 2.66.83 / d450b8a)
 
-UI = 2.66.84
+UI = 2.66.84 (changelog)
 ikF5E2eEnabled = DEFAULT OFF
 RESEARCH = 0 · HTTP = 0 (hard lock)
 CatalogWork 471 = UNCHANGED / READ ONLY
