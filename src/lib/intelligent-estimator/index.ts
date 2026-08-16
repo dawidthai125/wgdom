@@ -26,14 +26,19 @@ export {
   forceIkEntryEnabledForTests,
   forceIkAutoIngestForTests,
   forceIkIdentityCoverageForTests,
+  forceIkChiefWiringForTests,
   isIkEntryEnabled,
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
+  isIkChiefWiringEnabled,
   isIkP2DocumentsBoqActive,
   isIkP3IdentityCoverageActive,
+  isIkP4ChiefWiringPreferenceActive,
+  isIkP4ChiefSessionEligible,
+  resolveIkP4ChiefEligible,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
-export type { IkDetailFirstScreen } from "./ik-entry-flag";
+export type { IkDetailFirstScreen, IkP4ChiefEligibilityInput, IkP4BoqGateStatus } from "./ik-entry-flag";
 
 export {
   IK_CONVERSATION_SOURCE_REF_KINDS,

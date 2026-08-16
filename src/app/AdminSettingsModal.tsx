@@ -481,6 +481,26 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikChiefWiringEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikChiefWiringEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-chief-wiring-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · CHIEF WIRING (P4)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  IK-MIGRATION-01 P4. Domyślnie OFF. Chief T1–T6 pod IK Entry + pricingReady —
+                  bez Dual Outcome (D), bez Labor/Material research, bez Accept. Po teście: wyłącz.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">

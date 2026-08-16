@@ -1,0 +1,63 @@
+{
+  "id": "IK-MIGRATION-01-P4-PLAN-DESIGN-FREEZE",
+  "date": "2026-08-16",
+  "mode": "DOCS_ONLY",
+  "status": "COMPLETE",
+  "readyFor": "P4_OWNER_GO",
+  "escalation": {
+    "prior": "CHATGPT_ESCALATION_REQUIRED",
+    "resolution": "OWNER_DECISION_2026-08-16",
+    "formalP4": "CHIEF_WIRING",
+    "formalP5": "LABOR_E2E",
+    "formalP6": "MATERIAL_E2E",
+    "legacyP4LaborDocs": "HISTORICAL_LABEL_DO_NOT_OVERRIDE"
+  },
+  "integrity": {
+    "CODE": 0,
+    "RESEARCH": 0,
+    "HTTP": 0,
+    "ACCEPT": 0,
+    "CREATE": 0,
+    "BIND": 0,
+    "WRITE": 0,
+    "EDGE_DEPLOY": 0,
+    "COMMIT": 0,
+    "PUSH": 0
+  },
+  "baseline": {
+    "P0_P3": "PRODUCTION_VERIFIED",
+    "P3_impl": "350e81e6",
+    "P5_26": "LOCKED@1d41f619",
+    "catalogWork": 471,
+    "P5_33": "DO_NOT_CREATE"
+  },
+  "contract": {
+    "input": ["P3_handoff", "OfferBoq", "pricingReady"],
+    "trigger": "ikEntryEnabled AND pricingReady AND p4ChiefEnabled",
+    "engine": "useChiefOrchestratorSession + runChiefOrchestrator T1-T6",
+    "output": ["chief_session", "cost_offer_facts", "EC_events_sourceRef"],
+    "stop": "before_P5_Labor"
+  },
+  "levers": {
+    "P4_CHIEF_ENABLE": "DEFAULT_OFF_TBD_IMPLEMENT",
+    "expertAiDecydentEnabled": "UNTOUCHED",
+    "EXECUTE_RESEARCH": "OFF",
+    "RUN_RATE_EXPERTS": "OFF",
+    "IDENTITY_COVERAGE": "P3_LEVER_NOT_FLIPPED_BY_P4"
+  },
+  "boundaries": {
+    "dualOutcome": "SEPARATE",
+    "laborResearch": "P5",
+    "materialResearch": "P6",
+    "acceptWrite": "FORBIDDEN_IN_P4",
+    "f5Bid": "P7",
+    "t4EnqueueMmrPhase1": "REUSE_EXISTING_FAIL_SOFT_NO_EXPAND",
+    "costBlocked": "LEGAL"
+  },
+  "currentGap": {
+    "chiefGatedBy": "isChiefOrchestratorSessionEnabled → D/LS",
+    "requiredImplement": "IK-scoped Chief enable without flipping D"
+  },
+  "implementPlan": ["A_split_enable_from_D", "B_trigger", "C_reuse_session", "D_EC_wiring", "E_research_guards", "F_tests", "G_PV"],
+  "verdict": "P4_PLAN_DESIGN_FREEZE_COMPLETE_READY_FOR_OWNER_GO"
+}

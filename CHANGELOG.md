@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.81 — IK-MIGRATION-01 P4 Chief Wiring (2026-08-16)
+
+- **P4 Owner GO:** Chief Wiring under IK (`ikChiefWiringEnabled`, default **OFF**)
+- Trigger: IK ON ∧ P4 ON ∧ `pricingReady` → existing Chief T1–T6
+- **IK ≠ D** — does not flip `expertAiDecydentEnabled`
+- Labor = P5 · Material = P6 · research/Accept/F5 **OUT**
+- **STOP:** no auto P5
+
 ## 2.66.80 — IK-MIGRATION-01 P3 Classification + Identity (2026-08-16)
 
 - **P3 Owner GO:** A1 Classification → Identity → handoff → **STOP**

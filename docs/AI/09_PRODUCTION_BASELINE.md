@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-16 · tip UI **2.66.80** · live **`ad6273b`** · feature **`350e81e6`** · **IK-MIGRATION-01 P3 PRODUCTION VERIFIED** · prior P2 **`aa4c0edf`** · P1 **`ebab4a9f`** · P0 **`b004b08e`** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
+**Snapshot dokumentacji:** 2026-08-16 · tip UI **2.66.81** · feature **PENDING_COMMIT** · **IK-MIGRATION-01 P4 Chief Wiring** · prior P3 **`350e81e6`** · P2 **`aa4c0edf`** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
 
 ---
 
@@ -27,8 +27,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.80** |
-| **Deploy tip commit (`main` / `version.json`)** | **`ad6273bf`** (live) · feature **`350e81e6`** · IK-MIGRATION-01 **P3 PRODUCTION VERIFIED** · `ikIdentityCoverageEnabled` default OFF · [`P3 PV`](../architecture/IK-MIGRATION-01-P3-PRODUCTION-VERIFY.md) · [`P3 CLOSEOUT`](../architecture/IK-MIGRATION-01-P3-IMPLEMENTATION-CLOSEOUT.md) · prior P2 **`aa4c0edf`** · P1 **`ebab4a9f`** · P0 **`b004b08e`** |
+| **UI version (changelog / version.json)** | **2.66.81** |
+| **Deploy tip commit (`main` / `version.json`)** | **PENDING_PUSH** · IK-MIGRATION-01 **P4** Chief Wiring · `ikChiefWiringEnabled` default OFF · IK≠D · [`P4 CLOSEOUT`](../architecture/IK-MIGRATION-01-P4-IMPLEMENTATION-CLOSEOUT.md) · prior P3 **`350e81e6`** · P2 **`aa4c0edf`** |
 | **Feature tip (IE Labor · Tablica OUR RATE)** | **DATA VERIFIED** · Evidence 67/rev3/`r3-a8226101` · Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** (pkt≠mb) · Wykwity **SOURCE GAP** · Catalog 460/34/426 · [`IE PRODUCTION BASELINE`](../architecture/INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md) · [`ACCEPT REVIEW`](../architecture/IE-LABOR-EVIDENCE-TABLICA-OUR-RATE-ACCEPT-REVIEW.md) |
 | **Feature tip (IK Master Continuity docs)** | **ACTIVE** · [`MASTER SSOT`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`AI CONTINUITY`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · **NO REBUILD** Przetargi/Catalog/Pricing |
 | **Session tip (2026-08-13 Wrocław continuity)** | **SESSION CLOSED** · handoff [`SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](../architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · operational targets **WM → ZZK → MOPS → uczelnie** · **Połczyn NOT TARGET** · reference **WM/TP/239/2026/G** · F5/PackageGate/Bid/REAL SOURCE **NOT GREEN** globally · D02 LP22 residual OPEN · **NIE** auto IMPLEMENT |

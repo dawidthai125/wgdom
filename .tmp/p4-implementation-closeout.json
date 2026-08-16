@@ -1,0 +1,34 @@
+{
+  "id": "IK-MIGRATION-01-P4-IMPLEMENTATION-CLOSEOUT",
+  "date": "2026-08-16",
+  "ownerGo": true,
+  "status": {
+    "plan": "PASS",
+    "implementation": "PASS",
+    "test": "PASS",
+    "build": "PASS",
+    "productionVerify": "PENDING_PUSH"
+  },
+  "uiVersion": "2.66.81",
+  "formal": {
+    "P4": "CHIEF_WIRING",
+    "P5": "LABOR_E2E",
+    "P6": "MATERIAL_E2E"
+  },
+  "levers": {
+    "ikChiefWiringEnabled": "DEFAULT_OFF",
+    "expertAiDecydentEnabled": "UNTOUCHED",
+    "EXECUTE_RESEARCH": "OFF",
+    "RUN_RATE_EXPERTS": "OFF"
+  },
+  "tests": {
+    "p4": "58/58",
+    "p0": "52/52",
+    "p1": "61/61",
+    "p2": "65/65",
+    "p3": "87/87",
+    "build": "PASS"
+  },
+  "p5": "NOT_STARTED",
+  "stop": "READY_FOR_P5_OWNER_GO"
+}

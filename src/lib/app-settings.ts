@@ -75,6 +75,12 @@ export interface AppSettings {
    * Default OFF. Sole P3 lever. Does NOT enable EXECUTE_RESEARCH / RUN_RATE_EXPERTS.
    */
   ikIdentityCoverageEnabled: boolean;
+  /**
+   * IK-MIGRATION-01 P4 — Chief Wiring under IK Entry (scoped session).
+   * Default OFF. Requires ikEntryEnabled + pricingReady. Does NOT flip Dual Outcome master (D).
+   * Does NOT enable Labor/Material research.
+   */
+  ikChiefWiringEnabled: boolean;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -115,6 +121,7 @@ export function defaultAppSettings(): AppSettings {
     ikEntryEnabled: false,
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
+    ikChiefWiringEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -285,6 +292,16 @@ export function mergeIkIdentityCoverageEnabled(
   return local.ikIdentityCoverageEnabled === true;
 }
 
+/** P4 Chief-under-IK preference — independent of Dual Outcome master (D). */
+export function mergeIkChiefWiringEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikChiefWiringEnabled === true) return true;
+  if (remote?.ikChiefWiringEnabled === false) return false;
+  return local.ikChiefWiringEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -303,6 +320,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikEntryEnabled: parsed.ikEntryEnabled === true,
       ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       ikIdentityCoverageEnabled: parsed.ikIdentityCoverageEnabled === true,
+      ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode
@@ -364,6 +382,7 @@ export function mergeAppSettings(
     ikEntryEnabled: mergeIkEntryEnabled(remote, local),
     ikAutoIngestEnabled: mergeIkAutoIngestEnabled(remote, local),
     ikIdentityCoverageEnabled: mergeIkIdentityCoverageEnabled(remote, local),
+    ikChiefWiringEnabled: mergeIkChiefWiringEnabled(remote, local),
     catalogWriteMode: mergeCatalogWriteMode(remote, local),
     bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
     bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),

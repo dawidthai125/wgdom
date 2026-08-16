@@ -6,8 +6,9 @@
  * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
  *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
  *
- * EXECUTE_RESEARCH / RUN_RATE_EXPERTS stay hard OFF (P4/P5).
+ * EXECUTE_RESEARCH / RUN_RATE_EXPERTS stay hard OFF (P5/P6).
  * IDENTITY_COVERAGE ON ≠ research ON.
+ * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — not labor/material experts.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";

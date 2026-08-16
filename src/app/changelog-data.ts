@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-16",
+    version: "2.66.81",
+    label: "IK-MIGRATION-01 P4 Chief Wiring",
+    items: [
+      {
+        type: "new",
+        text: "IK-MIGRATION-01 P4 (Owner GO): Chief Wiring pod IK — AppSettings.ikChiefWiringEnabled (default OFF), seam IK ON ∧ P4 ON ∧ pricingReady → useChiefOrchestratorSession (REUSE T1–T6). IK ≠ D (nie flipuje expertAiDecydentEnabled). EXECUTE_RESEARCH/RUN_RATE_EXPERTS OFF. Labor=P5 · Material=P6. Prod: P4 OFF. STOP — bez auto P5.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-16",
     version: "2.66.80",
     label: "IK-MIGRATION-01 P3 Classification + Identity",
     items: [

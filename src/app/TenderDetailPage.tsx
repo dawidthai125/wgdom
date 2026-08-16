@@ -75,6 +75,8 @@ import { leaveTenderDetailToModule } from "@/lib/tender-module-nav-sheet";
 import { notifyIkPricingAccepted } from "@/lib/ik-pricing-orchestrator";
 import {
   isIkEntryEnabled,
+  isIkP4ChiefSessionEligible,
+  isIkP4ChiefWiringPreferenceActive,
   resolveIkDetailFirstScreen,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
@@ -244,7 +246,18 @@ export function TenderDetailPage({
     pipelineRuntime,
   });
 
-  const chiefSessionEnabled = isChiefSessionStackEnabled(expertEffective);
+  /**
+   * IK-MIGRATION-01 P4 — Chief Wiring under IK (≠ D).
+   * D path UNCHANGED via isChiefSessionStackEnabled.
+   * P4 path: ikEntry ∧ ikChiefWiring ∧ pricingReady (HOLD/GAP blocked in resolver when status known).
+   */
+  const pricingReady =
+    pipelineRuntime.pricingReadyPartial === true
+    || pipelineRuntime.pricingReadyFinal === true;
+  const p4ChiefPreferenceOn = isIkP4ChiefWiringPreferenceActive();
+  const p4ChiefEligible = isIkP4ChiefSessionEligible({ pricingReady });
+  const dChiefEnabled = isChiefSessionStackEnabled(expertEffective);
+  const chiefSessionEnabled = dChiefEnabled || p4ChiefEligible;
   const [chiefRefreshNonce, setChiefRefreshNonce] = useState(0);
   const chiefSession = useChiefOrchestratorSession({
     enabled: chiefSessionEnabled && Boolean(item),
@@ -676,6 +689,10 @@ export function TenderDetailPage({
       data-s7-hub-first="1"
       data-ik-entry-enabled={ikEntryOn ? "1" : "0"}
       data-ik-first-screen={ikFirstScreen}
+      data-ik-p4-chief-wiring={p4ChiefPreferenceOn ? "1" : "0"}
+      data-ik-p4-chief-eligible={p4ChiefEligible ? "1" : "0"}
+      data-ik-p4-chief-via-d={dChiefEnabled ? "1" : "0"}
+      data-ik-p4-pricing-ready={pricingReady ? "1" : "0"}
     >
       <TenderDetailCommandLayer
         item={item}
