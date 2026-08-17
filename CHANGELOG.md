@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.93 — IK AUTONOMY-08 P0 Documents → BOQ Autonomous Activation (2026-08-17)
+
+- **Owner GO OD-08-1:** IK ON ⇒ Documents→BOQ. `isIkP2DocumentsBoqActive()` = `ikEntryEnabled === true`
+- `IkEntryHost` gating przez helper · leftover `ikAutoIngestEnabled` zostaje w AppSettings (nie runtime gate, bez migracji KV)
+- Admin: usunięty checkbox AUTO_INGEST · copy Documents/BOQ
+- Research / Accept / P7 / P8 / D / A05–A07 UNCHANGED · P1 CLOSED · P2 KEEP GAP · CatalogWork **471**
+- Test: `npx vite-node scripts/test-ik-autonomy-08-p0-documents-boq.mjs`
+
 ## 2.66.92 — IK AUTONOMY-07 P8 Autonomous Risk / Decision Prepare (2026-08-17)
 
 - **Owner GO:** P8 `ikRiskDecisionE2eEnabled` = `"AUTO" | "OFF" | "ON"` (same key, no new flag)

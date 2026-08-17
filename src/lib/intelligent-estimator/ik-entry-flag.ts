@@ -143,8 +143,9 @@ export function isIkEntryEnabled(): boolean {
 }
 
 /**
- * P2 Documents→BOQ auto-ingest preference (AppSettings).
- * Default OFF. Does NOT imply research/experts.
+ * Leftover P2 preference reader (IK-MIGRATION-01 P2).
+ * IK AUTONOMY-08 P0: NOT a Documents→BOQ runtime gate.
+ * Runtime gate = isIkP2DocumentsBoqActive() := ikEntryEnabled === true.
  */
 export function isIkAutoIngestEnabled(): boolean {
   if (ikAutoIngestForTests != null) return ikAutoIngestForTests;
@@ -191,11 +192,12 @@ export function isIkLaborResearchEnabled(): boolean {
 }
 
 /**
- * P2 active seam: IK Entry ON ∧ AUTO_INGEST ON.
- * IK ON alone does NOT run Documents→BOQ.
+ * P2 Documents→BOQ active seam (IK AUTONOMY-08 P0 · OD-08-1).
+ * IK ON ⇒ ingest may run (still needs needsIkNg02Ingest / onUpdate / pipeline idle).
+ * Leftover ikAutoIngestEnabled is NOT part of this gate (true/false/missing/malformed ignored).
  */
 export function isIkP2DocumentsBoqActive(): boolean {
-  return isIkEntryEnabled() === true && isIkAutoIngestEnabled() === true;
+  return isIkEntryEnabled() === true;
 }
 
 /**

@@ -49,7 +49,7 @@ globalThis.localStorage = {
 console.log("=== IK-MIGRATION-01 P2.5 INGEST BRIDGE ===\n");
 
 assert("flag default ON (P10)", defaultAppSettings().ikEntryEnabled === true);
-assert("isIkEntryEnabled false", isIkEntryEnabled() === false);
+assert("isIkEntryEnabled follows default ON when LS empty", isIkEntryEnabled() === true);
 assert("OFF → ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
   "NG-10 Gate retained in DetailPage",
@@ -74,8 +74,12 @@ assert(
   ),
 );
 assert(
-  "Host AUTO_INGEST runtime via isIkAutoIngestEnabled",
-  /isIkAutoIngestEnabled/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
+  "Host Documents→BOQ runtime via isIkP2DocumentsBoqActive (08-P0)",
+  /isIkP2DocumentsBoqActive/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
+);
+assert(
+  "Host leftover isIkAutoIngestEnabled not used as gate",
+  !/isIkAutoIngestEnabled/.test(readSrc("src/app/intelligent-estimator/IkEntryHost.tsx")),
 );
 assert(
   "DetailPage passes onUpdate to Host",

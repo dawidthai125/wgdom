@@ -286,9 +286,10 @@ assert("R1 research uses explicit P5/P6 mode flags",
   && /executeResearch:\s*p6ResearchOn === true/.test(hostSrc));
 assert("R1 EXECUTE_RESEARCH shell const remains false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 assert(
-  "R1 auto-ingest runtime gate (P2)",
-  /isIkAutoIngestEnabled/.test(hostSrc) && /if\s*\(\s*!autoIngestOn\s*\)/.test(hostSrc),
+  "R1 Documents→BOQ runtime gate (08-P0 helper)",
+  /isIkP2DocumentsBoqActive/.test(hostSrc) && /if\s*\(\s*!p2DocumentsBoqOn\s*\)/.test(hostSrc),
 );
+assert("R1 host does not gate ingest on leftover isIkAutoIngestEnabled", !/isIkAutoIngestEnabled/.test(hostSrc));
 assert(
   "R1 identity coverage runtime gate (P3)",
   /isIkIdentityCoverageEnabled/.test(hostSrc) && /if\s*\(\s*!identityCoverageOn\s*\)/.test(hostSrc),
@@ -306,7 +307,7 @@ assert(
 );
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
 assert("C Admin IK toggle present", /data-ik-entry-toggle/.test(adminSrc));
-assert("C Admin AUTO_INGEST toggle present", /data-ik-auto-ingest-toggle/.test(adminSrc));
+assert("C Admin AUTO_INGEST toggle absent (08-P0 leftover internal)", !/data-ik-auto-ingest-toggle/.test(adminSrc));
 assert("C Admin IDENTITY_COVERAGE toggle present", /data-ik-identity-coverage-toggle/.test(adminSrc));
 assert("C default ikAutoIngestEnabled OFF", defaultAppSettings().ikAutoIngestEnabled === false);
 assert("C default ikIdentityCoverageEnabled OFF", defaultAppSettings().ikIdentityCoverageEnabled === false);

@@ -125,8 +125,8 @@ assert("A DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 reset();
 setSettings({ ikEntryEnabled: true, ikAutoIngestEnabled: false });
 assert("B IK ON", isIkEntryEnabled() === true);
-assert("B AUTO OFF", isIkAutoIngestEnabled() === false);
-assert("B P2 inactive", isIkP2DocumentsBoqActive() === false);
+assert("B leftover AUTO OFF", isIkAutoIngestEnabled() === false);
+assert("B P2 active (08-P0 IK ON implies ingest gate)", isIkP2DocumentsBoqActive() === true);
 assert("B first screen ik_entry", resolveIkDetailFirstScreen(true) === "ik_entry");
 
 // --- C: IK ON + AUTO ON ---
@@ -138,11 +138,11 @@ assert("C P2 active", isIkP2DocumentsBoqActive() === true);
 
 forceIkEntryEnabledForTests(true);
 forceIkAutoIngestForTests(false);
-assert("C force AUTO OFF disables P2", isIkP2DocumentsBoqActive() === false);
+assert("C force leftover AUTO OFF does not disable P2", isIkP2DocumentsBoqActive() === true);
 forceIkAutoIngestForTests(true);
-assert("C force AUTO ON enables P2", isIkP2DocumentsBoqActive() === true);
+assert("C force leftover AUTO ON P2 still active", isIkP2DocumentsBoqActive() === true);
 forceIkEntryEnabledForTests(false);
-assert("C IK OFF kills P2 even if AUTO forced", isIkP2DocumentsBoqActive() === false);
+assert("C IK OFF kills P2 even if leftover AUTO forced", isIkP2DocumentsBoqActive() === false);
 
 // --- D/E/F: research / experts / identity stay OFF ---
 assert("D EXECUTE_RESEARCH false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
@@ -155,14 +155,16 @@ assert("D research uses explicit P5/P6 mode flags",
 assert("D EXECUTE_RESEARCH shell const remains false", /IK_ENTRY_SHELL_EXECUTE_RESEARCH\s*=\s*false/.test(hostSrc));
 
 // --- Host wiring (P2) ---
-assert("Host uses isIkAutoIngestEnabled", /isIkAutoIngestEnabled/.test(hostSrc));
-assert("Host gates on autoIngestOn", /if\s*\(\s*!autoIngestOn\s*\)/.test(hostSrc));
+assert("Host uses isIkP2DocumentsBoqActive", /isIkP2DocumentsBoqActive/.test(hostSrc));
+assert("Host gates on p2DocumentsBoqOn", /if\s*\(\s*!p2DocumentsBoqOn\s*\)/.test(hostSrc));
+assert("Host leftover isIkAutoIngestEnabled unused", !/isIkAutoIngestEnabled/.test(hostSrc));
 assert("Host compile AUTO default false", /IK_ENTRY_SHELL_AUTO_INGEST\s*=\s*false/.test(hostSrc));
+assert("Host does not AND compile sentinel", !/IK_ENTRY_SHELL_AUTO_INGEST\s*&&/.test(hostSrc));
 assert("Host reuses NG-02 bridge", /runIkNg02IngestBridge/.test(hostSrc));
 assert("Host reuses Document Expert", /runIkDocumentExpert/.test(hostSrc));
 assert("Host data-ik-p2-documents-boq", /data-ik-p2-documents-boq/.test(hostSrc));
 assert("Host ingest phase shell when OFF", /:\s*"shell"/.test(hostSrc));
-assert("Admin AUTO toggle", /data-ik-auto-ingest-toggle/.test(adminSrc));
+assert("Admin AUTO toggle absent (08-P0)", !/data-ik-auto-ingest-toggle/.test(adminSrc));
 assert("Settings field ikAutoIngestEnabled", /ikAutoIngestEnabled/.test(settingsSrc));
 assert("mergeIkAutoIngestEnabled present", /mergeIkAutoIngestEnabled/.test(settingsSrc));
 assert("flag isIkP2DocumentsBoqActive", /isIkP2DocumentsBoqActive/.test(flagSrc));

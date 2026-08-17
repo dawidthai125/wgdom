@@ -434,30 +434,10 @@ export function AdminSettingsModal({
                 data-ik-entry-toggle
               />
               <div>
-                <p className="text-sm font-medium">Inteligentny Kosztorysant · wejście IK</p>
+                <p className="text-sm font-medium">Inteligentny Kosztorysant</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P10. Domyślnie włączone — /przetarg = IkEntryHost (NG-10 Gate usunięty).
-                  Wyłączenie = workspace bez hosta IK (bez powrotu do NG-10). Niezależne od Expert AI · Decydent.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikAutoIngestEnabled === true}
-                onChange={async (e) => {
-                  const next = { ...appSettings, ikAutoIngestEnabled: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-                data-ik-auto-ingest-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · AUTO_INGEST (Documents → BOQ)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P2. Domyślnie OFF. Działa tylko gdy wejście IK jest włączone.
-                  Nie włącza researchu robocizny/materiałów. Po teście: wyłącz.
+                  Po włączeniu Inteligentny Kosztorysant automatycznie rozpoczyna analizę przetargu
+                  od dokumentów i przygotowania BOQ.
                 </p>
               </div>
             </label>

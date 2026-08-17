@@ -111,8 +111,10 @@ export interface AppSettings {
    */
   ikEntryEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P2 — controlled Documents→BOQ auto-ingest under IkEntryHost.
-   * Default OFF. Requires ikEntryEnabled ON to take effect. Does NOT enable research/experts.
+   * IK-MIGRATION-01 P2 leftover (IK AUTONOMY-08 P0).
+   * Retained for load/merge/cloud-blob compatibility. Default OFF.
+   * NOT a runtime Documents→BOQ gate — see isIkP2DocumentsBoqActive (ikEntryEnabled).
+   * Do not migrate KV. Do not delete this key in 08-P0.
    */
   ikAutoIngestEnabled: boolean;
   /**

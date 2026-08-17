@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.93",
+    label: "IK AUTONOMY-08 P0 Documents → BOQ Autonomous Activation",
+    items: [
+      {
+        type: "improve",
+        text: "IK AUTONOMY-08 P0 (Owner GO OD-08-1): IK ON implikuje Documents→BOQ. isIkP2DocumentsBoqActive := ikEntryEnabled === true. IkEntryHost gating przez helper (nie ikAutoIngestEnabled). Leftover klucz zostaje w AppSettings bez migracji KV. Admin: usunięty checkbox AUTO_INGEST. Research/Accept/P7/P8/D/A05–A07 UNCHANGED. Test: test-ik-autonomy-08-p0-documents-boq.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.92",
     label: "IK AUTONOMY-07 P8 Autonomous Risk / Decision Prepare",
     items: [

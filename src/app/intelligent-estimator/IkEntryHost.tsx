@@ -4,7 +4,8 @@
  * + P8 Risk → Validation → Chief → DW → EC.
  *
  * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
- * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
+ * P2: when isIkP2DocumentsBoqActive() (IK Entry ON) → NG-02 ingest bridge → Document Expert.
+ *     Leftover ikAutoIngestEnabled is NOT the runtime gate (AUTONOMY-08 P0 / OD-08-1).
  * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
  *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
  * P5: Labor E2E when isIkP5LaborE2eActive() (AUTO|ON, not OFF); MODE B research only when
@@ -55,7 +56,7 @@ import {
   type IkCompositeBothHoldReport,
 } from "@/lib/intelligent-estimator/ik-composite-both-hold";
 import {
-  isIkAutoIngestEnabled,
+  isIkP2DocumentsBoqActive,
   isIkIdentityCoverageEnabled,
   isIkP5LaborE2eActive,
   isIkP5LaborExecuteResearchActive,
@@ -99,7 +100,7 @@ export function IkEntryHost({
   athPreviewEnabled?: boolean;
   chiefSession?: ChiefSessionOutput | null;
 }) {
-  const autoIngestOn = isIkAutoIngestEnabled() === true;
+  const p2DocumentsBoqOn = isIkP2DocumentsBoqActive() === true;
   const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
   const p5LaborOn = isIkP5LaborE2eActive() === true;
   const p5ResearchOn = isIkP5LaborExecuteResearchActive() === true;
@@ -118,9 +119,9 @@ export function IkEntryHost({
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
-  // P2 Documents→BOQ — only when AppSettings.ikAutoIngestEnabled (default OFF).
+  // P2 Documents→BOQ — IK ON (isIkP2DocumentsBoqActive). Leftover ingest key ignored.
   useEffect(() => {
-    if (!autoIngestOn) {
+    if (!p2DocumentsBoqOn) {
       setIngest(null);
       setBridgeBusy(false);
       return;
@@ -194,7 +195,7 @@ export function IkEntryHost({
       cancelled = true;
     };
   }, [
-    autoIngestOn,
+    p2DocumentsBoqOn,
     item,
     pkg,
     onUpdate,
@@ -366,9 +367,9 @@ export function IkEntryHost({
       className="mb-4"
       data-ik-entry-host="1"
       data-ik-entry-shell="1"
-      data-ik-entry-auto-ingest={autoIngestOn ? "1" : "0"}
+      data-ik-entry-auto-ingest={p2DocumentsBoqOn ? "1" : "0"}
       data-ik-entry-execute-research={p5ResearchOn ? "1" : "0"}
-      data-ik-p2-documents-boq={autoIngestOn ? "1" : "0"}
+      data-ik-p2-documents-boq={p2DocumentsBoqOn ? "1" : "0"}
       data-ik-p3-identity-coverage={identityCoverageOn ? "1" : "0"}
       data-ik-p5-labor-e2e={p5LaborOn ? "1" : "0"}
       data-ik-p5-labor-research={p5ResearchOn ? "1" : "0"}
@@ -384,7 +385,7 @@ export function IkEntryHost({
       data-ik-master-ready={report.masterBoq.readyForExperts ? "1" : "0"}
       data-ik-extracted-lines={String(report.extraction.extractedCount)}
       data-ik-ingest-phase={
-        autoIngestOn
+        p2DocumentsBoqOn
           ? (ingest?.phase ?? (bridgeBusy ? "started" : "idle"))
           : "shell"
       }
