@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.88 — IK P1 Invoice Host Collision (2026-08-17)
+
+- **P1 Owner GO:** G1 mapper excludes `cw.inv.*` from BOQ scoring · G2 hard-forbid `mat.inv.*` DIY Research
+- PM CURRENT reuse before DIY gate · CatalogWork **471** · D unchanged · no new engines
+- Test: `npx vite-node scripts/test-ik-p1-invoice-host-collision.mjs`
+
 ## 2.66.87 — IK-MIGRATION-01 P10 NG-10 → IK first-screen (2026-08-16)
 
 - **P10 Owner GO:** NG-10 Gate/Run/Outcome removed · IK (`IkEntryHost`) = first-screen

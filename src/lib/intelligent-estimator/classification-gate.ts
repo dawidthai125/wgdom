@@ -12,6 +12,7 @@ import type {
   EstimatorPricingPlane,
 } from "./classification-types";
 import { getOwnerClassificationPlane } from "./owner-classification-map";
+import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
 
 function trimOrNull(v: unknown): string | null {
   const s = String(v ?? "").trim();
@@ -180,6 +181,17 @@ export function assertMaterialResearchAllowed(input: {
   | { ok: false; classify: EstimatorClassifyResult; blockReason: "CLASSIFICATION_GATE" } {
   const materialKey = trimOrNull(input.materialKey);
   const workId = trimOrNull(input.workId) ?? trimOrNull(input.catalogWorkId);
+
+  // IK-P1 G2: mat.inv.* = historical purchase — HARD-FORBID DIY Research (before mat.* allow).
+  if (materialKey && isInvoicePurchaseMaterialKey(materialKey)) {
+    const classify = classifyEstimatorPricingPlane({
+      materialKey,
+      workId: null,
+      namePl: input.namePl,
+      unit: input.unit,
+    });
+    return { ok: false, classify, blockReason: "CLASSIFICATION_GATE" };
+  }
 
   if (materialKey?.startsWith("mat.")) {
     const classify = classifyEstimatorPricingPlane({

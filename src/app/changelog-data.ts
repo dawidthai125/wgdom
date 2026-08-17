@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-17",
+    version: "2.66.88",
+    label: "IK P1 Invoice Host Collision",
+    items: [
+      {
+        type: "fix",
+        text: "IK P1 (Owner GO): G1 — Product Mapper wyklucza cw.inv.* z scoringu BOQ (isInvoicePurchaseCatalogWorkId w mapOfferBoqLineCore). G2 — mat.inv.* HARD-FORBID DIY Research (researchEligible + assertMaterialResearchAllowed przed mat.* allow). PM CURRENT reuse przed gate. CatalogWork 471 · D unchanged · ZERO nowych silników. Test: test-ik-p1-invoice-host-collision.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-16",
     version: "2.66.87",
     label: "IK-MIGRATION-01 P10 NG-10 → IK first-screen",

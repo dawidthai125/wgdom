@@ -36,6 +36,7 @@ import {
   isCatalogWave2ProductId,
 } from "@/lib/catalog-coverage/alias-pack-wave2";
 import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negation-guard";
+import { isInvoicePurchaseCatalogWorkId } from "@/lib/price-intelligence/invoice-purchase-host";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -474,7 +475,10 @@ export function mapOfferBoqLineCore(
   const categoryLabel = categoryLabelPl(categoryId, catalog);
 
   const uplift = Boolean(ctx.cenyMaterialowUplift);
-  const active = (ctx.works ?? []).filter((w) => w.active);
+  // IK-P1: invoice purchase hosts (cw.inv.*) stay in CatalogWork / PM — never BOQ primary.
+  const active = (ctx.works ?? []).filter(
+    (w) => w.active && !isInvoicePurchaseCatalogWorkId(w.id),
+  );
   const scored = active
     .map((work) =>
       scoreWorkAgainstLine({

@@ -227,22 +227,6 @@ export function enqueueMaterialResearchPhase1(opts: {
     let resolved = 0;
 
     for (const need of unique) {
-      // A3 — Classification Gate before demand enqueue
-      const matGate = assertMaterialResearchAllowed({
-        materialKey: need.materialKey,
-        catalogWorkId: need.catalogWorkId || null,
-        namePl: need.namePl,
-        unit: need.unit,
-      });
-      if (!matGate.ok) {
-        decisions.push({
-          materialKey: need.materialKey,
-          usability: "MISSING",
-          action: "CLASSIFICATION_HOLD",
-        });
-        continue;
-      }
-
       const cache = evaluateMaterialCache({
         materialKey: need.materialKey,
         catalogWorkId: need.catalogWorkId || null,
@@ -253,7 +237,7 @@ export function enqueueMaterialResearchPhase1(opts: {
       const purchaseOk =
         (opts.company.purchaseByMaterialKey[need.materialKey]?.unitPricePln ?? 0) > 0;
 
-      // CACHE FIRST — CURRENT before demand / cooldown
+      // CACHE FIRST — CURRENT before DIY gate / demand (IK-P1: mat.inv.* may REUSE PM)
       if (cache.usability === "CURRENT") {
         reusedCurrent += 1;
         currentKeys.push(need.materialKey);
@@ -281,6 +265,22 @@ export function enqueueMaterialResearchPhase1(opts: {
             action: "REUSE",
           });
         }
+        continue;
+      }
+
+      // A3 + IK-P1 G2 — Classification Gate before demand enqueue (mat.inv.* → no DIY)
+      const matGate = assertMaterialResearchAllowed({
+        materialKey: need.materialKey,
+        catalogWorkId: need.catalogWorkId || null,
+        namePl: need.namePl,
+        unit: need.unit,
+      });
+      if (!matGate.ok) {
+        decisions.push({
+          materialKey: need.materialKey,
+          usability: "MISSING",
+          action: "CLASSIFICATION_HOLD",
+        });
         continue;
       }
 
@@ -469,24 +469,7 @@ export async function executeMaterialResearchPhase2(opts: {
   const cooldown = opts.cooldown ?? sessionCooldown;
   const worksById = opts.worksById ?? loadCatalogWorksById();
 
-  // A3 — Classification Gate BEFORE cache / lease / provider
-  const matGate = assertMaterialResearchAllowed({
-    materialKey: opts.demand.materialKey,
-    catalogWorkId: opts.demand.catalogWorkId,
-    namePl: opts.demand.normalizedName,
-    unit: opts.demand.unit,
-  });
-  if (!matGate.ok) {
-    return {
-      ok: false,
-      acquired: false,
-      candidate: null,
-      autoAccepted: false,
-      error: `classification_gate:${matGate.classify.plane}`,
-    };
-  }
-
-  // Cache gate first — never research CURRENT (unless Owner forceRefresh)
+  // Cache CURRENT first — Price Memory reuse (not DIY Research). IK-P1: mat.inv.* may HIT PM.
   const cache = evaluateMaterialCache({
     materialKey: opts.demand.materialKey,
     catalogWorkId: opts.demand.catalogWorkId,
@@ -501,6 +484,23 @@ export async function executeMaterialResearchPhase2(opts: {
       candidate: null,
       autoAccepted: false,
       error: "current_reuse_no_research",
+    };
+  }
+
+  // A3 + IK-P1 G2 — Classification / invoice DIY forbid BEFORE lease / provider HTTP
+  const matGate = assertMaterialResearchAllowed({
+    materialKey: opts.demand.materialKey,
+    catalogWorkId: opts.demand.catalogWorkId,
+    namePl: opts.demand.normalizedName,
+    unit: opts.demand.unit,
+  });
+  if (!matGate.ok) {
+    return {
+      ok: false,
+      acquired: false,
+      candidate: null,
+      autoAccepted: false,
+      error: `classification_gate:${matGate.classify.plane}`,
     };
   }
 

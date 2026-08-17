@@ -53,6 +53,7 @@ import {
 } from "@/lib/price-intelligence/demand-queue";
 import { acceptMaterialResearchCandidate } from "@/lib/price-intelligence/market-material-research-orchestrate";
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
+import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
 import { classifyEstimatorPricingPlane } from "./classification-gate";
 import type {
   EstimatorClassifyResult,
@@ -197,7 +198,7 @@ function bucketFrom(
 }
 
 /** Research when trusted product identity + not LABOR plane + not NON_COST. */
-function researchEligible(
+export function researchEligible(
   materialIdentity: IkMaterialIdentity | null,
   bucket: IkMaterialBucket,
   plane: EstimatorPricingPlane,
@@ -205,6 +206,8 @@ function researchEligible(
   if (!materialIdentity) return false;
   if (bucket === "NON_COST") return false;
   if (plane === "LABOR" || bucket === "LABOR") return false;
+  // IK-P1 G2: invoice purchase materials never enter DIY Research pending.
+  if (isInvoicePurchaseMaterialKey(materialIdentity.materialKey)) return false;
   return true;
 }
 

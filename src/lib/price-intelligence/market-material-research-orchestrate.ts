@@ -105,7 +105,31 @@ export async function orchestrateMaterialResearch(
   let candidatesReady = 0;
 
   for (const need of unique) {
-    // A3 — Classification Gate before cache/research (mat.* allowed; labor workId blocked)
+    const cache = evaluateMaterialCache({
+      materialKey: need.materialKey,
+      catalogWorkId: need.catalogWorkId,
+      region: need.region,
+      worksById: opts.worksById,
+      nowMs,
+    });
+
+    // Price Memory CURRENT reuse before DIY gate — IK-P1: mat.inv.* may REUSE, never DIY.
+    if (cache.usability === "CURRENT" && !opts.forceRefresh) {
+      reusedCurrent += 1;
+      decisions.push({
+        materialKey: need.materialKey,
+        usability: "CURRENT",
+        action: "REUSE",
+        researchJobId: null,
+        demand: null,
+        job: null,
+        reusedHit: cache.hit,
+        externalResearchAttempted: false,
+      });
+      continue;
+    }
+
+    // A3 + IK-P1 G2 — Classification Gate before DIY research (mat.inv.* blocked)
     const matGate = assertMaterialResearchAllowed({
       materialKey: need.materialKey,
       catalogWorkId: need.catalogWorkId,
@@ -122,29 +146,6 @@ export async function orchestrateMaterialResearch(
         demand: null,
         job: null,
         reusedHit: null,
-        externalResearchAttempted: false,
-      });
-      continue;
-    }
-
-    const cache = evaluateMaterialCache({
-      materialKey: need.materialKey,
-      catalogWorkId: need.catalogWorkId,
-      region: need.region,
-      worksById: opts.worksById,
-      nowMs,
-    });
-
-    if (cache.usability === "CURRENT" && !opts.forceRefresh) {
-      reusedCurrent += 1;
-      decisions.push({
-        materialKey: need.materialKey,
-        usability: "CURRENT",
-        action: "REUSE",
-        researchJobId: null,
-        demand: null,
-        job: null,
-        reusedHit: cache.hit,
         externalResearchAttempted: false,
       });
       continue;
