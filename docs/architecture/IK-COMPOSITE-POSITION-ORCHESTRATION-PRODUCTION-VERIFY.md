@@ -146,6 +146,9 @@ PRODUCTION = 2.66.89 / d62eb2a
 COMPOSITE = PRODUCTION VERIFIED
 P1 = COMPLETE / CLOSED
 P2 = KEEP GAP
-EPIC CLOSED = NO
-09 tip = pending Owner DOCUMENTATION COMMIT
+EPIC = CLOSED
+
+T04 HIT+HIT = fixture only
+Paczka VII = IDLE (COMPOUND/BOTH_HOLD = 0)
+NO live Material+Labor composition claim
 ```
