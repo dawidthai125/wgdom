@@ -279,12 +279,14 @@ assert("T24 ON without research lever → MODE A only", isIkP5LaborExecuteResear
 assert("T24 isIkE2eModeActive AUTO", isIkE2eModeActive("AUTO") === true);
 assert("T24 isIkE2eModeActive OFF", isIkE2eModeActive("OFF") === false);
 
-// --- T25 Final Bid Owner-only (P7 lever default OFF, independent) ---
+// --- T25 Final Bid Owner-only (P7 independent lever; default AUTO after AUTONOMY-06) ---
 forceIkF5E2eForTests(null);
 forceIkEntryEnabledForTests(true);
 forceIkLaborE2eForTests("AUTO");
-assert("T25 default P7 OFF", defaultAppSettings().ikF5E2eEnabled === false);
-assert("T25 AUTO P5 does not activate P7", isIkP7F5E2eActive() === false);
+assert("T25 default P7 AUTO", defaultAppSettings().ikF5E2eEnabled === "AUTO");
+forceIkF5E2eForTests("OFF");
+assert("T25 P7 OFF independent of P5 AUTO", isIkP7F5E2eActive() === false);
+assert("T25 P5 still AUTO-capable", isIkP5LaborE2eActive() === true);
 assert(
   "T25 P7 source independent lever",
   /ikF5E2eEnabled/.test(readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts")),

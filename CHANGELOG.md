@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.91 — IK AUTONOMY-06 P7 Autonomous Bid Calculation (2026-08-17)
+
+- **Owner GO:** P7 `ikF5E2eEnabled` = `"AUTO" | "OFF" | "ON"` (same key, no new flag)
+- AUTO/ON = autonomous READ-ONLY Position Cost → F5 → Bid (in-memory) · OFF = kill-switch (OFF wins merge)
+- Legacy B-POLICY (OD-P7b): `true`→ON · `missing`/`false`→AUTO
+- Research / Accept / Price Commit / Final Bid / D unchanged · P1 CLOSED · P2 KEEP GAP · Composite CLOSED · `feedsP7Bid=false` · CatalogWork **471**
+- Test: `npx vite-node scripts/test-ik-autonomy-06-p7-autonomous-bid-calculation.mjs`
+
 ## 2.66.90 — IK AUTONOMY-05 Explicit AUTO / OFF / ON (2026-08-17)
 
 - **Owner GO:** P5/P6 `ikLaborE2eEnabled` / `ikMaterialE2eEnabled` = `"AUTO" | "OFF" | "ON"` (same keys, no new flag)

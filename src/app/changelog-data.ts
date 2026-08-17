@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.91",
+    label: "IK AUTONOMY-06 P7 Autonomous Bid Calculation",
+    items: [
+      {
+        type: "new",
+        text: "IK AUTONOMY-06 (Owner GO): P7 ikF5E2eEnabled = AUTO|OFF|ON (ta sama klucz, bez nowej flagi). AUTO/ON = autonomiczna kalkulacja read-only (Position Cost → F5 → Bid in-memory). OFF = kill-switch (OFF wygrywa w merge). B-POLICY: true→ON, missing/false→AUTO. Research/Accept/Price Commit/Final Bid/D bez zmian. P1 CLOSED · P2 KEEP GAP · Composite CLOSED · feedsP7Bid=false · CatalogWork 471. Test: test-ik-autonomy-06-p7-autonomous-bid-calculation.mjs (T01–T32).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.90",
     label: "IK AUTONOMY-05 Explicit AUTO / OFF / ON",
     items: [

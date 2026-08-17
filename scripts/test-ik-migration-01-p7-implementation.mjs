@@ -62,14 +62,20 @@ forceIkMaterialE2eForTests(null);
 forceIkLaborE2eForTests(null);
 forceIkChiefWiringForTests(null);
 
-// A — P7 OFF
+// A — P7 default AUTO (AUTONOMY-06)
 const d = defaultAppSettings();
-assert("A P7 OFF default", d.ikF5E2eEnabled === false);
-assert("A2 P7 inactive", isIkP7F5E2eActive() === false);
+assert("A P7 AUTO default", d.ikF5E2eEnabled === "AUTO");
+forceIkEntryEnabledForTests(true);
+forceIkF5E2eForTests(null);
+// Without localStorage pollution, force null reads settings — use force AUTO for determinism
+forceIkF5E2eForTests("AUTO");
+assert("A2 P7 active on AUTO", isIkP7F5E2eActive() === true);
 assert(
   "A3 resolve false without entry",
   resolveIkP7F5E2eActive({ ikEntryEnabled: false, ikF5E2eEnabled: true }) === false,
 );
+forceIkF5E2eForTests("OFF");
+assert("A4 P7 OFF hold", isIkP7F5E2eActive() === false);
 
 // B — P7 ON flags
 forceIkEntryEnabledForTests(true);
@@ -141,12 +147,13 @@ assert("lever ikF5E2eEnabled", /ikF5E2eEnabled/.test(flagSrc));
 assert("no second Bid lever", !/ikBidE2eEnabled/.test(flagSrc) && !/ikBidEnabled/.test(readSrc("src/lib/app-settings.ts")));
 
 assert("Admin toggle", /data-ik-f5-e2e-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("Admin P7 mode select", /data-ik-f5-e2e-mode/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 
 const merged = mergeAppSettings(
   { ikF5E2eEnabled: true },
   defaultAppSettings(),
 );
-assert("merge P7 ON", merged.ikF5E2eEnabled === true);
+assert("merge P7 ON (legacy true)", merged.ikF5E2eEnabled === "ON");
 assert("merge does not flip Material", merged.ikMaterialE2eEnabled === "AUTO");
 assert("merge does not flip Labor", merged.ikLaborE2eEnabled === "AUTO");
 assert("merge does not flip Chief", merged.ikChiefWiringEnabled === false);

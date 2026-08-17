@@ -151,11 +151,12 @@ export interface AppSettings {
    */
   ikMaterialResearchEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P7 — Position Cost → F5 → Bid → SUM → EC under IK.
-   * Default OFF. Single E2E lever. Does NOT enable research/HTTP/Accept.
-   * Does NOT mutate CatalogWork / Price Memory · Does NOT flip P4–P6 levers.
+   * IK AUTONOMY-06 / IK-MIGRATION-01 P7 — Position Cost → F5 → Bid → SUM → EC under IK.
+   * AUTO|ON = autonomous READ-ONLY calc · OFF = kill-switch.
+   * Does NOT enable research/HTTP/Accept · Does NOT mutate CatalogWork / Price Memory
+   * · Does NOT flip P4–P6 / D · Final Bid remains OWNER.
    */
-  ikF5E2eEnabled: boolean;
+  ikF5E2eEnabled: IkE2eMode;
   /**
    * IK-MIGRATION-01 P8 — Risk → Validation → Chief → DW → EC under IK.
    * Default OFF. Single E2E lever. Does NOT enable research/HTTP/Accept.
@@ -207,7 +208,7 @@ export function defaultAppSettings(): AppSettings {
     ikLaborResearchEnabled: false,
     ikMaterialE2eEnabled: "AUTO",
     ikMaterialResearchEnabled: false,
-    ikF5E2eEnabled: false,
+    ikF5E2eEnabled: "AUTO",
     ikRiskDecisionE2eEnabled: false,
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
@@ -425,14 +426,12 @@ export function mergeIkMaterialResearchEnabled(
   return local.ikMaterialResearchEnabled === true;
 }
 
-/** P7 F5/Bid E2E — independent of Labor/Material research and Dual Outcome (D). */
+/** P7 F5/Bid — OFF wins · B-POLICY via mergeIkE2eMode · independent of Research / D. */
 export function mergeIkF5E2eEnabled(
   remote: Partial<AppSettings> | null | undefined,
   local: AppSettings,
-): boolean {
-  if (remote?.ikF5E2eEnabled === true) return true;
-  if (remote?.ikF5E2eEnabled === false) return false;
-  return local.ikF5E2eEnabled === true;
+): IkE2eMode {
+  return mergeIkE2eMode(remote?.ikF5E2eEnabled, local.ikF5E2eEnabled);
 }
 
 /** P8 Risk/Decision E2E — independent of Dual Outcome (D) and research levers. */
@@ -468,7 +467,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
       ikMaterialE2eEnabled: normalizeIkE2eMode(parsed.ikMaterialE2eEnabled),
       ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
-      ikF5E2eEnabled: parsed.ikF5E2eEnabled === true,
+      ikF5E2eEnabled: normalizeIkE2eMode(parsed.ikF5E2eEnabled),
       ikRiskDecisionE2eEnabled: parsed.ikRiskDecisionE2eEnabled === true,
       catalogWriteMode:
         parsed.catalogWriteMode === undefined

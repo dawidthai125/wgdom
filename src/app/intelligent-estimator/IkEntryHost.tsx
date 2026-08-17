@@ -11,7 +11,7 @@
  *     isIkP5LaborExecuteResearchActive() (explicit executeResearch === true).
  * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); MODE B research only when
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
- * P7: F5/Bid when isIkP7F5E2eActive(); RESEARCH=0 · HTTP=0 always (no research lever).
+ * P7: F5/Bid when isIkP7F5E2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 always (no research lever).
  * P8: Risk/Decision when isIkP8RiskDecisionE2eActive(); RESEARCH=0 · HTTP=0 · no D flip.
  * COMPOSITE: BOTH_HOLD consumer when P5∧P6; leaf experts → computePositionCost (NO CHANGE).
  *

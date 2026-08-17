@@ -595,26 +595,35 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikF5E2eEnabled === true}
+            <div className="space-y-1" data-ik-f5-e2e-toggle>
+              <p className="text-sm font-medium">IK · F5 / BID (P7 · READ-ONLY)</p>
+              <select
+                value={normalizeIkE2eMode(appSettings.ikF5E2eEnabled)}
                 onChange={async (e) => {
-                  const next = { ...appSettings, ikF5E2eEnabled: e.target.checked };
+                  const nextMode = normalizeIkE2eMode(e.target.value);
+                  const prev = normalizeIkE2eMode(appSettings.ikF5E2eEnabled);
+                  if (nextMode === "OFF" && prev !== "OFF") {
+                    const ok = window.confirm(
+                      "IK nie uruchamia kalkulacji P7 (Position Cost → Bid). Bid calc pozostanie wyłączony. Kontynuować?",
+                    );
+                    if (!ok) return;
+                  }
+                  const next = { ...appSettings, ikF5E2eEnabled: nextMode };
                   onAppSettingsChange(next);
                   await saveAppSettings(next);
                 }}
-                className="mt-0.5"
-                data-ik-f5-e2e-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · F5 / BID E2E (P7)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P7. Domyślnie OFF. Position Cost → F5 cutover → Bid → SUM → EC.
-                  Bez research/HTTP, bez Accept, bez zapisu CatalogWork/Price Memory. Po teście: wyłącz.
-                </p>
-              </div>
-            </label>
+                className="mt-1 w-full max-w-md px-2 py-1.5 rounded-lg border border-border text-sm bg-background"
+                data-ik-f5-e2e-mode
+              >
+                <option value="AUTO">AUTO — autonomiczna kalkulacja read-only P7</option>
+                <option value="ON">ON — jawnie włączona kalkulacja read-only P7</option>
+                <option value="OFF">OFF — kill-switch / P7 HOLD</option>
+              </select>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                IK AUTONOMY-06. AUTO/ON = Position Cost → F5 cutover → Bid (in-memory) — bez research/HTTP,
+                bez Accept, bez Price Commit, bez Final Bid. OFF = trwały kill-switch. Final Bid = Owner.
+              </p>
+            </div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
