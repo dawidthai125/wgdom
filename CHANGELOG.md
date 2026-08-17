@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.89 — IK Composite Position Orchestration (2026-08-17)
+
+- **Owner GO:** `BOTH_HOLD` consumer in `IkEntryHost` — decomp → TechnologyPack → leaf experts → `computePositionCost` (unchanged)
+- Start = existing **P5 ∧ P6** only · no new flag · parent Classification Gate unchanged
+- Partial HIT+GAP ≠ 0 PLN · zero auto-Accept · XOR F5 (`feedsP7Bid=false`)
+- P1 / P2 KEEP GAP / D=false / CatalogWork **471** untouched
+- Test: `npx vite-node scripts/test-ik-composite-position-orchestration.mjs`
+
 ## 2.66.88 — IK P1 Invoice Host Collision (2026-08-17)
 
 - **P1 Owner GO:** G1 mapper excludes `cw.inv.*` from BOQ scoring · G2 hard-forbid `mat.inv.*` DIY Research

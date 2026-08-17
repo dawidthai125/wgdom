@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.89",
+    label: "IK Composite Position Orchestration",
+    items: [
+      {
+        type: "new",
+        text: "IK COMPOSITE (Owner GO): konsument BOTH_HOLD w IkEntryHost — decomp → TechnologyPack → leaf Material/Labor → PositionCostInput → computePositionCost (NO CHANGE). Start tylko P5∧P6 (bez nowej flagi). Classification Gate rodzica UNCHANGED. GAP ≠ 0 PLN · zero auto-Accept · XOR F5. P1/P2/D/CatalogWork 471 nienaruszone. Test: test-ik-composite-position-orchestration.mjs (T01–T20).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.88",
     label: "IK P1 Invoice Host Collision",
     items: [

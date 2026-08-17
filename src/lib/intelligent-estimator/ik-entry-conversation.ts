@@ -36,6 +36,7 @@ import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
 import type { IkP8RiskDecisionReport } from "./ik-p8-risk-decision";
+import type { IkCompositeBothHoldReport } from "./ik-composite-both-hold";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
@@ -64,6 +65,8 @@ export interface IkEntryConversationOpts {
   positionCostBid?: IkP7PositionCostBidReport | null;
   /** P8 — Risk → Validation → Chief → DW (REUSE engines; never invent / Accept). */
   riskDecision?: IkP8RiskDecisionReport | null;
+  /** BOTH_HOLD consumer — leaf experts → computePositionCost (never invent / Accept). */
+  composite?: IkCompositeBothHoldReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -123,6 +126,7 @@ export function buildIkEntryConversationViewModel(
       || "materialIdentityP59" in pkgOrOpts
       || "positionCostBid" in pkgOrOpts
       || "riskDecision" in pkgOrOpts
+      || "composite" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -1229,6 +1233,55 @@ export function buildIkEntryConversationViewModel(
           seedCreated: seed.seedCreated,
         },
       ),
+    );
+  }
+
+  // BOTH_HOLD consumer — leaf Material/Labor → computePositionCost (XOR F5: feedsP7Bid=false).
+  const composite = opts.composite ?? null;
+  if (composite) {
+    const cStatus: ExpertConversationStepStatus =
+      composite.status === "ready" ? "done"
+        : composite.status === "partial" ? "partial"
+          : composite.status === "hold" || composite.status === "blocked" ? "hold"
+            : "gap";
+    const sample = composite.lines.slice(0, 3).map((l) => ({
+      lp: l.lp,
+      status: l.status,
+      packId: l.packId,
+      materialKeys: l.materialJobs.map((m) => m.materialKey),
+      laborWorkIds: l.laborJobs.map((j) => j.workId),
+      total: l.totalPositionCostPln,
+      gapCodes: l.gapCodes,
+      positionComplete: l.positionComplete,
+    }));
+    steps.push(
+      step({
+        id: "cost",
+        event: "COMPOSITE_BOTH_HOLD",
+        status: cStatus,
+        messagePl:
+          composite.bothHoldLineCount === 0
+            ? "COMPOSITE BOTH_HOLD: brak linii COMPOUND (konsument bezczynny)."
+            : `COMPOSITE BOTH_HOLD: complete ${composite.completeLineCount}/${composite.bothHoldLineCount} · GAP ${composite.gapLineCount} · total tylko gdy HIT+HIT.`,
+        detailPl: [
+          `p5=${composite.p5Active ? "ON" : "OFF"}`,
+          `p6=${composite.p6Active ? "ON" : "OFF"}`,
+          `http=${composite.researchHttpExecuted ? 1 : 0}`,
+          `accept=${composite.autoAcceptExecuted ? 1 : 0}`,
+          `feedsP7=${composite.feedsP7Bid ? 1 : 0}`,
+          `engineChange=${composite.computePositionCostChanged ? 1 : 0}`,
+        ].join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_COST_PL,
+        sourceRef: tenderRef({
+          bothHoldLineCount: composite.bothHoldLineCount,
+          completeLineCount: composite.completeLineCount,
+          gapLineCount: composite.gapLineCount,
+          autoAcceptExecuted: composite.autoAcceptExecuted,
+          researchHttpExecuted: composite.researchHttpExecuted,
+          feedsP7Bid: composite.feedsP7Bid,
+          sample,
+        }, composite.completeLineCount > 0 ? "evidence" : "hold"),
+      }),
     );
   }
 

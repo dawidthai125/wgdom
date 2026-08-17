@@ -13,6 +13,7 @@
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
  * P7: F5/Bid when isIkP7F5E2eActive(); RESEARCH=0 · HTTP=0 always (no research lever).
  * P8: Risk/Decision when isIkP8RiskDecisionE2eActive(); RESEARCH=0 · HTTP=0 · no D flip.
+ * COMPOSITE: BOTH_HOLD consumer when P5∧P6; leaf experts → computePositionCost (NO CHANGE).
  *
  * Shared RUN_RATE_EXPERTS stays false (never arms Material via shared sentinel).
  * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — passed in as optional session.
@@ -48,6 +49,10 @@ import {
   runIkP8RiskDecision,
   type IkP8RiskDecisionReport,
 } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
+import {
+  runIkCompositeBothHold,
+  type IkCompositeBothHoldReport,
+} from "@/lib/intelligent-estimator/ik-composite-both-hold";
 import {
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
@@ -281,6 +286,21 @@ export function IkEntryHost({
     };
   }, [effectiveItem, pkg, report, p6MaterialOn, p6ResearchOn]);
 
+  // BOTH_HOLD consumer — existing P5∧P6 only · no new flag · XOR F5 (feedsP7Bid=false).
+  const composite = useMemo((): IkCompositeBothHoldReport | null => {
+    if (!p5LaborOn || !p6MaterialOn) return null;
+    if (!report.masterBoq.readyForExperts) return null;
+    return runIkCompositeBothHold({
+      item: effectiveItem,
+      package: pkg,
+      expert: report,
+      p5LaborActive: true,
+      p6MaterialActive: true,
+      executeLaborResearch: p5ResearchOn === true,
+      executeMaterialResearch: p6ResearchOn === true,
+    });
+  }, [p5LaborOn, p6MaterialOn, p5ResearchOn, p6ResearchOn, effectiveItem, pkg, report]);
+
   // P7 Position Cost → F5 → Bid → SUM — sync REUSE engines · RESEARCH=0 · no Accept writes.
   const positionCostBid = useMemo((): IkP7PositionCostBidReport | null => {
     if (!p7F5On) return null;
@@ -334,8 +354,9 @@ export function IkEntryHost({
         identityCoverage,
         positionCostBid,
         riskDecision,
+        composite,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite],
   );
 
   return (
@@ -390,6 +411,14 @@ export function IkEntryHost({
       data-ik-p8-research={String(riskDecision?.researchExecuted ?? 0)}
       data-ik-p8-http={String(riskDecision?.httpCalls ?? 0)}
       data-ik-p8-auto-accept={String(riskDecision?.autoAcceptExecuted ?? 0)}
+      data-ik-composite-status={
+        p5LaborOn && p6MaterialOn ? (composite?.status ?? "pending") : "hold"
+      }
+      data-ik-composite-both-hold={String(composite?.bothHoldLineCount ?? 0)}
+      data-ik-composite-complete={String(composite?.completeLineCount ?? 0)}
+      data-ik-composite-accept={String(composite?.autoAcceptExecuted ?? 0)}
+      data-ik-composite-http={String(composite?.researchHttpExecuted ? 1 : 0)}
+      data-ik-composite-feeds-p7={String(composite?.feedsP7Bid ? 1 : 0)}
       data-ik-identity-status={
         identityCoverageOn ? (identityCoverage?.status ?? "pending") : "shell_skipped"
       }

@@ -269,6 +269,18 @@ export {
 export type { SourceHealthErrorKind, SourceHealthState } from "./internal-first-source-health";
 
 export {
+  runIkCompositeBothHold,
+  IK_COMPOSITE_BOTH_HOLD_SCHEMA_VERSION,
+  IK_COMPOSITE_P2_KEEP_GAP_WORK_IDS,
+} from "./ik-composite-both-hold";
+export type {
+  IkCompositeBothHoldReport,
+  IkCompositeLineResult,
+  IkCompositeGapCode,
+  IkCompositeLineStatus,
+} from "./ik-composite-both-hold";
+
+export {
   runIkP7PositionCostBid,
   IK_P7_POSITION_COST_BID_SCHEMA_VERSION,
 } from "./ik-p7-position-cost-bid";
