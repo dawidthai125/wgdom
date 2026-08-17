@@ -2,24 +2,29 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | **IMPLEMENT = PASS** · **READY FOR OWNER VERIFY** |
+| **Status** | **IMPLEMENT = PASS** · **OWNER VERIFY = PASS** · **PRODUCTION VERIFY = PASS** |
 | **Date** | 2026-08-17 |
-| **UI version (local)** | **2.66.89** (undeployed) |
-| **Production tip** | **2.66.88** / **`482c618f`** (unchanged — no commit/push) |
+| **UI version** | **2.66.89** |
+| **Production** | **2.66.89** / live **`d62eb2a`** · impl **`d62eb2a4`** (`d62eb2a466793abbd0572f13fdba08c21e406da9`) |
 | **DF** | [`IK-COMPOSITE-POSITION-ORCHESTRATION-DESIGN-FREEZE.md`](./IK-COMPOSITE-POSITION-ORCHESTRATION-DESIGN-FREEZE.md) |
+| **PV** | [`IK-COMPOSITE-POSITION-ORCHESTRATION-PRODUCTION-VERIFY.md`](./IK-COMPOSITE-POSITION-ORCHESTRATION-PRODUCTION-VERIFY.md) |
 | **ARCH REVIEW** | PASS WITH CONDITIONS (absorbed) |
 | **Owner GO** | AUTHORIZED (consumer `BOTH_HOLD`) |
 | **D** | **false** (diff 0) |
 | **CatalogWork** | **471** (live Edge read) |
-| **Commit / push / deploy** | **NOT DONE** |
+| **P1** | **COMPLETE / CLOSED** (unchanged) |
+| **P2** | **KEEP GAP** (unchanged) |
+| **EPIC CLOSE** | **NOT DONE** (docs commit pending Owner GO) |
 
 ```text
-IMPLEMENT              = PASS
-READY FOR OWNER VERIFY = YES
-COMMIT                 = NO
-PUSH                   = NO
-DEPLOY                 = NO
-PRODUCTION CLAIM       = NO
+IMPLEMENTATION         = PASS
+OWNER VERIFY           = PASS
+COMMIT                 = d62eb2a4
+PUSH                   = PASS
+DEPLOY                 = PASS
+PRODUCTION VERIFY      = PASS
+PRODUCTION             = 2.66.89 / d62eb2a
+EPIC CLOSED            = NO
 ```
 
 ---
@@ -37,6 +42,8 @@ PRODUCTION CLAIM       = NO
 | `scripts/test-ik-composite-position-orchestration.mjs` | T01–T20 + Paczka VII read-only |
 
 **Not changed (frozen):** `classification-gate.ts` · `computePositionCost` / `engine.ts` · P1 G1/G2 · P2 KEEP GAP · `app-settings` flags · CatalogWork · Accept · PM write · Research engines · F5 engine.
+
+**`computePositionCost()` was not modified.** Last engine commit remains FAZA 0 (`bf4e1beb`). Composite commit `d62eb2a4` does not touch `src/lib/tender-position-cost/engine.ts`.
 
 ---
 
@@ -242,14 +249,52 @@ Classification **functional** contract (COMPOUND → BOTH_HOLD, LABOR/MATERIAL 1
 
 ---
 
+## 15. Release / Production Verify (final)
+
+| Gate | Result |
+|------|--------|
+| IMPLEMENT | **PASS** |
+| OWNER VERIFY | **PASS** |
+| COMMIT | **`d62eb2a466793abbd0572f13fdba08c21e406da9`** (`d62eb2a4`) |
+| PUSH | **PASS** (`origin/main`) |
+| DEPLOY | **PASS** · Vercel Git Integration · ID **`5941251917`** |
+| PRODUCTION VERIFY | **PASS** · see [`PV`](./IK-COMPOSITE-POSITION-ORCHESTRATION-PRODUCTION-VERIFY.md) |
+| Production | **2.66.89** / **`d62eb2a`** |
+| `09` tip (local docs) | pending Owner **DOCUMENTATION COMMIT** |
+| EPIC CLOSED | **NO** |
+
+**Scope (frozen):**
+
+```text
+COMPOUND
+  → BOTH_HOLD
+  → IkEntryHost
+  → decomposeOfferBoqLine
+  → TechnologyPack
+  → leaf Material Expert + leaf Labor Expert
+  → PositionCostInput
+  → computePositionCost()   ← UNCHANGED
+```
+
+**Invariants:** parent COMPOUND remains COMPOUND · BOTH_HOLD only when P5∧P6 · leaf-only · no parent expert · GAP ≠ 0 PLN · `labor=null` / `materials=[]` ≠ success · `mat.inv.*` blocked · missing material identity = GAP · hours-only labor = GAP · labor identity = `steps[].catalogWorkId` · `feedsP7Bid=false` · P1 unchanged · P2 KEEP GAP · D=false · CatalogWork=471 · no auto-Accept · no business writes.
+
+**OUT:** P2 expansion · invoice redesign · Classification V2 · new Research/Composite engine · new flags · D · Chief · F5 redesign · CatalogWork cleanup · PM/Accept redesign · `computePositionCost` redesign.
+
+HIT+HIT COMPLETE is **T04 fixture** evidence. Paczka VII live **COMPOUND/BOTH_HOLD = 0** → consumer idle. **Do not claim real-tender composition.**
+
+---
+
 ## STOP
 
 ```text
-IMPLEMENT = PASS
-READY FOR OWNER VERIFY
+IMPLEMENTATION = PASS
+OWNER VERIFY = PASS
+COMMIT = d62eb2a4
+PUSH = PASS
+DEPLOY = PASS
+PRODUCTION VERIFY = PASS
+PRODUCTION = 2.66.89 / d62eb2a
 
-ZERO COMMIT · ZERO PUSH · ZERO DEPLOY
-ZERO PRODUCTION CLAIM
-
-Czekaj na Owner Verify.
+EPIC CLOSED = NO
+DOCS COMMIT = PENDING OWNER GO
 ```
