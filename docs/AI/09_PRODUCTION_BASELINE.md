@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-16 · tip UI **2.66.87** · live **`7a32bb3`** · feature **`7a32bb34`** · **IK-MIGRATION-01 P10 = PRODUCTION VERIFIED / CLOSED** · NG-10 DECOMMISSIONED · IK first-screen · CatalogWork **471** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
+**Snapshot dokumentacji:** 2026-08-17 · tip UI **2.66.88** · live **`482c618`** · feature **`482c618f`** · **IK P1 Invoice Host Collision = COMPLETE / PRODUCTION VERIFIED** · prior P10 CLOSED · CatalogWork **471** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
 
 ---
 
@@ -27,8 +27,8 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.87** |
-| **Deploy tip commit (`main` / `version.json`)** | **live `7a32bb3`** · impl **`7a32bb34`** · IK-MIGRATION-01 **P10** **PRODUCTION VERIFIED / CLOSED** · NG-10 **DECOMMISSIONED** · IK **first-screen** · `ikEntryEnabled` default ON · TRE recovery-driven (Expert OFF+sliceA → CTA) · **no** `ikP10*` · CatalogWork **471** · D diff=0 · F5-T2 = **PRE-EXISTING OUT OF P10 GREEN CLAIM** · [`P10 PV`](../architecture/IK-MIGRATION-01-P10-PRODUCTION-VERIFY.md) · [`P10 CLOSEOUT`](../architecture/IK-MIGRATION-01-P10-IMPLEMENTATION-CLOSEOUT.md) · prior P9 **`80c7c26b`** |
+| **UI version (changelog / version.json)** | **2.66.88** |
+| **Deploy tip commit (`main` / `version.json`)** | **live `482c618`** · impl **`482c618f`** · **IK P1 Invoice Host Collision** **COMPLETE / PRODUCTION VERIFIED** · G1 BOQ exclude `cw.inv.*` · G2 hard-forbid `mat.inv.*` DIY · PM CURRENT before DIY gate · CatalogWork **471** · D diff=0 · prior P10 **`7a32bb34`** CLOSED · [`P1 PV`](../architecture/IK-P1-INVOICE-HOST-COLLISION-PRODUCTION-VERIFY.md) · [`P1 CLOSEOUT`](../architecture/IK-P1-INVOICE-HOST-COLLISION-IMPLEMENTATION-CLOSEOUT.md) · [`P1 DF`](../architecture/IK-P1-INVOICE-HOST-COLLISION-DESIGN-FREEZE.md) |
 | **Feature tip (IE Labor · Tablica OUR RATE)** | **DATA VERIFIED** · Evidence 67/rev3/`r3-a8226101` · Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** (pkt≠mb) · Wykwity **SOURCE GAP** · Catalog 460/34/426 · [`IE PRODUCTION BASELINE`](../architecture/INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md) · [`ACCEPT REVIEW`](../architecture/IE-LABOR-EVIDENCE-TABLICA-OUR-RATE-ACCEPT-REVIEW.md) |
 | **Feature tip (IK Master Continuity docs)** | **ACTIVE** · [`MASTER SSOT`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`AI CONTINUITY`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · **NO REBUILD** Przetargi/Catalog/Pricing |
 | **Session tip (2026-08-13 Wrocław continuity)** | **SESSION CLOSED** · handoff [`SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](../architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · operational targets **WM → ZZK → MOPS → uczelnie** · **Połczyn NOT TARGET** · reference **WM/TP/239/2026/G** · F5/PackageGate/Bid/REAL SOURCE **NOT GREEN** globally · D02 LP22 residual OPEN · **NIE** auto IMPLEMENT |
@@ -190,6 +190,7 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.66.88** / live **`482c618`** · feature **`482c618f`** | IK P1 Invoice Host Collision — BOQ exclude `cw.inv.*` · forbid `mat.inv.*` DIY Research · PM CURRENT-before-gate | **COMPLETE** · **PV PASS** · [`CLOSEOUT`](../architecture/IK-P1-INVOICE-HOST-COLLISION-IMPLEMENTATION-CLOSEOUT.md) · [`PV`](../architecture/IK-P1-INVOICE-HOST-COLLISION-PRODUCTION-VERIFY.md) |
 | **2.66.87** / live **`7a32bb3`** · feature **`7a32bb34`** | IK-MIGRATION-01 P10 — NG-10 DECOMMISSION → IK first-screen · TRE recovery CTA | **CLOSED** · **PV LOCKED** · [`CLOSEOUT`](../architecture/IK-MIGRATION-01-P10-IMPLEMENTATION-CLOSEOUT.md) · [`PV`](../architecture/IK-MIGRATION-01-P10-PRODUCTION-VERIFY.md) |
 | **2.66.43** / live **`669d287`** · feature **`669d2872`** | MULTI-BOQ-01 — dwelling-scoped multi-BOQ compose · provenance · attach | **CLOSED** · **PV GREEN** · [`CLOSEOUT`](../architecture/MULTI-BOQ-01-CLOSEOUT.md) · [`PV`](../architecture/MULTI-BOQ-01-PRODUCTION-VERIFY.md) |
 | **2.66.43** / hist. **`0f1a52f4`** | MULTI-DWELLING-01 — Package · N dwelling · document mapping · PackageGate · aggregate Bid | **CLOSED** · tip supersedowany przez MULTI-BOQ-01 · [`CLOSEOUT`](../architecture/MULTI-DWELLING-01-CLOSEOUT.md) · [`PV`](../architecture/MULTI-DWELLING-01-PRODUCTION-VERIFY.md) |
