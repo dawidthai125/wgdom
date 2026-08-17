@@ -12,7 +12,8 @@
  * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); MODE B research only when
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
  * P7: F5/Bid when isIkP7F5E2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 always (no research lever).
- * P8: Risk/Decision when isIkP8RiskDecisionE2eActive(); RESEARCH=0 · HTTP=0 · no D flip.
+ * P8: Risk/Decision when isIkP8RiskDecisionE2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 · no D/Chief start.
+ *      No extra BOQ READY gate (engine requires item only; P7/Chief optional → HOLD).
  * COMPOSITE: BOTH_HOLD consumer when P5∧P6; leaf experts → computePositionCost (NO CHANGE).
  *
  * Shared RUN_RATE_EXPERTS stays false (never arms Material via shared sentinel).
@@ -314,7 +315,8 @@ export function IkEntryHost({
     });
   }, [p7F5On, effectiveItem, pkg, report]);
 
-  // P8 Risk → Validation → Chief → DW → EC — REUSE engines · RESEARCH=0 · no D flip · no Accept.
+  // P8 Risk → Validation → DW → EC — REUSE engines · RESEARCH=0 · no D/Chief start · no Accept.
+  // Eligibility: isIkP8RiskDecisionE2eActive() only (AUTO|ON). No BOQ READY host gate (KEEP).
   const riskDecision = useMemo((): IkP8RiskDecisionReport | null => {
     if (!p8RiskOn) return null;
     return runIkP8RiskDecision({

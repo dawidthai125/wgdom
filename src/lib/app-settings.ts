@@ -158,11 +158,12 @@ export interface AppSettings {
    */
   ikF5E2eEnabled: IkE2eMode;
   /**
-   * IK-MIGRATION-01 P8 — Risk → Validation → Chief → DW → EC under IK.
-   * Default OFF. Single E2E lever. Does NOT enable research/HTTP/Accept.
-   * Does NOT flip Dual Outcome (D) · Does NOT mutate P4–P7 levers · Does NOT write CatalogWork/PM.
+   * IK AUTONOMY-07 / IK-MIGRATION-01 P8 — Risk → Validation → DW prepare under IK.
+   * AUTO|ON = autonomous READ-ONLY prepare · OFF = kill-switch.
+   * Does NOT enable research/HTTP/Accept · Does NOT flip D / Chief · Does NOT mutate P4–P7
+   * · Does NOT write CatalogWork/PM · Accept / Price Commit / Final Bid remain OWNER.
    */
-  ikRiskDecisionE2eEnabled: boolean;
+  ikRiskDecisionE2eEnabled: IkE2eMode;
   /** PB-WRITE-A — split = dual write; work_only / legacy_only = single-writer prep + rollback. */
   catalogWriteMode: CatalogWriteMode;
   /** Skan BZP — ile dni wstecz. */
@@ -209,7 +210,7 @@ export function defaultAppSettings(): AppSettings {
     ikMaterialE2eEnabled: "AUTO",
     ikMaterialResearchEnabled: false,
     ikF5E2eEnabled: "AUTO",
-    ikRiskDecisionE2eEnabled: false,
+    ikRiskDecisionE2eEnabled: "AUTO",
     catalogWriteMode: "work_only",
     bzpScanDays: 90,
     bzpScanPages: 4,
@@ -434,14 +435,12 @@ export function mergeIkF5E2eEnabled(
   return mergeIkE2eMode(remote?.ikF5E2eEnabled, local.ikF5E2eEnabled);
 }
 
-/** P8 Risk/Decision E2E — independent of Dual Outcome (D) and research levers. */
+/** P8 Risk/Decision — OFF wins · B-POLICY via mergeIkE2eMode · independent of Research / D. */
 export function mergeIkRiskDecisionE2eEnabled(
   remote: Partial<AppSettings> | null | undefined,
   local: AppSettings,
-): boolean {
-  if (remote?.ikRiskDecisionE2eEnabled === true) return true;
-  if (remote?.ikRiskDecisionE2eEnabled === false) return false;
-  return local.ikRiskDecisionE2eEnabled === true;
+): IkE2eMode {
+  return mergeIkE2eMode(remote?.ikRiskDecisionE2eEnabled, local.ikRiskDecisionE2eEnabled);
 }
 
 export function loadAppSettingsLocal(): AppSettings {
@@ -468,7 +467,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikMaterialE2eEnabled: normalizeIkE2eMode(parsed.ikMaterialE2eEnabled),
       ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
       ikF5E2eEnabled: normalizeIkE2eMode(parsed.ikF5E2eEnabled),
-      ikRiskDecisionE2eEnabled: parsed.ikRiskDecisionE2eEnabled === true,
+      ikRiskDecisionE2eEnabled: normalizeIkE2eMode(parsed.ikRiskDecisionE2eEnabled),
       catalogWriteMode:
         parsed.catalogWriteMode === undefined
           ? d.catalogWriteMode

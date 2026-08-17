@@ -65,8 +65,10 @@ forceIkChiefWiringForTests(null);
 
 // A — P8 OFF
 const d = defaultAppSettings();
-assert("A P8 OFF default", d.ikRiskDecisionE2eEnabled === false);
-assert("A2 P8 inactive", isIkP8RiskDecisionE2eActive() === false);
+assert("A P8 AUTO default", d.ikRiskDecisionE2eEnabled === "AUTO");
+forceIkEntryEnabledForTests(false);
+assert("A2 P8 inactive when Entry OFF", isIkP8RiskDecisionE2eActive() === false);
+forceIkEntryEnabledForTests(null);
 assert(
   "A3 resolve false without entry",
   resolveIkP8RiskDecisionE2eActive({
@@ -188,7 +190,7 @@ const merged = mergeAppSettings(
   { ikRiskDecisionE2eEnabled: true },
   defaultAppSettings(),
 );
-assert("merge P8 ON", merged.ikRiskDecisionE2eEnabled === true);
+assert("merge P8 ON", merged.ikRiskDecisionE2eEnabled === "ON");
 assert("merge does not flip F5", merged.ikF5E2eEnabled === "AUTO");
 assert("merge does not flip Material", merged.ikMaterialE2eEnabled === "AUTO");
 assert("merge does not flip Labor", merged.ikLaborE2eEnabled === "AUTO");

@@ -207,7 +207,7 @@ assert(
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 assert("no ikP9Enabled", !/ikP9Enabled|ikOwnerVerifyEnabled|ikGateAEnabled|ikGateBEnabled/.test(settingsSrc + flagSrc));
-assert("default settings unchanged P8", defaultAppSettings().ikRiskDecisionE2eEnabled === false);
+assert("default settings P8 AUTO (AUTONOMY-07)", defaultAppSettings().ikRiskDecisionE2eEnabled === "AUTO");
 
 // Wiring / markers
 const detailSrc = readSrc("src/app/TenderDetailPage.tsx");

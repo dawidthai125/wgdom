@@ -32,6 +32,7 @@ export {
   forceIkMaterialE2eForTests,
   forceIkMaterialResearchForTests,
   forceIkF5E2eForTests,
+  forceIkRiskDecisionE2eForTests,
   isIkEntryEnabled,
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
@@ -41,6 +42,7 @@ export {
   isIkMaterialE2eEnabled,
   isIkMaterialResearchEnabled,
   isIkF5E2eEnabled,
+  isIkRiskDecisionE2eEnabled,
   isIkP2DocumentsBoqActive,
   isIkP3IdentityCoverageActive,
   isIkP4ChiefWiringPreferenceActive,
@@ -54,6 +56,8 @@ export {
   resolveIkP6MaterialExecuteResearch,
   isIkP7F5E2eActive,
   resolveIkP7F5E2eActive,
+  isIkP8RiskDecisionE2eActive,
+  resolveIkP8RiskDecisionE2eActive,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
 export type { IkE2eMode } from "@/lib/app-settings";

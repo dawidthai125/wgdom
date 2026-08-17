@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.92 — IK AUTONOMY-07 P8 Autonomous Risk / Decision Prepare (2026-08-17)
+
+- **Owner GO:** P8 `ikRiskDecisionE2eEnabled` = `"AUTO" | "OFF" | "ON"` (same key, no new flag)
+- AUTO/ON = autonomous READ-ONLY Risk / Validation / DW prepare (in-memory) · OFF = kill-switch (OFF wins merge)
+- Legacy B-POLICY (OD-P8b): `true`→ON · `missing`/`false`/malformed→AUTO
+- No new BOQ host gate · Research / Accept / Price Commit / Final Bid / D / Chief unchanged · P1 CLOSED · P2 KEEP GAP · Composite CLOSED · P7 UNCHANGED · CatalogWork **471**
+- Test: `npx vite-node scripts/test-ik-autonomy-07-p8-autonomous-risk-decision.mjs`
+
 ## 2.66.91 — IK AUTONOMY-06 P7 Autonomous Bid Calculation (2026-08-17)
 
 - **Owner GO:** P7 `ikF5E2eEnabled` = `"AUTO" | "OFF" | "ON"` (same key, no new flag)

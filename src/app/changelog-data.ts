@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.92",
+    label: "IK AUTONOMY-07 P8 Autonomous Risk / Decision Prepare",
+    items: [
+      {
+        type: "new",
+        text: "IK AUTONOMY-07 (Owner GO): P8 ikRiskDecisionE2eEnabled = AUTO|OFF|ON (ta sama klucz, bez nowej flagi). AUTO/ON = autonomiczne przygotowanie read-only (Risk overlay → Validation → DW in-memory). OFF = kill-switch (OFF wygrywa w merge). B-POLICY: true→ON, missing/false/malformed→AUTO. Bez nowej bramki BOQ. Research/Accept/Price Commit/Final Bid/D/Chief bez zmian. P1 CLOSED · P2 KEEP GAP · Composite CLOSED · P7 UNCHANGED · CatalogWork 471. Test: test-ik-autonomy-07-p8-autonomous-risk-decision.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.91",
     label: "IK AUTONOMY-06 P7 Autonomous Bid Calculation",
     items: [
