@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.90",
+    label: "IK AUTONOMY-05 Explicit AUTO / OFF / ON",
+    items: [
+      {
+        type: "new",
+        text: "IK AUTONOMY-05 (Owner GO): P5/P6 levers = AUTO|OFF|ON (te same klucze, bez nowej flagi). AUTO/ON = read-only MODE A (executeResearch=false). OFF = jawny kill-switch (OFF wygrywa w merge). Legacy B-POLICY: true→ON, missing/false→AUTO. Research/Accept/Price Commit/Final Bid/D bez zmian. P1 CLOSED · P2 KEEP GAP · Composite CLOSED · CatalogWork 471. Test: test-ik-autonomy-05-explicit-auto-off-on.mjs (T01–T25).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.89",
     label: "IK Composite Position Orchestration",
     items: [

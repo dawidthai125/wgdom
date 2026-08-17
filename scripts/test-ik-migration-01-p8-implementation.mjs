@@ -190,8 +190,8 @@ const merged = mergeAppSettings(
 );
 assert("merge P8 ON", merged.ikRiskDecisionE2eEnabled === true);
 assert("merge does not flip F5", merged.ikF5E2eEnabled === false);
-assert("merge does not flip Material", merged.ikMaterialE2eEnabled === false);
-assert("merge does not flip Labor", merged.ikLaborE2eEnabled === false);
+assert("merge does not flip Material", merged.ikMaterialE2eEnabled === "AUTO");
+assert("merge does not flip Labor", merged.ikLaborE2eEnabled === "AUTO");
 assert("merge does not flip Chief", merged.ikChiefWiringEnabled === false);
 assert("merge does not flip D", merged.expertAiDecydentEnabled === false);
 

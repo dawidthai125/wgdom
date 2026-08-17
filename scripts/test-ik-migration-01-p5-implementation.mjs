@@ -68,8 +68,10 @@ forceIkLaborResearchForTests(null);
 forceIkChiefWiringForTests(null);
 
 const d = defaultAppSettings();
-assert("A P5 OFF defaults", d.ikLaborE2eEnabled === false && d.ikLaborResearchEnabled === false);
-assert("A2 P5 inactive", isIkP5LaborE2eActive() === false);
+assert("A P5 AUTO defaults", d.ikLaborE2eEnabled === "AUTO" && d.ikLaborResearchEnabled === false);
+forceIkEntryEnabledForTests(true);
+forceIkLaborE2eForTests("AUTO");
+assert("A2 P5 AUTO active", isIkP5LaborE2eActive() === true);
 assert("A3 research inactive", isIkP5LaborExecuteResearchActive() === false);
 
 forceIkEntryEnabledForTests(true);
@@ -141,7 +143,7 @@ const merged = mergeAppSettings(
   { ikLaborE2eEnabled: true, ikLaborResearchEnabled: true },
   defaultAppSettings(),
 );
-assert("merge P5 levers", merged.ikLaborE2eEnabled === true && merged.ikLaborResearchEnabled === true);
+assert("merge P5 levers", merged.ikLaborE2eEnabled === "ON" && merged.ikLaborResearchEnabled === true);
 assert("merge does not flip D", merged.expertAiDecydentEnabled === false);
 assert("merge does not flip Chief", merged.ikChiefWiringEnabled === false);
 

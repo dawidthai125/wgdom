@@ -63,8 +63,10 @@ forceIkLaborE2eForTests(null);
 forceIkChiefWiringForTests(null);
 
 const d = defaultAppSettings();
-assert("A P6 OFF defaults", d.ikMaterialE2eEnabled === false && d.ikMaterialResearchEnabled === false);
-assert("A2 P6 inactive", isIkP6MaterialE2eActive() === false);
+assert("A P6 AUTO defaults", d.ikMaterialE2eEnabled === "AUTO" && d.ikMaterialResearchEnabled === false);
+forceIkEntryEnabledForTests(true);
+forceIkMaterialE2eForTests("AUTO");
+assert("A2 P6 AUTO active", isIkP6MaterialE2eActive() === true);
 assert("A3 research inactive", isIkP6MaterialExecuteResearchActive() === false);
 
 forceIkEntryEnabledForTests(true);
@@ -141,8 +143,8 @@ const merged = mergeAppSettings(
   { ikMaterialE2eEnabled: true, ikMaterialResearchEnabled: true },
   defaultAppSettings(),
 );
-assert("merge P6 levers", merged.ikMaterialE2eEnabled === true && merged.ikMaterialResearchEnabled === true);
-assert("merge does not flip Labor", merged.ikLaborE2eEnabled === false);
+assert("merge P6 levers", merged.ikMaterialE2eEnabled === "ON" && merged.ikMaterialResearchEnabled === true);
+assert("merge does not flip Labor", merged.ikLaborE2eEnabled === "AUTO");
 assert("merge does not flip D", merged.expertAiDecydentEnabled === false);
 assert("merge does not flip Chief", merged.ikChiefWiringEnabled === false);
 

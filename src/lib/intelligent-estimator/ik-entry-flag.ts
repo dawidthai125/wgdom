@@ -1,10 +1,11 @@
 /**
  * IK-MIGRATION-01 P1–P8 — first-screen + controlled P2–P8 flags.
- * SSOT: AppSettings (kw-app-settings). Defaults OFF.
+ * SSOT: AppSettings (kw-app-settings).
+ * P5/P6: AUTO|ON = MODE A · OFF = HOLD · Research remains separate boolean === true.
  * Independent of Decydent / Dual Outcome master (D).
  */
 
-import { loadAppSettingsLocal } from "@/lib/app-settings";
+import { isIkE2eModeActive, loadAppSettingsLocal, type IkE2eMode } from "@/lib/app-settings";
 
 /** P10 — NG-10 first-screen removed; sole first-screen class is IK entry. */
 export type IkDetailFirstScreen = "ik_entry";
@@ -28,12 +29,14 @@ export type IkP4ChiefEligibilityInput = {
 
 export type IkP5LaborExecuteResearchInput = {
   ikEntryEnabled: boolean;
+  /** Boolean MODE A capability — NEVER pass raw "AUTO"|"OFF"|"ON". */
   ikLaborE2eEnabled: boolean;
   ikLaborResearchEnabled: boolean;
 };
 
 export type IkP6MaterialExecuteResearchInput = {
   ikEntryEnabled: boolean;
+  /** Boolean MODE A capability — NEVER pass raw "AUTO"|"OFF"|"ON". */
   ikMaterialE2eEnabled: boolean;
   ikMaterialResearchEnabled: boolean;
 };
@@ -52,9 +55,9 @@ let ikEntryForTests: boolean | null = null;
 let ikAutoIngestForTests: boolean | null = null;
 let ikIdentityCoverageForTests: boolean | null = null;
 let ikChiefWiringForTests: boolean | null = null;
-let ikLaborE2eForTests: boolean | null = null;
+let ikLaborE2eForTests: boolean | IkE2eMode | null = null;
 let ikLaborResearchForTests: boolean | null = null;
-let ikMaterialE2eForTests: boolean | null = null;
+let ikMaterialE2eForTests: boolean | IkE2eMode | null = null;
 let ikMaterialResearchForTests: boolean | null = null;
 let ikF5E2eForTests: boolean | null = null;
 let ikRiskDecisionE2eForTests: boolean | null = null;
@@ -79,8 +82,11 @@ export function forceIkChiefWiringForTests(on: boolean | null): void {
   ikChiefWiringForTests = on;
 }
 
-/** Test-only override for P5 Labor E2E (null = AppSettings). */
-export function forceIkLaborE2eForTests(on: boolean | null): void {
+/**
+ * Test-only override for P5 Labor E2E (null = AppSettings).
+ * boolean true → ON · boolean false → OFF · "AUTO"|"OFF"|"ON" → that mode.
+ */
+export function forceIkLaborE2eForTests(on: boolean | IkE2eMode | null): void {
   ikLaborE2eForTests = on;
 }
 
@@ -89,8 +95,11 @@ export function forceIkLaborResearchForTests(on: boolean | null): void {
   ikLaborResearchForTests = on;
 }
 
-/** Test-only override for P6 Material E2E (null = AppSettings). */
-export function forceIkMaterialE2eForTests(on: boolean | null): void {
+/**
+ * Test-only override for P6 Material E2E (null = AppSettings).
+ * boolean true → ON · boolean false → OFF · "AUTO"|"OFF"|"ON" → that mode.
+ */
+export function forceIkMaterialE2eForTests(on: boolean | IkE2eMode | null): void {
   ikMaterialE2eForTests = on;
 }
 
@@ -107,6 +116,17 @@ export function forceIkF5E2eForTests(on: boolean | null): void {
 /** Test-only override for P8 Risk/Decision E2E (null = AppSettings). */
 export function forceIkRiskDecisionE2eForTests(on: boolean | null): void {
   ikRiskDecisionE2eForTests = on;
+}
+
+/**
+ * Resolve test override or stored mode to MODE A capability (boolean).
+ * true/"AUTO"/"ON" → active · false/"OFF" → HOLD.
+ * Never treats a raw enum string as `=== true` for Research.
+ */
+function isForcedIkE2eActive(forced: boolean | IkE2eMode | null): boolean | null {
+  if (forced == null) return null;
+  if (forced === true || forced === "AUTO" || forced === "ON") return true;
+  return false;
 }
 
 export function isIkEntryEnabled(): boolean {
@@ -143,12 +163,14 @@ export function isIkChiefWiringEnabled(): boolean {
 }
 
 /**
- * P5 Labor E2E preference (MODE A capable). Default OFF.
+ * P5 Labor E2E preference — MODE A capable (AUTO or ON). Default AUTO.
  * Does NOT enable Material · Does NOT flip Chief · Does NOT flip D.
+ * Does NOT enable Research.
  */
 export function isIkLaborE2eEnabled(): boolean {
-  if (ikLaborE2eForTests != null) return ikLaborE2eForTests;
-  return loadAppSettingsLocal().ikLaborE2eEnabled === true;
+  const forced = isForcedIkE2eActive(ikLaborE2eForTests);
+  if (forced != null) return forced;
+  return isIkE2eModeActive(loadAppSettingsLocal().ikLaborE2eEnabled);
 }
 
 /**
@@ -211,14 +233,14 @@ export function isIkP4ChiefSessionEligible(opts: {
   });
 }
 
-/** P5 MODE A active: IK ON ∧ Labor E2E ON. */
+/** P5 MODE A active: IK ON ∧ Labor mode ∈ {AUTO, ON}. OFF = HOLD. */
 export function isIkP5LaborE2eActive(): boolean {
   return isIkEntryEnabled() === true && isIkLaborE2eEnabled() === true;
 }
 
 /**
  * Pure P5 MODE B research permission (flags only).
- * MUST be `=== true` on all three — never undefined→research.
+ * MUST be `=== true` on all three booleans — never raw enum → research.
  */
 export function resolveIkP5LaborExecuteResearch(
   input: IkP5LaborExecuteResearchInput,
@@ -240,12 +262,14 @@ export function isIkP5LaborExecuteResearchActive(): boolean {
 }
 
 /**
- * P6 Material E2E preference (MODE A capable). Default OFF.
+ * P6 Material E2E preference — MODE A capable (AUTO or ON). Default AUTO.
  * Does NOT enable Labor · Does NOT flip Chief · Does NOT flip D.
+ * Does NOT enable Research.
  */
 export function isIkMaterialE2eEnabled(): boolean {
-  if (ikMaterialE2eForTests != null) return ikMaterialE2eForTests;
-  return loadAppSettingsLocal().ikMaterialE2eEnabled === true;
+  const forced = isForcedIkE2eActive(ikMaterialE2eForTests);
+  if (forced != null) return forced;
+  return isIkE2eModeActive(loadAppSettingsLocal().ikMaterialE2eEnabled);
 }
 
 /**
@@ -257,7 +281,7 @@ export function isIkMaterialResearchEnabled(): boolean {
   return loadAppSettingsLocal().ikMaterialResearchEnabled === true;
 }
 
-/** P6 MODE A active: IK ON ∧ Material E2E ON. */
+/** P6 MODE A active: IK ON ∧ Material mode ∈ {AUTO, ON}. OFF = HOLD. */
 export function isIkP6MaterialE2eActive(): boolean {
   return isIkEntryEnabled() === true && isIkMaterialE2eEnabled() === true;
 }

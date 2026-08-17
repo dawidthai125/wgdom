@@ -7,9 +7,9 @@
  * P2: when isIkAutoIngestEnabled() → NG-02 ingest bridge → Document Expert.
  * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
  *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
- * P5: Labor E2E when isIkP5LaborE2eActive(); MODE B research only when
+ * P5: Labor E2E when isIkP5LaborE2eActive() (AUTO|ON, not OFF); MODE B research only when
  *     isIkP5LaborExecuteResearchActive() (explicit executeResearch === true).
- * P6: Material E2E when isIkP6MaterialE2eActive(); MODE B research only when
+ * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); MODE B research only when
  *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
  * P7: F5/Bid when isIkP7F5E2eActive(); RESEARCH=0 · HTTP=0 always (no research lever).
  * P8: Risk/Decision when isIkP8RiskDecisionE2eActive(); RESEARCH=0 · HTTP=0 · no D flip.

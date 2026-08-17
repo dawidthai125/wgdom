@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.90 — IK AUTONOMY-05 Explicit AUTO / OFF / ON (2026-08-17)
+
+- **Owner GO:** P5/P6 `ikLaborE2eEnabled` / `ikMaterialE2eEnabled` = `"AUTO" | "OFF" | "ON"` (same keys, no new flag)
+- AUTO/ON = read-only MODE A (`executeResearch=false`) · OFF = explicit kill-switch (OFF wins merge)
+- Legacy B-POLICY: `true`→ON · `missing`/`false`→AUTO (OD-2b)
+- Research / Accept / Price Commit / Final Bid / D unchanged · P1 CLOSED · P2 KEEP GAP · Composite CLOSED · CatalogWork **471**
+- Test: `npx vite-node scripts/test-ik-autonomy-05-explicit-auto-off-on.mjs`
+
 ## 2.66.89 — IK Composite Position Orchestration (2026-08-17)
 
 - **Owner GO:** `BOTH_HOLD` consumer in `IkEntryHost` — decomp → TechnologyPack → leaf experts → `computePositionCost` (unchanged)

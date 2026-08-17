@@ -16,7 +16,7 @@ import {
   type AdminSession,
   type SecurityAuditActor,
 } from "@/lib/admin-auth";
-import { saveAppSettings, type AppSettings } from "@/lib/app-settings";
+import { saveAppSettings, normalizeIkE2eMode, type AppSettings } from "@/lib/app-settings";
 import { maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
 import {
   resetTendersPipeline,
@@ -501,26 +501,33 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikLaborE2eEnabled === true}
+            <div className="space-y-1" data-ik-labor-e2e-toggle>
+              <p className="text-sm font-medium">IK · LABOR E2E (P5 · MODE A)</p>
+              <select
+                value={normalizeIkE2eMode(appSettings.ikLaborE2eEnabled)}
                 onChange={async (e) => {
-                  const next = { ...appSettings, ikLaborE2eEnabled: e.target.checked };
+                  const nextMode = normalizeIkE2eMode(e.target.value);
+                  const prev = normalizeIkE2eMode(appSettings.ikLaborE2eEnabled);
+                  if (nextMode === "OFF" && prev !== "OFF") {
+                    const ok = window.confirm("IK nie uruchamia tego eksperta. Labor Expert pozostanie wyłączony. Kontynuować?");
+                    if (!ok) return;
+                  }
+                  const next = { ...appSettings, ikLaborE2eEnabled: nextMode };
                   onAppSettingsChange(next);
                   await saveAppSettings(next);
                 }}
-                className="mt-0.5"
-                data-ik-labor-e2e-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · LABOR E2E (P5 · MODE A)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P5. Domyślnie OFF. CURRENT + internal-first + Owner Knowledge —
-                  bez HTTP research, bez Material (P6), bez F5/Bid. Po teście: wyłącz.
-                </p>
-              </div>
-            </label>
+                className="mt-1 w-full max-w-md px-2 py-1.5 rounded-lg border border-border text-sm bg-background"
+                data-ik-labor-e2e-mode
+              >
+                <option value="AUTO">AUTO — IK automatycznie wykonuje read-only MODE A</option>
+                <option value="ON">ON — MODE A wymuszony</option>
+                <option value="OFF">OFF — IK nie uruchamia tego eksperta</option>
+              </select>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                IK AUTONOMY-05. AUTO/ON = CURRENT + internal-first, bez HTTP research, bez Accept.
+                OFF = trwały kill-switch. Research MODE B = osobny checkbox poniżej.
+              </p>
+            </div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -541,26 +548,33 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikMaterialE2eEnabled === true}
+            <div className="space-y-1" data-ik-material-e2e-toggle>
+              <p className="text-sm font-medium">IK · MATERIAL E2E (P6 · MODE A)</p>
+              <select
+                value={normalizeIkE2eMode(appSettings.ikMaterialE2eEnabled)}
                 onChange={async (e) => {
-                  const next = { ...appSettings, ikMaterialE2eEnabled: e.target.checked };
+                  const nextMode = normalizeIkE2eMode(e.target.value);
+                  const prev = normalizeIkE2eMode(appSettings.ikMaterialE2eEnabled);
+                  if (nextMode === "OFF" && prev !== "OFF") {
+                    const ok = window.confirm("IK nie uruchamia tego eksperta. Material Expert pozostanie wyłączony. Kontynuować?");
+                    if (!ok) return;
+                  }
+                  const next = { ...appSettings, ikMaterialE2eEnabled: nextMode };
                   onAppSettingsChange(next);
                   await saveAppSettings(next);
                 }}
-                className="mt-0.5"
-                data-ik-material-e2e-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · MATERIAL E2E (P6 · MODE A)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  IK-MIGRATION-01 P6. Domyślnie OFF. Price Memory + identity —
-                  bez HTTP DIY, bez Labor (P5), bez F5/Bid. Po teście: wyłącz.
-                </p>
-              </div>
-            </label>
+                className="mt-1 w-full max-w-md px-2 py-1.5 rounded-lg border border-border text-sm bg-background"
+                data-ik-material-e2e-mode
+              >
+                <option value="AUTO">AUTO — IK automatycznie wykonuje read-only MODE A</option>
+                <option value="ON">ON — MODE A wymuszony</option>
+                <option value="OFF">OFF — IK nie uruchamia tego eksperta</option>
+              </select>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                IK AUTONOMY-05. AUTO/ON = Price Memory + identity, bez HTTP DIY, bez Accept.
+                OFF = trwały kill-switch. Research MODE B = osobny checkbox poniżej.
+              </p>
+            </div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"

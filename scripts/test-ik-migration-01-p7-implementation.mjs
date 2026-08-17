@@ -147,8 +147,8 @@ const merged = mergeAppSettings(
   defaultAppSettings(),
 );
 assert("merge P7 ON", merged.ikF5E2eEnabled === true);
-assert("merge does not flip Material", merged.ikMaterialE2eEnabled === false);
-assert("merge does not flip Labor", merged.ikLaborE2eEnabled === false);
+assert("merge does not flip Material", merged.ikMaterialE2eEnabled === "AUTO");
+assert("merge does not flip Labor", merged.ikLaborE2eEnabled === "AUTO");
 assert("merge does not flip Chief", merged.ikChiefWiringEnabled === false);
 assert("merge does not flip D", merged.expertAiDecydentEnabled === false);
 

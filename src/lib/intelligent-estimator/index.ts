@@ -56,6 +56,7 @@ export {
   resolveIkP7F5E2eActive,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
+export type { IkE2eMode } from "@/lib/app-settings";
 export type {
   IkDetailFirstScreen,
   IkP4ChiefEligibilityInput,

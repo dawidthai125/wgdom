@@ -7,7 +7,15 @@ export { APP_SETTINGS_KEY };
 /** PB-WRITE-A / #5C-2 — routing zapisu katalogu legacy vs work. Domyślnie work_only. */
 export type CatalogWriteMode = "split" | "work_only" | "legacy_only";
 
+/**
+ * IK AUTONOMY-05 — P5/P6 MODE A lever (same keys, explicit tri-state).
+ * AUTO/ON = read-only MODE A · OFF = explicit Owner kill-switch.
+ * Does NOT enable Research (separate boolean levers).
+ */
+export type IkE2eMode = "AUTO" | "OFF" | "ON";
+
 const CATALOG_WRITE_MODES: CatalogWriteMode[] = ["split", "work_only", "legacy_only"];
+const IK_E2E_MODES: readonly IkE2eMode[] = ["AUTO", "OFF", "ON"];
 
 export function normalizeCatalogWriteMode(value: unknown): CatalogWriteMode {
   if (typeof value === "string" && (CATALOG_WRITE_MODES as string[]).includes(value)) {
@@ -25,6 +33,43 @@ export function mergeCatalogWriteMode(
     return normalizeCatalogWriteMode(remote.catalogWriteMode);
   }
   return normalizeCatalogWriteMode(local.catalogWriteMode);
+}
+
+/**
+ * Parse stored P5/P6 value. `null` = key absent (merge uses the other side).
+ * B-POLICY: true → ON · false → AUTO · missing → null (load coerces to AUTO).
+ * Never maps legacy false to OFF.
+ */
+export function parseIkE2eMode(value: unknown): IkE2eMode | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string" && (IK_E2E_MODES as readonly string[]).includes(value)) {
+    return value as IkE2eMode;
+  }
+  if (value === true) return "ON";
+  if (value === false) return "AUTO";
+  return null;
+}
+
+/** Load/default coerce — missing/unknown → AUTO (B-POLICY). Idempotent for AUTO|OFF|ON. */
+export function normalizeIkE2eMode(value: unknown): IkE2eMode {
+  return parseIkE2eMode(value) ?? "AUTO";
+}
+
+/** MODE A run capability: AUTO or ON. Never `|| true`. Strings are not booleans. */
+export function isIkE2eModeActive(mode: IkE2eMode): boolean {
+  return mode === "AUTO" || mode === "ON";
+}
+
+/**
+ * C1 — OFF wins. Explicit kill-switch never becomes AUTO/ON via hydration.
+ * Remote present (after parse) wins when neither side is OFF.
+ */
+export function mergeIkE2eMode(remoteValue: unknown, localValue: unknown): IkE2eMode {
+  const remote = parseIkE2eMode(remoteValue);
+  const local = normalizeIkE2eMode(localValue);
+  if (remote === "OFF" || local === "OFF") return "OFF";
+  if (remote != null) return remote;
+  return local;
 }
 
 export interface AppSettings {
@@ -82,20 +127,24 @@ export interface AppSettings {
    */
   ikChiefWiringEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P5 — Labor E2E under IK (MODE A: CURRENT + internal-first).
-   * Default OFF. Does NOT enable Material (P6) · Does NOT flip Chief (P4) · Does NOT flip D.
+   * IK AUTONOMY-05 P5 — Labor E2E under IK (MODE A: CURRENT + internal-first).
+   * AUTO|ON = read-only MODE A · OFF = explicit kill-switch.
+   * Does NOT enable Material (P6) · Does NOT flip Chief (P4) · Does NOT flip D.
+   * Does NOT enable Research (ikLaborResearchEnabled stays boolean === true).
    */
-  ikLaborE2eEnabled: boolean;
+  ikLaborE2eEnabled: IkE2eMode;
   /**
    * IK-MIGRATION-01 P5 — selective Labor HTTP research (MODE B).
-   * Default OFF. Requires ikLaborE2eEnabled. Does NOT imply Material research.
+   * Default OFF. Requires P5 MODE A active (AUTO|ON). Does NOT imply Material research.
    */
   ikLaborResearchEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P6 — Material E2E under IK (MODE A: Price Memory + identity).
-   * Default OFF. Does NOT enable Labor (P5) · Does NOT flip Chief (P4) · Does NOT flip D.
+   * IK AUTONOMY-05 P6 — Material E2E under IK (MODE A: Price Memory + identity).
+   * AUTO|ON = read-only MODE A · OFF = explicit kill-switch.
+   * Does NOT enable Labor (P5) · Does NOT flip Chief (P4) · Does NOT flip D.
+   * Does NOT enable Research (ikMaterialResearchEnabled stays boolean === true).
    */
-  ikMaterialE2eEnabled: boolean;
+  ikMaterialE2eEnabled: IkE2eMode;
   /**
    * IK-MIGRATION-01 P6 — selective Material DIY HTTP research (MODE B).
    * Default OFF. Requires ikMaterialE2eEnabled. Does NOT imply Labor research.
@@ -154,9 +203,9 @@ export function defaultAppSettings(): AppSettings {
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
     ikChiefWiringEnabled: false,
-    ikLaborE2eEnabled: false,
+    ikLaborE2eEnabled: "AUTO",
     ikLaborResearchEnabled: false,
-    ikMaterialE2eEnabled: false,
+    ikMaterialE2eEnabled: "AUTO",
     ikMaterialResearchEnabled: false,
     ikF5E2eEnabled: false,
     ikRiskDecisionE2eEnabled: false,
@@ -340,14 +389,12 @@ export function mergeIkChiefWiringEnabled(
   return local.ikChiefWiringEnabled === true;
 }
 
-/** P5 Labor E2E — independent of Chief (P4) and Dual Outcome (D). */
+/** P5 Labor E2E — C1 OFF wins · B-POLICY legacy bool. Independent of D. */
 export function mergeIkLaborE2eEnabled(
   remote: Partial<AppSettings> | null | undefined,
   local: AppSettings,
-): boolean {
-  if (remote?.ikLaborE2eEnabled === true) return true;
-  if (remote?.ikLaborE2eEnabled === false) return false;
-  return local.ikLaborE2eEnabled === true;
+): IkE2eMode {
+  return mergeIkE2eMode(remote?.ikLaborE2eEnabled, local.ikLaborE2eEnabled);
 }
 
 /** P5 Labor selective research — requires Labor E2E; never arms Material. */
@@ -360,14 +407,12 @@ export function mergeIkLaborResearchEnabled(
   return local.ikLaborResearchEnabled === true;
 }
 
-/** P6 Material E2E — independent of Labor (P5), Chief (P4), Dual Outcome (D). */
+/** P6 Material E2E — C1 OFF wins · B-POLICY legacy bool. Independent of D. */
 export function mergeIkMaterialE2eEnabled(
   remote: Partial<AppSettings> | null | undefined,
   local: AppSettings,
-): boolean {
-  if (remote?.ikMaterialE2eEnabled === true) return true;
-  if (remote?.ikMaterialE2eEnabled === false) return false;
-  return local.ikMaterialE2eEnabled === true;
+): IkE2eMode {
+  return mergeIkE2eMode(remote?.ikMaterialE2eEnabled, local.ikMaterialE2eEnabled);
 }
 
 /** P6 Material selective research — requires Material E2E; never arms Labor. */
@@ -419,9 +464,9 @@ export function loadAppSettingsLocal(): AppSettings {
       ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       ikIdentityCoverageEnabled: parsed.ikIdentityCoverageEnabled === true,
       ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
-      ikLaborE2eEnabled: parsed.ikLaborE2eEnabled === true,
+      ikLaborE2eEnabled: normalizeIkE2eMode(parsed.ikLaborE2eEnabled),
       ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
-      ikMaterialE2eEnabled: parsed.ikMaterialE2eEnabled === true,
+      ikMaterialE2eEnabled: normalizeIkE2eMode(parsed.ikMaterialE2eEnabled),
       ikMaterialResearchEnabled: parsed.ikMaterialResearchEnabled === true,
       ikF5E2eEnabled: parsed.ikF5E2eEnabled === true,
       ikRiskDecisionE2eEnabled: parsed.ikRiskDecisionE2eEnabled === true,
