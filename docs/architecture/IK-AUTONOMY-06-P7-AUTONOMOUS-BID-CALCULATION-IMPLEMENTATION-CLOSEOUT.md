@@ -4,19 +4,24 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-06-P7-AUTONOMOUS-BID-CALCULATION-IMPLEMENTATION-CLOSEOUT` |
-| **Status** | **IMPLEMENTATION = PASS** · **OWNER VERIFY = READY** |
+| **Status** | **IMPLEMENTATION = PASS** · **OWNER VERIFY = PASS WITH FINDINGS** · **PV = PASS** · **EPIC NOT CLOSED** |
 | **Date** | 2026-08-17 |
-| **UI version** | **2.66.91** (changelog; not yet deployed) |
-| **Production baseline** | **2.66.90** / **`44e81d20`** (unchanged until Owner commit/push) |
+| **UI version** | **2.66.91** |
+| **Production** | **2.66.91** / **`ab5eaaa1`** · deploy **`2K83MAbvKxYzNZeB8EqynWaHu9Pb`** |
 | **O2** | APPROVED |
 | **OD-P7b** | **B-POLICY ACCEPTED** |
-| **Arch Review** | PASS WITH CONDITIONS (C1–C5 executed) |
+| **Arch Review** | PASS WITH CONDITIONS (C1–C5 executed) · blockers **0** |
+| **Epic closeout** | [`IK-AUTONOMY-06-IMPLEMENTATION-CLOSEOUT.md`](./IK-AUTONOMY-06-IMPLEMENTATION-CLOSEOUT.md) |
+| **PV** | [`IK-AUTONOMY-06-PRODUCTION-VERIFY.md`](./IK-AUTONOMY-06-PRODUCTION-VERIFY.md) |
 
 ```text
 IMPLEMENTATION             = PASS
-OWNER VERIFY               = READY
-Commit / Push / Deploy     = NOT DONE
-Production Verify          = NOT DONE
+OWNER VERIFY               = PASS WITH FINDINGS
+COMMIT                     = PASS · ab5eaaa1
+PUSH                       = PASS
+DEPLOY                     = PASS
+PRODUCTION VERIFY          = PASS
+DOCUMENTATION              = READY FOR OWNER APPROVAL
 EPIC                       = NOT CLOSED
 ```
 
@@ -163,7 +168,7 @@ IK ON ∧ (BOQ READY ∨ OfferBoq) ∧ P7 AUTO|ON
 P7 OFF → HOLD
 ```
 
-Paczka VII `08decd1d-…`: **NOT OBSERVABLE** this turn (no prod settings flip, no live P7). After deploy, default AUTO would enable calc when IK+BOQ ready — still ≠ Final Bid.
+Paczka VII `08decd1d-…`: **NOT OBSERVABLE** on PV (IK Entry ≠ true in live KV; P7 key absent → B-POLICY AUTO; no settings write). **Not a failure.** Full claim: [`IK-AUTONOMY-06-PRODUCTION-VERIFY.md`](./IK-AUTONOMY-06-PRODUCTION-VERIFY.md).
 
 ---
 
@@ -204,11 +209,12 @@ Unchanged. XOR KEEP. D false.
 | Gate | Status |
 |------|--------|
 | Implementation | **PASS** |
-| Owner Verify | **READY** |
-| Commit | **NOT DONE** |
-| Push | **NOT DONE** |
-| Deploy | **NOT DONE** |
-| Production Verify | **NOT DONE** |
+| Owner Verify | **PASS WITH FINDINGS** |
+| Commit | **PASS** · `ab5eaaa1` |
+| Push | **PASS** |
+| Deploy | **PASS** · `2K83MAbvKxYzNZeB8EqynWaHu9Pb` |
+| Production Verify | **PASS** |
+| Documentation | **READY FOR OWNER APPROVAL** |
 | EPIC CLOSE | **NOT CLOSED** |
 
 ---
@@ -246,11 +252,12 @@ Research HTTP = 0
 Regression = PASS
 Build = PASS
 
-Commit = NOT DONE
-Push = NOT DONE
-Deploy = NOT DONE
-Production Verify = NOT DONE
+Commit = PASS · ab5eaaa1
+Push = PASS
+Deploy = PASS
+Production Verify = PASS
+Documentation = READY FOR OWNER APPROVAL
 EPIC = NOT CLOSED
 
-STOP BEFORE COMMIT.
+STOP. Docs commit = osobny OWNER GO.
 ```
