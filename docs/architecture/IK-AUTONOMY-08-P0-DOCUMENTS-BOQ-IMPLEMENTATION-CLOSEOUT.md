@@ -1,10 +1,13 @@
 # IK AUTONOMY-08 P0 — Documents → BOQ Autonomous Activation  
 ## IMPLEMENTATION CLOSEOUT
 
+> **Release status SSOT:** [`IK-AUTONOMY-08-P0-IMPLEMENTATION-CLOSEOUT.md`](./IK-AUTONOMY-08-P0-IMPLEMENTATION-CLOSEOUT.md) (post-PV).  
+> Ten plik zostaje **pre-commit implementation record** (nie nadpisuj go jako live tip).
+
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P0-DOCUMENTS-BOQ-IMPLEMENTATION-CLOSEOUT` |
-| **Status** | **IMPLEMENTATION = PASS** · **STOP BEFORE COMMIT** |
+| **Status** | **IMPLEMENTATION = PASS** · superseded as release status by post-PV closeout |
 | **Date** | 2026-08-17 |
 | **OD-08-1** | APPROVED |
 | **Arch Review** | PASS WITH CONDITIONS (C1–C8 honoured) |
