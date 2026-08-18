@@ -16,19 +16,17 @@ BLOCKERS                   = 0
 Production                 = 2.66.94 / e0373fac
 Deployment                 = Cj1o11MdCxjzjpufFRmAevkDgYmS
 A08-P0                     = COMPLETE / CLOSED
-A08-P1                     = PRODUCTION VERIFIED
+A08-P1                     = COMPLETE / CLOSED
 A08-P2                     = NOT STARTED
 EPIC                       = NOT CLOSED
 Code after deploy          = ZERO
 Settings writes            = 0
 Business writes            = 0
 Research HTTP              = 0
-Documentation              = READY FOR OWNER APPROVAL
-COMMIT docs                = NOT DONE
-PUSH docs                  = NOT DONE
+Documentation              = COMPLETE
 ```
 
-Nie zamykać całego AUTONOMY-08. Nie oznaczać EPIC COMPLETE/CLOSED.
+Zamknięcie dotyczy **wyłącznie A08-P1** (Settings Unification). **Nie** zamyka całego AUTONOMY-08. A08-P2 = **NOT STARTED**.
 
 ---
 
@@ -258,8 +256,10 @@ Research HTTP = 0
 
 Unrelated WIP = LOCAL / UNCOMMITTED / NOT DEPLOYED
 
-Documentation = READY FOR OWNER APPROVAL
+Documentation = COMPLETE
+A08-P1 = COMPLETE / CLOSED
+A08-P2 = NOT STARTED
 EPIC = NOT CLOSED
 ```
 
-STOP. Czekaj na OWNER GO → DOCUMENTATION COMMIT.
+STOP. Zamknięcie **tylko P1**. AUTONOMY-08 epic **NOT CLOSED**. Nie startuj A08-P2.

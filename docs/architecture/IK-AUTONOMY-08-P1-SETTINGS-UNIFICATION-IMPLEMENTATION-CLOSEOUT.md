@@ -4,7 +4,7 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-IMPLEMENTATION-CLOSEOUT` |
-| **Status** | **PRODUCTION VERIFIED** · **DOCUMENTATION CLOSEOUT READY** · **AUTONOMY-08 epic NOT CLOSED** |
+| **Status** | **COMPLETE / CLOSED** · **DOCUMENTATION CLOSEOUT = COMPLETE** · **AUTONOMY-08 epic NOT CLOSED** |
 | **Date** | 2026-08-18 |
 | **UI** | **2.66.94** |
 | **Production** | **2.66.94** / live **`e0373fa`** · impl **`e0373fac`** (`e0373fac558d9ea609343a7ecb8544d99cfe9252`) |
@@ -17,7 +17,7 @@
 | **PV** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PRODUCTION-VERIFY.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PRODUCTION-VERIFY.md) · **PASS WITH FINDINGS** |
 | **Slice** | **08-P1 only** — Super Admin ⚙ UI organization |
 | **A08-P0** | **COMPLETE / CLOSED** |
-| **A08-P1** | **PRODUCTION VERIFIED** · **DOCUMENTATION CLOSEOUT READY** |
+| **A08-P1** | **COMPLETE / CLOSED** · **DOCUMENTATION CLOSEOUT = COMPLETE** |
 | **A08-P2** | **NOT STARTED** |
 | **EPIC CLOSE** | **NOT CLOSED** — do **not** mark AUTONOMY-08 COMPLETE/CLOSED |
 
@@ -33,11 +33,11 @@ COMMIT                 = PASS · e0373fac
 PUSH                   = PASS
 DEPLOY                 = PASS
 PRODUCTION VERIFY      = PASS WITH FINDINGS
-DOCUMENTATION          = READY FOR OWNER APPROVAL
+DOCUMENTATION          = COMPLETE
 PRODUCTION             = 2.66.94 / e0373fac
 DEPLOYMENT             = Cj1o11MdCxjzjpufFRmAevkDgYmS
 A08-P0                 = COMPLETE / CLOSED
-A08-P1                 = PRODUCTION VERIFIED · DOCUMENTATION CLOSEOUT READY
+A08-P1                 = COMPLETE / CLOSED
 A08-P2                 = NOT STARTED
 EPIC                   = AUTONOMY-08 — NOT CLOSED
 ```
@@ -208,16 +208,18 @@ Accordion toggle = local React state only. PV did **not** flip IK, did **not** r
 ## 11. Final state
 
 ```text
+A08-P1                 = COMPLETE / CLOSED
+DOCUMENTATION CLOSEOUT = COMPLETE
 CODE THIS TURN         = ZERO
 SETTINGS               = ZERO
 BUSINESS WRITES        = ZERO
 RESEARCH               = ZERO
-COMMIT docs            = NOT DONE
-PUSH docs              = NOT DONE
 DEPLOY                 = ALREADY PASS
 PV                     = ALREADY PASS
+A08-P0                 = COMPLETE / CLOSED
+A08-P2                 = NOT STARTED
 EPIC                   = NOT CLOSED
-NEXT                   = OWNER GO → DOCUMENTATION COMMIT
+NEXT                   = OWNER GO → DOCUMENTATION PUSH
 ```
 
-STOP. Czekaj na OWNER GO → DOCUMENTATION COMMIT.
+STOP. Czekaj na OWNER GO → DOCUMENTATION PUSH. P1 CLOSED ≠ AUTONOMY-08 CLOSED. Nie startuj A08-P2.
