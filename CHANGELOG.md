@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.100 — IK-KNR-EXPERT Slice C3 host + chrome (2026-08-18)
+
+- Owner GO: podpięcie KNR do istniejącego `IkEntryHost` — `opts.knr` → istniejący `ExpertConversationSurface`
+- `IkExpertRoomChrome` (sticky, mobile ~50vh collapsed, lokalny React collapse) · aktor `Knr` · zero Hub / mapper / A1 / Research / nowych flag
+- Test: `npx vite-node scripts/test-ik-knr-expert-slice-c3.mjs`
+
 ## 2.66.99 — IK-KNR-EXPERT Slice C2 KNR conversation adapter (2026-08-18)
 
 - Owner GO: `buildIkKnrConversation` — `IkKnrExpertReport` → max 3 kroki laik + max 3 `examplesHold`

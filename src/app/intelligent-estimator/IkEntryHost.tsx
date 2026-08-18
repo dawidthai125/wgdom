@@ -25,8 +25,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { ExpertConversationSurface } from "@/app/expert-conversation";
+import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
+import { runIkKnrExpert } from "@/lib/intelligent-estimator/ik-knr-expert";
 import {
   needsIkNg02Ingest,
   runIkNg02IngestBridge,
@@ -214,6 +216,16 @@ export function IkEntryHost({
     [ingest, effectiveItem, pkg],
   );
 
+  // C3 — KNR Expert (sync read-only adapter; BLOCKED when !readyForExperts).
+  const knr = useMemo(
+    () =>
+      runIkKnrExpert({
+        tenderId: effectiveItem.id || effectiveItem.tenderId || "",
+        documentExpert: report,
+      }),
+    [effectiveItem, report],
+  );
+
   // P3 Identity Coverage — AppSettings lever (default OFF). Sync diagnostic · 0 HTTP research.
   const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
     if (!identityCoverageOn) return null;
@@ -371,8 +383,9 @@ export function IkEntryHost({
         positionCostBid,
         riskDecision,
         composite,
+        knr,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr],
   );
 
   return (
@@ -442,8 +455,12 @@ export function IkEntryHost({
       data-ik-identity-material={String(identityCoverage?.counts.trustedMaterialIdentity ?? 0)}
       data-ik-identity-alias={String(identityCoverage?.counts.approvedAlias ?? 0)}
       data-ik-identity-gap={String(identityCoverage?.counts.identityGap ?? 0)}
+      data-ik-knr-status={knr.status}
+      data-ik-knr-with-basis={String(knr.counts.withBasis)}
     >
-      <ExpertConversationSurface vm={vm} />
+      <IkExpertRoomChrome report={knr}>
+        <ExpertConversationSurface vm={vm} />
+      </IkExpertRoomChrome>
     </div>
   );
 }

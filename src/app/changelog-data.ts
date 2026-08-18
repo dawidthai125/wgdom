@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-18",
+    version: "2.66.100",
+    label: "IK-KNR-EXPERT Slice C3 — KNR host + chrome",
+    items: [
+      {
+        type: "improve",
+        text: "IK-KNR-EXPERT Slice C3 (Owner GO): KNR podpięty do istniejącego IkEntryHost — opts.knr + IkExpertRoomChrome nad istniejącą ExpertConversationSurface. Aktor Knr, lokalny collapse, zero Hub/mapper/A1/Research/nowych flag. Test: test-ik-knr-expert-slice-c3.mjs (T-ROOM-1…30).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-18",
     version: "2.66.99",
     label: "IK-KNR-EXPERT Slice C2 — KNR conversation adapter",
     items: [

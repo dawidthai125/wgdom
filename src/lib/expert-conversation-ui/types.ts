@@ -24,7 +24,11 @@ export type ExpertConversationStepKind =
   | "classification"
   | "labor"
   | "material"
-  | "identity_coverage";
+  | "identity_coverage"
+  | "knr_lead"
+  | "knr"
+  | "knr_wrap"
+  | "knr_blocked";
 
 export type ExpertConversationStepStatus =
   | "pending"

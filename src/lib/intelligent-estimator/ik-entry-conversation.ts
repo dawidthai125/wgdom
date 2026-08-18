@@ -38,6 +38,8 @@ import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
 import type { IkP8RiskDecisionReport } from "./ik-p8-risk-decision";
 import type { IkCompositeBothHoldReport } from "./ik-composite-both-hold";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
+import type { IkKnrExpertReport } from "./ik-knr-expert";
+import { buildIkKnrConversation, type IkKnrConversationStep } from "./ik-knr-conversation";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
 
@@ -67,6 +69,8 @@ export interface IkEntryConversationOpts {
   riskDecision?: IkP8RiskDecisionReport | null;
   /** BOTH_HOLD consumer — leaf experts → computePositionCost (never invent / Accept). */
   composite?: IkCompositeBothHoldReport | null;
+  /** C3 — KNR Expert report (sync; presentation only — never invent / write catalogWorkId). */
+  knr?: IkKnrExpertReport | null;
 }
 
 function messageWeight(text: string): number {
@@ -108,6 +112,28 @@ function step(opts: {
   };
 }
 
+/** C3 — copy C2 steps onto the existing VM. Do not use step() (it would overwrite statusLabelPl). */
+function knrStepFromC2(s: IkKnrConversationStep): ExpertConversationStepView {
+  return {
+    id: s.id,
+    actorLabelPl: s.actorLabelPl,
+    status: s.status,
+    statusLabelPl: s.statusLabelPl,
+    messagePl: s.messagePl,
+    detailPl: s.detailPl,
+    event: s.event,
+    offerPricePln: null,
+    offerPriceDisplayPl: null,
+    iconKey: "flag",
+    messageWeight: messageWeight(s.messagePl),
+    sourceRef: {
+      kind: s.sourceRef.kind,
+      tenderId: s.sourceRef.tenderId,
+      artifact: s.sourceRef.artifact,
+    },
+  };
+}
+
 export function buildIkEntryConversationViewModel(
   item: TenderPipelineItem,
   pkgOrOpts?: TenderPackage | null | IkEntryConversationOpts,
@@ -127,6 +153,7 @@ export function buildIkEntryConversationViewModel(
       || "positionCostBid" in pkgOrOpts
       || "riskDecision" in pkgOrOpts
       || "composite" in pkgOrOpts
+      || "knr" in pkgOrOpts
     )
       ? pkgOrOpts
       : { package: (pkgOrOpts as TenderPackage | null | undefined) ?? null };
@@ -518,6 +545,14 @@ export function buildIkEntryConversationViewModel(
         }, report.status === "gap" ? "hold" : "extraction"),
       }),
     );
+  }
+
+  // C3 — KNR conversation (C2 adapter). After boq_status, before classification.
+  if ("knr" in opts) {
+    const knrView = buildIkKnrConversation(opts.knr ?? null);
+    for (const s of knrView.steps) {
+      steps.push(knrStepFromC2(s));
+    }
   }
 
   // P3 — Classification Gate (only when Master BOQ READY; ZERO research/pricing claims).

@@ -37,7 +37,8 @@ export type IkConversationEventActor =
   | "Material"
   | "Control"
   | "Pricing"
-  | "Risk";
+  | "Risk"
+  | "Knr";
 
 export type IkConversationEventStatus = ExpertConversationStepStatus;
 
@@ -89,6 +90,12 @@ export function canPresentAsVerifiedFact(
 
 function actorFromStep(step: ExpertConversationStepView): IkConversationEventActor {
   const label = (step.actorLabelPl || "").toLowerCase();
+  if (label.includes("oznaczeń katalogowych") || label.includes("oznaczen katalogowych")) {
+    return "Knr";
+  }
+  if (label.includes("inteligentny kosztorysant") || /\bkosztorysant\b/.test(label)) {
+    return "Chief";
+  }
   if (label.includes("labor") || label.includes("robocizn")) return "Labor";
   if (label.includes("mater")) return "Material";
   if (label.includes("chief") || label.includes("szef")) return "Chief";
