@@ -4,26 +4,45 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-IMPLEMENTATION-CLOSEOUT` |
-| **Status** | **IMPLEMENTATION = PASS** · **OWNER VERIFY = NOT DONE** |
-| **Date** | 2026-08-17 |
-| **UI** | **2.66.94** (changelog; not deployed) |
-| **Production tip** | still **2.66.93** / **`b98e68e5`** until Owner commit+push |
-| **DF** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-DESIGN-FREEZE.md) |
-| **ARCH REVIEW** | PASS WITH CONDITIONS · blockers **0** · IC-1 / IC-2 honoured |
+| **Status** | **PRODUCTION VERIFIED** · **DOCUMENTATION CLOSEOUT READY** · **AUTONOMY-08 epic NOT CLOSED** |
+| **Date** | 2026-08-18 |
+| **UI** | **2.66.94** |
+| **Production** | **2.66.94** / live **`e0373fa`** · impl **`e0373fac`** (`e0373fac558d9ea609343a7ecb8544d99cfe9252`) |
+| **Deploy** | Vercel Git Integration · ID **`Cj1o11MdCxjzjpufFRmAevkDgYmS`** · origin/main |
+| **AUDIT** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-AUDIT.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-AUDIT.md) · **PASS** |
+| **PLAN** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PLAN.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PLAN.md) · **PASS** |
+| **DF** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-DESIGN-FREEZE.md) · **PASS** |
+| **ARCH REVIEW** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-ARCH-REVIEW.md) · **PASS WITH CONDITIONS** · blockers **0** · IC-1 / IC-2 honoured |
+| **OWNER VERIFY** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-OWNER-VERIFY.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-OWNER-VERIFY.md) · **PASS WITH FINDINGS** (0 BLOCKING) |
+| **PV** | [`IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PRODUCTION-VERIFY.md`](./IK-AUTONOMY-08-P1-SETTINGS-UNIFICATION-PRODUCTION-VERIFY.md) · **PASS WITH FINDINGS** |
 | **Slice** | **08-P1 only** — Super Admin ⚙ UI organization |
+| **A08-P0** | **COMPLETE / CLOSED** |
+| **A08-P1** | **PRODUCTION VERIFIED** · **DOCUMENTATION CLOSEOUT READY** |
+| **A08-P2** | **NOT STARTED** |
+| **EPIC CLOSE** | **NOT CLOSED** — do **not** mark AUTONOMY-08 COMPLETE/CLOSED |
 
 ```text
-IMPLEMENTATION     = PASS
-OWNER VERIFY       = NOT DONE
-COMMIT             = NOT DONE
-PUSH               = NOT DONE
-DEPLOY             = NOT DONE
-PRODUCTION VERIFY  = NOT DONE
-EPIC               = AUTONOMY-08 — P1
-NEXT               = OWNER VERIFY
+AUDIT                  = PASS
+OWNER REVIEW           = PASS
+PLAN                   = PASS
+DESIGN FREEZE          = PASS
+ARCH REVIEW            = PASS WITH CONDITIONS
+IMPLEMENTATION         = PASS
+OWNER VERIFY           = PASS WITH FINDINGS
+COMMIT                 = PASS · e0373fac
+PUSH                   = PASS
+DEPLOY                 = PASS
+PRODUCTION VERIFY      = PASS WITH FINDINGS
+DOCUMENTATION          = READY FOR OWNER APPROVAL
+PRODUCTION             = 2.66.94 / e0373fac
+DEPLOYMENT             = Cj1o11MdCxjzjpufFRmAevkDgYmS
+A08-P0                 = COMPLETE / CLOSED
+A08-P1                 = PRODUCTION VERIFIED · DOCUMENTATION CLOSEOUT READY
+A08-P2                 = NOT STARTED
+EPIC                   = AUTONOMY-08 — NOT CLOSED
 ```
 
-NEW ENGINE = NO · NEW FLAG = NO · NEW ORCHESTRATOR = NO · KV MIGRATION = NO.
+NEW ENGINE = NO · NEW FLAG = NO · NEW ORCHESTRATOR = NO · KV MIGRATION = NO · APPSETTINGS MIGRATION = NO.
 
 ---
 
@@ -31,9 +50,15 @@ NEW ENGINE = NO · NEW FLAG = NO · NEW ORCHESTRATOR = NO · KV MIGRATION = NO.
 
 Super Admin ⚙ Moduły: **jedyny biznesowy switch IK** = `ikEntryEnabled` (checkbox ON/OFF).
 
-P3–P8 + Research przeniesione do **TECHNICAL / ADVANCED / EMERGENCY** (domyślnie zwinięte). Te same widgety, ten sam `appSettings` binding, te same `data-*`, te same `saveAppSettings` na zmianie wartości.
+**IK ON** = autonomiczny workflow IK (runtime A08-P0 unchanged: Documents→BOQ when `ikEntryEnabled === true`).
 
-AUTO_INGEST **nie wraca**. D zostaje w primary (HARD STOP). Runtime A05–A08 / P0 **bez zmian**.
+P3–P8 + Research przeniesione do **TECHNICAL / ADVANCED / EMERGENCY** (domyślnie zwinięte). Te same widgety, ten sam `appSettings` binding, te same control `data-*`, te same `saveAppSettings` na zmianie wartości.
+
+Kontrolki Technical **pozostają w DOM** przez `hidden={!ikTechnicalOpen}` (IC-2). Nie są unmountowane.
+
+AUTO_INGEST **nie wraca** do UI. D zostaje w primary (HARD STOP). Runtime A05–A08 / P0 **bez zmian kontraktowych**.
+
+Zwykły Administrator **nie** otrzymuje nowego panelu. Super Admin zachowuje dostęp do technical controls (⚙ + `adminIsSuperAdmin`).
 
 Copy IK (SSOT):
 
@@ -41,7 +66,9 @@ Copy IK (SSOT):
 
 ---
 
-## 2. Files changed (this implementation)
+## 2. Files changed (implementation commit)
+
+Commit **`e0373fac`** `feat(ik): unify autonomy settings` — 11 files.
 
 | File | Role |
 |------|------|
@@ -49,17 +76,14 @@ Copy IK (SSOT):
 | `src/app/changelog-data.ts` | **2.66.94** |
 | `CHANGELOG.md` | mirror 2.66.94 |
 | `scripts/test-ik-autonomy-08-p0-documents-boq.mjs` | **IC-1** T24 copy assertion only |
-| `scripts/test-ik-autonomy-08-p1-settings-unification.mjs` | **new** source smoke (54) |
+| `scripts/test-ik-autonomy-08-p1-settings-unification.mjs` | source smoke (54) |
+| P1 AUDIT / PLAN / DF / ARCH REVIEW / OWNER VERIFY / this closeout | docs (this documentation closeout adds PV + tip 09) |
 
 **Nie ruszane:** `app-settings.ts` · `ik-entry-flag.ts` · `IkEntryHost.tsx` · `TenderDetailPage.tsx` · `admin-auth.ts` · `AdminTopbar.tsx` · silniki P5–P8 · ingest.
 
-Prior docs (untracked, this epic, not code): AUDIT · PLAN · DF · ARCH REVIEW · ten closeout.
-
-`git diff --stat` (implementation tracked files): **4 files, +51 / −3** (+ nowy harness untracked).
-
 ---
 
-## 3. UI structure (after)
+## 3. UI structure (verified)
 
 ```text
 Moduły
@@ -68,7 +92,7 @@ Moduły
   Szkice pracownika
   Expert AI · Przebieg i Decydent     ← D HARD STOP
   Inteligentny Kosztorysant           ← ikEntryEnabled  data-ik-entry-toggle
-  ▶ TECHNICAL / ADVANCED / EMERGENCY  ← collapsed · local state only
+  ▶ TECHNICAL / ADVANCED / EMERGENCY  ← collapsed · local state only · hidden
       intro (diagnostic / emergency)
       P3 Identity Coverage
       P4 Chief Wiring
@@ -83,7 +107,30 @@ Jedna instancja każdego controlu. Expand **nie** woła `saveAppSettings`.
 
 ---
 
-## 4. IC-1
+## 4. Verified A08-P1 contract
+
+| Lock | Status |
+|------|--------|
+| Jedyny biznesowy switch IK = `ikEntryEnabled` | **VERIFIED** |
+| IK ON = autonomiczny workflow IK | **VERIFIED** (runtime = A08-P0 helper) |
+| Primary UI: Przetargi / WM / D / IK | **VERIFIED** |
+| IK copy SSOT | **VERIFIED** |
+| P3–P8 + Research = TECHNICAL / ADVANCED / EMERGENCY | **VERIFIED** |
+| Technical default collapsed | **VERIFIED** |
+| Controls stay in DOM via `hidden` | **VERIFIED** |
+| AUTO_INGEST not in basic UI | **VERIFIED** |
+| Regular Admin: no new panel | **VERIFIED** |
+| Super Admin: technical controls | **VERIFIED** |
+| AppSettings: no migration | **VERIFIED** |
+| KV: no migration | **VERIFIED** |
+| Runtime A05–A08: no contract change | **VERIFIED** |
+| P1 invoice CLOSED | **UNCHANGED** |
+| P2 KEEP GAP | **KEEP GAP** |
+| Composite CLOSED | **UNCHANGED** |
+
+---
+
+## 5. IC-1 / IC-2
 
 `scripts/test-ik-autonomy-08-p0-documents-boq.mjs` T24:
 
@@ -91,100 +138,86 @@ Jedna instancja każdego controlu. Expand **nie** woła `saveAppSettings`.
 |--------|--------|
 | `/od dokumentów i przygotowania BOQ/` | `/Steruje działaniem Inteligentnego Kosztorysanta w przetargach/` |
 
-Zachowane: T24 no AUTO_INGEST · T24 no `IK · AUTO_INGEST` · T25 `data-ik-entry-toggle` · cały kontrakt P2 (`isIkP2DocumentsBoqActive` := Entry).
+Zachowane: T24 no AUTO_INGEST · T25 `data-ik-entry-toggle` · cały kontrakt P2 (`isIkP2DocumentsBoqActive` := Entry).
 
-P0 harness: **61 PASS / 0 FAIL**.
-
----
-
-## 5. IC-2
-
-| Rule | Implementation |
-|------|----------------|
-| Default | `useState(false)` — `ikTechnicalOpen` |
-| Persist | **none** (nie AppSettings / KV / LS) |
-| Chrome | button + `ChevronDown` + `aria-expanded` (reuse NG11 chrome, **not** unmount) |
-| Children | **always mounted** · `hidden={!ikTechnicalOpen}` |
-| Unmount pattern | **absent** — no `{ikTechnicalOpen && (` |
-| Duplicates | each `data-ik-*` count **1** |
+IC-2: `useState(false)` · persist **none** · children **always mounted** · `hidden={!ikTechnicalOpen}` · no `{ikTechnicalOpen && (` · each control `data-ik-*` count **1**.
 
 ---
 
-## 6. Runtime invariants
+## 6. Runtime invariants (unchanged)
 
 | Lock | Status |
 |------|--------|
 | `isIkP2DocumentsBoqActive()` := Entry | **UNCHANGED** |
-| leftover `ikAutoIngestEnabled` | field kept · not a gate · **no UI** |
-| P5/P6/P7/P8 helpers | **UNCHANGED** (git diff empty) |
-| Research `=== true` | **UNCHANGED** |
-| D / Chief | **UNCHANGED** · D primary |
+| leftover `ikAutoIngestEnabled` | field kept · not a gate · **no UI checkbox** |
+| P5/P6/P7/P8 helpers | **UNCHANGED** |
+| Research `=== true` | **UNCHANGED** · no Research-on-miss in P1 |
+| D / Chief | **UNCHANGED** · D primary HARD STOP |
 | AUTO / OFF / ON · B-POLICY · OFF wins | **UNCHANGED** |
-| P1 invoice CLOSED | **no touch** |
-| P2 KEEP GAP | **no touch** |
-| Composite CLOSED | **no touch** |
-| CatalogWork 471 | **no catalog write** |
+| Accept / Price Commit / Final Bid | **OWNER** · no P1 change |
 
 ---
 
-## 7. Regression
+## 7. Regression (implementation + PV)
 
 | Suite | Result |
 |-------|--------|
 | `test-ik-autonomy-08-p1-settings-unification.mjs` | **54 PASS / 0 FAIL** |
-| `test-ik-autonomy-08-p0-documents-boq.mjs` | **61 PASS / 0 FAIL** (T24 new copy · nested A05–A07 + P1 invoice + identity + Composite + P1-entry + P2/P3 impl) |
-| `test-ik-autonomy-05-explicit-auto-off-on.mjs` | **77 PASS / 0 FAIL** |
-| `test-ik-autonomy-06-p7-autonomous-bid-calculation.mjs` | **95 PASS / 0 FAIL** |
-| `test-ik-autonomy-07-p8-autonomous-risk-decision.mjs` | **117 PASS / 0 FAIL** |
+| `test-ik-autonomy-08-p0-documents-boq.mjs` | **61 PASS / 0 FAIL** (T24 + nested A05–A07 + invoice + identity + Composite + P1-entry + P2/P3 impl) |
+| A05 / A06 / A07 / A08-P0 | **PASS** |
+| `npm run build` (PV) | **PASS** (`✓ built in 50.35s`) |
+
+Vite warnings (`material-sell-adapter.ts` duplicate key) = **PRE-EXISTING / OUT OF SCOPE**. Nie naprawiane.
 
 ---
 
-## 8. Build
+## 8. Write audit
 
-`npm run build` → **PASS** (`✓ built in 24.51s`).
+| Class | Implementation | PV |
+|-------|----------------|----|
+| Business writes | **0** | **0** |
+| Research HTTP | **0** | **0** |
+| Settings / KV writes | **0** | **0** |
 
-Vite warnings (`material-sell-adapter.ts` duplicate key, chunk size, node:fs externalize) = **PRE-EXISTING / OUT OF SCOPE**. Nie naprawiane.
+Accordion toggle = local React state only. PV did **not** flip IK, did **not** run a real tender.
 
 ---
 
-## 9. Write audit
+## 9. Findings (NON-BLOCKING — not fixed)
 
-| Class | Count |
-|-------|-------|
-| Business writes | **0** |
-| Research HTTP | **0** |
-| Settings / KV writes | **0** |
-| Production settings | **not touched** |
+| ID | Severity | Finding |
+|----|----------|---------|
+| **OV-F1** | NON-BLOCKING | Opcjonalna druga wyciszona linia IK z Design Freeze nie weszła; SSOT copy jest na live. |
+| **OV-F2** | NON-BLOCKING | Extra chrome `data-ik-technical-*` nie jest drugim switchem IK. |
+| **Leftover attr** | NON-BLOCKING | `data-ik-entry-auto-ingest` pozostaje jako mirror P2 z A08-P0 i **NIE** jest checkboxem AUTO_INGEST. |
+| **Vite duplicate key** | PRE-EXISTING / OUT OF SCOPE | `material-sell-adapter.ts` |
+| **CI Manifest validate** | OUT OF SCOPE | poza P1 PV |
 
-Accordion toggle = local React state only.
+**BLOCKER = 0.** Findings **nie** naprawiane w documentation closeout.
 
 ---
 
 ## 10. Unrelated WIP
 
-**NOT staged.** Worktree nadal zawiera wcześniejszy WIP (LoginScreen, PayrollView, Ceny Materiałów docs, `.cursor/rules`, `.tmp-*`, itd.).
+**LOCAL / UNCOMMITTED / NOT DEPLOYED.** Nie ruszany.
 
-**Nigdy** `git add -A`. Commit P1 (gdy Owner GO) = jawna lista plików z §2 + ten closeout + AUDIT/PLAN/DF/ARCH REVIEW.
+**Nigdy** `git add -A`. Documentation commit (gdy Owner GO) = wyłącznie pliki docs tej tury.
 
 ---
 
-## 11. Owner Verify readiness
-
-Gotowe do Owner Verify na Super Admin ⚙:
-
-1. Primary: Przetargi · WM · D · **IK ON/OFF** z nowym copy.  
-2. Technical collapsed; po rozwinięciu P3–P8 + Research.  
-3. AUTO_INGEST absent.  
-4. IK OFF/ON nadal `ikEntryEnabled`.  
-5. Wartości P3–P8 **nie** zresetowane (brak KV write).  
-6. Zwykły Administrator nadal **bez** ⚙.
+## 11. Final state
 
 ```text
-OWNER VERIFY       = NOT DONE
-COMMIT             = NOT DONE
-PUSH               = NOT DONE
-DEPLOY             = NOT DONE
-PRODUCTION VERIFY  = NOT DONE
+CODE THIS TURN         = ZERO
+SETTINGS               = ZERO
+BUSINESS WRITES        = ZERO
+RESEARCH               = ZERO
+COMMIT docs            = NOT DONE
+PUSH docs              = NOT DONE
+DEPLOY                 = ALREADY PASS
+PV                     = ALREADY PASS
+EPIC                   = NOT CLOSED
+NEXT                   = OWNER GO → DOCUMENTATION COMMIT
 ```
 
-STOP. Czekaj na OWNER VERIFY.
+STOP. Czekaj na OWNER GO → DOCUMENTATION COMMIT.
