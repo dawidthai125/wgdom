@@ -2,9 +2,10 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-14  
+> **Data:** 2026-08-18  
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
+> **★★ IK sesja Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — A08-P0/P1/P2 **CLOSED** · **nie** next = A08-P3 / IK-MIGRATION-01 P2  
 > **Tender pricing (F0–F6 + C-MODE-1a):** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) — tip **zawsze z 09** (nie hardcoduj tutaj)  
 > *(tabele historyczne poniżej mogą mieć stare numery — **tip = 09 + version.json**)*
 
@@ -27,6 +28,7 @@ SEARCH BEFORE CREATE.
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
+| **IK session (2026-08-18)** | [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) |
 | **Protected Core** | **GREEN** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
 
@@ -37,9 +39,10 @@ SEARCH BEFORE CREATE.
 | | |
 |--|--|
 | **TRYB** | **UTRZYMANIE** |
-| **ACTIVE EPIC** | **NONE** |
+| **ACTIVE EPIC IMPLEMENT** | **NONE** bez Owner GO |
+| **IK AUTONOMY-08** | epic **NOT CLOSED** · P0/P1/P2 **CLOSED** · **NIE** start A08-P3 |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
-| **WAITING** | **NEXT OWNER GO** |
+| **WAITING** | **OWNER instruction** — **nie** IK-MIGRATION-01 P2 · **nie** A08-P3 |
 | **Tip feature** | **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **`ae426ad6`** · prior P0 Dual-Enablement **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 EPIC CLOSED |
 
 | Slice | Status |

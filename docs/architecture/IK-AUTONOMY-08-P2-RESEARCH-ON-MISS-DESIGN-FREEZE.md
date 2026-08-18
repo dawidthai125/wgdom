@@ -4,10 +4,10 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-DESIGN-FREEZE` |
-| **Status** | **DESIGN FREEZE = FROZEN + ARCH FIXES** · **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **IMPLEMENTATION = NOT YET AUTHORIZED** |
+| **Status** | **DESIGN FREEZE = ACCEPTED** · **SLICE COMPLETE / CLOSED** · **ARCH REVIEW = PASS WITH REQUIRED FIXES** |
 | **Date** | 2026-08-18 |
-| **Mode** | DOCUMENTATION UPDATE · **ZERO CODE** · **ZERO SETTINGS WRITE** · **ZERO RESEARCH HTTP** · **ZERO BUSINESS WRITE** · **ZERO COMMIT** · **ZERO PUSH** · **ZERO DEPLOY** |
-| **Production** | **2.66.94** · feature **`e0373fac`** · docs tip **`14ec7b3c`** · live `version.json` **`14ec7b3`** · deploy **`Cj1o11MdCxjzjpufFRmAevkDgYmS`** |
+| **Mode** | FROZEN CONTRACT (historical) · closeout [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-IMPLEMENTATION-CLOSEOUT.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-IMPLEMENTATION-CLOSEOUT.md) · PV [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PRODUCTION-VERIFY.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PRODUCTION-VERIFY.md) |
+| **Production** | **2.66.95** · feature **`1f5d871c`** · live `version.json` **`1f5d871`** · deploy **`5958146457`** |
 | **AUDIT** | [`IK-AUTONOMY-08-NEXT-AUTONOMY-BREAK-AUDIT.md`](./IK-AUTONOMY-08-NEXT-AUTONOMY-BREAK-AUDIT.md) · **CLOSED** |
 | **PLAN** | [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PLAN.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PLAN.md) · **READY / OWNER ACCEPTED** |
 | **ARCH REVIEW** | [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-ARCH-REVIEW.md) · **PASS WITH REQUIRED FIXES** · blockers **0** |
@@ -21,11 +21,11 @@ ARCH REVIEW                = PASS WITH REQUIRED FIXES
 ARCHITECTURE BLOCKERS      = 0
 SSOT CONFLICT              = NONE
 REQUIRED FIXES             = IC-SEQ-1 · IC-SEQ-2 · IC-TEST-1
-Implementation             = NOT YET AUTHORIZED
-Code / Settings / HTTP     = ZERO
-Commit / Push / Deploy     = NOT DONE
+Implementation             = COMPLETE
+Owner Verify               = PASS
+Production Verify          = PASS
 A08-P0 / A08-P1            = COMPLETE / CLOSED
-A08-P2                     = NOT STARTED
+A08-P2                     = COMPLETE / CLOSED
 EPIC                       = AUTONOMY-08 — NOT CLOSED
 ```
 

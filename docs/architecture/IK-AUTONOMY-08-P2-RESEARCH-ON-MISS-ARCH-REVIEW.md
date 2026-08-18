@@ -4,10 +4,10 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-ARCH-REVIEW` |
-| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** |
+| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **SLICE COMPLETE / CLOSED** (fixes implemented) |
 | **Date** | 2026-08-18 |
-| **Mode** | ARCH REVIEW ONLY · **ZERO CODE** · **ZERO SETTINGS WRITE** · **ZERO RESEARCH HTTP** · **ZERO BUSINESS WRITE** · **ZERO TEST RUNTIME** · **ZERO COMMIT** · **ZERO PUSH** · **ZERO DEPLOY** |
-| **Production** | **2.66.94** · feature **`e0373fac`** · docs **`14ec7b3c`** |
+| **Mode** | ARCH REVIEW (historical) · closeout [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-IMPLEMENTATION-CLOSEOUT.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-IMPLEMENTATION-CLOSEOUT.md) |
+| **Production** | **2.66.95** · feature **`1f5d871c`** · deploy **`5958146457`** |
 | **Design Freeze** | [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-DESIGN-FREEZE.md) |
 | **PLAN** | [`IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PLAN.md`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PLAN.md) |
 | **AUDIT** | [`IK-AUTONOMY-08-NEXT-AUTONOMY-BREAK-AUDIT.md`](./IK-AUTONOMY-08-NEXT-AUTONOMY-BREAK-AUDIT.md) |
@@ -18,10 +18,8 @@ ARCH REVIEW                = PASS WITH REQUIRED FIXES
 ARCHITECTURE BLOCKERS      = 0
 SSOT CONFLICT              = NONE (process stamp stale ≠ runtime contract)
 REQUIRED FIXES             = IC-SEQ-1 · IC-SEQ-2 · IC-TEST-1
-Implementation             = NOT AUTHORIZED
-Code / Settings / HTTP     = ZERO
-Commit / Push / Deploy     = NOT DONE
-A08-P2                     = NOT STARTED
+Implementation             = COMPLETE (IC-SEQ-1/2 + IC-TEST-1 honoured)
+A08-P2                     = COMPLETE / CLOSED
 EPIC                       = AUTONOMY-08 — NOT CLOSED
 ```
 

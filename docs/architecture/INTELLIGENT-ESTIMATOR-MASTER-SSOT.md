@@ -2,10 +2,11 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`  
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta**  
-> **Data:** 2026-08-14  
+> **Data:** 2026-08-18  
 > **Mode:** DOCUMENTATION ONLY  
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Snapshot baseline:** UI **2.66.59** / commit **`9bcc558`** (PASS2 CR discovery) — Tablica OUR RATE Accept **VERIFIED** (data GO, nie osobny tip UI)
+> **Snapshot baseline (historyczny wiersz):** UI **2.66.59** / commit **`9bcc558`** (PASS2 CR discovery) — Tablica OUR RATE Accept **VERIFIED** (data GO, nie osobny tip UI)  
+> **Sesja Autonomy 2026-08-18:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — A08-P0/P1/P2 CLOSED · **nie** zastępuje tego kontraktu
 
 ```text
 ════════════════════════════════════════════════════════
@@ -66,6 +67,7 @@ GŁÓWNY IK (Chief / orchestration / UX Expert Conversation)
 | Dokument | Rola |
 |----------|------|
 | **TEN PLIK** | Master kontrakt IK |
+| [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) | ★★ Sesja Autonomy 05–08 · A08-P2 **CLOSED** · **nie** drugi kontrakt |
 | [`INTELLIGENT-ESTIMATOR-ARCHITECTURE.md`](./INTELLIGENT-ESTIMATOR-ARCHITECTURE.md) | Warstwy + ścieżki plików |
 | [`INTELLIGENT-ESTIMATOR-DATA-FLOW.md`](./INTELLIGENT-ESTIMATOR-DATA-FLOW.md) | LABOR / MATERIAL / Classification flows |
 | [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md) | Component → file → status → DO NOT DUPLICATE |
@@ -74,7 +76,7 @@ GŁÓWNY IK (Chief / orchestration / UX Expert Conversation)
 | Tip UI/commit | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | Cold-start projekt | [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md) |
 | Entry procesu | [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll |
-| **IK-MIGRATION-01 P0** | [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — NG-10 → IK controlled replacement · **ZERO IMPLEMENT bez Owner GO P1** |
+| **IK-MIGRATION-01** | [`IK-MIGRATION-01-FINAL-HANDOFF.md`](./IK-MIGRATION-01-FINAL-HANDOFF.md) · [`DESIGN-FREEZE`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — P0–P9 **LOCKED / COMPLETE** · **nie** next = GO P2 Document Expert |
 
 **Historyczne (nie tip):** [`INTELLIGENT-ESTIMATOR-CONTINUITY-HANDOFF.md`](./INTELLIGENT-ESTIMATOR-CONTINUITY-HANDOFF.md) — Technology Foundation slices (paint/primer/cable) · **tip = 09**, nie ten plik.
 
@@ -163,15 +165,27 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | Podejście | HOLD · UNIT_EQUIVALENCE **UNPROVEN** (pkt vs mb) |
 | Wykwity | SOURCE GAP REAL |
 | ACTIVE EPIC IMPLEMENT | **NONE** bez Owner GO |
-| **IK-MIGRATION-01** | **P1 COMPLETE** · `ikEntryEnabled` default **OFF** · NG-10 retained · IMPLEMENT P2+ blocked until Owner GO |
+| **IK-MIGRATION-01** | P0–P9 **LOCKED / COMPLETE** · [`FINAL-HANDOFF`](./IK-MIGRATION-01-FINAL-HANDOFF.md) · **nie** next = GO P2 Document Expert |
+| **AUTONOMY-05…07** | COMPLETE / CLOSED · P5–P8 `"AUTO"\|"OFF"\|"ON"` · Research **CONDITIONAL** |
+| **AUTONOMY-08 P0** | **COMPLETE / CLOSED** · IK ON ⇒ Documents→BOQ |
+| **AUTONOMY-08 P1** | **COMPLETE / CLOSED** · `ikEntryEnabled` jedyny biznesowy switch |
+| **AUTONOMY-08 P2** | **COMPLETE / CLOSED** · Research-on-Miss · Entry ∧ P5/P6 AUTO\|ON → permission · leftover `ik*ResearchEnabled` no-op · [`CLOSEOUT`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-IMPLEMENTATION-CLOSEOUT.md) · [`PV`](./IK-AUTONOMY-08-P2-RESEARCH-ON-MISS-PRODUCTION-VERIFY.md) |
+| **AUTONOMY-08 epic** | **NOT CLOSED** |
+| Tip produkcji | **czytaj 09** (2.66.95 / `1f5d871c`) |
 
 ---
 
 ## 9. NEXT
 
-Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.  
-**IK-MIGRATION-01:** P0 frozen — następny **GO P1** (entry shell, flaga OFF) albo **AUDIT-02** live BOQ `08def45d`.  
-Kandydaci poza IK: residual C1–C6 · osobny labor item (nie auto Podejście).  
+Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.
+
+**IK AUTONOMY-08 P2:** **COMPLETE / CLOSED**. **Nie** reopen. **Nie** start A08-P3.
+
+**IK-MIGRATION-01:** P0–P9 LOCKED — **nie** wracaj do „GO P1 entry shell” / „GO P2 Document Expert” jako next.
+
+Kandydaci poza tym slice: residual C1–C6 · PACKAGE layer (COMPOUND HOLD freeze zostaje aż do osobnego GO) · labor unit proof (Podejście).  
 **NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10.
+
+Sesja: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md).
 
 **STOP.**

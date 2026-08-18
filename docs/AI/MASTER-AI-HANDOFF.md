@@ -3,9 +3,10 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-14  
+> **Data:** 2026-08-18  
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ IK Master (NO REBUILD):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)  
+> **★★ IK sesja 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — tip **zawsze z 09** · A08-P0/P1/P2 **CLOSED**  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
@@ -16,9 +17,9 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
-START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → TEN plik → 09 + version.json
-Tip = 09 + version.json (snapshot docs: 2.66.59 / 9bcc558)
-ACTIVE EPIC / IMPLEMENT = NONE bez Owner GO
+START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-18 → TEN plik → 09 + version.json
+Tip = wyłącznie 09 + version.json (nie snapshot 2.66.59 poniżej)
+ACTIVE IMPLEMENT = NONE bez Owner GO · A08-P2 CLOSED · NIE A08-P3
 ```
 
 ---

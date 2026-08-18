@@ -2,10 +2,12 @@
 
 ## 2.66.95 — IK AUTONOMY-08 P2 Research-on-Miss (2026-08-18)
 
+- **COMPLETE / CLOSED** · **PRODUCTION VERIFIED** · PV **PASS** · commit **`1f5d871c`** · deploy **`5958146457`**
 - **Owner GO:** IK ON = autonomia Research-on-Miss. `executeResearch` permission = Entry ∧ P5/P6 AUTO|ON (bez checkboxa Research)
 - HTTP tylko na prawdziwy MISS · HIT = zero Research · COMPOUND/UNKNOWN HOLD · `mat.inv.*` HARD-FORBID
 - Research ≠ Accept · P5 → P6 sequencing (`laborSettledRef` + tick; cancelled ≠ settled)
 - Test: `npx vite-node scripts/test-ik-autonomy-08-p2-research-on-miss.mjs`
+- Live IK Entry remained **OFF** · Research HTTP **NOT EXECUTED** (not a failure)
 
 ## 2.66.94 — IK AUTONOMY-08 P1 Settings Unification (2026-08-17)
 

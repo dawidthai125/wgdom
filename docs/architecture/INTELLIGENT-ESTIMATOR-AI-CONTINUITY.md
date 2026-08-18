@@ -2,8 +2,9 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-AI-CONTINUITY`  
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY  
-> **Data:** 2026-08-14  
+> **Data:** 2026-08-18  
 > **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md)  
+> **Sesja Autonomy:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)  
 > **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)
 
 ```text
@@ -24,12 +25,13 @@ SEARCH → REUSE → AUDIT → Owner GO → IMPLEMENT.
 
 1. [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)  
 2. **TEN PLIK** + [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md)  
-3. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
-4. [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md)  
-5. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`  
-6. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll  
-7. [`../WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) (gdy UI Przetargu)  
-8. [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — NG-10 replacement · **no IMPLEMENT without Owner GO P1**
+3. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — stan Autonomy 05–08 · A08-P2 **CLOSED**  
+4. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
+5. [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md)  
+6. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`  
+7. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll  
+8. [`../WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) (gdy UI Przetargu)  
+9. [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — historyczny NG-10 freeze · P0–P9 **LOCKED** · **nie** next IMPLEMENT P2
 
 ### First action
 
@@ -66,7 +68,7 @@ Jeśli istnieje → **opisz i reuse**.
 
 ## C. Production baseline (do not hardcode elsewhere)
 
-Read **09** + Production Baseline IE. Snapshot at docs write: **2.66.59** / **`9bcc558`**.  
+Read **09** + Production Baseline IE. **Nie** hardcoduj tipu tutaj.  
 Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** · Wykwity **SOURCE GAP**.
 
 ---
@@ -82,20 +84,27 @@ Tablica OUR RATE **546 ACCEPT** · Podejście **HOLD** · Wykwity **SOURCE GAP**
 
 ## E. Current EPIC
 
-**IK-MIGRATION-01 P1 COMPLETE** — `ikEntryEnabled` default OFF · NG-10 rollback path · next **GO P2** (Document Expert) only.  
-Last tip feature area: PASS2 CR + Tablica Accept (data verified). NG-10 is **not** target IK.
+**IK AUTONOMY-08** — epic **NOT CLOSED**.
+
+| Slice | Status |
+|-------|--------|
+| A08-P0 Documents→BOQ | **COMPLETE / CLOSED** |
+| A08-P1 Settings Unification | **COMPLETE / CLOSED** |
+| A08-P2 Research-on-miss | **COMPLETE / CLOSED** · PV **PASS** · leftover `ik*ResearchEnabled` no-op |
+
+Handoff: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md).  
+IK-MIGRATION-01 P0–P9 **LOCKED** — **nie** next = Document Expert P2.
 
 ---
 
 ## F. Next valid epic candidates
 
-Only after Owner GO → AUDIT:
+Only after Owner GO → AUDIT. **Nie** auto-start A08-P3.
 
-- IK-MIGRATION-01 **P1** only after Owner GO (entry shell, flag default OFF)  
+- PACKAGE layer vs COMPOUND HOLD freeze — osobny GO (nie A08-P2 / nie P3)  
 - Next labor identity/Evidence item (not Podejście without unit proof)  
 - Residual C1–C6 / TM follow-ups (no invent S10)  
-- Material coverage / real tender Wrocław audit streams  
-- Docs-only continuity (this pack)
+- Docs-only continuity
 
 ---
 
@@ -107,6 +116,8 @@ Only after Owner GO → AUDIT:
 ❌ Evidence → OUR RATE auto
 ❌ companyPrice → OUR RATE
 ❌ Research COMPOUND/UNKNOWN
+❌ New IK flag / second orchestrator / Research rebuilt from scratch
+❌ Technical failure treated as MISS
 ❌ pkt≡mb invent
 ❌ git add -A
 ❌ vercel deploy
@@ -174,5 +185,7 @@ PDF = reuse existing stack after AUDIT.
 | Use companyPrice as rate | WORK-CATALOG-REBUILD P0 correction |
 | Research UNKNOWN | Classification Gate DF |
 | Start from CURRENT-TASK only | Cold start + AI_ENTRY |
+| Resume IK-MIGRATION P2 as next | Continuity handoff 2026-08-18 + A08 next-break audit |
+| Auto Research on timeout/error | Continuity §4 · technical failure ≠ MISS |
 
 **STOP.**
