@@ -66,38 +66,36 @@ const d = defaultAppSettings();
 assert("A P6 AUTO defaults", d.ikMaterialE2eEnabled === "AUTO" && d.ikMaterialResearchEnabled === false);
 forceIkEntryEnabledForTests(true);
 forceIkMaterialE2eForTests("AUTO");
+forceIkMaterialResearchForTests(false);
 assert("A2 P6 AUTO active", isIkP6MaterialE2eActive() === true);
-assert("A3 research inactive", isIkP6MaterialExecuteResearchActive() === false);
+assert("A3 leftover research false does not block permission", isIkP6MaterialExecuteResearchActive() === true);
 
 forceIkEntryEnabledForTests(true);
 forceIkMaterialE2eForTests(true);
 forceIkMaterialResearchForTests(false);
-assert("B MODE A flags", isIkP6MaterialE2eActive() === true && isIkP6MaterialExecuteResearchActive() === false);
+assert("B MODE A flags", isIkP6MaterialE2eActive() === true && isIkP6MaterialExecuteResearchActive() === true);
 assert(
-  "B executeResearch resolve false",
+  "B executeResearch resolve Entry∧E2E",
   resolveIkP6MaterialExecuteResearch({
     ikEntryEnabled: true,
     ikMaterialE2eEnabled: true,
-    ikMaterialResearchEnabled: false,
-  }) === false,
+  }) === true,
 );
 
 forceIkMaterialResearchForTests(true);
-assert("C MODE B research ON", isIkP6MaterialExecuteResearchActive() === true);
+assert("C leftover research true still permission ON", isIkP6MaterialExecuteResearchActive() === true);
 assert(
-  "C resolve true only all three",
+  "C resolve true Entry∧E2E",
   resolveIkP6MaterialExecuteResearch({
     ikEntryEnabled: true,
     ikMaterialE2eEnabled: true,
-    ikMaterialResearchEnabled: true,
   }) === true,
 );
 assert(
-  "J undefined-like missing research false",
+  "J Entry OFF false",
   resolveIkP6MaterialExecuteResearch({
-    ikEntryEnabled: true,
+    ikEntryEnabled: false,
     ikMaterialE2eEnabled: true,
-    ikMaterialResearchEnabled: false,
   }) === false,
 );
 
@@ -136,8 +134,8 @@ assert("AB Accept → Price Memory path", /acceptMaterialResearchCandidate/.test
 assert("AC CatalogWork 471 lock DF", /CatalogWork \*\*471\*\*/.test(readSrc("docs/architecture/IK-MIGRATION-01-P6-PLAN-DESIGN-FREEZE.md")));
 assert("AD no OUR RATE invent from material", !/acceptIkLaborResearchAndNotify\(/.test(matSrc));
 
-assert("Admin toggles", /data-ik-material-e2e-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx"))
-  && /data-ik-material-research-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("Admin P6 E2E toggle kept", /data-ik-material-e2e-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("Admin P6 Research checkbox absent", !/data-ik-material-research-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 
 const merged = mergeAppSettings(
   { ikMaterialE2eEnabled: true, ikMaterialResearchEnabled: true },

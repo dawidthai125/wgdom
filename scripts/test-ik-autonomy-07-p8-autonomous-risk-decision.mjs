@@ -199,15 +199,19 @@ assert("T14 engine runs without BOQ/P7/Chief", holdReport.schemaVersion === IK_P
 assert("T14 overlay present", holdReport.overlay != null);
 assert("T14 validation HOLD without Chief", holdReport.validation == null && holdReport.chiefAvailable === false);
 
-// --- T15 Research remains false ---
+// --- T15 P8 does not own Research (P5/P6 permission is independent) ---
 forceIkEntryEnabledForTests(true);
 forceIkRiskDecisionE2eForTests("AUTO");
 forceIkLaborResearchForTests(false);
 forceIkMaterialResearchForTests(false);
+forceIkLaborE2eForTests("OFF");
+forceIkMaterialE2eForTests("OFF");
+assert("T15 P8 AUTO + P5 OFF → Labor research false", isIkP5LaborExecuteResearchActive() === false);
+assert("T15 P8 AUTO + P6 OFF → Material research false", isIkP6MaterialExecuteResearchActive() === false);
 forceIkLaborE2eForTests("AUTO");
 forceIkMaterialE2eForTests("AUTO");
-assert("T15 P8 AUTO does not enable Labor research", isIkP5LaborExecuteResearchActive() === false);
-assert("T15 P8 AUTO does not enable Material research", isIkP6MaterialExecuteResearchActive() === false);
+assert("T15 P5 AUTO permission independent of P8", isIkP5LaborExecuteResearchActive() === true);
+assert("T15 P6 AUTO permission independent of P8", isIkP6MaterialExecuteResearchActive() === true);
 assert("T15 P8 source no executeResearch", !/executeResearch/.test(p8Src));
 assert("T15 host P8 no research arg", !/runIkP8RiskDecision\([\s\S]*executeResearch/.test(hostSrc));
 assert("T15 httpCalls 0 lock", /httpCalls:\s*0/.test(p8Src));

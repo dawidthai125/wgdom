@@ -71,38 +71,36 @@ const d = defaultAppSettings();
 assert("A P5 AUTO defaults", d.ikLaborE2eEnabled === "AUTO" && d.ikLaborResearchEnabled === false);
 forceIkEntryEnabledForTests(true);
 forceIkLaborE2eForTests("AUTO");
+forceIkLaborResearchForTests(false);
 assert("A2 P5 AUTO active", isIkP5LaborE2eActive() === true);
-assert("A3 research inactive", isIkP5LaborExecuteResearchActive() === false);
+assert("A3 leftover research false does not block permission", isIkP5LaborExecuteResearchActive() === true);
 
 forceIkEntryEnabledForTests(true);
 forceIkLaborE2eForTests(true);
 forceIkLaborResearchForTests(false);
-assert("B MODE A flags", isIkP5LaborE2eActive() === true && isIkP5LaborExecuteResearchActive() === false);
+assert("B MODE A flags", isIkP5LaborE2eActive() === true && isIkP5LaborExecuteResearchActive() === true);
 assert(
-  "B executeResearch resolve false",
+  "B executeResearch resolve Entry∧E2E",
   resolveIkP5LaborExecuteResearch({
     ikEntryEnabled: true,
     ikLaborE2eEnabled: true,
-    ikLaborResearchEnabled: false,
-  }) === false,
+  }) === true,
 );
 
 forceIkLaborResearchForTests(true);
-assert("C MODE B research ON", isIkP5LaborExecuteResearchActive() === true);
+assert("C leftover research true still permission ON", isIkP5LaborExecuteResearchActive() === true);
 assert(
-  "C resolve true only all three",
+  "C resolve true Entry∧E2E",
   resolveIkP5LaborExecuteResearch({
     ikEntryEnabled: true,
     ikLaborE2eEnabled: true,
-    ikLaborResearchEnabled: true,
   }) === true,
 );
 assert(
-  "C missing research false",
+  "C Entry OFF false",
   resolveIkP5LaborExecuteResearch({
-    ikEntryEnabled: true,
+    ikEntryEnabled: false,
     ikLaborE2eEnabled: true,
-    ikLaborResearchEnabled: false,
   }) === false,
 );
 
@@ -136,8 +134,8 @@ assert("S no P5.33 invent", !existsSync(join(root, "docs/architecture/IK-MIGRATI
 
 assert("internal-first wired", /lookupInternalFirst/.test(laborSrc));
 assert("budget wrap wired", /wrapLookupPortWithIkP5Budget/.test(laborSrc));
-assert("Admin toggles", /data-ik-labor-e2e-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx"))
-  && /data-ik-labor-research-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("Admin P5 E2E toggle kept", /data-ik-labor-e2e-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("Admin P5 Research checkbox absent", !/data-ik-labor-research-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 
 const merged = mergeAppSettings(
   { ikLaborE2eEnabled: true, ikLaborResearchEnabled: true },

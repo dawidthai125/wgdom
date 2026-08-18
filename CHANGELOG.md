@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.95 — IK AUTONOMY-08 P2 Research-on-Miss (2026-08-18)
+
+- **Owner GO:** IK ON = autonomia Research-on-Miss. `executeResearch` permission = Entry ∧ P5/P6 AUTO|ON (bez checkboxa Research)
+- HTTP tylko na prawdziwy MISS · HIT = zero Research · COMPOUND/UNKNOWN HOLD · `mat.inv.*` HARD-FORBID
+- Research ≠ Accept · P5 → P6 sequencing (`laborSettledRef` + tick; cancelled ≠ settled)
+- Test: `npx vite-node scripts/test-ik-autonomy-08-p2-research-on-miss.mjs`
+
 ## 2.66.94 — IK AUTONOMY-08 P1 Settings Unification (2026-08-17)
 
 - **Owner GO:** Super Admin ⚙ — jedyny biznesowy switch IK = `ikEntryEnabled`

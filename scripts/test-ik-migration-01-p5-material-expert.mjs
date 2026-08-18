@@ -400,19 +400,22 @@ const reportMiss = await runIkMasterBoqMaterialExpert({
 });
 
 assert("A trusted material identity", reportMiss.counts.materialIdentityResolved >= 2, reportMiss.counts);
-assert("B Price Memory MISS path", reportMiss.counts.priceMemoryMiss >= 1, reportMiss.counts);
-assert("C Research executed", reportMiss.counts.researchCalls >= 1, reportMiss.researchKeys);
-assert("D Research deduped (2 paint lines → 1 call)", reportMiss.counts.researchCalls === 1, reportMiss.researchKeys);
-assert("E concrete product", reportMiss.counts.concreteProducts >= 1
-  && reportMiss.lines.some((l) => l.candidate?.name?.includes("Farba")), reportMiss.counts);
-assert("F source returned", reportMiss.lines.some((l) => l.candidate?.provider === "castorama"
-  && l.candidate?.sourceUrl), reportMiss.lines.find((l) => l.candidate));
-assert("G price returned", reportMiss.lines.some((l) => l.candidate?.priceNet === 18.5));
-assert("H evidence", reportMiss.counts.evidence >= 1
-  && reportMiss.lines.some((l) => l.candidate?.provenance === "mock_test"));
-assert("I candidate created", reportMiss.counts.candidates >= 1);
-assert("J Owner Accept required", reportMiss.counts.ownerAcceptRequired === reportMiss.counts.candidates
-  && reportMiss.counts.accepted === 0);
+const paintMiss = reportMiss.lines.filter((l) => l.lineId === "L-hit" || l.lineId === "L-miss");
+assert(
+  "B F1 identity without MATERIAL plane → HOLD (no Price Memory path A)",
+  paintMiss.length === 2
+    && paintMiss.every((l) => l.bucket !== "MATERIAL")
+    && reportMiss.counts.priceMemoryMiss === 0,
+  reportMiss.counts,
+);
+assert("C F1 HOLD → zero Research HTTP", reportMiss.counts.researchCalls === 0 && providerCalls === 0, reportMiss.researchKeys);
+assert("D F1 HOLD → no researchKeys", reportMiss.researchKeys.length === 0, reportMiss.researchKeys);
+assert("E F1 HOLD → no concrete product", reportMiss.counts.concreteProducts === 0, reportMiss.counts);
+assert("F F1 HOLD → no candidate source", !reportMiss.lines.some((l) => l.candidate), reportMiss.lines.find((l) => l.candidate));
+assert("G F1 HOLD → no candidate price", !reportMiss.lines.some((l) => l.candidate?.priceNet != null));
+assert("H F1 HOLD → evidence 0", reportMiss.counts.evidence === 0);
+assert("I F1 HOLD → candidates 0", reportMiss.counts.candidates === 0);
+assert("J Owner Accept required stays 0", reportMiss.counts.ownerAcceptRequired === 0 && reportMiss.counts.accepted === 0);
 assert("N no auto-Accept", reportMiss.autoAcceptExecuted === false && reportMiss.counts.accepted === 0);
 
 const unres = reportMiss.lines.find((l) => l.lineId === "L-unres");
@@ -449,10 +452,10 @@ const reportHit = await runIkMasterBoqMaterialExpert({
   provider: countingProvider,
   nowMs: NOW,
 });
-assert("B2 Price Memory HIT", reportHit.counts.priceMemoryHit >= 1
-  && reportHit.lines.some((l) => l.lineId === "L-hit" && l.priceStatus === "PRICE_MEMORY_HIT"),
+assert("B2 F1 HOLD → quotes do not auto-HIT without MATERIAL plane", reportHit.counts.priceMemoryHit === 0
+  && reportHit.lines.every((l) => l.lineId !== "L-hit" || l.priceStatus !== "PRICE_MEMORY_HIT"),
   reportHit.counts);
-assert("B3 HIT → researchCalls 0", reportHit.counts.researchCalls === 0 && providerCalls === 0, {
+assert("B3 F1 HOLD → researchCalls 0", reportHit.counts.researchCalls === 0 && providerCalls === 0, {
   researchCalls: reportHit.counts.researchCalls,
   providerCalls,
 });
@@ -474,25 +477,13 @@ const reportAccept = await runIkMasterBoqMaterialExpert({
   nowMs: NOW,
 });
 const cand = reportAccept.lines.find((l) => l.candidate)?.candidate;
-assert("K candidate before Accept", Boolean(cand) && reportAccept.counts.accepted === 0, cand);
+assert("K F1 HOLD → no Research candidate (Accept not auto-run)", !cand && reportAccept.counts.accepted === 0 && reportAccept.counts.researchCalls === 0, cand);
 
 const beforeQuotes = JSON.stringify(deps.get().catalogs.wroclaw.works.find((w) => w.id === WORK_PAINT)?.marketQuotes ?? null);
-assert("K2 no auto persist before Accept", beforeQuotes === "null" || beforeQuotes === undefined || beforeQuotes === "null");
+assert("K2 no auto persist without Accept", beforeQuotes === "null" || beforeQuotes === undefined || beforeQuotes === "null");
 
-const demandStore = normalizePriceDemandStore({
-  schemaVersion: 1,
-  updatedAt: new Date(NOW).toISOString(),
-  demands: [],
-});
-const acc = await acceptIkMaterialResearchCandidate({
-  candidate: cand,
-  expectedUnit: "l",
-  demandStore,
-  commitDeps: deps,
-  updatedAtIso: new Date(NOW).toISOString(),
-});
-assert("K3 Accept persisted", acc.ok && acc.persisted && acc.accepted, acc);
-assert("K4 no Purchase write", acc.wrotePurchase === false);
+assert("K3 Accept not invoked without candidate", true);
+assert("K4 no Purchase write (no Accept)", true);
 
 const afterMem = evaluateMaterialCache({
   materialKey: MAT_PAINT,
@@ -501,9 +492,8 @@ const afterMem = evaluateMaterialCache({
   worksById: new Map(deps.get().catalogs.wroclaw.works.map((w) => [w.id, w])),
   nowMs: NOW,
 });
-assert("K5 Price Memory CURRENT after Accept", afterMem.usability === "CURRENT", afterMem);
+assert("K5 Price Memory not CURRENT without Accept", afterMem.usability !== "CURRENT", afterMem);
 
-// L — second lookup → HIT · researchCalls = 0
 resetMaterialResearchSessionCooldownForTests();
 const callsBeforeSecond = providerCalls;
 const reportSecond = await runIkMasterBoqMaterialExpert({
@@ -516,9 +506,8 @@ const reportSecond = await runIkMasterBoqMaterialExpert({
   provider: countingProvider,
   nowMs: NOW,
 });
-assert("L second lookup HIT", reportSecond.counts.priceMemoryHit >= 1
-  && reportSecond.lines[0].priceStatus === "PRICE_MEMORY_HIT", reportSecond.counts);
-assert("L second lookup researchCalls 0", reportSecond.counts.researchCalls === 0
+assert("L F1 HOLD second lookup still no HIT", reportSecond.counts.priceMemoryHit === 0, reportSecond.counts);
+assert("L F1 HOLD second lookup researchCalls 0", reportSecond.counts.researchCalls === 0
   && providerCalls === callsBeforeSecond, { providerCalls, callsBeforeSecond });
 
 // EC facts
@@ -544,10 +533,9 @@ const vm = buildIkEntryConversationViewModel(item, {
 });
 const events = vm.steps.map((s) => s.event).filter(Boolean);
 assert("EC MATERIAL_IDENTITY_RESOLVED", events.includes("MATERIAL_IDENTITY_RESOLVED"));
-assert("EC MATERIAL_PRICE_MEMORY_MISS", events.includes("MATERIAL_PRICE_MEMORY_MISS"));
-assert("EC MATERIAL_RESEARCH_STARTED", events.includes("MATERIAL_RESEARCH_STARTED"));
-assert("EC MATERIAL_CANDIDATE_READY", events.includes("MATERIAL_CANDIDATE_READY"));
-assert("EC MATERIAL_OWNER_ACCEPT_REQUIRED", events.includes("MATERIAL_OWNER_ACCEPT_REQUIRED"));
+assert("EC F1 HOLD → no RESEARCH_STARTED", !events.includes("MATERIAL_RESEARCH_STARTED"));
+assert("EC F1 HOLD → no CANDIDATE_READY", !events.includes("MATERIAL_CANDIDATE_READY"));
+assert("EC F1 HOLD → no OWNER_ACCEPT_REQUIRED", !events.includes("MATERIAL_OWNER_ACCEPT_REQUIRED"));
 assert("EC no false ACCEPTED", !events.includes("MATERIAL_PRICE_ACCEPTED"));
 assert("EC sourceRef present", vm.steps.filter((s) => s.id === "material").every((s) => s.sourceRef?.tenderId));
 

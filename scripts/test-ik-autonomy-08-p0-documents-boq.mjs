@@ -180,12 +180,17 @@ assert("T19 default D false", defaultAppSettings().expertAiDecydentEnabled === f
 assert("T19 helper does not write D", !/saveAppSettings/.test(flagSrc));
 assert("T19 host does not write D", !/expertAiDecydentEnabled/.test(hostSrc));
 
-// --- T20 no Research HTTP from 08-P0 ---
+// --- T20 Research permission follows Entry ∧ E2E (P0 does not add a Research engine) ---
 reset();
 forceIkEntryEnabledForTests(true);
+forceIkLaborResearchForTests(false);
+forceIkMaterialResearchForTests(false);
 assert("T20 no executeResearch true literal", !/executeResearch:\s*true/.test(hostSrc));
-assert("T20 P5 research inactive default", isIkP5LaborExecuteResearchActive() === false);
-assert("T20 P6 research inactive default", isIkP6MaterialExecuteResearchActive() === false);
+assert("T20 IK ON leftover research false → Labor permission true", isIkP5LaborExecuteResearchActive() === true);
+assert("T20 IK ON leftover research false → Material permission true", isIkP6MaterialExecuteResearchActive() === true);
+forceIkEntryEnabledForTests(false);
+assert("T20 IK OFF → Labor permission false", isIkP5LaborExecuteResearchActive() === false);
+assert("T20 IK OFF → Material permission false", isIkP6MaterialExecuteResearchActive() === false);
 
 // --- T21 existing tender persist, no new business writes in host ---
 assert("T21 no Accept in host", !/acceptWorkRateResearchCandidate/.test(hostSrc));

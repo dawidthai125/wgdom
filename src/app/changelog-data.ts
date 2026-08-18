@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-18",
+    version: "2.66.95",
+    label: "IK AUTONOMY-08 P2 Research-on-Miss",
+    items: [
+      {
+        type: "improve",
+        text: "IK AUTONOMY-08 P2 (Owner GO): Research-on-Miss autonomy. IK ON ∧ P5/P6 AUTO|ON → executeResearch permitted; HTTP tylko na prawdziwy MISS. Bez dodatkowego przełącznika Research (checkboxy Technical usunięte). COMPOUND/UNKNOWN/BOTH/UNRESOLVED HOLD. Research ≠ Accept. P5 settled (laborSettledRef) przed P6. Test: test-ik-autonomy-08-p2-research-on-miss.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-17",
     version: "2.66.94",
     label: "IK AUTONOMY-08 P1 Settings Unification",

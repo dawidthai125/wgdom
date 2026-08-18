@@ -167,14 +167,18 @@ assert("T12 old true → ON path", oldClientBooleanCoerce(true) === true);
 assert("T12 old false → HOLD", oldClientBooleanCoerce(false) === false);
 assert("T12 new false → AUTO", normalizeIkE2eMode(false) === "AUTO");
 
-// --- T13 Research remains OFF (P7 path) ---
+// --- T13 P7 does not own Research (P5/P6 permission is independent) ---
 forceIkF5E2eForTests("AUTO");
 forceIkLaborResearchForTests(false);
 forceIkMaterialResearchForTests(false);
+forceIkLaborE2eForTests("OFF");
+forceIkMaterialE2eForTests("OFF");
+assert("T13 P7 AUTO + P5 OFF → Labor research false", isIkP5LaborExecuteResearchActive() === false);
+assert("T13 P7 AUTO + P6 OFF → Material research false", isIkP6MaterialExecuteResearchActive() === false);
 forceIkLaborE2eForTests("AUTO");
 forceIkMaterialE2eForTests("AUTO");
-assert("T13 P7 AUTO does not enable Labor research", isIkP5LaborExecuteResearchActive() === false);
-assert("T13 P7 AUTO does not enable Material research", isIkP6MaterialExecuteResearchActive() === false);
+assert("T13 P5 AUTO permission independent of P7", isIkP5LaborExecuteResearchActive() === true);
+assert("T13 P6 AUTO permission independent of P7", isIkP6MaterialExecuteResearchActive() === true);
 assert("T13 P7 source no executeResearch", !/executeResearch/.test(p7Src));
 assert("T13 host P7 no research arg", !/runIkP7PositionCostBid\([\s\S]*executeResearch/.test(hostSrc));
 

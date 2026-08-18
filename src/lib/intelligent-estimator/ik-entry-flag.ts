@@ -1,7 +1,9 @@
 /**
  * IK-MIGRATION-01 P1–P8 — first-screen + controlled P2–P8 flags.
  * SSOT: AppSettings (kw-app-settings).
- * P5/P6/P7/P8: AUTO|ON = MODE A / RO · OFF = HOLD · Research remains separate boolean === true.
+ * P5/P6: AUTO|ON = MODE A + Research-on-Miss permission · OFF = HOLD.
+ * executeResearch permission = IK Entry ∧ P5/P6 E2E (leftover ik*ResearchEnabled is NOT a gate).
+ * P7/P8: AUTO|ON = MODE A / RO · OFF = HOLD · no research lever.
  * Independent of Decydent / Dual Outcome master (D).
  */
 
@@ -31,14 +33,12 @@ export type IkP5LaborExecuteResearchInput = {
   ikEntryEnabled: boolean;
   /** Boolean MODE A capability — NEVER pass raw "AUTO"|"OFF"|"ON". */
   ikLaborE2eEnabled: boolean;
-  ikLaborResearchEnabled: boolean;
 };
 
 export type IkP6MaterialExecuteResearchInput = {
   ikEntryEnabled: boolean;
   /** Boolean MODE A capability — NEVER pass raw "AUTO"|"OFF"|"ON". */
   ikMaterialE2eEnabled: boolean;
-  ikMaterialResearchEnabled: boolean;
 };
 
 export type IkP7F5E2eEligibilityInput = {
@@ -174,7 +174,7 @@ export function isIkChiefWiringEnabled(): boolean {
 /**
  * P5 Labor E2E preference — MODE A capable (AUTO or ON). Default AUTO.
  * Does NOT enable Material · Does NOT flip Chief · Does NOT flip D.
- * Does NOT enable Research.
+ * AUTO|ON also permits Research-on-Miss (engine still MODE A first / MISS-only HTTP).
  */
 export function isIkLaborE2eEnabled(): boolean {
   const forced = isForcedIkE2eActive(ikLaborE2eForTests);
@@ -183,8 +183,8 @@ export function isIkLaborE2eEnabled(): boolean {
 }
 
 /**
- * P5 Labor selective research preference (MODE B). Default OFF.
- * Alone does NOT run Labor — requires Labor E2E + IK Entry.
+ * Leftover P5 Research preference (IK-MIGRATION-01 / AUTO_INGEST pattern).
+ * A08-P2: NOT a runtime executeResearch conjunct. Default stored false is unread by the gate.
  */
 export function isIkLaborResearchEnabled(): boolean {
   if (ikLaborResearchForTests != null) return ikLaborResearchForTests;
@@ -249,32 +249,28 @@ export function isIkP5LaborE2eActive(): boolean {
 }
 
 /**
- * Pure P5 MODE B research permission (flags only).
- * MUST be `=== true` on all three booleans — never raw enum → research.
+ * Pure P5 Research-on-Miss permission (flags only).
+ * MUST be `=== true` on Entry ∧ E2E boolean — never raw enum → research.
+ * Leftover ikLaborResearchEnabled is NOT a conjunct (A08-P2).
  */
 export function resolveIkP5LaborExecuteResearch(
   input: IkP5LaborExecuteResearchInput,
 ): boolean {
-  return (
-    input.ikEntryEnabled === true
-    && input.ikLaborE2eEnabled === true
-    && input.ikLaborResearchEnabled === true
-  );
+  return input.ikEntryEnabled === true && input.ikLaborE2eEnabled === true;
 }
 
-/** Runtime: explicit MODE B executeResearch flag for Labor Expert call site. */
+/** Runtime: executeResearch permission for Labor Expert call site (MISS still filters HTTP). */
 export function isIkP5LaborExecuteResearchActive(): boolean {
   return resolveIkP5LaborExecuteResearch({
     ikEntryEnabled: isIkEntryEnabled(),
     ikLaborE2eEnabled: isIkLaborE2eEnabled(),
-    ikLaborResearchEnabled: isIkLaborResearchEnabled(),
   });
 }
 
 /**
  * P6 Material E2E preference — MODE A capable (AUTO or ON). Default AUTO.
  * Does NOT enable Labor · Does NOT flip Chief · Does NOT flip D.
- * Does NOT enable Research.
+ * AUTO|ON also permits Research-on-Miss (engine still MODE A first / MISS-only HTTP).
  */
 export function isIkMaterialE2eEnabled(): boolean {
   const forced = isForcedIkE2eActive(ikMaterialE2eForTests);
@@ -283,8 +279,8 @@ export function isIkMaterialE2eEnabled(): boolean {
 }
 
 /**
- * P6 Material selective research preference (MODE B). Default OFF.
- * Alone does NOT run Material — requires Material E2E + IK Entry.
+ * Leftover P6 Research preference (IK-MIGRATION-01 / AUTO_INGEST pattern).
+ * A08-P2: NOT a runtime executeResearch conjunct. Default stored false is unread by the gate.
  */
 export function isIkMaterialResearchEnabled(): boolean {
   if (ikMaterialResearchForTests != null) return ikMaterialResearchForTests;
@@ -297,25 +293,21 @@ export function isIkP6MaterialE2eActive(): boolean {
 }
 
 /**
- * Pure P6 MODE B research permission (flags only).
- * MUST be `=== true` on all three — never undefined→research.
+ * Pure P6 Research-on-Miss permission (flags only).
+ * MUST be `=== true` on Entry ∧ E2E boolean — never undefined→research.
+ * Leftover ikMaterialResearchEnabled is NOT a conjunct (A08-P2).
  */
 export function resolveIkP6MaterialExecuteResearch(
   input: IkP6MaterialExecuteResearchInput,
 ): boolean {
-  return (
-    input.ikEntryEnabled === true
-    && input.ikMaterialE2eEnabled === true
-    && input.ikMaterialResearchEnabled === true
-  );
+  return input.ikEntryEnabled === true && input.ikMaterialE2eEnabled === true;
 }
 
-/** Runtime: explicit MODE B executeResearch flag for Material Expert call site. */
+/** Runtime: executeResearch permission for Material Expert call site (MISS still filters HTTP). */
 export function isIkP6MaterialExecuteResearchActive(): boolean {
   return resolveIkP6MaterialExecuteResearch({
     ikEntryEnabled: isIkEntryEnabled(),
     ikMaterialE2eEnabled: isIkMaterialE2eEnabled(),
-    ikMaterialResearchEnabled: isIkMaterialResearchEnabled(),
   });
 }
 

@@ -69,9 +69,9 @@ assert("T02 D copy unchanged", /Expert AI · Przebieg i Decydent/.test(adminSrc)
 assert("T03 P3 after Technical", p3Idx > technicalIdx);
 assert("T03 P4 after Technical", p4Idx > technicalIdx);
 assert("T03 P5 after Technical", p5Idx > technicalIdx);
-assert("T03 P5 Research after Technical", p5rIdx > technicalIdx);
+assert("T03 P5 Research checkbox absent", p5rIdx < 0);
 assert("T03 P6 after Technical", p6Idx > technicalIdx);
-assert("T03 P6 Research after Technical", p6rIdx > technicalIdx);
+assert("T03 P6 Research checkbox absent", p6rIdx < 0);
 assert("T03 P7 after Technical", p7Idx > technicalIdx);
 assert("T03 P8 after Technical", p8Idx > technicalIdx);
 
@@ -101,10 +101,8 @@ const attrs = [
   "data-ik-chief-wiring-toggle",
   "data-ik-labor-e2e-toggle",
   "data-ik-labor-e2e-mode",
-  "data-ik-labor-research-toggle",
   "data-ik-material-e2e-toggle",
   "data-ik-material-e2e-mode",
-  "data-ik-material-research-toggle",
   "data-ik-f5-e2e-toggle",
   "data-ik-f5-e2e-mode",
   "data-ik-risk-decision-e2e-toggle",
@@ -114,6 +112,8 @@ for (const a of attrs) {
   const n = count(adminSrc, new RegExp(a, "g"));
   assert(`T07 unique ${a}`, n === 1, `count=${n}`);
 }
+assert("T07 labor research-toggle absent", count(adminSrc, /data-ik-labor-research-toggle/g) === 0);
+assert("T07 material research-toggle absent", count(adminSrc, /data-ik-material-research-toggle/g) === 0);
 
 assert("T08 AUTO option kept", /option value="AUTO"/.test(adminSrc));
 assert("T08 ON option kept", /option value="ON"/.test(adminSrc));
@@ -126,8 +126,7 @@ assert("T09 no new IK flag", !/ikUnified|ikMasterAutonomous|ikP1Settings/.test(s
 assert("T09 P2 gate still Entry only", /export function isIkP2DocumentsBoqActive\(\): boolean \{\s*return isIkEntryEnabled\(\) === true;/.test(flagSrc));
 assert("T09 host still uses helper", /isIkP2DocumentsBoqActive\(\)/.test(hostSrc));
 
-assert("T10 runtime flag file unchanged vs git", gitDiffEmpty("src/lib/intelligent-estimator/ik-entry-flag.ts"));
-assert("T10 IkEntryHost unchanged vs git", gitDiffEmpty("src/app/intelligent-estimator/IkEntryHost.tsx"));
+assert("T10 P2 may change gate+host (A08-P2)", true);
 assert("T10 app-settings unchanged vs git", gitDiffEmpty("src/lib/app-settings.ts"));
 assert("T10 admin-auth unchanged vs git", gitDiffEmpty("src/lib/admin-auth.ts"));
 assert("T10 AdminTopbar unchanged vs git", gitDiffEmpty("src/app/admin/AdminTopbar.tsx"));

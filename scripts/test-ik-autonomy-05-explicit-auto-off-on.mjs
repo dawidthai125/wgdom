@@ -131,28 +131,26 @@ forceIkLaborE2eForTests("OFF");
 forceIkMaterialE2eForTests("OFF");
 assert("T10 P5 OFF + P6 OFF", isIkP5LaborE2eActive() === false && isIkP6MaterialE2eActive() === false);
 
-// --- T11 AUTO → executeResearch false ---
+// --- T11 AUTO → executeResearch permission (leftover research boolean ignored) ---
 forceIkLaborE2eForTests("AUTO");
 forceIkMaterialE2eForTests("AUTO");
 forceIkLaborResearchForTests(false);
 forceIkMaterialResearchForTests(false);
-assert("T11 AUTO research inactive", isIkP5LaborExecuteResearchActive() === false);
-assert("T11 AUTO material research inactive", isIkP6MaterialExecuteResearchActive() === false);
+assert("T11 AUTO leftover research false → Labor permission true", isIkP5LaborExecuteResearchActive() === true);
+assert("T11 AUTO leftover research false → Material permission true", isIkP6MaterialExecuteResearchActive() === true);
 assert(
   "T11 raw AUTO string is not === true (C3)",
   resolveIkP5LaborExecuteResearch({
     ikEntryEnabled: true,
     ikLaborE2eEnabled: /** @type {any} */ ("AUTO"),
-    ikLaborResearchEnabled: true,
   }) === false,
 );
 assert(
-  "T11 MODE A boolean + research false",
+  "T11 MODE A boolean permission (no research conjunct)",
   resolveIkP5LaborExecuteResearch({
     ikEntryEnabled: true,
     ikLaborE2eEnabled: true,
-    ikLaborResearchEnabled: false,
-  }) === false,
+  }) === true,
 );
 
 // --- T12 / T13 write + Accept source contracts ---
@@ -266,16 +264,16 @@ ls.set(APP_SETTINGS_KEY, JSON.stringify(once));
 const twice = loadAppSettingsLocal();
 assert("T23 reload OFF stays OFF", once.ikLaborE2eEnabled === "OFF" && twice.ikLaborE2eEnabled === "OFF");
 
-// --- T24 Research remains conditional ---
+// --- T24 Research-on-Miss permission (leftover lever ignored; OFF still kill-switch) ---
 forceIkLaborE2eForTests("AUTO");
-forceIkLaborResearchForTests(true);
+forceIkLaborResearchForTests(false);
 forceIkEntryEnabledForTests(true);
-assert("T24 AUTO + research lever → MODE B allowed", isIkP5LaborExecuteResearchActive() === true);
+assert("T24 AUTO + leftover research false → MODE B permission", isIkP5LaborExecuteResearchActive() === true);
 forceIkLaborE2eForTests("OFF");
-assert("T24 OFF + research lever → no research", isIkP5LaborExecuteResearchActive() === false);
+assert("T24 OFF → no research permission", isIkP5LaborExecuteResearchActive() === false);
 forceIkLaborE2eForTests("ON");
 forceIkLaborResearchForTests(false);
-assert("T24 ON without research lever → MODE A only", isIkP5LaborExecuteResearchActive() === false);
+assert("T24 ON + leftover research false → permission true", isIkP5LaborExecuteResearchActive() === true);
 assert("T24 isIkE2eModeActive AUTO", isIkE2eModeActive("AUTO") === true);
 assert("T24 isIkE2eModeActive OFF", isIkE2eModeActive("OFF") === false);
 

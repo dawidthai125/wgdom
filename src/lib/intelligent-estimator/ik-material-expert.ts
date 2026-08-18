@@ -197,7 +197,7 @@ function bucketFrom(
   }
 }
 
-/** Research when trusted product identity + not LABOR plane + not NON_COST. */
+/** Autonomous Research only when plane === MATERIAL ∧ bucket === MATERIAL (A08-P2 F1). */
 export function researchEligible(
   materialIdentity: IkMaterialIdentity | null,
   bucket: IkMaterialBucket,
@@ -208,7 +208,8 @@ export function researchEligible(
   if (plane === "LABOR" || bucket === "LABOR") return false;
   // IK-P1 G2: invoice purchase materials never enter DIY Research pending.
   if (isInvoicePurchaseMaterialKey(materialIdentity.materialKey)) return false;
-  return true;
+  // COMPOUND/BOTH/UNKNOWN/UNRESOLVED = HOLD — product identity alone is not enough.
+  return plane === "MATERIAL" && bucket === "MATERIAL";
 }
 
 /**

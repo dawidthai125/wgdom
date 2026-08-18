@@ -532,30 +532,10 @@ export function AdminSettingsModal({
                 <option value="OFF">OFF — IK nie uruchamia tego eksperta</option>
               </select>
               <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                IK AUTONOMY-05. AUTO/ON = CURRENT + internal-first, bez HTTP research, bez Accept.
-                OFF = trwały kill-switch. Research MODE B = osobny checkbox poniżej.
+                IK AUTONOMY-05 / A08-P2. AUTO/ON = MODE A + Research-on-Miss (HTTP tylko na prawdziwy MISS).
+                OFF = trwały kill-switch. Bez dodatkowego przełącznika Research. Zero auto-Accept.
               </p>
             </div>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikLaborResearchEnabled === true}
-                onChange={async (e) => {
-                  const next = { ...appSettings, ikLaborResearchEnabled: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-                data-ik-labor-research-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · LABOR RESEARCH (P5 · MODE B)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Selective Labor HTTP tylko gdy Labor E2E ON. Budget 24/run · 4/work · 0 blind retry.
-                  Zero auto-Accept. Po teście: wyłącz.
-                </p>
-              </div>
-            </label>
             <div className="space-y-1" data-ik-material-e2e-toggle>
               <p className="text-sm font-medium">IK · MATERIAL E2E (P6 · MODE A)</p>
               <select
@@ -579,30 +559,10 @@ export function AdminSettingsModal({
                 <option value="OFF">OFF — IK nie uruchamia tego eksperta</option>
               </select>
               <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                IK AUTONOMY-05. AUTO/ON = Price Memory + identity, bez HTTP DIY, bez Accept.
-                OFF = trwały kill-switch. Research MODE B = osobny checkbox poniżej.
+                IK AUTONOMY-05 / A08-P2. AUTO/ON = MODE A + Research-on-Miss (HTTP tylko na prawdziwy MISS).
+                OFF = trwały kill-switch. Bez dodatkowego przełącznika Research. Zero auto-Accept.
               </p>
             </div>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={appSettings.ikMaterialResearchEnabled === true}
-                onChange={async (e) => {
-                  const next = { ...appSettings, ikMaterialResearchEnabled: e.target.checked };
-                  onAppSettingsChange(next);
-                  await saveAppSettings(next);
-                }}
-                className="mt-0.5"
-                data-ik-material-research-toggle
-              />
-              <div>
-                <p className="text-sm font-medium">IK · MATERIAL RESEARCH (P6 · MODE B)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Selective DIY (LM/Casto/OBI) tylko gdy Material E2E ON. Budget MMR-02 · ≤24 shop HTTP/run.
-                  Zero auto-Accept · zapis tylko Price Memory. Po teście: wyłącz.
-                </p>
-              </div>
-            </label>
             <div className="space-y-1" data-ik-f5-e2e-toggle>
               <p className="text-sm font-medium">IK · F5 / BID (P7 · READ-ONLY)</p>
               <select

@@ -8,10 +8,11 @@
  *     Leftover ikAutoIngestEnabled is NOT the runtime gate (AUTONOMY-08 P0 / OD-08-1).
  * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
  *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
- * P5: Labor E2E when isIkP5LaborE2eActive() (AUTO|ON, not OFF); MODE B research only when
- *     isIkP5LaborExecuteResearchActive() (explicit executeResearch === true).
- * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); MODE B research only when
- *     isIkP6MaterialExecuteResearchActive() (explicit executeResearch === true).
+ * P5: Labor E2E when isIkP5LaborE2eActive() (AUTO|ON, not OFF); Research-on-Miss permission
+ *     isIkP5LaborExecuteResearchActive() (Entry ∧ E2E; host executeResearch === true).
+ * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); Research-on-Miss permission
+ *     isIkP6MaterialExecuteResearchActive() (Entry ∧ E2E; host executeResearch === true).
+ *     P6 waits for P5 settled (laborSettledRef) when P5 ON — IC-SEQ-1/2.
  * P7: F5/Bid when isIkP7F5E2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 always (no research lever).
  * P8: Risk/Decision when isIkP8RiskDecisionE2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 · no D/Chief start.
  *      No extra BOQ READY gate (engine requires item only; P7/Chief optional → HOLD).
@@ -116,6 +117,9 @@ export function IkEntryHost({
   const attemptedRef = useRef<string | null>(null);
   const laborAttemptedRef = useRef<string | null>(null);
   const materialAttemptedRef = useRef<string | null>(null);
+  /** IC-SEQ-2: synchronous P5 settled truth. Tick only retriggers P6. */
+  const laborSettledRef = useRef(false);
+  const [laborSettleTick, setLaborSettleTick] = useState(0);
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
@@ -224,16 +228,19 @@ export function IkEntryHost({
   // P5 Labor E2E — Labor-specific levers (≠ Material / ≠ shared RUN_RATE_EXPERTS).
   useEffect(() => {
     if (!p5LaborOn) {
+      laborSettledRef.current = true;
       setLabor(null);
       return;
     }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
     if (!key || !report.masterBoq.readyForExperts) {
+      laborSettledRef.current = false;
       setLabor(null);
       return;
     }
     const laborKey = `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p5ResearchOn ? "B" : "A"}`;
     if (laborAttemptedRef.current === laborKey) return;
+    laborSettledRef.current = false;
     laborAttemptedRef.current = laborKey;
     let cancelled = false;
     void (async () => {
@@ -248,6 +255,11 @@ export function IkEntryHost({
         if (!cancelled) setLabor(result);
       } catch {
         if (!cancelled) setLabor(null);
+      } finally {
+        if (!cancelled) {
+          laborSettledRef.current = true;
+          setLaborSettleTick((n) => n + 1);
+        }
       }
     })();
     return () => {
@@ -266,6 +278,7 @@ export function IkEntryHost({
       setMaterial(null);
       return;
     }
+    if (p5LaborOn && laborSettledRef.current !== true) return;
     const materialKey = `${key}|mat|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p6ResearchOn ? "B" : "A"}`;
     if (materialAttemptedRef.current === materialKey) return;
     materialAttemptedRef.current = materialKey;
@@ -286,7 +299,7 @@ export function IkEntryHost({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, report, p6MaterialOn, p6ResearchOn]);
+  }, [effectiveItem, pkg, report, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
 
   // BOTH_HOLD consumer — existing P5∧P6 only · no new flag · XOR F5 (feedsP7Bid=false).
   const composite = useMemo((): IkCompositeBothHoldReport | null => {
