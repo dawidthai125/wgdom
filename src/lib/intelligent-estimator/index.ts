@@ -126,6 +126,15 @@ export type {
   IkPrzedmiarSource,
 } from "./ik-document-expert";
 
+export { runIkKnrExpert } from "./ik-knr-expert";
+export type {
+  IkKnrExpertCounts,
+  IkKnrExpertLineResult,
+  IkKnrExpertReport,
+  IkKnrExpertStatus,
+  IkKnrLineStatus,
+} from "./ik-knr-expert";
+
 export {
   needsIkNg02Ingest,
   runIkNg02IngestBridge,
