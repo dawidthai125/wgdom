@@ -136,6 +136,22 @@ export type {
 } from "./ik-knr-expert";
 
 export {
+  buildIkKnrConversation,
+  IK_KNR_CONVERSATION_EXPERT_LABEL_PL,
+  IK_KNR_CONVERSATION_LEAD_LABEL_PL,
+} from "./ik-knr-conversation";
+export type {
+  IkKnrConversationActor,
+  IkKnrConversationEvent,
+  IkKnrConversationSourceRef,
+  IkKnrConversationSourceRefKind,
+  IkKnrConversationStep,
+  IkKnrConversationStepId,
+  IkKnrConversationStepStatus,
+  IkKnrConversationView,
+} from "./ik-knr-conversation";
+
+export {
   needsIkNg02Ingest,
   runIkNg02IngestBridge,
 } from "./ik-ng02-ingest-bridge";

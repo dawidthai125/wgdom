@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-18",
+    version: "2.66.99",
+    label: "IK-KNR-EXPERT Slice C2 — KNR conversation adapter",
+    items: [
+      {
+        type: "improve",
+        text: "IK-KNR-EXPERT Slice C2 (Owner GO): buildIkKnrConversation — IkKnrExpertReport → max 3 kroki laik + max 3 examplesHold. Zero host/chrome/Hub/actorFromStep, zero catalogWorkId/knrHint/mapper/A1/Research, zero nowych flag. Test: test-ik-knr-expert-slice-c2.mjs (T-ROOM-C2-1…18).",
+      },
+    ],
+  },
+  {
+    date: "2026-08-18",
     version: "2.66.96",
     label: "IK Role Activation",
     items: [

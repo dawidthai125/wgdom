@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.99 — IK-KNR-EXPERT Slice C2 KNR conversation adapter (2026-08-18)
+
+- Owner GO: `buildIkKnrConversation` — `IkKnrExpertReport` → max 3 kroki laik + max 3 `examplesHold`
+- Zero host / chrome / Hub / `actorFromStep` · zero `catalogWorkId` / `knrHint` / mapper / A1 / Research · zero nowych flag
+- Test: `npx vite-node scripts/test-ik-knr-expert-slice-c2.mjs`
+
 ## 2.66.96 — IK Role Activation (2026-08-18)
 
 - Super Admin: IK **ALWAYS ON** (brak self-toggle; leftover `ikEntryEnabled` nie blokuje)
