@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-18",
+    version: "2.66.101",
+    label: "IK-KNR-EXPERT Slice D — Owner KNR mapping",
+    items: [
+      {
+        type: "improve",
+        text: "IK-KNR-EXPERT Slice D (Owner GO): Owner-confirmed KNR → CatalogWork — exact tabela w kodzie, overlay catalogWorkId na kopii linii Master BOQ dla istniejącego P3. Zero mutation bez legalnego HIT. Zero knrHint / mapper / A1-call / Research / nowych flag. Test: test-ik-knr-expert-slice-d.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-18",
     version: "2.66.100",
     label: "IK-KNR-EXPERT Slice C3 — KNR host + chrome",
     items: [

@@ -29,6 +29,8 @@ import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChro
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
 import { runIkKnrExpert } from "@/lib/intelligent-estimator/ik-knr-expert";
+import { applyOwnerKnrMapping } from "@/lib/intelligent-estimator/ik-knr-owner-mapping";
+import { runIkMasterBoqClassification } from "@/lib/intelligent-estimator/ik-classification";
 import {
   needsIkNg02Ingest,
   runIkNg02IngestBridge,
@@ -226,6 +228,24 @@ export function IkEntryHost({
     [effectiveItem, report],
   );
 
+  // D — Owner KNR overlay on LINE COPIES, then existing P3 via opts.classification.
+  // Seam: classification (not ingest.expert) — avoids fabricating ingest, keeps C3 knr
+  // path / Surface / Hub unchanged, lets P3 read overlay catalogWorkId. Mapping module
+  // does not call P3/A1. Original `report` stays for P5.
+  const knrMapped = useMemo(
+    () => applyOwnerKnrMapping({ documentExpert: report, knr }),
+    [report, knr],
+  );
+  const classification = useMemo(
+    () =>
+      runIkMasterBoqClassification({
+        item: effectiveItem,
+        package: pkg,
+        expert: knrMapped.expert,
+      }),
+    [effectiveItem, pkg, knrMapped],
+  );
+
   // P3 Identity Coverage — AppSettings lever (default OFF). Sync diagnostic · 0 HTTP research.
   const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
     if (!identityCoverageOn) return null;
@@ -384,8 +404,9 @@ export function IkEntryHost({
         riskDecision,
         composite,
         knr,
+        classification,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr, classification],
   );
 
   return (

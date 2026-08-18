@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.101 — IK-KNR-EXPERT Slice D Owner KNR mapping (2026-08-18)
+
+- Owner GO: Owner-confirmed KNR → CatalogWork — exact tabela w kodzie, overlay `catalogWorkId` na kopii linii Master BOQ dla istniejącego P3
+- Zero mutation bez legalnego HIT · zero `knrHint` / mapper / A1-call / Research / nowych flag
+- Test: `npx vite-node scripts/test-ik-knr-expert-slice-d.mjs`
+
 ## 2.66.100 — IK-KNR-EXPERT Slice C3 host + chrome (2026-08-18)
 
 - Owner GO: podpięcie KNR do istniejącego `IkEntryHost` — `opts.knr` → istniejący `ExpertConversationSurface`
