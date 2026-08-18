@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-18",
+    version: "2.66.96",
+    label: "IK Role Activation",
+    items: [
+      {
+        type: "improve",
+        text: "IK Role Activation (Owner GO): Super Admin ALWAYS ON. Administrator / Moderator — dostęp do IK osobnymi flagami (domyślnie OFF), sterowane z ⚙. Inspector / worker / brak sesji — OFF. Leftover ikEntryEnabled nie blokuje Super Admina. A08-P2 UNCHANGED. Test: test-ik-role-activation.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-18",
     version: "2.66.95",
     label: "IK AUTONOMY-08 P2 Research-on-Miss",
     items: [

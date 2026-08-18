@@ -108,7 +108,7 @@ assert(
 // --- B: IK ON → entry available ---
 reset();
 setSettings({ ikEntryEnabled: true });
-assert("B AppSettings ON → isIkEntryEnabled", isIkEntryEnabled() === true);
+assert("B leftover ikEntryEnabled ON without session → false", isIkEntryEnabled() === false);
 assert("B first screen ik_entry", resolveIkDetailFirstScreen(true) === "ik_entry");
 assert("B DetailPage mounts IkEntryHost", /IkEntryHost/.test(detailSrc));
 assert("B DetailPage uses resolveIkDetailFirstScreen", /resolveIkDetailFirstScreen/.test(detailSrc));
@@ -129,7 +129,8 @@ assert(
 // --- C: IK ON does not auto-enable D ---
 reset();
 setSettings({ ikEntryEnabled: true, expertAiDecydentEnabled: false });
-assert("C IK ON leaves D false", isIkEntryEnabled() === true);
+forceIkEntryEnabledForTests(true);
+assert("C IK ACCESS ON leaves D false", isIkEntryEnabled() === true);
 assert(
   "C local D still false",
   JSON.parse(mem.get(APP_SETTINGS_KEY)).expertAiDecydentEnabled !== true,
@@ -211,8 +212,8 @@ assert(
 );
 
 // --- F: NG-10 removed; IK flag remains ---
-assert("F AppSettings has ikEntryEnabled", /ikEntryEnabled: boolean/.test(readSrc("src/lib/app-settings.ts")));
-assert("F Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("F AppSettings has ikEntryEnabled leftover", /ikEntryEnabled: boolean/.test(readSrc("src/lib/app-settings.ts")));
+assert("F Admin role toggles present", /data-ik-entry-for-admin-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")) && /data-ik-entry-for-moderator-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 const ng10Files = [
   "src/app/tenders/autonomous/TenderAutonomousGate.tsx",
   "src/lib/tender-autonomous-run-timeline.ts",

@@ -888,6 +888,25 @@ export function adminCanViewChanges(
   return settings.changesForAdminEnabled === true;
 }
 
+/**
+ * Inteligentny Kosztorysant — available for this admin role.
+ * Super Admin ALWAYS true (ignores leftover ikEntryEnabled and staff flags).
+ * Admin / Moderator: independent AppSettings flags, default false.
+ * Inspector (and any other AdminRole): false.
+ */
+export function adminCanUseIntelligentEstimator(
+  role: AdminRole,
+  settings: {
+    ikEntryForAdminEnabled?: boolean;
+    ikEntryForModeratorEnabled?: boolean;
+  },
+): boolean {
+  if (role === "super_admin") return true;
+  if (role === "admin") return settings.ikEntryForAdminEnabled === true;
+  if (role === "moderator") return settings.ikEntryForModeratorEnabled === true;
+  return false;
+}
+
 
 
 export function adminRoleLabel(role: AdminRole): string {

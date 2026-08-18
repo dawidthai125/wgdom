@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.96 — IK Role Activation (2026-08-18)
+
+- Super Admin: IK **ALWAYS ON** (brak self-toggle; leftover `ikEntryEnabled` nie blokuje)
+- Administrator / Moderator: `ikEntryForAdminEnabled` / `ikEntryForModeratorEnabled` default **OFF**, niezależne, tylko ⚙ Super Admin
+- Inspector / worker / brak sesji: **OFF** · A08-P2 Research-on-Miss **UNCHANGED**
+- Test: `npx vite-node scripts/test-ik-role-activation.mjs`
+
 ## 2.66.95 — IK AUTONOMY-08 P2 Research-on-Miss (2026-08-18)
 
 - **COMPLETE / CLOSED** · **PRODUCTION VERIFIED** · PV **PASS** · commit **`1f5d871c`** · deploy **`5958146457`**

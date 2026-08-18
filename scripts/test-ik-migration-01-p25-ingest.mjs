@@ -49,7 +49,7 @@ globalThis.localStorage = {
 console.log("=== IK-MIGRATION-01 P2.5 INGEST BRIDGE ===\n");
 
 assert("flag default ON (P10)", defaultAppSettings().ikEntryEnabled === true);
-assert("isIkEntryEnabled follows default ON when LS empty", isIkEntryEnabled() === true);
+assert("isIkEntryEnabled no session + empty LS → false", isIkEntryEnabled() === false);
 assert("OFF → ik_entry", resolveIkDetailFirstScreen(false) === "ik_entry");
 assert(
   "NG-10 Gate retained in DetailPage",

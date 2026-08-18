@@ -105,11 +105,23 @@ export interface AppSettings {
    */
   expertAiDecydentEnabled: boolean;
   /**
-   * IK-MIGRATION-01 P1/P10 — first-screen Inteligentnego Kosztorysanta na /przetarg.
-   * P10 default ON → IkEntryHost (NG-10 Gate removed). OFF = workspace without host (no NG-10 fallback).
-   * NIE jest globalnym D (`expertAiDecydentEnabled`). Dual Outcome / Offer PLN bez zmian.
+   * IK-MIGRATION-01 P1 leftover (IK ROLE ACTIVATION).
+   * Retained for load/merge/cloud-blob compatibility. NOT a runtime IK access gate.
+   * Runtime access = isIkEntryEnabled() → adminCanUseIntelligentEstimator (role).
+   * Do not AND this key. Do not delete this key in this slice. Do not migrate KV.
    */
   ikEntryEnabled: boolean;
+  /**
+   * IK ROLE ACTIVATION — IK access for role `admin`. Default OFF.
+   * Super Admin always has IK (helper), independent of this flag.
+   * Does NOT enable tendersTabForStaffEnabled · Does NOT flip P5/P6/Research.
+   */
+  ikEntryForAdminEnabled: boolean;
+  /**
+   * IK ROLE ACTIVATION — IK access for role `moderator`. Default OFF.
+   * Independent of ikEntryForAdminEnabled. Super Admin always has IK.
+   */
+  ikEntryForModeratorEnabled: boolean;
   /**
    * IK-MIGRATION-01 P2 leftover (IK AUTONOMY-08 P0).
    * Retained for load/merge/cloud-blob compatibility. Default OFF.
@@ -204,6 +216,8 @@ export function defaultAppSettings(): AppSettings {
     wmWorkerSketchEnabled: false,
     expertAiDecydentEnabled: false,
     ikEntryEnabled: true,
+    ikEntryForAdminEnabled: false,
+    ikEntryForModeratorEnabled: false,
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
     ikChiefWiringEnabled: false,
@@ -353,7 +367,7 @@ export function mergeExpertAiDecydentEnabled(
   return local.expertAiDecydentEnabled === true;
 }
 
-/** Chmura ma pierwszeństwo — domyślnie OFF (IK-MIGRATION-01 P1). Niezależne od D. */
+/** Leftover blob merge — NOT a runtime IK access conjunct. */
 export function mergeIkEntryEnabled(
   remote: Partial<AppSettings> | null | undefined,
   local: AppSettings,
@@ -361,6 +375,26 @@ export function mergeIkEntryEnabled(
   if (remote?.ikEntryEnabled === true) return true;
   if (remote?.ikEntryEnabled === false) return false;
   return local.ikEntryEnabled === true;
+}
+
+/** Chmura ma pierwszeństwo — IK access for Administrator. Default OFF. */
+export function mergeIkEntryForAdminEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikEntryForAdminEnabled === true) return true;
+  if (remote?.ikEntryForAdminEnabled === false) return false;
+  return local.ikEntryForAdminEnabled === true;
+}
+
+/** Chmura ma pierwszeństwo — IK access for Moderator. Default OFF. Independent of Admin. */
+export function mergeIkEntryForModeratorEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikEntryForModeratorEnabled === true) return true;
+  if (remote?.ikEntryForModeratorEnabled === false) return false;
+  return local.ikEntryForModeratorEnabled === true;
 }
 
 /** Chmura ma pierwszeństwo — domyślnie OFF (IK-MIGRATION-01 P2). Nie włącza research. */
@@ -461,6 +495,8 @@ export function loadAppSettingsLocal(): AppSettings {
       wmWorkerSketchEnabled: parsed.wmWorkerSketchEnabled === true,
       expertAiDecydentEnabled: parsed.expertAiDecydentEnabled === true,
       ikEntryEnabled: parsed.ikEntryEnabled === true,
+      ikEntryForAdminEnabled: parsed.ikEntryForAdminEnabled === true,
+      ikEntryForModeratorEnabled: parsed.ikEntryForModeratorEnabled === true,
       ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       ikIdentityCoverageEnabled: parsed.ikIdentityCoverageEnabled === true,
       ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
@@ -529,6 +565,8 @@ export function mergeAppSettings(
     wmWorkerSketchEnabled: mergeWmWorkerSketchEnabled(remote, local),
     expertAiDecydentEnabled: mergeExpertAiDecydentEnabled(remote, local),
     ikEntryEnabled: mergeIkEntryEnabled(remote, local),
+    ikEntryForAdminEnabled: mergeIkEntryForAdminEnabled(remote, local),
+    ikEntryForModeratorEnabled: mergeIkEntryForModeratorEnabled(remote, local),
     ikAutoIngestEnabled: mergeIkAutoIngestEnabled(remote, local),
     ikIdentityCoverageEnabled: mergeIkIdentityCoverageEnabled(remote, local),
     ikChiefWiringEnabled: mergeIkChiefWiringEnabled(remote, local),

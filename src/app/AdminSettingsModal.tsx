@@ -422,22 +422,46 @@ export function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <p className="text-sm font-medium pt-1">Inteligentny Kosztorysant</p>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={appSettings.ikEntryEnabled === true}
+                checked={appSettings.ikEntryForAdminEnabled === true}
                 onChange={async (e) => {
-                  const next = { ...appSettings, ikEntryEnabled: e.target.checked };
+                  const next = { ...appSettings, ikEntryForAdminEnabled: e.target.checked };
                   onAppSettingsChange(next);
                   await saveAppSettings(next);
                 }}
                 className="mt-0.5"
-                data-ik-entry-toggle
+                data-ik-entry-for-admin-toggle
               />
               <div>
-                <p className="text-sm font-medium">Inteligentny Kosztorysant</p>
+                <p className="text-sm font-medium">Dostęp dla Administratorów</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Steruje działaniem Inteligentnego Kosztorysanta w przetargach.
+                  Wyłączone domyślnie. Super Administrator zawsze korzysta z Inteligentnego Kosztorysanta.
+                  Po włączeniu — Administrator ma dostęp do IK w przetargach.
+                  Niezależne od przełącznika modułu Przetargi.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.ikEntryForModeratorEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikEntryForModeratorEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-entry-for-moderator-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">Dostęp dla Moderatorów</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Super Administrator zawsze korzysta z Inteligentnego Kosztorysanta.
+                  Po włączeniu — Moderator ma dostęp do IK w przetargach.
+                  Niezależne od dostępu Administratorów i od przełącznika modułu Przetargi.
                 </p>
               </div>
             </label>

@@ -1,12 +1,14 @@
 /**
  * IK-MIGRATION-01 P1–P8 — first-screen + controlled P2–P8 flags.
- * SSOT: AppSettings (kw-app-settings).
+ * SSOT access: adminCanUseIntelligentEstimator (admin-auth) via isIkEntryEnabled adapter.
+ * Leftover AppSettings.ikEntryEnabled is NOT a runtime conjunct.
  * P5/P6: AUTO|ON = MODE A + Research-on-Miss permission · OFF = HOLD.
- * executeResearch permission = IK Entry ∧ P5/P6 E2E (leftover ik*ResearchEnabled is NOT a gate).
+ * executeResearch permission = IK ACCESS ∧ P5/P6 E2E (leftover ik*ResearchEnabled is NOT a gate).
  * P7/P8: AUTO|ON = MODE A / RO · OFF = HOLD · no research lever.
  * Independent of Decydent / Dual Outcome master (D).
  */
 
+import { adminCanUseIntelligentEstimator, loadAdminSessionFromStorage } from "@/lib/admin-auth";
 import { isIkE2eModeActive, loadAppSettingsLocal, type IkE2eMode } from "@/lib/app-settings";
 
 /** P10 — NG-10 first-screen removed; sole first-screen class is IK entry. */
@@ -137,9 +139,15 @@ function isForcedIkE2eActive(forced: boolean | IkE2eMode | null): boolean | null
   return false;
 }
 
+/**
+ * IK ACCESS adapter — role-based authorization (IK ROLE ACTIVATION).
+ * Test override wins. Leftover AppSettings.ikEntryEnabled is NOT read here.
+ */
 export function isIkEntryEnabled(): boolean {
   if (ikEntryForTests != null) return ikEntryForTests;
-  return loadAppSettingsLocal().ikEntryEnabled === true;
+  const session = loadAdminSessionFromStorage();
+  if (!session) return false;
+  return adminCanUseIntelligentEstimator(session.role, loadAppSettingsLocal()) === true;
 }
 
 /**
@@ -193,8 +201,9 @@ export function isIkLaborResearchEnabled(): boolean {
 
 /**
  * P2 Documents→BOQ active seam (IK AUTONOMY-08 P0 · OD-08-1).
- * IK ON ⇒ ingest may run (still needs needsIkNg02Ingest / onUpdate / pipeline idle).
- * Leftover ikAutoIngestEnabled is NOT part of this gate (true/false/missing/malformed ignored).
+ * IK ACCESS (isIkEntryEnabled adapter) ⇒ ingest may run.
+ * Leftover ikAutoIngestEnabled is NOT part of this gate.
+ * Leftover ikEntryEnabled KV is NOT part of this gate (role adapter).
  */
 export function isIkP2DocumentsBoqActive(): boolean {
   return isIkEntryEnabled() === true;

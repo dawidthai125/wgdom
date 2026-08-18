@@ -273,6 +273,7 @@ assert("A DetailPage Gate absent", !/TenderAutonomousGate/.test(detailSrc));
 // --- B: IK ON + AUTO OFF → Entry Shell ---
 reset();
 setSettings({ ikEntryEnabled: true, ikAutoIngestEnabled: false, ikIdentityCoverageEnabled: false });
+forceIkEntryEnabledForTests(true);
 assert("B IK ON", isIkEntryEnabled() === true);
 assert("B leftover AUTO OFF", isIkAutoIngestEnabled() === false);
 assert("B P2 active (08-P0 IK ON implies ingest gate)", isIkP2DocumentsBoqActive() === true);
@@ -282,6 +283,7 @@ assert("B first screen ik_entry", resolveIkDetailFirstScreen(true) === "ik_entry
 // --- C: IK ON + AUTO ON → P2 ---
 reset();
 setSettings({ ikEntryEnabled: true, ikAutoIngestEnabled: true });
+forceIkEntryEnabledForTests(true);
 assert("C P2 active", isIkP2DocumentsBoqActive() === true);
 assert("C coverage still OFF by default", isIkIdentityCoverageEnabled() === false);
 

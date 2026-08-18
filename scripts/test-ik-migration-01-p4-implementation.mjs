@@ -87,6 +87,7 @@ assert("A first screen ik_entry", resolveIkDetailFirstScreen(false) === "ik_entr
 // --- B: IK ON + P4 OFF ---
 reset();
 setSettings({ ikEntryEnabled: true, ikChiefWiringEnabled: false });
+forceIkEntryEnabledForTests(true);
 assert("B IK ON", isIkEntryEnabled() === true);
 assert("B P4 OFF", isIkChiefWiringEnabled() === false);
 assert("B preference OFF", isIkP4ChiefWiringPreferenceActive() === false);
@@ -95,6 +96,7 @@ assert("B eligible false even pricingReady", isIkP4ChiefSessionEligible({ pricin
 // --- C: IK ON + P4 ON + no pricingReady ---
 reset();
 setSettings({ ikEntryEnabled: true, ikChiefWiringEnabled: true });
+forceIkEntryEnabledForTests(true);
 assert("C preference ON", isIkP4ChiefWiringPreferenceActive() === true);
 assert("C pricingReady false → ineligible", isIkP4ChiefSessionEligible({ pricingReady: false }) === false);
 assert("C no BOQ gate via pricing", resolveIkP4ChiefEligible({

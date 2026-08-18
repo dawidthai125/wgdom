@@ -47,7 +47,8 @@ const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
 
 const technicalIdx = adminSrc.indexOf("TECHNICAL / ADVANCED / EMERGENCY");
-const entryIdx = adminSrc.indexOf("data-ik-entry-toggle");
+const entryAdminIdx = adminSrc.indexOf("data-ik-entry-for-admin-toggle");
+const entryModIdx = adminSrc.indexOf("data-ik-entry-for-moderator-toggle");
 const dIdx = adminSrc.indexOf("data-expert-ai-decydent-toggle");
 const p3Idx = adminSrc.indexOf("data-ik-identity-coverage-toggle");
 const p4Idx = adminSrc.indexOf("data-ik-chief-wiring-toggle");
@@ -62,7 +63,9 @@ assert("T01 Technical header present", technicalIdx >= 0);
 assert("T01 data-ik-technical-advanced-emergency", /data-ik-technical-advanced-emergency/.test(adminSrc));
 assert("T01 data-ik-technical-panel", /data-ik-technical-panel/.test(adminSrc));
 
-assert("T02 data-ik-entry-toggle primary (before Technical)", entryIdx >= 0 && entryIdx < technicalIdx);
+assert("T02 data-ik-entry-for-admin-toggle primary (before Technical)", entryAdminIdx >= 0 && entryAdminIdx < technicalIdx);
+assert("T02 data-ik-entry-for-moderator-toggle primary (before Technical)", entryModIdx >= 0 && entryModIdx < technicalIdx);
+assert("T02 global data-ik-entry-toggle removed", !/data-ik-entry-toggle/.test(adminSrc));
 assert("T02 D toggle before Technical", dIdx >= 0 && dIdx < technicalIdx);
 assert("T02 D copy unchanged", /Expert AI · Przebieg i Decydent/.test(adminSrc));
 
@@ -79,12 +82,14 @@ assert("T04 AUTO_INGEST absent", !/data-ik-auto-ingest-toggle/.test(adminSrc));
 assert("T04 leftover key remains in AppSettings", /ikAutoIngestEnabled/.test(settingsSrc));
 
 assert(
-  "T05 IK copy SSOT",
-  /Steruje działaniem Inteligentnego Kosztorysanta w przetargach/.test(adminSrc),
+  "T05 IK copy Super Admin always",
+  /Super Administrator zawsze korzysta z Inteligentnego Kosztorysanta/.test(adminSrc),
 );
 assert("T05 old Documents/BOQ primary copy gone", !/od dokumentów i przygotowania BOQ/.test(adminSrc));
 assert("T05 IK title reused", /Inteligentny Kosztorysant/.test(adminSrc));
-assert("T05 ikEntryEnabled still checkbox write", /ikEntryEnabled:\s*e\.target\.checked/.test(adminSrc));
+assert("T05 no global ikEntryEnabled checkbox write", !/ikEntryEnabled:\s*e\.target\.checked/.test(adminSrc));
+assert("T05 writes ikEntryForAdminEnabled", /ikEntryForAdminEnabled:\s*e\.target\.checked/.test(adminSrc));
+assert("T05 writes ikEntryForModeratorEnabled", /ikEntryForModeratorEnabled:\s*e\.target\.checked/.test(adminSrc));
 
 assert("T06 IC-2 hidden={!ikTechnicalOpen}", /hidden=\{!ikTechnicalOpen\}/.test(adminSrc));
 assert("T06 IC-2 no unmount {ikTechnicalOpen &&", !/\{ikTechnicalOpen\s*&&/.test(adminSrc));
@@ -96,7 +101,8 @@ assert(
 );
 
 const attrs = [
-  "data-ik-entry-toggle",
+  "data-ik-entry-for-admin-toggle",
+  "data-ik-entry-for-moderator-toggle",
   "data-ik-identity-coverage-toggle",
   "data-ik-chief-wiring-toggle",
   "data-ik-labor-e2e-toggle",
@@ -127,8 +133,8 @@ assert("T09 P2 gate still Entry only", /export function isIkP2DocumentsBoqActive
 assert("T09 host still uses helper", /isIkP2DocumentsBoqActive\(\)/.test(hostSrc));
 
 assert("T10 P2 may change gate+host (A08-P2)", true);
-assert("T10 app-settings unchanged vs git", gitDiffEmpty("src/lib/app-settings.ts"));
-assert("T10 admin-auth unchanged vs git", gitDiffEmpty("src/lib/admin-auth.ts"));
+assert("T10 role-activation may change app-settings", /ikEntryForAdminEnabled/.test(settingsSrc));
+assert("T10 role-activation may change admin-auth", /adminCanUseIntelligentEstimator/.test(readSrc("src/lib/admin-auth.ts")));
 assert("T10 AdminTopbar unchanged vs git", gitDiffEmpty("src/app/admin/AdminTopbar.tsx"));
 assert("T10 TenderDetailPage unchanged vs git", gitDiffEmpty("src/app/TenderDetailPage.tsx"));
 

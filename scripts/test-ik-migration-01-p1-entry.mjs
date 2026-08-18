@@ -97,9 +97,9 @@ console.log("=== IK-MIGRATION-01 P1 ENTRY ===\n");
 
 reset();
 const d = defaultAppSettings();
-assert("A default ikEntryEnabled true (P10)", d.ikEntryEnabled === true);
+assert("A default ikEntryEnabled true (P10 leftover blob)", d.ikEntryEnabled === true);
 assert("A default D false (unchanged)", d.expertAiDecydentEnabled === false);
-assert("A isIkEntryEnabled default true (P10)", isIkEntryEnabled() === true);
+assert("A no session → isIkEntryEnabled false (role adapter)", isIkEntryEnabled() === false);
 assert(
   "A first screen default ik_entry",
   resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ik_entry",
@@ -111,7 +111,7 @@ assert(
 
 reset();
 setSettings({ ikEntryEnabled: true });
-assert("B AppSettings ON → isIkEntryEnabled", isIkEntryEnabled() === true);
+assert("B leftover ikEntryEnabled ON without session → false", isIkEntryEnabled() === false);
 assert(
   "B first screen ik_entry",
   resolveIkDetailFirstScreen(isIkEntryEnabled()) === "ik_entry",
@@ -306,7 +306,9 @@ assert(
     && /onOpenAdminSettings/.test(topbarSrc),
 );
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
-assert("C Admin IK toggle present", /data-ik-entry-toggle/.test(adminSrc));
+assert("C Admin IK admin toggle present", /data-ik-entry-for-admin-toggle/.test(adminSrc));
+assert("C Admin IK moderator toggle present", /data-ik-entry-for-moderator-toggle/.test(adminSrc));
+assert("C Admin global IK toggle absent", !/data-ik-entry-toggle/.test(adminSrc));
 assert("C Admin AUTO_INGEST toggle absent (08-P0 leftover internal)", !/data-ik-auto-ingest-toggle/.test(adminSrc));
 assert("C Admin IDENTITY_COVERAGE toggle present", /data-ik-identity-coverage-toggle/.test(adminSrc));
 assert("C default ikAutoIngestEnabled OFF", defaultAppSettings().ikAutoIngestEnabled === false);
@@ -343,8 +345,8 @@ const ng10Files = [
 assert("F NG-10 files removed", ng10Files.every((rel) => !existsSync(join(root, rel))));
 
 const settingsSrc = readSrc("src/lib/app-settings.ts");
-assert("F AppSettings has ikEntryEnabled", /ikEntryEnabled: boolean/.test(settingsSrc));
-assert("F Admin toggle present", /data-ik-entry-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
+assert("F AppSettings has ikEntryEnabled leftover", /ikEntryEnabled: boolean/.test(settingsSrc));
+assert("F Admin role toggles present", /data-ik-entry-for-admin-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")) && /data-ik-entry-for-moderator-toggle/.test(readSrc("src/app/AdminSettingsModal.tsx")));
 
 const noAthWriter = !/serializeAth|writeAth|exportAthFile/.test(convSrc)
   && !/serializeAth|writeAth/.test(hostSrc);

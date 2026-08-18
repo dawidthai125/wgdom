@@ -114,18 +114,22 @@ assert("T02 host does not claim extraction success", true);
 reset();
 forceIkEntryEnabledForTests(null);
 setSettings({ ikEntryEnabled: true, ikAutoIngestEnabled: false });
-assert("T03 leftover false", isIkAutoIngestEnabled() === false);
-assert("T03 IK ON leftover false → P2 true", isIkP2DocumentsBoqActive() === true);
+assert("T03 leftover ingest false", isIkAutoIngestEnabled() === false);
+assert("T03 leftover entry KV ON without session → P2 false", isIkP2DocumentsBoqActive() === false);
+forceIkEntryEnabledForTests(true);
+assert("T03 IK ACCESS ON leftover ingest false → P2 true", isIkP2DocumentsBoqActive() === true);
 
-// --- T04 leftover true + IK ON → active ---
+// --- T04 leftover true + IK ACCESS ON → active ---
 reset();
 setSettings({ ikEntryEnabled: true, ikAutoIngestEnabled: true });
-assert("T04 leftover true → P2 true", isIkP2DocumentsBoqActive() === true);
+assert("T04 leftover ingest true without session → P2 false", isIkP2DocumentsBoqActive() === false);
+forceIkEntryEnabledForTests(true);
+assert("T04 IK ACCESS ON leftover ingest true → P2 true", isIkP2DocumentsBoqActive() === true);
 
 // --- T05 leftover false + IK OFF ---
 reset();
 setSettings({ ikEntryEnabled: false, ikAutoIngestEnabled: false });
-assert("T05 IK OFF leftover false → P2 false", isIkP2DocumentsBoqActive() === false);
+assert("T05 no session leftover false → P2 false", isIkP2DocumentsBoqActive() === false);
 
 // --- missing leftover ---
 reset();
@@ -134,7 +138,9 @@ reset();
   const { ikAutoIngestEnabled: _drop, ...rest } = d;
   ls.set(APP_SETTINGS_KEY, JSON.stringify({ ...rest, ikEntryEnabled: true }));
   assert("T missing leftover load is false", loadAppSettingsLocal().ikAutoIngestEnabled === false);
-  assert("T missing leftover + IK ON → P2 true", isIkP2DocumentsBoqActive() === true);
+  assert("T missing leftover without session → P2 false", isIkP2DocumentsBoqActive() === false);
+  forceIkEntryEnabledForTests(true);
+  assert("T missing leftover + IK ACCESS ON → P2 true", isIkP2DocumentsBoqActive() === true);
 }
 
 // --- malformed leftover ---
@@ -143,7 +149,9 @@ reset();
   const d = { ...defaultAppSettings(), ikEntryEnabled: true, ikAutoIngestEnabled: "nope" };
   ls.set(APP_SETTINGS_KEY, JSON.stringify(d));
   assert("T malformed leftover load is false", loadAppSettingsLocal().ikAutoIngestEnabled === false);
-  assert("T malformed leftover + IK ON → P2 true", isIkP2DocumentsBoqActive() === true);
+  assert("T malformed leftover without session → P2 false", isIkP2DocumentsBoqActive() === false);
+  forceIkEntryEnabledForTests(true);
+  assert("T malformed leftover + IK ACCESS ON → P2 true", isIkP2DocumentsBoqActive() === true);
 }
 
 // --- T06 needsIkNg02Ingest unchanged semantics ---
@@ -206,12 +214,14 @@ assert("T23 host still uses NG-02 bridge", /runIkNg02IngestBridge/.test(hostSrc)
 
 // --- T24 Admin UI ---
 assert("T24 no AUTO_INGEST toggle", !/data-ik-auto-ingest-toggle/.test(adminSrc));
-assert("T24 copy IK business switch", /Steruje działaniem Inteligentnego Kosztorysanta w przetargach/.test(adminSrc));
+assert("T24 copy Super Admin always IK", /Super Administrator zawsze korzysta z Inteligentnego Kosztorysanta/.test(adminSrc));
 assert("T24 copy does not list P2–P8 on IK label", !/IK · AUTO_INGEST/.test(adminSrc));
 
-// --- T25 IK ON/OFF remains ---
-assert("T25 data-ik-entry-toggle", /data-ik-entry-toggle/.test(adminSrc));
-assert("T25 IK toggle still writes ikEntryEnabled", /ikEntryEnabled:\s*e\.target\.checked/.test(adminSrc));
+// --- T25 IK role access (global toggle removed) ---
+assert("T25 data-ik-entry-for-admin-toggle", /data-ik-entry-for-admin-toggle/.test(adminSrc));
+assert("T25 data-ik-entry-for-moderator-toggle", /data-ik-entry-for-moderator-toggle/.test(adminSrc));
+assert("T25 global data-ik-entry-toggle removed", !/data-ik-entry-toggle/.test(adminSrc));
+assert("T25 no global ikEntryEnabled checkbox write", !/ikEntryEnabled:\s*e\.target\.checked/.test(adminSrc));
 
 // --- T26 Super Admin access when IK OFF ---
 assert(
