@@ -36,13 +36,15 @@ export function applyRectangleSquareConstraint(
   };
 }
 
-/** A→B→C→D→A jako 4 DrawingWallObject. */
+/** A→B→C→D→A jako 4 DrawingWallObject. Default thickness = działowa (4). */
 export function buildRectangleWalls(
   x1: number,
   y1: number,
   x2: number,
   y2: number,
+  thickness = 4,
 ): DrawingWallObject[] {
+  const t = thickness > 0 ? thickness : 4;
   const mk = (id: string, a: number, b: number, c: number, d: number): DrawingWallObject => ({
     id,
     type: "wall",
@@ -50,7 +52,7 @@ export function buildRectangleWalls(
     y1: b,
     x2: c,
     y2: d,
-    thickness: 4,
+    thickness: t,
     symbolId: "wall-default",
   });
   return [

@@ -39,6 +39,7 @@ console.log("WM-WORKER-SKETCH-01 P1\n");
 
 const editorSrc = readFileSync(join(root, "src/app/WmPrintDrawingEditor.tsx"), "utf8");
 const workerSrc = readFileSync(join(root, "src/app/WorkerJobSketchesSection.tsx"), "utf8");
+const reviewerSrc = readFileSync(join(root, "src/app/JobTechnicalSketchesPanel.tsx"), "utf8");
 const snapSrc = readFileSync(join(root, "src/lib/wm-technical-drawings/snap-draw.ts"), "utf8");
 
 /* --- Gesture: one model · ZERO two-click wall --- */
@@ -72,12 +73,18 @@ ok("min-h-11 mobile targets", editorSrc.includes("min-h-11"));
 
 /* --- Worker tools --- */
 ok("WORKER_P1_TOOLS", workerSrc.includes("WORKER_P1_TOOLS"));
-ok("worker door_room", workerSrc.includes('"door_room"'));
+ok("worker door", workerSrc.includes('"door"'));
+ok("worker no door_room", !workerSrc.includes("door_room") && !workerSrc.includes("door_entrance"));
+ok("editor canonical door tool", /toolBtn\("door", "Drzwi"/.test(editorSrc) && !editorSrc.includes("Drzwi P") && !editorSrc.includes("Drzwi W"));
+ok("editor no door_room tool", !editorSrc.includes("door_room") && !editorSrc.includes("door_entrance"));
+ok("editor wall chips", editorSrc.includes("Zewnętrzna") && editorSrc.includes("Działowa"));
 ok("worker window", workerSrc.includes('"window"'));
 ok("worker ventilation", workerSrc.includes('"ventilation"'));
 ok("worker distribution_board", workerSrc.includes('"distribution_board"'));
 ok("worker gas_boiler", workerSrc.includes('"gas_boiler"'));
 ok("worker no dimension in allowlist", !/WORKER_P1_TOOLS = \[[^\]]*dimension/.test(workerSrc));
+ok("reviewer door", reviewerSrc.includes('"door"'));
+ok("reviewer no door_room", !reviewerSrc.includes("door_room") && !reviewerSrc.includes("door_entrance"));
 
 /* --- Snap pipeline --- */
 ok("snap-draw module", snapSrc.includes("snapDrawEnd"));

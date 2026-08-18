@@ -33,8 +33,7 @@ import type { WmTechnicalDrawing } from "@/lib/wm-technical-drawings/types";
 const WORKER_P1_TOOLS = [
   "select",
   "wall",
-  "door_room",
-  "door_entrance",
+  "door",
   "window",
   "ventilation",
   "gas_boiler",

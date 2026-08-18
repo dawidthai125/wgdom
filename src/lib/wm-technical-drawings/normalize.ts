@@ -43,6 +43,7 @@ import {
   type SketchWorkflowStatus,
   type WmTechnicalDrawing,
 } from "@/lib/wm-technical-drawings/types";
+import { canonicalDoorSymbolId } from "@/lib/wm-technical-drawings/symbols";
 
 const KNOWN_OBJECT_TYPES = new Set<DrawingObjectType>([
   "wall",
@@ -144,23 +145,16 @@ function parseText(raw: Record<string, unknown>, id: string): DrawingTextObject 
   };
 }
 
-function normalizeDoorSymbolId(raw: string): string {
-  const s = raw.trim();
-  if (!s || s === "door-swing") return "door-room";
-  if (s === "door-room" || s === "door-entrance") return s;
-  return "door-room";
-}
-
 function parseDoor(raw: Record<string, unknown>, id: string): DrawingDoorObject {
   /* MR-P1-06: wallRefId OUT — strip (nie kopiujemy) */
-  /* P3A: legacy door-swing → door-room (P) */
+  /* Canonical door-swing; legacy door-room / door-entrance / door-swing → SSOT */
   return {
     id,
     type: "door",
     x: asFiniteNumber(raw.x, 0),
     y: asFiniteNumber(raw.y, 0),
     width: raw.width != null ? asFiniteNumber(raw.width, 40) : undefined,
-    symbolId: normalizeDoorSymbolId(asString(raw.symbolId, "door-room")),
+    symbolId: canonicalDoorSymbolId(asString(raw.symbolId, "door-swing")),
     flipH: raw.flipH === true,
     rotation: raw.rotation != null ? asFiniteNumber(raw.rotation, 0) : undefined,
     locked: raw.locked === true,

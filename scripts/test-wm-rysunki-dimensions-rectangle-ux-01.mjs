@@ -146,6 +146,8 @@ ok(
     walls[3].y2 === 20,
 );
 ok("T-R1 thickness+symbol", walls.every((w) => w.thickness === 4 && w.symbolId === "wall-default"));
+const wallsExt = buildRectangleWalls(10, 20, 110, 80, 8);
+ok("T-R1 external thickness 8", wallsExt.length === 4 && wallsExt.every((w) => w.thickness === 8 && w.type === "wall"));
 
 ok("T-R2 zero width", isRectangleAreaTooSmall(5, 5, 5, 50) === true);
 ok("T-R2 zero height", isRectangleAreaTooSmall(5, 5, 50, 5) === true);

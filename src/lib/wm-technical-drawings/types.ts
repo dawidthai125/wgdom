@@ -4,8 +4,12 @@ export const WM_TECHNICAL_DRAWINGS_KEY = "kw-wm-technical-drawings";
 
 export const DRAWING_SCHEMA_VERSION = 1 as const;
 
-/** Bump przy ship biblioteki symboli (P1=2 · P3A=3 — W/P/W/R). */
-export const DRAWING_SYMBOL_LIBRARY_VERSION = 3 as const;
+/** Bump przy ship biblioteki symboli (P1=2 · P3A=3 — W/P/W/R · 4=swing door). */
+export const DRAWING_SYMBOL_LIBRARY_VERSION = 4 as const;
+
+/** Frozen wall create thicknesses (session chip → JSON thickness). */
+export const DRAWING_WALL_THICKNESS_PARTITION = 4;
+export const DRAWING_WALL_THICKNESS_EXTERNAL = 8;
 
 export type DrawingStatus = "draft" | "final";
 

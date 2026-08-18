@@ -37,8 +37,7 @@ import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
 const REVIEWER_TOOLS = [
   "select",
   "wall",
-  "door_room",
-  "door_entrance",
+  "door",
   "window",
   "ventilation",
   "gas_boiler",

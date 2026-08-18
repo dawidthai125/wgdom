@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-18",
+    version: "2.66.102",
+    label: "Odbiory WM — Rysunki door-swing + grubość ścian",
+    items: [
+      {
+        type: "improve",
+        text: "Rysunki WM: jeden tool Drzwi (canonical door-swing, bez P/W). Legacy door-room / door-entrance → door-swing (normalize-on-read). Ściana: chipy Zewnętrzna (8) / Działowa (4) — session only. Prostokąt bierze aktywną grubość. Library v4. Test: test-wm-rysunki-01-p3a.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-18",
     version: "2.66.101",
     label: "IK-KNR-EXPERT Slice D — Owner KNR mapping",
     items: [

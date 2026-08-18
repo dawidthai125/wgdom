@@ -49,7 +49,11 @@ import {
   drawingPdfFileName,
   generateDrawingPdf,
 } from "@/lib/wm-technical-drawings/export-pdf";
-import { findNearestWall } from "@/lib/wm-technical-drawings/wall-gap";
+import {
+  findNearestWall,
+  projectPointOnSegment,
+  WALL_DOOR_MAX_DIST_PX,
+} from "@/lib/wm-technical-drawings/wall-gap";
 import {
   isWallPreviewTooShort,
   wallPreviewMetrics,
@@ -82,6 +86,8 @@ import {
 } from "@/lib/wm-technical-drawings/drawing-viewport";
 import {
   DRAWING_OBJECTS_SOFT_WARN,
+  DRAWING_WALL_THICKNESS_EXTERNAL,
+  DRAWING_WALL_THICKNESS_PARTITION,
   TEXT_DEFAULT_FONT_SIZE,
   type DrawingObject,
   type DrawingWallObject,
@@ -98,13 +104,12 @@ export type DrawingJobPatch = {
   /** Append one photo (PNG copy). */
   appendPhoto?: PhotoEntry;
 };
-/** P3A toolbar — drzwi = 2 tooly (P/W); bez osobnego „Opis” (MR-P3A-05). */
+/** Toolbar — jeden tool drzwi (canonical door-swing). */
 type Tool =
   | "select"
   | "wall"
   | "rectangle"
-  | "door_room"
-  | "door_entrance"
+  | "door"
   | "window"
   | "text"
   | "eraser"
@@ -113,6 +118,8 @@ type Tool =
   | "ventilation"
   | "gas_boiler"
   | "distribution_board";
+
+type WallDraftKind = "external" | "partition";
 
 const AUTOSAVE_DEBOUNCE_MS = 1000;
 
@@ -144,7 +151,7 @@ function isPointObj(
 }
 
 function isDoorTool(t: Tool): boolean {
-  return t === "door_room" || t === "door_entrance";
+  return t === "door";
 }
 
 function isLineObj(
@@ -188,6 +195,8 @@ export function WmPrintDrawingEditor({
   const localRef = useRef(local);
   localRef.current = local;
   const [tool, setTool] = useState<Tool>("wall");
+  /** Session only — wall/rectangle create thickness (nie JSON wallType). Default działowa. */
+  const [wallDraftKind, setWallDraftKind] = useState<WallDraftKind>("partition");
   /** Session only — D-UNIT-02 · default cm. */
   const [dimensionUnit, setDimensionUnit] = useState<DimensionUnit>("cm");
   /** Session only — D-LF-05/06 · independent of textFontSize. */
@@ -612,14 +621,17 @@ export function WmPrintDrawingEditor({
 
   const findSvg = (): SVGSVGElement | null => svgHostRef.current?.querySelector("svg") ?? null;
 
-  /** MR-P3A-03 — wspólne dodanie drzwi z wariantem P/W. */
-  const addDoor = (symbolId: "door-room" | "door-entrance", p: { x: number; y: number }) => {
+  const wallDraftThickness =
+    wallDraftKind === "external" ? DRAWING_WALL_THICKNESS_EXTERNAL : DRAWING_WALL_THICKNESS_PARTITION;
+
+  /** Canonical door-swing — bez width, bez P/W. */
+  const addDoor = (p: { x: number; y: number }) => {
     const obj: DrawingObject = {
       id: crypto.randomUUID(),
       type: "door",
       x: p.x,
       y: p.y,
-      symbolId,
+      symbolId: "door-swing",
       flipH: false,
       rotation: 0,
     };
@@ -697,7 +709,7 @@ export function WmPrintDrawingEditor({
         y1: start.y,
         x2: end.x,
         y2: end.y,
-        thickness: 4,
+        thickness: wallDraftThickness,
         symbolId: "wall-default",
       };
       obj = wall;
@@ -745,7 +757,7 @@ export function WmPrintDrawingEditor({
       rectShiftRef.current = false;
       return;
     }
-    const walls = buildRectangleWalls(x1, y1, x2, y2);
+    const walls = buildRectangleWalls(x1, y1, x2, y2, wallDraftThickness);
     commit(touchDrawing(local, { objects: [...local.objects, ...walls] }));
     setSelectedId(walls[0]?.id ?? null);
     clearWallPreview();
@@ -787,6 +799,26 @@ export function WmPrintDrawingEditor({
       return;
     }
 
+    /* CREATE door: raw → wall projection (24 px) → MISS → snapPlace. Grid never after HIT. */
+    if (tool === "door") {
+      const walls = local.objects.filter((o): o is DrawingWallObject => o.type === "wall");
+      const hit = findNearestWall(walls, raw.x, raw.y, WALL_DOOR_MAX_DIST_PX);
+      if (hit) {
+        const proj = projectPointOnSegment(
+          raw.x,
+          raw.y,
+          hit.wall.x1,
+          hit.wall.y1,
+          hit.wall.x2,
+          hit.wall.y2,
+        );
+        addDoor({ x: proj.qx, y: proj.qy });
+        return;
+      }
+      addDoor(snapPlace(raw.x, raw.y));
+      return;
+    }
+
     const p = snapPlace(raw.x, raw.y);
 
     /* D-P3A-19 / MR-P3A-07 — primary: klik ściany → popup Długość; secondary: 2-click. */
@@ -812,15 +844,6 @@ export function WmPrintDrawingEditor({
         return;
       }
       finishLine("dimension", lineStart, p);
-      return;
-    }
-
-    if (tool === "door_room") {
-      addDoor("door-room", p);
-      return;
-    }
-    if (tool === "door_entrance") {
-      addDoor("door-entrance", p);
       return;
     }
 
@@ -1371,8 +1394,7 @@ export function WmPrintDrawingEditor({
           >
             {toolBtn("wall", "Ściana", <Minus size={18} />)}
             {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={18} />)}
-            {toolBtn("door_room", "Drzwi P", <DoorOpen size={18} />)}
-            {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={18} />)}
+            {toolBtn("door", "Drzwi", <DoorOpen size={18} />)}
             {toolBtn("window", "Okno", <Square size={18} />)}
             {toolBtn("ventilation", "Wentyl.", <Wind size={18} />)}
             {toolBtn("distribution_board", "Rozdz.", <Box size={18} />)}
@@ -1388,8 +1410,7 @@ export function WmPrintDrawingEditor({
         {toolBtn("select", "Wybierz", <MousePointer2 size={14} />)}
         {toolBtn("wall", "Ściana", <Minus size={14} />)}
         {toolBtn("rectangle", "Prostokąt", <RectangleHorizontal size={14} />)}
-        {toolBtn("door_room", "Drzwi P", <DoorOpen size={14} />)}
-        {toolBtn("door_entrance", "Drzwi W", <DoorOpen size={14} />)}
+        {toolBtn("door", "Drzwi", <DoorOpen size={14} />)}
         {toolBtn("window", "Okno", <Square size={14} />)}
         {toolBtn("dimension", "Wymiar", <Ruler size={14} />)}
         {toolBtn("arrow", "Strzałka", <MoveRight size={14} />)}
@@ -1494,6 +1515,36 @@ export function WmPrintDrawingEditor({
           <span className="hidden sm:inline">Jako zdjęcie</span>
         </button>
       </div>
+      )}
+
+      {(tool === "wall" || tool === "rectangle") && (toolAllowed("wall") || toolAllowed("rectangle")) && (
+        <div
+          className="border border-border rounded-lg p-1 bg-card shrink-0 flex flex-wrap items-center gap-1"
+          role="toolbar"
+          aria-label="Rodzaj ściany"
+        >
+          <span className="text-[11px] text-muted-foreground px-1 shrink-0">Ściana</span>
+          <button
+            type="button"
+            title="Ściana zewnętrzna"
+            aria-label="Ściana zewnętrzna"
+            aria-pressed={wallDraftKind === "external"}
+            onClick={() => setWallDraftKind("external")}
+            className={`${chromeAction} ${wallDraftKind === "external" ? "bg-primary/15 text-primary" : ""}`}
+          >
+            Zewnętrzna
+          </button>
+          <button
+            type="button"
+            title="Ściana działowa"
+            aria-label="Ściana działowa"
+            aria-pressed={wallDraftKind === "partition"}
+            onClick={() => setWallDraftKind("partition")}
+            className={`${chromeAction} ${wallDraftKind === "partition" ? "bg-primary/15 text-primary" : ""}`}
+          >
+            Działowa
+          </button>
+        </div>
       )}
 
       {showDimensionFontUi && (

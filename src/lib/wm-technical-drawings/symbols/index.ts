@@ -74,20 +74,23 @@ export function letterStampPaths(letter: string, w = 36, h = 44): string {
   ].join("");
 }
 
-/** Drzwi literowe — mniejszy kwadrat (bez okręgu), czytelne P / W. */
-function doorLetterPaths(letter: string, size = 28): string {
-  const cx = size / 2;
-  const safe = String(letter).slice(0, 1).replace(/[<>&"]/g, "");
+/**
+ * Canonical swing door — viewBox 36×72 so renderSymbol origin (viewBox center)
+ * sits on the opening (y=36). Hinge at (0,36) = local (−18, 0). Leaf + quarter arc in −Y.
+ * ZERO letters. defaultWidth 36 = DEFAULT_DOOR_GAP_WIDTH_PX.
+ */
+function doorSwingPaths(): string {
   return [
-    `<rect x="2" y="2" width="${size - 4}" height="${size - 4}" rx="2" fill="none" stroke="#1e293b" stroke-width="2"/>`,
-    `<text x="${cx}" y="${cx + 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#1e293b" font-family="system-ui,sans-serif">${safe}</text>`,
+    `<line x1="0" y1="36" x2="0" y2="0" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>`,
+    `<path d="M 36 36 A 36 36 0 0 0 0 0" fill="none" stroke="#1e293b" stroke-width="1.5"/>`,
+    `<circle cx="0" cy="36" r="1.75" fill="#1e293b"/>`,
   ].join("");
 }
 
-const DOOR_ROOM: SymbolDef = def("door-room", 28, 28, doorLetterPaths("P"));
-const DOOR_ENTRANCE: SymbolDef = def("door-entrance", 28, 28, doorLetterPaths("W"));
-/** Legacy id — ten sam glyph co door-room (P); normalize mapuje na door-room. */
-const DOOR_SWING: SymbolDef = def("door-swing", 28, 28, doorLetterPaths("P"));
+const DOOR_SWING: SymbolDef = def("door-swing", 36, 72, doorSwingPaths());
+/** Legacy ids — same glyph as canonical swing (normalize maps to door-swing). */
+const DOOR_ROOM: SymbolDef = DOOR_SWING;
+const DOOR_ENTRANCE: SymbolDef = DOOR_SWING;
 
 const WINDOW: SymbolDef = def(
   "window-rect",
@@ -171,10 +174,16 @@ export function listClosedSymbolIds(): string[] {
   return Object.keys(REGISTRY);
 }
 
-/** Resolve door symbolId for render (legacy door-swing → door-room). */
-export function resolveDoorSymbolId(symbolId: string | undefined | null): string {
+const LEGACY_DOOR_SYMBOL_IDS = new Set(["door-swing", "door-room", "door-entrance"]);
+
+/** SSOT door alias map — parseDoor + resolveDoorSymbolId. */
+export function canonicalDoorSymbolId(symbolId: string | undefined | null): string {
   const s = (symbolId || "").trim();
-  if (!s || s === "door-swing") return "door-room";
-  if (s === "door-room" || s === "door-entrance") return s;
-  return getSymbolDef(s).symbolId === "unknown" ? "door-room" : s;
+  if (!s || LEGACY_DOOR_SYMBOL_IDS.has(s)) return "door-swing";
+  return "door-swing";
+}
+
+/** Render-time wrapper — same SSOT as parseDoor. */
+export function resolveDoorSymbolId(symbolId: string | undefined | null): string {
+  return canonicalDoorSymbolId(symbolId);
 }
