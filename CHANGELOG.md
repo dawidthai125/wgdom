@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.94 — IK AUTONOMY-08 P1 Settings Unification (2026-08-17)
+
+- **Owner GO:** Super Admin ⚙ — jedyny biznesowy switch IK = `ikEntryEnabled`
+- P3–P8 + Research → `TECHNICAL / ADVANCED / EMERGENCY` (collapsed, children remain mounted)
+- AUTO_INGEST nie wraca · D HARD STOP osobno · AppSettings/KV/runtime A05–A08/P0 UNCHANGED
+- Test: `npx vite-node scripts/test-ik-autonomy-08-p1-settings-unification.mjs`
+
 ## 2.66.93 — IK AUTONOMY-08 P0 Documents → BOQ Autonomous Activation (2026-08-17)
 
 - **Owner GO OD-08-1:** IK ON ⇒ Documents→BOQ. `isIkP2DocumentsBoqActive()` = `ikEntryEnabled === true`

@@ -83,6 +83,7 @@ export function AdminSettingsModal({
   const [msg, setMsg] = useState<{ userId: string; text: string; ok: boolean } | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [ng11PipelinePerfOpen, setNg11PipelinePerfOpen] = useState(false);
+  const [ikTechnicalOpen, setIkTechnicalOpen] = useState(false);
   const [newLogin, setNewLogin] = useState("");
   const [newPw, setNewPw] = useState("");
   const [newPw2, setNewPw2] = useState("");
@@ -436,11 +437,38 @@ export function AdminSettingsModal({
               <div>
                 <p className="text-sm font-medium">Inteligentny Kosztorysant</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Po włączeniu Inteligentny Kosztorysant automatycznie rozpoczyna analizę przetargu
-                  od dokumentów i przygotowania BOQ.
+                  Steruje działaniem Inteligentnego Kosztorysanta w przetargach.
                 </p>
               </div>
             </label>
+            <div
+              className="rounded-lg border border-sky-500/25 overflow-hidden"
+              data-ik-technical-advanced-emergency
+            >
+              <button
+                type="button"
+                onClick={() => setIkTechnicalOpen((v) => !v)}
+                className="w-full flex items-center gap-2 py-2.5 px-2 text-left hover:bg-sky-500/10 transition-colors"
+                aria-expanded={ikTechnicalOpen}
+                data-ik-technical-toggle
+              >
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 text-muted-foreground transition-transform ${ikTechnicalOpen ? "rotate-180" : ""}`}
+                />
+                <span className="text-sm font-medium flex-1">TECHNICAL / ADVANCED / EMERGENCY</span>
+                <span className="text-[10px] font-medium text-sky-800 dark:text-sky-300 shrink-0">
+                  ⚠ Technical / Emergency
+                </span>
+              </button>
+              <div
+                className="space-y-3 px-2 pb-3 pt-1"
+                hidden={!ikTechnicalOpen}
+                data-ik-technical-panel
+              >
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Nie są codziennym workflow. Diagnostyka, rollback i awaryjne wyłączenie etapów. IK nie wymaga ręcznego włączania każdego etapu.
+                </p>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -633,6 +661,8 @@ export function AdminSettingsModal({
                 bez Accept, bez Price Commit, bez Final Bid, bez D / Chief. OFF = trwały kill-switch.
                 Accept / Price Commit / Final Bid = Owner.
               </p>
+            </div>
+              </div>
             </div>
           </div>
 

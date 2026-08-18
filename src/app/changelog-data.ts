@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-17",
+    version: "2.66.94",
+    label: "IK AUTONOMY-08 P1 Settings Unification",
+    items: [
+      {
+        type: "improve",
+        text: "IK AUTONOMY-08 P1 (Owner GO): Super Admin ⚙ — jedyny biznesowy switch IK = ikEntryEnabled. P3–P8 + Research przeniesione do TECHNICAL / ADVANCED / EMERGENCY (collapsed, dzieci w DOM). AUTO_INGEST nie wraca. D HARD STOP osobno. AppSettings/KV/runtime A05–A08/P0 UNCHANGED. Test: test-ik-autonomy-08-p1-settings-unification.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-17",
     version: "2.66.93",
     label: "IK AUTONOMY-08 P0 Documents → BOQ Autonomous Activation",
     items: [

@@ -201,7 +201,7 @@ assert("T23 host still uses NG-02 bridge", /runIkNg02IngestBridge/.test(hostSrc)
 
 // --- T24 Admin UI ---
 assert("T24 no AUTO_INGEST toggle", !/data-ik-auto-ingest-toggle/.test(adminSrc));
-assert("T24 copy Documents/BOQ", /od dokumentów i przygotowania BOQ/.test(adminSrc));
+assert("T24 copy IK business switch", /Steruje działaniem Inteligentnego Kosztorysanta w przetargach/.test(adminSrc));
 assert("T24 copy does not list P2–P8 on IK label", !/IK · AUTO_INGEST/.test(adminSrc));
 
 // --- T25 IK ON/OFF remains ---
