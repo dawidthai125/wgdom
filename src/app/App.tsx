@@ -1703,13 +1703,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [bumpPayrollEditAutoSyncHold]);
 
+  // Stable fallback for persistPayrollRoster:
+  // rosterBefore is expected to be provided by schedulePayrollDomainPush() in this flow,
+  // but we keep correctness for any defensive fallback without re-creating the callback.
+  const weekEmployeesRef = useRef(weekEmployees);
+  useEffect(() => {
+    weekEmployeesRef.current = weekEmployees;
+  }, [weekEmployees]);
+
   const persistPayrollRoster = useCallback((
     next: WeekEmployee[],
     options?: PushWeekEmployeesOptions,
     rosterBefore?: WeekEmployee[],
   ) => {
     bumpAutoSyncSuppress(6000);
-    const before = rosterBefore ?? weekEmployees;
+    const before = rosterBefore ?? weekEmployeesRef.current;
     payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
       count: next.length,
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
@@ -1760,7 +1768,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           id: "payroll-roster-push",
         });
       });
-  }, [weekFrom, weekTo, weekEmployees, setWeekEmployees]);
+  }, [weekFrom, weekTo, setWeekEmployees]);
 
   useEffect(() => {
     bindPayrollDomainPushHandler((roster, options, rosterBefore) => {
