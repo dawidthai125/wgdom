@@ -2,7 +2,7 @@
 
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
-> **Data:** 2026-07-24  
+> **Data:** 2026-08-19 (**PAYROLL-O1 CAS closeout**) · prior 2026-07-24  
 > **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT)  
 > **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
@@ -253,6 +253,81 @@ Akcja:
 | Week rollover ALIGN vs wipe | ALIGN ≠ clear roster | 2.65.34 |
 | Cross-device Domain Push S2 | LP poza RS push | 2.63.85 |
 | Guard / B4 merge / PWRB | UNION + tombstones + PWRB | 2.63.x |
+| **PAYROLL-O1 CAS** | Edge revision gate + FE O2 contract; legacy write rejected | **2.66.103** FE / **`b35fd814`** Edge |
+
+---
+
+## 5A. PAYROLL-O1 — CAS end-to-end (**CLOSED** · 2026-08-19)
+
+**Status:** **PAYROLL-O1 = CLOSED** · **FE O2** + **Edge O1** + **CAS end-to-end** = **PRODUCTION VERIFIED** · **O1-A…O1-E = PASS** · **nie** powtarzać O1 implement/deploy/testów bez Owner GO.
+
+### Production baseline
+
+| Warstwa | Wartość |
+|---------|---------|
+| **URL** | https://www.wgdom.fun |
+| **FE (O2 CAS-ready client)** | UI **2.66.103** · commit **`d2b71fb`** |
+| **Edge (O1 CAS gate)** | commit **`b35fd8140bc82d1e13b48a143368bd19823b93c9`** |
+| **Function** | `make-server-0afb8820` |
+| **Edge deploy** | GitHub Actions workflow run **#32243480746** · **SUCCESS** |
+
+### CAS architecture — FE O2
+
+| Element | Rola |
+|---------|------|
+| `payrollWeekCas` | Flaga kontraktu CAS na `batch-set` payroll |
+| `expectedRevision` | Wersja oczekiwana przed zapisem rosteru |
+| `kw-payroll-week-meta` | KV meta: `rosterRevision`, week scope |
+| `pwrPush` | Jedyna ścieżka mutacji pary roster + meta (PWRB) |
+| Stale revision handling | `PayrollStaleRevisionError` → rebase → retry |
+| `rebasePayrollRosterIntent` | Reconcile intent godzin/stawki/settled po 409 |
+| `rebasePayrollExtraCostsIntent` | Reconcile intent extraCosts-only po 409 |
+
+Pliki: `src/lib/payroll-week-meta.ts`, `src/lib/payroll-record-merge.ts`, `src/lib/payroll-rebase-intent.ts`, `src/lib/cloud-sync.ts` (`pushWeekEmployeesToCloud`), `src/lib/payroll-week-roster-bundle.ts` (`pwrPush`).
+
+### CAS architecture — Edge O1
+
+| Element | Rola |
+|---------|------|
+| CAS gate w `batch-set` | Aktywny gdy `payrollWeekCas=true` na żądaniu payroll |
+| `expectedRevision` validation | Match → accept; mismatch → **409** |
+| `rosterRevision` | Inkrement **tylko** po accepted CAS write |
+| `stale_revision` | HTTP **409** · **zero write** · **zero increment** |
+| `legacy_client_rejected` | Non-CAS / legacy payroll roster write → HTTP **409** · **zero write** |
+| Canonical roster w 409 | Body zawiera `serverRevision` + canonical `roster` |
+| `requestId` | Korelacja diagnostyczna w odpowiedzi 409/200 |
+| `payrollWeekMeta` w 200 | Success response zwraca zaktualizowane meta |
+
+Plik: `supabase/functions/make-server-0afb8820/index.tsx`.
+
+### Test evidence (production)
+
+| Test | Wynik | Skrót |
+|------|-------|-------|
+| **O1-A** | **PASS** | Happy path CAS write **200**; `rosterRevision` increment (np. 0→1) |
+| **O1-B** | **PASS** | Stale `expectedRevision` → **409** `stale_revision`; **zero write**; **zero increment** |
+| **O1-C** | **PASS** | **409** → FE rebase/retry → **200**; intent edycji zachowany |
+| **O1-D** | **PASS** | extraCosts-only; godziny/stawka/settled **bez zmian**; rev +1 |
+| **O1-E** | **PASS** | Admin CAS write **200** + izolowany stale gate **409** |
+
+### Legacy payroll state (potwierdzone prod)
+
+- **Stary/non-CAS payroll client** **nie może** wykonywać roster write — Edge O1 → **409** `legacy_client_rejected`.
+- **FE O2** używa kontraktu CAS (`payrollWeekCas` + `expectedRevision` + meta).
+- **Worker O2** nie wykonuje starego payroll roster write przez legacy path (extraCosts → `pwrPush`).
+
+### FUTURE HARDENING / OBSERVATION (nie blokuje O1 closeout)
+
+Bootstrap/reload może wygenerować **dodatkowy** CAS `batch-set` poza bezpośrednim oknem edycji UI. Zaobserwowano revision increment **8→9** w O1-E między reload a stale probe. **Stan:** O1 gate PASS · stale gate PASS · brak dowodu na korupcję danych · **nie** implementować hardeningu bez Owner GO + AUDIT.
+
+### Agent continuity
+
+1. **PAYROLL-O1 = CLOSED** — nie wykonywać ponownie O1.
+2. Nie zmieniać lokalnego WIP poza dokumentacją closeout.
+3. Bootstrap/reload observation = osobny backlog hardeningu.
+4. Następny krok **≠** O1 implementation/deploy.
+
+Szczegóły sync/merge: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) §4.4a.
 
 ---
 
@@ -262,6 +337,7 @@ Akcja:
 |-------|----------|
 | **Ten SSOT** | `docs/PAYROLL-ARCHITECTURE-SSOT.md` |
 | Sync/merge głęboko | `PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md` |
+| **PAYROLL-O1 CAS (CLOSED)** | **Ten plik §5A** · Edge/FE baseline powyżej |
 | Hours-wipe closeout | `architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md` |
 | DF D1–D5 | `architecture/PAYROLL-DESIGN-FREEZE-01.md` |
 | Release history | `releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md` |

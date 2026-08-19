@@ -1,13 +1,29 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-13 (**SESSION CLOSED** · full Wrocław tender handoff) · tip UI **2.66.43** / runtime **`dec73351`** / live **`dec7335`** · deploy **`5892250601`** · docs tip → `git log -1` · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · F5 / Final Bid **NOT VERIFIED GREEN** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-08-19 (**PAYROLL-O1 CAS CLOSED** · docs-only closeout) · prior 2026-08-13 (**SESSION CLOSED** · full Wrocław tender handoff) · tip UI **2.66.43** / runtime **`dec73351`** / live **`dec7335`** · deploy **`5892250601`** · docs tip → `git log -1` · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · F5 / Final Bid **NOT VERIFIED GREEN** · **STABILIZATION WINDOW ACTIVE**
 
 > **Nowa sesja AI:** [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) → [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
 > **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw SESSION-HANDOFF + COLD-START + MASTER + DF.
-> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO · `PayrollView.tsx` OUT.
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)
+> **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO · `PayrollView.tsx` OUT · **duży lokalny WIP w working tree — NIE reset/stash/commit bez polecenia**.
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ PAYROLL-O1 — CAS Edge + FE O2 — **CLOSED** · **PRODUCTION VERIFIED**
+
+| Element | Wartość |
+|---------|---------|
+| **Status** | **PAYROLL-O1 = CLOSED** · **FE O2** + **Edge O1** + **CAS end-to-end** = **PRODUCTION VERIFIED** |
+| **FE** | UI **2.66.103** · commit **`d2b71fb`** (CAS-ready client) |
+| **Edge** | commit **`b35fd8140bc82d1e13b48a143368bd19823b93c9`** · function `make-server-0afb8820` |
+| **Edge deploy** | GitHub Actions **#32243480746** · **SUCCESS** |
+| **Production** | https://www.wgdom.fun |
+| **Tests** | **O1-A PASS** · **O1-B PASS** · **O1-C PASS** · **O1-D PASS** · **O1-E PASS** |
+| **Legacy** | Non-CAS roster write → **409** `legacy_client_rejected` · FE O2 + Worker O2 używają CAS/`pwrPush` |
+| **OBSERVATION** | Bootstrap/reload może emitować extra CAS batch-set (rev 8→9 w O1-E) — **nie blokuje closeout** · future hardening osobno |
+| **SSOT** | [`docs/PAYROLL-ARCHITECTURE-SSOT.md`](docs/PAYROLL-ARCHITECTURE-SSOT.md) §5A · [`docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](docs/PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) §4.4a |
+| **DO NOT** | Powtarzać O1 implement/deploy/test · modyfikować lokalnego WIP · stage/commit WIP bez GO |
+| **NEXT (Payroll O1)** | **NONE** — O1 zamknięte; dalsza praca Payroll tylko Owner GO + AUDIT |
 
 ## ★ SESSION STATUS — **CLOSED** · **WAITING FOR NEXT OWNER GO**
 

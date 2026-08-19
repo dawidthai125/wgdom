@@ -1,7 +1,7 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip UI **2.66.43** · **RUNTIME `dec7335`/`dec73351`** · deploy **`5892250601`** · docs tip = session handoff · **SESSION 2026-08-13 CLOSED** · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip UI **2.66.43** · **RUNTIME `dec7335`/`dec73351`** · deploy **`5892250601`** · docs tip = session handoff · **SESSION 2026-08-13 CLOSED** · **PAYROLL-O1 CAS CLOSED (2026-08-19)** · FE O2 **2.66.103/`d2b71fb`** · Edge O1 **`b35fd814`** · O1-A…E **PASS** · SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) §5A · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
 > **★★ Session handoff:** [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) — Wrocław targets · Połczyn NOT TARGET · NEXT AUDIT ONLY
 > **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)
 > **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.
@@ -11,6 +11,8 @@
 > Najpierw czyta: [`WGDOM-COLD-START-HANDOFF`](AI/WGDOM-COLD-START-HANDOFF.md) · [`MASTER-AI-HANDOFF`](AI/MASTER-AI-HANDOFF.md) · [`MASTER_HANDOFF`](AI/MASTER_HANDOFF.md) · [`AI_QUICK_START`](AI/AI_QUICK_START.md) · [`TENDER-MODERNIZATION-01-MASTER`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · aktualny **DESIGN-FREEZE** slice/epicu · dopiero potem Entry + Gate + Owner GO.
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
+
+> **★ Domknięcie (2026-08-19):** **PAYROLL-O1 CAS CLOSED** · **PRODUCTION VERIFIED** · FE O2 **2.66.103/`d2b71fb`** · Edge O1 **`b35fd8140bc82d1e13b48a143368bd19823b93c9`** · function `make-server-0afb8820` · GH deploy **#32243480746 SUCCESS** · O1-A…E **PASS** · legacy non-CAS write **409** · bootstrap/reload CAS observation **NOT BLOCKER** · SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) §5A · **NIE** powtarzać O1 · **NIE** ruszać lokalnego WIP.
 
 > **★ Domknięcie sesji (2026-08-13):** **FULL SESSION CLOSE** · handoff [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · RUNTIME **2.66.43 / `dec73351`** · docs tip on `main` · CLOSED: MULTI-DWELLING-01 · MULTI-BOQ-01 · INGEST-01 · NORMA-KALK P0 · OPEN: D02 LP22 · REAL SOURCE · F5 · PackageGate · Final Bid · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · reference WM/TP/239/2026/G · ACTIVE EPIC = **NONE** · **NIE** auto IMPLEMENT.
 

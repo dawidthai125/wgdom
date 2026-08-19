@@ -4,7 +4,7 @@
 > **★ AI START (2026-07-24):** najpierw przeczytaj **[`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md)** — przepływ UI→SSOT · CRITICAL INVARIANTS · SAFETY · Hours-wipe D1–D5.  
 > **Production tip:** UI **2.65.43** · feature **`ea1b0a6`** · Hours-wipe EPIC **CLOSED** · [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 >
-> **Historia dokumentu:** 2026-07-11 · Domain Push S2 / PWRB baseline (v2.63.85). Sekcje sync poniżej **nadal ACTIVE**. Otwarte „P0 batch-set / resurrection” w starym TL;DR = **historyczne** — resurrection fence **CLOSED @ 2.65.35** (fence **ACTIVE**); Hours-wipe **CLOSED @ 2.65.43**.
+> **Historia dokumentu:** 2026-08-19 · **PAYROLL-O1 CAS Edge gate CLOSED** (§4.4a). 2026-07-11 · Domain Push S2 / PWRB baseline (v2.63.85). Sekcje sync poniżej **nadal ACTIVE**. Otwarte „P0 batch-set / resurrection” w starym TL;DR = **historyczne** — resurrection fence **CLOSED @ 2.65.35** (fence **ACTIVE**); Hours-wipe **CLOSED @ 2.65.43**; **PAYROLL-O1 CAS @ 2.66.103 FE / `b35fd814` Edge**.
 >
 > **★ SYNC-ARCH S2:** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push **bez** `kw-week-employees`. **#CORE-015** · **#CORE-016**.
 >
@@ -127,6 +127,22 @@ id:<uuid>
 
 **Ścieżki push a force-replace:** główny `pushMergedDataBundleToCloud` i `pushWeekEmployeesToCloud` ustawiają `replaceWeekEmployeesKeys=["kw-week-employees"]`. **`pushKeysToCloudSafe` — NIE** (l.2606–2629) → dopuszcza union Edge (H-R3). Naprawa = **S7-5-3**.
 
+### 4.4a Edge — PAYROLL-O1 CAS gate (**CLOSED** · prod 2026-08-19)
+
+**SSOT szczegóły:** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) §5A.
+
+| Scenariusz | HTTP | Efekt |
+|------------|------|-------|
+| CAS write, `expectedRevision` match | **200** | merge-on-write · `rosterRevision+1` · `{ ok, payrollWeekMeta }` |
+| CAS write, stale revision | **409** `stale_revision` | **NO WRITE** · canonical roster + `serverRevision` + `requestId` |
+| Legacy / non-CAS payroll roster write | **409** `legacy_client_rejected` | **NO WRITE** |
+
+**FE O2 (prod `d2b71fb` / 2.66.103):** `payrollWeekCas` + `expectedRevision` + `kw-payroll-week-meta` via `pwrPush`; stale → `rebasePayrollRosterIntent` / `rebasePayrollExtraCostsIntent` → retry.
+
+**Production verify:** O1-A…O1-E **PASS** · Edge deploy GH **#32243480746** SUCCESS · commit **`b35fd8140bc82d1e13b48a143368bd19823b93c9`**.
+
+**OBSERVATION (nie blocker):** bootstrap/reload może emitować dodatkowy CAS batch-set poza oknem UI (rev 8→9 w O1-E) — gate poprawny, brak korupcji danych; future hardening tylko po Owner GO.
+
 ---
 
 ## 5. Guardy i throttle
@@ -159,6 +175,7 @@ id:<uuid>
 | **RC-B debug overlay cleanup** | **CLOSED** (`24bde6e`) | Usunięto UI overlay |
 | **RC-B debug runtime cleanup** | **CLOSED** (`31a7d5e`) | Usunięto `__wgdomPayrollPipelineDebug`, RC-B warn, helpery debug — logika PWRB bez zmian |
 | **RC-B prod verification + closeout** | **CLOSED** (2026-07-04) | Lista Płac add/remove/sync/Archiwum PASS · docs closeout |
+| **PAYROLL-O1 CAS Edge gate** | **CLOSED** (2026-08-19) | `payrollWeekCas` + `expectedRevision` · stale/legacy **409** · FE O2 **`d2b71fb`** · Edge **`b35fd814`** · O1-A…E **PASS** · GH **#32243480746** |
 
 ---
 
