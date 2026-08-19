@@ -5,6 +5,7 @@ import {
   hasWeekEmployeesRosterExpansion,
   weekEmployeeMergeKey,
 } from "../../../src/lib/payroll-week-employee-merge.ts";
+import { mergeWeekEmployeeRecord } from "../../../src/lib/payroll-week-employee-record-merge.ts";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
@@ -238,7 +239,46 @@ function weekEmployeesRichness(list: unknown[]): number {
 }
 
 function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
-  return mergeWeekEmployeesList(prev, next, mergeWeekEmployeeRecordByTimestamps);
+  return mergeWeekEmployeesList(prev, next, mergeWeekEmployeeRecord);
+}
+
+const PAYROLL_WEEK_META_KEY = "kw-payroll-week-meta";
+const PAYROLL_STALE_REVISION_CODE = "stale_revision";
+const PAYROLL_LEGACY_CLIENT_CODE = "legacy_client_rejected";
+
+function normalizePayrollWeekMetaEdge(raw: unknown, weekFrom = "", weekTo = ""): {
+  rosterRevision: number;
+  weekFrom: string;
+  weekTo: string;
+  updatedAt: number;
+} {
+  if (raw && typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    const rev = typeof o.rosterRevision === "number" && Number.isFinite(o.rosterRevision)
+      ? Math.max(0, Math.floor(o.rosterRevision))
+      : 0;
+    return {
+      rosterRevision: rev,
+      weekFrom: typeof o.weekFrom === "string" ? o.weekFrom : weekFrom,
+      weekTo: typeof o.weekTo === "string" ? o.weekTo : weekTo,
+      updatedAt: typeof o.updatedAt === "number" && Number.isFinite(o.updatedAt) ? o.updatedAt : Date.now(),
+    };
+  }
+  return { rosterRevision: 0, weekFrom, weekTo, updatedAt: Date.now() };
+}
+
+function payrollRevisionConflictResponse(
+  c: { json: (body: unknown, status: number) => Response },
+  requestId: string,
+  code: string,
+  serverRevision: number,
+  roster: unknown[],
+  message: string,
+): Response {
+  return c.json(
+    { ok: false, code, serverRevision, roster, error: message, requestId },
+    409,
+  );
 }
 
 // ─── PR-PAY-S7-5-2 — Edge tombstone-aware (parytet klienta cloud-sync.ts) ─────
@@ -627,8 +667,9 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
   const requestId = crypto.randomUUID();
   try {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [] } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
+  let payrollMetaAfterWrite: Record<string, unknown> | null = null;
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
   const deletedBatchIdx = keys.indexOf("kw-jobs-deleted-ids");
@@ -691,27 +732,76 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-week-employees") {
       const prev = await kv.get("kw-week-employees");
-      // PR-PAY-S7-5-2 — odfiltruj tombstonowanych z next PRZED UNION (AC3/AC8/AC9).
+      const batchFromStr = typeof batchWeekFrom === "string" ? batchWeekFrom : "";
+      const batchToStr = typeof batchWeekTo === "string" ? batchWeekTo : "";
       let nextNorm = filterWeekEmployeesByTombstones(normalizeArrayKv(values[i]), weekEmpTombstoned);
-      if (prev != null) {
-        await rotateKvBackups("kw-week-employees");
-        // PR-PAY-S7-5-2 — i z prev, aby UNION nie re-dodał usuniętego rekordu.
-        const prevNorm = filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned);
-        const intentionalClear = isIntentionalWeekClear(nextNorm, archiveInBatch);
-        if (!forceReplaceWeekEmployees && !intentionalClear && isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
-          console.log(
-            `kw-week-employees: blocked shrink richness ${weekEmployeesRichness(prevNorm)} → ${weekEmployeesRichness(nextNorm)}, merging`,
+
+      const expRev = typeof expectedRevision === "number" && Number.isFinite(expectedRevision)
+        ? Math.floor(expectedRevision)
+        : undefined;
+
+      if (payrollWeekCas) {
+        if (expRev === undefined) {
+          const metaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
+          const serverMeta = normalizePayrollWeekMetaEdge(metaRaw, batchFromStr, batchToStr);
+          const prevNorm = prev != null ? normalizeArrayKv(prev) : [];
+          return payrollRevisionConflictResponse(
+            c,
+            requestId,
+            PAYROLL_LEGACY_CLIENT_CODE,
+            serverMeta.rosterRevision,
+            prevNorm,
+            "expectedRevision required for payroll CAS write",
           );
-          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
-        } else if (
-          !forceReplaceWeekEmployees &&
-          hasWeekEmployeesRosterExpansion(prevNorm, nextNorm)
-        ) {
-          console.log(
-            `kw-week-employees: roster expansion ${prevNorm.length} → ${nextNorm.length}, merging by directoryId`,
-          );
-          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
         }
+        const metaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
+        const serverMeta = normalizePayrollWeekMetaEdge(metaRaw, batchFromStr, batchToStr);
+        if (expRev !== serverMeta.rosterRevision) {
+          const prevNorm = prev != null ? normalizeArrayKv(prev) : [];
+          return payrollRevisionConflictResponse(
+            c,
+            requestId,
+            PAYROLL_STALE_REVISION_CODE,
+            serverMeta.rosterRevision,
+            prevNorm,
+            "stale payroll revision",
+          );
+        }
+        await rotateKvBackups("kw-week-employees");
+        const prevNorm = prev != null
+          ? filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned)
+          : [];
+        nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        payrollMetaAfterWrite = {
+          rosterRevision: serverMeta.rosterRevision + 1,
+          weekFrom: batchFromStr,
+          weekTo: batchToStr,
+          updatedAt: Date.now(),
+        };
+      } else if (forceReplaceWeekEmployees) {
+        const metaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
+        const serverMeta = normalizePayrollWeekMetaEdge(metaRaw, batchFromStr, batchToStr);
+        const prevNorm = prev != null ? normalizeArrayKv(prev) : [];
+        return payrollRevisionConflictResponse(
+          c,
+          requestId,
+          PAYROLL_LEGACY_CLIENT_CODE,
+          serverMeta.rosterRevision,
+          prevNorm,
+          "legacy forceReplace payroll write rejected — update client",
+        );
+      } else {
+        const metaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
+        const serverMeta = normalizePayrollWeekMetaEdge(metaRaw, batchFromStr, batchToStr);
+        const prevNorm = prev != null ? normalizeArrayKv(prev) : [];
+        return payrollRevisionConflictResponse(
+          c,
+          requestId,
+          PAYROLL_LEGACY_CLIENT_CODE,
+          serverMeta.rosterRevision,
+          prevNorm,
+          "non-CAS payroll write rejected — update client",
+        );
       }
       safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-archive") {
@@ -791,6 +881,15 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       return !rosterKeys.has(mergeKey);
     }).slice(-500);
   }
+  if (payrollMetaAfterWrite) {
+    const metaIdx = keys.indexOf(PAYROLL_WEEK_META_KEY);
+    if (metaIdx >= 0) {
+      safeValues[metaIdx] = payrollMetaAfterWrite;
+    } else {
+      keys.push(PAYROLL_WEEK_META_KEY);
+      safeValues.push(payrollMetaAfterWrite);
+    }
+  }
   // EDGE write layer only — merge/tombstone/LWW already applied to safeValues above.
   // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · chunked mset (fail-fast).
   const msetMeta = await kv.mset(keys, safeValues, {
@@ -808,7 +907,7 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   } catch (e) {
     console.log("daily full backup:", e);
   }
-  return c.json({ ok: true });
+  return c.json({ ok: true, payrollWeekMeta: payrollMetaAfterWrite ?? undefined });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(
