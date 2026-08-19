@@ -18,7 +18,8 @@ Nie zgaduj. Nie obchodź guardów. Nie psuj LP.
 |---|--------|
 | P1 | Nowy write path godzin / roster **omijający** Domain Push / PWRB |
 | P2 | `skipPayrollGuard: true` **bez** `intentionalHoursClear === true` |
-| P3 | Mylenie `intentionalHoursClear` z `isIntentionalPayrollWeekClear` |
+| P3 | Mylenie `intentionalHoursClear` z `isIntentionalPayrollWeekClear` lub `isPayrollRolloverWeekClear` (§5B SSOT) |
+| P3b | Ustawianie `payrollWeekRolloverPush` poza `pushPayrollWeekAfterRollover` |
 | P4 | Side-effecty w `weekEmployeeFromDir` (musi **PURE**) |
 | P5 | Mutacja składu tygodnia **poza** PWRB |
 | P6 | Usuwanie / omijanie `payroll-bootstrap-resurrection-fence` |

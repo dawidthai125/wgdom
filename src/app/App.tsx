@@ -67,6 +67,7 @@ import {
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
   isPayrollGuardBlockedError,
+  PAYROLL_GUARD_BLOCKED_MESSAGE,
   rsBundleFingerprintFromMerged,
   PayrollStaleRevisionError,
 } from "@/lib/cloud-sync";
@@ -2322,7 +2323,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         archive: nextArchive,
       }),
     )
-      .catch(() => {});
+      .catch((e: unknown) => {
+        if (isPayrollGuardBlockedError(e)) {
+          toast.warning("Synchronizacja rollover do chmury została zablokowana", {
+            description: PAYROLL_GUARD_BLOCKED_MESSAGE,
+            id: "payroll-rollover-cloud-blocked",
+          });
+        }
+      });
   }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
   const payrollRolloverCtx = useMemo(

@@ -2,7 +2,7 @@
 
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
-> **Data:** 2026-08-19 (**PAYROLL-O1 CAS closeout**) · prior 2026-07-24  
+> **Data:** 2026-08-19 (**PAYROLL-ROLLOVER-CLOUD-PUSH** post-impl) · prior O1 CAS · 2026-07-24  
 > **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT)  
 > **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
@@ -124,7 +124,8 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | **I-W1** | Mutacje składu tygodnia **tylko** PWRB | Poza PWRB = drift tombstone/roster |
 | **I-W2** | Push godzin przez `pushWeekEmployeesToCloud` + guardy | Shrink bez ACK = Hours Wipe klasa |
 | **I-GATE** | Hours collapse → Domain Gate (D2) przed Cloud write | Cancel = brak Cloud write |
-| **I-FLAG** | `skipPayrollGuard` ⇔ `intentionalHoursClear === true` | **≠** `isIntentionalPayrollWeekClear` (empty week after archive) |
+| **I-FLAG** | `skipPayrollGuard` ⇔ `intentionalHoursClear === true` | **≠** `isIntentionalPayrollWeekClear` (same-week) **≠** cross-week rollover (§5B) |
+| **I-ROLL-CLOUD** | Cross-week rollover push: tylko `pushPayrollWeekAfterRollover` + predicate `isPayrollRolloverWeekClear` | Flaga alone ≠ bypass; D3/shrink unchanged |
 | **I-FENCE** | Resurrection fence na bootstrap **ACTIVE** | Pusta chmura ≠ reseed ze starego LS |
 | **I-ROLL** | `classifyPayrollWeekTransition`: ALIGN ≠ wipe; ROLLOVER = archive+clear | Cofnięcie = klon godzin między tygodniami |
 | **I-BANNER** | D4 `-prev` banner **≠** archive Restore Banner | Osobne predykaty — nie łączyć |
@@ -138,7 +139,7 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 1. NIGDY nie pisać bezpośrednio do Cloud / Edge z UI (omijając Domain Push / PWRB).
 2. NIGDY nie omijać Domain Push dla godzin live.
 3. NIGDY nie używać skipPayrollGuard poza intentionalHoursClear === true.
-4. NIGDY nie mylić intentionalHoursClear z isIntentionalPayrollWeekClear.
+4. NIGDY nie mylić intentionalHoursClear z isIntentionalPayrollWeekClear ani z isPayrollRolloverWeekClear (§5B).
 5. NIGDY nie modyfikować weekEmployeeFromDir (musi zostać PURE).
 6. NIGDY nie dodawać nowego write path bez Architecture Review + Owner GO.
 7. NIGDY nie mutować składu tygodnia poza PWRB.
@@ -210,6 +211,7 @@ Bez pełnej checklisty → **nie koduj**.
 | Domain Push S2 | `test-sync-arch-01-s2-domain-push-cross-device.mjs` |
 | RS bez payroll | `test-sync-arch-01-s1-rs-no-payroll-push.mjs` |
 | Hours gate D2/D3 | `test-payroll-hours-collapse-gate-d2-d3.mjs` |
+| Rollover cloud push (cross-week guard) | `test-payroll-rollover-week-clear-predicate.mjs` · `test-payroll-rollover-cloud-push-integration.mjs` |
 | D4/D5 | `test-payroll-prev-recovery-soft-restore-d4-d5.mjs` |
 | Telemetry D1 | `test-payroll-write-path-telemetry-d1.mjs` |
 | Gate B | `npm run test:infra -- --gate B --scope payroll` |
@@ -254,6 +256,7 @@ Akcja:
 | Cross-device Domain Push S2 | LP poza RS push | 2.63.85 |
 | Guard / B4 merge / PWRB | UNION + tombstones + PWRB | 2.63.x |
 | **PAYROLL-O1 CAS** | Edge revision gate + FE O2 contract; legacy write rejected | **2.66.103** FE / **`b35fd814`** Edge |
+| **Rollover cloud push gap** | Same-week clear ≠ W1→W2; guard Option B | **pre-commit** @ `eca03699` |
 
 ---
 
@@ -331,6 +334,74 @@ Szczegóły sync/merge: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYRO
 
 ---
 
+## 5B. PAYROLL-ROLLOVER-CLOUD-PUSH — cross-week guard (**IMPLEMENTATION VERIFIED** · pre-commit 2026-08-19)
+
+**Status:** **IMPLEMENTATION VERIFIED** · **COMMIT: NONE** · **P1 UNTOUCHED**  
+**Closeout:** [`architecture/PAYROLL-ROLLOVER-CLOUD-PUSH-POST-IMPLEMENTATION.md`](architecture/PAYROLL-ROLLOVER-CLOUD-PUSH-POST-IMPLEMENTATION.md)  
+**Relacja P1:** [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-IMPLEMENTATION-REPORT.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-IMPLEMENTATION-REPORT.md) — local rollover **CLOSED**; ten epic = **cloud push intent only**
+
+### Root cause (nie P1 regression)
+
+```text
+P1 rollover: archive W1 + batch W2 + outgoing []
+isIntentionalPayrollWeekClear: wymaga archive week == batch week (W2)
+→ FAIL → wouldBlockPayrollShrink(rich W1 cloud, []) → BLOCK przed HTTP
+```
+
+### Mechanizm Option B
+
+| Element | Semantyka |
+|---------|-----------|
+| `payrollWeekRolloverPush?: true` | Internal — **tylko** `pushPayrollWeekAfterRollover` |
+| `isPayrollRolloverWeekClear(...)` | Predicate — **bez** flagi w środku |
+
+Guard layer:
+
+```text
+payrollWeekRolloverPush === true && isPayrollRolloverWeekClear(keys, values, outgoing)
+```
+
+### Predicate — warunki
+
+1. Outgoing roster pusty  
+2. Target batch = W2 (`readWeekRangeFromBatchOrLocal`)  
+3. Archive zawiera **poprzedni** tydzień: `previousWeekRange(targetFrom)` (SSOT z `payroll-cycle.ts`, **read-only import**)  
+4. Snapshot ≠ target W2  
+5. `archiveWeekHasPayroll(snapshot)` (richness ≥ 8)  
+6. `snapshot.backlog !== true` (biweekly backlog ≠ evidence)
+
+### Guard order — `applyPayrollGuardBeforePush`
+
+```text
+[1] maySkipPayrollShrinkGuard              — D3 (BEZ ZMIAN)
+[2] isIntentionalPayrollWeekClear          — same-week (BEZ ZMIAN)
+[3] payrollWeekRolloverPush && isPayrollRolloverWeekClear  — NEW
+[4] fetch cloud roster
+[5] wouldBlockPayrollShrink                — BEZ ZMIAN
+```
+
+- **D3** / `intentionalHoursClear` — **UNCHANGED**  
+- **O1/CAS** — **UNCHANGED** (guard pre-HTTP; ten sam `batch-set` flow)  
+- **Bootstrap / anti-leak / finalizePayrollBundleMerge** — **UNCHANGED**
+
+### UX (`App.tsx`)
+
+`autoArchiveAndAdvance`: local rollover **nie cofany**; guard-block → `toast.warning` id `payroll-rollover-cloud-blocked` via `isPayrollGuardBlockedError`; **brak retry**.
+
+### Test evidence (pre-commit)
+
+| Suite | Wynik |
+|-------|-------|
+| Predicate A–G | **7/7 PASS** |
+| Integration I1–I10 | **10/10 PASS** |
+| D2/D3 · fail-loud · P1 rollover · reg 03/04 · refresh-race | **PASS** |
+| B4-T1 (3) | **PRE-EXISTING FIXTURE GAP** — nie regresja |
+| P11 · smoke 20.1c1 | **STALE TEST CONTRACT** — nie regresja |
+
+**NEXT GATE:** FINAL COMMIT PREP (osobno, na polecenie Ownera).
+
+---
+
 ## 6. Mapa dokumentów (gdzie szukać)
 
 | Temat | Dokument |
@@ -338,6 +409,7 @@ Szczegóły sync/merge: [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYRO
 | **Ten SSOT** | `docs/PAYROLL-ARCHITECTURE-SSOT.md` |
 | Sync/merge głęboko | `PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md` |
 | **PAYROLL-O1 CAS (CLOSED)** | **Ten plik §5A** · Edge/FE baseline powyżej |
+| **Rollover cloud push (pre-commit)** | **Ten plik §5B** · [`architecture/PAYROLL-ROLLOVER-CLOUD-PUSH-POST-IMPLEMENTATION.md`](architecture/PAYROLL-ROLLOVER-CLOUD-PUSH-POST-IMPLEMENTATION.md) |
 | Hours-wipe closeout | `architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md` |
 | DF D1–D5 | `architecture/PAYROLL-DESIGN-FREEZE-01.md` |
 | Release history | `releases/PAYROLL-HOURS-WIPE-PROTECTION-EPIC-RELEASE-HISTORY.md` |

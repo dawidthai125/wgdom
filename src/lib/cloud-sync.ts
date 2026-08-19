@@ -1,5 +1,6 @@
 import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 import { maySkipPayrollShrinkGuard } from "./payroll-hours-collapse-gate.ts";
+import { previousWeekRange } from "./payroll-cycle.ts";
 import {
   evaluatePayrollResurrectionFence,
   stripLocalOnlyArchiveWeek,
@@ -1398,6 +1399,22 @@ function isIntentionalPayrollWeekClear(keys: string[], values: unknown[], outgoi
   return archive.some((w) => archiveWeekHasPayroll(w));
 }
 
+/** Cross-week rollover — pusty W2 po archiwum poprzedniego tygodnia (Option B). Flaga sprawdzana w guard, nie tutaj. */
+function isPayrollRolloverWeekClear(keys: string[], values: unknown[], outgoingEmps: unknown): boolean {
+  if (normalizeArrayValue(outgoingEmps).length > 0) return false;
+  const { from: targetFrom, to: targetTo } = readWeekRangeFromBatchOrLocal(keys, values);
+  if (!targetFrom || !targetTo) return false;
+  const prev = previousWeekRange(targetFrom);
+  const archive = readArchiveFromBatchOrLocal(keys, values);
+  return archive.some((w) => {
+    const snap = w as { weekFrom?: string; weekTo?: string; backlog?: boolean };
+    if (snap.backlog === true) return false;
+    if (snap.weekFrom !== prev.from || snap.weekTo !== prev.to) return false;
+    if (snap.weekFrom === targetFrom && snap.weekTo === targetTo) return false;
+    return archiveWeekHasPayroll(w);
+  });
+}
+
 /** Komunikat błędu gdy Payroll Guard odrzuci push listy płac (P0 fail-loud). */
 export const PAYROLL_GUARD_BLOCKED_MESSAGE =
   "Zapis listy płac do chmury został zablokowany (ochrona przed utratą danych). Sprawdź godziny na liście płac i spróbuj ponownie lub odśwież stronę (Ctrl+F5).";
@@ -1426,6 +1443,11 @@ export type PushKeysToCloudOptions = {
   intentionalHoursClear?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
   cloudWeekEmployees?: unknown;
+  /**
+   * Internal / rollover-only — ustawiane WYŁĄCZNIE przez pushPayrollWeekAfterRollover.
+   * Pozwala guardowi rozpoznać legalny cross-week clear W1→W2.
+   */
+  payrollWeekRolloverPush?: true;
 };
 
 export type PushWeekEmployeesOptions = {
@@ -1457,6 +1479,10 @@ async function applyPayrollGuardBeforePush(
 
   const outgoing = values[empIdx];
   if (isIntentionalPayrollWeekClear(keys, values, outgoing)) {
+    return { keys, values, options: opts, blocked: false };
+  }
+
+  if (opts.payrollWeekRolloverPush === true && isPayrollRolloverWeekClear(keys, values, outgoing)) {
     return { keys, values, options: opts, blocked: false };
   }
 
@@ -3227,6 +3253,7 @@ export async function pushPayrollWeekAfterRollover(params: {
       payrollWeekCas: true,
       expectedRevision: getExpectedPayrollRevision(),
       clientAppVersion: APP_VERSION,
+      payrollWeekRolloverPush: true,
     },
   );
 }

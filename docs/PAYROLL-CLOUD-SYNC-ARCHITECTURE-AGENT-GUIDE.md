@@ -149,6 +149,7 @@ id:<uuid>
 
 | Mechanizm | Plik | Rola |
 |-----------|------|------|
+| `applyPayrollGuardBeforePush` | `cloud-sync.ts` | FE shrink guard przed `batch-set`; order: D3 → same-week clear → **cross-week rollover** (§5B SSOT) → fetch → shrink |
 | `CloudSyncMutationGuard` | `cloud-sync-mutation-guard.ts` | blokuje pull podczas mutacji roster/jobs (`withKwWeekEmployeesAsyncMutation`) |
 | `suppressAutoSyncUntilRef` | `App.tsx` | okno wyciszenia auto-sync (np. +6s po `persistPayrollRoster`) |
 | `isSuspiciousPayrollShrink` | Edge `index.tsx:423` | blokuje utratę bogatego rostera (union zamiast replace) |
