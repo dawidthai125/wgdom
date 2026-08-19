@@ -68,7 +68,13 @@ import {
   isSupabaseConfigured,
   isPayrollGuardBlockedError,
   rsBundleFingerprintFromMerged,
+  PayrollStaleRevisionError,
 } from "@/lib/cloud-sync";
+import {
+  PAYROLL_WEEK_META_KEY,
+  normalizePayrollWeekMeta,
+  writePayrollWeekMetaToLs,
+} from "@/lib/payroll-week-meta";
 import {
   getAdminBundleGeneration,
   shouldApplyAdminBundleAtGeneration,
@@ -943,13 +949,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
       await refreshAuditHubAuxFromCloud();
+      try {
+        const [metaRaw] = await fetchKeysFromCloud([PAYROLL_WEEK_META_KEY]);
+        writePayrollWeekMetaToLs(
+          normalizePayrollWeekMeta(metaRaw, weekFrom, weekTo),
+        );
+      } catch { /* offline */ }
       payrollTraceEmit("sync.pull.focus.complete", "HTTP_IN", "info", {});
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, buildAdminFreshSnapshot, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs]);
+  }, [adminDataBundle, applyAdminDataBundle, buildAdminFreshSnapshot, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs, weekFrom, weekTo]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -1702,17 +1714,37 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       count: next.length,
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
     });
-    void withKwWeekEmployeesAsyncMutation(() =>
-      pwrPush({
+    void withKwWeekEmployeesAsyncMutation(async () => {
+      const result = await pwrPush({
         roster: next,
         weekFrom,
         weekTo,
         rosterBefore: before,
         options,
-      }),
-    )
+      });
+      if (result.rebased) {
+        withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
+          setWeekEmployees(result.roster);
+        });
+        toast.info("Lista płac zsynchronizowana z chmurą", {
+          description: "Połączono Twoje zmiany ze stanem zapisanym przez innego administratora.",
+          id: "payroll-roster-rebase",
+        });
+      }
+    })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        if (e instanceof PayrollStaleRevisionError) {
+          payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "warn", {
+            code: e.code,
+            serverRevision: e.serverRevision,
+          });
+          toast.error("Konflikt zapisu listy płac", {
+            description: "Odśwież stronę i sprawdź dane przed ponownym zapisem.",
+            id: "payroll-roster-stale",
+          });
+          return;
+        }
         if (msg === PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED) {
           toast.error("Zapis godzin wymaga potwierdzenia", {
             description: "Anulowano lub brak intentionalHoursClear — Cloud nie został nadpisany.",
@@ -1728,7 +1760,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           id: "payroll-roster-push",
         });
       });
-  }, [weekFrom, weekTo, weekEmployees]);
+  }, [weekFrom, weekTo, weekEmployees, setWeekEmployees]);
 
   useEffect(() => {
     bindPayrollDomainPushHandler((roster, options, rosterBefore) => {
@@ -1977,7 +2009,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
-          const days = { ...e.days, [key]: nextDay };
+          const dayWithTs = { ...nextDay, updatedAt: now };
+          const days = { ...e.days, [key]: dayWithTs };
           const dataChanged = JSON.stringify(e.days) !== JSON.stringify(days);
           if (!dataChanged) return e;
           changed = true;
@@ -2014,7 +2047,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
   const updateWeekEmployeePrevSaturday = useCallback((empId: string, nextPrevSaturday: DayData) => {
-    const prevSaturday = { ...nextPrevSaturday, extraHours: undefined };
+    const prevSaturday = { ...nextPrevSaturday, extraHours: undefined, updatedAt: new Date().toISOString() };
     runPayrollWeekEmployeeFieldEdit(() => {
       withPayrollWeekEmployeesWriteSource("updateWeekEmployeePrevSaturday", () => {
       setWeekEmployees((prev) => {

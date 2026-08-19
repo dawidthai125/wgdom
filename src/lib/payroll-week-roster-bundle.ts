@@ -7,16 +7,28 @@ import { weekEmployeeFromDir, filterDirectoryForPayrollWeekAdd } from "@/app/app
 import {
   addDeletedWeekEmployeeKey,
   computeMergedDataBundle,
+  fetchKeysFromCloud,
   getDeletedWeekEmployeeKeys,
   mergeDeletedWeekEmployeeKeys,
   mergeWeekEmployees,
   mergeWeekEmployeesForWeekRange,
+  PayrollStaleRevisionError,
   pushWeekEmployeesToCloud,
   reconcileTombstonesWithRoster,
   removeDeletedWeekEmployeeKeysForWeek,
   saveDeletedWeekEmployeeKeys,
   type PushWeekEmployeesOptions,
 } from "@/lib/cloud-sync";
+import {
+  getExpectedPayrollRevision,
+  normalizePayrollWeekMeta,
+  writePayrollWeekMetaToLs,
+} from "@/lib/payroll-week-meta";
+import {
+  isPayrollExtraCostsOnlyIntent,
+  rebasePayrollExtraCostsIntent,
+  rebasePayrollRosterIntent,
+} from "@/lib/payroll-roster-rebase";
 import {
   bindPayrollDomainPushHandler,
   cancelPayrollDomainPush,
@@ -134,13 +146,19 @@ export async function pwrRemove(params: {
   }
 }
 
-export async function pwrPush(params: PwrPushParams): Promise<void> {
+export type PwrPushResult = {
+  roster: WeekEmployee[];
+  rebased: boolean;
+};
+
+const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
+
+export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
   if (params.revokeIdentities?.length) {
     removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
   }
   reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);
   const resolved = resolvePayrollDomainPushOptions(params.options);
-  // D2 domain gate — block hours collapse without intentionalHoursClear (UI dialog is presentation only)
   if (params.rosterBefore) {
     assertHoursCollapseAllowedOrThrow(params.rosterBefore, params.roster, resolved);
   }
@@ -153,7 +171,49 @@ export async function pwrPush(params: PwrPushParams): Promise<void> {
     intentionalHoursClear: resolved.intentionalHoursClear,
     skipPayrollGuard: resolved.skipPayrollGuard,
   });
-  await pushWeekEmployeesToCloud(params.roster, resolved);
+
+  const intentBefore = params.rosterBefore ?? params.roster;
+  const intentAfter = params.roster;
+  let roster = params.roster;
+
+  for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
+    try {
+      await pushWeekEmployeesToCloud(roster, resolved);
+      return { roster, rebased: attempt > 0 };
+    } catch (e) {
+      if (!(e instanceof PayrollStaleRevisionError)) throw e;
+      writePayrollWeekMetaToLs(
+        normalizePayrollWeekMeta(
+          {
+            rosterRevision: e.serverRevision,
+            weekFrom: params.weekFrom,
+            weekTo: params.weekTo,
+            updatedAt: Date.now(),
+          },
+          params.weekFrom,
+          params.weekTo,
+        ),
+      );
+      let canonical = (e.roster ?? []) as WeekEmployee[];
+      if (canonical.length === 0) {
+        try {
+          const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+          canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
+        } catch {
+          throw e;
+        }
+      }
+      roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
+        ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
+        : rebasePayrollRosterIntent(canonical, intentBefore, intentAfter);
+    }
+  }
+  throw new PayrollStaleRevisionError(
+    "stale_revision",
+    getExpectedPayrollRevision(),
+    undefined,
+    "Payroll sync conflict — odśwież listę płac",
+  );
 }
 
 export async function pwrPullMerge(params: {

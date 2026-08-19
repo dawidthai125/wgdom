@@ -18,6 +18,7 @@ import { logPayrollStorageNote } from "@/lib/payroll-kw-week-employees-storage-t
 import { logPayrollBootPath } from "@/lib/payroll-boot-path-trace";
 import { peekBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
+import { PAYROLL_WEEK_META_KEY } from "@/lib/payroll-week-meta";
 import type { Job } from "@/app/app-domain";
 
 function weekRangeFromLs(): { weekFrom: string; weekTo: string } {
@@ -203,3 +204,24 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
   }, [key]);
   return [state, set];
 }
+
+/** Cross-tab revision cache — getExpectedPayrollRevision() reads LS on next push. */
+let payrollMetaStorageListenerInstalled = false;
+function installPayrollMetaCrossTabSync(): void {
+  if (payrollMetaStorageListenerInstalled || typeof window === "undefined") return;
+  payrollMetaStorageListenerInstalled = true;
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key !== PAYROLL_WEEK_META_KEY || e.newValue == null) return;
+    payrollTraceEmit("payroll.meta.storage_event", "LS", "info", {
+      revision: (() => {
+        try {
+          const m = JSON.parse(e.newValue) as { rosterRevision?: number };
+          return m.rosterRevision;
+        } catch {
+          return undefined;
+        }
+      })(),
+    });
+  });
+}
+installPayrollMetaCrossTabSync();

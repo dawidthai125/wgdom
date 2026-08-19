@@ -61,6 +61,14 @@ import {
 import { pwrReconcile } from "@/lib/payroll-week-roster-bundle";
 import { logPayrollBootstrapTraceFromWeekKeys } from "@/lib/payroll-bootstrap-runtime-trace";
 import {
+  PAYROLL_WEEK_META_KEY,
+  buildPayrollWeekMetaPlaceholder,
+  getExpectedPayrollRevision,
+  normalizePayrollWeekMeta,
+  writePayrollWeekMetaToLs,
+} from "@/lib/payroll-week-meta";
+import { APP_VERSION } from "@/lib/app-version";
+import {
   BOOTSTRAP_OFFLINE_TIMEOUT_MS,
   isCloudBootstrapReady,
   resolveBootstrapPhaseOpen,
@@ -201,6 +209,11 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           });
         }
 
+        try {
+          const [metaRaw] = await fetchKeysFromCloud([PAYROLL_WEEK_META_KEY]);
+          writePayrollWeekMetaToLs(normalizePayrollWeekMeta(metaRaw, wfBoot, wtBoot));
+        } catch { /* offline — revision 0 until first CAS push */ }
+
         const persistCoreKey = (key: (typeof BOOTSTRAP_CORE_KEYS)[number]) => {
           const i = DATA_KEYS.indexOf(key);
           const cloudVal = cloudValues[i];
@@ -319,17 +332,20 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         if (pushKeys.length > 0) {
-          const replaceWeekEmployeesKeys = pushKeys.includes("kw-week-employees")
-            ? (["kw-week-employees"] as const)
-            : ([] as const);
           const empPushIdx = pushKeys.indexOf("kw-week-employees");
-          const bootstrapPushId = pushKeys.includes("kw-week-employees")
+          const payrollCasPush = empPushIdx >= 0;
+          if (payrollCasPush && !pushKeys.includes(PAYROLL_WEEK_META_KEY)) {
+            pushKeys.push(PAYROLL_WEEK_META_KEY);
+            pushValues.push(buildPayrollWeekMetaPlaceholder(wfBoot, wtBoot));
+          }
+          const bootstrapPushId = payrollCasPush
             ? payrollTraceCreateBootstrapPushId()
             : undefined;
           if (empPushIdx >= 0 && bootstrapPushId) {
             payrollTraceEmit("sync.bootstrap.kv_push", "HTTP_OUT", "info", {
               bootstrapPushId,
-              replaceWeekEmployeesKeys: ["kw-week-employees"],
+              payrollWeekCas: true,
+              expectedRevision: getExpectedPayrollRevision(),
               weekEmpPayload: rosterTraceSnapshot(pushValues[empPushIdx], wfBoot, wtBoot, "MERGED", "PRESENT"),
               trigger: "bootstrap_push" as const,
             });
@@ -340,7 +356,10 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             {
               replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
               replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-              replaceWeekEmployeesKeys: [...replaceWeekEmployeesKeys],
+              replaceWeekEmployeesKeys: [],
+              payrollWeekCas: payrollCasPush,
+              expectedRevision: payrollCasPush ? getExpectedPayrollRevision() : undefined,
+              clientAppVersion: APP_VERSION,
             },
           ).catch(() => {});
         }

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.103 — PAYROLL P0 FE O2 CAS-ready client (2026-08-19)
+
+- Worker extraCosts → `pwrPush` + `payrollWeekCas` / `expectedRevision`; brak `forceReplace` i silent catch na zapisie payroll
+- Kompatybilne ze starym production Edge (O1 **nie** w tym releasie)
+- Test: `npx vite-node scripts/test-payroll-worker-o1-o2.mjs`
+
 ## 2.66.101 — IK-KNR-EXPERT Slice D Owner KNR mapping (2026-08-18)
 
 - Owner GO: Owner-confirmed KNR → CatalogWork — exact tabela w kodzie, overlay `catalogWorkId` na kopii linii Master BOQ dla istniejącego P3

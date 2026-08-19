@@ -147,6 +147,15 @@ import {
   normalizePriceDemandStore,
 } from "@/lib/price-intelligence/demand-queue";
 import { PRICE_DEMAND_STORAGE_KEY } from "@/lib/price-intelligence/demand-types";
+import { mergeWeekEmployeeRecord } from "./payroll-week-employee-record-merge.ts";
+import {
+  PAYROLL_WEEK_META_KEY,
+  buildPayrollWeekMetaPlaceholder,
+  getExpectedPayrollRevision,
+  normalizePayrollWeekMeta,
+  writePayrollWeekMetaToLs,
+} from "./payroll-week-meta.ts";
+import { APP_VERSION } from "@/lib/app-version";
 import {
   payrollTraceBumpRosterRevision,
   payrollTraceCreateBootstrapPushId,
@@ -1062,6 +1071,44 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
 }
 
 export { weekEmployeeMergeKey, mergeWeekEmployeesList, hasWeekEmployeesRosterExpansion } from "./payroll-week-employee-merge.ts";
+export {
+  mergeWeekEmployeeRecord,
+  mergePayrollDaysByRichness as mergeDaysByRichness,
+  isPayrollZeroedDay,
+  pickPayrollDaysByTimestamps,
+} from "./payroll-week-employee-record-merge.ts";
+export {
+  PAYROLL_WEEK_META_KEY,
+  normalizePayrollWeekMeta,
+  readPayrollWeekMetaFromLs,
+  writePayrollWeekMetaToLs,
+  getExpectedPayrollRevision,
+  buildPayrollWeekMetaPlaceholder,
+  type PayrollWeekMeta,
+} from "./payroll-week-meta.ts";
+export {
+  rebasePayrollRosterIntent,
+  rebasePayrollExtraCostsIntent,
+  isPayrollExtraCostsOnlyIntent,
+} from "./payroll-roster-rebase.ts";
+
+/** PAYROLL-DI-P0 — Edge 409 concurrency conflict (DF-04). */
+export const PAYROLL_STALE_REVISION_CODE = "stale_revision";
+export const PAYROLL_LEGACY_CLIENT_CODE = "legacy_client_rejected";
+
+export class PayrollStaleRevisionError extends Error {
+  readonly code: string;
+  readonly serverRevision: number;
+  readonly roster?: unknown[];
+
+  constructor(code: string, serverRevision: number, roster?: unknown[], message?: string) {
+    super(message ?? `Payroll revision conflict (${code})`);
+    this.name = "PayrollStaleRevisionError";
+    this.code = code;
+    this.serverRevision = serverRevision;
+    this.roster = roster;
+  }
+}
 
 export function weekEmployeesSamePerson(
   a: { id?: string; directoryId?: string; name?: string },
@@ -1136,61 +1183,11 @@ function collapseWeekEmployeesByIdentity(list: unknown[]): unknown[] {
   return [...map.values()];
 }
 
-function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): Record<string, DayLike> {
-  const lDays = (l.days as Record<string, DayLike>) || {};
-  const cDays = (c.days as Record<string, DayLike>) || {};
-  const lAt = parseRecordTs(l.dataUpdatedAt);
-  const cAt = parseRecordTs(c.dataUpdatedAt);
-  // PR-PAY-S3 — nowszy rekord wygrywa (w tym świadome wyczyszczenie godzin);
-  // remis dataUpdatedAt → mergeDaysByRichness (który honoruje clear-wins lokalnie).
-  if (lAt > cAt) return { ...cDays, ...lDays };
-  if (cAt > lAt) return { ...lDays, ...cDays };
-  return mergeDaysByRichness(lDays, cDays);
-}
-
-/** Dzień „wyzerowany”: nieaktywny bez godzin dodatkowych → nie wnosi payrollu (świadomy clear). */
+/** @deprecated use isPayrollZeroedDay from record-merge SSOT */
 function isZeroedDay(d: DayLike | undefined): boolean {
   if (!d) return true;
   if (d.active === true) return false;
   return (d.extraHours?.length ?? 0) === 0;
-}
-
-/**
- * Per-day merge przy remisie dataUpdatedAt.
- * PR-PAY-S3 — clear-wins: świadome wyzerowanie po stronie LOKALNEJ wygrywa
- * ze „starszym” bogatszym dniem z chmury (nie wskrzeszaj usuniętych godzin).
- * Poza tym: bogatszy dzień wygrywa; remis → local.
- */
-export function mergeDaysByRichness(
-  lDays: Record<string, DayLike>,
-  cDays: Record<string, DayLike>,
-): Record<string, DayLike> {
-  const keys = new Set([...Object.keys(lDays), ...Object.keys(cDays)]);
-  const out: Record<string, DayLike> = {};
-  for (const key of keys) {
-    const ld = lDays[key];
-    const cd = cDays[key];
-    if (!ld && cd) {
-      out[key] = cd;
-      continue;
-    }
-    if (ld && !cd) {
-      out[key] = ld;
-      continue;
-    }
-    if (!ld && !cd) continue;
-    // PR-PAY-S3 — lokalny clear ma pierwszeństwo nad bogatszym dniem z chmury.
-    if (isZeroedDay(ld) && !isZeroedDay(cd)) {
-      out[key] = ld!;
-      continue;
-    }
-    const lr = dayRichness(ld);
-    const cr = dayRichness(cd);
-    if (lr > cr) out[key] = ld!;
-    else if (cr > lr) out[key] = cd!;
-    else out[key] = ld!;
-  }
-  return out;
 }
 
 function pickPrevSaturdayByTimestamps(
@@ -1413,6 +1410,10 @@ export type PushKeysToCloudOptions = {
   replaceJobsKeys?: string[];
   replaceDirectoryKeys?: string[];
   replaceWeekEmployeesKeys?: string[];
+  /** PAYROLL-DI-P0 — CAS merge-on-write (replaces forceReplace for field edits). */
+  payrollWeekCas?: boolean;
+  expectedRevision?: number;
+  clientAppVersion?: string;
   /**
    * Legacy bare bypass — D3: ignored when guardStrict ON unless intentionalHoursClear.
    * Prefer intentionalHoursClear after D2 ACK.
@@ -1512,50 +1513,6 @@ function pickPayrollCarryForward(l: Record<string, unknown>, c: Record<string, u
     return lAt >= cAt ? lCf : cCf;
   }
   return undefined;
-}
-
-export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
-  const l = local as Record<string, unknown>;
-  const c = cloud as Record<string, unknown>;
-
-  const days = pickDaysByTimestamps(l, c);
-  const prevSaturday = pickPrevSaturdayByTimestamps(l, c);
-
-  const lAt = parseRecordTs(l.dataUpdatedAt);
-  const cAt = parseRecordTs(c.dataUpdatedAt);
-  const extraCosts =
-    lAt >= cAt
-      ? Array.isArray(l.extraCosts)
-        ? l.extraCosts
-        : Array.isArray(c.extraCosts)
-          ? c.extraCosts
-          : []
-      : Array.isArray(c.extraCosts)
-        ? c.extraCosts
-        : Array.isArray(l.extraCosts)
-          ? l.extraCosts
-          : [];
-
-  const rate = pickRateByTimestamps(l, c);
-  const lRateAt = parseRecordTs(l.rateUpdatedAt);
-  const cRateAt = parseRecordTs(c.rateUpdatedAt);
-  const dataWinner = lAt >= cAt ? l : c;
-  const settled = pickSettledByTimestamps(l, c);
-
-  return {
-    ...c,
-    ...l,
-    ...dataWinner,
-    days,
-    prevSaturday,
-    extraCosts,
-    rate,
-    rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
-    dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
-    settled,
-    settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled),
-    payrollCarryForward: pickPayrollCarryForward(l, c),
-  };
 }
 
 /** Odczyt klucza danych z localStorage (między kartami / przed zapisem do chmury). */
@@ -2173,62 +2130,16 @@ export function finalizePayrollBundleMerge(
 
   const localEmps = normalizeArrayValue(localValues[empIdx]);
   const cloudEmps = normalizeArrayValue(cloudValues[empIdx]);
-  const mergedEmpsBefore = normalizeArrayValue(out[empIdx]);
-  const localR = weekEmployeesListRichness(localEmps);
-  const cloudR = weekEmployeesListRichness(cloudEmps);
-  const localM = payrollMetrics(localEmps);
-  const cloudM = payrollMetrics(cloudEmps);
   const wf = String(targetFrom ?? "");
   const wt = String(targetTo ?? "");
-  const richnessOverride = cloudR > localR || cloudM.activeDays > localM.activeDays;
-  const subjectPresentBefore = rosterTraceSnapshot(
-    mergedEmpsBefore,
-    wf,
-    wt,
-    "MERGED",
-    "PRESENT",
-  ).subjectPresent;
-
-  if (richnessOverride) {
-    // PR-PAY-S2 — richness override nie może wskrzesić usuniętego (tombstone respektowany).
-    const tombstoned = deletedWeekEmployeeMergeKeySet(getDeletedWeekEmployeeKeys(), targetFrom, targetTo);
-    const adopted = mergeWeekEmployees([], filterDeletedWeekEmployees(cloudEmps, tombstoned));
-    const next = [...out];
-    // PR-PAY-S5 — richness override adoptuje bogatszy skład/godziny z chmury, ale NIE
-    // może nadpisać nowszego statusu rozliczenia. settled/settledUpdatedAt wyłącznie LWW
-    // względem stanu lokalnego (settledUpdatedAt decyduje, nie richness).
-    next[empIdx] = preserveSettledLwwFromLocal(adopted, localEmps);
-    const adoptedEmps = normalizeArrayValue(next[empIdx]);
-    payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
-      localR,
-      cloudR,
-      localActiveDays: localM.activeDays,
-      cloudActiveDays: cloudM.activeDays,
-      richnessOverride: true,
-      weekKeyMismatch: false,
-      out: rosterTraceSnapshot(adoptedEmps, wf, wt, "MERGED", "OVERWRITTEN"),
-    });
-    logPayrollBootstrapTraceFromWeekKeys({
-      caller: "finalizePayrollBundleMerge",
-      reason: "finalize_exit_richness_override",
-      targetFrom,
-      targetTo,
-      cloudFrom,
-      cloudTo,
-      localFrom,
-      localTo,
-      employeeCountBefore: mergedEmpsBefore.length,
-      employeeCountAfter: adoptedEmps.length,
-      employeeCount: adoptedEmps.length,
-    });
-    return applyPayrollResurrectionFenceToBundle(next, localValues, cloudValues);
-  }
+  // PAYROLL-DI-P0 DF-10 — roster richnessOverride for hours/days REMOVED.
+  // Per-record merge (mergeWeekEmployeeRecord + per-day updatedAt) is SSOT on pull.
 
   payrollTraceEmit("sync.merge.payroll.finalize", "MERGE", "info", {
-    localR,
-    cloudR,
-    localActiveDays: localM.activeDays,
-    cloudActiveDays: cloudM.activeDays,
+    localR: weekEmployeesListRichness(localEmps),
+    cloudR: weekEmployeesListRichness(cloudEmps),
+    localActiveDays: payrollMetrics(localEmps).activeDays,
+    cloudActiveDays: payrollMetrics(cloudEmps).activeDays,
     richnessOverride: false,
     weekKeyMismatch: false,
     out: rosterTraceSnapshot(normalizeArrayValue(out[empIdx]), wf, wt, "MERGED", "PRESENT"),
@@ -3054,6 +2965,9 @@ export async function pushKeysToCloud(
     replaceJobsKeys: pushOptions.replaceJobsKeys ?? [],
     replaceDirectoryKeys: pushOptions.replaceDirectoryKeys ?? [],
     replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
+    payrollWeekCas: pushOptions.payrollWeekCas === true,
+    expectedRevision: pushOptions.expectedRevision,
+    clientAppVersion: pushOptions.clientAppVersion ?? APP_VERSION,
   });
   const keysCount = pushKeys.length;
   const batchSizeBytes = requestBody.length;
@@ -3101,10 +3015,37 @@ export async function pushKeysToCloud(
     let edgeRequestId: string | undefined;
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
+      let errJson: Record<string, unknown> = {};
       try {
-        const parsed = JSON.parse(errText) as { requestId?: string };
-        edgeRequestId = parsed.requestId;
+        errJson = JSON.parse(errText) as Record<string, unknown>;
       } catch { /* ignore */ }
+      const edgeRequestIdFromErr = typeof errJson.requestId === "string" ? errJson.requestId : undefined;
+      if (edgeRequestIdFromErr) edgeRequestId = edgeRequestIdFromErr;
+      const errCode = typeof errJson.code === "string" ? errJson.code : "";
+      if (
+        res.status === 409 &&
+        (errCode === PAYROLL_STALE_REVISION_CODE || errCode === PAYROLL_LEGACY_CLIENT_CODE)
+      ) {
+        const serverRevision = typeof errJson.serverRevision === "number" ? errJson.serverRevision : -1;
+        const roster = Array.isArray(errJson.roster) ? errJson.roster : undefined;
+        payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "warn", {
+          httpStatus: 409,
+          ok: false,
+          edgeRequestId,
+          latencyMs,
+          httpSeq,
+          httpRequestId,
+          attempt,
+          code: errCode,
+          serverRevision,
+        });
+        throw new PayrollStaleRevisionError(
+          errCode,
+          serverRevision,
+          roster,
+          typeof errJson.error === "string" ? errJson.error : errCode,
+        );
+      }
       payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
         httpStatus: res.status,
         ok: false,
@@ -3127,6 +3068,17 @@ export async function pushKeysToCloud(
         continue;
       }
       throw lastError;
+    }
+    let resJson: Record<string, unknown> = {};
+    try {
+      resJson = (await res.json()) as Record<string, unknown>;
+      if (typeof resJson.requestId === "string") edgeRequestId = resJson.requestId;
+    } catch { /* ignore */ }
+    if (pushOptions.payrollWeekCas && resJson.payrollWeekMeta) {
+      const { weekFrom, weekTo } = traceWeekRangeFromLs();
+      writePayrollWeekMetaToLs(
+        normalizePayrollWeekMeta(resJson.payrollWeekMeta, weekFrom, weekTo),
+      );
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
       httpStatus: res.status,
@@ -3222,12 +3174,15 @@ export async function pushWeekEmployeesToCloud(
   } catch { /* ignore */ }
   // D3 — force-couple skipPayrollGuard to intentionalHoursClear (guardStrict ON)
   const resolvedSkip = maySkipPayrollShrinkGuard(options);
+  const expectedRevision = getExpectedPayrollRevision();
   try {
     await pushKeysToCloud(
-      ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY],
-      [normalized, tombstones],
+      ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY, PAYROLL_WEEK_META_KEY],
+      [normalized, tombstones, buildPayrollWeekMetaPlaceholder(weekFrom, weekTo)],
       {
-        replaceWeekEmployeesKeys: ["kw-week-employees"],
+        payrollWeekCas: true,
+        expectedRevision,
+        clientAppVersion: APP_VERSION,
         intentionalHoursClear: options?.intentionalHoursClear === true,
         skipPayrollGuard: resolvedSkip,
       },
@@ -3258,12 +3213,20 @@ export async function pushPayrollWeekAfterRollover(params: {
     localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
     localStorage.setItem("kw-archive", JSON.stringify(archive));
   } catch { /* ignore */ }
-  // IC-7 — rollover empty week: rely on isIntentionalPayrollWeekClear (≠ intentionalHoursClear)
+  // IC-7 — rollover: CAS + merge-on-write (PAYROLL-DI-P0)
   await pushKeysToCloud(
-    ["kw-weekFrom", "kw-weekTo", "kw-week-employees", "kw-archive"],
-    [params.weekFrom, params.weekTo, normalized, archive],
+    ["kw-weekFrom", "kw-weekTo", "kw-week-employees", "kw-archive", PAYROLL_WEEK_META_KEY],
+    [
+      params.weekFrom,
+      params.weekTo,
+      normalized,
+      archive,
+      buildPayrollWeekMetaPlaceholder(params.weekFrom, params.weekTo),
+    ],
     {
-      replaceWeekEmployeesKeys: ["kw-week-employees"],
+      payrollWeekCas: true,
+      expectedRevision: getExpectedPayrollRevision(),
+      clientAppVersion: APP_VERSION,
     },
   );
 }

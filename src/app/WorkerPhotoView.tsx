@@ -37,7 +37,14 @@ import {
   saveDeletedJobIds,
   normalizeDeletedJobIds,
   JOBS_DELETED_IDS_KEY,
+  PayrollStaleRevisionError,
 } from "@/lib/cloud-sync";
+import {
+  PAYROLL_WEEK_META_KEY,
+  normalizePayrollWeekMeta,
+  writePayrollWeekMetaToLs,
+} from "@/lib/payroll-week-meta";
+import { pwrPush } from "@/lib/payroll-week-roster-bundle";
 import { saveLocalJobsSnapshot } from "@/lib/jobs-safety";
 import type {
   WeekEmployee,
@@ -115,6 +122,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   const [receiptAmount, setReceiptAmount] = useState("");
   const [receiptUploading, setReceiptUploading] = useState(false);
   const [receiptError, setReceiptError] = useState("");
+  const weekEmployeesRef = useRef<WeekEmployee[]>([]);
   const privacyShield = useWorkerPrivacyShield(true);
   const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
   const sketchesEnabled = isWmWorkerSketchEnabled(appSettings);
@@ -214,9 +222,13 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     }
   }, []);
 
+  useEffect(() => {
+    weekEmployeesRef.current = weekEmployees;
+  }, [weekEmployees]);
+
   const mergeWorkerCloudPayload = useCallback(
     (values: unknown[]) => {
-      const [cloudJobs, cloudDeletedRaw, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
+      const [cloudJobs, cloudDeletedRaw, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo, cloudMeta] = values;
       const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
       saveDeletedJobIds(mergedDeleted);
       if (cloudJobs != null) {
@@ -245,6 +257,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       setSavedWeeks(mergedArch);
       setWeekFrom(mergedFrom);
       setWeekTo(mergedTo);
+      writePayrollWeekMetaToLs(normalizePayrollWeekMeta(cloudMeta, mergedFrom, mergedTo));
       try {
         localStorage.setItem("kw-week-employees", JSON.stringify(mergedWeekEmps));
         localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
@@ -256,7 +269,15 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   );
 
   useEffect(() => {
-    fetchKeysFromCloud(["kw-jobs", JOBS_DELETED_IDS_KEY, "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
+    fetchKeysFromCloud([
+      "kw-jobs",
+      JOBS_DELETED_IDS_KEY,
+      "kw-week-employees",
+      "kw-archive",
+      "kw-weekFrom",
+      "kw-weekTo",
+      PAYROLL_WEEK_META_KEY,
+    ])
       .then(mergeWorkerCloudPayload)
       .catch(() => {
         setWeekEmployees(loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []));
@@ -399,32 +420,54 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     });
   };
 
-  const syncWeekEmployees = (updater: (prev: WeekEmployee[]) => WeekEmployee[]) => {
-    setWeekEmployees((prev) => {
-      const now = new Date().toISOString();
-      const incoming = updater(prev);
-      const updated = incoming.map((emp) => {
-        const old = prev.find((e) => e.id === emp.id);
-        if (!old) return emp;
-        const rateChanged = emp.rate !== old.rate;
-        const dataChanged =
-          JSON.stringify({ days: emp.days, prevSaturday: emp.prevSaturday, extraCosts: emp.extraCosts })
-          !== JSON.stringify({ days: old.days, prevSaturday: old.prevSaturday, extraCosts: old.extraCosts });
-        if (!rateChanged && !dataChanged) return emp;
-        return {
-          ...emp,
-          rateUpdatedAt: rateChanged ? now : emp.rateUpdatedAt ?? old.rateUpdatedAt,
-          dataUpdatedAt: dataChanged ? now : emp.dataUpdatedAt ?? old.dataUpdatedAt,
-        };
-      });
-      try { localStorage.setItem("kw-week-employees", JSON.stringify(updated)); } catch { /* ignore */ }
-      pushKeysToCloudSafe(["kw-week-employees"], [updated]).catch(() => {});
-      return updated;
+  const pushWorkerExtraCosts = useCallback(async (
+    updater: (prev: WeekEmployee[]) => WeekEmployee[],
+  ) => {
+    const before = weekEmployeesRef.current;
+    const now = new Date().toISOString();
+    const incoming = updater(before);
+    const after = incoming.map((emp) => {
+      const old = before.find((e) => e.id === emp.id);
+      if (!old) return emp;
+      const extraCostsChanged =
+        JSON.stringify(old.extraCosts ?? []) !== JSON.stringify(emp.extraCosts ?? []);
+      if (!extraCostsChanged) return emp;
+      return { ...emp, dataUpdatedAt: now };
     });
-  };
+
+    setWeekEmployees(after);
+    weekEmployeesRef.current = after;
+    try { localStorage.setItem("kw-week-employees", JSON.stringify(after)); } catch { /* ignore */ }
+
+    const wf = weekFrom || loadWorkerLocal("kw-weekFrom", getWeekRange().from);
+    const wt = weekTo || loadWorkerLocal("kw-weekTo", getWeekRange().to);
+    if (!wf || !wt) {
+      throw new Error("Brak zakresu tygodnia płac — odśwież aplikację.");
+    }
+
+    const result = await pwrPush({
+      roster: after,
+      weekFrom: wf,
+      weekTo: wt,
+      rosterBefore: before,
+    });
+    if (result.rebased) {
+      setWeekEmployees(result.roster);
+      weekEmployeesRef.current = result.roster;
+      try { localStorage.setItem("kw-week-employees", JSON.stringify(result.roster)); } catch { /* ignore */ }
+    }
+  }, [weekFrom, weekTo, loadWorkerLocal]);
 
   const reloadWorkerData = useCallback(() => {
-    fetchKeysFromCloud(["kw-jobs", JOBS_DELETED_IDS_KEY, "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
+    fetchKeysFromCloud([
+      "kw-jobs",
+      JOBS_DELETED_IDS_KEY,
+      "kw-week-employees",
+      "kw-archive",
+      "kw-weekFrom",
+      "kw-weekTo",
+      PAYROLL_WEEK_META_KEY,
+    ])
       .then(mergeWorkerCloudPayload)
       .catch(() => {
         try {
@@ -495,27 +538,45 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       submittedAt: new Date().toISOString(),
       submittedBy: workerName,
     };
-    syncWeekEmployees((prev) =>
-      prev.map((e) =>
-        e.id === currentWeekEmp.id
-          ? { ...e, extraCosts: [...(e.extraCosts ?? []), newCost] }
-          : e,
-      ),
-    );
-    setReceiptDesc("");
-    setReceiptAmount("");
-    setReceiptUploading(false);
+    try {
+      await pushWorkerExtraCosts((prev) =>
+        prev.map((e) =>
+          e.id === currentWeekEmp.id
+            ? { ...e, extraCosts: [...(e.extraCosts ?? []), newCost] }
+            : e,
+        ),
+      );
+      setReceiptDesc("");
+      setReceiptAmount("");
+    } catch (e) {
+      const msg = e instanceof PayrollStaleRevisionError
+        ? "Lista płac zmieniła się — odśwież dane i spróbuj ponownie."
+        : e instanceof Error ? e.message : "Nie udało się zapisać kosztu do chmury.";
+      setReceiptError(msg);
+      reloadWorkerData();
+    } finally {
+      setReceiptUploading(false);
+    }
   };
 
-  const removeMyExtraCost = (costId: string) => {
+  const removeMyExtraCost = async (costId: string) => {
     if (!currentWeekEmp || !window.confirm("Usunąć ten koszt?")) return;
-    syncWeekEmployees((prev) =>
-      prev.map((e) =>
-        e.id === currentWeekEmp.id
-          ? { ...e, extraCosts: (e.extraCosts ?? []).filter((c) => c.id !== costId) }
-          : e,
-      ),
-    );
+    setReceiptError("");
+    try {
+      await pushWorkerExtraCosts((prev) =>
+        prev.map((e) =>
+          e.id === currentWeekEmp.id
+            ? { ...e, extraCosts: (e.extraCosts ?? []).filter((c) => c.id !== costId) }
+            : e,
+        ),
+      );
+    } catch (e) {
+      const msg = e instanceof PayrollStaleRevisionError
+        ? "Lista płac zmieniła się — odśwież dane i spróbuj ponownie."
+        : e instanceof Error ? e.message : "Nie udało się usunąć kosztu z chmury.";
+      setReceiptError(msg);
+      reloadWorkerData();
+    }
   };
 
   const uploadFilesBatch = async (

@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-19",
+    version: "2.66.103",
+    label: "PAYROLL P0 — FE O2 CAS-ready client",
+    items: [
+      {
+        type: "improve",
+        text: "Lista płac — klient CAS-ready (FE O2): Worker extraCosts przez pwrPush (payrollWeekCas + expectedRevision), bez forceReplace i bez silent catch. Admin ten sam tor. Kompatybilne ze starym Edge (O1 jeszcze nie wdrożone). Test: test-payroll-worker-o1-o2.mjs (27).",
+      },
+    ],
+  },
+  {
     date: "2026-08-18",
     version: "2.66.102",
     label: "Odbiory WM — Rysunki door-swing + grubość ścian",
