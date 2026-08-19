@@ -4,7 +4,7 @@
  *
  * Real rollover (Sun ≥20:00 / calendar behind, no archive):
  *   archive semantics → clear roster → advance keys
- * Bootstrap (stored week archived):
+ * Bootstrap label race (stored week archived, but live roster no longer mirrors it):
  *   align labels only
  */
 import { defaultDay } from "../src/app/app-domain.ts";
@@ -86,7 +86,7 @@ assert("PAYROLL-ROLL-001 id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
 
   const prev = { from: "2026-07-13", to: "2026-07-18" };
   const roster = Array.from({ length: 5 }, (_, i) => makeEmp(`t1-${i}`));
-  const transition = classifyPayrollWeekTransition(prev.from, prev.to, roster.length, [], now);
+  const transition = classifyPayrollWeekTransition(prev.from, prev.to, roster, [], now);
   assert("T1 kind rollover", transition.kind === "rollover");
 
   const after = simulateFullRollover(
@@ -112,11 +112,11 @@ assert("PAYROLL-ROLL-001 id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   const current = getPayrollWeekRange(now);
   assert("T2 still 2026-07-13", current.from === "2026-07-13");
   const roster = [makeEmp("t2")];
-  const t = classifyPayrollWeekTransition(current.from, current.to, roster.length, [], now);
+  const t = classifyPayrollWeekTransition(current.from, current.to, roster, [], now);
   assert("T2 kind none (on current)", t.kind === "none");
 }
 
-// T3 — bootstrap: archived stored week → align only (no clear)
+// T3 — stored week archived + live roster still mirrors it → real rollover (no stale carry)
 {
   const now = new Date("2026-07-20T10:00:00");
   const current = getPayrollWeekRange(now);
@@ -131,11 +131,37 @@ assert("PAYROLL-ROLL-001 id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
       savedAt: "2026-07-19T18:00:00.000Z",
     },
   ];
-  const t = classifyPayrollWeekTransition(prev.from, prev.to, roster.length, archive, now);
-  assert("T3 kind align", t.kind === "align");
+  const t = classifyPayrollWeekTransition(prev.from, prev.to, roster, archive, now);
+  assert("T3 kind rollover", t.kind === "rollover");
   assert("T3 target current", t.from === current.from && t.to === current.to);
-  // Align path does not call simulateFullRollover — roster stays
-  assert("T3 roster preserved (align)", roster.length === 3);
+  const after = simulateFullRollover(prev.from, prev.to, roster, archive, t.from, t.to);
+  assert("T3 live roster cleared", after.weekEmployees.length === 0);
+}
+
+// T3b — bootstrap label race: archived stored week + current-week identity roster → align
+{
+  const now = new Date("2026-07-20T10:00:00");
+  const current = getPayrollWeekRange(now);
+  const prev = { from: "2026-07-13", to: "2026-07-18" };
+  const archivedRoster = Array.from({ length: 3 }, (_, i) => makeEmp(`t3b-arch-${i}`));
+  const liveCurrentWeekRoster = archivedRoster.map((emp) => ({
+    ...emp,
+    days: Object.fromEntries(
+      DAYS.map((k) => [k, defaultDay()]),
+    ),
+  }));
+  const archive = [
+    {
+      id: "arch-prev-b",
+      weekFrom: prev.from,
+      weekTo: prev.to,
+      weekEmployees: archivedRoster.map((e) => ({ ...e })),
+      savedAt: "2026-07-19T18:00:00.000Z",
+    },
+  ];
+  const t = classifyPayrollWeekTransition(prev.from, prev.to, liveCurrentWeekRoster, archive, now);
+  assert("T3b kind align", t.kind === "align");
+  assert("T3b target current", t.from === current.from && t.to === current.to);
 }
 
 // T4 — biweekly consumer: after real rollover, prev week is in archive (prevWeekNet source)
@@ -145,7 +171,7 @@ assert("PAYROLL-ROLL-001 id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   const prev = { from: "2026-07-13", to: "2026-07-18" };
   const roster = [makeEmp("bi-1")];
   roster[0].directoryId = "dir-bi";
-  const t = classifyPayrollWeekTransition(prev.from, prev.to, 1, [], now);
+  const t = classifyPayrollWeekTransition(prev.from, prev.to, roster, [], now);
   assert("T4 rollover", t.kind === "rollover");
   const after = simulateFullRollover(prev.from, prev.to, roster, [], t.from, t.to);
   const snap = findPayrollWeekSnapshot(after.savedWeeks, prev.from, prev.to);

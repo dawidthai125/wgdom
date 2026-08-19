@@ -2376,7 +2376,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const transition = classifyPayrollWeekTransition(
       weekFrom,
       weekTo,
-      weekEmployees.length,
+      weekEmployees,
       savedWeeks,
     );
     if (transition.kind === "align") {
@@ -2464,7 +2464,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const transition = classifyPayrollWeekTransition(
       weekFrom,
       weekTo,
-      weekEmployees.length,
+      weekEmployees,
       savedWeeks,
     );
     if (transition.kind !== "align") return;

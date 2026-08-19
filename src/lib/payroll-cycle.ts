@@ -106,11 +106,11 @@ export function findPayrollWeekSnapshot(
 export function resolvePayrollOperationalWeekKeys(
   weekFrom: string,
   weekTo: string,
-  liveRosterCount: number,
+  liveRoster: number | readonly WeekEmpPayrollInput[],
   now = new Date(),
   savedWeeks?: readonly WeekSnapshot[] | null,
 ): { from: string; to: string; didAlign: boolean; reason: string; kind: PayrollWeekTransitionKind } {
-  const c = classifyPayrollWeekTransition(weekFrom, weekTo, liveRosterCount, savedWeeks, now);
+  const c = classifyPayrollWeekTransition(weekFrom, weekTo, liveRoster, savedWeeks, now);
   return {
     from: c.from,
     to: c.to,
@@ -135,17 +135,20 @@ export type PayrollWeekTransition = {
 /**
  * PAYROLL-ROLL-001 / PAYROLL-P0-WEEK-ROLLOVER-01
  *
- * - **align** (bootstrap / mount-race): stored week już w archiwum → tylko popraw etykiety, nie czyść rosteru
- * - **rollover** (real): calendar-behind + żywy roster + brak archiwum stored week → archive + clear + advance + push
+ * - **align** (bootstrap / mount-race): stored week już w archiwum, ale live roster nie
+ *   odtwarza historycznego snapshotu → popraw tylko etykiety, nie czyść rosteru
+ * - **rollover** (real): calendar-behind + żywy roster, albo stored week archived przy nadal
+ *   historycznym live rosterze → archive + clear + advance + push
  * - **none**: nic do zrobienia (pusto / już current / nie behind)
  */
 export function classifyPayrollWeekTransition(
   weekFrom: string,
   weekTo: string,
-  liveRosterCount: number,
+  liveRoster: number | readonly WeekEmpPayrollInput[],
   savedWeeks?: readonly WeekSnapshot[] | null,
   now = new Date(),
 ): PayrollWeekTransition {
+  const liveRosterCount = Array.isArray(liveRoster) ? liveRoster.length : liveRoster;
   const current = getPayrollWeekRange(now);
   if (liveRosterCount <= 0) {
     return { kind: "none", from: weekFrom, to: weekTo, reason: "empty_roster" };
@@ -157,11 +160,23 @@ export function classifyPayrollWeekTransition(
     return { kind: "none", from: weekFrom, to: weekTo, reason: "not_calendar_behind" };
   }
 
-  const storedArchived = !!findPayrollWeekSnapshot(savedWeeks ?? [], weekFrom, weekTo)?.weekEmployees
-    ?.length;
+  const storedSnapshot = findPayrollWeekSnapshot(savedWeeks ?? [], weekFrom, weekTo);
+  const storedArchived = !!storedSnapshot?.weekEmployees?.length;
 
-  // Bootstrap / mount-race: previous week already archived → live roster is current-week data with stale labels
+  // Bootstrap / mount-race: stored week archived, but live roster no longer mirrors
+  // the archived snapshot — only labels are stale.
   if (storedArchived) {
+    const mirrorsStoredArchivedWeek =
+      Array.isArray(liveRoster) &&
+      payrollRosterSemanticDigest(liveRoster) === payrollRosterSemanticDigest(storedSnapshot?.weekEmployees ?? []);
+    if (mirrorsStoredArchivedWeek) {
+      return {
+        kind: "rollover",
+        from: current.from,
+        to: current.to,
+        reason: "stored_week_archived_live_roster_still_historical",
+      };
+    }
     return {
       kind: "align",
       from: current.from,
@@ -249,6 +264,36 @@ export interface WeekEmpPayrollInput {
     extraHours?: { from: string; to: string }[];
   }>;
   extraCosts?: { amount: string; status?: string }[];
+  prevSaturday?: {
+    active: boolean;
+    from: string;
+    to: string;
+    zaliczka: string;
+    extraHours?: { from: string; to: string }[];
+  };
+  settled?: boolean;
+  payrollCarryForward?: {
+    amount?: number;
+    targetWeekFrom?: string;
+    targetWeekTo?: string;
+    createdAt?: string;
+  };
+}
+
+function payrollRosterSemanticDigest(list: readonly WeekEmpPayrollInput[] | undefined): string {
+  const arr = Array.isArray(list) ? list : [];
+  return JSON.stringify(
+    arr.map((emp) => ({
+      directoryId: emp.directoryId ?? "",
+      name: normalizeEmpName(emp.name),
+      rate: emp.rate ?? "",
+      days: emp.days,
+      prevSaturday: emp.prevSaturday ?? null,
+      extraCosts: emp.extraCosts ?? [],
+      settled: emp.settled === true,
+      payrollCarryForward: emp.payrollCarryForward ?? null,
+    })),
+  );
 }
 
 export interface WeekArchiveRef {

@@ -2,7 +2,8 @@
  * PAYROLL-P0-REGRESSION-04 — mount lifecycle + PAYROLL-ROLL-001
  * Run: npx vite-node scripts/test-payroll-display-p0-regression-04.mjs
  *
- * Bootstrap (stored week archived): align labels, NO clear.
+ * Bootstrap label race (stored week archived, but live roster no longer mirrors it):
+ * align labels, NO clear.
  * Real rollover (stored week NOT archived): autoArchiveAndAdvance (clear).
  */
 import { defaultDay } from "../src/app/app-domain.ts";
@@ -55,7 +56,7 @@ function simulateTryPayrollWeekCycleMount(weekFrom, weekTo, weekEmployees, now, 
   const transition = classifyPayrollWeekTransition(
     weekFrom,
     weekTo,
-    weekEmployees.length,
+    weekEmployees,
     savedWeeks,
     now,
   );
@@ -96,13 +97,17 @@ assert("principle id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
 {
   const current = getPayrollWeekRange(mondayNewWeek);
   const prev = { from: "2026-07-06", to: "2026-07-12" };
-  const roster = Array.from({ length: 14 }, (_, i) => makeEmp(`e-${i}`));
+  const archivedRoster = Array.from({ length: 14 }, (_, i) => makeEmp(`e-${i}`));
+  const roster = archivedRoster.map((emp) => ({
+    ...emp,
+    days: Object.fromEntries(DAYS.map((k) => [k, defaultDay()])),
+  }));
   const archive = [
     {
       id: "snap-prev",
       weekFrom: prev.from,
       weekTo: prev.to,
-      weekEmployees: roster.map((e) => ({ ...e })),
+      weekEmployees: archivedRoster.map((e) => ({ ...e })),
       savedAt: "2026-07-12T18:00:00.000Z",
     },
   ];
@@ -138,15 +143,24 @@ assert("principle id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   assert("R1 displayEmployees=14 (tabela) without pull", display.length === 14);
 }
 
-// R1b — PAYROLL-P0-WEEK-ROLLOVER-01: no archive → real rollover clears
+// R1b — stored week archived and live roster still mirrors it → real rollover clears
 {
   const prev = { from: "2026-07-06", to: "2026-07-12" };
   const roster = Array.from({ length: 14 }, (_, i) => makeEmp(`r-${i}`));
-  const result = simulateTryPayrollWeekCycleMount(prev.from, prev.to, roster, mondayNewWeek, []);
+  const archive = [
+    {
+      id: "snap-prev-r",
+      weekFrom: prev.from,
+      weekTo: prev.to,
+      weekEmployees: roster.map((e) => ({ ...e })),
+      savedAt: "2026-07-12T18:00:00.000Z",
+    },
+  ];
+  const result = simulateTryPayrollWeekCycleMount(prev.from, prev.to, roster, mondayNewWeek, archive);
   assert("R1b action auto_archive_and_advance", result.action === "auto_archive_and_advance");
   assert("R1b cleared", result.cleared === true);
   assert("R1b roster empty after", result.weekEmployees.length === 0);
-  assert("R1b reason real_rollover", result.reason === "real_rollover_archive_clear_advance");
+  assert("R1b reason historical_live_roster", result.reason === "stored_week_archived_live_roster_still_historical");
 }
 
 // R2 — empty roster + behind → rollover still allowed
