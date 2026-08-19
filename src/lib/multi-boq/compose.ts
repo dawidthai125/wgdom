@@ -72,6 +72,7 @@ function structuralFromSnapshotLine(
     normalizedDescription: null,
     aliasRuleId: null,
     knrHint,
+    catalogBasis: line.catalogBasis ?? null,
     matchMethod: "snapshot",
     matchedBy: "snapshot",
     matchConfidence: knrHint ? "medium" : "low",
@@ -119,6 +120,7 @@ function structuralFromSnapshotLine(
     branchHint: line.branchHint,
     sourceLineKey: line.sourceLineKey,
     contentHash: line.contentHash,
+    catalogBasis: line.catalogBasis ?? null,
   };
 
   return { offerLine, provenance };

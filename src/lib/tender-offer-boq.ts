@@ -4,6 +4,7 @@
  */
 
 import type {
+  CatalogBasis,
   TenderCatalogQuantityLine,
   TenderCostLine,
   TenderKosztorysSnapshot,
@@ -336,6 +337,11 @@ export interface OfferBoqLine {
    */
   aliasRuleId?: string | null;
   knrHint: string | null;
+  /**
+   * IK-KNR-EXPERT Slice A — PDF catalog evidence.
+   * Mapper reads knrHint only. This field is not identity / not A1 input.
+   */
+  catalogBasis?: CatalogBasis | null;
   matchMethod: OfferBoqMatchMethod;
   /** Alias produktowy metody (DoD COST-S2). */
   matchedBy: OfferBoqMatchedBy;
@@ -525,6 +531,7 @@ function structuralLine(opts: {
   athUnitPricePln: number | null;
   athTotalPln: number | null;
   warnings: string[];
+  catalogBasis?: CatalogBasis | null;
 }): OfferBoqLine {
   const quantity = parseOfferBoqQuantity(opts.quantityRaw);
   const knrHint = knrHintFromDescription(opts.description);
@@ -552,6 +559,7 @@ function structuralLine(opts: {
     normalizedDescription: null,
     aliasRuleId: null,
     knrHint,
+    catalogBasis: opts.catalogBasis ?? null,
     matchMethod: "snapshot",
     matchedBy: "snapshot",
     matchConfidence: knrHint ? "medium" : "low",
@@ -606,6 +614,7 @@ function linesFromCatalogQuantities(
       athUnitPricePln: null,
       athTotalPln: null,
       warnings: [],
+      catalogBasis: c.catalogBasis ?? null,
     }),
   );
 }
@@ -624,6 +633,7 @@ function linesFromCostRows(tenderId: string, rows: TenderCostLine[]): OfferBoqLi
       warnings: r.unitPrice || r.total
         ? ["Wykryto ceny ATH w snapshot — nie użyte jako wycena ofertowa (S1)."]
         : [],
+      catalogBasis: r.catalogBasis ?? null,
     }),
   );
 }

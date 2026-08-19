@@ -15,6 +15,18 @@ import {
   type ExperienceRequirement,
 } from "@/lib/tender-experience-requirements";
 
+/** IK-KNR-EXPERT Slice A — optional PDF/KNR evidence. Not identity. Not knrHint. */
+export type CatalogBasisFamily = "KNR" | "KNR-W" | "KNNR" | "NNRNKB" | "OTHER" | null;
+
+export type CatalogBasis = {
+  family: CatalogBasisFamily;
+  catalogId: string | null;
+  tableCode: string | null;
+  rawCode: string;
+  display: string;
+  normalizedKey: string;
+};
+
 export interface TenderCostLine {
   lp: string;
   description: string;
@@ -22,6 +34,10 @@ export interface TenderCostLine {
   quantity: string;
   unitPrice: string;
   total: string;
+  /** Additive raw copy of AthPreviewRow.code — not authority. */
+  code?: string;
+  /** Additive catalog evidence from parser code — not knrHint / not catalogWorkId. */
+  catalogBasis?: CatalogBasis | null;
 }
 
 export type TenderProfitabilityHint = "good" | "caution" | "risky" | "unknown";

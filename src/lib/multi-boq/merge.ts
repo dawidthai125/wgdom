@@ -2,8 +2,11 @@
  * MULTI-BOQ-01 — deterministic merge of Owner-mapped cost artifacts → dwelling lines.
  */
 
-import { hasUsableCatalogQuantities } from "@/lib/tenders-bzp-brief";
-import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import {
+  buildCatalogBasisFromRawCode,
+  hasUsableCatalogQuantities,
+} from "@/lib/tenders-bzp-brief";
+import type { CatalogBasis, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import {
   buildSourceLineKey,
   foldContentHash,
@@ -34,6 +37,7 @@ type RawSourceLine = {
   contentHash: string;
   athUnitPricePln: number | null;
   athTotalPln: number | null;
+  catalogBasis?: CatalogBasis | null;
 };
 
 function sanitizeSourceLp(raw: string | undefined, indexInSourceDoc: number): string {
@@ -64,6 +68,7 @@ function extractRawLines(
     quantityRaw: string,
     athUnit: number | null,
     athTotal: number | null,
+    catalogBasis?: CatalogBasis | null,
   ) => {
     const desc = String(description ?? "").trim();
     const safeLp = sanitizeSourceLp(lp, indexInSourceDoc);
@@ -88,12 +93,22 @@ function extractRawLines(
       contentHash,
       athUnitPricePln: athUnit,
       athTotalPln: athTotal,
+      ...(catalogBasis ? { catalogBasis } : {}),
     });
   };
 
   if (hasUsableCatalogQuantities(snap.catalogQuantities)) {
     (snap.catalogQuantities ?? []).forEach((c, index) => {
-      push(index, c.lp ?? "", c.description ?? "", c.unit ?? "", c.quantity ?? "", null, null);
+      push(
+        index,
+        c.lp ?? "",
+        c.description ?? "",
+        c.unit ?? "",
+        c.quantity ?? "",
+        null,
+        null,
+        c.catalogBasis ?? null,
+      );
     });
     return out;
   }
@@ -114,6 +129,7 @@ function extractRawLines(
       r.quantity ?? "",
       Number.isFinite(unitPrice) && unitPrice > 0 ? unitPrice : null,
       Number.isFinite(total) && total > 0 ? total : null,
+      r.catalogBasis ?? buildCatalogBasisFromRawCode(r.code),
     );
   });
   return out;
@@ -185,6 +201,7 @@ export function mergeDwellingArtifactLines(
       contentHash: primary.contentHash,
       athUnitPricePln: primary.athUnitPricePln,
       athTotalPln: primary.athTotalPln,
+      ...(primary.catalogBasis ? { catalogBasis: primary.catalogBasis } : {}),
     });
   }
 

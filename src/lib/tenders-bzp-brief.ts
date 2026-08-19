@@ -1,13 +1,18 @@
 /** Brief przetargu — ustrukturyzowane dane z ogłoszenia HTML i SWZ (bez linków zewnętrznych). */
 
-import { stripHtmlToText, type TenderCostLine } from "@/lib/tenders-bzp-swz";
+import {
+  stripHtmlToText,
+  type CatalogBasis,
+  type CatalogBasisFamily,
+  type TenderCostLine,
+} from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import type { AthPreviewResult } from "@/lib/ath-parser";
 import { extractTotalValueFromAthPreview } from "@/lib/tender-cost-snapshot";
 import { isLikelyCatalogQuantityRow } from "@/lib/tender-catalog-quantity-filter";
 
-export type { TenderCostLine };
+export type { CatalogBasis, CatalogBasisFamily, TenderCostLine };
 
 export interface TenderBriefField {
   label: string;
@@ -26,6 +31,8 @@ export interface TenderCatalogQuantityLine {
   description: string;
   unit: string;
   quantity: string;
+  /** IK-KNR-EXPERT Slice A — PRIMARY evidence path for merge. Not knrHint. */
+  catalogBasis?: CatalogBasis | null;
 }
 
 export const CATALOG_QUANTITIES_CAP = 500;
@@ -214,7 +221,69 @@ type CatalogQtySourceRow = {
   description?: string;
   unit?: string;
   quantity?: string;
+  code?: string;
+  catalogBasis?: CatalogBasis | null;
 };
+
+const CATALOG_BASIS_FAMILY_RE = /^(KNR-W|KNNR|NNRNKB|ZKNR|KSNR|KNR)\b/i;
+const CATALOG_BASIS_TABLE_CODE_RE = /^\d{3,4}-\d{2}$/;
+
+function catalogBasisFamilyFromPrefix(raw: string): CatalogBasisFamily {
+  const u = raw.toUpperCase();
+  if (u === "KNR-W") return "KNR-W";
+  if (u === "KNNR") return "KNNR";
+  if (u === "NNRNKB") return "NNRNKB";
+  if (u === "KNR") return "KNR";
+  return "OTHER";
+}
+
+/**
+ * IK-KNR-EXPERT Slice A — evidence from existing AthPreviewRow.code only.
+ * Does not parse PDF. Does not read description. Does not write knrHint.
+ */
+export function buildCatalogBasisFromRawCode(
+  raw: string | null | undefined,
+): CatalogBasis | null {
+  const rawCode = String(raw ?? "").replace(/\s+/g, " ").trim();
+  if (!rawCode) return null;
+
+  const familyMatch = rawCode.match(CATALOG_BASIS_FAMILY_RE);
+  const family: CatalogBasisFamily = familyMatch
+    ? catalogBasisFamilyFromPrefix(familyMatch[1])
+    : "OTHER";
+  const rest = familyMatch ? rawCode.slice(familyMatch[0].length).trim() : rawCode;
+  const tokens = rest.split(/[\s/]+/).filter(Boolean);
+
+  let catalogId: string | null = null;
+  let tableCode: string | null = null;
+  for (const token of tokens) {
+    if (!tableCode && CATALOG_BASIS_TABLE_CODE_RE.test(token)) {
+      tableCode = token;
+      continue;
+    }
+    if (!catalogId) catalogId = token;
+  }
+
+  return {
+    family,
+    catalogId,
+    tableCode,
+    rawCode,
+    display: rawCode,
+    normalizedKey: [family ?? "OTHER", catalogId ?? "", tableCode ?? ""]
+      .join("|")
+      .toUpperCase(),
+  };
+}
+
+function resolveCatalogBasisFromSourceRow(
+  row: CatalogQtySourceRow,
+): CatalogBasis | null {
+  if (row.catalogBasis && String(row.catalogBasis.rawCode ?? "").trim()) {
+    return row.catalogBasis;
+  }
+  return buildCatalogBasisFromRawCode(row.code);
+}
 
 /** Czy catalogQuantities ma ≥1 linię roboczą z qty > 0 (po filtrze noise). */
 export function hasUsableCatalogQuantities(
@@ -243,12 +312,16 @@ export function buildCatalogQuantitiesFromRows(
         && parsePositiveCatalogQty(r.quantity) > 0,
     )
     .slice(0, CATALOG_QUANTITIES_CAP)
-    .map((r) => ({
-      lp: r.lp ?? "",
-      description: r.description ?? "",
-      unit: r.unit ?? "",
-      quantity: r.quantity ?? "",
-    }));
+    .map((r) => {
+      const catalogBasis = resolveCatalogBasisFromSourceRow(r);
+      return {
+        lp: r.lp ?? "",
+        description: r.description ?? "",
+        unit: r.unit ?? "",
+        quantity: r.quantity ?? "",
+        ...(catalogBasis ? { catalogBasis } : {}),
+      };
+    });
 }
 
 export function buildCatalogQuantitiesFromPreview(
@@ -285,14 +358,19 @@ export function athPreviewToSnapshot(
 ): TenderKosztorysSnapshot {
   const catalogQuantities = buildCatalogQuantitiesFromPreview(preview);
   const pricedCap = SNAPSHOT_PRICED_ROWS_CAP;
-  const rows: TenderCostLine[] = preview.rows.slice(0, pricedCap).map((r) => ({
-    lp: r.lp,
-    description: r.description,
-    unit: r.unit,
-    quantity: r.quantity,
-    unitPrice: r.unitPrice,
-    total: r.total,
-  }));
+  const rows: TenderCostLine[] = preview.rows.slice(0, pricedCap).map((r) => {
+    const catalogBasis = buildCatalogBasisFromRawCode(r.code);
+    return {
+      lp: r.lp,
+      description: r.description,
+      unit: r.unit,
+      quantity: r.quantity,
+      unitPrice: r.unitPrice,
+      total: r.total,
+      ...(r.code ? { code: r.code } : {}),
+      ...(catalogBasis ? { catalogBasis } : {}),
+    };
+  });
   const przedmiar: TenderPrzedmiarLine[] = [];
   for (const r of preview.rows.slice(0, pricedCap)) {
     for (const p of r.przedmiar ?? []) {

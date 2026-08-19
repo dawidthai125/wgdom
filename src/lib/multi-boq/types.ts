@@ -4,7 +4,7 @@
  */
 
 import type { BranchCode } from "@/lib/cost-multi-01-types";
-import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import type { CatalogBasis, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 
 export type DwellingCostCompleteness = "ready" | "hold" | "empty" | "conflict";
 
@@ -49,6 +49,8 @@ export type DwellingCostSnapshotLine = {
   contentHash: string;
   athUnitPricePln: number | null;
   athTotalPln: number | null;
+  /** IK-KNR-EXPERT Slice A — PDF catalog evidence. Not identity. */
+  catalogBasis?: CatalogBasis | null;
 };
 
 export type DwellingCostSnapshot = {
@@ -71,6 +73,8 @@ export type DwellingLineProvenance = {
   branchHint: DwellingCostBranchHint;
   sourceLineKey: string;
   contentHash: string;
+  /** IK-KNR-EXPERT Slice A — copied evidence. Mapper does not read this. */
+  catalogBasis?: CatalogBasis | null;
 };
 
 export type ComposeDwellingOfferBoqResult = {
