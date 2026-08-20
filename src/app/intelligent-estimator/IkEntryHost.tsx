@@ -73,6 +73,7 @@ import {
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
+import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
 
 /**
  * Compile-time default sentinels — runtime levers use AppSettings.
@@ -94,6 +95,12 @@ export function IkEntryHost({
   athPreviewEnabled = true,
   /** P4 Chief session REUSE — optional; P8 Validation HOLD when null. */
   chiefSession = null,
+  /**
+   * Historical Executed in-memory index (READ-ONLY).
+   * Absent/empty ⇒ HISTORICAL_MISS per line (first-class · not an error).
+   * Host hydration of completed-job ATH = NOT WIRED (OD-IMPL-2).
+   */
+  historicalIndex = null,
 }: {
   item: TenderPipelineItem;
   onUpdate?: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
@@ -104,6 +111,7 @@ export function IkEntryHost({
   } | null;
   athPreviewEnabled?: boolean;
   chiefSession?: ChiefSessionOutput | null;
+  historicalIndex?: HistoricalExecutedIndex | null;
 }) {
   const p2DocumentsBoqOn = isIkP2DocumentsBoqActive() === true;
   const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
@@ -219,13 +227,15 @@ export function IkEntryHost({
   );
 
   // C3 — KNR Expert (sync read-only adapter; BLOCKED when !readyForExperts).
+  // Historical index: optional Host prop (in-memory). Empty ⇒ HISTORICAL_MISS (not an error).
   const knr = useMemo(
     () =>
       runIkKnrExpert({
         tenderId: effectiveItem.id || effectiveItem.tenderId || "",
         documentExpert: report,
+        historicalIndex: historicalIndex ?? null,
       }),
-    [effectiveItem, report],
+    [effectiveItem, report, historicalIndex],
   );
 
   // D — Owner KNR overlay on LINE COPIES, then existing P3 via opts.classification.
@@ -370,8 +380,9 @@ export function IkEntryHost({
       p7: positionCostBid,
       bidProposal: positionCostBid?.proposal ?? null,
       chiefSession,
+      knrHistorical: knr,
     });
-  }, [p8RiskOn, effectiveItem, positionCostBid, chiefSession]);
+  }, [p8RiskOn, effectiveItem, positionCostBid, chiefSession, knr]);
 
   const vm = useMemo(
     () =>

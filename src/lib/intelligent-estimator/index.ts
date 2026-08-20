@@ -136,6 +136,25 @@ export type {
 } from "./ik-knr-expert";
 
 export {
+  HISTORICAL_EXECUTED_IMPLEMENTED,
+  HISTORICAL_EXECUTED_AUTHORITY,
+  HISTORICAL_EXECUTED_SCHEMA_VERSION,
+  buildHistoricalExecutedIndexFromAthSources,
+  buildHistoricalExecutedIndexFromOccurrences,
+  emptyHistoricalExecutedIndex,
+  lookupHistoricalExecuted,
+  makeHistoricalOccurrence,
+  summarizeHistoricalKinds,
+} from "./historical-executed";
+export type {
+  HistoricalExecutedIndex,
+  HistoricalLookupQuery,
+  HistoricalLookupResult,
+  HistoricalMatchKind,
+  HistoricalExecutedOccurrence,
+} from "./historical-executed";
+
+export {
   buildIkKnrConversation,
   IK_KNR_CONVERSATION_EXPERT_LABEL_PL,
   IK_KNR_CONVERSATION_LEAD_LABEL_PL,

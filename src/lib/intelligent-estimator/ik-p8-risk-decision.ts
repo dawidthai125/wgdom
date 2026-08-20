@@ -40,6 +40,7 @@ import {
   type ChiefSessionOutput,
 } from "@/lib/chief-session";
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
+import type { IkKnrExpertReport } from "./ik-knr-expert";
 
 export const IK_P8_RISK_DECISION_SCHEMA_VERSION = 1 as const;
 
@@ -147,6 +148,11 @@ export function runIkP8RiskDecision(opts: {
   /** P4 Chief session — REUSE; null ⇒ Validation HOLD (no invent dossier). */
   chiefSession?: ChiefSessionOutput | null;
   scoringContext?: StrategicScoreContext | null;
+  /**
+   * Historical Executed supporting signal (from KNR Expert) — Soft risk only.
+   * MISS must not block · CONFLICT → needs_review hint · NEVER authority.
+   */
+  knrHistorical?: IkKnrExpertReport | null;
 }): IkP8RiskDecisionReport {
   const tenderId = String(opts.item.id || opts.item.tenderId || "").trim();
   const bidProposal =
@@ -204,12 +210,6 @@ export function runIkP8RiskDecision(opts: {
     flagEnabled: true,
   });
 
-  const status = mapStatus({
-    displayDecision: overlay.displayDecision,
-    validationVerdict,
-    chiefAvailable,
-  });
-
   const reasonsPl: string[] = [
     ...overlay.reasons.slice(0, 6),
     ...(validation?.report.summaryPl ? [validation.report.summaryPl] : []),
@@ -218,6 +218,31 @@ export function runIkP8RiskDecision(opts: {
       ? [`P7 Bid context: ${opts.p7.status}`]
       : []),
   ];
+
+  const histConflict = opts.knrHistorical?.counts.historicalConflict ?? 0;
+  const histExact =
+    (opts.knrHistorical?.counts.historicalExactRms ?? 0)
+    + (opts.knrHistorical?.counts.historicalExact ?? 0);
+  if (histConflict > 0) {
+    reasonsPl.push(
+      `Historyczne ATH WGDOM: konflikt wariantów na ${histConflict} pozycjach (supporting Soft — nie Catalog authority).`,
+    );
+  } else if (histExact > 0) {
+    reasonsPl.push(
+      `Historyczne ATH WGDOM: ${histExact} exact match (evidence only · authority=false).`,
+    );
+  }
+  // HISTORICAL_MISS intentionally omitted — not an error / not tender downgrade.
+
+  let status = mapStatus({
+    displayDecision: overlay.displayDecision,
+    validationVerdict,
+    chiefAvailable,
+  });
+  // Soft escalate only on historical CONFLICT — never on MISS.
+  if (histConflict > 0 && status === "ready") {
+    status = "needs_review";
+  }
 
   const sourceRefKind: "evidence" | "hold" =
     status === "ready" || status === "partial" ? "evidence" : "hold";

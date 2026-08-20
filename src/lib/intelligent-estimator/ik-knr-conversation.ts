@@ -128,12 +128,26 @@ function blockedView(report: IkKnrExpertReport | null | undefined): IkKnrConvers
   };
 }
 
+const WRAP_HIST_CONFLICT_PL =
+  "Historyczne warianty KNR są sprzeczne. Nie wybieramy automatycznie — to nie jest norma.";
+
 function wrapForCompleted(report: IkKnrExpertReport): {
   messagePl: string;
   kind: IkKnrConversationSourceRefKind;
   artifact: Record<string, unknown>;
 } {
   const { hold, withBasis, candidate, conflict } = report.counts;
+  const histConflict = report.counts.historicalConflict ?? 0;
+  if (histConflict > 0) {
+    return {
+      messagePl: WRAP_HIST_CONFLICT_PL,
+      kind: "hold",
+      artifact: {
+        historicalConflict: histConflict,
+        authority: false,
+      },
+    };
+  }
   if (hold > 0) {
     return {
       messagePl: WRAP_HOLD_PL,
@@ -169,6 +183,40 @@ function wrapForCompleted(report: IkKnrExpertReport): {
   };
 }
 
+function historicalReportSuffix(report: IkKnrExpertReport): string {
+  const c = report.counts;
+  const exact = (c.historicalExactRms ?? 0) + (c.historicalExact ?? 0);
+  const family = c.historicalFamily ?? 0;
+  const conflict = c.historicalConflict ?? 0;
+  const miss = c.historicalMiss ?? 0;
+  const parts: string[] = [];
+  if (exact > 0) {
+    parts.push(
+      c.historicalExactRms > 0
+        ? `Historyczne wykonania WGDOM: ${exact} exact (w tym ${c.historicalExactRms} z pełnym R/M/S).`
+        : `Historyczne wykonania WGDOM: ${exact} exact occurrences.`,
+    );
+  }
+  if (family > 0) {
+    parts.push(
+      `Historyczna rodzina KNR występuje dla ${family} pozycji, ale brak exact identity.`,
+    );
+  }
+  if (conflict > 0) {
+    parts.push(
+      `Historyczne realizacje zawierają konflikt wariantów na ${conflict} pozycjach — bez auto-wyboru.`,
+    );
+  }
+  if (miss > 0 && exact === 0 && family === 0 && conflict === 0) {
+    parts.push(
+      `Nie znaleziono historycznych odpowiedników WGDOM (${miss} pozycji). Brak historii nie oznacza błędu.`,
+    );
+  } else if (miss > 0) {
+    parts.push(`Bez historii: ${miss}.`);
+  }
+  return parts.join(" ");
+}
+
 function knrReportMessage(report: IkKnrExpertReport): string {
   const { withBasis, hold, none, candidate, conflict } = report.counts;
   const parts = [
@@ -183,6 +231,8 @@ function knrReportMessage(report: IkKnrExpertReport): string {
   if (conflict > 0) {
     parts.push("Kilka odczytów wymaga potwierdzenia.");
   }
+  const hist = historicalReportSuffix(report);
+  if (hist) parts.push(hist);
   return parts.join(" ");
 }
 
@@ -235,6 +285,12 @@ export function buildIkKnrConversation(
         conflict: counts.conflict,
         none: counts.none,
         resolved: counts.resolved,
+        historicalExactRms: counts.historicalExactRms ?? 0,
+        historicalExact: counts.historicalExact ?? 0,
+        historicalFamily: counts.historicalFamily ?? 0,
+        historicalConflict: counts.historicalConflict ?? 0,
+        historicalMiss: counts.historicalMiss ?? 0,
+        authority: false,
       }),
     },
     {

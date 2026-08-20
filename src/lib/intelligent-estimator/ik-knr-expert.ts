@@ -6,17 +6,24 @@
  *   → masterBoqLines
  *   → line.catalogBasis ?? provenance.catalogBasis
  *   → completeness (family + tableCode)
+ *   → optional Historical Executed lookup (READ-ONLY evidence)
  *   → IkKnrExpertReport
  *
  * ZERO Product Mapper · ZERO A1 classification gate · ZERO Research.
  * ZERO write catalogWorkId / knrHint / Master BOQ.
  * ZERO Owner mapping (Slice D) · ZERO Sala (Slice C).
+ * ZERO KL-6 / Catalog mutation from Historical.
  *
  * CANDIDATE = complete catalog evidence, not a CatalogWork identity.
  */
 
 import type { CatalogBasis, CatalogBasisFamily } from "@/lib/tenders-bzp-swz";
 import type { IkDocumentExpertReport, IkMasterBoqLineRef } from "./ik-document-expert";
+import type { HistoricalExecutedIndex, HistoricalLookupResult } from "./historical-executed";
+import {
+  lookupHistoricalExecuted,
+  summarizeHistoricalKinds,
+} from "./historical-executed";
 
 export type IkKnrExpertStatus = "NOT_STARTED" | "ANALYZING" | "COMPLETED" | "BLOCKED";
 
@@ -30,6 +37,8 @@ export type IkKnrExpertLineResult = {
   lineStatus: IkKnrLineStatus;
   proposedWorkId: null;
   holdReason?: string;
+  /** Historical Executed WGDOM evidence — authority always false when present. */
+  historical?: HistoricalLookupResult | null;
 };
 
 export type IkKnrExpertCounts = {
@@ -41,6 +50,11 @@ export type IkKnrExpertCounts = {
   conflict: number;
   none: number;
   resolved: 0;
+  historicalExactRms: number;
+  historicalExact: number;
+  historicalFamily: number;
+  historicalConflict: number;
+  historicalMiss: number;
 };
 
 export type IkKnrExpertReport = {
@@ -54,6 +68,8 @@ export type IkKnrExpertReport = {
   classifyCalled: false;
   mapperCalled: false;
   researchExecuted: false;
+  /** Historical layer never grants authority. */
+  historicalAuthority: false;
   lines: IkKnrExpertLineResult[];
   examplesHold: IkKnrExpertLineResult[];
   reasons: string[];
@@ -75,6 +91,11 @@ const EMPTY_COUNTS: IkKnrExpertCounts = {
   conflict: 0,
   none: 0,
   resolved: 0,
+  historicalExactRms: 0,
+  historicalExact: 0,
+  historicalFamily: 0,
+  historicalConflict: 0,
+  historicalMiss: 0,
 };
 
 function copyCatalogBasis(basis: CatalogBasis | null | undefined): CatalogBasis | null {
@@ -125,22 +146,52 @@ function blockedReport(tenderId: string, reason: string): IkKnrExpertReport {
     classifyCalled: false,
     mapperCalled: false,
     researchExecuted: false,
+    historicalAuthority: false,
     lines: [],
     examplesHold: [],
     reasons: [reason],
   };
 }
 
+function applyHistoricalCounts(
+  counts: IkKnrExpertCounts,
+  hist: HistoricalLookupResult | null | undefined,
+): void {
+  if (!hist) {
+    counts.historicalMiss += 1;
+    return;
+  }
+  switch (hist.kind) {
+    case "HISTORICAL_EXACT_RMS":
+      counts.historicalExactRms += 1;
+      break;
+    case "HISTORICAL_EXACT":
+      counts.historicalExact += 1;
+      break;
+    case "HISTORICAL_FAMILY":
+      counts.historicalFamily += 1;
+      break;
+    case "HISTORICAL_CONFLICT":
+      counts.historicalConflict += 1;
+      break;
+    default:
+      counts.historicalMiss += 1;
+  }
+}
+
 /**
  * Pure sync adapter. Does not mutate documentExpert / Master BOQ lines.
- * ANALYZING is never returned in Slice B v1 (no real async).
+ * Historical lookup is optional — empty index ⇒ MISS (not an error).
  */
 export function runIkKnrExpert(input: {
   tenderId: string;
   documentExpert: IkDocumentExpertReport | null;
+  /** In-memory Historical Executed index — READ-ONLY. */
+  historicalIndex?: HistoricalExecutedIndex | null;
 }): IkKnrExpertReport {
   const tenderId = String(input.tenderId ?? "").trim();
   const expert = input.documentExpert;
+  const historicalIndex = input.historicalIndex ?? null;
 
   if (!expert) {
     return blockedReport(tenderId, "DOCUMENT_EXPERT_MISSING");
@@ -156,13 +207,32 @@ export function runIkKnrExpert(input: {
       `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${refs.length}`,
     );
   }
+  if (!historicalIndex || historicalIndex.occurrences.length === 0) {
+    reasons.push("HISTORICAL_INDEX_EMPTY_OR_ABSENT");
+  }
 
   const lines: IkKnrExpertLineResult[] = [];
   const counts: IkKnrExpertCounts = { ...EMPTY_COUNTS };
+  const histResults: HistoricalLookupResult[] = [];
 
   for (const ref of refs) {
     const basis = readCatalogBasis(ref);
     const classified = classifyEvidence(basis);
+    const description =
+      typeof ref.line.description === "string" ? ref.line.description : null;
+
+    const historical = lookupHistoricalExecuted(
+      {
+        lineId: ref.line.lineId,
+        catalogBasis: basis,
+        description,
+        identityKeyV2: null,
+      },
+      historicalIndex,
+    );
+    histResults.push(historical);
+    applyHistoricalCounts(counts, historical);
+
     const row: IkKnrExpertLineResult = {
       lineId: ref.line.lineId,
       dwellingId: ref.dwellingId,
@@ -170,6 +240,7 @@ export function runIkKnrExpert(input: {
       catalogBasis: basis,
       lineStatus: classified.lineStatus,
       proposedWorkId: null,
+      historical,
       ...(classified.holdReason ? { holdReason: classified.holdReason } : {}),
     };
     lines.push(row);
@@ -185,9 +256,14 @@ export function runIkKnrExpert(input: {
     if (row.lineStatus === "HOLD") counts.hold += 1;
   }
 
-  // B v1: no Owner table → conflict never detected; resolved never written.
+  // Basis conflict (Owner map) stays 0 in B v1; historical conflicts are separate counts.
   counts.conflict = 0;
   counts.resolved = 0;
+
+  const kindSum = summarizeHistoricalKinds(histResults);
+  if (kindSum.HISTORICAL_CONFLICT > 0) {
+    reasons.push(`HISTORICAL_CONFLICT_LINES=${kindSum.HISTORICAL_CONFLICT}`);
+  }
 
   return {
     tenderId: tenderId || expert.tenderId || "",
@@ -200,6 +276,7 @@ export function runIkKnrExpert(input: {
     classifyCalled: false,
     mapperCalled: false,
     researchExecuted: false,
+    historicalAuthority: false,
     lines,
     examplesHold: lines.filter((l) => l.lineStatus === "HOLD").slice(0, 3),
     reasons,
