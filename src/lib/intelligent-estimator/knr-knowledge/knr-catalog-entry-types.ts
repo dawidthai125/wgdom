@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import type { KnrIdentityV2Partial } from "./knr-identity-v2";
 import type { KnrProvenance } from "./knr-provenance-types";
+import type { KnrCatalogHistoryEntry, KnrCatalogProposedUpdateBag } from "./knr-catalog-history";
 
 /** Single norm line (robocizna / materiał / sprzęt). Quantities only — no PLN authority. */
 export type KnrNormLine = {
@@ -57,6 +58,20 @@ export type KnrCatalogEntry = {
   supersededBy?: string | null;
   /** Explicit marker when M/S intentionally empty with evidence (OPEN policy). */
   emptyNormsWithEvidence?: boolean;
+  /**
+   * Authority revision — bumps only on legal VERIFIED create/supersede (KL-6).
+   * Proposed update does NOT increment.
+   */
+  catalogRevision?: number;
+  /** Ops freshness signal — independent of verificationStatus. */
+  lastResearchAt?: string | null;
+  /** Append-only audit trail (cap 50) — never rewritten by Update UI. */
+  history?: KnrCatalogHistoryEntry[];
+  /**
+   * Offline proposed update bag — NEVER VERIFIED authority.
+   * Cleared only on legal KL-6 supersede/verify of next version.
+   */
+  proposedUpdate?: KnrCatalogProposedUpdateBag | null;
 };
 
 /** Default verification for new candidates — never VERIFIED. */

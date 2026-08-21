@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.111 — IK-KNR KL-7-P1 Details / History / Offline Update (2026-08-22)
+
+- Szczegóły Katalogu KNR · append-only `history[]` (cap 50) · offline proposed update + diff
+- VERIFIED tylko KL-6 (`allowAuthoritySupersede`) · Update UI nie nadpisuje authority
+- Test: `npx vite-node scripts/test-knr-catalog-p1.mjs`
+
 ## 2.66.110 — IK-KNR KL-7-P0 Cloud KNR SSOT (2026-08-21)
 
 - `kw-knr-catalog` w cloud-sync (deferred bootstrap) · per-entry merge anti-wipe

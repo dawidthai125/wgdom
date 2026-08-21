@@ -40,6 +40,8 @@ import {
 import { buildKnrNormContentHash } from "./knr-content-hash";
 import { validateKnrCatalogEntryCandidate } from "./knr-validate-contract";
 import { planKnrOwnerVerifyTransition } from "./knr-verify-types";
+import { appendKnrCatalogHistory } from "./knr-catalog-history";
+import { compareKnrCatalogUpdate } from "./knr-catalog-update-compare";
 
 export const KNR_VERIFY_REJECT_REASON_MIN_CHARS = 10 as const;
 
@@ -87,7 +89,7 @@ export type KnrVerifyFailReason =
 export type KnrVerifyApproveResult =
   | {
       ok: true;
-      outcome: "CREATED" | "NOOP";
+      outcome: "CREATED" | "NOOP" | "SUPERSEDED";
       entry: KnrCatalogEntry;
       catalogStore: KnrCatalogStore;
       lookupStatus: "LOCAL_HIT" | "LOCAL_MISS" | "INVALID_LOOKUP";
@@ -148,11 +150,19 @@ function stageNonVerifiedCatalogEntry(
   store: KnrCatalogStore,
   entry: KnrCatalogEntry,
   nowIso: string,
+  historyExtra?: Parameters<typeof appendKnrCatalogHistory>[1],
 ): KnrCatalogStore {
   if (entry.verificationStatus === "VERIFIED") {
     throw new Error("KL-6 stageNonVerified forbids VERIFIED — use write-router.");
   }
-  const entries = { ...store.entries, [entry.identityKeyV2]: { ...entry, updatedAt: nowIso } };
+  const withHistory: KnrCatalogEntry = historyExtra
+    ? {
+        ...entry,
+        updatedAt: nowIso,
+        history: appendKnrCatalogHistory(entry.history, historyExtra),
+      }
+    : { ...entry, updatedAt: nowIso };
+  const entries = { ...store.entries, [withHistory.identityKeyV2]: withHistory };
   return normalizeKnrCatalogStore(
     {
       ...store,
@@ -422,11 +432,23 @@ export async function executeKnrOwnerVerifyApprove(input: {
       };
     }
     if (existing && existing.contentHash !== prepared.contentHash) {
-      return failApprove(
-        "CONTENT_CONFLICT",
-        "Ten sam identityKeyV2 z innym contentHash.",
-        catalogStore,
-      );
+      // KL-7-P1 — legal next VERIFIED version only via this orchestrator path.
+      // Update UI must never reach here; family rewrite remains CONFLICT.
+      const familyCompare = compareKnrCatalogUpdate(existing, {
+        ...prepared,
+        verificationStatus: "PENDING_VERIFY",
+        verifiedAt: null,
+        verifiedBy: null,
+      });
+      if (familyCompare.diffFlags.family === true) {
+        return failApprove(
+          "CONTENT_CONFLICT",
+          familyCompare.reasonsPl[0]
+            ?? "Konflikt family — zakaz KNR↔KNR-W rewrite.",
+          catalogStore,
+        );
+      }
+      // Continue → promote + persist with allowAuthoritySupersede.
     }
   }
 
@@ -457,10 +479,21 @@ export async function executeKnrOwnerVerifyApprove(input: {
     );
   }
 
+  const existingForSupersede = catalogStore.entries[verified.entry.identityKeyV2];
+  const allowAuthoritySupersede = Boolean(
+    existingForSupersede
+    && existingForSupersede.verificationStatus === "VERIFIED"
+    && existingForSupersede.lifecycleState === "ACTIVE"
+    && existingForSupersede.contentHash !== verified.entry.contentHash,
+  );
+
   const persistInput = {
     entry: verified.entry,
     nowIso: input.nowIso,
     expectedEtag: input.expectedEtag,
+    allowAuthoritySupersede,
+    actorId: input.actor.actorId,
+    actorDisplayName: input.actor.displayName,
   };
 
   const persist = input.catalogStore
@@ -489,10 +522,13 @@ export async function executeKnrOwnerVerifyApprove(input: {
       });
   }
 
+  const persistedEntry =
+    persist.store.entries[verified.entry.identityKeyV2] ?? verified.entry;
+
   const lookup = lookupKnrCatalog(
     {
-      identityKeyV2: verified.entry.identityKeyV2,
-      evidenceKeyV1: verified.entry.evidenceKeyV1,
+      identityKeyV2: persistedEntry.identityKeyV2,
+      evidenceKeyV1: persistedEntry.evidenceKeyV1,
     },
     persist.store,
   );
@@ -502,9 +538,9 @@ export async function executeKnrOwnerVerifyApprove(input: {
     actorId: input.actor.actorId,
     actorDisplayName: input.actor.displayName,
     at: input.nowIso,
-    identityKeyV2: verified.entry.identityKeyV2,
-    contentHash: verified.entry.contentHash,
-    evidenceRefId: verified.entry.provenance.rawEvidenceRef?.refId ?? null,
+    identityKeyV2: persistedEntry.identityKeyV2,
+    contentHash: persistedEntry.contentHash,
+    evidenceRefId: persistedEntry.provenance.rawEvidenceRef?.refId ?? null,
     outcome: persist.outcome,
   };
   input.recordAudit?.(audit);
@@ -512,7 +548,7 @@ export async function executeKnrOwnerVerifyApprove(input: {
   return {
     ok: true,
     outcome: persist.outcome,
-    entry: verified.entry,
+    entry: persistedEntry,
     catalogStore: persist.store,
     lookupStatus: lookup.status,
     httpRequestCount: 0,
@@ -588,6 +624,26 @@ export function executeKnrOwnerVerifyReject(input: {
     catalogStore,
     rejected.entry,
     input.nowIso,
+    {
+      version: rejected.entry.catalogRevision ?? 0,
+      at: input.nowIso,
+      actorId: input.actor.actorId,
+      actorDisplayName: input.actor.displayName,
+      kind: "VERIFY_REJECT",
+      contentHash: rejected.entry.contentHash,
+      previousContentHash: input.candidate.contentHash,
+      verificationStatusBefore: input.candidate.verificationStatus,
+      verificationStatusAfter: "REJECTED",
+      diffFlags: { verification: true },
+      sourceRefs: {
+        evidenceRefId: rejected.entry.provenance.rawEvidenceRef?.refId,
+        sourceIdentifier: rejected.entry.provenance.sourceIdentifier,
+      },
+      snapshot: {
+        unit: rejected.entry.unit,
+        identityKeyV2: rejected.entry.identityKeyV2,
+      },
+    },
   );
   const evidenceStore = input.evidenceStore ?? emptyKnrRawEvidenceStore(input.nowIso);
   const audit: KnrVerifyAuditRecord = {

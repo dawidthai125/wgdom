@@ -7,6 +7,11 @@ import { fnv1aHex } from "@/lib/global-knowledge/canonical-id";
 import type { KnrNormComponentKind } from "./types";
 import type { KnrCatalogEntry, KnrNormLine } from "./knr-catalog-entry-types";
 import { buildKnrNormContentHash } from "./knr-content-hash";
+import {
+  normalizeKnrCatalogHistory,
+  type KnrCatalogDiffFlags,
+  type KnrCatalogProposedUpdateBag,
+} from "./knr-catalog-history";
 
 export const KNR_CATALOG_STORAGE_KEY = "kw-knr-catalog";
 
@@ -83,8 +88,59 @@ function normalizeNormLines(raw: unknown, kind: KnrNormComponentKind): KnrNormLi
   return out;
 }
 
+function normalizeProposedUpdateBag(
+  raw: unknown,
+  stripNestedProposed: boolean,
+): KnrCatalogProposedUpdateBag | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const proposedAt = typeof row.proposedAt === "string" ? row.proposedAt.trim() : "";
+  if (!proposedAt) return null;
+  const status = row.compareStatus;
+  if (status !== "SAME_HASH" && status !== "DIFF_REVIEW" && status !== "CONFLICT") {
+    return null;
+  }
+  const nested = normalizeKnrCatalogEntry(row.proposedEntry, {
+    stripNestedProposed: true,
+  });
+  if (!nested) return null;
+  const safe: KnrCatalogEntry = {
+    ...nested,
+    verificationStatus:
+      nested.verificationStatus === "VERIFIED" || nested.verificationStatus === "STALE"
+        ? "PENDING_VERIFY"
+        : nested.verificationStatus,
+    verifiedAt: null,
+    verifiedBy: null,
+    proposedUpdate: null,
+    history: stripNestedProposed ? undefined : nested.history,
+  };
+  return {
+    proposedAt,
+    proposedBy: typeof row.proposedBy === "string" ? row.proposedBy : undefined,
+    actorDisplayName:
+      typeof row.actorDisplayName === "string" ? row.actorDisplayName : undefined,
+    compareStatus: status,
+    proposedEntry: safe,
+    currentContentHash:
+      typeof row.currentContentHash === "string" ? row.currentContentHash : "",
+    proposedContentHash:
+      typeof row.proposedContentHash === "string" ? row.proposedContentHash : "",
+    diffFlags:
+      row.diffFlags && typeof row.diffFlags === "object"
+        ? (row.diffFlags as KnrCatalogDiffFlags)
+        : {},
+    reasonsPl: Array.isArray(row.reasonsPl)
+      ? row.reasonsPl.filter((x): x is string => typeof x === "string")
+      : [],
+  };
+}
+
 /** Strip pricing-like fields from entry — KNR norms ≠ PLN domain. */
-export function normalizeKnrCatalogEntry(raw: unknown): KnrCatalogEntry | null {
+export function normalizeKnrCatalogEntry(
+  raw: unknown,
+  opts?: { stripNestedProposed?: boolean },
+): KnrCatalogEntry | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Record<string, unknown>;
   for (const key of Object.keys(row)) {
@@ -205,6 +261,21 @@ export function normalizeKnrCatalogEntry(raw: unknown): KnrCatalogEntry | null {
       typeof row.updatedAt === "string" ? row.updatedAt : KNR_CATALOG_DEFAULT_UPDATED_AT,
     supersededBy: typeof row.supersededBy === "string" ? row.supersededBy : null,
     emptyNormsWithEvidence: row.emptyNormsWithEvidence === true ? true : undefined,
+    catalogRevision: Number.isFinite(Number(row.catalogRevision))
+      ? Math.max(0, Math.floor(Number(row.catalogRevision)))
+      : undefined,
+    lastResearchAt:
+      typeof row.lastResearchAt === "string"
+        ? row.lastResearchAt
+        : row.lastResearchAt === null
+          ? null
+          : undefined,
+    history: normalizeKnrCatalogHistory(row.history),
+    proposedUpdate: opts?.stripNestedProposed
+      ? null
+      : row.proposedUpdate == null
+        ? null
+        : normalizeProposedUpdateBag(row.proposedUpdate, true),
   };
 }
 

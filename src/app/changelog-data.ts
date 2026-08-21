@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-22",
+    version: "2.66.111",
+    label: "IK-KNR KL-7-P1 — KNR details / history / offline update",
+    items: [
+      {
+        type: "new",
+        text: "KL-7-P1: szczegóły Katalogu KNR · append-only history (cap 50) · offline proposed update + diff (SAME_HASH/DIFF_REVIEW/CONFLICT) · VERIFIED tylko przez KL-6 supersede. Zero HTTP/scraper/PLN/KNR→KNR-W/12J. Test: test-knr-catalog-p1.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-21",
     version: "2.66.110",
     label: "IK-KNR KL-7-P0 — Cloud KNR SSOT + CATALOG_HIT",

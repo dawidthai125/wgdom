@@ -26,6 +26,9 @@ export * from "./knr-catalog-lookup";
 export * from "./knr-catalog-write-router";
 export * from "./knr-catalog-ui";
 export * from "./knr-catalog-merge";
+export * from "./knr-catalog-history";
+export * from "./knr-catalog-update-compare";
+export * from "./knr-catalog-proposed-update";
 /** Cloud sync helpers — import path preferred for Host/UI to avoid accidental write. */
 export {
   loadKnrCatalogStore,

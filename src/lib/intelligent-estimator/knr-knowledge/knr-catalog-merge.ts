@@ -18,6 +18,7 @@ import {
   rebuildKnrAliasIndex,
   type KnrCatalogStore,
 } from "./knr-catalog-store";
+import { mergeKnrCatalogHistories } from "./knr-catalog-history";
 
 export type KnrCatalogMergeConflict = {
   identityKeyV2: string;
@@ -64,17 +65,41 @@ function parseIsoMs(iso: string | null | undefined): number {
   return Number.isFinite(t) ? t : 0;
 }
 
-/** Same contentHash — prefer higher verification, then newer verifiedAt/updatedAt. */
+/** Same contentHash — prefer higher verification, then newer verifiedAt/updatedAt; merge history. */
 function pickSameHashWinner(a: KnrCatalogEntry, b: KnrCatalogEntry): KnrCatalogEntry {
   const ra = verificationRank(a);
   const rb = verificationRank(b);
-  if (ra !== rb) return ra >= rb ? a : b;
-  const va = parseIsoMs(a.verifiedAt);
-  const vb = parseIsoMs(b.verifiedAt);
-  if (va !== vb) return va >= vb ? a : b;
-  const ua = parseIsoMs(a.updatedAt);
-  const ub = parseIsoMs(b.updatedAt);
-  return ua >= ub ? a : b;
+  let winner = a;
+  let loser = b;
+  if (ra !== rb) {
+    winner = ra >= rb ? a : b;
+    loser = winner === a ? b : a;
+  } else {
+    const va = parseIsoMs(a.verifiedAt);
+    const vb = parseIsoMs(b.verifiedAt);
+    if (va !== vb) {
+      winner = va >= vb ? a : b;
+      loser = winner === a ? b : a;
+    } else {
+      const ua = parseIsoMs(a.updatedAt);
+      const ub = parseIsoMs(b.updatedAt);
+      winner = ua >= ub ? a : b;
+      loser = winner === a ? b : a;
+    }
+  }
+  const revA = a.catalogRevision ?? 0;
+  const revB = b.catalogRevision ?? 0;
+  const proposed =
+    parseIsoMs(a.proposedUpdate?.proposedAt) >= parseIsoMs(b.proposedUpdate?.proposedAt)
+      ? a.proposedUpdate ?? b.proposedUpdate ?? null
+      : b.proposedUpdate ?? a.proposedUpdate ?? null;
+  return {
+    ...winner,
+    catalogRevision: Math.max(revA, revB) || winner.catalogRevision,
+    history: mergeKnrCatalogHistories(a.history, b.history),
+    proposedUpdate: proposed,
+    lastResearchAt: winner.lastResearchAt ?? loser.lastResearchAt ?? null,
+  };
 }
 
 /**
@@ -87,21 +112,44 @@ function pickConflictWinner(
 ): { entry: KnrCatalogEntry; keptSide: "local" | "cloud" } {
   const localServable = isKnrCatalogEntryServable(local);
   const cloudServable = isKnrCatalogEntryServable(cloud);
-  if (localServable && !cloudServable) return { entry: local, keptSide: "local" };
-  if (cloudServable && !localServable) return { entry: cloud, keptSide: "cloud" };
-  if (localServable && cloudServable) {
-    return { entry: local, keptSide: "local" };
+  let kept: KnrCatalogEntry;
+  let keptSide: "local" | "cloud";
+  if (localServable && !cloudServable) {
+    kept = local;
+    keptSide = "local";
+  } else if (cloudServable && !localServable) {
+    kept = cloud;
+    keptSide = "cloud";
+  } else if (localServable && cloudServable) {
+    kept = local;
+    keptSide = "local";
+  } else if (verificationRank(local) !== verificationRank(cloud)) {
+    if (verificationRank(local) >= verificationRank(cloud)) {
+      kept = local;
+      keptSide = "local";
+    } else {
+      kept = cloud;
+      keptSide = "cloud";
+    }
+  } else {
+    const ua = parseIsoMs(local.updatedAt);
+    const ub = parseIsoMs(cloud.updatedAt);
+    if (ub > ua) {
+      kept = cloud;
+      keptSide = "cloud";
+    } else {
+      kept = local;
+      keptSide = "local";
+    }
   }
-  // Neither servable — prefer higher verification rank, then newer updatedAt; local on tie.
-  if (verificationRank(local) !== verificationRank(cloud)) {
-    return verificationRank(local) >= verificationRank(cloud)
-      ? { entry: local, keptSide: "local" }
-      : { entry: cloud, keptSide: "cloud" };
-  }
-  const ua = parseIsoMs(local.updatedAt);
-  const ub = parseIsoMs(cloud.updatedAt);
-  if (ub > ua) return { entry: cloud, keptSide: "cloud" };
-  return { entry: local, keptSide: "local" };
+  // Preserve append-only history from both sides without changing authority payload.
+  return {
+    entry: {
+      ...kept,
+      history: mergeKnrCatalogHistories(local.history, cloud.history),
+    },
+    keptSide,
+  };
 }
 
 /**
