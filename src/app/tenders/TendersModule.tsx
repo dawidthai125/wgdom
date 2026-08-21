@@ -126,7 +126,7 @@ export function TendersModule({
   onNavigateToJobFromTender,
   athPreviewEnabled = true,
   initialExpandedId = null,
-  jobs: _jobs,
+  jobs,
   directory: _directory,
   productionWeekEmployees: _productionWeekEmployees,
   weekFrom: _weekFrom,
@@ -142,7 +142,10 @@ export function TendersModule({
   onNavigateToJobFromTender?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
   initialExpandedId?: string | null;
-  /** @deprecated ETAP 2 — dane w TendersProvider; zachowane dla kompatybilności sygnatury. */
+  /**
+   * kw-jobs SSOT from App — used for Historical Executed Host hydrate
+   * (completed kosztorys *.ath → historicalIndex). Not a second jobs store.
+   */
   jobs: Job[];
   directory: DirectoryEmployee[];
   productionWeekEmployees: WeekEmployee[];
@@ -150,7 +153,6 @@ export function TendersModule({
   weekTo: string;
   savedWeeks: WeekSnapshot[];
 }) {
-  void _jobs;
   void _directory;
   void _productionWeekEmployees;
   void _weekFrom;
@@ -206,6 +208,7 @@ export function TendersModule({
             onOpenJob={onOpenJob}
             athPreviewEnabled={athPreviewEnabled}
             canViewWorkCatalog={canViewWorkCatalog}
+            jobs={jobs}
           />
         ) : (
           <>

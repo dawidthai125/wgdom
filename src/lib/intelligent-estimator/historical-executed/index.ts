@@ -9,6 +9,10 @@ export * from "./historical-executed-types";
 export * from "./historical-executed-normalize";
 export * from "./historical-executed-index";
 export * from "./historical-executed-lookup";
+export * from "./historical-executed-discover";
+export * from "./historical-executed-host-hydrate";
+export * from "./use-historical-executed-host-index";
 
 export const HISTORICAL_EXECUTED_IMPLEMENTED = true as const;
 export const HISTORICAL_EXECUTED_AUTHORITY = false as const;
+export const HISTORICAL_EXECUTED_HOST_HYDRATE = true as const;

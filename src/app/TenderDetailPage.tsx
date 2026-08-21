@@ -78,6 +78,8 @@ import {
   isIkP4ChiefWiringPreferenceActive,
   resolveIkDetailFirstScreen,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
+import { useHistoricalExecutedHostIndex } from "@/lib/intelligent-estimator/historical-executed";
+import type { Job } from "@/app/app-domain";
 import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
 import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
 import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
@@ -89,6 +91,8 @@ export function TenderDetailPage({
   onOpenJob,
   athPreviewEnabled = true,
   canViewWorkCatalog = false,
+  /** kw-jobs from App via TendersModule — Historical Executed hydrate (READ-ONLY). */
+  jobs = [],
 }: {
   tenderId: string;
   /** Awaryjny fallback — SSOT: parseTenderDetailPath(location.pathname). */
@@ -97,6 +101,7 @@ export function TenderDetailPage({
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
   canViewWorkCatalog?: boolean;
+  jobs?: Job[];
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -233,6 +238,8 @@ export function TenderDetailPage({
   /** IK-MIGRATION-01 P1/P10 — independent of D. Default ON = IK first-screen (NG-10 removed). */
   const ikEntryOn = isIkEntryEnabled();
   const ikFirstScreen = resolveIkDetailFirstScreen(ikEntryOn);
+  /** Historical Executed Host hydrate — async; null ⇒ HISTORICAL_MISS (non-blocking). */
+  const { historicalIndex } = useHistoricalExecutedHostIndex(jobs, ikEntryOn === true);
 
   useEffect(() => {
     setTre01ForceWorkspace(false);
@@ -747,6 +754,7 @@ export function TenderDetailPage({
               onUpdate={onUpdateItem}
               athPreviewEnabled={athPreviewEnabled}
               chiefSession={chiefSessionEnabled ? chiefSession : null}
+              historicalIndex={historicalIndex}
               pipelineIngest={{
                 dossierBuilding: pipelineRuntime.dossierBuilding,
                 dossierEnriching: pipelineRuntime.dossierEnriching,

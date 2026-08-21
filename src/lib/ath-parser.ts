@@ -788,6 +788,17 @@ async function fetchBytesViaApi(storagePath: string, filename: string): Promise<
   return bytes;
 }
 
+/**
+ * Thin public adapter over existing kosztorys-preview bytes fetch.
+ * Used by Historical Executed Host hydrate (READ-ONLY) — no second download path.
+ */
+export async function fetchKosztorysBytes(
+  storagePath: string,
+  filename: string,
+): Promise<Uint8Array | null> {
+  return fetchBytesViaApi(storagePath, filename);
+}
+
 export async function fetchAndParseKosztorys(
   url: string,
   filename: string,
