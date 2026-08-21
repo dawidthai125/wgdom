@@ -841,12 +841,13 @@ export function adminIsInspector(role: AdminRole): boolean {
 
 
 export function adminIsSuperAdmin(role: AdminRole): boolean {
-
   return role === "super_admin";
-
 }
 
-
+/** KL-6 Owner VERIFY KNR catalog — Super Admin only (OD-KNR-VERIFY-1.1). */
+export function adminCanVerifyKnrCatalog(role: AdminRole): boolean {
+  return role === "super_admin";
+}
 
 /** Zakładka Przetargi — Super Admin zawsze; admin/moderator gdy włączone w ustawieniach. */
 export function adminCanViewTendersTab(

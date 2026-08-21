@@ -115,14 +115,21 @@ export function persistVerifiedKnrCatalogEntry(
   if (existing) {
     const existingHash = existing.contentHash.trim() || buildKnrNormContentHash(existing.norms);
     if (existingHash === contentHash) {
-      return { ok: true, outcome: "NOOP", store: current };
+      // Idempotent only when already VERIFIED+ACTIVE — PENDING→VERIFIED is CREATED upgrade.
+      if (
+        existing.verificationStatus === "VERIFIED"
+        && existing.lifecycleState === "ACTIVE"
+      ) {
+        return { ok: true, outcome: "NOOP", store: current };
+      }
+    } else {
+      return {
+        ok: false,
+        reason: "CONTENT_CONFLICT",
+        messagePl: "Ten sam identityKeyV2 z innym contentHash — brak nadpisania.",
+        store: current,
+      };
     }
-    return {
-      ok: false,
-      reason: "CONTENT_CONFLICT",
-      messagePl: "Ten sam identityKeyV2 z innym contentHash — brak nadpisania.",
-      store: current,
-    };
   }
 
   const nextStore = applyEntryToStore(current, { ...entry, contentHash }, nowIso);
