@@ -1,10 +1,18 @@
 /**
  * Expert Conversation Surface — presentation timeline over existing Dossier/Trace.
  * ZERO engine delay · Skip / Continue · reduced-motion aware.
+ *
+ * DESIGN FREEZE (Historical EC observability):
+ *   structuralSignature → may restart progressive reveal
+ *   contentSignature (messagePl / messageWeight) → in-place update · NO reveal reset
+ * Reveal-reset effect MUST NOT depend on `steps` (ARCH REVIEW hard requirement).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ExpertConversationViewModel } from "@/lib/expert-conversation-ui";
+import type {
+  ExpertConversationStepView,
+  ExpertConversationViewModel,
+} from "@/lib/expert-conversation-ui";
 import {
   EXPERT_CONVERSATION_CONTINUE_PL,
   EXPERT_CONVERSATION_SKIP_PL,
@@ -14,6 +22,22 @@ import {
 } from "@/lib/expert-conversation-ui";
 import { TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 import { ExpertConversationStepCard } from "./ExpertConversationStepCard";
+
+/** Structural only — id/status/length/phase. Excludes messageWeight / messagePl. */
+export function buildExpertConversationStructuralSignature(
+  uiPhase: string,
+  caseIdShort: string | null | undefined,
+  steps: readonly Pick<ExpertConversationStepView, "id" | "status">[],
+): string {
+  return `${uiPhase}|${caseIdShort ?? ""}|${steps.map((s) => `${s.id}:${s.status}`).join(",")}|len=${steps.length}`;
+}
+
+/** Content fingerprint — messageWeight only (presentation). Not a reveal-reset trigger. */
+export function buildExpertConversationContentSignature(
+  steps: readonly Pick<ExpertConversationStepView, "id" | "messageWeight">[],
+): string {
+  return steps.map((s) => `${s.id}:${s.messageWeight}`).join(",");
+}
 
 function scrollToDecision(): void {
   const el =
@@ -36,6 +60,9 @@ export function ExpertConversationSurface({
   const userScrolledRef = useRef(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const timersRef = useRef<number[]>([]);
+  /** Latest steps for structural effect body — effect MUST NOT list `steps` in deps. */
+  const stepsRef = useRef(steps);
+  stepsRef.current = steps;
 
   const clearTimers = useCallback(() => {
     for (const t of timersRef.current) window.clearTimeout(t);
@@ -48,25 +75,40 @@ export function ExpertConversationSurface({
     setRevealedCount(stepCount);
   }, [clearTimers, stepCount]);
 
-  // Reset when case / phase / step signatures change
-  const signature = useMemo(
+  const structuralSignature = useMemo(
     () =>
-      `${vm.uiPhase}|${vm.caseIdShort ?? ""}|${steps.map((s) => `${s.id}:${s.status}:${s.messageWeight}`).join(",")}`,
+      buildExpertConversationStructuralSignature(
+        vm.uiPhase,
+        vm.caseIdShort,
+        steps,
+      ),
     [vm.uiPhase, vm.caseIdShort, steps],
   );
 
+  // Content fingerprint: documents messagePl weight changes (e.g. late historicalIndex).
+  // Intentionally unused by reveal-reset effect — in-place React re-render only.
+  const contentSignature = useMemo(
+    () => buildExpertConversationContentSignature(steps),
+    [steps],
+  );
+  void contentSignature;
+
+  // Restart progressive reveal ONLY on structural changes (not messageWeight / content).
   useEffect(() => {
     clearTimers();
     setSkipped(false);
     userScrolledRef.current = false;
 
-    if (!vm.visible || stepCount === 0) {
+    const currentSteps = stepsRef.current;
+    const n = currentSteps.length;
+
+    if (!vm.visible || n === 0) {
       setRevealedCount(0);
       return;
     }
 
     if (prefersReducedMotion()) {
-      setRevealedCount(stepCount);
+      setRevealedCount(n);
       setSkipped(true);
       return;
     }
@@ -78,7 +120,7 @@ export function ExpertConversationSurface({
       vm.uiPhase === "finished_other" ||
       vm.uiPhase === "cancelled" ||
       vm.uiPhase === "error";
-    const allSettled = steps.every(
+    const allSettled = currentSteps.every(
       (s) =>
         s.status === "done" ||
         s.status === "blocked" ||
@@ -87,13 +129,13 @@ export function ExpertConversationSurface({
 
     // Still animate presentation for terminal (Owner: show process) unless reduced motion
     const delays = scaleConversationDelays(
-      steps.map((s) => conversationStepDelayMs(s.messageWeight, "normal")),
+      currentSteps.map((s) => conversationStepDelayMs(s.messageWeight, "normal")),
       "normal",
     );
 
     setRevealedCount(1);
     let acc = 0;
-    for (let i = 1; i < stepCount; i++) {
+    for (let i = 1; i < n; i++) {
       acc += delays[i - 1] ?? 350;
       const handle = window.setTimeout(() => {
         setRevealedCount((c) => Math.max(c, i + 1));
@@ -106,7 +148,10 @@ export function ExpertConversationSurface({
     void allSettled;
 
     return () => clearTimers();
-  }, [signature, vm.visible, stepCount, steps, clearTimers]);
+    // ARCH: do NOT add `steps` / contentSignature / stepCount — late historicalIndex
+    // rebuilds steps array + messageWeight and would restart reveal (same bug).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- structuralSignature encodes len/ids/status/phase
+  }, [structuralSignature, vm.visible, clearTimers]);
 
   useEffect(() => {
     const el = listRef.current;
