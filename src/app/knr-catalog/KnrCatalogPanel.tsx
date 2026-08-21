@@ -26,10 +26,21 @@ import {
   type KnrCatalogUiRow,
   type KnrCatalogUiVerificationFilter,
 } from "@/lib/intelligent-estimator/knr-knowledge/knr-catalog-ui";
+import {
+  KNR_DISCOVERY_UI_FRESHNESS_FILTERS,
+  KNR_DISCOVERY_UI_STATUS_FILTERS,
+  buildKnrDiscoveryUiRows,
+  loadKnrDiscoveryEntriesForUi,
+  type KnrDiscoveryUiFreshnessFilter,
+  type KnrDiscoveryUiRow,
+  type KnrDiscoveryUiStatusFilter,
+} from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-ui";
 import type {
   KnrCatalogEntry,
   KnrNormLine,
 } from "@/lib/intelligent-estimator/knr-knowledge/knr-catalog-entry-types";
+import type { KnrDiscoveryEvidenceRecord } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-types";
+import { knrDiscoveryStatusLabelPl } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-types";
 import {
   knrHistoryKindLabelPl,
   type KnrCatalogHistoryEntry,
@@ -42,6 +53,47 @@ import {
   compareKnrCatalogUpdate,
   type KnrCatalogCompareResult,
 } from "@/lib/intelligent-estimator/knr-knowledge/knr-catalog-update-compare";
+
+function SourcesPanel({ record }: { record: KnrDiscoveryEvidenceRecord }) {
+  if (!record.sources.length) {
+    return (
+      <p className="text-[11px] text-muted-foreground" data-knr-discovery-sources-empty>
+        Brak źródeł discovery (offline memory).
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-2" data-knr-discovery-sources>
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-foreground">
+        Źródła
+      </div>
+      <ul className="space-y-2">
+        {record.sources.map((s) => (
+          <li
+            key={`${s.sourceId}-${s.urlHash}`}
+            className="rounded-lg border border-border/60 bg-secondary/20 p-2 text-[11px] space-y-0.5"
+            data-knr-discovery-source={s.sourceId}
+          >
+            <div className="font-medium text-foreground">
+              {s.priority} · {s.sourceId}
+            </div>
+            {s.title ? <div>{s.title}</div> : null}
+            {s.fragment ? <div className="line-clamp-2">{s.fragment}</div> : null}
+            <div className="break-all text-muted-foreground">urlHash: {s.urlHash}</div>
+            <div className="break-all text-muted-foreground">
+              contentHash: {s.contentHash}
+            </div>
+            <div>{formatCatalogDateTimePl(s.fetchedAt)}</div>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[10px] text-muted-foreground">
+        Status discovery: {knrDiscoveryStatusLabelPl(record.discoveryStatus)} · nie jest
+        VERIFIED · bez HTTP.
+      </p>
+    </div>
+  );
+}
 
 function DetailSection({
   title,
@@ -249,11 +301,24 @@ export function KnrCatalogPanel() {
   const [updateMsg, setUpdateMsg] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [cloudHydrated, setCloudHydrated] = useState(false);
+  const [discoverySearch, setDiscoverySearch] = useState("");
+  const [discoveryStatusFilter, setDiscoveryStatusFilter] =
+    useState<KnrDiscoveryUiStatusFilter>("ALL");
+  const [discoveryFreshnessFilter, setDiscoveryFreshnessFilter] =
+    useState<KnrDiscoveryUiFreshnessFilter>("ALL");
+  const [discoveryPage, setDiscoveryPage] = useState(1);
+  const [sourcesRowId, setSourcesRowId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void import("@/lib/intelligent-estimator/knr-knowledge/knr-catalog-sync")
-      .then(({ loadKnrCatalogStore }) => loadKnrCatalogStore())
+    void Promise.all([
+      import("@/lib/intelligent-estimator/knr-knowledge/knr-catalog-sync").then(
+        ({ loadKnrCatalogStore }) => loadKnrCatalogStore(),
+      ),
+      import("@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-sync").then(
+        ({ loadKnrDiscoveryEvidenceStore }) => loadKnrDiscoveryEvidenceStore(),
+      ),
+    ])
       .then(() => {
         if (!cancelled) {
           setCloudHydrated(true);
@@ -273,6 +338,11 @@ export function KnrCatalogPanel() {
     return loadKnrCatalogEntriesForUi({ useDemoWhenEmpty: true });
   }, [tick]);
 
+  const discoveryLoaded = useMemo(() => {
+    void tick;
+    return loadKnrDiscoveryEntriesForUi({ useFixtureWhenEmpty: true });
+  }, [tick]);
+
   const allRows = useMemo(
     () =>
       buildKnrCatalogUiRows({
@@ -283,6 +353,28 @@ export function KnrCatalogPanel() {
         isUxFixture: loaded.source === "ux1_demo",
       }),
     [loaded],
+  );
+
+  const discoveryRows = useMemo(
+    () =>
+      buildKnrDiscoveryUiRows({
+        records: discoveryLoaded.records,
+        search: discoverySearch,
+        statusFilter: discoveryStatusFilter,
+        freshnessFilter: discoveryFreshnessFilter,
+        isOfflineFixture: discoveryLoaded.source === "p2a_fixture",
+      }),
+    [
+      discoveryLoaded,
+      discoverySearch,
+      discoveryStatusFilter,
+      discoveryFreshnessFilter,
+    ],
+  );
+
+  const discoveryPageData = useMemo(
+    () => paginateKnrCatalogUiRows(discoveryRows, discoveryPage, KNR_CATALOG_UI_PAGE_SIZE),
+    [discoveryRows, discoveryPage],
   );
 
   const summary = useMemo(() => {
@@ -325,6 +417,19 @@ export function KnrCatalogPanel() {
     if (next.freshness != null) setFreshnessFilter(next.freshness);
     if (next.verification != null) setVerificationFilter(next.verification);
     setPage(1);
+  }
+
+  function onDiscoveryQueryChange(
+    next: Partial<{
+      search: string;
+      status: KnrDiscoveryUiStatusFilter;
+      freshness: KnrDiscoveryUiFreshnessFilter;
+    }>,
+  ): void {
+    if (next.search != null) setDiscoverySearch(next.search);
+    if (next.status != null) setDiscoveryStatusFilter(next.status);
+    if (next.freshness != null) setDiscoveryFreshnessFilter(next.freshness);
+    setDiscoveryPage(1);
   }
 
   function openUpdate(row: KnrCatalogUiRow): void {
@@ -451,9 +556,16 @@ export function KnrCatalogPanel() {
             variant="secondary"
             className={cn(WG_TOUCH_MIN, "!text-[11px]")}
             onClick={() => {
-              void import("@/lib/intelligent-estimator/knr-knowledge/knr-catalog-sync")
-                .then(({ loadKnrCatalogStore }) => loadKnrCatalogStore())
-                .finally(() => setTick((n) => n + 1));
+              void Promise.all([
+                import("@/lib/intelligent-estimator/knr-knowledge/knr-catalog-sync").then(
+                  ({ loadKnrCatalogStore }) => loadKnrCatalogStore(),
+                ),
+                import(
+                  "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-sync"
+                ).then(({ loadKnrDiscoveryEvidenceStore }) =>
+                  loadKnrDiscoveryEvidenceStore(),
+                ),
+              ]).finally(() => setTick((n) => n + 1));
             }}
             aria-label="Odśwież katalog lokalny / cloud"
           >
@@ -588,6 +700,151 @@ export function KnrCatalogPanel() {
           pageSize={pageData.pageSize}
           onPrev={() => setPage((p) => Math.max(1, p - 1))}
           onNext={() => setPage((p) => p + 1)}
+        />
+      </div>
+
+      <div
+        className="rounded-xl border border-border bg-card p-3 sm:p-4 space-y-3"
+        data-knr-discovery-evidence-panel
+        data-knr-discovery-source={discoveryLoaded.source}
+      >
+        <div>
+          <h3 className="text-sm font-semibold">Discovery Evidence (P2A)</h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+            Pamięć discovery · osobny store od katalogu authority · HTTP OFF · nie jest
+            VERIFIED · nie zasila wyceny.
+          </p>
+        </div>
+
+        {discoveryLoaded.source === "p2a_fixture" && (
+          <p
+            className="text-[11px] rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2"
+            role="status"
+            data-knr-discovery-fixture-banner
+          >
+            Lokalny discovery evidence pusty — pokazano offline fixture P2A (CORROBORATED +
+            DISCOVERED). Bez fetch · bez PLN.
+          </p>
+        )}
+
+        <CatalogFreshnessToolbar
+          filters={KNR_DISCOVERY_UI_FRESHNESS_FILTERS}
+          selected={discoveryFreshnessFilter}
+          onSelect={(id) => onDiscoveryQueryChange({ freshness: id })}
+          search={discoverySearch}
+          onSearch={(raw) => onDiscoveryQueryChange({ search: raw })}
+          searchPlaceholder="Evidence key, family, opis…"
+          searchAriaLabel="Wyszukaj w discovery evidence"
+        />
+
+        <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
+          {KNR_DISCOVERY_UI_STATUS_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => onDiscoveryQueryChange({ status: f.id })}
+              aria-pressed={discoveryStatusFilter === f.id}
+              aria-label={`Filtr evidence: ${f.label}`}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-[11px] font-medium border min-h-[40px] shrink-0",
+                WG_TOUCH_MIN,
+                discoveryStatusFilter === f.id
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border bg-secondary/30 text-muted-foreground",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="overflow-x-auto -mx-1 px-1">
+          <table className="w-full text-left text-xs min-w-[720px]">
+            <thead className="bg-secondary/40 text-muted-foreground">
+              <tr>
+                <th className="px-2 py-2 font-medium">Kod</th>
+                <th className="px-2 py-2 font-medium">Family</th>
+                <th className="px-2 py-2 font-medium">Discovery</th>
+                <th className="px-2 py-2 font-medium">Źródła</th>
+                <th className="px-2 py-2 font-medium">Freshness</th>
+                <th className="px-2 py-2 font-medium">R/M/S</th>
+                <th className="px-2 py-2 font-medium">Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              {discoveryPageData.items.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-3 py-6 text-center text-muted-foreground"
+                    data-knr-discovery-empty
+                  >
+                    Brak rekordów discovery evidence.
+                  </td>
+                </tr>
+              )}
+              {discoveryPageData.items.map((row: KnrDiscoveryUiRow) => {
+                const open = sourcesRowId === row.rowId;
+                return (
+                  <tr
+                    key={row.rowId}
+                    className="border-t border-border/60 align-top hover:bg-secondary/20"
+                    data-knr-discovery-row={row.evidenceKeyV1}
+                    data-discovery-status={row.discoveryStatus}
+                    data-ops-freshness={row.freshness}
+                  >
+                    <td className="px-2 py-2 font-medium whitespace-nowrap">
+                      {row.displayCode}
+                    </td>
+                    <td className="px-2 py-2">{row.family}</td>
+                    <td className="px-2 py-2 whitespace-nowrap">{row.discoveryLabelPl}</td>
+                    <td className="px-2 py-2">
+                      {row.sourceCount} · {row.sourcesSummaryPl}
+                    </td>
+                    <td className="px-2 py-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 font-medium whitespace-nowrap",
+                          catalogFreshnessToneClass(row.freshnessChrome),
+                        )}
+                      >
+                        <span aria-hidden>{catalogFreshnessDot(row.freshnessChrome)}</span>
+                        {row.freshnessLabelPl}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap">{row.normsSummaryPl}</td>
+                    <td className="px-2 py-2">
+                      <WgButton
+                        type="button"
+                        variant="secondary"
+                        className={cn(WG_TOUCH_MIN, "!px-2 !text-[11px]")}
+                        onClick={() => setSourcesRowId(open ? null : row.rowId)}
+                        aria-expanded={open}
+                        aria-label={`Źródła: ${row.displayCode}`}
+                        data-knr-discovery-sources-btn
+                      >
+                        {open ? "Ukryj źródła" : "Źródła"}
+                      </WgButton>
+                      {open && (
+                        <div className="mt-2 rounded-lg border border-border/70 bg-secondary/20 p-2 max-w-[22rem]">
+                          <SourcesPanel record={row.record} />
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <CatalogPager
+          page={discoveryPageData.page}
+          totalPages={discoveryPageData.totalPages}
+          total={discoveryPageData.total}
+          pageSize={discoveryPageData.pageSize}
+          onPrev={() => setDiscoveryPage((p) => Math.max(1, p - 1))}
+          onNext={() => setDiscoveryPage((p) => p + 1)}
         />
       </div>
 

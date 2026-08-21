@@ -37,6 +37,19 @@ export {
   KNR_CATALOG_CLOUD_P0_IMPLEMENTED,
 } from "./knr-catalog-sync";
 
+/** KL-7-P2A — discovery evidence memory (≠ catalog · ≠ ATH · HTTP OFF). */
+export * from "./knr-discovery-evidence-types";
+export * from "./knr-discovery-evidence-store";
+export * from "./knr-discovery-evidence-merge";
+export * from "./knr-discovery-evidence-lookup";
+export * from "./knr-discovery-evidence-fixtures";
+export * from "./knr-discovery-evidence-ui";
+export {
+  loadKnrDiscoveryEvidenceStore,
+  saveKnrDiscoveryEvidenceStore,
+  KnrDiscoveryDestructivePersistError,
+  KNR_DISCOVERY_SYNC_P2A_IMPLEMENTED,
+} from "./knr-discovery-evidence-sync";
 
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";
