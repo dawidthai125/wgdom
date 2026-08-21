@@ -43,15 +43,29 @@ function read(rel) {
 }
 
 assert("T-SEED-M implemented", KNR_OWNER_IDENTITY_SEED_V1_IMPLEMENTED === true);
-assert("T-SEED-M status EMPTY", KNR_OWNER_IDENTITY_SEED_V1_STATUS === "EMPTY");
+assert("T-SEED-M status PILOT_WYKWITY", KNR_OWNER_IDENTITY_SEED_V1_STATUS === "PILOT_WYKWITY");
 
 const snap = getOwnerKnrIdentitySeedV1Snapshot();
-assert("T-SEED-empty position", snap.positionCount === 0 && OWNER_KNR_MAPPINGS.length === 0);
+assert("T-SEED-pilot position count 1", snap.positionCount === 1 && OWNER_KNR_MAPPINGS.length === 1);
 assert("T-SEED-empty material", snap.materialCount === 0 && OWNER_KNR_MATERIAL_MAPPINGS.length === 0);
-assert("T-SEED-missing documented", snap.missing.length >= 2);
+assert("T-SEED-missing documented", snap.missing.length >= 1);
 
-const posValidateEmpty = validateOwnerKnrPositionSeedTable(OWNER_KNR_MAPPINGS);
-assert("T-SEED-validate empty position ok", posValidateEmpty.ok);
+const pilot = OWNER_KNR_MAPPINGS[0];
+assert(
+  "T-SEED-pilot row exact",
+  pilot?.mappingId === "owner-knr-wykwity-1202-07" &&
+    pilot?.normalizedKey === "KNR-W|4-01|1202-07" &&
+    pilot?.workId === "cc-w2-wykwity-zacieki" &&
+    pilot?.catalogUnit === "m2" &&
+    pilot?.ownerApproval === true &&
+    pilot?.active === true,
+);
+assert("T-SEED-no invent KNR|4-01|1202-07", !OWNER_KNR_MAPPINGS.some((r) => r.normalizedKey === "KNR|4-01|1202-07"));
+
+const posValidateProd = validateOwnerKnrPositionSeedTable(OWNER_KNR_MAPPINGS, [
+  { id: "cc-w2-wykwity-zacieki", unit: "m2", active: true },
+]);
+assert("T-SEED-validate prod position ok", posValidateProd.ok);
 const matValidateEmpty = validateOwnerKnrMaterialSeedTable(OWNER_KNR_MATERIAL_MAPPINGS);
 assert("T-SEED-validate empty material ok", matValidateEmpty.ok);
 
@@ -266,7 +280,42 @@ function resolveMat(table, resourceUnit = "kg") {
     works,
     table: OWNER_KNR_MAPPINGS,
   });
-  assert("T-SEED-empty table no overlay write", overlay.catalogWorkIdWritten === 0);
+  assert("T-SEED-null knr no overlay write", overlay.catalogWorkIdWritten === 0);
+
+  const overlayHit = applyOwnerKnrMapping({
+    documentExpert: {
+      status: "COMPLETED",
+      masterBoqLines: [
+        {
+          dwellingId: "d1",
+          line: {
+            lineId: "L-WYK",
+            unit: "m2",
+            catalogWorkId: null,
+            catalogBasis: { normalizedKey: "KNR-W|4-01|1202-07" },
+          },
+        },
+      ],
+    },
+    knr: {
+      status: "COMPLETED",
+      lines: [
+        {
+          dwellingId: "d1",
+          lineId: "L-WYK",
+          lineStatus: "CANDIDATE",
+          catalogBasis: { normalizedKey: "KNR-W|4-01|1202-07" },
+        },
+      ],
+    },
+    works: [{ id: "cc-w2-wykwity-zacieki", unit: "m2", active: true }],
+    table: OWNER_KNR_MAPPINGS,
+  });
+  assert(
+    "T-SEED-pilot overlay writes workId",
+    overlayHit.catalogWorkIdWritten === 1 &&
+      overlayHit.expert.masterBoqLines?.[0]?.line?.catalogWorkId === "cc-w2-wykwity-zacieki",
+  );
 }
 
 {

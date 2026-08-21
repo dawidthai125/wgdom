@@ -116,7 +116,13 @@ function baseInput(overrides = {}) {
 
 assert("T-APP2-ID-M implemented", KNR_KNOWLEDGE_KL_APP2_ID_IMPLEMENTED === true);
 assert("T-APP2-ID-15 empty material table legal", OWNER_KNR_MATERIAL_MAPPINGS.length === 0);
-assert("T-APP2-ID-15 empty position table legal", OWNER_KNR_MAPPINGS.length === 0);
+assert(
+  "T-APP2-ID-15 prod position pilot 1",
+  OWNER_KNR_MAPPINGS.length === 1 &&
+    OWNER_KNR_MAPPINGS[0]?.normalizedKey === "KNR-W|4-01|1202-07" &&
+    OWNER_KNR_MAPPINGS[0]?.workId === "cc-w2-wykwity-zacieki" &&
+    OWNER_KNR_MAPPINGS[0]?.catalogUnit === "m2",
+);
 
 // 1 Position HIT
 {

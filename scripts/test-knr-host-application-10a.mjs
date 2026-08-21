@@ -41,7 +41,12 @@ function assert(name, cond, extra) {
 }
 
 assert("T-10A-M implemented", KNR_KNOWLEDGE_KL_HOST_APP_IMPLEMENTED === true);
-assert("T-10A-11 empty prod position maps", OWNER_KNR_MAPPINGS.length === 0);
+assert(
+  "T-10A-11 prod position maps pilot 1",
+  OWNER_KNR_MAPPINGS.length === 1 &&
+    OWNER_KNR_MAPPINGS[0]?.normalizedKey === "KNR-W|4-01|1202-07" &&
+    OWNER_KNR_MAPPINGS[0]?.workId === "cc-w2-wykwity-zacieki",
+);
 assert("T-10A-11 empty prod material maps", OWNER_KNR_MATERIAL_MAPPINGS.length === 0);
 
 function makeWork(id, unit, extra = {}) {

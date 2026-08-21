@@ -1,8 +1,8 @@
 /**
  * IK-KNR Owner Identity Seed v1 — static tables status (ZERO invent · ZERO pricing · ZERO BOQ).
  *
- * Production arrays remain empty until Owner supplies concrete:
- *   catalogBasis.normalizedKey → active CatalogWork.workId (+ unit)
+ * Production position table: labor-only WYKWITY pilot (1 Owner-approved row).
+ * Material table remains empty until Owner supplies:
  *   M-line.code → materialKey (+ EXACT_FOLD units + provenance)
  *
  * REUSE: OwnerKnrMappingRow / OWNER_KNR_MAPPINGS · OwnerKnrMaterialMappingRow /
@@ -25,17 +25,15 @@ import { foldKnrNormAppUnit } from "./knr-norm-application";
 
 export const KNR_OWNER_IDENTITY_SEED_V1_IMPLEMENTED = true as const;
 
-/** v1: no Owner-approved pilot rows in repo — empty is legal. */
-export const KNR_OWNER_IDENTITY_SEED_V1_STATUS = "EMPTY" as const;
+/** v1: labor-only WYKWITY pilot seeded; material table still empty (legal). */
+export const KNR_OWNER_IDENTITY_SEED_V1_STATUS = "PILOT_WYKWITY" as const;
 
 /**
- * Concrete data still required from Owner before non-empty production seed.
- * Do not treat harness inject fixtures as production rows.
+ * Remaining Owner data before broader seed. Do not treat harness inject fixtures as production rows.
  */
 export const KNR_OWNER_IDENTITY_SEED_V1_MISSING: readonly string[] = [
-  "Owner-approved position rows: normalizedKey (catalogBasis) + existing active workId + catalogUnit",
   "Owner-approved material rows: knrNormCode + materialKey + resourceUnit/pricingUnit + provenance",
-  "Confirmation that candidate keys from tests/docs are NOT production authority",
+  "Confirmation that candidate keys from tests/docs are NOT production authority (beyond WYKWITY pilot)",
 ] as const;
 
 export {
@@ -203,7 +201,7 @@ export function validateOwnerKnrMaterialSeedTable(
   return { ok: issues.length === 0, issues };
 }
 
-/** Production seed snapshot — both tables empty in v1. */
+/** Production seed snapshot — position pilot WYKWITY · material empty. */
 export function getOwnerKnrIdentitySeedV1Snapshot(): {
   status: typeof KNR_OWNER_IDENTITY_SEED_V1_STATUS;
   positionCount: number;

@@ -5,9 +5,8 @@
  * WRITE: catalogWorkId only, on LINE COPIES (never shared ref.line).
  * ZERO knrHint / mapper / A1 / P3 / Research / KV / settings / flags.
  *
- * Production table v1 is empty (legal) until Owner supplies concrete
- * catalogBasis.normalizedKey → workId rows (see knr-owner-identity-seed.ts).
- * Do not invent KNR table codes / workIds here.
+ * Production table: labor-only WYKWITY pilot (1 Owner-approved row).
+ * Do not invent additional KNR table codes / workIds here.
  *
  * P3 SEAM (host, not this module): IkEntryHost runs applyOwnerKnrMapping, then
  * existing P3 classification on the overlay expert and passes opts.classification
@@ -47,8 +46,20 @@ export type OwnerKnrMappingApplyResult = {
   catalogWorkIdWritten: number;
 };
 
-/** Production v1 — empty is legal. Do not seed KNR table codes here. */
-export const OWNER_KNR_MAPPINGS: readonly OwnerKnrMappingRow[] = [];
+/**
+ * Production Owner authority — labor-only pilot (WYKWITY).
+ * Exactly one approved active row. Do not invent additional keys here.
+ */
+export const OWNER_KNR_MAPPINGS: readonly OwnerKnrMappingRow[] = [
+  {
+    mappingId: "owner-knr-wykwity-1202-07",
+    normalizedKey: "KNR-W|4-01|1202-07",
+    workId: "cc-w2-wykwity-zacieki",
+    catalogUnit: "m2",
+    ownerApproval: true,
+    active: true,
+  },
+];
 
 function cloneMasterRefs(refs: readonly IkMasterBoqLineRef[]): IkMasterBoqLineRef[] {
   return refs.map((ref) => ({

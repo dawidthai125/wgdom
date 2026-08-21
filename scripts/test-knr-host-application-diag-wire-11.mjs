@@ -42,7 +42,12 @@ function assert(name, cond, extra) {
 }
 
 assert("T-11-M implemented", KNR_KNOWLEDGE_KL_HOST_APP_DIAG_IMPLEMENTED === true);
-assert("T-11 maps empty prod", OWNER_KNR_MAPPINGS.length === 0 && OWNER_KNR_MATERIAL_MAPPINGS.length === 0);
+assert(
+  "T-11 prod maps pilot position 1 material 0",
+  OWNER_KNR_MAPPINGS.length === 1 &&
+    OWNER_KNR_MAPPINGS[0]?.mappingId === "owner-knr-wykwity-1202-07" &&
+    OWNER_KNR_MATERIAL_MAPPINGS.length === 0,
+);
 
 function makeWork(id, unit, extra = {}) {
   return {
