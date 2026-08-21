@@ -51,6 +51,16 @@ export {
   KNR_DISCOVERY_SYNC_P2A_IMPLEMENTED,
 } from "./knr-discovery-evidence-sync";
 
+/** KL-7-P2B — HTTP discovery foundation (DEFAULT OFF · empty allowlist). */
+export * from "./knr-discovery-http-types";
+export * from "./knr-discovery-allowlist";
+export * from "./knr-discovery-ssrf";
+export * from "./knr-discovery-http-legal";
+export * from "./knr-discovery-http-planner";
+export * from "./knr-discovery-http-exec";
+export * from "./knr-discovery-http-ingest";
+export * from "./knr-host-discovery-sidechannel";
+
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";
 export * from "./knr-evidence-store";

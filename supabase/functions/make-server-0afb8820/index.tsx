@@ -5058,4 +5058,144 @@ app.post("/make-server-0afb8820/work-rate-selective-lookup", async (c) => {
   }
 });
 
+// --- KL-7-P2B — KNR discovery selective lookup (DEFAULT OFF · empty allowlist · no raw URL) ---
+/** Production allowlist EMPTY — live hosts require separate Owner GO. */
+const KNR_DISCOVERY_EDGE_ALLOWLIST: ReadonlyArray<{
+  sourceId: string;
+  hostname: string;
+  url: string;
+}> = Object.freeze([]);
+
+const KNR_DISCOVERY_HTTP_MAX_BYTES = 400_000;
+const KNR_DISCOVERY_HTTP_TIMEOUT_MS = 12_000;
+
+function knrDiscoverySsrfDeniedHost(hostname: string): boolean {
+  const host = String(hostname || "").trim().toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host) return true;
+  if (
+    host === "localhost"
+    || host.endsWith(".localhost")
+    || host === "metadata.google.internal"
+    || host === "metadata.google"
+  ) {
+    return true;
+  }
+  if (/^(?:127\.|10\.|0\.|192\.168\.|169\.254\.|172\.(?:1[6-9]|2\d|3[0-1])\.)/.test(host)) {
+    return true;
+  }
+  if (/^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
+  if (host === "::1" || host.startsWith("fe80:") || /^f[cd][0-9a-f]{0,2}:/i.test(host)) {
+    return true;
+  }
+  const mapped = host.match(/:ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  if (mapped && knrDiscoverySsrfDeniedHost(mapped[1]!)) return true;
+  return false;
+}
+
+function knrDiscoveryUrlSafe(urlStr: string): { ok: true; url: URL } | { ok: false; error: string } {
+  try {
+    const url = new URL(String(urlStr || "").trim());
+    if (url.protocol !== "https:") return { ok: false, error: "non_https" };
+    if (url.username || url.password) return { ok: false, error: "invalid_url" };
+    if (knrDiscoverySsrfDeniedHost(url.hostname)) return { ok: false, error: "ssrf_denied" };
+    return { ok: true, url };
+  } catch {
+    return { ok: false, error: "invalid_url" };
+  }
+}
+
+function knrDiscoveryResolveSource(body: Record<string, unknown>): {
+  ok: true;
+  sourceId: string;
+  requestUrl: string;
+} | { ok: false; error: string } {
+  if (Object.prototype.hasOwnProperty.call(body, "url")) {
+    return { ok: false, error: "arbitrary_url_forbidden" };
+  }
+  if (KNR_DISCOVERY_EDGE_ALLOWLIST.length === 0) {
+    return { ok: false, error: "allowlist_empty" };
+  }
+  const sourceId = String(body.sourceId || "").trim();
+  if (!sourceId) return { ok: false, error: "unknown_source" };
+  const entry = KNR_DISCOVERY_EDGE_ALLOWLIST.find((e) => e.sourceId === sourceId);
+  if (!entry) return { ok: false, error: "unknown_source" };
+  const safe = knrDiscoveryUrlSafe(entry.url);
+  if (!safe.ok) return { ok: false, error: safe.error };
+  if (safe.url.hostname.toLowerCase() !== entry.hostname.toLowerCase()) {
+    return { ok: false, error: "host_mismatch" };
+  }
+  return { ok: true, sourceId, requestUrl: safe.url.toString() };
+}
+
+app.post("/make-server-0afb8820/knr-discovery-selective-lookup", async (c) => {
+  try {
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+    const resolved = knrDiscoveryResolveSource(body);
+    if (!resolved.ok) {
+      return c.json({ ok: false, error: resolved.error, httpRequestCount: 0 }, 400);
+    }
+    const res = await fetch(resolved.requestUrl, {
+      headers: {
+        "User-Agent": "WGDOM/2.66 knr-discovery-selective",
+        Accept: "text/html,text/plain",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(KNR_DISCOVERY_HTTP_TIMEOUT_MS),
+    });
+    const finalUrl = String(res.url || resolved.requestUrl);
+    const finalSafe = knrDiscoveryUrlSafe(finalUrl);
+    if (!finalSafe.ok) {
+      return c.json({ ok: false, error: finalSafe.error, httpRequestCount: 1 }, 502);
+    }
+    const allowHost = KNR_DISCOVERY_EDGE_ALLOWLIST.some(
+      (e) => e.hostname.toLowerCase() === finalSafe.url.hostname.toLowerCase(),
+    );
+    if (!allowHost) {
+      return c.json({ ok: false, error: "redirect_host_rejected", httpRequestCount: 1 }, 502);
+    }
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    if (ct.includes("pdf")) {
+      return c.json({ ok: false, error: "pdf_unsupported", httpRequestCount: 1 }, 502);
+    }
+    if (!ct.includes("html") && !ct.includes("text/plain") && !ct.includes("xhtml")) {
+      return c.json({ ok: false, error: "unsupported_content_type", httpRequestCount: 1 }, 502);
+    }
+    if (!res.ok) {
+      return c.json({ ok: false, error: `upstream_${res.status}`, httpRequestCount: 1 }, 502);
+    }
+    const text = await res.text();
+    if (text.length > KNR_DISCOVERY_HTTP_MAX_BYTES) {
+      return c.json({ ok: false, error: "too_large", httpRequestCount: 1 }, 502);
+    }
+    if (text.length < 40) {
+      return c.json({ ok: false, error: "empty_body", httpRequestCount: 1 }, 502);
+    }
+    return c.json({
+      ok: true,
+      httpRequestCount: 1,
+      page: {
+        sourceId: resolved.sourceId,
+        requestUrl: resolved.requestUrl,
+        finalUrl,
+        status: res.status,
+        contentType: ct,
+        bodyText: text,
+        fetchedAtIso: new Date().toISOString(),
+      },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "lookup_error";
+    const timedOut = /abort|timeout/i.test(msg);
+    console.error("knr-discovery-selective-lookup:", e);
+    return c.json(
+      {
+        ok: false,
+        error: timedOut ? "timeout" : msg,
+        httpRequestCount: 1,
+      },
+      timedOut ? 504 : 500,
+    );
+  }
+});
+
 Deno.serve(app.fetch);

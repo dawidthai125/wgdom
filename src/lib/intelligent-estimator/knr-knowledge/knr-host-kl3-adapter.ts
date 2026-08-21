@@ -11,11 +11,18 @@ import { loadKnrCatalogStoreLocal } from "./knr-catalog-store";
 import type { KnrKnowledgeEnvelope } from "./knr-knowledge-envelope";
 import { summarizeKnrKnowledgeLines } from "./knr-knowledge-envelope";
 import { resolveKnrKnowledgeKl3b } from "./knr-research-kl3b";
+import {
+  buildKnrHostDiscoverySideChannel,
+  type KnrHostDiscoverySideChannel,
+} from "./knr-host-discovery-sidechannel";
+import type { KnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-types";
 
 export const KNR_HOST_KL3_LOOKUP_ONLY = true as const;
 export const KNR_HOST_KL3_EXPLICIT_RESEARCH = false as const;
 /** Host KL-3 closeout marker — lookup-only path wired (not VERIFY / not pricing). */
 export const KNR_KNOWLEDGE_KL3_HOST_MARKER = true as const;
+/** KL-7-P2B — discovery side-channel attached (HTTP still OFF by default). */
+export const KNR_HOST_DISCOVERY_SIDECHANNEL_WIRED = true as const;
 
 export type KnrHostKnowledgeLineInput = {
   lineId: string;
@@ -27,6 +34,8 @@ export type KnrHostKnowledgeResolveInput = {
   lines: readonly KnrHostKnowledgeLineInput[];
   /** Default: loadKnrCatalogStoreLocal() read-only for lookup. */
   catalogStore?: KnrCatalogStore;
+  /** Optional discovery evidence store for P2A side-channel. */
+  discoveryStore?: KnrDiscoveryEvidenceStore;
   nowIso: string;
 };
 
@@ -35,6 +44,8 @@ export type KnrHostKnowledgeResolveResult = {
   httpRequestCount: 0;
   researchExecuted: false;
   lookupOnly: true;
+  /** KL-7-P2B — P2A discovery outcomes · never PRICED / never VERIFIED · HTTP=0 default. */
+  discoverySideChannel: KnrHostDiscoverySideChannel;
 };
 
 /** Deterministic BOQ fingerprint for host memo keys (no authority mutation). */
@@ -80,10 +91,17 @@ export async function resolveHostKnrKnowledgeLookupOnly(
     }),
   };
 
+  const discoverySideChannel = buildKnrHostDiscoverySideChannel({
+    lines: input.lines,
+    catalogStore,
+    discoveryStore: input.discoveryStore,
+  });
+
   return {
     envelope,
     httpRequestCount: 0,
     researchExecuted: false,
     lookupOnly: true,
+    discoverySideChannel,
   };
 }
