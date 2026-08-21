@@ -1,8 +1,8 @@
 /**
- * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 evidence/ingest).
+ * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 + KL-6 + KL-3B Research-on-MISS).
  *
- * KL-5 IN: evidence store · legal gate · L1 file provider · normalize · ingest → PENDING_VERIFY
- * KL-5 OUT: Host · Research-on-MISS · VERIFY UI · corpus · cloud · auto-VERIFIED
+ * KL-3B IN: resolveKnrKnowledgeKl3b · L1 licensed ATH · PENDING_VERIFY only
+ * KL-3B OUT: Host · HTTP · scraper · LLM · Corpus · Cloud · auto-VERIFIED
  */
 
 export * from "./types";
@@ -34,6 +34,11 @@ export * from "./providers/licensed-export-file-provider";
 export * from "./knr-verify-display";
 export * from "./knr-verify-orchestrator";
 
-/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 marker from orchestrator). */
+export * from "./knr-knowledge-envelope";
+export * from "./knr-research-types";
+export * from "./providers/knr-research-provider";
+export * from "./knr-research-kl3b";
+
+/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;
 export const KNR_KNOWLEDGE_KL5_IMPLEMENTED = true as const;
