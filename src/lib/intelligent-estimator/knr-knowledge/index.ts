@@ -1,8 +1,9 @@
 /**
- * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 + KL-6 + KL-3B Research-on-MISS).
+ * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 + KL-6 + KL-3B + Host KL-3 lookup).
  *
  * KL-3B IN: resolveKnrKnowledgeKl3b · L1 licensed ATH · PENDING_VERIFY only
- * KL-3B OUT: Host · HTTP · scraper · LLM · Corpus · Cloud · auto-VERIFIED
+ * Host KL-3: resolveHostKnrKnowledgeLookupOnly · explicitResearch=false · side-channel only
+ * OUT: HTTP scraper · LLM · Cloud · auto-VERIFIED · APP-1/APP-2 Host orchestration
  */
 
 export * from "./types";
@@ -38,11 +39,12 @@ export * from "./knr-knowledge-envelope";
 export * from "./knr-research-types";
 export * from "./providers/knr-research-provider";
 export * from "./knr-research-kl3b";
+export * from "./knr-host-kl3-adapter";
 export * from "./knr-norm-application";
 export * from "./knr-pricing-identity";
 export * from "./knr-pricing-bridge";
 export * from "./knr-owner-identity-seed";
 
-/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / APP-1 / APP-2-ID / APP-2 markers from modules). */
+/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / APP-1 / APP-2-ID / APP-2 / Host KL-3 markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;
 export const KNR_KNOWLEDGE_KL5_IMPLEMENTED = true as const;
