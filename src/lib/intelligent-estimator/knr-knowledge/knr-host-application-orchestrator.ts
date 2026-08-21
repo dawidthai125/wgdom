@@ -40,7 +40,11 @@ export type KnrHostApplicationSkipReason =
   | "STALE_HIT"
   | "LOOKUP_MISS"
   | "LOOKUP_INVALID"
-  | "AUTHORITY_NOT_VERIFIED";
+  | "AUTHORITY_NOT_VERIFIED"
+  /** Host diag pre-gate: Master BOQ qty/unit missing (READ-ONLY · no orchestrator APP path). */
+  | "NO_BOQ_QUANTITY"
+  | "NO_BOQ_UNIT"
+  | "NOT_READY_FOR_EXPERTS";
 
 export type KnrHostApplicationHoldReason =
   | KnrHostApplicationSkipReason

@@ -80,6 +80,15 @@ import {
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
+import {
+  resolveHostKnrKnowledgeLookupOnly,
+  runKnrHostApplicationDiagBatch,
+  summarizeKnrHostAppDiag,
+  loadKnrCatalogStoreLocal,
+  type KnrKnowledgeEnvelope,
+  type KnrHostApplicationResult,
+} from "@/lib/intelligent-estimator/knr-knowledge";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
 
 /**
@@ -105,7 +114,6 @@ export function IkEntryHost({
   /**
    * Historical Executed in-memory index (READ-ONLY).
    * Absent/empty ⇒ HISTORICAL_MISS per line (first-class · not an error).
-   * Host hydration of completed-job ATH = NOT WIRED (OD-IMPL-2).
    */
   historicalIndex = null,
 }: {
@@ -166,6 +174,10 @@ export function IkEntryHost({
   /** IC-SEQ-2: synchronous P5 settled truth. Tick only retriggers P6. */
   const laborSettledRef = useRef(false);
   const [laborSettleTick, setLaborSettleTick] = useState(0);
+  /** KL-3 HOST lookup-only side-channel (Q10=B — not passed to conversation VM). */
+  const [knrKnowledge, setKnrKnowledge] = useState<KnrKnowledgeEnvelope | null>(null);
+  const [knowledgeBusy, setKnowledgeBusy] = useState(false);
+  const knowledgeAttemptedRef = useRef<string | null>(null);
 
   const effectiveItem = ingest?.mergedItem ?? item;
 
@@ -322,6 +334,166 @@ export function IkEntryHost({
     [effectiveItem, report, historicalIndex],
   );
 
+  // KL-3 HOST — lookup-only knowledge side-channel (async · does not block P3/P5/P6).
+  useEffect(() => {
+    if (!report.masterBoq.readyForExperts) {
+      setKnrKnowledge(null);
+      setKnowledgeBusy(false);
+      knowledgeAttemptedRef.current = null;
+      return;
+    }
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId || knr.lines.length === 0) {
+      setKnrKnowledge(null);
+      setKnowledgeBusy(false);
+      return;
+    }
+    const basisKey = knr.lines
+      .map((l) => `${l.lineId}:${l.catalogBasis?.normalizedKey ?? ""}`)
+      .join("|");
+    const knowledgeKey = `${tenderId}|${knr.lines.length}|${basisKey}|lookup-only`;
+    if (knowledgeAttemptedRef.current === knowledgeKey) return;
+
+    knowledgeAttemptedRef.current = knowledgeKey;
+    let cancelled = false;
+    setKnowledgeBusy(true);
+    void (async () => {
+      try {
+        const result = await resolveHostKnrKnowledgeLookupOnly({
+          tenderId,
+          lines: knr.lines.map((l) => ({
+            lineId: l.lineId,
+            catalogBasis: l.catalogBasis,
+          })),
+          nowIso: new Date().toISOString(),
+        });
+        if (!cancelled) setKnrKnowledge(result.envelope);
+      } catch {
+        if (!cancelled) setKnrKnowledge(null);
+      } finally {
+        if (!cancelled) setKnowledgeBusy(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveItem, knr, report.masterBoq.readyForExperts]);
+
+  const knrKnowledgeDiag = useMemo(() => {
+    if (!report.masterBoq.readyForExperts) {
+      return {
+        status: "skipped" as const,
+        hits: 0,
+        misses: 0,
+        staleHits: 0,
+        pendingVerify: 0,
+        researchExecuted: 0,
+        http: 0,
+      };
+    }
+    if (knowledgeBusy) {
+      return {
+        status: "busy" as const,
+        hits: 0,
+        misses: 0,
+        staleHits: 0,
+        pendingVerify: 0,
+        researchExecuted: 0,
+        http: 0,
+      };
+    }
+    if (!knrKnowledge) {
+      return {
+        status: "idle" as const,
+        hits: 0,
+        misses: 0,
+        staleHits: 0,
+        pendingVerify: 0,
+        researchExecuted: 0,
+        http: 0,
+      };
+    }
+    const pendingVerify = knrKnowledge.lineResults.filter(
+      (l) => l.lookupStatus === "PENDING_VERIFY",
+    ).length;
+    return {
+      status: "ready" as const,
+      hits: knrKnowledge.summary.hits,
+      misses: knrKnowledge.summary.misses,
+      staleHits: knrKnowledge.summary.staleHits,
+      pendingVerify,
+      researchExecuted: knrKnowledge.summary.researchExecuted ? 1 : 0,
+      http: knrKnowledge.summary.httpRequestCount,
+    };
+  }, [knrKnowledge, knowledgeBusy, report.masterBoq.readyForExperts]);
+
+  // ETAP 11 — KNR Host application diagnostic (10A orchestrator · P7 untouched).
+  const knrApplicationResults = useMemo((): KnrHostApplicationResult[] => {
+    if (!report.masterBoq.readyForExperts || knowledgeBusy || !knrKnowledge) {
+      return [];
+    }
+    const boqByLineId = new Map<
+      string,
+      { lineId: string; quantity: number | null; unit: string | null }
+    >();
+    for (const ref of report.masterBoqLines ?? []) {
+      const lineId = String(ref.line?.lineId ?? "").trim();
+      if (!lineId) continue;
+      boqByLineId.set(lineId, {
+        lineId,
+        quantity: typeof ref.line.quantity === "number" ? ref.line.quantity : null,
+        unit: ref.line.unit != null ? String(ref.line.unit) : null,
+      });
+    }
+    const nowIso = new Date().toISOString();
+    return runKnrHostApplicationDiagBatch({
+      readyForExperts: true,
+      knowledgeLines: knrKnowledge.lineResults,
+      boqByLineId,
+      catalogStore: loadKnrCatalogStoreLocal(),
+      workCatalogStore: loadWorkCatalogStoreLocal(),
+      nowMs: Date.parse(nowIso),
+      nowIso,
+    });
+  }, [
+    knrKnowledge,
+    knowledgeBusy,
+    report.masterBoq.readyForExperts,
+    report.masterBoqLines,
+  ]);
+
+  const knrAppDiag = useMemo(() => {
+    if (!report.masterBoq.readyForExperts) {
+      return summarizeKnrHostAppDiag([], false);
+    }
+    if (knowledgeBusy) {
+      return {
+        status: "busy" as const,
+        priced: 0,
+        partial: 0,
+        hold: 0,
+        skipped: 0,
+        reject: 0,
+      };
+    }
+    if (!knrKnowledge) {
+      return {
+        status: "idle" as const,
+        priced: 0,
+        partial: 0,
+        hold: 0,
+        skipped: 0,
+        reject: 0,
+      };
+    }
+    return summarizeKnrHostAppDiag(knrApplicationResults, true);
+  }, [
+    knrApplicationResults,
+    knrKnowledge,
+    knowledgeBusy,
+    report.masterBoq.readyForExperts,
+  ]);
 
   // D — Owner KNR overlay on LINE COPIES, then existing P3 via opts.classification.
   // Seam: classification (not ingest.expert) — avoids fabricating ingest, keeps C3 knr
@@ -574,6 +746,20 @@ export function IkEntryHost({
       data-ik-identity-gap={String(identityCoverage?.counts.identityGap ?? 0)}
       data-ik-knr-status={knr.status}
       data-ik-knr-with-basis={String(knr.counts.withBasis)}
+      data-ik-knr-knowledge-status={knrKnowledgeDiag.status}
+      data-ik-knr-knowledge-hits={String(knrKnowledgeDiag.hits)}
+      data-ik-knr-knowledge-misses={String(knrKnowledgeDiag.misses)}
+      data-ik-knr-knowledge-stale={String(knrKnowledgeDiag.staleHits)}
+      data-ik-knr-knowledge-pending={String(knrKnowledgeDiag.pendingVerify)}
+      data-ik-knr-knowledge-research={String(knrKnowledgeDiag.researchExecuted)}
+      data-ik-knr-knowledge-http={String(knrKnowledgeDiag.http)}
+      data-ik-knr-knowledge-lookup-only="1"
+      data-ik-knr-app-status={knrAppDiag.status}
+      data-ik-knr-app-priced={String(knrAppDiag.priced)}
+      data-ik-knr-app-partial={String(knrAppDiag.partial)}
+      data-ik-knr-app-hold={String(knrAppDiag.hold)}
+      data-ik-knr-app-skipped={String(knrAppDiag.skipped)}
+      data-ik-knr-app-diag-only="1"
     >
       <IkExpertRoomChrome report={knr}>
         <ExpertConversationSurface vm={vm} />

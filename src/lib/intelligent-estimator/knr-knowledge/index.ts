@@ -41,6 +41,7 @@ export * from "./providers/knr-research-provider";
 export * from "./knr-research-kl3b";
 export * from "./knr-host-kl3-adapter";
 export * from "./knr-host-application-orchestrator";
+export * from "./knr-host-application-diag";
 export * from "./knr-norm-application";
 export * from "./knr-pricing-identity";
 export * from "./knr-pricing-bridge";
