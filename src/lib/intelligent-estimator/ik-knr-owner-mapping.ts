@@ -5,7 +5,9 @@
  * WRITE: catalogWorkId only, on LINE COPIES (never shared ref.line).
  * ZERO knrHint / mapper / A1 / P3 / Research / KV / settings / flags.
  *
- * Production table v1 is empty (legal). Do not seed KNR table codes.
+ * Production table v1 is empty (legal) until Owner supplies concrete
+ * catalogBasis.normalizedKey → workId rows (see knr-owner-identity-seed.ts).
+ * Do not invent KNR table codes / workIds here.
  *
  * P3 SEAM (host, not this module): IkEntryHost runs applyOwnerKnrMapping, then
  * existing P3 classification on the overlay expert and passes opts.classification

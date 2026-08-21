@@ -41,6 +41,7 @@ export * from "./knr-research-kl3b";
 export * from "./knr-norm-application";
 export * from "./knr-pricing-identity";
 export * from "./knr-pricing-bridge";
+export * from "./knr-owner-identity-seed";
 
 /** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / APP-1 / APP-2-ID / APP-2 markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;

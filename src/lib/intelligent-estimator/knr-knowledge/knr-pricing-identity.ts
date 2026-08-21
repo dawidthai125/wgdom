@@ -47,7 +47,11 @@ export {
 
 export const KNR_KNOWLEDGE_KL_APP2_ID_IMPLEMENTED = true as const;
 
-/** Production v1 — empty is legal. Do not seed KNR material codes here. */
+/**
+ * Production v1 — empty is legal until Owner supplies concrete
+ * knrNormCode → materialKey rows (see knr-owner-identity-seed.ts).
+ * Do not invent materialKeys / KNR M codes here.
+ */
 export const OWNER_KNR_MATERIAL_MAPPINGS: readonly OwnerKnrMaterialMappingRow[] = [];
 
 /** Slice D unit triple-check — same tokens as applyOwnerKnrMapping. */
