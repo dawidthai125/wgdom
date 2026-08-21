@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Hammer, Library, Settings2, Tag, Tags } from "lucide-react";
+import { BookMarked, Building2, Hammer, Library, Settings2, Tag, Tags } from "lucide-react";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderPriceBasePanel } from "@/app/TenderPriceBasePanel";
@@ -7,6 +7,7 @@ import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { WorkCatalogView } from "@/app/work-catalog/WorkCatalogView";
 import { OurPriceCatalogPanel } from "@/app/price-catalog/OurPriceCatalogPanel";
 import { OurWorkRateCatalogPanel } from "@/app/work-rate-catalog/OurWorkRateCatalogPanel";
+import { KnrCatalogPanel } from "@/app/knr-catalog/KnrCatalogPanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   TENDERS_COMPANY_SECTION_LABELS,
@@ -31,6 +32,7 @@ const SECTION_ORDER: TendersCompanySectionId[] = [
   "workcatalog",
   "workratecatalog",
   "pricecatalog",
+  "knrcatalog",
   "pricebase",
   "settings",
 ];
@@ -39,6 +41,7 @@ const CATALOG_SECTIONS = new Set<TendersCompanySectionId>([
   "workcatalog",
   "workratecatalog",
   "pricecatalog",
+  "knrcatalog",
 ]);
 
 /**
@@ -113,6 +116,7 @@ export function TendersCompanyTab({
                 {id === "workcatalog" && <Library size={13} aria-hidden />}
                 {id === "workratecatalog" && <Hammer size={13} aria-hidden />}
                 {id === "pricecatalog" && <Tag size={13} aria-hidden />}
+                {id === "knrcatalog" && <BookMarked size={13} aria-hidden />}
                 {id === "pricebase" && <Tags size={13} aria-hidden />}
                 {id === "settings" && <Settings2 size={13} aria-hidden />}
                 {TENDERS_COMPANY_SECTION_LABELS[id]}
@@ -151,6 +155,12 @@ export function TendersCompanyTab({
         {section === "pricecatalog" && canViewWorkCatalog && (
           <div className="min-h-0">
             <OurPriceCatalogPanel />
+          </div>
+        )}
+
+        {section === "knrcatalog" && canViewWorkCatalog && (
+          <div className="min-h-0">
+            <KnrCatalogPanel />
           </div>
         )}
 

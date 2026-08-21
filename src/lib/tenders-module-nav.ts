@@ -28,6 +28,7 @@ const LEGACY_TAB_TO_V2: Record<string, TendersTabId> = {
   workcatalog: "company",
   workratecatalog: "company",
   pricecatalog: "company",
+  knrcatalog: "company",
   pricebase: "company",
   settings: "company",
   review: "review",
@@ -40,6 +41,7 @@ const LEGACY_TO_COMPANY_SECTION: Record<string, TendersCompanySectionId> = {
   workcatalog: "workcatalog",
   workratecatalog: "workratecatalog",
   pricecatalog: "pricecatalog",
+  knrcatalog: "knrcatalog",
   pricebase: "pricebase",
   settings: "settings",
 };
@@ -49,6 +51,7 @@ const COMPANY_SECTIONS: readonly TendersCompanySectionId[] = [
   "workcatalog",
   "workratecatalog",
   "pricecatalog",
+  "knrcatalog",
   "pricebase",
   "settings",
 ];

@@ -1,5 +1,17 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.110 — IK-KNR KL-7-P0 Cloud KNR SSOT (2026-08-21)
+
+- `kw-knr-catalog` w cloud-sync (deferred bootstrap) · per-entry merge anti-wipe
+- CATALOG_HIT = VERIFIED+ACTIVE · push po Owner VERIFY (best-effort) · cloud ≠ authority
+- Test: `npx vite-node scripts/test-knr-catalog-cloud-p0.mjs`
+
+## 2.66.109 — IK-KNR KL-7-UX-1 Katalog KNR (2026-08-21)
+
+- Przetargi → Firma → **Katalog KNR** (4. katalog) · REUSE `catalog-shared`
+- Read-only local/fixture · zero HTTP/discovery/VERIFY/cloud write · zero PLN / OUR RATE / marża
+- Test: `npx vite-node scripts/test-knr-catalog-ui-kl7-ux1.mjs`
+
 ## 2.66.103 — PAYROLL P0 FE O2 CAS-ready client (2026-08-19)
 
 - Worker extraCosts → `pwrPush` + `payrollWeekCas` / `expectedRevision`; brak `forceReplace` i silent catch na zapisie payroll

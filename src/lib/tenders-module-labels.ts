@@ -25,6 +25,7 @@ export const TENDERS_COMPANY_SECTION_LABELS = {
   workcatalog: "Biblioteka Robót",
   workratecatalog: "Nasz Katalog Robót",
   pricecatalog: "Nasz katalog cen",
+  knrcatalog: "Katalog KNR",
   pricebase: "Ustawienia wyceny",
   settings: "Ustawienia",
 } as const;

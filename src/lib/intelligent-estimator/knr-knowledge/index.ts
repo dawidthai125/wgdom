@@ -24,6 +24,16 @@ export * from "./knr-catalog-authority";
 export * from "./knr-catalog-store";
 export * from "./knr-catalog-lookup";
 export * from "./knr-catalog-write-router";
+export * from "./knr-catalog-ui";
+export * from "./knr-catalog-merge";
+/** Cloud sync helpers — import path preferred for Host/UI to avoid accidental write. */
+export {
+  loadKnrCatalogStore,
+  saveKnrCatalogStore,
+  pushKnrCatalogStoreAfterVerify,
+  KNR_CATALOG_CLOUD_P0_IMPLEMENTED,
+} from "./knr-catalog-sync";
+
 
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";

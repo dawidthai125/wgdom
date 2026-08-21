@@ -11,6 +11,28 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-21",
+    version: "2.66.110",
+    label: "IK-KNR KL-7-P0 — Cloud KNR SSOT + CATALOG_HIT",
+    items: [
+      {
+        type: "new",
+        text: "KL-7-P0: kw-knr-catalog w cloud-sync (deferred) + per-entry merge anti-wipe · CATALOG_HIT = VERIFIED+ACTIVE · push po Owner VERIFY (best-effort). Cloud ≠ authority. Zero discovery/HTTP/PLN/KNR→KNR-W/12J. Test: test-knr-catalog-cloud-p0.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-21",
+    version: "2.66.109",
+    label: "IK-KNR KL-7-UX-1 — Katalog KNR (Firma, read-only)",
+    items: [
+      {
+        type: "new",
+        text: "KL-7-UX-1: Przetargi → Firma → Katalog KNR (4. katalog). REUSE catalog-shared (toolbar/pager/freshness). Read-only local/fixture · zero HTTP/discovery/VERIFY/cloud write · zero PLN/OUR RATE/marża. Test: test-knr-catalog-ui-kl7-ux1.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-19",
     version: "2.66.103",
     label: "PAYROLL P0 — FE O2 CAS-ready client",

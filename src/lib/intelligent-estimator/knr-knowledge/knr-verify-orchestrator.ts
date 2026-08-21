@@ -477,6 +477,18 @@ export async function executeKnrOwnerVerifyApprove(input: {
     return failApprove(reason, persist.messagePl, persist.store);
   }
 
+  // KL-7-P0 — cloud SSOT push after legal local VERIFY (best-effort · anti-wipe in sync).
+  // Dynamic import avoids write-router / KL-1 static cloud-sync coupling.
+  if (!input.catalogStore) {
+    void import("./knr-catalog-sync")
+      .then(({ pushKnrCatalogStoreAfterVerify }) =>
+        pushKnrCatalogStoreAfterVerify(persist.store),
+      )
+      .catch(() => {
+        /* offline / unconfigured — local VERIFIED remains */
+      });
+  }
+
   const lookup = lookupKnrCatalog(
     {
       identityKeyV2: verified.entry.identityKeyV2,

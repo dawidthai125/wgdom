@@ -273,15 +273,21 @@ function buildVerifiedFixture(nowIso = NOW) {
     "git show HEAD:src/app/intelligent-estimator/IkEntryHost.tsx",
     { cwd: root, encoding: "utf8" },
   );
+  // KL-3 Host lookup-only may be on tip; KL-1 still forbids VERIFY/write from Host.
   assert(
-    "T-KL-1-15 tip Host no lookupKnrCatalog",
-    !tipHost.includes("lookupKnrCatalog") && !tipHost.includes("resolveHostKnrKnowledge"),
+    "T-KL-1-15 tip Host no VERIFY/write-router",
+    !tipHost.includes("executeKnrOwnerVerify")
+      && !tipHost.includes("persistVerifiedKnrCatalogEntry"),
   );
 
   const cloud = readFileSync(join(root, "src/lib/cloud-sync.ts"), "utf8");
   assert(
-    "T-KL-1-15 cloud-sync no kw-knr-catalog",
-    !cloud.includes("kw-knr-catalog") && !cloud.includes("lookupKnrCatalog"),
+    "T-KL-1-15 cloud-sync registers kw-knr-catalog (KL-7-P0 SSOT)",
+    cloud.includes('"kw-knr-catalog"') && cloud.includes("mergeKnrCatalogStore"),
+  );
+  assert(
+    "T-KL-1-15 cloud-sync no Host lookup import",
+    !cloud.includes("lookupKnrCatalog"),
   );
 
   const writeRouter = readFileSync(
