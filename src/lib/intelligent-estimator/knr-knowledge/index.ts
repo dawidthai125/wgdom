@@ -39,7 +39,8 @@ export * from "./knr-research-types";
 export * from "./providers/knr-research-provider";
 export * from "./knr-research-kl3b";
 export * from "./knr-norm-application";
+export * from "./knr-pricing-identity";
 
-/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / KL-APP-1 markers from modules). */
+/** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / KL-APP-1 / APP-2-ID markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;
 export const KNR_KNOWLEDGE_KL5_IMPLEMENTED = true as const;
