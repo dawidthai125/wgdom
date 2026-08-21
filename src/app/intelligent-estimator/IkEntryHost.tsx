@@ -37,6 +37,13 @@ import {
   type IkNg02IngestBridgeResult,
 } from "@/lib/intelligent-estimator/ik-ng02-ingest-bridge";
 import {
+  buildP2IngestFingerprint,
+  isP2AttemptStale,
+  p2CleanupInvalidate,
+  shouldReleaseBridgeBusy,
+  shouldSuppressP2DoubleStart,
+} from "@/lib/intelligent-estimator/ik-entry-p2-ingest-latch";
+import {
   runIkMasterBoqLaborExpert,
   type IkLaborExpertReport,
 } from "@/lib/intelligent-estimator/ik-labor-expert";
@@ -126,7 +133,34 @@ export function IkEntryHost({
   const [bridgeBusy, setBridgeBusy] = useState(false);
   const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
   const [material, setMaterial] = useState<IkMaterialExpertReport | null>(null);
-  const attemptedRef = useRef<string | null>(null);
+  /** P2 latch — generation + owner-safe busy (permanent attempt latch removed; HB1/HB2). */
+  const p2RunGenerationRef = useRef(0);
+  const p2BusyOwnerGenRef = useRef<number | null>(null);
+  const p2InFlightFingerprintRef = useRef<string | null>(null);
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+  const itemRef = useRef(item);
+  itemRef.current = item;
+  const athPreviewEnabledRef = useRef(athPreviewEnabled);
+  athPreviewEnabledRef.current = athPreviewEnabled;
+  const dossierBuilding = pipelineIngest?.dossierBuilding === true;
+  const dossierEnriching = pipelineIngest?.dossierEnriching === true;
+  const hasPipelineIngest = pipelineIngest != null;
+  const dossierBuildingRef = useRef(dossierBuilding);
+  dossierBuildingRef.current = dossierBuilding;
+  const dossierEnrichingRef = useRef(dossierEnriching);
+  dossierEnrichingRef.current = dossierEnriching;
+  const needsP2Ingest = needsIkNg02Ingest(item);
+  const p2Fingerprint = useMemo(
+    () => buildP2IngestFingerprint(item),
+    [
+      item.id,
+      item.tenderId,
+      item.bzpDocuments?.length,
+      item.documentsFetchedAt,
+      needsP2Ingest,
+    ],
+  );
   const laborAttemptedRef = useRef<string | null>(null);
   const materialAttemptedRef = useRef<string | null>(null);
   /** IC-SEQ-2: synchronous P5 settled truth. Tick only retriggers P6. */
@@ -136,89 +170,139 @@ export function IkEntryHost({
   const effectiveItem = ingest?.mergedItem ?? item;
 
   // P2 Documents→BOQ — IK ON (isIkP2DocumentsBoqActive). Leftover ingest key ignored.
+  // Latch: generation + isStale + owner-safe bridgeBusy (DF/ARCH · HB1 onUpdateRef · HB2 pipeline refs).
   useEffect(() => {
     if (!p2DocumentsBoqOn) {
       setIngest(null);
       setBridgeBusy(false);
+      p2BusyOwnerGenRef.current = null;
+      p2InFlightFingerprintRef.current = null;
       return;
     }
-    const key = item.id || item.tenderId || "";
+
+    const snapItem = itemRef.current;
+    const key = snapItem.id || snapItem.tenderId || "";
     if (!key) return;
-    if (pipelineIngest?.dossierBuilding || pipelineIngest?.dossierEnriching) return;
-    if (!needsIkNg02Ingest(item)) return;
-    if (attemptedRef.current === key) return;
-    if (!onUpdate) return;
+    // HB2 — read live flags from refs (parent may pass new pipelineIngest object each render).
+    if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
+    if (!needsIkNg02Ingest(snapItem)) return;
+    if (!onUpdateRef.current) return;
+    if (
+      shouldSuppressP2DoubleStart({
+        fingerprint: p2Fingerprint,
+        inFlightFingerprint: p2InFlightFingerprintRef.current,
+        busyOwnerGen: p2BusyOwnerGenRef.current,
+      })
+    ) {
+      return;
+    }
 
     let cancelled = false;
+    const generation = ++p2RunGenerationRef.current;
+    p2BusyOwnerGenRef.current = generation;
+    p2InFlightFingerprintRef.current = p2Fingerprint;
     setBridgeBusy(true);
-    void (async () => {
-      if (pipelineIngest) {
-        await new Promise((r) => setTimeout(r, 1500));
-        if (cancelled) return;
-        if (pipelineIngest.dossierBuilding || pipelineIngest.dossierEnriching) {
-          setBridgeBusy(false);
-          return;
-        }
-        if (!needsIkNg02Ingest(item)) {
-          setBridgeBusy(false);
-          return;
-        }
-      }
-      if (attemptedRef.current === key) {
+
+    const isStale = () =>
+      isP2AttemptStale({
+        cancelled,
+        generation,
+        runGenerationCurrent: p2RunGenerationRef.current,
+      });
+
+    const releaseIfOwner = () => {
+      if (
+        shouldReleaseBridgeBusy({
+          generation,
+          runGenerationCurrent: p2RunGenerationRef.current,
+          busyOwnerGen: p2BusyOwnerGenRef.current,
+        })
+      ) {
         setBridgeBusy(false);
-        return;
+        p2BusyOwnerGenRef.current = null;
+        p2InFlightFingerprintRef.current = null;
       }
-      attemptedRef.current = key;
+    };
+
+    void (async () => {
       try {
-        const result = await runIkNg02IngestBridge({
-          item,
-          package: pkg,
-          athPreviewEnabled,
-          ensureDocuments: (item.bzpDocuments?.length ?? 0) === 0,
-        });
-        if (cancelled) return;
-        setIngest(result);
-        if (result.itemPatch) {
-          onUpdate(result.itemPatch, { persist: "local" });
-          if (result.extractedLineCount > 0) {
-            onUpdate(result.itemPatch, { persist: "cloud" });
-          }
+        // Optional wait when parent provided pipelineIngest prop (presence), flags via HB2 refs.
+        if (hasPipelineIngest) {
+          await new Promise((r) => setTimeout(r, 1500));
+          if (isStale()) return;
+          if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
+          if (!needsIkNg02Ingest(itemRef.current)) return;
         }
-      } catch (err) {
-        if (cancelled) return;
-        setIngest({
-          phase: "blocked",
-          started: true,
-          completed: false,
-          tenderId: key,
-          documentsUsed: item.bzpDocuments?.length ?? 0,
-          zipEvidence: [],
-          parsersReused: ["buildTenderDossierHeavy"],
-          artifactCount: 0,
-          extractedLineCount: 0,
-          primarySourceFilename: null,
-          reasons: [`BRIDGE_THROW:${(err as Error)?.message || String(err)}`],
-          itemPatch: null,
-          mergedItem: item,
-          expert: runIkDocumentExpert({ item, package: pkg }),
-        });
+        if (isStale()) return;
+
+        const liveItem = itemRef.current;
+        const livePkg = getTenderPackage(liveItem.id);
+        try {
+          const result = await runIkNg02IngestBridge({
+            item: liveItem,
+            package: livePkg,
+            athPreviewEnabled: athPreviewEnabledRef.current,
+            ensureDocuments: (liveItem.bzpDocuments?.length ?? 0) === 0,
+          });
+          if (isStale()) return;
+          setIngest(result);
+          const apply = onUpdateRef.current;
+          if (result.itemPatch && apply) {
+            apply(result.itemPatch, { persist: "local" });
+            if (result.extractedLineCount > 0) {
+              apply(result.itemPatch, { persist: "cloud" });
+            }
+          }
+        } catch (err) {
+          if (isStale()) return;
+          const errItem = itemRef.current;
+          setIngest({
+            phase: "blocked",
+            started: true,
+            completed: false,
+            tenderId: key,
+            documentsUsed: errItem.bzpDocuments?.length ?? 0,
+            zipEvidence: [],
+            parsersReused: ["buildTenderDossierHeavy"],
+            artifactCount: 0,
+            extractedLineCount: 0,
+            primarySourceFilename: null,
+            reasons: [`BRIDGE_THROW:${(err as Error)?.message || String(err)}`],
+            itemPatch: null,
+            mergedItem: errItem,
+            expert: runIkDocumentExpert({
+              item: errItem,
+              package: getTenderPackage(errItem.id),
+            }),
+          });
+        }
       } finally {
-        if (!cancelled) setBridgeBusy(false);
+        releaseIfOwner();
       }
     })();
 
     return () => {
       cancelled = true;
+      const inv = p2CleanupInvalidate({
+        generation,
+        runGenerationCurrent: p2RunGenerationRef.current,
+        busyOwnerGen: p2BusyOwnerGenRef.current,
+      });
+      p2RunGenerationRef.current = inv.nextRunGeneration;
+      if (inv.releaseBusy) {
+        setBridgeBusy(false);
+        p2BusyOwnerGenRef.current = inv.nextBusyOwner;
+        p2InFlightFingerprintRef.current = null;
+      }
     };
   }, [
     p2DocumentsBoqOn,
-    item,
-    pkg,
-    onUpdate,
+    p2Fingerprint,
     athPreviewEnabled,
-    pipelineIngest,
-    pipelineIngest?.dossierBuilding,
-    pipelineIngest?.dossierEnriching,
+    dossierBuilding,
+    dossierEnriching,
+    hasPipelineIngest,
+    // Intentionally NOT: onUpdate (HB1), item, pkg, pipelineIngest object (HB2).
   ]);
 
   const report = useMemo(
@@ -237,6 +321,7 @@ export function IkEntryHost({
       }),
     [effectiveItem, report, historicalIndex],
   );
+
 
   // D — Owner KNR overlay on LINE COPIES, then existing P3 via opts.classification.
   // Seam: classification (not ingest.expert) — avoids fabricating ingest, keeps C3 knr
