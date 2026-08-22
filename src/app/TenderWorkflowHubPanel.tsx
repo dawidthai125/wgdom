@@ -46,6 +46,7 @@ import {
   InteligentnyKosztorysantBrand,
 } from "@/app/expert-conversation";
 import { IkLaborGapResearchPanel } from "@/app/ik-pricing/IkLaborGapResearchPanel";
+import { IkKnrWcIdentityProposalQueuePanel } from "@/app/ik-pricing/IkKnrWcIdentityProposalQueuePanel";
 import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
 import { MultiDwellingPackagePanel } from "@/app/MultiDwellingPackagePanel";
 import {
@@ -347,6 +348,9 @@ export function TenderWorkflowHubPanel({
         item={item}
         onPriceResearchAccepted={onPriceResearchAccepted}
       />
+
+      {/* IK-KNR-WC-IDENTITY-BRIDGE P2 UI — Owner Review queue (flag-gated · zero authority write) */}
+      <IkKnrWcIdentityProposalQueuePanel item={item} />
 
       <MultiDwellingPackagePanel
         item={item}

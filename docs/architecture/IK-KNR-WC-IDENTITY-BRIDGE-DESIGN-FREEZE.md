@@ -606,7 +606,8 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | **P1** | Offline proposal builder + tests | **0** WC/A1/map |
 | **P2.1** | Local proposal persist (`kw-knr-wc-identity-proposals`) | **0** WC · cache HIT skips P1 |
 | **P2.2** | Batch reuse hardening + Supabase load guard (LIB ONLY) | **0** · tamper sanitize · quota graceful · lazy stores on MISS only |
-| **P2** | Owner review UI + REUSE path | 0 until Accept |
+| **P2 UI** | Owner Review queue (Host · flag-gated) | **0** · staging only · no WC/A1/map |
+| **P2** | Owner review UI + REUSE path (legacy row) | superseded by **P2 UI** row above |
 | **P3** | CREATE_NEW via P5.26-style Owner flow | WC on Accept only |
 | **P4** | A1 seed assist checklist | A1 on Owner only |
 | **P5** | Mapping assist → existing OWNER_KNR_MAPPINGS | map on Owner only |
@@ -641,7 +642,7 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 
 **Residual GAPS (honest):**
 
-1. Exact UI surface for proposal queue — TBD at IMPLEMENT P2 UI.  
+1. ~~Exact UI surface for proposal queue — TBD at IMPLEMENT P2 UI~~ → **P2 UI CLOSED** (`IkKnrWcIdentityProposalQueuePanel` · Hub seam).  
 2. ~~Persist store for proposals — TBD~~ → **P2.1 CLOSED** (`kw-knr-wc-identity-proposals` localStorage · schema v1).  
 3. Unit policy OD for `prob` — **blocking** for keys 2–3.  
 4. Source provider implementations — still DESIGN ONLY.  
@@ -669,6 +670,34 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 
 ---
 
+## 27b. P2 UI — Owner Review / Proposal Queue (IMPLEMENTED · flag OFF)
+
+**Scope:** Host wiring **one seam** · staging only · no authority writes.
+
+| Element | Value |
+|---------|--------|
+| **Host seam** | `TenderWorkflowHubPanel.tsx` — sibling of `IkLaborGapResearchPanel` |
+| **Components** | `IkKnrWcIdentityProposalQueuePanel` · `IkKnrWcIdentityProposalReviewCard` |
+| **Lib seam** | `extractKnrWcBridgeKeysFromKnrExpert` · `runKnrWcIdentityProposalQueueBatch` |
+| **Feature flag** | `KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = false` |
+| **Runtime gate** | `isKnrWcIdentityBridgeP2UiRuntimeEnabled()` = IK + P1 + P2.1 + P2.2 + P2 UI |
+| **Batch contract** | **ONE** `runKnrWcIdentityProposalQueueBatch` per tender load · no N× lookup |
+| **Owner staging** | React session state (`stagingByKey`) · **not** written to proposal cache |
+| **REUSE** | `selectedWorkId` staging only · **not** `catalogWorkId` |
+| **CREATE** | UI staging / disabled downstream · **no** `saveWorkCatalogRouted` |
+| **Mobile** | Compact list + drill-in review card (reuse Labor panel pattern) |
+| **Tests** | `scripts/test-ik-knr-wc-identity-bridge-p2ui.mjs` (T-P2UI-1…10) |
+
+**UI must separate:** „Sugestia systemu” (`recommendation`, `verificationState`, …) vs „Decyzja Ownera” (`ownerDecision` staging).
+
+**HOLD_UNIT:** `1305-01` / `1305-02` — CREATE blocked in UI · `prob→szt` forbidden.
+
+**localStorage proposal cache ≠ authority** — `ownerDecision` always `unset` on rehydrate (unchanged P2.1/P2.2).
+
+**OQ-D-2:** remains OPEN — P2 UI does not integrate P5 `knrHint`.
+
+---
+
 ## 28. Decision record
 
 | Decision | Value |
@@ -692,7 +721,7 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | GO **IMPLEMENT P1** (proposal builder, zero business writes) | **DONE** (`d016b4c8`) |
 | GO **IMPLEMENT P2.1** (local proposal persist) | **DONE** (`d016b4c8`) |
 | GO **IMPLEMENT P2.2** (hardening + Supabase load guard) | **DONE** (local · flag OFF) |
-| GO **IMPLEMENT P2 UI** (Owner review) | **NOT GRANTED** |
+| GO **IMPLEMENT P2 UI** (Owner review queue) | **DONE** (local · flag OFF · COMMIT pending) |
 | GO HTTP allowlist / scraping | **NOT GRANTED** |
 | GO WC CREATE / A1 / mapping / pricing | **NOT GRANTED** |
 | GO MOPS Accept batch | **NOT GRANTED** |
@@ -702,7 +731,7 @@ DESIGN FREEZE = APPROVED
 IMPLEMENT P1  = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.1 = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.2 = DONE (flag OFF · LIB ONLY)
-IMPLEMENT P2 UI = NOT AUTHORIZED
+IMPLEMENT P2 UI = DONE (flag OFF · HOST WIRING=1 · COMMIT=0)
 HTTP          = OFF
 SCRAPING      = OFF
 PRICING       = 0
