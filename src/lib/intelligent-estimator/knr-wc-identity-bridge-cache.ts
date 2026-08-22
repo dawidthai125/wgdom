@@ -1,14 +1,22 @@
 /**
- * IK-KNR-WC-IDENTITY-BRIDGE P2.1 — batch builder with local proposal cache.
+ * IK-KNR-WC-IDENTITY-BRIDGE P2.1 + P2.2 — batch builder with local proposal cache.
  *
  * Flow: dedup → cache lookup → P1 build for MISS only → persist → merge.
+ * P2.2: tamper sanitize · quota graceful · freshness advisory · lazy stores on MISS only.
  * HTTP=0 · Supabase=0 · WC/A1/mapping/pricing write=0.
  */
 
 import {
   isKnrWcIdentityBridgeP1Enabled,
   isKnrWcIdentityBridgeP21PersistEnabled,
+  isKnrWcIdentityBridgeP22HardeningEnabled,
 } from "./knr-wc-identity-bridge-feature";
+import {
+  isProposalStale,
+  readCurrentUpstreamFingerprint,
+  snapshotUpstreamFingerprint,
+} from "./knr-wc-identity-bridge-freshness";
+import { resolveBridgeStoresLazy } from "./knr-wc-identity-bridge-stores-lazy";
 import {
   buildKnrWcIdentityProposals,
   type BuildKnrWcIdentityProposalsInput,
@@ -19,12 +27,15 @@ import type {
   KnrWcIdentityProposalBatchMetrics,
   KnrWcIdentityProposalCacheMetrics,
   KnrWcIdentityProposalCachedBatch,
+  KnrWcIdentityProposalRecord,
   KnrWcIdentityProposalStore,
+  KnrWcProposalPersistResult,
 } from "./knr-wc-identity-bridge-types";
 import {
   loadKnrWcIdentityProposalStoreLocal,
   proposalToPersistedRecord,
   recordToProposalForTender,
+  resolveProposalRecordForCacheHit,
   saveKnrWcIdentityProposalStoreLocal,
   upsertKnrWcIdentityProposalRecord,
 } from "./knr-wc-identity-proposal-store";
@@ -34,10 +45,25 @@ export type BuildKnrWcIdentityProposalsWithCacheInput = BuildKnrWcIdentityPropos
   proposalStoreOverride?: KnrWcIdentityProposalStore | null;
   /** P2.1 feature override. */
   persistEnabled?: boolean | null;
+  /** P2.2 feature override. */
+  p22HardeningEnabled?: boolean | null;
   /** ISO timestamp for persist (tests). */
   nowIso?: string;
   /** When false, persist in-memory only (no localStorage write). Default true. */
   persistToLocalStorage?: boolean;
+  /** P2.2 — force single-key cache MISS (Owner refresh). */
+  forceRefreshKeys?: readonly string[];
+  /** P2.2 — optional lazy store loaders (Host · never Supabase from bridge). */
+  loadCatalogStore?: () => import("./knr-knowledge/knr-catalog-store").KnrCatalogStore | null;
+  loadDiscoveryStore?: () => import("./knr-knowledge/knr-discovery-evidence-types").KnrDiscoveryEvidenceStore | null;
+  loadWorks?: () => import("./knr-wc-identity-bridge-types").KnrWcBridgeWorkRef[];
+};
+
+type CacheHitRow = {
+  key: KnrWcBridgeKeyInput;
+  record: KnrWcIdentityProposalRecord;
+  staleEvidence: boolean;
+  unitRevalidationRequired: boolean;
 };
 
 function emptyCacheMetrics(partial: Partial<KnrWcIdentityProposalCacheMetrics> & {
@@ -51,6 +77,7 @@ function emptyCacheMetrics(partial: Partial<KnrWcIdentityProposalCacheMetrics> &
     proposalsReused: 0,
     discoveryCalls: 0,
     catalogLookups: 0,
+    remoteStoreLoads: 0,
     supabaseQueries: 0,
     httpCalls: 0,
     catalogWorkWritten: 0,
@@ -71,7 +98,7 @@ function parseKeyTableCode(key: KnrWcBridgeKeyInput): string {
 }
 
 /**
- * Batch builder with normalizedKey proposal cache (P2.1).
+ * Batch builder with normalizedKey proposal cache (P2.1 + optional P2.2 hardening).
  * Requires P1 enabled for MISS builds; cache HITs skip all discovery/catalog work.
  */
 export function buildKnrWcIdentityProposalsWithCache(
@@ -85,6 +112,7 @@ export function buildKnrWcIdentityProposalsWithCache(
 
   const p1Enabled = isKnrWcIdentityBridgeP1Enabled(input.featureEnabled);
   const p21Enabled = isKnrWcIdentityBridgeP21PersistEnabled(input.persistEnabled);
+  const p22Enabled = isKnrWcIdentityBridgeP22HardeningEnabled(input.p22HardeningEnabled);
 
   if (!p1Enabled) {
     const empty = buildKnrWcIdentityProposals(input);
@@ -137,8 +165,13 @@ export function buildKnrWcIdentityProposalsWithCache(
 
   const skippedHoldKeys: string[] = [];
   const skippedMappedKeys: string[] = [];
-  const cacheHitKeys: KnrWcBridgeKeyInput[] = [];
+  const cacheHitRows: CacheHitRow[] = [];
   const cacheMissKeys: KnrWcBridgeKeyInput[] = [];
+
+  const currentUpstream = readCurrentUpstreamFingerprint(
+    input.catalogStore,
+    input.discoveryStore,
+  );
 
   for (const key of unique) {
     const tableCode = parseKeyTableCode(key);
@@ -150,10 +183,45 @@ export function buildKnrWcIdentityProposalsWithCache(
       skippedMappedKeys.push(key.normalizedKey);
       continue;
     }
-    if (store.entries[key.normalizedKey]) {
-      cacheHitKeys.push(key);
-    } else {
+
+    const rawEntry = store.entries[key.normalizedKey];
+    if (!rawEntry) {
       cacheMissKeys.push(key);
+      continue;
+    }
+
+    const resolved = resolveProposalRecordForCacheHit(rawEntry, nowIso, {
+      p22Hardening: p22Enabled,
+    });
+    if (!resolved) {
+      cacheMissKeys.push(key);
+      continue;
+    }
+
+    if (p22Enabled) {
+      const stale = isProposalStale(
+        resolved,
+        currentUpstream,
+        key,
+        input.forceRefreshKeys,
+      );
+      if (stale.forceMiss) {
+        cacheMissKeys.push(key);
+        continue;
+      }
+      cacheHitRows.push({
+        key,
+        record: resolved,
+        staleEvidence: stale.staleEvidence,
+        unitRevalidationRequired: stale.unitRevalidationRequired,
+      });
+    } else {
+      cacheHitRows.push({
+        key,
+        record: resolved,
+        staleEvidence: false,
+        unitRevalidationRequired: false,
+      });
     }
   }
 
@@ -161,27 +229,58 @@ export function buildKnrWcIdentityProposalsWithCache(
   let proposalsReused = 0;
   const reusedProposals: KnrWcIdentityProposal[] = [];
 
-  for (const key of cacheHitKeys) {
-    const rec = store.entries[key.normalizedKey];
-    if (!rec) continue;
+  for (const row of cacheHitRows) {
     cacheHits += 1;
     proposalsReused += 1;
     reusedProposals.push(
-      recordToProposalForTender(rec, tenderId, key.lineRefs ?? []),
+      recordToProposalForTender(row.record, tenderId, row.key.lineRefs ?? [], {
+        staleEvidence: row.staleEvidence || undefined,
+        unitRevalidationRequired: row.unitRevalidationRequired || undefined,
+      }),
     );
   }
 
+  let remoteStoreLoads = 0;
   let builtBatch = null;
   const builtProposals: KnrWcIdentityProposal[] = [];
+  let persistResult: KnrWcProposalPersistResult | undefined;
+
   if (cacheMissKeys.length > 0) {
+    const lazy = p22Enabled
+      ? resolveBridgeStoresLazy({
+          cacheMissKeys,
+          catalogStore: input.catalogStore,
+          discoveryStore: input.discoveryStore,
+          works: input.works,
+          loadCatalogStore: input.loadCatalogStore,
+          loadDiscoveryStore: input.loadDiscoveryStore,
+          loadWorks: input.loadWorks,
+        })
+      : {
+          catalogStore: input.catalogStore ?? null,
+          discoveryStore: input.discoveryStore ?? null,
+          works: input.works ?? [],
+          remoteStoreLoads: 0,
+          supabaseQueries: 0 as const,
+        };
+    remoteStoreLoads = lazy.remoteStoreLoads;
+
+    const persistFingerprint = snapshotUpstreamFingerprint(
+      lazy.catalogStore,
+      lazy.discoveryStore,
+    );
+
     builtBatch = buildKnrWcIdentityProposals({
       ...input,
       keys: cacheMissKeys,
+      catalogStore: lazy.catalogStore,
+      discoveryStore: lazy.discoveryStore,
+      works: lazy.works,
       featureEnabled: true,
     });
     const keyByNk = new Map(cacheMissKeys.map((k) => [k.normalizedKey, k]));
     for (const proposal of builtBatch.proposals) {
-      const record = proposalToPersistedRecord(proposal, nowIso);
+      const record = proposalToPersistedRecord(proposal, nowIso, persistFingerprint);
       upsertKnrWcIdentityProposalRecord(store, record, nowIso);
       builtProposals.push(
         recordToProposalForTender(
@@ -192,7 +291,8 @@ export function buildKnrWcIdentityProposalsWithCache(
       );
     }
     if (persistToDisk && !input.proposalStoreOverride) {
-      store = saveKnrWcIdentityProposalStoreLocal(store, nowIso);
+      persistResult = saveKnrWcIdentityProposalStoreLocal(store, nowIso);
+      store = persistResult.store;
     }
   }
 
@@ -224,6 +324,7 @@ export function buildKnrWcIdentityProposalsWithCache(
     discoveryIndexBuilds: builtBatch?.metrics.discoveryIndexBuilds ?? 0,
     discoveryLookupCalls: builtBatch?.metrics.discoveryLookupCalls ?? 0,
     worksScanCalls: builtBatch?.metrics.worksScanCalls ?? 0,
+    remoteStoreLoads,
     supabaseQueryCount: 0,
     httpRequestCount: 0,
     researchExecuted: false,
@@ -243,6 +344,7 @@ export function buildKnrWcIdentityProposalsWithCache(
     proposalsReused,
     discoveryCalls: builtBatch?.metrics.discoveryLookupCalls ?? 0,
     catalogLookups: builtBatch?.metrics.catalogLookupCalls ?? 0,
+    remoteStoreLoads,
   });
 
   return {
@@ -252,5 +354,6 @@ export function buildKnrWcIdentityProposalsWithCache(
     skippedMappedKeys,
     metrics,
     cacheMetrics,
+    persistResult,
   };
 }

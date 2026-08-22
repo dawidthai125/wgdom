@@ -103,6 +103,7 @@ function emptyMetrics(partial: Partial<KnrWcIdentityProposalBatchMetrics> & {
     discoveryIndexBuilds: 0,
     discoveryLookupCalls: 0,
     worksScanCalls: 0,
+    remoteStoreLoads: 0,
     supabaseQueryCount: 0,
     httpRequestCount: 0,
     researchExecuted: false,

@@ -13,8 +13,10 @@ import type {
   KnrWcIdentityProposalRecord,
   KnrWcIdentityProposalStore,
   KnrWcLineRef,
+  KnrWcProposalPersistResult,
   KnrWcRecommendation,
   KnrWcSimilarWork,
+  KnrWcUpstreamFingerprint,
   KnrWcVerificationState,
 } from "./knr-wc-identity-bridge-types";
 
@@ -53,7 +55,11 @@ export function stableKnrWcProposalId(normalizedKey: string): string {
   return `knr-wc-proposal:${normalizedKey.replace(/\|/g, "/")}`;
 }
 
-function fingerprintRecord(record: Omit<KnrWcIdentityProposalRecord, "contentHash" | "updatedAt">): string {
+function fingerprintRecord(
+  record: Omit<KnrWcIdentityProposalRecord, "contentHash" | "updatedAt"> & {
+    updatedAt?: string;
+  },
+): string {
   return fnv1aHex(
     JSON.stringify({
       proposalId: record.proposalId,
@@ -76,8 +82,108 @@ function fingerprintRecord(record: Omit<KnrWcIdentityProposalRecord, "contentHas
       sourceStatus: record.sourceStatus,
       discoveryStatus: record.discoveryStatus,
       unitStatus: record.unitStatus,
+      upstreamFingerprint: record.upstreamFingerprint
+        ? {
+            knrCatalogEtag: record.upstreamFingerprint.knrCatalogEtag ?? null,
+            discoveryEtag: record.upstreamFingerprint.discoveryEtag ?? null,
+          }
+        : null,
     }),
   );
+}
+
+function hasKnrCatalogEvidence(refs: readonly KnrWcEvidenceRef[]): boolean {
+  return refs.some((r) => r.kind === "knrCatalog");
+}
+
+/**
+ * P2.2 — localStorage is not authority · sanitize advisory fields on load.
+ */
+/** P2.2 — content fingerprint for integrity checks (tests + persist). */
+export function computeKnrWcIdentityProposalContentHash(
+  record: Omit<KnrWcIdentityProposalRecord, "contentHash">,
+): string {
+  return fingerprintRecord(record);
+}
+
+export function sanitizeAdvisoryProposalRecord(
+  record: Omit<KnrWcIdentityProposalRecord, "contentHash">,
+): Omit<KnrWcIdentityProposalRecord, "contentHash"> {
+  let recommendation = record.recommendation;
+  if (recommendation === "REUSE_EXISTING") {
+    recommendation = "CREATE_NEW";
+  }
+
+  let verificationState = record.verificationState;
+  if (
+    verificationState === "VERIFIED"
+    && !(
+      record.sourceStatus === "LOCAL_CATALOG"
+      && hasKnrCatalogEvidence(record.knrEvidenceRefs)
+    )
+  ) {
+    verificationState =
+      record.sourceStatus === "TENDER" || record.sourceStatus === "HARVEST"
+        ? "TENDER_ONLY"
+        : "PENDING_VERIFY";
+  }
+
+  return {
+    ...record,
+    recommendation,
+    verificationState,
+  };
+}
+
+function normalizeUpstreamFingerprint(raw: unknown): KnrWcUpstreamFingerprint | undefined {
+  if (raw === undefined) return undefined;
+  if (!raw || typeof raw !== "object") return undefined;
+  const row = raw as Record<string, unknown>;
+  return {
+    knrCatalogEtag:
+      typeof row.knrCatalogEtag === "string" ? row.knrCatalogEtag.trim() || null : null,
+    discoveryEtag:
+      typeof row.discoveryEtag === "string" ? row.discoveryEtag.trim() || null : null,
+  };
+}
+
+/**
+ * P2.2 — verify contentHash · sanitize · return trusted record or null (→ cache MISS).
+ */
+export function resolveProposalRecordForCacheHit(
+  raw: unknown,
+  nowIso = KNR_WC_IDENTITY_PROPOSAL_DEFAULT_UPDATED_AT,
+  options?: { p22Hardening?: boolean },
+): KnrWcIdentityProposalRecord | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const storedHash = typeof row.contentHash === "string" ? row.contentHash.trim() : "";
+
+  const parsed = normalizeKnrWcIdentityProposalRecord(raw, nowIso);
+  if (!parsed) return null;
+
+  if (options?.p22Hardening) {
+    const preSanitize: Omit<KnrWcIdentityProposalRecord, "contentHash"> = {
+      ...parsed,
+      recommendation: VALID_RECOMMENDATIONS.includes(row.recommendation as KnrWcRecommendation)
+        ? (row.recommendation as KnrWcRecommendation)
+        : parsed.recommendation,
+      verificationState: VALID_VERIFICATION.includes(row.verificationState as KnrWcVerificationState)
+        ? (row.verificationState as KnrWcVerificationState)
+        : parsed.verificationState,
+    };
+    const computedPre = fingerprintRecord(preSanitize);
+    if (storedHash && storedHash !== computedPre) {
+      return null;
+    }
+    const sanitized = sanitizeAdvisoryProposalRecord(preSanitize);
+    return {
+      ...sanitized,
+      contentHash: fingerprintRecord(sanitized),
+    };
+  }
+
+  return parsed;
 }
 
 function normalizeEvidenceRef(raw: unknown): KnrWcEvidenceRef | null {
@@ -208,6 +314,7 @@ export function normalizeKnrWcIdentityProposalRecord(
       row.unitStatus === "OK" || row.unitStatus === "HOLD_UNIT" || row.unitStatus === "UNKNOWN"
         ? row.unitStatus
         : "UNKNOWN",
+    upstreamFingerprint: normalizeUpstreamFingerprint(row.upstreamFingerprint),
     createdAt,
     updatedAt,
   };
@@ -271,7 +378,7 @@ export function loadKnrWcIdentityProposalStoreLocal(): KnrWcIdentityProposalStor
 export function saveKnrWcIdentityProposalStoreLocal(
   store: KnrWcIdentityProposalStore,
   updatedAtIso?: string,
-): KnrWcIdentityProposalStore {
+): KnrWcProposalPersistResult {
   const next = normalizeKnrWcIdentityProposalStore(
     {
       ...store,
@@ -279,11 +386,27 @@ export function saveKnrWcIdentityProposalStoreLocal(
     },
     updatedAtIso ?? store.updatedAt,
   );
-  if (typeof localStorage !== "undefined") {
-    localStorage.setItem(KNR_WC_IDENTITY_PROPOSAL_STORAGE_KEY, JSON.stringify(next));
-    return loadKnrWcIdentityProposalStoreLocal();
+  const keyCount = Object.keys(next.entries).length;
+  if (typeof localStorage === "undefined") {
+    return { ok: true, store: next };
   }
-  return next;
+  try {
+    localStorage.setItem(KNR_WC_IDENTITY_PROPOSAL_STORAGE_KEY, JSON.stringify(next));
+    return { ok: true, store: loadKnrWcIdentityProposalStoreLocal() };
+  } catch (error) {
+    const reason =
+      typeof DOMException !== "undefined"
+      && error instanceof DOMException
+      && error.name === "QuotaExceededError"
+        ? "QUOTA_EXCEEDED"
+        : "STORAGE_UNAVAILABLE";
+    console.info("[knr-wc-bridge]", {
+      event: "PROPOSAL_PERSIST_FAILED",
+      reason,
+      keyCount,
+    });
+    return { ok: false, reason, store: next };
+  }
 }
 
 export function clearKnrWcIdentityProposalStoreLocalForTests(): void {
@@ -294,6 +417,7 @@ export function clearKnrWcIdentityProposalStoreLocalForTests(): void {
 export function proposalToPersistedRecord(
   proposal: KnrWcIdentityProposal,
   nowIso: string,
+  upstreamFingerprint?: KnrWcUpstreamFingerprint,
 ): KnrWcIdentityProposalRecord {
   const base: Omit<KnrWcIdentityProposalRecord, "contentHash"> = {
     schemaVersion: KNR_WC_IDENTITY_PROPOSAL_SCHEMA_VERSION,
@@ -319,16 +443,26 @@ export function proposalToPersistedRecord(
     sourceStatus: proposal.sourceStatus,
     discoveryStatus: proposal.discoveryStatus,
     unitStatus: proposal.unitStatus,
+    upstreamFingerprint: upstreamFingerprint ?? {
+      knrCatalogEtag: null,
+      discoveryEtag: null,
+    },
     createdAt: nowIso,
     updatedAt: nowIso,
   };
   return { ...base, contentHash: fingerprintRecord(base) };
 }
 
+export type RecordToProposalAdvisory = {
+  staleEvidence?: boolean;
+  unitRevalidationRequired?: boolean;
+};
+
 export function recordToProposalForTender(
   record: KnrWcIdentityProposalRecord,
   tenderId: string,
   lineRefs: readonly KnrWcLineRef[] = [],
+  advisory?: RecordToProposalAdvisory,
 ): KnrWcIdentityProposal {
   return {
     proposalId: record.proposalId,
@@ -356,6 +490,8 @@ export function recordToProposalForTender(
     unitStatus: record.unitStatus,
     lineRefs: [...lineRefs],
     specialRiskNotes: [...record.specialRiskNotes],
+    staleEvidence: advisory?.staleEvidence,
+    unitRevalidationRequired: advisory?.unitRevalidationRequired,
   };
 }
 

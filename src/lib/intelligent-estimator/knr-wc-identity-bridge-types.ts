@@ -99,6 +99,16 @@ export type KnrWcIdentityProposal = {
   lineRefs: KnrWcLineRef[];
   /** Advisory notes for Owner Review (special MOPS risks etc.). */
   specialRiskNotes: string[];
+  /** P2.2 — upstream evidence changed since persist (advisory · still cache HIT). */
+  staleEvidence?: boolean;
+  /** P2.2 — tender unitRaw ≠ cached unitRaw (revalidation required · still cache HIT). */
+  unitRevalidationRequired?: boolean;
+};
+
+/** P2.2 — snapshot of upstream store etags at persist time (advisory freshness). */
+export type KnrWcUpstreamFingerprint = {
+  knrCatalogEtag: string | null;
+  discoveryEtag: string | null;
 };
 
 export type KnrWcBridgeWorkRef = {
@@ -159,6 +169,8 @@ export type KnrWcIdentityProposalBatchMetrics = {
   discoveryLookupCalls: number;
   /** Active works scanned once for similarWorks. */
   worksScanCalls: number;
+  /** P2.2 — lazy local/Host store resolver invocations (0 on full cache HIT). */
+  remoteStoreLoads: number;
   supabaseQueryCount: 0;
   httpRequestCount: 0;
   researchExecuted: false;
@@ -206,8 +218,17 @@ export type KnrWcIdentityProposalRecord = {
   discoveryStatus: KnrWcDiscoveryStatus;
   unitStatus: KnrWcUnitStatus;
   contentHash: string;
+  /** P2.2 — upstream etags at persist (optional on legacy rows). */
+  upstreamFingerprint?: KnrWcUpstreamFingerprint;
   createdAt: string;
   updatedAt: string;
+};
+
+/** P2.2 — localStorage persist outcome (graceful quota degradation). */
+export type KnrWcProposalPersistResult = {
+  ok: boolean;
+  reason?: "QUOTA_EXCEEDED" | "STORAGE_UNAVAILABLE";
+  store: KnrWcIdentityProposalStore;
 };
 
 export type KnrWcIdentityProposalStore = {
@@ -228,6 +249,7 @@ export type KnrWcIdentityProposalCacheMetrics = {
   proposalsReused: number;
   discoveryCalls: number;
   catalogLookups: number;
+  remoteStoreLoads: number;
   supabaseQueries: 0;
   httpCalls: 0;
   catalogWorkWritten: 0;
@@ -239,4 +261,6 @@ export type KnrWcIdentityProposalCacheMetrics = {
 
 export type KnrWcIdentityProposalCachedBatch = KnrWcIdentityProposalBatch & {
   cacheMetrics: KnrWcIdentityProposalCacheMetrics;
+  /** P2.2 — set when localStorage persist attempted. */
+  persistResult?: KnrWcProposalPersistResult;
 };
