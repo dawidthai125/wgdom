@@ -446,6 +446,8 @@ assert("DRY TOTAL_KEYS=20", m.totalKeysInput === 20);
 assert("DRY UNIQUE_KEYS=20", m.uniqueKeys === 20);
 assert("DRY PROPOSALS=20", m.proposals === 20);
 assert("DRY HOLD_UNIT=2", m.holdUnit === 2, m.holdUnit);
+// fixture regression guard — not architectural contract
+assert("DRY DISCOVERY_REQUIRED=19", m.discoveryRequired === 19, m.discoveryRequired);
 assert("DRY WC_WRITE=0", m.catalogWorkWritten === 0);
 assert("DRY HTTP=0", m.httpRequestCount === 0);
 
