@@ -289,16 +289,16 @@ const P3_RUNTIME_ON = { runtimeP3Enabled: true };
 // T-P3-7 — IK OFF blocked
 {
   assert(
-    "T-P3-7 prod P3 default OFF",
-    KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED === false,
+    "T-P3-7 prod P3 default ON",
+    KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED === true,
   );
   assert(
     "T-P3-7 runtime OFF without IK",
     isKnrWcIdentityBridgeP3CreateRuntimeEnabled({ ikEntryEnabled: false, p3CreateEnabled: true }) === false,
   );
   assert(
-    "T-P3-7 runtime OFF prod default",
-    isKnrWcIdentityBridgeP3CreateRuntimeEnabled({ ikEntryEnabled: true }) === false,
+    "T-P3-7 runtime ON prod default",
+    isKnrWcIdentityBridgeP3CreateRuntimeEnabled({ ikEntryEnabled: true }) === true,
   );
 }
 

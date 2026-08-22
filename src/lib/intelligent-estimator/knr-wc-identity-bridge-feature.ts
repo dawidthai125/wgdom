@@ -17,8 +17,8 @@ export const KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED = true as const;
 /** P2 UI — Owner Review / Proposal Queue (Host). Default OFF. */
 export const KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = true as const;
 
-/** P3 — Owner-gated CatalogWork CREATE (Host executor). Default OFF. */
-export const KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED = false as const;
+/** P3 — Owner-gated CatalogWork CREATE (Host executor). Default ON. */
+export const KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED = true as const;
 
 let knrWcBridgeRuntimeForTests: boolean | null = null;
 
