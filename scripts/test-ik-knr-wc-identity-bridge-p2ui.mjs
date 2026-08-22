@@ -292,7 +292,11 @@ assert("setup mops20 keys", mopsKeys.length === 20, `got ${mopsKeys.length}`);
   for (const rel of uiFiles) {
     const src = readFileSync(join(root, rel), "utf8");
     assert(`T-P2UI-8 no fetch in ${rel}`, !/\bfetch\s*\(/.test(src));
-    assert(`T-P2UI-8 no supabase in ${rel}`, !/supabase/i.test(src));
+    const withoutMetricsLabel = src.replace(/supabaseQueries/g, "");
+    assert(
+      `T-P2UI-8 no supabase client in ${rel}`,
+      !/supabase/i.test(withoutMetricsLabel),
+    );
   }
 }
 
@@ -427,6 +431,69 @@ assert("T-P2UI-11 force reset runtime OFF", isKnrWcIdentityBridgeP2UiRuntimeEnab
   );
   const keys = extractKnrWcBridgeKeysFromKnrExpert(knr, { unitByLineId });
   assert("T-P2UI-12 MOPS keys=20", keys.length === 20, `got ${keys.length}`);
+}
+
+// T-P2UI-13 — G3 duplicateRisk HIGH compact-list advisory badge
+{
+  const batch = queueRun({
+    tenderId: TENDER_A,
+    keys: mopsKeys,
+    proposalStoreOverride: emptyKnrWcIdentityProposalStore(NOW),
+  });
+  const highRows = batch.proposals.filter((p) => p.duplicateRisk === "HIGH");
+  assert("T-P2UI-13 has HIGH rows", highRows.length > 0, `count=${highRows.length}`);
+  for (const p of highRows) {
+    assert(`T-P2UI-13 owner unset ${p.normalizedKey}`, p.ownerDecision === "unset");
+    assert(
+      `T-P2UI-13 no auto owner ${p.normalizedKey}`,
+      p.ownerDecision !== "REUSE_EXISTING" && p.ownerDecision !== "CREATE_NEW",
+    );
+  }
+  const panelSrc = readFileSync(
+    join(root, "src/app/ik-pricing/IkKnrWcIdentityProposalQueuePanel.tsx"),
+    "utf8",
+  );
+  assert(
+    "T-P2UI-13 compact badge marker",
+    panelSrc.includes("data-ik-knr-wc-duplicate-high-badge"),
+  );
+  assert(
+    "T-P2UI-13 badge gated on HIGH",
+    panelSrc.includes('duplicateRisk === "HIGH"'),
+  );
+}
+
+// T-P2UI-14 — G4 supabaseQueries observability in UI metrics (pass-through only)
+{
+  const panelSrc = readFileSync(
+    join(root, "src/app/ik-pricing/IkKnrWcIdentityProposalQueuePanel.tsx"),
+    "utf8",
+  );
+  assert(
+    "T-P2UI-14 supabaseQueries in cache metrics UI",
+    /supabaseQueries=\$\{m\.supabaseQueries\}/.test(panelSrc),
+  );
+  const sharedStore = emptyKnrWcIdentityProposalStore(NOW);
+  queueRun({
+    tenderId: TENDER_A,
+    keys: mopsKeys,
+    proposalStoreOverride: sharedStore,
+    persistToLocalStorage: true,
+  });
+  const second = queueRun({
+    tenderId: TENDER_B,
+    keys: mopsKeys,
+    proposalStoreOverride: sharedStore,
+  });
+  assert("T-P2UI-14 cacheHits=20", second.cacheMetrics.cacheHits === 20);
+  assert("T-P2UI-14 proposalsBuilt=0", second.cacheMetrics.proposalsBuilt === 0);
+  assert("T-P2UI-14 discoveryCalls=0", second.cacheMetrics.discoveryCalls === 0);
+  assert("T-P2UI-14 remoteStoreLoads=0", second.cacheMetrics.remoteStoreLoads === 0);
+  assert("T-P2UI-14 supabaseQueries=0", second.cacheMetrics.supabaseQueries === 0);
+  assert("T-P2UI-14 mappingWritten=0", second.cacheMetrics.mappingWritten === 0);
+  assert("T-P2UI-14 catalogWorkWritten=0", second.cacheMetrics.catalogWorkWritten === 0);
+  assert("T-P2UI-14 a1Written=0", second.cacheMetrics.a1Written === 0);
+  assert("T-P2UI-14 pricingWritten=0", second.cacheMetrics.pricingWritten === 0);
 }
 
 console.log(`\nP2 UI: ${pass} PASS / ${fail} FAIL`);

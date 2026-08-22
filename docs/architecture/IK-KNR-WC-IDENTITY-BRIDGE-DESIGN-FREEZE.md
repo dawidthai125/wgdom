@@ -686,7 +686,7 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | **REUSE** | `selectedWorkId` staging only · **not** `catalogWorkId` |
 | **CREATE** | UI staging / disabled downstream · **no** `saveWorkCatalogRouted` |
 | **Mobile** | Compact list + drill-in review card (reuse Labor panel pattern) |
-| **Tests** | `scripts/test-ik-knr-wc-identity-bridge-p2ui.mjs` (T-P2UI-1…12) |
+| **Tests** | `scripts/test-ik-knr-wc-identity-bridge-p2ui.mjs` (T-P2UI-1…14) |
 
 **UI must separate:** „Sugestia systemu” (`recommendation`, `verificationState`, …) vs „Decyzja Ownera” (`ownerDecision` staging).
 
@@ -716,6 +716,24 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | **Role gate** | **NOT bypassed** — `isKnrWcIdentityBridgeP2UiRuntimeEnabled()` still requires `isIkEntryEnabled()` (or explicit `ikEntryEnabled: true` in harness) |
 | **Defaults** | `KNR_WC_* = false` unchanged in source |
 | **Tests** | T-P2UI-11 in `test-ik-knr-wc-identity-bridge-p2ui.mjs` |
+
+### 27b.3 G3 closure — duplicateRisk HIGH compact-list badge (IMPLEMENTED)
+
+| Element | Value |
+|---------|--------|
+| **UI** | `[data-ik-knr-wc-duplicate-high-badge]` on compact row when `duplicateRisk === "HIGH"` |
+| **Semantics** | Advisory only · no auto `ownerDecision` · no recommendation mutation |
+| **Authority** | Owner must still choose REUSE/HOLD/REJECT explicitly in review |
+| **Tests** | T-P2UI-13 |
+
+### 27b.4 G4 closure — supabaseQueries in cache metrics UI (IMPLEMENTED)
+
+| Element | Value |
+|---------|--------|
+| **Source** | Existing `batch.cacheMetrics.supabaseQueries` (always `0` in current contract) |
+| **UI** | Pass-through in `[data-ik-knr-wc-cache-metrics]` string · **no** new query/lookup |
+| **Core** | Cache orchestration unchanged |
+| **Tests** | T-P2UI-14 |
 
 ---
 

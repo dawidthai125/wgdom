@@ -121,7 +121,7 @@ export function IkKnrWcIdentityProposalQueuePanel({
       setLoaded(true);
       const m = batch.cacheMetrics;
       setCacheSummary(
-        `keys=${m.uniqueKeys} hits=${m.cacheHits} miss=${m.cacheMisses} built=${m.proposalsBuilt} discovery=${m.discoveryCalls} remoteLoads=${m.remoteStoreLoads}`,
+        `keys=${m.uniqueKeys} hits=${m.cacheHits} miss=${m.cacheMisses} built=${m.proposalsBuilt} discovery=${m.discoveryCalls} remoteLoads=${m.remoteStoreLoads} supabaseQueries=${m.supabaseQueries}`,
       );
       setStatus({
         kind: "info",
@@ -228,6 +228,14 @@ export function IkKnrWcIdentityProposalQueuePanel({
                   {p.staleEvidence ? " · stale" : ""}
                   {p.unitStatus === "HOLD_UNIT" ? " · HOLD_UNIT" : ""}
                 </p>
+                {p.duplicateRisk === "HIGH" ? (
+                  <p
+                    className={`${TEUX_FONT_CAPTION} font-semibold text-destructive`}
+                    data-ik-knr-wc-duplicate-high-badge
+                  >
+                    duplicateRisk HIGH — advisory · wymaga jawnej decyzji Ownera
+                  </p>
+                ) : null}
                 {staged && staged.decision !== "unset" ? (
                   <p className={`${TEUX_FONT_CAPTION} text-violet-800 dark:text-violet-200`}>
                     Owner: {staged.decision}
