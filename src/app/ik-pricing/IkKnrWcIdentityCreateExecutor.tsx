@@ -13,6 +13,7 @@ import type {
 } from "@/lib/intelligent-estimator/knr-wc-identity-bridge-types";
 import { isKnrWcIdentityBridgeP3CreateRuntimeEnabled } from "@/lib/intelligent-estimator/knr-wc-identity-bridge-feature";
 import {
+  buildDescriptionByLineIdFromDocumentExpertLines,
   buildUnitByLineIdFromDocumentExpertLines,
   extractKnrWcBridgeKeysFromKnrExpert,
   runKnrWcIdentityProposalQueueBatch,
@@ -91,6 +92,12 @@ export function IkKnrWcIdentityCreateExecutor({
           unit: r.line.unit,
         })) ?? [],
       );
+      const descriptionByLineId = buildDescriptionByLineIdFromDocumentExpertLines(
+        docExpert.masterBoqLines?.map((r) => ({
+          lineId: r.line.lineId,
+          description: r.line.description,
+        })) ?? [],
+      );
       const knrReport = runIkKnrExpert({
         tenderId,
         documentExpert: docExpert,
@@ -101,7 +108,10 @@ export function IkKnrWcIdentityCreateExecutor({
         setLoaded(true);
         return;
       }
-      const keys = extractKnrWcBridgeKeysFromKnrExpert(knrReport, { unitByLineId });
+      const keys = extractKnrWcBridgeKeysFromKnrExpert(knrReport, {
+        unitByLineId,
+        descriptionByLineId,
+      });
       const batch = runKnrWcIdentityProposalQueueBatch({
         tenderId,
         keys,

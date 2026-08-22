@@ -24,7 +24,32 @@ import { buildKnrWcIdentityProposals } from "./knr-wc-identity-bridge";
 export type ExtractKnrWcBridgeKeysFromKnrExpertOptions = {
   /** Optional lineId → unit from Master BOQ (document expert). */
   unitByLineId?: Readonly<Record<string, string>>;
+  /** Optional lineId → description from Master BOQ (document expert). */
+  descriptionByLineId?: Readonly<Record<string, string>>;
 };
+
+function pickDescriptionFromLineRefs(
+  lineRefs: readonly KnrWcLineRef[] | undefined,
+  descriptionByLineId: Readonly<Record<string, string>>,
+): string | null {
+  for (const ref of lineRefs ?? []) {
+    const desc = String(descriptionByLineId[ref.lineId] ?? "").trim();
+    if (desc) return desc;
+  }
+  return null;
+}
+
+/** P3.1 — tender BOQ description only; does not touch identity fields. */
+function applyTenderBoqDescriptionsToKey(
+  key: KnrWcBridgeKeyInput,
+  descriptionByLineId: Readonly<Record<string, string>>,
+): void {
+  if (key.officialNamePl?.trim() && key.descriptionPl?.trim()) return;
+  const desc = pickDescriptionFromLineRefs(key.lineRefs, descriptionByLineId);
+  if (!desc) return;
+  if (!key.descriptionPl?.trim()) key.descriptionPl = desc;
+  if (!key.officialNamePl?.trim()) key.officialNamePl = desc.slice(0, 200);
+}
 
 function emptyCachedBatch(
   tenderId: string,
@@ -65,6 +90,7 @@ export function extractKnrWcBridgeKeysFromKnrExpert(
   options: ExtractKnrWcBridgeKeysFromKnrExpertOptions = {},
 ): KnrWcBridgeKeyInput[] {
   const unitByLineId = options.unitByLineId ?? {};
+  const descriptionByLineId = options.descriptionByLineId ?? {};
   const seen = new Set<string>();
   const byKey = new Map<string, KnrWcBridgeKeyInput>();
 
@@ -87,12 +113,13 @@ export function extractKnrWcBridgeKeysFromKnrExpert(
         const refs = [...(existing.lineRefs ?? []), lineRef];
         existing.lineRefs = refs;
         if (!existing.unitRaw && unitRaw) existing.unitRaw = unitRaw;
+        applyTenderBoqDescriptionsToKey(existing, descriptionByLineId);
       }
       continue;
     }
     seen.add(nk);
 
-    byKey.set(nk, {
+    const key: KnrWcBridgeKeyInput = {
       normalizedKey: nk,
       family: basis?.family ?? null,
       catalogId: basis?.catalogId ?? null,
@@ -103,7 +130,9 @@ export function extractKnrWcBridgeKeysFromKnrExpert(
       officialNamePl: null,
       descriptionPl: null,
       lineRefs: [lineRef],
-    });
+    };
+    applyTenderBoqDescriptionsToKey(key, descriptionByLineId);
+    byKey.set(nk, key);
   }
 
   return [...byKey.values()].sort((a, b) =>
@@ -154,6 +183,18 @@ export function buildUnitByLineIdFromDocumentExpertLines(
   for (const line of lines) {
     const unit = String(line.unit ?? "").trim();
     if (unit) out[line.lineId] = unit;
+  }
+  return out;
+}
+
+/** Master BOQ line.description (OfferBoqLine) → lineId lookup for P3.1 name enrichment. */
+export function buildDescriptionByLineIdFromDocumentExpertLines(
+  lines: ReadonlyArray<{ lineId: string; description?: string | null }>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of lines) {
+    const description = String(line.description ?? "").trim();
+    if (description) out[line.lineId] = description;
   }
   return out;
 }

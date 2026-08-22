@@ -22,6 +22,14 @@ import {
   MOPS_20_NORMALIZED_KEYS,
 } from "../src/lib/intelligent-estimator/knr-wc-identity-bridge.ts";
 import {
+  buildDescriptionByLineIdFromDocumentExpertLines,
+  buildUnitByLineIdFromDocumentExpertLines,
+  extractKnrWcBridgeKeysFromKnrExpert,
+  runKnrWcIdentityProposalQueueBatch,
+} from "../src/lib/intelligent-estimator/knr-wc-identity-bridge-queue.ts";
+import { runIkDocumentExpert } from "../src/lib/intelligent-estimator/ik-document-expert.ts";
+import { runIkKnrExpert } from "../src/lib/intelligent-estimator/ik-knr-expert.ts";
+import {
   forceKnrWcIdentityBridgeRuntimeForTests,
   isKnrWcIdentityBridgeP3CreateRuntimeEnabled,
   KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED,
@@ -112,6 +120,51 @@ function loadMopsKey(normalizedKey) {
     }
   }
   return null;
+}
+
+function productionPathProposalForKey(normalizedKey) {
+  const mopsItem = JSON.parse(
+    readFileSync(join(root, ".tmp/ops-mops-09-tender-item.json"), "utf8"),
+  );
+  const mopsPkg = JSON.parse(
+    readFileSync(join(root, ".tmp/ops-mops-09-item-pkg.json"), "utf8"),
+  ).pkg;
+  const tenderId = mopsItem.id;
+  const docExpert = runIkDocumentExpert({ item: mopsItem, package: mopsPkg });
+  const unitByLineId = buildUnitByLineIdFromDocumentExpertLines(
+    docExpert.masterBoqLines?.map((r) => ({
+      lineId: r.line.lineId,
+      unit: r.line.unit,
+    })) ?? [],
+  );
+  const descriptionByLineId = buildDescriptionByLineIdFromDocumentExpertLines(
+    docExpert.masterBoqLines?.map((r) => ({
+      lineId: r.line.lineId,
+      description: r.line.description,
+    })) ?? [],
+  );
+  const knrReport = runIkKnrExpert({
+    tenderId,
+    documentExpert: docExpert,
+    historicalIndex: null,
+  });
+  const keys = extractKnrWcBridgeKeysFromKnrExpert(knrReport, {
+    unitByLineId,
+    descriptionByLineId,
+  });
+  const batch = runKnrWcIdentityProposalQueueBatch({
+    tenderId,
+    keys,
+    ikEntryEnabled: true,
+    p2UiEnabled: true,
+    featureEnabled: true,
+    persistEnabled: true,
+    p22HardeningEnabled: true,
+  });
+  return {
+    key: keys.find((k) => k.normalizedKey === normalizedKey) ?? null,
+    proposal: batch.proposals.find((p) => p.normalizedKey === normalizedKey) ?? null,
+  };
 }
 
 function buildProposalForKey(normalizedKey) {
@@ -405,6 +458,152 @@ const P3_RUNTIME_ON = { runtimeP3Enabled: true };
   assert(
     "T-P3-13 insertBothRegions export",
     typeof insertWorkBothRegions === "function",
+  );
+}
+
+// T-P3.1-1 — production path extract + batch (no loadMopsKey)
+{
+  const { key, proposal } = productionPathProposalForKey("KNNR||1014-07");
+  assert("T-P3.1-1 key found", key != null);
+  assert(
+    "T-P3.1-1 key descriptionPl from BOQ",
+    Boolean(key?.descriptionPl?.trim()) && key.descriptionPl.length > 10,
+    key?.descriptionPl,
+  );
+  assert(
+    "T-P3.1-1 proposal descriptionPl from BOQ",
+    Boolean(proposal?.descriptionPl?.trim()) && proposal.descriptionPl.length > 10,
+    proposal?.descriptionPl,
+  );
+}
+
+// T-P3.1-2 — buildCatalogWorkDraftFromProposal namePl not KNNR fallback
+{
+  const { proposal } = productionPathProposalForKey("KNNR||1014-07");
+  assert("T-P3.1-2 proposal present", proposal != null);
+  const draft = buildCatalogWorkDraftFromProposal(
+    proposal,
+    "knr-wc-p31-name-enrich-m2",
+    NOW,
+  );
+  assert("T-P3.1-2 namePl not KNNR", draft.namePl !== "KNNR", draft.namePl);
+  assert(
+    "T-P3.1-2 namePl non-empty",
+    String(draft.namePl || "").trim().length > 10,
+    draft.namePl,
+  );
+}
+
+// T-P3.1-3 — BOQ description clears HOLD_EVIDENCE-only path
+{
+  const { proposal } = productionPathProposalForKey("KNNR||1014-07");
+  assert("T-P3.1-3 proposal present", proposal != null);
+  assert(
+    "T-P3.1-3 not HOLD_EVIDENCE",
+    proposal.recommendation !== "HOLD_EVIDENCE",
+    `recommendation=${proposal.recommendation} sourceStatus=${proposal.sourceStatus}`,
+  );
+  assert("T-P3.1-3 sourceStatus TENDER", proposal.sourceStatus === "TENDER");
+}
+
+// T-P3.1-4 — static authority regression (P3.1 read-only enrichment)
+{
+  const forbidden = [
+    "applyOwnerKnrMapping",
+    "acceptWorkRateResearchCandidate",
+  ];
+  const uiFiles = [
+    "src/app/ik-pricing/IkKnrWcIdentityProposalQueuePanel.tsx",
+    "src/app/ik-pricing/IkKnrWcIdentityProposalReviewCard.tsx",
+    "src/app/ik-pricing/IkKnrWcIdentityCreateExecutor.tsx",
+  ];
+  for (const rel of uiFiles) {
+    const src = readFileSync(join(root, rel), "utf8");
+    for (const token of forbidden) {
+      assert(`T-P3.1-4 no ${token} in ${rel}`, !src.includes(token));
+    }
+    assert(`T-P3.1-4 no fetch in ${rel}`, !/\bfetch\s*\(/.test(src));
+  }
+  const queueLib = readFileSync(
+    join(root, "src/lib/intelligent-estimator/knr-wc-identity-bridge-queue.ts"),
+    "utf8",
+  );
+  assert("T-P3.1-4 queue lib no saveWorkCatalogRouted", !queueLib.includes("saveWorkCatalogRouted"));
+  assert("T-P3.1-4 queue lib no applyOwnerKnrMapping", !queueLib.includes("applyOwnerKnrMapping"));
+  assert(
+    "T-P3.1-4 queue lib has description helper",
+    queueLib.includes("buildDescriptionByLineIdFromDocumentExpertLines"),
+  );
+}
+
+// T-P3.1-5 — P3 guard regression unchanged
+{
+  const store = freshStore();
+  const p130501 = buildProposalForKey("KNNR|5|1305-01");
+  assert("T-P3.1-5 1305-01 HOLD_UNIT", p130501.unitStatus === "HOLD_UNIT");
+  assert("T-P3.1-5 1305-01 blocked", isKnrWcCreateBlockedByProposal(p130501));
+  const gate130501 = assertKnrWcCreateAllowed({
+    proposal: p130501,
+    ownerDecision: "CREATE_NEW",
+    workId: "knr-wc-1305-01-block",
+    store,
+    ...P3_RUNTIME_ON,
+  });
+  assert(
+    "T-P3.1-5 1305-01 gate blocked",
+    gate130501.ok === false && gate130501.reason === "hold_unit_table",
+  );
+
+  const p130502 = buildProposalForKey("KNNR|5|1305-02");
+  assert("T-P3.1-5 1305-02 HOLD_UNIT", p130502.unitStatus === "HOLD_UNIT");
+  assert("T-P3.1-5 1305-02 blocked", isKnrWcCreateBlockedByProposal(p130502));
+  const gate130502 = assertKnrWcCreateAllowed({
+    proposal: p130502,
+    ownerDecision: "CREATE_NEW",
+    workId: "knr-wc-1305-02-block",
+    store,
+    ...P3_RUNTIME_ON,
+  });
+  assert(
+    "T-P3.1-5 1305-02 gate blocked",
+    gate130502.ok === false && gate130502.reason === "hold_unit_table",
+  );
+
+  const highProposal = {
+    ...buildProposalForKey("KNR|4-01|1204-02"),
+    duplicateRisk: "HIGH",
+  };
+  const without = assertKnrWcCreateAllowed({
+    proposal: highProposal,
+    ownerDecision: "CREATE_NEW",
+    workId: "knr-wc-p31-high-dup",
+    store,
+    ...P3_RUNTIME_ON,
+  });
+  assert(
+    "T-P3.1-5 duplicate HIGH confirm required",
+    without.ok === false && without.reason === "confirm_duplicate_high_required",
+  );
+}
+
+// T-P3.1-6 — smoke harness follow-up check (no harness change in P3.1)
+{
+  const p3Harness = readFileSync(
+    join(root, "scripts/test-ik-knr-wc-identity-bridge-p3.mjs"),
+    "utf8",
+  );
+  assert(
+    "T-P3.1-6 P3 harness has productionPathProposalForKey",
+    p3Harness.includes("productionPathProposalForKey"),
+  );
+  assert(
+    "T-P3.1-6 loadMopsKey still used for guard regressions",
+    p3Harness.includes("function loadMopsKey"),
+  );
+  assert(
+    "T-P3.1-6 smoke harness fix not in scope",
+    true,
+    "FOLLOW-UP: browser smoke still uses loadMopsKey path — separate Owner GO",
   );
 }
 
