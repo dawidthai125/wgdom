@@ -17,10 +17,30 @@ export const KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED = false as const;
 /** P2 UI — Owner Review / Proposal Queue (Host). Default OFF. */
 export const KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = false as const;
 
+let knrWcBridgeRuntimeForTests: boolean | null = null;
+
+/**
+ * Test-only override for P1 + P2.1 + P2.2 + P2 UI bridge flags (null = const defaults).
+ * Does NOT bypass `isIkEntryEnabled()` / role gate — mirror `forceIkEntryEnabledForTests`.
+ */
+export function forceKnrWcIdentityBridgeRuntimeForTests(on: boolean | null): void {
+  knrWcBridgeRuntimeForTests = on;
+}
+
+function isKnrWcBridgeRuntimeForcedOn(): boolean {
+  return knrWcBridgeRuntimeForTests === true;
+}
+
+function isKnrWcBridgeRuntimeForcedOff(): boolean {
+  return knrWcBridgeRuntimeForTests === false;
+}
+
 export function isKnrWcIdentityBridgeP1Enabled(
   override?: boolean | null,
 ): boolean {
   if (typeof override === "boolean") return override;
+  if (isKnrWcBridgeRuntimeForcedOn()) return true;
+  if (isKnrWcBridgeRuntimeForcedOff()) return false;
   return KNR_WC_IDENTITY_BRIDGE_P1_ENABLED;
 }
 
@@ -28,6 +48,8 @@ export function isKnrWcIdentityBridgeP21PersistEnabled(
   override?: boolean | null,
 ): boolean {
   if (typeof override === "boolean") return override;
+  if (isKnrWcBridgeRuntimeForcedOn()) return true;
+  if (isKnrWcBridgeRuntimeForcedOff()) return false;
   return KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED;
 }
 
@@ -35,6 +57,8 @@ export function isKnrWcIdentityBridgeP22HardeningEnabled(
   override?: boolean | null,
 ): boolean {
   if (typeof override === "boolean") return override;
+  if (isKnrWcBridgeRuntimeForcedOn()) return true;
+  if (isKnrWcBridgeRuntimeForcedOff()) return false;
   return KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED;
 }
 
@@ -42,6 +66,8 @@ export function isKnrWcIdentityBridgeP2UiEnabled(
   override?: boolean | null,
 ): boolean {
   if (typeof override === "boolean") return override;
+  if (isKnrWcBridgeRuntimeForcedOn()) return true;
+  if (isKnrWcBridgeRuntimeForcedOff()) return false;
   return KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED;
 }
 

@@ -18,6 +18,7 @@ import {
   extractKnrWcBridgeKeysFromKnrExpert,
   runKnrWcIdentityProposalQueueBatch,
 } from "@/lib/intelligent-estimator/knr-wc-identity-bridge-queue";
+import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import { isIkEntryEnabled } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { TEUX_FONT_BODY, TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 import { WgButton } from "@/app/ui";
@@ -69,7 +70,10 @@ export function IkKnrWcIdentityProposalQueuePanel({
     setActiveKey(null);
     try {
       const tenderId = item.id || item.tenderId || "";
-      const docExpert = runIkDocumentExpert({ item });
+      const docExpert = runIkDocumentExpert({
+        item,
+        package: getTenderPackage(tenderId),
+      });
       const unitByLineId = buildUnitByLineIdFromDocumentExpertLines(
         docExpert.masterBoqLines?.map((r) => ({
           lineId: r.line.lineId,

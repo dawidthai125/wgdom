@@ -8,6 +8,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveCatalogBasisFromSourceRow } from "../src/lib/tenders-bzp-brief.ts";
 import {
+  forceKnrWcIdentityBridgeRuntimeForTests,
+  isKnrWcIdentityBridgeP1Enabled,
+  isKnrWcIdentityBridgeP21PersistEnabled,
+  isKnrWcIdentityBridgeP22HardeningEnabled,
+  isKnrWcIdentityBridgeP2UiEnabled,
   isKnrWcIdentityBridgeP2UiRuntimeEnabled,
   KNR_WC_IDENTITY_BRIDGE_P1_ENABLED,
   KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED,
@@ -15,9 +20,12 @@ import {
   KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED,
 } from "../src/lib/intelligent-estimator/knr-wc-identity-bridge-feature.ts";
 import {
+  buildUnitByLineIdFromDocumentExpertLines,
   extractKnrWcBridgeKeysFromKnrExpert,
   runKnrWcIdentityProposalQueueBatch,
 } from "../src/lib/intelligent-estimator/knr-wc-identity-bridge-queue.ts";
+import { runIkDocumentExpert } from "../src/lib/intelligent-estimator/ik-document-expert.ts";
+import { runIkKnrExpert } from "../src/lib/intelligent-estimator/ik-knr-expert.ts";
 import { MOPS_20_NORMALIZED_KEYS } from "../src/lib/intelligent-estimator/knr-wc-identity-bridge.ts";
 import {
   emptyKnrWcIdentityProposalStore,
@@ -368,6 +376,58 @@ assert("setup mops20 keys", mopsKeys.length === 20, `got ${mopsKeys.length}`);
 
 // T-P2UI-10 — Playwright smoke (SKIP — no existing IK P2 UI e2e harness)
 assert("T-P2UI-10 SKIP playwright", true);
+
+// T-P2UI-11 — G1 forceKnrWcIdentityBridgeRuntimeForTests (no role bypass)
+forceKnrWcIdentityBridgeRuntimeForTests(true);
+assert("T-P2UI-11 force ON P1", isKnrWcIdentityBridgeP1Enabled() === true);
+assert("T-P2UI-11 force ON P21", isKnrWcIdentityBridgeP21PersistEnabled() === true);
+assert("T-P2UI-11 force ON P22", isKnrWcIdentityBridgeP22HardeningEnabled() === true);
+assert("T-P2UI-11 force ON P2UI", isKnrWcIdentityBridgeP2UiEnabled() === true);
+assert(
+  "T-P2UI-11 runtime IK gate not bypassed",
+  isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: false }) === false,
+);
+assert(
+  "T-P2UI-11 runtime OK when IK on",
+  isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === true,
+);
+forceKnrWcIdentityBridgeRuntimeForTests(null);
+assert("T-P2UI-11 force reset P1 OFF", isKnrWcIdentityBridgeP1Enabled() === false);
+assert("T-P2UI-11 force reset runtime OFF", isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === false);
+
+// T-P2UI-12 — G2 multi-dwelling package seam (MOPS SSOT)
+{
+  const mopsItem = JSON.parse(
+    readFileSync(join(root, ".tmp/ops-mops-09-tender-item.json"), "utf8"),
+  );
+  const mopsPkg = JSON.parse(
+    readFileSync(join(root, ".tmp/ops-mops-09-item-pkg.json"), "utf8"),
+  ).pkg;
+  const tenderId = mopsItem.id;
+  const withoutPkg = runIkDocumentExpert({ item: mopsItem });
+  assert(
+    "T-P2UI-12 without package not ready",
+    withoutPkg.status === "hold" || withoutPkg.masterBoq?.readyForExperts !== true,
+    `status=${withoutPkg.status}`,
+  );
+  const withPkg = runIkDocumentExpert({ item: mopsItem, package: mopsPkg });
+  assert("T-P2UI-12 with package ready", withPkg.status === "ready");
+  assert("T-P2UI-12 readyForExperts", withPkg.masterBoq?.readyForExperts === true);
+  const knr = runIkKnrExpert({
+    tenderId,
+    documentExpert: withPkg,
+    historicalIndex: null,
+  });
+  assert("T-P2UI-12 knr not blocked", knr.status !== "BLOCKED", knr.status);
+  const unitByLineId = buildUnitByLineIdFromDocumentExpertLines(
+    withPkg.masterBoqLines?.map((r) => ({
+      lineId: r.line.lineId,
+      unit: r.line.unit,
+    })) ?? [],
+  );
+  const keys = extractKnrWcBridgeKeysFromKnrExpert(knr, { unitByLineId });
+  assert("T-P2UI-12 MOPS keys=20", keys.length === 20, `got ${keys.length}`);
+}
 
 console.log(`\nP2 UI: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

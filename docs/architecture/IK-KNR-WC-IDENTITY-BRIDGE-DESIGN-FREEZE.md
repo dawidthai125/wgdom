@@ -686,7 +686,7 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | **REUSE** | `selectedWorkId` staging only · **not** `catalogWorkId` |
 | **CREATE** | UI staging / disabled downstream · **no** `saveWorkCatalogRouted` |
 | **Mobile** | Compact list + drill-in review card (reuse Labor panel pattern) |
-| **Tests** | `scripts/test-ik-knr-wc-identity-bridge-p2ui.mjs` (T-P2UI-1…10) |
+| **Tests** | `scripts/test-ik-knr-wc-identity-bridge-p2ui.mjs` (T-P2UI-1…12) |
 
 **UI must separate:** „Sugestia systemu” (`recommendation`, `verificationState`, …) vs „Decyzja Ownera” (`ownerDecision` staging).
 
@@ -695,6 +695,27 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 **localStorage proposal cache ≠ authority** — `ownerDecision` always `unset` on rehydrate (unchanged P2.1/P2.2).
 
 **OQ-D-2:** remains OPEN — P2 UI does not integrate P5 `knrHint`.
+
+### 27b.1 G2 closure — multi-dwelling package seam (IMPLEMENTED)
+
+| Element | Value |
+|---------|--------|
+| **SSOT caller** | `IkEntryHost` · `ik-entry-conversation` · IK experts — `runIkDocumentExpert({ item, package: getTenderPackage(tenderId) })` |
+| **Package store** | `getTenderPackage(tenderId)` → `kw-multi-dwelling-package-v1` · `TenderPackage \| null` |
+| **P2 UI fix** | `IkKnrWcIdentityProposalQueuePanel.loadQueue` passes `package: getTenderPackage(tenderId)` — **same contract** as `IkEntryHost` |
+| **Why** | MOPS multi-dwelling without package → Document Expert `hold` → KNR Expert `BLOCKED` → queue empty |
+| **Write path** | **0** — read-only package lookup |
+
+### 27b.2 G1 closure — test-only runtime hook (IMPLEMENTED)
+
+| Element | Value |
+|---------|--------|
+| **API** | `forceKnrWcIdentityBridgeRuntimeForTests(on: boolean \| null)` |
+| **Pattern** | Mirror `forceIkEntryEnabledForTests` — module-level override · **not** localStorage · **not** production bypass |
+| **Scope when ON** | P1 + P2.1 + P2.2 + P2 UI flags behave as enabled |
+| **Role gate** | **NOT bypassed** — `isKnrWcIdentityBridgeP2UiRuntimeEnabled()` still requires `isIkEntryEnabled()` (or explicit `ikEntryEnabled: true` in harness) |
+| **Defaults** | `KNR_WC_* = false` unchanged in source |
+| **Tests** | T-P2UI-11 in `test-ik-knr-wc-identity-bridge-p2ui.mjs` |
 
 ---
 
