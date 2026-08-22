@@ -226,7 +226,18 @@ type CatalogQtySourceRow = {
 };
 
 const CATALOG_BASIS_FAMILY_RE = /^(KNR-W|KNNR|NNRNKB|ZKNR|KSNR|KNR)\b/i;
-const CATALOG_BASIS_TABLE_CODE_RE = /^\d{3,4}-\d{2}$/;
+/** SSOT table token — FT-10 / Slice A. */
+export const CATALOG_BASIS_TABLE_CODE_RE = /^\d{3,4}-\d{2}$/;
+const CATALOG_BASIS_DSEC_RE = /\bd\.\d+(?:\.\d+)?\b/gi;
+const CATALOG_BASIS_AFTER_DSEC_TABLE_RE =
+  /^\s+(?:\d{1,4}\s+)?(\d{3,4}-\d{2})\b/;
+
+const CATALOG_BASIS_RECOGNIZED_FAMILIES = new Set<CatalogBasisFamily>([
+  "KNR",
+  "KNR-W",
+  "KNNR",
+  "NNRNKB",
+]);
 
 function catalogBasisFamilyFromPrefix(raw: string): CatalogBasisFamily {
   const u = raw.toUpperCase();
@@ -237,9 +248,24 @@ function catalogBasisFamilyFromPrefix(raw: string): CatalogBasisFamily {
   return "OTHER";
 }
 
+function foldCatalogBasisNormalizedKey(
+  family: CatalogBasisFamily,
+  catalogId: string | null,
+  tableCode: string | null,
+): string {
+  return [family ?? "OTHER", catalogId ?? "", tableCode ?? ""]
+    .join("|")
+    .toUpperCase();
+}
+
+function isValidCatalogTableCode(token: string | null | undefined): boolean {
+  return CATALOG_BASIS_TABLE_CODE_RE.test(String(token ?? "").trim());
+}
+
 /**
  * IK-KNR-EXPERT Slice A — evidence from existing AthPreviewRow.code only.
  * Does not parse PDF. Does not read description. Does not write knrHint.
+ * FT-10 secondary hint lives in resolveCatalogBasisFromSourceRow only.
  */
 export function buildCatalogBasisFromRawCode(
   raw: string | null | undefined,
@@ -264,25 +290,151 @@ export function buildCatalogBasisFromRawCode(
     if (!catalogId) catalogId = token;
   }
 
-  return {
+  const basis: CatalogBasis = {
     family,
     catalogId,
     tableCode,
     rawCode,
     display: rawCode,
-    normalizedKey: [family ?? "OTHER", catalogId ?? "", tableCode ?? ""]
-      .join("|")
-      .toUpperCase(),
+    normalizedKey: foldCatalogBasisNormalizedKey(family, catalogId, tableCode),
+  };
+  if (isValidCatalogTableCode(tableCode)) {
+    basis.tableCodeSource = "PRIMARY_CODE";
+  }
+  return basis;
+}
+
+type SecondaryTableExtract =
+  | { kind: "none" }
+  | { kind: "ambiguous" }
+  | { kind: "token"; token: string };
+
+/**
+ * FT-10 Variant B — constrained secondary tableCode from description.
+ * NOT a free scan of NNNN-NN. NOT identity / classification / pricing.
+ */
+export function extractSecondaryDsecTableCodeHint(
+  description: string | null | undefined,
+): SecondaryTableExtract {
+  const desc = String(description ?? "");
+  if (!desc.trim()) return { kind: "none" };
+
+  const allTokens = [
+    ...desc.matchAll(/\b(\d{3,4}-\d{2})\b/g),
+  ].map((m) => m[1]);
+  const distinct = [...new Set(allTokens)];
+  if (distinct.length === 0) return { kind: "none" };
+  if (distinct.length > 1) return { kind: "ambiguous" };
+
+  const only = distinct[0];
+  const dsecMatches = [...desc.matchAll(CATALOG_BASIS_DSEC_RE)];
+  if (dsecMatches.length === 0) return { kind: "none" };
+
+  const lastDsec = dsecMatches[dsecMatches.length - 1];
+  const after = desc.slice((lastDsec.index ?? 0) + lastDsec[0].length);
+  const windowMatch = after.match(CATALOG_BASIS_AFTER_DSEC_TABLE_RE);
+  if (!windowMatch || windowMatch[1] !== only) return { kind: "none" };
+  if (!CATALOG_BASIS_TABLE_CODE_RE.test(windowMatch[1])) return { kind: "none" };
+  return { kind: "token", token: windowMatch[1] };
+}
+
+/**
+ * FT-10 — apply secondary DSEC hint onto PRIMARY basis (ingest seam only).
+ * Expert stays description-blind; reads resulting catalogBasis only.
+ */
+export function applySecondaryDsecTableCodeHint(
+  primary: CatalogBasis,
+  description: string | null | undefined,
+): CatalogBasis {
+  const family = primary.family;
+  if (!family || !CATALOG_BASIS_RECOGNIZED_FAMILIES.has(family)) {
+    return { ...primary };
+  }
+
+  const secondary = extractSecondaryDsecTableCodeHint(description);
+  const primaryTable = isValidCatalogTableCode(primary.tableCode)
+    ? String(primary.tableCode).trim()
+    : null;
+
+  if (primaryTable) {
+    if (secondary.kind === "token" && secondary.token !== primaryTable) {
+      return {
+        ...primary,
+        tableCode: primaryTable,
+        tableCodeSource: "PRIMARY_CODE",
+        tableCodeConfidence: null,
+        tableCodeResolutionHold: "TABLECODE_CONFLICT",
+        normalizedKey: foldCatalogBasisNormalizedKey(
+          primary.family,
+          primary.catalogId,
+          primaryTable,
+        ),
+      };
+    }
+    return {
+      ...primary,
+      tableCode: primaryTable,
+      tableCodeSource: "PRIMARY_CODE",
+      tableCodeConfidence: null,
+      tableCodeResolutionHold: null,
+      normalizedKey: foldCatalogBasisNormalizedKey(
+        primary.family,
+        primary.catalogId,
+        primaryTable,
+      ),
+    };
+  }
+
+  if (secondary.kind === "ambiguous") {
+    return {
+      ...primary,
+      tableCode: null,
+      tableCodeSource: null,
+      tableCodeConfidence: null,
+      tableCodeResolutionHold: "AMBIGUOUS_TABLECODE",
+      normalizedKey: foldCatalogBasisNormalizedKey(
+        primary.family,
+        primary.catalogId,
+        null,
+      ),
+    };
+  }
+
+  if (secondary.kind === "token") {
+    return {
+      ...primary,
+      tableCode: secondary.token,
+      // family / catalogId / rawCode / display unchanged
+      tableCodeSource: "SECONDARY_DSEC_HINT",
+      tableCodeConfidence: "constrained_hint",
+      tableCodeResolutionHold: null,
+      normalizedKey: foldCatalogBasisNormalizedKey(
+        primary.family,
+        primary.catalogId,
+        secondary.token,
+      ),
+    };
+  }
+
+  return {
+    ...primary,
+    tableCodeResolutionHold: null,
   };
 }
 
-function resolveCatalogBasisFromSourceRow(
+/**
+ * CQ / snapshot ingest seam — PRIMARY from code/rawCode, then FT-10 secondary.
+ * Does not write knrHint / catalogWorkId / classification.
+ */
+export function resolveCatalogBasisFromSourceRow(
   row: CatalogQtySourceRow,
 ): CatalogBasis | null {
-  if (row.catalogBasis && String(row.catalogBasis.rawCode ?? "").trim()) {
-    return row.catalogBasis;
-  }
-  return buildCatalogBasisFromRawCode(row.code);
+  const raw = String(row.code ?? row.catalogBasis?.rawCode ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const primary = buildCatalogBasisFromRawCode(raw);
+  if (!primary) return null;
+  return applySecondaryDsecTableCodeHint(primary, row.description);
 }
 
 /** Czy catalogQuantities ma ≥1 linię roboczą z qty > 0 (po filtrze noise). */
@@ -359,7 +511,7 @@ export function athPreviewToSnapshot(
   const catalogQuantities = buildCatalogQuantitiesFromPreview(preview);
   const pricedCap = SNAPSHOT_PRICED_ROWS_CAP;
   const rows: TenderCostLine[] = preview.rows.slice(0, pricedCap).map((r) => {
-    const catalogBasis = buildCatalogBasisFromRawCode(r.code);
+    const catalogBasis = resolveCatalogBasisFromSourceRow(r);
     return {
       lp: r.lp,
       description: r.description,

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.112 — IK-KNR FT-10 Secondary DSEC tableCode (2026-08-22)
+
+- `resolveCatalogBasisFromSourceRow`: secondary tableCode tylko po kotwicy `d.X(.Y)` + 1× `^\d{3,4}-\d{2}$`
+- Expert nadal description-blind · bez Slice D / A1 / pricing / HTTP
+- Test: `npx vite-node scripts/test-ik-knr-ft10-secondary-tablecode.mjs`
+
 ## 2.66.111 — IK-KNR KL-7-P1 Details / History / Offline Update (2026-08-22)
 
 - Szczegóły Katalogu KNR · append-only `history[]` (cap 50) · offline proposed update + diff

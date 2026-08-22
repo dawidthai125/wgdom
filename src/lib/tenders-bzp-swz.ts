@@ -18,6 +18,20 @@ import {
 /** IK-KNR-EXPERT Slice A — optional PDF/KNR evidence. Not identity. Not knrHint. */
 export type CatalogBasisFamily = "KNR" | "KNR-W" | "KNNR" | "NNRNKB" | "OTHER" | null;
 
+/** FT-10 — where tableCode was completed (evidence only · not VERIFIED). */
+export type CatalogBasisTableCodeSource = "PRIMARY_CODE" | "SECONDARY_DSEC_HINT";
+
+/** FT-10 — constrained secondary hint confidence (never VERIFIED / OUR RATE). */
+export type CatalogBasisTableCodeConfidence = "constrained_hint";
+
+/**
+ * FT-10 — resolution hold stamped on basis when secondary cannot safely complete.
+ * Expert reads this field only (still description-blind).
+ */
+export type CatalogBasisTableCodeResolutionHold =
+  | "AMBIGUOUS_TABLECODE"
+  | "TABLECODE_CONFLICT";
+
 export type CatalogBasis = {
   family: CatalogBasisFamily;
   catalogId: string | null;
@@ -25,6 +39,12 @@ export type CatalogBasis = {
   rawCode: string;
   display: string;
   normalizedKey: string;
+  /** FT-10 additive provenance — optional. */
+  tableCodeSource?: CatalogBasisTableCodeSource | null;
+  /** FT-10 additive — only when source = SECONDARY_DSEC_HINT. */
+  tableCodeConfidence?: CatalogBasisTableCodeConfidence | null;
+  /** FT-10 additive — forces Expert HOLD when set. */
+  tableCodeResolutionHold?: CatalogBasisTableCodeResolutionHold | null;
 };
 
 export interface TenderCostLine {

@@ -4,8 +4,8 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-KNR-EXPERT-DESIGN-FREEZE` |
-| **Status** | **OWNER REVIEW = ACCEPTED** · **DESIGN FREEZE = AMENDED** · **THIN ARCH RE-REVIEW = PASS** · **Slice A = CLOSED · PRODUCTION VERIFIED · GREEN @ `93eb41be`** · **IMPLEMENT Slice A = DONE** · **IMPLEMENT Slice B+ = NOT AUTHORIZED UNTIL OWNER GO** |
-| **Date** | 2026-08-18 |
+| **Status** | **OWNER REVIEW = ACCEPTED** · **DESIGN FREEZE = AMENDED** · **THIN ARCH RE-REVIEW = PASS** · **Slice A = CLOSED · PRODUCTION VERIFIED · GREEN @ `93eb41be`** · **FT-10 Variant B = OWNER GO · IMPLEMENT (secondary DSEC tableCode on ingest seam)** · **IMPLEMENT Slice A = DONE** · **IMPLEMENT Slice B+ = NOT AUTHORIZED UNTIL OWNER GO** |
+| **Date** | 2026-08-18 · **FT-10 amend** 2026-08-22 |
 | **Amend** | [`IK-KNR-EXPERT-DESIGN-FREEZE-AMEND.md`](./IK-KNR-EXPERT-DESIGN-FREEZE-AMEND.md) · **IC-KNR-HINT-AUTHORITY** + **IC-KNR-SRC-PATH** |
 | **Mode** | DOCUMENTATION ONLY · **ZERO CODE** · **ZERO SETTINGS** · **ZERO KV** · **ZERO FLAG** · **ZERO RUNTIME** · **ZERO A08-P3** · **ZERO COMMIT** · **ZERO PUSH** · **ZERO DEPLOY** |
 | **AUDIT** | [`IK-KNR-EXPERT-AUDIT.md`](./IK-KNR-EXPERT-AUDIT.md) · **COMPLETE** |
@@ -111,7 +111,28 @@ Sala = jedyna powierzchnia rozmowy IK na tab Przetarg; **nie** drugi mount Hub.
 | Wejście dla Slice B (odczyt) | Classifier / identity |
 | Pole ignorowane przez `mapOfferBoqLine` | Kanał `knrHint` |
 
-Shape (bez zmiany vs DESIGN §6.2): `{ family, catalogId, tableCode, rawCode, display, normalizedKey }` — split best-effort z **istniejącego** stringa `code`; niepełny split = `rawCode` wystarczy. Nie rozpoznawać PDF od nowa.
+Shape (DESIGN §6.2 + FT-10 additive): `{ family, catalogId, tableCode, rawCode, display, normalizedKey, tableCodeSource?, tableCodeConfidence?, tableCodeResolutionHold? }` — PRIMARY split best-effort z **istniejącego** stringa `code`; niepełny split = `rawCode` wystarczy. Nie rozpoznawać PDF od nowa w Expert.
+
+### 2A.1b FT-10 — SECONDARY TABLECODE (Variant B · OWNER GO 2026-08-22)
+
+**Seam:** wyłącznie `resolveCatalogBasisFromSourceRow` / budowa CQ·rows (`tenders-bzp-brief`). **Nie** `runIkKnrExpert` (Expert pozostaje description-blind).
+
+| Reguła | Kontrakt |
+|--------|----------|
+| TABLE_TOKEN | `^\d{3,4}-\d{2}$` (SSOT) |
+| PRIMARY | `buildCatalogBasisFromRawCode(code\|rawCode)` · gdy `tableCode` poprawny → **PRIMARY wins** (`tableCodeSource=PRIMARY_CODE`) |
+| SECONDARY | tylko gdy PRIMARY family ∈ {KNR,KNR-W,KNNR,NNRNKB} **i** PRIMARY bez poprawnego tableCode **albo** conflict-check |
+| Kotwica DSEC | ostatnie `/\bd\.\d+(?:\.\d+)?\b/i` |
+| Okno po DSEC | `^\s+(?:\d{1,4}\s+)?(\d{3,4}-\d{2})\b` |
+| Single-token | w całym description dokładnie **jeden** distinct TABLE_TOKEN · musi = token z okna |
+| 0 tokenów / brak DSEC / okno fail | secondary **nie** działa → HOLD `INCOMPLETE_TABLE_CODE` (jak dziś) |
+| >1 distinct | `tableCodeResolutionHold=AMBIGUOUS_TABLECODE` · tableCode null · Expert HOLD |
+| PRIMARY table ≠ secondary token | `tableCodeResolutionHold=TABLECODE_CONFLICT` · Expert HOLD (nie CANDIDATE) |
+| Po akceptacji secondary | ustaw `tableCode` · przelicz `normalizedKey` · **nie** zmieniaj family/catalogId/rawCode/display · `tableCodeSource=SECONDARY_DSEC_HINT` · `tableCodeConfidence=constrained_hint` |
+
+**Zakaz secondary:** identity · Alias Pack · LABOR/MATERIAL/COMPOUND · `catalogWorkId` · VERIFIED · OUR RATE · pricing · HTTP discovery · seed Owner Map.
+
+**OQ-4:** zamknięte — `tableCode` z opisu **tylko** gdy DSEC-constrained (ten kontrakt).
 
 ### 2A.2 Przepływ SOURCE (obowiązkowy — IC-KNR-SRC-PATH)
 
@@ -182,7 +203,8 @@ Pola **optional**. Legacy snapshot bez `catalogBasis` → brak throw (T-SRC-3). 
 | KNR Expert (B) | Adapter / analizator / raport / evidence candidate·HOLD · czyta **`catalogBasis`**, nie `knrHint` |
 | KNR Expert NIE | Classifier, identity engine, SSOT `catalogWorkId`, A1, resolver z nazwy, sterownik P5–P8, writer `knrHint` |
 | `exact_knr` | CANDIDATE only · **nigdy** authority · **nie** ustawia `catalogWorkId` |
-| Alias Pack / opis | **FORBIDDEN** w torze KNR |
+| Alias Pack / opis → identity | **FORBIDDEN** w torze KNR |
+| FT-10 secondary tableCode | **ALLOWED** tylko ingest `resolveCatalogBasisFromSourceRow` · DSEC+single-token · **nie** Expert · **nie** identity |
 | `catalogWorkId` | **Tylko** `applyOwnerKnrMapping` przy Owner HIT (Slice D). Slice A: **null / unchanged** |
 | A1 | **UNCHANGED** · nie akceptuje „samego KNR” jako identity · plik **nie ruszany** |
 | Pusta mapa | Legalne: 0 RESOLVED · A1 UNKNOWN · UI laik „do sprawdzenia” |

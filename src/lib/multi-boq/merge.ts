@@ -3,8 +3,8 @@
  */
 
 import {
-  buildCatalogBasisFromRawCode,
   hasUsableCatalogQuantities,
+  resolveCatalogBasisFromSourceRow,
 } from "@/lib/tenders-bzp-brief";
 import type { CatalogBasis, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import {
@@ -107,7 +107,10 @@ function extractRawLines(
         c.quantity ?? "",
         null,
         null,
-        c.catalogBasis ?? null,
+        resolveCatalogBasisFromSourceRow({
+          description: c.description,
+          catalogBasis: c.catalogBasis,
+        }),
       );
     });
     return out;
@@ -129,7 +132,11 @@ function extractRawLines(
       r.quantity ?? "",
       Number.isFinite(unitPrice) && unitPrice > 0 ? unitPrice : null,
       Number.isFinite(total) && total > 0 ? total : null,
-      r.catalogBasis ?? buildCatalogBasisFromRawCode(r.code),
+      resolveCatalogBasisFromSourceRow({
+        code: r.code,
+        description: r.description,
+        catalogBasis: r.catalogBasis,
+      }),
     );
   });
   return out;

@@ -107,10 +107,19 @@ function copyCatalogBasis(basis: CatalogBasis | null | undefined): CatalogBasis 
     rawCode: basis.rawCode,
     display: basis.display,
     normalizedKey: basis.normalizedKey,
+    ...(basis.tableCodeSource != null
+      ? { tableCodeSource: basis.tableCodeSource }
+      : {}),
+    ...(basis.tableCodeConfidence != null
+      ? { tableCodeConfidence: basis.tableCodeConfidence }
+      : {}),
+    ...(basis.tableCodeResolutionHold != null
+      ? { tableCodeResolutionHold: basis.tableCodeResolutionHold }
+      : {}),
   };
 }
 
-/** Slice A evidence only — never description / knrHint. */
+/** Slice A/B evidence only — never description / knrHint. FT-10 secondary already on basis. */
 function readCatalogBasis(ref: IkMasterBoqLineRef): CatalogBasis | null {
   return copyCatalogBasis(ref.line.catalogBasis ?? ref.provenance?.catalogBasis ?? null);
 }
@@ -126,6 +135,10 @@ function classifyEvidence(basis: CatalogBasis | null): {
   holdReason?: string;
 } {
   if (!basis) return { lineStatus: "NONE" };
+  // FT-10 resolution holds stamped at ingest — Expert still description-blind.
+  if (basis.tableCodeResolutionHold) {
+    return { lineStatus: "HOLD", holdReason: basis.tableCodeResolutionHold };
+  }
   if (isCompleteEvidence(basis)) return { lineStatus: "CANDIDATE" };
   const tableCode = String(basis.tableCode ?? "").trim();
   return {

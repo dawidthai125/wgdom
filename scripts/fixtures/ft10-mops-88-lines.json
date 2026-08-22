@@ -1,0 +1,358 @@
+{
+  "tender": "MOPS",
+  "n": 88,
+  "lines": [
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-powierzchnie pionowe m2 d.1.1 202 1134-02 36,76 + 50,11 + 37,82 + 68,34 + 44,59 + 12,80 + 22,99 +"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi starych m2 d.1.1 1204-02 tynków wewnętrznych ścian poz.1"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Skasowanie wykwitów (zacieków)"
+    },
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-sufity m2 d.1.2 202 1134-01 10,31 + 19,41 + 10,58 + 34,08 + 13,08 + 1,18 + 3,36 +"
+    },
+    {
+      "code": "KNR 2-02",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi powierzchni m2 d.1.2 1505-01 wewnętrznych-tynków gładkich bez gruntowania-sufity poz.4"
+    },
+    {
+      "code": "KNNR",
+      "description": "W 3 Mycie po robotach malarskich posadzek lastrykowych, m2 d.1.3 1014-07 cementowych, wykładzin i płytek poz.4"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Wymiana klamek z rozetami"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Dopasowanie skrzydeł okiennych zespolonych o szt d.1.4 0909-04 powierzchni ponad 0.5 do 2.5 m2 6"
+    },
+    {
+      "code": "KNR-W",
+      "description": "Kontener na odpady 4m3"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii zlewozmywakowej i umywalkowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż ustępu z miską fajansową"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii prysznicowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 50 szt d.2.1 0233-06 mm 5"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 110 szt d.2.1 0233-08 mm 1"
+    },
+    {
+      "code": "KNR-W 4-02",
+      "description": "Wymiana zaworu przelotowego o śr. 15 mm"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Baterie zmywakowe i umywalkowe stojace o śr.nom. 15"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż zlewozmywaków żeliwnych lub stalowych na"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż ustępów pojedynczych z płuczkami z tworzyw kpl d.2.2 0224-03 sztucznych lub porcelany 'kompakt' 2"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Proba szczelności instalacji wodociągowych w budynkach m d.2.2 0110-01 mieszkalnych (rurociąg o śr.do 65 mm) 25"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Obsadzenie kratek wentylacyjnych w ścianach z cegieł"
+    },
+    {
+      "code": "KNR 4-03",
+      "description": "Demontaż łączników instalacyjnych podtynkowych o szt d.4 1124-01 natężeniu prądu do 10 A - 1 wylot (wyłącznik 1 biegunowy) 10"
+    },
+    {
+      "code": "KNR-W 5-08",
+      "description": "Montaż osprzętu modułowego w rozdzielnicach-szt d.4 0407-01 wyłącznik nadprądowy 1-biegunowy 10"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Przygotowanie podłoża pod oprawy oświetleniowe kpl d.4 0501-03 zawieszane na kołkach kotwiących na podłożu betonowym (il. mocowań 1) 5"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-03 oświetleniowych typu LED (plafon IP20) przykręcanych, końcowych 6"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-07 oświetleniowych typu LED (plafon bryzgoszczelny IP44) przykręcanych, końcowych-łazienka, kuchnia 3"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-01 (pierwsza próba) . 1"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-02 (następna próba) . 19"
+    },
+    {
+      "code": "KNR 13-21",
+      "description": "Badanie wyłącznika przeciwporażeniowego szt d.4 0402-03 różnicowo-prądowego 6"
+    },
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-powierzchnie pionowe m2 d.1.1 202 1134-02 37,88 + 34,48 + 44,50 + 56,57 + 24,42 + 14,79 + 55,52"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi starych m2 d.1.1 1204-02 tynków wewnętrznych ścian poz.1"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Skasowanie wykwitów (zacieków)"
+    },
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-sufity m2 d.1.2 202 1134-01 13,94 + 12,78 + 15,68 + 17,54 + 4,65 + 3,06 + 16,74"
+    },
+    {
+      "code": "KNR 2-02",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi powierzchni m2 d.1.2 1505-01 wewnętrznych-tynków gładkich bez gruntowania-sufity poz.4"
+    },
+    {
+      "code": "KNNR",
+      "description": "W 3 Mycie po robotach malarskich posadzek lastrykowych, m2 d.1.3 1014-07 cementowych, wykładzin i płytek 13,94 + 12,78 + 15,68 + 17,54 + 4,65 + 3,06 + 16,74"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Wymiana klamek z rozetami"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Dopasowanie skrzydeł okiennych zespolonych o szt d.1.4 0909-04 powierzchni ponad 0.5 do 2.5 m2 6"
+    },
+    {
+      "code": "KNR-W",
+      "description": "Kontener na odpady 4m3"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii zlewozmywakowej i umywalkowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż ustępu z miską fajansową"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii prysznicowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii wannowej dwudrogowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 50 szt d.2.1 0233-06 mm 5"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 110 szt d.2.1 0233-08 mm 1"
+    },
+    {
+      "code": "KNR-W 4-02",
+      "description": "Wymiana zaworu przelotowego o śr. 15 mm"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Baterie zmywakowe i umywalkowe stojace o śr.nom. 15"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż zlewozmywaków żeliwnych lub stalowych na"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Baterie wannowe ścienne o śr. nom. 15 mm"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż ustępów pojedynczych z płuczkami z tworzyw kpl d.2.2 0224-03 sztucznych lub porcelany 'kompakt' 2"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Proba szczelności instalacji wodociągowych w budynkach m d.2.2 0110-01 mieszkalnych (rurociąg o śr.do 65 mm) 25"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Obsadzenie kratek wentylacyjnych w ścianach z cegieł"
+    },
+    {
+      "code": "KNR 4-03",
+      "description": "Demontaż łączników instalacyjnych podtynkowych o szt d.4 1124-01 natężeniu prądu do 10 A - 1 wylot (wyłącznik 1 biegunowy) 10"
+    },
+    {
+      "code": "KNR-W 5-08",
+      "description": "Montaż osprzętu modułowego w rozdzielnicach-szt d.4 0407-01 wyłącznik nadprądowy 1-biegunowy 10"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Przygotowanie podłoża pod oprawy oświetleniowe kpl d.4 0501-03 zawieszane na kołkach kotwiących na podłożu betonowym (il. mocowań 1) 5"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-03 oświetleniowych typu LED (plafon IP20) przykręcanych, końcowych 6"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-07 oświetleniowych typu LED (plafon bryzgoszczelny IP44) przykręcanych, końcowych-łazienka, kuchnia 3"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-01 (pierwsza próba) . 1"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-02 (następna próba) . 19"
+    },
+    {
+      "code": "KNR 13-21",
+      "description": "Badanie wyłącznika przeciwporażeniowego szt d.4 0402-03 różnicowo-prądowego 6"
+    },
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-powierzchnie pionowe m2 d.1.1 202 1134-02 42,46 + 50,10 + 54,33 + 44,57 + 52,17 + 10,22 + 14,58 +"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi starych m2 d.1.1 1204-02 tynków wewnętrznych ścian poz.1"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Skasowanie wykwitów (zacieków)"
+    },
+    {
+      "code": "NNRNKB",
+      "description": "(z.VII) Gruntowanie podłoży-sufity m2 d.1.2 202 1134-01 10,80 + 18,90 + 22,21 + 11,86 + 19,72 + 2,97 + 3,55 +"
+    },
+    {
+      "code": "KNR 2-02",
+      "description": "Dwukrotne malowanie farbami emulsyjnymi powierzchni m2 d.1.2 1505-01 wewnętrznych-tynków gładkich bez gruntowania-sufity poz.4"
+    },
+    {
+      "code": "KNNR",
+      "description": "W 3 Mycie po robotach malarskich posadzek lastrykowych, m2 d.1.3 1014-07 cementowych, wykładzin i płytek 10,80 + 18,90 + 22,21 + 11,86 + 19,72 + 2,97 + 3,55 +"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Wymiana klamek z rozetami"
+    },
+    {
+      "code": "KNR-W 4-01",
+      "description": "Dopasowanie skrzydeł okiennych zespolonych o szt d.1.4 0909-04 powierzchni ponad 0.5 do 2.5 m2 7"
+    },
+    {
+      "code": "KNR-W",
+      "description": "Kontener na odpady 4m3"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii zlewozmywakowej i umywalkowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż ustępu z miską fajansową"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż baterii prysznicowej"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 50 szt d.2.1 0233-06 mm 7"
+    },
+    {
+      "code": "KNR 4-02",
+      "description": "Demontaż podejścia odpływowego z rur z PCW o śr. 110 szt d.2.1 0233-08 mm 2"
+    },
+    {
+      "code": "KNR-W 4-02",
+      "description": "Wymiana zaworu przelotowego o śr. 15 mm"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Baterie zmywakowe i umywalkowe stojace o śr.nom. 15"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż zlewozmywaków żeliwnych lub stalowych na"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Baterie prysznicowe ścienne o śr.nom. 20 mm z szt d.2.2 0115-05 słuchawką 2"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Montaż ustępów pojedynczych z płuczkami z tworzyw kpl d.2.2 0224-03 sztucznych lub porcelany 'kompakt' 2"
+    },
+    {
+      "code": "KNR 2-15",
+      "description": "Proba szczelności instalacji wodociągowych w budynkach m d.2.2 0110-01 mieszkalnych (rurociąg o śr.do 65 mm) 25"
+    },
+    {
+      "code": "KNNR 2",
+      "description": "Malowanie rur stalowych i blaszanych o śr.50-100 mm m d.2.2 1404-05 2,5 * 2"
+    },
+    {
+      "code": "KNR 4-01",
+      "description": "Obsadzenie kratek wentylacyjnych w ścianach z cegieł"
+    },
+    {
+      "code": "KNR 4-03",
+      "description": "Demontaż łączników instalacyjnych podtynkowych o szt d.4 1124-01 natężeniu prądu do 10 A - 1 wylot (wyłącznik 1 biegunowy) 10"
+    },
+    {
+      "code": "KNR-W 5-08",
+      "description": "Montaż osprzętu modułowego w rozdzielnicach-szt d.4 0407-01 wyłącznik nadprądowy 1-biegunowy 10"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Przygotowanie podłoża pod oprawy oświetleniowe kpl d.4 0501-03 zawieszane na kołkach kotwiących na podłożu betonowym (il. mocowań 1) 5"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-03 oświetleniowych typu LED (plafon IP20) przykręcanych, końcowych 6"
+    },
+    {
+      "code": "KNR 5-08",
+      "description": "Montaż z podłączeniem na gotowym podłożu opraw szt d.4 0504-07 oświetleniowych typu LED (plafon bryzgoszczelny IP44) przykręcanych, końcowych-łazienka, kuchnia 3"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-01 (pierwsza próba) . 1"
+    },
+    {
+      "code": "KNNR 5",
+      "description": "Sprawdzenie samoczynnego wyłączania zasilania prób d.4 1305-02 (następna próba) . 19"
+    },
+    {
+      "code": "KNR 13-21",
+      "description": "Badanie wyłącznika przeciwporażeniowego szt d.4 0402-03 różnicowo-prądowego 6"
+    }
+  ]
+}

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-22",
+    version: "2.66.112",
+    label: "IK-KNR FT-10 — secondary DSEC tableCode (CatalogBasis)",
+    items: [
+      {
+        type: "improve",
+        text: "FT-10 Variant B: resolveCatalogBasisFromSourceRow uzupełnia tableCode z description wyłącznie po kotwicy d.X(.Y) + pojedynczy token ^\\d{3,4}-\\d{2}$. Expert description-blind. Bez Slice D / A1 / pricing / HTTP. Test: test-ik-knr-ft10-secondary-tablecode.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-22",
     version: "2.66.111",
     label: "IK-KNR KL-7-P1 — KNR details / history / offline update",
     items: [
