@@ -61,6 +61,13 @@ export * from "./knr-discovery-http-exec";
 export * from "./knr-discovery-http-ingest";
 export * from "./knr-host-discovery-sidechannel";
 
+/** KL-7-P2C — orchestration OFF-mode (lease · SF · batch · concurrency). */
+export * from "./knr-discovery-orch-types";
+export * from "./knr-discovery-job-lease";
+export * from "./knr-discovery-client-sf";
+export * from "./knr-discovery-orch-pool";
+export * from "./knr-discovery-orch";
+
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";
 export * from "./knr-evidence-store";

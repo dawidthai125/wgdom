@@ -32,6 +32,13 @@ import {
   releaseResearchJobLease,
   validateResearchJobClaimRequest,
 } from "./research-job-lease.ts";
+import {
+  claimKnrDiscoveryJobLease,
+  createSupabaseAtomicKnrDiscoveryJobStore,
+  knrDiscoveryJobLeaseHasAuthoritySpoof,
+  releaseKnrDiscoveryJobLease,
+  validateKnrDiscoveryJobClaimRequest,
+} from "./knr-discovery-job-lease.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -4773,6 +4780,71 @@ app.post("/make-server-0afb8820/research-job-release", async (c) => {
     }, result.released ? 200 : 409);
   } catch (e) {
     console.error("research-job-release:", e);
+    return c.json(
+      { ok: false, released: false, error: e instanceof Error ? e.message : "release error" },
+      500,
+    );
+  }
+});
+
+// ─── KL-7-P2C — KNR discovery job lease (OFF-mode foundation · no outbound HTTP) ───
+app.post("/make-server-0afb8820/knr-discovery-job-claim", async (c) => {
+  try {
+    const body = await c.req.json();
+    const validated = validateKnrDiscoveryJobClaimRequest(body);
+    if (!validated.ok) {
+      return c.json(
+        { ok: false, acquired: false, job: null, error: validated.error, message: validated.message },
+        400,
+      );
+    }
+    const store = createSupabaseAtomicKnrDiscoveryJobStore(supabaseAdmin());
+    const result = await claimKnrDiscoveryJobLease(store, validated.value);
+    if (result.job && knrDiscoveryJobLeaseHasAuthoritySpoof(result.job)) {
+      return c.json(
+        { ok: false, acquired: false, job: null, error: "authority_spoof_forbidden" },
+        500,
+      );
+    }
+    return c.json({
+      ok: true,
+      acquired: result.acquired,
+      job: result.job,
+      reason: result.reason ?? null,
+    });
+  } catch (e) {
+    console.error("knr-discovery-job-claim:", e);
+    return c.json(
+      { ok: false, acquired: false, job: null, error: e instanceof Error ? e.message : "claim error" },
+      500,
+    );
+  }
+});
+
+app.post("/make-server-0afb8820/knr-discovery-job-release", async (c) => {
+  try {
+    const body = await c.req.json();
+    const evidenceKeyV1 =
+      typeof body?.evidenceKeyV1 === "string" ? body.evidenceKeyV1.trim() : "";
+    const sourceId = typeof body?.sourceId === "string" ? body.sourceId.trim() : "";
+    const claimantId = typeof body?.claimantId === "string" ? body.claimantId.trim() : "";
+    if (!evidenceKeyV1 || !sourceId || !claimantId) {
+      return c.json({ ok: false, released: false, error: "missing_fields" }, 400);
+    }
+    const store = createSupabaseAtomicKnrDiscoveryJobStore(supabaseAdmin());
+    const result = await releaseKnrDiscoveryJobLease(store, {
+      evidenceKeyV1,
+      sourceId,
+      claimantId,
+    });
+    return c.json({
+      ok: result.released,
+      released: result.released,
+      job: result.job,
+      error: result.error ?? null,
+    }, result.released ? 200 : 409);
+  } catch (e) {
+    console.error("knr-discovery-job-release:", e);
     return c.json(
       { ok: false, released: false, error: e instanceof Error ? e.message : "release error" },
       500,
