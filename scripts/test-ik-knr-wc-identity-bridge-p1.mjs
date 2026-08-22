@@ -182,7 +182,7 @@ function classifyProposal(p) {
 }
 
 console.log("=== IK-KNR-WC-IDENTITY-BRIDGE P1 ===\n");
-assert("feature default OFF", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === false);
+assert("feature default ON (enablement)", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === true);
 
 const { keys: mopsKeys, candidateRows, incompleteHoldRows } = loadMops20KeysFromTender();
 assert("MOPS fixture 20 keys loaded", mopsKeys.length === 20, mopsKeys.length);

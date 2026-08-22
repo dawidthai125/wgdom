@@ -120,18 +120,26 @@ function queueRun(opts) {
 const mopsKeys = loadMops20KeysFromTender();
 assert("setup mops20 keys", mopsKeys.length === 20, `got ${mopsKeys.length}`);
 
-// T-P2UI-1 — panel hidden when flags OFF (runtime gate)
+// T-P2UI-1 — runtime gate (source defaults ON · overrides + IK gate still apply)
 {
   assert(
-    "T-P2UI-1 prod P2_UI flag OFF",
-    KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED === false,
+    "T-P2UI-1 prod P2_UI flag ON (enablement)",
+    KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED === true,
   );
   assert(
-    "T-P2UI-1 runtime OFF without overrides",
+    "T-P2UI-1 runtime OFF when P1 override false",
     isKnrWcIdentityBridgeP2UiRuntimeEnabled({
       ikEntryEnabled: true,
       p1Enabled: false,
     }) === false,
+  );
+  assert(
+    "T-P2UI-1 runtime OFF without IK",
+    isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: false }) === false,
+  );
+  assert(
+    "T-P2UI-1 runtime ON enablement + IK",
+    isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === true,
   );
   const offBatch = runKnrWcIdentityProposalQueueBatch({
     tenderId: TENDER_A,
@@ -300,11 +308,12 @@ assert("setup mops20 keys", mopsKeys.length === 20, `got ${mopsKeys.length}`);
   }
 }
 
-// T-P2UI-9 — regression counts (flags prod OFF)
+// T-P2UI-9 — enablement source defaults ON (force hook remains test-only)
 {
-  assert("T-P2UI-9 P1 flag OFF", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === false);
-  assert("T-P2UI-9 P21 flag OFF", KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED === false);
-  assert("T-P2UI-9 P22 flag OFF", KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED === false);
+  assert("T-P2UI-9 P1 flag ON", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === true);
+  assert("T-P2UI-9 P21 flag ON", KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED === true);
+  assert("T-P2UI-9 P22 flag ON", KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED === true);
+  assert("T-P2UI-9 P2 UI flag ON", KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED === true);
 }
 
 // extractKnrWcBridgeKeysFromKnrExpert — CANDIDATE dedup
@@ -395,9 +404,22 @@ assert(
   "T-P2UI-11 runtime OK when IK on",
   isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === true,
 );
+forceKnrWcIdentityBridgeRuntimeForTests(false);
+assert("T-P2UI-11 force OFF P1", isKnrWcIdentityBridgeP1Enabled() === false);
+assert(
+  "T-P2UI-11 force OFF runtime even with IK",
+  isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === false,
+);
 forceKnrWcIdentityBridgeRuntimeForTests(null);
-assert("T-P2UI-11 force reset P1 OFF", isKnrWcIdentityBridgeP1Enabled() === false);
-assert("T-P2UI-11 force reset runtime OFF", isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === false);
+assert("T-P2UI-11 force reset P1 ON (source default)", isKnrWcIdentityBridgeP1Enabled() === true);
+assert(
+  "T-P2UI-11 force reset runtime ON with IK",
+  isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: true }) === true,
+);
+assert(
+  "T-P2UI-11 force reset runtime OFF without IK",
+  isKnrWcIdentityBridgeP2UiRuntimeEnabled({ ikEntryEnabled: false }) === false,
+);
 
 // T-P2UI-12 — G2 multi-dwelling package seam (MOPS SSOT)
 {

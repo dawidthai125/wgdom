@@ -6,16 +6,16 @@
 import { isIkEntryEnabled } from "./ik-entry-flag";
 
 /** Production default — P1 builder returns empty batch when false. */
-export const KNR_WC_IDENTITY_BRIDGE_P1_ENABLED = false as const;
+export const KNR_WC_IDENTITY_BRIDGE_P1_ENABLED = true as const;
 
 /** P2.1 — local proposal persistence/reuse cache. Default OFF. */
-export const KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED = false as const;
+export const KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED = true as const;
 
 /** P2.2 — batch reuse hardening + Supabase load guard. Default OFF. */
-export const KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED = false as const;
+export const KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED = true as const;
 
 /** P2 UI — Owner Review / Proposal Queue (Host). Default OFF. */
-export const KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = false as const;
+export const KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = true as const;
 
 let knrWcBridgeRuntimeForTests: boolean | null = null;
 

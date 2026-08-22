@@ -116,9 +116,9 @@ const mopsKeys = loadMops20KeysFromTender();
 const sharedStore = emptyKnrWcIdentityProposalStore(NOW);
 
 console.log("=== IK-KNR-WC-IDENTITY-BRIDGE P2.2 ===\n");
-assert("P1 feature default OFF", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === false);
-assert("P2.1 feature default OFF", KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED === false);
-assert("P2.2 feature default OFF", KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED === false);
+assert("P1 feature default ON (enablement)", KNR_WC_IDENTITY_BRIDGE_P1_ENABLED === true);
+assert("P2.1 feature default ON (enablement)", KNR_WC_IDENTITY_BRIDGE_P21_PERSIST_ENABLED === true);
+assert("P2.2 feature default ON (enablement)", KNR_WC_IDENTITY_BRIDGE_P22_HARDENING_ENABLED === true);
 assert("MOPS fixture 20 keys", mopsKeys.length === 20, mopsKeys.length);
 
 // Seed store for reuse tests
