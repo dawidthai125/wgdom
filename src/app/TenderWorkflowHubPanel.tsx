@@ -47,6 +47,9 @@ import {
 } from "@/app/expert-conversation";
 import { IkLaborGapResearchPanel } from "@/app/ik-pricing/IkLaborGapResearchPanel";
 import { IkKnrWcIdentityProposalQueuePanel } from "@/app/ik-pricing/IkKnrWcIdentityProposalQueuePanel";
+import { IkKnrWcIdentityCreateExecutor } from "@/app/ik-pricing/IkKnrWcIdentityCreateExecutor";
+import { isKnrWcIdentityBridgeP3CreateRuntimeEnabled } from "@/lib/intelligent-estimator/knr-wc-identity-bridge-feature";
+import { isIkEntryEnabled } from "@/lib/intelligent-estimator/ik-entry-flag";
 import { OwnerRateInputCard } from "@/app/OwnerRateInputCard";
 import { MultiDwellingPackagePanel } from "@/app/MultiDwellingPackagePanel";
 import {
@@ -226,6 +229,13 @@ export function TenderWorkflowHubPanel({
   onPriceResearchAccepted?: () => void;
 }) {
   const expertEffective = isExpertAiRuntimeEffective();
+  const knrWcP3CreateEnabled = useMemo(
+    () =>
+      isKnrWcIdentityBridgeP3CreateRuntimeEnabled({
+        ikEntryEnabled: isIkEntryEnabled(),
+      }),
+    [],
+  );
   const blockersCount = intelligenceCtx.overlay.allBlocks.length;
   const progressDefaultOpen = blockersCount > 0;
 
@@ -351,6 +361,9 @@ export function TenderWorkflowHubPanel({
 
       {/* IK-KNR-WC-IDENTITY-BRIDGE P2 UI — Owner Review queue (flag-gated · zero authority write) */}
       <IkKnrWcIdentityProposalQueuePanel item={item} />
+
+      {/* IK-KNR-WC-IDENTITY-BRIDGE P3 — Owner CREATE executor (additive · P3 flag default OFF) */}
+      {knrWcP3CreateEnabled ? <IkKnrWcIdentityCreateExecutor item={item} /> : null}
 
       <MultiDwellingPackagePanel
         item={item}

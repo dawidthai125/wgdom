@@ -131,6 +131,13 @@ export {
   preferAuthoritativeWorkCatalog,
 } from "@/lib/work-catalog/work-catalog-authority";
 
+export {
+  CatalogWorkDuplicateIdError,
+  assertWorkIdNotDuplicateInStore,
+  catalogWorkExistsInStore,
+  insertWorkBothRegions,
+} from "@/lib/work-catalog/work-catalog-insert";
+
 // ─── P1.8 — WorkBundleStore persist ────────────────────────────────────────
 
 export {
@@ -429,6 +436,8 @@ export {
   type PatchOurWorkRateInput,
   type PatchOurWorkRateResult,
 } from "@/lib/work-catalog/work-rate-patch";
+
+export { preserveOurWorkRatesFromDonor } from "@/lib/work-catalog/work-rate-preserve";
 
 export {
   isWorkRateFullCatalogueResearchImplemented,

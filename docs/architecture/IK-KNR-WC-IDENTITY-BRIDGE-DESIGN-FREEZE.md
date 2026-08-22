@@ -760,9 +760,10 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | GO **IMPLEMENT P1** (proposal builder, zero business writes) | **DONE** (`d016b4c8`) |
 | GO **IMPLEMENT P2.1** (local proposal persist) | **DONE** (`d016b4c8`) |
 | GO **IMPLEMENT P2.2** (hardening + Supabase load guard) | **DONE** (local · flag OFF) |
-| GO **IMPLEMENT P2 UI** (Owner review queue) | **DONE** (local · flag OFF · COMMIT pending) |
+| GO **IMPLEMENT P2 UI** (Owner review queue) | **DONE** (`02e44c6` · prod 2.66.112) |
+| GO **IMPLEMENT P3 WC CREATE** | **DONE** (local · flag **OFF** default · COMMIT pending) |
 | GO HTTP allowlist / scraping | **NOT GRANTED** |
-| GO WC CREATE / A1 / mapping / pricing | **NOT GRANTED** |
+| GO WC CREATE / A1 / mapping / pricing (batch) | **NOT GRANTED** (P3 CREATE only · no A1/map/pricing) |
 | GO MOPS Accept batch | **NOT GRANTED** |
 
 ```text
@@ -770,16 +771,36 @@ DESIGN FREEZE = APPROVED
 IMPLEMENT P1  = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.1 = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.2 = DONE (flag OFF · LIB ONLY)
-IMPLEMENT P2 UI = DONE (flag OFF · HOST WIRING=1 · COMMIT=0)
+IMPLEMENT P2 UI = DONE (02e44c6 · prod 2.66.112)
+IMPLEMENT P3  = DONE (flag OFF · saveWorkCatalogRouted only · COMMIT pending)
 HTTP          = OFF
 SCRAPING      = OFF
-PRICING       = 0
-WC WRITE      = 0
+PRICING       = 0 (CREATE path)
+WC WRITE      = P3 gated (default 0)
 A1 WRITE      = 0
 OWNER_KNR_MAPPINGS WRITE = 0
 ```
 
-Next required Owner decision: **GO IMPLEMENT P2 UI** (Owner review queue) — or **NO-GO**.
+Next required Owner decision: **GO COMMIT P3** · **GO ENABLE P3 flag** (optional prod) — or **NO-GO**.
+
+---
+
+## 27c. P3 WC CREATE — host seam (IMPLEMENTED · flag OFF)
+
+| Element | Rule |
+|---------|------|
+| **Lib** | `knr-wc-identity-bridge-create.ts` — `assertKnrWcCreateAllowed` · `buildCatalogWorkDraftFromProposal` · `executeKnrWcCatalogWorkCreate` |
+| **Insert reuse** | `work-catalog-insert.ts` — P5.26 `insertWorkBothRegions` · duplicate guard |
+| **Write path** | **Only** `saveWorkCatalogRouted` → `work-catalog-sync.ts` |
+| **Host** | `IkKnrWcIdentityCreateExecutor.tsx` — **new** · additive in `TenderWorkflowHubPanel` |
+| **P2 UI** | **Immutable** — `IkKnrWcIdentityProposalQueuePanel` · `IkKnrWcIdentityProposalReviewCard` unchanged |
+| **Flag** | `KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED = false` |
+| **Runtime gate** | IK + P1 + P2.1 + P2.2 + P2 UI + **P3 ON** |
+| **CREATE guards** | `ownerDecision=CREATE_NEW` · `proposedUnit` · not HOLD_UNIT/1305 · not duplicate workId · not `legacy_only` |
+| **Advisory confirm** | `duplicateRisk=HIGH` · `staleEvidence` — explicit checkbox · not auto-block |
+| **Out of scope** | A1 · mapping · pricing Accept · HTTP · auto-create |
+
+**Tests:** `scripts/test-ik-knr-wc-identity-bridge-p3.mjs` (T-P3-1…13) · P2 UI T-P2UI-7/8 regression unchanged.
 
 ---
 

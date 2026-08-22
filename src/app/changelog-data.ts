@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-22",
+    version: "2.66.113",
+    label: "IK-KNR WC Identity Bridge P3 — Owner CREATE (flag OFF)",
+    items: [
+      {
+        type: "new",
+        text: "P3 WC CREATE: knr-wc-identity-bridge-create.ts + work-catalog-insert.ts (P5.26 reuse) · IkKnrWcIdentityCreateExecutor (Hub additive) · saveWorkCatalogRouted only · KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED=false. Zero A1/map/pricing/HTTP · P2 UI frozen. Test: test-ik-knr-wc-identity-bridge-p3.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-22",
     version: "2.66.112",
     label: "IK-KNR FT-10 — secondary DSEC tableCode (CatalogBasis)",
     items: [

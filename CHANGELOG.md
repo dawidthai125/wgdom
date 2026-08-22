@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.113 — IK-KNR WC Identity Bridge P3 CREATE (2026-08-22)
+
+- P3 Owner-gated CatalogWork CREATE: `knr-wc-identity-bridge-create.ts` · `work-catalog-insert.ts` (P5.26 reuse) · `IkKnrWcIdentityCreateExecutor` · flag `KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED=false` · write via `saveWorkCatalogRouted` only · P2 UI frozen.
+
 ## 2.66.112 — IK-KNR FT-10 Secondary DSEC tableCode (2026-08-22)
 
 - `resolveCatalogBasisFromSourceRow`: secondary tableCode tylko po kotwicy `d.X(.Y)` + 1× `^\d{3,4}-\d{2}$`
