@@ -761,7 +761,9 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | GO **IMPLEMENT P2.1** (local proposal persist) | **DONE** (`d016b4c8`) |
 | GO **IMPLEMENT P2.2** (hardening + Supabase load guard) | **DONE** (local · flag OFF) |
 | GO **IMPLEMENT P2 UI** (Owner review queue) | **DONE** (`02e44c6` · prod 2.66.112) |
-| GO **IMPLEMENT P3 WC CREATE** | **DONE** (local · flag **OFF** default · COMMIT pending) |
+| GO **IMPLEMENT P3 WC CREATE** | **CLOSED / PRODUCTION VERIFIED** @ UI **2.66.113** · `saveWorkCatalogRouted` only · cache key **`normalizedKey`** · authority boundaries **UNCHANGED** |
+| GO **P3.1 NAME ENRICHMENT** | **CLOSED / PRODUCTION VERIFIED** · commit **`5984330a`** |
+| GO **P3 CACHE HARNESS FIX** | **CLOSED / PRODUCTION VERIFIED** · commit **`63cb1345`** · **test-only** · harness artifact only |
 | GO HTTP allowlist / scraping | **NOT GRANTED** |
 | GO WC CREATE / A1 / mapping / pricing (batch) | **NOT GRANTED** (P3 CREATE only · no A1/map/pricing) |
 | GO MOPS Accept batch | **NOT GRANTED** |
@@ -772,7 +774,12 @@ IMPLEMENT P1  = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.1 = DONE (d016b4c8 · flag OFF)
 IMPLEMENT P2.2 = DONE (flag OFF · LIB ONLY)
 IMPLEMENT P2 UI = DONE (02e44c6 · prod 2.66.112)
-IMPLEMENT P3  = DONE (flag OFF · saveWorkCatalogRouted only · COMMIT pending)
+IMPLEMENT P3  = CLOSED / PRODUCTION VERIFIED @ 2.66.113 (saveWorkCatalogRouted only)
+P3.1          = CLOSED / PRODUCTION VERIFIED @ 5984330a (BOQ name enrichment)
+P3 HARNESS    = CLOSED / PRODUCTION VERIFIED @ 63cb1345 (test-only)
+CACHE KEY     = normalizedKey (UNCHANGED)
+P3 CREATE GATE = UNCHANGED (DF §27c)
+AUTHORITY     = UNCHANGED
 HTTP          = OFF
 SCRAPING      = OFF
 PRICING       = 0 (CREATE path)
@@ -781,7 +788,7 @@ A1 WRITE      = 0
 OWNER_KNR_MAPPINGS WRITE = 0
 ```
 
-Next required Owner decision: **GO COMMIT P3** · **GO ENABLE P3 flag** (optional prod) — or **NO-GO**.
+Next required Owner decision: **NONE for P3/P3.1 closeout** · residual IK-KNR-WC backlog per DF §30+ only on explicit Owner GO.
 
 ---
 

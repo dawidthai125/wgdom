@@ -2,11 +2,11 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta**
-> **Data:** 2026-08-21
+> **Data:** 2026-08-22
 > **Mode:** DOCUMENTATION ONLY · **NO REBUILD**
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
-> **Live tip (mierzone 2026-08-21):** UI **2.66.103** · commit **`b31169be`** (`b31169b` w `version.json`) · Historical EC reveal **PRODUCTION VERIFIED**
+> **Live tip (mierzone 2026-08-22 · tip sync):** UI **2.66.113** · deploy **`63cb134`** (`63cb13453831829acac98f07815b8e58244bf7a9` · `63cb134` w `version.json`) · **IK-KNR-WC P3.1:** **CLOSED / PRODUCTION VERIFIED** @ **`5984330a`** · **P3 cache harness:** **CLOSED / PRODUCTION VERIFIED** @ **`63cb1345`** (test-only) · Historical EC reveal **PRODUCTION VERIFIED** (impl/PV milestone **`b31169be`** · ancestor · ≠ live tip)
 > **Snapshot baseline (historyczny wiersz labor):** UI **2.66.59** / **`9bcc558`** — Tablica OUR RATE Accept **VERIFIED** (data GO, nie osobny tip UI)
 > **Sesja Autonomy 2026-08-18:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — A08-P0/P1/P2 CLOSED · **nie** zastępuje tego kontraktu
 
@@ -219,7 +219,10 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | Pole | Wartość |
 |------|---------|
 | Tender | **2026/BZP 00391783** (MOPS) |
-| Prod | **2.66.103** / **`b31169be`** |
+| Prod UI | **2.66.113** (live tip) · evidence captured @ **2.66.103** |
+| EC impl/PV milestone | **`b31169be`** (ancestor · ≠ live tip) |
+| Ancestor deploy (EC capture) | **`6e501ab`** |
+| Live tip deploy | **`63cb134`** |
 | READY_FOR_EXPERTS | true |
 | KNR | COMPLETED · withBasis=88 |
 | Host Index | occurrences=**253** · sourceCount=**9** · **authority=false** |

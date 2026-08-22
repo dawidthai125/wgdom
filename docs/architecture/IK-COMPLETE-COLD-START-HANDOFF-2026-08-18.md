@@ -30,7 +30,7 @@ AUDIT BEFORE IMPLEMENTATION. OWNER GO BEFORE IMPLEMENTATION.
 | # | Dokument | Rola | Stan względem CURRENT |
 |---|----------|------|------------------------|
 | 1 | **TEN PLIK** | Mapa wiedzy · aktualny prod · KNR A/B/C/D · NEXT | **CURRENT** 2026-08-18 |
-| 2 | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) | **★★ Contract SSOT** · hard locks · Evidence≠OUR RATE | **ACTIVE** · §8 tip **2.66.95 = HISTORICAL** vs CURRENT **2.66.103** |
+| 2 | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) | **★★ Contract SSOT** · hard locks · Evidence≠OUR RATE | **ACTIVE** · §8 tip **2.66.95 = HISTORICAL** vs CURRENT **2.66.113** |
 | 3 | [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) | Sesja Autonomy 05–08 · A08-P2 CLOSED | **ACTIVE** dla Autonomy · tip **2.66.95 = HISTORICAL** |
 | 4 | [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) | NG-10 → IK Entry · AD locked | **HISTORICAL freeze** · P0–P9; **P10 CLOSED osobno** |
 | 5 | [`IK-MIGRATION-01-FINAL-HANDOFF.md`](./IK-MIGRATION-01-FINAL-HANDOFF.md) | P0–P9 COMPLETE | **HISTORICAL** tip **2.66.86** · wiersz „P10 NOT STARTED” = **STALE** vs P10 closeout **2.66.87** |
@@ -39,8 +39,8 @@ AUDIT BEFORE IMPLEMENTATION. OWNER GO BEFORE IMPLEMENTATION.
 | 8 | [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md) | Component → file → DO NOT DUPLICATE | **ACTIVE** |
 | 9 | [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md) | Tablica 546 · Podejście HOLD · Wykwity GAP | **ACTIVE data** · UI **2.66.59 = HISTORICAL** |
 | 10 | [`INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](./INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) | Protokół cold-start | **ACTIVE** · uzupełnij TEN PLIK + version.json |
-| 11 | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) | Tip SSOT UI/commit | **SYNCED** — snapshot **2.66.103** / `93eb41be` · live deploy **2.66.103** |
-| 12 | Live `https://www.wgdom.fun/version.json` | Fakt produkcyjny | **CURRENT** (mierzone 2026-08-18) |
+| 11 | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) | Tip SSOT UI/commit | **SYNCED** — snapshot **2.66.113** / `63cb134` · live deploy **2.66.113** |
+| 12 | Live `https://www.wgdom.fun/version.json` | Fakt produkcyjny | **CURRENT** (mierzone 2026-08-22) |
 
 Starszych snapshotów **nie kasować** i **nie przepisywać historii**. Gdy dokument ma starszy tip — oznacz **HISTORICAL**, a CURRENT bierz z §1 poniżej + `version.json`.
 
@@ -48,21 +48,26 @@ Starszych snapshotów **nie kasować** i **nie przepisywać historii**. Gdy doku
 
 ## 1. CURRENT production state
 
-**Źródło:** `git rev-parse` · `git log` · live `version.json` (2026-08-19) · changelog narrative Slice A **2.66.97** · live deploy **2.66.103**.
+**Źródło:** `git rev-parse` · `git log` · live `version.json` (2026-08-22) · changelog narrative Slice A **2.66.97** · live deploy **2.66.113**.
 
 | Pole | Wartość | Znacznik |
 |------|---------|----------|
 | URL | https://www.wgdom.fun | CURRENT |
-| UI / `version.json` | **2.66.103** | CURRENT |
-| Live commit short | **`93eb41b`** | CURRENT |
-| Feature SHA A | **`93eb41bee2c054230914d3ff9a54561d17c5eed9`** | CURRENT |
-| Message A | `feat(ik): complete knr slice a catalog basis` | CURRENT |
-| Slice A | **CLOSED · PRODUCTION VERIFIED · GREEN** | CURRENT |
-| Feature SHA D | **`16c3c9382dbe587a0877c70c2dab5b0b7d76d7ea`** | CURRENT (w łańcuchu) |
-| Message D | `feat(ik): release KNR owner mapping D` | CURRENT (w łańcuchu) |
-| Slice D | **CLOSED · PRODUCTION VERIFIED · GREEN** | CURRENT |
-| Parent C3 | **2.66.100** · **`4a8013658c0ebafd5804803194c3cb684fe8b8fc`** | CURRENT |
-| Message C3 | `feat(ik): release KNR expert room C3` | CURRENT |
+| UI / `version.json` | **2.66.113** | CURRENT |
+| Live commit short | **`63cb134`** | CURRENT |
+| IK-KNR-WC P3 CREATE | **CLOSED · PRODUCTION VERIFIED** @ UI **2.66.113** | CURRENT |
+| P3.1 BOQ name enrichment | **`5984330a`** · **CLOSED · PRODUCTION VERIFIED** | CURRENT |
+| P3 cache harness fix | **`63cb1345`** · test-only · **CLOSED · PRODUCTION VERIFIED** | CURRENT |
+| Cache key | **`normalizedKey`** only · LS `kw-knr-wc-identity-proposals` | FROZEN (unchanged) |
+| P3 CREATE gate / authority | **UNCHANGED** (DF §27c) | FROZEN |
+| Feature SHA A | **`93eb41bee2c054230914d3ff9a54561d17c5eed9`** | HISTORICAL (w łańcuchu) |
+| Message A | `feat(ik): complete knr slice a catalog basis` | HISTORICAL (w łańcuchu) |
+| Slice A | **CLOSED · PRODUCTION VERIFIED · GREEN** | HISTORICAL (w łańcuchu) |
+| Feature SHA D | **`16c3c9382dbe587a0877c70c2dab5b0b7d76d7ea`** | HISTORICAL (w łańcuchu) |
+| Message D | `feat(ik): release KNR owner mapping D` | HISTORICAL (w łańcuchu) |
+| Slice D | **CLOSED · PRODUCTION VERIFIED · GREEN** | HISTORICAL (w łańcuchu) |
+| Parent C3 | **2.66.100** · **`4a8013658c0ebafd5804803194c3cb684fe8b8fc`** | HISTORICAL (w łańcuchu) |
+| Message C3 | `feat(ik): release KNR expert room C3` | HISTORICAL (w łańcuchu) |
 | Deploy | `git push origin main` → Vercel Git Integration | FROZEN process |
 | `vercel deploy` | **FORBIDDEN** | FROZEN |
 
@@ -72,7 +77,10 @@ Starszych snapshotów **nie kasować** i **nie przepisywać historii**. Gdy doku
 
 | Wersja | SHA | Co | Stan |
 |--------|-----|----|------|
-| **2.66.103** | `93eb41be` | KNR Slice A catalogBasis evidence | **CURRENT prod** |
+| **2.66.113** | `63cb134` | P3 cache harness fix (test-only) | **CURRENT prod** |
+| **2.66.113** | `5984330a` | P3.1 BOQ name enrichment | CURRENT (w łańcuchu) |
+| **2.66.113** | — | IK-KNR-WC P3 WC CREATE · PRODUCTION VERIFIED | CURRENT (w łańcuchu) |
+| **2.66.103** | `93eb41be` | KNR Slice A catalogBasis evidence | **HISTORICAL** |
 | **2.66.101** | `16c3c938` | KNR Slice D Owner mapping | CURRENT (w łańcuchu) |
 | **2.66.100** | `4a801365` | KNR Slice C3 host + chrome | CURRENT (superseded by D na tipie) |
 | **2.66.99** | `039a68e1` | KNR Slice C2 conversation | CURRENT (w łańcuchu) |
@@ -965,7 +973,7 @@ ATH write = **FORBIDDEN** w P0–P10 (AD-IK-M10).
 | D UNVERIFIED 1–3 | NOT PASS · NOT FAIL |
 | F5-A T2 labor next | PRE-EXISTING (P9 exception) |
 | Mobile physical IK | NOT VERIFIED (P9) |
-| 09 tip vs live 2.66.103 | 09 **SYNCED** (docs sync 2026-08-19) |
+| 09 tip vs live 2.66.113 | 09 **SYNCED** (docs sync 2026-08-22) |
 
 **Nie inventować** nowych EPIC/Slice z tej listy.
 
@@ -1025,7 +1033,7 @@ AUDIT
 ```text
 1.  git status
 2.  git log -5
-3.  production / version.json          (CURRENT **2.66.103** / **`93eb41be`** · Slice A GREEN)
+3.  production / version.json          (CURRENT **2.66.113** / **`63cb134`** · IK-KNR-WC P3/P3.1 GREEN)
 4.  locate TenderDetailPage
 5.  locate IkEntryHost
 6.  locate ExpertConversationSurface
@@ -1134,7 +1142,7 @@ Czytaj też: continuity Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](
 | 4 | Ponowny przebieg harness D/C3/C2/B/A/A1 w tej sesji docs | **NOT RUN** · liczby z Owner GO / prior PV |
 | 5 | Slice A szczegóły runtime | **CLOSED · GREEN · `93eb41be`** · szczegóły kontraktu = parent DF §2A |
 | 6 | Mobile physical IK | P9 NOT VERIFIED |
-| 7 | 09 docs tip = live tip | 09 **SYNCED** · **2.66.103** / `93eb41be` |
+| 7 | 09 docs tip = live tip | 09 **SYNCED** · **2.66.113** / `63cb134` |
 | 8 | Slice E zakres | **NOT DEFINED IN SOURCE** |
 
 ---
@@ -1202,7 +1210,7 @@ Harness counts w tej sesji docs: **NOT RUN** (prior Owner PV).
 | Research labor | `src/lib/ik-pricing-orchestrator/labor-research-bridge.ts` · `work-rate-research.ts` | MISS only | PROD A08-P2 |
 | Catalog | `src/lib/work-catalog/*` | OUR RATE | PROD |
 | KNR DF | `docs/architecture/IK-KNR-EXPERT-*.md` | freeze/plan | D PLAN CLOSED; C3 PLAN nagłówki STALE |
-| Changelog HEAD | `src/app/changelog-data.ts` | narrative **2.66.97** (Slice A) · live **2.66.103** | PROD |
+| Changelog HEAD | `src/app/changelog-data.ts` | narrative **2.66.113** (IK-KNR-WC P3) · live **2.66.113** / **`63cb134`** | PROD |
 | P10 | `IK-MIGRATION-01-P10-IMPLEMENTATION-CLOSEOUT.md` | NG-10 gone | CLOSED |
 | Slice A test | `scripts/test-ik-knr-expert-slice-a.mjs` | T-SRC | **tracked · PROD harness 40/0** |
 
@@ -1213,7 +1221,7 @@ Harness counts w tej sesji docs: **NOT RUN** (prior Owner PV).
 | | |
 |--|--|
 | **Contract SSOT** | `INTELLIGENT-ESTIMATOR-MASTER-SSOT.md` **UNCHANGED** |
-| **CURRENT prod** | **2.66.103** / `93eb41be` |
+| **CURRENT prod** | **2.66.113** / `63cb134` |
 | **C3** | **2.66.100** / `4a8013658c0ebafd5804803194c3cb684fe8b8fc` |
 | **D** | **CLOSED · PRODUCTION VERIFIED · GREEN** |
 | **Slice A** | **CLOSED · PRODUCTION VERIFIED · GREEN** · **`93eb41be`** · harness **40/0** |
