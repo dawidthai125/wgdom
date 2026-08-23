@@ -25,7 +25,9 @@ import {
   isIkP7F5E2eActive,
   isIkP8RiskDecisionE2eActive,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
-import { getTenderPackage } from "@/lib/multi-dwelling/store";
+import { evaluateAllDwellingsInPackage } from "@/lib/multi-dwelling/orchestration";
+import { getTenderPackage, upsertTenderPackage } from "@/lib/multi-dwelling/store";
+import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowledge";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
@@ -89,6 +91,7 @@ export function useIkOrchestra({
 
   const persistSessionGateRef = useRef<IkIdentityPersistSessionGate>(new Map());
   const persistAttemptKeyRef = useRef<string | null>(null);
+  const f5EvalAttemptKeyRef = useRef<string | null>(null);
 
   const p2RunGenerationRef = useRef(0);
   const p2BusyOwnerGenRef = useRef<number | null>(null);
@@ -288,6 +291,28 @@ export function useIkOrchestra({
       setPkgEpoch((n) => n + 1);
     }
   }, [identityPersistPlanKey, identityContext, effectiveItem]);
+
+  // W3 — materialize F5 f5Gate/subtotals on LS after identity persist writes.
+  useEffect(() => {
+    if (!identityPersistOutcome?.writes?.length) return;
+    if (!identityPersistPlanKey) return;
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId) return;
+    if (f5EvalAttemptKeyRef.current === identityPersistPlanKey) return;
+    f5EvalAttemptKeyRef.current = identityPersistPlanKey;
+
+    const pkg = getTenderPackage(tenderId);
+    if (!pkg) return;
+
+    const store = loadWorkCatalogStoreLocal();
+    const evaluated = evaluateAllDwellingsInPackage(pkg, {
+      store,
+      nowMs: Date.now(),
+      ensureOwnerQuestions: false,
+    });
+    upsertTenderPackage(evaluated);
+    setPkgEpoch((n) => n + 1);
+  }, [identityPersistOutcome, identityPersistPlanKey, effectiveItem]);
 
   // KL-3 HOST — lookup-only knowledge side-channel (async · does not block P3/P5/P6).
   useEffect(() => {

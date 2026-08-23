@@ -25,10 +25,21 @@ import {
   clearMultiDwellingPackageStore,
   confirmDwelling,
   enableMultiDwellingMode,
+  evaluateAllDwellingsInPackage,
+  evaluatePackageGate,
+  computePackageBidProposal,
   getTenderPackage,
   mapDocumentToDwelling,
   setExpectedDwellingCount,
+  upsertTenderPackage,
 } from "../src/lib/multi-dwelling/index.ts";
+import { runIkMasterBoqClassification } from "../src/lib/intelligent-estimator/ik-classification.ts";
+import { runIkCompositeBothHold } from "../src/lib/intelligent-estimator/ik-composite-both-hold.ts";
+import { runIkMasterBoqLaborExpert } from "../src/lib/intelligent-estimator/ik-labor-expert.ts";
+import { runIkMasterBoqMaterialExpert } from "../src/lib/intelligent-estimator/ik-material-expert.ts";
+import { normalizeWorkCatalogStore } from "../src/lib/work-catalog/index.ts";
+import { saveWorkCatalogStoreLocal } from "../src/lib/work-catalog/work-catalog-store.ts";
+import { defaultCostModel } from "../src/lib/tenders-bzp-company.ts";
 import { OFFER_BOQ_SCHEMA_VERSION } from "../src/lib/tender-offer-boq.ts";
 import {
   runIkP7PositionCostBid,
@@ -95,6 +106,18 @@ ok("W2 gated persist in useEffect", hookSrc.includes("runGatedIdentityPersist"))
 ok("W2 mapper imports trusted preserve", mappingSrc.includes("preserveOfferBoqLineIfTrusted"));
 ok("W2 Slice D untouched", !readSrc("src/lib/intelligent-estimator/ik-knr-owner-mapping.ts").includes("ik-identity"));
 ok("W2 F5 adapter untouched", !readSrc("src/lib/tender-position-cost/boq-shadow-adapter.ts").includes("ik-identity"));
+
+ok("W3 hook evaluateAllDwellingsInPackage", hookSrc.includes("evaluateAllDwellingsInPackage"));
+ok("W3 hook upsertTenderPackage after F5", hookSrc.includes("upsertTenderPackage(evaluated)"));
+ok("W3 hook f5EvalAttemptKeyRef guard", hookSrc.includes("f5EvalAttemptKeyRef"));
+ok(
+  "W3 hook F5 effect deps exclude pkgEpoch",
+  hookSrc.includes("[identityPersistOutcome, identityPersistPlanKey, effectiveItem]"),
+);
+ok(
+  "W3 hook F5 trigger identityPersistOutcome writes",
+  /identityPersistOutcome\?\.writes\?\.length/.test(hookSrc),
+);
 
 function baseLine(overrides = {}) {
   return {
@@ -469,5 +492,356 @@ ok("W2 IdentityContext present", snap.identityContext != null);
 ok("W2 postIdentityExpert present", snap.postIdentityExpert != null);
 ok("W2 structural report preserved", snap.report !== snap.postIdentityExpert || snap.report.masterBoq.readyForExperts === false);
 
-console.log(`\nW2 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
+// ——— W3 scoped harness (IDENTITY · F5-LS · F5-GAP · P5/P6 · P7 · BID) ———
+
+const W3_NOW = Date.parse("2026-08-23T10:00:00.000Z");
+const W3_FRESH = "2026-08-22T12:00:00.000Z";
+const W3_PAINT = "legacy-malowanie-m2";
+const W3_LABOR_WORK = "cc-p0c-w1-zaprawianie-bruzd";
+const W3_LABOR_UNIT = "mb";
+
+function w3MakePassLaborHost(overrides = {}) {
+  return {
+    id: W3_LABOR_WORK,
+    tradeId: "ELEKTRYKA",
+    namePl: "Zaprawianie bruzd",
+    unit: W3_LABOR_UNIT,
+    companyPricePln: 35,
+    marketQuotes: {},
+    marketQuoteHistory: [],
+    commercialPricing: { marginPct: 20, updatedAt: W3_FRESH, source: "owner" },
+    ourWorkRate: {
+      workId: W3_LABOR_WORK,
+      unit: W3_LABOR_UNIT,
+      ourRatePln: 25,
+      sourceType: "OWNER",
+      regionScope: "WROCLAW",
+      observedAt: W3_FRESH,
+      updatedAt: W3_FRESH,
+      history: [
+        {
+          workId: W3_LABOR_WORK,
+          unit: W3_LABOR_UNIT,
+          ratePln: 25,
+          kind: "OUR",
+          sourceType: "OWNER",
+          regionScope: "WROCLAW",
+          observedAt: W3_FRESH,
+        },
+      ],
+    },
+    updatedAt: W3_FRESH,
+    freshnessStatus: "ok",
+    keywords: ["bruzdy"],
+    active: true,
+    favorite: false,
+    usageCount: 0,
+    source: "custom",
+    ...overrides,
+  };
+}
+
+function w3MakePassStore() {
+  return normalizeWorkCatalogStore({
+    schemaVersion: 4,
+    activeRegion: "wroclaw",
+    updatedAt: W3_FRESH,
+    catalogs: {
+      wroclaw: {
+        region: "wroclaw",
+        works: [w3MakePassLaborHost()],
+        updatedAt: W3_FRESH,
+      },
+      dolnyslask: { region: "dolnyslask", works: [], updatedAt: W3_FRESH },
+    },
+  });
+}
+
+function w3MakeGapStore() {
+  return normalizeWorkCatalogStore({
+    schemaVersion: 4,
+    activeRegion: "wroclaw",
+    updatedAt: W3_FRESH,
+    catalogs: {
+      wroclaw: { region: "wroclaw", works: [], updatedAt: W3_FRESH },
+      dolnyslask: { region: "dolnyslask", works: [], updatedAt: W3_FRESH },
+    },
+  });
+}
+
+function w3RunPostIdentityF5Refresh(tenderId, store) {
+  const pkg = getTenderPackage(tenderId);
+  if (!pkg) return null;
+  const evaluated = evaluateAllDwellingsInPackage(pkg, {
+    store,
+    nowMs: W3_NOW,
+    ensureOwnerQuestions: false,
+  });
+  upsertTenderPackage(evaluated);
+  return getTenderPackage(tenderId);
+}
+
+function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
+  clearMultiDwellingPackageStore();
+  enableMultiDwellingMode(tenderId, { expectedDwellingCount: 1 });
+  setExpectedDwellingCount(tenderId, 1);
+  confirmDwelling({ tenderId, dwellingId: "dw-a", labelPl: "A" });
+  mapDocumentToDwelling({ tenderId, documentId: "doc-a", dwellingId: "dw-a" });
+  const line = baseLine({
+    lineId: "W3-L1",
+    description: "Zaprawianie bruzd",
+    quantity: 50,
+    unit: W3_LABOR_UNIT,
+    catalogWorkId: W3_LABOR_WORK,
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+    ...lineOverrides,
+  });
+  const doc = {
+    ...planDoc,
+    tenderId,
+    lines: [line],
+  };
+  const hash = computeOfferBoqIdentityPayloadHash([line]);
+  const outcome = runGatedIdentityPersist({
+    tenderId,
+    plans: [{ dwellingId: "dw-a", identityHash: hash, offerBoq: doc }],
+    sessionGate: new Map(),
+  });
+  return { line, doc, hash, outcome };
+}
+
+// W3-IDENTITY — tuple + hash idempotency after persist
+{
+  const TID3 = "t-w3-identity";
+  const { line, hash, outcome } = w3SetupPersistPackage(TID3, {
+    description: "Malowanie ścian",
+    quantity: 10,
+    unit: "m2",
+    catalogWorkId: W3_PAINT,
+  });
+  ok("W3-IDENTITY persist write", outcome.writes.length === 1);
+  const unit = getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok(
+    "W3-IDENTITY tuple on LS",
+    unit?.offerBoq?.lines?.[0]?.catalogWorkId === W3_PAINT
+      && unit?.offerBoq?.lines?.[0]?.matchMethod === "manual",
+  );
+  const hashAfter = computeOfferBoqIdentityPayloadHash(unit?.offerBoq?.lines ?? []);
+  ok("W3-IDENTITY hash stable after persist", hashAfter === hash);
+  ok("W3-IDENTITY gap class none", unit?.offerBoq?.lines?.[0]?.catalogWorkId != null);
+}
+
+// W3-F5-LS — PASS fixture materializes f5Gate/subtotals on LS
+{
+  const TID3 = "t-w3-f5-ls";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  const { outcome } = w3SetupPersistPackage(TID3);
+  ok("W3-F5-LS persist write", outcome.writes.length === 1);
+  ok(
+    "W3-F5-LS f5Gate null before refresh (expected attach reset)",
+    getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-a")?.f5Gate == null,
+  );
+  w3RunPostIdentityF5Refresh(TID3, w3MakePassStore());
+  const unitF5 = getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W3-F5-LS f5Gate populated on LS", unitF5?.f5Gate != null);
+  ok("W3-F5-LS subtotals populated on LS", unitF5?.subtotals != null);
+  ok("W3-F5-LS f5Gate pass with PASS fixture", unitF5?.f5Gate?.pass === true);
+  const gate = evaluatePackageGate(getTenderPackage(TID3));
+  ok("W3-F5-LS PackageGate matches F5 truth", gate.pass === (unitF5?.f5Gate?.pass === true));
+  ok(
+    "W3-F5-LS identity hash unchanged after F5 refresh",
+    computeOfferBoqIdentityPayloadHash(unitF5?.offerBoq?.lines ?? []) === outcome.writes[0]?.identityHash,
+  );
+}
+
+// W3-F5-GAP — empty catalog stays F5 GAP (must not mask as PASS)
+{
+  const TID3 = "t-w3-f5-gap";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID3);
+  w3RunPostIdentityF5Refresh(TID3, w3MakeGapStore());
+  const unit = getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W3-F5-GAP f5Gate populated on LS", unit?.f5Gate != null);
+  ok("W3-F5-GAP f5Gate pass false (F5 GAP)", unit?.f5Gate?.pass === false);
+  ok("W3-F5-GAP subtotals present", unit?.subtotals != null);
+  ok("W3-F5-GAP PackageGate blocked", evaluatePackageGate(getTenderPackage(TID3)).pass === false);
+}
+
+// W3-P5/P6 — EC-only contract (frozen)
+{
+  const itemW3 = { id: "t-w3-p56", tenderId: "t-w3-p56", title: "W3 P56", bzpDocuments: [] };
+  const lineW3 = baseLine({
+    catalogWorkId: W3_PAINT,
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+  });
+  const expertW3 = {
+    ...makeStructuralReport([lineW3]),
+    masterBoq: { ...makeStructuralReport([lineW3]).masterBoq, mode: "legacy_single" },
+  };
+  const cls = runIkMasterBoqClassification({ item: itemW3, package: null, expert: expertW3 });
+  ok("W3-P5/P6 classification pricingExecuted false", cls.pricingExecuted === false);
+  const labor = await runIkMasterBoqLaborExpert({ item: itemW3, expert: expertW3, works });
+  ok("W3-P5/P6 labor pricingExecuted false", labor.pricingExecuted === false);
+  const material = await runIkMasterBoqMaterialExpert({ item: itemW3, expert: expertW3, works });
+  ok("W3-P5/P6 material pricingExecuted false", material.pricingExecuted === false);
+  const composite = runIkCompositeBothHold({
+    item: itemW3,
+    expert: expertW3,
+    p5LaborActive: true,
+    p6MaterialActive: true,
+  });
+  ok("W3-P5/P6 composite feedsP7Bid false", composite.feedsP7Bid === false);
+  ok(
+    "W3-P5/P6 no OfferBoq linePricing write",
+    expertW3.masterBoqLines[0]?.line.linePricing == null,
+  );
+}
+
+// W3-P7 — P7 must reflect F5 truth (PASS vs GAP)
+{
+  const TID_PASS = "t-w3-p7-pass";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3SetupPersistPackage(TID_PASS);
+  w3RunPostIdentityF5Refresh(TID_PASS, w3MakePassStore());
+  const pkgPass = getTenderPackage(TID_PASS);
+  const unitPass = pkgPass?.dwellings.find((d) => d.dwellingId === "dw-a");
+  const expertPass = {
+    tenderId: TID_PASS,
+    status: "ready",
+    reasons: [],
+    documents: [],
+    costDocuments: [],
+    przedmiary: [],
+    extraction: { extractedCount: 1 },
+    masterBoq: { status: "ready", readyForExperts: true, lineCount: 1, mode: "multi" },
+    offerBoq: unitPass?.offerBoq ?? null,
+    masterBoqLines: [{ dwellingId: "dw-a", line: unitPass?.offerBoq?.lines?.[0], provenance: null }],
+  };
+  const p7Pass = runIkP7PositionCostBid({
+    item: { id: TID_PASS, tenderId: TID_PASS, title: "W3 P7 pass", bzpDocuments: [] },
+    expert: expertPass,
+    package: pkgPass,
+    store: w3MakePassStore(),
+    nowMs: W3_NOW,
+  });
+  ok("W3-P7 PASS cutoverGatePass true", p7Pass.cutoverGatePass === true);
+  ok("W3-P7 PASS matches LS f5Gate", p7Pass.cutoverGatePass === (unitPass?.f5Gate?.pass === true));
+
+  const TID_GAP = "t-w3-p7-gap";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID_GAP);
+  w3RunPostIdentityF5Refresh(TID_GAP, w3MakeGapStore());
+  const pkgGap = getTenderPackage(TID_GAP);
+  const unitGap = pkgGap?.dwellings.find((d) => d.dwellingId === "dw-a");
+  const expertGap = {
+    tenderId: TID_GAP,
+    status: "ready",
+    reasons: [],
+    documents: [],
+    costDocuments: [],
+    przedmiary: [],
+    extraction: { extractedCount: 1 },
+    masterBoq: { status: "ready", readyForExperts: true, lineCount: 1, mode: "multi" },
+    offerBoq: unitGap?.offerBoq ?? null,
+    masterBoqLines: [{ dwellingId: "dw-a", line: unitGap?.offerBoq?.lines?.[0], provenance: null }],
+  };
+  const p7Gap = runIkP7PositionCostBid({
+    item: { id: TID_GAP, tenderId: TID_GAP, title: "W3 P7 gap", bzpDocuments: [] },
+    expert: expertGap,
+    package: pkgGap,
+    store: w3MakeGapStore(),
+    nowMs: W3_NOW,
+  });
+  ok("W3-P7 GAP cutoverGatePass false (no mask)", p7Gap.cutoverGatePass === false);
+  ok("W3-P7 GAP packageGatePass false", p7Gap.packageGatePass === false);
+  ok("W3-P7 GAP matches LS f5Gate fail", unitGap?.f5Gate?.pass === false);
+}
+
+// W3-BID — proposal only when gates pass
+{
+  const TID3 = "t-w3-bid";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3SetupPersistPackage(TID3);
+  w3RunPostIdentityF5Refresh(TID3, w3MakePassStore());
+  const pkg = getTenderPackage(TID3);
+  const passBid = computePackageBidProposal({
+    pkg,
+    store: w3MakePassStore(),
+    nowMs: W3_NOW,
+    kosztorys: null,
+    swz: { implementationDays: 30, estimatedValuePln: 80_000 },
+    fit: { priceWeightPct: 60 },
+    costModel: defaultCostModel(),
+    minProjectDays: 14,
+    maxConcurrentProjects: 2,
+    builtAt: new Date(W3_NOW).toISOString(),
+    ensureOwnerQuestions: false,
+  });
+  ok("W3-BID PASS proposal ok", passBid.proposal.ok === true);
+  ok("W3-BID PASS recommendedBidPln set", passBid.proposal.recommendedBidPln != null);
+
+  const TID_GAP = "t-w3-bid-gap";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID_GAP);
+  w3RunPostIdentityF5Refresh(TID_GAP, w3MakeGapStore());
+  const blockedBid = computePackageBidProposal({
+    pkg: getTenderPackage(TID_GAP),
+    store: w3MakeGapStore(),
+    nowMs: W3_NOW,
+    kosztorys: null,
+    swz: { implementationDays: 30, estimatedValuePln: 80_000 },
+    fit: { priceWeightPct: 60 },
+    costModel: defaultCostModel(),
+    minProjectDays: 14,
+    maxConcurrentProjects: 2,
+    builtAt: new Date(W3_NOW).toISOString(),
+    ensureOwnerQuestions: false,
+  });
+  ok("W3-BID GAP proposal blocked (BID PROPOSAL GAP)", blockedBid.proposal.ok === false);
+  ok("W3-BID GAP recommendedBidPln null", blockedBid.proposal.recommendedBidPln == null);
+}
+
+// W3 cross-dwelling — refresh only evaluates units; no foreign offerBoq overwrite
+{
+  const TID3 = "t-w3-xdw";
+  clearMultiDwellingPackageStore();
+  enableMultiDwellingMode(TID3, { expectedDwellingCount: 2 });
+  setExpectedDwellingCount(TID3, 2);
+  confirmDwelling({ tenderId: TID3, dwellingId: "dw-a", labelPl: "A" });
+  confirmDwelling({ tenderId: TID3, dwellingId: "dw-b", labelPl: "B" });
+  mapDocumentToDwelling({ tenderId: TID3, documentId: "doc-a", dwellingId: "dw-a" });
+  const lineA = baseLine({
+    lineId: "XA",
+    description: "Zaprawianie bruzd",
+    quantity: 50,
+    unit: W3_LABOR_UNIT,
+    catalogWorkId: W3_LABOR_WORK,
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+  });
+  const hashA = computeOfferBoqIdentityPayloadHash([lineA]);
+  runGatedIdentityPersist({
+    tenderId: TID3,
+    plans: [{
+      dwellingId: "dw-a",
+      identityHash: hashA,
+      offerBoq: { ...planDoc, tenderId: TID3, lines: [lineA] },
+    }],
+    sessionGate: new Map(),
+  });
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3RunPostIdentityF5Refresh(TID3, w3MakePassStore());
+  const unitB = getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-b");
+  ok("W3 cross-dwelling dw-b offerBoq untouched", unitB?.offerBoq == null);
+  ok("W3 cross-dwelling dw-b f5Gate null (no BOQ)", unitB?.f5Gate == null);
+  const unitA = getTenderPackage(TID3)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W3 cross-dwelling dw-a f5Gate populated", unitA?.f5Gate != null);
+}
+
+console.log(`\nW2+W3 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
 process.exit(fail === 0 ? 0 : 1);
