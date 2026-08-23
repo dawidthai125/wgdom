@@ -6,12 +6,14 @@
 import {
   WORK_RATE_IDENTITY_MAPPINGS,
   listExactIdentityAliasesForWork,
+  matchLaborIdentityMappingForWork,
   resolveLaborIdentityMapping,
   setWorkRateIdentityMappingsForTests,
   validateLaborIdentityMappingRegistry,
 } from "../src/lib/work-catalog/index.ts";
 
 const WORK_OCZYSZCZENIE = "cc-w2-oczyszczenie-podloza";
+const WORK_IMPREGNACJA = "cc-w2-impregnacja-biobojcza-m2";
 const MAPPING_ID = "lim-ik-a01-lp4-oczyszczenie-wm";
 const ALIAS_LP4 =
   "Przygotowanie i naprawa podłoża-oczyszczenie powierzchni muru";
@@ -34,6 +36,7 @@ setWorkRateIdentityMappingsForTests(null);
 
 const KNOWN = new Set([
   WORK_OCZYSZCZENIE,
+  WORK_IMPREGNACJA,
   "p2b-tablica-rozdzielcza-mieszkaniowa-szt",
   "p2b-podejscie-wod-kan-mb",
 ]);
@@ -83,18 +86,19 @@ const KNOWN = new Set([
   );
 }
 
-// A01-4 LP5 impregnacja → MISS (explicit exclusion via exact_normalized)
+// A01-4 LP5 impregnacja → MISS on oczyszczenie workId (A01-S1 exclusion preserved)
 {
-  const r = resolveLaborIdentityMapping({
+  const r = matchLaborIdentityMappingForWork({
+    workId: WORK_OCZYSZCZENIE,
+    catalogUnit: "m2",
     observedName: LP5_IMPREGNACJA,
     observedUnit: "m2",
-    catalogUnit: "m2",
     sourceId: "kb_pl",
     laborOnly: true,
     includesMaterial: false,
     knownWorkIds: KNOWN,
   });
-  ok("A01-4 LP5 impregnacja NO HIT", r.status === "MISS", r);
+  ok("A01-4 LP5 MISS on oczyszczenie workId", r.status === "MISS", r);
 }
 
 // A01-5 zmywanie catalog label → MISS

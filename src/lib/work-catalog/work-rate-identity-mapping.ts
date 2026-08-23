@@ -168,8 +168,9 @@ export function unitsCompatibleExact(
 /**
  * Production registry — Owner-approved concrete aliases only
  * (WR-LABOR-IDENTITY-MAPPING-WAVE-1 Closeout · APPROVE = tablica + podejście;
- * IK-OWNER-MAP A01-S1 · APPROVE = WM LP4 oczyszczenie only · LP5 EXCLUDED).
- * HOLD rows (oprawa / zawór / gniazdo / white / zmywanie / impregnacja / …) must NOT appear here.
+ * IK-OWNER-MAP A01-S1 · APPROVE = WM LP4 oczyszczenie only · LP5 EXCLUDED;
+ * IK-OWNER-CREATE A01-LP5 · APPROVE = WM LP5/LP10 impregnacja biobójcza on dedicated workId).
+ * HOLD rows (oprawa / zawór / gniazdo / white / zmywanie / …) must NOT appear here.
  */
 export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
   Object.freeze([
@@ -267,6 +268,42 @@ export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
           "A01-S1 IK-OWNER-MAP — WM Paczka V LP4 oczyszczenie powierzchni (exact_normalized · m2). " +
           "LP5 impregnacja biobójcza EXPLICITLY EXCLUDED — brak aliasu impregnacji. " +
           "Zmywanie HOLD (brak BOQ). alias-pack-wave2 ≠ Owner SSOT.",
+      },
+    },
+    {
+      mappingId: "lim-ik-a01-lp5-impregnacja-wm",
+      version: 1,
+      workId: "cc-w2-impregnacja-biobojcza-m2",
+      sourceId: "*",
+      categoryKey: "other",
+      matchMode: LABOR_IDENTITY_MAPPING_MATCH_MODE,
+      observedNameAliases: Object.freeze([
+        "Impregnacja biobójcza ręczna m2 d.1.1 0103-01 Krotność = 2 .2 poz.4",
+        "Impregnacja biobójcza ręczna m2 d.1.1 0103-01 Krotność = 2 poz.8",
+      ]),
+      catalogUnit: "m2",
+      observedUnit: "m2",
+      laborOnlyRequired: true,
+      includesMaterialPolicy: "reject",
+      allowedScopeTags: null,
+      regionPolicy: {
+        prefer: Object.freeze(["WROCLAW", "REGIONAL", "POLSKA"] as const),
+        allowNational: true,
+      },
+      confidence: "HIGH",
+      ownerApproval: true,
+      active: true,
+      provenance: {
+        approvedBy: "owner",
+        approvedAt: "2026-08-23T20:00:00.000Z",
+        evidenceUrls: Object.freeze([
+          "docs/architecture/IK-OWNER-CREATE-A01-LP5-DECISION.md",
+          "docs/architecture/IK-OWNER-POLICY-RESOLUTION-03.md",
+        ]),
+        notesPl:
+          "A01-LP5 IK-OWNER-CREATE — WM Paczka V LP5/LP10 impregnacja biobójcza (exact_normalized · m2). " +
+          "EXCLUDED from cc-w2-oczyszczenie-podloza (A01-S1 frozen). " +
+          "Zmywanie HOLD · gruntowanie ≠ biobójcza.",
       },
     },
   ]);

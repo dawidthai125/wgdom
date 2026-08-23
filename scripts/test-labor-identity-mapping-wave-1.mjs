@@ -45,6 +45,7 @@ const KNOWN = new Set([
   "cc-p0c-w1-zaprawianie-bruzd",
   "legacy-malowanie-m2",
   "cc-w2-oczyszczenie-podloza",
+  "cc-w2-impregnacja-biobojcza-m2",
 ]);
 
 let fetchCalls = 0;
@@ -55,14 +56,14 @@ globalThis.fetch = async () => {
 
 setWorkRateIdentityMappingsForTests(null);
 
-// W1-1 registry Wave-1 + A01-S1 (3 Owner-approved)
+// W1-1 registry Wave-1 + A01-S1 + A01-LP5 (4 Owner-approved)
 {
   const ids = WORK_RATE_IDENTITY_MAPPINGS.map((r) => r.mappingId).sort();
   ok(
-    "W1-1 registry exactly 3",
-    WORK_RATE_IDENTITY_MAPPINGS.length === 3 &&
+    "W1-1 registry exactly 4",
+    WORK_RATE_IDENTITY_MAPPINGS.length === 4 &&
       ids.join("|") ===
-        "lim-ik-a01-lp4-oczyszczenie-wm|lim-w1-podejscie-wod-kan-cr|lim-w1-tablica-rozdzielcza-cr",
+        "lim-ik-a01-lp4-oczyszczenie-wm|lim-ik-a01-lp5-impregnacja-wm|lim-w1-podejscie-wod-kan-cr|lim-w1-tablica-rozdzielcza-cr",
     ids,
   );
 }

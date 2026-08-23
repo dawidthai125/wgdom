@@ -479,16 +479,17 @@ setWorkRateIdentityMappingsForTests(null);
   );
 }
 
-// Production registry Wave-1 + A01-S1 (3 Owner-approved) + match mode lock
+// Production registry Wave-1 + A01-S1 + A01-LP5 (4 Owner-approved) + match mode lock
 {
   setWorkRateIdentityMappingsForTests(null);
   const ids = WORK_RATE_IDENTITY_MAPPINGS.map((r) => r.mappingId).sort();
   ok(
-    "PROD registry exactly 3 approved",
-    WORK_RATE_IDENTITY_MAPPINGS.length === 3 &&
+    "PROD registry exactly 4 approved",
+    WORK_RATE_IDENTITY_MAPPINGS.length === 4 &&
       ids[0] === "lim-ik-a01-lp4-oczyszczenie-wm" &&
-      ids[1] === "lim-w1-podejscie-wod-kan-cr" &&
-      ids[2] === "lim-w1-tablica-rozdzielcza-cr",
+      ids[1] === "lim-ik-a01-lp5-impregnacja-wm" &&
+      ids[2] === "lim-w1-podejscie-wod-kan-cr" &&
+      ids[3] === "lim-w1-tablica-rozdzielcza-cr",
     ids,
   );
   ok(
