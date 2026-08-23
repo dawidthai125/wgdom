@@ -55,6 +55,20 @@ import {
 import { resolveIkOwnerActionDeepLink } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-deeplink.ts";
 import { resolveTenderBidProposalForUi } from "../src/lib/intelligent-estimator/resolve-tender-bid-proposal-ui.ts";
 import { resolveTenderPricingAutoProposal } from "../src/app/hooks/useTenderPricingAuto.ts";
+import { resolveOwnerNextAction } from "../src/lib/tender-intelligence-next-action.ts";
+import { applyTenderIntelligenceOverlay } from "../src/lib/tender-intelligence-overlay.ts";
+import {
+  buildOwnerDecisionView,
+  scoreTenderForOwnerView,
+} from "../src/lib/tender-owner-view-ux.ts";
+import { loadCompanyProfileLocal } from "../src/lib/tenders-bzp-company.ts";
+import { loadGrowthMode } from "../src/lib/tenders-strategy-growth-mode.ts";
+import { aggregateMarketKpi } from "../src/lib/tenders-strategy-kpi.ts";
+import { computeCompanyHealth } from "../src/lib/tenders-strategy-health.ts";
+import {
+  buildWorkflowPrimaryActionResolveInput,
+  buildWorkflowPrimaryActionView,
+} from "../src/lib/tender-workflow-primary-action.ts";
 import { buildIkOwnerActionFreshnessKey } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-freshness.ts";
 import { notifyIkPricingAccepted } from "../src/lib/ik-pricing-orchestrator/notify-accepted.ts";
 import { runIkMasterBoqIdentityCoverage } from "../src/lib/intelligent-estimator/ik-identity-coverage.ts";
@@ -1484,6 +1498,124 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
     "W6-BID-SSOT costPipeline OFF uses legacy proposal",
     uiLegacyOff.proposal === legacyTorB || uiLegacyOff.recommendedBidPln === legacyTorB?.recommendedBidPln,
   );
+
+  function w6CtaScoringContext(tenderItem) {
+    const profile = loadCompanyProfileLocal();
+    const growthMode = loadGrowthMode().mode;
+    const marketKpi = aggregateMarketKpi([tenderItem], profile);
+    const health = computeCompanyHealth({
+      items: [tenderItem],
+      jobs: [],
+      directory: [],
+      weekEmployees: [],
+      weekFrom: "",
+      weekTo: "",
+      profile,
+      growthMode,
+      savedWeeks: [],
+      marketKpi,
+    });
+    return { health, growthMode, jobs: [], items: [tenderItem], profile, marketKpi };
+  }
+
+  function w6CtaOverlay(proposal, tenderItem) {
+    const bundle = scoreTenderForOwnerView(tenderItem, w6CtaScoringContext(tenderItem));
+    return applyTenderIntelligenceOverlay({
+      bundle,
+      decisionView: buildOwnerDecisionView(bundle),
+      ownerFinanceProposal: proposal,
+      item: tenderItem,
+    });
+  }
+
+  const kosztorysReadyItem = {
+    ...item,
+    submittingOffersDate: "2030-12-31T12:00:00.000Z",
+    bzpDocuments: [{ index: 1, filename: "kosztorys.pdf" }],
+    tenderDossier: { kosztorys: { ok: true, rowCount: 12 } },
+  };
+  const blockKosztorysItem = {
+    id: "t-w6-block",
+    tenderId: "t-w6-block",
+    title: "W6 block",
+    submittingOffersDate: "2030-12-31T12:00:00.000Z",
+    bzpDocuments: [{ index: 1, filename: "kosztorys.pdf" }],
+    tenderDossier: { kosztorys: { ok: true, rowCount: 12 } },
+  };
+
+  // W6-CTA-BID-SSOT CASE A — multi PASS → Command Layer uses P7 authoritative proposal
+  {
+    const overlayAuth = w6CtaOverlay(uiPass.proposal, kosztorysReadyItem);
+    buildWorkflowPrimaryActionView({
+      resolveInput: buildWorkflowPrimaryActionResolveInput({
+        item: kosztorysReadyItem,
+        overlay: overlayAuth,
+        ownerFinanceProposal: uiPass.proposal,
+      }),
+      item: kosztorysReadyItem,
+      bidProposal: uiPass.proposal,
+    });
+    ok(
+      "W6-CTA CASE A multi PASS uses P7 proposal",
+      uiPass.proposal === p7.proposal && uiPass.authoritativeSource === "p7_multi",
+    );
+    ok(
+      "W6-CTA CASE A authoritative proposal ok for CTA",
+      uiPass.proposal?.ok === true,
+    );
+  }
+
+  // W6-CTA-BID-SSOT CASE B — packageGate FAIL → no legacy leak to Command Layer
+  {
+    const legacyBlockTorB = resolveTenderPricingAutoProposal({
+      item: blockKosztorysItem,
+      priceOverrides: [],
+      costPipeline01Enabled: true,
+    });
+    const overlayAuthFail = w6CtaOverlay(uiFail.proposal, blockKosztorysItem);
+    const nextAuthFail = resolveOwnerNextAction({
+      item: blockKosztorysItem,
+      overlay: overlayAuthFail,
+      ownerFinanceProposal: uiFail.proposal,
+    });
+    ok("W6-CTA CASE B gate FAIL authoritative null", uiFail.proposal == null);
+    ok("W6-CTA CASE B gate FAIL no P8 STARTUJ", nextAuthFail.ruleId !== "P8");
+    if (legacyBlockTorB?.ok === true) {
+      const overlayLegacyLeak = w6CtaOverlay(legacyBlockTorB, blockKosztorysItem);
+      const nextLegacyLeak = resolveOwnerNextAction({
+        item: blockKosztorysItem,
+        overlay: overlayLegacyLeak,
+        ownerFinanceProposal: legacyBlockTorB,
+      });
+      ok(
+        "W6-CTA CASE B legacy would suggest STARTUJ without W6 CTA fix",
+        nextLegacyLeak.ruleId === "P8" || overlayLegacyLeak.displayDecision === "GO",
+        nextLegacyLeak.ruleId,
+      );
+    }
+  }
+
+  // W6-CTA-BID-SSOT CASE C — costPipeline OFF unchanged
+  ok(
+    "W6-CTA CASE C costPipeline OFF legacy unchanged",
+    uiLegacyOff.authoritativeSource === "legacy" && uiLegacyOff.proposal === legacyTorB,
+  );
+
+  // W6-CTA-BID-SSOT CASE D — single-dwelling unchanged (non-multi → legacy)
+  {
+    const uiSingle = resolveTenderBidProposalForUi({
+      item,
+      pkg: { mode: "single", tenderId: TID, dwellings: [] },
+      p7Report: p7,
+      legacyProposal: legacyTorB,
+      costPipeline01Enabled: true,
+    });
+    ok("W6-CTA CASE D single-dwelling legacy unchanged", uiSingle.authoritativeSource === "legacy");
+    ok(
+      "W6-CTA CASE D single uses legacy proposal",
+      uiSingle.proposal === legacyTorB,
+    );
+  }
 }
 
 // W6-DL — identity → kosztorys navigation intent

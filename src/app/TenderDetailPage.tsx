@@ -453,7 +453,7 @@ export function TenderDetailPage({
   const przetargCommand = useTenderPrzetargCommandContext(
     intelligenceItem,
     swz,
-    pipelineRuntime,
+    pipelineRuntimeForUi,
   );
 
   const activeProcessStageId = useMemo(
@@ -679,7 +679,7 @@ export function TenderDetailPage({
           item={bootstrapItem}
           swz={swz}
           intelligenceCtx={przetargCommand.intelligenceCtx}
-          ownerFinanceProposal={pipelineRuntime.ownerFinanceProposal}
+          ownerFinanceProposal={pipelineRuntimeForUi.ownerFinanceProposal}
           ownerDecision={przetargCommand.ownerDecision}
           participationResult={przetargCommand.participationResult}
           kosztorysSession={pipelineRuntime.kosztorysProcessSession}
@@ -704,7 +704,7 @@ export function TenderDetailPage({
     przetargCommand.intelligenceCtx,
     przetargCommand.ownerDecision,
     przetargCommand.participationResult,
-    pipelineRuntime,
+    pipelineRuntimeForUi,
     handleTabChange,
     handleBlockersChipClick,
     handleIntelligenceShortcutClick,
