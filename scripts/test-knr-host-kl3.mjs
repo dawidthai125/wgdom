@@ -162,10 +162,12 @@ assert("HOST-explicit-research-false", KNR_HOST_KL3_EXPLICIT_RESEARCH === false)
 
 {
   const hostSrc = readFileSync(join(root, "src/app/intelligent-estimator/IkEntryHost.tsx"), "utf8");
+  const orchestraSrc = readFileSync(join(root, "src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts"), "utf8")
+    + readFileSync(join(root, "src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts"), "utf8");
   const vmBlock = hostSrc.slice(hostSrc.indexOf("buildIkEntryConversationViewModel"));
-  assert("HOST-07 no explicitResearch true in host", !hostSrc.includes("explicitResearch: true"));
-  assert("HOST-07 resolveHost import", hostSrc.includes("resolveHostKnrKnowledgeLookupOnly"));
-  assert("HOST-07 useEffect knowledge", hostSrc.includes("knowledgeAttemptedRef"));
+  assert("HOST-07 no explicitResearch true in host", !hostSrc.includes("explicitResearch: true") && !orchestraSrc.includes("explicitResearch: true"));
+  assert("HOST-07 resolveHost import", orchestraSrc.includes("resolveHostKnrKnowledgeLookupOnly"));
+  assert("HOST-07 useEffect knowledge", orchestraSrc.includes("knowledgeAttemptedRef"));
   assert("HOST-10 Q10 no knrKnowledge in VM", !vmBlock.slice(0, 1200).includes("knrKnowledge"));
 }
 
@@ -253,13 +255,15 @@ assert("HOST-14 HTTP=0 adapter", (await resolveHostKnrKnowledgeLookupOnly({
 
 {
   const hostSrc = readFileSync(join(root, "src/app/intelligent-estimator/IkEntryHost.tsx"), "utf8");
+  const orchestraSrc = readFileSync(join(root, "src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts"), "utf8")
+    + readFileSync(join(root, "src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts"), "utf8");
   const vmBlock = hostSrc.slice(hostSrc.indexOf("buildIkEntryConversationViewModel"));
-  assert("HOST-19 no catalogBasis write", !hostSrc.includes("catalogBasis ="));
-  assert("HOST-20 no catalogWorkId write in host", !hostSrc.includes("catalogWorkId ="));
+  assert("HOST-19 no catalogBasis write", !hostSrc.includes("catalogBasis =") && !orchestraSrc.includes("catalogBasis ="));
+  assert("HOST-20 no catalogWorkId write in host", !hostSrc.includes("catalogWorkId =") && !orchestraSrc.includes("catalogWorkId ="));
   assert("HOST-22 VM no knrKnowledge opt", !vmBlock.slice(0, 1200).includes("knrKnowledge"));
-  assert("HOST-23 P5 unchanged executeResearch", hostSrc.includes("executeResearch: p5ResearchOn"));
-  assert("HOST-17 no auto VERIFIED in host", !hostSrc.includes("persistVerifiedKnrCatalogEntry"));
-  assert("HOST-24 no cloud-sync import", !hostSrc.includes("cloud-sync"));
+  assert("HOST-23 P5 unchanged executeResearch", orchestraSrc.includes("executeResearch: opts.p5ResearchOn"));
+  assert("HOST-17 no auto VERIFIED in host", !hostSrc.includes("persistVerifiedKnrCatalogEntry") && !orchestraSrc.includes("persistVerifiedKnrCatalogEntry"));
+  assert("HOST-24 no cloud-sync import", !hostSrc.includes("cloud-sync") && !orchestraSrc.includes("cloud-sync"));
 }
 
 {

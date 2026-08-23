@@ -253,12 +253,14 @@ function runAdapter(extra = {}) {
 // —— Source contracts ——
 const adapterSrc = readSrc("src/lib/intelligent-estimator/ik-composite-both-hold.ts");
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
+const orchestraEngineSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-engine.ts");
+const orchestraHookSrc = readSrc("src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts");
 const gateSrc = readSrc("src/lib/intelligent-estimator/classification-gate.ts");
 const engineSrc = readSrc("src/lib/tender-position-cost/engine.ts");
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 
 ok("schema v1", IK_COMPOSITE_BOTH_HOLD_SCHEMA_VERSION === 1);
-ok("IkEntryHost consumer", /runIkCompositeBothHold/.test(hostSrc) && /p5LaborOn && p6MaterialOn/.test(hostSrc));
+ok("IkEntryHost consumer", /useIkOrchestra/.test(hostSrc) && /runIkCompositeBothHold/.test(orchestraEngineSrc) && /p5LaborOn && p6MaterialOn/.test(orchestraEngineSrc));
 ok("no new orchestrator module host", !/CompositeOrchestrator|runIkCompositeEngine/.test(hostSrc));
 ok("no new ikP composite flag", !/ikComposite|ikP9Composite|ikBothHold/.test(settingsSrc));
 ok("Classification Gate COMPOUND hold unchanged", /case "COMPOUND":[\s\S]*allowLaborResearch: false[\s\S]*allowMaterialResearch: false[\s\S]*hold: true/.test(gateSrc));
@@ -410,7 +412,7 @@ ok("T20 both processed without per-line expert start", t20.lines.length === 2 &&
 ok("engine unchanged flag", t04.computePositionCostChanged === false);
 
 // Host wiring grep
-ok("A10 host auto when P5∧P6", /isIkP5LaborE2eActive/.test(hostSrc) && /isIkP6MaterialE2eActive/.test(hostSrc));
+ok("A10 host auto when P5∧P6", /p5LaborOn/.test(hostSrc) && /p6MaterialOn/.test(hostSrc) && /isIkP5LaborE2eActive/.test(orchestraHookSrc) && /isIkP6MaterialE2eActive/.test(orchestraHookSrc));
 
 async function runPaczkaVii() {
   const anon = process.env.VITE_SUPABASE_ANON_KEY;

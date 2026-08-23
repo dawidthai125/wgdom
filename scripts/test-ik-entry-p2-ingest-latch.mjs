@@ -22,6 +22,15 @@ import { needsIkNg02Ingest } from "../src/lib/intelligent-estimator/ik-ng02-inge
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const hostSrc = readFileSync(join(root, "src/app/intelligent-estimator/IkEntryHost.tsx"), "utf8");
+const orchestraHookSrc = readFileSync(
+  join(root, "src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts"),
+  "utf8",
+);
+const orchestraRuntimeSrc = readFileSync(
+  join(root, "src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts"),
+  "utf8",
+);
+const p2WiringSrc = orchestraHookSrc + orchestraRuntimeSrc;
 
 let pass = 0;
 let fail = 0;
@@ -37,24 +46,24 @@ function assert(name, cond) {
 
 console.log("=== IK ENTRY P2 INGEST LATCH T01–T12 ===\n");
 
-// --- Host source contracts (HB1 / HB2 / banlist) ---
-assert("HB1: onUpdateRef present", /onUpdateRef\.current\s*=\s*onUpdate/.test(hostSrc));
+// --- Host source contracts (HB1 / HB2 / banlist) — W1: P2 wiring in orchestra hook ---
+assert("HB1: onUpdateRef present", /onUpdateRef\.current\s*=\s*onUpdate/.test(p2WiringSrc));
 assert(
   "HB1: P2 effect deps omit onUpdate",
-  /Intentionally NOT: onUpdate \(HB1\)/.test(hostSrc)
-    && !/,\s*onUpdate,\s*\n\s*athPreviewEnabled/.test(hostSrc),
+  /Intentionally NOT: onUpdate \(HB1\)/.test(p2WiringSrc)
+    && !/,\s*onUpdate,\s*\n\s*athPreviewEnabled/.test(p2WiringSrc),
 );
-assert("HB2: dossierBuildingRef", /dossierBuildingRef\.current\s*=\s*dossierBuilding/.test(hostSrc));
-assert("HB2: dossierEnrichingRef", /dossierEnrichingRef\.current\s*=\s*dossierEnriching/.test(hostSrc));
+assert("HB2: dossierBuildingRef", /dossierBuildingRef\.current\s*=\s*dossierBuilding/.test(p2WiringSrc));
+assert("HB2: dossierEnrichingRef", /dossierEnrichingRef\.current\s*=\s*dossierEnriching/.test(p2WiringSrc));
 assert(
   "P2 attemptedRef removed",
-  !/const attemptedRef\b/.test(hostSrc) && !/attemptedRef\.current/.test(hostSrc),
+  !/const attemptedRef\b/.test(hostSrc) && !/attemptedRef\.current/.test(hostSrc + p2WiringSrc),
 );
-assert("generation guard", /p2RunGenerationRef/.test(hostSrc));
-assert("owner-safe busy", /p2BusyOwnerGenRef/.test(hostSrc));
-assert("isStale / latch helpers wired", /isP2AttemptStale|shouldReleaseBridgeBusy/.test(hostSrc));
-assert("no readyForExperts=true force in Host", !/readyForExperts\s*=\s*true/.test(hostSrc));
-assert("still calls runIkNg02IngestBridge", /runIkNg02IngestBridge/.test(hostSrc));
+assert("generation guard", /p2RunGenerationRef/.test(p2WiringSrc));
+assert("owner-safe busy", /p2BusyOwnerGenRef/.test(p2WiringSrc));
+assert("isStale / latch helpers wired", /isP2AttemptStale|shouldReleaseBridgeBusy/.test(p2WiringSrc));
+assert("no readyForExperts=true force in Host", !/readyForExperts\s*=\s*true/.test(hostSrc + p2WiringSrc));
+assert("still calls runIkNg02IngestBridge", /runIkNg02IngestBridge/.test(p2WiringSrc));
 
 const baseItem = {
   id: "08def932-550d-d6f5-962b-1200014aa6e7",

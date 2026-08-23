@@ -3,92 +3,20 @@
  * + P5 Labor E2E + P6 Material E2E + P7 Position Cost → F5 → Bid → SUM
  * + P8 Risk → Validation → Chief → DW → EC.
  *
- * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
- * P2: when isIkP2DocumentsBoqActive() (IK Entry ON) → NG-02 ingest bridge → Document Expert.
- *     Leftover ikAutoIngestEnabled is NOT the runtime gate (AUTONOMY-08 P0 / OD-08-1).
- * P3: A1 classification via EC when Master BOQ READY; Identity Coverage when
- *     isIkIdentityCoverageEnabled() (AppSettings, default OFF).
- * P5: Labor E2E when isIkP5LaborE2eActive() (AUTO|ON, not OFF); Research-on-Miss permission
- *     isIkP5LaborExecuteResearchActive() (Entry ∧ E2E; host executeResearch === true).
- * P6: Material E2E when isIkP6MaterialE2eActive() (AUTO|ON, not OFF); Research-on-Miss permission
- *     isIkP6MaterialExecuteResearchActive() (Entry ∧ E2E; host executeResearch === true).
- *     P6 waits for P5 settled (laborSettledRef) when P5 ON — IC-SEQ-1/2.
- * P7: F5/Bid when isIkP7F5E2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 always (no research lever).
- * P8: Risk/Decision when isIkP8RiskDecisionE2eActive() (AUTO|ON, not OFF); RESEARCH=0 · HTTP=0 · no D/Chief start.
- *      No extra BOQ READY gate (engine requires item only; P7/Chief optional → HOLD).
- * COMPOSITE: BOTH_HOLD consumer when P5∧P6; leaf experts → computePositionCost (NO CHANGE).
+ * W1: IK sequencer extracted to lib/orchestra — Host = UI/runtime adapter only.
  *
- * Shared RUN_RATE_EXPERTS stays false (never arms Material via shared sentinel).
+ * P1: ExpertConversationSurface + pipeline-fact VM · flag seam · NG-10 OFF fallback.
  * P4 Chief Wiring lives on TenderDetailPage (IK≠D) — passed in as optional session.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
-import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
-import { runIkKnrExpert } from "@/lib/intelligent-estimator/ik-knr-expert";
-import { applyOwnerKnrMapping } from "@/lib/intelligent-estimator/ik-knr-owner-mapping";
-import { runIkMasterBoqClassification } from "@/lib/intelligent-estimator/ik-classification";
-import {
-  needsIkNg02Ingest,
-  runIkNg02IngestBridge,
-  type IkNg02IngestBridgeResult,
-} from "@/lib/intelligent-estimator/ik-ng02-ingest-bridge";
-import {
-  buildP2IngestFingerprint,
-  isP2AttemptStale,
-  p2CleanupInvalidate,
-  shouldReleaseBridgeBusy,
-  shouldSuppressP2DoubleStart,
-} from "@/lib/intelligent-estimator/ik-entry-p2-ingest-latch";
-import {
-  runIkMasterBoqLaborExpert,
-  type IkLaborExpertReport,
-} from "@/lib/intelligent-estimator/ik-labor-expert";
-import {
-  runIkMasterBoqMaterialExpert,
-  type IkMaterialExpertReport,
-} from "@/lib/intelligent-estimator/ik-material-expert";
-import {
-  runIkMasterBoqIdentityCoverage,
-  type IkIdentityCoverageReport,
-} from "@/lib/intelligent-estimator/ik-identity-coverage";
-import {
-  runIkP7PositionCostBid,
-  type IkP7PositionCostBidReport,
-} from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
-import {
-  runIkP8RiskDecision,
-  type IkP8RiskDecisionReport,
-} from "@/lib/intelligent-estimator/ik-p8-risk-decision";
-import {
-  runIkCompositeBothHold,
-  type IkCompositeBothHoldReport,
-} from "@/lib/intelligent-estimator/ik-composite-both-hold";
-import {
-  isIkP2DocumentsBoqActive,
-  isIkIdentityCoverageEnabled,
-  isIkP5LaborE2eActive,
-  isIkP5LaborExecuteResearchActive,
-  isIkP6MaterialE2eActive,
-  isIkP6MaterialExecuteResearchActive,
-  isIkP7F5E2eActive,
-  isIkP8RiskDecisionE2eActive,
-} from "@/lib/intelligent-estimator/ik-entry-flag";
-import { getTenderPackage } from "@/lib/multi-dwelling/store";
+import { useIkOrchestra } from "@/lib/intelligent-estimator/orchestra";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
-import {
-  resolveHostKnrKnowledgeLookupOnly,
-  runKnrHostApplicationDiagBatch,
-  summarizeKnrHostAppDiag,
-  loadKnrCatalogStoreLocal,
-  type KnrKnowledgeEnvelope,
-  type KnrHostApplicationResult,
-} from "@/lib/intelligent-estimator/knr-knowledge";
-import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
 
 /**
@@ -128,518 +56,44 @@ export function IkEntryHost({
   chiefSession?: ChiefSessionOutput | null;
   historicalIndex?: HistoricalExecutedIndex | null;
 }) {
-  const p2DocumentsBoqOn = isIkP2DocumentsBoqActive() === true;
-  const identityCoverageOn = isIkIdentityCoverageEnabled() === true;
-  const p5LaborOn = isIkP5LaborE2eActive() === true;
-  const p5ResearchOn = isIkP5LaborExecuteResearchActive() === true;
-  const p6MaterialOn = isIkP6MaterialE2eActive() === true;
-  const p6ResearchOn = isIkP6MaterialExecuteResearchActive() === true;
-  const p7F5On = isIkP7F5E2eActive() === true;
-  const p8RiskOn = isIkP8RiskDecisionE2eActive() === true;
-  const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
-  const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
-  const [bridgeBusy, setBridgeBusy] = useState(false);
-  const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
-  const [material, setMaterial] = useState<IkMaterialExpertReport | null>(null);
-  /** P2 latch — generation + owner-safe busy (permanent attempt latch removed; HB1/HB2). */
-  const p2RunGenerationRef = useRef(0);
-  const p2BusyOwnerGenRef = useRef<number | null>(null);
-  const p2InFlightFingerprintRef = useRef<string | null>(null);
-  const onUpdateRef = useRef(onUpdate);
-  onUpdateRef.current = onUpdate;
-  const itemRef = useRef(item);
-  itemRef.current = item;
-  const athPreviewEnabledRef = useRef(athPreviewEnabled);
-  athPreviewEnabledRef.current = athPreviewEnabled;
-  const dossierBuilding = pipelineIngest?.dossierBuilding === true;
-  const dossierEnriching = pipelineIngest?.dossierEnriching === true;
-  const hasPipelineIngest = pipelineIngest != null;
-  const dossierBuildingRef = useRef(dossierBuilding);
-  dossierBuildingRef.current = dossierBuilding;
-  const dossierEnrichingRef = useRef(dossierEnriching);
-  dossierEnrichingRef.current = dossierEnriching;
-  const needsP2Ingest = needsIkNg02Ingest(item);
-  const p2Fingerprint = useMemo(
-    () => buildP2IngestFingerprint(item),
-    [
-      item.id,
-      item.tenderId,
-      item.bzpDocuments?.length,
-      item.documentsFetchedAt,
-      needsP2Ingest,
-    ],
-  );
-  const laborAttemptedRef = useRef<string | null>(null);
-  const materialAttemptedRef = useRef<string | null>(null);
-  /** IC-SEQ-2: synchronous P5 settled truth. Tick only retriggers P6. */
-  const laborSettledRef = useRef(false);
-  const [laborSettleTick, setLaborSettleTick] = useState(0);
-  /** KL-3 HOST lookup-only side-channel (Q10=B — not passed to conversation VM). */
-  const [knrKnowledge, setKnrKnowledge] = useState<KnrKnowledgeEnvelope | null>(null);
-  const [knowledgeBusy, setKnowledgeBusy] = useState(false);
-  const knowledgeAttemptedRef = useRef<string | null>(null);
-
-  const effectiveItem = ingest?.mergedItem ?? item;
-
-  // P2 Documents→BOQ — IK ON (isIkP2DocumentsBoqActive). Leftover ingest key ignored.
-  // Latch: generation + isStale + owner-safe bridgeBusy (DF/ARCH · HB1 onUpdateRef · HB2 pipeline refs).
-  useEffect(() => {
-    if (!p2DocumentsBoqOn) {
-      setIngest(null);
-      setBridgeBusy(false);
-      p2BusyOwnerGenRef.current = null;
-      p2InFlightFingerprintRef.current = null;
-      return;
-    }
-
-    const snapItem = itemRef.current;
-    const key = snapItem.id || snapItem.tenderId || "";
-    if (!key) return;
-    // HB2 — read live flags from refs (parent may pass new pipelineIngest object each render).
-    if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
-    if (!needsIkNg02Ingest(snapItem)) return;
-    if (!onUpdateRef.current) return;
-    if (
-      shouldSuppressP2DoubleStart({
-        fingerprint: p2Fingerprint,
-        inFlightFingerprint: p2InFlightFingerprintRef.current,
-        busyOwnerGen: p2BusyOwnerGenRef.current,
-      })
-    ) {
-      return;
-    }
-
-    let cancelled = false;
-    const generation = ++p2RunGenerationRef.current;
-    p2BusyOwnerGenRef.current = generation;
-    p2InFlightFingerprintRef.current = p2Fingerprint;
-    setBridgeBusy(true);
-
-    const isStale = () =>
-      isP2AttemptStale({
-        cancelled,
-        generation,
-        runGenerationCurrent: p2RunGenerationRef.current,
-      });
-
-    const releaseIfOwner = () => {
-      if (
-        shouldReleaseBridgeBusy({
-          generation,
-          runGenerationCurrent: p2RunGenerationRef.current,
-          busyOwnerGen: p2BusyOwnerGenRef.current,
-        })
-      ) {
-        setBridgeBusy(false);
-        p2BusyOwnerGenRef.current = null;
-        p2InFlightFingerprintRef.current = null;
-      }
-    };
-
-    void (async () => {
-      try {
-        // Optional wait when parent provided pipelineIngest prop (presence), flags via HB2 refs.
-        if (hasPipelineIngest) {
-          await new Promise((r) => setTimeout(r, 1500));
-          if (isStale()) return;
-          if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
-          if (!needsIkNg02Ingest(itemRef.current)) return;
-        }
-        if (isStale()) return;
-
-        const liveItem = itemRef.current;
-        const livePkg = getTenderPackage(liveItem.id);
-        try {
-          const result = await runIkNg02IngestBridge({
-            item: liveItem,
-            package: livePkg,
-            athPreviewEnabled: athPreviewEnabledRef.current,
-            ensureDocuments: (liveItem.bzpDocuments?.length ?? 0) === 0,
-          });
-          if (isStale()) return;
-          setIngest(result);
-          const apply = onUpdateRef.current;
-          if (result.itemPatch && apply) {
-            apply(result.itemPatch, { persist: "local" });
-            if (result.extractedLineCount > 0) {
-              apply(result.itemPatch, { persist: "cloud" });
-            }
-          }
-        } catch (err) {
-          if (isStale()) return;
-          const errItem = itemRef.current;
-          setIngest({
-            phase: "blocked",
-            started: true,
-            completed: false,
-            tenderId: key,
-            documentsUsed: errItem.bzpDocuments?.length ?? 0,
-            zipEvidence: [],
-            parsersReused: ["buildTenderDossierHeavy"],
-            artifactCount: 0,
-            extractedLineCount: 0,
-            primarySourceFilename: null,
-            reasons: [`BRIDGE_THROW:${(err as Error)?.message || String(err)}`],
-            itemPatch: null,
-            mergedItem: errItem,
-            expert: runIkDocumentExpert({
-              item: errItem,
-              package: getTenderPackage(errItem.id),
-            }),
-          });
-        }
-      } finally {
-        releaseIfOwner();
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      const inv = p2CleanupInvalidate({
-        generation,
-        runGenerationCurrent: p2RunGenerationRef.current,
-        busyOwnerGen: p2BusyOwnerGenRef.current,
-      });
-      p2RunGenerationRef.current = inv.nextRunGeneration;
-      if (inv.releaseBusy) {
-        setBridgeBusy(false);
-        p2BusyOwnerGenRef.current = inv.nextBusyOwner;
-        p2InFlightFingerprintRef.current = null;
-      }
-    };
-  }, [
-    p2DocumentsBoqOn,
-    p2Fingerprint,
+  const orchestra = useIkOrchestra({
+    item,
+    onUpdate,
+    pipelineIngest,
     athPreviewEnabled,
-    dossierBuilding,
-    dossierEnriching,
-    hasPipelineIngest,
-    // Intentionally NOT: onUpdate (HB1), item, pkg, pipelineIngest object (HB2).
-  ]);
+    chiefSession,
+    historicalIndex,
+  });
 
-  const report = useMemo(
-    () => ingest?.expert ?? runIkDocumentExpert({ item: effectiveItem, package: pkg }),
-    [ingest, effectiveItem, pkg],
-  );
+  const {
+    effectiveItem,
+    pkg,
+    ingest,
+    bridgeBusy,
+    labor,
+    material,
+    flags,
+    report,
+    knr,
+    knrKnowledgeDiag,
+    knrAppDiag,
+    classification,
+    identityCoverage,
+    composite,
+    positionCostBid,
+    riskDecision,
+  } = orchestra;
 
-  // C3 — KNR Expert (sync read-only adapter; BLOCKED when !readyForExperts).
-  // Historical index: optional Host prop (in-memory). Empty ⇒ HISTORICAL_MISS (not an error).
-  const knr = useMemo(
-    () =>
-      runIkKnrExpert({
-        tenderId: effectiveItem.id || effectiveItem.tenderId || "",
-        documentExpert: report,
-        historicalIndex: historicalIndex ?? null,
-      }),
-    [effectiveItem, report, historicalIndex],
-  );
-
-  // KL-3 HOST — lookup-only knowledge side-channel (async · does not block P3/P5/P6).
-  useEffect(() => {
-    if (!report.masterBoq.readyForExperts) {
-      setKnrKnowledge(null);
-      setKnowledgeBusy(false);
-      knowledgeAttemptedRef.current = null;
-      return;
-    }
-    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!tenderId || knr.lines.length === 0) {
-      setKnrKnowledge(null);
-      setKnowledgeBusy(false);
-      return;
-    }
-    const basisKey = knr.lines
-      .map((l) => `${l.lineId}:${l.catalogBasis?.normalizedKey ?? ""}`)
-      .join("|");
-    const knowledgeKey = `${tenderId}|${knr.lines.length}|${basisKey}|lookup-only`;
-    if (knowledgeAttemptedRef.current === knowledgeKey) return;
-
-    knowledgeAttemptedRef.current = knowledgeKey;
-    let cancelled = false;
-    setKnowledgeBusy(true);
-    void (async () => {
-      try {
-        const result = await resolveHostKnrKnowledgeLookupOnly({
-          tenderId,
-          lines: knr.lines.map((l) => ({
-            lineId: l.lineId,
-            catalogBasis: l.catalogBasis,
-          })),
-          nowIso: new Date().toISOString(),
-        });
-        if (!cancelled) setKnrKnowledge(result.envelope);
-      } catch {
-        if (!cancelled) setKnrKnowledge(null);
-      } finally {
-        if (!cancelled) setKnowledgeBusy(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [effectiveItem, knr, report.masterBoq.readyForExperts]);
-
-  const knrKnowledgeDiag = useMemo(() => {
-    if (!report.masterBoq.readyForExperts) {
-      return {
-        status: "skipped" as const,
-        hits: 0,
-        misses: 0,
-        staleHits: 0,
-        pendingVerify: 0,
-        researchExecuted: 0,
-        http: 0,
-      };
-    }
-    if (knowledgeBusy) {
-      return {
-        status: "busy" as const,
-        hits: 0,
-        misses: 0,
-        staleHits: 0,
-        pendingVerify: 0,
-        researchExecuted: 0,
-        http: 0,
-      };
-    }
-    if (!knrKnowledge) {
-      return {
-        status: "idle" as const,
-        hits: 0,
-        misses: 0,
-        staleHits: 0,
-        pendingVerify: 0,
-        researchExecuted: 0,
-        http: 0,
-      };
-    }
-    const pendingVerify = knrKnowledge.lineResults.filter(
-      (l) => l.lookupStatus === "PENDING_VERIFY",
-    ).length;
-    return {
-      status: "ready" as const,
-      hits: knrKnowledge.summary.hits,
-      misses: knrKnowledge.summary.misses,
-      staleHits: knrKnowledge.summary.staleHits,
-      pendingVerify,
-      researchExecuted: knrKnowledge.summary.researchExecuted ? 1 : 0,
-      http: knrKnowledge.summary.httpRequestCount,
-    };
-  }, [knrKnowledge, knowledgeBusy, report.masterBoq.readyForExperts]);
-
-  // ETAP 11 — KNR Host application diagnostic (10A orchestrator · P7 untouched).
-  const knrApplicationResults = useMemo((): KnrHostApplicationResult[] => {
-    if (!report.masterBoq.readyForExperts || knowledgeBusy || !knrKnowledge) {
-      return [];
-    }
-    const boqByLineId = new Map<
-      string,
-      { lineId: string; quantity: number | null; unit: string | null }
-    >();
-    for (const ref of report.masterBoqLines ?? []) {
-      const lineId = String(ref.line?.lineId ?? "").trim();
-      if (!lineId) continue;
-      boqByLineId.set(lineId, {
-        lineId,
-        quantity: typeof ref.line.quantity === "number" ? ref.line.quantity : null,
-        unit: ref.line.unit != null ? String(ref.line.unit) : null,
-      });
-    }
-    const nowIso = new Date().toISOString();
-    return runKnrHostApplicationDiagBatch({
-      readyForExperts: true,
-      knowledgeLines: knrKnowledge.lineResults,
-      boqByLineId,
-      catalogStore: loadKnrCatalogStoreLocal(),
-      workCatalogStore: loadWorkCatalogStoreLocal(),
-      nowMs: Date.parse(nowIso),
-      nowIso,
-    });
-  }, [
-    knrKnowledge,
-    knowledgeBusy,
-    report.masterBoq.readyForExperts,
-    report.masterBoqLines,
-  ]);
-
-  const knrAppDiag = useMemo(() => {
-    if (!report.masterBoq.readyForExperts) {
-      return summarizeKnrHostAppDiag([], false);
-    }
-    if (knowledgeBusy) {
-      return {
-        status: "busy" as const,
-        priced: 0,
-        partial: 0,
-        hold: 0,
-        skipped: 0,
-        reject: 0,
-      };
-    }
-    if (!knrKnowledge) {
-      return {
-        status: "idle" as const,
-        priced: 0,
-        partial: 0,
-        hold: 0,
-        skipped: 0,
-        reject: 0,
-      };
-    }
-    return summarizeKnrHostAppDiag(knrApplicationResults, true);
-  }, [
-    knrApplicationResults,
-    knrKnowledge,
-    knowledgeBusy,
-    report.masterBoq.readyForExperts,
-  ]);
-
-  // D — Owner KNR overlay on LINE COPIES, then existing P3 via opts.classification.
-  // Seam: classification (not ingest.expert) — avoids fabricating ingest, keeps C3 knr
-  // path / Surface / Hub unchanged, lets P3 read overlay catalogWorkId. Mapping module
-  // does not call P3/A1. Original `report` stays for P5.
-  const knrMapped = useMemo(
-    () => applyOwnerKnrMapping({ documentExpert: report, knr }),
-    [report, knr],
-  );
-  const classification = useMemo(
-    () =>
-      runIkMasterBoqClassification({
-        item: effectiveItem,
-        package: pkg,
-        expert: knrMapped.expert,
-      }),
-    [effectiveItem, pkg, knrMapped],
-  );
-
-  // P3 Identity Coverage — AppSettings lever (default OFF). Sync diagnostic · 0 HTTP research.
-  const identityCoverage = useMemo((): IkIdentityCoverageReport | null => {
-    if (!identityCoverageOn) return null;
-    if (!report.masterBoq.readyForExperts) return null;
-    return runIkMasterBoqIdentityCoverage({
-      item: effectiveItem,
-      package: pkg,
-      expert: report,
-    });
-  }, [identityCoverageOn, effectiveItem, pkg, report]);
-
-  // P5 Labor E2E — Labor-specific levers (≠ Material / ≠ shared RUN_RATE_EXPERTS).
-  useEffect(() => {
-    if (!p5LaborOn) {
-      laborSettledRef.current = true;
-      setLabor(null);
-      return;
-    }
-    const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !report.masterBoq.readyForExperts) {
-      laborSettledRef.current = false;
-      setLabor(null);
-      return;
-    }
-    const laborKey = `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p5ResearchOn ? "B" : "A"}`;
-    if (laborAttemptedRef.current === laborKey) return;
-    laborSettledRef.current = false;
-    laborAttemptedRef.current = laborKey;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const result = await runIkMasterBoqLaborExpert({
-          item: effectiveItem,
-          package: pkg,
-          expert: report,
-          executeResearch: p5ResearchOn === true,
-          enableInternalFirst: true,
-        });
-        if (!cancelled) setLabor(result);
-      } catch {
-        if (!cancelled) setLabor(null);
-      } finally {
-        if (!cancelled) {
-          laborSettledRef.current = true;
-          setLaborSettleTick((n) => n + 1);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [effectiveItem, pkg, report, p5LaborOn, p5ResearchOn]);
-
-  // P6 Material E2E — Material-specific levers (≠ Labor / ≠ shared RUN_RATE_EXPERTS).
-  useEffect(() => {
-    if (!p6MaterialOn) {
-      setMaterial(null);
-      return;
-    }
-    const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !report.masterBoq.readyForExperts) {
-      setMaterial(null);
-      return;
-    }
-    if (p5LaborOn && laborSettledRef.current !== true) return;
-    const materialKey = `${key}|mat|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p6ResearchOn ? "B" : "A"}`;
-    if (materialAttemptedRef.current === materialKey) return;
-    materialAttemptedRef.current = materialKey;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const result = await runIkMasterBoqMaterialExpert({
-          item: effectiveItem,
-          package: pkg,
-          expert: report,
-          executeResearch: p6ResearchOn === true,
-        });
-        if (!cancelled) setMaterial(result);
-      } catch {
-        if (!cancelled) setMaterial(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [effectiveItem, pkg, report, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
-
-  // BOTH_HOLD consumer — existing P5∧P6 only · no new flag · XOR F5 (feedsP7Bid=false).
-  const composite = useMemo((): IkCompositeBothHoldReport | null => {
-    if (!p5LaborOn || !p6MaterialOn) return null;
-    if (!report.masterBoq.readyForExperts) return null;
-    return runIkCompositeBothHold({
-      item: effectiveItem,
-      package: pkg,
-      expert: report,
-      p5LaborActive: true,
-      p6MaterialActive: true,
-      executeLaborResearch: p5ResearchOn === true,
-      executeMaterialResearch: p6ResearchOn === true,
-    });
-  }, [p5LaborOn, p6MaterialOn, p5ResearchOn, p6ResearchOn, effectiveItem, pkg, report]);
-
-  // P7 Position Cost → F5 → Bid → SUM — sync REUSE engines · RESEARCH=0 · no Accept writes.
-  const positionCostBid = useMemo((): IkP7PositionCostBidReport | null => {
-    if (!p7F5On) return null;
-    if (!report.masterBoq.readyForExperts && !(report.offerBoq?.lines?.length)) {
-      return null;
-    }
-    return runIkP7PositionCostBid({
-      item: effectiveItem,
-      expert: report,
-      package: pkg,
-    });
-  }, [p7F5On, effectiveItem, pkg, report]);
-
-  // P8 Risk → Validation → DW → EC — REUSE engines · RESEARCH=0 · no D/Chief start · no Accept.
-  // Eligibility: isIkP8RiskDecisionE2eActive() only (AUTO|ON). No BOQ READY host gate (KEEP).
-  const riskDecision = useMemo((): IkP8RiskDecisionReport | null => {
-    if (!p8RiskOn) return null;
-    return runIkP8RiskDecision({
-      item: effectiveItem,
-      p7: positionCostBid,
-      bidProposal: positionCostBid?.proposal ?? null,
-      chiefSession,
-      knrHistorical: knr,
-    });
-  }, [p8RiskOn, effectiveItem, positionCostBid, chiefSession, knr]);
+  const {
+    p2DocumentsBoqOn,
+    identityCoverageOn,
+    p5LaborOn,
+    p5ResearchOn,
+    p6MaterialOn,
+    p6ResearchOn,
+    p7F5On,
+    p8RiskOn,
+  } = flags;
 
   const vm = useMemo(
     () =>
