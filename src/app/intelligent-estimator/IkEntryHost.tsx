@@ -82,6 +82,9 @@ export function IkEntryHost({
     composite,
     positionCostBid,
     riskDecision,
+    packageBlockers,
+    ownerActionQueue,
+    identityCoverageOps,
   } = orchestra;
 
   const {
@@ -127,8 +130,11 @@ export function IkEntryHost({
         composite,
         knr,
         classification,
+        packageBlockers,
+        ownerActionQueue,
+        identityCoverageOps,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr, classification],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr, classification, packageBlockers, ownerActionQueue, identityCoverageOps],
   );
 
   return (

@@ -39,6 +39,9 @@ import type { IkP8RiskDecisionReport } from "./ik-p8-risk-decision";
 import type { IkCompositeBothHoldReport } from "./ik-composite-both-hold";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
 import type { IkKnrExpertReport } from "./ik-knr-expert";
+import type { IkIdentityCoverageOpsView } from "./orchestra/ik-identity-coverage-ops";
+import type { IkOwnerActionQueueReport } from "./orchestra/ik-owner-action-queue";
+import type { IkPackageBlockerReport } from "./orchestra/ik-package-blocker-report";
 import { buildIkKnrConversation, type IkKnrConversationStep } from "./ik-knr-conversation";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
@@ -71,6 +74,12 @@ export interface IkEntryConversationOpts {
   composite?: IkCompositeBothHoldReport | null;
   /** C3 — KNR Expert report (sync; presentation only — never invent / write catalogWorkId). */
   knr?: IkKnrExpertReport | null;
+  /** W4-2 — per-line package gate blockers (read-only). */
+  packageBlockers?: IkPackageBlockerReport | null;
+  /** W4-1 — Owner action queue (read-only). */
+  ownerActionQueue?: IkOwnerActionQueueReport | null;
+  /** W4-3 — identity coverage ops (niezmierzone %). */
+  identityCoverageOps?: IkIdentityCoverageOpsView | null;
 }
 
 function messageWeight(text: string): number {
@@ -1414,6 +1423,75 @@ export function buildIkEntryConversationViewModel(
           researchExecuted: false,
           httpCalls: 0,
         }, p7.bidOk ? "evidence" : "hold"),
+      }),
+    );
+  }
+
+  // W4-2 — Package gate blockers (read-only transparency).
+  const blockers = opts.packageBlockers ?? null;
+  if (blockers) {
+    const sample = blockers.blockers.slice(0, 5);
+    steps.push(
+      step({
+        id: "pricing",
+        event: "PACKAGE_GATE_BLOCKERS",
+        status: blockers.packageGatePass ? "done" : "blocked",
+        messagePl: blockers.packageGatePass
+          ? "PackageGate PASS — brak blokujących linii F5."
+          : `PackageGate BLOCK — ${blockers.blockers.length} linii blokuje gate.`,
+        detailPl: sample.length
+          ? sample
+            .map((b) => `${b.dwellingId}/${b.lineId} · ${b.gapCode}`)
+            .join(" · ")
+          : "blockers=[]",
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_COST_PL,
+        sourceRef: tenderRef({
+          packageGatePass: blockers.packageGatePass,
+          blockerCount: blockers.blockers.length,
+          gapLineCount: blockers.gapLineCount,
+        }, blockers.packageGatePass ? "evidence" : "hold"),
+      }),
+    );
+  }
+
+  // W4-1 — Owner action queue (read-only).
+  const queue = opts.ownerActionQueue ?? null;
+  if (queue && queue.itemCount > 0) {
+    const top = queue.items.slice(0, 5);
+    steps.push(
+      step({
+        id: "identity",
+        event: "OWNER_ACTION_QUEUE",
+        status: "hold",
+        messagePl: `Kolejka Owner: ${queue.itemCount} akcji (${queue.packageGateBlockingCount} blokuje packageGate).`,
+        detailPl: top.map((i) => `${i.domain}:${i.lineRef} · ${i.blockerCode}`).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
+        sourceRef: tenderRef({
+          itemCount: queue.itemCount,
+          packageGateBlockingCount: queue.packageGateBlockingCount,
+          topDomains: top.map((i) => i.domain),
+        }, "hold"),
+      }),
+    );
+  }
+
+  // W4-3 — Identity coverage ops (niezmierzone %).
+  const covOps = opts.identityCoverageOps ?? null;
+  if (covOps) {
+    steps.push(
+      step({
+        id: "identity",
+        event: "IDENTITY_COVERAGE_OPS",
+        status: covOps.gapCount > 0 ? "partial" : "done",
+        messagePl: covOps.statusSummaryPl,
+        detailPl: `pokrycie=${covOps.percentCoverageLabel}`,
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_IDENTITY_PL,
+        sourceRef: tenderRef({
+          trustedCount: covOps.trustedCount,
+          gapCount: covOps.gapCount,
+          ambiguousCount: covOps.ambiguousCount,
+          percentCoverageLabel: covOps.percentCoverageLabel,
+        }, covOps.gapCount > 0 ? "hold" : "evidence"),
       }),
     );
   }

@@ -3,7 +3,7 @@
  * Holds refs/latches/effects; delegates sync pipeline to ik-orchestra-engine.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { IkNg02IngestBridgeResult } from "@/lib/intelligent-estimator/ik-ng02-ingest-bridge";
 import {
@@ -28,6 +28,13 @@ import {
 import { evaluateAllDwellingsInPackage } from "@/lib/multi-dwelling/orchestration";
 import { getTenderPackage, upsertTenderPackage } from "@/lib/multi-dwelling/store";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
+import { buildIkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
+import {
+  buildOwnerInputRefreshKey,
+  materializeIkF5OnPackage,
+} from "./ik-f5-package-refresh";
+import { buildIkOwnerActionQueue } from "./ik-owner-action-queue";
+import { buildIkPackageBlockerReport } from "./ik-package-blocker-report";
 import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowledge";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
@@ -92,6 +99,7 @@ export function useIkOrchestra({
   const persistSessionGateRef = useRef<IkIdentityPersistSessionGate>(new Map());
   const persistAttemptKeyRef = useRef<string | null>(null);
   const f5EvalAttemptKeyRef = useRef<string | null>(null);
+  const f5OiRefreshKeyRef = useRef<string | null>(null);
 
   const p2RunGenerationRef = useRef(0);
   const p2BusyOwnerGenRef = useRef<number | null>(null);
@@ -260,7 +268,70 @@ export function useIkOrchestra({
     ],
   );
 
-  const { report, knr, postIdentityExpert, identityContext } = fullSnapshot;
+  const {
+    report,
+    knr,
+    postIdentityExpert,
+    identityContext,
+    classification,
+    identityCoverage,
+  } = fullSnapshot;
+
+  const workCatalogStore = useMemo(() => loadWorkCatalogStoreLocal(), [pkgEpoch]);
+
+  const packageBlockers = useMemo(() => {
+    if (!pkg) return null;
+    return buildIkPackageBlockerReport(pkg, workCatalogStore, {
+      nowMs: Date.now(),
+      ensureOwnerQuestions: false,
+    });
+  }, [pkg, workCatalogStore, identityPersistOutcome]);
+
+  const ownerActionQueue = useMemo(() => {
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId) return null;
+    return buildIkOwnerActionQueue({
+      tenderId,
+      pkg,
+      store: workCatalogStore,
+      identityContext,
+      identityCoverage,
+      classification,
+      labor,
+      material,
+      packageBlockers,
+    });
+  }, [
+    effectiveItem,
+    pkg,
+    workCatalogStore,
+    identityContext,
+    identityCoverage,
+    classification,
+    labor,
+    material,
+    packageBlockers,
+  ]);
+
+  const identityCoverageOps = useMemo(
+    () => buildIkIdentityCoverageOpsView(identityCoverage),
+    [identityCoverage],
+  );
+
+  const refreshF5AfterOwnerInput = useCallback(() => {
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId) return;
+    const refreshKey = buildOwnerInputRefreshKey(tenderId);
+    if (f5OiRefreshKeyRef.current === refreshKey) return;
+    f5OiRefreshKeyRef.current = refreshKey;
+    materializeIkF5OnPackage(tenderId, {
+      store: workCatalogStore,
+      nowMs: Date.now(),
+      ensureOwnerQuestions: false,
+      refreshKey,
+    });
+    setPkgEpoch((n) => n + 1);
+  }, [effectiveItem, workCatalogStore]);
 
   const identityPersistPlanKey = useMemo(() => {
     if (!identityContext?.persistPlans?.length) return "";
@@ -421,5 +492,9 @@ export function useIkOrchestra({
     flags,
     ...fullSnapshot,
     identityPersistOutcome,
+    packageBlockers,
+    ownerActionQueue,
+    identityCoverageOps,
+    refreshF5AfterOwnerInput,
   };
 }

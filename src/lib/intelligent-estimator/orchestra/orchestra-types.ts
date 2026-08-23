@@ -23,6 +23,9 @@ import type {
 import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
+import type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
+import type { IkOwnerActionQueueReport } from "./ik-owner-action-queue";
+import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
 
 export type IkOrchestraPipelineIngest = {
   dossierBuilding?: boolean;
@@ -113,4 +116,12 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   labor: IkLaborExpertReport | null;
   material: IkMaterialExpertReport | null;
   flags: IkOrchestraFlags;
+  /** W4-2 — per-line package gate blockers (read-only). */
+  packageBlockers: IkPackageBlockerReport | null;
+  /** W4-1 — aggregated Owner action queue (read-only). */
+  ownerActionQueue: IkOwnerActionQueueReport | null;
+  /** W4-3 — coverage ops view (niezmierzone %). */
+  identityCoverageOps: IkIdentityCoverageOpsView | null;
+  /** W4-4 — re-run F5 materialization after Owner Input save (idempotent). */
+  refreshF5AfterOwnerInput: () => void;
 };

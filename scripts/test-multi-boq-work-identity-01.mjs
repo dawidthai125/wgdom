@@ -22,6 +22,8 @@ import {
   computeShadowPositionCostsForOfferBoq,
   resolveWorkIdentityFromOfferBoqLine,
 } from "../src/lib/tender-position-cost/index.ts";
+import { runIkMasterBoqIdentityCoverage } from "../src/lib/intelligent-estimator/ik-identity-coverage.ts";
+import { buildIkIdentityCoverageOpsView } from "../src/lib/intelligent-estimator/orchestra/ik-identity-coverage-ops.ts";
 import { normalizeWorkCatalogStore } from "../src/lib/work-catalog/index.ts";
 import {
   clearPackRegistryForTests,
@@ -623,6 +625,59 @@ const TRUSTED = new Set(["exact_knr", "catalog_map", "alias", "manual"]);
   const line = getTenderPackage(TID)?.dwellings?.[0]?.offerBoq?.lines?.[0];
   ok("T8 empty catalog → null catalogWorkId", line?.catalogWorkId == null, line?.catalogWorkId);
   ok("T8 no invented PLN", line?.lineTotalPln == null);
+}
+
+// W4-3 — identity coverage ops seam (niezmierzone %)
+{
+  reset();
+  const works = [makeKnrWork()];
+  seedStore(works);
+  const mapped = mapComposedDwellingOfferBoq({
+    document: structuralDoc([
+      emptyLineShell({
+        lineId: "W4-L1",
+        lp: "1",
+        description: "KNR 2-15 Rurociągi PP",
+        quantity: 10,
+        quantityRaw: "10",
+        unit: "mb",
+        catalogWorkId: null,
+        knrHint: "KNR 2-15",
+        matchMethod: "snapshot",
+        matchedBy: "snapshot",
+        matchConfidence: "medium",
+        aiConfidence: "medium",
+      }),
+    ]),
+    works,
+    mappedAt: T_FRESH,
+  });
+  const item = { id: TID, tenderId: TID, title: "WI W4 cov", bzpDocuments: [] };
+  const expert = {
+    tenderId: TID,
+    status: "ready",
+    masterBoq: {
+      status: "ready",
+      readyForExperts: true,
+      lineCount: mapped.lines.length,
+      mode: "multi",
+    },
+    masterBoqLines: mapped.lines.map((line) => ({
+      dwellingId: "D01",
+      line,
+      provenance: null,
+    })),
+    offerBoq: null,
+  };
+  const coverage = runIkMasterBoqIdentityCoverage({ item, package: null, expert });
+  const ops = buildIkIdentityCoverageOpsView(coverage);
+  ok("W4-3 coverage report status", ["ready", "partial", "blocked"].includes(coverage.status));
+  ok("W4-3 ops niezmierzone %", ops?.percentCoverageLabel === "niezmierzone %");
+  ok(
+    "W4-3 ops counts sane",
+    (ops?.trustedCount ?? 0) + (ops?.gapCount ?? 0) + (ops?.ambiguousCount ?? 0)
+      <= coverage.counts.inputLineCount,
+  );
 }
 
 console.log(`\nMULTI-BOQ-WORK-IDENTITY-01: ${pass} PASS / ${fail} FAIL`);

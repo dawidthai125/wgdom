@@ -44,3 +44,23 @@ export type {
 export { resolveEffectiveItem } from "./orchestra-ports";
 export { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 export { useIkOrchestra } from "./use-ik-orchestra";
+export { buildIkPackageBlockerReport } from "./ik-package-blocker-report";
+export type {
+  IkPackageBlockerLine,
+  IkPackageBlockerReport,
+  IkPackageBlockerClassification,
+} from "./ik-package-blocker-report";
+export { buildIkOwnerActionQueue, listUnresolvedOwnerInputBatch } from "./ik-owner-action-queue";
+export type {
+  IkOwnerActionDomain,
+  IkOwnerActionItem,
+  IkOwnerActionQueueReport,
+  BuildIkOwnerActionQueueInput,
+} from "./ik-owner-action-queue";
+export { buildIkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
+export type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
+export {
+  buildOwnerInputRefreshKey,
+  materializeIkF5OnPackage,
+} from "./ik-f5-package-refresh";
+export type { IkF5PackageRefreshResult } from "./ik-f5-package-refresh";

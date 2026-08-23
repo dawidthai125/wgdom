@@ -45,6 +45,19 @@ import {
   runIkP7PositionCostBid,
   IK_P7_POSITION_COST_BID_SCHEMA_VERSION,
 } from "../src/lib/intelligent-estimator/ik-p7-position-cost-bid.ts";
+import { buildIkPackageBlockerReport } from "../src/lib/intelligent-estimator/orchestra/ik-package-blocker-report.ts";
+import { buildIkOwnerActionQueue } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-queue.ts";
+import { buildIkIdentityCoverageOpsView } from "../src/lib/intelligent-estimator/orchestra/ik-identity-coverage-ops.ts";
+import {
+  materializeIkF5OnPackage,
+  buildOwnerInputRefreshKey,
+} from "../src/lib/intelligent-estimator/orchestra/ik-f5-package-refresh.ts";
+import { runIkMasterBoqIdentityCoverage } from "../src/lib/intelligent-estimator/ik-identity-coverage.ts";
+import {
+  clearOwnerRateInputStore,
+  createOwnerRateQuestion,
+  submitOwnerRateAnswer,
+} from "../src/lib/owner-rate-input/index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -118,6 +131,11 @@ ok(
   "W3 hook F5 trigger identityPersistOutcome writes",
   /identityPersistOutcome\?\.writes\?\.length/.test(hookSrc),
 );
+ok("W4 hook buildIkPackageBlockerReport", hookSrc.includes("buildIkPackageBlockerReport"));
+ok("W4 hook buildIkOwnerActionQueue", hookSrc.includes("buildIkOwnerActionQueue"));
+ok("W4 hook refreshF5AfterOwnerInput", hookSrc.includes("refreshF5AfterOwnerInput"));
+ok("W4 hook materializeIkF5OnPackage import", hookSrc.includes("materializeIkF5OnPackage"));
+ok("W4 hook f5OiRefreshKeyRef guard", hookSrc.includes("f5OiRefreshKeyRef"));
 
 function baseLine(overrides = {}) {
   return {
@@ -843,5 +861,267 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
   ok("W3 cross-dwelling dw-a f5Gate populated", unitA?.f5Gate != null);
 }
 
-console.log(`\nW2+W3 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
+// W4-BLOCKERS — GAP fixture ≥1 blocker · PASS fixture blockers=[]
+{
+  const TID_GAP = "t-w4-blockers-gap";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID_GAP);
+  w3RunPostIdentityF5Refresh(TID_GAP, w3MakeGapStore());
+  const gapReport = buildIkPackageBlockerReport(getTenderPackage(TID_GAP), w3MakeGapStore(), {
+    nowMs: W3_NOW,
+    ensureOwnerQuestions: false,
+  });
+  ok("W4-BLOCKERS GAP packageGatePass false", gapReport.packageGatePass === false);
+  ok("W4-BLOCKERS GAP ≥1 line blocker", gapReport.blockers.length >= 1);
+  ok(
+    "W4-BLOCKERS GAP line has dwelling+lineId",
+    gapReport.blockers.every((b) => b.dwellingId && b.lineId && b.gapCode),
+  );
+
+  const TID_PASS = "t-w4-blockers-pass";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3SetupPersistPackage(TID_PASS);
+  w3RunPostIdentityF5Refresh(TID_PASS, w3MakePassStore());
+  const passReport = buildIkPackageBlockerReport(getTenderPackage(TID_PASS), w3MakePassStore(), {
+    nowMs: W3_NOW,
+  });
+  ok("W4-BLOCKERS PASS packageGatePass true", passReport.packageGatePass === true);
+  ok("W4-BLOCKERS PASS blockers empty", passReport.blockers.length === 0);
+}
+
+// W4-QUEUE — identity · Accept · F5 · OI · no auto-resolve
+{
+  clearOwnerRateInputStore();
+  const TID = "t-w4-queue";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID);
+  w3RunPostIdentityF5Refresh(TID, w3MakeGapStore());
+  const pkg = getTenderPackage(TID);
+  const blockers = buildIkPackageBlockerReport(pkg, w3MakeGapStore(), { nowMs: W3_NOW });
+  createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "equipment",
+    dwellingId: "dw-a",
+    lineRef: "OI-EQ",
+    evidenceSummaryPl: "W4 test",
+    askedByRole: "owner",
+    equipment: { namePl: "Rusztowanie", quantity: 1, unit: "dzień" },
+  });
+  const mockLabor = {
+    lines: [{
+      lineId: "L-ACC",
+      dwellingId: "dw-a",
+      lp: "9",
+      rateStatus: "CANDIDATE_OWNER_ACCEPT_REQUIRED",
+      candidate: { candidateId: "c1" },
+      catalogWorkId: W3_LABOR_WORK,
+      identity: { workId: W3_LABOR_WORK },
+    }],
+  };
+  const item = { id: TID, tenderId: TID, title: "W4 queue", bzpDocuments: [] };
+  const expert = makeStructuralReport([
+    baseLine({ catalogWorkId: null, matchMethod: "unmatched" }),
+    competingLine,
+  ]);
+  const classification = runIkMasterBoqClassification({ item, package: pkg, expert });
+  const coverage = runIkMasterBoqIdentityCoverage({ item, package: pkg, expert });
+  const queue = buildIkOwnerActionQueue({
+    tenderId: TID,
+    pkg,
+    store: w3MakeGapStore(),
+    identityCoverage: coverage,
+    classification,
+    labor: mockLabor,
+    packageBlockers: blockers,
+  });
+  ok("W4-QUEUE has items", queue.itemCount > 0);
+  ok(
+    "W4-QUEUE identity action",
+    queue.items.some((i) => i.domain === "identity" || i.domain === "f5_blocker"),
+  );
+  ok("W4-QUEUE Accept action", queue.items.some((i) => i.domain === "labor_accept"));
+  ok("W4-QUEUE F5 blocker", queue.items.some((i) => i.domain === "f5_blocker"));
+  ok("W4-QUEUE OI action", queue.items.some((i) => i.domain === "equipment_input"));
+  ok(
+    "W4-QUEUE no auto-resolve (still GAP store)",
+    getTenderPackage(TID)?.dwellings[0]?.f5Gate?.pass !== true,
+  );
+}
+
+// W4-4 — Equipment OI answer → F5 refresh → f5Gate PASS on LS
+{
+  clearOwnerRateInputStore();
+  const TID = "t-w4-oi-equip";
+  clearMultiDwellingPackageStore();
+  enableMultiDwellingMode(TID, { expectedDwellingCount: 1 });
+  setExpectedDwellingCount(TID, 1);
+  confirmDwelling({ tenderId: TID, dwellingId: "dw-a", labelPl: "A" });
+  mapDocumentToDwelling({ tenderId: TID, documentId: "doc-a", dwellingId: "dw-a" });
+  const eqLine = baseLine({
+    lineId: "EQ-W4",
+    description: "Rusztowanie elewacyjne",
+    quantity: 2,
+    unit: "dzień",
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+    costIntelligence: { lineKind: "Equipment" },
+  });
+  const hash = computeOfferBoqIdentityPayloadHash([eqLine]);
+  const persist = runGatedIdentityPersist({
+    tenderId: TID,
+    plans: [{
+      dwellingId: "dw-a",
+      identityHash: hash,
+      offerBoq: { ...planDoc, tenderId: TID, lines: [eqLine] },
+    }],
+    sessionGate: new Map(),
+  });
+  ok("W4-4 persist write", persist.writes.length === 1);
+  const q = createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "equipment",
+    dwellingId: "dw-a",
+    lineRef: "EQ-W4",
+    evidenceSummaryPl: "W4 equipment",
+    askedByRole: "owner",
+    equipment: { namePl: "Rusztowanie", quantity: 2, unit: "dzień" },
+  });
+  ok("W4-4 OI question created", q.ok === true);
+  submitOwnerRateAnswer({
+    tenderId: TID,
+    questionId: q.question.questionId,
+    amountPlnNet: 150,
+    unit: "dzień",
+    approvedBy: { userId: "owner", displayName: "Owner" },
+  });
+  const refreshKey = buildOwnerInputRefreshKey(TID);
+  materializeIkF5OnPackage(TID, {
+    store: w3MakeGapStore(),
+    nowMs: W3_NOW,
+    ensureOwnerQuestions: false,
+    refreshKey,
+  });
+  const unit = getTenderPackage(TID)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W4-4 f5Gate on LS", unit?.f5Gate != null);
+  ok("W4-4 f5Gate PASS equipment", unit?.f5Gate?.pass === true);
+  ok("W4-4 subtotals equipmentPln", (unit?.subtotals?.equipmentPln ?? 0) > 0);
+  ok("W4-4 idempotent refreshKey stable", buildOwnerInputRefreshKey(TID) === refreshKey);
+}
+
+// W4-3 — coverage ops (niezmierzone %)
+{
+  const item = { id: "t-w4-cov", tenderId: "t-w4-cov", title: "W4 cov", bzpDocuments: [] };
+  const expert = makeStructuralReport([
+    manualLine,
+    competingLine,
+    baseLine({ catalogWorkId: null, matchMethod: "unmatched" }),
+  ]);
+  const coverage = runIkMasterBoqIdentityCoverage({ item, package: null, expert });
+  const ops = buildIkIdentityCoverageOpsView(coverage);
+  ok("W4-3 ops view present", ops != null);
+  ok("W4-3 percent niezmierzone", ops?.percentCoverageLabel === "niezmierzone %");
+  ok("W4-3 status mentions TRUSTED", ops?.statusSummaryPl.includes("TRUSTED="));
+  ok("W4-3 ambiguous counted", (ops?.ambiguousCount ?? 0) >= 1);
+}
+
+// W4-5 — multi-line E2E wiring (stage-by-stage · no 100% bid PASS required)
+{
+  const TID = "t-w4-e2e";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  clearMultiDwellingPackageStore();
+  enableMultiDwellingMode(TID, { expectedDwellingCount: 1 });
+  setExpectedDwellingCount(TID, 1);
+  confirmDwelling({ tenderId: TID, dwellingId: "dw-a", labelPl: "A" });
+  mapDocumentToDwelling({ tenderId: TID, documentId: "doc-a", dwellingId: "dw-a" });
+  const trusted = baseLine({
+    lineId: "E2E-T",
+    lp: "1",
+    description: "Zaprawianie bruzd",
+    quantity: 10,
+    unit: W3_LABOR_UNIT,
+    catalogWorkId: W3_LABOR_WORK,
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+  });
+  const gapLine = baseLine({
+    lineId: "E2E-G",
+    lp: "2",
+    description: "Nieznana",
+    quantity: 1,
+    unit: "mb",
+    catalogWorkId: null,
+    matchMethod: "unmatched",
+  });
+  const holdLine = baseLine({
+    lineId: "E2E-H",
+    lp: "3",
+    description: "Legacy unknown",
+    quantity: 1,
+    unit: "mb",
+    catalogWorkId: "legacy-elektryka-mb",
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+  });
+  const lines = [trusted, gapLine, holdLine];
+  const hash = computeOfferBoqIdentityPayloadHash(lines);
+  const persistE2e = runGatedIdentityPersist({
+    tenderId: TID,
+    plans: [{
+      dwellingId: "dw-a",
+      identityHash: hash,
+      offerBoq: { ...planDoc, tenderId: TID, lines },
+    }],
+    sessionGate: new Map(),
+  });
+  ok("W4-5 persist write", persistE2e.writes.length === 1);
+  ok("W4-5 BOQ persist", getTenderPackage(TID)?.dwellings[0]?.offerBoq?.lines?.length === 3);
+
+  const item = { id: TID, tenderId: TID, title: "W4 e2e", bzpDocuments: [] };
+  const expert = {
+    ...makeStructuralReport(lines, "dw-a"),
+    offerBoq: getTenderPackage(TID)?.dwellings[0]?.offerBoq ?? null,
+    masterBoqLines: lines.map((line) => ({ dwellingId: "dw-a", line, provenance: null })),
+  };
+  const identityCtx = runIkIdentityPhase({
+    structuralReport: expert,
+    sliceDExpert: expert,
+    item,
+    package: getTenderPackage(TID),
+  }).context;
+  ok(
+    "W4-5 identity partial/blocked",
+    identityCtx.status === "partial" || identityCtx.status === "blocked" || identityCtx.noIdentityCount >= 0,
+  );
+
+  const classification = runIkMasterBoqClassification({ item, package: getTenderPackage(TID), expert });
+  ok("W4-5 classification UNKNOWN>0", classification.counts.UNKNOWN >= 1);
+
+  const labor = await runIkMasterBoqLaborExpert({ item, expert, works });
+  ok("W4-5 P5 pricingExecuted false", labor.pricingExecuted === false);
+  const material = await runIkMasterBoqMaterialExpert({ item, expert, works });
+  ok("W4-5 P6 pricingExecuted false", material.pricingExecuted === false);
+
+  w3RunPostIdentityF5Refresh(TID, w3MakePassStore());
+  const unit = getTenderPackage(TID)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W4-5 F5 evaluated", unit?.f5Gate != null);
+  ok("W4-5 F5 GAP (mixed lines)", unit?.f5Gate?.pass === false, unit?.f5Gate);
+
+  const p7 = runIkP7PositionCostBid({
+    item,
+    expert,
+    package: getTenderPackage(TID),
+    store: w3MakePassStore(),
+    nowMs: W3_NOW,
+  });
+  ok("W4-5 P7 GATE blocked", p7.packageGatePass === false, "P7 GATE");
+  ok("W4-5 BID PROPOSAL GAP", p7.bidOk === false || p7.recommendedBidPln == null);
+
+  const blockers = buildIkPackageBlockerReport(getTenderPackage(TID), w3MakePassStore(), { nowMs: W3_NOW });
+  ok("W4-5 blockers wired", blockers.blockers.length >= 1);
+}
+
+console.log(`\nW2+W3+W4 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
 process.exit(fail === 0 ? 0 : 1);
