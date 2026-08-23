@@ -167,8 +167,9 @@ export function unitsCompatibleExact(
 
 /**
  * Production registry — Owner-approved concrete aliases only
- * (WR-LABOR-IDENTITY-MAPPING-WAVE-1 Closeout · APPROVE = tablica + podejście).
- * HOLD rows (oprawa / zawór / gniazdo / white / …) must NOT appear here.
+ * (WR-LABOR-IDENTITY-MAPPING-WAVE-1 Closeout · APPROVE = tablica + podejście;
+ * IK-OWNER-MAP A01-S1 · APPROVE = WM LP4 oczyszczenie only · LP5 EXCLUDED).
+ * HOLD rows (oprawa / zawór / gniazdo / white / zmywanie / impregnacja / …) must NOT appear here.
  */
 export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
   Object.freeze([
@@ -232,6 +233,40 @@ export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
         ]),
         notesPl:
           "WAVE-1 APPROVE — podejście wod-kan operation-to-operation (exact_normalized · mb).",
+      },
+    },
+    {
+      mappingId: "lim-ik-a01-lp4-oczyszczenie-wm",
+      version: 1,
+      workId: "cc-w2-oczyszczenie-podloza",
+      sourceId: "*",
+      categoryKey: "other",
+      matchMode: LABOR_IDENTITY_MAPPING_MATCH_MODE,
+      observedNameAliases: Object.freeze([
+        "Przygotowanie i naprawa podłoża-oczyszczenie powierzchni muru",
+      ]),
+      catalogUnit: "m2",
+      observedUnit: "m2",
+      laborOnlyRequired: true,
+      includesMaterialPolicy: "reject",
+      allowedScopeTags: null,
+      regionPolicy: {
+        prefer: Object.freeze(["WROCLAW", "REGIONAL", "POLSKA"] as const),
+        allowNational: true,
+      },
+      confidence: "HIGH",
+      ownerApproval: true,
+      active: true,
+      provenance: {
+        approvedBy: "owner",
+        approvedAt: "2026-08-23T14:00:00.000Z",
+        evidenceUrls: Object.freeze([
+          "docs/architecture/IK-OWNER-POLICY-RESOLUTION-03.md",
+        ]),
+        notesPl:
+          "A01-S1 IK-OWNER-MAP — WM Paczka V LP4 oczyszczenie powierzchni (exact_normalized · m2). " +
+          "LP5 impregnacja biobójcza EXPLICITLY EXCLUDED — brak aliasu impregnacji. " +
+          "Zmywanie HOLD (brak BOQ). alias-pack-wave2 ≠ Owner SSOT.",
       },
     },
   ]);

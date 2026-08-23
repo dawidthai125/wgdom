@@ -44,6 +44,7 @@ const KNOWN = new Set([
   WORK_OPRAWA,
   "cc-p0c-w1-zaprawianie-bruzd",
   "legacy-malowanie-m2",
+  "cc-w2-oczyszczenie-podloza",
 ]);
 
 let fetchCalls = 0;
@@ -54,14 +55,14 @@ globalThis.fetch = async () => {
 
 setWorkRateIdentityMappingsForTests(null);
 
-// W1-1 registry exactly 2
+// W1-1 registry Wave-1 + A01-S1 (3 Owner-approved)
 {
   const ids = WORK_RATE_IDENTITY_MAPPINGS.map((r) => r.mappingId).sort();
   ok(
-    "W1-1 registry exactly 2",
-    WORK_RATE_IDENTITY_MAPPINGS.length === 2 &&
+    "W1-1 registry exactly 3",
+    WORK_RATE_IDENTITY_MAPPINGS.length === 3 &&
       ids.join("|") ===
-        "lim-w1-podejscie-wod-kan-cr|lim-w1-tablica-rozdzielcza-cr",
+        "lim-ik-a01-lp4-oczyszczenie-wm|lim-w1-podejscie-wod-kan-cr|lim-w1-tablica-rozdzielcza-cr",
     ids,
   );
 }
