@@ -81,8 +81,16 @@ import {
 import { useHistoricalExecutedHostIndex } from "@/lib/intelligent-estimator/historical-executed";
 import type { Job } from "@/app/app-domain";
 import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
+import { IkOrchestraPageBridge } from "@/app/intelligent-estimator/IkOrchestraPageBridge";
 import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
 import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
+import { resolveTenderBidProposalForUi } from "@/lib/intelligent-estimator/resolve-tender-bid-proposal-ui";
+import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
+import type { IkOwnerActionItem } from "@/lib/intelligent-estimator/orchestra/ik-owner-action-queue";
+import {
+  focusIkOwnerActionTarget,
+  type IkOwnerActionDeepLinkContext,
+} from "@/lib/intelligent-estimator/orchestra";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -223,6 +231,39 @@ export function TenderDetailPage({
     pricingCatalogRevision,
   });
 
+  const [ikOrchestraSnapshot, setIkOrchestraSnapshot] = useState<IkOrchestraSnapshot | null>(null);
+  const handleIkOrchestraSnapshot = useCallback((snapshot: IkOrchestraSnapshot) => {
+    setIkOrchestraSnapshot(snapshot);
+  }, []);
+
+  useEffect(() => {
+    setIkOrchestraSnapshot(null);
+  }, [tenderId]);
+
+  const pipelineRuntimeForUi = useMemo(() => {
+    const bidUi = resolveTenderBidProposalForUi({
+      item: bootstrapItem,
+      pkg: ikOrchestraSnapshot?.pkg ?? null,
+      p7Report: ikOrchestraSnapshot?.positionCostBid ?? null,
+      legacyProposal: pipelineRuntime.bidProposal,
+    });
+    const authoritativeProposal = bidUi.proposal;
+    return {
+      ...pipelineRuntime,
+      bidProposal: authoritativeProposal,
+      ownerFinanceProposal:
+        bidUi.authoritativeSource === "legacy"
+          ? pipelineRuntime.ownerFinanceProposal
+          : authoritativeProposal,
+      bidUiResolution: bidUi,
+    };
+  }, [
+    pipelineRuntime,
+    bootstrapItem,
+    ikOrchestraSnapshot?.pkg,
+    ikOrchestraSnapshot?.positionCostBid,
+  ]);
+
   /**
    * TM-01 S7 — Hub-first default; Expert ON never auto Outcome.
    * Recovery Outcome only via explicit DetailPage CTA (`tre01RecoveryOutcome`).
@@ -287,6 +328,49 @@ export function TenderDetailPage({
       dossierUiPhase: chiefDossierVm?.uiPhase ?? null,
     });
   }, [chiefSessionEnabled, chiefSession.dossier, chiefDossierVm?.uiPhase]);
+
+  const [pendingOwnerActionFocus, setPendingOwnerActionFocus] = useState<
+    Pick<
+      IkOwnerActionItem,
+      "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
+    > | null
+  >(null);
+
+  const ownerActionDeepLinkContext: IkOwnerActionDeepLinkContext = useMemo(
+    () => ({ chiefDossierAvailable: chiefDossierVm != null }),
+    [chiefDossierVm],
+  );
+
+  const handleOwnerActionDeferredFocus = useCallback(
+    (
+      actionItem: Pick<
+        IkOwnerActionItem,
+        "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
+      >,
+    ) => {
+      setPendingOwnerActionFocus(actionItem);
+    },
+    [],
+  );
+
+  const ownerActionNavigateHandlers = useMemo(
+    () => ({
+      activeTab,
+      onTabChange: handleTabChange,
+      onDeferredFocus: handleOwnerActionDeferredFocus,
+    }),
+    [activeTab, handleTabChange, handleOwnerActionDeferredFocus],
+  );
+
+  useEffect(() => {
+    if (!pendingOwnerActionFocus) return;
+    const actionItem = pendingOwnerActionFocus;
+    setPendingOwnerActionFocus(null);
+    const timer = window.setTimeout(() => {
+      focusIkOwnerActionTarget(actionItem, ownerActionDeepLinkContext);
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, pendingOwnerActionFocus, ownerActionDeepLinkContext]);
 
   /** DECISION-WORKSPACE-01 / TM-01 S5 / ENABLEMENT-01 — Session effective ON only. */
   const chiefSessionForDecision: ChiefSessionOutput | null =
@@ -748,18 +832,33 @@ export function TenderDetailPage({
             <IkP9OwnerVerifyMarker tenderId={item.id} />
           )}
 
-          {ikEntryOn && activeTab === "przetarg" && (
-            <IkEntryHost
+          {ikEntryOn && item && (
+            <IkOrchestraPageBridge
               item={item}
               onUpdate={onUpdateItem}
               athPreviewEnabled={athPreviewEnabled}
               chiefSession={chiefSessionEnabled ? chiefSession : null}
               historicalIndex={historicalIndex}
+              pricingCatalogRevision={pricingCatalogRevision}
               pipelineIngest={{
                 dossierBuilding: pipelineRuntime.dossierBuilding,
                 dossierEnriching: pipelineRuntime.dossierEnriching,
                 heavyDone: pipelineRuntime.pricingReadyFinal || pipelineRuntime.pricingReadyPartial,
               }}
+              onSnapshot={handleIkOrchestraSnapshot}
+            />
+          )}
+
+          {ikEntryOn && activeTab === "przetarg" && item && ikOrchestraSnapshot && (
+            <IkEntryHost
+              item={item}
+              orchestra={ikOrchestraSnapshot}
+              onUpdate={onUpdateItem}
+              athPreviewEnabled={athPreviewEnabled}
+              chiefSession={chiefSessionEnabled ? chiefSession : null}
+              historicalIndex={historicalIndex}
+              ownerActionDeepLinkContext={ownerActionDeepLinkContext}
+              ownerActionNavigateHandlers={ownerActionNavigateHandlers}
             />
           )}
 
@@ -794,7 +893,7 @@ export function TenderDetailPage({
             <TenderDetailPanel
               item={item}
               allItems={pipeline.items}
-              pipelineRuntime={pipelineRuntime}
+              pipelineRuntime={pipelineRuntimeForUi}
               onUpdate={bindTenderPipelineOnUpdate(pipeline.updateItem, item.id)}
               onRemove={() => void pipeline.removeItem(item.id).then(() => handleLeaveToModule())}
               athPreviewEnabled={athPreviewEnabled}

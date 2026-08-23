@@ -67,10 +67,13 @@ export type { IkF5PackageRefreshResult } from "./ik-f5-package-refresh";
 export {
   resolveIkOwnerActionDeepLink,
   focusIkOwnerActionTarget,
+  navigateIkOwnerActionTarget,
   IK_OWNER_ACTION_ANCHOR,
 } from "./ik-owner-action-deeplink";
 export type {
   IkOwnerActionDeepLinkResolution,
+  IkOwnerActionDeepLinkContext,
   IkOwnerActionNavigationKind,
+  IkOwnerActionNavigateHandlers,
 } from "./ik-owner-action-deeplink";
 export { buildIkOwnerActionFreshnessKey } from "./ik-owner-action-freshness";

@@ -16,7 +16,11 @@ import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { IkOwnerActionQueueNavigate } from "@/app/intelligent-estimator/IkOwnerActionQueueNavigate";
-import { useIkOrchestra } from "@/lib/intelligent-estimator/orchestra";
+import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
+import type {
+  IkOwnerActionDeepLinkContext,
+  IkOwnerActionNavigateHandlers,
+} from "@/lib/intelligent-estimator/orchestra/ik-owner-action-deeplink";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
 import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
@@ -46,6 +50,10 @@ export function IkEntryHost({
    * Absent/empty ⇒ HISTORICAL_MISS per line (first-class · not an error).
    */
   historicalIndex = null,
+  /** W6 — page-level orchestra snapshot (from IkOrchestraPageBridge). */
+  orchestra,
+  ownerActionDeepLinkContext = null,
+  ownerActionNavigateHandlers = null,
 }: {
   item: TenderPipelineItem;
   onUpdate?: (patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
@@ -57,19 +65,12 @@ export function IkEntryHost({
   athPreviewEnabled?: boolean;
   chiefSession?: ChiefSessionOutput | null;
   historicalIndex?: HistoricalExecutedIndex | null;
+  orchestra: IkOrchestraSnapshot;
+  ownerActionDeepLinkContext?: IkOwnerActionDeepLinkContext | null;
+  ownerActionNavigateHandlers?: IkOwnerActionNavigateHandlers | null;
 }) {
   const tendersCtx = useTendersContextOptional();
-  const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
-
-  const orchestra = useIkOrchestra({
-    item,
-    onUpdate,
-    pipelineIngest,
-    athPreviewEnabled,
-    chiefSession,
-    historicalIndex,
-    pricingCatalogRevision,
-  });
+  void tendersCtx;
 
   const {
     effectiveItem,
@@ -228,7 +229,11 @@ export function IkEntryHost({
       data-ik-knr-app-diag-only="1"
     >
       <IkExpertRoomChrome report={knr}>
-        <IkOwnerActionQueueNavigate queue={ownerActionQueue} />
+        <IkOwnerActionQueueNavigate
+          queue={ownerActionQueue}
+          deepLinkContext={ownerActionDeepLinkContext ?? undefined}
+          navigateHandlers={ownerActionNavigateHandlers ?? undefined}
+        />
         <ExpertConversationSurface vm={vm} />
       </IkExpertRoomChrome>
     </div>

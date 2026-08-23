@@ -175,6 +175,7 @@ export function TenderDetailPanel({
     trustAssessment,
     ownerFinanceProposal,
     bidProposal: runtimeBidProposal,
+    bidUiResolution,
     timeline,
     pipelineState,
     attachmentGateStatus,
@@ -434,6 +435,12 @@ export function TenderDetailPanel({
 
   const valuationWorkspaceActive = workspaceForLogic === "valuation" || workspaceForLogic === "offer";
   const bidProposal = valuationWorkspaceActive ? runtimeBidProposal : null;
+  const authoritativeBidProposal = bidProposal ?? ownerFinanceProposal;
+  const pdfExportBlocked = bidUiResolution?.pdfExportBlocked === true;
+  const pdfExportBlockNotePl =
+    bidUiResolution?.gapNotePl
+    ?? bidUiResolution?.reasonsPl?.[0]
+    ?? "Brak authoritative bid — eksport PDF zablokowany (PackageGate / GAP).";
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
   const pricingDeferred = workspaceForLogic === "overview"
     && !ownerFinanceProposal
@@ -446,12 +453,16 @@ export function TenderDetailPanel({
     );
 
   const handleExportPdf = useCallback(async () => {
+    if (pdfExportBlocked) {
+      toast.error(pdfExportBlockNotePl);
+      return;
+    }
     setExportingPdf(true);
     try {
       await exportTenderBidPackagePdf({
         item,
         profile: loadCompanyProfileLocal(),
-        bidProposal: bidProposal ?? ownerFinanceProposal,
+        bidProposal: authoritativeBidProposal,
       });
       toast.success("Pobrano pakiet wyceny PDF");
     } catch (e) {
@@ -459,14 +470,14 @@ export function TenderDetailPanel({
     } finally {
       setExportingPdf(false);
     }
-  }, [item, bidProposal, ownerFinanceProposal]);
+  }, [item, authoritativeBidProposal, pdfExportBlocked, pdfExportBlockNotePl]);
 
   const bidPrepChecks = useMemo(
-    () => computeBidPrepChecks(intelligenceItem, swz, intelligenceItem.tenderFit, bidProposal ?? ownerFinanceProposal, {
+    () => computeBidPrepChecks(intelligenceItem, swz, intelligenceItem.tenderFit, authoritativeBidProposal, {
       pricingDeferred,
       kosztorysSession: kosztorysProcessSession,
     }),
-    [intelligenceItem, swz, bidProposal, ownerFinanceProposal, pricingDeferred, kosztorysProcessSession],
+    [intelligenceItem, swz, authoritativeBidProposal, pricingDeferred, kosztorysProcessSession],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 

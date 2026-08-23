@@ -70,4 +70,6 @@ export interface TenderPipelineRuntime {
   pricingReadyFinal: boolean;
   /** NG11-P0 — merged discovery result dla intelligence (P0-C2). */
   discoveryMergedItem: TenderPipelineItem;
+  /** W6-1 — authoritative bid read model (multi P7 SSOT · no second calculator). */
+  bidUiResolution?: import("@/lib/intelligent-estimator/resolve-tender-bid-proposal-ui").TenderBidUiResolution | null;
 }

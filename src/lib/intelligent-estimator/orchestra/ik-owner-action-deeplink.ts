@@ -1,8 +1,9 @@
 /**
- * W5-1 — Owner Action deep-link resolver (reuse-first · navigation only).
+ * W5-1 / W6-2 / W6-3 — Owner Action deep-link resolver (reuse-first · navigation only).
  * Maps IkOwnerActionItem → existing Hub/DW panel anchors. ZERO auto-Accept · ZERO writes.
  */
 
+import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type {
   IkOwnerActionDomain,
   IkOwnerActionItem,
@@ -17,6 +18,11 @@ export type IkOwnerActionNavigationKind =
   | "f5_gap"
   | "classification_hold";
 
+export type IkOwnerActionDeepLinkContext = {
+  /** W6-3 — material / OI panels live under Chief dossier surface. */
+  chiefDossierAvailable?: boolean;
+};
+
 export type IkOwnerActionDeepLinkResolution =
   | {
       ok: true;
@@ -27,11 +33,14 @@ export type IkOwnerActionDeepLinkResolution =
       lineRef: string;
       dwellingId: string;
       labelPl: string;
+      /** W6-2 — cross-tab navigation before deferred focus. */
+      navigationTab: TenderDetailV4TabId;
+      requiresDeferredFocus: boolean;
     }
   | {
       ok: false;
       domain: IkOwnerActionDomain;
-      reason: "UNSUPPORTED" | "PARSE_FAIL" | "GAP";
+      reason: "UNSUPPORTED" | "PARSE_FAIL" | "GAP" | "CHIEF_OFF";
       gapNotePl: string;
     };
 
@@ -48,6 +57,9 @@ export const IK_OWNER_ACTION_ANCHOR = {
   kosztorysBoqExplorer: "[data-kosztorys-boq-explorer]",
 } as const;
 
+const CHIEF_OFF_OI_NOTE_PL =
+  "Chief OFF — panel Owner Input / Materiałów niedostępny. Aktywuj Chief Session (Przetarg).";
+
 function cssEscape(value: string): string {
   if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
     return CSS.escape(value);
@@ -61,11 +73,32 @@ function lineSelector(lineRef: string): string {
   return IK_OWNER_ACTION_ANCHOR.offerBoqLine(ref);
 }
 
+function chiefPanelBlocked(
+  item: Pick<IkOwnerActionItem, "domain" | "labelPl">,
+): IkOwnerActionDeepLinkResolution {
+  return {
+    ok: false,
+    domain: item.domain,
+    reason: "CHIEF_OFF",
+    gapNotePl: CHIEF_OFF_OI_NOTE_PL,
+  };
+}
+
+function requiresChiefDossier(actionType: IkOwnerActionNavigationKind): boolean {
+  return (
+    actionType === "owner_input_equipment"
+    || actionType === "owner_input_transport"
+    || actionType === "material_accept"
+  );
+}
+
 function okResolution(
   item: Pick<IkOwnerActionItem, "domain" | "lineRef" | "dwellingId" | "labelPl">,
   actionType: IkOwnerActionNavigationKind,
   anchorId: string,
   selector: string,
+  navigationTab: TenderDetailV4TabId,
+  requiresDeferredFocus = false,
 ): IkOwnerActionDeepLinkResolution {
   return {
     ok: true,
@@ -76,6 +109,8 @@ function okResolution(
     lineRef: item.lineRef,
     dwellingId: item.dwellingId,
     labelPl: item.labelPl,
+    navigationTab,
+    requiresDeferredFocus,
   };
 }
 
@@ -92,6 +127,18 @@ function gapResolution(
   };
 }
 
+function guardChiefPanel(
+  item: Pick<IkOwnerActionItem, "domain" | "labelPl">,
+  actionType: IkOwnerActionNavigationKind,
+  ctx?: IkOwnerActionDeepLinkContext,
+): IkOwnerActionDeepLinkResolution | null {
+  if (!requiresChiefDossier(actionType)) return null;
+  if (ctx?.chiefDossierAvailable === false) {
+    return chiefPanelBlocked(item);
+  }
+  return null;
+}
+
 /**
  * Resolve queue item → existing panel anchor (pure · deterministic).
  */
@@ -100,6 +147,7 @@ export function resolveIkOwnerActionDeepLink(
     IkOwnerActionItem,
     "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
   >,
+  ctx?: IkOwnerActionDeepLinkContext,
 ): IkOwnerActionDeepLinkResolution {
   const deepLink = String(item.deepLink ?? "").trim();
   if (!deepLink.startsWith("ik:")) {
@@ -107,7 +155,9 @@ export function resolveIkOwnerActionDeepLink(
   }
 
   switch (item.domain) {
-    case "equipment_input":
+    case "equipment_input": {
+      const blocked = guardChiefPanel(item, "owner_input_equipment", ctx);
+      if (blocked) return blocked;
       return okResolution(
         item,
         "owner_input_equipment",
@@ -115,8 +165,12 @@ export function resolveIkOwnerActionDeepLink(
         item.lineRef && item.lineRef !== "*"
           ? `${IK_OWNER_ACTION_ANCHOR.ownerRateDomain("equipment")}`
           : IK_OWNER_ACTION_ANCHOR.ownerRateInputCards,
+        "przetarg",
       );
-    case "transport_input":
+    }
+    case "transport_input": {
+      const blocked = guardChiefPanel(item, "owner_input_transport", ctx);
+      if (blocked) return blocked;
       return okResolution(
         item,
         "owner_input_transport",
@@ -124,21 +178,28 @@ export function resolveIkOwnerActionDeepLink(
         item.lineRef && item.lineRef !== "*"
           ? `${IK_OWNER_ACTION_ANCHOR.ownerRateDomain("transport")}`
           : IK_OWNER_ACTION_ANCHOR.ownerRateInputCards,
+        "przetarg",
       );
+    }
     case "labor_accept":
       return okResolution(
         item,
         "labor_accept",
         "ik-labor-gap-research-panel",
         IK_OWNER_ACTION_ANCHOR.laborGapPanel,
+        "przetarg",
       );
-    case "material_accept":
+    case "material_accept": {
+      const blocked = guardChiefPanel(item, "material_accept", ctx);
+      if (blocked) return blocked;
       return okResolution(
         item,
         "material_accept",
         "expert-workspace-surface",
         `${IK_OWNER_ACTION_ANCHOR.expertWorkspace}, ${IK_OWNER_ACTION_ANCHOR.demandPriceResearch}`,
+        "przetarg",
       );
+    }
     case "identity": {
       const lineSel = lineSelector(item.lineRef);
       if (lineSel) {
@@ -147,6 +208,8 @@ export function resolveIkOwnerActionDeepLink(
           "identity_manual",
           `offer-boq-line-${item.lineRef}`,
           `${lineSel}, ${IK_OWNER_ACTION_ANCHOR.kosztorysBoqExplorer}`,
+          "kosztorys",
+          true,
         );
       }
       return okResolution(
@@ -154,6 +217,8 @@ export function resolveIkOwnerActionDeepLink(
         "identity_manual",
         "kosztorys-boq-explorer",
         IK_OWNER_ACTION_ANCHOR.kosztorysBoqExplorer,
+        "kosztorys",
+        true,
       );
     }
     case "f5_blocker": {
@@ -162,22 +227,28 @@ export function resolveIkOwnerActionDeepLink(
         code === "EQUIPMENT_OUT_OF_SCOPE"
         || code === "EQUIPMENT_OWNER_INPUT_INVALID"
       ) {
+        const blocked = guardChiefPanel(item, "owner_input_equipment", ctx);
+        if (blocked) return blocked;
         return okResolution(
           item,
           "owner_input_equipment",
           "owner-rate-input-cards",
           IK_OWNER_ACTION_ANCHOR.ownerRateDomain("equipment"),
+          "przetarg",
         );
       }
       if (
         code === "TRANSPORT_OUT_OF_SCOPE"
         || code === "TRANSPORT_OWNER_INPUT_INVALID"
       ) {
+        const blocked = guardChiefPanel(item, "owner_input_transport", ctx);
+        if (blocked) return blocked;
         return okResolution(
           item,
           "owner_input_transport",
           "owner-rate-input-cards",
           IK_OWNER_ACTION_ANCHOR.ownerRateDomain("transport"),
+          "przetarg",
         );
       }
       if (
@@ -192,6 +263,8 @@ export function resolveIkOwnerActionDeepLink(
           lineSel
             ? `${lineSel}, ${IK_OWNER_ACTION_ANCHOR.kosztorysBoqExplorer}`
             : IK_OWNER_ACTION_ANCHOR.kosztorysBoqExplorer,
+          "kosztorys",
+          true,
         );
       }
       if (
@@ -203,6 +276,7 @@ export function resolveIkOwnerActionDeepLink(
           "labor_accept",
           "ik-labor-gap-research-panel",
           IK_OWNER_ACTION_ANCHOR.laborGapPanel,
+          "przetarg",
         );
       }
       if (
@@ -213,11 +287,14 @@ export function resolveIkOwnerActionDeepLink(
         || code === "BRAK_TECHNOLOGII_BOM"
         || code === "BRAK_KONWERSJI_JEDNOSTEK"
       ) {
+        const blocked = guardChiefPanel(item, "material_accept", ctx);
+        if (blocked) return blocked;
         return okResolution(
           item,
           "material_accept",
           "expert-workspace-surface",
           `${IK_OWNER_ACTION_ANCHOR.expertWorkspace}, ${IK_OWNER_ACTION_ANCHOR.demandPriceResearch}`,
+          "przetarg",
         );
       }
       const lineSel = lineSelector(item.lineRef);
@@ -227,6 +304,8 @@ export function resolveIkOwnerActionDeepLink(
           "f5_gap",
           `offer-boq-line-${item.lineRef}`,
           lineSel,
+          "kosztorys",
+          true,
         );
       }
       return gapResolution(
@@ -254,8 +333,9 @@ export function focusIkOwnerActionTarget(
     IkOwnerActionItem,
     "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
   >,
+  ctx?: IkOwnerActionDeepLinkContext,
 ): IkOwnerActionDeepLinkResolution {
-  const resolution = resolveIkOwnerActionDeepLink(item);
+  const resolution = resolveIkOwnerActionDeepLink(item, ctx);
   if (!resolution.ok) return resolution;
   if (typeof document === "undefined") return resolution;
 
@@ -280,4 +360,41 @@ export function focusIkOwnerActionTarget(
     "GAP",
     `Panel nie znaleziony w DOM: ${resolution.anchorId}`,
   );
+}
+
+export type IkOwnerActionNavigateHandlers = {
+  activeTab: TenderDetailV4TabId;
+  onTabChange: (tab: TenderDetailV4TabId) => void;
+  onDeferredFocus: (item: Pick<
+    IkOwnerActionItem,
+    "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
+  >) => void;
+};
+
+/**
+ * W6-2 — cross-tab navigation + deferred focus (reuse handleTabChange pattern).
+ */
+export function navigateIkOwnerActionTarget(
+  item: Pick<
+    IkOwnerActionItem,
+    "domain" | "deepLink" | "lineRef" | "dwellingId" | "blockerCode" | "labelPl"
+  >,
+  ctx: IkOwnerActionDeepLinkContext | undefined,
+  handlers: IkOwnerActionNavigateHandlers,
+): IkOwnerActionDeepLinkResolution {
+  const resolution = resolveIkOwnerActionDeepLink(item, ctx);
+  if (!resolution.ok) return resolution;
+
+  if (resolution.navigationTab !== handlers.activeTab) {
+    handlers.onDeferredFocus(item);
+    handlers.onTabChange(resolution.navigationTab);
+    return resolution;
+  }
+
+  if (resolution.requiresDeferredFocus) {
+    handlers.onDeferredFocus(item);
+    return resolution;
+  }
+
+  return focusIkOwnerActionTarget(item, ctx);
 }

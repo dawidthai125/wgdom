@@ -260,7 +260,8 @@ const engineSrc = readSrc("src/lib/tender-position-cost/engine.ts");
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 
 ok("schema v1", IK_COMPOSITE_BOTH_HOLD_SCHEMA_VERSION === 1);
-ok("IkEntryHost consumer", /useIkOrchestra/.test(hostSrc) && /runIkCompositeBothHold/.test(orchestraEngineSrc) && /p5LaborOn && p6MaterialOn/.test(orchestraEngineSrc));
+const bridgeSrc = readSrc("src/app/intelligent-estimator/IkOrchestraPageBridge.tsx");
+ok("IkEntryHost consumer", (/useIkOrchestra/.test(hostSrc) || (/useIkOrchestra/.test(bridgeSrc) && /orchestra:/.test(hostSrc))) && /runIkCompositeBothHold/.test(orchestraEngineSrc) && /p5LaborOn && p6MaterialOn/.test(orchestraEngineSrc));
 ok("no new orchestrator module host", !/CompositeOrchestrator|runIkCompositeEngine/.test(hostSrc));
 ok("no new ikP composite flag", !/ikComposite|ikP9Composite|ikBothHold/.test(settingsSrc));
 ok("Classification Gate COMPOUND hold unchanged", /case "COMPOUND":[\s\S]*allowLaborResearch: false[\s\S]*allowMaterialResearch: false[\s\S]*hold: true/.test(gateSrc));

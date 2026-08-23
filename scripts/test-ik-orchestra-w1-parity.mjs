@@ -35,7 +35,12 @@ const hookSrc = readSrc("src/lib/intelligent-estimator/orchestra/use-ik-orchestr
 const latchSrc = readSrc("src/lib/intelligent-estimator/ik-entry-p2-ingest-latch.ts");
 
 // —— Host adapter boundary ——
-ok("Host delegates to useIkOrchestra", hostSrc.includes("useIkOrchestra"));
+ok(
+  "Host delegates to useIkOrchestra",
+  hostSrc.includes("useIkOrchestra")
+    || (readSrc("src/app/intelligent-estimator/IkOrchestraPageBridge.tsx").includes("useIkOrchestra")
+      && hostSrc.includes("orchestra:")),
+);
 ok("Host keeps VM builder", hostSrc.includes("buildIkEntryConversationViewModel"));
 ok("Host keeps render data-ik-*", hostSrc.includes('data-ik-entry-host="1"'));
 ok("Host no runIkCompositeBothHold", !hostSrc.includes("runIkCompositeBothHold"));

@@ -53,6 +53,8 @@ import {
   buildOwnerInputRefreshKey,
 } from "../src/lib/intelligent-estimator/orchestra/ik-f5-package-refresh.ts";
 import { resolveIkOwnerActionDeepLink } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-deeplink.ts";
+import { resolveTenderBidProposalForUi } from "../src/lib/intelligent-estimator/resolve-tender-bid-proposal-ui.ts";
+import { resolveTenderPricingAutoProposal } from "../src/app/hooks/useTenderPricingAuto.ts";
 import { buildIkOwnerActionFreshnessKey } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-freshness.ts";
 import { notifyIkPricingAccepted } from "../src/lib/ik-pricing-orchestrator/notify-accepted.ts";
 import { runIkMasterBoqIdentityCoverage } from "../src/lib/intelligent-estimator/ik-identity-coverage.ts";
@@ -1191,8 +1193,10 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
     material: mockMaterial,
     packageBlockers: blockers,
   });
+  const dlCtx = { chiefDossierAvailable: true };
   const supported = queue.items.filter((i) => {
-    const r = resolveIkOwnerActionDeepLink(i);
+    const needsChief = ["equipment_input", "transport_input", "material_accept"].includes(i.domain);
+    const r = resolveIkOwnerActionDeepLink(i, needsChief ? dlCtx : undefined);
     return r.ok;
   });
   ok("W5-DL ≥3 resolved domain types", new Set(supported.map((i) => i.domain)).size >= 3);
@@ -1201,6 +1205,7 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
     supported.some((i) => i.domain === "equipment_input")
       && resolveIkOwnerActionDeepLink(
         supported.find((i) => i.domain === "equipment_input"),
+        dlCtx,
       ).anchorId === "owner-rate-input-cards",
   );
   ok(
@@ -1215,13 +1220,17 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
     supported.some((i) => i.domain === "material_accept")
       && resolveIkOwnerActionDeepLink(
         supported.find((i) => i.domain === "material_accept"),
+        dlCtx,
       ).actionType === "material_accept",
   );
   ok(
     "W5-DL supported actions all resolve (no PARSE_FAIL)",
     queue.items
       .filter((i) => ["equipment_input", "transport_input", "labor_accept", "material_accept", "identity"].includes(i.domain))
-      .every((i) => resolveIkOwnerActionDeepLink(i).ok),
+      .every((i) => {
+        const needsChief = ["equipment_input", "transport_input", "material_accept"].includes(i.domain);
+        return resolveIkOwnerActionDeepLink(i, needsChief ? dlCtx : undefined).ok;
+      }),
   );
   ok(
     "W5-DL no auto-resolve (F5 still GAP before OI answer)",
@@ -1383,5 +1392,174 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
   );
 }
 
-console.log(`\nW2+W3+W4+W5 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
+// W6-BID-SSOT — multi P7 authoritative · gate FAIL null · legacy OFF unchanged
+{
+  const TID = "t-w6-bid-ssot";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3SetupPersistPackage(TID);
+  w3RunPostIdentityF5Refresh(TID, w3MakePassStore());
+  const pkg = getTenderPackage(TID);
+  const unit = pkg?.dwellings.find((d) => d.dwellingId === "dw-a");
+  const item = { id: TID, tenderId: TID, title: "W6 bid", bzpDocuments: [] };
+  const expert = {
+    tenderId: TID,
+    status: "ready",
+    reasons: [],
+    documents: [],
+    costDocuments: [],
+    przedmiary: [],
+    extraction: { extractedCount: 1 },
+    masterBoq: { status: "ready", readyForExperts: true, lineCount: 1, mode: "multi" },
+    offerBoq: unit?.offerBoq ?? null,
+    masterBoqLines: [{ dwellingId: "dw-a", line: unit?.offerBoq?.lines?.[0], provenance: null }],
+  };
+  const p7 = runIkP7PositionCostBid({
+    item,
+    expert,
+    package: pkg,
+    store: w3MakePassStore(),
+    nowMs: W3_NOW,
+  });
+  const legacyTorB = resolveTenderPricingAutoProposal({
+    item,
+    priceOverrides: [],
+    costPipeline01Enabled: true,
+  });
+  const uiPass = resolveTenderBidProposalForUi({
+    item,
+    pkg,
+    p7Report: p7,
+    legacyProposal: legacyTorB,
+    costPipeline01Enabled: true,
+  });
+  ok("W6-BID-SSOT multi PASS P7 authoritative", uiPass.authoritativeSource === "p7_multi");
+  ok(
+    "W6-BID-SSOT Ceny === P7 recommendedBidPln",
+    uiPass.recommendedBidPln === p7.recommendedBidPln,
+    `${uiPass.recommendedBidPln} vs ${p7.recommendedBidPln}`,
+  );
+  ok(
+    "W6-BID-SSOT ±0 PLN vs P7 proposal",
+    uiPass.proposal?.recommendedBidPln === p7.proposal?.recommendedBidPln,
+  );
+
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage("t-w6-block");
+  w3RunPostIdentityF5Refresh("t-w6-block", w3MakeGapStore());
+  const pkgBlock = getTenderPackage("t-w6-block");
+  const p7Fail = runIkP7PositionCostBid({
+    item: { id: "t-w6-block", tenderId: "t-w6-block", title: "W6 block", bzpDocuments: [] },
+    expert: {
+      ...makeStructuralReport([baseLine({ catalogWorkId: null, matchMethod: "unmatched", lineId: "G1" })]),
+      offerBoq: pkgBlock?.dwellings[0]?.offerBoq ?? null,
+    },
+    package: pkgBlock,
+    store: w3MakeGapStore(),
+    nowMs: W3_NOW,
+  });
+  const uiFail = resolveTenderBidProposalForUi({
+    item: { id: "t-w6-block", tenderId: "t-w6-block", title: "W6 block", bzpDocuments: [] },
+    pkg: pkgBlock,
+    p7Report: p7Fail,
+    legacyProposal: resolveTenderPricingAutoProposal({
+      item: { id: "t-w6-block", tenderId: "t-w6-block", title: "W6 block", bzpDocuments: [] },
+      priceOverrides: [],
+      costPipeline01Enabled: true,
+    }),
+    costPipeline01Enabled: true,
+  });
+  ok("W6-BID-SSOT packageGate FAIL → null bid", uiFail.proposal == null);
+  ok("W6-BID-SSOT no TOR B fallback on FAIL", uiFail.authoritativeSource === "none");
+  ok("W6-BID-SSOT PDF blocked on FAIL", uiFail.pdfExportBlocked === true);
+
+  const uiLegacyOff = resolveTenderBidProposalForUi({
+    item,
+    pkg,
+    p7Report: p7,
+    legacyProposal: legacyTorB,
+    costPipeline01Enabled: false,
+  });
+  ok("W6-BID-SSOT costPipeline OFF legacy unchanged", uiLegacyOff.authoritativeSource === "legacy");
+  ok(
+    "W6-BID-SSOT costPipeline OFF uses legacy proposal",
+    uiLegacyOff.proposal === legacyTorB || uiLegacyOff.recommendedBidPln === legacyTorB?.recommendedBidPln,
+  );
+}
+
+// W6-DL — identity → kosztorys navigation intent
+{
+  const identityItem = {
+    domain: "identity",
+    deepLink: "ik:identity",
+    lineRef: "ID-LINE-1",
+    dwellingId: "dw-a",
+    blockerCode: "",
+    labelPl: "Identity manual",
+  };
+  const res = resolveIkOwnerActionDeepLink(identityItem);
+  ok("W6-DL identity navigationTab kosztorys", res.ok && res.navigationTab === "kosztorys");
+  ok("W6-DL identity deferred focus", res.ok && res.requiresDeferredFocus === true);
+  ok(
+    "W6-DL identity selector offer-boq line",
+    res.ok && res.selector.includes("data-offer-boq-line-id"),
+  );
+}
+
+// W6-PDF — same authoritative proposal + block policy
+{
+  const TID = "t-w6-pdf";
+  saveWorkCatalogStoreLocal(w3MakePassStore());
+  w3SetupPersistPackage(TID);
+  w3RunPostIdentityF5Refresh(TID, w3MakePassStore());
+  const pkg = getTenderPackage(TID);
+  const unit = pkg?.dwellings.find((d) => d.dwellingId === "dw-a");
+  const item = { id: TID, tenderId: TID, title: "W6 pdf", bzpDocuments: [] };
+  const expert = {
+    tenderId: TID,
+    status: "ready",
+    reasons: [],
+    documents: [],
+    costDocuments: [],
+    przedmiary: [],
+    extraction: { extractedCount: 1 },
+    masterBoq: { status: "ready", readyForExperts: true, lineCount: 1, mode: "multi" },
+    offerBoq: unit?.offerBoq ?? null,
+    masterBoqLines: [{ dwellingId: "dw-a", line: unit?.offerBoq?.lines?.[0], provenance: null }],
+  };
+  const p7 = runIkP7PositionCostBid({
+    item,
+    expert,
+    package: pkg,
+    store: w3MakePassStore(),
+    nowMs: W3_NOW,
+  });
+  const ui = resolveTenderBidProposalForUi({
+    item,
+    pkg,
+    p7Report: p7,
+    legacyProposal: null,
+    costPipeline01Enabled: true,
+  });
+  ok("W6-PDF caller proposal === P7", ui.proposal === p7.proposal);
+  ok("W6-PDF PASS export allowed", ui.pdfExportBlocked === false);
+}
+
+// W6-CHIEF-OFF — material/OI disabled when Chief dossier unavailable
+{
+  const materialItem = {
+    domain: "material_accept",
+    deepLink: "ik:material",
+    lineRef: "M1",
+    dwellingId: "dw-a",
+    blockerCode: "BRAK_CENY_MATERIALU",
+    labelPl: "Material accept",
+  };
+  const off = resolveIkOwnerActionDeepLink(materialItem, { chiefDossierAvailable: false });
+  ok("W6-CHIEF-OFF material disabled", !off.ok && off.reason === "CHIEF_OFF");
+  ok("W6-CHIEF-OFF material reasonPl present", !off.ok && off.gapNotePl.length > 10);
+  const on = resolveIkOwnerActionDeepLink(materialItem, { chiefDossierAvailable: true });
+  ok("W6-CHIEF-OFF material reachable when Chief ON", on.ok === true);
+}
+
+console.log(`\nW2+W3+W4+W5+W6 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
 process.exit(fail === 0 ? 0 : 1);
