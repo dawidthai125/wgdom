@@ -105,6 +105,8 @@ export type IkOrchestraHostInput = {
   athPreviewEnabled?: boolean;
   chiefSession?: ChiefSessionOutput | null;
   historicalIndex?: HistoricalExecutedIndex | null;
+  /** W5-3 — TendersProvider invalidation token (optional · default 0). */
+  pricingCatalogRevision?: number;
 };
 
 /** Full runtime snapshot returned to IkEntryHost adapter. */

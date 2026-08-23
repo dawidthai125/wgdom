@@ -64,3 +64,13 @@ export {
   materializeIkF5OnPackage,
 } from "./ik-f5-package-refresh";
 export type { IkF5PackageRefreshResult } from "./ik-f5-package-refresh";
+export {
+  resolveIkOwnerActionDeepLink,
+  focusIkOwnerActionTarget,
+  IK_OWNER_ACTION_ANCHOR,
+} from "./ik-owner-action-deeplink";
+export type {
+  IkOwnerActionDeepLinkResolution,
+  IkOwnerActionNavigationKind,
+} from "./ik-owner-action-deeplink";
+export { buildIkOwnerActionFreshnessKey } from "./ik-owner-action-freshness";

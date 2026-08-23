@@ -11,9 +11,11 @@
 
 import { useMemo } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
+import { IkOwnerActionQueueNavigate } from "@/app/intelligent-estimator/IkOwnerActionQueueNavigate";
 import { useIkOrchestra } from "@/lib/intelligent-estimator/orchestra";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ChiefSessionOutput } from "@/lib/chief-session";
@@ -56,6 +58,9 @@ export function IkEntryHost({
   chiefSession?: ChiefSessionOutput | null;
   historicalIndex?: HistoricalExecutedIndex | null;
 }) {
+  const tendersCtx = useTendersContextOptional();
+  const pricingCatalogRevision = tendersCtx?.pricingCatalogRevision ?? 0;
+
   const orchestra = useIkOrchestra({
     item,
     onUpdate,
@@ -63,6 +68,7 @@ export function IkEntryHost({
     athPreviewEnabled,
     chiefSession,
     historicalIndex,
+    pricingCatalogRevision,
   });
 
   const {
@@ -222,6 +228,7 @@ export function IkEntryHost({
       data-ik-knr-app-diag-only="1"
     >
       <IkExpertRoomChrome report={knr}>
+        <IkOwnerActionQueueNavigate queue={ownerActionQueue} />
         <ExpertConversationSurface vm={vm} />
       </IkExpertRoomChrome>
     </div>

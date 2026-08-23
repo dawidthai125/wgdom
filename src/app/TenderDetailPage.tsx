@@ -818,6 +818,7 @@ export function TenderDetailPage({
                 notifyIkPricingAccepted({
                   bumpPricingCatalogRevision,
                   bumpChiefRefresh: () => setChiefRefreshNonce((n) => n + 1),
+                  tenderId: item.id,
                 });
               }}
             />

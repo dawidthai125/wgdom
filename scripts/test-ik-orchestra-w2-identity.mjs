@@ -52,10 +52,14 @@ import {
   materializeIkF5OnPackage,
   buildOwnerInputRefreshKey,
 } from "../src/lib/intelligent-estimator/orchestra/ik-f5-package-refresh.ts";
+import { resolveIkOwnerActionDeepLink } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-deeplink.ts";
+import { buildIkOwnerActionFreshnessKey } from "../src/lib/intelligent-estimator/orchestra/ik-owner-action-freshness.ts";
+import { notifyIkPricingAccepted } from "../src/lib/ik-pricing-orchestrator/notify-accepted.ts";
 import { runIkMasterBoqIdentityCoverage } from "../src/lib/intelligent-estimator/ik-identity-coverage.ts";
 import {
   clearOwnerRateInputStore,
   createOwnerRateQuestion,
+  listOwnerInputsForTender,
   submitOwnerRateAnswer,
 } from "../src/lib/owner-rate-input/index.ts";
 
@@ -1123,5 +1127,261 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
   ok("W4-5 blockers wired", blockers.blockers.length >= 1);
 }
 
-console.log(`\nW2+W3+W4 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
+// W5-DL — deepLink resolver → existing panel anchors · ≥3 domains · no auto-resolve
+{
+  clearOwnerRateInputStore();
+  const TID = "t-w5-dl";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID);
+  w3RunPostIdentityF5Refresh(TID, w3MakeGapStore());
+  const pkg = getTenderPackage(TID);
+  const blockers = buildIkPackageBlockerReport(pkg, w3MakeGapStore(), { nowMs: W3_NOW });
+  createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "equipment",
+    dwellingId: "dw-a",
+    lineRef: "OI-EQ",
+    evidenceSummaryPl: "W5 DL",
+    askedByRole: "owner",
+    equipment: { namePl: "Rusztowanie", quantity: 1, unit: "dzień" },
+  });
+  createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "transport",
+    dwellingId: "dw-a",
+    lineRef: "OI-TR",
+    evidenceSummaryPl: "W5 DL transport",
+    askedByRole: "owner",
+    transport: { namePl: "Transport materiałów", quantity: 1, unit: "km" },
+  });
+  const mockLabor = {
+    lines: [{
+      lineId: "L-ACC",
+      dwellingId: "dw-a",
+      lp: "9",
+      rateStatus: "CANDIDATE_OWNER_ACCEPT_REQUIRED",
+      candidate: { candidateId: "c1" },
+      catalogWorkId: W3_LABOR_WORK,
+      identity: { workId: W3_LABOR_WORK },
+    }],
+  };
+  const mockMaterial = {
+    lines: [{
+      lineId: "M-ACC",
+      dwellingId: "dw-a",
+      lp: "10",
+      priceStatus: "CANDIDATE_OWNER_ACCEPT_REQUIRED",
+      candidate: { candidateId: "m1" },
+    }],
+  };
+  const item = { id: TID, tenderId: TID, title: "W5 DL", bzpDocuments: [] };
+  const expert = makeStructuralReport([
+    baseLine({ catalogWorkId: null, matchMethod: "unmatched", lineId: "ID-1" }),
+    competingLine,
+  ]);
+  const classification = runIkMasterBoqClassification({ item, package: pkg, expert });
+  const coverage = runIkMasterBoqIdentityCoverage({ item, package: pkg, expert });
+  const queue = buildIkOwnerActionQueue({
+    tenderId: TID,
+    pkg,
+    store: w3MakeGapStore(),
+    identityCoverage: coverage,
+    classification,
+    labor: mockLabor,
+    material: mockMaterial,
+    packageBlockers: blockers,
+  });
+  const supported = queue.items.filter((i) => {
+    const r = resolveIkOwnerActionDeepLink(i);
+    return r.ok;
+  });
+  ok("W5-DL ≥3 resolved domain types", new Set(supported.map((i) => i.domain)).size >= 3);
+  ok(
+    "W5-DL equipment → owner input anchor",
+    supported.some((i) => i.domain === "equipment_input")
+      && resolveIkOwnerActionDeepLink(
+        supported.find((i) => i.domain === "equipment_input"),
+      ).anchorId === "owner-rate-input-cards",
+  );
+  ok(
+    "W5-DL labor_accept → labor panel",
+    supported.some((i) => i.domain === "labor_accept")
+      && resolveIkOwnerActionDeepLink(
+        supported.find((i) => i.domain === "labor_accept"),
+      ).actionType === "labor_accept",
+  );
+  ok(
+    "W5-DL material_accept → expert workspace",
+    supported.some((i) => i.domain === "material_accept")
+      && resolveIkOwnerActionDeepLink(
+        supported.find((i) => i.domain === "material_accept"),
+      ).actionType === "material_accept",
+  );
+  ok(
+    "W5-DL supported actions all resolve (no PARSE_FAIL)",
+    queue.items
+      .filter((i) => ["equipment_input", "transport_input", "labor_accept", "material_accept", "identity"].includes(i.domain))
+      .every((i) => resolveIkOwnerActionDeepLink(i).ok),
+  );
+  ok(
+    "W5-DL no auto-resolve (F5 still GAP before OI answer)",
+    getTenderPackage(TID)?.dwellings[0]?.f5Gate?.pass !== true,
+  );
+}
+
+// W5-OI — Owner Input persist → notify F5 refresh → f5Gate updates · idempotent
+{
+  clearOwnerRateInputStore();
+  const TID = "t-w5-oi";
+  clearMultiDwellingPackageStore();
+  enableMultiDwellingMode(TID, { expectedDwellingCount: 1 });
+  setExpectedDwellingCount(TID, 1);
+  confirmDwelling({ tenderId: TID, dwellingId: "dw-a", labelPl: "A" });
+  mapDocumentToDwelling({ tenderId: TID, documentId: "doc-a", dwellingId: "dw-a" });
+  const eqLine = baseLine({
+    lineId: "EQ-W5",
+    description: "Rusztowanie elewacyjne",
+    quantity: 2,
+    unit: "dzień",
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+    costIntelligence: { lineKind: "Equipment" },
+  });
+  const hash = computeOfferBoqIdentityPayloadHash([eqLine]);
+  runGatedIdentityPersist({
+    tenderId: TID,
+    plans: [{
+      dwellingId: "dw-a",
+      identityHash: hash,
+      offerBoq: { ...planDoc, tenderId: TID, lines: [eqLine] },
+    }],
+    sessionGate: new Map(),
+  });
+  const q = createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "equipment",
+    dwellingId: "dw-a",
+    lineRef: "EQ-W5",
+    evidenceSummaryPl: "W5 OI",
+    askedByRole: "owner",
+    equipment: { namePl: "Rusztowanie", quantity: 2, unit: "dzień" },
+  });
+  submitOwnerRateAnswer({
+    tenderId: TID,
+    questionId: q.question.questionId,
+    amountPlnNet: 200,
+    unit: "dzień",
+    approvedBy: { userId: "owner", displayName: "Owner" },
+  });
+  const beforeGate = getTenderPackage(TID)?.dwellings.find((d) => d.dwellingId === "dw-a")?.f5Gate;
+  ok("W5-OI f5Gate absent/stale before notify", beforeGate == null || beforeGate.pass !== true);
+  const notify = notifyIkPricingAccepted({
+    bumpPricingCatalogRevision: () => {},
+    bumpChiefRefresh: () => {},
+    tenderId: TID,
+  });
+  ok("W5-OI notify f5PackageMaterialized", notify.f5PackageMaterialized === true);
+  const unit = getTenderPackage(TID)?.dwellings.find((d) => d.dwellingId === "dw-a");
+  ok("W5-OI f5Gate PASS after refresh", unit?.f5Gate?.pass === true);
+  ok("W5-OI subtotals equipmentPln", (unit?.subtotals?.equipmentPln ?? 0) > 0);
+  const refreshKey = buildOwnerInputRefreshKey(TID);
+  const gateAfterFirst = unit?.f5Gate?.pass;
+  materializeIkF5OnPackage(TID, {
+    store: w3MakeGapStore(),
+    nowMs: W3_NOW,
+    ensureOwnerQuestions: false,
+    refreshKey,
+  });
+  ok("W5-OI idempotent refreshKey stable", buildOwnerInputRefreshKey(TID) === refreshKey);
+  ok(
+    "W5-OI idempotent f5Gate unchanged",
+    getTenderPackage(TID)?.dwellings.find((d) => d.dwellingId === "dw-a")?.f5Gate?.pass === gateAfterFirst,
+  );
+}
+
+// W5-FRESHNESS — epoch changes · blockers/queue reflect post-OI state
+{
+  clearOwnerRateInputStore();
+  const TID = "t-w5-fresh";
+  saveWorkCatalogStoreLocal(w3MakeGapStore());
+  w3SetupPersistPackage(TID);
+  w3RunPostIdentityF5Refresh(TID, w3MakeGapStore());
+  const eqLine = baseLine({
+    lineId: "EQ-FRESH",
+    description: "Rusztowanie",
+    quantity: 1,
+    unit: "dzień",
+    matchMethod: "manual",
+    matchedBy: "manual",
+    matchConfidence: "high",
+    costIntelligence: { lineKind: "Equipment" },
+  });
+  const hash = computeOfferBoqIdentityPayloadHash([eqLine]);
+  runGatedIdentityPersist({
+    tenderId: TID,
+    plans: [{
+      dwellingId: "dw-a",
+      identityHash: hash,
+      offerBoq: { ...planDoc, tenderId: TID, lines: [eqLine] },
+    }],
+    sessionGate: new Map(),
+  });
+  createOwnerRateQuestion({
+    tenderId: TID,
+    domain: "equipment",
+    dwellingId: "dw-a",
+    lineRef: "EQ-FRESH",
+    evidenceSummaryPl: "W5 fresh",
+    askedByRole: "owner",
+    equipment: { namePl: "Rusztowanie", quantity: 1, unit: "dzień" },
+  });
+  const opened = listOwnerInputsForTender({ tenderId: TID });
+  const qId = opened[0]?.question?.questionId;
+  ok("W5-FRESHNESS OI question open", Boolean(qId));
+  const keyBefore = buildIkOwnerActionFreshnessKey(TID, 0);
+  const blockersBefore = buildIkPackageBlockerReport(
+    getTenderPackage(TID),
+    w3MakeGapStore(),
+    { nowMs: W3_NOW },
+  );
+  ok("W5-FRESHNESS blockers before OI answer", blockersBefore.blockers.length >= 1);
+  submitOwnerRateAnswer({
+    tenderId: TID,
+    questionId: qId,
+    amountPlnNet: 120,
+    unit: "dzień",
+    approvedBy: { userId: "owner", displayName: "Owner" },
+  });
+  notifyIkPricingAccepted({
+    bumpPricingCatalogRevision: () => {},
+    bumpChiefRefresh: () => {},
+    tenderId: TID,
+  });
+  const keyAfter = buildIkOwnerActionFreshnessKey(TID, 1);
+  ok("W5-FRESHNESS key changes after OI+pcr", keyBefore !== keyAfter);
+  const blockersAfter = buildIkPackageBlockerReport(
+    getTenderPackage(TID),
+    w3MakeGapStore(),
+    { nowMs: W3_NOW },
+  );
+  ok(
+    "W5-FRESHNESS equipment blocker cleared or gate pass",
+    blockersAfter.packageGatePass === true
+      || blockersAfter.blockers.length < blockersBefore.blockers.length,
+  );
+  const queueAfter = buildIkOwnerActionQueue({
+    tenderId: TID,
+    pkg: getTenderPackage(TID),
+    store: w3MakeGapStore(),
+    packageBlockers: blockersAfter,
+  });
+  ok(
+    "W5-FRESHNESS queue fewer OI items after answer",
+    (queueAfter?.items.filter((i) => i.domain === "equipment_input").length ?? 99)
+      < (blockersBefore.blockers.filter((b) => b.blockerCode?.includes("EQUIPMENT")).length || 1),
+  );
+}
+
+console.log(`\nW2+W3+W4+W5 ORCHESTRA IDENTITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
 process.exit(fail === 0 ? 0 : 1);

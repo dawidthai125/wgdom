@@ -35,6 +35,7 @@ import {
 } from "./ik-f5-package-refresh";
 import { buildIkOwnerActionQueue } from "./ik-owner-action-queue";
 import { buildIkPackageBlockerReport } from "./ik-package-blocker-report";
+import { buildIkOwnerActionFreshnessKey } from "./ik-owner-action-freshness";
 import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowledge";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
@@ -61,6 +62,7 @@ export function useIkOrchestra({
   athPreviewEnabled = true,
   chiefSession = null,
   historicalIndex = null,
+  pricingCatalogRevision = 0,
 }: IkOrchestraHostInput): IkOrchestraSnapshot {
   const flags = useMemo(
     () => ({
@@ -279,13 +281,18 @@ export function useIkOrchestra({
 
   const workCatalogStore = useMemo(() => loadWorkCatalogStoreLocal(), [pkgEpoch]);
 
+  const ownerActionFreshnessKey = useMemo(() => {
+    const tenderId = item.id || item.tenderId || "";
+    return buildIkOwnerActionFreshnessKey(tenderId, pricingCatalogRevision);
+  }, [item.id, item.tenderId, pricingCatalogRevision]);
+
   const packageBlockers = useMemo(() => {
     if (!pkg) return null;
     return buildIkPackageBlockerReport(pkg, workCatalogStore, {
       nowMs: Date.now(),
       ensureOwnerQuestions: false,
     });
-  }, [pkg, workCatalogStore, identityPersistOutcome]);
+  }, [pkg, workCatalogStore, identityPersistOutcome, ownerActionFreshnessKey]);
 
   const ownerActionQueue = useMemo(() => {
     const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
@@ -311,6 +318,7 @@ export function useIkOrchestra({
     labor,
     material,
     packageBlockers,
+    ownerActionFreshnessKey,
   ]);
 
   const identityCoverageOps = useMemo(
