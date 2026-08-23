@@ -1,5 +1,6 @@
 /**
- * W1 Orchestra Extraction — parity harness (static + sync engine smoke).
+ * Orchestra parity harness (W1 extraction + W2 identity contract).
+ * Static + sync engine smoke — reflects accepted W2 downstream expert inputs.
  * Run: npx vite-node scripts/test-ik-orchestra-w1-parity.mjs
  */
 import { readFileSync } from "node:fs";
@@ -47,6 +48,7 @@ const engineOrder = engineBody.indexOf("runIkDocumentExpert");
 const knrOrder = engineBody.indexOf("runIkKnrExpert");
 const etap11Order = engineBody.indexOf("computeKnrApplicationResults");
 const sliceDOrder = engineBody.indexOf("applyOwnerKnrMapping");
+const identityPhaseOrder = engineBody.indexOf("runIkIdentityPhase");
 const classOrder = engineBody.indexOf("runIkMasterBoqClassification");
 const identityOrder = engineBody.indexOf("runIkMasterBoqIdentityCoverage");
 const compositeOrder = engineBody.indexOf("runIkCompositeBothHold");
@@ -54,23 +56,42 @@ const p7Order = engineBody.indexOf("runIkP7PositionCostBid");
 const p8Order = engineBody.indexOf("runIkP8RiskDecision");
 
 ok(
-  "Pipeline order Document→KNR→ETAP11→SliceD→Class→Identity→Composite→P7→P8",
+  "Pipeline order Document→KNR→ETAP11→SliceD→IdentityPhase→Class→Coverage→Composite→P7→P8",
   engineOrder < knrOrder
     && knrOrder < etap11Order
     && etap11Order < sliceDOrder
-    && sliceDOrder < classOrder
+    && sliceDOrder < identityPhaseOrder
+    && identityPhaseOrder < classOrder
     && classOrder < identityOrder
     && identityOrder < compositeOrder
     && compositeOrder < p7Order
     && p7Order < p8Order,
 );
 
-// —— Expert inputs ——
-ok("Classification uses knrMapped.expert", /expert:\s*knrMapped\.expert/.test(engineSrc));
-ok("Labor runtime uses expert: report", /expert:\s*opts\.report/.test(runtimeSrc));
-ok("Material runtime uses expert: report", runtimeSrc.includes("runIkMasterBoqMaterialExpert"));
-ok("Composite uses expert: report", /runIkCompositeBothHold\([\s\S]*expert:\s*report/.test(engineSrc));
-ok("P7 uses expert: report", /runIkP7PositionCostBid\([\s\S]*expert:\s*report/.test(engineSrc));
+// —— W2 downstream expert inputs (accepted contract) ——
+ok(
+  "Classification uses postIdentityExpert",
+  /runIkMasterBoqClassification\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc),
+);
+ok("Classification not knrMapped.expert", !/expert:\s*knrMapped\.expert/.test(engineSrc));
+ok("Labor runtime uses expert param", /expert:\s*opts\.expert/.test(runtimeSrc));
+ok("Labor runtime not opts.report", !/expert:\s*opts\.report/.test(runtimeSrc));
+ok("Material runtime uses expert param", /expert:\s*opts\.expert/.test(runtimeSrc));
+ok("Hook P5 uses postIdentityExpert", /expert:\s*postIdentityExpert/.test(hookSrc));
+ok("Hook P6 uses postIdentityExpert", /executeP6MaterialExpert[\s\S]*expert:\s*postIdentityExpert/.test(hookSrc));
+ok(
+  "Composite uses postIdentityExpert",
+  /runIkCompositeBothHold\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc),
+);
+ok(
+  "P7 uses postIdentityExpert",
+  /runIkP7PositionCostBid\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc),
+);
+ok("P7 not structural report", !/runIkP7PositionCostBid\([\s\S]*expert:\s*report/.test(engineSrc));
+
+// —— W2 persistence safety (not in sync useMemo) ——
+ok("Engine no attachOfferBoqToDwelling", !engineBody.includes("attachOfferBoqToDwelling"));
+ok("Hook gated persist useEffect", hookSrc.includes("runGatedIdentityPersist"));
 
 // —— P2 / latch READ-ONLY ——
 ok("Hook imports latch unchanged", hookSrc.includes("ik-entry-p2-ingest-latch"));
@@ -141,10 +162,12 @@ const snap = computeIkOrchestraSyncSnapshot({
 
 ok("Sync snapshot has report", snap.report?.masterBoq != null);
 ok("Sync snapshot has knr", snap.knr?.status != null);
+ok("Sync snapshot postIdentityExpert", snap.postIdentityExpert?.masterBoq != null);
+ok("Sync snapshot identityContext", snap.identityContext != null);
 ok("Sync snapshot composite null when P5/P6 off", snap.composite === null);
 ok("Sync snapshot P7 null when flag off", snap.positionCostBid === null);
 ok("Sync snapshot P8 null when flag off", snap.riskDecision === null);
 ok("KNR knowledge diag skipped when not ready", snap.knrKnowledgeDiag.status === "skipped" || snap.knrKnowledgeDiag.status === "idle");
 
-console.log(`\nW1 ORCHESTRA PARITY: ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
+console.log(`\nORCHESTRA PARITY (W1+W2): ${fail === 0 ? "PASS" : "FAIL"} (${pass} pass, ${fail} fail)`);
 process.exit(fail === 0 ? 0 : 1);

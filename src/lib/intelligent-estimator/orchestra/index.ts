@@ -14,6 +14,23 @@ export type {
 } from "./orchestra-types";
 
 export type {
+  IkIdentityContext,
+  OwnerManualIdentityOverride,
+} from "./ik-identity-phase";
+
+export type { IkIdentityPersistOutcome } from "./ik-identity-persist-glue";
+export { runIkIdentityPhase } from "./ik-identity-phase";
+export {
+  computeOfferBoqIdentityPayloadHash,
+  runGatedIdentityPersist,
+} from "./ik-identity-persist-glue";
+export {
+  hasCompleteTrustedIdentityTuple,
+  preserveOfferBoqLineIfTrusted,
+  TRUSTED_IDENTITY_MATCH_METHODS,
+} from "../ik-identity-trusted-preserve";
+
+export type {
   ChiefAdvisoryPort,
   IngestMergePort,
   KnrKnowledgePort,

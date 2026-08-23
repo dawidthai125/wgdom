@@ -37,6 +37,7 @@ import {
 } from "@/lib/catalog-coverage/alias-pack-wave2";
 import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negation-guard";
 import { isInvoicePurchaseCatalogWorkId } from "@/lib/price-intelligence/invoice-purchase-host";
+import { preserveOfferBoqLineIfTrusted } from "@/lib/intelligent-estimator/ik-identity-trusted-preserve";
 
 const CANDIDATE_LIMIT = 4;
 
@@ -353,6 +354,11 @@ export function mapOfferBoqLine(
       normalizedDescription: null,
       aliasRuleId: null,
     };
+  }
+
+  const trustedPreserved = preserveOfferBoqLineIfTrusted(prepared.line);
+  if (trustedPreserved) {
+    return trustedPreserved;
   }
 
   const norm = normalizeOfferBoqDescription(prepared.line.description);

@@ -29,6 +29,10 @@ import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowledge";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
+  runGatedIdentityPersist,
+  type IkIdentityPersistSessionGate,
+} from "./ik-identity-persist-glue";
+import {
   buildKl3KnowledgeKey,
   buildLaborAttemptKey,
   buildMaterialAttemptKey,
@@ -70,11 +74,21 @@ export function useIkOrchestra({
     p6ResearchOn,
   } = flags;
 
-  const pkg = useMemo(() => getTenderPackage(item.id), [item.id]);
+  const [pkgEpoch, setPkgEpoch] = useState(0);
+  const pkg = useMemo(
+    () => getTenderPackage(item.id),
+    [item.id, pkgEpoch],
+  );
   const [ingest, setIngest] = useState<IkNg02IngestBridgeResult | null>(null);
   const [bridgeBusy, setBridgeBusy] = useState(false);
   const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
   const [material, setMaterial] = useState<IkMaterialExpertReport | null>(null);
+  const [identityPersistOutcome, setIdentityPersistOutcome] = useState<
+    import("./ik-identity-persist-glue").IkIdentityPersistOutcome | null
+  >(null);
+
+  const persistSessionGateRef = useRef<IkIdentityPersistSessionGate>(new Map());
+  const persistAttemptKeyRef = useRef<string | null>(null);
 
   const p2RunGenerationRef = useRef(0);
   const p2BusyOwnerGenRef = useRef<number | null>(null);
@@ -243,7 +257,37 @@ export function useIkOrchestra({
     ],
   );
 
-  const { report, knr } = fullSnapshot;
+  const { report, knr, postIdentityExpert, identityContext } = fullSnapshot;
+
+  const identityPersistPlanKey = useMemo(() => {
+    if (!identityContext?.persistPlans?.length) return "";
+    return identityContext.persistPlans
+      .map((p) => `${p.dwellingId}:${p.identityHash}`)
+      .sort()
+      .join("|");
+  }, [identityContext]);
+
+  // W2 — gated identity persist (NEVER inside sync useMemo).
+  useEffect(() => {
+    if (!identityPersistPlanKey || !identityContext?.persistPlans?.length) {
+      return;
+    }
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId) return;
+    if (persistAttemptKeyRef.current === identityPersistPlanKey) return;
+    persistAttemptKeyRef.current = identityPersistPlanKey;
+
+    const outcome = runGatedIdentityPersist({
+      tenderId,
+      package: getTenderPackage(tenderId),
+      plans: identityContext.persistPlans,
+      sessionGate: persistSessionGateRef.current,
+    });
+    setIdentityPersistOutcome(outcome);
+    if (outcome.writes.length > 0) {
+      setPkgEpoch((n) => n + 1);
+    }
+  }, [identityPersistPlanKey, identityContext, effectiveItem]);
 
   // KL-3 HOST — lookup-only knowledge side-channel (async · does not block P3/P5/P6).
   useEffect(() => {
@@ -286,12 +330,12 @@ export function useIkOrchestra({
       return;
     }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !report.masterBoq.readyForExperts) {
+    if (!key || !postIdentityExpert.masterBoq.readyForExperts) {
       laborSettledRef.current = false;
       setLabor(null);
       return;
     }
-    const laborKey = buildLaborAttemptKey(key, report, p5ResearchOn);
+    const laborKey = buildLaborAttemptKey(key, postIdentityExpert, p5ResearchOn);
     if (laborAttemptedRef.current === laborKey) return;
     laborSettledRef.current = false;
     laborAttemptedRef.current = laborKey;
@@ -299,7 +343,7 @@ export function useIkOrchestra({
     void executeP5LaborExpert({
       effectiveItem,
       pkg,
-      report,
+      expert: postIdentityExpert,
       p5ResearchOn,
       isCancelled: () => cancelled,
       setLabor,
@@ -311,7 +355,7 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, report, p5LaborOn, p5ResearchOn]);
+  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn]);
 
   // P6 Material E2E
   useEffect(() => {
@@ -320,19 +364,19 @@ export function useIkOrchestra({
       return;
     }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !report.masterBoq.readyForExperts) {
+    if (!key || !postIdentityExpert.masterBoq.readyForExperts) {
       setMaterial(null);
       return;
     }
     if (p5LaborOn && laborSettledRef.current !== true) return;
-    const materialKey = buildMaterialAttemptKey(key, report, p6ResearchOn);
+    const materialKey = buildMaterialAttemptKey(key, postIdentityExpert, p6ResearchOn);
     if (materialAttemptedRef.current === materialKey) return;
     materialAttemptedRef.current = materialKey;
     let cancelled = false;
     void executeP6MaterialExpert({
       effectiveItem,
       pkg,
-      report,
+      expert: postIdentityExpert,
       p6ResearchOn,
       isCancelled: () => cancelled,
       setMaterial,
@@ -340,7 +384,7 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, report, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
+  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
 
   return {
     effectiveItem,
@@ -351,5 +395,6 @@ export function useIkOrchestra({
     material,
     flags,
     ...fullSnapshot,
+    identityPersistOutcome,
   };
 }

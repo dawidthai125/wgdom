@@ -1,6 +1,6 @@
 /**
- * W1 Orchestra — sync pipeline (extraction of IkEntryHost useMemo chain).
- * Order: Document → KNR → KL-3 diag / ETAP 11 → Slice D → Classification → Identity → Composite → P7 → P8.
+ * W1/W2 Orchestra — sync pipeline.
+ * W2 order: Document → KNR → KL-3 → Slice D → Identity → Classification → IdentityCoverage → Composite → P7 → P8.
  */
 
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
@@ -11,6 +11,7 @@ import { runIkMasterBoqIdentityCoverage } from "@/lib/intelligent-estimator/ik-i
 import { runIkCompositeBothHold } from "@/lib/intelligent-estimator/ik-composite-both-hold";
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
+import { runIkIdentityPhase } from "@/lib/intelligent-estimator/orchestra/ik-identity-phase";
 import {
   runKnrHostApplicationDiagBatch,
   summarizeKnrHostAppDiag,
@@ -199,27 +200,37 @@ export function computeIkOrchestraSyncSnapshot(
 
   const knrMapped = applyOwnerKnrMapping({ documentExpert: report, knr });
 
+  const identityPhase = runIkIdentityPhase({
+    structuralReport: report,
+    sliceDExpert: knrMapped.expert,
+    item: effectiveItem,
+    package: pkg,
+    manualOverrides: null,
+  });
+  const postIdentityExpert = identityPhase.postIdentityExpert;
+  const identityContext = identityPhase.context;
+
   const classification = runIkMasterBoqClassification({
     item: effectiveItem,
     package: pkg,
-    expert: knrMapped.expert,
+    expert: postIdentityExpert,
   });
 
   let identityCoverage = null;
-  if (identityCoverageOn && report.masterBoq.readyForExperts) {
+  if (identityCoverageOn && postIdentityExpert.masterBoq.readyForExperts) {
     identityCoverage = runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
       package: pkg,
-      expert: report,
+      expert: postIdentityExpert,
     });
   }
 
   let composite = null;
-  if (p5LaborOn && p6MaterialOn && report.masterBoq.readyForExperts) {
+  if (p5LaborOn && p6MaterialOn && postIdentityExpert.masterBoq.readyForExperts) {
     composite = runIkCompositeBothHold({
       item: effectiveItem,
       package: pkg,
-      expert: report,
+      expert: postIdentityExpert,
       p5LaborActive: true,
       p6MaterialActive: true,
       executeLaborResearch: p5ResearchOn === true,
@@ -230,11 +241,12 @@ export function computeIkOrchestraSyncSnapshot(
   let positionCostBid = null;
   if (
     p7F5On
-    && (report.masterBoq.readyForExperts || (report.offerBoq?.lines?.length ?? 0) > 0)
+    && (postIdentityExpert.masterBoq.readyForExperts
+      || (postIdentityExpert.offerBoq?.lines?.length ?? 0) > 0)
   ) {
     positionCostBid = runIkP7PositionCostBid({
       item: effectiveItem,
-      expert: report,
+      expert: postIdentityExpert,
       package: pkg,
     });
   }
@@ -257,6 +269,9 @@ export function computeIkOrchestraSyncSnapshot(
     knrApplicationResults,
     knrAppDiag,
     knrMapped,
+    identityContext,
+    postIdentityExpert,
+    identityPersistOutcome: null,
     classification,
     identityCoverage,
     composite,

@@ -14,6 +14,8 @@ import type { IkCompositeBothHoldReport } from "@/lib/intelligent-estimator/ik-c
 import type { IkDocumentExpertReport } from "@/lib/intelligent-estimator/ik-document-expert";
 import type { IkKnrExpertReport } from "@/lib/intelligent-estimator/ik-knr-expert";
 import type { IkClassificationReport } from "@/lib/intelligent-estimator/ik-classification";
+import type { IkIdentityContext } from "./ik-identity-phase";
+import type { IkIdentityPersistOutcome } from "./ik-identity-persist-glue";
 import type {
   KnrKnowledgeEnvelope,
   KnrHostApplicationResult,
@@ -81,6 +83,11 @@ export type IkOrchestraSyncSnapshot = {
   knrMapped: ReturnType<
     typeof import("@/lib/intelligent-estimator/ik-knr-owner-mapping").applyOwnerKnrMapping
   >;
+  /** W2 — PHASE 3 identity pipeline output (pure; persist in useEffect). */
+  identityContext: IkIdentityContext | null;
+  postIdentityExpert: IkDocumentExpertReport;
+  /** Last gated persist outcome (updated from useEffect, not sync useMemo). */
+  identityPersistOutcome: IkIdentityPersistOutcome | null;
   classification: IkClassificationReport;
   identityCoverage: IkIdentityCoverageReport | null;
   composite: IkCompositeBothHoldReport | null;

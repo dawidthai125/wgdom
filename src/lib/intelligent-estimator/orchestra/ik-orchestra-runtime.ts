@@ -113,7 +113,7 @@ export function buildKl3KnowledgeKey(
 export async function executeP5LaborExpert(opts: {
   effectiveItem: TenderPipelineItem;
   pkg: TenderPackage | null;
-  report: IkDocumentExpertReport;
+  expert: IkDocumentExpertReport;
   p5ResearchOn: boolean;
   isCancelled: () => boolean;
   setLabor: (value: IkLaborExpertReport | null) => void;
@@ -123,7 +123,7 @@ export async function executeP5LaborExpert(opts: {
     const result = await runIkMasterBoqLaborExpert({
       item: opts.effectiveItem,
       package: opts.pkg,
-      expert: opts.report,
+      expert: opts.expert,
       executeResearch: opts.p5ResearchOn === true,
       enableInternalFirst: true,
     });
@@ -138,7 +138,7 @@ export async function executeP5LaborExpert(opts: {
 export async function executeP6MaterialExpert(opts: {
   effectiveItem: TenderPipelineItem;
   pkg: TenderPackage | null;
-  report: IkDocumentExpertReport;
+  expert: IkDocumentExpertReport;
   p6ResearchOn: boolean;
   isCancelled: () => boolean;
   setMaterial: (value: IkMaterialExpertReport | null) => void;
@@ -147,7 +147,7 @@ export async function executeP6MaterialExpert(opts: {
     const result = await runIkMasterBoqMaterialExpert({
       item: opts.effectiveItem,
       package: opts.pkg,
-      expert: opts.report,
+      expert: opts.expert,
       executeResearch: opts.p6ResearchOn === true,
     });
     if (!opts.isCancelled()) opts.setMaterial(result);
@@ -158,18 +158,18 @@ export async function executeP6MaterialExpert(opts: {
 
 export function buildLaborAttemptKey(
   key: string,
-  report: IkDocumentExpertReport,
+  expert: IkDocumentExpertReport,
   p5ResearchOn: boolean,
 ): string {
-  return `${key}|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p5ResearchOn ? "B" : "A"}`;
+  return `${key}|${expert.masterBoq.lineCount}|${expert.masterBoqLines.length}|${p5ResearchOn ? "B" : "A"}`;
 }
 
 export function buildMaterialAttemptKey(
   key: string,
-  report: IkDocumentExpertReport,
+  expert: IkDocumentExpertReport,
   p6ResearchOn: boolean,
 ): string {
-  return `${key}|mat|${report.masterBoq.lineCount}|${report.masterBoqLines.length}|${p6ResearchOn ? "B" : "A"}`;
+  return `${key}|mat|${expert.masterBoq.lineCount}|${expert.masterBoqLines.length}|${p6ResearchOn ? "B" : "A"}`;
 }
 
 export { needsIkNg02Ingest };
