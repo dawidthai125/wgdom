@@ -562,6 +562,16 @@ export {
 } from "@/lib/work-catalog/work-rate-identity-mapping";
 
 export {
+  IK_OWNER_CREATE_A01_LP5_WORK_ID,
+  IK_OWNER_A01_LP5_OPS_EXPECTED,
+  IK_OWNER_A01_LP5_OPS_REGIONS,
+  applyA01Lp5CatalogSeed,
+  assertA01Lp5NoConflictOrStop,
+  buildIkOwnerCreateA01Lp5CatalogWork,
+  workMatchesOwnerApprovedA01Lp5Spec,
+} from "@/lib/work-catalog/ik-owner-create-a01-lp5-ops";
+
+export {
   classifyWorkRateEvidenceScopeTag,
   isWorkRateEvidenceScopeAllowed,
   listAllowedWorkRateEvidenceScopeTags,
