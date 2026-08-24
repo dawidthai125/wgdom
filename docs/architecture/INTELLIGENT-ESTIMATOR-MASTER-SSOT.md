@@ -2,13 +2,13 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta**
-> **Data:** 2026-08-22
+> **Data:** 2026-08-24 (Master update) · prior body 2026-08-22
 > **Mode:** DOCUMENTATION ONLY · **NO REBUILD**
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
-> **Live tip (mierzone 2026-08-22 · tip sync):** UI **2.66.113** · deploy **`63cb134`** (`63cb13453831829acac98f07815b8e58244bf7a9` · `63cb134` w `version.json`) · **IK-KNR-WC P3.1:** **CLOSED / PRODUCTION VERIFIED** @ **`5984330a`** · **P3 cache harness:** **CLOSED / PRODUCTION VERIFIED** @ **`63cb1345`** (test-only) · Historical EC reveal **PRODUCTION VERIFIED** (impl/PV milestone **`b31169be`** · ancestor · ≠ live tip)
-> **Snapshot baseline (historyczny wiersz labor):** UI **2.66.59** / **`9bcc558`** — Tablica OUR RATE Accept **VERIFIED** (data GO, nie osobny tip UI)
-> **Sesja Autonomy 2026-08-18:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — A08-P0/P1/P2 CLOSED · **nie** zastępuje tego kontraktu
+> **Live tip (2026-08-24 closeout):** UI **2.66.113** · commit **`8ccb3e9`** (`8ccb3e9b` · A09-PACKAGE-S1) · **brak bumpu UI = EXPECTED** (docs-only / catalog slice bez changelog)
+> **Owner Map slices (latest):** A01-S1 **`3e4adfff`** · A01-LP5 identity **`f012d39a`** · A01-LP5 OPS **`cf802cbd`** · **A09-PACKAGE-S1 **`8ccb3e9b`** — **PRODUCTION VERIFIED GREEN**
+> **Sesja continuity:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
 
 ```text
 ════════════════════════════════════════════════════════
@@ -95,7 +95,8 @@ Nie drugi chatbot. Nie drugi silnik Bid. Nie drugi Catalog.
 |----------|------|
 | **TEN PLIK** | ★★ Master kontrakt IK — **najwyższy kontrakt** |
 | [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) | ★★ **AI Owner Authority** (ChatGPT Level A/B/C) · **pointer only** · nie zastępuje Master SSOT · Level A execute **NOT AUTHORIZED** · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) |
-| [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) | ★★ Sesja Autonomy 05–08 · A08-P2 **CLOSED** · **nie** drugi kontrakt |
+| [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) | ★★ **Latest session closeout** · A01 + A09 · cold-start · **nie** drugi kontrakt |
+| [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) | Sesja Autonomy 05–08 · A08-P2 **CLOSED** · historyczny |
 | [`INTELLIGENT-ESTIMATOR-ARCHITECTURE.md`](./INTELLIGENT-ESTIMATOR-ARCHITECTURE.md) | Warstwy + ścieżki plików |
 | [`INTELLIGENT-ESTIMATOR-DATA-FLOW.md`](./INTELLIGENT-ESTIMATOR-DATA-FLOW.md) | LABOR / MATERIAL / Classification flows |
 | [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md) | Component → file → status → DO NOT DUPLICATE |
@@ -213,9 +214,32 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **KNR Slice A** | catalogBasis evidence · **PRODUCTION VERIFIED** (tip historia `93eb41be`) |
 | **Historical Host Wiring** | `64f38479` · **PRODUCTION EXISTING** |
 | **Historical EC reveal** | `b31169be` · **PRODUCTION VERIFIED** (2026-08-21) |
+| **A01-S1 identity (LP4)** | **`3e4adfff`** · **FROZEN GREEN** |
+| **A01-LP5 identity (LP5/LP10)** | **`f012d39a`** · **FROZEN GREEN** |
+| **A01-LP5 catalog OPS** | **`cf802cbd`** · **PRODUCTION VERIFIED** |
+| **A09-PACKAGE-S1 (G177)** | **`8ccb3e9b`** · **PRODUCTION VERIFIED GREEN** · **NOT identity** |
 | Tip produkcji | **czytaj 09** + live `version.json` (**nie** hardcoduj tu na stałe bez aktualizacji) |
 
-### 8.1 LIVE evidence — Historical EC (konkretny tender, nie globalny benchmark)
+### 8.1 Owner Map — identity + PACKAGE (latest production)
+
+**Identity registry (`WORK_RATE_IDENTITY_MAPPINGS`):** **4 Owner rows** — Wave-1 ×2 + A01-S1 + A01-LP5.
+
+| Slice | workId / plane | Commit | Status |
+|-------|----------------|--------|--------|
+| **A01-S1** | LP4 → `cc-w2-oczyszczenie-podloza` (LABOR identity) | `3e4adfff` | **FROZEN GREEN** |
+| **A01-LP5 identity** | LP5/LP10 → `cc-w2-impregnacja-biobojcza-m2` | `f012d39a` | **FROZEN GREEN** |
+| **A01-LP5 catalog** | catalog seed OPS | `cf802cbd` | **PRODUCTION VERIFIED** |
+| **A09 PACKAGE** | `cc-w2-scianki-dzialowe-gr-pakiet-m2` · costSplit 0.5/0.5 · **NO identity row** | `8ccb3e9b` | **PRODUCTION VERIFIED** · rate **PENDING_OWNER_INPUT** |
+
+**Owner policy (FROZEN):**
+
+- LP4 → oczyszczenie = **HIT** · LP5 → oczyszczenie = **MISS** · zmywanie = **MISS**
+- LP5/LP10 → impregnacja biobójcza = **HIT** · gruntowanie = **MISS**
+- A09 G177 = **PACKAGE catalog** · **NOT** LABOR host `p2b-scianka-gk-na-stelazu-m2` · **NOT** rate **118** · **NOT** G177 alias in identity registry
+
+Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md)
+
+### 8.2 LIVE evidence — Historical EC (konkretny tender, nie globalny benchmark)
 
 | Pole | Wartość |
 |------|---------|
@@ -244,10 +268,22 @@ Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.
 
 **Historical EC reveal slice:** **CLOSED / PRODUCTION VERIFIED** (`b31169be`) — **nie** otwieraj kolejnego gate bez nowego Owner GO.
 
-Kandydaci poza tym slice: residual C1–C6 · PACKAGE layer (COMPOUND HOLD freeze) · labor unit proof (Podejście) · KL corpus / Owner Map ops.
+Kandydaci poza tym slice (post-A09):
+
+| # | Gap | Status |
+|---|-----|--------|
+| 1 | **A09 Owner-priced rate** | **PENDING_OWNER_INPUT** — osobne GO |
+| 2 | KNR full catalog / KL expansion | **PARTIAL / GAP** |
+| 3 | KNR FACT → proposed Work → Owner Accept → Catalog → Slice D | **TARGET / GAP** — **no GO** |
+| 4 | A03 unit resolution | **HOLD** |
+| 5 | A07 evidence / CREATE | **HOLD** |
+| 6 | A01-S2 zmywanie | **HOLD** |
+| 7 | A02/A04/A05/A06/A08/A10 | **HOLD** — insufficient evidence |
+| 8 | residual C1–C6 · labor unit proof · Owner Map bulk | per audit |
+
 **NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10.
 
-Sesja Autonomy: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md).
+Latest continuity: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md).
 
 ---
 
@@ -603,32 +639,67 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW
 
 ---
 
-## 17. COLD START — FIRST INSTRUCTION FOR ANY AI
+## 17. NEW AGENT COLD START (obowiązkowe)
+
+Nowy agent (Cursor / ChatGPT) **MUSI** wykonać w tej kolejności:
 
 ```text
-Przeczytaj TEN Master SSOT przed jakąkolwiek zmianą.
-
-Nie projektuj od zera Inteligentnego Kosztorysanta.
-IK już istnieje jako zestaw istniejących modułów WGDOM.
-
-Najpierw odtwórz istniejące drzewo (§10–§12).
-Tip produkcji = docs/AI/09_PRODUCTION_BASELINE.md + live version.json.
-
-Nie twórz:
-  - drugiego TenderModule / TenderDetail / IkEntryHost
-  - drugiego Chief / orchestratora / KNR systemu / Historical systemu
-  - drugiego Work Catalog / Price Memory / Evidence / OUR RATE / Accept
-  - drugiego research engine / Position Cost / Bid / PDF engine
-  - MaterialCatalogV2 / PriceMemoryV2 / LaborCatalogV2
-
-Jeżeli czegoś nie znajdujesz: SEARCH. Nie CREATE.
-
-Jeżeli uważasz, że trzeba zmienić istniejący system:
-  AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO.
-
-Nigdy nie implementuj przed Owner GO.
-Historical authority = false, dopóki Owner GO nie udowodni inaczej.
-Evidence ≠ OUR RATE. Research ≠ Accept. FAMILY ≠ EXACT. CONFLICT = FAIL CLOSED.
+1. Przeczytaj TEN Master SSOT (całość)
+2. Przeczytaj IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md (latest)
+3. git status — rozpoznaj pre-existing WIP · NIE stage WIP
+4. git log -10 — verify HEAD vs origin/main
+5. curl live version.json — tip commit + UI version
+6. Odtwórz drzewo IK (§10–§12) — CURRENT vs TARGET vs GAP
+7. Zlokalizuj SSOT: Work Catalog · Price Memory · Evidence · identity (4 rows) · KNR KL
+8. Zweryfikuj FROZEN: A01-S1 · A01-LP5 · A09 PACKAGE (NOT identity)
+9. Pierwsza propozycja = AUDIT ONLY · ZERO CODE · ZERO KV --execute
 ```
 
-**STOP.** Kolejny gate tylko po nowym Owner GO.
+**KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA.**
+
+Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + live `version.json` (HEAD **`8ccb3e9b`** @ closeout 2026-08-24).
+
+**Nie twórz:** drugiego TenderModule · IkEntryHost · Chief · KNR system · Work Catalog · Price Memory · F5 · Bid · chat store · LLM per expert.
+
+**Jeżeli brakuje funkcji:** grep → trace caller → trace SSOT → **REUSE** → dopiero EXTEND po Owner GO.
+
+Historical `authority=false` · Evidence ≠ OUR RATE · Research ≠ Accept · FAMILY ≠ EXACT · CONFLICT = FAIL CLOSED.
+
+---
+
+## 18. KNR → Work Catalog bridge (TARGET / GAP)
+
+```text
+CURRENT:
+  KNR evidence → KL lookup → Slice D requires EXISTING catalogWorkId
+
+GAP (nie implementować bez Owner GO):
+  KNR FACT → PROPOSED CatalogWork DTO → Owner Accept → Work Catalog
+           → Owner KNR Mapping (Slice D) → Labor Expert → OUR RATE → F5
+```
+
+KL **nie** może stać się drugim pricing engine. Slice D **nie** auto-mapuje bez Owner.
+
+---
+
+## 19. Canonical team contract (nie usuwać)
+
+> **INTELIGENTNY KOSZTORYSANT NIE JEST ZBIorem NIEZALEŻNYCH MODUŁÓW. TO JEDEN ZESPÓŁ EKSPERTÓW DZIAŁAJĄCY NAD WSPÓLNYM CASE PRZETARGOWYM, WYKORZYSTUJĄCY ISTNIEJĄCE SSOT WGDOM. CHIEF KOORDYNUJE. IKENTRYHOST ORKIESTRUJE. EKSPERCI DOMENOWI WYKONUJĄ SWOJE ZADANIA. KNR DOSTARCZA KNOWLEDGE/EVIDENCE. LABOR DOSTARCZA OUR RATE. MATERIAL DOSTARCZA PRICE MEMORY/SELL. COMPOSITE ŁĄCZY R+M. F5 LICZY POSITION COST. P7 BUDUJE WARSTWĘ BID. P8 OCENIA RYZYKO. OWNER ZACHOWUJE AUTHORITY. EXPERT CONVERSATION POKAZUJE PRAWDZIWY STAN PIPELINE. BID/PDF POZOSTAJE W ISTNIEJĄCYM STACKU. NIE BUDUJEMY TEGO OD NOWA. INTEGRUJEMY TO W JEDEN SPÓJNY SYSTEM.**
+
+---
+
+## 20. Status matrix (Owner Map + plane)
+
+| Element | Location | Status | Notes |
+|---------|----------|--------|-------|
+| Identity mapping | `work-rate-identity-mapping.ts` | **CURRENT** | **4** Owner rows · LABOR only |
+| A01-S1 | LP4 → oczyszczenie | **FROZEN GREEN** | `3e4adfff` |
+| A01-LP5 | LP5/LP10 → impregnacja | **FROZEN GREEN** | `f012d39a` + OPS `cf802cbd` |
+| A09 PACKAGE | `cc-w2-scianki-dzialowe-gr-pakiet-m2` | **PRODUCTION VERIFIED** | `8ccb3e9b` · **NOT identity** · rate **PENDING** |
+| Package plane | `costSplit` on CatalogWork | **CURRENT** | classify ≥0.25/0.25 → PACKAGE |
+| G177 alias | — | **NONE** | EXPECTED |
+| LABOR host ban | `p2b-scianka-gk-na-stelazu-m2` | **UNTOUCHED** | accept=false · no 118 |
+
+Pełna tabela drzewa: §10–§12 + [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §4.
+
+**STOP.** Kolejny gate tylko po nowym Owner GO + AUDIT.
