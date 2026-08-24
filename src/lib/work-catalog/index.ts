@@ -635,6 +635,22 @@ export {
 } from "@/lib/work-catalog/ik-owner-create-a01-our-rate-ops";
 
 export {
+  IK_OWNER_A01_COMMERCIAL_MARGIN_FROZEN_COLLATERAL,
+  IK_OWNER_A01_COMMERCIAL_MARGIN_OPS_REGIONS,
+  IK_OWNER_A01_COMMERCIAL_MARGIN_TARGETS,
+  applyA01CommercialMarginSeed,
+  marginNeedsPatch,
+  parseA01CommercialMarginCliArgs,
+  probeA01CommercialMarginPerTarget,
+  validateCommercialMarginPct,
+  type A01CommercialMarginInput,
+  type A01CommercialMarginKey,
+  type A01CommercialMarginRegionProbe,
+  type A01CommercialMarginTargetSpec,
+  type ApplyA01CommercialMarginSeedResult,
+} from "@/lib/work-catalog/ik-owner-create-a01-commercial-margin-ops";
+
+export {
   IK_OWNER_A09_PACKAGE_OPS_EXPECTED,
   IK_OWNER_A09_PACKAGE_OPS_REGIONS,
   IK_OWNER_A09_REJECTED_LABOR_HOST_ID,
