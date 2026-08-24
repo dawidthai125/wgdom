@@ -572,6 +572,19 @@ export {
 } from "@/lib/work-catalog/ik-owner-create-a01-lp5-ops";
 
 export {
+  IK_OWNER_A09_PACKAGE_OPS_EXPECTED,
+  IK_OWNER_A09_PACKAGE_OPS_REGIONS,
+  IK_OWNER_A09_REJECTED_LABOR_HOST_ID,
+  IK_OWNER_CREATE_A09_G177_VERBATIM_BOQ,
+  IK_OWNER_CREATE_A09_PACKAGE_WORK_ID,
+  applyA09PackageCatalogSeed,
+  assertA09LaborHostUntouched,
+  assertA09PackageNoConflictOrStop,
+  buildIkOwnerCreateA09PackageCatalogWork,
+  workMatchesOwnerApprovedA09PackageSpec,
+} from "@/lib/work-catalog/ik-owner-create-a09-package-ops";
+
+export {
   classifyWorkRateEvidenceScopeTag,
   isWorkRateEvidenceScopeAllowed,
   listAllowedWorkRateEvidenceScopeTags,
