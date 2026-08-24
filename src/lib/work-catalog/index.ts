@@ -621,6 +621,20 @@ export {
 } from "@/lib/work-catalog/ik-owner-create-a01-lp5-quotes-ops";
 
 export {
+  IK_OWNER_A01_OUR_RATE_OPS_EXPECTED,
+  IK_OWNER_A01_OUR_RATE_OPS_REGIONS,
+  IK_OWNER_A01_OUR_RATE_TARGETS,
+  applyA01OurRateSeed,
+  assertA01OurRateTargetsPresentOrStop,
+  probeA01OurRatePerTarget,
+  probeA01OurRateRegion,
+  stableMarketQuotesJson,
+  workHasExpectedA01OurRate,
+  type A01OurRateRegionStatus,
+  type A01OurRateTargetSpec,
+} from "@/lib/work-catalog/ik-owner-create-a01-our-rate-ops";
+
+export {
   IK_OWNER_A09_PACKAGE_OPS_EXPECTED,
   IK_OWNER_A09_PACKAGE_OPS_REGIONS,
   IK_OWNER_A09_REJECTED_LABOR_HOST_ID,

@@ -32,16 +32,20 @@ for (const [id, plane] of Object.entries(ESTIMATOR_OWNER_CLASSIFICATION_MAP)) {
 }
 
 ok(
-  "counts frozen 30/24/5/30",
-  ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.LABOR === 30 &&
+  "counts frozen 31/24/5/30",
+  ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.LABOR === 31 &&
     ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.MATERIAL === 24 &&
     ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.COMPOUND === 5 &&
     ESTIMATOR_OWNER_CLASSIFICATION_COUNTS.UNKNOWN === 30 &&
-    Object.keys(ESTIMATOR_OWNER_CLASSIFICATION_MAP).length === 89,
+    Object.keys(ESTIMATOR_OWNER_CLASSIFICATION_MAP).length === 90,
   ESTIMATOR_OWNER_CLASSIFICATION_COUNTS,
 );
 
-ok("map LABOR count", byPlane.LABOR.length === 30, byPlane.LABOR.length);
+ok("map LABOR count", byPlane.LABOR.length === 31, byPlane.LABOR.length);
+ok(
+  "map impregnacja LABOR",
+  ESTIMATOR_OWNER_CLASSIFICATION_MAP["cc-w2-impregnacja-biobojcza-m2"] === "LABOR",
+);
 ok("map MATERIAL count", byPlane.MATERIAL.length === 24, byPlane.MATERIAL.length);
 ok("map COMPOUND count", byPlane.COMPOUND.length === 5, byPlane.COMPOUND.length);
 ok("map UNKNOWN count", byPlane.UNKNOWN.length === 30, byPlane.UNKNOWN.length);
@@ -182,6 +186,10 @@ ok(
 ok(
   "19b Owner LABOR seed (mocowanie) = LABOR",
   classifyEstimatorPricingPlane({ workId: "cc-w2-mocowanie-aparatow" }).plane === "LABOR",
+);
+ok(
+  "19c Owner LABOR seed (impregnacja A01-S3) = LABOR",
+  classifyEstimatorPricingPlane({ workId: "cc-w2-impregnacja-biobojcza-m2" }).plane === "LABOR",
 );
 ok(
   "20 ambiguous / missing → UNKNOWN",
