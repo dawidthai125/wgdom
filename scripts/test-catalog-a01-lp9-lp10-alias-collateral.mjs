@@ -1,6 +1,10 @@
 /**
- * IK A01 — LP9/LP10 alias collateral fix verification (pure / local).
+ * IK A01 — LP9/LP10 alias collateral verification (fixture + prod read-only).
  * npx vite-node scripts/test-catalog-a01-lp9-lp10-alias-collateral.mjs
+ *
+ * Contracts:
+ * - IN-MEMORY FIXTURE (both quoted / pre-seed impregnacja): regression coverage
+ * - CURRENT PRODUCTION POST-SEED: read-only batch-get against prod KV
  */
 import { loadEnv } from "vite";
 import {
@@ -88,7 +92,37 @@ function fixtureWorksBothQuoted() {
   return [mk(OCZ, "Oczyszczenie / zmywanie podłoża", 18), mk(IMP, "Impregnacja biobójcza ręczna", 22)];
 }
 
+/** PRE-SEED FIXTURE: LP9 quoted, impregnacja work present but without useful quotes. */
+function fixtureWorksLp9QuotedImpUnquoted() {
+  const mk = (id, namePl, price, withQuotes) => ({
+    id,
+    namePl,
+    unit: "m2",
+    active: true,
+    tradeId: "PRZYGOTOWANIE",
+    keywords: [],
+    companyPricePln: price,
+    ...(withQuotes
+      ? {
+          marketQuotes: {
+            wgdom: {
+              wroclaw: { price, confidence: 0.92, origin: "wgdom", updatedAt: "2026-08-24T00:00:00.000Z" },
+            },
+          },
+        }
+      : {}),
+    updatedAt: "2026-08-24T00:00:00.000Z",
+    freshnessStatus: "ok",
+    favorite: false,
+    usageCount: 0,
+    source: "custom",
+  });
+  return [mk(OCZ, "Oczyszczenie / zmywanie podłoża", 18, true), mk(IMP, "Impregnacja biobójcza ręczna", 22, false)];
+}
+
 console.log("=== A01 LP9/LP10 ALIAS COLLATERAL ===\n");
+
+console.log("--- IN-MEMORY FIXTURE: both targets quoted ---\n");
 
 const quoted = fixtureWorksBothQuoted();
 const a9 = resolveCatalogCoverageAlias({ description: LP9, works: quoted, requireQuotes: true });
@@ -110,7 +144,24 @@ ok("LP10 mapper catalogWorkId (quoted fixture)", m10q.mapped.catalogWorkId === I
 ok("LP10 mapper alias (quoted fixture)", m10q.mapped.matchMethod === "alias", m10q.mapped);
 ok("LP10 identity OK (quoted fixture)", m10q.identity.status === "OK" && m10q.identity.workId === IMP, m10q.identity);
 
-// Prod-like: oczyszczenie quoted, impregnacja without useful quotes
+console.log("\n--- IN-MEMORY FIXTURE: PRE-SEED impregnacja without quotes ---\n");
+const preSeed = fixtureWorksLp9QuotedImpUnquoted();
+const a10Pre = resolveCatalogCoverageAlias({ description: LP10, works: preSeed, requireQuotes: true });
+ok("PRE-SEED LP10 alias rule (textual)", a10Pre.aliasRuleId === "impregnacja_biobojcza", a10Pre);
+ok("PRE-SEED LP10 not oczyszczenie rule", a10Pre.aliasRuleId !== "oczyszczenie_podloza", a10Pre);
+ok(
+  "PRE-SEED LP10 Quotes gate blocks bind",
+  a10Pre.missingQuotes === true && !a10Pre.resolvedProductId,
+  a10Pre,
+);
+const m10Pre = mapAndIdentity(LP10, preSeed);
+ok(
+  "PRE-SEED LP10 mapper Core fallback (no alias bind)",
+  m10Pre.mapped.catalogWorkId === IMP && m10Pre.mapped.matchMethod !== "alias",
+  m10Pre.mapped,
+);
+
+// CURRENT PRODUCTION POST-SEED: read-only batch-get
 Object.assign(process.env, loadEnv("", process.cwd(), ""));
 const mem = new Map();
 globalThis.localStorage = {
@@ -136,29 +187,45 @@ if (anon) {
       },
     )
   ).json();
-  const catalog = typeof kv.values?.[0] === "string" ? JSON.parse(kv.values[0]) : kv.values?.[0];
+  const catalog =
+    typeof kv.values?.["kw-wgdom-work-catalog"] === "string"
+      ? JSON.parse(kv.values["kw-wgdom-work-catalog"])
+      : kv.values?.["kw-wgdom-work-catalog"] ??
+        (typeof kv.values?.[0] === "string" ? JSON.parse(kv.values[0]) : kv.values?.[0]);
   if (catalog) {
+    console.log("\n--- CURRENT PRODUCTION POST-SEED (read-only) ---\n");
     saveWorkCatalogStoreLocal(normalizeWorkCatalogStore(catalog));
     const store = loadWorkCatalogStoreLocal();
     const prodWorks = listActiveWorksForRegion(store, store.activeRegion);
+    const a9prod = resolveCatalogCoverageAlias({
+      description: LP9,
+      works: prodWorks,
+      requireQuotes: true,
+    });
     const a10prod = resolveCatalogCoverageAlias({
       description: LP10,
       works: prodWorks,
       requireQuotes: true,
     });
+    const m9prod = mapAndIdentity(LP9, prodWorks);
     const m10prod = mapAndIdentity(LP10, prodWorks);
+    ok("LP9 prod alias rule", a9prod.aliasRuleId === "oczyszczenie_podloza", a9prod);
+    ok("LP9 prod resolved", a9prod.resolvedProductId === OCZ, a9prod);
+    ok("LP9 prod identity OK", m9prod.identity.status === "OK" && m9prod.identity.workId === OCZ, m9prod.identity);
     ok("LP10 prod alias rule", a10prod.aliasRuleId === "impregnacja_biobojcza", a10prod);
     ok("LP10 prod not oczyszczenie rule", a10prod.aliasRuleId !== "oczyszczenie_podloza", a10prod);
+    ok("LP10 prod resolved post-seed", a10prod.resolvedProductId === IMP, a10prod);
+    ok("LP10 prod Quotes gate open", a10prod.missingQuotes === false, a10prod);
     ok(
-      "LP10 prod Quotes gate blocks impregnacja bind",
-      a10prod.missingQuotes === true && !a10prod.resolvedProductId,
-      a10prod,
+      "LP10 prod mapper alias bind",
+      m10prod.mapped.catalogWorkId === IMP && m10prod.mapped.matchMethod === "alias",
+      m10prod.mapped,
     );
-    console.log("INFO prod LP10 mapper:", {
-      catalogWorkId: m10prod.mapped.catalogWorkId,
-      matchMethod: m10prod.mapped.matchMethod,
-      identity: m10prod.identity.status,
-    });
+    ok(
+      "LP10 prod identity OK",
+      m10prod.identity.status === "OK" && m10prod.identity.workId === IMP,
+      m10prod.identity,
+    );
   } else {
     console.log("SKIP prod KV read (no catalog in response)");
   }
