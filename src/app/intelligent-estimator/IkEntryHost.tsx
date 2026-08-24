@@ -15,7 +15,9 @@ import { useTendersContextOptional } from "@/app/tenders/context/TendersContext"
 import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
 import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
+import { buildAnalysisObservation } from "@/lib/intelligent-estimator/analysis-observation";
 import { IkOwnerActionQueueNavigate } from "@/app/intelligent-estimator/IkOwnerActionQueueNavigate";
+import { LiveVisualizationView } from "@/app/intelligent-estimator/LiveVisualizationView";
 import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
 import type {
   IkOwnerActionDeepLinkContext,
@@ -144,6 +146,10 @@ export function IkEntryHost({
     [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr, classification, packageBlockers, ownerActionQueue, identityCoverageOps],
   );
 
+  // Phase 3 — Live Viz: pure Observation each render (C-MEMO: orchestra ref unstable).
+  // Do NOT useMemo(..., [orchestra]) — useIkOrchestra returns a new object every render.
+  const observation = buildAnalysisObservation(orchestra);
+
   return (
     <div
       className="mb-4"
@@ -229,6 +235,7 @@ export function IkEntryHost({
       data-ik-knr-app-diag-only="1"
     >
       <IkExpertRoomChrome report={knr}>
+        <LiveVisualizationView observation={observation} />
         <IkOwnerActionQueueNavigate
           queue={ownerActionQueue}
           deepLinkContext={ownerActionDeepLinkContext ?? undefined}

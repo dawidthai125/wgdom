@@ -114,6 +114,33 @@ export {
 export type { IkEntryConversationOpts } from "./ik-entry-conversation";
 
 export {
+  OBSERVATION_STAGE_IDS,
+  OBSERVATION_STAGE_WEIGHTS,
+  buildAnalysisObservation,
+  computeAnalysisProgress,
+  contributionFactor,
+  mapCompositeReportStatus,
+  mapDocumentExpertStatus,
+  mapKnrExpertStatus,
+  mapNg02IngestPhase,
+  mapP7Status,
+  mapP8Status,
+  mapReadyBlockedPartial,
+} from "./analysis-observation";
+export type {
+  AnalysisEta,
+  AnalysisObservation,
+  AnalysisProgress,
+  AnalysisStageObservation,
+  BuildAnalysisObservationOpts,
+  FinalTeamWrapUp,
+  ObservationActor,
+  ObservationStageId,
+  ObservationStageStatus,
+  ObservationWeightedStageId,
+} from "./analysis-observation";
+
+export {
   inventoryIkDocuments,
   runIkDocumentExpert,
   przedmiarBranchLabelPl,
@@ -138,6 +165,7 @@ export type {
 export {
   HISTORICAL_EXECUTED_IMPLEMENTED,
   HISTORICAL_EXECUTED_AUTHORITY,
+  HISTORICAL_EXECUTED_HOST_HYDRATE,
   HISTORICAL_EXECUTED_SCHEMA_VERSION,
   buildHistoricalExecutedIndexFromAthSources,
   buildHistoricalExecutedIndexFromOccurrences,
@@ -145,6 +173,9 @@ export {
   lookupHistoricalExecuted,
   makeHistoricalOccurrence,
   summarizeHistoricalKinds,
+  discoverHistoricalExecutedAthCandidates,
+  hydrateHistoricalExecutedIndexFromJobs,
+  resetHistoricalExecutedHostHydrateCachesForTests,
 } from "./historical-executed";
 export type {
   HistoricalExecutedIndex,
@@ -152,6 +183,8 @@ export type {
   HistoricalLookupResult,
   HistoricalMatchKind,
   HistoricalExecutedOccurrence,
+  HistoricalExecutedAthCandidate,
+  HistoricalHydrateReport,
 } from "./historical-executed";
 
 export {
