@@ -45,6 +45,11 @@ import type { IkPackageBlockerReport } from "./orchestra/ik-package-blocker-repo
 import { buildIkKnrConversation, type IkKnrConversationStep } from "./ik-knr-conversation";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { enforceIkConversationTruth } from "./ik-conversation-event";
+import type {
+  AnalysisObservation,
+  ObservationStageId,
+  ObservationStageStatus,
+} from "./analysis-observation";
 
 export interface IkEntryConversationOpts {
   package?: TenderPackage | null;
@@ -140,6 +145,156 @@ function knrStepFromC2(s: IkKnrConversationStep): ExpertConversationStepView {
       tenderId: s.sourceRef.tenderId,
       artifact: s.sourceRef.artifact,
     },
+  };
+}
+
+// ─── Phase 4 — Observation → EC status (presentation only) ─────────────────
+
+/**
+ * One-way Observation → EC presentation status bridge.
+ * `skipped` never originates from Observation (Flag-OFF = omit stage).
+ */
+export function mapObservationStatusToEcStepStatus(
+  status: ObservationStageStatus,
+): Exclude<ExpertConversationStepStatus, "skipped"> {
+  switch (status) {
+    case "pending":
+      return "pending";
+    case "running":
+      return "active";
+    case "done":
+      return "done";
+    case "partial":
+      return "partial";
+    case "blocked":
+      return "blocked";
+    case "hold":
+      return "hold";
+    case "failed":
+      return "gap";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Resolve canonical Observation stage for an EC presentation step.
+ * Event-gated for conflicted ids (`validation` / `cost` / `offer`).
+ * Returns `null` for unknown/unmapped — caller must not use legacy status authority.
+ */
+export function resolveObservationStageIdForEcStep(
+  stepId: ExpertConversationStepView["id"],
+  event: string | undefined,
+): ObservationStageId | null {
+  const ev = typeof event === "string" ? event : "";
+
+  // ── Event-gated conflict ids (MUST NOT use id-alone) ──
+  if (stepId === "validation") {
+    if (ev === "VALIDATION_EXPERT") return "risk";
+    if (
+      ev === "BOQ_VALIDATED"
+      || ev.startsWith("LINE_INTEGRITY_")
+      || ev === "DWELLING_MAP_COMPLETE"
+      || ev === "DWELLING_MAP_REQUIRED"
+    ) {
+      return "boq";
+    }
+    return null;
+  }
+
+  if (stepId === "cost") {
+    if (ev === "COMPOSITE_BOTH_HOLD") return "composite";
+    if (ev === "POSITION_COST_F5") return "pricing";
+    return null;
+  }
+
+  if (stepId === "offer") {
+    if (ev === "BID_PROPOSAL") return "pricing";
+    if (ev === "DECISION_WORKSPACE") return "risk";
+    return null;
+  }
+
+  // ── Id-family / exact (first-class) ──
+  switch (stepId) {
+    case "documents":
+    case "ingest":
+    case "swz":
+    case "cost_docs":
+    case "przedmiary":
+      return "documents";
+    case "extraction":
+    case "boq_status":
+      return "boq";
+    case "knr_lead":
+    case "knr":
+    case "knr_wrap":
+    case "knr_blocked":
+      return "knr";
+    case "classification":
+      return "classification";
+    case "labor":
+      return "labor";
+    case "material":
+      return "material";
+    case "identity_coverage":
+    case "identity":
+      return "identity";
+    case "pricing":
+      return "pricing";
+    case "chief_start":
+    case "chief_final":
+      return "risk";
+    default:
+      return null;
+  }
+}
+
+function findObservationStageStatus(
+  observation: AnalysisObservation,
+  stageId: ObservationStageId,
+): ObservationStageStatus | null {
+  const stage = observation.stages.find((s) => s.stageId === stageId);
+  return stage ? stage.status : null;
+}
+
+/**
+ * Pure Observation-status overlay for Team Conversation (Phase 4 Variant A).
+ * Preserves message/detail/sourceRef; final status from Observation (+ truth).
+ * Missing/unmapped stage → overallStatus bridge (never legacy authority · never skipped).
+ */
+export function overlayObservationStatusesOnConversationVm(
+  legacyVm: ExpertConversationViewModel,
+  observation: AnalysisObservation,
+): ExpertConversationViewModel {
+  const overallEc = mapObservationStatusToEcStepStatus(observation.overallStatus);
+
+  const steps = legacyVm.steps.map((step) => {
+    const stageId = resolveObservationStageIdForEcStep(step.id, step.event);
+    const obsStatus =
+      stageId != null
+        ? findObservationStageStatus(observation, stageId)
+        : null;
+    // Absent stage (flag OFF) or unmapped event → overallStatus bridge — not legacy status.
+    const ecStatus =
+      obsStatus != null
+        ? mapObservationStatusToEcStepStatus(obsStatus)
+        : overallEc;
+
+    return {
+      ...step,
+      status: ecStatus,
+      statusLabelPl: labelConversationStatusPl(ecStatus),
+    };
+  });
+
+  const truthSteps = enforceIkConversationTruth(steps);
+
+  return {
+    ...legacyVm,
+    steps: truthSteps,
+    hasBlocked: truthSteps.some((s) => s.status === "blocked" || s.status === "hold"),
   };
 }
 

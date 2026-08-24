@@ -14,7 +14,7 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { ExpertConversationSurface } from "@/app/expert-conversation";
 import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChrome";
-import { buildIkEntryConversationViewModel } from "@/lib/intelligent-estimator/ik-entry-conversation";
+import { buildIkEntryConversationViewModel, overlayObservationStatusesOnConversationVm } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { buildAnalysisObservation } from "@/lib/intelligent-estimator/analysis-observation";
 import { IkOwnerActionQueueNavigate } from "@/app/intelligent-estimator/IkOwnerActionQueueNavigate";
 import { LiveVisualizationView } from "@/app/intelligent-estimator/LiveVisualizationView";
@@ -107,7 +107,7 @@ export function IkEntryHost({
     p8RiskOn,
   } = flags;
 
-  const vm = useMemo(
+  const legacyVm = useMemo(
     () =>
       buildIkEntryConversationViewModel(effectiveItem, {
         package: pkg,
@@ -149,6 +149,9 @@ export function IkEntryHost({
   // Phase 3 — Live Viz: pure Observation each render (C-MEMO: orchestra ref unstable).
   // Do NOT useMemo(..., [orchestra]) — useIkOrchestra returns a new object every render.
   const observation = buildAnalysisObservation(orchestra);
+
+  // Phase 4 — Team Conversation: Observation SSOT status overlay (Variant A · pure recompute).
+  const vm = overlayObservationStatusesOnConversationVm(legacyVm, observation);
 
   return (
     <div
