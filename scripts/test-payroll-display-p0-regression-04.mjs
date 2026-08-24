@@ -118,7 +118,7 @@ assert("principle id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   assert("R1 roster stays 14", legacy.weekEmployees.length === 14);
   assert("R1 keys → current from", legacy.weekFrom === current.from);
   assert("R1 keys → current to", legacy.weekTo === current.to);
-  assert("R1 reason bootstrap_align", legacy.reason === "bootstrap_align_stored_week_archived");
+  assert("R1 reason align_zero_hours_bootstrap", legacy.reason === "align_zero_hours_bootstrap");
 
   const afterAlign = simulateTryPayrollWeekCycleMount(
     legacy.weekFrom,
@@ -161,6 +161,35 @@ assert("principle id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   assert("R1b cleared", result.cleared === true);
   assert("R1b roster empty after", result.weekEmployees.length === 0);
   assert("R1b reason historical_live_roster", result.reason === "stored_week_archived_live_roster_still_historical");
+}
+
+// R1c — PAYROLL-WEEK-ROSTER-INVARIANT-01 / T-INC:
+// rich archive + live positive historical hours + digest≠ → rollover quarantine (clear)
+{
+  const prev = { from: "2026-07-06", to: "2026-07-12" };
+  const archivedRoster = Array.from({ length: 13 }, (_, i) => makeEmp(`hist-${i}`));
+  // 14th person + same hours on first 13 → digest ≠ archive, hours > 0
+  const live = [
+    ...archivedRoster.map((e) => ({ ...e })),
+    makeEmp("hist-extra"),
+  ];
+  const archive = [
+    {
+      id: "snap-hist",
+      weekFrom: prev.from,
+      weekTo: prev.to,
+      weekEmployees: archivedRoster.map((e) => ({ ...e })),
+      savedAt: "2026-07-12T18:00:00.000Z",
+    },
+  ];
+  const result = simulateTryPayrollWeekCycleMount(prev.from, prev.to, live, mondayNewWeek, archive);
+  assert("R1c action auto_archive_and_advance", result.action === "auto_archive_and_advance");
+  assert("R1c cleared", result.cleared === true);
+  assert("R1c roster empty after", result.weekEmployees.length === 0);
+  assert(
+    "R1c reason quarantine_historical_hours",
+    result.reason === "quarantine_historical_hours_under_stale_labels",
+  );
 }
 
 // R2 — empty roster + behind → rollover still allowed

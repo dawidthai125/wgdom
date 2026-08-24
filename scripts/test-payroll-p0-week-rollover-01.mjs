@@ -162,6 +162,34 @@ assert("PAYROLL-ROLL-001 id", PAYROLL_ROLL_001 === "PAYROLL-ROLL-001");
   const t = classifyPayrollWeekTransition(prev.from, prev.to, liveCurrentWeekRoster, archive, now);
   assert("T3b kind align", t.kind === "align");
   assert("T3b target current", t.from === current.from && t.to === current.to);
+  assert("T3b reason align_zero_hours", t.reason === "align_zero_hours_bootstrap");
+}
+
+// T-INC — historical hours under stale labels → quarantine rollover (not align)
+{
+  const now = new Date("2026-07-20T10:00:00");
+  const current = getPayrollWeekRange(now);
+  const prev = { from: "2026-07-13", to: "2026-07-18" };
+  const archivedRoster = Array.from({ length: 13 }, (_, i) => makeEmp(`inc-arch-${i}`));
+  const live = [...archivedRoster.map((e) => ({ ...e })), makeEmp("inc-extra")];
+  const archive = [
+    {
+      id: "arch-inc",
+      weekFrom: prev.from,
+      weekTo: prev.to,
+      weekEmployees: archivedRoster.map((e) => ({ ...e })),
+      savedAt: "2026-07-19T18:00:00.000Z",
+    },
+  ];
+  const t = classifyPayrollWeekTransition(prev.from, prev.to, live, archive, now);
+  assert("T-INC kind rollover", t.kind === "rollover");
+  assert(
+    "T-INC reason quarantine",
+    t.reason === "quarantine_historical_hours_under_stale_labels",
+  );
+  const after = simulateFullRollover(prev.from, prev.to, live, archive, t.from, t.to);
+  assert("T-INC live cleared", after.weekEmployees.length === 0);
+  assert("T-INC keys current", after.weekFrom === current.from && after.weekTo === current.to);
 }
 
 // T4 — biweekly consumer: after real rollover, prev week is in archive (prevWeekNet source)

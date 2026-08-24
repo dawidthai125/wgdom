@@ -674,7 +674,7 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
   const requestId = crypto.randomUUID();
   try {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, intentionalHoursClear = false } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   let payrollMetaAfterWrite: Record<string, unknown> | null = null;
   const archBatchIdx = keys.indexOf("kw-archive");
@@ -778,7 +778,10 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         const prevNorm = prev != null
           ? filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned)
           : [];
-        nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        // D-F4 — intentional clear: keep nextNorm (post-tombstone); do NOT union-resurrect prev.
+        if (intentionalHoursClear !== true) {
+          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        }
         payrollMetaAfterWrite = {
           rosterRevision: serverMeta.rosterRevision + 1,
           weekFrom: batchFromStr,

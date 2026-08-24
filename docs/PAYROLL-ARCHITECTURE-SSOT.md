@@ -2,7 +2,7 @@
 
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
-> **Data:** 2026-08-19 (**PAYROLL-ROLLOVER-CLOUD-PUSH** post-impl) · prior O1 CAS · 2026-07-24  
+> **Data:** 2026-08-24 (**PAYROLL-WEEK-ROSTER-INVARIANT-01** implement · Owner verify pending) · prior 2026-08-19 ROLLOVER-CLOUD-PUSH · O1 CAS  
 > **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT)  
 > **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
@@ -128,6 +128,9 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | **I-ROLL-CLOUD** | Cross-week rollover push: tylko `pushPayrollWeekAfterRollover` + predicate `isPayrollRolloverWeekClear` | Flaga alone ≠ bypass; D3/shrink unchanged |
 | **I-FENCE** | Resurrection fence na bootstrap **ACTIVE** | Pusta chmura ≠ reseed ze starego LS |
 | **I-ROLL** | `classifyPayrollWeekTransition`: ALIGN ≠ wipe; ROLLOVER = archive+clear | Cofnięcie = klon godzin między tygodniami |
+| **#I-WEEK-ROSTER** | Current week labels ⇒ empty **lub** 0h seed **lub** proven current data; nigdy historyczne +h pod current keys | ALIGN hours>0 = klon 621h (incydent 24.08) |
+| **I-ALIGN-0H** | ALIGN tylko przy live **0h** (`align_zero_hours_bootstrap`); hours>0 → rollover quarantine | DF: [`PAYROLL-WEEK-ROSTER-INVARIANT-01-DESIGN-FREEZE.md`](architecture/PAYROLL-WEEK-ROSTER-INVARIANT-01-DESIGN-FREEZE.md) |
+| **I-DF4-CLEAR** | `intentionalHoursClear` w body `batch-set` → Edge **skip-union** (tylko jawny clear; nie „empty always wins”) | Bez flagi empty next ≠ Cloud [] |
 | **I-BANNER** | D4 `-prev` banner **≠** archive Restore Banner | Osobne predykaty — nie łączyć |
 | **I-CORE013** | Zero mixed FEATURE + Payroll/cloud-sync/Edge w jednym commit | Historia regresji FEATURE→LP |
 
@@ -145,6 +148,9 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 7. NIGDY nie mutować składu tygodnia poza PWRB.
 8. NIGDY nie usuwać / omijać resurrection fence.
 9. NIGDY nie cofać classifyPayrollWeekTransition (ALIGN vs ROLLOVER).
+9a. NIGDY nie ALIGN-ować przy live hours > 0 pod archived digest≠ (→ quarantine rollover).
+9b. NIGDY nie persistować historycznego residualu pod current week keys (D-F3 fence).
+9c. NIGDY nie polegać na empty next bez `intentionalHoursClear` (D-F4).
 10. NIGDY nie przywracać kw-week-employees do RS push (runCloudSync).
 11. NIGDY nie łączyć D4 -prev banner z archive shouldShowPayrollRestoreBanner.
 12. NIGDY nie „naprawiać” mergeWeekEmployees „dla wygody” w FEATURE.

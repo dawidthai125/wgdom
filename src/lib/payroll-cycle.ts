@@ -1,6 +1,11 @@
 /** Wypłaty co 2 tygodnie (sobota) — logika kasowa i archiwum. */
 
 import type { WeekSnapshot } from "@/app/app-domain";
+import {
+  ALIGN_ZERO_HOURS_BOOTSTRAP_REASON,
+  liveRosterHasPositiveHours,
+  QUARANTINE_HISTORICAL_HOURS_REASON,
+} from "@/lib/payroll-week-roster-binding";
 
 const DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
 
@@ -165,6 +170,8 @@ export function classifyPayrollWeekTransition(
 
   // Bootstrap / mount-race: stored week archived, but live roster no longer mirrors
   // the archived snapshot — only labels are stale.
+  // PAYROLL-WEEK-ROSTER-INVARIANT-01 / D-F1–D-F2:
+  //   hours == 0 → ALIGN (#R04); hours > 0 → rollover quarantine (reuse autoArchiveAndAdvance).
   if (storedArchived) {
     const mirrorsStoredArchivedWeek =
       Array.isArray(liveRoster) &&
@@ -177,11 +184,21 @@ export function classifyPayrollWeekTransition(
         reason: "stored_week_archived_live_roster_still_historical",
       };
     }
+    // PAYROLL-WEEK-ROSTER-INVARIANT-01 / D-F1–D-F2:
+    //   hours == 0 → ALIGN (#R04); hours > 0 → rollover quarantine (reuse autoArchiveAndAdvance).
+    if (Array.isArray(liveRoster) && liveRosterHasPositiveHours(liveRoster)) {
+      return {
+        kind: "rollover",
+        from: current.from,
+        to: current.to,
+        reason: QUARANTINE_HISTORICAL_HOURS_REASON,
+      };
+    }
     return {
       kind: "align",
       from: current.from,
       to: current.to,
-      reason: "bootstrap_align_stored_week_archived",
+      reason: ALIGN_ZERO_HOURS_BOOTSTRAP_REASON,
     };
   }
 

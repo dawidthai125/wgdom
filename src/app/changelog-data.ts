@@ -11,6 +11,28 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-24",
+    version: "2.66.115",
+    label: "PAYROLL-WEEK-ROSTER-INVARIANT-01 — ALIGN 0h / quarantine / D-F4 clear",
+    items: [
+      {
+        type: "fix",
+        text: "Incydent 24.08: ALIGN z historycznymi godzinami → quarantine rollover (`quarantine_historical_hours_under_stale_labels`); fence D-F3; `intentionalHoursClear` w batch-set + Edge skip-union (D-F4). #R04 ALIGN 0h zachowane. Test: regression-04 R1/R1c · invariant-01 · rollover T-INC.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-23",
+    version: "2.66.114",
+    label: "IK-OWNER-MAP A01-S1 — WM LP4 oczyszczenie identity",
+    items: [
+      {
+        type: "new",
+        text: "Owner identity A01-S1: `lim-ik-a01-lp4-oczyszczenie-wm` → `cc-w2-oczyszczenie-podloza` (exact WM LP4 BOQ · m2). LP5 impregnacja EXCLUDED · zmywanie HOLD. Test: test-labor-identity-mapping-a01-s1.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-22",
     version: "2.66.113",
     label: "IK-KNR WC Identity Bridge P3 — Owner CREATE (flag OFF)",

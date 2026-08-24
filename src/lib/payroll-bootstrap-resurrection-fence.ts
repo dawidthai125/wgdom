@@ -2,6 +2,11 @@
  * PAYROLL-CLOUD-RESURRECTION-01 — fence: stale LocalStorage must not re-seed Cloud KV.
  * Pure helpers (no React / no Edge). Used by cloud-sync bootstrap merge + push gate.
  */
+import {
+  mayPersistPayrollRosterUnderWeekKeys,
+  PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON,
+} from "@/lib/payroll-week-roster-binding";
+
 export const PAYROLL_RESURRECTION_01 = "PAYROLL-CLOUD-RESURRECTION-01";
 
 const DAYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
@@ -252,14 +257,23 @@ export function stripLocalOnlyArchiveWeek(
 
 /**
  * Freshness gate before bootstrap push of a single key.
+ * PAYROLL-WEEK-ROSTER-INVARIANT-01 / D-F3 — block historical residual under current keys.
  */
 export function bootstrapPayrollPushAllowed(params: {
   key: string;
   mergedValue: unknown;
   cloudValue: unknown;
   fence: ResurrectionFenceDecision;
+  /** Optional week binding context (D-F3). When omitted, week-employees historical check is skipped here. */
+  weekBinding?: {
+    weekFrom: string;
+    weekTo: string;
+    archive: unknown;
+    currentFrom: string;
+    currentTo: string;
+  };
 }): { allow: boolean; reason: string } {
-  const { key, mergedValue, cloudValue, fence } = params;
+  const { key, mergedValue, cloudValue, fence, weekBinding } = params;
   if (key === "kw-week-employees" && fence.blockBootstrapPushWeekEmployees) {
     return { allow: false, reason: `${PAYROLL_RESURRECTION_01}:${fence.reason}` };
   }
@@ -280,6 +294,22 @@ export function bootstrapPayrollPushAllowed(params: {
     asArray(mergedValue).length > 0
   ) {
     return { allow: false, reason: `${PAYROLL_RESURRECTION_01}:block_push_onto_empty_cloud` };
+  }
+  if (key === "kw-week-employees" && weekBinding) {
+    const gate = mayPersistPayrollRosterUnderWeekKeys({
+      weekFrom: weekBinding.weekFrom,
+      weekTo: weekBinding.weekTo,
+      roster: mergedValue,
+      archive: weekBinding.archive,
+      currentFrom: weekBinding.currentFrom,
+      currentTo: weekBinding.currentTo,
+    });
+    if (!gate.allow) {
+      return {
+        allow: false,
+        reason: `${PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON}:${gate.reason}`,
+      };
+    }
   }
   return { allow: true, reason: "ok" };
 }

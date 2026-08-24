@@ -1,5 +1,17 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.115 — PAYROLL-WEEK-ROSTER-INVARIANT-01 (2026-08-24)
+
+- Classifier: ALIGN tylko przy live **0h**; hours>0 + archived digest≠ → rollover quarantine
+- D-F3 fence: `payroll-week-roster-binding.ts` + bootstrap/`pwrPush` — brak persist historycznego residualu pod current keys
+- D-F4: `intentionalHoursClear` w `batch-set` + Edge skip-union; empty rollover → Cloud `[]`
+- Test: `test-payroll-display-p0-regression-04.mjs` · `test-payroll-week-roster-invariant-01.mjs` · T-INC w rollover-01
+- DF: `docs/architecture/PAYROLL-WEEK-ROSTER-INVARIANT-01-DESIGN-FREEZE.md`
+
+## 2.66.114 — IK-OWNER-MAP A01-S1 WM LP4 identity (2026-08-23)
+
+- Owner `WORK_RATE_IDENTITY_MAPPINGS` append: WM LP4 oczyszczenie → `cc-w2-oczyszczenie-podloza` (exact_normalized · m2). LP5 impregnacja excluded · zmywanie HOLD. Test: `test-labor-identity-mapping-a01-s1.mjs`.
+
 ## 2.66.113 — IK-KNR WC Identity Bridge P3 CREATE (2026-08-22)
 
 - P3 Owner-gated CatalogWork CREATE: `knr-wc-identity-bridge-create.ts` · `work-catalog-insert.ts` (P5.26 reuse) · `IkKnrWcIdentityCreateExecutor` · flag `KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED=false` · write via `saveWorkCatalogRouted` only · P2 UI frozen.

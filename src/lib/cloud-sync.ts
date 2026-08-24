@@ -1,12 +1,16 @@
 import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 import { maySkipPayrollShrinkGuard } from "./payroll-hours-collapse-gate.ts";
-import { previousWeekRange } from "./payroll-cycle.ts";
+import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
   evaluatePayrollResurrectionFence,
   stripLocalOnlyArchiveWeek,
   bootstrapPayrollPushAllowed,
   type ResurrectionFenceDecision,
 } from "./payroll-bootstrap-resurrection-fence.ts";
+import {
+  mayPersistPayrollRosterUnderWeekKeys,
+  PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON,
+} from "./payroll-week-roster-binding.ts";
 import {
   supabaseProjectId,
   supabaseAnonKey,
@@ -2654,14 +2658,44 @@ export function bootstrapMergedShouldPush(
   fence?: ResurrectionFenceDecision,
 ): boolean {
   if (!isSupabaseConfigured()) return false;
+  const weekBinding =
+    key === "kw-week-employees" ? readPayrollWeekBindingContextFromLs() : undefined;
   if (fence) {
     const gate = bootstrapPayrollPushAllowed({
       key,
       mergedValue: merged,
       cloudValue: cloudVal,
       fence,
+      weekBinding,
     });
-    if (!gate.allow) return false;
+    if (!gate.allow) {
+      if (key === "kw-week-employees") {
+        payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "warn", {
+          key,
+          shouldPush: false,
+          reason: gate.reason,
+        });
+      }
+      return false;
+    }
+  } else if (weekBinding) {
+    const gate = mayPersistPayrollRosterUnderWeekKeys({
+      weekFrom: weekBinding.weekFrom,
+      weekTo: weekBinding.weekTo,
+      roster: merged,
+      archive: weekBinding.archive,
+      currentFrom: weekBinding.currentFrom,
+      currentTo: weekBinding.currentTo,
+    });
+    if (!gate.allow) {
+      payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "warn", {
+        key,
+        shouldPush: false,
+        reason: gate.reason,
+        hoursTotal: gate.hoursTotal,
+      });
+      return false;
+    }
   }
   if (key === "kw-knr-catalog" || key === KNR_CATALOG_STORAGE_KEY) {
     return shouldPushKnrCatalogToCloud(merged, cloudVal);
@@ -2686,6 +2720,35 @@ export function bootstrapMergedShouldPush(
     richnessIncreased ||
     (hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal))
   );
+}
+
+/** D-F3 — LS week keys + archive for persist fence (no CloudLoader change). */
+function readPayrollWeekBindingContextFromLs(): {
+  weekFrom: string;
+  weekTo: string;
+  archive: unknown;
+  currentFrom: string;
+  currentTo: string;
+} {
+  const current = getPayrollWeekRange();
+  let weekFrom = current.from;
+  let weekTo = current.to;
+  let archive: unknown = [];
+  try {
+    const wf = localStorage.getItem("kw-weekFrom");
+    const wt = localStorage.getItem("kw-weekTo");
+    if (wf != null) weekFrom = JSON.parse(wf) as string;
+    if (wt != null) weekTo = JSON.parse(wt) as string;
+    const arch = localStorage.getItem("kw-archive");
+    if (arch != null) archive = JSON.parse(arch);
+  } catch { /* ignore */ }
+  return {
+    weekFrom: typeof weekFrom === "string" ? weekFrom : current.from,
+    weekTo: typeof weekTo === "string" ? weekTo : current.to,
+    archive,
+    currentFrom: current.from,
+    currentTo: current.to,
+  };
 }
 
 export type LocalStoragePersistResult = {
@@ -3047,6 +3110,8 @@ export async function pushKeysToCloud(
     payrollWeekCas: pushOptions.payrollWeekCas === true,
     expectedRevision: pushOptions.expectedRevision,
     clientAppVersion: pushOptions.clientAppVersion ?? APP_VERSION,
+    /** D-F4 — Edge skip-union when true (intentional clear / empty rollover). */
+    intentionalHoursClear: pushOptions.intentionalHoursClear === true,
   });
   const keysCount = pushKeys.length;
   const batchSizeBytes = requestBody.length;
@@ -3237,6 +3302,29 @@ export async function pushWeekEmployeesToCloud(
   });
   const normalized = collapseWeekEmployeesByIdentity(beforeCollapse);
   const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
+  // D-F3 — block historical residual under current week keys (allow intentional empty clear).
+  if (options?.intentionalHoursClear !== true) {
+    const binding = readPayrollWeekBindingContextFromLs();
+    const gate = mayPersistPayrollRosterUnderWeekKeys({
+      weekFrom,
+      weekTo,
+      roster: normalized,
+      archive: binding.archive,
+      currentFrom: binding.currentFrom,
+      currentTo: binding.currentTo,
+    });
+    if (!gate.allow) {
+      payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
+        skipReason: PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON,
+        reason: gate.reason,
+        hoursTotal: gate.hoursTotal,
+        count: normalized.length,
+        weekFrom,
+        weekTo,
+      });
+      return;
+    }
+  }
   payrollTraceEmit("payroll.roster.push.start", "PUSH", "info", {
     pushTraceId,
     subjectPresent: rosterTraceSnapshot(normalized, weekFrom, weekTo, "LOCAL", "PRESENT").subjectPresent,
@@ -3307,6 +3395,8 @@ export async function pushPayrollWeekAfterRollover(params: {
       expectedRevision: getExpectedPayrollRevision(),
       clientAppVersion: APP_VERSION,
       payrollWeekRolloverPush: true,
+      /** D-F4 — empty new week must replace Cloud roster (no union resurrect). */
+      intentionalHoursClear: normalized.length === 0,
     },
   );
 }
