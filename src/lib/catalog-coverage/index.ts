@@ -39,10 +39,12 @@ export {
   CATALOG_COVERAGE_WAVE2_PACK,
   CATALOG_COVERAGE_WAVE2_RULE_IDS,
   CATALOG_WAVE2_PRODUCT_IDS,
+  CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
   CATALOG_WAVE2_PRODUCT_ID_SET,
   buildCatalogCoverageAliasPackCombined,
   isCatalogWave2ProductId,
   isCatalogWave2OutBizHay,
+  matchesImpregnacjaBiobojczaAliasHay,
 } from "@/lib/catalog-coverage/alias-pack-wave2";
 
 export type { CatalogCoverageAliasWave2RuleId } from "@/lib/catalog-coverage/alias-pack-wave2";

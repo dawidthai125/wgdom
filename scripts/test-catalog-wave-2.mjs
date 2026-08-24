@@ -7,6 +7,7 @@ import {
   CATALOG_COVERAGE_WAVE2_PACK,
   CATALOG_COVERAGE_WAVE2_RULE_IDS,
   CATALOG_WAVE2_PRODUCT_IDS,
+  CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
   CATALOG_COVERAGE_ALIAS_PACK_DEFAULT,
   resolveCatalogCoverageAlias,
   countCatalogCoverageAliasHits,
@@ -51,6 +52,11 @@ const W1_WORKS = CATALOG_COVERAGE_P0C_WAVE1_PACK.map((r) => fakeWork(r.productId
 const W2_WORKS = CATALOG_COVERAGE_WAVE2_PACK.map((r) => fakeWork(r.productId, r.labelPl));
 const ALL = [...W1_WORKS, ...W2_WORKS];
 
+function wave2ProductIdForRule(ruleId) {
+  if (ruleId === "impregnacja_biobojcza") return CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID;
+  return CATALOG_WAVE2_PRODUCT_IDS[ruleId];
+}
+
 function baseLine(description) {
   return {
     id: "l1",
@@ -79,12 +85,17 @@ function baseLine(description) {
 console.log("=== CATALOG-WAVE-2 ===\n");
 
 console.log("1. Pack SSOT");
-assert(CATALOG_COVERAGE_WAVE2_PACK.length === 8, "Pack Wave2 = 8 reguł");
-assert(CATALOG_COVERAGE_WAVE2_RULE_IDS.length === 8, "8 rule IDs");
-assert(new Set(CATALOG_COVERAGE_WAVE2_RULE_IDS).size === 8, "unikalne aliasRuleId");
+assert(CATALOG_COVERAGE_WAVE2_PACK.length === 9, "Pack Wave2 = 9 reguł");
+assert(CATALOG_COVERAGE_WAVE2_RULE_IDS.length === 9, "9 rule IDs");
+assert(new Set(CATALOG_COVERAGE_WAVE2_RULE_IDS).size === 9, "unikalne aliasRuleId");
 assert(
-  new Set(CATALOG_COVERAGE_WAVE2_PACK.map((r) => r.productId)).size === 8,
+  new Set(CATALOG_COVERAGE_WAVE2_PACK.map((r) => r.productId)).size === 9,
   "1 reguła → 1 Product ID",
+);
+assert(
+  CATALOG_COVERAGE_WAVE2_PACK.find((r) => r.aliasRuleId === "impregnacja_biobojcza")?.productId ===
+    CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
+  "impregnacja_biobojcza → Owner CREATE product",
 );
 assert(
   CATALOG_COVERAGE_ALIAS_PACK_DEFAULT.length ===
@@ -120,7 +131,7 @@ const samples = [
   ["Oczyszczenie i zmywanie podłoża", "oczyszczenie_podloza"],
   ["Przygotowanie i naprawa podłoża - oczyszczenie powierzchni muru", "oczyszczenie_podloza"],
   ["Oczyszczenie powierzchni ścian z cegły", "oczyszczenie_podloza"],
-  ["Impregnacja przeciwsolna ręczna", "oczyszczenie_podloza"],
+  ["Impregnacja przeciwsolna ręczna", "impregnacja_biobojcza"],
   ["Montaż na gotowym podłożu haczyków", "mocowanie_aparatow"],
   ["Montaż aparatów odbiorczych domofonu", "mocowanie_aparatow"],
   [
@@ -135,8 +146,8 @@ for (const [desc, ruleId] of samples) {
   const r = resolveCatalogCoverageAlias({ description: desc, works: ALL });
   assert(r.matched && r.aliasRuleId === ruleId, `match ${ruleId}: ${desc.slice(0, 48)}`);
   assert(
-    r.resolvedProductId === CATALOG_WAVE2_PRODUCT_IDS[ruleId],
-    `resolved ${ruleId} → ${CATALOG_WAVE2_PRODUCT_IDS[ruleId]}`,
+    r.resolvedProductId === wave2ProductIdForRule(ruleId),
+    `resolved ${ruleId} → ${wave2ProductIdForRule(ruleId)}`,
   );
 }
 
@@ -237,6 +248,41 @@ assert(!pod.catalogWorkId || pod.aliasRuleId !== "wykucie_wnek", "podokienniki b
 
 console.log("\n7. Fold smoke");
 assert(foldPolishText("wnęk").includes("wnek"), "fold wnęk→wnek");
+
+console.log("\n8. A01 LP9/LP10 collateral — alias separation");
+const LP9 = "Przygotowanie i naprawa podłoża-oczyszczenie powierzchni muru";
+const LP10 = "Impregnacja biobójcza ręczna m2 d.1.1 0103-01 Krotność = 2 poz.8";
+const rLp9 = resolveCatalogCoverageAlias({ description: LP9, works: ALL, requireQuotes: true });
+const rLp10 = resolveCatalogCoverageAlias({ description: LP10, works: ALL, requireQuotes: true });
+assert(rLp9.matched && rLp9.aliasRuleId === "oczyszczenie_podloza", "LP9 → oczyszczenie_podloza");
+assert(
+  rLp9.resolvedProductId === CATALOG_WAVE2_PRODUCT_IDS.oczyszczenie_podloza,
+  "LP9 resolved → cc-w2-oczyszczenie-podloza",
+);
+assert(rLp9.aliasRuleId !== "impregnacja_biobojcza", "LP9 ≠ impregnacja_biobojcza");
+assert(rLp10.matched && rLp10.aliasRuleId === "impregnacja_biobojcza", "LP10 → impregnacja_biobojcza");
+assert(
+  rLp10.packProductId === CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
+  "LP10 packProductId → cc-w2-impregnacja-biobojcza-m2",
+);
+assert(rLp10.aliasRuleId !== "oczyszczenie_podloza", "LP10 ≠ oczyszczenie_podloza");
+assert(
+  rLp10.resolvedProductId === CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
+  "LP10 resolved (fixture quotes) → impregnacja",
+);
+
+const impNoQ = fakeWork(CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID, "Impregnacja biobójcza ręczna");
+impNoQ.marketQuotes = {};
+const worksNoImpQ = [...W1_WORKS, ...W2_WORKS.filter((w) => w.id !== CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID), impNoQ];
+const rLp10NoQ = resolveCatalogCoverageAlias({
+  description: LP10,
+  works: worksNoImpQ,
+  requireQuotes: true,
+});
+assert(
+  rLp10NoQ.matched && rLp10NoQ.aliasRuleId === "impregnacja_biobojcza" && !rLp10NoQ.resolvedProductId,
+  "LP10 textual match + Quotes gate null bez impregnacja quotes",
+);
 
 console.log(`\n=== WYNIK: ${passed} PASS · ${failed} FAIL ===`);
 if (failed > 0) process.exit(1);

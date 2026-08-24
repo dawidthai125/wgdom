@@ -1,5 +1,5 @@
 /**
- * CATALOG-WAVE-2 — Alias Pack MED (8 reguł).
+ * CATALOG-WAVE-2 — Alias Pack MED (9 reguł).
  * DF: CATALOG-WAVE-2-DESIGN-FREEZE · TOP100 only · wąskie frazy · OUT service/noise/BIZ.
  * Kolejność ewaluacji w Resolverze: Wave1 → ten pack (first match).
  */
@@ -9,10 +9,18 @@ export type CatalogCoverageAliasWave2RuleId =
   | "mocowanie_aparatow"
   | "przygotowanie_pod_osprzet"
   | "wykwity_zacieki"
+  | "impregnacja_biobojcza"
   | "oczyszczenie_podloza"
   | "plyta_gk_zabudowa"
   | "zawor_odcinajacy_15"
   | "wykucie_wnek";
+
+/**
+ * Owner CREATE A01-LP5/LP10 — alias target poza Wave2 DATA-FIRST seed set (Core fallback gdy brak Quotes).
+ * Nie dodawać do CATALOG_WAVE2_PRODUCT_ID_SET — isCatalogWave2ProductId musi pozostać false.
+ */
+export const CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID =
+  "cc-w2-impregnacja-biobojcza-m2" as const;
 
 /** Product IDs reserved Wave 2 (DATA FIRST seed). */
 export const CATALOG_WAVE2_PRODUCT_IDS = {
@@ -58,9 +66,14 @@ export interface CatalogCoverageAliasWave2PackRule {
   test: (foldedHay: string) => boolean;
 }
 
+/** Wąski match: impregnacja przeciwsolna / biobójcza (TOP100 + A01 LP5/LP10). */
+export function matchesImpregnacjaBiobojczaAliasHay(foldedHay: string): boolean {
+  return /impregnacj\w*\s+(przeciwsol|bioboj)/.test(foldedHay);
+}
+
 /**
  * Alias Pack Wave 2 MED — SSOT.
- * order lokalny 1…8; w combined pack idzie po Wave1.
+ * order lokalny 1…9; w combined pack idzie po Wave1.
  */
 export const CATALOG_COVERAGE_WAVE2_PACK: readonly CatalogCoverageAliasWave2PackRule[] = [
   {
@@ -105,13 +118,20 @@ export const CATALOG_COVERAGE_WAVE2_PACK: readonly CatalogCoverageAliasWave2Pack
   },
   {
     order: 5,
+    aliasRuleId: "impregnacja_biobojcza",
+    labelPl: "Impregnacja przeciwsolna / biobójcza ręczna",
+    productId: CATALOG_WAVE2_IMPREGNACJA_PRODUCT_ID,
+    test: (h) => matchesImpregnacjaBiobojczaAliasHay(h),
+  },
+  {
+    order: 6,
     aliasRuleId: "oczyszczenie_podloza",
     labelPl: "Oczyszczenie / zmywanie podłoża",
     productId: CATALOG_WAVE2_PRODUCT_IDS.oczyszczenie_podloza,
-    // OUT-BIZ: docieplenie / lekka-mokra — zakaz
-    // DF §2.2: kategoria IN obejmuje też impregnację (TOP100 przeciwsolna/biobójcza)
+    // OUT-BIZ: docieplenie / lekka-mokra — zakaz · impregnacja → osobna reguła (A01 LP10)
     test: (h) => {
       if (/lekka-?mokr|docieplen/.test(h)) return false;
+      if (matchesImpregnacjaBiobojczaAliasHay(h)) return false;
       return (
         /oczyszczenie\s+i\s+zmyw\w*\s+podloza/.test(h) ||
         /oczyszczenie\s+(i\s+zmyci\w*\s+)?podloza/.test(h) ||
@@ -119,13 +139,12 @@ export const CATALOG_COVERAGE_WAVE2_PACK: readonly CatalogCoverageAliasWave2Pack
         /oczyszczenie\s+powierzchni\s+(muru|scian)/.test(h) ||
         /przygotowanie\s+i\s+naprawa\s+podloza.*oczyszczen/.test(h) ||
         /zmyw\w*\s+podloz/.test(h) ||
-        /zmyci\w*\s+podloz/.test(h) ||
-        /impregnacj\w*\s+(przeciwsol|bioboj)/.test(h)
+        /zmyci\w*\s+podloz/.test(h)
       );
     },
   },
   {
-    order: 6,
+    order: 7,
     aliasRuleId: "plyta_gk_zabudowa",
     labelPl: "Obudowa GK belek / słupów",
     productId: CATALOG_WAVE2_PRODUCT_IDS.plyta_gk_zabudowa,
@@ -135,7 +154,7 @@ export const CATALOG_COVERAGE_WAVE2_PACK: readonly CatalogCoverageAliasWave2Pack
       /plytami\s+gipsowo-?\s*kartonowymi\s+na\s+rusztach/.test(h),
   },
   {
-    order: 7,
+    order: 8,
     aliasRuleId: "zawor_odcinajacy_15",
     labelPl: "Zawory odcinające pod mywalką / zlewem / bojlerem",
     productId: CATALOG_WAVE2_PRODUCT_IDS.zawor_odcinajacy_15,
@@ -144,7 +163,7 @@ export const CATALOG_COVERAGE_WAVE2_PACK: readonly CatalogCoverageAliasWave2Pack
       /zawor\w*\s*\/?\s*pod\s+(mywalk|zlew|bojler)/.test(h) && !/odpowietrz/.test(h),
   },
   {
-    order: 8,
+    order: 9,
     aliasRuleId: "wykucie_wnek",
     labelPl: "Wykucie wnęk w murze",
     productId: CATALOG_WAVE2_PRODUCT_IDS.wykucie_wnek,
