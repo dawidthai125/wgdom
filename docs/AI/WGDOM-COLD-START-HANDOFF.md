@@ -2,10 +2,12 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-18  
+> **Data:** 2026-08-24 (pointer sync · F5 MARGIN) · prior 2026-08-18  
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
+> **Live tip (czytaj 09):** UI **2.66.115** · commit **`82f3520e`** · **F5 MARGIN CLOSED GREEN** · **≠** cały IK E2E GREEN  
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
-> **★★ IK sesja Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — A08-P0/P1/P2 **CLOSED** · **nie** next = A08-P3 / IK-MIGRATION-01 P2  
+> **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED**  
+> **Prior Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — historyczny  
 > **Tender pricing (F0–F6 + C-MODE-1a):** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) — tip **zawsze z 09** (nie hardcoduj tutaj)  
 > *(tabele historyczne poniżej mogą mieć stare numery — **tip = 09 + version.json**)*
 
@@ -23,12 +25,12 @@ SEARCH BEFORE CREATE.
 
 | | |
 |--|--|
-| **Version** | **czytaj 09 + version.json** (snapshot docs: **2.66.59**) |
-| **Commit** | **czytaj 09** (snapshot: **`9bcc558`** · PASS2 CR · Tablica OUR RATE Accept VERIFIED) |
+| **Version** | **czytaj 09 + version.json** (live tip: **2.66.115**) |
+| **Commit** | **czytaj 09** (live tip: **`82f3520e`** · F5 MARGIN CLOSED GREEN) |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
-| **IK session (2026-08-18)** | [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) |
+| **IK session (2026-08-24)** | [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) |
 | **Protected Core** | **GREEN** |
 | **STABILIZATION WINDOW** | **ACTIVE** |
 
@@ -40,10 +42,12 @@ SEARCH BEFORE CREATE.
 |--|--|
 | **TRYB** | **UTRZYMANIE** |
 | **ACTIVE EPIC IMPLEMENT** | **NONE** bez Owner GO |
+| **IK A01 F5 MARGIN** | **CLOSED / PRODUCTION VERIFIED GREEN** · **`82f3520e`** · no further `--execute` |
 | **IK AUTONOMY-08** | epic **NOT CLOSED** · P0/P1/P2 **CLOSED** · **NIE** start A08-P3 |
+| **Observability Phase 5** | **NOT AUTHORIZED** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
-| **WAITING** | **OWNER instruction** — **nie** IK-MIGRATION-01 P2 · **nie** A08-P3 |
-| **Tip feature** | **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **`ae426ad6`** · prior P0 Dual-Enablement **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 EPIC CLOSED |
+| **WAITING** | **OWNER instruction** — **nie** reopen F5 MARGIN · **nie** A08-P3 · **nie** KNR auto-bridge |
+| **Tip feature** | **F5 MARGIN CLOSED** · **`82f3520e`** · prior Observability Ph 1–4 **`c1b3ad7d`** · prior IK-KNR-WC · TM-01 EPIC CLOSED |
 
 | Slice | Status |
 |-------|--------|

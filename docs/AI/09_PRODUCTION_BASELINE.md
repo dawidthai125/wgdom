@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-08-22 · tip UI **`version.json`** **2.66.113** · live deploy **`63cb134`** (`63cb13453831829acac98f07815b8e58244bf7a9`) · docs tip **`63cb1345`** · **IK-KNR-WC P3 CREATE = CLOSED / PRODUCTION VERIFIED @ 2.66.113** · **P3.1 BOQ name enrichment = CLOSED / PRODUCTION VERIFIED (`5984330a`)** · **P3 cache harness fix = CLOSED / PRODUCTION VERIFIED (`63cb1345` · test-only)** · **KNR Slice A impl milestone `93eb41be` = COMPLETE / CLOSED · PRODUCTION VERIFIED · GREEN** (ancestor; ≠ live tip) · Historical EC impl/PV milestone **`b31169be`** (ancestor; ≠ live tip) · **IK AUTONOMY-08 P2 = COMPLETE / CLOSED** · A08-P0/P1 **COMPLETE / CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · P2 CONTRACT **VERIFIED** · live Research HTTP **NOT EXECUTED** (IK Entry OFF · not a failure) · AUTONOMY-07 **2.66.92** / **`0f994437`** · AUTONOMY-06 **2.66.91** / **`ab5eaaa1`** · AUTONOMY-05 **2.66.90** / **`44e81d20`** · Composite COMPLETE / CLOSED · P1 COMPLETE / CLOSED · P2 KEEP GAP · CatalogWork **471** · D **false** (code default · live KV `expertAiDecydentEnabled=true` is **PRE-EXISTING**, not set by A08-P0/P1/P2) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · sesja IK [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) · tryb **UTRZYMANIE** · **NIE buduj Przetargów od nowa**.
+**Snapshot dokumentacji:** 2026-08-24 · tip UI **`version.json`** **2.66.115** · live deploy **`82f3520e`** · **IK A01 F5 MARGIN CLOSED / PRODUCTION VERIFIED GREEN** · prior **`c1b3ad7d`** (Observability Phases 1–4) · Phase 5 NOT AUTHORIZED · **≠** global IK E2E GREEN · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · sesja IK [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · tryb **UTRZYMANIE**
 
 ---
 
@@ -15,8 +15,9 @@
 1. Ten plik (docs/AI/09_PRODUCTION_BASELINE.md)
 2. Opcjonalnie curl / Invoke-RestMethod version.json
 3. IK / costing continuity: docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md
-4. IK sesja Autonomy (2026-08-18): docs/architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md
-5. NIE kopiuj tipu do AI_ENTRY / AGENTS / Continuity / cursor rules
+4. IK sesja (2026-08-24 · F5 MARGIN): docs/architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md
+5. Cold-start entry: docs/AI/WGDOM-COLD-START-HANDOFF.md · MASTER-AI-HANDOFF.md
+6. NIE kopiuj tipu do AI_ENTRY / AGENTS / Continuity / cursor rules
 ```
 
 Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge Base bez bumpów numerów.
@@ -28,8 +29,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / version.json)** | **2.66.113** |
-| **Deploy tip commit (`main` / `version.json`)** | **live `63cb134`** · pełny **`63cb13453831829acac98f07815b8e58244bf7a9`** · UI tip **2.66.113** (CHANGELOG[0] IK-KNR-WC P3 CREATE; harness-only commit bez bumpu UI) · docs tip **`63cb1345`** · tip deploy superseduje prior **`5984330a`** (P3.1) / **`6e501ab`** (Payroll P0 ancestor) / **`93eb41be`** (KNR Slice A) · cold-start [`IK-COMPLETE-COLD-START-HANDOFF-2026-08-18.md`](../architecture/IK-COMPLETE-COLD-START-HANDOFF-2026-08-18.md) · parent DF [`IK-KNR-EXPERT-DESIGN-FREEZE.md`](../architecture/IK-KNR-EXPERT-DESIGN-FREEZE.md) §2A **FROZEN** |
+| **UI version (changelog / version.json)** | **2.66.115** |
+| **Deploy tip commit (`main` / `version.json`)** | **live `82f3520e`** · pełny **`82f3520e1f7e0f5b763792fb2592b4247be7df8a`** · timestamp **`2026-08-24T21:23:45.724Z`** · **deploy propagowany — brak nowego deploy wymaganego** · prior **`c1b3ad7d`** (Observability Phase 4) · prior **`b56f3d43`** (Observability Phases 1–3) · prior **`8ccb3e9b`** (A09 PACKAGE) |
+| **Feature tip (IK A01 F5 MARGIN — commercialPricing)** | **CLOSED / PRODUCTION VERIFIED GREEN** · commit **`82f3520e`** · LP9 `cc-w2-oczyszczenie-podloza` · LP10 `cc-w2-impregnacja-biobojcza-m2` · marginPct **25** · source **owner** · regions **wroclaw + dolnyslask** · OUR RATE **LP9=18 · LP10=22** frozen · MarketQuotes frozen · collateral `cc-w2-scianki-dzialowe-gr-pakiet-m2` **UNCHANGED** · F5 SELL **LP9=22.5 · LP10=27.5 PLN/m²** · prod idempotency **`CHANGED=false`** · KV execute **COMPLETE** (prior session) · **no further `--execute` authorized** · test **`test-catalog-ik-owner-a01-commercial-margin-ops.mjs`** **36/0** · **≠** cały IK globalnie GREEN · AUTONOMY-08 epic **NOT CLOSED** |
+| **Feature tip (IK Observability Projection Phases 1–4)** | **CLOSED / PRODUCTION VERIFIED GREEN** · Phase 4 commit **`c1b3ad7d`** (ancestor · ≠ live tip) · Observation SSOT + Live Viz + Team Conversation overlay · Phase **5 NOT AUTHORIZED** · Master **§13.11** · handoff [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §0.1 · tests P4 **78/78** P12 **91/91** P3 **81/81** |
 | **Feature tip (IK-KNR-WC Identity Bridge — P3 WC CREATE)** | **COMPLETE / CLOSED** · **PRODUCTION VERIFIED** @ UI **2.66.113** · `saveWorkCatalogRouted` only · cache key **`normalizedKey`** · authority boundaries **UNCHANGED** · prod CREATE verified 1× · DF [`IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md`](../architecture/IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md) §27c–§29 |
 | **Feature tip (IK-KNR-WC P3.1 — BOQ name enrichment)** | **COMPLETE / CLOSED** · **PRODUCTION VERIFIED** · impl **`5984330a`** (`5984330a1f25a33ecbde1353db73af0117fba67c`) · `officialNamePl` / `descriptionPl` z BOQ · **nie** zmienia P3 CREATE gate · **nie** zmienia cache contract · test **`test-ik-knr-wc-identity-bridge-p3.mjs`** T-P3.1-* |
 | **Feature tip (IK-KNR-WC P3 cache harness fix)** | **COMPLETE / CLOSED** · **PRODUCTION VERIFIED** · commit **`63cb1345`** (`63cb13453831829acac98f07815b8e58244bf7a9`) · **test-only** (`.tmp/prod-p31-*.mjs`) · **zero** `src/` · cold 20 MISS/20 BUILT · second 20 HIT/0 MISS/0 BUILT · same browser context |

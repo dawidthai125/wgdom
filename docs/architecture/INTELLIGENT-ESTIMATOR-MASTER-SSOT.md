@@ -2,13 +2,16 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta**
-> **Data:** 2026-08-24 (Master update) · prior body 2026-08-22
-> **Mode:** DOCUMENTATION ONLY · **NO REBUILD**
+> **Data:** 2026-08-24 (Master update · **F5 MARGIN CLOSED GREEN** · Observability Phases 1–4 CLOSED) · prior Experience SSOT / body 2026-08-22
+> **Mode:** DOCUMENTATION ONLY · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **≠** cały IK globalnie E2E GREEN
+> **Experience DF:** [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) · Phase 4 amend §21
+> **Live tip commit:** **`82f3520e`** · UI **`2.66.115`** · prior Phase 4 **`c1b3ad7d`** (ancestor) · F5 MARGIN **CLOSED / PRODUCTION VERIFIED GREEN**
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
-> **Live tip (2026-08-24 closeout):** UI **2.66.113** · commit **`8ccb3e9`** (`8ccb3e9b` · A09-PACKAGE-S1) · **brak bumpu UI = EXPECTED** (docs-only / catalog slice bez changelog)
-> **Owner Map slices (latest):** A01-S1 **`3e4adfff`** · A01-LP5 identity **`f012d39a`** · A01-LP5 OPS **`cf802cbd`** · **A09-PACKAGE-S1 **`8ccb3e9b`** — **PRODUCTION VERIFIED GREEN**
+> **Live tip (pointer):** UI / commit — **tylko** `09` + live `version.json` (nie hardcoduj tu przy driftcie deploy)
+> **Owner Map slices (latest):** A01-S1 **`3e4adfff`** · A01-LP5 **`f012d39a`** · A01-S3 OUR RATE **`e7774ca5`** · **A01 F5 MARGIN **`82f3520e`**** · A09-PACKAGE-S1 **`8ccb3e9b`**
 > **Sesja continuity:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
+> **★★ IK EXPERIENCE:** §13 — Observation SSOT (Phases **1–2 CLOSED**) · Live Viz consumer (**Phase 3 CLOSED**) · Team Conversation overlay (**Phase 4 CLOSED**) · ETA / Final Wrap-up = **Phase 5 NOT AUTHORIZED**
 
 ```text
 ════════════════════════════════════════════════════════
@@ -46,7 +49,13 @@ Prod: https://www.wgdom.fun · repo `main` · FE deploy = `git push origin main`
 
 ```text
 IK = JEDEN ZESPÓŁ EKSPERTÓW nad ISTNIEJĄCYM stackiem Przetargów.
+    + JEDEN CASE + JEDEN ORCHESTRATED PIPELINE + ISTNIEJĄCE SSOT
+    + RZECZYWISTA WSPÓŁPRACA EKSPERTÓW (projekcja pipeline)
+    + LIVE TEAM EXPERIENCE (TARGET — §13)
+    + PEŁNY KOSZTORYS + WYJAŚNIENIE WYNIKU + BID / PDF
+
 Nie drugi chatbot. Nie drugi silnik Bid. Nie drugi Catalog.
+Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 ```
 
 | Rola (logiczna) | Rzeczywisty byt w source | NIE jest |
@@ -63,7 +72,11 @@ Nie drugi chatbot. Nie drugi silnik Bid. Nie drugi Catalog.
 | **Composite / Position** | `ik-composite-both-hold` → `computePositionCost` (F5) | Drugim kalkulatorem pozycji |
 | **Validation / Control** | `validation-expert` (P8) + HOLD Classification | Auto-Accept |
 | **P7 / P8** | `ik-p7-position-cost-bid` · `ik-p8-risk-decision` | Final Bid persist / auto Owner Accept |
-| **Expert Conversation** | `ExpertConversationSurface` + `ik-entry-conversation` | Osobnym LLM per ekspert · fikcyjnym chat store |
+| **Expert Conversation (CURRENT)** | `ExpertConversationSurface` + `ik-entry-conversation` (+ truth filter) | Osobnym LLM per ekspert · fikcyjnym chat store |
+| **IK Experience layer (TARGET)** | Projekcja observability nad runtime (§13) — Team Conversation + Live Visualization + ETA + Final Summary | Drugim systemem IK · storytelling engine |
+
+**OWNER = DECISION MAKER.** IK analizuje / proponuje / porównuje / wyjaśnia / wskazuje ryzyko / rekomenduje.  
+**NIE** przejmuje samowolnie: OUR RATE · Accept · KNR mapping boundaries · Final Bid · Historical authority.
 
 **IK nie tworzy drugiej domeny Przetargów.** REUSE: `TendersModule`, OfferBoq, F5 Position Cost, Work Catalog, Price Memory, Evidence, Accept, Multi-Dwelling, Bid PDF.
 
@@ -79,6 +92,7 @@ Nie drugi chatbot. Nie drugi silnik Bid. Nie drugi Catalog.
 - nowy labor/material research engine / drugi Historical index
 - nowy PDF engine (najpierw REUSE istniejącego stacku)
 - drugi orchestrator IK / drugi Chief / drugi KNR „system”
+- osobny chat store / LLM per expert / storytelling Experience engine (bez projekcji pipeline — §13)
 - `Evidence → OUR RATE` bez Candidate + Owner Accept
 - `companyPricePln → OUR RATE`
 - `pkt ≡ mb` bez dowodu
@@ -110,6 +124,7 @@ Nie drugi chatbot. Nie drugi silnik Bid. Nie drugi Catalog.
 | KNR Expert DF | [`IK-KNR-EXPERT-DESIGN-FREEZE.md`](./IK-KNR-EXPERT-DESIGN-FREEZE.md) · Slice A/B/C/D docs w tym katalogu |
 | Historical Executed | `IK-HISTORICAL-EXECUTED-ATH-*` · Host Wiring · EC reveal VERIFY |
 | Owner Map / Multi-Dwelling | `MULTI-DWELLING-*` · `MULTI-BOQ-*` · OPS Owner Map smoke |
+| **IK Analysis Observability Projection** | [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) — Phases **1–4 CLOSED GREEN** · Phase **5 NOT AUTHORIZED** · Master **§13** · **§13.11** |
 
 **Pozostałe dokumenty** (architecture / DF / plan / audit / handoff / verify) **nie zastępują** tego Master SSOT.
 
@@ -306,7 +321,11 @@ INTELLIGENT ESTIMATOR
 ├── VALIDATION / CONTROL           → validation-expert (+ Classification HOLD)
 ├── P7 POSITION COST / BID         → ik-p7-position-cost-bid
 ├── P8 RISK / DECISION             → ik-p8-risk-decision
-├── EXPERT CONVERSATION / TEAM UI  → ExpertConversationSurface + ik-entry-conversation
+├── OBSERVATION (Experience SSOT)  → buildAnalysisObservation · analysis-observation.ts  [Phases 1–2 CLOSED]
+├── LIVE VISUALIZATION             → LiveVisualizationView · READ-ONLY consumer Observation  [Phase 3 CLOSED]
+├── EXPERT CONVERSATION / TEAM UI  → ExpertConversationSurface + ik-entry-conversation + overlay  [Phase 4 CLOSED]
+├── OWNER ACTION QUEUE             → ik-owner-action-queue · IkOwnerActionQueueNavigate  [CURRENT]
+├── IK EXPERIENCE (remaining §13)  → ETA · Final Summary · hints Variant B  [Phase 5 NOT AUTHORIZED]
 └── BID / OFFER / PDF              → tenders-bid-calculator · OfferBoq · tender-bid-package-pdf
 ```
 
@@ -321,15 +340,19 @@ PRZETARG
        → IkEntryHost
             → P2: runIkNg02IngestBridge → runIkDocumentExpert
             → Owner Map gate (documentToDwelling / allMapped) gdy multi
-            → runIkKnrExpert(+ historicalIndex) → applyOwnerKnrMapping
+            → runIkKnrExpert(+ historicalIndex) → applyOwnerKnrMapping (Slice D)
             → KL-3 HOST lookup-only (side-channel; nie conversation authority)
-            → runIkMasterBoqClassification
-            → P5: runIkMasterBoqLaborExpert → lookupWorkRate / research MISS
-            → P6: runIkMasterBoqMaterialExpert → Price Memory / research MISS
-            → P5∧P6: runIkCompositeBothHold → computePositionCost
+            → runIkIdentityPhase (OfferBoq work identity · persist gated W2)
+            → runIkMasterBoqClassification (BEFORE research — gate)
+            → runIkMasterBoqIdentityCoverage (optional flag)
+            → P5/P6: runIkLabor/Material (async · useIkOrchestra)
+            → P5∧P6: runIkCompositeBothHold → computePositionCost (F5)
             → P7: runIkP7PositionCostBid
             → P8: runIkP8RiskDecision(chiefSession)
-            → buildIkEntryConversationViewModel → ExpertConversationSurface
+            → buildAnalysisObservation(orchestra) → LiveVisualizationView
+            → buildIkEntryConversationViewModel → overlayObservationStatusesOnConversationVm
+            → ExpertConversationSurface vm={vm}
+            → IkOwnerActionQueueNavigate
   → Bid / Offer / PDF (istniejący stack Hub/Detail — nie drugi silnik)
 ```
 
@@ -492,15 +515,17 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 | **NIE** | research/HTTP/Catalog write · Final Bid persist | start D/Chief · auto Accept · Historical=Catalog |
 | **Status** | **IMPLEMENTED** · gated AUTO/OFF/ON · live często **NOT OBSERVABLE** gdy IK/flagi OFF |
 
-### 11.13 Expert Conversation / Team UI
+### 11.13 Expert Conversation / Team UI (CURRENT foundation)
 
 | | |
 |--|--|
-| **Pliki** | `src/app/expert-conversation/ExpertConversationSurface.tsx` · `ik-entry-conversation.ts` · `ik-knr-conversation.ts` · `IkExpertRoomChrome.tsx` · `expert-conversation-ui.ts` |
-| **Rola** | Prezentacja **rzeczywistego** VM pipeline (Document / KNR / Labor / Material / …) |
+| **Pliki** | `src/app/expert-conversation/ExpertConversationSurface.tsx` · `ExpertConversationStepCard.tsx` · `ik-entry-conversation.ts` · `ik-conversation-event.ts` · `ik-knr-conversation.ts` · `IkExpertRoomChrome.tsx` · `expert-conversation-ui.ts` |
+| **Rola** | Prezentacja **rzeczywistego** VM pipeline (Document / KNR / Labor / Material / Classification / Composite / P7 / P8 / Chief) |
 | **Fix 2026-08-21** | structural vs content signature — late Historical **nie** resetuje progressive reveal |
-| **NIE** | Fikcyjne wiadomości bez faktów · osobny chat store · LLM per ekspert |
-| **Status** | Presentation **PRODUCTION EXISTING** · Historical EC copy **PRODUCTION VERIFIED** · pełny „team script” dialog **PROPOSED** (TARGET §13) |
+| **NIE** | Fikcyjne wiadomości bez faktów · osobny chat store · LLM per ekspert · drugi orchestrator |
+| **Status** | Presentation **PRODUCTION EXISTING** · Historical EC copy **PRODUCTION VERIFIED** · pełny Team Conversation + Live Visualization + ETA + Final Summary = **TARGET** (§13) — **nie** oznaczać jako CURRENT |
+
+**Docelowa warstwa Experience:** **§13** (CURRENT / PARTIAL / GAP / TARGET). Experience **nie** jest osobnym systemem IK.
 
 ### 11.14 Bid / Offer / PDF
 
@@ -537,7 +562,8 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 | P8 / Risk | `ik-p8-risk-decision.ts` | validation-expert | Host | IMPLEMENTED | ❌ |
 | Validation | `validation-expert/*` | — | P8 | PRODUCTION EXISTING | ❌ |
 | Chief | `chief-session` · `chief-orchestrator` | dossier in-memory | DetailPage | PRODUCTION EXISTING | ❌ drugi Chief |
-| Conversation | `expert-conversation/*` | VM only | Host / Hub | PRODUCTION EXISTING | ❌ chat store |
+| Conversation | `expert-conversation/*` | VM only | Host / Hub | PRODUCTION EXISTING (foundation) | ❌ chat store / LLM-per-expert |
+| IK Experience (TARGET) | §13 Master SSOT | projekcja pipeline | — | **TARGET / PARTIAL** | ❌ storytelling engine · drugi IK |
 | Bid / Offer | bid-calculator · OfferBoq | — | Hub / P7 | KEEP | ❌ trzeci PLN |
 | PDF | `tender-bid-package-pdf.ts` | — | DetailPanel | PRODUCTION EXISTING | ❌ nowy PDF engine |
 | Cloud sync | `cloud-sync.ts` | Supabase KV | app | CORE LOCK | ❌ casual change |
@@ -546,32 +572,261 @@ Pełniejsza tabela historyczna: [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLI
 
 ---
 
-## 13. Team Conversation UX — CURRENT vs TARGET
-
-### CURRENT (source)
-
-- Jedna powierzchnia: `ExpertConversationSurface` + VM z `buildIkEntryConversationViewModel`.
-- Kroki ekspertów odzwierciedlają **rzeczywiste** raporty (Document / KNR / Historical copy / Classification / …).
-- Progressive reveal: **structural** restart · **content** (np. late Historical) = in-place, bez resetu.
-
-### TARGET (PROPOSED presentation — nie invent LLM agentów)
-
-Docelowo IK wygląda jak zgrana ekipa, ale **dane = pipeline**:
+## 13. IK ANALYSIS EXPERIENCE — Team Conversation + Live Visualization
 
 ```text
-CHIEF:     „Otrzymałem przetarg. Najpierw Dokument Expert przygotuje BOQ.”
-DOCUMENT:  „Mam N przedmiarów / M pozycji.”          ← z Document Expert
-OWNER MAP: „Wymagane mapowanie dokumentów → lokale.” ← z Multi-Dwelling
-KNR:       „EXACT/FAMILY/CONFLICT/MISS …”            ← z KNR + Historical
-LABOR:     „Work Catalog HIT / MISS / research…”     ← z Labor Expert
-MATERIAL:  „Price Memory HIT / research…”            ← z Material Expert
-COMPOSITE: „Łączę robociznę + materiał…”             ← z Composite / F5
-VALIDATION:„HOLD jednostek / konflikt…”              ← z Validation / Classification
-CHIEF:     „Nie zatwierdzam HOLD. Reszta dalej.”
-→ Position Cost → Bid → Risk → PDF
+════════════════════════════════════════════════════════
+FINALNY IK ≠ tylko silnik kosztorysu.
+FINALNY IK = JEDEN ZESPÓŁ + RZECZYWISTA PRACA WIDOCZNA DLA OWNERA
+             W CZASIE ANALIZY + WYJAŚNIENIE WYNIKU PO ZAKOŃCZENIU.
+
+Team Conversation + Live Visualization
+  = EXPERIENCE / OBSERVABILITY nad istniejącym IK runtime.
+  ≠ osobny system IK.
+  ≠ storytelling engine.
+  ≠ LLM per expert „na pokaz”.
+
+DESIGN FREEZE (projekcja):
+  IK-ANALYSIS-OBSERVABILITY-PROJECTION-01
+  Phases 1–4 = CLOSED / PRODUCTION VERIFIED GREEN @ c1b3ad7d
+  Phase 5 (ETA · Final Wrap-up · hints Variant B) = NOT AUTHORIZED
+════════════════════════════════════════════════════════
 ```
 
-**ZAKAZ:** fikcyjne postępy bez faktów orchestracji · osobny agent/LLM „na eksperta” bez Owner GO.
+**DF SSOT (kontrakty Observation / Progress / ETA / Wrap-up):**  
+[`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md)
+
+### 13.0 Architecture rule (HARD)
+
+```text
+REAL IK PIPELINE (Chief → IkEntryHost → Experts → SSOT/engines)
+        ↓
+ANALYSIS STATE / EVENTS / OBSERVABILITY  (projekcja faktów)
+        ↓
+ ┌──────┴────────────────────────┐
+ ▼                               ▼
+TEAM CONVERSATION          LIVE VISUALIZATION
+(+ Progress / ETA)         (+ stage / expert / ops)
+        ↓
+FINAL ANALYSIS SUMMARY
+  · difficulty · confidence · findings
+  · „dlaczego taka cena?” · Chief wrap-up
+```
+
+**ZAKAZ:** niezależny generator rozmowy · fikcyjne postępy · drugi event bus „na UX” bez projekcji runtime · budowa drugiego kalkulatora ceny „dla wyjaśnienia”.
+
+**REUSE wyjaśnienia ceny:** Position Cost (F5) → Composite → P7 → Bid / Offer / istniejący explainability — **NIE DRUGI ENGINE**.
+
+### 13.1 Docelowy UX startu analizy (TARGET)
+
+```text
+Owner otwiera konkretny przetarg
+  → klika „Analizuj przetarg” (lub równoważny CTA startu IK)
+  → Chief przejmuje case
+  → Orchestrator (IkEntryHost) uruchamia pipeline
+  → eksperci wykonują RZECZYWISTĄ pracę
+  → UI NATYCHMIAST pokazuje Team Conversation + Live Visualization
+```
+
+Użytkownik **nie** powinien czekać na pustym ekranie.  
+**CURRENT note:** start analysis jest dziś wpleciony w `IkEntryHost` / flagi / pipeline (niekoniecznie jeden przycisk o tej etykiecie) — pełny „Analizuj przetarg → live dual surface” = **TARGET / PARTIAL**.
+
+### 13.2 CURRENT (source-verified — 2026-08-24 · post Phase 4)
+
+| Element | Dowód w source | Status |
+|---------|----------------|--------|
+| `AnalysisObservation` / `buildAnalysisObservation` | `analysis-observation.ts` | **PRODUCTION VERIFIED** (Phases 1–2) |
+| Observation = SSOT status/progress | stage weights · `overallStatus` · `progress` | **PRODUCTION VERIFIED** |
+| `LiveVisualizationView` | `LiveVisualizationView.tsx` · READ-ONLY `observation` prop | **PRODUCTION VERIFIED** (Phase 3) |
+| Observation → EC status bridge | `mapObservationStatusToEcStepStatus` · `resolveObservationStageIdForEcStep` | **PRODUCTION VERIFIED** (Phase 4) |
+| Pure overlay VM | `overlayObservationStatusesOnConversationVm` | **PRODUCTION VERIFIED** (Phase 4) |
+| `ExpertConversationSurface` | progressive reveal · Skip/Continue · reduced-motion | **CURRENT** |
+| `buildIkEntryConversationViewModel` | `ik-entry-conversation.ts` — copy / sourceRef / messages | **CURRENT** (legacy builder; **not** final status authority) |
+| Truth filter / `IkConversationEvent` | `ik-conversation-event.ts` · `sourceRef` · `done`→`hold` | **CURRENT** |
+| Actorzy PL (Chief / Document / Labor / Material / …) | `expert-conversation-ui` labels | **CURRENT** |
+| `IkEntryHost` montuje Experience stack | `LiveVisualizationView` → `IkOwnerActionQueueNavigate` → `ExpertConversationSurface vm={vm}` | **PRODUCTION VERIFIED** (Phase 3–4) |
+| Chief session + orchestrator | `useChiefOrchestratorSession` · `chief-*` | **CURRENT** |
+| Pipeline stages w Orchestra | Document → KNR → Identity → Class → P5/P6 → Composite → P7 → P8 | **CURRENT** (`ik-orchestra-engine.ts`) |
+| KNR conversation copy | `ik-knr-conversation.ts` | **CURRENT** |
+| Owner Action Queue | `ik-owner-action-queue.ts` · deep links | **CURRENT** |
+| Historical EC late-update (no reveal reset) | structural vs content signature | **PRODUCTION VERIFIED** (slice) |
+| Variant A hints | `conversationHints: []` — **no populate** | **FROZEN** (Phase 4) |
+
+### 13.3 PARTIAL (post Phase 4)
+
+| Element | Co jest | Czego brakuje |
+|---------|---------|---------------|
+| Team-like conversation | Step cards · Observation-driven status overlay · pipeline-fact copy | Pełny „dialog zespołu” Chief↔eksperci · hints Variant B |
+| Observability | `AnalysisObservation` SSOT · Live Viz · EC status bridge | Unified **event bus** (zabroniony) · timestamps/duration engine |
+| Progress | Observation `progress` · Live Viz primary surface | Dynamic ETA · Final wrap-up progress copy w Conversation |
+| Final wrap-up | Fazy `ready` / `blocked` w EC + Observation terminal states | Pełny FINAL STATE UX (Phase 5) |
+| Explainability ceny | F5 / Composite / P7 / Bid stack (istniejący) | Zunifikowany Experience „Dlaczego taka cena?” panel |
+
+### 13.4 GAP (nie udawać CURRENT)
+
+| Gap | Opis |
+|-----|------|
+| Dynamic ETA | Brak dynamicznego ETA do końca pełnej analizy IK (Phase 5) |
+| Full Team Conversation script | Brak pełnego wrap-up narracyjnego · hints populate (Variant B) |
+| Final Analysis Summary | Brak kompletnego final UX: czas · difficulty · confidence · findings · Chief close (Phase 5) |
+| „Dlaczego taka cena?” (IK Experience) | Brak zintegrowanego final explanation **w warstwie Experience** (silniki istnieją) |
+| „Czy było łatwo?” | Brak human/light difficulty commentary opartego wyłącznie o metryki pipeline |
+| **Phase 5 overall** | ETA · Final engine · findings migration · timestamps — **NOT AUTHORIZED** |
+
+### 13.5 TARGET — Live Visualization
+
+Docelowa wizualizacja (projekcja **istniejących** warstw IK — **nie** invent nowych ekspertów):
+
+- overall progress %
+- completed / active / waiting stages
+- active experts · current operation · completed operations
+- warnings · findings · bottlenecks
+- **dynamic ETA** (szacunek; reaguje na postęp, pozostałe zadania, blokady)
+
+**Domeny / stages (mapowanie do CURRENT modules — nie nowe role):**
+
+| Viz domain | Mapuje na CURRENT |
+|------------|-------------------|
+| DOCUMENTS | Document Expert / P2 / NG-02 |
+| BOQ | OfferBoq / Multi-BOQ |
+| OWNER MAP | Multi-Dwelling / PackageGate |
+| KNR | KNR Expert + Historical evidence |
+| CLASSIFICATION | Classification Gate |
+| LABOR | Labor Expert / Work Catalog |
+| MATERIAL | Material Expert / Price Memory |
+| COMPOSITE | Composite BOTH_HOLD |
+| POSITION COST | F5 `computePositionCost` |
+| VALIDATION | Validation Expert / P8 |
+| RISK | P8 risk decision |
+| BID | P7 / Bid / Offer / PDF stack |
+
+### 13.6 TARGET — Team Conversation
+
+Wygląda jak współpraca prawdziwego zespołu. **Przykłady UX (nie seed fikcyjnych wiadomości w kodzie):**
+
+```text
+Chief:     „Mamy już zakres robót. Sprawdźmy teraz pozycje KNR.”
+KNR:       „Mam kilka możliwych dopasowań. Jedno wymaga weryfikacji.”
+Labor:     „Dla tej pozycji nie mamy jeszcze zaakceptowanej stawki.”
+Material:  „Cena materiału jest wyższa od historycznej. Sprawdzam źródła.”
+Chief:     „Nie zgadujemy. Oznaczamy jako wymagające decyzji Ownera.”
+```
+
+**HARD:** treść = projekcja rzeczywistych eventów / raportów / stanów.  
+**ZAKAZ:** LLM per expert tylko „żeby było gadanie” · fake progress.
+
+### 13.7 TARGET — ETA
+
+```text
+„Szacowany czas do zakończenia analizy”
+```
+
+- dynamiczny szacunek (nie gwarancja)
+- reaguje na postęp, pozostałe zadania, blokady, aktywność pipeline
+- **Status:** **TARGET / GAP** · kontrakt **FROZEN** w DF Observability Projection · **`eta = null` ⇒ „Szacowanie czasu…”** · Chief T1–T6 **NIE** primary
+- **IMPLEMENT:** **NOT AUTHORIZED** bez osobnego Owner GO po ARCH REVIEW
+
+### 13.7a AnalysisObservation (FROZEN pointer)
+
+Kanoniczny model projekcji (`AnalysisObservation` · stage weights · timing stamps · Final Wrap-up · PriceDrivers · Difficulty) = **FROZEN** w DF:
+
+[`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) §5–§14
+
+**PRIMARY SSOT statusu/progress:** `buildAnalysisObservation(orchestra)` → `AnalysisObservation`.  
+**Consumers (READ-ONLY):** Live Visualization · Team Conversation status overlay.  
+**Conversation copy/messages:** `buildIkEntryConversationViewModel` — **presentation only**; final step status = Observation bridge (`overlayObservationStatusesOnConversationVm`).
+
+**Phase 4 bridge (FROZEN · prod):**
+
+| Observation | EC presentation |
+|-------------|-----------------|
+| `pending` | `pending` |
+| `running` | `active` |
+| `done` | `done` |
+| `partial` | `partial` |
+| `blocked` | `blocked` |
+| `hold` | `hold` |
+| `failed` | `gap` |
+
+**MUST:** Observation **nie** dostaje `active`/`gap` · `skipped` **nie** pochodzi z Observation · Flag-OFF → `overallStatus` bridge · `DWELLING_MAP_*` → `boq` · Variant A `conversationHints=[]`.
+
+### 13.8 TARGET — Final Analysis Experience
+
+Po zakończeniu kosztorysowania UI **nie** kończy się na „Analiza zakończona.”
+
+Team Conversation + Live Visualization → **FINAL STATE**. Chief zamyka pracę zespołu.
+
+Owner docelowo widzi m.in.:
+
+```text
+🎉 ANALIZA ZAKOŃCZONA
+- czas analizy
+- liczba przeanalizowanych pozycji
+- poziom trudności („czy było łatwo?” — oparte o metryki, nie losowy AI)
+- confidence / jakość wyniku
+- liczba problemów · decyzji · findings
+- najtrudniejsze elementy · główne czynniki ceny
+- DLACZEGO końcowa cena jest właśnie taka
+- etapy łatwe vs trudne · gdzie eksperci pracowali najwięcej
+- końcowe podsumowanie Chief
+```
+
+#### „Dlaczego taka cena?” (KLUCZOWE)
+
+Owner rozumie wartość kosztorysu przez czynniki oparte o **istniejący** łańcuch:
+
+```text
+Position Cost (F5) → Composite → P7 → Bid / Offer
+(+ materiały · robocizna · sprzęt · zakres · dokumentacja
+ · technologia · nietypowe pozycje · ryzyka · rynek
+ · brak danych / HOLD · decyzje Ownera)
+```
+
+**NIE BUDUJEMY DRUGIEGO ENGINE.**
+
+#### „Czy było łatwo?”
+
+Profesjonalne + żywe + lekkie — **zawsze** z metryk pipeline (czas stage'y, konflikty KNR, MISS research, HOLD count…).  
+**ZAKAZ:** losowy komentarz AI.
+
+### 13.9 OWNER AUTHORITY (Experience nie zmienia authority)
+
+IK Experience może: analizować · proponować · porównywać · wyjaśniać · wskazywać ryzyko · rekomendować.  
+**NIE** przejmuje: OUR RATE · Accept · KNR mapping boundaries · Final Bid · Historical authority.
+
+### 13.10 Matrix — Experience layer
+
+| Capability | CURRENT | PARTIAL | GAP | TARGET |
+|------------|:-------:|:-------:|:---:|:------:|
+| AnalysisObservation SSOT | ✅ | | | |
+| Live Visualization (READ-ONLY) | ✅ | | | |
+| Observation → EC status overlay | ✅ | | | |
+| ExpertConversationSurface (truth VM) | ✅ | | | |
+| Pipeline-fact steps / actors | ✅ | | | |
+| Progressive reveal (structural/content) | ✅ | | | |
+| Chief + Host orchestration | ✅ | | | |
+| Owner Action Queue navigate | ✅ | | | |
+| Full Team Conversation (live dialog + hints B) | | ◐ | | ★ |
+| Dynamic ETA | | | ❌ | ★ |
+| Final Analysis Summary | | ◐ phases | ❌ full | ★ |
+| Price explanation UX (Experience) | | stack exists | ❌ unified | ★ |
+| Difficulty commentary (metric-based) | | | ❌ | ★ |
+| **Observability Projection Phase 5** | | | | **NOT AUTHORIZED** |
+
+**Gate:** Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phase **5 NOT AUTHORIZED** · Variant B / ETA / Final engine = osobny Owner GO.
+
+### 13.11 Observability Projection — Phase history (CLOSED)
+
+| Phase | Scope | Commit (tip) | Status |
+|-------|-------|--------------|--------|
+| **1–2** | `AnalysisObservation` · status/progress SSOT · `buildAnalysisObservation` | `b56f3d43` | **CLOSED / PRODUCTION VERIFIED** |
+| **3** | `LiveVisualizationView` · READ-ONLY consumer | `b56f3d43` | **CLOSED / PRODUCTION VERIFIED** |
+| **4** | Team Conversation status overlay · bridge · Host wiring · P4 tests | **`c1b3ad7d`** | **CLOSED / PRODUCTION VERIFIED** |
+| **5** | ETA · Final Wrap-up · hints populate · timestamps | — | **NOT AUTHORIZED** |
+
+**Phase 4 pliki (exact scope):** `analysis-observation.ts` (unchanged) · `ik-entry-conversation.ts` (bridge) · `IkEntryHost.tsx` (wiring) · `scripts/test-ik-analysis-observability-projection-01-p4-team-conversation.mjs`.
+
+**Tests @ Phase 4 close:** P4 **78/78** · P12 **91/91** · P3 **81/81** · build **PASS**.
 
 ---
 
@@ -639,27 +894,53 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW
 
 ---
 
-## 17. NEW AGENT COLD START (obowiązkowe)
+## 17. COLD START — NEW GPT / NEW CURSOR AGENT (obowiązkowe)
+
+```text
+CHECKPOINT:
+  HEAD / origin/main = 82f3520e1f7e0f5b763792fb2592b4247be7df8a
+  Production = 2.66.115 / version.json commit = 82f3520
+  F5 MARGIN = CLOSED / PRODUCTION VERIFIED / GREEN
+  ≠ cały IK globalnie E2E GREEN · AUTONOMY-08 epic NOT CLOSED · Phase 5 NOT AUTHORIZED
+```
 
 Nowy agent (Cursor / ChatGPT) **MUSI** wykonać w tej kolejności:
 
 ```text
-1. Przeczytaj TEN Master SSOT (całość)
-2. Przeczytaj IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md (latest)
-3. git status — rozpoznaj pre-existing WIP · NIE stage WIP
-4. git log -10 — verify HEAD vs origin/main
-5. curl live version.json — tip commit + UI version
-6. Odtwórz drzewo IK (§10–§12) — CURRENT vs TARGET vs GAP
-7. Zlokalizuj SSOT: Work Catalog · Price Memory · Evidence · identity (4 rows) · KNR KL
-8. Zweryfikuj FROZEN: A01-S1 · A01-LP5 · A09 PACKAGE (NOT identity)
-9. Pierwsza propozycja = AUDIT ONLY · ZERO CODE · ZERO KV --execute
+1. Przeczytaj TEN Master SSOT (całość) — w tym §13 IK Analysis Experience
+2. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json
+3. Przeczytaj IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md (latest · F5 · DO NOT TOUCH)
+4. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
+5. git log -10 — verify HEAD vs origin/main (= 82f3520e)
+6. Odtwórz drzewo IK (§10–§12) — CURRENT vs PARTIAL vs TARGET vs GAP
+7. Rozróżnij IK Host experts (ik-*-expert) vs Chief experts (*-expert packages)
+   — IK Material Expert ≠ Chief Material Expert
+8. Zlokalizuj SSOT: Work Catalog · Price Memory · Evidence · identity · KNR KL
+9. Zweryfikuj FROZEN: A01-S1 · A01-LP5 · A01 F5 MARGIN · A09 PACKAGE (NOT identity)
+10. Pierwsza propozycja = AUDIT ONLY · ZERO CODE · ZERO KV --execute
 ```
+
+**Po przeczytaniu SSOT agent MUSI rozumieć:**
+
+1. IK **już istnieje** — nie budujemy od nowa.
+2. Nie budujemy drugiego TenderModule / Catalog / Host / Chief.
+3. **Chief** już istnieje (`chief-session` / `chief-orchestrator`) — **równoległy** tor EE→ME→PE→Cost→Offer.
+4. **Orchestrator / Host** już istnieje (`IkEntryHost` / `orchestra/*`) — sync Document→…→P8 + async P5/P6.
+5. **Eksperci IK** już istnieją (Document → KNR → Class → Labor → Material → Composite → P7 → P8).
+6. **KNR** już istnieje jako **część** IK (nie osobny system) · Slice A **PV** · KL **PARTIAL** · bridge GAP.
+7. Work Catalog / Price Memory / Evidence / F5 / Bid / PDF **już istnieją**.
+8. **Expert Conversation + Live Viz** Phases **1–4 CLOSED GREEN** · Phase **5 NOT AUTHORIZED**.
+9. Trzeba rozróżniać **CURRENT / PARTIAL / GAP / TARGET / CLOSED GREEN** — nie mieszać.
+10. **Owner jest decydentem** (OUR RATE / Accept / KNR map / Final Bid / Historical authority).
+11. Workflow: **AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → TEST → VERIFY → COMMIT → PUSH → PRODUCTION VERIFY**.
+12. **SEARCH BEFORE CREATE · REUSE BEFORE CREATE · ZERO DUPLICATE LOGIC.**
+13. Never reopen CLOSED GREEN (F5 MARGIN, A01 rates/quotes) without explicit Owner request.
 
 **KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA.**
 
-Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + live `version.json` (HEAD **`8ccb3e9b`** @ closeout 2026-08-24).
+Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + live `version.json`.
 
-**Nie twórz:** drugiego TenderModule · IkEntryHost · Chief · KNR system · Work Catalog · Price Memory · F5 · Bid · chat store · LLM per expert.
+**Nie twórz:** drugiego TenderModule · IkEntryHost · Chief · KNR system · Work Catalog · Price Memory · F5 · Bid · chat store · LLM per expert · storytelling engine Experience.
 
 **Jeżeli brakuje funkcji:** grep → trace caller → trace SSOT → **REUSE** → dopiero EXTEND po Owner GO.
 
@@ -684,7 +965,7 @@ KL **nie** może stać się drugim pricing engine. Slice D **nie** auto-mapuje b
 
 ## 19. Canonical team contract (nie usuwać)
 
-> **INTELIGENTNY KOSZTORYSANT NIE JEST ZBIorem NIEZALEŻNYCH MODUŁÓW. TO JEDEN ZESPÓŁ EKSPERTÓW DZIAŁAJĄCY NAD WSPÓLNYM CASE PRZETARGOWYM, WYKORZYSTUJĄCY ISTNIEJĄCE SSOT WGDOM. CHIEF KOORDYNUJE. IKENTRYHOST ORKIESTRUJE. EKSPERCI DOMENOWI WYKONUJĄ SWOJE ZADANIA. KNR DOSTARCZA KNOWLEDGE/EVIDENCE. LABOR DOSTARCZA OUR RATE. MATERIAL DOSTARCZA PRICE MEMORY/SELL. COMPOSITE ŁĄCZY R+M. F5 LICZY POSITION COST. P7 BUDUJE WARSTWĘ BID. P8 OCENIA RYZYKO. OWNER ZACHOWUJE AUTHORITY. EXPERT CONVERSATION POKAZUJE PRAWDZIWY STAN PIPELINE. BID/PDF POZOSTAJE W ISTNIEJĄCYM STACKU. NIE BUDUJEMY TEGO OD NOWA. INTEGRUJEMY TO W JEDEN SPÓJNY SYSTEM.**
+> **INTELIGENTNY KOSZTORYSANT NIE JEST ZBIOREM NIEZALEŻNYCH MODUŁÓW. TO JEDEN ZESPÓŁ EKSPERTÓW DZIAŁAJĄCY NAD WSPÓLNYM CASE PRZETARGOWYM, WYKORZYSTUJĄCY ISTNIEJĄCE SSOT WGDOM. CHIEF KOORDYNUJE. IKENTRYHOST ORKIESTRUJE. EKSPERCI DOMENOWI WYKONUJĄ SWOJE ZADANIA. KNR DOSTARCZA KNOWLEDGE/EVIDENCE. LABOR DOSTARCZA OUR RATE. MATERIAL DOSTARCZA PRICE MEMORY/SELL. COMPOSITE ŁĄCZY R+M. F5 LICZY POSITION COST. P7 BUDUJE WARSTWĘ BID. P8 OCENIA RYZYKO. OWNER ZACHOWUJE AUTHORITY. EXPERT CONVERSATION / IK EXPERIENCE POKAZUJE PRAWDZIWY STAN PIPELINE (NIE FIKCYJNĄ ROZMOWĘ). LIVE VISUALIZATION + ETA + FINAL SUMMARY SĄ TARGET EXPERIENCE NAD RUNTIME. BID/PDF POZOSTAJE W ISTNIEJĄCYM STACKU. NIE BUDUJEMY TEGO OD NOWA. INTEGRUJEMY TO W JEDEN SPÓJNY, PRODUKCYJNY SYSTEM END-TO-END.**
 
 ---
 
@@ -695,11 +976,101 @@ KL **nie** może stać się drugim pricing engine. Slice D **nie** auto-mapuje b
 | Identity mapping | `work-rate-identity-mapping.ts` | **CURRENT** | **4** Owner rows · LABOR only |
 | A01-S1 | LP4 → oczyszczenie | **FROZEN GREEN** | `3e4adfff` |
 | A01-LP5 | LP5/LP10 → impregnacja | **FROZEN GREEN** | `f012d39a` + OPS `cf802cbd` |
+| A01-S3 | LP10 OUR RATE + classification | **CLOSED** | `e7774ca5` · LP9=18 · LP10=22 |
+| A01 F5 MARGIN | commercialPricing 25% owner | **PRODUCTION VERIFIED GREEN** | `82f3520e` · SELL 22.5 / 27.5 · dual-region |
 | A09 PACKAGE | `cc-w2-scianki-dzialowe-gr-pakiet-m2` | **PRODUCTION VERIFIED** | `8ccb3e9b` · **NOT identity** · rate **PENDING** |
 | Package plane | `costSplit` on CatalogWork | **CURRENT** | classify ≥0.25/0.25 → PACKAGE |
 | G177 alias | — | **NONE** | EXPECTED |
 | LABOR host ban | `p2b-scianka-gk-na-stelazu-m2` | **UNTOUCHED** | accept=false · no 118 |
 
-Pełna tabela drzewa: §10–§12 + [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §4.
+Pełna tabela drzewa: §10–§12 + [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §4.  
+Experience CURRENT/PARTIAL/GAP/TARGET: **§13**.  
+Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phase **5 NOT AUTHORIZED** · DF [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md).
+
+---
+
+## 22. NEW SESSION / NEW AGENT CONTINUITY BLOCK
+
+```text
+PROJECT:     WGDOM
+SYSTEM:      Intelligent Estimator (IK)
+
+CURRENT STATE:
+  F5 MARGIN CLOSED · PRODUCTION VERIFIED GREEN @ 82f3520e
+  Observability Phases 1–4 CLOSED · PRODUCTION VERIFIED GREEN @ c1b3ad7d (ancestor)
+  Phase 5 NOT AUTHORIZED
+  AUTONOMY-08 epic NOT CLOSED · ≠ całe IK globalnie E2E GREEN
+
+BASELINE:
+  HEAD / origin/main = 82f3520e1f7e0f5b763792fb2592b4247be7df8a
+  Production UI = 2.66.115 · version.json commit = 82f3520
+  Deploy = PROPAGATED / GREEN (Vercel Git Integration · tip already on main)
+
+ARCHITECTURE (Experience):
+  Orchestra runtime (IkOrchestraSnapshot)
+    → buildAnalysisObservation → AnalysisObservation (SSOT status/progress)
+    → LiveVisualizationView (READ-ONLY)
+    → buildIkEntryConversationViewModel → overlayObservationStatusesOnConversationVm
+    → enforceIkConversationTruth → ExpertConversationSurface
+  Conversation ≠ runtime SSOT · Chief ≠ second orchestrator
+
+PIPELINE (sync core · use-ik-orchestra):
+  Document → KNR → Identity → Classification → (P5 Labor ∥ P6 Material async)
+  → Composite/F5 → P7 → P8 → Chief/Decision context → Owner Action Queue
+
+AUTHORITY:
+  Observation = status/progress Experience
+  F5 = sole PLN position cost authority
+  P7 = authoritative bid path (read-only prepare; no Final Bid persist)
+  OfferBoq = BOQ/pricing SSOT (multi-dwelling compose)
+  KNR-WC = Owner-gated / conditional (identity bridge)
+  Owner = Accept · Final Bid · KNR Slice D boundaries
+
+GOVERNANCE:
+  AUDIT → RCA → PLAN → DF → ARCH REVIEW → OWNER GO → IMPLEMENT
+  → TEST → COMMIT → PUSH → PRODUCTION VERIFY → CLOSE
+
+NOT AUTHORIZED:
+  Phase 5 · Variant B hints · second orchestrator · duplicate authority
+  policy changes · unapproved architecture · git add -A
+
+NEXT: WAIT FOR OWNER / PROJECT DECISION
+
+READ FIRST:
+  docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md
+  docs/architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md
+  docs/AI/09_PRODUCTION_BASELINE.md + live version.json
+```
+
+---
+
+## 21. OWNER MISSION (IK — nie usuwać)
+
+```text
+OWNER DECISION:
+
+„Chcę doprowadzić Inteligentnego Kosztorysanta
+do pełnej, działającej produkcyjnie wersji
+możliwie szybko, ale profesjonalnie i bez
+budowania drugiego systemu obok istniejącego WGDOM.
+
+Każdy kolejny agent ma najpierw ustalić:
+CO JUŻ MAMY,
+CZEGO BRAKUJE,
+CO JEST WIP,
+CO JEST TARGETEM.
+
+Następnie ma wskazać NAJKRÓTSZĄ BEZPIECZNĄ DROGĘ
+do pełnego działającego IK.
+
+Nie chcę kolejnych izolowanych demo-slice'ów,
+które nie prowadzą do kompletnego systemu.
+
+Chcę spójnego, produkcyjnego IK end-to-end.”
+```
+
+**Cel projektu (skrót):**  
+Jeden zespół · jeden case · jeden orchestrated pipeline · istniejące SSOT · rzeczywista współpraca ekspertów · **live team experience** · pełny kosztorys · wyjaśnienie wyniku · Bid/PDF.  
+**Nie:** kolejny „AI chat” · drugi silnik · rebuild.
 
 **STOP.** Kolejny gate tylko po nowym Owner GO + AUDIT.

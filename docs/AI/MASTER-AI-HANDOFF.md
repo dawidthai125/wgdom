@@ -3,10 +3,10 @@
 > **ID:** MASTER-AI-HANDOFF  
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
 > **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-18  
+> **Data:** 2026-08-24 (docs sync F5 MARGIN) · prior 2026-08-18  
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
 > **★★ IK Master (NO REBUILD):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)  
-> **★★ IK sesja 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — tip **zawsze z 09** · A08-P0/P1/P2 **CLOSED**  
+> **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — tip **zawsze z 09** · F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**  
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
 > **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)  
 > **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
@@ -17,18 +17,18 @@
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
-START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-18 → TEN plik → 09 + version.json
+START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-24 → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json (nie snapshot 2.66.59 poniżej)
-ACTIVE IMPLEMENT = NONE bez Owner GO · A08-P2 CLOSED · NIE A08-P3
+ACTIVE IMPLEMENT = NONE bez Owner GO · F5 MARGIN CLOSED GREEN · A08-P2 CLOSED · AUTONOMY-08 epic NOT CLOSED · NIE A08-P3
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.113** / deploy **`63cb134`** · **IK-KNR-WC P3 + P3.1 CLOSED / PRODUCTION VERIFIED** · prior **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · … · **PRODUCTION VERIFIED**. Baseline: **IK-KNR-WC Identity Bridge P3/P3.1** + Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX complete · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · D default **OFF** · staff Przetargi module gate · S0 orphan cleanup.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.115** / deploy **`82f3520e`** · **IK A01 F5 MARGIN CLOSED / PRODUCTION VERIFIED GREEN** · prior **IK Observability Phases 1–4 CLOSED** (`c1b3ad7d`) · prior **IK-KNR-WC P3 + P3.1 CLOSED / PRODUCTION VERIFIED** · **AUTONOMY-08 epic NOT CLOSED** · **≠** cały IK globalnie E2E PRODUCTION VERIFIED · prior **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · … · slice-level **PRODUCTION VERIFIED** where documented in 09. Baseline: **F5 MARGIN** + **IK-KNR-WC Identity Bridge P3/P3.1** + Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX complete · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · D default **OFF** · staff Przetargi module gate · S0 orphan cleanup.
 
-Ostatnie zamknięte: **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** (EE→ME→PE→Cost→Offer) · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
+Ostatnie zamknięte (slice-level): **IK A01 F5 MARGIN** (`82f3520e`) · **IK Observability Phases 1–4** (`c1b3ad7d`) · **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** (EE→ME→PE→Cost→Offer) · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
 **OST-03 / XFA / cache filled = zakaz.**  
 **NEXT rekomendacja:** **UTRZYMANIE** — residual **C1–C6** / new epic — **tylko Owner GO → AUDIT** · **NIE** invent S10.  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
@@ -43,10 +43,10 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.113** |
-| **Commit** | **`63cb134`** · live deploy tip · IK-KNR-WC P3.1 **`5984330a`** · harness **`63cb1345`** (test-only) · prior P0 Dual-Enablement **`1902daa7`** · prior Q12 **`4ba06032`** |
-| **Feature tip** | **`63cb134`** — live deploy · **IK-KNR-WC P3 CREATE + P3.1 CLOSED / PRODUCTION VERIFIED** · prior EXPERT-AI-P0-DUAL-ENABLEMENT **`1902daa7`** · prior Enablement/Q12 **`4ba06032`** · TM-01 S7 TRE Hub-first **`617f0cb5`** · … · EXPERTS-P0 **`58872663`** |
-| **Status** | **PRODUCTION VERIFIED** · tip SSOT = [`09`](09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **2.66.115** |
+| **Commit** | **`82f3520e`** · live deploy tip · **IK A01 F5 MARGIN CLOSED GREEN** · prior Observability Ph 4 **`c1b3ad7d`** · prior IK-KNR-WC P3.1 **`5984330a`** · harness **`63cb1345`** (test-only) · prior P0 Dual-Enablement **`1902daa7`** · prior Q12 **`4ba06032`** |
+| **Feature tip** | **`82f3520e`** — live deploy · **IK A01 F5 MARGIN CLOSED / PRODUCTION VERIFIED GREEN** · LP9/LP10 margin **25% owner** dual-region · OUR RATE/MarketQuotes frozen · prod idempotency **`CHANGED=false`** · **no further KV `--execute`** · prior Observability Ph 1–4 **`c1b3ad7d`** · prior IK-KNR-WC P3 **`5984330a`** · prior EXPERT-AI-P0-DUAL-ENABLEMENT **`1902daa7`** · TM-01 S7 **`617f0cb5`** · … · EXPERTS-P0 **`58872663`** |
+| **Status** | **PRODUCTION VERIFIED** (slice-level per 09) · **≠** cały IK globalnie E2E PV · tip SSOT = [`09`](09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
