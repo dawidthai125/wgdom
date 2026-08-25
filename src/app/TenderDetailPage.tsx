@@ -85,14 +85,21 @@ import {
   IkAnalysisSurface,
   IK_ANALYSIS_SURFACE_OPEN_CTA_PL,
 } from "@/app/intelligent-estimator/IkAnalysisSurface";
+import { IkAnalysisHandoffStrip } from "@/app/intelligent-estimator/IkAnalysisHandoffStrip";
 import { IkOrchestraPageBridge } from "@/app/intelligent-estimator/IkOrchestraPageBridge";
 import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
 import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
 import { resolveTenderBidProposalForUi } from "@/lib/intelligent-estimator/resolve-tender-bid-proposal-ui";
+import { buildAnalysisObservation } from "@/lib/intelligent-estimator/analysis-observation";
+import {
+  buildIkAnalysisHandoffViewModel,
+  fingerprintIkAnalysisHandoffInput,
+} from "@/lib/intelligent-estimator/ik-analysis-handoff-ui";
 import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
 import type { IkOwnerActionItem } from "@/lib/intelligent-estimator/orchestra/ik-owner-action-queue";
 import {
   focusIkOwnerActionTarget,
+  navigateIkOwnerActionTarget,
   type IkOwnerActionDeepLinkContext,
 } from "@/lib/intelligent-estimator/orchestra";
 
@@ -385,6 +392,63 @@ export function TenderDetailPage({
     }),
     [activeTab, handleTabChange, handleOwnerActionDeferredFocus],
   );
+
+  /** HANDOFF-01 — pure Observation + queue + bidUi projection (memo via fingerprint). */
+  const ikAnalysisHandoffFp = useMemo(() => {
+    if (!ikOrchestraSnapshot) return "";
+    const observation = buildAnalysisObservation(ikOrchestraSnapshot);
+    return fingerprintIkAnalysisHandoffInput({
+      observation,
+      ownerActionQueue: ikOrchestraSnapshot.ownerActionQueue,
+      packageBlockers: ikOrchestraSnapshot.packageBlockers,
+      bidUi: pipelineRuntimeForUi.bidUiResolution ?? null,
+      deepLinkContext: ownerActionDeepLinkContext,
+      decisionUiPhase: chiefDossierVm?.uiPhase ?? null,
+      chiefDossierAvailable: chiefDossierVm != null,
+    });
+  }, [
+    ikOrchestraSnapshot,
+    pipelineRuntimeForUi.bidUiResolution,
+    ownerActionDeepLinkContext,
+    chiefDossierVm,
+  ]);
+
+  const ikAnalysisHandoffVm = useMemo(() => {
+    if (!ikOrchestraSnapshot || !ikAnalysisHandoffFp) return null;
+    const observation = buildAnalysisObservation(ikOrchestraSnapshot);
+    return buildIkAnalysisHandoffViewModel({
+      observation,
+      ownerActionQueue: ikOrchestraSnapshot.ownerActionQueue,
+      packageBlockers: ikOrchestraSnapshot.packageBlockers,
+      bidUi: pipelineRuntimeForUi.bidUiResolution ?? null,
+      deepLinkContext: ownerActionDeepLinkContext,
+      decisionUiPhase: chiefDossierVm?.uiPhase ?? null,
+      chiefDossierAvailable: chiefDossierVm != null,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fingerprint encodes all inputs; omit snapshot ref churn
+  }, [ikAnalysisHandoffFp]);
+
+  const handleIkAnalysisHandoffCta = useCallback(() => {
+    if (!ikAnalysisHandoffVm) return;
+    const { cta } = ikAnalysisHandoffVm;
+    setIkAnalysisSurfaceOpen(false);
+    if (cta.kind === "owner_action" && cta.ownerActionItem) {
+      navigateIkOwnerActionTarget(
+        cta.ownerActionItem,
+        ownerActionDeepLinkContext,
+        ownerActionNavigateHandlers,
+      );
+      return;
+    }
+    if (cta.navigationTab) {
+      handleTabChange(cta.navigationTab);
+    }
+  }, [
+    ikAnalysisHandoffVm,
+    ownerActionDeepLinkContext,
+    ownerActionNavigateHandlers,
+    handleTabChange,
+  ]);
 
   useEffect(() => {
     if (!pendingOwnerActionFocus) return;
@@ -902,6 +966,18 @@ export function TenderDetailPage({
               open={ikAnalysisSurfaceOpen}
               onClose={() => setIkAnalysisSurfaceOpen(false)}
               subtitle={item.title || item.address || null}
+              handoff={
+                ikAnalysisHandoffVm ? (
+                  <IkAnalysisHandoffStrip
+                    vm={ikAnalysisHandoffVm}
+                    onHandoffCta={
+                      ikAnalysisHandoffVm.cta.kind !== "none"
+                        ? handleIkAnalysisHandoffCta
+                        : undefined
+                    }
+                  />
+                ) : null
+              }
             >
               <IkEntryHost
                 item={item}

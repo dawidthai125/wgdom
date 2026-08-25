@@ -22,12 +22,15 @@ export function IkAnalysisSurface({
   onClose,
   children,
   subtitle,
+  handoff,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
   /** Optional tender label under the title (presentation only). */
   subtitle?: string | null;
+  /** HANDOFF-01 — strip outside scroll/chrome (always visible on mobile). */
+  handoff?: ReactNode;
 }) {
   useModalScrollLock(open);
 
@@ -75,6 +78,12 @@ export function IkAnalysisSurface({
             <X size={16} />
           </WgButton>
         </header>
+
+        {handoff ? (
+          <div className="shrink-0 pt-2 pb-2 border-b border-border/60" data-ik-analysis-handoff-slot>
+            {handoff}
+          </div>
+        ) : null}
 
         <div
           className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 [&_[data-ik-entry-host]]:mb-0"

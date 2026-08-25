@@ -36,6 +36,9 @@ ok("WgModalFrame has xl size", /xl:/.test(modal));
 ok("Bridge unchanged useIkOrchestra", /useIkOrchestra/.test(bridge));
 ok("open CTA present", /data-ik-analysis-surface-open-cta/.test(detail));
 ok("no F5 engine import in surface", !/computePositionCost|tender-position-cost/.test(surface));
+ok("handoff slot outside body", /data-ik-analysis-handoff-slot/.test(surface));
+ok("DetailPage wires handoff", /IkAnalysisHandoffStrip/.test(detail));
+ok("no Phase 5 final populate in DetailPage handoff path", !/final:\s*\{[^}]*summary/.test(detail));
 
 if (failed) {
   console.error(`\n${failed} FAIL`);
