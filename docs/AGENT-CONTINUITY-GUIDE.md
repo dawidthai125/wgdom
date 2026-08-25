@@ -1,11 +1,51 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
 > **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip UI **2.66.113** · deploy **`63cb134`** · live `version.json` · **IK-KNR-WC P3 + P3.1 CLOSED / PRODUCTION VERIFIED** · **SESSION 2026-08-13 CLOSED** · **PAYROLL-O1 CAS CLOSED (2026-08-19)** · SSOT [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) §5A · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip UI **2.66.115** · deploy **`85a1ad7`** · **IK-KNR KL-6 CLOSED / PRODUCTION VERIFIED** · Phase 2D frozen ancestor **`77385b0c`** · live `version.json` · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
 > **★★ Session handoff:** [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) — Wrocław targets · Połczyn NOT TARGET · NEXT AUDIT ONLY
 > **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)
 > **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
+
+## IK-KNR KL-6 + Phase 2D — cold-start (2026-08-25)
+
+| Pole | Wartość |
+|------|---------|
+| **CURRENT PRODUCTION BASELINE** | **`85a1ad7`** (`85a1ad791c9dd82df89a78b09432cb2ef8a42cdf`) |
+| **Production URL** | https://www.wgdom.fun |
+| **UI version** | **2.66.115** (bez zmian) |
+| **CURRENT SLICE** | **IK-KNR KL-6** — Owner VERIFY UI (`knrverify`) |
+| **KL-6 STATUS** | **PRODUCTION_VERIFIED_CLOSED** |
+| **KL-6 UI commit** | **`ce192b1e`** (`ce192b1e88bb1210675318f6fb6b8c7a2e8a40c7`) · `feat(knr): add KL-6 owner verify UI` |
+| **KL-6 desktop sidebar hotfix** | **`85a1ad7`** (`85a1ad791c9dd82df89a78b09432cb2ef8a42cdf`) · `fix(admin): show Weryfikacja KNR in desktop sidebar (KL-6)` |
+| **Phase 2D (FROZEN ANCESTOR)** | **`77385b0c`** (`77385b0c88a779e7e23c1b19047e6dc84d942fd7`) · controlled L3 PDF discovery pilot · **≠ aktualny deploy tip** |
+
+**Zamknięty kontrakt Phase 2D (FROZEN — nie retroaktywnie modyfikować):**
+
+- 1 L3 source: `l3_bip_malopolska_1646919`
+- exact URL: `https://bip.malopolska.pl/api/files/1646919`
+- exact BY_KEY: `KNR-W|4-01|0701-05` → `["l3_bip_malopolska_1646919"]`
+- `BY_FAMILY={}` · `KNR_DISCOVERY_EDGE_ALLOWLIST=[]`
+- learning-once: HTTP **1→0** · evidence `kw-knr-discovery-evidence`
+- **DISCOVERED ≠ VERIFIED** · max **`PENDING_VERIFY`** · `authorityWrites.catalogVerified=false`
+- **no** auto VERIFY · **no** auto mapping · **no** A1/P4/F5 · **no** OCR/crawler/harvest/broad discovery
+
+**KL-6 production verified (read-only smoke):**
+
+- Super Admin login **PASS** · desktop sidebar „Weryfikacja KNR” **PASS** · route `knrverify` **PASS**
+- ACL **PASS** · `data-knr-verify-root` **PASS** · authority banner **PASS** · discovery HTTP **0** · KNR mutations **0**
+
+**NEXT DECISION (Owner wybiera — agent NIE automatycznie po docs closeout):**
+
+1. **KL-6 = CLOSED / PRODUCTION VERIFIED** — **nie** pending · **nie** lokalny WIP
+2. **Phase 2D = FROZEN** @ `77385b0c` (ancestor only)
+3. **Phase 2E = NOT STARTED**
+4. **OPTION B** — controlled KL-6 approve/reject smoke (mutacja `kw-knr-catalog` + audit) → **osobny Owner GO** · **nie** wykonywać automatycznie
+5. **OPTION A** — Phase 2E (+1 sourceId + exact HTTPS URL + BY_KEY) → **osobny Owner GO** + live verify/key · **bez** BY_FAMILY · **bez** Edge · **bez** authority change · **nie** wykonywać automatycznie
+
+Każde rozszerzenie (2nd source, 2nd key, BY_FAMILY, Edge, corpus, WC mapping) wymaga **osobnego Owner GO** i audytu.
+
+> **★ Domknięcie (2026-08-25):** **IK-KNR KL-6 CLOSED** · **PRODUCTION VERIFIED** · deploy tip **`85a1ad7`** / UI **2.66.115** · UI **`ce192b1e`** · sidebar hotfix **`85a1ad7`** · Phase 2D frozen ancestor **`77385b0c`** · SSOT [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) §1 · **NIE** rozszerzać Phase 2D bez Owner GO · **NIE** auto-start Phase 2E ani approve/reject smoke · lokalny WIP (~1794 entries) **zachowany** · **NIE** `git add -A`.
 
 > **★ ZASADA COLD-START (LOCKED):** Nowy agent **nie** zaczyna implementacji na podstawie samego [`CURRENT-TASK.md`](../CURRENT-TASK.md).  
 > Najpierw czyta: [`WGDOM-COLD-START-HANDOFF`](AI/WGDOM-COLD-START-HANDOFF.md) · [`MASTER-AI-HANDOFF`](AI/MASTER-AI-HANDOFF.md) · [`MASTER_HANDOFF`](AI/MASTER_HANDOFF.md) · [`AI_QUICK_START`](AI/AI_QUICK_START.md) · [`TENDER-MODERNIZATION-01-MASTER`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · aktualny **DESIGN-FREEZE** slice/epicu · dopiero potem Entry + Gate + Owner GO.
