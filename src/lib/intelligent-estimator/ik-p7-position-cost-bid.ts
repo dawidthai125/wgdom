@@ -267,6 +267,7 @@ export function runIkP7PositionCostBid(opts: {
       store,
       nowMs,
       ensureOwnerQuestions: false,
+      boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
     },
   });
 

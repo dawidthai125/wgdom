@@ -13,6 +13,8 @@ import type {
   OfferBoqLine,
   OfferBoqMatchMethod,
 } from "@/lib/tender-offer-boq";
+import type { BoqDependencyGraph } from "@/lib/intelligent-estimator/boq-dependency-graph";
+import { resolveBoqPricingQuantity } from "@/lib/intelligent-estimator/boq-pricing-quantity-resolver";
 import type { TechnologyPack } from "@/lib/technology-foundation";
 import { normalizeWgdomCostUnit, type WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import { resolveOwnerWorkUnitCompatibility } from "@/lib/catalog-coverage/owner-unit-compatibility";
@@ -85,7 +87,8 @@ export type ShadowGapCode =
   | "TRANSPORT_OWNER_INPUT_INVALID"
   | "AUXILIARY_OUT_OF_SCOPE"
   | "POMINIETO_NOISE"
-  | "NIEPRAWIDLOWA_ILOSC";
+  | "NIEPRAWIDLOWA_ILOSC"
+  | "BOQ_QUANTITY_HOLD";
 
 const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   BRAK_IDENTYFIKACJI_ROBOTY: "BRAK IDENTYFIKACJI ROBOTY",
@@ -106,6 +109,7 @@ const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   AUXILIARY_OUT_OF_SCOPE: "TRANSPORT / AUXILIARY — OUT OF SCOPE",
   POMINIETO_NOISE: "POZYCJA NOISE — POMINIĘTA",
   NIEPRAWIDLOWA_ILOSC: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
+  BOQ_QUANTITY_HOLD: "BOQ QUANTITY — semantyczny HOLD (S4-B)",
 };
 
 /** Metody identity uznane za pewne (bez category_heuristic / unmatched). */
@@ -395,6 +399,8 @@ function collectBomGaps(bom: BomTechnologyResolve, gaps: ShadowGapCode[]): void 
 
 export type ComputeShadowPositionCostForLineInput = {
   line: OfferBoqLine;
+  lineIndex?: number;
+  boqDependencyGraph?: BoqDependencyGraph | null;
   store: WorkCatalogStore;
   nowMs: number;
   paintCoats?: 1 | 2 | null;
@@ -632,12 +638,33 @@ export function computeShadowPositionCostForOfferBoqLine(
     return base;
   }
 
-  if (!Number.isFinite(line.quantity) || line.quantity < 0) {
+  const qtyResolution = resolveBoqPricingQuantity({
+    line,
+    lineIndex: input.lineIndex ?? 0,
+    dependencyGraph: input.boqDependencyGraph ?? null,
+  });
+
+  if (qtyResolution.status === "HOLD") {
+    pushGap(gaps, "BOQ_QUANTITY_HOLD");
+    base.gaps = gaps;
+    base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+    return base;
+  }
+
+  const pricingQuantity =
+    qtyResolution.pricingQuantity != null
+    && Number.isFinite(qtyResolution.pricingQuantity)
+      ? qtyResolution.pricingQuantity
+      : line.quantity;
+
+  if (!Number.isFinite(pricingQuantity) || pricingQuantity < 0) {
     pushGap(gaps, "NIEPRAWIDLOWA_ILOSC");
     base.gaps = gaps;
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }
+
+  base.quantity = pricingQuantity;
 
   const workId = identity.workId;
   const unit = identity.unit;
@@ -661,7 +688,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     const sell = resolveMaterialSellFromCatalogWorkQuotes(
       store,
       workId,
-      line.quantity,
+      pricingQuantity,
       unit,
       nowMs,
     );
@@ -681,7 +708,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     const bom = resolveLaborOnlyBomForWork({
       workId,
       unit,
-      positionQuantity: line.quantity,
+      positionQuantity: pricingQuantity,
     });
     base.bom = bom;
     // materials[] empty → engine labor-only · materialCost = 0 · no BOM gap
@@ -699,7 +726,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     const bom = resolveTechnologyBomForWork({
       workId,
       unit,
-      positionQuantity: line.quantity,
+      positionQuantity: pricingQuantity,
       paintCoats: input.paintCoats,
       packs: input.packs,
       targetMaterialUnit: input.targetMaterialUnit,
@@ -722,7 +749,7 @@ export function computeShadowPositionCostForOfferBoqLine(
   base.materialsResolved = materialsResolved;
 
   const engineInput: PositionCostInput = {
-    quantity: line.quantity,
+    quantity: pricingQuantity,
     unit,
     labor: laborInput,
     materials,
@@ -738,6 +765,7 @@ export function computeShadowPositionCostForOfferBoqLine(
 
 export type ComputeShadowBoqPositionCostsInput = {
   doc: Pick<OfferBoqDocument, "lines">;
+  boqDependencyGraph?: BoqDependencyGraph | null;
   store: WorkCatalogStore;
   nowMs: number;
   paintCoats?: 1 | 2 | null;
@@ -758,9 +786,11 @@ export type ComputeShadowBoqPositionCostsInput = {
 export function computeShadowPositionCostsForOfferBoq(
   input: ComputeShadowBoqPositionCostsInput,
 ): ShadowBoqPositionCostResult {
-  const lines = (input.doc.lines ?? []).map((line) =>
+  const lines = (input.doc.lines ?? []).map((line, lineIndex) =>
     computeShadowPositionCostForOfferBoqLine({
       line,
+      lineIndex,
+      boqDependencyGraph: input.boqDependencyGraph ?? null,
       store: input.store,
       laborOnlyWorkIds: input.laborOnlyWorkIds,
       materialSupplyWorkIds: input.materialSupplyWorkIds,

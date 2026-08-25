@@ -1,0 +1,1262 @@
+{
+  "label": "B) Maślicka 8A/5 (filename m5) — PRZEDMIAR",
+  "sourceNote": "Quantities from column Razem / Poszcz. are BOQ quantities, not PLN.",
+  "departments": [
+    {
+      "code": "1",
+      "name": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "subs": [
+        "1.1 Roboty demontażowe/rozbiórkowe",
+        "1.2 Ściany",
+        "1.3 Sufity",
+        "1.4 Podłogi/wykładziny",
+        "1.5 Stolarka drzwiowa i okienna",
+        "1.6 Odpady"
+      ]
+    },
+    {
+      "code": "2",
+      "name": "2 ROBOTY SANITARNE",
+      "subs": [
+        "2.1 Demontaże",
+        "2.2 Biały montaż - urządzenia sanitarne wod-kan"
+      ]
+    },
+    {
+      "code": "3",
+      "name": "3 WENTYLACJA",
+      "subs": []
+    },
+    {
+      "code": "4",
+      "name": "4 ROBOTY ELEKTRYCZNE",
+      "subs": []
+    }
+  ],
+  "items": [
+    {
+      "nr": 1,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.1 Roboty demontażowe/rozbiórkowe",
+      "podstawa": "KNR 9-29 / 0211-01",
+      "opis": "Demontaż karniszy",
+      "jm": "m2",
+      "ilosc": 2,
+      "calc": "2,0",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 2,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.1 Roboty demontażowe/rozbiórkowe",
+      "podstawa": "KNPnRPDE / 40-89c",
+      "opis": "Demontaż skrzydeł",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "3",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 3,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.1 Roboty demontażowe/rozbiórkowe",
+      "podstawa": "KNNR 2 / 1205-09",
+      "opis": "Posadzka z wykładziny pcv, kafli lub paneli podłogowych - demontaż 4,43 * 3,27 + 2,37 * 1,01 + 2,06 * 3,18)",
+      "jm": "m2",
+      "ilosc": 36.18,
+      "calc": "(2,06 * 2,37 + 2,94 * 1,38 + 2,39 * 1,36 + 0,96 * 0,58 +",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 4,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.1 Roboty demontażowe/rozbiórkowe",
+      "podstawa": "KNR-W 4-01 / 0821-09",
+      "opis": "Demontaż płytek podłogowych i ściennych",
+      "jm": "m2",
+      "ilosc": 11.56,
+      "calc": "5,56 + 6",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 5,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR-W 4-01 / 0713-01",
+      "opis": "Przecieranie istniejących tynków wewnętrznych z zeskrobaniem farby lub zdzieraniem tapet na ścianach + 4,43 + 2,26 + 1,01 + 2,37 + 0,96 + 2,39 + 1,36 + 2,39 + 1,36 + 2,94 + 1,38] * 2,88",
+      "jm": "m2",
+      "ilosc": 121.51,
+      "calc": "[2,06 + 2,37 + 2,06 + 2,37 + 2,06 + 3,18 + 2,06 + 3,18",
+      "ambiguous": false
+    },
+    {
+      "nr": 6,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "NNRNKB (z.VII) / 202",
+      "opis": "Gruntowanie podłoży - powierzchnie pionowe 1134-02 Krotność = 2",
+      "jm": "m2",
+      "ilosc": 121.51,
+      "calc": "poz.5",
+      "ambiguous": false
+    },
+    {
+      "nr": 7,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR K-04 / 0305-01",
+      "opis": "Gładzie gipsowe jednowarstwowe, grubości 3 mm, wykonywane ręcznie na ścianach na podłożu z tynku",
+      "jm": "m2",
+      "ilosc": 121.51,
+      "calc": "poz.6",
+      "ambiguous": false
+    },
+    {
+      "nr": 8,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 4-01 / 1204-02",
+      "opis": "Dwukrotne malowanie farbami emulsyjnymi starych tynków wewnętrznych ścian",
+      "jm": "m2",
+      "ilosc": 121.51,
+      "calc": "poz.6",
+      "ambiguous": false
+    },
+    {
+      "nr": 9,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 0-12II / 0829-06",
+      "opis": "Licowanie ścian płytkami o wymiarach 20x20 cm na klej metodą zwykłą - fartuch",
+      "jm": "m2",
+      "ilosc": 4.18,
+      "calc": "1,0 * (3,18 + 1,00)",
+      "ambiguous": false
+    },
+    {
+      "nr": 10,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 4-01 / 1202-07",
+      "opis": "Skasowanie wykwitów (zacieków)",
+      "jm": "m2",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 11,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR W-02 / 0204-07",
+      "opis": "Okładziny ścienne na istniejącej okładzinie; płytki o wymiarach 30x60 cm - łazienka",
+      "jm": "m2",
+      "ilosc": 4.48,
+      "calc": "2,8 * 1,60",
+      "ambiguous": false
+    },
+    {
+      "nr": 12,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 2-02 / 2003-01",
+      "opis": "Ścianki działowe GR z płyt gips.-kart. na rusztach metalowych pojedynczych z pokryciem obustronnym jednowarstwowo 55-01",
+      "jm": "m2",
+      "ilosc": 20,
+      "calc": "20",
+      "ambiguous": false
+    },
+    {
+      "nr": 13,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 0-12II / 0829-06",
+      "opis": "Licowanie ścian płytkami o wymiarach 20x20 cm na klej metodą zwykłą",
+      "jm": "m2",
+      "ilosc": 5.94,
+      "calc": "<kuchnia> 1,98 * 0,75 * 4",
+      "ambiguous": false
+    },
+    {
+      "nr": 14,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "KNR 4-01 / 1212-19",
+      "opis": "Dwukrotne malowanie farbą olejną grzejników",
+      "jm": "m2",
+      "ilosc": 0.36,
+      "calc": "(0,15 * 1,2) * 2",
+      "ambiguous": false
+    },
+    {
+      "nr": 15,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.2 Ściany",
+      "podstawa": "0606-04",
+      "opis": "KNKRB 3 Licowanie ścian płytkami glazurowanymi 15x15 cm (przy prysznicu)",
+      "jm": "m2",
+      "ilosc": 11.08,
+      "calc": "(2,06 + 2,37) * 2,5",
+      "ambiguous": false
+    },
+    {
+      "nr": 16,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.3 Sufity",
+      "podstawa": "KNR K-04 / 0305-04",
+      "opis": "Gładzie gipsowe jednowarstwowe, grubości 3 mm, wykonywane ręcznie na stropach na podłożu z tynku",
+      "jm": "m2",
+      "ilosc": 36.86,
+      "calc": "6,55 + 16,89 + 4,06 + 3,80 + 5,56",
+      "ambiguous": false
+    },
+    {
+      "nr": 17,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.3 Sufity",
+      "podstawa": "NNRNKB (z.VII) / 202",
+      "opis": "Gruntowanie podłoży - sufity 1134-01",
+      "jm": "m2",
+      "ilosc": 29.7,
+      "calc": "[6,55 + 9,47 + 5,56 + 3,8 + 4,32]",
+      "ambiguous": false
+    },
+    {
+      "nr": 18,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.3 Sufity",
+      "podstawa": "KNR 2-02 / 1505-01",
+      "opis": "Dwukrotne malowanie farbami emulsyjnymi powierzchni wewnętrznych - tynków gładkich bez gruntowania-sufity",
+      "jm": "m2",
+      "ilosc": 29.7,
+      "calc": "poz.17",
+      "ambiguous": false
+    },
+    {
+      "nr": 19,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR BC-02 / 0416-03",
+      "opis": "Wylewka samopoziomująca o gr. 10 mm na gładkich powierzchniach cementowych Krotność = 2",
+      "jm": "m2",
+      "ilosc": 5.56,
+      "calc": "5,56",
+      "ambiguous": false
+    },
+    {
+      "nr": 20,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR 0-29 / 0635-01",
+      "opis": "Przygotowanie powierzchni poziomych pod uszczelnienia - gruntowanie",
+      "jm": "m2",
+      "ilosc": 2.25,
+      "calc": "1,5 * 1,5",
+      "ambiguous": false
+    },
+    {
+      "nr": 21,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR 0-29 / 0640-03",
+      "opis": "Wysokoelastyczna izolacja powierzchni poziomych poddanych działaniu wody bez ciśnienia - uszczelnienie masą",
+      "jm": "m2",
+      "ilosc": 2.25,
+      "calc": "(1,5 * 1,5)",
+      "ambiguous": false
+    },
+    {
+      "nr": 22,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "NNRNKB (z.VIII) / 202",
+      "opis": "Posadzki z paneli podłogowych <kuchnia, 1136-01 pokój, przedpokój, garderoba>",
+      "jm": "m2",
+      "ilosc": 31.56,
+      "calc": "6,55 + 16,89 + 4,32 + 3,80",
+      "ambiguous": false
+    },
+    {
+      "nr": 23,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR 2-02 / 0607-01",
+      "opis": "Izolacje przeciwwilgociowe i przeciwwodne z folii polietylenowej szerokiej poziome podposadzkowe analogia Krotność = 2",
+      "jm": "m2",
+      "ilosc": 10,
+      "calc": "10",
+      "ambiguous": false
+    },
+    {
+      "nr": 24,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR BC-02 / 0521-01",
+      "opis": "Cokoły z płytek z kamieni sztucznych układanymi na klej epoksydowy gr. 3 mm o wym. 75x75 mm na ścianach",
+      "jm": "m",
+      "ilosc": 4.43,
+      "calc": "2,06 + 2,37",
+      "ambiguous": false
+    },
+    {
+      "nr": 25,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNR 0-12II / 1118-10",
+      "opis": "Posadzki płytkowe z kamieni sztucznych; płytki 40x40 cm układane na klej metodą zwykłą",
+      "jm": "m2",
+      "ilosc": 5.56,
+      "calc": "5,56",
+      "ambiguous": false
+    },
+    {
+      "nr": 26,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "NNRNKB / 202",
+      "opis": "Listwa wykańczająca na styku progu z płytkami 2809-05",
+      "jm": "m",
+      "ilosc": 9,
+      "calc": "9",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 27,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.4 Podłogi/wykładziny",
+      "podstawa": "KNNR-W 3 / 1014-07",
+      "opis": "Mycie po robotach malarskich posadzek lastrykowych, cementowych, wykładzin i płytek",
+      "jm": "m2",
+      "ilosc": 36.86,
+      "calc": "6,55 + 16,89 + 4,06 + 3,8 + 5,56",
+      "ambiguous": false
+    },
+    {
+      "nr": 28,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR 2-02 / 1017-01",
+      "opis": "Skrzydła drzwiowe płytowe wewnętrzne jednodzielne pełne o powierzchni do 1,6 m2 fabrycznie wykończone",
+      "jm": "m2",
+      "ilosc": 7.2,
+      "calc": "(0,90 * 2,00) * 4",
+      "ambiguous": false
+    },
+    {
+      "nr": 29,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR-W 4-01 / 0919-21",
+      "opis": "Wymiana klamek z rozetami",
+      "jm": "szt.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 30,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR-W 4-01 / 0918-13",
+      "opis": "Naprawa miejsc po zdemontowanych zawiasach drzwiowych przelotowych",
+      "jm": "szt.",
+      "ilosc": 8,
+      "calc": "4 * 2",
+      "ambiguous": false
+    },
+    {
+      "nr": 31,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR-W 4-01 / 0909-03",
+      "opis": "Dopasowanie skrzydeł okiennych zespolonych o powierzchni do 0.5 m2",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 32,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "kalk.",
+      "opis": "Dostawa podokiennikow PCV własna",
+      "jm": "szt",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 33,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR 4-01 / 0203-13",
+      "opis": "Nakładki na parapet, białe",
+      "jm": "m2",
+      "ilosc": 0.9,
+      "calc": "0,3 * 3",
+      "ambiguous": false
+    },
+    {
+      "nr": 34,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.5 Stolarka drzwiowa i okienna",
+      "podstawa": "KNR 4-01 / 0920-19",
+      "opis": "Założenie na nowym miejscu odbojow drzwiowych",
+      "jm": "szt.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 35,
+      "dept": "1 ROBOTY OGÓLNOBUDOWLANE",
+      "sub": "1.6 Odpady",
+      "podstawa": "KNR 4-01 / 0108-09",
+      "opis": "Wywiezienie gruzu spryzmowanego samochodami skrzyniowymi na odległość 15 km na składowisko 0108-10 odpadów wraz z opłatą za utylizację",
+      "jm": "m3",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 36,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNR 4-02 / 0132-01",
+      "opis": "Demontaż baterii zlewozmywakowej i umywalkowej",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 37,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNR 4-02 / 0235-08",
+      "opis": "Demontaż ustępu z miską fajansową",
+      "jm": "kpl.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 38,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNNR 8 / 0225-04",
+      "opis": "Demontaż prysznica",
+      "jm": "kpl",
+      "ilosc": 1,
+      "calc": "1",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 39,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNR 4-02 / 0132-03",
+      "opis": "Demontaż baterii prysznicowej",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 40,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNR 4-02 / 0233-06",
+      "opis": "Demontaż podejścia odpływowego z rur z PCW o śr. 50 mm",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 41,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.1 Demontaże",
+      "podstawa": "KNR 4-02 / 0233-08",
+      "opis": "Demontaż podejścia odpływowego z rur z PCW o śr. 110 mm",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 42,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0208-03",
+      "opis": "Dodatek za wykonanie podejść odpływowych z rur i kształtek z nieplastyfikowanego PCW o śr. 50 mm",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "2 + 1",
+      "ambiguous": false
+    },
+    {
+      "nr": 43,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 4-02 / 0220-01",
+      "opis": "Wymiana elementów zestawu umywalkowego - umywalka fajansowa dla OZN",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 44,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 4-02 / 0220-02",
+      "opis": "Wymiana elementów zestawu umywalkowego - spust umywalkowy",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 45,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0208-05",
+      "opis": "Dodatek za wykonanie podejść odpływowych z rur i kształtek z nieplastyfikowanego PCW o śr. 110 mm",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 46,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR INSTAL / 0105-01",
+      "opis": "Podejście dopływowe do zaworów czerpalnych (wypływowych, baterii, mieszaczy itp.) o śr.nom. 15 mm- podejscie do pralki",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 47,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR-W 4-02 / 0124-01",
+      "opis": "Wymiana zaworu przelotowego o śr. 15 mm",
+      "jm": "szt.",
+      "ilosc": 6,
+      "calc": "6",
+      "ambiguous": false
+    },
+    {
+      "nr": 48,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR-W 4-02 / 0111-07",
+      "opis": "Wymiana podejścia dopływowego do zaworu czerpalnego, baterii lub płuczki ustępowej o połączeniu elastycznym metalowym",
+      "jm": "szt.",
+      "ilosc": 8,
+      "calc": "0",
+      "notes": [
+        "Obmiar dodatkowy: łączna długość m",
+        "ilość podejść RAZEM 6,00",
+        "łączna długość RAZEM 0,00",
+        "Primary qty restored to 8 szt (secondary obmiar długość=0 ignored for BOQ count)"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 49,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0115-02",
+      "opis": "Baterie zmywakowe i umywalkowe stojace o śr.nom. 15 mm",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 50,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0220-05",
+      "opis": "Montaż zlewozmywaków żeliwnych lub stalowych na szafce",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 51,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-02 / analiza",
+      "opis": "Blat kuchenny na wspornikach (3 szt. wsporników) do montażu płyty indukcyjnej dwupalnikowej",
+      "jm": "m2",
+      "ilosc": 0.63,
+      "calc": "0,625 * 1,0",
+      "notes": [
+        "indywidualna"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 52,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0115-05",
+      "opis": "Baterie prysznicowe ścienne o śr.nom. 20 mm z słuchawką",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 53,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR-W 2-15 / 0231-04",
+      "opis": "Prysznic typu walk-in, bez progowy ze ścianką prysznicową 100x200 cm mocowaną do ściany",
+      "jm": "kpl.",
+      "ilosc": 1,
+      "calc": "1",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 54,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0224-03",
+      "opis": "Montaż ustępów pojedynczych z płuczkami z tworzyw sztucznych lub porcelany 'kompakt' dla OZN",
+      "jm": "kpl.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 55,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 2-15 / 0110-01",
+      "opis": "Proba szczelności instalacji wodociągowych w budynkach mieszkalnych (rurociąg o śr.do 65 mm)",
+      "jm": "m",
+      "ilosc": 5,
+      "calc": "5",
+      "ambiguous": false
+    },
+    {
+      "nr": 56,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNNR 2 / 1404-05",
+      "opis": "Malowanie rur stalowych i blaszanych o śr.50-100 mm",
+      "jm": "m",
+      "ilosc": 5,
+      "calc": "2,5 * 2",
+      "ambiguous": false
+    },
+    {
+      "nr": 57,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "kalk. własna (w PDF przy d.x) / kalk.",
+      "opis": "Montaż uchwytu przyściennego natryskowego własna kątowego ( odcinek poziomy 50cm + odcinek pionowy 70cm) z rur lakierowanych na biało (uchwyt dla osoby niepełnosprawnej).",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 58,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "kalk. własna (w PDF przy d.x) / kalk.",
+      "opis": "Montaż siedziska natryskowego przyściennego własna składanego metalowego lakierowanego na biało ( siedzisko dla osoby niepełnosprawnej).",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 59,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "kalk. własna (w PDF przy d.x) / kalk.",
+      "opis": "Montaż uchwytu przyściennego prostego poziomego własna ( długości 30cm ) z rur lakierowanych na biało (uchwyt dla osoby niepełnosprawnej).",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 60,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "kalk. własna (w PDF przy d.x) / kalk.",
+      "opis": "Montaż uchwytów uchylnych wolnostojących własna (długości 70cm ) z rur lakierowanych na biało (uchwyty dla osoby niepełnosprawnej).",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 61,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 4-07 / 0327-03",
+      "opis": "Montaż grzejnika łazienkowego z rur miedzianych o mocy cieplnej do 1600 W",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 62,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 4-07 / 0315-01",
+      "opis": "Montaż grzejników z blachy stalowej - jednopłytowych o wysokości 30-40 cm o długości 40-100 cm",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 63,
+      "dept": "2 ROBOTY SANITARNE",
+      "sub": "2.2 Biały montaż - urządzenia sanitarne wod-kan",
+      "podstawa": "KNR 13-25 / 0406-05",
+      "opis": "Montaż termostatu",
+      "jm": "szt.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 64,
+      "dept": "3 WENTYLACJA",
+      "sub": null,
+      "podstawa": "KNR 4-01 / 0354-13",
+      "opis": "Wykucie z muru kratek wentylacyjnych <łazienka, kuchnia>",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 65,
+      "dept": "3 WENTYLACJA",
+      "sub": null,
+      "podstawa": "KNR 4-01 / 0322-02",
+      "opis": "Obsadzenie kratek wentylacyjnych w ścianach z cegieł",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 66,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1001-01",
+      "opis": "Mechaniczne wykucie bruzd dla przewodów wtynkowych w cegle",
+      "jm": "m",
+      "ilosc": 60,
+      "calc": "60",
+      "ambiguous": false
+    },
+    {
+      "nr": 67,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1001-03",
+      "opis": "Mechaniczne wykucie bruzd dla przewodów wtynkowych w betonie",
+      "jm": "m",
+      "ilosc": 80,
+      "calc": "80",
+      "ambiguous": false
+    },
+    {
+      "nr": 68,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1003-01",
+      "opis": "Mechaniczne przebijanie otworów w ścianach z cegły o długości przebicia do 1/2 ceg. - śr.rury do 25 mm",
+      "jm": "otw.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 69,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1004-01",
+      "opis": "Mechaniczne przebijanie otworów w ścianach lub stropach betonowych o długości przebicia do 10 cm - śr. rury do 25 mm",
+      "jm": "otw.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 70,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0209-04",
+      "opis": "Przewód płaski łączny przekrój żył do 24mm2 (podłoże betonowe) układany w tynku-przewód YDYp-750V 5x2,5mm2",
+      "jm": "m",
+      "ilosc": 10,
+      "calc": "10",
+      "ambiguous": false
+    },
+    {
+      "nr": 71,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0209-05",
+      "opis": "Przewód płaski łączny przekrój żył do 7.5mm2 YDYp 3x2,5mm2 450/750V (podłoże nie-beton.) układany w tynku",
+      "jm": "m",
+      "ilosc": 60,
+      "calc": "60",
+      "ambiguous": false
+    },
+    {
+      "nr": 72,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0209-03",
+      "opis": "Przewód płaski łączny przekrój żył do 7.5 mm2 YDYp 3x2,5mm2 450/750V (podłoże betonowe) układany w tynku",
+      "jm": "m",
+      "ilosc": 80,
+      "calc": "80",
+      "ambiguous": false
+    },
+    {
+      "nr": 73,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0209-05",
+      "opis": "Przewód płaski łączny przekrój żył do 7.5mm2 YDYp 3x1,5mmm2 450/750V(podłoże nie-beton.) układany w tynku",
+      "jm": "m",
+      "ilosc": 60,
+      "calc": "60",
+      "ambiguous": false
+    },
+    {
+      "nr": 74,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0210-01",
+      "opis": "Przewody koncentryczny typu RG6 układane w gotowych bruzdach bez zaprawiania bruzd na analogia podłożu nie-betonowym",
+      "jm": "m",
+      "ilosc": 6,
+      "calc": "6",
+      "ambiguous": false
+    },
+    {
+      "nr": 75,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0210-04",
+      "opis": "Przewody kabelkowe o łącznym przekroju żył do Cu-6/Al-12 mm2 układane w gotowych bruzdach bez zaprawiania bruzd na podłożu betonowym (połączenia wyrównawcze) LgY 4mm",
+      "jm": "m",
+      "ilosc": 3,
+      "calc": "3 * 1",
+      "ambiguous": false
+    },
+    {
+      "nr": 76,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0620-01",
+      "opis": "Montaż na rurach średnicy do 30 mm uchwytów uziemiających skręcanych",
+      "jm": "szt.",
+      "ilosc": 5,
+      "calc": "1 * 5",
+      "ambiguous": false
+    },
+    {
+      "nr": 77,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1014-01",
+      "opis": "Ręczne przygotowanie zaprawy cementowo-wapiennej",
+      "jm": "m3",
+      "ilosc": 0.15,
+      "calc": "poz.66 * 0,1 * 0,025",
+      "ambiguous": false
+    },
+    {
+      "nr": 78,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1012-03",
+      "opis": "Zaprawianie bruzd o szer. do 100 mm",
+      "jm": "m",
+      "ilosc": 60,
+      "calc": "poz.66",
+      "ambiguous": false
+    },
+    {
+      "nr": 79,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0407-01",
+      "opis": "Montaż osprzętu modułowego w rozdzielnicach - wyłącznik nadprądowy 1-biegunowy",
+      "jm": "szt",
+      "ilosc": 5,
+      "calc": "5",
+      "ambiguous": false
+    },
+    {
+      "nr": 80,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0301-20",
+      "opis": "Przygotowanie podłoża pod mocowanie osprzętu na zaprawie cementowej z wykonaniem ślepych otworów mechanicznie w cegle",
+      "jm": "szt.",
+      "ilosc": 12,
+      "calc": "12",
+      "ambiguous": false
+    },
+    {
+      "nr": 81,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0301-21",
+      "opis": "Przygotowanie podłoża pod mocowanie osprzętu na zaprawie cementowej lub gipsowej z wykonaniem ślepych otworów mechanicznie w betonie",
+      "jm": "szt.",
+      "ilosc": 12,
+      "calc": "12",
+      "ambiguous": false
+    },
+    {
+      "nr": 82,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0302-01",
+      "opis": "Montaż na gotowym podłożu puszek przyłączeniowych p/t, n/t z zaciskami 5x2,5 mm2 do kuchenki elektrycznej",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 83,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0306-01",
+      "opis": "Montaż na gotowym podłożu odgałęźników (szybkozłączki VAGO) do 2.5 mm2 - przewód wtynkowy 2.5 mm2 (3 wyloty)",
+      "jm": "szt.",
+      "ilosc": 40,
+      "calc": "20 * 2",
+      "ambiguous": false
+    },
+    {
+      "nr": 84,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0309-03",
+      "opis": "Montaż do gotowego podłoża gniazd wtyczkowych podtynkowych podwójnych 2-bieg.z uziemieniem w puszkach z podłączeniem",
+      "jm": "szt.",
+      "ilosc": 8,
+      "calc": "8",
+      "ambiguous": false
+    },
+    {
+      "nr": 85,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0309-03",
+      "opis": "Montaż do gotowego podłoża gniazd wtyczkowych podtynkowych 2-bieg.z uziemieniem w puszkach z analogia podłączeniem (gniazda 230 IP44)",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 86,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0309-03",
+      "opis": "Montaż do gotowego podłoża gniazd RTV w puszkach z podłączeniem",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1 * 1",
+      "notes": [
+        "analogia"
+      ],
+      "ambiguous": false
+    },
+    {
+      "nr": 87,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0307-02",
+      "opis": "Montaż na gotowym podłożu przycisków w puszce instalacyjnej z podłączeniem (przycisk dzwonka)",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 88,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0307-02",
+      "opis": "Montaż na gotowym podłożu łączników instalacyjnych podtynkowych jednobiegunowych w puszce instalacyjnej z podłączeniem",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 89,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0501-03",
+      "opis": "Przygotowanie podłoża pod oprawy oświetleniowe zawieszane na kołkach kotwiących na podłożu betonowym (il. mocowań 1)",
+      "jm": "kpl.",
+      "ilosc": 5,
+      "calc": "5",
+      "ambiguous": false
+    },
+    {
+      "nr": 90,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0504-03",
+      "opis": "Montaż z podłączeniem na gotowym podłożu opraw oświetleniowych typu LED (plafon IP20) przykręcanych, końcowych",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 91,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0504-07",
+      "opis": "Montaż z podłączeniem na gotowym podłożu opraw oświetleniowych typu LED (plafon bryzgoszczelny IP44) przykręcanych, końcowych - łazienka 2 szt w tym jedna nad lustrem",
+      "jm": "szt.",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 92,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0403-04",
+      "opis": "Mocowanie na gotowym podłożu aparatów o masie do 5 kg z częściowym rozebraniem i złożeniem bez podłączenia - 4 otwory mocujące - rozdzielnica naścienna na aparaturę modułową RM-1x12",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 93,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 5-08 / 0407-03",
+      "opis": "Montaż osprzętu modułowego w rozdzielnicach - wyłącznik przeciwporażeniowy (2) - bieg. wyłącznik różnicowo-prądowy np P302 30mA/40A",
+      "jm": "szt",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    },
+    {
+      "nr": 94,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0402-03",
+      "opis": "Mocowanie na gotowym.podłożu płyta elektryczna indukcyjna (kuchenka) z dwoma polami grzejnymi",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1 * 1",
+      "ambiguous": false
+    },
+    {
+      "nr": 95,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 5-08 / 0813-01",
+      "opis": "Podłączenie przewodów kabelkowych w powłoce polwinitowej pod zaciski lub bolce (przekrój żył do 2.5 mm2) - kuchenka el.",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 96,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1124-01",
+      "opis": "Demontaż łączników instalacyjnych podtynkowych o natężeniu prądu do 10 A - 1 wylot (wyłącznik 1 biegunowy)",
+      "jm": "szt.",
+      "ilosc": 6,
+      "calc": "6",
+      "ambiguous": false
+    },
+    {
+      "nr": 97,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1116-03",
+      "opis": "Demontaż przewodów wtynkowych z podłoża ceglanego",
+      "jm": "m",
+      "ilosc": 140,
+      "calc": "140",
+      "ambiguous": false
+    },
+    {
+      "nr": 98,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1120-03",
+      "opis": "Demontaż puszek z tworzyw sztucznych i metalowych okrągłych 4 - wylotowych uszczelnionych z odłączeniem przewodów o przekroju do 2.5 mm2",
+      "jm": "szt.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 99,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1122-01",
+      "opis": "Demontaż gniazd wtyczkowych podtynkowych o natężeniu prądu do 63 A - ilość biegunów 2",
+      "jm": "szt.",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 100,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1129-03",
+      "opis": "Demontaż rozdzielnicy nad drzwiami",
+      "jm": "szt.",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 101,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR-W 4-03 / 1133-04",
+      "opis": "Demontaż opraw żarowych blaszanych otwartych zawieszanych",
+      "jm": "szt.",
+      "ilosc": 5,
+      "calc": "5",
+      "ambiguous": false
+    },
+    {
+      "nr": 102,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1202-01",
+      "opis": "Sprawdzenie i pomiar kompletnego 1-fazowego obwodu elektrycznego niskiego napięcia ar. ar.",
+      "jm": "pomi",
+      "ilosc": 4,
+      "calc": "4",
+      "ambiguous": false
+    },
+    {
+      "nr": 103,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1205-05",
+      "opis": "Pierwszy pomiar skuteczności zerowania ar. ar.",
+      "jm": "pomi",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 104,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 4-03 / 1205-06",
+      "opis": "Następny pomiar skuteczności zerowania ar. ar.",
+      "jm": "pomi",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 105,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNNR 5 / 1305-01",
+      "opis": "Sprawdzenie samoczynnego wyłączania zasilania (pierwsza próba) . .",
+      "jm": "prób",
+      "ilosc": 1,
+      "calc": "1",
+      "ambiguous": false
+    },
+    {
+      "nr": 106,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNNR 5 / 1305-02",
+      "opis": "Sprawdzenie samoczynnego wyłączania zasilania (następna próba) . .",
+      "jm": "prób",
+      "ilosc": 3,
+      "calc": "3",
+      "ambiguous": false
+    },
+    {
+      "nr": 107,
+      "dept": "4 ROBOTY ELEKTRYCZNE",
+      "sub": null,
+      "podstawa": "KNR 13-21 / 0402-03",
+      "opis": "Badanie wyłącznika przeciwporażeniowego różnicowo-prądowego",
+      "jm": "szt.",
+      "ilosc": 2,
+      "calc": "2",
+      "ambiguous": false
+    }
+  ],
+  "counts": {
+    "departments": 4,
+    "subsections": 8,
+    "positions": 107,
+    "withQty": 107,
+    "withoutQty": 0,
+    "ambiguous": 0,
+    "nrMin": 1,
+    "nrMax": 107,
+    "missingNrs": []
+  },
+  "hasUnitPricesOrInvestorValues": false,
+  "moneyKeywordsFound": [],
+  "moneyNote": "NO investor unit prices / NETTO/BRUTTO/VAT in extracted text. Columns Poszcz./Razem are quantities only. Prior PLN/zł hits were false positives (substring in ciepLNej / mojibake)."
+}

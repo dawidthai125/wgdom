@@ -9,6 +9,7 @@
  */
 
 import type { TechnologyPack } from "@/lib/technology-foundation";
+import type { BoqDependencyGraph } from "@/lib/intelligent-estimator/boq-dependency-graph";
 import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
@@ -70,6 +71,8 @@ export type PositionCostCutoverOpts = {
   /** MULTI-DWELLING-01 — optional dwelling scope */
   dwellingId?: string | null;
   ensureOwnerQuestions?: boolean;
+  /** IK S4-B — optional BOQ dependency graph from Document Expert. */
+  boqDependencyGraph?: BoqDependencyGraph | null;
 };
 
 export type LegacyVsPositionCostBidCompare = {
@@ -298,6 +301,7 @@ export function computePositionCostShadowAndGate(
     null;
   const shadow = computeShadowPositionCostsForOfferBoq({
     doc: opts.doc,
+    boqDependencyGraph: opts.boqDependencyGraph ?? null,
     store: opts.store,
     nowMs: opts.nowMs,
     paintCoats: opts.paintCoats,

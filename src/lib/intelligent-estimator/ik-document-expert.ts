@@ -27,6 +27,11 @@ import {
   type OfferBoqDocument,
   type OfferBoqLine,
 } from "@/lib/tender-offer-boq";
+import { enrichOfferBoqLinesWithQuantityIntelligence } from "@/lib/intelligent-estimator/boq-quantity-intelligence";
+import {
+  enrichOfferBoqLinesWithDependencyGraph,
+  type BoqDependencyGraph,
+} from "@/lib/intelligent-estimator/boq-dependency-graph";
 import {
   buildArtifactPoolFromItem,
   composeDwellingOfferBoq,
@@ -139,6 +144,8 @@ export interface IkDocumentExpertReport {
   lineProvenance: Record<string, DwellingLineProvenance> | null;
   /** All composed Master lines with dwellingId (1:1 with masterBoq.lineCount when READY). */
   masterBoqLines: IkMasterBoqLineRef[];
+  /** IK S3 — BOQ semantic dependency graph for Master lines (legacy_single aggregate). */
+  boqDependencyGraph: BoqDependencyGraph | null;
 }
 
 const COST_ROLES = new Set<DocumentRole>([
@@ -697,6 +704,18 @@ export function runIkDocumentExpert(opts: {
       ? composedLineCount
       : (offerBoq?.lines?.length ?? 0);
 
+  let boqDependencyGraph: BoqDependencyGraph | null = null;
+  if (masterBoqLines.length > 0) {
+    const qtyEnriched = enrichOfferBoqLinesWithQuantityIntelligence(
+      masterBoqLines.map((ref) => ref.line),
+    );
+    const semantic = enrichOfferBoqLinesWithDependencyGraph(qtyEnriched);
+    boqDependencyGraph = semantic.graph;
+    for (let i = 0; i < masterBoqLines.length; i += 1) {
+      masterBoqLines[i]!.line = semantic.lines[i]!;
+    }
+  }
+
   return {
     tenderId,
     discoverySettled,
@@ -733,5 +752,6 @@ export function runIkDocumentExpert(opts: {
     offerBoq,
     lineProvenance,
     masterBoqLines,
+    boqDependencyGraph,
   };
 }

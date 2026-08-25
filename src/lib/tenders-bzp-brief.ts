@@ -9,6 +9,10 @@ import {
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import type { AthPreviewResult } from "@/lib/ath-parser";
+import {
+  buildQuantityExpressionsByLpFromAthRows,
+  resolveQuantityExpressionFromPrzedmiar,
+} from "@/lib/intelligent-estimator/boq-expression-source-seam";
 import { extractTotalValueFromAthPreview } from "@/lib/tender-cost-snapshot";
 import { isLikelyCatalogQuantityRow } from "@/lib/tender-catalog-quantity-filter";
 
@@ -31,6 +35,8 @@ export interface TenderCatalogQuantityLine {
   description: string;
   unit: string;
   quantity: string;
+  /** IK S4-A — formula/calc z ATH przedmiar (metadata; nie zmienia quantity). */
+  quantityExpressionRaw?: string | null;
   /** IK-KNR-EXPERT Slice A — PRIMARY evidence path for merge. Not knrHint. */
   catalogBasis?: CatalogBasis | null;
 }
@@ -54,6 +60,8 @@ export interface TenderKosztorysSnapshot {
   rows: TenderCostLine[];
   /** Ilości z ATH pod aggregateCatalogDirectCost (P2-G.1B). */
   catalogQuantities?: TenderCatalogQuantityLine[];
+  /** IK S4-A — formula/calc per lp z ATH preview (fallback gdy catalog bez expression). */
+  quantityExpressionsByLp?: Record<string, string>;
   przedmiar: TenderPrzedmiarLine[];
   categories: { name: string; total: string }[];
   warnings: string[];
@@ -223,6 +231,7 @@ type CatalogQtySourceRow = {
   quantity?: string;
   code?: string;
   catalogBasis?: CatalogBasis | null;
+  przedmiar?: { quantity: string; formula?: string }[];
 };
 
 const CATALOG_BASIS_FAMILY_RE = /^(KNR-W|KNNR|NNRNKB|ZKNR|KSNR|KNR)\b/i;
@@ -466,11 +475,13 @@ export function buildCatalogQuantitiesFromRows(
     .slice(0, CATALOG_QUANTITIES_CAP)
     .map((r) => {
       const catalogBasis = resolveCatalogBasisFromSourceRow(r);
+      const quantityExpressionRaw = resolveQuantityExpressionFromPrzedmiar(r.przedmiar);
       return {
         lp: r.lp ?? "",
         description: r.description ?? "",
         unit: r.unit ?? "",
         quantity: r.quantity ?? "",
+        ...(quantityExpressionRaw ? { quantityExpressionRaw } : {}),
         ...(catalogBasis ? { catalogBasis } : {}),
       };
     });
@@ -509,6 +520,7 @@ export function athPreviewToSnapshot(
   sourceFilename: string,
 ): TenderKosztorysSnapshot {
   const catalogQuantities = buildCatalogQuantitiesFromPreview(preview);
+  const quantityExpressionsByLp = buildQuantityExpressionsByLpFromAthRows(preview.rows);
   const pricedCap = SNAPSHOT_PRICED_ROWS_CAP;
   const rows: TenderCostLine[] = preview.rows.slice(0, pricedCap).map((r) => {
     const catalogBasis = resolveCatalogBasisFromSourceRow(r);
@@ -543,6 +555,7 @@ export function athPreviewToSnapshot(
     rowCount: preview.rows.length,
     rows,
     catalogQuantities,
+    quantityExpressionsByLp,
     przedmiar: przedmiar.slice(0, 30),
     categories: (preview.categories ?? []).slice(0, 12).map((c) => ({
       name: c.name,

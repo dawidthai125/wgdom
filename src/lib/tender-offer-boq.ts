@@ -9,6 +9,7 @@ import type {
   TenderCostLine,
   TenderKosztorysSnapshot,
 } from "@/lib/tenders-bzp-brief";
+import { normalizeBoqPositionLp } from "@/lib/intelligent-estimator/boq-expression-source-seam";
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
 
 /** Wersja schematu OfferBoq — bump przy breaking change. */
@@ -308,6 +309,12 @@ export interface OfferBoqLine {
   description: string;
   quantity: number;
   quantityRaw: string;
+  /** IK S2 — optional formula / wyliczenie (Norma calc column, ATH formula). */
+  quantityExpressionRaw?: string | null;
+  /** IK S2 — parsed quantity intelligence (Document Expert seam). */
+  quantityIntelligence?: import("@/lib/intelligent-estimator/boq-quantity-intelligence").BoqQuantityIntelligence | null;
+  /** IK S3 — semantic relations where this position is the source (from). */
+  boqSemanticRelations?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqSemanticRelation[];
   unit: string;
 
   catalogWorkId: string | null;
@@ -528,6 +535,7 @@ function structuralLine(opts: {
   description: string;
   unit: string;
   quantityRaw: string;
+  quantityExpressionRaw?: string | null;
   athUnitPricePln: number | null;
   athTotalPln: number | null;
   warnings: string[];
@@ -549,6 +557,8 @@ function structuralLine(opts: {
     description: opts.description.trim() || "(bez opisu)",
     quantity,
     quantityRaw: opts.quantityRaw || "",
+    quantityExpressionRaw: opts.quantityExpressionRaw ?? null,
+    quantityIntelligence: null,
     unit: opts.unit?.trim() || "",
 
     catalogWorkId: null,
@@ -599,6 +609,20 @@ function structuralLine(opts: {
   };
 }
 
+function applyQuantityExpressionSeamToOfferBoqLines(
+  lines: OfferBoqLine[],
+  expressionsByLp?: Record<string, string> | null,
+): OfferBoqLine[] {
+  if (!expressionsByLp || !Object.keys(expressionsByLp).length) return lines;
+  return lines.map((line, index) => {
+    if (line.quantityExpressionRaw?.trim()) return line;
+    const lp = normalizeBoqPositionLp(line.lp) || String(index + 1);
+    const expr = expressionsByLp[lp];
+    if (!expr?.trim()) return line;
+    return { ...line, quantityExpressionRaw: expr.trim() };
+  });
+}
+
 function linesFromCatalogQuantities(
   tenderId: string,
   catalog: TenderCatalogQuantityLine[],
@@ -611,6 +635,7 @@ function linesFromCatalogQuantities(
       description: c.description ?? "",
       unit: c.unit ?? "",
       quantityRaw: c.quantity ?? "",
+      quantityExpressionRaw: c.quantityExpressionRaw ?? null,
       athUnitPricePln: null,
       athTotalPln: null,
       warnings: [],
@@ -694,6 +719,13 @@ export function buildOfferBoqFromSnapshot(opts: {
     }
   } else {
     docWarnings.push("Brak TenderKosztorysSnapshot.");
+  }
+
+  if (snapshot?.quantityExpressionsByLp) {
+    lines = applyQuantityExpressionSeamToOfferBoqLines(
+      lines,
+      snapshot.quantityExpressionsByLp,
+    );
   }
 
   const pricedLineCount = lines.filter((l) => l.lineTotalPln != null).length;
