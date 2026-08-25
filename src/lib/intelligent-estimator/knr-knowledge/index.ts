@@ -1,9 +1,10 @@
 /**
- * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 + KL-6 + KL-3B + Host KL-3 lookup).
+ * IK-KNR KNOWLEDGE LAYER — public exports (KL-0/1 + KL-5 + KL-6 + KL-3B + Host KL-3).
  *
  * KL-3B IN: resolveKnrKnowledgeKl3b · L1 licensed ATH · PENDING_VERIFY only
- * Host KL-3: resolveHostKnrKnowledgeLookupOnly · explicitResearch=false · side-channel only
- * OUT: HTTP scraper · LLM · Cloud · auto-VERIFIED · APP-1/APP-2 Host orchestration
+ * Host KL-3: resolveHostKnrKnowledgeLookupOnly · OD-KNR-FLAG-1 YES (research-on-MISS)
+ * Phase 2: on-demand Discovery wire (FEATURE default OFF · allowlist EMPTY → HTTP=0)
+ * OUT: mass crawl · LLM · auto-VERIFIED · auto mapping · APP-1/APP-2 Host orchestration
  */
 
 export * from "./types";
@@ -67,6 +68,19 @@ export * from "./knr-discovery-job-lease";
 export * from "./knr-discovery-client-sf";
 export * from "./knr-discovery-orch-pool";
 export * from "./knr-discovery-orch";
+
+/** Phase 2 — on-demand Discovery learning loop (fail-closed · Owner sources required). */
+export * from "./knr-discovery-source-selection";
+export * from "./knr-discovery-source-candidates";
+export * from "./knr-discovery-l3-document-resolver";
+export * from "./knr-discovery-fact-extract";
+export * from "./knr-discovery-catalog-stage";
+export * from "./knr-discovery-on-demand";
+
+/** Phase 2D — PDF L3 seam (fail-closed · no OCR · allowlist EMPTY · FEATURE OFF). */
+export * from "./knr-discovery-document-cache";
+export * from "./knr-discovery-pdf-text";
+export * from "./knr-discovery-pdf-executor";
 
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";

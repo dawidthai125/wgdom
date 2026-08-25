@@ -1,5 +1,6 @@
 /**
  * KL-7-P2B — HTTP result → discovery evidence ONLY (never catalog / VERIFIED / PLN).
+ * Phase 2D: targeted context window from shared PDF/HTML document body.
  */
 
 import { fnv1aHex } from "@/lib/global-knowledge/canonical-id";
@@ -11,6 +12,10 @@ import type {
   KnrDiscoveryEvidenceRecord,
   KnrDiscoveryEvidenceStore,
 } from "./knr-discovery-evidence-types";
+import {
+  extractKnrDiscoveryFactFromDocumentText,
+  sliceKnrDiscoveryTargetContext,
+} from "./knr-discovery-fact-extract";
 import type { KnrDiscoveryHttpExecuteResult } from "./knr-discovery-http-types";
 
 export type IngestKnrDiscoveryHttpResultInput = {
@@ -26,7 +31,7 @@ export type IngestKnrDiscoveryHttpResultInput = {
 };
 
 /**
- * Persist HTTP body fragment as discovery evidence.
+ * Persist HTTP/PDF body fragment as discovery evidence.
  * Rejects when exec.evidenceWritable=false. Never sets VERIFIED / PLN.
  */
 export function ingestKnrDiscoveryHttpResultToEvidence(
@@ -47,7 +52,19 @@ export function ingestKnrDiscoveryHttpResultToEvidence(
 
   const contentHash = fnv1aHex(input.exec.bodyText.slice(0, 64_000));
   const urlHash = fnv1aHex(input.exec.finalUrl);
-  const fragment = input.exec.bodyText.slice(0, 500).replace(/\s+/g, " ").trim();
+  const targetCode = input.displayCode ?? input.evidenceKeyV1;
+  const fragment = sliceKnrDiscoveryTargetContext(
+    input.exec.bodyText,
+    targetCode,
+    500,
+  );
+
+  const targeted = extractKnrDiscoveryFactFromDocumentText(input.exec.bodyText, {
+    expectedCode: targetCode,
+    evidenceKeyV1: input.evidenceKeyV1,
+    sourceId: input.sourceId,
+    sourceUrlHash: urlHash,
+  });
 
   const record: KnrDiscoveryEvidenceRecord = {
     schemaVersion: 1,
@@ -55,8 +72,8 @@ export function ingestKnrDiscoveryHttpResultToEvidence(
     identityKeyV2: input.identityKeyV2 ?? null,
     family: input.family,
     displayCode: input.displayCode ?? input.evidenceKeyV1,
-    description: undefined,
-    unit: undefined,
+    description: targeted.description ?? undefined,
+    unit: targeted.unit ?? undefined,
     discoveryStatus: "DISCOVERED",
     lifecycleState: "ACTIVE",
     sources: [
@@ -80,7 +97,6 @@ export function ingestKnrDiscoveryHttpResultToEvidence(
     catalogRevisionLink: null,
   };
 
-  // Hard deny authority spoof if caller tried to inject
   const spoof = record as unknown as Record<string, unknown>;
   if (spoof.verificationStatus || spoof.ourRate || spoof.companyPrice) {
     return { ok: false, reason: "AUTHORITY_SPOOF" };

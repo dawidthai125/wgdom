@@ -1,5 +1,7 @@
 /**
- * KL-7-P2B — Host side-channel: P2A lookup outcomes (no pricing · no HTTP when OFF).
+ * KL-7-P2B / Phase 2 — Host side-channel: P2A lookup + controllable HTTP gate.
+ * Production default: feature OFF · empty allowlist → HTTP=0.
+ * Does not mutate catalog · does not price · does not VERIFY.
  */
 
 import type { CatalogBasis } from "@/lib/tenders-bzp-swz";
@@ -14,7 +16,10 @@ import {
 } from "./knr-discovery-evidence-store";
 import type { KnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-types";
 import { gateKnrDiscoveryHttpAfterRequired } from "./knr-discovery-http-planner";
-import type { KnrDiscoveryHttpPlan } from "./knr-discovery-http-types";
+import {
+  KNR_DISCOVERY_HTTP_FEATURE_DEFAULT,
+  type KnrDiscoveryHttpPlan,
+} from "./knr-discovery-http-types";
 import { foldIdentityKeyV2, parseIdentityPartialFromCatalogBasis } from "./knr-identity-v2";
 
 export type KnrHostDiscoverySideChannelLine = {
@@ -22,9 +27,9 @@ export type KnrHostDiscoverySideChannelLine = {
   outcome: KnrDiscoveryLookupOutcome;
   identityKeyV2: string;
   evidenceKeyV1?: string;
-  /** Always 0 on Host path with production defaults (feature OFF / empty allowlist). */
-  httpRequestCount: 0;
-  /** Present only when outcome=DISCOVERY_REQUIRED — plan is deny/stop under defaults. */
+  /** 0 under production defaults (feature OFF / empty allowlist / no orch). */
+  httpRequestCount: number;
+  /** Present only when outcome=DISCOVERY_REQUIRED — plan may deny under defaults. */
   httpPlan?: KnrDiscoveryHttpPlan;
   /** Never PRICED / never VERIFIED from this channel. */
   priced: false;
@@ -33,7 +38,7 @@ export type KnrHostDiscoverySideChannelLine = {
 
 export type KnrHostDiscoverySideChannel = {
   lines: KnrHostDiscoverySideChannelLine[];
-  httpRequestCount: 0;
+  httpRequestCount: number;
   priced: false;
   verified: false;
 };
@@ -55,8 +60,8 @@ function identityFromBasis(basis: CatalogBasis | null): {
 
 /**
  * Pure side-channel over existing P2A lookup.
- * Does not mutate catalog · does not price · does not VERIFY.
  * On DISCOVERY_REQUIRED runs planner gate (default OFF → HTTP=0).
+ * Does not call orchestrator — host adapter runs on-demand separately.
  */
 export function buildKnrHostDiscoverySideChannel(input: {
   lines: readonly { lineId: string; catalogBasis: CatalogBasis | null }[];
@@ -64,10 +69,21 @@ export function buildKnrHostDiscoverySideChannel(input: {
   discoveryStore?: KnrDiscoveryEvidenceStore;
   /** Optional sourceId for planner — ignored when feature OFF / allowlist empty. */
   discoverySourceId?: string | null;
+  /**
+   * Controllable feature wire. Default = KNR_DISCOVERY_HTTP_FEATURE_DEFAULT (false).
+   * Production callers MUST omit / pass false until Owner GO for FEATURE ON.
+   */
+  featureEnabled?: boolean;
 }): KnrHostDiscoverySideChannel {
   const catalogStore = input.catalogStore ?? loadKnrCatalogStoreLocal();
   const discoveryStore =
     input.discoveryStore ?? loadKnrDiscoveryEvidenceStoreLocal();
+  const featureEnabled =
+    input.featureEnabled === true
+      ? true
+      : input.featureEnabled === false
+        ? false
+        : KNR_DISCOVERY_HTTP_FEATURE_DEFAULT;
 
   const lines: KnrHostDiscoverySideChannelLine[] = [];
 
@@ -93,10 +109,9 @@ export function buildKnrHostDiscoverySideChannel(input: {
 
     let httpPlan: KnrDiscoveryHttpPlan | undefined;
     if (lookup.outcome === "DISCOVERY_REQUIRED") {
-      // Production defaults: FEATURE_OFF or ALLOWLIST_EMPTY → HTTP=0
       httpPlan = gateKnrDiscoveryHttpAfterRequired({
         sourceId: input.discoverySourceId,
-        featureEnabled: false,
+        featureEnabled,
       });
     }
 

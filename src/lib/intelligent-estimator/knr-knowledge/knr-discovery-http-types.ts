@@ -6,8 +6,11 @@
 export const KNR_DISCOVERY_HTTP_TIMEOUT_MS = 12_000 as const;
 export const KNR_DISCOVERY_HTTP_MAX_BYTES = 400_000 as const;
 
-/** Production / default feature gate — MUST stay false until separate live GO. */
-export const KNR_DISCOVERY_HTTP_FEATURE_DEFAULT = false as const;
+/**
+ * Production feature gate.
+ * Controlled L3 PDF pilot GO (2026-08-25): ON with single allowlist + single selection key.
+ */
+export const KNR_DISCOVERY_HTTP_FEATURE_DEFAULT = true as const;
 
 /**
  * Fetch job status — NEVER mix with KnrDiscoveryStatus / KnrVerificationStatus /
@@ -42,6 +45,9 @@ export type KnrDiscoveryHttpDenyCode =
   | "REDIRECT_DENIED"
   | "UNSUPPORTED_CONTENT_TYPE"
   | "PDF_UNSUPPORTED"
+  /** PDF opened but no extractable text layer (scan) — no OCR. */
+  | "PDF_TEXT_UNAVAILABLE"
+  | "PDF_EXTRACT_ERROR"
   | "TOO_LARGE"
   | "TIMEOUT"
   | "EMPTY_BODY"

@@ -5,6 +5,7 @@
  */
 
 import type { KnrDiscoveryStatus } from "./knr-discovery-evidence-types";
+import type { KnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-types";
 import type {
   KnrDiscoveryHttpAccounting,
   KnrDiscoveryHttpDenyCode,
@@ -57,6 +58,11 @@ export type KnrDiscoveryOrchResult = {
   /** Sum of per-source httpRequestCount. OFF defaults → 0. */
   httpRequestCount: number;
   discoveryStatus: KnrDiscoveryStatus | null;
+  /**
+   * Phase 2 — final discovery evidence store after orch ingest.
+   * Authority writes remain false (≠ catalog VERIFIED).
+   */
+  discoveryStore?: KnrDiscoveryEvidenceStore;
   authorityWrites: {
     catalog: false;
     ath: false;

@@ -359,6 +359,7 @@ export async function orchestrateKnrDiscoveryP2c(
     sourceResults,
     httpRequestCount,
     discoveryStatus,
+    discoveryStore: storeRef.current,
     authorityWrites: {
       catalog: false,
       ath: false,

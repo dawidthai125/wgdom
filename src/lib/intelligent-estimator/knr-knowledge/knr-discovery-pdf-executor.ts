@@ -1,7 +1,9 @@
 /**
- * KL-7-P2B — Execute planned discovery HTTP (Edge-shaped · injectable fetch).
- * Production path: planner denies before this runs → 0 requests.
- * Phase 2D: application/pdf → PDF executor (text layer only · no OCR).
+ * IK-KNR Phase 2D — PDF L3 discovery executor (fail-closed · no OCR · no crawl).
+ *
+ * Input: allowlist-resolved plan URL only (never raw client URL).
+ * HTTPS · SSRF · CT=pdf · size · timeout · redirect host check · text extract.
+ * Production: unused while FEATURE_DEFAULT=false · allowlist=[].
  */
 
 import {
@@ -25,7 +27,7 @@ import {
 } from "./knr-discovery-pdf-text";
 import { assertKnrDiscoveryUrlSafeForFetch } from "./knr-discovery-ssrf";
 
-export type KnrDiscoveryHttpFetchLike = (
+export type KnrDiscoveryPdfFetchLike = (
   url: string,
   init: { signal: AbortSignal; redirect: "follow"; headers: Record<string, string> },
 ) => Promise<{
@@ -33,31 +35,27 @@ export type KnrDiscoveryHttpFetchLike = (
   status: number;
   url: string;
   headers: { get(name: string): string | null };
-  text(): Promise<string>;
   arrayBuffer(): Promise<ArrayBuffer>;
 }>;
 
-function contentTypeKind(ct: string): "html" | "pdf" | "deny" {
-  const c = ct.toLowerCase();
-  if (c.includes("pdf") || c.includes("application/pdf")) return "pdf";
-  if (c.includes("text/html") || c.includes("text/plain") || c.includes("xhtml")) {
-    return "html";
-  }
-  return "deny";
+function isPdfContentType(ct: string): boolean {
+  const c = String(ct ?? "").toLowerCase();
+  return c.includes("application/pdf") || /(^|\/|\+|;\s*)pdf\b/.test(c);
 }
 
 /**
- * Execute a plan. If plan.allowed=false → never calls fetch · httpRequestCount=0.
- * PDF Content-Type routes to PDF executor (fail-closed text extract).
+ * Execute PDF discovery for an already-planned allowlisted URL.
+ * plan.allowed=false → never fetch · HTTP=0.
  */
-export async function executeKnrDiscoveryHttpPlan(
+export async function executeKnrDiscoveryPdfPlan(
   plan: KnrDiscoveryHttpPlan,
   options: {
-    fetchImpl?: KnrDiscoveryHttpFetchLike;
+    fetchImpl?: KnrDiscoveryPdfFetchLike;
     allowlistOverride?: readonly KnrDiscoveryAllowlistEntry[] | null;
     nowIso?: string;
-    pdfExtractFn?: KnrDiscoveryPdfTextExtractFn;
-    skipDocumentCache?: boolean;
+    extractFn?: KnrDiscoveryPdfTextExtractFn;
+    /** Skip shared URL cache (tests). */
+    skipCache?: boolean;
   } = {},
 ): Promise<KnrDiscoveryHttpExecuteResult> {
   if (!plan.allowed || !plan.requestUrl) {
@@ -87,7 +85,7 @@ export async function executeKnrDiscoveryHttpPlan(
     };
   }
 
-  if (!options.skipDocumentCache) {
+  if (!options.skipCache) {
     const cached = getKnrDiscoveryCachedDocument(plan.requestUrl);
     if (cached) {
       return {
@@ -103,10 +101,10 @@ export async function executeKnrDiscoveryHttpPlan(
     }
   }
 
-  const fetchImpl = options.fetchImpl ?? (globalThis.fetch as KnrDiscoveryHttpFetchLike);
+  const fetchImpl =
+    options.fetchImpl ?? (globalThis.fetch as unknown as KnrDiscoveryPdfFetchLike);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), KNR_DISCOVERY_HTTP_TIMEOUT_MS);
-
   let accounting = { httpRequestCount: 0, attemptedFetch: false };
 
   try {
@@ -115,8 +113,8 @@ export async function executeKnrDiscoveryHttpPlan(
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        Accept: "text/html,text/plain,application/pdf",
-        "User-Agent": "WGDOM/2.66 knr-discovery-selective",
+        Accept: "application/pdf",
+        "User-Agent": "WGDOM/2.66 knr-discovery-selective-pdf",
       },
     });
 
@@ -153,8 +151,7 @@ export async function executeKnrDiscoveryHttpPlan(
     }
 
     const ct = res.headers.get("content-type") || "";
-    const kind = contentTypeKind(ct);
-    if (kind === "deny") {
+    if (!isPdfContentType(ct)) {
       return {
         jobStatus: "UNSUPPORTED_CONTENT_TYPE",
         denyCode: "UNSUPPORTED_CONTENT_TYPE",
@@ -164,76 +161,6 @@ export async function executeKnrDiscoveryHttpPlan(
         bodyText: null,
         fetchedAtIso: null,
         evidenceWritable: false,
-      };
-    }
-
-    if (kind === "pdf") {
-      if (!res.ok) {
-        return {
-          jobStatus: "FAILED",
-          denyCode: "UPSTREAM_ERROR",
-          accounting,
-          finalUrl,
-          contentType: ct,
-          bodyText: null,
-          fetchedAtIso: null,
-          evidenceWritable: false,
-        };
-      }
-      const buf = await res.arrayBuffer();
-      if (buf.byteLength > KNR_DISCOVERY_HTTP_MAX_BYTES) {
-        return {
-          jobStatus: "TOO_LARGE",
-          denyCode: "TOO_LARGE",
-          accounting,
-          finalUrl,
-          contentType: ct,
-          bodyText: null,
-          fetchedAtIso: null,
-          evidenceWritable: false,
-        };
-      }
-
-      const extracted = await extractKnrDiscoveryPdfTextFromBytes(new Uint8Array(buf), {
-        sourceId: plan.sourceId,
-        contentType: ct,
-        extractFn: options.pdfExtractFn,
-      });
-      if (!extracted.ok) {
-        return {
-          jobStatus: "UNSUPPORTED_CONTENT_TYPE",
-          denyCode:
-            extracted.reason === "PDF_TEXT_UNAVAILABLE"
-              ? "PDF_TEXT_UNAVAILABLE"
-              : "PDF_EXTRACT_ERROR",
-          accounting,
-          finalUrl,
-          contentType: ct,
-          bodyText: null,
-          fetchedAtIso: null,
-          evidenceWritable: false,
-        };
-      }
-
-      const fetchedAtIso = options.nowIso ?? new Date().toISOString();
-      if (!options.skipDocumentCache && plan.requestUrl) {
-        setKnrDiscoveryCachedDocument(plan.requestUrl, {
-          finalUrl,
-          contentType: ct,
-          bodyText: extracted.text,
-          fetchedAtIso,
-          byteLength: buf.byteLength,
-        });
-      }
-      return {
-        jobStatus: "SUCCEEDED",
-        denyCode: null,
-        accounting,
-        finalUrl,
-        contentType: ct,
-        bodyText: extracted.text,
-        fetchedAtIso,
-        evidenceWritable: true,
       };
     }
 
@@ -250,8 +177,8 @@ export async function executeKnrDiscoveryHttpPlan(
       };
     }
 
-    const text = await res.text();
-    if (text.length > KNR_DISCOVERY_HTTP_MAX_BYTES) {
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > KNR_DISCOVERY_HTTP_MAX_BYTES) {
       return {
         jobStatus: "TOO_LARGE",
         denyCode: "TOO_LARGE",
@@ -263,10 +190,20 @@ export async function executeKnrDiscoveryHttpPlan(
         evidenceWritable: false,
       };
     }
-    if (text.length < 40) {
+
+    const extracted = await extractKnrDiscoveryPdfTextFromBytes(new Uint8Array(buf), {
+      sourceId: plan.sourceId,
+      contentType: ct,
+      extractFn: options.extractFn,
+    });
+
+    if (!extracted.ok) {
       return {
-        jobStatus: "FAILED",
-        denyCode: "EMPTY_BODY",
+        jobStatus: "UNSUPPORTED_CONTENT_TYPE",
+        denyCode:
+          extracted.reason === "PDF_TEXT_UNAVAILABLE"
+            ? "PDF_TEXT_UNAVAILABLE"
+            : "PDF_EXTRACT_ERROR",
         accounting,
         finalUrl,
         contentType: ct,
@@ -277,13 +214,13 @@ export async function executeKnrDiscoveryHttpPlan(
     }
 
     const fetchedAtIso = options.nowIso ?? new Date().toISOString();
-    if (!options.skipDocumentCache && plan.requestUrl) {
+    if (!options.skipCache) {
       setKnrDiscoveryCachedDocument(plan.requestUrl, {
         finalUrl,
         contentType: ct,
-        bodyText: text,
+        bodyText: extracted.text,
         fetchedAtIso,
-        byteLength: text.length,
+        byteLength: buf.byteLength,
       });
     }
 
@@ -293,7 +230,7 @@ export async function executeKnrDiscoveryHttpPlan(
       accounting,
       finalUrl,
       contentType: ct,
-      bodyText: text,
+      bodyText: extracted.text,
       fetchedAtIso,
       evidenceWritable: true,
     };
@@ -315,4 +252,4 @@ export async function executeKnrDiscoveryHttpPlan(
   }
 }
 
-export const KNR_DISCOVERY_HTTP_EXEC_P2B_IMPLEMENTED = true as const;
+export const KNR_DISCOVERY_PDF_EXECUTOR_P2D_IMPLEMENTED = true as const;

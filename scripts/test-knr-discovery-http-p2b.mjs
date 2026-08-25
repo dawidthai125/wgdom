@@ -115,9 +115,13 @@ function mockFetch(handlers) {
 }
 
 // --- invariants ---
-ok("prod feature default OFF", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === false);
-ok("prod allowlist empty", isKnrDiscoveryAllowlistEmpty() === true);
-ok("prod allowlist length 0", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 0);
+ok("prod feature pilot ON", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === true);
+ok("prod allowlist single pilot", isKnrDiscoveryAllowlistEmpty() === false);
+ok("prod allowlist length 1", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1);
+ok(
+  "prod pilot sourceId",
+  KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+);
 
 // T-B1 CATALOG_HIT → HTTP 0
 {
@@ -270,6 +274,13 @@ ok("T-B10c fe80", isKnrDiscoverySsrfDeniedHost("fe80::1") === true);
 
   const pdfExec = await executeKnrDiscoveryHttpPlan(plan, {
     allowlistOverride: fixture,
+    skipDocumentCache: true,
+    pdfExtractFn: async () => ({
+      text: "",
+      pageCount: 1,
+      noTextLayer: true,
+      extractError: false,
+    }),
     fetchImpl: mockFetch({
       [url]: {
         ok: true,
@@ -277,11 +288,37 @@ ok("T-B10c fe80", isKnrDiscoverySsrfDeniedHost("fe80::1") === true);
         url,
         headers: { get: () => "application/pdf" },
         text: async () => "x".repeat(100),
+        arrayBuffer: async () => new TextEncoder().encode("%PDF-scan").buffer,
       },
     }),
   });
-  ok("T-B13 PDF deny", pdfExec.denyCode === "PDF_UNSUPPORTED");
+  ok(
+    "T-B13 PDF scan → PDF_TEXT_UNAVAILABLE (no OCR)",
+    pdfExec.denyCode === "PDF_TEXT_UNAVAILABLE",
+  );
   ok("T-B13 attempted", pdfExec.accounting.httpRequestCount === 1);
+
+  const pdfOk = await executeKnrDiscoveryHttpPlan(plan, {
+    allowlistOverride: fixture,
+    skipDocumentCache: true,
+    pdfExtractFn: async () => ({
+      text: "KNR 4-01 0354-07 Wykucie ościeżnic szt. enough text for min length gate xxxxxxxxxx",
+      pageCount: 1,
+      noTextLayer: false,
+      extractError: false,
+    }),
+    fetchImpl: mockFetch({
+      [url]: {
+        ok: true,
+        status: 200,
+        url,
+        headers: { get: () => "application/pdf" },
+        text: async () => "unused",
+        arrayBuffer: async () => new TextEncoder().encode("%PDF-ok").buffer,
+      },
+    }),
+  });
+  ok("T-B13b PDF text layer SUCCEEDED", pdfOk.jobStatus === "SUCCEEDED" && pdfOk.evidenceWritable === true);
 
   const ctExec = await executeKnrDiscoveryHttpPlan(plan, {
     allowlistOverride: fixture,

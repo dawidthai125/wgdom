@@ -18,10 +18,19 @@ export type KnrDiscoveryAllowlistEntry = {
 
 /**
  * Production allowlist — Owner-curated only.
- * P2B ship state: EMPTY (OD-P2B-4 — live hosts require separate GO).
+ * Controlled L3 PDF pilot (2026-08-25): exactly one sourceId · one exact URL · no wildcards.
  */
 export const KNR_DISCOVERY_HTTP_ALLOWLIST: readonly KnrDiscoveryAllowlistEntry[] =
-  Object.freeze([]);
+  Object.freeze([
+    {
+      sourceId: "l3_bip_malopolska_1646919",
+      hostname: "bip.malopolska.pl",
+      url: "https://bip.malopolska.pl/api/files/1646919",
+      originId: "knr_official_public_document",
+      active: true,
+      priority: "OFFICIAL_PUBLIC_DOCUMENT",
+    },
+  ]);
 
 /** Test-only fixture — NEVER merge into production constant. */
 export const KNR_DISCOVERY_HTTP_ALLOWLIST_TEST_FIXTURE: readonly KnrDiscoveryAllowlistEntry[] =
