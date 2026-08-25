@@ -428,6 +428,10 @@ export function TenderDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fingerprint encodes all inputs; omit snapshot ref churn
   }, [ikAnalysisHandoffFp]);
 
+  /** HANDOFF-CTA-FOCUS-01 — one-shot DW scroll after tab mount (no retry / no store SSOT). */
+  const [pendingDecisionWorkspaceFocus, setPendingDecisionWorkspaceFocus] =
+    useState(false);
+
   const handleIkAnalysisHandoffCta = useCallback(() => {
     if (!ikAnalysisHandoffVm) return;
     const { cta } = ikAnalysisHandoffVm;
@@ -438,6 +442,18 @@ export function TenderDetailPage({
         ownerActionDeepLinkContext,
         ownerActionNavigateHandlers,
       );
+      return;
+    }
+    // CTA-FOCUS-01 — decision (+ ready_for_next → decision): tab then deferred DW scroll
+    if (cta.kind === "decision") {
+      setPendingDecisionWorkspaceFocus(true);
+      handleTabChange(cta.navigationTab ?? "decyzja");
+      return;
+    }
+    // CTA-FOCUS-01 — kosztorys_bid (+ ready_for_next → kosztorys): reuse OfferBoq focus flag
+    if (cta.kind === "kosztorys_bid") {
+      setFocusOfferBoq(true);
+      handleTabChange(cta.navigationTab ?? "kosztorys");
       return;
     }
     if (cta.navigationTab) {
@@ -459,6 +475,22 @@ export function TenderDetailPage({
     }, 80);
     return () => window.clearTimeout(timer);
   }, [activeTab, pendingOwnerActionFocus, ownerActionDeepLinkContext]);
+
+  /** HANDOFF-CTA-FOCUS-01 — reuse EC/PrimaryAction DW selectors; soft-fail if missing. */
+  useEffect(() => {
+    if (!pendingDecisionWorkspaceFocus) return;
+    if (activeTab !== "decyzja") return;
+    setPendingDecisionWorkspaceFocus(false);
+    const timer = window.setTimeout(() => {
+      const el =
+        document.getElementById("decision-workspace-surface") ??
+        document.querySelector("[data-decision-workspace-host]");
+      if (el && "scrollIntoView" in el) {
+        (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, pendingDecisionWorkspaceFocus]);
 
   /** DECISION-WORKSPACE-01 / TM-01 S5 / ENABLEMENT-01 — Session effective ON only. */
   const chiefSessionForDecision: ChiefSessionOutput | null =
