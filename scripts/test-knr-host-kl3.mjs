@@ -110,10 +110,11 @@ assert("HOST-marker", KNR_KNOWLEDGE_KL3_HOST_MARKER === true);
 assert("HOST-OD-FLAG-1-YES", KNR_HOST_KL3_EXPLICIT_RESEARCH === true);
 assert("HOST-not-hard-lookup-only", KNR_HOST_KL3_LOOKUP_ONLY === false);
 assert(
-  "HOST-allowlist-single-pilot",
+  "HOST-allowlist-2D-2E",
   !isKnrDiscoveryAllowlistEmpty()
-    && KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1
-    && KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_bip_malopolska_1646919")
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_rckik_wroclaw_1202_07"),
 );
 
 // --- Phase 1 TEST 1: FLAG OFF override ---
@@ -176,9 +177,10 @@ assert(
     nowIso: NOW,
   });
   assert(
-    "P1-T4 allowlist single pilot",
-    KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1
-      && KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+    "P1-T4 allowlist 2D + 2E",
+    KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2
+      && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_bip_malopolska_1646919")
+      && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_rckik_wroclaw_1202_07"),
   );
   assert("P1-T4 HTTP 0", out.httpRequestCount === 0);
   assert("P1-T4 sidechannel HTTP 0", out.discoverySideChannel.httpRequestCount === 0);

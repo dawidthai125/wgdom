@@ -20,12 +20,13 @@ export type KnrDiscoverySourceSelectionReason =
 /**
  * Production selection SSOT — Owner-curated L3 document sourceIds.
  * Keys = evidenceKeyV1 or normalizedKey (exact). Values = allowlisted sourceIds.
- * Controlled L3 PDF pilot: single key → single sourceId (no portal crawl).
+ * Controlled L3 PDF pilot: explicit BY_KEY → allowlisted sourceId (no portal crawl).
  */
 export const KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY: Readonly<
   Record<string, readonly string[]>
 > = Object.freeze({
   "KNR-W|4-01|0701-05": Object.freeze(["l3_bip_malopolska_1646919"]),
+  "KNR-W|4-01|1202-07": Object.freeze(["l3_rckik_wroclaw_1202_07"]),
 });
 
 /**

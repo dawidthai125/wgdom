@@ -18,7 +18,7 @@ export type KnrDiscoveryAllowlistEntry = {
 
 /**
  * Production allowlist — Owner-curated only.
- * Controlled L3 PDF pilot (2026-08-25): exactly one sourceId · one exact URL · no wildcards.
+ * Phase 2D + 2E: each sourceId maps to one exact HTTPS URL · no wildcards · no raw client URL.
  */
 export const KNR_DISCOVERY_HTTP_ALLOWLIST: readonly KnrDiscoveryAllowlistEntry[] =
   Object.freeze([
@@ -26,6 +26,14 @@ export const KNR_DISCOVERY_HTTP_ALLOWLIST: readonly KnrDiscoveryAllowlistEntry[]
       sourceId: "l3_bip_malopolska_1646919",
       hostname: "bip.malopolska.pl",
       url: "https://bip.malopolska.pl/api/files/1646919",
+      originId: "knr_official_public_document",
+      active: true,
+      priority: "OFFICIAL_PUBLIC_DOCUMENT",
+    },
+    {
+      sourceId: "l3_rckik_wroclaw_1202_07",
+      hostname: "www.rckik.wroclaw.pl",
+      url: "https://www.rckik.wroclaw.pl/przetargi/20110629132027przedmiar_robot_zalacznik_7.pdf",
       originId: "knr_official_public_document",
       active: true,
       priority: "OFFICIAL_PUBLIC_DOCUMENT",

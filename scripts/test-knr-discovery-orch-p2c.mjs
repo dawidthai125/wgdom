@@ -126,7 +126,7 @@ ok("batch max 5", KNR_DISCOVERY_ORCH_BATCH_MAX === 5);
 ok("concurrency max 3", KNR_DISCOVERY_ORCH_CONCURRENCY_MAX === 3);
 ok("lease default 90s", KNR_DISCOVERY_JOB_LEASE_MS_DEFAULT === 90_000);
 ok("feature pilot ON", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === true);
-ok("allowlist single pilot", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1);
+ok("allowlist pilot 2D + 2E", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2);
 ok("prefix discovery job", KNR_DISCOVERY_JOB_KV_PREFIX === "kw-knr-discovery-job:");
 ok("prefix not MMR", !KNR_DISCOVERY_JOB_KV_PREFIX.includes("price-research"));
 

@@ -116,11 +116,11 @@ function mockFetch(handlers) {
 
 // --- invariants ---
 ok("prod feature pilot ON", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === true);
-ok("prod allowlist single pilot", isKnrDiscoveryAllowlistEmpty() === false);
-ok("prod allowlist length 1", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1);
+ok("prod allowlist pilot 2D + 2E", isKnrDiscoveryAllowlistEmpty() === false);
+ok("prod allowlist length 2", KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2);
 ok(
-  "prod pilot sourceId",
-  KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+  "prod pilot sourceId Phase 2D",
+  KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_bip_malopolska_1646919"),
 );
 
 // T-B1 CATALOG_HIT → HTTP 0

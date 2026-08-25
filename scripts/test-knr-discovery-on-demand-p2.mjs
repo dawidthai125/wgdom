@@ -113,16 +113,18 @@ clearKnrDiscoveryOnDemandBudgetForTests();
 
 // --- Production controlled pilot ---
 ok(
-  "PROD allowlist single pilot source",
+  "PROD allowlist pilot sources (2D + 2E)",
   !isKnrDiscoveryAllowlistEmpty()
-    && KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1
-    && KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_bip_malopolska_1646919")
+    && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_rckik_wroclaw_1202_07"),
 );
 ok("PROD feature pilot ON", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === true);
 ok(
-  "PROD source selection single pilot key",
-  Object.keys(KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY).length === 1
-    && KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY["KNR-W|4-01|0701-05"]?.[0] === "l3_bip_malopolska_1646919",
+  "PROD source selection keys (2D + 2E)",
+  Object.keys(KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY).length === 2
+    && KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY["KNR-W|4-01|0701-05"]?.[0] === "l3_bip_malopolska_1646919"
+    && KNR_DISCOVERY_SOURCE_SELECTION_BY_KEY["KNR-W|4-01|1202-07"]?.[0] === "l3_rckik_wroclaw_1202_07",
 );
 ok(
   "CANDIDATES audit only — no URLs",
@@ -714,9 +716,10 @@ ok(
 
   // production controlled pilot unchanged
   ok(
-    "PROD allowlist still single pilot after L3 tests",
-    KNR_DISCOVERY_HTTP_ALLOWLIST.length === 1
-      && KNR_DISCOVERY_HTTP_ALLOWLIST[0]?.sourceId === "l3_bip_malopolska_1646919",
+    "PROD allowlist still 2D + 2E after L3 tests",
+    KNR_DISCOVERY_HTTP_ALLOWLIST.length === 2
+      && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_bip_malopolska_1646919")
+      && KNR_DISCOVERY_HTTP_ALLOWLIST.some((e) => e.sourceId === "l3_rckik_wroclaw_1202_07"),
   );
   ok("PROD feature still pilot ON", KNR_DISCOVERY_HTTP_FEATURE_DEFAULT === true);
 }
