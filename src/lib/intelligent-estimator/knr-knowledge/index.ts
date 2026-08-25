@@ -91,6 +91,7 @@ export * from "./providers/knr-source-provider";
 export * from "./providers/licensed-export-file-provider";
 export * from "./knr-verify-display";
 export * from "./knr-verify-orchestrator";
+export * from "./knr-kl6-hydration";
 
 export * from "./knr-knowledge-envelope";
 export * from "./knr-research-types";

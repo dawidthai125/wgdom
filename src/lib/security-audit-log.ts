@@ -28,7 +28,13 @@ export type SecurityAuditAction =
   | "data_import_started"
   | "data_import_completed"
   | "data_import_failed"
-  | "directory_delete";
+  | "directory_delete"
+  | "knr_catalog_verify"
+  | "knr_catalog_reject"
+  | "knr_research_explicit"
+  | "knr_research_denied"
+  | "knr_research_pending"
+  | "knr_research_conflict";
 
 export interface SecurityAuditEntry {
   id: string;
@@ -59,6 +65,12 @@ export const SECURITY_AUDIT_ACTION_LABEL_PL: Record<SecurityAuditAction, string>
   data_import_completed: "Import backupu zakończony",
   data_import_failed: "Błąd importu backupu",
   directory_delete: "Usunięcie pracownika z katalogu",
+  knr_catalog_verify: "Weryfikacja normy KNR",
+  knr_catalog_reject: "Odrzucenie kandydata KNR",
+  knr_research_explicit: "Research KNR (explicit)",
+  knr_research_denied: "Research KNR odrzucony",
+  knr_research_pending: "Research KNR → PENDING_VERIFY",
+  knr_research_conflict: "Research KNR — konflikt kandydatów",
 };
 
 /** @deprecated alias — używaj SECURITY_AUDIT_ACTION_LABEL_PL */

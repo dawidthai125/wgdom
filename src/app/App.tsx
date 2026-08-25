@@ -104,7 +104,7 @@ import { writeAuditRingLocal } from "@/lib/storage/storage-audit-ring";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
-import { adminCanViewTendersTab, adminCanViewWorkCatalog, adminCanViewInstructions, adminCanViewChanges, adminIsSuperAdmin } from "@/lib/admin-auth";
+import { adminCanViewTendersTab, adminCanViewWorkCatalog, adminCanViewInstructions, adminCanViewChanges, adminIsSuperAdmin, adminCanVerifyKnrCatalog } from "@/lib/admin-auth";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -2766,6 +2766,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     if (view === "audit" && !canAccessAuditHub(adminSession)) setView("dashboard");
+  }, [view, adminSession]);
+
+  useEffect(() => {
+    if (view === "knrverify" && !adminCanVerifyKnrCatalog(adminSession?.role ?? "inspector")) {
+      setView("dashboard");
+    }
   }, [view, adminSession]);
 
   useEffect(() => {

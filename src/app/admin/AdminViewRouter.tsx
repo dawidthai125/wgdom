@@ -9,7 +9,7 @@ import type {
   WeekSnapshot,
 } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
-import { adminIsSuperAdmin } from "@/lib/admin-auth";
+import { adminIsSuperAdmin, adminCanVerifyKnrCatalog } from "@/lib/admin-auth";
 import type { AppSettings } from "@/lib/app-settings";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
@@ -48,6 +48,9 @@ const WmPrintView = lazy(() =>
 );
 const AuditHubView = lazy(() =>
   import("@/app/AuditHubView").then((m) => ({ default: m.AuditHubView })),
+);
+const KnrVerifyAdminView = lazy(() =>
+  import("@/app/knr-verify/KnrVerifyAdminView").then((m) => ({ default: m.KnrVerifyAdminView })),
 );
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
@@ -753,6 +756,13 @@ export function AdminViewRouter({
               deliveryPackagePublications={deliveryPackagePublications}
               onDeepLink={onAuditHubDeepLink}
             />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "knrverify" && adminSession && adminCanVerifyKnrCatalog(adminSession.role) && (
+        <ViewErrorBoundary label="Weryfikacja KNR">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie weryfikacji KNR…" />}>
+            <KnrVerifyAdminView adminSession={adminSession} />
           </Suspense>
         </ViewErrorBoundary>
       )}

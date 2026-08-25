@@ -15,6 +15,7 @@ import {
   ScrollText,
   Printer,
   Shield,
+  BadgeCheck,
 } from "lucide-react";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
@@ -53,7 +54,8 @@ export type View =
   | "tenders"
   /** Legacy top-level route — redirect do Przetargi → Biblioteka Robót (WC-P2.1). */
   | "workcatalog"
-  | "audit";
+  | "audit"
+  | "knrverify";
 
 export type AdminNavItem = {
   key: View;
@@ -210,6 +212,12 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
             label: "Audit Hub",
             hint: "Historia działań z istniejących logów — tylko Super Admin.",
             icon: Shield,
+          },
+          {
+            key: "knrverify" as const,
+            label: "Weryfikacja KNR",
+            hint: "Import ATH i Owner VERIFY norm R/M/S — tylko Super Admin. Nie ceny PLN.",
+            icon: BadgeCheck,
           },
         ]
       : []),

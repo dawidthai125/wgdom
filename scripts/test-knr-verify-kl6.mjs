@@ -428,5 +428,44 @@ assert("T-KL-6-22 KL6 marker", KNR_KNOWLEDGE_KL6_IMPLEMENTED === true);
 assert("T-KL-6-22 HTTP=0 marker", true);
 assert("T-KL-6-22 Cloud=0 marker", true);
 
+{
+  const ui = readFileSync(join(root, "src/app/knr-verify/KnrVerifyAdminView.tsx"), "utf8");
+  assert("T-KL-6-UI-1 no direct write-router", !ui.includes("persistVerifiedKnrCatalogEntry"));
+  assert("T-KL-6-UI-2 uses approve orch", ui.includes("executeKnrOwnerVerifyApprove"));
+  assert("T-KL-6-UI-3 uses reject orch", ui.includes("executeKnrOwnerVerifyReject"));
+  assert("T-KL-6-UI-4 ACL gate", ui.includes("adminCanVerifyKnrCatalog"));
+  assert("T-KL-6-UI-5 security audit", ui.includes("recordSecurityAudit"));
+  assert("T-KL-6-UI-6 no fetch", !/\bfetch\s*\(/.test(ui));
+  assert("T-KL-6-UI-7 authority banner", ui.includes("DISCOVERED ≠ VERIFIED"));
+  assert("T-KL-6-UI-8 await approve", ui.includes("await executeKnrOwnerVerifyApprove"));
+}
+
+{
+  const {
+    hydrateKnrPendingQueueFromLocalCatalog,
+    emptyKnrCatalogStore,
+  } = await import("../src/lib/intelligent-estimator/knr-knowledge/index.ts");
+  const ingest = await ingestPending("KNR 2-02 0803-UI");
+  const store = ingest.ok ? ingest.catalogStore : emptyKnrCatalogStore(NOW);
+  const staged = ingest.ok
+    ? {
+        ...store,
+        entries: {
+          ...store.entries,
+          [ingest.candidate.identityKeyV2]: ingest.candidate,
+        },
+      }
+    : store;
+  const hydrated = hydrateKnrPendingQueueFromLocalCatalog({ catalogStore: staged });
+  assert(
+    "T-KL-6-UI-9 catalog hydration pending",
+    ingest.ok && hydrated.catalogPendingCount >= 1 && hydrated.queue.length >= 1,
+  );
+  assert(
+    "T-KL-6-UI-10 hydration no verify",
+    hydrated.queue.every((row) => row.entry.verificationStatus === "PENDING_VERIFY"),
+  );
+}
+
 console.log(`\nKL-6 result: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);
