@@ -28,7 +28,7 @@ const NAV_SECTIONS: { id: string; label: string; keys: View[] }[] = [
   {
     id: "kontrola",
     label: "Kontrola",
-    keys: ["operationalnotes", "inspector", "recoverablecharges", "media", "audit"],
+    keys: ["operationalnotes", "inspector", "recoverablecharges", "media", "audit", "knrverify"],
   },
   { id: "pomoc", label: "Pomoc", keys: ["guide", "changelog"] },
 ];
