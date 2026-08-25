@@ -81,6 +81,9 @@ export interface ClassifiedCostDocument {
 
 const costStatusTraceBuffer: { at: string; detail: Record<string, unknown> }[] = [];
 const COST_STATUS_TRACE_MAX = 40;
+/** Console spam guard — in-memory last emitted fingerprint (buffers still append). */
+let lastCostStatusConsoleFp = "";
+let lastSsotConsoleFp = "";
 
 export function traceCostStatus(
   status: ResolvedCostStatus,
@@ -98,8 +101,13 @@ export function traceCostStatus(
   if (costStatusTraceBuffer.length > COST_STATUS_TRACE_MAX) {
     costStatusTraceBuffer.length = COST_STATUS_TRACE_MAX;
   }
-  if (typeof console !== "undefined" && console.debug) {
-    console.debug("[COST STATUS TRACE]", detail);
+  // Console: emit only when fingerprint changes (idle re-renders must not spam).
+  const fp = `${detail.status}|${detail.type}|${detail.rowCount}|${detail.totalValue}|${detail.priced}`;
+  if (fp !== lastCostStatusConsoleFp) {
+    lastCostStatusConsoleFp = fp;
+    if (typeof console !== "undefined" && console.debug) {
+      console.debug("[COST STATUS TRACE]", detail);
+    }
   }
 }
 
@@ -179,8 +187,22 @@ export function traceSsotSnapshot(
   };
   ssotTraceBuffer.unshift({ at: new Date().toISOString(), detail });
   if (ssotTraceBuffer.length > SSOT_TRACE_MAX) ssotTraceBuffer.length = SSOT_TRACE_MAX;
-  if (typeof console !== "undefined" && console.debug) {
-    console.debug("[SSOT TRACE]", detail);
+  const fp = [
+    detail.resolvedTenderValuePln,
+    detail.valueSource,
+    detail.resolvedCostStatus,
+    detail.costLabel,
+    detail.resolvedAwardCriteria,
+    detail.resolvedWadiumDisplay,
+    detail.costClassification?.type,
+    detail.costClassification?.rowCount,
+    detail.costClassification?.priced,
+  ].join("|");
+  if (fp !== lastSsotConsoleFp) {
+    lastSsotConsoleFp = fp;
+    if (typeof console !== "undefined" && console.debug) {
+      console.debug("[SSOT TRACE]", detail);
+    }
   }
 }
 

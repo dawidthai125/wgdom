@@ -490,19 +490,36 @@ export function useIkOrchestra({
     };
   }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
 
-  return {
-    effectiveItem,
-    pkg,
-    ingest,
-    bridgeBusy,
-    labor,
-    material,
-    flags,
-    ...fullSnapshot,
-    identityPersistOutcome,
-    packageBlockers,
-    ownerActionQueue,
-    identityCoverageOps,
-    refreshF5AfterOwnerInput,
-  };
+  return useMemo(
+    () => ({
+      effectiveItem,
+      pkg,
+      ingest,
+      bridgeBusy,
+      labor,
+      material,
+      flags,
+      ...fullSnapshot,
+      identityPersistOutcome,
+      packageBlockers,
+      ownerActionQueue,
+      identityCoverageOps,
+      refreshF5AfterOwnerInput,
+    }),
+    [
+      effectiveItem,
+      pkg,
+      ingest,
+      bridgeBusy,
+      labor,
+      material,
+      flags,
+      fullSnapshot,
+      identityPersistOutcome,
+      packageBlockers,
+      ownerActionQueue,
+      identityCoverageOps,
+      refreshF5AfterOwnerInput,
+    ],
+  );
 }

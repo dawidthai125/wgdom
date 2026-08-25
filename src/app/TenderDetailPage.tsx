@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -81,6 +81,10 @@ import {
 import { useHistoricalExecutedHostIndex } from "@/lib/intelligent-estimator/historical-executed";
 import type { Job } from "@/app/app-domain";
 import { IkEntryHost } from "@/app/intelligent-estimator/IkEntryHost";
+import {
+  IkAnalysisSurface,
+  IK_ANALYSIS_SURFACE_OPEN_CTA_PL,
+} from "@/app/intelligent-estimator/IkAnalysisSurface";
 import { IkOrchestraPageBridge } from "@/app/intelligent-estimator/IkOrchestraPageBridge";
 import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
 import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
@@ -201,13 +205,6 @@ export function TenderDetailPage({
     : resolveV4EmbedLegacyWorkspace(activeTab, decyzjaWs);
   const compactKosztorysChrome = activeTab === "kosztorys";
 
-  useEffect(() => {
-    return registerNativeBackHandler(() => {
-      handleLeaveToModule();
-      return true;
-    });
-  }, [handleLeaveToModule]);
-
   const onUpdateItem = useCallback(
     (patch: Partial<TenderPipelineItem>, opts?: { persist?: "local" | "cloud" }) =>
       pipeline.updateItem(item?.id ?? tenderId, patch, opts),
@@ -236,9 +233,28 @@ export function TenderDetailPage({
     setIkOrchestraSnapshot(snapshot);
   }, []);
 
-  useEffect(() => {
+  /** Presentation-only: large IK Analysis Surface (does not gate orchestra Bridge). */
+  const [ikAnalysisSurfaceOpen, setIkAnalysisSurfaceOpen] = useState(false);
+  const ikAnalysisAutoOpenedForTenderRef = useRef<string | null>(null);
+
+  // Layout (not passive effect): must run before IkOrchestraPageBridge useEffect publish.
+  // Passive child-before-parent ordering left snapshot null after stable-orchestra fix.
+  useLayoutEffect(() => {
     setIkOrchestraSnapshot(null);
+    setIkAnalysisSurfaceOpen(false);
+    ikAnalysisAutoOpenedForTenderRef.current = null;
   }, [tenderId]);
+
+  useEffect(() => {
+    return registerNativeBackHandler(() => {
+      if (ikAnalysisSurfaceOpen) {
+        setIkAnalysisSurfaceOpen(false);
+        return true;
+      }
+      handleLeaveToModule();
+      return true;
+    });
+  }, [handleLeaveToModule, ikAnalysisSurfaceOpen]);
 
   const pipelineRuntimeForUi = useMemo(() => {
     const bidUi = resolveTenderBidProposalForUi({
@@ -281,6 +297,14 @@ export function TenderDetailPage({
   const ikFirstScreen = resolveIkDetailFirstScreen(ikEntryOn);
   /** Historical Executed Host hydrate — async; null ⇒ HISTORICAL_MISS (non-blocking). */
   const { historicalIndex } = useHistoricalExecutedHostIndex(jobs, ikEntryOn === true);
+
+  /** Auto-open Analysis Surface once per tender when orchestra snapshot is ready (presentation only). */
+  useEffect(() => {
+    if (!ikEntryOn || activeTab !== "przetarg" || !item?.id || !ikOrchestraSnapshot) return;
+    if (ikAnalysisAutoOpenedForTenderRef.current === item.id) return;
+    ikAnalysisAutoOpenedForTenderRef.current = item.id;
+    setIkAnalysisSurfaceOpen(true);
+  }, [ikEntryOn, activeTab, item?.id, ikOrchestraSnapshot]);
 
   useEffect(() => {
     setTre01ForceWorkspace(false);
@@ -849,17 +873,47 @@ export function TenderDetailPage({
             />
           )}
 
+          {ikEntryOn && activeTab === "przetarg" && item && !ikAnalysisSurfaceOpen && (
+            <div
+              className="mb-4 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+              data-ik-analysis-surface-cta
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  Inteligentny Kosztorysant
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Orkiestracja IK działa w tle — otwórz dużą powierzchnię analizy.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center min-h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 shrink-0"
+                data-ik-analysis-surface-open-cta
+                onClick={() => setIkAnalysisSurfaceOpen(true)}
+              >
+                {IK_ANALYSIS_SURFACE_OPEN_CTA_PL}
+              </button>
+            </div>
+          )}
+
           {ikEntryOn && activeTab === "przetarg" && item && ikOrchestraSnapshot && (
-            <IkEntryHost
-              item={item}
-              orchestra={ikOrchestraSnapshot}
-              onUpdate={onUpdateItem}
-              athPreviewEnabled={athPreviewEnabled}
-              chiefSession={chiefSessionEnabled ? chiefSession : null}
-              historicalIndex={historicalIndex}
-              ownerActionDeepLinkContext={ownerActionDeepLinkContext}
-              ownerActionNavigateHandlers={ownerActionNavigateHandlers}
-            />
+            <IkAnalysisSurface
+              open={ikAnalysisSurfaceOpen}
+              onClose={() => setIkAnalysisSurfaceOpen(false)}
+              subtitle={item.title || item.address || null}
+            >
+              <IkEntryHost
+                item={item}
+                orchestra={ikOrchestraSnapshot}
+                onUpdate={onUpdateItem}
+                athPreviewEnabled={athPreviewEnabled}
+                chiefSession={chiefSessionEnabled ? chiefSession : null}
+                historicalIndex={historicalIndex}
+                ownerActionDeepLinkContext={ownerActionDeepLinkContext}
+                ownerActionNavigateHandlers={ownerActionNavigateHandlers}
+              />
+            </IkAnalysisSurface>
           )}
 
           {showTre01RecoveryCta && (

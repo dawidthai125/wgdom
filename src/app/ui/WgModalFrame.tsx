@@ -29,7 +29,7 @@ export type WgModalFrameProps = {
   variant?: "dialog" | "sheet";
   /** glass = Login; solid = admin allowlist parity (S1) */
   surface?: "glass" | "solid";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /** When false, content owns its header/close */
   showHeader?: boolean;
   className?: string;
@@ -40,6 +40,8 @@ const dialogSizeClass: Record<NonNullable<WgModalFrameProps["size"]>, string> = 
   sm: "w-[min(calc(100vw-2rem),380px)] max-w-sm",
   md: "w-[min(calc(100vw-2rem),28rem)] max-w-md",
   lg: "w-[min(calc(100vw-2rem),32rem)] max-w-lg",
+  /** Near-viewport analysis / workspace surfaces */
+  xl: "w-[min(calc(100vw-1.5rem),1200px)] max-h-[min(92dvh,920px)] h-[min(92dvh,920px)] flex flex-col",
 };
 
 /** Sheet: full-bleed on mobile; capped width when centered on md+ */
@@ -47,6 +49,7 @@ const sheetSizeClass: Record<NonNullable<WgModalFrameProps["size"]>, string> = {
   sm: "w-full max-w-sm md:w-[min(calc(100vw-2rem),380px)]",
   md: "w-full max-w-md md:w-[min(calc(100vw-2rem),28rem)]",
   lg: "w-full max-w-lg md:w-[min(calc(100vw-2rem),32rem)]",
+  xl: "w-full max-w-none h-[92dvh] max-h-[92dvh] flex flex-col md:w-[min(calc(100vw-1.5rem),1200px)] md:h-[min(92dvh,920px)] md:max-h-[min(92dvh,920px)]",
 };
 
 const FOCUSABLE =

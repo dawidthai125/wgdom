@@ -85,7 +85,10 @@ export function TenderBidPrepPanel({
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
   const refMatch = computeReferenceMatchSummary(item, profile);
-  const checks = computeBidPrepChecks(item, swz, fit, bidProposal, { pricingDeferred: overviewMode });
+  const checks = useMemo(
+    () => computeBidPrepChecks(item, swz, fit, bidProposal, { pricingDeferred: overviewMode }),
+    [item, swz, fit, bidProposal, overviewMode],
+  );
   const readyCount = checks.filter((c) => c.status === "ok").length;
   const canAnalyze = Boolean(
     item.noticeNumber || (item.tenderId && (item.bzpDocuments?.length ?? 0) > 0),
