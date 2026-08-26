@@ -41,6 +41,12 @@ import {
 } from "@/lib/chief-session";
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
 import type { IkKnrExpertReport } from "./ik-knr-expert";
+import type { IkDocumentExpertReport } from "./ik-document-expert";
+import {
+  buildIkP8QuantityAdvisory,
+  collectIkP8QuantityAdvisoryInputs,
+  type IkP8QuantityAdvisory,
+} from "./ik-p8-quantity-advisory";
 
 export const IK_P8_RISK_DECISION_SCHEMA_VERSION = 1 as const;
 
@@ -82,6 +88,11 @@ export type IkP8RiskDecisionReport = {
   canReject: boolean;
   ownerDecisionRecorded: boolean;
   reasonsPl: string[];
+  /**
+   * IK S4-C — additive quantity advisory (OPTION A).
+   * Surface only — never mutates displayDecision / Bid / quantity SSOT.
+   */
+  quantityAdvisory: IkP8QuantityAdvisory | null;
   provenance: {
     sourceRefKind: "evidence" | "hold";
     bidFromP7: boolean;
@@ -145,6 +156,8 @@ export function runIkP8RiskDecision(opts: {
   bidProposal?: TenderBidProposal | null;
   /** Optional full P7 report (status provenance companion). */
   p7?: IkP7PositionCostBidReport | null;
+  /** Document Expert — S4-C quantity advisory source (enriched lines + graphs). */
+  expert?: IkDocumentExpertReport | null;
   /** P4 Chief session — REUSE; null ⇒ Validation HOLD (no invent dossier). */
   chiefSession?: ChiefSessionOutput | null;
   scoringContext?: StrategicScoreContext | null;
@@ -247,6 +260,21 @@ export function runIkP8RiskDecision(opts: {
   const sourceRefKind: "evidence" | "hold" =
     status === "ready" || status === "partial" ? "evidence" : "hold";
 
+  // S4-C — quantity advisory projection (does NOT mutate overlay.displayDecision).
+  const expert = opts.expert ?? null;
+  const advisoryInputs = collectIkP8QuantityAdvisoryInputs({
+    masterBoqLines: expert?.masterBoqLines ?? null,
+    offerBoqLines: expert?.offerBoq?.lines ?? null,
+    boqDependencyGraph: expert?.boqDependencyGraph ?? null,
+    boqDependencyGraphsByDwelling: expert?.boqDependencyGraphsByDwelling ?? null,
+  });
+  const quantityAdvisory = advisoryInputs.length
+    ? buildIkP8QuantityAdvisory({
+      lines: advisoryInputs,
+      shadow: opts.p7?.shadow ?? null,
+    })
+    : null;
+
   return {
     schemaVersion: IK_P8_RISK_DECISION_SCHEMA_VERSION,
     status,
@@ -266,6 +294,7 @@ export function runIkP8RiskDecision(opts: {
     canReject: decisionWorkspace.canReject === true,
     ownerDecisionRecorded: decisionWorkspace.localDecision != null,
     reasonsPl,
+    quantityAdvisory,
     provenance: {
       sourceRefKind,
       bidFromP7: bidProposal != null && (opts.p7 != null || opts.bidProposal != null),

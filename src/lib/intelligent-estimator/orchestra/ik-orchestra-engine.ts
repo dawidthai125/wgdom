@@ -257,6 +257,7 @@ export function computeIkOrchestraSyncSnapshot(
       item: effectiveItem,
       p7: positionCostBid,
       bidProposal: positionCostBid?.proposal ?? null,
+      expert: postIdentityExpert,
       chiefSession,
       knrHistorical: knr,
     });
