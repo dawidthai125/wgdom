@@ -20,14 +20,27 @@ export const KNR_WC_IDENTITY_BRIDGE_P2_UI_ENABLED = true as const;
 /** P3 — Owner-gated CatalogWork CREATE (Host executor). Default ON. */
 export const KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED = true as const;
 
+/**
+ * P4 — Slice D HIT → OfferBoq trusted tuple seam (exact_knr).
+ * Owner Enable GO — ENABLED. Independent of P1–P3 bulk test force.
+ */
+export const KNR_WC_IDENTITY_BRIDGE_P4_TRUST_SEAM_ENABLED = true as const;
+
 let knrWcBridgeRuntimeForTests: boolean | null = null;
+let knrWcP4TrustSeamForTests: boolean | null = null;
 
 /**
  * Test-only override for P1 + P2.1 + P2.2 + P2 UI + P3 bridge flags (null = const defaults).
  * Does NOT bypass `isIkEntryEnabled()` / role gate — mirror `forceIkEntryEnabledForTests`.
+ * Does NOT enable/disable P4 trust seam.
  */
 export function forceKnrWcIdentityBridgeRuntimeForTests(on: boolean | null): void {
   knrWcBridgeRuntimeForTests = on;
+}
+
+/** Test-only override for P4 trust seam only (null = const default / Owner Enable GO). */
+export function forceKnrWcIdentityBridgeP4TrustSeamForTests(on: boolean | null): void {
+  knrWcP4TrustSeamForTests = on;
 }
 
 function isKnrWcBridgeRuntimeForcedOn(): boolean {
@@ -81,6 +94,15 @@ export function isKnrWcIdentityBridgeP3CreateEnabled(
   if (isKnrWcBridgeRuntimeForcedOn()) return true;
   if (isKnrWcBridgeRuntimeForcedOff()) return false;
   return KNR_WC_IDENTITY_BRIDGE_P3_CREATE_ENABLED;
+}
+
+export function isKnrWcIdentityBridgeP4TrustSeamEnabled(
+  override?: boolean | null,
+): boolean {
+  if (typeof override === "boolean") return override;
+  if (knrWcP4TrustSeamForTests === true) return true;
+  if (knrWcP4TrustSeamForTests === false) return false;
+  return KNR_WC_IDENTITY_BRIDGE_P4_TRUST_SEAM_ENABLED;
 }
 
 export type KnrWcIdentityBridgeP2UiRuntimeGateInput = {

@@ -44,6 +44,15 @@ export type {
 export { resolveEffectiveItem } from "./orchestra-ports";
 export { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 export { useIkOrchestra } from "./use-ik-orchestra";
+export {
+  promoteSliceDHitToTrustedTuple,
+  P4_TRUST_MATCH_METHOD,
+  P4_TRUST_MATCH_CONFIDENCE,
+} from "./ik-knr-wc-p4-trust-seam";
+export type {
+  PromoteSliceDHitToTrustedTupleInput,
+  PromoteSliceDHitToTrustedTupleResult,
+} from "./ik-knr-wc-p4-trust-seam";
 export { buildIkPackageBlockerReport } from "./ik-package-blocker-report";
 export type {
   IkPackageBlockerLine,

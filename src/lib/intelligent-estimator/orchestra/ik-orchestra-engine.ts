@@ -1,6 +1,6 @@
 /**
  * W1/W2 Orchestra — sync pipeline.
- * W2 order: Document → KNR → KL-3 → Slice D → Identity → Classification → IdentityCoverage → Composite → P7 → P8.
+ * W2 order: Document → KNR → KL-3 → Slice D → P4 trust seam → Identity → Classification → IdentityCoverage → Composite → P7 → P8.
  */
 
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
@@ -12,6 +12,7 @@ import { runIkCompositeBothHold } from "@/lib/intelligent-estimator/ik-composite
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
 import { runIkIdentityPhase } from "@/lib/intelligent-estimator/orchestra/ik-identity-phase";
+import { promoteSliceDHitToTrustedTuple } from "@/lib/intelligent-estimator/orchestra/ik-knr-wc-p4-trust-seam";
 import {
   runKnrHostApplicationDiagBatch,
   summarizeKnrHostAppDiag,
@@ -200,9 +201,12 @@ export function computeIkOrchestraSyncSnapshot(
 
   const knrMapped = applyOwnerKnrMapping({ documentExpert: report, knr });
 
+  // P4 — thin trust seam (Owner Enable GO / ENABLED). Slice D remains mapping authority; Identity Phase stays generic.
+  const sliceDTrusted = promoteSliceDHitToTrustedTuple({ sliceD: knrMapped });
+
   const identityPhase = runIkIdentityPhase({
     structuralReport: report,
-    sliceDExpert: knrMapped.expert,
+    sliceDExpert: sliceDTrusted.expert,
     item: effectiveItem,
     package: pkg,
     manualOverrides: null,
