@@ -1,11 +1,13 @@
 # INTELLIGENT ESTIMATOR — MASTER SSOT
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
-> **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta**
-> **Data:** 2026-08-24 (Master update · **F5 MARGIN CLOSED GREEN** · Observability Phases 1–4 CLOSED) · prior Experience SSOT / body 2026-08-22
-> **Mode:** DOCUMENTATION ONLY · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **≠** cały IK globalnie E2E GREEN
+> **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
+> **Data:** 2026-08-26 (Master completeness closeout · **A08-P3 IMPLEMENTED** · **G2 WAIT**) · prior body 2026-08-24
+> **Doc hash (pre-edit baseline):** `82D337F25431` @ git `b857a162` · **post-edit:** see git after this session
+> **Mode:** DOCUMENTATION ONLY · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **≠** cały IK globalnie E2E GREEN · **AUTONOMY-08 epic NOT CLOSED**
 > **Experience DF:** [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) · Phase 4 amend §21
-> **Live tip commit:** **`82f3520e`** · UI **`2.66.115`** · prior Phase 4 **`c1b3ad7d`** (ancestor) · F5 MARGIN **CLOSED / PRODUCTION VERIFIED GREEN**
+> **A08-P3:** impl **`3822acb`** · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · Arch [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · harness **27/0** · **P3 OPEN** · G1 PV **PASS** · G2 **WAITING FOR NATURAL PROD CANDIDATE**
+> **Live tip commit (P3 deploy):** **`3822acb`** · UI **`2.66.115`** · prod https://www.wgdom.fun
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 > **Live tip (pointer):** UI / commit — **tylko** `09` + live `version.json` (nie hardcoduj tu przy driftcie deploy)
@@ -119,6 +121,7 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 | Tip UI/commit | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | Cold-start projekt | [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md) |
 | Entry procesu | [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll |
+| **IK AUTONOMY-08 P3** | [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · [`ARCH-REVIEW`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · impl **`3822acb`** · **P3 OPEN** |
 | **IK-MIGRATION-01** | [`IK-MIGRATION-01-FINAL-HANDOFF.md`](./IK-MIGRATION-01-FINAL-HANDOFF.md) · [`DESIGN-FREEZE`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — P0–P9 **LOCKED / COMPLETE** |
 | **IK Master Decision Tree (W0)** | [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md) — Orchestra · Identity · Chief LEGACY · **FROZEN CANDIDATE** · **OWNER GO NOT GRANTED** |
 | KNR Expert DF | [`IK-KNR-EXPERT-DESIGN-FREEZE.md`](./IK-KNR-EXPERT-DESIGN-FREEZE.md) · Slice A/B/C/D docs w tym katalogu |
@@ -225,7 +228,10 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **IK-MIGRATION-01** | P0–P9 **LOCKED / COMPLETE** |
 | **AUTONOMY-05…07** | COMPLETE / CLOSED · P5–P8 `"AUTO"\|"OFF"\|"ON"` · Research **CONDITIONAL** |
 | **AUTONOMY-08 P0–P2** | **COMPLETE / CLOSED** |
+| **AUTONOMY-08 P3 Owner Gates** | **IMPLEMENTED** @ **`3822acb`** · harness **27 PASS / 0 FAIL** · **P3 OPEN** (G2 PV incomplete) |
 | **AUTONOMY-08 epic** | **NOT CLOSED** |
+| **G1 durable persist PV** | **PASS** (Paczka VII · LS OfferBoq · reload) |
+| **G2 labor/material Accept PV** | **WAITING FOR NATURAL PROD CANDIDATE** · **STOP** execution |
 | **KNR Slice A** | catalogBasis evidence · **PRODUCTION VERIFIED** (tip historia `93eb41be`) |
 | **Historical Host Wiring** | `64f38479` · **PRODUCTION EXISTING** |
 | **Historical EC reveal** | `b31169be` · **PRODUCTION VERIFIED** (2026-08-21) |
@@ -277,7 +283,9 @@ Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1
 
 Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.
 
-**IK AUTONOMY-08 P2:** **COMPLETE / CLOSED**. **Nie** reopen. **Nie** start A08-P3 bez GO.
+**IK AUTONOMY-08 P2:** **COMPLETE / CLOSED**. **Nie** reopen.
+
+**IK AUTONOMY-08 P3:** **IMPLEMENTED** @ **`3822acb`**. **P3 OPEN** — G1 PV **PASS** · G2 **WAIT** (brak naturalnego candidate na prod). **Nie** zamykaj P3 · **nie** wykonuj G2 Accept bez fixture · **nie** fabricuj candidate.
 
 **IK-MIGRATION-01:** P0–P9 LOCKED — **nie** wracaj do „GO P1 entry shell” / „GO P2 Document Expert” jako next.
 
@@ -307,8 +315,14 @@ Latest continuity: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CO
 ```text
 INTELLIGENT ESTIMATOR
 │
-├── CHIEF                          → chief-session + chief-orchestrator + dossier UI
-├── HOST / RUNTIME ORCHESTRATOR    → IkEntryHost (sekwencja ekspertów)
+├── ENTRY / HOST / UI              → IkEntryHost · IkAnalysisSurface · TenderDetailPage · flags
+├── CHIEF (wspólny system IK)      → chief-session + chief-orchestrator · P4 wiring · material G2 gate
+├── ORCHESTRATOR (W1/W4/W5)        → use-ik-orchestra · ik-orchestra-engine · runtime · owner gates
+│   ├── sync pipeline              → Document→KNR→Identity→Class→Composite→P7→P8
+│   ├── async P5/P6                → labor/material experts + research-on-MISS
+│   ├── owner action queue         → ik-owner-action-queue (read model)
+│   ├── owner gates G1/G2          → IkOwnerGateActionsPanel · g1/g2 Accept/Reject/Recalculate
+│   └── identity persist glue      → runGatedIdentityPersist → attachOfferBoqToDwelling (LS)
 │
 ├── DOCUMENT / BOQ EXPERT          → ik-document-expert + P2 ingest + OfferBoq/Multi-BOQ
 ├── OWNER MAP / MULTI-DWELLING     → multi-dwelling + MultiDwellingPackagePanel
@@ -369,9 +383,9 @@ Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUT
 |--|--|
 | **Pliki** | `src/lib/chief-session/*` · `src/lib/chief-orchestrator/*` · `src/lib/chief-dossier-ui/*` · `src/lib/chief-wire-adapters/*` · `src/app/hooks/useChiefOrchestratorSession.ts` |
 | **Rola** | Case / Task / dossier / lifecycle / prezentacja stanu zespołu |
-| **Wywołuje** | TenderDetailPage (właściciel sesji) → prop do `IkEntryHost` / P8 |
-| **NIE** | Drugi Host · flip `expertAiDecydentEnabled` jako IK · auto Final Bid |
-| **Status** | **PRODUCTION EXISTING** · wiring P4 **PARTIAL** (gated flagami) |
+| **Wywołuje** | TenderDetailPage (właściciel sesji) → prop do `IkEntryHost` / P8 · **material G2:** `chiefMaterialAvailable` w `use-ik-orchestra` |
+| **NIE** | Drugi Host · flip `expertAiDecydentEnabled` jako IK · auto Final Bid · **nie** blokuje P6 research gdy OFF |
+| **Status** | **PRODUCTION EXISTING** · wiring P4 **PARTIAL** (`ikChiefWiringEnabled=false` on prod) · material G2 Accept **requires** Chief session |
 
 ### 11.2 Host / Runtime Orchestrator (`IkEntryHost`)
 
@@ -533,6 +547,66 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 |--|--|
 | **Pliki** | `tenders-bid-calculator.ts` · `tender-offer-boq*.ts` · `tender-bid-package-pdf.ts` → `exportTenderBidPackagePdf` |
 | **Status** | **PRODUCTION EXISTING** · REUSE · **nie** nowy PDF engine |
+
+### 11.15 Orchestra (`use-ik-orchestra` · W1/W4/W5)
+
+| | |
+|--|--|
+| **Pliki** | `src/lib/intelligent-estimator/orchestra/*` · hook `use-ik-orchestra.ts` · engine `ik-orchestra-engine.ts` · runtime `ik-orchestra-runtime.ts` · bridge `IkOrchestraPageBridge.tsx` |
+| **Rola** | **SSOT runtime sequencer** wydzielony z `IkEntryHost` — sync core + async P5/P6 settle · snapshot dla Observation · **Owner Gate API** |
+| **Wywołuje** | `runIkDocumentExpert` → KNR → `runIkIdentityPhase` → classification → P5/P6 async → composite → P7 → P8 |
+| **Wywoływany przez** | `IkEntryHost` · `IkOwnerGateActionsPanel` (via `ownerGate` API) |
+| **Stan** | `manualOverrides[]` (G1) · reject keys G1/G2 · labor/material recalc epochs · `chiefMaterialAvailable` |
+| **Persistence** | G1 → `runGatedIdentityPersist` (LS OfferBoq) · G2 labor → Work Catalog via Accept · G2 material → Price Memory via Accept |
+| **Flagi** | P5/P6 executeResearch · identity coverage · P7/P8 E2E — z `ik-entry-flag.ts` |
+| **Status** | **IMPLEMENTED** @ orchestra extract commits · **PRODUCTION EXISTING** @ **`3822acb`** (P3 gates) |
+
+**Chief ≠ Orchestra.** Chief = dossier/session/advisory. Orchestra = IK expert pipeline + Owner Gate execution surface.
+
+### 11.16 Owner Gates — G1 Identity · G2 Price (A08-P3)
+
+| | |
+|--|--|
+| **UI** | `src/app/intelligent-estimator/IkOwnerGateActionsPanel.tsx` · queue nav `IkOwnerActionQueueNavigate.tsx` |
+| **Lib** | `ik-owner-gate-actions.ts` · `ik-owner-gate-labor-idem.ts` · queue `ik-owner-action-queue.ts` · deeplink `ik-owner-action-deeplink.ts` |
+| **Harness** | `scripts/test-ik-autonomy-08-p3-owner-gates.mjs` — **27 PASS / 0 FAIL** (local, 2026-08-26) |
+
+#### G1 — Identity Gate
+
+| Akcja | Mechanizm | Persist | Prod PV |
+|-------|-----------|---------|---------|
+| **Accept** | `OwnerManualIdentityOverride` + `runGatedIdentityPersist` | LS `attachOfferBoqToDwelling` · `matchMethod=manual` | **PASS** (durable reload) |
+| **Edit** | upsert manual override | session until Accept persist | **IMPLEMENTED** |
+| **Reject** | `g1RejectedKeys` session Set | none | **NOT VERIFIED** (no blocker fixture) |
+| **Research Again** | labor gap panel / identity recalc epoch | none direct | **NOT VERIFIED** |
+
+#### G2 — Labor Accept
+
+| Warunek queue | `rateStatus === CANDIDATE_OWNER_ACCEPT_REQUIRED` **AND** `row.candidate` |
+| Accept | `acceptIkLaborResearchAndNotifyIdempotent` → Work Catalog OUR RATE |
+| Reject / Recalculate | session keys + recalc epoch → re-run P5 |
+| Chief | **NOT required** |
+| Prod PV | **WAITING FOR NATURAL PROD CANDIDATE** (0 fixtures on prod) |
+
+#### G2 — Material Accept
+
+| Warunek queue | `priceStatus === CANDIDATE_OWNER_ACCEPT_REQUIRED` **AND** `row.candidate` |
+| Accept | `acceptIkMaterialResearchCandidate` — **requires** `chiefMaterialAvailable` |
+| Reject | **allowed** with Chief OFF |
+| Recalculate | disabled UI when Chief OFF |
+| Chief OFF (`ikChiefWiringEnabled=false`) | blocks **Accept/Recalculate only** · **NOT** P6 research/candidate generation |
+| Prod PV | **WAITING FOR NATURAL PROD CANDIDATE** + Chief GO for Accept step |
+
+**Research ≠ Accept.** Owner Gate never auto-Accepts research candidates.
+
+### 11.17 KNR ↔ Work Catalog Identity Bridge (P3/P4)
+
+| | |
+|--|--|
+| **Pliki** | `knr-wc-identity-bridge*.ts` · UI `IkKnrWcIdentity*` panels · orchestra seam `ik-knr-wc-p4-trust-seam.ts` |
+| **Rola** | Owner-gated WC CREATE from KNR proposals · P4 trusted identity seam when flag ON |
+| **KV** | proposals cache · **NOT** runtime Owner Gate persist |
+| **Status** | P3 WC CREATE **CLOSED/PV** · P4 flag **ON** on prod (separate from A08-P3 G2) |
 
 ---
 
@@ -897,11 +971,13 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW
 ## 17. COLD START — NEW GPT / NEW CURSOR AGENT (obowiązkowe)
 
 ```text
-CHECKPOINT:
-  HEAD / origin/main = 82f3520e1f7e0f5b763792fb2592b4247be7df8a
-  Production = 2.66.115 / version.json commit = 82f3520
-  F5 MARGIN = CLOSED / PRODUCTION VERIFIED / GREEN
-  ≠ cały IK globalnie E2E GREEN · AUTONOMY-08 epic NOT CLOSED · Phase 5 NOT AUTHORIZED
+CHECKPOINT (2026-08-26):
+  HEAD / P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31
+  Production UI = 2.66.115 · https://www.wgdom.fun
+  A08-P3 IMPLEMENTED · P3 OPEN · G1 durable persist PASS · G2 WAIT
+  F5 MARGIN = CLOSED / PRODUCTION VERIFIED GREEN @ 82f3520e (ancestor)
+  Observability Phases 1–4 CLOSED @ c1b3ad7d (ancestor)
+  Phase 5 NOT AUTHORIZED · AUTONOMY-08 epic NOT CLOSED
 ```
 
 Nowy agent (Cursor / ChatGPT) **MUSI** wykonać w tej kolejności:
@@ -911,7 +987,7 @@ Nowy agent (Cursor / ChatGPT) **MUSI** wykonać w tej kolejności:
 2. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json
 3. Przeczytaj IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md (latest · F5 · DO NOT TOUCH)
 4. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
-5. git log -10 — verify HEAD vs origin/main (= 82f3520e)
+5. git log -10 — verify HEAD vs P3 deploy (= 3822acb)
 6. Odtwórz drzewo IK (§10–§12) — CURRENT vs PARTIAL vs TARGET vs GAP
 7. Rozróżnij IK Host experts (ik-*-expert) vs Chief experts (*-expert packages)
    — IK Material Expert ≠ Chief Material Expert
@@ -989,56 +1065,292 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 
 ---
 
-## 22. NEW SESSION / NEW AGENT CONTINUITY BLOCK
+## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-08-26)
+
+### CURRENT HEAD
+
+| Pole | Wartość |
+|------|---------|
+| **P3 deploy commit** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
+| **UI version** | **2.66.115** |
+| **Production** | https://www.wgdom.fun |
+| **Master SSOT** | **TEN PLIK** (`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`) |
+
+### CURRENT PHASE
+
+**A08-P3 Owner Gates — IMPLEMENTED · P3 OPEN · G2 execution STOPPED**
+
+### CLOSED (do not reopen without Owner GO)
+
+- IK-MIGRATION-01 P0–P9 · AUTONOMY-05…08-P2 · F5 MARGIN · Observability Phases 1–4 · KNR Slice A · A01/A09 Owner Map slices · G1 durable persist PV
+
+### OPEN
+
+- **A08-P3 epic slice** — G2 labor/material Accept PV
+- **AUTONOMY-08 epic** — not closed
+- Phase 2E full · Phase 5 Experience · TM-01 residuals
+
+### BLOCKED
+
+- **G2 labor Accept PV** — 0 `CANDIDATE_OWNER_ACCEPT_REQUIRED` on prod (8 LABOR lines all `CURRENT_HIT`)
+- **G2 material Accept PV** — 0 trusted material identity + 0 candidate · material Accept also needs Chief ON
+
+### WAITING FOR
+
+**Natural production candidate** satisfying:
+
+- Labor: `rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"` AND `row.candidate`
+- Material: `priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"` AND `row.candidate`
+
+Resume procedure: identify tender+lineRef → report evidence → Owner GO → narrow G2 PV only → persist/reload/idempotency → material: separate Chief GO.
+
+### DO NOT TOUCH
+
+- Mock/seed candidate · KV labor evidence injection · margin injection · manual catalog MISS · fabricated material identity
+- G2 Accept/Reject/Recalculate without real candidate · enable Chief for test only · close P3 · broad G2 discovery rescans
+- S6/P4 closed code · payroll/cloud-sync without PAYROLL_SAFETY_GATE · `git add -A`
+
+### NEXT LEGAL ACTION
+
+**WAIT** for natural prod candidate **OR** explicit Owner GO on a **narrow** scoped follow-up (not fixture fabrication).
+
+### OWNER DECISIONS REQUIRED
+
+| Decision | When |
+|----------|------|
+| Resume G2 PV | After natural candidate appears |
+| `ikChiefWiringEnabled=true` | Only for material G2 Accept PV (separate GO) |
+| Close A08-P3 / epic | Only after G2 PV complete |
+
+### READ FIRST (ordered)
+
+1. **TEN Master SSOT** (całość)
+2. [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json`
+3. [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
+4. [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)
+5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
+
+---
+
+## 23. FEATURE FLAG MAP (IK)
+
+| Flag | Default (code) | Prod (A08-P3 PV session) | Responsibility | Module | Safety |
+|------|------------------|--------------------------|----------------|--------|--------|
+| `ikEntryEnabled` | `true` | **true** | Master IK ON · P2 Documents→BOQ | `ik-entry-flag.ts` | OFF ⇒ IK host idle |
+| `ikIdentityCoverageEnabled` | `false` | **true** | P5.9 identity coverage report | identity phase / orchestra | optional report only |
+| `ikLaborE2eEnabled` | `AUTO` | **AUTO** | P5 MODE A · with Entry enables labor path | `ik-labor-expert` | OFF ⇒ HOLD |
+| `ikMaterialE2eEnabled` | `AUTO` | **AUTO** | P6 MODE A | `ik-material-expert` | OFF ⇒ HOLD |
+| `ikChiefWiringEnabled` | `false` | **false** | P4 Chief-under-IK · **material G2 Accept** | `TenderDetailPage` · `use-ik-orchestra` | OFF ⇒ `CHIEF_OFF` on material Accept |
+| `expertAiDecydentEnabled` | `false` | **false** | Legacy Decydent (D) — **≠ IK** | chief stack | D hard stop separate |
+| `ikLaborResearchEnabled` | `false` | false | **NOT** executeResearch conjunct (A08-P2) | leftover | unread by P5 gate |
+| `ikMaterialResearchEnabled` | `false` | false | **NOT** executeResearch conjunct | leftover | unread by P6 gate |
+| `ikF5E2eEnabled` | `AUTO` | AUTO | P7 read-only bid prepare | `ik-p7-position-cost-bid` | no persist |
+| `ikRiskDecisionE2eEnabled` | `AUTO` | AUTO | P8 read-only | `ik-p8-risk-decision` | no Accept |
+| `ikAutoIngestEnabled` | legacy | — | **NOT** P2 runtime gate | — | P2 = Entry only |
+
+**P5 executeResearch** = `ikEntryEnabled === true` **AND** `ikLaborE2eEnabled === true` (AUTO|ON).  
+**P6 executeResearch** = `ikEntryEnabled === true` **AND** `ikMaterialE2eEnabled === true` (AUTO|ON).
+
+KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
+
+---
+
+## 24. PERSISTENCE MAP
+
+| Store | Key / artifact | Durable? | Sync | Used by IK for |
+|-------|----------------|----------|------|----------------|
+| **LS** | `kw-multi-dwelling-package-v1` | session/browser | **LS-only · NOT KV** | Owner Map · G1 persist target dwelling |
+| **LS** | OfferBoq per dwelling | **yes** (attach) | LS-only | identity · pricing lines · G1 persist |
+| **LS** | `OwnerManualIdentityOverride` | session (until persist) | none | G1 Accept path |
+| **LS** | `kw-owner-rate-input-v1` | yes | LS-only | equipment/transport Owner Input |
+| **LS** | `kw-tender-ingest-v1` | yes | LS-only | P2 ingest registry |
+| **KV** | `kw-app-settings` | yes | cloud | all IK flags |
+| **KV** | `kw-wgdom-work-catalog` | yes | cloud | OUR RATE · work identity |
+| **KV** | `kw-wgdom-labor-source-evidence` | yes | cloud | labor observations (**≠ OUR RATE**) |
+| **KV** | `kw-price-intelligence-demand` | yes | cloud | material demand research |
+| **KV** | KNR catalog stores | yes | cloud (gated writes) | KNR KL · verify orchestrator |
+| **Session** | `g1RejectedKeys` / `g2*RejectedKeys` | no | none | Owner Gate reject state |
+| **Session** | `chiefSession` / dossier | no | none | Chief advisory · material Accept gate |
+| **Network** | P5 labor HTTP | ephemeral | research only | selective work-rate research |
+| **Network** | P6 shop HTTP | ephemeral | Edge lease | material candidate research |
+
+**Rule:** G1 durable identity = **LS OfferBoq attach** via `runGatedIdentityPersist`. G2 labor Accept = **KV Work Catalog**. G2 material Accept = **Price Memory** commit path.
+
+---
+
+## 25. IK SAFETY CONTRACT (HARD STOPS)
+
+| Rule | Enforcement |
+|------|-------------|
+| **D / Decydent hard stop** | `expertAiDecydentEnabled` separate from IK · no silent D=ON |
+| **Research ≠ Accept** | Experts may research on MISS; Accept only via Owner Gate / catalog panels |
+| **No auto-Accept** | Queue read-only; `IkOwnerGateActionsPanel` explicit clicks |
+| **Chief fail-closed (material G2)** | `g2MaterialAccept` → `CHIEF_OFF` when no session |
+| **No fabricated candidate** | `CANDIDATE` only from research engines with real observations/quotes |
+| **No fabricated market evidence** | Evidence KV append via qualified research paths only |
+| **No silent persistence** | G1 gated persist · Accept engines notify + reload |
+| **P7 read-only** | no Final Bid persist from P7 E2E |
+| **P8 no Accept** | risk prepare only |
+| **COMPOUND/UNKNOWN HOLD** | classification gate blocks research |
+| **Evidence ≠ OUR RATE** | separate KV vs catalog Accept |
+| **mat.inv.* / cw.inv.* boundaries** | P1 invoice collision guards |
+| **Payroll/cloud-sync** | separate PAYROLL_SAFETY_GATE — not IK scope |
+
+---
+
+## 26. IMPLEMENTED vs PRODUCTION VERIFIED
+
+| Capability | In code (`3822acb`) | Prod verified |
+|------------|---------------------|---------------|
+| Orchestra + Owner Gate UI | **YES** | partial (G1 only) |
+| G1 Accept + durable LS persist | **YES** | **PASS** |
+| G1 Reject/Edit/Research Again | **YES** | NOT VERIFIED |
+| G2 labor Accept path | **YES** | **BLOCKED** (no candidate) |
+| G2 material Accept path | **YES** | **BLOCKED** (no candidate + Chief OFF) |
+| P5/P6 executeResearch | **YES** | active flags · 0 candidates prod |
+| Chief material gate | **YES** | Chief OFF by flag |
+| KNR KL-6 verify UI | **YES** | PV ancestor |
+| Observability 1–4 | **YES** | PV ancestor |
+
+**Never equate** “code exists” with “production verified”.
+
+---
+
+## 27. A08-P3 — CURRENT STATE (DETAIL)
+
+| Milestone | Status |
+|-----------|--------|
+| Design Freeze | **PROPOSED** @ `b857a162` era (pre-impl) |
+| Arch Review | **PASS WITH REQUIRED FIXES** (pre-impl) |
+| Implementation | **`3822acb`** — Owner Gates G1/G2 |
+| Build | **PASS** |
+| Harness | **27 PASS / 0 FAIL** (`test-ik-autonomy-08-p3-owner-gates.mjs`) |
+| Deploy | **PASS** @ prod |
+| G1 durable persist PV | **PASS** |
+| G2 labor | **WAIT** — 437 tenders · 12 ready BOQ · 8 LABOR identity · all `CURRENT_HIT` · 0 candidate |
+| G2 material | **WAIT** — 1209/1212 `priceStatus NONE` · 0 trusted identity+MISS · 0 candidate |
+| P3 closeout | **NOT AUTHORIZED** |
+
+**G2 blocker summary (prod audit 2026-08-26):**
+
+- Labor MISS path (e.g. G1→`legacy-gk-m2`) → **`RESEARCH_GAP`**, not CANDIDATE
+- Material requires `resolveDemandProductIdentityExact` — no invent from namePl alone
+- `ikChiefWiringEnabled=false` blocks material **Accept only**, not candidate generation
+
+---
+
+## 28. IMPLEMENTATION HISTORY (IK — chronological, selected)
+
+| When | ID | Commit (tip) | Status |
+|------|-----|--------------|--------|
+| 2026 | IK-MIGRATION-01 | P0–P9 series | **CLOSED** |
+| 2026 | AUTONOMY-05 | `44e81d20` | P5/P6 AUTO/OFF/ON **CLOSED/PV** |
+| 2026 | AUTONOMY-06 | `ab5eaaa1` | P7 **CLOSED/PV** |
+| 2026 | AUTONOMY-07 | `0f994437` | P8 **CLOSED/PV** |
+| 2026 | AUTONOMY-08 P0 | `b98e68e5` | Documents→BOQ **CLOSED/PV** |
+| 2026 | AUTONOMY-08 P1 | `e0373fac` | Settings unification **CLOSED/PV** |
+| 2026 | AUTONOMY-08 P2 | `1f5d871c` | Research-on-Miss **CLOSED/PV** |
+| 2026 | Orchestra extract | `facac24f`…`d62485cb` | W1/W4/W5 **IMPLEMENTED** |
+| 2026 | Observability 1–4 | `b56f3d43`…`c1b3ad7d` | **CLOSED/PV** |
+| 2026 | A01 F5 MARGIN | `82f3520e` | **CLOSED/PV GREEN** |
+| 2026 | KNR Phase 2D | `77385b0c` | **CLOSED/PV** |
+| 2026 | KNR KL-6 | `ce192b1e` | **CLOSED/PV** |
+| 2026 | KNR Phase 2E source | `1a9c5484` | targeted source LANDED · full 2E OPEN |
+| 2026 | KNR-WC P3/P4 | `9376a48e`…`2fce3caf` | P3 **CLOSED** · P4 seam **CLOSED** |
+| 2026 | S6-A/B · Outcome bridge | `a9d59fd0`…`2fce3caf` | **CLOSED** |
+| 2026-08-26 | **AUTONOMY-08 P3** | **`3822acb`** | **IMPLEMENTED · P3 OPEN · G2 WAIT** |
+
+Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md).
+
+---
+
+## 29. MASTER SSOT COMPLETENESS AUDIT (2026-08-26)
+
+| Obszar | Repo | SSOT (this doc) | Status |
+|--------|------|-----------------|--------|
+| IK root / philosophy | ✅ | ✅ §1–2 | **zgodne** |
+| Entry / Host | ✅ | ✅ §10–11.2 | **zgodne** |
+| Orchestra W1/W4/W5 | ✅ | ✅ §10 · §11.15 | **uzupełnione** |
+| Chief (part of IK) | ✅ | ✅ §11.1 · §23 | **zgodne** |
+| Domain experts (4) | ✅ | ✅ §11.3–11.12 | **zgodne** |
+| KNR knowledge layer | ✅ | ✅ §11.5 · §18 | **zgodne** |
+| KNR-WC bridge P3/P4 | ✅ | ✅ §11.17 | **uzupełnione** |
+| Work Catalog / OUR RATE | ✅ | ✅ §5–6 · §11.8 | **zgodne** |
+| Material / Price Memory | ✅ | ✅ §11.9 | **zgodne** |
+| Identity coverage | ✅ | ✅ §11.16 G1 | **zgodne** |
+| Owner Gates G1/G2 | ✅ | ✅ §11.16 · §27 | **uzupełnione** |
+| Persistence LS/KV | ✅ | ✅ §24 | **uzupełnione** |
+| Feature flags | ✅ | ✅ §23 | **uzupełnione** |
+| Safety contract | ✅ | ✅ §25 | **uzupełnione** |
+| A08-P3 state | ✅ | ✅ §27 | **uzupełnione** |
+| Production vs verified | ✅ | ✅ §26 | **uzupełnione** |
+| Phase history | partial in 09 | ✅ §28 | **uzupełnione** |
+| Experience §13 | ✅ | ✅ §13 | **zgodne** (Phase 5 GAP) |
+| New agent handoff | ✅ | ✅ §22 | **uzupełnione** |
+
+### MISSING ITEMS FOUND (pre-edit)
+
+- Orchestra layer not explicit in tree (only Host)
+- Owner Gates G1/G2 module entries absent
+- A08-P3 post-impl state absent
+- Central flag / persistence / safety tables absent
+- G2 WAIT / prod blocker state absent
+- Cold-start checkpoint stale (`82f3520` only)
+
+### ITEMS ADDED TO SSOT (this session)
+
+- §10 tree: Orchestra + Owner Gates branches
+- §11.15 Orchestra module card
+- §11.16 Owner Gates G1/G2 + PV matrix
+- §11.17 KNR-WC bridge pointer
+- §22 full NEW CHAT HANDOFF
+- §23–29 flag/persistence/safety/P3/history/audit
+
+### UNRESOLVED CONFLICTS
+
+| ID | Source A | Source B | Resolution |
+|----|----------|----------|------------|
+| **C-09-P3** | [`09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) snapshot line 8: «P3 **NOT STARTED**» | Repo **`3822acb`** + harness 27/0 + G1 PV | **Repo wins:** P3 **IMPLEMENTED · OPEN**. Update `09` §1 on next tip sync — **not** in this task scope unless Owner requests. |
+| **C-P3-DF** | P3 DF header «IMPLEMENT NOT AUTHORIZED» (pre-impl doc) | Code on `main` | **Repo wins:** treat DF as design record; impl authorized retrospectively by deploy. |
+
+---
+
+## 30. COMMIT HISTORY AUDIT (IK — key SHAs)
+
+| SHA | Scope |
+|-----|-------|
+| `3822acb` | **A08-P3 Owner Gates** — orchestra ownerGate API · IkOwnerGateActionsPanel · labor idempotency |
+| `b857a162` | Master SSOT conflict resolution (pre-P3 doc) |
+| `2fce3caf` | KNR-WC P4 trusted identity seam |
+| `facac24f` | Orchestra extract from IkEntryHost |
+| `d62485cb` | W5 owner action execution seam |
+| `b59be7cc` | W4 operator action orchestration |
+| `c1b3ad7d` | Observability Phase 4 Team Conversation bridge |
+| `82f3520e` | A01 F5 MARGIN commercialPricing |
+| `1f5d871c` | AUTONOMY-08 P2 Research-on-Miss |
+| `e0373fac` | AUTONOMY-08 P1 settings |
+| `b98e68e5` | AUTONOMY-08 P0 Documents→BOQ |
+
+---
+
+## 22-LEGACY. NEW SESSION / NEW AGENT CONTINUITY BLOCK (superseded by §22)
 
 ```text
 PROJECT:     WGDOM
 SYSTEM:      Intelligent Estimator (IK)
 
 CURRENT STATE:
+  A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT
   F5 MARGIN CLOSED · PRODUCTION VERIFIED GREEN @ 82f3520e
-  Observability Phases 1–4 CLOSED · PRODUCTION VERIFIED GREEN @ c1b3ad7d (ancestor)
-  Phase 5 NOT AUTHORIZED
-  AUTONOMY-08 epic NOT CLOSED · ≠ całe IK globalnie E2E GREEN
+  Observability Phases 1–4 CLOSED @ c1b3ad7d
+  Phase 5 NOT AUTHORIZED · AUTONOMY-08 epic NOT CLOSED
 
 BASELINE:
-  HEAD / origin/main = 82f3520e1f7e0f5b763792fb2592b4247be7df8a
-  Production UI = 2.66.115 · version.json commit = 82f3520
-  Deploy = PROPAGATED / GREEN (Vercel Git Integration · tip already on main)
-
-ARCHITECTURE (Experience):
-  Orchestra runtime (IkOrchestraSnapshot)
-    → buildAnalysisObservation → AnalysisObservation (SSOT status/progress)
-    → LiveVisualizationView (READ-ONLY)
-    → buildIkEntryConversationViewModel → overlayObservationStatusesOnConversationVm
-    → enforceIkConversationTruth → ExpertConversationSurface
-  Conversation ≠ runtime SSOT · Chief ≠ second orchestrator
-
-PIPELINE (sync core · use-ik-orchestra):
-  Document → KNR → Identity → Classification → (P5 Labor ∥ P6 Material async)
-  → Composite/F5 → P7 → P8 → Chief/Decision context → Owner Action Queue
-
-AUTHORITY:
-  Observation = status/progress Experience
-  F5 = sole PLN position cost authority
-  P7 = authoritative bid path (read-only prepare; no Final Bid persist)
-  OfferBoq = BOQ/pricing SSOT (multi-dwelling compose)
-  KNR-WC = Owner-gated / conditional (identity bridge)
-  Owner = Accept · Final Bid · KNR Slice D boundaries
-
-GOVERNANCE:
-  AUDIT → RCA → PLAN → DF → ARCH REVIEW → OWNER GO → IMPLEMENT
-  → TEST → COMMIT → PUSH → PRODUCTION VERIFY → CLOSE
-
-NOT AUTHORIZED:
-  Phase 5 · Variant B hints · second orchestrator · duplicate authority
-  policy changes · unapproved architecture · git add -A
-
-NEXT: WAIT FOR OWNER / PROJECT DECISION
+  HEAD = 3822acb3724493b349c08a33bc584c7afe5dde31
+  Production UI = 2.66.115
 
 READ FIRST:
-  docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md
-  docs/architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md
+  docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md (§22 handoff)
   docs/AI/09_PRODUCTION_BASELINE.md + live version.json
 ```
 
