@@ -30,6 +30,8 @@ import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import type { MarketAverageResult } from "@/lib/work-catalog";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
+import { enrichOfferBoqDocumentForOutcomeS4b } from "@/lib/intelligent-estimator/boq-outcome-s4b-enrichment";
+import type { BoqDependencyGraph } from "@/lib/intelligent-estimator/boq-dependency-graph";
 import {
   integrateOfferBoqWithBidProposal,
   type OfferBoqBidAuditStep,
@@ -722,8 +724,12 @@ export function presentOfferBoqExplainabilityView(
     const profile = loadCompanyProfileLocal();
     const dossier = bidContext.item.tenderDossier;
     const cutoverEnabled = bidContext.positionCostCutover !== false;
+    // S6-A — same Outcome enrich as computeRuntimeBidFromOfferBoq (Explain bid parity).
+    const enriched = cutoverEnabled
+      ? enrichOfferBoqDocumentForOutcomeS4b(normalized)
+      : { document: normalized, boqDependencyGraph: null };
     const integration = integrateOfferBoqWithBidProposal({
-      doc: normalized,
+      doc: enriched.document,
       kosztorys: dossier?.kosztorys,
       swz: dossier?.swz ?? null,
       fit: dossier?.fit ?? null,
@@ -739,6 +745,7 @@ export function presentOfferBoqExplainabilityView(
               bidContext.positionCostNowMs ??
               (Number.isFinite(Date.parse(at)) ? Date.parse(at) : Date.now()),
             paintCoats: bidContext.paintCoats ?? 2,
+            boqDependencyGraph: enriched.boqDependencyGraph,
           }
         : null,
     });
@@ -847,13 +854,20 @@ export function computeRuntimeBidFromOfferBoq(opts: {
   paintCoats?: 1 | 2 | null;
 }): RuntimeOfferBoqBidResult | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
-  const doc = buildOfferBoqDocumentForPipelineItem({ item: opts.item, builtAt });
-  if (!doc) return null;
+  const built = buildOfferBoqDocumentForPipelineItem({ item: opts.item, builtAt });
+  if (!built) return null;
 
   const profile = loadCompanyProfileLocal();
   const dossier = opts.item.tenderDossier;
   const kosztorysForBid = resolveKosztorysSnapshotForPricing(opts.item);
   const cutoverEnabled = opts.positionCostCutover !== false;
+
+  // S6-A — inline S2/S3 on the SAME Outcome OfferBoq before existing S4-B cutover.
+  // Does not change resolveBoqPricingQuantity · does not invent HOLD policy.
+  const { document: doc, boqDependencyGraph } = cutoverEnabled
+    ? enrichOfferBoqDocumentForOutcomeS4b(built)
+    : { document: built, boqDependencyGraph: null as BoqDependencyGraph | null };
+
   const integration = integrateOfferBoqWithBidProposal({
     doc,
     kosztorys: kosztorysForBid,
@@ -870,6 +884,7 @@ export function computeRuntimeBidFromOfferBoq(opts: {
             opts.positionCostNowMs ??
             (Number.isFinite(Date.parse(builtAt)) ? Date.parse(builtAt) : Date.now()),
           paintCoats: opts.paintCoats ?? 2,
+          boqDependencyGraph,
         }
       : null,
   });
