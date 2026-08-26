@@ -135,9 +135,11 @@ export function evaluateAllDwellingsInPackage(
       };
     }
     const dwKey = normalizeDwellingId(d.dwellingId);
+    // S6-B: when a per-dwelling map is present, never steal primary graph on miss.
+    const maps = opts.boqDependencyGraphsByDwelling;
     const graph =
-      opts.boqDependencyGraphsByDwelling?.[dwKey]
-      ?? opts.boqDependencyGraph
+      maps?.[dwKey]
+      ?? (maps != null ? null : opts.boqDependencyGraph)
       ?? null;
     const ev = evaluateDwellingPositionCost({
       tenderId: pkg.tenderId,
