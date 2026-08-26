@@ -294,7 +294,7 @@ Kandydaci poza tym slice (post-A09):
 | 5 | A07 evidence / CREATE | **HOLD** |
 | 6 | A01-S2 zmywanie | **HOLD** |
 | 7 | A02/A04/A05/A06/A08/A10 | **HOLD** — insufficient evidence |
-| 8 | residual C1–C6 · labor unit proof · Owner Map bulk | per audit |
+| 8 | **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** · labor unit proof · Owner Map bulk (**≠** A08 blockers · qualify namespace) | per audit · Owner GO |
 
 **NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10.
 

@@ -17,9 +17,11 @@ SEARCH → REUSE → AUDIT → Owner GO → IMPLEMENT.
 
 | | |
 |--|--|
-| **Tip** | **`2fce3caf`** / live **`2fce3ca`** |
-| **Status** | **S6-A CLOSED** · **S6-B CLOSED** · **P4 CLOSED** · P4 flag **ON** |
-| **Production validation** | harnesses **GREEN** · live tip matches P4 · interactive UI smoke remains **Owner residual** (**PARTIALLY VALIDATED** for interactive paths) |
+| **CURRENT LIVE / REPOSITORY TIP** | **`bf2a9168`** / live **`bf2a916`** |
+| **S6/P4 FEATURE TIP** | **`2fce3caf`** |
+| **Phase 2E** | targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** |
+| **Status** | **S6-A CLOSED** · **S6-B CLOSED** · **P4 CLOSED** · P4 flag **ON** · A08 P0–P2 **CLOSED** · P3 **NOT STARTED** · epic **NOT CLOSED** |
+| **Production validation** | harnesses **GREEN** · interactive UI smoke remains **Owner residual** (**PARTIALLY VALIDATED**) |
 | **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | **NOT CLAIMED** | global IK E2E CLOSED · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · entire IK FINAL |
 
@@ -110,11 +112,11 @@ IK-MIGRATION-01 P0–P9 **LOCKED** — **nie** next = Document Expert P2.
 
 ## F. Next valid epic candidates
 
-Only after Owner GO → AUDIT. **Nie** auto-start A08-P3.
+Only after Owner GO → AUDIT. **Nie** auto-start A08-P3 IMPLEMENT (next = **Owner GO → A08-P3 DEEP AUDIT**).
 
 - PACKAGE layer vs COMPOUND HOLD freeze — osobny GO (nie A08-P2 / nie P3)  
 - Next labor identity/Evidence item (not Podejście without unit proof)  
-- Residual C1–C6 / TM follow-ups (no invent S10)  
+- **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** follow-ups (**≠** A08 blockers · no invent S10)  
 - Docs-only continuity
 
 ---

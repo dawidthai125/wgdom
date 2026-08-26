@@ -21,18 +21,16 @@
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-24 → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json (nie snapshot 2.66.59 poniżej)
-ACTIVE IMPLEMENT = NONE bez Owner GO · IK-KNR KL-6 CLOSED @ 85a1ad7 (PRODUCTION VERIFIED) · IK-KNR Phase 2D FROZEN ANCESTOR @ 77385b0c · Phase 2E NOT STARTED · F5 MARGIN CLOSED GREEN · A08-P2 CLOSED · AUTONOMY-08 epic NOT CLOSED · NIE A08-P3
+ACTIVE IMPLEMENT = NONE bez Owner GO · LIVE/REPO tip @ bf2a9168 · S6/P4 FEATURE TIP @ 2fce3caf · Phase 2E targeted discovery LANDED @ 1a9c5484 · FULL PHASE 2E OPEN · A08-P0/P1/P2 CLOSED · A08-P3 NOT STARTED · AUTONOMY-08 epic NOT CLOSED · NIE A08-P3 IMPLEMENT bez Owner GO → DEEP AUDIT · NIE invent S10
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.115** / deploy **`85a1ad7`** · **IK-KNR KL-6 Owner VERIFY UI CLOSED / PRODUCTION VERIFIED** (UI **`ce192b1e`** · sidebar hotfix **`85a1ad7`**) · **IK-KNR Phase 2D** frozen ancestor **`77385b0c`** · prior **IK A01 F5 MARGIN** (`82f3520e` · ancestor) · prior **IK Observability Phases 1–4 CLOSED** (`c1b3ad7d`) · prior **IK-KNR-WC P3 + P3.1 CLOSED / PRODUCTION VERIFIED** · **AUTONOMY-08 epic NOT CLOSED** · **≠** cały IK globalnie E2E PRODUCTION VERIFIED · prior **INTELIGENTNY-KOSZTORYSANT-UX CLOSED** · **EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED** (`1902daa7`) · **EXPERT-AI-PRODUCTION-ENABLEMENT-01 CLOSED** · **Q12 KEEP** · **TENDER-MODERNIZATION-01 EPIC CLOSED** · … · slice-level **PRODUCTION VERIFIED** where documented in 09. Baseline: **KL-6** + **F5 MARGIN** + **IK-KNR-WC Identity Bridge P3/P3.1** + Experts P0 + Chief + … + P0 Dual-Enablement + Inteligentny Kosztorysant UX complete · Hub-first default · Expert ON never auto Outcome · Persist-first → GO/NO-GO/HOLD · Decyzja overview DW PRIMARY @ runtime D ON · DecisionView recovery · Hub DW KEEP · Offer primary when **runtime D ON** · NO PRIMARY when Offer null · Bid legacy when **runtime D OFF** · D default **OFF** · staff Przetargi module gate · S0 orphan cleanup.
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.115** · **LIVE/REPOSITORY TIP `bf2a9168`** · **S6/P4 FEATURE TIP `2fce3caf`** · Phase 2E **targeted discovery LANDED `1a9c5484`** · **full Phase 2E OPEN** · **AUTONOMY-08 epic NOT CLOSED** (P0–P2 CLOSED · P3 NOT STARTED · P4 PLANNED) · **≠** cały IK globalnie E2E PRODUCTION VERIFIED. Szczegóły tipu = wyłącznie [`09`](09_PRODUCTION_BASELINE.md).
 
-Ostatnie zamknięte (slice-level): **IK-KNR KL-6 Owner VERIFY UI** (`85a1ad7` hotfix · UI `ce192b1e`) · **IK-KNR Phase 2D L3 PDF pilot** (`77385b0c` · FROZEN ancestor) · **IK A01 F5 MARGIN** (`82f3520e`) · **IK Observability Phases 1–4** (`c1b3ad7d`) · **TENDER-MODERNIZATION-01 EPIC (S0–S9)** · **S9 C0** · **S8 HOLD** · **S7–S0** · **DECISION-PERSIST-01** · **WIRE-EXPERTS-UI-01** · **DECISION-WORKSPACE-01** · **VALIDATION-EXPERT-01** · **WIRE-CHIEF-UI-DOSSIER-01** · **WIRE-CHIEF-SESSION-01** · **WIRE-CHIEF-RO-ADAPTERS-01** · **CHIEF-ORCHESTRATOR-P0** · **EXPERTS-P0** (EE→ME→PE→Cost→Offer) · **NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01** (B0) · **NG-TENDERS-KNOWLEDGE-FOUNDATION-01** (TS-A0+A1) · **NG-TENDERS-COST-KNOWLEDGE-01** · **NG-TENDERS-WORKSPACE-01** · **WM-ODBIORY-RYSUNKI-FINAL-UNDO-01** · **WM-DOKUMENTACJA-SZKICE-02** · **-01 P2a/P0** · **WM-WORKER-SKETCH-01** · **APPEARANCE-01** · **AUTO-GENERATE-01** · **MAPPING-MIGRATION-01** · **OST-01** · AcroForm OST **PASS** · **WIM-P1a** · WM-RYSUNKI CORE · AI/MS/SMART/GLOBAL-UX fale CLOSED.  
-**OST-03 / XFA / cache filled = zakaz.**  
-**NEXT rekomendacja:** **UTRZYMANIE** — residual **C1–C6** / new epic — **tylko Owner GO → AUDIT** · **NIE** invent S10.  
+**NEXT rekomendacja:** **UTRZYMANIE** — next engineering = **Owner GO → A08-P3 DEEP AUDIT** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C1–C5** tylko Owner GO → AUDIT · **NIE** invent S10 · **NIE** mylić namespace’ów C1–C6.  
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
@@ -46,9 +44,10 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
-| **Commit** | **CURRENT PRODUCTION TIP `2fce3ca`** · full **`2fce3caf`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · **S6-A CLOSED** · **S6-B CLOSED** · **P4 CLOSED** · P4 flag **ON** · ancestors KL-6 / Phase 2D / F5 MARGIN (see 09) |
-| **Feature tip** | **`2fce3ca`** — S6-A / S6-B / P4 CLOSED · P4 flag ON · validation = harness GREEN + live tip/bundle · interactive UI smoke = Owner residual · **≠** global IK FINAL · see [`09`](09_PRODUCTION_BASELINE.md) |
-| **Status** | tip sync per [`09`](09_PRODUCTION_BASELINE.md) · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · AUTONOMY-08 **NOT CLOSED** · Phase 2E **NOT STARTED** · S10 **OUT** · **≠** cały IK globalnie E2E / FINAL · **WAITING FOR NEXT OWNER GO** |
+| **CURRENT LIVE / REPOSITORY TIP** | **`bf2a916` / `bf2a9168`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · docs-only successor after P4 |
+| **S6/P4 FEATURE TIP** | **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · see [`09`](09_PRODUCTION_BASELINE.md) |
+| **Feature tip** | S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |
+| **Status** | tip sync per [`09`](09_PRODUCTION_BASELINE.md) · AUTONOMY-08 **NOT CLOSED** · A08-P3 **NOT STARTED** · full Phase 2E **OPEN** · S10 **OUT** · **≠** cały IK globalnie E2E / FINAL · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -83,7 +82,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Decision Persist** | append-only LS · Host wire — [`decision-persist/`](../../src/lib/decision-persist/) · [`DP-CLOSEOUT`](../architecture/DECISION-PERSIST-01-CLOSEOUT.md) |
 | **Expert Workspace UI** | Details RO `dossier.experts.*` · Slot A — [`expert-workspace-ui/`](../../src/lib/expert-workspace-ui/) · [`expert-workspace/`](../../src/app/expert-workspace/) · [`EW-CLOSEOUT`](../architecture/WIRE-EXPERTS-UI-01-CLOSEOUT.md) |
 | **Pricing SSOT (S3)** | Offer primary / NO PRIMARY / Bid legacy — [`TENDER-PRICING-SSOT`](../architecture/TENDER-PRICING-SSOT.md) · helper `tender-offer-pln-authority.ts` |
-| **TM-01 roadmap** | **EPIC CLOSED** · S0–S9 CLOSED · S8 HOLD · S9 C0 · residual C1–C6 Owner GO — [`TM-01-MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9-CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`TM-01-DF`](../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md) |
+| **TM-01 roadmap** | **EPIC CLOSED** · S0–S9 CLOSED · S8 HOLD · S9 C0 · **TM-01 residual C1–C6** Owner GO (**≠** A08 blockers · **≠** NEXT-EPIC C1–C5) — [`TM-01-MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9-CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`TM-01-DF`](../architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md) |
 | **Legacy map** | KEEP→…→REMOVE — [`TENDER-LEGACY-DEPRECATION-MAP`](../architecture/TENDER-LEGACY-DEPRECATION-MAP.md) |
 | **Decision architecture** | DW · Persist · legacy store — [`DECISION-ARCHITECTURE`](../architecture/DECISION-ARCHITECTURE.md) |
 | **Expert AI architecture** | pełny pipeline — [`EXPERT-AI-ARCHITECTURE`](../architecture/EXPERT-AI-ARCHITECTURE.md) |
@@ -133,9 +132,9 @@ Parity: MATCH **1** · EXPECTED_DELTA **12** · UNEXPECTED_DELTA **0** · NOT CO
 | **S6 Persist bridge** | **CLOSED** | **`cb91027d`** hist. |
 | **S7 TRE Hub-first** | **CLOSED** | **`617f0cb5`** feature tip |
 | **S8 HOLD REMOVE** | **CLOSED** | **`9231cc6b`** docs tip · ZERO code |
-| **S9 EPIC CLOSE (C0)** | **CLOSED** | **`df6c104a`** docs · ZERO code · residual C1–C6 deferred |
+| **S9 EPIC CLOSE (C0)** | **CLOSED** | **`df6c104a`** docs · ZERO code · **TM-01 residual C1–C6** deferred |
 
-Osobno (Owner GO): Cloud Persist · Audit Hub · Strategy API · C1–C6 REMOVE/MIGRATE.
+Osobno (Owner GO): Cloud Persist · Audit Hub · Strategy API · **TM-01** C1–C6 REMOVE/MIGRATE (**≠** AUTONOMY-08).
 
 ---
 
@@ -349,7 +348,7 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 **WAITING FOR NEXT OWNER GO** — ACTIVE EPIC = **NONE** · brak auto-NEXT.
 
-**Rekomendacja #1:** **UTRZYMANIE** — residual **C1–C6** / new epic — **tylko Owner GO** → **AUDIT** ([`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`COLD-START`](WGDOM-COLD-START-HANDOFF.md)). **NIE** invent S10.
+**Rekomendacja #1:** **UTRZYMANIE** — next = **Owner GO → A08-P3 DEEP AUDIT** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** — **tylko Owner GO** → **AUDIT** ([`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`COLD-START`](WGDOM-COLD-START-HANDOFF.md)). **NIE** invent S10 · **NIE** mylić C1–C6 namespaces.
 
 Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/MIGRATE · S3-D · Bid retirement · hard REMOVE after L8 · Cloud Decision Persist / Audit Hub · Wire Pack→CI/UI · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT · `useTenderOfferRun` WIP · S2 DetailPage raw Session call (pre-existing 44/45).
 
@@ -364,7 +363,7 @@ Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/
 [ ] WGDOM-COLD-START-HANDOFF
 [ ] Przeczytaj TEN plik (MASTER-AI-HANDOFF)
 [ ] Sprawdź tip: 09_PRODUCTION_BASELINE + curl version.json  (= 2.66.22 / 1902daa* gdy CDN OK; closeout tip supersedes)
-[ ] TM-01-MASTER + S9-CLOSEOUT (EPIC CLOSED · residual C1–C6 tylko Owner GO)
+[ ] TM-01-MASTER + S9-CLOSEOUT (EPIC CLOSED · **TM-01 residual C1–C6** tylko Owner GO · **≠** A08)
 [ ] AI_ENTRY → proces
 [ ] PAYROLL_SAFETY_GATE G1–G9 (przed IMPLEMENT)
 [ ] Owner GO gdy wymagane
