@@ -29,6 +29,7 @@ import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { IkDocumentExpertReport } from "./ik-document-expert";
+import { synchronizePackageOfferBoqsFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
 
 export const IK_P7_POSITION_COST_BID_SCHEMA_VERSION = 1 as const;
 
@@ -138,8 +139,12 @@ export function runIkP7PositionCostBid(opts: {
   const isMulti = pkg?.mode === "multi";
 
   if (isMulti && pkg) {
-    const { evaluation, proposal } = computePackageBidProposal({
+    const syncedPkg = synchronizePackageOfferBoqsFromMasterLines(
       pkg,
+      opts.expert.masterBoqLines ?? [],
+    );
+    const { evaluation, proposal } = computePackageBidProposal({
+      pkg: syncedPkg,
       store,
       nowMs,
       kosztorys: resolveKosztorysSnapshotForPricing(opts.item),
@@ -150,6 +155,8 @@ export function runIkP7PositionCostBid(opts: {
       maxConcurrentProjects,
       builtAt,
       ensureOwnerQuestions: false,
+      boqDependencyGraphsByDwelling: opts.expert.boqDependencyGraphsByDwelling ?? null,
+      boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
     });
 
     const packageDirect =

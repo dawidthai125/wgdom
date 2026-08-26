@@ -32,6 +32,7 @@ import {
   enrichOfferBoqLinesWithDependencyGraph,
   type BoqDependencyGraph,
 } from "@/lib/intelligent-estimator/boq-dependency-graph";
+import { synchronizeOfferBoqFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
 import {
   buildArtifactPoolFromItem,
   composeDwellingOfferBoq,
@@ -40,6 +41,7 @@ import {
   type DwellingCostArtifactRef,
   type DwellingLineProvenance,
 } from "@/lib/multi-boq";
+import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
 import { inferBranchHint } from "@/lib/cost-multi-01-classify";
 import type { BranchCode } from "@/lib/cost-multi-01-types";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
@@ -144,8 +146,13 @@ export interface IkDocumentExpertReport {
   lineProvenance: Record<string, DwellingLineProvenance> | null;
   /** All composed Master lines with dwellingId (1:1 with masterBoq.lineCount when READY). */
   masterBoqLines: IkMasterBoqLineRef[];
-  /** IK S3 — BOQ semantic dependency graph for Master lines (legacy_single aggregate). */
+  /** IK S3 — BOQ semantic dependency graph for Master lines (legacy_single / primary dwelling). */
   boqDependencyGraph: BoqDependencyGraph | null;
+  /**
+   * IK P0-3 — per-dwelling S3 graphs (multi mode). Keys = normalizeDwellingId(dwellingId).
+   * Avoids cross-dwelling LP collisions (poz.5 in A ≠ poz.5 in B).
+   */
+  boqDependencyGraphsByDwelling: Record<string, BoqDependencyGraph> | null;
 }
 
 const COST_ROLES = new Set<DocumentRole>([
@@ -705,14 +712,53 @@ export function runIkDocumentExpert(opts: {
       : (offerBoq?.lines?.length ?? 0);
 
   let boqDependencyGraph: BoqDependencyGraph | null = null;
+  let boqDependencyGraphsByDwelling: Record<string, BoqDependencyGraph> | null = null;
   if (masterBoqLines.length > 0) {
-    const qtyEnriched = enrichOfferBoqLinesWithQuantityIntelligence(
-      masterBoqLines.map((ref) => ref.line),
-    );
-    const semantic = enrichOfferBoqLinesWithDependencyGraph(qtyEnriched);
-    boqDependencyGraph = semantic.graph;
+    // S3-SCOPE: enrich S2→S3 per dwelling so positionNo/lp never collides across dwellings.
+    const indicesByDwelling = new Map<string, number[]>();
     for (let i = 0; i < masterBoqLines.length; i += 1) {
-      masterBoqLines[i]!.line = semantic.lines[i]!;
+      const dw = normalizeDwellingId(masterBoqLines[i]!.dwellingId || "legacy_single");
+      const bucket = indicesByDwelling.get(dw) ?? [];
+      bucket.push(i);
+      indicesByDwelling.set(dw, bucket);
+    }
+
+    const graphsByDwelling: Record<string, BoqDependencyGraph> = {};
+    for (const [dwellingId, indices] of indicesByDwelling) {
+      const lines = indices.map((i) => masterBoqLines[i]!.line);
+      const qtyEnriched = enrichOfferBoqLinesWithQuantityIntelligence(lines);
+      const semantic = enrichOfferBoqLinesWithDependencyGraph(qtyEnriched);
+      graphsByDwelling[dwellingId] = semantic.graph;
+      for (let j = 0; j < indices.length; j += 1) {
+        masterBoqLines[indices[j]!]!.line = semantic.lines[j]!;
+      }
+    }
+
+    if (mode === "multi" && indicesByDwelling.size > 0) {
+      boqDependencyGraphsByDwelling = graphsByDwelling;
+    }
+
+    // Primary graph for legacy_single P7 and first-dwelling offerBoq consumers.
+    const primaryDwellingId = offerBoq
+      ? normalizeDwellingId(
+        masterBoqLines.find((r) =>
+          (offerBoq!.lines ?? []).some((l) => l.lineId === r.line.lineId),
+        )?.dwellingId
+          ?? (mode === "multi" ? (mappedDwellings[0]?.dwellingId ?? "legacy_single") : "legacy_single"),
+      )
+      : normalizeDwellingId(
+        [...indicesByDwelling.keys()][0] ?? "legacy_single",
+      );
+    boqDependencyGraph = graphsByDwelling[primaryDwellingId]
+      ?? Object.values(graphsByDwelling)[0]
+      ?? null;
+
+    // P7-SYNC: offerBoq.lines → same enriched objects as masterBoqLines (by lineId).
+    if (offerBoq) {
+      const synced = synchronizeOfferBoqFromMasterLines(offerBoq, masterBoqLines, {
+        dwellingId: mode === "multi" ? primaryDwellingId : null,
+      });
+      if (synced) offerBoq = synced;
     }
   }
 
@@ -753,5 +799,6 @@ export function runIkDocumentExpert(opts: {
     lineProvenance,
     masterBoqLines,
     boqDependencyGraph,
+    boqDependencyGraphsByDwelling,
   };
 }

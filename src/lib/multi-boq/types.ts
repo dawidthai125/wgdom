@@ -45,6 +45,8 @@ export type DwellingCostSnapshotLine = {
   unit: string;
   quantityRaw: string;
   quantity: number;
+  /** IK S4-A — ATH/catalog formula (metadata only; does not replace quantity). */
+  quantityExpressionRaw?: string | null;
   branchHint: DwellingCostBranchHint;
   contentHash: string;
   athUnitPricePln: number | null;

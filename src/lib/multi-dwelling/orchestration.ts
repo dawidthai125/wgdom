@@ -76,6 +76,8 @@ export type EvaluateDwellingOpts = {
   nowMs: number;
   ensureOwnerQuestions?: boolean;
   paintCoats?: 1 | 2 | null;
+  /** IK P0-3 — per-dwelling S3 graph for S4-B resolver. */
+  boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
 };
 
 /**
@@ -96,6 +98,7 @@ export function evaluateDwellingPositionCost(opts: EvaluateDwellingOpts): {
     tenderId: opts.tenderId,
     dwellingId,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
+    boqDependencyGraph: opts.boqDependencyGraph ?? null,
   });
   return {
     dwellingId,
@@ -114,6 +117,13 @@ export function evaluateAllDwellingsInPackage(
     store: WorkCatalogStore;
     nowMs: number;
     ensureOwnerQuestions?: boolean;
+    /** IK P0-3 — per-dwelling graphs (key = normalizeDwellingId). */
+    boqDependencyGraphsByDwelling?: Record<
+      string,
+      import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph
+    > | null;
+    /** Fallback when only a single primary graph is available. */
+    boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
   },
 ): TenderPackage {
   const dwellings: DwellingCostUnit[] = pkg.dwellings.map((d) => {
@@ -124,6 +134,11 @@ export function evaluateAllDwellingsInPackage(
         subtotals: null,
       };
     }
+    const dwKey = normalizeDwellingId(d.dwellingId);
+    const graph =
+      opts.boqDependencyGraphsByDwelling?.[dwKey]
+      ?? opts.boqDependencyGraph
+      ?? null;
     const ev = evaluateDwellingPositionCost({
       tenderId: pkg.tenderId,
       dwellingId: d.dwellingId,
@@ -131,6 +146,7 @@ export function evaluateAllDwellingsInPackage(
       store: opts.store,
       nowMs: opts.nowMs,
       ensureOwnerQuestions: opts.ensureOwnerQuestions,
+      boqDependencyGraph: graph,
     });
     return {
       ...d,
@@ -202,6 +218,11 @@ export function evaluateTenderPackage(
     store: WorkCatalogStore;
     nowMs: number;
     ensureOwnerQuestions?: boolean;
+    boqDependencyGraphsByDwelling?: Record<
+      string,
+      import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph
+    > | null;
+    boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
   },
 ): PackageEvaluationResult {
   const evaluated = evaluateAllDwellingsInPackage(pkg, opts);
@@ -251,6 +272,11 @@ export function computePackageBidProposal(opts: {
   maxConcurrentProjects?: number;
   builtAt?: string;
   ensureOwnerQuestions?: boolean;
+  boqDependencyGraphsByDwelling?: Record<
+    string,
+    import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph
+  > | null;
+  boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
 }): {
   evaluation: PackageEvaluationResult;
   proposal: TenderBidProposal;
@@ -260,6 +286,8 @@ export function computePackageBidProposal(opts: {
     store: opts.store,
     nowMs: opts.nowMs,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
+    boqDependencyGraphsByDwelling: opts.boqDependencyGraphsByDwelling,
+    boqDependencyGraph: opts.boqDependencyGraph,
   });
 
   if (!evaluation.packageGate.pass || !evaluation.packageDirect) {

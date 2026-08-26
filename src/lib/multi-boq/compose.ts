@@ -63,6 +63,8 @@ function structuralFromSnapshotLine(
     quantity,
     quantityRaw: line.quantityRaw || "",
     unit: line.unit?.trim() || "",
+    quantityExpressionRaw: line.quantityExpressionRaw?.trim() || null,
+    quantityIntelligence: null,
 
     catalogWorkId: null,
     workCategory: line.branchHint !== "unknown" ? line.branchHint : null,

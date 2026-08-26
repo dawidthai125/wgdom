@@ -8,6 +8,10 @@ import {
 } from "@/lib/tenders-bzp-brief";
 import type { CatalogBasis, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import {
+  normalizeBoqPositionLp,
+  resolveQuantityExpressionFromPrzedmiar,
+} from "@/lib/intelligent-estimator/boq-expression-source-seam";
+import {
   buildSourceLineKey,
   foldContentHash,
 } from "@/lib/multi-boq/line-id";
@@ -32,6 +36,7 @@ type RawSourceLine = {
   unit: string;
   quantityRaw: string;
   quantity: number;
+  quantityExpressionRaw?: string | null;
   branchHint: DwellingCostBranchHint;
   sourceLineKey: string;
   contentHash: string;
@@ -60,6 +65,22 @@ function extractRawLines(
   const out: RawSourceLine[] = [];
   const branch = ref.branchHint;
 
+  const expressionsByLp = snap.quantityExpressionsByLp ?? null;
+
+  const resolveExpression = (
+    lp: string,
+    fromCatalog?: string | null,
+    przedmiar?: { quantity: string; formula?: string }[] | null,
+  ): string | null => {
+    const fromCat = String(fromCatalog ?? "").trim();
+    if (fromCat) return fromCat;
+    const fromPrzedmiar = resolveQuantityExpressionFromPrzedmiar(przedmiar);
+    if (fromPrzedmiar) return fromPrzedmiar;
+    const key = normalizeBoqPositionLp(lp);
+    if (key && expressionsByLp?.[key]?.trim()) return expressionsByLp[key]!.trim();
+    return null;
+  };
+
   const push = (
     indexInSourceDoc: number,
     lp: string,
@@ -69,6 +90,7 @@ function extractRawLines(
     athUnit: number | null,
     athTotal: number | null,
     catalogBasis?: CatalogBasis | null,
+    quantityExpressionRaw?: string | null,
   ) => {
     const desc = String(description ?? "").trim();
     const safeLp = sanitizeSourceLp(lp, indexInSourceDoc);
@@ -79,6 +101,7 @@ function extractRawLines(
       String(unit ?? "").trim(),
       String(quantityRaw ?? "").trim(),
     ]);
+    const expr = quantityExpressionRaw?.trim() || null;
     out.push({
       sourceDocumentId: ref.documentId,
       sourceArtifactId: ref.artifactId,
@@ -88,6 +111,7 @@ function extractRawLines(
       unit: String(unit ?? "").trim(),
       quantityRaw: String(quantityRaw ?? ""),
       quantity: parseQty(quantityRaw),
+      ...(expr ? { quantityExpressionRaw: expr } : {}),
       branchHint: branch,
       sourceLineKey,
       contentHash,
@@ -111,6 +135,7 @@ function extractRawLines(
           description: c.description,
           catalogBasis: c.catalogBasis,
         }),
+        resolveExpression(c.lp ?? "", c.quantityExpressionRaw ?? null, null),
       );
     });
     return out;
@@ -124,6 +149,10 @@ function extractRawLines(
     const total = r.total
       ? Number(String(r.total).replace(/\s/g, "").replace(",", "."))
       : NaN;
+    const rowPrzedmiar =
+      Array.isArray((r as { przedmiar?: { quantity: string; formula?: string }[] }).przedmiar)
+        ? (r as { przedmiar?: { quantity: string; formula?: string }[] }).przedmiar
+        : null;
     push(
       index,
       r.lp ?? "",
@@ -137,6 +166,7 @@ function extractRawLines(
         description: r.description,
         catalogBasis: r.catalogBasis,
       }),
+      resolveExpression(r.lp ?? "", null, rowPrzedmiar),
     );
   });
   return out;
@@ -204,6 +234,9 @@ export function mergeDwellingArtifactLines(
       unit: primary.unit,
       quantityRaw: primary.quantityRaw,
       quantity: primary.quantity,
+      ...(primary.quantityExpressionRaw?.trim()
+        ? { quantityExpressionRaw: primary.quantityExpressionRaw.trim() }
+        : {}),
       branchHint: primary.branchHint,
       contentHash: primary.contentHash,
       athUnitPricePln: primary.athUnitPricePln,
