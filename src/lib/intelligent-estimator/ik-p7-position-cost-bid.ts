@@ -22,7 +22,7 @@ import {
   computeBidProposalFromPositionCost,
   type BidCutoverGateResult,
 } from "@/lib/tender-position-cost/bid-position-cost-cutover";
-import type { ShadowBoqPositionCostResult } from "@/lib/tender-position-cost/boq-shadow-adapter";
+import type { ShadowBoqPositionCostResult, ShadowGapCode } from "@/lib/tender-position-cost/boq-shadow-adapter";
 import type { TenderBidOfferBoqDirectInput, TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
@@ -106,6 +106,19 @@ function statusFromGates(opts: {
   if (opts.bidOk && opts.cutoverPass && opts.packagePass !== false) return "ready";
   if (opts.gapLineCount > 0) return "partial";
   return "hold";
+}
+
+/** S5-C — observability-only union of per-dwelling f5Gate gapCodes (deterministic, deduped). */
+function aggregateMultiPackageGapCodes(
+  dwellings: readonly { f5Gate?: BidCutoverGateResult | null }[],
+): string[] {
+  const codes: ShadowGapCode[] = [];
+  for (const dwelling of dwellings) {
+    for (const code of dwelling.f5Gate?.gapCodes ?? []) {
+      if (!codes.includes(code)) codes.push(code);
+    }
+  }
+  return [...codes].sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -206,7 +219,7 @@ export function runIkP7PositionCostBid(opts: {
         ...evaluation.packageGate.reasonsPl,
         ...(proposal.warnings ?? []),
       ],
-      gapCodes: [],
+      gapCodes: aggregateMultiPackageGapCodes(evaluation.package.dwellings),
       proposal,
       shadow: null,
       packageGate: evaluation.packageGate,

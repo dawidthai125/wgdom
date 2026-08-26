@@ -424,6 +424,31 @@ export type ComputeShadowPositionCostForLineInput = {
   materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
+/** S5-A — Owner Input quantity must use existing S4-B resolver (no alternate SSOT). */
+function resolveOwnerInputQuantityViaS4B(
+  input: Pick<ComputeShadowPositionCostForLineInput, "lineIndex" | "boqDependencyGraph">,
+  line: OfferBoqLine,
+  gaps: ShadowGapCode[],
+): { kind: "hold" } | { kind: "ok"; quantity: number | null } {
+  const qtyResolution = resolveBoqPricingQuantity({
+    line,
+    lineIndex: input.lineIndex ?? 0,
+    dependencyGraph: input.boqDependencyGraph ?? null,
+  });
+  if (qtyResolution.status === "HOLD") {
+    pushGap(gaps, "BOQ_QUANTITY_HOLD");
+    return { kind: "hold" };
+  }
+  const quantity =
+    qtyResolution.pricingQuantity != null
+    && Number.isFinite(qtyResolution.pricingQuantity)
+      ? qtyResolution.pricingQuantity
+      : typeof line.quantity === "number" && Number.isFinite(line.quantity)
+        ? line.quantity
+        : null;
+  return { kind: "ok", quantity };
+}
+
 /**
  * Jedna linia OfferBoq → shadow Position Cost (bez zapisu do linii).
  */
@@ -473,10 +498,13 @@ export function computeShadowPositionCostForOfferBoqLine(
     }
 
     const namePl = String(line.description ?? "").trim() || "Sprzęt";
-    const qty =
-      typeof line.quantity === "number" && Number.isFinite(line.quantity)
-        ? line.quantity
-        : null;
+    const qtyResolved = resolveOwnerInputQuantityViaS4B(input, line, gaps);
+    if (qtyResolved.kind === "hold") {
+      base.gaps = gaps;
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+    const qty = qtyResolved.quantity;
     const unit = String(line.unit ?? "").trim() || null;
 
     if (
@@ -547,10 +575,13 @@ export function computeShadowPositionCostForOfferBoqLine(
       !isTransportUtylizacjaLine(line)
     ) {
       const namePl = String(line.description ?? "").trim() || "Transport";
-      const qty =
-        typeof line.quantity === "number" && Number.isFinite(line.quantity)
-          ? line.quantity
-          : null;
+      const qtyResolved = resolveOwnerInputQuantityViaS4B(input, line, gaps);
+      if (qtyResolved.kind === "hold") {
+        base.gaps = gaps;
+        base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+        return base;
+      }
+      const qty = qtyResolved.quantity;
       const unit = String(line.unit ?? "").trim() || null;
 
       pushGap(gaps, "TRANSPORT_OUT_OF_SCOPE");
