@@ -496,6 +496,26 @@ export function AdminSettingsModal({
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={appSettings.ikProvisionalEstimationEnabled === true}
+                onChange={async (e) => {
+                  const next = { ...appSettings, ikProvisionalEstimationEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+                data-ik-provisional-estimation-toggle
+              />
+              <div>
+                <p className="text-sm font-medium">IK · PROVISIONAL ESTIMATION (MVP)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Domyślnie OFF. Cienka warstwa provisional nad F5 shadow — companyPrice / alias /
+                  unit-normalize bez mutacji KV ani Work Catalog. OFF = poprzednie zachowanie.
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
                 checked={appSettings.ikIdentityCoverageEnabled === true}
                 onChange={async (e) => {
                   const next = { ...appSettings, ikIdentityCoverageEnabled: e.target.checked };

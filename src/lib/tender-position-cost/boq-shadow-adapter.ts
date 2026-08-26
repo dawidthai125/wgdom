@@ -28,6 +28,18 @@ import {
 import { isExplicitLaborOnlyWork } from "@/lib/tender-position-cost/labor-only-classification";
 import { isExplicitMaterialSupplyWork } from "@/lib/tender-position-cost/material-supply-classification";
 import {
+  extractProvisionalRationaleTags,
+  hasProvisionalSeamRationale,
+  isIkProvisionalEstimationEnabled,
+  isProvisionalLaborOnlyPath,
+  isSeamProvisionalPricingStatus,
+  resolveProvisionalEstimatePlane,
+  resolveProvisionalPricingUnit,
+  tryResolveProvisionalLaborInput,
+  tryResolveProvisionalMaterialSell,
+  type ProvisionalLineAttestation,
+} from "@/lib/intelligent-estimator/ik-provisional-estimation";
+import {
   resolveLaborInputFromOurWorkRate,
   type OurRateLaborResolve,
 } from "@/lib/tender-position-cost/our-rate-labor-adapter";
@@ -163,6 +175,8 @@ export type ShadowPositionCostLineResult = {
   equipment: EquipmentComponentResult | null;
   /** MODEL-1B — Owner Input Transport (null when not bid_candidate / unresolved). */
   transport: TransportComponentResult | null;
+  /** IK provisional seam — pricing trust attestation (flag ON only). */
+  provisionalAttestation: ProvisionalLineAttestation | null;
 };
 
 export type ShadowBoqPositionCostResult = {
@@ -227,6 +241,11 @@ export function resolveWorkIdentityFromOfferBoqLine(
         decision: compat.decision,
       };
     }
+  }
+
+  // IK provisional — pricing-only unit (e.g. prob→szt) before INVALID_UNIT.
+  if (!unit && isIkProvisionalEstimationEnabled()) {
+    unit = resolveProvisionalPricingUnit(unitRaw);
   }
 
   if (line.isNoise) {
@@ -481,6 +500,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     positionComplete: false,
     equipment: null,
     transport: null,
+    provisionalAttestation: null,
   };
 
   // 1) Noise — NEVER Owner Question / Bid Transport
@@ -700,40 +720,91 @@ export function computeShadowPositionCostForOfferBoqLine(
   const workId = identity.workId;
   const unit = identity.unit;
 
-  const laborOnly = isExplicitLaborOnlyWork(workId, {
+  const estimatePlane = workId ? resolveProvisionalEstimatePlane(workId) : null;
+
+  const rationaleTags = extractProvisionalRationaleTags(line.aiRationale);
+  const bindingPatched = hasProvisionalSeamRationale(rationaleTags);
+  const provisionalCtx = {
+    sourceUnitRaw: line.unit ?? identity.unitRaw,
+    bindingPatched,
+    rationaleTags,
+  };
+
+  let ourRateResolved = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
+  const provisionalLabor = tryResolveProvisionalLaborInput(store, {
+    workId,
+    unit,
+    description: line.description,
+    nowMs,
+    existingOurRate: ourRateResolved,
+    context: provisionalCtx,
+  });
+  if (provisionalLabor) {
+    ourRateResolved = provisionalLabor.ourRate;
+  }
+
+  const explicitLaborOnly = isExplicitLaborOnlyWork(workId, {
     extraLaborOnlyWorkIds: input.laborOnlyWorkIds,
   });
-  const materialSupply = isExplicitMaterialSupplyWork(workId, {
+  const explicitMaterialSupply = isExplicitMaterialSupplyWork(workId, {
     extraMaterialSupplyWorkIds: input.materialSupplyWorkIds,
   });
 
-  let materialsResolved: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve> = [];
-  let materials: PositionMaterialInput[];
-  let laborInput: PositionLaborInput | null = null;
-  let ourRate: OurRateLaborResolve | null = null;
-
-  if (materialSupply) {
-    // P5.16-B: Work Quotes → SELL · labor=null · ZERO invent mat.*/BOM
-    base.ourRate = null;
-    base.bom = null;
-    const sell = resolveMaterialSellFromCatalogWorkQuotes(
+  let provisionalMat: ReturnType<typeof tryResolveProvisionalMaterialSell> = null;
+  let materialSellResolved: CatalogWorkQuotesSellResolve | null = null;
+  if (explicitMaterialSupply || estimatePlane?.plane === "MATERIAL") {
+    materialSellResolved = resolveMaterialSellFromCatalogWorkQuotes(
       store,
       workId,
       pricingQuantity,
       unit,
       nowMs,
     );
+    provisionalMat = tryResolveProvisionalMaterialSell(store, {
+      workId,
+      quantity: pricingQuantity,
+      unit,
+      existing: materialSellResolved,
+      context: provisionalCtx,
+    });
+    if (provisionalMat) {
+      materialSellResolved = provisionalMat.sell;
+    }
+  }
+
+  const laborOnly =
+    explicitLaborOnly
+    || isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+    || isProvisionalLaborOnlyPath(workId, estimatePlane ?? undefined);
+  const materialSupply =
+    explicitMaterialSupply || isSeamProvisionalPricingStatus(provisionalMat?.pricingStatus);
+
+  let materialsResolved: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve> = [];
+  let materials: PositionMaterialInput[];
+  let laborInput: PositionLaborInput | null = null;
+  let ourRate: OurRateLaborResolve | null = null;
+
+  if (materialSupply && materialSellResolved) {
+    // P5.16-B: Work Quotes → SELL · labor=null · ZERO invent mat.*/BOM
+    base.ourRate = null;
+    base.bom = null;
+    const sell = materialSellResolved;
     materialsResolved = [sell];
     materials = [sell.material];
-    collectMaterialGaps(materialsResolved, gaps);
+    if (!(isSeamProvisionalPricingStatus(provisionalMat?.pricingStatus) && sell.sellPricePln != null)) {
+      collectMaterialGaps(materialsResolved, gaps);
+    }
     laborInput = null;
   } else if (laborOnly) {
-    ourRate = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
+    ourRate = ourRateResolved;
     base.ourRate = ourRate;
-    if (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY") {
+    if (
+      (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY")
+      && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+    ) {
       pushGap(gaps, "BRAK_STAWKI_ROBOT");
     }
-    if (ourRate.status === "STALE") {
+    if (ourRate.status === "STALE" && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)) {
       pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
     }
     const bom = resolveLaborOnlyBomForWork({
@@ -742,16 +813,18 @@ export function computeShadowPositionCostForOfferBoqLine(
       positionQuantity: pricingQuantity,
     });
     base.bom = bom;
-    // materials[] empty → engine labor-only · materialCost = 0 · no BOM gap
     materials = [];
     laborInput = ourRate.labor;
   } else {
-    ourRate = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
+    ourRate = ourRateResolved;
     base.ourRate = ourRate;
-    if (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY") {
+    if (
+      (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY")
+      && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+    ) {
       pushGap(gaps, "BRAK_STAWKI_ROBOT");
     }
-    if (ourRate.status === "STALE") {
+    if (ourRate.status === "STALE" && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)) {
       pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
     }
     const bom = resolveTechnologyBomForWork({
@@ -791,6 +864,11 @@ export function computeShadowPositionCostForOfferBoqLine(
   base.positionComplete = position.positionComplete;
   base.gaps = gaps;
   base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+  if (provisionalLabor?.attestation) {
+    base.provisionalAttestation = provisionalLabor.attestation;
+  } else if (provisionalMat?.attestation) {
+    base.provisionalAttestation = provisionalMat.attestation;
+  }
   return base;
 }
 

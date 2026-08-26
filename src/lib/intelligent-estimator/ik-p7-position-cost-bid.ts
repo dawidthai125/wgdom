@@ -23,7 +23,13 @@ import {
   type BidCutoverGateResult,
 } from "@/lib/tender-position-cost/bid-position-cost-cutover";
 import type { ShadowBoqPositionCostResult, ShadowGapCode } from "@/lib/tender-position-cost/boq-shadow-adapter";
+import { computeShadowPositionCostsForOfferBoq } from "@/lib/tender-position-cost/boq-shadow-adapter";
 import type { TenderBidOfferBoqDirectInput, TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import {
+  aggregateProvisionalPricingSummary,
+  isIkProvisionalEstimationEnabled,
+  type ProvisionalPricingSummary,
+} from "@/lib/intelligent-estimator/ik-provisional-estimation";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
@@ -68,6 +74,8 @@ export type IkP7PositionCostBidReport = {
   packageGate: PackageGateResult | null;
   packageDirect: TenderBidOfferBoqDirectInput | null;
   cutoverGate: BidCutoverGateResult | null;
+  /** IK provisional seam — pricing trust breakdown (flag ON only). */
+  provisionalPricingSummary: ProvisionalPricingSummary | null;
   provenance: {
     sourceRefKind: "evidence" | "hold" | "boq_ready";
     offerBoqPresent: boolean;
@@ -119,6 +127,34 @@ function aggregateMultiPackageGapCodes(
     }
   }
   return [...codes].sort((a, b) => a.localeCompare(b));
+}
+
+function buildProvisionalPricingSummaryFromPackage(opts: {
+  dwellings: readonly { dwellingId: string; offerBoq?: { lines?: unknown[] } | null }[];
+  store: WorkCatalogStore;
+  nowMs: number;
+  tenderId: string;
+  boqDependencyGraphsByDwelling?: Record<string, import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph> | null;
+  boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+}): ProvisionalPricingSummary | null {
+  if (!isIkProvisionalEstimationEnabled()) return null;
+  const shadowLines: Parameters<typeof aggregateProvisionalPricingSummary>[0] = [];
+  for (const d of opts.dwellings) {
+    if (!d.offerBoq?.lines?.length) continue;
+    const shadow = computeShadowPositionCostsForOfferBoq({
+      doc: d.offerBoq as import("@/lib/tender-offer-boq").OfferBoqDocument,
+      store: opts.store,
+      nowMs: opts.nowMs,
+      tenderId: opts.tenderId,
+      dwellingId: d.dwellingId,
+      boqDependencyGraph:
+        opts.boqDependencyGraphsByDwelling?.[d.dwellingId] ?? opts.boqDependencyGraph ?? null,
+      ensureOwnerQuestions: false,
+    });
+    shadowLines.push(...shadow.lines);
+  }
+  if (shadowLines.length === 0) return null;
+  return aggregateProvisionalPricingSummary(shadowLines);
 }
 
 /**
@@ -199,6 +235,15 @@ export function runIkP7PositionCostBid(opts: {
       gapLineCount,
     });
 
+    const provisionalPricingSummary = buildProvisionalPricingSummaryFromPackage({
+      dwellings: evaluation.package.dwellings,
+      store,
+      nowMs,
+      tenderId,
+      boqDependencyGraphsByDwelling: opts.expert.boqDependencyGraphsByDwelling ?? null,
+      boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
+    });
+
     return {
       schemaVersion: IK_P7_POSITION_COST_BID_SCHEMA_VERSION,
       status,
@@ -225,6 +270,7 @@ export function runIkP7PositionCostBid(opts: {
       packageGate: evaluation.packageGate,
       packageDirect,
       cutoverGate: null,
+      provisionalPricingSummary,
       provenance: {
         sourceRefKind: evaluation.packageGate.pass && proposal.ok ? "evidence" : "hold",
         offerBoqPresent: evaluation.package.dwellings.some(
@@ -265,6 +311,7 @@ export function runIkP7PositionCostBid(opts: {
       packageGate: null,
       packageDirect: null,
       cutoverGate: null,
+      provisionalPricingSummary: null,
       provenance: {
         sourceRefKind: "hold",
         offerBoqPresent: false,
@@ -304,6 +351,10 @@ export function runIkP7PositionCostBid(opts: {
   if (cut.gate.gapLineCount > 0 || !cut.gate.pass) rateSources.push("GAP");
   if (rateSources.length === 0) rateSources.push("GAP");
 
+  const provisionalPricingSummary = isIkProvisionalEstimationEnabled()
+    ? aggregateProvisionalPricingSummary(cut.shadow.lines)
+    : null;
+
   return {
     schemaVersion: IK_P7_POSITION_COST_BID_SCHEMA_VERSION,
     status,
@@ -327,6 +378,7 @@ export function runIkP7PositionCostBid(opts: {
     packageGate: null,
     packageDirect: null,
     cutoverGate: cut.gate,
+    provisionalPricingSummary,
     provenance: {
       sourceRefKind: cut.gate.pass && cut.proposal.ok ? "evidence" : "hold",
       offerBoqPresent: true,

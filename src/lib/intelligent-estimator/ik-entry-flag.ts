@@ -81,6 +81,8 @@ export function forceIkIdentityCoverageForTests(on: boolean | null): void {
   ikIdentityCoverageForTests = on;
 }
 
+export { forceIkProvisionalEstimationForTests } from "./ik-provisional-estimation";
+
 /** Test-only override for P4 Chief Wiring (null = AppSettings). */
 export function forceIkChiefWiringForTests(on: boolean | null): void {
   ikChiefWiringForTests = on;

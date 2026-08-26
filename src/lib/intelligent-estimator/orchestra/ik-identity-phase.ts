@@ -22,6 +22,11 @@ import {
   type OfferBoqMappingContext,
 } from "@/lib/tender-offer-boq-mapping";
 import { resolveWorkIdentityFromOfferBoqLine } from "@/lib/tender-position-cost/boq-shadow-adapter";
+import {
+  hasProvisionalSeamRationale,
+  isIkProvisionalEstimationEnabled,
+  resolveProvisionalMapperLinePatch,
+} from "@/lib/intelligent-estimator/ik-provisional-estimation";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { CatalogWork } from "@/lib/work-catalog/types";
@@ -56,6 +61,7 @@ export type IkIdentityContext = {
   status: "ready" | "blocked" | "partial";
   lineCount: number;
   trustedOkCount: number;
+  provisionalBindingCount: number;
   ambiguousCount: number;
   noIdentityCount: number;
   persistPlans: IkIdentityPersistPlan[];
@@ -176,6 +182,7 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
         status: "blocked",
         lineCount: structural.masterBoq.lineCount,
         trustedOkCount: 0,
+        provisionalBindingCount: 0,
         ambiguousCount: 0,
         noIdentityCount: 0,
         persistPlans: [],
@@ -201,15 +208,32 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
   const resolvedRefs: IkMasterBoqLineRef[] = [];
 
   let trustedOkCount = 0;
+  let provisionalBindingCount = 0;
   let ambiguousCount = 0;
   let noIdentityCount = 0;
 
   for (const ref of sliceRefs) {
     const mapped = mapOfferBoqLine(ref.line, mapCtx);
     const withManual = applyManualOverride(mapped, ref, input.manualOverrides);
-    const identity = resolveWorkIdentityFromOfferBoqLine(withManual);
+    let identity = resolveWorkIdentityFromOfferBoqLine(withManual);
+    let lineForOut = withManual;
+    let hadProvisionalPatch = false;
 
-    if (identity.status === "OK" && identity.workId) {
+    if (isIkProvisionalEstimationEnabled()) {
+      for (let pass = 0; pass < 3; pass += 1) {
+        const patch = resolveProvisionalMapperLinePatch(lineForOut, identity, works);
+        if (!patch) break;
+        lineForOut = { ...lineForOut, ...patch };
+        hadProvisionalPatch = true;
+        identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
+      }
+    }
+
+    if (hadProvisionalPatch || hasProvisionalSeamRationale(lineForOut.aiRationale ?? [])) {
+      provisionalBindingCount += 1;
+    }
+
+    if (identity.status === "OK" && identity.workId && !hadProvisionalPatch) {
       trustedOkCount += 1;
     } else if (identity.status === "AMBIGUOUS") {
       ambiguousCount += 1;
@@ -218,8 +242,8 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
     }
 
     const outLine: OfferBoqLine = {
-      ...withManual,
-      catalogWorkId: identity.workId,
+      ...lineForOut,
+      catalogWorkId: identity.workId ?? lineForOut.catalogWorkId ?? null,
     };
 
     resolvedRefs.push({
@@ -273,6 +297,7 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       status: "ready",
       lineCount: resolvedRefs.length,
       trustedOkCount,
+      provisionalBindingCount,
       ambiguousCount,
       noIdentityCount,
       persistPlans,

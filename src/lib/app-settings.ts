@@ -135,6 +135,11 @@ export interface AppSettings {
    */
   ikIdentityCoverageEnabled: boolean;
   /**
+   * IK FINALIZATION — provisional tender estimate (mapper binding + catalog companyPricePln).
+   * Default OFF. Does NOT mutate Work Catalog / OUR RATE / Price Memory.
+   */
+  ikProvisionalEstimationEnabled: boolean;
+  /**
    * IK-MIGRATION-01 P4 — Chief Wiring under IK Entry (scoped session).
    * Default OFF. Requires ikEntryEnabled + pricingReady. Does NOT flip Dual Outcome master (D).
    * Does NOT enable Labor/Material research.
@@ -220,6 +225,7 @@ export function defaultAppSettings(): AppSettings {
     ikEntryForModeratorEnabled: false,
     ikAutoIngestEnabled: false,
     ikIdentityCoverageEnabled: false,
+    ikProvisionalEstimationEnabled: false,
     ikChiefWiringEnabled: false,
     ikLaborE2eEnabled: "AUTO",
     ikLaborResearchEnabled: false,
@@ -417,6 +423,16 @@ export function mergeIkIdentityCoverageEnabled(
   return local.ikIdentityCoverageEnabled === true;
 }
 
+/** IK FINALIZATION — provisional estimate seam. Default OFF. */
+export function mergeIkProvisionalEstimationEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.ikProvisionalEstimationEnabled === true) return true;
+  if (remote?.ikProvisionalEstimationEnabled === false) return false;
+  return local.ikProvisionalEstimationEnabled === true;
+}
+
 /** P4 Chief-under-IK preference — independent of Dual Outcome master (D). */
 export function mergeIkChiefWiringEnabled(
   remote: Partial<AppSettings> | null | undefined,
@@ -499,6 +515,7 @@ export function loadAppSettingsLocal(): AppSettings {
       ikEntryForModeratorEnabled: parsed.ikEntryForModeratorEnabled === true,
       ikAutoIngestEnabled: parsed.ikAutoIngestEnabled === true,
       ikIdentityCoverageEnabled: parsed.ikIdentityCoverageEnabled === true,
+      ikProvisionalEstimationEnabled: parsed.ikProvisionalEstimationEnabled === true,
       ikChiefWiringEnabled: parsed.ikChiefWiringEnabled === true,
       ikLaborE2eEnabled: normalizeIkE2eMode(parsed.ikLaborE2eEnabled),
       ikLaborResearchEnabled: parsed.ikLaborResearchEnabled === true,
@@ -569,6 +586,7 @@ export function mergeAppSettings(
     ikEntryForModeratorEnabled: mergeIkEntryForModeratorEnabled(remote, local),
     ikAutoIngestEnabled: mergeIkAutoIngestEnabled(remote, local),
     ikIdentityCoverageEnabled: mergeIkIdentityCoverageEnabled(remote, local),
+    ikProvisionalEstimationEnabled: mergeIkProvisionalEstimationEnabled(remote, local),
     ikChiefWiringEnabled: mergeIkChiefWiringEnabled(remote, local),
     ikLaborE2eEnabled: mergeIkLaborE2eEnabled(remote, local),
     ikLaborResearchEnabled: mergeIkLaborResearchEnabled(remote, local),

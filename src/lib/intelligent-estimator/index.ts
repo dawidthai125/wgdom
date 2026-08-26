@@ -60,6 +60,32 @@ export {
   resolveIkP8RiskDecisionE2eActive,
   resolveIkDetailFirstScreen,
 } from "./ik-entry-flag";
+
+export {
+  forceIkProvisionalEstimationForTests,
+  isIkProvisionalEstimationEnabled,
+  aggregateProvisionalPricingSummary,
+  resolveProvisionalEstimatePlane,
+  resolveProvisionalMapperLinePatch,
+  tryResolveProvisionalLaborInput,
+  tryResolveProvisionalMaterialSell,
+  isSeamProvisionalPricingStatus,
+  mapProvisionalAttestationToUiStatus,
+  PROVISIONAL_REVIEW_TAG_OWNER,
+  PROVISIONAL_REVIEW_TAG_UNIT,
+} from "./ik-provisional-estimation";
+export type {
+  ProvisionalEstimatePlane,
+  ProvisionalLaborResolution,
+  ProvisionalMaterialResolution,
+  ProvisionalPricingStatus,
+  ProvisionalRateSource,
+  ProvisionalLineAttestation,
+  ProvisionalPricingSummary,
+  ProvisionalUiLineStatus,
+  ProvisionalResolveContext,
+} from "./ik-provisional-estimation";
+
 export type { IkE2eMode } from "@/lib/app-settings";
 export type {
   IkDetailFirstScreen,

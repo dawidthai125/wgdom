@@ -1497,6 +1497,10 @@ export function buildIkEntryConversationViewModel(
       }
     })();
     const srcKind = p7.provenance.sourceRefKind;
+    const prov = p7.provisionalPricingSummary;
+    const pricedHeadline = prov
+      ? `${prov.pricedLineCount}/${p7.billableLineCount} priced · verified=${prov.verifiedCount} · provisional=${prov.provisionalCount} · proxy=${prov.proxyCount} · review=${prov.reviewRequiredCount}`
+      : `${p7.completeLineCount}/${p7.billableLineCount} priced`;
     const costArtifact: Record<string, unknown> = {
       mode: p7.mode,
       cutoverGatePass: p7.cutoverGatePass,
@@ -1504,6 +1508,7 @@ export function buildIkEntryConversationViewModel(
       billableLineCount: p7.billableLineCount,
       completeLineCount: p7.completeLineCount,
       gapLineCount: p7.gapLineCount,
+      provisionalPricingSummary: prov,
       laborCostPln: p7.laborCostPln,
       materialCostPln: p7.materialCostPln,
       directPln: p7.directPln,
@@ -1521,8 +1526,8 @@ export function buildIkEntryConversationViewModel(
         event: "POSITION_COST_F5",
         status: p7Status,
         messagePl: p7.cutoverGatePass
-          ? `Position Cost (F5): COMPLETE ${p7.completeLineCount}/${p7.billableLineCount} · labor=${p7.laborCostPln ?? "—"} · mat=${p7.materialCostPln ?? "—"} PLN.`
-          : `Position Cost (F5): GAP/BLOCK — complete ${p7.completeLineCount}/${p7.billableLineCount} · gaps=${p7.gapLineCount}.`,
+          ? `Position Cost (F5): ${pricedHeadline} · labor=${p7.laborCostPln ?? "—"} · mat=${p7.materialCostPln ?? "—"} PLN.`
+          : `Position Cost (F5): GAP/BLOCK — priced ${pricedHeadline} · gaps=${p7.gapLineCount}.`,
         detailPl: [
           `mode=${p7.mode}`,
           `research=${p7.researchExecuted}`,
