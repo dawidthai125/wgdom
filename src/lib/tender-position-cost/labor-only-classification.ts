@@ -5,6 +5,8 @@
  * Only workIds on the Owner allowlist (or explicit input override) skip BOM.
  */
 
+import { C2_KNR_WC_PROB_WORK_IDS } from "@/lib/intelligent-estimator/c2-knr-wc-prob-owner-create";
+
 /** Wave 1 — Owner GO 2026-08-13 (WM/239 D01 trusted). */
 export const OWNER_APPROVED_LABOR_ONLY_WORK_IDS: ReadonlySet<string> = new Set([
   "cc-w2-przygotowanie-osprzet",
@@ -54,6 +56,7 @@ export function isExplicitLaborOnlyWork(
 ): boolean {
   const id = String(workId ?? "").trim();
   if (!id) return false;
+  if (C2_KNR_WC_PROB_WORK_IDS.has(id)) return true;
   if (OWNER_APPROVED_LABOR_ONLY_WORK_IDS.has(id)) return true;
   const extra = toSet(opts?.extraLaborOnlyWorkIds);
   return Boolean(extra?.has(id));

@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.116 — IK C2 MOPS KNNR 1305 prob (2026-08-27)
+
+- OD-01: `prob` first-class `WgdomCostUnit` · work-rate bridge/normalize/qualify
+- C2 M3: 2 CatalogWork `knnr-wc-knnr-5-1305-01-prob` / `…-02-prob` (LABOR, companyPrice 0, margin 0%)
+- C2 M5: Owner OUR RATE 60/20 PLN/prob · M6 OWNER_KNR mappings · M8 provisional skip · M10 LABOR_ONLY
+- Test: `test-ik-od01-prob-unit-platform.mjs` · `test-ik-c2-batch-m3-m8.mjs` · `test-ik-c2-batch-m5-m10.mjs`
+
 ## 2.66.115 — PAYROLL-WEEK-ROSTER-INVARIANT-01 (2026-08-24)
 
 - Classifier: ALIGN tylko przy live **0h**; hours>0 + archived digest≠ → rollover quarantine

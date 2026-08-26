@@ -1,7 +1,7 @@
 /**
  * INTELLIGENT-ESTIMATOR-CLASSIFICATION-GATE — Owner FINAL map (code-frozen).
  * Source: INTELLIGENT-ESTIMATOR-LABOR-MATERIAL-FLOW-OWNER-DECISION-CLOSEOUT
- * Counts: LABOR 31 · MATERIAL 24 · COMPOUND 5 · UNKNOWN 30 · total 90
+ * Counts: LABOR 33 · MATERIAL 24 · COMPOUND 5 · UNKNOWN 30 · total 92
  * A1: ZERO heuristics · ZERO remap · ZERO expand · miss → UNKNOWN
  * P5.11 Owner GO: cc-p0c-w1-zaprawianie-bruzd COMPOUND → LABOR (no explicit material component).
  */
@@ -9,11 +9,11 @@
 import type { EstimatorPricingPlane } from "./classification-types";
 
 export const ESTIMATOR_OWNER_CLASSIFICATION_COUNTS = Object.freeze({
-  LABOR: 31,
+  LABOR: 33,
   MATERIAL: 24,
   COMPOUND: 5,
   UNKNOWN: 30,
-  TOTAL: 90,
+  TOTAL: 92,
 });
 
 export const ESTIMATOR_OWNER_CLASSIFICATION_MAP: Readonly<
@@ -37,6 +37,8 @@ export const ESTIMATOR_OWNER_CLASSIFICATION_MAP: Readonly<
   "cw.etics.mesh": "MATERIAL",
   "cw.etics.render": "MATERIAL",
   "cw.etics.substrate": "MATERIAL",
+  "knnr-wc-knnr-5-1305-01-prob": "LABOR",
+  "knnr-wc-knnr-5-1305-02-prob": "LABOR",
   "legacy-elektryka-mb": "UNKNOWN",
   "legacy-elektryka-rbh": "UNKNOWN",
   "legacy-elektryka-szt": "UNKNOWN",

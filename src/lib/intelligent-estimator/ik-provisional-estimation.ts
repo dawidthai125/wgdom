@@ -19,7 +19,6 @@ import type {
 } from "@/lib/tender-position-cost/catalog-work-quotes-sell-adapter";
 import { resolveCatalogCoverageAlias } from "@/lib/catalog-coverage/alias-resolver";
 import { CATALOG_WAVE2_PRODUCT_IDS } from "@/lib/catalog-coverage/alias-pack-wave2";
-import { foldOwnerUnitToken } from "@/lib/catalog-coverage/owner-unit-compatibility";
 import { foldPolishText } from "@/lib/wgdom-ath-classifier";
 import { buildWorkRateIdentityKey } from "@/lib/work-catalog/work-rate-types";
 import { getWorkByIdFromStore } from "@/lib/work-catalog/catalog-work-utils";
@@ -28,6 +27,8 @@ import { normalizeWgdomCostUnit, type WgdomCostUnit } from "@/lib/wgdom-cost-cat
 import { lookupWorkRate } from "@/lib/work-catalog/work-rate-lookup";
 import { loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import { getOwnerClassificationPlane } from "./owner-classification-map";
+import { hasCompleteTrustedIdentityTuple } from "./ik-identity-trusted-preserve";
+import { isC2KnrWcProbWorkId } from "./c2-knr-wc-prob-owner-create";
 import type { EstimatorPricingPlane } from "./classification-types";
 import { buildInternalFirstIndexFromCatalogWorks } from "./ik-p5-internal-first-index";
 import { lookupInternalFirst } from "./internal-first-semantic-match";
@@ -111,15 +112,11 @@ export function isIkProvisionalEstimationEnabled(
   return loc.ikProvisionalEstimationEnabled === true;
 }
 
-/** Pricing-only unit token — does NOT change global normalizeWgdomCostUnit SSOT. */
+/** Pricing-only unit token — uses global normalizeWgdomCostUnit SSOT (OD-01: prob stays prob). */
 export function resolveProvisionalPricingUnit(
   raw: string | null | undefined,
 ): WgdomCostUnit | null {
-  const canon = normalizeWgdomCostUnit(raw);
-  if (canon) return canon;
-  const token = foldOwnerUnitToken(raw);
-  if (token === "prob") return "szt";
-  return null;
+  return normalizeWgdomCostUnit(raw);
 }
 
 function unitsCompatibleForProvisionalPricing(
@@ -152,17 +149,37 @@ function buildProvisionalLinePatch(
   };
 }
 
+function shouldSkipProvisionalForOwnerMappedC2Prob(mapped: OfferBoqLine): boolean {
+  const workId = String(mapped.catalogWorkId ?? "").trim();
+  if (!isC2KnrWcProbWorkId(workId)) return false;
+  if (resolveProvisionalPricingUnit(mapped.unit) !== "prob") return false;
+  if (hasCompleteTrustedIdentityTuple(mapped)) return true;
+  if (mapped.matchMethod === "exact_knr" && mapped.matchConfidence !== "low") return true;
+  return false;
+}
+
 function pickProvisionalCandidateFromDescription(
   mapped: OfferBoqLine,
   works: readonly CatalogWork[],
 ): string | null {
+  if (hasCompleteTrustedIdentityTuple(mapped)) return null;
+
   const hay = foldPolishText(mapped.description ?? "");
   const lineUnit = resolveProvisionalPricingUnit(mapped.unit);
   if (!hay || !lineUnit) return null;
 
+  const isKnnr1305Probe =
+    lineUnit === "prob"
+    && /1305-0[12]|pierwsza proba|nastepna proba|sprawdzenie samoczynnego wylaczania/.test(hay);
+
   const rules: Array<{ test: RegExp; workId: string }> = [
     { test: /wylacznik|roznicowo|przeciwporaz|pomiar.*rezystancj/, workId: "legacy-elektryka-szt" },
-    { test: /sprawdzenie samoczynnego wylaczania|pierwsza proba|nastepna proba/, workId: "legacy-elektryka-szt" },
+    ...(isKnnr1305Probe
+      ? []
+      : [{
+          test: /sprawdzenie samoczynnego wylaczania|pierwsza proba|nastepna proba/,
+          workId: "legacy-elektryka-szt",
+        }]),
     { test: /demontaz.*lacznik|lacznik.*instalacyjn/, workId: "legacy-elektryka-szt" },
     { test: /skrzydl.*okien|dopasowanie.*okien/, workId: "legacy-stolarka-szt" },
   ];
@@ -273,6 +290,7 @@ export function resolveProvisionalMapperLinePatch(
   works: readonly CatalogWork[] = [],
 ): Partial<OfferBoqLine> | null {
   if (!isIkProvisionalEstimationEnabled()) return null;
+  if (shouldSkipProvisionalForOwnerMappedC2Prob(mapped)) return null;
 
   if (identity.status === "OK" && identity.workId) {
     const unitRebind = resolveProvisionalUnitMismatchRebind(mapped, works);

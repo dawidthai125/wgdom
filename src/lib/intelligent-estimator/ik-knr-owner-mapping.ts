@@ -47,8 +47,8 @@ export type OwnerKnrMappingApplyResult = {
 };
 
 /**
- * Production Owner authority — labor-only pilot (WYKWITY).
- * Exactly one approved active row. Do not invent additional keys here.
+ * Production Owner authority — WYKWITY pilot + C2 KNNR 1305-01/02 prob (OD-01 Variant A).
+ * Exact normalizedKey + one active row + ownerApproval + CatalogWork + unit.
  */
 export const OWNER_KNR_MAPPINGS: readonly OwnerKnrMappingRow[] = [
   {
@@ -56,6 +56,22 @@ export const OWNER_KNR_MAPPINGS: readonly OwnerKnrMappingRow[] = [
     normalizedKey: "KNR-W|4-01|1202-07",
     workId: "cc-w2-wykwity-zacieki",
     catalogUnit: "m2",
+    ownerApproval: true,
+    active: true,
+  },
+  {
+    mappingId: "owner-knr-knnr-5-1305-01",
+    normalizedKey: "KNNR|5|1305-01",
+    workId: "knnr-wc-knnr-5-1305-01-prob",
+    catalogUnit: "prob",
+    ownerApproval: true,
+    active: true,
+  },
+  {
+    mappingId: "owner-knr-knnr-5-1305-02",
+    normalizedKey: "KNNR|5|1305-02",
+    workId: "knnr-wc-knnr-5-1305-02-prob",
+    catalogUnit: "prob",
     ownerApproval: true,
     active: true,
   },

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * IK provisional estimation — MOPS OPS-SMOKE-09 regression (minimal).
  *
@@ -186,37 +185,29 @@ async function main() {
 
   assert("ON flag enabled", isIkProvisionalEstimationEnabled() === true);
   assert("88 billable lines", p7.billableLineCount === 88, `got ${p7.billableLineCount}`);
-  assert("gap 0", p7.gapLineCount === 0, `got ${p7.gapLineCount}`);
-  assert("P7 ready", p7.status === "ready", `got ${p7.status}`);
-  assert("bidOk", p7.bidOk === true);
-  assert("bid > 0", (p7.recommendedBidPln ?? 0) > 0, String(p7.recommendedBidPln));
-  assert(
-    "bid ≈ 288100",
-    Math.abs((p7.recommendedBidPln ?? 0) - 288_100) < 500,
-    String(p7.recommendedBidPln),
-  );
-  assert(
-    "direct ≈ 164913.32",
-    Math.abs((p7.directPln ?? 0) - 164_913.32) < 50,
-    String(p7.directPln),
-  );
+  // OD-01 M2: C2 prob lines no longer prob→szt provisional bind → 10 GAP until dedicated WC (M3+)
+  assert("gap 10 (C2 prob)", p7.gapLineCount === 10, `got ${p7.gapLineCount}`);
+  assert("P7 blocked (C2 gap)", p7.status === "blocked", `got ${p7.status}`);
+  assert("bidOk false", p7.bidOk === false);
+  assert("bid null until C2 priced", p7.recommendedBidPln == null, String(p7.recommendedBidPln));
+  assert("direct null until C2 priced", p7.directPln == null, String(p7.directPln));
 
   const shadowDirect = shadowLines.reduce(
     (s, row) => s + (row.position?.totalPositionCostPln ?? 0),
     0,
   );
   assert(
-    "direct = sum shadow lines",
-    Math.abs(shadowDirect - (p7.directPln ?? 0)) < 1,
-    `shadow=${shadowDirect} p7=${p7.directPln}`,
+    "shadow direct ≈ 147858 (OD-01)",
+    Math.abs(shadowDirect - 147_858.32) < 100,
+    `shadow=${shadowDirect}`,
   );
 
   assert("catalog unchanged", catalogFingerprint(loadWorkCatalogStoreLocal()) === catalogBefore);
 
   assert("provisional summary present", prov != null);
   assert(
-    "88/88 priced",
-    prov?.pricedLineCount === 88,
+    "78/88 priced (OD-01 C2 gap)",
+    prov?.pricedLineCount === 78,
     JSON.stringify(prov),
   );
   assert(
@@ -245,8 +236,8 @@ async function main() {
   assert("prob lines exist", probLines.length >= 1, `count=${probLines.length}`);
   for (const row of probLines) {
     assert(
-      `prob ${row.lineId} UNIT_CONVERSION_REVIEW`,
-      (row.provisionalAttestation?.reviewTags ?? []).includes(PROVISIONAL_REVIEW_TAG_UNIT),
+      `prob ${row.lineId} no UNIT_CONVERSION_REVIEW`,
+      !(row.provisionalAttestation?.reviewTags ?? []).includes(PROVISIONAL_REVIEW_TAG_UNIT),
       JSON.stringify(row.provisionalAttestation?.reviewTags),
     );
   }

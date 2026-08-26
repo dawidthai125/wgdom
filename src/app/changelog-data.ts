@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-27",
+    version: "2.66.116",
+    label: "IK C2 MOPS — KNNR 1305 prob OD-01 + OUR RATE 60/20",
+    items: [
+      {
+        type: "new",
+        text: "OD-01 Variant A: `prob` first-class unit (wgdom-cost-catalog, work-rate bridge). C2 M3: `knnr-wc-knnr-5-1305-01-prob` + `knnr-wc-knnr-5-1305-02-prob` (LABOR, margin 0%). M5 OUR RATE Owner 60/20 PLN/prob. M6 OWNER_KNR mappings · M8 provisional skip · M10 LABOR_ONLY. Test: test-ik-od01-prob-unit-platform · test-ik-c2-batch-m3-m8 · test-ik-c2-batch-m5-m10.",
+      },
+    ],
+  },
+  {
     date: "2026-08-24",
     version: "2.66.115",
     label: "PAYROLL-WEEK-ROSTER-INVARIANT-01 — ALIGN 0h / quarantine / D-F4 clear",

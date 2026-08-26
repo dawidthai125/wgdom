@@ -14,7 +14,7 @@ import {
   type WorkRateSourceType,
 } from "@/lib/work-catalog/work-rate-types";
 
-const VALID_UNITS: WgdomCostUnit[] = ["m2", "mb", "szt", "rbh", "m3", "kpl", "kg", "l"];
+const VALID_UNITS: WgdomCostUnit[] = ["m2", "mb", "szt", "rbh", "m3", "kpl", "kg", "l", "prob"];
 const VALID_SOURCE_TYPES: WorkRateSourceType[] = ["OWNER", "ACCEPT", "CALCULATED", "RESEARCH"];
 const VALID_KINDS: WorkRateHistoryKind[] = ["OUR", "SOURCE"];
 

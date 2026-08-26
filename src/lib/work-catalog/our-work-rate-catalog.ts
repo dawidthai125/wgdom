@@ -88,7 +88,7 @@ const UNIT_LABELS_PL: Record<string, string> = {
   m3: "m³",
   kpl: "kpl.",
   kg: "kg",
-  l: "l",
+  prob: "próba",
 };
 
 export function workRateUnitLabelPl(unit: string): string {
