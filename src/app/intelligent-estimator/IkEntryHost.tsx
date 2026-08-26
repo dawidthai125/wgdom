@@ -17,6 +17,7 @@ import { IkExpertRoomChrome } from "@/lib/intelligent-estimator/IkExpertRoomChro
 import { buildIkEntryConversationViewModel, overlayObservationStatusesOnConversationVm } from "@/lib/intelligent-estimator/ik-entry-conversation";
 import { buildAnalysisObservation } from "@/lib/intelligent-estimator/analysis-observation";
 import { IkOwnerActionQueueNavigate } from "@/app/intelligent-estimator/IkOwnerActionQueueNavigate";
+import { IkOwnerGateActionsPanel } from "@/app/intelligent-estimator/IkOwnerGateActionsPanel";
 import { LiveVisualizationView } from "@/app/intelligent-estimator/LiveVisualizationView";
 import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
 import type {
@@ -244,6 +245,7 @@ export function IkEntryHost({
           deepLinkContext={ownerActionDeepLinkContext ?? undefined}
           navigateHandlers={ownerActionNavigateHandlers ?? undefined}
         />
+        <IkOwnerGateActionsPanel orchestra={orchestra} />
         <ExpertConversationSurface vm={vm} />
       </IkExpertRoomChrome>
     </div>

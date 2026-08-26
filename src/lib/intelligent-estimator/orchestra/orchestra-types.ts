@@ -26,6 +26,9 @@ import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
 import type { IkOwnerActionQueueReport } from "./ik-owner-action-queue";
 import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
+import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
+import type { NotifyIkPricingAcceptedInput } from "@/lib/ik-pricing-orchestrator/notify-accepted";
+import type { IkOwnerGateActionResult } from "./ik-owner-gate-actions";
 
 export type IkOrchestraPipelineIngest = {
   dossierBuilding?: boolean;
@@ -74,6 +77,12 @@ export type IkOrchestraSyncInput = {
   knowledgeBusy: boolean;
   flags: IkOrchestraFlags;
   chiefSession: ChiefSessionOutput | null;
+  /** A08-P3 G1 — Owner manual identity overrides (tender-scoped session). */
+  manualOverrides?: readonly OwnerManualIdentityOverride[] | null;
+  /** A08-P3 G1 Research Again — bust KL-3 / identity re-eval latch. */
+  identityResearchEpoch?: number;
+  /** A08-P3 IC-P3-ORCH-1 — bust fullSnapshot + catalog reload after G2 Accept. */
+  catalogReloadEpoch?: number;
 };
 
 /** Sync pipeline outputs (Document → P8 minus async labor/material). */
@@ -107,6 +116,52 @@ export type IkOrchestraHostInput = {
   historicalIndex?: HistoricalExecutedIndex | null;
   /** W5-3 — TendersProvider invalidation token (optional · default 0). */
   pricingCatalogRevision?: number;
+  /** A08-P3 G2 — dual bump after Accept persist (from TenderDetailPage). */
+  onPricingAccepted?: () => void;
+};
+
+/** A08-P3 — Owner Gate action surface (G1 identity + G2 price). */
+export type IkOwnerGateApi = {
+  manualOverrides: readonly OwnerManualIdentityOverride[];
+  g1Accept: (input: {
+    dwellingId: string;
+    lineId: string;
+    catalogWorkId: string;
+  }) => IkOwnerGateActionResult;
+  g1Edit: (input: {
+    dwellingId: string;
+    lineId: string;
+    catalogWorkId: string;
+  }) => IkOwnerGateActionResult;
+  g1Reject: (input: { dwellingId: string; lineId: string }) => IkOwnerGateActionResult;
+  g1ResearchAgain: (input: {
+    dwellingId: string;
+    lineId: string;
+  }) => IkOwnerGateActionResult;
+  g2LaborAccept: (input: {
+    dwellingId: string;
+    lineId: string;
+  }) => Promise<IkOwnerGateActionResult>;
+  g2LaborReject: (input: { dwellingId: string; lineId: string }) => IkOwnerGateActionResult;
+  g2LaborRecalculate: (input: {
+    dwellingId: string;
+    lineId: string;
+  }) => IkOwnerGateActionResult;
+  g2MaterialAccept: (input: {
+    dwellingId: string;
+    lineId: string;
+  }) => Promise<IkOwnerGateActionResult>;
+  g2MaterialReject: (input: { dwellingId: string; lineId: string }) => IkOwnerGateActionResult;
+  g2MaterialRecalculate: (input: {
+    dwellingId: string;
+    lineId: string;
+  }) => IkOwnerGateActionResult;
+  isG1Rejected: (dwellingId: string, lineId: string) => boolean;
+  isG2LaborRejected: (dwellingId: string, lineId: string) => boolean;
+  isG2MaterialRejected: (dwellingId: string, lineId: string) => boolean;
+  /** Chief/Demand guard for material G2. */
+  chiefMaterialAvailable: boolean;
+  notifyPricingAccepted?: NotifyIkPricingAcceptedInput;
 };
 
 /** Full runtime snapshot returned to IkEntryHost adapter. */
@@ -126,4 +181,6 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   identityCoverageOps: IkIdentityCoverageOpsView | null;
   /** W4-4 — re-run F5 materialization after Owner Input save (idempotent). */
   refreshF5AfterOwnerInput: () => void;
+  /** A08-P3 — Owner Gate G1/G2 actions. */
+  ownerGate: IkOwnerGateApi;
 };

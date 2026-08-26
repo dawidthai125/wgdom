@@ -11,6 +11,7 @@ export type {
   IkOrchestraSyncSnapshot,
   IkKnrAppDiag,
   IkKnrKnowledgeDiag,
+  IkOwnerGateApi,
 } from "./orchestra-types";
 
 export type {
@@ -66,7 +67,18 @@ export type {
   IkOwnerActionQueueReport,
   BuildIkOwnerActionQueueInput,
 } from "./ik-owner-action-queue";
-export { buildIkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
+export {
+  buildG1ManualOverride,
+  buildG1RejectKey,
+  findLaborLineCandidate,
+  findMaterialLineCandidate,
+  resolveSuggestedCatalogWorkIdForG1,
+  upsertManualOverride,
+} from "./ik-owner-gate-actions";
+export {
+  buildLaborCandidateAcceptFingerprint,
+  isLaborAcceptIdempotentNoop,
+} from "./ik-owner-gate-labor-idem";
 export type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
 export {
   buildOwnerInputRefreshKey,

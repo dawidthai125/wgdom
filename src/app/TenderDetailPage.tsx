@@ -960,6 +960,13 @@ export function TenderDetailPage({
               chiefSession={chiefSessionEnabled ? chiefSession : null}
               historicalIndex={historicalIndex}
               pricingCatalogRevision={pricingCatalogRevision}
+              onPricingAccepted={() => {
+                notifyIkPricingAccepted({
+                  bumpPricingCatalogRevision,
+                  bumpChiefRefresh: () => setChiefRefreshNonce((n) => n + 1),
+                  tenderId: item.id,
+                });
+              }}
               pipelineIngest={{
                 dossierBuilding: pipelineRuntime.dossierBuilding,
                 dossierEnriching: pipelineRuntime.dossierEnriching,

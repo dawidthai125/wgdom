@@ -17,6 +17,7 @@ import {
   notifyIkPricingAcceptedIfPersistOk,
   type NotifyIkPricingAcceptedInput,
 } from "./notify-accepted";
+import { isLaborAcceptIdempotentNoop } from "@/lib/intelligent-estimator/orchestra/ik-owner-gate-labor-idem";
 import type { IkLaborGapJob } from "./types";
 
 /** Session-level in-flight / done keys — ephemeral (not KV). */
@@ -137,6 +138,15 @@ export type AcceptIkLaborResearchAndNotifyResult =
       notified: true;
       companyPriceUsedAsOurRate: false;
       aiAutoAccept: false;
+      skippedDuplicate?: false;
+    }
+  | {
+      ok: true;
+      store: WorkCatalogStore;
+      notified: false;
+      companyPriceUsedAsOurRate: false;
+      aiAutoAccept: false;
+      skippedDuplicate: true;
     }
   | {
       ok: false;
@@ -149,6 +159,28 @@ export type AcceptIkLaborResearchAndNotifyResult =
 /**
  * Owner Accept → acceptWorkRateResearchCandidate → saveWorkCatalogRouted → notify (only if persist ok).
  */
+/**
+ * A08-P3 IC-P3-LABOR-IDEM-1 — identical candidate Accept → successful noop, no duplicate history.
+ */
+export async function acceptIkLaborResearchAndNotifyIdempotent(
+  input: AcceptIkLaborResearchAndNotifyInput,
+): Promise<AcceptIkLaborResearchAndNotifyResult> {
+  const anti = {
+    companyPriceUsedAsOurRate: false as const,
+    aiAutoAccept: false as const,
+  };
+  if (isLaborAcceptIdempotentNoop(input.store, input.candidate)) {
+    return {
+      ok: true,
+      store: input.store,
+      notified: false,
+      skippedDuplicate: true,
+      ...anti,
+    };
+  }
+  return acceptIkLaborResearchAndNotify(input);
+}
+
 export async function acceptIkLaborResearchAndNotify(
   input: AcceptIkLaborResearchAndNotifyInput,
 ): Promise<AcceptIkLaborResearchAndNotifyResult> {

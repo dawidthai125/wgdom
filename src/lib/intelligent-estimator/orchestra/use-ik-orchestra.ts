@@ -53,7 +53,23 @@ import {
   needsIkNg02Ingest,
 } from "./ik-orchestra-runtime";
 import { resolveEffectiveItem } from "./orchestra-ports";
-import type { IkOrchestraHostInput, IkOrchestraSnapshot } from "./orchestra-types";
+import type {
+  IkOrchestraHostInput,
+  IkOrchestraSnapshot,
+  IkOwnerGateApi,
+} from "./orchestra-types";
+import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
+import {
+  buildG1ManualOverride,
+  buildG1RejectKey,
+  findLaborLineCandidate,
+  findMaterialLineCandidate,
+  removeManualOverride,
+  upsertManualOverride,
+  type IkOwnerGateG1RejectKey,
+} from "./ik-owner-gate-actions";
+import { acceptIkMaterialResearchCandidate } from "@/lib/intelligent-estimator/ik-material-expert";
+import { acceptIkLaborResearchAndNotifyIdempotent } from "@/lib/ik-pricing-orchestrator/labor-research-bridge";
 
 export function useIkOrchestra({
   item,
@@ -63,6 +79,7 @@ export function useIkOrchestra({
   chiefSession = null,
   historicalIndex = null,
   pricingCatalogRevision = 0,
+  onPricingAccepted,
 }: IkOrchestraHostInput): IkOrchestraSnapshot {
   const flags = useMemo(
     () => ({
@@ -97,6 +114,23 @@ export function useIkOrchestra({
   const [identityPersistOutcome, setIdentityPersistOutcome] = useState<
     import("./ik-identity-persist-glue").IkIdentityPersistOutcome | null
   >(null);
+
+  /** A08-P3 G1 — tender-scoped manual identity overrides (session). */
+  const [manualOverrides, setManualOverrides] = useState<OwnerManualIdentityOverride[]>([]);
+  const [g1RejectedKeys, setG1RejectedKeys] = useState<Set<IkOwnerGateG1RejectKey>>(() => new Set());
+  const [g2LaborRejectedKeys, setG2LaborRejectedKeys] = useState<Set<IkOwnerGateG1RejectKey>>(
+    () => new Set(),
+  );
+  const [g2MaterialRejectedKeys, setG2MaterialRejectedKeys] = useState<Set<IkOwnerGateG1RejectKey>>(
+    () => new Set(),
+  );
+  const [identityResearchEpoch, setIdentityResearchEpoch] = useState(0);
+  const [catalogReloadEpoch, setCatalogReloadEpoch] = useState(0);
+  const [laborRecalcEpoch, setLaborRecalcEpoch] = useState(0);
+  const [materialRecalcEpoch, setMaterialRecalcEpoch] = useState(0);
+
+  const onPricingAcceptedRef = useRef(onPricingAccepted);
+  onPricingAcceptedRef.current = onPricingAccepted;
 
   const persistSessionGateRef = useRef<IkIdentityPersistSessionGate>(new Map());
   const persistAttemptKeyRef = useRef<string | null>(null);
@@ -256,6 +290,7 @@ export function useIkOrchestra({
         knowledgeBusy,
         flags,
         chiefSession: chiefSession ?? null,
+        manualOverrides,
       }),
     [
       item,
@@ -267,7 +302,16 @@ export function useIkOrchestra({
       knowledgeBusy,
       flags,
       chiefSession,
+      manualOverrides,
+      identityResearchEpoch,
+      catalogReloadEpoch,
+      pricingCatalogRevision,
     ],
+  );
+
+  const workCatalogStore = useMemo(
+    () => loadWorkCatalogStoreLocal(),
+    [pkgEpoch, catalogReloadEpoch, pricingCatalogRevision],
   );
 
   const {
@@ -278,8 +322,6 @@ export function useIkOrchestra({
     classification,
     identityCoverage,
   } = fullSnapshot;
-
-  const workCatalogStore = useMemo(() => loadWorkCatalogStoreLocal(), [pkgEpoch]);
 
   const ownerActionFreshnessKey = useMemo(() => {
     const tenderId = item.id || item.tenderId || "";
@@ -349,6 +391,12 @@ export function useIkOrchestra({
       .join("|");
   }, [identityContext]);
 
+  // A08-P3 — manual override changes must allow re-persist + F5 re-eval.
+  useEffect(() => {
+    persistAttemptKeyRef.current = null;
+    f5EvalAttemptKeyRef.current = null;
+  }, [manualOverrides]);
+
   // W2 — gated identity persist (NEVER inside sync useMemo).
   useEffect(() => {
     if (!identityPersistPlanKey || !identityContext?.persistPlans?.length) {
@@ -407,7 +455,7 @@ export function useIkOrchestra({
       setKnowledgeBusy(false);
       return;
     }
-    const knowledgeKey = buildKl3KnowledgeKey(tenderId, knr);
+    const knowledgeKey = `${buildKl3KnowledgeKey(tenderId, knr)}|ir${identityResearchEpoch}`;
     if (knowledgeAttemptedRef.current === knowledgeKey) return;
 
     knowledgeAttemptedRef.current = knowledgeKey;
@@ -424,7 +472,7 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, knr, report.masterBoq.readyForExperts]);
+  }, [effectiveItem, knr, report.masterBoq.readyForExperts, identityResearchEpoch]);
 
   // P5 Labor E2E
   useEffect(() => {
@@ -439,7 +487,7 @@ export function useIkOrchestra({
       setLabor(null);
       return;
     }
-    const laborKey = buildLaborAttemptKey(key, postIdentityExpert, p5ResearchOn);
+    const laborKey = `${buildLaborAttemptKey(key, postIdentityExpert, p5ResearchOn)}|lr${laborRecalcEpoch}`;
     if (laborAttemptedRef.current === laborKey) return;
     laborSettledRef.current = false;
     laborAttemptedRef.current = laborKey;
@@ -459,7 +507,7 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn]);
+  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn, laborRecalcEpoch]);
 
   // P6 Material E2E
   useEffect(() => {
@@ -473,7 +521,7 @@ export function useIkOrchestra({
       return;
     }
     if (p5LaborOn && laborSettledRef.current !== true) return;
-    const materialKey = buildMaterialAttemptKey(key, postIdentityExpert, p6ResearchOn);
+    const materialKey = `${buildMaterialAttemptKey(key, postIdentityExpert, p6ResearchOn)}|mr${materialRecalcEpoch}`;
     if (materialAttemptedRef.current === materialKey) return;
     materialAttemptedRef.current = materialKey;
     let cancelled = false;
@@ -488,7 +536,156 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p6MaterialOn, p6ResearchOn, laborSettleTick]);
+  }, [
+    effectiveItem,
+    pkg,
+    postIdentityExpert,
+    p5LaborOn,
+    p6MaterialOn,
+    p6ResearchOn,
+    laborSettleTick,
+    materialRecalcEpoch,
+  ]);
+
+  const bumpOrchestraAfterPricingAccept = useCallback(() => {
+    setCatalogReloadEpoch((n) => n + 1);
+    setPkgEpoch((n) => n + 1);
+    onPricingAcceptedRef.current?.();
+  }, []);
+
+  const chiefMaterialAvailable = chiefSession != null;
+
+  const ownerGate: IkOwnerGateApi = useMemo(
+    () => ({
+      manualOverrides,
+      chiefMaterialAvailable,
+      isG1Rejected: (dwellingId, lineId) =>
+        g1RejectedKeys.has(buildG1RejectKey(dwellingId, lineId)),
+      isG2LaborRejected: (dwellingId, lineId) =>
+        g2LaborRejectedKeys.has(buildG1RejectKey(dwellingId, lineId)),
+      isG2MaterialRejected: (dwellingId, lineId) =>
+        g2MaterialRejectedKeys.has(buildG1RejectKey(dwellingId, lineId)),
+      g1Accept: ({ dwellingId, lineId, catalogWorkId }) => {
+        const id = catalogWorkId.trim();
+        if (!id) return { ok: false, reason: "MISSING_CATALOG_WORK_ID" };
+        const override = buildG1ManualOverride({ dwellingId, lineId, catalogWorkId: id });
+        setManualOverrides((prev) => upsertManualOverride(prev, override));
+        setG1RejectedKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(buildG1RejectKey(dwellingId, lineId));
+          return next;
+        });
+        return { ok: true };
+      },
+      g1Edit: ({ dwellingId, lineId, catalogWorkId }) => {
+        const id = catalogWorkId.trim();
+        if (!id) return { ok: false, reason: "MISSING_CATALOG_WORK_ID" };
+        const override = buildG1ManualOverride({ dwellingId, lineId, catalogWorkId: id });
+        setManualOverrides((prev) => upsertManualOverride(prev, override));
+        setG1RejectedKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(buildG1RejectKey(dwellingId, lineId));
+          return next;
+        });
+        return { ok: true };
+      },
+      g1Reject: ({ dwellingId, lineId }) => {
+        setG1RejectedKeys((prev) => new Set(prev).add(buildG1RejectKey(dwellingId, lineId)));
+        setManualOverrides((prev) => removeManualOverride(prev, dwellingId, lineId));
+        return { ok: true };
+      },
+      g1ResearchAgain: ({ dwellingId, lineId }) => {
+        void dwellingId;
+        void lineId;
+        knowledgeAttemptedRef.current = null;
+        setIdentityResearchEpoch((n) => n + 1);
+        return { ok: true };
+      },
+      g2LaborReject: ({ dwellingId, lineId }) => {
+        setG2LaborRejectedKeys((prev) => new Set(prev).add(buildG1RejectKey(dwellingId, lineId)));
+        return { ok: true };
+      },
+      g2LaborRecalculate: ({ dwellingId, lineId }) => {
+        setG2LaborRejectedKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(buildG1RejectKey(dwellingId, lineId));
+          return next;
+        });
+        laborAttemptedRef.current = null;
+        setLaborRecalcEpoch((n) => n + 1);
+        return { ok: true };
+      },
+      g2LaborAccept: async ({ dwellingId, lineId }) => {
+        const row = findLaborLineCandidate(labor, dwellingId, lineId);
+        if (!row?.candidate) return { ok: false, reason: "NO_LABOR_CANDIDATE" };
+        const store = loadWorkCatalogStoreLocal();
+        const result = await acceptIkLaborResearchAndNotifyIdempotent({
+          store,
+          candidate: row.candidate,
+          notify: {
+            bumpPricingCatalogRevision: () => {},
+            bumpChiefRefresh: () => {},
+          },
+        });
+        if (!result.ok) return { ok: false, reason: result.reason };
+        if (result.skippedDuplicate) return { ok: true, noop: true, reason: "IDEMPOTENT_NOOP" };
+        if (!result.notified) return { ok: false, reason: "PERSIST_FAILED" };
+        bumpOrchestraAfterPricingAccept();
+        laborAttemptedRef.current = null;
+        setLaborRecalcEpoch((n) => n + 1);
+        return { ok: true };
+      },
+      g2MaterialReject: ({ dwellingId, lineId }) => {
+        setG2MaterialRejectedKeys((prev) => new Set(prev).add(buildG1RejectKey(dwellingId, lineId)));
+        return { ok: true };
+      },
+      g2MaterialRecalculate: ({ dwellingId, lineId }) => {
+        setG2MaterialRejectedKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(buildG1RejectKey(dwellingId, lineId));
+          return next;
+        });
+        materialAttemptedRef.current = null;
+        setMaterialRecalcEpoch((n) => n + 1);
+        return { ok: true };
+      },
+      g2MaterialAccept: async ({ dwellingId, lineId }) => {
+        if (!chiefMaterialAvailable) {
+          return { ok: false, reason: "CHIEF_OFF" };
+        }
+        const row = findMaterialLineCandidate(material, dwellingId, lineId);
+        if (!row?.candidate) return { ok: false, reason: "NO_MATERIAL_CANDIDATE" };
+        try {
+          const acceptResult = await acceptIkMaterialResearchCandidate({
+            candidate: row.candidate,
+            expectedUnit: row.unit,
+          });
+          if (!acceptResult.ok || !acceptResult.persisted) {
+            return {
+              ok: false,
+              reason: acceptResult.error ?? "MATERIAL_ACCEPT_FAILED",
+            };
+          }
+          bumpOrchestraAfterPricingAccept();
+          materialAttemptedRef.current = null;
+          setMaterialRecalcEpoch((n) => n + 1);
+          return { ok: true };
+        } catch {
+          return { ok: false, reason: "MATERIAL_ACCEPT_FAILED" };
+        }
+      },
+    }),
+    [
+      manualOverrides,
+      g1RejectedKeys,
+      g2LaborRejectedKeys,
+      g2MaterialRejectedKeys,
+      labor,
+      material,
+      chiefMaterialAvailable,
+      bumpOrchestraAfterPricingAccept,
+    ],
+  );
 
   return useMemo(
     () => ({
@@ -505,6 +702,7 @@ export function useIkOrchestra({
       ownerActionQueue,
       identityCoverageOps,
       refreshF5AfterOwnerInput,
+      ownerGate,
     }),
     [
       effectiveItem,
@@ -520,6 +718,7 @@ export function useIkOrchestra({
       ownerActionQueue,
       identityCoverageOps,
       refreshF5AfterOwnerInput,
+      ownerGate,
     ],
   );
 }

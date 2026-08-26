@@ -159,6 +159,7 @@ export function computeIkOrchestraSyncSnapshot(
     knowledgeBusy,
     flags,
     chiefSession,
+    manualOverrides = null,
   } = input;
   const {
     identityCoverageOn,
@@ -209,7 +210,7 @@ export function computeIkOrchestraSyncSnapshot(
     sliceDExpert: sliceDTrusted.expert,
     item: effectiveItem,
     package: pkg,
-    manualOverrides: null,
+    manualOverrides,
   });
   const postIdentityExpert = identityPhase.postIdentityExpert;
   const identityContext = identityPhase.context;
