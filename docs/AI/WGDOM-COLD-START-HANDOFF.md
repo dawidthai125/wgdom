@@ -2,9 +2,10 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-24 (pointer sync · F5 MARGIN) · prior 2026-08-18  
+> **Data:** 2026-08-26 (pointer sync · S6/P4 tip) · prior 2026-08-24 / 2026-08-18  
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Live tip (czytaj 09):** UI **2.66.115** · commit **`82f3520e`** · **F5 MARGIN CLOSED GREEN** · **≠** cały IK E2E GREEN  
+> **CURRENT IK PRODUCTION TIP:** **`2fce3ca`** · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · **≠** cały IK E2E GREEN  
+> **Live tip (czytaj 09):** UI **2.66.115** · commit **`2fce3ca`** · ancestors F5 MARGIN / KL-6 / Phase 2D · **≠** cały IK E2E GREEN  
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED**  
 > **Prior Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — historyczny  
@@ -26,7 +27,7 @@ SEARCH BEFORE CREATE.
 | | |
 |--|--|
 | **Version** | **czytaj 09 + version.json** (live tip: **2.66.115**) |
-| **Commit** | **czytaj 09** (live tip: **`82f3520e`** · F5 MARGIN CLOSED GREEN) |
+| **Commit** | **czytaj 09** (CURRENT IK PRODUCTION TIP **`2fce3ca`** · S6-A / S6-B / P4 CLOSED · P4 flag ON) |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |

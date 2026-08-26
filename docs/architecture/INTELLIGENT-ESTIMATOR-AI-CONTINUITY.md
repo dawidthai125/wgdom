@@ -2,9 +2,9 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-AI-CONTINUITY`  
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY  
-> **Data:** 2026-08-18  
-> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md)  
-> **Sesja Autonomy:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)  
+> **Data:** 2026-08-24 (Observability Phases 1–4 closeout sync)
+> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§22 continuity block**
+> **Sesja:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)  
 > **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)
 
 ```text
@@ -12,6 +12,16 @@ Nie czytaj historii czatu jako architektury.
 Nie buduj Przetargów / IK / Catalog / Pricing od zera.
 SEARCH → REUSE → AUDIT → Owner GO → IMPLEMENT.
 ```
+
+### CURRENT PRODUCTION TIP (pointer — SSOT = 09)
+
+| | |
+|--|--|
+| **Tip** | **`2fce3caf`** / live **`2fce3ca`** |
+| **Status** | **S6-A CLOSED** · **S6-B CLOSED** · **P4 CLOSED** · P4 flag **ON** |
+| **Production validation** | harnesses **GREEN** · live tip matches P4 · interactive UI smoke remains **Owner residual** (**PARTIALLY VALIDATED** for interactive paths) |
+| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
+| **NOT CLAIMED** | global IK E2E CLOSED · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · entire IK FINAL |
 
 ---
 
@@ -24,9 +34,10 @@ SEARCH → REUSE → AUDIT → Owner GO → IMPLEMENT.
 ### First reads (order)
 
 1. [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)  
-2. **TEN PLIK** + [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md)  
-3. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — stan Autonomy 05–08 · A08-P2 **CLOSED**  
-4. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
+2. **TEN PLIK** + [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) (**§22** continuity block)  
+3. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — **latest** · Observability Phases **1–4 CLOSED** @ **`c1b3ad7d`**  
+4. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — Autonomy 05–08 (historyczny)  
+5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
 5. [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md)  
 6. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`  
 7. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll  

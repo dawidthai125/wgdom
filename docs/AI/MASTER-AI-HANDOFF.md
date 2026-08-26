@@ -45,10 +45,10 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
-| **UI version** | **2.66.115** |
-| **Commit** | **`85a1ad7`** · live deploy tip · **IK-KNR KL-6 CLOSED / PRODUCTION VERIFIED** (UI **`ce192b1e`** · sidebar hotfix **`85a1ad7`**) · Phase 2D frozen ancestor **`77385b0c`** · prior **IK A01 F5 MARGIN** **`82f3520e`** · prior Observability Ph 4 **`c1b3ad7d`** · prior IK-KNR-WC P3.1 **`5984330a`** |
-| **Feature tip** | **`85a1ad7`** — **IK-KNR KL-6** Owner VERIFY UI (route `knrverify` · orchestrator authority · prod smoke PASS) · Phase 2D **`77385b0c`** FROZEN ancestor · Phase 2E **NOT STARTED** · prior **`82f3520e`** F5 MARGIN · prior Observability **`c1b3ad7d`** · prior IK-KNR-WC P3 **`5984330a`** · … · EXPERTS-P0 **`58872663`** |
-| **Status** | **PRODUCTION VERIFIED** (slice-level per 09) · **≠** cały IK globalnie E2E PV · tip SSOT = [`09`](09_PRODUCTION_BASELINE.md) · **WAITING FOR NEXT OWNER GO** |
+| **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
+| **Commit** | **CURRENT PRODUCTION TIP `2fce3ca`** · full **`2fce3caf`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · **S6-A CLOSED** · **S6-B CLOSED** · **P4 CLOSED** · P4 flag **ON** · ancestors KL-6 / Phase 2D / F5 MARGIN (see 09) |
+| **Feature tip** | **`2fce3ca`** — S6-A / S6-B / P4 CLOSED · P4 flag ON · validation = harness GREEN + live tip/bundle · interactive UI smoke = Owner residual · **≠** global IK FINAL · see [`09`](09_PRODUCTION_BASELINE.md) |
+| **Status** | tip sync per [`09`](09_PRODUCTION_BASELINE.md) · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · AUTONOMY-08 **NOT CLOSED** · Phase 2E **NOT STARTED** · S10 **OUT** · **≠** cały IK globalnie E2E / FINAL · **WAITING FOR NEXT OWNER GO** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
