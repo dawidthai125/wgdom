@@ -29,6 +29,7 @@ import {
   saveWorkCatalogStoreLocal,
   type SaveWorkCatalogStoreLocalOptions,
 } from "@/lib/work-catalog/work-catalog-store";
+import { preserveOurWorkRatesFromDonor } from "@/lib/work-catalog/work-rate-preserve";
 import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 
 export {
@@ -105,9 +106,12 @@ export async function saveWorkCatalogStore(
   options: SaveWorkCatalogStoreCloudOptions = {},
 ): Promise<void> {
   const updatedAt = options.updatedAtIso ?? store.updatedAt;
-  const next = normalizeWorkCatalogStore({ ...store, updatedAt });
-  const cloud = await loadCloudWorkCatalogBaseline();
   const local = loadWorkCatalogStoreLocal();
+  let next = preserveOurWorkRatesFromDonor(
+    normalizeWorkCatalogStore({ ...store, updatedAt }),
+    local,
+  );
+  const cloud = await loadCloudWorkCatalogBaseline();
   assertWorkCatalogPersistAllowed(next, local, cloud);
   saveWorkCatalogStoreLocal(next, { updatedAtIso: next.updatedAt });
   await pushWorkCatalogStoreToCloudSafe(next, { mode: "intent" });

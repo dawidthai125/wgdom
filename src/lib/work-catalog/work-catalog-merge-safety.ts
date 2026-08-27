@@ -7,6 +7,7 @@ import type { WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
 import {
   normalizeWorkCatalogStore,
 } from "@/lib/work-catalog/work-catalog-store";
+import { preserveOurWorkRatesFromDonor } from "@/lib/work-catalog/work-rate-preserve";
 
 const REGIONS: WgdomCostRegion[] = ["wroclaw", "dolnyslask"];
 
@@ -68,7 +69,7 @@ export function unionMergeWorkCatalogStore(
       ? right.updatedAt
       : left.updatedAt;
 
-  return normalizeWorkCatalogStore({
+  let merged = normalizeWorkCatalogStore({
     ...right,
     catalogs,
     activeRegion: right.activeRegion || left.activeRegion,
@@ -76,4 +77,7 @@ export function unionMergeWorkCatalogStore(
     migratedFromLegacyAt: right.migratedFromLegacyAt ?? left.migratedFromLegacyAt,
     seedManifestVersion: right.seedManifestVersion ?? left.seedManifestVersion,
   });
+  merged = preserveOurWorkRatesFromDonor(merged, left);
+  merged = preserveOurWorkRatesFromDonor(merged, right);
+  return merged;
 }

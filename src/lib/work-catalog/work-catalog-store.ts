@@ -15,6 +15,7 @@ import { isMarketRegionCode } from "@/lib/work-catalog/market-regions";
 import { isTradeId, TRADE_IDS, type TradeId } from "@/lib/work-catalog/trades";
 import { preferAuthoritativeWorkCatalog } from "@/lib/work-catalog/work-catalog-authority";
 import { defaultWorkCatalogStore } from "@/lib/work-catalog/work-catalog-migrate";
+import { preserveOurWorkRatesFromDonor } from "@/lib/work-catalog/work-rate-preserve";
 import {
   WORK_CATALOG_SCHEMA_VERSION,
   type CatalogWork,
@@ -338,14 +339,21 @@ export function mergeWorkCatalogStore(local: unknown, cloud: unknown): WorkCatal
   const left = normalizeWorkCatalogStore(local);
   const right = normalizeWorkCatalogStore(cloud);
   const authoritative = preferAuthoritativeWorkCatalog(left, right);
-  if (authoritative) return authoritative;
+  if (authoritative) {
+    const loser = authoritative === left ? right : left;
+    return preserveOurWorkRatesFromDonor(authoritative, loser);
+  }
 
   const leftTs = parseUpdatedAtMs(left.updatedAt);
   const rightTs = parseUpdatedAtMs(right.updatedAt);
 
-  if (rightTs === 0 && leftTs === 0) return left;
-  if (leftTs >= rightTs) return left;
-  return right;
+  if (rightTs === 0 && leftTs === 0) {
+    return preserveOurWorkRatesFromDonor(left, right);
+  }
+  if (leftTs >= rightTs) {
+    return preserveOurWorkRatesFromDonor(left, right);
+  }
+  return preserveOurWorkRatesFromDonor(right, left);
 }
 
 export function loadWorkCatalogStoreLocal(): WorkCatalogStore {
