@@ -56,6 +56,12 @@ import {
   wrapLookupPortWithIkP5Budget,
 } from "./ik-p5-labor-budget";
 import { getDefaultWorkRateLookupPort } from "@/lib/work-catalog/work-rate-research";
+import {
+  isApfLaborOnlyUnit,
+  runAutonomousPricingFallback,
+  type ApfLaborMarketPort,
+} from "@/lib/tender-position-cost/autonomous-pricing-fallback";
+import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 
 export type IkLaborBucket =
   | "LABOR"
@@ -76,7 +82,9 @@ export type IkLaborRateStatus =
   | "RESEARCH_GAP"
   | "RESEARCH_BLOCKED"
   | "RESEARCH_COOLDOWN"
-  | "RESEARCH_SKIPPED";
+  | "RESEARCH_SKIPPED"
+  /** APF ephemeral candidate — NOT OUR RATE / NOT Accept. */
+  | "APF_EPHEMERAL_CANDIDATE";
 
 export type IkLaborExpertLineResult = {
   tenderId: string;
@@ -106,6 +114,10 @@ export type IkLaborExpertLineResult = {
   internalFirstOutcome?: string | null;
   internalFirstConfidence?: string | null;
   internalFirstMatchId?: string | null;
+  /** Slice APF orchestrator — ephemeral pricing basis (no CatalogWork). */
+  ephemeralBasis?: EphemeralResearchBasis | null;
+  /** APF HOLD code when fallback ran but produced no ephemeral price. */
+  apfHoldCode?: string | null;
 };
 
 export type IkLaborExpertCounts = {
@@ -127,6 +139,9 @@ export type IkLaborExpertCounts = {
   internalSemanticHits: number;
   internalReview: number;
   researchHttpFetches: number;
+  apfAttempts: number;
+  apfCandidates: number;
+  apfHttpFetches: number;
 };
 
 export type IkLaborExpertReport = {
@@ -203,7 +218,27 @@ function emptyCounts(input: number): IkLaborExpertCounts {
     internalSemanticHits: 0,
     internalReview: 0,
     researchHttpFetches: 0,
+    apfAttempts: 0,
+    apfCandidates: 0,
+    apfHttpFetches: 0,
   };
+}
+
+/**
+ * APF fallback eligibility — no CatalogWork identity + pomiar/prob only.
+ * `pomiar` resolves to INVALID_UNIT (not in WgdomCostUnit enum) — included explicitly.
+ * Does NOT bypass normal work-rate identity policy.
+ */
+export function isIkLaborLineApfEligible(row: {
+  identity: ShadowWorkIdentityResolve;
+  catalogWorkId: string | null;
+  unit: string;
+}): boolean {
+  if (row.identity.workId) return false;
+  if (row.catalogWorkId) return false;
+  if (!isApfLaborOnlyUnit(String(row.unit ?? ""))) return false;
+  const status = row.identity.status;
+  return status === "NO_IDENTITY" || status === "INVALID_UNIT";
 }
 
 /**
@@ -228,6 +263,10 @@ export async function runIkMasterBoqLaborExpert(opts: {
   nowMs?: number;
   forceRefresh?: boolean;
   bypassCooldown?: boolean;
+  /** Default true — APF fallback for NO_IDENTITY + pomiar/prob (separate from P5 work-rate). */
+  enableApfFallback?: boolean;
+  /** Test injection — bypasses production HTTP when set. */
+  apfLaborMarketPort?: ApfLaborMarketPort;
 }): Promise<IkLaborExpertReport> {
   const item = opts.item;
   const tenderId = item.id || item.tenderId || "";
@@ -237,6 +276,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
   const nowMs = opts.nowMs ?? Date.now();
   const executeResearch = opts.executeResearch === true;
   const enableInternalFirst = opts.enableInternalFirst !== false;
+  const enableApfFallback = opts.enableApfFallback !== false;
   const autoAcceptExecuted = false as const;
   const pricingExecuted = false as const;
   const materialResearchExecuted = false as const;
@@ -281,6 +321,9 @@ export async function runIkMasterBoqLaborExpert(opts: {
   };
 
   const inputRefs = expert.masterBoqLines;
+  const structuralByLineId = new Map(
+    inputRefs.map((ref) => [ref.line.lineId, ref.line] as const),
+  );
   const inputLineCount = expert.masterBoq.lineCount;
   if (inputRefs.length !== inputLineCount) {
     reasons.push(
@@ -423,7 +466,52 @@ export async function runIkMasterBoqLaborExpert(opts: {
       internalFirstOutcome,
       internalFirstConfidence,
       internalFirstMatchId,
+      ephemeralBasis: null,
+      apfHoldCode: null,
     });
+  }
+
+  let apfAttempts = 0;
+  let apfCandidates = 0;
+  let apfHttpFetches = 0;
+
+  if (enableApfFallback) {
+    for (const row of lines) {
+      const structural = structuralByLineId.get(row.lineId);
+      const boundCatalogWorkId = String(
+        row.identity.workId
+        ?? row.catalogWorkId
+        ?? structural?.catalogWorkId
+        ?? "",
+      ).trim();
+      if (boundCatalogWorkId) continue;
+      if (!isIkLaborLineApfEligible(row)) continue;
+      apfAttempts += 1;
+      const apfResult = await runAutonomousPricingFallback({
+        tenderId,
+        dwellingId: row.dwellingId,
+        line: structural ?? {
+          lineId: row.lineId,
+          lp: row.lp,
+          description: row.description,
+          unit: row.unit,
+          quantity: row.quantity,
+          catalogWorkId: null,
+        },
+        httpResearch: "production",
+        laborMarketPort: opts.apfLaborMarketPort,
+      });
+      apfHttpFetches += apfResult.counters.httpCalls;
+      if (apfResult.status === "CANDIDATE") {
+        row.ephemeralBasis = apfResult.ephemeralBasis;
+        row.rateStatus = "APF_EPHEMERAL_CANDIDATE";
+        row.ourRatePln =
+          apfResult.ephemeralBasis.components.labor?.unitRatePln ?? null;
+        apfCandidates += 1;
+      } else {
+        row.apfHoldCode = apfResult.holdCode;
+      }
+    }
   }
 
   const researchKeys: string[] = [];
@@ -588,6 +676,9 @@ export async function runIkMasterBoqLaborExpert(opts: {
   }
   counts.researchCalls = researchKeys.length;
   counts.researchHttpFetches = researchBudget.runHttpCount;
+  counts.apfAttempts = apfAttempts;
+  counts.apfCandidates = apfCandidates;
+  counts.apfHttpFetches = apfHttpFetches;
   counts.acceptedOurRate = 0; // never auto-Accept
 
   const bucketSum =
@@ -783,4 +874,26 @@ export function summarizeIkLaborForTrustedWorkLines(
     byRateStatus,
     lines,
   };
+}
+
+/**
+ * Build per-lineId EphemeralResearchBasis map from Labor Expert APF candidates.
+ * Read-only — for shadow/P7 `ephemeralCostBasisByLineId` (no CatalogWork / OUR RATE).
+ */
+export function buildApfEphemeralCostBasisByLineId(
+  labor: IkLaborExpertReport | null | undefined,
+  dwellingId?: string | null,
+): Map<string, EphemeralResearchBasis> {
+  const map = new Map<string, EphemeralResearchBasis>();
+  if (!labor) return map;
+  const scopeDwelling = dwellingId != null ? String(dwellingId).trim() : "";
+  for (const row of labor.lines) {
+    if (row.rateStatus !== "APF_EPHEMERAL_CANDIDATE") continue;
+    if (!row.ephemeralBasis) continue;
+    if (scopeDwelling && row.dwellingId !== scopeDwelling) continue;
+    const lineId = String(row.lineId ?? "").trim();
+    if (!lineId) continue;
+    map.set(lineId, row.ephemeralBasis);
+  }
+  return map;
 }

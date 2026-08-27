@@ -12,6 +12,23 @@ import {
   isWorkRateSelectiveUrlAllowed,
 } from "@/lib/work-catalog/work-rate-source-html-parse";
 
+/**
+ * Slice 3A — research plane for PASS2 category reuse (P5.27).
+ *
+ * NORMAL_WORK_RATE_RESEARCH:
+ *   existing `runSelectiveWorkRateResearch` path — measurement remains blocked.
+ * APF_EPHEMERAL_SELECTIVE_RESEARCH:
+ *   future APF-only plane — MUST NOT be passed from work-rate-research runners.
+ */
+export const WORK_RATE_RESEARCH_PLANE_NORMAL =
+  "NORMAL_WORK_RATE_RESEARCH" as const;
+export const WORK_RATE_RESEARCH_PLANE_APF_EPHEMERAL =
+  "APF_EPHEMERAL_SELECTIVE_RESEARCH" as const;
+
+export type WorkRateCategoryReuseResearchPlane =
+  | typeof WORK_RATE_RESEARCH_PLANE_NORMAL
+  | typeof WORK_RATE_RESEARCH_PLANE_APF_EPHEMERAL;
+
 /** Category keys — discovery routing only · never set PLN. */
 export type WorkRateCategoryKey =
   | "default"
@@ -501,8 +518,28 @@ function normalizeReuseDomain(domain: string | null | undefined): string {
 }
 
 /**
+ * P5.27 measurement / pomiary description gate (normal work-rate plane only).
+ * Exported for policy tests — runners must keep NORMAL plane default.
+ */
+export function isP527MeasurementOutOfResearch(input: {
+  unit?: string | null;
+  namePl?: string | null;
+}): boolean {
+  const unit = String(input.unit || "")
+    .trim()
+    .toLowerCase();
+  const blob = softWorkRateFamilyText(input.namePl || "");
+  if (unit === "pomiar") return true;
+  if (/sprawdzenie\w*\s+i\s+pomiar|pomiary\b/.test(blob)) return true;
+  return false;
+}
+
+/**
  * Domain / scope gate for existing PASS2 categoryKey reuse (P5.27-FIX).
  * Does NOT invent keys or URLs — only allows/rejects already allowlisted routes.
+ *
+ * `researchPlane` defaults to NORMAL — APF plane is for future APF route planning only.
+ * `runSelectiveWorkRateResearch` MUST NOT pass APF_EPHEMERAL_SELECTIVE_RESEARCH.
  */
 export function evaluateExistingCategoryReuseGate(input: {
   family: WorkRateWorkFamily;
@@ -510,6 +547,8 @@ export function evaluateExistingCategoryReuseGate(input: {
   namePl: string;
   domain?: string | null;
   unit?: string | null;
+  /** Default NORMAL — preserves P5.27 for existing work-rate research. */
+  researchPlane?: WorkRateCategoryReuseResearchPlane;
 }): {
   ok: boolean;
   reuseStatus: "SAFE_EXISTING_REUSE" | "REJECTED_REUSE" | "NOT_EVALUATED";
@@ -527,16 +566,22 @@ export function evaluateExistingCategoryReuseGate(input: {
     return { ok: false, reuseStatus: "REJECTED_REUSE", rejectReason: "NO_CATEGORY_KEY" };
   }
 
-  const blob = softWorkRateFamilyText(input.namePl || "");
+  const plane = input.researchPlane ?? WORK_RATE_RESEARCH_PLANE_NORMAL;
 
-  // P5.27 OUT OF RESEARCH — measurement / transport must not gain categoryKey reuse.
-  if (unit === "pomiar" || /sprawdzenie\w*\s+i\s+pomiar|pomiary\b/.test(blob)) {
+  // P5.27 OUT OF RESEARCH — normal work-rate plane only (Slice 3A boundary).
+  if (
+    plane === WORK_RATE_RESEARCH_PLANE_NORMAL &&
+    isP527MeasurementOutOfResearch({ unit, namePl: input.namePl })
+  ) {
     return {
       ok: false,
       reuseStatus: "REJECTED_REUSE",
       rejectReason: "OUT_OF_RESEARCH_MEASUREMENT",
     };
   }
+
+  const blob = softWorkRateFamilyText(input.namePl || "");
+
   if (/wywiezien|gruzu spryzm|samochodami samow/.test(blob)) {
     return {
       ok: false,

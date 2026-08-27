@@ -21,6 +21,7 @@ import {
   type BidCutoverGateResult,
 } from "@/lib/tender-position-cost/bid-position-cost-cutover";
 import type { ShadowBoqPositionCostResult } from "@/lib/tender-position-cost/boq-shadow-adapter";
+import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
 import { evaluatePackageGate } from "@/lib/multi-dwelling/package-gate";
 import type {
@@ -68,6 +69,16 @@ export function subtotalsFromShadowAndGate(
   };
 }
 
+export type EphemeralCostBasisByLineId =
+  | ReadonlyMap<string, EphemeralResearchBasis>
+  | Readonly<Record<string, EphemeralResearchBasis>>
+  | null;
+
+/** Per-dwelling APF ephemeral map — scoped by dwellingId, keyed by lineId only. */
+export type ResolveEphemeralCostBasisByLineId = (
+  dwellingId: string,
+) => EphemeralCostBasisByLineId;
+
 export type EvaluateDwellingOpts = {
   tenderId: string;
   dwellingId: string;
@@ -78,6 +89,8 @@ export type EvaluateDwellingOpts = {
   paintCoats?: 1 | 2 | null;
   /** IK P0-3 — per-dwelling S3 graph for S4-B resolver. */
   boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+  /** APF Labor Expert — ephemeral basis per lineId (read-only, dwelling-scoped). */
+  ephemeralCostBasisByLineId?: EphemeralCostBasisByLineId;
 };
 
 /**
@@ -99,6 +112,7 @@ export function evaluateDwellingPositionCost(opts: EvaluateDwellingOpts): {
     dwellingId,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
     boqDependencyGraph: opts.boqDependencyGraph ?? null,
+    ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
   });
   return {
     dwellingId,
@@ -124,6 +138,8 @@ export function evaluateAllDwellingsInPackage(
     > | null;
     /** Fallback when only a single primary graph is available. */
     boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+    /** APF — per-dwelling ephemeral map (dwellingId scope → lineId key). */
+    resolveEphemeralCostBasisByLineId?: ResolveEphemeralCostBasisByLineId;
   },
 ): TenderPackage {
   const dwellings: DwellingCostUnit[] = pkg.dwellings.map((d) => {
@@ -149,6 +165,8 @@ export function evaluateAllDwellingsInPackage(
       nowMs: opts.nowMs,
       ensureOwnerQuestions: opts.ensureOwnerQuestions,
       boqDependencyGraph: graph,
+      ephemeralCostBasisByLineId:
+        opts.resolveEphemeralCostBasisByLineId?.(dwKey) ?? null,
     });
     return {
       ...d,
@@ -225,6 +243,7 @@ export function evaluateTenderPackage(
       import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph
     > | null;
     boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+    resolveEphemeralCostBasisByLineId?: ResolveEphemeralCostBasisByLineId;
   },
 ): PackageEvaluationResult {
   const evaluated = evaluateAllDwellingsInPackage(pkg, opts);
@@ -279,6 +298,7 @@ export function computePackageBidProposal(opts: {
     import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph
   > | null;
   boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+  resolveEphemeralCostBasisByLineId?: ResolveEphemeralCostBasisByLineId;
 }): {
   evaluation: PackageEvaluationResult;
   proposal: TenderBidProposal;
@@ -290,6 +310,7 @@ export function computePackageBidProposal(opts: {
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
     boqDependencyGraphsByDwelling: opts.boqDependencyGraphsByDwelling,
     boqDependencyGraph: opts.boqDependencyGraph,
+    resolveEphemeralCostBasisByLineId: opts.resolveEphemeralCostBasisByLineId,
   });
 
   if (!evaluation.packageGate.pass || !evaluation.packageDirect) {

@@ -271,6 +271,8 @@ export {
   mapAndResolveWorkIdentityForLine,
   normalizeUnitForLaborLookup,
   summarizeIkLaborForTrustedWorkLines,
+  isIkLaborLineApfEligible,
+  buildApfEphemeralCostBasisByLineId,
 } from "./ik-labor-expert";
 export type {
   IkLaborBucket,

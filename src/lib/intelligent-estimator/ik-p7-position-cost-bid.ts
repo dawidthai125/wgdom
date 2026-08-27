@@ -35,6 +35,10 @@ import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { IkDocumentExpertReport } from "./ik-document-expert";
+import {
+  buildApfEphemeralCostBasisByLineId,
+  type IkLaborExpertReport,
+} from "./ik-labor-expert";
 import { synchronizePackageOfferBoqsFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
 
 export const IK_P7_POSITION_COST_BID_SCHEMA_VERSION = 1 as const;
@@ -136,6 +140,7 @@ function buildProvisionalPricingSummaryFromPackage(opts: {
   tenderId: string;
   boqDependencyGraphsByDwelling?: Record<string, import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph> | null;
   boqDependencyGraph?: import("@/lib/intelligent-estimator/boq-dependency-graph").BoqDependencyGraph | null;
+  labor?: IkLaborExpertReport | null;
 }): ProvisionalPricingSummary | null {
   if (!isIkProvisionalEstimationEnabled()) return null;
   const shadowLines: Parameters<typeof aggregateProvisionalPricingSummary>[0] = [];
@@ -150,6 +155,10 @@ function buildProvisionalPricingSummaryFromPackage(opts: {
       boqDependencyGraph:
         opts.boqDependencyGraphsByDwelling?.[d.dwellingId] ?? opts.boqDependencyGraph ?? null,
       ensureOwnerQuestions: false,
+      ephemeralCostBasisByLineId: buildApfEphemeralCostBasisByLineId(
+        opts.labor,
+        d.dwellingId,
+      ),
     });
     shadowLines.push(...shadow.lines);
   }
@@ -167,6 +176,8 @@ export function runIkP7PositionCostBid(opts: {
   package?: TenderPackage | null;
   store?: WorkCatalogStore;
   nowMs?: number;
+  /** Optional Labor Expert — wires APF ephemeralBasis into shadow (read-only). */
+  labor?: IkLaborExpertReport | null;
 }): IkP7PositionCostBidReport {
   const tenderId = String(opts.item.id || opts.item.tenderId || opts.expert.tenderId || "").trim();
   const nowMs = opts.nowMs ?? Date.now();
@@ -192,6 +203,10 @@ export function runIkP7PositionCostBid(opts: {
       pkg,
       opts.expert.masterBoqLines ?? [],
     );
+    const resolveEphemeralCostBasisByLineId = opts.labor
+      ? (dwellingId: string) =>
+          buildApfEphemeralCostBasisByLineId(opts.labor, dwellingId)
+      : undefined;
     const { evaluation, proposal } = computePackageBidProposal({
       pkg: syncedPkg,
       store,
@@ -206,6 +221,7 @@ export function runIkP7PositionCostBid(opts: {
       ensureOwnerQuestions: false,
       boqDependencyGraphsByDwelling: opts.expert.boqDependencyGraphsByDwelling ?? null,
       boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
+      resolveEphemeralCostBasisByLineId,
     });
 
     const packageDirect =
@@ -242,6 +258,7 @@ export function runIkP7PositionCostBid(opts: {
       tenderId,
       boqDependencyGraphsByDwelling: opts.expert.boqDependencyGraphsByDwelling ?? null,
       boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
+      labor: opts.labor ?? null,
     });
 
     return {
@@ -335,6 +352,7 @@ export function runIkP7PositionCostBid(opts: {
       nowMs,
       ensureOwnerQuestions: false,
       boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
+      ephemeralCostBasisByLineId: buildApfEphemeralCostBasisByLineId(opts.labor ?? null),
     },
   });
 

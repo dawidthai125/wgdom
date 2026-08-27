@@ -14,6 +14,8 @@ import {
   shouldSuppressP2DoubleStart,
 } from "@/lib/intelligent-estimator/ik-entry-p2-ingest-latch";
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
+import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
+import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
 import type { IkMaterialExpertReport } from "@/lib/intelligent-estimator/ik-material-expert";
 import {
   isIkP2DocumentsBoqActive,
@@ -321,7 +323,55 @@ export function useIkOrchestra({
     identityContext,
     classification,
     identityCoverage,
+    positionCostBid: syncPositionCostBid,
+    riskDecision: syncRiskDecision,
   } = fullSnapshot;
+
+  const positionCostBid = useMemo(() => {
+    if (!syncPositionCostBid || !labor || labor.counts.apfCandidates <= 0) {
+      return syncPositionCostBid;
+    }
+    return runIkP7PositionCostBid({
+      item: effectiveItem,
+      expert: postIdentityExpert,
+      package: pkg,
+      store: workCatalogStore,
+      labor,
+    });
+  }, [
+    syncPositionCostBid,
+    labor,
+    effectiveItem,
+    postIdentityExpert,
+    pkg,
+    workCatalogStore,
+  ]);
+
+  const riskDecision = useMemo(() => {
+    if (!flags.p8RiskOn) {
+      return syncRiskDecision;
+    }
+    if (!labor || labor.counts.apfCandidates <= 0 || !positionCostBid) {
+      return syncRiskDecision;
+    }
+    return runIkP8RiskDecision({
+      item: effectiveItem,
+      p7: positionCostBid,
+      bidProposal: positionCostBid.proposal ?? null,
+      expert: postIdentityExpert,
+      chiefSession: chiefSession ?? null,
+      knrHistorical: knr,
+    });
+  }, [
+    flags.p8RiskOn,
+    syncRiskDecision,
+    labor,
+    positionCostBid,
+    effectiveItem,
+    postIdentityExpert,
+    chiefSession,
+    knr,
+  ]);
 
   const ownerActionFreshnessKey = useMemo(() => {
     const tenderId = item.id || item.tenderId || "";
@@ -697,6 +747,8 @@ export function useIkOrchestra({
       material,
       flags,
       ...fullSnapshot,
+      positionCostBid,
+      riskDecision,
       identityPersistOutcome,
       packageBlockers,
       ownerActionQueue,
@@ -713,6 +765,8 @@ export function useIkOrchestra({
       material,
       flags,
       fullSnapshot,
+      positionCostBid,
+      riskDecision,
       identityPersistOutcome,
       packageBlockers,
       ownerActionQueue,

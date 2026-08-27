@@ -172,6 +172,61 @@ export {
 } from "@/lib/tender-position-cost/boq-shadow-adapter";
 
 export type {
+  CatalogBoundBasis,
+  EphemeralBasisValidation,
+  EphemeralEquipmentComponent,
+  EphemeralLaborComponent,
+  EphemeralMaterialComponent,
+  EphemeralResearchBasis,
+  PositionCostBasis,
+  PricingConfidence,
+  ResearchEvidence,
+  ResearchEvidenceKind,
+} from "@/lib/tender-position-cost/position-cost-basis";
+
+export {
+  buildPositionCostInputFromEphemeralBasis,
+  ephemeralBasisHasFakeCatalogId,
+  isEphemeralResearchBasis,
+  knrKnowledgeAloneYieldsLaborPln,
+  pricingCandidateFromKnowledgeEvidenceOnly,
+  validateEphemeralResearchBasis,
+} from "@/lib/tender-position-cost/position-cost-basis";
+
+/** Slice 2 — Autonomous Pricing Fallback (IDENTITY MISS → research → ephemeral). */
+export {
+  apfDistinctIdentityKey,
+  buildApfPricingCandidateFromEvidence,
+  buildApfResearchQuery,
+  createDefaultApfKnrKnowledgePort,
+  createDefaultApfLaborMarketPort,
+  createFixtureApfLaborMarketPort,
+  createPolicyDenyApfLaborMarketPort,
+  evaluateApfEphemeralSelectiveResearchPolicy,
+  isApfEphemeralSelectiveResearchPolicyGranted,
+  isApfKnowledgeOnlyEvidence,
+  isApfLaborOnlyUnit,
+  mapApfLaborUnitToEngineUnit,
+  marketObservationsToResearchEvidence,
+  pricingCandidateToEphemeralResearchBasis,
+  runAutonomousPricingFallback,
+} from "@/lib/tender-position-cost/autonomous-pricing-fallback";
+
+export type {
+  ApfCatalogBasis,
+  ApfHoldCode,
+  ApfLaborMarketObservation,
+  ApfLaborMarketPort,
+  ApfPricingCandidate,
+  ApfResearchEvidence,
+  ApfResearchQuery,
+  ApfRunCounters,
+  ApfRunResult,
+  RunAutonomousPricingFallbackInput,
+  RunAutonomousPricingFallbackResult,
+} from "@/lib/tender-position-cost/autonomous-pricing-fallback";
+
+export type {
   BidCutoverGateResult,
   ComputeBidFromPositionCostInput,
   LegacyVsPositionCostBidCompare,

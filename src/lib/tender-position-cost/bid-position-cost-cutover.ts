@@ -21,6 +21,7 @@ import {
   type TenderBidProposal,
 } from "@/lib/tenders-bid-calculator";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
+import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 import {
   computeShadowPositionCostsForOfferBoq,
   type ShadowBoqPositionCostResult,
@@ -73,6 +74,11 @@ export type PositionCostCutoverOpts = {
   ensureOwnerQuestions?: boolean;
   /** IK S4-B — optional BOQ dependency graph from Document Expert. */
   boqDependencyGraph?: BoqDependencyGraph | null;
+  /** APF Labor Expert — ephemeral basis per lineId (read-only, no persistence). */
+  ephemeralCostBasisByLineId?:
+    | ReadonlyMap<string, EphemeralResearchBasis>
+    | Readonly<Record<string, EphemeralResearchBasis>>
+    | null;
 };
 
 export type LegacyVsPositionCostBidCompare = {
@@ -310,6 +316,7 @@ export function computePositionCostShadowAndGate(
     tenderId,
     dwellingId: opts.dwellingId,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
+    ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
   });
   return { shadow, gate: evaluateBidCutoverGate(shadow) };
 }

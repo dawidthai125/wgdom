@@ -57,6 +57,11 @@ import type {
   PositionLaborInput,
   PositionMaterialInput,
 } from "@/lib/tender-position-cost/types";
+import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
+import {
+  buildPositionCostInputFromEphemeralBasis,
+  validateEphemeralResearchBasis,
+} from "@/lib/tender-position-cost/position-cost-basis";
 import type { EquipmentComponentResult } from "@/lib/tender-position-cost/equipment-contract";
 import type { TransportComponentResult } from "@/lib/tender-position-cost/transport-contract";
 import { ensureOwnerRateQuestionForGap } from "@/lib/owner-rate-input";
@@ -177,6 +182,13 @@ export type ShadowPositionCostLineResult = {
   transport: TransportComponentResult | null;
   /** IK provisional seam — pricing trust attestation (flag ON only). */
   provisionalAttestation: ProvisionalLineAttestation | null;
+  /**
+   * Slice 1 — costing basis that fed the engine.
+   * EPHEMERAL_RESEARCH = cost without CatalogWork (no fake catalogWorkId).
+   */
+  costBasisKind?: "CATALOG_BOUND" | "EPHEMERAL_RESEARCH" | null;
+  /** Slice 1 — ephemeral candidateId when costBasisKind === EPHEMERAL_RESEARCH. */
+  ephemeralCandidateId?: string | null;
 };
 
 export type ShadowBoqPositionCostResult = {
@@ -441,6 +453,13 @@ export type ComputeShadowPositionCostForLineInput = {
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
   /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
   materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /**
+   * Slice 1 — optional upstream EphemeralResearchBasis.
+   * When catalogWorkId is absent (NO_IDENTITY) and basis validates,
+   * shadow costing continues via existing Position Cost engine.
+   * NEVER invents CatalogWork · NEVER HTTP · fixture/test candidate only.
+   */
+  ephemeralCostBasis?: EphemeralResearchBasis | null;
 };
 
 /** S5-A — Owner Input quantity must use existing S4-B resolver (no alternate SSOT). */
@@ -467,6 +486,78 @@ function resolveOwnerInputQuantityViaS4B(
         : null;
   return { kind: "ok", quantity };
 }
+
+
+/**
+ * Slice 1 — consume upstream EphemeralResearchBasis without CatalogWork.
+ * Reuses quantity resolver + computePositionCost. ZERO HTTP / CREATE / Accept.
+ */
+function tryComputeShadowLineFromEphemeralBasis(args: {
+  input: ComputeShadowPositionCostForLineInput;
+  line: OfferBoqLine;
+  identity: ShadowWorkIdentityResolve;
+  gaps: ShadowGapCode[];
+  base: ShadowPositionCostLineResult;
+  ephemeral: EphemeralResearchBasis;
+}): ShadowPositionCostLineResult | null {
+  const { input, line, identity, gaps, base, ephemeral } = args;
+  const validation = validateEphemeralResearchBasis(ephemeral);
+  if (!validation.ok) return null;
+
+  const qtyResolution = resolveBoqPricingQuantity({
+    line,
+    lineIndex: input.lineIndex ?? 0,
+    dependencyGraph: input.boqDependencyGraph ?? null,
+  });
+  if (qtyResolution.status === "HOLD") {
+    pushGap(gaps, "BOQ_QUANTITY_HOLD");
+    base.gaps = gaps;
+    base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+    return base;
+  }
+
+  const pricingQuantity =
+    qtyResolution.pricingQuantity != null &&
+    Number.isFinite(qtyResolution.pricingQuantity)
+      ? qtyResolution.pricingQuantity
+      : line.quantity;
+
+  if (!Number.isFinite(pricingQuantity) || pricingQuantity < 0) {
+    pushGap(gaps, "NIEPRAWIDLOWA_ILOSC");
+    base.gaps = gaps;
+    base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+    return base;
+  }
+
+  const unitFromIdentity =
+    identity.unit != null ? String(identity.unit).trim() : "";
+  const unitFromBasis = String(validation.basis.unit ?? "").trim();
+  const unitFromLine = String(line.unit ?? "").trim();
+  const unit = unitFromIdentity || unitFromBasis || unitFromLine;
+  if (!unit) return null;
+
+  const engineInput = buildPositionCostInputFromEphemeralBasis({
+    basis: validation.basis,
+    quantity: pricingQuantity,
+    unit,
+  });
+  if (!engineInput) return null;
+
+  // Identity stays NO_IDENTITY / workId=null — ephemeral is not CatalogWork.
+  base.quantity = pricingQuantity;
+  base.engineInput = engineInput;
+  base.position = computePositionCost(engineInput);
+  base.positionComplete = base.position.positionComplete;
+  base.gaps = gaps;
+  base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+  base.costBasisKind = "EPHEMERAL_RESEARCH";
+  base.ephemeralCandidateId = validation.basis.candidateId;
+  base.bom = null;
+  base.ourRate = null;
+  base.materialsResolved = [];
+  return base;
+}
+
 
 /**
  * Jedna linia OfferBoq → shadow Position Cost (bez zapisu do linii).
@@ -685,6 +776,23 @@ export function computeShadowPositionCostForOfferBoqLine(
   }
 
   if (identity.status !== "OK" || !identity.workId || !identity.unit) {
+    // Slice 1 + APF orchestrator: explicit EphemeralResearchBasis → existing engine.
+    // NO_IDENTITY (prob) or INVALID_UNIT (pomiar) — never promotes to CatalogWork / OUR RATE.
+    if (
+      input.ephemeralCostBasis
+      && identity.workId == null
+      && (identity.status === "NO_IDENTITY" || identity.status === "INVALID_UNIT")
+    ) {
+      const ephemeralResult = tryComputeShadowLineFromEphemeralBasis({
+        input,
+        line,
+        identity,
+        gaps,
+        base,
+        ephemeral: input.ephemeralCostBasis,
+      });
+      if (ephemeralResult) return ephemeralResult;
+    }
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
     return base;
   }
@@ -864,6 +972,8 @@ export function computeShadowPositionCostForOfferBoqLine(
   base.positionComplete = position.positionComplete;
   base.gaps = gaps;
   base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+  base.costBasisKind = "CATALOG_BOUND";
+  base.ephemeralCandidateId = null;
   if (provisionalLabor?.attestation) {
     base.provisionalAttestation = provisionalLabor.attestation;
   } else if (provisionalMat?.attestation) {
@@ -887,7 +997,32 @@ export type ComputeShadowBoqPositionCostsInput = {
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
   /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
   materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /**
+   * APF orchestrator — per-line EphemeralResearchBasis from Labor Expert (APF_EPHEMERAL_CANDIDATE).
+   * Read-only upstream evidence — never CatalogWork / OUR RATE / KV.
+   */
+  ephemeralCostBasisByLineId?:
+    | ReadonlyMap<string, EphemeralResearchBasis>
+    | Readonly<Record<string, EphemeralResearchBasis>>
+    | null;
 };
+
+function resolveEphemeralCostBasisForLine(
+  byLineId:
+    | ReadonlyMap<string, EphemeralResearchBasis>
+    | Readonly<Record<string, EphemeralResearchBasis>>
+    | null
+    | undefined,
+  lineId: string,
+): EphemeralResearchBasis | null {
+  if (!byLineId) return null;
+  const key = String(lineId ?? "").trim();
+  if (!key) return null;
+  if (byLineId instanceof Map) {
+    return byLineId.get(key) ?? null;
+  }
+  return byLineId[key] ?? null;
+}
 
 /**
  * Cały OfferBoq → shadow aggregates. NIE mutuje dokumentu. NIE woła Bid.
@@ -910,6 +1045,10 @@ export function computeShadowPositionCostsForOfferBoq(
       tenderId: input.tenderId,
       dwellingId: input.dwellingId,
       ensureOwnerQuestions: input.ensureOwnerQuestions,
+      ephemeralCostBasis: resolveEphemeralCostBasisForLine(
+        input.ephemeralCostBasisByLineId ?? null,
+        line.lineId,
+      ),
     }),
   );
 
