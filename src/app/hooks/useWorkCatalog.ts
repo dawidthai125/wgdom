@@ -329,7 +329,8 @@ export function useWorkCatalog(): UseWorkCatalogResult {
   const updateOurWorkRate = useCallback(
     async (input: UpdateOurWorkRateInput): Promise<UpdateCompanyPriceResult> => {
       const updatedAtIso = new Date().toISOString();
-      const patched = patchOurWorkRateInStore(store, {
+      const base = loadWorkCatalogStoreLocal();
+      const patched = patchOurWorkRateInStore(base, {
         workId: input.workId,
         unit: input.unit,
         ourRatePln: input.ourRatePln,
@@ -349,28 +350,34 @@ export function useWorkCatalog(): UseWorkCatalogResult {
                 : "Nie udało się zapisać stawki";
         return { ok: false, message: msg };
       }
-      setStore(patched.store);
       try {
         const result = await saveWorkCatalogRouted(patched.store, {
           updatedAtIso,
-          previousStore: store,
+          previousStore: base,
         });
-        if (!result.ok || !result.saved) {
+        if (!result.ok) {
           return {
             ok: false,
-            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+            message: "Synchronizacja chmury nie powiodła się — spróbuj ponownie",
           };
         }
+        if (!result.saved) {
+          return {
+            ok: false,
+            message: "Zapis zablokowany przez tryb katalogu",
+          };
+        }
+        setStore(loadWorkCatalogStoreLocal());
         notifyPricingCatalogChanged();
         return { ok: true };
       } catch {
         return {
           ok: false,
-          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          message: "Synchronizacja chmury nie powiodła się — spróbuj ponownie",
         };
       }
     },
-    [store, notifyPricingCatalogChanged],
+    [notifyPricingCatalogChanged],
   );
 
   const researchOurWorkRate = useCallback(
@@ -391,8 +398,9 @@ export function useWorkCatalog(): UseWorkCatalogResult {
   const acceptOurWorkRateResearch = useCallback(
     async (candidate: WorkRateResearchCandidate): Promise<UpdateCompanyPriceResult> => {
       const updatedAtIso = new Date().toISOString();
+      const base = loadWorkCatalogStoreLocal();
       const accepted = acceptWorkRateResearchCandidate({
-        store,
+        store: base,
         candidate,
         observedAt: updatedAtIso,
         updatedAt: updatedAtIso,
@@ -408,28 +416,31 @@ export function useWorkCatalog(): UseWorkCatalogResult {
                 : "Nie udało się zapisać stawki z research",
         };
       }
-      setStore(accepted.store);
       try {
         const result = await saveWorkCatalogRouted(accepted.store, {
           updatedAtIso,
-          previousStore: store,
+          previousStore: base,
         });
-        if (!result.ok || !result.saved) {
+        if (!result.ok) {
           return {
             ok: false,
-            message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+            message: "Synchronizacja chmury nie powiodła się — spróbuj ponownie",
           };
         }
+        if (!result.saved) {
+          return { ok: false, message: "Zapis zablokowany przez tryb katalogu" };
+        }
+        setStore(loadWorkCatalogStoreLocal());
         notifyPricingCatalogChanged();
         return { ok: true };
       } catch {
         return {
           ok: false,
-          message: "Zapis lokalny OK — synchronizacja chmury nie powiodła się",
+          message: "Synchronizacja chmury nie powiodła się — spróbuj ponownie",
         };
       }
     },
-    [store, notifyPricingCatalogChanged],
+    [notifyPricingCatalogChanged],
   );
 
   return {
