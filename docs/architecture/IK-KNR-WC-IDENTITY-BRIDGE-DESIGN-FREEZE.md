@@ -383,17 +383,23 @@ Acquisition may carry official name, unit, scope, norms — **never** authoritat
 
 ---
 
-## 13. Unit policy (FROZEN)
+## 13. Unit policy (OD-01 CLOSED — Variant A)
 
 | Rule | Detail |
 |------|--------|
+| **OD-01** | **CLOSED** · **Variant A accepted** · `prob` = first-class `WgdomCostUnit` |
 | Preserve `unitRaw` | Always from BOQ/KNR evidence |
-| No silent normalize | Especially **not** `prob` → `szt` |
-| `WgdomCostUnit` | `m2\|mb\|szt\|rbh\|m3\|kpl\|kg\|l` — **no `prob`** CURRENT |
-| MOPS `prob` keys | `KNNR\|5\|1305-01` · `KNNR\|5\|1305-02` → recommendation **`HOLD_UNIT`** until Owner unit policy OD |
-| Slice D | Existing `unitsCompatible` — mapping blocked until unit policy + WC unit agree |
+| No silent normalize | **Not** `prob` → `szt` (global fallback removed in M2) |
+| `WgdomCostUnit` | `m2\|mb\|szt\|rbh\|m3\|kpl\|kg\|l\|**prob**` |
+| MOPS `prob` keys | `KNNR\|5\|1305-01` · `KNNR\|5\|1305-02` → `unitStatus` **OK** · `proposedUnit` **prob** (platform HOLD lifted M2) |
+| Slice D | Existing `unitsCompatible` — mapping blocked until WC unit agree |
+| **M3 CREATE** | Still requires **separate Owner GO** — M2 does not execute CREATE |
+| **OUR RATE** | **DEFERRED** — no M2 mutation |
+| **OWNER_KNR_MAPPINGS** | **none** — no M2 mutation |
+| **MOPS rebinding** | **STOP** — no M2 mutation |
+| **Catalog KV** | **no M2 mutation** |
 
-**DESIGN QUESTION (Owner, not implementer):** Is `prob`/`prób.` a new unit, alias of `szt`, or `kpl`? Bridge holds until answered.
+**Owner decision (2026-08):** `prob`/`prób.` is a **distinct unit**, not alias of `szt` or `kpl`.
 
 ---
 
@@ -690,7 +696,7 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 
 **UI must separate:** „Sugestia systemu” (`recommendation`, `verificationState`, …) vs „Decyzja Ownera” (`ownerDecision` staging).
 
-**HOLD_UNIT:** `1305-01` / `1305-02` — CREATE blocked in UI · `prob→szt` forbidden.
+**HOLD_UNIT:** generic unsupported units only — `1305-01`/`1305-02` + `prob` resolved by OD-01 (M2).
 
 **localStorage proposal cache ≠ authority** — `ownerDecision` always `unset` on rehydrate (unchanged P2.1/P2.2).
 
@@ -766,7 +772,8 @@ Rollback: set OFF → no proposals · no new assists · existing Accepted WC / m
 | GO **P3 CACHE HARNESS FIX** | **CLOSED / PRODUCTION VERIFIED** · commit **`63cb1345`** · **test-only** · harness artifact only |
 | GO HTTP allowlist / scraping | **NOT GRANTED** |
 | GO WC CREATE / A1 / mapping / pricing (batch) | **NOT GRANTED** (P3 CREATE only · no A1/map/pricing) |
-| GO MOPS Accept batch | **NOT GRANTED** |
+| GO **C2 MOPS M3+M5 production re-promotion** (1305-01/02 prob · OUR RATE 60/20) | **CLOSED** · **`C2_REPROMOTION_PASS`** · 2026-08-27 · baseline **41/41 rev2** → final **43/43 rev5** · 3× CAS write · SSOT §30 |
+| GO MOPS Accept batch (legacy row) | **SUPERSEDED** by C2 re-promotion closeout §30 — **nie** ponawiać bez Owner GO |
 
 ```text
 DESIGN FREEZE = APPROVED
@@ -788,7 +795,57 @@ A1 WRITE      = 0
 OWNER_KNR_MAPPINGS WRITE = 0
 ```
 
-Next required Owner decision: **NONE for P3/P3.1 closeout** · residual IK-KNR-WC backlog per DF §30+ only on explicit Owner GO.
+Next required Owner decision: **NONE for P3/P3.1 / C2 MOPS production closeout** · residual IK-KNR-WC backlog per DF §31+ only on explicit Owner GO.
+
+---
+
+## 30. C2 MOPS KNNR 1305 — production closeout (2026-08-27)
+
+**FINAL VERDICT:** `C2_PRODUCTION_CLOSEOUT_PASS`
+
+### Scope
+
+| Element | Wartość |
+|---------|---------|
+| Tender | MOPS **2026/BZP 00391783** (`08def932-550d-d6f5-962b-1200014aa6e7`) |
+| OD-01 | `prob` first-class unit |
+| M3 | Owner CREATE ×2 via `ensureC2KnrWcProbOwnerCatalogWorks` → `saveWorkCatalogRouted` |
+| M5 | OUR RATE Owner seed via `applyC2KnrWcProbOurRateOwnerSeed` |
+| Write path | `saveWorkCatalogRouted` → `pushWorkCatalogStoreToCloudSafe(mode: intent)` · **CAS** · P0/P0.1 shrink guards |
+
+### WorkIds (additive)
+
+| workId | unit | margin | OUR RATE | regions |
+|--------|------|--------|----------|---------|
+| `knnr-wc-knnr-5-1305-01-prob` | prob | 0% | 60 PLN OWNER | wroclaw + dolnyslask |
+| `knnr-wc-knnr-5-1305-02-prob` | prob | 0% | 20 PLN OWNER | wroclaw + dolnyslask |
+
+### Production gate chain (prerequisite)
+
+| Gate | Verdict |
+|------|---------|
+| P0 `756e2cb9` — catalog write hardening | **DEPLOYED** |
+| P0.1 `4c782b67` — per-region shrink guard | **DEPLOYED** · UI **2.66.116** / **`4c782b6`** |
+| P0.1 runtime enforcement | **`C2_P0.1_RUNTIME_ENFORCEMENT_PASS`** · HTTP 409 `catalog_shrink_rejected` · test mutation **0** |
+| C2 dry-run | **PASS** |
+| C2 execute + independent post-verify | **`C2_REPROMOTION_PASS`** |
+
+### KV timeline
+
+| Faza | Counts | `catalogRevision` | Uwagi |
+|------|--------|-------------------|-------|
+| Baseline pre-promotion | 41/41 | **2** | C2 absent · OUR RATE 60/20 absent |
+| Po promocji | **43/43** | **5** | +3 CAS writes (2× M3 CREATE + 1× M5 OUR RATE) |
+| Safety | `missingAuthoritativeIds = []` | — | `cc-p0c-w1-stop-ptakow` preserved · mirror parity **PASS** |
+
+### Incident history (work catalog — cross-ref only)
+
+Podczas starego P0 controlled Test 3 na pre-P0.1 Edge: niezamierzony regionalny shrink (41/41 → 40/41, rev 0→1). Później katalog **41/41 rev2** przed re-promocją. Przejście rev1→2: **drugi udany CAS catalog write** na P0 Edge — **exact actor/requestId UNKNOWN**. P0.1 zamyka lukę per-region shrink. **Nie** ponawiać recovery.
+
+### REMAINING
+
+- **C2 production promotion = CLOSED** — brak autoryzacji na kolejny `--execute` / batch-set catalog
+- M9 MOPS rebind (6 linii) · live pipeline verification = **osobny Owner GO** — **nie** w scope tego closeoutu
 
 ---
 

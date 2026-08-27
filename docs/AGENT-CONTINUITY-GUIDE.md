@@ -7,6 +7,74 @@
 > **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
 
+## C2 MOPS KNNR 1305 + Work Catalog P0/P0.1 — production closeout (2026-08-27)
+
+**FINAL VERDICT:** `C2_PRODUCTION_CLOSEOUT_PASS`
+
+| Pole | Wartość |
+|------|---------|
+| **UI / FE tip** | **2.66.116** · commit **`4c782b6`** (`4c782b677805a43752428636c83ad3e4852a04dd`) |
+| **Edge tip** | **`4c782b67`** · funkcja `make-server-0afb8820` · GH deploy **#33043690802** SUCCESS |
+| **SSOT techniczny C2** | [`architecture/IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md`](architecture/IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md) §29–§30 |
+| **Promotion script (historyczny)** | `.tmp/c2-prod-kv-promotion-execute.mjs` · dry-run + `--execute` (sesja 2026-08-27) |
+| **KV SSOT** | `kw-wgdom-work-catalog` · `kw-wgdom-work-catalog-meta` |
+
+### Work Catalog P0 (`756e2cb9`)
+
+- **Subject:** `fix(ik): harden work catalog cloud writes`
+- CAS meta (`kw-wgdom-work-catalog-meta`) · global shrink guard · safe writer boundary · Edge enforcement
+- **Deployed** Edge + frontend (pre-P0.1)
+
+### Work Catalog P0.1 (`4c782b67`)
+
+- **Subject:** `fix(ik): P0.1 per-region work catalog shrink guard` · parent `756e2cb9`
+- Per-region authoritative shrink guard (Edge + client)
+- **Runtime enforcement:** `C2_P0.1_RUNTIME_ENFORCEMENT_PASS` — controlled negative POST → **HTTP 409** `catalog_shrink_rejected` · **zero** KV mutation w teście
+
+### Incident history (P0 Test 3 — dokumentacja)
+
+| Faza | Stan |
+|------|------|
+| Niezamierzony write (stary P0 Edge) | `wroclaw` 41→40 · `dolnyslask` 41 · `cc-p0c-w1-stop-ptakow` usunięty tylko z `wroclaw` · `catalogRevision` 0→1 |
+| Przed P0.1 deploy | Katalog wrócił do **41/41** · **rev 2** (drugi udany CAS write na P0 Edge — mechanizm ustalony; **exact actor/requestId: UNKNOWN**) |
+| P0.1 fix | Per-region shrink guard — luka zamknięta |
+
+**Nie** traktować hipotezy union/intent sync jako potwierdzonego faktu aktora.
+
+### C2 controlled re-promotion (`C2_REPROMOTION_PASS`)
+
+| | Before | After |
+|---|--------|-------|
+| Regional counts | **41/41** | **43/43** |
+| `catalogRevision` | **2** | **5** (+3 CAS writes) |
+| C2 workIds | ABSENT | **PRESENT** oba regiony |
+| OUR RATE 60/20 | ABSENT | **PRESENT** OWNER · lookup CURRENT |
+
+**Promoted workIds (additive only):**
+
+- `knnr-wc-knnr-5-1305-01-prob` — unit `prob` · margin 0% · OUR RATE **60 PLN**
+- `knnr-wc-knnr-5-1305-02-prob` — unit `prob` · margin 0% · OUR RATE **20 PLN**
+
+**3 autoryzowane CAS catalog writes:** rev 2→3 (M3 CREATE 01) · 3→4 (M3 CREATE 02) · 4→5 (M5 OUR RATE). Brak shrink/409. `missingAuthoritativeIds = []`. `cc-p0c-w1-stop-ptakow` **PRESENT** w obu regionach. `mirrorParity = true`. Independent post-verify **PASS**.
+
+### Final production KV state (read-only potwierdzone 2026-08-27)
+
+| Pole | Wartość |
+|------|---------|
+| `wroclaw` / `dolnyslask` | **43** / **43** |
+| `catalogRevision` | **5** |
+| C2 1305 | **PRESENT** |
+| OUR RATE 60/20 | **PRESENT** |
+| `cc-p0c-w1-stop-ptakow` | **PRESENT** (obie regiony) |
+
+### REMAINING / zakazy
+
+- **C2 re-promotion = CLOSED** — **nie** wykonywać kolejnej promocji / recovery / `--execute` bez **nowego Owner GO**
+- **Nie** powtarzać P0/P0.1 runtime enforcement testów bez osobnego briefu
+- Ewentualne M9 rebind / live MOPS pipeline = **osobny gate**
+
+> **★ Domknięcie (2026-08-27):** **C2_PRODUCTION_CLOSEOUT_PASS** · P0 **`756e2cb9`** · P0.1 **`4c782b67`** · runtime enforcement PASS · C2 re-promotion PASS · prod KV **43/43 rev5** · SSOT DF §30 · **NIE** auto recovery · **NIE** kolejny catalog write bez Owner GO.
+
 ## IK-KNR KL-6 + Phase 2D — cold-start (2026-08-25)
 
 | Pole | Wartość |
@@ -1135,4 +1203,4 @@ Szczegóły: `docs/WORKFLOW-RELEASE-DEPLOY.md` · `AGENTS.md`
 
 ---
 
-*Ostatnia aktualizacja: 2026-08-09 (**EXPERT-AI-P0-DUAL-ENABLEMENT CLOSED**) · tip UI **2.66.22** / **`1902daa7`** · M=ACCESS · D=RUNTIME · **PRODUCTION VERIFIED** · **STABILIZATION WINDOW ACTIVE** · **WAITING FOR NEXT OWNER GO** · ACTIVE EPIC = **NONE** · TM-01 EPIC CLOSED · NEXT residual C1–C6 / new epic · cold-start [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) · tip SSOT [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md)*
+*Ostatnia aktualizacja: 2026-08-27 (**C2_PRODUCTION_CLOSEOUT_PASS** · P0 **`756e2cb9`** · P0.1 **`4c782b67`** · C2 re-promotion **`C2_REPROMOTION_PASS`** · prod KV **43/43 rev5**) · tip UI **2.66.116** / **`4c782b6`** · SSOT DF [`architecture/IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md`](architecture/IK-KNR-WC-IDENTITY-BRIDGE-DESIGN-FREEZE.md) §30 · **STABILIZATION WINDOW ACTIVE** · **WAITING FOR NEXT OWNER GO** · **NIE** auto recovery / kolejny catalog write · cold-start [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) · tip SSOT [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md)*
