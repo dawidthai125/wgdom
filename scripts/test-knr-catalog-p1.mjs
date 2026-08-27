@@ -322,8 +322,17 @@ ok("T13 UI shows STALE verification", uiStale[0]?.verificationStatus === "STALE"
 // --- T14 source rendering ---
 ok("T14 panel shows sourceType/sourceIdentifier", panel.includes("sourceType") && panel.includes("sourceIdentifier"));
 
-// --- T15 Owner Map unchanged ---
-ok("T15 owner map length 1", OWNER_KNR_MAPPINGS.length === 1);
+// --- T15 Owner Map baseline (C2: wykwity + KNNR 1305-01/02 prob) ---
+const OWNER_KNR_BASELINE_WORK_IDS = [
+  "cc-w2-wykwity-zacieki",
+  "knnr-wc-knnr-5-1305-01-prob",
+  "knnr-wc-knnr-5-1305-02-prob",
+];
+ok("T15 owner map length 3", OWNER_KNR_MAPPINGS.length === 3);
+ok(
+  "T15 baseline workIds",
+  OWNER_KNR_MAPPINGS.map((row) => row.workId).join("|") === OWNER_KNR_BASELINE_WORK_IDS.join("|"),
+);
 ok(
   "T15 owner map frozen key",
   OWNER_KNR_MAPPINGS[0]?.normalizedKey === "KNR-W|4-01|1202-07",

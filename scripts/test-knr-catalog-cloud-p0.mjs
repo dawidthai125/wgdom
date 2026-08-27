@@ -229,10 +229,19 @@ ok(
   );
 }
 
-// P0-11 / P0-12 / P0-13 Owner map / rates untouched in this change set (static)
-ok("P0-13 Owner map length 1", OWNER_KNR_MAPPINGS.length === 1);
+// P0-11 / P0-12 / P0-13 Owner map baseline (C2: wykwity + KNNR 1305-01/02 prob)
+const OWNER_KNR_BASELINE_WORK_IDS = [
+  "cc-w2-wykwity-zacieki",
+  "knnr-wc-knnr-5-1305-01-prob",
+  "knnr-wc-knnr-5-1305-02-prob",
+];
+ok("P0-13 Owner map length 3", OWNER_KNR_MAPPINGS.length === 3);
 ok(
-  "P0-13 workId frozen",
+  "P0-13 baseline workIds",
+  OWNER_KNR_MAPPINGS.map((row) => row.workId).join("|") === OWNER_KNR_BASELINE_WORK_IDS.join("|"),
+);
+ok(
+  "P0-13 workId frozen wykwity",
   OWNER_KNR_MAPPINGS[0]?.workId === "cc-w2-wykwity-zacieki",
 );
 
