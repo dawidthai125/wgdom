@@ -295,6 +295,38 @@ function findRemovedAuthoritativeCatalogWorkIds(prev: unknown, next: unknown): s
   return [...prevSet].filter((id) => !nextSet.has(id));
 }
 
+const WORK_CATALOG_REGIONS_EDGE = ["wroclaw", "dolnyslask"] as const;
+
+function listAuthoritativeCatalogWorkIdsForRegion(store: unknown, region: string): Set<string> {
+  const ids = new Set<string>();
+  if (!store || typeof store !== "object") return ids;
+  const catalogs = (store as { catalogs?: Record<string, { works?: unknown[] }> }).catalogs;
+  const works = catalogs?.[region]?.works;
+  if (!Array.isArray(works)) return ids;
+  for (const w of works) {
+    if (w && typeof w === "object" && typeof (w as { id?: string }).id === "string") {
+      const id = (w as { id: string }).id;
+      if (isAuthoritativeCatalogWorkId(id)) ids.add(id);
+    }
+  }
+  return ids;
+}
+
+function findPerRegionRemovedAuthoritativeCatalogWorkIds(
+  prev: unknown,
+  next: unknown,
+): { region: string; removedWorkIds: string[] } | null {
+  for (const region of WORK_CATALOG_REGIONS_EDGE) {
+    const prevSet = listAuthoritativeCatalogWorkIdsForRegion(prev, region);
+    const nextSet = listAuthoritativeCatalogWorkIdsForRegion(next, region);
+    const removed = [...prevSet].filter((id) => !nextSet.has(id));
+    if (removed.length > 0) {
+      return { region, removedWorkIds: removed };
+    }
+  }
+  return null;
+}
+
 function normalizeWorkCatalogMetaEdge(raw: unknown): {
   catalogRevision: number;
   updatedAt: number;
@@ -917,6 +949,27 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
           prev,
           "catalog shrink rejected — authoritative workIds removed without tombstone SSOT",
           { removedWorkIds: removed, fingerprintBefore: fpBefore, fingerprintAfter: fpAfter },
+        );
+      }
+      const perRegionRemoved =
+        prev != null ? findPerRegionRemovedAuthoritativeCatalogWorkIds(prev, nextNorm) : null;
+      if (perRegionRemoved != null) {
+        console.log(
+          `[batch-set] requestId=${requestId} WORK_CATALOG_REJECT per_region_shrink region=${perRegionRemoved.region} removed=${perRegionRemoved.removedWorkIds.length} clientAppVersion=${clientAppVersion ?? "n/a"} workCountBefore=${prevCount} workCountAfter=${nextCount}`,
+        );
+        return catalogRevisionConflictResponse(
+          c,
+          requestId,
+          WORK_CATALOG_SHRINK_REJECTED_CODE,
+          normalizeWorkCatalogMetaEdge(await kv.get(WORK_CATALOG_META_KEY)).catalogRevision,
+          prev,
+          "catalog shrink rejected — per-region authoritative membership reduced without tombstone SSOT",
+          {
+            region: perRegionRemoved.region,
+            removedWorkIds: perRegionRemoved.removedWorkIds,
+            fingerprintBefore: fpBefore,
+            fingerprintAfter: fpAfter,
+          },
         );
       }
       const expCatRev =

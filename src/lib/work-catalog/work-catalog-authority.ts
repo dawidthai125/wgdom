@@ -6,8 +6,12 @@
  */
 
 import type { CatalogWork, WorkCatalogStore } from "@/lib/work-catalog/types";
+import type { WgdomCostRegion } from "@/lib/wgdom-cost-catalog";
 
 export const LEGACY_SYNTHETIC_WORK_ID_PREFIX = "legacy-";
+
+/** SSOT region keys for per-region authoritative membership (P0.1). */
+export const WORK_CATALOG_REGIONS: readonly WgdomCostRegion[] = ["wroclaw", "dolnyslask"];
 
 export type WorkCatalogPersistBlockReason = "destructive_catalog_replace";
 export type WorkCatalogShrinkBlockReason = "catalog_shrink_rejected";
@@ -26,16 +30,26 @@ export class WorkCatalogDestructivePersistError extends Error {
  * There is currently NO `deletedWorkIds[]` / tombstone mechanism for catalog works;
  * default policy is fail-closed on any authoritative id loss vs cloud baseline.
  */
+export type PerRegionShrinkViolation = {
+  region: WgdomCostRegion;
+  removedWorkIds: string[];
+};
+
 export class WorkCatalogShrinkRejectedError extends Error {
   readonly code: WorkCatalogShrinkBlockReason = "catalog_shrink_rejected";
   readonly removedWorkIds: readonly string[];
+  /** Set when rejection is due to per-region membership loss (P0.1). */
+  readonly region?: WgdomCostRegion;
 
-  constructor(removedWorkIds: string[]) {
+  constructor(removedWorkIds: string[], options?: { region?: WgdomCostRegion }) {
+    const region = options?.region;
+    const regionHint = region ? ` in region ${region}` : "";
     super(
-      `Refusing catalog shrink: ${removedWorkIds.length} authoritative workId(s) removed without tombstone SSOT`,
+      `Refusing catalog shrink${regionHint}: ${removedWorkIds.length} authoritative workId(s) removed without tombstone SSOT`,
     );
     this.name = "WorkCatalogShrinkRejectedError";
     this.removedWorkIds = removedWorkIds;
+    this.region = region;
   }
 }
 
@@ -75,6 +89,35 @@ export function listAuthoritativeWorkIds(store: WorkCatalogStore | null | undefi
   return ids;
 }
 
+/** Authoritative workIds in a single region slice (ignores legacy-*). */
+export function listAuthoritativeWorkIdsForRegion(
+  store: WorkCatalogStore | null | undefined,
+  region: WgdomCostRegion,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const work of store?.catalogs?.[region]?.works ?? []) {
+    if (!isLegacySyntheticWorkId(work.id)) ids.add(work.id);
+  }
+  return ids;
+}
+
+/** Per-region authoritative ids present in baseline but absent in candidate for that region. */
+export function findPerRegionRemovedAuthoritativeWorkIds(
+  baseline: WorkCatalogStore | null | undefined,
+  candidate: WorkCatalogStore | null | undefined,
+): PerRegionShrinkViolation[] {
+  const violations: PerRegionShrinkViolation[] = [];
+  for (const region of WORK_CATALOG_REGIONS) {
+    const baseIds = listAuthoritativeWorkIdsForRegion(baseline, region);
+    const candIds = listAuthoritativeWorkIdsForRegion(candidate, region);
+    const removed = [...baseIds].filter((id) => !candIds.has(id));
+    if (removed.length > 0) {
+      violations.push({ region, removedWorkIds: removed });
+    }
+  }
+  return violations;
+}
+
 export function countCatalogWorks(store: WorkCatalogStore | null | undefined): number {
   return listAllCatalogWorks(store).length;
 }
@@ -90,7 +133,21 @@ export function findRemovedAuthoritativeWorkIds(
 }
 
 /**
- * Fail-closed shrink guard (P0). Preserves empty/legacy-synthetic guards via
+ * P0.1 — per-region authoritative membership must not shrink independently of global union.
+ * Global presence in another region does NOT legalize removal from this region.
+ */
+export function assertWorkCatalogPerRegionShrinkAllowed(
+  baseline: WorkCatalogStore | null | undefined,
+  candidate: WorkCatalogStore | null | undefined,
+): void {
+  const violations = findPerRegionRemovedAuthoritativeWorkIds(baseline, candidate);
+  if (violations.length === 0) return;
+  const first = violations[0]!;
+  throw new WorkCatalogShrinkRejectedError(first.removedWorkIds, { region: first.region });
+}
+
+/**
+ * Fail-closed shrink guard (P0 + P0.1). Preserves empty/legacy-synthetic guards via
  * `isDestructiveWorkCatalogReplace`.
  */
 export function assertWorkCatalogShrinkAllowed(
@@ -104,6 +161,7 @@ export function assertWorkCatalogShrinkAllowed(
   if (removed.length > 0) {
     throw new WorkCatalogShrinkRejectedError(removed);
   }
+  assertWorkCatalogPerRegionShrinkAllowed(baseline, candidate);
 }
 
 /**

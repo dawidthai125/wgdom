@@ -3263,7 +3263,11 @@ export async function pushKeysToCloud(
           const removed = Array.isArray(errJson.removedWorkIds)
             ? errJson.removedWorkIds.filter((id): id is string => typeof id === "string")
             : [];
-          throw new WorkCatalogShrinkRejectedError(removed);
+          const region =
+            errJson.region === "wroclaw" || errJson.region === "dolnyslask"
+              ? errJson.region
+              : undefined;
+          throw new WorkCatalogShrinkRejectedError(removed, { region });
         }
         throw new WorkCatalogStaleRevisionError(
           errCode,

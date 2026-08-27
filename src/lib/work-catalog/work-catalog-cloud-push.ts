@@ -153,6 +153,7 @@ export async function pushWorkCatalogStoreToCloudSafe(
   let toWrite: WorkCatalogStore;
   if (mode === "union" && cloudStore) {
     toWrite = unionMergeWorkCatalogStore(cloudStore, normalizedCandidate);
+    assertWorkCatalogShrinkAllowed(cloudStore, toWrite);
   } else if (cloudStore) {
     assertWorkCatalogShrinkAllowed(cloudStore, normalizedCandidate);
     toWrite = normalizedCandidate;
@@ -211,13 +212,13 @@ export async function pushWorkCatalogStoreToCloudSafe(
     const { conflict } = result;
     const serverCatalog = conflict.serverCatalog;
     if (serverCatalog) {
-      toWrite =
-        mode === "union"
-          ? unionMergeWorkCatalogStore(serverCatalog, normalizedCandidate)
-          : (() => {
-              assertWorkCatalogShrinkAllowed(serverCatalog, normalizedCandidate);
-              return normalizedCandidate;
-            })();
+      if (mode === "union") {
+        toWrite = unionMergeWorkCatalogStore(serverCatalog, normalizedCandidate);
+        assertWorkCatalogShrinkAllowed(serverCatalog, toWrite);
+      } else {
+        assertWorkCatalogShrinkAllowed(serverCatalog, normalizedCandidate);
+        toWrite = normalizedCandidate;
+      }
       saveWorkCatalogStoreLocal(toWrite, { updatedAtIso: toWrite.updatedAt });
     }
     expectedRevision = conflict.serverRevision;

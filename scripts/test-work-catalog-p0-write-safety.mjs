@@ -17,6 +17,7 @@ import { getWorkByIdFromStore } from "../src/lib/work-catalog/catalog-work-utils
 import {
   assertWorkCatalogShrinkAllowed,
   findRemovedAuthoritativeWorkIds,
+  findPerRegionRemovedAuthoritativeWorkIds,
   WorkCatalogShrinkRejectedError,
 } from "../src/lib/work-catalog/work-catalog-authority.ts";
 import { unionMergeWorkCatalogStore } from "../src/lib/work-catalog/work-catalog-merge-safety.ts";
@@ -109,6 +110,45 @@ function buildCloud43Store() {
   return normalizeWorkCatalogStore(store);
 }
 
+function cloneWorks(works) {
+  return JSON.parse(JSON.stringify(works));
+}
+
+/** Mirror wroclaw works into dolnyslask (production-like 41/41 or 43/43). */
+function mirrorRegions(store) {
+  const works = cloneWorks(store.catalogs.wroclaw.works);
+  store.catalogs.dolnyslask.works = cloneWorks(works);
+  store.catalogs.dolnyslask.updatedAt = store.catalogs.wroclaw.updatedAt ?? store.updatedAt;
+  return normalizeWorkCatalogStore(store);
+}
+
+function buildMirrored41Store() {
+  return mirrorRegions(buildBase41Store());
+}
+
+function buildMirrored43Store() {
+  return mirrorRegions(buildCloud43Store());
+}
+
+function countRegionWorks(raw, region) {
+  if (!raw) return 0;
+  return normalizeWorkCatalogStore(raw).catalogs[region].works.length;
+}
+
+function removeWorkFromRegion(store, region, workId) {
+  const next = JSON.parse(JSON.stringify(store));
+  next.catalogs[region].works = next.catalogs[region].works.filter((w) => w.id !== workId);
+  return normalizeWorkCatalogStore(next);
+}
+
+function addWorkToRegion(store, region, work) {
+  const next = JSON.parse(JSON.stringify(store));
+  next.catalogs[region].works = [...next.catalogs[region].works, work];
+  next.updatedAt = NOW;
+  next.catalogs[region].updatedAt = NOW;
+  return normalizeWorkCatalogStore(next);
+}
+
 function countWorks(raw) {
   if (!raw) return 0;
   const s = normalizeWorkCatalogStore(raw);
@@ -166,7 +206,27 @@ globalThis.fetch = async (url, init) => {
             code: "catalog_shrink_rejected",
             removedWorkIds: removed,
             serverRevision: cloudMeta.catalogRevision,
-            requestId: "mock-shrink",
+            requestId: "mock-shrink-global",
+          }),
+          { status: 409 },
+        );
+      }
+      const perRegion = cloudCatalog
+        ? findPerRegionRemovedAuthoritativeWorkIds(
+            normalizeWorkCatalogStore(cloudCatalog),
+            normalizeWorkCatalogStore(incoming),
+          )
+        : [];
+      if (perRegion.length > 0) {
+        const first = perRegion[0];
+        return new Response(
+          JSON.stringify({
+            ok: false,
+            code: "catalog_shrink_rejected",
+            region: first.region,
+            removedWorkIds: first.removedWorkIds,
+            serverRevision: cloudMeta.catalogRevision,
+            requestId: "mock-shrink-per-region",
           }),
           { status: 409 },
         );
@@ -400,6 +460,226 @@ function assert(name, cond, extra = "") {
   assert("T13 1305 prob unit", p1?.unit === "prob");
   const miss = lookupWorkRate(store, C2_KNR_WC_1305_01_WORK_ID, "szt", Date.now());
   assert("T14 1305 szt lookup missing", miss.status === "MISSING");
+}
+
+const INCIDENT_WORK_ID = "cc-p0c-w1-stop-ptakow";
+
+// --- P0.1 per-region shrink (T15–T26) ---
+
+{
+  const base = buildMirrored41Store();
+  const victim = base.catalogs.wroclaw.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const candidate = removeWorkFromRegion(base, "wroclaw", victim);
+  let threw = false;
+  let region = null;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch (e) {
+    threw = e instanceof WorkCatalogShrinkRejectedError;
+    region = e.region;
+    assert("T15 removed id listed", e.removedWorkIds.includes(victim), String(e.removedWorkIds));
+  }
+  assert("T15 41/41→40/41 wroclaw-only shrink rejected", threw && region === "wroclaw");
+}
+
+{
+  const base = buildMirrored41Store();
+  const victim = base.catalogs.dolnyslask.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const candidate = removeWorkFromRegion(base, "dolnyslask", victim);
+  let threw = false;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch (e) {
+    threw = e instanceof WorkCatalogShrinkRejectedError && e.region === "dolnyslask";
+  }
+  assert("T16 41/41→41/40 dolnyslask-only shrink rejected", threw);
+}
+
+{
+  const base = buildMirrored43Store();
+  const victim = base.catalogs.wroclaw.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const candidate = removeWorkFromRegion(base, "wroclaw", victim);
+  let threw = false;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch (e) {
+    threw = e instanceof WorkCatalogShrinkRejectedError;
+  }
+  assert("T17 43/43→42/43 rejected", threw);
+}
+
+{
+  const base = buildMirrored43Store();
+  const victim = base.catalogs.dolnyslask.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const candidate = removeWorkFromRegion(base, "dolnyslask", victim);
+  let threw = false;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch (e) {
+    threw = e instanceof WorkCatalogShrinkRejectedError && e.region === "dolnyslask";
+  }
+  assert("T18 43/43→43/42 rejected", threw);
+}
+
+{
+  resetKv(buildMirrored43Store(), 4);
+  const next = buildMirrored43Store();
+  const w = getWorkByIdFromStore(next, C2_KNR_WC_1305_02_WORK_ID, next.activeRegion);
+  if (w?.ourWorkRate) w.ourWorkRate.ourRatePln = 21;
+  next.updatedAt = "2026-08-27T12:00:00.000Z";
+  await pushWorkCatalogStoreToCloudSafe(next, { mode: "intent" });
+  const after = normalizeWorkCatalogStore(cloudCatalog);
+  const rw = getWorkByIdFromStore(after, C2_KNR_WC_1305_02_WORK_ID, after.activeRegion);
+  assert("T19 43/43 update allowed", rw?.ourWorkRate?.ourRatePln === 21);
+  assert("T19 mirrored counts", countRegionWorks(cloudCatalog, "wroclaw") === 43 && countRegionWorks(cloudCatalog, "dolnyslask") === 43);
+}
+
+{
+  resetKv(buildMirrored41Store(), 1);
+  const next = addWorkToRegion(buildMirrored41Store(), "wroclaw", makeWork("additive-wroclaw-only", "szt", 55));
+  await pushWorkCatalogStoreToCloudSafe(next, { mode: "intent" });
+  assert("T20 41/41→42/41 additive wroclaw", countRegionWorks(cloudCatalog, "wroclaw") === 42);
+  assert("T20 dolnyslask unchanged 41", countRegionWorks(cloudCatalog, "dolnyslask") === 41);
+}
+
+{
+  resetKv(buildMirrored41Store(), 2);
+  const next = addWorkToRegion(buildMirrored41Store(), "dolnyslask", makeWork("additive-dol-only", "m2"));
+  await pushWorkCatalogStoreToCloudSafe(next, { mode: "intent" });
+  assert("T21 41/41→41/42 additive dolnyslask", countRegionWorks(cloudCatalog, "dolnyslask") === 42);
+  assert("T21 wroclaw unchanged 41", countRegionWorks(cloudCatalog, "wroclaw") === 41);
+}
+
+{
+  resetKv(buildMirrored41Store(), 3);
+  const base = buildMirrored41Store();
+  const candidate = removeWorkFromRegion(base, "wroclaw", LEGACY_ID);
+  let threw = false;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch {
+    threw = true;
+  }
+  assert("T22 legacy-only regional removal allowed", !threw);
+  saveWorkCatalogStoreLocal(candidate);
+  await pushWorkCatalogStoreToCloudSafe(candidate, { mode: "intent" });
+  assert("T22 cloud write succeeded", countRegionWorks(cloudCatalog, "wroclaw") === 40);
+}
+
+{
+  const base = buildMirrored41Store();
+  const victim = "custom-work-0";
+  const candidate = removeWorkFromRegion(base, "wroclaw", victim);
+  const globalRemoved = findRemovedAuthoritativeWorkIds(base, candidate);
+  const perRegion = findPerRegionRemovedAuthoritativeWorkIds(base, candidate);
+  assert("T23 global union unchanged", globalRemoved.length === 0, String(globalRemoved));
+  assert("T23 per-region violation present", perRegion.length === 1 && perRegion[0].region === "wroclaw");
+  let threw = false;
+  try {
+    assertWorkCatalogShrinkAllowed(base, candidate);
+  } catch (e) {
+    threw = e instanceof WorkCatalogShrinkRejectedError;
+  }
+  assert("T23 regional membership reduced rejected", threw);
+}
+
+{
+  resetKv(buildMirrored41Store(), 5);
+  const cloud41 = buildMirrored41Store();
+  const victim = cloud41.catalogs.wroclaw.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const local40 = removeWorkFromRegion(cloud41, "wroclaw", victim);
+  saveWorkCatalogStoreLocal(local40);
+  batchSetBodies.length = 0;
+  await pushWorkCatalogFromLocalUnionIfChanged();
+  assert("T24 union preserves 41/41 wroclaw", countRegionWorks(cloudCatalog, "wroclaw") === 41);
+  assert("T24 union preserves 41/41 dolnyslask", countRegionWorks(cloudCatalog, "dolnyslask") === 41);
+}
+
+{
+  resetKv(buildMirrored41Store(), 6);
+  const base = buildMirrored41Store();
+  const victim = base.catalogs.wroclaw.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const shrinkCandidate = removeWorkFromRegion(base, "wroclaw", victim);
+  const beforeRev = cloudMeta.catalogRevision;
+  let staleThrown = false;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).includes("batch-set") && init?.body) {
+      const parsed = JSON.parse(String(init.body));
+      if (parsed.workCatalogCas === true) {
+        parsed.expectedCatalogRevision = cloudMeta.catalogRevision + 50;
+        init = { ...init, body: JSON.stringify(parsed) };
+      }
+    }
+    return originalFetch(url, init);
+  };
+  try {
+    await pushWorkCatalogStoreToCloudSafe(shrinkCandidate, { mode: "intent" });
+  } catch (e) {
+    staleThrown =
+      e instanceof WorkCatalogStaleRevisionError || e instanceof WorkCatalogShrinkRejectedError;
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert("T25 stale+shrink no successful write", staleThrown);
+  assert("T25 revision unchanged", cloudMeta.catalogRevision === beforeRev);
+  assert("T25 wroclaw still 41", countRegionWorks(cloudCatalog, "wroclaw") === 41);
+}
+
+{
+  resetKv(buildMirrored41Store(), 8);
+  const base = buildMirrored41Store();
+  const victim = base.catalogs.wroclaw.works.find((w) => !w.id.startsWith("legacy-"))?.id;
+  const shrinkCandidate = removeWorkFromRegion(base, "wroclaw", victim);
+  const res = await fetch("https://mock/batch-set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      keys: [WORK_CATALOG_STORAGE_KEY],
+      values: [shrinkCandidate],
+      workCatalogCas: false,
+    }),
+  });
+  const body = await res.json();
+  assert("T26 legacy client regional shrink legacy reject", res.status === 409 && body.code === "catalog_legacy_client_rejected");
+  assert("T26 KV unchanged", countRegionWorks(cloudCatalog, "wroclaw") === 41);
+}
+
+{
+  resetKv(buildMirrored41Store(), 9);
+  const base = buildMirrored41Store();
+  const slot = base.catalogs.wroclaw.works.findIndex((w) => w.id === "custom-work-0");
+  if (slot >= 0) base.catalogs.wroclaw.works[slot].id = INCIDENT_WORK_ID;
+  const mirrored = mirrorRegions(base);
+  cloudCatalog = JSON.parse(JSON.stringify(mirrored));
+  const beforeRev = cloudMeta.catalogRevision;
+  const candidate = removeWorkFromRegion(mirrored, "wroclaw", INCIDENT_WORK_ID);
+  assert(
+    "INCIDENT candidate shape 41/41→40/41",
+    countRegionWorks(candidate, "wroclaw") === 40 && countRegionWorks(candidate, "dolnyslask") === 41,
+  );
+  const res = await fetch("https://mock/batch-set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      keys: [WORK_CATALOG_STORAGE_KEY],
+      values: [candidate],
+      workCatalogCas: true,
+      expectedCatalogRevision: cloudMeta.catalogRevision,
+    }),
+  });
+  const body = await res.json();
+  assert(
+    "INCIDENT 41/41→40/41 wroclaw-only → 409 shrink",
+    res.status === 409 && body.code === "catalog_shrink_rejected" && body.region === "wroclaw",
+    JSON.stringify(body),
+  );
+  assert(
+    "INCIDENT removedWorkIds",
+    Array.isArray(body.removedWorkIds) && body.removedWorkIds.includes(INCIDENT_WORK_ID),
+  );
+  assert("INCIDENT KV unchanged", countRegionWorks(cloudCatalog, "wroclaw") === 41);
+  assert("INCIDENT revision unchanged", cloudMeta.catalogRevision === beforeRev);
 }
 
 console.log(`\nRESULT ${pass} PASS / ${fail} FAIL`);
