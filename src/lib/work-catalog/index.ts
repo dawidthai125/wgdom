@@ -437,6 +437,8 @@ export {
   type PatchOurWorkRateResult,
 } from "@/lib/work-catalog/work-rate-patch";
 
+export { preserveOurWorkRatesFromDonor } from "@/lib/work-catalog/work-rate-preserve";
+
 export {
   isWorkRateFullCatalogueResearchImplemented,
   isWorkRateKbPlAdapterImplemented,
