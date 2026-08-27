@@ -3,11 +3,10 @@
  * NEVER invents marketQuotes / Purchase PLN.
  */
 
-import { pushKeysToCloud } from "@/lib/cloud-sync";
+import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 import {
   loadWorkCatalogStoreLocal,
   saveWorkCatalogStoreLocal,
-  WORK_CATALOG_STORAGE_KEY,
 } from "@/lib/work-catalog/work-catalog-store";
 import { applyEconomyProductHostsToWorkCatalog } from "./apply-economy-product-hosts";
 import { assertEconomyProductHostsMapAligned } from "./economy-product-hosts-seed";
@@ -32,7 +31,7 @@ export function ensureEconomyProductHostsLocal(opts?: {
   }
 
   if (opts?.pushCloud && applied.changed && typeof window !== "undefined") {
-    void pushKeysToCloud([WORK_CATALOG_STORAGE_KEY], [applied.store]).catch(() => {
+    void pushWorkCatalogStoreToCloudSafe(applied.store, { mode: "union" }).catch(() => {
       /* soft — mirror best-effort */
     });
   }

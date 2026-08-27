@@ -14,16 +14,19 @@ globalThis.localStorage = {
 };
 
 let lastBatchSetBody = null;
+const batchSetBodies = [];
 
 globalThis.fetch = async (url, opts) => {
   const u = String(url);
   if (u.includes("/batch-set")) {
-    lastBatchSetBody = JSON.parse(opts.body);
-    return { ok: true, text: async () => "" };
+    const body = JSON.parse(opts.body);
+    batchSetBodies.push(body);
+    lastBatchSetBody = body;
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
   if (u.includes("/batch-get")) {
     const { keys } = JSON.parse(opts.body);
-    return { ok: true, json: async () => ({ values: keys.map(() => null) }) };
+    return new Response(JSON.stringify({ values: keys.map(() => null) }), { status: 200 });
   }
   throw new Error(`unexpected fetch: ${u}`);
 };
@@ -31,6 +34,8 @@ globalThis.fetch = async (url, opts) => {
 const {
   DATA_KEYS,
   RS_PUSH_EXCLUDED_PAYROLL_KEYS,
+  RS_PUSH_EXCLUDED_CATALOG_DATA_KEYS,
+  RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEYS,
   filterRsPushKeysAndValues,
   pushMergedDataBundleToCloud,
   pushWeekEmployeesToCloud,
@@ -58,10 +63,15 @@ function assert(name, cond) {
   assert("filter zachowuje wartości non-payroll", outV[0] === 1 && outV[1] === 5);
 }
 
-for (const excluded of RS_PUSH_EXCLUDED_PAYROLL_KEYS) {
+for (const excluded of RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEYS) {
   const { keys: outK } = filterRsPushKeysAndValues([excluded, "kw-jobs"], [null, []]);
   assert(`filter wyklucza ${excluded}`, outK.length === 1 && outK[0] === "kw-jobs");
 }
+
+assert(
+  "RS_PUSH_EXCLUDED_CATALOG includes work-catalog",
+  RS_PUSH_EXCLUDED_CATALOG_DATA_KEYS.includes("kw-wgdom-work-catalog"),
+);
 
 // ── pushMergedDataBundleToCloud (integration mock) ─────────────────────────
 {
@@ -75,10 +85,18 @@ for (const excluded of RS_PUSH_EXCLUDED_PAYROLL_KEYS) {
   });
 
   lastBatchSetBody = null;
+  batchSetBodies.length = 0;
   await pushMergedDataBundleToCloud(merged);
 
-  assert("batch-set wywołany", lastBatchSetBody !== null);
-  const { keys, replaceWeekEmployeesKeys, replaceJobsKeys, replaceDirectoryKeys } = lastBatchSetBody;
+  assert("batch-set wywołany", batchSetBodies.length > 0);
+  const rsBody = batchSetBodies.find(
+    (body) =>
+      Array.isArray(body.keys)
+      && body.keys.includes("kw-jobs")
+      && body.workCatalogCas !== true,
+  );
+  assert("RS batch-set body captured", rsBody != null);
+  const { keys, replaceWeekEmployeesKeys, replaceJobsKeys, replaceDirectoryKeys } = rsBody;
 
   for (const excluded of RS_PUSH_EXCLUDED_PAYROLL_KEYS) {
     assert(`RS push nie zawiera ${excluded}`, !keys.includes(excluded));
@@ -89,14 +107,20 @@ for (const excluded of RS_PUSH_EXCLUDED_PAYROLL_KEYS) {
   assert("RS push replaceJobsKeys zachowane", (replaceJobsKeys ?? []).includes("kw-jobs"));
   assert("RS push replaceDirectoryKeys zachowane", (replaceDirectoryKeys ?? []).includes("kw-directory"));
   assert("RS push mniejszy niż pełny bundle", keys.length < DATA_KEYS.length + 9);
+  assert(
+    "catalog follow-up uses CAS when present",
+    batchSetBodies.some((body) => body.workCatalogCas === true) || batchSetBodies.length === 1,
+  );
 }
 
 // ── domain push nadal używa replace (regresja INV-2 / INV-4) ─────────────────
 {
   lastBatchSetBody = null;
+  batchSetBodies.length = 0;
   await pushWeekEmployeesToCloud([{ id: "e2", name: "Domain" }], { skipPayrollGuard: true });
-  assert("domain pushWeekEmployees nadal replace", (lastBatchSetBody?.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees"));
-  assert("domain pushWeekEmployees zawiera klucz", (lastBatchSetBody?.keys ?? []).includes("kw-week-employees"));
+  const domainBody = batchSetBodies.at(-1) ?? lastBatchSetBody;
+  assert("domain pushWeekEmployees uses payroll CAS", domainBody?.payrollWeekCas === true);
+  assert("domain pushWeekEmployees zawiera klucz", (domainBody?.keys ?? []).includes("kw-week-employees"));
 }
 
 console.log("\n---");

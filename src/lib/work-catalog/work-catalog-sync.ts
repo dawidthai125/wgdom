@@ -9,6 +9,7 @@ import {
   isDestructiveWorkCatalogReplace,
   isEmptyWorkCatalogStore,
   isLegacySyntheticOnlyStore,
+  assertWorkCatalogShrinkAllowed,
 } from "@/lib/work-catalog/work-catalog-authority";
 import type { WorkBundleStore, WorkCatalogStore } from "@/lib/work-catalog/types";
 import {
@@ -28,6 +29,7 @@ import {
   saveWorkCatalogStoreLocal,
   type SaveWorkCatalogStoreLocalOptions,
 } from "@/lib/work-catalog/work-catalog-store";
+import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 
 export {
   WORK_BUNDLE_STORAGE_KEY,
@@ -80,8 +82,11 @@ async function loadCloudWorkCatalogBaseline(): Promise<CloudWorkCatalogBaseline>
 }
 
 function assertWorkCatalogPersistAllowed(next: WorkCatalogStore, local: WorkCatalogStore, cloud: CloudWorkCatalogBaseline): void {
-  if (cloud.status === "present" && isDestructiveWorkCatalogReplace(next, cloud.store)) {
-    throw new WorkCatalogDestructivePersistError();
+  if (cloud.status === "present") {
+    assertWorkCatalogShrinkAllowed(cloud.store, next);
+    if (isDestructiveWorkCatalogReplace(next, cloud.store)) {
+      throw new WorkCatalogDestructivePersistError();
+    }
   }
   if (
     cloud.status === "unknown"
@@ -105,7 +110,7 @@ export async function saveWorkCatalogStore(
   const local = loadWorkCatalogStoreLocal();
   assertWorkCatalogPersistAllowed(next, local, cloud);
   saveWorkCatalogStoreLocal(next, { updatedAtIso: next.updatedAt });
-  await persistKey(WORK_CATALOG_STORAGE_KEY, next);
+  await pushWorkCatalogStoreToCloudSafe(next, { mode: "intent" });
 }
 
 export async function loadWorkBundleStore(): Promise<WorkBundleStore> {

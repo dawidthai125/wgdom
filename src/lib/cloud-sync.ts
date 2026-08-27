@@ -465,15 +465,32 @@ export const RS_PUSH_EXCLUDED_PAYROLL_DATA_KEYS = [
   "kw-archive",
 ] as const satisfies readonly DataKey[];
 
+/** WORK-CATALOG-P0 — catalog push owned by work-catalog-cloud-push (CAS + union). */
+export const RS_PUSH_EXCLUDED_CATALOG_DATA_KEYS = [
+  "kw-wgdom-work-catalog",
+] as const satisfies readonly DataKey[];
+
+export const RS_PUSH_EXCLUDED_DOMAIN_SYNC_DATA_KEYS = [
+  ...RS_PUSH_EXCLUDED_PAYROLL_DATA_KEYS,
+  ...RS_PUSH_EXCLUDED_CATALOG_DATA_KEYS,
+] as const satisfies readonly DataKey[];
+
 export const RS_PUSH_EXCLUDED_PAYROLL_KEYS: readonly string[] = [
   ...RS_PUSH_EXCLUDED_PAYROLL_DATA_KEYS,
   ARCHIVE_DELETED_IDS_KEY,
   WEEK_EMPLOYEES_DELETED_KEYS_KEY,
 ];
 
-const RS_PUSH_EXCLUDED_PAYROLL_KEY_SET = new Set<string>(RS_PUSH_EXCLUDED_PAYROLL_KEYS);
+export const RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEYS: readonly string[] = [
+  ...RS_PUSH_EXCLUDED_DOMAIN_SYNC_DATA_KEYS,
+  ARCHIVE_DELETED_IDS_KEY,
+  WEEK_EMPLOYEES_DELETED_KEYS_KEY,
+];
 
-/** SYNC-ARCH-01 S1-1 — filtr payload RS push (bez payroll). */
+const RS_PUSH_EXCLUDED_PAYROLL_KEY_SET = new Set<string>(RS_PUSH_EXCLUDED_PAYROLL_KEYS);
+const RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEY_SET = new Set<string>(RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEYS);
+
+/** SYNC-ARCH-01 S1-1 — filtr payload RS push (bez payroll + work catalog domain sync). */
 export function filterRsPushKeysAndValues(
   keys: string[],
   values: unknown[],
@@ -481,13 +498,13 @@ export function filterRsPushKeysAndValues(
   const outKeys: string[] = [];
   const outValues: unknown[] = [];
   for (let i = 0; i < keys.length; i++) {
-    if (!RS_PUSH_EXCLUDED_PAYROLL_KEY_SET.has(keys[i])) {
+    if (!RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEY_SET.has(keys[i])) {
       outKeys.push(keys[i]);
       outValues.push(values[i]);
     }
   }
   payrollTraceEmit("sync.rs.push.filtered", "RS", "debug", {
-    excludedPayrollKeys: keys.filter((k) => RS_PUSH_EXCLUDED_PAYROLL_KEY_SET.has(k)),
+    excludedPayrollKeys: keys.filter((k) => RS_PUSH_EXCLUDED_DOMAIN_SYNC_KEY_SET.has(k)),
     outKeyCount: outKeys.length,
   });
   return { keys: outKeys, values: outValues };
@@ -1469,6 +1486,13 @@ export type PushKeysToCloudOptions = {
    * ≠ isIntentionalPayrollWeekClear (empty week after archive).
    */
   intentionalHoursClear?: boolean;
+  /** WORK-CATALOG-P0 — CAS merge-on-write for kw-wgdom-work-catalog. */
+  workCatalogCas?: boolean;
+  expectedCatalogRevision?: number;
+  /** WORK-CATALOG-P0 — when intercepting blind catalog push. */
+  workCatalogPushMode?: "union" | "intent";
+  /** Internal — CAS path calls batch-set directly (avoid redirect loop). */
+  skipWorkCatalogIntercept?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
   cloudWeekEmployees?: unknown;
   /**
@@ -2877,6 +2901,9 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
         mergedChargesDeleted,
       );
       persistBootstrapMergedKey(key, merged);
+      if (key === WORK_CATALOG_STORAGE_KEY) {
+        return;
+      }
       if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
         pushKeys.push(key);
         pushValues.push(merged);
@@ -2895,6 +2922,11 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
     await finalizeWorkCatalogAfterDeferredMerge({
       cloud: workCatalogIdx >= 0 ? cloudValues[workCatalogIdx] : undefined,
     });
+
+    const { pushWorkCatalogFromLocalUnionIfChanged } = await import(
+      "@/lib/work-catalog/work-catalog-cloud-push"
+    );
+    await pushWorkCatalogFromLocalUnionIfChanged().catch(() => {});
 
     if (keys.includes(OPERATIONAL_NOTES_KEY)) {
       await pullOperationalNotesAuxFromCloud();
@@ -3082,6 +3114,23 @@ export async function pushKeysToCloud(
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
+
+  const catalogIdx = keys.indexOf(WORK_CATALOG_STORAGE_KEY);
+  if (catalogIdx >= 0 && options?.skipWorkCatalogIntercept !== true) {
+    const { pushWorkCatalogStoreToCloudSafe } = await import("@/lib/work-catalog/work-catalog-cloud-push");
+    await pushWorkCatalogStoreToCloudSafe(
+      normalizeWorkCatalogStore(values[catalogIdx]),
+      {
+        mode: options?.workCatalogPushMode ?? "intent",
+        pushOptions: options,
+      },
+    );
+    const nextKeys = keys.filter((_, i) => i !== catalogIdx);
+    const nextValues = values.filter((_, i) => i !== catalogIdx);
+    if (nextKeys.length === 0) return;
+    return pushKeysToCloud(nextKeys, nextValues, options);
+  }
+
   const guarded = await applyPayrollGuardBeforePush(keys, values, options);
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
@@ -3109,6 +3158,8 @@ export async function pushKeysToCloud(
     replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
     payrollWeekCas: pushOptions.payrollWeekCas === true,
     expectedRevision: pushOptions.expectedRevision,
+    workCatalogCas: pushOptions.workCatalogCas === true,
+    expectedCatalogRevision: pushOptions.expectedCatalogRevision,
     clientAppVersion: pushOptions.clientAppVersion ?? APP_VERSION,
     /** D-F4 — Edge skip-union when true (intentional clear / empty rollover). */
     intentionalHoursClear: pushOptions.intentionalHoursClear === true,
@@ -3190,6 +3241,37 @@ export async function pushKeysToCloud(
           typeof errJson.error === "string" ? errJson.error : errCode,
         );
       }
+      if (
+        res.status === 409 &&
+        (errCode === "catalog_stale_revision"
+          || errCode === "catalog_legacy_client_rejected"
+          || errCode === "catalog_shrink_rejected")
+      ) {
+        const {
+          WorkCatalogStaleRevisionError,
+          WORK_CATALOG_SHRINK_REJECTED_CODE,
+        } = await import("@/lib/work-catalog/work-catalog-cloud-push");
+        const { WorkCatalogShrinkRejectedError } = await import(
+          "@/lib/work-catalog/work-catalog-authority"
+        );
+        const serverRevision =
+          typeof errJson.serverRevision === "number" ? errJson.serverRevision : -1;
+        const serverCatalogRaw = errJson.catalog ?? errJson.serverCatalog;
+        const serverCatalog =
+          serverCatalogRaw != null ? normalizeWorkCatalogStore(serverCatalogRaw) : null;
+        if (errCode === WORK_CATALOG_SHRINK_REJECTED_CODE || errCode === "catalog_shrink_rejected") {
+          const removed = Array.isArray(errJson.removedWorkIds)
+            ? errJson.removedWorkIds.filter((id): id is string => typeof id === "string")
+            : [];
+          throw new WorkCatalogShrinkRejectedError(removed);
+        }
+        throw new WorkCatalogStaleRevisionError(
+          errCode,
+          serverRevision,
+          serverCatalog,
+          typeof errJson.error === "string" ? errJson.error : errCode,
+        );
+      }
       payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
         httpStatus: res.status,
         ok: false,
@@ -3223,6 +3305,12 @@ export async function pushKeysToCloud(
       writePayrollWeekMetaToLs(
         normalizePayrollWeekMeta(resJson.payrollWeekMeta, weekFrom, weekTo),
       );
+    }
+    if (pushOptions.workCatalogCas && resJson.workCatalogMeta) {
+      const { writeWorkCatalogMetaToLs, normalizeWorkCatalogMeta } = await import(
+        "@/lib/work-catalog/work-catalog-meta"
+      );
+      writeWorkCatalogMetaToLs(normalizeWorkCatalogMeta(resJson.workCatalogMeta));
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
       httpStatus: res.status,
@@ -3890,7 +3978,11 @@ export function rsBundleFingerprintFromMerged(merged: unknown[]): string {
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   payrollTraceEmit("sync.rs.push.start", "RS", "info", {});
   const { keys: pushKeys, values: pushValues } = assembleRsPushKeysAndValues(merged);
+  const { pushWorkCatalogFromLocalUnionIfChanged } = await import(
+    "@/lib/work-catalog/work-catalog-cloud-push"
+  );
   if (pushKeys.length === 0) {
+    await pushWorkCatalogFromLocalUnionIfChanged();
     payrollTraceEmit("sync.rs.push.skip", "RS", "debug", { skipReason: "keys_empty" as const });
     return;
   }
@@ -3899,6 +3991,7 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
     replaceDirectoryKeys: ["kw-directory"],
     // SYNC-ARCH-01 S1-1: brak replaceWeekEmployeesKeys w RS — roster via domain push
   });
+  await pushWorkCatalogFromLocalUnionIfChanged();
   payrollTraceEmit("sync.rs.push.complete", "RS", "info", { keyCount: pushKeys.length });
 }
 
@@ -4101,6 +4194,13 @@ export async function pushKeyToCloud(
   key: string,
   value: unknown,
 ): Promise<void> {
+  if (key === WORK_CATALOG_STORAGE_KEY) {
+    const { pushWorkCatalogStoreToCloudSafe } = await import(
+      "@/lib/work-catalog/work-catalog-cloud-push"
+    );
+    await pushWorkCatalogStoreToCloudSafe(normalizeWorkCatalogStore(value), { mode: "intent" });
+    return;
+  }
   if (isDataKey(key)) {
     await pushKeysToCloudSafe([key], [value]);
     return;

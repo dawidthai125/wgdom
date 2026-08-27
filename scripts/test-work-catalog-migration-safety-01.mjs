@@ -26,6 +26,10 @@ import {
   saveWorkCatalogStoreLocal,
   WORK_CATALOG_STORAGE_KEY,
 } from "../src/lib/work-catalog/work-catalog-store.ts";
+import {
+  WORK_CATALOG_META_KEY,
+  normalizeWorkCatalogMeta,
+} from "../src/lib/work-catalog/work-catalog-meta.ts";
 import { WGDOM_COST_CATALOG_KEY } from "../src/lib/wgdom-cost-catalog-store.ts";
 
 const EMPTY_TS = "2026-06-13T00:00:00.000Z";
@@ -48,6 +52,7 @@ globalThis.localStorage = {
 };
 
 let cloudSnapshot = null;
+let cloudMeta = normalizeWorkCatalogMeta(null);
 const persistCalls = [];
 
 globalThis.fetch = async (url, init) => {
@@ -57,14 +62,31 @@ globalThis.fetch = async (url, init) => {
     const keys = Array.isArray(body.keys) ? body.keys : [];
     return new Response(
       JSON.stringify({
-        values: keys.map((key) => (key === WORK_CATALOG_STORAGE_KEY ? cloudSnapshot : null)),
+        values: keys.map((key) => {
+          if (key === WORK_CATALOG_STORAGE_KEY) return cloudSnapshot;
+          if (key === WORK_CATALOG_META_KEY) return cloudMeta;
+          return null;
+        }),
       }),
       { status: 200 },
     );
   }
   if (urlStr.includes("batch-set") && init?.body) {
     try {
-      persistCalls.push(JSON.parse(String(init.body)));
+      const parsed = JSON.parse(String(init.body));
+      persistCalls.push(parsed);
+      if (parsed.workCatalogCas === true) {
+        const idx = parsed.keys?.indexOf(WORK_CATALOG_STORAGE_KEY) ?? -1;
+        if (idx >= 0) cloudSnapshot = parsed.values[idx];
+        cloudMeta = {
+          catalogRevision: (cloudMeta?.catalogRevision ?? 0) + 1,
+          updatedAt: Date.now(),
+        };
+        return new Response(
+          JSON.stringify({ ok: true, workCatalogMeta: cloudMeta }),
+          { status: 200 },
+        );
+      }
     } catch {
       /* ignore */
     }
@@ -145,7 +167,12 @@ function reset({ cloud = null, local = null, legacy = true } = {}) {
 }
 
 function persistedWorkCatalogs() {
-  return persistCalls.filter((body) => Array.isArray(body.keys) && body.keys.includes(WORK_CATALOG_STORAGE_KEY));
+  return persistCalls.filter(
+    (body) =>
+      Array.isArray(body.keys)
+      && body.keys.includes(WORK_CATALOG_STORAGE_KEY)
+      && body.workCatalogCas === true,
+  );
 }
 
 const empty = defaultWorkCatalogStore(EMPTY_TS);
@@ -209,18 +236,36 @@ assert(s3Fin.migrated === true, "S3 migrate proceeded");
 assert(isLegacySyntheticOnlyStore(loadWorkCatalogStoreLocal()), "S3 local became legacy-synthetic");
 assert(persistedWorkCatalogs().length > 0, "S3 persist allowed when cloud missing");
 
-// SCENARIO 4 — cloud full + local full → normal LWW
+// SCENARIO 4 — cloud full + local full → normal LWW (additive / in-place update; no authoritative shrink)
 const localNewerFull = fullCatalog("2026-08-14T09:00:00.000Z");
-localNewerFull.catalogs.wroclaw.works[2] = customWork("cc-custom-newer", "Nowsza robota");
+localNewerFull.catalogs.wroclaw.works.push(customWork("cc-custom-newer", "Nowsza robota"));
+const control = localNewerFull.catalogs.wroclaw.works.find((w) => w.id === CONTROL_ID);
+if (control) control.namePl = "Zaprawianie — zaktualizowane";
 const s4Merged = mergeWorkCatalogStore(localNewerFull, full);
 assertEq(s4Merged.updatedAt, "2026-08-14T09:00:00.000Z", "S4 newer full local wins LWW");
 assert(s4Merged.catalogs.wroclaw.works.some((w) => w.id === "cc-custom-newer"), "S4 LWW payload from newer full");
 assert(s4Merged.catalogs.wroclaw.works.some((w) => w.id === CONTROL_ID), "S4 control retained");
+assert(s4Merged.catalogs.wroclaw.works.some((w) => w.id === "cc-custom-other"), "S4 no authoritative shrink on merge");
 
 reset({ cloud: full, local: localNewerFull });
 const s4Save = await saveWorkCatalogRouted(localNewerFull, { updatedAtIso: localNewerFull.updatedAt });
-assert(s4Save.ok === true && s4Save.saved === true, "S4 authoritative save allowed");
-assert(persistedWorkCatalogs().length > 0, "S4 persistKey called for full catalog");
+assert(s4Save.ok === true && s4Save.saved === true, "S4 authoritative additive save allowed");
+assert(persistedWorkCatalogs().length > 0, "S4 safe CAS push for full catalog");
+
+const localShrinkAttempt = fullCatalog("2026-08-14T09:30:00.000Z");
+localShrinkAttempt.catalogs.wroclaw.works = localShrinkAttempt.catalogs.wroclaw.works.filter(
+  (w) => w.id !== "cc-custom-other",
+);
+reset({ cloud: full, local: localShrinkAttempt });
+persistCalls.length = 0;
+const s4Shrink = await saveWorkCatalogRouted(localShrinkAttempt, {
+  updatedAtIso: localShrinkAttempt.updatedAt,
+});
+assert(
+  s4Shrink.ok === true && s4Shrink.saved === false && s4Shrink.blocked === "catalog_shrink_rejected",
+  "S4 authoritative removal blocked without tombstone",
+);
+assertEq(persistedWorkCatalogs().length, 0, "S4 shrink attempt not pushed");
 
 const cloudNewerFull = fullCatalog("2026-08-14T10:00:00.000Z");
 const s4b = mergeWorkCatalogStore(full, cloudNewerFull);

@@ -2,11 +2,10 @@
  * Ensure Zygmunt invoice HISTORICAL PURCHASE seed in local work catalog (+ optional cloud).
  */
 
-import { pushKeysToCloud } from "@/lib/cloud-sync";
+import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 import {
   loadWorkCatalogStoreLocal,
   saveWorkCatalogStoreLocal,
-  WORK_CATALOG_STORAGE_KEY,
 } from "@/lib/work-catalog/work-catalog-store";
 import { applyZygmuntInvoicePurchaseSeedToWorkCatalog } from "./apply-zygmunt-invoice-purchase-seed";
 
@@ -27,7 +26,7 @@ export function ensureZygmuntInvoicePurchaseSeedLocal(opts?: {
   }
 
   if (opts?.pushCloud && applied.changed && typeof window !== "undefined") {
-    void pushKeysToCloud([WORK_CATALOG_STORAGE_KEY], [applied.store]).catch(() => {
+    void pushWorkCatalogStoreToCloudSafe(applied.store, { mode: "union" }).catch(() => {
       /* soft */
     });
   }

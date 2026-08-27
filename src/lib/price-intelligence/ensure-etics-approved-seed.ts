@@ -11,8 +11,8 @@ import {
 import {
   loadWorkCatalogStoreLocal,
   saveWorkCatalogStoreLocal,
-  WORK_CATALOG_STORAGE_KEY,
 } from "@/lib/work-catalog/work-catalog-store";
+import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 import {
   applyPi31ApprovedPurchaseToKnowledge,
   applyPi31ApprovedQuotesToWorkCatalog,
@@ -46,19 +46,14 @@ export function ensurePi31EticsApprovedDataLocal(opts?: {
   }
 
   if (opts?.pushCloud && (cat.changed || kn.changed) && typeof window !== "undefined") {
-    const keys: string[] = [];
-    const values: unknown[] = [];
     if (cat.changed) {
-      keys.push(WORK_CATALOG_STORAGE_KEY);
-      values.push(cat.store);
+      void pushWorkCatalogStoreToCloudSafe(cat.store, { mode: "union" }).catch(() => {
+        /* soft — mirror best-effort */
+      });
     }
     if (kn.changed) {
-      keys.push(OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY);
-      values.push(kn.store);
-    }
-    if (keys.length > 0) {
-      void pushKeysToCloud(keys, values).catch(() => {
-        /* soft — mirror best-effort */
+      void pushKeysToCloud([OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY], [kn.store]).catch(() => {
+        /* soft */
       });
     }
   }

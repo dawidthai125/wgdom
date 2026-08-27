@@ -253,6 +253,88 @@ const PAYROLL_WEEK_META_KEY = "kw-payroll-week-meta";
 const PAYROLL_STALE_REVISION_CODE = "stale_revision";
 const PAYROLL_LEGACY_CLIENT_CODE = "legacy_client_rejected";
 
+const WORK_CATALOG_STORAGE_KEY = "kw-wgdom-work-catalog";
+const WORK_CATALOG_META_KEY = "kw-wgdom-work-catalog-meta";
+const WORK_CATALOG_STALE_REVISION_CODE = "catalog_stale_revision";
+const WORK_CATALOG_LEGACY_CLIENT_CODE = "catalog_legacy_client_rejected";
+const WORK_CATALOG_SHRINK_REJECTED_CODE = "catalog_shrink_rejected";
+const LEGACY_SYNTHETIC_WORK_ID_PREFIX = "legacy-";
+
+function listCatalogWorkIds(store: unknown): string[] {
+  const ids: string[] = [];
+  if (!store || typeof store !== "object") return ids;
+  const catalogs = (store as { catalogs?: Record<string, { works?: unknown[] }> }).catalogs;
+  if (!catalogs || typeof catalogs !== "object") return ids;
+  for (const region of ["wroclaw", "dolnyslask"]) {
+    const works = catalogs[region]?.works;
+    if (!Array.isArray(works)) continue;
+    for (const w of works) {
+      if (w && typeof w === "object" && typeof (w as { id?: string }).id === "string") {
+        ids.push((w as { id: string }).id);
+      }
+    }
+  }
+  return ids;
+}
+
+function countCatalogWorks(store: unknown): number {
+  return listCatalogWorkIds(store).length;
+}
+
+function isAuthoritativeCatalogWorkId(id: string): boolean {
+  return typeof id === "string" && !id.startsWith(LEGACY_SYNTHETIC_WORK_ID_PREFIX);
+}
+
+function catalogFingerprintSimple(store: unknown): string {
+  return listCatalogWorkIds(store).sort().join("|");
+}
+
+function findRemovedAuthoritativeCatalogWorkIds(prev: unknown, next: unknown): string[] {
+  const prevSet = new Set(listCatalogWorkIds(prev).filter(isAuthoritativeCatalogWorkId));
+  const nextSet = new Set(listCatalogWorkIds(next).filter(isAuthoritativeCatalogWorkId));
+  return [...prevSet].filter((id) => !nextSet.has(id));
+}
+
+function normalizeWorkCatalogMetaEdge(raw: unknown): {
+  catalogRevision: number;
+  updatedAt: number;
+} {
+  if (raw && typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    const rev = typeof o.catalogRevision === "number" && Number.isFinite(o.catalogRevision)
+      ? Math.max(0, Math.floor(o.catalogRevision))
+      : 0;
+    return {
+      catalogRevision: rev,
+      updatedAt: typeof o.updatedAt === "number" && Number.isFinite(o.updatedAt) ? o.updatedAt : Date.now(),
+    };
+  }
+  return { catalogRevision: 0, updatedAt: Date.now() };
+}
+
+function catalogRevisionConflictResponse(
+  c: { json: (body: unknown, status: number) => Response },
+  requestId: string,
+  code: string,
+  serverRevision: number,
+  catalog: unknown,
+  message: string,
+  extra: Record<string, unknown> = {},
+): Response {
+  return c.json(
+    {
+      ok: false,
+      code,
+      serverRevision,
+      catalog,
+      error: message,
+      requestId,
+      ...extra,
+    },
+    409,
+  );
+}
+
 function normalizePayrollWeekMetaEdge(raw: unknown, weekFrom = "", weekTo = ""): {
   rosterRevision: number;
   weekFrom: string;
@@ -674,9 +756,10 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
   const requestId = crypto.randomUUID();
   try {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, intentionalHoursClear = false } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, workCatalogCas = false, expectedCatalogRevision, intentionalHoursClear = false, clientAppVersion } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   let payrollMetaAfterWrite: Record<string, unknown> | null = null;
+  let catalogMetaAfterWrite: Record<string, unknown> | null = null;
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
   const deletedBatchIdx = keys.indexOf("kw-jobs-deleted-ids");
@@ -814,6 +897,77 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         );
       }
       safeValues[i] = nextNorm;
+    } else if (keys[i] === WORK_CATALOG_STORAGE_KEY) {
+      const prev = await kv.get(WORK_CATALOG_STORAGE_KEY);
+      const nextNorm = safeValues[i];
+      const prevCount = prev != null ? countCatalogWorks(prev) : 0;
+      const nextCount = countCatalogWorks(nextNorm);
+      const fpBefore = prev != null ? catalogFingerprintSimple(prev) : "";
+      const fpAfter = catalogFingerprintSimple(nextNorm);
+      const removed = prev != null ? findRemovedAuthoritativeCatalogWorkIds(prev, nextNorm) : [];
+      if (removed.length > 0) {
+        console.log(
+          `[batch-set] requestId=${requestId} WORK_CATALOG_REJECT shrink removed=${removed.length} clientAppVersion=${clientAppVersion ?? "n/a"} workCountBefore=${prevCount} workCountAfter=${nextCount}`,
+        );
+        return catalogRevisionConflictResponse(
+          c,
+          requestId,
+          WORK_CATALOG_SHRINK_REJECTED_CODE,
+          normalizeWorkCatalogMetaEdge(await kv.get(WORK_CATALOG_META_KEY)).catalogRevision,
+          prev,
+          "catalog shrink rejected — authoritative workIds removed without tombstone SSOT",
+          { removedWorkIds: removed, fingerprintBefore: fpBefore, fingerprintAfter: fpAfter },
+        );
+      }
+      const expCatRev =
+        typeof expectedCatalogRevision === "number" && Number.isFinite(expectedCatalogRevision)
+          ? Math.floor(expectedCatalogRevision)
+          : undefined;
+      if (workCatalogCas) {
+        if (expCatRev === undefined) {
+          const metaRaw = await kv.get(WORK_CATALOG_META_KEY);
+          const serverMeta = normalizeWorkCatalogMetaEdge(metaRaw);
+          return catalogRevisionConflictResponse(
+            c,
+            requestId,
+            WORK_CATALOG_LEGACY_CLIENT_CODE,
+            serverMeta.catalogRevision,
+            prev,
+            "expectedCatalogRevision required for catalog CAS write",
+          );
+        }
+        const metaRaw = await kv.get(WORK_CATALOG_META_KEY);
+        const serverMeta = normalizeWorkCatalogMetaEdge(metaRaw);
+        if (expCatRev !== serverMeta.catalogRevision) {
+          return catalogRevisionConflictResponse(
+            c,
+            requestId,
+            WORK_CATALOG_STALE_REVISION_CODE,
+            serverMeta.catalogRevision,
+            prev,
+            "stale catalog revision",
+          );
+        }
+        catalogMetaAfterWrite = {
+          catalogRevision: serverMeta.catalogRevision + 1,
+          updatedAt: Date.now(),
+        };
+      } else {
+        const metaRaw = await kv.get(WORK_CATALOG_META_KEY);
+        const serverMeta = normalizeWorkCatalogMetaEdge(metaRaw);
+        return catalogRevisionConflictResponse(
+          c,
+          requestId,
+          WORK_CATALOG_LEGACY_CLIENT_CODE,
+          serverMeta.catalogRevision,
+          prev,
+          "non-CAS catalog write rejected — update client",
+        );
+      }
+      console.log(
+        `[batch-set] requestId=${requestId} WORK_CATALOG_OK clientAppVersion=${clientAppVersion ?? "n/a"} workCountBefore=${prevCount} workCountAfter=${nextCount} revisionBefore=${normalizeWorkCatalogMetaEdge(await kv.get(WORK_CATALOG_META_KEY)).catalogRevision} revisionAfter=${catalogMetaAfterWrite?.catalogRevision ?? "n/a"} fpBefore=${fpBefore.slice(0, 32)} fpAfter=${fpAfter.slice(0, 32)}`,
+      );
+      safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-archive") {
       const prev = await kv.get("kw-archive");
       let nextNorm = normalizeArrayKv(values[i]);
@@ -900,6 +1054,15 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues.push(payrollMetaAfterWrite);
     }
   }
+  if (catalogMetaAfterWrite) {
+    const metaIdx = keys.indexOf(WORK_CATALOG_META_KEY);
+    if (metaIdx >= 0) {
+      safeValues[metaIdx] = catalogMetaAfterWrite;
+    } else {
+      keys.push(WORK_CATALOG_META_KEY);
+      safeValues.push(catalogMetaAfterWrite);
+    }
+  }
   // EDGE write layer only — merge/tombstone/LWW already applied to safeValues above.
   // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · chunked mset (fail-fast).
   const msetMeta = await kv.mset(keys, safeValues, {
@@ -917,7 +1080,12 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   } catch (e) {
     console.log("daily full backup:", e);
   }
-  return c.json({ ok: true, payrollWeekMeta: payrollMetaAfterWrite ?? undefined });
+  return c.json({
+    ok: true,
+    payrollWeekMeta: payrollMetaAfterWrite ?? undefined,
+    workCatalogMeta: catalogMetaAfterWrite ?? undefined,
+    requestId,
+  });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(
