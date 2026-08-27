@@ -45,6 +45,11 @@ import {
   type IkIdentityPersistSessionGate,
 } from "./ik-identity-persist-glue";
 import {
+  isP5LaborAttemptStale,
+  p5LaborCleanupInvalidate,
+  shouldSkipP5LaborRestart,
+} from "./ik-p5-labor-settle-latch";
+import {
   buildKl3KnowledgeKey,
   buildLaborAttemptKey,
   buildMaterialAttemptKey,
@@ -170,6 +175,7 @@ export function useIkOrchestra({
   );
 
   const laborAttemptedRef = useRef<string | null>(null);
+  const laborRunGenerationRef = useRef(0);
   const materialAttemptedRef = useRef<string | null>(null);
   const laborSettledRef = useRef(false);
   const [laborSettleTick, setLaborSettleTick] = useState(0);
@@ -524,10 +530,12 @@ export function useIkOrchestra({
     };
   }, [effectiveItem, knr, report.masterBoq.readyForExperts, identityResearchEpoch]);
 
-  // P5 Labor E2E
+  // P5 Labor E2E — generation + sticky clear on cancel-before-settle (pending race fix).
   useEffect(() => {
     if (!p5LaborOn) {
       laborSettledRef.current = true;
+      laborAttemptedRef.current = null;
+      laborRunGenerationRef.current += 1;
       setLabor(null);
       return;
     }
@@ -538,24 +546,48 @@ export function useIkOrchestra({
       return;
     }
     const laborKey = `${buildLaborAttemptKey(key, postIdentityExpert, p5ResearchOn)}|lr${laborRecalcEpoch}`;
-    if (laborAttemptedRef.current === laborKey) return;
+    if (
+      shouldSkipP5LaborRestart({
+        laborKey,
+        laborAttemptedKey: laborAttemptedRef.current,
+      })
+    ) {
+      return;
+    }
     laborSettledRef.current = false;
     laborAttemptedRef.current = laborKey;
     let cancelled = false;
+    let settled = false;
+    const generation = ++laborRunGenerationRef.current;
     void executeP5LaborExpert({
       effectiveItem,
       pkg,
       expert: postIdentityExpert,
       p5ResearchOn,
-      isCancelled: () => cancelled,
+      isCancelled: () =>
+        isP5LaborAttemptStale({
+          cancelled,
+          generation,
+          runGenerationCurrent: laborRunGenerationRef.current,
+        }),
       setLabor,
       onSettled: () => {
+        settled = true;
         laborSettledRef.current = true;
         setLaborSettleTick((n) => n + 1);
       },
     });
     return () => {
       cancelled = true;
+      const inv = p5LaborCleanupInvalidate({
+        generation,
+        runGenerationCurrent: laborRunGenerationRef.current,
+        settled,
+        laborKey,
+        laborAttemptedKey: laborAttemptedRef.current,
+      });
+      laborRunGenerationRef.current = inv.nextRunGeneration;
+      laborAttemptedRef.current = inv.nextLaborAttemptedKey;
     };
   }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn, laborRecalcEpoch]);
 

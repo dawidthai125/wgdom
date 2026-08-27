@@ -127,11 +127,14 @@ export async function executeP5LaborExpert(opts: {
       executeResearch: opts.p5ResearchOn === true,
       enableInternalFirst: true,
     });
-    if (!opts.isCancelled()) opts.setLabor(result);
+    // Single cancel gate: setLabor + onSettled must not split across a cleanup tick.
+    if (opts.isCancelled()) return;
+    opts.setLabor(result);
+    opts.onSettled();
   } catch {
-    if (!opts.isCancelled()) opts.setLabor(null);
-  } finally {
-    if (!opts.isCancelled()) opts.onSettled();
+    if (opts.isCancelled()) return;
+    opts.setLabor(null);
+    opts.onSettled();
   }
 }
 
