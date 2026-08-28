@@ -13,6 +13,11 @@ import {
   shouldReleaseBridgeBusy,
   shouldSuppressP2DoubleStart,
 } from "@/lib/intelligent-estimator/ik-entry-p2-ingest-latch";
+import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
+import {
+  canRunDocumentDiscovery,
+  isDocumentDiscoverySettled,
+} from "@/lib/tender-document-discovery";
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
@@ -164,6 +169,11 @@ export function useIkOrchestra({
   dossierEnrichingRef.current = dossierEnriching;
 
   const needsP2Ingest = needsIkNg02Ingest(item);
+  /** CONNECT — ensureDocuments is unreachable while needsIkNg02Ingest requires attachments. */
+  const needsP2EnsureDocuments =
+    countTenderAttachments(item) === 0
+    && canRunDocumentDiscovery(item)
+    && !isDocumentDiscoverySettled(item);
   const p2Fingerprint = useMemo(
     () => buildP2IngestFingerprint(item),
     [
@@ -172,6 +182,7 @@ export function useIkOrchestra({
       item.bzpDocuments?.length,
       item.documentsFetchedAt,
       needsP2Ingest,
+      needsP2EnsureDocuments,
     ],
   );
 
@@ -200,7 +211,11 @@ export function useIkOrchestra({
     const key = snapItem.id || snapItem.tenderId || "";
     if (!key) return;
     if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
-    if (!needsIkNg02Ingest(snapItem)) return;
+    const ensureDocs =
+      countTenderAttachments(snapItem) === 0
+      && canRunDocumentDiscovery(snapItem)
+      && !isDocumentDiscoverySettled(snapItem);
+    if (!needsIkNg02Ingest(snapItem) && !ensureDocs) return;
     if (!onUpdateRef.current) return;
     if (
       shouldSuppressP2DoubleStart({
@@ -245,7 +260,12 @@ export function useIkOrchestra({
           await new Promise((r) => setTimeout(r, 1500));
           if (isStale()) return;
           if (dossierBuildingRef.current || dossierEnrichingRef.current) return;
-          if (!needsIkNg02Ingest(itemRef.current)) return;
+          const live = itemRef.current;
+          const ensureLive =
+            countTenderAttachments(live) === 0
+            && canRunDocumentDiscovery(live)
+            && !isDocumentDiscoverySettled(live);
+          if (!needsIkNg02Ingest(live) && !ensureLive) return;
         }
         if (isStale()) return;
 

@@ -11,7 +11,10 @@ import {
   tenderDossierHeavyParseDone,
 } from "@/lib/tender-dossier-pipeline";
 import { countTenderAttachments } from "@/lib/tender-analysis-status-ux";
-import { isDocumentDiscoverySettled } from "@/lib/tender-document-discovery";
+import {
+  isDocumentDiscoverySettled,
+  resolveEzamowieniaDocumentsTenderId,
+} from "@/lib/tender-document-discovery";
 import {
   runIkDocumentExpert,
   type IkDocumentExpertReport,
@@ -176,37 +179,51 @@ export async function runIkNg02IngestBridge(opts: {
       || item.noticeNumber
       || item.bzpNumber
       || undefined;
+    // CONNECT: Edge mp-readmodels expects OCDS (`item.tenderId`), not pipeline UUID (`item.id`).
+    const primaryApiId =
+      resolveEzamowieniaDocumentsTenderId(item) || item.tenderId || tenderId;
+    const altApiId =
+      primaryApiId !== tenderId
+        ? tenderId
+        : (item.tenderId && item.tenderId !== primaryApiId ? item.tenderId : "");
     try {
       const docs = await fetchTenderDocuments(
-        notice ? { tenderId, noticeNumber: notice } : { tenderId: item.tenderId || tenderId, noticeNumber: notice },
+        notice
+          ? { tenderId: primaryApiId, noticeNumber: notice }
+          : { tenderId: primaryApiId },
       );
       if (docs.length > 0) {
         item = {
           ...item,
-          tenderId: item.tenderId || tenderId,
+          tenderId: item.tenderId || primaryApiId,
           bzpDocuments: docs,
           documentsFetchedAt: new Date().toISOString(),
           noticeNumber: notice || item.noticeNumber,
         };
         reasons.push(`DOCS_FETCHED=${docs.length}`);
-      } else {
-        // Fallback: object id vs OCDS id (pipeline often stores OCDS in tenderId).
-        const altId = item.tenderId && item.tenderId !== tenderId ? item.tenderId : tenderId;
+        reasons.push(`DOCS_API_TENDER_ID=${primaryApiId}`);
+      } else if (altApiId) {
+        // Fallback: pipeline UUID only after OCDS miss (legacy probes).
         const docs2 = await fetchTenderDocuments(
-          notice ? { tenderId: altId, noticeNumber: notice } : altId,
+          notice
+            ? { tenderId: altApiId, noticeNumber: notice }
+            : { tenderId: altApiId },
         );
         if (docs2.length > 0) {
           item = {
             ...item,
-            tenderId: item.tenderId || altId,
+            tenderId: item.tenderId || altApiId,
             bzpDocuments: docs2,
             documentsFetchedAt: new Date().toISOString(),
             noticeNumber: notice || item.noticeNumber,
           };
           reasons.push(`DOCS_FETCHED_ALT=${docs2.length}`);
+          reasons.push(`DOCS_API_TENDER_ID=${altApiId}`);
         } else {
           reasons.push("DOCS_FETCH_EMPTY");
         }
+      } else {
+        reasons.push("DOCS_FETCH_EMPTY");
       }
     } catch (err) {
       reasons.push(`DOCS_FETCH_FAIL:${(err as Error)?.message || String(err)}`);
@@ -263,7 +280,9 @@ export async function runIkNg02IngestBridge(opts: {
   }
 
   const docs = item.bzpDocuments ?? [];
-  const zipEvidence = await catalogZips(tenderId, docs);
+  const apiIdForCatalog =
+    resolveEzamowieniaDocumentsTenderId(item) || item.tenderId || tenderId;
+  const zipEvidence = await catalogZips(apiIdForCatalog, docs);
 
   const built = await buildTenderDossierHeavy({
     item: {

@@ -38,10 +38,26 @@ export function resolveDocumentDiscoveryAnchor(
   return { noticeNumber, noticeHtml };
 }
 
+/**
+ * Edge `/tenders-bzp-documents` / mp-readmodels expect ezamówienia **OCDS** tenderId.
+ * Pipeline `item.id` is often a distinct UUID that returns 0 documents (Chrobrego MOPS).
+ * Prefer `item.tenderId` (OCDS) whenever present and distinct from pipeline id.
+ */
+export function resolveEzamowieniaDocumentsTenderId(
+  item: Pick<TenderPipelineItem, "id" | "tenderId">,
+): string | null {
+  const ocds = String(item.tenderId ?? "").trim();
+  const pipe = String(item.id ?? "").trim();
+  if (ocds && ocds !== pipe) return ocds;
+  if (ocds) return ocds;
+  if (pipe) return pipe;
+  return null;
+}
+
 export function canRunDocumentDiscovery(
-  item: Pick<TenderPipelineItem, "tenderId" | "noticeNumber" | "noticeHtml" | "bzpNumber">,
+  item: Pick<TenderPipelineItem, "id" | "tenderId" | "noticeNumber" | "noticeHtml" | "bzpNumber">,
 ): boolean {
-  if (!item.tenderId?.trim()) return false;
+  if (!resolveEzamowieniaDocumentsTenderId(item)) return false;
   const anchor = resolveDocumentDiscoveryAnchor(item);
   return Boolean(anchor.noticeNumber || anchor.noticeHtml);
 }
@@ -66,13 +82,14 @@ export function isDocumentDiscoverySettled(item: TenderPipelineItem): boolean {
 }
 
 export function buildDocumentDiscoveryFetchInput(
-  item: Pick<TenderPipelineItem, "tenderId" | "noticeNumber" | "noticeHtml" | "bzpNumber">,
+  item: Pick<TenderPipelineItem, "id" | "tenderId" | "noticeNumber" | "noticeHtml" | "bzpNumber">,
 ): DocumentDiscoveryFetchInput | null {
-  if (!item.tenderId?.trim()) return null;
+  const apiTenderId = resolveEzamowieniaDocumentsTenderId(item);
+  if (!apiTenderId) return null;
   const anchor = resolveDocumentDiscoveryAnchor(item);
   if (!anchor.noticeNumber && !anchor.noticeHtml) return null;
   const input: DocumentDiscoveryFetchInput = {
-    tenderId: item.tenderId.trim(),
+    tenderId: apiTenderId,
     noticeNumber: anchor.noticeNumber,
   };
   // NG11-P0.2 — noticeHtml tylko gdy brak numeru (GET query); inaczej Edge pobiera HTML server-side.
