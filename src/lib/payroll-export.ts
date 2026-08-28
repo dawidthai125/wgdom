@@ -49,8 +49,12 @@ export interface PayrollCalcRow {
 }
 
 export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leaveStatus" | "carryForwardOut" | "carryForwardIn" | "biweekly" | "biweeklyPayoutWeek" | "biweeklyDisplayNet" | "biweeklyAccruedOnly" | "biweeklyThisWeekNet">): string {
-  if (row.leaveStatus) return leaveTypeDisplayLabel(row.leaveStatus, false);
   if (row.carryForwardOut != null && row.carryForwardOut > 0) return CARRY_FORWARD_PDF_LABEL;
+  if (row.leaveStatus) {
+    // Leave + payable (extras / manual adj): show amount; label alone only when 0.
+    if (row.netPay != null && Math.abs(row.netPay) > 0.001) return fmt(row.netPay);
+    return leaveTypeDisplayLabel(row.leaveStatus, false);
+  }
   if (row.carryForwardIn != null && row.carryForwardIn > 0) {
     const base = +(row.netPay - row.carryForwardIn).toFixed(2);
     return `${fmt(row.netPay)} (+${fmt(row.carryForwardIn)} przen.)`;
@@ -60,8 +64,11 @@ export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leav
   return fmt(row.netPay);
 }
 
-export function payrollGrossDisplayText(row: Pick<PayrollCalcRow, "grossPay" | "leaveStatus">): string {
-  if (row.leaveStatus) return leaveTypeDisplayLabel(row.leaveStatus, false);
+export function payrollGrossDisplayText(row: Pick<PayrollCalcRow, "grossPay" | "leaveStatus" | "netPay">): string {
+  if (row.leaveStatus) {
+    // Labor gross stays 0 on leave; if there is payable, still show leave label for gross column.
+    return leaveTypeDisplayLabel(row.leaveStatus, false);
+  }
   return fmt(row.grossPay);
 }
 

@@ -51,7 +51,7 @@ export function resolveArchivedCarryAdjustments(
       weekTo: snap.weekTo,
       archivedSnapshot: snap,
     });
-    return { netPay: calc.leaveStatus ? 0 : calc.netPay, displayNetPay: calc.leaveStatus ? 0 : calc.netPay };
+    return { netPay: calc.netPay, displayNetPay: calc.netPay };
   }
 
   if (es.carryForwardOut != null && es.carryForwardOut > 0) {
@@ -90,8 +90,9 @@ export function calcWeekEmployeeForPayroll(
 ): PayrollCalcWithAdjustments {
   const withLeave = calcWeekEmployeeWithLeave(emp, options);
 
+  // Leave: displayNetPay = payable (extras + manual adj − zaliczki), not forced 0.
   if (withLeave.leaveStatus) {
-    return { ...withLeave, displayNetPay: 0 };
+    return { ...withLeave, displayNetPay: withLeave.netPay };
   }
 
   if (options.archivedSnapshot) {
@@ -139,7 +140,7 @@ export function weeklyDisplayNetBeforeDefer(
   weekTo: string,
   savedWeeks: WeekSnapshot[],
 ): number {
-  if (row.leaveStatus) return 0;
+  // Leave no longer forces 0 — payable (extras + manual adj) enters cash totals.
   if (row.carryForwardOut) return 0;
   if (isBiweeklyPayrollEmployee(row as unknown as WeekEmployee, directory)) return 0;
   return row.displayNetPay;
@@ -200,7 +201,7 @@ export function calcWeeklyNetWithCarry(
     archivedSnapshot: options.archivedSnapshot,
     livePayroll: !options.archivedSnapshot,
   });
-  if (row.leaveStatus || row.carryForwardOut) return 0;
+  if (row.carryForwardOut) return 0;
   return row.displayNetPay;
 }
 

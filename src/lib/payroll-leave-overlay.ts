@@ -1,4 +1,4 @@
-/** Warstwa urlopów na payroll — bez zmiany calcWeekEmployee. */
+/** Warstwa urlopów na payroll — zeruje labor, zachowuje extras + manual adjustment. */
 
 import type { WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { calcWeekEmployee } from "@/app/app-domain";
@@ -17,19 +17,27 @@ export interface PayrollCalcWithLeave extends WeekEmployeeCalc {
   leaveStatus?: PayrollLeaveStatus;
 }
 
+/**
+ * Leave overlay: labor gross/net from hours → 0.
+ * approvedExtraCosts + payrollManualAdjustment remain in netPay.
+ * Zaliczki nadal odejmowane (spójność z formułą base).
+ */
 export function applyLeaveOverlayToCalc(
   calc: WeekEmployeeCalc,
   leaveStatus?: PayrollLeaveStatus,
 ): PayrollCalcWithLeave {
   if (!leaveStatus) return calc;
+  const netPay = +(
+    0 - calc.totalZaliczka + calc.totalExtraCosts + calc.totalManualAdjustment
+  ).toFixed(2);
   return {
     ...calc,
     grossPay: 0,
     weekGross: 0,
     prevSatGross: 0,
-    netPay: 0,
-    weekNet: 0,
-    prevSatNet: 0,
+    weekNet: +(0 - calc.weekZaliczka).toFixed(2),
+    prevSatNet: +(0 - calc.prevSatZaliczka).toFixed(2),
+    netPay,
     leaveStatus,
   };
 }
@@ -88,7 +96,10 @@ export function isPayrollWeekArchived(
 
 export { isPayrollWeekSaved, isPayrollWeekClosed, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 
-/** Netto Pn–So dla wypłaty co 2 tyg. — 0 gdy urlop (live lub archiwum). */
+/**
+ * Netto Pn–So dla wypłaty co 2 tyg.
+ * Leave: labor = 0; extras + manual adjustment remain (bez prevSat w tej ścieżce).
+ */
 export function calcBiweeklyWeekNetWithLeave(
   emp: WeekEmployee,
   weekFrom: string,
@@ -108,6 +119,11 @@ export function calcBiweeklyWeekNetWithLeave(
     archivedSnapshot: snap && closed ? snap : undefined,
     livePayroll: !(snap && closed),
   });
-  if (calc.leaveStatus) return 0;
+  if (calc.leaveStatus) {
+    const weekOnly = calcWeekNetNoPrevSat(emp);
+    return +(
+      0 - weekOnly.totalZaliczka + weekOnly.totalExtraCosts + weekOnly.totalManualAdjustment
+    ).toFixed(2);
+  }
   return calcWeekNetNoPrevSat(emp).netPay;
 }

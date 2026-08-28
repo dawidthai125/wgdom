@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Banknote, X, Plus, Trash2, FileText, Clock, Receipt, ThumbsUp, ThumbsDown, SkipForward } from "lucide-react";
 import { useAdminAccess } from "@/app/admin-access";
 import { PayrollDayEditor } from "@/app/payroll-editors";
@@ -19,6 +19,8 @@ import {
   type DayKey,
   type DayData,
   type EmployeeExtraCost,
+  type PayrollManualAdjustment,
+  type PayrollManualAdjustmentKind,
   DAYS,
   DAY_LABELS,
   fmt,
@@ -32,7 +34,16 @@ import {
   getPrevSaturday,
   extraCostStatus,
   EXTRA_COST_STATUS_LABELS,
+  normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
+
+const MANUAL_ADJ_KIND_OPTIONS: { value: PayrollManualAdjustmentKind; label: string }[] = [
+  { value: "vacation", label: "Urlop" },
+  { value: "sick", label: "Chorobowe" },
+  { value: "unpaid", label: "Bezpłatne" },
+  { value: "other", label: "Inne" },
+  { value: "correction", label: "Korekta" },
+];
 
 /** Uzupełnia brakujące dni (stare archiwum / niepełny sync). */
 function ensureWeekEmployeeDays(emp: WeekEmployee): WeekEmployee {
@@ -66,6 +77,7 @@ export function WeekEmployeeDetail({
   onPatchRate,
   onPatchPrevSaturday,
   onPatchExtraCosts,
+  onPatchManualAdjustment,
   onClose,
 }: {
   emp: WeekEmployee;
@@ -81,6 +93,7 @@ export function WeekEmployeeDetail({
   onPatchRate: (rate: string) => void;
   onPatchPrevSaturday: (next: DayData) => void;
   onPatchExtraCosts: (next: EmployeeExtraCost[]) => void;
+  onPatchManualAdjustment: (next: PayrollManualAdjustment | undefined) => void;
   onClose: () => void;
 }) {
   const safeEmp = ensureWeekEmployeeDays(emp);
@@ -101,22 +114,57 @@ export function WeekEmployeeDetail({
   };
   const {
     weekHours, prevSatHours, totalHours, totalExtraHours,
-    totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
+    totalZaliczka, totalExtraCosts, totalManualAdjustment, grossPay, weekGross, prevSatGross, netPay, rateNum,
   } = calcWeekEmployee(safeEmp);
   const weekOnly = biweekly ? calcWeekNetNoPrevSat(safeEmp) : null;
   const deferCheck = payrollRow ? canDeferPayroll(safeEmp, payrollRow, directory, isClosedWeek) : { ok: false as const };
   const displayNet =
-    payrollRow?.leaveStatus
+    payrollRow?.carryForwardOut
       ? 0
-      : payrollRow?.carryForwardOut
-        ? 0
-        : payrollRow?.carryForwardIn
-          ? payrollRow.displayNetPay
-          : biweekly && biweeklyRow
-            ? biweeklyRow.isPayoutWeek
-              ? biweeklyRow.displayNet
-              : biweeklyRow.thisWeekNet
+      : payrollRow?.carryForwardIn
+        ? payrollRow.displayNetPay
+        : biweekly && biweeklyRow
+          ? biweeklyRow.isPayoutWeek
+            ? biweeklyRow.displayNet
+            : biweeklyRow.thisWeekNet
+          : payrollRow
+            ? payrollRow.displayNetPay
             : netPay;
+
+  const adj = safeEmp.payrollManualAdjustment;
+  const [adjAmountStr, setAdjAmountStr] = useState(
+    () => (adj && adj.amount > 0 ? String(adj.amount) : ""),
+  );
+  const [adjDesc, setAdjDesc] = useState(() => adj?.description ?? "");
+  const [adjKind, setAdjKind] = useState<PayrollManualAdjustmentKind>(() => adj?.kind ?? "vacation");
+
+  // Sync from emp when switching employee / remote update
+  const adjKey = `${safeEmp.id}|${adj?.updatedAt ?? ""}|${adj?.amount ?? 0}|${adj?.description ?? ""}|${adj?.kind ?? ""}`;
+  useEffect(() => {
+    setAdjAmountStr(adj && adj.amount > 0 ? String(adj.amount) : "");
+    setAdjDesc(adj?.description ?? "");
+    setAdjKind(adj?.kind ?? "vacation");
+  }, [adjKey]);
+
+  const flushManualAdjustment = useCallback((
+    amountStr: string,
+    description: string,
+    kind: PayrollManualAdjustmentKind,
+  ) => {
+    const amount = Math.max(0, parseFloat(amountStr) || 0);
+    if (!(amount > 0)) {
+      onPatchManualAdjustment(undefined);
+      return;
+    }
+    if (!description.trim()) return; // incomplete — wait for description
+    const next = normalizePayrollManualAdjustment({
+      amount,
+      description,
+      kind,
+      updatedAt: new Date().toISOString(),
+    });
+    onPatchManualAdjustment(next);
+  }, [onPatchManualAdjustment]);
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -183,6 +231,82 @@ export function WeekEmployeeDetail({
             ))}
           </div>
           <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">Sob. poprz. = sobota z poprzedniego tygodnia (płatna teraz). Bieżąca sobota = ostatni dzień tygodnia Pn–So.</p>
+        </div>
+
+        {/* Korekta wypłaty (manualPayrollAdjustment) — ≠ koszty do zwrotu */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div>
+              <p className="text-sm font-semibold">Korekta wypłaty</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Wynagrodzenie urlopowe / ręczna dopłata — niezależnie od godzin (nie mylić ze zwrotem kosztów)
+              </p>
+            </div>
+            {!locked && (adjAmountStr || adjDesc) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAdjAmountStr("");
+                  setAdjDesc("");
+                  onPatchManualAdjustment(undefined);
+                }}
+                className="text-[11px] px-2 py-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                Wyczyść
+              </button>
+            )}
+          </div>
+          <div className="px-4 py-3 space-y-2">
+            <div className="flex flex-wrap items-start gap-2">
+              <select
+                value={adjKind}
+                disabled={locked}
+                onChange={(e) => {
+                  const kind = e.target.value as PayrollManualAdjustmentKind;
+                  setAdjKind(kind);
+                  flushManualAdjustment(adjAmountStr, adjDesc, kind);
+                }}
+                className="bg-secondary rounded-lg px-2 py-2 text-sm border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
+              >
+                {MANUAL_ADJ_KIND_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Opis (wymagany przy kwocie > 0)"
+                value={adjDesc}
+                disabled={locked}
+                readOnly={locked}
+                onChange={(e) => {
+                  const description = e.target.value;
+                  setAdjDesc(description);
+                  flushManualAdjustment(adjAmountStr, description, adjKind);
+                }}
+                className="flex-1 min-w-[10rem] bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
+              />
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+                value={adjAmountStr}
+                disabled={locked}
+                readOnly={locked}
+                onChange={(e) => {
+                  const amountStr = e.target.value;
+                  setAdjAmountStr(amountStr);
+                  flushManualAdjustment(amountStr, adjDesc, adjKind);
+                }}
+                className="w-28 shrink-0 bg-secondary rounded-lg px-2 py-2 text-sm text-right border border-transparent focus:border-primary focus:outline-none disabled:opacity-60"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              />
+              <span className="text-xs text-muted-foreground pt-2.5 shrink-0">PLN</span>
+            </div>
+            {parseFloat(adjAmountStr) > 0 && !String(adjDesc).trim() && (
+              <p className="text-[11px] text-amber-400">Opis jest wymagany, aby zapisać korektę &gt; 0.</p>
+            )}
+          </div>
         </div>
 
         {/* Koszty do zwrotu */}
@@ -326,6 +450,13 @@ export function WeekEmployeeDetail({
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? grossPay)} PLN</span></div>
           {(weekOnly?.totalZaliczka ?? totalZaliczka)>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(weekOnly?.totalZaliczka ?? totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
+          {totalManualAdjustment>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Korekta wypłaty</span><span className="font-semibold text-violet-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalManualAdjustment)} PLN</span></div>}
+          {payrollRow?.leaveStatus && (
+            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
+              <span className="text-muted-foreground">Status nieobecności</span>
+              <span className="font-semibold text-violet-400">{payrollRow.leaveStatus}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
             <span className="text-sm font-semibold text-primary">
               {payrollRow?.carryForwardOut ? "Do wypłaty" : biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek ? "Ten tydzień (narasta)" : "Do wypłaty"}

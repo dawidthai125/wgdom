@@ -60,6 +60,8 @@ export interface DayData {
   extraHours?: DayExtraHour[];
   /** Notatki tekstowe (głównie Sob. poprz.) */
   notes?: DayNote[];
+  /** PAYROLL-DI-P0 — per-day mutation timestamp (ISO); LWW vs stale writers / richness. */
+  updatedAt?: string;
 }
 
 /** Dodatkowy blok godzin w danym dniu tygodnia */
@@ -91,6 +93,24 @@ export interface EmployeeExtraCost {
   submittedBy?: string;
 }
 
+/** Jawna korekta wypłaty (np. wynagrodzenie urlopowe) — ≠ extraCosts (zwrot wydatków). */
+export type PayrollManualAdjustmentKind =
+  | "vacation"
+  | "sick"
+  | "unpaid"
+  | "other"
+  | "correction";
+
+export interface PayrollManualAdjustment {
+  /** PLN; MVP tylko ≥ 0. Brak / 0 = brak korekty. */
+  amount: number;
+  /** Wymagany gdy amount > 0. */
+  description: string;
+  kind?: PayrollManualAdjustmentKind;
+  /** Osobny timestamp intent (NIE dataUpdatedAt). */
+  updatedAt: string;
+}
+
 /** Pracownik przypisany do konkretnego tygodnia — snapshot danych z kartoteki */
 export interface WeekEmployee {
   id: string;             // lokalny ID w ramach tygodnia
@@ -109,6 +129,8 @@ export interface WeekEmployee {
   /** Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu */
   prevSaturday?: DayData;
   extraCosts?: EmployeeExtraCost[];
+  /** Korekta wypłaty (urlopówka / ręczna) — osobny intent vs extraCosts. */
+  payrollManualAdjustment?: PayrollManualAdjustment;
   settled: boolean;
   /** Sprint 20.1A — jednorazowe przeniesienie wypłaty (zamrożona kwota) na następny tydzień. */
   payrollCarryForward?: import("@/lib/payroll-carry-forward").PayrollCarryForward;
@@ -121,6 +143,8 @@ export interface EmployeeSnapshot {
   name: string; position: string; rate: number;
   weekHours?: number; prevSatHours?: number;
   totalHours: number; grossPay: number; totalZaliczka: number; totalExtraCosts: number;
+  /** Zamrożona korekta wypłaty (amount > 0). */
+  totalManualAdjustment?: number;
   netPay: number;
   settled: boolean;
   /** Zamrożony przy zapisie tygodnia — nie zmienia się po dodaniu urlopów wstecz. */
@@ -849,6 +873,32 @@ export function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.sp
 export function getWeekRange() {
   return getPayrollWeekRange();
 }
+/** Kwota korekty wypłaty (MVP: tylko amount > 0). */
+export function manualAdjustmentAmount(emp: Pick<WeekEmployee, "payrollManualAdjustment"> | null | undefined): number {
+  const raw = emp?.payrollManualAdjustment?.amount;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) return 0;
+  return +raw.toFixed(2);
+}
+
+/** Normalizacja zapisu korekty — amount 0 / brak opisu przy >0 ⇒ brak pola. */
+export function normalizePayrollManualAdjustment(
+  next: PayrollManualAdjustment | null | undefined,
+): PayrollManualAdjustment | undefined {
+  if (!next) return undefined;
+  const amount = typeof next.amount === "number" && Number.isFinite(next.amount) ? +next.amount : 0;
+  if (!(amount > 0)) return undefined;
+  const description = String(next.description ?? "").trim();
+  if (!description) return undefined;
+  const kind = next.kind;
+  const updatedAt = String(next.updatedAt ?? "").trim() || new Date().toISOString();
+  return {
+    amount: +amount.toFixed(2),
+    description,
+    ...(kind ? { kind } : {}),
+    updatedAt,
+  };
+}
+
 export function calcWeekEmployee(emp: WeekEmployee) {
   const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
   const prevSatHours = +prevSatBaseHours(getPrevSaturday(emp)).toFixed(2);
@@ -858,16 +908,17 @@ export function calcWeekEmployee(emp: WeekEmployee) {
   const prevSatZaliczka = parseFloat(getPrevSaturday(emp).zaliczka) || 0;
   const totalZaliczka = weekZaliczka + prevSatZaliczka;
   const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);
+  const totalManualAdjustment = manualAdjustmentAmount(emp);
   const rateNum = parseFloat(emp.rate) || 0;
   const weekGross = +(weekHours * rateNum).toFixed(2);
   const prevSatGross = +(prevSatHours * rateNum).toFixed(2);
   const grossPay = +(weekGross + prevSatGross).toFixed(2);
   const weekNet = +(weekGross - weekZaliczka).toFixed(2);
   const prevSatNet = +(prevSatGross - prevSatZaliczka).toFixed(2);
-  const netPay = +(grossPay - totalZaliczka + totalExtraCosts).toFixed(2);
+  const netPay = +(grossPay - totalZaliczka + totalExtraCosts + totalManualAdjustment).toFixed(2);
   return {
     weekHours, prevSatHours, totalHours, totalExtraHours,
-    weekZaliczka, prevSatZaliczka, totalZaliczka, totalExtraCosts,
+    weekZaliczka, prevSatZaliczka, totalZaliczka, totalExtraCosts, totalManualAdjustment,
     weekGross, prevSatGross, grossPay, weekNet, prevSatNet, netPay, rateNum,
   };
 }
@@ -1876,8 +1927,12 @@ export function buildWeekSnapshot(
       leaveStatus = leave?.leaveType;
     }
     const grossPay = leaveStatus ? 0 : c.grossPay;
+    // Leave: labor = 0; approved extras + manual adjustment remain payable (zaliczki still subtract).
+    const leavePayable = +(
+      0 - c.totalZaliczka + c.totalExtraCosts + c.totalManualAdjustment
+    ).toFixed(2);
     const carryFields = leaveStatus
-      ? { netPay: 0 as number }
+      ? { netPay: leavePayable }
       : snapshotCarryFieldsForEmployee(emp, weekFrom, weekTo, c.netPay, false, savedWeeksForCarry);
     return {
       name: emp.name,
@@ -1889,7 +1944,8 @@ export function buildWeekSnapshot(
       grossPay,
       totalZaliczka: c.totalZaliczka,
       totalExtraCosts: c.totalExtraCosts,
-      netPay: leaveStatus ? 0 : carryFields.netPay,
+      ...(c.totalManualAdjustment > 0 ? { totalManualAdjustment: c.totalManualAdjustment } : {}),
+      netPay: leaveStatus ? leavePayable : carryFields.netPay,
       settled: emp.settled,
       ...(leaveStatus ? { leaveStatus } : {}),
       ...(carryFields.carryForwardOut != null ? { carryForwardOut: carryFields.carryForwardOut } : {}),

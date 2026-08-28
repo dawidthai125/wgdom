@@ -51,7 +51,7 @@ export function snapshotCarryFieldsForEmployee(
 > {
   void weekTo;
   if (leaveStatus) {
-    return { netPay: 0 };
+    return { netPay: baseNetPay };
   }
 
   if (emp.payrollCarryForward?.amount != null && emp.payrollCarryForward.amount > 0) {

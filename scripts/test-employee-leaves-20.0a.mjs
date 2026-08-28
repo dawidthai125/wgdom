@@ -71,8 +71,16 @@ emp.days.Pn = { ...defaultDay(), active: true, from: "07:00", to: "16:00" };
 const base = calcWeekEmployee(emp);
 assert(base.netPay > 0, "base net > 0");
 const overlaid = applyLeaveOverlayToCalc(base, "vacation");
-assert(overlaid.netPay === 0 && overlaid.grossPay === 0 && overlaid.leaveStatus === "vacation", "overlay zeros pay");
+assert(overlaid.netPay === 0 && overlaid.grossPay === 0 && overlaid.leaveStatus === "vacation", "overlay zeros labor (no extras/adj ⇒ net 0)");
 assert(base.netPay > 0, "original hours calc unchanged");
+
+// New contract: leave + manual adjustment remains payable
+const withAdj = {
+  ...emp,
+  payrollManualAdjustment: { amount: 1000, description: "urlop", kind: "vacation", updatedAt: "t" },
+};
+const overlaidAdj = applyLeaveOverlayToCalc(calcWeekEmployee(withAdj), "vacation");
+assert(overlaidAdj.grossPay === 0 && overlaidAdj.netPay === 1000 && overlaidAdj.leaveStatus === "vacation", "leave + adj ⇒ payable 1000");
 
 console.log("\n=== snapshot freeze ===");
 const leaves = [{ id: "l1", employeeId: "e1", leaveType: "vacation", weekStart: "2026-06-08", weekEnd: "2026-06-20", createdAt: "t", updatedAt: "t" }];

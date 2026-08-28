@@ -117,7 +117,8 @@ export function toPayrollCalcRows(
     const biweekly = !leaveStatus && !carryOut && !carryIn && isBiweeklyPayrollEmployee(r.emp, directory);
     const bw = biweekly ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks) : null;
     let netPay: number;
-    if (leaveStatus || carryOut) netPay = 0;
+    if (carryOut) netPay = 0;
+    else if (leaveStatus) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (carryIn) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (bw) netPay = bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet;
     else netPay = r.displayNetPay ?? r.netPay ?? 0;
@@ -135,7 +136,7 @@ export function toPayrollCalcRows(
       weekGross: r.weekGross,
       prevSatGross: biweekly ? 0 : r.prevSatGross,
       grossPay,
-      weekNet: leaveStatus || carryOut ? 0 : r.weekNet,
+      weekNet: leaveStatus ? r.weekNet : (carryOut ? 0 : r.weekNet),
       prevSatNet: biweekly ? 0 : r.prevSatNet,
       netPay,
       rateNum: r.rateNum,
@@ -143,7 +144,7 @@ export function toPayrollCalcRows(
       biweeklyPayoutWeek: bw?.isPayoutWeek,
       biweeklyAccruedOnly: bw?.accruedOnly,
       biweeklyNextPayout: bw?.nextPayoutDate,
-      biweeklyThisWeekNet: leaveStatus ? 0 : bw?.thisWeekNet,
+      biweeklyThisWeekNet: bw?.thisWeekNet,
       biweeklyPrevWeekNet: bw?.prevWeekNet,
       biweeklyPrevWeekLabel: bw ? `${fmtDate(bw.prevWeekFrom)}–${fmtDate(bw.prevWeekTo)}` : undefined,
       biweeklyDisplayNet: leaveStatus ? 0 : bw?.displayNet,
@@ -495,7 +496,7 @@ export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
-  onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
+  onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
   onUpdateWeekEmployeePrevSaturday, onUpdateWeekEmployeePayrollCarryForward, onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
@@ -526,6 +527,7 @@ export function PayrollView({
   onClearAllWeekEmployees?:()=>void;
   onReplaceWithAllActive?:()=>void;
   onUpdateWeekEmployeeExtraCosts:(empId:string, nextExtraCosts:WeekEmployee["extraCosts"])=>void;
+  onUpdateWeekEmployeeManualAdjustment:(empId:string, next:WeekEmployee["payrollManualAdjustment"])=>void;
   onUpdateWeekEmployeeDay:(empId:string, key:DayKey, next:DayData)=>void;
   onUpdateWeekEmployeeRate:(empId:string, rate:string)=>void;
   onUpdateWeekEmployeePrevSaturday:(empId:string, next:DayData)=>void;
@@ -1312,6 +1314,17 @@ export function PayrollView({
                             <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                               {(() => {
                                 if (r.leaveStatus) {
+                                  const pay = r.displayNetPay ?? r.netPay ?? 0;
+                                  if (Math.abs(pay) > 0.001) {
+                                    return (
+                                      <span title={leaveTypeDisplayLabel(r.leaveStatus)}>
+                                        {fmt(pay)}{" "}
+                                        <span className="text-[10px] font-normal text-violet-400/90">
+                                          {leaveTypeDisplayLabel(r.leaveStatus)}
+                                        </span>
+                                      </span>
+                                    );
+                                  }
                                   return <span className="text-violet-400">{leaveTypeDisplayLabel(r.leaveStatus)}</span>;
                                 }
                                 if (r.carryForwardOut != null && r.carryForwardOut > 0) {
@@ -1447,7 +1460,13 @@ export function PayrollView({
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Zaliczki</p><p className="text-sm font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?`−${fmt(r.totalZaliczka)}`:"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Koszty</p><p className="text-sm font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?`+${fmt(r.totalExtraCosts)}`:"—"}</p></div>
                           <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
-                                if (r.leaveStatus) return leaveTypeDisplayLabel(r.leaveStatus);
+                                if (r.leaveStatus) {
+                                  const pay = r.displayNetPay ?? r.netPay ?? 0;
+                                  if (Math.abs(pay) > 0.001) {
+                                    return `${fmt(pay)} (${leaveTypeDisplayLabel(r.leaveStatus)})`;
+                                  }
+                                  return leaveTypeDisplayLabel(r.leaveStatus);
+                                }
                                 if (r.carryForwardOut != null && r.carryForwardOut > 0) return CARRY_FORWARD_LABEL;
                                 if (r.carryForwardIn != null && r.carryForwardIn > 0) return `${fmt(r.displayNetPay)} (+${fmt(r.carryForwardIn)})`;
                                 const bw = biweeklyRowMap.get(r.emp.id);
@@ -1667,6 +1686,7 @@ export function PayrollView({
               onPatchRate={isClosedWeek ? () => {} : (rate) => onUpdateWeekEmployeeRate(selectedEmp.id, rate)}
               onPatchPrevSaturday={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeePrevSaturday(selectedEmp.id, next)}
               onPatchExtraCosts={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
+              onPatchManualAdjustment={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeManualAdjustment(selectedEmp.id, next)}
               onClose={()=>setSelectedEmpId(null)}
             />
           )}

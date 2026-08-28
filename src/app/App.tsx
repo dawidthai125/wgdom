@@ -125,6 +125,7 @@ import {
   todayIsoDate,
   todayFieldWorkStats,
   buildWeekSnapshot,
+  normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
 import { useAdminAccess } from "@/app/admin-access";
 import { syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
@@ -2027,6 +2028,35 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
+  /** Korekta wypłaty — własne updatedAt; NIE bump dataUpdatedAt. */
+  const updateWeekEmployeeManualAdjustment = useCallback((
+    empId: string,
+    nextAdj: WeekEmployee["payrollManualAdjustment"],
+  ) => {
+    runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeeManualAdjustment", () => {
+        setWeekEmployees((prev) => {
+          let changed = false;
+          const next = prev.map((e) => {
+            if (e.id !== empId) return e;
+            const normalized = nextAdj
+              ? normalizePayrollManualAdjustment(nextAdj)
+              : undefined;
+            if (JSON.stringify(e.payrollManualAdjustment ?? null) === JSON.stringify(normalized ?? null)) {
+              return e;
+            }
+            changed = true;
+            return { ...e, payrollManualAdjustment: normalized };
+          });
+          if (changed) {
+            if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+          }
+          return next;
+        });
+      });
+    });
+  }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
+
   /** ETAP 1 — godziny dnia: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeDay = useCallback((empId: string, key: DayKey, nextDay: DayData) => {
     runPayrollWeekEmployeeFieldEdit(() => {
@@ -2186,6 +2216,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
         if (!dataChanged) return e;
         return { ...e, extraCosts: nextExtraCosts, dataUpdatedAt: now };
+      });
+    });
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeeManualAdjustment = useCallback((
+    weekId: string,
+    empId: string,
+    nextAdj: WeekEmployee["payrollManualAdjustment"],
+  ) => {
+    patchArchiveWeek(weekId, (emps) => {
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        const normalized = nextAdj ? normalizePayrollManualAdjustment(nextAdj) : undefined;
+        if (JSON.stringify(e.payrollManualAdjustment ?? null) === JSON.stringify(normalized ?? null)) {
+          return e;
+        }
+        return { ...e, payrollManualAdjustment: normalized };
       });
     });
   }, [patchArchiveWeek]);
@@ -2963,6 +3010,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           replaceWeekWithAllActive={replaceWeekWithAllActive}
           updateWeekEmployee={updateWeekEmployee}
           updateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
+          updateWeekEmployeeManualAdjustment={updateWeekEmployeeManualAdjustment}
           updateWeekEmployeeDay={updateWeekEmployeeDay}
           updateWeekEmployeeRate={updateWeekEmployeeRate}
           updateWeekEmployeePrevSaturday={updateWeekEmployeePrevSaturday}
@@ -2983,6 +3031,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onArchiveDelete={(id) => { addDeletedArchiveId(id); setSavedWeeks((prev) => prev.filter((w) => w.id !== id)); }}
           updateArchiveWeekEmployee={updateArchiveWeekEmployee}
           updateArchiveWeekEmployeeExtraCosts={updateArchiveWeekEmployeeExtraCosts}
+          updateArchiveWeekEmployeeManualAdjustment={updateArchiveWeekEmployeeManualAdjustment}
           updateArchiveWeekEmployeeDay={updateArchiveWeekEmployeeDay}
           updateArchiveWeekEmployeeRate={updateArchiveWeekEmployeeRate}
           updateArchiveWeekEmployeePrevSaturday={updateArchiveWeekEmployeePrevSaturday}

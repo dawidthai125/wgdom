@@ -138,6 +138,30 @@ function applyFieldsOntoCloudEmp(
     next.extraCosts = cloneJson(cloudEmp.extraCosts ?? []);
   }
 
+  // --- Manual payroll adjustment (own updatedAt; never via dataUpdatedAt) ---
+  {
+    const beforeAdj = beforeEmp?.payrollManualAdjustment;
+    const afterAdj = afterEmp?.payrollManualAdjustment;
+    const cloudAdj = cloudEmp.payrollManualAdjustment;
+    const adjEdited =
+      !!beforeEmp
+      && !!afterEmp
+      && JSON.stringify(beforeAdj ?? null) !== JSON.stringify(afterAdj ?? null);
+    const beforeAmt = typeof beforeAdj?.amount === "number" ? beforeAdj.amount : 0;
+    const cloudAmt = typeof cloudAdj?.amount === "number" ? cloudAdj.amount : 0;
+    const baselineOk = Math.abs(beforeAmt - cloudAmt) < 0.001
+      && String(beforeAdj?.updatedAt ?? "") === String(cloudAdj?.updatedAt ?? "");
+    if (adjEdited && baselineOk) {
+      next.payrollManualAdjustment = afterAdj ? cloneJson(afterAdj) : undefined;
+      if (JSON.stringify(next.payrollManualAdjustment ?? null) !== JSON.stringify(cloudAdj ?? null)) {
+        changed = true;
+      }
+    } else {
+      next.payrollManualAdjustment = cloudAdj ? cloneJson(cloudAdj) : undefined;
+      if (adjEdited) changed = true;
+    }
+  }
+
   // --- Day slots / hours ---
   for (const slot of SLOTS) {
     const cloudH = slotHours(cloudEmp, slot);

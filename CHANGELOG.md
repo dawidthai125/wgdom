@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.122 — PAYROLL manualPayrollAdjustment / leave payable (2026-08-28)
+
+- `payrollManualAdjustment` na WeekEmployee (amount ≥ 0, description, kind, własne `updatedAt`)
+- Leave: labor = 0; approved `extraCosts` + korekta wchodzą do `displayNetPay` / totals / snapshot / export
+- UI: „Korekta wypłaty” w detalu pracownika (osobno od kosztów)
+- P2 field-intent dla adjustment; bez Edge
+- Test: `npx vite-node scripts/test-payroll-manual-adjustment.mjs`
+
 ## 2.66.121 — PAYROLL P2 field-level stale write (2026-08-28)
 
 - `applyPayrollFieldIntentsOntoCanonical` — hours UP+DOWN / rate / extraCosts / day slots vs cloud

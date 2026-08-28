@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.122",
+    label: "PAYROLL — korekta wypłaty / urlopówka",
+    items: [
+      {
+        type: "new",
+        text: "Lista płac: jawna „Korekta wypłaty” (payrollManualAdjustment) — wynagrodzenie urlopowe bez mylenia z kosztami. Urlop zeruje tylko labor; approved extraCosts + korekta wchodzą do „Do wypłaty”. Ochrona P2 field-intent. Test: test-payroll-manual-adjustment.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.121",
     label: "PAYROLL P2 — field-level stale write protection",
     items: [

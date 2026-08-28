@@ -281,6 +281,12 @@ export interface WeekEmpPayrollInput {
     extraHours?: { from: string; to: string }[];
   }>;
   extraCosts?: { amount: string; status?: string }[];
+  payrollManualAdjustment?: {
+    amount?: number;
+    description?: string;
+    kind?: string;
+    updatedAt?: string;
+  };
   prevSaturday?: {
     active: boolean;
     from: string;
@@ -307,6 +313,7 @@ function payrollRosterSemanticDigest(list: readonly WeekEmpPayrollInput[] | unde
       days: emp.days,
       prevSaturday: emp.prevSaturday ?? null,
       extraCosts: emp.extraCosts ?? [],
+      payrollManualAdjustment: emp.payrollManualAdjustment ?? null,
       settled: emp.settled === true,
       payrollCarryForward: emp.payrollCarryForward ?? null,
     })),
@@ -323,6 +330,7 @@ export interface WeekNetCalc {
   weekHours: number;
   totalZaliczka: number;
   totalExtraCosts: number;
+  totalManualAdjustment: number;
   grossPay: number;
   netPay: number;
   rateNum: number;
@@ -382,6 +390,12 @@ function approvedExtraCostAmount(c: { amount: string; status?: string }): number
   return parseFloat(c.amount) || 0;
 }
 
+function manualAdjustmentAmountFromEmp(emp: WeekEmpPayrollInput): number {
+  const raw = (emp as { payrollManualAdjustment?: { amount?: number } }).payrollManualAdjustment?.amount;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) return 0;
+  return +raw.toFixed(2);
+}
+
 export function normalizeEmpName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -391,10 +405,11 @@ export function calcWeekNetNoPrevSat(emp: WeekEmpPayrollInput): WeekNetCalc {
   const weekHours = +(DAY_KEYS.reduce((s, d) => s + dayTotalHours(emp.days[d] ?? { active: false, from: "07:00", to: "16:00", zaliczka: "" }), 0)).toFixed(2);
   const totalZaliczka = DAY_KEYS.reduce((s, d) => s + (parseFloat(emp.days[d]?.zaliczka ?? "") || 0), 0);
   const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);
+  const totalManualAdjustment = manualAdjustmentAmountFromEmp(emp);
   const rateNum = parseFloat(emp.rate) || 0;
   const grossPay = +(weekHours * rateNum).toFixed(2);
-  const netPay = +(grossPay - totalZaliczka + totalExtraCosts).toFixed(2);
-  return { weekHours, totalZaliczka, totalExtraCosts, grossPay, netPay, rateNum };
+  const netPay = +(grossPay - totalZaliczka + totalExtraCosts + totalManualAdjustment).toFixed(2);
+  return { weekHours, totalZaliczka, totalExtraCosts, totalManualAdjustment, grossPay, netPay, rateNum };
 }
 
 export function directoryEmployeeForRef(

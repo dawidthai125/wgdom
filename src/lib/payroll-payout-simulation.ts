@@ -77,7 +77,8 @@ function rowNetContribution(
   r: PayrollSimulationRow,
   biweeklyRowMap: Map<string, BiweeklyRowDisplay>,
 ): number {
-  if (r.leaveStatus || (r.carryForwardOut != null && r.carryForwardOut > 0)) return 0;
+  // Leave no longer forces 0 — displayNetPay already holds payable (extras + manual adj).
+  if (r.carryForwardOut != null && r.carryForwardOut > 0) return 0;
   if (r.carryForwardIn != null && r.carryForwardIn > 0) return r.displayNetPay;
   const bw = biweeklyRowMap.get(r.emp.id);
   if (bw) return bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet;

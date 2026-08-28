@@ -83,6 +83,7 @@ export function ArchiveView({
   savedWeeks,
   onDelete,
   onUpdateWeekEmployeeExtraCosts,
+  onUpdateWeekEmployeeManualAdjustment,
   onUpdateWeekEmployeeDay,
   onUpdateWeekEmployeeRate,
   onUpdateWeekEmployeePrevSaturday,
@@ -94,6 +95,7 @@ export function ArchiveView({
   savedWeeks: WeekSnapshot[];
   onDelete: (id: string) => void;
   onUpdateWeekEmployeeExtraCosts: (weekId: string, empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
+  onUpdateWeekEmployeeManualAdjustment: (weekId: string, empId: string, next: WeekEmployee["payrollManualAdjustment"]) => void;
   onUpdateWeekEmployeeDay: (weekId: string, empId: string, key: DayKey, next: DayData) => void;
   onUpdateWeekEmployeeRate: (weekId: string, empId: string, rate: string) => void;
   onUpdateWeekEmployeePrevSaturday: (weekId: string, empId: string, next: DayData) => void;
@@ -608,6 +610,7 @@ export function ArchiveView({
                       onPatchRate={(rate) => onUpdateWeekEmployeeRate(week.id, editEmp.id, rate)}
                       onPatchPrevSaturday={(next) => onUpdateWeekEmployeePrevSaturday(week.id, editEmp.id, next)}
                       onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(week.id, editEmp.id, next)}
+                      onPatchManualAdjustment={(next) => onUpdateWeekEmployeeManualAdjustment(week.id, editEmp.id, next)}
                       onClose={() => setEditContext(null)}
                     />
                   </div>
