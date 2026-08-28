@@ -17,6 +17,8 @@ import {
   reconcileTombstonesWithRoster,
   removeDeletedWeekEmployeeKeysForWeek,
   saveDeletedWeekEmployeeKeys,
+  deletedWeekEmployeeMergeKeySet,
+  filterDeletedWeekEmployees,
   type PushWeekEmployeesOptions,
 } from "@/lib/cloud-sync";
 import {
@@ -104,7 +106,10 @@ export async function pwrAdd(params: {
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
     try {
-      await pushWeekEmployeesToCloud(next, resolved);
+      await pushWeekEmployeesToCloud(next, {
+        ...resolved,
+        rosterBefore: params.currentRoster,
+      });
       return { roster: next, tombstones, changed: true, pushed: true };
     } catch {
       return { roster: next, tombstones, changed: true, pushed: false };
@@ -143,7 +148,10 @@ export async function pwrRemove(params: {
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
     try {
-      await pushWeekEmployeesToCloud(next, resolved);
+      await pushWeekEmployeesToCloud(next, {
+        ...resolved,
+        rosterBefore: params.currentRoster,
+      });
       return { roster: next, tombstones, changed: true, pushed: true };
     } catch {
       return { roster: next, tombstones, changed: true, pushed: false };
@@ -184,7 +192,10 @@ export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
 
     for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
       try {
-        await pushWeekEmployeesToCloud(roster, resolved);
+        roster = await pushWeekEmployeesToCloud(roster, {
+          ...resolved,
+          rosterBefore: intentBefore,
+        });
         return { roster, rebased: attempt > 0 };
       } catch (e) {
         if (!(e instanceof PayrollStaleRevisionError)) throw e;
@@ -212,6 +223,13 @@ export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
         roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
           ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
           : rebasePayrollRosterIntent(canonical, intentBefore, intentAfter);
+        // P1 — drop tombstoned identities after rebase (stale ADD vs DELETE tomb).
+        const tombKeys = deletedWeekEmployeeMergeKeySet(
+          getDeletedWeekEmployeeKeys(),
+          params.weekFrom,
+          params.weekTo,
+        );
+        roster = filterDeletedWeekEmployees(roster, tombKeys) as WeekEmployee[];
       }
     }
     throw new PayrollStaleRevisionError(

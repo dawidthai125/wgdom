@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.120 — PAYROLL P1 stale cross-device write (2026-08-28)
+
+- `sanitizeStaleRosterMembership` — cloud-absent tylko przy prawdziwym ADD (`!rosterBefore`)
+- `rebasePayrollRosterIntent` — brak resurrection przez edycję osoby usuniętej na innym device
+- Guard FE: membership sanitize (+ tombstone filter); bez zmian Edge UNION/I-1/I-2
+- Test: `npx vite-node scripts/test-payroll-p1-stale-cross-device.mjs`
+
 ## 2.66.119 — PAYROLL DELETE P0 FIFO mutacji składu (2026-08-28)
 
 - `enqueueKwWeekEmployeesWrite` — Promise FIFO dla zapisów `kw-week-employees`

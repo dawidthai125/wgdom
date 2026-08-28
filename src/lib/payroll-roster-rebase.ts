@@ -72,6 +72,12 @@ export function rebasePayrollExtraCostsIntent(
 /**
  * Apply fields user changed (before→after) onto canonical roster from server.
  * Unchanged employees stay canonical; changed employees merge intent via SSOT.
+ *
+ * P1 — stale membership: a person absent from canonical is re-added ONLY when
+ * they are absent from `before` (true ADD / legal RE-ADD intent).
+ * If they were already in `before` and missing from canonical, remote DELETE
+ * won — field edits must NOT resurrect them (`if (!b) out.push(a)` alone was
+ * insufficient; the old empChanged branch resurrected edited ghosts).
  */
 export function rebasePayrollRosterIntent(
   canonical: WeekEmployee[],
@@ -80,7 +86,6 @@ export function rebasePayrollRosterIntent(
 ): WeekEmployee[] {
   const beforeById = new Map(before.map((e) => [e.id, e]));
   const afterById = new Map(after.map((e) => [e.id, e]));
-  const canonicalById = new Map(canonical.map((e) => [e.id, e]));
 
   const out: WeekEmployee[] = [];
   const seen = new Set<string>();
@@ -101,18 +106,18 @@ export function rebasePayrollRosterIntent(
     if (seen.has(a.id)) continue;
     const b = beforeById.get(a.id);
     if (!b) {
-      out.push(a);
-      continue;
-    }
-    if (empChanged(b, a)) {
-      const existing = [...out].find((e) => weekEmployeesSamePerson(e, a));
+      // True ADD intent (or RE-ADD after local revoke). Caller may still
+      // filter tombstones before push.
+      const existing = out.find((e) => weekEmployeesSamePerson(e, a));
       if (existing) {
         const idx = out.indexOf(existing);
         out[idx] = mergeWeekEmployeeRecord(existing, a) as WeekEmployee;
       } else {
         out.push(a);
       }
+      continue;
     }
+    // In before+after, absent from canonical → do not resurrect.
   }
 
   return out;

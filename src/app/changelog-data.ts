@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.120",
+    label: "PAYROLL P1 — ochrona przed stale write cross-device",
+    items: [
+      {
+        type: "fix",
+        text: "P1: stale roster nie wraca jako „ADD” — sanitize membership vs cloud + rosterBefore; rebase nie resurrectuje osoby usuniętej na innym urządzeniu (tylko prawdziwy ADD !before). Tombstone + legal RE-ADD bez zmian Edge. Test: test-payroll-p1-stale-cross-device.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.119",
     label: "PAYROLL DELETE P0 — FIFO mutacji składu",
     items: [

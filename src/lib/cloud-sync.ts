@@ -7,6 +7,8 @@ import {
   sanitizeRosterHoursToAuthorizedIntents,
   type PayrollScopedHoursIntent,
 } from "./payroll-hours-intent.ts";
+import { sanitizeStaleRosterMembership } from "./payroll-stale-roster-membership.ts";
+import type { WeekEmployee } from "@/app/app-domain";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
   evaluatePayrollResurrectionFence,
@@ -1533,6 +1535,10 @@ export type PushKeysToCloudOptions = {
    * Domain PWRB still sets true; guard ignores it for hours authorization.
    */
   payrollDomainUserWrite?: boolean;
+  /**
+   * P1 — roster before this mutation (membership intent for stale sanitize).
+   */
+  rosterBefore?: WeekEmployee[];
 };
 
 export type PushWeekEmployeesOptions = {
@@ -1544,6 +1550,12 @@ export type PushWeekEmployeesOptions = {
   intentionalHoursClear?: boolean;
   /** P0 — scoped hours mutation intents. */
   hoursIntents?: PayrollScopedHoursIntent[];
+  /**
+   * P1 — roster snapshot before this mutation (membership intent).
+   * Required for stale-membership sanitize: cloud-absent employees kept only
+   * when absent from rosterBefore (true ADD / legal RE-ADD).
+   */
+  rosterBefore?: WeekEmployee[];
 };
 
 async function applyPayrollGuardBeforePush(
@@ -1636,6 +1648,39 @@ async function applyPayrollGuardBeforePush(
     });
     nextValues[empIdx] = sanitized;
     outgoing = sanitized;
+  }
+
+  // P1 — stale membership: cloud-absent employees only if intentional ADD (not in rosterBefore).
+  // Tombstones for current week always drop (legal RE-ADD must revoke first).
+  // Skip on rollover (new-week seed) — membership baseline is cross-week.
+  if (opts.payrollWeekRolloverPush !== true) {
+    const tombstoned = deletedWeekEmployeeMergeKeySet(
+      getDeletedWeekEmployeeKeys(),
+      weekFrom,
+      weekTo,
+    );
+    const membership = sanitizeStaleRosterMembership(
+      cloudEmps,
+      outgoing,
+      opts.rosterBefore,
+      tombstoned,
+    );
+    if (membership.changed) {
+      console.warn("[PAYROLL-GUARD] sanitized stale roster membership vs cloud", {
+        droppedCount: membership.dropped.length,
+        droppedIds: membership.dropped.map((e) => e.id),
+        cloud: payrollMetrics(cloudEmps),
+        before: payrollMetrics(outgoing),
+        after: payrollMetrics(membership.roster),
+      });
+      payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+        blocked: false,
+        skipReason: "stale_membership_sanitized" as const,
+        droppedCount: membership.dropped.length,
+      });
+      nextValues[empIdx] = membership.roster;
+      outgoing = membership.roster;
+    }
   }
 
   // Legacy >50% catastrophe guard — still applies after sanitize.
@@ -3481,12 +3526,12 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<unknown[]> 
 export async function pushWeekEmployeesToCloud(
   weekEmployees: unknown[],
   options?: PushWeekEmployeesOptions,
-): Promise<void> {
+): Promise<WeekEmployee[]> {
   if (!isSupabaseConfigured() || !API_BASE) {
     payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
       skipReason: !isSupabaseConfigured() ? "no_supabase" as const : "no_api_base" as const,
     });
-    return;
+    return normalizeArrayValue(weekEmployees) as WeekEmployee[];
   }
   const pushTraceId = payrollTraceCreatePushTraceId();
   const { weekFrom, weekTo } = traceWeekRangeFromLs();
@@ -3495,7 +3540,33 @@ export async function pushWeekEmployeesToCloud(
     pushTraceId,
     beforeCount: beforeCollapse.length,
   });
-  const normalized = collapseWeekEmployeesByIdentity(beforeCollapse);
+  let normalized = collapseWeekEmployeesByIdentity(beforeCollapse) as WeekEmployee[];
+
+  // P1 — membership sanitize before LS write (same rule as guard; idempotent).
+  try {
+    const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+    const tombstoned = deletedWeekEmployeeMergeKeySet(
+      getDeletedWeekEmployeeKeys(),
+      weekFrom,
+      weekTo,
+    );
+    const membership = sanitizeStaleRosterMembership(
+      cloudEmps,
+      normalized,
+      options?.rosterBefore,
+      tombstoned,
+    );
+    if (membership.changed) {
+      payrollTraceEmit("payroll.roster.push.sanitize_membership", "PUSH", "warn", {
+        pushTraceId,
+        droppedCount: membership.dropped.length,
+      });
+      normalized = membership.roster;
+    }
+  } catch {
+    /* guard fail-closed on push if cloud unreachable */
+  }
+
   const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
   // D-F3 — block historical residual under current week keys (allow intentional empty clear).
   if (options?.intentionalHoursClear !== true) {
@@ -3517,7 +3588,7 @@ export async function pushWeekEmployeesToCloud(
         weekFrom,
         weekTo,
       });
-      return;
+      return normalized;
     }
   }
   payrollTraceEmit("payroll.roster.push.start", "PUSH", "info", {
@@ -3551,6 +3622,8 @@ export async function pushWeekEmployeesToCloud(
         hoursIntents: Array.isArray(options?.hoursIntents) ? options.hoursIntents : undefined,
         /** @deprecated telemetry — does not authorize hours-down */
         payrollDomainUserWrite: true,
+        /** P1 — membership intent baseline */
+        rosterBefore: Array.isArray(options?.rosterBefore) ? options.rosterBefore : undefined,
       },
     );
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
@@ -3561,6 +3634,7 @@ export async function pushWeekEmployeesToCloud(
     });
     throw e;
   }
+  return normalized;
 }
 
 /** Atomowy push po rolloverze — nowy tydzień + archiwum starego (Sprint 20.1C.1). */
