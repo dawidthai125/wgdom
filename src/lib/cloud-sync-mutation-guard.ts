@@ -1,6 +1,10 @@
 /**
  * Koordynacja auto-sync (pull / merge / push) podczas lokalnych mutacji KV.
  * PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0 — bez stanu biznesowego (#011).
+ *
+ * PAYROLL DELETE P0 — FIFO Promise chain dla zapisów kw-week-employees
+ * (`enqueueKwWeekEmployeesWrite`). `isBlocked()` nadal tylko tłumi auto-pull —
+ * nie jest kolejką mutacji.
  */
 
 import { payrollTraceEmit } from "@/lib/payroll-runtime-trace";
@@ -23,6 +27,15 @@ let suppressUntil = 0;
 /** token → scope */
 const activeTokens = new Map<MutationToken, CloudSyncScope>();
 const endedTokens = new Set<MutationToken>();
+
+/**
+ * FIFO write chain for kw-week-employees mutations (pwrPush / pwrRemove / …).
+ * Independent of `isBlocked()` auto-pull suppress.
+ */
+let kwWeekEmployeesWriteChain: Promise<unknown> = Promise.resolve();
+/** >0 while executing an enqueued write slot (re-entrancy → run inline). */
+let kwWeekEmployeesWriteDepth = 0;
+let kwWeekEmployeesWritePending = 0;
 
 function defaultSuppressMs(scope: CloudSyncScope): number {
   if (scope === "kw-jobs") return KW_JOBS_DEFAULT_SUPPRESS_MS;
@@ -79,6 +92,9 @@ function reset(): void {
   activeTokens.clear();
   endedTokens.clear();
   suppressUntil = 0;
+  kwWeekEmployeesWriteChain = Promise.resolve();
+  kwWeekEmployeesWriteDepth = 0;
+  kwWeekEmployeesWritePending = 0;
 }
 
 /** Ms do odblokowania guarda (0 = już wolno). */
@@ -89,6 +105,53 @@ function msUntilUnblocked(): number {
     return Math.max(suppressRemain, 50);
   }
   return suppressRemain;
+}
+
+/**
+ * FIFO serialize async writes to kw-week-employees.
+ * Nested calls (e.g. withKw… → pwrPush) run inline in the same slot — no deadlock.
+ * Rejection of one job does not stick the chain (finally advances).
+ */
+export async function enqueueKwWeekEmployeesWrite<T>(fn: () => Promise<T>): Promise<T> {
+  if (kwWeekEmployeesWriteDepth > 0) {
+    return fn();
+  }
+
+  kwWeekEmployeesWritePending += 1;
+  const run = kwWeekEmployeesWriteChain.then(async () => {
+    kwWeekEmployeesWriteDepth += 1;
+    const token = begin("kw-week-employees");
+    try {
+      payrollTraceEmit("payroll.guard.write_queue.run", "GUARD", "debug", {
+        pending: kwWeekEmployeesWritePending,
+        depth: kwWeekEmployeesWriteDepth,
+      });
+      return await fn();
+    } finally {
+      end(token);
+      kwWeekEmployeesWriteDepth = Math.max(0, kwWeekEmployeesWriteDepth - 1);
+      kwWeekEmployeesWritePending = Math.max(0, kwWeekEmployeesWritePending - 1);
+    }
+  });
+
+  // Keep chain alive after settle (success or failure) so the next job always runs.
+  kwWeekEmployeesWriteChain = run.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  return run;
+}
+
+/** @internal test/diag — queue counters (not a substitute for isBlocked). */
+export function getKwWeekEmployeesWriteQueueState(): {
+  depth: number;
+  pending: number;
+} {
+  return {
+    depth: kwWeekEmployeesWriteDepth,
+    pending: kwWeekEmployeesWritePending,
+  };
 }
 
 /** Opakowuje mutację workEntries w scope kw-jobs (#004). */
@@ -111,14 +174,12 @@ export function withKwWeekEmployeesMutation<T>(fn: () => T): T {
   }
 }
 
-/** Async push składu — begin/end w finally po zakończeniu Promise (R1/R2). */
+/**
+ * Async mutation of week roster — FIFO write queue + begin/end suppress for auto-pull.
+ * Critical section spans the full awaited fn (push / rebase / retry).
+ */
 export async function withKwWeekEmployeesAsyncMutation(fn: () => Promise<void>): Promise<void> {
-  const token = begin("kw-week-employees");
-  try {
-    await fn();
-  } finally {
-    end(token);
-  }
+  await enqueueKwWeekEmployeesWrite(fn);
 }
 
 export const cloudSyncMutationGuard = {
@@ -129,4 +190,6 @@ export const cloudSyncMutationGuard = {
   reset,
   clearAll: reset,
   msUntilUnblocked,
+  enqueueKwWeekEmployeesWrite,
+  getKwWeekEmployeesWriteQueueState,
 };

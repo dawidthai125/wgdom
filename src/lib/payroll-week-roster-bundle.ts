@@ -41,6 +41,7 @@ import {
   resolvePayrollDomainPushOptions,
 } from "@/lib/payroll-hours-collapse-gate";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
+import { enqueueKwWeekEmployeesWrite } from "@/lib/cloud-sync-mutation-guard";
 
 export {
   bindPayrollDomainPushHandler,
@@ -78,35 +79,37 @@ export async function pwrAdd(params: {
   currentRoster: WeekEmployee[];
   options?: PushWeekEmployeesOptions;
 }): Promise<PwrMutationResult> {
-  const toAdd = filterDirectoryForPayrollWeekAdd(params.directory, params.directoryIds, params.currentRoster);
-  if (toAdd.length === 0) {
-    return {
-      roster: params.currentRoster,
-      tombstones: getDeletedWeekEmployeeKeys(),
-      changed: false,
-      pushed: false,
-    };
-  }
-  const newEmps = toAdd.map(weekEmployeeFromDir);
-  const next = [...params.currentRoster, ...newEmps];
-  removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
-  const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
-  const resolved = resolvePayrollDomainPushOptions(params.options);
-  emitPayrollWritePathTelemetry({
-    source: "pwrAdd",
-    weekFrom: params.weekFrom,
-    weekTo: params.weekTo,
-    rosterBefore: params.currentRoster,
-    rosterAfter: next,
-    intentionalHoursClear: resolved.intentionalHoursClear,
-    skipPayrollGuard: resolved.skipPayrollGuard,
+  return enqueueKwWeekEmployeesWrite(async () => {
+    const toAdd = filterDirectoryForPayrollWeekAdd(params.directory, params.directoryIds, params.currentRoster);
+    if (toAdd.length === 0) {
+      return {
+        roster: params.currentRoster,
+        tombstones: getDeletedWeekEmployeeKeys(),
+        changed: false,
+        pushed: false,
+      };
+    }
+    const newEmps = toAdd.map(weekEmployeeFromDir);
+    const next = [...params.currentRoster, ...newEmps];
+    removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
+    const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+    const resolved = resolvePayrollDomainPushOptions(params.options);
+    emitPayrollWritePathTelemetry({
+      source: "pwrAdd",
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      rosterBefore: params.currentRoster,
+      rosterAfter: next,
+      intentionalHoursClear: resolved.intentionalHoursClear,
+      skipPayrollGuard: resolved.skipPayrollGuard,
+    });
+    try {
+      await pushWeekEmployeesToCloud(next, resolved);
+      return { roster: next, tombstones, changed: true, pushed: true };
+    } catch {
+      return { roster: next, tombstones, changed: true, pushed: false };
+    }
   });
-  try {
-    await pushWeekEmployeesToCloud(next, resolved);
-    return { roster: next, tombstones, changed: true, pushed: true };
-  } catch {
-    return { roster: next, tombstones, changed: true, pushed: false };
-  }
 }
 
 export async function pwrRemove(params: {
@@ -116,34 +119,36 @@ export async function pwrRemove(params: {
   currentRoster: WeekEmployee[];
   options?: PushWeekEmployeesOptions;
 }): Promise<PwrMutationResult> {
-  const removed = params.currentRoster.find((e) => e.id === params.employeeId);
-  if (!removed) {
-    return {
-      roster: params.currentRoster,
-      tombstones: getDeletedWeekEmployeeKeys(),
-      changed: false,
-      pushed: false,
-    };
-  }
-  const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
-  addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
-  const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
-  const resolved = resolvePayrollDomainPushOptions(params.options);
-  emitPayrollWritePathTelemetry({
-    source: "pwrRemove",
-    weekFrom: params.weekFrom,
-    weekTo: params.weekTo,
-    rosterBefore: params.currentRoster,
-    rosterAfter: next,
-    intentionalHoursClear: resolved.intentionalHoursClear,
-    skipPayrollGuard: resolved.skipPayrollGuard,
+  return enqueueKwWeekEmployeesWrite(async () => {
+    const removed = params.currentRoster.find((e) => e.id === params.employeeId);
+    if (!removed) {
+      return {
+        roster: params.currentRoster,
+        tombstones: getDeletedWeekEmployeeKeys(),
+        changed: false,
+        pushed: false,
+      };
+    }
+    const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
+    addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
+    const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+    const resolved = resolvePayrollDomainPushOptions(params.options);
+    emitPayrollWritePathTelemetry({
+      source: "pwrRemove",
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      rosterBefore: params.currentRoster,
+      rosterAfter: next,
+      intentionalHoursClear: resolved.intentionalHoursClear,
+      skipPayrollGuard: resolved.skipPayrollGuard,
+    });
+    try {
+      await pushWeekEmployeesToCloud(next, resolved);
+      return { roster: next, tombstones, changed: true, pushed: true };
+    } catch {
+      return { roster: next, tombstones, changed: true, pushed: false };
+    }
   });
-  try {
-    await pushWeekEmployeesToCloud(next, resolved);
-    return { roster: next, tombstones, changed: true, pushed: true };
-  } catch {
-    return { roster: next, tombstones, changed: true, pushed: false };
-  }
 }
 
 export type PwrPushResult = {
@@ -154,66 +159,68 @@ export type PwrPushResult = {
 const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
 
 export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
-  if (params.revokeIdentities?.length) {
-    removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
-  }
-  reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);
-  const resolved = resolvePayrollDomainPushOptions(params.options);
-  if (params.rosterBefore) {
-    assertHoursCollapseAllowedOrThrow(params.rosterBefore, params.roster, resolved);
-  }
-  emitPayrollWritePathTelemetry({
-    source: "pwrPush",
-    weekFrom: params.weekFrom,
-    weekTo: params.weekTo,
-    rosterBefore: params.rosterBefore,
-    rosterAfter: params.roster,
-    intentionalHoursClear: resolved.intentionalHoursClear,
-    skipPayrollGuard: resolved.skipPayrollGuard,
-  });
-
-  const intentBefore = params.rosterBefore ?? params.roster;
-  const intentAfter = params.roster;
-  let roster = params.roster;
-
-  for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
-    try {
-      await pushWeekEmployeesToCloud(roster, resolved);
-      return { roster, rebased: attempt > 0 };
-    } catch (e) {
-      if (!(e instanceof PayrollStaleRevisionError)) throw e;
-      writePayrollWeekMetaToLs(
-        normalizePayrollWeekMeta(
-          {
-            rosterRevision: e.serverRevision,
-            weekFrom: params.weekFrom,
-            weekTo: params.weekTo,
-            updatedAt: Date.now(),
-          },
-          params.weekFrom,
-          params.weekTo,
-        ),
-      );
-      let canonical = (e.roster ?? []) as WeekEmployee[];
-      if (canonical.length === 0) {
-        try {
-          const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
-          canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
-        } catch {
-          throw e;
-        }
-      }
-      roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
-        ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
-        : rebasePayrollRosterIntent(canonical, intentBefore, intentAfter);
+  return enqueueKwWeekEmployeesWrite(async () => {
+    if (params.revokeIdentities?.length) {
+      removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
     }
-  }
-  throw new PayrollStaleRevisionError(
-    "stale_revision",
-    getExpectedPayrollRevision(),
-    undefined,
-    "Payroll sync conflict — odśwież listę płac",
-  );
+    reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);
+    const resolved = resolvePayrollDomainPushOptions(params.options);
+    if (params.rosterBefore) {
+      assertHoursCollapseAllowedOrThrow(params.rosterBefore, params.roster, resolved);
+    }
+    emitPayrollWritePathTelemetry({
+      source: "pwrPush",
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      rosterBefore: params.rosterBefore,
+      rosterAfter: params.roster,
+      intentionalHoursClear: resolved.intentionalHoursClear,
+      skipPayrollGuard: resolved.skipPayrollGuard,
+    });
+
+    const intentBefore = params.rosterBefore ?? params.roster;
+    const intentAfter = params.roster;
+    let roster = params.roster;
+
+    for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
+      try {
+        await pushWeekEmployeesToCloud(roster, resolved);
+        return { roster, rebased: attempt > 0 };
+      } catch (e) {
+        if (!(e instanceof PayrollStaleRevisionError)) throw e;
+        writePayrollWeekMetaToLs(
+          normalizePayrollWeekMeta(
+            {
+              rosterRevision: e.serverRevision,
+              weekFrom: params.weekFrom,
+              weekTo: params.weekTo,
+              updatedAt: Date.now(),
+            },
+            params.weekFrom,
+            params.weekTo,
+          ),
+        );
+        let canonical = (e.roster ?? []) as WeekEmployee[];
+        if (canonical.length === 0) {
+          try {
+            const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+            canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
+          } catch {
+            throw e;
+          }
+        }
+        roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
+          ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
+          : rebasePayrollRosterIntent(canonical, intentBefore, intentAfter);
+      }
+    }
+    throw new PayrollStaleRevisionError(
+      "stale_revision",
+      getExpectedPayrollRevision(),
+      undefined,
+      "Payroll sync conflict — odśwież listę płac",
+    );
+  });
 }
 
 export async function pwrPullMerge(params: {

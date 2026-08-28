@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.119 — PAYROLL DELETE P0 FIFO mutacji składu (2026-08-28)
+
+- `enqueueKwWeekEmployeesWrite` — Promise FIFO dla zapisów `kw-week-employees`
+- `pwrPush` / `pwrRemove` / `pwrAdd` + `withKwWeekEmployeesAsyncMutation` w kolejce
+- `isBlocked()` bez zmian (auto-pull suppress ≠ kolejka)
+- Bez zmian Edge UNION / I-1 / I-2 / hours-down intent
+- Test: `npx vite-node scripts/test-payroll-delete-fifo-p0.mjs`
+
 ## 2.66.118 — PAYROLL P0 scoped hours-down intent (2026-08-28)
 
 - Intent: `hoursIntents[]` (employee + slot + fromHours/toHours) weryfikowane vs cloud baseline

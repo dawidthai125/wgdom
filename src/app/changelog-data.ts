@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.119",
+    label: "PAYROLL DELETE P0 — FIFO mutacji składu",
+    items: [
+      {
+        type: "fix",
+        text: "P0: mutacje kw-week-employees (pwrPush/pwrRemove/pwrAdd + withKwWeekEmployeesAsyncMutation) serializowane FIFO — ADD i REMOVE nie lecą równolegle; stale ADD nie przywraca osoby po Usuń. isBlocked() bez zmian (tylko auto-pull). Test: test-payroll-delete-fifo-p0.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.118",
     label: "PAYROLL P0 — scoped hours-down intent contract",
     items: [
