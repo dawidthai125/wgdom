@@ -90,12 +90,22 @@ import { IkOrchestraPageBridge } from "@/app/intelligent-estimator/IkOrchestraPa
 import { IkP9OwnerVerifyMarker } from "@/app/intelligent-estimator/IkP9OwnerVerifyMarker";
 import { isIkP9TargetTender } from "@/lib/intelligent-estimator/ik-p9-owner-verify";
 import { resolveTenderBidProposalForUi } from "@/lib/intelligent-estimator/resolve-tender-bid-proposal-ui";
+import { resolveChiefOfferPresentation } from "@/lib/intelligent-estimator/p7-t5-offer-adapter";
 import { buildAnalysisObservation } from "@/lib/intelligent-estimator/analysis-observation";
 import {
   buildIkAnalysisHandoffViewModel,
   fingerprintIkAnalysisHandoffInput,
 } from "@/lib/intelligent-estimator/ik-analysis-handoff-ui";
 import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
+import {
+  chiefSessionDelegatesIkToOrchestra,
+  resolveW3ChiefOrchestraConnect,
+} from "@/lib/intelligent-estimator/orchestra/chief-start-orchestra-connect";
+import {
+  resolveHubAcceptRefreshPhaseKind,
+  shouldPreferOrchestraRefreshPhase,
+  type HubPricingAcceptedMeta,
+} from "@/lib/intelligent-estimator/orchestra/orchestra-refresh-phase";
 import type { IkOwnerActionItem } from "@/lib/intelligent-estimator/orchestra/ik-owner-action-queue";
 import {
   focusIkOwnerActionTarget,
@@ -345,11 +355,55 @@ export function TenderDetailPage({
     pricingReadyPartial: pipelineRuntime.pricingReadyPartial,
     pricingReadyFinal: pipelineRuntime.pricingReadyFinal,
     refreshNonce: chiefRefreshNonce,
+    // W3 CONNECT — under IK entry, Chief.start delegates IK sequencing to Orchestra.
+    delegateIkSequencingToOrchestra: ikEntryOn,
   });
+  const w3ChiefOrchestraConnect = useMemo(
+    () =>
+      resolveW3ChiefOrchestraConnect({
+        ikEntryOn,
+        chiefStartDelegatedToOrchestra: chiefSessionDelegatesIkToOrchestra(chiefSession),
+        chiefSession,
+        orchestraSnapshot: ikOrchestraSnapshot,
+      }),
+    [ikEntryOn, chiefSession, ikOrchestraSnapshot],
+  );
+  /** W4 CONNECT — T5 Offer presentation prefers Orchestra P7 when ready; LEGACY Chief Offer otherwise. */
   const chiefDossierVm: ChiefDossierViewModel | null = useMemo(() => {
     if (!chiefSessionEnabled) return null;
-    return buildChiefDossierViewModel(chiefSession);
-  }, [chiefSessionEnabled, chiefSession]);
+    const base = buildChiefDossierViewModel(chiefSession);
+    const legacyOffer =
+      base.primaryRecommendation != null
+        ? {
+            contract: {
+              co: "",
+              dlaczego: "",
+              naPodstawieCzego: "",
+              pewnosc: "medium" as const,
+              blokery: [],
+              zgodnoscZRozumieniemWykonania: "partial" as const,
+              zgodnoscOpisPl: "",
+            },
+            primaryRecommendation: base.primaryRecommendation,
+            scenarios: base.scenarios,
+            signalToDecisionMaker: true,
+            decisionMakerPayload: base.decisionMakerPayload,
+          }
+        : null;
+    const presentation = resolveChiefOfferPresentation({
+      legacyOffer,
+      p7Report: ikOrchestraSnapshot?.positionCostBid ?? null,
+    });
+    if (!presentation.t5AdaptedFromP7 || !presentation.offer) return base;
+    const offer = presentation.offer;
+    return {
+      ...base,
+      showOffer: offer.primaryRecommendation != null,
+      primaryRecommendation: offer.primaryRecommendation,
+      scenarios: offer.scenarios,
+      decisionMakerPayload: offer.decisionMakerPayload,
+    };
+  }, [chiefSessionEnabled, chiefSession, ikOrchestraSnapshot?.positionCostBid]);
 
   /** WIRE-EXPERTS-UI-01 — Slot A Details VM (Session stack from S2 helper). */
   const expertWorkspaceVm: ExpertWorkspaceViewModel | null = useMemo(() => {
@@ -896,6 +950,9 @@ export function TenderDetailPage({
       data-tender-ws={activeTab === "decyzja" ? decyzjaWorkspace : undefined}
       data-s7-hub-first="1"
       data-ik-entry-enabled={ikEntryOn ? "1" : "0"}
+      data-ik-w3-chief-orchestra={w3ChiefOrchestraConnect.status}
+      data-ik-sequencer={w3ChiefOrchestraConnect.ikSequencer ?? "none"}
+      data-ik-w3-chief-legacy-parallel={w3ChiefOrchestraConnect.chiefTasksLegacyParallel ? "1" : "0"}
       data-ik-first-screen={ikFirstScreen}
       data-ik-p4-chief-wiring={p4ChiefPreferenceOn ? "1" : "0"}
       data-ik-p4-chief-eligible={p4ChiefEligible ? "1" : "0"}
@@ -1081,8 +1138,17 @@ export function TenderDetailPage({
               chiefDossierVm={activeTab === "przetarg" ? chiefDossierVm : null}
               expertWorkspaceVm={activeTab === "przetarg" ? expertWorkspaceVm : null}
               chiefSessionForDecision={chiefSessionForDecision}
-              onPriceResearchAccepted={() => {
-                // IK-E2E-WIRE-01 W0: dual bump after Accept persist (Bid/F5 + Chief).
+              onPriceResearchAccepted={(meta?: HubPricingAcceptedMeta) => {
+                // W5 CONNECT — Hub Accept → Orchestra.refreshPhase when Bridge live.
+                // LEGACY-PARALLEL: notifyIkPricingAccepted alone when Orchestra absent.
+                const phase = resolveHubAcceptRefreshPhaseKind(meta);
+                if (
+                  shouldPreferOrchestraRefreshPhase(ikOrchestraSnapshot?.refreshPhase)
+                  && ikOrchestraSnapshot?.refreshPhase
+                ) {
+                  ikOrchestraSnapshot.refreshPhase(phase);
+                  return;
+                }
                 notifyIkPricingAccepted({
                   bumpPricingCatalogRevision,
                   bumpChiefRefresh: () => setChiefRefreshNonce((n) => n + 1),

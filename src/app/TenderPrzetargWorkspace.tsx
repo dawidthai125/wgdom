@@ -109,7 +109,7 @@ export function TenderPrzetargWorkspace({
   /** WIRE-EXPERTS-UI-01 — Expert Details VM (Slot A). */
   expertWorkspaceVm?: ExpertWorkspaceViewModel | null;
   /** DEMAND-RESEARCH-01 S0 — Chief Cost refresh po manual Quotes ACCEPT. */
-  onPriceResearchAccepted?: () => void;
+  onPriceResearchAccepted?: (meta?: import("@/lib/intelligent-estimator/orchestra/orchestra-refresh-phase").HubPricingAcceptedMeta) => void;
   /** DECISION-WORKSPACE-01 — Session → Decision Host. */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
 }) {

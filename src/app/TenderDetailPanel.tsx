@@ -144,7 +144,7 @@ export function TenderDetailPanel({
   /** DECISION-WORKSPACE-01 — Session output for Decision Host (null = off tab). */
   chiefSessionForDecision?: import("@/lib/chief-session").ChiefSessionOutput | null;
   /** DEMAND-RESEARCH-01 S0 — Chief Cost refresh po manual Quotes ACCEPT. */
-  onPriceResearchAccepted?: () => void;
+  onPriceResearchAccepted?: (meta?: import("@/lib/intelligent-estimator/orchestra/orchestra-refresh-phase").HubPricingAcceptedMeta) => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);

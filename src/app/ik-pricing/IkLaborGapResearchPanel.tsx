@@ -14,10 +14,11 @@ import {
   type IkLaborGapJob,
 } from "@/lib/ik-pricing-orchestrator";
 import {
-  acceptIkLaborResearchAndNotify,
+  acceptIkLaborResearchAndNotifyIdempotent,
   buildIkLaborExpertRecommendation,
   runIkLaborGapResearch,
 } from "@/lib/ik-pricing-orchestrator/labor-research-bridge";
+import type { HubPricingAcceptedMeta } from "@/lib/intelligent-estimator/orchestra/orchestra-refresh-phase";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { TEUX_FONT_BODY, TEUX_FONT_CAPTION, TEUX_SECTION_TITLE } from "@/lib/tender-ux-tokens";
 import { WgButton } from "@/app/ui";
@@ -25,8 +26,12 @@ import { IkLaborCandidateReviewCard } from "@/app/ik-pricing/IkLaborCandidateRev
 
 export type IkLaborGapResearchPanelProps = {
   item: TenderPipelineItem;
-  /** W0 dual bump (pricing + chief) — preferred after persist. */
-  onPriceResearchAccepted?: () => void;
+  /**
+   * W5 CONNECT — after persist SUCCESS.
+   * Prefer parent that routes to Orchestra.refreshPhase (labor_accept).
+   * LEGACY: notifyIkPricingAccepted dual bump only.
+   */
+  onPriceResearchAccepted?: (meta?: HubPricingAcceptedMeta) => void;
 };
 
 type StatusMsg = { kind: "info" | "error"; text: string };
@@ -135,12 +140,13 @@ export function IkLaborGapResearchPanel({
       const store = loadWorkCatalogStoreLocal();
       const useParentDual = typeof onPriceResearchAccepted === "function";
 
-      const result = await acceptIkLaborResearchAndNotify({
+      // W5 — REUSE idempotent Accept (same seam as ownerGate.g2LaborAccept).
+      const result = await acceptIkLaborResearchAndNotifyIdempotent({
         store,
         candidate,
         notify: useParentDual
           ? {
-              // Parent W0 notifyIkPricingAccepted bumps BOTH — call once after persist.
+              // Parent / Orchestra.refreshPhase performs dual bump — stubs here.
               bumpPricingCatalogRevision: () => {},
               bumpChiefRefresh: () => {},
             }
@@ -160,15 +166,28 @@ export function IkLaborGapResearchPanel({
         return;
       }
 
+      if (result.skippedDuplicate) {
+        setStatus({
+          kind: "info",
+          text: "Accept IDEMPOTENT_NOOP — bez ponownego bump/refresh.",
+        });
+        setCandidate(null);
+        setActiveJob(null);
+        scanGaps();
+        return;
+      }
+
       if (useParentDual) {
-        onPriceResearchAccepted();
+        // W5 CONNECT — Hub labor Accept → Orchestra.refreshPhase(labor_accept)
+        // (parent maps to refreshPhase when Bridge live; else LEGACY notify).
+        onPriceResearchAccepted({ phase: "labor_accept" });
       }
 
       setCandidate(null);
       setActiveJob(null);
       setStatus({
         kind: "info",
-        text: "OUR RATE zapisana (Owner Accept) · F5 recompute.",
+        text: "OUR RATE zapisana (Owner Accept) · Orchestra refresh seam.",
       });
       scanGaps();
     } finally {

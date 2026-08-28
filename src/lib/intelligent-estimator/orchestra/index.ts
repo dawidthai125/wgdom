@@ -98,3 +98,23 @@ export type {
   IkOwnerActionNavigateHandlers,
 } from "./ik-owner-action-deeplink";
 export { buildIkOwnerActionFreshnessKey } from "./ik-owner-action-freshness";
+
+export {
+  resolveW3ChiefOrchestraConnect,
+  chiefSessionDelegatesIkToOrchestra,
+} from "./chief-start-orchestra-connect";
+export type {
+  IkSequencerAuthority,
+  ResolveW3ChiefOrchestraConnectInput,
+  W3ChiefOrchestraConnect,
+  W3ChiefOrchestraConnectStatus,
+} from "./chief-start-orchestra-connect";
+
+export {
+  resolveHubAcceptRefreshPhaseKind,
+  shouldPreferOrchestraRefreshPhase,
+} from "./orchestra-refresh-phase";
+export type {
+  HubPricingAcceptedMeta,
+  IkOrchestraRefreshPhaseKind,
+} from "./orchestra-refresh-phase";

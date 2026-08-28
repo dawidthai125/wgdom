@@ -33,6 +33,13 @@ export interface ChiefSessionOutput {
   caseId: string | null;
   /** Monotoniczny id requestu — stale / cancel. */
   requestId: number;
+  /**
+   * W3 CONNECT — when "orchestra", this Chief.start delegates IK sequencing
+   * to Orchestra (Chief is NOT a second IK sequencer).
+   * null = no IK delegation (D-only / non-IK Chief path).
+   * Does not alter T1–T4 / runChiefOrchestrator (LEGACY-PARALLEL).
+   */
+  ikSequencerDelegation: "orchestra" | null;
 }
 
 export function idleChiefSessionOutput(
@@ -49,6 +56,7 @@ export function idleChiefSessionOutput(
     readyForDecision: false,
     caseId: null,
     requestId: 0,
+    ikSequencerDelegation: null,
     ...partial,
   };
 }

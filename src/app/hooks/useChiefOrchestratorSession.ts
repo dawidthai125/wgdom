@@ -34,6 +34,11 @@ export function useChiefOrchestratorSession(opts: {
    * Nie remount / nie full reload.
    */
   refreshNonce?: number;
+  /**
+   * W3 CONNECT — when true, Chief.start stamps ikSequencerDelegation: "orchestra"
+   * (IK sequencer = existing Orchestra; Chief T1–T4 remain LEGACY-PARALLEL).
+   */
+  delegateIkSequencingToOrchestra?: boolean;
 }): ChiefSessionOutput {
   const {
     enabled,
@@ -43,6 +48,7 @@ export function useChiefOrchestratorSession(opts: {
     autoStart = true,
     maxReturnLoops,
     refreshNonce = 0,
+    delegateIkSequencingToOrchestra = false,
   } = opts;
 
   const engineRef = useRef(
@@ -150,13 +156,22 @@ export function useChiefOrchestratorSession(opts: {
       pricingReady,
       nowIso: stableCaseStamp,
       maxReturnLoops,
+      ikSequencerDelegation: delegateIkSequencingToOrchestra ? "orchestra" : null,
     });
     setSnap(engine.getSnapshot());
 
     return () => {
       engine.cancel();
     };
-  }, [enabled, item, runtimeKey, autoStart, pricingReady, maxReturnLoops]);
+  }, [
+    enabled,
+    item,
+    runtimeKey,
+    autoStart,
+    pricingReady,
+    maxReturnLoops,
+    delegateIkSequencingToOrchestra,
+  ]);
 
   return snap;
 }

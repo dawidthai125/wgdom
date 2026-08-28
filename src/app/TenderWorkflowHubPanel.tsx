@@ -226,7 +226,8 @@ export function TenderWorkflowHubPanel({
   /** DECISION-WORKSPACE-01 — sibling POD #chief-dossier-surface. */
   chiefSessionForDecision?: ChiefSessionOutput | null;
   /** DEMAND-RESEARCH-01 S0 — po Quotes ACCEPT → Chief Cost refresh. */
-  onPriceResearchAccepted?: () => void;
+  /** W5 — optional meta.phase routes Hub Accept → Orchestra.refreshPhase. */
+  onPriceResearchAccepted?: (meta?: import("@/lib/intelligent-estimator/orchestra/orchestra-refresh-phase").HubPricingAcceptedMeta) => void;
 }) {
   const expertEffective = isExpertAiRuntimeEffective();
   const knrWcP3CreateEnabled = useMemo(
@@ -363,7 +364,12 @@ export function TenderWorkflowHubPanel({
       <IkKnrWcIdentityProposalQueuePanel item={item} />
 
       {/* IK-KNR-WC-IDENTITY-BRIDGE P3 — Owner CREATE executor (additive · P3 flag default OFF) */}
-      {knrWcP3CreateEnabled ? <IkKnrWcIdentityCreateExecutor item={item} /> : null}
+      {knrWcP3CreateEnabled ? (
+        <IkKnrWcIdentityCreateExecutor
+          item={item}
+          onCatalogAccepted={() => onPriceResearchAccepted?.({ phase: "catalog_accept" })}
+        />
+      ) : null}
 
       <MultiDwellingPackagePanel
         item={item}

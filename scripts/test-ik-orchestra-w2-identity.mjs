@@ -1601,7 +1601,8 @@ function w3SetupPersistPackage(tenderId, lineOverrides = {}) {
     uiLegacyOff.authoritativeSource === "legacy" && uiLegacyOff.proposal === legacyTorB,
   );
 
-  // W6-CTA-BID-SSOT CASE D — single-dwelling unchanged (non-multi → legacy)
+  // W6-CTA-BID-SSOT CASE D — single pkg + multi_package P7 report = mode mismatch → legacy
+  // (W4 CONNECT uses P7 only when p7.mode === "legacy_single"; see test-ik-w4-t5-p7-connect.mjs)
   {
     const uiSingle = resolveTenderBidProposalForUi({
       item,

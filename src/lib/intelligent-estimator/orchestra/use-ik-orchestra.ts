@@ -65,6 +65,7 @@ import type {
   IkOrchestraSnapshot,
   IkOwnerGateApi,
 } from "./orchestra-types";
+import type { IkOrchestraRefreshPhaseKind } from "./orchestra-refresh-phase";
 import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
 import {
   buildG1ManualOverride,
@@ -635,6 +636,27 @@ export function useIkOrchestra({
     onPricingAcceptedRef.current?.();
   }, []);
 
+  /**
+   * W5 CONNECT — TARGET refreshPhase = existing bump + domain epochs.
+   * Not a second refresh system (§2A.6).
+   */
+  const refreshPhase = useCallback(
+    (kind: IkOrchestraRefreshPhaseKind = "pricing_accept") => {
+      bumpOrchestraAfterPricingAccept();
+      if (kind === "labor_accept") {
+        laborAttemptedRef.current = null;
+        setLaborRecalcEpoch((n) => n + 1);
+      } else if (kind === "material_accept") {
+        materialAttemptedRef.current = null;
+        setMaterialRecalcEpoch((n) => n + 1);
+      } else if (kind === "catalog_accept") {
+        knowledgeAttemptedRef.current = null;
+        setIdentityResearchEpoch((n) => n + 1);
+      }
+    },
+    [bumpOrchestraAfterPricingAccept],
+  );
+
   const chiefMaterialAvailable = chiefSession != null;
 
   const ownerGate: IkOwnerGateApi = useMemo(
@@ -712,9 +734,8 @@ export function useIkOrchestra({
         if (!result.ok) return { ok: false, reason: result.reason };
         if (result.skippedDuplicate) return { ok: true, noop: true, reason: "IDEMPOTENT_NOOP" };
         if (!result.notified) return { ok: false, reason: "PERSIST_FAILED" };
-        bumpOrchestraAfterPricingAccept();
-        laborAttemptedRef.current = null;
-        setLaborRecalcEpoch((n) => n + 1);
+        // W5 — REUSE approved refreshPhase seam (was inline bump + labor epoch).
+        refreshPhase("labor_accept");
         return { ok: true };
       },
       g2MaterialReject: ({ dwellingId, lineId }) => {
@@ -748,9 +769,8 @@ export function useIkOrchestra({
               reason: acceptResult.error ?? "MATERIAL_ACCEPT_FAILED",
             };
           }
-          bumpOrchestraAfterPricingAccept();
-          materialAttemptedRef.current = null;
-          setMaterialRecalcEpoch((n) => n + 1);
+          // W5 — REUSE approved refreshPhase seam.
+          refreshPhase("material_accept");
           return { ok: true };
         } catch {
           return { ok: false, reason: "MATERIAL_ACCEPT_FAILED" };
@@ -765,7 +785,7 @@ export function useIkOrchestra({
       labor,
       material,
       chiefMaterialAvailable,
-      bumpOrchestraAfterPricingAccept,
+      refreshPhase,
     ],
   );
 
@@ -786,6 +806,7 @@ export function useIkOrchestra({
       ownerActionQueue,
       identityCoverageOps,
       refreshF5AfterOwnerInput,
+      refreshPhase,
       ownerGate,
     }),
     [
@@ -804,6 +825,7 @@ export function useIkOrchestra({
       ownerActionQueue,
       identityCoverageOps,
       refreshF5AfterOwnerInput,
+      refreshPhase,
       ownerGate,
     ],
   );

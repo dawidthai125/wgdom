@@ -34,6 +34,11 @@ export type IkKnrWcIdentityCreateExecutorProps = {
   proposal?: KnrWcIdentityProposal | null;
   ownerDecision?: KnrWcOwnerDecision;
   selectedWorkId?: string | null;
+  /**
+   * W5 CONNECT — after CatalogWork CREATE persist SUCCESS.
+   * Parent should route to Orchestra.refreshPhase("catalog_accept").
+   */
+  onCatalogAccepted?: () => void;
 };
 
 type ExecuteStatus =
@@ -48,6 +53,7 @@ export function IkKnrWcIdentityCreateExecutor({
   proposal: proposalProp = null,
   ownerDecision: ownerDecisionProp = "unset",
   selectedWorkId: _selectedWorkId = null,
+  onCatalogAccepted,
 }: IkKnrWcIdentityCreateExecutorProps) {
   void _selectedWorkId;
 
@@ -186,6 +192,8 @@ export function IkKnrWcIdentityCreateExecutor({
         workId: result.workId,
         message: `CatalogWork utworzony: ${result.workId} (catalogWorksCreated=${result.catalogWorksCreated})`,
       });
+      // W5 CONNECT — Hub KNR-WC CREATE → Orchestra refresh seam (catalog_accept).
+      onCatalogAccepted?.();
     } catch (err) {
       setStatus({
         kind: "error",
@@ -197,6 +205,7 @@ export function IkKnrWcIdentityCreateExecutor({
     confirmDuplicateHigh,
     confirmStaleEvidence,
     effectiveDecision,
+    onCatalogAccepted,
     runtimeEnabled,
     workIdDraft,
   ]);

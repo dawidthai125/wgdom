@@ -29,6 +29,11 @@ export interface ChiefSessionStartParams {
   pricingReady?: boolean;
   nowIso?: string;
   maxReturnLoops?: number;
+  /**
+   * W3 CONNECT — when "orchestra", stamp Chief.start as delegating IK sequencing
+   * to Orchestra. Does not change T1–T4 / runChiefOrchestrator (LEGACY-PARALLEL).
+   */
+  ikSequencerDelegation?: "orchestra" | null;
 }
 
 export interface ChiefSessionEngine {
@@ -116,12 +121,15 @@ export function createChiefSessionEngine(deps?: {
     }
 
     const req = ++requestSeq;
+    const ikSequencerDelegation =
+      params.ikSequencerDelegation === "orchestra" ? "orchestra" : null;
     setSnapshot(
       idleChiefSessionOutput({
         status: "checking",
         requestId: req,
         caseId: params.caseId,
         running: false,
+        ikSequencerDelegation,
       }),
     );
 
@@ -135,6 +143,7 @@ export function createChiefSessionEngine(deps?: {
           error: !params.runtimeRo.readyForChiefInput
             ? "not_ready_for_chief_input"
             : "pricing_not_ready",
+          ikSequencerDelegation,
         }),
       );
       return false;
@@ -148,6 +157,7 @@ export function createChiefSessionEngine(deps?: {
           requestId: req,
           caseId: params.caseId,
           error: "not_ready_for_chief_input",
+          ikSequencerDelegation,
         }),
       );
       return false;
@@ -164,6 +174,7 @@ export function createChiefSessionEngine(deps?: {
       readyForDecision: false,
       caseId: params.caseId,
       requestId: req,
+      ikSequencerDelegation,
     });
 
     const input: ChiefOrchestratorInput = {
@@ -193,6 +204,7 @@ export function createChiefSessionEngine(deps?: {
           readyForDecision: result.status === "ready_for_decydent",
           caseId: result.caseId,
           requestId: req,
+          ikSequencerDelegation,
         });
       } catch (e) {
         if (req !== requestSeq) return;
@@ -204,6 +216,7 @@ export function createChiefSessionEngine(deps?: {
             caseId: params.caseId,
             error: message,
             running: false,
+            ikSequencerDelegation,
           }),
         );
       }

@@ -29,6 +29,7 @@ import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
 import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
 import type { NotifyIkPricingAcceptedInput } from "@/lib/ik-pricing-orchestrator/notify-accepted";
 import type { IkOwnerGateActionResult } from "./ik-owner-gate-actions";
+import type { IkOrchestraRefreshPhaseKind } from "./orchestra-refresh-phase";
 
 export type IkOrchestraPipelineIngest = {
   dossierBuilding?: boolean;
@@ -181,6 +182,12 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   identityCoverageOps: IkIdentityCoverageOpsView | null;
   /** W4-4 — re-run F5 materialization after Owner Input save (idempotent). */
   refreshF5AfterOwnerInput: () => void;
+  /**
+   * W5 CONNECT — approved Orchestra refresh seam (alias of bumpOrchestraAfterPricingAccept
+   * + domain epochs). TARGET name `refreshPhase` from Decision Tree / Master §2A.6.
+   * Not a second refresh system.
+   */
+  refreshPhase: (kind?: IkOrchestraRefreshPhaseKind) => void;
   /** A08-P3 — Owner Gate G1/G2 actions. */
   ownerGate: IkOwnerGateApi;
 };
