@@ -110,6 +110,8 @@ import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
 import type { DirectoryEmployee, WeekEmployee, WeekSnapshot, Job, DayKey, DayData } from "@/app/app-domain";
 import type { PayrollCarryForward } from "@/lib/payroll-carry-forward";
+import { calcBiweeklyWeekNetWithLeave } from "@/lib/payroll-leave-overlay";
+import { validateEarlyPayoutListWrite } from "@/lib/payroll-early-payout";
 import {
   isProductionDirectoryEmployee,
   filterProductionDirectory,
@@ -2057,6 +2059,59 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [setWeekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
 
+  /** BIWEEKLY early payout — transakcje; NIE bump dataUpdatedAt. Domain overpayment gate. */
+  const updateWeekEmployeeEarlyPayouts = useCallback((
+    empId: string,
+    nextList: WeekEmployee["payrollEarlyPayouts"],
+  ) => {
+    runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("updateWeekEmployeeEarlyPayouts", () => {
+        setWeekEmployees((prev) => {
+          let changed = false;
+          const next = prev.map((e) => {
+            if (e.id !== empId) return e;
+            const normalized = Array.isArray(nextList) && nextList.length > 0 ? nextList : undefined;
+            if (JSON.stringify(e.payrollEarlyPayouts ?? null) === JSON.stringify(normalized ?? null)) {
+              return e;
+            }
+            const gate = validateEarlyPayoutListWrite(
+              e,
+              directory,
+              weekFrom,
+              weekTo,
+              savedWeeks,
+              normalized,
+              (emp, from, to) =>
+                calcBiweeklyWeekNetWithLeave(emp as WeekEmployee, from, to, {
+                  employeeLeaves,
+                  savedWeeks,
+                }),
+            );
+            if (!gate.ok) {
+              console.warn("[PAYROLL] early payout write blocked", gate.reason, { empId });
+              return e;
+            }
+            changed = true;
+            return { ...e, payrollEarlyPayouts: normalized };
+          });
+          if (changed) {
+            if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+          }
+          return next;
+        });
+      });
+    });
+  }, [
+    setWeekEmployees,
+    commitLivePayrollRosterEdit,
+    runPayrollWeekEmployeeFieldEdit,
+    directory,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+    employeeLeaves,
+  ]);
+
   /** ETAP 1 — godziny dnia: patch na prev state (bez stale safeEmp snapshot). */
   const updateWeekEmployeeDay = useCallback((empId: string, key: DayKey, nextDay: DayData) => {
     runPayrollWeekEmployeeFieldEdit(() => {
@@ -3011,6 +3066,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           updateWeekEmployee={updateWeekEmployee}
           updateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
           updateWeekEmployeeManualAdjustment={updateWeekEmployeeManualAdjustment}
+          updateWeekEmployeeEarlyPayouts={updateWeekEmployeeEarlyPayouts}
           updateWeekEmployeeDay={updateWeekEmployeeDay}
           updateWeekEmployeeRate={updateWeekEmployeeRate}
           updateWeekEmployeePrevSaturday={updateWeekEmployeePrevSaturday}

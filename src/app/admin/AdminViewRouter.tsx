@@ -227,6 +227,7 @@ export type AdminViewRouterProps = {
   updateWeekEmployee: (updated: WeekEmployee) => void;
   updateWeekEmployeeExtraCosts: (empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
   updateWeekEmployeeManualAdjustment: (empId: string, next: WeekEmployee["payrollManualAdjustment"]) => void;
+  updateWeekEmployeeEarlyPayouts: (empId: string, next: WeekEmployee["payrollEarlyPayouts"]) => void;
   updateWeekEmployeeDay: (empId: string, key: import("@/app/app-domain").DayKey, next: import("@/app/app-domain").DayData) => void;
   updateWeekEmployeeRate: (empId: string, rate: string) => void;
   updateWeekEmployeePrevSaturday: (empId: string, next: import("@/app/app-domain").DayData) => void;
@@ -331,6 +332,7 @@ export function AdminViewRouter({
   updateWeekEmployee,
   updateWeekEmployeeExtraCosts,
   updateWeekEmployeeManualAdjustment,
+  updateWeekEmployeeEarlyPayouts,
   updateWeekEmployeeDay,
   updateWeekEmployeeRate,
   updateWeekEmployeePrevSaturday,
@@ -525,6 +527,7 @@ export function AdminViewRouter({
               onReplaceWithAllActive={replaceWeekWithAllActive}
               onUpdateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
               onUpdateWeekEmployeeManualAdjustment={updateWeekEmployeeManualAdjustment}
+              onUpdateWeekEmployeeEarlyPayouts={updateWeekEmployeeEarlyPayouts}
               onUpdateWeekEmployeeDay={updateWeekEmployeeDay}
               onUpdateWeekEmployeeRate={updateWeekEmployeeRate}
               onUpdateWeekEmployeePrevSaturday={updateWeekEmployeePrevSaturday}
@@ -568,6 +571,9 @@ export function AdminViewRouter({
             onTabChange={(tab) => onSetView(tab === "contacts" ? "contacts" : "directory")}
             directory={directory}
             savedWeeks={savedWeeks}
+            weekEmployees={productionWeekEmployees}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
             employeeLeaves={employeeLeaves}
             onDirectoryChange={setDirectory}
             onDirectoryCommit={commitDirectory}

@@ -26,6 +26,7 @@ import {
   type PayrollHoursSlot,
   type PayrollScopedHoursIntent,
 } from "@/lib/payroll-hours-intent";
+import { applyEarlyPayoutFieldIntent } from "@/lib/payroll-early-payout";
 
 const DAY_SLOTS: DayKey[] = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
 const SLOTS: PayrollHoursSlot[] = [...DAY_SLOTS, "prevSaturday"];
@@ -206,6 +207,17 @@ function applyFieldsOntoCloudEmp(
   next.settled = cloudEmp.settled;
   next.settledUpdatedAt = cloudEmp.settledUpdatedAt;
   next.payrollCarryForward = cloudEmp.payrollCarryForward;
+
+  // --- Early payouts (transaction merge; own updatedAt / deletedAt) ---
+  {
+    const ep = applyEarlyPayoutFieldIntent(
+      cloudEmp.payrollEarlyPayouts,
+      beforeEmp?.payrollEarlyPayouts,
+      afterEmp?.payrollEarlyPayouts,
+    );
+    next.payrollEarlyPayouts = ep.list.length ? ep.list : undefined;
+    if (ep.changed) changed = true;
+  }
 
   return { emp: next, changed };
 }

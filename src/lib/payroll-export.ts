@@ -59,7 +59,7 @@ export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leav
     const base = +(row.netPay - row.carryForwardIn).toFixed(2);
     return `${fmt(row.netPay)} (+${fmt(row.carryForwardIn)} przen.)`;
   }
-  if (row.biweekly && row.biweeklyPayoutWeek && row.biweeklyDisplayNet != null) return fmt(row.biweeklyDisplayNet);
+  if (row.biweekly && row.biweeklyDisplayNet != null) return fmt(row.biweeklyDisplayNet);
   if (row.biweekly && row.biweeklyAccruedOnly && row.biweeklyThisWeekNet != null) return fmt(row.biweeklyThisWeekNet);
   return fmt(row.netPay);
 }

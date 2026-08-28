@@ -1,7 +1,7 @@
 import { Users, Mail } from "lucide-react";
 import { DirectoryView } from "@/app/DirectoryView";
 import { ContactsView } from "@/app/ContactsView";
-import type { DirectoryEmployee, WeekSnapshot } from "@/app/app-domain";
+import type { DirectoryEmployee, WeekSnapshot, WeekEmployee } from "@/app/app-domain";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 
@@ -12,6 +12,9 @@ export function TeamDirectoryContactsView({
   onTabChange,
   directory,
   savedWeeks,
+  weekEmployees,
+  weekFrom,
+  weekTo,
   employeeLeaves,
   onDirectoryChange,
   onDirectoryCommit,
@@ -25,6 +28,9 @@ export function TeamDirectoryContactsView({
   onTabChange: (tab: TeamDirectoryTab) => void;
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
+  weekEmployees?: WeekEmployee[];
+  weekFrom?: string;
+  weekTo?: string;
   employeeLeaves: EmployeeLeave[];
   onDirectoryChange: (d: DirectoryEmployee[]) => void;
   onDirectoryCommit?: () => void;
@@ -63,6 +69,9 @@ export function TeamDirectoryContactsView({
           <DirectoryView
             directory={directory}
             savedWeeks={savedWeeks}
+            weekEmployees={weekEmployees}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
             employeeLeaves={employeeLeaves}
             onChange={onDirectoryChange}
             onCommit={onDirectoryCommit}

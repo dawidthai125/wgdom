@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.123",
+    label: "PAYROLL — wcześniejsza wypłata biweekly",
+    items: [
+      {
+        type: "new",
+        text: "Lista płac (tylko biweekly): rejestracja wcześniejszej wypłaty (gotówka/przelew) w okresie 2-tyg. — bez ruszania kotwicy/cyklu. Nadpłata zablokowana. Wypłata W2 = zarobione − aktywne early. Soft-delete + P2 field-intent ADD/DELETE. Test: test-payroll-early-payout-biweekly.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.122",
     label: "PAYROLL — korekta wypłaty / urlopówka",
     items: [

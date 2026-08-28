@@ -14,7 +14,8 @@ function payrollCoreFieldsEqual(b: WeekEmployee, a: WeekEmployee): boolean {
     b.rate === a.rate &&
     b.rateUpdatedAt === a.rateUpdatedAt &&
     b.settledUpdatedAt === a.settledUpdatedAt &&
-    JSON.stringify(b.payrollManualAdjustment ?? null) === JSON.stringify(a.payrollManualAdjustment ?? null)
+    JSON.stringify(b.payrollManualAdjustment ?? null) === JSON.stringify(a.payrollManualAdjustment ?? null) &&
+    JSON.stringify(b.payrollEarlyPayouts ?? null) === JSON.stringify(a.payrollEarlyPayouts ?? null)
   );
 }
 

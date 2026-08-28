@@ -131,6 +131,11 @@ export interface WeekEmployee {
   extraCosts?: EmployeeExtraCost[];
   /** Korekta wypłaty (urlopówka / ręczna) — osobny intent vs extraCosts. */
   payrollManualAdjustment?: PayrollManualAdjustment;
+  /**
+   * BIWEEKLY only — transakcje wcześniejszej/częściowej wypłaty w okresie.
+   * Soft-delete via deletedAt. NIE używać dataUpdatedAt jako proxy.
+   */
+  payrollEarlyPayouts?: import("@/lib/payroll-early-payout").PayrollEarlyPayout[];
   settled: boolean;
   /** Sprint 20.1A — jednorazowe przeniesienie wypłaty (zamrożona kwota) na następny tydzień. */
   payrollCarryForward?: import("@/lib/payroll-carry-forward").PayrollCarryForward;
@@ -156,6 +161,9 @@ export interface EmployeeSnapshot {
   /** Sprint 20.1A — kwota otrzymana z poprzedniego tygodnia. */
   carryForwardIn?: number;
   carryForwardFromWeek?: { from: string; to: string };
+  /** BIWEEKLY — zamrożone early payouts (pełna lista z weekEmployees). */
+  earlyPaidTotal?: number;
+  payrollEarlyPayouts?: import("@/lib/payroll-early-payout").PayrollEarlyPayout[];
 }
 
 /** Wpis czasu na robocie zapisany w archiwum tygodnia */
@@ -1953,6 +1961,17 @@ export function buildWeekSnapshot(
       ...(carryFields.carryForwardTargetTo ? { carryForwardTargetTo: carryFields.carryForwardTargetTo } : {}),
       ...(carryFields.carryForwardIn != null ? { carryForwardIn: carryFields.carryForwardIn } : {}),
       ...(carryFields.carryForwardFromWeek ? { carryForwardFromWeek: carryFields.carryForwardFromWeek } : {}),
+      ...((() => {
+        const earlyList = Array.isArray(emp.payrollEarlyPayouts) ? emp.payrollEarlyPayouts : [];
+        if (!earlyList.length) return {};
+        const activeTotal = earlyList
+          .filter((tx) => !tx.deletedAt && typeof tx.amount === "number" && tx.amount > 0)
+          .reduce((s, tx) => s + tx.amount, 0);
+        return {
+          payrollEarlyPayouts: JSON.parse(JSON.stringify(earlyList)),
+          ...(activeTotal > 0 ? { earlyPaidTotal: +activeTotal.toFixed(2) } : {}),
+        };
+      })()),
     };
   });
   return {

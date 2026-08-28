@@ -6,7 +6,7 @@ import {
 import { useAdminAccess } from "@/app/admin-access";
 import { StatCard, LabelWithHint } from "@/app/app-ui";
 import { EmployeeArchiveModal } from "@/app/EmployeeArchiveModal";
-import type { DirectoryEmployee, WeekSnapshot } from "@/app/app-domain";
+import type { DirectoryEmployee, WeekSnapshot, WeekEmployee } from "@/app/app-domain";
 import {
   defaultDirEmployee,
   isTestDirectoryEmployee,
@@ -21,12 +21,37 @@ import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
 import { EmployeeLeavesSection } from "@/app/EmployeeLeavesSection";
 import { digestSha256Hex } from "@/lib/admin-auth";
 import { recordSecurityAudit } from "@/lib/security-audit-log";
+import { canChangeBiweeklyAnchor } from "@/lib/payroll-early-payout";
 
 async function hashWorkerPin(pin: string): Promise<string> {
   return digestSha256Hex(`wgdom-worker-pin-v1:${pin}`);
 }
 
-export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, onCommit, onLeavesChange, onLeavesCommit, onOpenSms}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; employeeLeaves: EmployeeLeave[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void; onLeavesChange:(l:EmployeeLeave[])=>void; onLeavesCommit?:(next:EmployeeLeave[], deletedId?:string)=>void; onOpenSms?:()=>void}) {
+export function DirectoryView({
+  directory,
+  savedWeeks,
+  weekEmployees,
+  weekFrom,
+  weekTo,
+  employeeLeaves,
+  onChange,
+  onCommit,
+  onLeavesChange,
+  onLeavesCommit,
+  onOpenSms,
+}: {
+  directory: DirectoryEmployee[];
+  savedWeeks: WeekSnapshot[];
+  weekEmployees?: WeekEmployee[];
+  weekFrom?: string;
+  weekTo?: string;
+  employeeLeaves: EmployeeLeave[];
+  onChange: (d: DirectoryEmployee[]) => void;
+  onCommit?: () => void;
+  onLeavesChange: (l: EmployeeLeave[]) => void;
+  onLeavesCommit?: (next: EmployeeLeave[], deletedId?: string) => void;
+  onOpenSms?: () => void;
+}) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
@@ -35,6 +60,34 @@ export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, 
   const [adminPinInput, setAdminPinInput] = useState("");
   const [adminPinBusy, setAdminPinBusy] = useState(false);
   const [adminPinMsg, setAdminPinMsg] = useState("");
+  const [anchorBlockMsg, setAnchorBlockMsg] = useState("");
+
+  const tryUpdateBiweeklyAnchor = (next: DirectoryEmployee, nextAnchor: string) => {
+    setAnchorBlockMsg("");
+    if (
+      weekEmployees
+      && weekFrom
+      && weekTo
+      && next.biweeklyPayroll
+      && nextAnchor !== (editEmp?.biweeklyAnchorDate ?? "")
+    ) {
+      const gate = canChangeBiweeklyAnchor(
+        next.id,
+        weekEmployees,
+        directory,
+        weekFrom,
+        weekTo,
+        savedWeeks,
+      );
+      if (!gate.ok) {
+        setAnchorBlockMsg(
+          "Nie można zmienić soboty kotwicy — w otwartym okresie są aktywne wcześniejsze wypłaty.",
+        );
+        return;
+      }
+    }
+    update({ ...next, biweeklyAnchorDate: nextAnchor });
+  };
 
   const filtered = directory.filter((d)=>{
     if(!showInactive&&!d.active) return false;
@@ -253,10 +306,13 @@ export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, 
                             <input
                               type="date"
                               value={editEmp.biweeklyAnchorDate ?? ""}
-                              onChange={(e) => update({ ...editEmp, biweeklyAnchorDate: e.target.value })}
+                              onChange={(e) => tryUpdateBiweeklyAnchor(editEmp, e.target.value)}
                               className="bg-secondary rounded-lg px-3 py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none"
                               style={{ fontFamily: "'JetBrains Mono', monospace" }}
                             />
+                            {anchorBlockMsg && (
+                              <span className="text-xs text-destructive">{anchorBlockMsg}</span>
+                            )}
                           </span>
                         )}
                       </span>

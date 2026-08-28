@@ -120,7 +120,7 @@ export function toPayrollCalcRows(
     if (carryOut) netPay = 0;
     else if (leaveStatus) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (carryIn) netPay = r.displayNetPay ?? r.netPay ?? 0;
-    else if (bw) netPay = bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet;
+    else if (bw) netPay = bw.displayNet;
     else netPay = r.displayNetPay ?? r.netPay ?? 0;
     const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
     return {
@@ -496,7 +496,7 @@ export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
-  onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
+  onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeEarlyPayouts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
   onUpdateWeekEmployeePrevSaturday, onUpdateWeekEmployeePayrollCarryForward, onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
@@ -528,6 +528,7 @@ export function PayrollView({
   onReplaceWithAllActive?:()=>void;
   onUpdateWeekEmployeeExtraCosts:(empId:string, nextExtraCosts:WeekEmployee["extraCosts"])=>void;
   onUpdateWeekEmployeeManualAdjustment:(empId:string, next:WeekEmployee["payrollManualAdjustment"])=>void;
+  onUpdateWeekEmployeeEarlyPayouts:(empId:string, next:WeekEmployee["payrollEarlyPayouts"])=>void;
   onUpdateWeekEmployeeDay:(empId:string, key:DayKey, next:DayData)=>void;
   onUpdateWeekEmployeeRate:(empId:string, rate:string)=>void;
   onUpdateWeekEmployeePrevSaturday:(empId:string, next:DayData)=>void;
@@ -714,11 +715,20 @@ export function PayrollView({
     for (const r of rows) {
       if (r.leaveStatus || r.carryForwardOut || r.carryForwardIn) continue;
       if (isBiweeklyPayrollEmployee(r.emp, directory)) {
-        m.set(r.emp.id, calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks));
+        m.set(
+          r.emp.id,
+          calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks, (e, from, to) =>
+            calcBiweeklyWeekNetWithLeave(e, from, to, {
+              employeeLeaves,
+              savedWeeks,
+              hasRolloverBlockers,
+            }),
+          ),
+        );
       }
     }
     return m;
-  }, [rows, directory, weekFrom, weekTo, savedWeeks]);
+  }, [rows, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, hasRolloverBlockers]);
 
   const payrollDayColumns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
   const showPrevSatDetailCol = useMemo(
@@ -1339,10 +1349,19 @@ export function PayrollView({
                                 }
                                 const bw = biweeklyRowMap.get(r.emp.id);
                                 if (bw && !bw.isPayoutWeek) {
-                                  return <span title={`Narasta na ${fmtDate(bw.nextPayoutDate)}`}><span className="text-sky-400">{fmt(bw.thisWeekNet)}</span> <span className="text-[10px] font-normal text-sky-400/70">→ {fmtDate(bw.nextPayoutDate).slice(0,5)}</span></span>;
+                                  return (
+                                    <span title={`Narasta na ${fmtDate(bw.nextPayoutDate)}${bw.earlyPaid > 0 ? ` · wcześniej ${fmt(bw.earlyPaid)}` : ""}`}>
+                                      <span className="text-sky-400">{fmt(bw.displayNet)}</span>{" "}
+                                      <span className="text-[10px] font-normal text-sky-400/70">→ {fmtDate(bw.nextPayoutDate).slice(0, 5)}</span>
+                                    </span>
+                                  );
                                 }
                                 if (bw && bw.isPayoutWeek) {
-                                  return <span title={`2 tyg.: ${fmt(bw.prevWeekNet)} + ${fmt(bw.thisWeekNet)}`}>{fmt(bw.displayNet)} <span className="text-[10px] font-normal text-primary/70">zł</span></span>;
+                                  return (
+                                    <span title={`2 tyg.: ${fmt(bw.prevWeekNet)} + ${fmt(bw.thisWeekNet)}${bw.earlyPaid > 0 ? ` − wcześniej ${fmt(bw.earlyPaid)}` : ""}`}>
+                                      {fmt(bw.displayNet)} <span className="text-[10px] font-normal text-primary/70">zł</span>
+                                    </span>
+                                  );
                                 }
                                 return <>{fmt(r.netPay)} <span className="text-[10px] font-normal text-primary/70">zł</span></>;
                               })()}
@@ -1687,6 +1706,7 @@ export function PayrollView({
               onPatchPrevSaturday={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeePrevSaturday(selectedEmp.id, next)}
               onPatchExtraCosts={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
               onPatchManualAdjustment={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeManualAdjustment(selectedEmp.id, next)}
+              onPatchEarlyPayouts={isClosedWeek ? () => {} : (next) => onUpdateWeekEmployeeEarlyPayouts(selectedEmp.id, next)}
               onClose={()=>setSelectedEmpId(null)}
             />
           )}

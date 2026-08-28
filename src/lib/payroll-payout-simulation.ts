@@ -81,7 +81,8 @@ function rowNetContribution(
   if (r.carryForwardOut != null && r.carryForwardOut > 0) return 0;
   if (r.carryForwardIn != null && r.carryForwardIn > 0) return r.displayNetPay;
   const bw = biweeklyRowMap.get(r.emp.id);
-  if (bw) return bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet;
+  // displayNet = earned − early (W1 remaining / W2 remaining payout); never double-pay early.
+  if (bw) return bw.displayNet;
   return r.displayNetPay;
 }
 

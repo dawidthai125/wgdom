@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.123 — PAYROLL biweekly early / partial payout (2026-08-28)
+
+- `payrollEarlyPayouts[]` — transakcje (cash|transfer), soft-delete, `periodKey` = `nextBiweeklyPayoutSaturday`
+- Tylko `biweeklyPayroll`; weekly bez zmian; kotwica/cykl nie ruszane; nadpłata = BLOCK
+- W1: remaining = earnedSoFar − early; W2: displayNet = W1+W2 − early (bez podwójnej wypłaty)
+- Cash early → Saturday cash w tygodniu `paidAt`; transfer nie zwiększa gotówki
+- P2 field-intent ADD/DELETE; blokada zmiany `biweeklyAnchorDate` przy aktywnych early
+- Test: `npx vite-node scripts/test-payroll-early-payout-biweekly.mjs`
+
 ## 2.66.122 — PAYROLL manualPayrollAdjustment / leave payable (2026-08-28)
 
 - `payrollManualAdjustment` na WeekEmployee (amount ≥ 0, description, kind, własne `updatedAt`)

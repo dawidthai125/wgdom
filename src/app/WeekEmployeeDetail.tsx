@@ -8,6 +8,18 @@ import {
   calcWeekNetNoPrevSat,
 } from "@/lib/payroll-cycle";
 import {
+  canModifyEarlyPayoutsForWeek,
+  createEarlyPayoutTransaction,
+  getBiweeklyRemainingPayable,
+  softDeleteEarlyPayout,
+  validateNewEarlyPayoutAmount,
+  biweeklyPeriodWeekRanges,
+  normalizeEarlyPayoutList,
+  type PayrollEarlyPayout,
+  type PayrollEarlyPayoutMethod,
+} from "@/lib/payroll-early-payout";
+import { calcBiweeklyWeekNetWithLeave } from "@/lib/payroll-leave-overlay";
+import {
   canDeferPayroll,
   CARRY_FORWARD_LABEL,
   type PayrollCalcWithAdjustments,
@@ -78,6 +90,7 @@ export function WeekEmployeeDetail({
   onPatchPrevSaturday,
   onPatchExtraCosts,
   onPatchManualAdjustment,
+  onPatchEarlyPayouts,
   onClose,
 }: {
   emp: WeekEmployee;
@@ -94,6 +107,7 @@ export function WeekEmployeeDetail({
   onPatchPrevSaturday: (next: DayData) => void;
   onPatchExtraCosts: (next: EmployeeExtraCost[]) => void;
   onPatchManualAdjustment: (next: PayrollManualAdjustment | undefined) => void;
+  onPatchEarlyPayouts?: (next: PayrollEarlyPayout[] | undefined) => void;
   onClose: () => void;
 }) {
   const safeEmp = ensureWeekEmployeeDays(emp);
@@ -124,9 +138,7 @@ export function WeekEmployeeDetail({
       : payrollRow?.carryForwardIn
         ? payrollRow.displayNetPay
         : biweekly && biweeklyRow
-          ? biweeklyRow.isPayoutWeek
-            ? biweeklyRow.displayNet
-            : biweeklyRow.thisWeekNet
+          ? biweeklyRow.displayNet
           : payrollRow
             ? payrollRow.displayNetPay
             : netPay;
@@ -194,11 +206,29 @@ export function WeekEmployeeDetail({
           <div className="bg-sky-500/10 border border-sky-500/25 rounded-xl px-4 py-3 text-xs text-sky-300 leading-relaxed">
             <p className="font-semibold text-sky-200 mb-1">Wypłata co 2 tygodnie</p>
             {biweeklyRow.isPayoutWeek ? (
-              <p>Ten tydzień to sobota wypłaty — łącznie za {fmtDate(biweeklyRow.prevWeekFrom)}–{fmtDate(biweeklyRow.prevWeekTo)} + bieżący tydzień: <strong>{fmt(biweeklyRow.displayNet)} PLN</strong>.</p>
+              <p>Ten tydzień to sobota wypłaty — pozostało do wypłaty (po wcześniejszych): <strong>{fmt(biweeklyRow.displayNet)} PLN</strong>
+                {biweeklyRow.earlyPaid > 0 ? <> · wcześniej wypłacono {fmt(biweeklyRow.earlyPaid)} PLN</> : null}.
+              </p>
             ) : (
-              <p>Ten tydzień narasta na wypłatę <strong>{fmtDate(biweeklyRow.nextPayoutDate)}</strong>: {fmt(biweeklyRow.thisWeekNet)} PLN (bez wypłaty w tę sobotę).</p>
+              <p>Ten tydzień narasta na wypłatę <strong>{fmtDate(biweeklyRow.nextPayoutDate)}</strong>: zarobione {fmt(biweeklyRow.displayNetBeforeEarly)} PLN
+                {biweeklyRow.earlyPaid > 0 ? <> · wcześniej {fmt(biweeklyRow.earlyPaid)} PLN · pozostaje {fmt(biweeklyRow.displayNet)} PLN</> : null}
+                {" "}(bez pełnej wypłaty w tę sobotę).
+              </p>
             )}
           </div>
+        )}
+
+        {biweekly && biweeklyRow && onPatchEarlyPayouts && (
+          <EarlyPayoutPanel
+            emp={safeEmp}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
+            directory={directory}
+            savedWeeks={savedWeeks}
+            isClosedWeek={isClosedWeek}
+            locked={locked}
+            onPatchEarlyPayouts={onPatchEarlyPayouts}
+          />
         )}
 
         {/* Days */}
@@ -442,7 +472,10 @@ export function WeekEmployeeDetail({
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto tydzień</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? weekGross)} PLN</span></div>
           {prevSatGross>0&&!biweekly&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto {PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500/90" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(prevSatGross)} PLN</span></div>}
           {biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek && (
-            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Na wypłatę {fmtDate(biweeklyRow.nextPayoutDate)}</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.thisWeekNet)} PLN</span></div>
+            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Na wypłatę {fmtDate(biweeklyRow.nextPayoutDate)}</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.displayNetBeforeEarly)} PLN</span></div>
+          )}
+          {biweekly && biweeklyRow && biweeklyRow.earlyPaid > 0 && (
+            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Wcześniejsza wypłata</span><span className="font-semibold text-amber-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(biweeklyRow.earlyPaid)} PLN</span></div>
           )}
           {biweekly && biweeklyRow && biweeklyRow.isPayoutWeek && biweeklyRow.prevWeekNet > 0 && (
             <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Poprzedni tydzień ({fmtDate(biweeklyRow.prevWeekFrom).slice(0,5)}–{fmtDate(biweeklyRow.prevWeekTo).slice(0,5)})</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.prevWeekNet)} PLN</span></div>
@@ -467,6 +500,246 @@ export function WeekEmployeeDetail({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function EarlyPayoutPanel({
+  emp,
+  weekFrom,
+  weekTo,
+  directory,
+  savedWeeks,
+  isClosedWeek = false,
+  locked,
+  onPatchEarlyPayouts,
+}: {
+  emp: WeekEmployee;
+  weekFrom: string;
+  weekTo: string;
+  directory: DirectoryEmployee[];
+  savedWeeks: WeekSnapshot[];
+  isClosedWeek?: boolean;
+  locked: boolean;
+  onPatchEarlyPayouts: (next: PayrollEarlyPayout[] | undefined) => void;
+}) {
+  const remainingInfo = getBiweeklyRemainingPayable(
+    emp,
+    directory,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+    (e, from, to) => calcBiweeklyWeekNetWithLeave(e as WeekEmployee, from, to, { savedWeeks }),
+  );
+  const periodKey = remainingInfo.periodKey;
+  const modifyGate = canModifyEarlyPayoutsForWeek(!!isClosedWeek, periodKey, weekTo);
+  const canEdit = !locked && modifyGate.ok;
+
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState<PayrollEarlyPayoutMethod>("transfer");
+  const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+
+  const periodRanges = periodKey ? biweeklyPeriodWeekRanges(periodKey) : null;
+  const allTxs = normalizeEarlyPayoutList(emp.payrollEarlyPayouts)
+    .filter((tx) => !periodKey || tx.periodKey === periodKey)
+    .sort((a, b) => String(b.paidAt).localeCompare(String(a.paidAt)));
+
+  const submit = useCallback(() => {
+    setError("");
+    if (!periodKey) {
+      setError("Brak okresu biweekly — sprawdź kotwicę wypłaty.");
+      return;
+    }
+    if (!modifyGate.ok) {
+      setError(
+        modifyGate.reason === "closed_week"
+          ? "Tydzień zamknięty — nie można zmieniać wcześniejszych wypłat."
+          : "Okres zamknięty — nie można zmieniać wcześniejszych wypłat.",
+      );
+      return;
+    }
+    const amt = parseFloat(amount.replace(",", "."));
+    const check = validateNewEarlyPayoutAmount(amt, remainingInfo.remaining);
+    if (!check.ok) {
+      setError(
+        check.reason === "overpayment"
+          ? `Kwota przekracza dostępne ${fmt(remainingInfo.remaining)} PLN (blokada nadpłaty).`
+          : "Podaj kwotę większą od zera.",
+      );
+      return;
+    }
+    if (!paidAt) {
+      setError("Podaj datę wypłaty.");
+      return;
+    }
+    const tx = createEarlyPayoutTransaction({
+      amount: amt,
+      method,
+      paidAt,
+      periodKey,
+      description: description.trim() || undefined,
+    });
+    const next = [...normalizeEarlyPayoutList(emp.payrollEarlyPayouts), tx];
+    onPatchEarlyPayouts(next);
+    setAmount("");
+    setDescription("");
+    setFormOpen(false);
+  }, [
+    amount,
+    description,
+    emp.payrollEarlyPayouts,
+    method,
+    modifyGate,
+    onPatchEarlyPayouts,
+    paidAt,
+    periodKey,
+    remainingInfo.remaining,
+  ]);
+
+  const removeTx = (id: string) => {
+    if (!canEdit) return;
+    if (!window.confirm("Anulować tę wcześniejszą wypłatę? (soft-delete)")) return;
+    const next = softDeleteEarlyPayout(emp.payrollEarlyPayouts, id);
+    onPatchEarlyPayouts(next.length ? next : undefined);
+  };
+
+  if (!periodKey || !periodRanges) return null;
+
+  return (
+    <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 space-y-3">
+      <p className="text-xs font-semibold text-amber-200 tracking-wide">BIWEEKLY PERIOD</p>
+      <p className="text-sm text-amber-100/90" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        {fmtDate(periodRanges.accrual.from)} — {fmtDate(periodRanges.payout.to)}
+        <span className="text-muted-foreground"> · wypłata {fmtDate(periodKey)}</span>
+      </p>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-background/40 px-2 py-2">
+          <div className="text-[10px] text-muted-foreground uppercase">Zarobione</div>
+          <div className="text-sm font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(remainingInfo.earnedSoFar)} PLN</div>
+        </div>
+        <div className="rounded-lg bg-background/40 px-2 py-2">
+          <div className="text-[10px] text-muted-foreground uppercase">Wcześniej</div>
+          <div className="text-sm font-semibold text-amber-300" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(remainingInfo.earlyPaid)} PLN</div>
+        </div>
+        <div className="rounded-lg bg-background/40 px-2 py-2">
+          <div className="text-[10px] text-muted-foreground uppercase">Pozostaje</div>
+          <div className="text-sm font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(remainingInfo.remaining)} PLN</div>
+        </div>
+      </div>
+
+      {canEdit && !formOpen && (
+        <button
+          type="button"
+          onClick={() => setFormOpen(true)}
+          className="w-full text-sm font-medium rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-100 py-2.5 min-h-[44px] hover:bg-amber-500/20"
+        >
+          Zarejestruj wcześniejszą wypłatę
+        </button>
+      )}
+
+      {formOpen && canEdit && (
+        <div className="space-y-2 border-t border-amber-500/20 pt-3">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-muted-foreground space-y-1">
+              <span>Kwota</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full bg-background rounded-lg px-2 py-2 text-sm border border-border"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              />
+            </label>
+            <label className="text-xs text-muted-foreground space-y-1">
+              <span>Data</span>
+              <input
+                type="date"
+                value={paidAt}
+                onChange={(e) => setPaidAt(e.target.value)}
+                className="w-full bg-background rounded-lg px-2 py-2 text-sm border border-border"
+              />
+            </label>
+          </div>
+          <div className="flex gap-2">
+            {([
+              { id: "transfer" as const, label: "Przelew" },
+              { id: "cash" as const, label: "Gotówka" },
+            ]).map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMethod(m.id)}
+                className={`flex-1 text-sm py-2 rounded-lg border min-h-[44px] ${
+                  method === m.id ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            placeholder="Opis (opcjonalnie)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border"
+          />
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <div className="flex gap-2">
+            <button type="button" onClick={submit} className="flex-1 text-sm font-medium rounded-lg bg-primary text-primary-foreground py-2.5 min-h-[44px]">
+              Zapisz
+            </button>
+            <button type="button" onClick={() => { setFormOpen(false); setError(""); }} className="px-4 text-sm rounded-lg border border-border min-h-[44px]">
+              Anuluj
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!canEdit && (
+        <p className="text-xs text-muted-foreground">
+          {isClosedWeek
+            ? "Tydzień zamknięty — historia wcześniejszych wypłat tylko do odczytu."
+            : "Edycja zablokowana."}
+        </p>
+      )}
+
+      {allTxs.length > 0 && (
+        <div className="border-t border-amber-500/20 pt-2 space-y-1.5">
+          <p className="text-[10px] uppercase text-muted-foreground tracking-wide">Historia</p>
+          {allTxs.map((tx) => (
+            <div
+              key={tx.id}
+              className={`flex items-start gap-2 text-xs rounded-lg px-2 py-2 ${tx.deletedAt ? "opacity-50 line-through" : "bg-background/30"}`}
+            >
+              <div className="flex-1 min-w-0 space-y-0.5">
+                <div className="flex flex-wrap gap-x-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span>{fmtDate(tx.paidAt.slice(0, 10))}</span>
+                  <span className="font-semibold">{fmt(tx.amount)} PLN</span>
+                  <span>{tx.method === "cash" ? "Gotówka" : "Przelew"}</span>
+                </div>
+                {tx.description && <div className="text-muted-foreground truncate">{tx.description}</div>}
+                <div className="text-[10px] text-muted-foreground">{tx.deletedAt ? "Anulowana" : "Aktywna"}</div>
+              </div>
+              {canEdit && !tx.deletedAt && (
+                <button
+                  type="button"
+                  onClick={() => removeTx(tx.id)}
+                  className="shrink-0 p-2 rounded-lg text-destructive hover:bg-destructive/10 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Anuluj"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -6,6 +6,11 @@ import {
   liveRosterHasPositiveHours,
   QUARANTINE_HISTORICAL_HOURS_REASON,
 } from "@/lib/payroll-week-roster-binding";
+import {
+  isActiveEarlyPayout,
+  normalizeEarlyPayoutList,
+  type PayrollEarlyPayout,
+} from "@/lib/payroll-early-payout-types";
 
 const DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
 
@@ -287,6 +292,7 @@ export interface WeekEmpPayrollInput {
     kind?: string;
     updatedAt?: string;
   };
+  payrollEarlyPayouts?: import("@/lib/payroll-early-payout-types").PayrollEarlyPayout[];
   prevSaturday?: {
     active: boolean;
     from: string;
@@ -342,7 +348,14 @@ export interface BiweeklyRowDisplay {
   nextPayoutDate: string;
   thisWeekNet: number;
   prevWeekNet: number;
+  /** Gross period display before early subtraction (this+prev on payout; this on accrual). */
+  displayNetBeforeEarly: number;
+  /** Remaining after active early payouts (payout week) or remaining of earned-so-far (accrual). */
   displayNet: number;
+  earlyPaid: number;
+  earlyCash: number;
+  earlyTransfer: number;
+  periodKey: string;
   accruedOnly: boolean;
   prevWeekFrom: string;
   prevWeekTo: string;
@@ -353,6 +366,8 @@ export interface PayrollCashSplit {
   weeklyNet: number;
   biweeklyPayoutNet: number;
   biweeklyAccruedNet: number;
+  /** Early cash payouts booked in the current week (biweekly). */
+  earlyCashNet: number;
   totalSaturdayCash: number;
   isAnyBiweeklyPayoutWeek: boolean;
   nextBiweeklyPayoutDate: string;
@@ -528,6 +543,108 @@ export function findWeekEmployeeInArchive(
   );
 }
 
+/** periodKey SSOT = next payout Saturday for the biweekly period containing weekTo. */
+export function getBiweeklyPeriodKey(
+  empRef: Pick<WeekEmpPayrollInput, "directoryId" | "name">,
+  directory: DirectoryPayrollRef[],
+  weekTo: string,
+): string | null {
+  if (!isBiweeklyPayrollEmployee(empRef, directory)) return null;
+  const anchor = biweeklyAnchorFor(empRef, directory);
+  if (!anchor) return null;
+  return nextBiweeklyPayoutSaturday(weekTo, anchor);
+}
+
+export function biweeklyPeriodWeekRanges(periodKey: string): {
+  accrual: { from: string; to: string };
+  payout: { from: string; to: string };
+} {
+  const payout = weekRangeFromSaturday(periodKey);
+  const accrual = previousWeekRange(payout.from);
+  return { accrual, payout };
+}
+
+function txsFromEmpPayroll(emp: { payrollEarlyPayouts?: unknown } | null | undefined): PayrollEarlyPayout[] {
+  return normalizeEarlyPayoutList(emp?.payrollEarlyPayouts);
+}
+
+/** Collect active early payouts for period from live emp + archived weeks of the period. */
+export function getActiveEarlyPayoutsForPeriod(
+  emp: Pick<WeekEmpPayrollInput, "directoryId" | "name"> & { payrollEarlyPayouts?: unknown },
+  directory: DirectoryPayrollRef[],
+  weekFrom: string,
+  weekTo: string,
+  savedWeeks: WeekArchiveRef[],
+  periodKey?: string | null,
+): PayrollEarlyPayout[] {
+  const pk = periodKey ?? getBiweeklyPeriodKey(emp, directory, weekTo);
+  if (!pk) return [];
+  const { accrual, payout } = biweeklyPeriodWeekRanges(pk);
+  const byId = new Map<string, PayrollEarlyPayout>();
+
+  const absorb = (list: PayrollEarlyPayout[]) => {
+    for (const tx of list) {
+      if (tx.periodKey !== pk) continue;
+      const prev = byId.get(tx.id);
+      if (!prev) {
+        byId.set(tx.id, tx);
+        continue;
+      }
+      if (tx.deletedAt && !prev.deletedAt) {
+        byId.set(tx.id, tx);
+        continue;
+      }
+      if (!tx.deletedAt && prev.deletedAt) continue;
+      if (String(tx.updatedAt) > String(prev.updatedAt)) byId.set(tx.id, tx);
+    }
+  };
+
+  absorb(txsFromEmpPayroll(emp));
+
+  const fromArchive = (from: string, to: string) => {
+    const archived = findWeekEmployeeInArchive(savedWeeks, from, to, emp);
+    if (archived) absorb(txsFromEmpPayroll(archived as { payrollEarlyPayouts?: unknown }));
+    const snap = savedWeeks.find((w) => w.weekFrom === from && w.weekTo === to);
+    if (snap?.weekEmployees?.length) {
+      const we = snap.weekEmployees.find(
+        (e) =>
+          (emp.directoryId && e.directoryId === emp.directoryId)
+          || normalizeEmpName(e.name) === normalizeEmpName(emp.name),
+      );
+      if (we) absorb(txsFromEmpPayroll(we as { payrollEarlyPayouts?: unknown }));
+    }
+  };
+
+  fromArchive(accrual.from, accrual.to);
+  fromArchive(payout.from, payout.to);
+  void weekFrom;
+
+  return [...byId.values()].filter(isActiveEarlyPayout);
+}
+
+export function getEarlyPaidForPeriod(
+  emp: Pick<WeekEmpPayrollInput, "directoryId" | "name"> & { payrollEarlyPayouts?: unknown },
+  directory: DirectoryPayrollRef[],
+  weekFrom: string,
+  weekTo: string,
+  savedWeeks: WeekArchiveRef[],
+  periodKey?: string | null,
+): { total: number; cash: number; transfer: number; txs: PayrollEarlyPayout[] } {
+  const txs = getActiveEarlyPayoutsForPeriod(emp, directory, weekFrom, weekTo, savedWeeks, periodKey);
+  let cash = 0;
+  let transfer = 0;
+  for (const tx of txs) {
+    if (tx.method === "cash") cash += tx.amount;
+    else transfer += tx.amount;
+  }
+  return {
+    total: +(cash + transfer).toFixed(2),
+    cash: +cash.toFixed(2),
+    transfer: +transfer.toFixed(2),
+    txs,
+  };
+}
+
 export function calcBiweeklyRowDisplay(
   emp: WeekEmpPayrollInput,
   directory: DirectoryPayrollRef[],
@@ -544,19 +661,28 @@ export function calcBiweeklyRowDisplay(
   const thisWeekNet = weekNetFor(emp, weekFrom, weekTo);
   const isPayoutWeek = isBiweeklyPayoutWeek(weekTo, anchor);
   const nextPayoutDate = nextBiweeklyPayoutSaturday(weekTo, anchor);
+  const periodKey = nextPayoutDate;
   const prevRange = previousWeekRange(weekFrom);
   const prevEmp = findWeekEmployeeInArchive(savedWeeks, prevRange.from, prevRange.to, emp);
-  const prevWeek = prevEmp ? calcWeekNetNoPrevSat(prevEmp) : { weekHours: 0, totalZaliczka: 0, totalExtraCosts: 0, grossPay: 0, netPay: 0, rateNum: 0 };
   const prevWeekNet = prevEmp ? weekNetFor(prevEmp, prevRange.from, prevRange.to) : 0;
 
+  const early = getEarlyPaidForPeriod(emp, directory, weekFrom, weekTo, savedWeeks, periodKey);
+
   if (!isPayoutWeek) {
+    const displayNetBeforeEarly = thisWeekNet;
+    const displayNet = Math.max(0, +(displayNetBeforeEarly - early.total).toFixed(2));
     return {
       isBiweekly: true,
       isPayoutWeek: false,
       nextPayoutDate,
       thisWeekNet,
       prevWeekNet: 0,
-      displayNet: thisWeekNet,
+      displayNetBeforeEarly,
+      displayNet,
+      earlyPaid: early.total,
+      earlyCash: early.cash,
+      earlyTransfer: early.transfer,
+      periodKey,
       accruedOnly: true,
       prevWeekFrom: prevRange.from,
       prevWeekTo: prevRange.to,
@@ -564,13 +690,20 @@ export function calcBiweeklyRowDisplay(
     };
   }
 
+  const displayNetBeforeEarly = +(thisWeekNet + prevWeekNet).toFixed(2);
+  const displayNet = Math.max(0, +(displayNetBeforeEarly - early.total).toFixed(2));
   return {
     isBiweekly: true,
     isPayoutWeek: true,
     nextPayoutDate,
     thisWeekNet,
     prevWeekNet,
-    displayNet: +(thisWeekNet + prevWeekNet).toFixed(2),
+    displayNetBeforeEarly,
+    displayNet,
+    earlyPaid: early.total,
+    earlyCash: early.cash,
+    earlyTransfer: early.transfer,
+    periodKey,
     accruedOnly: false,
     prevWeekFrom: prevRange.from,
     prevWeekTo: prevRange.to,
@@ -590,6 +723,7 @@ export function computePayrollCashSplit(
   let weeklyNet = 0;
   let biweeklyPayoutNet = 0;
   let biweeklyAccruedNet = 0;
+  let earlyCashNet = 0;
   let isAnyBiweeklyPayoutWeek = false;
   let hasBiweeklyEmployees = false;
   let nextBiweeklyPayoutDate = "";
@@ -603,11 +737,16 @@ export function computePayrollCashSplit(
       const row = calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks, calcBiweeklyWeekNet);
       if (!row) continue;
       if (!nextBiweeklyPayoutDate) nextBiweeklyPayoutDate = row.nextPayoutDate;
+      const earlyCashThisWeek = getEarlyPaidForPeriod(emp, directory, weekFrom, weekTo, savedWeeks, row.periodKey).txs
+        .filter((tx) => tx.method === "cash" && tx.paidAt.slice(0, 10) >= weekFrom && tx.paidAt.slice(0, 10) <= weekTo)
+        .reduce((s, tx) => s + tx.amount, 0);
+      earlyCashNet += earlyCashThisWeek;
+
       if (row.isPayoutWeek) {
         isAnyBiweeklyPayoutWeek = true;
         biweeklyPayoutNet += row.displayNet;
       } else {
-        biweeklyAccruedNet += row.thisWeekNet;
+        biweeklyAccruedNet += row.displayNetBeforeEarly;
       }
     } else {
       weeklyCount += 1;
@@ -619,7 +758,8 @@ export function computePayrollCashSplit(
     weeklyNet: +weeklyNet.toFixed(2),
     biweeklyPayoutNet: +biweeklyPayoutNet.toFixed(2),
     biweeklyAccruedNet: +biweeklyAccruedNet.toFixed(2),
-    totalSaturdayCash: +(weeklyNet + biweeklyPayoutNet).toFixed(2),
+    earlyCashNet: +earlyCashNet.toFixed(2),
+    totalSaturdayCash: +(weeklyNet + biweeklyPayoutNet + earlyCashNet).toFixed(2),
     isAnyBiweeklyPayoutWeek,
     nextBiweeklyPayoutDate,
     hasBiweeklyEmployees,
