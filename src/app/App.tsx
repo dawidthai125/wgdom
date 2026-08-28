@@ -1316,12 +1316,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       void pullFromCloudAndMerge();
     };
+    /** P2 — bfcache restore: drop stale scheduled domain flush (heap roster may predate remote edits). */
+    const onPageShow = (ev: PageTransitionEvent) => {
+      if (ev.persisted) {
+        cancelPayrollDomainPush();
+      }
+      void pullFromCloudAndMerge();
+    };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
+    window.addEventListener("pageshow", onPageShow);
     tabVisibleRef.current = !document.hidden;
     return () => {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, [pullFromCloudAndMerge, jobs]);
 

@@ -29,8 +29,8 @@ import {
 import {
   isPayrollExtraCostsOnlyIntent,
   rebasePayrollExtraCostsIntent,
-  rebasePayrollRosterIntent,
 } from "@/lib/payroll-roster-rebase";
+import { rebasePayrollFieldIntents } from "@/lib/payroll-field-intent";
 import {
   bindPayrollDomainPushHandler,
   cancelPayrollDomainPush,
@@ -222,7 +222,14 @@ export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
         }
         roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
           ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
-          : rebasePayrollRosterIntent(canonical, intentBefore, intentAfter);
+          : rebasePayrollFieldIntents(
+              canonical,
+              intentBefore,
+              intentAfter,
+              resolved.hoursIntents,
+              params.weekFrom,
+              params.weekTo,
+            );
         // P1 — drop tombstoned identities after rebase (stale ADD vs DELETE tomb).
         const tombKeys = deletedWeekEmployeeMergeKeySet(
           getDeletedWeekEmployeeKeys(),

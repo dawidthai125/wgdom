@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.121 — PAYROLL P2 field-level stale write (2026-08-28)
+
+- `applyPayrollFieldIntentsOntoCanonical` — hours UP+DOWN / rate / extraCosts / day slots vs cloud
+- Guard + push + 409 rebase: brak whole-employee LWW przez `dataUpdatedAt`
+- bfcache `pageshow` → cancel stale domain debounce
+- Test: `npx vite-node scripts/test-payroll-p2-field-intent.mjs`
+- Bez zmian Edge UNION/I-1/I-2
+
 ## 2.66.120 — PAYROLL P1 stale cross-device write (2026-08-28)
 
 - `sanitizeStaleRosterMembership` — cloud-absent tylko przy prawdziwym ADD (`!rosterBefore`)

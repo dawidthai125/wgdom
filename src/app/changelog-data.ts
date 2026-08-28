@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.121",
+    label: "PAYROLL P2 — field-level stale write protection",
+    items: [
+      {
+        type: "fix",
+        text: "P2: intent pól (godziny UP+DOWN, rate, extraCosts, slot dnia) vs cloud — rebase/CAS-match nie przepycha starego employee przez dataUpdatedAt/LWW. bfcache pageshow anuluje stale domain debounce. Test: test-payroll-p2-field-intent.mjs. Bez zmian Edge.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.120",
     label: "PAYROLL P1 — ochrona przed stale write cross-device",
     items: [

@@ -8,6 +8,7 @@ import {
   type PayrollScopedHoursIntent,
 } from "./payroll-hours-intent.ts";
 import { sanitizeStaleRosterMembership } from "./payroll-stale-roster-membership.ts";
+import { applyPayrollFieldIntentsOntoCanonical } from "./payroll-field-intent.ts";
 import type { WeekEmployee } from "@/app/app-domain";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
@@ -1680,6 +1681,55 @@ async function applyPayrollGuardBeforePush(
       });
       nextValues[empIdx] = membership.roster;
       outgoing = membership.roster;
+    }
+  }
+
+  // P2 — field-level intent: unrelated days/rate/extraCosts stay canonical (CAS-match + 409).
+  // Closes hours-UP leakage and dataUpdatedAt whole-employee LWW side effects before Edge UNION.
+  if (opts.payrollWeekRolloverPush !== true && opts.intentionalHoursClear !== true) {
+    const field = applyPayrollFieldIntentsOntoCanonical(
+      cloudEmps,
+      opts.rosterBefore,
+      outgoing,
+      hoursIntents,
+      weekFrom,
+      weekTo,
+    );
+    if (field.changed) {
+      console.warn("[PAYROLL-GUARD] applied field-level intents onto canonical cloud", {
+        cloud: payrollMetrics(cloudEmps),
+        before: payrollMetrics(outgoing),
+        after: payrollMetrics(field.roster),
+      });
+      payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+        blocked: false,
+        skipReason: "field_intent_applied" as const,
+      });
+      nextValues[empIdx] = field.roster;
+      outgoing = field.roster;
+    }
+  }
+
+  // Re-check hours-down after field apply (defense in depth — P0 contract).
+  {
+    const again = sanitizeRosterHoursToAuthorizedIntents(
+      cloudEmps,
+      outgoing,
+      hoursIntents,
+      weekFrom,
+      weekTo,
+    );
+    if (again.unauthorized.length > 0 && hoursIntents.length === 0) {
+      console.warn("[PAYROLL-GUARD] blocked silent hours-down after field intent", {
+        unauthorizedCount: again.unauthorized.length,
+        cloud: payrollMetrics(cloudEmps),
+        outgoing: payrollMetrics(outgoing),
+      });
+      return stripEmp("silent_hours_down");
+    }
+    if (again.changed) {
+      nextValues[empIdx] = again.sanitized;
+      outgoing = again.sanitized;
     }
   }
 
@@ -3563,6 +3613,9 @@ export async function pushWeekEmployeesToCloud(
       });
       normalized = membership.roster;
     }
+    // P2 field intents apply ONLY inside applyPayrollGuardBeforePush — after the
+    // silent hours-down BLOCK. Pre-healing here would turn stale 660→347 into a
+    // cloud-noop ALLOW and bypass P0 hours-down protection.
   } catch {
     /* guard fail-closed on push if cloud unreachable */
   }
