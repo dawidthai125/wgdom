@@ -2,12 +2,12 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
-> **Data:** 2026-08-26 (Master completeness closeout · **A08-P3 IMPLEMENTED** · **G2 WAIT**) · prior body 2026-08-24
+> **Data:** 2026-08-28 (Owner OD-P3 governance sync) · prior 2026-08-26 (Master completeness closeout · **A08-P3 IMPLEMENTED** · **G2 WAIT**)
 > **Doc hash (pre-edit baseline):** `82D337F25431` @ git `b857a162` · **post-edit:** see git after this session
 > **Mode:** DOCUMENTATION ONLY · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **≠** cały IK globalnie E2E GREEN · **AUTONOMY-08 epic NOT CLOSED**
 > **Experience DF:** [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) · Phase 4 amend §21
-> **A08-P3:** impl **`3822acb`** · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · Arch [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · harness **27/0** · **P3 OPEN** · G1 PV **PASS** · G2 **WAITING FOR NATURAL PROD CANDIDATE**
-> **Live tip commit (P3 deploy):** **`3822acb`** · UI **`2.66.115`** · prod https://www.wgdom.fun
+> **A08-P3:** impl **`3822acb`** · HEAD **`f457cb17`** · UI **`2.66.116`** · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · Arch [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · harness **27/0** · **P3 OPEN** · G1 contract **Owner APPROVED** · G2 contract **Owner APPROVED** · G1 PV **PASS** · G2 **WAITING FOR NATURAL PROD CANDIDATE** · prod use **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) · APF **FROZEN** · separate plane (OD-P3-7)
+> **Live tip commit (P3 deploy):** **`3822acb`** · **HEAD** **`f457cb17`**
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 > **Live tip (pointer):** UI / commit — **tylko** `09` + live `version.json` (nie hardcoduj tu przy driftcie deploy)
@@ -1116,8 +1116,15 @@ Resume procedure: identify tender+lineRef → report evidence → Owner GO → n
 
 ### OWNER DECISIONS REQUIRED
 
-| Decision | When |
-|----------|------|
+| Decision | Status (2026-08-28) |
+|----------|---------------------|
+| **OD-P3-1** G1 contract | **APPROVE** |
+| **OD-P3-2** G2 contract | **APPROVE** |
+| **OD-P3-3** G2 PV strategy | **WAIT** (natural prod candidate) |
+| **OD-P3-4** Material Chief | **hard dependency** |
+| **OD-P3-5** Prod use | **REQUIRE EVIDENCE BEFORE PROD** |
+| **OD-P3-6** Docs sync | **YES** (this session) |
+| **OD-P3-7** APF boundary | **KEEP SEPARATE** |
 | Resume G2 PV | After natural candidate appears |
 | `ikChiefWiringEnabled=true` | Only for material G2 Accept PV (separate GO) |
 | Close A08-P3 / epic | Only after G2 PV complete |
@@ -1310,8 +1317,8 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | ID | Source A | Source B | Resolution |
 |----|----------|----------|------------|
-| **C-09-P3** | [`09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) snapshot line 8: «P3 **NOT STARTED**» | Repo **`3822acb`** + harness 27/0 + G1 PV | **Repo wins:** P3 **IMPLEMENTED · OPEN**. Update `09` §1 on next tip sync — **not** in this task scope unless Owner requests. |
-| **C-P3-DF** | P3 DF header «IMPLEMENT NOT AUTHORIZED» (pre-impl doc) | Code on `main` | **Repo wins:** treat DF as design record; impl authorized retrospectively by deploy. |
+| **C-09-P3** | [`09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) snapshot line 8: «P3 **NOT STARTED**» | Repo **`3822acb`** + harness 27/0 + G1 PV | **RESOLVED** (2026-08-28): `09` synced · P3 **IMPLEMENTED · OPEN** |
+| **C-P3-DF** | P3 DF header «IMPLEMENT NOT AUTHORIZED» (pre-impl doc) | Code on `main` | **RESOLVED** (2026-08-28): governance records **IMPLEMENTED** @ `3822acb` · **not** retroactive IMPLEMENT GO · **OD-P3-5 REQUIRE EVIDENCE BEFORE PROD** |
 
 ---
 
@@ -1346,8 +1353,9 @@ CURRENT STATE:
   Phase 5 NOT AUTHORIZED · AUTONOMY-08 epic NOT CLOSED
 
 BASELINE:
-  HEAD = 3822acb3724493b349c08a33bc584c7afe5dde31
-  Production UI = 2.66.115
+  HEAD = f457cb174aa1c45922381580192e744ba891dabd
+  A08-P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31
+  Production UI = 2.66.116
 
 READ FIRST:
   docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md (§22 handoff)

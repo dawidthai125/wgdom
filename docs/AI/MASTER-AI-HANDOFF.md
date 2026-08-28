@@ -21,16 +21,16 @@
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-24 → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json (nie snapshot 2.66.59 poniżej)
-ACTIVE IMPLEMENT = NONE bez Owner GO · LIVE/REPO tip @ bf2a9168 · S6/P4 FEATURE TIP @ 2fce3caf · Phase 2E targeted discovery LANDED @ 1a9c5484 · FULL PHASE 2E OPEN · A08-P0/P1/P2 CLOSED · A08-P3 NOT STARTED · AUTONOMY-08 epic NOT CLOSED · NIE A08-P3 IMPLEMENT bez Owner GO → DEEP AUDIT · NIE invent S10
+ACTIVE IMPLEMENT = NONE · HEAD @ f457cb17 · UI 2.66.116 · A08-P3 IMPLEMENTED/OPEN @ 3822acb · G1/G2 contract APPROVED · G2 PV WAIT · OD-P3-5 REQUIRE EVIDENCE BEFORE PROD · prod G2 Accept NOT AUTHORIZED · APF FROZEN · AUTONOMY-08 epic NOT CLOSED · NIE A08-P4/G3 · NIE invent S10
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NEXT OWNER GO**. Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.115** · **LIVE/REPOSITORY TIP `bf2a9168`** · **S6/P4 FEATURE TIP `2fce3caf`** · Phase 2E **targeted discovery LANDED `1a9c5484`** · **full Phase 2E OPEN** · **AUTONOMY-08 epic NOT CLOSED** (P0–P2 CLOSED · P3 NOT STARTED · P4 PLANNED) · **≠** cały IK globalnie E2E PRODUCTION VERIFIED. Szczegóły tipu = wyłącznie [`09`](09_PRODUCTION_BASELINE.md).
+W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NATURAL G2 CANDIDATE** (A08-P3 G2 PV). Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.116** · **HEAD `f457cb17`** · **A08-P3 `3822acb` IMPLEMENTED · OPEN** · G1/G2 contract **Owner APPROVED** · prod use **REQUIRE EVIDENCE BEFORE PROD** · G2 PV **WAIT** · APF **FROZEN** · **AUTONOMY-08 epic NOT CLOSED** (P0–P2 CLOSED · P4 PLANNED · **≠** G3/P4 start) · **≠** cały IK globalnie E2E PRODUCTION VERIFIED. Szczegóły tipu = wyłącznie [`09`](09_PRODUCTION_BASELINE.md).
 
-**NEXT rekomendacja:** **UTRZYMANIE** — next engineering = **Owner GO → A08-P3 DEEP AUDIT** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C1–C5** tylko Owner GO → AUDIT · **NIE** invent S10 · **NIE** mylić namespace’ów C1–C6.  
+**NEXT rekomendacja:** **UTRZYMANIE** — **WAIT** for natural G2 prod candidate (OD-P3-3) · **no G2 production Accept** · **no P4/G3** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C1–C5** tylko Owner GO → AUDIT · **NIE** invent S10 · **NIE** mylić namespace’ów C1–C6.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
@@ -44,10 +44,11 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
-| **CURRENT LIVE / REPOSITORY TIP** | **`bf2a916` / `bf2a9168`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · docs-only successor after P4 |
+| **CURRENT LIVE / REPOSITORY TIP** | **`f457cb17`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · UI **2.66.116** |
+| **A08-P3 FEATURE TIP** | **`3822acb`** · **IMPLEMENTED · OPEN** · harness **27/0** · G2 PV **WAIT** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · see [`09`](09_PRODUCTION_BASELINE.md) |
-| **Feature tip** | S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |
-| **Status** | tip sync per [`09`](09_PRODUCTION_BASELINE.md) · AUTONOMY-08 **NOT CLOSED** · A08-P3 **NOT STARTED** · full Phase 2E **OPEN** · S10 **OUT** · **≠** cały IK globalnie E2E / FINAL · **WAITING FOR NEXT OWNER GO** |
+| **Feature tip** | A08-P3 @ **`3822acb`** · S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · APF **FROZEN** · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |
+| **Status** | tip sync per [`09`](09_PRODUCTION_BASELINE.md) · AUTONOMY-08 **NOT CLOSED** · A08-P3 **IMPLEMENTED · OPEN** · G1/G2 contract **APPROVED** · G2 PV **WAIT** · prod G2 Accept **NOT AUTHORIZED** · full Phase 2E **OPEN** · S10 **OUT** · **WAITING FOR NATURAL G2 CANDIDATE** |
 | **ACTIVE EPIC** | **NONE** |
 | **ACTIVE IMPLEMENT / RELEASE / COMMIT** | **NONE** |
 | **SSOT tip** | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) |
@@ -346,9 +347,9 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 ## Next Recommended Task
 
-**WAITING FOR NEXT OWNER GO** — ACTIVE EPIC = **NONE** · brak auto-NEXT.
+**WAITING FOR NATURAL G2 CANDIDATE** — ACTIVE EPIC = **NONE** · A08-P3 **OPEN** · brak auto-NEXT · **no G2 production Accept**.
 
-**Rekomendacja #1:** **UTRZYMANIE** — next = **Owner GO → A08-P3 DEEP AUDIT** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** — **tylko Owner GO** → **AUDIT** ([`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`COLD-START`](WGDOM-COLD-START-HANDOFF.md)). **NIE** invent S10 · **NIE** mylić C1–C6 namespaces.
+**Rekomendacja #1:** **UTRZYMANIE** — **WAIT** natural G2 prod candidate (OD-P3-3) · **no P4/G3** · **no G2 Accept** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** — **tylko Owner GO** → **AUDIT** ([`TM-01 MASTER`](../architecture/TENDER-MODERNIZATION-01-MASTER.md) · [`S9 CLOSEOUT`](../architecture/TENDER-MODERNIZATION-01-S9-CLOSEOUT.md) · [`COLD-START`](WGDOM-COLD-START-HANDOFF.md)). **NIE** invent S10 · **NIE** mylić C1–C6 namespaces.
 
 Inne (wymagają **Owner GO** → **AUDIT**): C1 micro symbols · C2–C6 REMOVE/MIGRATE · S3-D · Bid retirement · hard REMOVE after L8 · Cloud Decision Persist / Audit Hub · Wire Pack→CI/UI · WIM-P1b · MOBILE-P2 · P4 Rysunki · MS P3-B · SMART P3 · CM-04 P3 · Wave 2 · GAP-B / TP200B · Bid Time-Load Guard izolowany COMMIT · `useTenderOfferRun` WIP · S2 DetailPage raw Session call (pre-existing 44/45).
 

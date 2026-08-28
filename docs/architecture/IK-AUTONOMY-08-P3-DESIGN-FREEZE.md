@@ -4,28 +4,34 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P3-OWNER-GATES-DESIGN-FREEZE` |
-| **Status** | **DESIGN FREEZE = PROPOSED** · **NOT READY FOR IMPLEMENTATION** |
-| **Date** | 2026-08-26 |
+| **Status** | **DESIGN FREEZE = ACCEPTED** · **P3 = IMPLEMENTED · OPEN** · **NOT CLOSED** |
+| **Date** | 2026-08-26 (DF) · **Owner governance sync 2026-08-28** |
 | **Mode** | DOCS ONLY · **no runtime change in this slice** |
-| **Baseline** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
+| **Baseline (design)** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
+| **Implementation** | **`3822acb`** · harness **27/0 PASS** · HEAD ancestor **`f457cb17`** |
+| **Owner governance** | OD-P3-1 G1 **APPROVE** · OD-P3-2 G2 **APPROVE** · OD-P3-5 **REQUIRE EVIDENCE BEFORE PROD** |
 | **Deep Audit** | A08-P3 DEEP AUDIT (2026-08-26) · verdict **PARTIALLY_MAPPED** → resolved by this DF |
 | **ARCH REVIEW** | [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) |
-| **Prior slices** | P0/P1/P2 **CLOSED** · P3 **NOT STARTED** · P4 **PLANNED** · epic **NOT CLOSED** |
+| **Prior slices** | P0/P1/P2 **CLOSED** · P3 **IMPLEMENTED · OPEN** · P4 **PLANNED** · epic **NOT CLOSED** |
 | **Contract SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
 | **Tip** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | **Unified PLAN** | [`IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-PLAN.md`](./IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-PLAN.md) §405 |
 | **Slice** | **08-P3 only** — Owner Gates **G1 Identity** + **G2 Price** · Accept→persist→recompute · **not** G3 Final Bid (P4) · **not** epic close |
 
 ```text
-DESIGN FREEZE              = PROPOSED (this document)
-ARCH REVIEW                = PASS WITH REQUIRED FIXES (companion doc)
-ARCHITECTURE BLOCKERS      = 0 at DF level · 1 implementation contract (G2 orchestra refresh)
-IMPLEMENT                  = NOT AUTHORIZED
+DESIGN FREEZE              = ACCEPTED (Owner OD-P3-1 / OD-P3-2 contract APPROVE)
+ARCH REVIEW                = PASS WITH REQUIRED FIXES · fixes SATISFIED in code @ 3822acb
+ARCHITECTURE BLOCKERS      = 0 at DF level
+G1 CONTRACT                = Owner APPROVED (OD-P3-1)
+G2 CONTRACT                = Owner APPROVED (OD-P3-2)
+A08-P3 IMPLEMENTATION      = IMPLEMENTED @ 3822acb · harness 27/0 · P3 OPEN · NOT CLOSED
+PROD USE (G1/G2)           = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
+G2 PRODUCTION VERIFY       = WAITING FOR NATURAL PROD CANDIDATE (OD-P3-3)
 A08-P0 / P1 / P2           = COMPLETE / CLOSED
-A08-P3                     = NOT STARTED
-A08-P4                     = PLANNED
+A08-P4 / G3 Final Bid      = PLANNED · OUT OF SCOPE P3
 EPIC                       = AUTONOMY-08 — NOT CLOSED
 Phase 2E                   = targeted discovery LANDED @ 1a9c5484 · FULL OPEN · OUT OF SCOPE P3
+APF                        = PROVEN / FROZEN · separate plane (OD-P3-7 KEEP SEPARATE)
 ```
 
 If narrative and **SOURCE** (repo code + prior closeouts) disagree, **SOURCE wins**.
@@ -45,20 +51,26 @@ No runtime mapping KV.
 | Item | Frozen |
 |------|--------|
 | A08-P3 DEEP AUDIT | **COMPLETE** (read-only) |
-| This DF | **PROPOSED** — awaits Owner signoff + commit |
-| ARCH REVIEW | Companion doc · **PASS WITH REQUIRED FIXES** |
-| IMPLEMENT | **NOT AUTHORIZED** |
+| This DF | **ACCEPTED** — G1/G2 contract Owner **APPROVED** (2026-08-28) |
+| ARCH REVIEW | Companion doc · **PASS WITH REQUIRED FIXES** · IC-P3-* **satisfied** in code |
+| P3 implementation | **IMPLEMENTED** @ **`3822acb`** · **OPEN** · **NOT CLOSED** |
+| Prod use G1/G2 | **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) |
+| G2 Production Verify | **WAIT** — natural prod candidate (OD-P3-3) |
 | P4 / G3 Final Bid | **OUT OF SCOPE** |
 | Phase 2E corpus WIP | **OUT OF SCOPE** |
 | S6-A / S6-B / P4 closed code | **MUST NOT TOUCH** |
 | Unrelated WIP | **NIERUSZANY** |
 
-### Readiness gate (HARD)
+### Readiness gate (HARD — historical design gate)
 
-**NOT READY FOR IMPLEMENTATION** until **all** of:
+Design-time gate (pre-impl) required DF + Arch Review on `main` + Owner IMPLEMENT GO.
 
-1. This DF + Arch Review are **committed** to `main`.
-2. Owner explicitly authorizes **A08-P3 IMPLEMENT** (separate GO).
+**Governance closeout (2026-08-28):**
+
+1. DF + Arch Review **committed** to `main` — **PASS**.
+2. Code **IMPLEMENTED** @ **`3822acb`** — factual; **not** retroactive IMPLEMENT authorization.
+3. **Prod use** G1/G2 — **NOT AUTHORIZED** until evidence per **OD-P3-5**.
+4. **G2 prod Accept** — **NOT AUTHORIZED** until natural candidate + G2 PV (OD-P3-3).
 
 ---
 
@@ -186,6 +198,26 @@ OwnerManualIdentityOverride {
 - invent identity from description alone
 
 **UX:** Research Again → (A) and optionally (B); if still GAP → Owner **Edit/Accept** required.
+
+### 4.1 APF ephemeral selective research (Slice 3A addendum — HARD)
+
+| Plane | Identity GAP labor price research |
+|-------|-------------------------------------|
+| **Normal IK labor orchestra** | **FORBIDDEN** — `RESEARCH_ON_UNKNOWN_IDENTITY` **KEEP** |
+| **APF ephemeral selective** | **Separate policy plane** — future controlled path for `pomiar`/`prob` **without** CatalogWork/workId |
+
+**HARD — Slice 3A does NOT change:**
+
+- `ik-labor-expert.ts` boundary checks
+- `runSelectiveWorkRateResearch` workId requirement
+- P5.27 on **NORMAL_WORK_RATE_RESEARCH** plane
+- Research Again semantics (identity re-eval only)
+
+**HARD — Slice 3A establishes only:**
+
+- explicit APF policy authorization concept (`evaluateApfEphemeralSelectiveResearchPolicy`)
+- legal doc amendement in `WORK-RATE-OWNER-LEGAL-PASS.md`
+- **no** HTTP · **no** source route · **no** verified content claim · **no** OUR RATE / Accept
 
 ---
 
@@ -379,14 +411,35 @@ Reject then Accept: allowed fresh. Page refresh: no silent Accept — candidate/
 ## 14. Readiness
 
 ```text
-NOT READY FOR IMPLEMENTATION
+P3 = IMPLEMENTED · OPEN · NOT CLOSED
 
-Until:
-  1. This DF + Arch Review committed to main
-  2. Owner explicitly authorizes A08-P3 IMPLEMENT
+Governance (Owner 2026-08-28):
+  OD-P3-1  G1 contract     = APPROVE
+  OD-P3-2  G2 contract     = APPROVE
+  OD-P3-3  G2 PV strategy  = WAIT (natural prod candidate)
+  OD-P3-4  Material Chief  = hard dependency
+  OD-P3-5  Prod use        = REQUIRE EVIDENCE BEFORE PROD
+  OD-P3-6  Docs sync       = YES
+  OD-P3-7  APF boundary    = KEEP SEPARATE
+
+Prod G2 Accept             = NOT AUTHORIZED (G2 PV WAIT)
+P3 slice close             = NOT AUTHORIZED (G2 PV pending)
 ```
 
-**Do not** start P4 · Phase 2E corpus · S10 · global IK FINAL claims.
+**Do not** start P4 · Phase 2E corpus · S10 · global IK FINAL claims · G2 Accept without natural candidate.
+
+---
+
+## 15. Owner governance closeout note (2026-08-28)
+
+Docs-only sync per Owner Decision. **Semantyka kontraktu G1/G2 (§3–§8) unchanged.**
+
+| Field | Value |
+|-------|-------|
+| **HEAD / origin/main** | **`f457cb17`** · UI **2.66.116** |
+| **P3 impl commit** | **`3822acb`** |
+| **Harness** | **27 PASS / 0 FAIL** |
+| **APF** | **PROVEN / FROZEN** · [`IK-AUTONOMOUS-PRICING-FALLBACK-SOURCE-AUTHORIZATION.md`](./IK-AUTONOMOUS-PRICING-FALLBACK-SOURCE-AUTHORIZATION.md) · **≠** G2 fixture |
 
 ---
 

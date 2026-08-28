@@ -4,27 +4,33 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P3-OWNER-GATES-ARCH-REVIEW` |
-| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **NOT READY FOR IMPLEMENTATION** |
-| **Date** | 2026-08-26 |
+| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **P3 = IMPLEMENTED · OPEN** · **G2 PV = PENDING** |
+| **Date** | 2026-08-26 (review) · **governance sync 2026-08-28** |
 | **Mode** | ARCH REVIEW (docs only) · **no runtime change** |
-| **Baseline** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
+| **Baseline (review)** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
+| **Implementation** | **`3822acb`** · HEAD **`f457cb17`** · harness **27/0** |
 | **Design Freeze** | [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) |
 | **Deep Audit** | A08-P3 DEEP AUDIT (2026-08-26) |
 | **Unified AUDIT** | [`IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-AUDIT.md`](./IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-AUDIT.md) §34–37 |
 | **Unified PLAN** | [`IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-PLAN.md`](./IK-AUTONOMY-08-UNIFIED-TENDER-WORKFLOW-PLAN.md) |
 | **Contract SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
-| **Prior slices** | P0/P1/P2 **CLOSED** · P3 **NOT STARTED** · P4 **PLANNED** |
+| **Prior slices** | P0/P1/P2 **CLOSED** · P3 **IMPLEMENTED · OPEN** · P4 **PLANNED** |
 
 ```text
 ARCH REVIEW                = PASS WITH REQUIRED FIXES
 ARCHITECTURE BLOCKERS      = 0 (design level)
 REQUIRED FIXES             = IC-P3-ORCH-1 · IC-P3-LABOR-IDEM-1 · IC-TEST-P3-1
-IMPLEMENT                  = NOT AUTHORIZED
-A08-P3                     = NOT STARTED
+IC-P3-ORCH-1               = SATISFIED (@ 3822acb · bumpOrchestraAfterPricingAccept)
+IC-P3-LABOR-IDEM-1         = SATISFIED (@ 3822acb · acceptIkLaborResearchAndNotifyIdempotent)
+IC-TEST-P3-1               = SATISFIED (harness 27/0)
+A08-P3                     = IMPLEMENTED · OPEN · NOT CLOSED
+G2 PRODUCTION VERIFY       = PENDING · WAIT natural candidate
+PROD G2 ACCEPT             = NOT AUTHORIZED
+PROD USE G1/G2             = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
 EPIC                       = AUTONOMY-08 — NOT CLOSED
 ```
 
-Nie implementowano. Nie edytowano runtime. Nie ruszano WIP. Nie ruszano S6/P4 / Phase 2E / frozen contracts.
+Implementation exists @ **`3822acb`** on `main`. Owner governance (2026-08-28): G1/G2 contract **APPROVED**; prod use **REQUIRE EVIDENCE BEFORE PROD**; **not** retroactive IMPLEMENT authorization.
 
 Zamrożony design (REUSE Accept engines + OwnerManualIdentityOverride + queue/deeplink + notify) **jest zgodny** z MASTER SSOT i A08 unified audit. Required fixes **doprecyzowują** orchestra refresh i labor idempotency — bez nowego engine.
 
@@ -223,16 +229,19 @@ P3 implement **MUST** define noop/skip when same stable labor candidate already 
 ## 12. Readiness
 
 ```text
-NOT READY FOR IMPLEMENTATION
+P3 = IMPLEMENTED · OPEN · NOT CLOSED
 
-Until:
-  1. Design Freeze + this Arch Review committed to main
-  2. Owner explicitly authorizes A08-P3 IMPLEMENT
+Required fixes (design-time):
+  IC-P3-ORCH-1      = SATISFIED in code
+  IC-P3-LABOR-IDEM-1 = SATISFIED in code
+  IC-TEST-P3-1      = SATISFIED (harness 27/0)
+
+G2 Production Verify = PENDING (WAIT natural candidate · OD-P3-3)
+Prod G2 Accept       = NOT AUTHORIZED
+Prod use G1/G2       = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
 ```
 
-After Owner IMPLEMENT GO: implement IC-P3-ORCH-1, IC-P3-LABOR-IDEM-1, IC-TEST-P3-1 per DF.
-
-**Do not** start P4 · Phase 2E corpus · S10.
+**Do not** start P4 · Phase 2E corpus · S10 · G2 Accept without natural candidate.
 
 ---
 
@@ -242,8 +251,10 @@ After Owner IMPLEMENT GO: implement IC-P3-ORCH-1, IC-P3-LABOR-IDEM-1, IC-TEST-P3
 |---------|-------|
 | **Architecture alignment** | **PASS** |
 | **SSOT conflict** | **NONE** |
-| **Required fixes** | **IC-P3-ORCH-1 · IC-P3-LABOR-IDEM-1 · IC-TEST-P3-1** |
-| **Implementation** | **NOT AUTHORIZED** |
+| **Required fixes** | **SATISFIED** (IC-P3-ORCH-1 · IC-P3-LABOR-IDEM-1 · IC-TEST-P3-1) |
+| **P3 status** | **IMPLEMENTED · OPEN** |
+| **G2 PV** | **PENDING** |
+| **Prod G2 Accept** | **NOT AUTHORIZED** |
 
 Companion DF: [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
 
