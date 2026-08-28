@@ -1,5 +1,23 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.118 — PAYROLL P0 scoped hours-down intent (2026-08-28)
+
+- Intent: `hoursIntents[]` (employee + slot + fromHours/toHours) weryfikowane vs cloud baseline
+- `payrollDomainUserWrite` / bare `intentionalHoursClear` **nie** autoryzują hours-down
+- Sanitize mieszanych: legalne 8→4 OK, stale 313h przywrócone z cloud / BLOCK bez intentów
+- Edge: 409 `payroll_hours_down_blocked` bez scoped intent
+- Test: `test-payroll-p0-hours-down-protection.mjs` R1–R15
+- **Bez restore 660 h**
+
+## 2.66.117 — PAYROLL P0 hours-down write protection (2026-08-28)
+
+- Guard: `wouldBlockSilentHoursDowngrade` — bootstrap/merge/safe nie mogą zapisać hours-down vs cloud bez `intentionalHoursClear`
+- Domain PWRB: `payrollDomainUserWrite` (pwrPush) — legalne edycje godzin w dół OK; nadal >50% shrink + D2
+- Edge: `payroll_hours_down_blocked` 409 (przed rotate backup)
+- Luka zamknięta: 660→347 (~47%) przechodziło przez próg >50%
+- Test: `npx vite-node scripts/test-payroll-p0-hours-down-protection.mjs`
+- **Bez restore 660 h** — osobny Owner GO
+
 ## 2.66.116 — IK C2 MOPS KNNR 1305 prob (2026-08-27)
 
 - OD-01: `prob` first-class `WgdomCostUnit` · work-rate bridge/normalize/qualify

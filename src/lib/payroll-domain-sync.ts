@@ -6,6 +6,7 @@
 import type { WeekEmployee } from "@/app/app-domain";
 import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
+import { mergeHoursIntents } from "@/lib/payroll-hours-intent";
 
 /** Debounce edycji pól — scala szybkie zmiany przed jednym batch-set. */
 export const PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS = 1000;
@@ -33,7 +34,7 @@ export function unbindPayrollDomainPushHandler(): void {
 
 /**
  * @param rosterAfter — roster po edycji
- * @param options — D2/D3 push options (intentionalHoursClear)
+ * @param options — D2/D3 push options (intentionalHoursClear) + scoped hoursIntents
  * @param rosterBefore — pre-edit snapshot for D2 domain gate (captured at schedule, not flush)
  */
 export function schedulePayrollDomainPush(
@@ -46,11 +47,19 @@ export function schedulePayrollDomainPush(
   if (rosterBefore !== undefined && pendingRosterBefore === undefined) {
     pendingRosterBefore = rosterBefore;
   }
+  const mergedIntents = mergeHoursIntents(pendingOptions?.hoursIntents, options?.hoursIntents);
   // Sticky intentionalHoursClear once ACK'd in this debounce window
   if (options?.intentionalHoursClear === true || pendingOptions?.intentionalHoursClear === true) {
-    pendingOptions = { intentionalHoursClear: true, skipPayrollGuard: true };
+    pendingOptions = {
+      intentionalHoursClear: true,
+      skipPayrollGuard: true,
+      hoursIntents: mergedIntents.length > 0 ? mergedIntents : undefined,
+    };
   } else {
-    pendingOptions = options;
+    pendingOptions = {
+      ...(options ?? {}),
+      hoursIntents: mergedIntents.length > 0 ? mergedIntents : options?.hoursIntents,
+    };
   }
   if (debounceTimer != null) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {

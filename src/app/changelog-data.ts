@@ -11,6 +11,28 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-28",
+    version: "2.66.118",
+    label: "PAYROLL P0 — scoped hours-down intent contract",
+    items: [
+      {
+        type: "fix",
+        text: "P0 intent redesign: hours-down vs cloud tylko z scoped hoursIntents (emp+day+from/to) weryfikowanymi względem chmury. payrollDomainUserWrite / bare intentionalHoursClear NIE autoryzują hours-down. Sanitize mieszanych delta; stale 660→347 BLOCK. Edge 409 bez intentów. Test: test-payroll-p0-hours-down-protection.mjs R1–R15.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
+    version: "2.66.117",
+    label: "PAYROLL P0 — hours-down write protection",
+    items: [
+      {
+        type: "fix",
+        text: "P0: cichy zapis hours-down do kw-week-employees zablokowany (bootstrap/merge/safe) gdy outgoing < cloud bez świadomej mutacji. Luka: guard >50% przepuszczał 660→347 (~47%). Domain PWRB (pwrPush) = payrollDomainUserWrite; intentionalHoursClear / rollover bez zmian. Edge 409 payroll_hours_down_blocked. Test: test-payroll-p0-hours-down-protection.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-27",
     version: "2.66.116",
     label: "IK C2 MOPS — KNNR 1305 prob OD-01 + OUR RATE 60/20",

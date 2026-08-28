@@ -15,10 +15,14 @@ import {
   type WeekEmployee,
 } from "@/app/app-domain";
 
+import type { PayrollScopedHoursIntent } from "@/lib/payroll-hours-intent";
+
 /** Subset of push options used by D2/D3 (avoids circular import with cloud-sync). */
 export type PayrollHoursClearPushOptions = {
   intentionalHoursClear?: boolean;
   skipPayrollGuard?: boolean;
+  /** P0 — scoped hours intents (cloud-verified); not a broad boolean. */
+  hoursIntents?: PayrollScopedHoursIntent[];
 };
 
 /** D14 — DF threshold */
@@ -194,15 +198,17 @@ export function resolvePayrollDomainPushOptions(
   input?: PayrollHoursClearPushOptions | null,
 ): PayrollHoursClearPushOptions {
   const intentional = input?.intentionalHoursClear === true;
+  const hoursIntents = Array.isArray(input?.hoursIntents) ? input!.hoursIntents : undefined;
   if (intentional) {
-    return { intentionalHoursClear: true, skipPayrollGuard: true };
+    return { intentionalHoursClear: true, skipPayrollGuard: true, hoursIntents };
   }
   if (!isPayrollDomainPushGuardStrictEnabled() && input?.skipPayrollGuard === true) {
-    return { intentionalHoursClear: false, skipPayrollGuard: true };
+    return { intentionalHoursClear: false, skipPayrollGuard: true, hoursIntents };
   }
   return {
     intentionalHoursClear: false,
     skipPayrollGuard: false,
+    hoursIntents,
   };
 }
 

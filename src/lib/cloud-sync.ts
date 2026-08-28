@@ -1,5 +1,12 @@
 import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 import { maySkipPayrollShrinkGuard } from "./payroll-hours-collapse-gate.ts";
+import {
+  isVerifiedEmptyRosterClear,
+  listUnauthorizedHoursDownSlots,
+  normalizeHoursIntents,
+  sanitizeRosterHoursToAuthorizedIntents,
+  type PayrollScopedHoursIntent,
+} from "./payroll-hours-intent.ts";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
   evaluatePayrollResurrectionFence,
@@ -1393,6 +1400,22 @@ export function wouldBlockPayrollShrink(cloud: unknown, outgoing: unknown): bool
   return false;
 }
 
+/**
+ * P0 HOURS-DOWN — ciche hours-down vs kanoniczna chmura (bez progu 50%).
+ * 660→347 (~47%) przechodziło przez wouldBlockPayrollShrink; ta reguła zamyka lukę.
+ * Nie używać samotnie dla domain user write — tam obowiązuje >50% + D2 intentional clear.
+ */
+export function wouldBlockSilentHoursDowngrade(
+  cloud: unknown,
+  outgoing: unknown,
+  epsHours = PAYROLL_RESTORE_BANNER_EPS_HOURS,
+): boolean {
+  const c = payrollMetrics(cloud);
+  const o = payrollMetrics(outgoing);
+  if (c.totalHours < epsHours) return false;
+  return o.totalHours + epsHours < c.totalHours;
+}
+
 function readArchiveFromBatchOrLocal(keys: string[], values: unknown[]): unknown[] {
   const archIdx = keys.indexOf("kw-archive");
   if (archIdx >= 0) return normalizeArrayValue(values[archIdx]);
@@ -1500,15 +1523,27 @@ export type PushKeysToCloudOptions = {
    * Pozwala guardowi rozpoznać legalny cross-week clear W1→W2.
    */
   payrollWeekRolloverPush?: true;
+  /**
+   * P0 HOURS-DOWN — scoped per-slot intents (cloud-verified).
+   * payrollDomainUserWrite alone NEVER authorizes hours-down.
+   */
+  hoursIntents?: PayrollScopedHoursIntent[];
+  /**
+   * @deprecated P0 — telemetry / legacy only. Does NOT authorize hours-down.
+   * Domain PWRB still sets true; guard ignores it for hours authorization.
+   */
+  payrollDomainUserWrite?: boolean;
 };
 
 export type PushWeekEmployeesOptions = {
   skipPayrollGuard?: boolean;
   /**
-   * PAYROLL-DF D3 — intentional hours clear (guard bypass).
-   * skipPayrollGuard effective only when this is true (guardStrict ON).
+   * PAYROLL-DF D3 — intentional hours clear (guard bypass for >50% only when empty clear
+   * or after scoped sanitize). Prefer scoped hoursIntents for day-level edits.
    */
   intentionalHoursClear?: boolean;
+  /** P0 — scoped hours mutation intents. */
+  hoursIntents?: PayrollScopedHoursIntent[];
 };
 
 async function applyPayrollGuardBeforePush(
@@ -1519,58 +1554,122 @@ async function applyPayrollGuardBeforePush(
   const opts: PushKeysToCloudOptions = { ...(options ?? {}) };
   const empIdx = keys.indexOf("kw-week-employees");
   if (empIdx < 0) return { keys, values, options: opts, blocked: false };
-  // D3: skip shrink guard only via intentionalHoursClear (or legacy kill-switch)
-  if (maySkipPayrollShrinkGuard(opts)) {
+
+  let nextValues = values.slice();
+  let outgoing = nextValues[empIdx];
+  const { from: weekFrom, to: weekTo } = readWeekRangeFromBatchOrLocal(keys, nextValues);
+
+  // Verified empty clear / archive week clear / rollover clear — no cloud hours to protect.
+  if (isVerifiedEmptyRosterClear(outgoing, opts.intentionalHoursClear === true)) {
+    return { keys, values: nextValues, options: { ...opts, skipPayrollGuard: true }, blocked: false };
+  }
+  if (isIntentionalPayrollWeekClear(keys, nextValues, outgoing)) {
+    return { keys, values: nextValues, options: opts, blocked: false };
+  }
+  if (opts.payrollWeekRolloverPush === true && isPayrollRolloverWeekClear(keys, nextValues, outgoing)) {
+    return { keys, values: nextValues, options: opts, blocked: false };
+  }
+
+  const stripEmp = (skipReason: string) => {
+    payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+      blocked: true,
+      skipReason: skipReason as "cloud_unreachable_fail_closed",
+    });
     return {
-      keys,
-      values,
-      options: { ...opts, skipPayrollGuard: true },
-      blocked: false,
+      keys: keys.filter((_, i) => i !== empIdx),
+      values: nextValues.filter((_, i) => i !== empIdx),
+      options: {
+        ...opts,
+        replaceWeekEmployeesKeys: (opts.replaceWeekEmployeesKeys ?? []).filter(
+          (k) => k !== "kw-week-employees",
+        ),
+      },
+      blocked: true as const,
     };
-  }
-
-  const outgoing = values[empIdx];
-  if (isIntentionalPayrollWeekClear(keys, values, outgoing)) {
-    return { keys, values, options: opts, blocked: false };
-  }
-
-  if (opts.payrollWeekRolloverPush === true && isPayrollRolloverWeekClear(keys, values, outgoing)) {
-    return { keys, values, options: opts, blocked: false };
-  }
+  };
 
   let cloudEmps = opts.cloudWeekEmployees;
   if (cloudEmps === undefined) {
     try {
       [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
     } catch {
-      return { keys, values, options: opts, blocked: false };
+      // P0: fail closed — no cloud baseline ⇒ cannot authorize any hours-down.
+      console.warn("[PAYROLL-GUARD] blocked payroll write — cloud unreachable (fail closed)", {
+        outgoing: payrollMetrics(outgoing),
+      });
+      return stripEmp("cloud_unreachable_fail_closed");
     }
   }
 
-  if (!wouldBlockPayrollShrink(cloudEmps, outgoing)) {
-    return { keys, values, options: opts, blocked: false };
+  const hoursIntents = normalizeHoursIntents(opts.hoursIntents);
+  const { sanitized, unauthorized, changed } = sanitizeRosterHoursToAuthorizedIntents(
+    cloudEmps,
+    outgoing,
+    hoursIntents,
+    weekFrom,
+    weekTo,
+  );
+
+  if (unauthorized.length > 0 && hoursIntents.length === 0) {
+    // Stale full-roster / non-hours domain edit — no scoped hours intent ⇒ BLOCK.
+    console.warn("[PAYROLL-GUARD] blocked silent hours-down (no scoped intent)", {
+      unauthorizedCount: unauthorized.length,
+      cloud: payrollMetrics(cloudEmps),
+      outgoing: payrollMetrics(outgoing),
+    });
+    return stripEmp("silent_hours_down");
   }
 
-  console.warn("[PAYROLL-GUARD] blocked suspicious payroll shrink", {
-    cloud: payrollMetrics(cloudEmps),
-    outgoing: payrollMetrics(outgoing),
-  });
+  if (changed) {
+    console.warn("[PAYROLL-GUARD] sanitized unauthorized hours-down vs cloud", {
+      unauthorizedCount: unauthorized.length,
+      cloud: payrollMetrics(cloudEmps),
+      before: payrollMetrics(outgoing),
+      after: payrollMetrics(sanitized),
+    });
+    payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+      blocked: false,
+      skipReason: "hours_down_sanitized" as const,
+      unauthorizedCount: unauthorized.length,
+      cloud: payrollMetrics(cloudEmps),
+      outgoing: payrollMetrics(sanitized),
+    });
+    nextValues[empIdx] = sanitized;
+    outgoing = sanitized;
+  }
 
-  payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
-    blocked: true,
-    skipReason: "guard_blocked" as const,
-  });
+  // Legacy >50% catastrophe guard — still applies after sanitize.
+  // Skip ONLY when scoped intents fully authorize remaining day-level downs
+  // (e.g. single-day 9→4). Empty wipe / no intents ⇒ keep >50% BLOCK.
+  const fullyAuthorizedHoursDown =
+    hoursIntents.length > 0
+    && listUnauthorizedHoursDownSlots(cloudEmps, outgoing, hoursIntents, weekFrom, weekTo).length === 0;
+  const blockShrink50 = wouldBlockPayrollShrink(cloudEmps, outgoing);
+  if (blockShrink50 && !maySkipPayrollShrinkGuard(opts) && !fullyAuthorizedHoursDown) {
+    console.warn("[PAYROLL-GUARD] blocked suspicious payroll shrink", {
+      cloud: payrollMetrics(cloudEmps),
+      outgoing: payrollMetrics(outgoing),
+      blockShrink50: true,
+    });
+    payrollTraceEmit("sync.guard.payroll.before_push", "GUARD", "warn", {
+      blocked: true,
+      skipReason: "guard_blocked" as const,
+      blockShrink50: true,
+      cloud: payrollMetrics(cloudEmps),
+      outgoing: payrollMetrics(outgoing),
+    });
+    return stripEmp("guard_blocked");
+  }
 
-  const newKeys = keys.filter((_, i) => i !== empIdx);
-  const newValues = values.filter((_, i) => i !== empIdx);
   return {
-    keys: newKeys,
-    values: newValues,
+    keys,
+    values: nextValues,
     options: {
       ...opts,
-      replaceWeekEmployeesKeys: (opts.replaceWeekEmployeesKeys ?? []).filter((k) => k !== "kw-week-employees"),
+      skipPayrollGuard: maySkipPayrollShrinkGuard(opts) ? true : opts.skipPayrollGuard,
+      hoursIntents,
     },
-    blocked: true,
+    blocked: false,
   };
 }
 
@@ -3163,6 +3262,10 @@ export async function pushKeysToCloud(
     clientAppVersion: pushOptions.clientAppVersion ?? APP_VERSION,
     /** D-F4 — Edge skip-union when true (intentional clear / empty rollover). */
     intentionalHoursClear: pushOptions.intentionalHoursClear === true,
+    /** P0 — Edge verifies scoped intents against cloud; boolean alone is insufficient. */
+    hoursIntents: Array.isArray(pushOptions.hoursIntents) ? pushOptions.hoursIntents : [],
+    /** @deprecated — not an hours-down authorization signal */
+    payrollDomainUserWrite: pushOptions.payrollDomainUserWrite === true,
   });
   const keysCount = pushKeys.length;
   const batchSizeBytes = requestBody.length;
@@ -3444,6 +3547,10 @@ export async function pushWeekEmployeesToCloud(
         clientAppVersion: APP_VERSION,
         intentionalHoursClear: options?.intentionalHoursClear === true,
         skipPayrollGuard: resolvedSkip,
+        /** P0 — scoped intents only authorize hours-down (not payrollDomainUserWrite). */
+        hoursIntents: Array.isArray(options?.hoursIntents) ? options.hoursIntents : undefined,
+        /** @deprecated telemetry — does not authorize hours-down */
+        payrollDomainUserWrite: true,
       },
     );
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
@@ -3489,6 +3596,8 @@ export async function pushPayrollWeekAfterRollover(params: {
       payrollWeekRolloverPush: true,
       /** D-F4 — empty new week must replace Cloud roster (no union resurrect). */
       intentionalHoursClear: normalized.length === 0,
+      /** P0 — rollover is intentional payroll-domain write, not bootstrap merge. */
+      payrollDomainUserWrite: true,
     },
   );
 }

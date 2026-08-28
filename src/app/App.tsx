@@ -156,6 +156,7 @@ import {
   isPayrollHoursCollapseConfirmEnabled,
   PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED,
 } from "@/lib/payroll-hours-collapse-gate";
+import { deriveHoursIntentsFromLocalEdit } from "@/lib/payroll-hours-intent";
 import {
   applyPrevRecoveryToLiveRoster,
   dismissPayrollPrevRecovery,
@@ -1798,6 +1799,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
    */
   const commitLivePayrollRosterEdit = useCallback((before: WeekEmployee[], next: WeekEmployee[]): boolean => {
     const findings = detectHoursCollapse(before, next);
+    const hoursIntents = deriveHoursIntentsFromLocalEdit(before, next, weekFrom, weekTo);
     if (findings.length > 0) {
       const needDialog = isPayrollHoursCollapseConfirmEnabled();
       if (needDialog) {
@@ -1807,15 +1809,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           return false;
         }
       }
-      // D2 ACK (or kill-switch auto) → intentionalHoursClear for D3
+      // D2 ACK (or kill-switch auto) → intentionalHoursClear for D3 + scoped intents
       refreshSavedActiveWeekSnapshot(next);
-      schedulePayrollDomainPush(next, { intentionalHoursClear: true }, before);
+      schedulePayrollDomainPush(next, {
+        intentionalHoursClear: true,
+        hoursIntents: hoursIntents.length > 0 ? hoursIntents : undefined,
+      }, before);
       return true;
     }
     refreshSavedActiveWeekSnapshot(next);
-    schedulePayrollDomainPush(next, undefined, before);
+    schedulePayrollDomainPush(
+      next,
+      hoursIntents.length > 0 ? { hoursIntents } : undefined,
+      before,
+    );
     return true;
-  }, [refreshSavedActiveWeekSnapshot]);
+  }, [refreshSavedActiveWeekSnapshot, weekFrom, weekTo]);
 
   const addFromDirectory = (ids: string[], options?: { preferEmptyHours?: boolean }) => {
     let opId = `op-add-${Date.now().toString(36)}`;

@@ -249,9 +249,175 @@ function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
   return mergeWeekEmployeesList(prev, next, mergeWeekEmployeeRecord);
 }
 
+/** P0 HOURS-DOWN — Edge mirror of client payrollMetrics.totalHours (active days only). */
+function edgePayrollDayHours(day: unknown): number {
+  if (!day || typeof day !== "object") return 0;
+  const d = day as { active?: boolean; from?: string; to?: string; extraHours?: unknown[] };
+  if (!d.active) return 0;
+  const parse = (t: unknown): number | null => {
+    const m = String(t ?? "").match(/^(\d+):(\d+)$/);
+    return m ? +m[1] * 60 + +m[2] : null;
+  };
+  const f = parse(d.from);
+  const to = parse(d.to);
+  let h = f != null && to != null && to > f ? (to - f) / 60 : 0;
+  for (const ex of d.extraHours ?? []) {
+    if (!ex || typeof ex !== "object") continue;
+    const ef = parse((ex as { from?: string }).from);
+    const et = parse((ex as { to?: string }).to);
+    if (ef != null && et != null && et > ef) h += (et - ef) / 60;
+  }
+  return h;
+}
+
+function edgePayrollTotalHours(list: unknown[]): number {
+  let total = 0;
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const emp = item as { days?: Record<string, unknown>; prevSaturday?: unknown };
+    for (const d of Object.values(emp.days || {})) {
+      total += edgePayrollDayHours(d);
+    }
+    total += edgePayrollDayHours(emp.prevSaturday);
+  }
+  return +total.toFixed(1);
+}
+
+const EDGE_DAY_SLOTS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So", "prevSaturday"] as const;
+const PAYROLL_HOURS_INTENT_EPS = 0.05;
+
+type EdgeHoursIntent = {
+  weekFrom?: string;
+  weekTo?: string;
+  employeeId?: string;
+  directoryId?: string;
+  slot?: string;
+  fromHours?: number;
+  toHours?: number;
+};
+
+function edgeSlotHours(emp: Record<string, unknown> | undefined, slot: string): number {
+  if (!emp) return 0;
+  if (slot === "prevSaturday") return edgePayrollDayHours(emp.prevSaturday);
+  const days = emp.days as Record<string, unknown> | undefined;
+  return edgePayrollDayHours(days?.[slot]);
+}
+
+function edgeFindEmp(
+  list: unknown[],
+  needle: { id?: string; directoryId?: string },
+): Record<string, unknown> | undefined {
+  if (needle.id) {
+    const byId = list.find((e) => e && typeof e === "object" && (e as { id?: string }).id === needle.id);
+    if (byId) return byId as Record<string, unknown>;
+  }
+  const dir = typeof needle.directoryId === "string" ? needle.directoryId.trim() : "";
+  if (!dir) return undefined;
+  return list.find(
+    (e) =>
+      e && typeof e === "object"
+      && typeof (e as { directoryId?: string }).directoryId === "string"
+      && (e as { directoryId: string }).directoryId.trim() === dir,
+  ) as Record<string, unknown> | undefined;
+}
+
+function edgeNormalizeHoursIntents(raw: unknown): EdgeHoursIntent[] {
+  if (!Array.isArray(raw)) return [];
+  const out: EdgeHoursIntent[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as EdgeHoursIntent;
+    if (typeof o.employeeId !== "string" || !o.employeeId) continue;
+    if (typeof o.slot !== "string" || !(EDGE_DAY_SLOTS as readonly string[]).includes(o.slot)) continue;
+    if (!Number.isFinite(Number(o.fromHours)) || !Number.isFinite(Number(o.toHours))) continue;
+    out.push({
+      weekFrom: typeof o.weekFrom === "string" ? o.weekFrom : "",
+      weekTo: typeof o.weekTo === "string" ? o.weekTo : "",
+      employeeId: o.employeeId,
+      directoryId: typeof o.directoryId === "string" ? o.directoryId : undefined,
+      slot: o.slot,
+      fromHours: Number(o.fromHours),
+      toHours: Number(o.toHours),
+    });
+  }
+  return out;
+}
+
+/**
+ * P0 — restore unauthorized hours-down slots from prev (cloud).
+ * payrollDomainUserWrite / bare intentionalHoursClear do NOT authorize day-level downs.
+ * Empty roster + intentionalHoursClear is a verified full clear (caller handles).
+ */
+function edgeSanitizeUnauthorizedHoursDown(
+  prevNorm: unknown[],
+  nextNorm: unknown[],
+  intentsRaw: unknown,
+  weekFrom: string,
+  weekTo: string,
+): { next: unknown[]; unauthorizedCount: number } {
+  const intents = edgeNormalizeHoursIntents(intentsRaw);
+  const next = nextNorm.map((e) => JSON.parse(JSON.stringify(e)));
+  let unauthorizedCount = 0;
+
+  for (const prevItem of prevNorm) {
+    if (!prevItem || typeof prevItem !== "object") continue;
+    const cEmp = prevItem as Record<string, unknown>;
+    const cId = typeof cEmp.id === "string" ? cEmp.id : "";
+    if (!cId) continue;
+    const oEmp = edgeFindEmp(next, {
+      id: cId,
+      directoryId: typeof cEmp.directoryId === "string" ? cEmp.directoryId : undefined,
+    });
+    if (!oEmp) continue;
+
+    for (const slot of EDGE_DAY_SLOTS) {
+      const cloudH = edgeSlotHours(cEmp, slot);
+      const outH = edgeSlotHours(oEmp, slot);
+      if (cloudH <= PAYROLL_HOURS_INTENT_EPS) continue;
+      if (outH + PAYROLL_HOURS_INTENT_EPS >= cloudH) continue;
+
+      const covered = intents.some((intent) => {
+        if (intent.slot !== slot) return false;
+        if (weekFrom && intent.weekFrom && intent.weekFrom.replace(/^"|"$/g, "") !== weekFrom.replace(/^"|"$/g, "")) return false;
+        if (weekTo && intent.weekTo && intent.weekTo.replace(/^"|"$/g, "") !== weekTo.replace(/^"|"$/g, "")) return false;
+        const idOk =
+          intent.employeeId === cId
+          || (!!intent.directoryId
+            && typeof cEmp.directoryId === "string"
+            && intent.directoryId === cEmp.directoryId);
+        if (!idOk) return false;
+        if (Math.abs((intent.fromHours ?? 0) - cloudH) > PAYROLL_HOURS_INTENT_EPS) return false;
+        if (Math.abs((intent.toHours ?? 0) - outH) > PAYROLL_HOURS_INTENT_EPS) return false;
+        return true;
+      });
+
+      if (covered) continue;
+      unauthorizedCount += 1;
+      if (slot === "prevSaturday") {
+        oEmp.prevSaturday = cEmp.prevSaturday
+          ? JSON.parse(JSON.stringify(cEmp.prevSaturday))
+          : undefined;
+      } else {
+        const cDays = (cEmp.days && typeof cEmp.days === "object")
+          ? cEmp.days as Record<string, unknown>
+          : {};
+        const oDays = (oEmp.days && typeof oEmp.days === "object")
+          ? { ...(oEmp.days as Record<string, unknown>) }
+          : {};
+        oDays[slot] = cDays[slot] != null ? JSON.parse(JSON.stringify(cDays[slot])) : undefined;
+        oEmp.days = oDays;
+      }
+    }
+  }
+
+  return { next, unauthorizedCount };
+}
+
 const PAYROLL_WEEK_META_KEY = "kw-payroll-week-meta";
 const PAYROLL_STALE_REVISION_CODE = "stale_revision";
 const PAYROLL_LEGACY_CLIENT_CODE = "legacy_client_rejected";
+const PAYROLL_HOURS_DOWN_BLOCKED_CODE = "payroll_hours_down_blocked";
+const PAYROLL_HOURS_DOWN_EPS = 0.05;
 
 const WORK_CATALOG_STORAGE_KEY = "kw-wgdom-work-catalog";
 const WORK_CATALOG_META_KEY = "kw-wgdom-work-catalog-meta";
@@ -788,7 +954,7 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
   const requestId = crypto.randomUUID();
   try {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, workCatalogCas = false, expectedCatalogRevision, intentionalHoursClear = false, clientAppVersion } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, workCatalogCas = false, expectedCatalogRevision, intentionalHoursClear = false, payrollDomainUserWrite = false, hoursIntents = [], clientAppVersion } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   let payrollMetaAfterWrite: Record<string, unknown> | null = null;
   let catalogMetaAfterWrite: Record<string, unknown> | null = null;
@@ -889,14 +1055,79 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
             "stale payroll revision",
           );
         }
-        await rotateKvBackups("kw-week-employees");
         const prevNorm = prev != null
           ? filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned)
           : [];
         // D-F4 — intentional clear: keep nextNorm (post-tombstone); do NOT union-resurrect prev.
-        if (intentionalHoursClear !== true) {
+        if (intentionalHoursClear === true && nextNorm.length === 0) {
+          // Verified full-week empty clear — hours-down authorized by empty roster scope.
+        } else if (intentionalHoursClear !== true) {
+          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        } else {
+          // intentionalHoursClear with non-empty roster: still UNION then constrain by intents.
+          // Bare intentionalHoursClear MUST NOT authorize unrelated stale hours-down.
           nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
         }
+
+        // P0 HOURS-DOWN — scoped intents vs cloud (prevNorm). Booleans alone do not authorize.
+        if (!(intentionalHoursClear === true && nextNorm.length === 0) && prevNorm.length > 0) {
+          const beforeH = edgePayrollTotalHours(prevNorm);
+          const { next: sanitized, unauthorizedCount } = edgeSanitizeUnauthorizedHoursDown(
+            prevNorm,
+            nextNorm,
+            hoursIntents,
+            batchFromStr,
+            batchToStr,
+          );
+          nextNorm = sanitized;
+          const afterH = edgePayrollTotalHours(nextNorm);
+          // No intents + any unauthorized attempt that would have reduced hours → reject write.
+          const intentCount = Array.isArray(hoursIntents) ? hoursIntents.length : 0;
+          if (unauthorizedCount > 0 && intentCount === 0 && afterH + PAYROLL_HOURS_DOWN_EPS < beforeH) {
+            // sanitize already restored; if somehow still down, hard block
+            console.log(
+              `kw-week-employees: blocked silent hours-down ${beforeH} → ${afterH} (requestId=${requestId})`,
+            );
+            return c.json(
+              {
+                ok: false,
+                error: PAYROLL_HOURS_DOWN_BLOCKED_CODE,
+                code: PAYROLL_HOURS_DOWN_BLOCKED_CODE,
+                requestId,
+                cloudHours: beforeH,
+                outgoingHours: afterH,
+                currentRoster: prevNorm,
+                message:
+                  "Payroll hours-down write blocked — cloud hours preserved (no scoped intent)",
+              },
+              409,
+            );
+          }
+          if (unauthorizedCount > 0 && intentCount === 0) {
+            // Fully sanitized back to cloud hours — reject stale full-roster write (R1/R10).
+            console.log(
+              `kw-week-employees: blocked stale hours write (no scoped intent, unauthorized=${unauthorizedCount}) requestId=${requestId}`,
+            );
+            return c.json(
+              {
+                ok: false,
+                error: PAYROLL_HOURS_DOWN_BLOCKED_CODE,
+                code: PAYROLL_HOURS_DOWN_BLOCKED_CODE,
+                requestId,
+                cloudHours: beforeH,
+                outgoingHours: afterH,
+                unauthorizedCount,
+                currentRoster: prevNorm,
+                message:
+                  "Payroll hours-down write blocked — scoped hours intent required",
+              },
+              409,
+            );
+          }
+          // intentCount > 0: sanitized unauthorized slots kept; authorized deltas persist.
+          void payrollDomainUserWrite; // explicitly ignored for hours authorization
+        }
+        await rotateKvBackups("kw-week-employees");
         payrollMetaAfterWrite = {
           rosterRevision: serverMeta.rosterRevision + 1,
           weekFrom: batchFromStr,
