@@ -184,6 +184,12 @@ import {
   getSyncMetrics,
 } from "@/lib/cloud-sync-throttle";
 import {
+  registerCloudFreshnessReconcile,
+  markCloudFreshnessUnknown,
+  ensureCloudFreshBeforeWrite,
+  isCloudFreshnessBlockedError,
+} from "@/lib/cloud-freshness-gate";
+import {
   installPayrollRuntimeTraceGlobals,
   payrollTraceBumpRosterRevision,
   payrollTraceCreateSyncTraceId,
@@ -929,20 +935,39 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } catch { /* offline */ }
   }, []);
 
-  const pullFromCloudAndMerge = useCallback(async () => {
+  const executeCloudFreshnessPull = useCallback(async (opts?: { bypassThrottle?: boolean }) => {
     logJobsPhotosLiveTrace({
-      event: "pullFromCloudAndMerge",
-      caller: "App.pullFromCloudAndMerge",
+      event: "executeCloudFreshnessPull",
+      caller: "App.executeCloudFreshnessPull",
       origin: "pull",
       jobs,
+      extra: { bypassThrottle: opts?.bypassThrottle === true },
     });
-    if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
-    if (deleteJobsInFlightRef.current) return;
-    if (cloudSyncMutationGuard.isBlocked()) return;
-    if (Date.now() < suppressAutoSyncUntilRef.current) return;
-    if (!shouldPullNow(lastPullAtRef.current, Date.now())) return;
+    if (!isSupabaseConfigured()) {
+      throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
+    }
+    if (deleteJobsInFlightRef.current) {
+      throw new Error("Usuwanie robot w toku — spróbuj ponownie");
+    }
+    // Wait for any non-mandatory pull already in flight (single flight).
+    const waitStart = Date.now();
+    while (pullInFlightRef.current) {
+      if (Date.now() - waitStart > 60_000) {
+        throw new Error("Timeout oczekiwania na pull chmury");
+      }
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    if (!opts?.bypassThrottle) {
+      if (!tabVisibleRef.current) return;
+      if (cloudSyncMutationGuard.isBlocked()) return;
+      if (Date.now() < suppressAutoSyncUntilRef.current) return;
+      if (!shouldPullNow(lastPullAtRef.current, Date.now())) return;
+    }
+    // Mandatory freshness: ignore suppress + mutation-guard + 15s throttle.
     payrollTraceCreateSyncTraceId(payrollTraceGetOperationId());
-    payrollTraceEmit("sync.pull.focus.start", "HTTP_IN", "info", {});
+    payrollTraceEmit("sync.pull.focus.start", "HTTP_IN", "info", {
+      bypassThrottle: opts?.bypassThrottle === true,
+    });
     lastPullAtRef.current = Date.now();
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
@@ -957,21 +982,37 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         const aux = await pullOperationalNotesAuxFromCloud();
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
-      } catch { /* offline */ }
+      } catch { /* offline aux */ }
       await refreshAuditHubAuxFromCloud();
       try {
         const [metaRaw] = await fetchKeysFromCloud([PAYROLL_WEEK_META_KEY]);
         writePayrollWeekMetaToLs(
           normalizePayrollWeekMeta(metaRaw, weekFrom, weekTo),
         );
-      } catch { /* offline */ }
+      } catch { /* offline meta */ }
       payrollTraceEmit("sync.pull.focus.complete", "HTTP_IN", "info", {});
-    } catch {
-      /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
   }, [adminDataBundle, applyAdminDataBundle, buildAdminFreshSnapshot, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, refreshAuditHubAuxFromCloud, jobs, weekFrom, weekTo]);
+
+  useEffect(() => {
+    return registerCloudFreshnessReconcile(async ({ bypassThrottle }) => {
+      await executeCloudFreshnessPull({ bypassThrottle });
+    });
+  }, [executeCloudFreshnessPull]);
+
+  const requestCloudFreshnessOnResume = useCallback((reason: "resume_visibility" | "resume_focus" | "resume_pageshow" | "resume_native") => {
+    markCloudFreshnessUnknown(reason);
+    cancelPayrollDomainPush();
+    void ensureCloudFreshBeforeWrite({ reason, force: true }).catch(() => {
+      /* offline — gate stays unconfirmed; writes blocked */
+    });
+  }, []);
+
+  const pullFromCloudAndMerge = useCallback(async () => {
+    requestCloudFreshnessOnResume("resume_visibility");
+  }, [requestCloudFreshnessOnResume]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -1027,10 +1068,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     payrollTraceEmit("sync.run.start", "MERGE", "info", { trigger: "run_cloud_sync" as const });
     const capturedGeneration = getAdminBundleGeneration();
     try {
-      lastPullAtRef.current = Date.now(); // PR-PAY-S7-4A — pull tu też liczy się do min-interval batch-get
+      // Freshness barrier before any outbound write (also applies UI — writeOnly no longer leaves React stale).
+      await ensureCloudFreshBeforeWrite({ reason: "write_barrier" });
+      lastPullAtRef.current = Date.now();
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       const finalBundle = reconcileAdminBundleWithFreshLocal(merged, buildAdminFreshSnapshot());
-      if (!opts?.writeOnly && shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
+      // F7 — always apply reconciled bundle to UI (writeOnly must not leave Cloud=B / UI=A).
+      if (shouldApplyAdminBundleAtGeneration(capturedGeneration)) {
         applyAdminDataBundle(finalBundle, opts?.toastSuccess ? "ManualRefresh" : "runCloudSync");
       }
       let opReadState = operationalNotesReadState;
@@ -1042,8 +1086,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
-      // PR-PAY-S7-4A · AC4 — brak zmian = brak push (NIE delta push).
-      // SYNC-ARCH-01 S1-2 — fingerprint RS subset (non-payroll); parity z pushMergedDataBundleToCloud.
       const outgoingHash = rsBundleFingerprintFromMerged(finalBundle);
       if (outgoingHash === lastPushedBundleHashRef.current) {
         recordPushSkipped();
@@ -1069,7 +1111,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       setSyncStatus("error");
       setSyncError(msg);
-      if (isPayrollGuardBlockedError(e)) {
+      if (isCloudFreshnessBlockedError(e)) {
+        toast.error("Zapis wstrzymany — odśwież dane z chmury", { description: msg, id: "admin-cloud-freshness" });
+      } else if (isPayrollGuardBlockedError(e)) {
         toast.error("Zapis listy płac zablokowany", { description: msg, id: "admin-cloud-sync-payroll-guard" });
       } else {
         toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
@@ -1208,9 +1252,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     return onNativeAppResume(() => {
-      if (tabVisibleRef.current) void pullFromCloudAndMerge();
+      if (tabVisibleRef.current) requestCloudFreshnessOnResume("resume_native");
     });
-  }, [pullFromCloudAndMerge]);
+  }, [requestCloudFreshnessOnResume]);
 
   // Po CloudLoader (merge chmura↔local) — zapis tylko przy zmianach użytkownika
   useEffect(() => {
@@ -1312,7 +1356,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         jobs,
         extra: { hidden: document.hidden },
       });
-      if (!document.hidden) void pullFromCloudAndMerge();
+      if (!document.hidden) requestCloudFreshnessOnResume("resume_visibility");
     };
     const onFocus = () => {
       tabVisibleRef.current = true;
@@ -1322,14 +1366,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         origin: "focus",
         jobs,
       });
-      void pullFromCloudAndMerge();
+      requestCloudFreshnessOnResume("resume_focus");
     };
     /** P2 — bfcache restore: drop stale scheduled domain flush (heap roster may predate remote edits). */
     const onPageShow = (ev: PageTransitionEvent) => {
       if (ev.persisted) {
         cancelPayrollDomainPush();
       }
-      void pullFromCloudAndMerge();
+      requestCloudFreshnessOnResume("resume_pageshow");
     };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
@@ -1340,7 +1384,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, [pullFromCloudAndMerge, jobs]);
+  }, [requestCloudFreshnessOnResume, jobs]);
 
   // Backup
   const exportBackup = () => {

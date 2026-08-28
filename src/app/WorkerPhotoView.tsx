@@ -91,6 +91,11 @@ import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } fro
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
+import {
+  registerCloudFreshnessReconcile,
+  markCloudFreshnessUnknown,
+  ensureCloudFreshBeforeWrite,
+} from "@/lib/cloud-freshness-gate";
 import { isWmWorkerSketchEnabled } from "@/lib/wm-technical-drawings/flag";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 import type { AppSettings } from "@/lib/app-settings";
@@ -458,49 +463,67 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     }
   }, [weekFrom, weekTo, loadWorkerLocal]);
 
-  const reloadWorkerData = useCallback(() => {
-    fetchKeysFromCloud([
-      "kw-jobs",
-      JOBS_DELETED_IDS_KEY,
-      "kw-week-employees",
-      "kw-archive",
-      "kw-weekFrom",
-      "kw-weekTo",
-      PAYROLL_WEEK_META_KEY,
-    ])
-      .then(mergeWorkerCloudPayload)
-      .catch(() => {
-        try {
-          const localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
-          setJobsLocal(localJobs);
-        } catch { /* ignore */ }
-        setWeekEmployees(loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []));
-        setSavedWeeks(loadWorkerLocal<WeekSnapshot[]>("kw-archive", []));
-        const wf = loadWorkerLocal<string>("kw-weekFrom", "");
-        const wt = loadWorkerLocal<string>("kw-weekTo", "");
-        if (wf) setWeekFrom(wf);
-        if (wt) setWeekTo(wt);
-      });
+  const reloadWorkerData = useCallback(async () => {
+    try {
+      const payload = await fetchKeysFromCloud([
+        "kw-jobs",
+        JOBS_DELETED_IDS_KEY,
+        "kw-week-employees",
+        "kw-archive",
+        "kw-weekFrom",
+        "kw-weekTo",
+        PAYROLL_WEEK_META_KEY,
+      ]);
+      mergeWorkerCloudPayload(payload);
+    } catch (err) {
+      try {
+        const localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
+        setJobsLocal(localJobs);
+      } catch { /* ignore */ }
+      setWeekEmployees(loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []));
+      setSavedWeeks(loadWorkerLocal<WeekSnapshot[]>("kw-archive", []));
+      const wf = loadWorkerLocal<string>("kw-weekFrom", "");
+      const wt = loadWorkerLocal<string>("kw-weekTo", "");
+      if (wf) setWeekFrom(wf);
+      if (wt) setWeekTo(wt);
+      throw err;
+    }
   }, [mergeWorkerCloudPayload, loadWorkerLocal, setJobsLocal]);
 
   useEffect(() => {
-    const onVis = () => {
-      if (!document.hidden) reloadWorkerData();
-    };
-    window.addEventListener("focus", reloadWorkerData);
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      window.removeEventListener("focus", reloadWorkerData);
-      document.removeEventListener("visibilitychange", onVis);
-    };
+    return registerCloudFreshnessReconcile(async () => {
+      await reloadWorkerData();
+    });
   }, [reloadWorkerData]);
-
-  const workerScrollRef = useRef<HTMLDivElement>(null);
-  const workerPull = usePullToRefresh(workerScrollRef, reloadWorkerData, !selectedJobId);
 
   useEffect(() => {
-    return onNativeAppResume(() => { reloadWorkerData(); });
-  }, [reloadWorkerData]);
+    const onVis = () => {
+      if (!document.hidden) {
+        markCloudFreshnessUnknown("resume_visibility");
+        void ensureCloudFreshBeforeWrite({ reason: "resume_visibility", force: true }).catch(() => {});
+      }
+    };
+    const onFocus = () => {
+      markCloudFreshnessUnknown("resume_focus");
+      void ensureCloudFreshBeforeWrite({ reason: "resume_focus", force: true }).catch(() => {});
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
+
+  const workerScrollRef = useRef<HTMLDivElement>(null);
+  const workerPull = usePullToRefresh(workerScrollRef, () => { void reloadWorkerData(); }, !selectedJobId);
+
+  useEffect(() => {
+    return onNativeAppResume(() => {
+      markCloudFreshnessUnknown("resume_native");
+      void ensureCloudFreshBeforeWrite({ reason: "resume_native", force: true }).catch(() => {});
+    });
+  }, []);
 
   useEffect(() => {
     if (!selectedJobId) return;

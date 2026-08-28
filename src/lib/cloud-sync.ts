@@ -27,6 +27,10 @@ import {
   supabaseFunctionsBase,
   isSupabaseConfigured,
 } from "@/config/supabase";
+import {
+  ensureCloudFreshBeforeWrite,
+  withCloudFreshnessWritePass,
+} from "@/lib/cloud-freshness-gate";
 import { filterJobFilesByTombstones, mergeJobFileTombstones, mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
 import { filterJobAttachmentsByTombstones, mergeJobAttachmentTombstones, mergeJobAttachments } from "@/lib/job-attachments";
 import { mergeWorkEntryTombstones, type WorkEntryTombstone } from "@/lib/payroll-job-assignments";
@@ -1540,6 +1544,11 @@ export type PushKeysToCloudOptions = {
    * P1 — roster before this mutation (membership intent for stale sanitize).
    */
   rosterBefore?: WeekEmployee[];
+  /**
+   * CLOUD FRESHNESS GATE — bootstrap / internal only.
+   * User and domain writes MUST NOT set this.
+   */
+  skipCloudFreshnessGate?: boolean;
 };
 
 export type PushWeekEmployeesOptions = {
@@ -3309,6 +3318,13 @@ export async function pushKeysToCloud(
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
 
+  if (options?.skipCloudFreshnessGate !== true) {
+    await ensureCloudFreshBeforeWrite({ reason: "write_barrier" });
+    return withCloudFreshnessWritePass(() =>
+      pushKeysToCloud(keys, values, { ...options, skipCloudFreshnessGate: true }),
+    );
+  }
+
   const catalogIdx = keys.indexOf(WORK_CATALOG_STORAGE_KEY);
   if (catalogIdx >= 0 && options?.skipWorkCatalogIntercept !== true) {
     const { pushWorkCatalogStoreToCloudSafe } = await import("@/lib/work-catalog/work-catalog-cloud-push");
@@ -3577,6 +3593,14 @@ export async function pushWeekEmployeesToCloud(
   weekEmployees: unknown[],
   options?: PushWeekEmployeesOptions,
 ): Promise<WeekEmployee[]> {
+  await ensureCloudFreshBeforeWrite({ reason: "write_barrier" });
+  return withCloudFreshnessWritePass(() => pushWeekEmployeesToCloudUnchecked(weekEmployees, options));
+}
+
+async function pushWeekEmployeesToCloudUnchecked(
+  weekEmployees: unknown[],
+  options?: PushWeekEmployeesOptions,
+): Promise<WeekEmployee[]> {
   if (!isSupabaseConfigured() || !API_BASE) {
     payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
       skipReason: !isSupabaseConfigured() ? "no_supabase" as const : "no_api_base" as const,
@@ -3668,6 +3692,7 @@ export async function pushWeekEmployeesToCloud(
       {
         payrollWeekCas: true,
         expectedRevision,
+        skipCloudFreshnessGate: true,
         clientAppVersion: APP_VERSION,
         intentionalHoursClear: options?.intentionalHoursClear === true,
         skipPayrollGuard: resolvedSkip,

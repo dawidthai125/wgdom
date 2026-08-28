@@ -50,6 +50,10 @@ import {
 } from "@/lib/admin-auth";
 import { loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
 import { markCloudBootstrapSuccess, publishBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
+import {
+  markCloudFreshnessAfterBootstrapFailure,
+  markCloudFreshnessAfterBootstrapSuccess,
+} from "@/lib/cloud-freshness-gate";
 import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
 import {
   payrollTraceBumpRosterRevision,
@@ -98,6 +102,11 @@ export function CloudLoader({ children }: { children: ReactNode }) {
             caller: "CloudLoader",
             reason: `bootstrap_phase_${resolved.toLowerCase()}`,
           });
+          if (resolved === "TIMEOUT") {
+            markCloudFreshnessAfterBootstrapFailure("bootstrap_timeout");
+          } else if (resolved === "FAILED") {
+            markCloudFreshnessAfterBootstrapFailure("bootstrap_failed");
+          }
         }
         return resolved;
       });
@@ -360,11 +369,13 @@ export function CloudLoader({ children }: { children: ReactNode }) {
               payrollWeekCas: payrollCasPush,
               expectedRevision: payrollCasPush ? getExpectedPayrollRevision() : undefined,
               clientAppVersion: APP_VERSION,
+              skipCloudFreshnessGate: true,
             },
           ).catch(() => {});
         }
 
         markCloudBootstrapSuccess();
+        markCloudFreshnessAfterBootstrapSuccess();
         cloudSyncMutationGuard.reset();
         payrollTraceEmit("sync.bootstrap.ready", "APPLY", "info", {});
         let lsEmpCount = 0;

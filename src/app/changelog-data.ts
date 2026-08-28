@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-29",
+    version: "2.66.125",
+    label: "CLOUD — Freshness Gate (stale session)",
+    items: [
+      {
+        type: "fix",
+        text: "Globalny Cloud Freshness Gate: po resume/focus/visibility/PWA/Capacitor oraz przed każdym outbound write — najpierw pull+reconcile+UI, dopiero potem zapis. Throttle 15s i mutation guard nie omijają bariery. writeOnly też aplikuje stan do UI. Offline/unconfirmed = brak cichego overwrite. Test: test-cloud-freshness-gate.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-28",
     version: "2.66.124",
     label: "PAYROLL — rozliczenie: kto / forma / kwota",

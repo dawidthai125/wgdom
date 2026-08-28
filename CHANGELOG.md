@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.125 — CLOUD Freshness Gate (2026-08-29)
+
+- Global write barrier: resume/focus/visibility/pageshow/native → pull+reconcile+UI → FRESH → dopiero outbound write
+- `cloud-freshness-gate.ts`; `pushKeysToCloud` / payroll domain push za `ensureCloudFreshBeforeWrite`
+- 15s throttle nie omija bariery; writeOnly aplikuje bundle do UI; offline = UNCONFIRMED (bez silent overwrite)
+- Test: `npx vite-node scripts/test-cloud-freshness-gate.mjs`
+
 ## 2.66.124 — PAYROLL settlement metadata (2026-08-28)
 
 - **new:** `payrollSettlement` (kto / kiedy / cash|transfer / zamrożona kwota) przy Rozlicz; modal; PDF/Word/Email/Archiwum z SSOT; P2 scoped intent; unsettle zachowuje last metadata

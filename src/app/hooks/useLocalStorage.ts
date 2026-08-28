@@ -17,6 +17,7 @@ import {
 import { logPayrollStorageNote } from "@/lib/payroll-kw-week-employees-storage-trace";
 import { logPayrollBootPath } from "@/lib/payroll-boot-path-trace";
 import { peekBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
+import { markCloudFreshnessUnknown } from "@/lib/cloud-freshness-gate";
 import { bumpAdminBundleGeneration } from "@/lib/admin-bundle-sync-guard";
 import { PAYROLL_WEEK_META_KEY } from "@/lib/payroll-week-meta";
 import type { Job } from "@/app/app-domain";
@@ -175,6 +176,10 @@ export function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T)
     const onStorage = (e: StorageEvent) => {
       if (e.key !== key || e.newValue == null) return;
       try {
+        // Cross-tab LS update ≠ Cloud freshness confirmation — force verify before next write.
+        if (isDataKey(key) || key === PAYROLL_WEEK_META_KEY) {
+          markCloudFreshnessUnknown("storage_event");
+        }
         const parsed = JSON.parse(e.newValue) as T;
         if (key === "kw-jobs") {
           logJobsPhotosLiveTrace({
