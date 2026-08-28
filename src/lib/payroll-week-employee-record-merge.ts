@@ -1,7 +1,10 @@
 /**
  * PAYROLL-DI-P0 — SSOT merge WeekEmployee record (client + Edge parity).
  * Per-day updatedAt (DF-11) + settled/rate LWW + clear-wins (DF-09).
+ * Settlement metadata: explicit picker (settledUpdatedAt) — never dataUpdatedAt.
  */
+
+import { pickPayrollSettlementForMerge } from "@/lib/payroll-settlement";
 
 export type PayrollDayLike = {
   active?: boolean;
@@ -251,6 +254,8 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
   const cRateAt = parsePayrollRecordTs(c.rateUpdatedAt);
   const dataWinner = lAt >= cAt ? l : c;
   const settled = pickPayrollSettledByTimestamps(l, c);
+  const settledUpdatedAt = pickSettledUpdatedAtForMerge(l, c, settled);
+  const payrollSettlement = pickPayrollSettlementForMerge(l, c, settled);
 
   return {
     ...c,
@@ -263,7 +268,8 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
     rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
     dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
     settled,
-    settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled),
+    settledUpdatedAt,
+    ...(payrollSettlement ? { payrollSettlement } : { payrollSettlement: undefined }),
     payrollCarryForward: pickPayrollCarryForward(l, c),
   };
 }

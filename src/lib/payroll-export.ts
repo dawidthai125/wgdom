@@ -3,6 +3,10 @@
 import logoAsset from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { leaveTypeDisplayLabel, type PayrollLeaveStatus } from "@/lib/employee-leaves";
 import { CARRY_FORWARD_PDF_LABEL } from "@/lib/payroll-carry-forward";
+import {
+  payrollSettlementDisplay,
+  type PayrollSettlement,
+} from "@/lib/payroll-settlement";
 
 export const PREV_SAT_SHORT = "Sob. poprz.";
 
@@ -12,6 +16,7 @@ export interface PayrollCalcRowEmp {
   name: string;
   position: string;
   settled: boolean;
+  payrollSettlement?: PayrollSettlement;
 }
 
 export interface PayrollCalcRow {
@@ -46,6 +51,13 @@ export interface PayrollCalcRow {
   carryForwardOut?: number;
   carryForwardIn?: number;
   carryForwardInFrom?: { from: string; to: string };
+}
+
+export function payrollSettlementStatusText(emp: Pick<PayrollCalcRowEmp, "settled" | "payrollSettlement">): string {
+  return payrollSettlementDisplay({
+    settled: emp.settled,
+    payrollSettlement: emp.payrollSettlement,
+  }).compactStatus;
 }
 
 export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leaveStatus" | "carryForwardOut" | "carryForwardIn" | "biweekly" | "biweeklyPayoutWeek" | "biweeklyDisplayNet" | "biweeklyAccruedOnly" | "biweeklyThisWeekNet">): string {
@@ -545,7 +557,7 @@ export async function buildPayrollEmailHtml(
         ${td(r.totalZaliczka > 0 ? escapeHtml(fmt(r.totalZaliczka)) : "—", { align: "right", bg })}
         ${td(r.totalExtraCosts > 0 ? escapeHtml(fmt(r.totalExtraCosts)) : "—", { align: "right", color: C.green, bg })}
         ${td(escapeHtml(payrollNetDisplayText(r)), { align: "right", bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, bg })}
-        ${td(escapeHtml(r.emp.settled ? "Rozliczony" : "Oczekuje"), {
+        ${td(payrollSettlementStatusText(r.emp).split("\n").map(escapeHtml).join("<br/>"), {
           align: "center",
           color: r.emp.settled ? C.green : C.gold,
           bold: r.emp.settled,
@@ -716,12 +728,12 @@ export async function generatePayrollPdfBlob(
       { text: r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)}` : "—", alignment: "right" as const, fillColor: bg, color: C.green, fontSize: 10 },
       { text: payrollNetDisplayText(r), bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, alignment: "right" as const, fillColor: bg, fontSize: 10 },
       {
-        text: r.emp.settled ? "Rozliczony" : "Oczekuje",
+        text: payrollSettlementStatusText(r.emp),
         alignment: "center" as const,
         color: r.emp.settled ? C.green : C.gold,
         bold: r.emp.settled,
         fillColor: bg,
-        fontSize: 9,
+        fontSize: 7,
       },
     ];
   });
@@ -1384,7 +1396,7 @@ export async function generatePayrollWordBlob(
                     mkCell(r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalZaliczka > 0 ? "C0392B" : "6B7A8D", size: 20 }),
                     mkCell(r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalExtraCosts > 0 ? "1E7E34" : "6B7A8D", size: 20 }),
                     mkCell(payrollNetDisplayText(r), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.leaveStatus || r.carryForwardOut ? "344254" : "C0392B", size: 20 }),
-                    mkCell(r.emp.settled ? "Rozliczony" : "Oczekuje", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.emp.settled ? "1E7E34" : "7B5800", bold: r.emp.settled, size: 19 }),
+                    mkCell(payrollSettlementStatusText(r.emp), { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.emp.settled ? "1E7E34" : "7B5800", bold: r.emp.settled, size: 14 }),
                   ],
                 }),
               ),

@@ -53,7 +53,19 @@ import { resolvePayrollDisplayEmployees } from "@/lib/payroll-display";
 import { logPayrollDisplayTrace } from "@/lib/payroll-display-runtime-trace";
 import { contactsForPayroll, contactAllowsPayroll, type EmailContact } from "@/lib/email-contacts";
 import { API_BASE, API_HEADERS, shouldShowPayrollRestoreBanner } from "@/lib/cloud-sync";
+import { PayrollSettlementModal } from "@/app/PayrollSettlementModal";
+import {
+  payrollSettlementDisplay,
+  resolveSettlementPayableAmount,
+  type PayrollPayoutMethod,
+} from "@/lib/payroll-settlement";
 import { useAdminAccess } from "@/app/admin-access";
+import { PayrollSettlementModal } from "@/app/PayrollSettlementModal";
+import {
+  payrollSettlementDisplay,
+  resolveSettlementPayableAmount,
+  type PayrollPayoutMethod,
+} from "@/lib/payroll-settlement";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
 import {
@@ -124,7 +136,12 @@ export function toPayrollCalcRows(
     else netPay = r.displayNetPay ?? r.netPay ?? 0;
     const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
     return {
-      emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
+      emp: {
+        name: r.emp.name,
+        position: r.emp.position,
+        settled: r.emp.settled,
+        payrollSettlement: r.emp.payrollSettlement,
+      },
       weekHours: r.weekHours,
       prevSatHours: biweekly ? 0 : r.prevSatHours,
       totalHours: biweekly ? r.weekHours : r.totalHours,
@@ -494,7 +511,7 @@ function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStat
 
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
-  onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
+  onWeekChange, onConfirmSettle, onUnsettleEmployee, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
   onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeEarlyPayouts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
   onUpdateWeekEmployeePrevSaturday, onUpdateWeekEmployeePayrollCarryForward, onGoToCurrent,
@@ -519,7 +536,8 @@ export function PayrollView({
   contacts: EmailContact[];
   jobs: Job[];
   onWeekChange:(f:string,t:string)=>void;
-  onToggleSettled:(id:string)=>void;
+  onConfirmSettle:(id:string, payload:{ paymentMethod: PayrollPayoutMethod; amount: number })=>void;
+  onUnsettleEmployee:(id:string)=>void;
   onSaveWeek:()=>void;
   savedWeeks:WeekSnapshot[];
   onAddFromDirectory:(ids:string[], options?: { preferEmptyHours?: boolean })=>void;
@@ -547,7 +565,8 @@ export function PayrollView({
   onDetailOpenChange?: (open: boolean) => void;
   onSetJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
 }) {
-  const { canViewRates } = useAdminAccess();
+  const { canViewRates, session } = useAdminAccess();
+  const [settleTargetId, setSettleTargetId] = useState<string | null>(null);
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
@@ -560,7 +579,7 @@ export function PayrollView({
   const [showBacklogModal, setShowBacklogModal] = useState(false);
   const [simulation, setSimulation] = useState<PayrollSimulationState>(PAYROLL_SIMULATION_INITIAL);
 
-  useModalScrollLock(showPicker || showBacklogModal || showPdfPreview || showEmailModal);
+  useModalScrollLock(showPicker || showBacklogModal || showPdfPreview || showEmailModal || !!settleTargetId);
 
   useEffect(() => {
     setSimulation(PAYROLL_SIMULATION_INITIAL);
@@ -729,6 +748,82 @@ export function PayrollView({
     }
     return m;
   }, [rows, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, hasRolloverBlockers]);
+
+  const settleTargetEmp = settleTargetId
+    ? displayEmployees.find((e) => e.id === settleTargetId) ?? null
+    : null;
+
+  const handleSettleBadgeClick = useCallback(
+    (emp: WeekEmployee, e?: { stopPropagation?: () => void }) => {
+      e?.stopPropagation?.();
+      if (emp.settled) {
+        onUnsettleEmployee(emp.id);
+        return;
+      }
+      setSettleTargetId(emp.id);
+    },
+    [onUnsettleEmployee],
+  );
+
+  const renderSettlementBadge = (emp: WeekEmployee, opts?: { compact?: boolean; mobile?: boolean }) => {
+    const d = payrollSettlementDisplay({
+      settled: emp.settled,
+      payrollSettlement: emp.payrollSettlement,
+    });
+    const title = d.hasMetadata
+      ? `${d.statusLabel}\nKwota: ${d.amountLine}\nForma: ${d.methodLabel}\nRozliczył: ${d.settledByLine}\nData: ${d.settledAtLine}`
+      : d.isSettled
+        ? "Rozliczono"
+        : "Oczekuje — kliknij po wypłacie";
+    if (opts?.mobile) {
+      return (
+        <button
+          type="button"
+          onClick={(ev) => handleSettleBadgeClick(emp, ev)}
+          title={title}
+          className={`inline-flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full text-xs font-medium touch-manipulation ${d.isSettled ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}
+        >
+          {d.isSettled ? "✓" : "○"}
+        </button>
+      );
+    }
+    if (opts?.compact) {
+      return (
+        <button
+          type="button"
+          onClick={(ev) => handleSettleBadgeClick(emp, ev)}
+          title={title}
+          className={`inline-flex flex-col items-start gap-0.5 px-3 py-2 min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap touch-manipulation max-w-[11rem] ${d.isSettled ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}
+        >
+          <span className="inline-flex items-center gap-1">
+            {d.isSettled ? <><CheckCircle2 size={11} />Rozlicz.</> : <><Circle size={11} />Oczek.</>}
+          </span>
+          {d.hasMetadata && d.methodLabel && (
+            <span className="text-[10px] opacity-80 truncate w-full">{d.methodLabel} · {d.settledByLine}</span>
+          )}
+        </button>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={(ev) => handleSettleBadgeClick(emp, ev)}
+        title={title}
+        className={`inline-flex flex-col items-start gap-0.5 px-3 py-2 min-h-[44px] rounded-full text-[11px] font-medium whitespace-nowrap transition-all touch-manipulation max-w-[14rem] ${d.isSettled ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}
+      >
+        <span className="inline-flex items-center gap-1">
+          {d.isSettled ? <><CheckCircle2 size={11} className="shrink-0" />{d.statusLabel}</> : <><Circle size={11} className="shrink-0" />Oczekuje</>}
+        </span>
+        {d.hasMetadata && (
+          <span className="text-[10px] opacity-80 leading-tight text-left">
+            {d.amountLine} · {d.methodLabel}
+            <br />
+            {d.settledByLine} · {d.settledAtLine}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   const payrollDayColumns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
   const showPrevSatDetailCol = useMemo(
@@ -1369,9 +1464,7 @@ export function PayrollView({
                             {!isClosedWeek && (
                             <>
                             <td className={`sticky right-9 z-10 px-2 py-3.5 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
-                              <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-full text-[11px] font-medium whitespace-nowrap transition-all touch-manipulation ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
-                                {r.emp.settled?<><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</>:<><Circle size={11} className="shrink-0"/>Oczekuje</>}
-                              </button>
+                              {renderSettlementBadge(r.emp)}
                             </td>
                             <td className={`sticky right-0 z-10 px-2 py-3.5 ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
                               {deleteConfirm===r.emp.id?(
@@ -1458,9 +1551,7 @@ export function PayrollView({
                           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             {!isClosedWeek && (
                             <>
-                            <button onClick={() => onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap touch-manipulation ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
-                              {r.emp.settled?<><CheckCircle2 size={11}/>Rozlicz.</>:<><Circle size={11}/>Oczek.</>}
-                            </button>
+                            {renderSettlementBadge(r.emp, { compact: true })}
                             {deleteConfirm === r.emp.id ? (
                               <div className="flex items-center gap-1">
                                 <button type="button" onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-1 rounded">Usuń</button>
@@ -1567,9 +1658,7 @@ export function PayrollView({
                             {!isClosedWeek && (
                             <>
                             <td className={`sticky right-9 z-10 px-2 py-3 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
-                                {r.emp.settled ? <><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</> : <><Circle size={11} className="shrink-0"/>Oczekuje</>}
-                              </button>
+                              {renderSettlementBadge(r.emp)}
                             </td>
                             <td className={`sticky right-0 z-10 px-2 py-3 align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
                               {deleteConfirm === r.emp.id ? (
@@ -1615,11 +1704,7 @@ export function PayrollView({
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours > 0 ? fmtH(r.weekHours) : "—"}</span>
-                            {!isClosedWeek && (
-                            <button onClick={(e) => { e.stopPropagation(); onToggleSettled(r.emp.id); }} className={`inline-flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] min-w-[44px] rounded-full text-xs font-medium touch-manipulation ${r.emp.settled ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-                              {r.emp.settled ? "✓" : "○"}
-                            </button>
-                            )}
+                            {!isClosedWeek && renderSettlementBadge(r.emp, { mobile: true })}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -1780,6 +1865,42 @@ export function PayrollView({
             </div>
           </div>
         </div>
+      )}
+
+      {settleTargetEmp && session && (
+        <PayrollSettlementModal
+          employeeName={settleTargetEmp.name}
+          amount={resolveSettlementPayableAmount(
+            settleTargetEmp,
+            directory,
+            weekFrom,
+            weekTo,
+            savedWeeks,
+            {
+              employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
+              archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+              livePayroll: !isClosedWeek,
+            },
+          )}
+          settledByName={session.displayName}
+          onCancel={() => setSettleTargetId(null)}
+          onConfirm={(method) => {
+            const amount = resolveSettlementPayableAmount(
+              settleTargetEmp,
+              directory,
+              weekFrom,
+              weekTo,
+              savedWeeks,
+              {
+                employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
+                archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+                livePayroll: !isClosedWeek,
+              },
+            );
+            onConfirmSettle(settleTargetEmp.id, { paymentMethod: method, amount });
+            setSettleTargetId(null);
+          }}
+        />
       )}
 
       {showPdfPreview && (

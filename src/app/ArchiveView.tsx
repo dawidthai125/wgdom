@@ -4,6 +4,12 @@ import {
   ChevronUp, ChevronDown, CalendarDays, Edit2, CheckCircle2, Circle,
 } from "lucide-react";
 import { useAdminAccess } from "@/app/admin-access";
+import { PayrollSettlementModal } from "@/app/PayrollSettlementModal";
+import {
+  payrollSettlementDisplay,
+  resolveSettlementPayableAmount,
+  type PayrollPayoutMethod,
+} from "@/lib/payroll-settlement";
 import { StatCard } from "@/app/app-ui";
 import { ArchiveScheduleGrid } from "@/app/ArchiveScheduleGrid";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
@@ -88,7 +94,8 @@ export function ArchiveView({
   onUpdateWeekEmployeeRate,
   onUpdateWeekEmployeePrevSaturday,
   onUpdateWeekEmployeePayrollCarryForward,
-  onToggleArchiveSettled,
+  onConfirmArchiveSettle,
+  onUnsettleArchiveEmployee,
   jobs,
   directory,
 }: {
@@ -100,11 +107,13 @@ export function ArchiveView({
   onUpdateWeekEmployeeRate: (weekId: string, empId: string, rate: string) => void;
   onUpdateWeekEmployeePrevSaturday: (weekId: string, empId: string, next: DayData) => void;
   onUpdateWeekEmployeePayrollCarryForward: (weekId: string, empId: string, carry: WeekEmployee["payrollCarryForward"]) => void;
-  onToggleArchiveSettled: (weekId: string, empId: string) => void;
+  onConfirmArchiveSettle: (weekId: string, empId: string, payload: { paymentMethod: PayrollPayoutMethod; amount: number }) => void;
+  onUnsettleArchiveEmployee: (weekId: string, empId: string) => void;
   jobs: Job[];
   directory: DirectoryEmployee[];
 }) {
-  const { canViewRates } = useAdminAccess();
+  const { canViewRates, session } = useAdminAccess();
+  const [settleTarget, setSettleTarget] = useState<{ weekId: string; empId: string } | null>(null);
   const [selectedYear, setSelectedYear] = useState<number|null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number|null>(null);
   const [expandedWeek, setExpandedWeek] = useState<string|null>(null);
@@ -565,16 +574,49 @@ export function ArchiveView({
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.totalExtraCosts>0?<span className="text-green-500">+{fmt(c.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                       <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}} title={biweeklyHint ? "Wypłata co 2 tygodnie (ten + poprzedni tydzień)" : undefined}>{fmt(displayNetPay)} PLN</td>
                       <td className="px-5 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                        {full ? (
-                          <button
-                            type="button"
-                            onClick={() => onToggleArchiveSettled(week.id, full.id)}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}
-                          >
-                            {emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}
-                          </button>
-                        ) : (
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}</span>
+                        {full ? (() => {
+                          const settleSrc = full.payrollSettlement ?? emp.payrollSettlement;
+                          const d = payrollSettlementDisplay({
+                            settled: emp.settled,
+                            payrollSettlement: settleSrc,
+                          });
+                          const title = d.hasMetadata
+                            ? `${d.statusLabel}\n${d.amountLine}\n${d.methodLabel}\n${d.settledByLine}\n${d.settledAtLine}`
+                            : d.statusLabel;
+                          return (
+                            <button
+                              type="button"
+                              title={title}
+                              onClick={() => {
+                                if (emp.settled) onUnsettleArchiveEmployee(week.id, full.id);
+                                else setSettleTarget({ weekId: week.id, empId: full.id });
+                              }}
+                              className={`inline-flex flex-col items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium transition-colors max-w-[9rem] ${emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}
+                            >
+                              <span className="inline-flex items-center gap-1">
+                                {emp.settled?<><CheckCircle2 size={10}/>{d.statusLabel}</>:<><Circle size={10}/>Oczekuje</>}
+                              </span>
+                              {d.hasMetadata && d.methodLabel && (
+                                <span className="text-[9px] opacity-80 truncate w-full text-center">
+                                  {d.methodLabel} · {d.settledByLine}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })() : (
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                            {emp.settled
+                              ? (() => {
+                                  const d = payrollSettlementDisplay({
+                                    settled: true,
+                                    payrollSettlement: emp.payrollSettlement,
+                                  });
+                                  return d.hasMetadata
+                                    ? `${d.statusLabel} · ${d.methodLabel}`
+                                    : d.statusLabel;
+                                })()
+                              : <><Circle size={10}/>Oczekuje</>}
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -624,6 +666,38 @@ export function ArchiveView({
           </div>;
         })}
       </div>
+      {settleTarget && session && (() => {
+        const week = savedWeeks.find((w) => w.id === settleTarget.weekId);
+        const full = week?.weekEmployees?.find((e) => e.id === settleTarget.empId);
+        if (!week || !full) return null;
+        return (
+          <PayrollSettlementModal
+            employeeName={full.name}
+            amount={resolveSettlementPayableAmount(
+              full,
+              directory,
+              week.weekFrom,
+              week.weekTo,
+              savedWeeks,
+              { archivedSnapshot: week, livePayroll: false },
+            )}
+            settledByName={session.displayName}
+            onCancel={() => setSettleTarget(null)}
+            onConfirm={(method) => {
+              const amount = resolveSettlementPayableAmount(
+                full,
+                directory,
+                week.weekFrom,
+                week.weekTo,
+                savedWeeks,
+                { archivedSnapshot: week, livePayroll: false },
+              );
+              onConfirmArchiveSettle(week.id, full.id, { paymentMethod: method, amount });
+              setSettleTarget(null);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

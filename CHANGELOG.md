@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.124 — PAYROLL settlement metadata (2026-08-28)
+
+- **new:** `payrollSettlement` (kto / kiedy / cash|transfer / zamrożona kwota) przy Rozlicz; modal; PDF/Word/Email/Archiwum z SSOT; P2 scoped intent; unsettle zachowuje last metadata
+- Test: `npx vite-node scripts/test-payroll-settlement-metadata.mjs`
+
 ## 2.66.123 — PAYROLL biweekly early / partial payout (2026-08-28)
 
 - `payrollEarlyPayouts[]` — transakcje (cash|transfer), soft-delete, `periodKey` = `nextBiweeklyPayoutSaturday`

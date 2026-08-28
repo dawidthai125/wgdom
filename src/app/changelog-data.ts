@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-28",
+    version: "2.66.124",
+    label: "PAYROLL — rozliczenie: kto / forma / kwota",
+    items: [
+      {
+        type: "new",
+        text: "Lista płac: przy „Rozlicz” zapis kto (AdminSession), kiedy, gotówka/przelew i zamrożona kwota (payrollSettlement). Modal z obowiązkową formą. PDF/Word/Email/Archiwum z zapisanych danych — nie z bieżącej sesji. P2 field-intent atomowy. Unsettle zachowuje ostatnie metadata. Test: test-payroll-settlement-metadata.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-28",
     version: "2.66.123",
     label: "PAYROLL — wcześniejsza wypłata biweekly",
     items: [

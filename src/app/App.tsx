@@ -113,6 +113,11 @@ import type { PayrollCarryForward } from "@/lib/payroll-carry-forward";
 import { calcBiweeklyWeekNetWithLeave } from "@/lib/payroll-leave-overlay";
 import { validateEarlyPayoutListWrite } from "@/lib/payroll-early-payout";
 import {
+  buildPayrollSettlement,
+  type PayrollPayoutMethod,
+  type PayrollSettlement,
+} from "@/lib/payroll-settlement";
+import {
   isProductionDirectoryEmployee,
   filterProductionDirectory,
   filterProductionActiveDirectory,
@@ -2253,8 +2258,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves, savedWeeks);
       return prev.map((w) => (w.id === weekId ? snapshot : w));
     });
-  }, [jobs, setSavedWeeks]);
-
+  }, [jobs, setSavedWeeks, employeeLeaves, savedWeeks]);
   const updateArchiveWeekEmployee = useCallback((weekId: string, updatedEmp: WeekEmployee) => {
     patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)));
   }, [patchArchiveWeek]);
@@ -2354,26 +2358,94 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [patchArchiveWeek]);
 
-  const toggleArchiveSettled = useCallback((weekId: string, empId: string) => {
+  const confirmArchiveSettle = useCallback((
+    weekId: string,
+    empId: string,
+    payload: { paymentMethod: PayrollPayoutMethod; amount: number },
+  ) => {
+    if (!adminSession?.id || !adminSession.displayName) return;
     const now = new Date().toISOString();
-    patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === empId ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
+    let settlement: PayrollSettlement;
+    try {
+      settlement = buildPayrollSettlement({
+        settledByUserId: adminSession.id,
+        settledByName: adminSession.displayName,
+        paymentMethod: payload.paymentMethod,
+        amount: payload.amount,
+        settledAt: now,
+      });
+    } catch {
+      return;
+    }
+    patchArchiveWeek(weekId, (emps) =>
+      emps.map((e) =>
+        e.id === empId
+          ? { ...e, settled: true, settledUpdatedAt: now, payrollSettlement: settlement }
+          : e,
+      ),
+    );
+  }, [patchArchiveWeek, adminSession]);
+
+  const unsettleArchiveEmployee = useCallback((weekId: string, empId: string) => {
+    const now = new Date().toISOString();
+    patchArchiveWeek(weekId, (emps) =>
+      emps.map((e) =>
+        e.id === empId
+          ? { ...e, settled: false, settledUpdatedAt: now }
+          : e,
+      ),
+    );
   }, [patchArchiveWeek]);
 
-  const toggleSettled = useCallback((id: string) => {
+  const confirmSettle = useCallback((
+    id: string,
+    payload: { paymentMethod: PayrollPayoutMethod; amount: number },
+  ) => {
+    if (!adminSession?.id || !adminSession.displayName) return;
     const now = new Date().toISOString();
-    const emp = weekEmployees.find((e) => e.id === id);
-    if (!emp) return;
-    const newSettled = !emp.settled;
+    let settlement: PayrollSettlement;
+    try {
+      settlement = buildPayrollSettlement({
+        settledByUserId: adminSession.id,
+        settledByName: adminSession.displayName,
+        paymentMethod: payload.paymentMethod,
+        amount: payload.amount,
+        settledAt: now,
+      });
+    } catch {
+      return;
+    }
     runPayrollWeekEmployeeFieldEdit(() => {
-      withPayrollWeekEmployeesWriteSource("toggleSettled", () => {
+      withPayrollWeekEmployeesWriteSource("confirmSettle", () => {
         setWeekEmployees((prev) => {
-          const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
+          const next = prev.map((e) =>
+            e.id === id
+              ? { ...e, settled: true, settledUpdatedAt: now, payrollSettlement: settlement }
+              : e,
+          );
           if (!commitLivePayrollRosterEdit(prev, next)) return prev;
           return next;
         });
       });
     });
-  }, [weekEmployees, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, setWeekEmployees]);
+  }, [adminSession, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, setWeekEmployees]);
+
+  const unsettleEmployee = useCallback((id: string) => {
+    const now = new Date().toISOString();
+    runPayrollWeekEmployeeFieldEdit(() => {
+      withPayrollWeekEmployeesWriteSource("unsettleEmployee", () => {
+        setWeekEmployees((prev) => {
+          const next = prev.map((e) =>
+            e.id === id
+              ? { ...e, settled: false, settledUpdatedAt: now }
+              : e,
+          );
+          if (!commitLivePayrollRosterEdit(prev, next)) return prev;
+          return next;
+        });
+      });
+    });
+  }, [commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, setWeekEmployees]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
@@ -3057,7 +3129,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onFixJobs={setJobs}
           setWeekFrom={setWeekFrom}
           setWeekTo={setWeekTo}
-          toggleSettled={toggleSettled}
+          confirmSettle={confirmSettle}
+          unsettleEmployee={unsettleEmployee}
           saveWeek={saveWeek}
           addFromDirectory={addFromDirectory}
           removeWeekEmployee={removeWeekEmployee}
@@ -3092,7 +3165,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           updateArchiveWeekEmployeeRate={updateArchiveWeekEmployeeRate}
           updateArchiveWeekEmployeePrevSaturday={updateArchiveWeekEmployeePrevSaturday}
           updateArchiveWeekEmployeePayrollCarryForward={updateArchiveWeekEmployeePayrollCarryForward}
-          toggleArchiveSettled={toggleArchiveSettled}
+          confirmArchiveSettle={confirmArchiveSettle}
+          unsettleArchiveEmployee={unsettleArchiveEmployee}
           setJobs={setJobs}
           deleteJobsByIds={deleteJobsByIds}
           pendingJobId={pendingJobId}

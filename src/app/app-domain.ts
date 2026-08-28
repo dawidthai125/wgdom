@@ -137,6 +137,11 @@ export interface WeekEmployee {
    */
   payrollEarlyPayouts?: import("@/lib/payroll-early-payout").PayrollEarlyPayout[];
   settled: boolean;
+  /**
+   * Metadata rozliczenia (kto / kiedy / forma / zamrożona kwota).
+   * Przy unsettle: zostaje jako historyczne read-only (nie usuwać).
+   */
+  payrollSettlement?: import("@/lib/payroll-settlement").PayrollSettlement;
   /** Sprint 20.1A — jednorazowe przeniesienie wypłaty (zamrożona kwota) na następny tydzień. */
   payrollCarryForward?: import("@/lib/payroll-carry-forward").PayrollCarryForward;
 }
@@ -152,6 +157,8 @@ export interface EmployeeSnapshot {
   totalManualAdjustment?: number;
   netPay: number;
   settled: boolean;
+  /** Zamrożone metadata rozliczenia (deep copy z WeekEmployee). */
+  payrollSettlement?: import("@/lib/payroll-settlement").PayrollSettlement;
   /** Zamrożony przy zapisie tygodnia — nie zmienia się po dodaniu urlopów wstecz. */
   leaveStatus?: PayrollLeaveStatus;
   /** Sprint 20.1A — kwota przeniesiona na następny tydzień (zamrożona). */
@@ -1955,6 +1962,9 @@ export function buildWeekSnapshot(
       ...(c.totalManualAdjustment > 0 ? { totalManualAdjustment: c.totalManualAdjustment } : {}),
       netPay: leaveStatus ? leavePayable : carryFields.netPay,
       settled: emp.settled,
+      ...(emp.payrollSettlement
+        ? { payrollSettlement: JSON.parse(JSON.stringify(emp.payrollSettlement)) }
+        : {}),
       ...(leaveStatus ? { leaveStatus } : {}),
       ...(carryFields.carryForwardOut != null ? { carryForwardOut: carryFields.carryForwardOut } : {}),
       ...(carryFields.carryForwardTargetFrom ? { carryForwardTargetFrom: carryFields.carryForwardTargetFrom } : {}),

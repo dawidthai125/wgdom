@@ -218,7 +218,8 @@ export type AdminViewRouterProps = {
   onFixJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   setWeekFrom: (v: string) => void;
   setWeekTo: (v: string) => void;
-  toggleSettled: (id: string) => void;
+  confirmSettle: (id: string, payload: { paymentMethod: import("@/lib/payroll-settlement").PayrollPayoutMethod; amount: number }) => void;
+  unsettleEmployee: (id: string) => void;
   saveWeek: () => void;
   addFromDirectory: (ids: string[], options?: { preferEmptyHours?: boolean }) => void;
   removeWeekEmployee: (id: string) => void;
@@ -253,7 +254,8 @@ export type AdminViewRouterProps = {
   updateArchiveWeekEmployeeRate: (weekId: string, empId: string, rate: string) => void;
   updateArchiveWeekEmployeePrevSaturday: (weekId: string, empId: string, next: import("@/app/app-domain").DayData) => void;
   updateArchiveWeekEmployeePayrollCarryForward: (weekId: string, empId: string, carry: WeekEmployee["payrollCarryForward"]) => void;
-  toggleArchiveSettled: (weekId: string, empId: string) => void;
+  confirmArchiveSettle: (weekId: string, empId: string, payload: { paymentMethod: import("@/lib/payroll-settlement").PayrollPayoutMethod; amount: number }) => void;
+  unsettleArchiveEmployee: (weekId: string, empId: string) => void;
   setJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   deleteJobsByIds: (ids: string[]) => Promise<void>;
   pendingJobId: string | null;
@@ -323,7 +325,8 @@ export function AdminViewRouter({
   onFixJobs,
   setWeekFrom,
   setWeekTo,
-  toggleSettled,
+  confirmSettle,
+  unsettleEmployee,
   saveWeek,
   addFromDirectory,
   removeWeekEmployee,
@@ -358,7 +361,8 @@ export function AdminViewRouter({
   updateArchiveWeekEmployeeRate,
   updateArchiveWeekEmployeePrevSaturday,
   updateArchiveWeekEmployeePayrollCarryForward,
-  toggleArchiveSettled,
+  confirmArchiveSettle,
+  unsettleArchiveEmployee,
   setJobs,
   deleteJobsByIds,
   pendingJobId,
@@ -518,7 +522,8 @@ export function AdminViewRouter({
                 setWeekFrom(f);
                 setWeekTo(t);
               }}
-              onToggleSettled={toggleSettled}
+              onConfirmSettle={confirmSettle}
+              onUnsettleEmployee={unsettleEmployee}
               onSaveWeek={saveWeek}
               savedWeeks={savedWeeks}
               onAddFromDirectory={addFromDirectory}
@@ -596,7 +601,8 @@ export function AdminViewRouter({
             onUpdateWeekEmployeeRate={updateArchiveWeekEmployeeRate}
             onUpdateWeekEmployeePrevSaturday={updateArchiveWeekEmployeePrevSaturday}
             onUpdateWeekEmployeePayrollCarryForward={updateArchiveWeekEmployeePayrollCarryForward}
-            onToggleArchiveSettled={toggleArchiveSettled}
+            onConfirmArchiveSettle={confirmArchiveSettle}
+            onUnsettleArchiveEmployee={unsettleArchiveEmployee}
             jobs={jobs}
             directory={directory}
           />
