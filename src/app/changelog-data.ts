@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-29",
+    version: "2.66.126",
+    label: "PAYROLL — freshness payload hardening",
+    items: [
+      {
+        type: "fix",
+        text: "Po ensureCloudFreshBeforeWrite outgoing roster = Cloud ⊕ zweryfikowane intent (nie ślepy stale arg). extraCosts: baseline jak rate/MA/settlement (before≠cloud → Cloud wins). Test: test-payroll-freshness-payload-hardening.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-29",
     version: "2.66.125",
     label: "CLOUD — Freshness Gate (stale session)",
     items: [

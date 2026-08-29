@@ -131,13 +131,24 @@ function applyFieldsOntoCloudEmp(
     }
   }
 
-  // --- ExtraCosts ---
-  if (afterEmp && beforeEmp && !extraCostsEqual(beforeEmp.extraCosts, afterEmp.extraCosts)) {
-    next.extraCosts = cloneJson(afterEmp.extraCosts ?? []);
-    next.dataUpdatedAt = afterEmp.dataUpdatedAt ?? next.dataUpdatedAt;
-    if (!extraCostsEqual(next.extraCosts, cloudEmp.extraCosts)) changed = true;
-  } else {
-    next.extraCosts = cloneJson(cloudEmp.extraCosts ?? []);
+  // --- ExtraCosts (P2 baseline vs cloud — same contract as rate / MA / settlement) ---
+  {
+    const beforeCosts = beforeEmp?.extraCosts;
+    const afterCosts = afterEmp?.extraCosts;
+    const cloudCosts = cloudEmp.extraCosts;
+    const costsEdited =
+      !!beforeEmp
+      && !!afterEmp
+      && !extraCostsEqual(beforeCosts, afterCosts);
+    const baselineOk = !!beforeEmp && extraCostsEqual(beforeCosts, cloudCosts);
+    if (costsEdited && baselineOk) {
+      next.extraCosts = cloneJson(afterCosts ?? []);
+      next.dataUpdatedAt = afterEmp.dataUpdatedAt ?? next.dataUpdatedAt;
+      if (!extraCostsEqual(next.extraCosts, cloudCosts)) changed = true;
+    } else {
+      next.extraCosts = cloneJson(cloudCosts ?? []);
+      if (costsEdited) changed = true;
+    }
   }
 
   // --- Manual payroll adjustment (own updatedAt; never via dataUpdatedAt) ---

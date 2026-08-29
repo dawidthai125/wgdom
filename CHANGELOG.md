@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.126 — PAYROLL freshness payload hardening (2026-08-29)
+
+- Po freshness: outgoing = canonical Cloud ⊕ P2 intents (nie ślepy argument stale roster)
+- `extraCosts`: cloud baseline (before ≡ cloud) jak MA/settlement/rate
+- Test: `npx vite-node scripts/test-payroll-freshness-payload-hardening.mjs`
+
 ## 2.66.125 — CLOUD Freshness Gate (2026-08-29)
 
 - Global write barrier: resume/focus/visibility/pageshow/native → pull+reconcile+UI → FRESH → dopiero outbound write

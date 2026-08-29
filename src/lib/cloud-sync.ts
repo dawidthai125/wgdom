@@ -1568,6 +1568,75 @@ export type PushWeekEmployeesOptions = {
   rosterBefore?: WeekEmployee[];
 };
 
+/**
+ * PAYROLL 2.66.126 — rebuild outgoing after freshness.
+ * Never treat closed-over stale roster as authoritative alone.
+ * Returns Cloud ⊕ verified intents, or fail-loud silent-down mode for P0 BLOCK path.
+ */
+export function rebuildPayrollOutgoingAfterFreshness(params: {
+  cloudEmps: unknown;
+  intentAfter: WeekEmployee[];
+  intentBefore?: WeekEmployee[];
+  hoursIntents?: PayrollScopedHoursIntent[] | null;
+  intentionalHoursClear?: boolean;
+  weekFrom: string;
+  weekTo: string;
+  tombstoned?: Set<string>;
+}): { roster: WeekEmployee[]; mode: "canonical_intent" | "silent_down_fail_loud" | "intentional_clear" } {
+  const tombstoned = params.tombstoned ?? new Set<string>();
+  const membership = sanitizeStaleRosterMembership(
+    params.cloudEmps,
+    params.intentAfter,
+    params.intentBefore,
+    tombstoned,
+  );
+  const afterForIntent = membership.roster as WeekEmployee[];
+
+  if (params.intentionalHoursClear === true) {
+    return { roster: afterForIntent, mode: "intentional_clear" };
+  }
+
+  const hoursIntents = normalizeHoursIntents(params.hoursIntents);
+  const silentDown =
+    listUnauthorizedHoursDownSlots(
+      params.cloudEmps,
+      afterForIntent,
+      hoursIntents,
+      params.weekFrom,
+      params.weekTo,
+    ).length > 0
+    && hoursIntents.length === 0;
+
+  // Always Cloud ⊕ verified field intents (rate / extraCosts / MA / settlement / early / hours).
+  const field = applyPayrollFieldIntentsOntoCanonical(
+    params.cloudEmps,
+    params.intentBefore,
+    afterForIntent,
+    hoursIntents,
+    params.weekFrom,
+    params.weekTo,
+  );
+  let roster = field.roster as WeekEmployee[];
+
+  if (silentDown) {
+    // P0 fail-loud: re-attach unauthorized hours-down from after so guard BLOCKs,
+    // while non-hours fields stay Cloud ⊕ verified intents (never blind stale A).
+    const afterById = new Map(afterForIntent.map((e) => [String(e.id), e]));
+    roster = roster.map((emp) => {
+      const afterEmp = afterById.get(String(emp.id));
+      if (!afterEmp) return emp;
+      return {
+        ...emp,
+        days: afterEmp.days ? { ...afterEmp.days } : emp.days,
+        prevSaturday: afterEmp.prevSaturday,
+      };
+    });
+    return { roster, mode: "silent_down_fail_loud" };
+  }
+
+  return { roster, mode: "canonical_intent" };
+}
+
 async function applyPayrollGuardBeforePush(
   keys: string[],
   values: unknown[],
@@ -3609,14 +3678,18 @@ async function pushWeekEmployeesToCloudUnchecked(
   }
   const pushTraceId = payrollTraceCreatePushTraceId();
   const { weekFrom, weekTo } = traceWeekRangeFromLs();
-  const beforeCollapse = normalizeArrayValue(weekEmployees);
+  /** Intent AFTER — may be stale full roster; never treat as authoritative alone. */
+  const intentAfter = collapseWeekEmployeesByIdentity(normalizeArrayValue(weekEmployees)) as WeekEmployee[];
+  const intentBefore = Array.isArray(options?.rosterBefore)
+    ? (collapseWeekEmployeesByIdentity(normalizeArrayValue(options.rosterBefore)) as WeekEmployee[])
+    : undefined;
   payrollTraceEmit("payroll.roster.collapse", "PUSH", "debug", {
     pushTraceId,
-    beforeCount: beforeCollapse.length,
+    beforeCount: intentAfter.length,
   });
-  let normalized = collapseWeekEmployeesByIdentity(beforeCollapse) as WeekEmployee[];
+  let normalized = intentAfter;
 
-  // P1 — membership sanitize before LS write (same rule as guard; idempotent).
+  // After freshness: rebuild outgoing = canonical Cloud ⊕ verified intents (not blind A).
   try {
     const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
     const tombstoned = deletedWeekEmployeeMergeKeySet(
@@ -3624,24 +3697,32 @@ async function pushWeekEmployeesToCloudUnchecked(
       weekFrom,
       weekTo,
     );
-    const membership = sanitizeStaleRosterMembership(
+    const rebuilt = rebuildPayrollOutgoingAfterFreshness({
       cloudEmps,
-      normalized,
-      options?.rosterBefore,
+      intentAfter,
+      intentBefore,
+      hoursIntents: options?.hoursIntents,
+      intentionalHoursClear: options?.intentionalHoursClear === true,
+      weekFrom,
+      weekTo,
       tombstoned,
-    );
-    if (membership.changed) {
+    });
+    normalized = rebuilt.roster;
+    if (rebuilt.mode === "canonical_intent") {
+      payrollTraceEmit("payroll.roster.push.canonical_intent", "PUSH", "info", {
+        pushTraceId,
+        cloudCount: Array.isArray(cloudEmps) ? cloudEmps.length : 0,
+        outgoingCount: normalized.length,
+      });
+    } else if (rebuilt.mode === "silent_down_fail_loud") {
       payrollTraceEmit("payroll.roster.push.sanitize_membership", "PUSH", "warn", {
         pushTraceId,
-        droppedCount: membership.dropped.length,
+        skipReason: "silent_down_fail_loud" as const,
       });
-      normalized = membership.roster;
     }
-    // P2 field intents apply ONLY inside applyPayrollGuardBeforePush — after the
-    // silent hours-down BLOCK. Pre-healing here would turn stale 660→347 into a
-    // cloud-noop ALLOW and bypass P0 hours-down protection.
+    // Hours-down / >50% / second P2 pass remain inside applyPayrollGuardBeforePush.
   } catch {
-    /* guard fail-closed on push if cloud unreachable */
+    /* guard fail-closed on push if cloud unreachable — keep intentAfter; pushKeys guard strips */
   }
 
   const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
