@@ -249,9 +249,13 @@ Slice closeouts: [`P1-C`](../architecture/CENY-MATERIAŁÓW-04-P1-C-CLOSEOUT.md)
 - `weekEmployeeFromDir` = **PURE**.  
 - `skipPayrollGuard` ⇔ `intentionalHoursClear === true` (≠ week-clear po archive).  
 - Fence resurrection + classifier ALIGN/ROLLOVER = **ACTIVE**.  
-- D4 `-prev` banner ≠ archive Restore Banner.
+- D4 `-prev` banner ≠ archive Restore Banner.  
+- **Freshness ≠ canonical payload** — `ensureCloudFreshBeforeWrite` + `rebuildPayrollOutgoingAfterFreshness` (Cloud ⊕ verified intents).  
+- **`extraCosts`:** after tylko gdy `before ≡ cloud`; inaczej Cloud wins.  
+- P0 hours-down · P2 field-intent · CAS/409 = druga linia — **nie usuwać**.  
+- Tip Payroll: **2.66.126** / `c7337a2a` · REGRESSION WATCH ACTIVE.
 
-**SSOT:** [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) · [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md)
+**SSOT:** [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) · [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) · [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)
 
 ---
 
@@ -313,7 +317,7 @@ Draft `WGDOM-AI-COST-01-ARCHITECTURE.md` = **SUPERSEDED**.
 | Test | Smoke modułu | Gate B payroll + unit D2–D5 gdy hours |
 
 FEATURE w oknie czasu **może współwystępować** z wipe LP **bez** bycia RC write-path — i tak: **nie mieszaj Shared**.  
-→ [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) §8 · [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md)
+→ [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) §8–§9 · [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md)
 
 ---
 

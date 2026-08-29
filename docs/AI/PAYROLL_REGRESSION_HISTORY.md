@@ -109,7 +109,20 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 
 ---
 
-## 9. Jak nie dopuścić do powtórki (operacyjnie)
+## 9. Freshness + stale payload · CLOSED @ 2.66.125–126
+
+| | |
+|--|--|
+| **Objaw / ryzyko** | Stara sesja (A=100h) vs Cloud (B=120h); po ensure argument mógł nadal być A; `extraCosts` bez cloud baseline |
+| **RC** | (1) niepełna freshness · (2) stale closed-over arg po ensure · (3) nierówna field protection · (4) extraCosts bez `before ≡ cloud` |
+| **Naprawa** | **2.66.125** Freshness Gate · **2.66.126** `rebuildPayrollOutgoingAfterFreshness` + extraCosts baseline |
+| **Zapobieganie** | Freshness ≠ canonical · Guard Rails P16–P20 · Regression Watch §9 closeout |
+| **Docs** | [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) |
+| **Residuals (NON-BLOCKING)** | rollover snapshot/409 · archive LWW · bootstrap skip intentional · O1/O2 PRE-EXISTING · brak live KV dual-device |
+
+---
+
+## 10. Jak nie dopuścić do powtórki (operacyjnie)
 
 | # | Zasada |
 |---|--------|
@@ -119,10 +132,11 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 | 4 | Nowy write path → DF + Architecture Review + Owner GO |
 | 5 | E2E/CI — nie obchodzić fence/guard w `src/` |
 | 6 | Czytaj ten plik + Guard Rails przed „drobnym” sync refaktorem |
+| 7 | **Regression Watch** (freshness · canonical · P0/P2 · CAS) przed każdym Payroll/cloud-sync change |
 
 ---
 
-## 10. Mapa do pełnych RCA (gdy potrzeba)
+## 11. Mapa do pełnych RCA (gdy potrzeba)
 
 **Indeks kanoniczny:** [`PAYROLL_RCA_INDEX.md`](PAYROLL_RCA_INDEX.md) · [`PAYROLL_INCIDENT_INDEX.md`](PAYROLL_INCIDENT_INDEX.md)
 
@@ -133,4 +147,5 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 | Forensics write path | `architecture/PAYROLL-FORENSICS-01-DOMAIN-WRITE-PATH-AUDIT.md` |
 | Resurrection | `architecture/PAYROLL-CLOUD-RESURRECTION-01-*` |
 | RC-B / PWRB | `recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md` |
+| **Freshness + canonical payload** | **`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`** |
 | Sync forensics głęboko | `docs/recovery/PAYROLL-*` (HISTORICAL) |

@@ -17,5 +17,6 @@
 | Bootstrap race | [`../architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md`](../architecture/PAYROLL-BOOTSTRAP-RACE-FIX-01-DESIGN-FREEZE.md) | — |
 | Data recovery forensics | [`../architecture/PAYROLL-DATA-RECOVERY-01-ARCHIVE-FORENSICS.md`](../architecture/PAYROLL-DATA-RECOVERY-01-ARCHIVE-FORENSICS.md) | [`../architecture/PAYROLL-DATA-RECOVERY-01-FINAL-VERIFICATION.md`](../architecture/PAYROLL-DATA-RECOVERY-01-FINAL-VERIFICATION.md) |
 | Sync window 16–21 Jul | [`../architecture/SYNC-RCA-16-21-JULY.md`](../architecture/SYNC-RCA-16-21-JULY.md) · [`../architecture/SYNC-REGRESSION-WINDOW-2026-07-16-TO-2026-07-21.md`](../architecture/SYNC-REGRESSION-WINDOW-2026-07-16-TO-2026-07-21.md) | — |
+| **Freshness + canonical payload** | [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) | ten sam closeout (PV + maintenance) |
 
-**Skrót AI:** [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) §10.
+**Skrót AI:** [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) §9–§11.

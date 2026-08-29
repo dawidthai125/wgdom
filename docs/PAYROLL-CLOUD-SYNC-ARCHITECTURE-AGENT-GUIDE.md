@@ -1,10 +1,10 @@
 # PAYROLL Cloud Sync — Architecture Agent Guide
 
 > **Cel:** głęboki przewodnik synchronizacji i merge Payroll (Domain Push, PWRB, Edge, guardy).  
-> **★ AI START (2026-07-24):** najpierw przeczytaj **[`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md)** — przepływ UI→SSOT · CRITICAL INVARIANTS · SAFETY · Hours-wipe D1–D5.  
-> **Production tip:** UI **2.65.43** · feature **`ea1b0a6`** · Hours-wipe EPIC **CLOSED** · [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
+> **★ AI START (2026-07-24):** najpierw przeczytaj **[`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md)** — przepływ UI→SSOT · CRITICAL INVARIANTS · SAFETY · Hours-wipe D1–D5 · **§1A LIVE WRITE**.  
+> **Production tip:** UI **2.66.126** · tip **`c7337a2a`** · Freshness+payload **CLOSED** · [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) · Hours-wipe EPIC **CLOSED** · [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)
 >
-> **Historia dokumentu:** 2026-08-19 · **PAYROLL-O1 CAS Edge gate CLOSED** (§4.4a). 2026-07-11 · Domain Push S2 / PWRB baseline (v2.63.85). Sekcje sync poniżej **nadal ACTIVE**. Otwarte „P0 batch-set / resurrection” w starym TL;DR = **historyczne** — resurrection fence **CLOSED @ 2.65.35** (fence **ACTIVE**); Hours-wipe **CLOSED @ 2.65.43**; **PAYROLL-O1 CAS @ 2.66.103 FE / `b35fd814` Edge**.
+> **Historia dokumentu:** 2026-08-29 · **Freshness Gate 2.66.125 + canonical rebuild 2.66.126 CLOSED** (tip live). 2026-08-19 · **PAYROLL-O1 CAS Edge gate CLOSED** (§4.4a). 2026-07-11 · Domain Push S2 / PWRB baseline (v2.63.85). Sekcje sync poniżej **nadal ACTIVE**. Otwarte „P0 batch-set / resurrection” w starym TL;DR = **historyczne** — resurrection fence **CLOSED @ 2.65.35** (fence **ACTIVE**); Hours-wipe **CLOSED @ 2.65.43**; **PAYROLL-O1 CAS @ 2.66.103 FE / `b35fd814` Edge**.
 >
 > **★ SYNC-ARCH S2:** mutacje pól LP → `payroll-domain-sync.ts` → `pwrPush` → `pushWeekEmployeesToCloud`. RS push **bez** `kw-week-employees`. **#CORE-015** · **#CORE-016**.
 >
@@ -16,13 +16,14 @@
 
 ## 0. TL;DR dla agenta (przeczytaj najpierw)
 
+- **★ Freshness + canonical (ACTIVE @ 2.66.125–126):** `ensureCloudFreshBeforeWrite` → Cloud fetch → **`rebuildPayrollOutgoingAfterFreshness`** (Cloud ⊕ verified intents) → P0/P2 → CAS. **Freshness ≠ canonical payload.** `extraCosts`: `before ≡ cloud` albo Cloud wins. Closeout: [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md).
 - **★ Hours-wipe (ACTIVE):** Domain Gate (D2) + `intentionalHoursClear` ⇔ `skipPayrollGuard` (D3) · `-prev` banner (D4) · Soft Restore overlay (D5) · `weekEmployeeFromDir` **PURE** · szczegóły: [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md).
 - **Model danych = LocalStorage ↔ Supabase KV**. **Merge jest UNION** (nie replace) — klasyczna pułapka Payroll.
 - **Domain Push (S2 — ACTIVE):** mutacje **pól** → `schedulePayrollDomainPush` → `persistPayrollRoster` → `pwrPush` (guard Strict; skip **tylko** z `intentionalHoursClear`) → `pushWeekEmployeesToCloud`. **#CORE-015**
 - **RS Push:** **bez** `kw-week-employees` — by design. Nie przywracać LP do RS.
 - **PWRB:** skład = para roster + deleted-ids · **tylko** `payroll-week-roster-bundle.ts`.
 - **Parytet klient↔Edge** · `payroll-week-employee-merge.ts`.
-- **Regression:** S2 domain-push + S1 RS-no-payroll + D1/D2–D3/D4–D5 unit scripts + gate B.
+- **Regression:** freshness + hardening + P0/P2 + S2 domain-push + S1 RS-no-payroll + D1/D2–D3/D4–D5 + gate B.
 
 ---
 
@@ -32,8 +33,10 @@
 |---------|------|------------------|
 | **PWRB facade (RC-B-1)** | `src/lib/payroll-week-roster-bundle.ts` | **Jedyny** publiczny entry mutacji pary roster+tombstones w UI (`pwrAdd`, `pwrRemove`, `pwrPush`, `pwrReconcile`, …) |
 | **Domain Push facade (S2)** | `src/lib/payroll-domain-sync.ts` | Debounced push mutacji pól rosteru → handler `persistPayrollRoster` → `pwrPush` |
-| **Merge / sync klient** | `src/lib/cloud-sync.ts` | `DATA_KEYS`, fetch/push KV, `computeMergedDataBundle`, **I-1**, `finalizePayrollBundleMerge`, `mergeWeekEmployees*`, tombstony, **I-4** `pushWeekEmployeesToCloud`, guardy push |
-| **Shell / orkiestracja** | `src/app/App.tsx` | `runCloudSync`, `pullFromCloudAndMerge`, `applyAdminDataBundle`, handlery Payroll (`removeWeekEmployee`, `persistPayrollRoster`, `toggleSettled`, rollover) |
+| **Merge / sync klient** | `src/lib/cloud-sync.ts` | `DATA_KEYS`, fetch/push KV, `computeMergedDataBundle`, **I-1**, `finalizePayrollBundleMerge`, `mergeWeekEmployees*`, tombstony, **I-4** `pushWeekEmployeesToCloud`, **`rebuildPayrollOutgoingAfterFreshness`**, guardy push |
+| **Freshness gate** | `src/lib/cloud-freshness-gate.ts` | `ensureCloudFreshBeforeWrite` · resume/storage · offline block |
+| **Field intent / P2** | `src/lib/payroll-field-intent.ts` | P2 · **extraCosts `before ≡ cloud`** |
+| **Shell / orkiestracja** | `src/app/App.tsx` | `runCloudSync`, `pullFromCloudAndMerge`, `applyAdminDataBundle`, handlery Payroll (`removeWeekEmployee`, `persistPayrollRoster`, `toggleSettled`, rollover), resume freshness |
 | **Backend / merge Edge** | `supabase/functions/make-server-0afb8820/index.tsx` | `batch-get`/`batch-set`, `mergeWeekEmployeesUnion`, guardy shrink/expansion, rotacja backupów, `kv.mset` |
 | **KV store Edge** | `supabase/functions/make-server-0afb8820/kv_store.tsx` | `get`/`set`/`mget`/`mset` → Postgres `kv_store_0afb8820` (upsert) |
 | **Kernel identyfikacji (parity)** | `src/lib/payroll-week-employee-merge.ts` | `weekEmployeeMergeKey`, `hasWeekEmployeesRosterExpansion` — **wspólny** klient+Edge (B6) |

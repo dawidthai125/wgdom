@@ -40,12 +40,15 @@ Bez klasyfikacji → **STOP**.
 
 ### 2B. Gdy Payroll / sync / Edge / CloudLoader
 
-4. [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md)  
-5. [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md)  
-6. [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md)  
-7. Głęboko (merge/push): Agent Guide Cloud Sync  
-8. W1: PWRB closeout · Hours-wipe: DF-01 + EPIC closeout  
-9. `CURRENT-TASK.md` — STABILIZATION / otwarte GO
+4. [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) (P16–P20 · Regression Watch)  
+5. [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) (**§1A LIVE WRITE** · I-FRESH / I-CANON / I-EXTRACOSTS)  
+6. [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) (**§9 Freshness+payload**)  
+7. [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)  
+8. Głęboko (merge/push): Agent Guide Cloud Sync  
+9. W1: PWRB closeout · Hours-wipe: DF-01 + EPIC closeout  
+10. `CURRENT-TASK.md` — STABILIZATION / otwarte GO  
+
+**Zasada:** Freshness ≠ canonical payload. Nie soft-delete guardów „bo testy przechodzą”.
 
 ---
 
@@ -88,13 +91,15 @@ Bez klasyfikacji → **STOP**.
 
 | Zakres zmiany | Minimum |
 |---------------|---------|
-| Domain Push / hours | `test-payroll-hours-collapse-gate-d2-d3.mjs` · Domain Push S2 |
-| PWRB / skład | testy PWRB / RS-no-payroll |
+| Domain Push / hours / sync write | freshness gate + payload hardening + P0 + P2 · Domain Push S2 |
+| Field intent / extraCosts / settlement | P2 · settlement · early · MA suites |
+| PWRB / skład | week-roster invariant · PWRB / RS-no-payroll |
 | D4/D5 recovery | `test-payroll-prev-recovery-soft-restore-d4-d5.mjs` |
 | Merge / bootstrap | Gate B: `npm run test:infra -- --gate B --scope payroll` |
 | „Tylko Tenders” ale Shared sync | Gate B payroll **nadal** — regresja cross-module |
 
-Pełna lista w SSOT §4.4.
+Pełna lista: SSOT §4.4 · Regression Watch w [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) §9.  
+**FAIL → STOP.** Nie GREEN bez Owner review.
 
 ---
 
@@ -109,9 +114,11 @@ Pełna lista w SSOT §4.4.
 • Przywracanie kw-week-employees do RS push
 • Łączenie D4 -prev z archive Restore Banner
 • Mieszanie FEATURE + CORE w jednym commit
+• Osłabianie Freshness / rebuildPayrollOutgoingAfterFreshness / P0 / P2 / CAS
+• Nowy skipCloudFreshnessGate poza intentional bootstrap/internal reentry
 ```
 
-Szczegóły: Guard Rails + SSOT §2–3.
+Szczegóły: Guard Rails + SSOT §2–3 · closeout 2.66.126.
 
 ---
 

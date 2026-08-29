@@ -20,10 +20,11 @@ Czytaj w kolejności poniżej. Nie skacz do kodu.
 | 2 | [`08_AI_GUARDRAILS.md`](08_AI_GUARDRAILS.md) | Globalne NIE WOLNO |
 | 3 | [`PAYROLL_GUARD_RAILS.md`](PAYROLL_GUARD_RAILS.md) | Payroll NIE WOLNO + checklisty |
 | 4 | [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) | Tip prod (wersja / commit) |
-| 5 | [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) | Przepływ · invariants · Hours-wipe |
+| 5 | [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md) | Przepływ · invariants · Hours-wipe · **§1A LIVE WRITE** |
 | 6 | [`PAYROLL_DEPENDENCY_MAP.md`](PAYROLL_DEPENDENCY_MAP.md) | Co może przypadkowo zepsuć LP |
-| 7 | [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) | Jak powstawały regresje |
-| 8 | [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) | Co robić **przed** zmianą |
+| 7 | [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md) | Jak powstawały regresje · **§9 Freshness+payload** |
+| 8 | [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) | RCA · write contract · Regression Watch |
+| 9 | [`PAYROLL_AI_PLAYBOOK.md`](PAYROLL_AI_PLAYBOOK.md) | Co robić **przed** zmianą |
 
 **Dopiero gdy task dotyczy merge/Domain Push głęboko:**  
 [`../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)
@@ -41,7 +42,10 @@ Czytaj w kolejności poniżej. Nie skacz do kodu.
 5. `skipPayrollGuard` **tylko** z `intentionalHoursClear === true`.  
 6. Resurrection fence i rollover ALIGN **ACTIVE** — nie usuwać.  
 7. FEATURE UI **nie** miesza się z `cloud-sync.ts` / payroll CORE w jednym commit (#CORE-013).  
-8. Bez **Owner GO** nie implementujesz Payroll CORE.
+8. Bez **Owner GO** nie implementujesz Payroll CORE.  
+9. **Freshness ≠ canonical payload** — gate + `rebuildPayrollOutgoingAfterFreshness` + P0/P2 + CAS.  
+10. `extraCosts`: apply after tylko gdy `before ≡ cloud`; inaczej Cloud wins.  
+11. Tip Payroll: **2.66.126** / `c7337a2a` — REGRESSION WATCH ACTIVE.
 
 ---
 

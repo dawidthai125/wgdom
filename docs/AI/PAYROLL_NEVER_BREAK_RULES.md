@@ -19,6 +19,13 @@
 □ NIGDY nie kasuj kw-week-* / payroll keys „przy okazji” czyszczenia LS
 □ NIGDY nie traktuj QuotaExceeded / CORS jako „brak danych LP”
 □ NIGDY nie zaczynaj nowego Payroll EPIC w Stabilization bez Owner GO
+□ NIGDY nie traktuj Freshness Gate jako jedynej ochrony (Freshness ≠ canonical payload)
+□ NIGDY nie pomijaj `rebuildPayrollOutgoingAfterFreshness` / nie wracaj do ślepego closed-over arg
+□ NIGDY nie osłabiaj `extraCosts` baseline (`before ≡ cloud`) ani P0/P2/CAS
+□ NIGDY nowy `skipCloudFreshnessGate: true` poza CloudLoader post-merge / internal reentry
+□ NIGDY nie oznaczaj Payroll GREEN przy FAIL regression gate bez Owner review
 ```
 
 **Gdy wątpliwość → STOP → AUDIT / Owner.**
+
+**Closeout 2.66.126:** [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)

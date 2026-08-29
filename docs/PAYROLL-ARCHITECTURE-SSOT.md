@@ -2,11 +2,12 @@
 
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
-> **Data:** 2026-08-24 (**PAYROLL-WEEK-ROSTER-INVARIANT-01** implement · Owner verify pending) · prior 2026-08-19 ROLLOVER-CLOUD-PUSH · O1 CAS  
-> **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT)  
+> **Data:** 2026-08-29 (**Freshness + canonical payload CLOSED @ 2.66.126**) · prior 2026-08-24 WEEK-ROSTER-INVARIANT · 2026-08-19 ROLLOVER-CLOUD-PUSH · O1 CAS  
+> **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT) · Payroll tip **2.66.126** / `c7337a2a`  
 > **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
-> **Zakaz:** ten plik **nie** zastępuje Design Freeze; **nie** implementuj Payroll bez Owner GO
+> **Freshness + payload:** **CLOSED** — [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)  
+> **Zakaz:** ten plik **nie** zastępuje Design Freeze; **nie** implementuj Payroll bez Owner GO · **Freshness ≠ canonical payload**
 
 ```text
 ════════════════════════════════════════════════════════
@@ -97,6 +98,34 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | **D5** | Soft Restore overlay; `weekEmployeeFromDir` **PURE** | `payroll-soft-restore.ts` |
 | **D6** | Domain Push = jedyne źródło zapisu godzin | constraint — nie reintroducuj LP do RS push |
 
+### §1A — LIVE WRITE CONTRACT (ACTIVE @ 2.66.125–126)
+
+> **SSOT szczegółów / RCA:** [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)
+
+```text
+UI/domain intent
+  → freshness gate (ensureCloudFreshBeforeWrite)
+  → Cloud canonical fetch
+  → rebuildPayrollOutgoingAfterFreshness   // Cloud ⊕ verified intents
+  → membership / tombstones
+  → P0 hours-down
+  → P2 field-intent
+  → CAS / expectedRevision / rosterRevision
+  → Edge batch-set
+  → 409 rebase (pwrPush) if required
+  → UI reconciliation
+```
+
+| Warstwa | Rola |
+|---------|------|
+| **Freshness Gate** (2.66.125) | Write nie startuje ze stanu unconfirmed/stale |
+| **Canonical rebuild** (2.66.126) | Outgoing ≠ ślepy closed-over arg; `extraCosts` wymaga `before ≡ cloud` |
+| **P0 / P2** | Field protection (hours-down · rate · settlement · early · MA · costs) |
+| **CAS / Edge** | Revision/race · druga linia |
+
+**I-FRESH** · **I-CANON** — patrz §2.  
+**Nie twierdź:** „Freshness Gate sama gwarantuje canonical payload.”
+
 ### Klucze KV (skrót)
 
 | Key | Rola |
@@ -133,6 +162,9 @@ Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
 | **I-DF4-CLEAR** | `intentionalHoursClear` w body `batch-set` → Edge **skip-union** (tylko jawny clear; nie „empty always wins”) | Bez flagi empty next ≠ Cloud [] |
 | **I-BANNER** | D4 `-prev` banner **≠** archive Restore Banner | Osobne predykaty — nie łączyć |
 | **I-CORE013** | Zero mixed FEATURE + Payroll/cloud-sync/Edge w jednym commit | Historia regresji FEATURE→LP |
+| **I-FRESH** | Każdy outbound Payroll write przechodzi `ensureCloudFreshBeforeWrite` (chyba intentional bootstrap/internal skip) | Stale session / resume / storage |
+| **I-CANON** | Po freshness outgoing live roster = Cloud ⊕ verified intents (`rebuildPayrollOutgoingAfterFreshness`); argument ≠ canonical sam w sobie | Closed-over A po ensure |
+| **I-EXTRACOSTS** | `extraCosts`: apply after tylko gdy `before ≡ cloud`; inaczej Cloud wins | Słabsza ochrona przed 2.66.126 |
 
 ---
 

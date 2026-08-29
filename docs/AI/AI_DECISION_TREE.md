@@ -40,18 +40,21 @@ TAK → STOP IMPLEMENT do przeczytania:
         PAYROLL_GUARD_RAILS.md
         PAYROLL_DEPENDENCY_MAP.md
         PAYROLL_AI_PLAYBOOK.md
-        PAYROLL-ARCHITECTURE-SSOT.md
+        PAYROLL-ARCHITECTURE-SSOT.md (§1A LIVE WRITE)
+        PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md
+        PAYROLL_REGRESSION_HISTORY.md §9
       → potem §1a
 ```
 
 ### 1a. Write-path godzin / skład?
 
 ```text
-TAK (godziny / add-remove / merge weekEmployees / skipPayrollGuard)
+TAK (godziny / add-remove / merge weekEmployees / skipPayrollGuard / freshness / field-intent)
   → DESIGN FREEZE obowiązkowy (invariants)
   → OWNER GO obowiązkowy przed IMPLEMENT
-  → Testy: Gate B --scope payroll + D2–D5 gdy hours
-  → SSOT: PAYROLL-ARCHITECTURE-SSOT · Agent Guide sync
+  → Testy: Gate B --scope payroll + freshness + hardening + P0/P2 gdy hours/fields
+  → SSOT: PAYROLL-ARCHITECTURE-SSOT · Agent Guide sync · closeout 2.66.126
+  → Pamiętaj: Freshness ≠ canonical payload
 
 NIE (tylko copy/CSS w PayrollView, zero stanu godzin)
   → Boundary Check plików — nadal zero cloud-sync w commit

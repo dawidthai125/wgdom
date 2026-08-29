@@ -16,5 +16,6 @@
 | Anti-leak / bootstrap race / quota | Race, QuotaExceeded ≠ FAILED bootstrap | **CLOSED** 2.65.x | Regression History §7 · Bootstrap DF |
 | FEATURE window ≠ write-path RC | Wipe współwystępował z FEATURE bez blob change | Lekcja | [`../architecture/PAYROLL-REGRESSION-01-REGRESSION-WINDOW-AUDIT.md`](../architecture/PAYROLL-REGRESSION-01-REGRESSION-WINDOW-AUDIT.md) |
 | Sync Storm 23.07 (pipeline) | Egress / storm — kontekst Shared | **CLOSED** | [`04_INCIDENTS_HISTORY.md`](04_INCIDENTS_HISTORY.md) · INCIDENT-23-07 docs |
+| **Freshness + stale payload** | Stale session / closed-over arg po ensure; extraCosts bez baseline | **CLOSED** @ **2.66.125–126** | [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) |
 
 **Dodawanie nowego incydentu:** nowy wiersz tutaj + skrót w Regression History — **nie** rozrzucaj tylko po architecture/.

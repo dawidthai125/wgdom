@@ -32,6 +32,11 @@ Nie zgaduj. Nie obchodź guardów. Nie psuj LP.
 | P13 | „Temporary HACK” w CORE bez ticketu |
 | P14 | Start nowego Payroll EPIC bez Owner GO (STABILIZATION) |
 | P15 | Traktowanie Gate B CI / TEUX jako „fix Payroll” |
+| **P16** | Traktowanie **Freshness Gate jako jedynej** ochrony payloadu (Freshness ≠ canonical) |
+| **P17** | Przywracanie ślepego closed-over `weekEmployees` jako outgoing bez `rebuildPayrollOutgoingAfterFreshness` |
+| **P18** | Osłabianie `extraCosts` baseline (`before ≡ cloud`) lub P0/P2/CAS „bo testy przechodzą” |
+| **P19** | Nowy `skipCloudFreshnessGate: true` poza CloudLoader post-merge / internal reentry po ensure |
+| **P20** | Oznaczanie Payroll GREEN przy FAIL regression gate bez Owner review |
 
 ---
 
@@ -39,8 +44,10 @@ Nie zgaduj. Nie obchodź guardów. Nie psuj LP.
 
 | Plik / obszar | Ryzyko |
 |---------------|--------|
-| `src/lib/cloud-sync.ts` | Merge, push, guardy, RS vs Domain Push |
-| `src/app/CloudLoader.tsx` | Bootstrap merge + fence |
+| `src/lib/cloud-sync.ts` | Merge, push, guardy, RS vs Domain Push, **canonical rebuild** |
+| `src/lib/cloud-freshness-gate.ts` | Write barrier · resume · storage |
+| `src/lib/payroll-field-intent.ts` | P2 · **extraCosts baseline** |
+| `src/app/CloudLoader.tsx` | Bootstrap merge + fence · intentional skip gate |
 | `src/lib/payroll-domain-sync.ts` | Domain Push debounce |
 | `src/lib/payroll-week-roster-bundle.ts` | PWRB — jedyna mutacja składu |
 | `src/lib/payroll-week-employee-merge.ts` | Parity klient↔Edge |
@@ -48,10 +55,28 @@ Nie zgaduj. Nie obchodź guardów. Nie psuj LP.
 | `src/lib/payroll-bootstrap-resurrection-fence.ts` | Anti-resurrection |
 | `src/lib/payroll-cycle.ts` / rollover | ALIGN vs ROLLOVER |
 | `src/lib/payroll-prev-recovery.ts` / soft-restore | D4/D5 |
-| `App.tsx` handlery LP | Orkiestracja — łatwo dodać drugi write path |
+| `App.tsx` handlery LP | Orkiestracja — łatwo dodać drugi write path · resume |
+| `WorkerPhotoView.tsx` | Worker `pwrPush` · resume parity |
 | `PayrollView.tsx` / `WeekEmployeeDetail.tsx` | UI → łatwo pominąć gate |
 | Edge `make-server-0afb8820` merge | Shrink/expansion — multi-device |
 | `cloud-sync-mutation-guard.ts` | Pull podczas mutacji |
+
+---
+
+## 2b. Regression Watch (skrót)
+
+Pełna lista + suite: [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) §9.
+
+```text
+Przed zmianą Payroll/cloud-sync/Edge:
+□ Freshness mandatory? Canonical rebuild?
+□ Brak batch-set bypass? RS still excludes payroll?
+□ P0 / P2 / extraCosts before≡cloud / CAS?
+□ storage/resume → unknown? offline blocks?
+□ Worker/mobile parity? New write path?
+□ Suites: freshness · hardening · P0 · P2 · settlement · early · MA · roster · P1 · mutation guard · build
+FAIL → STOP
+```
 
 ---
 
@@ -122,6 +147,8 @@ Nie zgaduj. Nie obchodź guardów. Nie psuj LP.
 | Usunięcie fence „żeby E2E przeszło” | Resurrection prod | Seed / harness — nie fence |
 | FEATURE Tenders + cloud-sync w 1 commit | Regresja LP dni później | Osobne bundle |
 | Hotfix merge po wipe | Maskuje RC | AUDIT → RCA → DF |
+| „Freshness Gate naprawił wszystko” | Ignoruje closed-over payload | Canonical rebuild + P0/P2 + CAS |
+| `extraCosts` bez `before ≡ cloud` | Stale costs overwrite | Field-intent baseline (2.66.126) |
 
 ---
 
