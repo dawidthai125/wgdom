@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.128 — PAYROLL settlement cloud-write ack GO3 (2026-08-29)
+
+- Settlement nie ginie w debounce/cancel (flush on hide + preserve on resume)
+- pending/failure + fail-loud toast; retry po freshness przez istniejący `pwrPush`
+- LS settled ≠ potwierdzenie chmury
+- Test: `npx vite-node scripts/test-payroll-settlement-cloud-ack.mjs`
+
 ## 2.66.127 — PAYROLL settled clock ≠ data clock + TIMEOUT rehydrate (2026-08-29)
 
 - Settlement-only (`settled` change) **nie** bumpuje `dataUpdatedAt`; zegar settlementu = `settledUpdatedAt`

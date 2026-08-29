@@ -155,9 +155,21 @@ import {
   pwrRestorePayrollMerge,
   schedulePayrollDomainPush,
   cancelPayrollDomainPush,
+  cancelPayrollDomainPushPreservingSettlement,
+  flushPayrollDomainPushOnBackground,
   bindPayrollDomainPushHandler,
   unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-week-roster-bundle";
+import {
+  buildSettlementRetryRosterBefore,
+  extractSettlementCloudIntents,
+  hasUnresolvedSettlementCloudAck,
+  markSettlementCloudFailure,
+  markSettlementCloudPending,
+  markSettlementCloudPushAttempt,
+  markSettlementCloudSuccess,
+  rosterHasSettlementFieldChange,
+} from "@/lib/payroll-settlement-cloud-ack";
 import {
   detectHoursCollapse,
   formatHoursCollapseConfirmMessage,
@@ -297,6 +309,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const week = getWeekRange();
   const [directory, setDirectory] = useLocalStorage<DirectoryEmployee[]>("kw-directory", []);
   const [weekEmployees, setWeekEmployees] = useLocalStorage<WeekEmployee[]>("kw-week-employees", []);
+  const weekEmployeesRef = useRef(weekEmployees);
+  weekEmployeesRef.current = weekEmployees;
   const [savedWeeks, setSavedWeeks] = useLocalStorage<WeekSnapshot[]>("kw-archive", []);
   const [weekFrom, setWeekFrom] = useLocalStorage("kw-weekFrom", week.from);
   const [weekTo, setWeekTo] = useLocalStorage("kw-weekTo", week.to);
@@ -1004,11 +1018,24 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const requestCloudFreshnessOnResume = useCallback((reason: "resume_visibility" | "resume_focus" | "resume_pageshow" | "resume_native") => {
     markCloudFreshnessUnknown(reason);
-    cancelPayrollDomainPush();
-    void ensureCloudFreshBeforeWrite({ reason, force: true }).catch(() => {
-      /* offline — gate stays unconfirmed; writes blocked */
-    });
-  }, []);
+    // GO3: never silently drop settlement-bearing domain push (LS may already be settled).
+    cancelPayrollDomainPushPreservingSettlement();
+    void ensureCloudFreshBeforeWrite({ reason, force: true })
+      .then(() => {
+        // GO3: retry unresolved settlement cloud ack after freshness (idempotent).
+        if (!hasUnresolvedSettlementCloudAck()) return;
+        const after = weekEmployeesRef.current;
+        if (!after.length) return;
+        const before = buildSettlementRetryRosterBefore(after, weekFrom, weekTo);
+        markSettlementCloudPending(
+          extractSettlementCloudIntents(before, after, weekFrom, weekTo),
+        );
+        schedulePayrollDomainPush(after, { settlementCloudAck: true }, before);
+      })
+      .catch(() => {
+        /* offline — gate stays unconfirmed; writes blocked */
+      });
+  }, [weekFrom, weekTo]);
 
   const pullFromCloudAndMerge = useCallback(async () => {
     requestCloudFreshnessOnResume("resume_visibility");
@@ -1380,7 +1407,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         jobs,
         extra: { hidden: document.hidden },
       });
-      if (!document.hidden) requestCloudFreshnessOnResume("resume_visibility");
+      // GO3: flush pending domain push on hide (debounce must not die with tab switch).
+      if (document.hidden) {
+        flushPayrollDomainPushOnBackground();
+        return;
+      }
+      requestCloudFreshnessOnResume("resume_visibility");
     };
     const onFocus = () => {
       tabVisibleRef.current = true;
@@ -1392,21 +1424,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       requestCloudFreshnessOnResume("resume_focus");
     };
-    /** P2 — bfcache restore: drop stale scheduled domain flush (heap roster may predate remote edits). */
+    /** P2 — bfcache restore: drop stale scheduled domain flush (heap roster may predate remote edits).
+     * GO3 — except settlement-bearing pending: flush instead of cancel. */
     const onPageShow = (ev: PageTransitionEvent) => {
       if (ev.persisted) {
-        cancelPayrollDomainPush();
+        cancelPayrollDomainPushPreservingSettlement();
       }
       requestCloudFreshnessOnResume("resume_pageshow");
+    };
+    const onPageHide = () => {
+      flushPayrollDomainPushOnBackground();
     };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
     window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("pagehide", onPageHide);
     tabVisibleRef.current = !document.hidden;
     return () => {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("pagehide", onPageHide);
     };
   }, [requestCloudFreshnessOnResume, jobs]);
 
@@ -1791,12 +1829,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [bumpPayrollEditAutoSyncHold]);
 
   // Stable fallback for persistPayrollRoster:
-  // rosterBefore is expected to be provided by schedulePayrollDomainPush() in this flow,
-  // but we keep correctness for any defensive fallback without re-creating the callback.
-  const weekEmployeesRef = useRef(weekEmployees);
-  useEffect(() => {
-    weekEmployeesRef.current = weekEmployees;
-  }, [weekEmployees]);
+  // rosterBefore is expected to be provided by schedulePayrollDomainPush() in this flow.
+  // weekEmployeesRef is kept at top of AppInner (GO3 settlement retry + persist).
 
   const persistPayrollRoster = useCallback((
     next: WeekEmployee[],
@@ -1805,10 +1839,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   ) => {
     bumpAutoSyncSuppress(6000);
     const before = rosterBefore ?? weekEmployeesRef.current;
+    const settlementAck = options?.settlementCloudAck === true;
     payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
       count: next.length,
       roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
     });
+    if (settlementAck) {
+      markSettlementCloudPushAttempt(weekFrom, weekTo);
+    }
     void withKwWeekEmployeesAsyncMutation(async () => {
       const result = await pwrPush({
         roster: next,
@@ -1817,6 +1855,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         rosterBefore: before,
         options,
       });
+      if (settlementAck) {
+        markSettlementCloudSuccess(weekFrom, weekTo);
+      }
       if (result.rebased) {
         withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
           setWeekEmployees(result.roster);
@@ -1829,15 +1870,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        if (settlementAck) {
+          markSettlementCloudFailure(weekFrom, weekTo, msg);
+        }
         if (e instanceof PayrollStaleRevisionError) {
           payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "warn", {
             code: e.code,
             serverRevision: e.serverRevision,
           });
-          toast.error("Konflikt zapisu listy płac", {
-            description: "Odśwież stronę i sprawdź dane przed ponownym zapisem.",
-            id: "payroll-roster-stale",
-          });
+          toast.error(
+            settlementAck ? "Konflikt zapisu rozliczenia" : "Konflikt zapisu listy płac",
+            {
+              description: settlementAck
+                ? "Rozliczenie lokalne nie zostało potwierdzone w chmurze. Odśwież i spróbuj ponownie."
+                : "Odśwież stronę i sprawdź dane przed ponownym zapisem.",
+              id: settlementAck ? "payroll-settlement-stale" : "payroll-roster-stale",
+            },
+          );
           return;
         }
         if (msg === PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED) {
@@ -1847,13 +1896,32 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           });
           return;
         }
+        if (isPayrollGuardBlockedError(e)) {
+          toast.error(
+            settlementAck ? "Rozliczenie zablokowane przez ochronę listy płac" : "Zapis listy płac zablokowany",
+            {
+              description: settlementAck
+                ? "Lokalne rozliczenie NIE jest potwierdzeniem zapisu w chmurze. Odśwież i spróbuj ponownie."
+                : msg,
+              id: settlementAck ? "payroll-settlement-guard" : "payroll-roster-guard",
+            },
+          );
+          return;
+        }
         payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "error", {
           error: { message: msg },
         });
-        toast.error("Nie udało się zapisać składu do chmury", {
-          description: msg,
-          id: "payroll-roster-push",
-        });
+        toast.error(
+          settlementAck
+            ? "Rozliczenie nie zostało zapisane w chmurze"
+            : "Nie udało się zapisać składu do chmury",
+          {
+            description: settlementAck
+              ? `${msg} · Stan lokalny może różnić się od chmury — ponów zapis lub odśwież.`
+              : msg,
+            id: settlementAck ? "payroll-settlement-push" : "payroll-roster-push",
+          },
+        );
       });
   }, [weekFrom, weekTo, setWeekEmployees]);
 
@@ -1885,6 +1953,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const commitLivePayrollRosterEdit = useCallback((before: WeekEmployee[], next: WeekEmployee[]): boolean => {
     const findings = detectHoursCollapse(before, next);
     const hoursIntents = deriveHoursIntentsFromLocalEdit(before, next, weekFrom, weekTo);
+    const settlementCloudAck = rosterHasSettlementFieldChange(before, next);
+    const registerSettlementAck = () => {
+      if (!settlementCloudAck) return;
+      markSettlementCloudPending(
+        extractSettlementCloudIntents(before, next, weekFrom, weekTo),
+      );
+    };
     if (findings.length > 0) {
       const needDialog = isPayrollHoursCollapseConfirmEnabled();
       if (needDialog) {
@@ -1896,16 +1971,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       // D2 ACK (or kill-switch auto) → intentionalHoursClear for D3 + scoped intents
       refreshSavedActiveWeekSnapshot(next);
+      registerSettlementAck();
       schedulePayrollDomainPush(next, {
         intentionalHoursClear: true,
         hoursIntents: hoursIntents.length > 0 ? hoursIntents : undefined,
+        ...(settlementCloudAck ? { settlementCloudAck: true } : {}),
       }, before);
       return true;
     }
     refreshSavedActiveWeekSnapshot(next);
+    registerSettlementAck();
     schedulePayrollDomainPush(
       next,
-      hoursIntents.length > 0 ? { hoursIntents } : undefined,
+      {
+        ...(hoursIntents.length > 0 ? { hoursIntents } : {}),
+        ...(settlementCloudAck ? { settlementCloudAck: true } : {}),
+      },
       before,
     );
     return true;

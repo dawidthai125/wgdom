@@ -1,6 +1,8 @@
 /**
  * SYNC-ARCH-01 S2 — debounced domain push mutacji Payroll (godziny, stawki, koszty).
  * RS push nie obejmuje payroll; każda mutacja kw-week-employees kończy się pwrPush.
+ *
+ * GO3: settlement-bearing pending must not be silently cancelled (LS≠cloud).
  */
 
 import type { WeekEmployee } from "@/app/app-domain";
@@ -22,6 +24,15 @@ let pendingRoster: WeekEmployee[] | null = null;
 let pendingRosterBefore: WeekEmployee[] | undefined;
 let pendingOptions: PushWeekEmployeesOptions | undefined;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function stickySettlementCloudAck(
+  next?: PushWeekEmployeesOptions,
+  prev?: PushWeekEmployeesOptions,
+): true | undefined {
+  return next?.settlementCloudAck === true || prev?.settlementCloudAck === true
+    ? true
+    : undefined;
+}
 
 export function bindPayrollDomainPushHandler(handler: PayrollDomainPushHandler): void {
   pushHandler = handler;
@@ -48,17 +59,20 @@ export function schedulePayrollDomainPush(
     pendingRosterBefore = rosterBefore;
   }
   const mergedIntents = mergeHoursIntents(pendingOptions?.hoursIntents, options?.hoursIntents);
+  const settlementCloudAck = stickySettlementCloudAck(options, pendingOptions);
   // Sticky intentionalHoursClear once ACK'd in this debounce window
   if (options?.intentionalHoursClear === true || pendingOptions?.intentionalHoursClear === true) {
     pendingOptions = {
       intentionalHoursClear: true,
       skipPayrollGuard: true,
       hoursIntents: mergedIntents.length > 0 ? mergedIntents : undefined,
+      settlementCloudAck,
     };
   } else {
     pendingOptions = {
       ...(options ?? {}),
       hoursIntents: mergedIntents.length > 0 ? mergedIntents : options?.hoursIntents,
+      settlementCloudAck,
     };
   }
   if (debounceTimer != null) clearTimeout(debounceTimer);
@@ -78,7 +92,19 @@ export function cancelPayrollDomainPush(): void {
   pendingOptions = undefined;
 }
 
-/** Natychmiastowy push (testy / flush przed unload). */
+/**
+ * GO3 — on resume/bfcache: never drop a settlement-bearing pending push.
+ * Flushes settlement ack path; otherwise cancels (legacy freshness behaviour).
+ */
+export function cancelPayrollDomainPushPreservingSettlement(): void {
+  if (pendingRoster != null && pendingOptions?.settlementCloudAck === true) {
+    flushPayrollDomainPush();
+    return;
+  }
+  cancelPayrollDomainPush();
+}
+
+/** Natychmiastowy push (testy / flush przed unload / background). */
 export function flushPayrollDomainPush(): void {
   if (!pushHandler || pendingRoster == null) return;
   const roster = pendingRoster;
@@ -87,6 +113,10 @@ export function flushPayrollDomainPush(): void {
   pendingRoster = null;
   pendingOptions = undefined;
   pendingRosterBefore = undefined;
+  if (debounceTimer != null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
   // D1 passive — telemetry only; does not alter handler / roster
   try {
     let weekFrom = "";
@@ -108,6 +138,30 @@ export function flushPayrollDomainPush(): void {
   pushHandler(roster, options, rosterBefore);
 }
 
+/** GO3 — pagehide / visibility hidden: flush pending domain push if any. */
+export function flushPayrollDomainPushOnBackground(): boolean {
+  if (pendingRoster == null) return false;
+  flushPayrollDomainPush();
+  return true;
+}
+
 export function hasPendingPayrollDomainPush(): boolean {
   return pendingRoster != null;
+}
+
+export function peekPendingPayrollDomainPushSettlementAck(): boolean {
+  return pendingOptions?.settlementCloudAck === true;
+}
+
+/** Test helper — inspect debounce pending without flushing. */
+export function __testPeekPayrollDomainPushPending(): {
+  hasPending: boolean;
+  settlementCloudAck: boolean;
+  rosterCount: number;
+} {
+  return {
+    hasPending: pendingRoster != null,
+    settlementCloudAck: pendingOptions?.settlementCloudAck === true,
+    rosterCount: pendingRoster?.length ?? 0,
+  };
 }

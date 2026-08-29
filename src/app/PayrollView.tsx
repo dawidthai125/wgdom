@@ -59,13 +59,11 @@ import {
   resolveSettlementPayableAmount,
   type PayrollPayoutMethod,
 } from "@/lib/payroll-settlement";
-import { useAdminAccess } from "@/app/admin-access";
-import { PayrollSettlementModal } from "@/app/PayrollSettlementModal";
 import {
-  payrollSettlementDisplay,
-  resolveSettlementPayableAmount,
-  type PayrollPayoutMethod,
-} from "@/lib/payroll-settlement";
+  settlementCloudAckSummary,
+  subscribeSettlementCloudAck,
+} from "@/lib/payroll-settlement-cloud-ack";
+import { useAdminAccess } from "@/app/admin-access";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
 import {
@@ -567,6 +565,9 @@ export function PayrollView({
 }) {
   const { canViewRates, session } = useAdminAccess();
   const [settleTargetId, setSettleTargetId] = useState<string | null>(null);
+  const [settlementAckTick, setSettlementAckTick] = useState(0);
+  useEffect(() => subscribeSettlementCloudAck(() => setSettlementAckTick((n) => n + 1)), []);
+  const settlementAck = useMemo(() => settlementCloudAckSummary(), [settlementAckTick]);
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
@@ -1336,6 +1337,16 @@ export function PayrollView({
                   </div>
                   {displayEmployees.length > 0 && (
                   <span className="text-xs text-muted-foreground whitespace-nowrap">{displayEmployees.filter(e=>e.settled).length}/{displayEmployees.length} rozliczonych</span>
+                  )}
+                  {settlementAck.unresolved > 0 && (
+                  <span
+                    className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 whitespace-nowrap"
+                    title="Lokalne rozliczenie nie jest jeszcze potwierdzone w chmurze"
+                  >
+                    {settlementAck.failure > 0
+                      ? `Rozliczenie: błąd sync (${settlementAck.failure}) — ponów`
+                      : `Rozliczenie: sync w toku (${settlementAck.pending})`}
+                  </span>
                   )}
                 </div>
               </div>

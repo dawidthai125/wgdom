@@ -34,7 +34,10 @@ import { rebasePayrollFieldIntents } from "@/lib/payroll-field-intent";
 import {
   bindPayrollDomainPushHandler,
   cancelPayrollDomainPush,
+  cancelPayrollDomainPushPreservingSettlement,
   flushPayrollDomainPush,
+  flushPayrollDomainPushOnBackground,
+  hasPendingPayrollDomainPush,
   schedulePayrollDomainPush,
   unbindPayrollDomainPushHandler,
 } from "@/lib/payroll-domain-sync";
@@ -48,7 +51,10 @@ import { enqueueKwWeekEmployeesWrite } from "@/lib/cloud-sync-mutation-guard";
 export {
   bindPayrollDomainPushHandler,
   cancelPayrollDomainPush,
+  cancelPayrollDomainPushPreservingSettlement,
   flushPayrollDomainPush,
+  flushPayrollDomainPushOnBackground,
+  hasPendingPayrollDomainPush,
   schedulePayrollDomainPush,
   unbindPayrollDomainPushHandler,
   PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS,
@@ -195,6 +201,7 @@ export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
         roster = await pushWeekEmployeesToCloud(roster, {
           ...resolved,
           rosterBefore: intentBefore,
+          settlementCloudAck: params.options?.settlementCloudAck === true,
         });
         return { roster, rebased: attempt > 0 };
       } catch (e) {

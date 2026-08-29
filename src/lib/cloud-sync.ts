@@ -1566,6 +1566,11 @@ export type PushWeekEmployeesOptions = {
    * when absent from rosterBefore (true ADD / legal RE-ADD).
    */
   rosterBefore?: WeekEmployee[];
+  /**
+   * GO3 — settlement write path: fail-loud if cloud write cannot be confirmed.
+   * Does not skip guard/CAS. Client-only option (not a KV field).
+   */
+  settlementCloudAck?: boolean;
 };
 
 /**
@@ -3674,6 +3679,11 @@ async function pushWeekEmployeesToCloudUnchecked(
     payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
       skipReason: !isSupabaseConfigured() ? "no_supabase" as const : "no_api_base" as const,
     });
+    if (options?.settlementCloudAck === true) {
+      throw new Error(
+        "Rozliczenie nie zostało zapisane w chmurze (brak połączenia). Spróbuj ponownie.",
+      );
+    }
     return normalizeArrayValue(weekEmployees) as WeekEmployee[];
   }
   const pushTraceId = payrollTraceCreatePushTraceId();
@@ -3746,6 +3756,11 @@ async function pushWeekEmployeesToCloudUnchecked(
         weekFrom,
         weekTo,
       });
+      if (options?.settlementCloudAck === true) {
+        throw new Error(
+          "Rozliczenie nie zostało zapisane w chmurze (zablokowany zapis tygodnia). Odśwież i spróbuj ponownie.",
+        );
+      }
       return normalized;
     }
   }

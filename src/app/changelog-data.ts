@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-29",
+    version: "2.66.128",
+    label: "PAYROLL — settlement cloud-write ack (GO3)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — settlement nie ginie w debounce/cancel (flush on hide + preserve on resume); pending/failure + fail-loud toast; retry po freshness przez istniejący pwrPush. LS settled ≠ potwierdzenie chmury. Test: test-payroll-settlement-cloud-ack.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-29",
     version: "2.66.127",
     label: "PAYROLL — settled clock ≠ data clock + TIMEOUT rehydrate",
     items: [
