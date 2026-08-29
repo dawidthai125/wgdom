@@ -341,3 +341,151 @@ export function markSettlementCloudFailure(
     });
   }
 }
+
+/** GO4 — fail-loud message when push 2xx but settlement missing from outgoing. */
+export const PAYROLL_SETTLEMENT_OUTGOING_MISMATCH =
+  "Rozliczenie nie zostało potwierdzone w wyniku zapisu (outgoing bez oczekiwanego settlement).";
+
+export type SettlementOutgoingAssertOk = { ok: true; checked: number };
+export type SettlementOutgoingAssertFail = {
+  ok: false;
+  reason: string;
+  empId?: string;
+  expected?: {
+    settled: boolean;
+    settledUpdatedAt: string;
+    payrollSettlement: unknown;
+  };
+  actual?: {
+    settled: boolean;
+    settledUpdatedAt: string | null;
+    payrollSettlement: unknown;
+  };
+};
+
+/**
+ * GO4 — verify settlement intents from before→after actually appear on outgoing roster
+ * returned by pwrPush (Cloud ⊕ intents). Prevents false-success when baselineOk no-ops.
+ */
+export function assertSettlementIntentsPresentInRoster(params: {
+  intentBefore: SettlementSlice[] | null | undefined;
+  intentAfter: SettlementSlice[] | null | undefined;
+  outgoingRoster: SettlementSlice[] | null | undefined;
+}): SettlementOutgoingAssertOk | SettlementOutgoingAssertFail {
+  const intents = extractSettlementCloudIntents(
+    params.intentBefore,
+    params.intentAfter,
+    "",
+    "",
+  );
+  if (intents.length === 0) {
+    return { ok: true, checked: 0 };
+  }
+  const afterById = new Map(
+    (Array.isArray(params.intentAfter) ? params.intentAfter : []).map((e) => [
+      String(e.id ?? ""),
+      e,
+    ]),
+  );
+  const outById = new Map(
+    (Array.isArray(params.outgoingRoster) ? params.outgoingRoster : []).map((e) => [
+      String(e.id ?? ""),
+      e,
+    ]),
+  );
+
+  for (const intent of intents) {
+    const afterEmp = afterById.get(intent.empId);
+    const outEmp = outById.get(intent.empId);
+    const expectedMeta = normalizePayrollSettlement(afterEmp?.payrollSettlement);
+    const expected = {
+      settled: intent.settled,
+      settledUpdatedAt: intent.settledUpdatedAt,
+      payrollSettlement: expectedMeta ?? null,
+    };
+
+    if (!outEmp) {
+      return {
+        ok: false,
+        reason: "outgoing_missing_employee",
+        empId: intent.empId,
+        expected,
+      };
+    }
+
+    const actualSettled = Boolean(outEmp.settled);
+    const actualAt = String(outEmp.settledUpdatedAt ?? "").trim();
+    const actualMeta = normalizePayrollSettlement(outEmp.payrollSettlement) ?? null;
+
+    if (actualSettled !== expected.settled) {
+      return {
+        ok: false,
+        reason: "outgoing_settled_mismatch",
+        empId: intent.empId,
+        expected,
+        actual: {
+          settled: actualSettled,
+          settledUpdatedAt: actualAt || null,
+          payrollSettlement: actualMeta,
+        },
+      };
+    }
+    if (actualAt !== expected.settledUpdatedAt) {
+      return {
+        ok: false,
+        reason: "outgoing_settledUpdatedAt_mismatch",
+        empId: intent.empId,
+        expected,
+        actual: {
+          settled: actualSettled,
+          settledUpdatedAt: actualAt || null,
+          payrollSettlement: actualMeta,
+        },
+      };
+    }
+    if (JSON.stringify(actualMeta) !== JSON.stringify(expected.payrollSettlement)) {
+      return {
+        ok: false,
+        reason: "outgoing_payrollSettlement_mismatch",
+        empId: intent.empId,
+        expected,
+        actual: {
+          settled: actualSettled,
+          settledUpdatedAt: actualAt || null,
+          payrollSettlement: actualMeta,
+        },
+      };
+    }
+  }
+
+  return { ok: true, checked: intents.length };
+}
+
+/**
+ * GO4 — mark success only when outgoing confirms settlement intents; else failure.
+ */
+export function finalizeSettlementCloudAckAfterPush(params: {
+  weekFrom: string;
+  weekTo: string;
+  intentBefore: SettlementSlice[] | null | undefined;
+  intentAfter: SettlementSlice[] | null | undefined;
+  outgoingRoster: SettlementSlice[] | null | undefined;
+}): SettlementOutgoingAssertOk | SettlementOutgoingAssertFail {
+  const asserted = assertSettlementIntentsPresentInRoster(params);
+  if (asserted.ok) {
+    markSettlementCloudSuccess(params.weekFrom, params.weekTo);
+    return asserted;
+  }
+  const detail = [
+    asserted.reason,
+    asserted.empId ? `emp=${asserted.empId}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  markSettlementCloudFailure(
+    params.weekFrom,
+    params.weekTo,
+    `${PAYROLL_SETTLEMENT_OUTGOING_MISMATCH} (${detail})`,
+  );
+  return asserted;
+}

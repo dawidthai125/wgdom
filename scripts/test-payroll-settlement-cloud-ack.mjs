@@ -18,9 +18,11 @@ import {
   PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS,
 } from "../src/lib/payroll-domain-sync.ts";
 import {
+  assertSettlementIntentsPresentInRoster,
   buildSettlementRetryRosterBefore,
   clearSettlementCloudAckForTests,
   extractSettlementCloudIntents,
+  finalizeSettlementCloudAckAfterPush,
   hasUnresolvedSettlementCloudAck,
   listSettlementCloudAck,
   listUnresolvedSettlementCloudAcks,
@@ -28,6 +30,7 @@ import {
   markSettlementCloudPending,
   markSettlementCloudPushAttempt,
   markSettlementCloudSuccess,
+  PAYROLL_SETTLEMENT_OUTGOING_MISMATCH,
   rosterHasSettlementFieldChange,
   settlementCloudAckSummary,
 } from "../src/lib/payroll-settlement-cloud-ack.ts";
@@ -395,7 +398,304 @@ unbindPayrollDomainPushHandler();
   unbindPayrollDomainPushHandler();
 }
 
+// =============================================================================
+// GO4 — false-success rejection (HTTP 2xx alone ≠ success)
+// Owner matrix A–L; existing GO3 cases above retained.
+// =============================================================================
+
+const WF = "2026-08-24";
+const WT = "2026-08-29";
+const settledAt = "2026-08-28T22:45:00.000Z";
+const settlementMeta = meta(settledAt);
+
+function settleAfter(partial = {}) {
+  return emp({
+    settled: true,
+    settledUpdatedAt: settledAt,
+    payrollSettlement: settlementMeta,
+    ...partial,
+  });
+}
+
+// GO4-A: normal settlement + matching outgoing → SUCCESS
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  markSettlementCloudPushAttempt(WF, WT);
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: after,
+  });
+  assert("GO4-A matching outgoing → ok", ack.ok === true && ack.checked === 1);
+  assert("GO4-A SUCCESS clears unresolved", !hasUnresolvedSettlementCloudAck());
+}
+
+// GO4-B: HTTP 2xx + settlement present in outgoing → SUCCESS
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  // Simulate Cloud ⊕ intents: cloud hours + after settlement
+  const outgoing = [
+    emp({
+      settled: true,
+      settledUpdatedAt: settledAt,
+      payrollSettlement: settlementMeta,
+      rate: 99,
+      days: { Pn: { active: true, from: "07:00", to: "15:00" } },
+    }),
+  ];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-B 2xx + settlement in outgoing → SUCCESS", ack.ok === true);
+  assert("GO4-B unresolved cleared", !hasUnresolvedSettlementCloudAck());
+}
+
+// GO4-C: HTTP 2xx + baseline mismatch + settlement intent no-op → FAILURE, NEVER SUCCESS
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  const cloud = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-27T10:00:00.000Z",
+    payrollSettlement: meta("2026-08-27T10:00:00.000Z"),
+  });
+  // Real apply path: baselineOk false → keep cloud (no local intent)
+  const applied = applySettlementFieldIntent(cloud, before[0], after[0]);
+  assert("GO4-C baseline no-op keeps cloud", applied.settled === true && applied.settledUpdatedAt === cloud.settledUpdatedAt);
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [{ ...cloud, settled: applied.settled, settledUpdatedAt: applied.settledUpdatedAt, payrollSettlement: applied.payrollSettlement }];
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-C NEVER SUCCESS", ack.ok === false);
+  assert("GO4-C reason settledUpdatedAt or settled mismatch", typeof ack.reason === "string");
+  assert("GO4-C FAILURE unresolved", listUnresolvedSettlementCloudAcks()[0]?.status === "failure");
+  assert(
+    "GO4-C fail error mentions outgoing mismatch",
+    String(listUnresolvedSettlementCloudAcks()[0]?.lastError || "").includes("outgoing"),
+  );
+}
+
+// GO4-D: HTTP 2xx + outgoing missing settlement → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [emp({ settled: false })]; // 2xx but no settlement triple
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-D missing settlement → FAILURE", ack.ok === false);
+  assert("GO4-D never success", hasUnresolvedSettlementCloudAck());
+}
+
+// GO4-E: HTTP 2xx + wrong settled value → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [settleAfter({ settled: false })];
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-E wrong settled → FAILURE", ack.ok === false && ack.reason === "outgoing_settled_mismatch");
+}
+
+// GO4-F: HTTP 2xx + wrong settledUpdatedAt → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [settleAfter({ settledUpdatedAt: "2026-08-28T10:00:00.000Z" })];
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-F wrong sAt → FAILURE", ack.ok === false && ack.reason === "outgoing_settledUpdatedAt_mismatch");
+}
+
+// GO4-G: HTTP 2xx + wrong payrollSettlement → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [
+    settleAfter({
+      payrollSettlement: buildPayrollSettlement({
+        settledByUserId: "other",
+        settledByName: "Other",
+        paymentMethod: "cash",
+        amount: 1,
+        settledAt,
+      }),
+    }),
+  ];
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-G wrong meta → FAILURE", ack.ok === false && ack.reason === "outgoing_payrollSettlement_mismatch");
+}
+
+// GO4-H: guard failure → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  markSettlementCloudPending(
+    extractSettlementCloudIntents([emp({ settled: false })], [settleAfter()], WF, WT),
+  );
+  markSettlementCloudFailure(WF, WT, "PAYROLL_GUARD_BLOCKED");
+  assert("GO4-H guard → FAILURE", listUnresolvedSettlementCloudAcks()[0]?.status === "failure");
+  assert("GO4-H never SUCCESS", settlementCloudAckSummary().success === 0);
+}
+
+// GO4-I: CAS failure → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  markSettlementCloudPending(
+    extractSettlementCloudIntents([emp({ settled: false })], [settleAfter()], WF, WT),
+  );
+  markSettlementCloudFailure(WF, WT, "PayrollStaleRevisionError");
+  assert("GO4-I CAS → FAILURE", listUnresolvedSettlementCloudAcks()[0]?.status === "failure");
+}
+
+// GO4-J: network failure → FAILURE
+{
+  clearSettlementCloudAckForTests();
+  markSettlementCloudPending(
+    extractSettlementCloudIntents([emp({ settled: false })], [settleAfter()], WF, WT),
+  );
+  markSettlementCloudFailure(WF, WT, "network_failure");
+  assert("GO4-J network → FAILURE", listUnresolvedSettlementCloudAcks()[0]?.lastError === "network_failure");
+}
+
+// GO4-K: retry after failure via existing mechanism
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: [emp({ settled: false })],
+  });
+  assert("GO4-K after false-success path still unresolved", hasUnresolvedSettlementCloudAck());
+  const retryBefore = buildSettlementRetryRosterBefore(after, WF, WT);
+  assert("GO4-K retry before unsettled", retryBefore[0].settled === false);
+  const cloud = emp({ settled: false });
+  const applied = applySettlementFieldIntent(cloud, retryBefore[0], after[0]);
+  assert("GO4-K retry applies", applied.settled === true && applied.changed === true);
+  markSettlementCloudPushAttempt(WF, WT);
+  const ack2 = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: retryBefore,
+    intentAfter: after,
+    outgoingRoster: [
+      {
+        ...cloud,
+        settled: applied.settled,
+        settledUpdatedAt: applied.settledUpdatedAt,
+        payrollSettlement: applied.payrollSettlement,
+      },
+    ],
+  });
+  assert("GO4-K retry SUCCESS", ack2.ok === true);
+  assert("GO4-K cleared", !hasUnresolvedSettlementCloudAck());
+}
+
+// GO4-L: conscious unsettle still works (LWW / GO3)
+{
+  clearSettlementCloudAckForTests();
+  const cloud = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-28T20:00:00.000Z",
+    payrollSettlement: meta("2026-08-28T20:00:00.000Z"),
+    dataUpdatedAt: "2026-08-28T18:00:00.000Z",
+  });
+  const before = [{ ...cloud }];
+  const after = [
+    {
+      ...cloud,
+      settled: false,
+      settledUpdatedAt: "2026-08-28T22:50:00.000Z",
+    },
+  ];
+  const applied = applySettlementFieldIntent(cloud, before[0], after[0]);
+  assert("GO4-L unsettle applies", applied.settled === false);
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const outgoing = [
+    {
+      ...cloud,
+      settled: applied.settled,
+      settledUpdatedAt: applied.settledUpdatedAt,
+      payrollSettlement: applied.payrollSettlement,
+    },
+  ];
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: outgoing,
+  });
+  assert("GO4-L unsettle ack SUCCESS", ack.ok === true);
+  const picked = pickPayrollSettledByTimestamps(after[0], cloud);
+  assert("GO4-L LWW local false wins", picked === false);
+}
+
+// GO4 assert helper: no intents → ok without marking
+{
+  const r = assertSettlementIntentsPresentInRoster({
+    intentBefore: [emp()],
+    intentAfter: [emp()],
+    outgoingRoster: [emp()],
+  });
+  assert("GO4 no-intent assert ok", r.ok === true && r.checked === 0);
+  assert(
+    "GO4 PAYROLL_SETTLEMENT_OUTGOING_MISMATCH constant",
+    typeof PAYROLL_SETTLEMENT_OUTGOING_MISMATCH === "string" && PAYROLL_SETTLEMENT_OUTGOING_MISMATCH.length > 10,
+  );
+}
+
 clearSettlementCloudAckForTests();
 
-console.log(`\nGO3 settlement cloud ack: ${pass} PASS, ${fail} FAIL`);
+console.log(`\nGO3+GO4 settlement cloud ack: ${pass} PASS, ${fail} FAIL`);
 if (fail > 0) process.exit(1);

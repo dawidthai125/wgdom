@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-29",
+    version: "2.66.129",
+    label: "PAYROLL — settlement ack rejects false-success (GO4)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac — settlement cloud-ack sukces tylko gdy outgoing zawiera oczekiwane settled + settledUpdatedAt + payrollSettlement; HTTP 2xx z no-op baseline nie oznacza success. Dry-run recovery settlement-only (bez APPLY). Test: test-payroll-settlement-cloud-ack.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-29",
     version: "2.66.128",
     label: "PAYROLL — settlement cloud-write ack (GO3)",
     items: [

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.129 — PAYROLL settlement ack rejects false-success GO4 (2026-08-29)
+
+- **fix:** settlement cloud-ack marks success only when `pwrPush` outgoing carries matching `settled` + `settledUpdatedAt` + `payrollSettlement`; baseline no-op / missing triple → failure + retry. Settlement-only recovery dry-run script (no APPLY / no prod write).
+
 ## 2.66.128 — PAYROLL settlement cloud-write ack GO3 (2026-08-29)
 
 - Settlement nie ginie w debounce/cancel (flush on hide + preserve on resume)

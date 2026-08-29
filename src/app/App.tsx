@@ -163,11 +163,12 @@ import {
 import {
   buildSettlementRetryRosterBefore,
   extractSettlementCloudIntents,
+  finalizeSettlementCloudAckAfterPush,
   hasUnresolvedSettlementCloudAck,
   markSettlementCloudFailure,
   markSettlementCloudPending,
   markSettlementCloudPushAttempt,
-  markSettlementCloudSuccess,
+  PAYROLL_SETTLEMENT_OUTGOING_MISMATCH,
   rosterHasSettlementFieldChange,
 } from "@/lib/payroll-settlement-cloud-ack";
 import {
@@ -1856,7 +1857,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         options,
       });
       if (settlementAck) {
-        markSettlementCloudSuccess(weekFrom, weekTo);
+        // GO4 — HTTP 2xx alone is not enough; outgoing must carry settlement intents.
+        const ack = finalizeSettlementCloudAckAfterPush({
+          weekFrom,
+          weekTo,
+          intentBefore: before,
+          intentAfter: next,
+          outgoingRoster: result.roster,
+        });
+        if (!ack.ok) {
+          toast.error("Rozliczenie nie zostało zapisane w chmurze", {
+            description: `${PAYROLL_SETTLEMENT_OUTGOING_MISMATCH} · Ponów zapis lub odśwież.`,
+            id: "payroll-settlement-outgoing-mismatch",
+          });
+          return;
+        }
       }
       if (result.rebased) {
         withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
