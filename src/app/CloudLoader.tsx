@@ -49,7 +49,11 @@ import {
   mergeAdminUsersConfig,
 } from "@/lib/admin-auth";
 import { loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
-import { markCloudBootstrapSuccess, publishBootstrapPayrollHandoff } from "@/lib/cloud-bootstrap";
+import {
+  markCloudBootstrapSuccess,
+  publishBootstrapPayrollHandoff,
+  signalBootstrapPayrollLateRehydrate,
+} from "@/lib/cloud-bootstrap";
 import {
   markCloudFreshnessAfterBootstrapFailure,
   markCloudFreshnessAfterBootstrapSuccess,
@@ -88,6 +92,7 @@ const PAYROLL_BOOTSTRAP_PERSIST_KEYS = [
 export function CloudLoader({ children }: { children: ReactNode }) {
   const [bootstrapPhase, setBootstrapPhase] = useState<BootstrapPhase>("PENDING");
   const fetchSettledRef = useRef(false);
+  const bootstrapPhaseRef = useRef<BootstrapPhase>("PENDING");
 
   useEffect(() => {
     const coreKeys = [...BOOTSTRAP_CORE_KEYS];
@@ -97,6 +102,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
     const openBootstrapPhase = (next: Exclude<BootstrapPhase, "PENDING">) => {
       setBootstrapPhase((prev) => {
         const resolved = resolveBootstrapPhaseOpen(prev, next);
+        bootstrapPhaseRef.current = resolved;
         if (resolved !== prev) {
           logPayrollBootstrapTraceFromWeekKeys({
             caller: "CloudLoader",
@@ -210,12 +216,16 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         // Fetch+merge OK → handoff przed persist LS (QuotaExceeded nie blokuje App z rosterem)
-        if (Array.isArray(empsBoot) && empsBoot.length > 0) {
-          publishBootstrapPayrollHandoff({
-            weekEmployees: empsBoot as unknown[],
-            weekFrom: wfBoot,
-            weekTo: wtBoot,
-          });
+        const payrollHandoff =
+          Array.isArray(empsBoot) && empsBoot.length > 0
+            ? {
+                weekEmployees: empsBoot as unknown[],
+                weekFrom: wfBoot,
+                weekTo: wtBoot,
+              }
+            : null;
+        if (payrollHandoff) {
+          publishBootstrapPayrollHandoff(payrollHandoff);
         }
 
         try {
@@ -300,6 +310,18 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         // Payroll LS first — quota ma chronić roster przed jobs/directory
         for (const key of PAYROLL_BOOTSTRAP_PERSIST_KEYS) {
           persistCoreKey(key);
+        }
+        // TIMEOUT already opened App with stale LS — same-window setItem ≠ storage event.
+        // Signal App to rehydrate React from merged roster (no settledUpdatedAt bump).
+        if (payrollHandoff && bootstrapPhaseRef.current === "TIMEOUT") {
+          signalBootstrapPayrollLateRehydrate(payrollHandoff);
+          logPayrollBootstrapTraceFromWeekKeys({
+            caller: "CloudLoader",
+            reason: "bootstrap_timeout_late_rehydrate",
+            targetFrom: wfBoot,
+            targetTo: wtBoot,
+            employeeCount: payrollHandoff.weekEmployees.length,
+          });
         }
         for (const key of coreKeys) {
           if ((PAYROLL_BOOTSTRAP_PERSIST_KEYS as readonly string[]).includes(key)) continue;

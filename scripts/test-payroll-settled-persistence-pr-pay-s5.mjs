@@ -38,6 +38,8 @@ const WEEK_TO = "2026-06-14";
 
 const NEW_TS = "2026-06-12T10:00:00.000Z"; // świadome cofnięcie użytkownika
 const OLD_TS = "2026-06-09T08:00:00.000Z"; // starszy status z chmury
+/** dataUpdatedAt ≠ settledUpdatedAt (>1.5s) — świadome cofnięcie, nie spurious sync-bug. */
+const GENUINE_DATA_TS = "2026-06-12T09:00:00.000Z";
 
 /** Bogaty skład (więcej aktywnych dni/godzin) — wymusza richness override w finalize. */
 function richDays() {
@@ -64,9 +66,14 @@ function bundle(emps, from = WEEK_FROM, to = WEEK_TO) {
   return b;
 }
 
-// Lokalnie: użytkownik cofnął rozliczenie (settled=false, świeży settledUpdatedAt),
-// skład lokalny uboższy. Chmura: settled=true (starszy), skład bogatszy.
-const localEmp = emp({ settled: false, settledUpdatedAt: NEW_TS, dataUpdatedAt: NEW_TS, days: leanDays() });
+// Lokalnie: świadome cofnięcie (settled=false, świeży settledUpdatedAt, dataUpdatedAt starsze).
+// Chmura: settled=true (starszy), skład bogatszy.
+const localEmp = emp({
+  settled: false,
+  settledUpdatedAt: NEW_TS,
+  dataUpdatedAt: GENUINE_DATA_TS,
+  days: leanDays(),
+});
 const cloudEmp = emp({ settled: true, settledUpdatedAt: OLD_TS, dataUpdatedAt: OLD_TS, days: richDays() });
 
 // ---------------------------------------------------------------------------
@@ -188,14 +195,26 @@ const cloudEmp = emp({ settled: true, settledUpdatedAt: OLD_TS, dataUpdatedAt: O
   );
   assert("8b. LWW — nowsze cloud settled=true wygrywa", b.settled === true);
 
-  // godziny z chmury nie giną przy same-week merge (UNION dni — poza zakresem S5,
-  // dowód że S5 nie rusza merge dni), a settled pozostaje wg LWW (local nowszy → false)
+  // godziny z chmury nie giną; świadome local unsettle (nie-spurious) → LWW false
   const c = mergeWeekEmployeeRecord(
+    emp({
+      settled: false,
+      settledUpdatedAt: NEW_TS,
+      dataUpdatedAt: GENUINE_DATA_TS,
+      days: leanDays(),
+    }),
+    emp({ settled: true, settledUpdatedAt: OLD_TS, dataUpdatedAt: OLD_TS, days: richDays() }),
+  );
+  assert("8c. same-week merge — genuine local unsettle LWW → false", c.settled === false);
+  assert("8c. same-week merge — dni z chmury zachowane (Wt)", c.days?.Wt?.active === true);
+
+  // 8d) spurious local unsettle (settledUpdatedAt ≈ dataUpdatedAt) → cloud settled=true wins
+  const d = mergeWeekEmployeeRecord(
     emp({ settled: false, settledUpdatedAt: NEW_TS, dataUpdatedAt: NEW_TS, days: leanDays() }),
     emp({ settled: true, settledUpdatedAt: OLD_TS, dataUpdatedAt: OLD_TS, days: richDays() }),
   );
-  assert("8c. same-week merge — settled wg LWW (local nowszy → false)", c.settled === false);
-  assert("8c. same-week merge — dni z chmury zachowane (Wt)", c.days?.Wt?.active === true);
+  assert("8d. spurious local unsettle — cloud settled=true chronione", d.settled === true);
+  assert("8d. spurious — dni z chmury zachowane (Wt)", d.days?.Wt?.active === true);
 }
 
 console.log(

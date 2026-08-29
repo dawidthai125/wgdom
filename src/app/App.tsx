@@ -146,7 +146,7 @@ import {
 } from "@/lib/tenders-sync";
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
-import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
+import { initialAutoSyncSuppressUntil, subscribeBootstrapPayrollLateRehydrate } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation, withKwWeekEmployeesMutation, extendScopeSuppress, KW_WEEK_EMPLOYEES_DEFAULT_SUPPRESS_MS } from "@/lib/cloud-sync-mutation-guard";
 import {
   pwrRemove,
@@ -1270,6 +1270,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     installPayrollWriteTraceGlobals();
     installJobsPhotosLiveTraceGlobals();
   }, []);
+
+  // TIMEOUT late merge: CloudLoader persisted merged roster but React still holds stale LS init.
+  // Reuse skip-timestamps path (parity with applyAdminDataBundle) — no settledUpdatedAt bump.
+  useEffect(() => {
+    return subscribeBootstrapPayrollLateRehydrate((handoff) => {
+      setSkipApplyWriteTimestamps(true);
+      try {
+        withPayrollWeekEmployeesWriteSource("bootstrapTimeoutLateRehydrate", () => {
+          setWeekEmployees(handoff.weekEmployees as WeekEmployee[]);
+        });
+        if (handoff.weekFrom) setWeekFrom(handoff.weekFrom);
+        if (handoff.weekTo) setWeekTo(handoff.weekTo);
+        logPayrollBootstrapTraceFromWeekKeys({
+          caller: "App",
+          reason: "bootstrap_timeout_late_rehydrate_applied",
+          weekFrom: handoff.weekFrom,
+          weekTo: handoff.weekTo,
+          employeeCount: handoff.weekEmployees.length,
+        });
+      } finally {
+        setSkipApplyWriteTimestamps(false);
+      }
+    });
+  }, [setWeekEmployees, setWeekFrom, setWeekTo]);
 
   const applyDeferredHydration = useCallback((patch: DeferredAdminHydrationPatch) => {
     setSkipApplyWriteTimestamps(true);

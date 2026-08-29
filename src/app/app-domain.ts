@@ -2207,6 +2207,7 @@ export function applyWriteTimestamps(key: string, prev: unknown, next: unknown):
       if (!old) return item;
       const rateChanged = item.rate !== old.rate;
       const settledChanged = item.settled !== old.settled;
+      /** Payroll data clock — days / sobota / koszty. Settlement ma własny settledUpdatedAt. */
       const dataChanged =
         JSON.stringify({ days: item.days, prevSaturday: item.prevSaturday, extraCosts: item.extraCosts })
         !== JSON.stringify({ days: old.days, prevSaturday: old.prevSaturday, extraCosts: old.extraCosts });
@@ -2214,7 +2215,8 @@ export function applyWriteTimestamps(key: string, prev: unknown, next: unknown):
       return {
         ...item,
         rateUpdatedAt: rateChanged ? now : item.rateUpdatedAt ?? old.rateUpdatedAt,
-        dataUpdatedAt: (dataChanged || settledChanged) ? now : item.dataUpdatedAt ?? old.dataUpdatedAt,
+        // Settlement-only must NOT bump dataUpdatedAt (conscious settle/unsettle ≠ data edit).
+        dataUpdatedAt: dataChanged ? now : item.dataUpdatedAt ?? old.dataUpdatedAt,
         settledUpdatedAt: settledChanged ? now : item.settledUpdatedAt ?? old.settledUpdatedAt,
       };
     });

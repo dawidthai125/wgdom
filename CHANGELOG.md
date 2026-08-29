@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.127 — PAYROLL settled clock ≠ data clock + TIMEOUT rehydrate (2026-08-29)
+
+- Settlement-only (`settled` change) **nie** bumpuje `dataUpdatedAt`; zegar settlementu = `settledUpdatedAt`
+- Świadome unsettle wygrywa LWW nad starszym cloud `settled=true`; spurious (`sAt≈dAt`) nadal chronione
+- Bootstrap TIMEOUT + late merge → React rehydrate (bez bump timestampów)
+- Test: `npx vite-node scripts/test-payroll-settled-cross-device-fix.mjs`
+
 ## 2.66.126 — PAYROLL freshness payload hardening (2026-08-29)
 
 - Po freshness: outgoing = canonical Cloud ⊕ P2 intents (nie ślepy argument stale roster)

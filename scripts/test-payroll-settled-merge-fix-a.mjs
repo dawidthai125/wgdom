@@ -40,7 +40,10 @@ function pickSettledByTimestamps(l, c) {
   const lSettled = Boolean(l.settled);
   const cSettled = Boolean(c.settled);
   if (lAt > 0 || cAt > 0) {
-    if (lAt > cAt) return lSettled;
+    if (lAt > cAt) {
+      if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return true;
+      return lSettled;
+    }
     if (cAt > lAt) {
       if (!cSettled && lSettled && isLikelySpuriousUnsettle(c)) return true;
       if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return false;
@@ -130,12 +133,12 @@ const scenarios = [
     expectSettled: true,
   },
   {
-    name: "local cofnięcie rozliczenia — nowszy settledUpdatedAt false",
+    name: "local cofnięcie rozliczenia — genuine (dataUpdatedAt ≠ settledUpdatedAt)",
     local: {
       id: "e3",
       settled: false,
       settledUpdatedAt: "2026-06-03T20:00:00.000Z",
-      dataUpdatedAt: "2026-06-03T20:00:00.000Z",
+      dataUpdatedAt: "2026-06-03T19:00:00.000Z",
       days: { Pn: { active: true, from: "07:00", to: "14:00" } },
     },
     cloud: {
@@ -146,6 +149,24 @@ const scenarios = [
       days: { Pn: { active: true, from: "07:00", to: "14:00" } },
     },
     expectSettled: false,
+  },
+  {
+    name: "local spurious unsettle (sAt≈dAt) — cloud settled=true chronione",
+    local: {
+      id: "e3b",
+      settled: false,
+      settledUpdatedAt: "2026-06-03T20:00:00.000Z",
+      dataUpdatedAt: "2026-06-03T20:00:00.000Z",
+      days: { Pn: { active: true, from: "07:00", to: "14:00" } },
+    },
+    cloud: {
+      id: "e3b",
+      settled: true,
+      settledUpdatedAt: "2026-06-03T15:40:00.000Z",
+      dataUpdatedAt: "2026-06-03T15:00:00.000Z",
+      days: { Pn: { active: true, from: "07:00", to: "14:00" } },
+    },
+    expectSettled: true,
   },
   {
     name: "legacy bez settledUpdatedAt — OR rozliczeń",

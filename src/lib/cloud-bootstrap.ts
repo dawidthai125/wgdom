@@ -15,6 +15,11 @@ export type BootstrapPayrollHandoff = {
 
 let bootstrapPayrollHandoff: BootstrapPayrollHandoff | null = null;
 
+/** Late merge after TIMEOUT — App rehydrates React without relying on same-window storage events. */
+type BootstrapPayrollLateRehydrateListener = (handoff: BootstrapPayrollHandoff) => void;
+const lateRehydrateListeners = new Set<BootstrapPayrollLateRehydrateListener>();
+let pendingLateRehydrate: BootstrapPayrollHandoff | null = null;
+
 /** Wywołaj po pomyślnym bootstrapie CloudLoader (batch-get + merge do LS). */
 export function markCloudBootstrapSuccess(): void {
   lastSuccessfulBootstrapAt = Date.now();
@@ -36,6 +41,51 @@ export function publishBootstrapPayrollHandoff(input: BootstrapPayrollHandoff): 
   };
 }
 
+/**
+ * TIMEOUT path only: children already mounted with stale LS; late fetch merged roster
+ * into handoff/LS — notify App to apply roster to React (skip write-timestamp bumps).
+ */
+export function signalBootstrapPayrollLateRehydrate(handoff: BootstrapPayrollHandoff): void {
+  if (!Array.isArray(handoff.weekEmployees) || handoff.weekEmployees.length === 0) return;
+  const payload: BootstrapPayrollHandoff = {
+    weekEmployees: handoff.weekEmployees,
+    weekFrom: handoff.weekFrom || "",
+    weekTo: handoff.weekTo || "",
+  };
+  pendingLateRehydrate = payload;
+  for (const fn of lateRehydrateListeners) {
+    try {
+      fn(payload);
+    } catch {
+      /* listener must not break CloudLoader */
+    }
+  }
+}
+
+/**
+ * App subscribes once mounted. Delivers pending signal if subscribe races after signal.
+ */
+export function subscribeBootstrapPayrollLateRehydrate(
+  fn: BootstrapPayrollLateRehydrateListener,
+): () => void {
+  lateRehydrateListeners.add(fn);
+  if (pendingLateRehydrate) {
+    const payload = pendingLateRehydrate;
+    queueMicrotask(() => {
+      if (pendingLateRehydrate === payload) {
+        try {
+          fn(payload);
+        } catch {
+          /* ignore */
+        }
+      }
+    });
+  }
+  return () => {
+    lateRehydrateListeners.delete(fn);
+  };
+}
+
 /** Odczyt bez kasowania — trzy klucze (employees/from/to) mogą czytać w dowolnej kolejności. */
 export function peekBootstrapPayrollHandoff(): BootstrapPayrollHandoff | null {
   return bootstrapPayrollHandoff;
@@ -44,4 +94,6 @@ export function peekBootstrapPayrollHandoff(): BootstrapPayrollHandoff | null {
 /** Tylko testy. */
 export function clearBootstrapPayrollHandoffForTests(): void {
   bootstrapPayrollHandoff = null;
+  pendingLateRehydrate = null;
+  lateRehydrateListeners.clear();
 }

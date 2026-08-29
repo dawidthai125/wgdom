@@ -180,7 +180,13 @@ export function pickPayrollSettledByTimestamps(l: Record<string, unknown>, c: Re
   const lSettled = Boolean(l.settled);
   const cSettled = Boolean(c.settled);
   if (lAt > 0 || cAt > 0) {
-    if (lAt > cAt) return lSettled;
+    if (lAt > cAt) {
+      // Symmetric spurious guard: newer local unsettle that looks like sync-bug
+      // (settledUpdatedAt ≈ dataUpdatedAt) must not erase older cloud settled=true.
+      // Genuine local unsettle (|settledUpdatedAt − dataUpdatedAt| > 1500) still wins LWW.
+      if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return true;
+      return lSettled;
+    }
     if (cAt > lAt) {
       if (!cSettled && lSettled && isLikelySpuriousUnsettle(c)) return true;
       if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return false;

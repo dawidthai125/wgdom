@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-29",
+    version: "2.66.127",
+    label: "PAYROLL — settled clock ≠ data clock + TIMEOUT rehydrate",
+    items: [
+      {
+        type: "fix",
+        text: "Lista płac: zmiana samego settled nie bumpuje dataUpdatedAt (settledUpdatedAt = zegar settlementu). Świadome unsettle wygrywa LWW nad starszym cloud true; spurious (sAt≈dAt) nadal chronione. Bootstrap TIMEOUT + late merge rehydratuje React bez bump timestampów. Test: test-payroll-settled-cross-device-fix.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-29",
     version: "2.66.126",
     label: "PAYROLL — freshness payload hardening",
     items: [
