@@ -39,6 +39,18 @@ import {
   buildPayrollSettlement,
 } from "../src/lib/payroll-settlement.ts";
 import {
+  applyPayrollFieldIntentsOntoCanonical,
+  rebasePayrollFieldIntents,
+} from "../src/lib/payroll-field-intent.ts";
+import {
+  mayPersistPayrollRosterUnderWeekKeys,
+  BLOCK_HISTORICAL_CLONE,
+  BLOCK_TOMBSTONE_RECREATE,
+} from "../src/lib/payroll-week-roster-binding.ts";
+import { weekEmployeeMergeKey } from "../src/lib/payroll-week-employee-merge.ts";
+import { getPayrollWeekRange } from "../src/lib/payroll-cycle.ts";
+import { defaultDay } from "../src/app/app-domain.ts";
+import {
   pickPayrollSettledByTimestamps,
   mergeWeekEmployeeRecord,
 } from "../src/lib/payroll-week-employee-record-merge.ts";
@@ -695,7 +707,329 @@ function settleAfter(partial = {}) {
   );
 }
 
+// =============================================================================
+// GO8.1 — settlement intent retention (LS ahead / rebuild / rebase)
+// =============================================================================
+
+function transferMeta(at, amount = 1874.88) {
+  return buildPayrollSettlement({
+    settledByUserId: "dawid",
+    settledByName: "Dawid",
+    paymentMethod: "transfer",
+    amount,
+    settledAt: at,
+  });
+}
+
+const FENCE_DAYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
+const fenceWeek = getPayrollWeekRange(new Date("2026-08-24T10:00:00"));
+
+function makeFenceEmp(id, withHours = true, extras = {}) {
+  return {
+    id,
+    directoryId: `dir-${id}`,
+    name: `Worker ${id}`,
+    rate: "50",
+    days: Object.fromEntries(
+      FENCE_DAYS.map((k) => [
+        k,
+        k === "So" || !withHours
+          ? defaultDay()
+          : { ...defaultDay(), active: true, from: "07:00", to: "16:00" },
+      ]),
+    ),
+    settled: false,
+    ...extras,
+  };
+}
+
+function fenceGate(roster, archive, cloudRoster, tombs) {
+  return mayPersistPayrollRosterUnderWeekKeys({
+    weekFrom: fenceWeek.from,
+    weekTo: fenceWeek.to,
+    roster,
+    archive,
+    currentFrom: fenceWeek.from,
+    currentTo: fenceWeek.to,
+    cloudRoster,
+    tombstonedMergeKeys: tombs,
+  });
+}
+
+// T1: settle without competition → outgoing has settlement → GO4 SUCCESS
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  const cloud = emp({ settled: false });
+  const applied = applySettlementFieldIntent(cloud, before[0], after[0]);
+  assert(
+    "GO8.1-T1 applied settlement",
+    applied.settled === true
+      && applied.payrollSettlement?.paymentMethod === "cash"
+      && applied.payrollSettlement?.amount === 100,
+  );
+  const field = applyPayrollFieldIntentsOntoCanonical([cloud], before, after, [], WF, WT);
+  assert("GO8.1-T1 field-intent settlement", field.roster[0].settled === true);
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: field.roster,
+  });
+  assert("GO8.1-T1 GO4 confirmed", ack.ok === true && !hasUnresolvedSettlementCloudAck());
+}
+
+// T2: stale revision + retry → settlement intent survives rebase
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false, rate: 30 })];
+  const after = [settleAfter({ rate: 30 })];
+  const cloudStillUnsettled = emp({ settled: false, rate: 30, name: "Adam-cloud" });
+  const rebased = rebasePayrollFieldIntents(
+    [cloudStillUnsettled],
+    before,
+    after,
+    [],
+    WF,
+    WT,
+  );
+  assert(
+    "GO8.1-T2 rebase keeps settlement",
+    rebased[0].settled === true
+      && rebased[0].payrollSettlement?.amount === 100
+      && rebased[0].name === "Adam-cloud",
+  );
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: rebased,
+  });
+  assert("GO8.1-T2 retry GO4 SUCCESS", ack.ok === true);
+}
+
+// T3: 409 / outgoing without settlement → GO4 blocks false-success
+{
+  clearSettlementCloudAckForTests();
+  const before = [emp({ settled: false })];
+  const after = [settleAfter()];
+  markSettlementCloudPending(extractSettlementCloudIntents(before, after, WF, WT));
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: before,
+    intentAfter: after,
+    outgoingRoster: [emp({ settled: false })],
+  });
+  assert("GO8.1-T3 NEVER false-success", ack.ok === false);
+  assert("GO8.1-T3 unresolved failure", listUnresolvedSettlementCloudAcks()[0]?.status === "failure");
+}
+
+// T4: unsettle + stale revision → unsettle retained on rebase / LS-ahead
+{
+  const cloud = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-28T20:00:00.000Z",
+    payrollSettlement: meta("2026-08-28T20:00:00.000Z"),
+  });
+  const before = [{ ...cloud }];
+  const after = [
+    {
+      ...cloud,
+      settled: false,
+      settledUpdatedAt: "2026-08-28T22:50:00.000Z",
+    },
+  ];
+  const rebased = rebasePayrollFieldIntents([cloud], before, after, [], WF, WT);
+  assert("GO8.1-T4 rebase unsettle", rebased[0].settled === false);
+  // LS already unsettled (ahead), cloud still settled — re-flush
+  const lsAheadBefore = [{ ...after[0] }];
+  const applied = applySettlementFieldIntent(cloud, lsAheadBefore[0], after[0]);
+  assert("GO8.1-T4 LS-ahead unsettle retained", applied.settled === false && applied.changed === true);
+}
+
+// T5: hours edit + stale revision — no regression
+{
+  const cloud = emp({
+    settled: false,
+    days: { Pn: { active: true, from: "07:00", to: "15:00" } },
+  });
+  const before = [
+    emp({
+      settled: false,
+      days: { Pn: { active: true, from: "07:00", to: "15:00" } },
+    }),
+  ];
+  const after = [
+    emp({
+      settled: false,
+      days: { Pn: { active: true, from: "07:00", to: "17:00" } },
+    }),
+  ];
+  const ok = applyPayrollFieldIntentsOntoCanonical([cloud], before, after, [], WF, WT);
+  assert("GO8.1-T5 hours intent applies", ok.roster[0].days?.Pn?.to === "17:00");
+  const staleCloud = emp({
+    settled: false,
+    days: { Pn: { active: true, from: "08:00", to: "12:00" } },
+  });
+  const stale = applyPayrollFieldIntentsOntoCanonical([staleCloud], before, after, [], WF, WT);
+  assert(
+    "GO8.1-T5 stale baseline keeps cloud hours",
+    stale.roster[0].days?.Pn?.from === "08:00" && stale.roster[0].days?.Pn?.to === "12:00",
+  );
+}
+
+// T6: rate edit + stale revision — no regression
+{
+  const cloud = emp({ settled: false, rate: 30 });
+  const before = [emp({ settled: false, rate: 30 })];
+  const after = [emp({ settled: false, rate: 45 })];
+  const ok = applyPayrollFieldIntentsOntoCanonical([cloud], before, after, [], WF, WT);
+  assert("GO8.1-T6 rate intent applies", String(ok.roster[0].rate) === "45");
+  const staleCloud = emp({ settled: false, rate: 99 });
+  const stale = applyPayrollFieldIntentsOntoCanonical([staleCloud], before, after, [], WF, WT);
+  assert("GO8.1-T6 stale baseline keeps cloud rate", String(stale.roster[0].rate) === "99");
+}
+
+// T7: GO6.1 legal current-week update → ALLOW
+{
+  const live = [makeFenceEmp("krzysztof", true, { name: "Krzysztof", directoryId: "dir-k", rate: "40" })];
+  const cloud = [makeFenceEmp("krzysztof", true, { name: "Krzysztof", directoryId: "dir-k", rate: "40" })];
+  const archive = [
+    {
+      weekFrom: "2026-07-13",
+      weekTo: "2026-07-18",
+      weekEmployees: [makeFenceEmp("krzysztof", true, { name: "Krzysztof", directoryId: "dir-k", rate: "35" })],
+    },
+  ];
+  const g = fenceGate(live, archive, cloud);
+  assert("GO8.1-T7 legal current-week ALLOW", g.allow === true);
+}
+
+// T8: GO6.1 true historical clone → BLOCK
+{
+  const hist = Array.from({ length: 4 }, (_, i) => makeFenceEmp(`clone-${i}`, true));
+  const archive = [{ weekFrom: "2026-07-13", weekTo: "2026-07-18", weekEmployees: hist }];
+  const cloudOther = [makeFenceEmp("only-cloud", true)];
+  const g = fenceGate(hist.map((e) => ({ ...e })), archive, cloudOther);
+  assert("GO8.1-T8 historical clone BLOCK", g.allow === false && g.reason === BLOCK_HISTORICAL_CLONE);
+}
+
+// T9: GO6.1 tombstone recreate → BLOCK
+{
+  const live = [makeFenceEmp("tomb", true)];
+  const tombs = new Set([weekEmployeeMergeKey(live[0])]);
+  const g = fenceGate(live, [], [], tombs);
+  assert("GO8.1-T9 tombstone recreate BLOCK", g.allow === false && g.reason === BLOCK_TOMBSTONE_RECREATE);
+}
+
+// T10 — Krzysztof: LS settled ahead, Cloud unsettled, re-settle must not drop intent
+{
+  clearSettlementCloudAckForTests();
+  const settleAt = "2026-08-29T18:30:00.000Z";
+  const krzysztofSettled = emp({
+    id: "krzysztof",
+    name: "Krzysztof",
+    settled: true,
+    settledUpdatedAt: settleAt,
+    payrollSettlement: transferMeta(settleAt, 1874.88),
+  });
+  const cloud = emp({
+    id: "krzysztof",
+    name: "Krzysztof",
+    settled: false,
+    settledUpdatedAt: undefined,
+    payrollSettlement: undefined,
+  });
+  // LS ahead: before === after === settled locally (re-click Rozlicz / re-flush)
+  const before = [krzysztofSettled];
+  const after = [krzysztofSettled];
+  const applied = applySettlementFieldIntent(cloud, before[0], after[0]);
+  assert(
+    "GO8.1-T10 retain despite baselineOk=false",
+    applied.settled === true
+      && applied.payrollSettlement?.paymentMethod === "transfer"
+      && applied.payrollSettlement?.amount === 1874.88,
+  );
+  const field = applyPayrollFieldIntentsOntoCanonical([cloud], before, after, [], WF, WT);
+  assert(
+    "GO8.1-T10 batch-set shape has settlement",
+    field.roster[0].settled === true
+      && field.roster[0].payrollSettlement?.amount === 1874.88,
+  );
+  // Also: edited re-settle (new clock) with LS before already settled
+  const afterBump = [
+    {
+      ...krzysztofSettled,
+      settledUpdatedAt: "2026-08-29T19:00:00.000Z",
+      payrollSettlement: transferMeta("2026-08-29T19:00:00.000Z", 1874.88),
+    },
+  ];
+  const appliedBump = applySettlementFieldIntent(cloud, before[0], afterBump[0]);
+  assert("GO8.1-T10 re-settle bump retained", appliedBump.settled === true && appliedBump.changed === true);
+  markSettlementCloudPending(extractSettlementCloudIntents(
+    [emp({ id: "krzysztof", settled: false })],
+    afterBump,
+    WF,
+    WT,
+  ));
+  const ack = finalizeSettlementCloudAckAfterPush({
+    weekFrom: WF,
+    weekTo: WT,
+    intentBefore: [emp({ id: "krzysztof", settled: false })],
+    intentAfter: afterBump,
+    outgoingRoster: [
+      {
+        ...cloud,
+        settled: appliedBump.settled,
+        settledUpdatedAt: appliedBump.settledUpdatedAt,
+        payrollSettlement: appliedBump.payrollSettlement,
+      },
+    ],
+  });
+  assert("GO8.1-T10 GO4 ACK PASS", ack.ok === true && !hasUnresolvedSettlementCloudAck());
+}
+
+// Safety: Cloud already settled (other/newer) → local must NOT overwrite
+{
+  const cloud = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-29T20:00:00.000Z",
+    payrollSettlement: transferMeta("2026-08-29T20:00:00.000Z", 2000),
+  });
+  const local = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-29T18:00:00.000Z",
+    payrollSettlement: transferMeta("2026-08-29T18:00:00.000Z", 1874.88),
+  });
+  const applied = applySettlementFieldIntent(cloud, local, local);
+  assert(
+    "GO8.1-safety keep newer Cloud settlement",
+    applied.settled === true
+      && applied.settledUpdatedAt === cloud.settledUpdatedAt
+      && applied.payrollSettlement?.amount === 2000,
+  );
+  // Local newer settle vs Cloud settled older — still do not overwrite settled Cloud (B)
+  const localNewer = emp({
+    settled: true,
+    settledUpdatedAt: "2026-08-29T21:00:00.000Z",
+    payrollSettlement: transferMeta("2026-08-29T21:00:00.000Z", 1874.88),
+  });
+  const applied2 = applySettlementFieldIntent(cloud, emp({ settled: false }), localNewer);
+  assert(
+    "GO8.1-safety never overwrite settled Cloud",
+    applied2.settled === true
+      && applied2.settledUpdatedAt === cloud.settledUpdatedAt
+      && applied2.payrollSettlement?.amount === 2000,
+  );
+}
+
 clearSettlementCloudAckForTests();
 
-console.log(`\nGO3+GO4 settlement cloud ack: ${pass} PASS, ${fail} FAIL`);
+console.log(`\nGO3+GO4+GO8.1 settlement cloud ack: ${pass} PASS, ${fail} FAIL`);
 if (fail > 0) process.exit(1);

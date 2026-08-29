@@ -256,8 +256,65 @@ export function applySettlementFieldIntent(
     };
   }
 
+  const afterSettled = Boolean(afterEmp.settled);
+  const afterAt = afterEmp.settledUpdatedAt;
+  const afterAtStr = String(afterAt ?? "");
+  const cloudAtStr = String(cloudAt ?? "");
+  const afterMetaExplicit = hasOwnSettlementKey(afterEmp)
+    ? normalizePayrollSettlement(afterEmp.payrollSettlement)
+    : undefined;
+
+  /**
+   * GO8.1 — retain conscious local settlement/unsettle when baselineOk fails
+   * because LS is already ahead of Cloud (typical re-settle / re-flush).
+   *
+   * Settle: Cloud unsettled + after settled + valid meta + after clock newer
+   *   (or Cloud has no settlement clock) → apply after.
+   * Unsettle: Cloud settled + after unsettled + after clock strictly newer
+   *   than Cloud → apply after (does not clobber a newer Cloud settle).
+   * If Cloud already settled with clock ≥ after → keep Cloud (safety).
+   */
+  const retainLocalSettlementIntentWhenLsAhead = (): {
+    settled: boolean;
+    settledUpdatedAt: string | undefined;
+    payrollSettlement: PayrollSettlement | undefined;
+    changed: boolean;
+  } | null => {
+    // A: Cloud unsettled + local settle intent
+    if (!cloudSettled && afterSettled && afterMetaExplicit) {
+      if (cloudAtStr && !(afterAtStr > cloudAtStr)) return null;
+      return {
+        settled: true,
+        settledUpdatedAt: afterAt ?? cloudAt,
+        payrollSettlement: afterMetaExplicit,
+        changed:
+          afterSettled !== cloudSettled
+          || afterAtStr !== cloudAtStr
+          || JSON.stringify(afterMetaExplicit) !== JSON.stringify(cloudMeta ?? null),
+      };
+    }
+    // Unsettle: only conscious before→after unsettle, or identical LS-ahead re-flush
+    // (!edited). A stale clock bump on already-unsettled local must NOT clobber Cloud (H8).
+    if (cloudSettled && !afterSettled && afterAtStr && afterAtStr > cloudAtStr) {
+      const consciousUnsettle = Boolean(beforeEmp.settled);
+      const reflushUnsettle = settlementBundleEqual(beforeEmp, afterEmp);
+      if (consciousUnsettle || reflushUnsettle) {
+        const nextMeta = afterMetaExplicit ?? cloudMeta;
+        return {
+          settled: false,
+          settledUpdatedAt: afterAt ?? cloudAt,
+          payrollSettlement: nextMeta,
+          changed: true,
+        };
+      }
+    }
+    return null;
+  };
+
   const edited = !settlementBundleEqual(beforeEmp, afterEmp);
   if (!edited) {
+    const retained = retainLocalSettlementIntentWhenLsAhead();
+    if (retained) return retained;
     return {
       settled: cloudSettled,
       settledUpdatedAt: cloudAt,
@@ -273,7 +330,9 @@ export function applySettlementFieldIntent(
       === JSON.stringify(cloudMeta ?? null);
 
   if (!baselineOk) {
-    // Stale local intent — keep newer canonical cloud (do not resurrect / overwrite).
+    const retained = retainLocalSettlementIntentWhenLsAhead();
+    if (retained) return retained;
+    // Stale local intent vs settled/newer Cloud — keep canonical cloud.
     return {
       settled: cloudSettled,
       settledUpdatedAt: cloudAt,
@@ -282,8 +341,8 @@ export function applySettlementFieldIntent(
     };
   }
 
-  const nextSettled = Boolean(afterEmp.settled);
-  const nextAt = afterEmp.settledUpdatedAt ?? cloudAt;
+  const nextSettled = afterSettled;
+  const nextAt = afterAt ?? cloudAt;
   let nextMeta: PayrollSettlement | undefined;
 
   if (hasOwnSettlementKey(afterEmp)) {
