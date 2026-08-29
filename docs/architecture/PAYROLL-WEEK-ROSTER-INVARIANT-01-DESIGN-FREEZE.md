@@ -100,4 +100,40 @@ Kolejne zmiany tylko Owner GO (np. recovery polluted KV 24–29).
 
 ---
 
+## 8. GO6 amendment — D-F3 false-positive (2026-08-29)
+
+**Owner GO:** YES · IMPLEMENT ONLY (no commit/push/deploy until review).
+
+### OLD (pre-GO6 D-F3)
+
+`current week keys` + `hours > 0` + **≥1 archive identity overlap** → **BLOCK** persistence.
+
+### NEW (GO6)
+
+Archive **identity overlap alone ≠ BLOCK**.
+
+| Signal | Decision |
+|--------|----------|
+| Outgoing identities ⊆ Cloud current roster | **ALLOW** (legal settle / hours / rate / extraCosts) |
+| Exact historical **fingerprint** clone under current keys (empty Cloud or Cloud fp ≠ live) | **BLOCK** |
+| Novel identity ∈ current-week tombstones (recreate) | **BLOCK** |
+| Employee also present in many archive weeks, but exists in Cloud current | **ALLOW** |
+
+Fence still protects residual/clone/reseed/tombstone-recreate. It must **not** block legal updates of employees who historically appear in `kw-archive`.
+
+**No:** `settlementCloudAck` bypass · `forceReplace` · global fence OFF · per-employee allowlist.
+
+### GO6.1 amend (priority + bootstrap tombs)
+
+Control flow in `mayPersistPayrollRosterUnderWeekKeys`:
+
+1. tombstone recreate → BLOCK
+2. **O2** historical fingerprint clone (even when identity set === Cloud) → BLOCK when empty Cloud or `cloudFp ≠ liveFp`
+3. **O1** outgoing ⊆ Cloud → ALLOW (`ok_cloud_membership_update`)
+4. else → ALLOW (`ok_no_residual_clone`)
+
+Bootstrap: `readPayrollWeekBindingContextFromLs` supplies `tombstonedMergeKeys` into `bootstrapMergedShouldPush` / `bootstrapPayrollPushAllowed`.
+
+---
+
 **Koniec DESIGN FREEZE / IMPLEMENT NOTE**

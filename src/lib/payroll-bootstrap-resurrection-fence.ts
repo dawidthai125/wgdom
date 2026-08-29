@@ -5,11 +5,13 @@
 import {
   mayPersistPayrollRosterUnderWeekKeys,
   PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON,
+  payrollRosterFingerprint,
+  liveMatchesHistoricalArchiveFingerprint,
 } from "@/lib/payroll-week-roster-binding";
 
 export const PAYROLL_RESURRECTION_01 = "PAYROLL-CLOUD-RESURRECTION-01";
 
-const DAYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
+export { payrollRosterFingerprint };
 
 export type ArchiveWeekLike = {
   id?: string;
@@ -46,25 +48,6 @@ export function payrollWeekRangeKey(from: unknown, to: unknown): string {
   return f && t ? `${f}|${t}` : "";
 }
 
-function daySig(emp: unknown): string {
-  const days = (emp as { days?: Record<string, { active?: boolean }> })?.days || {};
-  return DAYS.map((k) => (days[k]?.active ? "1" : "0")).join("");
-}
-
-/** Stable roster fingerprint (directoryId + day activity pattern). */
-export function payrollRosterFingerprint(emps: unknown): string {
-  return asArray(emps)
-    .map((e) => {
-      const id =
-        String((e as { directoryId?: string; id?: string })?.directoryId || "") ||
-        String((e as { id?: string })?.id || "") ||
-        String((e as { name?: string })?.name || "");
-      return `${id}:${daySig(e)}`;
-    })
-    .sort()
-    .join("|");
-}
-
 export function findArchiveWeek(
   archive: unknown,
   weekFrom: unknown,
@@ -85,7 +68,7 @@ export function archiveWeekIsRich(snap: ArchiveWeekLike | undefined | null): boo
 
 /**
  * Local live roster looks like a copy of some *other* (already archived) week.
- * Primary signal for PAYROLL-CLOUD-RESURRECTION-01.
+ * Primary signal for PAYROLL-CLOUD-RESURRECTION-01 (GO6: fingerprint SSOT in binding).
  */
 export function localRosterMatchesHistoricalArchive(
   localEmps: unknown,
@@ -93,19 +76,12 @@ export function localRosterMatchesHistoricalArchive(
   currentFrom: unknown,
   currentTo: unknown,
 ): boolean {
-  const local = asArray(localEmps);
-  if (local.length === 0) return false;
-  const fp = payrollRosterFingerprint(local);
-  if (!fp) return false;
-  const curKey = payrollWeekRangeKey(currentFrom, currentTo);
-  for (const item of asArray(archive)) {
-    const snap = item as ArchiveWeekLike;
-    const key = payrollWeekRangeKey(snap.weekFrom, snap.weekTo);
-    if (!key || key === curKey) continue;
-    if (!archiveWeekIsRich(snap)) continue;
-    if (payrollRosterFingerprint(snap.weekEmployees) === fp) return true;
-  }
-  return false;
+  return liveMatchesHistoricalArchiveFingerprint(
+    localEmps,
+    archive,
+    currentFrom,
+    currentTo,
+  );
 }
 
 /**
@@ -126,6 +102,7 @@ export function localCurrentArchiveIsPollutedClone(params: {
   if (!archiveWeekIsRich(localSnap)) return false;
   return payrollRosterFingerprint(local) === payrollRosterFingerprint(localSnap!.weekEmployees);
 }
+
 
 export type ResurrectionFenceDecision = {
   preferCloudEmptyRoster: boolean;
@@ -271,6 +248,8 @@ export function bootstrapPayrollPushAllowed(params: {
     archive: unknown;
     currentFrom: string;
     currentTo: string;
+    /** GO6 — optional current-week tombstone merge keys. */
+    tombstonedMergeKeys?: Set<string>;
   };
 }): { allow: boolean; reason: string } {
   const { key, mergedValue, cloudValue, fence, weekBinding } = params;
@@ -303,11 +282,16 @@ export function bootstrapPayrollPushAllowed(params: {
       archive: weekBinding.archive,
       currentFrom: weekBinding.currentFrom,
       currentTo: weekBinding.currentTo,
+      cloudRoster: cloudValue,
+      tombstonedMergeKeys: weekBinding.tombstonedMergeKeys,
     });
     if (!gate.allow) {
+      const reason = String(gate.reason || "");
       return {
         allow: false,
-        reason: `${PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON}:${gate.reason}`,
+        reason: reason.startsWith(PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON)
+          ? reason
+          : `${PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON}:${reason}`,
       };
     }
   }

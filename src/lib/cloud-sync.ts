@@ -2987,6 +2987,8 @@ export function bootstrapMergedShouldPush(
       archive: weekBinding.archive,
       currentFrom: weekBinding.currentFrom,
       currentTo: weekBinding.currentTo,
+      cloudRoster: cloudVal,
+      tombstonedMergeKeys: weekBinding.tombstonedMergeKeys,
     });
     if (!gate.allow) {
       payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "warn", {
@@ -3023,13 +3025,15 @@ export function bootstrapMergedShouldPush(
   );
 }
 
-/** D-F3 — LS week keys + archive for persist fence (no CloudLoader change). */
+/** D-F3 / GO6.1 — LS week keys + archive + current-week tombs for persist fence. */
 function readPayrollWeekBindingContextFromLs(): {
   weekFrom: string;
   weekTo: string;
   archive: unknown;
   currentFrom: string;
   currentTo: string;
+  /** Current-week tombstone merge keys (empty Set when none — never invented). */
+  tombstonedMergeKeys: Set<string>;
 } {
   const current = getPayrollWeekRange();
   let weekFrom = current.from;
@@ -3043,12 +3047,19 @@ function readPayrollWeekBindingContextFromLs(): {
     const arch = localStorage.getItem("kw-archive");
     if (arch != null) archive = JSON.parse(arch);
   } catch { /* ignore */ }
+  const wfOut = typeof weekFrom === "string" ? weekFrom : current.from;
+  const wtOut = typeof weekTo === "string" ? weekTo : current.to;
   return {
-    weekFrom: typeof weekFrom === "string" ? weekFrom : current.from,
-    weekTo: typeof weekTo === "string" ? weekTo : current.to,
+    weekFrom: wfOut,
+    weekTo: wtOut,
     archive,
     currentFrom: current.from,
     currentTo: current.to,
+    tombstonedMergeKeys: deletedWeekEmployeeMergeKeySet(
+      getDeletedWeekEmployeeKeys(),
+      wfOut,
+      wtOut,
+    ),
   };
 }
 
@@ -3698,15 +3709,19 @@ async function pushWeekEmployeesToCloudUnchecked(
     beforeCount: intentAfter.length,
   });
   let normalized = intentAfter;
+  let cloudEmpsForFence: unknown = undefined;
+  let tombstonedForFence: Set<string> | undefined;
 
   // After freshness: rebuild outgoing = canonical Cloud ⊕ verified intents (not blind A).
   try {
     const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+    cloudEmpsForFence = cloudEmps;
     const tombstoned = deletedWeekEmployeeMergeKeySet(
       getDeletedWeekEmployeeKeys(),
       weekFrom,
       weekTo,
     );
+    tombstonedForFence = tombstoned;
     const rebuilt = rebuildPayrollOutgoingAfterFreshness({
       cloudEmps,
       intentAfter,
@@ -3736,9 +3751,16 @@ async function pushWeekEmployeesToCloudUnchecked(
   }
 
   const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
-  // D-F3 — block historical residual under current week keys (allow intentional empty clear).
+  // D-F3 / GO6 — residual clone / tombstone recreate fence (archive ID overlap alone ≠ block).
   if (options?.intentionalHoursClear !== true) {
     const binding = readPayrollWeekBindingContextFromLs();
+    if (!tombstonedForFence) {
+      tombstonedForFence = deletedWeekEmployeeMergeKeySet(
+        getDeletedWeekEmployeeKeys(),
+        weekFrom,
+        weekTo,
+      );
+    }
     const gate = mayPersistPayrollRosterUnderWeekKeys({
       weekFrom,
       weekTo,
@@ -3746,6 +3768,8 @@ async function pushWeekEmployeesToCloudUnchecked(
       archive: binding.archive,
       currentFrom: binding.currentFrom,
       currentTo: binding.currentTo,
+      cloudRoster: cloudEmpsForFence,
+      tombstonedMergeKeys: tombstonedForFence,
     });
     if (!gate.allow) {
       payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {

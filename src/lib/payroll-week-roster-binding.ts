@@ -2,6 +2,10 @@
  * PAYROLL-WEEK-ROSTER-INVARIANT-01 — week ↔ roster binding helpers.
  * SSOT for hours gate + historical residual persist fence (#I-WEEK-ROSTER / D-F1 / D-F3).
  * Pure — no React / no Edge. Hours via app-domain dayTotalHours (no duplicate math).
+ *
+ * GO6 (D-F3 amend): archive identity overlap alone ≠ BLOCK.
+ * BLOCK requires true residual/clone (fingerprint) and/or tombstone recreate,
+ * not legal updates of employees already present in Cloud current roster.
  */
 import { DAYS, dayTotalHours, type DayData, type DayKey } from "@/app/app-domain";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
@@ -15,6 +19,13 @@ export const ALIGN_ZERO_HOURS_BOOTSTRAP_REASON = "align_zero_hours_bootstrap" as
 
 export const PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON =
   "payroll_resurrection_fence_blocked" as const;
+
+/** GO6 — outgoing ⊆ cloud current (legal field update of existing identities). */
+export const OK_CLOUD_MEMBERSHIP_UPDATE = "ok_cloud_membership_update" as const;
+/** GO6 — fingerprint matches historical archive under current keys. */
+export const BLOCK_HISTORICAL_CLONE = "payroll_resurrection_fence_blocked:historical_clone" as const;
+/** GO6 — novel identity recreates a current-week tombstone. */
+export const BLOCK_TOMBSTONE_RECREATE = "payroll_resurrection_fence_blocked:tombstone_recreate" as const;
 
 type EmpLike = {
   id?: string;
@@ -58,6 +69,15 @@ function asEmpList(list: unknown): EmpLike[] {
   return list.filter((e) => e && typeof e === "object") as EmpLike[];
 }
 
+function mergeKeySet(list: unknown): Set<string> {
+  const keys = new Set<string>();
+  for (const emp of asEmpList(list)) {
+    const k = weekEmployeeMergeKey(emp);
+    if (k) keys.add(k);
+  }
+  return keys;
+}
+
 /** Total positive hours across Pn–So (+ prevSaturday) — SSOT dayTotalHours. */
 export function liveRosterTotalHours(list: unknown): number {
   let h = 0;
@@ -76,8 +96,58 @@ export function liveRosterHasPositiveHours(list: unknown): boolean {
 }
 
 /**
- * Live roster shares identity with an archived *other* week that has positive hours,
- * and live itself has positive hours — historical residual signal (D-F3).
+ * Stable roster fingerprint (directoryId/id/name + day activity pattern).
+ * Shared with PAYROLL-CLOUD-RESURRECTION-01 clone detection.
+ */
+export function payrollRosterFingerprint(emps: unknown): string {
+  const dayKeys = DAYS;
+  return asEmpList(emps)
+    .map((e) => {
+      const id =
+        String(e.directoryId || "") ||
+        String(e.id || "") ||
+        String(e.name || "");
+      const days = e.days || {};
+      const sig = dayKeys.map((k) => (days[k]?.active ? "1" : "0")).join("");
+      return `${id}:${sig}`;
+    })
+    .sort()
+    .join("|");
+}
+
+/**
+ * Live roster fingerprint equals some *other* archived week with positive hours.
+ * True residual / historical clone signal (not mere identity overlap).
+ */
+export function liveMatchesHistoricalArchiveFingerprint(
+  liveRoster: unknown,
+  archive: unknown,
+  currentFrom: unknown,
+  currentTo: unknown,
+): boolean {
+  const live = asEmpList(liveRoster);
+  if (live.length === 0) return false;
+  if (!liveRosterHasPositiveHours(live)) return false;
+  const fp = payrollRosterFingerprint(live);
+  if (!fp) return false;
+  const curKey = weekRangeKey(currentFrom, currentTo);
+  for (const item of Array.isArray(archive) ? archive : []) {
+    if (!item || typeof item !== "object") continue;
+    const snap = item as ArchiveWeekLike;
+    const key = weekRangeKey(snap.weekFrom, snap.weekTo);
+    if (!key || (curKey && key === curKey)) continue;
+    const archEmps = Array.isArray(snap.weekEmployees) ? snap.weekEmployees : [];
+    if (archEmps.length === 0) continue;
+    if (!liveRosterHasPositiveHours(archEmps)) continue;
+    if (payrollRosterFingerprint(archEmps) === fp) return true;
+  }
+  return false;
+}
+
+/**
+ * @deprecated GO6 — identity overlap alone is NOT a resurrection signal.
+ * Kept for diagnostics / legacy tests; fence decisions must use
+ * {@link mayPersistPayrollRosterUnderWeekKeys} (cloud membership + fingerprint).
  */
 export function rosterOverlapsArchivedHistorical(
   liveRoster: unknown,
@@ -122,8 +192,16 @@ export type MayPersistPayrollRosterResult = {
 };
 
 /**
- * D-F3 — may we persist this roster under the given week keys?
- * Blocks: current week keys + positive hours + overlap with historical archive week.
+ * D-F3 (+ GO6 / GO6.1 amend) — may we persist this roster under the given week keys?
+ *
+ * Control flow (GO6.1):
+ * 1. tombstone recreate → BLOCK
+ * 2. O2 true historical clone/residual (fingerprint) → BLOCK
+ *    even when outgoing identity set === cloud identity set
+ * 3. O1 outgoing ⊆ Cloud current → ALLOW (legal field update)
+ * 4. else no residual signal → ALLOW
+ *
+ * Mere archive identity overlap alone is never sufficient to BLOCK.
  */
 export function mayPersistPayrollRosterUnderWeekKeys(params: {
   weekFrom: string;
@@ -133,6 +211,14 @@ export function mayPersistPayrollRosterUnderWeekKeys(params: {
   /** Current calendar payroll week (getPayrollWeekRange). */
   currentFrom: string;
   currentTo: string;
+  /**
+   * GO6 — Cloud current `kw-week-employees` baseline (when known).
+   * When provided and non-empty, outgoing ⊆ cloud ⇒ legal update ALLOW
+   * (only after O2 clone check passes).
+   */
+  cloudRoster?: unknown;
+  /** GO6 — current-week tombstone merge keys (dir:/name:/id:). */
+  tombstonedMergeKeys?: Set<string>;
 }): MayPersistPayrollRosterResult {
   const hoursTotal = liveRosterTotalHours(params.roster);
   const keysAreCurrent =
@@ -145,19 +231,55 @@ export function mayPersistPayrollRosterUnderWeekKeys(params: {
   if (hoursTotal <= 0) {
     return { allow: true, reason: "ok_zero_hours", hoursTotal };
   }
-  if (
-    rosterOverlapsArchivedHistorical(
-      params.roster,
-      params.archive,
-      params.currentFrom,
-      params.currentTo,
-    )
-  ) {
-    return {
-      allow: false,
-      reason: PAYROLL_RESURRECTION_FENCE_BLOCKED_REASON,
-      hoursTotal,
-    };
+
+  const liveKeys = mergeKeySet(params.roster);
+  const cloudProvided = params.cloudRoster !== undefined;
+  const cloudList = cloudProvided ? asEmpList(params.cloudRoster) : [];
+  const cloudKeys = mergeKeySet(cloudList);
+  const novelKeys: string[] = [];
+  for (const k of liveKeys) {
+    if (!cloudKeys.has(k)) novelKeys.push(k);
   }
-  return { allow: true, reason: "ok_no_historical_overlap", hoursTotal };
+
+  // 1) Tombstone recreate: identity deleted for this week, reappearing in outgoing.
+  const tombs = params.tombstonedMergeKeys;
+  if (tombs && tombs.size > 0) {
+    for (const k of novelKeys.length > 0 ? novelKeys : liveKeys) {
+      if (tombs.has(k) && !cloudKeys.has(k)) {
+        return {
+          allow: false,
+          reason: BLOCK_TOMBSTONE_RECREATE,
+          hoursTotal,
+        };
+      }
+    }
+  }
+
+  // 2) O2 — historical fingerprint clone / residual BEFORE cloud-membership allow.
+  //    Must fire even when outgoing identity set === cloud identity set.
+  const isClone = liveMatchesHistoricalArchiveFingerprint(
+    params.roster,
+    params.archive,
+    params.currentFrom,
+    params.currentTo,
+  );
+  if (isClone) {
+    if (cloudKeys.size === 0) {
+      return { allow: false, reason: BLOCK_HISTORICAL_CLONE, hoursTotal };
+    }
+    const cloudFp = payrollRosterFingerprint(cloudList);
+    const liveFp = payrollRosterFingerprint(params.roster);
+    if (cloudFp !== liveFp) {
+      return { allow: false, reason: BLOCK_HISTORICAL_CLONE, hoursTotal };
+    }
+    // cloudFp === liveFp: live already matches Cloud (not a residual diverge) → continue
+  }
+
+  // 3) O1 — entire outgoing ⊆ cloud current ⇒ legal field update (settle/hours/rate…).
+  if (cloudKeys.size > 0 && novelKeys.length === 0) {
+    return { allow: true, reason: OK_CLOUD_MEMBERSHIP_UPDATE, hoursTotal };
+  }
+
+  // 4) Archive identity overlap alone is NOT sufficient to block (GO6).
+  return { allow: true, reason: "ok_no_residual_clone", hoursTotal };
 }
