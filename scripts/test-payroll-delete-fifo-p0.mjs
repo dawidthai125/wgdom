@@ -145,7 +145,6 @@ globalThis.fetch = async (url, opts) => {
 const {
   cloudSyncMutationGuard,
   enqueueKwWeekEmployeesWrite,
-  withKwWeekEmployeesAsyncMutation,
   getKwWeekEmployeesWriteQueueState,
 } = await import("../src/lib/cloud-sync-mutation-guard.ts");
 
@@ -162,6 +161,7 @@ const {
 
 function resetHarness(roster = [], tombs = [], rev = 1) {
   cloudSyncMutationGuard.reset();
+  cloudSyncMutationGuard.resetWriteChainForTests();
   for (const k of Object.keys(lsStore)) delete lsStore[k];
   kvStore["kw-weekFrom"] = WF;
   kvStore["kw-weekTo"] = WT;
@@ -211,40 +211,34 @@ console.log("=== PAYROLL DELETE P0 — FIFO RACE ===\n");
   pushDelayMs = 60;
 
   const timeline = [];
-  const addP = withKwWeekEmployeesAsyncMutation(async () => {
-    timeline.push({ op: "ADD_START", t: Date.now() });
-    await pwrPush({
-      roster: [Z, X],
-      weekFrom: WF,
-      weekTo: WT,
-      rosterBefore: [Z],
-      revokeIdentities: [X],
-    });
+  // GO9.2 — single enqueue owner; END markers prove serialization
+  const addP = pwrPush({
+    roster: [Z, X],
+    weekFrom: WF,
+    weekTo: WT,
+    rosterBefore: [Z],
+    revokeIdentities: [X],
+  }).then(() => {
     timeline.push({ op: "ADD_END", t: Date.now() });
   });
-  // Fire REMOVE immediately (would overlap without FIFO)
-  const remP = withKwWeekEmployeesAsyncMutation(async () => {
-    timeline.push({ op: "REM_START", t: Date.now() });
-    await pwrRemove({
-      weekFrom: WF,
-      weekTo: WT,
-      employeeId: X.id,
-      currentRoster: [Z, X],
-    });
+  const remP = pwrRemove({
+    weekFrom: WF,
+    weekTo: WT,
+    employeeId: X.id,
+    currentRoster: [Z, X],
+  }).then(() => {
     timeline.push({ op: "REM_END", t: Date.now() });
   });
 
   await Promise.all([addP, remP]);
 
-  const addStart = timeline.find((e) => e.op === "ADD_START");
   const addEnd = timeline.find((e) => e.op === "ADD_END");
-  const remStart = timeline.find((e) => e.op === "REM_START");
+  const remEnd = timeline.find((e) => e.op === "REM_END");
   assert("A no batch-set overlap", maxConcurrent <= 1, `maxConcurrent=${maxConcurrent}`);
-  assert("A REMOVE starts after ADD ends", !!addEnd && !!remStart && remStart.t >= addEnd.t, JSON.stringify(timeline));
+  assert("A ADD_END before REM_END", !!addEnd && !!remEnd && addEnd.t <= remEnd.t, JSON.stringify(timeline));
   assert("A cloud X absent", !cloudHas(X.id));
   assert("A cloud Z present", cloudHas(Z.id));
   assert("A tombstone X present", tombHas(X));
-  assert("A ADD before REMOVE order", addStart.t <= remStart.t);
 }
 
 // ─── B) REMOVE → ADD (legal re-add after serialized delete) ────────────────
@@ -255,24 +249,22 @@ console.log("=== PAYROLL DELETE P0 — FIFO RACE ===\n");
   pushDelayMs = 40;
 
   const timeline = [];
-  const remP = withKwWeekEmployeesAsyncMutation(async () => {
+  const remP = pwrRemove({
+    weekFrom: WF,
+    weekTo: WT,
+    employeeId: X.id,
+    currentRoster: [Z, X],
+  }).then(() => {
     timeline.push("REM");
-    await pwrRemove({
-      weekFrom: WF,
-      weekTo: WT,
-      employeeId: X.id,
-      currentRoster: [Z, X],
-    });
   });
-  const addP = withKwWeekEmployeesAsyncMutation(async () => {
+  const addP = pwrPush({
+    roster: [Z, X],
+    weekFrom: WF,
+    weekTo: WT,
+    rosterBefore: [Z],
+    revokeIdentities: [X],
+  }).then(() => {
     timeline.push("ADD");
-    await pwrPush({
-      roster: [Z, X],
-      weekFrom: WF,
-      weekTo: WT,
-      rosterBefore: [Z],
-      revokeIdentities: [X],
-    });
   });
   await Promise.all([remP, addP]);
 
@@ -327,31 +319,25 @@ console.log("=== PAYROLL DELETE P0 — FIFO RACE ===\n");
   pushDelayMs = 25;
 
   await Promise.all([
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrPush({
-        roster: [X],
-        weekFrom: WF,
-        weekTo: WT,
-        rosterBefore: [],
-        revokeIdentities: [X],
-      });
+    pwrPush({
+      roster: [X],
+      weekFrom: WF,
+      weekTo: WT,
+      rosterBefore: [],
+      revokeIdentities: [X],
     }),
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrRemove({
-        weekFrom: WF,
-        weekTo: WT,
-        employeeId: X.id,
-        currentRoster: [X],
-      });
+    pwrRemove({
+      weekFrom: WF,
+      weekTo: WT,
+      employeeId: X.id,
+      currentRoster: [X],
     }),
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrPush({
-        roster: [X],
-        weekFrom: WF,
-        weekTo: WT,
-        rosterBefore: [],
-        revokeIdentities: [X],
-      });
+    pwrPush({
+      roster: [X],
+      weekFrom: WF,
+      weekTo: WT,
+      rosterBefore: [],
+      revokeIdentities: [X],
     }),
   ]);
   assert("D1 ADD→REM→ADD final X present", cloudHas(X.id));
@@ -365,30 +351,24 @@ console.log("=== PAYROLL DELETE P0 — FIFO RACE ===\n");
   pushDelayMs = 25;
 
   await Promise.all([
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrRemove({
-        weekFrom: WF,
-        weekTo: WT,
-        employeeId: X.id,
-        currentRoster: [Z, X],
-      });
+    pwrRemove({
+      weekFrom: WF,
+      weekTo: WT,
+      employeeId: X.id,
+      currentRoster: [Z, X],
     }),
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrPush({
-        roster: [Z, X],
-        weekFrom: WF,
-        weekTo: WT,
-        rosterBefore: [Z],
-        revokeIdentities: [X],
-      });
+    pwrPush({
+      roster: [Z, X],
+      weekFrom: WF,
+      weekTo: WT,
+      rosterBefore: [Z],
+      revokeIdentities: [X],
     }),
-    withKwWeekEmployeesAsyncMutation(async () => {
-      await pwrRemove({
-        weekFrom: WF,
-        weekTo: WT,
-        employeeId: X.id,
-        currentRoster: [Z, X],
-      });
+    pwrRemove({
+      weekFrom: WF,
+      weekTo: WT,
+      employeeId: X.id,
+      currentRoster: [Z, X],
     }),
   ]);
   assert("D2 REM→ADD→REM final X absent", !cloudHas(X.id));
@@ -419,6 +399,7 @@ console.log("=== PAYROLL DELETE P0 — FIFO RACE ===\n");
 // ─── Sanity: isBlocked is independent (not used as queue) ──────────────────
 {
   cloudSyncMutationGuard.reset();
+  cloudSyncMutationGuard.resetWriteChainForTests();
   assert("F isBlocked false when idle", cloudSyncMutationGuard.isBlocked() === false);
   const p = enqueueKwWeekEmployeesWrite(async () => {
     assert("F isBlocked true during write", cloudSyncMutationGuard.isBlocked() === true);

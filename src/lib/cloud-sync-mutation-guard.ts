@@ -5,6 +5,12 @@
  * PAYROLL DELETE P0 — FIFO Promise chain dla zapisów kw-week-employees
  * (`enqueueKwWeekEmployeesWrite`). `isBlocked()` nadal tylko tłumi auto-pull —
  * nie jest kolejką mutacji.
+ *
+ * GO9.2 — SINGLE-FLIGHT payroll CAS: sibling writers ALWAYS append to the
+ * promise chain. Never run a new independent write inline just because
+ * `depth > 0` (that allowed parallel batch-set with the same expectedRevision).
+ * Nested `withKw… → pwrPush` deadlock is avoided by callers using a single
+ * enqueue owner (pwrPush SSOT — no outer withKw wrap around pwrPush).
  */
 
 import { payrollTraceEmit } from "@/lib/payroll-runtime-trace";
@@ -33,8 +39,9 @@ const endedTokens = new Set<MutationToken>();
  * Independent of `isBlocked()` auto-pull suppress.
  */
 let kwWeekEmployeesWriteChain: Promise<unknown> = Promise.resolve();
-/** >0 while executing an enqueued write slot (re-entrancy → run inline). */
+/** >0 while executing an enqueued write slot. */
 let kwWeekEmployeesWriteDepth = 0;
+/** Queued + running slots (includes not-yet-started waiters). */
 let kwWeekEmployeesWritePending = 0;
 
 function defaultSuppressMs(scope: CloudSyncScope): number {
@@ -88,10 +95,22 @@ export function extendScopeSuppress(scope: CloudSyncScope): void {
   extendSuppress(defaultSuppressMs(scope));
 }
 
+/**
+ * Clear mutation suppress / tokens.
+ * GO9.2: never destroy an in-flight or pending payroll write-chain
+ * (that re-opened sibling parallel writers after CloudLoader bootstrap).
+ */
 function reset(): void {
   activeTokens.clear();
   endedTokens.clear();
   suppressUntil = 0;
+  if (kwWeekEmployeesWriteDepth === 0 && kwWeekEmployeesWritePending === 0) {
+    kwWeekEmployeesWriteChain = Promise.resolve();
+  }
+}
+
+/** @internal test isolation — force-clear write chain only when idle (or after await). */
+function resetWriteChainForTests(): void {
   kwWeekEmployeesWriteChain = Promise.resolve();
   kwWeekEmployeesWriteDepth = 0;
   kwWeekEmployeesWritePending = 0;
@@ -108,16 +127,23 @@ function msUntilUnblocked(): number {
 }
 
 /**
- * FIFO serialize async writes to kw-week-employees.
- * Nested calls (e.g. withKw… → pwrPush) run inline in the same slot — no deadlock.
+ * FIFO serialize async writes to kw-week-employees (GO9.2 single-flight).
+ *
+ * Every independent writer gets its own chain slot and waits for prior slots.
+ * Do NOT run `fn()` inline when depth>0 — that allowed sibling batch-sets to
+ * share the same expectedRevision (HAR GO9.1 #4/#5).
+ *
+ * Deadlock avoidance: callers must not wrap `pwrPush` (which already enqueues)
+ * inside another `enqueue`/`withKwWeekEmployeesAsyncMutation`. Use one owner.
  * Rejection of one job does not stick the chain (finally advances).
  */
 export async function enqueueKwWeekEmployeesWrite<T>(fn: () => Promise<T>): Promise<T> {
-  if (kwWeekEmployeesWriteDepth > 0) {
-    return fn();
-  }
-
   kwWeekEmployeesWritePending += 1;
+  payrollTraceEmit("payroll.guard.write_queue.queued", "GUARD", "debug", {
+    pending: kwWeekEmployeesWritePending,
+    depth: kwWeekEmployeesWriteDepth,
+  });
+
   const run = kwWeekEmployeesWriteChain.then(async () => {
     kwWeekEmployeesWriteDepth += 1;
     const token = begin("kw-week-employees");
@@ -131,6 +157,10 @@ export async function enqueueKwWeekEmployeesWrite<T>(fn: () => Promise<T>): Prom
       end(token);
       kwWeekEmployeesWriteDepth = Math.max(0, kwWeekEmployeesWriteDepth - 1);
       kwWeekEmployeesWritePending = Math.max(0, kwWeekEmployeesWritePending - 1);
+      payrollTraceEmit("payroll.guard.write_queue.finished", "GUARD", "debug", {
+        pending: kwWeekEmployeesWritePending,
+        depth: kwWeekEmployeesWriteDepth,
+      });
     }
   });
 
@@ -177,6 +207,9 @@ export function withKwWeekEmployeesMutation<T>(fn: () => T): T {
 /**
  * Async mutation of week roster — FIFO write queue + begin/end suppress for auto-pull.
  * Critical section spans the full awaited fn (push / rebase / retry).
+ *
+ * GO9.2: do NOT wrap `pwrPush` / `pwrAdd` / `pwrRemove` — they already enqueue.
+ * Use this for paths that call `pushKeysToCloud` / rollover directly.
  */
 export async function withKwWeekEmployeesAsyncMutation(fn: () => Promise<void>): Promise<void> {
   await enqueueKwWeekEmployeesWrite(fn);
@@ -189,6 +222,7 @@ export const cloudSyncMutationGuard = {
   extendSuppress,
   reset,
   clearAll: reset,
+  resetWriteChainForTests,
   msUntilUnblocked,
   enqueueKwWeekEmployeesWrite,
   getKwWeekEmployeesWriteQueueState,

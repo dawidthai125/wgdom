@@ -58,7 +58,7 @@ import {
   markCloudFreshnessAfterBootstrapFailure,
   markCloudFreshnessAfterBootstrapSuccess,
 } from "@/lib/cloud-freshness-gate";
-import { cloudSyncMutationGuard } from "@/lib/cloud-sync-mutation-guard";
+import { cloudSyncMutationGuard, enqueueKwWeekEmployeesWrite } from "@/lib/cloud-sync-mutation-guard";
 import {
   payrollTraceBumpRosterRevision,
   payrollTraceCreateBootstrapPushId,
@@ -372,32 +372,64 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           const bootstrapPushId = payrollCasPush
             ? payrollTraceCreateBootstrapPushId()
             : undefined;
-          if (empPushIdx >= 0 && bootstrapPushId) {
-            payrollTraceEmit("sync.bootstrap.kv_push", "HTTP_OUT", "info", {
-              bootstrapPushId,
-              payrollWeekCas: true,
-              expectedRevision: getExpectedPayrollRevision(),
-              weekEmpPayload: rosterTraceSnapshot(pushValues[empPushIdx], wfBoot, wtBoot, "MERGED", "PRESENT"),
-              trigger: "bootstrap_push" as const,
-            });
+          const keysOut = [
+            ...pushKeys,
+            JOBS_DELETED_IDS_KEY,
+            DIRECTORY_DELETED_IDS_KEY,
+            CONTACTS_DELETED_IDS_KEY,
+            ARCHIVE_DELETED_IDS_KEY,
+          ];
+          const valuesOut = [
+            ...pushValues,
+            mergedDeleted,
+            mergedDirDeleted,
+            mergedContactsDeleted,
+            mergedArchiveDeleted,
+          ];
+          const pushOptsBase = {
+            replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
+            replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
+            replaceWeekEmployeesKeys: [] as string[],
+            clientAppVersion: APP_VERSION,
+            skipCloudFreshnessGate: true,
+          };
+          if (payrollCasPush) {
+            // GO9.2 — serialize bootstrap payroll CAS on the same FIFO as domain writers;
+            // read expectedRevision fresh inside the slot (not before enqueue).
+            void enqueueKwWeekEmployeesWrite(async () => {
+              const expectedRevision = getExpectedPayrollRevision();
+              if (empPushIdx >= 0 && bootstrapPushId) {
+                payrollTraceEmit("sync.bootstrap.kv_push", "HTTP_OUT", "info", {
+                  bootstrapPushId,
+                  payrollWeekCas: true,
+                  expectedRevision,
+                  weekEmpPayload: rosterTraceSnapshot(
+                    pushValues[empPushIdx],
+                    wfBoot,
+                    wtBoot,
+                    "MERGED",
+                    "PRESENT",
+                  ),
+                  trigger: "bootstrap_push" as const,
+                });
+              }
+              await pushKeysToCloud(keysOut, valuesOut, {
+                ...pushOptsBase,
+                payrollWeekCas: true,
+                expectedRevision,
+              });
+            }).catch(() => {});
+          } else {
+            void pushKeysToCloud(keysOut, valuesOut, {
+              ...pushOptsBase,
+              payrollWeekCas: false,
+            }).catch(() => {});
           }
-          void pushKeysToCloud(
-            [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
-            [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
-            {
-              replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
-              replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-              replaceWeekEmployeesKeys: [],
-              payrollWeekCas: payrollCasPush,
-              expectedRevision: payrollCasPush ? getExpectedPayrollRevision() : undefined,
-              clientAppVersion: APP_VERSION,
-              skipCloudFreshnessGate: true,
-            },
-          ).catch(() => {});
         }
 
         markCloudBootstrapSuccess();
         markCloudFreshnessAfterBootstrapSuccess();
+        // GO9.2 — reset clears suppress/tokens only; idle write-chain may reset, in-flight preserved
         cloudSyncMutationGuard.reset();
         payrollTraceEmit("sync.bootstrap.ready", "APPLY", "info", {});
         let lsEmpCount = 0;

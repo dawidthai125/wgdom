@@ -1728,14 +1728,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     withPayrollWeekEmployeesWriteSource("restorePayrollHoursFromPrev", () => {
       setWeekEmployees(next);
     });
-    void withKwWeekEmployeesAsyncMutation(() =>
-      pwrPush({
-        roster: next,
-        weekFrom,
-        weekTo,
-        rosterBefore: before,
-      }),
-    ).catch((e) => {
+    // GO9.2 — single enqueue owner = pwrPush
+    void pwrPush({
+      roster: next,
+      weekFrom,
+      weekTo,
+      rosterBefore: before,
+    }).catch((e) => {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       toast.error("Nie udało się zapisać przywróconych godzin", {
         description: msg,
@@ -1848,41 +1847,42 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (settlementAck) {
       markSettlementCloudPushAttempt(weekFrom, weekTo);
     }
-    void withKwWeekEmployeesAsyncMutation(async () => {
-      const result = await pwrPush({
-        roster: next,
-        weekFrom,
-        weekTo,
-        rosterBefore: before,
-        options,
-      });
-      if (settlementAck) {
-        // GO4 — HTTP 2xx alone is not enough; outgoing must carry settlement intents.
-        const ack = finalizeSettlementCloudAckAfterPush({
-          weekFrom,
-          weekTo,
-          intentBefore: before,
-          intentAfter: next,
-          outgoingRoster: result.roster,
-        });
-        if (!ack.ok) {
-          toast.error("Rozliczenie nie zostało zapisane w chmurze", {
-            description: `${PAYROLL_SETTLEMENT_OUTGOING_MISMATCH} · Ponów zapis lub odśwież.`,
-            id: "payroll-settlement-outgoing-mismatch",
-          });
-          return;
-        }
-      }
-      if (result.rebased) {
-        withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
-          setWeekEmployees(result.roster);
-        });
-        toast.info("Lista płac zsynchronizowana z chmurą", {
-          description: "Połączono Twoje zmiany ze stanem zapisanym przez innego administratora.",
-          id: "payroll-roster-rebase",
-        });
-      }
+    // GO9.2 — pwrPush owns FIFO enqueue (no outer withKw wrap → no deadlock / no sibling inline).
+    void pwrPush({
+      roster: next,
+      weekFrom,
+      weekTo,
+      rosterBefore: before,
+      options,
     })
+      .then((result) => {
+        if (settlementAck) {
+          // GO4 — HTTP 2xx alone is not enough; outgoing must carry settlement intents.
+          const ack = finalizeSettlementCloudAckAfterPush({
+            weekFrom,
+            weekTo,
+            intentBefore: before,
+            intentAfter: next,
+            outgoingRoster: result.roster,
+          });
+          if (!ack.ok) {
+            toast.error("Rozliczenie nie zostało zapisane w chmurze", {
+              description: `${PAYROLL_SETTLEMENT_OUTGOING_MISMATCH} · Ponów zapis lub odśwież.`,
+              id: "payroll-settlement-outgoing-mismatch",
+            });
+            return;
+          }
+        }
+        if (result.rebased) {
+          withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
+            setWeekEmployees(result.roster);
+          });
+          toast.info("Lista płac zsynchronizowana z chmurą", {
+            description: "Połączono Twoje zmiany ze stanem zapisanym przez innego administratora.",
+            id: "payroll-roster-rebase",
+          });
+        }
+      })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
         if (settlementAck) {
@@ -2050,15 +2050,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       payrollTraceBumpRosterRevision();
       if (newEmps.length > 0) {
         // W2 add — no skipPayrollGuard / no intentionalHoursClear (CREATED, no D2)
-        void withKwWeekEmployeesAsyncMutation(() =>
-          pwrPush({
-            roster: next,
-            weekFrom,
-            weekTo,
-            rosterBefore: prev,
-            revokeIdentities: newEmps,
-          }),
-        ).catch((e) => {
+        // GO9.2 — single enqueue owner = pwrPush
+        void pwrPush({
+          roster: next,
+          weekFrom,
+          weekTo,
+          rosterBefore: prev,
+          revokeIdentities: newEmps,
+        }).catch((e) => {
           const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
           toast.error("Nie udało się zapisać składu do chmury", {
             description: msg,
@@ -2085,13 +2084,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
         // Remove ≠ D2 hours-collapse; guard stays active (no bare skip)
-        void withKwWeekEmployeesAsyncMutation(async () => {
-          await pwrRemove({
-            weekFrom,
-            weekTo,
-            employeeId: id,
-            currentRoster: prev,
-          });
+        // GO9.2 — pwrRemove owns FIFO enqueue
+        void pwrRemove({
+          weekFrom,
+          weekTo,
+          employeeId: id,
+          currentRoster: prev,
         }).catch((e) => {
           const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
           toast.error("Nie udało się zapisać składu do chmury", {
@@ -2123,16 +2121,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     withPayrollWeekEmployeesWriteSource("replaceWeekWithAllActive", () => {
       setWeekEmployees(newEmps);
     });
-    void withKwWeekEmployeesAsyncMutation(() =>
-      pwrPush({
-        roster: newEmps,
-        weekFrom,
-        weekTo,
-        rosterBefore: weekEmployees,
-        revokeIdentities: newEmps,
-        options: { intentionalHoursClear: true },
-      }),
-    ).catch((e) => {
+    // GO9.2 — single enqueue owner = pwrPush
+    void pwrPush({
+      roster: newEmps,
+      weekFrom,
+      weekTo,
+      rosterBefore: weekEmployees,
+      revokeIdentities: newEmps,
+      options: { intentionalHoursClear: true },
+    }).catch((e) => {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       toast.error("Nie udało się zapisać składu do chmury", {
         description: msg,
