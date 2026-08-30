@@ -162,6 +162,15 @@ export default defineConfig(() => {
 
     assetsInclude: ['**/*.svg', '**/*.csv'],
 
+    optimizeDeps: {
+      // playwright/playwright-core are node-only devDependencies pulled in via a
+      // dynamic import() in electrical-schematics/render/svg-raster.ts (used only
+      // in Node smoke tests). Excluding them stops Vite's dev dep optimizer from
+      // trying to pre-bundle playwright-core (which fails on chromium-bidi).
+      // The browser code path never executes that import (canvas rasterizer is used).
+      exclude: ['playwright', 'playwright-core'],
+    },
+
     build: {
 
       // Performance 2.2A MIN — nie preloaduj lazy paneli przy starcie (Pulpit)
