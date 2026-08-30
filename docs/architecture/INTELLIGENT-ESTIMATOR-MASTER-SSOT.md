@@ -2,15 +2,17 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
-> **Data:** 2026-08-28 (Owner OD-P3 governance sync) · prior 2026-08-26 (Master completeness closeout · **A08-P3 IMPLEMENTED** · **G2 WAIT**)
+> **Data:** 2026-08-30 (**docs-only promote** · Owner GO) · prior 2026-08-28 (**CHROBREGO CURRENT** · G2 Labor m² Accept **CLOSED/PASS**) · prior 2026-08-28 (Owner **OD-W0-GO** · OD-P3 governance) · prior 2026-08-26 (A08-P3 IMPLEMENTED · G2 WAIT = **HISTORY**)
 > **Doc hash (pre-edit baseline):** `82D337F25431` @ git `b857a162` · **post-edit:** see git after this session
+> **★★ DOCS-ONLY PROMOTE (2026-08-30 · Owner GO):** formalizes existing CHROBREGO G2 Labor m² **CLOSED/PASS** (§10.0 · §22) from session evidence `.tmp-chrobrego-g1-audit/g2-batch-accept-report.json` (LP7 ACCEPTED · LP8/12/13/14 IDEMPOTENT_NOOP · OUR RATE **22.90**) · **≠** invent Accept · **≠** reopen LP7–14 · **≠** G2 Material PASS · **≠** A08-P3 CLOSED · **≠** code/data/Payroll
 > **Mode:** DOCUMENTATION ONLY · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **≠** cały IK globalnie E2E GREEN · **AUTONOMY-08 epic NOT CLOSED**
+> **★★ DECISION TREE = PRIMARY CONTINUITY CONTRACT** — §10.0 · §17 · §22 · **Decision Tree > report > artifact > chat memory**
+> **★★ MASTER CONNECTIVITY CONTRACT:** **§2A** — Orchestra = single sequencer · Host = adapter · **OD-W0-GO GRANTED** (governance) · W3–W6 **NOT** auto-authorized · **≠** Production Verified
 > **Experience DF:** [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) · Phase 4 amend §21
-> **A08-P3:** impl **`3822acb`** · HEAD **`f457cb17`** · UI **`2.66.116`** · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · Arch [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · harness **27/0** · **P3 OPEN** · G1 contract **Owner APPROVED** · G2 contract **Owner APPROVED** · G1 PV **PASS** · G2 **WAITING FOR NATURAL PROD CANDIDATE** · prod use **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) · APF **FROZEN** · separate plane (OD-P3-7)
-> **Live tip commit (P3 deploy):** **`3822acb`** · **HEAD** **`f457cb17`**
+> **A08-P3:** impl **`3822acb`** · UI tip via [`09`](../AI/09_PRODUCTION_BASELINE.md) · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · harness **27/0** · **P3 OPEN** (epic) · G1 contract **Owner APPROVED** · G2 contract **Owner APPROVED** · G1 PV **PASS** · **G2 Labor m² (CHROBREGO) CLOSED/PASS** · G2 material **WAIT** · G3 / Experience **NOT STARTED** · APF **FROZEN** (OD-P3-7)
+> **★★ CHROBREGO CURRENT CHECKPOINT:** §10.0 · §22 — tender `08df0363-7b22-e462-ab56-940001283cba` · OCDS `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888`
+> **Live tip:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` (nie hardcoduj SHA/UI tu przy driftcie)
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
-> **Tip produkcji:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
-> **Live tip (pointer):** UI / commit — **tylko** `09` + live `version.json` (nie hardcoduj tu przy driftcie deploy)
 > **Owner Map slices (latest):** A01-S1 **`3e4adfff`** · A01-LP5 **`f012d39a`** · A01-S3 OUR RATE **`e7774ca5`** · **A01 F5 MARGIN **`82f3520e`**** · A09-PACKAGE-S1 **`8ccb3e9b`**
 > **Sesja continuity:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
 > **★★ IK EXPERIENCE:** §13 — Observation SSOT (Phases **1–2 CLOSED**) · Live Viz consumer (**Phase 3 CLOSED**) · Team Conversation overlay (**Phase 4 CLOSED**) · ETA / Final Wrap-up = **Phase 5 NOT AUTHORIZED**
@@ -22,6 +24,28 @@ SEARCH BEFORE CREATE.
 Przetargi + kosztorysowanie JUŻ ISTNIEJĄ.
 IK = ORCHESTRACJA ISTNIEJĄCYCH MODUŁÓW WGDOM,
      nie drugi TenderModule / Catalog / Pricing / Host.
+════════════════════════════════════════════════════════
+```
+
+```text
+════════════════════════════════════════════════════════
+★★ DECISION TREE IS THE PRIMARY CONTINUITY CONTRACT OF IK ★★
+
+Decision Tree > pojedynczy raport > artefakt > pamięć rozmowy.
+
+Każdy nowy AI MUSI:
+  1. przeczytać TEN Master SSOT
+  2. odnaleźć CURRENT DECISION TREE (§10.0)
+  3. ustalić CURRENT NODE
+  4. przeczytać CLOSED / OPEN branches
+  5. respektować Owner GO / STOP gates
+  6. kontynuować WYŁĄCZNIE z aktualnego węzła
+
+NIE rozpoczynaj ponownie zamkniętej gałęzi
+tylko dlatego, że raport jest w historii czatu.
+
+Jeżeli raport historyczny ≠ Decision Tree:
+  → READ-ONLY AUDIT (repo + ten SSOT) · NIE zgaduj.
 ════════════════════════════════════════════════════════
 ```
 
@@ -37,8 +61,8 @@ IK = ORCHESTRACJA ISTNIEJĄCYCH MODUŁÓW WGDOM,
 | **WIP** | Lokalny / niecommitowany / nie tip |
 | **PROPOSED** | Docelowy model UX/arch — **nie** udawać implementacji |
 | **GAP** | Brak w source albo świadomie HOLD |
-
----
+| **CLOSED / PASS** | Gałąź Decision Tree zamknięta — **nie** reopen bez Owner GO |
+| **HISTORY / PRIOR STATE** | Starszy checkpoint — nie mylić z CURRENT |
 
 ## 0. Co to jest WGDOM
 
@@ -62,8 +86,9 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 
 | Rola (logiczna) | Rzeczywisty byt w source | NIE jest |
 |-----------------|--------------------------|----------|
-| **Chief** | `chief-session` + `chief-orchestrator` + dossier UI · sesja Case/Task · prezentacja stanu | Drugim TenderModule · Decydentem (D) · drugim Hostem |
-| **Host / runtime orchestrator** | `IkEntryHost` — sekwencja ekspertów P2→KNR→Classification→P5→P6→Composite→P7→P8→EC | Drugim Chiefem · drugim Work Catalog |
+| **Chief** | `chief-session` + `chief-orchestrator` + dossier UI · sesja Case/Task · prezentacja stanu | Drugim TenderModule · Decydentem (D) · drugim Hostem · drugim IK sequencerem |
+| **Orchestra (IK sequencer)** | `IkOrchestraPageBridge` → `useIkOrchestra` → `ik-orchestra-engine` + `ik-orchestra-runtime` — **jedyny** IK execution/sequencing path | Drugim Chiefem · Experience engine · Hub Accept path |
+| **Host / UI adapter** | `IkEntryHost` — adapter/consumer snapshotu Orchestra (EC · Live Viz · Owner panels · data attrs) · **NIE** sequencer IK | Drugim Orchestra · drugim Chiefem · drugim Work Catalog |
 | **Document / BOQ Expert** | `ik-document-expert` + P2 ingest bridge + Multi-BOQ / OfferBoq | Nowym storage KV |
 | **Owner Map / Multi-Dwelling** | `multi-dwelling` + `MultiDwellingPackagePanel` + `ik-dwelling-mapping` | Silent invent lokali |
 | **KNR Expert** | `ik-knr-expert` + Slice A `catalogBasis` + Owner mapping D + KL lookup | Work Catalog · Price Memory · auto OUR RATE |
@@ -77,7 +102,7 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 | **Expert Conversation (CURRENT)** | `ExpertConversationSurface` + `ik-entry-conversation` (+ truth filter) | Osobnym LLM per ekspert · fikcyjnym chat store |
 | **IK Experience layer (TARGET)** | Projekcja observability nad runtime (§13) — Team Conversation + Live Visualization + ETA + Final Summary | Drugim systemem IK · storytelling engine |
 
-**OWNER = DECISION MAKER.** IK analizuje / proponuje / porównuje / wyjaśnia / wskazuje ryzyko / rekomenduje.  
+**OWNER = DECISION MAKER.** IK analizuje / proponuje / porównuje / wyjaśnia / wskazuje ryzyko / rekomenduje.
 **NIE** przejmuje samowolnie: OUR RATE · Accept · KNR mapping boundaries · Final Bid · Historical authority.
 
 **IK nie tworzy drugiej domeny Przetargów.** REUSE: `TendersModule`, OfferBoq, F5 Position Cost, Work Catalog, Price Memory, Evidence, Accept, Multi-Dwelling, Bid PDF.
@@ -102,6 +127,120 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 - Historical `authority=true` bez osobnego Owner GO
 - KNR auto-write `catalogWorkId` poza Slice D / authority boundaries
 - `git add -A` · `vercel deploy`
+- drugi IK sequencer / drugi Owner Accept path / drugi refresh system (patrz **§2A**)
+
+---
+
+## 2A. MASTER CONNECTIVITY CONTRACT (OD-W0-GO)
+
+> **Owner Decision:** **OD-W0-GO = GRANTED** (2026-08-28) — governance / documentation wave only.
+> **NIE oznacza:** Production Verified · W3/W5/G2/G3 complete · auto-authorization implementacji fal W3–W6.
+> **NIE zmienia:** historii commitów Orchestra · semantyki runtime API · APF · KV · production.
+
+### 2A.1 Jedna oś wykonawcza (LOCKED)
+
+```text
+TenderDetailPage
+  → IkOrchestraPageBridge
+  → useIkOrchestra
+  → ik-orchestra-engine  +  ik-orchestra-runtime
+  → snapshot / ownerGate
+  → IkEntryHost  +  Observation / Experience / Owner Gate UI
+```
+
+| Byt (dokładne symbole w repo) | Rola | NIE jest |
+|-------------------------------|------|----------|
+| `IkOrchestraPageBridge` | Page-level mount Orchestra; publikuje snapshot | Drugim Hostem |
+| `useIkOrchestra` | React hook / runtime adapter sequencera | Osobnym silnikiem biznesowym |
+| `ik-orchestra-engine` · `ik-orchestra-runtime` | Sync + async IK pipeline (Document→…→P8) | Chief orchestrator · APF |
+| `ownerGate` (API na snapshotcie) | Centralny Owner execution surface (G1/G2) | Auto-Accept |
+| `IkEntryHost` | **UI adapter / consumer** snapshotu | **IK sequencer** |
+| Experience / EC / Observation | **Projekcja** stanu Orchestra | Drugim silnikiem IK |
+| APF | Osobna, zamrożona policy plane | Owner Accept / G1/G2 |
+
+**Zasada nadrzędna:** REUSE → CONNECT → VERIFY → CLOSE.
+Nowa funkcja tylko po wykazaniu braku w audycie + węzeł Decision Tree + Orchestra seam + Owner + persist/recompute + Observation + SSOT + testy + Owner GO.
+
+### 2A.2 Słownik statusów connectivity (osobny od legendy §0)
+
+| Status | Znaczenie |
+|--------|-----------|
+| **CONNECTED** | Capability podpięta do Orchestra / Decision Tree / właściwego seam |
+| **PARTIAL** | Część ścieżki podpięta; brakuje seam / Owner / refresh / PV |
+| **GAP** | Brakuje wymaganej connectivity (nie mylić z „brak kodu domeny”) |
+| **LEGACY-PARALLEL** | Istniejąca ścieżka równoległa; konwergencja = REUSE→CONNECT; **bez Owner GO nie usuwać** |
+| **NOT PROVEN** | Brak dowodu test/PV / nieudowodniona produkcja |
+| **BLOCKED** | Zablokowane governance / dependency / Owner WAIT |
+
+**HARD:** **CONNECTED / IMPLEMENTED ≠ Production Verified.**
+**HARD:** test harness GREEN ≠ prod PV. **HARD:** docs GO ≠ runtime complete.
+
+### 2A.3 Parallel Paths Register + reguła konwergencji
+
+| Path | Klasyfikacja | Convergence (TARGET) |
+|------|--------------|----------------------|
+| `runChiefOrchestrator` T1–T4 | **LEGACY-PARALLEL** | W3: Chief.start → Orchestra snapshot; T1–T4 remain LEGACY until OD-06 |
+| Hub labor/material Accept (`IkLaborGapResearchPanel` / `ik-pricing-orchestrator`) | **LEGACY-PARALLEL** | Hub → `ownerGate` / approved Orchestra refresh seam |
+| Legacy bid panel (`TenderBidProposalPanel` / bid calculator) | **LEGACY-PARALLEL** | W4+/G3: adapter z P7 — **nie** trzeci kalkulator |
+| KNR-WC Hub Accept panels | **PARTIAL** | Orchestra PHASE 3 conditional + documented refresh |
+| APF plane | **CONNECTED** (oddzielna płaszczyzna) | Overlay-only · **zakaz** Accept/persist w APF |
+
+**Convergence rule:** **REUSE → CONNECT.**
+**Nigdy** nie twórz równoległego Owner Accept / execution path.
+**Nigdy** nie usuwaj LEGACY-PARALLEL bez explicit Owner GO.
+
+### 2A.4 Hub integration rule
+
+- Hub Accept **musi** konwergować na `ownerGate` **albo** zatwierdzony Orchestra refresh seam.
+- `notifyIkPricingAccepted` / dual-bump pricing+Chief **sam w sobie NIE** jest równoważny pełnemu Orchestra refresh.
+- Pełny refresh po Accept (Orchestra path): `bumpOrchestraAfterPricingAccept` + epochy (`laborRecalcEpoch` / `materialRecalcEpoch` / catalog·pkg reload) — patrz **§2A.6**.
+
+### 2A.5 W0 governance clarification
+
+| Fakt | Status |
+|------|--------|
+| Orchestra extract **już wylądował** w repo (W1 code history) | **IMPLEMENTED** (code fact) |
+| **OD-W0-GO** | **GRANTED** — formalizuje kontrakt connectivity + autoryzuje **planowanie** kolejnych fal |
+| Fale **W3–W6** (Chief→Orchestra, Hub converge, KNR-WC, OD-01..07, …) | **NOT auto-authorized** — każda fala wymaga własnego Owner GO |
+| Retroactive IMPLEMENT GO dla historycznych commitów Orchestra / `3822acb` | **FORBIDDEN** — nie przepisywać historii |
+
+Decision Tree DF: [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md) — W0 governance GO recorded; implementation waves remain gated.
+
+### 2A.6 `refreshPhase` TARGET → istniejący refresh (zakaz drugiego systemu)
+
+| TARGET (Decision Tree / docs) | CURRENT (repo — REUSE) |
+|-------------------------------|-------------------------|
+| `Orchestra.refreshPhase(...)` | **Nie** jako osobne public API o tej nazwie |
+| | `bumpOrchestraAfterPricingAccept()` w `use-ik-orchestra.ts` |
+| | + `laborRecalcEpoch` / `materialRecalcEpoch` / identity research epochs |
+| | + catalog/pkg reload epochs na snapshot deps |
+
+**ZAKAZ:** tworzenie drugiego refresh systemu / drugiego epoch bus / parallel `refreshPhase` engine.
+**CONNECT only:** ewentualny cienki alias/export istniejącego bump+epoch — po osobnym Owner GO (nie w tej fali docs).
+
+### 2A.7 G3 Final Bid boundary
+
+- **Final Bid persistence = OUT OF P3 scope.**
+- P7 = position-cost / bid **preparation** (read-only vs Final Bid persist).
+- P8 = risk / decision preparation — **bez** auto Owner Accept Final Bid.
+- G3 wymaga **osobnego Owner GO** (AUDIT → DF → GO) — **nie** startować w P3 / W0 docs wave.
+
+### 2A.8 Agent Cold-Start Checklist (connectivity)
+
+```text
+1. Master SSOT (TEN PLIK) — §1 · §2 · §2A · §10 · §11.15 · §17
+2. Decision Framework W0 — IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md
+3. docs/AI/09_PRODUCTION_BASELINE.md + live version.json
+4. Trace Orchestra: IkOrchestraPageBridge → useIkOrchestra → engine/runtime
+5. Inspect existing ownerGate (G1/G2) + IkOwnerGateActionsPanel
+6. Inspect refresh/epoch: bumpOrchestraAfterPricingAccept + recalc epochs
+7. grep/search BEFORE create (REUSE MAP · orchestra/* · owner gate)
+8. Classify: REUSE / CONNECT / VERIFY vs NEW (15-question gate z audytu W0)
+9. Obtain explicit Owner GO for the wave
+10. Only then implement — then TEST → VERIFY (≠ claim Production Verified)
+```
+
+**Jeżeli punkt 8 = NEW:** udokumentuj GAP + insertion seam + Decision Tree node + Orchestra + Owner + persist/recompute + Observation + SSOT + tests — **STOP** i czekaj na Owner GO.
 
 ---
 
@@ -123,7 +262,7 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 | Entry procesu | [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll |
 | **IK AUTONOMY-08 P3** | [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · [`ARCH-REVIEW`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) · impl **`3822acb`** · **P3 OPEN** |
 | **IK-MIGRATION-01** | [`IK-MIGRATION-01-FINAL-HANDOFF.md`](./IK-MIGRATION-01-FINAL-HANDOFF.md) · [`DESIGN-FREEZE`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — P0–P9 **LOCKED / COMPLETE** |
-| **IK Master Decision Tree (W0)** | [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md) — Orchestra · Identity · Chief LEGACY · **FROZEN CANDIDATE** · **OWNER GO NOT GRANTED** |
+| **IK Master Decision Tree (W0)** | [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md) — Orchestra · Identity · Chief LEGACY · **FROZEN** · **OD-W0-GO GRANTED** (governance) · W3–W6 **NOT** auto-authorized · **≠** Production Verified |
 | KNR Expert DF | [`IK-KNR-EXPERT-DESIGN-FREEZE.md`](./IK-KNR-EXPERT-DESIGN-FREEZE.md) · Slice A/B/C/D docs w tym katalogu |
 | Historical Executed | `IK-HISTORICAL-EXECUTED-ATH-*` · Host Wiring · EC reveal VERIFY |
 | Owner Map / Multi-Dwelling | `MULTI-DWELLING-*` · `MULTI-BOQ-*` · OPS Owner Map smoke |
@@ -228,10 +367,15 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **IK-MIGRATION-01** | P0–P9 **LOCKED / COMPLETE** |
 | **AUTONOMY-05…07** | COMPLETE / CLOSED · P5–P8 `"AUTO"\|"OFF"\|"ON"` · Research **CONDITIONAL** |
 | **AUTONOMY-08 P0–P2** | **COMPLETE / CLOSED** |
-| **AUTONOMY-08 P3 Owner Gates** | **IMPLEMENTED** @ **`3822acb`** · harness **27 PASS / 0 FAIL** · **P3 OPEN** (G2 PV incomplete) |
+| **AUTONOMY-08 P3 Owner Gates** | **IMPLEMENTED** @ **`3822acb`** · harness **27 PASS / 0 FAIL** · **P3 OPEN** (epic) · **≠** cały G2 globalnie CLOSED |
 | **AUTONOMY-08 epic** | **NOT CLOSED** |
 | **G1 durable persist PV** | **PASS** (Paczka VII · LS OfferBoq · reload) |
-| **G2 labor/material Accept PV** | **WAITING FOR NATURAL PROD CANDIDATE** · **STOP** execution |
+| **★★ CHROBREGO (2026-08-28)** | **CURRENT CHECKPOINT** — §10.0 · §22 · tender `08df0363-…` |
+| **CHROBREGO G1 AUTO-SAFE** | **CLOSED / PASS** · **22/22** · BEFORE **1/55** → AFTER **23/33** OK/AMBIGUOUS |
+| **CHROBREGO G2 Labor m²** | **CLOSED / PASS** · LP **7/8/12/13/14** · OUR RATE BASE **22.90** · margin **20%** owner |
+| **CHROBREGO LP48 mb** | **OPEN** — Owner classification · **NIE** stawka m² |
+| **G2 material Accept PV** | **WAITING FOR NATURAL PROD CANDIDATE** · **STOP** (Chief OFF) |
+| **G3 / Experience Phase 5** | **NOT STARTED** · **0** · **nie** sugeruj tylko dlatego, że G2 m² PASS |
 | **KNR Slice A** | catalogBasis evidence · **PRODUCTION VERIFIED** (tip historia `93eb41be`) |
 | **Historical Host Wiring** | `64f38479` · **PRODUCTION EXISTING** |
 | **Historical EC reveal** | `b31169be` · **PRODUCTION VERIFIED** (2026-08-21) |
@@ -281,17 +425,39 @@ Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1
 
 ## 9. NEXT
 
-Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT.
+**Pierwsze pytanie cold-startu:** jaki jest **CURRENT NODE** w §10.0 — nie „co robić od początku?”.
+
+Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT (gdy Decision Tree wymaga GO).
+
+**★★ CHROBREGO CURRENT NODE (2026-08-28):**  
+**`AFTER G2 LABOR m² ACCEPT — CLOSED/PASS — WAIT FOR OWNER GO`**  
+(SSOT: **§10.0** — LP listy OPEN tylko tam; nie duplikuj tu).
+
+Legalne następne gałęzie (wymagają Owner GO — AI **nie** wybiera sam):
+
+| # | Gałąź | Status | Wymaga |
+|---|--------|--------|--------|
+| A | **LP48** Malowanie rur **mb** | **OPEN** | Owner **classification** · **NIE** wall-rate m² · **NIE** F1 catalog override na mb |
+| B | **G1 OWNER_REVIEW** (18) | **OPEN** | Owner workId / identity per linia → §10.0 |
+| C | **G1 NO_SAFE_EXISTING_WORK_ID** (15) | **OPEN** | Owner create/bind / HOLD → §10.0 |
+| D | **G2 material** Accept PV | **WAIT** | natural candidate + Chief GO · **NIE** auto-start |
+| E | **G3 Final Bid** | **NOT STARTED** | osobny Owner GO · **OUT OF P3** |
+| F | **Experience Phase 5** | **NOT STARTED** | osobny Owner GO · **≠** auto po G2 m² |
+
+**CLOSED — NIE POWTARZAĆ bez nowego Owner Decision Gate:**
+
+- CHROBREGO F1 catalog-name (`unit===m2`) · F2 margin **20%** · Research m² · Candidate/Evidence m² · G2 Accept LP **7/8/12/13/14** · OUR RATE write dla `legacy-malowanie-m2|m2`
+- Idempotent/no-op **≠** reopen gałęzi
 
 **IK AUTONOMY-08 P2:** **COMPLETE / CLOSED**. **Nie** reopen.
 
-**IK AUTONOMY-08 P3:** **IMPLEMENTED** @ **`3822acb`**. **P3 OPEN** — G1 PV **PASS** · G2 **WAIT** (brak naturalnego candidate na prod). **Nie** zamykaj P3 · **nie** wykonuj G2 Accept bez fixture · **nie** fabricuj candidate.
+**IK AUTONOMY-08 P3:** **IMPLEMENTED** @ **`3822acb`**. **P3 OPEN** (epic) — G1 PV **PASS** · **G2 Labor m² (CHROBREGO) CLOSED/PASS** · G2 material **WAIT**. **Nie** zamykaj całego P3/epic tylko dlatego, że m² PASS. **Nie** fabricuj candidate.
 
 **IK-MIGRATION-01:** P0–P9 LOCKED — **nie** wracaj do „GO P1 entry shell” / „GO P2 Document Expert” jako next.
 
 **Historical EC reveal slice:** **CLOSED / PRODUCTION VERIFIED** (`b31169be`) — **nie** otwieraj kolejnego gate bez nowego Owner GO.
 
-Kandydaci poza tym slice (post-A09):
+Kandydaci poza CHROBREGO / A08 (post-A09):
 
 | # | Gap | Status |
 |---|-----|--------|
@@ -302,27 +468,110 @@ Kandydaci poza tym slice (post-A09):
 | 5 | A07 evidence / CREATE | **HOLD** |
 | 6 | A01-S2 zmywanie | **HOLD** |
 | 7 | A02/A04/A05/A06/A08/A10 | **HOLD** — insufficient evidence |
-| 8 | **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** · labor unit proof · Owner Map bulk (**≠** A08 blockers · qualify namespace) | per audit · Owner GO |
+| 8 | **TM-01 residual C1–C6** / **NEXT-EPIC C4–C5** · labor unit proof · Owner Map bulk (**≠** A08 blockers · qualify separately) | per audit · Owner GO |
 
-**NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10.
+**NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10 / auto-start G3 po G2 m².
 
-Latest continuity: [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md).
+Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md).  
+**CHROBREGO live checkpoint:** **§10.0 · §22** (ten plik).
 
 ---
 
 ## 10. Pełne drzewo IK (CURRENT · source-verified)
 
+### 10.0 ★★ CURRENT DECISION TREE — CHROBREGO (2026-08-28)
+
+> **SSOT continuity node for case CHROBREGO.**  
+> Architecture/module tree poniżej (§10 body) = **mapa systemu** — **nie** mylić z tym drzewem decyzji case'a.  
+> **Jeden** Decision Tree case'a = ten podrozdział. **Nie** twórz drugiego.
+
+| Pole | Wartość (source-verified 2026-08-28) |
+|------|--------------------------------------|
+| **Tender (pipeline)** | `08df0363-7b22-e462-ab56-940001283cba` |
+| **OCDS** | `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888` |
+| **BZP** | `2026/BZP 00408278/01` · Chrobrego 34a |
+| **workId (paint m²)** | `legacy-malowanie-m2` · catalog `namePl` = `Malowanie (m2)` |
+| **CURRENT NODE** | **`AFTER G2 LABOR m² ACCEPT — CLOSED/PASS — WAIT FOR OWNER GO`** |
+| **PRIMARY CONTRACT** | **Decision Tree (§10.0) = PRIMARY CONTINUITY CONTRACT** · HISTORY/LEGACY ≠ CURRENT · chat memory ≠ SSOT |
+| **Session artefacts** | `.tmp-chrobrego-g1-audit/*` — evidence only · **nie** drugi SSOT / nie drugi Decision Tree |
+
+```text
+CHROBREGO
+│
+├── G1 Identity
+│   └── AUTO_SAFE 22
+│       └── CLOSED / PASS
+│           · 22 overrides · 1× durable G1 persist (LS OfferBoq)
+│           · BEFORE: 1 OK / 55 AMBIGUOUS
+│           · AFTER:  23 OK / 33 AMBIGUOUS
+│           · lp21 ALREADY_OK (pre-batch)
+│
+├── G2 Labor
+│   │
+│   ├── Malowanie m²  (researchKey legacy-malowanie-m2|m2)
+│   │   ├── F1 catalog name (unit===m2 only)     → CLOSED
+│   │   │     query namePl = "Malowanie (m2)" · mb = BOQ description (bez F1)
+│   │   │     tests: namepl-f1 12/0 · p4-labor-expert 32/0
+│   │   ├── Owner margin 20% (wroclaw+dolnyslask) → CLOSED · source=owner
+│   │   ├── Research (QUALIFIED=10 · PARSE_EMPTY=0 · margin SET) → CLOSED
+│   │   ├── Candidate (5 LP · CANDIDATE_OWNER_ACCEPT_REQUIRED) → CLOSED
+│   │   ├── Evidence (2 obs / candidate)           → CLOSED
+│   │   └── G2 Owner Accept LP 7,8,12,13,14      → CLOSED / PASS
+│   │       · LP7 = ACCEPTED · LP8/12/13/14 = IDEMPOTENT_NOOP
+│   │       · OUR RATE BASE = 22.90 PLN · sourceType=ACCEPT · lookup=CURRENT
+│   │       · SELL/display = 27.48 PLN (≠ OUR RATE) · margin 20%
+│   │       · post: candidates=0 · CURRENT_HIT ×5
+│   │       · refreshPhase=1 · laborRecalcEpoch=1 · G3=0 · Experience=0
+│   │
+│   └── Malowanie rur mb / LP48
+│       └── OPEN
+│           · unit=mb · "Malowanie rur stalowych"
+│           · RESEARCH_GAP / PARSE_EMPTY / scope · candidate=0 · Accept=0
+│           · NIE F1 catalog override na mb · NIE stawka ścian/sufitów m²
+│           · wymaga osobnej Owner CLASSIFICATION decision
+│
+├── G1 OWNER_REVIEW
+│   └── 18 → OPEN
+│       · LP: 3,6,15,22,26,27,28,29,31,35,36,38,40,41,42,44,46,47
+│
+├── G1 NO_SAFE_EXISTING_WORK_ID
+│   └── 15 → OPEN
+│       · LP: 1,4,5,10,16,17,18,20,23,24,25,32,33,39,43
+│
+├── G2 Material Accept PV (A08-P3 global)
+│   └── WAIT · NIE auto-start · wymaga osobnego Owner GO (+ Chief)
+│
+├── G3 Final Bid
+│   └── NOT STARTED · 0
+│
+└── Experience / Phase 5
+    └── NOT STARTED · 0 · NIE auto-start po G2 m²
+```
+
+**CLOSED BRANCH PROTECTION (CHROBREGO m²):**
+
+Nie wolno bez **nowego** Owner Decision Gate: ponownie F1 · ponownie margin 20% · ponownie research m² · ponownie te same candidate · ponownie G2 Accept LP 7/8/12/13/14 · ponownie OUR RATE write.  
+**Idempotent/no-op ≠ reopen.**
+
+**Owner Decision Contract (reminder):** Owner = jedyne źródło workId (review) · classification · marginPct · Accept · przejść wymagających GO. AI = analyze / diagnose / propose / WHAT-IF — **nie** invent decision / margin / auto-Accept / bypass gate.
+
+### Architecture / module map (system — **nie** Decision Tree case'a)
+
+> Poniższe drzewo = mapa modułów IK. **CURRENT DECISION TREE case'a** = wyłącznie **§10.0** powyżej.
+
 ```text
 INTELLIGENT ESTIMATOR
 │
-├── ENTRY / HOST / UI              → IkEntryHost · IkAnalysisSurface · TenderDetailPage · flags
-├── CHIEF (wspólny system IK)      → chief-session + chief-orchestrator · P4 wiring · material G2 gate
-├── ORCHESTRATOR (W1/W4/W5)        → use-ik-orchestra · ik-orchestra-engine · runtime · owner gates
+├── ENTRY / PAGE                   → TenderDetailPage · flags · IkOrchestraPageBridge (mount)
+├── ORCHESTRA (W1/W4/W5) ★ SSOT sequencer
+│   → useIkOrchestra · ik-orchestra-engine · ik-orchestra-runtime · ownerGate
 │   ├── sync pipeline              → Document→KNR→Identity→Class→Composite→P7→P8
 │   ├── async P5/P6                → labor/material experts + research-on-MISS
 │   ├── owner action queue         → ik-owner-action-queue (read model)
 │   ├── owner gates G1/G2          → IkOwnerGateActionsPanel · g1/g2 Accept/Reject/Recalculate
 │   └── identity persist glue      → runGatedIdentityPersist → attachOfferBoqToDwelling (LS)
+├── HOST / UI ADAPTER              → IkEntryHost · IkAnalysisSurface (consumer snapshotu · NIE sequencer)
+├── CHIEF (wspólny system IK)      → chief-session + chief-orchestrator · P4 wiring · material G2 gate · LEGACY-PARALLEL vs Orchestra (W3 TARGET)
 │
 ├── DOCUMENT / BOQ EXPERT          → ik-document-expert + P2 ingest + OfferBoq/Multi-BOQ
 ├── OWNER MAP / MULTI-DWELLING     → multi-dwelling + MultiDwellingPackagePanel
@@ -350,28 +599,32 @@ PRZETARG
   → TendersModule
   → TenderDetailPage
        → useHistoricalExecutedHostIndex(jobs)     [gdy IK ON]
-       → useChiefOrchestratorSession              [Chief / D / P4]
-       → IkEntryHost
-            → P2: runIkNg02IngestBridge → runIkDocumentExpert
-            → Owner Map gate (documentToDwelling / allMapped) gdy multi
-            → runIkKnrExpert(+ historicalIndex) → applyOwnerKnrMapping (Slice D)
-            → KL-3 HOST lookup-only (side-channel; nie conversation authority)
-            → runIkIdentityPhase (OfferBoq work identity · persist gated W2)
-            → runIkMasterBoqClassification (BEFORE research — gate)
-            → runIkMasterBoqIdentityCoverage (optional flag)
-            → P5/P6: runIkLabor/Material (async · useIkOrchestra)
-            → P5∧P6: runIkCompositeBothHold → computePositionCost (F5)
-            → P7: runIkP7PositionCostBid
-            → P8: runIkP8RiskDecision(chiefSession)
+       → useChiefOrchestratorSession              [Chief / D / P4 · LEGACY-PARALLEL]
+       → IkOrchestraPageBridge
+            → useIkOrchestra
+                 → P2: runIkNg02IngestBridge → runIkDocumentExpert
+                 → Owner Map gate (documentToDwelling / allMapped) gdy multi
+                 → runIkKnrExpert(+ historicalIndex) → applyOwnerKnrMapping (Slice D)
+                 → KL-3 HOST lookup-only (side-channel; nie conversation authority)
+                 → runIkIdentityPhase (OfferBoq work identity · persist gated W2)
+                 → runIkMasterBoqClassification (BEFORE research — gate)
+                 → runIkMasterBoqIdentityCoverage (optional flag)
+                 → P5/P6: runIkLabor/Material (async · orchestra runtime)
+                 → P5∧P6: runIkCompositeBothHold → computePositionCost (F5)
+                 → P7: runIkP7PositionCostBid
+                 → P8: runIkP8RiskDecision(chiefSession)
+                 → ownerGate (G1/G2) + bumpOrchestraAfterPricingAccept / epochs
+       → IkEntryHost (UI adapter — NIE sequencer)
             → buildAnalysisObservation(orchestra) → LiveVisualizationView
             → buildIkEntryConversationViewModel → overlayObservationStatusesOnConversationVm
             → ExpertConversationSurface vm={vm}
-            → IkOwnerActionQueueNavigate
-  → Bid / Offer / PDF (istniejący stack Hub/Detail — nie drugi silnik)
+            → IkOwnerGateActionsPanel / IkOwnerActionQueueNavigate
+  → Bid / Offer / PDF (istniejący stack Hub/Detail — nie drugi silnik · G3 OUT OF P3)
 ```
 
 **Flagi:** `src/lib/intelligent-estimator/ik-entry-flag.ts` — dostęp IK + P5–P8 AUTO/OFF/ON · Research **CONDITIONAL**.
 Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUTE_RESEARCH / RUN_RATE_EXPERTS / IDENTITY_COVERAGE).
+**Connectivity SSOT:** §2A — Orchestra = single sequencer · Host = adapter · CONNECTED ≠ Production Verified.
 
 ---
 
@@ -387,14 +640,14 @@ Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUT
 | **NIE** | Drugi Host · flip `expertAiDecydentEnabled` jako IK · auto Final Bid · **nie** blokuje P6 research gdy OFF |
 | **Status** | **PRODUCTION EXISTING** · wiring P4 **PARTIAL** (`ikChiefWiringEnabled=false` on prod) · material G2 Accept **requires** Chief session |
 
-### 11.2 Host / Runtime Orchestrator (`IkEntryHost`)
+### 11.2 Host / UI Adapter (`IkEntryHost`)
 
 | | |
 |--|--|
 | **Pliki** | `src/app/intelligent-estimator/IkEntryHost.tsx` · `ik-entry-flag.ts` · `ik-entry-p2-ingest-latch.ts` · `ik-entry-conversation.ts` |
-| **Rola** | Sekwencja ekspertów + data attrs observability + EC surface |
-| **NIE** | Nowy Catalog · auto research (shell OFF) · drugi Chief |
-| **Status** | **PRODUCTION EXISTING** · Host Historical + EC reveal **PRODUCTION VERIFIED** (slice 2026-08-21) |
+| **Rola** | **UI adapter / consumer** snapshotu Orchestra — EC surface · Live Viz · Owner panels · data attrs observability · **NIE** IK sequencer |
+| **NIE** | Drugi Orchestra · sekwencjonowanie ekspertów (to robi `useIkOrchestra`) · nowy Catalog · auto research (shell OFF) · drugi Chief |
+| **Status** | **PRODUCTION EXISTING** · Host Historical + EC reveal **PRODUCTION VERIFIED** (slice 2026-08-21) · connectivity: **CONNECTED** as adapter (**≠** Production Verified całego IK) |
 
 ### 11.3 Document / BOQ Expert
 
@@ -548,14 +801,14 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 | **Pliki** | `tenders-bid-calculator.ts` · `tender-offer-boq*.ts` · `tender-bid-package-pdf.ts` → `exportTenderBidPackagePdf` |
 | **Status** | **PRODUCTION EXISTING** · REUSE · **nie** nowy PDF engine |
 
-### 11.15 Orchestra (`use-ik-orchestra` · W1/W4/W5)
+### 11.15 Orchestra (`useIkOrchestra` · W1/W4/W5) — ★ single IK sequencer
 
 | | |
 |--|--|
 | **Pliki** | `src/lib/intelligent-estimator/orchestra/*` · hook `use-ik-orchestra.ts` · engine `ik-orchestra-engine.ts` · runtime `ik-orchestra-runtime.ts` · bridge `IkOrchestraPageBridge.tsx` |
-| **Rola** | **SSOT runtime sequencer** wydzielony z `IkEntryHost` — sync core + async P5/P6 settle · snapshot dla Observation · **Owner Gate API** |
+| **Rola** | **SSOT runtime sequencer** (jedyny IK execution path) — sync core + async P5/P6 settle · snapshot dla Observation/Host · **`ownerGate` API** · refresh via `bumpOrchestraAfterPricingAccept` + epochs (**nie** drugi refresh system) |
 | **Wywołuje** | `runIkDocumentExpert` → KNR → `runIkIdentityPhase` → classification → P5/P6 async → composite → P7 → P8 |
-| **Wywoływany przez** | `IkEntryHost` · `IkOwnerGateActionsPanel` (via `ownerGate` API) |
+| **Wywoływany przez** | `IkOrchestraPageBridge` (page mount) · `IkOwnerGateActionsPanel` (via `ownerGate`) · `IkEntryHost` = **consumer** snapshotu (adapter) |
 | **Stan** | `manualOverrides[]` (G1) · reject keys G1/G2 · labor/material recalc epochs · `chiefMaterialAvailable` |
 | **Persistence** | G1 → `runGatedIdentityPersist` (LS OfferBoq) · G2 labor → Work Catalog via Accept · G2 material → Price Memory via Accept |
 | **Flagi** | P5/P6 executeResearch · identity coverage · P7/P8 E2E — z `ik-entry-flag.ts` |
@@ -586,7 +839,7 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 | Accept | `acceptIkLaborResearchAndNotifyIdempotent` → Work Catalog OUR RATE |
 | Reject / Recalculate | session keys + recalc epoch → re-run P5 |
 | Chief | **NOT required** |
-| Prod PV | **WAITING FOR NATURAL PROD CANDIDATE** (0 fixtures on prod) |
+| Prod PV | **CHROBREGO m² CLOSED/PASS** (2026-08-28 · LP 7/8/12/13/14 · OUR RATE 22.90) · **≠** reopen · material G2 nadal WAIT · inne tendery: case-by-case |
 
 #### G2 — Material Accept
 
@@ -667,7 +920,7 @@ DESIGN FREEZE (projekcja):
 ════════════════════════════════════════════════════════
 ```
 
-**DF SSOT (kontrakty Observation / Progress / ETA / Wrap-up):**  
+**DF SSOT (kontrakty Observation / Progress / ETA / Wrap-up):**
 [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md)
 
 ### 13.0 Architecture rule (HARD)
@@ -702,7 +955,7 @@ Owner otwiera konkretny przetarg
   → UI NATYCHMIAST pokazuje Team Conversation + Live Visualization
 ```
 
-Użytkownik **nie** powinien czekać na pustym ekranie.  
+Użytkownik **nie** powinien czekać na pustym ekranie.
 **CURRENT note:** start analysis jest dziś wpleciony w `IkEntryHost` / flagi / pipeline (niekoniecznie jeden przycisk o tej etykiecie) — pełny „Analizuj przetarg → live dual surface” = **TARGET / PARTIAL**.
 
 ### 13.2 CURRENT (source-verified — 2026-08-24 · post Phase 4)
@@ -786,7 +1039,7 @@ Material:  „Cena materiału jest wyższa od historycznej. Sprawdzam źródła.
 Chief:     „Nie zgadujemy. Oznaczamy jako wymagające decyzji Ownera.”
 ```
 
-**HARD:** treść = projekcja rzeczywistych eventów / raportów / stanów.  
+**HARD:** treść = projekcja rzeczywistych eventów / raportów / stanów.
 **ZAKAZ:** LLM per expert tylko „żeby było gadanie” · fake progress.
 
 ### 13.7 TARGET — ETA
@@ -806,8 +1059,8 @@ Kanoniczny model projekcji (`AnalysisObservation` · stage weights · timing sta
 
 [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) §5–§14
 
-**PRIMARY SSOT statusu/progress:** `buildAnalysisObservation(orchestra)` → `AnalysisObservation`.  
-**Consumers (READ-ONLY):** Live Visualization · Team Conversation status overlay.  
+**PRIMARY SSOT statusu/progress:** `buildAnalysisObservation(orchestra)` → `AnalysisObservation`.
+**Consumers (READ-ONLY):** Live Visualization · Team Conversation status overlay.
 **Conversation copy/messages:** `buildIkEntryConversationViewModel` — **presentation only**; final step status = Observation bridge (`overlayObservationStatusesOnConversationVm`).
 
 **Phase 4 bridge (FROZEN · prod):**
@@ -860,12 +1113,12 @@ Position Cost (F5) → Composite → P7 → Bid / Offer
 
 #### „Czy było łatwo?”
 
-Profesjonalne + żywe + lekkie — **zawsze** z metryk pipeline (czas stage'y, konflikty KNR, MISS research, HOLD count…).  
+Profesjonalne + żywe + lekkie — **zawsze** z metryk pipeline (czas stage'y, konflikty KNR, MISS research, HOLD count…).
 **ZAKAZ:** losowy komentarz AI.
 
 ### 13.9 OWNER AUTHORITY (Experience nie zmienia authority)
 
-IK Experience może: analizować · proponować · porównywać · wyjaśniać · wskazywać ryzyko · rekomendować.  
+IK Experience może: analizować · proponować · porównywać · wyjaśniać · wskazywać ryzyko · rekomendować.
 **NIE** przejmuje: OUR RATE · Accept · KNR mapping boundaries · Final Bid · Historical authority.
 
 ### 13.10 Matrix — Experience layer
@@ -971,54 +1224,74 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW
 ## 17. COLD START — NEW GPT / NEW CURSOR AGENT (obowiązkowe)
 
 ```text
-CHECKPOINT (2026-08-26):
-  HEAD / P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31
-  Production UI = 2.66.115 · https://www.wgdom.fun
-  A08-P3 IMPLEMENTED · P3 OPEN · G1 durable persist PASS · G2 WAIT
-  F5 MARGIN = CLOSED / PRODUCTION VERIFIED GREEN @ 82f3520e (ancestor)
-  Observability Phases 1–4 CLOSED @ c1b3ad7d (ancestor)
-  Phase 5 NOT AUTHORIZED · AUTONOMY-08 epic NOT CLOSED
+CHECKPOINT (2026-08-28 · CHROBREGO CURRENT + OD-W0-GO):
+  ★★ FIRST: CURRENT DECISION TREE = §10.0 (CHROBREGO)
+  ★★ CURRENT NODE = AFTER G2 LABOR m² ACCEPT — CLOSED/PASS — WAIT FOR OWNER GO
+  Decision Tree = PRIMARY CONTINUITY CONTRACT (header · §10.0 · §22)
+  §22-LEGACY / HISTORY WAIT ≠ CURRENT · chat history ≠ SSOT (przy sprzeczności: zgłoś, nie zgaduj)
+  Master Connectivity Contract = §2A ACTIVE · OD-W0-GO GRANTED (governance only)
+  Orchestra = single IK sequencer (IkOrchestraPageBridge → useIkOrchestra → engine/runtime)
+  IkEntryHost = UI adapter/consumer — NOT sequencer
+  A08-P3 IMPLEMENTED · P3 OPEN (epic) · G1 PV PASS
+  CHROBREGO: G1 AUTO-SAFE 22 CLOSED · G2 Labor m² CLOSED/PASS · LP48 OPEN
+  G2 material WAIT · G3 / Experience Phase 5 NOT STARTED
+  Tip UI/commit = docs/AI/09_PRODUCTION_BASELINE.md + live version.json (nie hardcoduj tu)
+  F5 MARGIN = CLOSED / PRODUCTION VERIFIED GREEN (ancestor) · Obs Phases 1–4 CLOSED
+  Phase 5 Experience NOT AUTHORIZED · G3 Final Bid OUT OF P3 · AUTONOMY-08 epic NOT CLOSED
+  W3–W6 connectivity waves NOT auto-authorized · CONNECTED ≠ Production Verified
 ```
 
-Nowy agent (Cursor / ChatGPT) **MUSI** wykonać w tej kolejności:
+### COLD START PROCEDURE (obowiązkowa kolejność)
+
+Nowy agent (Cursor / ChatGPT) **MUSI**:
 
 ```text
-1. Przeczytaj TEN Master SSOT (całość) — w tym §13 IK Analysis Experience
-2. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json
-3. Przeczytaj IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md (latest · F5 · DO NOT TOUCH)
-4. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
-5. git log -10 — verify HEAD vs P3 deploy (= 3822acb)
-6. Odtwórz drzewo IK (§10–§12) — CURRENT vs PARTIAL vs TARGET vs GAP
-7. Rozróżnij IK Host experts (ik-*-expert) vs Chief experts (*-expert packages)
-   — IK Material Expert ≠ Chief Material Expert
-8. Zlokalizuj SSOT: Work Catalog · Price Memory · Evidence · identity · KNR KL
-9. Zweryfikuj FROZEN: A01-S1 · A01-LP5 · A01 F5 MARGIN · A09 PACKAGE (NOT identity)
-10. Pierwsza propozycja = AUDIT ONLY · ZERO CODE · ZERO KV --execute
+1. Przeczytaj TEN Master SSOT (całość) — zwłaszcza DECISION TREE primacy (header) + §10.0 + §22
+2. Ustal CURRENT DECISION TREE (§10.0 CHROBREGO) + CURRENT NODE
+3. Przeczytaj CLOSED BRANCHES + OPEN BRANCHES (§10.0 · §9 · §22)
+4. Przeczytaj ostatni verified checkpoint (§22 CURRENT) — nie mylić z HISTORY/PRIOR STATE
+5. Przeczytaj Decision Framework W0 — IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (OD-W0-GO)
+6. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json
+7. Dopiero potem: grep/repo audit (REUSE MAP · orchestra · ownerGate)
+8. Trace Orchestra: IkOrchestraPageBridge → useIkOrchestra → engine/runtime → ownerGate
+9. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
+10. Classify: REUSE / CONNECT / VERIFY vs NEW (§2A · 15-question gate)
+11. NIE powtarzaj CLOSED operations (F1/F2/G2 m² Accept / margin 20% / OUR RATE)
+12. NIE wybieraj sam Owner Decision · NIE przechodź do kolejnej gałęzi bez wymaganego GO
+13. Jeżeli chat/historia ≠ §10.0 Decision Tree → **zgłoś sprzeczność** · drzewo ma pierwszeństwo · NIE zgaduj
+14. Obtain explicit Owner GO for the next OPEN branch — dopiero potem IMPLEMENT → TEST → VERIFY
 ```
+
+**Pierwsze pytanie po cold starcie NIE jest:** „co robić od początku?”  
+**Jest:** „jaki jest CURRENT NODE w Decision Tree i jakie są legalne następne przejścia?”  
+(**CURRENT NODE** = `AFTER G2 LABOR m² ACCEPT — CLOSED/PASS — WAIT FOR OWNER GO`)
 
 **Po przeczytaniu SSOT agent MUSI rozumieć:**
 
 1. IK **już istnieje** — nie budujemy od nowa.
-2. Nie budujemy drugiego TenderModule / Catalog / Host / Chief.
-3. **Chief** już istnieje (`chief-session` / `chief-orchestrator`) — **równoległy** tor EE→ME→PE→Cost→Offer.
-4. **Orchestrator / Host** już istnieje (`IkEntryHost` / `orchestra/*`) — sync Document→…→P8 + async P5/P6.
-5. **Eksperci IK** już istnieją (Document → KNR → Class → Labor → Material → Composite → P7 → P8).
-6. **KNR** już istnieje jako **część** IK (nie osobny system) · Slice A **PV** · KL **PARTIAL** · bridge GAP.
-7. Work Catalog / Price Memory / Evidence / F5 / Bid / PDF **już istnieją**.
-8. **Expert Conversation + Live Viz** Phases **1–4 CLOSED GREEN** · Phase **5 NOT AUTHORIZED**.
-9. Trzeba rozróżniać **CURRENT / PARTIAL / GAP / TARGET / CLOSED GREEN** — nie mieszać.
-10. **Owner jest decydentem** (OUR RATE / Accept / KNR map / Final Bid / Historical authority).
-11. Workflow: **AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → TEST → VERIFY → COMMIT → PUSH → PRODUCTION VERIFY**.
-12. **SEARCH BEFORE CREATE · REUSE BEFORE CREATE · ZERO DUPLICATE LOGIC.**
-13. Never reopen CLOSED GREEN (F5 MARGIN, A01 rates/quotes) without explicit Owner request.
+2. **Decision Tree** jest nadrzędnym kontraktem ciągłości IK.
+3. **Orchestra = jedyny IK sequencer**; **IkEntryHost = adapter**, nie sequencer.
+4. Experience/EC/Observation = **projekcja**, nie drugi silnik IK.
+5. Nie budujemy drugiego TenderModule / Catalog / Host / Chief / Orchestra / Accept path.
+6. **Chief** istnieje — **LEGACY-PARALLEL**; W3 = CONNECT (delegacja), nie nowy orchestrator.
+7. Hub Accept = **LEGACY-PARALLEL** → konwergencja na `ownerGate` / Orchestra refresh seam.
+8. **Eksperci IK** już istnieją (Document → KNR → Class → Labor → Material → Composite → P7 → P8).
+9. Work Catalog / Price Memory / Evidence / F5 / Bid / PDF **już istnieją**.
+10. **Expert Conversation + Live Viz** Phases **1–4 CLOSED GREEN** · Phase **5 NOT AUTHORIZED**.
+11. G3 Final Bid persist = **OUT OF P3** — osobny Owner GO · **nie** auto po G2 m².
+12. Statusy connectivity (§2A.2): CONNECTED ≠ Production Verified.
+13. **Owner jest decydentem** (OUR RATE / Accept / classification / margin / Final Bid).
+14. Workflow: **AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → TEST → VERIFY → COMMIT → PUSH → PRODUCTION VERIFY**.
+15. **SEARCH BEFORE CREATE · REUSE → CONNECT → VERIFY · ZERO DUPLICATE LOGIC / PARALLEL ACCEPT.**
+16. Never reopen CLOSED GREEN / CLOSED CHROBREGO m² branches without explicit Owner request.
 
-**KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA.**
+**KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA. NIE POWTARZAJ CLOSED.**
 
 Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + live `version.json`.
 
-**Nie twórz:** drugiego TenderModule · IkEntryHost · Chief · KNR system · Work Catalog · Price Memory · F5 · Bid · chat store · LLM per expert · storytelling engine Experience.
+**Nie twórz:** drugiego TenderModule · drugiego Orchestra · drugiego Decision Tree · drugiego Master SSOT · drugiego IkEntryHost-as-sequencer · Chief-as-IK-sequencer · KNR system · Work Catalog · Price Memory · F5 · Bid engine · chat store · LLM per expert · storytelling Experience · drugiego refresh/epoch bus · Final Bid persist w P3.
 
-**Jeżeli brakuje funkcji:** grep → trace caller → trace SSOT → **REUSE** → dopiero EXTEND po Owner GO.
+**Jeżeli brakuje funkcji:** grep → trace caller → trace SSOT → **REUSE/CONNECT** → dopiero NEW po wykazanym GAP + Owner GO.
 
 Historical `authority=false` · Evidence ≠ OUR RATE · Research ≠ Accept · FAMILY ≠ EXACT · CONFLICT = FAIL CLOSED.
 
@@ -1059,60 +1332,68 @@ KL **nie** może stać się drugim pricing engine. Slice D **nie** auto-mapuje b
 | G177 alias | — | **NONE** | EXPECTED |
 | LABOR host ban | `p2b-scianka-gk-na-stelazu-m2` | **UNTOUCHED** | accept=false · no 118 |
 
-Pełna tabela drzewa: §10–§12 + [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §4.  
-Experience CURRENT/PARTIAL/GAP/TARGET: **§13**.  
+Pełna tabela drzewa: §10–§12 + [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) §4.
+Experience CURRENT/PARTIAL/GAP/TARGET: **§13**.
 Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phase **5 NOT AUTHORIZED** · DF [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md).
 
 ---
 
-## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-08-26)
+## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-08-28 · CHROBREGO CURRENT)
 
 ### CURRENT HEAD
 
 | Pole | Wartość |
 |------|---------|
-| **P3 deploy commit** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
-| **UI version** | **2.66.115** |
+| **CURRENT CHECKPOINT** | **CHROBREGO** · §10.0 Decision Tree |
+| **Pipeline tenderId** | `08df0363-7b22-e462-ab56-940001283cba` |
+| **OCDS** | `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888` |
+| **P3 deploy commit (gates)** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
+| **UI version** | czytaj [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` |
 | **Production** | https://www.wgdom.fun |
-| **Master SSOT** | **TEN PLIK** (`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`) |
+| **Master SSOT** | **TEN PLIK** |
 
-### CURRENT PHASE
+### CURRENT PHASE / CURRENT NODE
 
-**A08-P3 Owner Gates — IMPLEMENTED · P3 OPEN · G2 execution STOPPED**
+**`AFTER G2 LABOR m² ACCEPT — CLOSED/PASS — WAIT FOR OWNER GO`**  
+(pełne drzewo + LP listy = **§10.0** — nie odtwarzaj z historii czatu).  
+A08-P3 epic: **IMPLEMENTED · nadal OPEN** (material WAIT · G3/Experience NOT STARTED).  
+**Nie** zamykaj całego AUTONOMY-08 tylko dlatego, że m² PASS.
 
 ### CLOSED (do not reopen without Owner GO)
 
 - IK-MIGRATION-01 P0–P9 · AUTONOMY-05…08-P2 · F5 MARGIN · Observability Phases 1–4 · KNR Slice A · A01/A09 Owner Map slices · G1 durable persist PV
+- **CHROBREGO G1 AUTO-SAFE 22/22**
+- **CHROBREGO F1** (catalog namePl for `unit===m2`)
+- **CHROBREGO F2** margin **20%** `legacy-malowanie-m2` (wroclaw + dolnyslask · source=owner)
+- **CHROBREGO G2 Research/Candidate/Evidence m²**
+- **CHROBREGO G2 Accept LP 7, 8, 12, 13, 14** · OUR RATE BASE **22.90** · `sourceType=ACCEPT` · `lookup=CURRENT`
 
 ### OPEN
 
-- **A08-P3 epic slice** — G2 labor/material Accept PV
-- **AUTONOMY-08 epic** — not closed
+- **CHROBREGO LP48** mb / Malowanie rur — Owner classification (**NIE** wall-rate m²)
+- **CHROBREGO G1 OWNER_REVIEW** (18)
+- **CHROBREGO G1 NO_SAFE_EXISTING_WORK_ID** (15)
+- **G2 material Accept PV** — natural candidate + Chief
+- **A08-P3 epic slice** (pozostałe) · **AUTONOMY-08 epic** — not closed
 - Phase 2E full · Phase 5 Experience · TM-01 residuals
+- **G3 Final Bid** — NOT STARTED
 
-### BLOCKED
+### BLOCKED / WAITING FOR
 
-- **G2 labor Accept PV** — 0 `CANDIDATE_OWNER_ACCEPT_REQUIRED` on prod (8 LABOR lines all `CURRENT_HIT`)
-- **G2 material Accept PV** — 0 trusted material identity + 0 candidate · material Accept also needs Chief ON
+- **G2 material** — 0 natural candidate + Chief OFF (`ikChiefWiringEnabled=false`)
+- **G3 / Experience Phase 5** — not authorized / not started
+- **HISTORY note:** global „G2 labor WAIT — 0 candidates on prod” (2026-08-26) = **PRIOR STATE** — superseded for **CHROBREGO m²** only
 
-### WAITING FOR
+### DO NOT TOUCH / DO NOT REPEAT
 
-**Natural production candidate** satisfying:
-
-- Labor: `rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"` AND `row.candidate`
-- Material: `priceStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"` AND `row.candidate`
-
-Resume procedure: identify tender+lineRef → report evidence → Owner GO → narrow G2 PV only → persist/reload/idempotency → material: separate Chief GO.
-
-### DO NOT TOUCH
-
-- Mock/seed candidate · KV labor evidence injection · margin injection · manual catalog MISS · fabricated material identity
-- G2 Accept/Reject/Recalculate without real candidate · enable Chief for test only · close P3 · broad G2 discovery rescans
+- Mock/seed candidate · fabricated identity · margin re-write 20% · F1 re-run · G2 Accept re-run for LP 7/8/12/13/14 · OUR RATE rewrite without new Owner Gate
+- Apply m² OUR RATE / catalog-name override to **lp48 mb**
+- G3 / Experience / commit / push / deploy bez Owner GO
 - S6/P4 closed code · payroll/cloud-sync without PAYROLL_SAFETY_GATE · `git add -A`
 
 ### NEXT LEGAL ACTION
 
-**WAIT** for natural prod candidate **OR** explicit Owner GO on a **narrow** scoped follow-up (not fixture fabrication).
+Owner GO na **jedną** OPEN gałąź z §9 / §10.0 (np. LP48 classification **lub** G1 OWNER_REVIEW **lub** material G2) — AI **nie** inventuje wyboru.
 
 ### OWNER DECISIONS REQUIRED
 
@@ -1120,22 +1401,44 @@ Resume procedure: identify tender+lineRef → report evidence → Owner GO → n
 |----------|---------------------|
 | **OD-P3-1** G1 contract | **APPROVE** |
 | **OD-P3-2** G2 contract | **APPROVE** |
-| **OD-P3-3** G2 PV strategy | **WAIT** (natural prod candidate) |
+| **CHROBREGO G1 AUTO-SAFE** | **EXECUTED CLOSED** |
+| **CHROBREGO F2 margin 20%** | **EXECUTED CLOSED** |
+| **CHROBREGO G2 Accept m²** | **EXECUTED CLOSED** |
+| **CHROBREGO LP48 classification** | **OPEN** — Owner GO required |
+| **OD-P3-3** G2 material PV | **WAIT** |
 | **OD-P3-4** Material Chief | **hard dependency** |
-| **OD-P3-5** Prod use | **REQUIRE EVIDENCE BEFORE PROD** |
-| **OD-P3-6** Docs sync | **YES** (this session) |
+| **OD-P3-5** Prod use | **REQUIRE EVIDENCE BEFORE PROD** (global) · CHROBREGO m² evidence+Accept done |
 | **OD-P3-7** APF boundary | **KEEP SEPARATE** |
-| Resume G2 PV | After natural candidate appears |
-| `ikChiefWiringEnabled=true` | Only for material G2 Accept PV (separate GO) |
-| Close A08-P3 / epic | Only after G2 PV complete |
+| G3 / Experience Phase 5 | **NOT STARTED** — osobny GO |
+| Close A08-P3 / epic | Only after remaining OPEN gates + Owner |
+
+### SAFETY COUNTERS (CHROBREGO session closeout)
+
+| Counter | Value |
+|---------|-------|
+| G3 | **0** |
+| Experience | **0** |
+| Commit (process) | **0** (docs-only update may follow Owner GO separately) |
+| Push | **0** |
+| Deploy | **0** |
 
 ### READ FIRST (ordered)
 
-1. **TEN Master SSOT** (całość)
+1. **TEN Master SSOT** — header Decision Tree primacy + **§10.0** + **§22**
 2. [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json`
 3. [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
 4. [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)
 5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
+
+### HISTORY / PRIOR STATE — §22 (2026-08-26 · G2 WAIT)
+
+> **Superseded for CHROBREGO Labor m².** Zachowane, żeby nie mylić cold-startu.
+
+- Phase label: *A08-P3 Owner Gates — IMPLEMENTED · P3 OPEN · G2 execution STOPPED*
+- BLOCKED: *G2 labor Accept PV — 0 CANDIDATE on prod (8 LABOR all CURRENT_HIT)*
+- NEXT: *WAIT for natural prod candidate*
+- To było poprawne **przed** naturalnym candidate + Owner GO na CHROBREGO (2026-08-28).
+- **Nie** używaj tego bloku jako CURRENT NODE.
 
 ---
 
@@ -1155,7 +1458,7 @@ Resume procedure: identify tender+lineRef → report evidence → Owner GO → n
 | `ikRiskDecisionE2eEnabled` | `AUTO` | AUTO | P8 read-only | `ik-p8-risk-decision` | no Accept |
 | `ikAutoIngestEnabled` | legacy | — | **NOT** P2 runtime gate | — | P2 = Entry only |
 
-**P5 executeResearch** = `ikEntryEnabled === true` **AND** `ikLaborE2eEnabled === true` (AUTO|ON).  
+**P5 executeResearch** = `ikEntryEnabled === true` **AND** `ikLaborE2eEnabled === true` (AUTO|ON).
 **P6 executeResearch** = `ikEntryEnabled === true` **AND** `ikMaterialE2eEnabled === true` (AUTO|ON).
 
 KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
@@ -1212,7 +1515,7 @@ KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
 | Orchestra + Owner Gate UI | **YES** | partial (G1 only) |
 | G1 Accept + durable LS persist | **YES** | **PASS** |
 | G1 Reject/Edit/Research Again | **YES** | NOT VERIFIED |
-| G2 labor Accept path | **YES** | **BLOCKED** (no candidate) |
+| G2 labor Accept path | **YES** | **CHROBREGO m² PASS** (2026-08-28) · inne tendery case-by-case |
 | G2 material Accept path | **YES** | **BLOCKED** (no candidate + Chief OFF) |
 | P5/P6 executeResearch | **YES** | active flags · 0 candidates prod |
 | Chief material gate | **YES** | Chief OFF by flag |
@@ -1223,7 +1526,7 @@ KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
 
 ---
 
-## 27. A08-P3 — CURRENT STATE (DETAIL)
+## 27. A08-P3 — DETAIL (CHROBREGO CURRENT + HISTORY blockers)
 
 | Milestone | Status |
 |-----------|--------|
@@ -1234,13 +1537,19 @@ KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
 | Harness | **27 PASS / 0 FAIL** (`test-ik-autonomy-08-p3-owner-gates.mjs`) |
 | Deploy | **PASS** @ prod |
 | G1 durable persist PV | **PASS** |
-| G2 labor | **WAIT** — 437 tenders · 12 ready BOQ · 8 LABOR identity · all `CURRENT_HIT` · 0 candidate |
+| G2 labor (CHROBREGO m²) | **CLOSED / PASS** (2026-08-28) — LP 7/8/12/13/14 · OUR RATE 22.90 · margin 20% |
+| G2 labor (global / other) | **case-by-case** — HISTORY 2026-08-26 audit: many CURRENT_HIT · 0 candidate then |
 | G2 material | **WAIT** — 1209/1212 `priceStatus NONE` · 0 trusted identity+MISS · 0 candidate |
-| P3 closeout | **NOT AUTHORIZED** |
+| P3 closeout | **NOT AUTHORIZED** (epic OPEN) |
 
-**G2 blocker summary (prod audit 2026-08-26):**
+**CHROBREGO G2 labor summary (2026-08-28 · CURRENT):**
 
-- Labor MISS path (e.g. G1→`legacy-gk-m2`) → **`RESEARCH_GAP`**, not CANDIDATE
+- F1 catalog name · F2 margin 20% · QUALIFIED=10 · Accept batch · OUR RATE BASE 22.90 · SELL display 27.48
+- LP48 mb **OPEN** (classification) — **not** accepted
+
+**G2 blocker summary (prod audit 2026-08-26 · HISTORY / PRIOR STATE):**
+
+- Labor MISS path (e.g. G1→`legacy-gk-m2`) → **`RESEARCH_GAP`**, not CANDIDATE (pre-CHROBREGO)
 - Material requires `resolveDemandProductIdentityExact` — no invent from namePl alone
 - `ikChiefWiringEnabled=false` blocks material **Accept only**, not candidate generation
 
@@ -1265,7 +1574,8 @@ KV: `kw-app-settings` (merged local+remote in `app-settings.ts`).
 | 2026 | KNR Phase 2E source | `1a9c5484` | targeted source LANDED · full 2E OPEN |
 | 2026 | KNR-WC P3/P4 | `9376a48e`…`2fce3caf` | P3 **CLOSED** · P4 seam **CLOSED** |
 | 2026 | S6-A/B · Outcome bridge | `a9d59fd0`…`2fce3caf` | **CLOSED** |
-| 2026-08-26 | **AUTONOMY-08 P3** | **`3822acb`** | **IMPLEMENTED · P3 OPEN · G2 WAIT** |
+| 2026-08-26 | **AUTONOMY-08 P3** | **`3822acb`** | **IMPLEMENTED · P3 OPEN · G2 WAIT** (HISTORY) |
+| 2026-08-28 | **CHROBREGO G1+G2 m²** | session · KV OUR RATE | **G1 22 CLOSED · G2 m² CLOSED/PASS · LP48 OPEN** |
 
 Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md).
 
@@ -1340,25 +1650,23 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 ---
 
-## 22-LEGACY. NEW SESSION / NEW AGENT CONTINUITY BLOCK (superseded by §22)
+## 22-LEGACY. NEW SESSION / NEW AGENT CONTINUITY BLOCK (**HISTORY — superseded by §22**)
+
+> **NIE INTERPRETUJ JAKO CURRENT.** Wejdź w **§10.0** + **§22**. Ten blok = archiwum pre-CHROBREGO handoff.
 
 ```text
 PROJECT:     WGDOM
 SYSTEM:      Intelligent Estimator (IK)
 
-CURRENT STATE:
-  A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT
-  F5 MARGIN CLOSED · PRODUCTION VERIFIED GREEN @ 82f3520e
-  Observability Phases 1–4 CLOSED @ c1b3ad7d
-  Phase 5 NOT AUTHORIZED · AUTONOMY-08 epic NOT CLOSED
+HISTORY STATE (do not use as CURRENT NODE):
+  A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT = PRIOR (pre-CHROBREGO m²)
+  Pointer only → live CHROBREGO = §10.0 / §22 (2026-08-28)
 
-BASELINE:
-  HEAD = f457cb174aa1c45922381580192e744ba891dabd
+BASELINE (frozen at time of legacy block — may drift):
   A08-P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31
-  Production UI = 2.66.116
 
 READ FIRST:
-  docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md (§22 handoff)
+  docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md → §10.0 Decision Tree → §22
   docs/AI/09_PRODUCTION_BASELINE.md + live version.json
 ```
 
@@ -1389,8 +1697,8 @@ które nie prowadzą do kompletnego systemu.
 Chcę spójnego, produkcyjnego IK end-to-end.”
 ```
 
-**Cel projektu (skrót):**  
-Jeden zespół · jeden case · jeden orchestrated pipeline · istniejące SSOT · rzeczywista współpraca ekspertów · **live team experience** · pełny kosztorys · wyjaśnienie wyniku · Bid/PDF.  
+**Cel projektu (skrót):**
+Jeden zespół · jeden case · jeden orchestrated pipeline · istniejące SSOT · rzeczywista współpraca ekspertów · **live team experience** · pełny kosztorys · wyjaśnienie wyniku · Bid/PDF.
 **Nie:** kolejny „AI chat” · drugi silnik · rebuild.
 
 **STOP.** Kolejny gate tylko po nowym Owner GO + AUDIT.

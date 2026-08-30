@@ -4,8 +4,8 @@
 | Field | Value |
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P3-OWNER-GATES-ARCH-REVIEW` |
-| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **P3 = IMPLEMENTED · OPEN** · **G2 PV = PENDING** |
-| **Date** | 2026-08-26 (review) · **governance sync 2026-08-28** |
+| **Status** | **ARCH REVIEW = PASS WITH REQUIRED FIXES** · **P3 = IMPLEMENTED · OPEN** · **G2 Labor CHROBREGO m² = CLOSED/PASS** · **G2 Material = WAIT** |
+| **Date** | 2026-08-26 (review) · **governance sync 2026-08-28** · **docs-only reconcile 2026-08-30** |
 | **Mode** | ARCH REVIEW (docs only) · **no runtime change** |
 | **Baseline (review)** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
 | **Implementation** | **`3822acb`** · HEAD **`f457cb17`** · harness **27/0** |
@@ -24,13 +24,24 @@ IC-P3-ORCH-1               = SATISFIED (@ 3822acb · bumpOrchestraAfterPricingAc
 IC-P3-LABOR-IDEM-1         = SATISFIED (@ 3822acb · acceptIkLaborResearchAndNotifyIdempotent)
 IC-TEST-P3-1               = SATISFIED (harness 27/0)
 A08-P3                     = IMPLEMENTED · OPEN · NOT CLOSED
+
+★★ CURRENT STATUS (2026-08-30 · docs-only Owner GO — Master SSOT §10.0 / §22):
+G2 LABOR CHROBREGO m²      = CLOSED / PASS
+G2 MATERIAL                = WAIT
+G2 GLOBAL / EPIC           ≠ CLOSED
+PROD USE G1/G2             = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
+  · CHROBREGO m² evidence+Accept DONE
+  · Material / other still gated
+
+HISTORY (pre-promote):
 G2 PRODUCTION VERIFY       = PENDING · WAIT natural candidate
 PROD G2 ACCEPT             = NOT AUTHORIZED
-PROD USE G1/G2             = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
+  · superseded for CHROBREGO Labor m² only
+
 EPIC                       = AUTONOMY-08 — NOT CLOSED
 ```
 
-Implementation exists @ **`3822acb`** on `main`. Owner governance (2026-08-28): G1/G2 contract **APPROVED**; prod use **REQUIRE EVIDENCE BEFORE PROD**; **not** retroactive IMPLEMENT authorization.
+Implementation exists @ **`3822acb`** on `main`. Owner governance (2026-08-28): G1/G2 contract **APPROVED**; prod use **REQUIRE EVIDENCE BEFORE PROD**; **not** retroactive IMPLEMENT authorization. **2026-08-30:** docs-only promote formalizes CHROBREGO G2 Labor m² CLOSED/PASS — **no** architecture change.
 
 Zamrożony design (REUSE Accept engines + OwnerManualIdentityOverride + queue/deeplink + notify) **jest zgodny** z MASTER SSOT i A08 unified audit. Required fixes **doprecyzowują** orchestra refresh i labor idempotency — bez nowego engine.
 
@@ -236,12 +247,20 @@ Required fixes (design-time):
   IC-P3-LABOR-IDEM-1 = SATISFIED in code
   IC-TEST-P3-1      = SATISFIED (harness 27/0)
 
-G2 Production Verify = PENDING (WAIT natural candidate · OD-P3-3)
-Prod G2 Accept       = NOT AUTHORIZED
+CURRENT STATUS (2026-08-30):
+  G2 Labor CHROBREGO m² = CLOSED / PASS (Master §10.0)
+  G2 Material           = WAIT
+  P3 / epic             = OPEN
+
+HISTORY:
+  G2 Production Verify = PENDING (WAIT natural candidate · OD-P3-3)
+  Prod G2 Accept       = NOT AUTHORIZED
+  · superseded for CHROBREGO Labor m² only
+
 Prod use G1/G2       = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
 ```
 
-**Do not** start P4 · Phase 2E corpus · S10 · G2 Accept without natural candidate.
+**Do not** start P4 · Phase 2E corpus · S10 · reopen CHROBREGO m² Accept · Material Accept without Owner GO.
 
 ---
 
@@ -250,11 +269,12 @@ Prod use G1/G2       = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
 | Verdict | Value |
 |---------|-------|
 | **Architecture alignment** | **PASS** |
-| **SSOT conflict** | **NONE** |
+| **SSOT conflict** | **RESOLVED (docs-only 2026-08-30)** — Master CHROBREGO m² CLOSED synced; Material WAIT retained |
 | **Required fixes** | **SATISFIED** (IC-P3-ORCH-1 · IC-P3-LABOR-IDEM-1 · IC-TEST-P3-1) |
 | **P3 status** | **IMPLEMENTED · OPEN** |
-| **G2 PV** | **PENDING** |
-| **Prod G2 Accept** | **NOT AUTHORIZED** |
+| **G2 Labor CHROBREGO m²** | **CLOSED / PASS** |
+| **G2 Material** | **WAIT** |
+| **Prod G2 Accept (Material / other)** | **NOT AUTHORIZED** |
 
 Companion DF: [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
 

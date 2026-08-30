@@ -5,11 +5,11 @@
 |-------|-------|
 | **ID** | `IK-AUTONOMY-08-P3-OWNER-GATES-DESIGN-FREEZE` |
 | **Status** | **DESIGN FREEZE = ACCEPTED** · **P3 = IMPLEMENTED · OPEN** · **NOT CLOSED** |
-| **Date** | 2026-08-26 (DF) · **Owner governance sync 2026-08-28** |
+| **Date** | 2026-08-26 (DF) · **Owner governance sync 2026-08-28** · **docs-only reconcile 2026-08-30** |
 | **Mode** | DOCS ONLY · **no runtime change in this slice** |
 | **Baseline (design)** | **`b857a162`** / `b857a162e59d54a438e82708a2d91b475356cfe4` |
 | **Implementation** | **`3822acb`** · harness **27/0 PASS** · HEAD ancestor **`f457cb17`** |
-| **Owner governance** | OD-P3-1 G1 **APPROVE** · OD-P3-2 G2 **APPROVE** · OD-P3-5 **REQUIRE EVIDENCE BEFORE PROD** |
+| **Owner governance** | OD-P3-1 G1 **APPROVE** · OD-P3-2 G2 **APPROVE** · OD-P3-5 **REQUIRE EVIDENCE BEFORE PROD** · **2026-08-30:** CHROBREGO G2 Labor m² **CLOSED/PASS** (docs promote) |
 | **Deep Audit** | A08-P3 DEEP AUDIT (2026-08-26) · verdict **PARTIALLY_MAPPED** → resolved by this DF |
 | **ARCH REVIEW** | [`IK-AUTONOMY-08-P3-ARCH-REVIEW.md`](./IK-AUTONOMY-08-P3-ARCH-REVIEW.md) |
 | **Prior slices** | P0/P1/P2 **CLOSED** · P3 **IMPLEMENTED · OPEN** · P4 **PLANNED** · epic **NOT CLOSED** |
@@ -25,8 +25,23 @@ ARCHITECTURE BLOCKERS      = 0 at DF level
 G1 CONTRACT                = Owner APPROVED (OD-P3-1)
 G2 CONTRACT                = Owner APPROVED (OD-P3-2)
 A08-P3 IMPLEMENTATION      = IMPLEMENTED @ 3822acb · harness 27/0 · P3 OPEN · NOT CLOSED
+
+★★ CURRENT STATUS (2026-08-30 · docs-only Owner GO promote — Master SSOT §10.0 / §22):
+G2 LABOR CHROBREGO m²      = CLOSED / PASS
+  · LP7 ACCEPTED · LP8/12/13/14 IDEMPOTENT_NOOP · OUR RATE BASE 22.90
+  · evidence: .tmp-chrobrego-g1-audit/g2-batch-accept-report.json (session)
+  · ≠ reopen LP7–14 · ≠ invent Accept
+G2 MATERIAL                = WAIT (natural candidate + Chief · OD-P3-3/4)
+G2 GLOBAL / EPIC           ≠ CLOSED
 PROD USE (G1/G2)           = REQUIRE EVIDENCE BEFORE PROD (OD-P3-5)
+  · CHROBREGO m²: evidence+Accept DONE (Master)
+  · other cases / Material: still gated
+
+HISTORY (2026-08-26…28 — do not use as CURRENT for CHROBREGO Labor m²):
 G2 PRODUCTION VERIFY       = WAITING FOR NATURAL PROD CANDIDATE (OD-P3-3)
+Prod G2 Accept             = NOT AUTHORIZED (G2 PV WAIT)
+  · superseded for CHROBREGO Labor m² only · remains CURRENT for Material / other tenders
+
 A08-P0 / P1 / P2           = COMPLETE / CLOSED
 A08-P4 / G3 Final Bid      = PLANNED · OUT OF SCOPE P3
 EPIC                       = AUTONOMY-08 — NOT CLOSED
@@ -54,8 +69,10 @@ No runtime mapping KV.
 | This DF | **ACCEPTED** — G1/G2 contract Owner **APPROVED** (2026-08-28) |
 | ARCH REVIEW | Companion doc · **PASS WITH REQUIRED FIXES** · IC-P3-* **satisfied** in code |
 | P3 implementation | **IMPLEMENTED** @ **`3822acb`** · **OPEN** · **NOT CLOSED** |
-| Prod use G1/G2 | **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) |
-| G2 Production Verify | **WAIT** — natural prod candidate (OD-P3-3) |
+| Prod use G1/G2 | **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) · CHROBREGO m² evidence+Accept **DONE** |
+| G2 Labor CHROBREGO m² | **CLOSED / PASS** (2026-08-30 docs promote · Master §10.0) |
+| G2 Material / other | **WAIT** — natural candidate + Chief (OD-P3-3/4) |
+| G2 Production Verify (HISTORY label) | Was **WAIT** (2026-08-26…28) — **superseded for CHROBREGO Labor m² only** |
 | P4 / G3 Final Bid | **OUT OF SCOPE** |
 | Phase 2E corpus WIP | **OUT OF SCOPE** |
 | S6-A / S6-B / P4 closed code | **MUST NOT TOUCH** |
@@ -71,6 +88,13 @@ Design-time gate (pre-impl) required DF + Arch Review on `main` + Owner IMPLEMEN
 2. Code **IMPLEMENTED** @ **`3822acb`** — factual; **not** retroactive IMPLEMENT authorization.
 3. **Prod use** G1/G2 — **NOT AUTHORIZED** until evidence per **OD-P3-5**.
 4. **G2 prod Accept** — **NOT AUTHORIZED** until natural candidate + G2 PV (OD-P3-3).
+
+**Docs-only reconcile (2026-08-30 · Owner GO PROMOTE):**
+
+5. **CHROBREGO G2 Labor m²** — formal **CLOSED / PASS** in Master SSOT §10.0 / §22 (session evidence already existed; **no** new Accept / **no** OUR RATE rewrite).
+6. **G2 Material** — remains **WAIT**.
+7. **A08-P3 / epic** — remains **OPEN** · **NOT CLOSED**.
+8. History rows 3–4 above remain audit trail for pre-CHROBREGO / Material gates.
 
 ---
 
@@ -416,17 +440,21 @@ P3 = IMPLEMENTED · OPEN · NOT CLOSED
 Governance (Owner 2026-08-28):
   OD-P3-1  G1 contract     = APPROVE
   OD-P3-2  G2 contract     = APPROVE
-  OD-P3-3  G2 PV strategy  = WAIT (natural prod candidate)
+  OD-P3-3  G2 PV strategy  = WAIT (natural prod candidate)  ← HISTORY for Labor m² CHROBREGO; CURRENT for Material
   OD-P3-4  Material Chief  = hard dependency
   OD-P3-5  Prod use        = REQUIRE EVIDENCE BEFORE PROD
   OD-P3-6  Docs sync       = YES
   OD-P3-7  APF boundary    = KEEP SEPARATE
 
-Prod G2 Accept             = NOT AUTHORIZED (G2 PV WAIT)
-P3 slice close             = NOT AUTHORIZED (G2 PV pending)
+CURRENT STATUS (2026-08-30 · docs-only promote):
+  G2 Labor CHROBREGO m²    = CLOSED / PASS (Master §10.0)
+  G2 Material              = WAIT
+  Prod G2 Accept (Material / other) = NOT AUTHORIZED until candidate + PV
+  CHROBREGO m² Accept      = EXECUTED CLOSED — do not reopen LP7–14
+  P3 slice close           = NOT AUTHORIZED (Material + remaining OPEN gates)
 ```
 
-**Do not** start P4 · Phase 2E corpus · S10 · global IK FINAL claims · G2 Accept without natural candidate.
+**Do not** start P4 · Phase 2E corpus · S10 · global IK FINAL claims · reopen CHROBREGO m² Accept · Material Accept without Owner GO.
 
 ---
 
@@ -436,10 +464,24 @@ Docs-only sync per Owner Decision. **Semantyka kontraktu G1/G2 (§3–§8) uncha
 
 | Field | Value |
 |-------|-------|
-| **HEAD / origin/main** | **`f457cb17`** · UI **2.66.116** |
+| **HEAD / origin/main (at note)** | **`f457cb17`** · UI **2.66.116** |
 | **P3 impl commit** | **`3822acb`** |
 | **Harness** | **27 PASS / 0 FAIL** |
 | **APF** | **PROVEN / FROZEN** · [`IK-AUTONOMOUS-PRICING-FALLBACK-SOURCE-AUTHORIZATION.md`](./IK-AUTONOMOUS-PRICING-FALLBACK-SOURCE-AUTHORIZATION.md) · **≠** G2 fixture |
+
+---
+
+## 16. Docs-only reconcile note (2026-08-30)
+
+Owner GO **PROMOTE** — documentation only. **Semantyka kontraktu G1/G2 (§3–§8) unchanged.** **No** Accept · **no** code · **no** Payroll · **no** Tree structural rewrite beyond formalizing Master §10.0 already evidenced.
+
+| Field | Value |
+|-------|-------|
+| **G2 Labor CHROBREGO m²** | **CLOSED / PASS** |
+| **G2 Material** | **WAIT** |
+| **A08-P3** | **OPEN** |
+| **Evidence pointer** | `.tmp-chrobrego-g1-audit/g2-batch-accept-report.json` · Master §10.0 / §22 |
+| **Live tip (verify)** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json` |
 
 ---
 
