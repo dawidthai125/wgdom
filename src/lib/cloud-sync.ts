@@ -58,7 +58,12 @@ import {
   TENDER_PRICE_OVERRIDES_KEY,
   WGDOM_COST_CATALOG_HISTORY_KEY,
   TENDERS_DELETED_IDS_KEY,
+  getDeletedTenderIds,
 } from "@/lib/tenders-sync";
+import {
+  assertTenderPipelineCloudWriteAllowed,
+  isPipelineWriteSafetyBlockedError,
+} from "@/lib/tender-pipeline-write-safety";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
@@ -4389,10 +4394,35 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown
 /** Zapis wielu kluczy z merge względem localStorage i chmury. */
 export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Promise<void> {
   const prepared = prepareKeysForCloudPush(keys, values);
+  const pipeIdx = keys.indexOf(TENDERS_PIPELINE_KEY);
   let cloudValues: unknown[] = keys.map(() => null);
+  let cloudFetchOk = false;
   try {
     cloudValues = await fetchKeysFromCloud(keys);
-  } catch { /* ignore */ }
+    cloudFetchOk = true;
+  } catch {
+    /* Fail-open for non-pipeline keys (legacy). Pipeline gated below. */
+  }
+
+  if (pipeIdx >= 0) {
+    const cloudOrUnavailable: unknown | "UNAVAILABLE" = cloudFetchOk
+      ? cloudValues[pipeIdx]
+      : "UNAVAILABLE";
+    try {
+      assertTenderPipelineCloudWriteAllowed(prepared[pipeIdx], cloudOrUnavailable, {
+        deletedIds: getDeletedTenderIds(),
+      });
+    } catch (blocked) {
+      if (isPipelineWriteSafetyBlockedError(blocked)) {
+        console.warn("[pipeline-write-safety]", (blocked as Error).message, {
+          code: (blocked as { code?: string }).code,
+          details: (blocked as { details?: unknown }).details,
+        });
+      }
+      throw blocked;
+    }
+  }
+
   const merged = keys.map((key, i) => {
     if (!isDataKey(key)) return prepared[i];
     return mergeDataKey(
