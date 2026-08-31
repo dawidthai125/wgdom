@@ -13,7 +13,7 @@ import {
   isBiweeklyPayrollEmployee,
 } from "@/lib/payroll-cycle";
 import type { PayrollEarlyPayoutMethod } from "@/lib/payroll-early-payout-types";
-import { parsePayrollRecordTs } from "@/lib/payroll-week-employee-record-merge";
+export { pickPayrollSettlementForMerge } from "./payroll-settlement-merge-pick";
 
 /** Alias — do NOT invent a second cash/transfer enum. */
 export type PayrollPayoutMethod = PayrollEarlyPayoutMethod;
@@ -378,50 +378,7 @@ export function applySettlementFieldIntent(
  * Explicit merge picker — settledUpdatedAt LWW; never dataUpdatedAt / dataWinner.
  * Absent metadata on winner preserves other side's metadata when valid.
  */
-export function pickPayrollSettlementForMerge(
-  l: Record<string, unknown>,
-  c: Record<string, unknown>,
-  settled: boolean,
-): PayrollSettlement | undefined {
-  const lAt = parsePayrollRecordTs(l.settledUpdatedAt);
-  const cAt = parsePayrollRecordTs(c.settledUpdatedAt);
-  const lMeta = normalizePayrollSettlement(l.payrollSettlement);
-  const cMeta = normalizePayrollSettlement(c.payrollSettlement);
-
-  let winner: Record<string, unknown>;
-  let other: Record<string, unknown>;
-  if (lAt > cAt) {
-    winner = l;
-    other = c;
-  } else if (cAt > lAt) {
-    winner = c;
-    other = l;
-  } else {
-    // Tie on clock — prefer side matching settled boolean with metadata.
-    const lMatch = Boolean(l.settled) === settled;
-    const cMatch = Boolean(c.settled) === settled;
-    if (lMatch && !cMatch) {
-      winner = l;
-      other = c;
-    } else if (cMatch && !lMatch) {
-      winner = c;
-      other = l;
-    } else {
-      winner = lMeta ? l : cMeta ? c : l;
-      other = winner === l ? c : l;
-    }
-  }
-
-  const wMeta = normalizePayrollSettlement(winner.payrollSettlement);
-  if (wMeta) return wMeta;
-  const oMeta = normalizePayrollSettlement(other.payrollSettlement);
-  if (oMeta && !hasOwnSettlementKey(winner)) return oMeta;
-  // Winner explicitly null/invalid with key present — still prefer other if winner has no key semantics
-  if (!wMeta && oMeta && settled === Boolean(winner.settled)) {
-    if (!hasOwnSettlementKey(winner)) return oMeta;
-  }
-  return wMeta;
-}
+/** Explicit settlement-clock winner — SSOT in payroll-settlement-merge-pick (Edge-safe). */
 
 export function methodLabelPl(method: PayrollPayoutMethod): string {
   return METHOD_LABEL[method];

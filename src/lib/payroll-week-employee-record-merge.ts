@@ -4,7 +4,7 @@
  * Settlement metadata: explicit picker (settledUpdatedAt) — never dataUpdatedAt.
  */
 
-import { pickPayrollSettlementForMerge } from "@/lib/payroll-settlement";
+import { pickPayrollSettlementForMerge } from "./payroll-settlement-merge-pick.ts";
 
 export type PayrollDayLike = {
   active?: boolean;
