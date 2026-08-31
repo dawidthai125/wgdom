@@ -92,6 +92,17 @@ export function isZipFilename(name: string): boolean {
   return /\.zip$/i.test(name);
 }
 
+/**
+ * Outer ZIP/7Z whose unpack is required for cost/OPZ discovery.
+ * Generic umowa/rewizja archives may fail without blocking zipUnpackOk;
+ * OPZ / przedmiar / dokumentacja projektowa must succeed (else size_limit
+ * on a large OPZ is masked by a small umowa ZIP that did unpack).
+ */
+export function isPriorityCostArchiveOuter(filename: string): boolean {
+  const n = (filename.split(" → ").pop() ?? filename).toLowerCase();
+  return /opis\s+przedmiotu|\bopz\b|przedmiar|kosztorys|dokumentacja\s*projektowa|obmiar/.test(n);
+}
+
 export function is7zFilename(name: string): boolean {
   return /\.7z$/i.test(name);
 }

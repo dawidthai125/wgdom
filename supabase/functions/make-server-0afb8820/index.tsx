@@ -3273,7 +3273,8 @@ function normalizeBzpFilename(filename: string, index: number, contentType: stri
 }
 
 const MAX_DOCUMENT_BYTES_DEFAULT = 15 * 1024 * 1024;
-const MAX_ARCHIVE_OUTER_BYTES = 128 * 1024 * 1024;
+/** ZIP/7Z outer — P0 ATH Recovery było 128 MB; WM OPZ (Wyszyński) ≈169 MB wymaga headroom. */
+const MAX_ARCHIVE_OUTER_BYTES = 192 * 1024 * 1024;
 
 type TenderDownloadDiag = {
   path: string;

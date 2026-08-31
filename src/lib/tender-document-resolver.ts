@@ -12,6 +12,7 @@ import { isWeakWadiumRaw, pickBetterWadiumPln, formatSwzWadiumDisplay } from "@/
 import {
   is7zFilename,
   isDocxFilename,
+  isPriorityCostArchiveOuter,
   isZipFilename,
   parsePlnFromKosztorysTotal,
   scoreTenderFilename,
@@ -411,7 +412,7 @@ async function unpackZipArchiveInnerCandidates(
     } else {
       traceDossierPipeline("zip_opened", doc.filename, { bytes: "edge_catalog", innerViaEdge: true });
     }
-    const docZipBoost = /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename) ? 20 : 0;
+    const docZipBoost = isPriorityCostArchiveOuter(doc.filename) ? 20 : 0;
     traceDossierPipeline("zip_inner_files_found", doc.filename, {
       count: inner.length,
       ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
@@ -433,10 +434,12 @@ async function unpackZipArchiveInnerCandidates(
       });
     }
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     traceDossierPipeline("zip_open_failed", doc.filename, {
       documentIndex: doc.index,
       downloadUrl: Boolean(dl),
-      error: e instanceof Error ? e.message : String(e),
+      error: msg,
+      sizeLimit: /zbyt duże|size_limit_exceeded/i.test(msg),
     });
   }
   return innerCandidates;
@@ -1134,7 +1137,16 @@ export async function prepareTenderDossierParseSession(
     const zipInnerCount = candidates.filter(
       (c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex),
     ).length;
-    const zipUnpackOk = zipDocIndices.size === 0 || zipWithInner.size > 0;
+    const priorityZipIndices = [...zipDocIndices].filter((idx) => {
+      const doc = docs.find((d) => d.index === idx);
+      return Boolean(doc && isPriorityCostArchiveOuter(doc.filename));
+    });
+    // Priority OPZ/przedmiar ZIP must unpack; otherwise a small umowa ZIP masks size_limit.
+    const zipUnpackOk = zipDocIndices.size === 0
+      ? true
+      : priorityZipIndices.length > 0
+        ? priorityZipIndices.every((idx) => zipWithInner.has(idx))
+        : zipWithInner.size > 0;
     const zipCostInnerPresent = hasZipCostInnerFromCandidates(candidates);
     return { zipDocIndices, zipWithInner, zipInnerCount, zipUnpackOk, zipCostInnerPresent };
   };
