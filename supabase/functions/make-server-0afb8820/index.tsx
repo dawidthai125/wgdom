@@ -3312,16 +3312,22 @@ function assertDownloadMagicBytes(bytes: Uint8Array, filename: string | null, co
 }
 
 function isArchiveInnerListableFilename(filename: string): boolean {
-  return /\.(ath|nor|xml|pdf|xlsx?|docx?)$/i.test(filename);
+  // Include nested zip/7z — WM OPZ often wraps przedmiar PDF inside inner archives.
+  return /\.(ath|nor|xml|pdf|xlsx?|docx?|zip|7z)$/i.test(filename);
 }
 
 function scoreZipInnerFilename(filename: string): number {
   const n = filename.toLowerCase();
   let score = 0;
   if (/kosztorys|przedmiar|obmiar|ath|nor\b/.test(n)) score += 30;
-  if (/specyfikac|swz|opz/.test(n)) score += 12;
+  if (/specyfikac|swz|opz|opis\s+przedmiotu/.test(n)) score += 12;
   if (/formularz|ofert/.test(n)) score -= 20;
   if (/umow|protok|harmonogram/.test(n)) score -= 8;
+  if (/\.(ath|nor|xml)$/i.test(filename)) score += 28;
+  if (/\.xlsx?$/i.test(filename)) score += 14;
+  if (/\.docx?$/i.test(filename)) score += 12;
+  if (/\.pdf$/i.test(filename)) score += 8;
+  if (/\.(zip|7z)$/i.test(filename)) score += 6;
   return score;
 }
 
