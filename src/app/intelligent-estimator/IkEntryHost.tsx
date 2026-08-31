@@ -91,6 +91,7 @@ export function IkEntryHost({
     identityCoverage,
     composite,
     positionCostBid,
+    f5AutoGapResolution,
     riskDecision,
     packageBlockers,
     ownerActionQueue,
@@ -136,6 +137,7 @@ export function IkEntryHost({
         material,
         identityCoverage,
         positionCostBid,
+        f5AutoGapResolution,
         riskDecision,
         composite,
         knr,
@@ -144,7 +146,7 @@ export function IkEntryHost({
         ownerActionQueue,
         identityCoverageOps,
       }),
-    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, riskDecision, composite, knr, classification, packageBlockers, ownerActionQueue, identityCoverageOps],
+    [effectiveItem, pkg, ingest, bridgeBusy, item, report, pipelineIngest, labor, material, identityCoverage, positionCostBid, f5AutoGapResolution, riskDecision, composite, knr, classification, packageBlockers, ownerActionQueue, identityCoverageOps],
   );
 
   // Phase 3 — Live Viz: pure Observation each render (C-MEMO: orchestra ref unstable).

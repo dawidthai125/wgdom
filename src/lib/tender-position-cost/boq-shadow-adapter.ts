@@ -16,6 +16,11 @@ import type {
 import type { BoqDependencyGraph } from "@/lib/intelligent-estimator/boq-dependency-graph";
 import { resolveBoqPricingQuantity } from "@/lib/intelligent-estimator/boq-pricing-quantity-resolver";
 import type { TechnologyPack } from "@/lib/technology-foundation";
+import { listAllPacks } from "@/lib/technology-foundation";
+import {
+  mergeEphemeralBomPacksIntoRunPacks,
+  type IkEphemeralBomBasis,
+} from "@/lib/intelligent-estimator/ik-bom-gap-research";
 import { normalizeWgdomCostUnit, type WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import { resolveOwnerWorkUnitCompatibility } from "@/lib/catalog-coverage/owner-unit-compatibility";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
@@ -238,8 +243,11 @@ export function resolveWorkIdentityFromOfferBoqLine(
   let ownerUnitCompatibility: ShadowWorkIdentityResolve["ownerUnitCompatibility"] = null;
 
   const workIdBound = String(line.catalogWorkId ?? "").trim() || null;
-  // P5.7 — local Owner unit compatibility BEFORE INVALID_UNIT (not global normalize).
-  if (!unit && workIdBound) {
+  // P5.7 / LP30 — Owner unit compatibility (workId-scoped).
+  // Applies when normalize fails (otw/aparat) OR when global normalize collapses
+  // kpl→szt but Owner policy restores catalog kpl for p2b-demontaz-wanny-kpl.
+  // Does NOT mutate normalizeWgdomCostUnit.
+  if (workIdBound) {
     const compat = resolveOwnerWorkUnitCompatibility({
       workId: workIdBound,
       sourceUnitRaw: unitRaw,
@@ -472,6 +480,7 @@ function resolveOwnerInputQuantityViaS4B(
     line,
     lineIndex: input.lineIndex ?? 0,
     dependencyGraph: input.boqDependencyGraph ?? null,
+    tenderId: input.tenderId ?? null,
   });
   if (qtyResolution.status === "HOLD") {
     pushGap(gaps, "BOQ_QUANTITY_HOLD");
@@ -508,6 +517,7 @@ function tryComputeShadowLineFromEphemeralBasis(args: {
     line,
     lineIndex: input.lineIndex ?? 0,
     dependencyGraph: input.boqDependencyGraph ?? null,
+    tenderId: input.tenderId ?? null,
   });
   if (qtyResolution.status === "HOLD") {
     pushGap(gaps, "BOQ_QUANTITY_HOLD");
@@ -801,6 +811,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     line,
     lineIndex: input.lineIndex ?? 0,
     dependencyGraph: input.boqDependencyGraph ?? null,
+    tenderId: input.tenderId ?? null,
   });
 
   if (qtyResolution.status === "HOLD") {
@@ -1005,6 +1016,14 @@ export type ComputeShadowBoqPositionCostsInput = {
     | ReadonlyMap<string, EphemeralResearchBasis>
     | Readonly<Record<string, EphemeralResearchBasis>>
     | null;
+  /**
+   * IK F5 Auto Gap — run-scoped ephemeral BOM bases (dwelling-scoped caller).
+   * Merged as in-memory ACTIVE packs for this shadow pass only — ZERO registry write.
+   */
+  ephemeralBomBasisByLineId?:
+    | ReadonlyMap<string, IkEphemeralBomBasis>
+    | Readonly<Record<string, IkEphemeralBomBasis>>
+    | null;
 };
 
 function resolveEphemeralCostBasisForLine(
@@ -1030,6 +1049,10 @@ function resolveEphemeralCostBasisForLine(
 export function computeShadowPositionCostsForOfferBoq(
   input: ComputeShadowBoqPositionCostsInput,
 ): ShadowBoqPositionCostResult {
+  const runPacks = mergeEphemeralBomPacksIntoRunPacks(
+    input.packs ?? listAllPacks(),
+    input.ephemeralBomBasisByLineId ?? null,
+  );
   const lines = (input.doc.lines ?? []).map((line, lineIndex) =>
     computeShadowPositionCostForOfferBoqLine({
       line,
@@ -1040,7 +1063,7 @@ export function computeShadowPositionCostsForOfferBoq(
       materialSupplyWorkIds: input.materialSupplyWorkIds,
       nowMs: input.nowMs,
       paintCoats: input.paintCoats,
-      packs: input.packs,
+      packs: runPacks,
       targetMaterialUnit: input.targetMaterialUnit,
       tenderId: input.tenderId,
       dwellingId: input.dwellingId,

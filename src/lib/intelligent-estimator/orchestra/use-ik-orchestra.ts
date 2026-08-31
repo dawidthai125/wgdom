@@ -20,6 +20,8 @@ import {
 } from "@/lib/tender-document-discovery";
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
+import { runIkF5AutoGapResolution } from "@/lib/intelligent-estimator/ik-f5-auto-gap-resolution";
+import type { IkF5AutoGapResolutionResult } from "@/lib/intelligent-estimator/ik-f5-auto-gap-resolution";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
 import {
   buildIkG3FinalBidRecord,
@@ -358,8 +360,9 @@ export function useIkOrchestra({
     riskDecision: syncRiskDecision,
   } = fullSnapshot;
 
-  const positionCostBid = useMemo(() => {
-    if (!syncPositionCostBid || !labor || labor.counts.apfCandidates <= 0) {
+  const positionCostBidBase = useMemo(() => {
+    if (!syncPositionCostBid) return null;
+    if (!labor || labor.counts.apfCandidates <= 0) {
       return syncPositionCostBid;
     }
     return runIkP7PositionCostBid({
@@ -377,6 +380,38 @@ export function useIkOrchestra({
     pkg,
     workCatalogStore,
   ]);
+
+  const f5AutoGapResolution = useMemo((): IkF5AutoGapResolutionResult | null => {
+    if (!flags.p7F5On || !positionCostBidBase) return null;
+    if (positionCostBidBase.gapLineCount <= 0 && positionCostBidBase.cutoverGatePass) {
+      return null;
+    }
+    if (positionCostBidBase.gapLineCount <= 0) return null;
+    return runIkF5AutoGapResolution({
+      item: effectiveItem,
+      expert: postIdentityExpert,
+      package: pkg,
+      store: workCatalogStore,
+      initialP7: positionCostBidBase,
+      labor,
+      material,
+      maxIterations: 3,
+    });
+  }, [
+    flags.p7F5On,
+    positionCostBidBase,
+    effectiveItem,
+    postIdentityExpert,
+    pkg,
+    workCatalogStore,
+    labor,
+    material,
+  ]);
+
+  const positionCostBid = useMemo(() => {
+    if (f5AutoGapResolution?.finalP7) return f5AutoGapResolution.finalP7;
+    return positionCostBidBase;
+  }, [f5AutoGapResolution, positionCostBidBase]);
 
   const riskDecision = useMemo(() => {
     if (!flags.p8RiskOn) {
@@ -872,6 +907,7 @@ export function useIkOrchestra({
       flags,
       ...fullSnapshot,
       positionCostBid,
+      f5AutoGapResolution,
       riskDecision,
       identityPersistOutcome,
       packageBlockers,
@@ -891,6 +927,7 @@ export function useIkOrchestra({
       flags,
       fullSnapshot,
       positionCostBid,
+      f5AutoGapResolution,
       riskDecision,
       identityPersistOutcome,
       packageBlockers,

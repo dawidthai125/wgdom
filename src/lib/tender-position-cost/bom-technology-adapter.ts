@@ -138,7 +138,8 @@ export function findActiveTechnologyPacksForWorkId(
     );
 }
 
-function validateRecipeLine(line: PackMaterialRecipeLine): string | null {
+/** Exported for IK BOM gap research validation (ZERO invent). */
+export function validateRecipeLine(line: PackMaterialRecipeLine): string | null {
   if (!String(line.materialKey ?? "").trim()) return "brak materialKey";
   if (!String(line.unit ?? "").trim()) return "brak unit";
   if (line.qtyFactor == null || !Number.isFinite(line.qtyFactor)) return "brak quantityPerUnit";

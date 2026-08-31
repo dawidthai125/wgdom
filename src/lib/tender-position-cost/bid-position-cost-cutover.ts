@@ -79,6 +79,11 @@ export type PositionCostCutoverOpts = {
     | ReadonlyMap<string, EphemeralResearchBasis>
     | Readonly<Record<string, EphemeralResearchBasis>>
     | null;
+  /** IK F5 Auto Gap — ephemeral BOM bases (run-scoped packs). */
+  ephemeralBomBasisByLineId?:
+    | ReadonlyMap<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>
+    | Readonly<Record<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>>
+    | null;
 };
 
 export type LegacyVsPositionCostBidCompare = {
@@ -317,6 +322,7 @@ export function computePositionCostShadowAndGate(
     dwellingId: opts.dwellingId,
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
     ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
+    ephemeralBomBasisByLineId: opts.ephemeralBomBasisByLineId ?? null,
   });
   return { shadow, gate: evaluateBidCutoverGate(shadow) };
 }

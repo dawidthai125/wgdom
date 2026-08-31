@@ -77,6 +77,8 @@ export interface IkEntryConversationOpts {
   materialIdentityP59?: IkMaterialIdentityP59Report | null;
   /** P7 — Position Cost → F5 → Bid → SUM (REUSE engines; never invent). */
   positionCostBid?: IkP7PositionCostBidReport | null;
+  /** F5 Auto Gap Resolution report (ephemeral only). */
+  f5AutoGapResolution?: import("./ik-f5-auto-gap-resolution").IkF5AutoGapResolutionResult | null;
   /** P8 — Risk → Validation → Chief → DW (REUSE engines; never invent / Accept). */
   riskDecision?: IkP8RiskDecisionReport | null;
   /** BOTH_HOLD consumer — leaf experts → computePositionCost (never invent / Accept). */
@@ -211,6 +213,7 @@ export function resolveObservationStageIdForEcStep(
   if (stepId === "cost") {
     if (ev === "COMPOSITE_BOTH_HOLD") return "composite";
     if (ev === "POSITION_COST_F5") return "pricing";
+    if (ev === "F5_AUTO_GAP") return "pricing";
     return null;
   }
 
@@ -1543,6 +1546,45 @@ export function buildIkEntryConversationViewModel(
         sourceRef: tenderRef(costArtifact, srcKind),
       }),
     );
+
+    const autoGap = opts.f5AutoGapResolution ?? null;
+    if (autoGap) {
+      const holdN = autoGap.remainingGaps.length;
+      const resolvedHint = Math.max(
+        0,
+        (autoGap.iterations[0]?.detectedGapCount ?? p7.gapLineCount) - holdN,
+      );
+      steps.push(
+        step({
+          id: "cost",
+          event: "F5_AUTO_GAP",
+          status: autoGap.stopReason === "COMPLETE" ? "done" : holdN > 0 ? "hold" : "partial",
+          messagePl: autoGap.summaryPl
+            || (holdN === 0
+              ? `IK automatycznie uzupełnił GAP (stop=${autoGap.stopReason}).`
+              : `IK Auto Gap: ${resolvedHint} rozwiązanych ephemeral · ${holdN} wymaga Owner Review.`),
+          detailPl: [
+            `stop=${autoGap.stopReason}`,
+            `policy=${autoGap.cutoverPolicyNote}`,
+            `iters=${autoGap.iterations.length}`,
+            `invent=false`,
+            `catalogWrite=0`,
+            autoGap.remainingGaps.slice(0, 3).map((g) =>
+              `${g.dwellingId}/${g.lp}:${g.gapCode}`
+            ).join(" · ") || null,
+          ].filter(Boolean).join(" · "),
+          actorLabelPl: EXPERT_CONVERSATION_ACTOR_COST_PL,
+          sourceRef: tenderRef({
+            stopReason: autoGap.stopReason,
+            cutoverPolicyNote: autoGap.cutoverPolicyNote,
+            remainingGaps: autoGap.remainingGaps.length,
+            invent: false,
+            catalogWrite: false,
+            priceMemoryWrite: false,
+          }, autoGap.stopReason === "COMPLETE" ? "evidence" : "hold"),
+        }),
+      );
+    }
 
     if (p7.provenance.packageSumUsed) {
       steps.push(

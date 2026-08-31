@@ -26,6 +26,7 @@ import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
 import type { IkOwnerActionQueueReport } from "./ik-owner-action-queue";
 import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
+import type { IkF5AutoGapResolutionResult } from "@/lib/intelligent-estimator/ik-f5-auto-gap-resolution";
 import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
 import type { NotifyIkPricingAcceptedInput } from "@/lib/ik-pricing-orchestrator/notify-accepted";
 import type { IkOwnerGateActionResult } from "./ik-owner-gate-actions";
@@ -189,6 +190,11 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   flags: IkOrchestraFlags;
   /** W4-2 — per-line package gate blockers (read-only). */
   packageBlockers: IkPackageBlockerReport | null;
+  /**
+   * F5 Auto Gap Resolution — DETECT→RESOLVE→RE-F5 (ephemeral only).
+   * Null when no gaps or P7 off.
+   */
+  f5AutoGapResolution: IkF5AutoGapResolutionResult | null;
   /** W4-1 — aggregated Owner action queue (read-only). */
   ownerActionQueue: IkOwnerActionQueueReport | null;
   /** W4-3 — coverage ops view (niezmierzone %). */

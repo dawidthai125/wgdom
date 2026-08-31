@@ -398,6 +398,34 @@ export type {
 } from "./ik-composite-both-hold";
 
 export {
+  runIkBomGapResearch,
+  ephemeralBomBasisToRunScopedPack,
+  mergeEphemeralBomPacksIntoRunPacks,
+  validateBomCandidateMaterials,
+  DEFAULT_BOM_CONFIDENCE_THRESHOLD,
+  IK_BOM_RESEARCH_RESOLVER_ID,
+} from "./ik-bom-gap-research";
+export type {
+  IkBomGapJob,
+  IkBomResearchCandidate,
+  IkEphemeralBomBasis,
+  RunIkBomGapResearchResult,
+  IkBomGapResearchPorts,
+} from "./ik-bom-gap-research";
+
+export {
+  runIkF5AutoGapResolution,
+  assertNoInventEphemeralBom,
+  IK_F5_AUTO_GAP_MAX_ITERATIONS_DEFAULT,
+} from "./ik-f5-auto-gap-resolution";
+export type {
+  IkF5AutoGapResolutionResult,
+  IkF5AutoGapIteration,
+  IkF5AutoGapStopReason,
+  RunIkF5AutoGapResolutionOpts,
+} from "./ik-f5-auto-gap-resolution";
+
+export {
   runIkP7PositionCostBid,
   IK_P7_POSITION_COST_BID_SCHEMA_VERSION,
 } from "./ik-p7-position-cost-bid";

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-08-31",
+    version: "2.66.131",
+    label: "IK — F5 Auto Gap Resolution (ephemeral)",
+    items: [
+      {
+        type: "new",
+        text: "IK F5 Auto Gap Engine: DETECT→DIAGNOSE→BOM/labor research→VALIDATE→ephemeral runtime→RE-F5→Cutover/PackageGate loop (max 3). ZERO Accept/Catalog/PM/P7/G3 write. BOM research: ACTIVE/APPROVED/REVIEW TechnologyPack exact workId only — bez invent / LABOR_ONLY z MISSING. Multi-dwelling: klucz dwellingId+lineId. Test: test-ik-f5-auto-gap-resolution.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-31",
     version: "2.66.130",
     label: "IK — deterministic multi-premiare dwelling map",
     items: [

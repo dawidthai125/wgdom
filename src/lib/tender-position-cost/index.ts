@@ -56,6 +56,7 @@ export type {
 export {
   computePositionCostWithBomTechnology,
   findActiveTechnologyPacksForWorkId,
+  validateRecipeLine,
   resolveLaborOnlyBomForWork,
   resolveTechnologyBomForWork,
 } from "@/lib/tender-position-cost/bom-technology-adapter";

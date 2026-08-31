@@ -39,9 +39,37 @@ import {
   buildApfEphemeralCostBasisByLineId,
   type IkLaborExpertReport,
 } from "./ik-labor-expert";
+import type { IkEphemeralBomBasis } from "./ik-bom-gap-research";
 import { synchronizePackageOfferBoqsFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
 
 export const IK_P7_POSITION_COST_BID_SCHEMA_VERSION = 1 as const;
+
+/** Composite key for multi-dwelling ephemeral BOM maps. */
+export function ikF5EphemeralBomCompositeKey(
+  dwellingId: string,
+  lineId: string,
+): string {
+  return `${String(dwellingId).trim()}::${String(lineId).trim()}`;
+}
+
+function resolveEphemeralBomMapForDwelling(
+  byComposite: ReadonlyMap<string, IkEphemeralBomBasis> | null | undefined,
+  dwellingId: string,
+): Map<string, IkEphemeralBomBasis> {
+  const out = new Map<string, IkEphemeralBomBasis>();
+  if (!byComposite) return out;
+  const dw = String(dwellingId ?? "").trim();
+  const prefix = `${dw}::`;
+  for (const [k, v] of byComposite) {
+    if (!v || v.type !== "EPHEMERAL_BOM") continue;
+    if (k.startsWith(prefix)) {
+      out.set(k.slice(prefix.length), v);
+    } else if (v.dwellingId === dw) {
+      out.set(String(v.lineId).trim(), v);
+    }
+  }
+  return out;
+}
 
 export type IkP7PositionCostBidStatus =
   | "ready"
@@ -178,6 +206,13 @@ export function runIkP7PositionCostBid(opts: {
   nowMs?: number;
   /** Optional Labor Expert — wires APF ephemeralBasis into shadow (read-only). */
   labor?: IkLaborExpertReport | null;
+  /**
+   * IK F5 Auto Gap — ephemeral BOM bases keyed by `${dwellingId}::${lineId}` or lineId
+   * for legacy_single. Resolve per dwelling filters by dwellingId.
+   */
+  ephemeralBomBasisByCompositeKey?:
+    | ReadonlyMap<string, import("./ik-bom-gap-research").IkEphemeralBomBasis>
+    | null;
 }): IkP7PositionCostBidReport {
   const tenderId = String(opts.item.id || opts.item.tenderId || opts.expert.tenderId || "").trim();
   const nowMs = opts.nowMs ?? Date.now();
@@ -207,6 +242,13 @@ export function runIkP7PositionCostBid(opts: {
       ? (dwellingId: string) =>
           buildApfEphemeralCostBasisByLineId(opts.labor, dwellingId)
       : undefined;
+    const resolveEphemeralBomBasisByLineId = opts.ephemeralBomBasisByCompositeKey
+      ? (dwellingId: string) =>
+          resolveEphemeralBomMapForDwelling(
+            opts.ephemeralBomBasisByCompositeKey,
+            dwellingId,
+          )
+      : undefined;
     const { evaluation, proposal } = computePackageBidProposal({
       pkg: syncedPkg,
       store,
@@ -222,6 +264,7 @@ export function runIkP7PositionCostBid(opts: {
       boqDependencyGraphsByDwelling: opts.expert.boqDependencyGraphsByDwelling ?? null,
       boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
       resolveEphemeralCostBasisByLineId,
+      resolveEphemeralBomBasisByLineId,
     });
 
     const packageDirect =
@@ -353,6 +396,10 @@ export function runIkP7PositionCostBid(opts: {
       ensureOwnerQuestions: false,
       boqDependencyGraph: opts.expert.boqDependencyGraph ?? null,
       ephemeralCostBasisByLineId: buildApfEphemeralCostBasisByLineId(opts.labor ?? null),
+      ephemeralBomBasisByLineId: resolveEphemeralBomMapForDwelling(
+        opts.ephemeralBomBasisByCompositeKey,
+        "DEFAULT",
+      ),
     },
   });
 

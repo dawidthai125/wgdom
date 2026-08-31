@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.131 — IK F5 Auto Gap Resolution ephemeral (2026-08-31)
+
+- **new:** `runIkF5AutoGapResolution` + `runIkBomGapResearch` — DETECT→RESOLVE→ephemeral→RE-F5 (max 3); ZERO Accept/Catalog/PM/P7/G3
+- BOM: ACTIVE/APPROVED/REVIEW exact `workId` only; multi-dwelling `dwellingId+lineId`
+- Test: `npx vite-node scripts/test-ik-f5-auto-gap-resolution.mjs`
+
 ## 2.66.130 — IK deterministic multi-premiare dwelling map (2026-08-31)
 
 - **fix:** jednoznaczne `street+budynek+lokal` w nazwie PDF przedmiaru → `documentToDwelling` (LS multi-dwelling); ambiguous = HOLD; odblokowuje `MULTI_SOURCE_NO_DWELLING_MAP`
