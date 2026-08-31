@@ -13,6 +13,7 @@ import {
 } from "@/lib/tender-document-role";
 import {
   classifyCostDocumentType,
+  isFinancialScheduleNotCostFilename,
   type TenderCostDocumentType,
 } from "@/lib/tender-cost-discovery";
 import { isDocumentDiscoverySettled } from "@/lib/tender-document-discovery";
@@ -280,6 +281,14 @@ export function inventoryIkDocuments(item: TenderPipelineItem): IkInventoryDocum
   return out;
 }
 
+/** Defense: Harmonogram rzeczowo-finansowy ≠ Master BOQ (FIX #3). */
+function isScheduleKosztorysSnapshot(
+  snapshot: Pick<TenderKosztorysSnapshot, "sourceFilename"> | null | undefined,
+): boolean {
+  const src = snapshot?.sourceFilename;
+  return Boolean(src && isFinancialScheduleNotCostFilename(src));
+}
+
 function snapshotLineStats(snapshot: TenderKosztorysSnapshot | null | undefined): {
   detected: number;
   extracted: number;
@@ -385,12 +394,26 @@ export function runIkDocumentExpert(opts: {
 
   const przedmiary: IkPrzedmiarSource[] = [];
   const seen = new Set<string>();
+  const reasons: string[] = [];
+
+  const noteScheduleBlocked = () => {
+    if (!reasons.includes("NOT_MASTER_BOQ_SCHEDULE")) {
+      reasons.push("NOT_MASTER_BOQ_SCHEDULE");
+    }
+  };
 
   const addPrzedmiar = (
     documentId: string,
     filename: string,
     snapshot: TenderKosztorysSnapshot | null | undefined,
   ) => {
+    if (
+      isFinancialScheduleNotCostFilename(filename)
+      || isScheduleKosztorysSnapshot(snapshot)
+    ) {
+      noteScheduleBlocked();
+      return;
+    }
     if (seen.has(documentId)) return;
     seen.add(documentId);
     const stats = snapshotLineStats(snapshot);
@@ -430,7 +453,6 @@ export function runIkDocumentExpert(opts: {
     );
   }
 
-  const reasons: string[] = [];
   const gaps: string[] = [];
   let offerBoq: OfferBoqDocument | null = null;
   let lineProvenance: Record<string, DwellingLineProvenance> | null = null;
@@ -441,6 +463,17 @@ export function runIkDocumentExpert(opts: {
   let keepOneCollapsed = 0;
   const allComposedLines: OfferBoqLine[] = [];
   const masterBoqLines: IkMasterBoqLineRef[] = [];
+
+  const tryBuildOfferBoqFromSnapshot = (
+    snapshot: TenderKosztorysSnapshot | null | undefined,
+  ): OfferBoqDocument | null => {
+    if (!snapshot) return null;
+    if (isScheduleKosztorysSnapshot(snapshot)) {
+      noteScheduleBlocked();
+      return null;
+    }
+    return buildOfferBoqFromSnapshot({ tenderId, snapshot });
+  };
 
   const pushMasterLines = (
     dwellingId: string,
@@ -474,6 +507,21 @@ export function runIkDocumentExpert(opts: {
     for (const unit of mappedDwellings) {
       const labelPl = unit.labelPl || unit.dwellingId;
       if (unit.offerBoq && (unit.offerBoq.lines?.length ?? 0) > 0) {
+        const unitSrc =
+          unit.offerBoq.parserSnapshotRef?.sourceFilename
+          ?? null;
+        if (unitSrc && isFinancialScheduleNotCostFilename(unitSrc)) {
+          noteScheduleBlocked();
+          dwellingUnits.push({
+            dwellingId: unit.dwellingId,
+            labelPl,
+            sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+            lineCount: 0,
+            composeOk: false,
+            completeness: "incomplete",
+          });
+          continue;
+        }
         composedDocs.push(unit.offerBoq);
         if (unit.lineProvenance) Object.assign(mergedProv, unit.lineProvenance);
         pushMasterLines(unit.dwellingId, unit.offerBoq.lines ?? [], unit.lineProvenance);
@@ -497,6 +545,19 @@ export function runIkDocumentExpert(opts: {
       keepOneCollapsed += countKeepOneCollapsedFromWarnings(snap.warnings ?? []);
       const composed = composeDwellingOfferBoq({ snapshot: snap });
       if (composed.ok) {
+        const composedSrc = composed.document.parserSnapshotRef?.sourceFilename ?? "";
+        if (composedSrc && isFinancialScheduleNotCostFilename(composedSrc)) {
+          noteScheduleBlocked();
+          dwellingUnits.push({
+            dwellingId: unit.dwellingId,
+            labelPl,
+            sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+            lineCount: 0,
+            composeOk: false,
+            completeness: snap.completeness,
+          });
+          continue;
+        }
         composedDocs.push(composed.document);
         Object.assign(mergedProv, composed.lineProvenance);
         pushMasterLines(unit.dwellingId, composed.document.lines ?? [], composed.lineProvenance);
@@ -540,10 +601,8 @@ export function runIkDocumentExpert(opts: {
       "PARTIAL_OWNER_MAP — mapa niepełna; brak kompletnego Master BOQ multi-dwelling.",
     );
     const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
-    if (primary) {
-      offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: primary });
-      composedLineCount = offerBoq.lines?.length ?? 0;
-    }
+    offerBoq = tryBuildOfferBoqFromSnapshot(primary);
+    composedLineCount = offerBoq?.lines?.length ?? 0;
   } else if (pool.length > 1) {
     const merged = mergeDwellingArtifactLines(pool);
     keepOneCollapsed += countKeepOneCollapsedFromWarnings(merged.warnings);
@@ -552,15 +611,13 @@ export function runIkDocumentExpert(opts: {
       reasons.push("MULTI_SOURCE_NO_DWELLING_MAP — wiele przedmiarów bez mapy adresów.");
     }
     const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
-    if (primary) {
-      offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: primary });
-      composedLineCount = offerBoq.lines?.length ?? 0;
-    }
+    offerBoq = tryBuildOfferBoqFromSnapshot(primary);
+    composedLineCount = offerBoq?.lines?.length ?? 0;
   } else {
     const snap = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
-    if (snap) {
-      offerBoq = buildOfferBoqFromSnapshot({ tenderId, snapshot: snap });
-      if (pool[0]) {
+    if (snap && !isScheduleKosztorysSnapshot(snap)) {
+      offerBoq = tryBuildOfferBoqFromSnapshot(snap);
+      if (pool[0] && offerBoq) {
         const one = mergeDwellingArtifactLines([pool[0]]);
         keepOneCollapsed += countKeepOneCollapsedFromWarnings(one.warnings);
         if (one.completeness === "ready" && one.lines.length > 0) {
@@ -587,6 +644,8 @@ export function runIkDocumentExpert(opts: {
         // Snapshot-only path without compose provenance — still 1:1 for classification input.
         pushMasterLines("legacy_single", offerBoq.lines, null);
       }
+    } else if (snap && isScheduleKosztorysSnapshot(snap)) {
+      noteScheduleBlocked();
     }
   }
 

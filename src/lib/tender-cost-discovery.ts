@@ -85,6 +85,19 @@ export function isFormalOfferCostFilename(filename: string): boolean {
   return false;
 }
 
+/**
+ * Harmonogram rzeczowo-finansowy / financial schedule ≠ dokument kosztowy / przedmiar.
+ * Bare „schedule” bez kontekstu finansowego — NIE blokuje (unikaj false positive).
+ */
+export function isFinancialScheduleNotCostFilename(filename: string): boolean {
+  const folded = foldCostFilename(filename);
+  if (!folded) return false;
+  if (/harmonogram/.test(folded)) return true;
+  if (/rzeczowo[\s_-]*finans/.test(folded)) return true;
+  if (/financial[\s_-]*schedule/.test(folded)) return true;
+  return false;
+}
+
 function isNorFilename(name: string): boolean {
   return /\.nor$/i.test(name);
 }
@@ -109,6 +122,10 @@ export function classifyCostDocumentType(filename: string): {
     return { type: "none", confidence: 0 };
   }
 
+  if (isFinancialScheduleNotCostFilename(filename)) {
+    return { type: "none", confidence: 0 };
+  }
+
   if (isNorFilename(base)) {
     const t: TenderCostDocumentType = inZip ? "zip_nor" : "nor";
     return { type: t, confidence: 0.95 };
@@ -123,19 +140,19 @@ export function classifyCostDocumentType(filename: string): {
   }
   if (isXlsxFilename(base)) {
     const hasCostHint = hasDocD1CostFilenameHint(base);
-    if (inZip && !hasCostHint) {
+    if (!hasCostHint) {
       return { type: "none", confidence: 0 };
     }
     const t: TenderCostDocumentType = inZip ? "zip_xlsx" : "xlsx";
-    return { type: t, confidence: hasCostHint ? 0.88 : 0.72 };
+    return { type: t, confidence: 0.88 };
   }
   if (isXlsOnlyFilename(base)) {
     const hasCostHint = hasDocD1CostFilenameHint(base);
-    if (inZip && !hasCostHint) {
+    if (!hasCostHint) {
       return { type: "none", confidence: 0 };
     }
     const t: TenderCostDocumentType = inZip ? "zip_xls" : "xls";
-    return { type: t, confidence: hasCostHint ? 0.85 : 0.68 };
+    return { type: t, confidence: 0.85 };
   }
   if (isPdfPrzedmiarCostFilename(filename)) {
     const t: TenderCostDocumentType = inZip ? "zip_pdf_przedmiar" : "pdf_przedmiar";
