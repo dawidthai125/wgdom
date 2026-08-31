@@ -440,7 +440,7 @@ export function TenderDetailPanel({
   const pdfExportBlockNotePl =
     bidUiResolution?.gapNotePl
     ?? bidUiResolution?.reasonsPl?.[0]
-    ?? "Brak authoritative bid — eksport PDF zablokowany (PackageGate / GAP).";
+    ?? "Brak authoritative P7 bid — eksport PDF zablokowany (PackageGate / GAP · G3 ≠ PDF).";
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
   const pricingDeferred = workspaceForLogic === "overview"
     && !ownerFinanceProposal

@@ -103,6 +103,7 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
       : secondary.qaMonitor ?? primary.qaMonitor,
     submittedBidPln: primary.submittedBidPln ?? secondary.submittedBidPln,
     submittedAt: primary.submittedAt ?? secondary.submittedAt,
+    ikFinalBid: primary.ikFinalBid ?? secondary.ikFinalBid,
     updatedAt: ts(a.updatedAt) >= ts(b.updatedAt) ? a.updatedAt : b.updatedAt,
   };
 }

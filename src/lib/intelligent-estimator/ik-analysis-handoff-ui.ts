@@ -62,6 +62,9 @@ export type IkAnalysisHandoffViewModel = {
   packageGateBlockingCount: number;
   bidUiStatus: TenderBidUiResolution["uiStatus"] | null;
   bidGapNotePl: string | null;
+  /** G3 Owner Final Bid status (≠ P7 recommended). */
+  g3FinalBidNotePl: string | null;
+  g3Persisted: boolean;
   cta: IkAnalysisHandoffCta;
   /** Design Freeze proof — derived from Observation contract, never invent. */
   observationFinalIsNull: true;
@@ -137,7 +140,11 @@ function isBidGapStatus(status: TenderBidUiResolution["uiStatus"] | null): boole
   return status === "gap" || status === "blocked" || status === "hold" || status === "pending";
 }
 
-function isBidReadyEnough(status: TenderBidUiResolution["uiStatus"] | null): boolean {
+function isBidReadyEnough(
+  status: TenderBidUiResolution["uiStatus"] | null,
+  g3Persisted: boolean,
+): boolean {
+  if (g3Persisted) return true;
   return status == null || status === "legacy" || status === "ready";
 }
 
@@ -171,8 +178,15 @@ function deriveBucket(input: {
   ownerActionCount: number;
   packageGateBlockingCount: number;
   bidUiStatus: TenderBidUiResolution["uiStatus"] | null;
+  g3Persisted: boolean;
 }): IkAnalysisHandoffBucket {
-  const { observation, ownerActionCount, packageGateBlockingCount, bidUiStatus } = input;
+  const {
+    observation,
+    ownerActionCount,
+    packageGateBlockingCount,
+    bidUiStatus,
+    g3Persisted,
+  } = input;
   const overall = observation.overallStatus;
   const runningId = observation.progress.runningStageId;
 
@@ -198,11 +212,11 @@ function deriveBucket(input: {
     terminalDone
     && ownerActionCount === 0
     && packageGateBlockingCount === 0
-    && isBidReadyEnough(bidUiStatus);
+    && isBidReadyEnough(bidUiStatus, g3Persisted);
 
   if (ready) return "ready_for_next";
   if (terminalDone) return "completed";
-  if (isBidGapStatus(bidUiStatus)) return "pending";
+  if (!g3Persisted && isBidGapStatus(bidUiStatus)) return "pending";
   return "pending";
 }
 
@@ -273,8 +287,13 @@ function buildCta(input: {
     };
   }
 
+  const g3Persisted = input.bidUi?.g3Persisted === true;
   const bidStatus = input.bidUi?.uiStatus ?? null;
-  if (isBidGapStatus(bidStatus) || input.bidUi?.pdfExportBlocked === true) {
+  // G3 Final Bid settled — do not force Kosztorys solely for P7 prep gap.
+  if (
+    !g3Persisted
+    && (isBidGapStatus(bidStatus) || input.bidUi?.pdfExportBlocked === true)
+  ) {
     return {
       kind: "kosztorys_bid",
       labelPl: CTA_KOSZTORYS_PL,
@@ -324,6 +343,8 @@ export function buildIkAnalysisHandoffViewModel(
       : 0);
   const bidUiStatus = input.bidUi?.uiStatus ?? null;
   const bidGapNotePl = input.bidUi?.gapNotePl ?? null;
+  const g3FinalBidNotePl = input.bidUi?.g3NotePl ?? null;
+  const g3Persisted = input.bidUi?.g3Persisted === true;
   const stageCounts = countStages(observation);
   const runningId = observation.progress.runningStageId;
   const runningStageLabelPl =
@@ -336,6 +357,7 @@ export function buildIkAnalysisHandoffViewModel(
     ownerActionCount,
     packageGateBlockingCount,
     bidUiStatus,
+    g3Persisted,
   });
 
   const cta = buildCta({
@@ -357,7 +379,7 @@ export function buildIkAnalysisHandoffViewModel(
       packageGateBlockingCount,
       progressPercent: observation.progress.percent,
       runningStageLabelPl,
-      bidGapNotePl,
+      bidGapNotePl: g3Persisted ? null : bidGapNotePl,
     }),
     overallStatus: observation.overallStatus,
     progressPercent: observation.progress.percent,
@@ -367,6 +389,8 @@ export function buildIkAnalysisHandoffViewModel(
     packageGateBlockingCount,
     bidUiStatus,
     bidGapNotePl,
+    g3FinalBidNotePl,
+    g3Persisted,
     cta,
     observationFinalIsNull: true,
     observationEtaIsNull: true,
@@ -392,6 +416,8 @@ export function fingerprintIkAnalysisHandoffInput(input: BuildIkAnalysisHandoffI
     b ? `${b.packageGatePass ? "1" : "0"}:${b.blockers.length}` : "",
     bid?.uiStatus ?? "",
     bid?.gapNotePl ?? "",
+    bid?.g3NotePl ?? "",
+    bid?.g3Persisted ? "1" : "0",
     bid?.pdfExportBlocked ? "1" : "0",
     input.decisionUiPhase ?? "",
     input.chiefDossierAvailable ? "1" : "0",

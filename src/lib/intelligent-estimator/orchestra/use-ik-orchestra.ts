@@ -21,6 +21,10 @@ import {
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
+import {
+  buildIkG3FinalBidRecord,
+  persistIkG3FinalBid,
+} from "@/lib/intelligent-estimator/ik-g3-final-bid";
 import type { IkMaterialExpertReport } from "@/lib/intelligent-estimator/ik-material-expert";
 import {
   isIkP2DocumentsBoqActive,
@@ -795,6 +799,54 @@ export function useIkOrchestra({
         } catch {
           return { ok: false, reason: "MATERIAL_ACCEPT_FAILED" };
         }
+      },
+      g3Accept: async ({
+        netPln,
+        vatPln,
+        grossPln,
+        vatRate,
+        p7RecommendedNetPln,
+        expectedOcds,
+        caseLabel,
+      }) => {
+        const liveItem = itemRef.current;
+        const liveUpdate = onUpdateRef.current;
+        const tenderPipelineId = String(liveItem.id || "").trim();
+        const built = buildIkG3FinalBidRecord({
+          tenderPipelineId,
+          ocdsId: expectedOcds ?? liveItem.tenderId ?? null,
+          netPln,
+          vatPln,
+          grossPln,
+          vatRate,
+          p7RecommendedNetPln,
+          caseLabel,
+        });
+        if (!built.ok) return { ok: false, reason: built.reason };
+        if (
+          expectedOcds != null &&
+          String(expectedOcds).trim() &&
+          String(liveItem.tenderId || "").trim() !== String(expectedOcds).trim()
+        ) {
+          return { ok: false, reason: "OCDS_MISMATCH" };
+        }
+        if (liveUpdate) {
+          liveUpdate({ ikFinalBid: built.record });
+          return { ok: true };
+        }
+        const result = await persistIkG3FinalBid({
+          tenderPipelineId,
+          expectedOcds: expectedOcds ?? liveItem.tenderId ?? null,
+          netPln,
+          vatPln,
+          grossPln,
+          vatRate,
+          p7RecommendedNetPln,
+          caseLabel,
+        });
+        if (!result.ok) return { ok: false, reason: result.reason };
+        if (result.noop) return { ok: true, noop: true, reason: "IDEMPOTENT_NOOP" };
+        return { ok: true };
       },
     }),
     [

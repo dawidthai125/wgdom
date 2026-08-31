@@ -51,12 +51,23 @@ export function IkAnalysisHandoffStrip({
           <p className={`${TEUX_FONT_CAPTION} text-muted-foreground`}>
             {vm.summaryPl}
           </p>
+          {vm.g3FinalBidNotePl ? (
+            <p
+              className={`${TEUX_FONT_CAPTION} text-emerald-900 dark:text-emerald-100 font-medium`}
+              data-ik-analysis-handoff-g3-final-bid
+              data-ik-g3-persisted="1"
+            >
+              {vm.g3FinalBidNotePl}
+            </p>
+          ) : null}
           {vm.bidGapNotePl ? (
             <p
               className={`${TEUX_FONT_CAPTION} text-amber-900 dark:text-amber-100`}
               data-ik-analysis-handoff-bid-gap
+              data-ik-g3-persisted={vm.g3Persisted ? "1" : "0"}
             >
-              Bid: {vm.bidGapNotePl}
+              {vm.g3Persisted ? "P7: " : "Bid: "}
+              {vm.bidGapNotePl}
             </p>
           ) : null}
         </div>

@@ -35,6 +35,10 @@ import type { IkMaterialExpertReport } from "./ik-material-expert";
 import type { IkIdentityCoverageReport } from "./ik-identity-coverage";
 import type { IkMaterialIdentityP59Report } from "./ik-material-identity-p59";
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
+import {
+  formatIkG3FinalBidStatusPl,
+  readIkG3FinalBid,
+} from "./ik-g3-final-bid";
 import type { IkP8RiskDecisionReport } from "./ik-p8-risk-decision";
 import type { IkCompositeBothHoldReport } from "./ik-composite-both-hold";
 import type { IkNg02IngestBridgeResult } from "./ik-ng02-ingest-bridge";
@@ -1568,7 +1572,7 @@ export function buildIkEntryConversationViewModel(
         status: p7.bidOk && p7.recommendedBidPln != null ? "done" : (p7Status === "gap" ? "gap" : "hold"),
         messagePl: p7.bidOk && p7.recommendedBidPln != null
           ? `Bid (REUSE computeTenderBidProposal): rekomendowana ${p7.recommendedBidPln.toLocaleString("pl-PL")} PLN.`
-          : `Bid: brak recommendedBid (cutover/PackageGate FAIL — ZERO invent).`,
+          : `P7 Bid prep: brak recommendedBid (cutover/PackageGate FAIL — ZERO invent · ≠ G3).`,
         detailPl: [
           `bidOk=${p7.bidOk}`,
           `catalogWrite=${p7.catalogWorkWrite}`,
@@ -1583,6 +1587,38 @@ export function buildIkEntryConversationViewModel(
           researchExecuted: false,
           httpCalls: 0,
         }, p7.bidOk ? "evidence" : "hold"),
+      }),
+    );
+  }
+
+  // G3 — Owner Final Bid (pipeline item · ≠ P7 recommended · ≠ submittedBid).
+  const g3 = readIkG3FinalBid(item);
+  if (g3) {
+    const g3Note = formatIkG3FinalBidStatusPl(g3);
+    steps.push(
+      step({
+        id: "offer",
+        event: "G3_FINAL_BID",
+        status: "done",
+        messagePl: g3Note ?? "G3 FINAL BID: PERSISTED",
+        detailPl: [
+          `kind=${g3.kind}`,
+          `source=${g3.source}`,
+          `tender=${g3.tenderPipelineId}`,
+          g3.p7RecommendedNetPln != null
+            ? `p7Trail=${g3.p7RecommendedNetPln}`
+            : null,
+        ].filter(Boolean).join(" · "),
+        actorLabelPl: EXPERT_CONVERSATION_ACTOR_OFFER_PL,
+        sourceRef: tenderRef({
+          kind: g3.kind,
+          netPln: g3.netPln,
+          vatPln: g3.vatPln,
+          grossPln: g3.grossPln,
+          source: g3.source,
+          researchExecuted: false,
+          httpCalls: 0,
+        }, "evidence"),
       }),
     );
   }

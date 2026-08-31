@@ -179,11 +179,65 @@ const bidGapVm = buildIkAnalysisHandoffViewModel({
     packageGatePass: false,
     reasonsPl: ["gap"],
     gapNotePl: "BID PROPOSAL GAP — test",
+    g3FinalBid: null,
+    g3NotePl: null,
+    g3Persisted: false,
   },
   chiefDossierAvailable: false,
 });
 ok("bid gap CTA kosztorys", bidGapVm.cta.kind === "kosztorys_bid");
 ok("bid gap note surfaced", bidGapVm.bidGapNotePl?.includes("BID PROPOSAL GAP") === true);
+ok("bid gap no g3", bidGapVm.g3Persisted === false);
+
+const g3BidVm = buildIkAnalysisHandoffViewModel({
+  observation: baseObservation({
+    overallStatus: "done",
+    progress: {
+      percent: 100,
+      completedWeight: 5,
+      totalWeight: 5,
+      blocked: false,
+      runningStageId: null,
+    },
+    stages: [
+      {
+        stageId: "documents",
+        status: "done",
+        actor: "Document",
+        labelPl: "Dokumenty",
+      },
+      {
+        stageId: "complete",
+        status: "done",
+        actor: "Control",
+        labelPl: "Complete",
+      },
+    ],
+  }),
+  ownerActionQueue: { tenderId: "t1", itemCount: 0, packageGateBlockingCount: 0, items: [] },
+  packageBlockers: null,
+  bidUi: {
+    authoritativeSource: "none",
+    proposal: null,
+    recommendedBidPln: null,
+    pdfExportBlocked: true,
+    uiStatus: "blocked",
+    packageGatePass: null,
+    reasonsPl: ["cutover"],
+    gapNotePl: "P7 prep: CutoverGate FAIL (preparation only — G3 Final Bid osobno).",
+    g3FinalBid: { kind: "ik_g3_final_bid", netPln: 159000, grossPln: 195570 },
+    g3NotePl: "G3 FINAL BID: PERSISTED · 159000 PLN netto · VAT 36570 · 195570 PLN brutto",
+    g3Persisted: true,
+  },
+  chiefDossierAvailable: false,
+});
+ok("g3 persisted flagged", g3BidVm.g3Persisted === true);
+ok("g3 note on VM", g3BidVm.g3FinalBidNotePl?.includes("G3 FINAL BID: PERSISTED") === true);
+ok("g3 unlocks ready_for_next (≠ stuck pending on P7 gap)", g3BidVm.bucket === "ready_for_next");
+ok(
+  "g3 ready CTA is workspace handoff (decision|kosztorys)",
+  g3BidVm.cta.kind === "kosztorys_bid" || g3BidVm.cta.kind === "decision",
+);
 
 const lib = read("src/lib/intelligent-estimator/ik-analysis-handoff-ui.ts");
 const strip = read("src/app/intelligent-estimator/IkAnalysisHandoffStrip.tsx");
@@ -204,6 +258,7 @@ ok("CTA-FOCUS one-shot setTimeout only in DW focus effect", /pendingDecisionWork
 ok("CTA-FOCUS no setInterval in DetailPage handoff region", !/setInterval/.test(detail.slice(detail.indexOf("handleIkAnalysisHandoffCta"), detail.indexOf("chiefSessionForDecision"))));
 ok("no F5 import in handoff lib", !/computePositionCost|OUR_RATE|MarketQuotes/.test(lib));
 ok("strip has data marker", /data-ik-analysis-handoff=\"1\"/.test(strip));
+ok("strip has G3 marker", /data-ik-analysis-handoff-g3-final-bid/.test(strip));
 ok("strip proves final/eta null attrs", /data-ik-analysis-handoff-final-null/.test(strip) && /data-ik-analysis-handoff-eta-null/.test(strip));
 
 if (failed) {

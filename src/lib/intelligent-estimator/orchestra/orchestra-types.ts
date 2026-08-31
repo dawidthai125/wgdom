@@ -163,6 +163,19 @@ export type IkOwnerGateApi = {
   /** Chief/Demand guard for material G2. */
   chiefMaterialAvailable: boolean;
   notifyPricingAccepted?: NotifyIkPricingAcceptedInput;
+  /**
+   * A08-P4 G3 — Final Bid Accept (Owner amount).
+   * Persists TenderPipelineItem.ikFinalBid only — ≠ submittedBid / estimate / DW.
+   */
+  g3Accept: (input: {
+    netPln: number;
+    vatPln: number;
+    grossPln: number;
+    vatRate?: number;
+    p7RecommendedNetPln?: number | null;
+    expectedOcds?: string | null;
+    caseLabel?: string;
+  }) => Promise<IkOwnerGateActionResult>;
 };
 
 /** Full runtime snapshot returned to IkEntryHost adapter. */

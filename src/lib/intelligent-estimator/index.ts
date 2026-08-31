@@ -398,3 +398,20 @@ export type {
   IkP7PositionCostBidReport,
   IkP7PositionCostBidStatus,
 } from "./ik-p7-position-cost-bid";
+
+export {
+  IK_G3_FINAL_BID_SCHEMA_VERSION,
+  IK_G3_FINAL_BID_KIND,
+  IK_G3_DEFAULT_VAT_RATE,
+  validateIkG3Amounts,
+  buildIkG3FinalBidRecord,
+  readIkG3FinalBid,
+  formatIkG3FinalBidStatusPl,
+  patchIkG3FinalBidOnItem,
+  persistIkG3FinalBid,
+} from "./ik-g3-final-bid";
+export type {
+  IkG3FinalBidRecord,
+  IkG3BuildInput,
+  IkG3PersistResult,
+} from "./ik-g3-final-bid";

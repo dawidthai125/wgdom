@@ -145,6 +145,11 @@ export interface TenderPipelineItem {
   submittedBidPln?: number | null;
   /** P2-G.3B — kiedy zapisano złożoną ofertę (ISO). */
   submittedAt?: string | null;
+  /**
+   * IK A08-P4 G3 — Owner-approved Final Bid (≠ submittedBidPln · ≠ ourEstimatePln).
+   * DF: IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md
+   */
+  ikFinalBid?: import("@/lib/intelligent-estimator/ik-g3-final-bid").IkG3FinalBidRecord | null;
   /** P2-D.1 — snapshot dokumentów + historia zmian. */
   changeMonitor?: import("@/lib/tender-change-monitor").TenderChangeMonitorState | null;
   /** P2-D.2 — snapshot Q&A + historia odpowiedzi. */
@@ -521,6 +526,9 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     externalDocDiscovery: existing?.externalDocDiscovery ?? null,
     estimateHistory: existing?.estimateHistory ?? [],
     awardResult: existing?.awardResult ?? null,
+    submittedBidPln: existing?.submittedBidPln ?? null,
+    submittedAt: existing?.submittedAt ?? null,
+    ikFinalBid: existing?.ikFinalBid ?? null,
   };
 }
 
@@ -554,6 +562,9 @@ export function mergeTenderPipeline(
           awardResult: prev.awardResult ?? item.awardResult,
           changeMonitor: prev.changeMonitor ?? item.changeMonitor,
           qaMonitor: prev.qaMonitor ?? item.qaMonitor,
+          submittedBidPln: prev.submittedBidPln ?? item.submittedBidPln,
+          submittedAt: prev.submittedAt ?? item.submittedAt,
+          ikFinalBid: prev.ikFinalBid ?? item.ikFinalBid,
         }
       : item);
   }
