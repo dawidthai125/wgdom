@@ -47,11 +47,13 @@ import { inferBranchHint } from "@/lib/cost-multi-01-classify";
 import type { BranchCode } from "@/lib/cost-multi-01-types";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import {
   assessDwellingMappingCoverage,
   computeCompositionLineIntegrity,
   countKeepOneCollapsedFromWarnings,
   countSourceLinesInArtifacts,
+  ensureDeterministicFilenameDwellingMap,
   type IkDwellingMappingAssessment,
   type IkLineIntegrityReport,
 } from "./ik-dwelling-mapping";
@@ -390,11 +392,43 @@ export function runIkDocumentExpert(opts: {
   const documents = inventoryIkDocuments(item);
   const costDocuments = documents.filter((d) => d.isCostDocument);
   const pool: DwellingCostArtifactRef[] = buildArtifactPoolFromItem(item);
-  const pkg = opts.package ?? null;
+  let pkg = opts.package ?? getTenderPackage(tenderId);
 
   const przedmiary: IkPrzedmiarSource[] = [];
   const seen = new Set<string>();
   const reasons: string[] = [];
+
+  // Owner GO: unambiguous street+building+unit filename → dwelling via existing LS map APIs.
+  // Prefer parsed artifact pool; else cost-document filenames (mapping-only, no invent rows).
+  const mapFilenameRefs =
+    pool.length > 1
+      ? pool.map((a) => ({ documentId: a.documentId, filename: a.filename }))
+      : costDocuments
+          .filter((d) => d.isPrzedmiar || d.costType === "pdf_przedmiar")
+          .map((d) => ({ documentId: d.documentId, filename: d.filename }));
+
+  if (mapFilenameRefs.length > 1) {
+    const ensured = ensureDeterministicFilenameDwellingMap({
+      tenderId,
+      artifacts: mapFilenameRefs,
+      package: pkg,
+    });
+    if (ensured.ok && ensured.applied) {
+      pkg = ensured.package;
+      reasons.push(
+        "DETERMINISTIC_FILENAME_DWELLING_MAP — street+building+unit jednoznaczne; mapowanie przez istniejący documentToDwelling.",
+      );
+    } else if (
+      ensured.ok
+      && !ensured.applied
+      && ensured.reason
+      && ensured.reason !== "ALREADY_MAPPED"
+    ) {
+      reasons.push(
+        `DETERMINISTIC_FILENAME_MAP_HOLD — ${ensured.reason} (bez invent).`,
+      );
+    }
+  }
 
   const noteScheduleBlocked = () => {
     if (!reasons.includes("NOT_MASTER_BOQ_SCHEDULE")) {
@@ -490,7 +524,28 @@ export function runIkDocumentExpert(opts: {
     }
   };
 
-  const dwellingMapping = assessDwellingMappingCoverage({ artifacts: pool, package: pkg });
+  const dwellingMapArts =
+    pool.length >= mapFilenameRefs.length && pool.length > 0
+      ? pool
+      : mapFilenameRefs.map((r, i) => ({
+          documentId: r.documentId,
+          artifactId: `map-ref:${i}:${r.documentId}`,
+          filename: r.filename,
+          branchHint: "unknown" as const,
+          // Mapping coverage only — empty snapshot never invents lines.
+          snapshot: {
+            ok: false,
+            sourceFilename: r.filename,
+            rows: [],
+            rowCount: 0,
+            warnings: ["MAPPING_REF_NO_SNAPSHOT"],
+          } as import("@/lib/tenders-bzp-brief").TenderKosztorysSnapshot,
+        }));
+
+  const dwellingMapping = assessDwellingMappingCoverage({
+    artifacts: dwellingMapArts,
+    package: pkg,
+  });
   for (const r of dwellingMapping.reasons) {
     if (!reasons.includes(r)) reasons.push(r);
   }
@@ -603,8 +658,11 @@ export function runIkDocumentExpert(opts: {
     const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
     offerBoq = tryBuildOfferBoqFromSnapshot(primary);
     composedLineCount = offerBoq?.lines?.length ?? 0;
-  } else if (pool.length > 1) {
-    const merged = mergeDwellingArtifactLines(pool);
+  } else if (dwellingMapArts.length > 1) {
+    const mergePool = pool.length > 1 ? pool : [];
+    const merged = mergePool.length > 1
+      ? mergeDwellingArtifactLines(mergePool)
+      : { warnings: [] as string[], completeness: "hold" as const, lines: [] };
     keepOneCollapsed += countKeepOneCollapsedFromWarnings(merged.warnings);
     if (merged.completeness === "conflict") reasons.push("CONFLICT_HOLD");
     if (!reasons.some((r) => r.includes("MULTI_SOURCE_NO_DWELLING_MAP"))) {
@@ -715,7 +773,7 @@ export function runIkDocumentExpert(opts: {
   const sourceCount = Math.max(przedmiary.length, costDocuments.length, pool.length);
 
   const multiMapBlocking =
-    pool.length > 1
+    dwellingMapArts.length > 1
     && (!dwellingMapping.allMapped || reasons.some((r) => r.includes("MULTI_SOURCE_NO_DWELLING_MAP")));
   const composeBlocking = dwellingUnits.some((d) => !d.composeOk);
   const integrityBlocking =

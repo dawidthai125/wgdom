@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-08-31",
+    version: "2.66.130",
+    label: "IK — deterministic multi-premiare dwelling map",
+    items: [
+      {
+        type: "fix",
+        text: "IK Document Expert: jednoznaczne street+budynek+lokal w nazwie PDF przedmiaru (np. Wygodna_10_6 / Prusa_42_9 / Dubois_22A_21) mapuje document→dwelling przez istniejący multi-dwelling documentToDwelling (LS). Ambiguous → HOLD, zero invent. Odblokowuje MULTI_SOURCE_NO_DWELLING_MAP przy 3 prawdziwych przedmiarach. Test: test-ik-deterministic-dwelling-map.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-29",
     version: "2.66.129",
     label: "PAYROLL — settlement ack rejects false-success (GO4)",

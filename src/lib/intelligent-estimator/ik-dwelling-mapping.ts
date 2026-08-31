@@ -4,7 +4,11 @@
  * REUSE SSOT: multi-dwelling documentToDwelling · confirmDwelling · mapDocumentToDwelling
  * · multi-boq compose / merge KEEP ONE.
  *
- * HARD: filename / street / lok. = EVIDENCE only — NEVER silent authoritative map.
+ * HARD: filename / street / lok. = EVIDENCE by default — NEVER invent.
+ * Owner GO exception: unambiguous street+building+unit in filename MAY apply
+ * via existing applyExplicitOwnerDwellingMap (LS package only · ZERO cloud).
+ * Ambiguous / incomplete → HOLD.
+ *
  * ZERO new dwelling model · ZERO parser · ZERO cloud persist.
  */
 
@@ -87,21 +91,89 @@ export type IkApplyOwnerMapResult =
   | {
       ok: true;
       package: TenderPackage;
-      mappedBy: "owner_explicit";
+      mappedBy: "owner_explicit" | "deterministic_filename_unambiguous";
       mappingCount: number;
       dwellingCount: number;
     }
   | { ok: false; reason: string };
 
+/** Lightweight ref for pure filename→dwelling proposals (snapshot optional). */
+export type IkDwellingFilenameRef = {
+  documentId: string;
+  filename: string;
+};
+
+export type IkDeterministicDwellingParse = {
+  streetLabelPl: string;
+  streetSlug: string;
+  building: string;
+  unit: string;
+  dwellingId: string;
+  labelPl: string;
+  confidence: "unambiguous";
+};
+
+export type IkDeterministicDwellingMapProposal =
+  | {
+      status: "ready";
+      reason: null;
+      dwellings: IkExplicitOwnerDwelling[];
+      mappings: IkExplicitOwnerMapping[];
+      perFile: Array<{
+        documentId: string;
+        filename: string;
+        parse: IkDeterministicDwellingParse;
+      }>;
+    }
+  | {
+      status: "hold";
+      reason: string;
+      dwellings: IkExplicitOwnerDwelling[];
+      mappings: IkExplicitOwnerMapping[];
+      perFile: Array<{
+        documentId: string;
+        filename: string;
+        parse: IkDeterministicDwellingParse | null;
+        holdReason: string;
+      }>;
+    };
+
+export type IkEnsureDeterministicMapResult =
+  | {
+      ok: true;
+      applied: true;
+      package: TenderPackage;
+      mappedBy: "deterministic_filename_unambiguous";
+      mappingCount: number;
+      dwellingCount: number;
+      proposal: Extract<IkDeterministicDwellingMapProposal, { status: "ready" }>;
+    }
+  | {
+      ok: true;
+      applied: false;
+      package: TenderPackage | null;
+      reason: string;
+      proposal: IkDeterministicDwellingMapProposal | null;
+    }
+  | { ok: false; reason: string; package: TenderPackage | null };
+
 const SHARED_RE =
   /wentylac|wsp[oó]ln|common|og[oó]ln|cz[eę][sś]ci\s*wsp|infrastruktur/i;
 
-/** Street / address-ish tokens — EVIDENCE only. */
-const STREET_HINTS: Array<{ re: RegExp; label: string }> = [
-  { re: /kotlarsk/i, label: "Kotlarska" },
-  { re: /nasturcjow/i, label: "Nasturcjowa" },
-  { re: /ptasi/i, label: "Ptasia" },
-  { re: /[zż]ernick/i, label: "Żernicka" },
+type StreetHint = { re: RegExp; label: string; slug: string };
+
+/**
+ * Street tokens — EVIDENCE for UI hints; also used by deterministic parser.
+ * Deterministic apply requires street + building + unit (never street-only).
+ */
+const STREET_HINTS: StreetHint[] = [
+  { re: /wygodna/i, label: "Wygodna", slug: "wygodna" },
+  { re: /prusa/i, label: "Prusa", slug: "prusa" },
+  { re: /dubois/i, label: "Dubois", slug: "dubois" },
+  { re: /kotlarska/i, label: "Kotlarska", slug: "kotlarska" },
+  { re: /nasturcjowa/i, label: "Nasturcjowa", slug: "nasturcjowa" },
+  { re: /ptasia/i, label: "Ptasia", slug: "ptasia" },
+  { re: /[zż]ernicka/i, label: "Żernicka", slug: "zernicka" },
 ];
 
 function baseName(filename: string): string {
@@ -110,12 +182,243 @@ function baseName(filename: string): string {
   return slash >= 0 ? f.slice(slash + 1) : f;
 }
 
+function foldAscii(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "");
+}
+
+function slugPart(raw: string): string {
+  return foldAscii(raw)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Pure: unambiguous street + building + unit from filename.
+ * Examples: Wygodna_10_6_PRZEDMIAR.pdf → Wygodna 10/6
+ *           Dubois_22A_21_PRZEDMIAR.pdf → Dubois 22A/21
+ * Ambiguous / incomplete → null (HOLD — never invent).
+ */
+export function parseUnambiguousDwellingFromFilename(
+  filename: string,
+): IkDeterministicDwellingParse | null {
+  const name = baseName(filename);
+  if (!name || SHARED_RE.test(name)) return null;
+
+  const streetHits = STREET_HINTS.filter((h) => h.re.test(name));
+  if (streetHits.length !== 1) return null;
+  const street = streetHits[0]!;
+
+  // Street_10_6 · Street_22A_21 · Street 10/6 · Street_10_lok_6 · Street_10 lok. 6
+  // NOTE: do NOT use \\b after unit — '_' is a word char in JS, breaks Wygodna_10_6_PRZEDMIAR.
+  const patterns: RegExp[] = [
+    new RegExp(
+      `${street.re.source}[_\\s./-]+(\\d+[A-Za-z]?)[_\\s./-]+(?:lok\\.?\\s*)?(\\d+)(?![0-9])`,
+      "i",
+    ),
+    new RegExp(
+      `${street.re.source}[_\\s./-]+(\\d+[A-Za-z]?)[_\\s./-]+m\\.?\\s*(\\d+)(?![0-9])`,
+      "i",
+    ),
+  ];
+
+  let building: string | null = null;
+  let unit: string | null = null;
+  for (const re of patterns) {
+    const m = name.match(re);
+    if (m?.[1] && m?.[2]) {
+      building = m[1];
+      unit = m[2];
+      break;
+    }
+  }
+  if (!building || !unit) return null;
+
+  const dwellingId = normalizeDwellingId(
+    `${street.slug}-${slugPart(building)}-${slugPart(unit)}`,
+  );
+  const labelPl = `${street.label} ${building}/${unit}`;
+
+  return {
+    streetLabelPl: street.label,
+    streetSlug: street.slug,
+    building,
+    unit,
+    dwellingId,
+    labelPl,
+    confidence: "unambiguous",
+  };
+}
+
+/**
+ * Pure proposal: every artifact must parse unambiguously to a UNIQUE dwelling.
+ * Any miss / collision / shared → HOLD (no partial invent).
+ */
+export function proposeDeterministicDwellingMap(
+  artifacts: Array<IkDwellingFilenameRef | DwellingCostArtifactRef>,
+): IkDeterministicDwellingMapProposal {
+  const perFile: Extract<
+    IkDeterministicDwellingMapProposal,
+    { status: "hold" }
+  >["perFile"] = [];
+  const dwellingsById = new Map<string, IkExplicitOwnerDwelling>();
+  const mappings: IkExplicitOwnerMapping[] = [];
+  const dwellingOwners = new Map<string, string>(); // dwellingId → documentId
+
+  if (!artifacts.length) {
+    return {
+      status: "hold",
+      reason: "NO_ARTIFACTS",
+      dwellings: [],
+      mappings: [],
+      perFile: [],
+    };
+  }
+
+  let holdReason: string | null = null;
+
+  for (const a of artifacts) {
+    const filename = a.filename || a.documentId;
+    const documentId = String(a.documentId || filename).trim();
+    const parse = parseUnambiguousDwellingFromFilename(filename);
+    if (!parse) {
+      const streetHits = STREET_HINTS.filter((h) =>
+        h.re.test(baseName(filename)),
+      );
+      const why =
+        SHARED_RE.test(baseName(filename))
+          ? "SHARED_SCOPE_CANDIDATE"
+          : streetHits.length > 1
+            ? "AMBIGUOUS_MULTI_STREET"
+            : streetHits.length === 1
+              ? "STREET_WITHOUT_BUILDING_UNIT"
+              : "NO_STREET_HINT";
+      holdReason = holdReason ?? why;
+      perFile.push({ documentId, filename, parse: null, holdReason: why });
+      continue;
+    }
+    const prev = dwellingOwners.get(parse.dwellingId);
+    if (prev && prev !== documentId) {
+      holdReason = "DWELLING_COLLISION";
+      perFile.push({
+        documentId,
+        filename,
+        parse,
+        holdReason: `DWELLING_COLLISION with ${prev}`,
+      });
+      continue;
+    }
+    dwellingOwners.set(parse.dwellingId, documentId);
+    dwellingsById.set(parse.dwellingId, {
+      dwellingId: parse.dwellingId,
+      labelPl: parse.labelPl,
+    });
+    mappings.push({ documentId, dwellingId: parse.dwellingId });
+    perFile.push({
+      documentId,
+      filename,
+      parse,
+      holdReason: "",
+    });
+  }
+
+  if (holdReason || perFile.some((p) => !p.parse)) {
+    return {
+      status: "hold",
+      reason: holdReason ?? "INCOMPLETE_DETERMINISTIC_MAP",
+      dwellings: [...dwellingsById.values()],
+      mappings,
+      perFile: perFile.map((p) => ({
+        documentId: p.documentId,
+        filename: p.filename,
+        parse: p.parse,
+        holdReason: p.holdReason || holdReason || "HOLD",
+      })),
+    };
+  }
+
+  return {
+    status: "ready",
+    reason: null,
+    dwellings: [...dwellingsById.values()],
+    mappings,
+    perFile: perFile.map((p) => ({
+      documentId: p.documentId,
+      filename: p.filename,
+      parse: p.parse!,
+    })),
+  };
+}
+
+/**
+ * Apply deterministic filename map via existing Owner map store APIs.
+ * Only when proposeDeterministicDwellingMap = ready. LS-only · ZERO cloud.
+ */
+export function ensureDeterministicFilenameDwellingMap(opts: {
+  tenderId: string;
+  artifacts: Array<IkDwellingFilenameRef | DwellingCostArtifactRef>;
+  package?: TenderPackage | null;
+}): IkEnsureDeterministicMapResult {
+  const tenderId = String(opts.tenderId ?? "").trim();
+  if (!tenderId) {
+    return { ok: false, reason: "MISSING_TENDER_ID", package: null };
+  }
+
+  const existing = opts.package ?? getTenderPackage(tenderId);
+  const coverage = assessDwellingMappingCoverage({
+    artifacts: opts.artifacts as DwellingCostArtifactRef[],
+    package: existing,
+  });
+  if (coverage.allMapped && existing?.mode === "multi") {
+    return {
+      ok: true,
+      applied: false,
+      package: existing,
+      reason: "ALREADY_MAPPED",
+      proposal: null,
+    };
+  }
+
+  const proposal = proposeDeterministicDwellingMap(opts.artifacts);
+  if (proposal.status !== "ready") {
+    return {
+      ok: true,
+      applied: false,
+      package: existing,
+      reason: proposal.reason,
+      proposal,
+    };
+  }
+
+  const applied = applyExplicitOwnerDwellingMap({
+    tenderId,
+    dwellings: proposal.dwellings,
+    mappings: proposal.mappings,
+    expectedDwellingCount: proposal.dwellings.length,
+  });
+  if (!applied.ok) {
+    return { ok: false, reason: applied.reason, package: existing };
+  }
+
+  return {
+    ok: true,
+    applied: true,
+    package: applied.package,
+    mappedBy: "deterministic_filename_unambiguous",
+    mappingCount: applied.mappingCount,
+    dwellingCount: applied.dwellingCount,
+    proposal,
+  };
+}
+
 /**
  * Build Owner-facing candidates from artifact filenames.
- * NEVER persists · NEVER auto-Accept · authoritative always false.
+ * NEVER persists · NEVER auto-Accept · authoritative always false on candidates.
  */
 export function buildDwellingMappingCandidates(
-  artifacts: DwellingCostArtifactRef[],
+  artifacts: Array<IkDwellingFilenameRef | DwellingCostArtifactRef>,
 ): IkDwellingMappingCandidate[] {
   return artifacts.map((a) => {
     const filename = a.filename || a.documentId;
@@ -128,6 +431,12 @@ export function buildDwellingMappingCandidates(
     const num = name.match(/\b(\d{1,4})\b/);
     if (num && !lok) evidenceTokens.push(num[1]!);
 
+    const deterministic = parseUnambiguousDwellingFromFilename(filename);
+    if (deterministic) {
+      evidenceTokens.push(deterministic.labelPl);
+      evidenceTokens.push("deterministic_unambiguous");
+    }
+
     let kind: IkDwellingMappingCandidateKind = "unknown";
     let suggestedLabelPl: string | null = null;
 
@@ -138,6 +447,9 @@ export function buildDwellingMappingCandidates(
     } else if (streetHits.length > 1) {
       kind = "ambiguous";
       suggestedLabelPl = streetHits.map((h) => h.label).join(" / ");
+    } else if (deterministic) {
+      kind = "dwelling_hint";
+      suggestedLabelPl = deterministic.labelPl;
     } else if (streetHits.length === 1) {
       kind = "dwelling_hint";
       const street = streetHits[0]!.label;

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.130 — IK deterministic multi-premiare dwelling map (2026-08-31)
+
+- **fix:** jednoznaczne `street+budynek+lokal` w nazwie PDF przedmiaru → `documentToDwelling` (LS multi-dwelling); ambiguous = HOLD; odblokowuje `MULTI_SOURCE_NO_DWELLING_MAP`
+- Test: `npx vite-node scripts/test-ik-deterministic-dwelling-map.mjs`
+
 ## 2.66.129 — PAYROLL settlement ack rejects false-success GO4 (2026-08-29)
 
 - **fix:** settlement cloud-ack marks success only when `pwrPush` outgoing carries matching `settled` + `settledUpdatedAt` + `payrollSettlement`; baseline no-op / missing triple → failure + retry. Settlement-only recovery dry-run script (no APPLY / no prod write).
