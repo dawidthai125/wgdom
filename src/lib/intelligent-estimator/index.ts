@@ -414,6 +414,122 @@ export type {
 } from "./ik-bom-gap-research";
 
 export {
+  runIkBomTechnologyResearch,
+  DEFAULT_BOM_TECH_CONFIDENCE_THRESHOLD,
+} from "./ik-bom-technology-research-engine";
+export type {
+  RunIkBomTechnologyResearchOpts,
+  RunIkBomTechnologyResearchResult,
+} from "./ik-bom-technology-research-engine";
+export {
+  IK_BOM_TECH_RESEARCH_SCHEMA_VERSION,
+  IK_BOM_TECH_RESEARCH_RESOLVER_ID,
+} from "./ik-bom-technology-research-types";
+export type {
+  IkBomTechnologyCandidate,
+  IkBomTechEvidence,
+  IkBomTechNoEvidenceDetail,
+  IkBomTechConfidence,
+  IkBomResearchLineTrace,
+  IkBomProviderTried,
+  IkBomProviderAvailability,
+  IkBomInternalNormEntry,
+} from "./ik-bom-technology-research-types";
+
+export {
+  nullNormativeCatalogProvider,
+  nullTenderDocumentsEvidenceProvider,
+  nullManufacturerEvidenceProvider,
+  nullPublicTechnicalEvidenceProvider,
+  nullWebEvidenceProvider,
+  nullAnalogTenderEvidenceProvider,
+  nullSekocenbudAdapter,
+  licensedNormativeCatalogProvider,
+  createInternalNormativeCatalogProvider,
+  createTenderPodstawaEvidenceProvider,
+  createFixtureNormativeCatalogProvider,
+  createFixtureTenderClaimsProvider,
+  createFixtureManufacturerProvider,
+} from "./ik-bom-technology-research-providers";
+export type {
+  NormativeCatalogProvider,
+  TenderDocumentsEvidenceProvider,
+  ManufacturerEvidenceProvider,
+  PublicTechnicalEvidenceProvider,
+  SekocenbudAdapter,
+  WebEvidenceProvider,
+  AnalogTenderEvidenceProvider,
+} from "./ik-bom-technology-research-providers";
+
+export { runIkBomIdentityGate } from "./ik-bom-identity-gate";
+export type {
+  IkBomIdentityGateResult,
+  IkBomIdentityGateStatus,
+} from "./ik-bom-identity-gate";
+
+export {
+  extractIkBomPodstawaEvidence,
+  normativeLookupKey,
+} from "./ik-bom-podstawa-extract";
+export type { IkBomPodstawaExtract } from "./ik-bom-podstawa-extract";
+
+export {
+  runIkPublicKnrResearch,
+  runIkPublicKnrResearchSync,
+  seedPendingKnrCatalogForTests,
+} from "./ik-public-knr-research-engine";
+export { clearKnrDiscoveryOnDemandBudgetForTests } from "./ik-public-knr-discovery-engine";
+export type {
+  RunIkPublicKnrResearchOpts,
+  IkPublicKnrResearchCodeInput,
+} from "./ik-public-knr-research-engine";
+export {
+  IK_PUBLIC_KNR_RESEARCH_SCHEMA_VERSION,
+  IK_PUBLIC_KNR_RESEARCH_RESOLVER_ID,
+} from "./ik-public-knr-types";
+export {
+  runPublicKnrDiscovery,
+  runPublicKnrDiscoveryForCode,
+  PUBLIC_KNR_DISCOVERY_BUDGET,
+} from "./ik-public-knr-discovery-engine";
+export type { RunPublicKnrDiscoveryOpts } from "./ik-public-knr-discovery-engine";
+export {
+  PUBLIC_KNR_SOURCE_REGISTRY,
+  selectPublicKnrRegistrySources,
+  selectPublicKnrDiscoverySources,
+  buildPublicKnrEffectiveAllowlist,
+} from "./ik-public-knr-source-registry";
+export type {
+  PublicKnrRegistryEntry,
+  SelectPublicKnrRegistrySourcesResult,
+} from "./ik-public-knr-source-registry";
+export {
+  scorePublicKnrSource,
+  scorePublicKnrExtractedRecord,
+  pickBestPublicKnrRecords,
+} from "./ik-public-knr-scoring";
+export {
+  validateCrossFamilySafety,
+  validateMultiSourcePublicKnr,
+  derivePublicKnrBomStatus,
+} from "./ik-public-knr-validation";
+export type {
+  PublicKnrDiscoveryTrace,
+  PublicKnrReanalysisTarget,
+} from "./ik-public-knr-types";
+export { buildPublicKnrQueryPlan } from "./ik-public-knr-query";
+export {
+  createFixturePublicKnrAdapter,
+  createPublicDocumentTextAdapter,
+  runPublicKnrScraperChainSync,
+} from "./ik-public-knr-scraper";
+export type { PublicKnrSourceAdapter } from "./ik-public-knr-scraper";
+export {
+  createKnrCatalogNormativeProvider,
+  findPendingKnrInCatalog,
+} from "./ik-knr-catalog-as-normative";
+
+export {
   runIkF5AutoGapResolution,
   assertNoInventEphemeralBom,
   IK_F5_AUTO_GAP_MAX_ITERATIONS_DEFAULT,

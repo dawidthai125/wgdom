@@ -12,6 +12,11 @@ import { runIkCompositeBothHold } from "@/lib/intelligent-estimator/ik-composite
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
 import { runIkIdentityPhase } from "@/lib/intelligent-estimator/orchestra/ik-identity-phase";
+import {
+  buildDeferredIdentityBlockedContext,
+  buildKnrReanalysisDiag,
+  shouldDeferIkDownstreamUntilKnrKnowledge,
+} from "@/lib/intelligent-estimator/orchestra/ik-knr-reanalysis-seam";
 import { promoteSliceDHitToTrustedTuple } from "@/lib/intelligent-estimator/orchestra/ik-knr-wc-p4-trust-seam";
 import {
   runKnrHostApplicationDiagBatch,
@@ -160,6 +165,8 @@ export function computeIkOrchestraSyncSnapshot(
     flags,
     chiefSession,
     manualOverrides = null,
+    deferDownstreamUntilKnrKnowledge,
+    knrReanalysisSignal = null,
   } = input;
   const {
     identityCoverageOn,
@@ -179,6 +186,19 @@ export function computeIkOrchestraSyncSnapshot(
     documentExpert: report,
     historicalIndex: historicalIndex ?? null,
   });
+
+  // G-ORD-01 — defer from real KNR workload (report/knr), never ingest-only.
+  const knrLinesNeedingKnowledge = knr.lines.filter((l) => l.catalogBasis != null).length;
+  const autoDeferDownstream = shouldDeferIkDownstreamUntilKnrKnowledge({
+    readyForExperts: report.masterBoq.readyForExperts === true,
+    knrLineCount: knrLinesNeedingKnowledge,
+    knowledgeBusy,
+    knrKnowledge,
+  });
+  const knrDownstreamDeferred =
+    typeof deferDownstreamUntilKnrKnowledge === "boolean"
+      ? deferDownstreamUntilKnrKnowledge && report.masterBoq.readyForExperts === true
+      : autoDeferDownstream;
 
   const knrKnowledgeDiag = computeKnrKnowledgeDiag(
     report.masterBoq.readyForExperts,
@@ -205,13 +225,21 @@ export function computeIkOrchestraSyncSnapshot(
   // P4 — thin trust seam (Owner Enable GO / ENABLED). Slice D remains mapping authority; Identity Phase stays generic.
   const sliceDTrusted = promoteSliceDHitToTrustedTuple({ sliceD: knrMapped });
 
-  const identityPhase = runIkIdentityPhase({
-    structuralReport: report,
-    sliceDExpert: sliceDTrusted.expert,
-    item: effectiveItem,
-    package: pkg,
-    manualOverrides,
-  });
+  let identityPhase;
+  if (knrDownstreamDeferred) {
+    identityPhase = {
+      postIdentityExpert: report,
+      context: buildDeferredIdentityBlockedContext(report.masterBoq.lineCount),
+    };
+  } else {
+    identityPhase = runIkIdentityPhase({
+      structuralReport: report,
+      sliceDExpert: sliceDTrusted.expert,
+      item: effectiveItem,
+      package: pkg,
+      manualOverrides,
+    });
+  }
   const postIdentityExpert = identityPhase.postIdentityExpert;
   const identityContext = identityPhase.context;
 
@@ -222,7 +250,11 @@ export function computeIkOrchestraSyncSnapshot(
   });
 
   let identityCoverage = null;
-  if (identityCoverageOn && postIdentityExpert.masterBoq.readyForExperts) {
+  if (
+    !knrDownstreamDeferred
+    && identityCoverageOn
+    && postIdentityExpert.masterBoq.readyForExperts
+  ) {
     identityCoverage = runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
       package: pkg,
@@ -231,7 +263,12 @@ export function computeIkOrchestraSyncSnapshot(
   }
 
   let composite = null;
-  if (p5LaborOn && p6MaterialOn && postIdentityExpert.masterBoq.readyForExperts) {
+  if (
+    !knrDownstreamDeferred
+    && p5LaborOn
+    && p6MaterialOn
+    && postIdentityExpert.masterBoq.readyForExperts
+  ) {
     composite = runIkCompositeBothHold({
       item: effectiveItem,
       package: pkg,
@@ -245,7 +282,8 @@ export function computeIkOrchestraSyncSnapshot(
 
   let positionCostBid = null;
   if (
-    p7F5On
+    !knrDownstreamDeferred
+    && p7F5On
     && (postIdentityExpert.masterBoq.readyForExperts
       || (postIdentityExpert.offerBoq?.lines?.length ?? 0) > 0)
   ) {
@@ -257,7 +295,7 @@ export function computeIkOrchestraSyncSnapshot(
   }
 
   let riskDecision = null;
-  if (p8RiskOn) {
+  if (!knrDownstreamDeferred && p8RiskOn) {
     riskDecision = runIkP8RiskDecision({
       item: effectiveItem,
       p7: positionCostBid,
@@ -283,5 +321,7 @@ export function computeIkOrchestraSyncSnapshot(
     composite,
     positionCostBid,
     riskDecision,
+    knrDownstreamDeferred,
+    knrReanalysisDiag: buildKnrReanalysisDiag(knrReanalysisSignal ?? undefined),
   };
 }

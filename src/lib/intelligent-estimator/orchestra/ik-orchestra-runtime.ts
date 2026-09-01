@@ -17,7 +17,11 @@ import { runIkMasterBoqMaterialExpert } from "@/lib/intelligent-estimator/ik-mat
 import {
   resolveHostKnrKnowledgeLookupOnly,
   type KnrKnowledgeEnvelope,
+  type KnrHostKnowledgeResolveResult,
 } from "@/lib/intelligent-estimator/knr-knowledge";
+import {
+  resolveKnrVerifyActorFromAdminSession,
+} from "@/lib/intelligent-estimator/orchestra/ik-knr-reanalysis-seam";
 import type { IkDocumentExpertReport } from "@/lib/intelligent-estimator/ik-document-expert";
 import type { IkKnrExpertReport } from "@/lib/intelligent-estimator/ik-knr-expert";
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
@@ -79,22 +83,41 @@ export async function executeP2IngestBridge(opts: {
 export async function executeKl3KnowledgeLookup(opts: {
   tenderId: string;
   knr: IkKnrExpertReport;
+  /** Optional Master BOQ — improves public registry query on catalog MISS. */
+  documentExpert?: IkDocumentExpertReport | null;
   isCancelled: () => boolean;
   setKnrKnowledge: (value: KnrKnowledgeEnvelope | null) => void;
   setKnowledgeBusy: (value: boolean) => void;
-}): Promise<void> {
+  onHostComplete?: (result: KnrHostKnowledgeResolveResult) => void;
+}): Promise<KnrHostKnowledgeResolveResult | null> {
   try {
+    const descByLineId = new Map<string, string>();
+    for (const ref of opts.documentExpert?.masterBoqLines ?? []) {
+      const desc = String(ref.line.description ?? "").trim();
+      if (desc) descByLineId.set(ref.line.lineId, desc);
+    }
+
+    const actor = resolveKnrVerifyActorFromAdminSession();
+
     const result = await resolveHostKnrKnowledgeLookupOnly({
       tenderId: opts.tenderId,
       lines: opts.knr.lines.map((l) => ({
         lineId: l.lineId,
+        dwellingId: l.dwellingId,
         catalogBasis: l.catalogBasis,
+        description: descByLineId.get(l.lineId) ?? null,
       })),
+      actor,
       nowIso: new Date().toISOString(),
     });
-    if (!opts.isCancelled()) opts.setKnrKnowledge(result.envelope);
+    if (!opts.isCancelled()) {
+      opts.setKnrKnowledge(result.envelope);
+      opts.onHostComplete?.(result);
+    }
+    return opts.isCancelled() ? null : result;
   } catch {
     if (!opts.isCancelled()) opts.setKnrKnowledge(null);
+    return null;
   } finally {
     if (!opts.isCancelled()) opts.setKnowledgeBusy(false);
   }

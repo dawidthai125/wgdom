@@ -11,7 +11,7 @@
 
 import type { CatalogBasis } from "@/lib/tenders-bzp-swz";
 import type { KnrCatalogStore } from "./knr-catalog-store";
-import { loadKnrCatalogStoreLocal } from "./knr-catalog-store";
+import { loadKnrCatalogStoreLocal, saveKnrCatalogStoreLocal } from "./knr-catalog-store";
 import type { KnrRawEvidenceStore } from "./knr-evidence-store";
 import type { KnrKnowledgeEnvelope } from "./knr-knowledge-envelope";
 import { summarizeKnrKnowledgeLines } from "./knr-knowledge-envelope";
@@ -58,12 +58,30 @@ export const KNR_KNOWLEDGE_KL3_HOST_MARKER = true as const;
 /** KL-7-P2B — discovery side-channel attached (HTTP still OFF · empty allowlist by default). */
 export const KNR_HOST_DISCOVERY_SIDECHANNEL_WIRED = true as const;
 
-/** Phase 2 — on-demand Discovery wire available (fail-closed defaults). */
+/** Phase 2 — on-demand Discovery wire + PublicKnrSourceRegistry fallback (global IK). */
 export const KNR_HOST_DISCOVERY_ON_DEMAND_WIRED = true as const;
+
+/** Registry fallback active in host MISS path (BY_KEY preferred). */
+export const KNR_HOST_PUBLIC_REGISTRY_FALLBACK_WIRED = true as const;
 
 export type KnrHostKnowledgeLineInput = {
   lineId: string;
+  /** Multi-dwelling reanalysis target — per line, not flattened. */
+  dwellingId?: string | null;
   catalogBasis: CatalogBasis | null;
+  /** Optional BOQ description — improves public registry query scoring. */
+  description?: string | null;
+};
+
+export type KnrHostReanalysisTarget = {
+  tenderId: string;
+  dwellingId: string;
+  lineId: string;
+  evidenceKeyV1: string;
+  identityKeyV2: string;
+  knrCode: string;
+  previousLookupStatus: string | null;
+  newLookupStatus: string | null;
 };
 
 export type KnrHostKnowledgeResolveInput = {
@@ -87,7 +105,7 @@ export type KnrHostKnowledgeResolveInput = {
   nowIso: string;
   /**
    * Phase 2 Discovery feature wire.
-   * Default = KNR_DISCOVERY_HTTP_FEATURE_DEFAULT (false) — fail-closed.
+   * Default = KNR_DISCOVERY_HTTP_FEATURE_DEFAULT (true on pilot) — override false for fail-closed tests.
    */
   discoveryFeatureEnabled?: boolean;
   /** Test / Owner-wired allowlist override — production omit. */
@@ -100,6 +118,8 @@ export type KnrHostKnowledgeResolveInput = {
     sourceId: string,
   ) => KnrDiscoveryHttpExecuteResult | Promise<KnrDiscoveryHttpExecuteResult>;
   discoveryClaimantId?: string;
+  /** BY_KEY → registry fallback for public discovery (default true). */
+  publicRegistryFallback?: boolean;
 };
 
 export type KnrHostKnowledgeResolveResult = {
@@ -113,6 +133,13 @@ export type KnrHostKnowledgeResolveResult = {
   discoverySideChannel: KnrHostDiscoverySideChannel;
   /** Phase 2 on-demand result (null when feature OFF or no misses). */
   onDemandDiscovery: RunKnrDiscoveryOnDemandResult | null;
+  /** True when KL3B re-ran after public discovery staged PENDING_VERIFY. */
+  reanalysisExecuted: boolean;
+  /** lineIds refreshed after catalog staging. */
+  reanalysisLineIds: readonly string[];
+  /** Orchestra seam — downstream must invalidate Identity/Labor/F5. */
+  reanalysisRequired: boolean;
+  reanalysisTargets: readonly KnrHostReanalysisTarget[];
 };
 
 /** Deterministic BOQ fingerprint for host memo keys (no authority mutation). */
@@ -201,15 +228,26 @@ export async function resolveHostKnrKnowledgeLookupOnly(
   const missing: KnrOnDemandMissKey[] = [];
   for (const line of input.lines) {
     const result = lineResults.find((r) => r.lineId === line.lineId);
-    const status = result?.status;
-    if (status && isKnrLocalHitStatus(status)) continue;
-    if (status === "PENDING_VERIFY") continue;
+    const lookupStatus = result?.lookupStatus;
+    if (lookupStatus && isKnrLocalHitStatus(lookupStatus)) continue;
+    if (lookupStatus === "PENDING_VERIFY") continue;
     const mk = missKeyFromLine(line);
     if (mk) missing.push(mk);
   }
 
   let onDemandDiscovery: RunKnrDiscoveryOnDemandResult | null = null;
-  if (missing.length > 0) {
+  let reanalysisExecuted = false;
+  const reanalysisLineIds: string[] = [];
+  const reanalysisTargets: KnrHostReanalysisTarget[] = [];
+
+  if (missing.length > 0 && explicitResearch) {
+    const lineDescriptionByEvidenceKey: Record<string, string> = {};
+    for (const line of input.lines) {
+      const mk = missKeyFromLine(line);
+      if (!mk || !line.description) continue;
+      lineDescriptionByEvidenceKey[mk.evidenceKeyV1] = String(line.description);
+    }
+
     onDemandDiscovery = await runKnrDiscoveryOnDemand({
       missing,
       nowIso: input.nowIso,
@@ -224,10 +262,57 @@ export async function resolveHostKnrKnowledgeLookupOnly(
       fakeExecForSource: input.discoveryFakeExecForSource,
       claimantId: input.discoveryClaimantId ?? `host:${input.tenderId}`,
       stagePendingOnFullFact: true,
+      publicRegistryFallback: input.publicRegistryFallback !== false,
+      lineDescriptionByEvidenceKey,
     });
     discoveryStore = onDemandDiscovery.discoveryStore;
     catalogStore = onDemandDiscovery.catalogStore;
     httpRequestCount += onDemandDiscovery.httpRequestCount;
+
+    const stagedEvidenceKeys = new Set(
+      onDemandDiscovery.perKey
+        .filter((k) => k.stagedPending || k.lookupAfter === "PENDING_IN_CATALOG")
+        .map((k) => k.evidenceKeyV1),
+    );
+
+    if (stagedEvidenceKeys.size > 0) {
+      catalogStore = saveKnrCatalogStoreLocal(catalogStore, input.nowIso);
+      for (const line of input.lines) {
+        const mk = missKeyFromLine(line);
+        if (!mk || !stagedEvidenceKeys.has(mk.evidenceKeyV1)) continue;
+        const previous = lineResults.find((r) => r.lineId === line.lineId);
+        const previousLookupStatus = previous?.lookupStatus ?? null;
+        const row = await resolveKnrKnowledgeKl3b({
+          tenderId: input.tenderId,
+          lineId: line.lineId,
+          catalogBasis: line.catalogBasis,
+          catalogStore,
+          evidenceStore,
+          actor: input.actor,
+          athFiles: input.athFiles,
+          explicitResearch,
+          nowIso: input.nowIso,
+        });
+        catalogStore = row.catalogStore;
+        evidenceStore = row.evidenceStore;
+        const refreshed = row.envelope.lineResults[0];
+        const idx = lineResults.findIndex((r) => r.lineId === line.lineId);
+        if (idx >= 0 && refreshed) lineResults[idx] = refreshed;
+        else if (refreshed) lineResults.push(refreshed);
+        reanalysisLineIds.push(line.lineId);
+        reanalysisTargets.push({
+          tenderId: input.tenderId,
+          dwellingId: String(line.dwellingId ?? "").trim(),
+          lineId: line.lineId,
+          evidenceKeyV1: mk.evidenceKeyV1,
+          identityKeyV2: mk.identityKeyV2,
+          knrCode: mk.displayCode,
+          previousLookupStatus,
+          newLookupStatus: refreshed?.lookupStatus ?? null,
+        });
+      }
+      reanalysisExecuted = reanalysisLineIds.length > 0;
+    }
   }
 
   const envelope: KnrKnowledgeEnvelope = {
@@ -250,6 +335,12 @@ export async function resolveHostKnrKnowledgeLookupOnly(
 
   httpRequestCount += discoverySideChannel.httpRequestCount;
 
+  const stagedPendingCount =
+    onDemandDiscovery?.perKey.filter(
+      (k) => k.stagedPending || k.lookupAfter === "PENDING_IN_CATALOG",
+    ).length ?? 0;
+  const reanalysisRequired = reanalysisExecuted || stagedPendingCount > 0;
+
   return {
     envelope,
     httpRequestCount,
@@ -257,5 +348,9 @@ export async function resolveHostKnrKnowledgeLookupOnly(
     lookupOnly: explicitResearch === false,
     discoverySideChannel,
     onDemandDiscovery,
+    reanalysisExecuted,
+    reanalysisLineIds,
+    reanalysisRequired,
+    reanalysisTargets,
   };
 }

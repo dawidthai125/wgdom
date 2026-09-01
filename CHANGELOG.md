@@ -1,5 +1,34 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.135 — IK Public KNR Discovery Engine (2026-09-01)
+
+- **new:** `PublicKnrSourceRegistry` + `runPublicKnrDiscovery` — BY_KEY → registry fallback, scoring, cross-family, multi-source
+- **improve:** NO_SOURCE_SELECTION nie kończy research; reanalysisTargets; real READ-ONLY script
+- Test: `test-ik-public-knr-research.mjs` (50) · `real-public-knr-readonly.mjs`
+- Docs: `IK-PUBLIC-KNR-RESEARCH-ENGINE.md`
+
+## 2.66.134 — IK Public KNR Research Engine (2026-09-01)
+
+- **new:** `runIkPublicKnrResearch` — L0 katalog SSOT → L1 public discovery/scraper → PENDING_VERIFY → reanalyze
+- Multi-query · paywall skip · one canonical + many evidence · KNR ≠ BOM
+- Test: `npx vite-node scripts/test-ik-public-knr-research.mjs`
+- Docs: `docs/architecture/IK-PUBLIC-KNR-RESEARCH-ENGINE.md`
+
+## 2.66.133 — IK Real BOM Research · Identity Gate (2026-09-01)
+
+- **new:** Identity Gate przed BOM (`IDENTITY_MISMATCH` / `NO_WORK_ID`); L0 podstawa evidence-only; L2 InternalNorm + LicensedNorm `LICENSE_REQUIRED`
+- **improve:** Auto Gap HOLD z pełnym `researchTrace.why`; ZERO auto LABOR_ONLY z MISSING_BOM
+- Test: `npx vite-node scripts/test-ik-bom-technology-research.mjs`
+- Docs: `docs/architecture/IK-BOM-TECHNOLOGY-RESEARCH-ENGINE.md`
+
+## 2.66.132 — IK BOM Technology Research Engine (2026-08-31)
+
+- **new:** RESEARCH LAYER `runIkBomTechnologyResearch` — L0 tender → L1 packs → L2 normative provider → L3 manufacturer → L4 public → L5 analog/web
+- Confidence = min(technology, materialKey, qtyFactor, unit); ZERO invent; SEKOCENBUD Null bez license
+- Auto Gap BOM dispatch → nowy engine; `resolveTechnologyBomForWork` pozostaje pure
+- Test: `npx vite-node scripts/test-ik-bom-technology-research.mjs`
+- Docs: `docs/architecture/IK-BOM-TECHNOLOGY-RESEARCH-ENGINE.md`
+
 ## 2.66.131 — IK F5 Auto Gap Resolution ephemeral (2026-08-31)
 
 - **new:** `runIkF5AutoGapResolution` + `runIkBomGapResearch` — DETECT→RESOLVE→ephemeral→RE-F5 (max 3); ZERO Accept/Catalog/PM/P7/G3

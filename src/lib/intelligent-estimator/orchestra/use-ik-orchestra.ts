@@ -70,6 +70,11 @@ import {
   executeP6MaterialExpert,
   needsIkNg02Ingest,
 } from "./ik-orchestra-runtime";
+import {
+  buildKnrReanalysisSignalFromHostResult,
+  planKnrReanalysisOrchestraInvalidation,
+  type IkKnrReanalysisSignal,
+} from "./ik-knr-reanalysis-seam";
 import { resolveEffectiveItem } from "./orchestra-ports";
 import type {
   IkOrchestraHostInput,
@@ -199,7 +204,10 @@ export function useIkOrchestra({
   const [laborSettleTick, setLaborSettleTick] = useState(0);
   const [knrKnowledge, setKnrKnowledge] = useState<KnrKnowledgeEnvelope | null>(null);
   const [knowledgeBusy, setKnowledgeBusy] = useState(false);
+  const [knrReanalysisSignal, setKnrReanalysisSignal] =
+    useState<IkKnrReanalysisSignal | null>(null);
   const knowledgeAttemptedRef = useRef<string | null>(null);
+  const knrDownstreamDeferredRef = useRef(false);
 
   const effectiveItem = resolveEffectiveItem({ item, ingest });
 
@@ -326,6 +334,7 @@ export function useIkOrchestra({
         flags,
         chiefSession: chiefSession ?? null,
         manualOverrides,
+        knrReanalysisSignal,
       }),
     [
       item,
@@ -341,6 +350,7 @@ export function useIkOrchestra({
       identityResearchEpoch,
       catalogReloadEpoch,
       pricingCatalogRevision,
+      knrReanalysisSignal,
     ],
   );
 
@@ -358,7 +368,11 @@ export function useIkOrchestra({
     identityCoverage,
     positionCostBid: syncPositionCostBid,
     riskDecision: syncRiskDecision,
+    knrDownstreamDeferred,
+    knrReanalysisDiag,
   } = fullSnapshot;
+
+  knrDownstreamDeferredRef.current = knrDownstreamDeferred === true;
 
   const positionCostBidBase = useMemo(() => {
     if (!syncPositionCostBid) return null;
@@ -557,11 +571,12 @@ export function useIkOrchestra({
     setPkgEpoch((n) => n + 1);
   }, [identityPersistOutcome, identityPersistPlanKey, effectiveItem]);
 
-  // KL-3 HOST — lookup-only knowledge side-channel (async · does not block P3/P5/P6).
+  // KL-3 HOST — lookup + on-MISS discovery (async · Orchestra reanalysis seam on complete).
   useEffect(() => {
     if (!report.masterBoq.readyForExperts) {
       setKnrKnowledge(null);
       setKnowledgeBusy(false);
+      setKnrReanalysisSignal(null);
       knowledgeAttemptedRef.current = null;
       return;
     }
@@ -569,6 +584,7 @@ export function useIkOrchestra({
     if (!tenderId || knr.lines.length === 0) {
       setKnrKnowledge(null);
       setKnowledgeBusy(false);
+      setKnrReanalysisSignal(null);
       return;
     }
     const knowledgeKey = `${buildKl3KnowledgeKey(tenderId, knr)}|ir${identityResearchEpoch}`;
@@ -580,9 +596,35 @@ export function useIkOrchestra({
     void executeKl3KnowledgeLookup({
       tenderId,
       knr,
+      documentExpert: report,
       isCancelled: () => cancelled,
       setKnrKnowledge,
       setKnowledgeBusy,
+      onHostComplete: (hostResult) => {
+        const signal = buildKnrReanalysisSignalFromHostResult(
+          hostResult,
+          knr.lines.map((l) => ({ lineId: l.lineId, dwellingId: l.dwellingId })),
+        );
+        setKnrReanalysisSignal(signal);
+        const plan = planKnrReanalysisOrchestraInvalidation(signal, {
+          // G-ORD-02 — real defer state from last Orchestra snapshot (not hardcoded).
+          downstreamAlreadyDeferred: knrDownstreamDeferredRef.current,
+        });
+        if (plan.clearKnowledgeAttemptLatch) {
+          knowledgeAttemptedRef.current = null;
+        }
+        if (plan.bumpIdentityResearchEpoch) {
+          setIdentityResearchEpoch((n) => n + 1);
+        }
+        if (plan.bumpLaborRecalcEpoch) {
+          laborAttemptedRef.current = null;
+          setLaborRecalcEpoch((n) => n + 1);
+        }
+        if (plan.bumpMaterialRecalcEpoch) {
+          materialAttemptedRef.current = null;
+          setMaterialRecalcEpoch((n) => n + 1);
+        }
+      },
     });
 
     return () => {
@@ -596,6 +638,11 @@ export function useIkOrchestra({
       laborSettledRef.current = true;
       laborAttemptedRef.current = null;
       laborRunGenerationRef.current += 1;
+      setLabor(null);
+      return;
+    }
+    if (knrDownstreamDeferred) {
+      laborSettledRef.current = false;
       setLabor(null);
       return;
     }
@@ -649,11 +696,15 @@ export function useIkOrchestra({
       laborRunGenerationRef.current = inv.nextRunGeneration;
       laborAttemptedRef.current = inv.nextLaborAttemptedKey;
     };
-  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn, laborRecalcEpoch]);
+  }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn, laborRecalcEpoch, knrDownstreamDeferred]);
 
   // P6 Material E2E
   useEffect(() => {
     if (!p6MaterialOn) {
+      setMaterial(null);
+      return;
+    }
+    if (knrDownstreamDeferred) {
       setMaterial(null);
       return;
     }
@@ -687,6 +738,7 @@ export function useIkOrchestra({
     p6ResearchOn,
     laborSettleTick,
     materialRecalcEpoch,
+    knrDownstreamDeferred,
   ]);
 
   const bumpOrchestraAfterPricingAccept = useCallback(() => {

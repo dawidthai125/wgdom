@@ -31,6 +31,8 @@ import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
 import type { NotifyIkPricingAcceptedInput } from "@/lib/ik-pricing-orchestrator/notify-accepted";
 import type { IkOwnerGateActionResult } from "./ik-owner-gate-actions";
 import type { IkOrchestraRefreshPhaseKind } from "./orchestra-refresh-phase";
+import type { IkKnrReanalysisDiag } from "./ik-knr-reanalysis-seam";
+import type { IkKnrReanalysisSignal } from "./ik-knr-reanalysis-seam";
 
 export type IkOrchestraPipelineIngest = {
   dossierBuilding?: boolean;
@@ -85,6 +87,14 @@ export type IkOrchestraSyncInput = {
   identityResearchEpoch?: number;
   /** A08-P3 IC-P3-ORCH-1 — bust fullSnapshot + catalog reload after G2 Accept. */
   catalogReloadEpoch?: number;
+  /**
+   * Global KNR discovery — defer Identity/Labor/F5 until KL-3 envelope ready.
+   * Omit/`undefined` = auto from report/knr.lines + knowledgeBusy/knrKnowledge (G-ORD-01).
+   * Explicit true/false = test/harness override only.
+   */
+  deferDownstreamUntilKnrKnowledge?: boolean;
+  /** Last KL-3 reanalysis signal (Orchestra seam observability). */
+  knrReanalysisSignal?: IkKnrReanalysisSignal | null;
 };
 
 /** Sync pipeline outputs (Document → P8 minus async labor/material). */
@@ -107,6 +117,9 @@ export type IkOrchestraSyncSnapshot = {
   composite: IkCompositeBothHoldReport | null;
   positionCostBid: IkP7PositionCostBidReport | null;
   riskDecision: IkP8RiskDecisionReport | null;
+  /** True when Identity/Labor/F5 deferred pending KL-3 knowledge envelope. */
+  knrDownstreamDeferred: boolean;
+  knrReanalysisDiag: IkKnrReanalysisDiag;
 };
 
 export type IkOrchestraHostInput = {

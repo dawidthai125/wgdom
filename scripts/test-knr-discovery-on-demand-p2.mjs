@@ -177,7 +177,9 @@ ok(
     nowMs: NOW_MS,
     featureEnabled: true,
     allowlistOverride: FIXTURE,
-    // no override + empty maps → NO_SOURCE_SELECTION
+    // Explicit empty source selection — no BY_KEY, no registry auto-pick (G-P2-01).
+    sourceIdsOverride: [],
+    publicRegistryFallback: false,
     httpMode: "fake",
     fakeExecForSource: (id) => fakeFull(id, "4-01"),
     leaseStore: createMemoryAtomicKnrDiscoveryJobStore(),
@@ -584,7 +586,7 @@ ok(
   ok("stage never VERIFIED", staged.entry?.verificationStatus !== "VERIFIED");
 }
 
-// Host wire feature OFF → HTTP 0
+// Host wire feature OFF → HTTP 0 (G-P2-02: FEATURE_OFF ≠ RESEARCH_DISABLED)
 {
   clearKnrDiscoveryOnDemandBudgetForTests();
   const host = await resolveHostKnrKnowledgeLookupOnly({
@@ -592,7 +594,7 @@ ok(
     lines: [{ lineId: "L1", catalogBasis: basisFor("KNR 4-01 1010-01") }],
     catalogStore: emptyKnrCatalogStore(NOW),
     nowIso: NOW,
-    explicitResearch: false,
+    explicitResearch: true,
     discoveryFeatureEnabled: false,
     discoveryAllowlistOverride: FIXTURE,
     discoverySourceIdsOverride: [SOURCE_ID],
@@ -601,7 +603,12 @@ ok(
     discoveryLeaseStore: createMemoryAtomicKnrDiscoveryJobStore(),
   });
   ok("Host feature OFF HTTP=0", host.httpRequestCount === 0);
-  ok("Host onDemand FEATURE_OFF or null misses handled", host.onDemandDiscovery?.httpRequestCount === 0);
+  ok(
+    "Host onDemand FEATURE_OFF",
+    host.onDemandDiscovery != null
+      && host.onDemandDiscovery.httpRequestCount === 0
+      && host.onDemandDiscovery.perKey.some((k) => k.reason === "FEATURE_OFF"),
+  );
 }
 
 // Pilot mapping unchanged

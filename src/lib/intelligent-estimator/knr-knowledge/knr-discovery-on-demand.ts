@@ -9,7 +9,10 @@
  */
 
 import type { KnrDiscoveryAllowlistEntry } from "./knr-discovery-allowlist";
-import { isKnrDiscoveryAllowlistEmpty } from "./knr-discovery-allowlist";
+import {
+  isKnrDiscoveryAllowlistEmpty,
+  listKnrDiscoveryAllowlist,
+} from "./knr-discovery-allowlist";
 import { emptyKnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-store";
 import {
   lookupKnrDiscoveryEvidence,
@@ -36,6 +39,12 @@ import {
   type OrchestrateKnrDiscoveryP2cInput,
 } from "./knr-discovery-orch";
 import { selectKnrDiscoverySourceIds } from "./knr-discovery-source-selection";
+import {
+  buildPublicKnrEffectiveAllowlist,
+  selectPublicKnrDiscoverySources,
+  type PublicKnrRegistryEntry,
+} from "../ik-public-knr-source-registry";
+import { buildPublicKnrQueryPlan } from "../ik-public-knr-query";
 import {
   resolveKnrDiscoveryL3DocumentsForSources,
 } from "./knr-discovery-l3-document-resolver";
@@ -70,7 +79,8 @@ export type KnrOnDemandKeyOutcomeReason =
   | "DISCOVERY_SOURCE_DOCUMENT_NOT_RESOLVED"
   | "BUDGET_EXHAUSTED"
   | "ORCH_DONE"
-  | "INVALID_KEY";
+  | "INVALID_KEY"
+  | "REGISTRY_FALLBACK";
 
 export type KnrOnDemandKeyOutcome = {
   evidenceKeyV1: string;
@@ -148,6 +158,15 @@ export async function runKnrDiscoveryOnDemand(input: {
   stagePendingOnFullFact?: boolean;
   /** When true, ignore process budget (still SF/cooldown inside orch). Tests only. */
   ignoreProcessBudget?: boolean;
+  /**
+   * BY_KEY preferred · PublicKnrSourceRegistry fallback when BY_KEY empty.
+   * Default true — still fail-closed when feature OFF / effective allowlist empty.
+   * Explicit `allowlistOverride: []` never merges registry (G-P2-01).
+   */
+  publicRegistryFallback?: boolean;
+  registryOverride?: readonly PublicKnrRegistryEntry[] | null;
+  /** Optional description hint for registry query scoring (per-line BOQ). */
+  lineDescriptionByEvidenceKey?: Readonly<Record<string, string>> | null;
 }): Promise<RunKnrDiscoveryOnDemandResult> {
   const featureEnabled =
     input.featureEnabled === true
@@ -163,6 +182,20 @@ export async function runKnrDiscoveryOnDemand(input: {
     input.leaseStore ?? createMemoryAtomicKnrDiscoveryJobStore();
   const claimantId = input.claimantId ?? "knr-on-demand-p2";
   const stagePending = input.stagePendingOnFullFact !== false;
+  const publicRegistryFallback = input.publicRegistryFallback !== false;
+
+  // G-P2-01 — distinguish: omitted override | explicit empty | explicit non-empty.
+  // Explicit [] = fail-closed empty allowlist (no silent registry merge).
+  const effectiveAllowlist =
+    Array.isArray(input.allowlistOverride) && input.allowlistOverride.length === 0
+      ? Object.freeze([])
+      : publicRegistryFallback
+        ? buildPublicKnrEffectiveAllowlist({
+            baseAllowlist:
+              input.allowlistOverride ?? listKnrDiscoveryAllowlist(null),
+            registryOverride: input.registryOverride,
+          })
+        : listKnrDiscoveryAllowlist(input.allowlistOverride);
 
   const { unique, skippedDuplicateInputCount } = dedupeMissKeys(input.missing);
   const perKey: KnrOnDemandKeyOutcome[] = [];
@@ -243,7 +276,7 @@ export async function runKnrDiscoveryOnDemand(input: {
       continue;
     }
 
-    if (isKnrDiscoveryAllowlistEmpty(input.allowlistOverride)) {
+    if (isKnrDiscoveryAllowlistEmpty(effectiveAllowlist)) {
       perKey.push({
         evidenceKeyV1: ek,
         reason: "ALLOWLIST_EMPTY",
@@ -256,14 +289,32 @@ export async function runKnrDiscoveryOnDemand(input: {
       continue;
     }
 
-    const selected = selectKnrDiscoverySourceIds({
+    const queryPlan = buildPublicKnrQueryPlan({
+      rawCode: miss.displayCode,
       evidenceKeyV1: ek,
-      normalizedKey: miss.normalizedKey ?? ek,
-      family: miss.family,
-      sourceIdsOverride: input.sourceIdsOverride,
-      keyMapOverride: input.keyMapOverride,
-      familyMapOverride: input.familyMapOverride,
+      description: input.lineDescriptionByEvidenceKey?.[ek] ?? null,
     });
+
+    const selected = publicRegistryFallback
+      ? selectPublicKnrDiscoverySources({
+          miss,
+          queries: queryPlan.queries,
+          sourceIdsOverride: input.sourceIdsOverride,
+          keyMapOverride: input.keyMapOverride,
+          familyMapOverride: input.familyMapOverride,
+          registryOverride: input.registryOverride,
+        })
+      : {
+          ...selectKnrDiscoverySourceIds({
+            evidenceKeyV1: ek,
+            normalizedKey: miss.normalizedKey ?? ek,
+            family: miss.family,
+            sourceIdsOverride: input.sourceIdsOverride,
+            keyMapOverride: input.keyMapOverride,
+            familyMapOverride: input.familyMapOverride,
+          }),
+          selectionReason: undefined as string | undefined,
+        };
 
     if (!selected.sourceIds.length) {
       perKey.push({
@@ -281,7 +332,7 @@ export async function runKnrDiscoveryOnDemand(input: {
     // L3: sourceId → allowlist document URL only (no rawUrl · no portal crawl)
     const docs = resolveKnrDiscoveryL3DocumentsForSources(
       selected.sourceIds,
-      input.allowlistOverride,
+      effectiveAllowlist,
     );
     if (!docs.ok) {
       perKey.push({
@@ -322,7 +373,7 @@ export async function runKnrDiscoveryOnDemand(input: {
       nowIso: input.nowIso,
       nowMs: input.nowMs,
       featureEnabled: true,
-      allowlistOverride: input.allowlistOverride,
+      allowlistOverride: effectiveAllowlist,
       discoveryStore,
       identityKeyV2: miss.identityKeyV2,
       displayCode: miss.displayCode ?? ek,
@@ -405,3 +456,6 @@ export async function runKnrDiscoveryOnDemand(input: {
 }
 
 export const KNR_DISCOVERY_ON_DEMAND_P2_IMPLEMENTED = true as const;
+
+/** Global IK — PublicKnrSourceRegistry wired into on-demand MISS path. */
+export const KNR_DISCOVERY_PUBLIC_REGISTRY_FALLBACK_WIRED = true as const;

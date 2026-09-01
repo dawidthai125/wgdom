@@ -14,6 +14,8 @@ export type {
   IkOwnerGateApi,
 } from "./orchestra-types";
 
+export type { IkKnrReanalysisDiag } from "./ik-knr-reanalysis-seam";
+
 export type {
   IkIdentityContext,
   OwnerManualIdentityOverride,
@@ -44,6 +46,19 @@ export type {
 
 export { resolveEffectiveItem } from "./orchestra-ports";
 export { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
+export {
+  buildKnrReanalysisSignalFromHostResult,
+  buildKnrReanalysisDiag,
+  planKnrReanalysisOrchestraInvalidation,
+  shouldDeferIkDownstreamUntilKnrKnowledge,
+  buildDeferredIdentityBlockedContext,
+  resolveKnrVerifyActorFromAdminSession,
+} from "./ik-knr-reanalysis-seam";
+export type {
+  IkKnrReanalysisSignal,
+  IkKnrReanalysisTarget,
+  IkKnrReanalysisDiag,
+} from "./ik-knr-reanalysis-seam";
 export { useIkOrchestra } from "./use-ik-orchestra";
 export {
   promoteSliceDHitToTrustedTuple,

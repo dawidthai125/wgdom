@@ -11,6 +11,62 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-01",
+    version: "2.66.135",
+    label: "IK — Public KNR Discovery Engine (registry fallback)",
+    items: [
+      {
+        type: "new",
+        text: "PublicKnrSourceRegistry + Discovery Engine: BY_KEY preferred, registry fallback (BIP/gov/university/public PDF) — koniec wczesnego STOP na NO_SOURCE_SELECTION. Source scoring · cross-family gate (family+catalog+item) · multi-source confidence (HIGH → nadal PENDING_VERIFY). reanalysisTargets per tender/line. Test A–T + real-public-knr-readonly.mjs.",
+      },
+      {
+        type: "improve",
+        text: "Jeden SSOT kw-knr-catalog — public research tylko feeder PENDING_VERIFY. Catalog HIT = HTTP=0. KNR_FOUND ≠ BOM_COMPLETE.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-01",
+    version: "2.66.134",
+    label: "IK — Public KNR Research Engine",
+    items: [
+      {
+        type: "new",
+        text: "IK Public KNR Research: L0 katalog SSOT (HTTP=0) → L1 public discovery/scraper (allowlist) → extract → PENDING_VERIFY (alias VERIFIED_PUBLIC) → reanalyze. Multi-query planner · paywall skip · duplicate=one canonical. ZERO invent BOM · ZERO auto VERIFIED · ZERO TechPack/P7/G3. Test: test-ik-public-knr-research.mjs.",
+      },
+      {
+        type: "improve",
+        text: "BOM/Identity: przy IDENTITY_MISMATCH / NO_WORK_ID nadal research po podstawie KNR (KNR_EVIDENCE_FOUND + IDENTITY_REQUIRED); KNR SUCCESS ≠ BOM complete.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-01",
+    version: "2.66.133",
+    label: "IK — Real BOM Research · Identity Gate",
+    items: [
+      {
+        type: "new",
+        text: "IK BOM Real Research: Identity Gate (IDENTITY_MISMATCH / NO_WORK_ID) przed BOM; L0 podstawa/KNR evidence-only; L2 InternalNorm (Owner) + LicensedNorm LICENSE_REQUIRED (WACETOB/SEKOCENBUD — nie scrapowane); labor-only tylko OWNER_REQUIRED (ZERO auto LABOR_ONLY z MISSING_BOM); researchTrace.why per GAP. Test: test-ik-bom-technology-research.mjs.",
+      },
+      {
+        type: "improve",
+        text: "Auto Gap HOLD dla BOM: pełny WHY (identity · providersTried · license · podstawa). SEKOCENBUD price ≠ BOM. ZERO invent / Catalog / PM / TechPack ACTIVE / Accept / P7 / G3.",
+      },
+    ],
+  },
+  {
+    date: "2026-08-31",
+    version: "2.66.132",
+    label: "IK — BOM Technology Research Engine",
+    items: [
+      {
+        type: "new",
+        text: "IK BOM Technology Research Engine (RESEARCH LAYER nad resolveTechnologyBomForWork): L0 tender STWiORB/OPZ → L1 TechnologyPack → L2 NormativeCatalogProvider → L3 manufacturer → L4 public → L5 analog/web. Confidence = min(technology, materialKey, qtyFactor, unit). ZERO invent · ZERO Catalog/PM/TechnologyPack ACTIVE write. SEKOCENBUD = adapter+licencja (Null bez license). Auto Gap dispatch używa nowego engine. Test: test-ik-bom-technology-research.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-08-31",
     version: "2.66.131",
     label: "IK — F5 Auto Gap Resolution (ephemeral)",
