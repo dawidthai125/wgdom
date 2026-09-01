@@ -91,7 +91,7 @@ Nie izolowane demo-slice'y bez drogi do kompletnego systemu.
 | **Host / UI adapter** | `IkEntryHost` — adapter/consumer snapshotu Orchestra (EC · Live Viz · Owner panels · data attrs) · **NIE** sequencer IK | Drugim Orchestra · drugim Chiefem · drugim Work Catalog |
 | **Document / BOQ Expert** | `ik-document-expert` + P2 ingest bridge + Multi-BOQ / OfferBoq | Nowym storage KV |
 | **Owner Map / Multi-Dwelling** | `multi-dwelling` + `MultiDwellingPackagePanel` + `ik-dwelling-mapping` | Silent invent lokali |
-| **KNR Expert** | `ik-knr-expert` + Slice A `catalogBasis` + Owner mapping D + KL lookup | Work Catalog · Price Memory · auto OUR RATE |
+| **KNR Expert** | `ik-knr-expert` + Slice A `catalogBasis` + Owner mapping D + KL catalog-first (+ on-MISS public discovery → PENDING_VERIFY) | Work Catalog · Price Memory · auto OUR RATE · auto VERIFIED |
 | **Historical Executed** | `historical-executed/*` | Normatywnym KNR Catalog · authority pricing |
 | **Classification** | `classification-gate` + `ik-classification` | Research / Accept |
 | **Labor Expert** | `ik-labor-expert` → Work Catalog / OUR RATE / research / Evidence | Material Price Memory |
@@ -551,11 +551,11 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 | 3 | **Global IK Production signoff** | **NOT CLAIMED** | harness GREEN ≠ prod PV |
 | 4 | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates poza CHROBREGO |
 | 5 | **W3–W6 connectivity** | **NOT auto-authorized** | Chief/Hub convergence §2A |
-| 6 | **KNR full catalog / Phase 2E** | **PARTIAL / OPEN** | targeted source landed · full 2E OPEN |
+| 6 | **KNR full catalog / Phase 2E** | **PARTIAL / OPEN** | Global KNR on-MISS discovery+reanalysis **LANDED** (`0d9880fb`) · full Phase 2E catalog product **OPEN** |
 | 7 | **Inny tender / REAL SOURCE** | per audit | nowy Decision Tree case |
 | 8 | **TM-01 residuals C1–C6** | backlog | Owner GO only |
 
-**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · **≠** CHROBREGO billable lines.
+**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E catalog (beyond Global KNR discovery LANDED) · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · **≠** CHROBREGO billable lines.
 
 ---
 
@@ -723,7 +723,7 @@ INTELLIGENT ESTIMATOR
 │
 ├── DOCUMENT / BOQ EXPERT          → ik-document-expert + P2 ingest + OfferBoq/Multi-BOQ
 ├── OWNER MAP / MULTI-DWELLING     → multi-dwelling + MultiDwellingPackagePanel
-├── KNR EXPERT                     → ik-knr-expert + catalogBasis + Owner mapping + KL lookup
+├── KNR EXPERT                     → ik-knr-expert + catalogBasis + Owner mapping + KL catalog-first (+ on-MISS public discovery)
 ├── HISTORICAL EXECUTED            → historical-executed/* (authority=false)
 ├── CLASSIFICATION                 → classification-gate + ik-classification
 ├── LABOR EXPERT                   → ik-labor-expert → Work Catalog / research / Evidence / Accept
@@ -753,7 +753,17 @@ PRZETARG
                  → P2: runIkNg02IngestBridge → runIkDocumentExpert
                  → Owner Map gate (documentToDwelling / allMapped) gdy multi
                  → runIkKnrExpert(+ historicalIndex) → applyOwnerKnrMapping (Slice D)
-                 → KL-3 HOST lookup-only (side-channel; nie conversation authority)
+                 → KL-3 HOST (knowledge / evidence · nie conversation authority):
+                      catalog-first lookup (`kw-knr-catalog`)
+                      → HIT → HTTP=0
+                      → MISS + explicitResearch → public discovery via legal allowlist
+                         (BY_KEY preferred · PublicKnrSourceRegistry fallback)
+                         → stage PENDING_VERIFY (never auto VERIFIED · invent=false)
+                         → host KL3B reanalysis / reanalysisTargets
+                         → Orchestra reanalysis seam + knrDownstreamDeferred
+                      → Identity → Classification → Labor/Material → Composite → F5 → P7 → P8
+                      (KNR ≠ BOM · ≠ Work Catalog / Price Memory / auto OUR RATE ·
+                       VERIFIED only via KL-6 Owner write-router · global all tenders · ≠ MOPS-only)
                  → runIkIdentityPhase (OfferBoq work identity · persist gated W2)
                  → runIkMasterBoqClassification (BEFORE research — gate)
                  → runIkMasterBoqIdentityCoverage (optional flag)
@@ -821,11 +831,11 @@ Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUT
 
 | | |
 |--|--|
-| **Pliki** | **B:** `ik-knr-expert.ts` · **A:** `buildCatalogBasisFromRawCode` (`tenders-bzp-brief.ts`) · typ `CatalogBasis` · **C:** `ik-knr-conversation.ts` · **D:** `ik-knr-owner-mapping.ts` · **KL:** `src/lib/intelligent-estimator/knr-knowledge/*` |
-| **Rola** | Oznaczenia katalogowe · evidence KNR · soft hints · Owner mapping `catalogWorkId` (D) · KL lookup-only |
-| **Współpraca** | Czyta `historicalIndex` (EXACT/FAMILY/CONFLICT/MISS) · **nie** przejmuje Labor/Material authority |
-| **NIE** | Work Catalog · Price Memory · auto OUR RATE · auto material price · drugi orchestrator · KL-6 mutate z Historical |
-| **Status** | Slice A **PRODUCTION VERIFIED** · B/C/D **IMPLEMENTED / PRODUCTION EXISTING** · KL corpus **PARTIAL** · pełny „KNR Catalog product” **PROPOSED/GAP** (nie udawać istniejącego catalog SSOT) |
+| **Pliki** | **B:** `ik-knr-expert.ts` · **A:** `buildCatalogBasisFromRawCode` (`tenders-bzp-brief.ts`) · typ `CatalogBasis` · **C:** `ik-knr-conversation.ts` · **D:** `ik-knr-owner-mapping.ts` · **KL:** `src/lib/intelligent-estimator/knr-knowledge/*` · **Global KNR:** `ik-public-knr-*.ts` · `ik-knr-catalog-as-normative.ts` · `orchestra/ik-knr-reanalysis-seam.ts` |
+| **Rola** | Oznaczenia katalogowe · evidence KNR · soft hints · Owner mapping `catalogWorkId` (D) · KL = knowledge/evidence (**authority lookup-only**) · catalog-first (`kw-knr-catalog`) · on MISS: controlled public discovery (legal allowlist) → **PENDING_VERIFY** → Orchestra reanalysis/defer |
+| **Współpraca** | Czyta `historicalIndex` (EXACT/FAMILY/CONFLICT/MISS) · **nie** przejmuje Labor/Material authority · discovery **nie** jest auto-autoryzacją danych |
+| **NIE** | Work Catalog · Price Memory · auto OUR RATE · auto material price · drugi orchestrator · auto VERIFIED · invent BOM/workId · MOPS-only routing · KL-6 mutate z Historical · anonymous→super_admin · paywall/licensed scrape |
+| **Status** | Slice A **PRODUCTION VERIFIED** · B/C/D **IMPLEMENTED / PRODUCTION EXISTING** · Global KNR discovery+reanalysis **LANDED** (`0d9880fb`) · VERIFIED **only** KL-6 Owner · KL corpus / full Phase 2E catalog product **PARTIAL/OPEN** |
 
 ### 11.6 Historical Executed
 
@@ -1022,7 +1032,7 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 | ATH/PDF ingest | `ath-parser` · dossier · ingest | tender docs | pipeline | PRODUCTION EXISTING | ❌ nowy parser stack |
 | Master BOQ | multi-boq · OfferBoq | LS multi / Offer | Document Expert | PRODUCTION EXISTING | ❌ |
 | Owner Map | `multi-dwelling/*` · `MultiDwellingPackagePanel` | `kw-multi-dwelling-package-v1` | Hub / Host | PRODUCTION EXISTING | ❌ |
-| KNR Expert | `ik-knr-expert.ts` + A/C/D/KL | catalogBasis · Owner map D | Host | PARTIAL→EXISTING | ❌ drugi KNR system |
+| KNR Expert | `ik-knr-expert.ts` + A/C/D/KL + Global KNR (`ik-public-knr-*`) | catalogBasis · Owner map D · PENDING_VERIFY | Orchestra / Host | EXISTING + Global KNR LANDED | ❌ drugi KNR system · ❌ auto VERIFIED |
 | Historical | `historical-executed/*` | in-memory index | Detail→Host→KNR | PRODUCTION VERIFIED (slice) | ❌ drugi index |
 | Classification | `classification-gate.ts` | Owner map freeze | Host / research guards | FROZEN | ❌ |
 | Labor / Work Catalog | `work-catalog/*` | `kw-wgdom-work-catalog` | P5 / F5 / UI | PRODUCTION EXISTING | ❌ |
@@ -1563,7 +1573,7 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN** (G3/Experience NOT STARTED · epic NO
 - **Experience Phase 5** — **NOT AUTHORIZED**
 - **Global IK Production signoff** — **NOT CLAIMED**
 - **A08-P3 epic slice / AUTONOMY-08 epic** — not closed
-- Phase 2E full · TM-01 residuals · W3–W6 connectivity — per audit · Owner GO
+- Phase 2E full catalog (Global KNR on-MISS discovery **LANDED** `0d9880fb` · **≠** full 2E CLOSED) · TM-01 residuals · W3–W6 connectivity — per audit · Owner GO
 
 ### BLOCKED / WAITING FOR
 
@@ -1824,6 +1834,7 @@ IK **nie** może samodzielnie przejąć Owner authority.
 | 2026 | KNR Phase 2D | `77385b0c` | **CLOSED/PV** |
 | 2026 | KNR KL-6 | `ce192b1e` | **CLOSED/PV** |
 | 2026 | KNR Phase 2E source | `1a9c5484` | targeted source LANDED · full 2E OPEN |
+| 2026-09-01 | **Global KNR discovery+reanalysis** | **`0d9880fb`** | catalog-first · legal public discovery · PENDING_VERIFY · Orchestra seam · **≠** full Phase 2E CLOSED · **≠** auto VERIFIED |
 | 2026 | KNR-WC P3/P4 | `9376a48e`…`2fce3caf` | P3 **CLOSED** · P4 seam **CLOSED** |
 | 2026 | S6-A/B · Outcome bridge | `a9d59fd0`…`2fce3caf` | **CLOSED** |
 | 2026-08-26 | **AUTONOMY-08 P3** | **`3822acb`** | **IMPLEMENTED · P3 OPEN · G2 WAIT** (HISTORY) |
