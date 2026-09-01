@@ -305,6 +305,24 @@ ok(
   phaseAmb.postIdentityExpert.masterBoqLines[0]?.line.catalogWorkId == null,
 );
 
+// W2-5b — classification must not treat stale prior as HAS_WORK_ID
+const phaseAmbOut = phaseAmb.postIdentityExpert.masterBoqLines[0]?.line;
+const clsAmb = runIkMasterBoqClassification({
+  item: { id: "t-w2", tenderId: "t-w2", title: "W2", bzpDocuments: [] },
+  expert: phaseAmb.postIdentityExpert,
+});
+ok(
+  "W2-5b classification not HAS_WORK_ID after AMBIGUOUS clear",
+  clsAmb.lines[0]?.identityStatus !== "HAS_WORK_ID"
+    && clsAmb.lines[0]?.identityStatus !== "WORK_ID_NO_OWNER_SEED",
+);
+ok(
+  "W2-5c candidateMatches retained + re-resolve AMBIGUOUS (Labor path)",
+  (phaseAmbOut?.candidateMatches?.length ?? 0) >= 2
+    && resolveWorkIdentityFromOfferBoqLine(phaseAmbOut).status === "AMBIGUOUS"
+    && resolveWorkIdentityFromOfferBoqLine(phaseAmbOut).workId == null,
+);
+
 // W2-13 / W2-14 gated persist
 clearMultiDwellingPackageStore();
 const TID = "t-w2-persist";

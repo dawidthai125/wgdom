@@ -241,9 +241,17 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       noIdentityCount += 1;
     }
 
+    // W2-5: AMBIGUOUS ⇒ clear OfferBoq catalogWorkId (F5 workId=null). Do not
+    // preserve prior bind — that would look like HAS_WORK_ID downstream.
+    // TRUSTED / OK paths keep prior coalesce unchanged.
+    const catalogWorkId =
+      identity.status === "AMBIGUOUS"
+        ? null
+        : (identity.workId ?? lineForOut.catalogWorkId ?? null);
+
     const outLine: OfferBoqLine = {
       ...lineForOut,
-      catalogWorkId: identity.workId ?? lineForOut.catalogWorkId ?? null,
+      catalogWorkId,
     };
 
     resolvedRefs.push({
