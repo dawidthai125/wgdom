@@ -88,6 +88,8 @@ const writes = {
 const stages = {};
 const warnings = [];
 const failures = [];
+/** Filled later on full READY path; empty when BLOCKED_PARTIAL_DOC_EXPERT exits early. */
+let protectedResults = {};
 
 let catalogFingerprintBefore = null;
 let catalogRevisionBefore = null;
@@ -378,6 +380,38 @@ for (const line of (offerBoqRaw?.lines ?? []).slice(0, 8)) {
 }
 stage("boqMapping", mapOk && mapCount >= 4, { sampleMapped: mapCount });
 
+// Hard-stop: Document Expert not READY → no Identity / persist / shadow cascade.
+// package:null + multi-source without dwelling map ⇒ partial + masterBoqLines=[] is
+// a harness contract blocker, not Identity/Document Expert runtime defect.
+if (expert.masterBoq?.readyForExperts !== true) {
+  const blockDetail = {
+    blocked: true,
+    classification: "BLOCKED_PARTIAL_DOC_EXPERT",
+    reason: "Document Expert not ready — Identity/shadow path requires readyForExperts===true",
+    status: expert.status,
+    readyForExperts: expert.masterBoq?.readyForExperts === true,
+    reasons: expert.reasons ?? [],
+    masterBoqLineCount: expert.masterBoq?.lineCount ?? 0,
+    masterBoqLinesLength: expert.masterBoqLines?.length ?? 0,
+    offerBoqLinesLength: expert.offerBoq?.lines?.length ?? 0,
+    dwellingMappingAllMapped: expert.dwellingMapping?.allMapped ?? null,
+    packagePassed: null,
+  };
+  stage("BLOCKED_PARTIAL_DOC_EXPERT", false, blockDetail);
+  console.log("FULL PIPELINE BLOCKED");
+  console.log("reason:", blockDetail.reason);
+  console.log("status:", blockDetail.status);
+  console.log("readyForExperts:", blockDetail.readyForExperts);
+  console.log("reasons:", JSON.stringify(blockDetail.reasons, null, 2));
+  console.log("masterBoq.lineCount:", blockDetail.masterBoqLineCount);
+  console.log("masterBoqLines.length:", blockDetail.masterBoqLinesLength);
+  console.log("offerBoq.lines.length:", blockDetail.offerBoqLinesLength);
+  console.log("dwellingMapping.allMapped:", blockDetail.dwellingMappingAllMapped);
+  console.log("=== IK FULL PIPELINE E2E BLOCKED_PARTIAL_DOC_EXPERT ===");
+  writeReport(t0, 2);
+  process.exit(2);
+}
+
 // 5 Identity
 const works = listActiveWorksForRegion(store, store.activeRegion);
 const manuals = buildManuals(gate);
@@ -417,6 +451,7 @@ if (!offerBoq?.lines) {
     reason: "NO_PERSIST_OFFER_BOQ",
   });
   console.log("=== IK FULL PIPELINE E2E BLOCKED (harness — missing OfferBoq from persistPlans) ===");
+  writeReport(t0, 2);
   process.exit(2);
 }
 
@@ -612,7 +647,7 @@ if (materialLaborBleed.length > 0) {
 }
 
 // Protected regression
-const protectedResults = {};
+protectedResults = {};
 let protectedPass = true;
 for (const p of PROTECTED) {
   const s = snapRate(store, p.id, p.unit);
@@ -703,11 +738,14 @@ process.exit(exitCode);
 
 function writeReport(t0, exitCode) {
   const durationMs = Date.now() - t0;
+  const blockedStage = stages.BLOCKED_PARTIAL_DOC_EXPERT ?? null;
   const report = {
     mode: "OWNER_GO_FULL_IK_E2E_TEST",
     command: "npx vite-node scripts/test-ik-full-pipeline-e2e.mjs",
     pass: exitCode === 0,
     exitCode,
+    blocked: exitCode === 2 || blockedStage?.blocked === true,
+    blockedClassification: blockedStage?.classification ?? null,
     durationMs,
     durationHuman: `${(durationMs / 1000).toFixed(1)}s`,
     stages,
