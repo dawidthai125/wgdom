@@ -11,8 +11,15 @@ import {
   resolveIkDetailFirstScreen,
 } from "../src/lib/intelligent-estimator/ik-entry-flag.ts";
 import { runIkDocumentExpert } from "../src/lib/intelligent-estimator/ik-document-expert.ts";
+import { applyExplicitOwnerDwellingMap } from "../src/lib/intelligent-estimator/ik-dwelling-mapping.ts";
+import { clearMultiDwellingPackageStore } from "../src/lib/multi-dwelling/store.ts";
 import { buildIkEntryConversationViewModel } from "../src/lib/intelligent-estimator/ik-entry-conversation.ts";
 import { OFFER_BOQ_SCHEMA_VERSION } from "../src/lib/tender-offer-boq.ts";
+import {
+  resolveDwellingCostSnapshotForPricing,
+} from "../src/lib/multi-boq/resolve.ts";
+import { composeDwellingOfferBoq } from "../src/lib/multi-boq/compose.ts";
+import { buildDwellingDocumentSet } from "../src/lib/multi-boq/document-set.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -335,6 +342,111 @@ const unread = item({
 });
 const unreadR = runIkDocumentExpert({ item: unread });
 assert("unreadable HOLD or PARTIAL", unreadR.status === "hold" || unreadR.status === "partial");
+
+// --- CHROBREGO regression: STWIORB must not inflate dwelling cost coverage ---
+// Real OCDS documentIds from live CHROBREGO; PRZEDMIAR has branchWinner snapshot only.
+const CHROB_OCDS = "ocds-148610-6f859612-6631-426b-83fc-830bfec1c888";
+const CHROB_PIPE = "08df0363-7b22-e462-ab56-940001283cba";
+const CHROB_PRZ = `${CHROB_OCDS}_5`;
+const CHROB_STW = `${CHROB_OCDS}_3`;
+const chrobRows = Array.from({ length: 56 }, (_, i) =>
+  row(String(i + 1), `Chrobrego poz ${i + 1}`, "m2", "1"),
+);
+const chrobFnPrz = "Zal nr 7 do SWZ PRZEDMIAR- zal nr 3 do umowy.pdf";
+const chrobFnStw = "Zal nr 9 do SWZ STWIORB - zal nr 2 do umowy.pdf";
+const chrobItem = item({
+  id: CHROB_PIPE,
+  tenderId: CHROB_OCDS,
+  title: "Chrobrego 34a",
+  documentsFetchedAt: "2026-08-01T00:00:00.000Z",
+  bzpDocuments: [
+    {
+      index: 0,
+      documentId: CHROB_STW,
+      filename: chrobFnStw,
+      contentType: "application/pdf",
+      downloadUrl: "u",
+      isSwzHint: false,
+    },
+    {
+      index: 1,
+      documentId: CHROB_PRZ,
+      filename: chrobFnPrz,
+      contentType: "application/pdf",
+      downloadUrl: "u",
+      isSwzHint: false,
+    },
+  ],
+  tenderDossier: {
+    kosztorys: snapshot(chrobFnPrz, chrobRows),
+    scanSummary: {
+      branchWinnerArtifacts: [
+        artifact(CHROB_PRZ, chrobFnPrz, chrobRows, "unknown"),
+      ],
+    },
+    brief: { fields: [], additionalNotes: [], builtAt: "2026-08-15T00:00:00.000Z" },
+    builtAt: "2026-08-15T00:00:00.000Z",
+  },
+});
+
+const chrobNoPkg = runIkDocumentExpert({ item: chrobItem, package: null });
+assert(
+  "CHROB inventory keeps STWIORB",
+  chrobNoPkg.documents.some((d) => d.documentId === CHROB_STW && d.role === "stwior"),
+);
+assert(
+  "CHROB no OWNER_MAP_REQUIRED for STWIORB+PRZEDMIAR",
+  !chrobNoPkg.reasons.some((r) => /OWNER_MAP_REQUIRED|MULTI_SOURCE_NO_DWELLING_MAP/.test(r)),
+);
+assert("CHROB coverage artifactCount 1", chrobNoPkg.dwellingMapping.artifactCount === 1);
+assert(
+  "CHROB READY without mapping STWIORB",
+  chrobNoPkg.status === "ready" && chrobNoPkg.masterBoq.readyForExperts === true,
+);
+assert("CHROB master lines 56", chrobNoPkg.masterBoq.lineCount === 56);
+assert(
+  "CHROB no SNAPSHOT_NOT_READY from STWIORB",
+  !chrobNoPkg.reasons.some((r) => /SNAPSHOT_NOT_READY|MISSING_ARTIFACT/.test(r)),
+);
+
+clearMultiDwellingPackageStore();
+mem.clear();
+const chrobMap = applyExplicitOwnerDwellingMap({
+  tenderId: CHROB_PIPE,
+  expectedDwellingCount: 1,
+  dwellings: [{ dwellingId: "chrobrego_34a", labelPl: "ul. Chrobrego 34a, Wrocław" }],
+  mappings: [{ documentId: CHROB_PRZ, dwellingId: "chrobrego_34a" }],
+});
+assert("CHROB Owner map _5 only ok", chrobMap.ok === true);
+const chrobPkg = chrobMap.ok ? chrobMap.package : null;
+const chrobDocSet = buildDwellingDocumentSet({
+  tenderId: CHROB_PIPE,
+  dwellingId: "chrobrego_34a",
+  package: chrobPkg,
+});
+assert(
+  "CHROB resolve documentIds only _5",
+  Array.isArray(chrobDocSet?.documentIds)
+    && chrobDocSet.documentIds.length === 1
+    && chrobDocSet.documentIds[0] === CHROB_PRZ,
+);
+const chrobSnap = resolveDwellingCostSnapshotForPricing({
+  tenderId: CHROB_PIPE,
+  dwellingId: "chrobrego_34a",
+  item: chrobItem,
+  package: chrobPkg,
+});
+assert("CHROB resolve ready 56", chrobSnap.completeness === "ready" && chrobSnap.lines.length === 56);
+const chrobCompose = composeDwellingOfferBoq({ snapshot: chrobSnap });
+assert("CHROB compose ok", chrobCompose.ok === true);
+const chrobMulti = runIkDocumentExpert({ item: chrobItem, package: chrobPkg });
+assert(
+  "CHROB multi READY map _5 only",
+  chrobMulti.status === "ready"
+    && chrobMulti.masterBoq.readyForExperts === true
+    && chrobMulti.dwellingMapping.allMapped === true
+    && (chrobMulti.masterBoqLines?.length ?? 0) === 56,
+);
 
 const vm = buildIkEntryConversationViewModel(one);
 assert("EC visible", vm.visible === true);

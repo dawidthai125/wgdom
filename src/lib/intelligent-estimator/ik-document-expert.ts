@@ -400,11 +400,17 @@ export function runIkDocumentExpert(opts: {
 
   // Owner GO: unambiguous street+building+unit filename → dwelling via existing LS map APIs.
   // Prefer parsed artifact pool; else cost-document filenames (mapping-only, no invent rows).
+  // STWIORB stays in inventory (role=stwior) but is NOT a dwelling cost-snapshot coverage
+  // source — mapping it forces MISSING_ARTIFACT when it has no costBranch/branchWinner entry.
   const mapFilenameRefs =
     pool.length > 1
       ? pool.map((a) => ({ documentId: a.documentId, filename: a.filename }))
       : costDocuments
-          .filter((d) => d.isPrzedmiar || d.costType === "pdf_przedmiar")
+          .filter(
+            (d) =>
+              d.role !== "stwior"
+              && (d.isPrzedmiar || d.costType === "pdf_przedmiar"),
+          )
           .map((d) => ({ documentId: d.documentId, filename: d.filename }));
 
   if (mapFilenameRefs.length > 1) {
