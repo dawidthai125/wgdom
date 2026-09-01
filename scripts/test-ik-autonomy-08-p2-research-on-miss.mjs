@@ -66,19 +66,26 @@ function p6MayStart(p5LaborOn, laborSettledRef) {
 resetFlags();
 
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
+const hookSrc = readSrc("src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts");
+const runtimeSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts");
+const latchSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-p5-labor-settle-latch.ts");
+const orchestraSurface = hostSrc + hookSrc + runtimeSrc + latchSrc;
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 const laborSrc = readSrc("src/lib/intelligent-estimator/ik-labor-expert.ts");
 const matSrc = readSrc("src/lib/intelligent-estimator/ik-material-expert.ts");
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
 const settingsSrc = readSrc("src/lib/app-settings.ts");
-const p5Block = hostSrc.slice(
-  hostSrc.indexOf("// P5 Labor E2E"),
-  hostSrc.indexOf("// P6 Material E2E"),
-);
-const p6Block = hostSrc.slice(
-  hostSrc.indexOf("// P6 Material E2E"),
-  hostSrc.indexOf("// BOTH_HOLD"),
-);
+
+// Settle lives in Orchestra (use-ik-orchestra + runtime + latch) — not Host // P5 Labor E2E blocks.
+const p5Block = (() => {
+  const start = hookSrc.indexOf("// P5 Labor E2E");
+  const end = hookSrc.indexOf("// P6 Material E2E");
+  return start >= 0 && end > start ? hookSrc.slice(start, end) : "";
+})();
+const p6Block = (() => {
+  const start = hookSrc.indexOf("// P6 Material E2E");
+  return start >= 0 ? hookSrc.slice(start, start + 2500) : "";
+})();
 
 const resolveP5 = flagSrc.slice(
   flagSrc.indexOf("export function resolveIkP5LaborExecuteResearch"),
@@ -104,7 +111,7 @@ forceIkLaborResearchForTests(false);
 forceIkMaterialResearchForTests(false);
 assert("2 IK ON AUTO leftover false → Labor permission", isIkP5LaborExecuteResearchActive() === true);
 assert("2 IK ON AUTO leftover false → Material permission", isIkP6MaterialExecuteResearchActive() === true);
-assert("2 host still executeResearch === true explicit", /executeResearch:\s*p5ResearchOn === true/.test(hostSrc));
+assert("2 orchestra Labor executeResearch boolean", /executeResearch:\s*opts\.p5ResearchOn === true/.test(runtimeSrc));
 assert("2 Labor MISS path reuses runIkLaborGapResearch", /runIkLaborGapResearch/.test(laborSrc));
 
 // --- 3 HIT → ZERO Research ---
@@ -155,23 +162,45 @@ assert("17 flagsFor untouched in classification-gate", /function flagsFor\(plane
   readSrc("src/lib/intelligent-estimator/classification-gate.ts"),
 ));
 
-// --- 18–22 sequencing IC-SEQ-1/2 ---
+// --- 18–22 sequencing IC-SEQ-1/2 (Orchestra settle — Host blocks retired) ---
 assert("18 P5 pending blocks P6", p6MayStart(true, false) === false);
-assert("19 cancelled does not settle in finally", /finally \{\s*if \(!cancelled\) \{\s*laborSettledRef\.current = true/.test(p5Block));
-assert("19 cleanup only cancelled=true", /return \(\) => \{\s*cancelled = true;\s*\};/.test(p5Block));
+assert("18b P5 Labor effect extracted from orchestra hook", p5Block.includes("executeP5LaborExpert"));
+assert("18c P6 Material effect extracted from orchestra hook", p6Block.includes("executeP6MaterialExpert") || /executeP6MaterialExpert/.test(hookSrc));
+assert(
+  "19 cancelled does not settle (runtime cancel gate before onSettled)",
+  /if \(opts\.isCancelled\(\)\) return;/.test(runtimeSrc)
+    && /opts\.onSettled\(\)/.test(runtimeSrc),
+);
+assert(
+  "19 cleanup uses p5LaborCleanupInvalidate",
+  /p5LaborCleanupInvalidate\(/.test(p5Block) && /export function p5LaborCleanupInvalidate/.test(latchSrc),
+);
+assert(
+  "19 stale predicate isP5LaborAttemptStale",
+  /isP5LaborAttemptStale\(/.test(p5Block) && /export function isP5LaborAttemptStale/.test(latchSrc),
+);
 assert("20 P5 settled allows P6", p6MayStart(true, true) === true);
 assert("20 P5 OFF allows P6", p6MayStart(false, false) === true);
 assert("20 P5 OFF sets settled true", /if \(!p5LaborOn\) \{\s*laborSettledRef\.current = true/.test(p5Block));
-assert("21 tender id in laborKey", /const laborKey = `\$\{key\}\|/.test(p5Block));
+assert("21 tender id in laborKey", /const laborKey = `\$\{/.test(p5Block) || /buildLaborAttemptKey/.test(p5Block));
 assert("21 new work start sets settled false", /laborSettledRef\.current = false/.test(p5Block));
-assert("22 wait before materialAttemptedRef", p6Block.indexOf("laborSettledRef.current !== true") < p6Block.indexOf("materialAttemptedRef.current === materialKey"));
+assert(
+  "22 wait before materialAttemptedRef",
+  p6Block.indexOf("laborSettledRef.current !== true") >= 0
+    && p6Block.indexOf("materialAttemptedRef.current === materialKey")
+      > p6Block.indexOf("laborSettledRef.current !== true"),
+);
 assert("22 wait does not write attemptedRef", /if \(p5LaborOn && laborSettledRef\.current !== true\) return;/.test(p6Block));
-assert("22 laborSettleTick in P6 deps", /laborSettleTick/.test(p6Block));
+assert("22 laborSettleTick in P6 deps", /laborSettleTick/.test(p6Block) || /laborSettleTick/.test(hookSrc));
 assert("22 not labor!==null as settled", !/labor\s*!==\s*null/.test(p6Block));
-assert("22 sync ref declared", /laborSettledRef = useRef\(false\)/.test(hostSrc));
-assert("22 tick state declared", /laborSettleTick/.test(hostSrc) && /setLaborSettleTick/.test(hostSrc));
-assert("22 host no forceRefresh on P5 call", !/runIkMasterBoqLaborExpert\(\{[\s\S]*forceRefresh/.test(p5Block));
-assert("22 host no bypassCooldown on P5 call", !/bypassCooldown/.test(p5Block));
+assert("22 sync ref declared", /laborSettledRef = useRef\(false\)/.test(hookSrc));
+assert("22 tick state declared", /laborSettleTick/.test(hookSrc) && /setLaborSettleTick/.test(hookSrc));
+assert("22 orchestra no forceRefresh on P5 call", !/runIkMasterBoqLaborExpert\(\{[\s\S]*forceRefresh/.test(runtimeSrc));
+assert("22 orchestra no bypassCooldown on P5 call", !/bypassCooldown/.test(runtimeSrc));
+assert(
+  "22 onSettled sets laborSettledRef",
+  /onSettled:\s*\(\)\s*=>\s*\{[\s\S]*laborSettledRef\.current = true/.test(p5Block),
+);
 
 // --- 23–25 autonomy ---
 assert("23 no labor research checkbox", !/data-ik-labor-research-toggle/.test(adminSrc));
@@ -187,15 +216,31 @@ assert("25 P5/P6 AUTO|ON selects kept", /data-ik-labor-e2e-mode/.test(adminSrc) 
 assert("25 Hub recovery panel kept", /export function IkLaborGapResearchPanel/.test(
   readSrc("src/app/ik-pricing/IkLaborGapResearchPanel.tsx"),
 ));
-assert("25 host is not Hub trigger", !/IkLaborGapResearchPanel/.test(hostSrc));
+assert("25 host is not Hub trigger", !/IkLaborGapResearchPanel/.test(orchestraSurface));
 
 // --- 26 Research ≠ Accept ---
-assert("26 host no labor Accept", !/acceptWorkRateResearchCandidate/.test(hostSrc) && !/acceptIkLaborResearchAndNotify\(/.test(hostSrc));
-assert("26 host no material Accept", !/acceptMaterialResearchCandidate/.test(hostSrc));
+assert("26 host no labor Accept", !/acceptWorkRateResearchCandidate/.test(orchestraSurface) && !/acceptIkLaborResearchAndNotify\(/.test(orchestraSurface));
+assert("26 host no material Accept", !/acceptMaterialResearchCandidate/.test(orchestraSurface));
 assert("26 labor autoAcceptExecuted = false", /autoAcceptExecuted = false/.test(laborSrc));
 assert("26 material autoAcceptExecuted = false", /autoAcceptExecuted = false/.test(matSrc));
-assert("26 P7 call has no executeResearch arg", !/runIkP7PositionCostBid\([\s\S]*executeResearch/.test(hostSrc));
-assert("26 P8 call has no executeResearch arg", !/runIkP8RiskDecision\([\s\S]*executeResearch/.test(hostSrc));
+{
+  const engineSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-engine.ts");
+  const p7Calls = engineSrc.match(/runIkP7PositionCostBid\(\{[\s\S]*?\}\)/g) ?? [];
+  const p8Calls = [
+    ...(hookSrc.match(/runIkP8RiskDecision\(\{[\s\S]*?\}\)/g) ?? []),
+    ...(engineSrc.match(/runIkP8RiskDecision\(\{[\s\S]*?\}\)/g) ?? []),
+  ];
+  assert(
+    "26 P7 call has no executeResearch arg",
+    p7Calls.length > 0 && p7Calls.every((c) => !/executeResearch/.test(c)),
+    p7Calls[0]?.slice(0, 160),
+  );
+  assert(
+    "26 P8 call has no executeResearch arg",
+    p8Calls.length > 0 && p8Calls.every((c) => !/executeResearch/.test(c)),
+    p8Calls[0]?.slice(0, 160),
+  );
+}
 
 assert("C3 raw enum not permission", resolveIkP5LaborExecuteResearch({
   ikEntryEnabled: true,

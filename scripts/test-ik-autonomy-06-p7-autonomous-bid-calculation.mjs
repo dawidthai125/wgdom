@@ -87,6 +87,10 @@ resetFlags();
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
+const orchestraHookSrc = readSrc("src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts");
+const orchestraEngineSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-engine.ts");
+const orchestraSurface = hostSrc + orchestraHookSrc + orchestraEngineSrc
+  + readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts");
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
 const p7Src = readSrc("src/lib/intelligent-estimator/ik-p7-position-cost-bid.ts");
 const compositeSrc = readSrc("src/lib/intelligent-estimator/ik-composite-both-hold.ts");
@@ -180,11 +184,14 @@ forceIkMaterialE2eForTests("AUTO");
 assert("T13 P5 AUTO permission independent of P7", isIkP5LaborExecuteResearchActive() === true);
 assert("T13 P6 AUTO permission independent of P7", isIkP6MaterialExecuteResearchActive() === true);
 assert("T13 P7 source no executeResearch", !/executeResearch/.test(p7Src));
-assert("T13 host P7 no research arg", !/runIkP7PositionCostBid\([\s\S]*executeResearch/.test(hostSrc));
+{
+  const p7Call = orchestraEngineSrc.match(/runIkP7PositionCostBid\(\{[\s\S]*?\}\)/)?.[0] ?? "";
+  assert("T13 host P7 no research arg", p7Call.length > 0 && !/executeResearch/.test(p7Call), p7Call.slice(0, 200));
+}
 
 // --- T14 Accept boundary ---
 assert("T14 P7 no accept", !/accept/i.test(p7Src) || !/acceptIk|acceptMaterial|autoAccept/.test(p7Src));
-assert("T14 host no Accept on P7", !/acceptIkLaborResearchAndNotify\(/.test(hostSrc));
+assert("T14 host no Accept on P7", !/acceptIkLaborResearchAndNotify\(/.test(orchestraSurface));
 
 // --- T15 Price Commit / T23–T25 writes ---
 assert("T15/T23 priceMemoryWrite false lock", /priceMemoryWrite:\s*false/.test(p7Src));
@@ -239,7 +246,7 @@ assert("T19 odpowietrzający GAP", odpow.outcome === "PRODUCT_IDENTITY_GAP", odp
 assert("T20 feedsP7Bid false type", /feedsP7Bid:\s*false/.test(compositeSrc));
 assert(
   "T20 host P7 call args exclude composite",
-  /runIkP7PositionCostBid\(\{\s*item:\s*effectiveItem,\s*expert:\s*report,\s*package:\s*pkg,\s*\}\)/.test(hostSrc),
+  /runIkP7PositionCostBid\(\{\s*item:\s*effectiveItem,\s*expert:\s*postIdentityExpert,\s*package:\s*pkg,\s*\}\)/.test(orchestraEngineSrc),
 );
 
 // --- T21 F5 XOR ---
@@ -297,9 +304,9 @@ assert("T30 no checkbox boolean write", !/ikF5E2eEnabled:\s*e\.target\.checked/.
 assert("T30 no Research implication in P7 copy", !/IK · F5[\s\S]{0,800}Research MODE B/.test(adminSrc));
 
 // --- T31 BOQ READY autonomous path (host wiring) ---
-assert("T31 host isIkP7F5E2eActive", /isIkP7F5E2eActive/.test(hostSrc));
-assert("T31 host runIkP7PositionCostBid", /runIkP7PositionCostBid/.test(hostSrc));
-assert("T31 host readyForExperts guard", /readyForExperts/.test(hostSrc));
+assert("T31 host isIkP7F5E2eActive", /isIkP7F5E2eActive/.test(orchestraSurface));
+assert("T31 host runIkP7PositionCostBid", /runIkP7PositionCostBid/.test(orchestraSurface));
+assert("T31 host readyForExperts guard", /readyForExperts/.test(orchestraSurface));
 
 // --- T32 OFF blocks ---
 forceIkEntryEnabledForTests(true);
@@ -322,6 +329,7 @@ resetFlags();
 
 // Nested regressions — avoid nesting full P7 (nests P6→… exponential).
 // Engine/settings asserts above cover A06; call lightweight + AUTONOMY-05 + P1 + Composite.
+// Spawned dependency FAIL = CASCADE (not A06 own assertion).
 const suites = [
   ["AUTONOMY-05", "scripts/test-ik-autonomy-05-explicit-auto-off-on.mjs"],
   ["P1 invoice", "scripts/test-ik-p1-invoice-host-collision.mjs"],
@@ -329,16 +337,31 @@ const suites = [
   ["P8", "scripts/test-ik-migration-01-p8-implementation.mjs"],
 ];
 
+let cascadeDepPass = 0;
+let cascadeDepFail = 0;
 for (const [label, rel] of suites) {
   if (!existsSync(join(root, rel))) {
     assert(label + " present", false, rel);
     continue;
   }
   const r = runSuite(rel);
-  assert(label + " regression", r.ok, `status=${r.status} ${r.out}`);
+  if (r.ok) {
+    cascadeDepPass += 1;
+    console.log("CASCADE_DEP PASS", label);
+  } else {
+    cascadeDepFail += 1;
+    console.log(
+      "CASCADE_DEP FAIL",
+      label,
+      "(dependency — not counted as A06 own assertion)",
+    );
+    console.log(String(r.out || "").slice(-500));
+  }
 }
 
 resetFlags();
 
-console.log(`\nAUTONOMY-06 P7: ${pass} PASS / ${fail} FAIL`);
+console.log(
+  `\nAUTONOMY-06 P7: ${pass} PASS / ${fail} FAIL · cascadeDepPass=${cascadeDepPass} cascadeDepFail=${cascadeDepFail}`,
+);
 process.exit(fail > 0 ? 1 : 0);

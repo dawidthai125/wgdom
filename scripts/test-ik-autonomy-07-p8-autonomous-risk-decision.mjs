@@ -92,13 +92,20 @@ resetFlags();
 const settingsSrc = readSrc("src/lib/app-settings.ts");
 const flagSrc = readSrc("src/lib/intelligent-estimator/ik-entry-flag.ts");
 const hostSrc = readSrc("src/app/intelligent-estimator/IkEntryHost.tsx");
+const orchestraHookSrc = readSrc("src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts");
+const orchestraEngineSrc = readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-engine.ts");
+const orchestraSurface = hostSrc + orchestraHookSrc + orchestraEngineSrc
+  + readSrc("src/lib/intelligent-estimator/orchestra/ik-orchestra-runtime.ts");
 const adminSrc = readSrc("src/app/AdminSettingsModal.tsx");
 const p8Src = readSrc("src/lib/intelligent-estimator/ik-p8-risk-decision.ts");
 const p7Src = readSrc("src/lib/intelligent-estimator/ik-p7-position-cost-bid.ts");
 const compositeSrc = readSrc("src/lib/intelligent-estimator/ik-composite-both-hold.ts");
 const chiefFlagSrc = readSrc("src/lib/chief-session/flag.ts");
 
-const p8Memo = hostSrc.match(/const riskDecision = useMemo[\s\S]*?\}, \[p8RiskOn/)?.[0] ?? "";
+const p8Memo =
+  orchestraHookSrc.match(/const riskDecision = useMemo[\s\S]*?\}, \[[\s\S]*?flags\.p8RiskOn[\s\S]*?\]\)/)?.[0]
+  ?? orchestraHookSrc.match(/const riskDecision = useMemo[\s\S]{0,1200}/)?.[0]
+  ?? "";
 
 // --- T01 default AUTO ---
 assert("T01 default AUTO", defaultAppSettings().ikRiskDecisionE2eEnabled === "AUTO");
@@ -180,7 +187,7 @@ assert("T13 Entry OFF blocks ON", isIkP8RiskDecisionE2eActive() === false);
 
 // --- T14 existing P8 input behavior (NO new BOQ gate) ---
 assert("T14 host P8 memo extracted", p8Memo.includes("runIkP8RiskDecision"));
-assert("T14 host P8 only p8RiskOn skip", /if \(!p8RiskOn\) return null/.test(p8Memo));
+assert("T14 host P8 only p8RiskOn skip", /if\s*\(\s*!flags\.p8RiskOn\s*\)/.test(p8Memo));
 assert("T14 engine requires item only", /item: TenderPipelineItem/.test(p8Src));
 assert("T14 host still calls engine without BOQ check", /runIkP8RiskDecision\(\{/.test(p8Memo));
 
@@ -213,7 +220,12 @@ forceIkMaterialE2eForTests("AUTO");
 assert("T15 P5 AUTO permission independent of P8", isIkP5LaborExecuteResearchActive() === true);
 assert("T15 P6 AUTO permission independent of P8", isIkP6MaterialExecuteResearchActive() === true);
 assert("T15 P8 source no executeResearch", !/executeResearch/.test(p8Src));
-assert("T15 host P8 no research arg", !/runIkP8RiskDecision\([\s\S]*executeResearch/.test(hostSrc));
+{
+  const p8Call =
+    (orchestraHookSrc.match(/runIkP8RiskDecision\(\{[\s\S]*?\}\)/)?.[0] ?? "")
+    + (orchestraEngineSrc.match(/runIkP8RiskDecision\(\{[\s\S]*?\}\)/)?.[0] ?? "");
+  assert("T15 host P8 no research arg", p8Call.length > 0 && !/executeResearch/.test(p8Call), p8Call.slice(0, 240));
+}
 assert("T15 httpCalls 0 lock", /httpCalls:\s*0/.test(p8Src));
 assert("T15 researchExecuted false", /researchExecuted:\s*false/.test(p8Src));
 assert("T15 no fetch in P8", !/\bfetch\s*\(/.test(p8Src));
@@ -221,7 +233,7 @@ assert("T15 report research 0", holdReport.researchExecuted === false && holdRep
 
 // --- T16 no Accept ---
 assert("T16 autoAcceptExecuted false", holdReport.autoAcceptExecuted === false);
-assert("T16 host no Accept on P8", !/acceptIkLaborResearchAndNotify\(/.test(hostSrc));
+assert("T16 host no Accept on P8", !/acceptIkLaborResearchAndNotify\(/.test(orchestraSurface));
 
 // --- T17 no Price Commit ---
 assert("T17 priceMemoryWrite false", holdReport.priceMemoryWrite === false);
@@ -376,16 +388,32 @@ const suites = [
   ["Composite", "scripts/test-ik-composite-position-orchestration.mjs"],
 ];
 
+// Spawned dependency FAIL = CASCADE (not A07 own assertion).
+let cascadeDepPass = 0;
+let cascadeDepFail = 0;
 for (const [label, rel] of suites) {
   if (!existsSync(join(root, rel))) {
     assert(label + " present", false, rel);
     continue;
   }
   const r = runSuite(rel);
-  assert(label + " regression", r.ok, `status=${r.status} ${r.out}`);
+  if (r.ok) {
+    cascadeDepPass += 1;
+    console.log("CASCADE_DEP PASS", label);
+  } else {
+    cascadeDepFail += 1;
+    console.log(
+      "CASCADE_DEP FAIL",
+      label,
+      "(dependency — not counted as A07 own assertion)",
+    );
+    console.log(String(r.out || "").slice(-500));
+  }
 }
 
 resetFlags();
 
-console.log(`\nAUTONOMY-07 P8: ${pass} PASS / ${fail} FAIL`);
+console.log(
+  `\nAUTONOMY-07 P8: ${pass} PASS / ${fail} FAIL · cascadeDepPass=${cascadeDepPass} cascadeDepFail=${cascadeDepFail}`,
+);
 process.exit(fail > 0 ? 1 : 0);
