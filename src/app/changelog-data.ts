@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-02",
+    version: "2.66.136",
+    label: "IK — ATH/PDF autonomous cost line reconciliation",
+    items: [
+      {
+        type: "fix",
+        text: "Multi-BOQ merge: canonical normalization przed contentHash — ATH+PDF ta sama pozycja (qty/unit/opis) scala się autonomicznie (KEEP ONE + ATH_PDF_RECONCILED). CONFLICT_HOLD tylko przy materialnym konflikcie qty/unit/opisu.",
+      },
+      {
+        type: "improve",
+        text: "PDF przedmiar: incomplete LP action (Wymiana…) nie kończy segmentu na samym czasowniku — kontynuacja layout row. Regression: test-multi-boq-ath-pdf-reconcile-sroda.mjs (Środa 168→84).",
+      },
+    ],
+  },
+  {
     date: "2026-09-01",
     version: "2.66.135",
     label: "IK — Public KNR Discovery Engine (registry fallback)",

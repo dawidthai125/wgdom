@@ -39,6 +39,15 @@ export {
   snapshotHasUsableLines,
 } from "@/lib/multi-boq/merge";
 
+export {
+  normalizeBoqLineForMerge,
+  parseCanonicalQuantity,
+  normalizeUnitFamily,
+  normalizeDescriptionCore,
+  canReconcileAthPdfPair,
+  inferBoqLineSourceKind,
+} from "@/lib/multi-boq/boq-line-normalize";
+
 export { resolveDwellingCostSnapshotForPricing } from "@/lib/multi-boq/resolve";
 
 export { composeDwellingOfferBoq } from "@/lib/multi-boq/compose";
@@ -52,3 +61,9 @@ export {
   attachComposedBoqToDwelling,
   invalidateDwellingCosting,
 } from "@/lib/multi-boq/attach";
+
+export {
+  mergeOfferBoqPreservingMappedByLp,
+  rebuildOfferBoqFromPdfExtractionText,
+  type OfferBoqRebuildFromPdfStats,
+} from "@/lib/multi-boq/rebuild-offer-boq-from-pdf-extraction";

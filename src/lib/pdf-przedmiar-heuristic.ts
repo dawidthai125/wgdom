@@ -157,18 +157,39 @@ const PDF_BOQ_SKIP_ROW_RE = /^(?:RAZEM\b|STRONA\b|\d+\s*\/\s*\d+)/i;
 
 /** TP201E-B — WM footer/header noise wstrzyknięty między layout rows (strona / Norma PRO). */
 const PDF_BOQ_WM_FOOTER_ROW_RE =
-  /^(?:-\s*\d+\s*-|Norma PRO\b|Lp\.\s+Podstawa\b|(?:[\dA-Za-ząćęłńóśźż._\s-]{0,120}-\s*)?scalony OBMIAR\s*$)/i;
+  /^(?:-\s*\d+\s*-|Norma\s+\w+\b|Lp\.\s+Podstawa\b|(?:[\dA-Za-ząćęłńóśźż._\s-]{0,120}-\s*)?scalony OBMIAR\s*$)/i;
 
 function isPdfBoqSkipLayoutRow(trimmed: string): boolean {
-  return PDF_BOQ_SKIP_ROW_RE.test(trimmed) || PDF_BOQ_WM_FOOTER_ROW_RE.test(trimmed);
+  return (
+    PDF_BOQ_SKIP_ROW_RE.test(trimmed)
+    || PDF_BOQ_WM_FOOTER_ROW_RE.test(trimmed)
+    || PDF_BOQ_PRZEDMIAR_HEADER_ONLY_RE.test(trimmed)
+  );
+}
+
+/** Ostatni nieparsowalny segment LP+KNR — qty kontynuacji po page-break (IK-REF-97). */
+function findLastIncompleteKnrSegmentIndex(merged: string[]): number {
+  for (let i = merged.length - 1; i >= 0; i -= 1) {
+    const seg = merged[i]!;
+    if (!/^\d+(?:\.\d+)*\s+(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR)/i.test(seg)) continue;
+    if (!parsePdfPrzedmiarLine(seg)) return i;
+  }
+  return -1;
 }
 
 /** TP201B-B — kontynuacja: d.X.Y + kod, wzór obmiaru, sama ilość+j.m. */
 const PDF_BOQ_CONTINUATION_ROW_RE =
-  /^(?:d\.\d+\.\d+\b|[\d.,*+]+\s+(?:m\s*[23]?|mb|m2|m3|szt|kpl|kg|t|rbh|wyp|pomiar|pom|prób|prob)|[\d.,]+\s+(?:m\s*[23]?|mb|m2|m3|szt|kpl|kg|t|rbh|wyp|pomiar|pom|prób|prob))/i;
+  /^(?:d\.\d+\.\d+\b|ar\.?\b|[\d.,*+]+\s+(?:m\s*[23]?|mb|m2|m3|szt|kpl|kg|t|rbh|wyp|pomiar|pomi|pom|prób|prob)|[\d.,]+\s+(?:m\s*[23]?|mb|m2|m3|szt|kpl|kg|t|rbh|wyp|pomiar|pomi|pom|prób|prob))/i;
 
 /** TP201C-B — myślnik na końcu wiersza layout (kontynuacja słowa). */
 const PDF_BOQ_HYPHEN_EOL_RE = /\b([a-ząćęłńóśźż]{2,})-\s*$/i;
+
+/** IK-REF-97 — „pomiar” bez myślnika: koniec wiersza „pomi” + następny „ar.”. */
+const PDF_BOQ_POMIAR_SOFT_WRAP_EOL_RE = /\bpomi\s*$/i;
+const PDF_BOQ_POMIAR_SOFT_WRAP_NEXT_RE = /^ar\.?\b/i;
+
+/** IK-REF-97 — nagłówek tabeli „Przedmiar” samotnie (po page-break). */
+const PDF_BOQ_PRZEDMIAR_HEADER_ONLY_RE = /^Przedmiar$/i;
 
 /** TP201B-B — fałszywy opis = sam marker rozdziału. */
 const PDF_BOQ_MARKER_ONLY_DESC_RE = /^d\.\d+\.\d+(?:\s+[\d.,]+)?\s*$/i;
@@ -210,6 +231,9 @@ export function normalizePdfBoqUnits(text: string): string {
     .replace(/\bpom\./gi, "pomiar")
     .replace(/\bprób\./gi, "prob")
     .replace(/\bprob\./gi, "prob")
+    // IK-REF-97 — warstwa tekstowa PDF łamie „pomiar” → „pomi” + „ar.” (nie dodajemy „pomi” do UNIT_RE).
+    .replace(/\bpomi\s+(\d+[.,]\d+)\s+ar\./gi, "pomiar $1")
+    .replace(/\bpomi\b((?:\s+\S+)*?)\s+ar\./gi, "pomiar$1")
     // TP201D M5 — pełne formy metrów bieżących (przed skrótem „m”)
     .replace(/\bmetr\s+bie[żz][aą]cy\b/gi, "mb")
     .replace(/\bmetr\s+biezacy\b/gi, "mb")
@@ -365,6 +389,17 @@ function splitPdfBoqLongLine(trimmed: string): string[] {
 }
 
 /** M2 + TP201B-B — layout rows → segmenty pozycji (merge kontynuacji + split LP/KNR). */
+function isIncompleteLpActionBuffer(buffer: string): boolean {
+  const b = buffer.trim();
+  if (!PDF_BOQ_LP_ACTION_START_RE.test(b)) return false;
+  const row = parseLpActionPrzedmiarLine(b);
+  if (!row) return true;
+  const verb = b.match(PDF_BOQ_LP_ACTION_START_RE)?.[0]?.replace(/^\d+\s+/i, "").trim().toLowerCase() ?? "";
+  if (row.description.trim().toLowerCase() === verb) return true;
+  if (row.description.length < 12) return true;
+  return false;
+}
+
 export function splitPdfBoqText(text: string): string[] {
   const hay = rejoinPdfBoqHyphens(normalizePdfBoqAliases(normalizePdfText(text)));
   if (!hay) return [];
@@ -392,6 +427,15 @@ export function splitPdfBoqText(text: string): string[] {
       }
     }
 
+    // IK-REF-97 — soft-wrap „pomi” / „ar.” bez myślnika (warstwa tekstowa PDF).
+    if (PDF_BOQ_POMIAR_SOFT_WRAP_EOL_RE.test(trimmed) && ri + 1 < layoutRows.length) {
+      const next = layoutRows[ri + 1]!.trim();
+      if (PDF_BOQ_POMIAR_SOFT_WRAP_NEXT_RE.test(next)) {
+        trimmed = `${trimmed} ${next}`;
+        ri += 1;
+      }
+    }
+
     if (isPdfBoqSkipLayoutRow(trimmed)) {
       flushBuffer();
       continue;
@@ -404,8 +448,17 @@ export function splitPdfBoqText(text: string): string[] {
     }
 
     if (PDF_BOQ_LINE_START_RE.test(trimmed) || PDF_BOQ_LP_ACTION_START_RE.test(trimmed)) {
+      if (buffer && isIncompleteLpActionBuffer(buffer)) {
+        buffer = `${buffer} ${trimmed}`;
+        continue;
+      }
       flushBuffer();
       buffer = trimmed;
+      continue;
+    }
+
+    if (buffer && isIncompleteLpActionBuffer(buffer)) {
+      buffer = `${buffer} ${trimmed}`;
       continue;
     }
 
@@ -415,9 +468,11 @@ export function splitPdfBoqText(text: string): string[] {
     }
 
     if (PDF_BOQ_CONTINUATION_ROW_RE.test(trimmed) && merged.length > 0) {
-      const prev = merged[merged.length - 1]!;
+      const incompleteIdx = findLastIncompleteKnrSegmentIndex(merged);
+      const prevIdx = incompleteIdx >= 0 ? incompleteIdx : merged.length - 1;
+      const prev = merged[prevIdx]!;
       if (!parsePdfPrzedmiarLine(prev)) {
-        merged[merged.length - 1] = `${prev} ${trimmed}`;
+        merged[prevIdx] = `${prev} ${trimmed}`;
         continue;
       }
     }
@@ -793,6 +848,9 @@ function parseLpActionPrzedmiarLine(trimmed: string): AthPreviewRow | null {
     .trim();
   description = description.replace(/^[-–—]\s*/, "").trim();
   if (description.length < 4) return null;
+  if (/^(?:Wymiana|Montaż|Montaz|Demontaż|Demontaz|Dostawa)$/i.test(description.trim())) {
+    return null;
+  }
   if (!/^[A-ZĄĆĘŁŃÓŚŹŻ]/.test(description)) {
     description = `${verb} ${description}`.replace(/\s+/g, " ").trim();
   }

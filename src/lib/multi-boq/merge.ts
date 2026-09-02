@@ -12,8 +12,16 @@ import {
   resolveQuantityExpressionFromPrzedmiar,
 } from "@/lib/intelligent-estimator/boq-expression-source-seam";
 import {
+  buildCanonicalFieldsForReconciledPair,
+  canReconcileAthPdfPair,
+  inferBoqLineSourceKind,
+  normalizeBoqLineForMerge,
+  pickPrimaryBoqSourceLine,
+  type BoqLineSourceKind,
+  type NormalizedBoqLine,
+} from "@/lib/multi-boq/boq-line-normalize";
+import {
   buildSourceLineKey,
-  foldContentHash,
 } from "@/lib/multi-boq/line-id";
 import type {
   DwellingCostArtifactRef,
@@ -38,8 +46,10 @@ type RawSourceLine = {
   quantity: number;
   quantityExpressionRaw?: string | null;
   branchHint: DwellingCostBranchHint;
+  sourceKind: BoqLineSourceKind;
   sourceLineKey: string;
   contentHash: string;
+  normalized: NormalizedBoqLine;
   athUnitPricePln: number | null;
   athTotalPln: number | null;
   catalogBasis?: CatalogBasis | null;
@@ -64,6 +74,7 @@ function extractRawLines(
   const snap = ref.snapshot;
   const out: RawSourceLine[] = [];
   const branch = ref.branchHint;
+  const sourceKind = inferBoqLineSourceKind(ref.filename || ref.documentId);
 
   const expressionsByLp = snap.quantityExpressionsByLp ?? null;
 
@@ -95,12 +106,16 @@ function extractRawLines(
     const desc = String(description ?? "").trim();
     const safeLp = sanitizeSourceLp(lp, indexInSourceDoc);
     const sourceLineKey = buildSourceLineKey(safeLp, desc, indexInSourceDoc);
-    const contentHash = foldContentHash([
-      safeLp,
-      desc.slice(0, 200),
-      String(unit ?? "").trim(),
-      String(quantityRaw ?? "").trim(),
-    ]);
+    const unitStr = String(unit ?? "").trim();
+    const qtyStr = String(quantityRaw ?? "").trim();
+    const normalized = normalizeBoqLineForMerge({
+      lp: safeLp,
+      description: desc,
+      unit: unitStr,
+      quantityRaw: qtyStr,
+      sourceKind,
+    });
+    const contentHash = normalized.canonicalContentHash;
     const expr = quantityExpressionRaw?.trim() || null;
     out.push({
       sourceDocumentId: ref.documentId,
@@ -108,13 +123,15 @@ function extractRawLines(
       indexInSourceDoc,
       lp: safeLp,
       description: desc || "(bez opisu)",
-      unit: String(unit ?? "").trim(),
-      quantityRaw: String(quantityRaw ?? ""),
+      unit: unitStr,
+      quantityRaw: qtyStr,
       quantity: parseQty(quantityRaw),
       ...(expr ? { quantityExpressionRaw: expr } : {}),
       branchHint: branch,
+      sourceKind,
       sourceLineKey,
       contentHash,
+      normalized,
       athUnitPricePln: athUnit,
       athTotalPln: athTotal,
       ...(catalogBasis ? { catalogBasis } : {}),
@@ -178,12 +195,97 @@ export type MergeDwellingLinesResult = {
   completeness: "ready" | "hold" | "conflict" | "empty";
 };
 
+function lpSortKey(lp: string): number {
+  const n = Number(String(lp ?? "").trim());
+  return Number.isFinite(n) ? n : 99999;
+}
+
+function rawLineToSnapshotLine(line: RawSourceLine, group: RawSourceLine[]): DwellingCostSnapshotLine {
+  const primary = pickPrimaryBoqSourceLine(group);
+  const sourceDocumentIds = [...new Set(group.map((g) => g.sourceDocumentId))];
+  const sourceArtifactIds = [...new Set(group.map((g) => g.sourceArtifactId))];
+  return {
+    sourceDocumentId: primary.sourceDocumentId,
+    sourceArtifactId: primary.sourceArtifactId,
+    sourceDocumentIds,
+    sourceArtifactIds,
+    sourceLineKey: primary.sourceLineKey,
+    indexInSourceDoc: primary.indexInSourceDoc,
+    lp: primary.lp,
+    description: primary.description,
+    unit: primary.unit,
+    quantityRaw: primary.quantityRaw,
+    quantity: primary.quantity,
+    ...(primary.quantityExpressionRaw?.trim()
+      ? { quantityExpressionRaw: primary.quantityExpressionRaw.trim() }
+      : {}),
+    branchHint: primary.branchHint,
+    contentHash: line.contentHash,
+    athUnitPricePln: primary.athUnitPricePln,
+    athTotalPln: primary.athTotalPln,
+    ...(primary.catalogBasis ? { catalogBasis: primary.catalogBasis } : {}),
+  };
+}
+
+function reconcileLpBranchGroup(
+  lines: RawSourceLine[],
+  warnings: string[],
+): RawSourceLine[] | "conflict" {
+  if (lines.length === 0) return "conflict";
+  if (lines.length === 1) return lines;
+
+  const byHash = new Map<string, RawSourceLine[]>();
+  for (const line of lines) {
+    const bucket = byHash.get(line.contentHash) ?? [];
+    bucket.push(line);
+    byHash.set(line.contentHash, bucket);
+  }
+  if (byHash.size === 1) {
+    if (lines.length > 1) {
+      const primary = lines[0]!;
+      warnings.push(
+        `KEEP ONE contentHash=${primary.contentHash} sources=${[...new Set(lines.map((l) => l.sourceDocumentId))].join(",")}`,
+      );
+    }
+    return [pickPrimaryBoqSourceLine(lines)];
+  }
+
+  const athLines = lines.filter((l) => l.sourceKind === "ath");
+  const pdfLines = lines.filter((l) => l.sourceKind === "pdf");
+
+  if (lines.length === 2 && athLines.length === 1 && pdfLines.length === 1) {
+    const ath = athLines[0]!;
+    const pdf = pdfLines[0]!;
+    if (canReconcileAthPdfPair(ath, pdf)) {
+      const canonicalInput = buildCanonicalFieldsForReconciledPair(ath, pdf);
+      const normalized = normalizeBoqLineForMerge(canonicalInput);
+      const primary = pickPrimaryBoqSourceLine([ath, pdf]);
+      warnings.push(
+        `ATH_PDF_RECONCILED lp=${ath.lp} sources=${ath.sourceDocumentId},${pdf.sourceDocumentId} diff=qty:${ath.normalized.quantityCanonical}/${pdf.normalized.quantityCanonical} unit:${ath.normalized.unitFamily}/${pdf.normalized.unitFamily}`,
+      );
+      warnings.push(
+        `KEEP ONE contentHash=${normalized.canonicalContentHash} sources=${ath.sourceDocumentId},${pdf.sourceDocumentId}`,
+      );
+      return [{
+        ...primary,
+        contentHash: normalized.canonicalContentHash,
+        normalized,
+        unit: canonicalInput.unit,
+        description: canonicalInput.description,
+      }];
+    }
+  }
+
+  return "conflict";
+}
+
 /**
- * Deterministic compose policy (DF-MB-04…06):
+ * Deterministic compose policy (DF-MB-04…06 + ATH/PDF reconciliation):
  * - UNION different lines
  * - same LP + different branch → KEEP BOTH
- * - identical contentHash → KEEP ONE + provenance sources[]
- * - same LP + same branch + different content → CONFLICT HOLD
+ * - identical canonical contentHash → KEEP ONE + provenance sources[]
+ * - same LP + same branch + ATH/PDF parser representation diff → KEEP ONE (reconcile)
+ * - same LP + same branch + material canonical diff → CONFLICT HOLD
  * - no silent drop / double count
  */
 export function mergeDwellingArtifactLines(
@@ -204,50 +306,8 @@ export function mergeDwellingArtifactLines(
     return { lines: [], warnings, completeness: "empty" };
   }
 
-  // Intra+inter: KEEP ONE by contentHash (no double count).
-  const byHash = new Map<string, RawSourceLine[]>();
+  const byLpBranch = new Map<string, RawSourceLine[]>();
   for (const line of allRaw) {
-    const bucket = byHash.get(line.contentHash) ?? [];
-    bucket.push(line);
-    byHash.set(line.contentHash, bucket);
-  }
-
-  const collapsed: DwellingCostSnapshotLine[] = [];
-  for (const [, group] of [...byHash.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-    const primary = group[0]!;
-    const sourceDocumentIds = [...new Set(group.map((g) => g.sourceDocumentId))];
-    const sourceArtifactIds = [...new Set(group.map((g) => g.sourceArtifactId))];
-    if (group.length > 1) {
-      warnings.push(
-        `KEEP ONE contentHash=${primary.contentHash} sources=${sourceDocumentIds.join(",")}`,
-      );
-    }
-    collapsed.push({
-      sourceDocumentId: primary.sourceDocumentId,
-      sourceArtifactId: primary.sourceArtifactId,
-      sourceDocumentIds,
-      sourceArtifactIds,
-      sourceLineKey: primary.sourceLineKey,
-      indexInSourceDoc: primary.indexInSourceDoc,
-      lp: primary.lp,
-      description: primary.description,
-      unit: primary.unit,
-      quantityRaw: primary.quantityRaw,
-      quantity: primary.quantity,
-      ...(primary.quantityExpressionRaw?.trim()
-        ? { quantityExpressionRaw: primary.quantityExpressionRaw.trim() }
-        : {}),
-      branchHint: primary.branchHint,
-      contentHash: primary.contentHash,
-      athUnitPricePln: primary.athUnitPricePln,
-      athTotalPln: primary.athTotalPln,
-      ...(primary.catalogBasis ? { catalogBasis: primary.catalogBasis } : {}),
-    });
-  }
-
-  // Conflict: same LP + same branch + different contentHash (across remaining lines).
-  const byLpBranch = new Map<string, DwellingCostSnapshotLine[]>();
-  for (const line of collapsed) {
     const lp = line.lp.trim();
     if (!lp) continue;
     const key = `${lp}::${line.branchHint}`;
@@ -256,18 +316,30 @@ export function mergeDwellingArtifactLines(
     byLpBranch.set(key, bucket);
   }
 
-  for (const [key, group] of byLpBranch) {
-    const hashes = new Set(group.map((g) => g.contentHash));
-    if (hashes.size > 1) {
+  const collapsed: DwellingCostSnapshotLine[] = [];
+
+  for (const [key, group] of [...byLpBranch.entries()].sort((a, b) => {
+    const lpCmp = lpSortKey(a[0].split("::")[0] ?? "") - lpSortKey(b[0].split("::")[0] ?? "");
+    if (lpCmp !== 0) return lpCmp;
+    return a[0].localeCompare(b[0]);
+  })) {
+    const reconciled = reconcileLpBranchGroup(group, warnings);
+    if (reconciled === "conflict") {
+      const hashes = new Set(group.map((g) => g.contentHash));
       warnings.push(
         `CONFLICT ${key}: ${hashes.size} różne treści (same LP + branch) → HOLD`,
       );
       return { lines: collapsed, warnings, completeness: "conflict" };
     }
+
+    const rep = reconciled[0]!;
+    const snapshotLine = rawLineToSnapshotLine(rep, group);
+    collapsed.push(snapshotLine);
   }
 
-  // Stable order: by sourceDocumentId, then indexInSourceDoc, then contentHash.
   collapsed.sort((a, b) => {
+    const lpCmp = a.lp.localeCompare(b.lp, undefined, { numeric: true });
+    if (lpCmp !== 0) return lpCmp;
     const d = a.sourceDocumentId.localeCompare(b.sourceDocumentId);
     if (d !== 0) return d;
     if (a.indexInSourceDoc !== b.indexInSourceDoc) {

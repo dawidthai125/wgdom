@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.136 — IK ATH/PDF reconciliation (2026-09-02)
+
+- **fix:** `boq-line-normalize.ts` + merge canonical hash — autonomiczne scalanie ATH/PDF per lokal (KEEP ONE, audit ATH_PDF_RECONCILED)
+- **improve:** PDF LP action continuation · Środa regression 168→84
+- Test: `npx vite-node scripts/test-multi-boq-ath-pdf-reconcile-sroda.mjs`
+
 ## 2.66.135 — IK Public KNR Discovery Engine (2026-09-01)
 
 - **new:** `PublicKnrSourceRegistry` + `runPublicKnrDiscovery` — BY_KEY → registry fallback, scoring, cross-family, multi-source
