@@ -39,11 +39,13 @@ import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negat
 import { isInvoicePurchaseCatalogWorkId } from "@/lib/price-intelligence/invoice-purchase-host";
 import { preserveOfferBoqLineIfTrusted } from "@/lib/intelligent-estimator/ik-identity-trusted-preserve";
 import { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
+import { areOfferBoqObjectsCompatible } from "@/lib/tender-offer-boq-object-consistency";
 
 const CANDIDATE_LIMIT = 4;
 
-/** Re-export P1 unit-family gate for focused tests / REUSE. */
+/** Re-export P1 / P2 admission gates for focused tests / REUSE. */
 export { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
+export { areOfferBoqObjectsCompatible } from "@/lib/tender-offer-boq-object-consistency";
 
 
 export interface OfferBoqMappingContext {
@@ -505,6 +507,9 @@ export function mapOfferBoqLineCore(
     // P1: unit-family admission gate — reject only clear jm incompatibility
     // before top-N (does not change scores / F5 ≥2 / auto-pick).
     .filter((s) => areOfferBoqUnitFamiliesCompatible(line.unit, s.work.unit))
+    // P2: object-consistency admission gate — reject only clear object contradiction
+    // (does not auto-pick / change F5 ≥2 / suppress legacy generically).
+    .filter((s) => areOfferBoqObjectsCompatible(line.description, s.work))
     .sort((a, b) => b.score - a.score || a.work.id.localeCompare(b.work.id, "pl"));
 
   const top = scored.slice(0, CANDIDATE_LIMIT);
