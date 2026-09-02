@@ -5,6 +5,7 @@
  */
 
 import { foldContentHash } from "@/lib/multi-boq/line-id";
+import { normalizeWgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 
 export type BoqLineSourceKind = "ath" | "pdf" | "other";
 
@@ -206,10 +207,21 @@ export function buildCanonicalFieldsForReconciledPair(
 ): NormalizeBoqLineInput {
   const primary = pickPrimaryBoqSourceLine([ath, pdf]);
   const pdfStub = isPdfParserStubDescription(pdf.description, pdf.normalized.descriptionCore);
+  // Default: stub + ATH unit present → keep ATH representation (historical).
+  let unit = pdfStub && ath.unit.trim() ? ath.unit : primary.unit;
+  // Narrow exception: accepted stub reconciliation with invalid ATH unit + valid PDF unit
+  // → use PDF unit (qty unchanged). Not a global PDF-wins / ATH-wins rule.
+  if (
+    pdfStub &&
+    normalizeWgdomCostUnit(ath.unit) === null &&
+    normalizeWgdomCostUnit(pdf.unit) !== null
+  ) {
+    unit = pdf.unit;
+  }
   return {
     lp: ath.lp,
     description: primary.description,
-    unit: pdfStub && ath.unit.trim() ? ath.unit : primary.unit,
+    unit,
     quantityRaw: primary.quantityRaw,
     sourceKind: primary.sourceKind,
   };

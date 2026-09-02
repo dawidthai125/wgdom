@@ -14,6 +14,8 @@ import {
   composeDwellingOfferBoq,
   countExtractableLinesFromArtifacts,
 } from "../src/lib/multi-boq/index.ts";
+import { buildCanonicalFieldsForReconciledPair } from "../src/lib/multi-boq/boq-line-normalize.ts";
+import { normalizeWgdomCostUnit } from "../src/lib/wgdom-cost-catalog.ts";
 import { runIkDocumentExpert } from "../src/lib/intelligent-estimator/ik-document-expert.ts";
 import { countKeepOneCollapsedFromWarnings } from "../src/lib/intelligent-estimator/ik-dwelling-mapping.ts";
 
@@ -139,7 +141,7 @@ function art(documentId, filename, branchHint, rows) {
   ok("T2 compose blocked", !composed.ok && composed.reason === "CONFLICT_HOLD");
 }
 
-// ─── TEST 3: unit material conflict ─────────────────────────────
+// ─── TEST 3: unit material conflict (non-stub) ──────────────────
 {
   const m = mergeDwellingArtifactLines([
     art("ath", "a.ath", "unknown", [
@@ -160,6 +162,108 @@ function art(documentId, filename, branchHint, rows) {
     ]),
   ]);
   ok("T3 unit conflict hold", m.completeness === "conflict", m);
+}
+
+// ─── TEST 3b: ATH szt + PDF msc non-stub → CONFLICT_HOLD ────────
+{
+  const m = mergeDwellingArtifactLines([
+    art("ath", "a.ath", "unknown", [
+      {
+        lp: "4",
+        description: "Pełna pozycja opisowa robót instalacyjnych",
+        unit: "szt",
+        quantity: "4",
+      },
+    ]),
+    art("pdf", "b.pdf", "unknown", [
+      {
+        lp: "4",
+        description: "Pełna pozycja opisowa robót instalacyjnych",
+        unit: "msc",
+        quantity: "4,00",
+      },
+    ]),
+  ]);
+  ok("T3b ATH szt + PDF msc material conflict", m.completeness === "conflict", m);
+}
+
+// ─── Unit normalization (kpl. punct + regression) ───────────────
+{
+  ok("norm kpl. valid", normalizeWgdomCostUnit("kpl.") != null);
+  ok("norm kpl valid", normalizeWgdomCostUnit("kpl") != null);
+  ok("norm kpl. === kpl", normalizeWgdomCostUnit("kpl.") === normalizeWgdomCostUnit("kpl"));
+  ok("norm szt", normalizeWgdomCostUnit("szt") === "szt");
+  ok("norm szt.", normalizeWgdomCostUnit("szt.") === "szt");
+  ok("norm mb", normalizeWgdomCostUnit("mb") === "mb");
+  ok("norm m", normalizeWgdomCostUnit("m") === "mb");
+  ok("norm m2", normalizeWgdomCostUnit("m2") === "m2");
+  ok("norm m²", normalizeWgdomCostUnit("m²") === "m2");
+  ok("norm m3", normalizeWgdomCostUnit("m3") === "m3");
+  ok("norm m³", normalizeWgdomCostUnit("m³") === "m3");
+  // msc / msc. remain non-catalog (semantics unchanged)
+  ok("norm msc still null", normalizeWgdomCostUnit("msc") === null);
+  ok("norm msc. still null", normalizeWgdomCostUnit("msc.") === null);
+}
+
+// ─── ATH msc. + PDF szt stub → canonical valid PDF unit ─────────
+{
+  const athDesc =
+    "Wymiana wyłączników i gniazd wtykowych wraz z osprzętem instalacyjnym";
+  const athNorm = normalizeBoqLineForMerge({
+    lp: "5",
+    description: athDesc,
+    unit: "msc.",
+    quantityRaw: "4",
+    sourceKind: "ath",
+  });
+  const pdfNorm = normalizeBoqLineForMerge({
+    lp: "5",
+    description: "Wymiana",
+    unit: "szt",
+    quantityRaw: "4,00",
+    sourceKind: "pdf",
+  });
+  const ath = {
+    sourceKind: "ath",
+    lp: "5",
+    description: athDesc,
+    unit: "msc.",
+    quantityRaw: "4",
+    normalized: athNorm,
+  };
+  const pdf = {
+    sourceKind: "pdf",
+    lp: "5",
+    description: "Wymiana",
+    unit: "szt",
+    quantityRaw: "4,00",
+    normalized: pdfNorm,
+  };
+  ok("stub pair canReconcile", canReconcileAthPdfPair(ath, pdf));
+  const canon = buildCanonicalFieldsForReconciledPair(ath, pdf);
+  ok("stub canon unit = PDF szt", canon.unit === "szt", canon);
+  ok("stub canon unit valid", normalizeWgdomCostUnit(canon.unit) != null, canon.unit);
+  ok(
+    "stub qty unchanged",
+    parseCanonicalQuantity(canon.quantityRaw).canonical === "4",
+    canon,
+  );
+
+  const m = mergeDwellingArtifactLines([
+    art("ath", "a.ath", "unknown", [
+      { lp: "5", description: athDesc, unit: "msc.", quantity: "4" },
+    ]),
+    art("pdf", "b.pdf", "unknown", [
+      { lp: "5", description: "Wymiana", unit: "szt", quantity: "4,00" },
+    ]),
+  ]);
+  ok("stub merge ready", m.completeness === "ready", m);
+  ok("stub merge one line", m.lines.length === 1, m.lines);
+  ok(
+    "stub merge unit valid PDF",
+    m.lines[0]?.unit === "szt" && normalizeWgdomCostUnit(m.lines[0]?.unit) != null,
+    m.lines[0],
+  );
 }
 
 // ─── canReconcile unit tests ──────────────────────────────────────
@@ -390,7 +494,39 @@ if (!kvPath) {
           m1.warnings.filter((w) => w.includes(`lp=${lp}`)),
         );
       }
+      let invalidUnits = 0;
+      for (const line of m1.lines) {
+        if (normalizeWgdomCostUnit(line.unit) === null) invalidUnits++;
+      }
+      ok("ŚRODA piastow-1 invalid catalog units 0", invalidUnits === 0, { invalidUnits });
+      for (const lp of ["5", "9", "12"]) {
+        const line = m1.lines.find((l) => String(l.lp) === lp);
+        ok(
+          `ŚRODA piastow-1 LP${lp} unit valid`,
+          line != null && normalizeWgdomCostUnit(line.unit) != null,
+          line,
+        );
+      }
     }
+
+    // All 4 dwellings — composed units must be catalog-valid (ex-20 NIEPRAWIDLOWA).
+    let allInvalid = 0;
+    for (const dw of dwellings) {
+      const athDoc = Object.entries(documentToDwelling).find(
+        ([d, id]) => id === dw && /\.ath/i.test(d),
+      )?.[0];
+      const pdfDoc = Object.entries(documentToDwelling).find(
+        ([d, id]) => id === dw && /\.pdf/i.test(d),
+      )?.[0];
+      const athArt = pool.find((a) => a.documentId === athDoc || a.filename === athDoc);
+      const pdfArt = pool.find((a) => a.documentId === pdfDoc || a.filename === pdfDoc);
+      if (!athArt || !pdfArt) continue;
+      const merged = mergeDwellingArtifactLines([athArt, pdfArt]);
+      for (const line of merged.lines) {
+        if (normalizeWgdomCostUnit(line.unit) === null) allInvalid++;
+      }
+    }
+    ok("ŚRODA all dwellings invalid catalog units 0", allInvalid === 0, { allInvalid });
   }
 }
 

@@ -212,8 +212,9 @@ function rawLineToSnapshotLine(line: RawSourceLine, group: RawSourceLine[]): Dwe
     sourceLineKey: primary.sourceLineKey,
     indexInSourceDoc: primary.indexInSourceDoc,
     lp: primary.lp,
-    description: primary.description,
-    unit: primary.unit,
+    // Prefer reconciled representative (ATH/PDF canonical fields); KEEP ONE shares same object.
+    description: line.description,
+    unit: line.unit,
     quantityRaw: primary.quantityRaw,
     quantity: primary.quantity,
     ...(primary.quantityExpressionRaw?.trim()

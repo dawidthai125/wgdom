@@ -307,7 +307,8 @@ export function findCategoryDef(
 /** Normalizacja j.m. z ATH do kanonicznej WgdomCostUnit. */
 export function normalizeWgdomCostUnit(raw: string | undefined | null): WgdomCostUnit | null {
   if (!raw?.trim()) return null;
-  const u = raw.toLowerCase().replace(/\s/g, "").replace("²", "2");
+  // Representation punctuation only (kpl. → kpl) — does not change unit semantics.
+  const u = raw.toLowerCase().replace(/\s/g, "").replace("²", "2").replace(/\.$/, "");
   if (/^(m2|m²|mp)$/.test(u)) return "m2";
   if (/^(mb|m\.b\.|mb\.|m)$/.test(u)) return "mb";
   if (/^(szt|szt\.|kpl|kompl)$/.test(u)) return "szt";
