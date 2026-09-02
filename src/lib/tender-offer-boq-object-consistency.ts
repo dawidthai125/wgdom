@@ -1,14 +1,17 @@
 /**
- * P2 — Object-consistency gate for OfferBoq candidate admission.
+ * P2 / P3-F1 / P3-F2 — Object-consistency gate for OfferBoq candidate admission.
  *
  * Rejects a CatalogWork candidate ONLY when both the BOQ line description and
  * the work text contain explicit, deterministic object markers that contradict.
  *
  * Conservative:
  * - unknown / no markers / no clear contradiction → KEEP (true)
- * - never rejects solely because work is legacy-*
+ * - never rejects solely because work is legacy-* (except audited P3-F2 legacy-elektryka)
  * - never score/rank/auto-pick
  * - independent of F5 / Owner Decision / W2-5
+ *
+ * P3-F1: shared explicit `bateria` keeps candidate despite work-side fixture variants.
+ * P3-F2: strong sanitary line vs explicit electrical package without shared object → reject.
  *
  * Runs after P1 unit-family gate, before top-4 slice.
  */
@@ -105,13 +108,43 @@ export function detectOfferBoqLineObjectMarkers(
   return detectMarkers(String(lineDescription ?? ""));
 }
 
-/** Work markers — id + name + description + keywords. */
+/** Work markers — id + name + description only (not keywords). */
 export function detectOfferBoqWorkObjectMarkers(work: CatalogWork): OfferBoqObjectMarkers {
   return detectMarkers(workCorpus(work), { workId: work.id });
 }
 
 function fixturesOverlap(a: Set<OfferBoqFixtureObject>, b: Set<OfferBoqFixtureObject>): boolean {
   for (const f of a) if (b.has(f)) return true;
+  return false;
+}
+
+/** Audited strong sanitary object on the BOQ line (P3-F2). kuchenka is intentionally excluded. */
+function lineHasStrongSanitaryObject(line: OfferBoqObjectMarkers): boolean {
+  return (
+    line.fixtures.size > 0 ||
+    line.bateria ||
+    line.podejscie ||
+    line.syfon ||
+    line.zawor
+  );
+}
+
+/** Explicit electrical package / legacy-elektryka — not trade metadata alone (P3-F2). */
+function workIsExplicitElectricalPackage(w: OfferBoqObjectMarkers): boolean {
+  return w.legacyElektryka || w.gniazdo || w.oprawa;
+}
+
+/**
+ * Shared object that makes sanitary↔electrical KEEP (audited false-reject guards).
+ * Includes kuchenka ↔ gniazda; does not invent other bridges.
+ */
+function sanitaryElectricalHasSharedObject(
+  line: OfferBoqObjectMarkers,
+  w: OfferBoqObjectMarkers,
+): boolean {
+  if (line.kuchenka && w.gniazdo) return true;
+  if (line.gniazdo && w.gniazdo) return true;
+  if (line.oprawa && w.oprawa) return true;
   return false;
 }
 
@@ -131,13 +164,24 @@ export function areOfferBoqObjectsCompatible(
   // L — debris / demolition: never reject gruz ↔ rozbiórki / transport
   if (line.gruz) return true;
 
+  // P3-F2 — strong sanitary line vs explicit electrical without shared object
+  // (legacy-elektryka / gniazdo / oprawa). Not a blanket trade/category filter.
+  // kuchenka-only lines are outside lineHasStrongSanitaryObject → gniazda KEEP.
+  if (
+    lineHasStrongSanitaryObject(line) &&
+    workIsExplicitElectricalPackage(w) &&
+    !sanitaryElectricalHasSharedObject(line, w)
+  ) {
+    return false;
+  }
+
   // C — lighting vs cooker / sink (explicit lighting only — not legacy-elektryka alone)
   if (w.oprawa) {
     if (line.kuchenka && !w.kuchenka) return false;
     if (line.fixtures.has("zlew") && !w.fixtures.has("zlew")) return false;
   }
 
-  // D — gniazda vs kuchenka: KEEP (no reject here)
+  // D — gniazda vs kuchenka: KEEP (no reject here; also covered by F2 shared-object guard)
 
   // Sink vs outlets (explicit electrical fixture on sink line) — audited LP7
   if (line.fixtures.has("zlew") && w.gniazdo && !w.fixtures.has("zlew")) return false;
@@ -172,8 +216,17 @@ export function areOfferBoqObjectsCompatible(
   if (line.zawor && (w.legacyElektryka || w.oprawa)) return false;
 
   // A — fixture mutex (both sides explicit fixtures, disjoint)
+  // P3-F1: shared explicit `bateria` is a strong compatibility signal — do not reject
+  // battery works whose metadata also lists fixture variants (zlew/umywalka/wanna).
+  // Candidate bateria identity = id + namePl only (description often cites sibling work ids
+  // like "≠ p2b-demontaz-baterii-…" and must not invent a battery identity).
   if (line.fixtures.size > 0 && w.fixtures.size > 0 && !fixturesOverlap(line.fixtures, w.fixtures)) {
-    return false;
+    const workBateriaIdentity = /bater/.test(
+      foldPolishText([work.id, work.namePl].filter(Boolean).join(" ")),
+    );
+    if (!(line.bateria && workBateriaIdentity)) {
+      return false;
+    }
   }
 
   // B — bateria line vs different fixture work (work has no bateria)
@@ -181,7 +234,7 @@ export function areOfferBoqObjectsCompatible(
     // e.g. bateria natryskowa vs montaż zlewozmywaka / wanny
     return false;
   }
-  // bateria work on bateria line → keep (compatible)
+  // bateria work on bateria line → keep (compatible) — reinforced by P3-F1 above
 
   // K — pipe / siphon vs unrelated P2B fixtures — NEVER against legacy-*
   if (!w.legacy && (line.podejscie || line.syfon)) {
