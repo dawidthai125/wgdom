@@ -15,6 +15,7 @@ import {
   countExtractableLinesFromArtifacts,
 } from "../src/lib/multi-boq/index.ts";
 import { runIkDocumentExpert } from "../src/lib/intelligent-estimator/ik-document-expert.ts";
+import { countKeepOneCollapsedFromWarnings } from "../src/lib/intelligent-estimator/ik-dwelling-mapping.ts";
 
 Object.assign(process.env, loadEnv("", join(process.cwd()), ""));
 
@@ -280,25 +281,116 @@ if (!kvPath) {
   ok("ŚRODA conflicts 0", conflictDw === 0, { conflictDw });
 
   if (ownerGo?.package) {
-    const pkg = {
+    const dwellingBase = (dwellingId) => ({
+      dwellingId,
+      labelPl: ownerGo.perDwelling?.[dwellingId]?.labelPl ?? dwellingId,
+      sourceDocumentIds: ownerGo.perDwelling?.[dwellingId]?.sourceDocumentIds ?? [],
+    });
+
+    // Fresh-resolve path (offerBoq null) — regression baseline.
+    const pkgFresh = {
       tenderId: kvSlim.id,
       mode: "multi",
       expectedDwellingCount: 4,
       documentToDwelling,
       dwellings: dwellings.map((dwellingId) => ({
-        dwellingId,
-        labelPl: ownerGo.perDwelling?.[dwellingId]?.labelPl ?? dwellingId,
-        sourceDocumentIds: ownerGo.perDwelling?.[dwellingId]?.sourceDocumentIds ?? [],
+        ...dwellingBase(dwellingId),
         offerBoq: null,
       })),
     };
-    const expert = runIkDocumentExpert({ item, package: pkg });
-    ok("ŚRODA expert ready", expert.status === "ready", {
-      status: expert.status,
-      reasons: expert.reasons,
+    const expertFresh = runIkDocumentExpert({ item, package: pkgFresh });
+    ok("ŚRODA fresh-path expert ready", expertFresh.status === "ready", {
+      status: expertFresh.status,
+      reasons: expertFresh.reasons,
     });
-    ok("ŚRODA readyForExperts", expert.masterBoq?.readyForExperts === true, expert.masterBoq);
-    ok("ŚRODA composed 84", expert.masterBoq?.composedLineCount === 84, expert.masterBoq);
+    ok("ŚRODA fresh-path readyForExperts", expertFresh.masterBoq?.readyForExperts === true, expertFresh.masterBoq);
+    ok("ŚRODA fresh-path composed 84", expertFresh.masterBoq?.composedLineCount === 84, expertFresh.masterBoq);
+
+    // Production path: Attach BOQ cache — offerBoq pre-filled + costSnapshot.warnings.
+    const prodDwellings = [];
+    let prodKeepOneWarnings = 0;
+    for (const dw of dwellings) {
+      const athDoc = Object.entries(documentToDwelling).find(
+        ([d, id]) => id === dw && /\.ath/i.test(d),
+      )?.[0];
+      const pdfDoc = Object.entries(documentToDwelling).find(
+        ([d, id]) => id === dw && /\.pdf/i.test(d),
+      )?.[0];
+      const athArt = pool.find((a) => a.documentId === athDoc || a.filename === athDoc);
+      const pdfArt = pool.find((a) => a.documentId === pdfDoc || a.filename === pdfDoc);
+      if (!athArt || !pdfArt) {
+        ok(`ŚRODA prod-path ${dw} artifacts`, false, { athDoc, pdfDoc });
+        continue;
+      }
+      const merged = mergeDwellingArtifactLines([athArt, pdfArt]);
+      const snapshot = {
+        tenderId: kvSlim.id,
+        dwellingId: dw,
+        sourceDocumentIds: [athArt.documentId, pdfArt.documentId],
+        sourceArtifactIds: [athArt.artifactId, pdfArt.artifactId],
+        lines: merged.lines,
+        completeness: merged.completeness,
+        warnings: merged.warnings,
+      };
+      prodKeepOneWarnings += countKeepOneCollapsedFromWarnings(snapshot.warnings ?? []);
+      ok(
+        `ŚRODA prod-path ${dw} costSnapshot KEEP ONE warnings`,
+        (snapshot.warnings ?? []).some((w) => w.startsWith("KEEP ONE contentHash=")),
+        snapshot.warnings?.slice(0, 2),
+      );
+      const composed = composeDwellingOfferBoq({ snapshot });
+      ok(`ŚRODA prod-path ${dw} compose`, composed.ok, composed.reason ?? merged.completeness);
+      if (!composed.ok) continue;
+      prodDwellings.push({
+        ...dwellingBase(dw),
+        offerBoq: composed.document,
+        costSnapshot: snapshot,
+        lineProvenance: composed.lineProvenance,
+      });
+    }
+
+    ok("ŚRODA prod-path keepOne warnings sum 84", prodKeepOneWarnings === 84, { prodKeepOneWarnings });
+
+    const pkgProd = {
+      tenderId: kvSlim.id,
+      mode: "multi",
+      expectedDwellingCount: 4,
+      documentToDwelling,
+      dwellings: prodDwellings,
+    };
+    const expertProd = runIkDocumentExpert({ item, package: pkgProd });
+    const li = expertProd.lineIntegrity;
+    ok("ŚRODA prod-path raw 168", li?.sourceLineCount === 168, li);
+    ok("ŚRODA prod-path composed 84", li?.composedLineCount === 84, li);
+    ok("ŚRODA prod-path keepOneExplained 84", li?.explainedLoss === 84, li);
+    ok("ŚRODA prod-path gap 0", li?.unexplainedLoss === 0, li);
+    ok("ŚRODA prod-path lineIntegrity ok", li?.ok === true, li?.reasons);
+    ok("ŚRODA prod-path expert ready", expertProd.status === "ready", {
+      status: expertProd.status,
+      reasons: expertProd.reasons,
+    });
+    ok("ŚRODA prod-path readyForExperts", expertProd.masterBoq?.readyForExperts === true, expertProd.masterBoq);
+    ok("ŚRODA prod-path masterReady", expertProd.masterBoq?.readyForExperts === true, expertProd.masterBoq);
+
+    // LP5 / LP9 / LP12 — ATH/PDF reconciliation on real Środa piastow-1.
+    const piastow1Ath = Object.entries(documentToDwelling).find(
+      ([d, id]) => id === "piastow-1" && /\.ath/i.test(d),
+    )?.[0];
+    const piastow1Pdf = Object.entries(documentToDwelling).find(
+      ([d, id]) => id === "piastow-1" && /\.pdf/i.test(d),
+    )?.[0];
+    const ath1 = pool.find((a) => a.documentId === piastow1Ath || a.filename === piastow1Ath);
+    const pdf1 = pool.find((a) => a.documentId === piastow1Pdf || a.filename === piastow1Pdf);
+    if (ath1 && pdf1) {
+      const m1 = mergeDwellingArtifactLines([ath1, pdf1]);
+      for (const lp of [5, 9, 12]) {
+        ok(
+          `ŚRODA piastow-1 LP${lp} ATH_PDF_RECONCILED`,
+          m1.warnings.some((w) => w.includes(`ATH_PDF_RECONCILED lp=${lp} `)),
+          m1.warnings.filter((w) => w.includes(`lp=${lp}`)),
+        );
+      }
+    }
   }
 }
 

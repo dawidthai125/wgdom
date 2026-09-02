@@ -583,6 +583,10 @@ export function runIkDocumentExpert(opts: {
           });
           continue;
         }
+        // Attach BOQ fast-path: reconciliation evidence lives on costSnapshot.warnings.
+        keepOneCollapsed += countKeepOneCollapsedFromWarnings(
+          unit.costSnapshot?.warnings ?? [],
+        );
         composedDocs.push(unit.offerBoq);
         if (unit.lineProvenance) Object.assign(mergedProv, unit.lineProvenance);
         pushMasterLines(unit.dwellingId, unit.offerBoq.lines ?? [], unit.lineProvenance);
