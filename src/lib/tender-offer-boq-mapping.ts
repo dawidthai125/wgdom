@@ -38,8 +38,13 @@ import {
 import { decideCatalogCoverageBindProductId } from "@/lib/catalog-coverage/negation-guard";
 import { isInvoicePurchaseCatalogWorkId } from "@/lib/price-intelligence/invoice-purchase-host";
 import { preserveOfferBoqLineIfTrusted } from "@/lib/intelligent-estimator/ik-identity-trusted-preserve";
+import { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
 
 const CANDIDATE_LIMIT = 4;
+
+/** Re-export P1 unit-family gate for focused tests / REUSE. */
+export { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
+
 
 export interface OfferBoqMappingContext {
   /** Aktywne roboty z Work Catalog (region). */
@@ -497,6 +502,9 @@ export function mapOfferBoqLineCore(
       }),
     )
     .filter((s) => s.score > 0)
+    // P1: unit-family admission gate — reject only clear jm incompatibility
+    // before top-N (does not change scores / F5 ≥2 / auto-pick).
+    .filter((s) => areOfferBoqUnitFamiliesCompatible(line.unit, s.work.unit))
     .sort((a, b) => b.score - a.score || a.work.id.localeCompare(b.work.id, "pl"));
 
   const top = scored.slice(0, CANDIDATE_LIMIT);
