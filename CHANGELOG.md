@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.145 — IK pipeline cloud writers through lean guard (2026-09-03)
+
+- **fix:** OD-OCR-29B — `fetchAndMergeDeferredBootstrap` + `pushMergedDataBundleToCloud` wyjmują `kw-tenders-pipeline` i wołają `pushTenderPipelineToCloud` (lean + guard + verify)
+- **improve:** `pushKeysToCloud` safety-net dla pipeline-without-guard · import/restore przez ten sam RS seam · live body **nie** re-strip (29C)
+- Test: `test-ik-od-ocr-29b-pipeline-writer-intercept.mjs`
+
 ## 2.66.144 — IK pipeline lean cloud + guard (2026-09-03)
 
 - **improve:** OD-OCR-25 Track B — `_cloudLean` marker · lean cloud strip · `kw-tenders-pipeline-guard` · `mergeKosztorysPreserveHeavy` / `mergeScanSummaryPreserveArtifacts` · fail-closed body/guard protocol

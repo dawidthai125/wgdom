@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.145",
+    label: "IK — pipeline cloud writers through lean guard",
+    items: [
+      {
+        type: "fix",
+        text: "OD-OCR-29B: kw-tenders-pipeline z RS / deferred bootstrap idzie przez pushTenderPipelineToCloud (lean + guard + verify) — bez raw FULL write i bez pominięcia guarda.",
+      },
+      {
+        type: "improve",
+        text: "pushKeysToCloud: safety-net gdy pipeline jest w bundle bez kw-tenders-pipeline-guard. Live body nie jest naprawiane w tym releasie (OD-OCR-29C osobno).",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.144",
     label: "IK — pipeline lean cloud + guard",
     items: [

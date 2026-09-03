@@ -64,6 +64,11 @@ import {
   assertTenderPipelineCloudWriteAllowed,
   isPipelineWriteSafetyBlockedError,
 } from "@/lib/tender-pipeline-write-safety";
+import {
+  asTenderPipelineItems,
+  extractUnguardedPipelineFromPushKeys,
+  shouldRoutePipelinePushToCanonicalSeam,
+} from "@/lib/tender-pipeline/tender-pipeline-cloud-route";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
@@ -1528,6 +1533,8 @@ export type PushKeysToCloudOptions = {
   workCatalogPushMode?: "union" | "intent";
   /** Internal — CAS path calls batch-set directly (avoid redirect loop). */
   skipWorkCatalogIntercept?: boolean;
+  /** Internal — canonical lean+guard already prepared [body, guard]; skip 29B intercept. */
+  skipPipelineLeanIntercept?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
   cloudWeekEmployees?: unknown;
   /**
@@ -3203,11 +3210,40 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
       }
     });
 
+    const extractedPipeline = extractUnguardedPipelineFromPushKeys(pushKeys, pushValues);
+    let deferredPipelineForCanonical: unknown | undefined;
+    if (extractedPipeline.extracted) {
+      const { isPipelineCloudLeanGuardEnabled, isPipelineCloudLeanMigrationComplete } = await import(
+        "@/lib/app-settings"
+      );
+      if (isPipelineCloudLeanGuardEnabled() && isPipelineCloudLeanMigrationComplete()) {
+        deferredPipelineForCanonical = extractedPipeline.pipeline;
+        pushKeys.length = 0;
+        pushValues.length = 0;
+        pushKeys.push(...extractedPipeline.otherKeys);
+        pushValues.push(...extractedPipeline.otherValues);
+      }
+    }
+
     if (pushKeys.length > 0) {
       void pushKeysToCloud(
         [...pushKeys, CONTACTS_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY],
         [...pushValues, mergedContactsDeleted, mergedLeavesDeleted, mergedChargesDeleted],
       ).catch(() => {});
+    }
+
+    if (deferredPipelineForCanonical !== undefined) {
+      const { pushTenderPipelineToCloud } = await import(
+        "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+      );
+      try {
+        await pushTenderPipelineToCloud(asTenderPipelineItems(deferredPipelineForCanonical));
+      } catch (e) {
+        console.warn(
+          "[pipeline-cloud-lean] deferred bootstrap pipeline write failed (fail-closed, no raw fallback)",
+          e,
+        );
+      }
     }
 
     const { finalizeWorkCatalogAfterDeferredMerge } = await import("@/lib/work-catalog-bootstrap");
@@ -3429,6 +3465,30 @@ export async function pushKeysToCloud(
     const nextValues = values.filter((_, i) => i !== catalogIdx);
     if (nextKeys.length === 0) return;
     return pushKeysToCloud(nextKeys, nextValues, options);
+  }
+
+  if (shouldRoutePipelinePushToCanonicalSeam(keys, {
+    skipIntercept: options?.skipPipelineLeanIntercept === true,
+  })) {
+    const { isPipelineCloudLeanGuardEnabled, isPipelineCloudLeanMigrationComplete } = await import(
+      "@/lib/app-settings"
+    );
+    if (
+      isPipelineCloudLeanGuardEnabled()
+      && isPipelineCloudLeanMigrationComplete()
+    ) {
+      const extracted = extractUnguardedPipelineFromPushKeys(keys, values);
+      if (extracted.extracted) {
+        if (extracted.otherKeys.length > 0) {
+          await pushKeysToCloud(extracted.otherKeys, extracted.otherValues, options);
+        }
+        const { pushTenderPipelineToCloud } = await import(
+          "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+        );
+        await pushTenderPipelineToCloud(asTenderPipelineItems(extracted.pipeline));
+        return;
+      }
+    }
   }
 
   const guarded = await applyPayrollGuardBeforePush(keys, values, options);
@@ -4367,22 +4427,46 @@ export function rsBundleFingerprintFromMerged(merged: unknown[]): string {
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   payrollTraceEmit("sync.rs.push.start", "RS", "info", {});
-  const { keys: pushKeys, values: pushValues } = assembleRsPushKeysAndValues(merged);
+  const { keys: assembledKeys, values: assembledValues } = assembleRsPushKeysAndValues(merged);
   const { pushWorkCatalogFromLocalUnionIfChanged } = await import(
     "@/lib/work-catalog/work-catalog-cloud-push"
   );
-  if (pushKeys.length === 0) {
+  const extracted = extractUnguardedPipelineFromPushKeys(assembledKeys, assembledValues);
+  let pushKeys = assembledKeys;
+  let pushValues = assembledValues;
+  let pipelineForCanonical: unknown | undefined;
+  if (extracted.extracted) {
+    const { isPipelineCloudLeanGuardEnabled, isPipelineCloudLeanMigrationComplete } = await import(
+      "@/lib/app-settings"
+    );
+    if (isPipelineCloudLeanGuardEnabled() && isPipelineCloudLeanMigrationComplete()) {
+      pipelineForCanonical = extracted.pipeline;
+      pushKeys = extracted.otherKeys;
+      pushValues = extracted.otherValues;
+    }
+  }
+  if (pushKeys.length === 0 && pipelineForCanonical === undefined) {
     await pushWorkCatalogFromLocalUnionIfChanged();
     payrollTraceEmit("sync.rs.push.skip", "RS", "debug", { skipReason: "keys_empty" as const });
     return;
   }
-  await pushKeysToCloud(pushKeys, pushValues, {
-    replaceJobsKeys: ["kw-jobs"],
-    replaceDirectoryKeys: ["kw-directory"],
-    // SYNC-ARCH-01 S1-1: brak replaceWeekEmployeesKeys w RS — roster via domain push
-  });
+  if (pushKeys.length > 0) {
+    await pushKeysToCloud(pushKeys, pushValues, {
+      replaceJobsKeys: ["kw-jobs"],
+      replaceDirectoryKeys: ["kw-directory"],
+      // SYNC-ARCH-01 S1-1: brak replaceWeekEmployeesKeys w RS — roster via domain push
+    });
+  }
+  if (pipelineForCanonical !== undefined) {
+    const { pushTenderPipelineToCloud } = await import(
+      "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+    );
+    await pushTenderPipelineToCloud(asTenderPipelineItems(pipelineForCanonical));
+  }
   await pushWorkCatalogFromLocalUnionIfChanged();
-  payrollTraceEmit("sync.rs.push.complete", "RS", "info", { keyCount: pushKeys.length });
+  payrollTraceEmit("sync.rs.push.complete", "RS", "info", {
+    keyCount: pushKeys.length + (pipelineForCanonical !== undefined ? 1 : 0),
+  });
 }
 
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {
