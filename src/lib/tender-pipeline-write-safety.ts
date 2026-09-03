@@ -9,11 +9,17 @@
 export const PIPELINE_SNAPSHOT_REGRESSION_BLOCKED = "PIPELINE_SNAPSHOT_REGRESSION_BLOCKED" as const;
 export const PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED =
   "PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED" as const;
+export const PIPELINE_GUARD_BODY_MISMATCH_BLOCKED = "PIPELINE_GUARD_BODY_MISMATCH_BLOCKED" as const;
+export const PIPELINE_CLOUD_UNCONFIRMED_BLOCKED = "PIPELINE_CLOUD_UNCONFIRMED_BLOCKED" as const;
+export const PIPELINE_STALE_CLIENT_BLOCKED = "PIPELINE_STALE_CLIENT_BLOCKED" as const;
 
 export type PipelineWriteSafetyCode =
   | "OK"
   | typeof PIPELINE_SNAPSHOT_REGRESSION_BLOCKED
-  | typeof PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED;
+  | typeof PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED
+  | typeof PIPELINE_GUARD_BODY_MISMATCH_BLOCKED
+  | typeof PIPELINE_CLOUD_UNCONFIRMED_BLOCKED
+  | typeof PIPELINE_STALE_CLIENT_BLOCKED;
 
 export type PipelineWriteSafetyCriticalLoss = {
   id: string;
@@ -32,18 +38,32 @@ export type PipelineWriteSafetyVerdict = {
 };
 
 export class PipelineWriteSafetyBlockedError extends Error {
-  readonly code: typeof PIPELINE_SNAPSHOT_REGRESSION_BLOCKED | typeof PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED;
+  readonly code:
+    | typeof PIPELINE_SNAPSHOT_REGRESSION_BLOCKED
+    | typeof PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED
+    | typeof PIPELINE_GUARD_BODY_MISMATCH_BLOCKED
+    | typeof PIPELINE_CLOUD_UNCONFIRMED_BLOCKED
+    | typeof PIPELINE_STALE_CLIENT_BLOCKED;
   readonly details: PipelineWriteSafetyVerdict;
 
   constructor(verdict: PipelineWriteSafetyVerdict) {
     const code =
       verdict.code === "OK"
         ? PIPELINE_SNAPSHOT_REGRESSION_BLOCKED
-        : (verdict.code as typeof PIPELINE_SNAPSHOT_REGRESSION_BLOCKED | typeof PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED);
+        : (verdict.code as typeof PIPELINE_SNAPSHOT_REGRESSION_BLOCKED);
+    const messages: Record<string, string> = {
+      [PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED]:
+        "Zapis pipeline zablokowany — brak odczytu authoritative cloud (kw-tenders-pipeline).",
+      [PIPELINE_GUARD_BODY_MISMATCH_BLOCKED]:
+        "Zapis pipeline zablokowany — body/guard ikFinalBid parity mismatch.",
+      [PIPELINE_CLOUD_UNCONFIRMED_BLOCKED]:
+        "Zapis pipeline zablokowany — poprzedni zapis cloud/guard niepotwierdzony (reconciliation wymagana).",
+      [PIPELINE_STALE_CLIENT_BLOCKED]:
+        "Zapis pipeline zablokowany — wersja klienta nie obsługuje lean+guard (pipelineCloudLeanGuardV1).",
+    };
     super(
-      code === PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED
-        ? "Zapis pipeline zablokowany — brak odczytu authoritative cloud (kw-tenders-pipeline)."
-        : `Zapis pipeline zablokowany — regresja snapshotu (${verdict.cloudCount}→${verdict.localCount}, missing=${verdict.missingRecords}).`,
+      messages[code]
+        ?? `Zapis pipeline zablokowany — regresja snapshotu (${verdict.cloudCount}→${verdict.localCount}, missing=${verdict.missingRecords}).`,
     );
     this.name = "PipelineWriteSafetyBlockedError";
     this.code = code;
@@ -56,6 +76,9 @@ export function isPipelineWriteSafetyBlockedError(err: unknown): boolean {
     err instanceof PipelineWriteSafetyBlockedError
     || (err instanceof Error && (err as { code?: string }).code === PIPELINE_SNAPSHOT_REGRESSION_BLOCKED)
     || (err instanceof Error && (err as { code?: string }).code === PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED)
+    || (err instanceof Error && (err as { code?: string }).code === PIPELINE_GUARD_BODY_MISMATCH_BLOCKED)
+    || (err instanceof Error && (err as { code?: string }).code === PIPELINE_CLOUD_UNCONFIRMED_BLOCKED)
+    || (err instanceof Error && (err as { code?: string }).code === PIPELINE_STALE_CLIENT_BLOCKED)
   );
 }
 

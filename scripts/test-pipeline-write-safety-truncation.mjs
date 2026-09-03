@@ -246,7 +246,7 @@ const local = buildLocal13(cloud);
   assert.ok(safetySrc.includes("PIPELINE_CLOUD_READ_FAILED_WRITE_BLOCKED"));
   assert.ok(cloudSrc.includes("assertTenderPipelineCloudWriteAllowed"));
   assert.ok(cloudSrc.includes("tender-pipeline-write-safety"));
-  assert.ok(/persistKey\(TENDERS_PIPELINE_KEY,\s*items\)/.test(persistSrc));
+  assert.ok(/pushTenderPipelineToCloud\(items\)/.test(persistSrc));
   // Edge shrink still optional / absent — OK for this GO
   assert.equal(
     /pipeline_shrink_rejected|kw-tenders-pipeline.*shrink/i.test(edgeSrc),

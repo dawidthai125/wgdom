@@ -4,6 +4,7 @@
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { mergeTenderDossierByQuality } from "@/lib/tender-dossier-merge";
+import { isCloudLeanFieldOmitted } from "@/lib/tender-pipeline/tender-pipeline-cloud-lean";
 import {
   mergeWgdomCostCatalogStore,
   WGDOM_COST_CATALOG_KEY,
@@ -89,7 +90,12 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
     tenderState: primary.tenderState ?? secondary.tenderState,
     noticeHtml: primary.noticeHtml ?? secondary.noticeHtml,
     noticeHtmlFetchedAt: primary.noticeHtmlFetchedAt ?? secondary.noticeHtmlFetchedAt,
-    tenderDossier: mergeTenderDossierByQuality(a.tenderDossier, b.tenderDossier) ?? primary.tenderDossier ?? secondary.tenderDossier,
+    tenderDossier: mergeTenderDossierByQuality(a.tenderDossier, b.tenderDossier, {
+      leanRowsOmittedA: isCloudLeanFieldOmitted(a, "kosztorys.rows"),
+      leanRowsOmittedB: isCloudLeanFieldOmitted(b, "kosztorys.rows"),
+      leanArtifactSnapshotOmittedA: isCloudLeanFieldOmitted(a, "artifact.snapshot"),
+      leanArtifactSnapshotOmittedB: isCloudLeanFieldOmitted(b, "artifact.snapshot"),
+    }) ?? primary.tenderDossier ?? secondary.tenderDossier,
     tenderFit: primary.tenderFit ?? secondary.tenderFit,
     externalDocDiscovery: primary.externalDocDiscovery ?? secondary.externalDocDiscovery,
     estimateHistory: primary.estimateHistory?.length ? primary.estimateHistory : secondary.estimateHistory,

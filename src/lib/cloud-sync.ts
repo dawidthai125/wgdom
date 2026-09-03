@@ -4438,6 +4438,28 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
     );
   });
   const empIdx = keys.indexOf("kw-week-employees");
+
+  if (pipeIdx >= 0) {
+    const { isPipelineCloudLeanGuardEnabled, isPipelineCloudLeanMigrationComplete } = await import(
+      "@/lib/app-settings"
+    );
+    if (isPipelineCloudLeanGuardEnabled() && isPipelineCloudLeanMigrationComplete()) {
+      const { pushTenderPipelineToCloud } = await import(
+        "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+      );
+      const fullPipeline = merged[pipeIdx] as import("@/lib/tenders-bzp").TenderPipelineItem[];
+      const otherKeys = keys.filter((_, i) => i !== pipeIdx);
+      const otherMerged = merged.filter((_, i) => i !== pipeIdx);
+      if (otherKeys.length > 0) {
+        await pushKeysToCloud(otherKeys, otherMerged, {
+          cloudWeekEmployees: empIdx >= 0 && pipeIdx !== empIdx ? cloudValues[empIdx] : undefined,
+        });
+      }
+      await pushTenderPipelineToCloud(fullPipeline);
+      return;
+    }
+  }
+
   await pushKeysToCloud(keys, merged, {
     cloudWeekEmployees: empIdx >= 0 ? cloudValues[empIdx] : undefined,
   });
@@ -4629,6 +4651,21 @@ export async function persistKey(
   value: unknown,
   options?: { cloud?: boolean },
 ): Promise<void> {
+  if (key === TENDERS_PIPELINE_KEY) {
+    const items = value as import("@/lib/tenders-bzp").TenderPipelineItem[];
+    const { saveTendersPipelineLocal } = await import("@/lib/tenders-bzp");
+    saveTendersPipelineLocal(items);
+    const shouldSync =
+      options?.cloud !== false &&
+      (isDataKey(key) || key === TENDERS_DELETED_IDS_KEY);
+    if (shouldSync) {
+      const { pushTenderPipelineToCloud } = await import(
+        "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+      );
+      await pushTenderPipelineToCloud(items);
+    }
+    return;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {

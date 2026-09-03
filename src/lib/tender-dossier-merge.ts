@@ -3,6 +3,8 @@
  * updatedAt rekordu pipeline NIE decyduje o wyborze kosztorysu.
  */
 
+import type { CostBranchArtifact } from "@/lib/cost-multi-02-types";
+import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
 import type { TenderDossier, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import {
   classifyCostDocumentType,
@@ -189,29 +191,235 @@ export function pickBetterKosztorys(
   return null;
 }
 
-/** Merge dossier — kosztorys po jakości; pozostałe pola z dossier z nowszym builtAt. */
+function kosztorysHasHeavyRows(k: TenderKosztorysSnapshot | null | undefined): boolean {
+  return Boolean(k?.rows && k.rows.length > 0);
+}
+
+/** OD-OCR-25 — rows omitted in lean cloud body (FIELD_ABSENT ≠ deletion). */
+export function kosztorysRowsFieldAbsent(
+  k: TenderKosztorysSnapshot | null | undefined,
+  leanRowsOmitted?: boolean,
+): boolean {
+  if (!k) return false;
+  if (leanRowsOmitted) return true;
+  if ((k as { _rowsOmitted?: boolean })._rowsOmitted) return true;
+  const rc = effectiveRowCount(k);
+  return rc > 0 && !kosztorysHasHeavyRows(k);
+}
+
+function kosztorysMetaShell(k: TenderKosztorysSnapshot): TenderKosztorysSnapshot {
+  return { ...k, rows: [] };
+}
+
+function combineKosztorysHeavyWithMeta(
+  heavy: TenderKosztorysSnapshot,
+  meta: TenderKosztorysSnapshot,
+): TenderKosztorysSnapshot {
+  return {
+    ...meta,
+    ...heavy,
+    rows: heavy.rows,
+    rowCount: heavy.rowCount ?? heavy.rows?.length ?? meta.rowCount,
+    catalogQuantities: heavy.catalogQuantities?.length
+      ? heavy.catalogQuantities
+      : meta.catalogQuantities,
+    quantityExpressionsByLp: heavy.quantityExpressionsByLp?.length
+      ? heavy.quantityExpressionsByLp
+      : meta.quantityExpressionsByLp,
+  };
+}
+
+/**
+ * OD-OCR-25 — preserve heavy rows when merging FULL ↔ LEAN cloud snapshots.
+ * Lean absent rows never beat FULL rows at compatible tier.
+ */
+export function mergeKosztorysPreserveHeavy(
+  a: TenderKosztorysSnapshot | null | undefined,
+  b: TenderKosztorysSnapshot | null | undefined,
+  opts?: { leanRowsOmittedA?: boolean; leanRowsOmittedB?: boolean },
+): TenderKosztorysSnapshot | null {
+  if (!a && !b) return null;
+  if (!a) return b ?? null;
+  if (!b) return a ?? null;
+
+  const aHeavy = kosztorysHasHeavyRows(a);
+  const bHeavy = kosztorysHasHeavyRows(b);
+  const aAbsent = kosztorysRowsFieldAbsent(a, opts?.leanRowsOmittedA);
+  const bAbsent = kosztorysRowsFieldAbsent(b, opts?.leanRowsOmittedB);
+  const tierA = kosztorysSourceQualityTier(a);
+  const tierB = kosztorysSourceQualityTier(b);
+
+  if (aHeavy && bAbsent && tierA >= tierB) {
+    const meta = pickBetterKosztorys(kosztorysMetaShell(a), kosztorysMetaShell(b)) ?? a;
+    return combineKosztorysHeavyWithMeta(a, meta);
+  }
+  if (bHeavy && aAbsent && tierB >= tierA) {
+    const meta = pickBetterKosztorys(kosztorysMetaShell(a), kosztorysMetaShell(b)) ?? b;
+    return combineKosztorysHeavyWithMeta(b, meta);
+  }
+  if (aHeavy && bHeavy) {
+    const winner = pickBetterKosztorys(a, b) ?? a;
+    const meta = pickBetterKosztorys(kosztorysMetaShell(a), kosztorysMetaShell(b)) ?? winner;
+    return combineKosztorysHeavyWithMeta(winner, meta);
+  }
+
+  const metaWinner = pickBetterKosztorys(
+    aAbsent ? kosztorysMetaShell(a) : a,
+    bAbsent ? kosztorysMetaShell(b) : b,
+  );
+  if (!metaWinner) return null;
+  const fromA = metaWinner === a || (aAbsent && metaWinner.sourceFilename === a.sourceFilename);
+  const base = fromA ? a : b;
+  return {
+    ...base,
+    rows: [],
+    rowCount: base.rowCount ?? effectiveRowCount(base),
+  };
+}
+
+function artifactIdentityKey(a: CostBranchArtifact): string {
+  return String(a.documentId || a.filename || "").trim();
+}
+
+function mergeArtifactPair(
+  a: CostBranchArtifact,
+  b: CostBranchArtifact,
+  leanSnapshotOmittedA?: boolean,
+  leanSnapshotOmittedB?: boolean,
+): CostBranchArtifact {
+  const aSnap = a.snapshot;
+  const bSnap = b.snapshot;
+  const aHasSnap = Boolean(aSnap && (aSnap.ok || (aSnap.rows?.length ?? 0) > 0));
+  const bHasSnap = Boolean(bSnap && (bSnap.ok || (bSnap.rows?.length ?? 0) > 0));
+  const aSnapAbsent = (leanSnapshotOmittedA || !aSnap) && !aHasSnap;
+  const bSnapAbsent = (leanSnapshotOmittedB || !bSnap) && !bHasSnap;
+
+  let snapshot: CostBranchArtifact["snapshot"] | undefined;
+  if (aHasSnap && (bSnapAbsent || !bHasSnap)) snapshot = aSnap;
+  else if (bHasSnap && (aSnapAbsent || !aHasSnap)) snapshot = bSnap;
+  else if (aHasSnap && bHasSnap) snapshot = pickBetterKosztorys(aSnap, bSnap) ?? aSnap;
+  else snapshot = aSnap ?? bSnap;
+
+  const merged: CostBranchArtifact = {
+    filename: a.filename || b.filename,
+    documentId: a.documentId || b.documentId,
+    branch: a.branch ?? b.branch,
+    snapshot: snapshot ?? {
+      ok: false,
+      sourceFilename: a.filename || b.filename,
+      rowCount: 0,
+      rows: [],
+      catalogQuantities: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: new Date(0).toISOString(),
+    },
+  };
+  return merged;
+}
+
+function unionArtifacts(
+  listA: CostBranchArtifact[] | undefined,
+  listB: CostBranchArtifact[] | undefined,
+  leanOmittedA?: boolean,
+  leanOmittedB?: boolean,
+): CostBranchArtifact[] | undefined {
+  const a = listA ?? [];
+  const b = listB ?? [];
+  if (a.length === 0 && b.length === 0) return undefined;
+  const map = new Map<string, CostBranchArtifact>();
+  for (const art of a) {
+    const k = artifactIdentityKey(art);
+    if (k) map.set(k, art);
+  }
+  for (const art of b) {
+    const k = artifactIdentityKey(art);
+    if (!k) continue;
+    const prev = map.get(k);
+    map.set(
+      k,
+      prev
+        ? mergeArtifactPair(prev, art, leanOmittedA, leanOmittedB)
+        : art,
+    );
+  }
+  return [...map.values()];
+}
+
+/** OD-OCR-25 — union artifacts; never wholesale-replace scanSummary from single winner. */
+export function mergeScanSummaryPreserveArtifacts(
+  a: TenderDossierScanSummary | null | undefined,
+  b: TenderDossierScanSummary | null | undefined,
+  opts?: { leanArtifactSnapshotOmittedA?: boolean; leanArtifactSnapshotOmittedB?: boolean },
+): TenderDossierScanSummary | null | undefined {
+  if (!a && !b) return null;
+  if (!a) return b ?? null;
+  if (!b) return a;
+
+  const newer = parseTs(a.parsedAt) >= parseTs(b.parsedAt) ? a : b;
+  const older = newer === a ? b : a;
+  const branchWinnerArtifacts = unionArtifacts(
+    a.branchWinnerArtifacts,
+    b.branchWinnerArtifacts,
+    opts?.leanArtifactSnapshotOmittedA,
+    opts?.leanArtifactSnapshotOmittedB,
+  );
+  const costBranchArtifacts = unionArtifacts(
+    a.costBranchArtifacts ?? a.branchWinnerArtifacts,
+    b.costBranchArtifacts ?? b.branchWinnerArtifacts,
+    opts?.leanArtifactSnapshotOmittedA,
+    opts?.leanArtifactSnapshotOmittedB,
+  );
+
+  return {
+    ...older,
+    ...newer,
+    branchWinnerArtifacts: branchWinnerArtifacts ?? newer.branchWinnerArtifacts ?? older.branchWinnerArtifacts,
+    costBranchArtifacts: costBranchArtifacts ?? newer.costBranchArtifacts ?? older.costBranchArtifacts,
+    parsedAt: newer.parsedAt ?? older.parsedAt,
+  };
+}
+
+export interface MergeTenderDossierByQualityOptions {
+  leanRowsOmittedA?: boolean;
+  leanRowsOmittedB?: boolean;
+  leanArtifactSnapshotOmittedA?: boolean;
+  leanArtifactSnapshotOmittedB?: boolean;
+}
+
+/** Merge dossier — kosztorys po jakości + preserve-heavy (OD-OCR-25). */
 export function mergeTenderDossierByQuality(
   dossierA: TenderDossier | null | undefined,
   dossierB: TenderDossier | null | undefined,
+  opts?: MergeTenderDossierByQualityOptions,
 ): TenderDossier | null | undefined {
   if (!dossierA && !dossierB) return null;
   if (!dossierA) return dossierB ?? null;
   if (!dossierB) return dossierA;
 
-  const kosztorys = pickBetterKosztorys(dossierA.kosztorys, dossierB.kosztorys);
+  const kosztorys = mergeKosztorysPreserveHeavy(dossierA.kosztorys, dossierB.kosztorys, {
+    leanRowsOmittedA: opts?.leanRowsOmittedA,
+    leanRowsOmittedB: opts?.leanRowsOmittedB,
+  });
   const newerBuilt = parseTs(dossierA.builtAt) >= parseTs(dossierB.builtAt) ? dossierA : dossierB;
   const olderBuilt = newerBuilt === dossierA ? dossierB : dossierA;
-  const kosztorysFromA = kosztorys != null && kosztorys === dossierA.kosztorys;
-  const kosztorysFromB = kosztorys != null && kosztorys === dossierB.kosztorys;
-  const winningDossier = kosztorysFromB ? dossierB : kosztorysFromA ? dossierA : newerBuilt;
+  const scanSummary = mergeScanSummaryPreserveArtifacts(
+    dossierA.scanSummary,
+    dossierB.scanSummary,
+    {
+      leanArtifactSnapshotOmittedA: opts?.leanArtifactSnapshotOmittedA,
+      leanArtifactSnapshotOmittedB: opts?.leanArtifactSnapshotOmittedB,
+    },
+  );
 
   return {
     brief: newerBuilt.brief?.fields?.length ? newerBuilt.brief : olderBuilt.brief,
     kosztorys,
-    scanSummary: winningDossier.scanSummary ?? newerBuilt.scanSummary ?? olderBuilt.scanSummary ?? null,
+    scanSummary: scanSummary ?? newerBuilt.scanSummary ?? olderBuilt.scanSummary ?? null,
     estimatePln: newerBuilt.estimatePln ?? olderBuilt.estimatePln ?? null,
     bidProposal: newerBuilt.bidProposal ?? olderBuilt.bidProposal ?? null,
-    parserVersion: winningDossier.parserVersion ?? newerBuilt.parserVersion ?? olderBuilt.parserVersion,
+    parserVersion: newerBuilt.parserVersion ?? olderBuilt.parserVersion ?? olderBuilt.parserVersion,
     builtAt: newerBuilt.builtAt,
   };
 }

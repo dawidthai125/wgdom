@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.144",
+    label: "IK — pipeline lean cloud + guard",
+    items: [
+      {
+        type: "improve",
+        text: "OD-OCR-25 Track B: lean cloud body (_cloudLean) + kw-tenders-pipeline-guard · preserve-heavy merge · fail-closed guard/body protocol · flag pipelineCloudLeanGuardV1 (default OFF).",
+      },
+      {
+        type: "fix",
+        text: "Pipeline persist: local/cold FULL nie jest nadpisywany FULL przy cloud push · ikFinalBid parity przed zapisem guard.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.143",
     label: "IK — Owner ingest on V4 detail",
     items: [

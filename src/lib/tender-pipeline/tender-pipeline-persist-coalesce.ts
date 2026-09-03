@@ -6,8 +6,7 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { saveTendersPipeline, saveTendersPipelineLocal } from "@/lib/tenders-bzp";
 import { patchPipelineSessionCache } from "@/lib/tenders-pipeline-session-cache";
-import { persistKey } from "@/lib/cloud-sync";
-import { TENDERS_PIPELINE_KEY } from "@/lib/tenders-sync";
+import { pushTenderPipelineToCloud } from "@/lib/tender-pipeline/tender-pipeline-cloud-push";
 import { PipelineState } from "@/lib/tender-pipeline/tender-pipeline-types";
 import { isPipelinePerfDebouncePersistEnabled } from "@/lib/app-settings";
 
@@ -74,7 +73,7 @@ async function pushTenderPipelineCloudOnly(items: TenderPipelineItem[]): Promise
     await cloudPushOverrideForTests(items);
     return;
   }
-  await persistKey(TENDERS_PIPELINE_KEY, items);
+  await pushTenderPipelineToCloud(items);
 }
 
 export function getTenderPipelinePersistPending(): boolean {

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.144 — IK pipeline lean cloud + guard (2026-09-03)
+
+- **improve:** OD-OCR-25 Track B — `_cloudLean` marker · lean cloud strip · `kw-tenders-pipeline-guard` · `mergeKosztorysPreserveHeavy` / `mergeScanSummaryPreserveArtifacts` · fail-closed body/guard protocol
+- **fix:** `persistKey`/`saveTendersPipeline` — local/cold FULL preserved; cloud gets LEAN when `pipelineCloudLeanGuardV1` ON (default OFF)
+- Test: `test-ik-od-ocr-25-track-b-pipeline-lean-guard.mjs`
+
 ## 2.66.143 — IK Owner ingest on V4 detail (2026-09-03)
 
 - **fix:** `TenderDetailPage` (tab przetarg) — istniejący `TenderIngestImportPanel` z `activeItem={item}` · upload Owner PDF/ZIP bez list expandedId

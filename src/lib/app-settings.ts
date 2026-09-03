@@ -1,6 +1,7 @@
 /** Ustawienia aplikacji — sync w chmurze (Super Admin). */
 
 import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sync";
+import { APP_COMMIT } from "@/lib/app-version";
 
 export { APP_SETTINGS_KEY };
 
@@ -208,6 +209,25 @@ export interface AppSettings {
    * Default ON. Kill-switch OFF = legacy immediate cloud per patch (pre-01A).
    */
   pipelineBootstrapPersistLocal: boolean;
+  /**
+   * GLOBAL LABOR commercial margin policy (read-time).
+   * Used by resolveMarginPct when work.commercialPricing.marginPct is UNSET.
+   * Scope = LABOR only — callers must not pass this into material resolve paths.
+   * null = policy absent → labor Candidate/SELL GAP when local also UNSET.
+   * Owner GO 2026-08-30: default 25 (explicit policy, not copied from A01/paint).
+   * Does NOT batch-write commercialPricing onto workIds.
+   */
+  defaultLaborCommercialMarginPct: number | null;
+  /** OD-OCR-25 — lean cloud pipeline body + guard (default OFF). */
+  pipelineCloudLeanGuardV1: boolean;
+  /** OD-OCR-25 — minimum APP_COMMIT for pipeline write when lean+guard active. */
+  pipelineCloudLeanMinCommit: string;
+  /** OD-OCR-25 — resumable migration revision counter. */
+  pipelineCloudLeanMigrationRev: number;
+  /** OD-OCR-25 — one-time FULL→LEAN+guard migration complete. */
+  pipelineCloudLeanMigrationComplete: boolean;
+  /** OD-OCR-25 — rollback flag (legacy full-body cloud writes). */
+  pipelineCloudLeanRollback: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -244,7 +264,45 @@ export function defaultAppSettings(): AppSettings {
     pipelinePerfArtifactCache: false,
     pipelinePerfDiscoveryFork: false,
     pipelineBootstrapPersistLocal: true,
+    // Owner GO — GLOBAL LABOR commercial margin policy (explicit 25; ≠ A01/paint copy).
+    defaultLaborCommercialMarginPct: 25,
+    pipelineCloudLeanGuardV1: false,
+    pipelineCloudLeanMinCommit: "",
+    pipelineCloudLeanMigrationRev: 0,
+    pipelineCloudLeanMigrationComplete: false,
+    pipelineCloudLeanRollback: false,
   };
+}
+
+/** Owner-declared GLOBAL LABOR default (SSOT constant · same as defaultAppSettings). */
+export const OWNER_DEFAULT_LABOR_COMMERCIAL_MARGIN_PCT = 25 as const;
+
+/** Normalize settings field — null = policy absent; 0 is valid. */
+export function normalizeDefaultLaborCommercialMarginPct(
+  value: unknown,
+): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(1000, n));
+}
+
+/**
+ * Cloud-first merge for labor margin policy.
+ * Remote finite/null wins when key present; else local.
+ */
+export function mergeDefaultLaborCommercialMarginPct(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): number | null {
+  if (remote != null && Object.prototype.hasOwnProperty.call(remote, "defaultLaborCommercialMarginPct")) {
+    return normalizeDefaultLaborCommercialMarginPct(
+      remote.defaultLaborCommercialMarginPct,
+    );
+  }
+  return normalizeDefaultLaborCommercialMarginPct(
+    local.defaultLaborCommercialMarginPct,
+  );
 }
 
 /** NG11-Q3 — debounced persist pipeline (feature flag, default OFF). */
@@ -275,6 +333,28 @@ export function isPipelinePerfDiscoveryForkEnabled(): boolean {
 /** HARDENING-01A — bootstrap local mid-flight (default ON; kill-switch = false). */
 export function isPipelineBootstrapPersistLocalEnabled(): boolean {
   return loadAppSettingsLocal().pipelineBootstrapPersistLocal !== false;
+}
+
+/** OD-OCR-25 — lean cloud body + guard master flag (default OFF). */
+export function isPipelineCloudLeanGuardEnabled(): boolean {
+  const s = loadAppSettingsLocal();
+  if (s.pipelineCloudLeanRollback === true) return false;
+  return s.pipelineCloudLeanGuardV1 === true;
+}
+
+/** OD-OCR-25 — migration complete marker. */
+export function isPipelineCloudLeanMigrationComplete(): boolean {
+  return loadAppSettingsLocal().pipelineCloudLeanMigrationComplete === true;
+}
+
+/** OD-OCR-25 — client commit gate when lean+guard active. */
+export function isPipelineCloudLeanClientVersionAllowed(): boolean {
+  if (!isPipelineCloudLeanGuardEnabled()) return true;
+  if (!isPipelineCloudLeanMigrationComplete()) return true;
+  const min = loadAppSettingsLocal().pipelineCloudLeanMinCommit?.trim();
+  if (!min) return true;
+  if (APP_COMMIT === "unknown") return false;
+  return APP_COMMIT.localeCompare(min) >= 0;
 }
 
 /** Chmura ma pierwszeństwo — default true (C3: !== false). */
@@ -537,6 +617,27 @@ export function loadAppSettingsLocal(): AppSettings {
       pipelinePerfArtifactCache: parsed.pipelinePerfArtifactCache === true,
       pipelinePerfDiscoveryFork: parsed.pipelinePerfDiscoveryFork === true,
       pipelineBootstrapPersistLocal: parsed.pipelineBootstrapPersistLocal !== false,
+      defaultLaborCommercialMarginPct: Object.prototype.hasOwnProperty.call(
+        parsed,
+        "defaultLaborCommercialMarginPct",
+      )
+        ? normalizeDefaultLaborCommercialMarginPct(
+            parsed.defaultLaborCommercialMarginPct,
+          )
+        : d.defaultLaborCommercialMarginPct,
+      pipelineCloudLeanGuardV1: parsed.pipelineCloudLeanGuardV1 === true,
+      pipelineCloudLeanMinCommit:
+        typeof parsed.pipelineCloudLeanMinCommit === "string"
+          ? parsed.pipelineCloudLeanMinCommit
+          : d.pipelineCloudLeanMinCommit,
+      pipelineCloudLeanMigrationRev: numSetting(
+        parsed.pipelineCloudLeanMigrationRev,
+        d.pipelineCloudLeanMigrationRev,
+        0,
+        1_000_000,
+      ),
+      pipelineCloudLeanMigrationComplete: parsed.pipelineCloudLeanMigrationComplete === true,
+      pipelineCloudLeanRollback: parsed.pipelineCloudLeanRollback === true,
     };
   } catch {
     return defaultAppSettings();
@@ -630,5 +731,35 @@ export function mergeAppSettings(
           ? false
           : local.pipelinePerfDiscoveryFork === true,
     pipelineBootstrapPersistLocal: mergePipelineBootstrapPersistLocal(remote, local),
+    defaultLaborCommercialMarginPct: mergeDefaultLaborCommercialMarginPct(
+      remote,
+      local,
+    ),
+    pipelineCloudLeanGuardV1:
+      remote?.pipelineCloudLeanGuardV1 === true
+        ? true
+        : remote?.pipelineCloudLeanGuardV1 === false
+          ? false
+          : local.pipelineCloudLeanGuardV1 === true,
+    pipelineCloudLeanMinCommit:
+      typeof remote?.pipelineCloudLeanMinCommit === "string"
+        ? remote.pipelineCloudLeanMinCommit
+        : local.pipelineCloudLeanMinCommit,
+    pipelineCloudLeanMigrationRev:
+      remote?.pipelineCloudLeanMigrationRev != null
+        ? numSetting(remote.pipelineCloudLeanMigrationRev, local.pipelineCloudLeanMigrationRev, 0, 1_000_000)
+        : local.pipelineCloudLeanMigrationRev,
+    pipelineCloudLeanMigrationComplete:
+      remote?.pipelineCloudLeanMigrationComplete === true
+        ? true
+        : remote?.pipelineCloudLeanMigrationComplete === false
+          ? false
+          : local.pipelineCloudLeanMigrationComplete === true,
+    pipelineCloudLeanRollback:
+      remote?.pipelineCloudLeanRollback === true
+        ? true
+        : remote?.pipelineCloudLeanRollback === false
+          ? false
+          : local.pipelineCloudLeanRollback === true,
   };
 }

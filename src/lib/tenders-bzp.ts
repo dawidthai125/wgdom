@@ -162,6 +162,8 @@ export interface TenderPipelineItem {
   retention?: import("@/lib/tender-ingest/types").TenderIngestRetention;
   /** INGEST-01 — BIP / source URLs declared by Owner. */
   sourceUrls?: string[];
+  /** OD-OCR-25 — additive lean cloud marker (omitted ≠ deleted). */
+  _cloudLean?: import("@/lib/tender-pipeline/tender-pipeline-cloud-lean").TenderPipelineCloudLeanMarker;
 }
 
 /** INGEST-01 — re-export pin helpers (additive; no PL02 change). */
@@ -729,7 +731,10 @@ export async function removeTenderFromPipeline(
 export async function saveTendersPipeline(items: TenderPipelineItem[]): Promise<void> {
   saveTendersPipelineLocal(items);
   patchPipelineSessionCache(items);
-  await persistKey(TENDERS_PIPELINE_KEY, items);
+  const { pushTenderPipelineToCloud } = await import(
+    "@/lib/tender-pipeline/tender-pipeline-cloud-push"
+  );
+  await pushTenderPipelineToCloud(items);
 }
 
 export const TENDER_STATUS_LABELS: Record<TenderPipelineStatus, string> = {
