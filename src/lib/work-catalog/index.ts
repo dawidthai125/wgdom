@@ -460,12 +460,6 @@ export {
 } from "@/lib/work-catalog/work-rate-qualify";
 
 export {
-  OWNER_WORK_RATE_RESEARCH_UNIT_EQUIV,
-  ownerWorkRateResearchUnitEquivAllows,
-  type OwnerWorkRateResearchUnitEquivRule,
-} from "@/lib/work-catalog/work-rate-owner-research-unit-equiv";
-
-export {
   WORK_RATE_ALLOWED_HOSTS,
   WORK_RATE_CANONICAL_CENNIK_URL,
   buildWorkRateFixtureHtml,
