@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.141",
+    label: "IK — Intra-PDF derived cost documents (C2 CONNECT)",
+    items: [
+      {
+        type: "new",
+        text: "OCR B1 → opcjonalny CONNECT: N derived cost documents (parentDocumentId + pageRange 0-based + derived_cost_segment) → istniejący Multi-BOQ. Bez nowego parsera/Experta/Orchestra.",
+      },
+      {
+        type: "improve",
+        text: "Artifact bridge: jawny branch??inferBranchHint(filename) — LP restart KEEP BOTH przy osobnych derived docs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.140",
     label: "IK — OCR B1 PSM 11 SPARSE_TEXT",
     items: [

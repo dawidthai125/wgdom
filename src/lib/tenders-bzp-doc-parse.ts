@@ -25,6 +25,7 @@ import { list7zFiles, pickBestFrom7zBytes, read7zEntry } from "@/lib/wgdom-7z-ar
 import { isPdfPrzedmiarCostFilename } from "@/lib/tender-cost-discovery";
 import { scoreCostDocumentFromXlsxBytes, isOfferFormXlsxBytes } from "@/lib/tender-cost-content-detection";
 import { pdfPrzedmiarHeuristicToPreview } from "@/lib/pdf-przedmiar-heuristic";
+import { connectIntraPdfDerivedCostDocuments } from "@/lib/tender-ingest/derived-cost-segment";
 import { recordTenderPdfExtract, recordTenderZipLoad } from "@/lib/tender-pipeline-metrics";
 import {
   analyzeDocumentIntelligence,
@@ -472,6 +473,16 @@ export type ParseDocumentToKosztorysOpts = {
   forcePdfPrzedmiar?: boolean;
   /** Optional precomputed DI; when omitted, Phase A runs DI on extracted PDF text. */
   documentIntelligence?: DocumentIntelligenceResult | null;
+  /**
+   * OD-OCR-15 C2 — optional Intra-PDF derived-document CONNECT after trusted OCR.
+   * Does not change AthPreview return (structure authority still whole-text heuristic here).
+   * Side-effect: register D1..Dn + artifacts when ACCEPT; Owner Map remains Owner gate.
+   */
+  intraPdfDerived?: {
+    tenderId: string;
+    parentDocumentId: string;
+    parentDisplayName?: string;
+  };
 };
 
 /**
@@ -482,6 +493,7 @@ async function pdfPrzedmiarPreviewWithOcrB1(
   bytes: Uint8Array,
   filename: string,
   extract: PdfTextExtractResult,
+  intraPdfDerived?: ParseDocumentToKosztorysOpts["intraPdfDerived"],
 ): Promise<AthPreviewResult> {
   const { text, likelyScan, noTextLayer, extractError } = extract;
   const baseOpts = { likelyScan, noTextLayer, extractError };
@@ -518,11 +530,38 @@ async function pdfPrzedmiarPreviewWithOcrB1(
     });
   }
 
+  // OD-OCR-15 C2 — optional derived CONNECT (ACCEPT/HOLD). Fail-soft: never blocks AthPreview.
+  const derivedWarnings: string[] = [];
+  if (intraPdfDerived?.tenderId && intraPdfDerived?.parentDocumentId) {
+    try {
+      const connected = await connectIntraPdfDerivedCostDocuments({
+        tenderId: intraPdfDerived.tenderId,
+        parentDocumentId: intraPdfDerived.parentDocumentId,
+        parentDisplayName: intraPdfDerived.parentDisplayName ?? filename,
+        ocr,
+      });
+      if (connected.status === "accepted") {
+        derivedWarnings.push(
+          `INTRA_PDF_DERIVED_ACCEPTED:${connected.derivedDocumentIds.length}`,
+        );
+      } else {
+        derivedWarnings.push(
+          `INTRA_PDF_DERIVED_HOLD:${connected.warnings.slice(0, 3).join("|") || "hold"}`,
+        );
+      }
+    } catch (e) {
+      derivedWarnings.push(
+        `INTRA_PDF_DERIVED_ERROR:${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+  }
+
   // Trusted OCR text evidence → heuristic WITHOUT scan short-circuit flags
+  // (whole-document AthPreview KEEP for B1 callers; Multi-BOQ uses derived artifacts).
   return pdfPrzedmiarHeuristicToPreview(ocr.documentText, filename, {
     extractionMethod: "ocr",
     ocrConfidence: ocr.ocrConfidence,
-    extraWarnings: ocr.warnings,
+    extraWarnings: [...ocr.warnings, ...derivedWarnings],
   });
 }
 
@@ -551,7 +590,7 @@ export async function parseDocumentToKosztorys(
   const { text, noTextLayer } = extract;
 
   if (isPdfPrzedmiarCostFilename(filename) || opts?.forcePdfPrzedmiar === true) {
-    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract);
+    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract, opts?.intraPdfDerived);
   }
 
   const di =
@@ -565,7 +604,7 @@ export async function parseDocumentToKosztorys(
     });
 
   if (shouldForcePdfPrzedmiarParse(di)) {
-    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract);
+    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract, opts?.intraPdfDerived);
   }
 
   return null;

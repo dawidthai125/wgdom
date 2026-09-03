@@ -56,6 +56,22 @@ export { processIngestParseBatch, recordIngestArtifact } from "@/lib/tender-inge
 export { applyIngestArtifactsToPipelineItem } from "@/lib/tender-ingest/artifact-bridge";
 export { ingestOwnerFileList, ingestOwnerBrowserFiles } from "@/lib/tender-ingest/owner-files";
 export {
+  normalizeSegmentText,
+  computeDerivedSegmentContentHash,
+  joinOcrPagesText,
+  proposeIntraPdfCostSegments,
+  acceptIntraPdfCostSegments,
+  registerDerivedCostDocument,
+  connectIntraPdfDerivedCostDocuments,
+} from "@/lib/tender-ingest/derived-cost-segment";
+export type {
+  DerivedSegmentSignal,
+  SegmentProposalStatus,
+  IntraPdfSegmentProposal,
+  IntraPdfSegmentationResult,
+} from "@/lib/tender-ingest/derived-cost-segment";
+export type { TenderDocumentSource, TenderIngestArtifactRef } from "@/lib/tender-ingest/types";
+export {
   isPathTraversalName,
   assertSingleFileSize,
   assertZipEntrySafe,

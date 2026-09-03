@@ -120,6 +120,8 @@ export function recordIngestArtifact(opts: {
   filename: string;
   contentHash: string;
   snapshot: TenderKosztorysSnapshot;
+  /** OD-OCR-15 — explicit branch for derived segments (optional for legacy). */
+  branch?: import("@/lib/cost-multi-01-types").BranchCode;
 }): TenderIngestState {
   const state = getIngestState(opts.tenderId);
   if (!state) throw new Error("INGEST_STATE_MISSING");
@@ -134,6 +136,7 @@ export function recordIngestArtifact(opts: {
     filename: opts.filename,
     contentHash: opts.contentHash,
     snapshot: opts.snapshot,
+    ...(opts.branch ? { branch: opts.branch } : {}),
   };
   if (existing >= 0) artifacts[existing] = ref;
   else artifacts.push(ref);

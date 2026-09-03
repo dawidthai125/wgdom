@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.141 — IK Intra-PDF derived cost documents C2 (2026-09-03)
+
+- **new:** `tender-ingest/derived-cost-segment.ts` — OCR pages → ACCEPT/HOLD → N `derived_cost_segment` + heuristic per segment + artifacts
+- **improve:** C2 lineage (`parentDocumentId`, `startPageIndex`/`endPageIndex` 0-based) · artifact `branch` · bridge prefer explicit branch
+- Optional `parseDocumentToKosztorys({ intraPdfDerived })` side-effect CONNECT; Owner Map bez auto-assign
+- Test: `test-ik-ocr-c2-derived-docs.mjs` · bez nowego parsera/Experta/Orchestra/Multi-BOQ redesign
+
 ## 2.66.140 — IK OCR B1 PSM 11 SPARSE_TEXT (2026-09-03)
 
 - **improve:** `ocr-browser-local` — `setParameters({ tessedit_pageseg_mode: "11" })` (OD-OCR-10)

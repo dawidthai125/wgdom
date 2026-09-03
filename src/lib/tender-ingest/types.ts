@@ -13,7 +13,9 @@ export type TenderDocumentSource =
   | "bzp"
   | "external"
   | "owner_upload"
-  | "archive_inner";
+  | "archive_inner"
+  /** OD-OCR-15 C2 — logical cost segment of a physical PDF (≠ upload, ≠ ZIP child). */
+  | "derived_cost_segment";
 
 export type TenderDocumentClassHint =
   | "COST"
@@ -68,11 +70,20 @@ export interface TenderIngestDocument {
   mimeType: string;
   size: number;
   originReference?: string;
+  /** ZIP child → archiveId only. NOT parent PDF documentId. */
   parentArchiveId?: string;
+  /**
+   * OD-OCR-15 C2 — physical parent documentId for derived_cost_segment.
+   * Absent on physical/root docs. Orthogonal to parentArchiveId.
+   */
+  parentDocumentId?: string;
+  /** 0-based inclusive — matches IkOcrPageResult.pageIndex. Lineage only ≠ BOQ identity. */
+  startPageIndex?: number;
+  endPageIndex?: number;
   ingestStatus: TenderDocumentIngestStatus;
   classHint: TenderDocumentClassHint;
   parseStatus: "none" | "queued" | "parsed" | "failed" | "skipped";
-  /** Bytes kept in-memory for owner path (not persisted to LS). */
+  /** Bytes kept in-memory for owner path (not persisted to LS). Derived segments: omit (no PDF byte dup). */
   bytes?: Uint8Array;
   publicUrl?: string;
   warnings: string[];
@@ -83,6 +94,8 @@ export interface TenderIngestArtifactRef {
   filename: string;
   contentHash: string;
   snapshot: TenderKosztorysSnapshot;
+  /** Explicit branch (required for derived segments). Filename inference remains fallback. */
+  branch?: import("@/lib/cost-multi-01-types").BranchCode;
 }
 
 export interface TenderIngestState {

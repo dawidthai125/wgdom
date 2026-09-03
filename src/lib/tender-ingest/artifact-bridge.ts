@@ -18,7 +18,7 @@ export function applyIngestArtifactsToPipelineItem(
   const fromIngest: CostBranchArtifact[] = state.artifacts.map((a) => ({
     filename: a.filename,
     documentId: a.documentId,
-    branch: inferBranchHint(a.filename),
+    branch: a.branch ?? inferBranchHint(a.filename),
     snapshot: a.snapshot,
   }));
 
